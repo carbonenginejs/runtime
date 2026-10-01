@@ -4,6 +4,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
+import { Tr2GrannyAnimation } from "../../npm/dist/trinity/core/animation/Tr2GrannyAnimation.js";
 import {
   EveEffectRoot2,
   EveEntity,
@@ -892,6 +894,195 @@ test("EveSpaceObject2 locator transforms resolve by name with animated-bone prio
     }
   };
   assertVecNear(Array.from(object.GetLocatorTransform("locator_attach_a01")).slice(12, 15), [4, 5, 6]);
+});
+
+// The same CPU resource shape exercised in granny-animation.test.js, with mesh
+// bindings deliberately reversed from skeleton order. This is an authored API
+// fixture, not a claim that a real turret mounting asset has been qualified.
+function createLocatorAnimationFixture(t)
+{
+  const orientation = [0, 0, Math.SQRT1_2, Math.SQRT1_2];
+  const scaleShear = [2, 0, 0, 0, 3, 0, 0, 0, 4];
+  const identityRotation = [0, 0, 0, 1];
+  const identityScale = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+  const curve = (knots, controls, dimension, degree = 1) => ({ knots, controls, dimension, degree });
+  const animation = new Tr2GrannyAnimation();
+  animation.model_ = "LocatorShip";
+  assert.equal(animation.SetGrannyResource({
+    models: [{
+      name: "LocatorShip",
+      skeleton: { bones: [
+        { name: "joint_only", parentIndex: -1, position: [0, 0, 0], orientation, scaleShear },
+        { name: "shared", parentIndex: 0, position: [0, 2, 0], orientation: identityRotation, scaleShear: identityScale }
+      ] },
+      meshBindings: [0]
+    }],
+    meshes: [{ boneBindings: [{ name: "shared" }, { name: "joint_only" }] }],
+    animations: [{
+      name: "Move",
+      duration: 2,
+      trackGroups: [{
+        name: "LocatorShip",
+        transformTracks: [{
+          name: "joint_only",
+          position: curve([0, 2], [0, 0, 0, 10, 0, 0], 3),
+          orientation: curve([0], orientation, 4, 0),
+          scaleShear: curve([0], scaleShear, 9, 0)
+        }, {
+          name: "shared",
+          position: curve([0, 2], [0, 2, 0, 0, 4, 0], 3),
+          orientation: curve([0], identityRotation, 4, 0),
+          scaleShear: curve([0], identityScale, 9, 0)
+        }]
+      }]
+    }]
+  }), true);
+  t.after(() => animation.ClearAnimations());
+
+  const object = new EveSpaceObject2();
+  object.animationUpdater = animation;
+  for (const name of ["shared", "static_only"])
+  {
+    const locator = new EveLocator2();
+    locator.SetName(name);
+    locator.transform.set([0, 2, 0, 0, -3, 0, 0, 0, 0.5, 0, 4, 0, 13, 17, 19, 1]);
+    object.locators.push(locator);
+  }
+  return { object, animation };
+}
+
+test("EveSpaceObject2 publishes its qualified native locator enum", () =>
+{
+  const values = EveSpaceObject2.LocatorType;
+  assert.deepEqual(values, { ELT_TRANSFORM: 0, ELT_JOINT: 1, ELT_COUNT: 2 });
+  assert.equal(Object.isFrozen(values), true);
+  assert.equal(blue.enums.GetEnum("trinity.EveSpaceObject2.LocatorType"), values);
+  const info = blue.enums.GetEnumInfo("trinity.EveSpaceObject2.LocatorType");
+  assert.equal(info.source, "trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h");
+  assert.equal(info.line, 263);
+  assert.equal(info.exposedName, undefined, "the native header enum has no invented Blue module alias");
+  assert.equal(blue.enums.HasEnum("EveSpaceObject2.LocatorType"), false);
+  assert.equal(blue.enums.HasEnum("LocatorType"), false);
+});
+
+test("EveSpaceObject2 counts authored locator prefixes and preserves exact first-match lookup", t =>
+{
+  const { object } = createLocatorAnimationFixture(t);
+  object.locators.length = 0;
+  for (const name of ["mount_a", "mount_b", "Mount_a", "other_mount", "mount_a"])
+  {
+    const locator = new EveLocator2();
+    locator.SetName(name);
+    object.locators.push(locator);
+  }
+  for (const prefix of [undefined, null, ""]) assert.equal(object.CountLocatorsByPrefix(prefix), 5);
+  assert.equal(object.CountLocatorsByPrefix("mount_"), 3);
+  assert.equal(object.CountLocatorsByPrefix("mount_a"), 2);
+  assert.equal(object.CountLocatorsByPrefix("Mount_"), 1);
+  assert.equal(object.CountLocatorsByPrefix("_mount"), 0);
+  assert.equal(object.CountLocatorsByPrefix("joint_only"), 0, "skeleton names are not authored locators");
+  const indexOut = { index: 99 };
+  assert.equal(object.FindLocatorTransformByName("mount_a", indexOut), true);
+  assert.equal(indexOut.index, 0, "EveSpaceObject2.cpp:1379-1392 returns the first exact match");
+  assert.equal(object.FindLocatorTransformByName("MOUNT_A", indexOut), false);
+  assert.equal(indexOut.index, 0, "failed lookup must not clear the caller's previous index");
+});
+
+test("EveSpaceObject2 determines locator types with joint priority and unchanged miss holders", t =>
+{
+  const { object, animation } = createLocatorAnimationFixture(t);
+  const { ELT_TRANSFORM, ELT_JOINT, ELT_COUNT } = EveSpaceObject2.LocatorType;
+  assert.deepEqual(animation.GetAnimationBoneList(), ["joint_only", "shared"]);
+  const indexOut = { index: 99 };
+  assert.equal(object.FindLocatorTransformByName("shared", indexOut), true);
+  assert.equal(indexOut.index, 0);
+  assert.equal(object.FindLocatorJointByName("shared", indexOut), true);
+  assert.equal(indexOut.index, 1, "skeleton index, despite shared being mesh binding zero");
+  assert.equal(object.DetermineLocatorType("shared", indexOut), ELT_JOINT);
+  assert.equal(indexOut.index, 1, "EveSpaceObject2.cpp:1362 gives the joint priority over the authored locator");
+  assert.equal(object.DetermineLocatorType("joint_only", indexOut), ELT_JOINT);
+  assert.equal(indexOut.index, 0, "joint index zero remains valid without an authored locator");
+  assert.equal(object.DetermineLocatorType("static_only", indexOut), ELT_TRANSFORM);
+  assert.equal(indexOut.index, 1);
+  for (const name of ["missing", "Shared", "JOINT_ONLY"])
+  {
+    indexOut.index = 57;
+    assert.equal(object.FindLocatorTransformByName(name, indexOut), false);
+    assert.equal(indexOut.index, 57);
+    assert.equal(object.FindLocatorJointByName(name, indexOut), false);
+    assert.equal(indexOut.index, 57);
+    assert.equal(object.DetermineLocatorType(name, indexOut), ELT_COUNT);
+    assert.equal(indexOut.index, 57);
+  }
+  object.animationUpdater = null;
+  assert.equal(object.FindLocatorJointByName("joint_only", indexOut), false);
+  assert.equal(indexOut.index, 57);
+  assert.equal(object.DetermineLocatorType("shared", indexOut), ELT_TRANSFORM);
+  assert.equal(indexOut.index, 0);
+});
+
+test("EveSpaceObject2 typed locator transforms use current skeleton world matrices and copy outputs", t =>
+{
+  const { object, animation } = createLocatorAnimationFixture(t);
+  const { ELT_TRANSFORM, ELT_JOINT } = EveSpaceObject2.LocatorType;
+  const authored = Array.from(object.locators[0].GetTransform());
+  const out = mat4.create();
+  assert.equal(object.GetLocatorTransform(ELT_TRANSFORM, 0, out), out);
+  assertVecNear(out, authored);
+  const detached = object.GetLocatorTransform(ELT_TRANSFORM, 0);
+  assert.notEqual(detached, object.locators[0].GetTransform());
+  detached[12] = 999;
+  assertVecNear(object.locators[0].GetTransform(), authored);
+
+  assert.equal(animation.PlayAnimation("Move", true, 0, 0, 1, false), true);
+  animation.Update(0);
+  const expectedWorld = x => [0, 2, 0, 0, -3, 0, 0, 0, 0, 0, 4, 0, x, 0, 0, 1];
+  assertVecNear(object.GetLocatorTransform(ELT_JOINT, 1), expectedWorld(-6), 1e-5);
+  animation.Update(1);
+  assert.equal(object.GetLocatorTransform(ELT_JOINT, 1, out), out);
+  assertVecNear(out, expectedWorld(-4), 1e-5);
+  assertVecNear(object.GetLocatorTransform(ELT_JOINT, 0), expectedWorld(5), 1e-5);
+  assert.equal(animation.GetMeshBoneCount(), 2);
+  const palette = animation.GetMeshBoneMatrixList();
+  assert.ok(Math.abs(palette[3] - 2) < 1e-5, "mesh binding zero is the shared joint's bind-relative matrix");
+  assert.ok(Math.abs(palette[15] - 5) < 1e-5, "mesh binding one is the root, not skeleton joint one");
+
+  assert.equal(object.GetLocatorTransform("shared", out), out);
+  assertVecNear(out, expectedWorld(-4), 1e-5);
+  assertVecNear(object.GetLocatorTransform("static_only"), authored);
+  // GetEveLocatorTransform requires an authored locator even when a bone exists.
+  assertVecNear(object.GetLocatorTransform("joint_only"), mat4.create());
+  assertVecNear(object.GetLocatorTransform("missing"), mat4.create());
+  out[12] = 777;
+  assertVecNear(object.GetLocatorTransform(ELT_JOINT, 1), expectedWorld(-4), 1e-5);
+});
+
+test("EveSpaceObject2 typed locator misses leave output matrices untouched", t =>
+{
+  const { object } = createLocatorAnimationFixture(t);
+  const { ELT_TRANSFORM, ELT_JOINT, ELT_COUNT } = EveSpaceObject2.LocatorType;
+  const out = mat4.create();
+  out.set([2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53]);
+  const unchanged = Array.from(out);
+  for (const type of [ELT_TRANSFORM, ELT_JOINT])
+  {
+    for (const index of [-1, 0.5, 2, 1000, NaN, Infinity, "0", null, undefined])
+    {
+      assert.equal(object.GetLocatorTransform(type, index, out), null, `${type}/${String(index)}`);
+      assert.deepEqual(Array.from(out), unchanged);
+    }
+  }
+  for (const type of [ELT_COUNT, -1, 0.5, NaN, Infinity])
+  {
+    assert.equal(object.GetLocatorTransform(type, 0, out), null);
+    assert.deepEqual(Array.from(out), unchanged);
+  }
+  object.animationUpdater = null;
+  assert.equal(object.GetLocatorTransform(ELT_JOINT, 0, out), null);
+  assert.deepEqual(Array.from(out), unchanged);
+  object.animationUpdater = new Tr2GrannyAnimation();
+  assert.equal(object.GetLocatorTransform(ELT_JOINT, 0, out), null);
+  assert.deepEqual(Array.from(out), unchanged);
 });
 
 test("EveSpaceObject2 bounds follow Carbon dynamic-sphere and cached-box rules", () =>

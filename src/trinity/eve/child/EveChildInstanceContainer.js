@@ -18,6 +18,7 @@ import { blue } from "#blue";
 
 /** A child that instantiates a source template across a list of authored or locator-driven transforms, forwarding controller and registration calls to the instances. */
 @type.define({ className: "EveChildInstanceContainer", family: "eve/child" })
+@carbon.mapInterface(EveEntity)
 export class EveChildInstanceContainer extends EveChildTransform
 {
 
@@ -323,6 +324,19 @@ export class EveChildInstanceContainer extends EveChildTransform
   StartControllers()
   {
     this._RunOnInstances(instance => instance.StartControllers());
+  }
+
+  /**
+   * Forwards a shader option to the instances, or to the editable source when
+   * no instances exist (Carbon EveChildInstanceContainer.cpp:490-493).
+   * @param {string} name Shader option name.
+   * @param {string} value Shader option value.
+   */
+  @carbon.method
+  @impl.implemented
+  SetShaderOption(name, value)
+  {
+    this._RunOnInstances(instance => instance.SetShaderOption(name, value));
   }
 
   /** Carbon EveChildInstanceContainer::RunOnInstances (cpp:318-331): with no

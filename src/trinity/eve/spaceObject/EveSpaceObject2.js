@@ -2,7 +2,8 @@
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2.cpp
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2_Blue.cpp
 import "#blue/registerTrinityEnums";
-import { CjsSchema, carbon, impl, edit, type } from "#schema";
+import { CjsSchema, carbon, impl, edit, type, meta } from "#schema";
+import { blue } from "#blue";
 import { IInitialize } from "#blue/IInitialize";
 import { INotify } from "#blue/INotify";
 import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
@@ -3287,20 +3288,128 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /**
-   * Gets a named locator's transform (Carbon script GetLocatorTransform maps
-   * to GetEveLocatorTransform): the identity for unknown names, the animated
-   * bone world transform when the animation updater resolves the name, else
-   * the authored locator transform.
+   * Counts authored locators whose names start with the case-sensitive prefix.
+   * JS null or an omitted prefix represents Carbon's null pointer; an empty
+   * prefix also matches every authored locator. Animation bones are not counted.
+   * @param {string|null} [prefix]
+   * @returns {number}
    */
-  @carbon.method
-  @impl.adapted
-  GetLocatorTransform(name, out = mat4.create())
+  @meta.carbon.method
+  @meta.impl.adapted
+  CountLocatorsByPrefix(prefix)
   {
-    const target = String(name ?? "");
+    if (prefix == null || prefix === "") return this.locators.length;
+    let count = 0;
+    for (const locator of this.locators)
+    {
+      if (locator.GetName().startsWith(prefix)) count++;
+    }
+    return count;
+  }
+
+  /**
+   * Finds the first authored locator with this exact, case-sensitive name.
+   * JS represents Carbon's reference out parameter with caller-owned indexOut;
+   * indexOut.index is written only when the method returns true.
+   * @param {string} name
+   * @param {{index: number}} indexOut
+   * @returns {boolean}
+   */
+  @meta.carbon.method
+  @meta.impl.adapted
+  FindLocatorTransformByName(name, indexOut)
+  {
+    for (let index = 0; index < this.locators.length; index++)
+    {
+      if (this.locators[index].GetName() === name)
+      {
+        indexOut.index = index;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Finds a name in the animation skeleton's bone order, not its mesh palette.
+   * JS writes Carbon's reference out parameter to caller-owned indexOut.index
+   * only on success, using the animation updater's public bone-name list.
+   * @param {string} name
+   * @param {{index: number}} indexOut
+   * @returns {boolean}
+   */
+  @meta.carbon.method
+  @meta.impl.adapted
+  FindLocatorJointByName(name, indexOut)
+  {
+    if (!this.animationUpdater) return false;
+    const index = this.animationUpdater.GetAnimationBoneList().indexOf(name);
+    if (index === -1) return false;
+    indexOut.index = index;
+    return true;
+  }
+
+  /**
+   * Selects an animation joint before an authored locator, or ELT_COUNT on miss.
+   * JS carries Carbon's reference out parameter in caller-owned indexOut.index;
+   * a miss leaves it unchanged.
+   * @param {string} name
+   * @param {{index: number}} indexOut
+   * @returns {number} A member of EveSpaceObject2.LocatorType.
+   */
+  @meta.carbon.method
+  @meta.impl.adapted
+  DetermineLocatorType(name, indexOut)
+  {
+    if (this.FindLocatorJointByName(name, indexOut)) return EveSpaceObject2.LocatorType.ELT_JOINT;
+    if (this.FindLocatorTransformByName(name, indexOut)) return EveSpaceObject2.LocatorType.ELT_TRANSFORM;
+    return EveSpaceObject2.LocatorType.ELT_COUNT;
+  }
+
+  /**
+   * Copies a locator transform by name or by LocatorType and index.
+   * JS combines native typed GetLocatorTransform with script GetEveLocatorTransform
+   * under this existing method name, dispatching by the first argument's type.
+   * It copies the native matrix value/pointer into a supplied or newly allocated
+   * matrix instead of returning a borrowed pointer.
+   * The named script form (GetEveLocatorTransform) requires an authored locator
+   * before a matching bone can override it; unknown names return the identity.
+   * The numeric form returns null on miss without changing out. As a JS bounds
+   * adaptation, invalid indices and out-of-range authored indices return null;
+   * Carbon's authored path indexes unchecked. JS indices are not coerced into
+   * Carbon's unsigned index.
+   * @param {string|number} nameOrType Name or EveSpaceObject2.LocatorType.
+   * @param {mat4|number} [indexOrOut] Named output matrix or numeric locator index.
+   * @param {mat4} [out] Output matrix for the numeric overload.
+   * @returns {mat4|null}
+   */
+  @meta.carbon.method
+  @meta.impl.adapted
+  GetLocatorTransform(nameOrType, indexOrOut, out)
+  {
+    if (typeof nameOrType === "number")
+    {
+      const index = indexOrOut;
+      if (!Number.isInteger(index) || index < 0) return null;
+      switch (nameOrType)
+      {
+        case EveSpaceObject2.LocatorType.ELT_TRANSFORM:
+          if (index >= this.locators.length) return null;
+          return mat4.copy(out ?? mat4.create(), this.locators[index].GetTransform()); // alloc: With no output supplied, the returned matrix belongs to the caller.
+        case EveSpaceObject2.LocatorType.ELT_JOINT:
+          if (!this.animationUpdater) return null;
+          return this.animationUpdater.GetBoneTransform(index, out ?? mat4.create()) || null; // alloc: With no output supplied, the returned matrix belongs to the caller.
+        default:
+          return null;
+      }
+    }
+
+    const result = indexOrOut ?? mat4.create(); // alloc: With no output supplied, the returned matrix belongs to the caller.
+    const target = String(nameOrType ?? "");
     let locator = null;
     for (const candidate of this.locators)
     {
-      if (candidate?.GetName?.() === target)
+      if (candidate.GetName() === target)
       {
         locator = candidate;
         break;
@@ -3308,13 +3417,13 @@ export class EveSpaceObject2 extends EveEntity
     }
     if (!locator)
     {
-      return mat4.identity(out);
+      return mat4.identity(result);
     }
-    if (this.animationUpdater?.GetBoneWorldTransform?.(target, out))
+    if (this.animationUpdater && this.animationUpdater.GetBoneWorldTransform(target, result))
     {
-      return out;
+      return result;
     }
-    return mat4.copy(out, locator.GetTransform());
+    return mat4.copy(result, locator.GetTransform());
   }
 
   /**
@@ -4191,5 +4300,16 @@ export class EveSpaceObject2 extends EveEntity
 
   static ImpactConfiguration = ImpactConfiguration;
 
+  /** Carbon's authored-transform, skeleton-joint and missing-locator tags. */
+  static LocatorType = Object.freeze({
+    ELT_TRANSFORM: 0,
+    ELT_JOINT: 1,
+    ELT_COUNT: 2
+  });
+
 }
+
+blue.enums.RegisterEnum("trinity.EveSpaceObject2.LocatorType", EveSpaceObject2.LocatorType, {
+  source: "trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h", family: "eve/spaceObject", line: 263
+});
 
