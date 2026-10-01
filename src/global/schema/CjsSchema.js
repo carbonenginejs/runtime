@@ -15,7 +15,7 @@ import { carbonInheritDecorator, carbonMapInterfaceDecorator, carbonInterfaceTab
 import { composeValuesDecorator, createValuesTransport, isExportableField, isWritableField } from "../compose/values.js";
 import { blueEnums, CjsBlueEnumRegistry } from "../blue/enums/CjsBlueEnumRegistry.js";
 import { TriSettingNames } from "../consts/trinity.js";
-import { registerClass, unregisterClass, getRegisteredConstructor, getClassRegistrationRevision } from "../blue/classes/registry.js";
+import { registerClass, unregisterClass, getRegisteredConstructor, getClassRegistrationRevision, ClassRegistrarNullFactory } from "../blue/classes/registry.js";
 
 
 const CLASS_SCHEMA = new WeakMap();
@@ -104,7 +104,15 @@ export const CJS_MODEL_BRAND = Symbol.for("carbonenginejs.model");
  */
 export class CjsSchema
 {
-    /** Registers complete reviewed schema metadata for a constructor. */
+    /**
+     * Registers complete reviewed schema metadata for a constructor.
+     * An own `abstract: true` declaration registers this definition's names with
+     * Carbon's refusal factory and DISABLE_PYTHON_CONSTRUCTION flag. It leaves
+     * the constructor callable and does not make subclasses abstract. Existing
+     * registrations keep their original factory under the first-wins rule.
+     * This option is shared by meta.define/type.define; it does not govern
+     * readers or other callers that construct directly from the type identity.
+     */
     static define(Constructor, definition = {})
     {
         defineClassMetadata(Constructor, normalizeClassDefinition(Constructor, definition));
@@ -1535,8 +1543,9 @@ function classDefinitionDecorator(definition)
         if (context && typeof context === "object")
         {
             if (context.kind !== "class") throw new TypeError("CjsSchema type.define only supports classes.");
+            const normalized = normalizeClassDefinition(value, definition);
             registerStage3FieldMetadata(value, context.metadata);
-            defineClassMetadata(value, normalizeClassDefinition(value, definition));
+            defineClassMetadata(value, normalized);
             return;
         }
 
@@ -1898,6 +1907,7 @@ function defineClassMetadata(Constructor, definition)
     if (definition.carbon) schema.carbon = definition.carbon;
     if (definition.modelledOn) schema.modelledOn = definition.modelledOn;
     if (definition.aliases) schema.aliases = [...definition.aliases];
+    if (Object.hasOwn(definition, "abstract")) schema.abstract = definition.abstract;
 
     for (const field of definition.fields || [])
     {
@@ -2327,6 +2337,7 @@ function mergeMemberMetadata(target, source)
  * @property {Array<object>} properties Live declarations, derived class first, without name merging.
  * @property {Array<object>} [methods] Method provenance metadata.
  * @property {string} [family] Registered schema family.
+ * @property {boolean} [abstract] This class's explicit registration policy, never inherited. Existing name registrations may retain another factory.
  */
 function buildClassInfo(Constructor, namespaces)
 {
@@ -2394,6 +2405,8 @@ function buildClassInfo(Constructor, namespaces)
     {
         result.aliases = [ ...schema.aliases ];
     }
+
+    if (typeof schema?.abstract === "boolean") result.abstract = schema.abstract;
 
     if (methods.length) result.methods = methods;
 
@@ -2671,6 +2684,10 @@ function normalizeClassDefinition(Constructor, definition)
         throw new TypeError("CjsSchema.define requires an explicit non-empty className.");
     }
     result.className = result.className.trim();
+    if (Object.hasOwn(result, "abstract") && typeof result.abstract !== "boolean")
+    {
+        throw new TypeError("CjsSchema.define abstract must be a boolean when provided.");
+    }
     if (result.purpose !== undefined && result.purpose !== null)
     {
         if (typeof result.purpose !== "string" || !result.purpose.trim())
@@ -2854,11 +2871,15 @@ function registerClassMetadata(Constructor, schema)
 {
     if (!Constructor || !schema?.className) return;
 
-    CjsSchema.SetConstructor(schema.className, Constructor);
-
-    for (const alias of schema.aliases || [])
+    // BLUE_REGISTER_ABSTRACT_CLASS supplies a callable refusal factory, not
+    // a null factory pointer. Flag 1 is DISABLE_PYTHON_CONSTRUCTION; the factory
+    // determines Blue creation. Only this class's own definition selects it.
+    const isAbstract = schema.abstract === true;
+    const createFn = isAbstract ? ClassRegistrarNullFactory : undefined;
+    const flags = isAbstract ? 1 : 0;
+    for (const name of [ schema.className, ...(schema.aliases || []) ])
     {
-        CjsSchema.SetConstructor(alias, Constructor);
+        registerClass({ name, type: Constructor, createFn, flags });
     }
 }
 

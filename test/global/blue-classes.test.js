@@ -4,12 +4,110 @@ import test from "node:test";
 import { blue, BlueClasses } from "../../src/global/blue/index.js";
 import { CjsSchema } from "../../src/global/schema/index.js";
 import * as CcpLog from "../../src/global/logging/ccpLog.js";
+import * as classRegistry from "../../src/global/blue/classes/registry.js";
+
+const { ClassRegistrarNullFactory, getClassRegistrationRevision } = classRegistry;
 
 
 class Unschemed
 {
   value = 1;
 }
+
+test("flag-only and nullish factory registrations preserve ordinary construction", () =>
+{
+  let constructions = 0;
+  class FlagOnly { constructor() { constructions++; } }
+  const names = ["FlagOnlyOmittedFactory", "FlagOnlyNullFactory", "FlagOnlyUndefinedFactory"];
+  blue.classes.RegisterClasses([
+    {name: names[0], type: FlagOnly, flags: 1},
+    {name: names[1], type: FlagOnly, createFn: null, flags: 1},
+    {name: names[2], type: FlagOnly, createFn: undefined, flags: 1},
+  ]);
+  try
+  {
+    for (const name of names)
+    {
+      assert.equal(blue.classes.GetClassRegistration(name).flags, 1);
+      assert.notStrictEqual(blue.classes.GetClassRegistration(name).createFn, ClassRegistrarNullFactory);
+      assert.strictEqual(Object.getPrototypeOf(blue.classes.CreateInstance(name)), FlagOnly.prototype);
+    }
+    assert.equal(constructions, 3);
+  }
+  finally { blue.classes.UnregisterClasses(names.map(name => ({name}))); }
+});
+
+test("abstract definitions preserve distinct existing canonical and alias factories atomically", () =>
+{
+  class ExistingCanonical {}
+  class ExistingAlias {}
+  let abstractConstructions = 0;
+  class Abstract { constructor() { abstractConstructions++; } }
+  const canonicalResult = {canonical: true};
+  const aliasResult = {alias: true};
+  const canonical = {name: "AbstractOccupiedCanonical", type: ExistingCanonical, createFn: () => canonicalResult, flags: 8};
+  const alias = {name: "AbstractOccupiedAlias", type: ExistingAlias, createFn: () => aliasResult, flags: 16};
+  blue.classes.RegisterClasses([canonical, alias]);
+  const before = getClassRegistrationRevision();
+  CjsSchema.define(Abstract, {
+    className: canonical.name, abstract: true, aliases: [alias.name, "AbstractFreeAlias"],
+  });
+  try
+  {
+    assert.equal(getClassRegistrationRevision(), before + 1, "only the free alias changes revision");
+    assert.deepEqual(blue.classes.GetClassRegistration(canonical.name), canonical);
+    assert.deepEqual(blue.classes.GetClassRegistration(alias.name), alias);
+    assert.strictEqual(blue.classes.CreateInstance(canonical.name), canonicalResult);
+    assert.strictEqual(blue.classes.CreateInstance(alias.name), aliasResult);
+    assert.equal(blue.classes.CreateInstance("AbstractFreeAlias"), null);
+    assert.equal(abstractConstructions, 0);
+    assert.equal(CjsSchema.getSchema(Abstract).abstract, true, "own declaration does not overwrite a pre-existing name's policy");
+    assert.strictEqual(CjsSchema.GetConstructor(canonical.name), ExistingCanonical);
+    assert.strictEqual(CjsSchema.GetConstructor(alias.name), ExistingAlias);
+    assert.deepEqual(blue.classes.GetClassRegistration("AbstractFreeAlias"), {
+      name: "AbstractFreeAlias", type: Abstract, createFn: ClassRegistrarNullFactory, flags: 1,
+    });
+    blue.classes.RegisterClasses([{name: "AbstractFreeAlias", type: ExistingAlias, createFn: alias.createFn, flags: 16}]);
+    assert.equal(getClassRegistrationRevision(), before + 1);
+    assert.equal(blue.classes.CreateInstance("AbstractFreeAlias"), null);
+    CjsSchema.DeleteConstructor(canonical.name);
+    assert.strictEqual(CjsSchema.GetConstructor(alias.name), ExistingAlias);
+    assert.equal(blue.classes.CreateInstance("AbstractFreeAlias"), null);
+  }
+  finally
+  {
+    blue.classes.UnregisterClasses([canonical, alias, {name: "AbstractFreeAlias"}]);
+  }
+});
+
+test("independent aliases of an abstract type keep their explicitly selected factories", () =>
+{
+  let constructions = 0;
+  class Abstract { constructor() { constructions++; } }
+  CjsSchema.define(Abstract, {className: "AbstractFactoryIdentity", aliases: ["AbstractDefinitionAlias"], abstract: true});
+  const made = {};
+  const factory = () => made;
+  blue.classes.RegisterClasses([{name: "AbstractCustomAlias", type: Abstract, createFn: factory, flags: 1}]);
+  CjsSchema.SetConstructor("AbstractPlainAlias", Abstract);
+  try
+  {
+    assert.equal(blue.classes.CreateInstance("AbstractFactoryIdentity"), null);
+    assert.equal(blue.classes.CreateInstance("AbstractDefinitionAlias"), null);
+    assert.strictEqual(blue.classes.GetClassRegistration("AbstractCustomAlias").createFn, factory);
+    assert.strictEqual(blue.classes.CreateInstance("AbstractCustomAlias"), made);
+    assert.equal(constructions, 0);
+    assert.strictEqual(Object.getPrototypeOf(blue.classes.CreateInstance("AbstractPlainAlias")), Abstract.prototype);
+    assert.equal(constructions, 1);
+    assert.equal(CjsSchema.getSchema(Abstract).abstract, true);
+    CjsSchema.DeleteConstructor("AbstractDefinitionAlias");
+    assert.equal(blue.classes.CreateInstance("AbstractFactoryIdentity"), null);
+    assert.strictEqual(blue.classes.CreateInstance("AbstractCustomAlias"), made);
+  }
+  finally
+  {
+    blue.classes.UnregisterClasses(["AbstractFactoryIdentity", "AbstractDefinitionAlias", "AbstractCustomAlias", "AbstractPlainAlias"].map(name => ({name})));
+  }
+});
 
 test("blue.classes is a BlueClasses registry", () =>
 {

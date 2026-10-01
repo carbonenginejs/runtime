@@ -4,6 +4,17 @@
 // imports neither facade, so declarations can register without loading Blue.
 import * as CcpLog from "../../logging/ccpLog.js";
 
+/**
+ * Carbon's ClassRegistrarNullFactory (BlueRegistration.cpp:94-97).
+ * Adapted: null represents the failed native bool/out-pointer construction.
+ * A callable refusal is distinct from the registry's nullish default factory.
+ * @returns {null} No instance.
+ */
+export function ClassRegistrarNullFactory()
+{
+    return null;
+}
+
 const registrations = new Map();
 let revision = 0;
 
