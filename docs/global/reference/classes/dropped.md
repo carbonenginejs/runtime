@@ -1,9 +1,9 @@
-# Dropped class catalog
+# Blue object services and dropped class catalog
 
 Status: Evolving  
-Scope: `@carbonenginejs/runtime` global classes under `src/global/dropped`
+Scope: `@carbonenginejs/runtime/global` classes under `src/global/blue` and `src/global/dropped`
 Audience: Users, maintainers, and automated readers  
-Summary: Provides one-sentence purpose descriptors for donor classes that are written but deliberately not live, each carrying the reason it was dropped.
+Summary: Describes shared Blue interfaces and object services, together with native classes deliberately omitted from the runtime.
 
 <!-- class:BlueObjectMetadata -->
 ## `BlueObjectMetadata`
@@ -72,6 +72,16 @@ Summary: Provides one-sentence purpose descriptors for donor classes that are wr
 
 - Export: `@carbonenginejs/runtime/global`
 - Source: `src/global/blue/ICopierCustomAssignment.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:ICurveSetDriver -->
+## `ICurveSetDriver`
+
+Supplies a curve set's driven time.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/ICurveSetDriver.js`
 - Visibility: Public
 - Kind: Carbon
 
