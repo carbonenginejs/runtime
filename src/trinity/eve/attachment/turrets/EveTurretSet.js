@@ -671,9 +671,10 @@ export class EveTurretSet extends EveEntity
     return this._ambientEffect;
   }
 
-  /** Carbon method ForceStateDeactive (MAP_METHOD_AND_WRAP).
-   * Adapted: Animation calls are forwarded to hydrated turret/controller objects without Carbon's Granny controller.
-   * Existing gap: this path broadcasts ambient state where native does not.
+  /**
+   * Forces deactive tracking/playback without changing ambient variables
+   * (EveTurretSet.cpp:3118-3134). The existing JS sampler owns animation controls;
+   * renderer-clock/rebase parity remains a separate required-update gate.
    */
   @meta.carbon.method
   @meta.impl.adapted
@@ -685,13 +686,12 @@ export class EveTurretSet extends EveEntity
     this.target.StopFireAtLocator();
     this.firingEffect?.StopFiring();
     this.state = EveTurretSet.State.STATE_DEACTIVE;
-    this._playAll("", "Inactive", 0);
-    this._setAmbientState();
+    this.ForceIdleAnimation();
   }
 
-  /** Carbon method ForceStateTargeting (MAP_METHOD_AND_WRAP).
-   * Adapted: Animation calls are forwarded to hydrated turret/controller objects without Carbon's Granny controller.
-   * Existing gap: this path broadcasts ambient state where native does not.
+  /**
+   * Forces the selected mount into targeting without changing ambient variables
+   * (cpp:3141-3155). Animation control storage remains the existing JS adaptation.
    */
   @meta.carbon.method
   @meta.impl.adapted
@@ -701,8 +701,7 @@ export class EveTurretSet extends EveEntity
     this._trackingInfluenceDelta = 0;
     this._activeTurret = this.GetClosestTurret();
     this.state = EveTurretSet.State.STATE_TARGETING;
-    this._playTurret(this._activeTurret, "", "Active", 0);
-    this._setAmbientState();
+    this.PlayAnimation(this._activeTurret, "", "Active", 0);
   }
 
   /** Disables LOD selection and reloads high-detail geometry (cpp:3212). */
@@ -856,28 +855,37 @@ export class EveTurretSet extends EveEntity
     return this.target.GetLastShotTime();
   }
 
-  /** Carbon method EnterStateDeactive (MAP_METHOD_AND_WRAP).
-   * Adapted: Animation calls are forwarded to hydrated turret/controller objects without Carbon's Granny controller.
-   * Existing gap: the already-deactive early return omits native ambient notification.
+  /**
+   * Stops or packs only the native predecessor states, then broadcasts deactive
+   * including repeated calls (cpp:2728-2774). The per-mount fade reset preserves
+   * the native zero-mount behavior; animation controls use the existing sampler.
    */
   @meta.carbon.method
   @meta.impl.adapted
   EnterStateDeactive()
   {
-    if (this.state === EveTurretSet.State.STATE_DEACTIVE) return;
-    if (this.state === EveTurretSet.State.STATE_FIRING) this.firingEffect?.StopFiring();
-    if (this.state === EveTurretSet.State.STATE_TARGETING || this.state === EveTurretSet.State.STATE_FIRING)
+    switch (this.state)
     {
-      this._delayToFadeOutTracking = 0.0001;
-      this._activeTurret = EveTurretSet.INVALID_INDEX;
-      this.target.StopFireAtLocator();
-      this._playAll("Pack", "Inactive", 1);
-    }
-    else
-    {
-      this.trackingInfluence = 0;
-      this._delayToFadeOutTracking = 0;
-      this._playAll("Pack", "Inactive", 0);
+      case EveTurretSet.State.STATE_IDLE:
+      case EveTurretSet.State.STATE_RELOADING:
+        this.trackingInfluence = 0;
+        for (let index = 0; index < this._turrets.length; index++)
+        {
+          this.PlayAnimation(index, "Pack", "Inactive");
+          this._delayToFadeOutTracking = 0;
+        }
+        break;
+      case EveTurretSet.State.STATE_FIRING:
+        this.firingEffect?.StopFiring();
+        // Native falls through to the targeting shutdown.
+      case EveTurretSet.State.STATE_TARGETING:
+        this._delayToFadeOutTracking = 0.0001;
+        this._activeTurret = EveTurretSet.INVALID_INDEX;
+        this.target.StopFireAtLocator();
+        this._playAll("Pack", "Inactive", 1);
+        break;
+      default:
+        break;
     }
     this.state = EveTurretSet.State.STATE_DEACTIVE;
     this._setAmbientState();
@@ -885,7 +893,8 @@ export class EveTurretSet extends EveEntity
 
   /** Carbon method EnterStateFiring (MAP_METHOD_AND_WRAP).
    * Adapted: Carbon's geometry/animation selection is represented by portable turret records and controller forwarding.
-   * Existing gap: the final ambient broadcast overwrites per-instance selection state.
+   * SetupFiringState owns ambient baseline/selected writes; the final state assignment
+   * does not broadcast. JS retains its Boolean success return for the native void method.
    */
   @meta.carbon.method
   @meta.impl.adapted
@@ -908,34 +917,48 @@ export class EveTurretSet extends EveEntity
       if (this.target) this.firingEffect.SetImpactConfiguration(this.target.GetImpactConfiguration());
     }
     this.state = EveTurretSet.State.STATE_FIRING;
-    this._setAmbientState();
     return true;
   }
 
-  /** Carbon method EnterStateIdle (MAP_METHOD_AND_WRAP).
-   * Adapted: Animation calls are forwarded to hydrated turret/controller objects without Carbon's Granny controller.
-   * Existing gap: already-idle playback restarts, and movement audio lacks native gates.
+  /**
+   * Transitions online turrets to idle without restarting an already-idle clip
+   * (cpp:2782-2839). Movement events follow animation and native sound/name gates.
+   * The native dynamic cast resolves through optional Audio type registration;
+   * animation controls retain the existing sampler adaptation.
    */
   @meta.carbon.method
   @meta.impl.adapted
   EnterStateIdle()
   {
     if (!this.isOnline) return;
-    if (this.state === EveTurretSet.State.STATE_DEACTIVE)
+    switch (this.state)
     {
-      this._playAll("Deploy", "Active", 0);
-      this.trackingInfluence = 0;
+      case EveTurretSet.State.STATE_INVALID:
+      case EveTurretSet.State.STATE_RELOADING:
+        this._playAll("", "Active", 0);
+        break;
+      case EveTurretSet.State.STATE_DEACTIVE:
+        this._playAll("Deploy", "Active", 0);
+        this.trackingInfluence = 0;
+        break;
+      case EveTurretSet.State.STATE_TARGETING:
+      case EveTurretSet.State.STATE_FIRING:
+        this._delayToFadeOutTracking = 0.0001;
+        this._activeTurret = EveTurretSet.INVALID_INDEX;
+        this.target.StopFireAtLocator();
+        this.firingEffect?.StopFiring();
+        this._playAll("", "Active", 1);
+        if (this.playMovementSound && this.targetingToIdleMovementAudioEvent !== "")
+        {
+          const observer = this.turretMovementObserver ? this.turretMovementObserver.GetObserver() : null;
+          const contract = CjsSchema.GetConstructor("ITr2AudEmitter");
+          const emitter = contract ? CjsSchema.cast(observer, contract) : null;
+          if (emitter) emitter.SendEvent(this.targetingToIdleMovementAudioEvent);
+        }
+        break;
+      default:
+        break;
     }
-    else if (this.state === EveTurretSet.State.STATE_TARGETING || this.state === EveTurretSet.State.STATE_FIRING)
-    {
-      this._delayToFadeOutTracking = 0.0001;
-      this._activeTurret = EveTurretSet.INVALID_INDEX;
-      this.target.StopFireAtLocator();
-      this.firingEffect?.StopFiring();
-      this._playAll("", "Active", 1);
-      this.turretMovementObserver?.GetObserver()?.SendEvent(this.targetingToIdleMovementAudioEvent);
-    }
-    else this._playAll("", "Active", 0);
     this.state = EveTurretSet.State.STATE_IDLE;
     this._setAmbientState();
   }
@@ -947,7 +970,6 @@ export class EveTurretSet extends EveEntity
   @meta.impl.adapted
   EnterStateReloading()
   {
-    const wasDeactive = this.state === EveTurretSet.State.STATE_DEACTIVE;
     if (this.state === EveTurretSet.State.STATE_TARGETING || this.state === EveTurretSet.State.STATE_FIRING)
     {
       this._delayToFadeOutTracking = 0.0001;
@@ -956,14 +978,15 @@ export class EveTurretSet extends EveEntity
       this.firingEffect?.StopFiring();
       this._playAll("Reload", "Active", 1);
     }
-    else if (!wasDeactive) this._playAll("Reload", "Active", 0);
+    else if (this.state === EveTurretSet.State.STATE_INVALID || this.state === EveTurretSet.State.STATE_IDLE || this.state === EveTurretSet.State.STATE_RELOADING) this._playAll("Reload", "Active", 0);
     this.state = EveTurretSet.State.STATE_RELOADING;
     this._setAmbientState();
   }
 
-  /** Carbon method EnterStateTargeting (MAP_METHOD_AND_WRAP).
-   * Adapted: Animation calls are forwarded to hydrated turret/controller objects without Carbon's Granny controller.
-   * Existing gap: deploy timing takes the maximum duration rather than the last; movement audio lacks native gates.
+  /**
+   * Transitions online turrets to targeting, using the last mount's Deploy
+   * duration for tracking fade-in (cpp:2846-2902). Native sends no movement
+   * audio here. Animation controls retain the existing sampler adaptation.
    */
   @meta.carbon.method
   @meta.impl.adapted
@@ -972,7 +995,12 @@ export class EveTurretSet extends EveEntity
     if (!this.isOnline) return;
     if (this.state === EveTurretSet.State.STATE_DEACTIVE)
     {
-      this._delayToFadeInTracking = this._playAll("Deploy", "Active", 1) + 0.0001;
+      let animationLength = 0;
+      for (let index = 0; index < this._turrets.length; index++)
+      {
+        animationLength = this.PlayAnimation(index, "Deploy", "Active", 1);
+      }
+      this._delayToFadeInTracking = animationLength + 0.0001;
     }
     else if (this.state === EveTurretSet.State.STATE_IDLE || this.state === EveTurretSet.State.STATE_RELOADING)
     {
@@ -1650,30 +1678,28 @@ export class EveTurretSet extends EveEntity
   }
 
   /**
-   * Offers an object to the target for validation; on acceptance it sends the
-   * idle-to-targeting movement audio event when coming from idle or switching
-   * targets, and rescales the firing effect to the new target's radius. Returns
-   * whether the object was accepted.
-   *
-   * Adapted: Carbon QueryInterface target attachment is delegated to EveTurretTarget's browser-compatible target validation.
+   * Attempts non-null target attachment, applies movement sound gates against
+   * the stored target, then refreshes scale regardless of acceptance (cpp:3628-3649).
+   * Null preserves the current target and returns immediately. JS retains its
+   * Boolean acceptance return; target admission remains owned by EveTurretTarget.
+   * Audio dispatch resolves the native nominal cast through optional registration.
    */
   @meta.carbon.method
   @meta.impl.adapted
   SetTargetObject(object)
   {
-    // Carbon EveTurretSet.cpp:3630-3633: the ship set cannot clear its target;
-    // only EveChildTurret passes null through to EveTurretTarget.
     if (!object) return false;
     const previous = this.target.GetTargetable();
     const accepted = this.target.SetTargetable(object);
-    if (accepted)
+    if (this.playMovementSound && this.idleToTargetingMovementAudioEvent !== "" &&
+      (this.state === EveTurretSet.State.STATE_IDLE || previous !== this.target.GetTargetable()))
     {
-      if ((this.state === EveTurretSet.State.STATE_IDLE || previous !== object) && this.playMovementSound && this.idleToTargetingMovementAudioEvent)
-      {
-        this.turretMovementObserver?.GetObserver()?.SendEvent(this.idleToTargetingMovementAudioEvent);
-      }
-      this.SetTargetScale();
+      const observer = this.turretMovementObserver ? this.turretMovementObserver.GetObserver() : null;
+      const contract = CjsSchema.GetConstructor("ITr2AudEmitter");
+      const emitter = contract ? CjsSchema.cast(observer, contract) : null;
+      if (emitter) emitter.SendEvent(this.idleToTargetingMovementAudioEvent);
     }
+    this.SetTargetScale();
     return accepted;
   }
 
@@ -2321,15 +2347,15 @@ export class EveTurretSet extends EveEntity
    * advanced cycling fire position, the random firing delay, the fire animation
    * on the chosen turret, the target's impact timing derived from the effect's
    * duration and peak time, and the ambient controller's turret state. Returns
-   * false when deactivated or untargeted.
+   * false when deactivated. INVALID/default retain the previous active mount;
+   * valid predecessor states preserve native target-call/active-assignment order.
    */
   @meta.carbon.method
   @meta.impl.adapted
   SetupFiringState()
   {
-    if (this.state === EveTurretSet.State.STATE_DEACTIVE || !this.target) return false;
+    if (this.state === EveTurretSet.State.STATE_DEACTIVE) return false;
     const pair = this._getClosestTurretAndLocator();
-    this._activeTurret = pair.turret;
     if (this.maxCyclingFirePos > 1)
     {
       this.currentCyclingFiresPos += this.cyclingFireGroupCount;
@@ -2340,14 +2366,28 @@ export class EveTurretSet extends EveEntity
     const effectPeakTime = Number(this.firingEffect?.GetFiringPeakTime() ?? 0);
     const source = this._parentTransform.subarray(12, 15);
     const locator = pair.locator;
+    const activeTurret = pair.turret;
     if (this.state === EveTurretSet.State.STATE_IDLE || this.state === EveTurretSet.State.STATE_RELOADING)
     {
       this.randomFiringDelay += this.maxTrackingTime;
       this._delayToFadeInTracking = 0.0001;
     }
-    const fireName = this.currentCyclingFiresPos > 0 ? `Fire0${Math.floor(this.currentCyclingFiresPos / this.cyclingFireGroupCount)}` : "Fire";
-    this._turrets.forEach((_turret, index) => this._playTurret(index, index === this._activeTurret ? fireName : "", "Active", this.randomFiringDelay));
-    this.target.StartFireAtLocator(locator ?? -1, this.randomFiringDelay + effectPeakTime, effectTotalTime - effectPeakTime, source);
+    if (this.state === EveTurretSet.State.STATE_IDLE || this.state === EveTurretSet.State.STATE_RELOADING ||
+      this.state === EveTurretSet.State.STATE_TARGETING || this.state === EveTurretSet.State.STATE_FIRING)
+    {
+      const fireName = this.currentCyclingFiresPos > 0 ? `Fire0${Math.floor(this.currentCyclingFiresPos / this.cyclingFireGroupCount)}` : "Fire";
+      this._turrets.forEach((_turret, index) => this.PlayAnimation(index, index === activeTurret ? fireName : "", "Active", this.randomFiringDelay));
+      if (this.state === EveTurretSet.State.STATE_TARGETING || this.state === EveTurretSet.State.STATE_FIRING)
+      {
+        this._activeTurret = activeTurret;
+        this.target.StartFireAtLocator(locator, this.randomFiringDelay + effectPeakTime, effectTotalTime - effectPeakTime, source);
+      }
+      else
+      {
+        this.target.StartFireAtLocator(locator, this.randomFiringDelay + effectPeakTime, effectTotalTime - effectPeakTime, source);
+        this._activeTurret = activeTurret;
+      }
+    }
     const ambient = this.GetAmbientEffectOrGeneratedEffect();
     if (ambient)
     {

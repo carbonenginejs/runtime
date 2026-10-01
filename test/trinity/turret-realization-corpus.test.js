@@ -24,6 +24,7 @@ import { StubResMan } from "../support/stubResMan.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { Copier } from "../../npm/dist/global/blue/Copier.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
+import { Tr2Controller, Tr2ControllerFloatVariable, TriObserverLocal } from "../../npm/dist/trinity/index.js";
 const corpus=process.env.TURRET_BLACK_CORPUS_DIR;
 const skip=!corpus && "set TURRET_BLACK_CORPUS_DIR for Apocalypse/type462 turret realization";
 const geometryPath="res:/dx9/model/turret/energy/pulse/l/pulse_mega_t1.gr2";
@@ -646,4 +647,294 @@ test("hull-to-turret quad forwarding observes firing, display and ambient clip g
     set.display=false;calls.length=0;ship.AddQuadsToQuadRenderer(frustum,renderer);assert.deepEqual(calls,[]);
   }
   finally{set.firingEffect=null;set.Destroy();}
+});
+
+// The pulse asset has no authored ambient-controller recipe. This explicitly
+// controlled graph qualifies actual copied controllers and their float buffers.
+async function pulseStateAssets(t)
+{
+  const loaded = await assets(t);
+  const { set, ship } = loaded;
+  ship.RebuildTurretPositions();
+  set.Initialize();
+  const bytes = await readFile(join(corpus, "pulse_mega_fx.black"));
+  assert.equal(createHash("sha256").update(bytes).digest("hex"), "ec84e9ee2b9d9af295dff3ad7ad79551e8785027fd30a5121d4d92eaa31a1eb2");
+  const effect = EveTurretFiringFX.from(CjsBlackFormat.readPayload(bytes).object);
+  set.firingEffect = effect;
+  set.useRandomFiringDelay = false;
+  set.chooseRandomLocator = false;
+  set.maxTrackingTime = 0.75;
+  set.UpdateAsyncronous(updateContext({ deltaTime: 0 }));
+  t.after(() => { set.firingEffect = null; });
+  return { ...loaded, effect };
+}
+
+async function stateAssets(t)
+{
+  const loaded = await pulseStateAssets(t), { set, effect } = loaded;
+  const source = new EveChildContainer(), controller = new Tr2Controller();
+  controller.variables.push(...["TurretState", "FiringDelay"].map(name => Tr2ControllerFloatVariable.from({ name, defaultValue: -7 })));
+  source.AddController(controller);
+  set.ambientEffect = source;
+  const generated = set.GetAmbientEffectOrGeneratedEffect();
+  const controllers = generated.instances.map(instance => instance.objects[0].controllers[0]);
+  t.after(() =>
+  {
+    set.ambientEffect = null;
+    for (const value of [controller, ...controllers]) value.Unlink();
+  });
+  assert.equal(controllers.length, 2);
+  assert.equal(new Set([controller, ...controllers]).size, 3);
+  assert.equal(new Set([controller, ...controllers].map(value => value.variables[0])).size, 3);
+  assert.equal(new Set([controller, ...controllers].map(value => value.GetVariableBuffer())).size, 3);
+  assert.deepEqual([controller, ...controllers].map(value => value.IsLinked()), [true, true, true], "source and generated controllers have their real graph owners");
+  const target = new EveShip2();
+  assert.equal(set.SetTargetObject(target), true);
+  const moveTarget = x =>
+  {
+    target.worldPosition.set([x, 200, -480]);
+    target.worldTransform.set([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, 200, -480, 1]);
+    // Independent native facing scores for the authored paired mounts. This
+    // controlled target uses the existing no-locator world-centre fallback;
+    // nominal target-admission parity remains a separate owner dependency.
+    const scores = set.GetTurrets().map(turret =>
+    {
+      const matrix = turret.worldMatrix;
+      const direction = [x - matrix[12], 200 - matrix[13], -480 - matrix[14]];
+      return direction.reduce((sum, value, i) => sum + value * matrix[4 + i], 0) / Math.hypot(...direction);
+    });
+    const expected = x < 0 ? 0 : 1;
+    assert.ok(scores[expected] > scores[1 - expected] + 1, "non-tied native facing scores select opposite authored mounts");
+    return expected;
+  };
+  return { ...loaded, effect, source, controller, controllers, target, moveTarget };
+}
+
+function assertAmbient(controller, state, delay)
+{
+  assert.equal(controller.GetFloatVariableByName("TurretState"), state);
+  assert.equal(controller.GetFloatVariableByName("FiringDelay"), delay);
+  assert.deepEqual(Array.from(controller.GetVariableBuffer()), [state, delay], "controller expression buffer receives the same per-instance values");
+}
+
+test("real pulse public firing preserves selected ambient state and delay through actual copied controllers", { skip }, async t =>
+{
+  const { set, effect, controller, controllers: [a, b], moveTarget } = await stateAssets(t);
+  assert.equal(effect.isLoopFiring, false, "authored FX flag, independent of stretch loop curves");
+  set.EnterStateIdle();
+  assertAmbient(a, 2, -7); assertAmbient(b, 2, -7); assertAmbient(controller, 2, -7);
+  const prepare = t.mock.method(effect, "PrepareFiring"), start = t.mock.method(set.target, "StartFireAtLocator");
+  moveTarget(-1000);
+  set.EnterStateFiring();
+  assert.equal(set._activeTurret, 0); assert.equal(set.state, 4);
+  assertAmbient(a, 4, 0.75); assertAmbient(b, 2, -7); assertAmbient(controller, 2, -7);
+  assert.equal(prepare.mock.calls.at(-1).arguments[0], 0.75);
+  assertScalars(start.mock.calls.at(-1).arguments.slice(1, 3), [0.75 + effect.GetFiringPeakTime(), effect.GetFiringDuration() - effect.GetFiringPeakTime()], "native target-impact delay and duration");
+  moveTarget(1000);
+  set.EnterStateFiring();
+  assert.equal(set._activeTurret, 1);
+  assertAmbient(a, 3, 0.75); assertAmbient(b, 4, 0); assertAmbient(controller, 3, -7);
+  assert.equal(prepare.mock.calls.at(-1).arguments[0], 0);
+  set.EnterStateIdle(); assertAmbient(a, 2, 0.75); assertAmbient(b, 2, 0);
+  set.EnterStateReloading(); set.EnterStateFiring();
+  assertAmbient(a, 5, 0.75); assertAmbient(b, 4, 0.75); assertAmbient(controller, 5, -7);
+  set.EnterStateTargeting(); set.EnterStateFiring();
+  assertAmbient(a, 3, 0.75); assertAmbient(b, 4, 0); assertAmbient(controller, 3, -7);
+});
+
+test("controlled looping pulse reentry reselects ambient state before moving effects without restarting FX", { skip }, async t =>
+{
+  const { set, effect, controllers: [a, b], moveTarget } = await stateAssets(t);
+  effect.isLoopFiring = true; // Explicit augmentation; the authored flag is false.
+  set.EnterStateTargeting(); moveTarget(-1000); set.EnterStateFiring();
+  const stop = t.mock.method(effect, "StopFiring"), prepare = t.mock.method(effect, "PrepareFiring");
+  const moveMethod = effect.PrepareFiringEffectMoveObjects, atMove = [];
+  const move = t.mock.method(effect, "PrepareFiringEffectMoveObjects", function (...args)
+  {
+    atMove.push([set._activeTurret, Array.from(a.GetVariableBuffer()), Array.from(b.GetVariableBuffer())]);
+    return moveMethod.apply(this, args);
+  });
+  moveTarget(1000); set.EnterStateFiring();
+  assert.equal(set._activeTurret, 1);
+  assertAmbient(a, 3, 0); assertAmbient(b, 4, 0);
+  assert.deepEqual(atMove, [[1, [3, 0], [4, 0]]], "ambient selection is already published when moving effects begin");
+  assert.equal(move.mock.callCount(), 1); assert.equal(stop.mock.callCount(), 0); assert.equal(prepare.mock.callCount(), 0);
+});
+
+test("forced turret transitions preserve ambient controls while ordinary deactivation always notifies", { skip }, async t =>
+{
+  const { set, source, controllers: [a, b], moveTarget } = await stateAssets(t);
+  moveTarget(-1000); set.EnterStateIdle(); set.EnterStateFiring();
+  const initial = [Array.from(a.GetVariableBuffer()), Array.from(b.GetVariableBuffer())];
+  set.ForceStateDeactive();
+  assert.deepEqual([Array.from(a.GetVariableBuffer()), Array.from(b.GetVariableBuffer())], initial);
+  assert.equal(set.state, 1); assert.equal(set.trackingInfluence, 0); assert.equal(set._activeTurret, EveTurretSet.INVALID_INDEX);
+  set.EnterStateFiring();
+  assert.equal(set.state, 1); assert.deepEqual([Array.from(a.GetVariableBuffer()), Array.from(b.GetVariableBuffer())], initial, "deactive firing is forbidden");
+  set.ForceStateTargeting();
+  assert.equal(set.state, 3); assert.equal(set.trackingInfluence, 0.75);
+  assert.deepEqual([Array.from(a.GetVariableBuffer()), Array.from(b.GetVariableBuffer())], initial);
+  set.EnterStateDeactive(); assertAmbient(a, 1, 0.75); assertAmbient(b, 1, -7);
+  source.SetControllerVariable("TurretState", 77);
+  set.GetAmbientEffectOrGeneratedEffect().SetControllerVariable("TurretState", 77);
+  const play = t.mock.method(set, "PlayAnimation");
+  set.EnterStateDeactive();
+  assertAmbient(a, 1, 0.75); assertAmbient(b, 1, -7); assert.equal(play.mock.callCount(), 0);
+});
+
+test("repeated idle preserves real playback controls but refreshes ambient state; offline transitions do nothing", { skip }, async t =>
+{
+  const { set, controllers: [a, b] } = await stateAssets(t);
+  set.EnterStateIdle();
+  set.UpdateAsyncronous(updateContext({ deltaTime: 0.2 }));
+  const before = set.GetTurrets().map(turret => set._animationControls.get(turret).slice());
+  set.GetAmbientEffectOrGeneratedEffect().SetControllerVariable("TurretState", 77);
+  const play = t.mock.method(set, "PlayAnimation");
+  set.EnterStateIdle();
+  assert.equal(play.mock.callCount(), 0);
+  for (const [index, turret] of set.GetTurrets().entries()) assert.deepEqual(set._animationControls.get(turret), before[index]);
+  assertAmbient(a, 2, -7); assertAmbient(b, 2, -7);
+  set.isOnline = false;
+  set.GetAmbientEffectOrGeneratedEffect().SetControllerVariable("TurretState", 88);
+  set.EnterStateTargeting(); set.EnterStateIdle();
+  assert.equal(set.state, 2); assert.equal(play.mock.callCount(), 0);
+  assertAmbient(a, 88, -7); assertAmbient(b, 88, -7);
+});
+
+test("targeting fade uses last mount playback result while real first mount deploys", { skip }, async t =>
+{
+  const { set } = await pulseStateAssets(t);
+  set.ForceStateDeactive();
+  const [first, last] = set.GetTurrets();
+  const retained = last.sequencer;
+  // Labelled readiness boundary: a temporarily absent last sequencer returns
+  // zero from real PlayAnimation; no synthetic duration or animation is used.
+  last.sequencer = null;
+  t.after(() => { last.sequencer = retained; });
+  const play = t.mock.method(set, "PlayAnimation");
+  set.EnterStateTargeting();
+  assert.deepEqual(play.mock.calls.map(call => call.arguments), [[0, "Deploy", "Active", 1], [1, "Deploy", "Active", 1]]);
+  assert.equal(set._delayToFadeInTracking, 0.0001);
+  assert.ok(set._animationControls.get(first).some(control => control.name === "Deploy"));
+});
+
+test("movement audio respects native gates and nominal emitter while preserving transition order", { skip }, async t =>
+{
+  const { set, effect } = await pulseStateAssets(t);
+  const emitter = effect.destinationObserver.GetObserver();
+  assert.equal(CjsSchema.getClassName(emitter.constructor), "AudEmitter");
+  set.turretMovementObserver = effect.destinationObserver; // Controlled role reuse.
+  const send = t.mock.method(emitter, "SendEvent");
+  const enter = (enabled, name) =>
+  {
+    set.playMovementSound = enabled; set.targetingToIdleMovementAudioEvent = name;
+    set.EnterStateTargeting(); set.EnterStateIdle();
+  };
+  enter(false, "controlled_idle_event"); enter(true, "");
+  assert.equal(send.mock.callCount(), 0);
+  const order = [], playMethod = set.PlayAnimation, sendMethod = emitter.SendEvent;
+  t.mock.method(set, "PlayAnimation", function (...args) { order.push("play"); return playMethod.apply(this, args); });
+  t.mock.method(emitter, "SendEvent", function (...args) { order.push(["event", set.state]); return sendMethod.apply(this, args); });
+  set.EnterStateTargeting(); order.length = 0;
+  set.targetingToIdleMovementAudioEvent = "controlled_idle_event"; set.EnterStateIdle();
+  assert.deepEqual(order, ["play", "play", ["event", 3]], "event follows mount playback but precedes IDLE assignment");
+  assert.equal(send.mock.callCount(), 1);
+  assert.deepEqual(send.mock.calls[0].arguments, ["controlled_idle_event"]);
+  const observer = new TriObserverLocal(), unrelated = new EveChildContainer();
+  unrelated.SendEvent = () => { throw new Error("unrelated SendEvent receiver must not be treated as ITr2AudEmitter"); };
+  observer.observer = unrelated; set.turretMovementObserver = observer;
+  enter(true, "controlled_idle_event");
+  observer.observer = null; enter(true, "controlled_idle_event");
+  set.turretMovementObserver = null; enter(true, "controlled_idle_event");
+});
+
+test("native deactive and reload edge branches retain zero-mount and invalid-state behavior", { skip }, async t =>
+{
+  const { set } = await pulseStateAssets(t);
+  const play = t.mock.method(set, "PlayAnimation");
+  set.state = EveTurretSet.State.STATE_INVALID; set.trackingInfluence = 0.6; set._delayToFadeOutTracking = 7;
+  set.EnterStateDeactive();
+  assert.equal(play.mock.callCount(), 0); assert.equal(set.trackingInfluence, 0.6); assert.equal(set._delayToFadeOutTracking, 7);
+  set.EnterStateReloading(); assert.equal(set.state, 5); assert.equal(play.mock.callCount(), 0, "deactive reload still assigns state without playing");
+  const mounts = set._turrets; set._turrets = [];
+  try
+  {
+    set.state = 2; set.EnterStateDeactive();
+    assert.equal(set.trackingInfluence, 0); assert.equal(set._delayToFadeOutTracking, 7, "native reset is inside the empty mount loop");
+    set.EnterStateTargeting(); assert.equal(set._delayToFadeInTracking, 0.0001);
+  }
+  finally { set._turrets = mounts; }
+});
+
+test("target attachment side effects use stored target after rejection and always refresh scale for nonnull input", { skip }, async t =>
+{
+  const { set, effect } = await pulseStateAssets(t);
+  const emitter = effect.destinationObserver.GetObserver();
+  set.turretMovementObserver = effect.destinationObserver; // Controlled movement role.
+  set.idleToTargetingMovementAudioEvent = "controlled_target_event";
+  set.playMovementSound = true;
+  const order = [], attachMethod = set.target.SetTargetable, scaleMethod = set.SetTargetScale, sendMethod = emitter.SendEvent;
+  t.mock.method(set.target, "SetTargetable", function (...args) { order.push("attach"); return attachMethod.apply(this, args); });
+  t.mock.method(set, "SetTargetScale", function (...args) { order.push("scale"); return scaleMethod.apply(this, args); });
+  t.mock.method(emitter, "SendEvent", function (...args) { assert.equal(args[0], "controlled_target_event"); order.push("event"); return sendMethod.apply(this, args); });
+  const radius = t.mock.method(effect, "SetScaleByRadius");
+  const first = new EveShip2(), second = new EveShip2(), rejected = {};
+  first.boundingSphereRadius = 123; second.boundingSphereRadius = 456;
+  const offer = (state, value, accepted, expectedOrder, expectedTarget, expectedRadius) =>
+  {
+    set.state = state; order.length = 0;
+    const beforeScale = radius.mock.callCount();
+    assert.equal(set.SetTargetObject(value), accepted, "existing JS acceptance return is retained");
+    assert.deepEqual(order, expectedOrder);
+    assert.ok(set.GetTargetObject() === expectedTarget, "admission owner retains the actual stored target");
+    assert.equal(radius.mock.callCount(), beforeScale + (value === null ? 0 : 1));
+    if (value !== null) assert.equal(radius.mock.calls.at(-1).arguments[0], expectedRadius);
+  };
+  offer(3, first, true, ["attach", "event", "scale"], first, 123);
+  offer(3, first, true, ["attach", "scale"], first, 123);
+  offer(3, rejected, false, ["attach", "scale"], first, 123);
+  offer(2, rejected, false, ["attach", "event", "scale"], first, 123);
+  offer(2, first, true, ["attach", "event", "scale"], first, 123);
+  offer(3, second, true, ["attach", "event", "scale"], second, 456);
+  offer(2, null, false, [], second, 456);
+  set.playMovementSound = false;
+  offer(2, rejected, false, ["attach", "scale"], second, 456);
+  set.playMovementSound = true; set.idleToTargetingMovementAudioEvent = "";
+  offer(2, rejected, false, ["attach", "scale"], second, 456);
+  const observer = new TriObserverLocal(), unrelated = new EveChildContainer();
+  unrelated.SendEvent = () => { throw new Error("target audio must require the nominal emitter"); };
+  observer.observer = unrelated; set.turretMovementObserver = observer;
+  set.idleToTargetingMovementAudioEvent = "controlled_target_event";
+  offer(2, rejected, false, ["attach", "scale"], second, 456);
+});
+
+test("firing setup preserves native predecessor ordering around the real target and playback owners", { skip }, async t =>
+{
+  const { set } = await pulseStateAssets(t);
+  const target = new EveShip2();
+  set.SetTargetObject(target);
+  const place = x =>
+  {
+    target.worldPosition.set([x, 200, -480]);
+    target.worldTransform[12] = x; target.worldTransform[13] = 200; target.worldTransform[14] = -480;
+  };
+  const calls = [], playMethod = set.PlayAnimation, startMethod = set.target.StartFireAtLocator;
+  t.mock.method(set, "PlayAnimation", function (...args) { calls.push(["play", set._activeTurret]); return playMethod.apply(this, args); });
+  t.mock.method(set.target, "StartFireAtLocator", function (...args) { calls.push(["target", set._activeTurret]); return startMethod.apply(this, args); });
+  for (const predecessor of ["EnterStateIdle", "EnterStateReloading", "EnterStateTargeting", null])
+  {
+    place(1000); set.ForceStateTargeting(); set.EnterStateFiring();
+    assert.equal(set._activeTurret, 1);
+    if (predecessor) set[predecessor]();
+    const previous = set._activeTurret;
+    const earlyAssignment = set.state === 3 || set.state === 4;
+    place(-1000); calls.length = 0; set.EnterStateFiring();
+    assert.equal(set._activeTurret, 0);
+    assert.deepEqual(calls, [["play", previous], ["play", previous], ["target", earlyAssignment ? 0 : previous]], "native IDLE/RELOADING publish selection after target start; TARGETING/FIRING publish immediately before");
+  }
+  set.state = EveTurretSet.State.STATE_INVALID;
+  const previous = set._activeTurret;
+  calls.length = 0;
+  set.SetupFiringState();
+  assert.deepEqual(calls, []); assert.equal(set._activeTurret, previous, "invalid setup keeps the native default branch");
 });
