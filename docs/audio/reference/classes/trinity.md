@@ -225,7 +225,7 @@ One obstruction or occlusion value fading towards an authored target.
 <!-- class:AudParameter -->
 ## `AudParameter`
 
-Binds an authored real-time parameter value to its owning audio game object.
+Binds a real-time parameter value to its owning audio game object.
 
 - Export: `@carbonenginejs/runtime/audio/trinity`
 - Source: `src/audio/trinity/audio/AudParameter.js`

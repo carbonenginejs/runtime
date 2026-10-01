@@ -1,4 +1,5 @@
 import { CjsModel } from "../../../npm/dist/global/model/index.js";
+import { DictReader } from "../../../npm/dist/global/blue/DictReader.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -77,12 +78,12 @@ test("AudParameter binds to its owning object and backend RTPC/switch state rema
     const first = system.CreateEmitter({ name: "first", position: [ 0, 0, 0 ] });
     const second = system.CreateEmitter({ name: "second", position: [ 1, 0, 0 ] });
     const parameter = new AudParameter();
-    parameter.SetValues({ name: "speed", value: 2 });
+    new DictReader().ReadInto(parameter, { name: "speed", value: 2 }, parameter);
     CjsModel.addChild(first, "parameters", parameter);
     assert.equal(applied.length, 0, "binding does not push the existing value");
-    parameter.SetValues({ name: "renamed" });
+    new DictReader().ReadInto(parameter, { name: "renamed" }, parameter);
     assert.equal(applied.length, 0, "name-only changes do not push");
-    parameter.SetValues({ value: 3 });
+    new DictReader().ReadInto(parameter, { value: 3 }, parameter);
     assert.equal(applied.length, 1);
     assert.equal(applied[0].gameObjID, first.ID);
     assert.deepEqual(logged, [
