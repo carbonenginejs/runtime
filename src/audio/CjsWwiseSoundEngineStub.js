@@ -24,7 +24,7 @@ export class CjsWwiseSoundEngineStub extends ICjsWwiseSoundEngine
     /** Global state group -> state. */
     _globalStates = new Map();
 
-    /** Playing ID -> { eventID, eventName, gameObjID, emitter, positionMs, paused }. */
+    /** Playing ID -> { eventID, eventName, gameObjID, emitter, callbacksCancelled, positionMs, paused }. */
     _playing = new Map();
 
     /** The next playing ID PostEvent hands out. */
@@ -87,6 +87,33 @@ export class CjsWwiseSoundEngineStub extends ICjsWwiseSoundEngine
         this._gameObjects.delete(gameObjID);
     }
 
+    /**
+     * Cancels only external completion callbacks on this object's current records.
+     * Playback and control state are unchanged; later posts deliver normally.
+     * Already delivered callbacks and caller-queued work cannot be retracted.
+     *
+     * @param {number} gameObjID - Game object whose current callbacks are cancelled.
+     * @returns {void}
+     */
+    CancelEventCallbackGameObject(gameObjID)
+    {
+        for (const entry of this._playing.values())
+        {
+            if (entry.gameObjID === gameObjID) entry.callbacksCancelled = true;
+        }
+    }
+
+    /**
+     * The headless backend executes no authored Stop programs.
+     *
+     * @param {string} _eventName - Event name.
+     * @returns {boolean} Always false.
+     */
+    HandlesEventStops(_eventName)
+    {
+        return false;
+    }
+
     /** Starts a playing ID on a registered game object; 0 when it is not registered. */
     PostEvent(eventID, gameObjID, _additionalFlags, emitter, eventName)
     {
@@ -97,6 +124,7 @@ export class CjsWwiseSoundEngineStub extends ICjsWwiseSoundEngine
             eventName: eventName ?? null,
             gameObjID,
             emitter: emitter ?? null,
+            callbacksCancelled: false,
             positionMs: 0,
             paused: false
         });
@@ -265,13 +293,16 @@ export class CjsWwiseSoundEngineStub extends ICjsWwiseSoundEngine
         return [ ...this._playing.keys() ];
     }
 
-    /** Ends a playing ID and tells its emitter, as an end-of-event callback does. */
+    /** Ends a playing ID and delivers its emitter callback unless cancelled. */
     _End(playingID)
     {
         const entry = this._playing.get(playingID);
         if (!entry) return;
         this._playing.delete(playingID);
-        if (entry.emitter !== null) entry.emitter.EventFinishedCallback(playingID);
+        if (!entry.callbacksCancelled && entry.emitter !== null)
+        {
+            entry.emitter.EventFinishedCallback(playingID);
+        }
     }
 }
 

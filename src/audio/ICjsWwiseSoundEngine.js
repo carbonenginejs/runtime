@@ -1,7 +1,8 @@
 // CarbonEngineJS extension (no Carbon counterpart): the Wwise stand-in's
 // interface. Carbon Audio calls Wwise through free `AK::` functions
 // (audio/src), not a Blue interface, so this layer has no
-// Carbon class to port; each method is the `AK::` function it stands for.
+// Carbon class to port. Methods represent `AK::` functions or explicitly
+// documented CarbonEngineJS backend capabilities.
 // The Trinity -> Carbon Audio layer is a different one: trinityaudioapi.
 
 import { CjsSchema, impl } from "#schema";
@@ -71,6 +72,32 @@ export class ICjsWwiseSoundEngine
     UnregisterGameObj(_gameObjID)
     {
         throw new Error("ICjsWwiseSoundEngine.UnregisterGameObj must be overridden by an audio backend.");
+    }
+
+    /**
+     * Suppresses external completion delivery for this object's current events
+     * (`AK::SoundEngine::CancelEventCallbackGameObject`) without stopping them.
+     * Future posts are unaffected. Already delivered callbacks and work they
+     * queued in the caller cannot be retracted.
+     *
+     * @param {number} _gameObjID - Game object whose current callbacks are cancelled.
+     * @returns {void}
+     */
+    CancelEventCallbackGameObject(_gameObjID)
+    {
+        throw new Error("ICjsWwiseSoundEngine.CancelEventCallbackGameObject must be overridden by an audio backend.");
+    }
+
+    /**
+     * Whether an installed authored program owns execution of an event's Stops.
+     * This is a CarbonEngineJS backend capability, not a Wwise function.
+     *
+     * @param {string} _eventName - Event name.
+     * @returns {boolean} Whether the backend owns authored Stop execution.
+     */
+    HandlesEventStops(_eventName)
+    {
+        throw new Error("ICjsWwiseSoundEngine.HandlesEventStops must be overridden by an audio backend.");
     }
 
     /**

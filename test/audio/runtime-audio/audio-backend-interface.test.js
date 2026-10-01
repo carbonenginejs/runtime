@@ -1,18 +1,49 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsWebAudioSoundEngine, CjsWwiseSoundEngineStub, ICjsWwiseSoundEngine } from "../../../npm/dist/audio/index.js";
+import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 
 const METHODS = Object.getOwnPropertyNames(ICjsWwiseSoundEngine.prototype).filter(name => name !== "constructor");
 
 test("both backends implement every ICjsWwiseSoundEngine method themselves", () =>
 {
   // An inherited method would be the interface's throwing default.
-  assert.equal(METHODS.length, 26);
+  assert.equal(METHODS.length, 28);
   for (const Backend of [ CjsWebAudioSoundEngine, CjsWwiseSoundEngineStub ])
   {
     const missing = METHODS.filter(name => !Object.hasOwn(Backend.prototype, name));
     assert.deepEqual(missing, [], `${Backend.name} lacks ${missing.join(", ")}`);
   }
+});
+
+test("callback cancellation and authored Stops are required backend contracts", () =>
+{
+  const backend = new ICjsWwiseSoundEngine();
+  for (const method of [ "CancelEventCallbackGameObject", "HandlesEventStops" ])
+  {
+    assert.ok(METHODS.includes(method));
+    assert.equal(CjsSchema.getMethod(ICjsWwiseSoundEngine, method).impl.status, "abstract");
+    assert.throws(() => backend[method](71), new RegExp(`${method} must be overridden`));
+  }
+});
+
+test("authored Stop capability requires an explicit true from WebAudio and is false headlessly", () =>
+{
+  const stub = new CjsWwiseSoundEngineStub();
+  assert.equal(stub.HandlesEventStops("stop"), false);
+  assert.equal(new CjsWebAudioSoundEngine().HandlesEventStops("stop"), false);
+  const received = [];
+  const results = new Map([ [ "stop", true ], [ "truthy", 1 ], [ "false", false ] ]);
+  const backend = new CjsWebAudioSoundEngine({ hasEventStops: name =>
+  {
+    received.push(name);
+    return results.get(name);
+  } });
+  for (const [ name, expected ] of [ [ "stop", true ], [ "truthy", false ], [ "false", false ], [ 9, false ] ])
+  {
+    assert.equal(backend.HandlesEventStops(name), expected);
+  }
+  assert.deepEqual(received, [ "stop", "truthy", "false", "9" ]);
 });
 
 test("the headless backend keeps coherent state and makes no sound", () =>

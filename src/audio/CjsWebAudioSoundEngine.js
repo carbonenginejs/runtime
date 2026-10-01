@@ -567,6 +567,23 @@ export class CjsWebAudioSoundEngine extends ICjsWwiseSoundEngine
         this._objectSwitchValues.delete(gameObjID);
     }
 
+    /**
+     * Cancels external completion delivery for this object's current records,
+     * including pending media and music. Internal completion and cleanup continue;
+     * playback and control state are unchanged and later posts deliver normally.
+     * Already delivered callbacks and caller-queued work cannot be retracted.
+     *
+     * @param {number} gameObjID - Game object whose current callbacks are cancelled.
+     * @returns {void}
+     */
+    CancelEventCallbackGameObject(gameObjID)
+    {
+        for (const record of this._playing.values())
+        {
+            if (record.gameObjID === gameObjID) record.callbacksCancelled = true;
+        }
+    }
+
     /** Returns whether an installed authored program owns Stop execution. */
     HandlesEventStops(eventName)
     {
@@ -608,6 +625,7 @@ export class CjsWebAudioSoundEngine extends ICjsWwiseSoundEngine
             eventID,
             gameObjID,
             emitter,
+            callbacksCancelled: false,
             emitterNodes: nodes,
             eventName,
             controller,
@@ -2165,6 +2183,7 @@ export class CjsWebAudioSoundEngine extends ICjsWwiseSoundEngine
         const record = {
             gameObjID,
             emitter,
+            callbacksCancelled: false,
             emitterNodes: this._emitterNodes.get(gameObjID) ?? null,
             eventName: String(eventName),
             source: null,
@@ -7382,7 +7401,7 @@ export class CjsWebAudioSoundEngine extends ICjsWwiseSoundEngine
         }
     }
 
-    /** Finalizes one playing record and delivers completion callbacks once. */
+    /** Finalizes one playing record and delivers external callbacks unless cancelled. */
     _FinishPlaying(playingID)
     {
         const record = this._playing.get(playingID);
@@ -7439,8 +7458,11 @@ export class CjsWebAudioSoundEngine extends ICjsWwiseSoundEngine
             }
             record.source?.disconnect();
             record.sourceGain?.disconnect();
-            record.emitter?.EventFinishedCallback?.(playingID);
-            record.onFinished?.(playingID);
+            if (!record.callbacksCancelled)
+            {
+                record.emitter?.EventFinishedCallback?.(playingID);
+                record.onFinished?.(playingID);
+            }
             this._ReleaseRetiredEmitterNodes(
                 record.gameObjID,
                 record.emitterNodes,
