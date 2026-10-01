@@ -2,9 +2,8 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionChildEffect.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionChildEffect_Blue.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { CjsModel } from "#model";
 import { blue } from "#blue";
-import { carbon, impl, edit, type, CjsSchema } from "#schema";
+import { meta, types, CjsSchema } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
@@ -12,99 +11,112 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
  * Controller action that attaches a child effect loaded from a resource path to
  * its owner on start and detaches it on stop.
  */
-@type.define({
+@meta.define({
   className: "Tr2ActionChildEffect",
   family: "controllers"
 })
-@carbon.inherit(ITr2ControllerAction)
-export class Tr2ActionChildEffect extends CjsModel
+export class Tr2ActionChildEffect extends ITr2ControllerAction
 {
-  static #resourcePrefetcher = null;
+  static _resourcePrefetcher = null;
 
   /** Registers the runtime-owned child-effect prefetch callback. */
+  @meta.impl.custom
   static registerResourcePrefetcher(prefetcher)
   {
-    const previous = this.#resourcePrefetcher;
-    this.#resourcePrefetcher = prefetcher;
+    const previous = this._resourcePrefetcher;
+    this._resourcePrefetcher = prefetcher;
     return previous;
   }
 
   /** Clears the runtime-owned child-effect prefetch callback. */
+  @meta.impl.custom
   static clearResourcePrefetcher()
   {
-    this.#resourcePrefetcher = null;
+    this._resourcePrefetcher = null;
   }
 
   /** Requests prefetch without taking ownership of the resource lifecycle. */
+  @meta.impl.custom
   static prefetchResource(path, owner = null)
   {
-    if (path && this.#resourcePrefetcher)
+    if (path && this._resourcePrefetcher)
     {
-      this.#resourcePrefetcher(path, owner);
+      this._resourcePrefetcher(path, owner);
     }
   }
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
-  addOnStart = true;
-
-  @edit.readwrite
-  @edit.persist
-  @type.string
-  targetAnotherOwner = "";
-
-  @edit.readwrite
-  @edit.persist
-  @type.string
-  childName = "";
-
-  @edit.readwrite
-  @edit.persist
-  @type.path
+  /** Native m_path: std::string with file-path editor/transport semantics. */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.path
   path = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  /** Native m_childName. */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
+  childName = "";
+
+  /** Native m_targetAnotherOwner: BlueSharedString. */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
+  targetAnotherOwner = "";
+
+  /** Native m_addOnStart. */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.boolean
+  addOnStart = true;
+
+  /** Native m_removeOnStop. */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.boolean
   removeOnStop = true;
 
-  #child = null;
+  /** Native m_child: attached or preexisting child until Stop. */
+  _child = null;
 
-  /** Counts loads; a Stop or restart makes an in-flight one stale. */
+  /** Counts loads; a Stop or new load makes an in-flight one stale. */
   _loadRequest = 0;
 
   /**
-   * Carbon prefetches the resource here; JS keeps this as an explicit no-op.
+   * Forwards this path and controller owner to the registered prefetch callback.
+   * Adapted: native Link deduplicates paths process-wide, checks local files and
+   * queues an urgent background ResFile open. The JS runtime owns those choices
+   * through its callback; this action neither duplicates them nor claims parity.
    */
-  @carbon.method
-  @impl.noop
+  @meta.carbon.method
+  @meta.impl.adapted
   Link(controller)
   {
-    const owner = ITr2ControllerAction.getOwner(controller);
+    const owner = controller.GetOwner();
     Tr2ActionChildEffect.prefetchResource(this.path, owner);
   }
 
   /**
    * Adds the target child effect when Carbon would load it on action start.
+   * Adapted: preserves asynchronous resource loading and structural owner lookup
+   * rather than native synchronous loading and concrete scene/interface casts.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   Start(controller)
   {
-    const controllerOwner = ITr2ControllerAction.getOwner(controller);
-    const resolved = this.#resolveOwner(controllerOwner);
+    const controllerOwner = controller.GetOwner();
+    const resolved = this._resolveOwner(controllerOwner);
     const owner = resolved.owner;
     if (!owner)
     {
       return;
     }
-    this.#child = this.FindChild(owner);
-    if (this.#child || !this.addOnStart || !this.path)
+    this._child = this.FindChild(owner);
+    if (this._child || !this.addOnStart || !this.path)
     {
       return;
     }
-    this.#LoadChild(owner, controllerOwner, resolved.rebind);
+    this._loadChild(owner, controllerOwner, resolved.rebind);
   }
 
   /**
@@ -114,9 +126,10 @@ export class Tr2ActionChildEffect extends CjsModel
    * A failed load adds nothing.
    *
    * Adapted: the JS resource manager resolves asynchronously, so this runs
-   * when the file arrives, and a Stop or restart before then discards it.
+   * when the file arrives, and a Stop or newer load before then discards it.
    */
-  #LoadChild(owner, controllerOwner, rebind)
+  @meta.impl.adapted
+  _loadChild(owner, controllerOwner, rebind)
   {
     const path = this.path;
     const request = ++this._loadRequest;
@@ -127,9 +140,9 @@ export class Tr2ActionChildEffect extends CjsModel
       if (child)
       {
         if (this.childName) child.SetName(this.childName);
-        Tr2ActionChildEffect.#addChildToOwner(owner, child);
+        Tr2ActionChildEffect._addChildToOwner(owner, child);
         child.StartControllers();
-        this.#child = child;
+        this._child = child;
       }
       else
       {
@@ -147,45 +160,50 @@ export class Tr2ActionChildEffect extends CjsModel
 
   /**
    * Stops or removes the target child effect.
+   * Adapted: invalidates pending asynchronous loads and retains structural owner
+   * resolution. Native missing MultiEffect parameters can return before clearing
+   * m_child; this retained JS adapter clears its child reference.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   Stop(controller)
   {
     // A load still in flight belongs to this run; drop it.
     this._loadRequest++;
-    const child = this.#child;
+    const child = this._child;
     if (!child)
     {
       return;
     }
     if (this.removeOnStop)
     {
-      const owner = this.#resolveOwner(ITr2ControllerAction.getOwner(controller)).owner;
+      const owner = this._resolveOwner(controller.GetOwner()).owner;
       if (owner)
       {
-        Tr2ActionChildEffect.#removeChildFromOwner(owner, child);
+        Tr2ActionChildEffect._removeChildFromOwner(owner, child);
       }
     }
-    this.#child = null;
+    this._child = null;
   }
 
   /**
    * Resolves the object the child effect is attached to, following
    * targetAnotherOwner when set.
    */
+  @meta.impl.custom
   ResolveOwner(owner)
   {
-    return this.#resolveOwner(owner).owner;
+    return this._resolveOwner(owner).owner;
   }
 
   /**
    * Looks up an already-present child by childName on the owner, returning null
    * when childName is empty or no match exists.
    */
+  @meta.impl.custom
   FindChild(owner)
   {
-    return (this.childName ? ITr2ControllerAction.callTarget(owner, "GetEffectChildByName", this.childName) ?? Tr2ActionChildEffect.#findNamed(owner, this.childName) : null) ?? null;
+    return (this.childName ? ITr2ControllerAction.callTarget(owner, "GetEffectChildByName", this.childName) ?? Tr2ActionChildEffect._findNamed(owner, this.childName) : null) ?? null;
   }
 
   /**
@@ -193,7 +211,8 @@ export class Tr2ActionChildEffect extends CjsModel
    * named effect child, then a named parameter, then a stretch endpoint;
    * `rebind` is set when the redirect requires the controller owner to rebind.
    */
-  #resolveOwner(owner)
+  @meta.impl.custom
+  _resolveOwner(owner)
   {
     if (!owner || !this.targetAnotherOwner)
     {
@@ -202,7 +221,7 @@ export class Tr2ActionChildEffect extends CjsModel
         rebind: false
       };
     }
-    const childOwner = ITr2ControllerAction.asObject(ITr2ControllerAction.callTarget(owner, "GetEffectChildByName", this.targetAnotherOwner) ?? Tr2ActionChildEffect.#findNamed(owner, this.targetAnotherOwner));
+    const childOwner = ITr2ControllerAction.asObject(ITr2ControllerAction.callTarget(owner, "GetEffectChildByName", this.targetAnotherOwner) ?? Tr2ActionChildEffect._findNamed(owner, this.targetAnotherOwner));
     if (childOwner)
     {
       return {
@@ -218,7 +237,7 @@ export class Tr2ActionChildEffect extends CjsModel
         rebind: true
       };
     }
-    const stretchOwner = Tr2ActionChildEffect.#getStretchOwner(owner, this.targetAnotherOwner);
+    const stretchOwner = Tr2ActionChildEffect._getStretchOwner(owner, this.targetAnotherOwner);
     return {
       owner: stretchOwner,
       rebind: !!stretchOwner
@@ -229,7 +248,8 @@ export class Tr2ActionChildEffect extends CjsModel
    * Attaches a child through AddToEffectChildrenList or AddChild, falling back
    * to pushing onto plain `effectChildren` and `children` arrays.
    */
-  static #addChildToOwner(owner, child)
+  @meta.impl.custom
+  static _addChildToOwner(owner, child)
   {
     if (ITr2ControllerAction.hasFunction(owner, "AddToEffectChildrenList"))
     {
@@ -241,15 +261,16 @@ export class Tr2ActionChildEffect extends CjsModel
       owner.AddChild(child);
       return;
     }
-    this.#addToArray(owner, "effectChildren", child);
-    this.#addToArray(owner, "children", child);
+    this._addToArray(owner, "effectChildren", child);
+    this._addToArray(owner, "children", child);
   }
 
   /**
    * Searches the owner's `effectChildren`, `children` and `items` arrays for an
    * entry whose GetName() or `name` matches.
    */
-  static #findNamed(owner, name)
+  @meta.impl.custom
+  static _findNamed(owner, name)
   {
     for (const listName of ["effectChildren", "children", "items"])
     {
@@ -269,7 +290,8 @@ export class Tr2ActionChildEffect extends CjsModel
    * Resolves the `SourceSpaceObject` and `DestSpaceObject` endpoints of a
    * stretch owner, returning null for any other name.
    */
-  static #getStretchOwner(owner, name)
+  @meta.impl.custom
+  static _getStretchOwner(owner, name)
   {
     if (name === "SourceSpaceObject")
     {
@@ -287,7 +309,8 @@ export class Tr2ActionChildEffect extends CjsModel
    * falling back to splicing it out of plain `effectChildren` and `children`
    * arrays.
    */
-  static #removeChildFromOwner(owner, child)
+  @meta.impl.custom
+  static _removeChildFromOwner(owner, child)
   {
     if (ITr2ControllerAction.hasFunction(owner, "RemoveFromEffectChildrenList"))
     {
@@ -299,15 +322,16 @@ export class Tr2ActionChildEffect extends CjsModel
       owner.RemoveChild(child);
       return;
     }
-    this.#removeFromArray(owner, "effectChildren", child);
-    this.#removeFromArray(owner, "children", child);
+    this._removeFromArray(owner, "effectChildren", child);
+    this._removeFromArray(owner, "children", child);
   }
 
   /**
    * Appends a value to a named array property on the owner if it is not already
    * present.
    */
-  static #addToArray(owner, listName, value)
+  @meta.impl.custom
+  static _addToArray(owner, listName, value)
   {
     if (ITr2ControllerAction.hasProperty(owner, listName) && Array.isArray(owner[listName]) && !owner[listName].includes(value))
     {
@@ -319,7 +343,8 @@ export class Tr2ActionChildEffect extends CjsModel
    * Removes the first occurrence of a value from a named array property on the
    * owner.
    */
-  static #removeFromArray(owner, listName, value)
+  @meta.impl.custom
+  static _removeFromArray(owner, listName, value)
   {
     if (ITr2ControllerAction.hasProperty(owner, listName) && Array.isArray(owner[listName]))
     {
@@ -333,7 +358,7 @@ export class Tr2ActionChildEffect extends CjsModel
 }
 
 // Native exposure ends at this concrete table (Tr2ActionChildEffect_Blue.cpp:12-13,26).
-carbon.interfaceTable({
+meta.carbon.interfaceTable({
   interfaces: [Tr2ActionChildEffect, ITr2ControllerAction],
   chainTo: null
 })(Tr2ActionChildEffect);

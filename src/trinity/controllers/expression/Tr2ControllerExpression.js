@@ -1,44 +1,56 @@
 // Source: trinity/trinity/Controllers/Tr2ControllerExpression.h
 // Source: trinity/trinity/Controllers/Tr2ControllerExpression.cpp
-import { CjsModel } from "#model";
-import { carbon, impl, type } from "#schema";
+import { CjsSchema, meta, types } from "#schema";
+import { Tr2StateMachine } from "../state/Tr2StateMachine.js";
 import { CjsControllerExpressionProgram } from "./CjsControllerExpressionProgram.js";
 
 
 /**
  * Holds one compiled expression bound to a controller or state machine, together
  * with the variable dirty mask that says when it needs re-evaluating.
+ * Native is a plain helper: registration and runtime member descriptions serve
+ * existing JavaScript bindings, without a native Blue query table. The AST
+ * evaluator adapter and its recorded parser gaps remain unchanged.
  */
-@type.define({
+@meta.define({
   className: "Tr2ControllerExpression",
   family: "controllers"
 })
-export class Tr2ControllerExpression extends CjsModel
+export class Tr2ControllerExpression
 {
-  @type.rawStruct("CcpParser::Program")
+  /** Compiled JavaScript parser program; not persisted. */
+  @types.rawStruct("CcpParser::Program")
   program = null;
 
-  @type.objectRef("Tr2StateMachine")
+  /** State-machine overload context, or null. */
+  @types.objectRef("Tr2StateMachine")
   stateMachine = null;
 
-  @type.objectRef("ITr2ActionController")
+  /** Action controller whose expression buffer and owner are read. */
+  @types.objectRef("ITr2ActionController")
   controller = null;
 
-  @type.uint64
+  /** Cached variable dirty mask used to avoid unnecessary evaluation. */
+  @types.uint64
   variableMask = 0n;
 
-  #source = "";
+  /** Source text retained by the JavaScript parser adapter. */
+  _source = "";
 
   /**
    * Compiles an expression against a state machine or controller.
+   * @param {string} expression Source expression.
+   * @param {Tr2StateMachine|ITr2ActionController} source Native overload context.
+   * @param {object} [functions] Extra JavaScript parser functions.
+   * @returns {string} Empty on success, otherwise the compile error.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   SetExpr(expression, source, functions)
   {
     this.Clear();
-    this.#source = expression;
-    if (Tr2ControllerExpression.#isStateMachine(source))
+    this._source = expression;
+    if (Tr2ControllerExpression._isStateMachine(source))
     {
       this.stateMachine = source;
       this.controller = source.GetController() ?? null;
@@ -52,15 +64,18 @@ export class Tr2ControllerExpression extends CjsModel
       emptyValue: 0,
       functions
     });
-    this.variableMask = Tr2ControllerExpression.#getVariableMask(this.program, this.controller);
+    this.variableMask = Tr2ControllerExpression._getVariableMask(this.program, this.controller);
     return this.program.IsValid() ? "" : this.program.error;
   }
 
   /**
    * Evaluates the compiled expression.
+   * Adapted: GetExpressionContext is an optional JavaScript evaluator extension, not a native controller method.
+   * @param {object|null} [extra=null] Additional evaluator context.
+   * @returns {Array<boolean|number>} Success and numeric result.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   Eval(extra = null)
   {
     if (!this.program || !this.controller)
@@ -87,23 +102,27 @@ export class Tr2ControllerExpression extends CjsModel
 
   /**
    * Clears the compiled expression.
+   * Adapted: retained JS behavior resets variableMask too; native cpp:577-585
+   * leaves that cached mask unchanged. This existing evaluator gap is held.
+   * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.adapted
   Clear()
   {
     this.program = null;
     this.stateMachine = null;
     this.controller = null;
     this.variableMask = 0n;
-    this.#source = "";
+    this._source = "";
   }
 
   /**
    * Checks whether the expression compiled successfully.
+   * @returns {boolean} Whether a valid program is retained.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   IsExpressionValid()
   {
     return !!this.program?.IsValid();
@@ -111,9 +130,10 @@ export class Tr2ControllerExpression extends CjsModel
 
   /**
    * Gets the variable dirty mask referenced by this expression.
+   * @returns {bigint} Cached variable bit mask.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   GetVariableMask()
   {
     return this.variableMask;
@@ -121,9 +141,11 @@ export class Tr2ControllerExpression extends CjsModel
 
   /**
    * Gets expression term metadata from the linked controller.
+   * @param {Array} [out=[]] Output metadata list.
+   * @returns {Array} The supplied list.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   GetExpressionTermInfo(out = [])
   {
     CjsControllerExpressionProgram.addControllerTermInfo(out);
@@ -135,10 +157,15 @@ export class Tr2ControllerExpression extends CjsModel
    * when the program calls an impure function or references a variable that is
    * missing or beyond bit 63, and -1 when the controller exposes no variable
    * view at all.
+   * Custom: inspects the retained JavaScript AST adapter instead of native parser bytecode.
+   * @param {CjsControllerExpressionProgram} program Compiled program.
+   * @param {ITr2ActionController|null} controller Bound controller.
+   * @returns {bigint} Cached dependency mask.
    */
-  static #getVariableMask(program, controller)
+  @meta.impl.custom
+  static _getVariableMask(program, controller)
   {
-    const view = controller?.GetVariableView?.();
+    const view = controller?.GetVariableView();
     if (!Array.isArray(view))
     {
       return program.HasNonPureFunctions() ? 0n : -1n;
@@ -157,17 +184,23 @@ export class Tr2ControllerExpression extends CjsModel
   }
 
   /**
-   * Distinguishes a state machine from a controller by the presence of a
-   * callable GetController.
+   * Selects the native state-machine overload by nominal class identity.
+   * Custom: nominal identity selects between C++ overloads in JavaScript.
+   * @param {object|null} value Overload argument.
+   * @returns {boolean} Whether the state-machine overload applies.
    */
-  static #isStateMachine(value)
+  @meta.impl.custom
+  static _isStateMachine(value)
   {
-    return !!value && typeof value === "object" && typeof value.GetController === "function";
+    return CjsSchema.cast(value, Tr2StateMachine) !== null;
   }
 
+  /** Native parser buffer slot index. */
   static OWNER_BUFFER_INDEX = 1;
 
+  /** Native parser buffer slot index. */
   static STATE_MACHINE_BUFFER_INDEX = 2;
 
+  /** Native parser buffer slot index. */
   static EXTRA_BUFFER_INDEX = 3;
 }

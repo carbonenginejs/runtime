@@ -21,8 +21,8 @@ test("controller float variable lifecycle does not call values helpers or emit e
   const variable = new Tr2ControllerFloatVariable();
   variable.SetValues = () => { throw new Error("unexpected values transport"); };
   variable.UpdateValues = () => { throw new Error("unexpected values settle"); };
-  const events = [];
-  variable.OnEvent("modified", (...args) => events.push(args));
+  assert.equal("OnEvent" in variable, false);
+  variable.EmitEvent = () => { throw new Error("unexpected model event"); };
   const calls = [];
   const dirty = { value: 0n };
   variable.SetDestinationBuffer(value => calls.push(value));
@@ -49,7 +49,6 @@ test("controller float variable lifecycle does not call values helpers or emit e
   assert.equal(variable.OnModified("value"), true);
   assert.deepEqual(calls, [7, 7, 3]);
   assert.equal(dirty.value, 8n);
-  assert.deepEqual(events, []);
 });
 
 for (const Constructor of [Tr2Controller, Tr2TimelineController])

@@ -1,8 +1,7 @@
 // Source: trinity/trinity/Controllers/Tr2ControllerFloatVariable.h
 // Source: trinity/trinity/Controllers/Tr2ControllerFloatVariable.cpp
 // Source: trinity/trinity/Controllers/Tr2ControllerFloatVariable_Blue.cpp
-import { CjsModel } from "#model";
-import { carbon, impl, edit, type } from "#schema";
+import { meta, types } from "#schema";
 import { IInitialize } from "#blue/IInitialize";
 import { INotify } from "#blue/INotify";
 import { Type } from "../enums.js";
@@ -16,53 +15,62 @@ import { Type } from "../enums.js";
  * Tr2Controller owns these slots in variables. During Link it assigns each slot
  * an index in its Float32Array expression buffer and assigns dirty bits to the
  * first 64 variables. Expressions consume that shared buffer rather than reading
- * the model fields individually. The controller clears both bindings on Unlink.
+ * the authored fields individually. The controller clears both bindings on Unlink.
  *
  * The authored name, defaultValue, variableType and enumValues persist; value is
  * runtime state initialized from defaultValue. This class mirrors values and
  * marks changes; it does not evaluate expressions or clear consumed dirty bits.
  * The destination storage remains caller-owned.
  */
-@type.define({
+@meta.define({
   className: "Tr2ControllerFloatVariable",
   family: "controllers"
 })
-@carbon.inherit(IInitialize, INotify)
-export class Tr2ControllerFloatVariable extends CjsModel
+@meta.carbon.inherit(INotify)
+export class Tr2ControllerFloatVariable extends IInitialize
 {
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.Tr2ControllerFloatVariable.Type")
-  variableType = Type.FLOAT;
-
-  @edit.readwrite
-  @edit.persist
-  @type.string
-  enumValues = "";
-
-  @edit.notify
-  @edit.readwrite
-  @type.float32
-  value = 0;
-
-  @edit.readwrite
-  @edit.persist
-  @type.float32
-  defaultValue = 0;
-
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  /** Authored variable name. */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   name = "";
 
-  #destination = null;
+  /** Editor presentation type; runtime storage remains float32. */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.int32
+  @types.enum("trinity.Tr2ControllerFloatVariable.Type")
+  variableType = Type.FLOAT;
 
-  #destinationIndex = 0;
+  /** Current runtime value; changes notify but do not persist. */
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @types.float32
+  value = 0;
 
-  #dirtyMaskDestination = null;
+  /** Authored value assigned by Initialize without publishing. */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
+  defaultValue = 0;
 
-  #dirtyMask = 0n;
+  /** Comma-separated editor value/name choices. */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
+  enumValues = "";
+
+  /** Caller-owned storage or callback for the live float. */
+  _destination = null;
+
+  /** Indexed destination slot used by the JavaScript pointer adapter. */
+  _destinationIndex = 0;
+
+  /** Caller-owned holder for the controller dirty mask. */
+  _dirtyMaskDestination = null;
+
+  /** Bits published by native value notifications and SetValue. */
+  _dirtyMask = 0n;
 
   /**
    * Initializes the runtime value from the authored default.
@@ -72,8 +80,8 @@ export class Tr2ControllerFloatVariable extends CjsModel
    *
    * @returns {boolean} Always true.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   Initialize()
   {
     this.value = this.defaultValue;
@@ -89,12 +97,12 @@ export class Tr2ControllerFloatVariable extends CjsModel
    * @param {string|null} _propertyName Unused modified member name.
    * @returns {boolean} Always true after both operations succeed.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   OnModified(_propertyName)
   {
-    this.#writeDestination();
-    this.#markDirty();
+    this._writeDestination();
+    this._markDirty();
     return true;
   }
 
@@ -103,8 +111,8 @@ export class Tr2ControllerFloatVariable extends CjsModel
    *
    * @returns {string} Name used by the controller to expose this expression slot.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetName()
   {
     return this.name;
@@ -115,8 +123,8 @@ export class Tr2ControllerFloatVariable extends CjsModel
    *
    * @returns {number} Current value, without reading the destination back.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetValue()
   {
     return this.value;
@@ -131,13 +139,13 @@ export class Tr2ControllerFloatVariable extends CjsModel
    * @param {number} value New value for the float32 schema field.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   SetValue(value)
   {
     this.value = value;
-    this.#writeDestination();
-    this.#markDirty();
+    this._writeDestination();
+    this._markDirty();
   }
 
   /**
@@ -152,13 +160,13 @@ export class Tr2ControllerFloatVariable extends CjsModel
    * @param {number} [index=0] Slot used only for an indexed destination.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   SetDestinationBuffer(buffer, index = 0)
   {
-    this.#destination = buffer;
-    this.#destinationIndex = index;
-    this.#writeDestination();
+    this._destination = buffer;
+    this._destinationIndex = index;
+    this._writeDestination();
   }
 
   /**
@@ -174,12 +182,12 @@ export class Tr2ControllerFloatVariable extends CjsModel
    * @returns {void}
    * @throws {RangeError|TypeError} If mask cannot be converted to BigInt.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   SetDirtyMask(maskDestination, mask)
   {
-    this.#dirtyMaskDestination = maskDestination;
-    this.#dirtyMask = BigInt(mask);
+    this._dirtyMaskDestination = maskDestination;
+    this._dirtyMask = BigInt(mask);
   }
 
   /**
@@ -190,21 +198,22 @@ export class Tr2ControllerFloatVariable extends CjsModel
    *
    * @returns {void}
    */
-  #writeDestination()
+  @meta.impl.custom
+  _writeDestination()
   {
-    if (this.#destination)
+    if (this._destination)
     {
-      if (typeof this.#destination === "function")
+      if (typeof this._destination === "function")
       {
-        this.#destination(this.value);
+        this._destination(this.value);
       }
-      else if ("value" in this.#destination)
+      else if ("value" in this._destination)
       {
-        this.#destination.value = this.value;
+        this._destination.value = this.value;
       }
       else
       {
-        this.#destination[this.#destinationIndex] = this.value;
+        this._destination[this._destinationIndex] = this.value;
       }
     }
   }
@@ -218,27 +227,29 @@ export class Tr2ControllerFloatVariable extends CjsModel
    * @returns {void}
    * @throws {RangeError|TypeError} If the holder value cannot convert to BigInt.
    */
-  #markDirty()
+  @meta.impl.custom
+  _markDirty()
   {
-    const destination = this.#dirtyMaskDestination;
+    const destination = this._dirtyMaskDestination;
     if (!destination)
     {
       return;
     }
     if (typeof destination.value === "bigint")
     {
-      destination.value |= this.#dirtyMask;
+      destination.value |= this._dirtyMask;
       return;
     }
-    destination.value = Number(BigInt(destination.value) | this.#dirtyMask);
+    destination.value = Number(BigInt(destination.value) | this._dirtyMask);
   }
 
+  /** Native presentation enum exposed for JavaScript callers. */
   static Type = Type;
 
 }
 
 // Native exposure ends at this concrete table (Tr2ControllerFloatVariable_Blue.cpp).
-carbon.interfaceTable({
+meta.carbon.interfaceTable({
   interfaces: [Tr2ControllerFloatVariable, IInitialize, INotify],
   chainTo: null
 })(Tr2ControllerFloatVariable);

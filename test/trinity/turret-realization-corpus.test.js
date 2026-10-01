@@ -10,6 +10,7 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
+import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { blue, ResourceRequirement } from "../../npm/dist/global/blue/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import { TriGeometryRes } from "../../npm/dist/resource/geometry/TriGeometryRes.js";
@@ -24,7 +25,7 @@ import { StubResMan } from "../support/stubResMan.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { Copier } from "../../npm/dist/global/blue/Copier.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
-import { Tr2Controller, Tr2ControllerFloatVariable, TriObserverLocal } from "../../npm/dist/trinity/index.js";
+import { Tr2Controller, TriObserverLocal } from "../../npm/dist/trinity/index.js";
 const corpus=process.env.TURRET_BLACK_CORPUS_DIR;
 const skip=!corpus && "set TURRET_BLACK_CORPUS_DIR for Apocalypse/type462 turret realization";
 const geometryPath="res:/dx9/model/turret/energy/pulse/l/pulse_mega_t1.gr2";
@@ -676,7 +677,7 @@ async function stateAssets(t)
 {
   const loaded = await pulseStateAssets(t), { set, effect } = loaded;
   const source = new EveChildContainer(), controller = new Tr2Controller();
-  controller.variables.push(...["TurretState", "FiringDelay"].map(name => Tr2ControllerFloatVariable.from({ name, defaultValue: -7 })));
+  controller.variables.push(...["TurretState", "FiringDelay"].map(name => new DictReader({ declarations: true }).CreateObject({ _type: "Tr2ControllerFloatVariable", name, defaultValue: -7 })));
   source.AddController(controller);
   set.ambientEffect = source;
   const generated = set.GetAmbientEffectOrGeneratedEffect();

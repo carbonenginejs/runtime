@@ -2,8 +2,7 @@
 // Source: trinity/trinity/Controllers/Tr2BindingPoint.cpp
 import { copyArrayLike, fillArrayLike } from "#utils";
 import { isArrayLike } from "#utils/is";
-import { CjsModel } from "#model";
-import { CjsSchema, carbon, impl, edit, type } from "#schema";
+import { meta, types } from "#schema";
 
 
 const SWIZZLE_OFFSETS = {
@@ -21,72 +20,90 @@ const SWIZZLE_OFFSETS = {
  * Resolves an authored `path`/`attribute` pair against named root objects into a
  * concrete property, optionally a single swizzled component of a vector, and
  * reads or writes it.
+ * Native is a plain embedded helper; the registered JavaScript record retains
+ * authored-field metadata used by existing flattened action adapters. It has
+ * no native Blue query table or notification interface of its own.
  */
-@type.define({
+@meta.define({
   className: "Tr2BindingPoint",
   family: "controllers"
 })
-export class Tr2BindingPoint extends CjsModel
+export class Tr2BindingPoint
 {
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  /** Authored path, flattened by containing native actions. */
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   path = "";
 
   // Every embedding owner exposes it READWRITE|PERSIST|NOTIFY
   // (Tr2ActionSetValue_Blue.cpp:18, Tr2ActionAnimateValue_Blue.cpp:19).
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("IRoot")
+  /** Authored direct object, used when the path is empty. */
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.objectRef("IRoot")
   object = null;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  /** Authored member name and optional component swizzle. */
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   attribute = "";
 
-  @type.objectRef("IRoot")
+  /** Native weak target pointer; retained as a live JS reference in this adapter. */
+  @types.weakRef("IRoot")
   resolvedObject = null;
 
-  @type.objectRef("INotify")
+  /** Native weak notification pointer; the existing JS notification adapter resolves callbacks at write time. */
+  @types.weakRef("INotify")
   notifyPtr = null;
 
-  @type.objectRef("Be::VarEntry")
+  /** Native member descriptor represented by a property name in this adapter. */
+  @types.objectRef("Be::VarEntry")
   entry = null;
 
-  @type.objectRef("Be::Var")
+  /** Current JavaScript property value standing in for the native storage pointer. */
+  @types.objectRef("Be::Var")
   destination = null;
 
-  @type.int32
+  /** Vector component offset, or -1 for the whole member. */
+  @types.int32
   entryOffset = -1;
 
-  @type.int32
+  /** Number of components in the resolved array-like value. */
+  @types.int32
   arraySize = 0;
 
-  #target = null;
+  /** Resolved destination retained by the JavaScript property adapter. */
+  _target = null;
 
-  #attributeName = "";
+  /** Resolved property key without a component suffix. */
+  _attributeName = "";
 
   /**
    * Resolves and links this binding against named root objects.
+   * @param {Array|object|null} [roots=null] Named roots or action controller.
+   * @param {object|null} [owner=null] Optional explicit owner.
+   * @returns {boolean} Whether the destination resolved.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   Link(roots = null, owner = null)
   {
     this.Unlink();
-    const target = this.path ? Tr2BindingPoint.ResolvePath(this.path, Tr2BindingPoint.#getLinkRoots(roots, owner)) : this.object ?? owner;
+    const target = this.path ? Tr2BindingPoint.ResolvePath(this.path, Tr2BindingPoint._getLinkRoots(roots, owner)) : this.object ?? owner;
     return this.SetDestination(target, this.attribute);
   }
 
   /**
    * Clears the resolved binding target.
+   * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   Unlink()
   {
     this.resolvedObject = null;
@@ -95,37 +112,42 @@ export class Tr2BindingPoint extends CjsModel
     this.destination = null;
     this.entryOffset = -1;
     this.arraySize = 0;
-    this.#target = null;
-    this.#attributeName = "";
+    this._target = null;
+    this._attributeName = "";
   }
 
   /**
    * Checks whether this binding has resolved to a writable target.
+   * @returns {boolean} Whether a target and key are retained.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   IsValid()
   {
-    return !!this.#target && !!this.#attributeName;
+    return !!this._target && !!this._attributeName;
   }
 
   /**
    * Writes a value into the bound destination.
+   * @param {*} value Value accepted by the retained JS storage adapter.
+   * @param {Array|object|null} [roots=null] Roots used for lazy linking.
+   * @param {object|null} [owner=null] Explicit owner for lazy linking.
+   * @returns {boolean} Whether storage changed.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JS returns whether a value changed; like the donor, successful writes notify regardless of equality through the existing JS notification adapter.")
+  @meta.carbon.method
+  @meta.impl.adapted
+  @meta.impl.reason("JS returns whether a value changed; like the donor, successful writes notify regardless of equality through the existing JS notification adapter.")
   SetValue(value, roots = null, owner = null)
   {
     if (!this.IsValid())
     {
       this.Link(roots, owner);
     }
-    if (!this.#target || !this.#attributeName)
+    if (!this._target || !this._attributeName)
     {
       return false;
     }
-    const current = this.#target[this.#attributeName];
+    const current = this._target[this._attributeName];
     let changed = false;
     if (this.entryOffset === -1)
     {
@@ -133,25 +155,25 @@ export class Tr2BindingPoint extends CjsModel
       {
         const previous = Array.from(current);
         current.set(value);
-        changed = !Tr2BindingPoint.#areArrayValuesEqual(previous, current);
+        changed = !Tr2BindingPoint._areArrayValuesEqual(previous, current);
       }
       else if (Array.isArray(current) && isArrayLike(value))
       {
         const previous = current.slice();
         copyArrayLike(current, value);
-        changed = !Tr2BindingPoint.#areArrayValuesEqual(previous, current);
+        changed = !Tr2BindingPoint._areArrayValuesEqual(previous, current);
       }
       else if (isArrayLike(current) && typeof current !== "string" && typeof value === "number")
       {
         const previous = Array.from(current);
         fillArrayLike(current, value);
-        changed = !Tr2BindingPoint.#areArrayValuesEqual(previous, current);
+        changed = !Tr2BindingPoint._areArrayValuesEqual(previous, current);
       }
       else
       {
         if (!Object.is(current, value))
         {
-          this.#target[this.#attributeName] = value;
+          this._target[this._attributeName] = value;
           changed = true;
         }
       }
@@ -169,26 +191,30 @@ export class Tr2BindingPoint extends CjsModel
     {
       return false;
     }
-    Tr2BindingPoint.#notifyValueChanged(this.#target, this.#attributeName, value, this);
+    Tr2BindingPoint._notifyValueChanged(this._target, this._attributeName, value, this);
     return changed;
   }
 
   /**
    * Reads a numeric value from the bound destination.
+   * @param {Array|object|null} [roots=null] Roots used for lazy linking.
+   * @param {object|null} [owner=null] Explicit owner for lazy linking.
+   * @param {number} [fallback=0] Value for an unresolved or nonnumeric destination.
+   * @returns {number} Sampled numeric value.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   GetValue(roots = null, owner = null, fallback = 0)
   {
     if (!this.IsValid())
     {
       this.Link(roots, owner);
     }
-    if (!this.#target || !this.#attributeName)
+    if (!this._target || !this._attributeName)
     {
       return fallback;
     }
-    const value = this.#target[this.#attributeName];
+    const value = this._target[this._attributeName];
     if (this.entryOffset !== -1)
     {
       return isArrayLike(value) && value.length > this.entryOffset ? Number(value[this.entryOffset]) : fallback;
@@ -199,9 +225,12 @@ export class Tr2BindingPoint extends CjsModel
 
   /**
    * Gets the resolved object, or the authored direct object.
+   * @param {Array|object|null} [roots=null] Roots used for lazy linking.
+   * @param {object|null} [owner=null] Explicit owner for lazy linking.
+   * @returns {object|null} Resolved or authored object.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetBoundObject(roots = null, owner = null)
   {
     if (!this.IsValid())
@@ -213,14 +242,19 @@ export class Tr2BindingPoint extends CjsModel
 
   /**
    * Sets the resolved destination object and attribute swizzle.
+   * Adapted: retained JS property lookup differs from native stored-member
+   * lookup/type admission (cpp:9-28,391-478); that algorithm gap is held.
+   * @param {object|null} target Candidate target.
+   * @param {string} attribute Member and optional component suffix.
+   * @returns {boolean} Whether storage resolved.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   SetDestination(target, attribute)
   {
     this.Unlink();
-    const parsed = Tr2BindingPoint.#parseAttribute(attribute);
-    if (!Tr2BindingPoint.#isObjectRecord(target) || !parsed || !parsed.name)
+    const parsed = Tr2BindingPoint._parseAttribute(attribute);
+    if (!Tr2BindingPoint._isObjectRecord(target) || !parsed || !parsed.name)
     {
       return false;
     }
@@ -238,8 +272,8 @@ export class Tr2BindingPoint extends CjsModel
     this.entry = parsed.name;
     this.entryOffset = parsed.offset;
     this.arraySize = isArrayLike(current) ? current.length : 0;
-    this.#target = target;
-    this.#attributeName = parsed.name;
+    this._target = target;
+    this._attributeName = parsed.name;
     return true;
   }
 
@@ -247,6 +281,9 @@ export class Tr2BindingPoint extends CjsModel
    * Walks a binding path of the form `Root.child[0].other["name"]` against the
    * supplied name/value root pairs, returning the addressed object or null if
    * any step fails.
+   * @param {string} path Authored path.
+   * @param {Array<Array>} roots Named root pairs.
+   * @returns {object|null} Resolved object.
    */
   static ResolvePath(path, roots)
   {
@@ -254,7 +291,7 @@ export class Tr2BindingPoint extends CjsModel
     {
       return null;
     }
-    const root = Tr2BindingPoint.#readIdentifier(path, 0);
+    const root = Tr2BindingPoint._readIdentifier(path, 0);
     if (!root)
     {
       return null;
@@ -273,8 +310,8 @@ export class Tr2BindingPoint extends CjsModel
     {
       if (path[index] === ".")
       {
-        const property = Tr2BindingPoint.#readIdentifier(path, index + 1);
-        if (!property || !Tr2BindingPoint.#isObjectRecord(object))
+        const property = Tr2BindingPoint._readIdentifier(path, index + 1);
+        if (!property || !Tr2BindingPoint._isObjectRecord(object))
         {
           return null;
         }
@@ -282,42 +319,47 @@ export class Tr2BindingPoint extends CjsModel
         index = property.next;
         continue;
       }
-      const selector = Tr2BindingPoint.#readIndex(path, index);
+      const selector = Tr2BindingPoint._readIndex(path, index);
       if (!selector)
       {
         return null;
       }
-      object = Tr2BindingPoint.#getListElement(object, selector.value);
+      object = Tr2BindingPoint._getListElement(object, selector.value);
       index = selector.next;
     }
-    return Tr2BindingPoint.#isObjectRecord(object) ? object : null;
+    return Tr2BindingPoint._isObjectRecord(object) ? object : null;
   }
 
   /**
    * Normalizes the `roots` argument into name/value pairs, accepting an array of
    * pairs, a plain object map, or a controller whose owner is exposed as `Owner`
    * alongside its own binding path roots.
+   * Custom: adapts JavaScript root argument forms.
+   * @param {Array|object|null} roots Root pairs, map or controller.
+   * @param {object|null} owner Explicit owner.
+   * @returns {Array<Array>} Named root pairs.
    */
-  static #getLinkRoots(roots, owner)
+  @meta.impl.custom
+  static _getLinkRoots(roots, owner)
   {
     if (Array.isArray(roots))
     {
       return roots.slice();
     }
-    if (Tr2BindingPoint.#isPlainRootMap(roots))
+    if (Tr2BindingPoint._isPlainRootMap(roots))
     {
       return Object.entries(roots).map(([name, value]) => [name, value && typeof value === "object" ? value : null]);
     }
     const controller = roots;
     const out = [];
-    const controllerOwner = owner ?? controller?.GetOwner?.() ?? null;
+    const controllerOwner = owner ?? controller?.GetOwner() ?? null;
     if (controllerOwner)
     {
       out.push(["Owner", controllerOwner]);
     }
     if (controller)
     {
-      out.push(...(controller.GetBindingPathRoots?.() ?? []));
+      out.push(...(controller.GetBindingPathRoots()));
     }
     return out;
   }
@@ -326,8 +368,11 @@ export class Tr2BindingPoint extends CjsModel
    * Splits `field.x` into a property name and a component offset; returns an
    * offset of -1 for a whole-field binding and null when the suffix is not a
    * single valid xyzw/rgba swizzle.
+   * @param {string} attribute Authored member name.
+   * @returns {object|null} Name and component offset.
    */
-  static #parseAttribute(attribute)
+  @meta.impl.custom
+  static _parseAttribute(attribute)
   {
     const dot = attribute.indexOf(".");
     if (dot === -1)
@@ -345,8 +390,12 @@ export class Tr2BindingPoint extends CjsModel
   /**
    * Reads a C-style identifier starting at an index, returning its text and the
    * index just past it.
+   * @param {string} path Authored path.
+   * @param {number} index Character offset.
+   * @returns {object|null} Identifier and next offset.
    */
-  static #readIdentifier(path, index)
+  @meta.impl.custom
+  static _readIdentifier(path, index)
   {
     const match = /^[A-Za-z_][A-Za-z0-9_]*/.exec(path.slice(index));
     return match ? { value: match[0], next: index + match[0].length } : null;
@@ -355,8 +404,12 @@ export class Tr2BindingPoint extends CjsModel
   /**
    * Reads a bracketed selector, which is either a possibly negative integer
    * index or a double-quoted name.
+   * @param {string} path Authored path.
+   * @param {number} index Character offset.
+   * @returns {object|null} Selector and next offset.
    */
-  static #readIndex(path, index)
+  @meta.impl.custom
+  static _readIndex(path, index)
   {
     if (path[index] !== "[")
     {
@@ -382,14 +435,18 @@ export class Tr2BindingPoint extends CjsModel
   /**
    * Selects an element from a list by integer index, counting from the end for
    * negative values, or by matching the element's `name`.
+   * @param {object|null} object List or existing JS wrapper.
+   * @param {number|string} selector Index or name.
+   * @returns {object|null} Selected item.
    */
-  static #getListElement(object, selector)
+  @meta.impl.custom
+  static _getListElement(object, selector)
   {
     if (!object)
     {
       return null;
     }
-    const list = Array.isArray(object) ? object : Tr2BindingPoint.#isObjectRecord(object) ? Tr2BindingPoint.#findListProperty(object) : null;
+    const list = Array.isArray(object) ? object : Tr2BindingPoint._isObjectRecord(object) ? Tr2BindingPoint._findListProperty(object) : null;
     if (!list)
     {
       return null;
@@ -399,14 +456,17 @@ export class Tr2BindingPoint extends CjsModel
       const index = selector < 0 ? list.length + selector : selector;
       return index >= 0 && index < list.length ? list[index] : null;
     }
-    return list.find(item => Tr2BindingPoint.#isObjectRecord(item) && item.name === selector) ?? null;
+    return list.find(item => Tr2BindingPoint._isObjectRecord(item) && item.name === selector) ?? null;
   }
 
   /**
    * Finds the array a bracketed selector should index into, checking `items`,
    * `children`, `curveSets`, `controllers` and `actions` in that order.
+   * @param {object} object Existing JS list wrapper.
+   * @returns {Array|null} First recognized array.
    */
-  static #findListProperty(object)
+  @meta.impl.custom
+  static _findListProperty(object)
   {
     for (const name of ["items", "children", "curveSets", "controllers", "actions"])
     {
@@ -419,25 +479,34 @@ export class Tr2BindingPoint extends CjsModel
   }
 
   /**
+   * Adapted: retained JavaScript destination notification adapter. Native
+   * cpp:476-477 captures mapped INotify and cpp:356-358 calls OnModified; the
+   * target migration is separate from removing this helper's model base.
    * Tells the target its property changed through the first of UpdateValues,
    * OnValueChanged or OnModified that it implements, and otherwise marks the
    * field in a `_dirty` record.
+   * @param {object} target Destination.
+   * @param {string} attribute Changed member.
+   * @param {*} value Assigned value.
+   * @param {Tr2BindingPoint} source Binding source.
+   * @returns {void}
    */
-  static #notifyValueChanged(target, attribute, value, source)
+  @meta.impl.custom
+  static _notifyValueChanged(target, attribute, value, source)
   {
-    if (Tr2BindingPoint.#hasFunction(target, "UpdateValues"))
+    if (Tr2BindingPoint._hasFunction(target, "UpdateValues"))
     {
       target.UpdateValues({ property: attribute, source });
     }
-    else if (Tr2BindingPoint.#hasFunction(target, "OnValueChanged"))
+    else if (Tr2BindingPoint._hasFunction(target, "OnValueChanged"))
     {
       target.OnValueChanged(attribute, value, source);
     }
-    else if (Tr2BindingPoint.#hasFunction(target, "OnModified"))
+    else if (Tr2BindingPoint._hasFunction(target, "OnModified"))
     {
       target.OnModified(attribute);
     }
-    else if (Tr2BindingPoint.#isObjectRecord(target._dirty))
+    else if (Tr2BindingPoint._isObjectRecord(target._dirty))
     {
       target._dirty[attribute] = true;
     }
@@ -446,8 +515,12 @@ export class Tr2BindingPoint extends CjsModel
   /**
    * Compares two array-likes element-wise with Object.is, used to decide whether
    * a vector write actually changed anything.
+   * @param {ArrayLike} a Previous values.
+   * @param {ArrayLike} b Current values.
+   * @returns {boolean} Whether every value matches.
    */
-  static #areArrayValuesEqual(a, b)
+  @meta.impl.custom
+  static _areArrayValuesEqual(a, b)
   {
     if (a.length !== b.length)
     {
@@ -466,24 +539,35 @@ export class Tr2BindingPoint extends CjsModel
   /**
    * Distinguishes a plain name-to-object root map from a controller, by checking
    * that it exposes neither GetOwner nor GetBindingPathRoots.
+   * @param {*} value Candidate root map.
+   * @returns {boolean} Whether it is a supported plain map.
    */
-  static #isPlainRootMap(value)
+  @meta.impl.custom
+  static _isPlainRootMap(value)
   {
-    return Tr2BindingPoint.#isObjectRecord(value) && !Tr2BindingPoint.#hasFunction(value, "GetOwner") && !Tr2BindingPoint.#hasFunction(value, "GetBindingPathRoots");
+    return Tr2BindingPoint._isObjectRecord(value) && !Tr2BindingPoint._hasFunction(value, "GetOwner") && !Tr2BindingPoint._hasFunction(value, "GetBindingPathRoots");
   }
 
   /**
    * Checks that a value is a non-null object and so can be indexed by a path
    * step.
+   * @param {*} value Candidate object.
+   * @returns {boolean} Whether it is non-null object storage.
    */
-  static #isObjectRecord(value)
+  @meta.impl.custom
+  static _isObjectRecord(value)
   {
     return !!value && typeof value === "object";
   }
 
-  /** Checks that a value is an object whose named key is callable. */
-  static #hasFunction(value, key)
+  /** Checks that a value is an object whose named key is callable.
+   * @param {*} value Candidate object.
+   * @param {string} key Method name.
+   * @returns {boolean} Whether the existing adapter callback is callable.
+   */
+  @meta.impl.custom
+  static _hasFunction(value, key)
   {
-    return Tr2BindingPoint.#isObjectRecord(value) && typeof value[key] === "function";
+    return Tr2BindingPoint._isObjectRecord(value) && typeof value[key] === "function";
   }
 }

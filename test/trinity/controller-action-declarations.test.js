@@ -55,7 +55,7 @@ const cases = [
     own: ["Start"]
   },
   {
-    Type: Tr2ActionChildEffect, nominal: [A], query: [Tr2ActionChildEffect, A],
+    Type: Tr2ActionChildEffect, modelFree: true, nominal: [A], query: [Tr2ActionChildEffect, A],
     own: ["Link", "Start", "Stop"]
   },
   {
@@ -75,7 +75,7 @@ const cases = [
     own: ["Start"]
   },
   {
-    Type: Tr2ActionPython, nominal: [A, U, N, I, P], query: [Tr2ActionPython, A, U, N, I, P],
+    Type: Tr2ActionPython, modelFree: true, nominal: [A, U, N, I, P], query: [Tr2ActionPython, A, U, N, I, P],
     own: ["Initialize", "OnModified", "Link", "Unlink", "Start", "Stop", "Update",
       "GetWriteBufferAndSize", "ReleaseWriteBuffer", "AllocateReadBuffer", "SetBufferAndSize"]
   },

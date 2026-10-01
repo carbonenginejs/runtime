@@ -14,9 +14,10 @@ test("CjsSchema.setValues and getValues are the model transport, called through 
   const values = CjsSchema.getValues(variable);
   assert.equal(values.name, "throttle");
 
-  // Parity with the instance shortcuts - same implementation, one home.
+  // Optional shared transport also works without instance shortcuts.
   const twin = new Tr2ControllerFloatVariable();
-  twin.SetValues({ name: "throttle" });
+  assert.equal("SetValues" in twin, false);
+  CjsSchema.setValues(twin, { name: "throttle" });
   assert.deepEqual(CjsSchema.getValues(twin), values);
 });
 

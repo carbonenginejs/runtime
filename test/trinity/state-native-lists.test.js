@@ -636,7 +636,7 @@ test("Blue dictionary construction and population preserve configured storage an
   assert.equal(actions[0], actions[1]);
   assert.equal(transitions[0], transitions[1]);
   assert.ok(actions[0] instanceof Tr2ActionChildEffect);
-  assert.equal(CjsSchema.cast(actions[0], CjsModel), actions[0], "this mixed graph retains an actual legacy action");
+  assert.equal(CjsSchema.cast(actions[0], CjsModel), null, "authored action is model-free");
   assert.ok(transitions[0] instanceof Tr2StateMachineTransition);
   const oldAction = actions[0], oldTransition = transitions[0], events = Observe(state);
   const ready = [], notify = state.OnListModified;
