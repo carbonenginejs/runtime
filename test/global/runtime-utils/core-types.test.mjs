@@ -520,10 +520,10 @@ test("traversal children skip collections of values but keep interface-typed lis
 
 test("Traverse is cycle-safe and GetResources visits every model", () => {
     class GraphModel extends CjsModel {}
-    CjsSchema.defineField(GraphModel, "children", "type", { kind: "array" });
+    CjsSchema.defineField(GraphModel, "children", "type", { kind: "array", itemType: "GraphModel" });
     CjsSchema.defineField(GraphModel, "children", "edit", { read: true, write: true, persist: true });
     CjsSchema.defineField(GraphModel, "children", "lifecycle", { ownership: "owned" });
-    CjsSchema.defineField(GraphModel, "peer", "type", { kind: "object" });
+    CjsSchema.defineField(GraphModel, "peer", "type", { kind: "objectRef", className: "GraphModel" });
     CjsSchema.defineField(GraphModel, "peer", "edit", { read: true, write: true, persist: true });
     CjsSchema.defineField(GraphModel, "peer", "lifecycle", { ownership: "reference" });
     CjsSchema.define(GraphModel, { className: "GraphModel" });
@@ -976,7 +976,7 @@ test("document hydration and dehydration exclude hidden inherited fields", () =>
     assert.equal(dehydrated.nodes[0].raw.extra, "raw-extra");
 });
 
-test("stores constructors in a direct schema name map", () => {
+test("schema constructor registration keeps the first name until explicit deletion", () => {
     class FirstConstructor {}
     class ReplacementConstructor {}
 
@@ -984,6 +984,9 @@ test("stores constructors in a direct schema name map", () => {
     assert.equal(CjsSchema.SetConstructor(" DirectConstructorMapTest ", FirstConstructor), CjsSchema);
     assert.equal(CjsSchema.GetConstructor("DirectConstructorMapTest"), FirstConstructor);
 
+    CjsSchema.SetConstructor("DirectConstructorMapTest", ReplacementConstructor);
+    assert.equal(CjsSchema.GetConstructor("DirectConstructorMapTest"), FirstConstructor);
+    assert.equal(CjsSchema.DeleteConstructor("DirectConstructorMapTest"), true);
     CjsSchema.SetConstructor("DirectConstructorMapTest", ReplacementConstructor);
     assert.equal(CjsSchema.GetConstructor("DirectConstructorMapTest"), ReplacementConstructor);
     assert.throws(() => CjsSchema.SetConstructor("", FirstConstructor), /non-empty name/);

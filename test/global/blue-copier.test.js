@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { blue, Copier, ICopier } from "../../npm/dist/global/blue/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { blue, Copier, ICopier, ICopierCustomAssignment, IInitialize, INotify } from "../../src/global/blue/index.js";
+import { CjsSchema, CJS_CLASS_NAME } from "../../src/global/schema/index.js";
 
 // Blue's Copier (blueexposure/Copier.cpp), reached through blue.classes.CopyTo
 // as BlueClasses.cpp:498-516 does.
 
-const { type, edit } = CjsSchema;
+const { type, edit, carbon } = CjsSchema;
 const { OverrideResult } = ICopier;
 
 class CopierLeaf
@@ -45,6 +45,8 @@ CjsSchema.define(CopierNode, { className: "CopierNode", fields: {
   byName: [ type.map("CopierLeaf"), edit.persist ]
 } });
 
+carbon.mapInterface(INotify)(CopierNode);
+
 class CopierInitialized
 {
   value = 0;
@@ -66,6 +68,8 @@ class CopierInitialized
 CjsSchema.define(CopierInitialized, { className: "CopierInitialized", fields: {
   value: [ type.int32, edit.persist ]
 } });
+
+carbon.mapInterface(IInitialize, INotify)(CopierInitialized);
 
 function Leaf(value, label = "")
 {
@@ -210,6 +214,8 @@ test("AssignTo on the source copies state outside the schema", () =>
   }
   CjsSchema.define(CopierCustom, { className: "CopierCustom", fields: { value: [ type.int32, edit.persist ] } });
 
+  carbon.mapInterface(ICopierCustomAssignment)(CopierCustom);
+
   const source = Object.assign(new CopierCustom(), { value: 1, hidden: "kept" });
   assert.equal(blue.classes.CopyTo(source).hidden, "kept");
 });
@@ -243,4 +249,274 @@ test("a list typed by an unregistered interface still copies its items as object
   assert.notEqual(copy.bindings[0], leaf);
   assert.equal(copy.bindings[0].value, 5);
   assert.equal(copy.bindings[1], copy.bindings[0], "a shared item stays shared");
+});
+
+test("canonical members copy backing keys and indexes without invoking live properties", () =>
+{
+  class CopierStoredSlots
+  {
+    _slots = [ 0, 0, 91 ];
+    _label = "";
+    changes = [];
+    get label() { throw new Error("live getter must not run"); }
+    set label(_value) { throw new Error("live setter must not run"); }
+    OnModified(name) { this.changes.push(name); return true; }
+  }
+  CjsSchema.define(CopierStoredSlots, {
+    className: "CopierStoredSlots",
+    members: [
+      { name: "first", key: "_slots", index: 0, type: { kind: "int32" }, edit: { persist: true } },
+      { name: "second", key: "_slots", index: 1, type: { kind: "int32" }, edit: { persist: true } },
+      { name: "label", key: "_label", type: { kind: "wstring" }, edit: { persist: true } }
+    ],
+    properties: [ { name: "label", key: "label", type: { kind: "wstring" }, edit: { persist: true, notify: true } } ]
+  });
+  carbon.mapInterface(INotify)(CopierStoredSlots);
+  const source = new CopierStoredSlots();
+  source._slots = [ 12, 34, 999 ];
+  source._label = "wide label";
+  const dest = new CopierStoredSlots();
+  const storage = dest._slots;
+
+  assert.equal(blue.classes.CopyTo(source, dest), dest);
+  assert.equal(dest._slots, storage);
+  assert.deepEqual(dest._slots, [ 12, 34, 91 ], "only declared storage indexes are copied");
+  assert.equal(dest._label, "wide label");
+  assert.deepEqual(dest.changes, [ "first", "second", "label" ], "Copier.cpp:190 does not require NOTIFY");
+  blue.classes.CopyTo(source, dest);
+  assert.deepEqual(dest.changes, [ "first", "second", "label" ], "equal stored values are not notified twice");
+});
+
+test("same-name inherited members copy derived first without merging declarations", () =>
+{
+  class CopierStoredBase
+  {
+    baseValue = 0;
+    changes = [];
+    OnModified(name) { this.changes.push([ name, this.derivedValue, this.baseValue ]); return true; }
+  }
+  CjsSchema.define(CopierStoredBase, {
+    className: "CopierStoredBase",
+    members: [ { name: "value", key: "baseValue", type: { kind: "int32" }, edit: { persist: true } } ]
+  });
+  carbon.mapInterface(INotify)(CopierStoredBase);
+  class CopierStoredDerived extends CopierStoredBase { derivedValue = 0; }
+  CjsSchema.define(CopierStoredDerived, {
+    className: "CopierStoredDerived",
+    members: [ { name: "value", key: "derivedValue", type: { kind: "int32" }, edit: { persist: true } } ]
+  });
+  const source = Object.assign(new CopierStoredDerived(), { derivedValue: 2, baseValue: 1 });
+  const copy = blue.classes.CopyTo(source);
+  assert.deepEqual(copy.changes, [ [ "value", 2, 0 ], [ "value", 2, 1 ] ], "Copier.cpp:151-169 walks each native member table");
+});
+
+test("declared storage rejects accessors on either side and at an indexed element", () =>
+{
+  class CopierStorageGuard { backing = [ 0 ]; }
+  CjsSchema.define(CopierStorageGuard, {
+    className: "CopierStorageGuard",
+    members: [ { name: "value", key: "backing", index: 0, type: { kind: "int32" }, edit: { persist: true } } ]
+  });
+  for (const side of [ "source", "dest" ])
+  {
+    for (const indexed of [ false, true ])
+    {
+      const source = new CopierStorageGuard();
+      const dest = new CopierStorageGuard();
+      const selected = side === "source" ? source : dest;
+      let called = false;
+      Object.defineProperty(indexed ? selected.backing : selected, indexed ? 0 : "backing", {
+        get() { called = true; throw new Error("getter executed"); },
+        set() { called = true; throw new Error("setter executed"); }
+      });
+      assert.throws(() => blue.classes.CopyTo(source, dest), /Copier storage .* is an accessor/);
+      assert.equal(called, false);
+    }
+  }
+  const source = new CopierStorageGuard();
+  const dest = new CopierStorageGuard();
+  dest.backing = [];
+  assert.throws(() => blue.classes.CopyTo(source, dest), /exceeds its indexed storage length/);
+  dest.backing = null;
+  assert.throws(() => blue.classes.CopyTo(source, dest), /requires existing indexed storage/);
+});
+
+test("unmapped lifecycle and custom-assignment methods are ignored", () =>
+{
+  class CopierUnmapped
+  {
+    value = 0;
+    Initialize() { throw new Error("unmapped Initialize"); }
+    OnModified() { throw new Error("unmapped OnModified"); }
+    AssignTo() { throw new Error("unmapped AssignTo"); }
+  }
+  CjsSchema.define(CopierUnmapped, { className: "CopierUnmapped", fields: { value: [ type.int32, edit.persist ] } });
+  assert.equal(blue.classes.CopyTo(Object.assign(new CopierUnmapped(), { value: 7 })).value, 7);
+});
+
+test("mapped but missing lifecycle and custom-assignment methods fail visibly", () =>
+{
+  for (const [ Interface, name ] of [ [ INotify, "Notify" ], [ IInitialize, "Initialize" ], [ ICopierCustomAssignment, "Assignment" ] ])
+  {
+    class CopierMissingMethod { value = 0; }
+    CjsSchema.define(CopierMissingMethod, { className: `CopierMissing${name}`, fields: { value: [ type.int32, edit.persist ] } });
+    carbon.mapInterface(Interface)(CopierMissingMethod);
+    const source = Object.assign(new CopierMissingMethod(), { value: 1 });
+    assert.throws(() => blue.classes.CopyTo(source), TypeError, name);
+  }
+});
+
+test("false notification aborts after its member and before custom assignment", () =>
+{
+  const calls = [];
+  class CopierRejectNotification
+  {
+    first = 0;
+    second = 0;
+    OnModified(name) { calls.push(name); return false; }
+    AssignTo() { calls.push("assignment"); return true; }
+  }
+  CjsSchema.define(CopierRejectNotification, { className: "CopierRejectNotification", fields: {
+    first: [ type.int32, edit.persist ], second: [ type.int32, edit.persist ]
+  } });
+  carbon.mapInterface(INotify, ICopierCustomAssignment)(CopierRejectNotification);
+  const source = Object.assign(new CopierRejectNotification(), { first: 1, second: 2 });
+  const dest = new CopierRejectNotification();
+  assert.equal(blue.classes.CopyTo(source, dest, null, () => calls.push("post")), null);
+  assert.equal(dest.first, 1);
+  assert.equal(dest.second, 0);
+  assert.deepEqual(calls, [ "first" ], "Copier.cpp:190 aborts immediately on false");
+});
+
+test("custom assignment precedes mapped initialization, which suppresses notifications", () =>
+{
+  const calls = [];
+  class CopierOrderedLifecycle
+  {
+    value = 0;
+    hidden = "";
+    allowAssignment = true;
+    allowInitialize = true;
+    OnModified() { throw new Error("IInitialize suppresses INotify"); }
+    AssignTo(dest)
+    {
+      calls.push([ "assignment", dest.value ]);
+      dest.hidden = this.hidden;
+      return this.allowAssignment;
+    }
+    Initialize()
+    {
+      calls.push([ "initialize", this.value, this.hidden ]);
+      return this.allowInitialize;
+    }
+  }
+  CjsSchema.define(CopierOrderedLifecycle, { className: "CopierOrderedLifecycle", fields: { value: [ type.int32, edit.persist ] } });
+  carbon.mapInterface(IInitialize, INotify, ICopierCustomAssignment)(CopierOrderedLifecycle);
+  const source = Object.assign(new CopierOrderedLifecycle(), { value: 4, hidden: "custom" });
+  const dest = new CopierOrderedLifecycle();
+  assert.equal(blue.classes.CopyTo(source, dest, null, () => calls.push([ "post" ])), dest);
+  assert.deepEqual(calls, [ [ "assignment", 4 ], [ "initialize", 4, "custom" ], [ "post" ] ]);
+
+  calls.length = 0;
+  source.allowAssignment = false;
+  assert.equal(blue.classes.CopyTo(source, new CopierOrderedLifecycle()), null);
+  assert.deepEqual(calls, [ [ "assignment", 4 ] ]);
+
+  calls.length = 0;
+  source.allowAssignment = true;
+  const rejecting = Object.assign(new CopierOrderedLifecycle(), { allowInitialize: false });
+  assert.equal(blue.classes.CopyTo(source, rejecting, null, () => calls.push([ "post" ])), null);
+  assert.deepEqual(calls, [ [ "assignment", 4 ], [ "initialize", 4, "custom" ] ]);
+  assert.equal(rejecting.value, 4, "initialization failure retains completed member writes");
+});
+
+test("mapped interface identity survives inherited mappings and other constructor identities", () =>
+{
+  class AnotherInitializeContract {}
+  Object.defineProperty(AnotherInitializeContract, CJS_CLASS_NAME, { value: "IInitialize" });
+  class CopierMappedBase
+  {
+    initialized = 0;
+    Initialize() { this.initialized++; return true; }
+  }
+  carbon.mapInterface(AnotherInitializeContract)(CopierMappedBase);
+  CjsSchema.define(CopierMappedBase, { className: "CopierMappedBase", fields: {} });
+  class CopierMappedDerived extends CopierMappedBase {}
+  CjsSchema.define(CopierMappedDerived, { className: "CopierMappedDerived", fields: {} });
+  assert.notEqual(AnotherInitializeContract, IInitialize);
+  assert.equal(blue.classes.CopyTo(new CopierMappedDerived()).initialized, 1);
+});
+
+test("cycles reuse allocated copies but existing destinations are not added to the identity map", () =>
+{
+  class CopierCycle { next = null; }
+  CjsSchema.define(CopierCycle, { className: "CopierCycle", fields: { next: [ type.objectRef("CopierCycle"), edit.persist ] } });
+  const source = new CopierCycle();
+  source.next = source;
+  const posted = [];
+  const copy = blue.classes.CopyTo(source, null, null, (_source, dest) => posted.push(dest));
+  assert.equal(copy.next, copy);
+  assert.deepEqual(posted, [ copy ], "an identity-map hit does not repeat post-copy");
+
+  const existing = new CopierCycle();
+  blue.classes.CopyTo(source, existing);
+  assert.notEqual(existing.next, existing, "Copier.cpp:64-94 maps only newly allocated destinations");
+  assert.equal(existing.next.next, existing.next);
+});
+
+test("embedded members keep destination objects while pointer members allocate", () =>
+{
+  class CopierEmbeddedAndPointer
+  {
+    embedded = new CopierLeaf();
+    pointer = null;
+  }
+  CjsSchema.define(CopierEmbeddedAndPointer, { className: "CopierEmbeddedAndPointer", fields: {
+    embedded: [ type.struct("CopierLeaf"), edit.persist ],
+    pointer: [ type.objectRef("CopierLeaf"), edit.persist ]
+  } });
+  const source = new CopierEmbeddedAndPointer();
+  source.embedded.value = 42;
+  source.pointer = source.embedded;
+  const dest = new CopierEmbeddedAndPointer();
+  const embedded = dest.embedded;
+  assert.equal(blue.classes.CopyTo(source, dest), dest);
+  assert.equal(dest.embedded, embedded);
+  assert.equal(dest.embedded.value, 42);
+  assert.notEqual(dest.pointer, source.pointer);
+  assert.notEqual(dest.pointer, embedded, "an embedded existing target was never put in the identity map");
+  assert.equal(dest.pointer.value, 42);
+});
+
+test("list child failure aborts with its copied prefix while map child failure is skipped", () =>
+{
+  const rejected = Leaf(2);
+  const override = source => source === rejected
+    ? { result: OverrideResult.FAILURE }
+    : { result: OverrideResult.FALLBACK };
+  const listSource = new CopierNode();
+  listSource.items = [ Leaf(1), rejected, Leaf(3) ];
+  const listDest = new CopierNode();
+  assert.equal(blue.classes.CopyTo(listSource, listDest, override), null);
+  assert.deepEqual(listDest.items.map(item => item.value), [ 1 ]);
+  assert.deepEqual(listDest.modified, [], "failed list assignment does not notify the enclosing member");
+
+  const mapSource = new CopierNode();
+  mapSource.byName = new Map([ [ "first", Leaf(1) ], [ "rejected", rejected ], [ "last", Leaf(3) ] ]);
+  const mapDest = new CopierNode();
+  assert.equal(blue.classes.CopyTo(mapSource, mapDest, override), mapDest);
+  assert.deepEqual(Array.from(mapDest.byName, ([ key, value ]) => [ key, value.value ]), [ [ "first", 1 ], [ "last", 3 ] ]);
+  assert.deepEqual(mapDest.modified, [ "byName" ]);
+});
+
+test("weak-reference members retain their referents rather than cloning them", () =>
+{
+  class CopierWeakReference { owner = null; }
+  CjsSchema.define(CopierWeakReference, { className: "CopierWeakReference", fields: {
+    owner: [ type.weakRef("CopierLeaf"), edit.persist ]
+  } });
+  const source = new CopierWeakReference();
+  source.owner = Leaf(11);
+  const copy = blue.classes.CopyTo(source);
+  assert.equal(copy.owner, source.owner, "BlueVariable.cpp:869-875 assigns the existing referent");
 });

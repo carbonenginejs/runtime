@@ -4,14 +4,10 @@
 //
 // The registry behind `blue.classes` (`BeClasses`).
 //
-// ONE TABLE, NOT TWO. `CjsSchema` already keeps the by-name constructor table
-// (`SetConstructor`/`GetConstructor`) and fills it for every class it defines;
-// it currently does four or five Carbon jobs at once (ClassInfo, BeClasses,
-// RTTI, the copier, the exposure macros), and its class registry is
-// BeClasses' job (operator, 2026-09-22; /docs/architecture/blue-service-ownership.md).
-// Until that splits out, this class is the Carbon-named face over the same table, so a
-// class registered either way is found either way. A class with no schema
-// (HostBitmap, for one) registers here.
+// The classes/registry leaf owns complete registration records for every
+// BlueClasses instance and for CjsSchema. Class metadata remains schema-owned;
+// registering or removing a name never creates or discards that metadata.
+// The first registration wins, and replacement requires explicit removal.
 //
 // It answers truthfully
 // before anything is composed - an empty registry finds nothing, which is what
@@ -31,7 +27,7 @@
 // module and name, and `FindClsid` already ignores the module ("we don't allow
 // name clashes between modules", BlueClasses.cpp:340-343). With no GUIDs to
 // carry, the name is the only identity there is.
-import * as CcpLog from "../logging/ccpLog.js";
+import { registerClass, unregisterClass, getClassRegistration } from "./classes/registry.js";
 import { CjsSchema, carbon, impl } from "#schema";
 import { IBlueClasses } from "./IBlueClasses.js";
 import { Copier } from "./Copier.js";
@@ -45,9 +41,6 @@ export class BlueClasses extends IBlueClasses
   static Flags = {
     DISABLE_PYTHON_CONSTRUCTION: 1
   };
-
-  /** Carbon's per-registration createFn and flags, where they differ from `new type()` and 0. */
-  _extras = new Map();
 
   /**
    * Register every entry of a table (BlueClasses.cpp:296-302).
@@ -71,31 +64,20 @@ export class BlueClasses extends IBlueClasses
   {
     for (const registration of table)
     {
-      this._extras.delete(registration.name);
-      CjsSchema.DeleteConstructor(registration.name);
+      unregisterClass(registration.name);
     }
   }
 
   /**
-   * The registration for a class id, or null (BlueClasses.cpp:331-336).
+   * A copy of the shared registration, or null (BlueClasses.cpp:331-336).
+   * Changing this returned record does not mutate the registered entry.
    *
    * @param {string} clsid Class id, which is the class name.
    * @returns {{name: string, type: Function, createFn: Function, flags: number}|null} Registration.
    */
   GetClassRegistration(clsid)
   {
-    const type = CjsSchema.GetConstructor(clsid);
-
-    if (!type) return null;
-
-    const extras = this._extras.get(clsid);
-
-    return {
-      name: clsid,
-      type,
-      createFn: extras?.createFn ?? (() => new type()),
-      flags: extras?.flags ?? 0
-    };
+    return getClassRegistration(clsid);
   }
 
   /**
@@ -106,7 +88,7 @@ export class BlueClasses extends IBlueClasses
    */
   FindClsid(name)
   {
-    return CjsSchema.GetConstructor(name) ? name : null;
+    return getClassRegistration(name)?.name ?? null;
   }
 
   /**
@@ -136,23 +118,7 @@ export class BlueClasses extends IBlueClasses
   /** Register one entry, refusing a name already taken (BlueClasses.cpp:266-280). */
   _RegisterSingleClass(registration)
   {
-    const { name, type } = registration;
-
-    if (CjsSchema.GetConstructor(name))
-    {
-      // Keep the first registration, as in BlueClasses.cpp:272-276. Carbon logs
-      // "Class %s.%s is already registered!" with the module first; a JS
-      // registration carries no module, so only the name is printed.
-      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("blue"), "Class %s is already registered!", name);
-      return;
-    }
-
-    CjsSchema.SetConstructor(name, type);
-
-    if (registration.createFn || registration.flags)
-    {
-      this._extras.set(name, { createFn: registration.createFn, flags: registration.flags ?? 0 });
-    }
+    registerClass(registration);
   }
 
   /** Throws because querying an object's native interface is not implemented. */

@@ -39,6 +39,7 @@ import * as CcpLog from "../logging/ccpLog.js";
 import { CjsSchema, carbon, impl } from "#schema";
 import { cloneCarbonValue, coerceCarbonMathInto, coerceCarbonTypedArrayInto } from "../schema/types/index.js";
 import { ICopier } from "./ICopier.js";
+import { mappedInterfaces } from "../compose/interface.js";
 
 const { OverrideResult } = ICopier;
 
@@ -169,23 +170,29 @@ export class Copier extends ICopier
 
   /**
    * Copies every PERSIST member, then the class's custom assignment, then
-   * initializes the destination (Copier.cpp:124-213).
+   * initializes the destination (Copier.cpp:138-213).
    *
-   * A destination that implements `Initialize` gets no per-member
-   * `OnModified`; one that does not is notified for each member that changed.
+   * A mapped IInitialize suppresses per-member INotify. Otherwise every changed
+   * PERSIST member is notified, without requiring NOTIFY; false aborts the copy.
+   * Source ICopierCustomAssignment runs after members, and Initialize runs last.
+   *
+   * Adapted: native member offsets select explicit JavaScript backing keys and
+   * optional indexes. Canonical members retain derived-to-base declaration order;
+   * live properties are not storage, and their accessors are never invoked.
    */
   _CopyToInternal(source, dest)
   {
-    const initialize = typeof dest.Initialize === "function";
-    const notify = !initialize && typeof dest.OnModified === "function";
+    const initialize = Copier._mapsInterface(dest.constructor, "IInitialize");
+    const notify = !initialize && Copier._mapsInterface(dest.constructor, "INotify");
 
-    for (const field of CjsSchema.getSchema(dest.constructor).fields)
+    for (const field of CjsSchema.getSchema(dest.constructor).members)
     {
       if (!(field.edit?.persist || field.edit?.persistOnly)) continue;
 
       const kind = field.type?.kind;
-      const from = source[field.name];
-      const to = dest[field.name];
+      const from = Copier._memberStorage(source, field).value;
+      const storage = Copier._memberStorage(dest, field);
+      const to = storage.value;
 
       // Buffers: SetValues' in-place writers copy AND report a change, or
       // answer null when the member is not a buffer of the declared shape.
@@ -195,19 +202,20 @@ export class Copier extends ICopier
       if (written === null)
       {
         if (Copier._IsUnchanged(kind, from, to)) continue;
-        if (!this._CopyMember(field, kind, from, to, dest)) return false;
+        if (!this._CopyMember(field, kind, from, to, storage)) return false;
       }
 
       if (notify && dest.OnModified(field.name) === false) return false;
     }
 
-    if (typeof source.AssignTo === "function" && source.AssignTo(dest, this) === false) return false;
+    if (Copier._mapsInterface(source.constructor, "ICopierCustomAssignment")
+      && source.AssignTo(dest, this) === false) return false;
 
     return initialize ? dest.Initialize() !== false : true;
   }
 
   /** One member, by kind - the BlueVariable.cpp `Copy<VarType>` arms. */
-  _CopyMember(field, kind, from, to, dest)
+  _CopyMember(field, kind, from, to, storage)
   {
     if (OBJECT_KINDS.has(kind))
     {
@@ -215,11 +223,11 @@ export class Copier extends ICopier
       // first, and a NULL source FAILS the copy. That fails any copy whose
       // source cleared a member the destination still holds; it is Carbon's
       // behaviour and is kept.
-      dest[field.name] = null;
+      storage.target[storage.key] = null;
       if (!from) return false;
       const copy = this.CopyTo(from, null);
       if (!copy) return false;
-      dest[field.name] = copy;
+      storage.target[storage.key] = copy;
       return true;
     }
 
@@ -230,26 +238,28 @@ export class Copier extends ICopier
       if (!from) return false;
       const copy = this.CopyTo(from, to && typeof to === "object" ? to : null);
       if (!copy) return false;
-      dest[field.name] = copy;
+      storage.target[storage.key] = copy;
       return true;
     }
 
     if (CONTAINER_KINDS.has(kind) && Copier._HoldsObjects(field.type, from))
     {
       return kind === "map"
-        ? this._AssignMap(field, from, dest)
-        : this._AssignList(field, from, dest);
+        ? this._AssignMap(storage, from)
+        : this._AssignList(storage, from);
     }
 
-    dest[field.name] = cloneCarbonValue(from);
+    // Copy<IROOTWEAKREF> assigns the referent (BlueVariable.cpp:869-875).
+    // This preserves identity without introducing a JavaScript lifetime policy.
+    storage.target[storage.key] = kind === "weakRef" ? from : cloneCarbonValue(from);
     return true;
   }
 
   /** BlueList AssignTo (BlueListUtil.h:506-540): cleared, then every item copied. */
-  _AssignList(field, from, dest)
+  _AssignList(storage, from)
   {
     const items = [];
-    dest[field.name] = items;
+    storage.target[storage.key] = items;
     for (const item of from ?? [])
     {
       const copy = item ? this.CopyTo(item, null) : null;
@@ -260,10 +270,10 @@ export class Copier extends ICopier
   }
 
   /** BlueDict AssignTo (BlueDict.h:334-356): cleared, entries copied, failures skipped. */
-  _AssignMap(field, from, dest)
+  _AssignMap(storage, from)
   {
     const entries = new Map();
-    dest[field.name] = entries;
+    storage.target[storage.key] = entries;
     for (const [ key, item ] of from ?? [])
     {
       const copy = item ? this.CopyTo(item, null) : null;
@@ -272,7 +282,66 @@ export class Copier extends ICopier
     return true;
   }
 
-  /** The `memcmp` skip (Copier.cpp:141-150), asked per kind. */
+  /** Queries native exposure mappings by their stable declared identity. */
+  static _mapsInterface(Constructor, name)
+  {
+    for (const Interface of mappedInterfaces(Constructor))
+    {
+      const identity = CjsSchema.getClassName(Interface);
+      if (!identity) throw new TypeError("Copier interface mappings require a declared class identity.");
+      if (identity === name) return true;
+    }
+    return false;
+  }
+
+  /** Resolves a stored member's JavaScript equivalent of its native offset. */
+  static _memberStorage(instance, member)
+  {
+    if (member.role !== "member" || typeof member.key !== "string" || !member.key)
+    {
+      throw new TypeError("Copier storage requires a canonical member and JavaScript key.");
+    }
+    let target = instance;
+    let key = member.key;
+    let value = Copier._dataValue(target, key);
+    if (member.index !== undefined)
+    {
+      if (!Number.isInteger(member.index) || member.index < 0)
+      {
+        throw new TypeError(`Copier member ${member.name} has an invalid storage index.`);
+      }
+      if (!Array.isArray(value) && !(ArrayBuffer.isView(value) && !(value instanceof DataView)))
+      {
+        throw new TypeError(`Copier member ${member.name} requires existing indexed storage.`);
+      }
+      if (member.index >= value.length)
+      {
+        throw new RangeError(`Copier member ${member.name} exceeds its indexed storage length.`);
+      }
+      target = value;
+      key = member.index;
+      value = Copier._dataValue(target, key);
+    }
+    return { target, key, value };
+  }
+
+  /** Reads data through the prototype chain without executing an accessor. */
+  static _dataValue(target, key)
+  {
+    for (let current = target; current !== null; current = Object.getPrototypeOf(current))
+    {
+      const descriptor = Object.getOwnPropertyDescriptor(current, key);
+      if (!descriptor) continue;
+      if (!Object.hasOwn(descriptor, "value"))
+      {
+        throw new TypeError(`Copier storage ${String(key)} is an accessor; declare its backing key.`);
+      }
+      return descriptor.value;
+    }
+    return undefined;
+  }
+
+  /** The `memcmp` skip (Copier.cpp:171-181), asked per kind. */
   static _IsUnchanged(kind, from, to)
   {
     if (Object.is(from, to)) return true;
@@ -323,6 +392,7 @@ CjsSchema.define(Copier, {
     SetCopyOverrideCallback: [ carbon.method, impl.adapted ],
     SetPostCopyCallback: [ carbon.method, impl.adapted ],
     CopyTo: [ carbon.method, impl.adapted ],
-    CloneTo: [ carbon.method, impl.adapted ]
+    CloneTo: [ carbon.method, impl.adapted ],
+    _CopyToInternal: [ impl.adapted ]
   }
 });

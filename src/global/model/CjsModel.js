@@ -6,6 +6,8 @@ import { CjsModelState } from "./CjsModelState.js";
 import { DictReader } from "../blue/DictReader.js";
 import { DictWriter } from "../blue/DictWriter.js";
 import { Copier } from "../blue/Copier.js";
+import { Traverse } from "../blue/find.js";
+import { GetResources } from "../blue/getResources.js";
 import { CjsEventEmitter } from "./CjsEventEmitter.js";
 
 /**
@@ -355,123 +357,43 @@ export class CjsModel extends CjsEventEmitter
     }
 
     /**
-     * Visits this model and its schema-backed child models without revisiting cycles.
+     * Visits this object's declared graph through Blue's shared traversal.
      *
-     * In pre-order traversal, returning `false` prunes that model's descendants.
-     * Visitor return values are ignored in post-order traversal.
+     * Includes plain declared classes and resources in derived-to-base member
+     * order. Preorder false prunes descendants; postorder returns are ignored.
+     * This public visitor does not define the legacy values initialization order.
      *
-     * @param {function(CjsModel): (boolean|void)} visitor
+     * @param {function(object): (boolean|void)} visitor
      * @param {object} [options={}]
-     * @param {Set<CjsModel>} [options.visited] Existing cycle-detection set.
+     * @param {Set<object>} [options.visited] Existing cycle-detection set.
      * @param {"pre"|"post"} [options.order="pre"]
-     * @param {boolean} [options.reverse=false] Reverses field and list-item order.
-     * @param {boolean} [options.ownedOnly=false] Traverses only owned relationships.
+     * @param {boolean} [options.reverse=false] Reverse member and collection order.
+     * @param {boolean} [options.ownedOnly=false] Follow only declared owned edges.
+     * @param {boolean} [options.includeRoot=true] Whether to visit this root.
      * @returns {CjsModel} This model.
-     * @throws {TypeError} If `visitor` is not a function.
+     * @throws {TypeError} If visitor is not a function.
+     * @impl custom Compatibility entry point for Blue's declaration-driven visitor.
      */
     Traverse(visitor, options = {})
     {
-        if (typeof visitor !== "function")
-        {
-            throw new TypeError("CjsModel.Traverse requires a visitor function.");
-        }
-
-        const visited = options.visited instanceof Set ? options.visited : new Set();
-        const order = options.order === "post" ? "post" : "pre";
-        const reverse = options.reverse === true;
-
-        const visit = model =>
-        {
-            if (!(model instanceof CjsModel) || visited.has(model)) return;
-            visited.add(model);
-
-            let descend = true;
-            if (order === "pre") descend = visitor(model) !== false;
-
-            if (descend)
-            {
-                // Only the fields declared to hold child models, precomputed per
-                // class - not every field, type-tested per value per visit.
-                const children = CjsSchema.getSchema(model.constructor).children;
-                const start = reverse ? children.length - 1 : 0;
-                const end = reverse ? -1 : children.length;
-                const step = reverse ? -1 : 1;
-
-                for (let i = start; i !== end; i += step)
-                {
-                    const child = children[i];
-                    if (options.ownedOnly === true && !child.owned) continue;
-                    const value = model[child.name];
-
-                    if (Array.isArray(value))
-                    {
-                        const itemStart = reverse ? value.length - 1 : 0;
-                        const itemEnd = reverse ? -1 : value.length;
-                        for (let j = itemStart; j !== itemEnd; j += step) visit(value[j]);
-                    }
-                    else
-                    {
-                        visit(value);
-                    }
-                }
-            }
-
-            if (order === "post") visitor(model);
-        };
-
-        visit(this);
-        return this;
+        return Traverse(this, visitor, options);
     }
 
     /**
-     * Collects unique resources reported by this model graph into an array.
+     * Collects unique resources from the declared graph through Blue.
      *
-     * Every model in the graph is visited: reporting resources does not hide a
-     * model's descendants, because an under-reported dependency set would let
-     * readiness checks pass while a child's resources were still loading.
-     *
-     * Resources held in schema fields are collected automatically - they are
-     * already declared, as `@type.objectRef("TriGeometryRes")` and friends, so
-     * restating them in a hook would be the hand-written relay chain this
-     * traversal exists to replace.
-     *
-     * `OnGetResources()` is the escape hatch for resources a model holds
-     * outside its schema, such as private fields. It takes no arguments and
-     * always returns an iterable of resources - never a bare resource and never
-     * nothing. Most models do not implement it.
+     * Visits plain classes and recursive resource dependencies as well as models.
+     * The optional OnGetResources() hook supplies an iterable of local resources,
+     * takes no arguments, and never prunes descendants. Output contents are replaced
+     * in encounter order; no resource is released or initialized by this operation.
      *
      * @param {Array<*>} [out=[]] Output array, whose contents are replaced.
      * @returns {Array<*>} The supplied output array.
+     * @impl custom Compatibility entry point preserving the resource-hook contract.
      */
     GetResources(out = [])
     {
-        const resources = new Set();
-
-        this.Traverse(model =>
-        {
-            for (const field of CjsSchema.getSchema(model.constructor).resources)
-            {
-                const value = model[field.name];
-                if (Array.isArray(value))
-                {
-                    for (const item of value) AddResource(resources, item);
-                }
-                else
-                {
-                    AddResource(resources, value);
-                }
-            }
-
-            if (typeof model.OnGetResources === "function")
-            {
-                AddResources(resources, model.OnGetResources());
-            }
-            return true;
-        });
-
-        out.length = 0;
-        out.push(...resources);
-        return out;
+        return GetResources(this, out);
     }
 
     /**
@@ -834,7 +756,7 @@ function initializeReferencedFirst(value, options)
 
 function initializeOwnedGraph(root, options = {})
 {
-    root.Traverse(value =>
+    traverseLegacyOwnedModels(root, value =>
     {
         value.__state.suppressEvents++;
 
@@ -886,33 +808,51 @@ function initializeOwnedGraph(root, options = {})
         {
             value.__state.suppressEvents--;
         }
-    }, {
-        order: "post",
-        reverse: true,
-        ownedOnly: true,
-        visited: options.visited
-    });
+    }, options.visited);
     return root;
 }
 
-function AddResource(target, value)
+/**
+ * Keeps the legacy values initialization graph separate from public traversal.
+ *
+ * Initialization historically uses base-first schema children, reverse postorder,
+ * owned edges, array expansion only, and stops at non-model objects. A callback
+ * guard on Blue's broader visitor would still cross plain objects and reorder
+ * inherited children, changing initialization and reference-before-emitter timing.
+ * This private compatibility path intentionally retains the old buckets and does
+ * not grant initialization policy to canonical graph metadata.
+ *
+ * @param {CjsModel} root Legacy model root.
+ * @param {function(CjsModel): void} visitor Initialization operation.
+ * @param {Set<CjsModel>} [visited] Shared cycle/reference-in-progress set.
+ * @impl custom Isolates the existing values initialization contract until its
+ * callers are deliberately migrated; public traversal has no model restriction.
+ */
+function traverseLegacyOwnedModels(root, visitor, visited)
 {
-    if (value?.isResource === true) target.add(value);
-}
-
-
-function AddResources(target, values)
-{
-    if (typeof values === "string" || typeof values?.[Symbol.iterator] !== "function")
+    const seen = visited instanceof Set ? visited : new Set();
+    const visit = model =>
     {
-        throw new TypeError("CjsModel.OnGetResources must return an iterable of resources.");
-    }
-
-    // Empty slots are the model's own unset fields, not a contract violation.
-    for (const value of values)
-    {
-        if (value !== null && value !== undefined) target.add(value);
-    }
+        if (!CjsSchema.cast(model, CjsModel) || seen.has(model)) return;
+        seen.add(model);
+        const children = CjsSchema.getSchema(model.constructor).children;
+        for (let i = children.length - 1; i >= 0; i--)
+        {
+            const child = children[i];
+            if (!child.owned) continue;
+            const value = model[child.name];
+            if (Array.isArray(value))
+            {
+                for (let j = value.length - 1; j >= 0; j--) visit(value[j]);
+            }
+            else
+            {
+                visit(value);
+            }
+        }
+        visitor(model);
+    };
+    visit(root);
 }
 
 function getChildCollection(target, property)

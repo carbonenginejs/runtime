@@ -99,7 +99,7 @@
         "global/logging"
       ],
       "why": [
-        "Carbon imageio (E:/carbonengine/imageio): CPU image containers shared by the",
+        "Carbon imageio: CPU image containers shared by the",
         "resource layer (texture pipeline, image handlers) and the abstraction layer",
         "(Tr2BitmapDimensions describes every AL texture). Classes only; the",
         "handlers that call format readers live in resource/imageio."
@@ -111,6 +111,7 @@
     "global/schema": {
       "mayImport": [
         "global/blue/enums",
+        "global/blue/classes",
         "global/compose",
         "global/utils",
         "global/math",
@@ -141,6 +142,14 @@
         "methods carry @impl.abstract as well as their throwing body."
       ]
     },
+    "global/blue/classes": {
+      "mayImport": [
+        "global/logging"
+      ],
+      "why": [
+        "Complete class-registration storage shared by Blue and schema; logging depends only on constants and its plain channel record. This leaf never imports either facade or a domain."
+      ]
+    },
     "global/blue/enums": {
       "mayImport": [],
       "why": [
@@ -151,6 +160,8 @@
       "mayImport": [
         "global/consts",
         "global/blue/enums",
+        "global/blue/classes",
+        "global/compose",
         "global/schema",
         "global/utils",
         "global/logging"
@@ -159,7 +170,8 @@
         "Ports of Carbon's blueexposure layer - facilities Blue provides to every",
         "subsystem rather than to one. BlueScriptCallback is used by Carbon's audio,",
         "ResMan, BluePython and Trinity UI alike, so its port cannot live with any",
-        "single consumer, and cannot live in core, which nothing below may import."
+        "single consumer, and cannot live in core, which nothing below may import.",
+        "Copier reads mapped-interface metadata directly from the dependency-free composition leaf; this does not import a schema facade through composition."
       ]
     },
     "global/dropped": {

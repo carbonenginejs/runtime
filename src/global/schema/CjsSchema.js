@@ -15,6 +15,7 @@ import { carbonInheritDecorator, carbonMapInterfaceDecorator, cast } from "../co
 import { composeValuesDecorator, createValuesTransport, isExportableField, isWritableField } from "../compose/values.js";
 import { blueEnums, CjsBlueEnumRegistry } from "../blue/enums/CjsBlueEnumRegistry.js";
 import { TriSettingNames } from "../consts/trinity.js";
+import { registerClass, unregisterClass, getRegisteredConstructor, getClassRegistrationRevision } from "../blue/classes/registry.js";
 
 
 const CLASS_SCHEMA = new WeakMap();
@@ -22,13 +23,13 @@ const CLASS_SCHEMA = new WeakMap();
 // Exported schemas, memoized per class. SCHEMA_GENERATION is bumped by every
 // metadata definition (see getOrCreateClassSchema), which is what makes a stale
 // memo detectable without tracking which subclasses a base class change reaches.
+// Blue class-registration revisions independently invalidate name-dependent
+// buckets and defaults, regardless of which facade changed the registration.
 const SCHEMA_EXPORTS = new WeakMap();
 const DEFAULT_EXPORTS = new WeakMap();
 const FIELD_INITIAL_DEFAULTS = new WeakMap();
 const FIELD_DECLARATION_METADATA = new WeakMap();
 let SCHEMA_GENERATION = 0;
-
-const CONSTRUCTOR_BY_NAME = new Map();
 
 // Statics described by edit.setting, in definition order (see getSettings).
 // Declared before the class body, which reads SETTING_DECORATOR.
@@ -369,42 +370,27 @@ export class CjsSchema
 
     /**
      * Registers a constructor under an explicit serialized class name.
-     *
-     * One direct name-to-constructor map serves every lookup; `define` and
-     * `type.define` register the `className` and each alias through here.
+     * Blue owns the complete registration. The first registration of each name
+     * wins; replace it by deleting that name before registering again. Aliases
+     * are independent names. Metadata may still be declared for a constructor
+     * whose name collided, but lookup continues to return the first entry.
      */
     static SetConstructor(name, Constructor)
     {
-        if (typeof name !== "string" || !name.trim())
-        {
-            throw new TypeError("CjsSchema.SetConstructor requires a non-empty name.");
-        }
-        if (typeof Constructor !== "function")
-        {
-            throw new TypeError(`CjsSchema constructor ${name.trim()} must be a function.`);
-        }
-
-        CONSTRUCTOR_BY_NAME.set(name.trim(), Constructor);
-        // Buckets resolve class references by name, so a late registration
-        // changes how already-built schemas should have been bucketed.
-        SCHEMA_GENERATION += 1;
+        registerClass({ name, type: Constructor });
         return this;
     }
 
-    /** Removes the constructor registered under a serialized class name. */
+    /** Removes one registered name without erasing aliases or sealed metadata. */
     static DeleteConstructor(name)
     {
-        if (typeof name !== "string" || !name.trim()) return false;
-        const removed = CONSTRUCTOR_BY_NAME.delete(name.trim());
-        if (removed) SCHEMA_GENERATION += 1;
-        return removed;
+        return unregisterClass(name);
     }
 
-    /** Returns the constructor registered for a serialized class name. */
+    /** Returns the constructor registered for a serialized class name, or null. */
     static GetConstructor(name)
     {
-        if (typeof name !== "string" || !name.trim()) return null;
-        return CONSTRUCTOR_BY_NAME.get(name.trim()) || null;
+        return getRegisteredConstructor(name);
     }
 
     /**
@@ -611,7 +597,7 @@ export class CjsSchema
      * class order, preserving name, JS key, optional index, and declaring class.
      * Core readers and traversal use these tables. The compatibility `fields`
      * view instead merges by JS key in base-first order. Tables are fixed at
-     * registration; exports are memoized until the metadata generation changes.
+     * registration; exports are memoized until metadata or Blue registration changes.
      *
      * Namespace-filtered exports are not memoized: they are a projection of the
      * full schema requested by tooling, not the hot read path.
@@ -631,10 +617,11 @@ export class CjsSchema
         if (namespaces) return buildClassInfo(Constructor, namespaces);
 
         const memo = SCHEMA_EXPORTS.get(Constructor);
-        if (memo && memo.generation === SCHEMA_GENERATION) return memo.schema;
+        if (memo && memo.generation === SCHEMA_GENERATION
+            && memo.registrationRevision === getClassRegistrationRevision()) return memo.schema;
 
         const schema = buildClassInfo(Constructor, null);
-        SCHEMA_EXPORTS.set(Constructor, { generation: SCHEMA_GENERATION, schema });
+        SCHEMA_EXPORTS.set(Constructor, { generation: SCHEMA_GENERATION, registrationRevision: getClassRegistrationRevision(), schema });
         return schema;
     }
 
@@ -695,7 +682,14 @@ export class CjsSchema
      *   never construct a model.
      */
     static type = {
-        array: itemType => fieldDecorator("type", { kind: "array", itemType }),
+        /**
+         * Declares an array with optional verified native layout facts (name,
+         * byte size and member offsets). Preserves structure verbatim; readers
+         * own format-specific validation, and no layout is inferred here.
+         */
+        array: (itemType, { structure } = {}) => fieldDecorator("type", {
+            kind: "array", itemType, ...(structure === undefined ? {} : { structure })
+        }),
         boolean: fieldDecorator("type", { kind: "boolean" }),
         color: fieldDecorator("type", { kind: "color" }),
         define: definition => classDefinitionDecorator(definition),
@@ -706,7 +700,14 @@ export class CjsSchema
         int16: fieldDecorator("type", { kind: "int16" }),
         int32: fieldDecorator("type", { kind: "int32" }),
         int64: fieldDecorator("type", { kind: "int64" }),
-        list: itemType => fieldDecorator("type", { kind: "list", itemType }),
+        /**
+         * Declares a list with optional verified native layout facts (name,
+         * byte size and member offsets). Preserves structure verbatim; readers
+         * own format-specific validation, and no layout is inferred here.
+         */
+        list: (itemType, { structure } = {}) => fieldDecorator("type", {
+            kind: "list", itemType, ...(structure === undefined ? {} : { structure })
+        }),
         mat3: fieldDecorator("type", { kind: "mat3" }),
         mat4: fieldDecorator("type", { kind: "mat4" }),
         map: valueType => fieldDecorator("type", { kind: "map", valueType }),
@@ -1036,7 +1037,8 @@ function getDefaultsTemplate(ConstructorOrName)
 {
     const Constructor = resolveDefaultsConstructor(ConstructorOrName);
     const memo = DEFAULT_EXPORTS.get(Constructor);
-    if (memo && memo.generation === SCHEMA_GENERATION) return memo.defaults;
+    if (memo && memo.generation === SCHEMA_GENERATION
+        && memo.registrationRevision === getClassRegistrationRevision()) return memo.defaults;
 
     let fields = getEffectiveFields(Constructor);
     let captured = FIELD_INITIAL_DEFAULTS.get(Constructor);
@@ -1108,6 +1110,7 @@ function getDefaultsTemplate(ConstructorOrName)
     const frozen = deepFreezeDefaultValue(defaults);
     DEFAULT_EXPORTS.set(Constructor, {
         generation: SCHEMA_GENERATION,
+        registrationRevision: getClassRegistrationRevision(),
         defaults: frozen
     });
     return frozen;
@@ -2318,7 +2321,7 @@ function isValueItemType(itemType)
 {
     if (!itemType) return false;
     if (typeof itemType === "object") return !NON_VALUE_KINDS.has(itemType.kind);
-    if (typeof itemType !== "string" || CONSTRUCTOR_BY_NAME.has(itemType)) return false;
+    if (typeof itemType !== "string" || getRegisteredConstructor(itemType)) return false;
     return !NON_VALUE_KINDS.has(getCarbonTypeDefinition(itemType).kind)
         || !NON_VALUE_KINDS.has(inferCarbonTypeFromCpp(itemType).kind);
 }
@@ -2331,7 +2334,7 @@ function isValueItemType(itemType)
 function resolveFieldClass(type)
 {
     const ref = type.className || type.itemType || type.valueType;
-    return typeof ref === "string" && ref ? CONSTRUCTOR_BY_NAME.get(ref) || null : null;
+    return typeof ref === "string" && ref ? getRegisteredConstructor(ref) : null;
 }
 
 

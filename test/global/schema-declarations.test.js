@@ -230,3 +230,55 @@ test("registration fixes canonical occurrences and invalidates cached exports wi
     assert.deepEqual(refreshed.members.map(entry => entry.name), [ "own", "first" ], "an unregistered ancestor cannot retroactively alter a registered table");
     assert.deepEqual(refreshed.fields.map(entry => entry.name), [ "first", "own" ]);
 });
+
+
+for (const kind of [ "list", "array" ])
+{
+    test(kind + " decorators preserve explicit native structure layout metadata", () =>
+    {
+        const structure = {
+            name: "SyntheticPair", size: 8,
+            members: [ { name: "left", offset: 0, type: "float32" }, { name: "right", offset: 4, type: "float32" } ],
+            boundaries: [ 4, 8 ], defaults: { right: 0 }
+        };
+        const itemType = { kind: "rawStruct", className: "SyntheticPair" };
+        const metadata = {};
+        class Decorated {}
+        applyStage3(metadata, "items", "field", [ types[kind](itemType, { structure }), edit.persist ]);
+        meta.define({ className: "DeclarationStructuredDecorated" + kind })(Decorated, { kind: "class", metadata });
+        class Explicit {}
+        CjsSchema.define(Explicit, {
+            className: "DeclarationStructuredExplicit" + kind,
+            members: [ { name: "items", key: "items", type: { kind, itemType, structure }, edit: { persist: true } } ]
+        });
+        const decorated = CjsSchema.getSchema(Decorated);
+        assert.deepEqual(withoutOwners(decorated.members), withoutOwners(CjsSchema.getSchema(Explicit).members));
+        assert.equal(decorated.members[0].type.structure, structure, "layout facts are retained verbatim");
+        assert.equal(decorated.members[0].type.itemType, itemType, "element type is unchanged");
+        const filtered = CjsSchema.getSchema(Decorated, { namespaces: [ "type" ] });
+        assert.equal(filtered.members[0].type.structure, structure);
+        assert.equal(filtered.members[0].edit, undefined);
+        assert.equal(CjsSchema.getSchema(Decorated, { namespaces: [ "edit" ] }).members[0].type, undefined);
+        assert.equal(CjsSchema.getField(Decorated, "items").type.structure, structure);
+    });
+
+    test(kind + " keeps its original descriptor when no structure is supplied", () =>
+    {
+        const itemType = { kind: "objectRef", className: "SyntheticChild" };
+        class Legacy {}
+        CjsSchema.define(Legacy, {
+            className: "DeclarationStructuredLegacy" + kind,
+            fields: {
+                singleArgument: type[kind](itemType),
+                emptyOptions: types[kind](itemType, {}),
+                nonLayoutOptions: types[kind](itemType, { kind: "map", itemType: "Replacement", unsupported: true })
+            }
+        });
+        for (const member of CjsSchema.getSchema(Legacy).members)
+        {
+            assert.deepEqual(member.type, { kind, itemType });
+            assert.equal(member.type.itemType, itemType);
+            assert.equal(Object.hasOwn(member.type, "structure"), false);
+        }
+    });
+}

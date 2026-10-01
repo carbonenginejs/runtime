@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { CjsModel } from "../../npm/dist/global/model/index.js";
 import { blue } from "../../npm/dist/global/blue/index.js";
 import { TriGeometryRes } from "../../npm/dist/resource/index.js";
@@ -62,6 +63,74 @@ test("shared CPU providers survive old and pending ship retirement until the fin
   retireDemoShips([next.ship],[pending.ship]);assert.equal(destroyed,0);
   retireDemoShips([pending.ship,pending.ship],[]);assert.equal(destroyed,1);
   assert.deepEqual(new Set(namedResources()),baseline);
+});
+
+test("mesh-only shared providers survive retained ships and retire exactly once", t => {
+  const baseline = setup(t), old = makeShip(), next = makeShip(old.provider), pending = makeShip(old.provider);
+  for (const root of [old, next, pending]) root.ship.effectChildren[0].particleSystems.length = 0;
+  const destroy = t.mock.method(old.provider, "Destroy");
+  retireDemoShips([old.ship], [next.ship, pending.ship]);
+  assert.equal(destroy.mock.callCount(), 0);
+  assert.equal(old.mesh.instanceGeometryResource, null);
+  assert.ok(!TriDevice.GetResourcesRegistered().includes(old.mesh));
+  retireDemoShips([next.ship], [pending.ship]);
+  assert.equal(destroy.mock.callCount(), 0);
+  assert.ok(TriDevice.GetResourcesRegistered().includes(old.provider));
+  retireDemoShips([pending.ship, pending.ship], []);
+  assert.equal(destroy.mock.callCount(), 1, "collect provider before mesh destruction clears its only edge");
+  assert.deepEqual(new Set(namedResources()), baseline);
+});
+
+class RetirementProviderBridge
+{
+  providers = new Map();
+}
+CjsSchema.define(RetirementProviderBridge, {
+  className: "RetirementProviderBridge",
+  members: [{ name: "providers", key: "providers", type: { kind: "map", valueType: Tr2ParticleSystem } }]
+});
+
+class RetirementBridgeShip extends EveShip2
+{
+  providerBridge = null;
+}
+CjsSchema.define(RetirementBridgeShip, {
+  className: "RetirementBridgeShip",
+  members: [{ name: "providerBridge", key: "providerBridge", type: { kind: "objectRef", className: RetirementProviderBridge } }]
+});
+
+test("retained real ship protects a provider through a plain declared Map bridge", t => {
+  const baseline = setup(t), old = makeShip(), retained = new RetirementBridgeShip();
+  old.ship.effectChildren[0].particleSystems.length = 0;
+  retained.providerBridge = new RetirementProviderBridge();
+  retained.providerBridge.providers.set("first", old.provider);
+  retained.providerBridge.providers.set("shared", old.provider);
+  assert.equal(retained.providerBridge.Traverse, undefined);
+  const destroy = t.mock.method(old.provider, "Destroy");
+  retireDemoShips([old.ship], [retained]);
+  assert.equal(destroy.mock.callCount(), 0, "the plain bridge must not stop the retained graph walk");
+  assert.ok(TriDevice.GetResourcesRegistered().includes(old.provider));
+  assert.ok(!TriDevice.GetResourcesRegistered().includes(old.mesh));
+  retireDemoShips([retained, retained], []);
+  assert.equal(destroy.mock.callCount(), 1);
+  assert.deepEqual(new Set(namedResources()), baseline);
+});
+
+test("ship traversal and resource collection visit geometry without retiring the asset", t => {
+  const baseline = setup(t), { ship, mesh, provider } = makeShip();
+  const geometry = mesh.GetGeometryResource(), visited = [];
+  ship.Traverse(value => { visited.push(value); });
+  assert.equal(visited.filter(value => value === geometry).length, 1);
+  assert.equal(visited.filter(value => value === provider).length, 1);
+  const out = ["replaced"];
+  assert.equal(ship.GetResources(out), out);
+  assert.deepEqual(out, [geometry]);
+  const release = t.mock.method(geometry, "ReleaseResources");
+  retireDemoShips([ship], []);
+  assert.equal(release.mock.callCount(), 0, "visiting resource edges does not transfer asset destruction ownership");
+  assert.equal(geometry.IsGood(), true);
+  assert.equal(mesh.GetGeometryResource(), null);
+  assert.deepEqual(new Set(namedResources()), baseline);
 });
 
 test("device reset retains CPU data while final teardown frees it and detaches late completion",t=>{
