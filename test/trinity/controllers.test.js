@@ -54,7 +54,7 @@ test("controller methods expose source-backed Carbon metadata", () =>
   new Tr2ActionSetExternalControllerVariable();
   new Tr2BindingPoint();
   new Tr2ControllerExpression();
-  const sourceBackedMethods = [[Tr2Controller, "OnListModified", "adapted"], [Tr2Controller, "Link", "adapted"], [Tr2Controller, "Unlink", "implemented"], [Tr2Controller, "ReLink", "implemented"], [Tr2Controller, "IsLinked", "implemented"], [Tr2Controller, "Start", "implemented"], [Tr2Controller, "Stop", "implemented"], [Tr2Controller, "Update", "adapted"], [Tr2Controller, "SetVariable", "implemented"], [Tr2Controller, "HandleEvent", "implemented"], [Tr2Controller, "GetOwner", "implemented"], [Tr2Controller, "GetVariableByName", "implemented"], [Tr2Controller, "GetFloatVariableByName", "adapted"], [Tr2Controller, "GetExpressionTermInfo", "adapted"], [Tr2Controller, "GetVariables", "implemented"], [Tr2Controller, "GetVariableView", "adapted"], [Tr2Controller, "GetVariableBuffer", "adapted"], [Tr2Controller, "EnsureTempArenaSize", "adapted"], [Tr2Controller, "GetTempArena", "adapted"], [Tr2Controller, "GetBindingPathRoots", "adapted"], [Tr2Controller, "RegisterUpdateable", "implemented"], [Tr2Controller, "UnRegisterUpdateable", "implemented"], [Tr2Controller, "Callback", "adapted"], [Tr2Controller, "RegisterCallback", "adapted"], [Tr2Controller, "ClearCallbacks", "implemented"], [Tr2ControllerEventHandler, "OnListModified", "implemented"], [Tr2ControllerEventHandler, "Link", "implemented"], [Tr2ControllerEventHandler, "Unlink", "implemented"], [Tr2ControllerEventHandler, "GetName", "implemented"], [Tr2ControllerEventHandler, "Execute", "implemented"], [Tr2ControllerFloatVariable, "Initialize", "implemented"], [Tr2ControllerFloatVariable, "OnModified", "implemented"], [Tr2ControllerFloatVariable, "GetName", "implemented"], [Tr2ControllerFloatVariable, "GetValue", "implemented"], [Tr2ControllerFloatVariable, "SetValue", "implemented"], [Tr2ControllerFloatVariable, "SetDestinationBuffer", "adapted"], [Tr2ControllerFloatVariable, "SetDirtyMask", "adapted"], [Tr2StateMachine, "OnListModified", "adapted"], [Tr2StateMachine, "OnModified", "adapted"], [Tr2StateMachine, "OnSimClockRebase", "adapted"], [Tr2StateMachine, "Link", "implemented"], [Tr2StateMachine, "Unlink", "implemented"], [Tr2StateMachine, "Start", "adapted"], [Tr2StateMachine, "Stop", "implemented"], [Tr2StateMachine, "Update", "adapted"], [Tr2StateMachine, "GetController", "implemented"], [Tr2StateMachine, "GetStateByName", "implemented"], [Tr2StateMachine, "GetMachineRunTime", "implemented"], [Tr2StateMachine, "GetStateRunTime", "implemented"], [Tr2StateMachine, "_followTransitions", "adapted"], [Tr2StateMachineState, "OnModified", "adapted"], [Tr2StateMachineState, "OnListModified", "implemented"], [Tr2StateMachineState, "Link", "adapted"], [Tr2StateMachineState, "Unlink", "implemented"], [Tr2StateMachineState, "Start", "implemented"], [Tr2StateMachineState, "Stop", "implemented"], [Tr2StateMachineState, "Update", "adapted"], [Tr2StateMachineState, "RebaseSimTime", "implemented"], [Tr2StateMachineState, "GetStateMachine", "implemented"], [Tr2StateMachineState, "GetName", "implemented"], [Tr2StateMachineState, "UpdateVariableMask", "implemented"], [Tr2StateMachineTransition, "OnModified", "adapted"], [Tr2StateMachineTransition, "Link", "adapted"], [Tr2StateMachineTransition, "Unlink", "adapted"], [Tr2StateMachineTransition, "CanActivate", "adapted"], [Tr2StateMachineTransition, "GetVariableMask", "adapted"], [Tr2StateMachineTransition, "GetDestination", "adapted"], [Tr2StateMachineTransition, "GetSource", "adapted"], [Tr2StateMachineTransition, "GetState", "adapted"], [Tr2StateMachineTransition, "IsConditionValid", "adapted"], [Tr2StateMachineTransition, "IsExpressionValid", "adapted"], [Tr2StateMachineTransition, "EvaluateExpression", "adapted"], [Tr2StateMachineTransition, "GetExpressionTermInfo", "adapted"]];
+  const sourceBackedMethods = [[Tr2Controller, "OnListModified", "adapted"], [Tr2Controller, "Link", "adapted"], [Tr2Controller, "Unlink", "implemented"], [Tr2Controller, "ReLink", "implemented"], [Tr2Controller, "IsLinked", "implemented"], [Tr2Controller, "Start", "implemented"], [Tr2Controller, "Stop", "implemented"], [Tr2Controller, "Update", "adapted"], [Tr2Controller, "SetVariable", "implemented"], [Tr2Controller, "HandleEvent", "implemented"], [Tr2Controller, "GetOwner", "implemented"], [Tr2Controller, "GetVariableByName", "implemented"], [Tr2Controller, "GetFloatVariableByName", "adapted"], [Tr2Controller, "GetExpressionTermInfo", "adapted"], [Tr2Controller, "GetVariables", "implemented"], [Tr2Controller, "GetVariableView", "adapted"], [Tr2Controller, "GetVariableBuffer", "adapted"], [Tr2Controller, "EnsureTempArenaSize", "adapted"], [Tr2Controller, "GetTempArena", "adapted"], [Tr2Controller, "GetBindingPathRoots", "adapted"], [Tr2Controller, "RegisterUpdateable", "implemented"], [Tr2Controller, "UnRegisterUpdateable", "implemented"], [Tr2Controller, "Callback", "adapted"], [Tr2Controller, "RegisterCallback", "adapted"], [Tr2Controller, "ClearCallbacks", "implemented"], [Tr2ControllerEventHandler, "OnListModified", "implemented"], [Tr2ControllerEventHandler, "Link", "implemented"], [Tr2ControllerEventHandler, "Unlink", "implemented"], [Tr2ControllerEventHandler, "GetName", "implemented"], [Tr2ControllerEventHandler, "Execute", "implemented"], [Tr2ControllerFloatVariable, "Initialize", "implemented"], [Tr2ControllerFloatVariable, "OnModified", "implemented"], [Tr2ControllerFloatVariable, "GetName", "implemented"], [Tr2ControllerFloatVariable, "GetValue", "implemented"], [Tr2ControllerFloatVariable, "SetValue", "implemented"], [Tr2ControllerFloatVariable, "SetDestinationBuffer", "adapted"], [Tr2ControllerFloatVariable, "SetDirtyMask", "adapted"], [Tr2StateMachine, "OnListModified", "adapted"], [Tr2StateMachine, "OnModified", "adapted"], [Tr2StateMachine, "OnSimClockRebase", "adapted"], [Tr2StateMachine, "Link", "implemented"], [Tr2StateMachine, "Unlink", "implemented"], [Tr2StateMachine, "Start", "adapted"], [Tr2StateMachine, "Stop", "implemented"], [Tr2StateMachine, "Update", "adapted"], [Tr2StateMachine, "GetController", "implemented"], [Tr2StateMachine, "GetStateByName", "implemented"], [Tr2StateMachine, "GetMachineRunTime", "implemented"], [Tr2StateMachine, "GetStateRunTime", "implemented"], [Tr2StateMachine, "_followTransitions", "adapted"], [Tr2StateMachineState, "OnModified", "adapted"], [Tr2StateMachineState, "OnListModified", "adapted"], [Tr2StateMachineState, "Link", "adapted"], [Tr2StateMachineState, "Unlink", "implemented"], [Tr2StateMachineState, "Start", "implemented"], [Tr2StateMachineState, "Stop", "implemented"], [Tr2StateMachineState, "Update", "adapted"], [Tr2StateMachineState, "RebaseSimTime", "implemented"], [Tr2StateMachineState, "GetStateMachine", "implemented"], [Tr2StateMachineState, "GetName", "implemented"], [Tr2StateMachineState, "UpdateVariableMask", "implemented"], [Tr2StateMachineState, "_getNextState", "adapted"], [Tr2StateMachineTransition, "OnModified", "adapted"], [Tr2StateMachineTransition, "Link", "adapted"], [Tr2StateMachineTransition, "Unlink", "adapted"], [Tr2StateMachineTransition, "CanActivate", "adapted"], [Tr2StateMachineTransition, "GetVariableMask", "adapted"], [Tr2StateMachineTransition, "GetDestination", "adapted"], [Tr2StateMachineTransition, "GetSource", "adapted"], [Tr2StateMachineTransition, "GetState", "adapted"], [Tr2StateMachineTransition, "IsConditionValid", "adapted"], [Tr2StateMachineTransition, "IsExpressionValid", "adapted"], [Tr2StateMachineTransition, "EvaluateExpression", "adapted"], [Tr2StateMachineTransition, "GetExpressionTermInfo", "adapted"]];
   for (const [ctor, methodName, status] of sourceBackedMethods)
   {
     assertCarbonMethod(ctor, methodName, status);
@@ -71,7 +71,10 @@ test("controller methods expose source-backed Carbon metadata", () =>
     assertEquals(method.impl.status, "custom");
     assertEquals(method.carbon?.method, undefined);
   }
-  const jsOnlyMethods = [[Tr2StateMachineState, "CanTransition"], [Tr2StateMachineTransition, "Compile"], [Tr2StateMachineTransition, "GetVariableNames"], [Tr2StateMachineTransition, "GetFunctionNames"]];
+  const stateConvenience = CjsSchema.getMethod(Tr2StateMachineState, "CanTransition");
+  assertEquals(stateConvenience.impl.status, "custom");
+  assertEquals(stateConvenience.carbon?.method, undefined);
+  const jsOnlyMethods = [[Tr2StateMachineTransition, "Compile"], [Tr2StateMachineTransition, "GetVariableNames"], [Tr2StateMachineTransition, "GetFunctionNames"]];
   for (const [ctor, methodName] of jsOnlyMethods)
   {
     assertEquals(CjsSchema.getMethod(ctor, methodName), null);
@@ -1844,27 +1847,28 @@ test("controller actions match Carbon reset and attenuation edge cases", () =>
 });
 function makeAction(name, events, expectedController)
 {
-  return {
+  return new (class extends ITr2ControllerAction
+  {
     Link(controller)
     {
       assertEquals(controller, expectedController);
       events.push(`${name}:link`);
-    },
+    }
     Unlink()
     {
       events.push(`${name}:unlink`);
-    },
+    }
     Start(controller)
     {
       assertEquals(controller, expectedController);
       events.push(`${name}:start`);
-    },
+    }
     Stop(controller)
     {
       assertEquals(controller, expectedController);
       events.push(`${name}:stop`);
     }
-  };
+  })();
 }
 function makeChildOwner(name, events)
 {

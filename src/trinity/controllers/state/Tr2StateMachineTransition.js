@@ -1,7 +1,9 @@
 // Source: trinity/trinity/Controllers/Tr2StateMachineTransition.h
 // Source: trinity/trinity/Controllers/Tr2StateMachineTransition.cpp
+// Source: trinity/trinity/Controllers/Tr2StateMachineTransition_Blue.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { CjsModel } from "#model";
+import { INotify } from "#blue";
 import { carbon, impl, edit, type } from "#schema";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 
@@ -14,6 +16,7 @@ import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpre
   className: "Tr2StateMachineTransition",
   family: "controllers"
 })
+@carbon.inherit(INotify)
 export class Tr2StateMachineTransition extends CjsModel
 {
   @edit.notify
@@ -330,3 +333,9 @@ export class Tr2StateMachineTransition extends CjsModel
     return (variableMask & dirtyMask) !== 0n;
   }
 }
+
+// Native exposure ends at this concrete table (Tr2StateMachineTransition_Blue.cpp).
+carbon.interfaceTable({
+  interfaces: [Tr2StateMachineTransition, INotify],
+  chainTo: null
+})(Tr2StateMachineTransition);
