@@ -37,7 +37,7 @@ for (const { Type, mapped, nominal } of cases)
   {
     const item = new Type();
     assert.deepEqual([...mappedInterfaces(Type)], mapped);
-    assert.equal(CjsSchema.cast(item, CjsModel), Type === Tr2StateMachine ? null : item);
+    assert.equal(CjsSchema.cast(item, CjsModel), Type === Tr2ControllerFloatVariable ? item : null);
     for (const Interface of nominal) assert.equal(CjsSchema.cast(item, Interface), item);
     assert.equal(mappedInterfaces(Type).has(ISimTimeRebaseNotify), false);
     if (Type !== Tr2ControllerFloatVariable) assert.equal(mappedInterfaces(Type).has(IInitialize), false);
@@ -106,7 +106,7 @@ test("child declarations retain independent storage and state-machine list owner
   ])
   {
     const first = new Type(), second = new Type();
-    if (Type === Tr2StateMachine)
+    if (Type === Tr2StateMachine || Type === Tr2ControllerEventHandler)
     {
       assert.equal(Object.getPrototypeOf(first[field]), BlueList.prototype);
       const info = {};
@@ -155,7 +155,7 @@ test("concrete child tables do not inherit a temporary CjsModel query interface"
         assert.deepEqual([...mappedInterfaces(Type)], expected);
         assert.equal(mappedInterfaces(Type).has(ParentOnlyInterface), false);
         const item = new Type();
-        assert.equal(CjsSchema.cast(item, CjsModel), Type === Tr2StateMachine ? null : item);
+        assert.equal(CjsSchema.cast(item, CjsModel), Type === Tr2ControllerFloatVariable ? item : null);
       }
     `
   ], { encoding: "utf8", timeout: 30000, windowsHide: true });

@@ -1,7 +1,10 @@
 // Source: trinity/trinity/Controllers/Tr2ControllerEventHandler.h
 // Source: trinity/trinity/Controllers/Tr2ControllerEventHandler.cpp
-import { CjsModel } from "#model";
-import { carbon, impl, edit, type } from "#schema";
+// Source: trinity/trinity/Controllers/Tr2ControllerEventHandler_Blue.cpp
+import { meta, types } from "#schema";
+import { BlueList } from "#blue";
+import { mappedInterfaces } from "../../global/compose/interface.js";
+import { ITr2ControllerAction } from "./action/ITr2ControllerAction.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { IListNotify } from "#blue/IListNotify";
 
@@ -17,58 +20,66 @@ import { IListNotify } from "#blue/IListNotify";
  *
  * Link supplies the action controller used to resolve those bindings. Execute
  * performs a synchronous pulse, starting all actions before stopping any; it
- * does not schedule updates or keep actions active across frames. CjsModel and
- * the schema provide persistence for the authored name and action list.
+ * does not schedule updates or keep actions active across frames. Blue declarations
+ * provide persistence for the authored name and action list.
  */
-@type.define({
+@meta.define({
   className: "Tr2ControllerEventHandler",
   family: "controllers"
 })
-@carbon.inherit(IListNotify)
-export class Tr2ControllerEventHandler extends CjsModel
+export class Tr2ControllerEventHandler extends IListNotify
 {
-  @edit.read
-  @edit.persist
-  @type.list("ITr2ControllerAction")
-  actions = [];
-
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  /** Authored event name compared by the owning controller. */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   name = "";
 
-  #controller = null;
+  /** Ordered native interface vector, observed by this handler. */
+  @meta.edit.read
+  @meta.edit.persist
+  @types.list("ITr2ControllerAction")
+  actions = new BlueList(ITr2ControllerAction, { className: null, listOps: 0 });
+
+  /** Retained controller; native Unlink deliberately leaves this pointer intact. */
+  _controller = null;
+
+  /** Subscribes to the owned action vector (native constructor, cpp:8-12). */
+  constructor()
+  {
+    super();
+    this.actions.SetNotify(this);
+  }
 
   /**
    * Handles Carbon list notifications for inserted and removed actions.
    *
    * Insertions link to the retained controller, if present; removals unlink
    * their action. Notifications for another list or another event are ignored.
-   * Entries must provide the action interface; the local object guard does not
-   * validate its methods.
+   * Native BlueCastPtr accepts only the exposed action interface identity.
    *
    * @param {number} event Carbon list event flags, masked with BELIST_EVENTMASK.
    * @param {number} [_key=0] Unused list notification key.
    * @param {number} [_key2=0] Unused secondary notification key.
    * @param {object|null} [value=null] Inserted or removed action.
-   * @param {Array} [list=this.actions] List that emitted the notification.
+   * @param {BlueList} [list=this.actions] List that emitted the notification.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = this.actions)
   {
     if (list !== this.actions)
     {
       return;
     }
-    const action = Tr2ControllerEventHandler.#asControllerAction(value);
+    const action = value && mappedInterfaces(value.constructor).has(ITr2ControllerAction) ? value : null;
     switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
       case BLUELISTEVENT.BELIST_INSERTED:
-        if (this.#controller && action)
+        if (this._controller && action)
         {
-          action.Link(this.#controller);
+          action.Link(this._controller);
         }
         break;
       case BLUELISTEVENT.BELIST_REMOVED:
@@ -86,12 +97,12 @@ export class Tr2ControllerEventHandler extends CjsModel
    * @param {ITr2ActionController} controller Controller used to resolve bindings.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   Link(controller)
   {
     this.Unlink();
-    this.#controller = controller;
+    this._controller = controller;
     for (const action of this.actions)
     {
       action.Link(controller);
@@ -107,11 +118,11 @@ export class Tr2ControllerEventHandler extends CjsModel
    *
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   Unlink()
   {
-    if (!this.#controller)
+    if (!this._controller)
     {
       return;
     }
@@ -126,8 +137,8 @@ export class Tr2ControllerEventHandler extends CjsModel
    *
    * @returns {string} Name compared with incoming controller event names.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetName()
   {
     return this.name;
@@ -143,8 +154,8 @@ export class Tr2ControllerEventHandler extends CjsModel
    * @param {ITr2ActionController} controller Controller passed to Start and Stop.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   Execute(controller)
   {
     for (const action of this.actions)
@@ -157,23 +168,11 @@ export class Tr2ControllerEventHandler extends CjsModel
     }
   }
 
-  /**
-   * Accepts object-valued entries for list notification dispatch.
-   *
-   * This guard rejects null and primitives but does not check the action
-   * interface. An object without Link or Unlink can still fail at the call site.
-   *
-   * @param {*} value Candidate list entry.
-   * @returns {object|null} Object entry, or null when the guard rejects it.
-   */
-  static #asControllerAction(value)
-  {
-    return value && typeof value === "object" ? value : null;
-  }
+
 }
 
 // Native exposure ends at this concrete table (Tr2ControllerEventHandler_Blue.cpp).
-carbon.interfaceTable({
+meta.carbon.interfaceTable({
   interfaces: [Tr2ControllerEventHandler, IListNotify],
   chainTo: null
 })(Tr2ControllerEventHandler);

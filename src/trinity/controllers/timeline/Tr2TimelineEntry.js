@@ -1,25 +1,30 @@
 // Source: trinity/trinity/Controllers/Tr2TimelineController.h
-// Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { type } from "#schema";
-import { CjsModel } from "#model";
+// Source: trinity/trinity/Controllers/Tr2TimelineController.cpp:24-28
+import { meta, types } from "#schema";
 
 
-/** Defines one action's authored start/end interval and track identifier within a timeline controller. */
-@type.define({
+/**
+ * Native timeline structure with float32 start/end times and a uint32 track.
+ * Adapted: registration names this JavaScript record for existing serialized
+ * graphs; the native struct has no IRoot identity or Blue query table. Zero
+ * defaults retain the existing JS construction behavior; Carbon fills each
+ * field when adding an action.
+ */
+@meta.define({
   className: "Tr2TimelineEntry",
   family: "controllers"
 })
-export class Tr2TimelineEntry extends CjsModel
+export class Tr2TimelineEntry
 {
-  /** startTime (float) */
-  @type.float32
+  /** Inclusive start of the action interval, in timeline seconds. */
+  @types.float32
   startTime = 0;
 
-  /** endTime (float) */
-  @type.float32
+  /** Exclusive end of the action interval, in timeline seconds. */
+  @types.float32
   endTime = 0;
 
-  /** trackID (uint32_t) */
-  @type.uint32
+  /** Track identifier used to enable or disable this action. */
+  @types.uint32
   trackID = 0;
 }

@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveVector3Lerp.h
 // Source: trinity/trinity/Curves/Tr2CurveVector3Lerp.cpp
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
+import { ITriFunction, ITriVectorFunction } from "#blue";
 import { carbon, impl, edit, type } from "#schema";
 import { Tr2CurveVector3LerpKeyInterpolation } from "../enums.js";
 
@@ -15,7 +15,7 @@ import { Tr2CurveVector3LerpKeyInterpolation } from "../enums.js";
   className: "Tr2CurveVector3Lerp",
   family: "curves"
 })
-export class Tr2CurveVector3Lerp extends CjsModel
+export class Tr2CurveVector3Lerp extends ITriVectorFunction
 {
   @edit.readwrite
   @edit.persist
@@ -26,17 +26,8 @@ export class Tr2CurveVector3Lerp extends CjsModel
   @type.vec3
   initialValue = vec3.create();
 
-  @edit.read
-  @type.vec3
-  currentValue = vec3.create();
-
   @edit.readwrite
-  @edit.persist
-  @type.float32
-  curveStartTime = 1;
-
-  @edit.readwrite
-  @type.uint32
+  @type.int32
   @type.enum("trinity.Tr2CurveVector3LerpKeyInterpolation")
   startInterpolation = Tr2CurveVector3LerpKeyInterpolation.HERMITE;
 
@@ -45,12 +36,23 @@ export class Tr2CurveVector3Lerp extends CjsModel
   @type.objectRef("ITriVectorFunction")
   curve = null;
 
-  #curveStartValue = vec3.create();
+  @edit.readwrite
+  @edit.persist
+  @type.float32
+  curveStartTime = 1;
 
-  #zeroTangent = vec3.create();
+  @edit.read
+  @type.vec3
+  currentValue = vec3.create();
+
+  _curveStartValue = vec3.create();
+
+  _zeroTangent = vec3.create();
 
   /**
-   * Updates the cached vector value for the supplied time.
+   * Updates the cached value for the supplied time.
+   * @param {number} time Time in seconds.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
@@ -60,7 +62,10 @@ export class Tr2CurveVector3Lerp extends CjsModel
   }
 
   /**
-   * Gets the vector value at `time` into `out`.
+   * Copies the native returned vector into a caller-owned output buffer.
+   * @param {number} time Time in seconds.
+   * @param {Float32Array} out Destination vector.
+   * @returns {Float32Array} The destination.
    */
   @carbon.method
   @impl.adapted
@@ -70,7 +75,11 @@ export class Tr2CurveVector3Lerp extends CjsModel
   }
 
   /**
-   * Updates the cached value and copies it into `out`.
+   * Updates the cache and copies it into the caller-owned output.
+   * JavaScript combines native time overloads with seconds first and output last.
+   * @param {number} time Time in seconds.
+   * @param {Float32Array} out Destination value.
+   * @returns {Float32Array} The destination.
    */
   @carbon.method
   @impl.adapted
@@ -81,7 +90,11 @@ export class Tr2CurveVector3Lerp extends CjsModel
   }
 
   /**
-   * Gets the vector value at `time` into `out`.
+   * Samples into the caller-owned output without updating the cache.
+   * JavaScript combines native time overloads with seconds first and output last.
+   * @param {number} time Time in seconds.
+   * @param {Float32Array} out Destination value.
+   * @returns {Float32Array} The destination.
    */
   @carbon.method
   @impl.adapted
@@ -99,7 +112,10 @@ export class Tr2CurveVector3Lerp extends CjsModel
   }
 
   /**
-   * Derivative stub retained for Carbon interface compatibility.
+   * Retains the native no-op first derivative, leaving output unchanged.
+   * @param {number} _time Unused time in seconds.
+   * @param {Float32Array} out Destination value.
+   * @returns {Float32Array} The unchanged destination.
    */
   @carbon.method
   @impl.noop
@@ -109,7 +125,10 @@ export class Tr2CurveVector3Lerp extends CjsModel
   }
 
   /**
-   * Second-derivative stub retained for Carbon interface compatibility.
+   * Retains the native no-op second derivative, leaving output unchanged.
+   * @param {number} _time Unused time in seconds.
+   * @param {Float32Array} out Destination value.
+   * @returns {Float32Array} The unchanged destination.
    */
   @carbon.method
   @impl.noop
@@ -119,7 +138,10 @@ export class Tr2CurveVector3Lerp extends CjsModel
   }
 
   /**
-   * Position interpolation stub retained for Carbon interface compatibility.
+   * Retains the native no-op position interpolation, leaving output unchanged.
+   * @param {number} _time Unused time in seconds.
+   * @param {Float32Array|Float64Array} out Destination position.
+   * @returns {Float32Array|Float64Array} The unchanged destination.
    */
   @carbon.method
   @impl.noop
@@ -129,27 +151,39 @@ export class Tr2CurveVector3Lerp extends CjsModel
   }
 
   /**
-   * Blends from the authored initial value to the child curve's first value.
+   * Blends the initial value to the child curve first value.
+   * Native private helper; JavaScript uses a caller-owned output and reusable scratch vectors.
+   * @param {Float32Array} out Destination vector.
+   * @param {number} time Time in seconds.
+   * @returns {Float32Array} The destination.
    */
+  @carbon.method
+  @impl.adapted
   LerpToFirstKey(out, time)
   {
     if (!this.curve)
     {
       return vec3.copy(out, this.initialValue);
     }
-    this.curve.GetValueAt(0, this.#curveStartValue);
+    this.curve.GetValueAt(0, this._curveStartValue);
     if (this.curveStartTime <= 0)
     {
-      return vec3.copy(out, this.#curveStartValue);
+      return vec3.copy(out, this._curveStartValue);
     }
     const ratio = time / this.curveStartTime;
     if (this.startInterpolation === Tr2CurveVector3LerpKeyInterpolation.LINEAR)
     {
-      return vec3.lerp(out, this.initialValue, this.#curveStartValue, ratio);
+      return vec3.lerp(out, this.initialValue, this._curveStartValue, ratio);
     }
-    return vec3.hermite(out, this.initialValue, this.#zeroTangent, this.#zeroTangent, this.#curveStartValue, ratio);
+    return vec3.hermite(out, this.initialValue, this._zeroTangent, this._zeroTangent, this._curveStartValue, ratio);
   }
 
   static Tr2CurveVector3LerpKeyInterpolation = Tr2CurveVector3LerpKeyInterpolation;
 
 }
+
+// Exact native exposure table; no inherited or implicit entries.
+carbon.interfaceTable({
+  interfaces: [Tr2CurveVector3Lerp, ITriFunction, ITriVectorFunction],
+  chainTo: null
+})(Tr2CurveVector3Lerp);

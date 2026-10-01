@@ -1,9 +1,10 @@
 // Source: trinity/trinity/Curves/Tr2CurveRandomAxisRotation.h
 // Source: trinity/trinity/Curves/Tr2CurveRandomAxisRotation.cpp
+// Source: trinity/trinity/Curves/Tr2CurveRandomAxisRotation_Blue.cpp
 import { random } from "#math/random";
 import { fromYawPitchRoll, quat } from "#math/quat";
-import { CjsModel } from "#model";
-import { carbon, impl, edit, type } from "#schema";
+import { ITriQuaternionFunction, ITriFunction, IInitialize } from "#blue";
+import { meta, types } from "#schema";
 
 
 /**
@@ -11,30 +12,52 @@ import { carbon, impl, edit, type } from "#schema";
  * seconds about an axis fixed by two seed-derived random rotations applied
  * before and after the spin.
  */
-@type.define({
+@meta.define({
   className: "Tr2CurveRandomAxisRotation",
   family: "curves"
 })
-export class Tr2CurveRandomAxisRotation extends CjsModel
+@meta.carbon.inherit(IInitialize)
+export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
 {
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  /** Authored narrow-string name. */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   name = "";
 
-  @edit.read
-  @type.quat
-  currentValue = quat.create();
-
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  /** Full rotation period in seconds; zero disables the middle spin. */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   period = 1;
 
-  @edit.readwrite
-  @edit.persistOnly
-  @type.uint32
-  seed = 0;
+  /** Native PERSISTONLY seed storage; readers bypass the live setter. */
+  @meta.member("seed")
+  @meta.edit.persistOnly
+  @types.uint32
+  _seed = 0;
+
+  /** Live Blue seed property, separate from persisted backing storage. */
+  @meta.property()
+  @meta.edit.readwrite
+  @types.uint32
+  @meta.impl.implemented
+  get seed()
+  {
+    return this.GetSeed();
+  }
+
+  /** @param {number} value New seed; every assignment rebuilds rotations. */
+  @meta.impl.implemented
+  set seed(value)
+  {
+    this.SetSeed(value);
+  }
+
+  /** Cached quaternion; exposed read-only without persistence. */
+  @meta.edit.read
+  @types.quat
+  currentValue = quat.create();
 
   /**
    * Source runtime state; not exposed by Carbon's Blue schema.
@@ -46,23 +69,44 @@ export class Tr2CurveRandomAxisRotation extends CjsModel
    */
   postRotation = quat.create();
 
-  #rotation = quat.create();
+  /** Private scratch output for the middle pitch rotation. */
+  _rotation = quat.create();
 
   /**
-   * Updates the cached quaternion value for the supplied time.
+   * Seeds rotations and computes the initial cached value, as the native constructor does.
+   * Adapted: existing JS random generation remains in SeedChanged.
    */
-  @carbon.method
-  @impl.implemented
+  constructor()
+  {
+    super();
+    this.SeedChanged();
+    this.GetValue(0, this.currentValue);
+  }
+
+  /**
+   * Advances the cached quaternion using the existing seconds-based curve contract.
+   *
+   * @param {number} time Source time in seconds.
+   * @returns {void}
+   */
+  @meta.carbon.method
+  @meta.impl.implemented
   UpdateValue(time)
   {
     this.GetValueAt(time, this.currentValue);
   }
 
   /**
-   * Updates the cached value and copies it into `out`.
+   * Updates the cached value and copies it into caller-owned storage.
+   * Adapted: JavaScript retains time-first seconds and an output buffer instead
+   * of Carbon's output-first Be::Time/double overloads.
+   *
+   * @param {number} time Source time in seconds.
+   * @param {Float32Array|number[]} out Caller-owned quaternion.
+   * @returns {Float32Array|number[]} The same output buffer.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   Update(time, out)
   {
     this.UpdateValue(time);
@@ -70,141 +114,199 @@ export class Tr2CurveRandomAxisRotation extends CjsModel
   }
 
   /**
-   * Gets the quaternion value at `time` into `out`.
+   * Samples into caller-owned storage without changing the cached value.
+   * Adapted: JavaScript retains time-first seconds and an output buffer instead
+   * of Carbon's output-first Be::Time/double overloads.
+   *
+   * @param {number} time Source time in seconds.
+   * @param {Float32Array|number[]} out Caller-owned quaternion.
+   * @returns {Float32Array|number[]} The same output buffer.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   GetValueAt(time, out)
   {
     return this.Evaluate(out, time);
   }
 
   /**
-   * Derivative stub retained for Carbon interface compatibility.
+   * Leaves the caller's derivative output unchanged, as Carbon does.
+   *
+   * @param {number} _time Unused source time in seconds.
+   * @param {Float32Array|number[]} out Caller-owned quaternion.
+   * @returns {Float32Array|number[]} The unchanged output buffer.
    */
-  @carbon.method
-  @impl.noop
+  @meta.carbon.method
+  @meta.impl.noop
   GetValueDotAt(_time, out)
   {
     return out;
   }
 
   /**
-   * Second-derivative stub retained for Carbon interface compatibility.
+   * Leaves the caller's second-derivative output unchanged, as Carbon does.
+   *
+   * @param {number} _time Unused source time in seconds.
+   * @param {Float32Array|number[]} out Caller-owned quaternion.
+   * @returns {Float32Array|number[]} The unchanged output buffer.
    */
-  @carbon.method
-  @impl.noop
+  @meta.carbon.method
+  @meta.impl.noop
   GetValueDoubleDotAt(_time, out)
   {
     return out;
   }
 
   /**
-   * Gets the quaternion value at `time` into `out`.
+   * Samples the quaternion at the supplied time.
+   * Adapted: writes caller-owned storage instead of returning a native value copy.
+   *
+   * @param {number} time Source time in seconds.
+   * @param {Float32Array|number[]} out Caller-owned quaternion.
+   * @returns {Float32Array|number[]} The same output buffer.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   GetValue(time, out)
   {
     return this.GetValueAt(time, out);
   }
 
   /**
-   * Evaluates Carbon's row-vector chain post * pitch * pre (post applied
-   * first, pre last) - gl composes it as pre . pitch . post.
+   * Evaluates the existing rotation composition.
+   * Custom: extracted output-buffer helper for native GetValue. Carbon's
+   * row-vector post * pitch * pre composes as gl pre * pitch * post. The
+   * existing JS angle arithmetic is retained; this pass does not claim native
+   * float-intermediate parity.
+   *
+   * @param {Float32Array|number[]} out Caller-owned quaternion.
+   * @param {number} time Source time in seconds.
+   * @returns {Float32Array|number[]} The same output buffer.
    */
+  @meta.impl.custom
   Evaluate(out, time)
   {
     quat.copy(out, this.postRotation);
     if (this.period !== 0)
     {
       const angle = time / Math.abs(this.period) * Math.PI * 2;
-      fromYawPitchRoll(this.#rotation, 0, angle, 0);
-      quat.multiply(out, this.#rotation, out);
+      fromYawPitchRoll(this._rotation, 0, angle, 0);
+      quat.multiply(out, this._rotation, out);
     }
     return quat.multiply(out, this.preRotation, out);
   }
 
   /**
-   * Rebuilds random rotations when a persisted seed is available.
+   * Rebuilds rotations only for a nonzero persisted seed.
+   * The native Blue table omits IInitialize despite the C++ base; readers and
+   * Copier therefore do not discover this method through that query.
+   *
+   * @returns {boolean} True.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.implemented
   Initialize()
   {
     if (this.seed !== 0)
     {
       this.SeedChanged();
-      this.UpdateValues({ property: "seed", source: this, skipEvents: true });
     }
     return true;
   }
 
   /**
-   * Gets the deterministic seed value.
+   * Gets the stored seed.
+   *
+   * @returns {number} Unsigned 32-bit seed.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetSeed()
   {
-    return this.seed;
+    return this._seed;
   }
 
   /**
-   * Sets the deterministic seed value and rebuilds random rotations.
+   * Stores the seed and rebuilds rotations on every call, including equal seeds.
+   * Adapted: >>> 0 supplies the native uint32_t argument conversion. No model
+   * event, values settle loop or changed-value return is part of this setter.
+   *
+   * @param {number} seed Unsigned 32-bit seed.
+   * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
-  SetSeed(seed, options = {})
+  @meta.carbon.method
+  @meta.impl.adapted
+  SetSeed(seed)
   {
-    const changed = this.SetValues({ seed: seed >>> 0 }, { ...options, skipUpdate: true, returnBoolean: true });
-    if (!changed) return false;
+    this._seed = seed >>> 0;
     this.SeedChanged();
-    if (options.skipUpdate !== true)
-    {
-      this.UpdateValues({ ...options, source: options.source ?? this });
-    }
-    return true;
   }
 
   /**
-   * Rebuilds pre/post random rotations.
+   * Rebuilds the pre/post rotations using the existing generator.
+   * Adapted: nonzero seeds use the current MSVC-compatible engine helper;
+   * seed zero retains Math.random instead of Carbon's clock-seeded engine.
+   * RNG and float-intermediate parity are outside this class-removal change.
+   *
+   * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   SeedChanged()
   {
-    const engine = this.seed !== 0 ? Tr2CurveRandomAxisRotation.#makeMsvcDefaultRandomEngine(this.seed) : Math.random;
-    Tr2CurveRandomAxisRotation.#buildCarbonRandomRotation(this.preRotation, engine);
-    Tr2CurveRandomAxisRotation.#buildCarbonRandomRotation(this.postRotation, engine);
+    const engine = this.seed !== 0 ? Tr2CurveRandomAxisRotation._makeMsvcDefaultRandomEngine(this.seed) : Math.random;
+    Tr2CurveRandomAxisRotation._buildCarbonRandomRotation(this.preRotation, engine);
+    Tr2CurveRandomAxisRotation._buildCarbonRandomRotation(this.postRotation, engine);
   }
 
   /**
-   * Draws roll, pitch and yaw from the supplied generator in that order -
-   * matching Carbon's draw order, which fixes the resulting rotation for a given
-   * seed - and writes the quaternion into `out`.
+   * Writes one random rotation using the existing roll/pitch/yaw draw order.
+   * Custom: extracted JS output-buffer helper for native SeedChanged.
+   *
+   * @param {Float32Array|number[]} out Caller-owned quaternion.
+   * @param {Function} engine Existing unit-interval generator.
+   * @returns {Float32Array|number[]} The same output buffer.
    */
-  static #buildCarbonRandomRotation(out, engine)
+  @meta.impl.custom
+  static _buildCarbonRandomRotation(out, engine)
   {
-    const roll = Tr2CurveRandomAxisRotation.#randomAngle(engine);
-    const pitch = Tr2CurveRandomAxisRotation.#randomAngle(engine);
-    const yaw = Tr2CurveRandomAxisRotation.#randomAngle(engine);
+    const roll = Tr2CurveRandomAxisRotation._randomAngle(engine);
+    const pitch = Tr2CurveRandomAxisRotation._randomAngle(engine);
+    const yaw = Tr2CurveRandomAxisRotation._randomAngle(engine);
     return fromYawPitchRoll(out, yaw, pitch, roll);
   }
 
-  /** Draws one angle uniformly in [0, 2pi) radians from the supplied generator. */
-  static #randomAngle(engine)
+  /**
+   * Draws an angle with the existing JS arithmetic.
+   * Adapted: represents the native anonymous RandAngle helper without changing
+   * the existing double arithmetic to native float intermediates.
+   *
+   * @param {Function} engine Existing unit-interval generator.
+   * @returns {number} Angle in radians.
+   */
+  @meta.impl.adapted
+  static _randomAngle(engine)
   {
     return engine() * Math.PI * 2;
   }
 
   /**
-   * Builds a [0, 1] generator over a Mersenne Twister seeded like MSVC's
-   * default_random_engine, so a persisted seed reproduces Carbon's rotations.
+   * Builds the existing Mersenne Twister seed adapter.
+   * Custom: replaces the selected C++ standard-library engine representation.
+   *
+   * @param {number} seed Unsigned 32-bit seed.
+   * @returns {Function} Existing unit-interval generator.
    */
-  static #makeMsvcDefaultRandomEngine(seed)
+  @meta.impl.custom
+  static _makeMsvcDefaultRandomEngine(seed)
   {
     const engine = random.mt19937(seed >>> 0);
     return () => engine() / 0xffffffff;
   }
 }
+
+// Native exposure ends at this concrete table; no inherited query-chain fallback.
+meta.carbon.interfaceTable({
+  interfaces: [ Tr2CurveRandomAxisRotation, ITriFunction, ITriQuaternionFunction ],
+  chainTo: null
+})(Tr2CurveRandomAxisRotation);

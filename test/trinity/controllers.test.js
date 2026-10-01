@@ -1,4 +1,5 @@
 import test from "node:test";
+import { meta } from "../../npm/dist/global/schema/index.js";
 import { CjsControllerExpressionProgram, ExecuteMainThreadActions, EveChildUpdateParams, ITr2ControllerAction, ITr2GenericEmitterUpdateArguments, ITr2StateMachineStateFinalizer, Tr2ActionAnimateCurveSet, Tr2ActionAnimateValue, Tr2ActionBindRTPC, Tr2ActionCallback, Tr2ActionChildEffect, Tr2ActionOverlay, Tr2ActionPlayCurveSet, Tr2ActionPlayMeshAnimation, Tr2ActionPlaySound, Tr2ActionPython, Tr2ActionResetClipSphereCenter, Tr2ActionSetAttenuationScaling, Tr2ActionSetAudioEmitterPrefix, Tr2ActionSetAudioSwitch, Tr2ActionSetExternalControllerVariable, Tr2ActionSetShaderOption, Tr2ActionSetValue, Tr2ActionSpawnParticles, Tr2BindingPoint, Tr2Controller, Tr2ControllerEventHandler, Tr2ControllerExpression, Tr2ControllerFloatVariable, Tr2ControllerReference, Tr2StateMachine, Tr2StateMachineState, Tr2StateMachineTransition, Tr2SyncToAnimation, Tr2TimelineController, PlayAction, ResetBehavior, StopAction, Type } from "../../npm/dist/trinity/index.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -305,16 +306,21 @@ test("Tr2ControllerEventHandler links and executes controller actions", () =>
   const second = makeAction("second", events, controller);
   const handler = new Tr2ControllerEventHandler();
   handler.name = "activate";
-  handler.actions = [first, second];
+  for (const action of [first, second])
+  {
+    meta.carbon.interfaceTable({ interfaces: [action.constructor, ITr2ControllerAction], chainTo: null })(action.constructor, { kind: "class" });
+    handler.actions.Append(action);
+  }
   assertEquals(handler.GetName(), "activate");
   handler.Link(controller);
   assertEquals(events.join(","), "first:link,second:link");
   handler.Execute(controller);
   assertEquals(events.join(","), "first:link,second:link,first:start,second:start,first:stop,second:stop");
   const inserted = makeAction("inserted", events, controller);
-  handler.OnListModified(BLUELISTEVENT.BELIST_INSERTED, 0, 0, inserted, handler.actions);
+  meta.carbon.interfaceTable({ interfaces: [inserted.constructor, ITr2ControllerAction], chainTo: null })(inserted.constructor, { kind: "class" });
+  handler.actions.Append(inserted);
   assertEquals(events.at(-1), "inserted:link");
-  handler.OnListModified(BLUELISTEVENT.BELIST_REMOVED, 0, 0, inserted, handler.actions);
+  handler.actions.Remove(2);
   assertEquals(events.at(-1), "inserted:unlink");
   const unrelated = makeAction("unrelated", events, controller);
   handler.OnListModified(BLUELISTEVENT.BELIST_INSERTED, 0, 0, unrelated, []);
@@ -334,7 +340,8 @@ test("Tr2Controller links variables, events, callbacks, and updateables", () =>
   const action = makeAction("ignite", events, controller);
   const handler = new Tr2ControllerEventHandler();
   handler.name = "ignite";
-  handler.actions = [action];
+  meta.carbon.interfaceTable({ interfaces: [action.constructor, ITr2ControllerAction], chainTo: null })(action.constructor, { kind: "class" });
+  handler.actions.Append(action);
   const stateMachine = {
     Link(value)
     {

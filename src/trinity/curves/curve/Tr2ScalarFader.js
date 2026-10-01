@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Curves/Fader/Tr2ScalarFader.h
 // Source: trinity/trinity/Curves/Fader/Tr2ScalarFader.cpp
 import { num } from "#math/num";
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 
 
@@ -16,7 +15,7 @@ const TRI_PI = Math.PI;
   className: "Tr2ScalarFader",
   family: "curves"
 })
-export class Tr2ScalarFader extends CjsModel
+export class Tr2ScalarFader
 {
   @edit.readwrite
   @type.float32
@@ -33,16 +32,17 @@ export class Tr2ScalarFader extends CjsModel
   kickInLength = 3;
 
   /**
-   * Advances fade state by the update context delta time.
+   * Advances the native fade branches using the required EveUpdateContext clock.
+   * @param {EveUpdateContext} updateContext Update context supplying GetDeltaT().
+   * @returns {void}
    */
   @carbon.method
-  @impl.adapted
+  @impl.implemented
   Update(updateContext)
   {
-    const deltaT = Tr2ScalarFader.#getDeltaT(updateContext);
     if (this.fading !== 0)
     {
-      this.value += this.fading * deltaT;
+      this.value += this.fading * updateContext.GetDeltaT();
       if (this.value < 0)
       {
         this.value = 0;
@@ -56,7 +56,7 @@ export class Tr2ScalarFader extends CjsModel
     }
     if (this.fadeTime >= 0)
     {
-      this.fadeTime += deltaT;
+      this.fadeTime += updateContext.GetDeltaT();
       if (this.fadeTime > this.kickInLength)
       {
         this.fadeTime = -1;
@@ -66,6 +66,9 @@ export class Tr2ScalarFader extends CjsModel
 
   /**
    * Starts a fade-in or fade-out over the supplied duration.
+   * @param {boolean} isFadeIn Whether to fade toward one.
+   * @param {number} fadeLength Fade duration in seconds.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
@@ -80,7 +83,8 @@ export class Tr2ScalarFader extends CjsModel
   }
 
   /**
-   * Checks whether the fader is fully inactive and contributes no value.
+   * Checks whether the fader is inactive and contributes no value.
+   * @returns {boolean}
    */
   @carbon.method
   @impl.implemented
@@ -91,6 +95,7 @@ export class Tr2ScalarFader extends CjsModel
 
   /**
    * Gets the current linear fade value.
+   * @returns {number}
    */
   @carbon.method
   @impl.implemented
@@ -100,7 +105,8 @@ export class Tr2ScalarFader extends CjsModel
   }
 
   /**
-   * Checks whether the non-linear kick-in envelope has not started.
+   * Checks whether the kick-in envelope is inactive or at its start.
+   * @returns {boolean}
    */
   @carbon.method
   @impl.implemented
@@ -111,6 +117,7 @@ export class Tr2ScalarFader extends CjsModel
 
   /**
    * Gets Carbon's non-linear kick-in envelope value.
+   * @returns {number}
    */
   @carbon.method
   @impl.implemented
@@ -124,16 +131,10 @@ export class Tr2ScalarFader extends CjsModel
     return Math.pow(Math.sin(TRI_PI * Math.pow(x, 0.66)), 3);
   }
 
-  /**
-   * Reads the frame delta in seconds from an update context, accepting either a
-   * GetDeltaT method or a plain deltaT property and defaulting to 0.
-   */
-  static #getDeltaT(updateContext)
-  {
-    if (typeof updateContext.GetDeltaT === "function")
-    {
-      return updateContext.GetDeltaT();
-    }
-    return updateContext.deltaT ?? 0;
-  }
 }
+
+// Exact native exposure table; no inherited or implicit entries.
+carbon.interfaceTable({
+  interfaces: [Tr2ScalarFader],
+  chainTo: null
+})(Tr2ScalarFader);

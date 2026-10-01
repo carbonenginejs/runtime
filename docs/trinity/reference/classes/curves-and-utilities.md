@@ -347,7 +347,7 @@ Plays a list of controller actions against a scrubbable timeline, starting and s
 <!-- class:Tr2TimelineEntry -->
 ## `Tr2TimelineEntry`
 
-Defines one action's authored start/end interval and track identifier within a timeline controller.
+Native timeline structure with float32 start/end times and a uint32 track.
 
 - Export: `@carbonenginejs/runtime/trinity/controllers`
 - Source: `src/trinity/controllers/timeline/Tr2TimelineEntry.js`

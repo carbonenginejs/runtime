@@ -100,8 +100,8 @@ test("path notifications retire the old controller and reject superseded same-pa
   const owner = {};
   reference.Link(owner);
   reference.path = "res:/controller.red";
-  reference.UpdateValues({ property: "path" });
-  reference.UpdateValues({ property: "path" });
+  reference.OnModified("path");
+  reference.OnModified("path");
   assert.equal(reference.controller, null, "cpp:25 drops the previous controller immediately");
   assert.deepEqual(events, [ [ "link", owner ], [ "unlink", undefined ] ]);
   const stale = recordingController([]);

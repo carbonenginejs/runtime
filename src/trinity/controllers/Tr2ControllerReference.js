@@ -1,9 +1,10 @@
 // Source: trinity/trinity/Controllers/Tr2ControllerReference.h
 // Source: trinity/trinity/Controllers/Tr2ControllerReference.cpp
-import { CjsModel } from "#model";
-import { blue } from "#blue";
+// Source: trinity/trinity/Controllers/Tr2ControllerReference_Blue.cpp
+import { blue, INotify, IInitialize } from "#blue";
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { carbon, impl, edit, type, CjsSchema } from "#schema";
+import { meta, types } from "#schema";
+import { mappedInterfaces } from "../../global/compose/interface.js";
 import { UnlinkReason } from "./enums.js";
 import { ITr2Controller } from "./ITr2Controller/index.js";
 
@@ -12,23 +13,26 @@ import { ITr2Controller } from "./ITr2Controller/index.js";
  * Stands in for a controller loaded from a resource path, forwarding the full
  * controller lifecycle to whichever controller the path resolves to.
  */
-@type.define({
+@meta.define({
   className: "Tr2ControllerReference",
   family: "controllers"
 })
-@carbon.inherit(ITr2Controller)
-export class Tr2ControllerReference extends CjsModel
+@meta.carbon.inherit(INotify, IInitialize)
+export class Tr2ControllerReference extends ITr2Controller
 {
-  @edit.read
-  @type.objectRef("ITr2Controller")
-  controller = null;
-
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.path
+  /** Authored controller resource path; notifications reload the reference. */
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.path
   path = "";
 
+  /** Runtime loaded controller, exposed read-only and not persisted. */
+  @meta.edit.read
+  @types.objectRef("ITr2Controller")
+  controller = null;
+
+  /** Owner retained while an asynchronous load is pending. */
   _owner = null;
 
   /** Async load generation; superseded completions cannot replace the controller. */
@@ -45,9 +49,10 @@ export class Tr2ControllerReference extends CjsModel
    * Resolves a nonempty resource path, preserving an assigned controller otherwise.
    *
    * Adapted: BeResMan is blue.resMan; its LoadObject completes asynchronously.
+   * @returns {boolean} True after requesting any authored load.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   Initialize()
   {
     if (this.path)
@@ -62,9 +67,11 @@ export class Tr2ControllerReference extends CjsModel
    *
    * Adapted: exposed property names replace native addresses; LoadObject links
    * the current owner when its asynchronous result arrives.
+   * @param {string} propertyName Native exposed member name.
+   * @returns {boolean} True after handling the notification.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   OnModified(propertyName)
   {
     if (propertyName === "path")
@@ -78,9 +85,11 @@ export class Tr2ControllerReference extends CjsModel
    * Links the referenced controller to the same owner.
    * Adapted: pending variables and start intent belong to one owner; reattachment
    * clears them as the loaded controller would unlink before rebinding.
+   * @param {object} owner Owner forwarded to the loaded controller.
+   * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   Link(owner)
   {
     if (this._owner !== owner)
@@ -96,9 +105,11 @@ export class Tr2ControllerReference extends CjsModel
    * Unlinks the referenced controller.
    * Adapted: discard pending owner variables and start intent so a late load
    * cannot restart an owner that has already detached.
+   * @param {number} [reason=UnlinkReason.UNLINKING] Native unlink reason.
+   * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   Unlink(reason = UnlinkReason.UNLINKING)
   {
     this._owner = null;
@@ -109,9 +120,10 @@ export class Tr2ControllerReference extends CjsModel
 
   /**
    * Checks whether this reference is linked to an owner.
+   * @returns {boolean} Whether an owner is retained.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   IsLinked()
   {
     return this._owner !== null;
@@ -120,9 +132,10 @@ export class Tr2ControllerReference extends CjsModel
   /**
    * Starts the referenced controller.
    * Adapted: retain start intent until the asynchronous load is linked.
+   * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   Start()
   {
     this._isActive = true;
@@ -132,9 +145,10 @@ export class Tr2ControllerReference extends CjsModel
   /**
    * Stops the referenced controller.
    * Adapted: cancel pending start intent before the asynchronous load completes.
+   * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   Stop()
   {
     this._isActive = false;
@@ -143,9 +157,11 @@ export class Tr2ControllerReference extends CjsModel
 
   /**
    * Updates the referenced controller.
+   * @param {number} [normalizedUpdateFrequency=0] Update frequency forwarded unchanged.
+   * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   Update(normalizedUpdateFrequency = 0)
   {
     this.controller?.Update(normalizedUpdateFrequency);
@@ -155,9 +171,12 @@ export class Tr2ControllerReference extends CjsModel
    * Sets a variable on the referenced controller.
    * Adapted: retain the latest pending value and replay it after Link, before
    * Start can execute one-shot actions on the asynchronously loaded controller.
+   * @param {string} name Controller variable name.
+   * @param {number} value Latest value to forward or replay.
+   * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   SetVariable(name, value)
   {
     if (this.controller) this.controller.SetVariable(name, value);
@@ -166,9 +185,11 @@ export class Tr2ControllerReference extends CjsModel
 
   /**
    * Handles an event on the referenced controller.
+   * @param {string} eventName Event forwarded to the loaded controller.
+   * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   HandleEvent(eventName)
   {
     this.controller?.HandleEvent(eventName);
@@ -176,9 +197,10 @@ export class Tr2ControllerReference extends CjsModel
 
   /**
    * Gets the linked owner.
+   * @returns {object|null} Current owner.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetOwner()
   {
     return this._owner;
@@ -194,7 +216,7 @@ export class Tr2ControllerReference extends CjsModel
    *
    * @returns {Promise<ITr2Controller|null>} The current loaded controller, or null.
    */
-  @impl.custom
+  @meta.impl.custom
   async ResolveController()
   {
     const path = this.path;
@@ -221,7 +243,8 @@ export class Tr2ControllerReference extends CjsModel
       return null;
     }
     if (request !== this._loadRequest || path !== this.path) return null;
-    const controller = CjsSchema.cast(object, ITr2Controller);
+    // Native LoadObject<ITr2Controller> requires the exposed interface identity.
+    const controller = object && mappedInterfaces(object.constructor).has(ITr2Controller) ? object : null;
     if (!controller)
     {
       CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Resource ${path} is not an ITr2Controller.`);
@@ -238,3 +261,6 @@ export class Tr2ControllerReference extends CjsModel
     return controller;
   }
 }
+
+// Native EXPOSURE_END: no primary-base table chain.
+meta.carbon.interfaceTable({ interfaces: [Tr2ControllerReference, IInitialize, INotify, ITr2Controller], chainTo: null })(Tr2ControllerReference, { kind: "class" });

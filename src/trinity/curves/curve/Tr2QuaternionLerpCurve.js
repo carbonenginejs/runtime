@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2QuaternionLerpCurve.cpp
 import { num } from "#math/num";
 import { quat } from "#math/quat";
-import { CjsModel } from "#model";
+import { ITriFunction, ITriQuaternionFunction, ITriCurveLength } from "#blue";
 import { carbon, impl, edit, type } from "#schema";
 
 
@@ -15,7 +15,8 @@ import { carbon, impl, edit, type } from "#schema";
   className: "Tr2QuaternionLerpCurve",
   family: "curves"
 })
-export class Tr2QuaternionLerpCurve extends CjsModel
+@carbon.inherit(ITriCurveLength)
+export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
 {
   @edit.readwrite
   @edit.persist
@@ -42,12 +43,14 @@ export class Tr2QuaternionLerpCurve extends CjsModel
   @type.objectRef("ITriQuaternionFunction")
   endCurve = null;
 
-  #startValue = quat.create();
+  _startValue = quat.create();
 
-  #endValue = quat.create();
+  _endValue = quat.create();
 
   /**
-   * Updates the cached quaternion value for the supplied time.
+   * Updates the cached value for the supplied time.
+   * @param {number} time Time in seconds.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
@@ -57,7 +60,11 @@ export class Tr2QuaternionLerpCurve extends CjsModel
   }
 
   /**
-   * Updates the cached value and copies it into `out`.
+   * Updates the cache and copies it into the caller-owned output.
+   * JavaScript combines native time overloads with seconds first and output last.
+   * @param {number} time Time in seconds.
+   * @param {Float32Array} out Destination value.
+   * @returns {Float32Array} The destination.
    */
   @carbon.method
   @impl.adapted
@@ -68,7 +75,12 @@ export class Tr2QuaternionLerpCurve extends CjsModel
   }
 
   /**
-   * Gets the quaternion value at `time` into `out`.
+   * Samples into the caller-owned output without updating the cache.
+   * JavaScript combines native time overloads with seconds first and output last.
+   * The existing seconds-valued start field is retained; native Be::Time conversion remains unported.
+   * @param {number} time Time in seconds.
+   * @param {Float32Array} out Destination value.
+   * @returns {Float32Array} The destination.
    */
   @carbon.method
   @impl.adapted
@@ -79,13 +91,16 @@ export class Tr2QuaternionLerpCurve extends CjsModel
       return out;
     }
     const ratio = num.clamp((time - this.start) / this.length, 0, 1);
-    const start = this.startCurve.GetValueAt(time, this.#startValue);
-    const end = this.endCurve.GetValueAt(time, this.#endValue);
+    const start = this.startCurve.GetValueAt(time, this._startValue);
+    const end = this.endCurve.GetValueAt(time, this._endValue);
     return quat.slerp(out, start, end, ratio);
   }
 
   /**
-   * Derivative stub retained for Carbon interface compatibility.
+   * Retains the native no-op first derivative, leaving output unchanged.
+   * @param {number} _time Unused time in seconds.
+   * @param {Float32Array} out Destination value.
+   * @returns {Float32Array} The unchanged destination.
    */
   @carbon.method
   @impl.noop
@@ -95,7 +110,10 @@ export class Tr2QuaternionLerpCurve extends CjsModel
   }
 
   /**
-   * Second-derivative stub retained for Carbon interface compatibility.
+   * Retains the native no-op second derivative, leaving output unchanged.
+   * @param {number} _time Unused time in seconds.
+   * @param {Float32Array} out Destination value.
+   * @returns {Float32Array} The unchanged destination.
    */
   @carbon.method
   @impl.noop
@@ -106,6 +124,7 @@ export class Tr2QuaternionLerpCurve extends CjsModel
 
   /**
    * Gets the authored blend duration.
+   * @returns {number} Duration in seconds.
    */
   @carbon.method
   @impl.implemented
@@ -114,3 +133,9 @@ export class Tr2QuaternionLerpCurve extends CjsModel
     return this.length;
   }
 }
+
+// Exact native exposure table; no inherited or implicit entries.
+carbon.interfaceTable({
+  interfaces: [ITriFunction, ITriQuaternionFunction, ITriCurveLength],
+  chainTo: null
+})(Tr2QuaternionLerpCurve);
