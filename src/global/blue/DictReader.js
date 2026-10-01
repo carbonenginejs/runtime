@@ -43,9 +43,15 @@ import { IRootReaderException } from "./IRootReaderException.js";
 import { BeObjectMetadata } from "./BlueObjectMetadata.js";
 import { BLUE_OBJECT_METADATA_KEY } from "./IBlueObjectMetadata.js";
 import { readDictionaryValue, writeDictionaryValue } from "./dictionaryDeclarations.js";
+import { mappedInterfaces } from "../compose/interface.js";
+import { BLUELISTEVENT } from "#consts/blue";
+import { IList } from "./IList.js";
 
 /** Keys the reader consumes itself rather than as members (Carbon's `type`, plus the anchor keys). */
 const RESERVED_KEYS = new Set([ "_type", "_id", "_ref" ]);
+
+/** Pending list population by destination, so a later read can supersede it across readers. */
+const PENDING_LIST_READS = new WeakMap();
 
 
 /**
@@ -75,6 +81,9 @@ export class DictReader extends IRootReaderBase
   /** Options passed to a class's own `from` when it builds a child. */
   _options = {};
 
+  /** Pending populations for this reader's IList references and completion. */
+  _pendingListReads = null;
+
   /**
    * @param {object} [options] `importContext` to share an anchor table across
    *   reads; anything else is passed to a class's own `from`.
@@ -103,6 +112,11 @@ export class DictReader extends IRootReaderBase
       const instance = this._CreateObjectInternal(Constructor);
       this._Finish();
       return instance;
+    }
+    catch (error)
+    {
+      this._CancelPendingListReads();
+      throw error;
     }
     finally
     {
@@ -138,6 +152,11 @@ export class DictReader extends IRootReaderBase
       const changed = this.ReadMembers(instance, notify);
       this._Finish();
       return changed;
+    }
+    catch (error)
+    {
+      this._CancelPendingListReads();
+      throw error;
     }
     finally
     {
@@ -418,12 +437,12 @@ export class DictReader extends IRootReaderBase
   }
 
   /**
-   * A list member (`ReadList`, :354-393). A list of objects builds each item as
+   * A list member (`ReadList`, DictReader.cpp:427-475). A list of objects builds each item as
    * `ReadIRootClass` does; a list of values is read by value.
    *
-   * Adapted: the member's list is refilled in place, as `Remove( -1 )` then
-   * `Append` does, and a null item is kept rather than skipped, which our
-   * values contract allows.
+   * Mapped IList destinations use their operations and observer. Ordinary JS
+   * arrays retain the values adaptation: raw in-place population, including
+   * null entries permitted by the values contract.
    *
    * @returns {boolean} Whether the list changed.
    */
@@ -431,6 +450,11 @@ export class DictReader extends IRootReaderBase
   {
     const source = this._currentSource;
     const current = readDictionaryValue(instance, field);
+
+    if (current && typeof current === "object" && mappedInterfaces(current.constructor).has(IList))
+    {
+      return this._ReadIList(current, field, source);
+    }
 
     if (source === null || source === undefined)
     {
@@ -474,6 +498,151 @@ export class DictReader extends IRootReaderBase
     return !IRootReaderBase.areEquivalent(before, list);
   }
 
+  /**
+   * Populates an existing mapped IList (DictReader.cpp:427-475).
+   * Remove precedes observer capture/muting; Append rejection is ignored; every
+   * successful load, including an empty one, sends one LOADFINISHED.
+   * Adapted: deferred references stage outside the typed list and append in
+   * source order. Observer restoration in finally is JS operation cleanup for
+   * this deferred path, not native exception parity or a rollback guarantee.
+   * Deferred loads owned by this reader complete after anchor finalization;
+   * externally owned contexts complete when this list's references settle.
+   * A new population cancels the pending population of that exact destination,
+   * including one started by another reader sharing an import context.
+   * Failures at this reader's boundaries cancel its pending list writes. A
+   * caller-owned importContext failure outside this reader is not observable;
+   * its owner retains responsibility for abandoning that external operation.
+   * @param {IList} list Existing configured destination.
+   * @param {object} field Selected list declaration.
+   * @param {*} source Incoming array.
+   * @returns {boolean} Whether contents changed, conservatively true for deferred references.
+   */
+  _ReadIList(list, field, source)
+  {
+    if (!Array.isArray(source)) this._ThrowError("Expected a list");
+    // Native dictionary input is separate from list storage; preserve that
+    // separation when the JS caller supplies this very list as its values.
+    const input = source === list ? Array.from(source) : source;
+    const previous = PENDING_LIST_READS.get(list);
+    if (previous) previous.cancel();
+    const before = [];
+    for (let i = 0; i < list.GetSize(); i++) before.push(list.GetAt(i));
+    list.Remove(-1);
+    const info = {};
+    list.GetInfo(info);
+    list.SetNotify(null);
+
+    const itemType = field.type.itemType;
+    const itemClassName = typeof itemType === "string" ? itemType : itemType?.className ?? null;
+    const slots = new Array(input.length);
+    const ready = new Array(input.length).fill(false);
+    const pendingIds = new Set();
+    let active = true, reading = true, cursor = 0;
+    const cancel = () =>
+    {
+      active = false;
+      this._pendingListReads.delete(pendingRead);
+      if (PENDING_LIST_READS.get(list) === pendingRead) PENDING_LIST_READS.delete(list);
+    };
+    const flush = () =>
+    {
+      while (cursor < slots.length && ready[cursor])
+      {
+        const item = slots[cursor++];
+        if (item) list.Append(item);
+      }
+    };
+    const finish = () =>
+    {
+      if (!active || reading || cursor !== slots.length) return;
+      cancel();
+      if (info.notify) info.notify.OnListModified(BLUELISTEVENT.BELIST_LOADFINISHED, 0, 0, null, list);
+    };
+    const pendingRead = { cancel, finish };
+    PENDING_LIST_READS.set(list, pendingRead);
+    (this._pendingListReads ??= new Set()).add(pendingRead);
+    const complete = () =>
+    {
+      if (!pendingIds.size || !this._ownsAnchors) finish();
+    };
+
+    const parent = this._contextStack.pop() ?? field.name;
+    try
+    {
+      for (let i = 0; i < slots.length; i++)
+      {
+        this._contextStack.push(`${parent} [${i}]`);
+        try
+        {
+          const item = input[i];
+          if (IsReference(item) && this._anchors.byId.get(item._ref) === undefined)
+          {
+            pendingIds.add(item._ref);
+            this._anchors.defer(item._ref, object =>
+            {
+              if (!active) return;
+              // Called by reference finalization, never while merely registering
+              // a forward id. Do not partly refill an unresolved deferred batch.
+              for (const id of pendingIds)
+              {
+                if (this._anchors.byId.get(id) === undefined)
+                {
+                  cancel();
+                  return;
+                }
+              }
+              slots[i] = object;
+              ready[i] = true;
+              list.SetNotify(null);
+              try
+              {
+                flush();
+              }
+              catch (error)
+              {
+                cancel();
+                throw error;
+              }
+              finally
+              {
+                list.SetNotify(info.notify);
+              }
+              complete();
+            });
+          }
+          else
+          {
+            if (item === null || typeof item !== "object" || Array.isArray(item) || ArrayBuffer.isView(item))
+              this._ThrowError("Expected a dictionary or live object");
+            slots[i] = this._ReadListItem(item, itemClassName, null, i);
+            ready[i] = true;
+          }
+          flush();
+        }
+        finally
+        {
+          this._contextStack.pop();
+        }
+      }
+    }
+    catch (error)
+    {
+      cancel();
+      throw error;
+    }
+    finally
+    {
+      reading = false;
+      this._contextStack.push(parent);
+      this._currentSource = source;
+      list.SetNotify(info.notify);
+    }
+    complete();
+    const after = [];
+    for (let i = 0; i < list.GetSize(); i++) after.push(list.GetAt(i));
+    return pendingIds.size > 0 || !IRootReaderBase.areEquivalent(before, after);
+  }
+
   /** One list item: null, an anchored object, a live object, or a new one. */
   _ReadListItem(item, itemClassName, list, index)
   {
@@ -504,10 +673,35 @@ export class DictReader extends IRootReaderBase
     this._ThrowError("Dictionary must have a '_type' item");
   }
 
-  /** The end of an outermost read: every waiting `{ _ref }` resolves, or the read fails. */
+  /**
+   * Custom JS completion: resolve deferred references before completing owned
+   * list populations, and cancel pending list writes when finalization fails.
+   */
   _Finish()
   {
-    if (this._ownsAnchors) this._anchors.finalize();
+    try
+    {
+      if (this._ownsAnchors)
+      {
+        this._anchors.finalize();
+        if (this._pendingListReads)
+        {
+          for (const pending of this._pendingListReads) pending.finish();
+        }
+      }
+    }
+    catch (error)
+    {
+      this._CancelPendingListReads();
+      throw error;
+    }
+  }
+
+  /** Custom JS cleanup: cancels only this reader's deferred list writes after its operation fails. */
+  _CancelPendingListReads()
+  {
+    if (!this._pendingListReads) return;
+    for (const pending of this._pendingListReads) pending.cancel();
   }
 
   /** `CleanupAfterCreate` (:600-605). */
@@ -591,3 +785,6 @@ CjsSchema.define(DictReader, { className: "DictReader", carbon: "DictReader" });
 CjsSchema.decorateMethod(DictReader, "CreateObject", impl.adapted);
 CjsSchema.decorateMethod(DictReader, "ReadInto", impl.custom);
 CjsSchema.decorateMethod(DictReader, "ReadList", impl.adapted);
+CjsSchema.decorateMethod(DictReader, "_ReadIList", impl.adapted);
+CjsSchema.decorateMethod(DictReader, "_Finish", impl.custom);
+CjsSchema.decorateMethod(DictReader, "_CancelPendingListReads", impl.custom);
