@@ -17,17 +17,18 @@
 import { carbon, impl, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
+import { TimeAsFloat } from "../../global/blue/CcpTime.js";
 
 /** Carries per-frame Eve timing, LOD, origin-rebasing, visibility, and runtime-composition state shared across scene updates. */
 @type.define({ className: "EveUpdateContext", family: "eve" })
 export class EveUpdateContext extends CjsModel
 {
 
-  /** m_currentTime (Be::Time) */
+  /** m_currentTime (Be::Time, 100ns ticks) */
   @type.float64
   currentTime = 0;
 
-  /** m_lastTime (Be::Time) */
+  /** m_lastTime (Be::Time, 100ns ticks) */
   @type.float64
   lastTime = 0;
 
@@ -107,7 +108,7 @@ export class EveUpdateContext extends CjsModel
   device = null;
 
   /**
-   * Current frame time (Carbon EveUpdateContext::GetTime).
+   * Current frame time in raw 100ns ticks (Carbon EveUpdateContext::GetTime).
    * @returns {Number}
    */
   @carbon.method
@@ -118,9 +119,9 @@ export class EveUpdateContext extends CjsModel
   }
 
   /**
-   * Shifts the current time into lastTime and stores the new frame time
+   * Shifts the current time into lastTime and stores the new raw tick timestamp
    * (Carbon EveUpdateContext::SetTime).
-   * @param {Number} time
+   * @param {Number} time Frame timestamp in 100ns ticks.
    */
   @carbon.method
   @impl.implemented
@@ -132,14 +133,15 @@ export class EveUpdateContext extends CjsModel
 
   /**
    * Seconds elapsed since the previous frame, computed on demand as Carbon does
-   * (EveUpdateContext::GetDeltaT): 0 until a second SetTime has run.
+   * (EveUpdateContext.h:51-58). The tick difference is narrowed to float seconds
+   * through TimeAsFloat; the result is zero while the previous timestamp is zero.
    * @returns {Number}
    */
   @carbon.method
   @impl.implemented
   GetDeltaT()
   {
-    return this.lastTime !== 0 ? this.currentTime - this.lastTime : 0;
+    return this.lastTime !== 0 ? TimeAsFloat(this.currentTime - this.lastTime) : 0;
   }
 
   /**

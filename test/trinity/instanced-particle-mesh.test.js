@@ -130,7 +130,10 @@ test("real green Crisis smoke on two hulls reaches a nonzero instanced stub draw
       const zapGeometry=new TriGeometryRes();zapGeometry.SetPayload(zapGeometry.ReadGrannyFile(zapBytes));zapGeometry.MarkPrepared();zap.mesh.SetGeometryRes(zapGeometry);
       for(const area of zap.mesh.additiveAreas)area.SetMaterial(material);
       for(let step=0;step<=200;step++){
-        ticks=(100+step/10)*1e7;update.SetTime(100+step/10);
+        const previousTicks=ticks;
+        ticks=1_000_000_000+step*1_000_000;update.SetTime(ticks);
+        assert.equal(update.GetTime(),ticks);
+        assert.equal(update.GetDeltaT(),step===0?0:Math.fround((ticks-previousTicks)/10_000_000));
         if(step===20)ship.SetControllerVariable("IsWarping",1);
         ship.UpdateSyncronous(update);ship.UpdateAsyncronous(update);ExecuteMainThreadActions();
         root.objects[4].objects.forEach((zap,i)=>{zapMax[i]=Math.max(zapMax[i],zap.particleSystems[0].aliveCount);});
@@ -312,6 +315,11 @@ test("real angde1 and angbc2 warp electricity draws repeatedly while kill lightn
         const row={owner,curve,spawns:new Map(),draws:new Set()};
         for(const emitter of owner.particleEmitters) {
           assert.equal(emitter.maxParticles,-1,"Tr2DynamicEmitter.cpp:109-123: no lifetime emission budget");
+          const updateEmitter=emitter.Update.bind(emitter);
+          emitter.Update=argumentsValue=>{
+            assert.ok(Math.abs(argumentsValue.time-ticks/10_000_000)<1e-12,"the existing JS particle argument boundary receives seconds");
+            return updateEmitter(argumentsValue);
+          };
           const spawn=emitter.SpawnParticles.bind(emitter);
           emitter.SpawnParticles=(...args)=>{
             const count=spawn(...args),cycle=Math.floor(curve.GetScaledTime(curveSet.scaledTime)/7);
@@ -329,7 +337,10 @@ test("real angde1 and angbc2 warp electricity draws repeatedly while kill lightn
       ship.StartControllers();ExecuteMainThreadActions();
       const update=new EveUpdateContext();let wasKill=false,killEntries=0;
       for(let step=0;step<=7200;step++) {
-        ticks=(100+step/60)*1e7;update.SetTime(100+step/60);
+        const previousTicks=ticks;
+        ticks=1_000_000_000+Math.round(step*10_000_000/60);update.SetTime(ticks);
+        assert.equal(update.GetTime(),ticks);
+        assert.equal(update.GetDeltaT(),step===0?0:Math.fround((ticks-previousTicks)/10_000_000));
         if(step===60){if(scenario==="warp")ship.SetControllerVariable("IsWarping",1);if(scenario==="kills")ship.displayKillCounterValue=999;}
         ship.UpdateSyncronous(update);ship.UpdateAsyncronous(update);ExecuteMainThreadActions();
         const isKill=root.controllers.some(controller=>controller.stateMachines.some(machine=>machine.currentState?.name==="Kill"));

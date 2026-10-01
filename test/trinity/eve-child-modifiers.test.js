@@ -239,11 +239,11 @@ test("EveUpdateContext has value-typed defaults with only reference fields null"
 
   // Time accessors: SetTime shifts current into last; deltaT is computed on
   // demand and stays 0 until a second frame is stamped (Carbon semantics).
-  context.SetTime(12.5);
-  assert.equal(context.GetTime(), 12.5);
+  context.SetTime((12.5) * 10_000_000);
+  assert.equal(context.GetTime(), 125_000_000);
   assert.equal(context.GetDeltaT(), 0);
-  context.SetTime(12.75);
-  assert.equal(context.GetTime(), 12.75);
+  context.SetTime((12.75) * 10_000_000);
+  assert.equal(context.GetTime(), 127_500_000);
   assert.ok(Math.abs(context.GetDeltaT() - 0.25) < 1e-9);
 
   // No field is left as @type.unknown.

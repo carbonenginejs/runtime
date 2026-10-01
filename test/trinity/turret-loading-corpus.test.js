@@ -58,7 +58,7 @@ test("synthetic child turrets load separate real pulse FX graphs; real set accep
   const effect=set.firingEffect;
   effect.PrepareFiring(0);
   const context=new EveUpdateContext();
-  context.SetTime(0.9);context.SetTime(1);
+  context.SetTime((0.9) * 10_000_000);context.SetTime((1) * 10_000_000);
   assert.equal(effect.UpdateAsynchronous(context),false);
   assert.equal(effect.ReadyToFire(),true);
   assert.equal(effect.UpdateAsynchronous(context),true,"real pulse FX starts after Carbon's one-frame delay");
@@ -96,7 +96,7 @@ function quadView()
   const frustum=new TriFrustum();
   frustum.DeriveFrustum(mat4.lookAt(mat4.create(),[0,0,0],[0,0,-1],[0,1,0]),[0,0,0],
     mat4.perspective(mat4.create(),Math.PI/2,1,0.1,100000),{width:1024,height:1024});
-  const context=new EveUpdateContext();context.SetFrustum(frustum);context.SetTime(10);
+  const context=new EveUpdateContext();context.SetFrustum(frustum);context.SetTime((10) * 10_000_000);
   context.lodFactor=1;context.invLodFactor=1;
   return {context,frustum};
 }
@@ -220,7 +220,7 @@ test("real pulse cleanup stops a started muzzle and creates a fresh context on e
 {
   const effect=await realPulse(t), phases=[];
   const firingContext=new EveUpdateContext();
-  firingContext.SetTime(1);firingContext.SetTime(1.1);
+  firingContext.SetTime((1) * 10_000_000);firingContext.SetTime((1.1) * 10_000_000);
   effect.PrepareFiring(0);
   assert.equal(effect.UpdateAsynchronous(firingContext),false);
   assert.equal(effect.UpdateAsynchronous(firingContext),true);
@@ -256,7 +256,7 @@ test("real pulse cleanup stops a started muzzle and creates a fresh context on e
   assert.notEqual(context,firingContext);
   assert.equal(phases[2].context,context);
   assert.equal(CjsSchema.getClassName(context.constructor),"EveUpdateContext");
-  assert.equal(context.GetTime(),2.5,"25,000,000 Blue ticks are 2.5 seconds at this boundary");
+  assert.equal(context.GetTime(),25_000_000,"cleanup preserves the raw Blue tick timestamp");
   assert.equal(context.GetDeltaT(),0);
   assert.equal(context.lodFactor,1);assert.equal(context.invLodFactor,1);
   assert.equal(effect.isFiring,false);
@@ -268,7 +268,7 @@ test("real pulse cleanup stops a started muzzle and creates a fresh context on e
   assert.notEqual(nextContext,context,"each cleanup call constructs its own context");
   assert.equal(phases[5].context,nextContext);
   assert.equal(CjsSchema.getClassName(nextContext.constructor),"EveUpdateContext");
-  assert.equal(nextContext.GetTime(),5,"50,000,000 Blue ticks are 5 seconds at the next cleanup");
+  assert.equal(nextContext.GetTime(),50_000_000,"the next cleanup also preserves raw Blue ticks");
   assert.equal(nextContext.GetDeltaT(),0);
   assert.equal(nextContext.lodFactor,1);assert.equal(nextContext.invLodFactor,1);
   assert.equal(effect.isFiring,false);assert.equal(effect._perMuzzleData[0].started,false);
@@ -469,7 +469,7 @@ function nearMatrix(actual,expected)
 test("real Breacher child receives Carbon Stretch3 orientation and exact muzzle matrices", {skip:skipController}, async t =>
 {
   const stretch=(await realBreacher(t)).stretch[0], child=stretch.sourceObject;
-  const context=new EveUpdateContext();context.SetTime(10);
+  const context=new EveUpdateContext();context.SetTime((10) * 10_000_000);
   const original=child.UpdateAsyncronous,received=[];
   t.mock.method(child,"UpdateAsyncronous",function(ctx,params)
   {
@@ -514,7 +514,7 @@ test("controlled real Breacher child placements preserve distinct synchronous an
   const source=[3,-5,7],destination=[4,-3,9],progression=0.25,scale=2;
   const translation=point=>[1,0,0,0,0,1,0,0,0,0,1,0,...point,1];
   stretch.SetFiringTransform(source,destination);stretch.moveProgression.value=progression;stretch.SetDestObjectScale(scale);
-  const context=new EveUpdateContext();context.SetTime(10);
+  const context=new EveUpdateContext();context.SetTime((10) * 10_000_000);
   stretch.UpdateSynchronous(context);
   assert.equal(stretch.length.value,3);
   nearMatrix(received.source.Syncronous.matrix,translation([0,0,0]));

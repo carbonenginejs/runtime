@@ -80,8 +80,8 @@ test("real Crisis Angel destroyer bone children follow all warp clips through no
   const poses=[];
   for(const name of updater.GetAnimationNames()){
     updater.StopAnimations(0);updater.PlayAnimation(name,false,1,0,1);
-    context.SetTime(time);ship.UpdateSyncronous(context);ship.UpdateAsyncronous(context);
-    time+=4;context.SetTime(time);ship.UpdateSyncronous(context);ship.UpdateAsyncronous(context);
+    context.SetTime((time) * 10_000_000);ship.UpdateSyncronous(context);ship.UpdateAsyncronous(context);
+    time+=4;context.SetTime((time) * 10_000_000);ship.UpdateSyncronous(context);ship.UpdateAsyncronous(context);
     poses.push(Array.from(updater.GetMeshBoneMatrixList()));time+=0.1;
   }
   t.diagnostic(JSON.stringify({captured:captured.length,rootUpdate:crisis.IsUpdating(),lightningUpdate:lightning.IsUpdating(),children:attachments.map(c=>({update:c.IsUpdating(),display:c.display}))}));

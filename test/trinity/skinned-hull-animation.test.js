@@ -130,13 +130,13 @@ test("the ship steps its animation in UpdateSyncronous", { skip: corpusSkipReaso
   updater.PlayAnimation("Normal2Warp", true, 1, 0, 1);
   const context = new EveUpdateContext();
   // GetDeltaT reads a last time of 0 as no previous frame, so the clock starts at 1 s.
-  context.SetTime(1);
+  context.SetTime((1) * 10_000_000);
   ship.UpdateSyncronous(context);
   const start = Float32Array.from(updater.GetMeshBoneMatrixList());
 
   // Carbon cpp:560-566 steps it each synchronous update; 2 s later the bones
   // have moved from where the animation started.
-  context.SetTime(3);
+  context.SetTime((3) * 10_000_000);
   ship.UpdateSyncronous(context);
   const now = updater.GetMeshBoneMatrixList();
   let moved = 0;
@@ -217,10 +217,10 @@ test("a SOF child mesh animates, steps and uploads its own palette", { skip: cor
   // cpp:1172-1185: UpdateSyncronous steps the updater while updateAnimation is on.
   updater.PlayAnimation("Normal2Warp", true, 1, 0, 1);
   const context = new EveUpdateContext();
-  context.SetTime(1);
+  context.SetTime((1) * 10_000_000);
   child.UpdateSyncronous(context, null);
   const start = Float32Array.from(updater.GetMeshBoneMatrixList());
-  context.SetTime(3);
+  context.SetTime((3) * 10_000_000);
   child.UpdateSyncronous(context, null);
   const now = updater.GetMeshBoneMatrixList();
   let moved = 0;
@@ -230,7 +230,7 @@ test("a SOF child mesh animates, steps and uploads its own palette", { skip: cor
   // With updateAnimation off it holds.
   child.updateAnimation = false;
   const held = Float32Array.from(now);
-  context.SetTime(4);
+  context.SetTime((4) * 10_000_000);
   child.UpdateSyncronous(context, null);
   assert.deepEqual(Array.from(updater.GetMeshBoneMatrixList()), Array.from(held));
 });

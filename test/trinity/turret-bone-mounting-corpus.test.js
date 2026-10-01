@@ -123,8 +123,8 @@ function worldFromLocal(local, parent)
 function context(time, delta)
 {
   const value = new EveUpdateContext();
-  value.SetTime(time - delta);
-  value.SetTime(time);
+  value.SetTime((time - delta) * 10_000_000);
+  value.SetTime((time) * 10_000_000);
   value.SetLodFactor(1);
   return value;
 }

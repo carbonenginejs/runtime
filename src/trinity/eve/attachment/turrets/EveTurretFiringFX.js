@@ -13,7 +13,6 @@ import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { INotify } from "../../../../global/blue/INotify.js";
 import { IListNotify } from "../../../../global/blue/IListNotify.js";
 import { blue } from "../../../../global/blue/blue.js";
-import { TimeAsDouble } from "../../../../global/blue/CcpTime.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { EveUpdateContext } from "../../EveUpdateContext.js";
 
@@ -238,8 +237,8 @@ export class EveTurretFiringFX extends EveEntity
   /**
    * Stops firing and runs one asynchronous then one synchronous update so the
    * stretch elements settle into their stopped state before the effect is
-   * discarded. JS converts Blue ticks once to the existing seconds-based context
-   * and restores the native time-taking constructor's LOD defaults.
+   * discarded. JS stamps the fresh context with the unchanged Blue ticks and
+   * restores the native time-taking constructor's LOD defaults.
    */
   @meta.carbon.method
   @meta.impl.adapted
@@ -247,7 +246,7 @@ export class EveTurretFiringFX extends EveEntity
   {
     this.StopFiring();
     const context = new EveUpdateContext();
-    context.SetTime(TimeAsDouble(blue.os.GetCurrentFrameTime()));
+    context.SetTime(blue.os.GetCurrentFrameTime());
     context.SetLodFactor(1);
     this.UpdateAsynchronous(context);
     this.UpdateSynchronous(context);

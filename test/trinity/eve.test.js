@@ -1401,8 +1401,8 @@ test("EveCircle updates animation, bounds, and visibility without renderer state
   circle.Update(updateContext);
   circle.animValue = 0.9;
   circle.movementSpeed = 2;
-  updateContext.SetTime(1);
-  updateContext.SetTime(1.1);
+  updateContext.SetTime((1) * 10_000_000);
+  updateContext.SetTime((1.1) * 10_000_000);
   assertEquals(circle.Update(updateContext), false);
   assertAlmostEquals(circle.animValue, 0.1);
 });

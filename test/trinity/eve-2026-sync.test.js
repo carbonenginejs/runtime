@@ -134,7 +134,7 @@ test("without a device the data texture maps nothing, so no block gets an offset
   {
     const context = new EveUpdateContext();
     context.SetDataTextureManager(manager);
-    context.SetTime(1);
+    context.SetTime((1) * 10_000_000);
 
     const shader = { name: "armor" };
     const damage = new EveDamageOverlay();
@@ -228,8 +228,8 @@ test("shield impacts reuse, age and publish Carbon-compatible data rows", () =>
   const manager = new Tr2DataTextureManager();
   const context = new EveUpdateContext();
   context.SetDataTextureManager(manager);
-  context.SetTime(1);
-  context.SetTime(1.25);
+  context.SetTime((1) * 10_000_000);
+  context.SetTime((1.25) * 10_000_000);
 
   const locator = new Locator();
   const parent = new EveSpaceObject2();
@@ -707,14 +707,14 @@ test("EveChildCloud participates in the owned child contract", () =>
   let volumeTime = -1;
   cloud.volume = { Update(time) { volumeTime = time; } };
   const context = new EveUpdateContext();
-  context.SetTime(7);
+  context.SetTime((7) * 10_000_000);
   context.SetLodFactor(2);
   context.SetFrustum({
     IsSphereVisible: () => true,
     GetPixelSizeAccross: () => 20
   });
   cloud.UpdateSyncronous(context, { childParent: null, spaceObjectParent: owner });
-  assert.equal(volumeTime, 7);
+  assert.equal(volumeTime, 70_000_000);
   assert.equal(cloud.hasUpdated, true);
   assertVectorClose(
     [ cloud.worldTransform[12], cloud.worldTransform[13], cloud.worldTransform[14] ],

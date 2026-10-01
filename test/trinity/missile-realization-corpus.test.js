@@ -311,9 +311,9 @@ test("real warhead flight keeps world and impact position at the previous visibi
   mat4.copy(missile.worldTransform, parent); // Controlled non-orthogonal missile placement.
   missile.UpdateVisibility(context, mat4.create());
   nearValues(warhead.worldTransform, parent);
-  context.SetTime(1);
+  context.SetTime((1) * 10_000_000);
   warhead.Update(context);
-  context.SetTime(1.25);
+  context.SetTime((1.25) * 10_000_000);
   context.originShift.set([1, 2, 3]);
   warhead.UpdateWarhead(0.25, 10, new Float32Array(3), new Float32Array([4, 8, 12]), mat4.create(), missile.worldTransform, context.GetOriginShift());
   // Still DELAYED: flight fraction=0, no ejection, start+inheritedVelocity*dt.

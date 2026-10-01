@@ -99,7 +99,7 @@ test("EveMissileWarhead follows Carbon launch, state, particle, impact, and POD 
   warhead.UpdateWarhead(0.1, 2, vec3.create(), vec3.create(), mat4.create(), mat4.create(), vec3.create());
   const context = new EveUpdateContext();
   context.SetTime(0);
-  context.SetTime(0.1);
+  context.SetTime((0.1) * 10_000_000);
   warhead.Update(context);
   assert.equal(warhead.CheckImpact(0.1, 2, null), EveMissileWarhead.StateChangeEvent.EVT_EXPLODE);
   assert.deepEqual(Array.from(warhead.explosionPosition), Array.from(warhead.GetWorldPosition()));
@@ -131,7 +131,7 @@ test("constructed single-warhead missile invokes its explosion callback once", (
   context.SetTime(0);
   for (let frame = 0; frame < 6; frame++)
   {
-    context.SetTime((frame + 1) * 0.1);
+    context.SetTime(((frame + 1) * 0.1) * 10_000_000);
     missile.UpdateSyncronous(context);
   }
   assert.deepEqual(exploded, [7]);
@@ -158,7 +158,7 @@ test("EveMobile maps authored turret locators and drives the active count", () =
   assert.equal(mobile.GetTurretLocatorCount(), 1);
   assert.equal(mobile.GetTurretLocatorIndex(0, 1), 1);
   const context = new EveUpdateContext();
-  context.SetTime(1);
+  context.SetTime((1) * 10_000_000);
   mobile.UpdateAsyncronous(context);
   assert.equal(turretSet.GetTurrets().length, 2);
   assert.deepEqual(Array.from(turretSet.GetTurrets()[1].worldMatrix.subarray(12, 15)), [2, 0, 0]);
@@ -188,11 +188,11 @@ test("turret fixed POD arrays and tracking fade preserve Carbon dimensions and o
   turretSet.SetTurrets([mat4.create()]);
   turretSet.EnterStateTargeting();
   const context = new EveUpdateContext();
-  context.SetTime(1);
-  context.SetTime(1.5);
+  context.SetTime((1) * 10_000_000);
+  context.SetTime((1.5) * 10_000_000);
   turretSet.UpdateAsyncronous(context, mat4.create());
   assert.equal(turretSet.trackingInfluence, 0);
-  context.SetTime(2);
+  context.SetTime((2) * 10_000_000);
   turretSet.UpdateAsyncronous(context, mat4.create());
   assert.equal(turretSet.trackingInfluence, 0.5);
 });

@@ -3,7 +3,7 @@
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
-import { CjsScriptCallback } from "#blue";
+import { CjsScriptCallback, TimeAsDouble } from "#blue";
 
 
 /**
@@ -93,13 +93,18 @@ export class TriCurveSet extends CjsModel
   _callback = new CjsScriptCallback();
 
   /**
-   * Updates playback using a single time value or Carbon's real/sim overload.
+   * Updates playback using source seconds or Carbon's real/sim tick overload.
+   * Converts only the selected two-clock timestamp (TriCurveSet.cpp:51-64).
+   * @param {number} time Source seconds, or real-time Blue 100ns ticks with simTime.
+   * @param {number} [simTime] Simulation time in Blue 100ns ticks.
+   * @param {object|null} [renderContext=null] Rendering context forwarded to curves.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
   Update(time, simTime, renderContext = null)
   {
-    const selectedTime = simTime === undefined ? time : this.useRealTime ? time : simTime;
+    const selectedTime = simTime === undefined ? time : TimeAsDouble(this.useRealTime ? time : simTime);
     this.UpdateAt(selectedTime, renderContext);
   }
 

@@ -14,6 +14,7 @@ import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmitter/index.js";
+import { TimeAsDouble } from "../../../global/blue/CcpTime.js";
 
 /** A child that hosts particle systems and emitters, driving their transforms, LOD-based particle budgets, and per-frame visibility and render submission. */
 @type.define({ className: "EveChildParticleSystem", family: "eve/child" })
@@ -358,6 +359,10 @@ export class EveChildParticleSystem extends EveChildTransform
    * Per-frame async update (EveChildParticleSystem.cpp:201-280): rebuild the
    * world transform, fold the transform modifiers, rebuild the bounding and
    * LOD spheres, then drive the particle systems and emitters.
+   * Adapted: the existing JS particle update-argument record uses seconds.
+   * Convert the raw context ticks only at that boundary; GetTime retains its
+   * native tick contract. Native consumers instead convert the tick difference
+   * (Tr2DynamicEmitter.cpp:119; Tr2ParticleSystem.cpp:527).
    */
   @carbon.method
   @carbon.contextual(["camera"])
@@ -394,7 +399,7 @@ export class EveChildParticleSystem extends EveChildTransform
       system.UpdateTransform(this.worldTransform);
     }
 
-    const time = Number(updateContext?.GetTime?.() ?? updateContext?.currentTime ?? 0);
+    const time = TimeAsDouble(Number(updateContext?.GetTime?.() ?? updateContext?.currentTime ?? 0));
     const gpuParticleSystem = updateContext?.GetGpuParticleSystem?.() ?? updateContext?.gpuParticleSystem ?? null;
     const originShift = updateContext?.GetOriginShift?.() ?? updateContext?.originShift ?? EveChildParticleSystem._zero;
 

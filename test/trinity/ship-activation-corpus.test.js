@@ -79,7 +79,7 @@ test("real Apocalypse skin-change bindings fade ship constants and authored spri
   });
   for(let step=0;step<=40;step++)
   {
-    const time=step/10;context.SetTime(100+time);
+    const time=step/10;context.SetTime((100+time) * 10_000_000);
     for(const ship of ships){ship.UpdateSyncronous(context);ship.UpdateAsyncronous(context);}
     for(let index=0;index<ships.length;index++)
     {
@@ -122,7 +122,7 @@ test("real Abaddon sprite and Archon spotlight light records follow root async a
       ship.activationStrength=activation;
       ship.spaceObjectShipData[0]=0.75;
       ship.worldTransform[12]=10+step*3;
-      context.SetTime(100+step);
+      context.SetTime((100+step) * 10_000_000);
       ship.UpdateAsyncronous(context);
       near(attachment._activationStrength,activation,"EveSpaceObject2.cpp:741 forwards combined activation");
       if(type==="EveSpotlightSet")near(attachment._boosterGain,0.75,"root forwards booster gain");

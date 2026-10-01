@@ -63,20 +63,20 @@ test("EveSpaceScene.Update stamps the scene-owned frame context", () =>
 {
   const scene = new EveSpaceScene();
 
-  scene.Update(0, 2.5);
-  assert.equal(scene.updateContext.GetTime(), 2.5);
+  scene.Update(0, 25_000_000);
+  assert.equal(scene.updateContext.GetTime(), 25_000_000);
   assert.equal(scene.updateContext.GetDeltaT(), 0, "no deltaT on the first stamped frame");
-  assert.equal(scene.updateTime, 2.5);
+  assert.equal(scene.updateTime, 25_000_000);
 
-  scene.Update(0, 2.75);
-  assert.equal(scene.updateContext.GetTime(), 2.75);
+  scene.Update(0, 27_500_000);
+  assert.equal(scene.updateContext.GetTime(), 27_500_000);
   assertClose(scene.updateContext.GetDeltaT(), 0.25, "deltaT from the second frame");
 
   // m_update guard: nothing advances when update is off.
   scene.update = false;
-  scene.Update(0, 9);
-  assert.equal(scene.updateContext.GetTime(), 2.75);
-  assert.equal(scene.updateTime, 2.75);
+  scene.Update(0, 90_000_000);
+  assert.equal(scene.updateContext.GetTime(), 27_500_000);
+  assert.equal(scene.updateTime, 27_500_000);
 });
 
 test("EveSpaceScene script helpers preserve Carbon's direct scene contracts", () =>

@@ -60,8 +60,8 @@ function updateContext({deltaTime=0,currentTime=10,...fields}={})
 {
   const context=new EveUpdateContext();
   Object.assign(context,fields);
-  context.SetTime(currentTime-deltaTime);
-  context.SetTime(currentTime);
+  context.SetTime((currentTime-deltaTime) * 10_000_000);
+  context.SetTime((currentTime) * 10_000_000);
   return context;
 }
 
@@ -157,7 +157,8 @@ test("real paired mounts own independent sampled poses and native play-idle cloc
   assert.equal(a.sequencer.GetAnimationLayer(null).queue[0].elapsed,old.elapsed,"missing either name leaves native controls intact");
   set.UpdateAsyncronous(updateContext({deltaTime:duration}));
   const idle=a.sequencer.GetAnimationLayer(null).queue[0];
-  assert.equal(idle.name,"Active");assert.ok(Math.abs(idle.elapsed-.25)<1e-9,"CMF first eligible scheduler preserves boundary overshoot");
+  const overshoot=Math.fround(.2)+Math.fround(.3)-.25;
+  assert.equal(idle.name,"Active");assert.ok(Math.abs(idle.elapsed-overshoot)<1e-9,"CMF first eligible scheduler preserves float32 delta overshoot");
   resource.MarkPurged();assert.equal(a.sequencer,null);assert.equal(a.pose,null);assert.deepEqual(a.worldTransforms,[]);
 });
 
@@ -188,7 +189,7 @@ test("native delayed stops cover future controls and extended one-shots without 
   set.UpdateAsyncronous(updateContext({deltaTime:.81}));assert.equal(a.sequencer.GetAnimationLayer(null).queue.length,0);
   set.PlayAnimation(0,"Deploy","Active",.25);set.PlayAnimation(1,"Deploy","Active",.25);
   set.UpdateAsyncronous(updateContext({deltaTime:duration+.55}));
-  assert.ok(Math.abs(a.sequencer.GetAnimationLayer(null).queue[0].elapsed-.3)<1e-8);
+  assert.ok(Math.abs(a.sequencer.GetAnimationLayer(null).queue[0].elapsed-(Math.fround(duration+.55)-duration-.25))<1e-8);
   assert.deepEqual(Array.from(a.sequencer.GetMeshBoneMatrixList()),Array.from(b.sequencer.GetMeshBoneMatrixList()));
   set.PlayAnimation(0,"","",.2);set.UpdateAsyncronous(updateContext({deltaTime:.1}));assert.equal(a.sequencer.GetAnimationLayer(null).queue[0].name,"Active");
   set.UpdateAsyncronous(updateContext({deltaTime:.11}));assert.equal(a.sequencer.GetAnimationLayer(null).queue.length,0);
@@ -211,11 +212,13 @@ test("real Fire is an authored static clip; Deploy moves the full Recoil and muz
   set.UpdateAsyncronous(updateContext({deltaTime:.2}));assert.deepEqual(snapshot(),first,"full joints remain static, not just mesh palette");
   set.PlayAnimation(0,"Deploy","Active");set.UpdateAsyncronous(updateContext({deltaTime:.2}));assert.notDeepEqual(snapshot(),first);
   const duration=set.PlayAnimation(0,"Deploy","Active",.25);
-  for(const deltaTime of [.1,.15,1,1,duration-2+.3])set.UpdateAsyncronous(updateContext({deltaTime}));
+  const deltas=[.1,.15,1,1,duration-2+.3];
+  for(const deltaTime of deltas)set.UpdateAsyncronous(updateContext({deltaTime}));
   const small=Array.from(updater.GetMeshBoneMatrixList()),elapsed=updater.GetAnimationLayer(null).queue[0].elapsed;
   set.PlayAnimation(0,"Deploy","Active",.25);set.UpdateAsyncronous(updateContext({deltaTime:duration+.55}));
   assert.deepEqual(Array.from(updater.GetMeshBoneMatrixList()),small);
-  assert.ok(Math.abs(updater.GetAnimationLayer(null).queue[0].elapsed-elapsed)<1e-8,"one large update agrees with smaller updates at same native clock");
+  assert.ok(Math.abs(elapsed-(deltas.reduce((sum,delta)=>sum+Math.fround(delta),0)-duration-.25))<1e-8,"partitioned updates retain each float32 context delta");
+  assert.ok(Math.abs(updater.GetAnimationLayer(null).queue[0].elapsed-(Math.fround(duration+.55)-duration-.25))<1e-8,"one large update uses its own float32 context delta");
 });
 
 // Independent scalar row-vector oracle; identical flat storage to gl matrices.
