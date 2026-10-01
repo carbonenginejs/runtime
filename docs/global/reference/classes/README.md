@@ -335,6 +335,26 @@ Dependency-free contract for objects that publish a ready world-space axis-align
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:ITr2DebugRenderable -->
+## `ITr2DebugRenderable`
+
+Debug-rendering contract shared by Trinity and providers such as audio.
+
+- Export: `@carbonenginejs/runtime/interfaces`
+- Source: `src/global/interfaces/ITr2DebugRenderable.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:ITr2DebugRenderer2 -->
+## `ITr2DebugRenderer2`
+
+Shared abstract debug-renderer contract; it performs no drawing or device work.
+
+- Export: `@carbonenginejs/runtime/interfaces`
+- Source: `src/global/interfaces/ITr2DebugRenderer2.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:ITr2RenderNode -->
 ## `ITr2RenderNode`
 

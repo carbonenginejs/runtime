@@ -55,6 +55,26 @@ A typed object list with Carbon's explicit single-observer mutation methods.
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:IBlueEventListener -->
+## `IBlueEventListener`
+
+Receives named events from other subsystems.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/IBlueEventListener.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:IBlueMultiPlacementObserver -->
+## `IBlueMultiPlacementObserver`
+
+Receives multiple forward vectors and positions from another subsystem.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/IBlueMultiPlacementObserver.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:IBlueObjectMetadata -->
 ## `IBlueObjectMetadata`
 
@@ -62,6 +82,16 @@ A typed object list with Carbon's explicit single-observer mutation methods.
 
 - Export: `@carbonenginejs/runtime/global`
 - Source: `src/global/blue/IBlueObjectMetadata.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:IBluePlacementObserver -->
+## `IBluePlacementObserver`
+
+Receives orientation and position from another subsystem.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/IBluePlacementObserver.js`
 - Visibility: Public
 - Kind: Carbon
 
@@ -152,6 +182,16 @@ Native IRoot-derived typed object-list contract, represented as a plain JS inter
 
 - Export: `@carbonenginejs/runtime/global`
 - Source: `src/global/blue/IRootWriter.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:PositionDescription -->
+## `PositionDescription`
+
+One forward vector and position in a multi-placement update.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/PositionDescription.js`
 - Visibility: Public
 - Kind: Carbon
 
