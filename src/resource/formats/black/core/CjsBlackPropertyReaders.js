@@ -1,3 +1,4 @@
+import { BLUELISTEVENT } from "#consts/blue";
 import {
     CARBON_TYPE,
     normalizeCarbonTypeDescriptor
@@ -332,6 +333,8 @@ export class CjsBlackPropertyReaders
      */
     static readBlackIRoot(reader, black, descriptor, destination = undefined)
     {
+        if (black.container === "list" && destination !== undefined)
+            return CjsBlackPropertyReaders.readNativeList(reader, destination);
         if (black.container === "dict") return CjsBlackPropertyReaders.readDict(reader);
         if (black.container === "list" || black.container === "set") return CjsBlackPropertyReaders.readArray(reader, descriptor);
         return reader.context.ReadEmbeddedObject(reader, destination);
@@ -430,6 +433,34 @@ export class CjsBlackPropertyReaders
             result[i] = view.getUint32(i * 4, true);
         }
         return result;
+    }
+
+    /**
+     * Populates the canonical mapped IList destination supplied by the reader.
+     * BlackReader.cpp:482-509 clears before reading and ignores Append rejection.
+     * JS restores the observer on failure; accepted items are not rolled back.
+     */
+    static readNativeList(reader, list)
+    {
+        list.Remove(-1);
+        const count = reader.ReadU32();
+        const info = {};
+        list.GetInfo(info);
+        list.SetNotify(null);
+        try
+        {
+            for (let i = 0; i < count; i++)
+            {
+                const item = reader.context.ReadObject(reader);
+                if (item !== null) list.Append(item);
+            }
+        }
+        finally
+        {
+            list.SetNotify(info.notify);
+        }
+        if (info.notify) info.notify.OnListModified(BLUELISTEVENT.BELIST_LOADFINISHED, 0, 0, null, list);
+        return list;
     }
 
     /** Reads array from the current Black object-graph reader. */

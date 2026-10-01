@@ -192,6 +192,14 @@ function readerDataValue(target, key)
     return undefined;
 }
 
+/** Exact registered IList mapping, without importing Blue into schema initialization. */
+export function isReaderIList(value)
+{
+    const Interface = CjsSchema.GetConstructor("IList");
+    return value !== null && typeof value === "object" && Interface !== null
+        && mappedInterfaces(value.constructor).has(Interface);
+}
+
 /** Keeps decoded graph identities while adapting scalar and container storage. */
 function readerMemberValue(current, value, member)
 {
@@ -217,6 +225,9 @@ function readerMemberValue(current, value, member)
         case "list":
         case "array":
         {
+            // Black has already populated this destination through native operations.
+            // A mapped IList need not use Array storage (BlueList is only one implementation).
+            if (type.kind === "list" && value === current && isReaderIList(current)) return current;
             if (!Array.isArray(value)) throw new TypeError(`Reader member ${member.name} requires an array.`);
             if (value === current) return current;
             const result = current == null ? [] : current;

@@ -28,7 +28,6 @@ import { Type } from "../enums.js";
   family: "controllers"
 })
 @carbon.inherit(IInitialize, INotify)
-@carbon.mapInterface(IInitialize, INotify)
 export class Tr2ControllerFloatVariable extends CjsModel
 {
   @edit.readwrite
@@ -237,3 +236,9 @@ export class Tr2ControllerFloatVariable extends CjsModel
   static Type = Type;
 
 }
+
+// Native exposure ends at this concrete table (Tr2ControllerFloatVariable_Blue.cpp).
+carbon.interfaceTable({
+  interfaces: [Tr2ControllerFloatVariable, IInitialize, INotify],
+  chainTo: null
+})(Tr2ControllerFloatVariable);

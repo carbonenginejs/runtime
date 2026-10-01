@@ -4,7 +4,7 @@ import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { UnlinkReason } from "../enums.js";
-import { blue, TimeAsFloat } from "#blue";
+import { blue, TimeAsFloat, IListNotify, ISimTimeRebaseNotify, INotify } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 
 
@@ -17,6 +17,7 @@ import { BLUELISTEVENT } from "#consts/blue";
   className: "Tr2StateMachine",
   family: "controllers"
 })
+@carbon.inherit(IListNotify, ISimTimeRebaseNotify, INotify)
 export class Tr2StateMachine extends CjsModel
 {
   @edit.read
@@ -315,3 +316,9 @@ export class Tr2StateMachine extends CjsModel
     return value && typeof value === "object" ? value : null;
   }
 }
+
+// Native exposure ends at this concrete table (Tr2StateMachine_Blue.cpp).
+carbon.interfaceTable({
+  interfaces: [Tr2StateMachine, IListNotify, INotify],
+  chainTo: null
+})(Tr2StateMachine);

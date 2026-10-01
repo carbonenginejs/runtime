@@ -1,6 +1,6 @@
 import { CjsCarbonDocument } from "#model/document";
 import { CjsSchema } from "#schema";
-import { applyReaderMember, finalizeReaderObject, getReaderMemberValue } from "#schema/hydration";
+import { applyReaderMember, finalizeReaderObject, getReaderMemberValue, isReaderIList } from "#schema/hydration";
 
 import { CjsBlueReader } from "../../../format/CjsBlueReader.js";
 
@@ -367,9 +367,17 @@ export class CjsBlackReader extends CjsBlueReader
             const blackName = objectReader.ReadStringRef();
             const fieldTarget = this.ResolveFieldTargetWithContext(kind, shape, blackName, previousBlackName);
             const declaration = fieldTarget.field.declaration;
-            const destination = canonical && declaration?.type?.kind === "struct"
-                ? getReaderMemberValue(target, declaration)
-                : undefined;
+            let destination;
+            if (canonical)
+            {
+                const type = declaration?.type;
+                if (type?.kind === "struct") destination = getReaderMemberValue(target, declaration);
+                else if (!fieldTarget.discard && type?.kind === "list" && fieldTarget.field.jsType?.elementType?.kind === "objectRef")
+                {
+                    const current = getReaderMemberValue(target, declaration);
+                    if (isReaderIList(current)) destination = current;
+                }
+            }
             const value = this.ReadFieldValueWithContext(objectReader, kind, blackName, fieldTarget, destination);
             if (canonical)
             {

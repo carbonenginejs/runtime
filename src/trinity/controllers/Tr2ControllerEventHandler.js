@@ -3,6 +3,7 @@
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
+import { IListNotify } from "#blue/IListNotify";
 
 
 /**
@@ -23,6 +24,7 @@ import { BLUELISTEVENT } from "#consts/blue";
   className: "Tr2ControllerEventHandler",
   family: "controllers"
 })
+@carbon.inherit(IListNotify)
 export class Tr2ControllerEventHandler extends CjsModel
 {
   @edit.read
@@ -169,3 +171,9 @@ export class Tr2ControllerEventHandler extends CjsModel
     return value && typeof value === "object" ? value : null;
   }
 }
+
+// Native exposure ends at this concrete table (Tr2ControllerEventHandler_Blue.cpp).
+carbon.interfaceTable({
+  interfaces: [Tr2ControllerEventHandler, IListNotify],
+  chainTo: null
+})(Tr2ControllerEventHandler);
