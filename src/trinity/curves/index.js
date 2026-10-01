@@ -1,4 +1,6 @@
 export * from "./ITr2CurveSetOwner.js";
+export * from "./ITriDuration.js";
+export * from "./ITr2ValueBinding.js";
 export * from "./Tr2CurveSetRange.js";
 export * from "./TriCurveSet.js";
 export * from "./enums.js";

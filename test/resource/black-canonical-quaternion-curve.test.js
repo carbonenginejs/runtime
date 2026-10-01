@@ -40,7 +40,7 @@ function near(actual, expected)
 test("canonical quaternion records preserve storage and drive production slerp and update consumers", context =>
 {
     const changed = context.mock.method(Tr2CurveQuaternion.prototype, "OnKeysChanged", () => assert.fail("Decode must not sort keys"));
-    context.mock.method(Tr2CurveQuaternion.prototype, "SetValues", () => assert.fail("Decode must not require values machinery"));
+    assert.equal("SetValues" in Tr2CurveQuaternion.prototype, false);
     let keys, currentValue;
     class RecordingReader extends CjsBlackReader
     {

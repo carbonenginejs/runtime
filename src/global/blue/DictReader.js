@@ -35,6 +35,12 @@
 //   factory here, as `BeClasses->CreateInstance` is Carbon's, and several
 //   classes normalize their values in it.
 // - `from` knows its class, so a root `_type` is optional.
+//
+// DECLARED OPERATIONS. `declarations: true` selects exact Blue registration
+// factories and canonical member population, without class values helpers.
+// Each public operation owns fresh anchors. After references resolve, mapped
+// IInitialize runs once on its factory results, dependencies first. Existing
+// roots, embedded storage and supplied live objects remain borrowed.
 import { CjsSchema, impl } from "#schema";
 import { omitRuntimeValues } from "../schema/CjsSchema.js";
 import { normalizeCarbonValue } from "../schema/types/index.js";
@@ -42,8 +48,10 @@ import { IRootReaderBase } from "./IRootReaderBase.js";
 import { IRootReaderException } from "./IRootReaderException.js";
 import { BeObjectMetadata } from "./BlueObjectMetadata.js";
 import { BLUE_OBJECT_METADATA_KEY } from "./IBlueObjectMetadata.js";
-import { readDictionaryValue, writeDictionaryValue } from "./dictionaryDeclarations.js";
+import { getDictionaryDeclarations, readDictionaryValue, writeDictionaryValue } from "./dictionaryDeclarations.js";
+import { getClassRegistration } from "./classes/registry.js";
 import { mappedInterfaces } from "../compose/interface.js";
+import { finalizeReaderObject } from "../schema/hydration.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { IList } from "./IList.js";
 
@@ -59,7 +67,7 @@ const PENDING_LIST_READS = new WeakMap();
  */
 export class DictReader extends IRootReaderBase
 {
-  /** m_doInitialize: whether a new object has `Initialize` called after its members. */
+  /** m_doInitialize: whether the reader initializes newly allocated objects. */
   _doInitialize = true;
 
   /** m_currentSource: the value being read. */
@@ -84,13 +92,28 @@ export class DictReader extends IRootReaderBase
   /** Pending populations for this reader's IList references and completion. */
   _pendingListReads = null;
 
+  /** Instances allocated by the current declared operation, in allocation order. */
+  _created = null;
+
+  /** Selected live properties populated by this operation, for dependency ordering. */
+  _readFields = null;
+
+  /** Set entries whose deferred references must be filled before initialization. */
+  _afterReferences = null;
+
   /**
    * @param {object} [options] `importContext` to share an anchor table across
-   *   reads; anything else is passed to a class's own `from`.
+   *   legacy reads; anything else is passed to a class's own `from`.
+   * @param {boolean} [options.declarations=false] Use isolated declaration-driven construction.
+   * @param {boolean} [options.initialize=true] Initialize owned declared objects after references resolve.
    */
   constructor(options = {})
   {
     super();
+    if (options.declarations === true && options.importContext != null)
+    {
+      throw new TypeError("Declared dictionary reads cannot share a legacy importContext.");
+    }
     this._options = options;
     this._anchors = options.importContext ?? CreateAnchorTable();
     this._ownsAnchors = !options.importContext;
@@ -105,6 +128,7 @@ export class DictReader extends IRootReaderBase
    */
   CreateObject(source, Constructor = null)
   {
+    this._BeginDeclaredOperation();
     this._contextStack.push("CreateObject");
     this._currentSource = source;
     try
@@ -140,16 +164,19 @@ export class DictReader extends IRootReaderBase
    */
   ReadInto(instance, source, notify)
   {
+    this._BeginDeclaredOperation();
     this._currentSource = source;
     try
     {
+      if (this._options.declarations === true && !IsPlainObject(source)) this._ThrowError("Expected a dictionary");
+      if (this._options.declarations === true && IsReference(source)) this._ThrowError("ReadInto requires member values, not a root _ref");
       if (typeof source._type === "string" && !CjsSchema.isInstanceOf(source._type, instance))
       {
         this._ThrowError(`Values with _type "${source._type}" cannot apply to a ${CjsSchema.getClassName(instance.constructor) ?? "value"}`);
       }
       if (source._id !== undefined && source._id !== null) this._anchors.register(source._id, instance);
 
-      const changed = this.ReadMembers(instance, notify);
+      const changed = this.ReadMembers(instance, this._options.declarations === true ? this._DeclaredNotify(instance) : notify);
       this._Finish();
       return changed;
     }
@@ -160,8 +187,7 @@ export class DictReader extends IRootReaderBase
     }
     finally
     {
-      this._currentSource = null;
-      this._contextStack.length = 0;
+      this._CleanupAfterCreate();
     }
   }
 
@@ -173,6 +199,23 @@ export class DictReader extends IRootReaderBase
   _CreateObjectInternal(Declared)
   {
     const source = this._currentSource;
+    if (this._options.declarations === true)
+    {
+      if (this.IsObjectSource()) return source;
+      if (!IsPlainObject(source)) this._ThrowError("Expected a dictionary");
+      if (IsReference(source)) this._ThrowError(`Unresolved root _ref ${JSON.stringify(source._ref)}`);
+      const registration = this._ResolveRegistration(source._type, Declared);
+      this._contextStack[this._contextStack.length - 1] += `(${registration.name})`;
+      const instance = registration.createFn();
+      if (!instance || typeof instance !== "object" || typeof instance.then === "function")
+      {
+        this._ThrowError(`Factory '${registration.name}' must return a synchronous object`);
+      }
+      this._created.add(instance);
+      if (source._id !== undefined && source._id !== null) this._anchors.register(source._id, instance);
+      this.ReadMembers(instance, this._DeclaredNotify(instance));
+      return instance;
+    }
     if (!IsPlainObject(source)) this._ThrowError("Expected a dictionary");
 
     const Constructor = this._ResolveClass(source._type, Declared);
@@ -219,11 +262,18 @@ export class DictReader extends IRootReaderBase
 
       // Runtime-only declarations still claim their exposed names/aliases,
       // but even reading an incoming getter would transport resource state.
-      if (this.FindEntry(name, instance.constructor)?.type?.runtimeOnly === true) continue;
+      const field = this.FindEntry(name, instance.constructor);
+      if (field?.type?.runtimeOnly === true) continue;
 
       this._currentSource = source[name];
       this._contextStack.push(name);
       if (this.HandleAttribute(name, instance, notify)) changed.add(name);
+      if (this._options.declarations === true && field && CjsSchema.isFieldWritable(field))
+      {
+        let fields = this._readFields.get(instance);
+        if (!fields) this._readFields.set(instance, fields = new Set());
+        fields.add(field);
+      }
       this._contextStack.pop();
     }
 
@@ -343,9 +393,12 @@ export class DictReader extends IRootReaderBase
    * null, an anchored object, a live object assigned as a reference, or a new
    * object from a dictionary.
    *
+   * @param {object} instance Destination object.
+   * @param {object} field Selected reference declaration.
+   * @param {object|null} [notification=null] Mapped declared-read notification to send after a deferred write.
    * @returns {boolean} Whether the member changed.
    */
-  ReadIRootPtr(instance, field)
+  ReadIRootPtr(instance, field, notification = null)
   {
     const source = this._currentSource;
     const current = readDictionaryValue(instance, field);
@@ -360,7 +413,14 @@ export class DictReader extends IRootReaderBase
       const resolved = this._anchors.byId.get(source._ref);
       if (resolved === undefined)
       {
-        this._anchors.defer(source._ref, object => { writeDictionaryValue(instance, field, object); });
+        if (notification) notification.deferred = true;
+        this._anchors.defer(source._ref, object =>
+        {
+          writeDictionaryValue(instance, field, object);
+          // JavaScript forward aliases postpone the write; the native
+          // write-then-NOTIFY order therefore belongs to this callback.
+          if (notification) notification.target.OnModified(field.name);
+        });
         return true;
       }
       writeDictionaryValue(instance, field, resolved);
@@ -392,6 +452,12 @@ export class DictReader extends IRootReaderBase
   {
     let source = this._currentSource;
     if (source === null || source === undefined) return false;
+    // An embedded slot retains its own identity. Declared reads do not support
+    // alias-based copying into that storage, whether the alias is known or not.
+    if (this._options.declarations === true && IsReference(source))
+    {
+      this._ThrowError(`Embedded member '${field.name}' does not support _ref aliases`);
+    }
 
     if (!IsPlainObject(source))
     {
@@ -399,7 +465,19 @@ export class DictReader extends IRootReaderBase
       {
         this._ThrowError(`${field.name} requires an object value for struct ${field.type.className ?? ""}`);
       }
-      source = CjsSchema.getValues(source);
+      if (this._options.declarations === true)
+      {
+        const values = {};
+        const metadata = BeObjectMetadata.GetMetadata(source);
+        if (metadata) values[BLUE_OBJECT_METADATA_KEY] = { ...metadata };
+        for (const declaration of getDictionaryDeclarations(source.constructor).fields)
+        {
+          if (!CjsSchema.isFieldExported(declaration)) continue;
+          values[declaration.name] = readDictionaryValue(source, declaration);
+        }
+        source = values;
+      }
+      else source = CjsSchema.getValues(source);
     }
     if (typeof source._type === "string" && !CjsSchema.isInstanceOf(source._type, current))
     {
@@ -408,7 +486,7 @@ export class DictReader extends IRootReaderBase
 
     // The embedded object reads through its own SetValues when it has one,
     // sharing this read's anchors.
-    if (typeof current.SetValues === "function")
+    if (this._options.declarations !== true && typeof current.SetValues === "function")
     {
       const result = current.SetValues(source, { ...this._options, importContext: this._anchors });
       return result instanceof Set ? result.size > 0 : result === true;
@@ -416,9 +494,14 @@ export class DictReader extends IRootReaderBase
 
     const saved = this._currentSource;
     this._currentSource = source;
-    const changed = this.ReadMembers(current, typeof current.OnModified === "function" ? current : null);
-    this._currentSource = saved;
-    return changed.size > 0;
+    try
+    {
+      if (this._options.declarations === true && source._id !== undefined && source._id !== null) this._anchors.register(source._id, current);
+      const notify = this._options.declarations === true ? this._DeclaredNotify(current)
+        : typeof current.OnModified === "function" ? current : null;
+      return this.ReadMembers(current, notify).size > 0;
+    }
+    finally { this._currentSource = saved; }
   }
 
   /**
@@ -432,6 +515,7 @@ export class DictReader extends IRootReaderBase
   ReadIRootClass(field, itemClassName = null)
   {
     const declared = itemClassName ?? field?.type?.className ?? null;
+    if (this._options.declarations === true) return this._CreateObjectInternal(declared);
     const Declared = declared ? CjsSchema.GetConstructor(declared) : null;
     return this._CreateObjectInternal(Declared);
   }
@@ -464,11 +548,12 @@ export class DictReader extends IRootReaderBase
     if (!Array.isArray(source)) this._ThrowError("Expected a list");
 
     const itemType = field.type.itemType;
-    const itemClassName = typeof itemType === "string" ? itemType : itemType?.className ?? null;
+    const itemClassName = typeof itemType === "string" || typeof itemType === "function" ? itemType : itemType?.className ?? null;
     // A list typed by an interface nothing registers (`ITr2ValueBinding`) still
     // holds objects when its items say so: an alias, a `_type` bag, or a live
     // object, which the value path would clone into a plain one.
-    const holdsObjects = (itemClassName && CjsSchema.GetConstructor(itemClassName)) || source.some(IsObjectItem);
+    const holdsObjects = (this._options.declarations === true && typeof itemClassName === "function")
+      || (itemClassName && CjsSchema.GetConstructor(itemClassName)) || source.some(IsObjectItem);
 
     if (!holdsObjects)
     {
@@ -643,6 +728,90 @@ export class DictReader extends IRootReaderBase
     return pendingIds.size > 0 || !IRootReaderBase.areEquivalent(before, after);
   }
 
+  /**
+   * Nested declared reference collections share this operation's factories and anchors.
+   * @param {object} instance Destination object.
+   * @param {object} field Selected collection declaration.
+   * @returns {boolean|undefined} Changed result, or undefined for a value collection.
+   */
+  _ReadDeclaredCollection(instance, field)
+  {
+    const type = field.type;
+    if (!this._HasDeclaredReferences(type)) return undefined;
+    // Keep direct object lists on their established in-place ReadList path.
+    if (["list", "array"].includes(type.kind) && !["list", "array", "map", "set"].includes(type.itemType?.kind)) return undefined;
+    const source = this._currentSource;
+    const current = readDictionaryValue(instance, field);
+    if (source === null || source === undefined)
+    {
+      writeDictionaryValue(instance, field, normalizeCarbonValue(source, type));
+      return current !== readDictionaryValue(instance, field);
+    }
+    const value = this._ReadDeclaredValue(source, type, value => writeDictionaryValue(instance, field, value), current);
+    writeDictionaryValue(instance, field, value);
+    return true;
+  }
+
+  /** Whether a declared collection ultimately contains registered/reference objects. */
+  _HasDeclaredReferences(type)
+  {
+    if (["list", "array", "map", "set"].includes(type?.kind))
+    {
+      return this._HasDeclaredReferences(type.kind === "map" ? type.valueType : type.itemType);
+    }
+    return ["objectRef", "model"].includes(type?.kind) || typeof type === "function"
+      || (typeof type === "string" && !!CjsSchema.GetConstructor(type));
+  }
+
+  /** Reads only supported declared collection shapes; opaque values keep existing coercion. */
+  _ReadDeclaredValue(source, type, assign, current = null)
+  {
+    if (source === null || source === undefined) return source;
+    const kind = type?.kind;
+    if (kind === "map")
+    {
+      if (!(source instanceof Map) && !IsPlainObject(source)) this._ThrowError("Expected a map or dictionary");
+      const result = new Map();
+      const entries = source instanceof Map ? source.entries() : Object.entries(source);
+      for (const [key, item] of entries)
+      {
+        result.set(key, this._ReadDeclaredValue(item, type.valueType, value => result.set(key, value)));
+      }
+      return result;
+    }
+    if (["list", "array", "set"].includes(kind))
+    {
+      if (!Array.isArray(source) && !(kind === "set" && source instanceof Set)) this._ThrowError("Expected a list or declared set");
+      const values = Array.isArray(current) && current !== source ? current : [];
+      const items = Array.isArray(source) ? source : Array.from(source);
+      values.length = items.length;
+      for (let index = 0; index < items.length; index++)
+      {
+        values[index] = this._ReadDeclaredValue(items[index], type.itemType, value => { values[index] = value; });
+      }
+      if (kind !== "set") return values;
+      const result = new Set(values);
+      this._afterReferences.push(() => { result.clear(); for (const item of values) result.add(item); });
+      return result;
+    }
+    if (!this._HasDeclaredReferences(type)) return normalizeCarbonValue(source, type);
+    if (IsReference(source))
+    {
+      if (this._anchors.byId.has(source._ref)) return this._anchors.byId.get(source._ref);
+      this._anchors.defer(source._ref, assign);
+      return null;
+    }
+    if (!IsPlainObject(source)) return source;
+    const declared = typeof type === "function" || typeof type === "string" ? type : type.className;
+    const saved = this._currentSource;
+    try
+    {
+      this._currentSource = source;
+      return this._CreateObjectInternal(declared);
+    }
+    finally { this._currentSource = saved; }
+  }
+
   /** One list item: null, an anchored object, a live object, or a new one. */
   _ReadListItem(item, itemClassName, list, index)
   {
@@ -689,6 +858,57 @@ export class DictReader extends IRootReaderBase
           for (const pending of this._pendingListReads) pending.finish();
         }
       }
+      if (this._options.declarations === true)
+      {
+        for (const finish of this._afterReferences) finish();
+        if (!this._doInitialize || this._options.initialize === false) return;
+        // Only selected stored edges and live properties actually populated by
+        // this operation participate. Borrowed nodes may lead to new dependencies
+        // but are never initialized. Cycles are once-only, not a readiness solver.
+        const visited = new Set();
+        const visit = instance =>
+        {
+          if (!instance || typeof instance !== "object" || visited.has(instance)) return;
+          visited.add(instance);
+          for (const field of getDictionaryDeclarations(instance.constructor).fields)
+          {
+            if (field.type?.runtimeOnly === true) continue;
+            if (field.role === "property" && !this._WasRead(instance, field)) continue;
+            // Values input accepts typed objects even in scalar-declared slots.
+            // Actual stored values determine dependencies; primitive/buffer values
+            // are cheap no-ops, without widening access to unrelated live getters.
+            visitValue(readDictionaryValue(instance, field));
+          }
+          if (this._created.has(instance)) finalizeReaderObject(instance, { initialize: this._doInitialize && this._options.initialize !== false });
+        };
+        const containers = new Set();
+        const visitValue = value =>
+        {
+          if (!value || typeof value !== "object" || ArrayBuffer.isView(value)) return;
+          if (mappedInterfaces(value.constructor).has(IList))
+          {
+            if (containers.has(value)) return;
+            containers.add(value);
+            for (let i = 0; i < value.GetSize(); i++) visitValue(value.GetAt(i));
+            return;
+          }
+          if (CjsSchema.getClassName(value.constructor)) { visit(value); return; }
+          if (containers.has(value)) return;
+          containers.add(value);
+          if (value instanceof Map || value instanceof Set)
+          {
+            for (const item of value.values()) visitValue(item);
+          }
+          else
+          {
+            for (const descriptor of Object.values(Object.getOwnPropertyDescriptors(value)))
+            {
+              if (Object.hasOwn(descriptor, "value")) visitValue(descriptor.value);
+            }
+          }
+        };
+        for (const instance of this._created) visit(instance);
+      }
     }
     catch (error)
     {
@@ -704,11 +924,64 @@ export class DictReader extends IRootReaderBase
     for (const pending of this._pendingListReads) pending.cancel();
   }
 
+  /** Starts an isolated declared operation; legacy shared contexts stay unchanged. */
+  _BeginDeclaredOperation()
+  {
+    if (this._options.declarations !== true) return;
+    if (this._created) throw new TypeError("A declared dictionary operation is already active.");
+    this._anchors = CreateAnchorTable();
+    this._ownsAnchors = true;
+    this._created = new Set();
+    this._readFields = new Map();
+    this._afterReferences = [];
+    this._currentSource = null;
+    this._contextStack.length = 0;
+  }
+
+  /** Exact named registration wins, including aliases with their own factory. */
+  _ResolveRegistration(typeName, Declared)
+  {
+    const requested = typeof typeName === "string" ? typeName : typeof Declared === "string" ? Declared
+      : typeof Declared === "function" ? CjsSchema.getClassName(Declared) : null;
+    const registration = getClassRegistration(requested);
+    if (!registration) this._ThrowError(`Type '${requested ?? "<missing>"}' not found in the Blue class registry`);
+    if (typeof typeName !== "string" && typeof Declared === "function" && registration.type !== Declared)
+    {
+      this._ThrowError(`Canonical registration '${requested}' does not identify the supplied constructor`);
+    }
+    return registration;
+  }
+
+  /** Native reader notification policy uses mapped interfaces, never method presence. */
+  _DeclaredNotify(instance)
+  {
+    const names = new Set(Array.from(mappedInterfaces(instance.constructor), Interface => CjsSchema.getClassName(Interface)));
+    return !names.has("IInitialize") && names.has("INotify") ? instance : null;
+  }
+
+  /** Schema cache revisions do not change the populated declaration's identity. */
+  _WasRead(instance, field)
+  {
+    for (const read of this._readFields.get(instance) || [])
+    {
+      if (read.declaringClass === field.declaringClass && read.role === field.role
+        && read.key === field.key && read.name === field.name && read.index === field.index) return true;
+    }
+    return false;
+  }
+
   /** `CleanupAfterCreate` (:600-605). */
   _CleanupAfterCreate()
   {
     this._contextStack.length = 0;
     this._currentSource = null;
+    if (this._options.declarations === true)
+    {
+      this._anchors = null;
+      this._created = null;
+      this._readFields = null;
+      this._afterReferences = null;
+    }
   }
 
   /** `ThrowError` (:584-598): the message, prefixed with the member path. */

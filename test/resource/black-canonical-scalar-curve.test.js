@@ -34,7 +34,7 @@ function curveBytes(stride = 20)
 test("canonical production scalar curve preserves mixed-width keys and evaluates decoded records", context =>
 {
     const changed = context.mock.method(Tr2CurveScalar.prototype, "OnKeysChanged", () => assert.fail("Decode must not settle keys"));
-    context.mock.method(Tr2CurveScalar.prototype, "SetValues", () => assert.fail("Decode must not require values machinery"));
+    assert.equal("SetValues" in Tr2CurveScalar.prototype, false);
     let originalKeys;
     class RecordingReader extends CjsBlackReader
     {

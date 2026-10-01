@@ -1,11 +1,11 @@
 // Source: trinity/trinity/Curves/Tr2CurveScalar.h
 // Source: trinity/trinity/Curves/Tr2CurveScalar.cpp
-import { CjsModel } from "#model";
 import { edit, type } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
 
 
 /**
+ * Native plain structure represented as a registered JavaScript data record.
  * One key of a Tr2CurveScalar: a time in seconds, a value, its left and right
  * tangents in value units per unit time, the interpolation used to reach the
  * next key, and the tangent-type rule that maintains the tangents.
@@ -14,7 +14,7 @@ import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
   className: "Tr2CurveScalarKey",
   family: "curves"
 })
-export class Tr2CurveScalarKey extends CjsModel
+export class Tr2CurveScalarKey
 {
   @edit.persist
   @type.float32

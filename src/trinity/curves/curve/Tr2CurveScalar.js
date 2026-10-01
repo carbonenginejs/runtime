@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Curves/Tr2CurveScalar.h
 // Source: trinity/trinity/Curves/Tr2CurveScalar.cpp
-import { CjsModel } from "#model";
+import { ITriScalarFunction, ITriCurveLength, ITriFunction } from "#blue";
 import { carbon, impl, edit, type } from "#schema";
 import { num } from "#math/num";
 import { Tr2CurveExtrapolation, Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
@@ -16,13 +16,23 @@ import { Tr2CurveScalarKey } from "../key/Tr2CurveScalarKey.js";
   className: "Tr2CurveScalar",
   family: "curves"
 })
-export class Tr2CurveScalar extends CjsModel
+@carbon.inherit(ITriCurveLength)
+export class Tr2CurveScalar extends ITriScalarFunction
 {
   /**
    * Computes an AUTO key's tangent as the time-weighted blend of the incoming
    * and outgoing secant slopes; a zero-length interval on either side
    * contributes a slope of 0.
+   *
+   * @param {number} prevTime Curve parameter.
+   * @param {number} prevValue Curve parameter.
+   * @param {number} time Time in seconds.
+   * @param {number} value Curve parameter.
+   * @param {number} nextTime Curve parameter.
+   * @param {number} nextValue Curve parameter.
+   * @returns {number} The curve result.
    */
+  @impl.adapted
   static getAutoTangent(prevTime, prevValue, time, value, nextTime, nextValue)
   {
     let left = 0;
@@ -43,7 +53,16 @@ export class Tr2CurveScalar extends CjsModel
    * Computes an AUTO_CLAMP key's tangent, returning 0 at a local extremum so the
    * curve does not overshoot, and otherwise damping the through-slope by how
    * close the key sits to its neighbours.
+   *
+   * @param {number} prevTime Curve parameter.
+   * @param {number} prevValue Curve parameter.
+   * @param {number} _time Time in seconds.
+   * @param {number} value Curve parameter.
+   * @param {number} nextTime Curve parameter.
+   * @param {number} nextValue Curve parameter.
+   * @returns {number} The curve result.
    */
+  @impl.adapted
   static getAutoClampedTangent(prevTime, prevValue, _time, value, nextTime, nextValue)
   {
     if (value < prevValue && value < nextValue || value > prevValue && value > nextValue)
@@ -64,7 +83,13 @@ export class Tr2CurveScalar extends CjsModel
    * Evaluates one segment at a local time using the interpolation mode of its
    * left key; Hermite tangents are authored per unit time and scaled by the
    * segment length here.
+   *
+   * @param {number} time Time in seconds.
+   * @param {Tr2CurveScalarKey} k0 Segment start key.
+   * @param {Tr2CurveScalarKey} k1 Segment end key.
+   * @returns {number} The curve result.
    */
+  @impl.adapted
   static getSegmentValue(time, k0, k1)
   {
     switch (k0.interpolation)
@@ -91,7 +116,13 @@ export class Tr2CurveScalar extends CjsModel
    * Evaluates the slope of one segment at a local time; constant segments report
    * 0 and Hermite segments report the cubic derivative rescaled back to
    * per-unit-time.
+   *
+   * @param {number} time Time in seconds.
+   * @param {Tr2CurveScalarKey} k0 Segment start key.
+   * @param {Tr2CurveScalarKey} k1 Segment end key.
+   * @returns {number} The curve result.
    */
+  @impl.adapted
   static getSegmentTangent(time, k0, k1)
   {
     switch (k0.interpolation)
@@ -119,7 +150,15 @@ export class Tr2CurveScalar extends CjsModel
    * Folds a scaled time back into the [first, last] key range: CYCLE repeats the
    * range and MIRROR reflects it on alternate repeats, with a zero-length range
    * collapsing to the first key time.
+   *
+   * @param {number} scaledTime Curve parameter.
+   * @param {number} first Curve parameter.
+   * @param {number} last Curve parameter.
+   * @param {number} extrapolationBefore Curve parameter.
+   * @param {number} extrapolationAfter Curve parameter.
+   * @returns {number} The curve result.
    */
+  @impl.custom
   static getWrappedLocalTime(scaledTime, first, last, extrapolationBefore, extrapolationAfter)
   {
     const length = last - first;
@@ -214,10 +253,13 @@ export class Tr2CurveScalar extends CjsModel
   @type.enum("trinity.Tr2CurveExtrapolation")
   extrapolationAfter = Tr2CurveExtrapolation.CLAMP;
 
-  #lastSegment = 0;
+  _lastSegment = 0;
 
   /**
    * Updates the cached scalar value for the supplied time.
+   *
+   * @param {number} time Time in seconds.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
@@ -228,6 +270,9 @@ export class Tr2CurveScalar extends CjsModel
 
   /**
    * Updates and returns the cached scalar value for the supplied time.
+   *
+   * @param {number} time Time in seconds.
+   * @returns {number} The curve result.
    */
   @carbon.method
   @impl.implemented
@@ -239,6 +284,9 @@ export class Tr2CurveScalar extends CjsModel
 
   /**
    * Gets the scalar value at the supplied time.
+   *
+   * @param {number} time Time in seconds.
+   * @returns {number} The curve result.
    */
   @carbon.method
   @impl.implemented
@@ -249,6 +297,9 @@ export class Tr2CurveScalar extends CjsModel
 
   /**
    * Sets the curve time scale used by `GetScaledTime`.
+   *
+   * @param {number} scale Curve parameter.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
@@ -259,6 +310,8 @@ export class Tr2CurveScalar extends CjsModel
 
   /**
    * Gets the last authored key time, or zero for an empty curve.
+   *
+   * @returns {number} The curve result.
    */
   @carbon.method
   @impl.implemented
@@ -269,6 +322,8 @@ export class Tr2CurveScalar extends CjsModel
 
   /**
    * Gets the authored curve name.
+   *
+   * @returns {string} The curve result.
    */
   @carbon.method
   @impl.implemented
@@ -279,16 +334,22 @@ export class Tr2CurveScalar extends CjsModel
 
   /**
    * Sets the authored curve name.
+   *
+   * @param {string} name Authored curve name.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
   SetName(name)
   {
-    return this.SetValues({ name }, { source: this, returnBoolean: true });
+    this.name = name;
   }
 
   /**
    * Evaluates the scalar curve with Carbon extrapolation and interpolation rules.
+   *
+   * @param {number} time Time in seconds.
+   * @returns {number} The curve result.
    */
   @carbon.method
   @impl.implemented
@@ -329,6 +390,9 @@ export class Tr2CurveScalar extends CjsModel
 
   /**
    * Evaluates the scalar tangent with Carbon extrapolation and interpolation rules.
+   *
+   * @param {number} time Time in seconds.
+   * @returns {number} The curve result.
    */
   @carbon.method
   @impl.implemented
@@ -369,6 +433,9 @@ export class Tr2CurveScalar extends CjsModel
 
   /**
    * Carbon-compatible alias for `GetTangent`.
+   *
+   * @param {number} time Time in seconds.
+   * @returns {number} The curve result.
    */
   @carbon.method
   @impl.implemented
@@ -379,6 +446,8 @@ export class Tr2CurveScalar extends CjsModel
 
   /**
    * Gets the last cached value.
+   *
+   * @returns {number} The curve result.
    */
   @carbon.method
   @impl.implemented
@@ -389,6 +458,8 @@ export class Tr2CurveScalar extends CjsModel
 
   /**
    * Gets the time offset applied by `GetScaledTime`.
+   *
+   * @returns {number} The curve result.
    */
   @carbon.method
   @impl.implemented
@@ -399,16 +470,21 @@ export class Tr2CurveScalar extends CjsModel
 
   /**
    * Sets the time offset applied by `GetScaledTime`.
+   *
+   * @param {number} timeOffset Curve parameter.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
   SetTimeOffset(timeOffset)
   {
-    return this.SetValues({ timeOffset }, { source: this, returnBoolean: true });
+    this.timeOffset = timeOffset;
   }
 
   /**
    * Gets the time scale applied by `GetScaledTime`.
+   *
+   * @returns {number} The curve result.
    */
   @carbon.method
   @impl.implemented
@@ -419,16 +495,21 @@ export class Tr2CurveScalar extends CjsModel
 
   /**
    * Sets the time scale applied by `GetScaledTime`.
+   *
+   * @param {number} timeScale Curve parameter.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
   SetTimeScale(timeScale)
   {
-    return this.SetValues({ timeScale }, { source: this, returnBoolean: true });
+    this.timeScale = timeScale;
   }
 
   /**
    * Checks whether the curve has no authored keys.
+   *
+   * @returns {boolean} Whether the curve has no keys.
    */
   @carbon.method
   @impl.implemented
@@ -439,16 +520,15 @@ export class Tr2CurveScalar extends CjsModel
 
   /**
    * Sorts keys and recomputes automatic tangents after key edits.
+   *
+   * @returns {void}
    */
   @carbon.method
   @impl.adapted
   OnKeysChanged()
   {
-    this.keys = this.keys.map((key, index) => ({
-      key,
-      index
-    })).sort((a, b) => a.key.time - b.key.time || a.index - b.index).map(entry => entry.key);
-    this.#lastSegment = 0;
+    this.keys.sort((a, b) => a.time - b.time);
+    this._lastSegment = 0;
     for (let i = 0; i < this.keys.length; i++)
     {
       const key = this.keys[i];
@@ -489,6 +569,14 @@ export class Tr2CurveScalar extends CjsModel
 
   /**
    * Adds a scalar key and refreshes key ordering and derived tangents.
+   *
+   * @param {number} time Time in seconds.
+   * @param {number} value Curve parameter.
+   * @param {number} [interpolation = Tr2CurveInterpolation.HERMITE] Curve parameter.
+   * @param {number} [leftTangent = 0] Curve parameter.
+   * @param {number} [rightTangent = 0] Curve parameter.
+   * @param {number} [tangentType = Tr2CurveTangentType.AUTO_CLAMP] Curve parameter.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
@@ -508,19 +596,21 @@ export class Tr2CurveScalar extends CjsModel
 
   /**
    * Sets both before and after extrapolation modes.
+   *
+   * @param {number} extrapolation Curve parameter.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
   SetExtrapolation(extrapolation)
   {
-    return this.SetValues({
-      extrapolationAfter: extrapolation,
-      extrapolationBefore: extrapolation
-    }, { source: this, returnBoolean: true });
+    this.extrapolationAfter = this.extrapolationBefore = extrapolation;
   }
 
   /**
    * Gets the mutable key list.
+   *
+   * @returns {Tr2CurveScalarKey[]} The curve result.
    */
   @carbon.method
   @impl.implemented
@@ -531,6 +621,9 @@ export class Tr2CurveScalar extends CjsModel
 
   /**
    * Applies a compact curve definition and refreshes derived key state.
+   *
+   * @param {{keys: Tr2CurveScalarKey[], keyCount: number, extrapolationBefore: number, extrapolationAfter: number}} definition Authored key range and extrapolation.
+   * @returns {void}
    */
   @carbon.method
   @impl.adapted
@@ -538,12 +631,27 @@ export class Tr2CurveScalar extends CjsModel
   {
     this.extrapolationBefore = definition.extrapolationBefore;
     this.extrapolationAfter = definition.extrapolationAfter;
-    this.keys = definition.keys.slice(0, definition.keyCount);
+    const records = definition.keys.slice(0, definition.keyCount).map(source =>
+    {
+      const key = new Tr2CurveScalarKey();
+      key.time = source.time;
+      key.value = source.value;
+      key.leftTangent = source.leftTangent;
+      key.rightTangent = source.rightTangent;
+      key.id = source.id;
+      key.interpolation = source.interpolation;
+      key.tangentType = source.tangentType;
+      return key;
+    });
+    this.keys.length = 0;
+    for (const key of records) this.keys.push(key);
     this.OnKeysChanged();
   }
 
   /**
    * Gets a compact curve definition using the current key list.
+   *
+   * @returns {{keys: Tr2CurveScalarKey[], keyCount: number, extrapolationBefore: number, extrapolationAfter: number}} The curve result.
    */
   @carbon.method
   @impl.adapted
@@ -559,6 +667,9 @@ export class Tr2CurveScalar extends CjsModel
 
   /**
    * Samples the curve into the destination buffer.
+   *
+   * @param {{width: number, stride: number, data: Float32Array|number[]}} destination Raster output and stride.
+   * @returns {void}
    */
   @carbon.method
   @impl.adapted
@@ -573,7 +684,11 @@ export class Tr2CurveScalar extends CjsModel
 
   /**
    * Converts caller time into curve-local scaled time.
+   *
+   * @param {number} time Time in seconds.
+   * @returns {number} The curve result.
    */
+  @impl.custom
   GetScaledTime(time)
   {
     return time / this.timeScale - this.timeOffset;
@@ -581,7 +696,12 @@ export class Tr2CurveScalar extends CjsModel
 
   /**
    * Converts caller time into the authored key range according to extrapolation.
+   *
+   * @param {number} time Time in seconds.
+   * @returns {number} The curve result.
    */
+  @carbon.method
+  @impl.adapted
   GetLocalTime(time)
   {
     if (!this.keys.length)
@@ -596,42 +716,47 @@ export class Tr2CurveScalar extends CjsModel
 
   /**
    * Finds the key segment containing local time, optionally updating the segment cache.
+   *
+   * @param {number} time Time in seconds.
+   * @param {boolean} [updateCache = true] Whether to retain the segment index.
+   * @returns {number} The curve result.
    */
+  @impl.custom
   FindSegment(time, updateCache = true)
   {
     const count = this.keys.length;
-    if (this.#lastSegment + 1 < count)
+    if (this._lastSegment + 1 < count)
     {
-      let k0 = this.keys[this.#lastSegment];
-      let k1 = this.keys[this.#lastSegment + 1];
+      let k0 = this.keys[this._lastSegment];
+      let k1 = this.keys[this._lastSegment + 1];
       if (time >= k0.time && time < k1.time)
       {
-        return this.#lastSegment;
+        return this._lastSegment;
       }
-      if (this.#lastSegment + 2 < count)
+      if (this._lastSegment + 2 < count)
       {
-        k0 = this.keys[this.#lastSegment + 1];
-        k1 = this.keys[this.#lastSegment + 2];
+        k0 = this.keys[this._lastSegment + 1];
+        k1 = this.keys[this._lastSegment + 2];
         if (time >= k0.time && time < k1.time)
         {
-          const segment = this.#lastSegment + 1;
+          const segment = this._lastSegment + 1;
           if (updateCache)
           {
-            this.#lastSegment = segment;
+            this._lastSegment = segment;
           }
           return segment;
         }
       }
-      if (this.#lastSegment > 1)
+      if (this._lastSegment > 1)
       {
-        k0 = this.keys[this.#lastSegment - 1];
-        k1 = this.keys[this.#lastSegment];
+        k0 = this.keys[this._lastSegment - 1];
+        k1 = this.keys[this._lastSegment];
         if (time >= k0.time && time < k1.time)
         {
-          const segment = this.#lastSegment - 1;
+          const segment = this._lastSegment - 1;
           if (updateCache)
           {
-            this.#lastSegment = segment;
+            this._lastSegment = segment;
           }
           return segment;
         }
@@ -645,20 +770,24 @@ export class Tr2CurveScalar extends CjsModel
       {
         if (updateCache)
         {
-          this.#lastSegment = i;
+          this._lastSegment = i;
         }
         return i;
       }
     }
     if (updateCache)
     {
-      this.#lastSegment = count - 2;
+      this._lastSegment = count - 2;
     }
     return count - 2;
   }
 
   /**
    * One-shot static rasterization helper for compact curve definitions.
+   *
+   * @param {{width: number, stride: number, data: Float32Array|number[]}} destination Raster output and stride.
+   * @param {{keys: Tr2CurveScalarKey[], keyCount: number, extrapolationBefore: number, extrapolationAfter: number}} definition Authored key range and extrapolation.
+   * @returns {void}
    */
   @carbon.method
   @impl.adapted
@@ -669,7 +798,12 @@ export class Tr2CurveScalar extends CjsModel
 
   /**
    * One-shot static rasterization helper for compact curve definitions.
+   *
+   * @param {{width: number, stride: number, data: Float32Array|number[]}} destination Raster output and stride.
+   * @param {{keys: Tr2CurveScalarKey[], keyCount: number, extrapolationBefore: number, extrapolationAfter: number}} definition Authored key range and extrapolation.
+   * @returns {void}
    */
+  @impl.custom
   static rasterize(destination, definition)
   {
     const curve = new Tr2CurveScalar();
@@ -680,3 +814,9 @@ export class Tr2CurveScalar extends CjsModel
   static Tr2CurveExtrapolation = Tr2CurveExtrapolation;
 
 }
+
+// Native exposure ends at this concrete table (Tr2CurveScalar_Blue.cpp).
+carbon.interfaceTable({
+  interfaces: [Tr2CurveScalar, ITriScalarFunction, ITriFunction, ITriCurveLength],
+  chainTo: null
+})(Tr2CurveScalar);

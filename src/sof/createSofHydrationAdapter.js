@@ -1,3 +1,5 @@
+import { DictReader } from "#blue";
+
 const ROOT_KINDS = Object.freeze([
   "EveShip2",
   "EveMobile",
@@ -25,9 +27,9 @@ const INITIALIZE_KINDS = [
  * Creates the compatibility hydration adapter for the deprecated
  * `carbon.document` path.
  *
- * All SOF-authored state travels as declared node fields, so the adapter's one
- * remaining job is the per-kind Initialize lifecycle that `CjsModel.from`
- * performs on the values path.
+ * SOF-authored node fields retain existing instance SetValues overrides. Other
+ * instances use declared dictionary population without reader initialization.
+ * The adapter retains the per-kind Initialize lifecycle used by this path.
  *
  * It used to carry a second job. The audio emitter was emitted as a plain
  * descriptor in a node's `raw` bag and lifted out here into a WeakMap, because
@@ -43,7 +45,14 @@ export function createSofHydrationAdapter()
   return {
     applyValues(instance, values, context)
     {
-      instance.SetValues(values, context?.options);
+      if (typeof instance.SetValues === "function")
+      {
+        instance.SetValues(values, context?.options);
+      }
+      else
+      {
+        new DictReader({ declarations: true, initialize: false }).ReadInto(instance, values);
+      }
       return instance;
     },
     finalize(instance, context)

@@ -674,6 +674,26 @@ Contract for an object that plays and queries named curve sets.
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:ITr2ValueBinding -->
+## `ITr2ValueBinding`
+
+Contract for applying a value binding.
+
+- Export: `@carbonenginejs/runtime/trinity/curves`
+- Source: `src/trinity/curves/ITr2ValueBinding.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:ITriDuration -->
+## `ITriDuration`
+
+Timing and editing contract shared by curves, but not all functions.
+
+- Export: `@carbonenginejs/runtime/trinity/curves`
+- Source: `src/trinity/curves/ITriDuration.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:Tr2CameraFollowCurveKey -->
 ## `Tr2CameraFollowCurveKey`
 
@@ -687,7 +707,7 @@ Key of a camera follow curve, holding the camera offset and its tangents plus th
 <!-- class:Tr2CurveQuaternionKey -->
 ## `Tr2CurveQuaternionKey`
 
-One key of a Tr2CurveQuaternion: a time in seconds, the quaternion value at that time, and the interpolation used to reach the next key.
+Native plain structure represented as a registered JavaScript data record.
 
 - Export: `@carbonenginejs/runtime/trinity/curves`
 - Source: `src/trinity/curves/key/Tr2CurveQuaternionKey.js`
@@ -697,7 +717,7 @@ One key of a Tr2CurveQuaternion: a time in seconds, the quaternion value at that
 <!-- class:Tr2CurveScalarKey -->
 ## `Tr2CurveScalarKey`
 
-One key of a Tr2CurveScalar: a time in seconds, a value, its left and right tangents in value units per unit time, the interpolation used to reach the next key, and the tangent-type rule that maintains the tangents.
+Native plain structure represented as a registered JavaScript data record.
 
 - Export: `@carbonenginejs/runtime/trinity/curves`
 - Source: `src/trinity/curves/key/Tr2CurveScalarKey.js`

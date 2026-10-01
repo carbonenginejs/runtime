@@ -195,6 +195,66 @@ Native IRoot-derived typed object-list contract, represented as a plain JS inter
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:ITriColorFunction -->
+## `ITriColorFunction`
+
+Color-valued time function.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/ITriColorFunction.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:ITriCurveLength -->
+## `ITriCurveLength`
+
+Reports a curve's length in seconds.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/ITriCurveLength.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:ITriFunction -->
+## `ITriFunction`
+
+Base contract for functions whose current value advances over time.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/ITriFunction.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:ITriQuaternionFunction -->
+## `ITriQuaternionFunction`
+
+Quaternion-valued time function.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/ITriQuaternionFunction.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:ITriScalarFunction -->
+## `ITriScalarFunction`
+
+Scalar-valued time function.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/ITriScalarFunction.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:ITriVectorFunction -->
+## `ITriVectorFunction`
+
+Vector-valued time function.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/ITriVectorFunction.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:PositionDescription -->
 ## `PositionDescription`
 

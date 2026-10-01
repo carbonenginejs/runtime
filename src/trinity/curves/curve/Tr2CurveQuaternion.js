@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveQuaternion.h
 // Source: trinity/trinity/Curves/Tr2CurveQuaternion.cpp
+import { ITriQuaternionFunction, ITriCurveLength, ITriFunction } from "#blue";
 import { quat } from "#math/quat";
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { Tr2CurveExtrapolation, Tr2CurveInterpolation } from "../enums.js";
 import { Tr2CurveQuaternionKey } from "../key/Tr2CurveQuaternionKey.js";
@@ -10,12 +10,14 @@ import { Tr2CurveQuaternionKey } from "../key/Tr2CurveQuaternionKey.js";
 /**
  * Keyed quaternion curve evaluated in seconds, with per-key interpolation and
  * independent extrapolation modes before the first and after the last key.
+ * JavaScript keeps time-first output-buffer calls instead of native output-first overloads.
  */
 @type.define({
   className: "Tr2CurveQuaternion",
   family: "curves"
 })
-export class Tr2CurveQuaternion extends CjsModel
+@carbon.inherit(ITriCurveLength)
+export class Tr2CurveQuaternion extends ITriQuaternionFunction
 {
   @edit.read
   @edit.persist
@@ -61,10 +63,13 @@ export class Tr2CurveQuaternion extends CjsModel
   @type.enum("trinity.Tr2CurveExtrapolation")
   extrapolationAfter = Tr2CurveExtrapolation.CLAMP;
 
-  #lastSegment = 0;
+  _lastSegment = 0;
 
   /**
    * Updates the cached quaternion value for the supplied time.
+   *
+   * @param {number} time Time in seconds.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
@@ -75,6 +80,10 @@ export class Tr2CurveQuaternion extends CjsModel
 
   /**
    * Updates the cached value and copies it into `out`.
+   *
+   * @param {number} time Time in seconds.
+   * @param {Float32Array|number[]} out Caller-owned output storage.
+   * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
   @carbon.method
   @impl.adapted
@@ -86,6 +95,10 @@ export class Tr2CurveQuaternion extends CjsModel
 
   /**
    * Gets the quaternion value at `time` into `out`.
+   *
+   * @param {number} time Time in seconds.
+   * @param {Float32Array|number[]} out Caller-owned output storage.
+   * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
   @carbon.method
   @impl.adapted
@@ -95,7 +108,11 @@ export class Tr2CurveQuaternion extends CjsModel
   }
 
   /**
-   * Derivative stub retained for Carbon interface compatibility.
+   * Returns the native identity quaternion derivative.
+   *
+   * @param {number} _time Time in seconds.
+   * @param {Float32Array|number[]} out Caller-owned output storage.
+   * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
   @carbon.method
   @impl.implemented
@@ -105,7 +122,11 @@ export class Tr2CurveQuaternion extends CjsModel
   }
 
   /**
-   * Second-derivative stub retained for Carbon interface compatibility.
+   * Returns the native identity quaternion second derivative.
+   *
+   * @param {number} _time Time in seconds.
+   * @param {Float32Array|number[]} out Caller-owned output storage.
+   * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
   @carbon.method
   @impl.implemented
@@ -116,6 +137,8 @@ export class Tr2CurveQuaternion extends CjsModel
 
   /**
    * Gets the last authored key time, or zero for an empty curve.
+   *
+   * @returns {number} The curve result.
    */
   @carbon.method
   @impl.implemented
@@ -126,7 +149,10 @@ export class Tr2CurveQuaternion extends CjsModel
 
   /**
    * Gets the authored curve name.
+   *
+   * @returns {string} The curve result.
    */
+  @impl.custom
   GetName()
   {
     return this.name;
@@ -134,14 +160,22 @@ export class Tr2CurveQuaternion extends CjsModel
 
   /**
    * Sets the authored curve name.
+   *
+   * @param {string} name Authored curve name.
+   * @returns {void}
    */
+  @impl.custom
   SetName(name)
   {
-    return this.SetValues({ name }, { source: this, returnBoolean: true });
+    this.name = name;
   }
 
   /**
    * Gets the quaternion value at `time` into `out`.
+   *
+   * @param {number} time Time in seconds.
+   * @param {Float32Array|number[]} out Caller-owned output storage.
+   * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
   @carbon.method
   @impl.adapted
@@ -151,10 +185,12 @@ export class Tr2CurveQuaternion extends CjsModel
   }
 
   /**
-   * Gets the last cached value.
+   * Borrows the live cached value; Carbon returns a quaternion value copy.
+   *
+   * @returns {Float32Array|number[]} The live cached quaternion storage.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   GetCurrentValue()
   {
     return this.currentValue;
@@ -162,20 +198,24 @@ export class Tr2CurveQuaternion extends CjsModel
 
   /**
    * Sorts keys by authored time after key edits.
+   *
+   * @returns {void}
    */
   @carbon.method
   @impl.adapted
   OnKeysChanged()
   {
-    this.keys = this.keys.map((key, index) => ({
-      key,
-      index
-    })).sort((a, b) => a.key.time - b.key.time || a.index - b.index).map(entry => entry.key);
-    this.#lastSegment = 0;
+    this.keys.sort((a, b) => a.time - b.time);
+    this._lastSegment = 0;
   }
 
   /**
    * Adds a quaternion key and refreshes key ordering.
+   *
+   * @param {number} time Time in seconds.
+   * @param {Float32Array|number[]} value Curve parameter.
+   * @param {number} [interpolation = Tr2CurveInterpolation.LINEAR] Curve parameter.
+   * @returns {void}
    */
   @carbon.method
   @impl.adapted
@@ -192,20 +232,25 @@ export class Tr2CurveQuaternion extends CjsModel
 
   /**
    * Sets both before and after extrapolation modes.
+   *
+   * @param {number} extrapolation Curve parameter.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
   SetExtrapolation(extrapolation)
   {
-    return this.SetValues({
-      extrapolationAfter: extrapolation,
-      extrapolationBefore: extrapolation
-    }, { source: this, returnBoolean: true });
+    this.extrapolationAfter = this.extrapolationBefore = extrapolation;
   }
 
   /**
    * Converts caller time into the authored key range according to extrapolation.
+   *
+   * @param {number} time Time in seconds.
+   * @returns {number} The curve result.
    */
+  @carbon.method
+  @impl.adapted
   GetLocalTime(time)
   {
     if (!this.keys.length)
@@ -250,36 +295,40 @@ export class Tr2CurveQuaternion extends CjsModel
 
   /**
    * Finds the key segment containing local time, updating the segment cache.
+   *
+   * @param {number} time Time in seconds.
+   * @returns {number} The curve result.
    */
+  @impl.custom
   FindSegment(time)
   {
     const count = this.keys.length;
-    if (this.#lastSegment + 1 < count)
+    if (this._lastSegment + 1 < count)
     {
-      let k0 = this.keys[this.#lastSegment];
-      let k1 = this.keys[this.#lastSegment + 1];
+      let k0 = this.keys[this._lastSegment];
+      let k1 = this.keys[this._lastSegment + 1];
       if (time >= k0.time && time < k1.time)
       {
-        return this.#lastSegment;
+        return this._lastSegment;
       }
-      if (this.#lastSegment + 2 < count)
+      if (this._lastSegment + 2 < count)
       {
-        k0 = this.keys[this.#lastSegment + 1];
-        k1 = this.keys[this.#lastSegment + 2];
+        k0 = this.keys[this._lastSegment + 1];
+        k1 = this.keys[this._lastSegment + 2];
         if (time >= k0.time && time < k1.time)
         {
-          this.#lastSegment++;
-          return this.#lastSegment;
+          this._lastSegment++;
+          return this._lastSegment;
         }
       }
-      if (this.#lastSegment > 1)
+      if (this._lastSegment > 1)
       {
-        k0 = this.keys[this.#lastSegment - 1];
-        k1 = this.keys[this.#lastSegment];
+        k0 = this.keys[this._lastSegment - 1];
+        k1 = this.keys[this._lastSegment];
         if (time >= k0.time && time < k1.time)
         {
-          this.#lastSegment--;
-          return this.#lastSegment;
+          this._lastSegment--;
+          return this._lastSegment;
         }
       }
     }
@@ -289,17 +338,22 @@ export class Tr2CurveQuaternion extends CjsModel
       const k1 = this.keys[i + 1];
       if (time >= k0.time && time < k1.time)
       {
-        this.#lastSegment = i;
-        return this.#lastSegment;
+        this._lastSegment = i;
+        return this._lastSegment;
       }
     }
-    this.#lastSegment = count - 2;
-    return this.#lastSegment;
+    this._lastSegment = count - 2;
+    return this._lastSegment;
   }
 
   /**
    * Evaluates the quaternion curve with Carbon extrapolation and interpolation rules.
+   *
+   * @param {Float32Array|number[]} out Caller-owned output storage.
+   * @param {number} time Time in seconds.
+   * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
+  @impl.custom
   Evaluate(out, time)
   {
     const count = this.keys.length;
@@ -328,7 +382,15 @@ export class Tr2CurveQuaternion extends CjsModel
 
   /**
    * Evaluates the value inside a key segment using the segment interpolation mode.
+   *
+   * @param {Float32Array|number[]} out Caller-owned output storage.
+   * @param {number} time Time in seconds.
+   * @param {Tr2CurveQuaternionKey} k0 Segment start key.
+   * @param {Tr2CurveQuaternionKey} k1 Segment end key.
+   * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
+  @carbon.method
+  @impl.adapted
   GetSegmentValue(out, time, k0, k1)
   {
     if (k0.interpolation === Tr2CurveInterpolation.CONSTANT)
@@ -346,3 +408,9 @@ export class Tr2CurveQuaternion extends CjsModel
   static Tr2CurveExtrapolation = Tr2CurveExtrapolation;
 
 }
+
+// Native exposure ends at this concrete table (Tr2CurveQuaternion_Blue.cpp).
+carbon.interfaceTable({
+  interfaces: [Tr2CurveQuaternion, ITriQuaternionFunction, ITriFunction, ITriCurveLength],
+  chainTo: null
+})(Tr2CurveQuaternion);

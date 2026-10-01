@@ -71,10 +71,14 @@ export class IRootReaderBase
     }
     if (!CjsSchema.isFieldWritable(field)) return false;
 
+    // Declared reads may defer a direct reference assignment until anchors
+    // resolve. Keep its mapped notification with that write, not its parsing.
+    const notification = this._options?.declarations === true && notify && field.edit?.notify
+      ? { target: notify, deferred: false } : null;
     let changed;
     try
     {
-      changed = this._ReadMember(instance, field);
+      changed = this._ReadMember(instance, field, notification);
     }
     catch (error)
     {
@@ -82,7 +86,7 @@ export class IRootReaderBase
       throw error;
     }
 
-    if (notify && field.edit?.notify) notify.OnModified(field.name);
+    if (notify && field.edit?.notify && !notification?.deferred) notify.OnModified(field.name);
     return changed;
   }
 
@@ -90,12 +94,27 @@ export class IRootReaderBase
    * Reads the current source value into one member by the member's kind; the
    * property handler table (IRootReader.cpp:40-64).
    *
+   * @param {object} instance Destination object.
+   * @param {object} field Selected declaration.
+   * @param {object|null} [notification=null] Declared-read notification retained with a deferred assignment.
    * @returns {boolean} Whether the member changed.
    */
-  _ReadMember(instance, field)
+  _ReadMember(instance, field, notification = null)
   {
     const kind = field.type?.kind;
     const current = readDictionaryValue(instance, field);
+
+    // A declared embedded slot owns its existing storage even when a values
+    // bag also carries _type. Generic typed-bag pointer dispatch comes later.
+    if (this._options?.declarations === true && kind === "struct")
+    {
+      return this.HandlePropertyIRoot(instance, field);
+    }
+    if (this._options?.declarations === true && CONTAINER_KINDS.has(kind))
+    {
+      const changed = this._ReadDeclaredCollection(instance, field);
+      if (changed !== undefined) return changed;
+    }
 
     // An alias names an object whatever the member's declared kind, and a bag
     // naming its class builds one in any single-valued member: our interchange
@@ -105,7 +124,7 @@ export class IRootReaderBase
     if (OBJECT_KINDS.has(kind) || this.IsReferenceSource() || (!CONTAINER_KINDS.has(kind) && this.IsTypedSource())
       || (kind !== "struct" && this.IsObjectSource()))
     {
-      return this.ReadIRootPtr(instance, field);
+      return this.ReadIRootPtr(instance, field, notification);
     }
     if (kind === "struct")
     {

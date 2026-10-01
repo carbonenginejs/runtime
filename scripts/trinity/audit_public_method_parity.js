@@ -21,6 +21,12 @@ const droppedClasses = await ReadJavaScriptClasses(path.join(sourceRoot, "droppe
 const quarantined = skipped.filter(entry => droppedClasses.has(entry.className));
 const promoted = skipped.filter(entry => !droppedClasses.has(entry.className));
 const classes = await ReadJavaScriptClasses(sourceRoot);
+// Promoted classes remain Trinity-owned; their native bases may live in Blue.
+// Use the real shared declarations for both primary and composed-base lookup.
+const baseClasses = new Map([
+  ...await ReadJavaScriptClasses(path.join(root, "src", "global", "blue")),
+  ...classes
+]);
 const schema = await ReadSchemaClasses(schemaRoot);
 const omissions = [];
 const unexposed = [];
@@ -47,7 +53,7 @@ for (const entry of promoted)
     continue;
   }
 
-  const actualMethods = CollectMethods(actualClass, classes, unresolvedBases);
+  const actualMethods = CollectMethods(actualClass, baseClasses, unresolvedBases);
   const seen = new Set();
   for (const method of schemaClass.methods)
   {
