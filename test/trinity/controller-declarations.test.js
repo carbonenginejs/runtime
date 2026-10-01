@@ -88,12 +88,15 @@ test("controller exposure follows its explicit EveThrottleable parent table", ()
   `], { encoding: "utf8", timeout: 30000 });
 });
 
-test("controller declaration prerequisite retains ordinary independent array fields", () =>
+test("controller declarations retain independent owned typed lists", () =>
 {
   const first = new Tr2Controller(), second = new Tr2Controller();
   for (const name of ["stateMachines", "variables", "eventHandlers"])
   {
-    assert.equal(Object.getPrototypeOf(first[name]), Array.prototype);
+    assert.equal(Object.getPrototypeOf(first[name]), BlueList.prototype);
+    const info = {};
+    first[name].GetInfo(info);
+    assert.equal(info.notify, first);
     assert.notEqual(first[name], second[name]);
     const member = CjsSchema.getSchema(Tr2Controller).members.find(entry => entry.name === name);
     assert.equal(member.type.kind, "list");
