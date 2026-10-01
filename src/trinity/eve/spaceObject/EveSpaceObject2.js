@@ -3,6 +3,8 @@
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2_Blue.cpp
 import "#blue/registerTrinityEnums";
 import { CjsSchema, carbon, impl, edit, type } from "#schema";
+import { IInitialize } from "#blue/IInitialize";
+import { INotify } from "#blue/INotify";
 import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { ITr2BoundingBox } from "#interfaces";
@@ -62,7 +64,7 @@ const OVERLAY_TYPE_ALL = 1;
  */
 @type.define({ className: "EveSpaceObject2", family: "eve/spaceObject" })
 @carbon.inherit(ITr2BoundingBox, ITr2Renderable, IEveSpaceObject2, ITr2ShLightingReceiver, ITr2SecondaryLightSource, IEveInheritPropertiesOwner)
-@carbon.mapInterface(ITr2ShLightingReceiver, ITr2SecondaryLightSource)
+@carbon.mapInterface(ITr2ShLightingReceiver, ITr2SecondaryLightSource, IInitialize, INotify)
 export class EveSpaceObject2 extends EveEntity
 {
 

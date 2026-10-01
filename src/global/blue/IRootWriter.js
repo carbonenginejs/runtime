@@ -14,6 +14,7 @@
 // full shape (operator ruling 2026-09-27; research page `blue-values-engine.md`).
 import { CjsSchema, impl } from "#schema";
 import { exportCarbonValue } from "../schema/types/index.js";
+import { getDictionaryDeclarations, readDictionaryValue } from "./dictionaryDeclarations.js";
 
 /** Kinds written as an object that may be shared (IROOTPTR). */
 const OBJECT_KINDS = new Set([ "model", "objectRef" ]);
@@ -38,12 +39,12 @@ export class IRootWriter
    */
   WriteMembers(instance, options)
   {
-    for (const field of CjsSchema.getSchema(instance.constructor).fields)
+    for (const field of getDictionaryDeclarations(instance.constructor).fields)
     {
       if (!CjsSchema.isFieldExported(field, options)) continue;
 
       const kind = field.type?.kind;
-      const value = instance[field.name];
+      const value = readDictionaryValue(instance, field);
       this.WriteMemberName(field.name);
 
       // An object is written as one - and so can be aliased - whatever the

@@ -24,6 +24,7 @@ import { CjsSchema, impl } from "#schema";
 import { IRootWriter } from "./IRootWriter.js";
 import { BeObjectMetadata } from "./BlueObjectMetadata.js";
 import { BLUE_OBJECT_METADATA_KEY } from "./IBlueObjectMetadata.js";
+import { getDictionaryDeclarations } from "./dictionaryDeclarations.js";
 
 /** GetValues methods that ARE this writer (CjsModel's), never asked for values. */
 const DELEGATES = new WeakSet();
@@ -167,7 +168,7 @@ export class DictWriter extends IRootWriter
     // Only an object with its OWN GetValues is asked: one whose GetValues
     // delegates to this writer (a field-less CjsModel) has no members, and
     // asking it would re-enter here.
-    const fields = CjsSchema.getSchema(instance.constructor).fields;
+    const fields = getDictionaryDeclarations(instance.constructor).fields;
     if (!fields.length && typeof instance.GetValues === "function" && !DELEGATES.has(instance.GetValues))
     {
       Object.assign(out, instance.GetValues(options), out);

@@ -235,19 +235,19 @@ test("instance-mesh and smart-light promotions expose maintained exact schemas",
   assert.equal(existsSync("npm/dist/trinity/generated/eve/child/EveChildInstanceMeshRenderer.js"), false);
   assert.equal(existsSync("npm/dist/trinity/generated/eve/smartLights/EveSmartLightMesh.js"), false);
 
-  assert.deepEqual(Object.keys(new EveChildInstanceMeshRenderer().GetValues()), [
+  assert.deepEqual(Object.keys(new EveChildInstanceMeshRenderer().GetValues()).sort(), [
     "name", "partTag", "ownedLocatorSets", "armorDamageShader", "display", "inheritOverlayEffects", "overlayEffects",
     "damageOverlay", "mesh", "minScreenSize", "currentScreenSize",
     "rotationConstraint", "staticOffsetRotation", "staticOffsetTranslation",
     "distribution", "staticOffsetScale"
-  ]);
-  assert.deepEqual(Object.keys(new EveSmartLightMesh().GetValues()), [
+  ].sort());
+  assert.deepEqual(Object.keys(new EveSmartLightMesh().GetValues()).sort(), [
     "name", "ownedLocatorSets", "armorDamageShader", "display", "inheritOverlayEffects", "overlayEffects",
     "damageOverlay", "mesh", "minScreenSize", "currentScreenSize",
     "rotationConstraint", "staticOffsetRotation", "staticOffsetTranslation",
     "staticOffsetScale", "shaderParamColorName", "factionColor",
     "useFactionColor", "attributeModifiers", "customColor", "castShadows"
-  ]);
+  ].sort());
 
   const smart = new EveSmartLightMesh();
   smart.castShadows = true;

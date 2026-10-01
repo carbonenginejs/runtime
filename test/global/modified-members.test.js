@@ -4,7 +4,7 @@ import { CjsSchema } from "#schema";
 import { CjsModel } from "#model";
 
 let serial = 0;
-function fixture(model)
+function fixture(model, liveB = false)
 {
   const Base = model ? CjsModel : class {};
   class Probe extends Base
@@ -19,6 +19,11 @@ function fixture(model)
   {
     CjsSchema.defineField(Probe, name, "type", { kind: "int32" });
     CjsSchema.defineField(Probe, name, "edit", { persist: true, notify: name !== "quiet" });
+    if (name === "b" && liveB)
+    {
+      // This fixture exercises live setter failure, not stored-member access.
+      CjsSchema.defineField(Probe, name, "declaration", { role: "property" });
+    }
   }
   CjsSchema.define(Probe, { className: `MemberNotificationProbe${serial++}` });
   if (!model)
@@ -99,7 +104,7 @@ for (const model of [true, false])
   });
   test(`${route}: successful writes survive a later setter failure`, () =>
   {
-    const p = fixture(model);
+    const p = fixture(model, true);
     let reject = true;
     let b = 0;
     Object.defineProperty(p, "b", {

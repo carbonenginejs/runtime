@@ -3,8 +3,10 @@ export * from "./global/index.js";
 export * from "./resource/index.js";
 export * from "./trinity/index.js";
 export * from "./sof/index.js";
-export * from "./audio/index.js";
-export * from "./character/index.js";
+export * from "./audio/trinity/index.js";
+// Silent support stays available without evaluating optional playback libraries.
+export { ICjsWwiseSoundEngine } from "./audio/ICjsWwiseSoundEngine.js";
+export { CjsWwiseSoundEngineStub } from "./audio/CjsWwiseSoundEngineStub.js";
 export * from "./input/index.js";
 export * from "./core/index.js";
 

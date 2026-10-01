@@ -71,7 +71,7 @@ export * from "./BlueClasses.js";
 export * from "./ICopier.js";
 export * from "./ICopierCustomAssignment.js";
 export * from "./Copier.js";
-export * from "./blue.js";
+export { blue } from "./blue.js";
 export { CjsBlueEnumRegistry, EnumRegistrationType } from "./enums/CjsBlueEnumRegistry.js";
 // The values engine: Blue's dictionary reader and a writer modelled on YamlWriter.
 export * from "./IBlueObjectMetadata.js";

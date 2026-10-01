@@ -20,14 +20,16 @@
 //
 // WHICH MEMBERS A KEY MAY NAME. Carbon's base finds PERSIST members only, and
 // an unknown name throws `InvalidAttributeException` (:99-106). Ours finds any
-// declared field, and skips a declared one that is read-only: our `GetValues`
+// selected dictionary declaration, and skips one that is read-only: our `GetValues`
 // exports every field, read-only ones included, so a round trip must read
 // back what it wrote (operator ruling 2026-09-27; see the research page
-// `blue-values-engine.md`). A field's declared aliases name it too.
+// `blue-values-engine.md`). Selection is owner-first, stored-before-live within
+// an owner, with no flag merging or filter fallback. Selected aliases name it too.
 import { CjsSchema, impl } from "#schema";
 import { coerceCarbonMathInto, coerceCarbonTypedArrayInto, normalizeCarbonValue } from "../schema/types/index.js";
 import { IRootReaderException } from "./IRootReaderException.js";
 import { InvalidAttributeException } from "./InvalidAttributeException.js";
+import { getDictionaryDeclarations, readDictionaryValue, writeDictionaryValue } from "./dictionaryDeclarations.js";
 
 /** Kinds read as an object reference (IROOTPTR). */
 const OBJECT_KINDS = new Set([ "model", "objectRef" ]);
@@ -37,9 +39,6 @@ const CONTAINER_KINDS = new Set([ "list", "array", "map", "set" ]);
 
 /** Kinds read as a list of objects or values (BlueList). */
 const LIST_KINDS = new Set([ "list", "array" ]);
-
-/** Per class, alias name to field, built once. */
-const ALIASES = new WeakMap();
 
 /**
  * `IRootReaderBase` - reads one member of an instance by the member's type.
@@ -95,7 +94,7 @@ export class IRootReaderBase
   _ReadMember(instance, field)
   {
     const kind = field.type?.kind;
-    const current = instance[field.name];
+    const current = readDictionaryValue(instance, field);
 
     // An alias names an object whatever the member's declared kind, and a bag
     // naming its class builds one in any single-valued member: our interchange
@@ -123,7 +122,7 @@ export class IRootReaderBase
     // pending `{ _ref }` still has to fill.
     if (this.HasNestedObjects(source))
     {
-      instance[field.name] = this.ReadNestedObjects(source);
+      writeDictionaryValue(instance, field, this.ReadNestedObjects(source));
       return true;
     }
 
@@ -133,7 +132,7 @@ export class IRootReaderBase
     if (inPlace !== null) return inPlace;
 
     const next = normalizeCarbonValue(source, field.type);
-    instance[field.name] = next;
+    writeDictionaryValue(instance, field, next);
     return !IRootReaderBase.areEquivalent(current, next);
   }
 
@@ -147,21 +146,21 @@ export class IRootReaderBase
    */
   HandlePropertyIRoot(instance, field)
   {
-    const current = instance[field.name];
+    const current = readDictionaryValue(instance, field);
     if (current && typeof current === "object")
     {
       return this.ReadIRoot(current, field);
     }
 
     const created = this.ReadIRootClass(field);
-    instance[field.name] = created;
+    writeDictionaryValue(instance, field, created);
     return created !== current;
   }
 
   /**
-   * Finds the member a key names (IRootReader.cpp:303-318): a declared field,
-   * or a field declaring the key as an alias. The class's table was built at
-   * registration, so this is a map read.
+   * Finds an exposed dictionary declaration or its selected alias. Adapted:
+   * dictionaryDeclarations owns the JS values-view precedence; native
+   * DictReader::FindEntry instead selects by persistence/write eligibility.
    *
    * @param {string} name The key.
    * @param {Function} Constructor The instance's class.
@@ -169,7 +168,8 @@ export class IRootReaderBase
    */
   FindEntry(name, Constructor)
   {
-    return CjsSchema.getField(Constructor, name) ?? IRootReaderBase.aliasesOf(Constructor).get(name) ?? null;
+    const declarations = getDictionaryDeclarations(Constructor);
+    return declarations.byName.get(name) ?? declarations.aliases.get(name) ?? null;
   }
 
   /** Whether the current source is a live object of a registered class; a subclass provides it. */
@@ -232,23 +232,10 @@ export class IRootReaderBase
     throw new Error("IRootReaderBase.ReadList is provided by a reader.");
   }
 
-  /** A class's fields by declared alias, built once per class from its registered table. */
+  /** Selected declarations by alias, refreshed with the schema revision. */
   static aliasesOf(Constructor)
   {
-    let aliases = ALIASES.get(Constructor);
-    if (aliases) return aliases;
-
-    aliases = new Map();
-    for (const field of CjsSchema.getSchema(Constructor).fields)
-    {
-      const declared = field.aliases ?? (field.alias === undefined ? [] : [ field.alias ]);
-      for (const alias of Array.isArray(declared) ? declared : [ declared ])
-      {
-        if (typeof alias === "string" && alias) aliases.set(alias, CjsSchema.getField(Constructor, field.name));
-      }
-    }
-    ALIASES.set(Constructor, aliases);
-    return aliases;
+    return getDictionaryDeclarations(Constructor).aliases;
   }
 
   /** Whether a member's old and new values are the same, element by element for arrays. */

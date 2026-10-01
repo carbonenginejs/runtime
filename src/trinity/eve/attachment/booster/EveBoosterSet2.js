@@ -7,6 +7,8 @@ import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { carbon, edit, impl, type } from "#schema";
+import { IInitialize } from "#blue/IInitialize";
+import { INotify } from "#blue/INotify";
 import { EveEntity } from "../../EveEntity.js";
 import { EveBoosterSet2Item } from "./EveBoosterSet2Item.js";
 import { EveBoosterSet2Renderable } from "./EveBoosterSet2Renderable.js";
@@ -34,6 +36,7 @@ import {
  * renderable instances draw.
  */
 @type.define({ className: "EveBoosterSet2", family: "eve/attachment/boosters" })
+@carbon.mapInterface(INotify, IInitialize)
 export class EveBoosterSet2 extends EveEntity
 {
 

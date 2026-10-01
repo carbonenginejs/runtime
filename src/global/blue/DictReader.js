@@ -41,6 +41,7 @@ import { IRootReaderBase } from "./IRootReaderBase.js";
 import { IRootReaderException } from "./IRootReaderException.js";
 import { BeObjectMetadata } from "./BlueObjectMetadata.js";
 import { BLUE_OBJECT_METADATA_KEY } from "./IBlueObjectMetadata.js";
+import { readDictionaryValue, writeDictionaryValue } from "./dictionaryDeclarations.js";
 
 /** Keys the reader consumes itself rather than as members (Carbon's `type`, plus the anchor keys). */
 const RESERVED_KEYS = new Set([ "_type", "_id", "_ref" ]);
@@ -323,11 +324,11 @@ export class DictReader extends IRootReaderBase
   ReadIRootPtr(instance, field)
   {
     const source = this._currentSource;
-    const current = instance[field.name];
+    const current = readDictionaryValue(instance, field);
 
     if (source === null || source === undefined)
     {
-      instance[field.name] = null;
+      writeDictionaryValue(instance, field, null);
       return current !== null && current !== undefined;
     }
     if (IsReference(source))
@@ -335,17 +336,17 @@ export class DictReader extends IRootReaderBase
       const resolved = this._anchors.byId.get(source._ref);
       if (resolved === undefined)
       {
-        this._anchors.defer(source._ref, object => { instance[field.name] = object; });
+        this._anchors.defer(source._ref, object => { writeDictionaryValue(instance, field, object); });
         return true;
       }
-      instance[field.name] = resolved;
+      writeDictionaryValue(instance, field, resolved);
       return resolved !== current;
     }
     // A non-plain object in an object member is a reference to it (values
     // transport ruling 3, 2026-09-14): the declared type decides, not the value.
     if (typeof source === "object" && !IsPlainObject(source) && !Array.isArray(source) && !ArrayBuffer.isView(source))
     {
-      instance[field.name] = source;
+      writeDictionaryValue(instance, field, source);
       return source !== current;
     }
 
@@ -353,7 +354,7 @@ export class DictReader extends IRootReaderBase
     if (!IsPlainObject(source)) this._ThrowError("Incorrect type for member");
 
     const created = this.ReadIRootClass(field);
-    instance[field.name] = created;
+    writeDictionaryValue(instance, field, created);
     return true;
   }
 
@@ -424,12 +425,12 @@ export class DictReader extends IRootReaderBase
   ReadList(instance, field)
   {
     const source = this._currentSource;
-    const current = instance[field.name];
+    const current = readDictionaryValue(instance, field);
 
     if (source === null || source === undefined)
     {
-      instance[field.name] = normalizeCarbonValue(source, field.type);
-      return current !== instance[field.name];
+      writeDictionaryValue(instance, field, normalizeCarbonValue(source, field.type));
+      return current !== readDictionaryValue(instance, field);
     }
     if (!Array.isArray(source)) this._ThrowError("Expected a list");
 
@@ -443,7 +444,7 @@ export class DictReader extends IRootReaderBase
     if (!holdsObjects)
     {
       const next = normalizeCarbonValue(source, field.type);
-      instance[field.name] = next;
+      writeDictionaryValue(instance, field, next);
       return !IRootReaderBase.areEquivalent(current, next);
     }
 
@@ -464,7 +465,7 @@ export class DictReader extends IRootReaderBase
     this._contextStack.push(parent);
     this._currentSource = source;
 
-    if (!inPlace) instance[field.name] = list;
+    if (!inPlace) writeDictionaryValue(instance, field, list);
     return !IRootReaderBase.areEquivalent(before, list);
   }
 

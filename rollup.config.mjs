@@ -11,9 +11,9 @@ const unpublishedInputs = new Set([
     "src/trinity/generated/eve/EveDamageOverlay.js",
     "src/trinity/generated/eve/EveModularObjectModifier.js"
 ]);
-// Reached only through an `imports` alias, which rollup keeps external, so
-// nothing in the export graph emits them.
-const privateInputs = [ "src/trinityal/webgpu/internal.js", "src/global/blue/registerTrinityEnums.js" ];
+// Internal direct-import entries retain their exports when a public barrel
+// omits them or their imports alias stays external.
+const privateInputs = [ "src/trinityal/webgpu/internal.js", "src/global/blue/registerTrinityEnums.js", "src/global/blue/blue.js" ];
 
 function collectTargets(value, out = [])
 {

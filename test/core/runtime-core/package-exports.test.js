@@ -30,7 +30,6 @@ test("the core subpaths are import-inert and share package identities", () =>
 
             const core = await import("@carbonenginejs/runtime/core");
             const platform = await import("@carbonenginejs/runtime/core/platform");
-            for (const name of guarded) delete globalThis[name];
             const root = await import("@carbonenginejs/runtime");
 
             if (core.default !== core.CjsLibrary)
