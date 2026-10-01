@@ -51,7 +51,7 @@ const cases = [
     own: ["Link", "Unlink", "Start", "Stop", "Update", "OnModified"]
   },
   {
-    Type: Tr2ActionCallback, nominal: [A], query: [Tr2ActionCallback, A],
+    Type: Tr2ActionCallback, modelFree: true, nominal: [A], query: [Tr2ActionCallback, A],
     own: ["Start"]
   },
   {
@@ -80,15 +80,15 @@ const cases = [
       "GetWriteBufferAndSize", "ReleaseWriteBuffer", "AllocateReadBuffer", "SetBufferAndSize"]
   },
   {
-    Type: Tr2ActionResetClipSphereCenter, nominal: [A], query: [Tr2ActionResetClipSphereCenter, A],
+    Type: Tr2ActionResetClipSphereCenter, modelFree: true, nominal: [A], query: [Tr2ActionResetClipSphereCenter, A],
     own: ["Start"]
   },
   {
-    Type: Tr2ActionSetAttenuationScaling, nominal: [A], query: [Tr2ActionSetAttenuationScaling, A],
+    Type: Tr2ActionSetAttenuationScaling, modelFree: true, nominal: [A], query: [Tr2ActionSetAttenuationScaling, A],
     own: ["Link", "Unlink", "Start"]
   },
   {
-    Type: Tr2ActionSetAudioEmitterPrefix, nominal: [A], query: [Tr2ActionSetAudioEmitterPrefix, A],
+    Type: Tr2ActionSetAudioEmitterPrefix, modelFree: true, nominal: [A], query: [Tr2ActionSetAudioEmitterPrefix, A],
     own: ["Start"]
   },
   {
@@ -100,7 +100,7 @@ const cases = [
     own: ["Link", "Unlink", "Start", "OnModified"]
   },
   {
-    Type: Tr2ActionSetShaderOption, nominal: [A], query: [Tr2ActionSetShaderOption, A],
+    Type: Tr2ActionSetShaderOption, modelFree: true, nominal: [A], query: [Tr2ActionSetShaderOption, A],
     own: ["Start"]
   },
   {
@@ -113,7 +113,7 @@ const cases = [
   }
 ];
 
-for (const { Type, nominal, query } of cases)
+for (const { Type, nominal, query, modelFree = false } of cases)
 {
   test(`${Type.name} has its exact ordered query table and nominal native contracts`, () =>
   {
@@ -121,7 +121,7 @@ for (const { Type, nominal, query } of cases)
     assert.deepEqual([...mappedInterfaces(Type)], query);
     assert.equal(CjsSchema.GetConstructor(Type.name), Type);
     assert.equal(CjsSchema.cast(item, Type), item);
-    assert.equal(CjsSchema.cast(item, CjsModel), item);
+    assert.equal(CjsSchema.cast(item, CjsModel), modelFree ? null : item);
     for (const Interface of [A, U, N, I, P])
       assert.equal(CjsSchema.cast(item, Interface), nominal.includes(Interface) ? item : null, Interface.name);
   });
@@ -327,7 +327,8 @@ test("all action null-chain tables isolate a temporary CjsModel query mapping", 
 {
   const moduleURL = path => new URL(`../../npm/dist/${path}`, import.meta.url).href;
   // Serialize only the independent expectations above, never runtime metadata.
-  const expected = cases.map(({ Type, query }) => ({
+  const expected = cases.map(({ Type, query, modelFree = false }) => ({
+    modelFree,
     name: Type.name,
     url: moduleURL(`trinity/controllers/action/${Type.name}.js`),
     query: query.map(Interface => Interface.name)
@@ -355,7 +356,7 @@ test("all action null-chain tables isolate a temporary CjsModel query mapping", 
         assert.deepEqual([...mappedInterfaces(Type)], expectedTable, row.name);
         assert.equal(mappedInterfaces(Type).has(ParentOnlyInterface), false, row.name);
         const item = new Type();
-        assert.equal(CjsSchema.cast(item, CjsModel), item);
+        assert.equal(CjsSchema.cast(item, CjsModel), row.modelFree ? null : item);
       }
     `
   ], { encoding: "utf8", timeout: 30000, windowsHide: true });

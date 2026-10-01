@@ -1,43 +1,41 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionCallback.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionCallback.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionCallback_Blue.cpp
-import { CjsModel } from "#model";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
-import { carbon, impl, edit, type } from "#schema";
+import { meta, types } from "#schema";
 
 
 /**
  * Controller action that fires a named callback on its controller when the
  * action starts, letting host code hook a point in a state machine or timeline.
  */
-@type.define({
+@meta.define({
   className: "Tr2ActionCallback",
   family: "controllers"
 })
-@carbon.inherit(ITr2ControllerAction)
-export class Tr2ActionCallback extends CjsModel
+export class Tr2ActionCallback extends ITr2ControllerAction
 {
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   callbackName = "";
 
   /**
    * Notifies the linked controller callback registry.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   Start(controller)
   {
     if (this.callbackName)
     {
-      controller.Callback?.(this.callbackName);
+      controller.Callback(this.callbackName);
     }
   }
 }
 
 // Native exposure ends at this concrete table (Tr2ActionCallback_Blue.cpp:12-13,20).
-carbon.interfaceTable({
+meta.carbon.interfaceTable({
   interfaces: [Tr2ActionCallback, ITr2ControllerAction],
   chainTo: null
 })(Tr2ActionCallback);

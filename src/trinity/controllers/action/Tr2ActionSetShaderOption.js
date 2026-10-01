@@ -1,8 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetShaderOption.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetShaderOption.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetShaderOption_Blue.cpp
-import { CjsModel } from "#model";
-import { carbon, impl, edit, type } from "#schema";
+import { meta, types } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
@@ -10,28 +9,29 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
  * Controller action that sets a named shader option on its owner when it starts,
  * changing which shader permutation the owner renders with.
  */
-@type.define({
+@meta.define({
   className: "Tr2ActionSetShaderOption",
   family: "controllers"
 })
-@carbon.inherit(ITr2ControllerAction)
-export class Tr2ActionSetShaderOption extends CjsModel
+export class Tr2ActionSetShaderOption extends ITr2ControllerAction
 {
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   key = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   value = "";
 
   /**
    * Sets a shader option on the controller owner when supported.
+   * Adapted: preserves the existing owner adapter until the native
+   * IShaderConfigurer contract is ported; this is not a native BlueCast check.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   Start(controller)
   {
     const owner = ITr2ControllerAction.getOwner(controller);
@@ -44,7 +44,7 @@ export class Tr2ActionSetShaderOption extends CjsModel
 }
 
 // Native exposure ends at this concrete table (Tr2ActionSetShaderOption_Blue.cpp:14-15,18).
-carbon.interfaceTable({
+meta.carbon.interfaceTable({
   interfaces: [Tr2ActionSetShaderOption, ITr2ControllerAction],
   chainTo: null
 })(Tr2ActionSetShaderOption);
