@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2TranslationAdapter.cpp
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
+import { ITriVectorFunction } from "#blue";
 import { carbon, impl, edit, type } from "#schema";
 
 
@@ -15,7 +15,7 @@ import { carbon, impl, edit, type } from "#schema";
   className: "Tr2TranslationAdapter",
   family: "curves"
 })
-export class Tr2TranslationAdapter extends CjsModel
+export class Tr2TranslationAdapter extends ITriVectorFunction
 {
   @edit.readwrite
   @edit.persist
@@ -36,18 +36,21 @@ export class Tr2TranslationAdapter extends CjsModel
   @type.vec3
   currentValue = vec3.create();
 
-  #start = 0;
+  _start = 0;
 
-  #offset = 0;
+  _offset = 0;
 
-  #timeScale = 1;
+  _timeScale = 1;
 
-  #dotValue0 = vec3.create();
+  _dotValue0 = vec3.create();
 
-  #dotValue1 = vec3.create();
+  _dotValue1 = vec3.create();
 
   /**
-   * Updates the cached vector value when a child curve is attached.
+   * Updates the cached vector through the required child Update method when present.
+   * Uses the native double-time path; a missing child leaves the cache unchanged.
+   * @param {number} time Time in seconds.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
@@ -60,7 +63,11 @@ export class Tr2TranslationAdapter extends CjsModel
   }
 
   /**
-   * Updates the cached value, applies the rotation offset, and copies it into `out`.
+   * Updates the cache and copies the vector into the output buffer.
+   * JavaScript retains the native double-time path with seconds first and output last; the separate tick overload is not dispatched.
+   * @param {number} time Time in seconds.
+   * @param {Float32Array} out Destination value.
+   * @returns {Float32Array} The destination.
    */
   @carbon.method
   @impl.adapted
@@ -79,7 +86,11 @@ export class Tr2TranslationAdapter extends CjsModel
   }
 
   /**
-   * Gets the vector value at `time` into `out` without applying rotation offset.
+   * Samples the child in local time, or copies the authored fallback value.
+   * JavaScript retains the native double-time path with seconds first and output last.
+   * @param {number} time Time in seconds.
+   * @param {Float32Array} out Destination value.
+   * @returns {Float32Array} The destination.
    */
   @carbon.method
   @impl.adapted
@@ -93,7 +104,11 @@ export class Tr2TranslationAdapter extends CjsModel
   }
 
   /**
-   * Gets Carbon's backward finite-difference vector derivative.
+   * Computes Carbon's backward finite difference without rotation offset.
+   * JavaScript retains the native double-time path with seconds first and output last.
+   * @param {number} time Time in seconds.
+   * @param {Float32Array} out Destination derivative.
+   * @returns {Float32Array} The destination.
    */
   @carbon.method
   @impl.adapted
@@ -104,14 +119,18 @@ export class Tr2TranslationAdapter extends CjsModel
       return vec3.zero(out);
     }
     const localTime = this.GetLocalTime(time);
-    this.curve.GetValueAt(localTime, this.#dotValue0);
-    this.curve.GetValueAt(localTime - 0.1, this.#dotValue1);
-    vec3.subtract(out, this.#dotValue1, this.#dotValue0);
+    this.curve.GetValueAt(localTime, this._dotValue0);
+    this.curve.GetValueAt(localTime - 0.1, this._dotValue1);
+    vec3.subtract(out, this._dotValue1, this._dotValue0);
     return vec3.scale(out, out, 10);
   }
 
   /**
-   * Gets the second derivative vector at the supplied time.
+   * Writes the native zero second derivative.
+   * JavaScript combines native overloads as time-first/output-last calls.
+   * @param {number} _time Unused time.
+   * @param {Float32Array} out Destination derivative.
+   * @returns {Float32Array} The destination.
    */
   @carbon.method
   @impl.adapted
@@ -121,7 +140,11 @@ export class Tr2TranslationAdapter extends CjsModel
   }
 
   /**
-   * Copies the last cached value into `out`.
+   * Copies the cached position without sampling the child.
+   * JavaScript uses a caller-owned array with time first instead of the native output pointer.
+   * @param {number} _time Unused time.
+   * @param {Float32Array|Float64Array} out Destination position.
+   * @returns {Float32Array|Float64Array} The destination.
    */
   @carbon.method
   @impl.adapted
@@ -131,53 +154,73 @@ export class Tr2TranslationAdapter extends CjsModel
   }
 
   /**
-   * Shifts the local curve start by a random offset inside `[-range, range]`.
+   * Chooses a random local offset within the supplied radius.
+   * JavaScript retains Math.random and numeric seconds rather than native rand/modulo tick arithmetic.
+   * @param {number} range Radius in seconds; zero or omission selects 60.
+   * @returns {void}
    */
   @carbon.method
   @impl.adapted
   RandomizeStart(range = 60)
   {
     const radius = range || 60;
-    this.#offset = (Math.random() * 2 - 1) * radius;
+    this._offset = (Math.random() * 2 - 1) * radius;
   }
 
   /**
-   * Scales local curve time.
+   * Sets the divisor used for local curve time.
+   * @param {number} scale Time divisor.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
   ScaleTime(scale)
   {
-    this.#timeScale = scale;
+    this._timeScale = scale;
   }
 
   /**
-   * Resets the local start time offset.
+   * Clears the retained start timestamp.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
   ResetStart()
   {
-    this.#start = 0;
+    this._start = 0;
   }
 
   /**
-   * Converts caller time into local child-curve time.
+   * Computes the native private double-time local value.
+   * @param {number} time Time in seconds.
+   * @returns {number} Scaled time in seconds.
    */
+  @carbon.method
+  @impl.implemented
   GetLocalTime(time)
   {
-    return time / this.#timeScale;
+    return time / this._timeScale;
   }
 
   /**
-   * Converts a runtime numeric-seconds `Be::Time` value into start-aware local time.
+   * Retains the separate JavaScript start-aware numeric-seconds helper.
+   * The native overload takes Be::Time ticks; this helper uses seconds and initializes start locally. Update and sampling keep the double-time path.
+   * @param {number} time Time in seconds.
+   * @returns {number} Start-aware scaled seconds.
    */
+  @impl.custom
   GetStartAwareLocalTime(time)
   {
-    if (this.#start === 0)
+    if (this._start === 0)
     {
-      this.#start = time;
+      this._start = time;
     }
-    return (time - this.#start + this.#offset) / this.#timeScale;
+    return (time - this._start + this._offset) / this._timeScale;
   }
 }
+
+// Exact native exposure table; ITriFunction is intentionally not mapped.
+carbon.interfaceTable({
+  interfaces: [Tr2TranslationAdapter, ITriVectorFunction],
+  chainTo: null
+})(Tr2TranslationAdapter);

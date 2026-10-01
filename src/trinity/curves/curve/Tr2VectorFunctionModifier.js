@@ -1,7 +1,8 @@
 // Source: trinity/trinity/Tr2VectorFunctionModifier.h
+// Source: trinity/trinity/Tr2VectorFunctionModifier.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
+import { ITriVectorFunction } from "#blue";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
@@ -10,13 +11,8 @@ const DIRECTION_SCRATCH = vec4.create();
 
 /** Wraps a position source, offsetting and scaling what it reports, optionally in view space. */
 @type.define({ className: "Tr2VectorFunctionModifier", family: "curves" })
-export class Tr2VectorFunctionModifier extends CjsModel
+export class Tr2VectorFunctionModifier extends ITriVectorFunction
 {
-
-  /** m_useViewSpace (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
-  useViewSpace = false;
 
   /** m_clientBall (ITriVectorFunctionPtr) [READWRITE] */
   @edit.readwrite
@@ -32,6 +28,11 @@ export class Tr2VectorFunctionModifier extends CjsModel
   @edit.readwrite
   @type.float32
   scaleModifier = 1;
+
+  /** m_useViewSpace (bool) [READWRITE] */
+  @edit.readwrite
+  @type.boolean
+  useViewSpace = false;
 
   /** m_useSystemCoordinates (bool) [READWRITE] */
   @edit.readwrite
@@ -51,23 +52,25 @@ export class Tr2VectorFunctionModifier extends CjsModel
   //
   // Carbon reads the inverse view transform from a Tr2Renderer static; this
   // port takes the render context that carries those relocated statics. Asking
-  // for view space without a context returns the raw offset, which is what
-  // Carbon does before a view has been set.
+  // for view space without a context returns the raw offset under the existing
+  // JavaScript nullable-context adaptation; native reads the renderer static.
 
   /**
-   * The offset in world space, rotated out of view space first when this
-   * modifier is authored in view space and a render context supplies the view.
+   * Copies the world-space offset, using a supplied inverse view when requested.
+   * JavaScript receives the relocated renderer context and an output buffer instead of native statics and a returned vector; absent context keeps the authored offset.
+   * @param {Tr2RenderContext|null} renderContext Optional renderer context.
+   * @param {Float32Array} out Destination vector; defaults to shared scratch.
+   * @returns {Float32Array} The destination.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon reads Tr2Renderer's inverse-view static; the relocated statics live on the render context, so it is passed in.")
   GetOffsetPosition(renderContext = null, out = OFFSET_SCRATCH)
   {
     vec3.copy(out, this.offsetPosition);
 
     if (!this.useViewSpace) return out;
 
-    const inverseView = renderContext?.GetInverseViewTransform?.();
+    const inverseView = renderContext ? renderContext.GetInverseViewTransform() : null;
 
     if (!inverseView) return out;
 
@@ -80,12 +83,14 @@ export class Tr2VectorFunctionModifier extends CjsModel
   }
 
   /**
-   * Applies the offset and then the scale to a position in place, which is the
-   * shared tail of Update and GetValueAt.
+   * Adds the offset before scaling the position in place.
+   * JavaScript passes the relocated renderer context explicitly.
+   * @param {Float32Array} inOut Position to transform.
+   * @param {Tr2RenderContext|null} renderContext Optional renderer context.
+   * @returns {Float32Array} The position buffer.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Takes the render context Carbon reads from a Tr2Renderer static.")
   GetTransformedPosition(inOut, renderContext = null)
   {
     const offset = this.GetOffsetPosition(renderContext);
@@ -95,36 +100,46 @@ export class Tr2VectorFunctionModifier extends CjsModel
   }
 
   /**
-   * Advances the wrapped source to a time and reports its offset, scaled
-   * position, reading system coordinates instead when this modifier is
-   * authored in them.
+   * Reads the child update or system position, then applies offset and scale.
+   * JavaScript places time before output, followed by an optional renderer context; native implements the tick overload and rejects its double overload. No overload discrimination is added here.
+   * @param {number} time Time forwarded unchanged to the child.
+   * @param {Float32Array} inOut Destination position.
+   * @param {Tr2RenderContext|null} renderContext Optional renderer context.
+   * @returns {Float32Array} The destination.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   Update(time, inOut, renderContext = null)
   {
-    this.#ReadSource(time, inOut, "Update");
+    this._ReadSource(time, inOut, "Update");
     return this.GetTransformedPosition(inOut, renderContext);
   }
 
   /**
-   * The wrapped source's position at a time, offset and scaled, without
-   * advancing it.
+   * Samples the child or system position, then applies offset and scale.
+   * JavaScript keeps time first and explicit renderer context; native double overload rejection is not implemented.
+   * @param {number} time Time forwarded unchanged.
+   * @param {Float32Array} inOut Destination position.
+   * @param {Tr2RenderContext|null} renderContext Optional renderer context.
+   * @returns {Float32Array} The destination.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   GetValueAt(time, inOut, renderContext = null)
   {
-    this.#ReadSource(time, inOut, "GetValueAt");
+    this._ReadSource(time, inOut, "GetValueAt");
     return this.GetTransformedPosition(inOut, renderContext);
   }
 
   /**
-   * The wrapped source's velocity at a time, scaled but NOT offset, because a
-   * constant offset has no rate of change.
+   * Samples the child velocity and scales the output without adding an offset.
+   * JavaScript uses time-first/output-last calls. Existing null-child output scaling differs from native and remains outside this removal.
+   * @param {number} time Time forwarded unchanged.
+   * @param {Float32Array} inOut Destination velocity.
+   * @returns {Float32Array} The destination.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   GetValueDotAt(time, inOut)
   {
     if (this.clientBall)
@@ -135,10 +150,14 @@ export class Tr2VectorFunctionModifier extends CjsModel
   }
 
   /**
-   * The wrapped source's acceleration at a time, scaled but not offset.
+   * Samples the child acceleration and scales the output without an offset.
+   * JavaScript uses time-first/output-last calls. Existing null-child output scaling differs from native and remains outside this removal.
+   * @param {number} time Time forwarded unchanged.
+   * @param {Float32Array} inOut Destination acceleration.
+   * @returns {Float32Array} The destination.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   GetValueDoubleDotAt(time, inOut)
   {
     if (this.clientBall)
@@ -149,11 +168,14 @@ export class Tr2VectorFunctionModifier extends CjsModel
   }
 
   /**
-   * The wrapped source's interpolated system-coordinate position at a time,
-   * passed through untouched by the offset and scale.
+   * Forwards the interpolated position without applying offset or scale.
+   * JavaScript places the time argument before the output buffer.
+   * @param {number} time Time forwarded unchanged.
+   * @param {Float32Array|Float64Array} out Destination position.
+   * @returns {Float32Array|Float64Array} The destination.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   InterpolatedPosition(time, out)
   {
     if (this.clientBall)
@@ -163,14 +185,33 @@ export class Tr2VectorFunctionModifier extends CjsModel
     return out;
   }
 
+  /**
+   * Retains the native empty curve-set update (Tr2VectorFunctionModifier.h:19-22).
+   * @param {number} _time Unused time.
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.noop
+  UpdateValue(_time)
+  {
+  }
+
   // Carbon branches on m_useSystemCoordinates before every position read
   // (cpp:37-50, :60-74): the system-coordinate path asks for the interpolated
   // double-precision position and narrows it, which Carbon flags as a
   // potential precision loss; JavaScript numbers are already double, so the
   // narrowing happens only when the value reaches a Float32Array.
 
-  /** Reads the wrapped source into `inOut`, by whichever path is authored. */
-  #ReadSource(time, inOut, method)
+  /**
+   * Dispatches the shared source branch extracted from native Update and GetValueAt.
+   * JavaScript helper writes directly into the caller buffer; native checked double-to-float overflow assertions remain unported.
+   * @param {number} time Time forwarded unchanged.
+   * @param {Float32Array} inOut Destination position.
+   * @param {string} method Required child method name.
+   * @returns {Float32Array} The destination.
+   */
+  @impl.custom
+  _ReadSource(time, inOut, method)
   {
     if (!this.clientBall) return inOut;
 
@@ -185,3 +226,9 @@ export class Tr2VectorFunctionModifier extends CjsModel
   }
 
 }
+
+// Exact native exposure table; ITriFunction is intentionally not mapped.
+carbon.interfaceTable({
+  interfaces: [ITriVectorFunction, Tr2VectorFunctionModifier],
+  chainTo: null
+})(Tr2VectorFunctionModifier);

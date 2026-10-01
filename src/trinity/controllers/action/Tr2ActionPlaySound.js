@@ -1,8 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlaySound.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlaySound.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlaySound_Blue.cpp
-import { CjsModel } from "#model";
-import { carbon, impl, edit, type } from "#schema";
+import { meta, types } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
@@ -10,43 +9,56 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
  * Controller action that fires a one-shot audio event on a named emitter when
  * the action starts; it has no stop behaviour.
  */
-@type.define({
+@meta.define({
   className: "Tr2ActionPlaySound",
   family: "controllers"
 })
-@carbon.inherit(ITr2ControllerAction)
-export class Tr2ActionPlaySound extends CjsModel
+export class Tr2ActionPlaySound extends ITr2ControllerAction
 {
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  /** m_emitterName: narrow BlueSharedString emitter lookup name. */
+  @meta.member("emitter")
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   emitter = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  /** m_soundEvent: narrow BlueSharedString, converted to wide text by native SendEvent. */
+  @meta.member("event")
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   event = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  /** m_target: optional parameter or effect-child name. */
+  @meta.member("target")
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   target = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  /** m_bypassPrefix: whether SendEvent bypasses the emitter prefix. */
+  @meta.member("bypassPrefix")
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.boolean
   bypassPrefix = false;
 
   /**
    * Plays a sound event on the resolved audio emitter.
+   * Adapted: retains the existing structural owner/target lookup instead of
+   * native EveMultiEffect, IEveEffectChildrenOwner and ITr2SoundEmitterOwner
+   * casts. IEveEffectChildrenOwner has no shared JS contract yet; this batch
+   * does not invent one. A returned emitter must implement SendEvent. JavaScript
+   * strings replace the native narrow-to-wide conversion, and absent owners
+   * remain silent rather than emitting the native diagnostic.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   Start(controller)
   {
-    const owner = Tr2ActionPlaySound.#resolveOwner(ITr2ControllerAction.getOwner(controller), this.target);
+    const owner = Tr2ActionPlaySound._resolveOwner(ITr2ControllerAction.getOwner(controller), this.target);
     const emitter = ITr2ControllerAction.findSoundEmitter(owner, this.emitter);
-    if (!ITr2ControllerAction.hasFunction(emitter, "SendEvent"))
+    if (!emitter)
     {
       return;
     }
@@ -55,9 +67,12 @@ export class Tr2ActionPlaySound extends CjsModel
 
   /**
    * Starts manually with an explicit controller.
+   * Adapted: preserves the existing non-null action-controller adapter, including
+   * timeline controllers. Native BluePythonCast accepts Tr2Controller specifically
+   * (Tr2ActionPlaySound.cpp:52-61); narrowing this entry point is deferred.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.adapted
   StartWithController(controller)
   {
     this.Start(ITr2ControllerAction.requireController(controller, "StartWithController"));
@@ -67,8 +82,14 @@ export class Tr2ActionPlaySound extends CjsModel
    * Redirects to the object named by `target`, preferring a named parameter
    * owner and otherwise a named effect child; an empty target keeps the
    * controller owner.
+   * Custom: extracted structural target adapter. Unlike native Start, a missing
+   * multi-effect parameter returns null rather than retaining the initial sound
+   * owner. Parameter object/property alternatives remain supported, and a method
+   * lookup takes precedence over effect-child lookup. Native cast/target parity
+   * requires the separate owner-contract migration.
    */
-  static #resolveOwner(owner, target)
+  @meta.impl.custom
+  static _resolveOwner(owner, target)
   {
     if (!owner || !target)
     {
@@ -87,7 +108,7 @@ export class Tr2ActionPlaySound extends CjsModel
 }
 
 // Native exposure ends at this concrete table (Tr2ActionPlaySound_Blue.cpp:13-14,25).
-carbon.interfaceTable({
+meta.carbon.interfaceTable({
   interfaces: [Tr2ActionPlaySound, ITr2ControllerAction],
   chainTo: null
 })(Tr2ActionPlaySound);

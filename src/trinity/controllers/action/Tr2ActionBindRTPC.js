@@ -1,8 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionBindRTPC.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionBindRTPC.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionBindRTPC_Blue.cpp
-import { CjsModel } from "#model";
-import { carbon, impl, edit, type } from "#schema";
+import { meta, types } from "#schema";
 import { blue, INotify } from "#blue";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
@@ -14,82 +13,101 @@ import { ITr2Updateable } from "../../core/ITr2Updateable.js";
  * expression-driven value into a named Wwise real-time parameter on a sound
  * emitter.
  */
-@type.define({
+@meta.define({
   className: "Tr2ActionBindRTPC",
   family: "controllers"
 })
-@carbon.inherit(ITr2ControllerAction, ITr2Updateable, INotify)
-export class Tr2ActionBindRTPC extends CjsModel
+@meta.carbon.inherit(ITr2Updateable, INotify)
+export class Tr2ActionBindRTPC extends ITr2ControllerAction
 {
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   value = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   emitter = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.wstring
   rtpcName = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("ITriScalarFunction")
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.objectRef("ITriScalarFunction")
   curve = null;
 
-  #runtime = CjsControllerExpressionProgram.createRuntimeState();
+  /** Live readonly validity of the retained AST evaluator, without recompilation. */
+  @meta.property()
+  @meta.edit.read
+  @types.boolean
+  @meta.impl.adapted
+  get isExpressionValid()
+  {
+    return this._runtime.program !== null && this._runtime.program.IsValid();
+  }
 
-  #emitter = null;
+  /** AST evaluator and clock record replace native evaluator/buffer storage. */
+  _runtime = CjsControllerExpressionProgram.createRuntimeState();
+
+  /** Native m_emitter: the RTPC target retained by Start. */
+  _emitter = null;
 
   /**
    * Links and compiles the RTPC value expression.
+   * Adapted: a CSP-safe AST program replaces native parser bytecode.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   Link(controller)
   {
-    this.#runtime.controller = controller;
+    this._runtime.controller = controller;
     this.CompileExpression();
   }
 
   /**
    * Clears runtime expression state.
+   * Adapted: the existing JS cache reset also resets timestamps; native clears
+   * only its controller and evaluator. The emitter remains retained in both.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.adapted
   Unlink()
   {
-    this.#runtime = CjsControllerExpressionProgram.createRuntimeState();
+    this._runtime = CjsControllerExpressionProgram.createRuntimeState();
   }
 
   /**
    * Starts RTPC updates.
+   * Adapted: retains optional-controller and owner lookup helpers, updates the
+   * JS controller/last time, and resolves or clears the target before registering.
+   * Native registers first and retains an old target if lookup finds none.
    */
-  @carbon.method
-  @impl.adapted
-  Start(controller = this.#runtime.controller)
+  @meta.carbon.method
+  @meta.impl.adapted
+  Start(controller = this._runtime.controller)
   {
     if (!controller)
     {
       return;
     }
-    this.#runtime.controller = controller;
-    this.#runtime.startTime = blue.os.GetCurrentFrameTime();
-    this.#runtime.lastTime = this.#runtime.startTime;
-    this.#emitter = ITr2ControllerAction.findSoundEmitter(ITr2ControllerAction.getOwner(controller), this.emitter);
-    controller.RegisterUpdateable?.(this);
+    this._runtime.controller = controller;
+    this._runtime.startTime = blue.os.GetCurrentFrameTime();
+    this._runtime.lastTime = this._runtime.startTime;
+    this._emitter = ITr2ControllerAction.findSoundEmitter(ITr2ControllerAction.getOwner(controller), this.emitter);
+    controller.RegisterUpdateable(this);
   }
 
   /**
    * Starts manually with an explicit controller.
+   * Adapted: JavaScript TypeError represents native Python null-argument errors.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.adapted
   StartWithController(controller)
   {
     this.Start(ITr2ControllerAction.requireController(controller, "StartWithController"));
@@ -97,62 +115,66 @@ export class Tr2ActionBindRTPC extends CjsModel
 
   /**
    * Stops RTPC updates.
+   * Adapted: the omitted-controller JS convenience uses the current link, if any.
    */
-  @carbon.method
-  @impl.implemented
-  Stop(controller = this.#runtime.controller)
+  @meta.carbon.method
+  @meta.impl.adapted
+  Stop(controller = this._runtime.controller)
   {
-    controller?.UnRegisterUpdateable?.(this);
+    if (controller) controller.UnRegisterUpdateable(this);
   }
 
   /**
    * Stops manually with an explicit controller.
+   * Adapted: JavaScript TypeError represents native Python null-argument errors.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.adapted
   StopWithController(controller)
   {
     this.Stop(ITr2ControllerAction.requireController(controller, "StopWithController"));
   }
 
   /**
-   * Updates the target RTPC value.
+   * Evaluates the retained program each tick and updates the target RTPC.
+   * Adapted: the CSP-safe AST context replaces native ExtraBuffer/bytecode.
+   * Evaluation failures skip the target; successful NaN/Infinity are preserved.
+   * Required target errors remain visible outside the evaluator failure boundary.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   Update(_realTime, simTime)
   {
-    const controller = this.#runtime.controller;
-    if (!controller)
+    this._runtime.lastTime = simTime;
+    const controller = this._runtime.controller;
+    const program = this._runtime.program;
+    if (!program || !program.IsValid()) return;
+    let value;
+    try
     {
+      value = Number(program.Evaluate(CjsControllerExpressionProgram.makeActionContext(controller, ITr2ControllerAction.getOwner(controller), this._runtime, {
+        action: this
+      })));
+    }
+    catch
+    {
+      // Native Eval returns a success flag separately from its numeric result.
       return;
     }
-    this.#runtime.lastTime = simTime;
-    const program = this.CompileExpression();
-    if (!program.IsValid())
-    {
-      return;
-    }
-    const value = Number(program.Evaluate(CjsControllerExpressionProgram.makeActionContext(controller, ITr2ControllerAction.getOwner(controller), this.#runtime, {
-      action: this
-    }))) || 0;
-    if (ITr2ControllerAction.hasFunction(this.#emitter, "SetRTPC"))
-    {
-      this.#emitter.SetRTPC(this.rtpcName, value);
-    }
+    if (this._emitter) this._emitter.SetRTPC(this.rtpcName, value);
   }
 
   /**
-   * Recompiles when authored fields change.
+   * Recompiles when the authored value receives its notification.
+   * Adapted: the exposed member name replaces native member-address matching.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
+  @meta.carbon.method
+  @meta.impl.adapted
   OnModified(propertyName)
   {
-    if (this.#runtime.controller && propertyName === "value")
+    if (this._runtime.controller && propertyName === "value")
     {
-      this.#runtime.program = null;
+      this._runtime.program = null;
       this.CompileExpression();
     }
     return true;
@@ -160,9 +182,11 @@ export class Tr2ActionBindRTPC extends CjsModel
 
   /**
    * Checks whether the expression compiles.
+   * Adapted: retains the JS explicit lazy-compilation helper. The live property
+   * observes the retained program without compiling.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.adapted
   IsExpressionValid()
   {
     return this.CompileExpression().IsValid();
@@ -174,8 +198,8 @@ export class Tr2ActionBindRTPC extends CjsModel
    * takes and discards the attribute name. Same forward here for nominal
    * parity.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   IsAttrExpressionValid(_attributeName)
   {
     return this.IsExpressionValid();
@@ -183,34 +207,38 @@ export class Tr2ActionBindRTPC extends CjsModel
 
   /**
    * Gets a curve value for expression helpers.
+   * Returns zero for no curve; a present ITriScalarFunction supplies GetValueAt.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.implemented
   GetCurveValue(time)
   {
-    return CjsControllerExpressionProgram.getCurveValue(this.curve, time);
+    return this.curve ? this.curve.GetValueAt(time) : 0;
   }
 
   /**
    * Gets expression term metadata from the linked controller.
+   * Adapted: shared AST term records replace native Tr2ExpressionTermInfo objects.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   GetExpressionTermInfo()
   {
     const result = [];
     CjsControllerExpressionProgram.addControllerTermInfo(result, {
       curve: true
     });
-    this.#runtime.controller?.GetExpressionTermInfo?.(result);
+    if (this._runtime.controller) this._runtime.controller.GetExpressionTermInfo(result);
     return result;
   }
 
   /**
    * Evaluates an expression against this action's controller context.
+   * Adapted: retains JS unlinked evaluation and zero fallback for invalid syntax
+   * rather than native BlueStdResult error returns.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   EvaluateExpression(expression)
   {
     const state = {
@@ -224,8 +252,8 @@ export class Tr2ActionBindRTPC extends CjsModel
     {
       return 0;
     }
-    const controller = this.#runtime.controller;
-    return Number(program.Evaluate(CjsControllerExpressionProgram.makeActionContext(controller, ITr2ControllerAction.getOwner(controller), this.#runtime, {
+    const controller = this._runtime.controller;
+    return Number(program.Evaluate(CjsControllerExpressionProgram.makeActionContext(controller, ITr2ControllerAction.getOwner(controller), this._runtime, {
       action: this
     }))) || 0;
   }
@@ -233,17 +261,19 @@ export class Tr2ActionBindRTPC extends CjsModel
   /**
    * Compiles the authored value expression with the `Curve` function bound to
    * this action's curve, reusing the cached program while the text is unchanged.
+   * This JS-only helper owns the CSP-safe AST cache.
    */
+  @meta.impl.custom
   CompileExpression()
   {
-    return CjsControllerExpressionProgram.compileCached(this.#runtime, this.value, 0, {
+    return CjsControllerExpressionProgram.compileCached(this._runtime, this.value, 0, {
       Curve: (_ctx, time) => this.GetCurveValue(Number(time))
     });
   }
 }
 
 // Native exposure ends at this concrete table (Tr2ActionBindRTPC_Blue.cpp:14-17,52).
-carbon.interfaceTable({
+meta.carbon.interfaceTable({
   interfaces: [Tr2ActionBindRTPC, ITr2ControllerAction, ITr2Updateable, INotify],
   chainTo: null
 })(Tr2ActionBindRTPC);

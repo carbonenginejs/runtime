@@ -14,7 +14,7 @@ import { ExecuteMainThreadActions } from "../../npm/dist/trinity/core/continueOn
 import { Tr2Controller } from "../../npm/dist/trinity/controllers/Tr2Controller.js";
 import { ITr2ControllerAction } from "../../npm/dist/trinity/controllers/action/ITr2ControllerAction.js";
 import { Tr2ActionCallback } from "../../npm/dist/trinity/controllers/action/Tr2ActionCallback.js";
-import { Tr2ActionPlaySound } from "../../npm/dist/trinity/controllers/action/Tr2ActionPlaySound.js";
+import { Tr2ActionChildEffect } from "../../npm/dist/trinity/controllers/action/Tr2ActionChildEffect.js";
 import { Tr2ControllerFloatVariable } from "../../npm/dist/trinity/controllers/expression/Tr2ControllerFloatVariable.js";
 import { ITr2StateMachineStateFinalizer } from "../../npm/dist/trinity/controllers/state/ITr2StateMachineStateFinalizer.js";
 import { Tr2StateMachine } from "../../npm/dist/trinity/controllers/state/Tr2StateMachine.js";
@@ -624,7 +624,7 @@ test("Blue dictionary construction and population preserve configured storage an
   {
     return {
       name: label,
-      actions: [{ _ref: "action" }, { _type: "Tr2ActionPlaySound", _id: "action", event: label }],
+      actions: [{ _ref: "action" }, { _type: "Tr2ActionChildEffect", _id: "action", childName: label }],
       transitions: [{ _ref: "transition" }, { _type: "Tr2StateMachineTransition", _id: "transition", name: label, condition: "1" }]
     };
   }
@@ -635,7 +635,7 @@ test("Blue dictionary construction and population preserve configured storage an
   assert.equal(transitions.length, 2);
   assert.equal(actions[0], actions[1]);
   assert.equal(transitions[0], transitions[1]);
-  assert.ok(actions[0] instanceof Tr2ActionPlaySound);
+  assert.ok(actions[0] instanceof Tr2ActionChildEffect);
   assert.equal(CjsSchema.cast(actions[0], CjsModel), actions[0], "this mixed graph retains an actual legacy action");
   assert.ok(transitions[0] instanceof Tr2StateMachineTransition);
   const oldAction = actions[0], oldTransition = transitions[0], events = Observe(state);
@@ -643,7 +643,7 @@ test("Blue dictionary construction and population preserve configured storage an
   state.OnListModified = function(event, key, key2, value, list)
   {
     if (event === BELIST_LOADFINISHED) ready.push({ list, values: Array.from(list,
-      item => list === actions ? item.event : [item.name, item.condition]) });
+      item => list === actions ? item.childName : [item.name, item.condition]) });
     return notify.call(this, event, key, key2, value, list);
   };
   new DictReader({ declarations: true }).ReadInto(state, Values("second"), state);
@@ -652,7 +652,7 @@ test("Blue dictionary construction and population preserve configured storage an
   assert.equal(transitions[0], transitions[1]);
   assert.notEqual(actions[0], oldAction);
   assert.notEqual(transitions[0], oldTransition);
-  assert.equal(actions[0].event, "second");
+  assert.equal(actions[0].childName, "second");
   assert.equal(ready.length, 2);
   assert.equal(ready[0].list, actions);
   assert.equal(ready[1].list, transitions);

@@ -47,7 +47,7 @@ const cases = [
     own: ["Link", "Unlink", "Start", "Stop", "RebaseSimTime", "Update", "OnModified"]
   },
   {
-    Type: Tr2ActionBindRTPC, nominal: [A, U, N], query: [Tr2ActionBindRTPC, A, U, N],
+    Type: Tr2ActionBindRTPC, modelFree: true, nominal: [A, U, N], query: [Tr2ActionBindRTPC, A, U, N],
     own: ["Link", "Unlink", "Start", "Stop", "Update", "OnModified"]
   },
   {
@@ -59,7 +59,7 @@ const cases = [
     own: ["Link", "Start", "Stop"]
   },
   {
-    Type: Tr2ActionOverlay, nominal: [A], query: [Tr2ActionOverlay, A],
+    Type: Tr2ActionOverlay, modelFree: true, nominal: [A], query: [Tr2ActionOverlay, A],
     own: ["Start", "Stop"]
   },
   {
@@ -67,11 +67,11 @@ const cases = [
     own: ["Start", "Stop", "RebaseSimTime", "CanTransition", "Update"]
   },
   {
-    Type: Tr2ActionPlayMeshAnimation, nominal: [A, N], query: [Tr2ActionPlayMeshAnimation, A, N],
+    Type: Tr2ActionPlayMeshAnimation, modelFree: true, nominal: [A, N], query: [Tr2ActionPlayMeshAnimation, A, N],
     own: ["Link", "Unlink", "Start", "Stop", "OnModified"]
   },
   {
-    Type: Tr2ActionPlaySound, nominal: [A], query: [Tr2ActionPlaySound, A],
+    Type: Tr2ActionPlaySound, modelFree: true, nominal: [A], query: [Tr2ActionPlaySound, A],
     own: ["Start"]
   },
   {
@@ -92,7 +92,7 @@ const cases = [
     own: ["Start"]
   },
   {
-    Type: Tr2ActionSetAudioSwitch, nominal: [A], query: [Tr2ActionSetAudioSwitch, A],
+    Type: Tr2ActionSetAudioSwitch, modelFree: true, nominal: [A], query: [Tr2ActionSetAudioSwitch, A],
     own: ["Start"]
   },
   {
@@ -108,7 +108,7 @@ const cases = [
     own: ["Link", "Unlink", "Start", "OnModified"]
   },
   {
-    Type: Tr2ActionSpawnParticles, nominal: [A], query: [Tr2ActionSpawnParticles, A],
+    Type: Tr2ActionSpawnParticles, modelFree: true, nominal: [A], query: [Tr2ActionSpawnParticles, A],
     own: ["Start"]
   }
 ];

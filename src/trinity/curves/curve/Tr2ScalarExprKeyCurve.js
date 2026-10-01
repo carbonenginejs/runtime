@@ -362,7 +362,7 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
     let previousKey = null;
     for (const key of this.keys)
     {
-      key.ReEvaluate(previousKey);
+      key.UpdateValues(previousKey);
       previousKey = key;
     }
   }
