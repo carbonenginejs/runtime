@@ -1,200 +1,211 @@
 // Source: trinity/trinity/Eve/Turret/EveTurretFiringFX.h
 // Source: trinity/trinity/Eve/Turret/EveTurretFiringFX.cpp
 // Source: trinity/trinity/Eve/Turret/EveTurretFiringFX_Blue.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { CjsSchema, meta, types } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { getDeltaTime, getTime, translationMatrix } from "../../renderable/stretch/CjsStretchRuntime.js";
+import { translationMatrix } from "../../renderable/stretch/CjsStretchRuntime.js";
 import { ImpactConfiguration } from "../../../generated/include/enums.js";
+import { ITr2ControllerOwner } from "../../../controllers/ITr2ControllerOwner.js";
+import { mappedInterfaces } from "../../../../global/compose/interface.js";
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
+import { INotify } from "../../../../global/blue/INotify.js";
+import { IListNotify } from "../../../../global/blue/IListNotify.js";
+import { blue } from "../../../../global/blue/blue.js";
+import { TimeAsDouble } from "../../../../global/blue/CcpTime.js";
+import { BLUELISTEVENT } from "#consts/blue";
+import { EveUpdateContext } from "../../EveUpdateContext.js";
 
 /** Coordinates a turret set's multi-muzzle firing effects, delays, stretch endpoints, observers, and impact timing. */
-@type.define({ className: "EveTurretFiringFX", family: "eve/attachment/turrets" })
+@meta.define({ className: "EveTurretFiringFX", family: "eve/attachment/turrets" })
+@meta.carbon.inherit(IInitialize, INotify, IListNotify, ITr2ControllerOwner)
+@meta.carbon.mapInterface(IInitialize, INotify, IListNotify, ITr2ControllerOwner, EveEntity)
 export class EveTurretFiringFX extends EveEntity
 {
 
   /** m_startCurveSet (TriCurveSetPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("TriCurveSet")
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.objectRef("TriCurveSet")
   startCurveSet = null;
 
   /** m_stopCurveSet (TriCurveSetPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("TriCurveSet")
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.objectRef("TriCurveSet")
   stopCurveSet = null;
 
   /** m_stretch (PIEveFiringEffectElementVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("IEveFiringEffectElement")
+  @meta.edit.read
+  @meta.edit.persist
+  @types.list("IEveFiringEffectElement")
   stretch = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   name = "";
 
   /** m_firingPeakTime (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   firingPeakTime = 0;
 
   /** m_perMuzzleData[0].constantDelay (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   firingDelay1 = 0;
 
   /** m_perMuzzleData[9].constantDelay (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   firingDelay10 = 0;
 
   /** m_perMuzzleData[10].constantDelay (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   firingDelay11 = 0;
 
   /** m_perMuzzleData[11].constantDelay (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   firingDelay12 = 0;
 
   /** m_perMuzzleData[1].constantDelay (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   firingDelay2 = 0;
 
   /** m_perMuzzleData[2].constantDelay (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   firingDelay3 = 0;
 
   /** m_perMuzzleData[3].constantDelay (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   firingDelay4 = 0;
 
   /** m_perMuzzleData[4].constantDelay (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   firingDelay5 = 0;
 
   /** m_perMuzzleData[5].constantDelay (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   firingDelay6 = 0;
 
   /** m_perMuzzleData[6].constantDelay (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   firingDelay7 = 0;
 
   /** m_perMuzzleData[7].constantDelay (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   firingDelay8 = 0;
 
   /** m_perMuzzleData[8].constantDelay (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   firingDelay9 = 0;
 
   /** m_endPosition (Vector3) [READWRITE] */
-  @edit.readwrite
-  @type.vec3
+  @meta.edit.readwrite
+  @types.vec3
   endPosition = vec3.create();
 
   /** m_firingDuration (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.edit.read
+  @types.float32
   firingDuration = 1000;
 
   /** m_isFiring (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.edit.read
+  @types.boolean
   isFiring = false;
 
   /** m_destinationObserver (TriObserverLocalPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("TriObserverLocal")
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.objectRef("TriObserverLocal")
   destinationObserver = null;
 
   /** m_sourceObserver (TriObserverLocalPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("TriObserverLocal")
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.objectRef("TriObserverLocal")
   sourceObserver = null;
 
   /** m_firingDurationOverride (float) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   firingDurationOverride = -1;
 
   /** m_useMuzzleTransform (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.boolean
   useMuzzleTransform = false;
 
   /** m_isLoopFiring (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.boolean
   isLoopFiring = false;
 
   /** m_boneName (BlueSharedString) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   boneName = "Pos_Fire";
 
   /** m_display (bool) [READWRITE, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @type.boolean
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @types.boolean
   display = true;
 
   /** m_scaleEffectTarget (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.boolean
   scaleEffectTarget = false;
 
   /** m_minRadius (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   minRadius = 30;
 
   /** m_maxRadius (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   maxRadius = 3000;
 
   /** m_minScale (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   minScale = 1;
 
   _perMuzzleData = [];
@@ -210,8 +221,8 @@ export class EveTurretFiringFX extends EveEntity
    * preferring a non-negative firingDurationOverride and otherwise the longest
    * stretch-element curve.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   Initialize()
   {
     this._ensureMuzzleData();
@@ -227,13 +238,17 @@ export class EveTurretFiringFX extends EveEntity
   /**
    * Stops firing and runs one asynchronous then one synchronous update so the
    * stretch elements settle into their stopped state before the effect is
-   * discarded.
+   * discarded. JS converts Blue ticks once to the existing seconds-based context
+   * and restores the native time-taking constructor's LOD defaults.
    */
-  @carbon.method
-  @impl.implemented
-  CleanUp(context = { currentTime: 0, deltaTime: 0 })
+  @meta.carbon.method
+  @meta.impl.adapted
+  CleanUp()
   {
     this.StopFiring();
+    const context = new EveUpdateContext();
+    context.SetTime(TimeAsDouble(blue.os.GetCurrentFrameTime()));
+    context.SetLodFactor(1);
     this.UpdateAsynchronous(context);
     this.UpdateSynchronous(context);
   }
@@ -241,10 +256,10 @@ export class EveTurretFiringFX extends EveEntity
   /**
    * Recomputes the firing duration after a property change, taking the override
    * when it is non-negative and the longest element curve otherwise.
+   * JS identifies the changed native member by its exposed name.
    */
-  @carbon.method
-  @impl.implemented
-  @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
+  @meta.carbon.method
+  @meta.impl.implemented
   OnModified(propertyName)
   {
     if (propertyName === "firingDurationOverride")
@@ -256,11 +271,33 @@ export class EveTurretFiringFX extends EveEntity
   }
 
   /**
+   * Registers inserted or removed firing elements after a live stretch-list mutation.
+   * Loading events are ignored; the list owner dispatches notifications after mutation.
+   * @param {number} event Native BLUELISTEVENT flags.
+   * @param {number} _key Changed index.
+   * @param {number} _key2 Secondary index.
+   * @param {object|null} value Changed element.
+   * @param {Array|null} list Changed list.
+   */
+  @meta.carbon.method
+  @meta.impl.adapted
+  OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
+  {
+    if (!this.isFiring || list !== this.stretch || (event & BLUELISTEVENT.BELIST_LOADING)) return;
+    if (!value || !mappedInterfaces(value.constructor).has(EveEntity)) return;
+    const registry = this.GetComponentRegistry();
+    if (!registry) return;
+    const operation = event & BLUELISTEVENT.BELIST_EVENTMASK;
+    if (operation === BLUELISTEVENT.BELIST_INSERTED && this.display) value.Register(registry);
+    else if (operation === BLUELISTEVENT.BELIST_REMOVED) value.UnRegister(registry);
+  }
+
+  /**
    * Binds a muzzle slot to a parent bone id; a muzzle id outside the
    * twelve-muzzle range is ignored rather than reported.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   SetMuzzleBoneID(muzzleID, boneID)
   {
     this._ensureMuzzleData();
@@ -271,8 +308,8 @@ export class EveTurretFiringFX extends EveEntity
    * Copies a world muzzle transform into a muzzle slot; a muzzle id outside the
    * twelve-muzzle range is ignored rather than reported.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   SetMuzzleTransform(muzzleID, transform)
   {
     this._ensureMuzzleData();
@@ -285,8 +322,7 @@ export class EveTurretFiringFX extends EveEntity
    * @param {mat4} [out] Caller-owned matrix to fill; a fresh one is allocated when omitted.
    * @returns {mat4} out.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.impl.custom
   GetMuzzleTransform(muzzleID, out = mat4.create())
   {
     this._ensureMuzzleData();
@@ -297,8 +333,8 @@ export class EveTurretFiringFX extends EveEntity
    * Sets the world point every stretch element extends towards, which is the
    * impact end of the shot.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   SetEndPosition(value)
   {
     vec3.copy(this.endPosition, value);
@@ -310,28 +346,35 @@ export class EveTurretFiringFX extends EveEntity
    * and hands the raw radius to the destination observer as an audio attenuation
    * factor; does nothing unless scaleEffectTarget is authored.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   SetScaleByRadius(radius)
   {
     if (!this.scaleEffectTarget) return;
-    const span = this.maxRadius - this.minRadius;
-    const amount = span ? (Number(radius) - this.minRadius) / span : 0;
-    const scale = Math.max(this.minScale, Math.min(this.maxScale, this.minScale + amount * (this.maxScale - this.minScale)));
+    const scale = Math.max(this.minScale, Math.min(this.maxScale,
+      (radius - this.minRadius) * (this.maxScale - this.minScale) / (this.maxRadius - this.minRadius) + this.minScale));
     for (const stretch of this.stretch)
     {
       if (!stretch) continue;
       stretch.SetDestObjectScale(scale);
     }
-    this.destinationObserver?.GetObserver()?.SetAttenuationScalingFactor?.(Number(radius));
+    if (this.destinationObserver)
+    {
+      const emitter = this.destinationObserver.GetObserver();
+      const contract = CjsSchema.GetConstructor("ITr2AudEmitter");
+      if (emitter && contract && mappedInterfaces(emitter.constructor).has(contract))
+      {
+        emitter.SetAttenuationScalingFactor(radius);
+      }
+    }
   }
 
   /**
    * Restarts a looping burst by telling every stretch element to move again,
    * without resetting the per-muzzle delays that PrepareFiring establishes.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   PrepareFiringEffectMoveObjects()
   {
     for (const stretch of this.stretch)
@@ -339,7 +382,11 @@ export class EveTurretFiringFX extends EveEntity
       if (!stretch) continue;
       stretch.StartMoving();
     }
-    this.isFiring = true;
+    if (!this.isFiring)
+    {
+      this.isFiring = true;
+      this.ReRegister();
+    }
   }
 
   /**
@@ -348,8 +395,8 @@ export class EveTurretFiringFX extends EveEntity
    * @param {number} [muzzleID] First muzzle of the firing group; INVALID_INDEX arms every muzzle.
    * @param {number} [muzzleCount] Number of consecutive muzzles in the group.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   PrepareFiring(delay, muzzleID = EveTurretFiringFX.INVALID_INDEX, muzzleCount = EveTurretFiringFX.INVALID_INDEX)
   {
     this._ensureMuzzleData();
@@ -362,15 +409,19 @@ export class EveTurretFiringFX extends EveEntity
       data.readyToStart = false;
       data.elapsedTime = 0;
     }
-    this.isFiring = true;
+    if (!this.isFiring)
+    {
+      this.isFiring = true;
+      this.ReRegister();
+    }
   }
 
   /**
    * The longest curve duration across the stretch elements, which is what the
    * firing duration falls back to when no override is authored.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetCurveDuration()
   {
     let duration = 0;
@@ -387,8 +438,8 @@ export class EveTurretFiringFX extends EveEntity
    * @param {vec3} [out] Caller-owned vector filled with the averaged position.
    * @returns {boolean} False when the effect is not firing or no muzzle has started, in which case out is left untouched.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetStartPosition(out = vec3.create())
   {
     if (!this.isFiring) return false;
@@ -412,8 +463,8 @@ export class EveTurretFiringFX extends EveEntity
    * The firing duration in force: the override when non-negative, otherwise the
    * duration resolved at Initialize.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetFiringDuration()
   {
     return this.firingDurationOverride >= 0 ? this.firingDurationOverride : this.firingDuration;
@@ -423,8 +474,8 @@ export class EveTurretFiringFX extends EveEntity
    * The authored offset into the burst at which the shot is considered to land,
    * used to time the target's impact.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetFiringPeakTime()
   {
     return this.firingPeakTime;
@@ -434,8 +485,8 @@ export class EveTurretFiringFX extends EveEntity
    * The name of the bone muzzle locators are resolved under, Pos_Fire unless
    * authored otherwise.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetFiringBoneName()
   {
     return this.boneName;
@@ -446,16 +497,16 @@ export class EveTurretFiringFX extends EveEntity
    * plays backdated by the muzzle's remaining delay and the stop curve set is
    * halted; returns false when the muzzle has no record or no element.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   StartMuzzleEffect(muzzleID)
   {
     this._ensureMuzzleData();
     const data = this._perMuzzleData[muzzleID];
     if (!data || !this.stretch[muzzleID]) return false;
     this.stretch[muzzleID].StartFiring(data.currentStartDelay);
-    this.startCurveSet?.PlayFrom(-data.currentStartDelay);
-    this.stopCurveSet?.Stop();
+    if (this.startCurveSet) this.startCurveSet.PlayFrom(-data.currentStartDelay);
+    if (this.stopCurveSet) this.stopCurveSet.Stop();
     data.started = true;
     data.readyToStart = false;
     return true;
@@ -466,8 +517,8 @@ export class EveTurretFiringFX extends EveEntity
    * curve set and plays the stop curve set; does nothing when the effect is not
    * firing.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   StopFiring()
   {
     if (!this.isFiring) return;
@@ -478,17 +529,18 @@ export class EveTurretFiringFX extends EveEntity
       if (stretch) stretch.StopFiring();
       Object.assign(this._perMuzzleData[index], { started: false, readyToStart: false, currentStartDelay: 0, elapsedTime: 0 });
     }
-    this.startCurveSet?.Stop();
-    this.stopCurveSet?.Play();
+    if (this.startCurveSet) this.startCurveSet.Stop();
+    if (this.stopCurveSet) this.stopCurveSet.Play();
     this.isFiring = false;
+    this.ReRegister();
   }
 
   /**
    * Whether any muzzle has run its delay down but not yet started, and is still
    * inside the firing duration or belongs to a looping effect.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   ReadyToFire()
   {
     this._ensureMuzzleData();
@@ -500,15 +552,14 @@ export class EveTurretFiringFX extends EveEntity
    * Advances each muzzle's delay and elapsed time, starts the muzzles whose
    * delay expired, pushes the muzzle and end transforms into their stretch
    * elements, then updates the active curve set and both observers; returns
-   * whether a muzzle started firing on this call.
+   * whether a muzzle started firing on this call. JS executes the task phase serially.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon's task update is serial in the browser; firing elements retain their explicit async phase.")
+  @meta.carbon.method
+  @meta.impl.adapted
   UpdateAsynchronous(context)
   {
     this._ensureMuzzleData();
-    const deltaTime = getDeltaTime(context);
+    const deltaTime = context.GetDeltaT();
     let justFired = false;
     for (let index = 0; index < this.stretch.length; index++)
     {
@@ -543,20 +594,19 @@ export class EveTurretFiringFX extends EveEntity
       }
     }
     const curveSet = this.isFiring ? this.startCurveSet : this.stopCurveSet;
-    const time = getTime(context);
+    const time = context.GetTime();
     if (curveSet) curveSet.Update(time, time, context.renderContext);
-    this.sourceObserver?.Update(this._perMuzzleData[0]?.muzzleTransform ?? EveTurretFiringFX._identity);
-    this.destinationObserver?.Update(translationMatrix(this.endPosition, EveTurretFiringFX._destinationTransform));
+    if (this.sourceObserver) this.sourceObserver.Update(this._perMuzzleData[0].muzzleTransform);
+    if (this.destinationObserver) this.destinationObserver.Update(translationMatrix(this.endPosition, EveTurretFiringFX._destinationTransform));
     return justFired;
   }
 
   /**
    * Runs the synchronous element update for every muzzle still inside the firing
-   * duration, or for all of them when the effect loops.
+   * duration, or for all of them when the effect loops. JS executes the task phase serially.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon's task update is serial in the browser; firing elements retain their explicit sync phase.")
+  @meta.carbon.method
+  @meta.impl.adapted
   UpdateSynchronous(context)
   {
     this._ensureMuzzleData();
@@ -573,8 +623,7 @@ export class EveTurretFiringFX extends EveEntity
    * Runs the asynchronous then synchronous phase in order and reports whether a
    * muzzle started firing.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.impl.custom
   Update(context)
   {
     const fired = this.UpdateAsynchronous(context);
@@ -583,14 +632,13 @@ export class EveTurretFiringFX extends EveEntity
   }
 
   /**
-   * Updates visibility on every started element and, when several bone-free
-   * muzzles fire at once, merges them by shifting the whole set's intensity onto
+   * Updates visibility on every started element and, when several muzzles fire
+   * without using a valid bone transform, merges them by shifting the set's intensity onto
    * the first element as the muzzle cluster shrinks below the frustum's LOD
    * angle; gated on display and isFiring.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Visibility is forwarded to graph elements; small-angle muzzle merging uses portable frustum fields when present.")
+  @meta.carbon.method
+  @meta.impl.implemented
   UpdateVisibility(context)
   {
     if (!(this.display && this.isFiring)) return;
@@ -603,31 +651,32 @@ export class EveTurretFiringFX extends EveEntity
       if (stretch && data.started && (data.elapsedTime <= this.firingDuration || this.isLoopFiring))
       {
         stretch.UpdateVisibility(context, EveTurretFiringFX._identity);
+      }
+      if (stretch && data.started && (data.elapsedTime < this.firingDuration || this.isLoopFiring))
+      {
         active.push(index);
       }
     }
-    if (active.length <= 1 || active.some(index => this._perMuzzleData[index].muzzlePositionBoneID !== EveTurretFiringFX.INVALID_INDEX)) return;
+    if (active.length <= 1 || (this.useMuzzleTransform && active.some(index => this._perMuzzleData[index].muzzlePositionBoneID !== EveTurretFiringFX.INVALID_INDEX))) return;
     vec3.zero(EveTurretFiringFX._center);
     for (const index of active) vec3.add(EveTurretFiringFX._center, EveTurretFiringFX._center, this._perMuzzleData[index].muzzleTransform.subarray(12, 15));
     vec3.scale(EveTurretFiringFX._center, EveTurretFiringFX._center, 1 / active.length);
     let radius = 0;
     for (const index of active) radius = Math.max(radius, vec3.distance(EveTurretFiringFX._center, this._perMuzzleData[index].muzzleTransform.subarray(12, 15)));
-    const frustum = context?.frustum ?? context?.GetFrustum?.();
-    const viewPosition = frustum?.viewPosition ?? frustum?.viewPos;
-    if (!viewPosition) return;
+    const frustum = context.GetFrustum();
+    const viewPosition = frustum.viewPos;
     const angle = Math.atan(radius * 2 / (vec3.distance(viewPosition, EveTurretFiringFX._center) + 1));
-    const lodAngle = Number(frustum.fov ?? 1) * 0.002;
+    const lodAngle = frustum.fov * 0.002;
     const merge = angle <= lodAngle ? 0 : Math.min((angle - lodAngle) / lodAngle, 1);
     active.forEach((index, order) => this.stretch[index].SetIntensity(order ? merge : active.length + (1 - active.length) * merge));
   }
 
   /**
    * Appends the renderables of every started element still inside the firing
-   * duration to out; gated on display and isFiring.
+   * duration to out; gated on display and isFiring. JS returns the caller's output array.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Renderable collection is backend-neutral; draw realization is not ported yet.")
+  @meta.carbon.method
+  @meta.impl.adapted
   GetRenderables(out = [])
   {
     if (!(this.display && this.isFiring)) return out;
@@ -642,16 +691,16 @@ export class EveTurretFiringFX extends EveEntity
   }
 
   /** Registers every stretch with the quad renderer (cpp:771-777). */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     for (const stretch of this.stretch) stretch.RegisterWithQuadRenderer(quadRenderer);
   }
 
   /** Collects stretch quads only while displayed and firing (cpp:780-792). */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     if (!this.display || !this.isFiring) return;
@@ -659,17 +708,17 @@ export class EveTurretFiringFX extends EveEntity
   }
 
   /** m_maxScale (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   maxScale = 10;
 
   /**
    * The number of muzzles the effect drives, which is the number of authored
    * stretch elements rather than the twelve-muzzle maximum.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetPerMuzzleEffectCount()
   {
     return this.stretch.length;
@@ -679,8 +728,8 @@ export class EveTurretFiringFX extends EveEntity
    * The parent bone id bound to a muzzle slot, or INVALID_INDEX when the muzzle
    * rides a supplied transform instead of a bone.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetPerMuzzleBoneID(muzzleID)
   {
     this._ensureMuzzleData();
@@ -691,8 +740,8 @@ export class EveTurretFiringFX extends EveEntity
    * Whether the burst repeats instead of ending when the firing duration
    * elapses.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   IsLooping()
   {
     return this.isLoopFiring;
@@ -702,16 +751,16 @@ export class EveTurretFiringFX extends EveEntity
    * Sets whether the stretch elements draw their destination end, which is the
    * impact on the target.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   SetDisplayDestObject(display)
   {
     this._displayDestObject = !!display;
   }
 
   /** Whether the stretch elements draw their destination end. */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetDisplayDestObject()
   {
     return this._displayDestObject;
@@ -721,52 +770,67 @@ export class EveTurretFiringFX extends EveEntity
    * Sets whether the stretch elements draw their source end, which is the muzzle
    * flash.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   SetDisplaySourceObject(display)
   {
     this._displaySourceObject = !!display;
   }
 
   /** Whether the stretch elements draw their source end. */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetDisplaySourceObject()
   {
     return this._displaySourceObject;
   }
 
-  /** Forwards a named controller variable to every stretch element. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Controller ownership is represented by direct firing-element method forwarding.")
+  /** Forwards a named variable to stretches exposing Carbon's controller-owner interface. */
+  @meta.carbon.method
+  @meta.impl.implemented
   SetControllerVariable(name, value)
   {
-    for (const stretch of this.stretch) stretch?.SetControllerVariable(name, value);
+    for (const stretch of this.stretch)
+    {
+      if (stretch && mappedInterfaces(stretch.constructor).has(ITr2ControllerOwner))
+      {
+        stretch.SetControllerVariable(name, value);
+      }
+    }
   }
 
-  /** Forwards a named controller event to every stretch element. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Controller ownership is represented by direct firing-element method forwarding.")
+  /** Forwards a named event to stretches exposing Carbon's controller-owner interface. */
+  @meta.carbon.method
+  @meta.impl.implemented
   HandleControllerEvent(name)
   {
-    for (const stretch of this.stretch) stretch?.HandleControllerEvent(name);
+    for (const stretch of this.stretch)
+    {
+      if (stretch && mappedInterfaces(stretch.constructor).has(ITr2ControllerOwner))
+      {
+        stretch.HandleControllerEvent(name);
+      }
+    }
   }
 
-  /** Starts the controllers on every stretch element. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Controller ownership is represented by direct firing-element method forwarding.")
+  /** Starts controllers on stretches exposing Carbon's controller-owner interface. */
+  @meta.carbon.method
+  @meta.impl.implemented
   StartControllers()
   {
-    for (const stretch of this.stretch) stretch?.StartControllers();
+    for (const stretch of this.stretch)
+    {
+      if (stretch && mappedInterfaces(stretch.constructor).has(ITr2ControllerOwner))
+      {
+        stretch.StartControllers();
+      }
+    }
   }
 
   /** Carbon EveTurretFiringFX::RegisterComponents (cpp:739-752): forwards the
    * stretch elements. Gate m_display && m_isFiring. */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -774,15 +838,15 @@ export class EveTurretFiringFX extends EveEntity
     {
       for (const element of this.stretch)
       {
-        element?.Register(registry);
+        if (element && mappedInterfaces(element.constructor).has(EveEntity)) element.Register(registry);
       }
     }
   }
 
   /** Carbon EveTurretFiringFX::UnRegisterComponents (cpp:755-768): forwards
    * the stretch elements; no display/isFiring re-check. */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   UnRegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -790,7 +854,7 @@ export class EveTurretFiringFX extends EveEntity
     {
       for (const element of this.stretch)
       {
-        element?.UnRegister(registry);
+        if (element && mappedInterfaces(element.constructor).has(EveEntity)) element.UnRegister(registry);
       }
     }
   }
@@ -799,20 +863,21 @@ export class EveTurretFiringFX extends EveEntity
    * Records which surface the shot lands on and, only when it changes, sends the
    * matching Impact_On switch value to the destination observer's audio emitter;
    * anything other than armor or hull is sent as Shield, including
-   * IMPACT_INVALID.
+   * IMPACT_INVALID. JS resolves the nominal emitter type through Audio registration.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Audio emitters are duck-typed; Carbon impact switch values are forwarded without native interfaces.")
+  @meta.carbon.method
+  @meta.impl.adapted
   SetImpactConfiguration(configuration)
   {
     if (configuration !== this._impactConfiguration)
     {
-      const emitter = this.destinationObserver?.GetObserver();
+      const observer = this.destinationObserver ? this.destinationObserver.GetObserver() : null;
+      const contract = CjsSchema.GetConstructor("ITr2AudEmitter");
+      const emitter = contract ? CjsSchema.cast(observer, contract) : null;
       const value = configuration === EveTurretFiringFX.ImpactConfiguration.IMPACT_ARMOR
         ? "Armor"
         : configuration === EveTurretFiringFX.ImpactConfiguration.IMPACT_HULL ? "Hull" : "Shield";
-      emitter?.SetSwitch?.("Impact_On", value);
+      if (emitter) emitter.SetSwitch("Impact_On", value);
     }
     this._impactConfiguration = configuration;
   }
@@ -862,3 +927,6 @@ export class EveTurretFiringFX extends EveEntity
   static _center = vec3.create();
 
 }
+
+// Native exposure includes the concrete class itself; JS has no implicit self mapping.
+meta.carbon.mapInterface(EveTurretFiringFX)(EveTurretFiringFX);

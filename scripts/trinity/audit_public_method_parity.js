@@ -3,6 +3,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { parse } from "@babel/parser";
+import { isCarbonDecorator } from "./carbon-decorators.js";
 
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -220,7 +221,7 @@ async function ReadJavaScriptClasses(directory, includeDropped = false)
       {
         if (member.type !== "ClassMethod" || member.kind === "constructor") continue;
         const name = GetMemberName(member);
-        if (name) methods.set(name, { hasCarbon: HasDecorator(member, "carbon", "method") });
+        if (name) methods.set(name, { hasCarbon: HasCarbonDecorator(member, "method") });
       }
       const localBase = GetSuperClassName(declaration.superClass);
       const baseClass = localBase ? imports.get(localBase) ?? localBase : null;
@@ -325,7 +326,7 @@ function SelectSchemaClass(candidates, runtimeFamily)
 
 /** @param {object} record @param {Map} classes @param {Map} unresolvedBases */
 /**
- * The additional bases a class declares with `@carbon.inherit(A, B)`.
+ * The additional bases declared with `@carbon.inherit` or `@meta.carbon.inherit`.
  *
  * @param {object} declaration The class declaration node.
  * @param {Map<string,string>} imports Local name to imported name.
@@ -338,9 +339,7 @@ function ReadInheritedBases(declaration, imports)
   {
     const call = decorator.expression;
     if (call?.type !== "CallExpression") continue;
-    const callee = call.callee;
-    if (callee?.type !== "MemberExpression") continue;
-    if (callee.object?.name !== "carbon" || callee.property?.name !== "inherit") continue;
+    if (!isCarbonDecorator(call, "inherit")) continue;
     for (const argument of call.arguments)
     {
       if (argument?.type !== "Identifier") continue;
@@ -414,20 +413,10 @@ function GetMemberName(member)
   return null;
 }
 
-/** @param {object} member @param {string} namespace @param {string} name */
-function HasDecorator(member, namespace, name)
+/** @param {object} member @param {string} name */
+function HasCarbonDecorator(member, name)
 {
-  return (member.decorators ?? []).some(decorator =>
-  {
-    let expression = decorator.expression;
-    if (expression?.type === "CallExpression") expression = expression.callee;
-    return expression?.type === "MemberExpression"
-      && expression.computed === false
-      && expression.object?.type === "Identifier"
-      && expression.object.name === namespace
-      && expression.property?.type === "Identifier"
-      && expression.property.name === name;
-  });
+  return (member.decorators ?? []).some(decorator => isCarbonDecorator(decorator.expression, name));
 }
 
 /** @param {string} directory @param {string} extension */

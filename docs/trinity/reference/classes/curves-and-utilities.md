@@ -664,6 +664,16 @@ Vector function combining its child vector functions with Carbon's multiply, add
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:ITr2CurveSetOwner -->
+## `ITr2CurveSetOwner`
+
+Contract for an object that plays and queries named curve sets.
+
+- Export: `@carbonenginejs/runtime/trinity/curves`
+- Source: `src/trinity/curves/ITr2CurveSetOwner.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:Tr2CameraFollowCurveKey -->
 ## `Tr2CameraFollowCurveKey`
 

@@ -1675,6 +1675,26 @@ Per-agent scratch for the Inertia child behaviour: the acceleration carried over
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:ITr2DynamicBindingOwner -->
+## `ITr2DynamicBindingOwner`
+
+Contract for an object that supplies named roots to dynamic bindings.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/ITr2DynamicBindingOwner.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:ITr2SoundEmitterOwner -->
+## `ITr2SoundEmitterOwner`
+
+Contract for a scene object that finds named sound emitters.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/ITr2SoundEmitterOwner.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:CjsLightData -->
 ## `CjsLightData`
 

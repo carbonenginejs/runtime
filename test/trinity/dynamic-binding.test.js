@@ -5,8 +5,10 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import {
+  EveChildContainer,
   EveMultiEffect,
   EveStretch3,
+  EveUpdateContext,
   Tr2ControllerExpression,
   Tr2DynamicBinding,
   Tr2ExternalParameter,
@@ -386,20 +388,23 @@ test("EveMultiEffect owns dynamic graphs, preserves map precedence, and updates 
 
 test("EveStretch3 supplies dynamic parameter roots and binding ownership", () =>
 {
-  const sourceObject = { value: 5 };
-  const stretchObject = { value: 0 };
+  const sourceObject = new EveChildContainer();
+  const stretchObject = new EveChildContainer();
+  sourceObject.translation.set([5, 2, 1]);
   const binding = new Tr2DynamicBinding();
   binding.sourceObjectPath = "SourceObject";
-  binding.sourceObjectAttribute = "value";
+  binding.sourceObjectAttribute = "translation";
   binding.destinationObjectPath = "StretchObject";
-  binding.destinationObjectAttribute = "value";
+  binding.destinationObjectAttribute = "translation";
   const stretch = new EveStretch3();
   stretch.sourceObject = sourceObject;
   stretch.stretchObject = stretchObject;
   stretch.dynamicBindings.push(binding);
   stretch.Initialize();
-  stretch.UpdateSynchronous({ currentTime: 0 });
-  assert.equal(stretchObject.value, 5);
+  const context = new EveUpdateContext();
+  context.SetTime(0);
+  stretch.UpdateSynchronous(context);
+  closeArray(stretchObject.translation, [5, 2, 1]);
   assert.equal(stretch.GetParameterMap().SourceObject, sourceObject);
 });
 

@@ -341,3 +341,7 @@ export class Tr2DynamicBinding extends CjsModel
     return value !== null && (typeof value === "object" || typeof value === "function");
   }
 }
+
+// Carbon EXPOSURE_BEGIN implicitly exposes the concrete class itself.
+// Use the secondary decorator path because the class binding exists here.
+carbon.mapInterface(Tr2DynamicBinding)(Tr2DynamicBinding);

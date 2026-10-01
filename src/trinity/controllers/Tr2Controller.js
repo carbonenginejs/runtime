@@ -7,7 +7,7 @@ import { blue, TimeAsDouble } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ContinueOnMainThread } from "../core/continueOnMainThread.js";
 import { EveThrottleable } from "../eve/EveThrottleable.js";
-import { ITr2ActionController } from "./ITr2Controller/index.js";
+import { ITr2ActionController, ITr2Controller } from "./ITr2Controller/index.js";
 import { Tr2ControllerEventHandler } from "./Tr2ControllerEventHandler.js";
 
 
@@ -20,6 +20,7 @@ import { Tr2ControllerEventHandler } from "./Tr2ControllerEventHandler.js";
   family: "controllers"
 })
 @carbon.inherit(ITr2ActionController)
+@carbon.mapInterface(ITr2Controller, ITr2ActionController)
 export class Tr2Controller extends EveThrottleable
 {
   @edit.read

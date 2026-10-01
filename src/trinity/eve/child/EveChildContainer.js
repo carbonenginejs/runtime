@@ -29,6 +29,9 @@ import {
   stampChildTransforms
 } from "../perObjectData/childPerObjectRecords.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
+import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
+import { ITr2SoundEmitterOwner } from "../ITr2SoundEmitterOwner.js";
+import { ITr2ControllerOwner } from "../../controllers/ITr2ControllerOwner.js";
 import { blue, EnumRegistrationType } from "#blue";
 
 // Module scratch (read-only zero vector; container recursion forbids mutable
@@ -42,7 +45,8 @@ const ZERO_VEC3 = vec3.create();
  * modifiers, and gating them on a display-quality filter.
  */
 @type.define({ className: "EveChildContainer", family: "eve/child" })
-@carbon.inherit(ITr2Renderable, IEveInheritPropertiesOwner)
+@carbon.inherit(ITr2Renderable, ITr2CurveSetOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner)
+@carbon.mapInterface(EveEntity, ITr2CurveSetOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner)
 export class EveChildContainer extends EveChildTransform
 {
   @edit.notify

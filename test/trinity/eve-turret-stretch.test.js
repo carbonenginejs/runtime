@@ -17,7 +17,8 @@ import {
   EveStretch3,
   EveTurretFiringFX,
   EveTurretSet,
-  EveTurretTarget
+  EveTurretTarget,
+  EveUpdateContext
 } from "../../npm/dist/trinity/index.js";
 import { FixtureEffect } from "../support/fixtureEffect.js";
 
@@ -164,11 +165,14 @@ test("EveStretch3 applies deferred controller firing state", () =>
   stretch.source = { Update(_time, out) { vec3.set(out, 0, 0, 0); } };
   stretch.dest = { Update(_time, out) { vec3.set(out, 0, 0, 10); } };
   stretch.StartFiring(0.75);
-  stretch.UpdateSynchronous({ currentTime: 1 });
+  const context = new EveUpdateContext();
+  context.SetTime(1);
+  stretch.UpdateSynchronous(context);
   assert.equal(stretch.length.value, 10);
   assert.deepEqual(events.slice(0, 3), ["start", "FiringDelay:0.75", "IsFiring:1"]);
   stretch.StopFiring();
-  stretch.UpdateSynchronous({ currentTime: 2 });
+  context.SetTime(2);
+  stretch.UpdateSynchronous(context);
   assert.equal(events.at(-1), "IsFiring:0");
 });
 
@@ -217,11 +221,13 @@ test("EveTurretFiringFX preserves Carbon's one-frame ready-to-fire delay", () =>
   firing.Initialize();
   firing.SetMuzzleTransform(0, mat4.fromTranslation(mat4.create(), vec3.fromValues(1, 2, 3)));
   firing.PrepareFiring(0);
-  const context = { currentTime: 1, deltaTime: 0.1 };
+  const context = new EveUpdateContext();
+  context.SetTime(1); context.SetTime(1.1);
   assert.equal(firing.UpdateAsynchronous(context), false);
   assert.equal(firing.ReadyToFire(), true);
   assert.equal(firing.UpdateAsynchronous(context), true);
-  assert.deepEqual(events[0], ["start", -0.1]);
+  assert.equal(events[0][0], "start");
+  assert.ok(Math.abs(events[0][1] + 0.1) < 1e-12);
   const start = vec3.create();
   assert.equal(firing.GetStartPosition(start), true);
   assert.deepEqual(Array.from(start), [1, 2, 3]);

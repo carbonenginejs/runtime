@@ -10,6 +10,7 @@ import { ITr2AudEmitter } from "../trinityAudioApi/ITr2AudEmitter.js";
 /** Represents the concrete content-facing audio emitter (ITr2AudEmitter) with authored placement and attenuation controls. */
 @type.define({ className: "AudEmitter", family: "audio" })
 @carbon.inherit(ITr2AudEmitter)
+@carbon.mapInterface(ITr2AudEmitter)
 export class AudEmitter extends AudGameObjResource
 {
 

@@ -6,6 +6,7 @@ import { vec4 } from "#math/vec4";
 import { TriBatchType } from "#consts/graphics";
 import { carbon, impl, edit, type } from "#schema";
 import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
+import { EveEntity } from "../../EveEntity.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
@@ -50,6 +51,7 @@ const STRETCH_VERTEX_DECL = [ { usage: Tr2VertexUsageCode.POSITION, usageIndex: 
  */
 @type.define({ className: "EveStretch2", family: "eve/renderable/stretch" })
 @carbon.inherit(ITr2Renderable)
+@carbon.mapInterface(EveEntity)
 export class EveStretch2 extends IEveFiringEffectElement
 {
   static MAX_QUAD_COUNT = 128;
