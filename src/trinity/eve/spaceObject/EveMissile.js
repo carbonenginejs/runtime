@@ -180,13 +180,15 @@ export class EveMissile extends EveSpaceObject2
   }
 
   /**
-   * Collects warhead renderables. Missing: Carbon also gathers inherited visual
-   * branches first; that separate non-update algorithm remains unported.
+   * Collects inherited visual branches first, then each warhead's renderables.
+   * Adapted: returns the caller's output array; the existing collectors do not
+   * represent Carbon's impostor-manager argument.
    */
   @meta.carbon.method
   @meta.impl.adapted
   GetRenderables(out = [])
   {
+    super.GetRenderables(out);
     for (const warhead of this.warheads) warhead.GetRenderables(out);
     return out;
   }

@@ -350,3 +350,97 @@ test("real missile invokes its rotation adapter Update owner and publishes its c
   assert.equal(update.mock.callCount(), 1, "the missile's own update owner must call Update, not GetValueAt");
   assert.equal(update.mock.calls[0].arguments[0], 3);
 });
+
+async function realRenderableComposition(t)
+{
+  const missile = await realMissile(t), inherited = (await realMissile(t)).warheads[0];
+  assert.equal(missile.children.length, 0);
+  assert.equal(missile.mesh, null);
+  // Explicit composition of independently hydrated real assets, not an authored client recipe.
+  missile.children.push(inherited);
+  const warhead = missile.warheads[0];
+  for (const item of [inherited, warhead])
+  {
+    item.PrepareLaunch();
+    item.Launch(mat4.create());
+    assert.ok(item.mesh);
+  }
+  const placement = new Tr2TranslationAdapter();
+  placement.value.set([0, 0, -1000]);
+  missile.translationCurve = placement;
+  missile.RebuildMissileBoundingSphere();
+  missile.UpdateWorldTransform(1);
+  missile.UpdateWorldBounds();
+  const {context} = makeView();
+  context.SetVisibilityThreshold(0.001);
+  context.SetLowDetailThreshold(0.002);
+  context.SetMediumDetailThreshold(0.003);
+  missile.UpdateVisibility(context, mat4.create());
+  assert.equal(missile.isVisible, true);
+  assert.equal(inherited.GetLODLevel(), EveTransform.Tr2Lod.TR2_LOD_HIGH);
+  assert.equal(warhead.GetLODLevel(), EveTransform.Tr2Lod.TR2_LOD_HIGH);
+  return {missile, inherited, warhead, context, placement};
+}
+
+function assertRenderableIdentity(actual, expected)
+{
+  assert.equal(actual.length, expected.length);
+  expected.forEach((renderable, index) => assert.equal(actual[index], renderable));
+}
+
+test("real missile collection appends inherited visuals before authored warhead and preserves caller output", {skip}, async t =>
+{
+  const {missile, inherited, warhead, context} = await realRenderableComposition(t);
+  const nested = (await realMissile(t)).warheads[0];
+  // A further explicit composition ensures Warhead's own collector remains mesh-only.
+  warhead.children.push(nested);
+  nested.PrepareLaunch();
+  nested.Launch(mat4.create());
+  nested.UpdateVisibility(context, warhead.worldTransform);
+  assert.equal(nested.GetLODLevel(), EveTransform.Tr2Lod.TR2_LOD_HIGH);
+  const nestedGather = t.mock.method(nested, "GetRenderables");
+  const baseGather = t.mock.method(EveSpaceObject2.prototype, "GetRenderables");
+  const entries = [], original = warhead.GetRenderables;
+  t.mock.method(warhead, "GetRenderables", function(out)
+  {
+    entries.push(out.slice());
+    return original.call(this, out);
+  });
+  const prefix = new EveTransform(), out = [prefix];
+  assert.equal(missile.GetRenderables(out), out);
+  assert.equal(baseGather.mock.callCount(), 1);
+  assert.equal(baseGather.mock.calls[0].this, missile);
+  assert.equal(baseGather.mock.calls[0].arguments[0], out);
+  assertRenderableIdentity(entries[0], [prefix, inherited]);
+  assertRenderableIdentity(out, [prefix, inherited, warhead]);
+  assert.equal(nestedGather.mock.callCount(), 0, "Warhead must not gather its base children");
+  assertRenderableIdentity(missile.GetRenderables(), [inherited, warhead]);
+});
+
+test("real missile base visibility gates inherited collection without suppressing eligible warheads", {skip}, async t =>
+{
+  const {missile, inherited, warhead, context, placement} = await realRenderableComposition(t);
+  const prefix = new EveTransform();
+  missile.display = false;
+  missile.UpdateVisibility(context, mat4.create());
+  assert.equal(missile.isVisible, false);
+  assert.equal(warhead.GetLODLevel(), EveTransform.Tr2Lod.TR2_LOD_HIGH);
+  const hiddenBase = [prefix];
+  assert.equal(missile.GetRenderables(hiddenBase), hiddenBase);
+  assertRenderableIdentity(hiddenBase, [prefix, warhead]);
+
+  missile.display = true;
+  warhead.display = false;
+  missile.UpdateVisibility(context, mat4.create());
+  assert.equal(missile.isVisible, true);
+  assertRenderableIdentity(missile.GetRenderables(), [inherited]);
+
+  warhead.display = true;
+  placement.value.set([100000, 0, -1000]);
+  missile.UpdateWorldTransform(2);
+  missile.UpdateWorldBounds();
+  missile.UpdateVisibility(context, mat4.create());
+  assert.equal(missile.isVisible, false);
+  assert.equal(warhead.GetLODLevel(), EveTransform.Tr2Lod.TR2_LOD_LOW);
+  assertRenderableIdentity(missile.GetRenderables([prefix]), [prefix]);
+});
