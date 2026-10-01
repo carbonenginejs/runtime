@@ -206,7 +206,9 @@ test("attenuation normalization remaps without clamping", () =>
 test("AudioCurveSetDriver falls back to the curve until the RTPC exists", async () =>
 {
   const { AudioCurveSetDriver } = await import("../../../npm/dist/audio/index.js");
-  const driver = AudioCurveSetDriver.from({ audioParameterName: "boost" });
+  const driver = new AudioCurveSetDriver();
+  driver.audioParameterName = "boost";
+  driver.Initialize();
   driver.fallbackCurve = { GetValueAt: time => time * 2 };
   // Headless: invalid RTPC -> fallback curve sampled at time.
   assert.equal(driver.GetCurveSetTime(3), 6);
@@ -291,12 +293,12 @@ test("AudioCurveSetDriver deterministically releases its monitored watcher", asy
   try
   {
     manager.Enable([]);
-    const first = AudioCurveSetDriver.from({
-      audioParameterName: "boost",
-    });
-    const second = AudioCurveSetDriver.from({
-      audioParameterName: "boost",
-    });
+    const first = new AudioCurveSetDriver();
+    first.audioParameterName = "boost";
+    first.Initialize();
+    const second = new AudioCurveSetDriver();
+    second.audioParameterName = "boost";
+    second.Initialize();
 
     first.Initialize();
     first.Initialize();

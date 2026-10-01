@@ -1,187 +1,198 @@
-// Source: audio/src/AudioCurveSetDriver.h + AudioCurveSetDriver.cpp
-// Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
-// Verify against audio/AudioCurveSetDriver.json.
-import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
+// Source: audio/src/AudioCurveSetDriver.h
+// Source: audio/src/AudioCurveSetDriver.cpp
+// Source: audio/src/AudioCurveSetDriver_Blue.cpp
+import { meta, types } from "#schema";
+import { ICurveSetDriver } from "#blue/ICurveSetDriver";
+import { IInitialize } from "#blue/IInitialize";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 
-/** Drives a curve set's time from a live RTPC value, with a fallback curve. */
-@type.define({ className: "AudioCurveSetDriver", family: "audio" })
-export class AudioCurveSetDriver extends CjsModel
+/**
+ * Drives a curve set's time from a monitored global audio parameter or fallback curve.
+ * Blue readers initialize after writing stored members; explicit callers initialize
+ * after configuration. The audio system adopts, retries initialization when enabled,
+ * and disposes drivers. Construction alone installs no manager or audio backend.
+ */
+@meta.define({ className: "AudioCurveSetDriver", family: "audio" })
+@meta.carbon.inherit(IInitialize)
+export class AudioCurveSetDriver extends ICurveSetDriver
 {
-
-  /** m_fallbackCurve (ITriScalarFunctionPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("ITriScalarFunction")
-  fallbackCurve = null;
-
-  /** m_name (std::wstring) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  /** m_name: authored display name, stored as std::wstring. */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.wstring
   name = "";
 
-  /** m_audioParameterValue (float) [READ] */
-  @edit.read
-  @type.float32
+  /** m_audioParameterName: persistence bypasses the live registration setter. */
+  @meta.member("audioParameterName")
+  @meta.edit.persistOnly
+  @types.wstring
+  _audioParameterName = "";
+
+  /** Live parameter name; assigning it transfers the monitored registration. */
+  @meta.property()
+  @meta.edit.readwrite
+  @types.wstring
+  @meta.impl.implemented
+  get audioParameterName()
+  {
+    return this.GetAudioParameterName();
+  }
+
+  /** @param {string} name Global audio parameter name. */
+  @meta.impl.implemented
+  set audioParameterName(name)
+  {
+    this.SetAudioParameterName(name);
+  }
+
+  /** m_audioParameterValue: cached float, retained when no parameter record exists. */
+  @meta.edit.read
+  @types.float32
   audioParameterValue = 0;
 
-  /** m_audioParameterName (std::wstring) [PERSISTONLY] */
-  @edit.readwrite
-  @edit.persistOnly
-  @type.string
-  audioParameterName = "";
+  /** Whether the current manager and monitored parameter can drive the curve set. */
+  @meta.property()
+  @meta.edit.read
+  @types.boolean
+  @meta.impl.implemented
+  get isValid()
+  {
+    return this.IsValid();
+  }
 
-  // C++ m_audioParameterExists - runtime, refreshed from the manager.
+  /** m_fallbackCurve: sampled at the caller's unmodified time when audio is invalid. */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.objectRef("ITriScalarFunction")
+  fallbackCurve = null;
+
+  /** m_audioParameterExists: the last monitored record's existence flag. */
   _audioParameterExists = false;
 
-  // JavaScript adaptation of Carbon's deterministic destructor ownership.
+  /** CJS lifetime adaptation: manager that owns the acquired watcher. */
   _registeredManager = null;
 
+  /** CJS lifetime adaptation: name acquired from the owning manager. */
   _registeredParameterName = "";
 
   /**
-   * Refreshes the cached RTPC value and samples the fallback curve when invalid.
+   * Samples the manager's cached parameter record, then the fallback if invalid.
+   * Adapted: a null manager is the silent headless state; native assumes one here.
+   * A missing record retains the cached value and existence flag, as in Carbon.
    *
-   * Adapted: Carbon unconditionally queries g_audioManager
-   * (audio/src/AudioCurveSetDriver.cpp:37-54). JavaScript tolerates an absent
-   * manager or GetParameterInfo method and retains the cached value and existence
-   * flag when no information is returned.
-   *
-   * @param {number} time Time passed unchanged to the fallback curve.
-   * @returns {number} The fallback sample or cached audio parameter value.
+   * @param {number} time Time forwarded unchanged to the fallback function.
+   * @returns {number} Fallback sample or cached audio parameter value.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   GetCurveSetTime(time)
   {
-    const parameterInfo = AudGameObjResource.manager?.GetParameterInfo(this.audioParameterName);
-    if (parameterInfo)
+    const manager = AudGameObjResource.manager;
+    const parameterInfo = manager === null ? null : manager.GetParameterInfo(this._audioParameterName);
+    if (parameterInfo !== null)
     {
       this.audioParameterValue = parameterInfo.parameterValue;
-      this._audioParameterExists = !!parameterInfo.parameterExists;
+      this._audioParameterExists = parameterInfo.parameterExists;
     }
-    if (!this.IsValid() && this.fallbackCurve)
+    if (!this.IsValid() && this.fallbackCurve !== null)
     {
       return this.fallbackCurve.GetValueAt(time);
     }
     return this.audioParameterValue;
   }
 
-  /**
-   * Reports whether the manager is enabled and the named parameter was last found.
-   *
-   * @returns {boolean} Whether the monitored parameter is currently usable.
-   */
-  @carbon.method
-  @impl.implemented
+  /** @returns {boolean} Whether audio is enabled and the named parameter exists. */
+  @meta.carbon.method
+  @meta.impl.implemented
   IsValid()
   {
-    return !!AudGameObjResource.manager?.enabled && this.audioParameterName !== "" && this._audioParameterExists;
+    const manager = AudGameObjResource.manager;
+    return manager !== null && manager.enabled && this._audioParameterName !== "" && this._audioParameterExists;
   }
 
-  /**
-   * Returns the monitored parameter name.
-   *
-   * @returns {string} Parameter name.
-   */
-  @carbon.method
-  @impl.implemented
+  /** @returns {string} The stored global audio parameter name. */
+  @meta.carbon.method
+  @meta.impl.implemented
   GetAudioParameterName()
   {
-    return this.audioParameterName;
+    return this._audioParameterName;
   }
 
   /**
-   * Registers the named parameter once and remembers its owning manager.
+   * Acquires one watcher once the manager can register it.
+   * Adapted: no manager or an uninitialized manager defers registration; the
+   * audio system retries on enable. Repeated initialization owns one watcher,
+   * unlike Carbon's repeated increments, to support reader plus system adoption.
+   * A copy into an existing driver may replace stored data without its live
+   * setter; release any differently named watcher before acquiring that data.
    *
-   * Adapted: Carbon registers on every Initialize call when the name is nonempty
-   * (audio/src/AudioCurveSetDriver.cpp:27-35). JavaScript tracks one registration
-   * for explicit disposal and skips registration when the manager is absent,
-   * uninitialized, or lacks RegisterParameter.
-   *
-   * @returns {boolean} Always true.
+   * @returns {boolean} Always true; a silent uncomposed driver remains usable.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   Initialize()
   {
-    if (this.audioParameterName && !this._registeredManager)
+    if (this._registeredManager !== null && this._registeredParameterName !== this._audioParameterName)
     {
-      const manager = AudGameObjResource.manager;
-
-      if (typeof manager?.RegisterParameter === "function"
-        && manager.GetState() !== "uninitialized")
-      {
-        manager.RegisterParameter(this.audioParameterName);
-        this._registeredManager = manager;
-        this._registeredParameterName = this.audioParameterName;
-      }
+      this._registeredManager.UnregisterParameter(this._registeredParameterName);
+      this._registeredManager = null;
+      this._registeredParameterName = "";
+    }
+    const manager = AudGameObjResource.manager;
+    if (this._audioParameterName !== "" && this._registeredManager === null
+      && manager !== null && manager.GetState() !== "uninitialized")
+    {
+      manager.RegisterParameter(this._audioParameterName);
+      this._registeredManager = manager;
+      this._registeredParameterName = this._audioParameterName;
     }
     return true;
   }
 
   /**
-   * Releases the tracked registration and registers the new name when available.
+   * Releases the old watcher and acquires the new parameter when a manager is ready.
+   * Adapted: releases through the original owner, tolerates the null headless
+   * manager, and leaves empty names unregistered. Carbon uses the global manager
+   * unconditionally and its destructor supplies release instead of Dispose.
    *
-   * Adapted: Carbon unconditionally unregisters and registers through the current
-   * global manager (audio/src/AudioCurveSetDriver.cpp:67-72). JavaScript releases
-   * through the original manager, skips empty names or unavailable/uninitialized
-   * registration services, and tracks the new registration for explicit disposal.
-   *
-   * @param {string} name New parameter name; an empty name leaves it unregistered.
+   * @param {string} name New global parameter name; an empty string detaches it.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   SetAudioParameterName(name)
   {
-    const manager = AudGameObjResource.manager;
-    if (this._registeredManager)
+    if (this._registeredManager !== null)
     {
-      this._registeredManager.UnregisterParameter?.(
-        this._registeredParameterName,
-      );
+      this._registeredManager.UnregisterParameter(this._registeredParameterName);
       this._registeredManager = null;
       this._registeredParameterName = "";
     }
-    this.audioParameterName = String(name ?? "");
-    if (this.audioParameterName
-      && typeof manager?.RegisterParameter === "function"
-      && manager.GetState() !== "uninitialized")
-    {
-      manager.RegisterParameter(this.audioParameterName);
-      this._registeredManager = manager;
-      this._registeredParameterName = this.audioParameterName;
-    }
+    this._audioParameterName = name;
+    this.Initialize();
   }
 
   /**
-   * When registered, releases the watcher and clears the cached existence flag.
-   * Repeated disposal has no effect.
-   *
-   * Custom: JavaScript has no deterministic destructor. Owners call this method
-   * to release through the manager that registered the parameter, rather than
-   * Carbon's destructor using the current global manager and parameter name
-   * (audio/src/AudioCurveSetDriver.cpp:19-25). Missing unregister methods are skipped.
+   * Releases the acquired watcher through its original manager exactly once.
+   * Custom: JavaScript has no deterministic destructor; the audio system releases
+   * adopted drivers, and explicit owners release their own drivers. An owner
+   * must remain available through release even if the global manager changes.
    *
    * @returns {void}
    */
-  @impl.custom
+  @meta.impl.custom
   Dispose()
   {
-    if (!this._registeredManager)
-    {
-      return;
-    }
-
-    this._registeredManager.UnregisterParameter?.(
-      this._registeredParameterName,
-    );
+    if (this._registeredManager === null) return;
+    this._registeredManager.UnregisterParameter(this._registeredParameterName);
     this._registeredManager = null;
     this._registeredParameterName = "";
     this._audioParameterExists = false;
   }
-
 }
+
+// EXPOSURE_BEGIN adds concrete self; EXPOSURE_END has no exposure parent.
+meta.carbon.interfaceTable({
+  interfaces: [ AudioCurveSetDriver, ICurveSetDriver, IInitialize ],
+  chainTo: null
+})(AudioCurveSetDriver, { kind: "class" });

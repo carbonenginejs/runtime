@@ -2754,12 +2754,12 @@ test("graph adoption owns AudioCurveSetDriver monitored watchers", () =>
       WemFileIDs: {},
     },
   });
-  const first = AudioCurveSetDriver.from({
-    audioParameterName: "boost",
-  });
-  const second = AudioCurveSetDriver.from({
-    audioParameterName: "boost",
-  });
+  const first = new AudioCurveSetDriver();
+  first.audioParameterName = "boost";
+  first.Initialize();
+  const second = new AudioCurveSetDriver();
+  second.audioParameterName = "boost";
+  second.Initialize();
   class WatcherGraph { drivers = [first, second]; }
   CjsSchema.define(WatcherGraph, {
     className: "AudioSystemWatcherGraph",

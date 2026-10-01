@@ -158,7 +158,7 @@ Maintains Carbon geometry-set reference counts and routes Wwise-shaped geometry 
 <!-- class:AudioCurveSetDriver -->
 ## `AudioCurveSetDriver`
 
-Drives a curve set's time from a live RTPC value, with a fallback curve.
+Drives a curve set's time from a monitored global audio parameter or fallback curve.
 
 - Export: `@carbonenginejs/runtime/audio/trinity`
 - Source: `src/audio/trinity/audio/AudioCurveSetDriver.js`
