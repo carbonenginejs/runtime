@@ -36,6 +36,7 @@
 //   classes normalize their values in it.
 // - `from` knows its class, so a root `_type` is optional.
 import { CjsSchema, impl } from "#schema";
+import { omitRuntimeValues } from "../schema/CjsSchema.js";
 import { normalizeCarbonValue } from "../schema/types/index.js";
 import { IRootReaderBase } from "./IRootReaderBase.js";
 import { IRootReaderException } from "./IRootReaderException.js";
@@ -196,6 +197,10 @@ export class DictReader extends IRootReaderBase
         this.ReadMetadata(instance, source[name]);
         continue;
       }
+
+      // Runtime-only declarations still claim their exposed names/aliases,
+      // but even reading an incoming getter would transport resource state.
+      if (this.FindEntry(name, instance.constructor)?.type?.runtimeOnly === true) continue;
 
       this._currentSource = source[name];
       this._contextStack.push(name);
@@ -443,7 +448,7 @@ export class DictReader extends IRootReaderBase
 
     if (!holdsObjects)
     {
-      const next = normalizeCarbonValue(source, field.type);
+      const next = normalizeCarbonValue(omitRuntimeValues(source, field.type), field.type);
       writeDictionaryValue(instance, field, next);
       return !IRootReaderBase.areEquivalent(current, next);
     }

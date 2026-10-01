@@ -519,7 +519,13 @@ test("traversal children skip collections of values but keep interface-typed lis
 });
 
 test("Traverse is cycle-safe and GetResources visits every model", () => {
+    class GraphResource { isResource = true; }
+    CjsSchema.define(GraphResource, { className: "CoreTypesGraphResource" });
     class GraphModel extends CjsModel {}
+    for (const field of ["_geometryRes", "_textureRes", "_sharedRes"])
+    {
+        CjsSchema.decorateField(GraphModel, field, CjsSchema.type.resource(GraphResource));
+    }
     CjsSchema.defineField(GraphModel, "children", "type", { kind: "array", itemType: "GraphModel" });
     CjsSchema.defineField(GraphModel, "children", "edit", { read: true, write: true, persist: true });
     CjsSchema.defineField(GraphModel, "children", "lifecycle", { ownership: "owned" });
@@ -539,14 +545,15 @@ test("Traverse is cycle-safe and GetResources visits every model", () => {
     root.Traverse(model => visited.push(model));
     assert.deepEqual(visited, [root, branch, leaf]);
 
-    // Collectors report their own resources only. A model that reports must not
-    // suppress its descendants: an under-reported dependency set lets an
-    // all-or-nothing readiness check pass while a child is still loading.
-    const resourceA = { isResource: true, path: "res:/a" };
-    const resourceB = { isResource: true, path: "res:/b" };
-    const resourceC = { isResource: true, path: "res:/c" };
-    branch.OnGetResources = () => [resourceA, resourceA, resourceB];
-    leaf.OnGetResources = () => [resourceC];
+    // Runtime resource declarations must not suppress descendants; shared
+    // dependencies are collected once in declaration encounter order.
+    const resourceA = new GraphResource();
+    const resourceB = new GraphResource();
+    const resourceC = new GraphResource();
+    branch._geometryRes = resourceA;
+    branch._textureRes = resourceB;
+    branch._sharedRes = resourceA;
+    leaf._geometryRes = resourceC;
 
     // Prior contents are replaced, not accumulated into.
     assert.deepEqual(root.GetResources([resourceC]), [resourceA, resourceB, resourceC]);

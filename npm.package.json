@@ -1,7 +1,12 @@
 {
   "private": false,
   "description": "Browser-safe CarbonEngineJS runtime: resource and format readers, the Trinity/EVE object graph, SOF, audio, character, and the WebGPU renderer.",
-  "sideEffects": false,
+  "sideEffects": [
+    "./dist/global/index.js",
+    "./dist/global/blue/index.js",
+    "./dist/global/blue/blue.js",
+    "./dist/global/blue/registerTrinityEnums.js"
+  ],
   "publishConfig": {
     "access": "public",
     "tag": "alpha"

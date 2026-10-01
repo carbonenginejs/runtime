@@ -20,7 +20,15 @@ export class CjsBlackSchemaRegistry
         const names = new Set();
         for (const declaration of info.members)
         {
-            if (!declaration.edit?.persist || names.has(declaration.name)) continue;
+            if (names.has(declaration.name)) continue;
+            if (declaration.type?.runtimeOnly === true)
+            {
+                // The runtime-only stored declaration claims its exposed name,
+                // so an inherited persisted member cannot supply a wire codec.
+                names.add(declaration.name);
+                continue;
+            }
+            if (!declaration.edit?.persist) continue;
             names.add(declaration.name);
             let descriptor;
             try
@@ -56,6 +64,7 @@ export class CjsBlackSchemaRegistry
     {
         if (typeof type === "function") type = { kind: "objectRef", className: type };
         if (typeof type === "string") type = { kind: type };
+        if (type?.runtimeOnly === true) throw new TypeError("Runtime-only fields have no Black codec.");
         const kind = type?.kind;
         const scalarTypes = {
             boolean: "bool", string: "string", wstring: "wstring", path: "path",

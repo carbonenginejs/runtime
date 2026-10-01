@@ -3,8 +3,9 @@
 // Hand-maintained after promotion from generated schema intake.
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, edit, type } from "#schema";
+import { CjsSchema, carbon, impl, edit, meta, type } from "#schema";
 import { EveMobile } from "./EveMobile.js";
+import { EveEntity } from "../EveEntity.js";
 import { TriFloat } from "../../core/variable/TriFloat.js";
 
 /** A ship space object: booster drive, speed state, and ship shader data. */
@@ -12,11 +13,28 @@ import { TriFloat } from "../../core/variable/TriFloat.js";
 export class EveShip2 extends EveMobile
 {
 
-  /** m_boosters (EveBoosterSet2Ptr) [PERSISTONLY] */
-  @edit.readwrite
+  /** Hidden persisted m_boosters storage (EveShip2_Blue.cpp:21), separate from its live property. */
+  @meta.member("boosters")
   @edit.persistOnly
-  @type.model("EveBoosterSet2")
-  boosters = null;
+  @type.objectRef("EveBoosterSet2")
+  _boosters = null;
+
+  /** Live booster property; persistence reads and writes the backing member directly. */
+  @meta.property()
+  @edit.readwrite
+  @type.objectRef("EveBoosterSet2")
+  @impl.implemented
+  get boosters()
+  {
+    return this.GetBoosters();
+  }
+
+  /** Replaces the booster set through Carbon's component-registration setter. */
+  @impl.implemented
+  set boosters(boosters)
+  {
+    this.SetBoosters(boosters);
+  }
 
   /** m_displayKillCounterValue (uint32_t) [READWRITE] */
   @edit.readwrite
@@ -152,26 +170,31 @@ export class EveShip2 extends EveMobile
   @impl.implemented
   GetBoosters()
   {
-    return this.boosters;
+    return this._boosters;
   }
 
   /**
-   * Carbon EveShip2::SetBoosters - swaps the set and re-registers it with
-   * the component registry when one is attached (duck-typed).
+   * Replaces the backing pointer between the old entity's UnRegister and the
+   * new entity's Register calls (EveShip2.cpp:131-143). Register(null) removes
+   * an incoming booster from a foreign registry when this ship is detached.
+   * JavaScript uses the shared cast for the native EveEntity casts and treats
+   * an omitted pointer as null; replacing a reference does not destroy it.
    */
   @carbon.method
   @impl.adapted
   SetBoosters(boosters)
   {
-    const registry = this.GetComponentRegistry?.();
-    if (registry)
+    const registry = this.GetComponentRegistry();
+    const previous = CjsSchema.cast(this._boosters, EveEntity);
+    if (previous)
     {
-      this.boosters?.UnRegister(registry);
+      previous.UnRegister(registry);
     }
-    this.boosters = boosters ?? null;
-    if (registry)
+    this._boosters = boosters ?? null;
+    const next = CjsSchema.cast(this._boosters, EveEntity);
+    if (next)
     {
-      this.boosters?.Register(registry);
+      next.Register(registry);
     }
   }
 

@@ -26,6 +26,7 @@
 // `blue-values-engine.md`). Selection is owner-first, stored-before-live within
 // an owner, with no flag merging or filter fallback. Selected aliases name it too.
 import { CjsSchema, impl } from "#schema";
+import { omitRuntimeValues } from "../schema/CjsSchema.js";
 import { coerceCarbonMathInto, coerceCarbonTypedArrayInto, normalizeCarbonValue } from "../schema/types/index.js";
 import { IRootReaderException } from "./IRootReaderException.js";
 import { InvalidAttributeException } from "./InvalidAttributeException.js";
@@ -115,7 +116,7 @@ export class IRootReaderBase
       return this.ReadList(instance, field);
     }
 
-    const source = this.ReadValue();
+    const source = omitRuntimeValues(this.ReadValue(), field.type);
 
     // Objects nested inside a value (a raw struct's records): resolved in
     // place and assigned as read, since normalizing would copy the records a

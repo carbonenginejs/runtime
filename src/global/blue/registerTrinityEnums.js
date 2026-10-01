@@ -2,10 +2,9 @@
 //   trinity/trinity/Resources/Tr2LodResource.h:7,
 //   trinity/trinityal/Tr2RenderContextEnum.h:391, trinity/trinity/Tr2RenderContext_Blue.cpp:277-288,
 //   trinity/trinity/UI/Tr2MainWindow.h:13-33, trinity/trinity/UI/Tr2MainWindow_Blue.cpp:9-51
-// Shared constants stay dependency-free. Consumers import this registration
-// module explicitly; importing Blue alone does not load Trinity registrations.
-import { blue } from "./blue.js";
-import { EnumRegistrationType } from "./enums/CjsBlueEnumRegistry.js";
+// Shared constants stay dependency-free. Register their existing Blue metadata
+// before holder consumers resolve qualified fields, without importing the holder.
+import { blueEnums, EnumRegistrationType } from "./enums/CjsBlueEnumRegistry.js";
 import { ReflectionMode } from "../consts/graphics/trinityEnums.js";
 import { Tr2Lod } from "../consts/trinity.js";
 import { PresentInterval, SwapEffect } from "../consts/renderContext/presentation.js";
@@ -15,7 +14,7 @@ import { DepthStencilFormat, PixelFormat, TextureType } from "../consts/renderCo
 import { Tr2WindowMode, Tr2WindowShowState } from "../consts/renderContext/window.js";
 import { RenderingMode, TRIEXTRAPOLATION, TRIOPERATOR } from "../consts/graphics/trinityEnums.js";
 
-blue.enums.RegisterEnum("trinity.EntityComponents.ReflectionMode", ReflectionMode, {
+blueEnums.RegisterEnum("trinity.EntityComponents.ReflectionMode", ReflectionMode, {
   source: "trinity/trinity/Eve/EveEntity.h", family: "trinity", line: 9,
   exposedName: "ReflectionModeType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/EveEntity_Blue.cpp:10",
@@ -29,13 +28,13 @@ blue.enums.RegisterEnum("trinity.EntityComponents.ReflectionMode", ReflectionMod
 
 // No native chooser or BLUE_REGISTER_ENUM was found for Tr2Lod in Trinity.
 // Register its declared identifiers without inventing Python exposure metadata.
-blue.enums.RegisterEnum("trinity.Tr2Lod", Tr2Lod, {
+blueEnums.RegisterEnum("trinity.Tr2Lod", Tr2Lod, {
   source: "trinity/trinity/Resources/Tr2LodResource.h", family: "trinity", line: 7
 });
 
 // The three enums Tr2MainWindowState's attributes take. Carbon registers each
 // by its exposed name with a chooser that omits Tr2WindowMode::_COUNT.
-blue.enums.RegisterEnum("trinity.Tr2RenderContextEnum.PresentInterval", PresentInterval, {
+blueEnums.RegisterEnum("trinity.Tr2RenderContextEnum.PresentInterval", PresentInterval, {
   source: "trinity/trinityal/Tr2RenderContextEnum.h", family: "trinity", line: 391,
   exposedName: "PRESENT_INTERVAL", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Tr2RenderContext_Blue.cpp:277",
@@ -45,7 +44,7 @@ blue.enums.RegisterEnum("trinity.Tr2RenderContextEnum.PresentInterval", PresentI
   ]
 });
 
-blue.enums.RegisterEnum("trinity.Tr2WindowMode", Tr2WindowMode, {
+blueEnums.RegisterEnum("trinity.Tr2WindowMode", Tr2WindowMode, {
   source: "trinity/trinity/UI/Tr2MainWindow.h", family: "trinity", line: 13,
   exposedName: "Tr2WindowMode", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/UI/Tr2MainWindow_Blue.cpp:9",
@@ -56,7 +55,7 @@ blue.enums.RegisterEnum("trinity.Tr2WindowMode", Tr2WindowMode, {
   ]
 });
 
-blue.enums.RegisterEnum("trinity.Tr2WindowShowState", Tr2WindowShowState, {
+blueEnums.RegisterEnum("trinity.Tr2WindowShowState", Tr2WindowShowState, {
   source: "trinity/trinity/UI/Tr2MainWindow.h", family: "trinity", line: 26,
   exposedName: "Tr2WindowShowState", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/UI/Tr2MainWindow_Blue.cpp:22",
@@ -70,7 +69,7 @@ blue.enums.RegisterEnum("trinity.Tr2WindowShowState", Tr2WindowShowState, {
 // Blue's ITriConstants.h enums, shared by audio and Trinity. Neither is
 // registered; the choosers are Trinity's (audio's AudConstants.cpp:6 copy of
 // TriExtrapolation is identical).
-blue.enums.RegisterEnum("blue.TRIEXTRAPOLATION", TRIEXTRAPOLATION, {
+blueEnums.RegisterEnum("blue.TRIEXTRAPOLATION", TRIEXTRAPOLATION, {
   source: "blue/include/ITriConstants.h", family: "blue", line: 33,
   chooserSource: "trinity/trinity/TriConstants.cpp:94",
   chooser: [
@@ -81,7 +80,7 @@ blue.enums.RegisterEnum("blue.TRIEXTRAPOLATION", TRIEXTRAPOLATION, {
   ]
 });
 
-blue.enums.RegisterEnum("blue.TRIOPERATOR", TRIOPERATOR, {
+blueEnums.RegisterEnum("blue.TRIOPERATOR", TRIOPERATOR, {
   source: "blue/include/ITriConstants.h", family: "blue", line: 80,
   chooserSource: "trinity/trinity/TriConstants.cpp:185",
   chooser: [
@@ -92,7 +91,7 @@ blue.enums.RegisterEnum("blue.TRIOPERATOR", TRIOPERATOR, {
 });
 
 // Registered as Carbon registers it (trinity/trinity/Tr2RenderContext_Blue.cpp:271).
-blue.enums.RegisterEnum("trinity.Tr2RenderContextEnum.SwapEffect", SwapEffect, {
+blueEnums.RegisterEnum("trinity.Tr2RenderContextEnum.SwapEffect", SwapEffect, {
   source: "trinity/trinityal/Tr2RenderContextEnum.h", family: "trinity", line: 385,
   exposedName: "SWAP_EFFECT", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Tr2RenderContext_Blue.cpp:265",
@@ -103,7 +102,7 @@ blue.enums.RegisterEnum("trinity.Tr2RenderContextEnum.SwapEffect", SwapEffect, {
 });
 
 // Registered as Carbon registers it (trinity/trinity/RenderJob/TriStepSetStandardRenderStates_Blue.cpp:23).
-blue.enums.RegisterEnum("trinity.Tr2EffectStateManager.RenderingMode", RenderingMode, {
+blueEnums.RegisterEnum("trinity.Tr2EffectStateManager.RenderingMode", RenderingMode, {
   source: "trinity/trinity/Shader/Tr2EffectStateManager.h", family: "trinity", line: 59,
   exposedName: "RENDERING_MODE", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/RenderJob/TriStepSetStandardRenderStates_Blue.cpp:9",
@@ -151,7 +150,7 @@ const DEPTH_STENCIL_FORMAT_CHOOSER = [
 ];
 
 // ImageIO declares the type; Trinity registers it (Tr2RenderContext_Blue.cpp:244).
-blue.enums.RegisterEnum("trinity.ImageIO.PixelFormat", PixelFormat, {
+blueEnums.RegisterEnum("trinity.ImageIO.PixelFormat", PixelFormat, {
   source: "imageio/include/PixelFormat.h", family: "trinity", line: 11,
   exposedName: "PIXEL_FORMAT", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Tr2RenderContext_Blue.cpp:141",
@@ -159,7 +158,7 @@ blue.enums.RegisterEnum("trinity.ImageIO.PixelFormat", PixelFormat, {
 });
 
 // Registered as Carbon registers it (trinity/trinity/Tr2RenderContext_Blue.cpp:88).
-blue.enums.RegisterEnum("trinity.Tr2RenderContextEnum.DepthStencilFormat", DepthStencilFormat, {
+blueEnums.RegisterEnum("trinity.Tr2RenderContextEnum.DepthStencilFormat", DepthStencilFormat, {
   source: "trinity/trinityal/Tr2RenderContextEnum.h", family: "trinity", line: 77,
   exposedName: "DEPTH_STENCIL_FORMAT", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Tr2RenderContext_Blue.cpp:65",
@@ -167,7 +166,7 @@ blue.enums.RegisterEnum("trinity.Tr2RenderContextEnum.DepthStencilFormat", Depth
 });
 
 // ImageIO declares the type; Trinity registers it (Tr2RenderContext_Blue.cpp:103).
-blue.enums.RegisterEnum("trinity.ImageIO.TextureType", TextureType, {
+blueEnums.RegisterEnum("trinity.ImageIO.TextureType", TextureType, {
   source: "imageio/include/TextureType.h", family: "trinity", line: 9,
   exposedName: "TEXTURE_TYPE", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Tr2RenderContext_Blue.cpp:94",
@@ -181,7 +180,7 @@ blue.enums.RegisterEnum("trinity.ImageIO.TextureType", TextureType, {
 });
 
 // Registered as Carbon registers it (trinity/trinity/TriDevice_Blue.cpp:191).
-blue.enums.RegisterEnum("trinity.Tr2UpscalingAL.Technique", UpscalingTechnique, {
+blueEnums.RegisterEnum("trinity.Tr2UpscalingAL.Technique", UpscalingTechnique, {
   source: "trinity/trinityal/include/upscaling/Tr2UpscalingAL.h", family: "trinity", line: 12,
   exposedName: "UPSCALING_TECHNIQUE", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/TriDevice_Blue.cpp:170",
@@ -189,7 +188,7 @@ blue.enums.RegisterEnum("trinity.Tr2UpscalingAL.Technique", UpscalingTechnique, 
 });
 
 // Registered as Carbon registers it (trinity/trinity/TriDevice_Blue.cpp:197).
-blue.enums.RegisterEnum("trinity.Tr2UpscalingAL.Setting", UpscalingSetting, {
+blueEnums.RegisterEnum("trinity.Tr2UpscalingAL.Setting", UpscalingSetting, {
   source: "trinity/trinityal/include/upscaling/Tr2UpscalingAL.h", family: "trinity", line: 23,
   exposedName: "UPSCALING_SETTING", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/TriDevice_Blue.cpp:181",
@@ -197,16 +196,16 @@ blue.enums.RegisterEnum("trinity.Tr2UpscalingAL.Setting", UpscalingSetting, {
 });
 
 // Carbon neither registers this nor gives it a chooser.
-blue.enums.RegisterEnum("trinity.Tr2CpuUsage", Tr2CpuUsage, {
+blueEnums.RegisterEnum("trinity.Tr2CpuUsage", Tr2CpuUsage, {
   source: "trinity/trinityal/Tr2RenderContextEnum.h", family: "trinity", line: 438
 });
 
 // Carbon neither registers this nor gives it a chooser.
-blue.enums.RegisterEnum("trinity.Tr2GpuUsage", Tr2GpuUsage, {
+blueEnums.RegisterEnum("trinity.Tr2GpuUsage", Tr2GpuUsage, {
   source: "trinity/trinityal/Tr2RenderContextEnum.h", family: "trinity", line: 461
 });
 
 // Carbon neither registers this nor gives it a chooser.
-blue.enums.RegisterEnum("trinity.TriBatchType", TriBatchType, {
+blueEnums.RegisterEnum("trinity.TriBatchType", TriBatchType, {
   source: "trinity/trinity/ITr2Renderable.h", family: "trinity", line: 18
 });

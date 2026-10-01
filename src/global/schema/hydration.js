@@ -88,7 +88,7 @@ export function getReaderMemberValue(instance, member)
  */
 export function applyReaderMember(instance, member, value)
 {
-    if (member.role !== "member" || member.edit?.persist !== true)
+    if (member.role !== "member" || member.edit?.persist !== true || member.type?.runtimeOnly === true)
     {
         throw new TypeError(`Reader member ${member.name} is not stored PERSIST data.`);
     }

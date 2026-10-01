@@ -185,8 +185,17 @@ export class Copier extends ICopier
     const initialize = Copier._mapsInterface(dest.constructor, "IInitialize");
     const notify = !initialize && Copier._mapsInterface(dest.constructor, "INotify");
 
+    // Runtime-only resources stay owned by the destination. A derived stored
+    // declaration also blocks an inherited persisted route with the same name.
+    const runtimeNames = new Set();
     for (const field of CjsSchema.getSchema(dest.constructor).members)
     {
+      if (runtimeNames.has(field.name)) continue;
+      if (field.type?.runtimeOnly === true)
+      {
+        runtimeNames.add(field.name);
+        continue;
+      }
       if (!(field.edit?.persist || field.edit?.persistOnly)) continue;
 
       const kind = field.type?.kind;

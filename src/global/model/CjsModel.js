@@ -383,13 +383,13 @@ export class CjsModel extends CjsEventEmitter
      * Collects unique resources from the declared graph through Blue.
      *
      * Visits plain classes and recursive resource dependencies as well as models.
-     * The optional OnGetResources() hook supplies an iterable of local resources,
-     * takes no arguments, and never prunes descendants. Output contents are replaced
+     * Declared resource fields, including runtime-only type.resource references,
+     * contribute resources without pruning descendants. Output contents are replaced
      * in encounter order; no resource is released or initialized by this operation.
      *
      * @param {Array<*>} [out=[]] Output array, whose contents are replaced.
      * @returns {Array<*>} The supplied output array.
-     * @impl custom Compatibility entry point preserving the resource-hook contract.
+     * @impl custom Compatibility entry point for declaration-driven resource collection.
      */
     GetResources(out = [])
     {

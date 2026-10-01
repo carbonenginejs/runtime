@@ -587,7 +587,27 @@ export class CjsBlackReader extends CjsBlueReader
     {
         try
         {
-            return this.ResolveFieldTarget(kind, shape, blackName);
+            const target = this.ResolveFieldTarget(kind, shape, blackName);
+            if (!shape.canonical)
+            {
+                const Constructor = this.ResolveClass(kind);
+                if (Constructor)
+                {
+                    // A legacy wire shape cannot transport a known runtime-only
+                    // resource. Check stored roles before decoding child objects;
+                    // live property declarations do not shadow native storage.
+                    const members = CjsSchema.getSchema(Constructor).members;
+                    const eligible = member => member.type?.runtimeOnly === true
+                        || member.edit?.persist || member.edit?.persistOnly;
+                    const declaration = members.find(member => member.name === blackName && eligible(member))
+                        ?? members.find(member => (member.name === target.field.name || member.key === target.field.name) && eligible(member));
+                    if (declaration?.type?.runtimeOnly === true)
+                    {
+                        throw new TypeError(`Runtime-only member ${kind}.${declaration.name} cannot be read from Black`);
+                    }
+                }
+            }
+            return target;
         }
         catch (error)
         {

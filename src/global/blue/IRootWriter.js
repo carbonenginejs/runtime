@@ -13,6 +13,7 @@
 // `options.persistOnly` asks, and never skips defaults: consumers read the
 // full shape (operator ruling 2026-09-27; research page `blue-values-engine.md`).
 import { CjsSchema, impl } from "#schema";
+import { omitRuntimeValues } from "../schema/CjsSchema.js";
 import { exportCarbonValue } from "../schema/types/index.js";
 import { getDictionaryDeclarations, readDictionaryValue } from "./dictionaryDeclarations.js";
 
@@ -55,11 +56,11 @@ export class IRootWriter
       }
       else if (Array.isArray(value) && (LIST_KINDS.has(kind) || value.some(IsObject)))
       {
-        this.WriteList(value, DeclaredClassName(field.type));
+        this.WriteList(value, DeclaredClassName(field.type), field.type?.itemType);
       }
       else
       {
-        this.WriteNestedValue(value);
+        this.WriteNestedValue(value, field.type);
       }
     }
   }
@@ -70,14 +71,15 @@ export class IRootWriter
    *
    * @param {Array} list The list.
    * @param {string|null} declaredClassName The list's declared item class.
+   * @param {*} [itemType] Complete declared type for plain list items.
    */
-  WriteList(list, declaredClassName)
+  WriteList(list, declaredClassName, itemType = declaredClassName)
   {
     this.WriteVectorBegin(list.length);
     for (const item of list)
     {
       if (IsObject(item)) this.WriteIRoot(item, declaredClassName);
-      else this.WriteNestedValue(item);
+      else this.WriteNestedValue(item, itemType);
     }
     this.WriteVectorEnd(list.length);
   }
@@ -90,9 +92,28 @@ export class IRootWriter
    * a value; ours can.
    *
    * @param {*} value The value.
+   * @param {*} [type] Declared type for filtering plain nested resource fields.
    */
-  WriteNestedValue(value)
+  WriteNestedValue(value, type = null)
   {
+    value = omitRuntimeValues(value, type);
+    if (value instanceof Map)
+    {
+      this.WriteRecordBegin();
+      for (const [key, item] of value)
+      {
+        this.WriteMemberName(String(key));
+        if (IsObject(item)) this.WriteIRoot(item, DeclaredClassName(type?.valueType));
+        else this.WriteNestedValue(item, type?.valueType);
+      }
+      this.WriteRecordEnd();
+      return;
+    }
+    if (value instanceof Set)
+    {
+      this.WriteList(Array.from(value), DeclaredClassName(type?.itemType), type?.itemType);
+      return;
+    }
     if (!HasNestedObject(value))
     {
       this.WriteValue(exportCarbonValue(value));
@@ -187,6 +208,7 @@ export function DeclaredClassName(fieldType)
 /** Whether a plain record or array holds an object at any depth. */
 function HasNestedObject(value)
 {
+  if (value instanceof Map || value instanceof Set) return Array.from(value.values()).some(item => IsObject(item) || HasNestedObject(item));
   if (Array.isArray(value)) return value.some(item => IsObject(item) || HasNestedObject(item));
   if (!value || typeof value !== "object" || ArrayBuffer.isView(value)) return false;
   const prototype = Object.getPrototypeOf(value);

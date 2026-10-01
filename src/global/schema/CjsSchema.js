@@ -28,6 +28,7 @@ const CLASS_SCHEMA = new WeakMap();
 const SCHEMA_EXPORTS = new WeakMap();
 const DEFAULT_EXPORTS = new WeakMap();
 const FIELD_INITIAL_DEFAULTS = new WeakMap();
+const VALUES_DECLARATIONS = new WeakMap();
 const FIELD_DECLARATION_METADATA = new WeakMap();
 let SCHEMA_GENERATION = 0;
 
@@ -536,8 +537,9 @@ export class CjsSchema
      * this existed. Also what `@compose.values` installs.
      */
     static _statelessTransport = createValuesTransport({
-        GetFields: Constructor => getEffectiveFields(Constructor),
-        Export: (value, field, options) => exportCarbonValue(value, field.type, options),
+        GetFields: Constructor => getEffectiveFields(Constructor).filter(field =>
+            findValuesDeclaration(Constructor, field.name)?.type?.runtimeOnly !== true),
+        Export: (value, field) => exportCarbonValue(value, getRuntimeValueField, field.type),
         Import: (value, field) => importDeclaredValue(value, field),
         CoerceInto: (current, incoming, field) =>
             coerceCarbonMathInto(current, incoming, field.type)
@@ -713,6 +715,8 @@ export class CjsSchema
         map: valueType => fieldDecorator("type", { kind: "map", valueType }),
         model: className => fieldDecorator("type", { kind: "model", className }),
         objectRef: className => fieldDecorator("type", { kind: "objectRef", className }),
+        /** Declares a live resource edge that values, persistence and copying must omit. */
+        resource: className => fieldDecorator("type", { kind: "objectRef", className, runtimeOnly: true }),
         weakRef: className => fieldDecorator("type", { kind: "weakRef", className }),
         path: fieldDecorator("type", { kind: "path" }),
         quat: fieldDecorator("type", { kind: "quat" }),
@@ -997,6 +1001,8 @@ export class CjsSchema
 function captureFieldInitialDefault(Constructor, fieldName, initialValue, declarationMetadata = null)
 {
     if (typeof Constructor !== "function") return;
+    const field = findValuesDeclaration(Constructor, fieldName, true);
+    if (field?.type?.runtimeOnly === true) return;
 
     let fields = FIELD_INITIAL_DEFAULTS.get(Constructor);
     if (!fields)
@@ -1017,7 +1023,7 @@ function captureFieldInitialDefault(Constructor, fieldName, initialValue, declar
     try
     {
         fields.set(fieldName, {
-            value: deepFreezeDefaultValue(snapshotSchemaDefault(initialValue)),
+            value: deepFreezeDefaultValue(snapshotSchemaDefault(initialValue, new WeakSet(), field?.type)),
             declarationMetadata
         });
     }
@@ -1040,7 +1046,8 @@ function getDefaultsTemplate(ConstructorOrName)
     if (memo && memo.generation === SCHEMA_GENERATION
         && memo.registrationRevision === getClassRegistrationRevision()) return memo.defaults;
 
-    let fields = getEffectiveFields(Constructor);
+    let fields = getEffectiveFields(Constructor).filter(field => field.type?.runtimeOnly !== true
+        && findValuesDeclaration(Constructor, field.name)?.type?.runtimeOnly !== true);
     let captured = FIELD_INITIAL_DEFAULTS.get(Constructor);
     let instance = null;
 
@@ -1062,7 +1069,8 @@ function getDefaultsTemplate(ConstructorOrName)
                 { cause: err }
             );
         }
-        fields = getEffectiveFields(Constructor);
+        fields = getEffectiveFields(Constructor).filter(field => field.type?.runtimeOnly !== true
+            && findValuesDeclaration(Constructor, field.name)?.type?.runtimeOnly !== true);
         captured = FIELD_INITIAL_DEFAULTS.get(Constructor);
     }
 
@@ -1092,7 +1100,7 @@ function getDefaultsTemplate(ConstructorOrName)
         }
         else if (instance)
         {
-            value = snapshotSchemaDefault(instance[field.name]);
+            value = snapshotSchemaDefault(instance[field.name], new WeakSet(), field.type);
             // Directly registered schema accessors are explicit declarations
             // too. Their getter is the only authoritative default source even
             // though the property lives on the prototype rather than as an
@@ -1102,7 +1110,7 @@ function getDefaultsTemplate(ConstructorOrName)
 
         if (!hasValue)
         {
-            value = snapshotSchemaDefault(defaultValueForCarbonField(field));
+            value = snapshotSchemaDefault(defaultValueForCarbonField(field), new WeakSet(), field.type);
         }
         defaults[field.name] = value;
     }
@@ -1133,7 +1141,7 @@ function resolveDefaultsConstructor(ConstructorOrName)
     return Constructor;
 }
 
-function snapshotSchemaDefault(value, active = new WeakSet())
+function snapshotSchemaDefault(value, active = new WeakSet(), type = null)
 {
     if (value === null || value === undefined) return value;
     if (typeof value === "bigint") return value.toString();
@@ -1152,18 +1160,18 @@ function snapshotSchemaDefault(value, active = new WeakSet())
     {
         if (Array.isArray(value))
         {
-            return value.map(item => snapshotSchemaDefault(item, active));
+            return value.map(item => snapshotSchemaDefault(item, active, type?.itemType));
         }
         if (value instanceof Map)
         {
             return Object.fromEntries(Array.from(value.entries(), ([key, item]) => [
                 String(key),
-                snapshotSchemaDefault(item, active)
+                snapshotSchemaDefault(item, active, type?.valueType)
             ]));
         }
         if (value instanceof Set)
         {
-            return Array.from(value, item => snapshotSchemaDefault(item, active));
+            return Array.from(value, item => snapshotSchemaDefault(item, active, type?.itemType));
         }
 
         const Constructor = value.constructor;
@@ -1176,6 +1184,7 @@ function snapshotSchemaDefault(value, active = new WeakSet())
             const captured = FIELD_INITIAL_DEFAULTS.get(Constructor);
             for (const field of getEffectiveFields(Constructor))
             {
+                if (field.type?.runtimeOnly === true || findValuesDeclaration(Constructor, field.name)?.type?.runtimeOnly === true) continue;
                 const entry = captured?.get(field.name);
                 if (entry?.error)
                 {
@@ -1189,15 +1198,17 @@ function snapshotSchemaDefault(value, active = new WeakSet())
                 {
                     fieldValue = defaultValueForCarbonField(field);
                 }
-                result[field.name] = snapshotSchemaDefault(fieldValue, active);
+                result[field.name] = snapshotSchemaDefault(fieldValue, active, field.type);
             }
             return result;
         }
 
         const result = {};
-        for (const [key, item] of Object.entries(value))
+        for (const key of Object.keys(value))
         {
-            result[key] = snapshotSchemaDefault(item, active);
+            const field = getRuntimeValueField(value, key, type);
+            if (field?.type?.runtimeOnly === true) continue;
+            result[key] = snapshotSchemaDefault(value[key], active, field?.type ?? (type?.kind === "map" ? type.valueType : null));
         }
         return result;
     }
@@ -1310,15 +1321,17 @@ function expandSchemaObject(values, Constructor, path)
 
     const result = cloneDefaultValue(getDefaultsTemplate(Constructor));
     const schema = CjsSchema.getSchema(Constructor);
-    for (const [key, item] of Object.entries(values))
+    for (const key of Object.keys(values))
     {
+        const field = findValuesDeclaration(Constructor, key, true) || schema.byName.get(key);
+        if (field?.type?.runtimeOnly === true) continue;
+        const item = values[key];
         if (key === "_type" || key === "_id" || key === "_ref")
         {
             result[key] = cloneDefaultValue(item);
             continue;
         }
 
-        const field = schema.byName.get(key);
         result[key] = expandDefaultValue(
             item,
             field?.type || null,
@@ -1331,6 +1344,7 @@ function expandSchemaObject(values, Constructor, path)
 
 function resolveDeclaredConstructor(type)
 {
+    if (typeof type === "function") return type;
     let className = null;
     if (typeof type === "string")
     {
@@ -1343,7 +1357,7 @@ function resolveDeclaredConstructor(type)
             className = type.className || null;
         }
     }
-    return className ? CjsSchema.GetConstructor(className) : null;
+    return typeof className === "function" ? className : className ? CjsSchema.GetConstructor(className) : null;
 }
 
 function mergePlainDefaults(defaults, values, path)
@@ -1830,9 +1844,25 @@ function getCanonicalDeclarations(Constructor, role)
     const declarations = [];
     for (const current of getSchemaLineage(Constructor).reverse())
     {
-        for (const { entry } of CLASS_SCHEMA.get(current).declarations)
+        for (const record of CLASS_SCHEMA.get(current).declarations)
         {
-            if (entry.role === role && !hidden.has(entry.key)) declarations.push(entry);
+            const { entry } = record;
+            if (entry.role !== role || hidden.has(entry.key)) continue;
+            let inheritedType;
+            if (record.legacy && !entry.type)
+            {
+                for (const Parent of getSchemaLineage(Object.getPrototypeOf(current)).reverse())
+                {
+                    const inherited = CLASS_SCHEMA.get(Parent).declarations.find(({ entry: candidate }) =>
+                        candidate.key === entry.key && candidate.role === entry.role && candidate.index === entry.index);
+                    if (!inherited) continue;
+                    if (inherited.entry.type) inheritedType = inherited.entry.type;
+                    // Explicit declarations are complete; never borrow through
+                    // one to invent metadata for an older declaration.
+                    if (inheritedType || !inherited.legacy) break;
+                }
+            }
+            declarations.push(inheritedType ? { ...entry, type: inheritedType } : entry);
         }
     }
     return declarations;
@@ -2026,6 +2056,7 @@ function defineHiddenInheritedFields(Constructor, fieldNames)
 function importDeclaredValue(value, field)
 {
     const type = field.type;
+    value = omitRuntimeValues(value, type);
     switch (type?.kind)
     {
         case "model":
@@ -2048,6 +2079,124 @@ function importDeclaredValue(value, field)
             break;
     }
     return normalizeCarbonValue(value, type);
+}
+
+// Values select a declaration before applying its runtime-only exclusion.
+// Keep this schema-local: schema transports cannot depend on Blue readers.
+function findValuesDeclaration(Constructor, name, storage = false)
+{
+    if (typeof Constructor !== "function") return null;
+    const info = CjsSchema.getSchema(Constructor);
+    let selected = VALUES_DECLARATIONS.get(info);
+    if (!selected)
+    {
+        selected = new Map();
+        for (let owner = Constructor; typeof owner === "function"; owner = Object.getPrototypeOf(owner))
+        {
+            for (const fields of [info.members, info.properties])
+            {
+                for (const field of fields)
+                {
+                    if (field.declaringClass === owner && !selected.has(field.name)) selected.set(field.name, field);
+                }
+            }
+        }
+        VALUES_DECLARATIONS.set(info, selected);
+    }
+    if (selected.has(name)) return selected.get(name);
+    for (const field of selected.values())
+    {
+        const aliases = field.aliases ?? (field.alias === undefined ? [] : [field.alias]);
+        if ((Array.isArray(aliases) ? aliases : [aliases]).includes(name)) return field;
+    }
+    if (storage)
+    {
+        for (const field of selected.values())
+        {
+            if (field.key === name && field.index === undefined) return field;
+        }
+    }
+    return null;
+}
+
+function getRuntimeValueField(value, key, type)
+{
+    const Constructor = isPlainObject(value)
+        ? (typeof value._type === "string" && CjsSchema.GetConstructor(value._type)) || resolveDeclaredConstructor(type)
+        : value.constructor;
+    return findValuesDeclaration(Constructor, key, true);
+}
+
+/**
+ * Internal reader helper: removes declared runtime fields from plain values.
+ * Leaves scalar coercion, live references and unchanged containers untouched.
+ * @param {*} value Incoming value.
+ * @param {*} type Declared field type.
+ * @returns {*} The original value, or a copy with runtime fields omitted.
+ */
+export function omitRuntimeValues(value, type)
+{
+    const kind = type?.kind;
+    const declared = resolveDeclaredConstructor(type);
+    if (!declared && !["array", "list", "map", "set"].includes(kind)) return value;
+    if (["array", "list", "set"].includes(kind) && (Array.isArray(value) || value instanceof Set))
+    {
+        let changed = false;
+        const entries = Array.from(value, item => {
+            const next = omitRuntimeValues(item, type.itemType);
+            changed ||= next !== item;
+            return next;
+        });
+        return changed ? value instanceof Set ? new Set(entries) : entries : value;
+    }
+    if (kind === "map" && value instanceof Map)
+    {
+        let changed = false;
+        const entries = Array.from(value, ([key, item]) => {
+            const next = omitRuntimeValues(item, type.valueType);
+            changed ||= next !== item;
+            return [key, next];
+        });
+        return changed ? new Map(entries) : value;
+    }
+    if (!isPlainObject(value)) return value;
+    // cloneCarbonValue treats opaque source-shaped carriers as references.
+    if (typeof value._sourceClassName === "string") return value;
+    const Constructor = (typeof value._type === "string" && CjsSchema.GetConstructor(value._type)) || declared;
+    let descriptors = null;
+    for (const key of Object.keys(value))
+    {
+        const field = findValuesDeclaration(Constructor, key, true);
+        if (field?.type?.runtimeOnly === true)
+        {
+            descriptors ||= Object.getOwnPropertyDescriptors(value);
+            delete descriptors[key];
+            continue;
+        }
+        const childType = field?.type ?? (kind === "map" ? type.valueType : null);
+        if (!hasRuntimeValuesType(childType)) continue;
+        const item = value[key];
+        const next = omitRuntimeValues(item, childType);
+        if (next === item) continue;
+        descriptors ||= Object.getOwnPropertyDescriptors(value);
+        descriptors[key] = { value: next, writable: true, enumerable: true, configurable: true };
+    }
+    return descriptors ? Object.create(Object.getPrototypeOf(value), descriptors) : value;
+}
+
+function hasRuntimeValuesType(type, seen = new Set())
+{
+    if (type?.runtimeOnly === true) return true;
+    if (["array", "list", "set", "map"].includes(type?.kind))
+    {
+        return hasRuntimeValuesType(type.valueType ?? type.itemType, seen);
+    }
+    const Constructor = resolveDeclaredConstructor(type);
+    if (!Constructor || seen.has(Constructor)) return false;
+    seen.add(Constructor);
+    const info = CjsSchema.getSchema(Constructor);
+    return [...info.members, ...info.properties].some(field =>
+        findValuesDeclaration(Constructor, field.name) === field && hasRuntimeValuesType(field.type, seen));
 }
 
 // A declared item type that holds references: a model or objectRef
@@ -2154,6 +2303,12 @@ function mergeMemberMetadata(target, source)
     {
         if (namespace === "name") continue;
         target[namespace] = mergeNamespace(target[namespace], value);
+        // A new declared type replaces the resource fact; edit-only overrides
+        // continue to inherit their original type and its marker.
+        if (namespace === "type" && value?.kind && !Object.hasOwn(value, "runtimeOnly"))
+        {
+            delete target[namespace].runtimeOnly;
+        }
     }
     return target;
 }

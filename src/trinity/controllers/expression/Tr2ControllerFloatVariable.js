@@ -1,7 +1,10 @@
 // Source: trinity/trinity/Controllers/Tr2ControllerFloatVariable.h
 // Source: trinity/trinity/Controllers/Tr2ControllerFloatVariable.cpp
+// Source: trinity/trinity/Controllers/Tr2ControllerFloatVariable_Blue.cpp
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
+import { IInitialize } from "#blue/IInitialize";
+import { INotify } from "#blue/INotify";
 import { Type } from "../enums.js";
 
 
@@ -15,7 +18,6 @@ import { Type } from "../enums.js";
  * first 64 variables. Expressions consume that shared buffer rather than reading
  * the model fields individually. The controller clears both bindings on Unlink.
  *
- * CjsModel supplies schema-based value updates and modification notifications.
  * The authored name, defaultValue, variableType and enumValues persist; value is
  * runtime state initialized from defaultValue. This class mirrors values and
  * marks changes; it does not evaluate expressions or clear consumed dirty bits.
@@ -25,6 +27,8 @@ import { Type } from "../enums.js";
   className: "Tr2ControllerFloatVariable",
   family: "controllers"
 })
+@carbon.inherit(IInitialize, INotify)
+@carbon.mapInterface(IInitialize, INotify)
 export class Tr2ControllerFloatVariable extends CjsModel
 {
   @edit.readwrite
@@ -64,16 +68,16 @@ export class Tr2ControllerFloatVariable extends CjsModel
   /**
    * Initializes the runtime value from the authored default.
    *
-   * Uses the model update path with events suppressed. Controller linking later
-   * publishes the current value through SetDestinationBuffer.
+   * Carbon assigns only m_value (Tr2ControllerFloatVariable.cpp:17-20).
+   * Controller linking later publishes it through SetDestinationBuffer.
    *
-   * @returns {boolean} Always true after the model update succeeds.
+   * @returns {boolean} Always true.
    */
   @carbon.method
   @impl.implemented
   Initialize()
   {
-    this.SetValues({ value: this.defaultValue }, { source: this, skipEvents: true });
+    this.value = this.defaultValue;
     return true;
   }
 
@@ -83,12 +87,12 @@ export class Tr2ControllerFloatVariable extends CjsModel
    * Writes the value before marking the dirty bit. Missing destinations are
    * ignored; errors from an installed destination callback propagate.
    *
-   * @param {object} [_options={}] Unused model modification options.
+   * @param {string|null} _propertyName Unused modified member name.
    * @returns {boolean} Always true after both operations succeed.
    */
   @carbon.method
   @impl.implemented
-  OnModified(_options = {})
+  OnModified(_propertyName)
   {
     this.#writeDestination();
     this.#markDirty();
@@ -110,7 +114,7 @@ export class Tr2ControllerFloatVariable extends CjsModel
   /**
    * Gets the current variable value.
    *
-   * @returns {number} Current model value, without reading the destination back.
+   * @returns {number} Current value, without reading the destination back.
    */
   @carbon.method
   @impl.implemented
@@ -120,20 +124,21 @@ export class Tr2ControllerFloatVariable extends CjsModel
   }
 
   /**
-   * Sets the current value through the model modification path.
+   * Sets the value, writes the bound destination, and marks its dirty bit.
    *
-   * The notify-enabled field invokes OnModified to publish the value and mark
-   * its bit, including assignments of the same value. The returned change flag
-   * reports field equality, not whether notification side effects occurred.
+   * Carbon performs all three operations even for an equal value
+   * (Tr2ControllerFloatVariable.cpp:46-56).
    *
    * @param {number} value New value for the float32 schema field.
-   * @returns {boolean} Whether the model reports a changed field.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
   SetValue(value)
   {
-    return this.SetValues({ value }, { source: this, returnBoolean: true });
+    this.value = value;
+    this.#writeDestination();
+    this.#markDirty();
   }
 
   /**

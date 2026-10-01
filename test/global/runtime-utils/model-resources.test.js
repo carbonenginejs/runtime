@@ -22,14 +22,10 @@ class LeafHolder extends CjsModel
 {
   name = "";
   res = null;
-
-  OnGetResources()
-  {
-    return [ this.res ];
-  }
 }
 
 CjsSchema.decorateField(LeafHolder, "name", type.string);
+CjsSchema.decorateField(LeafHolder, "res", type.resource("TestRes"));
 CjsSchema.define(LeafHolder, { className: "LeafHolder", family: "test" });
 
 
@@ -37,14 +33,10 @@ class BranchHolder extends CjsModel
 {
   child = null;
   res = null;
-
-  OnGetResources()
-  {
-    return [ this.res ];
-  }
 }
 
 CjsSchema.decorateField(BranchHolder, "child", type.struct(LeafHolder));
+CjsSchema.decorateField(BranchHolder, "res", type.resource("TestRes"));
 CjsSchema.define(BranchHolder, { className: "BranchHolder", family: "test" });
 
 
@@ -86,7 +78,7 @@ CjsSchema.define(DeclaredHolder, { className: "DeclaredHolder", family: "test" }
 test("resources in declared fields are collected without any hook", () =>
 {
   // @type.objectRef("TriGeometryRes") already says the field holds a resource.
-  // Requiring OnGetResources as well would be the hand-written relay chain.
+  // Runtime-only private slots use type.resource; both are traversable edges.
   const model = new DeclaredHolder();
   model.texture = createResource("texture");
   model.geometry = createResource("geometry");
@@ -128,10 +120,9 @@ test("non-resource field values are ignored", () =>
 });
 
 
-test("a model reporting resources does not hide its children's", () =>
+test("a model with runtime resource fields does not hide its children's", () =>
 {
-  // The old collector pruned descendants of any model with OnGetResources, so a
-  // branch holding one resource concealed every resource beneath it.
+  // A branch holding a private loaded resource must retain child dependencies.
   const branch = new BranchHolder();
   branch.res = createResource("effect");
   branch.child = new LeafHolder();
@@ -165,36 +156,33 @@ test("the same resource shared by two models is reported once", () =>
 });
 
 
-test("OnGetResources must return an iterable, so a bare resource is rejected", () =>
+test("runtime resource declarations collect a single reference without a callback", () =>
 {
-  // One shape only: no isResource sniffing, no null guard, no dual protocol
-  // where the accumulator is both passed in and returned.
   const model = new LeafHolder();
-  model.OnGetResources = () => createResource("bare");
-
-  assert.throws(() => model.GetResources(), TypeError);
+  model.res = createResource("geometry");
+  const out = [createResource("stale")];
+  assert.equal(model.GetResources(out), out);
+  assert.deepEqual(out, [model.res]);
 });
 
 
-test("OnGetResources returning nothing is rejected too", () =>
+test("runtime resource declarations ignore impostors and absent values", () =>
 {
   const model = new LeafHolder();
-  model.OnGetResources = () => undefined;
-
-  assert.throws(() => model.GetResources(), TypeError);
+  for (const value of [undefined, null, "resource", { name: "impostor" }])
+  {
+    model.res = value;
+    assert.deepEqual(model.GetResources(), []);
+  }
 });
 
 
-test("OnGetResources takes no accumulator argument", () =>
+test("resource collection never reads the removed callback property", () =>
 {
-  // Anyone porting ccpwgl's GetResources(out) would write out.push(...); the
-  // hook is return-only so that mistake surfaces immediately.
-  let received = "unset";
   const model = new LeafHolder();
-  model.res = createResource("texture");
-  model.OnGetResources = (...args) => { received = args.length; return [ model.res ]; };
-
-  model.GetResources();
-
-  assert.equal(received, 0);
+  model.res = createResource("geometry");
+  Object.defineProperty(model, "OnGetResources", {
+    get() { assert.fail("resource collection must use declarations only"); },
+  });
+  assert.deepEqual(model.GetResources(), [model.res]);
 });

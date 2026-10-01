@@ -187,27 +187,25 @@ test("resource root and recursive resource dependencies are collected once", () 
     assert.deepEqual(GetResources(null, out), []);
 });
 
-test("resource hooks keep their iterable contract and never prune children", () =>
+test("runtime-only resource declarations retain encounter order and descendant collection", () =>
 {
-    const root = new Graph("root");
-    const resource = new Resource("shared");
-    const hookItem = { name: "accepted external hook item" };
-    root.child = new Graph("branch");
-    root.child.child = resource;
-    let calls = 0;
-    root.OnGetResources = function ()
-    {
-        assert.equal(arguments.length, 0);
-        calls++;
-        return [null, undefined, hookItem, resource];
-    };
-    assert.deepEqual(GetResources(root), [hookItem, resource]);
-    assert.equal(calls, 1);
-    for (const bad of [undefined, "resource", resource])
-    {
-        root.OnGetResources = () => bad;
-        assert.throws(() => GetResources(root), /must return an iterable/);
-    }
+    class Holder extends Graph {}
+    CjsSchema.decorateField(Holder, "_geometryRes", CjsSchema.type.resource(Resource));
+    CjsSchema.decorateField(Holder, "_sharedRes", CjsSchema.type.resource(Resource));
+    CjsSchema.define(Holder, { className: "BlueTraversalRuntimeResourceHolder" });
+    const root = new Holder("root");
+    const local = new Resource("local");
+    const shared = new Resource("shared");
+    const nested = new Resource("nested");
+    root._geometryRes = local;
+    root._sharedRes = shared;
+    root.child = new Holder("branch");
+    root.child._geometryRes = shared;
+    root.child._sharedRes = nested;
+    root.child.child = root;
+    const out = ["stale"];
+    assert.equal(GetResources(root, out), out);
+    assert.deepEqual(out, [local, shared, nested]);
 });
 
 test("resource references accept constructors and names without collecting impostors", () =>
@@ -225,11 +223,11 @@ test("resource references accept constructors and names without collecting impos
     assert.deepEqual(GetResources(root), [root.ctor, root.named]);
 });
 
-test("hook resource collection does not spread unbounded results into call arguments", () =>
+test("declared resource collections do not spread unbounded results into call arguments", () =>
 {
     const root = new Graph("root");
-    const items = Array.from({ length: 150000 }, () => ({}));
-    root.OnGetResources = () => items;
+    const items = Array.from({ length: 150000 }, (_, index) => new Resource(String(index)));
+    root.list = items;
     const result = GetResources(root);
     assert.equal(result.length, items.length);
     assert.equal(result.at(-1), items.at(-1));

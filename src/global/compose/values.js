@@ -134,6 +134,7 @@ export function settleModifiedMembers(target)
  */
 export function isWritableField(field)
 {
+    if (field?.type?.runtimeOnly === true) return false;
     const edit = field?.edit;
     if (!edit) return true;
     if (edit.write || edit.persist || edit.rpersist || edit.persistOnly) return true;
@@ -151,6 +152,7 @@ export function isWritableField(field)
  */
 export function isExportableField(field, options = {})
 {
+    if (field?.type?.runtimeOnly === true) return false;
     // A round trip (clone) exports exactly what the import reads back: a
     // READ-only member is otherwise written, skipped on the way in, and any
     // anchor inside it leaves later `{ _ref }`s dangling.

@@ -528,21 +528,29 @@ export function cloneCarbonValue(value)
 /**
  * Converts a Carbon runtime value into a plain serialization-safe
  * representation.
+ * @param {*} value Runtime value.
+ * @param {Function|null} [getField] Internal declared-field lookup for nested values.
+ * @param {*} [type] Declared type context, propagated through collections.
+ * @returns {*} Plain values.
  */
-export function exportCarbonValue(value)
+export function exportCarbonValue(value, getField = null, type = null)
 {
+    if (typeof getField !== "function") getField = null;
     if (ArrayBuffer.isView(value)) return Array.from(value, item => typeof item === "bigint" ? item.toString() : item);
     if (typeof value === "bigint") return value.toString();
-    if (value instanceof Map) return Object.fromEntries(Array.from(value.entries()).map(([key, item]) => [key, exportCarbonValue(item)]));
-    if (value instanceof Set) return Array.from(value.values()).map(exportCarbonValue);
-    if (Array.isArray(value)) return value.map(exportCarbonValue);
+    if (value instanceof Map) return Object.fromEntries(Array.from(value.entries()).map(([key, item]) => [key, exportCarbonValue(item, getField, type?.valueType)]));
+    if (value instanceof Set) return Array.from(value.values()).map(item => exportCarbonValue(item, getField, type?.itemType));
+    if (Array.isArray(value)) return value.map(item => exportCarbonValue(item, getField, type?.itemType));
     if (value && typeof value === "object")
     {
-        const result = Object.fromEntries(
-            Object.entries(value)
-                .filter(([key]) => !key.startsWith("_"))
-                .map(([key, item]) => [key, exportCarbonValue(item)])
-        );
+        const result = {};
+        for (const key of Object.keys(value))
+        {
+            if (key.startsWith("_")) continue;
+            const field = getField?.(value, key, type);
+            if (field?.type?.runtimeOnly === true) continue;
+            result[key] = exportCarbonValue(value[key], getField, field?.type ?? (type?.kind === "map" ? type.valueType : null));
+        }
         if (isCarbonRawStruct(value)) result.$type = getCarbonRawStructType(value);
         return result;
     }

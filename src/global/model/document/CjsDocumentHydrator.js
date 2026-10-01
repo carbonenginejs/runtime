@@ -7,6 +7,7 @@
 // Do not add new consumers.
 import { normalizeCarbonValue } from "../../schema/types/index.js";
 import { CjsSchema } from "../../schema/index.js";
+import { getDictionaryDeclarations } from "../../blue/dictionaryDeclarations.js";
 import { CjsCarbonDocument } from "./CjsCarbonDocument.js";
 import { resolveHydrationAdapter } from "../../schema/hydration.js";
 
@@ -113,13 +114,21 @@ export class CjsDocumentHydrator
             : null;
         const shape = target?._sourceShape || (registeredSchema?.className ? registeredSchema : null);
         const fieldByName = new Map((shape?.fields || []).map(field => [field.name, field]));
+        const declarations = typeof target?.constructor === "function" ? getDictionaryDeclarations(target.constructor) : null;
+        const isRuntimeOnly = key =>
+        {
+            const field = declarations?.byName.get(key) ?? declarations?.aliases.get(key)
+                ?? declarations?.fields.find(entry => entry.key === key) ?? fieldByName.get(key);
+            return field?.type?.runtimeOnly === true;
+        };
         const values = {};
 
-        for (const [key, item] of Object.entries(node.fields || {}))
+        for (const key of Object.keys(node.fields || {}))
         {
             if (CjsSchema.isFieldHidden(target?.constructor, key)) continue;
+            if (isRuntimeOnly(key)) continue;
             const field = fieldByName.get(key) || null;
-            values[key] = CjsDocumentHydrator.hydrateFieldValue(item, field, instanceById, options);
+            values[key] = CjsDocumentHydrator.hydrateFieldValue(node.fields[key], field, instanceById, options);
         }
 
         // node.raw is enumerable NON-SCHEMA state, and its preservation is this
@@ -128,10 +137,11 @@ export class CjsDocumentHydrator
         // setter rightly ignores undeclared keys, so raw state is the
         // hydrator's own job, exactly as it is for plain fallback carriers.
         const rawValues = {};
-        for (const [key, item] of Object.entries(node.raw || {}))
+        for (const key of Object.keys(node.raw || {}))
         {
             if (CjsSchema.isFieldHidden(target?.constructor, key)) continue;
-            rawValues[key] = CjsDocumentHydrator.resolveDocumentValue(item, instanceById, options);
+            if (isRuntimeOnly(key)) continue;
+            rawValues[key] = CjsDocumentHydrator.resolveDocumentValue(node.raw[key], instanceById, options);
         }
 
         const apply = adapter || resolveHydrationAdapter(options);

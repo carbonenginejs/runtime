@@ -153,6 +153,7 @@ test("public resource collection forwards independently of Traverse overrides ac
     {
         Traverse() { assert.fail("resource collection called public Traverse override"); }
     }
+    CjsSchema.decorateField(Overridden, "_geometryRes", CjsSchema.type.resource(Resource));
     CjsSchema.define(Overridden, { className: `${prefix}ResourceOverride` });
     const root = new Overridden();
     const dependency = new Resource();
@@ -160,16 +161,11 @@ test("public resource collection forwards independently of Traverse overrides ac
     root.plain.child = root.resource;
     root.resource.dependency = dependency;
     dependency.dependency = root.resource;
-    const external = {};
-    root.OnGetResources = function ()
-    {
-        assert.equal(arguments.length, 0);
-        return [external, dependency, null];
-    };
+    root._geometryRes = dependency;
     const out = ["stale"];
     assert.equal(root.GetResources(out), out);
     assert.deepEqual(out, GetResources(root));
-    assert.deepEqual(out, [external, dependency, root.resource]);
+    assert.deepEqual(out, [dependency, root.resource]);
 });
 
 test("legacy initialization keeps settle timing, clean state and suppressed modified events", () =>

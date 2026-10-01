@@ -70,7 +70,7 @@ export function classStructureLayout(ownerClass, fieldName)
         let known = true;
         // Persisted members only, as a BlueStructureDefinition lists them: a
         // runtime-only field would shift every later offset.
-        for (const field of CjsSchema.getSchema(Item).fields.filter(entry => entry.edit?.persist))
+        for (const field of CjsSchema.getSchema(Item).fields.filter(entry => entry.edit?.persist && entry.type?.runtimeOnly !== true))
         {
             const kind = MEMBER_KINDS[field.type?.kind];
             if (!kind) { known = false; break; }

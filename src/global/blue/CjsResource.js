@@ -137,6 +137,7 @@ export class CjsResource
     if (!values || typeof values !== "object") return this;
     const fields = CjsSchema.getSchema(this.constructor).fields;
     for (const field of fields) {
+      if (field.type?.runtimeOnly === true) continue;
       if (Object.prototype.hasOwnProperty.call(values, field.name)) {
         this[field.name] = values[field.name];
       }
@@ -153,6 +154,7 @@ export class CjsResource
   GetValues() {
     const result = {};
     for (const field of CjsSchema.getSchema(this.constructor).fields) {
+      if (field.type?.runtimeOnly === true) continue;
       result[field.name] = this[field.name];
     }
     return result;

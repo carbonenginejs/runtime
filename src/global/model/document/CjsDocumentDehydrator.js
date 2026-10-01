@@ -7,7 +7,18 @@
 // Do not add new consumers.
 import { exportCarbonValue } from "../../schema/types/index.js";
 import { CjsSchema } from "../../schema/index.js";
+import { getDictionaryDeclarations } from "../../blue/dictionaryDeclarations.js";
 import { CjsCarbonDocument } from "./CjsCarbonDocument.js";
+
+/** Omits only the selected declaration's runtime state on this retiring boundary. */
+function isRuntimeOnlyField(value, key, fields = value._sourceShape?.fields)
+{
+    const declarations = typeof value.constructor === "function" ? getDictionaryDeclarations(value.constructor) : null;
+    const field = declarations?.byName.get(key) ?? declarations?.aliases.get(key)
+        ?? declarations?.fields.find(entry => entry.key === key)
+        ?? fields?.find(entry => entry.name === key);
+    return field?.type?.runtimeOnly === true;
+}
 
 /** Converts runtime object graphs into neutral Carbon documents. */
 export class CjsDocumentDehydrator
@@ -66,9 +77,9 @@ export class CjsDocumentDehydrator
         if (value && typeof value === "object" && !ArrayBuffer.isView(value))
         {
             return Object.fromEntries(
-                Object.entries(value)
-                    .filter(([key]) => !key.startsWith("_"))
-                    .map(([key, item]) => [key, CjsDocumentDehydrator.dehydrateValue(item, state)])
+                Object.keys(value)
+                    .filter(key => !key.startsWith("_") && !isRuntimeOnlyField(value, key))
+                    .map(key => [key, CjsDocumentDehydrator.dehydrateValue(value[key], state)])
             );
         }
         return exportCarbonValue(value);
@@ -102,25 +113,29 @@ export class CjsDocumentDehydrator
             for (const field of shape.fields)
             {
                 if (schemaName && CjsSchema.isFieldHidden(value.constructor, field.name)) continue;
+                if (isRuntimeOnlyField(value, field.name, shape.fields)) continue;
                 fieldNames.add(field.name);
                 fields[field.name] = CjsDocumentDehydrator.dehydrateValue(value[field.name], state);
             }
         }
         else if (typeof value.GetValues === "function")
         {
-            for (const [key, item] of Object.entries(value.GetValues()))
+            const values = value.GetValues();
+            for (const key of Object.keys(values))
             {
+                if (isRuntimeOnlyField(value, key)) continue;
                 fieldNames.add(key);
-                fields[key] = CjsDocumentDehydrator.dehydrateValue(item, state);
+                fields[key] = CjsDocumentDehydrator.dehydrateValue(values[key], state);
             }
         }
 
         const raw = {};
-        for (const [key, item] of Object.entries(value))
+        for (const key of Object.keys(value))
         {
             if (key.startsWith("_") || fieldNames.has(key)) continue;
             if (schemaName && CjsSchema.isFieldHidden(value.constructor, key)) continue;
-            raw[key] = CjsDocumentDehydrator.dehydrateValue(item, state);
+            if (isRuntimeOnlyField(value, key)) continue;
+            raw[key] = CjsDocumentDehydrator.dehydrateValue(value[key], state);
         }
 
         const node = {

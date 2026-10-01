@@ -35,6 +35,32 @@ test("Blue and global imports provide inert facilities without evaluating option
         globalThis[name] = () => { throw new Error("Shared import started " + name); };
       }
       const shared = await import("@carbonenginejs/runtime/blue");
+      const names = [
+        "trinity.EntityComponents.ReflectionMode", "trinity.Tr2Lod",
+        "trinity.Tr2RenderContextEnum.PresentInterval", "trinity.Tr2WindowMode",
+        "trinity.Tr2WindowShowState", "blue.TRIEXTRAPOLATION", "blue.TRIOPERATOR",
+        "trinity.Tr2RenderContextEnum.SwapEffect", "trinity.Tr2EffectStateManager.RenderingMode",
+        "trinity.ImageIO.PixelFormat", "trinity.Tr2RenderContextEnum.DepthStencilFormat",
+        "trinity.ImageIO.TextureType", "trinity.Tr2UpscalingAL.Technique",
+        "trinity.Tr2UpscalingAL.Setting", "trinity.Tr2CpuUsage", "trinity.Tr2GpuUsage",
+        "trinity.TriBatchType"
+      ];
+      for (const name of names) assert.equal(shared.blue.enums.HasEnum(name), true, name);
+      const graphics = await import("@carbonenginejs/runtime/consts/graphics");
+      const trinity = await import("@carbonenginejs/runtime/consts/trinity");
+      const render = await import("@carbonenginejs/runtime/consts/render-context");
+      const identities = [
+        graphics.ReflectionMode, trinity.Tr2Lod, render.PresentInterval,
+        render.Tr2WindowMode, render.Tr2WindowShowState, graphics.TRIEXTRAPOLATION,
+        graphics.TRIOPERATOR, render.SwapEffect, graphics.RenderingMode,
+        render.PixelFormat, render.DepthStencilFormat, render.TextureType,
+        render.UpscalingTechnique, render.UpscalingSetting, render.Tr2CpuUsage,
+        render.Tr2GpuUsage, graphics.TriBatchType
+      ];
+      for (let i = 0; i < names.length; i++)
+      {
+        assert.equal(shared.blue.enums.GetEnum(names[i]), identities[i], names[i]);
+      }
       const globals = await import("@carbonenginejs/runtime/global");
       const holder = await import("./dist/global/blue/blue.js");
       assert.equal(globals.blue, shared.blue);

@@ -114,29 +114,26 @@ test("Tr2ControllerFloatVariable writes destinations and dirty masks", () =>
     value: 0n
   };
   variable.SetDirtyMask(dirty, 0x10n);
-  const events = [];
-  variable.OnEvent("modified", (_name, _model, payload) => events.push(payload));
-  assertEquals(variable.SetValue(7.25), true);
+  assertEquals(variable.SetValue(7.25), undefined);
   dirty.value = 0n;
-  assertEquals(variable.SetValue(7.25), false);
+  assertEquals(variable.SetValue(7.25), undefined);
   assertAlmostEquals(destination[1], 7.25);
   assertEquals(dirty.value, 0x10n);
-  assertEquals(events.length, 2);
-  assertEquals(events[0].source, variable);
+  dirty.value = 0n;
   variable.defaultValue = 6.5;
   assert(variable.Initialize());
   assertAlmostEquals(variable.GetValue(), 6.5);
-  assertAlmostEquals(destination[1], 6.5);
-  assertEquals(events.length, 2);
+  assertAlmostEquals(destination[1], 7.25, "Initialize does not publish to the bound destination");
+  assertEquals(dirty.value, 0n);
   variable.value = 2.5;
-  assert(variable.UpdateValues({ skipEvents: true }));
+  assert(variable.OnModified("value"));
   assertAlmostEquals(destination[1], 2.5);
   assertEquals(dirty.value, 0x10n);
   const numberDirty = {
     value: 0
   };
   variable.SetDirtyMask(numberDirty, 0x20);
-  assert(variable.UpdateValues({ skipEvents: true }));
+  assert(variable.OnModified("value"));
   assertEquals(numberDirty.value, 0x20);
   assertEquals(CjsSchema.getField(Tr2ControllerFloatVariable, "variableType")?.type.kind, "int32");
   assertEquals(CjsSchema.getField(Tr2ControllerFloatVariable, "value")?.type.kind, "float32");
@@ -1934,7 +1931,7 @@ test("equal controller writes still publish the native value and dirty mask", ()
   variable.SetDestinationBuffer(destination);
   variable.SetDirtyMask(mask, 8n);
   destination[0] = -1;
-  assertEquals(variable.SetValues({ value: 4 }, { returnBoolean: true }), false);
+  assertEquals(variable.SetValue(4), undefined);
   assertEquals(destination[0], 4);
   assertEquals(mask.value, 8n);
 });
