@@ -1,9 +1,10 @@
 // Source: trinity/trinity/Controllers/Tr2Controller.h
 // Source: trinity/trinity/Controllers/Tr2Controller.cpp
+// Source: trinity/trinity/Controllers/Tr2Controller_Blue.cpp
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { carbon, impl, edit, type } from "#schema";
 import { UnlinkReason } from "./enums.js";
-import { blue, TimeAsDouble } from "#blue";
+import { blue, IListNotify, TimeAsDouble } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ContinueOnMainThread } from "../core/continueOnMainThread.js";
 import { EveThrottleable } from "../eve/EveThrottleable.js";
@@ -14,13 +15,16 @@ import { Tr2ControllerEventHandler } from "./Tr2ControllerEventHandler.js";
 /**
  * Owns a set of state machines, float variables and event handlers, driving them
  * against a linked owner object on a throttled update.
+ *
+ * The current array fields receive notifications through CjsModel child helpers;
+ * direct array mutations bypass them. Native typed-list construction and its
+ * observer subscriptions are not supplied by the interface declaration.
  */
 @type.define({
   className: "Tr2Controller",
   family: "controllers"
 })
-@carbon.inherit(ITr2ActionController)
-@carbon.mapInterface(ITr2Controller, ITr2ActionController)
+@carbon.inherit(ITr2ActionController, IListNotify)
 export class Tr2Controller extends EveThrottleable
 {
   @edit.read
@@ -71,7 +75,14 @@ export class Tr2Controller extends EveThrottleable
 
   #time = 0;
 
-  /** Number of registered callbacks, exposed read-only as in Carbon. */
+  /**
+   * Number of registered callbacks, exposed read-only as in Carbon.
+   * Tr2Controller_Blue.cpp:27 exposes GetCallbackCount (Tr2Controller.h:63-65)
+   * as a live uint64 property. JavaScript array length remains a Number.
+   */
+  @edit.read
+  @type.uint64
+  @impl.implemented
   get callbackCount()
   {
     return this.GetCallbackCount();
@@ -642,3 +653,9 @@ export class Tr2Controller extends EveThrottleable
     return value && typeof value === "object" ? value : null;
   }
 }
+
+// Tr2Controller_Blue.cpp:15-19,65 maps this table and chains EveThrottleable.
+carbon.interfaceTable({
+  interfaces: [Tr2Controller, ITr2Controller, ITr2ActionController, IListNotify],
+  chainTo: EveThrottleable
+})(Tr2Controller, { kind: "class" });
