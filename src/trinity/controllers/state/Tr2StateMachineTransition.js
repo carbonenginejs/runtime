@@ -4,7 +4,7 @@
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { CjsModel } from "#model";
 import { INotify } from "#blue";
-import { carbon, impl, edit, type } from "#schema";
+import { carbon, impl, edit, meta, type } from "#schema";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 
 
@@ -23,13 +23,28 @@ export class Tr2StateMachineTransition extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.string
-  condition = "";
+  name = "";
 
   @edit.notify
   @edit.readwrite
   @edit.persist
   @type.string
-  name = "";
+  condition = "";
+
+  /**
+   * Reads condition validity through the native read-only property.
+   * Adapted: delegates to the existing lazy JavaScript validity check; reading
+   * this property does not introduce native eager evaluator binding.
+   * @returns {boolean} Whether the current condition compiles successfully.
+   */
+  @meta.property()
+  @edit.read
+  @type.boolean
+  @impl.adapted
+  get isConditionValid()
+  {
+    return this.IsConditionValid();
+  }
 
   _source = null;
 
@@ -47,6 +62,8 @@ export class Tr2StateMachineTransition extends CjsModel
 
   /**
    * Links this transition to its source state.
+   * @param {Tr2StateMachineState} state Source state whose machine owns the transition.
+   * @returns {void}
    */
   @carbon.method
   @impl.adapted
@@ -62,6 +79,7 @@ export class Tr2StateMachineTransition extends CjsModel
 
   /**
    * Unlinks this transition from its source state.
+   * @returns {void}
    */
   @carbon.method
   @impl.adapted
@@ -80,6 +98,8 @@ export class Tr2StateMachineTransition extends CjsModel
    *
    * Adapted: Dispatches by the exposed property name; Carbon's destinationName
    * member is exposed as name. Conditions use the runtime AST evaluator.
+   * @param {string} propertyName Exposed authored member name.
+   * @returns {boolean} True after the notification is handled.
    */
   @carbon.method
   @impl.adapted
@@ -101,7 +121,10 @@ export class Tr2StateMachineTransition extends CjsModel
 
   /**
    * Compiles and caches the transition condition.
+   * Custom: the JavaScript AST cache recompiles after direct condition edits.
+   * @returns {CjsControllerExpressionProgram} Cached condition program.
    */
+  @impl.custom
   Compile()
   {
     if (!this._program || this._programSource !== this.condition)
@@ -122,6 +145,8 @@ export class Tr2StateMachineTransition extends CjsModel
    *
    * Adapted: Uses the runtime AST evaluator and BigInt dirty masks in place of
    * Carbon's bytecode evaluator and uint64 mask.
+   * @param {bigint|number} [variableDirtyMask=0] Changed controller variable bits.
+   * @returns {boolean} Whether the current linked condition activates.
    */
   @carbon.method
   @impl.adapted
@@ -131,7 +156,7 @@ export class Tr2StateMachineTransition extends CjsModel
     {
       return false;
     }
-    const stateMachine = this._source?.GetStateMachine?.() ?? null;
+    const stateMachine = this._source?.GetStateMachine() ?? null;
     const controller = stateMachine?.GetController() ?? null;
     const owner = controller?.GetOwner() ?? null;
     const program = this.Compile();
@@ -148,7 +173,8 @@ export class Tr2StateMachineTransition extends CjsModel
   }
 
   /**
-   * Gets this transition's destination state by name.
+   * Gets the cached destination last resolved by Link or a name notification.
+   * @returns {Tr2StateMachineState|null} Cached destination, or null when unresolved.
    */
   @carbon.method
   @impl.adapted
@@ -159,6 +185,7 @@ export class Tr2StateMachineTransition extends CjsModel
 
   /**
    * Gets the source state.
+   * @returns {Tr2StateMachineState|null} Source state, or null while unlinked.
    */
   @carbon.method
   @impl.adapted
@@ -169,6 +196,8 @@ export class Tr2StateMachineTransition extends CjsModel
 
   /**
    * Gets the source state.
+   * Adapted: native Blue exposes GetSource under this wrapper name.
+   * @returns {Tr2StateMachineState|null} Source state, or null while unlinked.
    */
   @carbon.method
   @impl.adapted
@@ -182,6 +211,7 @@ export class Tr2StateMachineTransition extends CjsModel
    * state can skip evaluation when none of them changed; returns 0 (never skip)
    * when the condition calls an impure function or references a variable that is
    * missing or beyond the 64-bit mask.
+   * @returns {bigint} Relevant variable bits, or zero when evaluation cannot be skipped.
    */
   @carbon.method
   @impl.adapted
@@ -192,9 +222,9 @@ export class Tr2StateMachineTransition extends CjsModel
     {
       return 0n;
     }
-    const stateMachine = this._source?.GetStateMachine?.() ?? null;
+    const stateMachine = this._source?.GetStateMachine() ?? null;
     const controller = stateMachine?.GetController() ?? null;
-    const variableView = controller?.GetVariableView?.();
+    const variableView = controller?.GetVariableView();
     if (!Array.isArray(variableView))
     {
       return 0n;
@@ -214,6 +244,9 @@ export class Tr2StateMachineTransition extends CjsModel
 
   /**
    * Checks whether the condition is valid.
+   * Adapted: retains the lazy JavaScript compilation check, including unlinked
+   * inspection, rather than introducing native eager evaluator lifetime here.
+   * @returns {boolean} Whether the authored condition compiles successfully.
    */
   @carbon.method
   @impl.adapted
@@ -224,22 +257,26 @@ export class Tr2StateMachineTransition extends CjsModel
 
   /**
    * Checks whether the condition expression is valid.
+   * @param {string} [_attributeName] Ignored native attribute-name argument.
+   * @returns {boolean} Current condition validity.
    */
   @carbon.method
   @impl.adapted
-  IsExpressionValid()
+  IsExpressionValid(_attributeName)
   {
     return this.IsConditionValid();
   }
 
   /**
    * Evaluates an arbitrary expression against this transition's current context.
+   * @param {string} expression Expression to evaluate in the current JS context.
+   * @returns {number} Evaluated number, or the retained zero result for invalid compilation.
    */
   @carbon.method
   @impl.adapted
   EvaluateExpression(expression)
   {
-    const stateMachine = this._source?.GetStateMachine?.() ?? null;
+    const stateMachine = this._source?.GetStateMachine() ?? null;
     const controller = stateMachine?.GetController() ?? null;
     const owner = controller?.GetOwner() ?? null;
     const program = CjsControllerExpressionProgram.Compile(expression, {
@@ -254,6 +291,7 @@ export class Tr2StateMachineTransition extends CjsModel
 
   /**
    * Gets expression term metadata known by the linked controller.
+   * @returns {Array<object>} New collection of supported functions and linked variables.
    */
   @carbon.method
   @impl.adapted
@@ -261,14 +299,16 @@ export class Tr2StateMachineTransition extends CjsModel
   {
     const result = [];
     CjsControllerExpressionProgram.addControllerTermInfo(result);
-    const controller = this._source?.GetStateMachine?.()?.GetController();
-    controller?.GetExpressionTermInfo?.(result);
+    const controller = this._source?.GetStateMachine()?.GetController();
+    controller?.GetExpressionTermInfo(result);
     return result;
   }
 
   /**
    * Gets variable names referenced by the compiled condition.
+   * @returns {Array<string>} Copy of the condition's referenced variable names.
    */
+  @impl.custom
   GetVariableNames()
   {
     this.Compile();
@@ -277,7 +317,9 @@ export class Tr2StateMachineTransition extends CjsModel
 
   /**
    * Gets function names referenced by the compiled condition.
+   * @returns {Array<string>} Copy of the condition's referenced function names.
    */
+  @impl.custom
   GetFunctionNames()
   {
     this.Compile();
@@ -288,7 +330,12 @@ export class Tr2StateMachineTransition extends CjsModel
    * Builds the condition evaluation context, delegating to the controller's own
    * GetExpressionContext when it has one and otherwise assembling controller,
    * owner and state machine directly.
+   * @param {Tr2Controller|null|undefined} controller Linked expression controller.
+   * @param {object|null|undefined} owner Controller owner available to expressions.
+   * @param {Tr2StateMachine|null|undefined} stateMachine Linked state-machine context.
+   * @returns {object} Context for the JavaScript evaluator.
    */
+  @impl.custom
   _getExpressionContext(controller, owner, stateMachine)
   {
     const runtime = controller;
@@ -309,7 +356,12 @@ export class Tr2StateMachineTransition extends CjsModel
    * state's machine and logs when none matches. The authored name is the
    * destination state name, not a label for the edge; an empty name is looked
    * up like any other, as in the donor.
+   * Adapted: native UpdateDestination retains its private JavaScript name.
+   * @returns {void}
    */
+  @carbon.method
+  @carbon.renamed("UpdateDestination")
+  @impl.adapted
   _updateDestination()
   {
     this._destination = this._source.GetStateMachine().GetStateByName(this.name);
@@ -322,7 +374,11 @@ export class Tr2StateMachineTransition extends CjsModel
   /**
    * Checks whether any variable this condition reads is dirty; an empty variable
    * mask means the condition must always be evaluated.
+   * @param {bigint} variableMask Variables referenced by the condition.
+   * @param {bigint|number} dirtyVariables Changed controller variable bits.
+   * @returns {boolean} Whether the condition must be evaluated.
    */
+  @impl.custom
   static _dirtyMaskMatches(variableMask, dirtyVariables)
   {
     if (variableMask === 0n)

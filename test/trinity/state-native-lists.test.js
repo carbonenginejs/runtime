@@ -771,7 +771,7 @@ test("mapped Transition INotify makes Copier recompile the real linked condition
   Spy(transition, "OnModified", calls);
   assert.equal(new Copier().CopyTo(edited, transition), transition);
   // Check eager notification results before calling methods that can Compile.
-  assert.deepEqual(calls, [["OnModified", "condition"], ["OnModified", "name"]]);
+  assert.deepEqual(calls, [["OnModified", "name"], ["OnModified", "condition"]]);
   assert.notEqual(transition._program, oldProgram);
   assert.equal(source._transitionVariableMask, 2n);
   assert.equal(transition.GetDestination(), second);
