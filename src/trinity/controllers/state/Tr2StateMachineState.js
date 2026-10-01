@@ -1,6 +1,8 @@
 // Source: trinity/trinity/Controllers/Tr2StateMachineState.h
 // Source: trinity/trinity/Controllers/Tr2StateMachineState.cpp
+// Source: trinity/trinity/Controllers/Tr2StateMachineState_Blue.cpp
 import { CjsModel } from "#model";
+import { IListNotify, INotify } from "#blue";
 import { carbon, impl, edit, type } from "#schema";
 import { UnlinkReason } from "../enums.js";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -16,6 +18,7 @@ import { ContinueOnMainThread } from "../../core/continueOnMainThread.js";
   className: "Tr2StateMachineState",
   family: "controllers"
 })
+@carbon.inherit(IListNotify, INotify)
 export class Tr2StateMachineState extends CjsModel
 {
   @edit.read
@@ -469,3 +472,9 @@ export class Tr2StateMachineState extends CjsModel
     return (mask & Tr2StateMachineState._toBigIntMask(dirtyVariables)) !== 0n;
   }
 }
+
+// Native exposure ends at this concrete table (Tr2StateMachineState_Blue.cpp).
+carbon.interfaceTable({
+  interfaces: [Tr2StateMachineState, IListNotify, INotify],
+  chainTo: null
+})(Tr2StateMachineState);

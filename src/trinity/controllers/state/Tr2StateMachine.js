@@ -4,14 +4,18 @@ import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { UnlinkReason } from "../enums.js";
-import { blue, TimeAsFloat, IListNotify, ISimTimeRebaseNotify, INotify } from "#blue";
+import { blue, BlueList, TimeAsFloat, IListNotify, ISimTimeRebaseNotify, INotify } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
+import { mappedInterfaces } from "../../../global/compose/interface.js";
+import { Tr2StateMachineState } from "./Tr2StateMachineState.js";
 
 
 /**
  * Runs one state at a time from an authored state list, entering at the
  * configured start state and following transitions as controller variables
- * change.
+ * change. Its typed BlueList reports explicit list operations to this owner;
+ * raw array operations bypass admission and notification. Retained CjsModel
+ * child helpers notify explicitly.
  */
 @type.define({
   className: "Tr2StateMachine",
@@ -23,7 +27,7 @@ export class Tr2StateMachine extends CjsModel
   @edit.read
   @edit.persist
   @type.list("Tr2StateMachineState")
-  states = [];
+  states = new BlueList(Tr2StateMachineState, { className: "Tr2StateMachineState", listOps: 0 });
 
   @edit.read
   @type.objectRef("Tr2StateMachineState")
@@ -47,17 +51,38 @@ export class Tr2StateMachine extends CjsModel
   _stateStartTime = 0;
 
   /**
-   * Handles Carbon list notifications for the state list.
+   * Subscribes this state machine to its owned state list (cpp:13-23).
+   * Adapted: explicit constructor identity and class name replace native list
+   * template parameters and parent-lock storage; JavaScript owns references.
+   */
+  constructor()
+  {
+    super();
+    this.states.SetNotify(this);
+  }
+
+  /**
+   * Links inserted states and restarts the configured start state on removal.
+   * Removal restarts even when the removed state was not current or the machine
+   * is unlinked; removing the start state retains that current-state reference.
+   * Unload, load, move and swap events do not change linkage (cpp:35-69).
+   * Adapted: exact mapped constructor identity represents native BlueCastPtr.
+   * @param {number} event List event flags.
+   * @param {number} [_key=0] Unused first key.
+   * @param {number} [_key2=0] Unused second key.
+   * @param {object|null} [value=null] Inserted or removed object.
+   * @param {IList|null} [list=this.states] Emitting list identity.
+   * @returns {void}
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = this.states)
   {
     if (list !== this.states)
     {
       return;
     }
-    const state = Tr2StateMachine._asState(value);
+    const state = value && mappedInterfaces(value.constructor).has(Tr2StateMachineState) ? value : null;
     switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
       case BLUELISTEVENT.BELIST_INSERTED:
@@ -86,6 +111,8 @@ export class Tr2StateMachine extends CjsModel
    * Relinks the start state after it is modified.
    *
    * Adapted: Dispatches by exposed property name instead of a native field pointer.
+   * @param {string} propertyName Exposed member name.
+   * @returns {boolean} True after the notification is handled.
    */
   @carbon.method
   @impl.adapted
@@ -97,6 +124,9 @@ export class Tr2StateMachine extends CjsModel
 
   /**
    * Rebases runtime timestamps and action simulation time.
+   * @param {number} oldTime Previous simulation time in Blue ticks.
+   * @param {number} newTime Replacement simulation time in Blue ticks.
+   * @returns {void}
    */
   @carbon.method
   @impl.adapted
@@ -113,6 +143,8 @@ export class Tr2StateMachine extends CjsModel
 
   /**
    * Links all states to a controller.
+   * @param {Tr2Controller} controller Controller owning this machine.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
@@ -128,6 +160,8 @@ export class Tr2StateMachine extends CjsModel
 
   /**
    * Unlinks all states from the current controller.
+   * @param {number} [reason=UnlinkReason.UNLINKING] Native unlink reason.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
@@ -150,6 +184,8 @@ export class Tr2StateMachine extends CjsModel
 
   /**
    * Starts at the configured start state and follows immediate transitions.
+   * Adapted: BigInt preserves the native all-bits uint64 dirty mask.
+   * @returns {void}
    */
   @carbon.method
   @impl.adapted
@@ -173,6 +209,7 @@ export class Tr2StateMachine extends CjsModel
 
   /**
    * Stops the current state.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
@@ -189,6 +226,9 @@ export class Tr2StateMachine extends CjsModel
 
   /**
    * Updates the current state.
+   * Adapted: BigInt carries the native uint64 dirty-variable mask.
+   * @param {bigint} [dirtyVariables=0n] Variables changed by the controller.
+   * @returns {void}
    */
   @carbon.method
   @impl.adapted
@@ -202,6 +242,7 @@ export class Tr2StateMachine extends CjsModel
 
   /**
    * Gets the linked controller.
+   * @returns {Tr2Controller|null} Linked controller, or null while unlinked.
    */
   @carbon.method
   @impl.implemented
@@ -211,16 +252,21 @@ export class Tr2StateMachine extends CjsModel
   }
 
   /**
-   * Gets the active state.
+   * Gets the active state for JavaScript consumers.
+   * @returns {Tr2StateMachineState|null} Current state, or null while stopped.
    */
+  @impl.custom
   GetCurrentState()
   {
     return this.currentState;
   }
 
   /**
-   * Gets a state by index.
+   * Gets a state by index for JavaScript consumers.
+   * @param {number} index State list index.
+   * @returns {Tr2StateMachineState|null} State, or null outside the list.
    */
+  @impl.custom
   GetState(index)
   {
     return this.states[index] ?? null;
@@ -228,17 +274,20 @@ export class Tr2StateMachine extends CjsModel
 
   /**
    * Gets a state by authored name.
+   * @param {string} name Authored state name.
+   * @returns {Tr2StateMachineState|null} Matching state, or null when absent.
    */
   @carbon.method
   @impl.implemented
   GetStateByName(name)
   {
-    return this.states.find(state => state.GetName?.() === name) ?? null;
+    return this.states.find(state => state.GetName() === name) ?? null;
   }
 
   /**
    * Gets seconds since this state machine started: the Blue frame-time
    * difference in ticks, converted with TimeAsFloat (`Tr2StateMachine.cpp:206-209`).
+   * @returns {number} Elapsed seconds, or zero when the timestamp is zero.
    */
   @carbon.method
   @impl.implemented
@@ -249,6 +298,7 @@ export class Tr2StateMachine extends CjsModel
 
   /**
    * Gets seconds since the current state started (`Tr2StateMachine.cpp:211-214`).
+   * @returns {number} Elapsed seconds, or zero when the timestamp is zero.
    */
   @carbon.method
   @impl.implemented
@@ -258,8 +308,10 @@ export class Tr2StateMachine extends CjsModel
   }
 
   /**
-   * Gets seconds since the current state started.
+   * Gets state runtime through the retained JavaScript convenience name.
+   * @returns {number} Elapsed seconds from GetStateRunTime.
    */
+  @impl.custom
   GetStateTime()
   {
     return this.GetStateRunTime();
@@ -268,8 +320,15 @@ export class Tr2StateMachine extends CjsModel
   /**
    * Advances through as many immediately-satisfied transitions as the current
    * state chain produces, resetting the state start time on each hop; after 10
-   * hops it counts revisits and bails out at 20 to break a transition cycle.
+   * hops it counts revisits and bails out after 20 to break a transition cycle.
+   * Adapted: native FollowTransitions retains its private JavaScript name;
+   * BigInt carries the all-bits mask and JavaScript references hold seen states.
+   * @param {bigint} dirtyVariables Variables changed for the first transition.
+   * @returns {void}
    */
+  @carbon.method
+  @carbon.renamed("FollowTransitions")
+  @impl.adapted
   _followTransitions(dirtyVariables)
   {
     let next = this.currentState?.Update(dirtyVariables) ?? null;
@@ -305,15 +364,6 @@ export class Tr2StateMachine extends CjsModel
       this._stateStartTime = blue.os.GetCurrentFrameTime();
       next = this.currentState.Update(0xffffffffffffffffn) ?? null;
     }
-  }
-
-  /**
-   * Narrows a list payload to an object reference before it is treated as a
-   * state.
-   */
-  static _asState(value)
-  {
-    return value && typeof value === "object" ? value : null;
   }
 }
 

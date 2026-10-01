@@ -98,7 +98,7 @@ test("child declarations preserve their own concrete notification and initializa
   assert.equal(new Tr2ControllerEventHandler().OnListModified(0, 0, 0, null, []), undefined);
 });
 
-test("child declaration prerequisites retain their ordinary independent stored arrays", () =>
+test("child declarations retain independent storage and state-machine list ownership", () =>
 {
   for (const [Type, field, itemType] of [
     [Tr2StateMachine, "states", "Tr2StateMachineState"],
@@ -106,7 +106,17 @@ test("child declaration prerequisites retain their ordinary independent stored a
   ])
   {
     const first = new Type(), second = new Type();
-    assert.equal(Object.getPrototypeOf(first[field]), Array.prototype);
+    if (Type === Tr2StateMachine)
+    {
+      assert.equal(Object.getPrototypeOf(first[field]), BlueList.prototype);
+      const info = {};
+      first[field].GetInfo(info);
+      assert.equal(info.notify, first);
+    }
+    else
+    {
+      assert.equal(Object.getPrototypeOf(first[field]), Array.prototype);
+    }
     assert.notEqual(first[field], second[field]);
     const member = CjsSchema.getSchema(Type).members.find(entry => entry.name === field);
     assert.equal(member.type.kind, "list");
