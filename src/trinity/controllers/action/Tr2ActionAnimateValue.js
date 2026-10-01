@@ -1,9 +1,9 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateValue.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateValue.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateValue_Blue.cpp
-import { CjsModel } from "#model";
-import { carbon, impl, edit, type } from "#schema";
-import { blue, INotify } from "#blue";
+import { meta, types } from "#schema";
+import { blue } from "#blue";
+import { INotify } from "#blue/INotify";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { ITr2Updateable } from "../../core/ITr2Updateable.js";
@@ -15,60 +15,94 @@ import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
  * an expression-driven value, by default the action's curve sampled at state
  * time, into a bound destination property.
  */
-@type.define({
+@meta.define({
   className: "Tr2ActionAnimateValue",
   family: "controllers"
 })
-@carbon.inherit(ITr2ControllerAction, ITr2Updateable, INotify)
-export class Tr2ActionAnimateValue extends CjsModel
+@meta.carbon.inherit(ITr2Updateable, INotify)
+export class Tr2ActionAnimateValue extends ITr2ControllerAction
 {
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("ITriScalarFunction")
-  curve = null;
-
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
-  attribute = "";
-
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("IRoot")
-  destination = null;
-
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
-  delayBinding = false;
-
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  /** Flattened adapter storage for m_destination.m_path. */
+  @meta.member("path")
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   path = "";
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  /** Flattened adapter storage for m_destination.m_object. */
+  @meta.member("destination")
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.objectRef("IRoot")
+  destination = null;
+
+  /** Flattened adapter storage for m_destination.m_attribute. */
+  @meta.member("attribute")
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
+  attribute = "";
+
+  /** m_value: expression compiled when linked or notified. */
+  @meta.member("value")
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   value = "Curve(StateTime())";
 
-  #bindingPoint = null;
+  /** m_curve: native scalar curve, without member notification. */
+  @meta.member("curve")
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.objectRef("ITriScalarFunction")
+  curve = null;
 
-  #runtime = CjsControllerExpressionProgram.createRuntimeState();
+  /** m_delayBinding: defers a nonempty path binding to Start. */
+  @meta.member("delayBinding")
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.boolean
+  delayBinding = false;
+
+  /** Live native READ property reporting the current binding. */
+  @meta.property()
+  @meta.edit.read
+  @types.boolean
+  @meta.impl.implemented
+  get isBindingValid()
+  {
+    return this.IsBindingValid();
+  }
+
+  /** Live native READ property observing retained compilation without compiling. */
+  @meta.property()
+  @meta.edit.read
+  @types.boolean
+  @meta.impl.implemented
+  get isExpressionValid()
+  {
+    return !!this._runtime.program?.IsValid();
+  }
+
+  _bindingPoint = null;
+
+  _runtime = CjsControllerExpressionProgram.createRuntimeState();
 
   /**
    * Links the destination and compiles the value expression.
+   * Adapted: retains the shared AST compiler and flattened binding adapter
+   * instead of native bytecode and embedded binding-point storage.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   Link(controller)
   {
-    this.#runtime.controller = controller;
+    this._runtime.controller = controller;
     if (!this.HasDelayedBinding())
     {
       this.LinkDestination(controller);
@@ -77,29 +111,35 @@ export class Tr2ActionAnimateValue extends CjsModel
   }
 
   /**
-   * Unlinks the destination and update registration.
+   * Clears the binding and evaluation state; Stop owns update unregistration.
+   * Adapted: resets the shared AST runtime record, including its times; native
+   * clears the evaluator/controller while retaining the two time fields.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.adapted
   Unlink()
   {
-    this.#bindingPoint?.Unlink();
-    this.#runtime = CjsControllerExpressionProgram.createRuntimeState();
+    this._bindingPoint?.Unlink();
+    this._runtime = CjsControllerExpressionProgram.createRuntimeState();
   }
 
   /**
    * Starts updating the destination value.
+   * Adapted: retains optional linked-controller invocation, rebinding invalid
+   * destinations, replacing the evaluation controller and setting lastTime.
+   * Native Start only rebinds delayed destinations and sets startTime before
+   * registering; those existing non-update adapter differences remain deferred.
    */
-  @carbon.method
-  @impl.adapted
-  Start(controller = this.#runtime.controller)
+  @meta.carbon.method
+  @meta.impl.adapted
+  Start(controller = this._runtime.controller)
   {
     if (!controller)
     {
       return;
     }
     const owner = ITr2ControllerAction.getOwner(controller);
-    this.#runtime.controller = controller;
+    this._runtime.controller = controller;
     if (this.HasDelayedBinding() || !this.IsBindingValid())
     {
       this.LinkDestination(controller, owner);
@@ -108,71 +148,86 @@ export class Tr2ActionAnimateValue extends CjsModel
     {
       return;
     }
-    this.#runtime.startTime = blue.os.GetCurrentFrameTime();
-    this.#runtime.lastTime = this.#runtime.startTime;
-    controller.RegisterUpdateable?.(this);
+    this._runtime.startTime = blue.os.GetCurrentFrameTime();
+    this._runtime.lastTime = this._runtime.startTime;
+    controller.RegisterUpdateable(this);
   }
 
   /**
    * Stops updating the destination value.
+   * Adapted: retains optional linked-controller invocation and unlinked no-op;
+   * native requires a controller reference and directly unregisters the action.
    */
-  @carbon.method
-  @impl.implemented
-  Stop(controller = this.#runtime.controller)
+  @meta.carbon.method
+  @meta.impl.adapted
+  Stop(controller = this._runtime.controller)
   {
-    controller?.UnRegisterUpdateable?.(this);
+    controller?.UnRegisterUpdateable(this);
   }
 
   /**
    * Rebases stored simulation time.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   RebaseSimTime(diff)
   {
-    this.#runtime.startTime += diff;
-    this.#runtime.lastTime += diff;
+    this._runtime.startTime += diff;
+    this._runtime.lastTime += diff;
   }
 
   /**
    * Evaluates and writes the animated value.
+   * Adapted: evaluates retained AST state instead of native bytecode. Failed
+   * evaluation skips the write; binding write errors remain observable. Updates
+   * never recompile unnotified source edits (native cpp:90-104).
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   Update(_realTime, simTime)
   {
-    const controller = this.#runtime.controller;
+    this._runtime.lastTime = simTime;
+    const controller = this._runtime.controller;
     if (!controller)
     {
       return;
     }
-    this.#runtime.lastTime = simTime;
-    const program = this.CompileExpression();
-    if (!program.IsValid() || !this.IsBindingValid())
+    const program = this._runtime.program;
+    if (!this.IsBindingValid() || !program || !program.IsValid())
     {
       return;
     }
-    this.GetBindingPoint().SetValue(program.Evaluate(CjsControllerExpressionProgram.makeActionContext(controller, ITr2ControllerAction.getOwner(controller), this.#runtime, {
-      action: this
-    })), controller, ITr2ControllerAction.getOwner(controller));
+    const owner = ITr2ControllerAction.getOwner(controller);
+    const context = CjsControllerExpressionProgram.makeActionContext(controller, owner, this._runtime, { action: this });
+    let value;
+    try
+    {
+      value = program.Evaluate(context);
+    }
+    catch
+    {
+      return;
+    }
+    this.GetBindingPoint().SetValue(value, controller, owner);
   }
 
   /**
    * Handles authored field changes.
+   * Adapted: selects native member notifications by exposed name; expression
+   * compilation and destination binding retain their existing JS adapters.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
+  @meta.carbon.method
+  @meta.impl.adapted
   OnModified(propertyName)
   {
-    if (!this.#runtime.controller) return true;
+    if (!this._runtime.controller) return true;
     if (propertyName === "path" || propertyName === "attribute" || propertyName === "destination" || propertyName === "delayBinding")
     {
-      if (!this.HasDelayedBinding()) this.LinkDestination(this.#runtime.controller);
+      if (!this.HasDelayedBinding()) this.LinkDestination(this._runtime.controller);
     }
     else if (propertyName === "value")
     {
-      this.#runtime.program = null;
+      this._runtime.program = null;
       this.CompileExpression();
     }
     return true;
@@ -181,18 +236,20 @@ export class Tr2ActionAnimateValue extends CjsModel
   /**
    * Checks whether the binding currently resolves.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   IsBindingValid()
   {
-    return !!this.#bindingPoint?.IsValid();
+    return !!this._bindingPoint?.IsValid();
   }
 
   /**
    * Checks whether the value expression compiles.
+   * Adapted: retains compile-on-query behavior; native observes its retained
+   * evaluator without compiling. Queries can therefore adopt unnotified edits.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.adapted
   IsExpressionValid()
   {
     return this.CompileExpression().IsValid();
@@ -205,8 +262,8 @@ export class Tr2ActionAnimateValue extends CjsModel
    * this forward takes and discards the attribute name. Same forward here
    * for nominal parity.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   IsAttrExpressionValid(_attributeName)
   {
     return this.IsExpressionValid();
@@ -214,9 +271,11 @@ export class Tr2ActionAnimateValue extends CjsModel
 
   /**
    * Gets a curve value for the expression helper.
+   * Adapted: retains shared JS curve-shape coercion and fallback behavior;
+   * native calls ITriScalarFunction.GetValueAt directly, returning zero if null.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   GetCurveValue(time)
   {
     return CjsControllerExpressionProgram.getCurveValue(this.curve, time);
@@ -224,34 +283,41 @@ export class Tr2ActionAnimateValue extends CjsModel
 
   /**
    * Gets the bound destination object.
+   * Adapted: retains optional controller/owner arguments and the binding adapter's
+   * lazy resolution; native simply reads the embedded binding's current object.
    */
-  @carbon.method
-  @impl.implemented
-  GetDestination(controller = this.#runtime.controller, owner = ITr2ControllerAction.getOwner(controller))
+  @meta.carbon.method
+  @meta.impl.adapted
+  GetDestination(controller = this._runtime.controller, owner = ITr2ControllerAction.getOwner(controller))
   {
     return this.GetBindingPoint().GetBoundObject(controller, owner);
   }
 
   /**
    * Gets expression term metadata.
+   * Adapted: shared AST term records replace native evaluator metadata; a
+   * linked controller supplies its required GetExpressionTermInfo operation.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   GetExpressionTermInfo()
   {
     const result = [];
     CjsControllerExpressionProgram.addControllerTermInfo(result, {
       curve: true
     });
-    this.#runtime.controller?.GetExpressionTermInfo?.(result);
+    this._runtime.controller?.GetExpressionTermInfo(result);
     return result;
   }
 
   /**
    * Evaluates an arbitrary expression.
+   * Adapted: retains numeric zero for invalid/NaN results and optional unlinked
+   * context instead of native BlueStdResult failures. Native typed error and
+   * float32 evaluation parity remain outside this class-removal batch.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   EvaluateExpression(expression)
   {
     const state = {
@@ -265,8 +331,8 @@ export class Tr2ActionAnimateValue extends CjsModel
     {
       return 0;
     }
-    const controller = this.#runtime.controller;
-    return Number(program.Evaluate(CjsControllerExpressionProgram.makeActionContext(controller, ITr2ControllerAction.getOwner(controller), this.#runtime, {
+    const controller = this._runtime.controller;
+    return Number(program.Evaluate(CjsControllerExpressionProgram.makeActionContext(controller, ITr2ControllerAction.getOwner(controller), this._runtime, {
       action: this
     }))) || 0;
   }
@@ -274,10 +340,13 @@ export class Tr2ActionAnimateValue extends CjsModel
   /**
    * Compiles the authored value expression with the `Curve` function bound to
    * this action's curve, reusing the cached program while the text is unchanged.
+   * Custom: retained AST cache replaces native evaluator SetExpr; Link,
+   * notifications and the existing validity-query adapter call it.
    */
+  @meta.impl.custom
   CompileExpression()
   {
-    return CjsControllerExpressionProgram.compileCached(this.#runtime, this.value, 0, {
+    return CjsControllerExpressionProgram.compileCached(this._runtime, this.value, 0, {
       Curve: (_ctx, time) => this.GetCurveValue(Number(time))
     });
   }
@@ -285,24 +354,30 @@ export class Tr2ActionAnimateValue extends CjsModel
   /**
    * Gets the lazily created binding point, refreshing it from the currently
    * authored path, destination object and attribute on every call.
+   * Custom: preserves flattened JS storage instead of the native embedded point.
    */
+  @meta.impl.custom
   GetBindingPoint()
   {
-    if (!this.#bindingPoint)
+    if (!this._bindingPoint)
     {
-      this.#bindingPoint = new Tr2BindingPoint();
+      this._bindingPoint = new Tr2BindingPoint();
     }
-    this.#bindingPoint.path = this.path;
-    this.#bindingPoint.object = this.destination;
-    this.#bindingPoint.attribute = this.attribute;
-    return this.#bindingPoint;
+    this._bindingPoint.path = this.path;
+    this._bindingPoint.object = this.destination;
+    this._bindingPoint.attribute = this.attribute;
+    return this._bindingPoint;
   }
 
   /**
    * Resolves the binding point against the controller's binding roots and its
    * owner.
+   * Adapted: the binding adapter accepts controller/owner inputs instead of
+   * native controller.GetBindingPathRoots().
    */
-  LinkDestination(controller = this.#runtime.controller, owner = ITr2ControllerAction.getOwner(controller))
+  @meta.carbon.method
+  @meta.impl.adapted
+  LinkDestination(controller = this._runtime.controller, owner = ITr2ControllerAction.getOwner(controller))
   {
     return this.GetBindingPoint().Link(controller, owner);
   }
@@ -311,6 +386,8 @@ export class Tr2ActionAnimateValue extends CjsModel
    * Checks whether binding is deferred to Start, which requires both the
    * delayBinding flag and an authored path.
    */
+  @meta.carbon.method
+  @meta.impl.implemented
   HasDelayedBinding()
   {
     return this.delayBinding && !!this.path;
@@ -318,7 +395,7 @@ export class Tr2ActionAnimateValue extends CjsModel
 }
 
 // Native exposure ends at this concrete table (Tr2ActionAnimateValue_Blue.cpp:13-16,51).
-carbon.interfaceTable({
+meta.carbon.interfaceTable({
   interfaces: [Tr2ActionAnimateValue, ITr2ControllerAction, ITr2Updateable, INotify],
   chainTo: null
 })(Tr2ActionAnimateValue);

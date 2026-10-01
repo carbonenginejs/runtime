@@ -39,11 +39,11 @@ const A = ITr2ControllerAction, U = ITr2Updateable, N = INotify, I = IInitialize
 // not qualify action algorithms or the custom-persistence buffer adaptation.
 const cases = [
   {
-    Type: Tr2ActionAnimateCurveSet, nominal: [A, U, N], query: [Tr2ActionAnimateCurveSet, A, U, N],
+    Type: Tr2ActionAnimateCurveSet, modelFree: true, nominal: [A, U, N], query: [Tr2ActionAnimateCurveSet, A, U, N],
     own: ["Link", "Unlink", "Start", "Stop", "RebaseSimTime", "Update", "OnModified"]
   },
   {
-    Type: Tr2ActionAnimateValue, nominal: [A, U, N], query: [Tr2ActionAnimateValue, A, U, N],
+    Type: Tr2ActionAnimateValue, modelFree: true, nominal: [A, U, N], query: [Tr2ActionAnimateValue, A, U, N],
     own: ["Link", "Unlink", "Start", "Stop", "RebaseSimTime", "Update", "OnModified"]
   },
   {
@@ -96,7 +96,7 @@ const cases = [
     own: ["Start"]
   },
   {
-    Type: Tr2ActionSetExternalControllerVariable, nominal: [A, N], query: [Tr2ActionSetExternalControllerVariable, A, N],
+    Type: Tr2ActionSetExternalControllerVariable, modelFree: true, nominal: [A, N], query: [Tr2ActionSetExternalControllerVariable, A, N],
     own: ["Link", "Unlink", "Start", "OnModified"]
   },
   {
