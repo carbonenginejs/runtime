@@ -125,6 +125,16 @@ Supplies a curve set's driven time.
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:ICustomPersist -->
+## `ICustomPersist`
+
+Supplies storage for a member's custom persisted binary data.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/ICustomPersist.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:IList -->
 ## `IList`
 

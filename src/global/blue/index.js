@@ -77,6 +77,7 @@ export * from "./IBlueClasses.js";
 export * from "./BlueClasses.js";
 export * from "./ICopier.js";
 export * from "./ICopierCustomAssignment.js";
+export * from "./ICustomPersist.js";
 export * from "./Copier.js";
 export { blue } from "./blue.js";
 export { CjsBlueEnumRegistry, EnumRegistrationType } from "./enums/CjsBlueEnumRegistry.js";
