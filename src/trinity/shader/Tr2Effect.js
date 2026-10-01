@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Tr2Effect.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, CjsSchema, edit, impl, type } from "#schema";
+import { carbon, CjsSchema, edit, impl, normalizeCarbonValue, type } from "#schema";
 import { Tr2RegisterMapAL, Tr2ResourceSetDescriptionAL } from "#trinityal";
 import { Tr2Material } from "./Tr2Material.js";
 import { vec4 } from "#math/vec4";
@@ -35,6 +35,20 @@ import { CjsParameter } from "./parameter/CjsParameter.js";
 import { CjsTextureArrayBridge } from "./parameter/CjsTextureArrayBridge.js";
 import { ResourceFlags } from "./parameter/ITr2EffectValue.js";
 import { Tr2VariableStore } from "../core/variable/Tr2VariableStore.js";
+
+// The authored scalar API keeps Tr2SamplerOverride's existing coercion types;
+// Black's native structure separately declares unsigned address/filter slots.
+const SAMPLER_OVERRIDE_VALUE_TYPES = {
+  name: "string",
+  addressU: "int32",
+  addressV: "int32",
+  addressW: "int32",
+  filter: "int32",
+  mipFilter: "int32",
+  lodBias: "float32",
+  maxMipLevel: "uint32",
+  maxAnisotropy: "uint32"
+};
 
 
 function requireShader(shader)
@@ -181,7 +195,25 @@ export class Tr2Effect extends Tr2Material
 
   @edit.read
   @edit.persist
-  @type.list("Tr2SamplerOverride")
+  @type.list({ kind: "rawStruct", className: "Tr2SamplerOverride" }, {
+    structure: {
+      name: "Tr2SamplerOverride",
+      // Tr2Effect.h:23-37: full 64-bit stride includes opaque sampler@40..55.
+      size: 56,
+      // Tr2Effect.cpp:84-95: wire address/filter members are unsigned.
+      members: [
+        { name: "name", offset: 0, type: "string" },
+        { name: "addressU", offset: 8, type: "uint32" },
+        { name: "addressV", offset: 12, type: "uint32" },
+        { name: "addressW", offset: 16, type: "uint32" },
+        { name: "filter", offset: 20, type: "uint32" },
+        { name: "mipFilter", offset: 24, type: "uint32" },
+        { name: "lodBias", offset: 28, type: "float32" },
+        { name: "maxMipLevel", offset: 32, type: "uint32" },
+        { name: "maxAnisotropy", offset: 36, type: "uint32" }
+      ]
+    }
+  })
   samplerOverrides = [];
 
   parameterHash = 0xffffffff;
@@ -1404,9 +1436,25 @@ export class Tr2Effect extends Tr2Material
     return updated;
   }
 
-  /** Merges sampler overrides by unique name; `null` removes an override. */
+  /**
+   * Merges native sampler values by name; `null` removes an override.
+   * Plain entries accept name, addressU/V/W, filter, mipFilter, lodBias,
+   * maxMipLevel and maxAnisotropy, with their existing scalar coercion.
+   * Tr2SamplerOverride instances retain reference-replacement semantics.
+   * Metadata, identity/editor bags, unknown keys and nonscalar field values
+   * are rejected; native rows do not run values-service dirty/event settling.
+   * Earlier successful mutations remain if a later entry throws.
+   *
+   * @param {object|null} [values={}] Sampler names mapped to scalar bags, instances or null.
+   * @returns {boolean} Whether an override was inserted, removed, replaced or changed.
+   * @throws {TypeError} If the map, a row or a field is unsupported.
+   */
   SetSamplerOverrides(values = {})
   {
+    if (values !== null && (typeof values !== "object" || Array.isArray(values) || ArrayBuffer.isView(values)))
+    {
+      throw new TypeError("Tr2Effect.SetSamplerOverrides requires a sampler value map.");
+    }
     let updated = false;
     for (const name of Object.keys(values ?? {}))
     {
@@ -1447,9 +1495,20 @@ export class Tr2Effect extends Tr2Material
         this.samplerOverrides.push(override);
         updated = true;
       }
-      if (override.SetValues(value, { returnBoolean: true }))
+      for (const key of Object.keys(value))
       {
-        updated = true;
+        if (!Object.hasOwn(SAMPLER_OVERRIDE_VALUE_TYPES, key))
+        {
+          throw new TypeError(`Tr2Effect.SetSamplerOverrides does not support field "${key}".`);
+        }
+        const incoming = value[key];
+        if (incoming !== null && (typeof incoming === "object" || typeof incoming === "function" || typeof incoming === "symbol"))
+        {
+          throw new TypeError(`Tr2Effect.SetSamplerOverrides requires a scalar for "${key}".`);
+        }
+        const next = normalizeCarbonValue(incoming, { kind: SAMPLER_OVERRIDE_VALUE_TYPES[key] });
+        if (!Object.is(override[key], next)) updated = true;
+        override[key] = next;
       }
     }
     if (updated)
