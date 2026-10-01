@@ -117,7 +117,17 @@ export class Tr2Effect extends Tr2Material
 
   @edit.read
   @edit.persist
-  @type.list("Tr2ShaderOption")
+  @type.list({ kind: "rawStruct", className: "Tr2ShaderOption" }, {
+    structure: {
+      name: "Tr2ShaderOption",
+      size: 16,
+      // Tr2EffectDescription.h:272-276: two 64-bit BlueSharedString slots.
+      members: [
+        { name: "name", offset: 0, type: "string" },
+        { name: "value", offset: 8, type: "string" }
+      ]
+    }
+  })
   options = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
@@ -130,7 +140,17 @@ export class Tr2Effect extends Tr2Material
 
   @edit.read
   @edit.persist
-  @type.list("Tr2ConstantEffectParameter")
+  @type.list({ kind: "rawStruct", className: "Tr2ConstantEffectParameter" }, {
+    structure: {
+      name: "Tr2ConstantEffectParameter",
+      size: 24,
+      // Tr2Effect.cpp:33-37: 64-bit BlueSharedString storage followed by vec4.
+      members: [
+        { name: "name", offset: 0, type: "string" },
+        { name: "value", offset: 8, type: "vector4" }
+      ]
+    }
+  })
   constParameters = [];
 
   /** m_parameters (PITriEffectParameterVector) [READ, PERSIST] */

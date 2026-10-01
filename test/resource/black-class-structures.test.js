@@ -9,7 +9,39 @@ import { definitions } from "../../npm/dist/resource/formats/black/core/blackDef
 import { CjsBlackPropertyReaders } from "../../npm/dist/resource/formats/black/core/CjsBlackPropertyReaders.js";
 import { CjsBlackBinaryReader } from "../../npm/dist/resource/formats/black/core/CjsBlackBinaryReader.js";
 
+import { CjsSchema } from "../../npm/dist/global/schema/CjsSchema.js";
+
 const offsets = layout => layout.members.map(member => [ member.name, member.offset ]);
+
+test("explicit canonical native layouts need no item class and retain gaps without inferred defaults", () =>
+{
+  class Owner {}
+  const structure = { name: "BlackExplicitUnregisteredRecord", size: 32, members: [
+    { name: "value", offset: 16, type: "uint32" }
+  ] };
+  CjsSchema.define(Owner, { className: "BlackExplicitLayoutOwner", members: [{
+    name: "records", key: "records", role: "member", edit: { persist: true },
+    type: { kind: "list", itemType: { kind: "rawStruct", className: structure.name }, structure }
+  }], properties: [{ name: "records", key: "liveRecords", role: "property",
+    edit: { read: true }, type: { kind: "list", itemType: "Tr2ShaderOption" } }] });
+  const declared = CjsSchema.getSchema(Owner).members[0].type.structure;
+  const layout = classStructureLayout("BlackExplicitLayoutOwner", "records");
+  assert.equal(layout, declared);
+  assert.deepEqual(layout, structure);
+  assert.equal(layout.boundaries, undefined);
+  assert.equal(layout.defaults, undefined);
+});
+
+test("invalid explicit native layouts cannot fall back to registered item-class packing", () =>
+{
+  class Owner {}
+  CjsSchema.define(Owner, { className: "BlackInvalidLayoutOwner", members: [{
+    name: "records", key: "records", role: "member", edit: { persist: true },
+    type: { kind: "list", itemType: { kind: "rawStruct", className: "Tr2ShaderOption" },
+      structure: { name: "Tr2ShaderOption", size: 4, members: [{ name: "name", offset: 0, type: "string" }] } }
+  }] });
+  assert.throws(() => classStructureLayout("BlackInvalidLayoutOwner", "records"), /Invalid canonical Black structure member/);
+});
 
 test("derived offsets match Carbon's BlueStructureDefinitions", () =>
 {

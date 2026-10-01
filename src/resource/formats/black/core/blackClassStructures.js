@@ -1,5 +1,8 @@
 // STRUCT-LIST LAYOUTS FROM THE RUNTIME'S OWN CLASSES.
 //
+// Explicit canonical raw-structure declarations supply their native layout
+// directly. The item-class derivation below remains the legacy fallback.
+//
 // Carbon reads a structure list with its C++ BlueStructureDefinition (explicit
 // offsets). The generated Black snapshot carries such layouts only where
 // tools-core's resolution table supplies them; everything else stayed a raw
@@ -15,6 +18,7 @@
 // the host has not registered leaves the snapshot's layout (or the raw blob)
 // in place, as before.
 import { CjsSchema } from "#schema";
+import { CjsBlackSchemaRegistry } from "./CjsBlackSchemaRegistry.js";
 
 /** Schema field kinds -> the reader's member kind and its byte size. */
 const MEMBER_KINDS = {
@@ -40,7 +44,8 @@ const LAYOUTS = new Map();
 
 /**
  * The layout for `ownerClass.fieldName`'s list items, derived from the
- * registered item class, or null when the owner, the field, the item class or
+ * explicit canonical native layout or the registered item class. Returns null
+ * when the owner, the field, the item class or
  * any member type is unknown.
  * Adapted: class byteSize supplies native sizeof when unexposed trailing
  * storage makes the stride larger than the persisted members. JavaScript
@@ -48,16 +53,28 @@ const LAYOUTS = new Map();
  *
  * @param {string} ownerClass The owning Carbon class name.
  * @param {string} fieldName The list field.
- * @returns {{name: string, size: number, members: object[], boundaries: number[], defaults: object}|null}
+ * Explicit raw-structure declarations are validated and returned unchanged;
+ * they do not infer short-record boundaries or defaults from an item class.
+ *
+ * @returns {{name: string, size: number, members: object[], boundaries?: number[], defaults?: object}|null}
  */
 export function classStructureLayout(ownerClass, fieldName)
 {
-    // Only a found layout is cached: a class may register after an early read.
+    const Owner = CjsSchema.GetConstructor(ownerClass);
+    const declaration = Owner ? CjsSchema.getSchema(Owner).members.find(member =>
+        member.name === fieldName && (member.type?.runtimeOnly === true || member.edit?.persist)) : null;
+    // Explicit native layouts own their offsets and stride, even when an item
+    // class exists. Reuse canonical validation instead of repacking its fields.
+    if (declaration?.type?.itemType?.kind === "rawStruct")
+    {
+        return CjsBlackSchemaRegistry.fromDeclaredType(declaration.type).black.structure;
+    }
+
+    // Only a found derived layout is cached: a class may register after an early read.
     const key = `${ownerClass}.${fieldName}`;
     if (LAYOUTS.has(key)) return LAYOUTS.get(key);
 
     let layout = null;
-    const Owner = CjsSchema.GetConstructor(ownerClass);
     // A list names its item class; an array of structs carries it on the item type.
     const itemType = Owner ? CjsSchema.getField(Owner, fieldName)?.type?.itemType : null;
     const itemName = typeof itemType === "string" ? itemType : itemType?.kind === "struct" ? itemType.className : null;
