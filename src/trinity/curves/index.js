@@ -7,3 +7,4 @@ export * from "./enums.js";
 export * from "./curve/index.js";
 export * from "./key/index.js";
 export * from "./track/index.js";
+export * from "./ITr2FollowCurveKey.js";

@@ -674,6 +674,16 @@ Contract for an object that plays and queries named curve sets.
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:ITr2FollowCurveKey -->
+## `ITr2FollowCurveKey`
+
+Native position, time, interpolation and tangent contract for follow-curve keys.
+
+- Export: `@carbonenginejs/runtime/trinity/curves`
+- Source: `src/trinity/curves/ITr2FollowCurveKey.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:ITr2ValueBinding -->
 ## `ITr2ValueBinding`
 

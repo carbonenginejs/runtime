@@ -41,7 +41,6 @@
   "trinity/shadercompiler/EffectData.h#Texture": "No exact live class declaration for struct Texture (trinity/shadercompiler/EffectData.h:318); review missing port or explicit JS equivalent.",
   "trinity/shadercompiler/EffectData.h#Uav": "No exact live class declaration for struct Uav (trinity/shadercompiler/EffectData.h:343); review missing port or explicit JS equivalent.",
   "trinity/shadercompiler/EffectData.h#Vector4": "No exact live class declaration for struct Vector4 (trinity/shadercompiler/EffectData.h:312); review missing port or explicit JS equivalent.",
-  "trinity/trinity/Curves/Tr2FollowCurveKey.h#ITr2FollowCurveKey": "No exact live class declaration for interface ITr2FollowCurveKey (trinity/trinity/Curves/Tr2FollowCurveKey.h:23); review missing port or explicit JS equivalent.",
   "trinity/trinity/Eve/EveComponentRegistry.h#IEveComponentCollection": "No exact live class declaration for class IEveComponentCollection (trinity/trinity/Eve/EveComponentRegistry.h:37); review missing port or explicit JS equivalent.",
   "trinity/trinity/Eve/EveComponentRegistry.h#workAroundForCppStandard": "No exact live class declaration for struct workAroundForCppStandard (trinity/trinity/Eve/EveComponentRegistry.h:14); review missing port or explicit JS equivalent.",
   "trinity/trinity/Eve/IEveShadowCaster.h#IEveShadowCaster": "No exact live class declaration for interface IEveShadowCaster (trinity/trinity/Eve/IEveShadowCaster.h:140); review missing port or explicit JS equivalent.",
