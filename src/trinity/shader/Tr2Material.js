@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Shader/Tr2Material.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { type } from "#schema";
-import { CjsModel } from "#model";
+import { carbon, type } from "#schema";
 import { Tr2Shader } from "#resource/shader";
 import { ShaderType, CompareFunc } from "#consts/render-context";
 import { FNV1_INITIAL, hashFnv1Floats } from "../../global/utils/hash.js";
@@ -42,7 +41,7 @@ function SamplerDescriptionFromOverride(override)
 
 /** Owns a resolved shader's per-technique pass and library bindings, resource invalidation, texture LOD forwarding, and draw-sort state. */
 @type.define({ className: "Tr2Material", family: "shader" })
-export class Tr2Material extends CjsModel
+export class Tr2Material
 {
 
   /** m_shader (Tr2ShaderPtr) */
@@ -556,3 +555,5 @@ export class Tr2Material extends CjsModel
   }
 
 }
+
+carbon.interfaceTable({ interfaces: [Tr2Material], chainTo: null })(Tr2Material, { kind: "class" });

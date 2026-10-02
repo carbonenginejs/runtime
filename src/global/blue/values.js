@@ -20,8 +20,7 @@ CjsSchema.registerValuesService({
     setValues(target, values = {}, options = {})
     {
         if (target && typeof target.SetValues === "function") return target.SetValues(values, options);
-        return applyValues(target, options, recordWrite =>
-            new DictReader(options).ReadInto(target, values, null, recordWrite));
+        return ReadValues(target, values, options);
     },
     /** Resolves a registered values factory, preserving its class-owned normalization. */
     from(className, values = {}, options = {})
@@ -36,3 +35,10 @@ CjsSchema.registerValuesService({
         return new DictReader(options, applyValues).CreateObject(values, Constructor);
     }
 });
+
+/** Populates declared values without redispatching a class-owned SetValues override. */
+export function ReadValues(target, values = {}, options = {})
+{
+    return applyValues(target, options, recordWrite =>
+        new DictReader(options).ReadInto(target, values, null, recordWrite));
+}

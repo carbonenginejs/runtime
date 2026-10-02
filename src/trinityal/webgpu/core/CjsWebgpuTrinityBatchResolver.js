@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // The concrete resolver: a Trinity batch to WebGPU pipeline, geometry and
 // bindings.
 //
@@ -381,7 +382,7 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
         pass: passIndex
       });
 
-      return layout?.size ? PackMaterialConstants(layout, material.GetValues()) : null;
+      return layout?.size ? PackMaterialConstants(layout, CjsSchema.getValues(material)) : null;
     }
 
     // ASK THE RENDERER WHICH REGISTER IS WHICH. It owns the numbers

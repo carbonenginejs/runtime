@@ -226,7 +226,7 @@ test("Tr2RenderContext registers the objectId variable lazily", () =>
 
 test("Tr2Effect.GetHashValue reacts to authored content", () =>
 {
-  const effect = Tr2Effect.from({ effectFilePath: "res:/graphics/effect/a.fx" });
+  const effect = CjsSchema.from("Tr2Effect", { effectFilePath: "res:/graphics/effect/a.fx" });
   const baseline = effect.GetHashValue();
   assert.equal(effect.GetHashValue(), baseline, "stable for unchanged content");
 

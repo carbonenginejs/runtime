@@ -315,7 +315,7 @@ test("equal effect-path writes still initialize without reporting a changed path
     initializeCount++;
     return initialize();
   };
-  effect.OnEvent("modified", (_name, _subject, data) => events.push(data));
+  NOTIFY_METHODS.OnEvent.call(effect, "modified", (_name, _subject, data) => events.push(data));
 
   assertEquals(effect.SetEffectPathName("res:/effect/test.sm_hi"), true);
   assertEquals(effect.SetEffectPathName("res:/effect/test.sm_hi"), false);

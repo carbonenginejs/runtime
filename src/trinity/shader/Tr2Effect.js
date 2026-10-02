@@ -13,7 +13,9 @@ import { Tr2EffectParam } from "./material/Tr2EffectParam.js";
 import { Tr2EffectPassParameters } from "./material/Tr2EffectPassParameters.js";
 import { Tr2EffectTechniqueInputs } from "./material/Tr2EffectTechniqueInputs.js";
 import { ResourceRequirement } from "#resource";
-import { blue } from "#blue";
+import { blue, BlueList, IInitialize, INotify, IListNotify } from "#blue";
+import { ReadValues } from "../../global/blue/values.js";
+import { ITriEffectParameter } from "./parameter/ITriEffectParameter.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { GetEffectPathDefaults, NormalizeResourcePath, ResolveEffectPath } from "#utils/effectPath";
 import { Tr2EffectStateManager } from "./Tr2EffectStateManager.js";
@@ -116,8 +118,17 @@ function describe(value)
 
 /** Owns the mutable effect facade: shader path and options, authored parameters and resources, sampler overrides, variable-store resolution, and rebuild state. */
 @type.define({ className: "Tr2Effect", family: "shader" })
+@carbon.inherit(IInitialize, INotify, IListNotify)
 export class Tr2Effect extends Tr2Material
 {
+  /** Subscribes the two native pointer lists (Tr2Effect.cpp:255-256). */
+  constructor()
+  {
+    super();
+    this.parameters.SetNotify(this);
+    this.resources.SetNotify(this);
+  }
+
 
   /**
    * m_effectFilePath (std::string) [READWRITE, PERSIST, NOTIFY]
@@ -172,7 +183,7 @@ export class Tr2Effect extends Tr2Material
   @edit.read
   @edit.persist
   @type.list("ITriEffectParameter")
-  parameters = [];
+  parameters = new BlueList(ITriEffectParameter);
 
   /**
    * m_resources (PITriEffectResourceParameterVector) [READ, PERSIST]
@@ -183,7 +194,7 @@ export class Tr2Effect extends Tr2Material
   @edit.read
   @edit.persist
   @type.list("ITriEffectResourceParameter")
-  resources = [];
+  resources = new BlueList(ITriEffectResourceParameter);
 
   /**
    * m_effectResource (Tr2EffectResPtr) [READ]
@@ -291,7 +302,7 @@ export class Tr2Effect extends Tr2Material
     for (const resource of this.resources) resource.OnRemovedFromMaterial(this);
     for (const parameter of this._ownedProviders.keys()) this._ReleaseOwnedProvider(parameter);
     this._ClearPassBindings();
-    this.resources = [];
+    this.resources.length = 0;
     this.ReleaseCachedData();
     this.effectResource = null;
   }
@@ -482,9 +493,9 @@ export class Tr2Effect extends Tr2Material
     {
       return false;
     }
-    this.parameters = this.parameters.filter(parameter => this.#isShaderParameterVisible(CjsParameter.getNamedValue(parameter)));
+    this.parameters.splice(0, this.parameters.length, ...this.parameters.filter(parameter => this.#isShaderParameterVisible(CjsParameter.getNamedValue(parameter))));
     this.constParameters = this.constParameters.filter(parameter => this.#isShaderParameterVisible(parameter?.name));
-    this.resources = this.resources.filter(parameter => this.#isShaderParameterVisible(CjsParameter.getNamedValue(parameter)));
+    this.resources.splice(0, this.resources.length, ...this.resources.filter(parameter => this.#isShaderParameterVisible(CjsParameter.getNamedValue(parameter))));
     this._PruneOwnedProviders();
     return true;
   }
@@ -1145,8 +1156,8 @@ export class Tr2Effect extends Tr2Material
 
   /**
    * JS convenience over the Carbon lists: the effect collections also accept
-   * unique-name plain-object maps. Canonical arrays keep the inherited
-   * CjsModel path untouched; `textures` is an input alias for `resources`.
+   * unique-name plain-object maps. Canonical arrays use the shared dictionary
+   * population service; `textures` is an input alias for `resources`.
    */
   SetValues(values = {}, options = {})
   {
@@ -1171,7 +1182,7 @@ export class Tr2Effect extends Tr2Material
       }
       rest[key] = value;
     }
-    const result = super.SetValues(rest, { ...options, returnBoolean: false });
+    const result = ReadValues(this, rest, { ...options, returnBoolean: false });
     const changed = result instanceof Set ? result : new Set();
     for (const field of changedCollections)
     {
@@ -1751,7 +1762,7 @@ export class Tr2Effect extends Tr2Material
   {
     this.StartUpdate();
     this.constParameters = [];
-    this.parameters = [];
+    this.parameters.length = 0;
     this.EndUpdate();
   }
 
@@ -1766,7 +1777,7 @@ export class Tr2Effect extends Tr2Material
       // Tr2Effect.cpp:270-273 calls through the typed list, as above.
       resource.OnRemovedFromMaterial(this);
     }
-    this.resources = [];
+    this.resources.length = 0;
     this.RebuildCachedDataInternal();
   }
 
@@ -2146,3 +2157,5 @@ export class Tr2Effect extends Tr2Material
   }
 
 }
+
+carbon.interfaceTable({ interfaces: [Tr2Effect, Tr2Material, INotify, IInitialize, IListNotify], chainTo: null })(Tr2Effect, { kind: "class" });

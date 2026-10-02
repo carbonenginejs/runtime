@@ -11,7 +11,7 @@ test("SOF compatibility hydration preserves Tr2Effect's map setters and textures
 {
   const adapter = createSofHydrationAdapter();
   const effect = new Tr2Effect();
-  assert.equal(CjsSchema.isModelInstance(effect), true);
+  assert.equal(CjsSchema.isModelInstance(effect), false);
   const parameters = effect.parameters;
   const resources = effect.resources;
   assert.equal(adapter.applyValues(effect, {
