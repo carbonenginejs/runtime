@@ -20,46 +20,84 @@ import { Tr2ScalarExprKey } from "../key/Tr2ScalarExprKey.js";
 @meta.carbon.inherit(IInitialize, ITriCurveLength)
 export class Tr2ScalarExprKeyCurve extends ITriFunction
 {
+  /**
+   * Authored name identifying the expression-key scalar curve.
+   * @type {string}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.string
   name = "";
 
+  /**
+   * Enables repeated sampling after remapped time passes the evaluated key range.
+   * @type {boolean}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.boolean
   cycle = false;
 
+  /**
+   * Enables the native reverse-playback branch over the evaluated key span.
+   * @type {boolean}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.boolean
   reversed = false;
 
+  /**
+   * Offset in seconds subtracted after dividing sample time by timeScale.
+   * @type {number}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.float32
   timeOffset = 0;
 
+  /**
+   * Dimensionless divisor converting input seconds to curve-local time.
+   * @type {number}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.float32
   timeScale = 1;
 
+  /**
+   * Scalar cached by UpdateValue or the JavaScript Update convenience; native float.
+   * @type {number}
+   */
   @meta.edit.read
   @types.float32
   currentValue = 0;
 
+  /**
+   * Default interpolation code used by AddKey and sampling without a preceding key. Native
+   * choices are CONSTANT, LINEAR and HERMITE.
+   * @type {number}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.enum("trinity.Tr2CurveInterpolation")
   interpolation = Tr2CurveInterpolation.LINEAR;
 
+  /**
+   * Owned expression keys in stored evaluation order; reevaluation can change their times, values
+   * and tangents.
+   * @type {BlueList<Tr2ScalarExprKey>}
+   */
   @meta.edit.read
   @meta.edit.persist
   @types.list("Tr2ScalarExprKey")
   keys = new BlueList(Tr2ScalarExprKey, { className: "Tr2ScalarExprKey", listOps: 0 });
 
-  /** Native live duration; key expressions are evaluated by Initialize/Sort/sampling. */
+  /**
+   * Live difference between the last and first stored key times, in seconds; zero for an empty
+   * list. Reading this accessor does not reevaluate expressions.
+   * @type {number}
+   */
   @meta.property()
   @meta.edit.read
   @types.float32
@@ -68,8 +106,16 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
     return this.Length();
   }
 
+  /**
+   * Native scalar fallback returned by GetKeyLeftTangent when the requested key is absent.
+   * @type {number}
+   */
   startTangent = 0;
 
+  /**
+   * Native scalar fallback returned by GetKeyRightTangent when the requested key is absent.
+   * @type {number}
+   */
   endTangent = 0;
 
   /**

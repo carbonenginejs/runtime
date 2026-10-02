@@ -1,23 +1,36 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 //   SOF_PARAM_DECLARE( EveSOFDataParameterFloat, ... ) - Carbon declares the six typed
 //   parameters through one macro beside their base.
-import { edit, type } from "#schema";
+// Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:20-38
+// Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.cpp:85-102
+import { meta, types } from "#schema";
 import { vec4 } from "#math/vec4";
 import { EveSOFDataParameter } from "./EveSOFDataParameter.js";
 
 /** Float shader parameter: broadcasts the value to all four components. */
-@type.define({ className: "EveSOFDataParameterFloat", family: "eve" })
+@meta.define({ className: "EveSOFDataParameterFloat", family: "eve" })
 export class EveSOFDataParameterFloat extends EveSOFDataParameter
 {
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  /**
+   * Authored scalar shader value; GetValue broadcasts it to all four components.
+   * Native m_value (float) replaces the base vector in authored values.
+   * @type {number}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   value = 0;
 
   /** Returns a new vector containing the numeric value in all four components. */
+  @meta.impl.implemented
   GetValue()
   {
     const scalar = Number(this.value);
     return vec4.fromValues(scalar, scalar, scalar, scalar);
   }
 }
+
+meta.carbon.interfaceTable({
+  interfaces: [ EveSOFDataParameterFloat, EveSOFDataParameter ],
+  chainTo: null
+})(EveSOFDataParameterFloat);

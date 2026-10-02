@@ -128,7 +128,7 @@ Represents one Sprite2D polygon vertex with two validated texture-coordinate cha
 <!-- class:Tr2Sprite2dVertexBase -->
 ## `Tr2Sprite2dVertexBase`
 
-Stores a Sprite2D vertex's position, color, and two texture-coordinate channels.
+Plain native Sprite2D vertex storage; no native query interface is declared.
 
 - Export: `@carbonenginejs/runtime/trinity`
 - Source: `src/trinity/sprite2d/Tr2Sprite2dVertexBase.js`

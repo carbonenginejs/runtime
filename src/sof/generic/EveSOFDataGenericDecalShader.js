@@ -1,47 +1,74 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
-// Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { edit, type } from "#schema";
-import { CjsModel } from "#model";
+// Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:532-543
+import { meta, types } from "#schema";
 
-/** Declares the parameters and textures accepted by a decal shader and builds its configuration record. */
-@type.define({ className: "EveSOFDataGenericDecalShader", family: "eve" })
-export class EveSOFDataGenericDecalShader extends CjsModel
+/** Declares the parameters and textures accepted by a decal shader and builds its configuration record.
+ * Native IRoot-only data with a self-only Blue table. Independently initialized
+ * lists retain native parent-owned data; none is a loaded resource. Native
+ * construction needs no additional lifecycle, and the destructor is empty.
+ * Existing JavaScript configuration helpers remain custom conveniences.
+ */
+@meta.define({ className: "EveSOFDataGenericDecalShader", family: "eve" })
+export class EveSOFDataGenericDecalShader
 {
 
-  /** m_parameters (PEveSOFDataGenericStringVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataGenericString")
+  /**
+   * Shader filename identifying this decal shader definition; native m_shader (BlueSharedString).
+   * @type {string}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
+  shader = "";
+
+  /**
+   * Owned declarations naming accepted decal shader parameters; each record's str is the binding
+   * name. Native m_parameters vector.
+   * @type {Array<EveSOFDataGenericString>}
+   */
+  @meta.edit.read
+  @meta.edit.persist
+  @types.list("EveSOFDataGenericString")
   parameters = [];
 
-  /** m_defaultTextures (PEveSOFDataTextureVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataTexture")
+  /**
+   * Owned named texture defaults used to seed decal shader resources; native m_defaultTextures
+   * vector.
+   * @type {Array<EveSOFDataTexture>}
+   */
+  @meta.edit.read
+  @meta.edit.persist
+  @types.list("EveSOFDataTexture")
   defaultTextures = [];
 
-  /** m_parentTextures (PEveSOFDataGenericStringVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataGenericString")
+  /**
+   * Owned texture binding names to inherit from the parent hull mesh when building decals; native
+   * m_parentTextures vector.
+   * @type {Array<EveSOFDataGenericString>}
+   */
+  @meta.edit.read
+  @meta.edit.persist
+  @types.list("EveSOFDataGenericString")
   parentTextures = [];
 
-  /** m_additive (bool) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.boolean
+  /**
+   * Native policy selecting the additive pass so these decals render above other decals;
+   * preserved as authored m_additive (bool).
+   * @type {boolean}
+   */
+  @meta.edit.read
+  @meta.edit.persist
+  @types.boolean
   additive = false;
-
-  /** m_shader (BlueSharedString) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
-  shader = "";
 
   /**
    * Checks whether a name is declared as a parameter, a default texture, or a
    * parent texture.
+   * Custom: retained SOF configuration helper; native shader records are data only.
+   * @param {string} key Authored usage name.
+   * @returns {boolean} Whether this shader references the name.
    */
+  @meta.impl.custom
   HasUsage(key)
   {
     if (!key) return false;
@@ -53,7 +80,12 @@ export class EveSOFDataGenericDecalShader extends CjsModel
   /**
    * Populates a decal shader configuration's parameter and texture maps from
    * declarations, defaults, and provided values.
+   * Custom: retained SOF configuration helper; native shader records are data only.
+   * @param {object|null} [config={}] Destination configuration.
+   * @param {object|null} [provided={}] Caller-supplied parameter and texture maps.
+   * @returns {object} The populated configuration.
    */
+  @meta.impl.custom
   Assign(config = {}, provided = {})
   {
     config = config || {};
@@ -66,7 +98,12 @@ export class EveSOFDataGenericDecalShader extends CjsModel
   /**
    * Copies provided declared parameters and assigns [0,0,0,1] where neither
    * caller nor output supplied a value.
+   * Custom: retained SOF configuration helper; native shader records are data only.
+   * @param {object|null} [out={}] Destination parameter map.
+   * @param {object|null} [provided=null] Caller-supplied parameter values.
+   * @returns {object} The populated parameter map.
    */
+  @meta.impl.custom
   AssignParameters(out = {}, provided = null)
   {
     out = out || {};
@@ -92,7 +129,12 @@ export class EveSOFDataGenericDecalShader extends CjsModel
   /**
    * Applies authored defaults, then fills each declared parent texture from
    * provided values or an empty-path fallback.
+   * Custom: retained SOF configuration helper; native shader records are data only.
+   * @param {object|null} [out={}] Destination texture map.
+   * @param {object|null} [provided=null] Caller-supplied texture values.
+   * @returns {object} The populated texture map.
    */
+  @meta.impl.custom
   AssignTextures(out = {}, provided = null)
   {
     out = out || {};
@@ -117,3 +159,8 @@ export class EveSOFDataGenericDecalShader extends CjsModel
   }
 
 }
+
+meta.carbon.interfaceTable({
+  interfaces: [ EveSOFDataGenericDecalShader ],
+  chainTo: null
+})(EveSOFDataGenericDecalShader);

@@ -19,6 +19,11 @@ import "#blue/registerTrinityEnums";
 @carbon.inherit(IInitialize, ITriCurveLength)
 export class TriEventCurve extends ITriFunction
 {
+  /**
+   * Class-local JavaScript FIFO of queued callable-key callbacks, drained by the explicit queue
+   * helpers.
+   * @type {Array<Function>}
+   */
   static _postUpdateCallbacks = [];
 
   /**
@@ -84,42 +89,81 @@ export class TriEventCurve extends ITriFunction
     this._postUpdateCallbacks.length = 0;
   }
 
+  /**
+   * Authored name identifying the event track.
+   * @type {string}
+   */
   @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  /**
+   * Last accepted update time in seconds, retained to detect rewinds; native float64 metadata.
+   * @type {number}
+   */
   @edit.read
   @type.float64
   time = 0;
 
+  /**
+   * Cached final key time in seconds; zero prevents event advancement. Native float32 metadata.
+   * @type {number}
+   */
   @edit.read
   @type.float32
   length = 0;
 
+  /**
+   * Event-comparison time in seconds: modulo length in cycle mode, otherwise incoming time.
+   * Rewind updates leave this cached value unchanged.
+   * @type {number}
+   */
   @edit.read
   @type.float32
   localTime = 0;
 
+  /**
+   * Stored string value of the most recently triggered key; native wide string.
+   * @type {string}
+   */
   @edit.readwrite
   @edit.persist
   @type.wstring
   value = "";
 
+  /**
+   * Owned event keys, sorted by key time by initialization and editing helpers.
+   * @type {BlueList<TriEventKey>}
+   */
   @edit.persistOnly
   @type.list("TriEventKey")
   keys = new BlueList(TriEventKey, { className: "TriEventKey", listOps: 0 });
 
+  /**
+   * TRIEXTRAPOLATION time-wrapping mode; CYCLE repeats the track and other modes use incoming
+   * time unchanged.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("blue.TRIEXTRAPOLATION")
   extrapolation = TRIEXTRAPOLATION.TRIEXT_NONE;
 
+  /**
+   * Optional recipient of nonempty named events when the triggered key does not take the callable
+   * branch.
+   * @type {IBlueEventListener|null}
+   */
   @edit.readwrite
   @type.objectRef("IBlueEventListener")
   eventListener = null;
 
+  /**
+   * Index of the next key to dispatch; reset on sorting, rewind or cycle wrap.
+   * @type {number}
+   */
   _currentKeyIndex = 0;
 
   /**
@@ -410,6 +454,10 @@ export class TriEventCurve extends ITriFunction
     return Array.isArray(args) ? args : [args];
   }
 
+  /**
+   * Shared extrapolation constants exposed as a class-level convenience.
+   * @type {Object<string, number>}
+   */
   static TRIEXTRAPOLATION = TRIEXTRAPOLATION;
 
 }

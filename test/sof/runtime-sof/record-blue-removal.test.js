@@ -67,17 +67,17 @@ test("declared reader and Blue Copier preserve typed buffers and record independ
   assert.deepEqual(new Copier().CloneTo(texture).Assign(),{A:"res:/a.dds"});
 });
 
-test("existing SOF shader Copy and GetValues preserve model-free string and texture children", () =>
+test("Blue shader copy and values preserve model-free string and texture children", () =>
 {
   const string=new StringRecord();string.str="Paint";
   const texture=new Texture();texture.name="AlbedoMap";texture.resFilePath="res:/a.dds";
   const shader=new EveSOFDataGenericShader();shader.parameters.push(string);shader.defaultTextures.push(texture);
   assert.equal(shader.HasUsage("Paint"),true);
   assert.deepEqual(shader.AssignTextures(),{AlbedoMap:"res:/a.dds"});
-  const copy=new EveSOFDataGenericShader();copy.Copy(shader);
+  const copy=new EveSOFDataGenericShader();new Copier().CopyTo(shader,copy);
   assert.equal(copy.parameters[0].constructor,StringRecord);assert.notEqual(copy.parameters[0],string);
   assert.equal(copy.defaultTextures[0].constructor,Texture);assert.notEqual(copy.defaultTextures[0],texture);
-  const values=copy.GetValues({refs:true,forceTypeTags:true});
+  const values=new DictWriter().WriteObject(copy,{}, {refs:true,forceTypeTags:true});
   assert.equal(values.parameters[0].str,"Paint");assert.equal(values.defaultTextures[0].resFilePath,"res:/a.dds");
 });
 

@@ -452,6 +452,16 @@ Trinity-owned contract for objects collected through the renderable path.
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:ITr2TextureProvider -->
+## `ITr2TextureProvider`
+
+Native texture-provider contract; IRoot has no JavaScript base class.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/ITr2TextureProvider.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:ITr2Updateable -->
 ## `ITr2Updateable`
 
@@ -625,7 +635,7 @@ Contract for an object that can be captured into an impostor atlas.
 <!-- class:ITr2ImpostorSourceImpostorHash -->
 ## `ITr2ImpostorSourceImpostorHash`
 
-Camera directions used to decide when an impostor must be recaptured.
+ITr2ImpostorSource::ImpostorHash, a plain nested pair of camera directions.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
 - Source: `src/trinity/core/mesh/ITr2ImpostorSource/ITr2ImpostorSourceImpostorHash.js`
@@ -645,7 +655,7 @@ Contract for a provider of instance-stream data and layout metadata.
 <!-- class:ITr2InstanceDataInstanceData -->
 ## `ITr2InstanceDataInstanceData`
 
-One realized instance-buffer slice returned by an ITr2InstanceData provider.
+ITr2InstanceData::InstanceData, a plain nested record returned by a provider.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
 - Source: `src/trinity/core/mesh/ITr2InstanceData/ITr2InstanceDataInstanceData.js`
@@ -715,7 +725,7 @@ Owns a CPU-side instance stream - a vertex element layout, the packed per-instan
 <!-- class:Tr2SerializedMorphAnimation -->
 ## `Tr2SerializedMorphAnimation`
 
-Tr2SerializedMorphAnimation (trinityCore) - generated from schema shapeHash 58cefc7b....
+Persistent-only native morph target name and weight record owned by a mesh.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
 - Source: `src/trinity/core/mesh/Tr2SerializedMorphAnimation.js`

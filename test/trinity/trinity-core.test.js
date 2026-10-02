@@ -1,3 +1,4 @@
+import { ITr2AudEmitter } from "../../npm/dist/audio/trinity/trinityAudioApi/ITr2AudEmitter.js";
 import { composeStubResMan } from "../support/stubResMan.js";
 
 // blue.resMan throws until something composes a manager, so a test that
@@ -634,7 +635,8 @@ test("runtime instance data spawns Carbon particle declarations from CPU rows", 
 test("TriObserverLocal maintains Carbon placement and mute state without creating audio objects", () =>
 {
   const calls = [];
-  const placementObserver = {
+  class PlacementEmitter extends ITr2AudEmitter
+  {
     UpdatePlacement(front, up, position)
     {
       calls.push([
@@ -643,16 +645,17 @@ test("TriObserverLocal maintains Carbon placement and mute state without creatin
         Array.from(up),
         Array.from(position)
       ]);
-    },
+    }
     Mute()
     {
       calls.push(["mute"]);
-    },
+    }
     Unmute()
     {
       calls.push(["unmute"]);
     }
-  };
+  }
+  const placementObserver = new PlacementEmitter();
   const observer = new TriObserverLocal();
   observer.SetPosition([1, 2, 3]);
   observer.SetFront([1, 0, 0]);

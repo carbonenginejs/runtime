@@ -17,18 +17,36 @@ const TRI_PI = Math.PI;
 })
 export class Tr2ScalarFader
 {
+  /**
+   * Current dimensionless linear fade envelope value; Update clamps active fading to the range 0
+   * to 1.
+   * @type {number}
+   */
   @edit.readwrite
   @type.float32
   value = 0;
 
+  /**
+   * Signed rate of change in envelope units per second; zero stops the linear fade.
+   * @type {number}
+   */
   @edit.readwrite
   @type.float32
   fading = 0;
 
+  /**
+   * Elapsed kick-in time in seconds; negative means inactive. Starting a fade-in resets it to
+   * zero.
+   * @type {number}
+   */
   @edit.read
   @type.float32
   fadeTime = -1;
 
+  /**
+   * Duration in seconds used by the linear fade rate and kick-in envelope; set by StartFade.
+   * @type {number}
+   */
   kickInLength = 3;
 
   /**

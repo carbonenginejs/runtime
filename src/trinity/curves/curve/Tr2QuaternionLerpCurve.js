@@ -18,33 +18,65 @@ import { carbon, impl, edit, type } from "#schema";
 @carbon.inherit(ITriCurveLength)
 export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
 {
+  /**
+   * Blend-window start in the existing JavaScript seconds representation; native m_start stores
+   * Be::Time ticks.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float64
   start = 0;
 
+  /**
+   * Blend duration in seconds; a nonpositive duration leaves the sampling destination unchanged.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   length = 0;
 
+  /**
+   * Cached quaternion (x, y, z, w), updated by Update and UpdateValue; retained when blending
+   * cannot produce a sample.
+   * @type {Float32Array}
+   */
   @edit.readwrite
   @edit.persist
   @type.quat
   value = quat.create();
 
+  /**
+   * Optional quaternion function supplying the blend's starting orientation at the requested
+   * sample time.
+   * @type {ITriQuaternionFunction|null}
+   */
   @edit.readwrite
   @edit.persist
   @type.objectRef("ITriQuaternionFunction")
   startCurve = null;
 
+  /**
+   * Optional quaternion function supplying the blend's ending orientation at the requested sample
+   * time.
+   * @type {ITriQuaternionFunction|null}
+   */
   @edit.readwrite
   @edit.persist
   @type.objectRef("ITriQuaternionFunction")
   endCurve = null;
 
+  /**
+   * Reusable JavaScript quaternion buffer for the starting function's sample.
+   * @type {Float32Array}
+   */
   _startValue = quat.create();
 
+  /**
+   * Reusable JavaScript quaternion buffer for the ending function's sample.
+   * @type {Float32Array}
+   */
   _endValue = quat.create();
 
   /**

@@ -1,25 +1,39 @@
 // Source: trinity/trinity/Utilities/Tr2MaterialBoundsAdjustment.h
-// Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
+// Source: trinity/trinity/Utilities/Tr2MaterialBoundsAdjustment.cpp
+import { carbon, impl, type } from "#schema";
 import { box3 } from "#math/box3";
 
-/** How far a material's shader displaces vertices, and the bounds growth that covers it. */
+/**
+ * How far a material's shader displaces vertices, and the bounds growth that
+ * covers it. Native is a plain struct with Python tuple adapters, not a Blue
+ * class. The registered typed fields retain JavaScript inspection/dictionary
+ * transport only: no native query, read or persistence flags are invented.
+ */
 @type.define({ className: "Tr2MaterialBoundsAdjustment", family: "utilities" })
-export class Tr2MaterialBoundsAdjustment extends CjsModel
+export class Tr2MaterialBoundsAdjustment
 {
 
-  /** maxLocalDisplacement (float) */
-  @type.float32
-  maxLocalDisplacement = 0;
-
-  /** maxLocalScale (float) */
+  /**
+   * Maximum dimensionless vertex scale applied about the local origin before
+   * displacement growth; 1 leaves the original scale unchanged.
+   * @type {number}
+   */
   @type.float32
   maxLocalScale = 1;
 
-  /** rotatesVertices (bool) */
-  @edit.read
-  @edit.persist
+  /**
+   * Maximum shader displacement in local geometry units, used to grow every
+   * bounding-box face outwards after applying maxLocalScale.
+   * @type {number}
+   */
+  @type.float32
+  maxLocalDisplacement = 0;
+
+  /**
+   * Whether shader rotation requires an origin-centered cube enclosing the
+   * furthest corner of the scaled and displacement-expanded bounds.
+   * @type {boolean}
+   */
   @type.boolean
   rotatesVertices = false;
 
@@ -43,10 +57,12 @@ export class Tr2MaterialBoundsAdjustment extends CjsModel
 
   /**
    * The bounds a renderable should cull against once this material's vertex
-   * displacement is accounted for, written into `out`.
+   * displacement is accounted for, written into `out`. The optional output
+   * buffer replaces the native box value return. The existing JavaScript
+   * empty-box early return is retained, including when rotation is enabled.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   AdjustBounds(box, out = box3.create())
   {
     box3.copy(out, box);
@@ -82,3 +98,5 @@ export class Tr2MaterialBoundsAdjustment extends CjsModel
   }
 
 }
+
+carbon.interfaceTable({ interfaces: [], chainTo: null })(Tr2MaterialBoundsAdjustment);

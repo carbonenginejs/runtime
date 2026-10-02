@@ -17,21 +17,44 @@ import "#blue/registerTrinityEnums";
 })
 export class Tr2UpscalingTechniqueInfo
 {
+  /**
+   * Quality-setting flags used to interpret supportedSettings.
+   * @type {typeof UpscalingSetting}
+   */
   static UpscalingSetting = UpscalingSetting;
 
+  /**
+   * Technique identifiers used by device capability records.
+   * @type {typeof UpscalingTechnique}
+   */
   static UpscalingTechnique = UpscalingTechnique;
 
-  /** Tr2UpscalingTechniqueInfo::technique. */
+  /**
+   * Tr2UpscalingTechniqueInfo::technique.
+   *
+   * Upscaling technique identified by this capability record.
+   * @type {number}
+   */
   @type.uint32
   @type.enum("trinity.Tr2UpscalingAL.Technique")
   technique = 0;
 
-  /** Tr2UpscalingTechniqueInfo::supportedSettings. */
+  /**
+   * Tr2UpscalingTechniqueInfo::supportedSettings.
+   *
+   * Bitmask of quality settings supported by this technique.
+   * @type {number}
+   */
   @type.uint32
   @type.enum("trinity.Tr2UpscalingAL.Setting")
   supportedSettings = 0;
 
-  /** Blue structure field `framegeneration` (C++ member `framegen`). */
+  /**
+   * Blue structure field `framegeneration` (C++ member `framegen`).
+   *
+   * Whether this technique supports frame generation.
+   * @type {boolean}
+   */
   @type.boolean
   framegeneration = false;
 }

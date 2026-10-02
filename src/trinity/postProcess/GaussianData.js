@@ -7,8 +7,7 @@
 // uploaded whole as the bloom upsample constant buffer, so `byteSize` and
 // `pack` reproduce its C++ layout: Vector3 + uint32 in the first 16 bytes,
 // then MAX_FILTER_STEPS / 2 Vector4s.
-import { type } from "#schema";
-import { CjsModel } from "#model";
+import { carbon, impl, type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
@@ -18,26 +17,50 @@ const MAX_FILTER_STEPS = 128;
 /** `TRI_PI`. */
 const TRI_PI = Math.PI;
 
-/** Carries the packed weights, offsets, and tap count for one Gaussian blur pass. */
+/**
+ * Carries the packed weights, offsets, and tap count for one Gaussian blur pass.
+ * Native GaussianDistribution::GaussianData is a plain aggregate without Blue
+ * exposure. Registered typed fields are JavaScript dictionary/inspection only,
+ * without persistence flags or query interfaces. Zero-filled storage is a JS
+ * construction adapter; native fills the aggregate in its calculator function.
+ */
 @type.define({ className: "GaussianData", family: "postProcess" })
-export class GaussianData extends CjsModel
+export class GaussianData
 {
 
-  /** overallWeight (Vector3) */
+  /**
+   * RGB multiplier for the blur output, held in this record's three-component buffer.
+   * @type {Float32Array|Float64Array|number[]}
+   */
   @type.vec3
   overallWeight = vec3.create();
 
-  /** count (uint32_t) */
+  /**
+   * Number of active weightOffset entries; each encodes two [weight, offset] pairs.
+   * @type {number}
+   */
   @type.uint32
   count = 0;
 
-  /** weightOffset (Vector4[MAX_FILTER_STEPS / 2]): two weight/offset pairs per entry. */
+  /**
+   * Sixty-four separately allocated buffers in [weight0, offset0, weight1, offset1]
+   * order. Weights are normalized; offsets use normalized texture coordinates.
+   * @type {Array<Float32Array|Float64Array|number[]>}
+   */
   @type.array("vec4")
   weightOffset = Array.from({ length: MAX_FILTER_STEPS / 2 }, () => vec4.create());
 
-  /** `sizeof( GaussianData )`: 16 bytes of header, then the Vector4 array. */
+  /**
+   * Packed record size in bytes: a 16-byte header followed by 64 float4 entries.
+   * @type {number}
+   */
   static byteSize = 16 + (MAX_FILTER_STEPS / 2) * 16;
 
+  /**
+   * Calculator tap budget, matching native Bloom::MAX_FILTER_STEPS (128).
+   * Two taps share each of the 64 weightOffset entries.
+   * @type {number}
+   */
   static MAX_FILTER_STEPS = MAX_FILTER_STEPS;
 
   /**
@@ -47,6 +70,7 @@ export class GaussianData extends CjsModel
    * @param {Uint8Array} [out] Destination, at least `byteSize` long.
    * @returns {Uint8Array} `out`.
    */
+  @impl.custom
   static pack(data, out = new Uint8Array(GaussianData.byteSize))
   {
     const view = new DataView(out.buffer, out.byteOffset, GaussianData.byteSize);
@@ -63,12 +87,15 @@ export class GaussianData extends CjsModel
   /**
    * Carbon GaussianDistribution::NormalDistribution (cpp:222-233): a gaussian
    * lerped towards `1 - x^2` by `weight`, or `(1 - x^2)^weight` above 1.
+   * The retained JavaScript number arithmetic uses doubles instead of native
+   * float intermediates; the namespace function remains a static JS helper.
    *
    * @param {number} x The tap position.
    * @param {number} sigma The radius.
    * @param {number} weight The centre weight.
    * @returns {number} The tap weight.
    */
+  @impl.adapted
   static normalDistribution(x, sigma, weight)
   {
     const dx = Math.abs(x);
@@ -84,7 +111,9 @@ export class GaussianData extends CjsModel
    * Carbon GaussianDistribution::CalculateGaussianPassParameters (cpp:235-298):
    * the taps of one separable blur pass, two bilinear taps folded into each,
    * normalised by the sum of every weight including taps that fall off screen.
-   * `direction` is unused by Carbon's body, as here.
+   * `direction` is unused by Carbon's body, as here. The retained algorithm
+   * uses double arithmetic/scratch and reusable output storage rather than
+   * native floats and a value return; existing radius/weight guards remain.
    *
    * @param {number} radius Radius in pixels.
    * @param {number} centerWeight The distribution's centre weight.
@@ -96,6 +125,7 @@ export class GaussianData extends CjsModel
    *   keeps, so a pass allocates nothing. Its previous taps are overwritten.
    * @returns {GaussianData} `out`, filled.
    */
+  @impl.adapted
   static calculateGaussianPassParameters(radius, centerWeight, normalizingFactor, overallWeight, _direction, out = new GaussianData())
   {
     const clampedRadius = Math.min(Math.max(radius, 0.0001), MAX_FILTER_STEPS - 1);
@@ -156,3 +186,5 @@ export class GaussianData extends CjsModel
   static _taps = new Float64Array(MAX_FILTER_STEPS * 2 + 2);
 
 }
+
+carbon.interfaceTable({ interfaces: [], chainTo: null })(GaussianData);

@@ -76,7 +76,7 @@ async function probe()
         assert.equal(object.audioEmitter.constructor, root.AudEmitter);
     }
     // The observer/emitter values shape emitted by SOF; no asset loading needed.
-    const observer = root.TriObserverLocal.from({
+    const observer = new root.DictReader({ declarations: true }).CreateObject({
         _type: "TriObserverLocal",
         name: "engine",
         position: [ 1, 2, 3 ],

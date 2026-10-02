@@ -2,16 +2,28 @@
 //   trinity/trinity/Utilities/MatrixUtils.cpp:6-26 (both conversions)
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, type } from "#schema";
-import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 
-/** A transform packed into twelve floats, dropping the constant fourth column. */
+/**
+ * A transform packed into twelve floats, dropping the constant fourth column.
+ * Native Float4x3 is a plain struct without Blue exposure; registered typed
+ * storage is JavaScript dictionary/inspection only, with no persistence or
+ * query interfaces. Zero-filled default storage adapts native uninitialized
+ * aggregate storage. The typed-array initializer fixes the runtime width at 12;
+ * the existing dictionary array declaration does not enforce that width.
+ */
 @type.define({ className: "Float4x3", family: "utilities" })
-export class Float4x3 extends CjsModel
+export class Float4x3
 {
 
-  /** elements (float[12]) */
-  @type.float32
+  /**
+   * Twelve components grouped as native matrix columns [_11, _21, _31, _41],
+   * [_12, _22, _32, _42], [_13, _23, _33, _43]: three float4 registers, with the
+   * affine fourth column (0, 0, 0, 1) omitted. Initial Float32Array storage belongs
+   * to this record; dictionary array input can replace it with a number array.
+   * @type {Float32Array|number[]}
+   */
+  @type.array("float32")
   elements = new Float32Array(12);
 
   // Carbon MatrixUtils.cpp:6-20 writes elements[0..3] from _11,_21,_31,_41 -
@@ -26,10 +38,11 @@ export class Float4x3 extends CjsModel
   // Carbon's with that substitution. It is its own inverse.
 
   /**
-   * Packs a transform into the twelve floats, writing into `out`.
+   * Packs a transform into the twelve floats, writing into `out`. The static
+   * helper and optional output buffer adapt the native Matrix constructor.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   static fromMat4(matrix, out = new Float32Array(12))
   {
     for (let column = 0; column < 3; column++)
@@ -44,10 +57,11 @@ export class Float4x3 extends CjsModel
 
   /**
    * Unpacks twelve floats back into a transform, restoring the fourth column
-   * Carbon reconstructs as (0, 0, 0, 1); writes into `out`.
+   * Carbon reconstructs as (0, 0, 0, 1); writes into `out`. The static helper
+   * and optional output buffer adapt the native Matrix conversion operator.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   static toMat4(elements, out = mat4.create())
   {
     for (let column = 0; column < 3; column++)
@@ -66,8 +80,7 @@ export class Float4x3 extends CjsModel
   }
 
   /** Packs a transform into this record's elements. */
-  @carbon.method
-  @impl.implemented
+  @impl.custom
   SetFromMat4(matrix)
   {
     Float4x3.fromMat4(matrix, this.elements);
@@ -75,11 +88,12 @@ export class Float4x3 extends CjsModel
   }
 
   /** This record's elements unpacked into a transform, written into `out`. */
-  @carbon.method
-  @impl.implemented
+  @impl.custom
   GetMat4(out = mat4.create())
   {
     return Float4x3.toMat4(this.elements, out);
   }
 
 }
+
+carbon.interfaceTable({ interfaces: [], chainTo: null })(Float4x3);

@@ -5,78 +5,95 @@
 // Hand-maintained from Carbon source, promoted out of generated intake
 // 2026-09-06.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { ResourceRequirement } from "#resource";
 import { blue } from "#blue";
 
 /** Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite. */
 @type.define({ className: "Tr2Sprite2dPickingMask", family: "sprite2d", purpose: "Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite." })
-export class Tr2Sprite2dPickingMask extends CjsModel
+export class Tr2Sprite2dPickingMask
 {
 
-  /** m_channel (uint32_t) [READWRITE, ENUM] - Carbon's BGRA chooser: 0=B, 2=R, 3=A. */
+  /** Native path backing storage; the exposed property delegates resource acquisition. @type {string} */
+  _maskPath = "";
+
+  /** Native READWRITE wide-string property backed by GetMaskPath. @returns {string} */
   @edit.readwrite
+  @type.wstring
+  @impl.custom
+  get maskPath()
+  {
+    return this.GetMaskPath();
+  }
+
+  /** Delegates property writes to the native path method adapter. @param {string} value Image path. */
+  @impl.custom
+  set maskPath(value)
+  {
+    this.SetMaskPath(value);
+  }
+
+  /** Native anonymous BGRA channel chooser. @type {number} */
+  @edit.readwrite
+  @type.enum({ Red: 2, Green: 1, Blue: 0, Alpha: 3 })
   @type.uint32
   channel = 3;
 
-  /** m_threshold (float) [READWRITE] - the sampled channel must EXCEED it, 0..1. */
+  /** Sampled channel must exceed this native READWRITE threshold. @type {number} */
   @edit.readwrite
   @type.float32
   threshold = 0;
 
-  /** m_mask (Tr2ImageResPtr) [READ] */
-  @edit.read
-  @type.objectRef("Tr2ImageRes")
-  mask = null;
-
-  /** m_maskPath (std::wstring), the Blue property pair's backing string. */
-  @edit.readwrite
-  @type.string
-  maskPath = "";
-
-  /** m_bottomEdge (uint32_t) [READWRITE] */
-  @edit.readwrite
-  @type.uint32
-  bottomEdge = 0;
-
-  /** m_leftEdge (uint32_t) [READWRITE] */
+  /** Native READWRITE mask edge in pixels. @type {number} */
   @edit.readwrite
   @type.uint32
   leftEdge = 0;
 
-  /** m_rightEdge (uint32_t) [READWRITE] */
-  @edit.readwrite
-  @type.uint32
-  rightEdge = 0;
-
-  /** m_topEdge (uint32_t) [READWRITE] */
+  /** Native READWRITE mask edge in pixels. @type {number} */
   @edit.readwrite
   @type.uint32
   topEdge = 0;
 
-  /** Carbon GetMaskPath (Tr2Sprite2dPickingMask.cpp:18-21). */
+  /** Native READWRITE mask edge in pixels. @type {number} */
+  @edit.readwrite
+  @type.uint32
+  rightEdge = 0;
+
+  /** Native READWRITE mask edge in pixels. @type {number} */
+  @edit.readwrite
+  @type.uint32
+  bottomEdge = 0;
+
+  /** Native READ held image resource; excluded from value serialization. @type {Tr2ImageRes|null} */
+  @edit.read
+  @type.resource("Tr2ImageRes")
+  mask = null;
+
+  /** Carbon GetMaskPath (Tr2Sprite2dPickingMask.cpp:18-21). @returns {string} */
   @carbon.method
   @impl.implemented
   GetMaskPath()
   {
-    return this.maskPath;
+    return this._maskPath;
   }
 
   /**
    * Carbon SetMaskPath (cpp:23-31): guard the redundant set, clear the mask
    * and refetch it through the process-wide manager (BeResMan's L"raw"
    * image fetch is the IMAGE requirement here, through blue.resMan as
-   * Tr2TexturedPointLight does).
+   * Tr2TexturedPointLight does). Empty paths retain the existing no-fetch adapter.
+   * @param {string} path Image resource path.
+   * @returns {void}
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
+  @impl.reason("Uses the composed IMAGE resource route, coerces paths to strings and clears empty paths without acquisition.")
   SetMaskPath(path)
   {
-    if (this.maskPath === path) return;
-    this.maskPath = String(path ?? "");
+    if (this._maskPath === path) return;
+    this._maskPath = String(path ?? "");
     this.mask = null;
-    if (!this.maskPath) return;
-    this.mask = blue.resMan.GetResource(this.maskPath, {
+    if (!this._maskPath) return;
+    this.mask = blue.resMan.GetResource(this._maskPath, {
       requirement: ResourceRequirement.IMAGE
     });
   }
@@ -89,13 +106,10 @@ export class Tr2Sprite2dPickingMask extends CjsModel
    * and the centre stretches proportionally, guarding the degenerate case
    * where the edges consume the whole bitmap.
    *
-   * Carbon samples float channels from a BGRA host bitmap; the canonical
-   * payload is RGBA bytes, so the channel index translates through the
-   * same B/R swap the pack step's chooser uses and bytes normalise by 255
-   * before the threshold compare. Carbon's R8 clause forces channel 2 (the
-   * R byte in BGRA) because an R8 host bitmap keeps its value there; an R8
-   * source decodes into the canonical payload's red, which is where the
-   * translated index already lands.
+   * Preserves the existing RGBA byte-array adapter. Actual Tr2ImageRes.GetPixelColor
+   * returns a normalized color object, so it currently fails the array guard.
+   * Native bitmap sampling and the R8 channel override remain unresolved gaps;
+   * byte-array fixtures exercise only the existing portable adapter.
    *
    * @param {Float32Array|number[]} point The test point, in the same space as topLeft.
    * @param {Float32Array|number[]} topLeft The sprite's top-left corner.
@@ -105,7 +119,7 @@ export class Tr2Sprite2dPickingMask extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon reads float channels from a BGRA host bitmap; the canonical RGBA byte payload translates the channel index and normalises by 255.")
+  @impl.reason("Preserves the RGBA byte-array adapter; normalized Tr2ImageRes color objects and native R8 sampling remain unsupported.")
   SampleMask(point, topLeft, width, height)
   {
     const mask = this.mask;
@@ -170,3 +184,6 @@ export class Tr2Sprite2dPickingMask extends CjsModel
   }
 
 }
+
+// Native IRoot exposure maps only the concrete mask interface.
+carbon.interfaceTable({ interfaces: [Tr2Sprite2dPickingMask], chainTo: null })(Tr2Sprite2dPickingMask);

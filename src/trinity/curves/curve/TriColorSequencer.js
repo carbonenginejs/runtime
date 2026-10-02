@@ -19,32 +19,60 @@ import "#blue/registerTrinityEnums";
 @carbon.inherit(ITriCurveLength)
 export class TriColorSequencer extends ITriColorFunction
 {
+  /**
+   * Authored name identifying the color sequencer; native wide string.
+   * @type {string}
+   */
   @edit.readwrite
   @edit.persist
   @type.wstring
   name = "";
 
+  /**
+   * Retained native start timestamp in Be::Time tick units (int64 metadata); current sampling
+   * does not apply it.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.int64
   start = 0;
 
+  /**
+   * Cached combined RGBA color, updated by Update and UpdateValue. Components are not clamped
+   * here.
+   * @type {Float32Array}
+   */
   @edit.readwrite
   @edit.persist
   @type.color
   value = vec4.create();
 
+  /**
+   * TRIOPERATOR code selecting component-wise multiplication; all other values use addition in
+   * the current sampler.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("blue.TRIOPERATOR")
   operator = TRIOPERATOR.TRIOP_MULTIPLY;
 
+  /**
+   * Ordered child color functions sampled and combined at the supplied time.
+   * @type {BlueList<ITriColorFunction>}
+   */
   @edit.read
   @edit.persist
   @type.list("ITriColorFunction")
   functions = new BlueList(ITriColorFunction, { className: null, listOps: 0 });
 
+  /**
+   * Reusable JavaScript RGBA scratch buffer holding each child's sampled color during
+   * combination.
+   * @type {Float32Array}
+   */
   _childValue = vec4.create();
 
   /**
@@ -137,6 +165,10 @@ export class TriColorSequencer extends ITriColorFunction
     return maxDuration;
   }
 
+  /**
+   * Shared operator constants exposed as a class-level convenience.
+   * @type {Object<string, number>}
+   */
   static TRIOPERATOR = TRIOPERATOR;
 
 }

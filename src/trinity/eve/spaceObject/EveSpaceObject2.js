@@ -69,7 +69,10 @@ const OVERLAY_TYPE_ALL = 1;
 export class EveSpaceObject2 extends EveEntity
 {
 
-  /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, NOTIFY, ENUM] */
+  /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, NOTIFY, ENUM]
+   * Reflection participation mode used when registering render components.
+   * @type {number}
+   */
   @edit.notify
   @edit.readwrite
   @edit.persist
@@ -77,262 +80,397 @@ export class EveSpaceObject2 extends EveEntity
   @type.enum("trinity.EntityComponents.ReflectionMode")
   reflectionMode = 3;
 
-  /** m_effectChildren (PIEveSpaceObjectChildVector) [READ, PERSIST] */
+  /** m_effectChildren (PIEveSpaceObjectChildVector) [READ, PERSIST]
+   * Effect children updated and rendered with the hull.
+   * @type {Array<IEveSpaceObjectChild>}
+   */
   @edit.read
   @edit.persist
   @type.list("IEveSpaceObjectChild")
   effectChildren = [];
 
-  /** m_children (PIEveTransformVector) [READ, PERSIST] */
+  /** m_children (PIEveTransformVector) [READ, PERSIST]
+   * Transform children whose visibility and transforms follow the hull.
+   * @type {Array<IEveTransform>}
+   */
   @edit.read
   @edit.persist
   @type.list("IEveTransform")
   children = [];
 
-  /** m_name (std::string) [READWRITE, NOTIFY, PERSIST] */
+  /** m_name (std::string) [READWRITE, NOTIFY, PERSIST]
+   * Name identifying the space object.
+   * @type {string}
+   */
   @edit.notify
   @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
-  /** m_mute (bool) [READWRITE, NOTIFY] */
+  /** m_mute (bool) [READWRITE, NOTIFY]
+   * Whether child effects and local audio observers are muted.
+   * @type {boolean}
+   */
   @edit.notify
   @edit.readwrite
   @type.boolean
   mute = false;
 
-  /** m_inheritProperties (EveChildInheritPropertiesPtr) [READWRITE] */
+  /** m_inheritProperties (EveChildInheritPropertiesPtr) [READWRITE]
+   * Shared inherited properties supplied to child effects.
+   * @type {EveChildInheritProperties|null}
+   */
   @edit.readwrite
   @type.objectRef("EveChildInheritProperties")
   inheritProperties = null;
 
-  /** m_customMasks (PEveCustomMaskVector) [READ, PERSIST] */
+  /** m_customMasks (PEveCustomMaskVector) [READ, PERSIST]
+   * Authored custom-material masks copied into per-object shader data.
+   * @type {Array<EveCustomMask>}
+   */
   @edit.read
   @edit.persist
   @type.list("EveCustomMask")
   customMasks = [];
 
-  /** m_overlayEffects (PEveMeshOverlayEffectVector) [READ, PERSIST] */
+  /** m_overlayEffects (PEveMeshOverlayEffectVector) [READ, PERSIST]
+   * Mesh overlay effects applied to this hull.
+   * @type {Array<EveMeshOverlayEffect>}
+   */
   @edit.read
   @edit.persist
   @type.list("EveMeshOverlayEffect")
   overlayEffects = [];
 
-  /** m_positionDelta (Tr2BindingVector3Ptr) [READ] */
+  /** m_positionDelta (Tr2BindingVector3Ptr) [READ]
+   * Binding target for the object's position delta.
+   * @type {Tr2BindingVector3|null}
+   */
   @edit.read
   @type.objectRef("Tr2BindingVector3")
   positionDelta = null;
 
-  /** m_lodLevel (Tr2Lod - enum Tr2Lod) [READ] */
+  /** m_lodLevel (Tr2Lod - enum Tr2Lod) [READ]
+   * Current detail level selected for the hull mesh.
+   * @type {number}
+   */
   @edit.read
   @type.int32
   @type.enum("trinity.Tr2Lod")
   lodLevel = -1;
 
-  /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
+  /** m_curveSets (PTriCurveSetVector) [READ, PERSIST]
+   * Curve sets advanced by the object's update schedule.
+   * @type {Array<TriCurveSet>}
+   */
   @edit.read
   @edit.persist
   @type.list("TriCurveSet")
   curveSets = [];
 
-  /** m_isPickable (bool) [READWRITE] */
+  /** m_isPickable (bool) [READWRITE]
+   * Whether the object participates in picking.
+   * @type {boolean}
+   */
   @edit.readwrite
   @type.boolean
   isPickable = true;
 
-  /** m_estimatedPixelDiameter (float) [READ] */
+  /** m_estimatedPixelDiameter (float) [READ]
+   * Estimated screen diameter of the hull's own bounds.
+   * @type {number}
+   */
   @edit.read
   @type.float32
   estimatedPixelDiameter = 0;
 
-  /** m_estimatedPixelDiameterWithChildren (float) [READ] */
+  /** m_estimatedPixelDiameterWithChildren (float) [READ]
+   * Screen diameter of the combined hull and child bounds.
+   * @type {number}
+   */
   @edit.read
   @type.float32
   estimatedPixelDiameterWithChildren = 0;
 
-  /** m_generatedShapeEllipsoidCenter (Vector3) [READ] */
+  /** m_generatedShapeEllipsoidCenter (Vector3) [READ]
+   * Center returned by the latest authored-or-derived shape ellipsoid query.
+   * @type {Float32Array}
+   */
   @edit.read
   @type.vec3
   generatedShapeEllipsoidCenter = vec3.create();
 
-  /** m_generatedShapeEllipsoidRadius (Vector3) [READ] */
+  /** m_generatedShapeEllipsoidRadius (Vector3) [READ]
+   * Radii returned by the latest authored-or-derived shape ellipsoid query.
+   * @type {Float32Array}
+   */
   @edit.read
   @type.vec3
   generatedShapeEllipsoidRadius = vec3.fromValues(-1, -1, -1);
 
-  /** m_animationUpdater (Tr2GrannyAnimationPtr) [READ] - Carbon's constructor creates it (cpp:214). */
+  /** m_animationUpdater (Tr2GrannyAnimationPtr) [READ] - Carbon's constructor creates it (cpp:214).
+   * Owned animation updater providing the hull's bone transforms.
+   * @type {Tr2GrannyAnimation}
+   */
   @edit.read
   @type.objectRef("Tr2GrannyAnimation")
   animationUpdater = new Tr2GrannyAnimation();
 
-  /** m_dna (std::string) [READ, PERSIST] */
+  /** m_dna (std::string) [READ, PERSIST]
+   * SOF DNA string describing the authored hull configuration.
+   * @type {string}
+   */
   @edit.read
   @edit.persist
   @type.string
   dna = "";
 
-  /** m_castShadow (bool) [READWRITE, NOTIFY, PERSIST] */
+  /** m_castShadow (bool) [READWRITE, NOTIFY, PERSIST]
+   * Whether the hull registers as a shadow caster.
+   * @type {boolean}
+   */
   @edit.notify
   @edit.readwrite
   @edit.persist
   @type.boolean
   castShadow = false;
 
-  /** m_isAnimated (bool) [READWRITE, PERSIST] */
+  /** m_isAnimated (bool) [READWRITE, PERSIST]
+   * Whether the hull uses animated mesh data.
+   * @type {boolean}
+   */
   @edit.readwrite
   @edit.persist
   @type.boolean
   isAnimated = false;
 
-  /** m_dynamicBoundingSphereEnabled (bool) [READ, PERSIST] */
+  /** m_dynamicBoundingSphereEnabled (bool) [READ, PERSIST]
+   * Whether dynamic bounds contribute to the object's bounding sphere.
+   * @type {boolean}
+   */
   @edit.read
   @edit.persist
   @type.boolean
   dynamicBoundingSphereEnabled = false;
 
-  /** m_attachments (PIEveSpaceObjectAttachmentVector) [READ, PERSIST] */
+  /** m_attachments (PIEveSpaceObjectAttachmentVector) [READ, PERSIST]
+   * Attachments that contribute updates, bounds and render batches.
+   * @type {Array<IEveSpaceObjectAttachment>}
+   */
   @edit.read
   @edit.persist
   @type.list("IEveSpaceObjectAttachment")
   attachments = [];
 
-  /** m_decals (PEveSpaceObjectDecalVector) [READ, PERSIST] */
+  /** m_decals (PEveSpaceObjectDecalVector) [READ, PERSIST]
+   * Decals rendered against the hull's mesh and parent data.
+   * @type {Array<EveSpaceObjectDecal>}
+   */
   @edit.read
   @edit.persist
   @type.list("EveSpaceObjectDecal")
   decals = [];
 
-  /** m_lights (PTr2LightVector) [READ, PERSIST, NOTIFY] */
+  /** m_lights (PTr2LightVector) [READ, PERSIST, NOTIFY]
+   * Local lights whose transforms and brightness follow the object.
+   * @type {Array<Tr2Light>}
+   */
   @edit.notify
   @edit.read
   @edit.persist
   @type.list("Tr2Light")
   lights = [];
 
-  /** m_externalParameters (PTr2ExternalParameterVector) [READ, PERSIST] */
+  /** m_externalParameters (PTr2ExternalParameterVector) [READ, PERSIST]
+   * External parameter bindings attached to this object's graph.
+   * @type {Array<Tr2ExternalParameter>}
+   */
   @edit.read
   @edit.persist
   @type.list("Tr2ExternalParameter")
   externalParameters = [];
 
-  /** m_controllers (PITr2ControllerVector) [READ, PERSIST] */
+  /** m_controllers (PITr2ControllerVector) [READ, PERSIST]
+   * Controllers linked to this object and supplied with its variables.
+   * @type {Array<ITr2Controller>}
+   */
   @edit.read
   @edit.persist
   @type.list("ITr2Controller")
   controllers = [];
 
-  /** m_locators (PEveLocator2Vector) [READ, PERSIST] */
+  /** m_locators (PEveLocator2Vector) [READ, PERSIST]
+   * Named locators authored directly on the hull.
+   * @type {Array<EveLocator2>}
+   */
   @edit.read
   @edit.persist
   @type.list("EveLocator2")
   locators = [];
 
-  /** m_mesh (Tr2MeshBasePtr) [READWRITE, PERSIST] */
+  /** m_mesh (Tr2MeshBasePtr) [READWRITE, PERSIST]
+   * Hull mesh supplying geometry, areas and shader options.
+   * @type {Tr2MeshBase|null}
+   */
   @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2MeshBase")
   mesh = null;
 
-  /** m_impactOverlay (EveImpactOverlayPtr) [READWRITE, PERSIST] */
+  /** m_impactOverlay (EveImpactOverlayPtr) [READWRITE, PERSIST]
+   * Overlay receiving hull impact effects and shader-data offsets.
+   * @type {EveImpactOverlay|null}
+   */
   @edit.readwrite
   @edit.persist
   @type.objectRef("EveImpactOverlay")
   impactOverlay = null;
 
-  /** m_clipSphereCenter (Vector3) [READWRITE, PERSIST] */
+  /** m_clipSphereCenter (Vector3) [READWRITE, PERSIST]
+   * Authored center of the hull clipping sphere.
+   * @type {Float32Array}
+   */
   @edit.readwrite
   @edit.persist
   @type.vec3
   clipSphereCenter = vec3.create();
 
-  /** m_clipSphereFactor2 (float) [READWRITE, NOTIFY] */
+  /** m_clipSphereFactor2 (float) [READWRITE, NOTIFY]
+   * Secondary dissolve factor used to compute the second clipping radius.
+   * @type {number}
+   */
   @edit.notify
   @edit.readwrite
   @type.float32
   clipSphereFactor2 = 0;
 
-  /** m_clipSphereFactor (float) [READWRITE, NOTIFY] */
+  /** m_clipSphereFactor (float) [READWRITE, NOTIFY]
+   * Primary dissolve factor used to compute the clipping radius.
+   * @type {number}
+   */
   @edit.notify
   @edit.readwrite
   @type.float32
   clipSphereFactor = 0;
 
-  /** m_observers (PTriObserverLocalVector) [READ, PERSIST] */
+  /** m_observers (PTriObserverLocalVector) [READ, PERSIST]
+   * Local observers updated with the hull and its visibility.
+   * @type {Array<TriObserverLocal>}
+   */
   @edit.read
   @edit.persist
   @type.list("TriObserverLocal")
   observers = [];
 
-  /** m_worldPosition (Vector3) [READ] */
+  /** m_worldPosition (Vector3) [READ]
+   * Current world position sampled from the translation curve.
+   * @type {Float32Array}
+   */
   @edit.read
   @type.vec3
   worldPosition = vec3.create();
 
-  /** m_ballRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
+  /** m_ballRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST]
+   * Curve supplying the object's world rotation.
+   * @type {ITriQuaternionFunction|null}
+   */
   @edit.readwrite
   @edit.persist
   @type.objectRef("ITriQuaternionFunction")
   rotationCurve = null;
 
-  /** m_worldRotation (Quaternion) [READ] */
+  /** m_worldRotation (Quaternion) [READ]
+   * Current world rotation sampled from the rotation curve.
+   * @type {Float32Array}
+   */
   @edit.read
   @type.quat
   worldRotation = quat.create();
 
-  /** m_modelScale (float) [READWRITE, PERSIST] */
+  /** m_modelScale (float) [READWRITE, PERSIST]
+   * Uniform scale applied when constructing the model transform.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   modelScale = 1;
 
-  /** m_locatorSets (PEveLocatorSetsVector) [READ, PERSIST] */
+  /** m_locatorSets (PEveLocatorSetsVector) [READ, PERSIST]
+   * Authored locator groups merged with child locator sets.
+   * @type {Array<EveLocatorSets>}
+   */
   @edit.read
   @edit.persist
   @type.list("EveLocatorSets")
   locatorSets = [];
 
-  /** m_activationStrength (float) [READWRITE] */
+  /** m_activationStrength (float) [READWRITE]
+   * Activation value forwarded to children, lights and shader data.
+   * @type {number}
+   */
   @edit.readwrite
   @type.float32
   activationStrength = 1;
 
-  /** m_albedoColor (Color) [READWRITE] */
+  /** m_albedoColor (Color) [READWRITE]
+   * Hull albedo used when registering secondary lighting.
+   * @type {Float32Array}
+   */
   @edit.readwrite
   @type.color
   albedoColor = color.createLinear();
 
-  /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
+  /** m_display (bool) [READWRITE, PERSIST, NOTIFY]
+   * Whether the hull and its render components are displayed.
+   * @type {boolean}
+   */
   @edit.notify
   @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
 
-  /** m_update (bool) [READWRITE, PERSIST] */
+  /** m_update (bool) [READWRITE, PERSIST]
+   * Whether the object's update work is enabled.
+   * @type {boolean}
+   */
   @edit.readwrite
   @edit.persist
   @type.boolean
   update = true;
 
-  /** m_secondaryLightingSphereRadius (float) [READ] */
+  /** m_secondaryLightingSphereRadius (float) [READ]
+   * Radius supplied to the secondary-lighting manager.
+   * @type {number}
+   */
   @edit.read
   @type.float32
   secondaryLightingSphereRadius = 0;
 
-  /** m_boundingSphereCenter (Vector3) [READWRITE, PERSIST] */
+  /** m_boundingSphereCenter (Vector3) [READWRITE, PERSIST]
+   * Authored local-space center of the hull's bounding sphere.
+   * @type {Float32Array}
+   */
   @edit.readwrite
   @edit.persist
   @type.vec3
   boundingSphereCenter = vec3.create();
 
-  /** m_dirtLevel (float) [READWRITE, NOTIFY] */
+  /** m_dirtLevel (float) [READWRITE, NOTIFY]
+   * Dirt amount forwarded to controllers and packed shader ship data.
+   * @type {number}
+   */
   @edit.notify
   @edit.readwrite
   @type.float32
   dirtLevel = 0;
 
-  /** m_psData.customData (Vector4) [READWRITE] - script/SOF-driven custom shader data. */
+  /** m_psData.customData (Vector4) [READWRITE] - script/SOF-driven custom shader data.
+   * Four script-controlled values copied into per-object shader constants.
+   * @type {Float32Array}
+   */
   @edit.readwrite
   @type.vec4
   customShaderData = vec4.create();
@@ -341,88 +479,149 @@ export class EveSpaceObject2 extends EveEntity
    * m_spaceObjectShipData (Vector4) [READ] - the packed shader ship data:
    * .y activation strength, .z dirt level, .w bounding-sphere radius
    * (PrepareShaderData, cpp:734-744). .x is authored elsewhere and left alone.
+   * Packed ship values supplied to the vertex and pixel shader records.
+   * @type {Float32Array}
    */
   @edit.read
   @type.vec4
   spaceObjectShipData = vec4.create();
 
-  /** m_lastDamageLocatorHit (int) [READ] */
+  /** m_lastDamageLocatorHit (int) [READ]
+   * Index of the last selected damage locator; negative before a hit.
+   * @type {number}
+   */
   @edit.read
   @type.int32
   lastDamageLocatorHit = -1;
 
+  /**
+   * Whether damage locators request automatic occlusion filtering.
+   * @type {boolean}
+   */
   @edit.notify
   @edit.readwrite
   @type.boolean
   damageLocatorAutoFilterEnabled = false;
 
-  /** m_boundingSphereRadius (float) [READWRITE, PERSIST] */
+  /** m_boundingSphereRadius (float) [READWRITE, PERSIST]
+   * Local bounding radius; a negative value marks unavailable bounds.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   boundingSphereRadius = -1;
 
-  /** m_boundingSphereWorldCenter (Vector3) [READ] */
+  /** m_boundingSphereWorldCenter (Vector3) [READ]
+   * World-space center of the transformed hull bounding sphere.
+   * @type {Float32Array}
+   */
   @edit.read
   @type.vec3
   modelWorldPosition = vec3.create();
 
-  /** m_modelTranslation (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
+  /** m_modelTranslation (ITriVectorFunctionPtr) [READWRITE, PERSIST]
+   * Curve supplying the model's local translation offset.
+   * @type {ITriVectorFunction|null}
+   */
   @edit.readwrite
   @edit.persist
   @type.objectRef("ITriVectorFunction")
   modelTranslationCurve = null;
 
-  /** m_modelRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
+  /** m_modelRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST]
+   * Curve supplying the model's local rotation offset.
+   * @type {ITriQuaternionFunction|null}
+   */
   @edit.readwrite
   @edit.persist
   @type.objectRef("ITriQuaternionFunction")
   modelRotationCurve = null;
 
-  /** m_shapeEllipsoidCenter (Vector3) [READWRITE, PERSIST] */
+  /** m_shapeEllipsoidCenter (Vector3) [READWRITE, PERSIST]
+   * Authored local center used by the shape ellipsoid query.
+   * @type {Float32Array}
+   */
   @edit.readwrite
   @edit.persist
   @type.vec3
   shapeEllipsoidCenter = vec3.create();
 
-  /** m_shapeEllipsoidRadius (Vector3) [READWRITE, PERSIST] */
+  /** m_shapeEllipsoidRadius (Vector3) [READWRITE, PERSIST]
+   * Authored local radii; unavailable radii cause bounds-derived ellipsoid queries.
+   * @type {Float32Array}
+   */
   @edit.readwrite
   @edit.persist
   @type.vec3
   shapeEllipsoidRadius = vec3.fromValues(-1, -1, -1);
 
-  /** m_ballPosition (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
+  /** m_ballPosition (ITriVectorFunctionPtr) [READWRITE, PERSIST]
+   * Curve supplying the object's world position and velocity.
+   * @type {ITriVectorFunction|null}
+   */
   @edit.readwrite
   @edit.persist
   @type.objectRef("ITriVectorFunction")
   translationCurve = null;
 
+  /**
+   * Current model-to-world transform, including model offsets and scale.
+   * @type {Float32Array}
+   */
   @edit.read
   @type.mat4
   worldTransform = mat4.create();
 
-  /** The translation view registered with the SH lighting manager (_GetWorldTranslation). */
+  /** The translation view registered with the SH lighting manager (_GetWorldTranslation).
+   * Cached translation view into the world transform for lighting registration.
+   * @type {Float32Array|null}
+   */
   _worldTranslation = null;
 
+  /**
+   * Inverse of the current model-to-world transform.
+   * @type {Float32Array}
+   */
   @edit.read
   @type.mat4
   inverseWorldTransform = mat4.create();
 
+  /**
+   * Previous world transform retained for motion and shader data.
+   * @type {Float32Array}
+   */
   @edit.read
   @type.mat4
   lastWorldTransform = mat4.create();
 
+  /**
+   * Current world velocity obtained from the translation curve derivative.
+   * @type {Float32Array}
+   */
   @edit.read
   @type.vec3
   worldVelocity = vec3.create();
 
+  /**
+   * Audio geometry associated with the object's transform and mute state.
+   * @type {ITr2AudGeometry|null}
+   */
   @edit.readwrite
   @type.objectRef("ITr2AudGeometry")
   audioGeometry = null;
 
+  /**
+   * Visibility result used to gate rendering and update frequency.
+   * @type {boolean}
+   */
   @type.boolean
   isVisible = false;
 
+  /**
+   * Controller values retained for replay to newly attached controllers and children.
+   * @type {Map<string, number>}
+   */
   _controllerVariables = new Map([
     ["DirtLevel", 0],
     ["ActivationStrength", 1],
@@ -433,96 +632,218 @@ export class EveSpaceObject2 extends EveEntity
     ["ClipSphereFactor2", 0]
   ]);
 
+  /**
+   * Last frame time used to build the world transform; null before the first update.
+   * @type {number|null}
+   */
   _lastUpdateTransformTime = null;
 
   // Carbon m_lastCurveUpdateTime: stamped by the sync-side LOD gate; the async
   // side updates curve sets only when it matches the frame time.
+  /**
+   * Frame time authorized by the synchronous LOD gate for curve updates.
+   * @type {number}
+   */
   _lastCurveUpdateTime = 0;
 
-  /** Carbon m_geometryResFromMesh: the mesh geometry the updater last borrowed. */
+  /** Carbon m_geometryResFromMesh: the mesh geometry the updater last borrowed.
+   * Geometry resource last borrowed from the mesh by the animation updater.
+   * @type {import("../../../resource/geometry/TriGeometryRes.js").TriGeometryRes|null}
+   */
   _geometryResFromMesh = null;
 
-  /** Carbon m_boneOffsets: where this ship's palette landed in the bone ring, this frame and last. */
+  /** Carbon m_boneOffsets: where this ship's palette landed in the bone ring, this frame and last.
+   * Current and previous frame offsets of this hull's palette in the bone ring.
+   * @type {Tr2RingBufferOffsets}
+   */
   _boneOffsets = new Tr2RingBufferOffsets();
 
   // Carbon m_dynamicBoundingSphere: disabled while w is -1; a future animation
   // updater port publishes skinned bounds here.
+  /**
+   * Dynamic local sphere; a negative radius marks it unavailable.
+   * @type {Float32Array}
+   */
   _dynamicBoundingSphere = sph3.set(sph3.create(), 0, 0, 0, -1);
 
   // Carbon keeps the realized world sphere separate from the authored local
   // sphere. UpdateWorldBounds refreshes it from PrepareShaderData, which is
   // Carbon's only refresh point - so a reader sees one value for a whole frame.
+  /**
+   * Realized world bounding radius retained for the current frame.
+   * @type {number}
+   */
   _boundingSphereWorldRadius = -1;
 
   // Carbon visibility and mesh LOD state are runtime-only renderer results.
+  /**
+   * Whether the combined object bounds intersect the current view frustum.
+   * @type {boolean}
+   */
   _isInFrustum = false;
 
+  /**
+   * Whether the hull mesh or an attachment passed visibility testing.
+   * @type {boolean}
+   */
   _isMeshVisible = false;
 
+  /**
+   * Detail level selected from the combined hull and child bounds.
+   * @type {number}
+   */
   _lodLevelWithChildren = Tr2Lod.TR2_LOD_UNSPECIFIED;
 
+  /**
+   * Cached mesh screen-size value used by render batches.
+   * @type {number}
+   */
   _meshScreenSize = 0;
 
+  /**
+   * Cached area blocks for opaque-only overlays and overlays covering all supported areas.
+   * @type {Array<Array<TriRenderBatchAreaBlock>>}
+   */
   _overlayMeshAreaBlocks = [ [], [] ];
 
+  /**
+   * Cached opaque area groups sharing a material for shadow rendering.
+   * @type {Array<TriRenderBatchAreaBlocksWithSharedMaterial>}
+   */
   _shadowMeshOpaqueAreas = [];
 
+  /**
+   * Whether overlay and shadow area caches have been built for the current mesh.
+   * @type {boolean}
+   */
   _cachedAreaBlocksBuilt = false;
 
+  /**
+   * Locator sets combining the hull's authored groups with child-owned groups.
+   * @type {Array<EveLocatorSets>}
+   */
   _mergedLocatorSets = [];
 
+  /**
+   * Child ownership and transform ranges for merged damage locators.
+   * @type {Array<{owner: IEveSpaceObjectChild, partTag: number, start: number, count: number, childToObject: Float32Array}>}
+   */
   _mergedDamageLocatorSources = [];
 
+  /**
+   * Occlusion-filter results indexed by merged damage locator.
+   * @type {Array<boolean>}
+   */
   _damageLocatorEnabled = [];
 
+  /**
+   * Whether child or authored locator changes require rebuilding the merged sets.
+   * @type {boolean}
+   */
   _mergedLocatorSetsDirty = true;
 
+  /**
+   * Whether a damage-locator filtering pass has been requested.
+   * @type {boolean}
+   */
   _damageLocatorFilterRequested = false;
 
+  /**
+   * Prepared geometry and object-to-geometry transforms used by damage-locator raycasts.
+   * @type {Array<{geometry: import("../../../resource/geometry/TriGeometryRes.js").TriGeometryRes, fromObject: Float32Array, areaStart: number, areaCount: number}>}
+   */
   _damageFilterOccluders = [];
 
   // Carbon m_damageFilterAreas (EveSpaceObject2.h:829): the shared area pool
   // the occluders' areaStart/areaCount ranges index into.
+  /**
+   * Shared geometry-area ranges referenced by the damage-filter occluders.
+   * @type {Array<{index: number, count: number, alphaCutout: boolean, reversed: boolean}>}
+   */
   _damageFilterAreas = [];
 
   // 0 idle, 1 pending, 2 active raycast session. Carbon initializes Idle
   // (EveSpaceObject2.cpp:208); SOF's eager RunDamageLocatorFilter was removed
   // upstream (ae5680b3), so filtering runs only when requested or auto-enabled.
+  /**
+   * Damage-filter lifecycle state: idle, pending or active raycast session.
+   * @type {number}
+   */
   _damageFilterState = 0;
 
   // Carbon m_oldClipSphereFactor/2: the last notified clip factors, so
   // OnModified switches SPACE_OBJECT_CLIPPING only on crossing zero.
+  /**
+   * Last notified primary clipping factor used to detect clipping-state transitions.
+   * @type {number}
+   */
   _oldClipSphereFactor = 0;
+  /**
+   * Last notified secondary clipping factor used to detect clipping-state transitions.
+   * @type {number}
+   */
   _oldClipSphereFactor2 = 0;
 
   // Carbon m_localAabbMin/Max: cached so GetLocalBoundingBox can answer before
   // LOD selection assigns a mesh (at worst it lags one frame).
+  /**
+   * Cached minimum corner of the local bounding box.
+   * @type {Float32Array}
+   */
   _localAabbMin = vec3.create();
 
+  /**
+   * Cached maximum corner of the local bounding box.
+   * @type {Float32Array}
+   */
   _localAabbMax = vec3.create();
 
   // Carbon m_allowLodSelection: cleared by FreezeHighDetailMesh.
+  /**
+   * Whether mesh LOD selection is allowed; cleared when high detail is frozen.
+   * @type {boolean}
+   */
   _allowLodSelection = true;
 
   // Carbon m_impostorMode: the impostor system that raises it is unported.
+  /**
+   * Whether rendering is delegated to impostor mode.
+   * @type {boolean}
+   */
   _impostorMode = false;
 
-  /** EVE_SPACEOBJECT_CUSTOWMASK_MAX (EveSpaceObject2.h:49) - custom-mask slots. */
+  /** EVE_SPACEOBJECT_CUSTOWMASK_MAX (EveSpaceObject2.h:49) - custom-mask slots.
+   * Maximum number of custom-material mask slots.
+   * @type {number}
+   */
   static CUSTOM_MASK_MAX = EveCustomMask.CUSTOM_MASK_COUNT;
 
   /**
    * Carbon g_secondaryLightingRadiusCutoffFactor (cpp:52), a registered engine
    * setting defaulting to 0.3. It scales this hull's bounding radius into the
    * cutoff below which a secondary light source is too small to matter.
+   * Scale factor converting hull radius into the secondary-lighting cutoff.
+   * @type {number}
    */
   @edit.setting("secondaryLightingRadiusCutoffFactor")
   static secondaryLightingRadiusCutoffFactor = 0.3;
 
-  /** Scratch for the per-frame shader-data fill; never allocate in it. */
+  /** Scratch for the per-frame shader-data fill; never allocate in it.
+   * Shared vector scratch for filling clipping shader constants.
+   * @type {Float32Array}
+   */
   static _clipSphereCenterScratch = vec3.create();
 
+  /**
+   * Shared vector scratch for the shape ellipsoid center.
+   * @type {Float32Array}
+   */
   static _shapeCenterScratch = vec3.create();
 
+  /**
+   * Shared vector scratch for the shape ellipsoid radii.
+   * @type {Float32Array}
+   */
   static _shapeRadiusScratch = vec3.create();
 
   // Carbon m_vsData / m_psData: the PERSISTENT per-object records. They are
@@ -532,11 +853,22 @@ export class EveSpaceObject2 extends EveEntity
   // Carbon's paired m_perObjectDataVs/m_perObjectDataPs GPU buffers are the
   // engine's business; Invalidate on these records carries the same signal.
   /** The ParentData Carbon builds on the stack for the decal pass
-   * (EveSpaceObject2.cpp:1696), held here so the pass does not allocate. */
+   * (EveSpaceObject2.cpp:1696), held here so the pass does not allocate.
+   * Reusable parent-data record supplied to decal rendering.
+   * @type {IEveSpaceObject2ParentData}
+   */
   _decalParentData = new IEveSpaceObject2ParentData();
 
+  /**
+   * Persistent vertex-shader constants owned by this hull across frames.
+   * @type {RawData}
+   */
   _vsData = RawData.create("EveSpaceObjectVSData");
 
+  /**
+   * Persistent pixel-shader constants owned by this hull across frames.
+   * @type {RawData}
+   */
   _psData = RawData.create("EveSpaceObjectPSData");
 
   /** Alias for the mesh property; reads and writes go straight to mesh. */
@@ -1171,7 +1503,10 @@ export class EveSpaceObject2 extends EveEntity
     return this._worldTranslation;
   }
 
-  /** Carbon's `s_noEmissiveColor` (EveSpaceObject2.cpp:512). */
+  /** Carbon's `s_noEmissiveColor` (EveSpaceObject2.cpp:512).
+   * Zero emissive color supplied when registering secondary lighting.
+   * @type {Float32Array}
+   */
   static _noEmissiveColor = vec4.create();
 
   /**
@@ -4265,42 +4600,149 @@ export class EveSpaceObject2 extends EveEntity
     return sph3.set(out, center[0], center[1], center[2], radius);
   }
 
+  /**
+   * Zero-vector fallback for missing translation curves.
+   * @type {Array<number>}
+   */
   static _zero = [0, 0, 0];
 
+  /**
+   * Local up axis used to derive locator directions.
+   * @type {Array<number>}
+   */
   static _unitY = [0, 1, 0];
 
+  /**
+   * Shared vector scratch for locator direction queries.
+   * @type {Float32Array}
+   */
   static _locatorDirection = vec3.create();
+  /**
+   * Shared vector scratch for locator position queries.
+   * @type {Float32Array}
+   */
   static _locatorPosition = vec3.create();
+  /**
+   * Shared vector scratch for offsets between locators and query positions.
+   * @type {Float32Array}
+   */
   static _locatorOffset = vec3.create();
+  /**
+   * Shared vector scratch for transforming query positions into object space.
+   * @type {Float32Array}
+   */
   static _objectPosition = vec3.create();
+  /**
+   * Shared vector scratch for constructing a shot miss offset.
+   * @type {Float32Array}
+   */
   static _missOffset = vec3.create();
+  /**
+   * Shared vector scratch for constructing a shot miss direction.
+   * @type {Float32Array}
+   */
   static _missDirection = vec3.create();
+  /**
+   * Shared vector scratch for the origin of intersection rays.
+   * @type {Float32Array}
+   */
   static _rayOrigin = vec3.create();
+  /**
+   * Shared vector scratch for the endpoint of intersection rays.
+   * @type {Float32Array}
+   */
   static _rayEnd = vec3.create();
+  /**
+   * Shared vector scratch for the direction of intersection rays.
+   * @type {Float32Array}
+   */
   static _rayDirection = vec3.create();
+  /**
+   * Shared vector scratch for ellipsoid intersection centers.
+   * @type {Float32Array}
+   */
   static _ellipsoidCenter = vec3.create();
+  /**
+   * Shared vector scratch for ellipsoid intersection radii.
+   * @type {Float32Array}
+   */
   static _ellipsoidRadii = vec3.create();
+  /**
+   * Shared vector scratch for minimum bounding-box corners.
+   * @type {Float32Array}
+   */
   static _boundsMin = vec3.create();
+  /**
+   * Shared vector scratch for maximum bounding-box corners.
+   * @type {Float32Array}
+   */
   static _boundsMax = vec3.create();
+  /**
+   * Shared sphere scratch for querying child bounds.
+   * @type {Float32Array}
+   */
   static _childSphere = sph3.create();
+  /**
+   * Shared sphere scratch for querying local bounds.
+   * @type {Float32Array}
+   */
   static _localSphere = sph3.create();
+  /**
+   * Shared sphere scratch for world bounds and visibility queries.
+   * @type {Float32Array}
+   */
   static _worldSphere = sph3.create();
+  /**
+   * Shared box scratch for local bounding-box queries.
+   * @type {Float32Array}
+   */
   static _localBox = box3.create();
+  /**
+   * Shared box scratch for world bounding-box queries.
+   * @type {Float32Array}
+   */
   static _worldBox = box3.create();
 
+  /**
+   * Identity quaternion used when no rotation curve or locator rotation is supplied.
+   * @type {Array<number>}
+   */
   static _identityRotation = [0, 0, 0, 1];
 
+  /**
+   * Identity matrix retained as the default parent-transform argument for visibility updates.
+   * @type {Float32Array}
+   */
   static _identityTransform = mat4.create();
 
+  /**
+   * Name identifying the locator group used for damage and impact queries.
+   * @type {string}
+   */
   static _damageLocatorSetName = "damage";
 
+  /**
+   * Native reflection-mode values exposed for callers.
+   * @type {typeof ReflectionMode}
+   */
   static ReflectionMode = ReflectionMode;
 
+  /**
+   * Native level-of-detail values exposed for callers.
+   * @type {typeof Tr2Lod}
+   */
   static Tr2Lod = Tr2Lod;
 
+  /**
+   * Native impact-configuration values exposed for callers.
+   * @type {typeof ImpactConfiguration}
+   */
   static ImpactConfiguration = ImpactConfiguration;
 
-  /** Carbon's authored-transform, skeleton-joint and missing-locator tags. */
+  /** Carbon's authored-transform, skeleton-joint and missing-locator tags.
+   * Native tags distinguishing authored-transform, joint and missing locators.
+   * @type {Readonly<{ELT_TRANSFORM: number, ELT_JOINT: number, ELT_COUNT: number}>}
+   */
   static LocatorType = Object.freeze({
     ELT_TRANSFORM: 0,
     ELT_JOINT: 1,

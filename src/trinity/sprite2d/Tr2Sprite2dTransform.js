@@ -6,44 +6,74 @@ import { carbon, impl, edit, type } from "#schema";
 import { Tr2Sprite2dContainerBase } from "./Tr2Sprite2dContainerBase.js";
 import { vec2 } from "#math/vec2";
 
-/** Applies authored Sprite2D rotation and scaling around configurable centers. */
+/**
+ * Applies authored Sprite2D rotation and scaling around configurable centers.
+ * Native GatherSprites, PickPoint and GetTransformationMatrix remain unported;
+ * inherited methods do not provide the native transform-aware renderer behavior.
+ */
 @type.define({ className: "Tr2Sprite2dTransform", family: "sprite2d" })
 export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
 {
 
-  /** m_rotationCenter (Vector2) [READWRITE, NOTIFY] */
+  /**
+   * Rotation pivot in relative sprite coordinates: [0, 0] is top-left and [0.5, 0.5] is center.
+   * Native m_rotationCenter (Vector2) [READWRITE, NOTIFY].
+   * @type {Float32Array}
+   */
   @edit.notify
   @edit.readwrite
   @type.vec2
   rotationCenter = vec2.create();
 
-  /** m_scalingCenter (Vector2) [READWRITE, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @type.vec2
-  scalingCenter = vec2.create();
-
-  /** m_rotation (float) [READWRITE, NOTIFY] */
+  /**
+   * Rotation angle in radians around rotationCenter.
+   * Native m_rotation (float) [READWRITE, NOTIFY].
+   * @type {number}
+   */
   @edit.notify
   @edit.readwrite
   @type.float32
   rotation = 0;
 
-  /** m_scale (Vector2) [READWRITE, NOTIFY] */
+  /**
+   * Scaling pivot in relative sprite coordinates, converted using displayWidth and displayHeight.
+   * Native m_scalingCenter (Vector2) [READWRITE, NOTIFY].
+   * @type {Float32Array}
+   */
   @edit.notify
   @edit.readwrite
   @type.vec2
-  scale = vec2.fromValues(1, 1);
+  scalingCenter = vec2.create();
 
-  /** m_scalingRotation (float) [READWRITE, NOTIFY] */
+  /**
+   * Angle in radians orienting the scaling axes before the final rotation.
+   * Native m_scalingRotation (float) [READWRITE, NOTIFY].
+   * @type {number}
+   */
   @edit.notify
   @edit.readwrite
   @type.float32
   scalingRotation = 0;
 
-  /** Carbon method TransformPoint (MAP_METHOD_AND_WRAP). */
+  /**
+   * Horizontal and vertical scale factors; [1, 1] leaves the size unchanged.
+   * Native m_scale (Vector2) [READWRITE, NOTIFY].
+   * @type {Float32Array}
+   */
+  @edit.notify
+  @edit.readwrite
+  @type.vec2
+  scale = vec2.fromValues(1, 1);
+
+  /**
+   * Transforms one local point using native rounded centers and rotation order.
+   * @param {number} x Local horizontal coordinate.
+   * @param {number} y Local vertical coordinate.
+   * @returns {Float32Array} Newly allocated transformed point.
+   */
   @carbon.method
   @impl.adapted
+  @impl.reason("Applies the native matrix operation order directly to a coordinate pair and returns a new vec2.")
   TransformPoint(x, y)
   {
     const scalingCenterX = Math.floor(this.scalingCenter[0] * this.displayWidth + 0.5);
@@ -53,18 +83,25 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
 
     let px = Number(x) - scalingCenterX;
     let py = Number(y) - scalingCenterY;
-    [px, py] = Tr2Sprite2dTransform.#Rotate(px, py, -this.scalingRotation);
+    [px, py] = Tr2Sprite2dTransform._Rotate(px, py, -this.scalingRotation);
     px *= this.scale[0];
     py *= this.scale[1];
-    [px, py] = Tr2Sprite2dTransform.#Rotate(px, py, this.scalingRotation);
+    [px, py] = Tr2Sprite2dTransform._Rotate(px, py, this.scalingRotation);
     px += scalingCenterX - rotationCenterX;
     py += scalingCenterY - rotationCenterY;
-    [px, py] = Tr2Sprite2dTransform.#Rotate(px, py, this.rotation);
+    [px, py] = Tr2Sprite2dTransform._Rotate(px, py, this.rotation);
     return vec2.fromValues(px + rotationCenterX, py + rotationCenterY);
   }
 
-  /** Rotates one 2D coordinate pair by an angle in radians. */
-  static #Rotate(x, y, angle)
+  /**
+   * Rotates one coordinate pair for the portable point adapter.
+   * @param {number} x Horizontal coordinate.
+   * @param {number} y Vertical coordinate.
+   * @param {number} angle Rotation in radians.
+   * @returns {number[]} Rotated coordinate pair.
+   */
+  @impl.custom
+  static _Rotate(x, y, angle)
   {
     const sine = Math.sin(angle);
     const cosine = Math.cos(angle);
@@ -72,3 +109,6 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
   }
 
 }
+
+// Native exposure adds no local interface and chains to its actual base.
+carbon.interfaceTable({ interfaces: [], chainTo: Tr2Sprite2dContainerBase })(Tr2Sprite2dTransform);

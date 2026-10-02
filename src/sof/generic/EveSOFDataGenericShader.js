@@ -1,53 +1,85 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
-// Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { edit, type } from "#schema";
-import { CjsModel } from "#model";
+// Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:517-529
+import { meta, types } from "#schema";
 
-/** Defines a generic shader's parameters, textures, defaults, transparency and depth policy, and generated configuration. */
-@type.define({ className: "EveSOFDataGenericShader", family: "eve" })
-export class EveSOFDataGenericShader extends CjsModel
+/** Defines a generic shader's parameters, textures, defaults, transparency and depth policy, and generated configuration.
+ * Native IRoot-only data with a self-only Blue table. Independently initialized
+ * lists retain native parent-owned data; none is a loaded resource. Native
+ * construction needs no additional lifecycle, and the destructor is empty.
+ * Existing JavaScript configuration helpers remain custom conveniences.
+ */
+@meta.define({ className: "EveSOFDataGenericShader", family: "eve" })
+export class EveSOFDataGenericShader
 {
 
-  /** m_parameters (PEveSOFDataGenericStringVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataGenericString")
-  parameters = [];
+  /**
+   * Shader filename identifying this generic shader definition; native m_shader
+   * (BlueSharedString).
+   * @type {string}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
+  shader = "";
 
-  /** m_defaultParameters (PEveSOFDataParameterVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataParameter")
-  defaultParameters = [];
-
-  /** m_defaultTextures (PEveSOFDataTextureVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataTexture")
-  defaultTextures = [];
-
-  /** m_transparencyTextureName (BlueSharedString) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  /**
+   * Texture binding name used to obtain the transparency mask for generated depth effects; native
+   * m_transparencyTextureName (BlueSharedString).
+   * @type {string}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   transparencyTextureName = "";
 
-  /** m_doGenerateDepthArea (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  /**
+   * Whether mesh areas using this shader request a generated depth area; native
+   * m_doGenerateDepthArea (bool).
+   * @type {boolean}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.boolean
   doGenerateDepthArea = true;
 
-  /** m_shader (BlueSharedString) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
-  shader = "";
+  /**
+   * Owned declarations naming accepted shader parameters; each record's str is the binding name.
+   * Native m_parameters vector.
+   * @type {Array<EveSOFDataGenericString>}
+   */
+  @meta.edit.read
+  @meta.edit.persist
+  @types.list("EveSOFDataGenericString")
+  parameters = [];
+
+  /**
+   * Owned named texture defaults applied before supplied texture values; native m_defaultTextures
+   * vector.
+   * @type {Array<EveSOFDataTexture>}
+   */
+  @meta.edit.read
+  @meta.edit.persist
+  @types.list("EveSOFDataTexture")
+  defaultTextures = [];
+
+  /**
+   * Owned named parameter defaults used to seed shader configuration values; native
+   * m_defaultParameters vector.
+   * @type {Array<EveSOFDataParameter>}
+   */
+  @meta.edit.read
+  @meta.edit.persist
+  @types.list("EveSOFDataParameter")
+  defaultParameters = [];
 
   /**
    * Checks whether a name is referenced by transparency, declared or default
    * parameters, or default textures.
+   * Custom: retained SOF configuration helper; native shader records are data only.
+   * @param {string} key Authored usage name.
+   * @returns {boolean} Whether this shader references the name.
    */
+  @meta.impl.custom
   HasUsage(key)
   {
     if (!key) return false;
@@ -60,6 +92,10 @@ export class EveSOFDataGenericShader extends CjsModel
   /**
    * Reports whether either canonical pattern-mask texture appears among the
    * shader defaults.
+   * Custom: retained SOF configuration helper; native shader records are data only.
+   * Kept outside schema declarations: this computed convenience is not an
+   * authored property and must not enter dictionary copy or values output.
+   * @returns {boolean} Whether a canonical pattern-mask default is present.
    */
   get hasPatternMaskMaps()
   {
@@ -71,7 +107,12 @@ export class EveSOFDataGenericShader extends CjsModel
   /**
    * Populates a shader configuration's parameter and texture maps from defaults
    * plus caller-provided values.
+   * Custom: retained SOF configuration helper; native shader records are data only.
+   * @param {object|null} [config={}] Destination configuration.
+   * @param {object|null} [provided={}] Caller-supplied parameter and texture maps.
+   * @returns {object} The populated configuration.
    */
+  @meta.impl.custom
   Assign(config = {}, provided = {})
   {
     config = config || {};
@@ -84,7 +125,12 @@ export class EveSOFDataGenericShader extends CjsModel
   /**
    * Applies default values, copies provided declared values, and supplies the
    * canonical [0,0,0,1] fallback for missing declarations.
+   * Custom: retained SOF configuration helper; native shader records are data only.
+   * @param {object|null} [out={}] Destination parameter map.
+   * @param {object|null} [provided=null] Caller-supplied parameter values.
+   * @returns {object} The populated parameter map.
    */
+  @meta.impl.custom
   AssignParameters(out = {}, provided = null)
   {
     out = out || {};
@@ -114,7 +160,12 @@ export class EveSOFDataGenericShader extends CjsModel
   /**
    * Applies authored texture defaults before overlaying caller-provided texture
    * entries.
+   * Custom: retained SOF configuration helper; native shader records are data only.
+   * @param {object|null} [out={}] Destination texture map.
+   * @param {object|null} [provided=null] Caller-supplied texture values.
+   * @returns {object} The populated texture map.
    */
+  @meta.impl.custom
   AssignTextures(out = {}, provided = null)
   {
     out = out || {};
@@ -126,9 +177,19 @@ export class EveSOFDataGenericShader extends CjsModel
     return out;
   }
 
-  static PatternMaskMaps = Object.freeze([
+  /**
+   * Canonical pattern-mask texture binding names used by the custom hasPatternMaskMaps
+   * convenience lookup.
+   * @type {Array<string>}
+   */
+  static PatternMaskMaps = [
     "PatternMask1Map",
     "PatternMask2Map"
-  ]);
+  ];
 
 }
+
+meta.carbon.interfaceTable({
+  interfaces: [ EveSOFDataGenericShader ],
+  chainTo: null
+})(EveSOFDataGenericShader);

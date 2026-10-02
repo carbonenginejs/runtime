@@ -1,36 +1,59 @@
 // Source: trinity/trinity/Utilities/Range.h
 // Source: trinity/trinity/Utilities/Range.cpp
 // Source: trinity/trinity/Utilities/Range_Blue.cpp
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 
 
 /**
  * A center point with a lower and an upper range point, optionally kept
  * symmetric about the center, and clamped for display against separate slider
- * bounds.
+ * bounds. Native Range derives only from IRoot and maps its own interface.
+ * Read-only property order follows Range_Blue.cpp; none are persistent.
+ * Existing JS fields cache native getter results and are refreshed by setters;
+ * direct dictionary writes do not invoke those setters. This cache and Number
+ * arithmetic (rather than native float intermediates) are retained adapters.
  */
 @type.define({
   className: "Range",
   family: "utilities"
 })
-export class Range extends CjsModel
+export class Range
 {
-  @edit.read
-  @type.boolean
-  isUniform = true;
-
+  /**
+   * Reference point from which both range distances are measured, in the
+   * caller's range units. SetCenterPoint moves the endpoints with it.
+   * @type {number}
+   */
   @edit.read
   @type.float32
   centerPoint = 0;
 
+  /**
+   * Cached lower display point: the lesser of the internal lower point and
+   * the slider minimum. Range setters refresh this value in the caller's units.
+   * @type {number}
+   */
   @edit.read
   @type.float32
   minRangePoint = 0;
 
+  /**
+   * Cached upper display point: the lesser of the internal upper point and
+   * the slider maximum. Range setters refresh this value in the caller's units.
+   * @type {number}
+   */
   @edit.read
   @type.float32
   maxRangePoint = 0;
+
+  /**
+   * Symmetry mode used by range setters to mirror endpoint edits around
+   * centerPoint. Assigning this field directly does not rebalance the endpoints.
+   * @type {boolean}
+   */
+  @edit.read
+  @type.boolean
+  isUniform = true;
 
   _minRange = 0;
 
@@ -42,7 +65,7 @@ export class Range extends CjsModel
 
   /** Moves the range while preserving both distances from its center. */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   SetCenterPoint(value)
   {
     const delta = value - this.centerPoint;
@@ -54,7 +77,7 @@ export class Range extends CjsModel
 
   /** Configures the symmetric range and its slider bounds. */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   Setup(rangeCenterPoint, rangeDeltaFromCenter, sliderMin, sliderMax)
   {
     this.centerPoint = rangeCenterPoint;
@@ -67,7 +90,7 @@ export class Range extends CjsModel
 
   /** Sets the lower range point and mirrors it when uniform. */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   SetMinRangePoint(value)
   {
     this._minRange = Math.min(value, this.centerPoint);
@@ -80,7 +103,7 @@ export class Range extends CjsModel
 
   /** Sets the upper range point and mirrors it when uniform. */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   SetMaxRangePoint(value)
   {
     this._maxRange = Math.max(value, this.centerPoint);
@@ -101,7 +124,7 @@ export class Range extends CjsModel
 
   /** Preserves Carbon's exact lower-bound comparison behavior. */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   GetMinRangePoint()
   {
     return this.minRangePoint;
@@ -112,7 +135,7 @@ export class Range extends CjsModel
    * the slider maximum, not a max (Range.cpp:68-71).
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   GetMaxRangePoint()
   {
     return this.maxRangePoint;
@@ -179,7 +202,7 @@ export class Range extends CjsModel
    * and re-clamps them.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   SetSliderMin(value)
   {
     this._sliderRangeMin = value;
@@ -191,7 +214,7 @@ export class Range extends CjsModel
    * and re-clamps them.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   SetSliderMax(value)
   {
     this._sliderRangeMax = value;
@@ -219,9 +242,12 @@ export class Range extends CjsModel
    * range and the slider bounds; Carbon derives these on read (Range.cpp:63-71)
    * and clamps both with min, which is reproduced here rather than corrected.
    */
+  @impl.custom
   _syncRangePoints()
   {
     this.minRangePoint = Math.min(this._minRange, this._sliderRangeMin);
     this.maxRangePoint = Math.min(this._maxRange, this._sliderRangeMax);
   }
 }
+
+carbon.interfaceTable({ interfaces: [Range], chainTo: null })(Range);

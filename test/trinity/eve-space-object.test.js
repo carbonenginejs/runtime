@@ -1,4 +1,5 @@
 import test from "node:test";
+import { ITr2AudEmitter } from "../../npm/dist/audio/trinity/trinityAudioApi/ITr2AudEmitter.js";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
@@ -679,20 +680,22 @@ test("EveSpaceObject2 drives observers, controller frequency, mute, and emitter 
 {
   const object = new EveSpaceObject2();
   const calls = [];
-  const emitter = {
+  class PlacementEmitter extends ITr2AudEmitter
+  {
     UpdatePlacement(front, up, position)
     {
       calls.push(["placement", Array.from(front), Array.from(up), Array.from(position)]);
-    },
+    }
     Mute()
     {
       calls.push(["mute"]);
-    },
+    }
     Unmute()
     {
       calls.push(["unmute"]);
     }
-  };
+  }
+  const emitter = new PlacementEmitter();
   const observer = new TriObserverLocal();
   observer.name = "engine";
   observer.SetPosition([1, 2, 3]);

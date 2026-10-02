@@ -16,32 +16,59 @@ import "#blue/registerTrinityEnums";
 @type.define({ className: "TriVectorSequencer", family: "curves" })
 export class TriVectorSequencer extends ITriVectorFunction
 {
+  /**
+   * Authored name identifying the vector sequencer; native wide string.
+   * @type {string}
+   */
   @edit.readwrite
   @edit.persist
   @type.wstring
   name = "";
 
+  /**
+   * Retained native start timestamp in Be::Time tick units (int64 metadata); current sampling
+   * does not apply it.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.int64
   start = 0;
 
+  /**
+   * Cached combined three-component vector, updated by Update and UpdateValue. Component units
+   * depend on the child functions and selected operator.
+   * @type {Float32Array}
+   */
   @edit.readwrite
   @edit.persist
   @type.vec3
   value = vec3.create();
 
+  /**
+   * TRIOPERATOR code selecting component-wise multiplication, addition or averaging; unrecognized
+   * values also take the average branch.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("blue.TRIOPERATOR")
   operator = TRIOPERATOR.TRIOP_MULTIPLY;
 
+  /**
+   * Ordered child vector functions sampled and combined at the supplied time.
+   * @type {BlueList<ITriVectorFunction>}
+   */
   @edit.read
   @edit.persist
   @type.list("ITriVectorFunction")
   functions = new BlueList(ITriVectorFunction, { className: null, listOps: 0 });
 
+  /**
+   * Reusable JavaScript scratch vector for a child value or derivative during accumulation.
+   * @type {Float32Array}
+   */
   _childValue = vec3.create();
 
   /**
@@ -219,6 +246,10 @@ export class TriVectorSequencer extends ITriVectorFunction
     return out;
   }
 
+  /**
+   * Shared operator constants exposed as a class-level convenience.
+   * @type {Object<string, number>}
+   */
   static TRIOPERATOR = TRIOPERATOR;
 
 }

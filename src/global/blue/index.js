@@ -101,3 +101,5 @@ export * from "./YamlWriter.js";
 
 export { EnumerateChildren, Traverse } from "./find.js";
 export { GetResources } from "./getResources.js";
+
+export * from "./ITriObserverLocal.js";

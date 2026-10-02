@@ -1,21 +1,30 @@
 // Source: trinity/trinity/Tr2Mesh.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema trinityCore/Tr2SerializedMorphAnimation.json.).
-import { edit, type } from "#schema";
-import { CjsModel } from "#model";
+import { carbon, edit, type } from "#schema";
 
-/** Tr2SerializedMorphAnimation (trinityCore) - generated from schema shapeHash 58cefc7b.... */
+/** Persistent-only native morph target name and weight record owned by a mesh. */
 @type.define({ className: "Tr2SerializedMorphAnimation", family: "trinityCore" })
-export class Tr2SerializedMorphAnimation extends CjsModel
+export class Tr2SerializedMorphAnimation
 {
 
-  /** m_name (std::string) [PERSISTONLY] */
+  /**
+   * Morph-target name matched against the mesh geometry when restoring weights.
+   * Native m_name (std::string) [PERSISTONLY].
+   * @type {string}
+   */
   @edit.persistOnly
   @type.string
   name = "";
 
-  /** m_weight (float) [PERSISTONLY] */
+  /**
+   * Persisted influence weight for the named mesh morph target.
+   * Native m_weight (float) [PERSISTONLY].
+   * @type {number}
+   */
   @edit.persistOnly
   @type.float32
   weight = 0;
 
 }
+
+carbon.interfaceTable({ interfaces: [Tr2SerializedMorphAnimation], chainTo: null })(Tr2SerializedMorphAnimation);

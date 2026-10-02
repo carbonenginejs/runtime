@@ -225,6 +225,16 @@ Base contract for functions whose current value advances over time.
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:ITriObserverLocal -->
+## `ITriObserverLocal`
+
+Native IRoot-shaped contract for binding a local placement observer.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/ITriObserverLocal.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:ITriQuaternionFunction -->
 ## `ITriQuaternionFunction`
 

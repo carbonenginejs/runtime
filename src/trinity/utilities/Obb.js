@@ -2,7 +2,6 @@
 // Source: trinity/trinity/Utilities/Obb.cpp
 // Promoted to hand-maintained source 2026-08-22; this is portable CPU geometry.
 import { carbon, impl, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { PlaneDotCoord, PlaneDotNormal } from "../core/view/TriFrustum.js";
 
@@ -29,14 +28,21 @@ const POINT_SIGNS = [
   [-1, -1, -1]
 ];
 
-/** A portable oriented bounding box with Carbon-compatible clipping helpers. */
+/**
+ * A portable oriented bounding box with Carbon-compatible clipping helpers.
+ * Native Obb is a plain struct with no Blue base, query or persistence contract.
+ * Typed fields are the existing JavaScript dictionary/inspection surface only.
+ * Zero-filled vectors adapt native uninitialized storage. Number arithmetic and
+ * Float32Array intermediates retain the existing JS precision behavior.
+ */
 @type.define({ className: "Obb", family: "utilities" })
-export class Obb extends CjsModel
+export class Obb
 {
 
   /** Builds the world-space box and optionally shrinks it against six frustum planes. */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
+  @impl.reason("Retains the optional-null frustum and affine local-to-world JS adapter: transformMat4 divides by w, while native Transform takes xyz directly; affine inputs have w=1.")
   CreateClippedWorldBoundingObb(localMin, localMax, localToWorld, frustum = null)
   {
     vec3.add(this.center, localMax, localMin);
@@ -76,7 +82,7 @@ export class Obb extends CjsModel
 
         for (let index = 0; index < 4 && !pointInside; index++)
         {
-          this.#WriteMaskedPoint(point, SIDE_POINTS[side][index]);
+          this._WriteMaskedPoint(point, SIDE_POINTS[side][index]);
           const distance = PlaneDotCoord(plane, point);
           if (distance >= 0)
           {
@@ -123,24 +129,25 @@ export class Obb extends CjsModel
       throw new RangeError("OBB point index must be an integer from 0 through 7");
     }
 
-    return this.#WritePoint(vec3.create(), index);
+    return this._WritePoint(vec3.create(), index);
   }
 
   /** Computes the axis-aligned bounds after applying one logical transform. */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
+  @impl.reason("Retains transformMat4's w || 1 denominator fallback; native TransformCoord returns zero xyz for w=0. Number/Float32Array precision also follows the existing JS math path.")
   ComputeAABB(min, max, transform)
   {
     const point = vec3.create();
     const transformed = vec3.create();
-    this.#WritePoint(point, 0);
+    this._WritePoint(point, 0);
     vec3.transformMat4(transformed, point, transform);
     vec3.copy(min, transformed);
     vec3.copy(max, transformed);
 
     for (let index = 1; index < 8; index++)
     {
-      this.#WritePoint(point, index);
+      this._WritePoint(point, index);
       vec3.transformMat4(transformed, point, transform);
       vec3.min(min, min, transformed);
       vec3.max(max, max, transformed);
@@ -148,7 +155,8 @@ export class Obb extends CjsModel
   }
 
   /** Writes one corner using Carbon's ordered point table. */
-  #WritePoint(out, index)
+  @impl.custom
+  _WritePoint(out, index)
   {
     const signs = POINT_SIGNS[index];
     vec3.copy(out, this.center);
@@ -159,7 +167,8 @@ export class Obb extends CjsModel
   }
 
   /** Writes one corner selected by an XYZ sign bit mask. */
-  #WriteMaskedPoint(out, mask)
+  @impl.custom
+  _WriteMaskedPoint(out, mask)
   {
     vec3.copy(out, this.center);
     vec3.scaleAndAdd(out, out, this.x, (mask & 1 ? 1 : -1) * this.sizes[0]);
@@ -168,24 +177,46 @@ export class Obb extends CjsModel
     return out;
   }
 
-  /** x (Vector3) */
+  /**
+   * Owned world-space X basis vector in [x, y, z] order. Box construction
+   * retains the local-to-world transform's scale rather than normalizing it.
+   * @type {Float32Array|Float64Array|number[]}
+   */
   @type.vec3
   x = vec3.create();
 
-  /** y (Vector3) */
+  /**
+   * Owned world-space Y basis vector in [x, y, z] order. Box construction
+   * retains the local-to-world transform's scale rather than normalizing it.
+   * @type {Float32Array|Float64Array|number[]}
+   */
   @type.vec3
   y = vec3.create();
 
-  /** z (Vector3) */
+  /**
+   * Owned world-space Z basis vector in [x, y, z] order. Box construction
+   * retains the local-to-world transform's scale rather than normalizing it.
+   * @type {Float32Array|Float64Array|number[]}
+   */
   @type.vec3
   z = vec3.create();
 
-  /** center (Vector3) */
+  /**
+   * Owned [x, y, z] world-space center of the box, in geometry position units.
+   * Frustum clipping can move it as the box's sides are tightened.
+   * @type {Float32Array|Float64Array|number[]}
+   */
   @type.vec3
   center = vec3.create();
 
-  /** sizes (Vector3) */
+  /**
+   * Owned half-extent coefficients for the X, Y and Z box bases. Each
+   * corner offset multiplies a basis vector by its corresponding coefficient.
+   * @type {Float32Array|Float64Array|number[]}
+   */
   @type.vec3
   sizes = vec3.create();
 
 }
+
+carbon.interfaceTable({ interfaces: [], chainTo: null })(Obb);

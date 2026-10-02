@@ -17,33 +17,73 @@ import { carbon, impl, edit, type } from "#schema";
 })
 export class Tr2TranslationAdapter extends ITriVectorFunction
 {
+  /**
+   * Fallback three-component translation sampled when no child curve is attached. Spatial units
+   * belong to the consuming object.
+   * @type {Float32Array}
+   */
   @edit.readwrite
   @edit.persist
   @type.vec3
   value = vec3.create();
 
+  /**
+   * Optional child vector function sampled using the adapter's local time.
+   * @type {ITriVectorFunction|null}
+   */
   @edit.readwrite
   @edit.persist
   @type.objectRef("ITriVectorFunction")
   curve = null;
 
+  /**
+   * Quaternion (x, y, z, w) applied to the sampled or fallback vector by Update; UpdateValue and
+   * GetValueAt do not apply it.
+   * @type {Float32Array}
+   */
   @edit.readwrite
   @edit.persist
   @type.quat
   rotationOffset = quat.create();
 
+  /**
+   * Cached three-component vector from the latest update, returned by InterpolatedPosition.
+   * @type {Float32Array}
+   */
   @edit.read
   @type.vec3
   currentValue = vec3.create();
 
+  /**
+   * Start timestamp in JavaScript seconds for GetStartAwareLocalTime; zero is its unset/reset
+   * sentinel. Native stores ticks; ordinary sampling ignores this field.
+   * @type {number}
+   */
   _start = 0;
 
+  /**
+   * Random time offset in JavaScript seconds used by GetStartAwareLocalTime. Native stores ticks;
+   * ordinary sampling ignores this field.
+   * @type {number}
+   */
   _offset = 0;
 
+  /**
+   * Dimensionless divisor applied to incoming curve time.
+   * @type {number}
+   */
   _timeScale = 1;
 
+  /**
+   * Reusable JavaScript scratch vector for the derivative's sample at local time.
+   * @type {Float32Array}
+   */
   _dotValue0 = vec3.create();
 
+  /**
+   * Reusable JavaScript scratch vector for the derivative's sample 0.1 seconds before local time.
+   * @type {Float32Array}
+   */
   _dotValue1 = vec3.create();
 
   /**

@@ -1,27 +1,45 @@
 // Source: trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema sprite2d/Tr2Sprite2dVertexBase.json.).
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
-/** Stores a Sprite2D vertex's position, color, and two texture-coordinate channels. */
+/**
+ * Plain native Sprite2D vertex storage; no native query interface is declared.
+ * Carbon's base aggregate has no explicit initialization. Existing JavaScript
+ * defaults match the concrete polygon vertex constructor and also provide
+ * deterministic values for D3D vertices. Position RW/PERSIST metadata is the
+ * existing authored-vertex adapter, inherited by the concrete polygon class;
+ * the native plain base itself has no Blue exposure or persistence flags.
+ */
 @type.define({ className: "Tr2Sprite2dVertexBase", family: "sprite2d" })
-export class Tr2Sprite2dVertexBase extends CjsModel
+export class Tr2Sprite2dVertexBase
 {
 
-  /** position (Vector3) */
+  /**
+   * Vertex position in the sprite's local three-component coordinates.
+   * Native position (Vector3).
+   * @type {Float32Array}
+   */
   @edit.readwrite
   @edit.persist
   @type.vec3
   position = vec3.create();
 
-  /** color (Color) */
+  /**
+   * RGBA vertex tint; the JavaScript default is opaque white.
+   * Native color (Color).
+   * @type {Float32Array}
+   */
   @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
-  /** texCoord (Vector2) */
+  /**
+   * Two UV coordinate pairs, one for each texture input.
+   * Native texCoord (Vector2[2]).
+   * @type {Float32Array[]}
+   */
   @type.array("vec2")
   texCoord = [vec2.create(), vec2.create()];
 

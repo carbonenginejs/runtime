@@ -23,196 +23,305 @@ import { EveUpdateContext } from "../../EveUpdateContext.js";
 export class EveTurretFiringFX extends EveEntity
 {
 
-  /** m_startCurveSet (TriCurveSetPtr) [READWRITE, PERSIST] */
+  /** m_startCurveSet (TriCurveSetPtr) [READWRITE, PERSIST]
+   * Curve set played when a muzzle starts firing.
+   * @type {TriCurveSet|null}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.objectRef("TriCurveSet")
   startCurveSet = null;
 
-  /** m_stopCurveSet (TriCurveSetPtr) [READWRITE, PERSIST] */
+  /** m_stopCurveSet (TriCurveSetPtr) [READWRITE, PERSIST]
+   * Curve set played when firing stops.
+   * @type {TriCurveSet|null}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.objectRef("TriCurveSet")
   stopCurveSet = null;
 
-  /** m_stretch (PIEveFiringEffectElementVector) [READ, PERSIST] */
+  /** m_stretch (PIEveFiringEffectElementVector) [READ, PERSIST]
+   * Firing elements associated with the muzzle slots.
+   * @type {Array<IEveFiringEffectElement>}
+   */
   @meta.edit.read
   @meta.edit.persist
   @types.list("IEveFiringEffectElement")
   stretch = [];
 
-  /** m_name (std::string) [READWRITE, PERSIST] */
+  /** m_name (std::string) [READWRITE, PERSIST]
+   * Name identifying the firing effect.
+   * @type {string}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.string
   name = "";
 
-  /** m_firingPeakTime (float) [READWRITE, PERSIST] */
+  /** m_firingPeakTime (float) [READWRITE, PERSIST]
+   * Offset into the burst used to time the target impact.
+   * @type {number}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.float32
   firingPeakTime = 0;
 
-  /** m_perMuzzleData[0].constantDelay (float) [READWRITE, PERSIST] */
+  /** m_perMuzzleData[0].constantDelay (float) [READWRITE, PERSIST]
+   * Authored start delay added to muzzle 1 when preparing a burst.
+   * @type {number}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.float32
   firingDelay1 = 0;
 
-  /** m_perMuzzleData[9].constantDelay (float) [READWRITE, PERSIST] */
+  /** m_perMuzzleData[9].constantDelay (float) [READWRITE, PERSIST]
+   * Authored start delay added to muzzle 10 when preparing a burst.
+   * @type {number}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.float32
   firingDelay10 = 0;
 
-  /** m_perMuzzleData[10].constantDelay (float) [READWRITE, PERSIST] */
+  /** m_perMuzzleData[10].constantDelay (float) [READWRITE, PERSIST]
+   * Authored start delay added to muzzle 11 when preparing a burst.
+   * @type {number}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.float32
   firingDelay11 = 0;
 
-  /** m_perMuzzleData[11].constantDelay (float) [READWRITE, PERSIST] */
+  /** m_perMuzzleData[11].constantDelay (float) [READWRITE, PERSIST]
+   * Authored start delay added to muzzle 12 when preparing a burst.
+   * @type {number}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.float32
   firingDelay12 = 0;
 
-  /** m_perMuzzleData[1].constantDelay (float) [READWRITE, PERSIST] */
+  /** m_perMuzzleData[1].constantDelay (float) [READWRITE, PERSIST]
+   * Authored start delay added to muzzle 2 when preparing a burst.
+   * @type {number}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.float32
   firingDelay2 = 0;
 
-  /** m_perMuzzleData[2].constantDelay (float) [READWRITE, PERSIST] */
+  /** m_perMuzzleData[2].constantDelay (float) [READWRITE, PERSIST]
+   * Authored start delay added to muzzle 3 when preparing a burst.
+   * @type {number}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.float32
   firingDelay3 = 0;
 
-  /** m_perMuzzleData[3].constantDelay (float) [READWRITE, PERSIST] */
+  /** m_perMuzzleData[3].constantDelay (float) [READWRITE, PERSIST]
+   * Authored start delay added to muzzle 4 when preparing a burst.
+   * @type {number}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.float32
   firingDelay4 = 0;
 
-  /** m_perMuzzleData[4].constantDelay (float) [READWRITE, PERSIST] */
+  /** m_perMuzzleData[4].constantDelay (float) [READWRITE, PERSIST]
+   * Authored start delay added to muzzle 5 when preparing a burst.
+   * @type {number}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.float32
   firingDelay5 = 0;
 
-  /** m_perMuzzleData[5].constantDelay (float) [READWRITE, PERSIST] */
+  /** m_perMuzzleData[5].constantDelay (float) [READWRITE, PERSIST]
+   * Authored start delay added to muzzle 6 when preparing a burst.
+   * @type {number}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.float32
   firingDelay6 = 0;
 
-  /** m_perMuzzleData[6].constantDelay (float) [READWRITE, PERSIST] */
+  /** m_perMuzzleData[6].constantDelay (float) [READWRITE, PERSIST]
+   * Authored start delay added to muzzle 7 when preparing a burst.
+   * @type {number}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.float32
   firingDelay7 = 0;
 
-  /** m_perMuzzleData[7].constantDelay (float) [READWRITE, PERSIST] */
+  /** m_perMuzzleData[7].constantDelay (float) [READWRITE, PERSIST]
+   * Authored start delay added to muzzle 8 when preparing a burst.
+   * @type {number}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.float32
   firingDelay8 = 0;
 
-  /** m_perMuzzleData[8].constantDelay (float) [READWRITE, PERSIST] */
+  /** m_perMuzzleData[8].constantDelay (float) [READWRITE, PERSIST]
+   * Authored start delay added to muzzle 9 when preparing a burst.
+   * @type {number}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.float32
   firingDelay9 = 0;
 
-  /** m_endPosition (Vector3) [READWRITE] */
+  /** m_endPosition (Vector3) [READWRITE]
+   * World-space target point shared by the firing elements.
+   * @type {Float32Array}
+   */
   @meta.edit.readwrite
   @types.vec3
   endPosition = vec3.create();
 
-  /** m_firingDuration (float) [READ] */
+  /** m_firingDuration (float) [READ]
+   * Resolved duration used to expire non-looping muzzle effects.
+   * @type {number}
+   */
   @meta.edit.read
   @types.float32
   firingDuration = 1000;
 
-  /** m_isFiring (bool) [READ] */
+  /** m_isFiring (bool) [READ]
+   * Whether the effect is currently armed or firing.
+   * @type {boolean}
+   */
   @meta.edit.read
   @types.boolean
   isFiring = false;
 
-  /** m_destinationObserver (TriObserverLocalPtr) [READWRITE, PERSIST] */
+  /** m_destinationObserver (TriObserverLocalPtr) [READWRITE, PERSIST]
+   * Observer updated at the target endpoint.
+   * @type {TriObserverLocal|null}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.objectRef("TriObserverLocal")
   destinationObserver = null;
 
-  /** m_sourceObserver (TriObserverLocalPtr) [READWRITE, PERSIST] */
+  /** m_sourceObserver (TriObserverLocalPtr) [READWRITE, PERSIST]
+   * Observer updated from the first muzzle transform.
+   * @type {TriObserverLocal|null}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.objectRef("TriObserverLocal")
   sourceObserver = null;
 
-  /** m_firingDurationOverride (float) [READWRITE, NOTIFY, PERSIST] */
+  /** m_firingDurationOverride (float) [READWRITE, NOTIFY, PERSIST]
+   * Authored duration override; a negative value uses the element curve duration.
+   * @type {number}
+   */
   @meta.edit.notify
   @meta.edit.readwrite
   @meta.edit.persist
   @types.float32
   firingDurationOverride = -1;
 
-  /** m_useMuzzleTransform (bool) [READWRITE, PERSIST] */
+  /** m_useMuzzleTransform (bool) [READWRITE, PERSIST]
+   * Whether firing elements use the full muzzle transform instead of its translation.
+   * @type {boolean}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.boolean
   useMuzzleTransform = false;
 
-  /** m_isLoopFiring (bool) [READWRITE, PERSIST] */
+  /** m_isLoopFiring (bool) [READWRITE, PERSIST]
+   * Whether muzzle effects remain active beyond the resolved firing duration.
+   * @type {boolean}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.boolean
   isLoopFiring = false;
 
-  /** m_boneName (BlueSharedString) [READWRITE, PERSIST] */
+  /** m_boneName (BlueSharedString) [READWRITE, PERSIST]
+   * Bone name used to locate the firing muzzle.
+   * @type {string}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.string
   boneName = "Pos_Fire";
 
-  /** m_display (bool) [READWRITE, NOTIFY] */
+  /** m_display (bool) [READWRITE, NOTIFY]
+   * Whether active firing elements are registered for display.
+   * @type {boolean}
+   */
   @meta.edit.notify
   @meta.edit.readwrite
   @types.boolean
   display = true;
 
-  /** m_scaleEffectTarget (bool) [READWRITE, PERSIST] */
+  /** m_scaleEffectTarget (bool) [READWRITE, PERSIST]
+   * Whether target radius controls destination-object scale.
+   * @type {boolean}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.boolean
   scaleEffectTarget = false;
 
-  /** m_minRadius (float) [READWRITE, PERSIST] */
+  /** m_minRadius (float) [READWRITE, PERSIST]
+   * Target radius mapped to the minimum destination-object scale.
+   * @type {number}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.float32
   minRadius = 30;
 
-  /** m_maxRadius (float) [READWRITE, PERSIST] */
+  /** m_maxRadius (float) [READWRITE, PERSIST]
+   * Target radius mapped to the maximum destination-object scale.
+   * @type {number}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.float32
   maxRadius = 3000;
 
-  /** m_minScale (float) [READWRITE, PERSIST] */
+  /** m_minScale (float) [READWRITE, PERSIST]
+   * Destination-object scale at or below the minimum target radius.
+   * @type {number}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.float32
   minScale = 1;
 
+  /**
+   * Per-muzzle transforms, start delays and firing progress retained between updates.
+   * @type {Array<{started: boolean, readyToStart: boolean, muzzlePositionBoneID: number, muzzleTransform: Float32Array, currentStartDelay: number, constantDelay: number, elapsedTime: number}>}
+   */
   _perMuzzleData = [];
 
+  /**
+   * Whether firing elements display their source endpoint objects.
+   * @type {boolean}
+   */
   _displaySourceObject = true;
 
+  /**
+   * Whether firing elements display their destination endpoint objects.
+   * @type {boolean}
+   */
   _displayDestObject = true;
 
+  /**
+   * Last impact surface configuration used to update the destination audio emitter switch.
+   * @type {number}
+   */
   _impactConfiguration = EveTurretFiringFX.ImpactConfiguration.IMPACT_INVALID;
 
   /**
@@ -706,7 +815,10 @@ export class EveTurretFiringFX extends EveEntity
     for (const stretch of this.stretch) stretch.AddQuadsToQuadRenderer(frustum, quadRenderer);
   }
 
-  /** m_maxScale (float) [READWRITE, PERSIST] */
+  /** m_maxScale (float) [READWRITE, PERSIST]
+   * Destination-object scale at or above the maximum target radius.
+   * @type {number}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.float32
@@ -908,21 +1020,53 @@ export class EveTurretFiringFX extends EveEntity
     }
   }
 
+  /**
+   * Native muzzle-count limit exposed as an enum-shaped constant.
+   * @type {Readonly<{MUZZLECOUNT_MAX: number}>}
+   */
   static MaxMuzzleCount = Object.freeze({
     MUZZLECOUNT_MAX: 12,
   });
 
+  /**
+   * Maximum number of per-muzzle records maintained by the effect.
+   * @type {number}
+   */
   static MUZZLE_COUNT_MAX = EveTurretFiringFX.MaxMuzzleCount.MUZZLECOUNT_MAX;
 
+  /**
+   * Sentinel selecting every muzzle or identifying an unbound muzzle bone.
+   * @type {number}
+   */
   static INVALID_INDEX = 0xffffffff;
 
+  /**
+   * Native impact-configuration values exposed for callers.
+   * @type {typeof ImpactConfiguration}
+   */
   static ImpactConfiguration = ImpactConfiguration;
 
+  /**
+   * Identity transform used when a muzzle transform is unavailable.
+   * @type {Float32Array}
+   */
   static _identity = mat4.create();
 
+  /**
+   * Shared translation-matrix scratch for updating the destination observer.
+   * @type {Float32Array}
+   */
   static _destinationTransform = mat4.create();
+  /**
+   * Shared vector scratch for averaging the positions of started muzzles.
+   * @type {Float32Array}
+   */
   static _startPosition = vec3.create();
 
+  /**
+   * Shared vector scratch for estimating the active muzzle group's center.
+   * @type {Float32Array}
+   */
   static _center = vec3.create();
 
 }

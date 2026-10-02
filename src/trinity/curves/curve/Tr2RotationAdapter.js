@@ -16,24 +16,52 @@ import { carbon, impl, edit, type } from "#schema";
 })
 export class Tr2RotationAdapter extends ITriQuaternionFunction
 {
+  /**
+   * Authored fallback quaternion (x, y, z, w), used by Update and GetValueAt when no child curve
+   * is attached.
+   * @type {Float32Array}
+   */
   @edit.readwrite
   @edit.persist
   @type.quat
   value = quat.create();
 
+  /**
+   * Optional child quaternion function sampled using the adapter's remapped time.
+   * @type {ITriQuaternionFunction|null}
+   */
   @edit.readwrite
   @edit.persist
   @type.objectRef("ITriQuaternionFunction")
   curve = null;
 
+  /**
+   * Cached quaternion from the latest update; UpdateValue leaves it unchanged when no child curve
+   * is attached.
+   * @type {Float32Array}
+   */
   @edit.read
   @type.quat
   currentValue = quat.create();
 
+  /**
+   * Start timestamp in JavaScript seconds for GetStartAwareLocalTime; zero is its unset/reset
+   * sentinel. Native stores ticks; ordinary sampling ignores this field.
+   * @type {number}
+   */
   _start = 0;
 
+  /**
+   * Randomized offset in JavaScript seconds for GetStartAwareLocalTime. Native stores ticks;
+   * ordinary sampling ignores this field.
+   * @type {number}
+   */
   _offset = 0;
 
+  /**
+   * Dimensionless divisor applied to incoming sample time, set by ScaleTime.
+   * @type {number}
+   */
   _timeScale = 1;
 
   /**

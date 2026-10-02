@@ -168,7 +168,7 @@ Runtime representation of Carbon's 44-byte EveSofDataMeshInstance structure.
 <!-- class:EveSOFDataParameter -->
 ## `EveSOFDataParameter`
 
-Stores a named vector parameter and supports assignment and composition; the typed subclasses below flatten to a shader vec4 through `GetValue()`.
+Stores a named vector parameter and supports assignment and composition; the typed subclasses flatten to a shader vec4 through `GetValue()`.
 
 - Export: `@carbonenginejs/runtime/sof`
 - Source: `src/sof/shared/EveSOFDataParameter.js`

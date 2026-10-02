@@ -1,4 +1,5 @@
 import test from "node:test";
+import { ITr2AudEmitter } from "../../npm/dist/audio/trinity/trinityAudioApi/ITr2AudEmitter.js";
 import assert from "node:assert/strict";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
@@ -217,7 +218,12 @@ test("EveChildTurret tracking fades, muzzle transforms and movement audio", () =
 
   // Movement audio goes through the observer's emitter on target acquisition.
   const events = [];
-  turret.turretMovementObserver = { GetObserver: () => ({ SendEvent: name => events.push(name) }) };
+  class MovementEmitter extends ITr2AudEmitter
+  {
+    SendEvent(name) { events.push(name); }
+  }
+  const emitter = new MovementEmitter();
+  turret.turretMovementObserver = { GetObserver: () => emitter };
   turret.idleToTargetingMovementAudioEvent = "turret_move_start";
   turret.state = State.STATE_IDLE;
   turret.SetTargetObject({

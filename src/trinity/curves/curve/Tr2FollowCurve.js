@@ -21,30 +21,69 @@ import { Tr2FollowCurveKeyInterpolation } from "../enums.js";
 @meta.carbon.inherit(IListNotify)
 export class Tr2FollowCurve extends ITriVectorFunction
 {
+  /**
+   * Authored name identifying the follow curve.
+   * @type {string}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.string
   name = "";
 
+  /**
+   * Owned follow keys supplying positions, tangents and segment interpolation. Insertion and
+   * removal notifications sort them by key time in seconds.
+   * @type {BlueList<ITr2FollowCurveKey>}
+   */
   @meta.edit.read
   @meta.edit.persist
   @types.list("ITr2FollowCurveKey")
   keys = new BlueList(ITr2FollowCurveKey, { className: null, listOps: 0 });
 
+  /**
+   * Cached three-component position from the latest UpdateValue or Update.
+   * @type {Float32Array}
+   */
   @meta.edit.read
   @types.vec3
   currentValue = vec3.create();
 
+  /**
+   * Reusable JavaScript scratch position sampled from the segment's starting key.
+   * @type {Float32Array}
+   */
   _keyValue0 = vec3.create();
 
+  /**
+   * Reusable JavaScript scratch position sampled from the segment's ending key.
+   * @type {Float32Array}
+   */
   _keyValue1 = vec3.create();
 
+  /**
+   * Reusable JavaScript scratch buffer receiving the ending key's unscaled left tangent.
+   * @type {Float32Array}
+   */
   _leftTangent = vec3.create();
 
+  /**
+   * Reusable JavaScript scratch buffer receiving the starting key's unscaled right tangent.
+   * @type {Float32Array}
+   */
   _rightTangent = vec3.create();
 
+  /**
+   * JavaScript scratch holding the starting key's right tangent multiplied by segment duration
+   * for Hermite interpolation.
+   * @type {Float32Array}
+   */
   _inTangent = vec3.create();
 
+  /**
+   * JavaScript scratch holding the ending key's left tangent multiplied by segment duration for
+   * Hermite interpolation.
+   * @type {Float32Array}
+   */
   _outTangent = vec3.create();
 
   /** Installs the native list observer after the owned key list has been created. */

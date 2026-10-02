@@ -34,73 +34,136 @@ const INVERSE_PATCH_SCRATCH = mat4.create();
 export class EveTransform extends Tr2Transform
 {
 
-  /** m_meshLod (Tr2MeshBasePtr) [READWRITE, PERSIST] */
+  /**
+   * m_meshLod (Tr2MeshBasePtr) [READWRITE, PERSIST]
+   *
+   * Fallback mesh adopted during initialization when the primary mesh is unset.
+   * @type {Tr2MeshBase|null}
+   */
   @edit.readwrite
   @edit.persist
   @type.model("Tr2MeshBase")
   meshLod = null;
 
-  /** m_children (PIEveTransformVector) [READ, PERSIST] */
+  /**
+   * m_children (PIEveTransformVector) [READ, PERSIST]
+   *
+   * Child transforms visited for updates, visibility, bounds and render submission.
+   * @type {IEveTransform[]}
+   */
   @edit.read
   @edit.persist
   @type.list("IEveTransform")
   children = [];
 
-  /** m_overrideBoundsMin (Vector3) [READWRITE, PERSIST] */
+  /**
+   * m_overrideBoundsMin (Vector3) [READWRITE, PERSIST]
+   *
+   * Local minimum of the override bounds, enabled when it differs from overrideBoundsMax.
+   * @type {vec3}
+   */
   @edit.readwrite
   @edit.persist
   @type.vec3
   overrideBoundsMin = vec3.create();
 
-  /** m_overrideBoundsMax (Vector3) [READWRITE, PERSIST] */
+  /**
+   * m_overrideBoundsMax (Vector3) [READWRITE, PERSIST]
+   *
+   * Local maximum of the override bounds, enabled when it differs from overrideBoundsMin.
+   * @type {vec3}
+   */
   @edit.readwrite
   @edit.persist
   @type.vec3
   overrideBoundsMax = vec3.create();
 
-  /** m_particleEmitters (PITr2GenericEmitterVector) [READ, PERSIST] */
+  /**
+   * m_particleEmitters (PITr2GenericEmitterVector) [READ, PERSIST]
+   *
+   * Emitters advanced with the node's world transform and current update context.
+   * @type {ITr2GenericEmitter[]}
+   */
   @edit.read
   @edit.persist
   @type.list("ITr2GenericEmitter")
   particleEmitters = [];
 
-  /** m_particleSystems (PTr2ParticleSystemVector) [READ, PERSIST] */
+  /**
+   * m_particleSystems (PTr2ParticleSystemVector) [READ, PERSIST]
+   *
+   * Particle systems updated, sorted and transformed with this node.
+   * @type {Tr2ParticleSystem[]}
+   */
   @edit.read
   @edit.persist
   @type.list("Tr2ParticleSystem")
   particleSystems = [];
 
-  /** m_lodLevel (Tr2Lod - enum Tr2Lod) [READ] */
+  /**
+   * m_lodLevel (Tr2Lod - enum Tr2Lod) [READ]
+   *
+   * Current LOD selected by visibility testing and merged with the children's LOD levels.
+   * @type {number}
+   */
   @edit.read
   @type.int32
   @type.enum("trinity.Tr2Lod")
   lodLevel = Tr2Lod.TR2_LOD_LOW;
 
-  /** m_hideOnLowQuality (bool) [READWRITE, PERSIST] */
+  /**
+   * m_hideOnLowQuality (bool) [READWRITE, PERSIST]
+   *
+   * Whether low-quality rendering suppresses this node's visibility.
+   * @type {boolean}
+   */
   @edit.readwrite
   @edit.persist
   @type.boolean
   hideOnLowQuality = false;
 
-  /** m_visibilityThreshold (float) [READWRITE, PERSIST] */
+  /**
+   * m_visibilityThreshold (float) [READWRITE, PERSIST]
+   *
+   * Projected mesh-size threshold for visibility; a negative value bypasses sphere rejection.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   visibilityThreshold = 2;
 
-  /** m_observers (PTriObserverLocalVector) [READ, PERSIST] */
+  /**
+   * m_observers (PTriObserverLocalVector) [READ, PERSIST]
+   *
+   * Observers updated from the node's world transform during view-dependent updates.
+   * @type {TriObserverLocal[]}
+   */
   @edit.read
   @edit.persist
   @type.list("TriObserverLocal")
   observers = [];
 
-  /** m_useLodLevel (bool) [READWRITE, PERSIST] */
+  /**
+   * m_useLodLevel (bool) [READWRITE, PERSIST]
+   *
+   * Whether curve-set updates are throttled according to the current LOD.
+   * @type {boolean}
+   */
   @edit.readwrite
   @edit.persist
   @type.boolean
   useLodLevel = true;
 
+  /**
+   * Cached visibility result controlling submission of this node's mesh.
+   * @type {boolean}
+   */
   _isVisible = true;
+  /**
+   * Accumulated update delta used to decide when LOD-throttled curve sets advance.
+   * @type {number}
+   */
   _lastCurveUpdateDelta = EveLODHelper.lowUpdateRate;
 
   /**
@@ -514,15 +577,51 @@ export class EveTransform extends Tr2Transform
     return duration;
   }
 
+  /**
+   * LOD constants exposed for configuring and inspecting transform detail levels.
+   * @type {typeof Tr2Lod}
+   */
   static Tr2Lod = Tr2Lod;
 
+  /**
+   * Identity parent-transform fallback for visibility and view-dependent updates.
+   * @type {mat4}
+   */
   static _identity = mat4.create();
+  /**
+   * Zero origin-shift fallback for emitter updates.
+   * @type {vec3}
+   */
   static _zero = vec3.create();
+  /**
+   * Shared world bounding sphere scratch for visibility and projected-size queries.
+   * @type {vec4}
+   */
   static _sphere = vec4.create();
+  /**
+   * Shared local bounding sphere scratch before transformation to world space.
+   * @type {vec4}
+   */
   static _localSphere = vec4.create();
+  /**
+   * Shared output scratch for a child's sphere before merging it into the parent bound.
+   * @type {vec4}
+   */
   static _childSphere = vec4.create();
+  /**
+   * Shared output scratch for local bounding box minima.
+   * @type {vec3}
+   */
   static _boundsMin = vec3.create();
+  /**
+   * Shared output scratch for local bounding box maxima.
+   * @type {vec3}
+   */
   static _boundsMax = vec3.create();
+  /**
+   * Shared bounding box scratch for transforming local bounds into world space.
+   * @type {box3}
+   */
   static _worldBounds = box3.create();
 }
 

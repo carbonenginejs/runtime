@@ -22,25 +22,45 @@ import { TimeAsDouble } from "../../../global/blue/CcpTime.js";
 export class EveChildParticleSystem extends EveChildTransform
 {
 
-  /** m_rotation (Quaternion) [READWRITE, PERSIST] - EveChildParticleSystem_Blue.cpp:25 */
+  /**
+   * m_rotation (Quaternion) [READWRITE, PERSIST] - EveChildParticleSystem_Blue.cpp:25
+   *
+   * Local rotation used when rebuilding the child transform from SRT.
+   * @type {quat}
+   */
   @edit.readwrite
   @edit.persist
   @type.quat
   rotation = quat.create();
 
-  /** m_translation (Vector3) [READWRITE, PERSIST] - EveChildParticleSystem_Blue.cpp:26 */
+  /**
+   * m_translation (Vector3) [READWRITE, PERSIST] - EveChildParticleSystem_Blue.cpp:26
+   *
+   * Local position used when rebuilding the child transform from SRT.
+   * @type {vec3}
+   */
   @edit.readwrite
   @edit.persist
   @type.vec3
   translation = vec3.create();
 
-  /** m_scaling (Vector3) [READWRITE, PERSIST] - EveChildParticleSystem_Blue.cpp:27 */
+  /**
+   * m_scaling (Vector3) [READWRITE, PERSIST] - EveChildParticleSystem_Blue.cpp:27
+   *
+   * Local scale used when rebuilding the child transform from SRT.
+   * @type {vec3}
+   */
   @edit.readwrite
   @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, NOTIFY, ENUM] */
+  /**
+   * m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, NOTIFY, ENUM]
+   *
+   * Reflection policy controlling registration for cubemap rendering.
+   * @type {number}
+   */
   @edit.notify
   @edit.readwrite
   @edit.persist
@@ -48,97 +68,187 @@ export class EveChildParticleSystem extends EveChildTransform
   @type.enum("trinity.EntityComponents.ReflectionMode")
   reflectionMode = 3;
 
-  /** m_particleEmitters (PITr2GenericEmitterVector) [READ, PERSIST] */
+  /**
+   * m_particleEmitters (PITr2GenericEmitterVector) [READ, PERSIST]
+   *
+   * Emitters updated with this child's world transform and emission factor.
+   * @type {ITr2GenericEmitter[]}
+   */
   @edit.read
   @edit.persist
   @type.list("ITr2GenericEmitter")
   particleEmitters = [];
 
-  /** m_particleSystems (PTr2ParticleSystemVector) [READ, PERSIST] */
+  /**
+   * m_particleSystems (PTr2ParticleSystemVector) [READ, PERSIST]
+   *
+   * Particle systems whose transforms, budgets, visibility and simulation this child updates.
+   * @type {Tr2ParticleSystem[]}
+   */
   @edit.read
   @edit.persist
   @type.list("Tr2ParticleSystem")
   particleSystems = [];
 
-  /** m_transformModifiers (PIEveChildTransformModifierVector) [READ, PERSIST] */
+  /**
+   * m_transformModifiers (PIEveChildTransformModifierVector) [READ, PERSIST]
+   *
+   * Modifiers applied to the child transform during asynchronous updates.
+   * @type {IEveChildTransformModifier[]}
+   */
   @edit.read
   @edit.persist
   @type.list("IEveChildTransformModifier")
   transformModifiers = [];
 
-  /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
+  /**
+   * m_display (bool) [READWRITE, PERSIST, NOTIFY]
+   *
+   * Whether the child participates in visibility and render submission.
+   * @type {boolean}
+   */
   @edit.notify
   @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
 
-  /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  /**
+   * m_name (BlueSharedString) [READWRITE, PERSIST]
+   *
+   * Authored name returned by GetName.
+   * @type {string}
+   */
   @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
-  /** m_mesh (Tr2InstancedMeshPtr) [READWRITE, PERSIST] */
+  /**
+   * m_mesh (Tr2InstancedMeshPtr) [READWRITE, PERSIST]
+   *
+   * Instanced mesh supplying particle geometry and local bounds.
+   * @type {Tr2InstancedMesh|null}
+   */
   @edit.readwrite
   @edit.persist
   @type.model("Tr2InstancedMesh")
   mesh = null;
 
-  /** m_lodClampLow (uint32_t) [READWRITE, PERSIST] */
+  /**
+   * m_lodClampLow (uint32_t) [READWRITE, PERSIST]
+   *
+   * Maximum particle count allowed per system at low LOD.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.uint32
   lodClampLow = 5;
 
-  /** m_lodSphereRadius (float) [READWRITE, PERSIST] */
+  /**
+   * m_lodSphereRadius (float) [READWRITE, PERSIST]
+   *
+   * Local radius of the sphere used to estimate screen size for LOD visibility.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   lodSphereRadius = 0;
 
-  /** m_useDynamicLod (bool) [READWRITE, PERSIST] */
+  /**
+   * m_useDynamicLod (bool) [READWRITE, PERSIST]
+   *
+   * Whether LOD changes adjust each system's maximum particle count.
+   * @type {boolean}
+   */
   @edit.readwrite
   @edit.persist
   @type.boolean
   useDynamicLod = false;
 
-  /** m_lodFactorLow (float) [READWRITE, PERSIST] */
+  /**
+   * m_lodFactorLow (float) [READWRITE, PERSIST]
+   *
+   * Fraction of each system's original particle budget used at low LOD before clamping.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   lodFactorLow = 0.125;
 
-  /** m_lodFactorMedium (float) [READWRITE, PERSIST] */
+  /**
+   * m_lodFactorMedium (float) [READWRITE, PERSIST]
+   *
+   * Fraction of each system's original particle budget used at medium LOD.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   lodFactorMedium = 0.25;
 
-  /** m_minScreenSize (float) [READWRITE, PERSIST] */
+  /**
+   * m_minScreenSize (float) [READWRITE, PERSIST]
+   *
+   * Minimum projected size for visibility, scaled by the update context's LOD factor.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   minScreenSize = 0;
 
-  /** m_currentScreenSize (float) [READ] */
+  /**
+   * m_currentScreenSize (float) [READ]
+   *
+   * Most recent projected LOD-sphere size, or -1 when the initial visibility gate rejects the child.
+   * @type {number}
+   */
   @edit.read
   @type.float32
   currentScreenSize = -1;
 
-  /** m_boundingSphere (Vector4) - world-space mesh bound, radius -1 until built. */
+  /**
+   * m_boundingSphere (Vector4) - world-space mesh bound, radius -1 until built.
+   *
+   * World-space sphere used for visibility and bounding-sphere queries.
+   * @type {vec4}
+   */
   _boundingSphere = vec4.fromValues(0, 0, 0, -1);
 
-  /** m_lodSphere (Vector4) - world-space LOD probe, radius -1 while lodSphereRadius is unset. */
+  /**
+   * m_lodSphere (Vector4) - world-space LOD probe, radius -1 while lodSphereRadius is unset.
+   *
+   * World-space sphere used to estimate projected size for LOD visibility.
+   * @type {vec4}
+   */
   _lodSphere = vec4.fromValues(0, 0, 0, -1);
 
-  /** m_worldTransformLast (Matrix) - previous frame's world transform. */
+  /**
+   * m_worldTransformLast (Matrix) - previous frame's world transform.
+   *
+   * Previous world matrix supplied to the per-object rendering record.
+   * @type {mat4}
+   */
   _worldTransformLast = mat4.create();
 
-  /** m_isVisible (bool) - result of the last UpdateVisibility pass. */
+  /**
+   * m_isVisible (bool) - result of the last UpdateVisibility pass.
+   *
+   * Cached visibility result used when collecting renderables.
+   * @type {boolean}
+   */
   _isVisible = true;
 
-  /** m_hasUpdated (bool) - until an update ran, the object cannot be rendered. */
+  /**
+   * m_hasUpdated (bool) - until an update ran, the object cannot be rendered.
+   *
+   * Whether an asynchronous update has completed, permitting visibility.
+   * @type {boolean}
+   */
   _hasUpdated = false;
 
   /** Rebuilds static local transforms (EveChildParticleSystem.cpp:43-50). */
@@ -520,25 +630,61 @@ export class EveChildParticleSystem extends EveChildTransform
     }
   }
 
+  /**
+   * Reflection-policy constants exposed for configuring particle children.
+   * @type {typeof ReflectionMode}
+   */
   static ReflectionMode = ReflectionMode;
 
+  /**
+   * LOD constants used to select particle budgets.
+   * @type {typeof Tr2Lod}
+   */
   static Tr2Lod = Tr2Lod;
 
+  /**
+   * Shared output scratch for the mesh bounding box minimum.
+   * @type {vec3}
+   */
   static _boundsMin = vec3.create();
 
+  /**
+   * Shared output scratch for the mesh bounding box maximum.
+   * @type {vec3}
+   */
   static _boundsMax = vec3.create();
 
+  /**
+   * Shared local bounding sphere scratch before transformation to world space.
+   * @type {vec4}
+   */
   static _localSphere = vec4.create();
 
+  /**
+   * Zero origin-shift fallback when the update context supplies none.
+   * @type {vec3}
+   */
   static _zero = vec3.create();
 
+  /**
+   * Shared identity matrix retained by the particle-child helper.
+   * @type {mat4}
+   */
   static _identity = mat4.create();
 
   // Reusable emitter/system argument records (backend-neutral mirror of
   // ITr2GenericEmitter::UpdateArguments); child updates run sequentially, so
   // the shared records are non-reentrant by design.
+  /**
+   * Shared update arguments populated before emitter updates.
+   * @type {ITr2GenericEmitterUpdateArguments}
+   */
   static _emitterArgs = new ITr2GenericEmitterUpdateArguments();
 
+  /**
+   * Shared update arguments populated before particle-system updates.
+   * @type {ITr2GenericEmitterUpdateArguments}
+   */
   static _systemArgs = new ITr2GenericEmitterUpdateArguments();
 
 }

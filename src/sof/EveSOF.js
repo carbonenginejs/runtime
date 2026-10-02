@@ -276,6 +276,11 @@ const SOF_INSTANCE_LAYOUT = [
 export class EveSOF extends CjsModel
 {
 
+  /**
+   * Enables caching of file-existence results used when selecting texture path inserts; native
+   * m_allowFileCaching. Loaded objects are not cached by this flag.
+   * @type {boolean}
+   */
   @edit.readwrite
   @type.boolean
   allowFileCaching = true;
@@ -283,6 +288,11 @@ export class EveSOF extends CjsModel
   // Carbon registers this as the global TRI setting "alphaCutoutShadowsEnabled"
   // (EveSOF.cpp:61-62, default false); decal (alpha-cutout) areas take their
   // castsShadows state from it. Injected here per builder instead of a global.
+  /**
+   * Whether generated decal and alpha-cutout mesh areas cast shadows. Custom per-builder
+   * counterpart of the native global setting.
+   * @type {boolean}
+   */
   @edit.readwrite
   @type.boolean
   alphaCutoutShadowsEnabled = false;
@@ -290,6 +300,11 @@ export class EveSOF extends CjsModel
   // Carbon registers this as the global TRI setting "volumetricTrailPath"
   // (EveSOF.cpp:64-65, default empty); the booster trail set takes its mesh
   // resource path from it. Injected here per builder instead of a global.
+  /**
+   * Geometry resource path assigned to generated volumetric booster trails. Custom per-builder
+   * counterpart of the native global setting; empty by default.
+   * @type {string}
+   */
   @edit.readwrite
   @type.string
   volumetricTrailPath = "";
@@ -298,49 +313,114 @@ export class EveSOF extends CjsModel
   // phase-offsetting noise flicker by when the object was built. Injected
   // here per builder (default 0 keeps builds deterministic); the engine
   // passes its clock when it wants Carbon's de-synced flicker.
+  /**
+   * Injected light-clock timestamp copied unchanged into generated lights' startTime; no unit
+   * conversion occurs here. Native startTime uses Be::Time ticks. The zero default keeps
+   * construction deterministic.
+   * @type {number}
+   */
   @edit.readwrite
   @type.float64
   buildTime = 0;
 
+  /**
+   * Catalog manager supplying resolved hull, faction, race, material and generic data for DNA and
+   * assembly; native m_dataMgr.
+   * @type {EveSOFDataMgr}
+   */
   @edit.read
   @type.objectRef("EveSOFDataMgr")
   dataMgr = new EveSOFDataMgr();
 
+  /**
+   * Includes SOF authoring metadata such as source hull, DNA and locator identities in generated
+   * objects; native m_editorMode.
+   * @type {boolean}
+   */
   @edit.readwrite
   @type.boolean
   editorMode = false;
 
+  /**
+   * Custom synchronous override for texture-path existence queries; null selects the configured
+   * or global paths service.
+   * @type {(function(string): boolean)|null}
+   */
   _resourceExists = null;
 
   /**
-   * The paths service texture resPathInsert existence asks, or null for the
-   * global `blue.paths`. Custom: Carbon asks its one global BePaths
-   * (EveSOFDNA.cpp:11-14); tools-core serves several builds per process, so a
-   * factory may be given the paths service of its own build.
+   * Per-builder paths service for texture resPathInsert existence queries when no explicit
+   * resolver is installed; null selects blue.paths. Custom: native uses global BePaths, while
+   * tools-core can serve multiple builds with separate paths services.
+   * @type {{FileExists: Function}|null}
    */
   _paths = null;
 
+  /**
+   * Custom synchronous loader of child values or compatibility descriptors; null leaves children
+   * represented by deferred EveChildRef nodes.
+   * @type {Function|null}
+   */
   _childResourceResolver = null;
 
+  /**
+   * Custom synchronous loader of controller and model-curve values or compatibility fragments;
+   * null emits deferred controller or external-reference descriptors.
+   * @type {Function|null}
+   */
   _objectResourceResolver = null;
 
+  /**
+   * Memoized file-existence results keyed by candidate inserted texture resource path; JavaScript
+   * Map counterpart of native m_existingFilesCache.
+   * @type {Map<string, boolean>}
+   */
   _existingFilesCache = new Map();
 
+  /**
+   * Custom promise-capable resource hooks used by catalog loading and asynchronous build
+   * dependency resolution.
+   * @type {{getObject: (Function|null), exists: (Function|null)}}
+   */
   _asyncResources = { getObject: null, exists: null };
 
-  /** True during BuildFromDNAAsync's collect-only pass, whose resolvers return null. */
+  /**
+   * Marks the custom asynchronous build dependency-collection pass, where child resolver null
+   * results are expected rather than missing-resource errors.
+   * @type {boolean}
+   */
   _collectingResources = false;
 
+  /**
+   * Configured normalized monolithic catalog path; a nonempty path selects catalog loading during
+   * InitializeAsync. Custom configuration state.
+   * @type {string}
+   */
   _dataPath = "";
 
+  /**
+   * In-flight configured catalog loads keyed by normalized path; entries are removed after
+   * completion or rejection. Custom load deduplication state.
+   * @type {Map<string, Promise<boolean>>}
+   */
   _dataLoadOperations = new Map();
 
+  /**
+   * Optional custom incremental catalog loader sharing this factory's data manager and ensuring
+   * records needed by asynchronous DNA builds.
+   * @type {CjsSofLibraryBuilder|null}
+   */
   _sofLibraryBuilder = null;
 
   // Build-scope counterpart of Carbon's CCP_LOGERR sites: records in
   // layoutPlanner diagnostic shape ({ code, ...context }), reset by
   // BuildFromDNA and appended to by modular-child builds; readable through
   // GetBuildDiagnostics().
+  /**
+   * Accumulated diagnostic records containing a code and relevant context; reset by BuildFromDNA
+   * and appended during assembly. Custom structured counterpart of native logging.
+   * @type {Array<object>}
+   */
   _buildDiagnostics = [];
 
   /**

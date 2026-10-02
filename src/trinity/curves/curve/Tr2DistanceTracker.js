@@ -18,54 +18,98 @@ import { meta, types } from "#schema";
 @meta.carbon.inherit(INotify)
 export class Tr2DistanceTracker extends ITriFunction
 {
+  /**
+   * Authored name identifying this distance-tracking function; native wide string.
+   * @type {string}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.wstring
   name = "";
 
-  /** Native READ stored value, not a live accessor or persisted input. */
+  /**
+   * Cached separation or directional projection; native float. Uses the positions' coordinate
+   * units when direction is normalized. Read-only metadata; not persisted.
+   * @type {number}
+   */
   @meta.edit.read
   @types.float32
   value = 0;
 
+  /**
+   * Whether the direction projection determines the result's sign; otherwise the result is
+   * nonnegative.
+   * @type {boolean}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.boolean
   signedDistance = true;
 
+  /**
+   * Selects directional projection instead of full source-to-target separation.
+   * @type {boolean}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.boolean
   distanceToClosest = true;
 
+  /**
+   * Three-component projection and sign-testing direction. Native expects a normalized vector;
+   * sampling uses the authored components unchanged.
+   * @type {Float32Array}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.vec3
   direction = vec3.create();
 
+  /**
+   * Optional position function sampled into sourcePosition during updates.
+   * @type {ITriVectorFunction|null}
+   */
   @meta.edit.notify
   @meta.edit.readwrite
   @meta.edit.persist
   @types.objectRef("ITriVectorFunction")
   sourceObject = null;
 
+  /**
+   * Optional position function sampled into targetPosition during updates.
+   * @type {ITriVectorFunction|null}
+   */
   @meta.edit.notify
   @meta.edit.readwrite
   @meta.edit.persist
   @types.objectRef("ITriVectorFunction")
   targetObject = null;
 
+  /**
+   * Three-component source position used for distance calculation; remains unchanged when no
+   * source function is attached.
+   * @type {Float32Array}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.vec3
   sourcePosition = vec3.create();
 
+  /**
+   * Three-component target position used for distance calculation; remains unchanged when no
+   * target function is attached.
+   * @type {Float32Array}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.vec3
   targetPosition = vec3.create();
 
-  /** Reused JS vector replaces native UpdateValue's stack temporary. */
+  /**
+   * Reusable JavaScript scratch vector holding target minus source, replacing the native stack
+   * temporary.
+   * @type {Float32Array}
+   */
   _difference = vec3.create();
 
   /**
