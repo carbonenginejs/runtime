@@ -16,11 +16,13 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { EveChildParticleSystem, Tr2DynamicEmitter, Tr2ParticleSystem } from "../../npm/dist/trinity/index.js";
 
+import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+
 const host = JSON.parse(readFileSync(new URL("../support/crisisParticleHost.json", import.meta.url), "utf8"));
 
 test("a referenced particle system is initialized before the emitter referencing it", () =>
 {
-  const built = EveChildParticleSystem.from(structuredClone(host));
+  const built = CjsSchema.from("EveChildParticleSystem", structuredClone(host));
   const [ emitter ] = built.particleEmitters;
 
   assert.ok(emitter.particleSystem, "the reference resolved");

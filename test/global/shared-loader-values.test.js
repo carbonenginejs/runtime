@@ -3,10 +3,13 @@ import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsResMan } from "../../npm/dist/global/blue/CjsResMan.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import { EveSOFData, EveSOFDataGeneric, EveSOFDataHullDecalSetItem } from "../../npm/dist/sof/index.js";
-import "../../npm/dist/trinity/index.js";
+import { Tr2DynamicEmitter, ITr2GenericEmitter, EveThrottleable, Tr2Controller, Tr2TimelineController } from "../../npm/dist/trinity/index.js";
+import { IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
+import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 
 const host = JSON.parse(readFileSync(new URL("../support/crisisParticleHost.json", import.meta.url), "utf8"));
 
@@ -133,4 +136,38 @@ test("schema construction batches notifications and honors values options before
     assert.deepEqual(record.calls, [["initialize", 2]]);
     if (options.skipUpdate) assert.equal(record.__state.dirty, true);
   }
+});
+
+
+test("dynamic emitters and throttle owners expose only their native lifecycle identities", () =>
+{
+  assert.deepEqual(mappedInterfaces(Tr2DynamicEmitter), new Set([Tr2DynamicEmitter, ITr2GenericEmitter, INotify, IInitialize]));
+  assert.deepEqual(mappedInterfaces(EveThrottleable), new Set([EveThrottleable]));
+  for (const Type of [Tr2Controller, Tr2TimelineController])
+  {
+    assert.equal(mappedInterfaces(Type).has(IInitialize), false);
+    const value = CjsSchema.from(CjsSchema.getClassName(Type), {});
+    assert.equal("SetValues" in value, false);
+  }
+  const values = structuredClone(host);
+  const emitter = CjsSchema.from(values._type, values).particleEmitters[0];
+  assert.equal("SetValues" in emitter, false);
+  assert.equal(emitter.isValid, true);
+});
+
+
+test("resource target hydration builds a model-free emitter from the real Crisis record", () =>
+{
+  const values = structuredClone(host.particleEmitters[0]);
+  values.particleSystem = structuredClone(host.mesh.instanceGeometryResource);
+  const manager = new CjsResMan();
+  const a = manager._HydrateTarget(null, Tr2DynamicEmitter, values, {});
+  const b = manager._HydrateTarget(null, Tr2DynamicEmitter, values, {});
+  assert.equal(a.isValid, true);
+  assert.equal(b.isValid, true);
+  assert.notEqual(a, b);
+  assert.notEqual(a.particleSystem, b.particleSystem);
+  class Unregistered {}
+  assert.throws(() => manager._HydrateTarget(null, Unregistered, values, {}), /Target hydration failed/,
+    "Negative control: an unregistered class cannot be constructed by schema name");
 });

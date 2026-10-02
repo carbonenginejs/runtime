@@ -2473,7 +2473,8 @@ export class CjsResMan
     {
       const hydrated = typeof Target.fromYAML === "function"
         ? Target.fromYAML(copy, context)
-        : Target.from(copy);
+        : typeof Target.from === "function" ? Target.from(copy)
+        : CjsSchema.from(CjsSchema.getClassName(Target), copy);
       if (hydrated && typeof hydrated.then === "function")
       {
         throw new TypeError("Extension target hydration must be synchronous.");
@@ -5080,10 +5081,11 @@ function validateOrderedExtensionFormats(descriptors, ext)
 function assertExtensionTarget(Target, label)
 {
   if (typeof Target !== "function"
-    || (typeof Target.from !== "function" && typeof Target.fromYAML !== "function"))
+    || (typeof Target.from !== "function" && typeof Target.fromYAML !== "function"
+      && !CjsSchema.getClassName(Target)))
   {
     throw new TypeError(
-      `CjsResMan extension ${label} must provide static from(values) or fromYAML(values, context).`
+      `CjsResMan extension ${label} must provide static from(values) or fromYAML(values, context), or be a registered schema class.`
     );
   }
 }

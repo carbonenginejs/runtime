@@ -4,7 +4,7 @@ import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { carbon, impl, edit, type } from "#schema";
 import { blue, TimeAsDouble, TimeAsFloat } from "#blue";
 import { EveThrottleable } from "../../eve/EveThrottleable.js";
-import { ITr2ActionController } from "../ITr2Controller/index.js";
+import { ITr2Controller, ITr2ActionController } from "../ITr2Controller/index.js";
 import { Tr2TimelineEntry } from "./Tr2TimelineEntry.js";
 import { UnlinkReason } from "../enums.js";
 
@@ -876,3 +876,6 @@ export class Tr2TimelineController extends EveThrottleable
     return Tr2TimelineController._inRange(entry.startTime, updateRange) && Tr2TimelineController._inRange(entry.endTime, updateRange);
   }
 }
+
+// Tr2TimelineController_Blue.cpp exposes no initialization or list-notify contract.
+carbon.interfaceTable({ interfaces: [Tr2TimelineController, ITr2Controller, ITr2ActionController], chainTo: EveThrottleable })(Tr2TimelineController, { kind: "class" });

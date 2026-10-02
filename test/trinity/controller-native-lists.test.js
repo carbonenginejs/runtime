@@ -3,7 +3,6 @@ import test from "node:test";
 import { BlueList } from "../../npm/dist/global/blue/BlueList.js";
 import { Copier } from "../../npm/dist/global/blue/Copier.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
-import { CjsModel } from "../../npm/dist/global/model/CjsModel.js";
 import { CjsSchema, meta } from "../../npm/dist/global/schema/index.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import { CjsBlackReader } from "../../npm/dist/resource/formats/black/core/CjsBlackReader.js";
@@ -203,15 +202,15 @@ test("notification payloads require exact self exposure even for nominal subclas
   assert.equal(machine.GetController(), null);
 });
 
-test("legacy child helpers retain the list and explicitly notify once", t =>
+test("native list operations retain the list and notify once", t =>
 {
   const controller = new Tr2Controller(), machine = new Tr2StateMachine();
   const list = controller.stateMachines, events = Observe(controller);
   controller.Link({});
   t.after(() => controller.Unlink());
-  CjsModel.addChild(controller, "stateMachines", machine);
+  list.Insert(-1, machine);
   assert.equal(machine.GetController(), controller);
-  CjsModel.removeChild(controller, "stateMachines", machine);
+  list.Remove(list.FindKey(machine));
   assert.equal(machine.GetController(), null);
   assert.equal(controller.stateMachines, list);
   assert.equal(Info(list).notify, controller);
@@ -234,9 +233,9 @@ test("DictReader reads existing child identities into subscribed lists without c
   assert.deepEqual(events[1].items, [incoming, incoming]);
 });
 
-test("retained from and SetValues paths populate configured lists and initialize authored variables", t =>
+test("schema construction and editing populate configured lists and initialize authored variables", t =>
 {
-  const controller = Tr2Controller.from({
+  const controller = CjsSchema.from("Tr2Controller", {
     variables: [{ _type: "Tr2ControllerFloatVariable", _id: "shared", name: "x", defaultValue: 4 }, { _ref: "shared" }],
     stateMachines: [{ _type: "Tr2StateMachine", name: "machine" }],
     eventHandlers: [{ _type: "Tr2ControllerEventHandler", name: "event" }]
@@ -246,7 +245,7 @@ test("retained from and SetValues paths populate configured lists and initialize
   assert.equal(list[0].GetValue(), 4);
   for (const [field] of fields) assert.equal(Info(controller[field]).notify, controller);
   const events = Observe(controller);
-  controller.SetValues({ variables: [{ _type: "Tr2ControllerFloatVariable", name: "replacement", defaultValue: 8 }] });
+  CjsSchema.setValues(controller, { variables: [{ _type: "Tr2ControllerFloatVariable", name: "replacement", defaultValue: 8 }] });
   assert.equal(controller.variables, list);
   assert.equal(Info(list).notify, controller);
   assert.deepEqual(events.map(entry => entry.event), [BELIST_UNLOADSTART, BELIST_LOADFINISHED]);
