@@ -1,8 +1,8 @@
 {
   "outRoot": "src/trinity/generated",
   "classes": {
-    "written": 33,
-    "skipped": 662
+    "written": 32,
+    "skipped": 663
   },
   "enums": {
     "written": 15,
@@ -1302,6 +1302,11 @@
     {
       "family": "eve/effect",
       "className": "EveOccluder",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/effect",
+      "className": "EveStarfield",
       "reason": "hand-maintained source exists"
     },
     {
@@ -5919,11 +5924,6 @@
       "file": "trinity/generated/eve/scene/EvePendingPickingReadback.js"
     },
     {
-      "className": "EveStarfield",
-      "family": "eve/effect",
-      "file": "trinity/generated/eve/effect/EveStarfield.js"
-    },
-    {
       "className": "Tr2AtlasTexture",
       "family": "trinityCore",
       "file": "trinity/generated/trinityCore/Tr2AtlasTexture.js"
@@ -6793,6 +6793,11 @@
     {
       "family": "eve/effect",
       "className": "EveMultiEffectParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/effect",
+      "className": "EveStarfield",
       "reason": "hand-maintained source exists"
     },
     {

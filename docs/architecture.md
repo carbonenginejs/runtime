@@ -134,6 +134,13 @@ Source owners: `src/trinity/core/context/Tr2RenderContext.js`,
 `src/trinityal/webgpu/CjsWebgpuResourceSetAL.js` and
 `src/trinityal/webgpu/core/CjsWebgpuWorkQueue.js`.
 
+The scene background pass draws the seeded `EveStarfield` after the nebula with
+additive states. The starfield owns its packed sprite buffer and uses the shared
+quad index allocation. Notified generation settings mark it dirty; the scene
+update recreates its buffer and retries failed creation. Seeded integer random
+draws match Carbon; JavaScript trigonometry is rounded to float32 for positions.
+The final owner calls `Destroy` to release storage and device registration.
+
 ## Tools, demos, and generated source
 
 `src/tools` holds the browser-safe file-index readers, off the default

@@ -752,7 +752,7 @@ export class EveSpaceScene
       this.warpTunnel.UpdateAsyncronous(context);
     }
 
-    this.starfield?.Update?.(simTime);
+    if (this.starfield) this.starfield.Update(simTime);
 
     for (const staticParticles of this.staticParticles)
     {
@@ -1816,8 +1816,8 @@ export class EveSpaceScene
    * tunnel. For a reflection render the nebula intensity is swapped for the
    * background reflection intensity around the draw.
    *
-   * Adapted: only the nebula is ported. The starfield (EveStarfield is an
-   * unported shell), background objects, planets and the warp tunnel each log
+   * Adapted: the nebula and seeded starfield are ported. Background objects,
+   * planets and the warp tunnel each log
    * a warning once when the scene has them, rather than being skipped
    * silently, so this never reports distortion batches yet.
    *
@@ -1850,7 +1850,11 @@ export class EveSpaceScene
       }
     }
 
-    if (this.starfield) this._WarnBackgroundPart("starfield", "EveStarfield in the background pass");
+    if (this.starfield)
+    {
+      this.starfield.GetBatches(this._secondaryAdditiveBatches, null);
+      this.RenderBatch(this._secondaryAdditiveBatches, RenderingMode.RM_ALPHA_ADDITIVE, renderContext);
+    }
     if (this.backgroundObjects.length) this._WarnBackgroundPart("backgroundObjects", "background objects in the background pass");
     if (this.warpTunnel) this._WarnBackgroundPart("warpTunnel", "the warp tunnel in the background pass");
 
