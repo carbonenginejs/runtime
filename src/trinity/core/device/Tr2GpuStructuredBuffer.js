@@ -2,13 +2,33 @@
 // Source: trinity/trinity/Tr2GpuStructuredBuffer.cpp
 // Hand-maintained from Carbon source; promoted from generated/trinityCore.
 import { meta } from "#schema";
+import { INotify, IInitialize } from "#blue";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { ALResult, Tr2BufferDescriptionAL } from "#trinityal";
 
 /** Describes the element count, stride, and creation flags of a GPU structured buffer. */
 @meta.define({ className: "Tr2GpuStructuredBuffer", family: "trinityCore", purpose: "Describes the element count, stride, and creation flags of a GPU structured buffer." })
+@meta.blue.mapInterface(INotify, IInitialize)
 export class Tr2GpuStructuredBuffer
 {
+
+  /** Carbon Tr2GpuStructuredBuffer.cpp: create from persisted parameters on the ambient context. */
+  @meta.implemented
+  Initialize()
+  {
+    this.CreateBuffer(Tr2RenderContext_GetMainThreadRenderContext());
+    return true;
+  }
+
+  /** Carbon ignores the AL result here; failed creation follows CreateBuffer's ownership rules. */
+  @meta.implemented
+  OnModified(_names)
+  {
+    this.CreateBuffer(Tr2RenderContext_GetMainThreadRenderContext());
+    return true;
+  }
+
 
   /** Carbon's CreationFlag (Tr2GpuStructuredBuffer.h:30-36). */
   static CreationFlag = Object.freeze({ CPU_WRITABLE: 1, GPU_WRITABLE: 2 });

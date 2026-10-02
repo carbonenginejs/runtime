@@ -44,6 +44,7 @@ export class Tr2HostBitmap extends HostBitmap
   {
     return this._name;
   }
+  /** Sets the native diagnostic name. */
   set name(value)
   {
     this._name = value;

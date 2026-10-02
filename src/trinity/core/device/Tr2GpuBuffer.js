@@ -3,14 +3,34 @@
 // unported Carbon behaviour, not a boundary: Carbon holds its handles on this
 // class and calls the AL from it.
 import { meta } from "#schema";
+import { INotify, IInitialize } from "#blue";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { PixelFormat, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { ALResult, Tr2BufferDescriptionAL } from "#trinityal";
 import "#blue/registerTrinityEnums";
 
 /** Tr2GpuBuffer (trinityCore) - generated from schema shapeHash 7a225a45.... */
 @meta.define({ className: "Tr2GpuBuffer", family: "trinityCore" })
+@meta.blue.mapInterface(INotify, IInitialize)
 export class Tr2GpuBuffer
 {
+
+  /** Carbon Tr2GpuBuffer.cpp: create from persisted parameters on the ambient context. */
+  @meta.implemented
+  Initialize()
+  {
+    this.CreateBuffer(Tr2RenderContext_GetMainThreadRenderContext());
+    return true;
+  }
+
+  /** Carbon ignores the AL result here; failed creation follows CreateBuffer's ownership rules. */
+  @meta.implemented
+  OnModified(_names)
+  {
+    this.CreateBuffer(Tr2RenderContext_GetMainThreadRenderContext());
+    return true;
+  }
+
 
   static CreationFlags = Object.freeze({ CPU_WRITABLE: 1, GPU_WRITABLE: 2, DRAW_INDIRECT: 4 });
 

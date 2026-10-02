@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBulletStorm.cpp
 // Hand-maintained after promotion from generated schema intake.
 import { meta } from "#schema";
+import { INotify, IsMatch } from "#blue";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -11,8 +12,19 @@ import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 /** Locator-driven bullet-storm child: instances, target blobs, and the clip-sphere state machine. */
 @meta.define({ className: "EveChildBulletStorm", family: "eve/child" })
 @meta.blue.inherit(ITr2Renderable)
+@meta.blue.mapInterface(INotify)
 export class EveChildBulletStorm extends EveSpaceObjectChild
 {
+
+  /** Carbon EveChildBulletStorm.cpp:70: only instance-source edits rebuild the swarm. */
+  @meta.implemented
+  OnModified(names)
+  {
+    if (IsMatch(names, "multiplier") || IsMatch(names, "sourceObject") || IsMatch(names, "sourceLocatorSet"))
+      this.Rebuild();
+    return true;
+  }
+
 
   _changingClipSphere = false;
 

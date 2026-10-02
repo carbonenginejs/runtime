@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Tr2BoundingLineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta } from "#schema";
+import { IsMatch } from "#blue";
 import { Tr2LineSet } from "./Tr2LineSet.js";
 import { vec3 } from "#math/vec3";
 
@@ -8,6 +9,16 @@ import { vec3 } from "#math/vec3";
 @meta.define({ className: "Tr2BoundingLineSet", family: "trinityCore" })
 export class Tr2BoundingLineSet extends Tr2LineSet
 {
+
+  /** Carbon Tr2BoundingLineSet.cpp:15: rebuild bounds, then apply base notifications. */
+  @meta.implemented
+  OnModified(names)
+  {
+    if (IsMatch(names, "minBounds") || IsMatch(names, "maxBounds"))
+      this.UpdateBounds(this.minBounds, this.maxBounds);
+    return super.OnModified(names);
+  }
+
 
   /** m_maxBounds (Vector3) [READWRITE, NOTIFY, PERSIST] */
   @meta.blue.notify

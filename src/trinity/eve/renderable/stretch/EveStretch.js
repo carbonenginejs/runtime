@@ -8,6 +8,7 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { meta } from "#schema";
+import { INotify, IsMatch } from "#blue";
 import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { TriFloat } from "../../../core/variable/TriFloat.js";
@@ -35,8 +36,18 @@ import {
  */
 @meta.define({ className: "EveStretch", family: "eve/renderable/stretch" })
 @meta.blue.inherit(IEveSpaceObject2, IEveTransform)
+@meta.blue.mapInterface(INotify)
 export class EveStretch extends IEveFiringEffectElement
 {
+
+  /** Carbon EveStretch.cpp:43: display controls component registry membership. */
+  @meta.implemented
+  OnModified(names)
+  {
+    if (IsMatch(names, "display")) this.ReRegister();
+    return true;
+  }
+
   @meta.blue.readwrite
   @meta.blue.persist
  @meta.type.string name = "";

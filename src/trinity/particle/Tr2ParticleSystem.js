@@ -1,4 +1,4 @@
-import { IInitialize } from "../../global/blue/IInitialize.js";
+import { IInitialize, INotify, IsMatch, ISimTimeRebaseNotify, blue, TimeAsDouble } from "#blue";
 // Source: trinity/trinity/Particle/Tr2ParticleSystem.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta } from "#schema";
@@ -22,7 +22,8 @@ import { ITr2GenericEmitterUpdateArguments } from "./ITr2GenericEmitter/index.js
 @meta.define({ className: "Tr2ParticleSystem", family: "particle" })
 @meta.blue.inherit(ITr2InstanceData)
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.inherit(ISimTimeRebaseNotify)
+@meta.blue.mapInterface(IInitialize, INotify)
 export class Tr2ParticleSystem
 {
 
@@ -40,6 +41,8 @@ export class Tr2ParticleSystem
   @meta.ours
   Destroy()
   {
+    if (this._rebaseOS) this._rebaseOS.UnregisterForSimTimeRebase(this);
+    this._rebaseOS = null;
     this.ReleaseResources();
     for (const element of this._runtimeElements) element.buffer = null;
     this._buffers.fill(null);
@@ -85,6 +88,9 @@ export class Tr2ParticleSystem
   _updatePeriodClock = 0;
 
   _lastUpdate = 0;
+
+  /** Retains the installed clock owner so replacement/teardown unregisters correctly. */
+  _rebaseOS = null;
 
   _updateArguments = new ITr2GenericEmitterUpdateArguments();
 
@@ -756,16 +762,54 @@ export class Tr2ParticleSystem
 
   /**
    * Builds particle storage and prepares AL resources. Carbon always returns
-   * true; validity is queried separately. JS omits native rebase registration
-   * and emitter insertion mutexes, which are not part of this render path.
+   * true; validity is queried separately. Registers clock rebasing and tells
+   * child emitters to use their thread-safe insertion contract.
    */
   @meta.adapted
   Initialize()
   {
     this.UpdateElementDeclaration();
     this.OnPrepareResources();
+    if (this.useSimTimeRebase) this.#UpdateRebaseRegistration();
+    if (this.emitParticleOnDeathEmitter) this.emitParticleOnDeathEmitter.SetThreadSafeFlag();
+    if (this.emitParticleDuringLifeEmitter) this.emitParticleDuringLifeEmitter.SetThreadSafeFlag();
     this.originalMaxParticles = this.maxParticleCount;
     return true;
+  }
+
+  /** Carbon Tr2ParticleSystem.cpp:141; batched edits apply each independent branch. */
+  @meta.adapted
+  OnModified(names)
+  {
+    if (IsMatch(names, "requiresSorting"))
+      this._indexes = this.requiresSorting && this.maxParticleCount ? new Array(this.maxParticleCount) : [];
+    if (IsMatch(names, "useSimTimeRebase")) this.#UpdateRebaseRegistration();
+    if (IsMatch(names, "emitParticleOnDeathEmitter") && this.emitParticleOnDeathEmitter)
+      this.emitParticleOnDeathEmitter.SetThreadSafeFlag();
+    if (IsMatch(names, "emitParticleDuringLifeEmitter") && this.emitParticleDuringLifeEmitter)
+      this.emitParticleDuringLifeEmitter.SetThreadSafeFlag();
+    return true;
+  }
+
+  /** Carbon stores Be::Time; this simulation's last-update timestamp uses seconds. */
+  @meta.adapted
+  OnSimClockRebase(oldTime, newTime)
+  {
+    this._lastUpdate += TimeAsDouble(newTime - oldTime);
+  }
+
+  /** Registers with the active clock and releases any previous installed owner. */
+  #UpdateRebaseRegistration()
+  {
+    const os = this.useSimTimeRebase ? blue.os : null;
+    if (this._rebaseOS === os) return;
+    if (this._rebaseOS) this._rebaseOS.UnregisterForSimTimeRebase(this);
+    this._rebaseOS = null;
+    if (os)
+    {
+      os.RegisterForSimTimeRebase(this);
+      this._rebaseOS = os;
+    }
   }
 
   /**
