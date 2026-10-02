@@ -1,3 +1,5 @@
+import { NOTIFY_METHODS } from "../../../npm/dist/global/compose/notify.js";
+import { Copier } from "../../../npm/dist/global/blue/Copier.js";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -75,8 +77,8 @@ test("resource builder fetches every required cFSD document into a hydrated libr
     }
 
     assert.deepEqual(
-        CjsCharacterLibrary.from(library.GetValues()).GetValues(),
-        library.GetValues()
+        CjsSchema.getValues(CjsCharacterLibrary.from(CjsSchema.getValues(library))),
+        CjsSchema.getValues(library)
     );
 });
 
@@ -222,8 +224,8 @@ test("from and SetValues hydrate the same character-library model shape", () =>
         assert.equal(library.Get("races", 404), null);
     }
 
-    assert.deepEqual(assigned.GetValues(), from.GetValues());
-    assert.equal(typeof CjsCharacterLibrary.schema.getSchema, "function");
+    assert.deepEqual(CjsSchema.getValues(assigned), CjsSchema.getValues(from));
+    assert.equal(typeof CjsSchema.getSchema, "function");
 });
 
 test("migrates complete schema-v8 values to the canonical schema-v11 shape", () =>
@@ -239,7 +241,7 @@ test("migrates complete schema-v8 values to the canonical schema-v11 shape", () 
     assert.equal(from.schemaVersion, 11);
     assert.equal(assigned.schemaVersion, 11);
     assert.deepEqual(from.documents.characterTextureMetadata, []);
-    assert.deepEqual(assigned.GetValues({ refs: true }), from.GetValues({ refs: true }));
+    assert.deepEqual(CjsSchema.getValues(assigned, {}, { refs: true }), CjsSchema.getValues(from, {}, { refs: true }));
     assert.equal(legacy.schemaVersion, 8, "migration does not mutate caller values");
     assert.equal(Object.hasOwn(legacy.documents, "characterTextureMetadata"), false);
 });
@@ -301,7 +303,7 @@ test("lists document names without exporting the complete library graph", () =>
         "characterRecipeProfiles",
         "characterTextureMetadata"
     ];
-    const documentSchema = CjsCharacterLibraryDocuments.schema
+    const documentSchema = CjsSchema
         .getSchema(CjsCharacterLibraryDocuments);
     const schemaFields = documentSchema.fields.map(field => field.name);
 
@@ -623,7 +625,7 @@ test("adds already-hydrated editor records without cloning or rehydrating them",
     );
     assert.equal(library.documents.races.length, raceCount);
 
-    const values = library.GetValues({ refs: true });
+    const values = CjsSchema.getValues(library, {}, { refs: true });
     const roundTrip = CjsCharacterLibrary.from(JSON.parse(JSON.stringify(values)));
 
     assert.ok(roundTrip.Get("characterResources", 22) instanceof CjsCharacterResource);
@@ -640,7 +642,7 @@ test("creates, removes, deletes, and clears records through observable library m
 
     for (const eventName of [ "recordadded", "recordremoved", "recorddeleted", "documentcleared" ])
     {
-        library.OnEvent(eventName, (_name, _owner, payload) => events.push([ eventName, payload ]));
+        NOTIFY_METHODS.OnEvent.call(library, eventName, (_name, _owner, payload) => events.push([ eventName, payload ]));
     }
 
     const created = library.Create("characterResources", {
@@ -719,7 +721,7 @@ test("inspects extension-neutral resource data through one resident resource-man
     };
 
     library.SetResourceManager(resMan);
-    library.OnEvent("recordadded", (_name, _owner, payload) => events.push(payload));
+    NOTIFY_METHODS.OnEvent.call(library, "recordadded", (_name, _owner, payload) => events.push(payload));
     const [ first, second ] = await Promise.all([
         library.InspectResourceForData("RES:/Character/Pants.DDS"),
         library.InspectResourceForData("res:/character/pants.png")
@@ -1046,14 +1048,14 @@ test("asynchronous library loads retain the loader selected when they start", as
     assert.equal(replacementLoads, 0);
 });
 
-test("CjsModel graph export round-trips a hydrated library", () =>
+test("Schema graph export round-trips a hydrated library", () =>
 {
     const library = CjsCharacterLibrary.from(
         CjsCharacterLibraryBuilder.build(CreateDocuments())
     );
-    const values = JSON.parse(JSON.stringify(library.GetValues({ refs: true })));
+    const values = JSON.parse(JSON.stringify(CjsSchema.getValues(library, {}, { refs: true })));
     const roundTrip = CjsCharacterLibrary.from(values);
-    const clone = library.Clone({ refs: true });
+    const clone = new Copier().CloneTo(library);
 
     assert.equal(values.documents.characterResources[0].typeID, "9001");
     assert.ok(JSON.stringify(values).includes("_id"));
@@ -1326,4 +1328,21 @@ test("document mutations invalidate cached hits and misses at unchanged length",
     assert.equal(documents.GetDocumentRevision("races"), otherRevision);
     assert.equal(library.Get("characterResources", 21), null);
     assert.equal(library.Get("characterResources", 9999), replacement);
+});
+
+test("document revisions survive suppressed edits and raw mutation is the negative control", () =>
+{
+    for (const options of [{ notify: false }, { markDirty: false }, { skipUpdate: true }])
+    {
+        const documents = new CjsCharacterLibraryDocuments();
+        const record = new CjsCharacterRace();
+        assert.equal(documents.GetDocumentRevision("races"), 0);
+        documents.Add("races", record, options);
+        assert.equal(documents.GetDocumentRevision("races"), 1);
+        documents.Remove("races", record, options);
+        assert.equal(documents.GetDocumentRevision("races"), 2);
+        documents.races.push(record);
+        assert.equal(documents.GetDocumentRevision("races"), 2,
+            "negative control: direct array mutation bypasses explicit library notification");
+    }
 });

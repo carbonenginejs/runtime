@@ -1,3 +1,4 @@
+import { createChild, addChild, removeChild, deleteChild, clearChildren } from "../blue/children.js";
 import "../blue/values.js";
 import { CJS_MODEL_BRAND, CjsSchema } from "../schema/index.js";
 import { getRuntimeState } from "../compose/runtimeState.js";
@@ -38,7 +39,7 @@ export function isModelInstance(value)
     return CjsSchema.isModelInstance(value);
 }
 
-const CHILD_COLLECTION_KINDS = new Set([ "array", "list" ]);
+
 
 
 /**
@@ -144,21 +145,7 @@ export class CjsModel extends CjsEventEmitter
      */
     static createChild(target, property, values = {}, options = {})
     {
-        const { field } = getChildCollection(target, property);
-        const itemType = field.type?.itemType;
-        const itemClassName = typeof itemType === "string" ? itemType : itemType?.className ?? null;
-
-        // Built as a list item is (DictReader ReadIRootClass): the bag's
-        // `_type`, else the declared item class.
-        const importContext = createImportContext();
-        const child = new DictReader({ ...options, importContext })
-            .CreateObject(values, itemClassName ? CjsSchema.GetConstructor(itemClassName) : null);
-        importContext.finalize();
-        importContext.initializeCreated({ ...options, importContext });
-
-        assertChildObject(child, field.name);
-        CjsModel.addChild(target, field.name, child, options);
-        return child;
+        return createChild(target, property, values, { ...options, listNotify: typeof target.OnListModified === "function" ? target : null });
     }
 
     /**
@@ -176,21 +163,7 @@ export class CjsModel extends CjsEventEmitter
      */
     static addChild(target, property, child, options = {})
     {
-        const { field, collection } = getChildCollection(target, property);
-
-        assertChildObject(child, field.name);
-        assertChildCallback(options.onAdded, "onAdded");
-
-        const index = collection.length;
-        collection.push(child);
-        recordChildMutation(target, field, options);
-        notifyListModified(target, BLUELISTEVENT.BELIST_INSERTED, index, 0, child, collection);
-
-        const payload = createChildEventPayload(target, field.name, child, index, options);
-        invokeChildCallback(options.onAdded, target, payload, "onAdded");
-        emitChildEvent(target, "childadded", payload, options);
-        settleChildMutation(target, field, options);
-        return child;
+        return addChild(target, property, child, { ...options, listNotify: typeof target.OnListModified === "function" ? target : null });
     }
 
     /**
@@ -205,21 +178,7 @@ export class CjsModel extends CjsEventEmitter
      */
     static removeChild(target, property, child, options = {})
     {
-        const { field, collection } = getChildCollection(target, property);
-        const index = collection.indexOf(child);
-
-        if (index === -1) return false;
-        assertChildCallback(options.onRemoved, "onRemoved");
-
-        collection.splice(index, 1);
-        recordChildMutation(target, field, options);
-        notifyListModified(target, BLUELISTEVENT.BELIST_REMOVED, index, 0, child, collection);
-
-        const payload = createChildEventPayload(target, field.name, child, index, options);
-        invokeChildCallback(options.onRemoved, target, payload, "onRemoved");
-        emitChildEvent(target, "childremoved", payload, options);
-        settleChildMutation(target, field, options);
-        return true;
+        return removeChild(target, property, child, { ...options, listNotify: typeof target.OnListModified === "function" ? target : null });
     }
 
     /**
@@ -239,29 +198,7 @@ export class CjsModel extends CjsEventEmitter
      */
     static deleteChild(target, property, child, options = {})
     {
-        const { field, collection } = getChildCollection(target, property);
-        const index = collection.indexOf(child);
-
-        if (index === -1) return false;
-
-        if (options.delete !== undefined && typeof options.delete !== "function")
-        {
-            throw new TypeError("CjsModel child delete option must be a function.");
-        }
-        assertChildCallback(options.onDeleted, "onDeleted");
-
-        CjsModel.removeChild(target, field.name, child, { ...options, skipUpdate: true });
-
-        if (typeof options.delete === "function")
-        {
-            options.delete.call(target, child, options);
-        }
-
-        const payload = createChildEventPayload(target, field.name, child, index, options);
-        invokeChildCallback(options.onDeleted, target, payload, "onDeleted");
-        emitChildEvent(target, "childdeleted", payload, options);
-        settleChildMutation(target, field, options);
-        return true;
+        return deleteChild(target, property, child, { ...options, listNotify: typeof target.OnListModified === "function" ? target : null });
     }
 
     /**
@@ -279,25 +216,7 @@ export class CjsModel extends CjsEventEmitter
      */
     static clearChildren(target, property, options = {})
     {
-        const { field, collection } = getChildCollection(target, property);
-        const count = collection.length;
-
-        if (!count) return false;
-        assertChildCallback(options.onCleared, "onCleared");
-
-        recordChildMutation(target, field, options);
-        notifyListModified(target, BLUELISTEVENT.BELIST_UNLOADSTART, 0, 0, null, collection);
-        collection.length = 0;
-
-        const payload = {
-            property: field.name,
-            count,
-            source: options.source ?? target
-        };
-        invokeChildCallback(options.onCleared, target, payload, "onCleared");
-        emitChildEvent(target, "childrencleared", payload, options);
-        settleChildMutation(target, field, options);
-        return true;
+        return clearChildren(target, property, { ...options, listNotify: typeof target.OnListModified === "function" ? target : null });
     }
 
     /**
@@ -854,114 +773,6 @@ function traverseLegacyOwnedModels(root, visitor, visited)
         visitor(model);
     };
     visit(root);
-}
-
-function getChildCollection(target, property)
-{
-    if (!(target instanceof CjsModel))
-    {
-        throw new TypeError("CjsModel child collection target must be a CjsModel instance.");
-    }
-
-    if (typeof property !== "string" || !property)
-    {
-        throw new TypeError("CjsModel child collection property must be a non-empty string.");
-    }
-
-    const field = CjsSchema.getField(target.constructor, property);
-    if (!field)
-    {
-        throw new TypeError(`${CjsSchema.getClassName(target.constructor)} has no schema field named ${JSON.stringify(property)}.`);
-    }
-
-    const fieldType = field.type || field.jsType;
-    if (!CHILD_COLLECTION_KINDS.has(fieldType?.kind))
-    {
-        throw new TypeError(`${field.name} must be a schema array or list child collection.`);
-    }
-
-    const collection = target[field.name];
-    if (!Array.isArray(collection))
-    {
-        throw new TypeError(`${field.name} must contain an ordinary JavaScript Array.`);
-    }
-
-    return { field, collection };
-}
-
-function assertChildObject(child, property)
-{
-    if (!child || typeof child !== "object" || Array.isArray(child) || ArrayBuffer.isView(child))
-    {
-        throw new TypeError(`${property} requires a non-null child object.`);
-    }
-}
-
-function assertChildCallback(callback, optionName)
-{
-    if (callback !== undefined && callback !== null && typeof callback !== "function")
-    {
-        throw new TypeError(`CjsModel child ${optionName} option must be a function.`);
-    }
-}
-
-function recordChildMutation(target, field, options)
-{
-    if (options.markDirty === false) return;
-    target.__state.dirty = true;
-    if (options.notify !== false && field.edit?.notify) queueModifiedMember(target, field.name);
-}
-
-function notifyListModified(target, event, index, secondIndex, child, collection)
-{
-    if (typeof target.OnListModified === "function")
-    {
-        target.OnListModified(event, index, secondIndex, child, collection);
-    }
-}
-
-function createChildEventPayload(target, property, child, index, options)
-{
-    return {
-        property,
-        child,
-        index,
-        source: options.source ?? target
-    };
-}
-
-function invokeChildCallback(callback, target, payload, optionName)
-{
-    if (callback === undefined || callback === null) return;
-    assertChildCallback(callback, optionName);
-    callback.call(target, payload);
-}
-
-function emitChildEvent(target, eventName, payload, options)
-{
-    if (options.skipEvents !== true && target.__state.suppressEvents === 0)
-    {
-        target.EmitEvent(eventName, target, payload);
-    }
-}
-
-function settleChildMutation(target, field, options)
-{
-    if (options.skipUpdate === true) return;
-
-    if (options.markDirty === false)
-    {
-        if (options.skipEvents !== true && target.__state.suppressEvents === 0)
-        {
-            target.EmitEvent("modified", target, createModifiedPayload(
-                new Set([ field.name ]),
-                options.source ?? target
-            ));
-        }
-        return;
-    }
-
-    if (!target.__state.updating) target.UpdateValues({ ...options, changedFields: new Set([field.name]) });
 }
 
 // Direct callers supply their own identities and notification policy.

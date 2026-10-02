@@ -1,5 +1,5 @@
 import { CjsSchema, edit, impl, type } from "#schema";
-import { CjsModel } from "#model";
+import { createChild, addChild, removeChild, deleteChild, clearChildren } from "../../global/blue/children.js";
 import "../model/index.js";
 
 const DOCUMENT_DEFINITIONS = [
@@ -27,7 +27,7 @@ const DOCUMENT_DEFINITIONS = [
 
 /** Typed document collections contained by one character library. */
 @type.define({ className: "CjsCharacterLibraryDocuments", family: "character" })
-export class CjsCharacterLibraryDocuments extends CjsModel
+export class CjsCharacterLibraryDocuments
 {
     /**
      * Revisions live beside the document lists, not among them: key
@@ -36,7 +36,6 @@ export class CjsCharacterLibraryDocuments extends CjsModel
      */
     constructor()
     {
-        super();
         Object.defineProperty(this, "_documentRevisions", {
             value: new Map(),
             writable: true,
@@ -87,7 +86,7 @@ export class CjsCharacterLibraryDocuments extends CjsModel
     /** Hydrates and adds one record to a named document collection. */
     Create(documentName, values = {}, options = {})
     {
-        return CjsModel.createChild(this, RequireDocumentName(documentName), values, options);
+        return createChild(this, RequireDocumentName(documentName), values, { ...options, listNotify: this });
     }
 
     /** Adds one existing record to a named document collection. */
@@ -95,7 +94,7 @@ export class CjsCharacterLibraryDocuments extends CjsModel
     {
         const name = RequireDocumentName(documentName);
         RequireDocumentRecord(name, record);
-        return CjsModel.addChild(this, name, record, options);
+        return addChild(this, name, record, { ...options, listNotify: this });
     }
 
     /** Detaches one existing record from a named document collection. */
@@ -103,7 +102,7 @@ export class CjsCharacterLibraryDocuments extends CjsModel
     {
         const name = RequireDocumentName(documentName);
         RequireDocumentRecord(name, record);
-        return CjsModel.removeChild(this, name, record, options);
+        return removeChild(this, name, record, { ...options, listNotify: this });
     }
 
     /** Deletes one existing record through an optional domain teardown hook. */
@@ -111,13 +110,13 @@ export class CjsCharacterLibraryDocuments extends CjsModel
     {
         const name = RequireDocumentName(documentName);
         RequireDocumentRecord(name, record);
-        return CjsModel.deleteChild(this, name, record, options);
+        return deleteChild(this, name, record, { ...options, listNotify: this });
     }
 
     /** Clears one named document collection without deleting its records. */
     Clear(documentName, options = {})
     {
-        return CjsModel.clearChildren(this, RequireDocumentName(documentName), options);
+        return clearChildren(this, RequireDocumentName(documentName), { ...options, listNotify: this });
     }
 
     @edit.readwrite

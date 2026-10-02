@@ -1,6 +1,7 @@
 import { normalizeResourcePath } from "#utils/path";
 import { CjsSchema, edit, type } from "#schema";
-import { CjsModel } from "#model";
+import { ReadValues } from "../../global/blue/values.js";
+import { NOTIFY_METHODS } from "../../global/compose/notify.js";
 import { CjsCharacterLibraryDocuments } from "./CjsCharacterLibraryDocuments.js";
 import { CjsCharacterTextureMetadata } from "../model/catalog/CjsCharacterTextureMetadata.js";
 import { CjsCharacterUnresolvedRelationship } from "./CjsCharacterUnresolvedRelationship.js";
@@ -16,7 +17,7 @@ import { CjsCharacterUnresolvedRelationship } from "./CjsCharacterUnresolvedRela
  * JSON.
  */
 @type.define({ className: "CjsCharacterLibrary", family: "character" })
-export class CjsCharacterLibrary extends CjsModel
+export class CjsCharacterLibrary
 {
 
     _documentIndexes = new Map();
@@ -211,7 +212,9 @@ export class CjsCharacterLibrary extends CjsModel
     /** Hydrates a complete library after applying the explicit legacy migration. */
     static from(values = {}, options = {})
     {
-        return super.from(this.validateValues(values), options);
+        const instance = new this();
+        instance.SetValues(this.validateValues(values), { ...options, skipEvents: true });
+        return instance;
     }
 
     /** Applies complete library values through the same migration used by from(). */
@@ -220,7 +223,9 @@ export class CjsCharacterLibrary extends CjsModel
         const input = IsCompleteLibraryValue(values)
             ? this.constructor.validateValues(values)
             : values;
-        return super.SetValues(input, options);
+        if (!CjsSchema.assertValues(input, "CjsCharacterLibrary.SetValues")) return false;
+        const changed = ReadValues(this, input, options);
+        return changed instanceof Set && !changed.size ? false : changed;
     }
 
     /**
@@ -589,8 +594,8 @@ function ThrowDuplicateRecord(documentName, recordID)
 
 function EmitRecordEvent(library, eventName, documentName, record, options, extra = {})
 {
-    if (options.skipEvents === true || library.__state.suppressEvents !== 0) return;
-    library.EmitEvent(eventName, library, {
+    if (options.skipEvents === true) return;
+    NOTIFY_METHODS.EmitEvent.call(library, eventName, library, {
         documentName,
         record,
         source: options.source ?? library,

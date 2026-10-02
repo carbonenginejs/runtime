@@ -1,3 +1,4 @@
+import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -15,7 +16,7 @@ test("resolves exact paper-doll selections and unique atomic part candidates", (
 {
     const library = CreateLibrary();
     const paperdoll = library.Get("paperdolls", "30");
-    const before = library.GetValues({ refs: true });
+    const before = CjsSchema.getValues(library, {}, { refs: true });
     const plan = CjsCharacterAppearanceResolver.resolvePaperdoll(library, paperdoll);
 
     assert.ok(plan instanceof CjsCharacterAppearancePlan);
@@ -48,10 +49,10 @@ test("resolves exact paper-doll selections and unique atomic part candidates", (
         "TEXTURE_ROLES_UNRESOLVED",
         "PASS_ORDER_UNRESOLVED"
     ]);
-    assert.deepEqual(library.GetValues({ refs: true }), before);
+    assert.deepEqual(CjsSchema.getValues(library, {}, { refs: true }), before);
 
-    const values = JSON.parse(JSON.stringify(plan.GetValues({ refs: true })));
-    const roundTrip = CjsCharacterAppearancePlan.from(values);
+    const values = JSON.parse(JSON.stringify(CjsSchema.getValues(plan, {}, { refs: true })));
+    const roundTrip = CjsSchema.from("CjsCharacterAppearancePlan", values);
 
     assert.strictEqual(roundTrip.layers[0].owner, roundTrip.selections[0]);
     assert.strictEqual(roundTrip.layers[0].contributor, roundTrip.parts[0]);

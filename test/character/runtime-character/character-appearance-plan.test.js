@@ -1,3 +1,5 @@
+import { Copier } from "../../../npm/dist/global/blue/Copier.js";
+import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -38,10 +40,10 @@ test("mutates appearance-plan child collections through named model methods", ()
 test("hydrates model-shaped appearance JSON through from and SetValues", () =>
 {
     const document = CreatePlan();
-    const from = CjsCharacterAppearancePlan.from(document);
+    const from = CjsSchema.from("CjsCharacterAppearancePlan", document);
     const assigned = new CjsCharacterAppearancePlan();
 
-    assigned.SetValues(document);
+    CjsSchema.setValues(assigned, document);
 
     for (const plan of [ from, assigned ])
     {
@@ -80,18 +82,18 @@ test("hydrates model-shaped appearance JSON through from and SetValues", () =>
         );
     }
 
-    assert.deepEqual(assigned.GetValues(), from.GetValues());
+    assert.deepEqual(CjsSchema.getValues(assigned), CjsSchema.getValues(from));
 });
 
-test("uses inherited CjsModel schema, graph export, and clone behavior", () =>
+test("uses schema graph export and native copier behavior", () =>
 {
     const document = CreatePlan();
-    const plan = CjsCharacterAppearancePlan.from(document);
-    const values = JSON.parse(JSON.stringify(plan.GetValues({ refs: true })));
-    const roundTrip = CjsCharacterAppearancePlan.from(values);
-    const clone = plan.Clone({ refs: true });
+    const plan = CjsSchema.from("CjsCharacterAppearancePlan", document);
+    const values = JSON.parse(JSON.stringify(CjsSchema.getValues(plan, {}, { refs: true })));
+    const roundTrip = CjsSchema.from("CjsCharacterAppearancePlan", values);
+    const clone = new Copier().CloneTo(plan);
 
-    assert.equal(typeof CjsCharacterAppearancePlan.schema.getSchema, "function");
+    assert.equal(typeof CjsSchema.getSchema, "function");
     assert.ok(JSON.stringify(values).includes("_id"));
     assert.ok(JSON.stringify(values).includes("_ref"));
     assert.strictEqual(roundTrip.layers[0].owner, roundTrip.selections[0]);
@@ -100,26 +102,26 @@ test("uses inherited CjsModel schema, graph export, and clone behavior", () =>
     assert.strictEqual(clone.layers[0].owner, clone.selections[0]);
 });
 
-test("leaves graph integrity to the inherited CjsModel importer", () =>
+test("leaves graph integrity to the shared dictionary importer", () =>
 {
     const unresolved = CreatePlan();
     unresolved.layers[0].owner = { _ref: "missing-selection" };
     assert.throws(
-        () => CjsCharacterAppearancePlan.from(unresolved),
+        () => CjsSchema.from("CjsCharacterAppearancePlan", unresolved),
         /Unresolved _ref ids: "missing-selection"/u
     );
 
     const duplicate = CreatePlan();
     duplicate.origins[1]._id = duplicate.origins[0]._id;
     assert.throws(
-        () => CjsCharacterAppearancePlan.from(duplicate),
+        () => CjsSchema.from("CjsCharacterAppearancePlan", duplicate),
         /Duplicate _id/u
     );
 
     const policyOwned = CreatePlan();
     policyOwned.targets[1].passes[0].op = "future-operation";
     assert.equal(
-        CjsCharacterAppearancePlan.from(policyOwned).targets[1].passes[0].op,
+        CjsSchema.from("CjsCharacterAppearancePlan", policyOwned).targets[1].passes[0].op,
         "future-operation"
     );
 });

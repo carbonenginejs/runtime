@@ -1,13 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsModel } from "../../../src/global/model/index.js";
+import * as children from "../../../src/global/blue/children.js";
+import { NOTIFY_METHODS } from "../../../src/global/compose/notify.js";
+import { getRuntimeState } from "../../../src/global/compose/runtimeState.js";
+import { settleModifiedMembers } from "../../../src/global/compose/values.js";
 import { CjsSchema } from "../../../src/global/schema/index.js";
 
 const BELIST_UNLOADSTART = 0x07;
 const BELIST_INSERTED = 0x08;
 const BELIST_REMOVED = 0x09;
 
-class ChildModel extends CjsModel
+class ChildModel
 {
     name = "";
     deleteRequested = false;
@@ -19,7 +22,7 @@ CjsSchema.defineField(ChildModel, "deleteRequested", "type", { kind: "boolean" }
 CjsSchema.defineField(ChildModel, "deleteRequested", "edit", { persist: true });
 CjsSchema.define(ChildModel, { className: "ChildMutationTestChild", family: "test" });
 
-class ParentModel extends CjsModel
+class ParentModel
 {
     children = [];
     listEvents = [];
@@ -27,27 +30,27 @@ class ParentModel extends CjsModel
 
     CreateChild(values, options)
     {
-        return CjsModel.createChild(this, "children", values, options);
+        return children.createChild(this, "children", values, { ...options, listNotify: this });
     }
 
     AddChild(child, options)
     {
-        return CjsModel.addChild(this, "children", child, options);
+        return children.addChild(this, "children", child, { ...options, listNotify: this });
     }
 
     RemoveChild(child, options)
     {
-        return CjsModel.removeChild(this, "children", child, options);
+        return children.removeChild(this, "children", child, { ...options, listNotify: this });
     }
 
     DeleteChild(child, options)
     {
-        return CjsModel.deleteChild(this, "children", child, options);
+        return children.deleteChild(this, "children", child, { ...options, listNotify: this });
     }
 
     ClearChildren(options)
     {
-        return CjsModel.clearChildren(this, "children", options);
+        return children.clearChildren(this, "children", { ...options, listNotify: this });
     }
 
     OnListModified(event, index, secondIndex, child, collection)
@@ -76,13 +79,13 @@ CjsSchema.defineField(ParentModel, "children", "edit", { persist: true, notify: 
 CjsSchema.defineField(ParentModel, "children", "lifecycle", { ownership: "owned" });
 CjsSchema.define(ParentModel, { className: "ChildMutationTestParent", family: "test" });
 
-test("CjsModel child factories hydrate, append, notify and settle", () => {
+test("Schema child factories hydrate, append, notify and settle", () => {
     const parent = new ParentModel();
     const events = [];
 
-    assert.equal(typeof CjsModel.addChild, "function");
+    assert.equal(typeof children.addChild, "function");
     assert.equal(parent.addChild, undefined);
-    parent.OnEvent("childadded", (_name, _owner, payload) => events.push(payload));
+    NOTIFY_METHODS.OnEvent.call(parent, "childadded", (_name, _owner, payload) => events.push(payload));
 
     const child = parent.CreateChild({ name: "first" });
 
@@ -96,7 +99,7 @@ test("CjsModel child factories hydrate, append, notify and settle", () => {
         child,
         length: 1
     }]);
-    assert.equal(parent.IsDirty(), false);
+    assert.equal(getRuntimeState(parent)?.dirty ?? false, false);
     assert.equal(parent.modifiedCount, 1);
     assert.equal(events.length, 1);
     assert.equal(events[0].property, "children");
@@ -105,7 +108,7 @@ test("CjsModel child factories hydrate, append, notify and settle", () => {
     assert.equal(events[0].source, parent);
 });
 
-test("CjsModel remove detaches without deleting and delete uses explicit teardown", () => {
+test("Schema remove detaches without deleting and delete uses explicit teardown", () => {
     const parent = new ParentModel();
     const first = new ChildModel();
     const second = new ChildModel();
@@ -115,8 +118,8 @@ test("CjsModel remove detaches without deleting and delete uses explicit teardow
 
     assert.strictEqual(parent.AddChild(first, { skipEvents: true }), first);
     parent.AddChild(second, { skipEvents: true });
-    parent.OnEvent("childremoved", (_name, _owner, payload) => events.push([ "removed", payload.child ]));
-    parent.OnEvent("childdeleted", (_name, _owner, payload) => events.push([ "deleted", payload.child ]));
+    NOTIFY_METHODS.OnEvent.call(parent, "childremoved", (_name, _owner, payload) => events.push([ "removed", payload.child ]));
+    NOTIFY_METHODS.OnEvent.call(parent, "childdeleted", (_name, _owner, payload) => events.push([ "deleted", payload.child ]));
 
     assert.equal(parent.RemoveChild(first), true);
     assert.equal(parent.RemoveChild(first), false);
@@ -144,7 +147,7 @@ test("CjsModel remove detaches without deleting and delete uses explicit teardow
     ]);
 });
 
-test("CjsModel clear sends unload-start while the collection is populated", () => {
+test("Schema clear sends unload-start while the collection is populated", () => {
     const parent = new ParentModel();
     const first = new ChildModel();
     const second = new ChildModel();
@@ -165,26 +168,26 @@ test("CjsModel clear sends unload-start while the collection is populated", () =
     }]);
 });
 
-test("CjsModel child mutation options preserve SetValues dirty and notification rules", () => {
+test("Schema child mutation options preserve SetValues dirty and notification rules", () => {
     const parent = new ParentModel();
     const child = new ChildModel();
     let eventCount = 0;
-    parent.OnEvent("childadded", () => eventCount++);
+    NOTIFY_METHODS.OnEvent.call(parent, "childadded", () => eventCount++);
 
     parent.AddChild(child, { skipUpdate: true, skipEvents: true });
-    assert.equal(parent.IsDirty(), true);
+    assert.equal(getRuntimeState(parent)?.dirty ?? false, true);
     assert.equal(eventCount, 0);
 
-    parent.UpdateValues({ skipEvents: true });
+    settleModifiedMembers(parent);
     parent.RemoveChild(child, { markDirty: false, skipEvents: true });
-    assert.equal(parent.IsDirty(), false);
+    assert.equal(getRuntimeState(parent)?.dirty ?? false, false);
 });
 
 test("a child field does not implicitly delete its owner relationship", () => {
     const parent = new ParentModel();
     const child = parent.CreateChild({ name: "requested" }, { skipEvents: true });
 
-    child.SetValues({ deleteRequested: true }, { skipEvents: true });
+    CjsSchema.setValues(child, { deleteRequested: true }, { skipEvents: true });
 
     assert.deepEqual(parent.children, [ child ]);
 
@@ -193,15 +196,15 @@ test("a child field does not implicitly delete its owner relationship", () => {
     assert.deepEqual(parent.children, []);
 });
 
-test("CjsModel child helpers reject non-child collections and values", () => {
-    class InvalidParent extends CjsModel
+test("Schema child helpers reject non-child collections and values", () => {
+    class InvalidParent
     {
         bytes = new Uint8Array(4);
         value = 0;
 
         Add(property, child)
         {
-            return CjsModel.addChild(this, property, child);
+            return children.addChild(this, property, child);
         }
     }
 
@@ -210,7 +213,7 @@ test("CjsModel child helpers reject non-child collections and values", () => {
     CjsSchema.define(InvalidParent, { className: "InvalidChildMutationParent", family: "test" });
 
     const parent = new InvalidParent();
-    assert.throws(() => CjsModel.addChild({}, "missing", {}), /CjsModel instance/);
+    assert.throws(() => children.addChild({}, "missing", {}), /registered schema instance/);
     assert.throws(() => parent.Add("missing", {}), /no schema field/);
     assert.throws(() => parent.Add("bytes", {}), /schema array or list/);
     assert.throws(() => parent.Add("value", {}), /schema array or list/);
