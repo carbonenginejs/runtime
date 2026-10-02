@@ -40,6 +40,7 @@
 // at load. Everything schema-shaped arrives through `services`. compose/
 // siblings are fine - they import nothing themselves.
 
+import { NOTIFY_METHODS } from "./notify.js";
 import { getRegisteredClassName } from "./className.js";
 import { ensureRuntimeState, getRuntimeState } from "./runtimeState.js";
 
@@ -383,7 +384,7 @@ function updateValues(target, options, changedFields)
     // the waste the audit measured on the per-frame binding path.
     if (options.skipEvents !== true && !state.suppressEvents && state.HasListener())
     {
-        target.EmitEvent("modified", target, { source, changedFields });
+        NOTIFY_METHODS.EmitEvent.call(target, "modified", target, { source, changedFields });
     }
 
     return true;

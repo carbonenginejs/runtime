@@ -1,5 +1,11 @@
 // Source: trinity/trinity/Shader/Parameter/TriTextureParameter.h
 // Source: trinity/trinity/Shader/Parameter/TriTextureParameter.cpp
+import { CjsSchema } from "#schema";
+import { ICopierCustomAssignment } from "#blue";
+import { INotify } from "#blue";
+import { IInitialize } from "#blue";
+import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
+import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { carbon, edit, impl, type } from "#schema";
 import { ResourceRequirement } from "#resource";
 import { blue } from "#blue";
@@ -19,6 +25,7 @@ import { RealizeTexture } from "../../core/Tr2ImageIOHelpers.js";
   family: "shader"
 })
 @carbon.inherit(ITriEffectTextureParameter)
+@carbon.inherit(IInitialize, INotify, ICopierCustomAssignment)
 export class TriTextureParameter extends CjsParameter
 {
 
@@ -100,14 +107,14 @@ export class TriTextureParameter extends CjsParameter
   }
 
   /**
-   * Sets the name through SetValues so the effectHandles rebuild flag fires;
+   * Sets the name through schema values so the effectHandles rebuild flag fires;
    * returns whether it changed.
    */
   @carbon.method
   @impl.adapted
   SetParameterName(name)
   {
-    return this.SetValues({ name: String(name) }, { source: this, returnBoolean: true });
+    return CjsSchema.setValues(this, { name: String(name) }, { source: this, returnBoolean: true });
   }
 
   /**
@@ -131,7 +138,7 @@ export class TriTextureParameter extends CjsParameter
   @impl.adapted
   SetResourcePath(resourcePath)
   {
-    this.SetValues({ resourcePath: String(resourcePath) }, { source: this });
+    CjsSchema.setValues(this, { resourcePath: String(resourcePath) }, { source: this });
   }
 
   /**
@@ -151,6 +158,15 @@ export class TriTextureParameter extends CjsParameter
     this.#lowResResource = null;
     this.RebuildEffectHandles(this.#cachedEffect);
     this.OnTextureChanged();
+  }
+
+  /** Copies a dynamically assigned provider, as TriTextureParameter.cpp:295-308. */
+  @carbon.method
+  @impl.implemented
+  AssignTo(other, _copier)
+  {
+    if (!this.resourcePath && this.resource) other.SetResource(this.resource);
+    return true;
   }
 
   /**
@@ -485,3 +501,6 @@ export class TriTextureParameter extends CjsParameter
   }
 
 }
+
+// Exact identities from TriTextureParameter_Blue.cpp; no exposure chain.
+carbon.interfaceTable({ interfaces: [ITriEffectParameter, ITriEffectResourceParameter, ITriEffectTextureParameter, IInitialize, INotify, ICopierCustomAssignment], chainTo: null })(TriTextureParameter, { kind: "class" });

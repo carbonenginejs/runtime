@@ -1,5 +1,8 @@
 // Source: trinity/trinity/Shader/Parameter/Tr2GeometryBufferParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
+import { INotify } from "#blue";
+import { IInitialize } from "#blue";
+import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { carbon, edit, impl, type } from "#schema";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
@@ -7,6 +10,7 @@ import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 /** Carries a named shader-buffer path for host resolution or a caller-owned GPU buffer reference. */
 @type.define({ className: "Tr2GeometryBufferParameter", family: "shader" })
 @carbon.inherit(ITriEffectResourceParameter)
+@carbon.inherit(IInitialize, INotify)
 export class Tr2GeometryBufferParameter extends CjsParameter
 {
 
@@ -189,3 +193,6 @@ export class Tr2GeometryBufferParameter extends CjsParameter
   }
 
 }
+
+// Exact identities from Tr2GeometryBufferParameter_Blue.cpp; no exposure chain.
+carbon.interfaceTable({ interfaces: [ITriEffectParameter, ITriEffectResourceParameter, IInitialize, INotify], chainTo: null })(Tr2GeometryBufferParameter, { kind: "class" });

@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter.h
 // Source: trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter.cpp
 // Source: trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter_Blue.cpp
+import { INotify } from "#blue";
 import { carbon, impl, edit, type } from "#schema";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
@@ -18,6 +19,7 @@ import { RealizeTexture } from "../../core/Tr2ImageIOHelpers.js";
   family: "shader"
 })
 @carbon.inherit(ITriEffectResourceParameter)
+@carbon.inherit(INotify)
 export class Tr2RuntimeTextureParameter extends CjsParameter
 {
   @edit.notify
@@ -67,7 +69,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
     this.name = nextName;
     this.texture = texture;
     this.uavMipLevel = nextMipLevel;
-    this.UpdateValues({ property: "texture", source: this });
+    this.OnModified("texture");
     return true;
   }
 
@@ -190,7 +192,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
       return false;
     }
     this.texture = texture;
-    this.UpdateValues({ property: "texture", source: this });
+    this.OnModified("texture");
     return true;
   }
 
@@ -254,3 +256,6 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
     }
   }
 }
+
+// Exact identities from Tr2RuntimeTextureParameter_Blue.cpp; no exposure chain.
+carbon.interfaceTable({ interfaces: [Tr2RuntimeTextureParameter, ITriEffectResourceParameter, INotify], chainTo: null })(Tr2RuntimeTextureParameter, { kind: "class" });

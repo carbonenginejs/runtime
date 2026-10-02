@@ -1,11 +1,15 @@
 // Source: trinity/trinity/Shader/Parameter/TriVariableParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
+import { IInitialize } from "#blue";
+import { INotify } from "#blue";
+import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { carbon, edit, impl, type } from "#schema";
 import { CjsParameter } from "./CjsParameter.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
 /** Forwards a named variable-store entry into a named effect constant or resource. */
 @type.define({ className: "TriVariableParameter", family: "shader" })
+@carbon.inherit(INotify, IInitialize)
 export class TriVariableParameter extends CjsParameter
 {
 
@@ -183,3 +187,6 @@ export class TriVariableParameter extends CjsParameter
   }
 
 }
+
+// Exact identities from TriVariableParameter_Blue.cpp; no exposure chain.
+carbon.interfaceTable({ interfaces: [ITriEffectParameter, INotify, IInitialize], chainTo: null })(TriVariableParameter, { kind: "class" });

@@ -1,5 +1,8 @@
 // Source: trinity/trinity/Shader/Parameter/TriFloatArrayParameter.h
 // Source: trinity/trinity/Shader/Parameter/TriFloatArrayParameter.cpp
+import { IInitialize } from "#blue";
+import { INotify } from "#blue";
+import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { carbon, impl, edit, type } from "#schema";
 import { CjsParameter } from "./CjsParameter.js";
 
@@ -9,6 +12,7 @@ import { CjsParameter } from "./CjsParameter.js";
   className: "TriFloatArrayParameter",
   family: "shader"
 })
+@carbon.inherit(INotify, IInitialize)
 export class TriFloatArrayParameter extends CjsParameter
 {
   @edit.notify
@@ -123,3 +127,6 @@ export class TriFloatArrayParameter extends CjsParameter
   }
 
 }
+
+// Exact identities from TriFloatArrayParameter_Blue.cpp; no exposure chain.
+carbon.interfaceTable({ interfaces: [ITriEffectParameter, TriFloatArrayParameter, INotify, IInitialize], chainTo: null })(TriFloatArrayParameter, { kind: "class" });

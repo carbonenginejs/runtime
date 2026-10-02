@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Shader/Parameter/Tr2TextureAnimationParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
+import { INotify } from "#blue";
 import { carbon, impl, edit, type } from "#schema";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { CjsParameter } from "./CjsParameter.js";
@@ -9,6 +10,7 @@ import { ResourceFlags } from "./ITr2EffectValue.js";
 /** Exposes one named channel of a texture animation as a shader resource and invalidates attached materials as it changes. */
 @type.define({ className: "Tr2TextureAnimationParameter", family: "shader" })
 @carbon.inherit(ITriEffectResourceParameter)
+@carbon.inherit(INotify)
 export class Tr2TextureAnimationParameter extends CjsParameter
 {
 
@@ -159,3 +161,6 @@ export class Tr2TextureAnimationParameter extends CjsParameter
   }
 
 }
+
+// Exact identities from Tr2TextureAnimationParameter_Blue.cpp; no exposure chain.
+carbon.interfaceTable({ interfaces: [Tr2TextureAnimationParameter, ITriEffectResourceParameter, INotify], chainTo: null })(Tr2TextureAnimationParameter, { kind: "class" });

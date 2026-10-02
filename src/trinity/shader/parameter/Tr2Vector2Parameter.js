@@ -1,5 +1,7 @@
 // Source: trinity/trinity/Shader/Parameter/Tr2Vector2Parameter.h
 // Source: trinity/trinity/Shader/Parameter/Tr2Vector2Parameter.cpp
+import { IInitialize } from "#blue";
+import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { ITriReroutable } from "../../core/ITriReroutable.js";
 import { num } from "#math/num";
 import { vec2 } from "#math/vec2";
@@ -16,6 +18,7 @@ import { CjsVectorParameter } from "./CjsVectorParameter.js";
   family: "shader"
 })
 @carbon.inherit(ITriReroutable)
+@carbon.inherit(IInitialize)
 export class Tr2Vector2Parameter extends CjsVectorParameter
 {
   @edit.readwrite
@@ -359,3 +362,6 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
   }
 
 }
+
+// Exact identities from Tr2Vector2Parameter_Blue.cpp; no exposure chain.
+carbon.interfaceTable({ interfaces: [ITriEffectParameter, Tr2Vector2Parameter, ITriReroutable, IInitialize], chainTo: null })(Tr2Vector2Parameter, { kind: "class" });

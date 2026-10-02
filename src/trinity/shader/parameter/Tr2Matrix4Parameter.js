@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Shader/Parameter/Tr2Matrix4Parameter.h
 // Source: trinity/trinity/Shader/Parameter/Tr2Matrix4Parameter.cpp
+import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { ITriReroutable } from "../../core/ITriReroutable.js";
 import { mat4 } from "#math/mat4";
 import { carbon, impl, edit, type } from "#schema";
@@ -200,3 +201,6 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
   }
 
 }
+
+// Exact identities from Tr2Matrix4Parameter_Blue.cpp; no exposure chain.
+carbon.interfaceTable({ interfaces: [ITriEffectParameter, Tr2Matrix4Parameter, ITriReroutable], chainTo: null })(Tr2Matrix4Parameter, { kind: "class" });

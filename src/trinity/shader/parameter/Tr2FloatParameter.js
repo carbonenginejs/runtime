@@ -1,5 +1,7 @@
 // Source: trinity/trinity/Shader/Parameter/Tr2FloatParameter.h
 // Source: trinity/trinity/Shader/Parameter/Tr2FloatParameter.cpp
+import { IInitialize } from "#blue";
+import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { ITriReroutable } from "../../core/ITriReroutable.js";
 import { carbon, impl, edit, type } from "#schema";
 import { CjsParameter } from "./CjsParameter.js";
@@ -11,6 +13,7 @@ import { CjsParameter } from "./CjsParameter.js";
  */
 @type.define({className: "Tr2FloatParameter", family: "shader"})
 @carbon.inherit(ITriReroutable)
+@carbon.inherit(IInitialize)
 export class Tr2FloatParameter extends CjsParameter
 {
   @edit.readwrite
@@ -192,3 +195,6 @@ export class Tr2FloatParameter extends CjsParameter
   }
 
 }
+
+// Exact identities from Tr2FloatParameter_Blue.cpp; no exposure chain.
+carbon.interfaceTable({ interfaces: [ITriEffectParameter, ITriReroutable, IInitialize], chainTo: null })(Tr2FloatParameter, { kind: "class" });

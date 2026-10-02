@@ -1,6 +1,5 @@
 import { FNV1_INITIAL, hashFnv1Floats, hashFnv1Identity, hashFnv1String } from "../../../global/utils/hash.js";
-import { CjsSchema, carbon } from "#schema";
-import { CjsModel } from "#model";
+import { CjsSchema } from "#schema";
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { Tr2Shader } from "#resource/shader";
 
@@ -19,8 +18,7 @@ function requireShaderOrNull(shader)
  * Shared base for the shader parameter models: destination-reroute plumbing,
  * effect-reflection lookups and Carbon's FNV1 content hashing.
  */
-@carbon.inherit(ITriEffectParameter)
-export class CjsParameter extends CjsModel
+export class CjsParameter extends ITriEffectParameter
 {
 
   /**

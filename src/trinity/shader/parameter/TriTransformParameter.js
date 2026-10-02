@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Shader/Parameter/TriTransformParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
+import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { carbon, impl, edit, type } from "#schema";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -127,3 +128,6 @@ export class TriTransformParameter extends CjsParameter
   static TRITRANSFORMBASE = TRITRANSFORMBASE;
 
 }
+
+// Exact identities from TriTransformParameter_Blue.cpp; no exposure chain.
+carbon.interfaceTable({ interfaces: [ITriEffectParameter], chainTo: null })(TriTransformParameter, { kind: "class" });

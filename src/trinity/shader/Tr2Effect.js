@@ -1551,10 +1551,10 @@ export class Tr2Effect extends Tr2Material
       }
       const { type, Type, _type, ...fields } = value;
       const parameter = new ExplicitClass();
-      parameter.SetValues(fields);
+      CjsSchema.setValues(parameter, fields);
       if (name && !CjsParameter.getNamedValue(parameter))
       {
-        parameter.SetValues({ name: String(name) });
+        CjsSchema.setValues(parameter, { name: String(name) });
       }
       return parameter;
     }
@@ -1565,10 +1565,10 @@ export class Tr2Effect extends Tr2Material
         continue;
       }
       const parameter = new ParameterClass();
-      parameter.SetValues({ name: String(name ?? "") });
+      CjsSchema.setValues(parameter, { name: String(name ?? "") });
       if (ParameterClass === TriTextureParameter)
       {
-        parameter.SetValues({ resourcePath: String(value) });
+        CjsSchema.setValues(parameter, { resourcePath: String(value) });
       }
       else
       {

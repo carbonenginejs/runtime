@@ -1,3 +1,4 @@
+import { NOTIFY_METHODS } from "../../npm/dist/global/compose/notify.js";
 import { composeStubResMan } from "../support/stubResMan.js";
 
 // blue.resMan throws until something composes a manager, so a test that
@@ -557,7 +558,7 @@ test("promoted variable, transform, and shader buffer classes expose graph behav
     modifiedOrder.push("name");
     return rebuildEffectHandles(...args);
   };
-  variable.UpdateValues({ properties: ["name", "variableName"], skipEvents: true });
+  CjsSchema.setValues(variable, { name: variable.name, variableName: variable.variableName }, { skipEvents: true });
   assertEquals(modifiedOrder.join(","), "name,variableName");
   const shader = new Tr2Shader();
   shader.effect.techniques = [Object.assign(new Tr2EffectTechnique(), {
@@ -746,7 +747,7 @@ test("TriTextureParameter stays graph-owned and backend-free", () =>
 {
   const parameter = new TriTextureParameter();
   const modified = [];
-  parameter.OnEvent("modified", (_name, _target, payload) => modified.push(payload));
+  NOTIFY_METHODS.OnEvent.call(parameter, "modified", (_name, _target, payload) => modified.push(payload));
   parameter.name = "DiffuseMap";
   parameter.SetResourcePath("res:/texture/diffuse.dds");
   assertEquals(parameter.resourcePath, "res:/texture/diffuse.dds");
