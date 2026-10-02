@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpotlightSetItem.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpotlightSetItem.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpotlightSetItem_Blue.cpp
-import { CjsModel } from "#model";
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -14,7 +13,7 @@ import { carbon, impl, edit, type } from "#schema";
  * modulates it.
  */
 @type.define({ className: "EveSpotlightSetItem", family: "eve/attachment/spotlights" })
-export class EveSpotlightSetItem extends CjsModel
+export class EveSpotlightSetItem
 {
   @edit.readwrite
   @edit.persist

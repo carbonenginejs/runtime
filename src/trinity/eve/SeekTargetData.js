@@ -1,6 +1,5 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SeekTarget.h
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
 import { type } from "#schema";
 
 
@@ -14,7 +13,7 @@ import { type } from "#schema";
   className: "SeekTargetData",
   family: "eve/child/behaviors"
 })
-export class SeekTargetData extends CjsModel
+export class SeekTargetData
 {
   @type.int32
   bucketId = -1;

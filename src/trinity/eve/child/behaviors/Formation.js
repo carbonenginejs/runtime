@@ -2,7 +2,6 @@
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/Formation.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
@@ -30,7 +29,7 @@ function ClampLength(value, maxLength)
 
 /** A steering behaviour that detects when a drone group's motion has converged, organises the agents into a rotating slot grid, and pulls each agent toward its assigned slot. */
 @type.define({ className: "Formation", family: "eve/child/behaviors" })
-export class Formation extends CjsModel
+export class Formation
 {
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */

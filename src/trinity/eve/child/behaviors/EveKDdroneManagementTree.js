@@ -2,13 +2,12 @@
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/EveKDdroneManagementTree.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, type } from "#schema";
-import { CjsModel } from "#model";
 import { PlaneType } from "./enums.js";
 import { vec3 } from "#math/vec3";
 
 /** A spatial index that builds and incrementally rebalances a k-d tree over a group's drone agents and answers nearest-neighbour and multi-radius range queries against it. */
 @type.define({ className: "EveKDdroneManagementTree", family: "eve/child/behaviors" })
-export class EveKDdroneManagementTree extends CjsModel
+export class EveKDdroneManagementTree
 {
 
   /** m_tree (AgentRef) */

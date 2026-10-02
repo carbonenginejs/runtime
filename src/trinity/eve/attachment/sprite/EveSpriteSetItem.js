@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSetItem.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSetItem.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSetItem_Blue.cpp
-import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { box3 } from "#math/box3";
 import { vec4 } from "#math/vec4";
@@ -12,7 +11,7 @@ import { carbon, impl, edit, type } from "#schema";
  * falloff and normal and warp colours.
  */
 @type.define({ className: "EveSpriteSetItem", family: "eve/attachment/sprites" })
-export class EveSpriteSetItem extends CjsModel
+export class EveSpriteSetItem
 {
   @edit.readwrite
   @edit.persist

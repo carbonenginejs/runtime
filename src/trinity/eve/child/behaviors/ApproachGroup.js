@@ -2,7 +2,6 @@
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/ApproachGroup.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 
 // Module scratch for the per-agent loop (behavior updates run sequentially).
@@ -12,7 +11,7 @@ const NO_FORCES = [];
 
 /** A steering behaviour that pulls each drone toward the centroid of its nearby neighbours, recomputing the pull force on a throttled schedule and reusing it between refreshes. */
 @type.define({ className: "ApproachGroup", family: "eve/child/behaviors" })
-export class ApproachGroup extends CjsModel
+export class ApproachGroup
 {
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */

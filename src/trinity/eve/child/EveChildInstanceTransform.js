@@ -1,13 +1,12 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceContainer.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema eve/child/EveChildInstanceTransform.json).
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
 /** EveChildInstanceTransform (eve/child) - generated from schema shapeHash 9e0ec0c7.... */
 @type.define({ className: "EveChildInstanceTransform", family: "eve/child" })
-export class EveChildInstanceTransform extends CjsModel
+export class EveChildInstanceTransform
 {
 
   /** scale (Vector3) */

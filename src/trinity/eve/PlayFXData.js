@@ -1,6 +1,5 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/PlayFX.h
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
 import { type } from "#schema";
 
 
@@ -14,7 +13,7 @@ import { type } from "#schema";
   className: "PlayFXData",
   family: "eve/child/behaviors"
 })
-export class PlayFXData extends CjsModel
+export class PlayFXData
 {
   @type.boolean
   effectPlaying = false;

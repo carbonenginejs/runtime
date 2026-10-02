@@ -2,7 +2,6 @@
 //   struct Mesh, nested in EveChildInstancedMeshes (line 132); flattened for JS
 //   under a name that drops the donor's plural. See EveChildInstancedMeshArea.js.
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
 import { edit, type } from "#schema";
 import { EveChildInstancedMeshArea } from "./EveChildInstancedMeshArea.js";
 import { EveChildInstancedMeshInstance } from "./EveChildInstancedMeshInstance.js";
@@ -14,7 +13,7 @@ import { EveChildInstancedMeshInstance } from "./EveChildInstancedMeshInstance.j
  * manager registration handles.
  */
 @type.define({ className: "EveChildInstancedMesh", family: "eve/child" })
-export class EveChildInstancedMesh extends CjsModel
+export class EveChildInstancedMesh
 {
   @edit.persist
   @type.string

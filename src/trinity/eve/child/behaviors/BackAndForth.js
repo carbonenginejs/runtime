@@ -2,7 +2,6 @@
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { LocatorType } from "./enums.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -20,7 +19,7 @@ const NO_FORCES = [];
 
 /** A steering behaviour that shuttles each drone between seek and deliver locators, slowing on approach, snapping its facing, and triggering effects on arrival. */
 @type.define({ className: "BackAndForth", family: "eve/child/behaviors" })
-export class BackAndForth extends CjsModel
+export class BackAndForth
 {
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */

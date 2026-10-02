@@ -1,6 +1,5 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/Inertia.h
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
 import { type } from "#schema";
 
 
@@ -14,7 +13,7 @@ import { type } from "#schema";
   className: "InertiaData",
   family: "eve/child/behaviors"
 })
-export class InertiaData extends CjsModel
+export class InertiaData
 {
   @type.vec3
   agentAccel = vec3.create();

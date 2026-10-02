@@ -1,6 +1,5 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteLineSetItem.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteLineSetItem.cpp
-import { CjsModel } from "#model";
 import { quat } from "#math/quat";
 import { box3 } from "#math/box3";
 import { vec3 } from "#math/vec3";
@@ -13,7 +12,7 @@ import { carbon, edit, impl, type } from "#schema";
  * distributed around a circle, with the blink timing and colour they share.
  */
 @type.define({ className: "EveSpriteLineSetItem", family: "eve/attachment/sprites" })
-export class EveSpriteLineSetItem extends CjsModel
+export class EveSpriteLineSetItem
 {
 
   @edit.readwrite

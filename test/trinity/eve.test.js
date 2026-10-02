@@ -444,7 +444,7 @@ test("EveBannerSet preserves the authored physical attachment graph", () =>
   source.position[0] = 99;
   assertVec3(banner.position, [1, 2, 3]);
   assertEquals(set.GetReference(0), 42);
-  const restoredBanner = EveBannerItem.from(banner.GetValues({ persistOnly: true }));
+  const restoredBanner = CjsSchema.from("EveBannerItem", CjsSchema.getValues(banner, {}, { persistOnly: true }));
   assertEquals(restoredBanner.reference, 42);
 
   const options = [];
@@ -479,7 +479,7 @@ test("EvePlaneSet preserves authored quad and SOF-light intent without GPU state
   assertEquals(CjsSchema.getField(EvePlaneSetItem, "blinkData")?.type.kind, "vec4");
   assertEquals(CjsSchema.getField(EvePlaneSetItem, "blinkData")?.edit?.persist, true);
   item.blinkData.set([0.25, 0.5, 0.75, 1]);
-  const restoredItem = EvePlaneSetItem.from(item.GetValues({ persistOnly: true }));
+  const restoredItem = CjsSchema.from("EvePlaneSetItem", CjsSchema.getValues(item, {}, { persistOnly: true }));
   assertVec4(restoredItem.blinkData, [0.25, 0.5, 0.75, 1]);
   assertEquals(CjsSchema.getField(EvePlaneSet, "planes")?.type.kind, "list");
 

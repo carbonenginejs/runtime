@@ -11,7 +11,6 @@
 // it does not.
 import { mat4 } from "#math/mat4";
 import { vec4 } from "#math/vec4";
-import { CjsModel } from "#model";
 import { edit, type } from "#schema";
 
 /**
@@ -19,7 +18,7 @@ import { edit, type } from "#schema";
  * atlas slots, light scale and whether it emits a trail.
  */
 @type.define({ className: "EveBoosterSet2Item", family: "eve/attachment/boosters" })
-export class EveBoosterSet2Item extends CjsModel
+export class EveBoosterSet2Item
 {
 
   @edit.persist

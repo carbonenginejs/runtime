@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/Turret/EveTurretTarget.h
 // Source: trinity/trinity/Eve/Turret/EveTurretTarget.cpp
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { ImpactConfiguration } from "../../../generated/include/enums.js";
 import { blue } from "#blue";
@@ -21,7 +20,7 @@ export const EVE_TURRET_RANDOM_DELAY_MAX = 0.6;
  * server has sent.
  */
 @type.define({ className: "EveTurretTarget", family: "eve/attachment/turrets" })
-export class EveTurretTarget extends CjsModel
+export class EveTurretTarget
 {
   @edit.read @type.vec3 targetPosition = vec3.create();
   @edit.read @type.int32 @type.enum("trinity.ImpactBehaviour") behaviour = 0;

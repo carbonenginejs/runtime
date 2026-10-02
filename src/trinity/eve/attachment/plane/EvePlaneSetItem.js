@@ -1,6 +1,5 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EvePlaneSetItem.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EvePlaneSetItem.cpp
-import { CjsModel } from "#model";
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -14,7 +13,7 @@ import { carbon, edit, impl, type } from "#schema";
  * transformed and scrolling texture layers, mask atlas slot and blink data.
  */
 @type.define({ className: "EvePlaneSetItem", family: "eve/attachment/planes" })
-export class EvePlaneSetItem extends CjsModel
+export class EvePlaneSetItem
 {
 
   @edit.readwrite

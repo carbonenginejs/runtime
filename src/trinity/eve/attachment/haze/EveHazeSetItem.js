@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveHazeSetItem.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveHazeSetItem.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveHazeSetItem_Blue.cpp
-import { CjsModel } from "#model";
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -14,7 +13,7 @@ import { carbon, impl, edit, type } from "#schema";
  * four-component haze shaping data.
  */
 @type.define({ className: "EveHazeSetItem", family: "eve/attachment/haze" })
-export class EveHazeSetItem extends CjsModel
+export class EveHazeSetItem
 {
   @edit.readwrite
   @edit.persist

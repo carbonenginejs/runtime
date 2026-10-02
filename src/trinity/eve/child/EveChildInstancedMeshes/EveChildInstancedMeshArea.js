@@ -3,7 +3,6 @@
 //   JS. Our name drops the donor's plural, so it reads as though Carbon had an
 //   EveChildInstancedMesh type. It does not; renaming is blocked because SOF
 //   writes this className into DNA documents as a string.
-import { CjsModel } from "#model";
 import { edit, type } from "#schema";
 
 
@@ -13,7 +12,7 @@ import { edit, type } from "#schema";
  * registered under.
  */
 @type.define({ className: "EveChildInstancedMeshArea", family: "eve/child" })
-export class EveChildInstancedMeshArea extends CjsModel
+export class EveChildInstancedMeshArea
 {
 
   @edit.persist

@@ -1,10 +1,9 @@
-import { CjsModel } from "#model";
 import { impl, type } from "#schema";
 
 
 /** Trinity-owned synchronous child-resource resolution contract. */
 @type.define({ className: "CjsEveChildResourceLoader", family: "eve/child" })
-export class CjsEveChildResourceLoader extends CjsModel
+export class CjsEveChildResourceLoader
 {
 
   /** Resolves one child resource path for its owning graph object. */

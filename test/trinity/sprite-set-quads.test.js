@@ -1,4 +1,5 @@
 ﻿import test from "node:test";
+import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import assert from "node:assert/strict";
 import { EveSpriteSet, EveSpriteSetItem } from "../../npm/dist/trinity/index.js";
 import { num } from "../../npm/dist/global/math/num.js";
@@ -15,7 +16,7 @@ const float16 = { float32To16: num.toHalfFloat, float16To32: num.fromHalfFloat }
 function makeSprite(values)
 {
     const sprite = new EveSpriteSetItem();
-    sprite.SetValues(values);
+    CjsSchema.setValues(sprite, values);
     return sprite;
 }
 

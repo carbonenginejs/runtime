@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/CollisionAvoidance.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/CollisionAvoidance.cpp
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { ProcessPriority } from "./enums.js";
 
@@ -14,7 +13,7 @@ const NO_FORCES = [];
  * volume they intersect, weighted by the volume's intensity at the agent.
  */
 @type.define({ className: "CollisionAvoidance", family: "eve/child/behaviors" })
-export class CollisionAvoidance extends CjsModel
+export class CollisionAvoidance
 {
 
   static ProcessPriority = ProcessPriority;

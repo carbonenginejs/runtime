@@ -3,7 +3,6 @@
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsModel } from "#model";
 import { edit, type } from "#schema";
 
 
@@ -14,7 +13,7 @@ import { edit, type } from "#schema";
  * exported under a legal identifier while retaining that nested schema name.
  */
 @type.define({ className: "EveChildPartData.PartData", family: "eve/child" })
-export class EveChildPartDataPartData extends CjsModel
+export class EveChildPartDataPartData
 {
   @edit.persist
   @type.uint32

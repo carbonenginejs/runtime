@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionAttributeModifiers/IEveDistributionModifier.h
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
 import { type } from "#schema";
 
 
@@ -15,7 +14,7 @@ import { type } from "#schema";
   className: "PlacementDataWithIdentifier",
   family: "eve/distribution/attributeModifiers"
 })
-export class PlacementDataWithIdentifier extends CjsModel
+export class PlacementDataWithIdentifier
 {
   @type.vec3
   initialTranslation = vec3.create();

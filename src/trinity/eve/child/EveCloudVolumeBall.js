@@ -1,13 +1,12 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema eve/child/EveCloudVolumeBall.json.).
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
 /** Runtime model for one editable cloud-volume ball. */
 @type.define({ className: "EveCloudVolumeBall", family: "eve/child" })
-export class EveCloudVolumeBall extends CjsModel
+export class EveCloudVolumeBall
 {
 
   /** m_ballData.m_position (Vector3) [READWRITE, PERSIST, NOTIFY] */

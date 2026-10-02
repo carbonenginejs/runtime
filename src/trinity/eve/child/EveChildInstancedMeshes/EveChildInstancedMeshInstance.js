@@ -8,7 +8,6 @@
 // two it would report are dropped, not missing. Record them there when the
 // coverage baseline is next free to edit.
 import { mat4 } from "#math/mat4";
-import { CjsModel } from "#model";
 import { edit, type } from "#schema";
 
 
@@ -17,7 +16,7 @@ import { edit, type } from "#schema";
  * cull sphere in the owning mesh's instance sphere list.
  */
 @type.define({ className: "EveChildInstancedMeshInstance", family: "eve/child" })
-export class EveChildInstancedMeshInstance extends CjsModel
+export class EveChildInstancedMeshInstance
 {
 
   @edit.persist

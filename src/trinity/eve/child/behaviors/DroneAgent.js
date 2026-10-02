@@ -1,14 +1,13 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/DroneAgent.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema eve/child/behaviors/DroneAgent.json.).
 import { type } from "#schema";
-import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
 /** DroneAgent (eve/child/behaviors) - generated from schema shapeHash c50899e8.... */
 @type.define({ className: "DroneAgent", family: "eve/child/behaviors" })
-export class DroneAgent extends CjsModel
+export class DroneAgent
 {
 
   /** closestAgentInGroup (DroneAgent*) */

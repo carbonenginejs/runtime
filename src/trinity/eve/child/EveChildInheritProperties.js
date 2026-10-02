@@ -2,7 +2,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInheritProperties.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInheritProperties_Blue.cpp
 import { vec4 } from "#math/vec4";
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 
 
@@ -59,7 +58,7 @@ const COLOR_PROPERTIES = Object.freeze([
  * named material slot (Primary, Hull, Booster, State0, ...) in a fixed order.
  */
 @type.define({ className: "EveChildInheritProperties", family: "eve/child" })
-export class EveChildInheritProperties extends CjsModel
+export class EveChildInheritProperties
 {
   // PERSIST is ours, not Carbon's: SOF's JSON output carries this value, which Carbon sets in C++.
   @impl.adapted

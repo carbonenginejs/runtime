@@ -2,7 +2,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveBannerSet.cpp
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
-import { CjsModel } from "#model";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { carbon, edit, impl, type } from "#schema";
@@ -18,7 +17,7 @@ import { carbon, edit, impl, type } from "#schema";
  * shown.
  */
 @type.define({ className: "EveBannerItem", family: "eve/attachment/banners" })
-export class EveBannerItem extends CjsModel
+export class EveBannerItem
 {
 
   @edit.persist
