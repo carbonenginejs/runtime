@@ -77,7 +77,10 @@ test("the suballocated buffer hands out element-aligned regions of one block, an
   assert.equal(fourth.GetOffset(), 0);
   assert.equal(buffer.GetBlocks().length, 2);
 
-  assert.equal(buffer.Allocate(4, 100, new Uint8Array(400), renderContext), null, "more than a block is refused");
+  const oversized = buffer.Allocate(4, 100, new Uint8Array(400), renderContext);
+  assert.ok(oversized, "a reservation may span more than one growth step");
+  assert.equal(oversized.GetBuffer().GetSize(), 512);
+  assert.equal(buffer.Allocate(4, 100, null, renderContext), null, "total physical capacity remains bounded");
   assert.equal(buffer.Allocate(0, 1, null, renderContext), null);
 
   buffer.ReleaseResources();

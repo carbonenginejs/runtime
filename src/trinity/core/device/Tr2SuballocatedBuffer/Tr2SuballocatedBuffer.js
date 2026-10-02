@@ -36,7 +36,7 @@ export class Tr2SuballocatedBuffer
 
   m_maxSize = SHARED_BUFFER_MAX_SIZE;
 
-  /** The blocks, each a `Tr2BufferAL` of `m_blockSize` bytes. */
+  /** Physical blocks, each a whole multiple of the growth block size. */
   m_blocks = [];
 
   /** Adapted: one virtual allocator per physical block instead of one copied buffer. */
@@ -78,7 +78,7 @@ export class Tr2SuballocatedBuffer
   {
     if (!Number.isInteger(stride) || stride <= 0 || !Number.isInteger(count) || count <= 0) return null;
     const size = stride * count;
-    if (size > this.m_blockSize) return null;
+    if (!Number.isSafeInteger(size) || size > this.m_maxSize) return null;
     const alignment = Lcm(stride, 4);
     const reservation = {};
     let blockIndex = 0;
@@ -91,9 +91,13 @@ export class Tr2SuballocatedBuffer
     {
       // Non-power-of-two stride padding is part of Carbon's virtual reservation.
       const reservedSize = size + (Number.isInteger(Math.log2(alignment)) ? 0 : alignment - 1);
-      if (reservedSize > this.m_blockSize) return null;
-      if ((this.m_blocks.length + 1) * this.m_blockSize > this.m_maxSize) return null;
-      if (!this._AddBlock(renderContext)) return null;
+      // Carbon expands its single buffer until this reservation fits. The JS
+      // independent-block adaptation must also accept meshes larger than one
+      // growth step (for example, station interiors), including stride padding.
+      const blockSize = Math.ceil(reservedSize / this.m_blockSize) * this.m_blockSize;
+      const capacity = this.m_allocators.reduce((sum, allocator) => sum + allocator.GetCurrentSize(), 0);
+      if (capacity + blockSize > this.m_maxSize) return null;
+      if (!this._AddBlock(renderContext, blockSize)) return null;
       if (!this.m_allocators[blockIndex].Allocate(size, alignment, reservation)) return null;
     }
 
@@ -147,10 +151,10 @@ export class Tr2SuballocatedBuffer
    * Creates the next byte pool through Carbon's buffer-description path.
    * Custom: independent blocks replace the donor's single-buffer Expand copy.
    */
-  _AddBlock(renderContext)
+  _AddBlock(renderContext, blockSize = this.m_blockSize)
   {
-    const allocator = new Tr2VirtualAllocator(this.m_blockSize, this.m_blockSize, this.m_blockSize);
-    const description = Tr2BufferDescriptionAL.FromStride(4, this.m_blockSize / 4, this.m_gpuUsage, Tr2CpuUsage.WRITE);
+    const allocator = new Tr2VirtualAllocator(this.m_blockSize, blockSize, blockSize);
+    const description = Tr2BufferDescriptionAL.FromStride(4, blockSize / 4, this.m_gpuUsage, Tr2CpuUsage.WRITE);
     const block = renderContext.CreateBuffer(description, null);
     if (!block) return false;
     block.SetName(`${this.m_name} block ${this.m_blocks.length}`);
