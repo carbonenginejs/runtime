@@ -1,12 +1,11 @@
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema eve/spaceObject/swarm/SwarmVehicleDebug.json.).
 import { type } from "#schema";
-import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 
 /** SwarmVehicleDebug (eve/spaceObject/swarm) - generated from schema shapeHash f53e5a64.... */
 @type.define({ className: "SwarmVehicleDebug", family: "eve/spaceObject/swarm" })
-export class SwarmVehicleDebug extends CjsModel
+export class SwarmVehicleDebug
 {
 
   /** alignment (Vector3) */

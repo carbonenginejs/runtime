@@ -343,7 +343,7 @@ test("parent locator generators resolve and rebuild the Carbon locator-set contr
     [1, 2, 3]
   );
 
-  generator.SetValues({ locatorSetName: "weapon" });
+  CjsSchema.setValues(generator, { locatorSetName: "weapon" });
   distribution.UpdateSyncronous(context, params);
   assert.equal(distribution.GetFreePlacementCount(), 1);
   assert.deepEqual(
@@ -401,7 +401,7 @@ test("volume generators consume Carbon volume points and change callbacks", () =
     assert.equal(generator.IsRequestingRegeneration(), true);
     generator.GetInitialPlacements([], { value: 0 });
     assert.equal(generator.IsRequestingRegeneration(), false);
-    generator.SetValues({ falloffFactor: 2 });
+    CjsSchema.setValues(generator, { falloffFactor: 2 });
     assert.equal(generator.IsRequestingRegeneration(), true);
   }
   finally

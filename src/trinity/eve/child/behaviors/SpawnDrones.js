@@ -2,7 +2,6 @@
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/SpawnDrones.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
@@ -10,7 +9,7 @@ const NO_FORCES = [];
 
 /** A steering behaviour that populates and repopulates a drone group's agents, either regenerating a jittered spawn grid or spawning agents by count on a schedule or one-shot trigger. */
 @type.define({ className: "SpawnDrones", family: "eve/child/behaviors" })
-export class SpawnDrones extends CjsModel
+export class SpawnDrones
 {
 
   /** m_gridSpacing (Vector3) [READWRITE, PERSIST] */

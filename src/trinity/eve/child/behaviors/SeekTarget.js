@@ -1,13 +1,12 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SeekTarget.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { EveLocatorSets } from "../../locator/EveLocatorSets.js";
 
 /** A steering behaviour that assigns drones to repair locators on a target ship, splitting the target's bounding box into buckets so damage-seeking agents distribute evenly across it. */
 @type.define({ className: "SeekTarget", family: "eve/child/behaviors" })
-export class SeekTarget extends CjsModel
+export class SeekTarget
 {
 
   _counter = 0;

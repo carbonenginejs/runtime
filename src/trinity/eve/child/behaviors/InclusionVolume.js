@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/InclusionVolume.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/InclusionVolume.cpp
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { ProcessPriority } from "./enums.js";
 
@@ -16,7 +15,7 @@ const NO_FORCES = [];
  * drift into the falloff shell; agents fully inside feel no force.
  */
 @type.define({ className: "InclusionVolume", family: "eve/child/behaviors" })
-export class InclusionVolume extends CjsModel
+export class InclusionVolume
 {
 
   static ProcessPriority = ProcessPriority;

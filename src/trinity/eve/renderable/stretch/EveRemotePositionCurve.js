@@ -2,7 +2,6 @@
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveRemotePositionCurve.cpp
 import { num } from "#math/num";
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 
 
@@ -14,7 +13,7 @@ import { carbon, impl, edit, type } from "#schema";
   className: "EveRemotePositionCurve",
   family: "eve/renderable/stretch"
 })
-export class EveRemotePositionCurve extends CjsModel
+export class EveRemotePositionCurve
 {
   @edit.readwrite
   @edit.persist

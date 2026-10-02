@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawnModifiers/IEveDistributionSpawnModifier.h
-import { CjsModel } from "#model";
 import { carbon, impl, type } from "#schema";
 
 
 /** Required distribution spawn-modifier contract. */
 @type.define({ className: "IEveDistributionSpawnModifier", family: "eve/distribution" })
-export class IEveDistributionSpawnModifier extends CjsModel
+export class IEveDistributionSpawnModifier
 {
 
   /** Applies this modifier to one newly spawned placement. */

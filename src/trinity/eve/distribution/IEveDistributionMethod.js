@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/IEveDistributionMethod.h
-import { CjsModel } from "#model";
 import { carbon, impl, type } from "#schema";
 
 
 /** Required distribution placement contract. */
 @type.define({ className: "IEveDistributionMethod", family: "eve/distribution" })
-export class IEveDistributionMethod extends CjsModel
+export class IEveDistributionMethod
 {
 
   /** Regenerates the distribution's complete placement data. */

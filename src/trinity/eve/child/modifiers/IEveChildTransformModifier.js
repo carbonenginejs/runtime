@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/IEveChildTransformModifier.h
-import { CjsModel } from "#model";
 import { carbon, impl, type } from "#schema";
 
 
 /** Required child-transform modifier contract. */
 @type.define({ className: "IEveChildTransformModifier", family: "eve/child/modifiers" })
-export class IEveChildTransformModifier extends CjsModel
+export class IEveChildTransformModifier
 {
 
   /** Applies this modifier to a child transform. */

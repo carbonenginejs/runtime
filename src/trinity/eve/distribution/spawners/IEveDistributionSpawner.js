@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/IEveDistributionSpawner.h
-import { CjsModel } from "#model";
 import { carbon, impl, type } from "#schema";
 
 
 /** Distribution spawner contract with Carbon's optional no-op hooks. */
 @type.define({ className: "IEveDistributionSpawner", family: "eve/distribution" })
-export class IEveDistributionSpawner extends CjsModel
+export class IEveDistributionSpawner
 {
 
   /** Resets the spawner against regenerated placement data. */

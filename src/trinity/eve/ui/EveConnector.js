@@ -3,7 +3,6 @@
 // Source: trinity/trinity/Eve/UI/EveConnector_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; this is portable CPU graph policy.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { blue, EnumRegistrationType } from "#blue";
@@ -61,7 +60,7 @@ function rotateToPlane(out, point, planePoint, normal)
 
 /** Builds authored tactical connector curves into an EveCurveLineSet. */
 @type.define({ className: "EveConnector", family: "eve/ui" })
-export class EveConnector extends CjsModel
+export class EveConnector
 {
 
   /** m_type (ConnectorType - enum ConnectorType) [READWRITE, PERSIST, ENUM] */

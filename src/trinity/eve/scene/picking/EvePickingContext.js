@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/EvePicking.h
 // Source: trinity/trinity/Eve/EvePicking.cpp
 // Source: trinity/trinity/Eve/EvePicking_Blue.cpp
-import { CjsModel } from "#model";
 import { carbon, impl, type } from "#schema";
 
 /**
@@ -9,7 +8,7 @@ import { carbon, impl, type } from "#schema";
  * screen coordinates, hit object and hit area - for a scene.
  */
 @type.define({ className: "EvePickingContext", family: "eve/scene" })
-export class EvePickingContext extends CjsModel
+export class EvePickingContext
 {
   @type.list("EvePendingPickingReadback")
   readbacks = [];

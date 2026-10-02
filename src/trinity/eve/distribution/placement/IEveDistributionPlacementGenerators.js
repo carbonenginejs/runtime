@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionPlacementGenerators/IEveDistributionPlacementGenerators.h
-import { CjsModel } from "#model";
 import { carbon, impl, type } from "#schema";
 
 
 /** Required distribution placement-generator contract. */
 @type.define({ className: "IEveDistributionPlacementGenerators", family: "eve/distribution" })
-export class IEveDistributionPlacementGenerators extends CjsModel
+export class IEveDistributionPlacementGenerators
 {
 
   /** Writes the generator's initial placement records. */

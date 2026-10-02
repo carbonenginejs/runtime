@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveLocatorSets.h
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
 import { edit, type } from "#schema";
 
 
@@ -13,7 +12,7 @@ import { edit, type } from "#schema";
   className: "Locator",
   family: "eve/utils"
 })
-export class Locator extends CjsModel
+export class Locator
 {
   @edit.persist
   @type.vec3

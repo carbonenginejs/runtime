@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SplineTunnelGroup.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema eve/child/behaviors/SplineTunnel.json.).
 import { type } from "#schema";
-import { CjsModel } from "#model";
 
 /** SplineTunnel (eve/child/behaviors) - generated from schema shapeHash d53f1701.... */
 @type.define({ className: "SplineTunnel", family: "eve" })
-export class SplineTunnel extends CjsModel
+export class SplineTunnel
 {
 
   /** tunnelID (int) */

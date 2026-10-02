@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Eve/EveComponentRegistry.h
 // Hand-maintained after promotion from generated schema intake.
 import { impl, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Stores entities belonging to one Eve component type. */
 @type.define({ className: "EveComponentCollection", family: "eve/scene" })
-export class EveComponentCollection extends CjsModel
+export class EveComponentCollection
 {
 
   /** m_name (const char*) */

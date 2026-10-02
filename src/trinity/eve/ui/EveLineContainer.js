@@ -4,13 +4,12 @@
 // Promoted to hand-maintained source 2026-08-22; this is portable CPU graph policy.
 import { carbon, impl, edit, type } from "#schema";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
-import { CjsModel } from "#model";
 
 
 /** Owns and updates a connector-built EveCurveLineSet. */
 @type.define({ className: "EveLineContainer", family: "eve/ui" })
 @carbon.inherit(IEveSpaceObject2)
-export class EveLineContainer extends CjsModel
+export class EveLineContainer
 {
 
   /** m_connectors (PEveConnectorVector) [READ, PERSIST] */

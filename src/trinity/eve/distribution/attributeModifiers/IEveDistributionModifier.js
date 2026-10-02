@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionAttributeModifiers/IEveDistributionModifier.h
-import { CjsModel } from "#model";
 import { carbon, impl, type } from "#schema";
 
 
 /** Required distribution attribute-modifier contract. */
 @type.define({ className: "IEveDistributionModifier", family: "eve/distribution" })
-export class IEveDistributionModifier extends CjsModel
+export class IEveDistributionModifier
 {
 
   /** Applies this modifier to one distribution placement. */

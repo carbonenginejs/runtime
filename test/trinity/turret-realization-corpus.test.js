@@ -83,7 +83,7 @@ async function assets(t)
   const resource=makeResource();resources.set(geometryPath,resource);
   const set=EveTurretSet.from(CjsBlackFormat.readPayload(turretBytes).object);set.geometryResPath=geometryPath;set.lodLevel=EveTurretSet.LOD.LOD_HIGHEST;set.slotNumber=1;
   t.after(()=>{set.ReleaseResources();TriDevice.UnregisterResource(set);});
-  const ship=new EveShip2();ship.locators=hull.locatorTurrets.map(value=>EveLocator2.from(value));ship.turretSets.push(set);
+  const ship=new EveShip2();ship.locators=hull.locatorTurrets.map(value=>CjsSchema.from("EveLocator2", value));ship.turretSets.push(set);
   return {set,ship,resource,makeResource,resources,requests,hull};
 }
 

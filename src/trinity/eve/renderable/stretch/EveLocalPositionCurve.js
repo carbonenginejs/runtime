@@ -2,7 +2,6 @@
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveLocalPositionCurve.cpp
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { LocalPositionBehavior } from "../../../generated/eve/renderable/stretch/enums.js";
 import { blue, EnumRegistrationType } from "#blue";
@@ -14,7 +13,7 @@ import { blue, EnumRegistrationType } from "#blue";
  * offset - selected by an authored behaviour.
  */
 @type.define({ className: "EveLocalPositionCurve", family: "eve/renderable/stretch" })
-export class EveLocalPositionCurve extends CjsModel
+export class EveLocalPositionCurve
 {
   @edit.readwrite
   @edit.persist

@@ -169,7 +169,7 @@ export class EveLocatorSets extends CjsModel
     const existing = this.locators[index];
     if (existing)
     {
-      existing.SetValues({
+      CjsSchema.setValues(existing, {
         position: value.position,
         direction: value.direction,
         scale: value.scale ?? [0, 0, 0],

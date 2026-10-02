@@ -200,9 +200,9 @@ test("EveSpaceObjectFxAttributes preserves one-shot, stale-value, and scaled-rot
   assert.equal(attributes.activeTurretCount, 4);
   assert.equal(attributes.killCount, 9);
 
-  const snapshot = attributes.GetValues();
+  const snapshot = CjsSchema.getValues(attributes);
   attributes.UpdateAsyncronous(null, {});
-  assert.deepEqual(attributes.GetValues(), snapshot);
+  assert.deepEqual(CjsSchema.getValues(attributes), snapshot);
 });
 
 

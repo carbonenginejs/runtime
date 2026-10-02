@@ -2,7 +2,6 @@
 // Source: trinity/trinity/Eve/EveComponentRegistry.cpp
 // Hand-maintained after promotion from generated schema intake.
 import { CjsSchema, carbon, impl, type } from "#schema";
-import { CjsModel } from "#model";
 import { EveComponentCollection } from "./EveComponentCollection.js";
 import { EveComponentRequiredMethods, EveComponentType } from "../../EveComponentTypes.js";
 import { ITr2FroxelFogSettings } from "../../child/ITr2FroxelFogSettings.js";
@@ -10,7 +9,7 @@ import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 
 /** Indexes Eve entities and their component collections for scene processing. */
 @type.define({ className: "EveComponentRegistry", family: "eve/scene" })
-export class EveComponentRegistry extends CjsModel
+export class EveComponentRegistry
 {
 
   #componentCollections = [];

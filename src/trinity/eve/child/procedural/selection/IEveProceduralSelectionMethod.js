@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/IEveProceduralSelectionMethod.h
-import { CjsModel } from "#model";
 import { carbon, impl, type } from "#schema";
 
 
 /** Required procedural-child selection contract. */
 @type.define({ className: "IEveProceduralSelectionMethod", family: "eve/child/procedural" })
-export class IEveProceduralSelectionMethod extends CjsModel
+export class IEveProceduralSelectionMethod
 {
 
   /** Updates the procedural selection method during the asynchronous phase. */

@@ -1,5 +1,4 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/ProcessLifetime.h
-import { CjsModel } from "#model";
 import { type } from "#schema";
 
 
@@ -12,7 +11,7 @@ import { type } from "#schema";
   className: "ProcessLifetimeData",
   family: "eve"
 })
-export class ProcessLifetimeData extends CjsModel
+export class ProcessLifetimeData
 {
   @type.boolean
   hasUsedEntryTunnel = false;

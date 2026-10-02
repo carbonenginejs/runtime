@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/Wander.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/Wander.cpp
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { carbonPerlin1D } from "#math/noise";
 import { ProcessPriority } from "./enums.js";
@@ -16,7 +15,7 @@ const NO_FORCES = [];
  * agent's lifetime and id, so each drone drifts on its own path.
  */
 @type.define({ className: "Wander", family: "eve/child/behaviors" })
-export class Wander extends CjsModel
+export class Wander
 {
 
   static ProcessPriority = ProcessPriority;

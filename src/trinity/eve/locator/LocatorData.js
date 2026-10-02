@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SeekTarget.h
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
 import { type } from "#schema";
 
 
@@ -10,7 +9,7 @@ import { type } from "#schema";
   className: "LocatorData",
   family: "eve/child/behaviors"
 })
-export class LocatorData extends CjsModel
+export class LocatorData
 {
   @type.vec3
   position = vec3.create();

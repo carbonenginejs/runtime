@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveLocator2.h
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveLocator2.cpp
 import { mat4 } from "#math/mat4";
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 
 
@@ -13,7 +12,7 @@ import { carbon, impl, edit, type } from "#schema";
   className: "EveLocator2",
   family: "eve/utils"
 })
-export class EveLocator2 extends CjsModel
+export class EveLocator2
 {
   @edit.readwrite
   @edit.persist
