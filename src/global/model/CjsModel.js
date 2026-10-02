@@ -4,7 +4,7 @@ import { getRuntimeState } from "../compose/runtimeState.js";
 import { queueModifiedMember, settleModifiedMembers } from "../compose/values.js";
 import { BLUELISTEVENT } from "../consts/blue.js";
 import { CjsModelState } from "./CjsModelState.js";
-import { DictReader } from "../blue/DictReader.js";
+import { DictReader, CreateAnchorTable } from "../blue/DictReader.js";
 import { DictWriter } from "../blue/DictWriter.js";
 import { Copier } from "../blue/Copier.js";
 import { Traverse } from "../blue/find.js";
@@ -633,7 +633,7 @@ export class CjsModel extends CjsEventEmitter
 
         const result = new this();
 
-        importOptions.importContext.registerCreated(result);
+        importOptions.importContext.registerCreated(result, options => initializeOwnedGraph(result, options));
 
         // Register-before-descent: the instance is visible to `_ref` lookups
         // before its own fields import, so back-references and cycles work.
@@ -1012,61 +1012,7 @@ class CjsPendingReference
 
 function createImportContext()
 {
-    const byId = new Map();
-    const created = [];
-    const pending = [];
-    return {
-        byId,
-        registerCreated(instance)
-        {
-            created.push(instance);
-        },
-        register(id, instance)
-        {
-            const existing = byId.get(id);
-            if (existing === instance) return;
-            if (existing !== undefined)
-            {
-                throw new TypeError(`Duplicate _id ${JSON.stringify(id)} in imported values.`);
-            }
-            byId.set(id, instance);
-        },
-        defer(id, assign)
-        {
-            pending.push({ id, assign });
-        },
-        finalize()
-        {
-            const unresolved = new Set();
-            for (const entry of pending)
-            {
-                const instance = byId.get(entry.id);
-                if (instance === undefined)
-                {
-                    unresolved.add(entry.id);
-                    continue;
-                }
-                entry.assign(instance);
-            }
-            pending.length = 0;
-            if (unresolved.size)
-            {
-                throw new TypeError(`Unresolved _ref ids: ${Array.from(unresolved, id => JSON.stringify(id)).join(", ")}. Every { _ref } must match a { _id } in the same import operation.`);
-            }
-        },
-        initializeCreated(options)
-        {
-            const visited = new Set();
-            const createdSet = new Set(created);
-
-            for (let index = created.length - 1; index >= 0; index--)
-            {
-                initializeOwnedGraph(created[index], { ...options, visited, created: createdSet });
-            }
-
-            created.length = 0;
-        }
-    };
+    return CreateAnchorTable();
 }
 
 function isReferenceValue(value)

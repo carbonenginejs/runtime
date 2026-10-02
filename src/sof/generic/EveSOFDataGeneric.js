@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { EveSOFDataArea } from "../shared/EveSOFDataArea.js";
 import { EveSOFDataGenericShader } from "./EveSOFDataGenericShader.js";
 import { ErrSOFAreaShaderNotFound } from "./ErrSOFAreaShaderNotFound.js";
@@ -11,7 +10,7 @@ import { ErrSOFPatternMaterialPrefixNotFound } from "./ErrSOFPatternMaterialPref
 
 /** Provides the top-level generic SOF configuration for shaders, material prefixes, decals, material tables, variants, categories, visibility, swarm, and damage data, with their named lookup helpers. */
 @type.define({ className: "EveSOFDataGeneric", family: "eve" })
-export class EveSOFDataGeneric extends CjsModel
+export class EveSOFDataGeneric
 {
   static AreaType = EveSOFDataArea.AreaType;
 

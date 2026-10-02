@@ -210,112 +210,31 @@ export function createValuesTransport(services)
      */
     function setValues(target, values = {}, options = {})
     {
-        const changed = new Set();
-        let notifyRequested = false;
-
-        for (const field of GetFields(target.constructor))
+        return applyValues(target, options, recordWrite =>
         {
-            if (!isWritableField(field)) continue;
-            if (!Object.hasOwn(values, field.name)) continue;
-
-            const incoming = values[field.name];
-            const current = target[field.name];
-
-            // In place first, so a typed array keeps its identity and anything
-            // holding a reference to it keeps seeing live values.
-            const coerced = CoerceInto(current, incoming, field);
-            if (coerced !== null)
+            for (const field of GetFields(target.constructor))
             {
-                recordWrite(field, coerced);
-                continue;
-            }
+                if (!isWritableField(field)) continue;
+                if (!Object.hasOwn(values, field.name)) continue;
 
-            const next = Import(incoming, field, options);
-            const didChange = !IsEquivalent(current, next);
-            target[field.name] = next;
-            recordWrite(field, didChange);
-        }
+                const incoming = values[field.name];
+                const current = target[field.name];
 
-        // Settle actual changes or explicitly requested equal-write notifications.
-        if ((changed.size || notifyRequested) && options.markDirty !== false)
-        {
-            if (options.skipUpdate !== true) updateValues(target, options, changed);
-        }
-
-        // Preserve each successful mutation if a later import or setter throws.
-        function recordWrite(field, didChange)
-        {
-            if (didChange) changed.add(field.name);
-            if (options.markDirty !== false)
-            {
-                if (didChange) ensureRuntimeState(target).dirty = true;
-                // BluePyWrap writes first, then tests NOTIFY without equality.
-                if (options.notify !== false && field.edit?.notify)
+                // In place first, so a typed array keeps its identity and anything
+                // holding a reference to it keeps seeing live values.
+                const coerced = CoerceInto(current, incoming, field);
+                if (coerced !== null)
                 {
-                    queueModifiedMember(target, field.name);
-                    ensureRuntimeState(target).dirty = true;
-                    notifyRequested = true;
+                    recordWrite(field, coerced);
+                    continue;
                 }
+
+                const next = Import(incoming, field, options);
+                const didChange = !IsEquivalent(current, next);
+                target[field.name] = next;
+                recordWrite(field, didChange);
             }
-        }
-
-        return options.returnBoolean === true ? changed.size > 0 : changed;
-    }
-
-    /**
-     * Settles queued single-member notifications and emits once after success.
-     *
-     * @param {object} target
-     * @param {object} options
-     * @param {Set<String>} changedFields
-     * @returns {Boolean} False when a hook refused, leaving the target dirty.
-     */
-    function updateValues(target, options, changedFields)
-    {
-        const state = ensureRuntimeState(target);
-        const properties = options.property ?? options.properties;
-        if (properties != null)
-        {
-            for (const name of typeof properties === "string" ? [properties] : properties)
-            {
-                queueModifiedMember(target, name);
-            }
-        }
-        else if (changedFields == null && (state.updating || !state.pendingModified?.size))
-        {
-            queueModifiedMember(target, null);
-        }
-        if (state.updating) return true;
-
-        // INotify is OPTIONAL, in Carbon as here: an object that does not
-        // implement the hook is simply never notified. The statics serve any
-        // decorated class, including ones that never took @compose.values and
-        // so have no OnModified - those settle trivially rather than throwing.
-        const hook = target.OnModified;
-        if (typeof hook !== "function")
-        {
-            state.pendingModified?.clear();
-            state.dirty = false;
-            return true;
-        }
-
-        const source = options.source ?? target;
-        if (!settleModifiedMembers(target)) return false;
-
-        // `HasListener` lives on the state slot itself, so it exists whatever
-        // decorators the class took, and answers false when no emitter was
-        // ever attached - which is also what keeps EmitEvent from being called
-        // on a class that does not have it.
-        //
-        // The emitter no-ops without listeners anyway, so the guard is really
-        // about the PAYLOAD: it stops one being built per settle for nobody,
-        // the waste the audit measured on the per-frame binding path.
-        if (options.skipEvents !== true && !state.suppressEvents && state.HasListener())
-        {
-            target.EmitEvent("modified", target, { source, changedFields });
-        }
-
-        return true;
+        });
     }
 
     return { getValues, setValues, updateValues };
@@ -378,4 +297,94 @@ export function composeValuesDecorator(transport)
             });
         }
     };
+}
+
+/** Applies writes while retaining the values editing notification and settle contract. */
+export function applyValues(target, options, populate)
+{
+    const changed = new Set();
+    let notifyRequested = false;
+
+    populate(recordWrite);
+
+    // Settle actual changes or explicitly requested equal-write notifications.
+    if ((changed.size || notifyRequested) && options.markDirty !== false)
+    {
+        if (options.skipUpdate !== true) updateValues(target, options, changed);
+    }
+
+    // Preserve each successful mutation if a later import or setter throws.
+    function recordWrite(field, didChange)
+    {
+        if (didChange) changed.add(field.name);
+        if (options.markDirty !== false)
+        {
+            if (didChange) ensureRuntimeState(target).dirty = true;
+            // BluePyWrap writes first, then tests NOTIFY without equality.
+            if (options.notify !== false && field.edit?.notify)
+            {
+                queueModifiedMember(target, field.name);
+                ensureRuntimeState(target).dirty = true;
+                notifyRequested = true;
+            }
+        }
+    }
+
+    return options.returnBoolean === true ? changed.size > 0 : changed;
+}
+
+/**
+ * Settles queued single-member notifications and emits once after success.
+ *
+ * @param {object} target
+ * @param {object} options
+ * @param {Set<String>} changedFields
+ * @returns {Boolean} False when a hook refused, leaving the target dirty.
+ */
+function updateValues(target, options, changedFields)
+{
+    const state = ensureRuntimeState(target);
+    const properties = options.property ?? options.properties;
+    if (properties != null)
+    {
+        for (const name of typeof properties === "string" ? [properties] : properties)
+        {
+            queueModifiedMember(target, name);
+        }
+    }
+    else if (changedFields == null && (state.updating || !state.pendingModified?.size))
+    {
+        queueModifiedMember(target, null);
+    }
+    if (state.updating) return true;
+
+    // INotify is OPTIONAL, in Carbon as here: an object that does not
+    // implement the hook is simply never notified. The statics serve any
+    // decorated class, including ones that never took @compose.values and
+    // so have no OnModified - those settle trivially rather than throwing.
+    const hook = target.OnModified;
+    if (typeof hook !== "function")
+    {
+        state.pendingModified?.clear();
+        state.dirty = false;
+        return true;
+    }
+
+    const source = options.source ?? target;
+    if (!settleModifiedMembers(target)) return false;
+
+    // `HasListener` lives on the state slot itself, so it exists whatever
+    // decorators the class took, and answers false when no emitter was
+    // ever attached - which is also what keeps EmitEvent from being called
+    // on a class that does not have it.
+    //
+    // The emitter no-ops without listeners anyway, so the guard is really
+    // about the PAYLOAD: it stops one being built per settle for nobody,
+    // the waste the audit measured on the per-frame binding path.
+    if (options.skipEvents !== true && !state.suppressEvents && state.HasListener())
+    {
+        target.EmitEvent("modified", target, { source, changedFields });
+    }
+
+    return true;
 }

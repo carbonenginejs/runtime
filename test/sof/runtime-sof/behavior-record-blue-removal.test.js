@@ -137,16 +137,16 @@ test("Blue persisted roundtrip and copier preserve nested area and independent v
   }
 });
 
-test("existing Generic Copy and GetValues preserve nested model-free swarm, variant and damage", () =>
+test("existing Generic schema copy and export preserve nested model-free swarm, variant and damage", () =>
 {
   const {swarm, variant, damage} = records(), owner = new EveSOFDataGeneric();
   owner.swarm = swarm; owner.variants.push(variant); owner.damage = damage;
-  const copy = new EveSOFDataGeneric(); copy.Copy(owner);
+  const copy = new EveSOFDataGeneric(); CjsSchema.copy(copy, owner);
   assert.equal(copy.swarm.constructor, Swarm); assert.notEqual(copy.swarm, swarm);
   assert.equal(copy.variants[0].constructor, Variant); assert.notEqual(copy.variants[0], variant);
   assert.notEqual(copy.variants[0].hullArea, variant.hullArea);
   assert.equal(copy.damage.constructor, Damage); assert.notEqual(copy.damage.armorParticleColor0, damage.armorParticleColor0);
-  const values = copy.GetValues({refs: true, forceTypeTags: true});
+  const values = CjsSchema.getValues(copy, {}, {refs: true, forceTypeTags: true});
   for (const [name, value] of Object.entries(swarmValues)) assert.equal(values.swarm[name], value);
   for (const [name, value] of Object.entries(damageValues)) assert.deepEqual(values.damage[name], value);
   assert.equal(values.variants[0].name, "damaged"); assert.equal(values.variants[0].isTransparent, true);

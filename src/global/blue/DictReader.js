@@ -92,6 +92,9 @@ export class DictReader extends IRootReaderBase
   /** Pending populations for this reader's IList references and completion. */
   _pendingListReads = null;
 
+  /** Optional values-service population policy, separate from native reader notifications. */
+  _populate = null;
+
   /** Instances allocated by the current declared operation, in allocation order. */
   _created = null;
 
@@ -106,8 +109,9 @@ export class DictReader extends IRootReaderBase
    *   legacy reads; anything else is passed to a class's own `from`.
    * @param {boolean} [options.declarations=false] Use isolated declaration-driven construction.
    * @param {boolean} [options.initialize=true] Initialize owned declared objects after references resolve.
+   * @param {Function|null} [populate=null] Optional values-service population policy.
    */
-  constructor(options = {})
+  constructor(options = {}, populate = null)
   {
     super();
     if (options.declarations === true && options.importContext != null)
@@ -115,6 +119,7 @@ export class DictReader extends IRootReaderBase
       throw new TypeError("Declared dictionary reads cannot share a legacy importContext.");
     }
     this._options = options;
+    this._populate = populate;
     this._anchors = options.importContext ?? CreateAnchorTable();
     this._ownsAnchors = !options.importContext;
   }
@@ -160,9 +165,10 @@ export class DictReader extends IRootReaderBase
    * @param {object} instance The object.
    * @param {object} source A values bag.
    * @param {object|null} notify The INotify told of NOTIFY members, or null.
+   * @param {Function|null} [onWrite=null] Optional successful root-write observer.
    * @returns {Set<string>} The members whose values changed.
    */
-  ReadInto(instance, source, notify)
+  ReadInto(instance, source, notify, onWrite = null)
   {
     this._BeginDeclaredOperation();
     this._currentSource = source;
@@ -176,7 +182,7 @@ export class DictReader extends IRootReaderBase
       }
       if (source._id !== undefined && source._id !== null) this._anchors.register(source._id, instance);
 
-      const changed = this.ReadMembers(instance, this._options.declarations === true ? this._DeclaredNotify(instance) : notify);
+      const changed = this.ReadMembers(instance, this._options.declarations === true ? this._DeclaredNotify(instance) : notify, onWrite);
       this._Finish();
       return changed;
     }
@@ -229,12 +235,25 @@ export class DictReader extends IRootReaderBase
     }
 
     const instance = new Constructor();
+    // Retain this factory's existing completion contract while its class's
+    // native interface mapping is audited. The operation owns only ordering.
+    this._anchors.registerCreated(instance, () =>
+    {
+      if (this._doInitialize && this._options.initialize !== false && typeof instance.Initialize === "function") instance.Initialize();
+    });
     if (source._id !== undefined && source._id !== null) this._anchors.register(source._id, instance);
 
     const notify = typeof instance.Initialize === "function" ? null : instance;
-    this.ReadMembers(instance, typeof notify?.OnModified === "function" ? notify : null);
+    if (typeof instance.SetValues === "function")
+    {
+      instance.SetValues(source, { ...this._options, importContext: this._anchors });
+    }
+    else if (this._populate)
+    {
+      this._populate(instance, this._options, recordWrite => this.ReadMembers(instance, null, recordWrite));
+    }
+    else this.ReadMembers(instance, typeof notify?.OnModified === "function" ? notify : null);
 
-    if (this._doInitialize && typeof instance.Initialize === "function") instance.Initialize();
     return instance;
   }
 
@@ -244,9 +263,10 @@ export class DictReader extends IRootReaderBase
    *
    * @param {object} instance The object.
    * @param {object|null} notify The INotify to tell, or null.
+   * @param {Function|null} [onWrite=null] Optional successful-write observer.
    * @returns {Set<string>} The members whose values changed.
    */
-  ReadMembers(instance, notify)
+  ReadMembers(instance, notify, onWrite = null)
   {
     const source = this._currentSource;
     const changed = new Set();
@@ -267,7 +287,13 @@ export class DictReader extends IRootReaderBase
 
       this._currentSource = source[name];
       this._contextStack.push(name);
-      if (this.HandleAttribute(name, instance, notify)) changed.add(name);
+      const didChange = this.HandleAttribute(name, instance, notify);
+      if (didChange) changed.add(name);
+      if (onWrite && field && CjsSchema.isFieldWritable(field))
+      {
+        onWrite(field, didChange);
+      }
+      if (field && CjsSchema.isFieldWritable(field)) this._anchors.recordRead(instance, field);
       if (this._options.declarations === true && field && CjsSchema.isFieldWritable(field))
       {
         let fields = this._readFields.get(instance);
@@ -857,6 +883,7 @@ export class DictReader extends IRootReaderBase
         {
           for (const pending of this._pendingListReads) pending.finish();
         }
+        if (this._options.declarations !== true) this._anchors.initializeCreated(this._options);
       }
       if (this._options.declarations === true)
       {
@@ -975,6 +1002,7 @@ export class DictReader extends IRootReaderBase
   {
     this._contextStack.length = 0;
     this._currentSource = null;
+    if (this._ownsAnchors) this._anchors = CreateAnchorTable();
     if (this._options.declarations === true)
     {
       this._anchors = null;
@@ -994,16 +1022,29 @@ export class DictReader extends IRootReaderBase
 
 
 /**
- * An anchor table: `_id` to object, and the `{ _ref }`s waiting for an id.
- * `CjsModel`'s import context is a superset of this shape.
+ * Tracks allocations and references for one dictionary operation. Completion
+ * belongs to the allocating factory; borrowed objects are never completed.
+ * Forward references resolve before dependency-first, once-only completion.
  */
 export function CreateAnchorTable()
 {
   const byId = new Map();
   const pending = [];
-
+  const created = new Map();
+  const readProperties = new Map();
   return {
     byId,
+    registerCreated(instance, complete)
+    {
+      if (!created.has(instance)) created.set(instance, complete);
+    },
+    recordRead(instance, field)
+    {
+      if (field.role !== "property") return;
+      let fields = readProperties.get(instance);
+      if (!fields) readProperties.set(instance, fields = new Set());
+      fields.add(field.name);
+    },
     register(id, instance)
     {
       const existing = byId.get(id);
@@ -1028,6 +1069,63 @@ export function CreateAnchorTable()
       if (unresolved.size)
       {
         throw new IRootReaderException(`Unresolved _ref ids: ${Array.from(unresolved, id => JSON.stringify(id)).join(", ")}. Every { _ref } must match a { _id } in the same import operation.`);
+      }
+    },
+    initializeCreated(options = {})
+    {
+      const visited = new Set();
+      // Legacy factories retain their owned-default completion during migration.
+      const completionOptions = { ...options, visited: new Set(), created: new Set(created.keys()) };
+      const containers = new Set();
+      const visit = instance =>
+      {
+        if (visited.has(instance)) return;
+        visited.add(instance);
+        const fields = getDictionaryDeclarations(instance.constructor).fields;
+        for (let index = fields.length - 1; index >= 0; index--)
+        {
+          const field = fields[index];
+          if (field.type?.runtimeOnly === true) continue;
+          if (field.role === "property" && !readProperties.get(instance)?.has(field.name)) continue;
+          visitValue(readDictionaryValue(instance, field));
+        }
+        if (created.has(instance)) created.get(instance)(completionOptions);
+      };
+      const visitValue = value =>
+      {
+        if (!value || typeof value !== "object" || ArrayBuffer.isView(value)) return;
+        if (mappedInterfaces(value.constructor).has(IList))
+        {
+          if (containers.has(value)) return;
+          containers.add(value);
+          for (let i = value.GetSize() - 1; i >= 0; i--) visitValue(value.GetAt(i));
+          return;
+        }
+        if (CjsSchema.getClassName(value.constructor)) { visit(value); return; }
+        if (containers.has(value)) return;
+        containers.add(value);
+        if (value instanceof Map || value instanceof Set)
+        {
+          for (const item of value.values()) visitValue(item);
+        }
+        else
+        {
+          const descriptors = Object.values(Object.getOwnPropertyDescriptors(value));
+          for (let i = descriptors.length - 1; i >= 0; i--)
+          {
+            if (Object.hasOwn(descriptors[i], "value")) visitValue(descriptors[i].value);
+          }
+        }
+      };
+      try
+      {
+        const instances = Array.from(created.keys());
+        for (let i = instances.length - 1; i >= 0; i--) visit(instances[i]);
+      }
+      finally
+      {
+        created.clear();
+        readProperties.clear();
       }
     }
   };

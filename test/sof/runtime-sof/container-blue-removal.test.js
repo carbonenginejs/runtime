@@ -125,16 +125,16 @@ test("Blue copy and persisted roundtrip preserve material parameter types and ar
   }
 });
 
-test("actual catalog Copy and GetValues preserve model-free containers and typed children", () =>
+test("actual catalog schema copy and export preserve model-free containers and typed children", () =>
 {
   const {data, material, area} = catalog(), copy = new EveSOFData();
   // Existing type-tags option is required for polymorphic base-declared lists.
-  copy.Copy(data, {typeTags: true});
+  CjsSchema.copy(copy, data, {typeTags: true});
   assert.equal(copy.material[0].constructor, Material); assert.notEqual(copy.material[0], material);
   assert.equal(copy.material[0].parameters[2].constructor, Vector2); assert.notEqual(copy.material[0].parameters[2].value, material.parameters[2].value);
   assert.equal(copy.faction[0].areaTypes.constructor, Area); assert.notEqual(copy.faction[0].areaTypes, area);
   assert.equal(copy.faction[0].GetAreaType(0).constructor, AreaMaterial); assert.notEqual(copy.faction[0].GetAreaType(0), area.Primary);
-  const values = copy.GetValues({refs: true, forceTypeTags: true});
+  const values = CjsSchema.getValues(copy, {}, {refs: true, forceTypeTags: true});
   assert.deepEqual(values.material[0].parameters[2].value, [2, 3]); assert.equal(values.material[0].parameters[1].value, 0.5);
   assert.equal(values.faction[0].areaTypes.Primary.material1, "testMaterial"); assert.equal(values.faction[0].areaTypes.Primary.colorType, 0);
 });

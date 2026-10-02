@@ -1,5 +1,7 @@
 import { CjsSchema } from "../schema/CjsSchema.js";
 import { DictWriter } from "./DictWriter.js";
+import { DictReader } from "./DictReader.js";
+import { applyValues } from "../compose/values.js";
 
 // Values are a service over registered declarations. Importing Blue installs
 // this bridge; a class needs no model base or instance transport methods.
@@ -18,7 +20,8 @@ CjsSchema.registerValuesService({
     setValues(target, values = {}, options = {})
     {
         if (target && typeof target.SetValues === "function") return target.SetValues(values, options);
-        return CjsSchema.setValuesFromSchema(target, values, options);
+        return applyValues(target, options, recordWrite =>
+            new DictReader(options).ReadInto(target, values, null, recordWrite));
     },
     /** Resolves a registered values factory, preserving its class-owned normalization. */
     from(className, values = {}, options = {})
@@ -30,9 +33,6 @@ CjsSchema.registerValuesService({
             throw new TypeError(`CjsSchema.from has no class registered for "${String(className)}".`);
         }
         if (typeof Constructor.from === "function") return Constructor.from(values, options);
-        const instance = new Constructor();
-        this.setValues(instance, values, options);
-        if (typeof instance.Initialize === "function") instance.Initialize(options);
-        return instance;
+        return new DictReader(options, applyValues).CreateObject(values, Constructor);
     }
 });

@@ -134,16 +134,16 @@ test("Blue copy and persisted dictionary roundtrip detach every transform and st
   }
 });
 
-test("actual catalog Copy and GetValues retain concrete locator and instance records", () =>
+test("actual catalog schema copy and export retain concrete locator and instance records", () =>
 {
-  const data = catalog(), copy = new EveSOFData(); copy.Copy(data, {typeTags: true});
+  const data = catalog(), copy = new EveSOFData(); CjsSchema.copy(copy, data, {typeTags: true});
   const source = children(data), copied = children(copy);
   for (const name of ["transform", "instance"])
   {
     assert.equal(copied[name].constructor, source[name].constructor); assert.notEqual(copied[name], source[name]);
     assert.notEqual(copied[name].rotation, source[name].rotation); near(copied[name].rotation, rotation);
   }
-  const values = copy.GetValues({refs: true, forceTypeTags: true});
+  const values = CjsSchema.getValues(copy, {}, {refs: true, forceTypeTags: true});
   assert.deepEqual(values.hull[0].locatorSets[0].locators[0].position, position);
   assert.deepEqual(values.hull[0].instancedMeshes[0].instances[0].translation, position);
   assert.equal(values.hull[0].locatorSets[0].locators[0].boneIndex, -1);

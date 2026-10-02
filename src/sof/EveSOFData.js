@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Root SOF data catalog. */
 @type.define({ className: "EveSOFData", family: "eve" })
-export class EveSOFData extends CjsModel
+export class EveSOFData
 {
 
   /** m_faction (PEveSOFDataFactionVector) [READ, PERSIST] */

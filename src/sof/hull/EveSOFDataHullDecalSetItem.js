@@ -2,7 +2,6 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
-import { CjsModel } from "#model";
 import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.js";
 import { EveSOFDataLogoSet } from "../shared/EveSOFDataLogoSet.js";
 import { quat } from "#math/quat";
@@ -10,7 +9,7 @@ import { vec3 } from "#math/vec3";
 
 /** Defines a logo or usage decal with faction color, bone and transform placement, mesh and material data, and single- or multi-hull index buffers. */
 @type.define({ className: "EveSOFDataHullDecalSetItem", family: "eve" })
-export class EveSOFDataHullDecalSetItem extends CjsModel
+export class EveSOFDataHullDecalSetItem
 {
   static ColorType = EveSOFDataFactionColorSet.ColorType;
 

@@ -121,19 +121,19 @@ test("Blue writer, reader and copier roundtrip persisted records and independent
   }
 });
 
-test("existing Generic owner Copy and GetValues handle nested model-free records", () =>
+test("existing Generic owner schema copy and export handle nested model-free records", () =>
 {
   const {visibility, category, damage} = records();
   const owner = new EveSOFDataGeneric();
   owner.visibilityGroups.push(visibility); owner.hullCategoriesData.push(category); owner.hullDamage = damage;
-  const copy = new EveSOFDataGeneric(); copy.Copy(owner);
+  const copy = new EveSOFDataGeneric(); CjsSchema.copy(copy, owner);
   assert.equal(copy.visibilityGroups[0].constructor, Visibility);
   assert.equal(copy.hullCategoriesData[0].constructor, Category);
   assert.equal(copy.hullDamage.constructor, Damage);
   assert.notEqual(copy.visibilityGroups[0], visibility);
   assert.notEqual(copy.hullCategoriesData[0], category);
   assert.notEqual(copy.hullDamage.hullParticleColor0, damage.hullParticleColor0);
-  const values = copy.GetValues({refs: true, forceTypeTags: true});
+  const values = CjsSchema.getValues(copy, {}, {refs: true, forceTypeTags: true});
   assert.equal(values.visibilityGroups[0].name, "engine");
   assert.equal(values.visibilityGroups[0].description, "Engine geometry");
   assert.equal(values.hullCategoriesData[0].name, "frigate");

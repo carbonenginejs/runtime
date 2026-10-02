@@ -112,19 +112,19 @@ test("actual generic lookup keeps decal precedence and calls retained HasUsage h
   assert.equal(owner.HasShaderUsage("missing", "Paint"), false); assert.equal(owner.HasShaderUsage("area.fx", ""), false);
 });
 
-test("actual Generic Copy and GetValues preserve banner struct and shader list children", () =>
+test("actual Generic schema copy and export preserve banner struct and shader list children", () =>
 {
   const {shader, decal} = records(), owner = new EveSOFDataGeneric();
   owner.areaShaders.push(shader); owner.decalShaders.push(decal);
   new Copier().CopyTo(shader, owner.bannerShader);
-  const copy = new EveSOFDataGeneric(), banner = copy.bannerShader; copy.Copy(owner);
+  const copy = new EveSOFDataGeneric(), banner = copy.bannerShader; CjsSchema.copy(copy, owner);
   assert.equal(copy.bannerShader, banner); assert.equal(copy.bannerShader.constructor, Shader);
   assert.notEqual(copy.bannerShader, owner.bannerShader);
   assert.equal(copy.areaShaders[0].constructor, Shader); assert.notEqual(copy.areaShaders[0], shader);
   assert.equal(copy.decalShaders[0].constructor, Decal); assert.notEqual(copy.decalShaders[0], decal);
   assert.notEqual(copy.areaShaders[0].defaultParameters[0].value, shader.defaultParameters[0].value);
   assert.notEqual(copy.decalShaders[0].parentTextures[0], decal.parentTextures[0]);
-  const values = copy.GetValues({refs: true, forceTypeTags: true});
+  const values = CjsSchema.getValues(copy, {}, {refs: true, forceTypeTags: true});
   assert.equal(values.bannerShader.shader, "area.fx"); assert.equal(values.bannerShader.doGenerateDepthArea, false);
   assert.deepEqual(values.areaShaders[0].defaultParameters[0].value, [1, 2, 3, 4]);
   assert.equal(values.areaShaders[0].defaultTextures[0].resFilePath, "res:/mask.dds");

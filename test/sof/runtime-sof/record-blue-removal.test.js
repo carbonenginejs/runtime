@@ -81,14 +81,14 @@ test("Blue shader copy and values preserve model-free string and texture childre
   assert.equal(values.parameters[0].str,"Paint");assert.equal(values.defaultTextures[0].resFilePath,"res:/a.dds");
 });
 
-test("existing decal owner Copy and GetValues preserve model-free index records", () =>
+test("existing decal owner schema copy and export preserve model-free index records", () =>
 {
   const buffer=new Indices();buffer.AddIndex(70000);buffer.AddIndex(1);
   const owner=new EveSOFDataHullDecalSetItem();owner.indexBuffers.push(buffer);
-  const copy=new EveSOFDataHullDecalSetItem();copy.Copy(owner);
+  const copy=new EveSOFDataHullDecalSetItem();CjsSchema.copy(copy, owner);
   assert.equal(copy.indexBuffers[0].constructor,Indices);
   assert.notEqual(copy.indexBuffers[0].indexBuffer,buffer.indexBuffer);
-  const values=copy.GetValues({refs:true,forceTypeTags:true});
+  const values=CjsSchema.getValues(copy, {}, {refs:true,forceTypeTags:true});
   assert.deepEqual(values.indexBuffers[0].indexBuffer,[70000,1]);
 });
 
