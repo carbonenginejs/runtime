@@ -1,14 +1,44 @@
 {
-  "outRoot": "src/generated",
+  "outRoot": "src/trinity/generated",
   "classes": {
-    "written": 256,
-    "skipped": 327
+    "written": 34,
+    "skipped": 661
   },
   "enums": {
     "written": 15,
     "skippedEntries": 8
   },
   "skipped": [
+    {
+      "family": "audio",
+      "className": "IEveSpaceObject2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "ITr2ActionController",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "ITr2Controller",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "ITr2ControllerAction",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "ITr2ControllerOwner",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "ITr2StateMachineStateFinalizer",
+      "reason": "hand-maintained source exists"
+    },
     {
       "family": "controllers",
       "className": "Tr2ActionAnimateCurveSet",
@@ -160,6 +190,26 @@
       "reason": "hand-maintained source exists"
     },
     {
+      "family": "core",
+      "className": "IWorldPosition",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "ITr2CurveSetOwner",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "ITr2FollowCurveKey",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "ITriDuration",
+      "reason": "hand-maintained source exists"
+    },
+    {
       "family": "curves",
       "className": "Tr2BoneMatrixCurve",
       "reason": "hand-maintained source exists"
@@ -296,6 +346,11 @@
     },
     {
       "family": "curves",
+      "className": "Tr2Key",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
       "className": "Tr2MatrixKey",
       "reason": "hand-maintained source exists"
     },
@@ -336,6 +391,16 @@
     },
     {
       "family": "curves",
+      "className": "Tr2VectorFunctionModifier",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "TriColorSequencer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
       "className": "TriCurveSet",
       "reason": "hand-maintained source exists"
     },
@@ -350,13 +415,203 @@
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "eve/child/behaviors",
-      "className": "BackAndForthData",
+      "family": "curves",
+      "className": "TriVectorSequencer",
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "eve/perObjectData",
-      "className": "DecalVSPerObjectData",
+      "family": "eve",
+      "className": "AudioGameObject",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveBasicPerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveBoosterSetPerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveCamera",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildBoosterSetPerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildBulletStormPerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildSpherePinPerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveDecalPerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveDistanceField",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveEntity",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveLODHelper",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveMissileWarheadPerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveModularObjectModifier",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveParticleDirectForce",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveParticleDragForce",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveParticleSpring",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSceneStaticParticlesPerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSpherePinPerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveTriggerVolume",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveTurretAiming",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveTurretSetPerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveUpdateContext",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "IEveBallpark",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "IEveFiringEffectElement",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "IEveInheritPropertiesOwner",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "IEveLightingOverride",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "IEveReferencePoint",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "IEveSpaceObject2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "IEveTransform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "ITr2DynamicBindingOwner",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "ITr2SoundEmitterOwner",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "ProcessLifetime",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "ProcessLifetimeData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "SplineTunnel",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "SplineTunnelGroup",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "SplineTunnelPoint",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "TriShadowFrustum",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "TriShadowOrthoFrustum",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment",
+      "className": "IEveSpaceObjectAttachment",
       "reason": "hand-maintained source exists"
     },
     {
@@ -375,16 +630,6 @@
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "eve/perObjectData",
-      "className": "EveBasicPerObjectData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/lineSetPaths",
-      "className": "EveBezierCurve",
-      "reason": "hand-maintained source exists"
-    },
-    {
       "family": "eve/attachment/boosters",
       "className": "EveBoosterSet2",
       "reason": "hand-maintained source exists"
@@ -395,138 +640,18 @@
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "eve/volume",
-      "className": "EveBoxVolume",
+      "family": "eve/attachment/boosters",
+      "className": "EveTrailsSet",
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "eve",
-      "className": "EveCamera",
+      "family": "eve/attachment/decal",
+      "className": "DecalMeshCache",
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "eve/fxAttributes",
-      "className": "EveCameraFxAttributes",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildBulletStorm",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildContainer",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildEffectPropagator",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildInheritProperties",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildInstanceMeshRenderer",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildInstancedMeshes",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildMesh",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/modifiers",
-      "className": "EveChildModifierAttachToBone",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/modifiers",
-      "className": "EveChildModifierBillboard3D",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/modifiers",
-      "className": "EveChildModifierSRT",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/modifiers",
-      "className": "EveChildModifierStretch",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/modifiers",
-      "className": "EveChildModifierTranslateWithCamera",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildSpherePin",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/perObjectData",
-      "className": "EveChildSpherePinPerObjectData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildTransform",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildUpdateParams",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/lineSetPaths",
-      "className": "EveCircle",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/scene",
-      "className": "EveComponentCollection",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/scene",
-      "className": "EveComponentRegistry",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject",
-      "className": "EveCustomMask",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve",
-      "className": "EveDistanceField",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve",
-      "className": "EveEntity",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/volume",
-      "className": "EveEllipsoidVolume",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/renderable/stretch",
-      "className": "EveFiringEffectElementContainer",
+      "family": "eve/attachment/decal",
+      "className": "EveSpaceObjectDecal",
       "reason": "hand-maintained source exists"
     },
     {
@@ -545,86 +670,6 @@
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "eve/overlays/impact",
-      "className": "EveImpactOverlay",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/effect",
-      "className": "EveLensflare",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/ui",
-      "className": "EveLineData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/ui",
-      "className": "EveLineSet",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/renderable/stretch",
-      "className": "EveLocalPositionCurve",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/utils",
-      "className": "EveLocator2",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/utils",
-      "className": "EveLocatorSets",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/overlays",
-      "className": "EveMeshOverlayEffect",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject",
-      "className": "EveMissile",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject",
-      "className": "EveMissileWarhead",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject",
-      "className": "EveMobile",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/effect",
-      "className": "EveMultiEffect",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/effect",
-      "className": "EveMultiEffectParameter",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve",
-      "className": "EvePerObjectPSData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve",
-      "className": "EvePerObjectVSData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/scene",
-      "className": "EvePickingContext",
-      "reason": "hand-maintained source exists"
-    },
-    {
       "family": "eve/attachment/planes",
       "className": "EvePlaneLight",
       "reason": "hand-maintained source exists"
@@ -637,81 +682,6 @@
     {
       "family": "eve/attachment/planes",
       "className": "EvePlaneSetItem",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject",
-      "className": "EvePlanet",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/renderable/stretch",
-      "className": "EveRemotePositionCurve",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject",
-      "className": "EveRootTransform",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/scene",
-      "className": "EveSceneStaticParticles",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject",
-      "className": "EveShip2",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject",
-      "className": "EveSpaceObject2",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/decal",
-      "className": "EveSpaceObjectDecal",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/fxAttributes",
-      "className": "EveSpaceObjectFxAttributes",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject",
-      "className": "EveSpaceObjectPSData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject",
-      "className": "EveSpaceObjectVSData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/perObjectData",
-      "className": "EveSpacePerObjectData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/scene",
-      "className": "EveSpaceScene",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/ui",
-      "className": "EveSpherePin",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/perObjectData",
-      "className": "EveSpherePinPerObjectData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/volume",
-      "className": "EveSphereVolume",
       "reason": "hand-maintained source exists"
     },
     {
@@ -755,6 +725,656 @@
       "reason": "hand-maintained source exists"
     },
     {
+      "family": "eve/attachment/turrets",
+      "className": "EveTurretFiringFX",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/turrets",
+      "className": "EveTurretSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/turrets",
+      "className": "EveTurretTarget",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildAudio",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildBehaviorSystem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildBoosterSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildBulletStorm",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildCloud",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildCloud2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildContainer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildEffectPropagator",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildExplosion",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildFogVolume",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildInheritProperties",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildInstanceContainer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildInstancedMeshes",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildInstanceMeshRenderer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildInstanceTransform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildLightingOverride",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildLineSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildLink",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildMesh",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildPartData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildPartData.PartData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildParticleSphere",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildParticleSystem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildPlug",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildPostProcessVolume",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildQuad",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildRef",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildSocket",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildSpherePin",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildTransform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildTurret",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildUpdateParams",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveCloudVolumeBall",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveCloudVolumeTextureParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveSpaceObjectChild",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "IEveSpaceObjectChild",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "Allign",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "ApproachGroup",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "BackAndForth",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "BackAndForthData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "BehaviorGroup",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "BehaviorGroupBooster",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "CollisionAvoidance",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "DroneAgent",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "DroneAvoidance",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "EveKDdroneManagementTree",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "FollowASpline",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "FollowASplineData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "Formation",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "FormationData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "InclusionVolume",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "Inertia",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "InertiaData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "LocatorData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "PlayFX",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "PlayFXData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "SeekTarget",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "SeekTargetData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "SpawnDrones",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "Wander",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/lineSetPaths",
+      "className": "EveBezierCurve",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/lineSetPaths",
+      "className": "EveCircle",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/lineSetPaths",
+      "className": "EveLineChildContainer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/lineSetPaths",
+      "className": "IEveLineSetPath",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/modifiers",
+      "className": "EveChildModifierAttachToBone",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/modifiers",
+      "className": "EveChildModifierBillboard2D",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/modifiers",
+      "className": "EveChildModifierBillboard3D",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/modifiers",
+      "className": "EveChildModifierBooster",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/modifiers",
+      "className": "EveChildModifierCameraOrientedRotationConstrained",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/modifiers",
+      "className": "EveChildModifierHalo",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/modifiers",
+      "className": "EveChildModifierHaloInverted",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/modifiers",
+      "className": "EveChildModifierSRT",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/modifiers",
+      "className": "EveChildModifierStretch",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/modifiers",
+      "className": "EveChildModifierTranslateWithCamera",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/modifiers",
+      "className": "IEveChildTransformModifier",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/procedural",
+      "className": "EveChildProceduralContainer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/procedural",
+      "className": "IEveProceduralSelectionMethod",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/procedural/selection",
+      "className": "EveProceduralMethodAttributeMap",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/procedural/selection",
+      "className": "EveProceduralMethodAttributeMapParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/procedural/selection",
+      "className": "EveProceduralMethodCycling",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/procedural/selection",
+      "className": "EveProceduralMethodCyclingParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/procedural/selection",
+      "className": "EveProceduralMethodRandom",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/procedural/selection",
+      "className": "EveProceduralMethodRandomParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/procedural/selection",
+      "className": "EveProceduralMethodThresholdParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/procedural/selection",
+      "className": "EveProceduralMethodThresholds",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution",
+      "className": "EveBaseDistributionMethod",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution",
+      "className": "IEveDistributionMethod",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution",
+      "className": "IEveDistributionModifier",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution",
+      "className": "IEveDistributionPlacementGenerators",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution",
+      "className": "IEveDistributionSpawner",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution",
+      "className": "IEveDistributionSpawnModifier",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution/attributeModifiers",
+      "className": "EveDistributionModifierProcessLifetime",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution/attributeModifiers",
+      "className": "EveDistributionModifierScaleBySpaceObjectParent",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution/attributeModifiers",
+      "className": "EveDistributionModifierTransformOffset",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution/attributeModifiers",
+      "className": "InitialPlacement",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution/attributeModifiers",
+      "className": "PlacementDataWithIdentifier",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution/placement",
+      "className": "EveDistributionPlacementGeneratorLocators",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution/placement",
+      "className": "EveDistributionPlacementGeneratorParentLocators",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution/placement",
+      "className": "EveDistributionPlacementGeneratorVolume",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution/spawners",
+      "className": "EveDistributionSpawnerBurst",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution/spawners",
+      "className": "EveDistributionSpawnerControllerTrigger",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution/spawners",
+      "className": "EveDistributionSpawnerInterval",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution/spawners",
+      "className": "EveDistributionSpawnerTriggerPlane",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution/spawners",
+      "className": "EveDistributionSpawnerTriggerSnake",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution/spawners",
+      "className": "EveDistributionSpawnerTriggerSphere",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution/spawnModifiers",
+      "className": "EveDistributionSpawnModifierLifeTimeOffset",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution/spawnModifiers",
+      "className": "EveDistributionSpawnModifierRandomOffset",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution/spawnModifiers",
+      "className": "EveDistributionSpawnModifierRandomRotation",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution/spawnModifiers",
+      "className": "EveDistributionSpawnModifierRandomScale",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/effect",
+      "className": "EveLensflare",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/effect",
+      "className": "EveMultiEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/effect",
+      "className": "EveMultiEffectParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/effect",
+      "className": "EveOccluder",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/fxAttributes",
+      "className": "EveCameraFxAttributes",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/fxAttributes",
+      "className": "EveSpaceObjectFxAttributes",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/lights",
+      "className": "LightFeatures",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/lights",
+      "className": "Tr2FactionLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/lights",
+      "className": "Tr2Light",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/lights",
+      "className": "Tr2PointLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/lights",
+      "className": "Tr2SpotLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/lights",
+      "className": "Tr2TexturedPointLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/overlays",
+      "className": "EveMeshOverlayEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/overlays/impact",
+      "className": "EveDamageOverlay",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/overlays/impact",
+      "className": "EveImpactOverlay",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/renderable/stretch",
+      "className": "EveFiringEffectElementContainer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/renderable/stretch",
+      "className": "EveLocalPositionCurve",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/renderable/stretch",
+      "className": "EveRemotePositionCurve",
+      "reason": "hand-maintained source exists"
+    },
+    {
       "family": "eve/renderable/stretch",
       "className": "EveStretch",
       "reason": "hand-maintained source exists"
@@ -770,6 +1390,321 @@
       "reason": "hand-maintained source exists"
     },
     {
+      "family": "eve/scene",
+      "className": "EveComponentCollection",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
+      "className": "EveComponentRegistry",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
+      "className": "EveInstancedMeshManager",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
+      "className": "EvePickingContext",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
+      "className": "EveSceneStaticParticles",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
+      "className": "EveSpaceScene",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
+      "className": "EveSpaceSceneRenderDriver",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
+      "className": "Tr2OcclusionBuffer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/smartLights",
+      "className": "EveChildSmartLightSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/smartLights",
+      "className": "EveSmartLightBaseGroup",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/smartLights",
+      "className": "EveSmartLightColorShareGroup",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/smartLights",
+      "className": "EveSmartLightMesh",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/smartLights",
+      "className": "EveSmartLightPointLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/smartLights",
+      "className": "EveSmartLightQuad",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/smartLights",
+      "className": "EveSmartLightSpotLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/smartLights/attributeModifiers",
+      "className": "EveSmartLightAttributeModifierBucket",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/smartLights/attributeModifiers",
+      "className": "EveSmartLightAttributeModifierCameraDependency",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/smartLights/attributeModifiers",
+      "className": "EveSmartLightAttributeModifierColor",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/smartLights/attributeModifiers",
+      "className": "EveSmartLightAttributeModifierControllerVariableListener",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/smartLights/attributeModifiers",
+      "className": "EveSmartLightAttributeModifierExpressionBucket",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/smartLights/attributeModifiers",
+      "className": "EveSmartLightAttributeModifierNoise",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/smartLights/attributeModifiers",
+      "className": "EveSmartLightBaseAttributeModifier",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/smartLights/attributeModifiers",
+      "className": "IEveSmartLightGroupAttributeModifier",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/socket",
+      "className": "EveSocketParameterBindingBase",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/socket",
+      "className": "EveSocketParameterBool",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/socket",
+      "className": "EveSocketParameterColor",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/socket",
+      "className": "EveSocketParameterFilePath",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/socket",
+      "className": "EveSocketParameterFloat",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/socket",
+      "className": "EveSocketParameterInt",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/socket",
+      "className": "EveSocketParameterString",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/socket",
+      "className": "EveSocketParameterVector2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/socket",
+      "className": "EveSocketParameterVector3",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/socket",
+      "className": "EveSocketParameterVector4",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/socket",
+      "className": "IEveSocketParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveCustomMask",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveEffectRoot2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveMissile",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveMissileWarhead",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveMobile",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EvePlanet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveRootTransform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveShip2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveSpaceObject2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveStation2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveTransform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "IEveFxAttribute",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject/swarm",
+      "className": "EveSwarm",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject/swarm",
+      "className": "EveSwarmRenderable",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject/swarm",
+      "className": "SwarmVehicle",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject/swarm",
+      "className": "SwarmVehicleDebug",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveConnector",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveCurveLineSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveEllipseDefinition",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveEllipseSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveLineContainer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveLineData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveLineSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveProjectBracket",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveSpherePin",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveSpherePinIndexTree",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveSprite2dBracket",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveSprite2dBracketRenderer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveTacticalOverlay",
+      "reason": "hand-maintained source exists"
+    },
+    {
       "family": "eve/ui",
       "className": "EveTacticalOverlayTrackObject",
       "reason": "hand-maintained source exists"
@@ -780,63 +1715,38 @@
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "eve/utils",
-      "className": "EveThrottleable",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/boosters",
-      "className": "EveTrailsSet",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject",
-      "className": "EveTransform",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/turrets",
-      "className": "EveTurretFiringFX",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/turrets",
-      "className": "EveTurretSet",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/perObjectData",
-      "className": "EveTurretSetPerObjectData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/turrets",
-      "className": "EveTurretSetPSData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/turrets",
-      "className": "EveTurretSetVSData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/turrets",
-      "className": "EveTurretTarget",
-      "reason": "hand-maintained source exists"
-    },
-    {
       "family": "eve/ui",
       "className": "EveUiObject",
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "eve",
-      "className": "EveUpdateContext",
+      "family": "eve/utils",
+      "className": "EveLocator2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/utils",
+      "className": "EveLocatorSets",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/utils",
+      "className": "EveThrottleable",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/utils",
+      "className": "Locator",
       "reason": "hand-maintained source exists"
     },
     {
       "family": "eve/virtualCamera",
       "className": "EveVirtualCamera",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera",
+      "className": "EveVirtualCameraSystem",
       "reason": "hand-maintained source exists"
     },
     {
@@ -891,6 +1801,16 @@
     },
     {
       "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourVector3MoveRight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourVector3MoveUp",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
       "className": "EveVirtualCameraBehaviourVector3Offset",
       "reason": "hand-maintained source exists"
     },
@@ -905,13 +1825,13 @@
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "eve/virtualCamera",
-      "className": "EveVirtualCameraSystem",
+      "family": "eve/virtualCamera/transition",
+      "className": "EveVirtualCameraTransitionBase",
       "reason": "hand-maintained source exists"
     },
     {
       "family": "eve/virtualCamera/transition",
-      "className": "EveVirtualCameraTransitionBase",
+      "className": "EveVirtualCameraTransitionCut",
       "reason": "hand-maintained source exists"
     },
     {
@@ -920,68 +1840,33 @@
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "eve/child/behaviors",
-      "className": "FollowASplineData",
+      "family": "eve/volume",
+      "className": "EveBoxVolume",
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "eve/child/behaviors",
-      "className": "FormationData",
+      "family": "eve/volume",
+      "className": "EveEllipsoidVolume",
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "eve/child/behaviors",
-      "className": "CollisionAvoidance",
+      "family": "eve/volume",
+      "className": "EveSphereVolume",
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "eve/child/behaviors",
-      "className": "InclusionVolume",
+      "family": "eve/volume",
+      "className": "IEveVolume",
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "eve/child/behaviors",
-      "className": "InertiaData",
+      "family": "include",
+      "className": "ITr2Updateable",
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "eve/utils",
-      "className": "Locator",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "LocatorData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/distribution/attributeModifiers",
-      "className": "PlacementDataWithIdentifier",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "PlayFXData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "ProcessLifetimeData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "ProcessLifetime",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "SeekTargetData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "Wander",
+      "family": "include",
+      "className": "ITr2ValueBinding",
       "reason": "hand-maintained source exists"
     },
     {
@@ -992,6 +1877,16 @@
     {
       "family": "include",
       "className": "ITriDevice",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "ITriEffectParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "ITriEffectResourceParameter",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1035,11 +1930,6 @@
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "curves",
-      "className": "Tr2Key",
-      "reason": "hand-maintained source exists"
-    },
-    {
       "family": "include",
       "className": "Tr2Rect",
       "reason": "hand-maintained source exists"
@@ -1050,23 +1940,53 @@
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "eve/lights",
-      "className": "Tr2Light",
+      "family": "particle",
+      "className": "ITr2AttributeGenerator",
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "eve/lights",
-      "className": "Tr2PointLight",
+      "family": "particle",
+      "className": "ITr2GenericEmitter",
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "eve/lights",
-      "className": "Tr2SpotLight",
+      "family": "particle",
+      "className": "ITr2GenericParticleConstraint",
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "eve/lights",
-      "className": "Tr2TexturedPointLight",
+      "family": "particle",
+      "className": "ITr2ParticleForce",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2CapsuleShapeAttributeGenerator",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2ConsecutiveIntegerAttributeGenerator",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2DynamicEmitter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2ElementBlendConstraint",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2ForceSphereVolume",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2GpuParticleSystem",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1096,6 +2016,21 @@
     },
     {
       "family": "particle",
+      "className": "Tr2ParticleElementData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2ParticleElementDeclaration",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2ParticleElementDeclarationName",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
       "className": "Tr2ParticleFluidDragForce",
       "reason": "hand-maintained source exists"
     },
@@ -1106,7 +2041,77 @@
     },
     {
       "family": "particle",
+      "className": "Tr2ParticleStreamIterator",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2ParticleSystem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2ParticleTurbulenceForce",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
       "className": "Tr2ParticleVortexForce",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2PlaneConstraint",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2RandomDirectionAttributeGenerator",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2RandomIntegerAttributeGenerator",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2RandomUniformAttributeGenerator",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2SphereConstraint",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2SphereShapeAttributeGenerator",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2StaticEmitter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "BlurContext",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "CASConstants",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "GaussianData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PostProcess",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1121,7 +2126,17 @@
     },
     {
       "family": "postProcess",
+      "className": "Tr2PostProcessRenderer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
       "className": "Tr2PPBloomEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPColorCorrectionEffect",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1131,7 +2146,52 @@
     },
     {
       "family": "postProcess",
+      "className": "Tr2PPDesaturateEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPDynamicExposureEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPFadeEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPFilmGrainEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPFogEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
       "className": "Tr2PPGenericEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPGodRaysEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPLutEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPSignalLossEffect",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1145,8 +2205,33 @@
       "reason": "hand-maintained source exists"
     },
     {
+      "family": "postProcess",
+      "className": "Tr2PPVignetteEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "raytracing",
+      "className": "Tr2RaytracingMeshArea",
+      "reason": "hand-maintained source exists"
+    },
+    {
       "family": "renderJob",
       "className": "Tr2RenderJobs",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "Tr2RenderNodeEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "Tr2RenderNodeSprite2dScene",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "Tr2StepExecuteRenderNode",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1160,18 +2245,13 @@
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "eve/scene",
-      "className": "TriShadowFrustum",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/scene",
-      "className": "TriShadowOrthoFrustum",
+      "family": "renderJob",
+      "className": "TriStepClear",
       "reason": "hand-maintained source exists"
     },
     {
       "family": "renderJob",
-      "className": "TriStepClear",
+      "className": "TriStepClearUav",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1186,12 +2266,37 @@
     },
     {
       "family": "renderJob",
+      "className": "TriStepFilterVisibilityResults",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
       "className": "TriStepGenerateMipMaps",
       "reason": "hand-maintained source exists"
     },
     {
       "family": "renderJob",
+      "className": "TriStepPopDepthStencil",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepPopProjection",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
       "className": "TriStepPopRenderTarget",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepPopViewport",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepPopViewTransform",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1206,7 +2311,82 @@
     },
     {
       "family": "renderJob",
+      "className": "TriStepPushProjection",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
       "className": "TriStepPushRenderTarget",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepPushViewport",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepPushViewTransform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepPythonCB",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepRemoteSync",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepRenderAtlas",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepRenderDebug",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepRenderEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepRenderFps",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepRenderLineGraph",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepRenderObject",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepRenderPass",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepRenderScene",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepRenderSceneDebug",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepRenderTexture",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1216,7 +2396,17 @@
     },
     {
       "family": "renderJob",
+      "className": "TriStepRunComputeShader",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
       "className": "TriStepRunJob",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepSetDebugRenderer",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1246,6 +2436,16 @@
     },
     {
       "family": "renderJob",
+      "className": "TriStepSetUpscalingContextID",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepSetVariableStore",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
       "className": "TriStepSetView",
       "reason": "hand-maintained source exists"
     },
@@ -1257,6 +2457,21 @@
     {
       "family": "renderJob",
       "className": "TriStepSetVisualizationMode",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepTestBlocking",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepToggleCubemap",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepUpdate",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1400,8 +2615,208 @@
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "eve/ui",
-      "className": "EveSprite2dBracket",
+      "family": "sprite2d",
+      "className": "ITr2SpriteObject",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dClipRect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dContainerBase",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dD3DVertex",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dLineTrace",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dLineTraceVertex",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dPickingMask",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dPolygon",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dRenderJob",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dScene",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dTransform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dTriangle",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dVertex",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dVertexBase",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2SpriteObjectBase",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityal",
+      "className": "Tr2VertexDefinition",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "DefaultKeyGenerator",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "EffectKeyGenerator",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "GrannyBoneOffset",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "ITr2CurveSetOwner",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "ITr2DynamicBindingOwner",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "ITr2EffectValue",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "ITr2FroxelFogSettings",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "ITr2ImpostorSource",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "ITr2InstanceData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "ITr2Renderable",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "ITr2Scene",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "ITr2SecondaryLightSource",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "ITr2ShLightingReceiver",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "ITr2SoundEmitterOwner",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "ITr2TextureProvider",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "ITr2ValueBinding",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "ITriRenderBatchAccumulator",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "ITriReroutable",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TextureSize2D",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2BindingVector3",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2Blitter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2BoundingLineSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2CurveLineSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2DebugRenderer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2Denoiser",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1421,6 +2836,11 @@
     },
     {
       "family": "trinityCore",
+      "className": "Tr2DynamicRingBuffer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
       "className": "Tr2ExpressionTermInfo",
       "reason": "hand-maintained source exists"
     },
@@ -1436,37 +2856,52 @@
     },
     {
       "family": "trinityCore",
-      "className": "Tr2InstancedMesh",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/ui",
-      "className": "EveCurveLineSet",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/ui",
-      "className": "EveConnector",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/ui",
-      "className": "EveLineContainer",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/ui",
-      "className": "EveProjectBracket",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/ui",
-      "className": "EveTacticalOverlay",
+      "className": "Tr2GpuResourcePool",
       "reason": "hand-maintained source exists"
     },
     {
       "family": "trinityCore",
-      "className": "ITr2FroxelFogSettings",
+      "className": "Tr2GpuStructuredBuffer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2GrannyAnimation",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2HostBitmap",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2InstancedMesh",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2KelvinColor",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2LightManager",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2LineGraph",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2LineSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2ManipulationTool",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1490,13 +2925,18 @@
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "postProcess",
-      "className": "Tr2PostProcess",
+      "family": "trinityCore",
+      "className": "Tr2PerObjectData",
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "postProcess",
-      "className": "Tr2PostProcessRenderer",
+      "family": "trinityCore",
+      "className": "Tr2PerObjectDataPSBuffer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2PerObjectDataStandard",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1506,27 +2946,37 @@
     },
     {
       "family": "trinityCore",
+      "className": "Tr2PrimitiveSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2ProceduralBuffer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
       "className": "Tr2ProjectBoundingBoxBracket",
       "reason": "hand-maintained source exists"
     },
     {
       "family": "trinityCore",
-      "className": "Tr2ShadowMap",
+      "className": "Tr2PyValueBinding",
       "reason": "hand-maintained source exists"
     },
     {
       "family": "trinityCore",
-      "className": "Tr2SSAO",
+      "className": "Tr2QuadRenderer",
       "reason": "hand-maintained source exists"
     },
     {
       "family": "trinityCore",
-      "className": "Tr2Transform",
+      "className": "Tr2ReflectionProbe",
       "reason": "hand-maintained source exists"
     },
     {
       "family": "trinityCore",
-      "className": "Tr2VolumetricsRenderer",
+      "className": "Tr2RenderBatch",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1536,7 +2986,37 @@
     },
     {
       "family": "trinityCore",
+      "className": "Tr2Renderer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
       "className": "Tr2RenderTarget",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2RingBuffer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2RingBufferOffsets",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2RingIndexBuffer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2RingVertexBuffer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2RotationTool",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1551,7 +3031,82 @@
     },
     {
       "family": "trinityCore",
+      "className": "Tr2ScalingTool",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2SerializedMorphAnimation",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2ShadowMap",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2ShLightingManager",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2SolidSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2SSAO",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2StreamingBitmapSaver",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2SuballocatedBuffer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
       "className": "Tr2SwapChain",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2TextureAnimation",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2TextureArray",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2TextureArrayElement",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2TextureReference",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2Transform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2TranslationTool",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2UpscalingTechniqueInfo",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1561,7 +3116,22 @@
     },
     {
       "family": "trinityCore",
+      "className": "Tr2VirtualAllocator",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2VisibilityEvent",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
       "className": "Tr2VisibilityResults",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2VolumetricsRenderer",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1570,13 +3140,28 @@
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "curves",
-      "className": "TriColorSequencer",
+      "family": "trinityCore",
+      "className": "TriDevice",
       "reason": "hand-maintained source exists"
     },
     {
       "family": "trinityCore",
-      "className": "TriDevice",
+      "className": "TriFloat",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriFrustum",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriFrustumOrtho",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriLineSet",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1587,6 +3172,11 @@
     {
       "family": "trinityCore",
       "className": "TriPerlinCurve",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriPoolAllocator",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1606,12 +3196,52 @@
     },
     {
       "family": "trinityCore",
-      "className": "TriVector",
+      "className": "TriRenderBatchAccumulator",
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "curves",
-      "className": "TriVectorSequencer",
+      "family": "trinityCore",
+      "className": "TriRenderBatchAreaBlock",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriRenderBatchAreaBlocksWithSharedMaterial",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriRigidOrientation",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriSettings",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriSettingsRegistrar",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriTorque",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriValueBinding",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriVariable",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriVector",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1625,8 +3255,43 @@
       "reason": "hand-maintained source exists"
     },
     {
+      "family": "trinityCore/animation",
+      "className": "ITr2PoseModifier",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore/animation",
+      "className": "Tr2GrannyAnimationLayer",
+      "reason": "hand-maintained source exists"
+    },
+    {
       "family": "ui",
       "className": "Tr2PresentParameters",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "utilities",
+      "className": "AreaBoundsInfo",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "utilities",
+      "className": "BoundingBox",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "utilities",
+      "className": "Float4x3",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "utilities",
+      "className": "MeshBoundsInfo",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "utilities",
+      "className": "Obb",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1636,262 +3301,17 @@
     },
     {
       "family": "utilities",
-      "className": "Obb",
+      "className": "Tr2MaterialBoundsAdjustment",
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "particle",
-      "className": "Tr2ParticleElementData",
+      "family": "utilities",
+      "className": "Vector3d",
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "particle",
-      "className": "Tr2ParticleElementDeclaration",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "particle",
-      "className": "Tr2ParticleElementDeclarationName",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "postProcess",
-      "className": "BlurContext",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "postProcess",
-      "className": "GaussianData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "postProcess",
-      "className": "Tr2PPEffect",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "postProcess",
-      "className": "Tr2PPColorCorrectionEffect",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "postProcess",
-      "className": "Tr2PPDesaturateEffect",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "postProcess",
-      "className": "Tr2PPDynamicExposureEffect",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "postProcess",
-      "className": "Tr2PPFadeEffect",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "postProcess",
-      "className": "Tr2PPFilmGrainEffect",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "postProcess",
-      "className": "Tr2PPFogEffect",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "postProcess",
-      "className": "Tr2PPGodRaysEffect",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "postProcess",
-      "className": "Tr2PPLutEffect",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "postProcess",
-      "className": "Tr2PPSignalLossEffect",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "postProcess",
-      "className": "Tr2PPVignetteEffect",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "DroneAgent",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "SplineTunnel",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "SplineTunnelGroup",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "SplineTunnelPoint",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildInstanceTransform",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveCloudVolumeBall",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/decal",
-      "className": "DecalMeshCache",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/distribution/attributeModifiers",
-      "className": "InitialPlacement",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/lights",
-      "className": "LightFeatures",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/perObjectData",
-      "className": "DecalPSPerObjectData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/perObjectData",
-      "className": "MergeMorphsConstantBuffer",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/socket",
-      "className": "EveSocketParameterFilePath",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject/swarm",
-      "className": "SwarmVehicle",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject/swarm",
-      "className": "SwarmVehicleDebug",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "trinityCore",
-      "className": "Tr2BindingVector3",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "trinityCore",
-      "className": "Tr2PyValueBinding",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "trinityCore",
-      "className": "Tr2SerializedMorphAnimation",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "trinityCore",
-      "className": "TriFloat",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "trinityCore",
-      "className": "TriValueBinding",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "trinityCore",
-      "className": "TriTorque",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "sprite2d",
-      "className": "Tr2Sprite2dClipRect",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "sprite2d",
-      "className": "Tr2Sprite2dContainerBase",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "sprite2d",
-      "className": "Tr2Sprite2dD3DVertex",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "sprite2d",
-      "className": "Tr2Sprite2dLineTraceVertex",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "sprite2d",
-      "className": "Tr2Sprite2dLineTrace",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "sprite2d",
-      "className": "Tr2Sprite2dPolygon",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "sprite2d",
-      "className": "Tr2Sprite2dRenderJob",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "sprite2d",
-      "className": "Tr2Sprite2dTriangle",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "sprite2d",
-      "className": "Tr2Sprite2dVertexBase",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "sprite2d",
-      "className": "Tr2Sprite2dTransform",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "sprite2d",
-      "className": "Tr2Sprite2dVertex",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "sprite2d",
-      "className": "Tr2SpriteObjectBase",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/smartLights",
-      "className": "EveSmartLightMesh",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/smartLights",
-      "className": "EveSmartLightSpotLight",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "particle",
-      "className": "Tr2GpuParticleSystem",
+      "family": "utilities",
+      "className": "Vector4d",
       "reason": "hand-maintained source exists"
     }
   ],
@@ -4481,5 +5901,2064 @@
         "baseClass": "EveChildTransform"
       }
     ]
-  }
+  },
+  "generatedClasses": [
+    {
+      "className": "EveCloudEditableVolume",
+      "family": "eve/child",
+      "file": "trinity/generated/eve/child/EveCloudEditableVolume.js"
+    },
+    {
+      "className": "EvePendingPickingReadback",
+      "family": "eve/scene",
+      "file": "trinity/generated/eve/scene/EvePendingPickingReadback.js"
+    },
+    {
+      "className": "EveStarfield",
+      "family": "eve/effect",
+      "file": "trinity/generated/eve/effect/EveStarfield.js"
+    },
+    {
+      "className": "Tr2AtlasTexture",
+      "family": "trinityCore",
+      "file": "trinity/generated/trinityCore/Tr2AtlasTexture.js"
+    },
+    {
+      "className": "Tr2FontManager",
+      "family": "font",
+      "file": "trinity/generated/font/Tr2FontManager.js"
+    },
+    {
+      "className": "Tr2FontMeasurer",
+      "family": "font",
+      "file": "trinity/generated/font/Tr2FontMeasurer.js"
+    },
+    {
+      "className": "Tr2GpuProfiler",
+      "family": "trinityCore",
+      "file": "trinity/generated/trinityCore/Tr2GpuProfiler.js"
+    },
+    {
+      "className": "Tr2GrannyPrimitiveSet",
+      "family": "trinityCore",
+      "file": "trinity/generated/trinityCore/Tr2GrannyPrimitiveSet.js"
+    },
+    {
+      "className": "Tr2ImpostorManager",
+      "family": "trinityCore",
+      "file": "trinity/generated/trinityCore/Tr2ImpostorManager.js"
+    },
+    {
+      "className": "Tr2PrimitiveScene",
+      "family": "trinityCore",
+      "file": "trinity/generated/trinityCore/Tr2PrimitiveScene.js"
+    },
+    {
+      "className": "Tr2PrimitiveText",
+      "family": "trinityCore",
+      "file": "trinity/generated/trinityCore/Tr2PrimitiveText.js"
+    },
+    {
+      "className": "Tr2RaytracingGeometry",
+      "family": "raytracing",
+      "file": "trinity/generated/raytracing/Tr2RaytracingGeometry.js"
+    },
+    {
+      "className": "Tr2RaytracingManager",
+      "family": "raytracing",
+      "file": "trinity/generated/raytracing/Tr2RaytracingManager.js"
+    },
+    {
+      "className": "Tr2RaytracingMesh",
+      "family": "raytracing",
+      "file": "trinity/generated/raytracing/Tr2RaytracingMesh.js"
+    },
+    {
+      "className": "Tr2RaytracingPipelineStateManager",
+      "family": "raytracing",
+      "file": "trinity/generated/raytracing/Tr2RaytracingPipelineStateManager.js"
+    },
+    {
+      "className": "Tr2SBitWrapper",
+      "family": "font",
+      "file": "trinity/generated/font/Tr2SBitWrapper.js"
+    },
+    {
+      "className": "Tr2Sprite2d",
+      "family": "sprite2d",
+      "file": "trinity/generated/sprite2d/Tr2Sprite2d.js"
+    },
+    {
+      "className": "Tr2Sprite2dArc",
+      "family": "sprite2d",
+      "file": "trinity/generated/sprite2d/Tr2Sprite2dArc.js"
+    },
+    {
+      "className": "Tr2Sprite2dContainer",
+      "family": "sprite2d",
+      "file": "trinity/generated/sprite2d/Tr2Sprite2dContainer.js"
+    },
+    {
+      "className": "Tr2Sprite2dDisplayList",
+      "family": "sprite2d",
+      "file": "trinity/generated/sprite2d/Tr2Sprite2dDisplayList.js"
+    },
+    {
+      "className": "Tr2Sprite2dFrame",
+      "family": "sprite2d",
+      "file": "trinity/generated/sprite2d/Tr2Sprite2dFrame.js"
+    },
+    {
+      "className": "Tr2Sprite2dLayer",
+      "family": "sprite2d",
+      "file": "trinity/generated/sprite2d/Tr2Sprite2dLayer.js"
+    },
+    {
+      "className": "Tr2Sprite2dLine",
+      "family": "sprite2d",
+      "file": "trinity/generated/sprite2d/Tr2Sprite2dLine.js"
+    },
+    {
+      "className": "Tr2Sprite2dStretch",
+      "family": "sprite2d",
+      "file": "trinity/generated/sprite2d/Tr2Sprite2dStretch.js"
+    },
+    {
+      "className": "Tr2Sprite2dStretchVertical",
+      "family": "sprite2d",
+      "file": "trinity/generated/sprite2d/Tr2Sprite2dStretchVertical.js"
+    },
+    {
+      "className": "Tr2Sprite2dTextObject",
+      "family": "sprite2d",
+      "file": "trinity/generated/sprite2d/Tr2Sprite2dTextObject.js"
+    },
+    {
+      "className": "Tr2Sprite2dTexture",
+      "family": "sprite2d",
+      "file": "trinity/generated/sprite2d/Tr2Sprite2dTexture.js"
+    },
+    {
+      "className": "Tr2SpriteObject",
+      "family": "sprite2d",
+      "file": "trinity/generated/sprite2d/Tr2SpriteObject.js"
+    },
+    {
+      "className": "Tr2SSSSS",
+      "family": "trinityCore",
+      "file": "trinity/generated/trinityCore/Tr2SSSSS.js"
+    },
+    {
+      "className": "Tr2TextureAtlas",
+      "family": "trinityCore",
+      "file": "trinity/generated/trinityCore/Tr2TextureAtlas.js"
+    },
+    {
+      "className": "Tr2TextureAtlasMan",
+      "family": "trinityCore",
+      "file": "trinity/generated/trinityCore/Tr2TextureAtlasMan.js"
+    },
+    {
+      "className": "Tr2TexturedSpriteObject",
+      "family": "sprite2d",
+      "file": "trinity/generated/sprite2d/Tr2TexturedSpriteObject.js"
+    },
+    {
+      "className": "Tr2TransientTextureReference",
+      "family": "trinityCore",
+      "file": "trinity/generated/trinityCore/Tr2TransientTextureReference.js"
+    },
+    {
+      "className": "TriStepRemoteUpdate",
+      "family": "renderJob",
+      "file": "trinity/generated/renderJob/TriStepRemoteUpdate.js"
+    }
+  ],
+  "paritySubjects": [
+    {
+      "family": "controllers",
+      "className": "Tr2ActionAnimateCurveSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionAnimateValue",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionBindRTPC",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionCallback",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionChildEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionOverlay",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionPlayCurveSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionPlayMeshAnimation",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionPlaySound",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionPython",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionResetClipSphereCenter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionSetAttenuationScaling",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionSetAudioEmitterPrefix",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionSetAudioSwitch",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionSetExternalControllerVariable",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionSetShaderOption",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionSetValue",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionSpawnParticles",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2BindingPoint",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2Controller",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ControllerEventHandler",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ControllerExpression",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ControllerFloatVariable",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ControllerReference",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2StateMachine",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2StateMachineState",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2StateMachineTransition",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2SyncToAnimation",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2TimelineController",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2TimelineEntry",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2BoneMatrixCurve",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CameraFollowCurveKey",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveColor",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveColorMixer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveCombiner",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveConstant",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveEulerRotation",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveEulerRotationExpression",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveQuaternion",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveQuaternionKey",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveRandomAxisRotation",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveRasterizeDestination",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveScalar",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveScalarDefinition",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveScalarExpression",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveScalarKey",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveSetRange",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveVector2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveVector3",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveVector3Expression",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveVector3Lerp",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2DistanceTracker",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2FollowCurve",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2GrannyEventTrack",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2GrannyTrack",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2GrannyTransformTrack",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2GrannyVectorTrack",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2Key",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2MatrixKey",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2ObjectFollowCurveKey",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2QuaternionLerpCurve",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2RotationAdapter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2ScalarExprKey",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2ScalarExprKeyCurve",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2ScalarFader",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2TranslationAdapter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "TriColorSequencer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "TriCurveSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "TriEventCurve",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "TriEventKey",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "TriVectorSequencer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveCamera",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveDistanceField",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveEntity",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EvePerObjectPSData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EvePerObjectVSData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveUpdateContext",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/banners",
+      "className": "EveBannerItem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/banners",
+      "className": "EveBannerLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/banners",
+      "className": "EveBannerSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/boosters",
+      "className": "EveBoosterSet2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/boosters",
+      "className": "EveBoosterSet2Renderable",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/boosters",
+      "className": "EveTrailsSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/decal",
+      "className": "DecalMeshCache",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/decal",
+      "className": "EveSpaceObjectDecal",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/haze",
+      "className": "EveHazeSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/haze",
+      "className": "EveHazeSetItem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/haze",
+      "className": "EveHazeSetLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/planes",
+      "className": "EvePlaneLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/planes",
+      "className": "EvePlaneSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/planes",
+      "className": "EvePlaneSetItem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/spotlights",
+      "className": "EveSpotlightLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/spotlights",
+      "className": "EveSpotlightSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/spotlights",
+      "className": "EveSpotlightSetItem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/sprites",
+      "className": "EveSpriteLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/sprites",
+      "className": "EveSpriteLineSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/sprites",
+      "className": "EveSpriteLineSetItem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/sprites",
+      "className": "EveSpriteSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/sprites",
+      "className": "EveSpriteSetItem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/turrets",
+      "className": "EveTurretFiringFX",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/turrets",
+      "className": "EveTurretSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/turrets",
+      "className": "EveTurretSetPSData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/turrets",
+      "className": "EveTurretSetVSData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/turrets",
+      "className": "EveTurretTarget",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildBulletStorm",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildContainer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildEffectPropagator",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildInheritProperties",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildInstancedMeshes",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildInstanceMeshRenderer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildInstanceTransform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildMesh",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildSpherePin",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildTransform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildUpdateParams",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveCloudVolumeBall",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "BackAndForthData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "CollisionAvoidance",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "DroneAgent",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "FollowASplineData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "FormationData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "InclusionVolume",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "InertiaData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "LocatorData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "PlayFXData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "ProcessLifetime",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "ProcessLifetimeData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "SeekTargetData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "SplineTunnel",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "SplineTunnelGroup",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "SplineTunnelPoint",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "Wander",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/lineSetPaths",
+      "className": "EveBezierCurve",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/lineSetPaths",
+      "className": "EveCircle",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/modifiers",
+      "className": "EveChildModifierAttachToBone",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/modifiers",
+      "className": "EveChildModifierBillboard3D",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/modifiers",
+      "className": "EveChildModifierSRT",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/modifiers",
+      "className": "EveChildModifierStretch",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/modifiers",
+      "className": "EveChildModifierTranslateWithCamera",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution/attributeModifiers",
+      "className": "InitialPlacement",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution/attributeModifiers",
+      "className": "PlacementDataWithIdentifier",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/effect",
+      "className": "EveLensflare",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/effect",
+      "className": "EveMultiEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/effect",
+      "className": "EveMultiEffectParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/fxAttributes",
+      "className": "EveCameraFxAttributes",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/fxAttributes",
+      "className": "EveSpaceObjectFxAttributes",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/lights",
+      "className": "LightFeatures",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/lights",
+      "className": "Tr2Light",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/lights",
+      "className": "Tr2PointLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/lights",
+      "className": "Tr2SpotLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/lights",
+      "className": "Tr2TexturedPointLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/overlays",
+      "className": "EveMeshOverlayEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/overlays/impact",
+      "className": "EveImpactOverlay",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/perObjectData",
+      "className": "DecalPSPerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/perObjectData",
+      "className": "DecalVSPerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/perObjectData",
+      "className": "EveBasicPerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/perObjectData",
+      "className": "EveChildSpherePinPerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/perObjectData",
+      "className": "EveSpacePerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/perObjectData",
+      "className": "EveSpherePinPerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/perObjectData",
+      "className": "EveTurretSetPerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/perObjectData",
+      "className": "MergeMorphsConstantBuffer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/renderable/stretch",
+      "className": "EveFiringEffectElementContainer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/renderable/stretch",
+      "className": "EveLocalPositionCurve",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/renderable/stretch",
+      "className": "EveRemotePositionCurve",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/renderable/stretch",
+      "className": "EveStretch",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/renderable/stretch",
+      "className": "EveStretch2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/renderable/stretch",
+      "className": "EveStretch3",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
+      "className": "EveComponentCollection",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
+      "className": "EveComponentRegistry",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
+      "className": "EvePickingContext",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
+      "className": "EveSceneStaticParticles",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
+      "className": "EveSpaceScene",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
+      "className": "TriShadowFrustum",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
+      "className": "TriShadowOrthoFrustum",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/smartLights",
+      "className": "EveSmartLightMesh",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/smartLights",
+      "className": "EveSmartLightSpotLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/socket",
+      "className": "EveSocketParameterFilePath",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveCustomMask",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveMissile",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveMissileWarhead",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveMobile",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EvePlanet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveRootTransform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveShip2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveSpaceObject2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveSpaceObjectPSData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveSpaceObjectVSData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveTransform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject/swarm",
+      "className": "SwarmVehicle",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject/swarm",
+      "className": "SwarmVehicleDebug",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveConnector",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveCurveLineSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveLineContainer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveLineData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveLineSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveProjectBracket",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveSpherePin",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveSprite2dBracket",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveTacticalOverlay",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveTacticalOverlayTrackObject",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveTacticalTrails",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveUiObject",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/utils",
+      "className": "EveLocator2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/utils",
+      "className": "EveLocatorSets",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/utils",
+      "className": "EveThrottleable",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/utils",
+      "className": "Locator",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera",
+      "className": "EveVirtualCamera",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera",
+      "className": "EveVirtualCameraSystem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourFloatAdd",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourFloatBase",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourFloatDamping",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourFloatNoise",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourFloatSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourVector3Base",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourVector3Damping",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourVector3Inertia",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourVector3MoveBetween",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourVector3MoveForward",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourVector3Offset",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourVector3Orbit",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourVector3Shake",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/transition",
+      "className": "EveVirtualCameraTransitionBase",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/transition",
+      "className": "EveVirtualCameraTransitionLerp",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/volume",
+      "className": "EveBoxVolume",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/volume",
+      "className": "EveEllipsoidVolume",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/volume",
+      "className": "EveSphereVolume",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "ITriColor",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "ITriDevice",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "ITriEffectTextureParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "ITriMatrix",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "ITriQuaternion",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "ITriVector",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "Point",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "Tr2CurveBase",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "Tr2DebugColor",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "Tr2DebugObjectReference",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "Tr2Rect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "TriPerlinNoise",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2GpuParticleSystem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2GpuSharedEmitter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2GpuUniqueEmitter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2ParticleAttractorForce",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2ParticleDirectForce",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2ParticleDragForce",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2ParticleElementData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2ParticleElementDeclaration",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2ParticleElementDeclarationName",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2ParticleFluidDragForce",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2ParticleSpring",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2ParticleVortexForce",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "BlurContext",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "GaussianData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PostProcess",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PostProcess2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PostProcessAttributes",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PostProcessRenderer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPBloomEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPColorCorrectionEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPDepthOfFieldEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPDesaturateEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPDynamicExposureEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPFadeEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPFilmGrainEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPFogEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPGenericEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPGodRaysEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPLutEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPSignalLossEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPTaaEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPTonemappingEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPVignetteEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "Tr2RenderJobs",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriRenderJob",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriRenderStep",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepClear",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepCopyRenderTarget",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepEnableWireframeMode",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepGenerateMipMaps",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepPopRenderTarget",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepPresentSwapChain",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepPushDepthStencil",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepPushRenderTarget",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepResolve",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepRunJob",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepSetDepthStencil",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepSetProjection",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepSetRenderState",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepSetRenderTarget",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepSetStdRndStates",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepSetView",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepSetViewport",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepSetVisualizationMode",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2ConstantEffectParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2DataTextureManager",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2Effect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2EffectLibraryParameters",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2EffectParam",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2EffectPassParameters",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2EffectStateManager",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2EffectTechniqueInputs",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2FloatParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2GeometryBufferParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2Material",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2MaterialStageInput",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2Matrix4Parameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2RuntimeTextureParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2SamplerOverride",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2SamplerOverrideData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2ShaderBuffer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2ShaderOption",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2SharedConstantBuffers",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2TextureAnimationParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2Vector2Parameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2Vector3Parameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2Vector4Parameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "TriFloatArrayParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "TriTextureParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "TriTransformParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "TriVariableParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "TriVector4",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dClipRect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dContainerBase",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dD3DVertex",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dLineTrace",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dLineTraceVertex",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dPolygon",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dRenderJob",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dTransform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dTriangle",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dVertex",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dVertexBase",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2SpriteObjectBase",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "ITr2FroxelFogSettings",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2BindingVector3",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2DepthStencil",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2DirectInstanceData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2DynamicBinding",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2ExpressionTermInfo",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2ExternalParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2GpuBuffer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2InstancedMesh",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2MaterialParameterStore",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2Mesh",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2MeshArea",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2MeshBase",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2PrimaryRenderContext",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2ProjectBoundingBoxBracket",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2PyValueBinding",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2RenderContext",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2RenderTarget",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2RuntimeGpuBuffer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2RuntimeInstanceData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2SerializedMorphAnimation",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2ShadowMap",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2SSAO",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2SwapChain",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2Transform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2VariableStore",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2VisibilityResults",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2VolumetricsRenderer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriColor",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriDevice",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriFloat",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriObserverLocal",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriPerlinCurve",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriProjection",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriQuaternion",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriRect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriTorque",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriValueBinding",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriVector",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriView",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriViewport",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "ui",
+      "className": "Tr2PresentParameters",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "utilities",
+      "className": "Obb",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "utilities",
+      "className": "Range",
+      "reason": "hand-maintained source exists"
+    }
+  ]
 }

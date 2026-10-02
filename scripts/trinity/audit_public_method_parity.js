@@ -14,7 +14,8 @@ const defaultSchemaRoot = path.resolve(root, "..", "tools-core", ".scratch", "sc
 const schemaRoot = path.resolve(options.schemaRoot ?? process.env.CARBON_SCHEMA_ROOT ?? defaultSchemaRoot);
 
 const summary = JSON.parse(await fs.readFile(summaryPath, "utf8"));
-const skipped = summary.skipped
+// Preserve the historical full audit cohort; ownership is the wider install guard.
+const skipped = (options.allOwned ? summary.skipped : summary.paritySubjects ?? summary.skipped)
   .filter(entry => entry.reason === "hand-maintained source exists")
   .sort((a, b) => a.className.localeCompare(b.className));
 const droppedClasses = await ReadJavaScriptClasses(path.join(sourceRoot, "dropped"), true);
@@ -185,6 +186,7 @@ function ParseOptions(args)
   {
     const arg = args[i];
     if (arg === "--json") parsed.json = true;
+    else if (arg === "--all-owned") parsed.allOwned = true;
     else if (arg === "--update") parsed.update = true;
     else if (arg === "--list") parsed.list = true;
     else if (arg === "--schema-root")

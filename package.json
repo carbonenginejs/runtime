@@ -310,7 +310,7 @@
     "audit:jsdoc": "node ../docs/tooling/bin/cjs-jsdoc.js audit .",
     "audit:gaps": "node scripts/audit_implementation_gaps.js",
     "audit:trinity:gaps": "node scripts/trinity/audit_implementation_gaps.js --layer trinity",
-    "audit:trinity:parity": "node scripts/trinity/audit_public_method_parity.js",
+    "audit:trinity:parity": "node scripts/trinity/sync-generated-ownership.js --check && node scripts/trinity/audit_public_method_parity.js",
     "audit:types": "node scripts/audit_type_references.js",
     "audit:trinity:types": "node scripts/trinity/audit_type_references.js --layer trinity",
     "check": "npm run build:npm && npm run lint",
