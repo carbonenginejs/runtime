@@ -2,7 +2,6 @@
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/ProcessLifetime.cpp
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -24,7 +23,7 @@ const SPAWN_POSITION = vec3.create();
 
 /** ProcessLifetime (eve/child/behaviors) - generated from schema shapeHash 1fd3ebfa.... */
 @type.define({ className: "ProcessLifetime", family: "eve" })
-export class ProcessLifetime extends CjsModel
+export class ProcessLifetime
 {
   static ProcessPriority = ProcessPriority;
 

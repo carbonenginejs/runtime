@@ -6,7 +6,6 @@ import { IEveSpaceObject2 } from "./IEveSpaceObject2.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 
 const WORLD_CENTER_SCRATCH = vec3.create();
@@ -31,7 +30,7 @@ const SPHERE_RADIUS_EPSILON = 1e-4;
  */
 @type.define({ className: "EveTriggerVolume", family: "eve" })
 @carbon.inherit(IEveSpaceObject2)
-export class EveTriggerVolume extends CjsModel
+export class EveTriggerVolume
 {
 
   /** Name identifier, passed to the callback so one handler can serve many trigger volumes. */

@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/Renderable/EveSceneStaticParticles.h
 //   trinity/trinity/Eve/Renderable/EveSceneStaticParticles.cpp
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -42,7 +41,7 @@ function randomGauss(random, deviation)
  */
 @type.define({ className: "EveSceneStaticParticles", family: "eve/scene" })
 @carbon.inherit(ITr2Renderable)
-export class EveSceneStaticParticles extends CjsModel
+export class EveSceneStaticParticles
 {
 
   /** Carbon ClusterData records retained on the CPU. */

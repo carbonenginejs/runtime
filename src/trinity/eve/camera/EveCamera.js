@@ -2,7 +2,6 @@
 //   trinity/trinity/Eve/EveCamera.cpp
 //   trinity/trinity/Eve/EveCamera_Blue.cpp
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { fromYawPitchRoll, quat } from "#math/quat";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -137,7 +136,7 @@ const CAMERA_YAW_PITCH_ROLL = new Float64Array(3);
 
 /** Carbon's orbit camera and its CPU-side view/projection state. */
 @type.define({ className: "EveCamera", family: "eve" })
-export class EveCamera extends CjsModel
+export class EveCamera
 {
 
   _failedLastFrame = false;

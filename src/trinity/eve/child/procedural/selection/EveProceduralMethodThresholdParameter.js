@@ -1,12 +1,11 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodThresholdParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { EveChildRef } from "../../../../eve/child/EveChildRef.js";
 
 /** EveProceduralMethodThresholdParameter (eve/child/procedural/selection) - generated from schema shapeHash e31926d9.... */
 @type.define({ className: "EveProceduralMethodThresholdParameter", family: "eve/child/procedural/selection" })
-export class EveProceduralMethodThresholdParameter extends CjsModel
+export class EveProceduralMethodThresholdParameter
 {
 
   _modified = false;

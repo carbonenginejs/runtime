@@ -1,6 +1,5 @@
 // Source: trinity/trinity/Curves/Tr2GrannyTrack.h
 // Source: trinity/trinity/Curves/Tr2GrannyTrack.cpp
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
 
@@ -14,7 +13,7 @@ import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
   className: "Tr2GrannyTrack",
   family: "curves"
 })
-export class Tr2GrannyTrack extends CjsModel
+export class Tr2GrannyTrack
 {
   @edit.notify
   @edit.readwrite

@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/EveDistanceField.h
 // Source: trinity/trinity/Eve/EveDistanceField.cpp
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
 import { carbon, edit, impl, type } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../curves/enums.js";
 import { Tr2CurveScalar } from "../curves/curve/Tr2CurveScalar.js";
@@ -16,7 +15,7 @@ import { TriCurveSet } from "../curves/TriCurveSet.js";
   className: "EveDistanceField",
   family: "eve"
 })
-export class EveDistanceField extends CjsModel
+export class EveDistanceField
 {
   @edit.read
   @type.vec3

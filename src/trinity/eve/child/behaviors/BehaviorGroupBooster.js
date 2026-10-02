@@ -2,7 +2,6 @@
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroupBooster.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { carbonPerlin1D } from "#math/noise";
@@ -13,7 +12,7 @@ const LIGHT_COLOR = vec4.create();
 
 /** A drone-group component that builds and drives the group's shared booster and ambient or halo flare effects and contributes their point light to the scene. */
 @type.define({ className: "BehaviorGroupBooster", family: "eve/child/behaviors" })
-export class BehaviorGroupBooster extends CjsModel
+export class BehaviorGroupBooster
 {
 
   /** m_display (bool) [READWRITE, PERSIST] */

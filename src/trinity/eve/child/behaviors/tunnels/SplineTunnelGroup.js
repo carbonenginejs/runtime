@@ -2,7 +2,6 @@
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/SplineTunnelGroup.cpp
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -16,7 +15,7 @@ const DEBUG_END = vec3.create();
 
 /** SplineTunnelGroup (eve/child/behaviors) - generated from schema shapeHash da595535.... */
 @type.define({ className: "SplineTunnelGroup", family: "eve" })
-export class SplineTunnelGroup extends CjsModel
+export class SplineTunnelGroup
 {
   static TunnelGroupType = TunnelGroupType;
 

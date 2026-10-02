@@ -4,7 +4,6 @@
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { Tr2ScalarFader } from "../curves/curve/Tr2ScalarFader.js";
 import { ImpactConfiguration } from "../generated/include/enums.js";
@@ -30,7 +29,7 @@ const IMPACT_ARMOR_PARTICLE_LOD_FACTOR = 400;
  * data-texture bookkeeping that feeds them.
  */
 @type.define({ className: "EveImpactOverlay", family: "eve/overlays/impact" })
-export class EveImpactOverlay extends CjsModel
+export class EveImpactOverlay
 {
   @edit.readwrite
   @edit.persist

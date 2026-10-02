@@ -1638,7 +1638,7 @@ test("EveDistanceField follows Carbon static and dynamic CPU coverage", () =>
   assertEquals(dynamic.distance, 10);
   dynamic.Update({ currentTime: 2, lastTime: 1, deltaT: 1, originShift: vec3.fromValues(1, 0, 0) });
   assertVec3(dynamic.midpoint, [1, 0, 0]);
-  dynamic.SetValues({ minDistance: 7, maxDistance: 80 });
+  CjsSchema.setValues(dynamic, { minDistance: 7, maxDistance: 80 });
   dynamic.Update({ currentTime: 3, lastTime: 2, deltaT: 0, originShift: vec3.create() });
   const dynamicKeys = dynamic.curveSet.curves[0].GetKeys();
   assertEquals(dynamicKeys[0].time, 7);

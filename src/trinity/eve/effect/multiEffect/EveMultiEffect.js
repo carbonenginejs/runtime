@@ -3,7 +3,6 @@
 // Source: trinity/trinity/Eve/EveMultiEffect_Blue.cpp
 import { carbon, impl, edit, type } from "#schema";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
-import { CjsModel } from "#model";
 import { BLUELISTEVENT } from "#consts/blue";
 
 /**
@@ -13,7 +12,7 @@ import { BLUELISTEVENT } from "#consts/blue";
  */
 @type.define({ className: "EveMultiEffect", family: "eve/effect" })
 @carbon.inherit(IEveSpaceObject2)
-export class EveMultiEffect extends CjsModel
+export class EveMultiEffect
 {
 
   /** m_bindings (PTr2DynamicBindingVector) [READ, PERSIST] */

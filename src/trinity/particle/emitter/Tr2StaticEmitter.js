@@ -1,13 +1,12 @@
 // Source: trinity/trinity/Particle/Tr2StaticEmitter.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 
 /** A one-shot particle emitter that spawns particles from a geometry resource's baked emission points on first update. */
 @type.define({ className: "Tr2StaticEmitter", family: "particle" })
 @carbon.inherit(ITr2GenericEmitter)
-export class Tr2StaticEmitter extends CjsModel
+export class Tr2StaticEmitter
 {
 
   #isThreadSafe = false;

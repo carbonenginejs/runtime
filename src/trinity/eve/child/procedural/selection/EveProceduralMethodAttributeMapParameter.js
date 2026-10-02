@@ -1,12 +1,11 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodAttributeMapParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { EveChildRef } from "../../../../eve/child/EveChildRef.js";
 
 /** EveProceduralMethodAttributeMapParameter (eve/child/procedural/selection) - generated from schema shapeHash 5880f54c.... */
 @type.define({ className: "EveProceduralMethodAttributeMapParameter", family: "eve/child/procedural/selection" })
-export class EveProceduralMethodAttributeMapParameter extends CjsModel
+export class EveProceduralMethodAttributeMapParameter
 {
 
   _modified = false;

@@ -3,7 +3,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveDamageOverlay_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2ScalarFader } from "../../curves/curve/Tr2ScalarFader.js";
@@ -22,7 +21,7 @@ export const IMPACT_ARMOR_SIZE_MAX = 10;
  * and by independently rendered child meshes.
  */
 @type.define({ className: "EveDamageOverlay", family: "eve/overlays/impact" })
-export class EveDamageOverlay extends CjsModel
+export class EveDamageOverlay
 {
   @edit.read
   @type.int32

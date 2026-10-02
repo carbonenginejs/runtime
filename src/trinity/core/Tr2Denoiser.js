@@ -24,7 +24,6 @@
 // paths the passes run and draw nothing, which is the same state every other
 // effect-driven path in this runtime is in.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
 import { float32FromBits } from "#utils/bytes";
@@ -67,7 +66,7 @@ function effectAt(path)
 
 /** Carries depth, normal, and plane weights together with radius, step size, and bypass state for spatial denoising. */
 @type.define({ className: "Tr2Denoiser", family: "trinityCore", purpose: "Carries depth, normal, and plane weights together with radius, step size, and bypass state for spatial denoising." })
-export class Tr2Denoiser extends CjsModel
+export class Tr2Denoiser
 {
 
   /** m_bypass (bool) [READWRITE, PERSIST, NOTIFY] */

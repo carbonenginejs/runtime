@@ -2,7 +2,6 @@
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { TunnelGroupType } from "./enums.js";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -22,7 +21,7 @@ const NO_FORCES = [];
 
 /** A steering behaviour that pulls unassigned drones into spline tunnel entrances and steers locked drones along their assigned tunnel's points toward the exit. */
 @type.define({ className: "FollowASpline", family: "eve/child/behaviors" })
-export class FollowASpline extends CjsModel
+export class FollowASpline
 {
 
   /** Flattened CPU tunnel references used by the behavior system. */

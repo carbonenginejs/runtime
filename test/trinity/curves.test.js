@@ -336,7 +336,7 @@ test("Granny JSON tracks bind the first matching group and sample values", () =>
   assert(pathBound.TracksReady());
   pathBound.UpdateValue(3.5);
   assertEquals(pathBound.value, 40);
-  pathBound.SetValues({ grannyResPath: "" });
+  CjsSchema.setValues(pathBound, { grannyResPath: "" });
   assertEquals(pathBound.grannyRes, null);
   assertEquals(pathBound.TracksReady(), false);
   assertEquals(pathBound.Length(), 0);

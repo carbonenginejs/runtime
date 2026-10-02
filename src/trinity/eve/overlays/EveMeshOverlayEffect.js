@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveMeshOverlayEffect.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveMeshOverlayEffect.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveMeshOverlayEffect_Blue.cpp
-import { CjsModel } from "#model";
 import { TriBatchType } from "#consts/graphics";
 import { carbon, impl, edit, type } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -12,7 +11,7 @@ import { BLUELISTEVENT } from "#consts/blue";
  * together with the curve set and controllers that animate them.
  */
 @type.define({ className: "EveMeshOverlayEffect", family: "eve/overlays" })
-export class EveMeshOverlayEffect extends CjsModel
+export class EveMeshOverlayEffect
 {
   @edit.readwrite
   @edit.persist
