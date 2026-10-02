@@ -3,7 +3,7 @@
 //
 // Writes Blue objects as values bags: YamlWriter's rules, emitting a plain
 // object where YamlWriter emits YAML events. With `DictReader` it is the
-// values engine; `CjsModel.get` delegates here.
+// values engine; CjsSchema.getValues delegates here.
 //
 // Carbon has no dictionary writer - DictReader reads the dictionaries Python
 // builds - so this is modelled on YamlWriter rather than a port of one class:
@@ -26,8 +26,6 @@ import { BeObjectMetadata } from "./BlueObjectMetadata.js";
 import { BLUE_OBJECT_METADATA_KEY } from "./IBlueObjectMetadata.js";
 import { getDictionaryDeclarations } from "./dictionaryDeclarations.js";
 
-/** GetValues methods that ARE this writer (CjsModel's), never asked for values. */
-const DELEGATES = new WeakSet();
 
 /**
  * `DictWriter` - writes an object as a plain values bag.
@@ -165,11 +163,9 @@ export class DictWriter extends IRootWriter
     const metadata = BeObjectMetadata.GetMetadata(instance);
     if (metadata) out[BLUE_OBJECT_METADATA_KEY] = { ...metadata };
 
-    // Only an object with its OWN GetValues is asked: one whose GetValues
-    // delegates to this writer (a field-less CjsModel) has no members, and
-    // asking it would re-enter here.
+    // Fieldless custom formats retain their explicit GetValues contract.
     const fields = getDictionaryDeclarations(instance.constructor).fields;
-    if (!fields.length && typeof instance.GetValues === "function" && !DELEGATES.has(instance.GetValues))
+    if (!fields.length && typeof instance.GetValues === "function")
     {
       Object.assign(out, instance.GetValues(options), out);
       return;
@@ -182,17 +178,6 @@ export class DictWriter extends IRootWriter
     this._pendingName = savedName;
   }
 
-  /**
-   * Registers a GetValues method that delegates to this writer, so an object
-   * using it is never asked for its own values. Our own seam: CjsModel's
-   * GetValues is `DictWriter.WriteObject`.
-   *
-   * @param {Function} method The delegating GetValues.
-   */
-  static registerDelegate(method)
-  {
-    DELEGATES.add(method);
-  }
 
   /** `Cleanup` (YamlWriter.cpp:245-254). */
   _Cleanup()

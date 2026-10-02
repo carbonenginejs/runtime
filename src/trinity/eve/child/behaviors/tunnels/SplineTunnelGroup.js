@@ -1,3 +1,4 @@
+import { INotify } from "../../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SplineTunnelGroup.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/SplineTunnelGroup.cpp
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -15,6 +16,7 @@ const DEBUG_END = vec3.create();
 
 /** SplineTunnelGroup (eve/child/behaviors) - generated from schema shapeHash da595535.... */
 @type.define({ className: "SplineTunnelGroup", family: "eve" })
+@carbon.inherit(INotify)
 export class SplineTunnelGroup
 {
   static TunnelGroupType = TunnelGroupType;
@@ -276,3 +278,6 @@ export class SplineTunnelGroup
   }
 
 }
+
+// Exact native Blue exposure: only these identities participate in loading.
+carbon.interfaceTable({ interfaces: [SplineTunnelGroup, INotify], chainTo: null })(SplineTunnelGroup, { kind: "class" });

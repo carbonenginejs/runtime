@@ -1,3 +1,4 @@
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Particle/Tr2PlaneConstraint.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, CjsSchema, impl, edit, type } from "#schema";
@@ -10,6 +11,8 @@ import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDecl
 
 /** A collision constraint that keeps particles on one side of a plane, reflecting velocity with elasticity, friction and noise, and triggering generators and emitters on contact. */
 @type.define({ className: "Tr2PlaneConstraint", family: "particle" })
+@carbon.inherit(IInitialize)
+@carbon.mapInterface(IInitialize)
 export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
 {
 

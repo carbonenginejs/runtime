@@ -1,4 +1,4 @@
-// DEPRECATED carbon.document boundary. The collapse into plain CjsModel
+// DEPRECATED carbon.document boundary. The collapse into plain schema
 // values is decided and partially executed - the envelope was
 // over-engineered, and a _type-tagged values graph carries everything it
 // did. Kept only until the interchange retirement completes its inventory
@@ -7,7 +7,7 @@
 // Do not add new consumers.
 import { exportCarbonValue } from "../../schema/types/index.js";
 import { CjsSchema } from "../../schema/index.js";
-import { getDictionaryDeclarations } from "../../blue/dictionaryDeclarations.js";
+import { getDictionaryDeclarations, readDictionaryValue } from "../../blue/dictionaryDeclarations.js";
 import { CjsCarbonDocument } from "./CjsCarbonDocument.js";
 
 /** Omits only the selected declaration's runtime state on this retiring boundary. */
@@ -97,9 +97,7 @@ export class CjsDocumentDehydrator
         state.objectIds.set(value, id);
 
         const shape = value._sourceShape || null;
-        const schemaName = typeof value.GetValues === "function"
-            ? CjsSchema.getClassName(value.constructor)
-            : null;
+        const schemaName = CjsSchema.getClassName(value.constructor);
         const kind = schemaName || value._sourceClassName;
         if (!kind)
         {
@@ -126,6 +124,20 @@ export class CjsDocumentDehydrator
                 if (isRuntimeOnlyField(value, key)) continue;
                 fieldNames.add(key);
                 fields[key] = CjsDocumentDehydrator.dehydrateValue(values[key], state);
+            }
+        }
+
+        // Preserve live object identity for the document's own reference table.
+        // Exporting a values bag here would flatten shared children and cycles.
+        else if (schemaName)
+        {
+            for (const field of getDictionaryDeclarations(value.constructor).fields)
+            {
+                if (!CjsSchema.isFieldExported(field, {})) continue;
+                if (isRuntimeOnlyField(value, field.name)) continue;
+                fieldNames.add(field.name);
+                fieldNames.add(field.key);
+                fields[field.name] = CjsDocumentDehydrator.dehydrateValue(readDictionaryValue(value, field), state);
             }
         }
 
@@ -169,7 +181,7 @@ export class CjsDocumentDehydrator
     {
         return Boolean(value && typeof value === "object" && (
             value._sourceClassName
-            || (typeof value.GetValues === "function" && CjsSchema.getClassName(value.constructor))
+            || CjsSchema.getClassName(value.constructor)
         ));
     }
 }

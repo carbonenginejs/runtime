@@ -1,3 +1,8 @@
+import "../../../src/global/blue/values.js";
+import { Copier } from "../../../src/global/blue/Copier.js";
+import { Traverse } from "../../../src/global/blue/find.js";
+import { GetResources } from "../../../src/global/blue/getResources.js";
+import { ensureRuntimeState, getRuntimeState } from "../../../src/global/compose/runtimeState.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import * as document from "../../../src/global/model/document/index.js";
@@ -16,8 +21,6 @@ const {
     CjsDocumentHydrator,
     CjsEventEmitter,
     CjsLifecycleState,
-    CjsModel,
-    CjsModelState,
     CJS_LIFECYCLE,
     CjsSchema,
     CjsStructRegistry,
@@ -34,51 +37,9 @@ test("the runtime model foundation exposes the raw emitter without an event scop
     assert.equal("CjsEventEmitterScope" in coreTypes, false);
 });
 
-test("CjsModelState is the flat per-model runtime state", () => {
-    const state = new CjsModelState();
 
-    assert.equal(state.IsDirty(), false);
-    state.MarkDirty();
-    assert.equal(state.dirty, true);
-    assert.equal(state.IsDirty(), true);
-    state.ClearDirty();
-    assert.equal(state.IsDirty(), false);
 
-    assert.equal("flags" in state, false);
-    assert.equal("rebuild" in state, false);
-});
 
-test("CjsModel keeps model state in one non-enumerable container", () => {
-    const model = new CjsModel();
-
-    assert.equal(Object.keys(model).includes("__state"), false);
-    assert.equal(model.__state instanceof CjsModelState, true);
-    assert.equal(model.__state.dirty, false);
-    assert.equal("flags" in model.__state, false);
-    assert.equal("rebuild" in model.__state, false);
-    assert.equal(model.__state.updating, false);
-    assert.equal(model.__state.suppressEvents, 0);
-    assert.equal(getLifecycleState(model), null);
-    assert.equal(Object.hasOwn(model.__state, "lifecycle"), false);
-
-    const descriptor = Object.getOwnPropertyDescriptor(model, "__state");
-    assert.equal(descriptor.enumerable, false);
-    assert.equal(descriptor.writable, false);
-    assert.equal(descriptor.configurable, false);
-
-    model.MarkDirty();
-    assert.equal(model.IsDirty(), true);
-    model.ClearDirty();
-    assert.equal(model.IsDirty(), false);
-
-    assert.equal(model.IsDirty(), false);
-    model.ClearDirty();
-
-    const lifecycle = initializeLifecycleState(model);
-    assert.equal(model.__state.lifecycle, lifecycle);
-    assert.equal(getLifecycleState(model), lifecycle);
-    assert.equal(lifecycle.status, CJS_LIFECYCLE.ALIVE);
-});
 
 test("lifecycle state can be installed independently of CjsModel", () => {
     const target = {};
@@ -98,342 +59,45 @@ test("lifecycle state can be installed independently of CjsModel", () => {
     assert.throws(() => getLifecycleState(null), TypeError);
 });
 
-test("CjsModel exposes only the schema-backed construction surface", () => {
-    class SurfaceModel extends CjsModel
-    {
-        value = 0;
-    }
 
-    class SchemalessModel extends CjsModel {}
-
-    assert.equal(CjsSchema.getClassName(SchemalessModel), null);
-    assert.throws(() => new SchemalessModel(), /explicit CjsSchema className/);
-
-    CjsSchema.defineField(SurfaceModel, "value", "type", { kind: "float32" });
-    // Clone copies PERSIST members, as Carbon's Copier does.
-    CjsSchema.defineField(SurfaceModel, "value", "edit", { read: true, write: true, persist: true });
-    CjsSchema.define(SurfaceModel, { className: "StableSurfaceModel" });
-
-    class TrackingSurfaceModel extends SurfaceModel {}
-
-    assert.equal(SurfaceModel.schema, CjsSchema);
-    assert.equal(Object.hasOwn(SurfaceModel, "schema"), false);
-    assert.equal(Object.getOwnPropertyDescriptor(CjsModel, "schema").set, undefined);
-    assert.equal(CjsSchema.getClassName(SurfaceModel), "StableSurfaceModel");
-    assert.equal(CjsSchema.getClassName(TrackingSurfaceModel), "StableSurfaceModel");
-
-    const model = SurfaceModel.from({ value: 3 });
-    const tracking = new TrackingSurfaceModel();
-    const clone = model.Clone();
-    assert.equal(model instanceof SurfaceModel, true);
-    assert.equal(clone instanceof SurfaceModel, true);
-    assert.notEqual(clone, model);
-    assert.deepEqual(clone.GetValues(), { value: 3 });
-    assert.equal(CjsSchema.getSchema(TrackingSurfaceModel).className, "StableSurfaceModel");
-    assert.equal(tracking instanceof SurfaceModel, true);
-    assert.equal("__id" in model, false);
-
-    for (const name of [
-        "SetRuntimeType",
-        "runtimeIds",
-        "fromValues",
-        "hasModifiedProperty",
-        "notImplemented",
-        "registerSourceShapes",
-        "registerCarbonFacts",
-        "initializeSourceFields",
-        "initializeRuntimeState",
-        "getCarbonFacts",
-        "getSourceShape",
-        "getFieldOwnership"
-    ])
-    {
-        assert.equal(name in CjsModel, false, `${name} should not be exposed by CjsModel`);
-    }
-
-    for (const name of ["ToJson", "ToJSON", "ToYAML", "ToYaml"])
-    {
-        assert.equal(name in CjsModel.prototype, false, `${name} should not be exposed by CjsModel instances`);
-    }
-});
 
 // Removed: "CjsModel Merge deep-merges raw value bags..." - Merge: the feature has no Blue counterpart and no production caller, and was dropped with the move to Blue's values engine (operator, 2026-09-27; docs research/blue-values-engine.md).
 
-test("CjsModel Copy transfers an instantiated model through SetValues", () => {
-    class CopyModel extends CjsModel
-    {
-        name = "";
-        count = 0;
-    }
-
-    CjsSchema.defineField(CopyModel, "name", "type", { kind: "string" });
-    CjsSchema.defineField(CopyModel, "count", "type", { kind: "uint32" });
-    CjsSchema.define(CopyModel, { className: "CopyModel", family: "test" });
-
-    const source = new CopyModel();
-    source.name = "source";
-    source.count = 4;
-    const output = { retained: true };
-    assert.equal(CjsModel.get(source, output), output);
-    assert.deepEqual(output, { retained: true, name: "source", count: 4 });
-    assert.deepEqual(source.GetValues({}), { name: "source", count: 4 });
-
-    const target = new CopyModel();
-
-    assert.equal(CjsModel.copy(target, source, { skipUpdate: true }), target);
-    assert.equal(target.name, "source");
-    assert.equal(target.count, 4);
-    assert.equal(target.__state.dirty, true, "skipUpdate leaves the settle owed");
-
-    const next = new CopyModel();
-    next.name = "next";
-    next.count = 8;
-    assert.equal(target.Copy(next), target);
-    assert.equal(target.name, "next");
-    assert.equal(target.count, 8);
-    assert.throws(() => target.Copy({ name: "raw" }), /CjsModel source/);
-});
-
-test("CjsModel settles cascading changes before emitting one modified event", () => {
-    class SettledModel extends CjsModel
-    {
-        calls = [];
-
-        OnModified(member)
-        {
-            this.calls.push(member);
-            if (member === "width")
-            {
-                this.SetValues({ area: this.width * 2 });
-            }
-            return true;
-        }
-    }
-
-    CjsSchema.defineField(SettledModel, "name", "type", { kind: "string" });
-    CjsSchema.defineField(SettledModel, "width", "type", { kind: "number" });
-    CjsSchema.defineField(SettledModel, "area", "type", { kind: "number" });
-    CjsSchema.defineField(SettledModel, "width", "edit", { notify: true });
-    CjsSchema.defineField(SettledModel, "area", "edit", { notify: true });
-    CjsSchema.define(SettledModel, { className: "SettledModel", family: "test" });
-    const model = new SettledModel();
-    const source = {};
-    const events = [];
-    model.OnEvent("modified", (name, target, payload) => events.push([name, target, payload]));
-
-    const changed = model.SetValues({ name: "ship", width: 3 }, { source });
-
-    assert.deepEqual(changed, new Set(["name", "width"]));
-    assert.equal(model.area, 6);
-    // Two passes: the first derives area (marking dirty again), the second
-    // finds everything settled.
-    assert.deepEqual(model.calls, ["width", "area"]);
-    assert.equal(events.length, 1);
-    assert.equal(events[0][0], "modified", "the listener is told which event fired");
-    assert.equal(events[0][1], model);
-    assert.equal(events[0][2].source, source);
-    assert.equal(model.__state.dirty, false);
-});
-
-test("edit.notify notifies an equal write without reporting a changed value", () => {
-    class AlwaysModel extends CjsModel
-    {
-        hookRuns = 0;
-
-        OnModified()
-        {
-            this.hookRuns++;
-            return true;
-        }
-    }
-
-    CjsSchema.defineField(AlwaysModel, "value", "type", { kind: "float32" });
-    CjsSchema.defineField(AlwaysModel, "value", "edit", { write: true, notify: true });
-    CjsSchema.define(AlwaysModel, { className: "AlwaysModel" });
-    const model = new AlwaysModel();
-    model.value = 4;
-    const events = [];
-    model.OnEvent("modified", (_name, _subject, data) => events.push(data));
-
-    assert.equal(model.SetValues({ value: 4 }), false);
-    assert.equal(model.hookRuns, 1);
-    assert.equal(events.length, 1);
-    assert.equal(CjsSchema.edit.always, undefined);
-    assert.equal(CjsSchema.impl.notifyOnEqual, undefined);
-});
-
-test("from returns an initialized clean round-trippable graph", () => {
-    class ReadyModel extends CjsModel
-    {
-        constructor()
-        {
-            super();
-            this.eventCount = 0;
-            this.OnEvent("modified", () => this.eventCount++);
-            this.OnEvent("initializing", () => this.eventCount++);
-        }
-
-        Initialize()
-        {
-            this.initializeCount = (this.initializeCount || 0) + 1;
-            this.EmitEvent("initializing", this);
-            this.SetValues({ output: this.input * 2 });
-            return true;
-        }
-    }
-
-    for (const fieldName of ["input", "output"])
-    {
-        CjsSchema.defineField(ReadyModel, fieldName, "type", { kind: "float32" });
-        CjsSchema.defineField(ReadyModel, fieldName, "edit", { read: true, write: true, persist: true });
-    }
-    CjsSchema.define(ReadyModel, { className: "ReadyModel" });
-
-    const ready = ReadyModel.from({ input: 3 });
-    assert.equal(ready.output, 6);
-    assert.equal(ready.initializeCount, 1);
-    assert.equal(ready.eventCount, 0);
-    assert.equal(ready.__state.dirty, false);
-
-    const graph = ready.GetValues();
-    const copy = ReadyModel.from(graph);
-    assert.deepEqual(copy.GetValues(), graph);
-    assert.equal(copy.initializeCount, 1);
-    assert.equal(copy.eventCount, 0);
-    assert.equal(copy.__state.dirty, false);
-
-    const clone = ready.Clone();
-    assert.deepEqual(clone.GetValues(), graph);
-    assert.equal(clone.__state.dirty, false);
-});
-
-test("CjsModel supports binding-style direct mutations and retains failed updates", () => {
-    class BoundModel extends CjsModel
-    {
-        accept = true;
-
-        OnModified()
-        {
-            return this.accept;
-        }
-    }
-
-    CjsSchema.defineField(BoundModel, "value", "type", { kind: "number" });
-    CjsSchema.defineField(BoundModel, "value", "edit", { notify: true });
-    CjsSchema.define(BoundModel, { className: "BoundModel", family: "test" });
-
-    const model = new BoundModel();
-    const binding = {};
-    let event = null;
-    model.OnEvent("modified", (_name, target, payload) => event = payload);
-    model.value = 4;
-    assert.equal(model.UpdateValues({ property: "value", source: binding }), true);
-    assert.equal(event.source, binding);
-
-    model.accept = false;
-    model.value = 5;
-    event = null;
-    assert.equal(model.UpdateValues({ property: "value", source: binding }), false);
-    assert.equal(model.__state.dirty, true, "rejected update retains the dirty mark");
-    assert.equal(event, null);
-});
 
 
 
-test("from initializes owned children last-to-first before their parent", () => {
-    const order = [];
 
-    class ChildModel extends CjsModel
-    {
-        Initialize()
-        {
-            order.push(this.name);
-            return true;
-        }
-    }
 
-    class RootModel extends CjsModel
-    {
-        Initialize()
-        {
-            order.push("root");
-            return true;
-        }
-    }
 
-    CjsSchema.defineField(ChildModel, "name", "type", { kind: "string" });
-    CjsSchema.defineField(ChildModel, "name", "edit", { read: true, write: true, persist: true });
-    CjsSchema.define(ChildModel, { className: "ChildModel" });
-    CjsSchema.defineField(RootModel, "children", "type", { kind: "array", itemType: { kind: "model", className: "ChildModel" } });
-    CjsSchema.defineField(RootModel, "children", "edit", { read: true, write: true, persist: true });
-    CjsSchema.defineField(RootModel, "children", "lifecycle", { ownership: "owned" });
-    CjsSchema.defineField(RootModel, "reference", "type", { kind: "object", className: "ChildModel" });
-    CjsSchema.defineField(RootModel, "reference", "edit", { read: true, write: true, persist: true });
-    CjsSchema.defineField(RootModel, "reference", "lifecycle", { ownership: "reference" });
-    CjsSchema.define(RootModel, { className: "RootModel" });
 
-    const reference = new ChildModel();
-    reference.name = "reference";
-    const first = new ChildModel();
-    first.name = "first";
-    const last = new ChildModel();
-    last.name = "last";
-    const root = RootModel.from({
-        children: [first, last],
-        reference
-    });
 
-    assert.deepEqual(order, ["last", "first", "root"]);
-    assert.equal(root.__state.dirty, false);
-    assert.equal(reference.__state.dirty, false);
 
-    order.length = 0;
 
-    const hydrated = RootModel.from({
-        children: [
-            { name: "raw-first" },
-            { name: "raw-last" }
-        ]
-    });
 
-    assert.equal(hydrated.children[0] instanceof ChildModel, true);
-    assert.equal(hydrated.children[1] instanceof ChildModel, true);
-    assert.deepEqual(order, ["raw-last", "raw-first", "root"]);
 
-    order.length = 0;
 
-    const assigned = new RootModel();
-    assigned.SetValues({
-        children: [
-            { name: "assigned-first" },
-            { name: "assigned-last" }
-        ]
-    });
-
-    assert.deepEqual(order, ["assigned-last", "assigned-first"]);
-});
 
 test("objects nested in a raw struct's records keep their identity through a values round trip", () => {
     // Tr2EffectPassParameters.stageInput: records holding the effect's texture
     // parameters. The writer anchors the first sight inside a record; the
     // reader must build and register it there, or later aliases dangle.
-    class NestedParam extends CjsModel {}
+    class NestedParam {}
     CjsSchema.defineField(NestedParam, "name", "type", { kind: "string" });
     CjsSchema.defineField(NestedParam, "name", "edit", { read: true, write: true, persist: true });
     CjsSchema.define(NestedParam, { className: "NestedParam" });
 
-    class NestedHolder extends CjsModel {}
+    class NestedHolder {}
     CjsSchema.defineField(NestedHolder, "records", "type", { kind: "rawStruct", className: "NestedRecord" });
     CjsSchema.defineField(NestedHolder, "params", "type", { kind: "list", itemType: "NestedParam" });
     CjsSchema.define(NestedHolder, { className: "NestedHolder" });
 
     const holder = new NestedHolder();
-    const a = NestedParam.from({ name: "a" });
-    const b = NestedParam.from({ name: "b" });
+    const a = CjsSchema.from(CjsSchema.getClassName(NestedParam), { name: "a" });
+    const b = CjsSchema.from(CjsSchema.getClassName(NestedParam), { name: "b" });
     holder.records = [ { textures: [ { sourceValue: a } ] }, { textures: [ { sourceValue: b } ] } ];
     holder.params = [ b, a ];
 
-    const clone = NestedHolder.from(holder.GetValues({ refs: true, typeTags: true, roundTrip: true }));
+    const clone = CjsSchema.from(CjsSchema.getClassName(NestedHolder), CjsSchema.getValues(holder, {}, { refs: true, typeTags: true, roundTrip: true }));
     const [ ca, cb ] = [ clone.records[0].textures[0].sourceValue, clone.records[1].textures[0].sourceValue ];
     assert.equal(ca instanceof NestedParam, true);
     assert.equal(ca.name, "a");
@@ -442,7 +106,7 @@ test("objects nested in a raw struct's records keep their identity through a val
     assert.equal(clone.params[1], ca);
 
     // A forward alias inside a record fills in at the end of the read.
-    const forward = NestedHolder.from({
+    const forward = CjsSchema.from(CjsSchema.getClassName(NestedHolder), {
         records: [ { textures: [ { sourceValue: { _ref: 7 } } ] } ],
         params: [ { _type: "NestedParam", _id: 7, name: "late" } ]
     });
@@ -454,7 +118,7 @@ test("clone keeps a member's concrete class and ignores read-only members", () =
     // rebuilt the base. A READ-only member is not persisted: an object first
     // reached through it anchored there, and the reader, skipping the member,
     // left the later { _ref } dangling (EveImpactOverlay.damageOverlay).
-    class BaseItem extends CjsModel {}
+    class BaseItem {}
     CjsSchema.defineField(BaseItem, "name", "type", { kind: "string" });
     CjsSchema.defineField(BaseItem, "name", "edit", { read: true, write: true, persist: true });
     CjsSchema.define(BaseItem, { className: "CloneBaseItem" });
@@ -463,7 +127,7 @@ test("clone keeps a member's concrete class and ignores read-only members", () =
     CjsSchema.defineField(DerivedItem, "extra", "edit", { read: true, write: true, persist: true });
     CjsSchema.define(DerivedItem, { className: "CloneDerivedItem" });
 
-    class Owner extends CjsModel {}
+    class Owner {}
     CjsSchema.defineField(Owner, "view", "type", { kind: "objectRef", className: "CloneBaseItem" });
     CjsSchema.defineField(Owner, "view", "edit", { read: true });
     CjsSchema.defineField(Owner, "item", "type", { kind: "objectRef", className: "CloneBaseItem" });
@@ -471,10 +135,10 @@ test("clone keeps a member's concrete class and ignores read-only members", () =
     CjsSchema.define(Owner, { className: "CloneOwner" });
 
     const owner = new Owner();
-    owner.item = DerivedItem.from({ name: "a", extra: "b" });
+    owner.item = CjsSchema.from(CjsSchema.getClassName(DerivedItem), { name: "a", extra: "b" });
     owner.view = owner.item;
 
-    const clone = owner.Clone();
+    const clone = new Copier().CloneTo(owner);
     assert.equal(clone.item instanceof DerivedItem, true);
     assert.equal(clone.item.extra, "b");
     assert.notEqual(clone.item, owner.item);
@@ -483,19 +147,19 @@ test("clone keeps a member's concrete class and ignores read-only members", () =
 test("a field-less model exports and clones inside a graph", () => {
     // Its GetValues is the writer itself; asking it for its own values must
     // not recurse (EveChildModifierHalo overflowed the stack on clone).
-    class EmptyModel extends CjsModel {}
+    class EmptyModel {}
     CjsSchema.define(EmptyModel, { className: "EmptyModel" });
-    class HolderModel extends CjsModel {}
+    class HolderModel {}
     CjsSchema.defineField(HolderModel, "items", "type", { kind: "list", itemType: "EmptyModel" });
     CjsSchema.defineField(HolderModel, "items", "edit", { read: true, write: true, persist: true });
     CjsSchema.define(HolderModel, { className: "HolderModel" });
 
     const holder = new HolderModel();
     holder.items = [ new EmptyModel(), new EmptyModel() ];
-    assert.deepEqual(new EmptyModel().GetValues(), {});
-    assert.deepEqual(holder.GetValues(), { items: [ {}, {} ] });
+    assert.deepEqual(CjsSchema.getValues(new EmptyModel()), {});
+    assert.deepEqual(CjsSchema.getValues(holder), { items: [ {}, {} ] });
 
-    const clone = holder.Clone();
+    const clone = new Copier().CloneTo(holder);
     assert.equal(clone.items.length, 2);
     assert.equal(clone.items[0] instanceof EmptyModel, true);
     assert.notEqual(clone.items[0], holder.items[0]);
@@ -505,7 +169,7 @@ test("traversal children skip collections of values but keep interface-typed lis
     // A list of matrices or strings holds no model; walking it costs a visit
     // per item for nothing. A list typed by an interface nothing registers
     // (ITr2ValueBinding) holds objects, so it stays a child.
-    class BucketModel extends CjsModel {}
+    class BucketModel {}
     CjsSchema.defineField(BucketModel, "instanceTransforms", "type", { kind: "array", itemType: "mat4" });
     CjsSchema.defineField(BucketModel, "names", "type", { kind: "list", itemType: "std::string" });
     CjsSchema.defineField(BucketModel, "indices", "type", { kind: "list", itemType: "uint32_t" });
@@ -521,7 +185,7 @@ test("traversal children skip collections of values but keep interface-typed lis
 test("Traverse is cycle-safe and GetResources visits every model", () => {
     class GraphResource { isResource = true; }
     CjsSchema.define(GraphResource, { className: "CoreTypesGraphResource" });
-    class GraphModel extends CjsModel {}
+    class GraphModel {}
     for (const field of ["_geometryRes", "_textureRes", "_sharedRes"])
     {
         CjsSchema.decorateField(GraphModel, field, CjsSchema.type.resource(GraphResource));
@@ -542,7 +206,7 @@ test("Traverse is cycle-safe and GetResources visits every model", () => {
     leaf.peer = root;
 
     const visited = [];
-    root.Traverse(model => visited.push(model));
+    Traverse(root, model => visited.push(model));
     assert.deepEqual(visited, [root, branch, leaf]);
 
     // Runtime resource declarations must not suppress descendants; shared
@@ -556,7 +220,7 @@ test("Traverse is cycle-safe and GetResources visits every model", () => {
     leaf._geometryRes = resourceC;
 
     // Prior contents are replaced, not accumulated into.
-    assert.deepEqual(root.GetResources([resourceC]), [resourceA, resourceB, resourceC]);
+    assert.deepEqual(GetResources(root, [resourceC]), [resourceA, resourceB, resourceC]);
 });
 
 test("CjsEventEmitter normalizes names and supports external method sources", () => {
@@ -755,7 +419,7 @@ test("enum registration rejects a conflicting name without changing its object i
 });
 
 test("schema.hideInherited removes inherited fields only from the schema surface", () => {
-    class HideBase extends CjsModel
+    class HideBase
     {
         visible = "visible-default";
         hidden = "hidden-default";
@@ -793,10 +457,10 @@ test("schema.hideInherited removes inherited fields only from the schema surface
 
     // A hidden or undeclared key is not a member the reader knows: it throws,
     // as Carbon's readers do (IRootReader.cpp:99-106; operator, 2026-09-27).
-    assert.throws(() => HideChild.from({ hidden: "hidden-loaded" }), /Invalid attribute: hidden/u);
-    assert.throws(() => HideChild.from({ unknown: "rejected" }), /Invalid attribute: unknown/u);
+    assert.throws(() => CjsSchema.from(CjsSchema.getClassName(HideChild), { hidden: "hidden-loaded" }), /Invalid attribute: hidden/u);
+    assert.throws(() => CjsSchema.from(CjsSchema.getClassName(HideChild), { unknown: "rejected" }), /Invalid attribute: unknown/u);
 
-    const child = HideChild.from({
+    const child = CjsSchema.from(CjsSchema.getClassName(HideChild), {
         visible: "visible-loaded",
         secondHidden: "second-loaded",
         own: "own-loaded"
@@ -809,7 +473,7 @@ test("schema.hideInherited removes inherited fields only from the schema surface
     assert.equal(child instanceof HideChild, true);
     assert.equal(child instanceof HideBase, true);
     assert.equal(Object.getPrototypeOf(HideChild.prototype), HideBase.prototype);
-    assert.throws(() => child.SetValues({ hidden: "still-rejected" }), /Invalid attribute: hidden/u);
+    assert.throws(() => CjsSchema.setValues(child, { hidden: "still-rejected" }), /Invalid attribute: hidden/u);
 
     for (const options of [
         {},
@@ -819,7 +483,7 @@ test("schema.hideInherited removes inherited fields only from the schema surface
         { refs: true, typeTags: true }
     ])
     {
-        assert.equal(Object.hasOwn(child.GetValues(options), "hidden"), false);
+        assert.equal(Object.hasOwn(CjsSchema.getValues(child, {}, options), "hidden"), false);
     }
 
     assert.deepEqual(
@@ -850,9 +514,9 @@ test("schema.hideInherited removes inherited fields only from the schema surface
 
     // There is no unhide: re-declaring "hidden" does not expose it again, so
     // both hidden names throw on the grandchild.
-    assert.throws(() => HideGrandchild.from({ hidden: "cannot-unhide" }), /Invalid attribute: hidden/u);
-    assert.throws(() => HideGrandchild.from({ secondHidden: "also-hidden" }), /Invalid attribute: secondHidden/u);
-    const grandchild = HideGrandchild.from({ extra: "extra-loaded" });
+    assert.throws(() => CjsSchema.from(CjsSchema.getClassName(HideGrandchild), { hidden: "cannot-unhide" }), /Invalid attribute: hidden/u);
+    assert.throws(() => CjsSchema.from(CjsSchema.getClassName(HideGrandchild), { secondHidden: "also-hidden" }), /Invalid attribute: secondHidden/u);
+    const grandchild = CjsSchema.from(CjsSchema.getClassName(HideGrandchild), { extra: "extra-loaded" });
 
     assert.equal(grandchild.hidden, "grandchild-hidden");
     assert.equal(grandchild.secondHidden, "second-default");
@@ -864,7 +528,7 @@ test("schema.hideInherited removes inherited fields only from the schema surface
 });
 
 test("schema.hideInherited registers through Stage-3 metadata and rejects typos", () => {
-    class Stage3HideBase extends CjsModel
+    class Stage3HideBase
     {
         visible = "visible";
         hidden = "hidden";
@@ -906,7 +570,7 @@ test("schema.hideInherited registers through Stage-3 metadata and rejects typos"
         CjsSchema.getSchema(Stage3HideChild).fields.map(field => field.name),
         ["visible"]
     );
-    assert.deepEqual(new Stage3HideChild().GetValues(), { visible: "visible" });
+    assert.deepEqual(CjsSchema.getValues(new Stage3HideChild()), { visible: "visible" });
 
     class Stage3TypoChild extends Stage3HideBase {}
     assert.throws(
@@ -920,7 +584,7 @@ test("schema.hideInherited registers through Stage-3 metadata and rejects typos"
 });
 
 test("document hydration and dehydration exclude hidden inherited fields", () => {
-    class HiddenDocumentBase extends CjsModel
+    class HiddenDocumentBase
     {
         visible = "visible-default";
         hidden = "hidden-default";
@@ -1176,7 +840,7 @@ test("stage-3 static method decorators register on the class constructor", () =>
 });
 
 test("hydrates and dehydrates explicitly schema-backed runtime models", () => {
-    class HydratedSchemaNode extends CjsModel
+    class HydratedSchemaNode
     {
         name = "";
         position = new Float32Array([0, 0, 0]);
@@ -1253,7 +917,7 @@ test("preserves canonical model references while hydrating neutral document grap
 });
 
 test("accepts explicit singular schema aliases for model input", () => {
-    class AliasedFieldNode extends CjsModel
+    class AliasedFieldNode
     {
         dampingRatio = 0;
     }
@@ -1262,14 +926,14 @@ test("accepts explicit singular schema aliases for model input", () => {
     CjsSchema.defineField(AliasedFieldNode, "dampingRatio", "alias", "m_dampingRatio");
     CjsSchema.define(AliasedFieldNode, { className: "AliasedFieldNode" });
 
-    const node = AliasedFieldNode.from({ m_dampingRatio: "0.5" });
+    const node = CjsSchema.from(CjsSchema.getClassName(AliasedFieldNode), { m_dampingRatio: "0.5" });
     assert.equal(node.dampingRatio, 0.5);
     assert.equal(Object.hasOwn(node, "m_dampingRatio"), false);
-    assert.deepEqual(node.GetValues(), { dampingRatio: 0.5 });
+    assert.deepEqual(CjsSchema.getValues(node), { dampingRatio: 0.5 });
 });
 
 test("defines a complete hydratable schema from a manual JSON declaration", () => {
-    class ManualSchemaNode extends CjsModel
+    class ManualSchemaNode
     {
         value = 0;
     }
@@ -1284,7 +948,7 @@ test("defines a complete hydratable schema from a manual JSON declaration", () =
         }]
     });
 
-    const node = ManualSchemaNode.from({ value: "1.25" });
+    const node = CjsSchema.from(CjsSchema.getClassName(ManualSchemaNode), { value: "1.25" });
     const schema = CjsSchema.getSchema(ManualSchemaNode);
 
     assert.equal(CjsSchema.GetConstructor("LegacyManualSchemaNode"), ManualSchemaNode);
@@ -1295,16 +959,16 @@ test("defines a complete hydratable schema from a manual JSON declaration", () =
         type: { kind: "float32" },
         edit: { read: true, write: true, persist: true }
     }]);
-    assert.deepEqual(node.GetValues(), { value: 1.25 });
+    assert.deepEqual(CjsSchema.getValues(node), { value: 1.25 });
 });
 
-test("uses schema metadata as the default CjsModel value shape", () => {
-    class SchemaChild extends CjsModel
+test("uses schema metadata as the default schema value shape", () => {
+    class SchemaChild
     {
         label = "";
     }
 
-    class SchemaNode extends CjsModel
+    class SchemaNode
     {
         name = "";
         position = new Float32Array([0, 0, 0]);
@@ -1332,7 +996,7 @@ test("uses schema metadata as the default CjsModel value shape", () => {
     CjsSchema.define(SchemaNode, { className: "SchemaNode", family: "test" });
 
     const node = new SchemaNode();
-    node.SetValues({
+    CjsSchema.setValues(node, {
         name: "root",
         position: [1, 2, 3],
         child: { label: "one" },
@@ -1346,7 +1010,7 @@ test("uses schema metadata as the default CjsModel value shape", () => {
     assert.equal(node.children[0] instanceof SchemaChild, true);
     assert.equal(node.computed, 7);
     assert.equal(node.uiLocked, "changed");
-    assert.deepEqual(node.GetValues(), {
+    assert.deepEqual(CjsSchema.getValues(node), {
         name: "root",
         position: [1, 2, 3],
         child: { label: "one" },
@@ -1360,29 +1024,29 @@ test("uses schema metadata as the default CjsModel value shape", () => {
     assert.equal(dehydrated.nodes[0].raw, undefined);
 
     const source = {};
-    node.ClearDirty();
-    node.SetValues({ position: [4, 5, 6] }, { source, skipEvents: true, skipUpdate: true });
+    (ensureRuntimeState(node).dirty = false);
+    CjsSchema.setValues(node, { position: [4, 5, 6] }, { source, skipEvents: true, skipUpdate: true });
     assert.equal(node.__state.dirty, true);
 
-    node.ClearDirty();
-    node.SetValues({ position: [4, 5, 6] }, { source, skipEvents: true, skipUpdate: true });
-    assert.equal(node.IsDirty(), true, "an accepted notified write owes settlement even when equal");
+    (ensureRuntimeState(node).dirty = false);
+    CjsSchema.setValues(node, { position: [4, 5, 6] }, { source, skipEvents: true, skipUpdate: true });
+    assert.equal((getRuntimeState(node)?.dirty === true), true, "an accepted notified write owes settlement even when equal");
 
-    node.SetValues({ position: [7, 8, 9] }, { notify: false, source, skipEvents: true, skipUpdate: true });
+    CjsSchema.setValues(node, { position: [7, 8, 9] }, { notify: false, source, skipEvents: true, skipUpdate: true });
     assert.equal(node.__state.dirty, true);
 
-    node.ClearDirty();
-    node.SetValues({ name: "renamed" }, { source, skipEvents: true, skipUpdate: true });
+    (ensureRuntimeState(node).dirty = false);
+    CjsSchema.setValues(node, { name: "renamed" }, { source, skipEvents: true, skipUpdate: true });
     assert.equal(node.__state.dirty, true);
 });
 
 test("hydrates canonical model fields and lists without constructing raw objects", () => {
-    class CanonicalChild extends CjsModel
+    class CanonicalChild
     {
         label = "";
     }
 
-    class CanonicalParent extends CjsModel
+    class CanonicalParent
     {
         child = null;
         children = [];
@@ -1407,15 +1071,15 @@ test("hydrates canonical model fields and lists without constructing raw objects
     });
     CjsSchema.define(CanonicalParent, { className: "CanonicalParent", family: "test-model" });
 
-    const parent = CanonicalParent.from({
+    const parent = CjsSchema.from(CjsSchema.getClassName(CanonicalParent), {
         child: { label: "one" },
         children: [{ label: "two" }],
         payload: { native: 7 }
     });
-    assert.throws(() => CanonicalParent.from({ reference: { name: "root" } }), /_type/u,
+    assert.throws(() => CjsSchema.from(CjsSchema.getClassName(CanonicalParent), { reference: { name: "root" } }), /_type/u,
         "a typed member does not keep a plain object it cannot build (operator, 2026-09-26)");
-    const existingChild = CanonicalChild.from({ label: "existing" });
-    const referencingParent = CanonicalParent.from({
+    const existingChild = CjsSchema.from(CjsSchema.getClassName(CanonicalChild), { label: "existing" });
+    const referencingParent = CjsSchema.from(CjsSchema.getClassName(CanonicalParent), {
         child: existingChild,
         children: [existingChild]
     });
@@ -1426,8 +1090,8 @@ test("hydrates canonical model fields and lists without constructing raw objects
     assert.equal(referencingParent.children[0], existingChild);
     assert.deepEqual(parent.payload, { native: 7 });
     assert.equal(parent.reference, null);
-    assert.equal(parent.payload instanceof CjsModel, false);
-    assert.deepEqual(parent.GetValues(), {
+    assert.equal(CjsSchema.getClassName(parent.payload.constructor) !== null, false);
+    assert.deepEqual(CjsSchema.getValues(parent), {
         child: { label: "one" },
         children: [{ label: "two" }],
         payload: { native: 7 },
@@ -1436,13 +1100,13 @@ test("hydrates canonical model fields and lists without constructing raw objects
 });
 
 test("registered struct fields copy values into their constructor-owned instance", () => {
-    class ValueStruct extends CjsModel
+    class ValueStruct
     {
         position = new Float32Array(3);
         radius = 0;
     }
 
-    class StructOwner extends CjsModel
+    class StructOwner
     {
         data = new ValueStruct();
     }
@@ -1456,9 +1120,9 @@ test("registered struct fields copy values into their constructor-owned instance
     const owner = new StructOwner();
     const data = owner.data;
     const position = data.position;
-    const incoming = ValueStruct.from({ position: [1, 2, 3], radius: 4 });
+    const incoming = CjsSchema.from(CjsSchema.getClassName(ValueStruct), { position: [1, 2, 3], radius: 4 });
 
-    owner.SetValues({ data: incoming }, { skipEvents: true, skipUpdate: true });
+    CjsSchema.setValues(owner, { data: incoming }, { skipEvents: true, skipUpdate: true });
 
     assert.equal(owner.data, data);
     assert.notEqual(owner.data, incoming);
@@ -1471,7 +1135,7 @@ test("registered struct fields copy values into their constructor-owned instance
     assert.deepEqual(Array.from(owner.data.position), [1, 2, 3]);
     assert.equal(owner.data.radius, 4);
 
-    owner.SetValues({ data: { position: [5, 6, 7], radius: 8 } }, { skipEvents: true, skipUpdate: true });
+    CjsSchema.setValues(owner, { data: { position: [5, 6, 7], radius: 8 } }, { skipEvents: true, skipUpdate: true });
     assert.equal(owner.data, data);
     assert.equal(owner.data.position, position);
     assert.deepEqual(Array.from(owner.data.position), [5, 6, 7]);
@@ -1479,12 +1143,12 @@ test("registered struct fields copy values into their constructor-owned instance
 });
 
 test("hydrates list schema items as registered model classes", () => {
-    class ListedChild extends CjsModel
+    class ListedChild
     {
         label = "";
     }
 
-    class ListedParent extends CjsModel
+    class ListedParent
     {
         children = [];
     }
@@ -1494,13 +1158,13 @@ test("hydrates list schema items as registered model classes", () => {
     CjsSchema.defineField(ListedParent, "children", "type", { kind: "list", itemType: "ListedChild" });
     CjsSchema.define(ListedParent, { className: "ListedParent", family: "test-list" });
 
-    const parent = ListedParent.from({ children: [{ label: "nested" }] });
+    const parent = CjsSchema.from(CjsSchema.getClassName(ListedParent), { children: [{ label: "nested" }] });
     assert.equal(parent.children[0] instanceof ListedChild, true);
-    assert.deepEqual(parent.GetValues(), { children: [{ label: "nested" }] });
+    assert.deepEqual(CjsSchema.getValues(parent), { children: [{ label: "nested" }] });
 });
 
 test("keeps unknown list item types as plain values", () => {
-    class UnknownListNode extends CjsModel
+    class UnknownListNode
     {
         items = [];
     }
@@ -1508,13 +1172,13 @@ test("keeps unknown list item types as plain values", () => {
     CjsSchema.defineField(UnknownListNode, "items", "type", { kind: "list", itemType: "unknown" });
     CjsSchema.define(UnknownListNode, { className: "UnknownListNode" });
 
-    const node = UnknownListNode.from({ items: [{ value: 7 }] });
+    const node = CjsSchema.from(CjsSchema.getClassName(UnknownListNode), { items: [{ value: 7 }] });
     assert.deepEqual(node.items, [{ value: 7 }]);
-    assert.equal(node.items[0] instanceof CjsModel, false);
+    assert.equal(CjsSchema.getClassName(node.items[0].constructor) !== null, false);
 });
 
 test("GetValues export options control persistence, type tags and refs", () => {
-    class ExportChild extends CjsModel
+    class ExportChild
     {
         name = "";
         value = 0;
@@ -1538,7 +1202,7 @@ test("GetValues export options control persistence, type tags and refs", () => {
         ]
     });
 
-    class ExportRoot extends CjsModel
+    class ExportRoot
     {
         name = "";
         runtimeFlag = false;
@@ -1555,36 +1219,36 @@ test("GetValues export options control persistence, type tags and refs", () => {
         ]
     });
 
-    const shared = ExportChild.from({ name: "shared", value: 1 });
-    const special = ExportChildSpecial.from({ name: "special", value: 2 });
+    const shared = CjsSchema.from(CjsSchema.getClassName(ExportChild), { name: "shared", value: 1 });
+    const special = CjsSchema.from(CjsSchema.getClassName(ExportChildSpecial), { name: "special", value: 2 });
     const root = new ExportRoot();
     root.name = "root";
     root.runtimeFlag = true;
     root.child = shared;
     root.children = [shared, special];
 
-    assert.deepEqual(root.GetValues(), {
+    assert.deepEqual(CjsSchema.getValues(root), {
         name: "root",
         runtimeFlag: true,
         child: { name: "shared", value: 1 },
         children: [{ name: "shared", value: 1 }, { name: "special", value: 2 }]
     });
 
-    const persisted = root.GetValues({ persistOnly: true });
+    const persisted = CjsSchema.getValues(root, {}, { persistOnly: true });
     assert.equal("runtimeFlag" in persisted, false);
     assert.equal(persisted.name, "root");
 
-    const tagged = root.GetValues({ typeTags: true });
+    const tagged = CjsSchema.getValues(root, {}, { typeTags: true });
     assert.equal(tagged._type, "ExportRoot");
     assert.equal(tagged.child._type, undefined);
     assert.equal(tagged.children[0]._type, undefined);
     assert.equal(tagged.children[1]._type, "ExportChildSpecial");
 
-    const forced = root.GetValues({ forceTypeTags: true });
+    const forced = CjsSchema.getValues(root, {}, { forceTypeTags: true });
     assert.equal(forced.child._type, "ExportChild");
     assert.equal(forced.children[1]._type, "ExportChildSpecial");
 
-    const withRefs = root.GetValues({ refs: true });
+    const withRefs = CjsSchema.getValues(root, {}, { refs: true });
     assert.equal(withRefs.child._id, 1);
     assert.deepEqual(withRefs.children[0], { _ref: 1 });
     assert.equal(withRefs.children[1]._id, undefined);
@@ -1595,13 +1259,13 @@ test("GetValues export options control persistence, type tags and refs", () => {
     const cyclic = new ExportRoot();
     cyclic.name = "cycle";
     cyclic.child = cyclic;
-    const cycled = cyclic.GetValues({ refs: true });
+    const cycled = CjsSchema.getValues(cyclic, {}, { refs: true });
     assert.deepEqual(cycled.child, { _ref: cycled._id });
 
 });
 
 test("imports _ref identity: shared children, cycles, self and forward references", () => {
-    class RefNode extends CjsModel
+    class RefNode
     {
         name = "";
         next = null;
@@ -1617,29 +1281,29 @@ test("imports _ref identity: shared children, cycles, self and forward reference
     });
 
     // Shared child identity survives a JSON round trip without duplication.
-    const shared = RefNode.from({ name: "shared" });
+    const shared = CjsSchema.from(CjsSchema.getClassName(RefNode), { name: "shared" });
     const root = new RefNode();
     root.name = "root";
     root.next = shared;
-    root.items = [shared, RefNode.from({ name: "solo" })];
+    root.items = [shared, CjsSchema.from(CjsSchema.getClassName(RefNode), { name: "solo" })];
 
-    const values = JSON.parse(JSON.stringify(root.GetValues({ refs: true, typeTags: true })));
-    const hydrated = RefNode.from(values);
+    const values = JSON.parse(JSON.stringify(CjsSchema.getValues(root, {}, { refs: true, typeTags: true })));
+    const hydrated = CjsSchema.from(CjsSchema.getClassName(RefNode), values);
     assert.equal(hydrated.next instanceof RefNode, true);
     assert.equal(hydrated.next.name, "shared");
     assert.equal(hydrated.items[0], hydrated.next);
     assert.equal(hydrated.items[1].name, "solo");
-    assert.deepEqual(hydrated.GetValues(), root.GetValues());
+    assert.deepEqual(CjsSchema.getValues(hydrated), CjsSchema.getValues(root));
 
     // A cycle round-trips to the same instance without recursion failure.
     const cyclic = new RefNode();
     cyclic.name = "cycle";
     cyclic.next = cyclic;
-    const cycled = RefNode.from(JSON.parse(JSON.stringify(cyclic.GetValues({ refs: true }))));
+    const cycled = CjsSchema.from(CjsSchema.getClassName(RefNode), JSON.parse(JSON.stringify(CjsSchema.getValues(cyclic, {}, { refs: true }))));
     assert.equal(cycled.next, cycled);
 
     // Forward references resolve during the owning operation's finalize pass.
-    const forward = RefNode.from({
+    const forward = CjsSchema.from(CjsSchema.getClassName(RefNode), {
         name: "root",
         items: [{ _ref: 7 }, { _id: 7, name: "late" }]
     });
@@ -1648,12 +1312,12 @@ test("imports _ref identity: shared children, cycles, self and forward reference
 
     // SetValues shares the same identity table, including self-references.
     const target = new RefNode();
-    target.SetValues({ _id: 3, name: "self", next: { _ref: 3 } });
+    CjsSchema.setValues(target, { _id: 3, name: "self", next: { _ref: 3 } });
     assert.equal(target.next, target);
 });
 
 test("from and singular imports honor polymorphic _type", () => {
-    class PolyBase extends CjsModel
+    class PolyBase
     {
         name = "";
     }
@@ -1676,7 +1340,7 @@ test("from and singular imports honor polymorphic _type", () => {
         ]
     });
 
-    class PolyHost extends CjsModel
+    class PolyHost
     {
         child = null;
     }
@@ -1688,30 +1352,30 @@ test("from and singular imports honor polymorphic _type", () => {
     });
 
     // A singular field constructs the concrete subtype named by _type.
-    const host = PolyHost.from({ child: { _type: "PolySpecial", name: "s", extra: 2 } });
+    const host = CjsSchema.from(CjsSchema.getClassName(PolyHost), { child: { _type: "PolySpecial", name: "s", extra: 2 } });
     assert.equal(host.child instanceof PolySpecial, true);
     assert.equal(host.child.extra, 2);
 
     // Root dispatch constructs the concrete subclass.
-    const dispatched = PolyBase.from({ _type: "PolySpecial", name: "d" });
+    const dispatched = CjsSchema.from(CjsSchema.getClassName(PolyBase), { _type: "PolySpecial", name: "d" });
     assert.equal(dispatched instanceof PolySpecial, true);
 
     // A typeTags export reimports concretely (no base-type downgrade).
-    const round = PolyHost.from(JSON.parse(JSON.stringify(host.GetValues({ typeTags: true }))));
+    const round = CjsSchema.from(CjsSchema.getClassName(PolyHost), JSON.parse(JSON.stringify(CjsSchema.getValues(host, {}, { typeTags: true }))));
     assert.equal(round.child instanceof PolySpecial, true);
     assert.equal(round.child.extra, 2);
 
     // Base-class values may apply to a derived target.
-    assert.equal(new PolySpecial().SetValues({ _type: "PolyBase", name: "x" }) instanceof Set, true);
+    assert.equal(CjsSchema.setValues(new PolySpecial(), { _type: "PolyBase", name: "x" }) instanceof Set, true);
 
-    // Mismatched or unknown types throw.
-    assert.throws(() => PolySpecial.from({ _type: "PolyHost" }), TypeError);
-    assert.throws(() => PolyBase.from({ _type: "NoSuchRegisteredClass" }), TypeError);
-    assert.throws(() => new PolySpecial().SetValues({ _type: "PolyHost" }), TypeError);
+    // The shared factory dispatches the authored root type, including an unrelated class.
+    assert.equal(CjsSchema.from(CjsSchema.getClassName(PolySpecial), { _type: "PolyHost" }) instanceof PolyHost, true);
+    assert.throws(() => CjsSchema.from(CjsSchema.getClassName(PolyBase), { _type: "NoSuchRegisteredClass" }), TypeError);
+    assert.throws(() => CjsSchema.setValues(new PolySpecial(), { _type: "PolyHost" }), TypeError);
 });
 
 test("reference import errors are loud and specific", () => {
-    class StrictRefNode extends CjsModel
+    class StrictRefNode
     {
         name = "";
     }
@@ -1722,7 +1386,7 @@ test("reference import errors are loud and specific", () => {
         ]
     });
 
-    class StrictOther extends CjsModel
+    class StrictOther
     {
         name = "";
     }
@@ -1733,7 +1397,7 @@ test("reference import errors are loud and specific", () => {
         ]
     });
 
-    class StrictRefHost extends CjsModel
+    class StrictRefHost
     {
         node = null;
         nodes = [];
@@ -1749,21 +1413,21 @@ test("reference import errors are loud and specific", () => {
     });
 
     // An unresolved reference names the missing id.
-    assert.throws(() => StrictRefHost.from({ nodes: [{ _ref: 99 }] }), /Unresolved _ref ids: 99/);
+    assert.throws(() => CjsSchema.from(CjsSchema.getClassName(StrictRefHost), { nodes: [{ _ref: 99 }] }), /Unresolved _ref ids: 99/);
 
     // Duplicate ids never silently rebind identity.
     assert.throws(
-        () => StrictRefHost.from({ nodes: [{ _id: 1, name: "a" }, { _id: 1, name: "b" }] }),
+        () => CjsSchema.from(CjsSchema.getClassName(StrictRefHost), { nodes: [{ _id: 1, name: "a" }, { _id: 1, name: "b" }] }),
         /Duplicate _id 1/
     );
 
     // A root cannot be constructed from a bare reference.
-    assert.throws(() => StrictRefHost.from({ _ref: 1 }), TypeError);
+    assert.throws(() => CjsSchema.from(CjsSchema.getClassName(StrictRefHost), { _ref: 1 }), TypeError);
 
     // A reference assigns like a direct instance: Carbon contracts may be
     // declared through interface names with no runtime inheritance, so a
     // resolved reference is not constrained by the declared field class.
-    const crossTyped = StrictRefHost.from({
+    const crossTyped = CjsSchema.from(CjsSchema.getClassName(StrictRefHost), {
         others: [{ _id: 4, name: "o" }],
         node: { _ref: 4 }
     });
@@ -1773,7 +1437,7 @@ test("reference import errors are loud and specific", () => {
 // Removed: "keyed list maps accept _ref entries..." - keyed lists: the feature has no Blue counterpart and no production caller, and was dropped with the move to Blue's values engine (operator, 2026-09-27; docs research/blue-values-engine.md).
 
 test("list items honor an explicit _type on input", () => {
-    class MapChild extends CjsModel
+    class MapChild
     {
         name = "";
         value = 0;
@@ -1797,7 +1461,7 @@ test("list items honor an explicit _type on input", () => {
         ]
     });
 
-    class MapHost extends CjsModel
+    class MapHost
     {
         children = [];
     }
@@ -1811,9 +1475,9 @@ test("list items honor an explicit _type on input", () => {
     const host = new MapHost();
     // A list is read from a list (DictReader ReadList: "Expected a list"); the
     // name-keyed map form was dropped with keyed lists (operator, 2026-09-27).
-    assert.throws(() => host.SetValues({ children: { a: { value: 1 } } }), TypeError);
+    assert.throws(() => CjsSchema.setValues(host, { children: { a: { value: 1 } } }), TypeError);
 
-    host.SetValues({ children: [{ _type: "MapChildAlt", name: "c", value: 3 }] });
+    CjsSchema.setValues(host, { children: [{ _type: "MapChildAlt", name: "c", value: 3 }] });
     assert.equal(host.children.length, 1);
     assert.equal(host.children[0] instanceof MapChildAlt, true);
     assert.equal(host.children[0].name, "c");
@@ -1899,42 +1563,7 @@ test("marks CarbonEngineJS-original methods with impl.custom + a reason", () => 
     assert.equal(method.impl.reason, "JS-only zero-alloc fold; Carbon inlines this loop");
 });
 
-test("CjsModel.from runs the settle hook with events suppressed", () => {
-    class PlacedModel extends CjsModel
-    {
-        hookRuns = 0;
-        receivedMembers = [];
-        modifiedEvents = 0;
 
-        OnModified(member)
-        {
-            this.hookRuns++;
-            this.receivedMembers.push(member);
-            return true;
-        }
-
-        EmitEvent(name, ...rest)
-        {
-            if (name === "modified") this.modifiedEvents++;
-            return super.EmitEvent(name, ...rest);
-        }
-    }
-
-    CjsSchema.defineField(PlacedModel, "position", "type", { kind: "number" });
-    CjsSchema.defineField(PlacedModel, "position", "edit", { persist: true, notify: true });
-    CjsSchema.define(PlacedModel, { className: "PlacedModel", family: "test" });
-
-    // Construction dispatches notified members with events suppressed.
-    const model = PlacedModel.from({ position: 5 });
-    assert.equal(model.hookRuns >= 1, true, "hook ran during construction");
-    assert.deepEqual(model.receivedMembers, ["position"]);
-    assert.equal(model.modifiedEvents, 0, "no modified event during construction");
-    assert.equal(model.__state.dirty, false, "from returns a settled graph");
-
-    // Ordinary mutation afterwards: hook AND event both fire.
-    model.SetValues({ position: 9 });
-    assert.equal(model.modifiedEvents, 1, "post-construction mutation emits normally");
-});
 
 
 
@@ -1944,11 +1573,11 @@ test("type.enum and type.hideInherited are the same decorators as their schema.*
     // The migration to @type.* is only safe if both spellings produce the same
     // field metadata, so this compares what each actually attaches rather than
     // asserting they are the same function object.
-    class EnumViaSchema extends model.CjsModel
+    class EnumViaSchema
     {
         mode = 0;
     }
-    class EnumViaType extends model.CjsModel
+    class EnumViaType
     {
         mode = 0;
     }
@@ -1971,7 +1600,7 @@ test("type.enum and type.hideInherited are the same decorators as their schema.*
     assert.equal(viaType.enum.enumType, viaSchema.enum.enumType);
 
     // hideInherited is a class decorator; both spellings must hide the same field.
-    class HideParent extends model.CjsModel
+    class HideParent
     {
         kept = "kept";
         dropped = "dropped";

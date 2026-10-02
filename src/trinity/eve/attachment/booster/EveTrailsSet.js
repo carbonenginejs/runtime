@@ -1,3 +1,4 @@
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveTrailsSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveTrailsSet.cpp
 import { mat4 } from "#math/mat4";
@@ -23,6 +24,8 @@ const INSTANCE_VERTEX_SIZE = 16;
  * its shape bent along each booster renderable's spline in the vertex shader.
  */
 @type.define({ className: "EveTrailsSet", family: "eve/attachment/boosters" })
+@carbon.inherit(IInitialize)
+@carbon.mapInterface(IInitialize)
 export class EveTrailsSet
 {
 

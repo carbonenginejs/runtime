@@ -6,13 +6,11 @@ import { applyValues } from "../compose/values.js";
 // Values are a service over registered declarations. Importing Blue installs
 // this bridge; a class needs no model base or instance transport methods.
 // Existing format-specific factories and values methods keep their contracts.
-// The legacy schema initialization path remains until each donor mapping and
-// caller has migrated to declaration-driven dictionary construction.
+// Construction resolves references before the native mapped initialization phase.
 CjsSchema.registerValuesService({
     /** Exports fields through a custom format contract or the Blue dictionary writer. */
     getValues(target, out = {}, options = {})
     {
-        if (CjsSchema.isModelInstance(target)) return new DictWriter().WriteObject(target, out, options);
         if (target && typeof target.GetValues === "function") return target.GetValues(options);
         return new DictWriter().WriteObject(target, out, options);
     },

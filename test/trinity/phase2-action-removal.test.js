@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { CjsModel } from "../../npm/dist/global/model/index.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
 import { Copier } from "../../npm/dist/global/blue/Copier.js";
@@ -30,7 +29,7 @@ for (const [Type, values] of cases)
   {
     const action = new DictReader().CreateObject({ _type: CjsSchema.getClassName(Type), ...values });
     assert.equal(Object.getPrototypeOf(Type.prototype), ITr2ControllerAction.prototype);
-    assert.equal(CjsSchema.cast(action, CjsModel), null);
+    assert.equal("GetValues" in action, false);
     assert.equal(CjsSchema.cast(action, ITr2ControllerAction), action);
     assert.deepEqual([...mappedInterfaces(Type)], [Type, ITr2ControllerAction]);
     assert.equal(Type.from, undefined);

@@ -7,7 +7,6 @@ import { IListNotify } from "../../npm/dist/global/blue/IListNotify.js";
 import { INotify } from "../../npm/dist/global/blue/INotify.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { CjsModel } from "../../npm/dist/global/model/CjsModel.js";
 import { CjsSchema, meta } from "../../npm/dist/global/schema/index.js";
 import { CjsBlackReader } from "../../npm/dist/resource/formats/black/core/CjsBlackReader.js";
 import { ExecuteMainThreadActions } from "../../npm/dist/trinity/core/continueOnMainThread.js";
@@ -135,7 +134,7 @@ test("State owns independently subscribed native lists with READ/PERSIST declara
   assert.notEqual(state.transitions, other.transitions);
   assert.notEqual(state.actions, state.transitions);
   assert.deepEqual([...mappedInterfaces(Tr2StateMachineState)], [Tr2StateMachineState, IListNotify, INotify]);
-  assert.equal(CjsSchema.cast(state, CjsModel), null);
+  assert.equal("GetValues" in state, false);
   assert.equal(state.GetValues, undefined);
   assert.equal(state.SetValues, undefined);
   assert.equal(Tr2StateMachineState.from, undefined);
@@ -636,7 +635,7 @@ test("Blue dictionary construction and population preserve configured storage an
   assert.equal(actions[0], actions[1]);
   assert.equal(transitions[0], transitions[1]);
   assert.ok(actions[0] instanceof Tr2ActionChildEffect);
-  assert.equal(CjsSchema.cast(actions[0], CjsModel), null, "authored action is model-free");
+  assert.equal("GetValues" in actions[0], false, "authored action is model-free");
   assert.ok(transitions[0] instanceof Tr2StateMachineTransition);
   const oldAction = actions[0], oldTransition = transitions[0], events = Observe(state);
   const ready = [], notify = state.OnListModified;

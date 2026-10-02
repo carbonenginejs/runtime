@@ -24,7 +24,7 @@ export class INotify
 {
   /**
    * `OnModified` - a Be::NOTIFY member changed; re-derive whatever depended on
-   * it. Returning false stops the caller, which is what `CjsModel` tests for.
+   * it. Editor settlement retains dirty state when this returns false.
    *
    * @param {string|null} _propertyName The changed member's name in JavaScript.
    * @returns {boolean} False to halt the caller.

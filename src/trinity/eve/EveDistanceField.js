@@ -1,3 +1,5 @@
+import { INotify } from "../../global/blue/INotify.js";
+import { IListNotify } from "../../global/blue/IListNotify.js";
 // Source: trinity/trinity/Eve/EveDistanceField.h
 // Source: trinity/trinity/Eve/EveDistanceField.cpp
 import { vec3 } from "#math/vec3";
@@ -15,6 +17,7 @@ import { TriCurveSet } from "../curves/TriCurveSet.js";
   className: "EveDistanceField",
   family: "eve"
 })
+@carbon.inherit(INotify)
 export class EveDistanceField
 {
   @edit.read
@@ -386,3 +389,6 @@ export class EveDistanceField
     return value?.length >= 3 ? value : vec3.create();
   }
 }
+
+// Exact native Blue exposure: only these identities participate in loading.
+carbon.interfaceTable({ interfaces: [EveDistanceField, IListNotify, INotify], chainTo: null })(EveDistanceField, { kind: "class" });

@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { CjsModel } from "../../npm/dist/global/model/index.js";
 import { DictReader, DictWriter, Copier } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { GaussianData } from "../../npm/dist/trinity/postProcess/GaussianData.js";
@@ -12,7 +11,7 @@ for (const Type of [GaussianData, Float4x3]) test(`${Type.name} is a plain typed
 {
   const record = new Type();
   assert.equal(Object.getPrototypeOf(Type.prototype),Object.prototype);
-  assert.equal(CjsSchema.cast(record,CjsModel),null);
+  assert.equal("GetValues" in record, false);
   assert.deepEqual([...mappedInterfaces(Type)],[]);
   for (const name of ["GetValues","SetValues","UpdateValues","Initialize","Dispose"]) assert.equal(record[name],undefined);
   assert.equal(Type.from,undefined);

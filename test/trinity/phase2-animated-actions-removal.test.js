@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { CjsModel } from "../../npm/dist/global/model/index.js";
 import { blue, DictReader, DictWriter, Copier, BlueList, INotify } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { ITr2ControllerAction } from "../../npm/dist/trinity/controllers/action/ITr2ControllerAction.js";
@@ -22,7 +21,7 @@ for (const [Type, values, extra] of cases)
   {
     const instance = new Type();
     assert.equal(Object.getPrototypeOf(Type.prototype), ITr2ControllerAction.prototype);
-    assert.equal(CjsSchema.cast(instance, CjsModel), null);
+    assert.equal("GetValues" in instance, false);
     assert.deepEqual([...mappedInterfaces(Type)], [Type, ITr2ControllerAction, ...extra]);
     for (const Interface of [ITr2ControllerAction, ...extra]) assert.equal(CjsSchema.cast(instance, Interface), instance);
     assert.equal(Type.from, undefined);

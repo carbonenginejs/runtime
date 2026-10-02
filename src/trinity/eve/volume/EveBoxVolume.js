@@ -1,3 +1,4 @@
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/Volume/EveBoxVolume.h
 // Source: trinity/trinity/Eve/Volume/EveBoxVolume.cpp
 // Source: trinity/trinity/Eve/Volume/EveBoxVolume_Blue.cpp
@@ -15,6 +16,8 @@ import { carbon, impl, edit, type } from "#schema";
   className: "EveBoxVolume",
   family: "eve/volume"
 })
+@carbon.inherit(IInitialize)
+@carbon.mapInterface(IInitialize)
 export class EveBoxVolume extends IEveVolume
 {
   @edit.notify

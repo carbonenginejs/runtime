@@ -103,10 +103,6 @@
       "CjsFormatRoute",
       "CjsFormatStore"
     ],
-    "src/global/model/CjsModel.js": [
-      "CjsModel",
-      "CjsPendingReference"
-    ],
     "src/resource/format/carbonEffect/CjsCarbonEffectReader.js": [
       "CjsCarbonEffectBodyReader",
       "CjsCarbonEffectReader"
@@ -142,9 +138,6 @@
   "missingClass": {
     "src/audio/CjsAudioUpdateContext.js": [
       "CjsAudioUpdateContext"
-    ],
-    "src/character/trinity/interior/ITr2InteriorLight.js": [
-      "ITr2InteriorLight"
     ],
     "src/character/trinity/trinityCore/ITr2AnimationUpdater.js": [
       "ITr2AnimationUpdater"

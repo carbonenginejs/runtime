@@ -1,3 +1,4 @@
+import { INotify } from "../../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodAttributeMap.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, edit, type } from "#schema";
@@ -5,6 +6,7 @@ import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.j
 
 /** EveProceduralMethodAttributeMap (eve/child/procedural/selection) - generated from schema shapeHash 691cb5f9.... */
 @type.define({ className: "EveProceduralMethodAttributeMap", family: "eve/child/procedural/selection" })
+@carbon.inherit(INotify)
 export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMethod
 {
 
@@ -148,3 +150,6 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
   }
 
 }
+
+// Exact native Blue exposure: only these identities participate in loading.
+carbon.interfaceTable({ interfaces: [EveProceduralMethodAttributeMap, IEveProceduralSelectionMethod, INotify], chainTo: null })(EveProceduralMethodAttributeMap, { kind: "class" });

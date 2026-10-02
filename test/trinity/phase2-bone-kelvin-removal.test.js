@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { CjsModel } from "../../npm/dist/global/model/index.js";
 import { IInitialize, DictReader, DictWriter, Copier } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
@@ -15,7 +14,7 @@ test(`${className} has exact initialization exposure and no model services`, t =
 {
   const value = new Type();
   assert.equal(Object.getPrototypeOf(Type.prototype), IInitialize.prototype);
-  assert.equal(CjsSchema.cast(value, CjsModel), null);
+  assert.equal("GetValues" in value, false);
   assert.deepEqual([...mappedInterfaces(Type)], [Type, IInitialize]);
   assert.equal(Type.from, undefined);
   for (const key of ["GetValues", "SetValues", "UpdateValues", "Dispose"]) assert.equal(value[key], undefined);

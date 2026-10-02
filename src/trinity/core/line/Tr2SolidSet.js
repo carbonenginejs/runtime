@@ -1,3 +1,4 @@
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Tr2SolidSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, type } from "#schema";
@@ -7,6 +8,8 @@ import { vec4 } from "#math/vec4";
 
 /** A set of coloured triangles with a running centre of mass, submitted as one buffer. */
 @type.define({ className: "Tr2SolidSet", family: "trinityCore" })
+@carbon.inherit(IInitialize)
+@carbon.mapInterface(IInitialize)
 export class Tr2SolidSet extends Tr2PrimitiveSet
 {
 

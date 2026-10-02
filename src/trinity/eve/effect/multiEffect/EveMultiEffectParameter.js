@@ -1,3 +1,4 @@
+import { INotify } from "../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/EveMultiEffectParameter.h
 // Source: trinity/trinity/Eve/EveMultiEffectParameter.cpp
 // Source: trinity/trinity/Eve/EveMultiEffectParameter_Blue.cpp
@@ -12,6 +13,7 @@ import { blue, EnumRegistrationType } from "#blue";
  * together with the object type the effect expects there.
  */
 @type.define({ className: "EveMultiEffectParameter", family: "eve/effect" })
+@carbon.inherit(INotify)
 export class EveMultiEffectParameter
 {
   @edit.readwrite
@@ -118,3 +120,6 @@ blue.enums.RegisterEnum("trinity.EveMultiEffectParameter.ParameterType", EveMult
     { name: "Undefined", value: EveMultiEffectParameter.ParameterType.TYPE_UNDEFINED, description: "The parameter is of an undefined type" }
   ]
 });
+
+// Exact native Blue exposure: only these identities participate in loading.
+carbon.interfaceTable({ interfaces: [INotify], chainTo: null })(EveMultiEffectParameter, { kind: "class" });

@@ -1,3 +1,4 @@
+import { INotify } from "../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionPlacementGenerators/EveDistributionPlacementGeneratorParentLocators.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, edit, type } from "#schema";
@@ -7,6 +8,7 @@ import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.j
 
 /** Builds distribution placements from a named locator set resolved on the parent space object. */
 @type.define({ className: "EveDistributionPlacementGeneratorParentLocators", family: "eve/distribution/placement" })
+@carbon.inherit(INotify)
 export class EveDistributionPlacementGeneratorParentLocators extends IEveDistributionPlacementGenerators
 {
 
@@ -128,3 +130,6 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
   }
 
 }
+
+// Exact native Blue exposure: only these identities participate in loading.
+carbon.interfaceTable({ interfaces: [EveDistributionPlacementGeneratorParentLocators, IEveDistributionPlacementGenerators, INotify], chainTo: null })(EveDistributionPlacementGeneratorParentLocators, { kind: "class" });

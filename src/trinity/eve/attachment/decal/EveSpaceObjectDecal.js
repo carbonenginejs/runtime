@@ -1,3 +1,4 @@
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveSpaceObjectDecal.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveSpaceObjectDecal.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveSpaceObjectDecal_Blue.cpp
@@ -29,6 +30,8 @@ import "#blue/registerTrinityEnums";
  */
 @type.define({ className: "EveSpaceObjectDecal", family: "eve/attachment/decal" })
 @carbon.inherit(ITr2Renderable)
+@carbon.inherit(IInitialize)
+@carbon.mapInterface(IInitialize)
 export class EveSpaceObjectDecal
 {
   /**

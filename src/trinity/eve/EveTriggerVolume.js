@@ -1,3 +1,4 @@
+import { IInitialize } from "../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/EveTriggerVolume.h
 // Source: trinity/trinity/Eve/EveTriggerVolume.cpp
 // Source: trinity/trinity/Eve/EveTriggerVolume_Blue.cpp
@@ -30,6 +31,8 @@ const SPHERE_RADIUS_EPSILON = 1e-4;
  */
 @type.define({ className: "EveTriggerVolume", family: "eve" })
 @carbon.inherit(IEveSpaceObject2)
+@carbon.inherit(IInitialize)
+@carbon.mapInterface(IInitialize)
 export class EveTriggerVolume
 {
 

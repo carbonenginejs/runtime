@@ -1,3 +1,4 @@
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/UI/EveLineSet.h
 // Source: trinity/trinity/Eve/UI/EveLineSet.cpp
 // Hand-maintained after promotion from generated schema intake.
@@ -13,6 +14,8 @@ import { Tr2PerObjectDataStandard } from "../../../core/rawData/perObjectData/Tr
 /** Stores editable tactical line records before renderer submission. */
 @type.define({ className: "EveLineSet", family: "eve/ui" })
 @carbon.inherit(ITr2Renderable, IEveSpaceObject2, IEveTransform)
+@carbon.inherit(IInitialize)
+@carbon.mapInterface(IInitialize)
 export class EveLineSet
 {
 

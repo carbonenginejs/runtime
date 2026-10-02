@@ -1,3 +1,4 @@
+import { INotify } from "../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { carbon, impl, edit, type } from "#schema";
@@ -11,6 +12,7 @@ import { carbon, impl, edit, type } from "#schema";
   className: "EveVirtualCameraBehaviourFloatBase",
   family: "eve/virtualCamera/behaviour"
 })
+@carbon.inherit(INotify)
 export class EveVirtualCameraBehaviourFloatBase
 {
   @edit.readwrite
@@ -64,3 +66,6 @@ export class EveVirtualCameraBehaviourFloatBase
     return this.active;
   }
 }
+
+// Exact native Blue exposure: only these identities participate in loading.
+carbon.interfaceTable({ interfaces: [INotify], chainTo: null })(EveVirtualCameraBehaviourFloatBase, { kind: "class" });

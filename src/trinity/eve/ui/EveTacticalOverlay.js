@@ -1,3 +1,4 @@
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay.h
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay.cpp
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay_Blue.cpp
@@ -91,6 +92,8 @@ function getSubdivisionCount(pixelSize, low, medium, high, updateContext)
 /** Produces tactical anchor, range, and velocity quad-instance records. */
 @type.define({ className: "EveTacticalOverlay", family: "eve/ui" })
 @carbon.inherit(IEveSpaceObject2)
+@carbon.inherit(IInitialize)
+@carbon.mapInterface(IInitialize)
 export class EveTacticalOverlay
 {
   /** Initializes the effect-local variable-store records. */

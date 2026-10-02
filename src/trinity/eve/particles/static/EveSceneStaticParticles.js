@@ -1,3 +1,4 @@
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/Renderable/EveSceneStaticParticles.h
 //   trinity/trinity/Eve/Renderable/EveSceneStaticParticles.cpp
 import { carbon, impl, edit, type } from "#schema";
@@ -41,6 +42,8 @@ function randomGauss(random, deviation)
  */
 @type.define({ className: "EveSceneStaticParticles", family: "eve/scene" })
 @carbon.inherit(ITr2Renderable)
+@carbon.inherit(IInitialize)
+@carbon.mapInterface(IInitialize)
 export class EveSceneStaticParticles
 {
 

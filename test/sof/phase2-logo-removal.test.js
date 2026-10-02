@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { CjsModel } from "../../npm/dist/global/model/index.js";
 import { DictReader, DictWriter, Copier, blue } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { EveSOFDataLogo } from "../../npm/dist/sof/shared/EveSOFDataLogo.js";
@@ -16,7 +15,7 @@ test(`${Type.name} retains only native self queries without model helpers`, () =
 {
   const value = new Type();
   assert.equal(Object.getPrototypeOf(Type.prototype), Object.prototype);
-  assert.equal(CjsSchema.cast(value, CjsModel), null);
+  assert.equal("GetValues" in value, false);
   assert.deepEqual([...mappedInterfaces(Type)], [Type]);
   assert.equal(Type.from, undefined);
   for (const name of ["GetValues", "SetValues", "UpdateValues", "Initialize", "Dispose"])

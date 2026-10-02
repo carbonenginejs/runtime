@@ -6,7 +6,6 @@ import { Copier } from "../../npm/dist/global/blue/Copier.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { IListNotify } from "../../npm/dist/global/blue/IListNotify.js";
 import { INotify } from "../../npm/dist/global/blue/INotify.js";
-import { CjsModel } from "../../npm/dist/global/model/CjsModel.js";
 import { CjsSchema, meta } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
@@ -94,7 +93,7 @@ test("a machine owns an independent subscribed BlueList admitting the real state
   const machine = new Tr2StateMachine(), other = new Tr2StateMachine(), state = State("idle");
   AssertOwned(machine);
   AssertOwned(other);
-  assert.equal(CjsSchema.cast(machine, CjsModel), null);
+  assert.equal("GetValues" in machine, false);
   assert.equal(Object.getPrototypeOf(Tr2StateMachine.prototype), Object.prototype);
   assert.equal(machine.GetValues, undefined);
   assert.equal(machine.SetValues, undefined);
@@ -102,7 +101,7 @@ test("a machine owns an independent subscribed BlueList admitting the real state
   assert.notEqual(machine.states, other.states);
   assert.equal(Array.isArray(machine.states), true);
   assert.deepEqual([...mappedInterfaces(Tr2StateMachineState)], [Tr2StateMachineState, IListNotify, INotify]);
-  assert.equal(CjsSchema.cast(state, CjsModel), null);
+  assert.equal("GetValues" in state, false);
   assert.equal(CjsSchema.cast(state, IListNotify), state);
   assert.equal(CjsSchema.cast(state, INotify), state);
   assert.equal(machine.states.Append(state), true);

@@ -1,3 +1,4 @@
+import { INotify } from "../../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodCycling.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, edit, type } from "#schema";
@@ -9,6 +10,7 @@ const BELIST_LOADING = 0x10;
 
 /** EveProceduralMethodCycling (eve/child/procedural/selection) - generated from schema shapeHash 2014815d.... */
 @type.define({ className: "EveProceduralMethodCycling", family: "eve/child/procedural/selection" })
+@carbon.inherit(INotify)
 export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
 {
 
@@ -177,3 +179,6 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
   }
 
 }
+
+// Exact native Blue exposure: only these identities participate in loading.
+carbon.interfaceTable({ interfaces: [EveProceduralMethodCycling, IEveProceduralSelectionMethod, INotify], chainTo: null })(EveProceduralMethodCycling, { kind: "class" });

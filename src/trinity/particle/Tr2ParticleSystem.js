@@ -1,3 +1,4 @@
+import { IInitialize } from "../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Particle/Tr2ParticleSystem.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
@@ -20,6 +21,8 @@ import { ITr2GenericEmitterUpdateArguments } from "./ITr2GenericEmitter/index.js
 /** Owns a particle system's element declaration, CPU-side attribute buffers, and per-frame simulation of aging, forces, movement, constraints and bounds. */
 @type.define({ className: "Tr2ParticleSystem", family: "particle" })
 @carbon.inherit(ITr2InstanceData)
+@carbon.inherit(IInitialize)
+@carbon.mapInterface(IInitialize)
 export class Tr2ParticleSystem
 {
 

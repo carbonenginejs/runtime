@@ -1,6 +1,5 @@
 // Source: trinity/trinity/Tr2ImpostorManager.h
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
 import { CjsSchema, impl, type } from "#schema";
 
 

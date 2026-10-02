@@ -1,3 +1,4 @@
+import { INotify } from "../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/EveCamera.h
 //   trinity/trinity/Eve/EveCamera.cpp
 //   trinity/trinity/Eve/EveCamera_Blue.cpp
@@ -136,6 +137,7 @@ const CAMERA_YAW_PITCH_ROLL = new Float64Array(3);
 
 /** Carbon's orbit camera and its CPU-side view/projection state. */
 @type.define({ className: "EveCamera", family: "eve" })
+@carbon.inherit(INotify)
 export class EveCamera
 {
 
@@ -955,3 +957,6 @@ export class EveCamera
   static _WORLD_UP = [0, 1, 0];
 
 }
+
+// Exact native Blue exposure: only these identities participate in loading.
+carbon.interfaceTable({ interfaces: [EveCamera, INotify], chainTo: null })(EveCamera, { kind: "class" });

@@ -1,3 +1,4 @@
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveMeshOverlayEffect.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveMeshOverlayEffect.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveMeshOverlayEffect_Blue.cpp
@@ -11,6 +12,8 @@ import { BLUELISTEVENT } from "#consts/blue";
  * together with the curve set and controllers that animate them.
  */
 @type.define({ className: "EveMeshOverlayEffect", family: "eve/overlays" })
+@carbon.inherit(IInitialize)
+@carbon.mapInterface(IInitialize)
 export class EveMeshOverlayEffect
 {
   @edit.readwrite

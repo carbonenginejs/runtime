@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { CjsModel } from "../../npm/dist/global/model/index.js";
 import { BlueList, DictReader, DictWriter, Copier, ITriFunction, ITriVectorFunction, IListNotify } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
@@ -24,7 +23,7 @@ function Key(time, x = 0)
 test("Follow uses exact vector query exposure and nominal list observer without model services", () =>
 {
   const curve = new Tr2FollowCurve();
-  assert.equal(CjsSchema.cast(curve, CjsModel), null);
+  assert.equal("GetValues" in curve, false);
   assert.equal(CjsSchema.cast(curve, IListNotify), curve);
   assert.deepEqual([...mappedInterfaces(Tr2FollowCurve)], [ITriVectorFunction, ITriFunction]);
   assert.equal(Tr2FollowCurve.from, undefined);

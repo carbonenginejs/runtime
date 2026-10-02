@@ -1250,7 +1250,9 @@ export class EveSpaceScene
   /** Native scene Render entry point is intentionally empty (EveSpaceScene.cpp:2950). */
   @carbon.method
   @impl.implemented
-  Render(_renderContext) {}
+  Render(_renderContext)
+  {
+  }
 
   /** Scene debugging requires the pending debug renderer and global flush port. */
   @carbon.method

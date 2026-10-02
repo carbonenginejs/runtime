@@ -1,3 +1,5 @@
+import { carbon } from "#schema";
+import { INotify } from "../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/UI/EveEllipseDefinition.h
 //   trinity/trinity/Eve/UI/EveEllipseDefinition.cpp
 import { vec3 } from "#math/vec3";
@@ -9,6 +11,7 @@ import { edit, type } from "#schema";
  * rotation in degrees and the two semi-axis lengths.
  */
 @type.define({ className: "EveEllipseDefinition", family: "eve/ui" })
+@carbon.inherit(INotify)
 export class EveEllipseDefinition
 {
   _dirtyFlag = null;
@@ -66,3 +69,6 @@ export class EveEllipseDefinition
     this._dirtyFlag = dirtyFlag;
   }
 }
+
+// Exact native Blue exposure: only these identities participate in loading.
+carbon.interfaceTable({ interfaces: [EveEllipseDefinition, INotify], chainTo: null })(EveEllipseDefinition, { kind: "class" });

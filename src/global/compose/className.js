@@ -15,8 +15,7 @@ export const CJS_CLASS_NAME = Symbol.for("carbonenginejs.className");
 
 /**
  * The nearest registered name on a constructor's chain: an own
- * `CJS_CLASS_NAME` stamp or an own string `static className`. A subclass
- * reached through the `CjsModel` base alone has no name of its own.
+ * `CJS_CLASS_NAME` stamp or an own string `static className`.
  *
  * @param {Function} Constructor Class to name.
  * @returns {string|null} The registered name, or `null`.
@@ -31,7 +30,7 @@ export function getRegisteredClassName(Constructor)
             : (Object.hasOwn(current, "className") && typeof current.className === "string" ? current.className : null);
         if (name)
         {
-            return current !== Constructor && name === "CjsModel" ? null : name;
+            return name;
         }
         current = Object.getPrototypeOf(current);
     }

@@ -7,7 +7,6 @@ import { IListNotify } from "../../npm/dist/global/blue/IListNotify.js";
 import { INotify } from "../../npm/dist/global/blue/INotify.js";
 import { ISimTimeRebaseNotify } from "../../npm/dist/global/blue/ISimTimeRebaseNotify.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { CjsModel } from "../../npm/dist/global/model/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { Tr2StateMachine } from "../../npm/dist/trinity/controllers/state/Tr2StateMachine.js";
 import { Tr2ControllerFloatVariable } from "../../npm/dist/trinity/controllers/expression/Tr2ControllerFloatVariable.js";
@@ -37,7 +36,7 @@ for (const { Type, mapped, nominal } of cases)
   {
     const item = new Type();
     assert.deepEqual([...mappedInterfaces(Type)], mapped);
-    assert.equal(CjsSchema.cast(item, CjsModel), null);
+    assert.equal("GetValues" in item, false);
     for (const Interface of nominal) assert.equal(CjsSchema.cast(item, Interface), item);
     assert.equal(mappedInterfaces(Type).has(ISimTimeRebaseNotify), false);
     if (Type !== Tr2ControllerFloatVariable) assert.equal(mappedInterfaces(Type).has(IInitialize), false);
@@ -126,9 +125,8 @@ test("child declarations retain independent storage and state-machine list owner
   }
 });
 
-test("concrete child tables do not inherit a temporary CjsModel query interface", () =>
+test("concrete child tables retain exact exposure in a fresh process", () =>
 {
-  // Isolate the temporary base-class mapping from every other test and caller.
   const moduleURL = path => new URL(`../../npm/dist/${path}`, import.meta.url).href;
   execFileSync(process.execPath, [
     ...process.execArgv,
@@ -136,13 +134,9 @@ test("concrete child tables do not inherit a temporary CjsModel query interface"
       import assert from "node:assert/strict";
       import { carbon, CjsSchema } from ${JSON.stringify(moduleURL("global/schema/index.js"))};
       import { mappedInterfaces } from ${JSON.stringify(moduleURL("global/compose/interface.js"))};
-      import { CjsModel } from ${JSON.stringify(moduleURL("global/model/index.js"))};
       import { IInitialize } from ${JSON.stringify(moduleURL("global/blue/IInitialize.js"))};
       import { IListNotify } from ${JSON.stringify(moduleURL("global/blue/IListNotify.js"))};
       import { INotify } from ${JSON.stringify(moduleURL("global/blue/INotify.js"))};
-      class ParentOnlyInterface {}
-      carbon.mapInterface(ParentOnlyInterface)(CjsModel);
-      assert.equal(mappedInterfaces(CjsModel).has(ParentOnlyInterface), true);
       const { Tr2StateMachine } = await import(${JSON.stringify(moduleURL("trinity/controllers/state/Tr2StateMachine.js"))});
       const { Tr2ControllerFloatVariable } = await import(${JSON.stringify(moduleURL("trinity/controllers/expression/Tr2ControllerFloatVariable.js"))});
       const { Tr2ControllerEventHandler } = await import(${JSON.stringify(moduleURL("trinity/controllers/Tr2ControllerEventHandler.js"))});
@@ -153,9 +147,8 @@ test("concrete child tables do not inherit a temporary CjsModel query interface"
       ])
       {
         assert.deepEqual([...mappedInterfaces(Type)], expected);
-        assert.equal(mappedInterfaces(Type).has(ParentOnlyInterface), false);
         const item = new Type();
-        assert.equal(CjsSchema.cast(item, CjsModel), null);
+        assert.equal("GetValues" in item, false);
       }
     `
   ], { encoding: "utf8", timeout: 30000, windowsHide: true });

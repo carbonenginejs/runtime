@@ -8,7 +8,6 @@ import {createHash} from "node:crypto";
 import {EveShip2,EveChildContainer,EveUpdateContext,Tr2Mesh} from "../../npm/dist/trinity/index.js";
 import {TriGeometryRes} from "../../npm/dist/resource/index.js";
 import {CjsBlackFormat} from "../../npm/dist/resource/formats/black/index.js";
-import {CjsModel} from "../../npm/dist/global/model/index.js";
 import {blue} from "../../npm/dist/global/blue/index.js";
 import {quat} from "../../npm/dist/global/math/quat.js";
 import {Tr2Lod} from "../../npm/dist/global/consts/trinity.js";

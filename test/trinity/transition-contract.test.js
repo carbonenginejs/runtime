@@ -5,7 +5,6 @@ import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
 import { INotify } from "../../npm/dist/global/blue/INotify.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { CjsModel } from "../../npm/dist/global/model/CjsModel.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { ExecuteMainThreadActions } from "../../npm/dist/trinity/core/continueOnMainThread.js";
 import { Tr2Controller } from "../../npm/dist/trinity/controllers/Tr2Controller.js";
@@ -70,7 +69,7 @@ test("model-free Transition retains its exact query contract and native stored-m
   const transition = new Type(), schema = CjsSchema.getSchema(Type);
   assert.deepEqual([...mappedInterfaces(Type)], [Type, INotify]);
   assert.equal(CjsSchema.cast(transition, INotify), transition);
-  assert.equal(CjsSchema.cast(transition, CjsModel), null);
+  assert.equal("GetValues" in transition, false);
   assert.equal(Object.getPrototypeOf(Type.prototype), Object.prototype);
   for (const name of ["GetValues", "SetValues", "UpdateValues"]) assert.equal(transition[name], undefined);
   assert.equal(Type.from, undefined);

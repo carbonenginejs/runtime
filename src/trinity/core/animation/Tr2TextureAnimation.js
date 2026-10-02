@@ -1,3 +1,4 @@
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Tr2TextureAnimation.h
 // Source: trinity/trinity/Tr2TextureAnimation.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
@@ -12,6 +13,8 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2Rende
 
 /** Advances a multi-channel texture flipbook, tracking frame and restart state per channel. */
 @type.define({ className: "Tr2TextureAnimation", family: "trinityCore" })
+@carbon.inherit(IInitialize)
+@carbon.mapInterface(IInitialize)
 export class Tr2TextureAnimation
 {
   _channels = new Map();

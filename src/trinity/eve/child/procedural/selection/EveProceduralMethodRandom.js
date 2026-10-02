@@ -1,3 +1,4 @@
+import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodRandom.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, edit, type } from "#schema";
@@ -10,6 +11,8 @@ const BELIST_LOADING = 0x10;
 
 /** EveProceduralMethodRandom (eve/child/procedural/selection) - generated from schema shapeHash 9e2d2332.... */
 @type.define({ className: "EveProceduralMethodRandom", family: "eve/child/procedural/selection" })
+@carbon.inherit(IInitialize)
+@carbon.mapInterface(IInitialize)
 export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
 {
 

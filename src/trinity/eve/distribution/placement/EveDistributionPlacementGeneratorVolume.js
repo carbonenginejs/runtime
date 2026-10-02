@@ -1,3 +1,4 @@
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionPlacementGenerators/EveDistributionPlacementGeneratorVolume.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { quat } from "#math/quat";
@@ -9,6 +10,8 @@ import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.j
 
 /** Samples a volume into oriented distribution placements and requests regeneration when the volume or sampling settings change. */
 @type.define({ className: "EveDistributionPlacementGeneratorVolume", family: "eve/distribution/placement" })
+@carbon.inherit(IInitialize)
+@carbon.mapInterface(IInitialize)
 export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPlacementGenerators
 {
 

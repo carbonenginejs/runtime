@@ -75,25 +75,6 @@ export const CJS_ENUM_NAME = Symbol.for("carbonenginejs.enum.name");
  */
 export { CJS_CLASS_NAME };
 
-/**
- * Cross-copy brand for "this object is already a live CjsModel".
- *
- * Declared here rather than in CjsModel, even though CjsModel is what applies
- * it, because the dependency runs one way only: CjsModel imports CjsSchema and
- * the reverse is impossible. A predicate that reads a symbol needs no access to
- * the class, so the question can be answered from this side of the edge and the
- * answer becomes available to every consumer that has the schema.
- *
- * `value instanceof CjsModel` answers a narrower question than it appears to:
- * it asks whether the value came from THIS copy of the runtime package. When an
- * application contains multiple copies, a model handed over by another copy
- * fails the test while being a perfectly good model.
- *
- * `Symbol.for` resolves through the global registry, which is one registry per
- * realm no matter how many copies of this file are loaded — the same reason
- * `carbonenginejs.type` and `carbonenginejs.enum.name` already use it.
- */
-export const CJS_MODEL_BRAND = Symbol.for("carbonenginejs.model");
 
 // Be::BlueStructureDataType storage used by native BlueStructureDefinition.
 const STRUCT_TYPES = {
@@ -319,22 +300,6 @@ export class CjsSchema
         return CLASS_SCHEMA.get(Constructor)?.purpose || null;
     }
 
-    /**
-     * Reports whether a value is a live model, including one constructed by a
-     * different copy of this package.
-     *
-     * Prefer this to `value instanceof CjsModel` anywhere the answer decides
-     * between ALIASING and COPYING, or admits and rejects. Getting it wrong
-     * there does not throw: it silently substitutes a plain object for a live
-     * instance, or rejects a real model for having been declared elsewhere.
-     *
-     * @param {*} value Candidate value.
-     * @returns {boolean} True when the value is a live model from any copy.
-     */
-    static isModelInstance(value)
-    {
-        return !!value && typeof value === "object" && value[CJS_MODEL_BRAND] === true;
-    }
 
     /**
      * Every declared class name on a constructor's chain, nearest first.
@@ -657,7 +622,7 @@ export class CjsSchema
      * body can turn it into instance state (an audio game-object ID, for
      * example). When no instance has exposed those initializers yet, the class
      * is constructed once with zero arguments to trigger them. This never calls
-     * CjsModel.from, SetValues, Initialize, UpdateValues, or another lifecycle
+     * schema construction, SetValues, Initialize, UpdateValues, or another lifecycle
      * hook.
      *
      * The canonical template is cached by constructor and kept immutable. A
@@ -823,12 +788,9 @@ export class CjsSchema
 
     };
 
-    // Not EDITFLAGS and not type: WHO runs a child's construction, and later
-    // its teardown. `owned` marks a donor BY-VALUE member, destroyed with its
-    // parent; `reference` marks a borrowed one. Today only construction reads
-    // it - `entry.owned` (built below) gates the `ownedOnly` walk that runs
-    // Initialize in CjsModel.from - so the flag is half installed rather than
-    // unused: there is no teardown traversal yet to honour the other half.
+    // Stored ownership metadata remains available to explicit graph traversal.
+    // Readers initialize only their own newly allocated objects; ownership does
+    // not make them initialize constructor defaults or borrowed instances.
     static lifecycle = {
         owned: fieldDecorator("lifecycle", { ownership: "owned" }),
         reference: fieldDecorator("lifecycle", { ownership: "reference" })
@@ -1166,7 +1128,7 @@ function getDefaultsTemplate(ConstructorOrName)
         try
         {
             // A bare constructor runs JavaScript field/constructor setup only.
-            // The CjsModel initialization lifecycle is driven by from(), not by
+            // Mapped initialization is driven by the shared reader, not by
             // `new`, and is deliberately absent from this operation.
             instance = new Constructor();
         }

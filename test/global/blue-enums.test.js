@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { blue, CjsBlueEnumRegistry, EnumRegistrationType } from "#blue";
 import { CjsSchema } from "#schema";
-import { CjsModel } from "#model";
 
 test("Blue enum names preserve Carbon chooser order, aliases and partial masks", () =>
 {
@@ -96,7 +95,7 @@ test("Blue and schema share registration and resolve qualified fields after regi
     {
         assert.ok(CjsSchema.getMethod(CjsBlueEnumRegistry, name).impl);
     }
-    class Host extends CjsModel { mode = 1; }
+    class Host { mode = 1; }
     CjsSchema.define(Host, { className: "RegistryEnumHost", fields: {
         mode: [CjsSchema.type.int32, CjsSchema.type.enum("test.LateEnum"), CjsSchema.edit.persist]
     } });
@@ -110,11 +109,11 @@ test("Blue and schema share registration and resolve qualified fields after regi
     // Enum members read and write as integers, as Carbon's readers read them
     // (DictReader.cpp ReadValue); member-name import and enumFormat export are
     // dropped (operator, 2026-09-27).
-    host.SetValues({ mode: 2 });
+    CjsSchema.setValues(host, { mode: 2 });
     assert.equal(host.mode, 2);
     class Derived extends Host {}
     assert.equal(CjsSchema.getSchema(Derived).fields[0].enum.members, values);
-    class Legacy extends CjsModel { static Choice = values; }
+    class Legacy { static Choice = values; }
     CjsSchema.define(Legacy, { className: "LegacyEnumHost", fields: { mode: [CjsSchema.type.int32, CjsSchema.type.enum("Choice")] } });
     class LegacyChild extends Legacy {}
     assert.equal(CjsSchema.getSchema(LegacyChild).fields[0].enum.identity, "LegacyEnumHost.Choice");

@@ -1,3 +1,4 @@
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Curves/Tr2GrannyTrack.h
 // Source: trinity/trinity/Curves/Tr2GrannyTrack.cpp
 import { carbon, impl, edit, type } from "#schema";
@@ -13,6 +14,8 @@ import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
   className: "Tr2GrannyTrack",
   family: "curves"
 })
+@carbon.inherit(IInitialize)
+@carbon.mapInterface(IInitialize)
 export class Tr2GrannyTrack
 {
   @edit.notify

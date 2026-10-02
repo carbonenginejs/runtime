@@ -1,45 +1,6 @@
-// The values transport as COMPOSITION - the @compose.values decorator.
-//
-// Carbon keeps transport in SERVICES over its per-class VarEntry table:
-// BlackReader, the Copier and Python's getattr/setattr all drive Be::ClassInfo
-// from OUTSIDE the object, and no Blue base carries a GetValues. Ours put the
-// same work on a base class, which is what made `extends CjsModel` mandatory
-// for 886 classes and occupied the one `extends` slot JS has.
-//
-// `CjsSchema.getValues`/`setValues` are already the declared home - they exist
-// as statics forwarding to a registered service. The service's third arm, for
-// a decorated class carrying NEITHER method, threw by name:
-//
-//     "CjsSchema.setValues on a plain decorated class awaits the facade
-//      migration's state-free transport."
-//
-// This module is that transport, and the decorator that installs it as
-// GetValues/SetValues on a class that wants the methods rather than the
-// statics. Nothing here touches CjsModel, so a class taking @compose.values
-// pays for none of the base.
-//
-// STATE IS LAZY, NOT ABSENT, and the distinction is the whole contract.
-// `setValues` does coercion, then the changed set, then dirty, then the settle
-// WITH the changed field names. The settle is one of the three benefits the
-// CjsModel audit found real - 95 classes override OnModified, and
-// TriValueBinding drives it per frame - so a transport that skipped it would
-// silently stop running every one of those bodies for any class that moved off
-// the base. The error message this module replaced said "state-free
-// transport"; that phrasing was a previous session's and contradicts the
-// decision page, which rules edit state LAZY: materialising on first write,
-// zero footprint until then.
-//
-// The mechanism is `ensureRuntimeState`, which creates the non-enumerable
-// `__state` slot only when it is not already there - the same slot
-// @compose.notify puts its listener map in, and the same one CjsModel fills
-// with a CjsModelState. An unedited object carries nothing.
-//
-// This module imports nothing from the SCHEMA layer, for the reason
-// compose/notify.js and compose/interface.js import nothing: CjsSchema installs
-// these onto its own namespace, so a schema import here is a cycle that fails
-// at load. Everything schema-shaped arrives through `services`. compose/
-// siblings are fine - they import nothing themselves.
-
+// Optional values methods and batched editing state for explicitly composed classes.
+// Schema services use the same apply/settle operations without an instance base.
+// State is created lazily on the first edit or event subscription.
 import { NOTIFY_METHODS } from "./notify.js";
 import { getRegisteredClassName } from "./className.js";
 import { ensureRuntimeState, getRuntimeState } from "./runtimeState.js";

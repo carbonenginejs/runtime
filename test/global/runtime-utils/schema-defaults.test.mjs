@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { CjsModel } from "../../../src/global/model/index.js";
 import { CjsSchema } from "../../../src/global/schema/index.js";
 
 
@@ -33,11 +32,10 @@ test("CjsSchema.getDefaults lazily captures field initializers without Initializ
         }
     });
 
-    class SchemaDefaultCaptureProbe extends CjsModel
+    class SchemaDefaultCaptureProbe
     {
         constructor()
         {
-            super();
             constructorCount++;
             this.ID = initializeID.call(this, null);
             this.optional = initializeOptional.call(this, undefined);
@@ -107,11 +105,11 @@ test("CjsSchema.getDefaults prefers an explicitly decorated subclass initializer
         addInitializer
     });
 
-    class SchemaDefaultBaseProbe extends CjsModel
+    class SchemaDefaultBaseProbe
     {
         constructor()
         {
-            super();
+
             this.type = initializeBaseType.call(this, 0);
         }
     }
@@ -143,7 +141,7 @@ test("CjsSchema.getDefaults prefers an explicitly decorated subclass initializer
 
 test("CjsSchema.getDefaults reads an explicitly registered schema accessor", () =>
 {
-    class SchemaDefaultAccessorProbe extends CjsModel
+    class SchemaDefaultAccessorProbe
     {
         #color = [1, 1, 1, 1];
 
@@ -173,7 +171,7 @@ test("CjsSchema.applyDefaults expands typed values without constructing a live g
 {
     let initializeCount = 0;
 
-    class SchemaDefaultChild extends CjsModel
+    class SchemaDefaultChild
     {
         label = "child";
         enabled = true;
@@ -192,7 +190,7 @@ test("CjsSchema.applyDefaults expands typed values without constructing a live g
         family: "test"
     });
 
-    class SchemaDefaultRoot extends CjsModel
+    class SchemaDefaultRoot
     {
         name = "root";
         child = new SchemaDefaultChild();

@@ -64,3 +64,10 @@ test("an asynchronous index probe shares one in-flight lookup and preserves erro
   const broken = builder({ exists: async () => { throw new Error("index offline"); } });
   await assert.rejects(broken.FetchMaterial(MISSING), /index offline/u);
 });
+
+test("lazy SOF catalog exports through schema values after model removal", () =>
+{
+  const library = new CjsSofLibraryBuilder({ dataMgr: new EveSOFDataMgr(), source: async () => ({}) });
+  assert.equal("GetValues" in library.data, false);
+  assert.equal(library.GetValues({ forceTypeTags: true })._type, "EveSOFData");
+});

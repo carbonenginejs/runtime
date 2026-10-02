@@ -1,3 +1,4 @@
+import { INotify } from "../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -21,6 +22,7 @@ const NO_FORCES = [];
 
 /** A steering behaviour that pulls unassigned drones into spline tunnel entrances and steers locked drones along their assigned tunnel's points toward the exit. */
 @type.define({ className: "FollowASpline", family: "eve/child/behaviors" })
+@carbon.inherit(INotify)
 export class FollowASpline
 {
 
@@ -556,3 +558,7 @@ export class FollowASpline
   static TunnelGroupType = TunnelGroupType;
 
 }
+
+// Exact native Blue exposure: only these identities participate in loading.
+// Native IBehavior is not ported; this table exposes the supported subset.
+carbon.interfaceTable({ interfaces: [FollowASpline, INotify], chainTo: null })(FollowASpline, { kind: "class" });

@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Tr2RuntimeInstanceData.h
 // Source: trinity/trinity/Tr2RuntimeInstanceData.cpp
 // Source: trinity/trinity/Tr2RuntimeInstanceData_Blue.cpp
+import { ReadValues } from "../../../global/blue/values.js";
 import { vec3 } from "#math/vec3";
 import { carbon, edit, impl, type } from "#schema";
 import { Tr2ParticleElementDeclaration } from "../../particle/element/Tr2ParticleElementDeclaration.js";
@@ -17,6 +18,23 @@ import { ITr2InstanceDataInstanceData, ITr2InstanceData } from "./ITr2InstanceDa
 @carbon.inherit(ITr2InstanceData)
 export class Tr2RuntimeInstanceData
 {
+  /** Reconstructs the JS-only persisted CPU layout/rows, absent from native Black data. */
+  @impl.custom
+  @impl.reason("The JS values format persists private layout/rows; its factory explicitly repacks them without inventing native IInitialize exposure.")
+  static from(values = {}, options = {})
+  {
+    const instance = new Tr2RuntimeInstanceData();
+    const complete = () =>
+    {
+      if (options.initialize !== false) instance.Initialize();
+    };
+    // A parent reader completes this custom format with the shared graph.
+    if (options.importContext) options.importContext.registerCreated(instance, complete);
+    ReadValues(instance, values, { ...options, notify: false });
+    if (!options.importContext) complete();
+    return instance;
+  }
+
   @edit.readwrite
   @edit.persist
   @type.string

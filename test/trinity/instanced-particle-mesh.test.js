@@ -6,7 +6,6 @@ import {readFile} from "node:fs/promises";
 import {join} from "node:path";
 import {createHash} from "node:crypto";
 import {blue} from "../../npm/dist/global/blue/index.js";
-import {CjsModel} from "../../npm/dist/global/model/index.js";
 import {mat4} from "../../npm/dist/global/math/mat4.js";
 import {TriBatchType} from "../../npm/dist/global/consts/graphics/index.js";
 import {TriGeometryRes} from "../../npm/dist/resource/index.js";

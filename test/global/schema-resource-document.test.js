@@ -71,7 +71,9 @@ test("document dehydration omits declared resources in returned values and raw n
 
     const document = CjsDocumentDehydrator.dehydrate(source);
     assert.deepEqual(document.nodes[0].fields, { label: "kept" });
-    assert.deepEqual(document.nodes[0].raw, { nested: { kept: 7 } });
+    assert.deepEqual(document.nodes[0].raw, { nested: { $ref: 2 } });
+    assert.equal(document.nodes[1].kind, "DocumentResourceNested");
+    assert.deepEqual(document.nodes[1].fields, { kept: 7 });
 });
 
 test("document omission uses selected declarations without role union, inherited fallback or alias priority", () =>
@@ -167,4 +169,23 @@ test("document field and raw loops filter runtime-only input before accessing it
     assert.equal(target.ordinary, "kept");
     assert.equal(target.extra, 9);
     assert.equal(Object.hasOwn(target, "resource"), false);
+});
+
+test("document dehydration preserves plain registered child identity and cycles", () =>
+{
+    class Node { value = 1; next = null; other = null; }
+    CjsSchema.define(Node, { className: "DocumentPlainGraph", fields: [
+        { name: "value", type: { kind: "int32" } },
+        { name: "next", type: { kind: "objectRef", className: "DocumentPlainGraph" } },
+        { name: "other", type: { kind: "objectRef", className: "DocumentPlainGraph" } }
+    ] });
+    const root = new Node(), child = new Node();
+    root.next = root.other = child;
+    child.next = root;
+    const document = CjsDocumentDehydrator.dehydrate(root);
+    assert.equal(document.nodes.length, 2);
+    assert.deepEqual(document.nodes[0].fields.next, { $ref: 2 });
+    assert.deepEqual(document.nodes[0].fields.other, { $ref: 2 });
+    assert.deepEqual(document.nodes[1].fields.next, { $ref: 1 });
+    assert.equal(document.nodes[1].kind, "DocumentPlainGraph");
 });

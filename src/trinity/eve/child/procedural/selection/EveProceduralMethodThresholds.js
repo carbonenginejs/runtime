@@ -1,3 +1,4 @@
+import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodThresholds.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, edit, type } from "#schema";
@@ -16,6 +17,8 @@ function SelectiveParameterCompare(param1, param2)
 
 /** EveProceduralMethodThresholds (eve/child/procedural/selection) - generated from schema shapeHash 794abb42.... */
 @type.define({ className: "EveProceduralMethodThresholds", family: "eve/child/procedural/selection" })
+@carbon.inherit(IInitialize)
+@carbon.mapInterface(IInitialize)
 export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
 {
 

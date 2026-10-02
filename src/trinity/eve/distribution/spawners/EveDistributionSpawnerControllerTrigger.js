@@ -1,3 +1,4 @@
+import { INotify } from "../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerControllerTrigger.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, edit, type } from "#schema";
@@ -5,6 +6,7 @@ import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 
 /** Gates a nested set of distribution spawners from a named controller variable. */
 @type.define({ className: "EveDistributionSpawnerControllerTrigger", family: "eve/distribution/spawners" })
+@carbon.inherit(INotify)
 export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpawner
 {
 
@@ -127,3 +129,6 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
   }
 
 }
+
+// Exact native Blue exposure: only these identities participate in loading.
+carbon.interfaceTable({ interfaces: [EveDistributionSpawnerControllerTrigger, IEveDistributionSpawner, INotify], chainTo: null })(EveDistributionSpawnerControllerTrigger, { kind: "class" });

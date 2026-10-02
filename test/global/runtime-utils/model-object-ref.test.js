@@ -1,6 +1,6 @@
+import "../../../src/global/blue/values.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsModel, isModelInstance } from "../../../src/global/model/index.js";
 import { CjsSchema } from "../../../src/global/schema/index.js";
 
 /*
@@ -14,7 +14,7 @@ import { CjsSchema } from "../../../src/global/schema/index.js";
  * object that was put in it.
  */
 
-class Observed extends CjsModel
+class Observed
 {
     name = "";
 }
@@ -23,7 +23,7 @@ CjsSchema.defineField(Observed, "name", "type", { kind: "string" });
 CjsSchema.defineField(Observed, "name", "edit", { persist: true });
 CjsSchema.define(Observed, { className: "ObjectRefTestObserved", family: "test" });
 
-class Observer extends CjsModel
+class Observer
 {
     name = "";
 
@@ -46,7 +46,7 @@ test("SetValues aliases a live model in an objectRef field rather than copying i
     observed.name = "engine";
 
     const observer = new Observer();
-    observer.SetValues({ name: "placement", observer: observed });
+    CjsSchema.setValues(observer, { name: "placement", observer: observed });
 
     assert.equal(
         observer.observer,
@@ -62,17 +62,14 @@ test("a model from another copy of this package is still recognised as a model",
     // brand, different class identity. `instanceof` says no; the brand says
     // yes, and the brand is the one that matches reality.
     const foreign = Object.create({
-        [Symbol.for("carbonenginejs.model")]: true,
         SetValues() {},
         GetValues() { return {}; }
     });
     foreign.name = "foreign";
 
-    assert.equal(foreign instanceof CjsModel, false);
-    assert.equal(isModelInstance(foreign), true);
 
     const observer = new Observer();
-    observer.SetValues({ observer: foreign });
+    CjsSchema.setValues(observer, { observer: foreign });
     assert.equal(
         observer.observer,
         foreign,
@@ -80,24 +77,6 @@ test("a model from another copy of this package is still recognised as a model",
     );
 });
 
-test("the schema answers the model question, including through CjsModel.schema", () =>
-{
-    // The predicate belongs on the schema because the dependency runs one way:
-    // CjsModel imports CjsSchema and the reverse is impossible. A consumer
-    // holding either can now ask, without importing the model layer to ask a
-    // question about it.
-    const observed = new Observed();
-
-    assert.equal(CjsModel.schema, CjsSchema);
-    assert.equal(CjsSchema.isModelInstance(observed), true);
-    assert.equal(CjsModel.schema.isModelInstance(observed), true);
-    assert.equal(isModelInstance(observed), CjsSchema.isModelInstance(observed));
-
-    for (const notAModel of [ null, undefined, "Observed", 7, {}, [] ])
-    {
-        assert.equal(CjsSchema.isModelInstance(notAModel), false);
-    }
-});
 
 test("isInstanceOf answers by declared name rather than by constructor identity", () =>
 {
@@ -145,7 +124,7 @@ test("an objectRef to an interface throws on a plain bag with no class", () =>
     // interface nothing registers has no class to build from it, and a typed
     // member does not keep a plain object (operator, 2026-09-26).
     const observer = new Observer();
-    assert.throws(() => observer.SetValues({ observer: { name: "from-values" } }), /_type/u);
+    assert.throws(() => CjsSchema.setValues(observer, { observer: { name: "from-values" } }), /_type/u);
     assert.equal(observer.observer, null);
 });
 
@@ -170,7 +149,7 @@ test("the model brand is not exported as a field value", () =>
     const observed = new Observed();
     observed.name = "engine";
 
-    const values = observed.GetValues();
+    const values = CjsSchema.getValues(observed, {});
     assert.deepEqual(Object.keys(values), [ "name" ]);
     assert.equal(Object.getOwnPropertySymbols(values).length, 0);
 });
@@ -191,7 +170,7 @@ class ResourceInterface {}
 
 CjsSchema.define(ResourceInterface, { className: "IObjectRefTestResource", family: "test" });
 
-class ResourceHolder extends CjsModel
+class ResourceHolder
 {
     resource = null;
 
@@ -210,7 +189,7 @@ test("a live instance of a registered non-model class is assigned, not rebuilt",
     const other = new RegisteredResource();
     const holder = new ResourceHolder();
 
-    holder.SetValues({ resource, resources: [ other ] });
+    CjsSchema.setValues(holder, { resource, resources: [ other ] });
 
     assert.equal(holder.resource, resource);
     assert.equal(holder.resources[0], other);

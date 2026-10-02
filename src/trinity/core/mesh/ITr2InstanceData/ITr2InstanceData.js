@@ -1,5 +1,4 @@
 // Source: trinity/trinity/Include/ITr2InstanceData.h
-import { CjsModel } from "#model";
 import { CjsSchema, impl, type } from "#schema";
 
 

@@ -1,3 +1,4 @@
+import { INotify } from "../../global/blue/INotify.js";
 // Source: trinity/trinity/Tr2ReflectionProbe.h
 // Source: trinity/trinity/Tr2ReflectionProbe.cpp
 // Source: trinity/trinity/Tr2ReflectionProbe_Blue.cpp
@@ -44,6 +45,7 @@ const COPY_MIP_EFFECT = "res:/graphics/effect/managed/space/System/Reflection/Co
 
 /** Filters a cube into the prefiltered HDR reflection cube Eve's scene binds as its environment map. */
 @type.define({ className: "Tr2ReflectionProbe", family: "trinityCore", purpose: "Filters a cube into the prefiltered HDR reflection cube Eve's scene binds as its environment map." })
+@carbon.inherit(INotify)
 export class Tr2ReflectionProbe
 {
 
@@ -481,3 +483,6 @@ blue.enums.RegisterEnum("trinity.Tr2ReflectionProbe.ReflectionProbeRenderFrequen
     { name: "AllSidesPerFrame", value: Tr2ReflectionProbe.ReflectionProbeRenderFrequency.ALL_SIDES_PER_FRAME, description: "All sides per frame" }
   ]
 });
+
+// Exact native Blue exposure: only these identities participate in loading.
+carbon.interfaceTable({ interfaces: [Tr2ReflectionProbe, INotify], chainTo: null })(Tr2ReflectionProbe, { kind: "class" });

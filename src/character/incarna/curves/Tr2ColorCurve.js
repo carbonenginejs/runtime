@@ -1,7 +1,8 @@
 // Adapted from CCPWGL Tw2ColorCurve2 (MIT, Copyright (c) 2020
 // ccpgames rawrafox cppctamber) and corroborated by historical Tr2ColorCurve
 // Black records.
-import { edit, type } from "#schema";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { carbon, edit, type } from "#schema";
 import { vec4 } from "#math/vec4";
 import { IncarnaColorCurveInterpolation } from "./enums.js";
 import { Tr2ColorKey } from "./Tr2ColorKey.js";
@@ -13,6 +14,11 @@ import { Tr2ColorKey } from "./Tr2ColorKey.js";
  * whose persisted representation is four component scalar curves.
  */
 @type.define({ className: "Tr2ColorCurve", family: "incarna" })
+// Historical Incarna compatibility: loaded Curve2 keys must be sorted once.
+// This explicit contract preserves the legacy asset behavior; it is not a
+// declaration from the current Carbon curve exposure table.
+@carbon.inherit(IInitialize)
+@carbon.mapInterface(IInitialize)
 export class Tr2ColorCurve
 {
 

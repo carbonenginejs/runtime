@@ -1,3 +1,4 @@
+import { INotify } from "../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/Volume/EveSphereVolume.h
 // Source: trinity/trinity/Eve/Volume/EveSphereVolume.cpp
 // Source: trinity/trinity/Eve/Volume/EveSphereVolume_Blue.cpp
@@ -14,6 +15,7 @@ import { carbon, edit, impl, type } from "#schema";
   className: "EveSphereVolume",
   family: "eve/volume"
 })
+@carbon.inherit(INotify)
 export class EveSphereVolume extends IEveVolume
 {
   @edit.notify
@@ -180,3 +182,6 @@ export class EveSphereVolume extends IEveVolume
   {
   }
 }
+
+// Exact native Blue exposure: only these identities participate in loading.
+carbon.interfaceTable({ interfaces: [EveSphereVolume, IEveVolume, INotify], chainTo: null })(EveSphereVolume, { kind: "class" });

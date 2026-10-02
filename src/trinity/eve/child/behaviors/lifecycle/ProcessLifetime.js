@@ -1,3 +1,4 @@
+import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/ProcessLifetime.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/ProcessLifetime.cpp
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -23,6 +24,8 @@ const SPAWN_POSITION = vec3.create();
 
 /** ProcessLifetime (eve/child/behaviors) - generated from schema shapeHash 1fd3ebfa.... */
 @type.define({ className: "ProcessLifetime", family: "eve" })
+@carbon.inherit(IInitialize)
+@carbon.mapInterface(IInitialize)
 export class ProcessLifetime
 {
   static ProcessPriority = ProcessPriority;

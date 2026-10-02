@@ -492,6 +492,9 @@ test("runtime instance data packs Carbon SOF records without realizing a GPU buf
   assert.equal(Object.hasOwn(values, "data"), false);
 
   const restored = CjsSchema.from("Tr2RuntimeInstanceData", values);
+  const control = CjsSchema.from("Tr2RuntimeInstanceData", values, { initialize: false });
+  assert.equal(control.GetStride(), 0, "negative control: persisted rows do not pack themselves");
+  assert.equal(control.GetCount(), 0);
   assert.equal(restored.GetStride(), 100);
   assert.equal(restored.GetCount(), 1);
   assert.deepEqual(restored.GetItem(0), values.rows[0]);

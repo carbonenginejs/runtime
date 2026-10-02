@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { CjsModel } from "../../npm/dist/global/model/index.js";
 import { BlueList, DictReader, DictWriter, Copier, ITriFunction, ITriCurveLength, IInitialize } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { Tr2ScalarExprKeyCurve } from "../../npm/dist/trinity/curves/curve/Tr2ScalarExprKeyCurve.js";
@@ -13,7 +12,7 @@ function Info(list) { const info = {}; list.GetInfo(info); return info; }
 test("Scalar expression key curve declares its exact native interfaces and stored/live members", () =>
 {
   const curve = new Tr2ScalarExprKeyCurve();
-  assert.equal(CjsSchema.cast(curve, CjsModel), null);
+  assert.equal("GetValues" in curve, false);
   assert.equal(Tr2ScalarExprKeyCurve.from, undefined);
   for (const key of ["SetValues", "GetValues", "UpdateValues", "Dispose"])
     assert.equal(curve[key], undefined);
@@ -54,7 +53,7 @@ test("declared hydration resolves ref-first keys and copy retains configured des
   });
   assert.equal(curve.keys[0], curve.keys[1]);
   assert.ok(curve.keys[0] instanceof Tr2ScalarExprKey);
-  assert.equal(CjsSchema.cast(curve.keys[0], CjsModel), null);
+  assert.equal("GetValues" in curve.keys[0], false);
   const destination = new Tr2ScalarExprKeyCurve(), storage = destination.keys;
   assert.equal(new Copier().CopyTo(curve, destination), destination);
   assert.equal(destination.keys, storage);

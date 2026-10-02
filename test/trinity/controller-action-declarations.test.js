@@ -8,7 +8,6 @@ import { ICustomPersist } from "../../npm/dist/global/blue/ICustomPersist.js";
 import { IInitialize } from "../../npm/dist/global/blue/IInitialize.js";
 import { INotify } from "../../npm/dist/global/blue/INotify.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { CjsModel } from "../../npm/dist/global/model/index.js";
 import { CjsSchema, meta } from "../../npm/dist/global/schema/index.js";
 import { ITr2Updateable } from "../../npm/dist/trinity/core/ITr2Updateable.js";
 import { Tr2Controller } from "../../npm/dist/trinity/controllers/Tr2Controller.js";
@@ -121,7 +120,7 @@ for (const { Type, nominal, query, modelFree = false } of cases)
     assert.deepEqual([...mappedInterfaces(Type)], query);
     assert.equal(CjsSchema.GetConstructor(Type.name), Type);
     assert.equal(CjsSchema.cast(item, Type), item);
-    assert.equal(CjsSchema.cast(item, CjsModel), modelFree ? null : item);
+    assert.equal("GetValues" in item, false);
     for (const Interface of [A, U, N, I, P])
       assert.equal(CjsSchema.cast(item, Interface), nominal.includes(Interface) ? item : null, Interface.name);
   });
@@ -323,7 +322,7 @@ test("DictReader ReadInto retains its explicit notification seam with the real S
   assert.equal(action.GetValue(), 11);
 });
 
-test("all action null-chain tables isolate a temporary CjsModel query mapping", () =>
+test("all action null-chain tables isolate a temporary native parent query mapping", () =>
 {
   const moduleURL = path => new URL(`../../npm/dist/${path}`, import.meta.url).href;
   // Serialize only the independent expectations above, never runtime metadata.
@@ -338,25 +337,24 @@ test("all action null-chain tables isolate a temporary CjsModel query mapping", 
       import assert from "node:assert/strict";
       import { carbon, CjsSchema } from ${JSON.stringify(moduleURL("global/schema/index.js"))};
       import { mappedInterfaces } from ${JSON.stringify(moduleURL("global/compose/interface.js"))};
-      import { CjsModel } from ${JSON.stringify(moduleURL("global/model/index.js"))};
-      import { ICustomPersist } from ${JSON.stringify(moduleURL("global/blue/ICustomPersist.js"))};
+            import { ICustomPersist } from ${JSON.stringify(moduleURL("global/blue/ICustomPersist.js"))};
       import { IInitialize } from ${JSON.stringify(moduleURL("global/blue/IInitialize.js"))};
       import { INotify } from ${JSON.stringify(moduleURL("global/blue/INotify.js"))};
       import { ITr2Updateable } from ${JSON.stringify(moduleURL("trinity/core/ITr2Updateable.js"))};
       import { ITr2ControllerAction } from ${JSON.stringify(moduleURL("trinity/controllers/action/ITr2ControllerAction.js"))};
       class ParentOnlyInterface {}
-      carbon.mapInterface(ParentOnlyInterface)(CjsModel);
-      assert.equal(mappedInterfaces(CjsModel).has(ParentOnlyInterface), true);
       const contracts = { ICustomPersist, IInitialize, INotify, ITr2Updateable, ITr2ControllerAction };
       for (const row of ${JSON.stringify(expected)})
       {
         const module = await import(row.url);
         const Type = module[row.name];
+        const Parent = Object.getPrototypeOf(Type);
+        if (Parent.prototype) carbon.mapInterface(ParentOnlyInterface)(Parent);
         const expectedTable = row.query.map(name => name === row.name ? Type : contracts[name]);
         assert.deepEqual([...mappedInterfaces(Type)], expectedTable, row.name);
         assert.equal(mappedInterfaces(Type).has(ParentOnlyInterface), false, row.name);
         const item = new Type();
-        assert.equal(CjsSchema.cast(item, CjsModel), row.modelFree ? null : item);
+        assert.equal("GetValues" in item, false);
       }
     `
   ], { encoding: "utf8", timeout: 30000, windowsHide: true });

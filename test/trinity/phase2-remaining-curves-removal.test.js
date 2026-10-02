@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { CjsModel } from "../../npm/dist/global/model/index.js";
 import { blue, DictReader, DictWriter, Copier, BlueList, ITriFunction, ITriScalarFunction, ITriCurveLength, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
@@ -17,7 +16,7 @@ for (const [Type, values, query] of [
 ]) test(`${Type.name} uses Blue declarations and exact native interfaces without model services`, () =>
 {
   const instance = new Type();
-  assert.equal(CjsSchema.cast(instance, CjsModel), null);
+  assert.equal("GetValues" in instance, false);
   assert.equal(Type.from, undefined);
   for (const key of ["SetValues", "GetValues", "UpdateValues", "Dispose"])
     assert.equal(instance[key], undefined);

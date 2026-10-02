@@ -1,7 +1,7 @@
+import "../../src/global/blue/values.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CjsModel } from "../../src/global/model/index.js";
 import { CjsSchema } from "../../src/global/schema/index.js";
 
 // The top-level values rule (operator ruling, 2026-09-14): from/set exist for
@@ -9,14 +9,14 @@ import { CjsSchema } from "../../src/global/schema/index.js";
 // object. A live object there used to be read as a bag, building a new object
 // that aliased the original's children. null still means "no values".
 
-class ValuesInputChild extends CjsModel
+class ValuesInputChild
 {
   value = 0;
 }
 CjsSchema.defineField(ValuesInputChild, "value", "type", { kind: "float32" });
 CjsSchema.define(ValuesInputChild, { className: "ValuesInputChild" });
 
-class ValuesInputParent extends CjsModel
+class ValuesInputParent
 {
   label = "";
   child = null;
@@ -26,7 +26,7 @@ CjsSchema.decorateField(ValuesInputParent, "child", CjsSchema.type.model("Values
 CjsSchema.define(ValuesInputParent, { className: "ValuesInputParent" });
 
 const NOT_VALUES = [
-  [ "a live instance", () => ValuesInputParent.from({ label: "x" }) ],
+  [ "a live instance", () => CjsSchema.from(CjsSchema.getClassName(ValuesInputParent), { label: "x" }) ],
   [ "an array", () => [ { label: "x" } ] ],
   [ "a string", () => "label" ],
   [ "a null-prototype object", () => Object.assign(Object.create(null), { label: "x" }) ]
@@ -34,11 +34,11 @@ const NOT_VALUES = [
 
 test("a plain values object is accepted at every top-level entry point", () =>
 {
-  const model = ValuesInputParent.from({ label: "a", child: { value: 2 } });
+  const model = CjsSchema.from(CjsSchema.getClassName(ValuesInputParent), { label: "a", child: { value: 2 } });
   assert.equal(model.label, "a");
   assert.equal(model.child.value, 2);
 
-  assert.deepEqual([ ...model.SetValues({ label: "b" }) ], [ "label" ]);
+  assert.deepEqual([ ...CjsSchema.setValues(model, { label: "b" }) ], [ "label" ]);
   assert.deepEqual([ ...CjsSchema.setValues(model, { label: "c" }) ], [ "label" ]);
   assert.equal(CjsSchema.from("ValuesInputParent", { label: "d" }).label, "d");
 });
@@ -47,10 +47,10 @@ for (const [ description, make ] of NOT_VALUES)
 {
   test(`${description} is refused at the top level`, () =>
   {
-    const target = ValuesInputParent.from({ label: "target" });
+    const target = CjsSchema.from(CjsSchema.getClassName(ValuesInputParent), { label: "target" });
 
-    assert.throws(() => ValuesInputParent.from(make()), { name: "TypeError", message: /CjsModel\.from requires a plain values object/ });
-    assert.throws(() => target.SetValues(make()), { name: "TypeError", message: /CjsModel\.set requires a plain values object/ });
+    assert.throws(() => CjsSchema.from(CjsSchema.getClassName(ValuesInputParent), make()), { name: "TypeError", message: /CjsSchema\.from requires a plain values object/ });
+    assert.throws(() => CjsSchema.setValues(target, make()), { name: "TypeError", message: /CjsSchema\.setValues requires a plain values object/ });
     assert.throws(() => CjsSchema.setValues(target, make()), { name: "TypeError", message: /CjsSchema\.setValues requires a plain values object/ });
     assert.throws(() => CjsSchema.from("ValuesInputParent", make()), { name: "TypeError", message: /CjsSchema\.from requires a plain values object/ });
     assert.equal(target.label, "target", "a refused call changes nothing");
@@ -59,26 +59,26 @@ for (const [ description, make ] of NOT_VALUES)
 
 test("from(X) on a live model is refused instead of half-aliasing its graph", () =>
 {
-  const X = ValuesInputParent.from({ label: "x", child: { value: 7 } });
-  assert.throws(() => X.constructor.from(X), /received an instance of ValuesInputParent/);
+  const X = CjsSchema.from(CjsSchema.getClassName(ValuesInputParent), { label: "x", child: { value: 7 } });
+  assert.throws(() => CjsSchema.from(CjsSchema.getClassName(X.constructor), X), /received an instance of ValuesInputParent/);
 });
 
 test("null still means no values", () =>
 {
-  const model = ValuesInputParent.from({ label: "kept" });
+  const model = CjsSchema.from(CjsSchema.getClassName(ValuesInputParent), { label: "kept" });
 
-  assert.equal(model.SetValues(null), false);
+  assert.equal(CjsSchema.setValues(model, null), false);
   assert.equal(CjsSchema.setValues(model, null), false);
   assert.equal(model.label, "kept");
 
-  assert.equal(ValuesInputParent.from(null).label, "", "a default instance");
+  assert.equal(CjsSchema.from(CjsSchema.getClassName(ValuesInputParent), null).label, "", "a default instance");
   assert.equal(CjsSchema.from("ValuesInputParent", null).label, "");
 });
 
 test("CjsSchema.copy takes a live source or a plain one, and keeps the target", () =>
 {
-  const source = ValuesInputParent.from({ label: "from-live" });
-  const target = ValuesInputParent.from({ label: "before" });
+  const source = CjsSchema.from(CjsSchema.getClassName(ValuesInputParent), { label: "from-live" });
+  const target = CjsSchema.from(CjsSchema.getClassName(ValuesInputParent), { label: "before" });
 
   assert.deepEqual([ ...CjsSchema.copy(target, source) ], [ "label" ]);
   assert.equal(target.label, "from-live");
@@ -90,7 +90,7 @@ test("CjsSchema.copy takes a live source or a plain one, and keeps the target", 
 
 test("a child field still takes a live object as a reference", () =>
 {
-  const child = ValuesInputChild.from({ value: 3 });
-  const parent = ValuesInputParent.from({ child });
+  const child = CjsSchema.from(CjsSchema.getClassName(ValuesInputChild), { value: 3 });
+  const parent = CjsSchema.from(CjsSchema.getClassName(ValuesInputParent), { child });
   assert.equal(parent.child, child, "the rule is top-level only");
 });

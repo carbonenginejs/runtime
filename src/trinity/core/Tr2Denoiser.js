@@ -1,3 +1,4 @@
+import { INotify } from "../../global/blue/INotify.js";
 // Source: trinity/trinity/Tr2Denoiser.h
 //   trinity/trinity/Tr2Denoiser.cpp
 //
@@ -66,6 +67,7 @@ function effectAt(path)
 
 /** Carries depth, normal, and plane weights together with radius, step size, and bypass state for spatial denoising. */
 @type.define({ className: "Tr2Denoiser", family: "trinityCore", purpose: "Carries depth, normal, and plane weights together with radius, step size, and bypass state for spatial denoising." })
+@carbon.inherit(INotify)
 export class Tr2Denoiser
 {
 
@@ -329,3 +331,6 @@ export class Tr2Denoiser
 
 
 }
+
+// Exact native Blue exposure: only these identities participate in loading.
+carbon.interfaceTable({ interfaces: [Tr2Denoiser, INotify], chainTo: null })(Tr2Denoiser, { kind: "class" });

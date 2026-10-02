@@ -1,3 +1,4 @@
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawnModifiers/EveDistributionSpawnModifierRandomRotation.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, edit, type } from "#schema";
@@ -8,6 +9,8 @@ import { createMinStdRandom, getDistributionSeed, setYawPitchRoll } from "../../
 
 /** Applies or replaces each spawned placement's orientation with a seeded random yaw, pitch, and roll. */
 @type.define({ className: "EveDistributionSpawnModifierRandomRotation", family: "eve/distribution/spawnModifiers" })
+@carbon.inherit(IInitialize)
+@carbon.mapInterface(IInitialize)
 export class EveDistributionSpawnModifierRandomRotation extends IEveDistributionSpawnModifier
 {
 

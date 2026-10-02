@@ -5,8 +5,7 @@
 //
 // Blue's dictionary reader: builds objects from, and reads values into
 // objects from, a plain dictionary - the values bag every `SetValues` and
-// `from` takes. With `DictWriter` it is the values engine; `CjsModel.get`/`set`
-// delegate to the pair.
+// `from` takes. CjsSchema routes values operations to this reader and DictWriter.
 //
 // OUR SPELLING OF BLUE'S DOCUMENT. Carbon's dictionary names its class under
 // `type`, and YAML marks shared objects with anchors and aliases. Our bag
@@ -20,12 +19,12 @@
 // - an object pointer member takes an anchored object, or a new one of the
 //   class the bag names (or the member declares) - `ReadIRootClass`;
 // - an embedded (struct) member is read into the object it already holds;
-// - a new object has its members read and then `Initialize` called, before
-//   the next object is read (:79-88): children before parents, in order;
-// - an object with `Initialize` receives no `OnModified` during the read; one
-//   without receives `OnModified(member)` after each NOTIFY member (:151-158).
+// - mapped IInitialize suppresses member notifications; otherwise mapped
+//   INotify receives OnModified(member) for NOTIFY members (:151-158).
 //
 // WHAT DOES NOT, declared (see the research page `blue-values-engine.md`):
+// - completion waits until shared references resolve, then initializes newly
+//   created dependencies before their parents (rather than during recursion).
 // - `_id` registers BEFORE the object's members are read, and a `{ _ref }` to
 //   an id not yet read resolves when the outermost read ends. Carbon registers
 //   an anchor after the object is read (YamlReader.cpp:1033-1036) and throws
@@ -236,24 +235,25 @@ export class DictReader extends IRootReaderBase
     }
 
     const instance = new Constructor();
-    // Retain this factory's existing completion contract while its class's
-    // native interface mapping is audited. The operation owns only ordering.
+    // Shared references resolve before each created object receives its mapped
+    // native Initialize, dependencies first. Borrowed/default objects are not owned.
     this._anchors.registerCreated(instance, () =>
     {
-      if (this._doInitialize && this._options.initialize !== false && typeof instance.Initialize === "function") instance.Initialize();
+      finalizeReaderObject(instance, { initialize: this._doInitialize && this._options.initialize !== false });
     });
     if (source._id !== undefined && source._id !== null) this._anchors.register(source._id, instance);
 
-    const notify = typeof instance.Initialize === "function" ? null : instance;
+    const notify = this._DeclaredNotify(instance);
+    const options = notify ? this._options : { ...this._options, notify: false };
     if (typeof instance.SetValues === "function")
     {
-      instance.SetValues(source, { ...this._options, importContext: this._anchors });
+      instance.SetValues(source, { ...options, importContext: this._anchors });
     }
     else if (this._populate)
     {
-      this._populate(instance, this._options, recordWrite => this.ReadMembers(instance, null, recordWrite));
+      this._populate(instance, options, recordWrite => this.ReadMembers(instance, null, recordWrite));
     }
-    else this.ReadMembers(instance, typeof notify?.OnModified === "function" ? notify : null);
+    else this.ReadMembers(instance, notify);
 
     return instance;
   }
@@ -515,7 +515,7 @@ export class DictReader extends IRootReaderBase
     // sharing this read's anchors.
     if (this._options.declarations !== true && typeof current.SetValues === "function")
     {
-      const result = current.SetValues(source, { ...this._options, importContext: this._anchors });
+      const result = current.SetValues(source, { ...this._options, notify: this._options.notify !== false && this._DeclaredNotify(current) !== null, importContext: this._anchors });
       return result instanceof Set ? result.size > 0 : result === true;
     }
 
@@ -524,8 +524,7 @@ export class DictReader extends IRootReaderBase
     try
     {
       if (this._options.declarations === true && source._id !== undefined && source._id !== null) this._anchors.register(source._id, current);
-      const notify = this._options.declarations === true ? this._DeclaredNotify(current)
-        : typeof current.OnModified === "function" ? current : null;
+      const notify = this._DeclaredNotify(current);
       return this.ReadMembers(current, notify).size > 0;
     }
     finally { this._currentSource = saved; }
@@ -1075,8 +1074,6 @@ export function CreateAnchorTable()
     initializeCreated(options = {})
     {
       const visited = new Set();
-      // Legacy factories retain their owned-default completion during migration.
-      const completionOptions = { ...options, visited: new Set(), created: new Set(created.keys()) };
       const containers = new Set();
       const visit = instance =>
       {
@@ -1090,7 +1087,7 @@ export function CreateAnchorTable()
           if (field.role === "property" && !readProperties.get(instance)?.has(field.name)) continue;
           visitValue(readDictionaryValue(instance, field));
         }
-        if (created.has(instance)) created.get(instance)(completionOptions);
+        if (created.has(instance)) created.get(instance)(options);
       };
       const visitValue = value =>
       {

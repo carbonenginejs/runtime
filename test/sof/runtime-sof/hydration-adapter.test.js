@@ -11,7 +11,7 @@ test("SOF compatibility hydration preserves Tr2Effect's map setters and textures
 {
   const adapter = createSofHydrationAdapter();
   const effect = new Tr2Effect();
-  assert.equal(CjsSchema.isModelInstance(effect), false);
+  assert.equal(("GetValues" in effect), false);
   const parameters = effect.parameters;
   const resources = effect.resources;
   assert.equal(adapter.applyValues(effect, {
@@ -37,7 +37,7 @@ test("SOF compatibility hydration assigns a model-free curve through the existin
 {
   const adapter = createSofHydrationAdapter();
   const curve = new Tr2CurveConstant();
-  assert.equal(CjsSchema.isModelInstance(curve), false);
+  assert.equal(("GetValues" in curve), false);
   assert.equal("SetValues" in curve, false);
   const value = curve.value;
   assert.equal(adapter.applyValues(curve, { name: "ColorCurve", value: [2, 3, 4, 5] }, {

@@ -1,3 +1,4 @@
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/EveMultiEffect.h
 // Source: trinity/trinity/Eve/EveMultiEffect.cpp
 // Source: trinity/trinity/Eve/EveMultiEffect_Blue.cpp
@@ -12,6 +13,8 @@ import { BLUELISTEVENT } from "#consts/blue";
  */
 @type.define({ className: "EveMultiEffect", family: "eve/effect" })
 @carbon.inherit(IEveSpaceObject2)
+@carbon.inherit(IInitialize)
+@carbon.mapInterface(IInitialize)
 export class EveMultiEffect
 {
 

@@ -1,3 +1,4 @@
+import { INotify } from "../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/Volume/EveEllipsoidVolume.h
 // Source: trinity/trinity/Eve/Volume/EveEllipsoidVolume.cpp
 // Source: trinity/trinity/Eve/Volume/EveEllipsoidVolume_Blue.cpp
@@ -15,6 +16,7 @@ import { carbon, impl, edit, type } from "#schema";
   className: "EveEllipsoidVolume",
   family: "eve/volume"
 })
+@carbon.inherit(INotify)
 export class EveEllipsoidVolume extends IEveVolume
 {
   @edit.readwrite
@@ -258,3 +260,6 @@ export class EveEllipsoidVolume extends IEveVolume
     return denominator > 0 ? 1 / Math.sqrt(denominator) : 0;
   }
 }
+
+// Exact native Blue exposure: only these identities participate in loading.
+carbon.interfaceTable({ interfaces: [EveEllipsoidVolume, IEveVolume, INotify], chainTo: null })(EveEllipsoidVolume, { kind: "class" });

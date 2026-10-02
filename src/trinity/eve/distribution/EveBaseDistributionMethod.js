@@ -1,3 +1,4 @@
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/EveBaseDistributionMethod.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, edit, type } from "#schema";
@@ -10,6 +11,8 @@ import { DistributionEntityLifeTimeEvent } from "./attributeModifiers/enums.js";
 
 /** Manages an authored placement pool and updates its live entities through placement generators, spawners, and lifetime modifiers. */
 @type.define({ className: "EveBaseDistributionMethod", family: "eve/distribution" })
+@carbon.inherit(IInitialize)
+@carbon.mapInterface(IInitialize)
 export class EveBaseDistributionMethod extends IEveDistributionMethod
 {
 

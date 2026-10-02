@@ -585,10 +585,10 @@ function projectJsonValue(value, stack = new Set())
         return projected === OMIT_JSON_VALUE ? null : projected;
       });
     }
-    if (CjsSchema.isModelInstance(value))
+    if (CjsSchema.getClassName(value.constructor))
     {
       return projectJsonValue(
-        value.GetValues({ refs: true, typeTags: true }),
+        CjsSchema.getValues(value, {}, { refs: true, typeTags: true }),
         stack
       );
     }

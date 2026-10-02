@@ -1,3 +1,4 @@
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Tr2LineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, type } from "#schema";
@@ -7,6 +8,8 @@ import { vec4 } from "#math/vec4";
 
 /** A set of coloured lines with an accompanying picking-triangle list, submitted as one buffer. */
 @type.define({ className: "Tr2LineSet", family: "trinityCore" })
+@carbon.inherit(IInitialize)
+@carbon.mapInterface(IInitialize)
 export class Tr2LineSet extends Tr2PrimitiveSet
 {
 

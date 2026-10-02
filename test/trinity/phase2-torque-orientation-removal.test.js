@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { CjsModel } from "../../npm/dist/global/model/index.js";
 import { DictReader, Copier, ITriFunction, ITriQuaternionFunction } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { TriTorque } from "../../npm/dist/trinity/core/animation/TriTorque.js";
@@ -16,7 +15,7 @@ for (const [Type, Base, interfaces] of [
 {
   const value = new Type();
   assert.equal(Object.getPrototypeOf(Type.prototype), Base.prototype);
-  assert.equal(CjsSchema.cast(value, CjsModel), null);
+  assert.equal("GetValues" in value, false);
   assert.deepEqual([...mappedInterfaces(Type)], interfaces);
   assert.equal(Type.from, undefined);
   for (const name of ["GetValues", "SetValues", "UpdateValues", "Initialize", "Dispose"])

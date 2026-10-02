@@ -18,6 +18,32 @@ function entryText(kind) {
 import { CjsSchema } from "#schema";
 import * as audio from "${base}";
 
+// Compare declared constructor identities and list contents across module graphs.
+// Native BlueLists carry constructor/notify implementation state outside their items.
+function captureData(value, seen = new Map()) {
+  if (typeof value === "function") return { constructorName: CjsSchema.getClassName(value) || value.name };
+  if (!value || typeof value !== "object" || ArrayBuffer.isView(value)) return value;
+  if (seen.has(value)) return seen.get(value);
+  if (Array.isArray(value)) {
+    const out = []; seen.set(value, out);
+    for (const item of value) out.push(captureData(item, seen));
+    return out;
+  }
+  if (value instanceof Map) {
+    const out = new Map(); seen.set(value, out);
+    for (const [key, item] of value) out.set(captureData(key, seen), captureData(item, seen));
+    return out;
+  }
+  if (value instanceof Set) {
+    const out = new Set(); seen.set(value, out);
+    for (const item of value) out.add(captureData(item, seen));
+    return out;
+  }
+  const out = {}; seen.set(value, out);
+  for (const [key, item] of Object.entries(value)) out[key] = captureData(item, seen);
+  return out;
+}
+
 export function capture() {
   return Object.fromEntries(Object.entries(audio).flatMap(([name, Class]) => {
     const schema = typeof Class === "function" ? CjsSchema.getSchema(Class) : null;
@@ -31,9 +57,9 @@ export function capture() {
       family: schema.family,
       fields: schema.fields.map(field => ({
         name: field.name,
-        type: field.type,
+        type: captureData(field.type),
         persist: field.edit?.persist === true,
-        value: value[field.name]
+        value: captureData(value[field.name])
       }))
     }]];
   }));

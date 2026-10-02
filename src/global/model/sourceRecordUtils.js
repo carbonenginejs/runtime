@@ -1,4 +1,4 @@
-import { CjsModel } from "./CjsModel.js";
+import { CjsSchema } from "../schema/index.js";
 
 /** Converts a truthy scalar, array, or map into an array of values. */
 export function asArray(value)
@@ -48,7 +48,7 @@ export function collectionValues(value)
 /** Recursively clones model values, typed arrays, maps, arrays, and plain records. */
 export function clonePlain(value)
 {
-    if (value instanceof CjsModel) return value.GetValues();
+    if (value && typeof value === "object" && CjsSchema.getClassName(value.constructor)) return CjsSchema.getValues(value);
     if (ArrayBuffer.isView(value)) return Array.from(value);
     if (value instanceof Map) return new Map(Array.from(value.entries()).map(([key, item]) => [key, clonePlain(item)]));
     if (Array.isArray(value)) return value.map(clonePlain);

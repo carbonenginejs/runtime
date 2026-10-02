@@ -6,7 +6,7 @@
 // semantics rather than capability discovery.
 //
 // WHY IT WAS MISSING, and what that cost. The port gave the family two invented
-// bases instead - `CjsVectorParameter extends CjsParameter extends CjsModel` -
+// bases instead - a universal values hierarchy -
 // carrying the same methods under names Carbon does not have. The methods
 // therefore worked and the CONTRACT did not exist, so nothing could ask for it:
 // `Tr2MaterialParameterStore.parameters` declares `@type.map(

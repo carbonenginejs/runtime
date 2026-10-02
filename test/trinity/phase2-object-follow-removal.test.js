@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { CjsModel } from "../../npm/dist/global/model/index.js";
 import { BlueList, DictReader, DictWriter, Copier, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
@@ -41,7 +40,7 @@ test("ObjectFollow exposes only native contracts and separates authored from run
 {
   const key = new Tr2ObjectFollowCurveKey();
   assert.equal(Object.getPrototypeOf(Tr2ObjectFollowCurveKey.prototype), ITr2FollowCurveKey.prototype);
-  assert.equal(CjsSchema.cast(key, CjsModel), null);
+  assert.equal("GetValues" in key, false);
   assert.deepEqual([...mappedInterfaces(Tr2ObjectFollowCurveKey)], [ITr2FollowCurveKey, INotify, IInitialize]);
   assert.equal(mappedInterfaces(Tr2ObjectFollowCurveKey).has(Tr2ObjectFollowCurveKey), false);
   assert.equal(Tr2ObjectFollowCurveKey.from, undefined);

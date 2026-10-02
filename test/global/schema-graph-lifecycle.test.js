@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsModel } from "../../src/global/model/CjsModel.js";
+import "../../src/global/blue/values.js";
+import { IInitialize } from "../../src/global/blue/IInitialize.js";
 import { CjsSchema } from "../../src/global/schema/CjsSchema.js";
 import { Traverse } from "../../src/global/blue/find.js";
 import { GetResources } from "../../src/global/blue/getResources.js";
@@ -10,9 +11,9 @@ function fixture()
 {
     const prefix = `ModelBlueForwarding${++fixtureId}`;
     const calls = [];
-    class Leaf extends CjsModel
+    class Leaf
     {
-        constructor(name = "leaf") { super(); this.name = name; }
+        constructor(name = "leaf") { this.name = name; }
         Initialize() { calls.push(this.name); }
     }
     CjsSchema.define(Leaf, { className: `${prefix}Leaf`, fields: [
@@ -38,7 +39,7 @@ function fixture()
     CjsSchema.define(Resource, { className: `${prefix}Resource`, fields: [
         { name: "dependency", key: "dependency", type: { kind: "objectRef", className: Resource } }
     ] });
-    class Root extends CjsModel
+    class Root
     {
         name = "root";
         child = new Leaf("owned");
@@ -59,26 +60,26 @@ function fixture()
         { name: "set", key: "set", type: { kind: "set", itemType: Leaf }, lifecycle: { ownership: "owned" } },
         { name: "borrowed", key: "borrowed", type: { kind: "objectRef", className: Leaf } },
     ] });
+    CjsSchema.carbon.mapInterface(IInitialize)(Leaf);
+    CjsSchema.carbon.mapInterface(IInitialize)(Root);
     return { prefix, Leaf, Plain, Resource, Root, calls };
 }
 
 function publicNames(root, options)
 {
     const result = [];
-    assert.equal(root.Traverse(value => result.push(value.name), options), root);
+    assert.equal(Traverse(root, value => result.push(value.name), options), root);
     return result;
 }
 
-test("public traversal crosses plain/resource/collection edges while legacy initialization stops at its old boundary", () =>
+test("public traversal crosses plain/resource/collection edges while construction initializes only newly created objects", () =>
 {
     const { Root, calls } = fixture();
-    const root = Root.from({});
-    assert.deepEqual(calls, ["listB", "listA", "owned", "root"]);
+    const root = CjsSchema.from(CjsSchema.getClassName(Root), {});
+    assert.deepEqual(calls, ["root"], "constructor-owned defaults are borrowed; only the reader-created root initializes");
     assert.deepEqual(publicNames(root), ["root", "owned", "plain", "behindPlain", "resource", "listA", "listB", "map", "set", "borrowed"]);
     assert.equal(root.plain.__state, undefined);
     assert.equal(root.resource.__state, undefined);
-    assert.equal(root.__state.suppressEvents, 0);
-    assert.equal(root.IsDirty(), false);
 });
 
 test("public forwarding preserves cycle, shared visited, root exclusion, pruning and postorder contracts", () =>
@@ -91,28 +92,28 @@ test("public forwarding preserves cycle, shared visited, root exclusion, pruning
     Traverse(root, value => expected.push(value));
     const actual = [];
     const visited = new Set();
-    assert.equal(root.Traverse(value => actual.push(value), { visited }), root);
+    assert.equal(Traverse(root, value => actual.push(value), { visited }), root);
     assert.deepEqual(actual, expected);
     assert.equal(visited.size, actual.length);
     assert.equal(visited.has(root), true);
     assert.deepEqual(publicNames(root, { visited }), []);
     assert.equal(publicNames(root, { includeRoot: false }).includes("root"), false);
     const pruned = [];
-    root.Traverse(value => { pruned.push(value.name); return value !== root.plain; });
+    Traverse(root, value => { pruned.push(value.name); return value !== root.plain; });
     assert.equal(pruned.includes("plain"), true);
     assert.equal(pruned.includes("behindPlain"), false);
     const post = [];
-    root.Traverse(value => { post.push(value.name); return false; }, { order: "post" });
+    Traverse(root, value => { post.push(value.name); return false; }, { order: "post" });
     assert.equal(post.at(-1), "root");
     assert.equal(post.includes("behindPlain"), true);
     assert.equal(publicNames(root, { ownedOnly: true }).includes("borrowed"), false);
-    assert.throws(() => root.Traverse(null), TypeError);
+    assert.throws(() => Traverse(root, null), TypeError);
 });
 
-test("public inherited order is canonical while values initialization retains reverse legacy order", () =>
+test("public inherited traversal order is independent of reader ownership", () =>
 {
     const { prefix, Leaf, calls } = fixture();
-    class Base extends CjsModel
+    class Base
     {
         name = "root";
         base = new Leaf("base");
@@ -121,12 +122,13 @@ test("public inherited order is canonical while values initialization retains re
     CjsSchema.define(Base, { className: `${prefix}Base`, fields: [
         { name: "base", key: "base", type: { kind: "objectRef", className: Leaf }, lifecycle: { ownership: "owned" } }
     ] });
+    CjsSchema.carbon.mapInterface(IInitialize)(Base);
     class Derived extends Base { derived = new Leaf("derived"); }
     CjsSchema.define(Derived, { className: `${prefix}Derived`, fields: [
         { name: "derived", key: "derived", type: { kind: "objectRef", className: Leaf }, lifecycle: { ownership: "owned" } }
     ] });
-    const root = Derived.from({});
-    assert.deepEqual(calls, ["derived", "base", "root"]);
+    const root = CjsSchema.from(CjsSchema.getClassName(Derived), {});
+    assert.deepEqual(calls, ["root"]);
     assert.deepEqual(publicNames(root), ["root", "derived", "base"]);
     assert.deepEqual(publicNames(root, { order: "post" }), ["derived", "base", "root"]);
     assert.deepEqual(publicNames(root, { reverse: true }), ["root", "base", "derived"]);
@@ -141,9 +143,8 @@ test("values initialization is independent of public Traverse overrides", () =>
         Traverse() { assert.fail("values initialization called public Traverse"); }
     }
     CjsSchema.define(Overridden, { className: `${prefix}Overridden` });
-    const root = Overridden.from({});
-    assert.equal(root.IsDirty(), false);
-    assert.deepEqual(calls, ["listB", "listA", "owned", "root"]);
+    const root = CjsSchema.from(CjsSchema.getClassName(Overridden), {});
+    assert.deepEqual(calls, ["root"]);
 });
 
 test("public resource collection forwards independently of Traverse overrides across plain/resource dependencies", () =>
@@ -163,60 +164,27 @@ test("public resource collection forwards independently of Traverse overrides ac
     dependency.dependency = root.resource;
     root._geometryRes = dependency;
     const out = ["stale"];
-    assert.equal(root.GetResources(out), out);
+    assert.equal(GetResources(root, out), out);
     assert.deepEqual(out, GetResources(root));
     assert.deepEqual(out, [dependency, root.resource]);
 });
 
-test("legacy initialization keeps settle timing, clean state and suppressed modified events", () =>
+test("native initialization ignores a false return but propagates a thrown failure", () =>
 {
-    const prefix = `ModelBlueForwarding${++fixtureId}`;
-    const calls = [];
-    const events = [];
-    class Settled extends CjsModel
+    class ReturnsFalse { Initialize() { return false; } }
+    class Throws { Initialize() { throw new Error("fixture initialization error"); } }
+    for (const Type of [ReturnsFalse, Throws])
     {
-        constructor()
-        {
-            super();
-            this.OnEvent("modified", () => events.push("modified"));
-        }
-        Initialize()
-        {
-            calls.push(["initialize", this.__state.suppressEvents]);
-        }
-        OnModified(member)
-        {
-            calls.push(["modified", this.__state.suppressEvents, member]);
-            return true;
-        }
+        CjsSchema.define(Type, { className: "ReaderCompletion" + Type.name });
+        CjsSchema.carbon.mapInterface(IInitialize)(Type);
     }
-    CjsSchema.define(Settled, { className: `${prefix}Settled` });
-    const result = Settled.from({});
-    assert.deepEqual(calls, [["initialize", 2], ["modified", 2, null]]);
-    assert.deepEqual(events, []);
-    assert.equal(result.IsDirty(), false);
-    assert.equal(result.__state.suppressEvents, 0);
+    assert.ok(CjsSchema.from("ReaderCompletionReturnsFalse", {}) instanceof ReturnsFalse);
+    assert.throws(() => CjsSchema.from("ReaderCompletionThrows", {}), /fixture initialization error/);
 });
 
-test("legacy initialization balances event suppression when Initialize throws or returns false", () =>
+test("method presence alone never opts a plain class into reader initialization", () =>
 {
-    for (const mode of ["throw", "false"])
-    {
-        const prefix = `ModelBlueForwarding${++fixtureId}`;
-        let instance;
-        class Failing extends CjsModel
-        {
-            constructor() { super(); instance = this; }
-            Initialize()
-            {
-                assert.equal(this.__state.suppressEvents, 2);
-                if (mode === "throw") throw new Error("fixture initialization error");
-                return false;
-            }
-        }
-        CjsSchema.define(Failing, { className: `${prefix}Failing` });
-        assert.throws(() => Failing.from({}), mode === "throw" ? /fixture initialization error/ : /initialization failed/);
-        assert.equal(instance.__state.suppressEvents, 0);
-        assert.equal(instance.IsDirty(), true);
-    }
+    class Unmapped { Initialize() { assert.fail("unmapped hook called"); } }
+    CjsSchema.define(Unmapped, { className: "ReaderUnmappedInitializer" });
+    assert.ok(CjsSchema.from("ReaderUnmappedInitializer", {}) instanceof Unmapped);
 });

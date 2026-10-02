@@ -1,3 +1,4 @@
+import { INotify } from "../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { quat } from "#math/quat";
@@ -15,6 +16,7 @@ import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
   className: "EveVirtualCameraBehaviourVector3Base",
   family: "eve/virtualCamera/behaviour"
 })
+@carbon.inherit(INotify)
 export class EveVirtualCameraBehaviourVector3Base
 {
   @edit.readwrite
@@ -115,3 +117,6 @@ export class EveVirtualCameraBehaviourVector3Base
     return vec3.transformQuat(out, value, rotation);
   }
 }
+
+// Exact native Blue exposure: only these identities participate in loading.
+carbon.interfaceTable({ interfaces: [INotify], chainTo: null })(EveVirtualCameraBehaviourVector3Base, { kind: "class" });

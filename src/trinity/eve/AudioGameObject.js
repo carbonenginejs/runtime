@@ -1,3 +1,4 @@
+import { IInitialize } from "../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/AudioGameObject.h
 // Source: trinity/trinity/Eve/AudioGameObject.cpp
 import { mat4 } from "#math/mat4";
@@ -15,6 +16,8 @@ import { carbon, CjsSchema, impl, edit, type } from "#schema";
  */
 @type.define({ className: "AudioGameObject", family: "eve" })
 @carbon.inherit(IEveSpaceObject2)
+@carbon.inherit(IInitialize)
+@carbon.mapInterface(IInitialize)
 export class AudioGameObject
 {
   _worldTransform = mat4.create();

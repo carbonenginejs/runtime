@@ -1,7 +1,8 @@
 // Adapted from CCPWGL Tw2ScalarCurve2 (MIT, Copyright (c) 2020
 // ccpgames rawrafox cppctamber) and corroborated by historical Tr2ScalarCurve
 // Black records.
-import { edit, type } from "#schema";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { carbon, edit, type } from "#schema";
 import { IncarnaScalarCurveInterpolation } from "./enums.js";
 import { Tr2ScalarKey } from "./Tr2ScalarKey.js";
 
@@ -12,6 +13,11 @@ import { Tr2ScalarKey } from "./Tr2ScalarKey.js";
  * which owns the modern key, tangent, and extrapolation representation.
  */
 @type.define({ className: "Tr2ScalarCurve", family: "incarna" })
+// Historical Incarna compatibility: loaded Curve2 keys must be sorted once.
+// This explicit contract preserves the legacy asset behavior; it is not a
+// declaration from the current Carbon curve exposure table.
+@carbon.inherit(IInitialize)
+@carbon.mapInterface(IInitialize)
 export class Tr2ScalarCurve
 {
 

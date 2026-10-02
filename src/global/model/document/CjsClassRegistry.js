@@ -1,4 +1,4 @@
-// DEPRECATED carbon.document boundary. The collapse into plain CjsModel
+// DEPRECATED carbon.document boundary. The collapse into plain schema
 // values is decided and partially executed - the envelope was
 // over-engineered, and a _type-tagged values graph carries everything it
 // did. Kept only until the interchange retirement completes its inventory

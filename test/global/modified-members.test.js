@@ -1,12 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { CjsSchema } from "#schema";
-import { CjsModel } from "#model";
 
 let serial = 0;
 function fixture(model, liveB = false)
 {
-  const Base = model ? CjsModel : class {};
+  const Base = class {};
   class Probe extends Base
   {
     a = 0;
@@ -34,7 +33,7 @@ function fixture(model, liveB = false)
   return new Probe();
 }
 
-for (const model of [true, false])
+for (const model of [false])
 {
   const route = model ? "model" : "composition";
   test(`${route}: equal-write notifications do not invent changed fields`, () =>

@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { CjsSchema } from "#schema";
-import { CjsModel } from "#model";
 
 const { edit, type } = CjsSchema;
 let serial = 0;
@@ -39,11 +38,11 @@ test("enum chooser metadata exposes the Blue ENUM flag through inheritance", () 
   assert.ok(CjsSchema.getField(Derived, "choice").enum);
 });
 
-for (const route of ["model", "composition", "schema"])
+for (const route of ["composition", "schema"])
 {
   test(`${route}: access and persistence flags retain independent meanings`, () =>
   {
-    const Base = route === "model" ? CjsModel : class {};
+    const Base = class {};
     class Record extends Base
     {
       stored = 0;

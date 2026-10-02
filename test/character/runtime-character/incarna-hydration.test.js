@@ -103,6 +103,8 @@ test("historical curve construction retains typed keys and initialization orderi
   ])
   {
     const curve = CjsSchema.from(name, { length: 1, keys: [{ time: 0.8, value: values[0] }, { time: 0.2, value: values[1] }] });
+    const control = CjsSchema.from(name, { length: 1, keys: [{ time: 0.8, value: values[0] }, { time: 0.2, value: values[1] }] }, { initialize: false });
+    assert.deepEqual(control.keys.map(value => value.time), [0.8, 0.2], "negative control: uninitialized keys retain their authored order");
     assert.deepEqual(curve.keys.map(value => value.time), [0.2, 0.8]);
     assert.equal(curve.keys[0].constructor, key);
     assert.equal("GetValues" in curve, false);

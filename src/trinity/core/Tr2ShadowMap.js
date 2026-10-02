@@ -1,3 +1,4 @@
+import { INotify } from "../../global/blue/INotify.js";
 // Source: trinity/trinity/Tr2ShadowMap.h
 //   trinity/trinity/Tr2ShadowMap.cpp
 import { carbon, impl, edit, type } from "#schema";
@@ -135,6 +136,7 @@ function writeOrthoOffCenter(out, left, right, bottom, top, near, far)
 
 /** Cascaded-shadow split producer. Its GPU operations are not ported yet. */
 @type.define({ className: "Tr2ShadowMap", family: "trinityCore" })
+@carbon.inherit(INotify)
 export class Tr2ShadowMap
 {
   @edit.notify
@@ -780,3 +782,6 @@ blue.enums.RegisterEnum("trinity.Tr2ShadowMap.ShadowSplitMode", Tr2ShadowMap.Sha
     { name: "Manual", value: Tr2ShadowMap.ShadowSplitMode.MANUAL, description: "Manual mode for use in graphite for debugging" }
   ]
 });
+
+// Exact native Blue exposure: only these identities participate in loading.
+carbon.interfaceTable({ interfaces: [Tr2ShadowMap, INotify], chainTo: null })(Tr2ShadowMap, { kind: "class" });

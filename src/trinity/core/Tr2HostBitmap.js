@@ -10,23 +10,44 @@ export class Tr2HostBitmap extends HostBitmap
 {
 
   /** Native bitmap format storage. */
-  get format() { return this._format; }
+  get format()
+  {
+    return this._format;
+  }
 
   /** Native mip-zero width. */
-  get width() { return this._width; }
+  get width()
+  {
+    return this._width;
+  }
 
   /** Native mip-zero height. */
-  get height() { return this._height; }
+  get height()
+  {
+    return this._height;
+  }
 
   /** Native declared mip count. */
-  get mipCount() { return this._mipCount; }
+  get mipCount()
+  {
+    return this._mipCount;
+  }
 
   /** Native texture dimensionality. */
-  get imageType() { return this._type; }
+  get imageType()
+  {
+    return this._type;
+  }
 
   /** Native diagnostic name storage. */
-  get name() { return this._name; }
-  set name(value) { this._name = value; }
+  get name()
+  {
+    return this._name;
+  }
+  set name(value)
+  {
+    this._name = value;
+  }
 
   /** Carbon method CreateVolume (MAP_METHOD_AND_WRAP). */
   @carbon.method

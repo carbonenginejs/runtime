@@ -1,3 +1,4 @@
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: audio/src/Components/StretchAudio.h + StretchAudio.cpp
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/StretchAudio.json.
@@ -9,6 +10,8 @@ import { AudGameObjResource } from "./AudGameObjResource.js";
 
 /** Positions source, destination, and stretch emitters along one beam segment, with the listener projected onto that segment. */
 @type.define({ className: "StretchAudio", family: "audio" })
+@carbon.inherit(IInitialize)
+@carbon.mapInterface(IInitialize)
 export class StretchAudio extends IStretchAudio
 {
 

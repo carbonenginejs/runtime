@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { CjsModel } from "../../npm/dist/global/model/index.js";
 import { DictReader, DictWriter, Copier } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { Tr2PostProcessAttributes } from "../../npm/dist/trinity/postProcess/Tr2PostProcessAttributes.js";
@@ -16,7 +15,7 @@ test(`${Type.name} has supported native queries and no model services`, () =>
 {
   const value = new Type();
   assert.equal(Object.getPrototypeOf(Type.prototype), Object.prototype);
-  assert.equal(CjsSchema.cast(value, CjsModel), null);
+  assert.equal("GetValues" in value, false);
   assert.deepEqual([...mappedInterfaces(Type)], interfaces);
   assert.equal(Type.from, undefined);
   for (const method of ["GetValues", "SetValues", "UpdateValues", "Dispose", "Initialize"]) assert.equal(value[method], undefined);

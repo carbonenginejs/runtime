@@ -5,7 +5,6 @@ import { Copier } from "../../npm/dist/global/blue/Copier.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { CjsModel } from "../../npm/dist/global/model/CjsModel.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { ExecuteMainThreadActions } from "../../npm/dist/trinity/core/continueOnMainThread.js";
 import { Tr2GrannyAnimation } from "../../npm/dist/trinity/core/animation/Tr2GrannyAnimation.js";
@@ -79,7 +78,7 @@ test("Sync is model-free with nominal finalizer composition, native empty defaul
   const finalizer = new Type(), controller = new Tr2Controller();
   assert.equal(CjsSchema.cast(finalizer, Type), finalizer);
   assert.equal(CjsSchema.cast(finalizer, ITr2StateMachineStateFinalizer), finalizer);
-  assert.equal(CjsSchema.cast(finalizer, CjsModel), null);
+  assert.equal("GetValues" in finalizer, false);
   assert.equal(Object.getPrototypeOf(Type.prototype), Object.prototype);
   assert.equal(Type.from, undefined);
   assert.equal(finalizer.GetValues, undefined);
@@ -99,7 +98,7 @@ test("Sync is model-free with nominal finalizer composition, native empty defaul
   assert.equal(CjsSchema.getMethod(Type, "CanTransition").impl.status, "adapted");
 });
 
-test("Sync null-chain exposure excludes a temporary CjsModel parent mapping in a fresh process", () =>
+test("Sync retains exact exposure and composition in a fresh process", () =>
 {
   const moduleURL = path => new URL(`../../npm/dist/${path}`, import.meta.url).href;
   execFileSync(process.execPath, [
@@ -107,17 +106,12 @@ test("Sync null-chain exposure excludes a temporary CjsModel parent mapping in a
       import assert from "node:assert/strict";
       import { carbon, CjsSchema } from ${JSON.stringify(moduleURL("global/schema/index.js"))};
       import { mappedInterfaces } from ${JSON.stringify(moduleURL("global/compose/interface.js"))};
-      import { CjsModel } from ${JSON.stringify(moduleURL("global/model/CjsModel.js"))};
       import { ITr2StateMachineStateFinalizer } from ${JSON.stringify(moduleURL("trinity/controllers/state/ITr2StateMachineStateFinalizer.js"))};
-      class ParentOnlyInterface {}
-      carbon.mapInterface(ParentOnlyInterface)(CjsModel);
-      assert.equal(mappedInterfaces(CjsModel).has(ParentOnlyInterface), true);
       const { Tr2SyncToAnimation } = await import(${JSON.stringify(moduleURL("trinity/controllers/Tr2SyncToAnimation.js"))});
       assert.deepEqual([...mappedInterfaces(Tr2SyncToAnimation)], [Tr2SyncToAnimation, ITr2StateMachineStateFinalizer]);
-      assert.equal(mappedInterfaces(Tr2SyncToAnimation).has(ParentOnlyInterface), false);
       const finalizer = new Tr2SyncToAnimation();
       assert.equal(Object.getPrototypeOf(Tr2SyncToAnimation.prototype), Object.prototype);
-      assert.equal(CjsSchema.cast(finalizer, CjsModel), null);
+      assert.equal("GetValues" in finalizer, false);
       assert.equal(CjsSchema.cast(finalizer, ITr2StateMachineStateFinalizer), finalizer);
     `
   ], { encoding: "utf8", timeout: 30000, windowsHide: true });
@@ -239,7 +233,7 @@ test("DictReader creates a registered Sync finalizer without an inherited values
   const declared = new DictReader({ declarations: true }).CreateObject({ mask: "declared-mask" }, Type);
   assert.equal(declared.constructor, Type);
   assert.equal(declared.mask, "declared-mask");
-  assert.equal(CjsSchema.cast(declared, CjsModel), null);
+  assert.equal("GetValues" in declared, false);
   const named = new DictReader({ declarations: true }).CreateObject({ _type: "Tr2SyncToAnimation", mask: "named-mask" });
   assert.equal(named.constructor, Type);
   assert.notEqual(named, declared);

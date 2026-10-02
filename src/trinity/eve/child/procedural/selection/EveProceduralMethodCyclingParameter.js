@@ -1,3 +1,4 @@
+import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodCyclingParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, edit, type } from "#schema";
@@ -5,6 +6,8 @@ import { EveChildRef } from "../../../../eve/child/EveChildRef.js";
 
 /** EveProceduralMethodCyclingParameter (eve/child/procedural/selection) - generated from schema shapeHash 90bcbbe1.... */
 @type.define({ className: "EveProceduralMethodCyclingParameter", family: "eve/child/procedural/selection" })
+@carbon.inherit(IInitialize)
+@carbon.mapInterface(IInitialize)
 export class EveProceduralMethodCyclingParameter
 {
 

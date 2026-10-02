@@ -8,7 +8,7 @@ import { CjsResMan } from "../../npm/dist/global/blue/CjsResMan.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import { EveSOFData, EveSOFDataGeneric, EveSOFDataHullDecalSetItem } from "../../npm/dist/sof/index.js";
-import { Tr2DynamicEmitter, ITr2GenericEmitter, EveThrottleable, Tr2Controller, Tr2TimelineController } from "../../npm/dist/trinity/index.js";
+import { Tr2DynamicEmitter, ITr2GenericEmitter, EveThrottleable, Tr2Effect, Tr2Controller, Tr2TimelineController } from "../../npm/dist/trinity/index.js";
 import { IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 
@@ -69,6 +69,7 @@ test("a failed dictionary operation cannot leak anchors or completion into reade
     { name: "name", key: "name", type: { kind: "string" } },
     { name: "child", key: "child", type: { kind: "objectRef", className: Record } }
   ] });
+  CjsSchema.carbon.mapInterface(IInitialize)(Record);
   const reader = new DictReader();
   assert.throws(() => reader.CreateObject({ _type: "SharedLoaderReuseRecord", _id: "root", name: "failed", child: { _ref: "missing" } }), /Unresolved _ref/);
   assert.deepEqual(calls, []);
@@ -114,7 +115,7 @@ test("real SOF generic and decal data retain concrete nested records through the
 });
 
 
-test("schema construction batches notifications and honors values options before initialization", () =>
+test("mapped initialization suppresses construction notifications while later edits still notify", () =>
 {
   class Record
   {
@@ -128,9 +129,12 @@ test("schema construction batches notifications and honors values options before
     { name: "first", key: "first", type: { kind: "int32" }, edit: { notify: true } },
     { name: "second", key: "second", type: { kind: "int32" }, edit: { notify: true } }
   ] });
+  CjsSchema.carbon.mapInterface(IInitialize)(Record);
   const values = { first: 1, second: 2 };
   const built = CjsSchema.from("SharedLoaderConstructionRecord", values);
-  assert.deepEqual(built.calls, [["first", 2], ["second", 2], ["initialize", 2]]);
+  assert.deepEqual(built.calls, [["initialize", 2]]);
+  CjsSchema.setValues(built, { first: 3, second: 4 });
+  assert.deepEqual(built.calls, [["initialize", 2], ["first", 4], ["second", 4]]);
   for (const options of [{ notify: false }, { markDirty: false }, { skipUpdate: true }])
   {
     const record = CjsSchema.from("SharedLoaderConstructionRecord", values, options);
@@ -193,4 +197,28 @@ test("shared child creation hydrates the real Crisis graph before publishing it"
     "negative control: appending the authored bag omits dependency construction and initialization");
   assert.throws(() => createChild(owner, "children", { _ref: "absent" }), /_ref/);
   assert.deepEqual(owner.children, [child], "failed hydration never publishes a partial child");
+});
+
+test("the real Crisis effect custom setter initializes once after population, and honors initialize:false", t =>
+{
+  const values = structuredClone(host.mesh.transparentAreas[0].effect);
+  const observations = [];
+  const initialize = Tr2Effect.prototype.Initialize;
+  t.mock.method(Tr2Effect.prototype, "Initialize", function (...args)
+  {
+    observations.push({ instance: this, options: this.options.length, path: this.effectFilePath });
+    return Reflect.apply(initialize, this, args);
+  });
+  const effect = CjsSchema.from("Tr2Effect", values);
+  assert.equal(observations.length, 1);
+  assert.equal(observations[0].instance, effect);
+  assert.equal(observations[0].options, values.options.length);
+  assert.equal(observations[0].path, values.effectFilePath);
+  const disabled = CjsSchema.from("Tr2Effect", structuredClone(values), { initialize: false });
+  assert.equal(disabled.effectFilePath, values.effectFilePath);
+  assert.equal(observations.length, 1, "disabled initialization must not escape through OnModified");
+  // Negative control: ordinary editor notifications reinitialize immediately.
+  const control = new Tr2Effect();
+  control.SetValues(structuredClone(values));
+  assert.ok(observations.length > 1, "an unsuppressed setter reproduces early initialization");
 });

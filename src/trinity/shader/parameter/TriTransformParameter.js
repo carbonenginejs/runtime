@@ -56,6 +56,13 @@ export class TriTransformParameter extends CjsParameter
   @type.mat4
   worldTransform = mat4.create();
 
+  /** Native legacy-scene hook is empty (TriTransformParameter.h:42). */
+  @carbon.method
+  @impl.implemented
+  RebuildEffectHandles(_effectRes)
+  {
+  }
+
   /** The shader constant name the composed transform matrix is uploaded to. */
   @carbon.method
   @impl.implemented

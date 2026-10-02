@@ -1,7 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
-import "../../../npm/dist/global/model/index.js";
+import "../../../npm/dist/global/blue/values.js";
+import { IInitialize } from "../../../npm/dist/global/blue/IInitialize.js";
 import { Tr2ControllerFloatVariable } from "../../../npm/dist/trinity/index.js";
 
 test("CjsSchema.setValues and getValues are the model transport, called through the schema", () =>
@@ -21,7 +22,7 @@ test("CjsSchema.setValues and getValues are the model transport, called through 
   assert.deepEqual(CjsSchema.getValues(twin), values);
 });
 
-test("CjsSchema.from resolves the class, applies values, and calls a class-owned Initialize", () =>
+test("CjsSchema.from resolves the class, applies values, and calls a mapped class-owned Initialize", () =>
 {
   const built = CjsSchema.from("Tr2ControllerFloatVariable", { name: "built" });
   assert.ok(built instanceof Tr2ControllerFloatVariable);
@@ -43,6 +44,7 @@ test("CjsSchema.from resolves the class, applies values, and calls a class-owned
     }
   }
   CjsSchema.SetConstructor("ProbeFromTarget", ProbeFromTarget);
+  CjsSchema.carbon.mapInterface(IInitialize)(ProbeFromTarget);
   const probe = CjsSchema.from("ProbeFromTarget", { name: "p" });
   assert.equal(probe.name, "p");
   assert.deepEqual(order, [ "SetValues", "Initialize" ], "populate first, Initialize once at the end");

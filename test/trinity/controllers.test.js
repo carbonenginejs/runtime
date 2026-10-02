@@ -4,7 +4,6 @@ import { CjsControllerExpressionProgram, ExecuteMainThreadActions, EveChildUpdat
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { blue, DictReader } from "../../npm/dist/global/blue/index.js";
-import { CjsModel } from "../../npm/dist/global/model/index.js";
 import { ITr2SoundEmitterOwner } from "../../npm/dist/trinity/eve/ITr2SoundEmitterOwner.js";
 
 
@@ -157,9 +156,13 @@ test("Tr2ControllerFloatVariable writes destinations and dirty masks", () =>
   assertEquals(CjsSchema.getField(Tr2ControllerFloatVariable, "value")?.type.kind, "float32");
 });
 
-test("Tr2BindingPoint settles direct and swizzled writes through CjsModel", () =>
+test("Tr2BindingPoint settles direct and swizzled writes through explicit editing capabilities", () =>
 {
-  const target = new CjsModel();
+  class BindingNotificationTarget { OnModified() { return true; } }
+  CjsSchema.define(BindingNotificationTarget, { className: "BindingNotificationTarget" });
+  CjsSchema.compose.values(BindingNotificationTarget, { kind: "class" });
+  CjsSchema.compose.notify(BindingNotificationTarget, { kind: "class" });
+  const target = new BindingNotificationTarget();
   target.value = 1;
   target.vector = new Float32Array([1, 2, 3]);
   const events = [];

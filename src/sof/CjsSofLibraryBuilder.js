@@ -1,4 +1,4 @@
-import { impl } from "#schema";
+import { CjsSchema, impl } from "#schema";
 import { normalizeResourcePath } from "#utils/path";
 import { CjsBlackFormat } from "#resource/formats/black";
 import { EveSOFData } from "./EveSOFData.js";
@@ -169,7 +169,7 @@ export class CjsSofLibraryBuilder
   /** Returns detached model values for caching or caller-managed transport. */
   GetValues(options = {})
   {
-    return this.data.GetValues(options);
+    return CjsSchema.getValues(this.data, {}, options);
   }
 
   /** Loads generic.black once and publishes it as the manager's generic data. */

@@ -3,7 +3,6 @@ import assert from "node:assert/strict";
 import { CjsSchema, type, types } from "../../src/global/schema/index.js";
 import { DictReader } from "../../src/global/blue/DictReader.js";
 import { DictWriter } from "../../src/global/blue/DictWriter.js";
-import { CjsModel } from "../../src/global/model/CjsModel.js";
 import { CjsResource } from "../../src/global/blue/CjsResource.js";
 import { exportCarbonValue } from "../../src/global/schema/types/carbonTypes.js";
 import { GetResources } from "../../src/global/blue/getResources.js";
@@ -101,10 +100,10 @@ test("stateless recursive output excludes child resources in objects and collect
 });
 
 test("model, composed and resource-owned values routes omit caches", () => {
-  for (const Base of [CjsModel, class {}, CjsResource]) {
+  for (const Base of [class {}, CjsResource]) {
     class Owner extends Base { cache = { loaded: true }; authored = 1; }
     CjsSchema.define(Owner, { className: name(), fields: { cache: [type.resource("Resource"), CjsSchema.edit.persist], authored: type.int32 } });
-    if (Base !== CjsModel && Base !== CjsResource) CjsSchema.compose.values(Owner, { kind: "class" });
+    if (Base !== CjsResource) CjsSchema.compose.values(Owner, { kind: "class" });
     const target = new Owner();
     const cache = target.cache;
     target.SetValues(incoming("cache"));
