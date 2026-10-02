@@ -39,3 +39,4 @@ export * from "./EveChildCloud2.js";
 export * from "./EveChildPartData/index.js";
 export * from "./ITr2FroxelFogSettings.js";
 export * from "./IEveLightingOverride.js";
+export * from "./EveCloudEditableVolume.js";

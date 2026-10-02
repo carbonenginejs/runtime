@@ -50,12 +50,12 @@ export class Tr2HostBitmap extends HostBitmap
     this._name = value;
   }
 
-  /** Carbon method CreateVolume (MAP_METHOD_AND_WRAP). */
+  /** Uses the inherited ImageIO volume allocation exposed by Tr2HostBitmap_Blue.cpp:467-471. */
   @meta.blue.method
-  @meta.notImplemented
-  CreateVolume(...args)
+  @meta.implemented
+  CreateVolume(width, height, depth, mipCount, format)
   {
-    throw new Error("Tr2HostBitmap.CreateVolume is not implemented in CarbonEngineJS.");
+    return super.CreateVolume(width, height, depth, mipCount, format);
   }
 
   /** Carbon method Create (MAP_METHOD_AND_WRAP). */
@@ -218,20 +218,20 @@ export class Tr2HostBitmap extends HostBitmap
     throw new Error("Tr2HostBitmap.IsSaving is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method IsValid (MAP_METHOD_AND_WRAP). */
+  /** Uses the inherited ImageIO storage-validity predicate exposed by the native Blue table. */
   @meta.blue.method
-  @meta.notImplemented
-  IsValid(...args)
+  @meta.implemented
+  IsValid()
   {
-    throw new Error("Tr2HostBitmap.IsValid is not implemented in CarbonEngineJS.");
+    return super.IsValid();
   }
 
-  /** Carbon method IsCompressed (MAP_METHOD_AND_WRAP). */
+  /** Uses the inherited ImageIO compression predicate exposed by the native Blue table. */
   @meta.blue.method
-  @meta.notImplemented
-  IsCompressed(...args)
+  @meta.implemented
+  IsCompressed()
   {
-    throw new Error("Tr2HostBitmap.IsCompressed is not implemented in CarbonEngineJS.");
+    return super.IsCompressed();
   }
 
   /** Carbon method IsMonochrome (MAP_METHOD_AND_WRAP). */
@@ -250,12 +250,12 @@ export class Tr2HostBitmap extends HostBitmap
     throw new Error("Tr2HostBitmap.GetMipRawData is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method GetRawData -> PyGetRawData (MAP_METHOD). */
+  /** Returns the inherited writable byte view; typed-array access replaces Python memoryview packaging while preserving the native CPU overload. */
   @meta.blue.method
-  @meta.notImplemented
-  GetRawData(...args)
+  @meta.adapted
+  GetRawData(x, y)
   {
-    throw new Error("Tr2HostBitmap.GetRawData is not implemented in CarbonEngineJS.");
+    return super.GetRawData(x, y);
   }
 
   /** Carbon method Save -> PySave (MAP_METHOD). */

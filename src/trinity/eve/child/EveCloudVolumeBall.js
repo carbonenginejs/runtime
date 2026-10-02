@@ -1,11 +1,15 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume.h
-// Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema eve/child/EveCloudVolumeBall.json.).
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume.cpp
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume_Blue.cpp
+// Hand-maintained after promotion from generated intake.
 import { meta } from "#schema";
+import { INotify } from "#blue";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
 /** Runtime model for one editable cloud-volume ball. */
 @meta.define({ className: "EveCloudVolumeBall", family: "eve/child" })
+@meta.blue.inherit(INotify)
 export class EveCloudVolumeBall
 {
 
@@ -44,4 +48,18 @@ export class EveCloudVolumeBall
   @meta.type.color
   selfIllumination = vec4.create();
 
+  _owner = null;
+
+  /** Native cpp:26-33 forwards every edit; JavaScript WeakRef replaces BlueWeakRef ownership. */
+  @meta.blue.method
+  @meta.adapted
+  OnModified(_names)
+  {
+    // JavaScript WeakRef replaces BlueWeakRef without keeping the editor alive.
+    const owner = this._owner?.deref();
+    if (owner) owner.OnVolumeModified();
+    return true;
+  }
 }
+
+meta.blue.interfaceTable({ interfaces: [EveCloudVolumeBall, INotify], chainTo: null })(EveCloudVolumeBall, { kind: "class" });

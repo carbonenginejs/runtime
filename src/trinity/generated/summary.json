@@ -1,8 +1,8 @@
 {
   "outRoot": "src/trinity/generated",
   "classes": {
-    "written": 32,
-    "skipped": 663
+    "written": 31,
+    "skipped": 664
   },
   "enums": {
     "written": 15,
@@ -897,6 +897,11 @@
     {
       "family": "eve/child",
       "className": "EveChildUpdateParams",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveCloudEditableVolume",
       "reason": "hand-maintained source exists"
     },
     {
@@ -5914,11 +5919,6 @@
   },
   "generatedClasses": [
     {
-      "className": "EveCloudEditableVolume",
-      "family": "eve/child",
-      "file": "trinity/generated/eve/child/EveCloudEditableVolume.js"
-    },
-    {
       "className": "EvePendingPickingReadback",
       "family": "eve/scene",
       "file": "trinity/generated/eve/scene/EvePendingPickingReadback.js"
@@ -6648,6 +6648,11 @@
     {
       "family": "eve/child",
       "className": "EveChildUpdateParams",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveCloudEditableVolume",
       "reason": "hand-maintained source exists"
     },
     {

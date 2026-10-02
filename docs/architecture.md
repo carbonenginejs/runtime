@@ -141,6 +141,13 @@ update recreates its buffer and retries failed creation. Seeded integer random
 draws match Carbon; JavaScript trigonometry is rounded to float32 for positions.
 The final owner calls `Destroy` to release storage and device registration.
 
+Editable cloud volumes snapshot their control balls and curve samples before
+rasterization. Portable CPU work yields in short event-loop slices; it is not
+parallel worker execution. `Update` publishes completed snapshots into the owned
+host bitmap and texture, retaining Carbon's repeated DataReady publication.
+Explicit `Rasterize` drains the current job synchronously and returns that result;
+a dirty successor is scheduled separately. Debug geometry remains unimplemented.
+
 ## Tools, demos, and generated source
 
 `src/tools` holds the browser-safe file-index readers, off the default
