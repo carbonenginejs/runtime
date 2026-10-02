@@ -26,8 +26,16 @@ import { carbon, impl, type } from "#schema";
 @carbon.inherit(ITriVectorFunction, ITriQuaternionFunction, ITriColorFunction)
 export class Tr2CurveConstant extends ITriScalarFunction
 {
+  /**
+   * Name identifying this constant function across its mapped value interfaces (native std::string m_name).
+   * @type {string}
+   */
   name = "";
 
+  /**
+   * Authored constant Vector4 storage; scalar sampling reads x and currentValue aliases the same buffer.
+   * @type {Float32Array|number[]}
+   */
   value = vec4.create();
 
   /**

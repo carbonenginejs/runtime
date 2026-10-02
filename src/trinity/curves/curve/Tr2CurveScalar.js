@@ -195,6 +195,10 @@ export class Tr2CurveScalar extends ITriScalarFunction
     return fracPart * length + first;
   }
 
+  /**
+   * Scalar key records with time, value, tangents, identifier and interpolation settings.
+   * @type {Tr2CurveScalarKey[]}
+   */
   @edit.read
   @edit.persist
   @type.array({ kind: "rawStruct", className: "Tr2CurveScalarKey" }, {
@@ -222,37 +226,65 @@ export class Tr2CurveScalar extends ITriScalarFunction
   })
   keys = [];
 
+  /**
+   * Authored curve label stored as native std::string.
+   * @type {string}
+   */
   @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  /**
+   * Offset subtracted after dividing incoming seconds by timeScale.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   timeOffset = 0;
 
+  /**
+   * Time divisor used by the native time / timeScale - timeOffset mapping.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   timeScale = 1;
 
+  /**
+   * Cached scalar produced by the most recent curve update.
+   * @type {number}
+   */
   @edit.read
   @type.float32
   currentValue = 0;
 
+  /**
+   * Native Tr2CurveExtrapolation policy used before the first key.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.uint32
   @type.enum("trinity.Tr2CurveExtrapolation")
   extrapolationBefore = Tr2CurveExtrapolation.CLAMP;
 
+  /**
+   * Native Tr2CurveExtrapolation policy used after the last key.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.uint32
   @type.enum("trinity.Tr2CurveExtrapolation")
   extrapolationAfter = Tr2CurveExtrapolation.CLAMP;
 
+  /**
+   * Cached key-segment index used by the JavaScript lookup adapter.
+   * @type {number}
+   */
   _lastSegment = 0;
 
   /**
@@ -811,6 +843,10 @@ export class Tr2CurveScalar extends ITriScalarFunction
     curve.Rasterize(destination);
   }
 
+  /**
+   * Class-local view of the native extrapolation chooser values.
+   * @type {Object<string, number>}
+   */
   static Tr2CurveExtrapolation = Tr2CurveExtrapolation;
 
 }

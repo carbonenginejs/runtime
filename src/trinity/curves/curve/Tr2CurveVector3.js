@@ -19,26 +19,46 @@ import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
 @carbon.inherit(ITriCurveLength)
 export class Tr2CurveVector3 extends ITriVectorFunction
 {
+  /**
+   * Authored curve label stored as native std::string.
+   * @type {string}
+   */
   @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  /**
+   * Owned scalar curve for the vector x component.
+   * @type {Tr2CurveScalar}
+   */
   @edit.read
   @edit.persist
   @type.struct("Tr2CurveScalar")
   x = new Tr2CurveScalar();
 
+  /**
+   * Owned scalar curve for the vector y component.
+   * @type {Tr2CurveScalar}
+   */
   @edit.read
   @edit.persist
   @type.struct("Tr2CurveScalar")
   y = new Tr2CurveScalar();
 
+  /**
+   * Owned scalar curve for the vector z component.
+   * @type {Tr2CurveScalar}
+   */
   @edit.read
   @edit.persist
   @type.struct("Tr2CurveScalar")
   z = new Tr2CurveScalar();
 
+  /**
+   * Cached three-component vector assembled from the x, y and z scalar curves.
+   * @type {Float32Array}
+   */
   @edit.read
   @type.vec3
   currentValue = vec3.create();

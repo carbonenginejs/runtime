@@ -17,20 +17,36 @@ import { carbon, impl, edit, type } from "#schema";
 @carbon.inherit(ITriCurveLength)
 export class Tr2CurveCombiner extends ITriVectorFunction
 {
+  /**
+   * Name identifying this vector-function combiner (native std::string m_name).
+   * @type {string}
+   */
   @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  /**
+   * Typed child-vector list whose sampled values are summed (native PITriVectorFunctionVector m_curves).
+   * @type {BlueList<ITriVectorFunction>}
+   */
   @edit.read
   @edit.persist
   @type.list("ITriVectorFunction")
   curves = new BlueList(ITriVectorFunction, { className: null, listOps: 0 });
 
+  /**
+   * Three-component sum committed after all child updates succeed (native Vector3 m_currentValue).
+   * @type {Float32Array}
+   */
   @edit.read
   @type.vec3
   currentValue = vec3.create();
 
+  /**
+   * Reusable JavaScript child-sample buffer for GetValueAt; UpdateValue uses invocation-local pool leases.
+   * @type {Float32Array}
+   */
   _childValue = vec3.create();
 
   /**

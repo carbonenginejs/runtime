@@ -18,44 +18,80 @@ import { carbon, impl, edit, type } from "#schema";
 @carbon.inherit(ITriCurveLength)
 export class Tr2CurveColorMixer extends ITriColorFunction
 {
+  /**
+   * Name identifying this color-mixing function (native std::string m_name).
+   * @type {string}
+   */
   @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  /**
+   * First authored RGBA endpoint, selected when lerpValue is zero (native Color m_color1).
+   * @type {Float32Array}
+   */
   @edit.readwrite
   @edit.persist
   @type.color
   color1 = color.createLinear();
 
+  /**
+   * Second authored RGBA endpoint, selected when lerpValue is one (native Color m_color2).
+   * @type {Float32Array}
+   */
   @edit.readwrite
   @edit.persist
   @type.color
   color2 = color.createLinear();
 
+  /**
+   * Interpolation factor from color1 to color2, without clamping (native float m_lerpValue).
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   lerpValue = 0;
 
+  /**
+   * Blend away from grayscale: zero gives grayscale and one preserves the mixed color (native float m_saturation).
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   saturation = 1;
 
+  /**
+   * Multiplier applied to all four mixed-color components (native float m_brightness).
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   brightness = 1;
 
+  /**
+   * Mixed RGBA color cached by the last Update or UpdateValue call (native Color m_currentValue).
+   * @type {Float32Array}
+   */
   @edit.read
   @type.color
   currentValue = color.createLinear();
 
+  /**
+   * RGB cache converted from currentValue's sRGB components by UpdateValue; its alpha is retained (native Color).
+   * @type {Float32Array}
+   */
   @edit.read
   @type.color
   convertedLinearValue = color.createLinear();
 
+  /**
+   * Reusable JavaScript RGBA intensity buffer used by the saturation interpolation.
+   * @type {Float32Array}
+   */
   _grayscale = vec4.create();
 
   /**

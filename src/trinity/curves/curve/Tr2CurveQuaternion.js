@@ -19,6 +19,10 @@ import { Tr2CurveQuaternionKey } from "../key/Tr2CurveQuaternionKey.js";
 @carbon.inherit(ITriCurveLength)
 export class Tr2CurveQuaternion extends ITriQuaternionFunction
 {
+  /**
+   * Quaternion key records containing time, rotation, identifier and interpolation mode.
+   * @type {Tr2CurveQuaternionKey[]}
+   */
   @edit.read
   @edit.persist
   @type.array({ kind: "rawStruct", className: "Tr2CurveQuaternionKey" }, {
@@ -42,27 +46,47 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
   })
   keys = [];
 
+  /**
+   * Authored curve label stored as native std::string.
+   * @type {string}
+   */
   @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  /**
+   * Cached sampled quaternion in native x, y, z, w component order.
+   * @type {Float32Array}
+   */
   @edit.read
   @type.quat
   currentValue = quat.create();
 
+  /**
+   * Native Tr2CurveExtrapolation policy used before the first key.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.uint32
   @type.enum("trinity.Tr2CurveExtrapolation")
   extrapolationBefore = Tr2CurveExtrapolation.CLAMP;
 
+  /**
+   * Native Tr2CurveExtrapolation policy used after the last key.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.uint32
   @type.enum("trinity.Tr2CurveExtrapolation")
   extrapolationAfter = Tr2CurveExtrapolation.CLAMP;
 
+  /**
+   * Cached key-segment index used by the JavaScript lookup adapter.
+   * @type {number}
+   */
   _lastSegment = 0;
 
   /**
@@ -405,6 +429,10 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
     return quat.slerp(out, k0.value, k1.value, (time - k0.time) / length);
   }
 
+  /**
+   * Class-local view of the native extrapolation chooser values.
+   * @type {Object<string, number>}
+   */
   static Tr2CurveExtrapolation = Tr2CurveExtrapolation;
 
 }

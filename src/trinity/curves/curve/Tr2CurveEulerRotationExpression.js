@@ -17,11 +17,19 @@ import { CjsControllerExpressionProgram } from "../../controllers/expression/Cjs
 @carbon.inherit(IInitialize)
 export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
 {
+  /**
+   * Authored curve label stored as native std::string.
+   * @type {string}
+   */
   @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  /**
+   * Persisted yaw source text backing the live expressionYaw property.
+   * @type {string}
+   */
   @meta.member("expressionYaw")
   @edit.persistOnly
   @type.expression
@@ -44,6 +52,10 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
     this.SetExpressionYaw(expression);
   }
 
+  /**
+   * Persisted pitch source text backing the live expressionPitch property.
+   * @type {string}
+   */
   @meta.member("expressionPitch")
   @edit.persistOnly
   @type.expression
@@ -66,6 +78,10 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
     this.SetExpressionPitch(expression);
   }
 
+  /**
+   * Persisted roll source text backing the live expressionRoll property.
+   * @type {string}
+   */
   @meta.member("expressionRoll")
   @edit.persistOnly
   @type.expression
@@ -88,43 +104,87 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
     this.SetExpressionRoll(expression);
   }
 
+  /**
+   * Cached orientation quaternion produced from yaw, pitch and roll in radians.
+   * @type {Float32Array}
+   */
   @edit.read
   @type.quat
   currentValue = quat.create();
 
+  /**
+   * Owned native scalar-function input list sampled by expression input lookup.
+   * @type {BlueList<ITriScalarFunction>}
+   */
   @edit.read
   @edit.persist
   @type.list("ITriScalarFunction")
   inputs = new BlueList(ITriScalarFunction, { className: null, listOps: 0 });
 
+  /**
+   * First authored scalar argument exposed to each rotation expression.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   input1 = 0;
 
+  /**
+   * Second authored scalar argument exposed to each rotation expression.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   input2 = 0;
 
+  /**
+   * Third authored scalar argument exposed to each rotation expression.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   input3 = 0;
 
+  /**
+   * Fourth authored scalar argument exposed to each rotation expression.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   input4 = 0;
 
+  /**
+   * Divisor applied before expression evaluation and implicit-time input sampling.
+   * @type {number}
+   */
   timeScale = 1;
 
+  /**
+   * Per-instance random value retained until ResetRandomConstant; generated with Math.random.
+   * @type {number}
+   */
   randomConstant = Math.random();
 
+  /**
+   * Compiled JavaScript expression programs for yaw, pitch and roll; null means no program.
+   * @type {Array<CjsControllerExpressionProgram|null>}
+   */
   _programs = [null, null, null];
 
+  /**
+   * Source text of each successfully compiled program, used to detect pending recompilation.
+   * @type {string[]}
+   */
   _sources = ["", "", ""];
 
+  /**
+   * Most recent scaled evaluation time used by implicit-time input lookup.
+   * @type {number}
+   */
   _currentTime = 0;
 
   /**

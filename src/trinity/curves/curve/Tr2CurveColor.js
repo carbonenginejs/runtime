@@ -23,41 +23,73 @@ const CLAMP_MIN = vec4.create();
 @carbon.inherit(ITriCurveLength)
 export class Tr2CurveColor extends ITriColorFunction
 {
+  /**
+   * Name identifying this composite color curve (native std::string m_name).
+   * @type {string}
+   */
   @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  /**
+   * Requests gamma-space conversion of the sampled linear color (native bool m_srgbOutput).
+   * @type {boolean}
+   */
   @edit.readwrite
   @edit.persist
   @type.boolean
   srgbOutput = false;
 
+  /**
+   * Owned scalar curve supplying the red component (native PTr2CurveScalar m_r).
+   * @type {Tr2CurveScalar}
+   */
   @edit.read
   @edit.persist
   @type.struct("Tr2CurveScalar")
   r = new Tr2CurveScalar();
 
+  /**
+   * Owned scalar curve supplying the green component (native PTr2CurveScalar m_g).
+   * @type {Tr2CurveScalar}
+   */
   @edit.read
   @edit.persist
   @type.struct("Tr2CurveScalar")
   g = new Tr2CurveScalar();
 
+  /**
+   * Owned scalar curve supplying the blue component (native PTr2CurveScalar m_b).
+   * @type {Tr2CurveScalar}
+   */
   @edit.read
   @edit.persist
   @type.struct("Tr2CurveScalar")
   b = new Tr2CurveScalar();
 
+  /**
+   * Owned scalar curve supplying alpha; the parent substitutes alpha one when this curve is empty (native PTr2CurveScalar m_a).
+   * @type {Tr2CurveScalar}
+   */
   @edit.read
   @edit.persist
   @type.struct("Tr2CurveScalar")
   a = new Tr2CurveScalar();
 
+  /**
+   * Seconds subtracted from sample time before evaluating component curves (native float m_timeOffset).
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   timeOffset = 0;
 
+  /**
+   * RGBA color cached by the last Update or UpdateValue call (native Color m_currentValue).
+   * @type {Float32Array}
+   */
   @edit.read
   @type.color
   currentValue = color.createLinear();

@@ -17,36 +17,68 @@ import { Tr2CurveVector3LerpKeyInterpolation } from "../enums.js";
 })
 export class Tr2CurveVector3Lerp extends ITriVectorFunction
 {
+  /**
+   * Authored curve label stored as native std::string.
+   * @type {string}
+   */
   @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  /**
+   * Starting vector for the blend into the child curve; copied to output when no child exists.
+   * @type {Float32Array}
+   */
   @edit.readwrite
   @type.vec3
   initialValue = vec3.create();
 
+  /**
+   * Native LINEAR or HERMITE mode used during the initial blend interval.
+   * @type {number}
+   */
   @edit.readwrite
   @type.int32
   @type.enum("trinity.Tr2CurveVector3LerpKeyInterpolation")
   startInterpolation = Tr2CurveVector3LerpKeyInterpolation.HERMITE;
 
+  /**
+   * Child vector function sampled at time minus curveStartTime after the initial blend.
+   * @type {ITriVectorFunction|null}
+   */
   @edit.readwrite
   @edit.persist
   @type.objectRef("ITriVectorFunction")
   curve = null;
 
+  /**
+   * Seconds subtracted from child sampling time; positive values also define the initial blend duration.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   curveStartTime = 1;
 
+  /**
+   * Cached vector produced by the most recent update.
+   * @type {Float32Array}
+   */
   @edit.read
   @type.vec3
   currentValue = vec3.create();
 
+  /**
+   * Scratch vector holding the child curve sample at time zero for initial blending.
+   * @type {Float32Array}
+   */
   _curveStartValue = vec3.create();
 
+  /**
+   * Per-instance zero vector used for both endpoint tangents by the JavaScript Hermite blend.
+   * @type {Float32Array}
+   */
   _zeroTangent = vec3.create();
 
   /**
@@ -178,6 +210,10 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
     return vec3.hermite(out, this.initialValue, this._zeroTangent, this._zeroTangent, this._curveStartValue, ratio);
   }
 
+  /**
+   * Class-local view of the native initial-blend interpolation chooser.
+   * @type {Object<string, number>}
+   */
   static Tr2CurveVector3LerpKeyInterpolation = Tr2CurveVector3LerpKeyInterpolation;
 
 }

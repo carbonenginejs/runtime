@@ -24,52 +24,100 @@ const SPHERICAL_LINEAR = 4;
 @meta.carbon.inherit(IInitialize, ITriCurveLength)
 export class Tr2BoneMatrixCurve extends ITriFunction
 {
+  /**
+   * Shared identity matrix copied when AddKey receives no value; a JavaScript helper.
+   * @type {Float32Array}
+   */
   static _identityMatrix = mat4.create();
 
+  /**
+   * JavaScript side table retaining each matrix key's unpersisted native interpolation mode.
+   * @type {WeakMap<Tr2MatrixKey, number>}
+   */
   static _keyInterpolations = new WeakMap();
 
+  /**
+   * Native curve-template name identifying this bone-matrix function (std::string m_name).
+   * @type {string}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.string
   name = "";
 
+  /**
+   * Authored duration in seconds used by endpoint sampling and key sorting (native float m_length).
+   * @type {number}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.float32
   length = 1;
 
+  /**
+   * Native repetition flag; sampling past length continues tracking the bone when enabled.
+   * @type {boolean}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.boolean
   cycle = true;
 
+  /**
+   * Native reverse flag; noncycling samples past length select startValue when enabled.
+   * @type {boolean}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.boolean
   reversed = false;
 
+  /**
+   * Initial matrix returned for nonpositive sample time or duration (native Matrix m_startValue).
+   * @type {Float32Array}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.mat4
   startValue = mat4.create();
 
+  /**
+   * Matrix cached by the last UpdateValue call (native Matrix m_currentValue).
+   * @type {Float32Array}
+   */
   @meta.edit.read
   @types.mat4
   currentValue = mat4.create();
 
+  /**
+   * Final matrix returned past the duration of a noncycling forward curve (native Matrix m_endValue).
+   * @type {Float32Array}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.mat4
   endValue = mat4.create();
 
+  /**
+   * Source of the tracked bone matrix and world transform (native Tr2SkinnedObjectPtr).
+   * @type {Tr2SkinnedObject|null}
+   */
   @meta.edit.readwrite
   @types.objectRef("Tr2SkinnedObject")
   skinnedObject = null;
 
+  /**
+   * Persisted matrix-key sequence retained for editing and endpoint rollover; bone tracking ignores key interpolation.
+   * @type {Tr2MatrixKey[]}
+   */
   @meta.edit.persistOnly
   @types.list("Tr2MatrixKey")
   keys = [];
 
+  /**
+   * Additional transform applied in bone-local space before the bone and world transforms (native Matrix m_transform).
+   * @type {Float32Array}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.mat4
@@ -89,8 +137,16 @@ export class Tr2BoneMatrixCurve extends ITriFunction
     this.SetBone(value);
   }
 
+  /**
+   * Backing name for the live bone property; the JavaScript adapter resolves this name on each sample.
+   * @type {string}
+   */
   _bone = "";
 
+  /**
+   * Per-instance temporary matrix for composition and endpoint swaps in the JavaScript adapter.
+   * @type {Float32Array}
+   */
   _scratch = mat4.create();
 
   /** Gets the native curve template's name. */
