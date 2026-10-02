@@ -1,8 +1,9 @@
 import { CjsSchema } from "../../../../npm/dist/global/schema/index.js";
 import { CjsModel } from "../../../../npm/dist/global/model/index.js";
+import { Traverse } from "../../../../npm/dist/global/blue/find.js";
 import { mat4 } from "../../../../npm/dist/global/math/mat4.js";
 import { CjsBlackFormat } from "../../../../npm/dist/resource/formats/black/index.js";
-import { TriDevice, Tr2ParticleSystem, Tr2InstancedMesh, Tr2DirectInstanceData, EveShip2 } from "../../../../npm/dist/trinity/index.js";
+import { TriDevice, Tr2ParticleSystem, Tr2InstancedMesh, Tr2DirectInstanceData } from "../../../../npm/dist/trinity/index.js";
 
 /** Whether a model has a particle or instance-stream lifetime owned by demo ships. */
 function isShipResource(model)
@@ -17,7 +18,7 @@ export function hydrateDemoShip(values)
   const before = new Set(TriDevice.GetResourcesRegistered());
   try
   {
-    const ship = EveShip2.from(values);
+    const ship = CjsSchema.from(values._type, values);
     ship.StartControllers();
     return ship;
   }
@@ -35,8 +36,8 @@ export function hydrateDemoShip(values)
 export function retireDemoShips(roots, retained)
 {
   const keep = new Set(), candidates = new Set();
-  for (const root of retained) root.Traverse(model => { keep.add(model); });
-  for (const root of roots) root.Traverse(model => { if (isShipResource(model)) candidates.add(model); });
+  for (const root of retained) Traverse(root, model => { keep.add(model); });
+  for (const root of roots) Traverse(root, model => { if (isShipResource(model)) candidates.add(model); });
   // Collect first: destroying a mesh clears its shared provider reference.
   for (const model of candidates) if (!keep.has(model)) model.Destroy();
 }

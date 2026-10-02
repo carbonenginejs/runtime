@@ -1,3 +1,4 @@
+import { CjsSchema } from "../../../../npm/dist/global/schema/index.js";
 // A real EVE hull drawn with its own shader, through the shipped path.
 //
 // IT DRAWS. The operator saw the af1 hull's silhouette in Chrome on 2026-09-10 -
@@ -49,7 +50,7 @@
 //
 // THE MATERIAL IS THE SHIP'S OWN NOW. The built SOF document for
 // `dna:/af1_t1:amarrbase:amarr` carries the area's whole effect, so
-// `Tr2Effect.from` produces the real material - its constant parameters, and a
+// `CjsSchema.from` produces the real material - its constant parameters, and a
 // `TriTextureParameter` per map named as the shader declares it - and each of
 // those loads its DDS from the client. Only the effect RESOURCE is substituted,
 // because the document names the dx11 `.fx` and this backend needs the WebGPU
@@ -2194,7 +2195,7 @@ async function Material(path, values = null)
   // textures a demo would have to invent. Only the effect RESOURCE is
   // substituted: the document names the dx11 `.fx`, and this backend needs the
   // WebGPU container of the same effect.
-  const effect = values ? Tr2Effect.from(values) : new Tr2Effect();
+  const effect = values ? CjsSchema.from("Tr2Effect", values) : new Tr2Effect();
 
   effect.effectResource = resource;
   effect.RebuildCachedData();
@@ -3194,7 +3195,7 @@ export async function RunDemo(canvas)
   {
     const universe = CjsBlackFormat.read(await ResourceBytes(SCENE_UNIVERSE.replace(/^res:\/+/u, "")), { emit: "json" }).object;
     if (universe._type !== "EveSpaceScene") throw new Error(`demo: ${SCENE_UNIVERSE} is a ${universe._type}, not an EveSpaceScene`);
-    realScene.SetValues(universe);
+    CjsSchema.setValues(realScene, universe);
   }
 
   if (realScene)

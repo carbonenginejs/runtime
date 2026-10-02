@@ -6,7 +6,7 @@ import { blue } from "../../npm/dist/global/blue/index.js";
 import { TriGeometryRes } from "../../npm/dist/resource/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import { TriDevice, Tr2ParticleSystem, Tr2ParticleElementDeclaration, Tr2InstancedMesh, Tr2DirectInstanceData,
-  EveShip2, EveChildParticleSystem, EveSpaceScene, EveMeshOverlayEffect, TriCurveSet, TriValueBinding,
+  EveShip2, EveStation2, EveChildParticleSystem, EveSpaceScene, EveMeshOverlayEffect, TriCurveSet, TriValueBinding,
   Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { StubResMan } from "../support/stubResMan.js";
@@ -225,4 +225,18 @@ test("failed ship startup retires its newly hydrated direct instance providers",
   }), /startup/);
   assert.deepEqual(new Set(TriDevice.GetResourcesRegistered()), before);
   assert.ok(TriDevice.GetResourcesRegistered().includes(existing));
+});
+
+
+test("demo hydration selects the declared station root and starts its controllers", t =>
+{
+  setup(t);
+  const values = { _type: "EveStation2", name: "station root" };
+  assert.throws(() => EveShip2.from(values), /not EveShip2/);
+  const start = t.mock.method(EveStation2.prototype, "StartControllers", function () {});
+  const station = hydrateDemoShip(values);
+  assert.equal(station.constructor, EveStation2);
+  assert.equal(station.name, "station root");
+  assert.equal(start.mock.callCount(), 1);
+  retireDemoShips([station], []);
 });
