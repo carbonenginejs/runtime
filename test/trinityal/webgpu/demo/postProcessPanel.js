@@ -111,10 +111,11 @@ export function createPostProcessPanel({ document, driver, getDefaultPostProcess
       display:flex; flex-direction:column; gap:8px; overflow:auto; pointer-events:none; }
     #demo-right-panels > #ship { position:static; width:auto; box-sizing:border-box;
       max-height:40%; min-height:32px; flex:0 1 auto; overflow:auto; pointer-events:auto; }
-    #post-processing { flex:1 1 0; min-height:100px; overflow:auto; padding:8px 10px;
+    #post-processing { flex:0 0 auto; min-height:0; overflow:auto; padding:8px 10px;
       background:rgba(8,12,18,.88); color:#cfd6e4; pointer-events:auto;
       font:13px/1.6 "Eve Sans Neue",system-ui,sans-serif; }
-    #post-processing h4 { margin:0 0 4px; text-transform:uppercase; letter-spacing:.04em; }
+    #post-processing[open] { flex:1 1 0; min-height:100px; }
+    #post-processing > summary { cursor:pointer; font-weight:bold; text-transform:uppercase; letter-spacing:.04em; }
     #post-processing h5 { margin:8px 0 0; font-size:12px; }
     #post-processing .note { color:#aab3c2; font-size:11px; }
     #post-processing label { display:flex; justify-content:space-between; gap:8px; align-items:center; }
@@ -130,9 +131,10 @@ export function createPostProcessPanel({ document, driver, getDefaultPostProcess
   document.body.append(stack);
   const ship = document.getElementById("ship");
   if (ship) stack.append(ship);
-  const panel = document.createElement("section");
+  const panel = document.createElement("details");
   panel.id = "post-processing";
-  const heading = document.createElement("h4");
+  panel.open = true;
+  const heading = document.createElement("summary");
   heading.textContent = "Post Processing";
   const status = document.createElement("div");
   status.className = "note";

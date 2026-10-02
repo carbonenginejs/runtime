@@ -82,7 +82,7 @@ test("panel remains a separate sibling under Ship; absent slots create no effect
 {
   const f = fixture();
   const panel = f.document.getElementById("post-processing"), stack = f.document.getElementById("demo-right-panels");
-  assert.equal(panel.tagName, "section");
+  assert.equal(panel.tagName, "details");
   assert.deepEqual(stack.children, [f.ship, panel]);
   assert.match(f.row("dynamicExposure").textContent, /absent/);
   assert.equal(f.source.dynamicExposure, null);
