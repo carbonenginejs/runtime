@@ -142,6 +142,7 @@
     "./trinity/generated/sprite2d/Tr2Sprite2dScene.js": null,
     "./trinity/generated/trinityCore/ITr2InstanceData.js": null,
     "./trinity/generated/trinityCore/ITr2ImpostorSource.js": null,
+    "./trinity/generated/trinityCore/Tr2HostBitmap.js": null,
     "./trinity/generated/trinityCore/Tr2RotationTool.js": null,
     "./trinity/generated/trinityCore/Tr2TranslationTool.js": null,
     "./trinity/generated/*": "./src/trinity/generated/*/index.js",

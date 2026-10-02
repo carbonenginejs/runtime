@@ -23,7 +23,7 @@ import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 import { Tr2DebugRenderer } from "../../npm/dist/trinity/core/line/Tr2DebugRenderer.js";
 import { Tr2ParticleElementDeclaration } from "../../npm/dist/trinity/particle/element/Tr2ParticleElementDeclaration.js";
 import { Tr2ParticleSystem } from "../../npm/dist/trinity/particle/Tr2ParticleSystem.js";
-import { Tr2HostBitmap } from "../../npm/dist/trinity/generated/trinityCore/Tr2HostBitmap.js";
+import { Tr2HostBitmap } from "../../npm/dist/trinity/core/Tr2HostBitmap.js";
 import { Tr2ProjectBoundingBoxBracket } from "../../npm/dist/trinity/ui/index.js";
 import { Tr2BoundingLineSet } from "../../npm/dist/trinity/core/line/Tr2BoundingLineSet.js";
 import { Tr2LineSet } from "../../npm/dist/trinity/core/line/Tr2LineSet.js";
@@ -68,7 +68,7 @@ test("generated Trinity value records use source-backed types, defaults, and acc
   assertEquals(bitmap.width, 0);
   assertEquals(bitmap.height, 0);
   assertEquals(bitmap.imageType, Tr2HostBitmap.TextureType.TEX_TYPE_INVALID);
-  assertEquals(CjsSchema.getField(Tr2HostBitmap, "format")?.type.kind, "int32");
+  assertEquals(CjsSchema.getSchema(Tr2HostBitmap).members.find(member => member.name === "format")?.type.kind, "int32");
 
   const bracket = new Tr2ProjectBoundingBoxBracket();
   assertEquals(bracket.screenMargin, 0);
