@@ -672,6 +672,17 @@ export class EveSOF
     return this._sofLibraryBuilder;
   }
 
+  /**
+   * Acquires a DNA build through the configured async SOF resource boundary.
+   * Custom: Blue delegates DNA here without importing the SOF implementation.
+   */
+  @meta.ours
+  async Fetch(dna, options = {})
+  {
+    await this.InitializeAsync(options);
+    return this.BuildFromDNAAsync(dna, options);
+  }
+
   /** Boots configured lazy generic data or the configured monolithic catalog. */
   async InitializeAsync(options = {})
   {

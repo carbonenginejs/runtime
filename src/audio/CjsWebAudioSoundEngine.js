@@ -17,7 +17,7 @@
 // - isLoop(eventName) - loop flag source (usually the static data repository).
 import * as CcpLog from "../global/logging/ccpLog.js";
 import { CjsSchema, meta } from "#schema";
-import { ICjsWwiseSoundEngine } from "./ICjsWwiseSoundEngine.js";
+import { ICjsWwiseSoundEngine } from "../global/audio/ICjsWwiseSoundEngine.js";
 import { CjsAudioBackendSfxControls } from "./internal/CjsAudioBackendSfxControls.js";
 import { evaluateWwiseInterpolation } from "./internal/wwiseCurve.js";
 import {

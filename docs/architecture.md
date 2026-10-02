@@ -64,10 +64,28 @@ or a sibling engine, and live GPU objects remain engine-owned.
 WebGPU is exposed through `@carbonenginejs/runtime/trinityal/webgpu`.
 No WebGL export or placeholder is added before a maintained implementation exists.
 
-`@carbonenginejs/runtime/core` may import every layer, but holds no service
-composition today (`CjsLibrary` is empty on purpose; its head comment says
-why). It carries the browser platform and adapter snapshots, also at
-`/core/platform`; importing it probes no browser globals.
+`@carbonenginejs/runtime/core` owns application composition. `CjsLibrary`
+construction and imports are inert. `Initialize` installs preconfigured Blue
+providers, constructs a default SOF when none is supplied, and registers the
+resource manager with the host-pumped Blue clock. It does not load a catalog,
+initialize playback, create a device or start a host loop. Concurrent and repeated
+initialization uses the first configuration until `Shutdown`; a second active
+root is rejected. Shutdown restores the previous service references and tick
+activation without destroying borrowed providers.
+
+`global/blue` exports the process-wide `blue` instance and its `CjsBlue` class.
+The holder delegates `Fetch`: DNA to its installed SOF, other inputs to its
+resource manager. `CjsBlueResMan` and `CjsBlueClasses` are the adapted service
+identities. Class/enum declarations share their existing authoritative registries.
+The SOF slot starts absent and throws when used before installation. Audio starts
+with a silent `CjsWwiseSoundEngineStub`; the contract and stub live in the
+dependency-light `global/audio` leaf, while real playback remains in `audio`.
+Audio graph nodes reach that same slot. A silent fallback does not count as
+successful acquisition of a playback context.
+
+The core also carries browser platform and adapter snapshots at `/core/platform`;
+importing it probes no browser globals. See the Blue source README for the
+installation transaction and its failure behavior.
 
 ## Native interface exposure
 

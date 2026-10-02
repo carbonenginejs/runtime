@@ -1,4 +1,5 @@
-import { IsMatch } from "#blue";
+import { blue, IsMatch } from "#blue";
+import { CjsWwiseSoundEngineStub } from "../../../global/audio/CjsWwiseSoundEngineStub.js";
 // Source: audio/src/AudGameObjResource.h + AudGameObjResource.cpp
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/AudGameObjResource.json.
@@ -1121,12 +1122,22 @@ export class AudGameObjResource
   }
 
   // Realization seams (Carbon globals g_audioManager / g_staticDataRepository
-  // and the AK:: call surface). Headless default null.
+  // and the AK:: call surface). Managers remain optional; Blue supplies silent audio.
   static manager = null;
 
   static staticDataRepository = null;
 
-  static backend = null;
+  /** The Wwise-shaped call surface is the currently installed Blue audio slot. */
+  static get backend()
+  {
+    return blue.audio;
+  }
+
+  /** Legacy attachment writes the same slot; detaching restores a fresh silent engine. */
+  static set backend(value)
+  {
+    blue.audio = value ?? new CjsWwiseSoundEngineStub();
+  }
 
 }
 

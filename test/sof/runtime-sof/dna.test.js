@@ -2327,7 +2327,7 @@ test("runtime-SOF async boundary introduces no engine or format-layer imports", 
   const allowed = new Set(["#resource/formats/black"]);
   const forbidden = /(?:^#(?:resource|trinity|audio|engine)(?:\/|$))|(?:^|[/@_-])(?:engine|runtime-(?:engine|trinity|resource|audio)|webgl|webgpu|shader-format|format-shader|dxbc|hlsl)(?:$|[/_-])/iu;
   assert.deepEqual(specifiers.filter(specifier => forbidden.test(specifier) && !allowed.has(specifier)), []);
-  assert.doesNotMatch(importDeclarations.join("\n"), /\b(?:CjsLibrary|CjsResMan)\b/u);
+  assert.doesNotMatch(importDeclarations.join("\n"), /\b(?:CjsLibrary|CjsBlueResMan)\b/u);
 });
 
 test("SOF imports complete child carbon.document fragments with remapped refs", {

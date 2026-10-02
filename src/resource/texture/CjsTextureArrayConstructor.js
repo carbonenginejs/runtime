@@ -29,7 +29,7 @@ export class CjsTextureArrayConstructor extends IBlueDynamicResourceConstructor
 {
 
   /**
-   * @param {object} resourceManager The `CjsResMan` that loads the layers.
+   * @param {object} resourceManager The `CjsBlueResMan` that loads the layers.
    */
   constructor(resourceManager)
   {

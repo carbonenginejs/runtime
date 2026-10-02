@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Worker } from "node:worker_threads";
-import { CjsResMan, CjsResManWorkerLoader, CjsResManQueue, ResourceRequirement } from "../../npm/dist/global/blue/index.js";
+import { CjsBlueResMan, CjsResManWorkerLoader, CjsResManQueue, ResourceRequirement } from "../../npm/dist/global/blue/index.js";
 import { CjsGr2Format } from "../../npm/dist/resource/formats/gr2/index.js";
 import { CjsDdsFormat } from "../../npm/dist/resource/formats/dds/index.js";
 import { RegisterGeometryResources, TriGeometryRes } from "../../npm/dist/resource/geometry/index.js";
@@ -50,7 +50,7 @@ test("GR2 actual worker matches main decode and queued existing-byte preparation
   const { loader, messages } = workerLoader(t);
   const bytes = grannyBytes();
   const expected = CjsGr2Format.read(bytes, { emit: "json", rebuildMissingBounds: true });
-  const manager = new CjsResMan({ workerLoader: loader });
+  const manager = new CjsBlueResMan({ workerLoader: loader });
   RegisterGeometryResources(manager);
   let reads = 0;
   manager.SetSource({ Read() { reads++; throw new Error("existing bytes must not fetch"); } });
@@ -76,7 +76,7 @@ test("registered GR2 route fetches and decodes once for concurrent consumers", a
   const {loader,messages} = workerLoader(t);
   let reads = 0;
   const bytes = grannyBytes();
-  const manager = new CjsResMan({ workerLoader: loader, source: {Read(){reads++;return bytes;}} });
+  const manager = new CjsBlueResMan({ workerLoader: loader, source: {Read(){reads++;return bytes;}} });
   RegisterGeometryResources(manager);
   const [first,second] = await Promise.all([manager.FetchResource("res:/same.gr2"),manager.FetchResource("res:/same.gr2")]);
   assert.equal(first,second);
@@ -109,7 +109,7 @@ test("DDS worker preserves native BC cube and short-file output and resource bit
 test("DDS texture and image routes execute in the worker", async t =>
 {
   const {loader,messages} = workerLoader(t);
-  const manager = new CjsResMan({workerLoader:loader,source:{Read:()=>ddsBytes()}});
+  const manager = new CjsBlueResMan({workerLoader:loader,source:{Read:()=>ddsBytes()}});
   RegisterTextureResources(manager);
   const texture = await manager.FetchResource("res:/test.dds");
   const image = await manager.FetchResource("res:/test.dds", {requirement:ResourceRequirement.IMAGE});
@@ -139,7 +139,7 @@ test("worker failure, disabled loading and unsupported outputs retain the existi
 test("deleting a resource rejects its late worker result without occupying the main queue", async t =>
 {
   const {loader,adapter} = workerLoader(t);
-  const manager = new CjsResMan({workerLoader:loader,source:{Read:()=>grannyBytes()}});
+  const manager = new CjsBlueResMan({workerLoader:loader,source:{Read:()=>grannyBytes()}});
   RegisterGeometryResources(manager);
   let received;
   const arrival = new Promise(resolve => {received=resolve;});

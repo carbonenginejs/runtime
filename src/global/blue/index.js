@@ -12,11 +12,11 @@
 // /docs/internal/decisions/cjsmodel-composition-decorators.md.
 
 /**
- * Resource lifecycle across CjsResource, CjsResMan and CjsMotherLode.
+ * Resource lifecycle across CjsResource, CjsBlueResMan and CjsMotherLode.
  *
  * States (`CjsResource.State`): EMPTY -> REQUESTED (waiting on a queued or
  * shared source load) -> LOADING (bytes in hand, reader running) -> PREPARED
- * when CjsResMan publishes the reader outcome; FAILED when reading,
+ * when CjsBlueResMan publishes the reader outcome; FAILED when reading,
  * conversion, validation or publication fails. LOADED and PREPARING serve
  * resources that prepare in a separate phase. PURGED marks a policy eviction;
  * a purged handle reloads itself on its next KeepAlive()/IsGood().
@@ -78,14 +78,15 @@ export * from "./CjsMotherLode.js";
 export * from "./worker/CjsResManMainThreadLoader.js";
 export * from "./worker/CjsResManWorkerLoader.js";
 export { CjsResManQueue } from "./CjsResManWorkQueue.js";
-export * from "./CjsResMan.js";
+export * from "./CjsBlueResMan.js";
 export * from "./IBluePaths.js";
 export * from "./IBlueClasses.js";
-export * from "./BlueClasses.js";
+export * from "./CjsBlueClasses.js";
 export * from "./ICopier.js";
 export * from "./ICopierCustomAssignment.js";
 export * from "./ICustomPersist.js";
 export * from "./Copier.js";
+export { CjsBlue } from "./CjsBlue.js";
 export { blue } from "./blue.js";
 export { CjsBlueEnumRegistry, EnumRegistrationType } from "./enums/CjsBlueEnumRegistry.js";
 // The values engine: Blue's dictionary reader and a writer modelled on YamlWriter.

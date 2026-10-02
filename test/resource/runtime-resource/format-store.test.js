@@ -305,7 +305,7 @@ test("an output that selects an unpinned route is applied to its reader", () =>
 
 test("a resource's requirement is not a format output, and must not filter routes", () =>
 {
-  // requirement selects the resource CLASS - CjsResMan.RegisterResourceType
+  // requirement selects the resource CLASS - CjsBlueResMan.RegisterResourceType
   // keys on it. A format's outputs are a different axis. Folding one into the
   // other made a resource loaded as "geometry" filter the store for routes
   // emitting "geometry", find none, and resolve to nothing at all.

@@ -4,7 +4,7 @@ import { CjsResource } from "#blue";
 /**
  * Physical audio byte-owner resource whose payload may back one complete file or several logical audio files.
  *
- * CjsResMan owns loading, canonical identity, and payload retention. This
+ * CjsBlueResMan owns loading, canonical identity, and payload retention. This
  * class only exposes the loaded payload as bytes without interpreting BNK or
  * media semantics.
  */

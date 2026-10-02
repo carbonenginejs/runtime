@@ -19,10 +19,10 @@ Concrete formats are never imported or registered by the package root. Each
 format is an explicit tree-shakeable subpath, registered by the caller:
 
 ```js
-import { CjsResMan } from "@carbonenginejs/runtime/resource";
+import { CjsBlueResMan } from "@carbonenginejs/runtime/resource";
 import { CjsMp4Format } from "@carbonenginejs/runtime/resource/formats/mp4";
 
-const resMan = new CjsResMan().Register({
+const resMan = new CjsBlueResMan().Register({
   source,
   formats: [ CjsMp4Format ]
 });

@@ -16,7 +16,7 @@ export const GeometryResourceExtensions = Object.freeze([ "gr2" ]);
 /**
  * Routes granny geometry files to TriGeometryRes on a resource manager.
  *
- * @param {object} resourceManager A CjsResMan.
+ * @param {object} resourceManager A CjsBlueResMan.
  * @returns {object} The same manager, for chaining.
  */
 export function RegisterGeometryResources(resourceManager)

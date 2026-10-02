@@ -5,7 +5,7 @@ import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { normalizeResourcePath } from "#utils/path";
 import { num } from "../../../npm/dist/global/math/num.js";
 import {
-  CjsResMan,
+  CjsBlueResMan,
   ParseColor,
   RasterizeSolidColor,
   RegisterSolidColorTexture,
@@ -16,7 +16,7 @@ import {
 function countingManager()
 {
   const counter = { reads: 0 };
-  const resMan = new CjsResMan({
+  const resMan = new CjsBlueResMan({
     source: { Read() { counter.reads += 1; return new Uint8Array(0); } }
   });
   return { resMan, counter };
@@ -178,6 +178,6 @@ test("each dynamic constructor declares its cache policy; Carbon's default is no
   // A solid colour is four numbers; it is kept for good.
   assert.equal(new SolidColorTextureConstructor().IsCacheable(), true);
 
-  const resMan = new CjsResMan();
+  const resMan = new CjsBlueResMan();
   assert.throws(() => resMan.RegisterResourceConstructor("half", { GetResource() {} }), /IsCacheable/);
 });

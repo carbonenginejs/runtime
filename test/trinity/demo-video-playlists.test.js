@@ -3,7 +3,7 @@ import test from "node:test";
 import { blue } from "../../npm/dist/global/blue/index.js";
 import { Traverse } from "../../npm/dist/global/blue/find.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { CjsResMan, RegisterVideoPlaylists, ResourceRequirement, TriTextureRes } from "../../npm/dist/resource/index.js";
+import { CjsBlueResMan, RegisterVideoPlaylists, ResourceRequirement, TriTextureRes } from "../../npm/dist/resource/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import { EveSOF } from "../../npm/dist/sof/index.js";
 import { TriDevice, Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
@@ -15,7 +15,7 @@ import { hydrateDemoShip } from "../trinityal/webgpu/demo/demoShipLifetime.js";
 
 test("demo registers both shared dynamic video textures without starting playback", () =>
 {
-  const manager = new CjsResMan({ source: { Read() { throw new Error("No video decoding during registration"); } } });
+  const manager = new CjsBlueResMan({ source: { Read() { throw new Error("No video decoding during registration"); } } });
   RegisterVideoPlaylists(manager, DEMO_VIDEO_PLAYLISTS);
   assert.deepEqual(Object.keys(DEMO_VIDEO_PLAYLISTS), ["inspacevideos", "hangarvideos"]);
   for (const name of Object.keys(DEMO_VIDEO_PLAYLISTS))
@@ -69,12 +69,12 @@ for (const [dna, dynamicName] of [["chjita:caldarinavy:caldari", "hangarvideos"]
     const values = await sof.BuildValuesFromDNAAsync(dna);
     assert.notEqual(values._type, "EveShip2");
     const ordinary = new StubResMan();
-    let dynamic = new CjsResMan();
+    let dynamic = new CjsBlueResMan();
     blue.resMan = new StubResMan((path, options) => path.startsWith("dynamic:/")
       ? dynamic.GetResource(path, options) : ordinary.GetResource(path, options));
     // Negative control reproduces the operator's exact constructor error.
     assert.throws(() => hydrateDemoShip(values), { code: "CJS_RESMAN_DYNAMIC_CONSTRUCTOR_MISSING", path: "dynamic:/" + dynamicName });
-    dynamic = new CjsResMan();
+    dynamic = new CjsBlueResMan();
     RegisterVideoPlaylists(dynamic, DEMO_VIDEO_PLAYLISTS);
     const root = hydrateDemoShip(values);
     assert.equal(root.constructor.name, values._type);

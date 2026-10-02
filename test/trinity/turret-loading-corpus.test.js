@@ -6,7 +6,7 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
-import { blue, CjsResMan } from "../../npm/dist/global/blue/index.js";
+import { blue, CjsBlueResMan } from "../../npm/dist/global/blue/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { EveChildTurret, EveTurretSet, EveTurretFiringFX, EveStretch3, EveLocalPositionCurve, EveUpdateContext, EveComponentRegistry, EveComponentType, TriFrustum, Tr2ControllerEventHandler, Tr2ActionSetValue, Tr2DynamicBinding } from "../../npm/dist/trinity/index.js";
@@ -29,7 +29,7 @@ test("synthetic child turrets load separate real pulse FX graphs; real set accep
   const fx=await fixture("pulse_mega_fx.black",2483,"ec84e9ee2b9d9af295dff3ad7ad79551e8785027fd30a5121d4d92eaa31a1eb2");
   const turretBytes=await fixture("pulse_mega_t1.black",2290,"dc7be4c9cf75bd167b36f807837488ef04cab90a8c5479f86bbd7e34ae65fdd9");
   const previous=blue.resMan; let reads=0;
-  const manager=new CjsResMan({source:{Read(path){assert.equal(path,fxPath);reads++;return fx;}}});
+  const manager=new CjsBlueResMan({source:{Read(path){assert.equal(path,fxPath);reads++;return fx;}}});
   manager.RegisterObjectBuilder("red",bytes=>CjsBlackFormat.createObjectBuilder(bytes));
   const handles=new StubResMan(); manager.GetResource=handles.GetResource.bind(handles);
   blue.resMan=manager; t.after(()=>{blue.resMan=previous;});
@@ -39,7 +39,7 @@ test("synthetic child turrets load separate real pulse FX graphs; real set accep
   {
     manager.PumpMainThreadQueue(); await new Promise(resolve=>setImmediate(resolve));
   }
-  assert.equal(reads,1,"CjsResMan shares cached bytes");
+  assert.equal(reads,1,"CjsBlueResMan shares cached bytes");
   for(const child of children)
   {
     const effect=child.GetFiringEffect();

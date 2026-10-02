@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import { CjsWebgpuDevice } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL, CjsWebgpuTextureAL, CjsWebgpuUtils } from "../../../npm/dist/trinityal/webgpu/internal.js";
-import { CjsResMan, RegisterTextureResources, TriTextureRes, CjsMotherLode } from "../../../npm/dist/resource/index.js";
+import { CjsBlueResMan, RegisterTextureResources, TriTextureRes, CjsMotherLode } from "../../../npm/dist/resource/index.js";
 import { DescribeBitmap, RealizeTexture } from "../../../npm/dist/trinity/core/Tr2ImageIOHelpers.js";
 import { Tr2TextureAL, ALResult, Tr2BitmapDimensions, Tr2SubresourceData } from "../../../npm/dist/trinityal/index.js";
 import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "../../../npm/dist/global/consts/renderContext/index.js";
@@ -270,7 +270,7 @@ function volumeDds(size)
 
 test("a 24-bit volume DDS becomes a 3D bgra8unorm texture, one write for all its slices", async () =>
 {
-  const resMan = new CjsResMan();
+  const resMan = new CjsBlueResMan();
   resMan.Register({ source: { Read: () => Promise.resolve(volumeDds(4)) } });
   RegisterTextureResources(resMan);
 

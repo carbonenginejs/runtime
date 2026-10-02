@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CjsResMan, ResourceRequirement } from "../../../npm/dist/resource/index.js";
+import { CjsBlueResMan, ResourceRequirement } from "../../../npm/dist/resource/index.js";
 import { RegisterShaderResources } from "../../../npm/dist/resource/shader/index.js";
 
 // A browser backend has no shipped containers, so composition passes the
@@ -30,7 +30,7 @@ function Translator(calls, translated)
 /** Loads PATH through a manager and captures what reaches the resource. */
 async function Load(options)
 {
-  const resourceManager = RegisterShaderResources(new CjsResMan({ source: { Read: () => SHIPPED } }), options);
+  const resourceManager = RegisterShaderResources(new CjsBlueResMan({ source: { Read: () => SHIPPED } }), options);
   const resource = resourceManager.GetResource(PATH, { requirement: ResourceRequirement.SHADER });
   const seen = { loaded: null, translator: null };
   resource.DoLoad = data => { seen.loaded = data; };
@@ -72,12 +72,12 @@ test("permutations: all translates every permutation at load and installs no tra
 
 test("an unknown permutations mode is refused", () =>
 {
-  assert.throws(() => RegisterShaderResources(new CjsResMan(), { translator: Translator([], null), permutations: "some" }), TypeError);
+  assert.throws(() => RegisterShaderResources(new CjsBlueResMan(), { translator: Translator([], null), permutations: "some" }), TypeError);
 });
 
 test("without a translator the container bytes load unchanged", async () =>
 {
-  const resourceManager = RegisterShaderResources(new CjsResMan({ source: { Read: () => SHIPPED } }));
+  const resourceManager = RegisterShaderResources(new CjsBlueResMan({ source: { Read: () => SHIPPED } }));
   const resource = resourceManager.GetResource(PATH, { requirement: ResourceRequirement.SHADER });
   let loaded = null;
   resource.DoLoad = data => { loaded = data; };
@@ -89,5 +89,5 @@ test("without a translator the container bytes load unchanged", async () =>
 
 test("a translator without buildEffect is refused", () =>
 {
-  assert.throws(() => RegisterShaderResources(new CjsResMan(), { translator: {} }), TypeError);
+  assert.throws(() => RegisterShaderResources(new CjsBlueResMan(), { translator: {} }), TypeError);
 });

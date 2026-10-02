@@ -15,7 +15,7 @@ headless and produces the existing black placeholder.
 
 Each registered playlist owns one `TriTextureRes`, player and sampler. Every
 consumer resolves that same resource. Clip bytes come through
-`CjsResMan.ReadResource`, preserving configured paths and byte providers.
+`CjsBlueResMan.ReadResource`, preserving configured paths and byte providers.
 Re-registering replaces the playlist while retaining the texture resource;
 an empty list unregisters and stops it. Removing one billboard does not own
 the shared player's lifetime. Resource purge stops playback and releases

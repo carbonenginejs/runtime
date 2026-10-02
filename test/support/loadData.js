@@ -8,7 +8,7 @@
 /**
  * Loads a path's decoded data through its resource.
  *
- * @param {object} resMan A CjsResMan.
+ * @param {object} resMan A CjsBlueResMan.
  * @param {string} path Resource path.
  * @param {object} [options] Identity and loader options, as LoadObject took them.
  * @returns {Promise<*>} The resource's payload once ready.

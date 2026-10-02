@@ -66,7 +66,7 @@ let nextLocalValueIdentity = 1;
  * read caches only and never becomes part of MotherLode resource identity.
  *
  * @typedef {object} CjsResourceReadContext
- * @property {CjsResMan} resMan Owning manager.
+ * @property {CjsBlueResMan} resMan Owning manager.
  * @property {object|Function} source Selected source implementation.
  * @property {string} path Normalized Carbon-style source path.
  * @property {string} resFilePath Normalized lowercase Carbon-style source path.
@@ -104,7 +104,7 @@ let nextLocalValueIdentity = 1;
  */
 
 /**
- * Opt-in time-based inactivity policy run by {@link CjsResMan#Update}.
+ * Opt-in time-based inactivity policy run by {@link CjsBlueResMan#Update}.
  *
  * Automatic policy deliberately uses elapsed milliseconds rather than
  * MotherLode activity frames: the latter count explicit activity observations
@@ -122,14 +122,14 @@ let nextLocalValueIdentity = 1;
  */
 
 /**
- * Per-call controls for {@link CjsResMan#PumpAutoPurge}.
+ * Per-call controls for {@link CjsBlueResMan#PumpAutoPurge}.
  *
  * @typedef {object} CjsResManAutoPurgePumpOptions
  * @property {number} [time] Explicit non-negative timestamp in milliseconds for deterministic pumping and sweeping.
  */
 
 /**
- * Queue and automatic-purge controls accepted by {@link CjsResMan#Update}.
+ * Queue and automatic-purge controls accepted by {@link CjsBlueResMan#Update}.
  * Top-level queue options remain a compatibility form for the prepare pump.
  *
  * @typedef {object} CjsResManUpdateOptions
@@ -140,7 +140,7 @@ let nextLocalValueIdentity = 1;
  */
 
 /**
- * Snapshot-fence controls accepted by {@link CjsResMan#Wait}.
+ * Snapshot-fence controls accepted by {@link CjsBlueResMan#Wait}.
  *
  * The default pump uses the manager's ordinary queue budgets and honors queue
  * pause state. `pump: false` leaves all progress to an external driver. The
@@ -223,7 +223,7 @@ function isDynamicResourcePath(key)
  */
 function dynamicResourceError(path, name, code, message)
 {
-  const error = new Error(`CjsResMan ${message} (${path})`);
+  const error = new Error(`CjsBlueResMan ${message} (${path})`);
   error.code = code;
   error.path = path;
   error.name = "CjsResManDynamicResourceError";
@@ -237,7 +237,7 @@ function dynamicResourceError(path, name, code, message)
  * exact-owner generation guards, and drives the main/background work queues,
  * read-operation caching, reload staging, and automatic purge policy.
  */
-export class CjsResMan
+export class CjsBlueResMan
 {
 
   // The manager is no longer reachable from itself. Carbon's process-wide
@@ -280,7 +280,7 @@ export class CjsResMan
   /**
    * Create a GPU-free resource manager and apply its initial registration.
    *
-   * @param {object} [options={}] Configuration forwarded to {@link CjsResMan#Register}.
+   * @param {object} [options={}] Configuration forwarded to {@link CjsBlueResMan#Register}.
    * @throws {TypeError} If registration, queue, source, or format options are invalid.
    */
   constructor(options = {}) {
@@ -344,7 +344,7 @@ export class CjsResMan
    * @param {Function|null} [options.pathResolver] Optional complete resource-path-to-URL resolver.
    * @param {object} [options.workerLoader] Worker loader instance or construction options.
    * @param {boolean} [options.useWorkerLoading=true] Whether worker-backed execution is selected.
-   * @returns {CjsResMan} This resource manager.
+   * @returns {CjsBlueResMan} This resource manager.
    * @throws {TypeError} If options or any configured component are invalid.
    * @throws {Error|AggregateError} If resource mutations are active or replacing MotherLode cannot clean its resources.
    */
@@ -352,7 +352,7 @@ export class CjsResMan
   {
     if (!options || typeof options !== "object" || Array.isArray(options))
     {
-      throw new TypeError("CjsResMan.Register options must be an object.");
+      throw new TypeError("CjsBlueResMan.Register options must be an object.");
     }
 
     hasOwnThen(options, {
@@ -388,18 +388,18 @@ export class CjsResMan
       useWorkerLoading: this.UseWorkerLoading,
       maxConcurrentLoads: value =>
       {
-        assertPositiveInteger(value, "CjsResMan maxConcurrentLoads");
+        assertPositiveInteger(value, "CjsBlueResMan maxConcurrentLoads");
         this.maxConcurrentLoads = value;
         this._loadQueue.SetConcurrency(value);
       },
       maxPrepareTime: value =>
       {
-        assertNonNegativeNumber(value, "CjsResMan maxPrepareTime");
+        assertNonNegativeNumber(value, "CjsBlueResMan maxPrepareTime");
         this.maxPrepareTime = value;
       },
       maxPrepareItemsPerTick: value =>
       {
-        assertNonNegativeInteger(value, "CjsResMan maxPrepareItemsPerTick");
+        assertNonNegativeInteger(value, "CjsBlueResMan maxPrepareItemsPerTick");
         this.maxPrepareItemsPerTick = value;
       },
       autoPumpMainThreadQueue: value =>
@@ -410,7 +410,7 @@ export class CjsResMan
       {
         if (value !== null && typeof value !== "function")
         {
-          throw new TypeError("CjsResMan queueScheduler must be a function or null.");
+          throw new TypeError("CjsBlueResMan queueScheduler must be a function or null.");
         }
         this.queueScheduler = value || defaultQueueScheduler;
       },
@@ -445,7 +445,7 @@ export class CjsResMan
    * created, so payload reconstruction does not silently move to this source.
    *
    * @param {object|Function|null} source Source exposing `Read(path, options)`, or a falsey value to clear the default.
-   * @returns {CjsResMan} This resource manager.
+   * @returns {CjsBlueResMan} This resource manager.
    */
   SetSource(source) {
     this.source = source || null;
@@ -457,7 +457,7 @@ export class CjsResMan
    *
    * @param {string} prefix Resource scheme without `:/`.
    * @param {string} urlBase URL base ending at the scheme root.
-   * @returns {CjsResMan} This resource manager.
+   * @returns {CjsBlueResMan} This resource manager.
    */
   SetPath(prefix, urlBase)
   {
@@ -471,13 +471,13 @@ export class CjsResMan
    * Add or replace resource-prefix URL bases from an object or Map.
    *
    * @param {object|Map<string,string>} paths Prefix/base entries.
-   * @returns {CjsResMan} This resource manager.
+   * @returns {CjsBlueResMan} This resource manager.
    */
   SetPaths(paths)
   {
     if (!paths || (typeof paths !== "object" && !(paths instanceof Map)) || Array.isArray(paths))
     {
-      throw new TypeError("CjsResMan paths must be an object or Map.");
+      throw new TypeError("CjsBlueResMan paths must be an object or Map.");
     }
     const entries = paths instanceof Map
       ? paths.entries()
@@ -515,13 +515,13 @@ export class CjsResMan
    * Replaces the complete resource-path-to-URL resolver.
    *
    * @param {Function|null} resolver Resolver called as `(resourcePath, resMan)`.
-   * @returns {CjsResMan} This resource manager.
+   * @returns {CjsBlueResMan} This resource manager.
    */
   SetPathResolver(resolver)
   {
     if (resolver !== null && resolver !== undefined && typeof resolver !== "function")
     {
-      throw new TypeError("CjsResMan pathResolver must be a function or null.");
+      throw new TypeError("CjsBlueResMan pathResolver must be a function or null.");
     }
     this.pathResolver = resolver || null;
     return this;
@@ -539,7 +539,7 @@ export class CjsResMan
     const normalized = normalizeResourcePath(path);
     if (!normalized)
     {
-      throw new TypeError("CjsResMan resource path must be a non-empty string.");
+      throw new TypeError("CjsBlueResMan resource path must be a non-empty string.");
     }
     if (this.pathResolver)
     {
@@ -559,7 +559,7 @@ export class CjsResMan
     const urlBase = this.paths.get(prefix);
     if (!urlBase)
     {
-      const error = new Error(`CjsResMan resource path prefix is not registered: ${prefix}`);
+      const error = new Error(`CjsBlueResMan resource path prefix is not registered: ${prefix}`);
       error.code = "CJS_RESMAN_PATH_PREFIX_UNREGISTERED";
       error.path = normalized;
       error.prefix = prefix;
@@ -573,7 +573,7 @@ export class CjsResMan
    * operations and whenever worker loading is not selected.
    *
    * @param {object} loader Loader exposing `Read` and `ReadFormat`.
-   * @returns {CjsResMan} This resource manager.
+   * @returns {CjsBlueResMan} This resource manager.
    */
   SetMainThreadLoader(loader) {
     assertResourceLoader(loader, "mainThreadLoader");
@@ -591,7 +591,7 @@ export class CjsResMan
    * `UseWorkerLoading(true)` or pass `useWorkerLoading: true`.
    *
    * @param {object|null} loader Worker loader or CjsResManWorkerLoader options.
-   * @returns {CjsResMan} This resource manager.
+   * @returns {CjsBlueResMan} This resource manager.
    */
   SetWorkerLoader(loader) {
     const wasSelected = this.resourceLoader === this.workerLoader;
@@ -619,7 +619,7 @@ export class CjsResMan
    * configured main-thread loader.
    *
    * @param {boolean} [value=true] Whether worker execution is selected.
-   * @returns {CjsResMan} This resource manager.
+   * @returns {CjsBlueResMan} This resource manager.
    */
   UseWorkerLoading(value = true) {
     if (!value) {
@@ -811,7 +811,7 @@ export class CjsResMan
   }
 
   /**
-   * Compatibility alias for {@link CjsResMan#Update}. It uses the same queue
+   * Compatibility alias for {@link CjsBlueResMan#Update}. It uses the same queue
    * budgets, byte-cache housekeeping, opt-in purge cadence, return value, and
    * error behavior.
    *
@@ -861,7 +861,7 @@ export class CjsResMan
    * until per-item priority and urgent membership exist.
    *
    * @param {CjsResManWaitOptions} [options={}] Snapshot pumping and cooperative-yield controls.
-   * @returns {Promise<CjsResMan>} This manager after all captured work settles.
+   * @returns {Promise<CjsBlueResMan>} This manager after all captured work settles.
    * @throws {TypeError} If options, `pump`, or `yield` are invalid.
    * @throws {Error} If a queue pump or custom yield callback itself fails.
    */
@@ -869,15 +869,15 @@ export class CjsResMan
   {
     if (!options || typeof options !== "object" || Array.isArray(options))
     {
-      throw new TypeError("CjsResMan.Wait options must be an object.");
+      throw new TypeError("CjsBlueResMan.Wait options must be an object.");
     }
     if (options.pump !== undefined && typeof options.pump !== "boolean")
     {
-      throw new TypeError("CjsResMan.Wait pump must be a boolean when supplied.");
+      throw new TypeError("CjsBlueResMan.Wait pump must be a boolean when supplied.");
     }
     if (options.yield !== undefined && typeof options.yield !== "function")
     {
-      throw new TypeError("CjsResMan.Wait yield must be a function when supplied.");
+      throw new TypeError("CjsBlueResMan.Wait yield must be a function when supplied.");
     }
 
     const snapshot = new Set([
@@ -918,7 +918,7 @@ export class CjsResMan
 
   /**
    * Add one low-level task to a manager queue and retain its promise only while
-   * pending so a contemporaneous {@link CjsResMan#Wait} snapshot can include
+   * pending so a contemporaneous {@link CjsBlueResMan#Wait} snapshot can include
    * it. This does not assign resource lineage to tasks the callback may submit
    * later; callers should return/await such work or use a manager resource
    * operation.
@@ -977,7 +977,7 @@ export class CjsResMan
    * @param {Function|object|null} [Constructor=null] Resource constructor/factory, or options when the first argument is the constructor.
    * @param {object} [options={}] Registration aliases and optional requirement/payload override.
    * @param {readonly string[]} [options.aliases=[]] Additional semantic keys mapped to the same constructor.
-   * @returns {CjsResMan} This resource manager.
+   * @returns {CjsBlueResMan} This resource manager.
    * @throws {TypeError} If the semantic key or constructor/factory is invalid.
    */
   RegisterResourceType(requirement, Constructor = null, options = {})
@@ -991,10 +991,10 @@ export class CjsResMan
     }
 
     const key = normalizeRequirement(requirement);
-    if (!key) throw new TypeError("CjsResMan.RegisterResourceType requires a semantic requirement.");
+    if (!key) throw new TypeError("CjsBlueResMan.RegisterResourceType requires a semantic requirement.");
     if (typeof Constructor !== "function")
     {
-      throw new TypeError("CjsResMan.RegisterResourceType requires a constructor or factory.");
+      throw new TypeError("CjsBlueResMan.RegisterResourceType requires a constructor or factory.");
     }
 
     const candidates = inferredRequirement
@@ -1025,13 +1025,13 @@ export class CjsResMan
    *
    * @param {string} ext Input extension with or without a leading dot.
    * @param {Function} loader Reader receiving source bytes and an immutable preparation context.
-   * @returns {CjsResMan} This resource manager.
+   * @returns {CjsBlueResMan} This resource manager.
    * @throws {TypeError} If the extension or loader is invalid.
    */
   RegisterObjectLoader(ext, loader) {
     const key = normalizeResourceExtension(ext);
-    if (!key) throw new TypeError("CjsResMan.RegisterObjectLoader requires an extension.");
-    if (typeof loader !== "function") throw new TypeError("CjsResMan.RegisterObjectLoader requires a loader function.");
+    if (!key) throw new TypeError("CjsBlueResMan.RegisterObjectLoader requires an extension.");
+    if (typeof loader !== "function") throw new TypeError("CjsBlueResMan.RegisterObjectLoader requires a loader function.");
     this.objectLoaders.set(key, loader);
     return this;
   }
@@ -1046,7 +1046,7 @@ export class CjsResMan
    *
    * @param {string} ext Input extension with or without a leading dot.
    * @param {Function} CreateBuilder Reader receiving source bytes and the preparation context.
-   * @returns {CjsResMan} This resource manager.
+   * @returns {CjsBlueResMan} This resource manager.
    * @throws {TypeError} If the extension or factory is invalid.
    */
   RegisterObjectBuilder(ext, CreateBuilder) {
@@ -1065,14 +1065,14 @@ export class CjsResMan
    *
    * @param {Function} Format Format facade declaring at least one extension.
    * @param {object} [defaults={}] Plain reader-option defaults to snapshot for this registration.
-   * @returns {CjsResMan} This resource manager.
+   * @returns {CjsBlueResMan} This resource manager.
    * @throws {TypeError} If the format declaration or immutable defaults snapshot is invalid.
    */
   RegisterFormat(Format, defaults = {})
   {
     if (typeof Format !== "function")
     {
-      throw new TypeError("CjsResMan.RegisterFormat requires a format class.");
+      throw new TypeError("CjsBlueResMan.RegisterFormat requires a format class.");
     }
     if (!Array.isArray(Format.extensions) || Format.extensions.length === 0)
     {
@@ -1103,7 +1103,7 @@ export class CjsResMan
    * @param {string} extension Input extension with or without a leading dot.
    * @param {Function} Handler CjsResource-compatible handler constructor.
    * @param {Function|Function[]|object} [formatOrFormatsOrOptions={}] Reader and optional target configuration.
-   * @returns {CjsResMan} This resource manager.
+   * @returns {CjsBlueResMan} This resource manager.
    * @throws {TypeError} If the extension, handler, formats, or target policy is invalid.
    */
   RegisterExtension(extension, Handler, formatOrFormatsOrOptions = {})
@@ -1111,19 +1111,19 @@ export class CjsResMan
     const ext = normalizeResourceExtension(extension);
     if (!ext)
     {
-      throw new TypeError("CjsResMan.RegisterExtension requires an extension.");
+      throw new TypeError("CjsBlueResMan.RegisterExtension requires an extension.");
     }
     if (typeof Handler !== "function"
       || typeof Handler.prototype?.Initialize !== "function")
     {
-      throw new TypeError("CjsResMan.RegisterExtension requires a CjsResource-compatible handler constructor.");
+      throw new TypeError("CjsBlueResMan.RegisterExtension requires a CjsResource-compatible handler constructor.");
     }
 
     const handlerMode = Handler.handlerMode;
     if (!Object.values(ResourceHandlerMode).includes(handlerMode))
     {
       throw new TypeError(
-        "CjsResMan.RegisterExtension Handler.handlerMode must be ResourceHandlerMode.RESOURCE or ResourceHandlerMode.OBJECT."
+        "CjsBlueResMan.RegisterExtension Handler.handlerMode must be ResourceHandlerMode.RESOURCE or ResourceHandlerMode.OBJECT."
       );
     }
 
@@ -1132,23 +1132,23 @@ export class CjsResMan
     const hasFormats = options.Formats !== undefined || options.formats !== undefined;
     if (hasFormat && hasFormats)
     {
-      throw new TypeError("CjsResMan.RegisterExtension accepts either Format or Formats, not both.");
+      throw new TypeError("CjsBlueResMan.RegisterExtension accepts either Format or Formats, not both.");
     }
 
     const Target = options.Target || options.target || null;
     const Identify = options.Identify || options.identify || null;
     if (Target && Identify)
     {
-      throw new TypeError("CjsResMan.RegisterExtension accepts either Target or Identify, not both.");
+      throw new TypeError("CjsBlueResMan.RegisterExtension accepts either Target or Identify, not both.");
     }
     if ((Target || Identify) && handlerMode !== ResourceHandlerMode.OBJECT)
     {
-      throw new TypeError("CjsResMan extension Target and Identify are valid only for object handlers.");
+      throw new TypeError("CjsBlueResMan extension Target and Identify are valid only for object handlers.");
     }
     if (Target) assertExtensionTarget(Target, "Target");
     if (Identify && typeof Identify !== "function")
     {
-      throw new TypeError("CjsResMan extension Identify must be a function.");
+      throw new TypeError("CjsBlueResMan extension Identify must be a function.");
     }
 
     const explicitFormats = hasFormat
@@ -1158,7 +1158,7 @@ export class CjsResMan
         : null;
     if (explicitFormats !== null && !Array.isArray(explicitFormats))
     {
-      throw new TypeError("CjsResMan extension Formats must be an array.");
+      throw new TypeError("CjsBlueResMan extension Formats must be an array.");
     }
 
     const loader = explicitFormats === null ? this.GetObjectLoader(ext) : null;
@@ -1171,7 +1171,7 @@ export class CjsResMan
       ));
     if (!loader && formats.length === 0)
     {
-      throw new TypeError(`CjsResMan extension .${ext} requires a Format, Formats, or registered reader.`);
+      throw new TypeError(`CjsBlueResMan extension .${ext} requires a Format, Formats, or registered reader.`);
     }
     validateOrderedExtensionFormats(formats, ext);
 
@@ -1206,7 +1206,7 @@ export class CjsResMan
    *
    * @param {string} name Name following `dynamic:/`.
    * @param {{GetResource: function(string): object}} constructor Resource constructor.
-   * @returns {CjsResMan} This resource manager.
+   * @returns {CjsBlueResMan} This resource manager.
    * @throws {TypeError} If the name is empty or the constructor has no GetResource.
    */
   RegisterResourceConstructor(name, constructor)
@@ -1214,11 +1214,11 @@ export class CjsResMan
     const key = String(name ?? "").toLowerCase();
     if (!key)
     {
-      throw new TypeError("CjsResMan.RegisterResourceConstructor requires a name.");
+      throw new TypeError("CjsBlueResMan.RegisterResourceConstructor requires a name.");
     }
     if (typeof constructor?.GetResource !== "function" || typeof constructor.IsCacheable !== "function")
     {
-      throw new TypeError(`CjsResMan dynamic resource constructor "${key}" must implement IBlueDynamicResourceConstructor (GetResource and IsCacheable).`);
+      throw new TypeError(`CjsBlueResMan dynamic resource constructor "${key}" must implement IBlueDynamicResourceConstructor (GetResource and IsCacheable).`);
     }
     this._dynamicConstructors.set(key, constructor);
     return this;
@@ -1228,7 +1228,7 @@ export class CjsResMan
    * Removes a dynamic resource constructor (BlueResMan.cpp:312-325).
    *
    * @param {string} name Name following `dynamic:/`.
-   * @returns {CjsResMan} This resource manager.
+   * @returns {CjsBlueResMan} This resource manager.
    */
   UnregisterResourceConstructor(name)
   {
@@ -1289,7 +1289,7 @@ export class CjsResMan
     if (typeof path === "string" && path
       && this._objectBuilderLoaders.has(this.GetObjectLoader(options?.ext || getResourceExtension(normalizeResourcePath(path)))))
     {
-      throw new TypeError(`CjsResMan.GetResource: ${path} is an object file; load it with LoadObject.`);
+      throw new TypeError(`CjsBlueResMan.GetResource: ${path} is an object file; load it with LoadObject.`);
     }
     return this._GetResource(path, options);
   }
@@ -1307,11 +1307,11 @@ export class CjsResMan
     // the resource instead (_RequestResource).
     if (typeof path !== "string" || !path)
     {
-      throw new TypeError("CjsResMan.GetResource requires a non-empty path string.");
+      throw new TypeError("CjsBlueResMan.GetResource requires a non-empty path string.");
     }
     if (!options || typeof options !== "object" || Array.isArray(options))
     {
-      throw new TypeError("CjsResMan.GetResource options must be an object.");
+      throw new TypeError("CjsBlueResMan.GetResource options must be an object.");
     }
     const key = normalizeResourcePath(path);
     const variant = this.GetResourceVariant(options);
@@ -1628,7 +1628,7 @@ export class CjsResMan
    */
   _RefusePlainObject(resource, path)
   {
-    throw new TypeError(`CjsResMan.LoadObject: ${path} yields plain data, not an object; read it with GetResource(path), Ready() and GetPayload().`);
+    throw new TypeError(`CjsBlueResMan.LoadObject: ${path} yields plain data, not an object; read it with GetResource(path), Ready() and GetPayload().`);
   }
 
   /**
@@ -1667,7 +1667,7 @@ export class CjsResMan
   {
     if (!options || typeof options !== "object" || Array.isArray(options))
     {
-      throw new TypeError("CjsResMan.ReloadObject options must be an object.");
+      throw new TypeError("CjsBlueResMan.ReloadObject options must be an object.");
     }
     return this.LoadObject(path, { ...options, reload: true });
   }
@@ -1715,7 +1715,7 @@ export class CjsResMan
   {
     if (!options || typeof options !== "object" || Array.isArray(options))
     {
-      throw new TypeError("CjsResMan.ReloadResource options must be an object.");
+      throw new TypeError("CjsBlueResMan.ReloadResource options must be an object.");
     }
     return this.FetchResource(path, { ...options, reload: true });
   }
@@ -1835,7 +1835,7 @@ export class CjsResMan
           {
             const combined = new AggregateError(
               [ error, finalizeError ],
-              `CjsResMan reload committed with cleanup and finalization failures for ${candidate.key}.`
+              `CjsBlueResMan reload committed with cleanup and finalization failures for ${candidate.key}.`
             );
             combined.code = "CJS_RESMAN_RELOAD_COMMIT_FAILED";
             combined.committed = true;
@@ -1914,7 +1914,7 @@ export class CjsResMan
     }
     if (errors.length)
     {
-      const error = new AggregateError(errors, `CjsResMan committed reload finalization failed for ${candidate.key}.`);
+      const error = new AggregateError(errors, `CjsBlueResMan committed reload finalization failed for ${candidate.key}.`);
       error.code = "CJS_RESMAN_RELOAD_COMMIT_FINALIZE_FAILED";
       error.committed = true;
       error.resource = candidate.resource;
@@ -1953,7 +1953,7 @@ export class CjsResMan
     }
 
     if (errors.length === 1) return cause;
-    const error = new AggregateError(errors, `CjsResMan reload candidate cleanup failed for ${candidate.key}.`);
+    const error = new AggregateError(errors, `CjsBlueResMan reload candidate cleanup failed for ${candidate.key}.`);
     error.code = "CJS_RESMAN_RELOAD_CANDIDATE_CLEANUP_FAILED";
     error.resource = candidate.resource;
     error.cause = cause;
@@ -1998,7 +1998,7 @@ export class CjsResMan
     }
     if (errors.length)
     {
-      throw new AggregateError(errors, "CjsResMan reload candidate ownership cleanup failed.");
+      throw new AggregateError(errors, "CjsBlueResMan reload candidate ownership cleanup failed.");
     }
   }
 
@@ -2765,7 +2765,7 @@ export class CjsResMan
    * removes every resolved variant; supplying options removes only the exact
    * identity derived from those outcome settings. Explicitly retained source
    * and format records are independent and remain available; call
-   * {@link CjsResMan#InvalidateReadCache} when they must also be forgotten.
+   * {@link CjsBlueResMan#InvalidateReadCache} when they must also be forgotten.
    *
    * @param {string} path Carbon-style source resource path.
    * @param {object|null} [options=null] Exact identity settings, or `null` for all variants.
@@ -2837,7 +2837,7 @@ export class CjsResMan
    * reloads resources.
    *
    * @param {CjsResManAutoPurgePolicy|false|null} [policy=null] Time-based policy, or `false`/`null` to disable automatic sweeping.
-   * @returns {CjsResMan} This resource manager.
+   * @returns {CjsBlueResMan} This resource manager.
    * @throws {TypeError} If the policy, threshold, cleanup control, or clock is invalid.
    */
   SetAutoPurgePolicy(policy = null)
@@ -2858,7 +2858,7 @@ export class CjsResMan
   }
 
   /**
-   * Report whether {@link CjsResMan#Update} may run automatic inactivity
+   * Report whether {@link CjsBlueResMan#Update} may run automatic inactivity
    * sweeps. This is a pure query and does not advance cadence or activity.
    *
    * @returns {boolean} Whether an automatic purge policy is configured.
@@ -2887,7 +2887,7 @@ export class CjsResMan
     if (!policy) return null;
 
     const time = pump.time === undefined ? policy.now() : pump.time;
-    assertNonNegativeNumber(time, "CjsResMan automatic purge time");
+    assertNonNegativeNumber(time, "CjsBlueResMan automatic purge time");
 
     if (this._lastAutoPurgeTime !== null)
     {
@@ -2917,7 +2917,7 @@ export class CjsResMan
    * Cancel queued-but-not-started work, remove every canonical resource through
    * MotherLode cleanup, and reset all in-flight deduplication ledgers.
    *
-   * @returns {CjsResMan} This empty resource manager.
+   * @returns {CjsBlueResMan} This empty resource manager.
    * @throws {AggregateError} If one or more canonical resources fail cleanup.
    */
   Clear() {
@@ -2954,7 +2954,7 @@ export class CjsResMan
   {
     if (!options || typeof options !== "object" || Array.isArray(options))
     {
-      throw new TypeError("CjsResMan.InvalidateReadCache options must be an object.");
+      throw new TypeError("CjsBlueResMan.InvalidateReadCache options must be an object.");
     }
     const normalizedPath = normalizeResourcePath(path);
     const hasRevision = Object.hasOwn(options, "sourceRevision");
@@ -2974,7 +2974,7 @@ export class CjsResMan
     if ((typeof source !== "object" && typeof source !== "function")
       || typeof source.Read !== "function")
     {
-      throw new TypeError("CjsResMan.InvalidateReadCache source must provide Read(path, options).");
+      throw new TypeError("CjsBlueResMan.InvalidateReadCache source must provide Read(path, options).");
     }
 
     return this._InvalidateReadCache(source, normalizedPath, revisionKey);
@@ -3013,7 +3013,7 @@ export class CjsResMan
   {
     if (!options || typeof options !== "object" || Array.isArray(options))
     {
-      throw new TypeError("CjsResMan read options must be an object.");
+      throw new TypeError("CjsBlueResMan read options must be an object.");
     }
 
     const normalizedPath = normalizeResourcePath(path);
@@ -3027,7 +3027,7 @@ export class CjsResMan
     if (!source || (typeof source !== "object" && typeof source !== "function")
       || typeof source.Read !== "function")
     {
-      throw new TypeError("CjsResMan requires a source with Read(path, options) to load objects.");
+      throw new TypeError("CjsBlueResMan requires a source with Read(path, options) to load objects.");
     }
     const sourceRevision = options.sourceRevision;
     const revisionKey = normalizeSourceRevision(sourceRevision);
@@ -3326,14 +3326,14 @@ export class CjsResMan
   {
     if (!options || typeof options !== "object" || Array.isArray(options))
     {
-      throw new TypeError("CjsResMan resource variant options must be an object.");
+      throw new TypeError("CjsBlueResMan resource variant options must be an object.");
     }
     if (Object.hasOwn(options, "variant")
       && options.variant !== undefined)
     {
       if (typeof options.variant !== "string" || options.variant.trim() === "")
       {
-        throw new TypeError("CjsResMan explicit resource variant must be a non-empty string.");
+        throw new TypeError("CjsBlueResMan explicit resource variant must be a non-empty string.");
       }
       return normalizeResourceVariant(options.variant);
     }
@@ -3722,9 +3722,9 @@ export class CjsResMan
 
   /**
    * Bind lifecycle callbacks for resources supplied by a configured custom
-   * MotherLode before CjsResMan begins serving them.
+   * MotherLode before CjsBlueResMan begins serving them.
    *
-   * @returns {CjsResMan} This resource manager.
+   * @returns {CjsBlueResMan} This resource manager.
    */
   _BindMotherLodeResources()
   {
@@ -3809,7 +3809,7 @@ export class CjsResMan
 // The notify surface arrives by composition rather than `extends
 // CjsEventEmitter` - functional form so the resource tree stays plain ESM
 // that loads from source without a transform.
-meta.events(CjsResMan);
+meta.events(CjsBlueResMan);
 
 /**
  * Deep-copy supported registered format defaults into a detached snapshot.
@@ -3826,7 +3826,7 @@ function snapshotFormatDefaults(defaults, seen = new WeakMap())
 {
   if (!defaults || typeof defaults !== "object" || Array.isArray(defaults))
   {
-    throw new TypeError("CjsResMan format defaults must be a plain object.");
+    throw new TypeError("CjsBlueResMan format defaults must be a plain object.");
   }
   return snapshotFormatDefaultValue(defaults, seen, "defaults");
 }
@@ -3848,7 +3848,7 @@ function snapshotFormatDefaultValue(value, seen, path)
   if (type === "function") return value;
   if (type !== "object" || ArrayBuffer.isView(value) || value instanceof ArrayBuffer)
   {
-    throw new TypeError(`CjsResMan format ${path} cannot be snapshotted immutably.`);
+    throw new TypeError(`CjsBlueResMan format ${path} cannot be snapshotted immutably.`);
   }
 
   const prior = seen.get(value);
@@ -3861,7 +3861,7 @@ function snapshotFormatDefaultValue(value, seen, path)
     {
       if (!Object.hasOwn(value, index))
       {
-        throw new TypeError(`CjsResMan format ${path} must not contain sparse arrays.`);
+        throw new TypeError(`CjsBlueResMan format ${path} must not contain sparse arrays.`);
       }
       snapshot.push(snapshotFormatDefaultValue(value[index], seen, `${path}[${index}]`));
     }
@@ -3871,11 +3871,11 @@ function snapshotFormatDefaultValue(value, seen, path)
   const prototype = Object.getPrototypeOf(value);
   if (prototype !== Object.prototype && prototype !== null)
   {
-    throw new TypeError(`CjsResMan format ${path} must contain only plain objects and arrays.`);
+    throw new TypeError(`CjsBlueResMan format ${path} must contain only plain objects and arrays.`);
   }
   if (Object.getOwnPropertySymbols(value).length > 0)
   {
-    throw new TypeError(`CjsResMan format ${path} must not contain symbol keys.`);
+    throw new TypeError(`CjsBlueResMan format ${path} must not contain symbol keys.`);
   }
 
   const snapshot = prototype === null ? Object.create(null) : {};
@@ -3885,7 +3885,7 @@ function snapshotFormatDefaultValue(value, seen, path)
     const descriptor = Object.getOwnPropertyDescriptor(value, key);
     if (!descriptor.enumerable || !("value" in descriptor))
     {
-      throw new TypeError(`CjsResMan format ${path}.${key} must be an enumerable data property.`);
+      throw new TypeError(`CjsBlueResMan format ${path}.${key} must be an enumerable data property.`);
     }
     snapshot[key] = snapshotFormatDefaultValue(descriptor.value, seen, `${path}.${key}`);
   }
@@ -3909,7 +3909,7 @@ function normalizeSourceRevision(value)
   {
     return `number:${Object.is(value, -0) ? 0 : value}`;
   }
-  throw new TypeError("CjsResMan sourceRevision must be a string or finite number.");
+  throw new TypeError("CjsBlueResMan sourceRevision must be a string or finite number.");
 }
 
 /**
@@ -3924,7 +3924,7 @@ function normalizeCachePolicy(value, name)
 {
   if (value !== undefined && typeof value !== "boolean")
   {
-    throw new TypeError(`CjsResMan ${name} must be a boolean when supplied.`);
+    throw new TypeError(`CjsBlueResMan ${name} must be a boolean when supplied.`);
   }
   return value;
 }
@@ -4457,12 +4457,12 @@ function normalizeResourceVariant(value)
   if (value === null || value === undefined || value === "") return "";
   if (typeof value !== "string")
   {
-    throw new TypeError("CjsResMan resource variant must be a string.");
+    throw new TypeError("CjsBlueResMan resource variant must be a string.");
   }
   const normalized = value.trim().toLowerCase();
   if (normalized.includes("\u0000"))
   {
-    throw new TypeError("CjsResMan resource variant may not contain a null character.");
+    throw new TypeError("CjsBlueResMan resource variant may not contain a null character.");
   }
   return normalized;
 }
@@ -4582,7 +4582,7 @@ function normalizeAutoPurgePolicy(policy)
   if (policy === null || policy === undefined || policy === false) return null;
   if (!policy || typeof policy !== "object" || Array.isArray(policy))
   {
-    throw new TypeError("CjsResMan autoPurgePolicy must be an object, false, or null.");
+    throw new TypeError("CjsBlueResMan autoPurgePolicy must be an object, false, or null.");
   }
 
   const allowed = new Set([
@@ -4597,39 +4597,39 @@ function normalizeAutoPurgePolicy(policy)
   const unsupported = Object.keys(policy).filter(key => !allowed.has(key));
   if (unsupported.length)
   {
-    throw new TypeError(`CjsResMan autoPurgePolicy does not support: ${unsupported.join(", ")}.`);
+    throw new TypeError(`CjsBlueResMan autoPurgePolicy does not support: ${unsupported.join(", ")}.`);
   }
 
   const intervalMilliseconds = policy.intervalMilliseconds ?? 1000;
-  assertNonNegativeNumber(intervalMilliseconds, "CjsResMan autoPurgePolicy.intervalMilliseconds");
+  assertNonNegativeNumber(intervalMilliseconds, "CjsBlueResMan autoPurgePolicy.intervalMilliseconds");
   for (const name of [ "maxIdleMilliseconds", "payloadMaxIdleMilliseconds" ])
   {
     if (policy[name] !== undefined)
     {
-      assertNonNegativeNumber(policy[name], `CjsResMan autoPurgePolicy.${name}`);
+      assertNonNegativeNumber(policy[name], `CjsBlueResMan autoPurgePolicy.${name}`);
     }
   }
   if (policy.maxIdleMilliseconds === undefined
     && policy.payloadMaxIdleMilliseconds === undefined)
   {
-    throw new TypeError("CjsResMan autoPurgePolicy requires an identity or payload inactivity limit.");
+    throw new TypeError("CjsBlueResMan autoPurgePolicy requires an identity or payload inactivity limit.");
   }
   for (const name of [ "destroyAdapters", "releasePayload" ])
   {
     if (policy[name] !== undefined && typeof policy[name] !== "boolean")
     {
-      throw new TypeError(`CjsResMan autoPurgePolicy.${name} must be a boolean.`);
+      throw new TypeError(`CjsBlueResMan autoPurgePolicy.${name} must be a boolean.`);
     }
   }
   if (policy.cleanup !== undefined
     && policy.cleanup !== false
     && typeof policy.cleanup !== "function")
   {
-    throw new TypeError("CjsResMan autoPurgePolicy.cleanup must be a function or false.");
+    throw new TypeError("CjsBlueResMan autoPurgePolicy.cleanup must be a function or false.");
   }
   if (policy.now !== undefined && typeof policy.now !== "function")
   {
-    throw new TypeError("CjsResMan autoPurgePolicy.now must be a function.");
+    throw new TypeError("CjsBlueResMan autoPurgePolicy.now must be a function.");
   }
 
   return {
@@ -4654,16 +4654,16 @@ function normalizeAutoPurgePumpOptions(options)
 {
   if (!options || typeof options !== "object" || Array.isArray(options))
   {
-    throw new TypeError("CjsResMan automatic purge options must be an object.");
+    throw new TypeError("CjsBlueResMan automatic purge options must be an object.");
   }
   const unsupported = Object.keys(options).filter(key => key !== "time");
   if (unsupported.length)
   {
-    throw new TypeError(`CjsResMan automatic purge options do not support: ${unsupported.join(", ")}.`);
+    throw new TypeError(`CjsBlueResMan automatic purge options do not support: ${unsupported.join(", ")}.`);
   }
   if (options.time !== undefined)
   {
-    assertNonNegativeNumber(options.time, "CjsResMan automatic purge time");
+    assertNonNegativeNumber(options.time, "CjsBlueResMan automatic purge time");
   }
   return options;
 }
@@ -4678,7 +4678,7 @@ function normalizeAutoPurgePumpOptions(options)
 function activeResourceOperationsError(activeOperations)
 {
   const error = new Error(
-    `CjsResMan cannot replace MotherLode while ${activeOperations} resource operation(s) are active.`
+    `CjsBlueResMan cannot replace MotherLode while ${activeOperations} resource operation(s) are active.`
   );
   error.code = "CJS_RESMAN_ACTIVE_RESOURCE_OPERATIONS";
   error.activeOperations = activeOperations;
@@ -4696,7 +4696,7 @@ function activeResourceOperationsError(activeOperations)
 function resourceNotOwnedError(resource, phase)
 {
   const path = getResourceDiagnosticPath(resource);
-  const error = new Error(`CjsResMan does not own a canonical resource at ${path}.`);
+  const error = new Error(`CjsBlueResMan does not own a canonical resource at ${path}.`);
   error.code = "CJS_RESMAN_RESOURCE_NOT_OWNED";
   error.resource = resource;
   error.path = path;
@@ -4716,7 +4716,7 @@ function staleResourceOperationError(ownership, phase)
 {
   const path = getResourceDiagnosticPath(ownership?.resource);
   const error = new Error(
-    `CjsResMan resource operation became stale during ${phase}: ${path}.`
+    `CjsBlueResMan resource operation became stale during ${phase}: ${path}.`
   );
   error.code = "CJS_RESMAN_STALE_RESOURCE_OPERATION";
   error.resource = ownership?.resource || null;
@@ -4737,7 +4737,7 @@ function staleResourceOperationError(ownership, phase)
  */
 function reloadCandidateAliasError(path, resource)
 {
-  const error = new Error(`CjsResMan reload candidate aliases the canonical resource: ${path}.`);
+  const error = new Error(`CjsBlueResMan reload candidate aliases the canonical resource: ${path}.`);
   error.code = "CJS_RESMAN_RELOAD_CANDIDATE_ALIAS";
   error.path = path;
   error.resource = resource;
@@ -4754,7 +4754,7 @@ function reloadCandidateAliasError(path, resource)
 function reloadCandidateUnavailableError(resource)
 {
   const path = getResourceDiagnosticPath(resource);
-  const error = new Error(`CjsResMan reload candidate is no longer available: ${path}.`);
+  const error = new Error(`CjsBlueResMan reload candidate is no longer available: ${path}.`);
   error.code = "CJS_RESMAN_RELOAD_CANDIDATE_UNAVAILABLE";
   error.path = path;
   error.resource = resource;
@@ -4773,7 +4773,7 @@ function staleReloadCandidateError(candidate, phase)
 {
   const path = getResourceDiagnosticPath(candidate?.resource);
   const error = new Error(
-    `CjsResMan reload candidate became stale during ${phase}: ${path}.`
+    `CjsBlueResMan reload candidate became stale during ${phase}: ${path}.`
   );
   error.code = "CJS_RESMAN_STALE_RELOAD_CANDIDATE";
   error.resource = candidate?.resource || null;
@@ -4822,7 +4822,7 @@ function assertResourceLoader(loader, name)
 {
   if (!isResourceLoader(loader))
   {
-    throw new TypeError(`CjsResMan ${name} must provide Read and ReadFormat.`);
+    throw new TypeError(`CjsBlueResMan ${name} must provide Read and ReadFormat.`);
   }
 }
 
@@ -4865,7 +4865,7 @@ function createFormatReadOptions(descriptor, options)
 }
 
 /**
- * Reports whether a source requires CjsResMan to build a URL before reading.
+ * Reports whether a source requires CjsBlueResMan to build a URL before reading.
  *
  * @param {*} source Selected source/provider.
  * @returns {boolean}
@@ -4897,7 +4897,7 @@ function normalizePathPrefix(value)
     .toLowerCase();
   if (!/^[a-z][a-z0-9+.-]*$/u.test(prefix))
   {
-    throw new TypeError("CjsResMan path prefixes must be URI scheme names.");
+    throw new TypeError("CjsBlueResMan path prefixes must be URI scheme names.");
   }
   return prefix;
 }
@@ -4914,7 +4914,7 @@ function normalizeUrlBase(value)
   const url = normalizePath(value);
   if (!url || url.includes("\0"))
   {
-    throw new TypeError("CjsResMan path URL bases must be non-empty strings.");
+    throw new TypeError("CjsBlueResMan path URL bases must be non-empty strings.");
   }
   return url.endsWith("/") ? url : `${url}/`;
 }
@@ -4930,7 +4930,7 @@ function normalizeResolvedUrl(value)
   const url = normalizePath(value);
   if (!url || url.includes("\0"))
   {
-    throw new TypeError("CjsResMan pathResolver must return a non-empty URL string.");
+    throw new TypeError("CjsBlueResMan pathResolver must return a non-empty URL string.");
   }
   return url;
 }
@@ -4962,7 +4962,7 @@ function normalizeRegistrationEntries(value, keyed = false)
   if (typeof value === "function") return [ value ];
   if (typeof value !== "object")
   {
-    throw new TypeError("CjsResMan registration collections must be arrays or objects.");
+    throw new TypeError("CjsBlueResMan registration collections must be arrays or objects.");
   }
 
   if (value.Format || value.format || value.Constructor || value.Resource || value.resourceType)
@@ -4996,19 +4996,19 @@ function normalizeExtensionRegistrationEntries(value)
     {
       if (!registration || typeof registration !== "object" || Array.isArray(registration))
       {
-        throw new TypeError(`CjsResMan extensions[${index}] must be an object.`);
+        throw new TypeError(`CjsBlueResMan extensions[${index}] must be an object.`);
       }
       const ext = registration.extension || registration.ext;
       if (!ext)
       {
-        throw new TypeError(`CjsResMan extensions[${index}] requires extension or ext.`);
+        throw new TypeError(`CjsBlueResMan extensions[${index}] requires extension or ext.`);
       }
       return [ ext, normalizeExtensionRegistration(registration) ];
     });
   }
   if (!value || typeof value !== "object")
   {
-    throw new TypeError("CjsResMan extensions must be an object, Map, or array.");
+    throw new TypeError("CjsBlueResMan extensions must be an object, Map, or array.");
   }
   return Object.entries(value).map(([ ext, registration ]) => [
     ext,
@@ -5021,7 +5021,7 @@ function normalizeExtensionRegistration(registration)
   if (typeof registration === "function") return { Handler: registration };
   if (!registration || typeof registration !== "object" || Array.isArray(registration))
   {
-    throw new TypeError("CjsResMan extension registration must be a handler or object.");
+    throw new TypeError("CjsBlueResMan extension registration must be a handler or object.");
   }
   return registration;
 }
@@ -5033,7 +5033,7 @@ function normalizeExtensionRouteOptions(value)
   if (value === null || value === undefined) return {};
   if (!value || typeof value !== "object")
   {
-    throw new TypeError("CjsResMan extension route must be a format, format array, or object.");
+    throw new TypeError("CjsBlueResMan extension route must be a format, format array, or object.");
   }
   return value;
 }
@@ -5042,7 +5042,7 @@ function createFormatDescriptor(Format, defaults = {})
 {
   if (typeof Format !== "function")
   {
-    throw new TypeError("CjsResMan format descriptor requires a format class.");
+    throw new TypeError("CjsBlueResMan format descriptor requires a format class.");
   }
   return {
     Format,
@@ -5055,7 +5055,7 @@ function createExtensionFormatDescriptor(entry, defaults, label)
   if (typeof entry === "function") return createFormatDescriptor(entry, defaults);
   if (!entry || typeof entry !== "object" || Array.isArray(entry))
   {
-    throw new TypeError(`CjsResMan extension ${label} must be a format class or descriptor.`);
+    throw new TypeError(`CjsBlueResMan extension ${label} must be a format class or descriptor.`);
   }
   const Format = entry.Format || entry.format;
   return createFormatDescriptor(
@@ -5072,7 +5072,7 @@ function validateOrderedExtensionFormats(descriptors, ext)
     if (typeof Format.is !== "function")
     {
       throw new TypeError(
-        `CjsResMan extension .${ext} format ${Format.name || index} has no support probe and must be last.`
+        `CjsBlueResMan extension .${ext} format ${Format.name || index} has no support probe and must be last.`
       );
     }
   }
@@ -5085,7 +5085,7 @@ function assertExtensionTarget(Target, label)
       && !CjsSchema.getClassName(Target)))
   {
     throw new TypeError(
-      `CjsResMan extension ${label} must provide static from(values) or fromYAML(values, context), or be a registered schema class.`
+      `CjsBlueResMan extension ${label} must provide static from(values) or fromYAML(values, context), or be a registered schema class.`
     );
   }
 }
@@ -5093,7 +5093,7 @@ function assertExtensionTarget(Target, label)
 function createExtensionTargetError(resource, message, cause = null)
 {
   const path = getResourceDiagnosticPath(resource);
-  const error = new Error(`CjsResMan extension target failed for ${path}: ${message}`, cause ? { cause } : undefined);
+  const error = new Error(`CjsBlueResMan extension target failed for ${path}: ${message}`, cause ? { cause } : undefined);
   error.code = "CJS_RESOURCE_EXTENSION_TARGET_FAILED";
   error.path = path;
   if (cause) error.cause = cause;
@@ -5102,8 +5102,8 @@ function createExtensionTargetError(resource, message, cause = null)
 
 // Carbon: `class BlueResMan : public IBlueResMan, public IBlueEvents`. Declared
 // as calls - this folder cannot use decorator syntax (global/blue/index.js).
-// Ours is modelled on BlueResMan, not a replica: its browser work (workers,
-// fetch, routes) diverges too far to carry Carbon's name.
-CjsSchema.meta.blue.inherit(IBlueResMan, IBlueEvents)(CjsResMan);
-CjsSchema.decorateMethod(CjsResMan, "GetResource", meta.adapted);
-CjsSchema.define(CjsResMan, { className: "CjsResMan", modelledOn: "BlueResMan" });
+// The Cjs prefix identifies browser adaptations (workers, fetch and routes);
+// carbon metadata identifies the native service whose responsibility it carries.
+CjsSchema.meta.blue.inherit(IBlueResMan, IBlueEvents)(CjsBlueResMan);
+CjsSchema.decorateMethod(CjsBlueResMan, "GetResource", meta.adapted);
+CjsSchema.define(CjsBlueResMan, { className: "CjsBlueResMan", carbon: "BlueResMan" });

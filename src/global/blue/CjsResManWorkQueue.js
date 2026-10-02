@@ -6,7 +6,7 @@ export const CjsResManQueue = Object.freeze({
 });
 
 /**
- * Small FIFO executor used inside `CjsResMan` that tracks item ids, pause
+ * Small FIFO executor used inside `CjsBlueResMan` that tracks item ids, pause
  * state, concurrency, cancellation, and sync/async completion while queue
  * policy stays in the manager.
  *
@@ -37,7 +37,7 @@ export class CjsResManWorkQueue
    */
   SetConcurrency(value) {
     if (!Number.isInteger(value) || value < 1) {
-      throw new TypeError("CjsResMan queue concurrency must be a positive integer.");
+      throw new TypeError("CjsBlueResMan queue concurrency must be a positive integer.");
     }
     this._concurrency = value;
     this._NotifyReady();
@@ -92,7 +92,7 @@ export class CjsResManWorkQueue
    */
   Add(callback, context = null, metadata = null) {
     if (typeof callback !== "function") {
-      throw new TypeError("CjsResMan queue items require a callback.");
+      throw new TypeError("CjsBlueResMan queue items require a callback.");
     }
 
     const id = this._nextId++;
@@ -279,7 +279,7 @@ export class CjsResManWorkQueue
     const name = String(value ?? "").trim().toLowerCase();
     if (name === "main" || name === "prepare") return CjsResManQueue.MAIN;
     if (name === "background" || name === "load") return CjsResManQueue.BACKGROUND;
-    throw new TypeError(`Unknown CjsResMan queue: ${value}`);
+    throw new TypeError(`Unknown CjsBlueResMan queue: ${value}`);
   }
 
   /**
@@ -292,7 +292,7 @@ export class CjsResManWorkQueue
    */
   static createCancelledError(queue, id, reason = "")
   {
-    const error = new Error(`CjsResMan ${queue} queue item ${id} was cancelled.${reason ? ` ${reason}` : ""}`);
+    const error = new Error(`CjsBlueResMan ${queue} queue item ${id} was cancelled.${reason ? ` ${reason}` : ""}`);
     error.code = "CJS_RESMAN_QUEUE_CANCELLED";
     error.queue = queue;
     error.id = id;
@@ -303,7 +303,7 @@ export class CjsResManWorkQueue
 function normalizeLimit(value) {
   if (value === undefined || value === null || value === 0) return Number.POSITIVE_INFINITY;
   if (typeof value !== "number" || Number.isNaN(value) || value < 0) {
-    throw new TypeError("CjsResMan queue limits must be non-negative numbers.");
+    throw new TypeError("CjsBlueResMan queue limits must be non-negative numbers.");
   }
   return value;
 }

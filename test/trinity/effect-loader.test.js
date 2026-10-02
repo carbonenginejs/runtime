@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CjsResMan } from "../../npm/dist/global/blue/CjsResMan.js";
+import { CjsBlueResMan } from "../../npm/dist/global/blue/CjsBlueResMan.js";
 import { blue, IBlueResMan } from "../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { RegisterShaderResources, ShaderResourceExtensions, Tr2EffectRes } from "../../npm/dist/resource/shader/index.js";
@@ -20,7 +20,7 @@ function withGlobalManager(run)
   // start one. The bytes are irrelevant here - these tests assert the route and
   // the handle, not container decoding.
   const source = { Read() { return new Uint8Array(0); } };
-  const resourceManager = RegisterShaderResources(new CjsResMan({ source }));
+  const resourceManager = RegisterShaderResources(new CjsBlueResMan({ source }));
   const previous = blue.resMan;
   blue.resMan = resourceManager;
   try
@@ -36,7 +36,7 @@ function withGlobalManager(run)
 
 test("every compiled shader extension routes to Tr2EffectRes", () =>
 {
-  const resourceManager = RegisterShaderResources(new CjsResMan());
+  const resourceManager = RegisterShaderResources(new CjsBlueResMan());
 
   // Nine, not three: the older compiled tiers still occur in shipped trees.
   assert.equal(ShaderResourceExtensions.length, 9);
@@ -165,7 +165,7 @@ test("a hand-assigned resource is never replaced", () =>
 test("the slot names the contract, not the implementation", () =>
 {
   // This replaces a test that asserted SetGlobal refused anything that was not
-  // a CjsResMan. That check was the problem: it nailed every consumer to one
+  // a CjsBlueResMan. That check was the problem: it nailed every consumer to one
   // concrete class, so no stub, recording or alternative manager could be
   // installed without subclassing the real one. blue.resMan is typed by what
   // it must answer, which is the whole point of naming the contract.

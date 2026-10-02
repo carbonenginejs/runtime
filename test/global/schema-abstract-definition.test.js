@@ -1,12 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSchema, meta } from "../../src/global/schema/index.js";
-import { BlueClasses } from "../../src/global/blue/BlueClasses.js";
+import { CjsBlueClasses } from "../../src/global/blue/CjsBlueClasses.js";
 import * as classRegistry from "../../src/global/blue/classes/registry.js";
 
 const { ClassRegistrarNullFactory, getClassRegistrationRevision } = classRegistry;
 
-const registry = new BlueClasses();
+const registry = new CjsBlueClasses();
 const routes = [
   ["explicit", (Constructor, definition) => CjsSchema.define(Constructor, definition)],
   ["type", (Constructor, definition) => meta.define(definition)(Constructor)],

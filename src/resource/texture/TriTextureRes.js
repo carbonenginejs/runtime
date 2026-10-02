@@ -170,7 +170,7 @@ export class TriTextureRes extends CjsResource
    * prepared either way, with no bitmap when the pipeline failed.
    *
    * @param {import("./Tr2TexturePipeline.js").Tr2TexturePipeline} pipeline The recipe.
-   * @param {object} resourceManager The `CjsResMan` that loads its inputs.
+   * @param {object} resourceManager The `CjsBlueResMan` that loads its inputs.
    * @returns {Promise<boolean>} Whether the pipeline produced a bitmap.
    */
   async LoadPipeline(pipeline, resourceManager) {

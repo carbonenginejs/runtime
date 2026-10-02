@@ -46,7 +46,8 @@
         "character",
         "input",
         "core",
-        "global/logging"
+        "global/logging",
+        "global/audio"
       ]
     },
     "global/index.js": {
@@ -166,7 +167,8 @@
         "global/compose",
         "global/schema",
         "global/utils",
-        "global/logging"
+        "global/logging",
+        "global/audio"
       ],
       "why": [
         "Ports of Carbon's blueexposure layer - facilities Blue provides to every",
@@ -194,7 +196,7 @@
         "Trinity MAY import resource, and importing one Res class has never been",
         "the problem - resource/texture/** reaches only consts, imageio and the",
         "payload validators. Preferring the FILE over resource/index.js is a",
-        "nicety, not a rule: the root barrel pulls CjsResMan, the worker loaders",
+        "nicety, not a rule: the root barrel pulls CjsBlueResMan, the worker loaders",
         "and every format reader, which a bundler mostly shakes out again. It",
         "would only matter to someone wanting the audio engine without trinity.",
         "",
@@ -304,6 +306,14 @@
         "ResourceInfo and their data), which needs global/schema for its carbon: identities",
         "and @impl markers like every other port (operator, 2026-09-27). Formats are",
         "reached through layers.json standalone, not through this list."
+      ]
+    },
+    "global/audio": {
+      "mayImport": [
+        "global/schema"
+      ],
+      "why": [
+        "Only the shared silent sound-engine contract and stub. Blue can provide silent graph audio without importing playback, WebAudio, or an audio domain."
       ]
     }
   }

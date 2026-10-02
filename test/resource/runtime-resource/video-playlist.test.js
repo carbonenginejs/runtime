@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
-import { CjsResMan, RegisterVideoPlaylists, TriTextureRes, VideoPlaylistController } from "../../../npm/dist/resource/index.js";
+import { CjsBlueResMan, RegisterVideoPlaylists, TriTextureRes, VideoPlaylistController } from "../../../npm/dist/resource/index.js";
 
 function countingManager()
 {
   const counter = { reads: 0 };
-  const resMan = new CjsResMan({ source: { Read() { counter.reads += 1; return new Uint8Array(0); } } });
+  const resMan = new CjsBlueResMan({ source: { Read() { counter.reads += 1; return new Uint8Array(0); } } });
   return { resMan, counter };
 }
 

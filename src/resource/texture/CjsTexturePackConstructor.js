@@ -36,7 +36,7 @@ export class CjsTexturePackConstructor extends IBlueDynamicResourceConstructor
 {
 
   /**
-   * @param {object} resourceManager The `CjsResMan` that loads the sources.
+   * @param {object} resourceManager The `CjsBlueResMan` that loads the sources.
    */
   constructor(resourceManager)
   {

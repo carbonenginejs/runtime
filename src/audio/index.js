@@ -20,8 +20,8 @@ export * from "./trinity/index.js";
 // CarbonEngineJS-original realization layer (WebAudio). Importing these does
 // NOT create an AudioContext - construction stays headless until Enable().
 export { CjsWebAudioSoundEngine } from "./CjsWebAudioSoundEngine.js";
-export { ICjsWwiseSoundEngine } from "./ICjsWwiseSoundEngine.js";
-export { CjsWwiseSoundEngineStub } from "./CjsWwiseSoundEngineStub.js";
+export { ICjsWwiseSoundEngine } from "../global/audio/ICjsWwiseSoundEngine.js";
+export { CjsWwiseSoundEngineStub } from "../global/audio/CjsWwiseSoundEngineStub.js";
 export { ICjsMusicEngine } from "./ICjsMusicEngine.js";
 export { ICjsAudioGlobalReaders } from "./ICjsAudioGlobalReaders.js";
 export { ICjsSfxControls } from "./ICjsSfxControls.js";

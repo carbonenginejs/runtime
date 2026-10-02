@@ -6,7 +6,7 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
-import { blue, CjsResMan } from "../../npm/dist/global/blue/index.js";
+import { blue, CjsBlueResMan } from "../../npm/dist/global/blue/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import { EveChildSocket, EveChildContainer } from "../../npm/dist/trinity/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -25,7 +25,7 @@ async function fixture(name, size, md5)
 function manager(t, read)
 {
   const previous = blue.resMan;
-  const result = new CjsResMan({source:{Read:read}});
+  const result = new CjsBlueResMan({source:{Read:read}});
   result.RegisterObjectBuilder("red", bytes => CjsBlackFormat.createObjectBuilder(bytes));
   const handles = new StubResMan();
   result.GetResource = handles.GetResource.bind(handles);

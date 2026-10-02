@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { blue, CjsResMan, Copier, DictReader, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
+import { blue, CjsBlueResMan, Copier, DictReader, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
 import { Tr2MaterialParameterStore, Tr2VariableStore, TriVariable } from "../../npm/dist/trinity/core/index.js";
 import { TriVariableParameter } from "../../npm/dist/trinity/shader/parameter/TriVariableParameter.js";
 import { Tr2Effect } from "../../npm/dist/trinity/shader/Tr2Effect.js";
@@ -102,7 +102,7 @@ test("real manager builder hydrates independent material parents through shared 
   t.after(() => { blue.resMan = previous; });
   let reads = 0, builds = 0;
   const payload = new TextEncoder().encode(JSON.stringify({ _type: "Tr2MaterialParameterStore", name: "loaded", parameters: { Glow: { _type: "Tr2FloatParameter", name: "Glow", value: 2 } } }));
-  const manager = new CjsResMan({ source: { Read() { reads++; return payload; } } });
+  const manager = new CjsBlueResMan({ source: { Read() { reads++; return payload; } } });
   manager.RegisterObjectBuilder("storefixture", bytes =>
   {
     const dictionary = JSON.parse(new TextDecoder().decode(bytes));

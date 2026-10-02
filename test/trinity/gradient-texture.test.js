@@ -11,7 +11,7 @@ import {
   RegisterGradientTexture
 } from "../../npm/dist/trinity/core/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { CjsResMan, TriTextureRes } from "../../npm/dist/resource/index.js";
+import { CjsBlueResMan, TriTextureRes } from "../../npm/dist/resource/index.js";
 
 // Carbon's wire shape (GradientTexture.cpp:10-23, Tr2CurveScalar.h:54-70):
 // uint32 width, four { uint16 keyCount, uint8 before, uint8 after }, then the
@@ -117,7 +117,7 @@ test("every condition Carbon abandons yields no texture", () =>
 test("dynamic:/gradient_1d resolves through the resource manager without a source read", async () =>
 {
   let reads = 0;
-  const resMan = new CjsResMan({ source: { Read() { reads += 1; return new Uint8Array(0); } } });
+  const resMan = new CjsBlueResMan({ source: { Read() { reads += 1; return new Uint8Array(0); } } });
   RegisterGradientTexture(resMan);
 
   const path = gradientPath(2, [ rampChannel, emptyChannel, emptyChannel, emptyChannel ]);
@@ -136,7 +136,7 @@ test("dynamic:/gradient_1d resolves through the resource manager without a sourc
 test("an invalid gradient fails its texture instead of reading a source", async () =>
 {
   let reads = 0;
-  const resMan = new CjsResMan({ source: { Read() { reads += 1; return new Uint8Array(0); } } });
+  const resMan = new CjsBlueResMan({ source: { Read() { reads += 1; return new Uint8Array(0); } } });
   RegisterGradientTexture(resMan);
 
   const broken = resMan.GetResource(`${GradientPrefix}!!!!`);

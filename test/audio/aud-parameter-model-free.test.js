@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { AudParameter } from "../../npm/dist/audio/trinity/audio/AudParameter.js";
 import { AudGameObjResource } from "../../npm/dist/audio/trinity/audio/AudGameObjResource.js";
 import { AudManager } from "../../npm/dist/audio/trinity/audio/AudManager.js";
-import { CjsWwiseSoundEngineStub } from "../../npm/dist/audio/CjsWwiseSoundEngineStub.js";
+import { CjsWwiseSoundEngineStub } from "../../npm/dist/global/audio/CjsWwiseSoundEngineStub.js";
 import { INotify } from "../../npm/dist/global/blue/INotify.js";
 import { IInitialize } from "../../npm/dist/global/blue/IInitialize.js";
 import { BlueList } from "../../npm/dist/global/blue/BlueList.js";
@@ -151,14 +151,15 @@ test("value notification calls the backend before logging and ignores its status
   });
 });
 
-test("enabled bound parameters require their owned backend and logging methods", () =>
+test("enabled bound parameters use the silent default and require explicit backend methods", () =>
 {
   WithServices((manager, backend) =>
   {
     const parameter = new AudParameter();
     parameter.SetGameObjectID(71);
     AudGameObjResource.backend = null;
-    assert.throws(() => parameter.OnModified("value"), TypeError);
+    assert.equal(AudGameObjResource.backend.constructor, CjsWwiseSoundEngineStub);
+    assert.doesNotThrow(() => parameter.OnModified("value"));
     AudGameObjResource.backend = backend;
     backend.SetRTPCValue = undefined;
     assert.throws(() => parameter.OnModified("value"), TypeError);

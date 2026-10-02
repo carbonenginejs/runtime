@@ -5,7 +5,7 @@
 // The registry behind `blue.classes` (`BeClasses`).
 //
 // The classes/registry leaf owns complete registration records for every
-// BlueClasses instance and for CjsSchema. Class metadata remains schema-owned;
+// CjsBlueClasses instance and for CjsSchema. Class metadata remains schema-owned;
 // registering or removing a name never creates or discards that metadata.
 // The first registration wins, and replacement requires explicit removal.
 //
@@ -33,8 +33,8 @@ import { IBlueClasses } from "./IBlueClasses.js";
 import { Copier } from "./Copier.js";
 
 
-/** `BlueClasses` - the class registry `blue.classes` holds, per blueexposure/BlueClasses.cpp. */
-export class BlueClasses extends IBlueClasses
+/** `CjsBlueClasses` - the class registry `blue.classes` holds, per blueexposure/BlueClasses.cpp. */
+export class CjsBlueClasses extends IBlueClasses
 {
 
   /** Carbon's `Be::ClassRegistration::Flags` (BlueTypes.h:415-418). */
@@ -122,13 +122,13 @@ export class BlueClasses extends IBlueClasses
   }
 
   /** Throws because querying an object's native interface is not implemented. */
-  QueryThisInterface() { throw new Error("BlueClasses.QueryThisInterface is not implemented"); }
+  QueryThisInterface() { throw new Error("CjsBlueClasses.QueryThisInterface is not implemented"); }
 
   /** Throws because native variable lookup is not implemented. */
-  FindVariable() { throw new Error("BlueClasses.FindVariable is not implemented"); }
+  FindVariable() { throw new Error("CjsBlueClasses.FindVariable is not implemented"); }
 
   /** Throws because native object-count accounting is not implemented. */
-  UpdateObjectCount() { throw new Error("BlueClasses.UpdateObjectCount is not implemented"); }
+  UpdateObjectCount() { throw new Error("CjsBlueClasses.UpdateObjectCount is not implemented"); }
 
   /**
    * Copies `source` into `dest`, or into a new instance of its class when
@@ -171,35 +171,36 @@ export class BlueClasses extends IBlueClasses
    * Throws because processing the native pending-deletion queue is not
    * implemented.
    */
-  ProcessPendingDeletes() { throw new Error("BlueClasses.ProcessPendingDeletes is not implemented"); }
+  ProcessPendingDeletes() { throw new Error("CjsBlueClasses.ProcessPendingDeletes is not implemented"); }
 
   /** Throws because draining all native pending deletions is not implemented. */
-  ProcessAllPendingDeletes() { throw new Error("BlueClasses.ProcessAllPendingDeletes is not implemented"); }
+  ProcessAllPendingDeletes() { throw new Error("CjsBlueClasses.ProcessAllPendingDeletes is not implemented"); }
 
   /**
    * Throws because changing native deferred-deletion enablement is not
    * implemented.
    */
-  SetPendingDeletesEnabled() { throw new Error("BlueClasses.SetPendingDeletesEnabled is not implemented"); }
+  SetPendingDeletesEnabled() { throw new Error("CjsBlueClasses.SetPendingDeletesEnabled is not implemented"); }
 
   /**
    * Throws because querying native deferred-deletion enablement is not
    * implemented.
    */
-  IsPendingDeletesEnabled() { throw new Error("BlueClasses.IsPendingDeletesEnabled is not implemented"); }
+  IsPendingDeletesEnabled() { throw new Error("CjsBlueClasses.IsPendingDeletesEnabled is not implemented"); }
 
   /** Throws because registering a native thunk is not implemented. */
-  RegisterThunker() { throw new Error("BlueClasses.RegisterThunker is not implemented"); }
+  RegisterThunker() { throw new Error("CjsBlueClasses.RegisterThunker is not implemented"); }
 
   /** Throws because native runtime type-information lookup is not implemented. */
-  GetRtti() { throw new Error("BlueClasses.GetRtti is not implemented"); }
+  GetRtti() { throw new Error("CjsBlueClasses.GetRtti is not implemented"); }
 
 }
 
 const NOT_YET = meta.reason("No consumer yet; ported when one needs it.");
 
-CjsSchema.define(BlueClasses, {
-  className: "BlueClasses",
+CjsSchema.define(CjsBlueClasses, {
+  className: "CjsBlueClasses",
+  carbon: "BlueClasses",
   family: "blue",
   fields: {},
   methods: {

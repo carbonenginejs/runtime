@@ -746,7 +746,7 @@ export class TriGeometryRes extends CjsResource
       throw new Error(
         "TriGeometryRes cannot answer an intersection query: CPU geometry is "
         + "not resident. The payload was never loaded or has been released. "
-        + "Reload through CjsResMan before querying."
+        + "Reload through CjsBlueResMan before querying."
       );
     }
     return meshes;

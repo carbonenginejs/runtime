@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { blue, CjsResMan } from "../../npm/dist/global/blue/index.js";
+import { blue, CjsBlueResMan } from "../../npm/dist/global/blue/index.js";
 import { CjsLoadingObject } from "../../npm/dist/resource/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { Tr2Controller, Tr2ControllerReference, UnlinkReason } from "../../npm/dist/trinity/index.js";
@@ -140,7 +140,7 @@ test("failed or wrongly typed loads leave the reference empty and can be retried
 test("references sharing a path get separate controllers built from one cached decode", async t =>
 {
   let reads = 0;
-  const manager = new CjsResMan({ source: { Read() { reads += 1; return new Uint8Array([ 1 ]); } } });
+  const manager = new CjsBlueResMan({ source: { Read() { reads += 1; return new Uint8Array([ 1 ]); } } });
   manager.RegisterExtension("red", CjsLoadingObject, {
     Format: class { static read() { return { _type: "Tr2Controller", variables: [ { _type: "Tr2ControllerFloatVariable", name: "x", value: 2 } ] }; } },
     Target: Tr2Controller

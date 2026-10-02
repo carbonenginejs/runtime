@@ -2,7 +2,7 @@
  * The key that selects which resource class a path becomes.
  *
  * Carried by `CjsResource.requirement`, declared by each resource as
- * `static payload`, and matched by `CjsResMan.RegisterResourceType` and
+ * `static payload`, and matched by `CjsBlueResMan.RegisterResourceType` and
  * `GetResource({ requirement })` — one vocabulary in three places, previously a
  * bare literal in each, with nothing catching a typo between them.
  *

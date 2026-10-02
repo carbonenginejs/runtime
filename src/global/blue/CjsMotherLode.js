@@ -528,7 +528,7 @@ export class CjsMotherLode
   /**
    * Explicitly renew both canonical identity activity and the attached CPU
    * payload lease. The resource-facing `KeepPayloadAlive()` method delegates
-   * here when CjsResMan owns the handle. No payload is read or created.
+   * here when CjsBlueResMan owns the handle. No payload is read or created.
    *
    * @param {string} key Canonical resolved key, or normalized source path with a variant.
    * @param {string|CjsMotherLodeActivityOptions} [variantOrOptions] Compatibility variant or activity values.
@@ -1153,7 +1153,7 @@ export class CjsMotherLode
 }
 
 /**
- * Build the canonical normalized identity shared by CjsResMan and MotherLode.
+ * Build the canonical normalized identity shared by CjsBlueResMan and MotherLode.
  * The source path and promised-output variant are separated with an internal null byte;
  * variants therefore may not contain that delimiter.
  *

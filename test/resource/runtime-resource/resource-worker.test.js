@@ -7,7 +7,7 @@ import * as RuntimeResource from "../../../npm/dist/resource/index.js";
 import {
   CjsResManMainThreadLoader,
   CjsResManWorkerLoader,
-  CjsResMan,
+  CjsBlueResMan,
   CjsResManQueue
 } from "../../../npm/dist/resource/index.js";
 import { CjsResManWorker } from "../../../npm/dist/global/blue/worker/CjsResManWorker.js";
@@ -60,8 +60,8 @@ test("main-thread resource loader preserves structural source and format contrac
   assert.equal(loader.GetPendingCount(), 0);
 });
 
-test("CjsResMan selects worker loading by default with an explicit main-thread override", () => {
-  const resMan = new CjsResMan();
+test("CjsBlueResMan selects worker loading by default with an explicit main-thread override", () => {
+  const resMan = new CjsBlueResMan();
   assert.equal(resMan.IsWorkerLoading(), true);
   assert.equal(resMan.UseWorkerLoading(false), resMan);
   assert.equal(resMan.IsWorkerLoading(), false);
@@ -151,9 +151,9 @@ test("worker loader aborts requests and rejects every request on fatal worker fa
   assert.equal(loader.IsAvailable(), false);
 });
 
-test("CjsResMan is the only built-in resource-path-to-URL resolver", () =>
+test("CjsBlueResMan is the only built-in resource-path-to-URL resolver", () =>
 {
-  const resMan = new CjsResMan({
+  const resMan = new CjsBlueResMan({
     paths: {
       res: "https://cdn.example.invalid/assets"
     }
@@ -184,7 +184,7 @@ test("CjsResMan is the only built-in resource-path-to-URL resolver", () =>
   );
 });
 
-test("CjsResMan loads through the worker when its source offers a worker request", async () => {
+test("CjsBlueResMan loads through the worker when its source offers a worker request", async () => {
   const worker = new FakeWorker();
   const source = {
     requiresUrl: true,
@@ -199,7 +199,7 @@ test("CjsResMan loads through the worker when its source offers a worker request
       };
     }
   };
-  const resMan = new CjsResMan({
+  const resMan = new CjsBlueResMan({
     autoPumpMainThreadQueue: false,
     source,
     paths: {
@@ -363,7 +363,7 @@ test("worker helpers collect unique buffers and serialize cloneable errors", () 
   );
 });
 
-test("CjsResMan sends worker-safe reads off the main queue and publishes on it", async () => {
+test("CjsBlueResMan sends worker-safe reads off the main queue and publishes on it", async () => {
   let resolveFormat;
   let pendingWorkers = 0;
   const workerLoader = {
@@ -391,7 +391,7 @@ test("CjsResMan sends worker-safe reads off the main queue and publishes on it",
     static extensions = Object.freeze([ ".workerqueue" ]);
     static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }), "json": Object.freeze({ output: "json" }) })
   }
-  const resMan = new CjsResMan({
+  const resMan = new CjsBlueResMan({
     autoPumpMainThreadQueue: false,
     source: { Read() { return new Uint8Array([ 8 ]); } },
     workerLoader,

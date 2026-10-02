@@ -22,7 +22,7 @@ const FORBIDDEN_FILES = [
   "resource/index.js",
   "global/blue/index.js",
   "global/blue/blue.js",
-  "global/blue/CjsResMan.js"
+  "global/blue/CjsBlueResMan.js"
 ];
 
 const IMPORT = /(?:^|\n)\s*(?:import|export)\s[^;]*?from\s*["']([^"']+)["']|import\(\s*["']([^"']+)["']\s*\)|(?:^|\n)\s*import\s*["']([^"']+)["']/gu;

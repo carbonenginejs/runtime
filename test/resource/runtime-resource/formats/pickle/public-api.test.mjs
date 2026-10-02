@@ -4,7 +4,7 @@ import { test } from "node:test";
 import { CjsFormat } from "../../../../../src/resource/format/CjsFormat.js";
 import {
   CjsLoadingObject,
-  CjsResMan
+  CjsBlueResMan
 } from "../../../../../npm/dist/resource/index.js";
 import CjsPickleFormat, {
   CjsPickleFormat as NamedCjsPickleFormat
@@ -192,7 +192,7 @@ test("ResMan routes lowercase pickle resource context without domain coupling", 
 {
   const input = bytes("(dp0\nVvalue\np1\nI7\ns.");
   let identifyContext = null;
-  const resMan = new CjsResMan({
+  const resMan = new CjsBlueResMan({
     source: {
       Read()
       {

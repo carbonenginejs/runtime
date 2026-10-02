@@ -20,13 +20,13 @@ Replacement surfaces:
 ## Tr2LoadPrepareFence
 
 Carbon's helper inserts callbacks into separate load and prepare queues. The
-general resource-layer prepare graph was removed. `CjsResMan.Wait()` now owns
+general resource-layer prepare graph was removed. `CjsBlueResMan.Wait()` now owns
 the JavaScript snapshot-fence contract for active queued resource roots, so the
 Carbon helper must not be exported as a second fence model.
 
 Replacement surfaces:
 
-- `src/global/blue/CjsResMan.js` (`Wait`, whose JSDoc carries the snapshot-fence contract)
+- `src/global/blue/CjsBlueResMan.js` (`Wait`, whose JSDoc carries the snapshot-fence contract)
 - `src/global/blue/CjsResManWorkQueue.js`
 
 ## Tr2CmfContents and CmfVertexReader

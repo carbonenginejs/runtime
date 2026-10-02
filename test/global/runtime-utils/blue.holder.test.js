@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { blue, BlueResManQueue, CjsBluePaths, CjsResMan, IBlueEvents, IBlueOS, IBluePaths, IBlueResMan } from "../../../npm/dist/global/blue/index.js";
+import { blue, BlueResManQueue, CjsBluePaths, CjsBlueResMan, IBlueEvents, IBlueOS, IBluePaths, IBlueResMan } from "../../../npm/dist/global/blue/index.js";
 import * as blueExports from "../../../npm/dist/global/blue/index.js";
 import { installBlueServices } from "../../../npm/dist/global/blue/blue.js";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
@@ -11,7 +11,7 @@ test("the slots are filled before anything can read them", () =>
   // The holder's body runs before any importer's, so there is never a null to
   // capture, which is what lets a consumer write blue.resMan.GetResource(...)
   // without a guard. The manager is real by default, as Carbon's is.
-  assert.equal(blue.resMan instanceof CjsResMan, true);
+  assert.equal(blue.resMan instanceof CjsBlueResMan, true);
   assert.ok(CjsSchema.cast(blue.resMan, IBlueResMan), "it is Carbon's IBlueResMan");
   assert.equal(blue.paths instanceof CjsBluePaths, true);
   assert.equal(blue.paths instanceof IBluePaths, true);
@@ -25,10 +25,10 @@ test("an unconfigured manager answers: a path it cannot fetch fails on the resou
   blue.resMan.Delete("res:/model/holder-unconfigured.gr2");
 });
 
-test("the manager is registered for ticks, as Carbon's Initialize does (BlueResMan.cpp:113)", () =>
+test("the manager waits for explicit initialization before registering for ticks", () =>
 {
   assert.ok(CjsSchema.cast(blue.resMan, IBlueEvents), "it is an IBlueEvents");
-  assert.equal(blue.os.IsRegisteredForTicks(blue.resMan), true);
+  assert.equal(blue.os.IsRegisteredForTicks(blue.resMan), false);
 });
 
 class HolderManager extends IBlueResMan
@@ -74,8 +74,8 @@ class HolderOS extends IBlueOS
 
 function holderFixture(t)
 {
-  const old = { resMan: new HolderManager(), paths: new IBluePaths(), os: new HolderOS() };
-  const next = { resMan: new HolderManager(), paths: new IBluePaths(), os: new HolderOS() };
+  const old = { resMan: new HolderManager(), paths: new IBluePaths(), os: new HolderOS(), sof: blue.sof, audio: blue.audio, running: true };
+  const next = { resMan: new HolderManager(), paths: new IBluePaths(), os: new HolderOS(), sof: blue.sof, audio: blue.audio, running: true };
   const previous = installBlueServices(old);
   const cookie = old.os.calls[0].cookie;
   old.os.calls.length = 0;
@@ -83,7 +83,7 @@ function holderFixture(t)
   {
     old.os.hook = null;
     next.os.hook = null;
-    installBlueServices(previous);
+    installBlueServices(previous, previous.running);
   });
   return { old, next, cookie };
 }
@@ -328,7 +328,7 @@ test("the queue enum keeps Carbon's members and values", () =>
 
 test("both interfaces publish the verb list Carbon publishes", () =>
 {
-  // The point of the split: CjsResMan has 68 public methods, and these are the
+  // The point of the split: CjsBlueResMan has 68 public methods, and these are the
   // ones a consumer is entitled to. Adding to this list means Carbon added to
   // IBlueResMan.
   const names = Interface => Object.getOwnPropertyNames(Interface.prototype)

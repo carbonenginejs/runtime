@@ -33,7 +33,7 @@ import { ResourceHandlerMode } from "./ResourceHandlerMode.js";
  * ResMan-owned runtime resource.
  *
  * Resources are not model graph objects: BLACK/RED graphs persist resource
- * paths (including empty paths), while CjsResMan constructs, initializes,
+ * paths (including empty paths), while CjsBlueResMan constructs, initializes,
  * caches, and hydrates the corresponding runtime resource instances.
  */
 export class CjsResource
@@ -67,7 +67,7 @@ export class CjsResource
   ext = "";
 
   /**
-   * Requested semantic resource kind used by CjsResMan to select a resource
+   * Requested semantic resource kind used by CjsBlueResMan to select a resource
    * class. Initialize trims and lowercases it; an empty string leaves it unspecified.
    * @type {string}
    */
@@ -100,7 +100,7 @@ export class CjsResource
   /**
    * Create a detached runtime resource with empty identity and payload state.
    * Schema values are applied without attaching manager lifecycle callbacks;
-   * CjsResMan supplies those callbacks after canonical insertion.
+   * CjsBlueResMan supplies those callbacks after canonical insertion.
    *
    * @param {object|null} [values=null] Initial decorated schema-field values.
    */
@@ -186,7 +186,7 @@ export class CjsResource
    *
    * Adapted: adds a third `requirement` argument, the lowercase semantic
    * outcome the caller asked for, which selects the resource class
-   * (`CjsResMan.RegisterResourceType`); it also resets state and error and
+   * (`CjsBlueResMan.RegisterResourceType`); it also resets state and error and
    * returns this resource, where Carbon's returns void.
    *
    * @param {string} path Resource path.
@@ -478,7 +478,7 @@ export class CjsResource
    * link that lets both stay true: the composition root registers what it
    * wants, and the resource asks.
    *
-   * Optional. A resource loaded through `CjsResMan` never needs it, because the
+   * Optional. A resource loaded through `CjsBlueResMan` never needs it, because the
    * manager resolves the reader from its own extension routes and hands the
    * outcome over as a payload. This is for the resource driving its own load.
    *
@@ -509,7 +509,7 @@ export class CjsResource
    * from an `output` only when the caller asks for one.
    *
    * `requirement` IS NOT THE OUTPUT, though it reads like it. It selects the
-   * resource class — `CjsResMan.RegisterResourceType` keys on it. A format's
+   * resource class — `CjsBlueResMan.RegisterResourceType` keys on it. A format's
    * outputs are a different axis entirely: `texture` and `rgba` are two
    * representations of one DDS. Conflating them makes a resource loaded with
    * `requirement: "geometry"` filter for routes declaring an output named

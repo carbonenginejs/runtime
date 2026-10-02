@@ -99,6 +99,7 @@ async function probe()
     stub.UnregisterGameObj(7);
     assert.equal(stub.GetGameObject(7), null);
     assert.equal(root.AudGameObjResource.manager, null);
-    assert.equal(root.AudGameObjResource.backend, null);
+    assert.equal(root.AudGameObjResource.backend, root.blue.audio);
+    assert.equal(root.AudGameObjResource.backend.constructor, root.CjsWwiseSoundEngineStub);
     console.log("root graph ready");
 }

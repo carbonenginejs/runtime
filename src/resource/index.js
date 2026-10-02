@@ -6,7 +6,7 @@
  * separate tree-shakeable `resource/formats/<name>` subpaths and are not
  * registered from here.
  *
- * The manager core (CjsResMan, CjsResource, CjsMotherLode, format routing and
+ * The manager core (CjsBlueResMan, CjsResource, CjsMotherLode, format routing and
  * worker loaders) lives in Blue and is only re-exported below. Backend
  * allocation, upload and device-loss recovery belong to the abstraction layer
  * in `trinityal/<backend>`; audio playback belongs to the audio layer.
@@ -38,5 +38,5 @@ export {
   CjsResManMainThreadLoader,
   CjsResManWorkerLoader,
   CjsResManQueue,
-  CjsResMan
+  CjsBlueResMan
 } from "#blue";

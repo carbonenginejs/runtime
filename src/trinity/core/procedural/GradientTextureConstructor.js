@@ -58,7 +58,7 @@ export function RegisterGradientTexture(resourceManager)
 {
   if (typeof resourceManager?.RegisterResourceConstructor !== "function")
   {
-    throw new TypeError("RegisterGradientTexture requires a CjsResMan.");
+    throw new TypeError("RegisterGradientTexture requires a CjsBlueResMan.");
   }
   resourceManager.RegisterResourceConstructor("gradient_1d", new GradientTextureConstructor());
   return resourceManager;

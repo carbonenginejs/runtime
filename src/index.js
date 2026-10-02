@@ -5,14 +5,15 @@ export * from "./trinity/index.js";
 export * from "./sof/index.js";
 export * from "./audio/trinity/index.js";
 // Silent support stays available without evaluating optional playback libraries.
-export { ICjsWwiseSoundEngine } from "./audio/ICjsWwiseSoundEngine.js";
-export { CjsWwiseSoundEngineStub } from "./audio/CjsWwiseSoundEngineStub.js";
+export { ICjsWwiseSoundEngine } from "./global/audio/ICjsWwiseSoundEngine.js";
+export { CjsWwiseSoundEngineStub } from "./global/audio/CjsWwiseSoundEngineStub.js";
 export * from "./input/index.js";
 export * from "./core/index.js";
 
 // The aggregate surface keeps each shared identity owned by its lowest layer.
 // Explicit exports resolve compatibility re-exports from higher layers without
 // creating a second implementation or an ambiguous package-root binding.
+export { CjsBlueResMan } from "./global/blue/index.js";
 export { ReflectionMode, Tr2Lod } from "./global/index.js";
 export {
     Tr2EffectConstant,

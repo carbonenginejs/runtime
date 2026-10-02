@@ -6,7 +6,7 @@ import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { finalizeReaderObject } from "../../../npm/dist/global/schema/hydration.js";
 import { Tr2InteriorPlaceable, Tr2Model } from "../../../npm/dist/character/index.js";
 import { Tr2Mesh, Tr2MeshArea, Tr2RenderContext_GetMainThreadRenderContext } from "../../../npm/dist/trinity/index.js";
-import { CjsResMan, CjsLoadingObject, TriGeometryRes, WodPlaceableRes } from "../../../npm/dist/resource/index.js";
+import { CjsBlueResMan, CjsLoadingObject, TriGeometryRes, WodPlaceableRes } from "../../../npm/dist/resource/index.js";
 import { Tr2RenderContextALStub } from "../../../npm/dist/trinityal/index.js";
 import { SharedGeometryBuffer } from "../../../npm/dist/trinity/core/mesh/TriGeometryResAllocations.js";
 import { TriBatchType } from "../../../npm/dist/global/consts/graphics/index.js";
@@ -162,7 +162,7 @@ test("real object manager caches a builder while repeated placeable loads constr
 {
   const { owner } = setup(t), value = owner();
   let reads = 0;
-  blue.resMan = new CjsResMan({ source: { Read() { ++reads; return new Uint8Array([1]); } } });
+  blue.resMan = new CjsBlueResMan({ source: { Read() { ++reads; return new Uint8Array([1]); } } });
   class Format { static read() { return { visualModel: { _type: "Tr2Model", name: "authored", meshes: [] }, nearFadeDistance: 81 }; } }
   blue.resMan.RegisterExtension("placeable", CjsLoadingObject, { Format, Target: WodPlaceableRes });
   value.placeableResPath = "res:/fixture.placeable";

@@ -31,7 +31,7 @@ function CreateBlackObjectBuilder(bytes, context)
  * Routes red and black object files to the black runtime reader on a
  * resource manager, so `LoadObject(path)` resolves to the file's root object.
  *
- * @param {object} resourceManager A CjsResMan.
+ * @param {object} resourceManager A CjsBlueResMan.
  * @returns {object} The same manager, for chaining.
  */
 export function RegisterObjectResources(resourceManager)

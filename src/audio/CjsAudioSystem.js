@@ -343,6 +343,13 @@ export class CjsAudioSystem
         {
             AudGameObjResource.backend = this.backend;
         }
+        // Blue always supplies a silent graph backend. That is not evidence that
+        // this playback system acquired its own requested audio context.
+        if (!this.backend)
+        {
+            this.manager.Disable();
+            return false;
+        }
         for (const emitter of this._adoptedEmitters)
         {
             this._RecoverInitialEvent(emitter);

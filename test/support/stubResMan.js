@@ -17,7 +17,7 @@ const RESOURCE_BY_REQUIREMENT = new Map([
   [ ResourceRequirement.AUDIO, CjsAudioRes ]
 ]);
 
-// WHY THIS EXISTS. `blue.resMan` used to be `CjsResMan.GetGlobal()`, a static
+// WHY THIS EXISTS. `blue.resMan` used to be `CjsBlueResMan.GetGlobal()`, a static
 // slot nothing in `src` ever filled - so every consumer received null and
 // skipped its acquisition in silence. A test that built a mesh with a res path
 // and asserted the geometry was null was asserting that the port was broken.
@@ -72,7 +72,7 @@ export class StubResMan extends IBlueResMan
   }
 
   /**
-   * What this manager already holds with its data, as `CjsResMan.Lookup`
+   * What this manager already holds with its data, as `CjsBlueResMan.Lookup`
    * answers. A stub loads nothing, so it holds nothing.
    */
   Lookup()

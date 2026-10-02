@@ -3,7 +3,7 @@ import { Message, Operation } from "./protocol.js";
 /**
  * Static browser-worker host that owns its operation/message vocabulary,
  * executes clone-safe source and format operations, installs the message
- * envelope, transfers owned buffers, and serializes failures for `CjsResMan`.
+ * envelope, transfers owned buffers, and serializes failures for `CjsBlueResMan`.
  */
 export class CjsResManWorker
 {

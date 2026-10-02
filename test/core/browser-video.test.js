@@ -3,7 +3,7 @@ import { FakeWebgl2, FakeRenderContext } from "../trinityal/webgl2/fakeWebgl2.js
 import assert from "node:assert/strict";
 import test from "node:test";
 import { VideoPlayer } from "../../npm/dist/core/platform/index.js";
-import { CjsResMan, RegisterVideoPlaylists, TriTextureRes } from "../../npm/dist/resource/index.js";
+import { CjsBlueResMan, RegisterVideoPlaylists, TriTextureRes } from "../../npm/dist/resource/index.js";
 import { CreateTexture, RealizeTexture } from "../../npm/dist/trinity/core/Tr2ImageIOHelpers.js";
 import { Tr2TexturedPointLight, TriTextureParameter } from "../../npm/dist/trinity/index.js";
 import { CjsWebgpuTextureAL } from "../../npm/dist/trinityal/webgpu/CjsWebgpuTextureAL.js";
@@ -124,7 +124,7 @@ test("autoplay denial waits for host Resume and does not trigger playlist retrie
 test("shared playlists advance, loop, preserve identity on replacement and clean up on manager clear", async () =>
 {
   const f=fixture(),paths=[];
-  const manager=new CjsResMan({source:{Read(path){paths.push(path);return new Uint8Array([1]);}}});
+  const manager=new CjsBlueResMan({source:{Read(path){paths.push(path);return new Uint8Array([1]);}}});
   const options={random:()=>0.999,host:f.host,createPlayer:()=>new VideoPlayer({host:f.host,getRenderContext:()=>f.render})};
   RegisterVideoPlaylists(manager,{hangarvideos:["res:/a.webm","res:/b.webm"]},options);
   const texture=manager.GetResource("dynamic:/hangarvideos");
@@ -140,7 +140,7 @@ test("shared playlists advance, loop, preserve identity on replacement and clean
 
 test("failed codec and stalled video make at most one pass through playlist", async () =>
 {
-  const f=fixture(),manager=new CjsResMan({source:{Read:()=>new Uint8Array([1])}});
+  const f=fixture(),manager=new CjsBlueResMan({source:{Read:()=>new Uint8Array([1])}});
   RegisterVideoPlaylists(manager,{hangarvideos:["res:/a.webm","res:/b.webm"]},
     {host:f.host,createPlayer:()=>new VideoPlayer({host:f.host,getRenderContext:()=>f.render})});
   const texture=manager.GetResource("dynamic:/hangarvideos");await settle();
@@ -154,7 +154,7 @@ test("failed codec and stalled video make at most one pass through playlist", as
 test("unload during a byte read ignores its late completion", async () =>
 {
   const f=fixture();let finish;
-  const manager=new CjsResMan({source:{Read:()=>new Promise(resolve=>finish=resolve)}});
+  const manager=new CjsBlueResMan({source:{Read:()=>new Promise(resolve=>finish=resolve)}});
   RegisterVideoPlaylists(manager,{hangarvideos:["res:/a.webm"]},
     {host:f.host,createPlayer:()=>new VideoPlayer({host:f.host,getRenderContext:()=>f.render})});
   manager.GetResource("dynamic:/hangarvideos");await settle();manager.Clear();

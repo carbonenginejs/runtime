@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { deflateSync } from "node:zlib";
 import test from "node:test";
-import { CjsResMan } from "../../../../../src/global/blue/CjsResMan.js";
+import { CjsBlueResMan } from "../../../../../src/global/blue/CjsBlueResMan.js";
 import CjsPngFormat, { CjsPngFormat as NamedCjsPngFormat } from "../../../../../src/resource/formats/png/index.js";
 import { LoadData } from "../../../../support/loadData.js";
 
@@ -139,7 +139,7 @@ test("resource-manager raw PNG inspection reuses its resident resource", async (
         pngChunk("pHYs", physical)
     ]);
     let reads = 0;
-    const resMan = new CjsResMan({
+    const resMan = new CjsBlueResMan({
         source: {
             Read()
             {

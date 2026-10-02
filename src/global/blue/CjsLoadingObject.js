@@ -6,7 +6,7 @@ import { ResourceHandlerMode } from "./ResourceHandlerMode.js";
  * object produced by an extension route.
  *
  * The handler reuses CjsResource lifecycle, queue, reload, and payload
- * retention mechanics. CjsResMan keeps the handler internal to its canonical
+ * retention mechanics. CjsBlueResMan keeps the handler internal to its canonical
  * cache while `GetObject()` and path-only `Fetch()` expose its payload.
  */
 export class CjsLoadingObject extends CjsResource

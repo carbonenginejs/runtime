@@ -250,10 +250,10 @@ test("isResource is declared on the class, not just the instance", () =>
 // purged handle gets it back without ever learning it was gone.
 test("a purged handle reloads into itself when something asks for it again", async () =>
 {
-  const { CjsResMan } = await import("../../../npm/dist/resource/index.js");
+  const { CjsBlueResMan } = await import("../../../npm/dist/resource/index.js");
 
   let reads = 0;
-  const resMan = new CjsResMan({
+  const resMan = new CjsBlueResMan({
     source: { Read: () => { reads += 1; return `{"value":${reads}}`; } }
   });
   resMan.RegisterObjectLoader("json", value => JSON.parse(value));
@@ -283,9 +283,9 @@ test("a purged handle declines to reload when another has claimed its identity",
 {
   // Displacing the newcomer would kill whoever holds it - the exact failure
   // this contract exists to prevent - so the stale handle stays purged.
-  const { CjsResMan } = await import("../../../npm/dist/resource/index.js");
+  const { CjsBlueResMan } = await import("../../../npm/dist/resource/index.js");
 
-  const resMan = new CjsResMan({ source: { Read: () => "{}" } });
+  const resMan = new CjsBlueResMan({ source: { Read: () => "{}" } });
   resMan.RegisterObjectLoader("json", value => JSON.parse(value));
 
   const path = "res:/data/contested.json";

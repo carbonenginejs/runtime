@@ -16,7 +16,7 @@ test("the core subpaths are import-inert and share package identities", () =>
         "--input-type=module",
         "--eval",
         `
-            const guarded = [ "document", "window", "navigator", "screen" ];
+            const guarded = [ "document", "window", "navigator", "screen", "Worker", "AudioContext", "webkitAudioContext" ];
             for (const name of guarded)
             {
                 Object.defineProperty(globalThis, name, {
@@ -31,6 +31,19 @@ test("the core subpaths are import-inert and share package identities", () =>
             const core = await import("@carbonenginejs/runtime/core");
             const platform = await import("@carbonenginejs/runtime/core/platform");
             const root = await import("@carbonenginejs/runtime");
+
+            const blue = await import("@carbonenginejs/runtime/blue");
+            const audio = await import("@carbonenginejs/runtime/audio");
+            for (const name of ["CjsBlue", "CjsBlueResMan", "CjsBlueClasses"])
+            {
+                if (root[name] !== blue[name] || typeof root[name] !== "function")
+                    throw new Error("Blue identity mismatch: " + name);
+            }
+            for (const name of ["ICjsWwiseSoundEngine", "CjsWwiseSoundEngineStub"])
+            {
+                if (root[name] !== audio[name] || typeof root[name] !== "function")
+                    throw new Error("Shared audio identity mismatch: " + name);
+            }
 
             if (core.default !== core.CjsLibrary)
             {

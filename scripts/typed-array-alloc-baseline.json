@@ -19,7 +19,7 @@
     "src/character/trinity/interior/Tr2InteriorPerLightPSData.js": 6,
     "src/character/trinity/interior/Tr2InteriorPerObjectPSData.js": 3,
     "src/character/trinity/trinityCore/Tr2SkinnedObject.js": 2,
-    "src/global/blue/CjsResMan.js": 2,
+    "src/global/blue/CjsBlueResMan.js": 2,
     "src/global/blue/RemoteFileCache.js": 1,
     "src/global/imageio/HostBitmap.js": 10,
     "src/global/logging/ccpLog.js": 1,

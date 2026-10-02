@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { CjsMotherLode } from "../../../npm/dist/global/blue/CjsMotherLode.js";
-import { CjsResMan } from "../../../npm/dist/global/blue/CjsResMan.js";
+import { CjsBlueResMan } from "../../../npm/dist/global/blue/CjsBlueResMan.js";
 import { CjsResource } from "../../../npm/dist/global/blue/CjsResource.js";
 import { CjsResManQueue as RootCjsResManQueue } from "../../../npm/dist/resource/index.js";
 import {
@@ -67,8 +67,8 @@ test("CjsResManWorkQueue limits concurrent background work", async () => {
   assert.equal(maximum, 2);
 });
 
-test("CjsResMan exposes Blue-style queue controls", async () => {
-  const resMan = new CjsResMan({ autoPumpMainThreadQueue: false });
+test("CjsBlueResMan exposes Blue-style queue controls", async () => {
+  const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false });
   const calls = [];
   const nextId = resMan.GetNextIdForQueue(CjsResManQueue.MAIN);
   const id = resMan.AddToQueue(CjsResManQueue.PREPARE, () => calls.push("prepared"));
@@ -84,10 +84,10 @@ test("CjsResMan exposes Blue-style queue controls", async () => {
   assert.equal(resMan.GetPendingPrepares(), 0);
 });
 
-test("CjsResMan queues source load, CPU read, and publication separately", async () => {
+test("CjsBlueResMan queues source load, CPU read, and publication separately", async () => {
   const calls = [];
   const bytes = new Uint8Array([ 1, 2, 3 ]);
-  const resMan = new CjsResMan({
+  const resMan = new CjsBlueResMan({
     autoPumpMainThreadQueue: false,
     maxConcurrentLoads: 1,
     source: {
@@ -142,7 +142,7 @@ test("resource variants share one queued source-load slot", async () => {
       return { emit: options.emit, value };
     }
   }
-  const resMan = new CjsResMan({
+  const resMan = new CjsBlueResMan({
     autoPumpMainThreadQueue: false,
     maxConcurrentLoads: 1,
     source: {
@@ -175,7 +175,7 @@ test("resource variants share one queued source-load slot", async () => {
 test("Wait captures dynamic resource descendants and excludes later queue tasks", async () => {
   let releaseRead;
   let releaseLaterTask;
-  const resMan = new CjsResMan({
+  const resMan = new CjsBlueResMan({
     autoPumpMainThreadQueue: false,
     maxConcurrentLoads: 2,
     source: { Read() { return new Uint8Array([ 5 ]); } }
@@ -209,7 +209,7 @@ test("Wait captures dynamic resource descendants and excludes later queue tasks"
 
 test("concurrent Wait calls preserve distinct task snapshot boundaries", async () => {
   const releases = [];
-  const resMan = new CjsResMan({ autoPumpMainThreadQueue: false });
+  const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false });
   const first = resMan.QueueTask(CjsResManQueue.MAIN, () =>
     new Promise(resolve => releases.push(resolve)));
   const firstFence = resMan.Wait({ pump: false });
@@ -235,7 +235,7 @@ test("concurrent Wait calls preserve distinct task snapshot boundaries", async (
 });
 
 test("Wait treats captured queue failure and cancellation as settlement", async () => {
-  const resMan = new CjsResMan({ autoPumpMainThreadQueue: false });
+  const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false });
   const failing = resMan.QueueTask(CjsResManQueue.MAIN, () => {
     throw new Error("expected wait failure");
   });
@@ -254,7 +254,7 @@ test("Wait treats captured queue failure and cancellation as settlement", async 
 });
 
 test("Wait resolves after a captured resource lineage fails", async () => {
-  const resMan = new CjsResMan({
+  const resMan = new CjsBlueResMan({
     autoPumpMainThreadQueue: false,
     source: { Read() { return new Uint8Array([ 1 ]); } }
   });
@@ -271,7 +271,7 @@ test("Wait resolves after a captured resource lineage fails", async () => {
 });
 
 test("Clear cancellation settles an already captured resource lineage", async () => {
-  const resMan = new CjsResMan({
+  const resMan = new CjsBlueResMan({
     autoPumpMainThreadQueue: false,
     source: { Read() { return new Uint8Array([ 1 ]); } }
   });
@@ -296,7 +296,7 @@ test("Wait excludes direct LoadResourceObject work that bypasses both queues", a
   let releaseSource;
   let directSettled = false;
   let reads = 0;
-  const resMan = new CjsResMan({
+  const resMan = new CjsBlueResMan({
     source: {
       Read()
       {
@@ -323,7 +323,7 @@ test("Wait excludes direct LoadResourceObject work that bypasses both queues", a
 });
 
 test("Wait pump false relies on an external queue driver", async () => {
-  const resMan = new CjsResMan({ autoPumpMainThreadQueue: false });
+  const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false });
   let ran = false;
   const task = resMan.QueueTask(CjsResManQueue.MAIN, () => { ran = true; });
   let waitSettled = false;
@@ -341,7 +341,7 @@ test("Wait pump false relies on an external queue driver", async () => {
 });
 
 test("Wait does not resume a paused queue", async () => {
-  const resMan = new CjsResMan({ autoPumpMainThreadQueue: false });
+  const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false });
   let ran = false;
   const task = resMan.QueueTask(CjsResManQueue.MAIN, () => { ran = true; });
   resMan.PauseQueue(CjsResManQueue.MAIN);
@@ -364,7 +364,7 @@ test("Wait does not resume a paused queue", async () => {
 
 test("Wait awaits every captured task under background concurrency", async () => {
   const releases = [];
-  const resMan = new CjsResMan({ maxConcurrentLoads: 2 });
+  const resMan = new CjsBlueResMan({ maxConcurrentLoads: 2 });
   const first = resMan.QueueTask(CjsResManQueue.BACKGROUND, () =>
     new Promise(resolve => releases.push(resolve)));
   const second = resMan.QueueTask(CjsResManQueue.BACKGROUND, () =>
@@ -387,7 +387,7 @@ test("Wait awaits every captured task under background concurrency", async () =>
 test("Clear during an active source read prevents late loading, preparation, and failure publication", async () => {
   let releaseSource;
   let loaderCalls = 0;
-  const resMan = new CjsResMan({
+  const resMan = new CjsBlueResMan({
     autoPumpMainThreadQueue: false,
     source: {
       Read()
@@ -428,7 +428,7 @@ test("Clear during an active source read prevents late loading, preparation, and
 test("Delete during an active asynchronous CPU read drops the candidate before publication", async () => {
   let releaseRead;
   let publishEvents = 0;
-  const resMan = new CjsResMan({
+  const resMan = new CjsBlueResMan({
     autoPumpMainThreadQueue: false,
     source: { Read() { return new Uint8Array([ 7 ]); } }
   });
@@ -466,7 +466,7 @@ test("Delete during an active asynchronous CPU read drops the candidate before p
 test("stale direct loads preserve their source rejection without marking the detached resource failed", async () => {
   let rejectSource;
   const expected = new Error("expected stale direct source failure");
-  const resMan = new CjsResMan({
+  const resMan = new CjsBlueResMan({
     source: {
       Read()
       {
@@ -492,7 +492,7 @@ test("stale direct loads preserve their source rejection without marking the det
 
 test("an atomic reload commits before an older canonical operation settles last", async () => {
   const sourceReleases = [];
-  const resMan = new CjsResMan({
+  const resMan = new CjsBlueResMan({
     autoPumpMainThreadQueue: false,
     maxConcurrentLoads: 2,
     source: {
@@ -544,7 +544,7 @@ test("an atomic reload commits before an older canonical operation settles last"
 test("the newest concurrent reload candidate wins regardless of settlement order", async () => {
   const sourceReleases = [];
   let reads = 0;
-  const resMan = new CjsResMan({
+  const resMan = new CjsBlueResMan({
     autoPumpMainThreadQueue: false,
     maxConcurrentLoads: 2,
     source: {
@@ -601,7 +601,7 @@ test("the newest concurrent reload candidate wins regardless of settlement order
 test("deleting the expected owner during reload prevents candidate resurrection", async () => {
   let releaseSource;
   let reads = 0;
-  const resMan = new CjsResMan({
+  const resMan = new CjsBlueResMan({
     autoPumpMainThreadQueue: false,
     source: {
       Read()
@@ -641,7 +641,7 @@ test("deleting the expected owner during reload prevents candidate resurrection"
 test("Wait and MotherLode replacement account for an active reload candidate", async () => {
   let releaseSource;
   let reads = 0;
-  const resMan = new CjsResMan({
+  const resMan = new CjsBlueResMan({
     autoPumpMainThreadQueue: false,
     source: {
       Read()
@@ -689,7 +689,7 @@ test("reinserting the same JavaScript resource handle does not reuse its obsolet
     return sharedResource;
   }
 
-  const resMan = new CjsResMan({
+  const resMan = new CjsBlueResMan({
     autoPumpMainThreadQueue: false,
     maxConcurrentLoads: 2,
     source: {
@@ -736,7 +736,7 @@ test("reinserting the same JavaScript resource handle does not reuse its obsolet
 });
 
 test("MotherLode replacement rejects active queued and direct resource mutations", async () => {
-  const queuedManager = new CjsResMan({
+  const queuedManager = new CjsBlueResMan({
     autoPumpMainThreadQueue: false,
     source: { Read() { return new Uint8Array([ 1 ]); } }
   });
@@ -768,7 +768,7 @@ test("MotherLode replacement rejects active queued and direct resource mutations
 
   let releaseDirect;
   let directReads = 0;
-  const directManager = new CjsResMan({
+  const directManager = new CjsBlueResMan({
     source: {
       Read()
       {
@@ -804,7 +804,7 @@ test("standalone direct preparation cannot publish after its canonical identity 
   let releaseRead;
   // GetResource requests the path; this source never answers, so that request
   // stays pending and the test's own direct preparation is the one observed.
-  const resMan = new CjsResMan({ source: { Read: () => new Promise(() => {}) } });
+  const resMan = new CjsBlueResMan({ source: { Read: () => new Promise(() => {}) } });
   resMan.RegisterObjectLoader("bin", bytes => new Promise(resolve => {
     releaseRead = () => resolve({ bytes });
   }));

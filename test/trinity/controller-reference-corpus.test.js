@@ -7,7 +7,7 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
-import { blue, CjsResMan } from "../../npm/dist/global/blue/index.js";
+import { blue, CjsBlueResMan } from "../../npm/dist/global/blue/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import { EveChildContainer, ExecuteMainThreadActions, Tr2ControllerReference } from "../../npm/dist/trinity/index.js";
 import { StubResMan } from "../support/stubResMan.js";
@@ -44,7 +44,7 @@ test("real fx_01a loads its stand-alone controller and animates all five rib Dif
   blue.os.GetActualTime = () => ticks;
   blue.os.GetCurrentFrameTime = () => ticks;
   let reads = 0;
-  const manager = new CjsResMan({ source: { Read(path)
+  const manager = new CjsBlueResMan({ source: { Read(path)
   {
     assert.equal(path.toLowerCase(), "res:/dx9/model/controller/shipstandard_fxstandalone.red");
     reads += 1;
