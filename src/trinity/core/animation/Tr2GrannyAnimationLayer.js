@@ -1,6 +1,5 @@
 // Source: trinity/trinity/Tr2GrannyAnimationLayer.h
 // Source: trinity/trinity/Tr2GrannyAnimationLayer.cpp
-import { CjsModel } from "#model";
 import { carbon, impl, type } from "#schema";
 import { CjsGrannyCurves } from "../../curves/track/CjsGrannyCurves.js";
 
@@ -22,7 +21,7 @@ const NEVER = Infinity;
  * seconds since its start (negative while delayed).
  */
 @type.define({ className: "Tr2GrannyAnimationLayer", family: "trinityCore/animation" })
-export class Tr2GrannyAnimationLayer extends CjsModel
+export class Tr2GrannyAnimationLayer
 {
 
   /** Carbon m_name (public, Tr2GrannyAnimationLayer.h:106). */

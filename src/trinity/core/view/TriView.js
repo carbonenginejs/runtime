@@ -2,13 +2,12 @@
 //   trinity/trinity/TriView.cpp
 //   trinity/trinity/TriView_Blue.cpp
 import { mat4 } from "#math/mat4";
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 
 
 /** The camera view matrix, together with the look-at helper that builds it. */
 @type.define({ className: "TriView", family: "trinityCore" })
-export class TriView extends CjsModel
+export class TriView
 {
 
   /** m_transform (Matrix) [READWRITE, PERSIST] */

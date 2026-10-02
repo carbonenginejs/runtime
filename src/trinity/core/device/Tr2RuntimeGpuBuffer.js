@@ -3,14 +3,13 @@ import { Tr2BufferAL } from "../../../trinityal/Tr2BufferAL/index.js";
 // Source: trinity/trinity/Tr2RuntimeGpuBuffer.cpp
 // Hand-maintained from Carbon source; the AL buffer is backend-private state.
 import { carbon, impl, type } from "#schema";
-import { CjsModel } from "#model";
 
 /**
  * An ITr2GpuBuffer over one runtime AL buffer: what `Tr2Effect::SetParameter`
  * wraps a `Tr2BufferAL` in so a buffer parameter can hold it.
  */
 @type.define({ className: "Tr2RuntimeGpuBuffer", family: "trinityCore" })
-export class Tr2RuntimeGpuBuffer extends CjsModel
+export class Tr2RuntimeGpuBuffer
 {
   /** m_buffer: the AL buffer, or null for Carbon's default-constructed one. */
   _buffer = null;

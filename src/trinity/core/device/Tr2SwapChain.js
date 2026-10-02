@@ -6,13 +6,12 @@
 // `Present` is `m_swapChain.Present(...)`, and `GetWidth`/`GetHeight` ask the
 // AL rather than reporting stored numbers. This class does the same.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { Succeeded } from "../../../trinityal/ALResult.js";
 import { Tr2SwapChainALStub } from "../../../trinityal/stub/Tr2SwapChainALStub.js";
 
 /** Tr2SwapChain (trinityCore) - generated from schema shapeHash 955529ab.... */
 @type.define({ className: "Tr2SwapChain", family: "trinityCore" })
-export class Tr2SwapChain extends CjsModel
+export class Tr2SwapChain
 {
 
   /** m_depthStencil (Tr2DepthStencilPtr) [READ] */

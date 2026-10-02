@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Tr2ShLightingManager.h
 // Source: trinity/trinity/Tr2ShLightingManager.cpp
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { blue, EnumRegistrationType } from "#blue";
 
@@ -85,7 +84,7 @@ function readFloat(value)
  * position in the scene.
  */
 @type.define({ className: "Tr2ShLightingManager", family: "trinityCore" })
-export class Tr2ShLightingManager extends CjsModel
+export class Tr2ShLightingManager
 {
 
   /** m_quality (Quality - enum Quality) [READWRITE, PERSIST, ENUM] */

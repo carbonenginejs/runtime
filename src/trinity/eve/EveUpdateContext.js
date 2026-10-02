@@ -15,13 +15,12 @@
 // rules: only reference fields (objectRef) default to null; scalars default to
 // 0 / false and fixed vectors to a zero vector.
 import { carbon, impl, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { TimeAsFloat } from "../../global/blue/CcpTime.js";
 
 /** Carries per-frame Eve timing, LOD, origin-rebasing, visibility, and runtime-composition state shared across scene updates. */
 @type.define({ className: "EveUpdateContext", family: "eve" })
-export class EveUpdateContext extends CjsModel
+export class EveUpdateContext
 {
 
   /** m_currentTime (Be::Time, 100ns ticks) */

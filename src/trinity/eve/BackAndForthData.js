@@ -1,6 +1,5 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.h
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
 import { type } from "#schema";
 
 
@@ -14,7 +13,7 @@ import { type } from "#schema";
   className: "BackAndForthData",
   family: "eve/child/behaviors"
 })
-export class BackAndForthData extends CjsModel
+export class BackAndForthData
 {
   @type.vec3
   locatorTarget = vec3.create();

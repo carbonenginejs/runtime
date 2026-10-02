@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Tr2RenderContext.h
 // Hand-maintained from Carbon source; the back buffer is backend-private state.
 import { carbon, impl, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Tr2PrimaryRenderContext (trinityCore) - generated from schema shapeHash 92b87061.... */
 @type.define({ className: "Tr2PrimaryRenderContext", family: "trinityCore" })
-export class Tr2PrimaryRenderContext extends CjsModel
+export class Tr2PrimaryRenderContext
 {
 
   /** Carbon method GetDefaultBackBuffer -> GetBackBuffer (MAP_METHOD_AND_WRAP). */

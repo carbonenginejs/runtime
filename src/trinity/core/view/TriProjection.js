@@ -2,7 +2,6 @@
 // Source: trinity/trinity/TriProjection.cpp
 // Source: trinity/trinity/TriProjection_Blue.cpp
 import { mat4 } from "#math/mat4";
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 
 
@@ -14,7 +13,7 @@ import { carbon, impl, edit, type } from "#schema";
   className: "TriProjection",
   family: "trinityCore"
 })
-export class TriProjection extends CjsModel
+export class TriProjection
 {
   static FOV = 1;
 

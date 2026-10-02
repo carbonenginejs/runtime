@@ -1,14 +1,13 @@
 // Source: trinity/trinity/Tr2ManipulationTool.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
 /** The interactive manipulator base: axis selection, drag handling and the callback a move reports through. */
 @type.define({ className: "Tr2ManipulationTool", family: "trinityCore" })
-export class Tr2ManipulationTool extends CjsModel
+export class Tr2ManipulationTool
 {
 
   /** Carbon's selected primitive/axis name. */

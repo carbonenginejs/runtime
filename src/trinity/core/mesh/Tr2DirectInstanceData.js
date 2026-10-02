@@ -2,7 +2,6 @@
 //   trinity/trinity/Tr2DirectInstanceData.cpp
 //   trinity/trinity/Tr2DirectInstanceData_Blue.cpp
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { ITr2InstanceData } from "./ITr2InstanceData/index.js";
 
@@ -13,7 +12,7 @@ import { ITr2InstanceData } from "./ITr2InstanceData/index.js";
  */
 @type.define({ className: "Tr2DirectInstanceData", family: "trinityCore" })
 @carbon.inherit(ITr2InstanceData)
-export class Tr2DirectInstanceData extends CjsModel
+export class Tr2DirectInstanceData
 {
 
   /** m_aabb.m_max (Vector3) [READ] */

@@ -5,7 +5,6 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 
 
@@ -14,7 +13,7 @@ import { carbon, impl, edit, type } from "#schema";
  * chosen blend of target materials inside it.
  */
 @type.define({ className: "EveCustomMask", family: "eve/spaceObject" })
-export class EveCustomMask extends CjsModel
+export class EveCustomMask
 {
   static CUSTOM_MASK_COUNT = 2;
 

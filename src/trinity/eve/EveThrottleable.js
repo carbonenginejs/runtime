@@ -1,6 +1,5 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveThrottleable.h
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveThrottleable.cpp
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { CjsEveThrottleableState } from "./CjsEveThrottleableState.js";
 
@@ -13,7 +12,7 @@ import { CjsEveThrottleableState } from "./CjsEveThrottleableState.js";
   className: "EveThrottleable",
   family: "eve/utils"
 })
-export class EveThrottleable extends CjsModel
+export class EveThrottleable
 {
   @edit.read
   @type.float32

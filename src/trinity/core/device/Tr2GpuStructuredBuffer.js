@@ -2,13 +2,12 @@
 // Source: trinity/trinity/Tr2GpuStructuredBuffer.cpp
 // Hand-maintained from Carbon source; promoted from generated/trinityCore.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { ALResult, Tr2BufferDescriptionAL } from "#trinityal";
 
 /** Describes the element count, stride, and creation flags of a GPU structured buffer. */
 @type.define({ className: "Tr2GpuStructuredBuffer", family: "trinityCore", purpose: "Describes the element count, stride, and creation flags of a GPU structured buffer." })
-export class Tr2GpuStructuredBuffer extends CjsModel
+export class Tr2GpuStructuredBuffer
 {
 
   /** Carbon's CreationFlag (Tr2GpuStructuredBuffer.h:30-36). */

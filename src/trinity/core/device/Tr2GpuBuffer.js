@@ -3,14 +3,13 @@
 // unported Carbon behaviour, not a boundary: Carbon holds its handles on this
 // class and calls the AL from it.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { PixelFormat, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { ALResult, Tr2BufferDescriptionAL } from "#trinityal";
 import "#blue/registerTrinityEnums";
 
 /** Tr2GpuBuffer (trinityCore) - generated from schema shapeHash 7a225a45.... */
 @type.define({ className: "Tr2GpuBuffer", family: "trinityCore" })
-export class Tr2GpuBuffer extends CjsModel
+export class Tr2GpuBuffer
 {
 
   static CreationFlags = Object.freeze({ CPU_WRITABLE: 1, GPU_WRITABLE: 2, DRAW_INDIRECT: 4 });

@@ -2,7 +2,6 @@
 //   trinity/trinity/Tr2VisibilityResults.cpp
 //   trinity/trinity/Tr2VisibilityResults_Blue.cpp
 
-import { CjsModel } from "#model";
 import { carbon, impl, type } from "#schema";
 
 /**
@@ -10,7 +9,7 @@ import { carbon, impl, type } from "#schema";
  * and portal consumers to read back.
  */
 @type.define({ className: "Tr2VisibilityResults", family: "trinityCore" })
-export class Tr2VisibilityResults extends CjsModel
+export class Tr2VisibilityResults
 {
 
   // Carbon's m_events is private transient execution state, not Blue data.

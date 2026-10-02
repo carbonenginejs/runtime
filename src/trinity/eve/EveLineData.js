@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/UI/EveLineSet.h
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsModel } from "#model";
 import { type } from "#schema";
 
 
@@ -10,7 +9,7 @@ import { type } from "#schema";
   className: "EveLineData",
   family: "eve/ui"
 })
-export class EveLineData extends CjsModel
+export class EveLineData
 {
   @type.vec3
   position1 = vec3.create();

@@ -1,5 +1,4 @@
 // Source: trinity/Include/ITr2PoseModifier.h (created by 6b7e9e5c, 2026-09-01)
-import { CjsModel } from "#model";
 import { carbon, impl, type } from "#schema";
 
 
@@ -11,7 +10,7 @@ import { carbon, impl, type } from "#schema";
  * parallel hook.
  */
 @type.define({ className: "ITr2PoseModifier", family: "trinityCore/animation" })
-export class ITr2PoseModifier extends CjsModel
+export class ITr2PoseModifier
 {
 
   /**

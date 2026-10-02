@@ -1,5 +1,4 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline.h
-import { CjsModel } from "#model";
 import { type } from "#schema";
 
 
@@ -13,7 +12,7 @@ import { type } from "#schema";
   className: "FollowASplineData",
   family: "eve/child/behaviors"
 })
-export class FollowASplineData extends CjsModel
+export class FollowASplineData
 {
   @type.int32
   tunnelLock = -1;

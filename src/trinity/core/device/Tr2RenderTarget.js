@@ -15,7 +15,6 @@ import { Tr2TextureAL } from "../../../trinityal/Tr2TextureAL/index.js";
 // The `@edit.read` properties are the Blue READ projection, refreshed wherever
 // the texture changes.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { ExFlag, PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { ALResult } from "#trinityal";
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
@@ -50,7 +49,7 @@ function GetUsage(msaaType, flags)
 
 /** Holds a render-target texture and the parameters it was created with. */
 @type.define({ className: "Tr2RenderTarget", family: "trinityCore" })
-export class Tr2RenderTarget extends CjsModel
+export class Tr2RenderTarget
 {
 
   /** m_name (std::string) [PERSISTONLY] */

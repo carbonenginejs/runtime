@@ -1,12 +1,11 @@
 // Source: trinity/trinity/Tr2LineGraph.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec4 } from "#math/vec4";
 
 /** A rolling sample history with named markers and running statistics, drawn as a line graph. */
 @type.define({ className: "Tr2LineGraph", family: "trinityCore" })
-export class Tr2LineGraph extends CjsModel
+export class Tr2LineGraph
 {
 
   #currentIndex = 0;

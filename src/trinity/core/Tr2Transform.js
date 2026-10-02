@@ -3,7 +3,6 @@
 // Source: trinity/trinity/Tr2Transform_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; complete portable behavior lives here.
 import { TriBatchType } from "#consts/graphics";
-import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { carbon, impl, edit, type } from "#schema";
@@ -128,7 +127,7 @@ function carbonLookAt(out, eye, target, up, forward, right, realUp)
 /** Common transform, curve, mesh, sorting, and camera-modifier behavior. */
 @type.define({ className: "Tr2Transform", family: "trinityCore" })
 @carbon.inherit(ITr2Renderable)
-export class Tr2Transform extends CjsModel
+export class Tr2Transform
 {
 
   /** Advances authored curve sets while update is enabled. */

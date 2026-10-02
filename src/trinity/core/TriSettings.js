@@ -1,6 +1,5 @@
 // Source: trinity/trinity/TriSettings.h
 //   trinity/trinity/TriSettings_Blue.cpp
-import { CjsModel } from "#model";
 import { carbon, impl, type } from "#schema";
 
 
@@ -16,7 +15,7 @@ import { carbon, impl, type } from "#schema";
  * no engine global (ccpwgl registers its switches this way).
  */
 @type.define({ className: "TriSettings", family: "trinityCore" })
-export class TriSettings extends CjsModel
+export class TriSettings
 {
   /** m_map: name -> { valueType, owner, key }; the value is owner[key]. */
   _settings = new Map();

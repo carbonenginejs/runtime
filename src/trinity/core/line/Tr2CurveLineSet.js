@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Tr2CurveLineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -83,7 +82,7 @@ function sphericalToCartesian(value, center)
 /** A line set that draws curved and sphere-projected lines by tessellating them into straight segments. */
 @type.define({ className: "Tr2CurveLineSet", family: "trinityCore" })
 @carbon.inherit(ITr2Renderable)
-export class Tr2CurveLineSet extends CjsModel
+export class Tr2CurveLineSet
 {
 
   /** CPU-side Carbon LineData records; live vertex buffers belong to a renderer. */

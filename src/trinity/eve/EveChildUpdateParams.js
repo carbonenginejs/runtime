@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/IEveSpaceObjectChild.h
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
 import { type } from "#schema";
 
 
@@ -15,7 +14,7 @@ import { type } from "#schema";
   className: "EveChildUpdateParams",
   family: "eve/child"
 })
-export class EveChildUpdateParams extends CjsModel
+export class EveChildUpdateParams
 {
   @type.objectRef("IEveSpaceObject2")
   spaceObjectParent = null;

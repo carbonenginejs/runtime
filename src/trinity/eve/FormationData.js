@@ -1,5 +1,4 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/Formation.h
-import { CjsModel } from "#model";
 import { type } from "#schema";
 
 
@@ -12,7 +11,7 @@ import { type } from "#schema";
   className: "FormationData",
   family: "eve/child/behaviors"
 })
-export class FormationData extends CjsModel
+export class FormationData
 {
   @type.int32
   assignedSlot = -1;

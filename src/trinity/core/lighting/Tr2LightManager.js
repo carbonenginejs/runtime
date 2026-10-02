@@ -26,7 +26,6 @@
 // packed flag word, the premultiply and the fade band; the packing below
 // cites it rather than re-deriving it.
 
-import { CjsModel } from "#model";
 import { carbon, edit, impl, type } from "#schema";
 import { num } from "#math/num";
 import { vec3 } from "#math/vec3";
@@ -121,7 +120,7 @@ const toHalf = num.toHalfFloat;
 
 /** Owns the frame's local-light records, their selection, and the packed light-buffer bytes the abstraction layer uploads. */
 @type.define({ className: "Tr2LightManager", family: "trinityCore" })
-export class Tr2LightManager extends CjsModel
+export class Tr2LightManager
 {
 
   // Carbon m_lightData after the TLS flatten: the frame's accepted records,
