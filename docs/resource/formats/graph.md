@@ -28,23 +28,22 @@ The text envelope is `{ "format": "cjs.graph", "version": 1, "root": ... }`.
 The binary wire identifier is `cjs.graph.binary`. These identifiers are independent
 of facade names. Versions describe file grammar, never class revisions.
 
-## Choosing and registering
+## Choosing a format
 
-Call either facade directly, or explicitly register it in `CjsFormatStore`:
+Call `CjsGraphFormat` or `CjsGraphBinaryFormat` directly. If the format is unknown,
+check the header with each facade's `is(bytes)` before calling `read(bytes)`:
 
 ```js
-store.Register(CjsGraphFormat, { byName: true });
-store.Register(CjsGraphBinaryFormat, { byName: true });
-const explicit = store.Resolve("CjsGraphFormat");
-const detected = store.Resolve(null, bytes);
-const result = detected.Read(bytes);
+const Format = CjsGraphFormat.is(bytes) ? CjsGraphFormat
+    : CjsGraphBinaryFormat.is(bytes) ? CjsGraphBinaryFormat : null;
+if (Format) {
+    const result = Format.read(bytes);
+}
 ```
 
-Here `store` is a `CjsFormatStore` instance. `Resolve(null, bytes)` checks headers
-only among named registrations and returns `null` when none match. Explicit IDs
-are case-sensitive. `Extensions()` remains empty for these registrations.
-ResMan and SOF integration are later migration steps; these formats do not install
-services, fetch resources or register domain classes.
+ResMan registration is deferred until there is a real caller and will use
+ResMan's existing registration mechanism. These formats do not install services,
+fetch resources or register domain classes.
 
 ## Values and runtime instances
 
