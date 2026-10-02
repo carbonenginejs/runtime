@@ -118,6 +118,7 @@ import "../../../../npm/dist/audio/index.js";
 import { EveSOF } from "../../../../npm/dist/sof/index.js";
 import { RegisterGeometryResources } from "../../../../npm/dist/resource/index.js";
 import { RegisterObjectResources } from "../../../../npm/dist/resource/object/index.js";
+import { DEMO_VIDEO_PLAYLISTS } from "./demoVideoPlaylists.js";
 import { hydrateDemoShip, retireDemoShips, replaceDemoShip } from "./demoShipLifetime.js";
 import { createDemoSkinChange, resolveDemoDefaultDna } from "./demoSkinSelection.js";
 import { createDemoFramePump } from "./demoFramePump.js";
@@ -140,7 +141,8 @@ import {
   RegisterSolidColorTexture,
   RegisterTextureArray,
   RegisterTexturePack,
-  RegisterTextureResources
+  RegisterTextureResources,
+  RegisterVideoPlaylists
 } from "../../../../npm/dist/resource/index.js";
 import { CjsCmfFormat } from "../../../../npm/dist/resource/formats/cmf/index.js";
 import { RenderingMode, TriBatchType } from "../../../../npm/dist/global/consts/graphics/index.js";
@@ -2451,6 +2453,7 @@ RegisterTextureResources(blue.resMan);
 RegisterSolidColorTexture(blue.resMan);
 RegisterTextureArray(blue.resMan);
 RegisterTexturePack(blue.resMan);
+RegisterVideoPlaylists(blue.resMan, DEMO_VIDEO_PLAYLISTS);
 RegisterShaderResources(blue.resMan, { translator: CjsWebgpuFormat });
 // A SOF ship's Tr2Mesh asks the manager for its .gr2 as GEOMETRY.
 RegisterGeometryResources(blue.resMan);
