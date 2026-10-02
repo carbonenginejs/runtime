@@ -8,6 +8,7 @@ import * as CcpLog from "../global/logging/ccpLog.js";
 const DEFAULT_BASE_PATH = "res:/dx9/model/spaceobjectfactory";
 const GENERIC_FILE_NAME = "generic.black";
 const NONE = "none";
+const OPTIONAL_LAYOUT = Symbol("optional layout catalog");
 const CATALOGS = {
   hull: {
     directory: "hulls",
@@ -83,6 +84,15 @@ export class CjsSofLibraryBuilder
   _readObject;
 
   _pending = new Map();
+
+  /** Failed source reads, keyed by their resource paths; cleared on successful retry. */
+  _loadErrors = new Map();
+
+  /** Returns resource failures without changing the source resource's error state. */
+  GetLoadErrors()
+  {
+    return Array.from(this._loadErrors, ([path, error]) => ({ path, error }));
+  }
 
   _bootOperation = null;
 
@@ -339,7 +349,7 @@ export class CjsSofLibraryBuilder
 
     const key = `${kind}:${request.name}`;
     const existing = this._pending.get(key);
-    if (existing) return existing;
+    if (existing) return this._ResolveNamedOperation(existing, request.path, options);
 
     const operation = (async () =>
     {
@@ -367,7 +377,24 @@ export class CjsSofLibraryBuilder
       if (this._pending.get(key) === operation) this._pending.delete(key);
     };
     operation.then(clear, clear);
-    return operation;
+    return this._ResolveNamedOperation(operation, request.path, options);
+  }
+
+  /** Applies optionality per caller, never to the shared pending source read. */
+  async _ResolveNamedOperation(operation, path, options)
+  {
+    try
+    {
+      return await operation;
+    }
+    catch (error)
+    {
+      if (!options[OPTIONAL_LAYOUT] || options.signal?.aborted || error?.name === "AbortError"
+        || this._loadErrors.get(path) !== error) throw error;
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"),
+        "SOF layout resource %s failed to load: %s", path, String(error));
+      return null;
+    }
   }
 
   /** Validates one fetched named record and updates the source and manager. */
@@ -419,7 +446,12 @@ export class CjsSofLibraryBuilder
     ]).map(name => this.FetchMaterial(name, options)));
   }
 
-  /** Recursively loads one layout and every catalog named by its descriptors. */
+  /**
+   * Loads optional layout catalogs independently. A failed source read remains
+   * an error on its own path, while the planner skips invalid extension DNA
+   * and retains available siblings. Root requirements never use this policy.
+   * Custom: Carbon's monolithic catalog needs no asynchronous per-file boundary.
+   */
   async _EnsureLayout(layoutName, context, visited, options)
   {
     const name = normalizeCatalogName(layoutName, "layout");
@@ -427,6 +459,7 @@ export class CjsSofLibraryBuilder
     if (visited.has(key)) return;
     visited.add(key);
 
+    options = { ...options, [OPTIONAL_LAYOUT]: true };
     const layout = await this.FetchLayout(name, options);
     const descriptors = collectLayoutDescriptors(layout?.placements ?? []);
     for (const descriptor of descriptors)
@@ -462,7 +495,17 @@ export class CjsSofLibraryBuilder
   /** Reads one source result and normalizes decoded objects or Black bytes. */
   async _Read(path, context)
   {
-    return normalizeSofObject(await this._readObject(path, context), path);
+    try
+    {
+      const value = await normalizeSofObject(await this._readObject(path, context), path);
+      this._loadErrors.delete(path);
+      return value;
+    }
+    catch (error)
+    {
+      this._loadErrors.set(path, error);
+      throw error;
+    }
   }
 
 }
