@@ -361,14 +361,27 @@ export class BehaviorGroupBooster
     }
   }
 
-  /** Carbon OnModified refreshes flare templates and removes detached effects. */
+  /**
+   * Carbon OnModified refreshes flare templates and removes detached effects
+   * (BehaviorGroupBooster.cpp:143-175). JS coalesces changed names: rebuild once,
+   * then clear each detached list so another edit cannot regrow it in this call.
+   * Carbon registers replacements through its global quad renderer; our scene
+   * owns that renderer, so submission registers the current effect before use.
+   */
   @meta.blue.method
   @meta.adapted
   OnModified(value)
   {
-    if (IsMatch(value, "haloFlareEffect") && !this.haloFlareEffect) this._haloFlares.length = 0;
-    else if (IsMatch(value, "ambientFlareEffect") && !this.ambientFlareEffect) this._ambientFlares.length = 0;
-    else this.SetupQuads();
+    let clearHalo = false, clearAmbient = false, setup = false;
+    for (const name of Array.isArray(value) ? value : [value])
+    {
+      if (IsMatch(name, "haloFlareEffect") && !this.haloFlareEffect) clearHalo = true;
+      else if (IsMatch(name, "ambientFlareEffect") && !this.ambientFlareEffect) clearAmbient = true;
+      else setup = true;
+    }
+    if (setup) this.SetupQuads();
+    if (clearHalo) this._haloFlares.length = 0;
+    if (clearAmbient) this._ambientFlares.length = 0;
     return true;
   }
 
@@ -526,7 +539,13 @@ export class BehaviorGroupBooster
     }
   }
 
-  /** Submits the native flare lists with their independent display switches. */
+  /**
+   * Submits the native flare lists with their independent display switches.
+   * Registration is idempotent and deferred to the scene-owned renderer: edits
+   * before scene attachment and replacement effects reach the correct bucket,
+   * including when a booster is shared by scenes. Old buckets may have other
+   * owners and remain registered, as in Carbon's InitializeHalo/AmbientFlare.
+   */
   @meta.blue.method
   @meta.adapted
   AddQuadsToQuadRenderer(_frustum, quadRenderer)
@@ -538,8 +557,11 @@ export class BehaviorGroupBooster
     ])
     {
       if (!effect || !display || !quads.length) continue;
+      const key = effect.GetHashValue();
+      quadRenderer.RegisterEffect(key, TriBatchType.TRIBATCHTYPE_ADDITIVE,
+        QUAD_INSTANCE_SIZE, 1, EveChildQuad.GetQuadDefinition(), effect);
       for (let index = 0; index < this.flareCount; index++)
-        quadRenderer.AddQuads(effect.GetHashValue(), packQuadInstanceData(quads[index], this._quadBytes), 1);
+        quadRenderer.AddQuads(key, packQuadInstanceData(quads[index], this._quadBytes), 1);
     }
   }
 

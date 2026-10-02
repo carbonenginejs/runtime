@@ -246,7 +246,7 @@ test("booster batches and flare quads retain the existing AL and quad contracts"
   booster.AddFlare(mat4.create(), 0, 1, 0, 5, 2);
   assert.equal(booster._ambientFlares[0].brightness[0], 2);
   const submitted = [];
-  booster.AddQuadsToQuadRenderer(null, {AddQuads: (...args) => submitted.push(args)});
+  booster.AddQuadsToQuadRenderer(null, {RegisterEffect() {}, AddQuads: (...args) => submitted.push(args)});
   assert.equal(submitted.length, 1);
   assert.equal(submitted[0][1].byteLength, 108);
   booster.displayAmbientFlare = false;
