@@ -5,8 +5,8 @@
 import { ccpHashFnv1 } from "#utils/hash";
 import { color } from "#math/color";
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
-import { carbon, impl, edit, type } from "#schema";
+import { IInitialize, INotify } from "#blue";
+import { CjsSchema, carbon, impl, edit, type } from "#schema";
 import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 
 
@@ -16,8 +16,8 @@ import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
  * turbulence and gravity terms the simulation applies.
  */
 @type.define({ className: "Tr2GpuSharedEmitter", family: "particle" })
-@carbon.inherit(ITr2GenericEmitter)
-export class Tr2GpuSharedEmitter extends CjsModel
+@carbon.inherit(ITr2GenericEmitter, IInitialize, INotify)
+export class Tr2GpuSharedEmitter
 {
   @edit.readwrite
   @edit.persist
@@ -556,7 +556,7 @@ export class Tr2GpuSharedEmitter extends CjsModel
   }
 
   /**
-   * Projects Carbon's emitter and particle-parameter structs onto the schema-backed fields in one batched, event-free update followed by a single UpdateValues.
+   * Projects Carbon's emitter and particle-parameter structs onto the schema-backed fields in one event-free write, then copies native runtime structs and hashes them once.
    * @param {object} emitterData emission shape and speed range; missing members fall back to the current values
    * @param {object} paramsData per-particle parameters; colors may be supplied either as a colors array or as color0..color3
    * attractorStrength is only forwarded on subclasses that declare it.
@@ -596,7 +596,7 @@ export class Tr2GpuSharedEmitter extends CjsModel
       values.attractorStrength = parameters.attractorStrength;
     }
 
-    this.SetValues(values, { source: this, skipEvents: true, skipUpdate: true });
+    CjsSchema.setValues(this, values, { markDirty: false, notify: false, skipEvents: true });
     this._ReadParameters();
     for (const name of ["position", "positionPrevious", "direction", "directionPrevious", "velocity", "velocityPrevious", "unused"])
     {
@@ -610,7 +610,7 @@ export class Tr2GpuSharedEmitter extends CjsModel
     if (parameters.attractorStrength !== undefined) this._params.attractorStrength = parameters.attractorStrength;
     this.UpdateHash();
     this.GenerateID();
-    this.UpdateValues({ source: this, skipEvents: true });
+    this._revision++;
   }
 
   /**
@@ -715,3 +715,5 @@ const SPAWN_VELOCITY_START = vec3.create();
 const SPAWN_VELOCITY_END = vec3.create();
 const HASH_BYTES = new Uint8Array(132);
 const HASH_DATA = new DataView(HASH_BYTES.buffer);
+
+carbon.interfaceTable({ interfaces: [Tr2GpuSharedEmitter, IInitialize, INotify, ITr2GenericEmitter], chainTo: null })(Tr2GpuSharedEmitter, { kind: "class" });

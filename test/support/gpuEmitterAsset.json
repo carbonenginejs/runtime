@@ -1,0 +1,59 @@
+{
+  "source": "res:/dx9/model/artifact/universal/ballandpillar/ubp01/effects/ubp01_fx.black",
+  "md5": "99cb09ce766fabc469e9fd6f0004f04d",
+  "object": {
+    "_type": "Tr2GpuUniqueEmitter",
+    "attractorStrength": -100,
+    "name": "GPU_Particle",
+    "maxEmissionDensity": 1,
+    "maxDisplacement": 10000,
+    "direction": [
+      1,
+      0,
+      0
+    ],
+    "angle": 2,
+    "radius": 10,
+    "inheritVelocity": 0,
+    "minSpeed": 1500,
+    "maxSpeed": 6000,
+    "minLifeTime": 0.20000000298023224,
+    "maxLifeTime": 0.44999998807907104,
+    "sizes": [
+      1,
+      70,
+      0
+    ],
+    "sizeVariance": 5,
+    "color0": [
+      0.3333333134651184,
+      0.5058823823928833,
+      1,
+      1
+    ],
+    "color1": [
+      0.2705881893634796,
+      0.615686297416687,
+      1,
+      1
+    ],
+    "color2": [
+      0.3294118046760559,
+      0.5058823823928833,
+      1,
+      1
+    ],
+    "color3": [
+      0.2705881893634796,
+      0.615686297416687,
+      1,
+      1
+    ],
+    "velocityStretchRotation": -0.10000000149011612,
+    "drag": 1,
+    "turbulenceAmplitude": 14130,
+    "turbulenceFrequency": 2,
+    "gravity": 1,
+    "_id": 16
+  }
+}

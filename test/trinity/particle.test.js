@@ -183,13 +183,13 @@ test("GPU emitter Setup projects CPU descriptors onto its authored model fields"
   assertVector(emitter.sizes, [2, 3, 4]);
   assertVector(emitter.color2, [0, 0, 1, 1]);
 
-  const exported = emitter.GetValues();
+  const exported = CjsSchema.getValues(emitter);
   exported.sizes[0] = 50;
   exported.color2[2] = 50;
   assertVector(emitter.sizes, [2, 3, 4]);
   assertVector(emitter.color2, [0, 0, 1, 1]);
 
-  emitter.SetValues({
+  CjsSchema.setValues(emitter, {
     minSpeed: 13,
     sizes: [6, 7, 8],
     color2: [0.25, 0.5, 0.75, 1],

@@ -184,3 +184,5 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
 
   static _nextID = 0;
 }
+
+carbon.interfaceTable({ interfaces: [Tr2GpuUniqueEmitter], chainTo: Tr2GpuSharedEmitter })(Tr2GpuUniqueEmitter, { kind: "class" });
