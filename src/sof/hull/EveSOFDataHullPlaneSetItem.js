@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { EveSOFDataBlinkType } from "../shared/EveSOFDataBlinkType.js";
 import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.js";
 import { quat } from "#math/quat";
@@ -10,7 +9,7 @@ import { vec4 } from "#math/vec4";
 
 /** Defines a plane item's transform, colors, blink and UV scrolling, atlas selection, groups, intensity, and point-light contribution. */
 @type.define({ className: "EveSOFDataHullPlaneSetItem", family: "eve" })
-export class EveSOFDataHullPlaneSetItem extends CjsModel
+export class EveSOFDataHullPlaneSetItem
 {
   static BlinkType = EveSOFDataBlinkType.BlinkType;
 

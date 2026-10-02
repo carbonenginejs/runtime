@@ -2,12 +2,11 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
-import { CjsModel } from "#model";
 import { vec2 } from "#math/vec2";
 
 /** Groups plane items with usage, texture, atlas, visibility, and skinning policy. */
 @type.define({ className: "EveSOFDataHullPlaneSet", family: "eve" })
-export class EveSOFDataHullPlaneSet extends CjsModel
+export class EveSOFDataHullPlaneSet
 {
 
   /** m_usage (Usage - enum Usage) [READWRITE, PERSIST, ENUM] */

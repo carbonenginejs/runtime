@@ -2,13 +2,12 @@
 // Maintained but intentionally unexported until the row-major Blue wrapper has
 // an explicit conversion contract with column-major runtime math matrices.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /**
  * Unexported current Carbon row-major scripting matrix pending an explicit conversion contract.
  */
 @type.define({ className: "TriMatrix", family: "trinityCore" })
-export class TriMatrix extends CjsModel
+export class TriMatrix
 {
 
   /** _11 (unknown) [READWRITE, PERSIST] */

@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Groups child-resource placements under a named visibility identity. */
 @type.define({ className: "EveSOFDataHullChildSet", family: "eve" })
-export class EveSOFDataHullChildSet extends CjsModel
+export class EveSOFDataHullChildSet
 {
 
   /** m_visibilityGroup (BlueSharedString) [READWRITE, PERSIST] */

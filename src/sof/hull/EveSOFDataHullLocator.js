@@ -1,12 +1,11 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 
 /** Stores a named hull locator and its transformation matrix. */
 @type.define({ className: "EveSOFDataHullLocator", family: "eve" })
-export class EveSOFDataHullLocator extends CjsModel
+export class EveSOFDataHullLocator
 {
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */

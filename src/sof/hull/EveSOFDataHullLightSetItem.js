@@ -1,13 +1,12 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.js";
 import { vec3 } from "#math/vec3";
 
 /** Provides the common faction, flag, bone, position, radius, brightness, and noise fields shared by point, textured-point, and spot lights. */
 @type.define({ className: "EveSOFDataHullLightSetItem", family: "eve" })
-export class EveSOFDataHullLightSetItem extends CjsModel
+export class EveSOFDataHullLightSetItem
 {
   static ColorType = EveSOFDataFactionColorSet.ColorType;
 

@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Groups named hull light items and their visibility policy. */
 @type.define({ className: "EveSOFDataHullLightSet", family: "eve" })
-export class EveSOFDataHullLightSet extends CjsModel
+export class EveSOFDataHullLightSet
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */

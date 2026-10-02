@@ -1,12 +1,11 @@
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /**
  * One source relationship whose target record does not exist: the owning
  * member holds null, and this records which identity it named.
  */
 @type.define({ className: "CjsCharacterUnresolvedRelationship", family: "character" })
-export class CjsCharacterUnresolvedRelationship extends CjsModel
+export class CjsCharacterUnresolvedRelationship
 {
 
     /** The document holding the relationship, such as `paperdolls`. */

@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Names a controller resource path and its build filter, deriving the controller name from the path. */
 @type.define({ className: "EveSOFDataHullController", family: "eve" })
-export class EveSOFDataHullController extends CjsModel
+export class EveSOFDataHullController
 {
 
   /** m_buildFilter (uint32_t) [READWRITE, PERSIST] */

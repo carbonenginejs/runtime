@@ -2,14 +2,13 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
-import { CjsModel } from "#model";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { EveSOFDataHullBanner } from "./EveSOFDataHullBanner.js";
 
 /** Places one banner by usage, bone, and transform, with optional point-light, aspect-scale, and curvature settings. */
 @type.define({ className: "EveSOFDataHullBannerSetItem", family: "eve" })
-export class EveSOFDataHullBannerSetItem extends CjsModel
+export class EveSOFDataHullBannerSetItem
 {
 
   static Usage = Object.freeze({

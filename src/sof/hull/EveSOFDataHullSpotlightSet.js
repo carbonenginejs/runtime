@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Groups spotlight items with cone, glow, and flare textures plus skinning, depth, and visibility policy. */
 @type.define({ className: "EveSOFDataHullSpotlightSet", family: "eve" })
-export class EveSOFDataHullSpotlightSet extends CjsModel
+export class EveSOFDataHullSpotlightSet
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */

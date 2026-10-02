@@ -3,7 +3,6 @@
 // Source: trinity/trinity/Wod/WodBakingScene_Blue.cpp
 // CarbonEngineJS maintained source.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /**
  * Baking-scene record pairing a skinned avatar with a diagnostic visualization
@@ -12,7 +11,7 @@ import { CjsModel } from "#model";
  * leaves render-target realization to an engine adapter.
  */
 @type.define({ className: "WodBakingScene", family: "wod" })
-export class WodBakingScene extends CjsModel
+export class WodBakingScene
 {
 
   /** m_visualizeMethod (VisualizeMethod - enum VisualizeMethod) [READWRITE, ENUM, NOTIFY] */

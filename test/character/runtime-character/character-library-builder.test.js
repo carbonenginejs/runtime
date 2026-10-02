@@ -1,3 +1,4 @@
+import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -594,7 +595,7 @@ test("adds already-hydrated editor records without cloning or rehydrating them",
     );
     const resource = new CjsCharacterResource();
 
-    resource.SetValues({
+    CjsSchema.setValues(resource, {
         recordID: "22",
         resPath: "res:/example/topouter/definition",
         typeID: "9002",
@@ -793,7 +794,7 @@ test("rebuilds private record indexes after direct editor mutation", () =>
     const replacement = new CjsCharacterRace();
 
     assert.ok(library.Get("races", 3));
-    replacement.SetValues({ recordID: "5", nameID: "1005" });
+    CjsSchema.setValues(replacement, { recordID: "5", nameID: "1005" });
     replacement.recordID = 5;
     library.documents.races[0] = replacement;
 

@@ -13,7 +13,7 @@ import {
 
 test("historical Incarna records hydrate directly from plain JSON", () =>
 {
-  const cell = Tr2InteriorCell.from({
+  const cell = CjsSchema.from("Tr2InteriorCell", {
     isUnbounded: true,
     shProbeResPath: "res:/synthetic/interior/example.shp"
   });

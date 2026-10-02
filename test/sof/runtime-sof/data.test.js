@@ -1120,7 +1120,7 @@ test("SOF light-set records carry Carbon nominal identity with per-type Blue sur
   assert.equal(CjsSchema.getField(EveSOFDataHullLightSetTexturedPointLight, "lightColor"), null);
   assert.ok(CjsSchema.getField(EveSOFDataHullLightSetTexturedPointLight, "texturePath"));
   assert.ok(CjsSchema.getField(EveSOFDataHullLightSetTexturedPointLight, "brightness"));
-  assert.equal("lightColor" in textured.GetValues(), false);
+  assert.equal("lightColor" in CjsSchema.getValues(textured), false);
   textured.lightColor = 3;
   assert.equal(textured.lightColor, 3);
 

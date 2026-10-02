@@ -1,10 +1,9 @@
 // Source: trinity/trinity/Tr2GStateAnimation.h
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Character GState animation record for an external state-machine adapter. */
 @type.define({ className: "Tr2GStateAnimation", family: "trinityCore" })
-export class Tr2GStateAnimation extends CjsModel
+export class Tr2GStateAnimation
 {
 
   /** m_resPath (std::string) [PERSISTONLY] */

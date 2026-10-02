@@ -1,13 +1,12 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.js";
 import { vec3 } from "#math/vec3";
 
 /** Defines a faction-aware sprite with bone-relative position, blink, scale, falloff, intensity, saturation, and point-light data. */
 @type.define({ className: "EveSOFDataHullSpriteSetItem", family: "eve" })
-export class EveSOFDataHullSpriteSetItem extends CjsModel
+export class EveSOFDataHullSpriteSetItem
 {
   static ColorType = EveSOFDataFactionColorSet.ColorType;
 

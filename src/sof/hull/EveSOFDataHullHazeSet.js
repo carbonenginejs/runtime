@@ -2,11 +2,10 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
-import { CjsModel } from "#model";
 
 /** Groups named haze items with spherical-type, visibility, and skinning policy. */
 @type.define({ className: "EveSOFDataHullHazeSet", family: "eve" })
-export class EveSOFDataHullHazeSet extends CjsModel
+export class EveSOFDataHullHazeSet
 {
 
   /** m_hazeType (HazeType - enum HazeType) [READWRITE, PERSIST, ENUM] */

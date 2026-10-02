@@ -2,13 +2,12 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
-import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
 /** Carbon-authored hull record. */
 @type.define({ className: "EveSOFDataHull", family: "eve" })
-export class EveSOFDataHull extends CjsModel
+export class EveSOFDataHull
 {
 
   static BuildClass = Object.freeze({

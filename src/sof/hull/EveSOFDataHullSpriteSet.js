@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Groups named sprite items with visibility and skinning policy. */
 @type.define({ className: "EveSOFDataHullSpriteSet", family: "eve" })
-export class EveSOFDataHullSpriteSet extends CjsModel
+export class EveSOFDataHullSpriteSet
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */

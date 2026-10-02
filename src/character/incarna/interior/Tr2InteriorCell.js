@@ -1,6 +1,5 @@
 // Historical Incarna hydration contract reviewed from complete Black records.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /**
  * Minimal persisted cell record used by historical Incarna interior scenes.
@@ -12,7 +11,7 @@ import { CjsModel } from "#model";
  * the reviewed records, not from a port.
  */
 @type.define({ className: "Tr2InteriorCell", family: "incarna" })
-export class Tr2InteriorCell extends CjsModel
+export class Tr2InteriorCell
 {
 
   /** Persisted unbounded-cell flag observed in reviewed historical records. */

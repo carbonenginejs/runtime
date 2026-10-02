@@ -1,14 +1,13 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
 /** Defines a faction-aware haze item with bone-relative transform, brightness, falloff, saturation, booster influence, and point-light data. */
 @type.define({ className: "EveSOFDataHullHazeSetItem", family: "eve" })
-export class EveSOFDataHullHazeSetItem extends CjsModel
+export class EveSOFDataHullHazeSetItem
 {
   static ColorType = EveSOFDataFactionColorSet.ColorType;
 

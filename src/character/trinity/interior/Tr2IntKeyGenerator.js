@@ -1,10 +1,9 @@
 // Source: trinity/trinity/Interior/Tr2InteriorRenderBatch.h
 import { carbon, impl, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Stable-sort policy for interior render batches. */
 @type.define({ className: "Tr2IntKeyGenerator", family: "interior" })
-export class Tr2IntKeyGenerator extends CjsModel
+export class Tr2IntKeyGenerator
 {
 
   /** Carbon static comparator for interior render batches. */

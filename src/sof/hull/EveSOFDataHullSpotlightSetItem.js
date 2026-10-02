@@ -1,14 +1,13 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 
 /** Defines a faction-aware spotlight placement with group and booster policy, cone, flare, sprite, saturation, scale, and typed spotlight-light data. */
 @type.define({ className: "EveSOFDataHullSpotlightSetItem", family: "eve" })
-export class EveSOFDataHullSpotlightSetItem extends CjsModel
+export class EveSOFDataHullSpotlightSetItem
 {
   static ColorType = EveSOFDataFactionColorSet.ColorType;
 
