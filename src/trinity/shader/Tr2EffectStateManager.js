@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 import { Tr2BufferAL } from "../../trinityal/Tr2BufferAL/index.js";
 // Source: trinity/trinity/Shader/Tr2EffectStateManager.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -296,7 +297,7 @@ function samplerSignatureKey(samplers)
   const entries = [ ...samplers.entries() ]
     .map(([ register, setup ]) => [
       Number(register),
-      typeof setup?.GetValues === "function" ? setup.GetValues() : setup ?? null
+      setup == null ? null : CjsSchema.getClassName(setup.constructor) ? CjsSchema.getValues(setup) : setup
     ])
     .sort((left, right) => left[0] - right[0]);
   return JSON.stringify(entries);

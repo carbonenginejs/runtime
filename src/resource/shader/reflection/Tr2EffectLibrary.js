@@ -1,7 +1,8 @@
+import { DictReader } from "#blue/DictReader";
+import "#blue/values";
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
 import { CjsSchema, impl, type } from "#schema";
-import { CjsModel } from "#model";
 import {
 } from "#utils/is";
 import { copyBytes } from "#utils/bytes";
@@ -14,7 +15,7 @@ import {
 } from "./carbonRecordFields.js";
 
 /** Reflected shader-library metadata. */
-export class Tr2EffectLibrary extends CjsModel
+export class Tr2EffectLibrary
 {
 
   /** payloadSize (uint32_t) */
@@ -60,12 +61,22 @@ export class Tr2EffectLibrary extends CjsModel
    * Construct one canonical library from JS/JSON model values.
    *
    * @param {object} values Canonical model values.
-   * @param {object} options CjsModel import options.
+   * @param {object} options Schema import options.
    * @returns {Tr2EffectLibrary} Hydrated library.
    */
   static from(values = {}, options = {})
   {
+    if (!CjsSchema.assertValues(values, "Tr2EffectLibrary.from")) values = {};
     let normalized = values;
+    // JSON carries program bytes as numbers; restore the owned byte buffer
+    // before the raw source-program record crosses the dictionary reader.
+    if (Array.isArray(values.sourceProgram?.bytes))
+    {
+      normalized = {
+        ...values,
+        sourceProgram: { ...values.sourceProgram, bytes: new Uint8Array(values.sourceProgram.bytes) } // alloc: owned variable-length program bytes.
+      };
+    }
     const inputs = new Map();
     for (const field of [ "globalInput", "localInput" ])
     {
@@ -80,7 +91,8 @@ export class Tr2EffectLibrary extends CjsModel
         inputs.set(field, normalized[field]);
       }
     }
-    const library = super.from(normalized, options);
+    const library = new this();
+    new DictReader(options).ReadInto(library, normalized, null);
     for (const [ field, value ] of inputs)
     {
       library[field] = value;

@@ -1,3 +1,4 @@
+import { CjsSchema } from "../../../../src/global/schema/index.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -148,7 +149,7 @@ test("a re-emitted body loads back into equal classes", () =>
         .DoLoad(rebuilt.toBytes())
         .GetShaderByIndex(0);
 
-    assert.deepEqual(second.GetValues(), first.GetValues());
+    assert.deepEqual(CjsSchema.getValues(second), CjsSchema.getValues(first));
 });
 
 test("an emitted stage omits absent stage slots", () =>

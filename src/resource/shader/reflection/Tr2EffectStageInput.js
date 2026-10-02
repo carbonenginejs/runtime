@@ -1,8 +1,9 @@
+import { DictReader } from "#blue/DictReader";
+import "#blue/values";
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 // Source: trinity/trinity/Shader/Tr2EffectDescription.cpp
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
 import { CjsSchema, impl, type } from "#schema";
-import { CjsModel } from "#model";
 import { copyBytes } from "#utils/bytes";
 import {
   isUint32
@@ -33,7 +34,7 @@ function unsetOffsetOf(ref)
 }
 
 /** Complete device-free reflection for one shader stage input. */
-export class Tr2EffectStageInput extends CjsModel
+export class Tr2EffectStageInput
 {
 
   /** Portable stage index; Carbon otherwise implies this from the containing array. */
@@ -122,12 +123,22 @@ export class Tr2EffectStageInput extends CjsModel
    * Construct one canonical stage input from JS/JSON model values.
    *
    * @param {object} values Canonical model values.
-   * @param {object} options CjsModel import options.
+   * @param {object} options Schema import options.
    * @returns {Tr2EffectStageInput} Hydrated stage input.
    */
   static from(values = {}, options = {})
   {
+    if (!CjsSchema.assertValues(values, "Tr2EffectStageInput.from")) values = {};
     let normalized = values;
+    // JSON carries program bytes as numbers; restore the owned byte buffer
+    // before the raw source-program record crosses the dictionary reader.
+    if (Array.isArray(values.sourceProgram?.bytes))
+    {
+      normalized = {
+        ...values,
+        sourceProgram: { ...values.sourceProgram, bytes: new Uint8Array(values.sourceProgram.bytes) } // alloc: owned variable-length program bytes.
+      };
+    }
     const maps = new Map();
     for (const [ field, Constructor ] of [
       [ "resources", Tr2EffectResource ],
@@ -147,7 +158,8 @@ export class Tr2EffectStageInput extends CjsModel
         maps.set(field, normalized[field]);
       }
     }
-    const stage = super.from(normalized, options);
+    const stage = new this();
+    new DictReader(options).ReadInto(stage, normalized, null);
     for (const [ field, value ] of maps)
     {
       stage[field] = value;

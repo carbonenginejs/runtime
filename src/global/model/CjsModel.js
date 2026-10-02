@@ -1,3 +1,4 @@
+import "../blue/values.js";
 import { CJS_MODEL_BRAND, CjsSchema } from "../schema/index.js";
 import { getRuntimeState } from "../compose/runtimeState.js";
 import { queueModifiedMember, settleModifiedMembers } from "../compose/values.js";
@@ -1094,48 +1095,3 @@ function resolveRegisteredModelClass(typeName, options = {})
     }
     return Constructor;
 }
-
-// The transport API lives on CjsSchema - everything is called through the
-// schema (operator direction, 2026-09-05) - and the model layer installs the
-// implementation here at load, because layering forbids schema importing
-// model. Dispatch:
-// - a model target takes the full validated path (typed coercion, identity,
-//   dirty/settle/events);
-// - a non-model class carrying its own SetValues/GetValues convention (the
-//   CjsFormat family) is delegated to it, per the reader ruling that
-//   population goes through SetValues;
-// - a plain decorated class without either goes through the schema layer's
-//   state-free transport (landed 2026-09-08), which is coercion, the
-//   writability gate and a changed set - the reader's half, with the editing
-//   contract left to the model path.
-// CjsSchema.from is the whole-bag deserializer: resolve, build, apply, then
-// call the class-owned Initialize when it exists (ruled 2026-09-05).
-CjsSchema.registerValuesService({
-    getValues(target, out = {}, options = {})
-    {
-        if (CjsSchema.isModelInstance(target)) return CjsModel.get(target, out, options);
-        if (target && typeof target.GetValues === "function") return target.GetValues(options);
-        return CjsSchema.getValuesFromSchema(target, out, options);
-    },
-    setValues(target, values = {}, options = {})
-    {
-        if (CjsSchema.isModelInstance(target)) return CjsModel.set(target, values, options);
-        if (target && typeof target.SetValues === "function") return target.SetValues(values, options);
-        return CjsSchema.setValuesFromSchema(target, values, options);
-    },
-    from(className, values = {}, options = {})
-    {
-        const name = typeof className === "string" ? className.trim() : "";
-        const Constructor = CjsSchema.GetConstructor(name);
-        if (!Constructor)
-        {
-            throw new TypeError(`CjsSchema.from has no class registered for "${String(className)}".`);
-        }
-        if (typeof Constructor.from === "function") return Constructor.from(values, options);
-
-        const instance = new Constructor();
-        this.setValues(instance, values, options);
-        if (typeof instance.Initialize === "function") instance.Initialize(options);
-        return instance;
-    }
-});

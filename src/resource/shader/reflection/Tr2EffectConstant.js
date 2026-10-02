@@ -1,13 +1,13 @@
+import "#blue/values";
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
 import { CjsSchema } from "#schema";
-import { CjsModel } from "#model";
 import {
 } from "#utils/is";
 import { recordText, toRecordText } from "./carbonRecordFields.js";
 
 /** Reflected shader constant metadata. */
-export class Tr2EffectConstant extends CjsModel
+export class Tr2EffectConstant
 {
 
   /** name (BlueSharedString) */

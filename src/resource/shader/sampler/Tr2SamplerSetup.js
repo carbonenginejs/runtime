@@ -1,7 +1,8 @@
+import { DictReader } from "#blue/DictReader";
+import "#blue/values";
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
 import { CjsSchema, impl, type } from "#schema";
-import { CjsModel } from "#model";
 import {
   recordRawBits,
   recordText,
@@ -10,7 +11,7 @@ import {
 } from "../reflection/carbonRecordFields.js";
 
 /** Reflected sampler name and complete device-free sampler descriptor. */
-export class Tr2SamplerSetup extends CjsModel
+export class Tr2SamplerSetup
 {
 
   /** name (const char*) */
@@ -29,11 +30,12 @@ export class Tr2SamplerSetup extends CjsModel
    * Construct a canonical sampler record from JS/JSON model values.
    *
    * @param {object} values Canonical model values.
-   * @param {object} options CjsModel import options.
+   * @param {object} options Schema import options.
    * @returns {Tr2SamplerSetup} Hydrated sampler.
    */
   static from(values = {}, options = {})
   {
+    if (!CjsSchema.assertValues(values, "Tr2SamplerSetup.from")) values = {};
     let normalized = values;
     if (values && Object.hasOwn(values, "name")
       && !Object.hasOwn(values, "hasName"))
@@ -44,7 +46,9 @@ export class Tr2SamplerSetup extends CjsModel
         name: values.name === null ? "" : values.name
       };
     }
-    return super.from(normalized, options);
+    const sampler = new this();
+    new DictReader(options).ReadInto(sampler, normalized, null);
+    return sampler;
   }
 
   /**

@@ -1,7 +1,7 @@
+import "#blue/values";
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
 import { CjsSchema, impl, type } from "#schema";
-import { CjsModel } from "#model";
 import {
 } from "#utils/is";
 import { requireShaderStageType, SHADER_STAGE_COUNT, ShaderStageType } from "./shaderStage.js";
@@ -12,7 +12,7 @@ import { readBackendBlock } from "../../format/carbonEffect/carbonEffectBackendB
 import { readGlslBackendBlock } from "../../formats/webgl/core/glslBackendBlock.js";
 
 /** Reflected effect pass; Carbon's interned program and state handles are kept as authored data. */
-export class Tr2Pass extends CjsModel
+export class Tr2Pass
 {
 
   /** stageInputs (Tr2EffectStageInput) */

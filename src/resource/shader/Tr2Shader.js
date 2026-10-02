@@ -1,11 +1,12 @@
+import { DictReader } from "#blue/DictReader";
+import "#blue/values";
 // Source: trinity/trinity/Shader/Tr2Shader.h
 // Source: trinity/trinity/Shader/Tr2Shader.cpp
 import { CjsSchema, carbon, impl, type } from "#schema";
-import { CjsModel } from "#model";
 import { Tr2EffectDescription } from "./reflection/Tr2EffectDescription.js";
 
 /** GPU-free selected shader and its complete source reflection graph. */
-export class Tr2Shader extends CjsModel
+export class Tr2Shader
 {
 
   /** m_sortValue (unsigned int) */
@@ -201,11 +202,12 @@ export class Tr2Shader extends CjsModel
    * Construct a canonical shader graph from JS/JSON model values.
    *
    * @param {object} values Canonical model values.
-   * @param {object} options CjsModel import options.
+   * @param {object} options Schema import options.
    * @returns {Tr2Shader} Hydrated shader graph.
    */
   static from(values = {}, options = {})
   {
+    if (!CjsSchema.assertValues(values, "Tr2Shader.from")) values = {};
     let normalized = values;
     if (values?.effect
       && !(values.effect instanceof Tr2EffectDescription))
@@ -215,7 +217,8 @@ export class Tr2Shader extends CjsModel
         effect: Tr2EffectDescription.from(values.effect, options)
       };
     }
-    const shader = super.from(normalized, options);
+    const shader = new this();
+    new DictReader(options).ReadInto(shader, normalized, null);
     if (!Object.hasOwn(values ?? {}, "sortValue"))
     {
       shader.ProcessEffect();

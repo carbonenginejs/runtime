@@ -1,8 +1,8 @@
+import "#blue/values";
 // Source: trinity/trinity/Resources/Tr2TextureLodManager.h
 // Source: trinity/trinity/Resources/Tr2TextureLodManager.cpp
 // Source: trinity/trinity/Resources/Tr2TextureLodManager_Blue.cpp
 import { carbon, CjsSchema, impl, type } from "#schema";
-import { CjsModel } from "#model";
 
 /**
  * CPU-side registry for texture resources participating in LOD management.
@@ -11,7 +11,7 @@ import { CjsModel } from "#model";
  * device allocation and budget policy in engine packages, so this runtime
  * class owns only deterministic resource membership.
  */
-export class Tr2TextureLodManager extends CjsModel
+export class Tr2TextureLodManager
 {
 
   /** gpuMemoryUsed (size_t) */
@@ -46,8 +46,7 @@ export class Tr2TextureLodManager extends CjsModel
   /** Creates a Tr2TextureLodManager with caller-provided initial state. */
   constructor(values = null)
   {
-    super();
-    this.SetValues(values || {}, {
+    CjsSchema.setValues(this, values || {}, {
       skipUpdate: true,
       skipEvents: true
     });

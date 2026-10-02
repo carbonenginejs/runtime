@@ -87,7 +87,7 @@ test("Tr2Shader.from recursively hydrates canonical JSON component identity", ()
   // The round trip that replaces every bespoke JSON path: GetValues out,
   // from() back in, with every nested class reconstructed as its own type.
   const source = loaded([ QUALITY ]).GetShaderByIndex(0);
-  const shader = Tr2Shader.from(source.GetValues());
+  const shader = Tr2Shader.from(CjsSchema.getValues(source));
 
   const effect = shader.effect;
   const technique = effect.techniques[0];
@@ -112,7 +112,7 @@ test("Tr2Shader.from recursively hydrates canonical JSON component identity", ()
 test("a raytracing library survives the JSON round trip as its own class", () =>
 {
   const source = loaded([ QUALITY ]).GetShaderByIndex(0);
-  const shader = Tr2Shader.from(source.GetValues());
+  const shader = Tr2Shader.from(CjsSchema.getValues(source));
   const library = shader.effect.techniques[1].libraries[0];
 
   assert.ok(library instanceof Tr2EffectLibrary);
@@ -124,7 +124,7 @@ test("a raytracing library survives the JSON round trip as its own class", () =>
 test("annotations survive the JSON round trip keyed by parameter", () =>
 {
   const source = loaded([ QUALITY ]).GetShaderByIndex(0);
-  const shader = Tr2Shader.from(source.GetValues());
+  const shader = Tr2Shader.from(CjsSchema.getValues(source));
   const annotations = shader.effect.annotations.get("P0DiffuseMap");
 
   assert.ok(annotations[0] instanceof Tr2EffectParameterAnnotation);

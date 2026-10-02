@@ -1,3 +1,4 @@
+import "#blue/values";
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipeline.h
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipeline.cpp
 // Source: trinity/trinity/Resources/TexturePipeline/ITr2TexturePipelineStep.h
@@ -7,7 +8,6 @@
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepPack.cpp
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { carbon, CjsSchema, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { Tr2TexturePipelineParams } from "./Tr2TexturePipelineParams.js";
 import { Tr2TexturePipelineStepLimitSize } from "./Tr2TexturePipelineStepLimitSize.js";
 
@@ -21,7 +21,7 @@ const s_texturePipelineChannel = CcpLog.CCP_LOG_DEFINE_CHANNEL("TexturePipeline"
  * reads and rewrites it, and the caller supplies every input bitmap the steps
  * name, keyed by resource path.
  */
-export class Tr2TexturePipeline extends CjsModel
+export class Tr2TexturePipeline
 {
 
   /** m_pipelineType (std::string) [READWRITE, PERSIST] */
@@ -33,8 +33,7 @@ export class Tr2TexturePipeline extends CjsModel
   /** Creates a Tr2TexturePipeline with caller-provided initial state. */
   constructor(values = null)
   {
-    super();
-    this.SetValues(values || {}, {
+    CjsSchema.setValues(this, values || {}, {
       skipUpdate: true,
       skipEvents: true
     });

@@ -459,7 +459,7 @@ export class CjsSchema
     {
         if (!CjsSchema._valuesService)
         {
-            throw new Error(`CjsSchema.${method} requires the values service; import the model layer before calling it.`);
+            throw new Error(`CjsSchema.${method} requires the values service; import the Blue values service before calling it.`);
         }
         return CjsSchema._valuesService;
     }

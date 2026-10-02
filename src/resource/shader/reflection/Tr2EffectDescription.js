@@ -1,15 +1,16 @@
+import { DictReader } from "#blue/DictReader";
+import "#blue/values";
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 // Source: trinity/trinity/Shader/Tr2EffectDescription.cpp
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
 import { CjsSchema, impl, type } from "#schema";
-import { CjsModel } from "#model";
 import { Tr2EffectParameterAnnotation } from "./Tr2EffectParameterAnnotation.js";
 import { Tr2EffectTechnique } from "./Tr2EffectTechnique.js";
 import { recordText, toRecordText } from "./carbonRecordFields.js";
 import { compareUtf8 } from "../../format/compareUtf8.js";
 
 /** Complete device-free effect description for one selected shader body. */
-export class Tr2EffectDescription extends CjsModel
+export class Tr2EffectDescription
 {
 
   /** techniques (TrackableStdVector<Tr2EffectTechnique>) */
@@ -22,11 +23,12 @@ export class Tr2EffectDescription extends CjsModel
    * Construct a canonical effect description from JS/JSON model values.
    *
    * @param {object} values Canonical model values.
-   * @param {object} options CjsModel import options.
+   * @param {object} options Schema import options.
    * @returns {Tr2EffectDescription} Hydrated description.
    */
   static from(values = {}, options = {})
   {
+    if (!CjsSchema.assertValues(values, "Tr2EffectDescription.from")) values = {};
     let normalized = values;
     let annotations = null;
     if (values && Object.hasOwn(values, "annotations"))
@@ -52,7 +54,8 @@ export class Tr2EffectDescription extends CjsModel
       }
       normalized = { ...values, annotations };
     }
-    const effect = super.from(normalized, options);
+    const effect = new this();
+    new DictReader(options).ReadInto(effect, normalized, null);
     if (annotations)
     {
       effect.annotations = annotations;
