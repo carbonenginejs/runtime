@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Interior/Tr2InteriorConstantBufferFormats.h
 import { impl, type } from "#schema";
-import { CjsModel } from "#model";
+import { DictReader } from "#blue/DictReader";
 import { mat4 } from "#math/mat4";
 import { vec4 } from "#math/vec4";
 import { Tr2InteriorPerObjectLightData } from "../../generated/interior/Tr2InteriorPerObjectLightData.js";
@@ -10,7 +10,7 @@ import { Tr2InteriorPerObjectLightData } from "../../generated/interior/Tr2Inter
  * inputs.
  */
 @type.define({ className: "Tr2InteriorPerObjectPSData", family: "interior" })
-export class Tr2InteriorPerObjectPSData extends CjsModel
+export class Tr2InteriorPerObjectPSData
 {
 
   /** lightCount (int32_t) */
@@ -52,11 +52,11 @@ export class Tr2InteriorPerObjectPSData extends CjsModel
    * Supplied arrays are truncated or filled to three padding entries, ten point
    * lights and four spot-light matrices. Missing padding becomes zero, missing
    * lights become new records, and missing or non-16-element matrices become
-   * identity matrices. Omitted fields are left to the base setter.
+   * identity matrices. Omitted fields are left to the dictionary reader.
    *
    * @param {object} [values={}] Field values to apply through the schema setter.
-   * @param {object} [options={}] Options forwarded to the base setter.
-   * @returns {Set<string>|boolean} The base setter's change result.
+   * @param {object} [options={}] Options forwarded to the dictionary reader.
+   * @returns {Set<string>|boolean} The dictionary reader's change result.
    */
   @impl.custom
   SetValues(values = {}, options = {})
@@ -75,7 +75,8 @@ export class Tr2InteriorPerObjectPSData extends CjsModel
     {
       normalized.spotLights = FixedMat4Array(values.spotLights, 4);
     }
-    return super.SetValues(normalized, options);
+    const changed = new DictReader(options).ReadInto(this, normalized, null);
+    return options.returnBoolean === true ? changed.size > 0 : changed;
   }
 
 }

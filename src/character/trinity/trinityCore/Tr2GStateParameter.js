@@ -1,10 +1,10 @@
 // Source: trinity/trinity/Tr2GStateParameter.h
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
+import { IInitialize } from "#blue/IInitialize";
 
 /** Named, node-scoped scalar value for a character GState animation. */
 @type.define({ className: "Tr2GStateParameter", family: "trinityCore" })
-export class Tr2GStateParameter extends CjsModel
+export class Tr2GStateParameter extends IInitialize
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */
@@ -85,3 +85,5 @@ export class Tr2GStateParameter extends CjsModel
   }
 
 }
+
+carbon.interfaceTable({ interfaces: [ Tr2GStateParameter, IInitialize ], chainTo: null })(Tr2GStateParameter, { kind: "class" });

@@ -273,7 +273,7 @@ const SOF_INSTANCE_LAYOUT = [
  * Carbon-first SOF builder whose sole supported public output is a GPU-free model-values graph.
  */
 @type.define({ className: "EveSOF", family: "eve" })
-export class EveSOF extends CjsModel
+export class EveSOF
 {
 
   /**
@@ -5819,3 +5819,6 @@ async function ResolveSofDependency(load, path, role, results, resultKey = path)
   }
 }
 
+
+// Native service exposure has no lifecycle interfaces or exposure parent.
+carbon.interfaceTable({ interfaces: [ EveSOF ], chainTo: null })(EveSOF, { kind: "class" });

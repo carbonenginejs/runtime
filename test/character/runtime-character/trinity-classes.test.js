@@ -503,7 +503,7 @@ test("interior constant-buffer records preserve native fixed-array cardinalities
   assert.equal(CjsSchema.getField(Tr2InteriorPerObjectPSData, "pointLights")?.type?.itemType?.className,
     "Tr2InteriorPerObjectLightData");
 
-  const normalizedObject = Tr2InteriorPerObjectPSData.from({
+  const normalizedObject = CjsSchema.from("Tr2InteriorPerObjectPSData", {
     padding: [ 4 ],
     pointLights: [ { radius: 3 } ],
     spotLights: [ new Array(16).fill(2), new Array(16).fill(3), new Array(16).fill(4), new Array(16).fill(5), new Array(16).fill(6) ]
@@ -514,7 +514,7 @@ test("interior constant-buffer records preserve native fixed-array cardinalities
   assert.ok(normalizedObject.pointLights.every(value => value instanceof Tr2InteriorPerObjectLightData));
   assert.equal(normalizedObject.spotLights.length, 4);
 
-  const normalizedLight = Tr2InteriorPerLightPSData.from({
+  const normalizedLight = CjsSchema.from("Tr2InteriorPerLightPSData", {
     shadowMatrix: [],
     shadowRect: [[ 1, 2, 3, 4 ]],
     shadowInfluence: Array.from({ length: 8 }, () => [ 5, 6, 7, 8 ])

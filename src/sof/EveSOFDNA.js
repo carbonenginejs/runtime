@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDNA.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDNA.cpp
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDNA_Blue.cpp
-import { CjsModel } from "#model";
 import { carbon, impl, type } from "#schema";
 import { ReflectionMode, TriBatchType } from "#consts/graphics";
 import { EveSOFDataMgr } from "./EveSOFDataMgr.js";
@@ -31,7 +30,7 @@ const BUILD_CLASSES = Object.freeze([
 
 /** Resolves a SOF DNA string against an EveSOFDataMgr. */
 @type.define({ className: "EveSOFDNA", family: "eve" })
-export class EveSOFDNA extends CjsModel
+export class EveSOFDNA
 {
 
   static DnaCommand = Object.freeze({
@@ -1690,3 +1689,6 @@ function findAreaMaterialParameter(dataMgr, colors, areaMaterials, areaType, inf
     ? null
     : findAreaMaterialParameter(dataMgr, colors, areaMaterials, EveSOFDataArea.AreaType.TYPE_PRIMARY, info);
 }
+
+// Native service exposure has no lifecycle interfaces or exposure parent.
+carbon.interfaceTable({ interfaces: [ EveSOFDNA ], chainTo: null })(EveSOFDNA, { kind: "class" });

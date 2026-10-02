@@ -4,7 +4,6 @@ import { ccpHashFnv1 } from "#utils";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDataMgr.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDataMgr.cpp
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDataMgr_Blue.cpp
-import { CjsModel } from "#model";
 import { CjsSchema, carbon, impl, type } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -29,7 +28,7 @@ const LOGO_KEYS = Object.freeze(["Primary", "Secondary", "Tertiary", "Marking_01
  * plain JavaScript records here; they are not persisted fields on the manager.
  */
 @type.define({ className: "EveSOFDataMgr", family: "eve" })
-export class EveSOFDataMgr extends CjsModel
+export class EveSOFDataMgr
 {
 
   static DistributionMethod = Object.freeze({
@@ -2061,3 +2060,6 @@ function identityMatrix()
   ];
 }
 
+
+// Native service exposure has no lifecycle interfaces or exposure parent.
+carbon.interfaceTable({ interfaces: [ EveSOFDataMgr ], chainTo: null })(EveSOFDataMgr, { kind: "class" });
