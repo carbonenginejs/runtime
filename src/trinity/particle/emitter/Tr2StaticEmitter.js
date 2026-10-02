@@ -47,7 +47,7 @@ export class Tr2StaticEmitter
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   geometryResourcePath = "";
 
   /** Carbon method Spawn (MAP_METHOD_AND_WRAP). */

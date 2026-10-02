@@ -49,7 +49,7 @@ export class Tr2PPVignetteEffect extends Tr2PPEffect
   /** m_detailPath (BlueSharedString) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   detailPath = "res:/texture/global/white.dds";
 
   /** m_opacity (float) [READWRITE, PERSIST] */
@@ -61,7 +61,7 @@ export class Tr2PPVignetteEffect extends Tr2PPEffect
   /** m_shapePath (BlueSharedString) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   shapePath = "res:/texture/global/black.dds";
 
   /** m_sineFrequency (float) [READWRITE, PERSIST] */

@@ -16,7 +16,7 @@ export class CjsCharacterTextureMetadata extends CjsCharacterRecord
 
     @meta.blue.readwrite
     @meta.blue.persist
-    @meta.type.string
+    @meta.type.path
     sourcePath = null;
 
     @meta.blue.readwrite

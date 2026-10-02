@@ -13,7 +13,7 @@ export class Tr2InteriorPlaceable
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   placeableResPath = "";
 
   /** m_transform (PTriMatrix) [READ, PERSIST, NOTIFY] */

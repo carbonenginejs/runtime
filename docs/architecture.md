@@ -229,6 +229,15 @@ Outstanding handles and explicit value copies survive retirement. Every debug-mo
 setter call clears membership, and device release clears it only for the exact
 all-storage flag. Pool destruction unregisters its device and sweep membership.
 
+## Resource-address declarations
+
+Resource addresses use `meta.type.path`; graph member lookups and relative
+soundbank fragments remain strings. The class generator selects reviewed
+owner/member pairs rather than guessing from a field's name. This metadata
+preserves authored defaults, Blue exposure and native string storage. Black
+routes path declarations through its shared configured path handler; without a
+handler the authored string is retained. Resource resolution and failed-read
+repair policy remain the resource manager's responsibility.
 ## Declared types and Black binary blocks
 
 Decorator namespaces follow ownership: meta.blue is Carbon exposure, meta.ui is

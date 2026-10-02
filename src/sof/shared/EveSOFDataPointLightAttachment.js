@@ -106,7 +106,7 @@ export class EveSOFDataPointLightAttachment
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   lightProfilePath = "";
 
 }

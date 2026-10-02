@@ -402,7 +402,7 @@ export class Tr2PostProcessAttributes
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   grimePath = "";
 
   /**
@@ -636,7 +636,7 @@ export class Tr2PostProcessAttributes
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   lutPath = "";
 
   /**
@@ -780,7 +780,7 @@ export class Tr2PostProcessAttributes
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   vignetteShapePath = "";
 
   /**
@@ -798,7 +798,7 @@ export class Tr2PostProcessAttributes
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   vignetteDetailPath = "";
 
   /**

@@ -150,7 +150,7 @@ export class EveSOFDataBooster
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   shapeAtlasResPath = "";
 
   /**
@@ -159,7 +159,7 @@ export class EveSOFDataBooster
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   gradient0ResPath = "";
 
   /**
@@ -168,7 +168,7 @@ export class EveSOFDataBooster
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   gradient1ResPath = "";
 
   /**

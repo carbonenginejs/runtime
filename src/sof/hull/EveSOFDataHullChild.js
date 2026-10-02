@@ -22,7 +22,7 @@ export class EveSOFDataHullChild
   /** m_redFilePath (std::string) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   redFilePath = "";
 
   /** m_lowestLodVisible (Tr2Lod - enum Tr2Lod) [READWRITE, PERSIST] */

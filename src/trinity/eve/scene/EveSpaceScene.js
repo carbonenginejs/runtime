@@ -188,42 +188,42 @@ export class EveSpaceScene
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   envMap1ResPath = "";
 
   /** m_envMap2ResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   envMap2ResPath = "";
 
   /** m_envMap3ResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   envMap3ResPath = "";
 
   /** m_lowQualityNebulaResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   lowQualityNebulaResPath = "";
 
   /** m_lowQualityNebulaMixResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   lowQualityNebulaMixResPath = "";
 
   /** m_envMapResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   envMapResPath = "";
 
   /** m_fogColor (Color) [READWRITE, PERSIST] */

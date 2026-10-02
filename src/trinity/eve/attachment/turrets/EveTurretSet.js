@@ -144,7 +144,7 @@ export class EveTurretSet extends EveEntity
   /** m_firingEffectResPath (std::string) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   firingEffectResPath = "";
 
   /** m_chooseRandomLocator (bool) [READWRITE, PERSIST] */
@@ -312,7 +312,7 @@ export class EveTurretSet extends EveEntity
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   geometryResPath = "";
 
   /** m_impactSize (float) [READWRITE, PERSIST] */

@@ -139,7 +139,7 @@ export class Tr2Effect extends Tr2Material
   @meta.blue.readwrite
   @meta.blue.persist
 
-  @meta.type.string
+  @meta.type.path
   effectFilePath = "";
 
   /**
@@ -211,7 +211,7 @@ export class Tr2Effect extends Tr2Material
    * @type {string}
    */
   @meta.blue.read
-  @meta.type.string
+  @meta.type.path
   actualEffectFilePath = "";
 
   /**

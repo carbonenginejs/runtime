@@ -29,7 +29,7 @@ export class EveHazeSetLight
   @meta.type.mat4
   boneMatrix = mat4.create();
 
-  @meta.type.string
+  @meta.type.path
   lightProfilePath = "";
 
   /**

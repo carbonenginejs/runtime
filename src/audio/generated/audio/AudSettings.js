@@ -9,7 +9,7 @@ export class AudSettings
 
   /** m_baseSoundBankPath (std::string) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.string
+  @meta.type.path
   baseSoundbankPath = "res:/Audio";
 
   /** m_soundbankLanguage (std::string) [READWRITE] */

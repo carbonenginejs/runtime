@@ -17,7 +17,7 @@ export class CjsExternalRef
 {
 
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   resPath = "";
 
   /** Carbon interface name the loaded root must implement (load-time gate). */

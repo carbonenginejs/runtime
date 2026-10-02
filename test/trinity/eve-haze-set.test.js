@@ -51,7 +51,7 @@ test("EveHazeSet exposes authored haze and light state as persisted graph fields
   }
   assert.equal(CjsSchema.getField(EveHazeSet, "lights")?.type.itemType, "EveHazeSetLight");
   assert.equal(CjsSchema.getField(EveHazeSet, "rebuildRevision"), null);
-  assert.equal(CjsSchema.getField(EveHazeSetLight, "lightProfilePath")?.type.kind, "string");
+  assert.equal(CjsSchema.getField(EveHazeSetLight, "lightProfilePath")?.type.kind, "path");
   assert.equal(set.Initialize(), true);
 });
 

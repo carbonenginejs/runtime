@@ -109,13 +109,13 @@ export class EveSOFDataHull
   /** m_modelRotationCurvePath (std::string) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   modelRotationCurvePath = "";
 
   /** m_modelTranslationCurvePath (std::string) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   modelTranslationCurvePath = "";
 
   /** m_childSets (PEveSOFDataHullChildSetVector) [READ, PERSIST] */
@@ -223,7 +223,7 @@ export class EveSOFDataHull
   /** m_geometryResFilePath (std::string) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   geometryResFilePath = "";
 
   /** m_spotlightSets (PEveSOFDataHullSpotlightSetVector) [READ, PERSIST] */

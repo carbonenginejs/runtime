@@ -19,7 +19,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   resourcePath = "";
 
   /** m_gpuBuffer (ITr2GpuBufferPtr) [READWRITE, PERSIST, NOTIFY] */

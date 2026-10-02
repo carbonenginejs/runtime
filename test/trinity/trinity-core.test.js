@@ -402,7 +402,7 @@ test("instanced meshes retain the Tr2Mesh CPU graph and distinct resource paths"
   assertEquals(mesh.instanceGeometryResource, null);
   assertEquals(mesh.instanceMeshIndex, 0);
   assertEquals(mesh.maxInstanceSize, 0);
-  assertEquals(CjsSchema.getField(Tr2InstancedMesh, "geometryResPath")?.type.kind, "string");
+  assertEquals(CjsSchema.getField(Tr2InstancedMesh, "geometryResPath")?.type.kind, "path");
   assertEquals(CjsSchema.getField(Tr2InstancedMesh, "instanceGeometryResource")?.edit?.persistOnly, true);
 
   mesh.SetMeshResPath("res:/mesh/base.gr2");

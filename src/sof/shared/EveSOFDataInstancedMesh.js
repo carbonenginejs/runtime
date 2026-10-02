@@ -47,7 +47,7 @@ export class EveSOFDataInstancedMesh
   /** m_geometryResPath (std::string) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   geometryResPath = "";
 
   /** m_shader (BlueSharedString) [READWRITE, PERSIST] */

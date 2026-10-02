@@ -462,7 +462,7 @@ test("EveBannerSet preserves the authored physical attachment graph", () =>
   assertEquals(bannerLight.saturation, 0.5);
   assertEquals(new EveBannerLight().saturation, 1);
   assertEquals(set.Initialize(), true);
-  assertEquals(CjsSchema.getField(EveBannerLight, "lightProfilePath")?.type.kind, "string");
+  assertEquals(CjsSchema.getField(EveBannerLight, "lightProfilePath")?.type.kind, "path");
 });
 
 test("EvePlaneSet preserves authored quad and SOF-light intent without GPU state", () =>
@@ -505,7 +505,7 @@ test("EvePlaneSet preserves authored quad and SOF-light intent without GPU state
   assertEquals(planeLight.saturation, 1);
   assertEquals(planeLight.fadeType, 4);
   assertEquals(EvePlaneLight.FadeType.FT_BLINK, 1);
-  assertEquals(CjsSchema.getField(EvePlaneLight, "lightProfilePath")?.type.kind, "string");
+  assertEquals(CjsSchema.getField(EvePlaneLight, "lightProfilePath")?.type.kind, "path");
   assertEquals(CjsSchema.getField(EvePlaneSet, "lights")?.type.kind, "list");
   assertEquals(CjsSchema.getField(EvePlaneSet, "imageMapParameter")?.type.kind, "objectRef");
   assertEquals(CjsSchema.getField(EvePlaneSet, "maskMapParameter")?.edit?.persist, true);
@@ -551,7 +551,7 @@ test("EveSpotlightSet preserves authored cone, glow, and SOF-light intent", () =
   assertEquals(light.index, 7);
   assertEquals(light.lightProfilePath, "res:/profile.lp");
   assertEquals(light.boosterGainInfluence, true);
-  assertEquals(CjsSchema.getField(EveSpotlightLight, "lightProfilePath")?.type.kind, "string");
+  assertEquals(CjsSchema.getField(EveSpotlightLight, "lightProfilePath")?.type.kind, "path");
   set.AddLightFromSOF(rawLight);
   assert(set.lights[0] instanceof EveSpotlightLight);
   assertEquals(CjsSchema.getField(EveSpotlightSet, "lights")?.type.kind, "list");
@@ -613,7 +613,7 @@ test("EveSpriteLineSet expands Carbon line and circle positions and packs them a
   assertVec3(light.lightData.position, [4, 5, 6]);
   assertEquals(light.index, 2);
   assertEquals(light.lightProfilePath, "res:/sprite-profile.lp");
-  assertEquals(CjsSchema.getField(EveSpriteLight, "lightProfilePath")?.type.kind, "string");
+  assertEquals(CjsSchema.getField(EveSpriteLight, "lightProfilePath")?.type.kind, "path");
   set.AddLightFromSOF(rawLight);
   assert(set.lights[0] instanceof EveSpriteLight);
   assertEquals(CjsSchema.getField(EveSpriteLineSet, "lights")?.type.kind, "list");
@@ -642,7 +642,7 @@ test("EveHazeSet exposes authored SOF lights through its public graph", () =>
   assertVec3(set.lights[0].lightData.position, [7, 8, 9]);
   assertEquals(set.lights[0].lightProfilePath, "res:/haze-profile.lp");
   assertEquals(CjsSchema.getField(EveHazeSet, "lights")?.type.kind, "list");
-  assertEquals(CjsSchema.getField(EveHazeSetLight, "lightProfilePath")?.type.kind, "string");
+  assertEquals(CjsSchema.getField(EveHazeSetLight, "lightProfilePath")?.type.kind, "path");
 });
 
 test("Tr2Light subclasses preserve Carbon graph defaults without resource realization", () =>

@@ -62,7 +62,7 @@ export class CjsLightData
   @meta.type.float32
   innerAngle = 0;
 
-  @meta.type.string
+  @meta.type.path
   texturePath = "";
 
   @meta.type.int32

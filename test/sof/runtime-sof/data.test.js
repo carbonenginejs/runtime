@@ -168,7 +168,7 @@ test("EveSOFDataTexture: faithful defaults + schema registration", () => {
   assert.equal(t.resFilePath, "");
   assert.equal(t.name, "");
   assert.equal(CjsSchema.GetConstructor("EveSOFDataTexture"), EveSOFDataTexture);
-  assert.equal(CjsSchema.getField(EveSOFDataTexture, "resFilePath").type.kind, "string");
+  assert.equal(CjsSchema.getField(EveSOFDataTexture, "resFilePath").type.kind, "path");
 });
 
 test("EveSOFDataTransform: identity defaults + schema registration", () => {

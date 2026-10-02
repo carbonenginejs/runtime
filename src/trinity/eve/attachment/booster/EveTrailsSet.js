@@ -50,7 +50,7 @@ export class EveTrailsSet
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   geometryResPath = "";
 
   /** m_display (bool) [READWRITE] */

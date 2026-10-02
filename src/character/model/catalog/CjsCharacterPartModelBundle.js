@@ -14,12 +14,12 @@ export class CjsCharacterPartModelBundle
 
     @meta.blue.readwrite
     @meta.blue.persist
-    @meta.type.string
+    @meta.type.path
     configurationPath = null;
 
     @meta.blue.readwrite
     @meta.blue.persist
-    @meta.type.string
+    @meta.type.path
     geometryPath = null;
 
     @meta.blue.readwrite

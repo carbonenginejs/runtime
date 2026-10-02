@@ -16,7 +16,7 @@ export class EveSOFDataHullController
   /** m_path (std::string) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   path = "";
 
   /**

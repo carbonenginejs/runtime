@@ -65,7 +65,7 @@ export class Tr2Light
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   lightProfilePath = "";
 
   @meta.type.int32

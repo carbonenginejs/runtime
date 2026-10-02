@@ -25,7 +25,7 @@ export class Tr2AtlasTexture
 
   /** m_resPath (std::string) [READ] */
   @meta.blue.read
-  @meta.type.string
+  @meta.type.path
   resPath = "";
 
   /** m_textureAtlas (Tr2TextureAtlasPtr) [READ] */

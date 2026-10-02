@@ -47,7 +47,7 @@ test("light attachment declarations preserve native order types flags and defaul
       assert.equal(member.edit.read, true);
       assert.equal(member.edit.write, true);
       assert.equal(member.edit.persist, true);
-      assert.equal(member.type.kind, name === "translation" ? "vec3" : name === "rotation" ? "quat" : name === "noiseOctaves" ? "int32" : name === "lightProfilePath" ? "string" : "float32");
+      assert.equal(member.type.kind, name === "translation" ? "vec3" : name === "rotation" ? "quat" : name === "noiseOctaves" ? "int32" : name === "lightProfilePath" ? "path" : "float32");
       assert.deepEqual(ArrayBuffer.isView(value[name]) ? Array.from(value[name]) : value[name], defaults[name]);
     }
     assert.notEqual(value.translation, new Type().translation);

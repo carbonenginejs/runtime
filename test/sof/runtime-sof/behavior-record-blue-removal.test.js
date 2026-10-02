@@ -73,8 +73,9 @@ test("native exposure order and persistence retain flat swarm fields, variant re
   for (const Class of [Swarm, Variant, Damage])
     for (const field of CjsSchema.getSchema(Class).members) assert.deepEqual(field.edit, {read: true, write: true, persist: true});
   for (const name of Object.keys(swarmDefaults)) assert.equal(CjsSchema.getField(Swarm, name).type.kind, "float32");
-  for (const name of ["armorShader", "shieldShaderEllipsoid", "shieldShaderHull", "shieldGeometryResFilePath"])
+  for (const name of ["armorShader", "shieldShaderEllipsoid", "shieldShaderHull"])
     assert.equal(CjsSchema.getField(Damage, name).type.kind, "string");
+  assert.equal(CjsSchema.getField(Damage, "shieldGeometryResFilePath").type.kind, "path");
   assert.equal(CjsSchema.getField(Damage, "flickerPerlinN").type.kind, "int32");
   assert.equal(CjsSchema.getField(Damage, "armorParticleTurbulenceFrequency").type.kind, "uint32");
 });

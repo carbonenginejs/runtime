@@ -160,7 +160,7 @@ export class EveChildTurret extends EveChildMesh
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   firingEffectResPath = "";
 
   /** Size of impacts; no impact when 0 or less. */

@@ -34,7 +34,7 @@ test("native stored member order and flags retain existing typed index transport
 {
   const string=CjsSchema.getSchema(StringRecord),texture=CjsSchema.getSchema(Texture),indices=CjsSchema.getSchema(Indices);
   assert.deepEqual(string.members.map(field=>[field.name,field.type.kind]),[["str","string"]]);
-  assert.deepEqual(texture.members.map(field=>[field.name,field.type.kind]),[["resFilePath","string"],["name","string"]]);
+  assert.deepEqual(texture.members.map(field=>[field.name,field.type.kind]),[["resFilePath","path"],["name","string"]]);
   for(const field of [...string.members,...texture.members])assert.deepEqual(field.edit,{read:true,write:true,persist:true});
   assert.deepEqual(indices.members.map(field=>field.name),["indexBuffer"]);
   assert.deepEqual(indices.members[0].edit,{hidden:true,persist:true,persistOnly:true});

@@ -21,7 +21,7 @@ export class Tr2InteriorCell
 
   /** Optional spherical-harmonic probe resource path. */
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   shProbeResPath = "";
 
 }

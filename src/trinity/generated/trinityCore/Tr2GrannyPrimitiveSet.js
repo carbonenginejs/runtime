@@ -12,7 +12,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   grannyResPath = "";
 
   /** m_renderSolid (bool) [READWRITE, PERSIST] */

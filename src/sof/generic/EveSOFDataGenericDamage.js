@@ -149,7 +149,7 @@ export class EveSOFDataGenericDamage
   /** m_shieldGeometryResFilePath (std::string) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   shieldGeometryResFilePath = "";
 
 }

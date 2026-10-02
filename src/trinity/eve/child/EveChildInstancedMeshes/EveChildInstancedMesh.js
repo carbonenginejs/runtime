@@ -16,7 +16,7 @@ import { EveChildInstancedMeshInstance } from "./EveChildInstancedMeshInstance.j
 export class EveChildInstancedMesh
 {
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   geometryPath = "";
 
   @meta.blue.persist

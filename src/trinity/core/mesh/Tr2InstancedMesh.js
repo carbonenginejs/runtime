@@ -40,7 +40,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   instanceGeometryResPath = "";
 
   @meta.blue.readwrite

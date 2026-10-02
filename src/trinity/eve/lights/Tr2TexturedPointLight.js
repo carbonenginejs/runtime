@@ -33,7 +33,7 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   texturePath = "";
 
   @meta.type.boolean

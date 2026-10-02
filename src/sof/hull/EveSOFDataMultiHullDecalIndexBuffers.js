@@ -16,7 +16,7 @@ export class EveSOFDataMultiHullDecalIndexBuffers
   /** m_combinedGeometryResPath (std::string) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   combinedGeometryResPath = "";
 
 }

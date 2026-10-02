@@ -99,7 +99,7 @@ export class Tr2PPBloomEffect extends Tr2PPEffect
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.path
   grimePath = "res:/texture/global/black.dds";
 
   @meta.blue.readwrite
