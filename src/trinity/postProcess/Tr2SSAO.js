@@ -10,7 +10,7 @@ import { SSAOQuality } from "../generated/trinityCore/enums.js";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
 import { PER_OBJECT_VS, Tr2Renderer } from "../core/Tr2Renderer.js";
 import { GpuResourceHandle } from "../core/Tr2GpuResourcePool/GpuResourceHandle.js";
-import { blue, EnumRegistrationType } from "#blue";
+import { blue } from "#blue";
 
 /** CORTAO's effects and lookup table (`Tr2SSAO.cpp:99, 102, 108`). */
 const CORTAO_EFFECT_PATH = "res:/Graphics/Effect/Managed/Space/System/CORTAO/CORTAO.fx";
@@ -479,15 +479,3 @@ export class Tr2SSAO
 }
 
 // Carbon's chooser lists the qualities lowest first.
-blue.enums.RegisterEnum("trinity.SSAOQuality", SSAOQuality, {
-  source: "trinity/trinity/Tr2SSAO.h", family: "postProcess", line: 9,
-  exposedName: "SSAOQuality", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Tr2SSAO_Blue.cpp:8",
-  chooser: [
-    { name: "Lowest", value: SSAOQuality.LOWEST, description: "Lowest quality" },
-    { name: "Low", value: SSAOQuality.LOW, description: "Low quality" },
-    { name: "Medium", value: SSAOQuality.MEDIUM, description: "Medium quality" },
-    { name: "High", value: SSAOQuality.HIGH, description: "High quality" },
-    { name: "Highest", value: SSAOQuality.HIGHEST, description: "Highest (adaptive) quality" }
-  ]
-});

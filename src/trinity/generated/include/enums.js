@@ -9,6 +9,8 @@
 // Source: blue/include/ITr2DebugRenderer2.h:19 (TriDebugFont)
 // Source: blue/include/ITr2DebugRenderer2.h:26 (TriDebugFontStyle)
 
+import { blueEnums } from "#blue/enums/CjsBlueEnumRegistry";
+
 export const CullResult = Object.freeze({
   CULLRES_OK: 1,
   CULLRES_NOTREADY: 2,
@@ -21,12 +23,12 @@ export const Effect = Object.freeze({
   Lit: 2,
 });
 
-export const ImpactConfiguration = Object.freeze({
+export const ImpactConfiguration = {
   IMPACT_INVALID: 0,
   IMPACT_SHIELD: 1,
   IMPACT_ARMOR: 2,
   IMPACT_HULL: 3,
-});
+};
 
 export const Interpolation = Object.freeze({
   CONSTANT: 0,
@@ -37,7 +39,7 @@ export const Interpolation = Object.freeze({
   SPHERICAL_QUADRANGLE: 5,
 });
 
-export const PassType = Object.freeze({
+export const PassType = {
   RP_BEGIN_RENDER: 0,
   RP_PRE_PASS: 1,
   RP_LIGHT_PASS: 2,
@@ -51,7 +53,7 @@ export const PassType = Object.freeze({
   RP_SET_PERFRAME_DATA: 10,
   RP_RENDER_UI: 11,
   RP_COUNT: 12,
-});
+};
 
 export const RenderPassResult = Object.freeze({
   PASS_RESULT_OK: 0,
@@ -76,4 +78,81 @@ export const TriDebugFontStyle = Object.freeze({
   TRI_DFS_TOP: 0,
   TRI_DFS_BOTTOM: 8,
   TRI_DFS_VCENTER: 4,
+});
+
+// Reviewed Blue registrations; values and chooser references share the declarations above.
+blueEnums.Create("trinity.ITriTargetable.ImpactConfiguration", ImpactConfiguration, {
+  "source": "trinity/trinity/Include/ITriTargetable.h",
+  "family": "eve/overlays/impact",
+  "line": 9
+});
+blueEnums.Create("trinity.ITr2MultiPassScene.PassType", PassType, {
+  "source": "trinity/trinity/Include/ITr2MultiPassScene.h",
+  "family": "renderJob",
+  "line": 25,
+  "exposedName": "MULTI_PASS_SCENE_PASS",
+  "exposure": 2,
+  "chooserSource": "trinity/trinity/RenderJob/TriStepRenderPass_Blue.cpp:6",
+  "chooser": [
+    {
+      "name": "TRIPASS_BEGIN_RENDER",
+      "value": 0,
+      "description": "Begin rendering"
+    },
+    {
+      "name": "TRIPASS_PRE_PASS",
+      "value": 1,
+      "description": "Render prepass (depth, normals, specular)"
+    },
+    {
+      "name": "TRIPASS_LIGHT_PASS",
+      "value": 2,
+      "description": "Render lights"
+    },
+    {
+      "name": "TRIPASS_GATHER_PASS",
+      "value": 3,
+      "description": "Render gather pass"
+    },
+    {
+      "name": "TRIPASS_FLARE_PASS",
+      "value": 4,
+      "description": "Render flare pass"
+    },
+    {
+      "name": "TRIPASS_END_RENDER",
+      "value": 5,
+      "description": "End rendering"
+    },
+    {
+      "name": "TRIPASS_BACKGROUND_RENDER",
+      "value": 6,
+      "description": "Background rendering"
+    },
+    {
+      "name": "TRIPASS_MAIN_RENDER",
+      "value": 7,
+      "description": "Main rendering"
+    },
+    {
+      "name": "TRIPASS_REFLECTION_RENDER",
+      "value": 8,
+      "description": "Reflection rendering"
+    },
+    {
+      "name": "TRIPASS_DEPTH_PASS",
+      "value": 9,
+      "description": "Depth pass"
+    },
+    {
+      "name": "TRIPASS_SET_PERFRAME_DATA",
+      "value": 10,
+      "description": "Set perframe data to shaders"
+    },
+    {
+      "name": "TRIPASS_RENDER_UI",
+      "value": 11,
+      "description": "Set perframe data to shaders"
+    }
+  ]
 });

@@ -46,7 +46,7 @@ import { Tr2PPTaaEffect } from "../../postProcess/effect/Tr2PPTaaEffect.js";
 import "../../core/volumetrics/Tr2VolumetricsRenderer.js";
 // A cycle with EveSpaceScene.js; each side reads the other only inside methods.
 import { EveSpaceScene } from "./EveSpaceScene.js";
-import { blue, EnumRegistrationType } from "#blue";
+import { blue } from "#blue";
 import "../../postProcess/effect/Tr2PPEffect.js";
 import "#consts/renderContext/formats";
 
@@ -1338,42 +1338,3 @@ export class EveSpaceSceneRenderDriver
   static PixelFormat = PixelFormat;
 
 }
-
-// Registered as Carbon registers it (trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:53).
-blue.enums.RegisterEnum("trinity.EveSpaceSceneRenderDriver.AmbientOcclusionQuality", EveSpaceSceneRenderDriver.AmbientOcclusionQuality, {
-  source: "trinity/trinity/Eve/EveSpaceSceneRenderDriver.h", family: "eve/scene", line: 39,
-  exposedName: "EveSpaceSceneRenderDriverAmbientOcclusionQuality", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:18",
-  chooser: [
-    { name: "Disabled", value: EveSpaceSceneRenderDriver.AmbientOcclusionQuality.Disabled, description: "" },
-    { name: "Low", value: EveSpaceSceneRenderDriver.AmbientOcclusionQuality.Low, description: "" },
-    { name: "Medium", value: EveSpaceSceneRenderDriver.AmbientOcclusionQuality.Medium, description: "" },
-    { name: "High", value: EveSpaceSceneRenderDriver.AmbientOcclusionQuality.High, description: "" }
-  ]
-});
-
-// Registered as Carbon registers it (trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:52).
-blue.enums.RegisterEnum("trinity.EveSpaceSceneRenderDriver.AntiAliasingQuality", EveSpaceSceneRenderDriver.AntiAliasingQuality, {
-  source: "trinity/trinity/Eve/EveSpaceSceneRenderDriver.h", family: "eve/scene", line: 32,
-  exposedName: "EveSpaceSceneRenderDriverAntiAliasingQuality", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:11",
-  chooser: [
-    { name: "Disabled", value: EveSpaceSceneRenderDriver.AntiAliasingQuality.Disabled, description: "" },
-    { name: "Low", value: EveSpaceSceneRenderDriver.AntiAliasingQuality.Low, description: "" },
-    { name: "Medium", value: EveSpaceSceneRenderDriver.AntiAliasingQuality.Medium, description: "" },
-    { name: "High", value: EveSpaceSceneRenderDriver.AntiAliasingQuality.High, description: "" }
-  ]
-});
-
-// Registered as Carbon registers it (trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:54).
-blue.enums.RegisterEnum("trinity.ShadowQuality", EveSpaceSceneRenderDriver.ShadowQuality, {
-  source: "trinity/trinity/Tr2LightManager.h", family: "eve/scene", line: 25,
-  exposedName: "ShadowQuality", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:25",
-  chooser: [
-    { name: "Disabled", value: EveSpaceSceneRenderDriver.ShadowQuality.SHADOW_DISABLED, description: "" },
-    { name: "Low", value: EveSpaceSceneRenderDriver.ShadowQuality.SHADOW_LOW, description: "" },
-    { name: "High", value: EveSpaceSceneRenderDriver.ShadowQuality.SHADOW_HIGH, description: "" },
-    { name: "Raytraced", value: EveSpaceSceneRenderDriver.ShadowQuality.SHADOW_RAYTRACED, description: "" }
-  ]
-});

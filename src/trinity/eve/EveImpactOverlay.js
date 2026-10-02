@@ -869,8 +869,3 @@ function intersectEllipsoidRay(out, center, radii, origin, direction)
   if (t < 0) t = discriminant - vs / vv;
   return vec3.scaleAndAdd(out, origin, direction, t);
 }
-
-// Carbon neither registers this nor gives it a chooser.
-blue.enums.RegisterEnum("trinity.ITriTargetable.ImpactConfiguration", EveImpactOverlay.ImpactConfiguration, {
-  source: "trinity/trinity/Include/ITriTargetable.h", family: "eve/overlays/impact", line: 9
-});

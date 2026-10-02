@@ -5,7 +5,6 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { CjsSchema, meta } from "#schema";
 import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
-import { blue, EnumRegistrationType } from "#blue";
 
 
 /**
@@ -154,13 +153,3 @@ export function setCjsLightDataOwnerValues(owner, values, options, setOwnerValue
 // Carbon registers this in Tr2Light_Blue.cpp:14. It is registered here because
 // the attachment lights load this module without Tr2Light, and Tr2Light
 // imports this module, so the reverse import would be a cycle.
-blue.enums.RegisterEnum("trinity.PerLightShadowSetting", PerLightShadowSetting, {
-  source: "trinity/trinity/Lights/Tr2Light.h", family: "eve/lights", line: 20,
-  exposedName: "PerLightShadowSetting", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Lights/Tr2Light_Blue.cpp:8",
-  chooser: [
-    { name: "Disabled", value: PerLightShadowSetting.DISABLED, description: "Light does not cast shadow." },
-    { name: "Enabled Only On High/Raytraced Shadow Quality Settings", value: PerLightShadowSetting.ENABLED_ONLY_ON_HIGH_QUALITY, description: "Light only casts shadow when Shadow Quality is set to High or Raytraced." },
-    { name: "Enabled", value: PerLightShadowSetting.ALWAYS_ENABLED, description: "Light casts shadow regardless of Shadow Quality Setting" }
-  ]
-});

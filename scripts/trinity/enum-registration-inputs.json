@@ -1,0 +1,1349 @@
+{
+  "version": 1,
+  "modules": [
+    {
+      "file": "src/trinity/generated/trinityCore/enums.js",
+      "selectors": [
+        {
+          "name": "RenderBatchSortType",
+          "qualifiedName": "RenderBatchSortType",
+          "source": "trinity/trinity/TriRenderBatch.h"
+        },
+        {
+          "name": "ShadowQuality",
+          "qualifiedName": "ShadowQuality",
+          "source": "trinity/trinity/Tr2LightManager.h"
+        },
+        {
+          "name": "SSAOQuality",
+          "qualifiedName": "SSAOQuality",
+          "source": "trinity/trinity/Tr2SSAO.h"
+        },
+        {
+          "name": "Tr2DxtCompressionFormat",
+          "qualifiedName": "Tr2DxtCompressionFormat",
+          "source": "trinity/trinity/Tr2DxtCompressor.h"
+        },
+        {
+          "name": "Tr2DxtCompressionSquishQuality",
+          "qualifiedName": "Tr2DxtCompressionSquishQuality",
+          "source": "trinity/trinity/Tr2DxtCompressor.h"
+        },
+        {
+          "name": "Tr2RenderReason",
+          "qualifiedName": "Tr2RenderReason",
+          "source": "trinity/trinity/ITr2Renderable.h"
+        },
+        {
+          "name": "Tr2StandardIlluminant",
+          "qualifiedName": "Tr2StandardIlluminant",
+          "source": "trinity/trinity/Tr2KelvinColor.h"
+        },
+        {
+          "name": "Tr2TransformModifier",
+          "qualifiedName": "Tr2TransformModifier",
+          "source": "trinity/trinity/Tr2Transform.h"
+        },
+        {
+          "name": "Tr2VolumerticQuality",
+          "qualifiedName": "Tr2VolumerticQuality",
+          "source": "trinity/trinity/ITr2VolumetricRenderable.h"
+        },
+        {
+          "name": "TriFrustumTestResult",
+          "qualifiedName": "TriFrustumTestResult",
+          "source": "trinity/trinity/TriFrustum.h"
+        },
+        {
+          "name": "TriVariableContentType",
+          "qualifiedName": "TriVariableContentType",
+          "source": "trinity/trinity/TriVariable.h"
+        }
+      ],
+      "registrations": [
+        {
+          "exportName": "ShadowQuality",
+          "name": "trinity.ShadowQuality",
+          "definition": {
+            "source": "trinity/trinity/Tr2LightManager.h",
+            "family": "eve/scene",
+            "line": 25,
+            "exposedName": "ShadowQuality",
+            "exposure": 2,
+            "chooserSource": "trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:25",
+            "chooser": [
+              {
+                "name": "Disabled",
+                "description": "",
+                "member": "SHADOW_DISABLED"
+              },
+              {
+                "name": "Low",
+                "description": "",
+                "member": "SHADOW_LOW"
+              },
+              {
+                "name": "High",
+                "description": "",
+                "member": "SHADOW_HIGH"
+              },
+              {
+                "name": "Raytraced",
+                "description": "",
+                "member": "SHADOW_RAYTRACED"
+              }
+            ]
+          }
+        },
+        {
+          "exportName": "SSAOQuality",
+          "name": "trinity.SSAOQuality",
+          "definition": {
+            "source": "trinity/trinity/Tr2SSAO.h",
+            "family": "postProcess",
+            "line": 9,
+            "exposedName": "SSAOQuality",
+            "exposure": 2,
+            "chooserSource": "trinity/trinity/Tr2SSAO_Blue.cpp:8",
+            "chooser": [
+              {
+                "name": "Lowest",
+                "description": "Lowest quality",
+                "member": "LOWEST"
+              },
+              {
+                "name": "Low",
+                "description": "Low quality",
+                "member": "LOW"
+              },
+              {
+                "name": "Medium",
+                "description": "Medium quality",
+                "member": "MEDIUM"
+              },
+              {
+                "name": "High",
+                "description": "High quality",
+                "member": "HIGH"
+              },
+              {
+                "name": "Highest",
+                "description": "Highest (adaptive) quality",
+                "member": "HIGHEST"
+              }
+            ]
+          }
+        },
+        {
+          "exportName": "Tr2StandardIlluminant",
+          "name": "trinity.Tr2StandardIlluminant",
+          "definition": {
+            "source": "trinity/trinity/Tr2KelvinColor.h",
+            "family": "trinityCore",
+            "line": 11,
+            "exposedName": "Tr2StandardIlluminant",
+            "exposure": 2,
+            "chooserSource": "trinity/trinity/Tr2KelvinColor_Blue.cpp:12",
+            "chooser": [
+              {
+                "name": "CIE_A",
+                "description": "(CIE A) Incandescent / Tungsten",
+                "member": "TR2STANDARDILLUMINANT_A"
+              },
+              {
+                "name": "CIE_D50",
+                "description": "(CIE D50) Horizon Light",
+                "member": "TR2STANDARDILLUMINANT_D50"
+              },
+              {
+                "name": "CIE_D55",
+                "description": "(CIE D55) Mid-Morning / Mid-Afternoon Daylight",
+                "member": "TR2STANDARDILLUMINANT_D55"
+              },
+              {
+                "name": "CIE_D65",
+                "description": "(CIE D65) Noon Daylight",
+                "member": "TR2STANDARDILLUMINANT_D65"
+              },
+              {
+                "name": "CIE_D75",
+                "description": "(CIE D75) North Sky Daylight",
+                "member": "TR2STANDARDILLUMINANT_D75"
+              },
+              {
+                "name": "CIE_E",
+                "description": "(CIE E) Equal Energy",
+                "member": "TR2STANDARDILLUMINANT_E"
+              },
+              {
+                "name": "CIE_F1",
+                "description": "(CIE F1) Daylight Fluorescent",
+                "member": "TR2STANDARDILLUMINANT_F1"
+              },
+              {
+                "name": "CIE_F2",
+                "description": "(CIE F2) Cool White Fluorescent",
+                "member": "TR2STANDARDILLUMINANT_F2"
+              },
+              {
+                "name": "CIE_F3",
+                "description": "(CIE F3) White Fluorescent",
+                "member": "TR2STANDARDILLUMINANT_F3"
+              },
+              {
+                "name": "CIE_F4",
+                "description": "(CIE F4) Warm White Fluorescent",
+                "member": "TR2STANDARDILLUMINANT_F4"
+              },
+              {
+                "name": "CIE_F5",
+                "description": "(CIE F5) Daylight Fluorescent",
+                "member": "TR2STANDARDILLUMINANT_F5"
+              },
+              {
+                "name": "CIE_F6",
+                "description": "(CIE F6) Lite White Fluorescent",
+                "member": "TR2STANDARDILLUMINANT_F6"
+              },
+              {
+                "name": "CIE_F7",
+                "description": "(CIE F7) D65 Fluorescent Simulator",
+                "member": "TR2STANDARDILLUMINANT_F7"
+              },
+              {
+                "name": "CIE_F8",
+                "description": "(CIE F8) D50 Fluorescent Simulator",
+                "member": "TR2STANDARDILLUMINANT_F8"
+              },
+              {
+                "name": "CIE_F9",
+                "description": "(CIE F9) Cool White Deluxe Fluorescent",
+                "member": "TR2STANDARDILLUMINANT_F9"
+              },
+              {
+                "name": "CIE_F10",
+                "description": "(CIE F10) Philips TL85, Ultralume 50",
+                "member": "TR2STANDARDILLUMINANT_F10"
+              },
+              {
+                "name": "CIE_F11",
+                "description": "(CIE F11) Philips TL84, Ultralume 40",
+                "member": "TR2STANDARDILLUMINANT_F11"
+              },
+              {
+                "name": "CIE_F12",
+                "description": "(CIE F12) Philips TL83, Ultralume 30",
+                "member": "TR2STANDARDILLUMINANT_F12"
+              }
+            ]
+          }
+        },
+        {
+          "exportName": "Tr2TransformModifier",
+          "name": "trinity.Tr2TransformModifier",
+          "definition": {
+            "source": "trinity/trinity/Tr2Transform.h",
+            "family": "trinityCore",
+            "line": 19,
+            "chooserSource": "trinity/trinity/Tr2Transform_Blue.cpp:8",
+            "chooser": [
+              {
+                "name": "None",
+                "description": "No modifier on transform",
+                "member": "TR2TM_NONE"
+              },
+              {
+                "name": "Billboard",
+                "description": "Aligned with the camera - useful for sprites",
+                "member": "TR2TM_BILLBOARD"
+              },
+              {
+                "name": "Translate with camera",
+                "description": "Translates with the camera, rotation is not affected",
+                "member": "TR2TM_TRANSLATE_WITH_CAMERA"
+              },
+              {
+                "name": "Look at camera",
+                "description": "Aligned with the camera - similar to Billboard, but works for 3D objects",
+                "member": "TR2TM_LOOK_AT_CAMERA"
+              },
+              {
+                "name": "Simple halo",
+                "description": "Aligned with the camera, scales with angle to camera - useful for light glows",
+                "member": "TR2TM_SIMPLE_HALO"
+              },
+              {
+                "name": "Pre-translate with camera",
+                "description": "Translates with the camera, preserving local transform",
+                "member": "TR2TM_PRE_TRANSLATE_WITH_CAMERA"
+              },
+              {
+                "name": "EVE Camera rotation aligned",
+                "description": "Do not use in new content! Similar to billboard - used for converted content.",
+                "member": "TR2TM_EVE_CAMERA_ROTATION_ALIGNED"
+              },
+              {
+                "name": "Booster",
+                "description": "Do not use in new content! Something old...",
+                "member": "TR2TM_EVE_BOOSTER"
+              },
+              {
+                "name": "EVE Simple halo",
+                "description": "Do not use in new content! Similar to simple halo - used for converted content.",
+                "member": "TR2TM_EVE_SIMPLE_HALO"
+              },
+              {
+                "name": "EVE Camera rotation",
+                "description": "Do not use in new content! Similar to billboard - used for converted content.",
+                "member": "TR2TM_EVE_CAMERA_ROTATION"
+              }
+            ]
+          }
+        },
+        {
+          "exportName": "Tr2VolumerticQuality",
+          "name": "trinity.Tr2VolumerticQuality",
+          "definition": {
+            "source": "trinity/trinity/ITr2VolumetricRenderable.h",
+            "family": "trinityCore",
+            "line": 11,
+            "exposedName": "Tr2VolumerticQuality",
+            "exposure": 2,
+            "chooserSource": "trinity/trinity/Tr2VolumetricsRenderer_Blue.cpp:8",
+            "chooser": [
+              {
+                "name": "Low",
+                "description": "",
+                "member": "Low"
+              },
+              {
+                "name": "Medium",
+                "description": "",
+                "member": "Medium"
+              },
+              {
+                "name": "High",
+                "description": "",
+                "member": "High"
+              },
+              {
+                "name": "Ultra",
+                "description": "",
+                "member": "Ultra"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "src/trinity/generated/eve/child/enums.js",
+      "selectors": [
+        {
+          "name": "lineSetType",
+          "qualifiedName": "EveChildLineSet::lineSetType",
+          "source": "trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet.h"
+        },
+        {
+          "name": "MorphTargetAnimationFilter",
+          "qualifiedName": "MorphTargetAnimationFilter",
+          "source": "trinity/trinity/Eve/SpaceObject/Children/EveChildMesh.h"
+        },
+        {
+          "name": "Origin",
+          "qualifiedName": "EveSpaceObjectChild::Origin",
+          "source": "trinity/trinity/Eve/SpaceObject/Children/EveSpaceObjectChild.h"
+        },
+        {
+          "name": "PropagationType",
+          "qualifiedName": "EveChildEffectPropagator::PropagationType",
+          "source": "trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.h"
+        },
+        {
+          "name": "RenderType",
+          "qualifiedName": "EveChildBehaviorSystem::RenderType",
+          "source": "trinity/trinity/Eve/SpaceObject/Children/EveChildBehaviorSystem.h"
+        },
+        {
+          "name": "RotationalConstraints",
+          "qualifiedName": "EveChildInstanceMeshRenderer::RotationalConstraints",
+          "source": "trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceMeshRenderer.h"
+        },
+        {
+          "name": "Status",
+          "qualifiedName": "EveCloudEditableVolume::Status",
+          "source": "trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume.h"
+        },
+        {
+          "name": "TriggerType",
+          "qualifiedName": "EveChildEffectPropagator::TriggerType",
+          "source": "trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.h"
+        }
+      ],
+      "registrations": [
+        {
+          "exportName": "Origin",
+          "name": "trinity.EveSpaceObjectChild.Origin",
+          "definition": {
+            "source": "trinity/trinity/Eve/SpaceObject/Children/EveSpaceObjectChild.h",
+            "family": "eve/child",
+            "line": 66,
+            "exposedName": "EveSpaceObjectChildOrigin",
+            "exposure": 2,
+            "chooserSource": "trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp:7",
+            "chooser": [
+              {
+                "name": "SPACE",
+                "description": "Origin in Space",
+                "member": "SPACE"
+              },
+              {
+                "name": "SOF",
+                "description": "Origin in SOF",
+                "member": "SOF"
+              }
+            ]
+          }
+        },
+        {
+          "exportName": "PropagationType",
+          "name": "trinity.EveChildEffectPropagator.PropagationType",
+          "definition": {
+            "source": "trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.h",
+            "family": "eve/child",
+            "line": 51,
+            "exposedName": "EffectPropagationType",
+            "exposure": 2,
+            "chooserSource": "trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp:7",
+            "chooser": [
+              {
+                "name": "localLocators",
+                "description": "just place your triggers manually",
+                "member": "LOCAL_LOCATORS"
+              },
+              {
+                "name": "externalLocatorSet",
+                "description": "use a parent's locatorSet to propagate",
+                "member": "LOCATOR_SET_BY_REF"
+              },
+              {
+                "name": "randomSpread",
+                "description": "spreads locators randomly",
+                "member": "RANDOM_SPREAD"
+              }
+            ]
+          }
+        },
+        {
+          "exportName": "RotationalConstraints",
+          "name": "trinity.EveChildInstanceMeshRenderer.RotationalConstraints",
+          "definition": {
+            "source": "trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceMeshRenderer.h",
+            "family": "eve/child",
+            "line": 35,
+            "exposedName": "RotationalConstraint",
+            "exposure": 2,
+            "chooserSource": "trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceMeshRenderer_Blue.cpp:7",
+            "chooser": [
+              {
+                "name": "none",
+                "description": "normal rendering",
+                "member": "NONE"
+              },
+              {
+                "name": "billboard",
+                "description": "face the camera",
+                "member": "BILLBOARD"
+              },
+              {
+                "name": "lockZ",
+                "description": "face the camera but keep the original UP",
+                "member": "BILLBOARD_WITH_Z_LOCKED"
+              }
+            ]
+          }
+        },
+        {
+          "exportName": "TriggerType",
+          "name": "trinity.EveChildEffectPropagator.TriggerType",
+          "definition": {
+            "source": "trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.h",
+            "family": "eve/child",
+            "line": 58,
+            "exposedName": "EffectPropagationTriggerType",
+            "exposure": 2,
+            "chooserSource": "trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp:15",
+            "chooser": [
+              {
+                "name": "triggerSphereCurve",
+                "description": "animate a radius to trigger the effect",
+                "member": "TRIGGER_SPHERE_CURVE"
+              },
+              {
+                "name": "intervalTriggers",
+                "description": "continuous effect trigger",
+                "member": "INTERVAL_TRIGGERS"
+              },
+              {
+                "name": "instantPermanent",
+                "description": "propagate instantly over set and no clean-up",
+                "member": "INSTANT_PERMANENT"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "src/trinity/generated/eve/enums.js",
+      "selectors": [
+        {
+          "name": "AmbientOcclusionQuality",
+          "qualifiedName": "EveSpaceSceneRenderDriver::AmbientOcclusionQuality",
+          "source": "trinity/trinity/Eve/EveSpaceSceneRenderDriver.h"
+        },
+        {
+          "name": "AntiAliasingQuality",
+          "qualifiedName": "EveSpaceSceneRenderDriver::AntiAliasingQuality",
+          "source": "trinity/trinity/Eve/EveSpaceSceneRenderDriver.h"
+        },
+        {
+          "name": "BackgroundRenderingReason",
+          "qualifiedName": "EveSpaceScene::BackgroundRenderingReason",
+          "source": "trinity/trinity/Eve/EveSpaceScene.h"
+        },
+        {
+          "name": "BoundingSphereQuery",
+          "qualifiedName": "BoundingSphereQuery",
+          "source": "trinity/trinity/Eve/EveLODHelper.h"
+        },
+        {
+          "name": "EveVisualizeMethod",
+          "qualifiedName": "EveSpaceScene::EveVisualizeMethod",
+          "source": "trinity/trinity/Eve/EveSpaceScene.h"
+        },
+        {
+          "name": "ParameterType",
+          "qualifiedName": "EveMultiEffectParameter::ParameterType",
+          "source": "trinity/trinity/Eve/EveMultiEffectParameter.h"
+        },
+        {
+          "name": "ReflectionQuality",
+          "qualifiedName": "EveSpaceSceneRenderDriver::ReflectionQuality",
+          "source": "trinity/trinity/Eve/EveSpaceSceneRenderDriver.h"
+        },
+        {
+          "name": "ReflectionSetting",
+          "qualifiedName": "ReflectionSetting",
+          "source": "trinity/trinity/Eve/EveEntity.h"
+        },
+        {
+          "name": "VisualizerType",
+          "qualifiedName": "EveSpaceScene::VisualizerType",
+          "source": "trinity/trinity/Eve/EveSpaceScene.h"
+        }
+      ],
+      "registrations": [
+        {
+          "exportName": "AmbientOcclusionQuality",
+          "name": "trinity.EveSpaceSceneRenderDriver.AmbientOcclusionQuality",
+          "definition": {
+            "source": "trinity/trinity/Eve/EveSpaceSceneRenderDriver.h",
+            "family": "eve/scene",
+            "line": 39,
+            "exposedName": "EveSpaceSceneRenderDriverAmbientOcclusionQuality",
+            "exposure": 2,
+            "chooserSource": "trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:18",
+            "chooser": [
+              {
+                "name": "Disabled",
+                "description": "",
+                "member": "Disabled"
+              },
+              {
+                "name": "Low",
+                "description": "",
+                "member": "Low"
+              },
+              {
+                "name": "Medium",
+                "description": "",
+                "member": "Medium"
+              },
+              {
+                "name": "High",
+                "description": "",
+                "member": "High"
+              }
+            ]
+          }
+        },
+        {
+          "exportName": "AntiAliasingQuality",
+          "name": "trinity.EveSpaceSceneRenderDriver.AntiAliasingQuality",
+          "definition": {
+            "source": "trinity/trinity/Eve/EveSpaceSceneRenderDriver.h",
+            "family": "eve/scene",
+            "line": 32,
+            "exposedName": "EveSpaceSceneRenderDriverAntiAliasingQuality",
+            "exposure": 2,
+            "chooserSource": "trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:11",
+            "chooser": [
+              {
+                "name": "Disabled",
+                "description": "",
+                "member": "Disabled"
+              },
+              {
+                "name": "Low",
+                "description": "",
+                "member": "Low"
+              },
+              {
+                "name": "Medium",
+                "description": "",
+                "member": "Medium"
+              },
+              {
+                "name": "High",
+                "description": "",
+                "member": "High"
+              }
+            ]
+          }
+        },
+        {
+          "exportName": "EveVisualizeMethod",
+          "name": "trinity.EveSpaceScene.EveVisualizeMethod",
+          "definition": {
+            "source": "trinity/trinity/Eve/EveSpaceScene.h",
+            "family": "eve/scene",
+            "line": 176,
+            "exposedName": "EveVisualizeMethod",
+            "exposure": 2,
+            "chooserSource": "trinity/trinity/Eve/EveSpaceScene_Blue.cpp:20",
+            "chooser": [
+              {
+                "name": "None",
+                "description": "No visualizer - use normal rendering",
+                "member": "VM_NONE"
+              },
+              {
+                "name": "TexCoord0",
+                "description": "",
+                "member": "VM_TEXCOORD0"
+              },
+              {
+                "name": "TexCoord1",
+                "description": "",
+                "member": "VM_TEXCOORD1"
+              },
+              {
+                "name": "White",
+                "description": "",
+                "member": "VM_WHITE"
+              },
+              {
+                "name": "Overdraw",
+                "description": "",
+                "member": "VM_OVERDRAW"
+              },
+              {
+                "name": "Wireframe",
+                "description": "",
+                "member": "VW_WIREFRAME"
+              },
+              {
+                "name": "LightCount",
+                "description": "",
+                "member": "VW_LIGHT_COUNT"
+              }
+            ]
+          }
+        },
+        {
+          "exportName": "ParameterType",
+          "name": "trinity.EveMultiEffectParameter.ParameterType",
+          "definition": {
+            "source": "trinity/trinity/Eve/EveMultiEffectParameter.h",
+            "family": "eve/effect",
+            "line": 16,
+            "exposedName": "EveMultiEffectParameterType",
+            "exposure": 2,
+            "chooserSource": "trinity/trinity/Eve/EveMultiEffectParameter_Blue.cpp:8",
+            "chooser": [
+              {
+                "name": "EveSpaceObject2",
+                "description": "The parameter is of EveSpaceObject2 type",
+                "member": "TYPE_EVESPACEOBJECT"
+              },
+              {
+                "name": "EveEffectRoot2",
+                "description": "The parameter is of EveEffectRoot2 type",
+                "member": "TYPE_EVEEFFECTROOT"
+              },
+              {
+                "name": "Anything",
+                "description": "The parameter can be anything",
+                "member": "TYPE_ANYTHING"
+              },
+              {
+                "name": "Undefined",
+                "description": "The parameter is of an undefined type",
+                "member": "TYPE_UNDEFINED"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "src/trinity/generated/include/enums.js",
+      "selectors": [
+        {
+          "name": "CullResult",
+          "qualifiedName": "CullResult",
+          "source": "trinity/trinity/Include/ITr2Interior.h"
+        },
+        {
+          "name": "Effect",
+          "qualifiedName": "ITr2DebugRenderer2::Effect",
+          "source": "trinity/trinity/Include/ITr2DebugRenderer2.h"
+        },
+        {
+          "name": "ImpactConfiguration",
+          "qualifiedName": "ITriTargetable::ImpactConfiguration",
+          "source": "trinity/trinity/Include/ITriTargetable.h"
+        },
+        {
+          "name": "Interpolation",
+          "qualifiedName": "Interpolation",
+          "source": "trinity/trinity/Include/Tr2Curve.h"
+        },
+        {
+          "name": "PassType",
+          "qualifiedName": "ITr2MultiPassScene::PassType",
+          "source": "trinity/trinity/Include/ITr2MultiPassScene.h"
+        },
+        {
+          "name": "RenderPassResult",
+          "qualifiedName": "ITr2MultiPassScene::RenderPassResult",
+          "source": "trinity/trinity/Include/ITr2MultiPassScene.h"
+        },
+        {
+          "name": "Tr2DeviceCallbackTime",
+          "qualifiedName": "Tr2DeviceCallbackTime",
+          "source": "trinity/trinity/Include/ITriDevice.h"
+        },
+        {
+          "name": "TriDebugFont",
+          "qualifiedName": "TriDebugFont",
+          "source": "trinity/trinity/Include/ITr2DebugRenderer2.h"
+        },
+        {
+          "name": "TriDebugFontStyle",
+          "qualifiedName": "TriDebugFontStyle",
+          "source": "trinity/trinity/Include/ITr2DebugRenderer2.h"
+        }
+      ],
+      "registrations": [
+        {
+          "exportName": "ImpactConfiguration",
+          "name": "trinity.ITriTargetable.ImpactConfiguration",
+          "definition": {
+            "source": "trinity/trinity/Include/ITriTargetable.h",
+            "family": "eve/overlays/impact",
+            "line": 9
+          }
+        },
+        {
+          "exportName": "PassType",
+          "name": "trinity.ITr2MultiPassScene.PassType",
+          "definition": {
+            "source": "trinity/trinity/Include/ITr2MultiPassScene.h",
+            "family": "renderJob",
+            "line": 25,
+            "exposedName": "MULTI_PASS_SCENE_PASS",
+            "exposure": 2,
+            "chooserSource": "trinity/trinity/RenderJob/TriStepRenderPass_Blue.cpp:6",
+            "chooser": [
+              {
+                "name": "TRIPASS_BEGIN_RENDER",
+                "description": "Begin rendering",
+                "member": "RP_BEGIN_RENDER"
+              },
+              {
+                "name": "TRIPASS_PRE_PASS",
+                "description": "Render prepass (depth, normals, specular)",
+                "member": "RP_PRE_PASS"
+              },
+              {
+                "name": "TRIPASS_LIGHT_PASS",
+                "description": "Render lights",
+                "member": "RP_LIGHT_PASS"
+              },
+              {
+                "name": "TRIPASS_GATHER_PASS",
+                "description": "Render gather pass",
+                "member": "RP_GATHER_PASS"
+              },
+              {
+                "name": "TRIPASS_FLARE_PASS",
+                "description": "Render flare pass",
+                "member": "RP_FLARE_PASS"
+              },
+              {
+                "name": "TRIPASS_END_RENDER",
+                "description": "End rendering",
+                "member": "RP_END_RENDER"
+              },
+              {
+                "name": "TRIPASS_BACKGROUND_RENDER",
+                "description": "Background rendering",
+                "member": "RP_BACKGROUND_RENDER"
+              },
+              {
+                "name": "TRIPASS_MAIN_RENDER",
+                "description": "Main rendering",
+                "member": "RP_MAIN_RENDER"
+              },
+              {
+                "name": "TRIPASS_REFLECTION_RENDER",
+                "description": "Reflection rendering",
+                "member": "RP_REFLECTION_RENDER"
+              },
+              {
+                "name": "TRIPASS_DEPTH_PASS",
+                "description": "Depth pass",
+                "member": "RP_DEPTH_PASS"
+              },
+              {
+                "name": "TRIPASS_SET_PERFRAME_DATA",
+                "description": "Set perframe data to shaders",
+                "member": "RP_SET_PERFRAME_DATA"
+              },
+              {
+                "name": "TRIPASS_RENDER_UI",
+                "description": "Set perframe data to shaders",
+                "member": "RP_RENDER_UI"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "src/trinity/generated/eve/lights/enums.js",
+      "selectors": [
+        {
+          "name": "PerLightShadowSetting",
+          "qualifiedName": "PerLightShadowSetting",
+          "source": "trinity/trinity/Lights/Tr2Light.h"
+        }
+      ],
+      "registrations": [
+        {
+          "exportName": "PerLightShadowSetting",
+          "name": "trinity.PerLightShadowSetting",
+          "definition": {
+            "source": "trinity/trinity/Lights/Tr2Light.h",
+            "family": "eve/lights",
+            "line": 20,
+            "exposedName": "PerLightShadowSetting",
+            "exposure": 2,
+            "chooserSource": "trinity/trinity/Lights/Tr2Light_Blue.cpp:8",
+            "chooser": [
+              {
+                "name": "Disabled",
+                "description": "Light does not cast shadow.",
+                "member": "DISABLED"
+              },
+              {
+                "name": "Enabled Only On High/Raytraced Shadow Quality Settings",
+                "description": "Light only casts shadow when Shadow Quality is set to High or Raytraced.",
+                "member": "ENABLED_ONLY_ON_HIGH_QUALITY"
+              },
+              {
+                "name": "Enabled",
+                "description": "Light casts shadow regardless of Shadow Quality Setting",
+                "member": "ALWAYS_ENABLED"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "src/trinity/generated/eve/renderable/stretch/enums.js",
+      "selectors": [
+        {
+          "name": "LocalPositionBehavior",
+          "qualifiedName": "EveLocalPositionCurve::LocalPositionBehavior",
+          "source": "trinity/trinity/Eve/Renderable/Stretch/EveLocalPositionCurve.h"
+        },
+        {
+          "name": "StretchState",
+          "qualifiedName": "EveStretch3::StretchState",
+          "source": "trinity/trinity/Eve/Renderable/Stretch/EveStretch3.h"
+        }
+      ],
+      "registrations": [
+        {
+          "exportName": "LocalPositionBehavior",
+          "name": "trinity.EveLocalPositionCurve.LocalPositionBehavior",
+          "definition": {
+            "source": "trinity/trinity/Eve/Renderable/Stretch/EveLocalPositionCurve.h",
+            "family": "eve/renderable/stretch",
+            "line": 26,
+            "exposedName": "EveLocalPositionBehavior",
+            "exposure": 2,
+            "chooserSource": "trinity/trinity/Eve/Renderable/Stretch/EveLocalPositionCurve_Blue.cpp:8",
+            "chooser": [
+              {
+                "name": "none",
+                "description": "No position.",
+                "member": "POS_NONE"
+              },
+              {
+                "name": "nearestBounds",
+                "description": "use the closest point on the ellyptical bounding sphere of the parent object.",
+                "member": "POS_NEAREST_BOUNDING_POINT"
+              },
+              {
+                "name": "centerBounds",
+                "description": "Use the center of the bounding sphere of the parent object.",
+                "member": "POS_CENTER_BOUNDING_POINT"
+              },
+              {
+                "name": "damageLocator",
+                "description": "Use a damage locator of the target object.",
+                "member": "POS_TARGET_DMG_LOCATOR"
+              },
+              {
+                "name": "damageLocatorImpact",
+                "description": "Use a damage locator of the target object, but with impact effect",
+                "member": "POS_TARGET_DMG_LOCATOR_IMPACT"
+              },
+              {
+                "name": "offsetPosition",
+                "description": "Calculate a position based on an offset from parent position",
+                "member": "POS_OFFSET_POSITION"
+              },
+              {
+                "name": "offsetPlaneRotation",
+                "description": "Moves the vector from parentPositionCurve(or 0, 0, 0) to alignedPositionCurve OR positionOffset to the xz plane containing parentPositionCurve, maintaining the vector's length.",
+                "member": "POS_OFFSET_PLANE_ROTATION"
+              },
+              {
+                "name": "nearestFiringLocator",
+                "description": "Use the nearest firing locator of source object",
+                "member": "POS_NEAREST_FIRING_LOCATOR"
+              },
+              {
+                "name": "activeTurret",
+                "description": "Use the active turret world position",
+                "member": "POS_ACTIVE_TURRET"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "src/trinity/generated/postProcess/enums.js",
+      "selectors": [
+        {
+          "name": "AttributeType",
+          "qualifiedName": "AttributeType",
+          "source": "trinity/trinity/PostProcess/Tr2PostProcessEnums.h"
+        },
+        {
+          "name": "BloomDebugMode",
+          "qualifiedName": "Tr2PostProcessRenderer::BloomDebugMode",
+          "source": "trinity/trinity/PostProcess/Tr2PostProcessRenderer.h"
+        },
+        {
+          "name": "BlurChannel",
+          "qualifiedName": "BlurChannel",
+          "source": "trinity/trinity/PostProcess/Tr2PostProcessRenderer.h"
+        },
+        {
+          "name": "BlurFinalize",
+          "qualifiedName": "BlurFinalize",
+          "source": "trinity/trinity/PostProcess/Tr2PostProcessRenderer.h"
+        },
+        {
+          "name": "BlurProcess",
+          "qualifiedName": "BlurProcess",
+          "source": "trinity/trinity/PostProcess/Tr2PostProcessRenderer.h"
+        },
+        {
+          "name": "BlurType",
+          "qualifiedName": "BlurType",
+          "source": "trinity/trinity/PostProcess/Tr2PostProcessRenderer.h"
+        },
+        {
+          "name": "Debug",
+          "qualifiedName": "Tr2PPTaaEffect::Debug",
+          "source": "trinity/trinity/PostProcess/Effects/Tr2PPTaaEffect.h"
+        },
+        {
+          "name": "Priority",
+          "qualifiedName": "Priority",
+          "source": "trinity/trinity/PostProcess/Tr2PostProcessEnums.h"
+        },
+        {
+          "name": "Quality",
+          "qualifiedName": "Quality",
+          "source": "trinity/trinity/PostProcess/Effects/Tr2PPEffect.h"
+        }
+      ],
+      "registrations": [
+        {
+          "exportName": "BloomDebugMode",
+          "name": "trinity.Tr2PostProcessRenderer.BloomDebugMode",
+          "definition": {
+            "source": "trinity/trinity/PostProcess/Tr2PostProcessRenderer.h",
+            "family": "postProcess",
+            "line": 112,
+            "chooserSource": "trinity/trinity/PostProcess/Tr2PostProcessRenderer_Blue.cpp:9",
+            "chooser": [
+              {
+                "name": "None",
+                "description": "No Debug",
+                "member": "BLOOM_DEBUG_NONE"
+              },
+              {
+                "name": "All",
+                "description": "Show all steps",
+                "member": "BLOOM_DEBUG_ALL"
+              },
+              {
+                "name": "Step1",
+                "description": "Show step 1",
+                "member": "BLOOM_DEBUG_STEP1"
+              },
+              {
+                "name": "Step2",
+                "description": "Show step 2",
+                "member": "BLOOM_DEBUG_STEP2"
+              },
+              {
+                "name": "Step3",
+                "description": "Show step 3",
+                "member": "BLOOM_DEBUG_STEP3"
+              },
+              {
+                "name": "Step4",
+                "description": "Show step 4",
+                "member": "BLOOM_DEBUG_STEP4"
+              },
+              {
+                "name": "Step5",
+                "description": "Show step 5",
+                "member": "BLOOM_DEBUG_STEP5"
+              },
+              {
+                "name": "Step6",
+                "description": "Show step 6",
+                "member": "BLOOM_DEBUG_STEP6"
+              }
+            ]
+          }
+        },
+        {
+          "exportName": "BlurChannel",
+          "name": "trinity.PostProcessBlur.BlurChannel",
+          "definition": {
+            "source": "trinity/trinity/PostProcess/Tr2PostProcessRenderer.h",
+            "family": "postProcess",
+            "line": 24
+          }
+        },
+        {
+          "exportName": "BlurFinalize",
+          "name": "trinity.PostProcessBlur.BlurFinalize",
+          "definition": {
+            "source": "trinity/trinity/PostProcess/Tr2PostProcessRenderer.h",
+            "family": "postProcess",
+            "line": 40
+          }
+        },
+        {
+          "exportName": "BlurProcess",
+          "name": "trinity.PostProcessBlur.BlurProcess",
+          "definition": {
+            "source": "trinity/trinity/PostProcess/Tr2PostProcessRenderer.h",
+            "family": "postProcess",
+            "line": 33
+          }
+        },
+        {
+          "exportName": "BlurType",
+          "name": "trinity.PostProcessBlur.BlurType",
+          "definition": {
+            "source": "trinity/trinity/PostProcess/Tr2PostProcessRenderer.h",
+            "family": "postProcess",
+            "line": 18
+          }
+        },
+        {
+          "exportName": "Debug",
+          "name": "trinity.Tr2PPTaaEffect.Debug",
+          "definition": {
+            "source": "trinity/trinity/PostProcess/Effects/Tr2PPTaaEffect.h",
+            "family": "postProcess",
+            "line": 23,
+            "exposedName": "TaaDebug",
+            "exposure": 2,
+            "chooserSource": "trinity/trinity/PostProcess/Effects/Tr2PPTaaEffect_Blue.cpp:17",
+            "chooser": [
+              {
+                "name": "Off",
+                "description": "Debug Off",
+                "member": "TAA_DEBUG_OFF"
+              },
+              {
+                "name": "Motion Vectors",
+                "description": "Show Motion Vectors",
+                "member": "TAA_DEBUG_MOTION_VECTORS"
+              },
+              {
+                "name": "Early Out Mask",
+                "description": "Show Early Out Mask",
+                "member": "TAA_DEBUG_EARLY_OUT_MASK"
+              }
+            ]
+          }
+        },
+        {
+          "exportName": "Priority",
+          "name": "trinity.PostProcessEnums.Priority",
+          "definition": {
+            "source": "trinity/trinity/PostProcess/Tr2PostProcessEnums.h",
+            "family": "postProcess",
+            "line": 58,
+            "exposedName": "Tr2PostProcessPriority",
+            "exposure": 2,
+            "chooserSource": "trinity/trinity/PostProcess/Tr2PostProcessAttributes_Blue.cpp:9",
+            "chooser": [
+              {
+                "name": "UI",
+                "description": "UI (Top) Priority",
+                "member": "UI_PRIORITY"
+              },
+              {
+                "name": "High",
+                "description": "High Priority",
+                "member": "HIGH_PRIORITY"
+              },
+              {
+                "name": "Medium",
+                "description": "Medium Priority",
+                "member": "MEDIUM_PRIORITY"
+              },
+              {
+                "name": "Low",
+                "description": "Low Priority",
+                "member": "LOW_PRIORITY"
+              },
+              {
+                "name": "SceneDefault",
+                "description": "Scene Default (lowest) Priority",
+                "member": "SCENE_DEFAULT_PRIORITY"
+              }
+            ]
+          }
+        },
+        {
+          "exportName": "Quality",
+          "name": "trinity.PostProcess.Quality",
+          "definition": {
+            "source": "trinity/trinity/PostProcess/Effects/Tr2PPEffect.h",
+            "family": "postProcess",
+            "line": 9,
+            "exposedName": "PostProcessQuality",
+            "exposure": 2,
+            "chooserSource": "trinity/trinity/PostProcess/Effects/Tr2PPEffect_Blue.cpp:7",
+            "chooser": [
+              {
+                "name": "Low",
+                "description": "Low Quality",
+                "member": "LOW"
+              },
+              {
+                "name": "Medium",
+                "description": "Medium Quality",
+                "member": "MEDIUM"
+              },
+              {
+                "name": "High",
+                "description": "High Quality",
+                "member": "HIGH"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "src/trinity/generated/renderJob/enums.js",
+      "selectors": [
+        {
+          "name": "FilterType",
+          "qualifiedName": "TriStepFilterVisibilityResults::FilterType",
+          "source": "trinity/trinity/RenderJob/TriStepFilterVisibilityResults.h"
+        },
+        {
+          "name": "TriRenderJobStatus",
+          "qualifiedName": "TriRenderJobStatus",
+          "source": "trinity/trinity/RenderJob/TriRenderJob.h"
+        },
+        {
+          "name": "TriStepResult",
+          "qualifiedName": "TriStepResult",
+          "source": "trinity/trinity/RenderJob/TriRenderStep.h"
+        }
+      ],
+      "registrations": [
+        {
+          "exportName": "FilterType",
+          "name": "trinity.TriStepFilterVisibilityResults.FilterType",
+          "definition": {
+            "source": "trinity/trinity/RenderJob/TriStepFilterVisibilityResults.h",
+            "family": "renderJob",
+            "line": 41,
+            "exposedName": "TRIVISIBILITY_FILTER_TYPE",
+            "exposure": 2,
+            "chooserSource": "trinity/trinity/RenderJob/TriStepFilterVisibilityResults_Blue.cpp:44",
+            "chooser": [
+              {
+                "name": "TRIVISIBILITY_FILTER_ONLY_OBJECTS_IN_LIST",
+                "description": "Only allow objects/lights in the objects list",
+                "member": "ONLY_OBJECTS_IN_LIST"
+              },
+              {
+                "name": "TRIVISIBILITY_FILTER_EXCLUDE_OBJECTS_IN_LIST",
+                "description": "Exclude objects/lights in the objects list",
+                "member": "EXCLUDE_OBJECTS_IN_LIST"
+              }
+            ]
+          }
+        },
+        {
+          "exportName": "TriRenderJobStatus",
+          "name": "trinity.TriRenderJobStatus",
+          "definition": {
+            "source": "trinity/trinity/RenderJob/TriRenderJob.h",
+            "family": "renderJob",
+            "line": 14,
+            "exposedName": "RENDERJOB_STATUS",
+            "exposure": 2,
+            "chooserSource": "trinity/trinity/RenderJob/TriRenderJob_Blue.cpp:8",
+            "chooser": [
+              {
+                "name": "RJ_INIT",
+                "description": "Render job is in its initial state",
+                "member": "RJ_INIT"
+              },
+              {
+                "name": "RJ_IN_PROGRESS",
+                "description": "Render job is in progress",
+                "member": "RJ_IN_PROGRESS"
+              },
+              {
+                "name": "RJ_DONE",
+                "description": "Render job is done",
+                "member": "RJ_DONE"
+              },
+              {
+                "name": "RJ_FAILED",
+                "description": "Render job failed",
+                "member": "RJ_FAILED"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "file": "src/trinity/generated/sprite2d/enums.js",
+      "selectors": [
+        {
+          "name": "CornerType",
+          "qualifiedName": "Tr2Sprite2dLineTrace::CornerType",
+          "source": "trinity/trinity/Sprite2d/Tr2Sprite2dLineTrace.h"
+        },
+        {
+          "name": "TextureRepeat",
+          "qualifiedName": "Tr2Sprite2dScene::TextureRepeat",
+          "source": "trinity/trinity/Sprite2d/Tr2Sprite2dScene.h"
+        },
+        {
+          "name": "Tr2Sprite2dRenderEffect",
+          "qualifiedName": "Tr2Sprite2dRenderEffect",
+          "source": "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h"
+        },
+        {
+          "name": "Tr2Sprite2dTextureSettings",
+          "qualifiedName": "Tr2Sprite2dTextureSettings",
+          "source": "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h"
+        },
+        {
+          "name": "Tr2SpriteObjectBlendMode",
+          "qualifiedName": "Tr2SpriteObjectBlendMode",
+          "source": "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h"
+        },
+        {
+          "name": "Tr2SpriteObjectEffect",
+          "qualifiedName": "Tr2SpriteObjectEffect",
+          "source": "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h"
+        },
+        {
+          "name": "Tr2SpriteObjectPickState",
+          "qualifiedName": "Tr2SpriteObjectPickState",
+          "source": "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h"
+        },
+        {
+          "name": "Tr2SpriteTarget",
+          "qualifiedName": "Tr2SpriteTarget",
+          "source": "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h"
+        },
+        {
+          "name": "Tr2StretchScaleBehavior",
+          "qualifiedName": "Tr2StretchScaleBehavior",
+          "source": "trinity/trinity/Sprite2d/Tr2Sprite2dStretch.h"
+        }
+      ],
+      "registrations": [
+        {
+          "exportName": "Tr2SpriteObjectPickState",
+          "name": "trinity.Tr2SpriteObjectPickState",
+          "definition": {
+            "source": "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h",
+            "family": "sprite2d",
+            "line": 8,
+            "chooserSource": "trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:10",
+            "chooser": [
+              {
+                "name": "TR2_SPS_OFF",
+                "description": "Picking is disabled",
+                "member": "TR2_SPS_OFF"
+              },
+              {
+                "name": "TR2_SPS_ON",
+                "description": "Picking is enabled",
+                "member": "TR2_SPS_ON"
+              },
+              {
+                "name": "TR2_SPS_CHILDREN",
+                "description": "Only children are pickable",
+                "member": "TR2_SPS_CHILDREN"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

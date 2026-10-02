@@ -6,7 +6,7 @@ import { meta } from "#schema";
 import { EveEffectRoot2 } from "../../spaceObject/EveEffectRoot2.js";
 import { EveSpaceObject2 } from "../../spaceObject/EveSpaceObject2.js";
 import { ParameterType } from "../../../generated/eve/enums.js";
-import { IsMatch, blue, EnumRegistrationType } from "#blue";
+import { IsMatch, blue } from "#blue";
 
 /**
  * One named slot in an EveMultiEffect, holding the object bound to that name
@@ -108,18 +108,6 @@ export class EveMultiEffectParameter
 
 }
 
-// Registered as Carbon registers it (trinity/trinity/Eve/EveMultiEffectParameter_Blue.cpp:16).
-blue.enums.RegisterEnum("trinity.EveMultiEffectParameter.ParameterType", EveMultiEffectParameter.ParameterType, {
-  source: "trinity/trinity/Eve/EveMultiEffectParameter.h", family: "eve/effect", line: 16,
-  exposedName: "EveMultiEffectParameterType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Eve/EveMultiEffectParameter_Blue.cpp:8",
-  chooser: [
-    { name: "EveSpaceObject2", value: EveMultiEffectParameter.ParameterType.TYPE_EVESPACEOBJECT, description: "The parameter is of EveSpaceObject2 type" },
-    { name: "EveEffectRoot2", value: EveMultiEffectParameter.ParameterType.TYPE_EVEEFFECTROOT, description: "The parameter is of EveEffectRoot2 type" },
-    { name: "Anything", value: EveMultiEffectParameter.ParameterType.TYPE_ANYTHING, description: "The parameter can be anything" },
-    { name: "Undefined", value: EveMultiEffectParameter.ParameterType.TYPE_UNDEFINED, description: "The parameter is of an undefined type" }
-  ]
-});
 
 // Exact native Blue exposure: only these identities participate in loading.
 meta.blue.interfaceTable({ interfaces: [INotify], chainTo: null })(EveMultiEffectParameter, { kind: "class" });

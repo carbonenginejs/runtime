@@ -18,7 +18,7 @@ const require = createRequire(path.join(packageRoot, "package.json"));
 function packageTarget(map, name)
 {
   if (typeof map[name] === "string") return map[name];
-  for (const [pattern, target] of Object.entries(map))
+  for (const [pattern, target] of Object.entries(map).sort(([a], [b]) => b.indexOf("*") - a.indexOf("*") || b.length - a.length))
   {
     const star = pattern.indexOf("*");
     if (star < 0 || typeof target !== "string") continue;
@@ -197,7 +197,8 @@ test("domain definition registrations survive bare public family imports", async
   {
     for (const [subpath, file, name] of [
       ["sof/hull", "sof/hull/EveSOFDataHull.js", "trinity.EveSOFDataHull.BuildClass"],
-      ["trinity/eve", "trinity/eve/child/behaviors/enums.js", "trinity.BackAndForth.LocatorType"]
+      ["trinity/eve", "trinity/eve/child/behaviors/enums.js", "trinity.BackAndForth.LocatorType"],
+      ["trinity/generated/postProcess/enums.js", "trinity/generated/postProcess/enums.js", "trinity.PostProcessBlur.BlurType"]
     ])
     {
       const source = `import "@carbonenginejs/runtime/${subpath}";

@@ -306,15 +306,7 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
 
 // Carbon gives this a chooser (trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:10) but never registers it,
 // so it takes no exposure.
-blue.enums.RegisterEnum("trinity.Tr2SpriteObjectPickState", Tr2SpriteObjectBase.Tr2SpriteObjectPickState, {
-  source: "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h", family: "sprite2d", line: 8,
-  chooserSource: "trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:10",
-  chooser: [
-    { name: "TR2_SPS_OFF", value: Tr2SpriteObjectBase.Tr2SpriteObjectPickState.TR2_SPS_OFF, description: "Picking is disabled" },
-    { name: "TR2_SPS_ON", value: Tr2SpriteObjectBase.Tr2SpriteObjectPickState.TR2_SPS_ON, description: "Picking is enabled" },
-    { name: "TR2_SPS_CHILDREN", value: Tr2SpriteObjectBase.Tr2SpriteObjectPickState.TR2_SPS_CHILDREN, description: "Only children are pickable" }
-  ]
-});
+
 
 // Native exposure maps both contracts, without concrete self or parent chaining.
 meta.blue.interfaceTable({ interfaces: [ITr2SpriteObject, INotify], chainTo: null })(Tr2SpriteObjectBase);

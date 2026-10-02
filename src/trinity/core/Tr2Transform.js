@@ -583,19 +583,3 @@ export class Tr2Transform
 
 // Carbon gives this a chooser (trinity/trinity/Tr2Transform_Blue.cpp:8) but never registers it,
 // so it takes no exposure.
-blue.enums.RegisterEnum("trinity.Tr2TransformModifier", Tr2Transform.Tr2TransformModifier, {
-  source: "trinity/trinity/Tr2Transform.h", family: "trinityCore", line: 19,
-  chooserSource: "trinity/trinity/Tr2Transform_Blue.cpp:8",
-  chooser: [
-    { name: "None", value: Tr2Transform.Tr2TransformModifier.TR2TM_NONE, description: "No modifier on transform" },
-    { name: "Billboard", value: Tr2Transform.Tr2TransformModifier.TR2TM_BILLBOARD, description: "Aligned with the camera - useful for sprites" },
-    { name: "Translate with camera", value: Tr2Transform.Tr2TransformModifier.TR2TM_TRANSLATE_WITH_CAMERA, description: "Translates with the camera, rotation is not affected" },
-    { name: "Look at camera", value: Tr2Transform.Tr2TransformModifier.TR2TM_LOOK_AT_CAMERA, description: "Aligned with the camera - similar to Billboard, but works for 3D objects" },
-    { name: "Simple halo", value: Tr2Transform.Tr2TransformModifier.TR2TM_SIMPLE_HALO, description: "Aligned with the camera, scales with angle to camera - useful for light glows" },
-    { name: "Pre-translate with camera", value: Tr2Transform.Tr2TransformModifier.TR2TM_PRE_TRANSLATE_WITH_CAMERA, description: "Translates with the camera, preserving local transform" },
-    { name: "EVE Camera rotation aligned", value: Tr2Transform.Tr2TransformModifier.TR2TM_EVE_CAMERA_ROTATION_ALIGNED, description: "Do not use in new content! Similar to billboard - used for converted content." },
-    { name: "Booster", value: Tr2Transform.Tr2TransformModifier.TR2TM_EVE_BOOSTER, description: "Do not use in new content! Something old..." },
-    { name: "EVE Simple halo", value: Tr2Transform.Tr2TransformModifier.TR2TM_EVE_SIMPLE_HALO, description: "Do not use in new content! Similar to simple halo - used for converted content." },
-    { name: "EVE Camera rotation", value: Tr2Transform.Tr2TransformModifier.TR2TM_EVE_CAMERA_ROTATION, description: "Do not use in new content! Similar to billboard - used for converted content." }
-  ]
-});

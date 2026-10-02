@@ -4,7 +4,7 @@ import { meta } from "#schema";
 import { Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
 import { TriRenderStep } from "./step/TriRenderStep.js";
 import { TriRenderJobStatus } from "../generated/renderJob/enums.js";
-import { blue, EnumRegistrationType } from "#blue";
+import { blue } from "#blue";
 
 
 /**
@@ -270,16 +270,3 @@ export class TriRenderJob
   static TriRenderJobStatus = TriRenderJobStatus;
 
 }
-
-// Registered as Carbon registers it (trinity/trinity/RenderJob/TriRenderJob_Blue.cpp:17).
-blue.enums.RegisterEnum("trinity.TriRenderJobStatus", TriRenderJob.Status, {
-  source: "trinity/trinity/RenderJob/TriRenderJob.h", family: "renderJob", line: 14,
-  exposedName: "RENDERJOB_STATUS", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/RenderJob/TriRenderJob_Blue.cpp:8",
-  chooser: [
-    { name: "RJ_INIT", value: TriRenderJob.Status.RJ_INIT, description: "Render job is in its initial state" },
-    { name: "RJ_IN_PROGRESS", value: TriRenderJob.Status.RJ_IN_PROGRESS, description: "Render job is in progress" },
-    { name: "RJ_DONE", value: TriRenderJob.Status.RJ_DONE, description: "Render job is done" },
-    { name: "RJ_FAILED", value: TriRenderJob.Status.RJ_FAILED, description: "Render job failed" }
-  ]
-});

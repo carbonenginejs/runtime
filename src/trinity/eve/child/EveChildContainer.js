@@ -1614,16 +1614,6 @@ blue.enums.Create("trinity.EveChildContainer.DisplayQualityModifier", EveChildCo
   ]
 });
 
-// Registered as Carbon registers it (trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp:12).
-blue.enums.RegisterEnum("trinity.EveSpaceObjectChild.Origin", EveChildContainer.Origin, {
-  source: "trinity/trinity/Eve/SpaceObject/Children/EveSpaceObjectChild.h", family: "eve/child", line: 66,
-  exposedName: "EveSpaceObjectChildOrigin", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp:7",
-  chooser: [
-    { name: "SPACE", value: EveChildContainer.Origin.SPACE, description: "Origin in Space" },
-    { name: "SOF", value: EveChildContainer.Origin.SOF, description: "Origin in SOF" }
-  ]
-});
 
 // EveChildContainer_Blue.cpp: native exposure; unported contracts: ITr2LightOwner, IEveEffectChildrenOwner, IShaderConfigurer, IEveSpaceObjectAttachmentOwner.
 meta.blue.interfaceTable({ interfaces: [EveChildContainer, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, IListNotify, INotify, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner, ITr2Renderable], chainTo: null })(EveChildContainer, { kind: "class" });

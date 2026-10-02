@@ -26,3 +26,18 @@ calls Create after the class declaration. This keeps chooser expressions that
 refer to class statics out of the initializer's temporal dead zone. Shared family
 enums register in their defining module; consuming class statics remain aliases.
 Do not freeze the literal before Create: it must first attach its hidden name.
+
+The reviewed legacy generated Trinity enum modules use
+`scripts/trinity/refresh-enum-registrations.mjs --check` (`--write` to install the
+verified refresh). `--schema-root` chooses the schema catalog and `--tools-root`
+chooses the tools-core checkout; the defaults use the sibling checkout and its
+staged schema. `enum-registration-inputs.json` contains exact source-qualified
+export selectors and chooser member references, never another enum value table.
+Every module validates before writes begin. An ambiguous catalog identity, changed
+value, missing registration or unexpected code fails for review.
+
+These modules retain owned legacy exports used by consumers, so ordinary
+`--emit-enums` is not their copy-in route: its ownership filter correctly excludes
+those entries. The guarded refresh preserves all existing exports, emits Create
+at each selected definition, and retains unregistered vocabularies as frozen
+objects. Consumer-side registration blocks are unnecessary.

@@ -65,14 +65,3 @@ blue.enums.Create("trinity.Tr2PPTaaEffect.Quality", Tr2PPTaaEffect.Quality, {
     { name: "High", value: Tr2PPTaaEffect.Quality.TAA_HIGH, description: "High Quality" }
   ]
 });
-
-blue.enums.RegisterEnum("trinity.Tr2PPTaaEffect.Debug", Tr2PPTaaEffect.Debug, {
-  source: "trinity/trinity/PostProcess/Effects/Tr2PPTaaEffect.h", family: "postProcess", line: 23,
-  exposedName: "TaaDebug", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/PostProcess/Effects/Tr2PPTaaEffect_Blue.cpp:17",
-  chooser: [
-    { name: "Off", value: Tr2PPTaaEffect.Debug.TAA_DEBUG_OFF, description: "Debug Off" },
-    { name: "Motion Vectors", value: Tr2PPTaaEffect.Debug.TAA_DEBUG_MOTION_VECTORS, description: "Show Motion Vectors" },
-    { name: "Early Out Mask", value: Tr2PPTaaEffect.Debug.TAA_DEBUG_EARLY_OUT_MASK, description: "Show Early Out Mask" }
-  ]
-});

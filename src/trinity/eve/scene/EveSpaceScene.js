@@ -54,7 +54,7 @@ import { ShadowQuality, Tr2RenderReason } from "../../generated/trinityCore/enum
 import { TriFrustum } from "../../core/view/TriFrustum.js";
 import { TriShadowOrthoFrustum } from "./shadows/TriShadowOrthoFrustum.js";
 import { GpuResourceHandle } from "../../core/Tr2GpuResourcePool/GpuResourceHandle.js";
-import { blue, EnumRegistrationType } from "#blue";
+import { blue } from "#blue";
 import { ExecuteMainThreadActions } from "../../core/continueOnMainThread.js";
 import "./EveSpaceSceneRenderDriver.js";
 
@@ -2827,21 +2827,6 @@ export class EveSpaceScene
 
 }
 
-// Registered as Carbon registers it (trinity/trinity/Eve/EveSpaceScene_Blue.cpp:44).
-blue.enums.RegisterEnum("trinity.EveSpaceScene.EveVisualizeMethod", EveSpaceScene.EveVisualizeMethod, {
-  source: "trinity/trinity/Eve/EveSpaceScene.h", family: "eve/scene", line: 176,
-  exposedName: "EveVisualizeMethod", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Eve/EveSpaceScene_Blue.cpp:20",
-  chooser: [
-    { name: "None", value: EveSpaceScene.EveVisualizeMethod.VM_NONE, description: "No visualizer - use normal rendering" },
-    { name: "TexCoord0", value: EveSpaceScene.EveVisualizeMethod.VM_TEXCOORD0, description: "" },
-    { name: "TexCoord1", value: EveSpaceScene.EveVisualizeMethod.VM_TEXCOORD1, description: "" },
-    { name: "White", value: EveSpaceScene.EveVisualizeMethod.VM_WHITE, description: "" },
-    { name: "Overdraw", value: EveSpaceScene.EveVisualizeMethod.VM_OVERDRAW, description: "" },
-    { name: "Wireframe", value: EveSpaceScene.EveVisualizeMethod.VW_WIREFRAME, description: "" },
-    { name: "LightCount", value: EveSpaceScene.EveVisualizeMethod.VW_LIGHT_COUNT, description: "" }
-  ]
-});
 
 // TRI_REGISTER_SETTING( "eveReflectionSetting", g_eveReflectionMode )
 // (cpp:112-113). The value is EveComponentTypes' module variable, not a class
