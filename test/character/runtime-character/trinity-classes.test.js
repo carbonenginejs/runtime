@@ -1,3 +1,5 @@
+import "../../../npm/dist/trinity/index.js";
+import { finalizeReaderObject } from "../../../npm/dist/global/schema/hydration.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
@@ -236,7 +238,7 @@ test("Tr2IntSkinnedObject delegates LOD as one whole-model identity", () =>
   object.mediumDetailModel = medium;
   object.lowDetailModel = low;
   object.UpdateBones = (...args) => boneUpdates.push(args);
-  object.UpdateValues({ properties: [ "highDetailModel", "mediumDetailModel", "lowDetailModel" ] });
+  object.Initialize();
 
   // The maintained native base has no working bounding-sphere override, so
   // its retained estimate remains zero and selects low after initialization.
@@ -586,9 +588,36 @@ test("batched model and LOD proxy replacements share native helper storage", () 
   const model = new Tr2SkinnedModel();
   object.visualModel = model;
   object.highDetailModel = replacement;
-  object.UpdateValues({ properties: ["visualModel", "highDetailModel"] });
+  object.OnModified("visualModel");
+  object.OnModified("highDetailModel");
   assert.equal(object.lod.highDetailProxy, replacement);
   assert.deepEqual(replacement.builderObjects, [model]);
   assert.deepEqual(previous.builderObjects, []);
   assert.equal(object.currentLod, object.GetCurrentLod());
+});
+
+
+test("real character model subtree survives plain skinned owner hydration and LOD initialization", () =>
+{
+  const modelValues = JSON.parse(readFileSync(new URL("../../support/skinnedModelAsset.json", import.meta.url), "utf8")).object;
+  const owner = CjsSchema.from("Tr2IntSkinnedObject", { visualModel: modelValues });
+  assert.ok(owner.visualModel instanceof Tr2SkinnedModel);
+  assert.equal(owner.visualModel.meshes.length, 14);
+  assert.equal(owner.visualModel.skeletonName, "Root");
+  assert.equal("UpdateValues" in owner, false);
+  assert.equal("GetValues" in owner, false);
+  // The real asset has no LOD proxies. Wrap its model in the existing CPU proxy
+  // seam to isolate native Initialize from editing notifications.
+  const proxy = new FakeLodProxy("real model", { model: owner.visualModel });
+  const control = new Tr2IntSkinnedObject();
+  control.highDetailModel = proxy;
+  finalizeReaderObject(control, { initialize: false });
+  assert.equal(control.lod.HaveLodSetup(), false);
+  assert.equal(control.lod.SetLOD({}, 1000), null,
+    "negative control: suppressed initialization leaves LOD unavailable");
+  const initialized = new Tr2IntSkinnedObject();
+  initialized.highDetailModel = proxy;
+  finalizeReaderObject(initialized);
+  assert.equal(initialized.lod.HaveLodSetup(), true);
+  assert.equal(initialized.lod.SetLOD({}, 1000), owner.visualModel);
 });

@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Tr2SkinnedObject.h
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
+import { IListNotify, INotify } from "#blue";
+import { IWorldPosition } from "../../../trinity/core/IWorldPosition.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsCharacterRigBinding } from "../../controls/CjsCharacterRigBinding.js";
@@ -21,9 +22,34 @@ import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
     currentLod: [type.int32, edit.read]
   }
 })
-@carbon.inherit(ITr2Renderable)
-export class Tr2SkinnedObject extends CjsModel
+@carbon.inherit(ITr2Renderable, IWorldPosition, IListNotify, INotify)
+export class Tr2SkinnedObject
 {
+
+  /** Native base list observer intentionally does nothing (Tr2SkinnedObject.cpp:743). */
+  @carbon.method
+  @impl.implemented
+  OnListModified(_event, _key, _key2, _value, _theList) {}
+
+  /** Native base has no transparent-sort offset. */
+  @carbon.method
+  @impl.implemented
+  GetSortValue() { return 0; }
+
+  /** Native base supplies no per-object render data. */
+  @carbon.method
+  @impl.implemented
+  GetPerObjectData(_accumulator) { return null; }
+
+  /** World position awaits the maintained TriMatrix storage conversion contract. */
+  @carbon.method
+  @impl.notImplemented
+  GetWorldPosition() { throw new Error("Tr2SkinnedObject.GetWorldPosition requires the TriMatrix conversion port."); }
+
+  /** World rotation awaits the maintained TriMatrix storage conversion contract. */
+  @carbon.method
+  @impl.notImplemented
+  GetWorldRotation() { throw new Error("Tr2SkinnedObject.GetWorldRotation requires the TriMatrix conversion port."); }
 
   lod = new Tr2SkinnedObjectLod();
   _lastUpdateTime = 0;
@@ -515,3 +541,5 @@ function NamesEqual(left, right)
 {
   return left.length === right.length && left.every((value, index) => value === right[index]);
 }
+
+carbon.interfaceTable({ interfaces: [Tr2SkinnedObject, ITr2Renderable, IWorldPosition, IListNotify], chainTo: null })(Tr2SkinnedObject, { kind: "class" });

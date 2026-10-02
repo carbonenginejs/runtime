@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Interior/Tr2IntSkinnedObject.h
 import { carbon, impl, edit, type } from "#schema";
+import { IInitialize, INotify } from "#blue";
 import { Tr2SkinnedObject } from "../trinityCore/Tr2SkinnedObject.js";
 
 /**
@@ -7,6 +8,7 @@ import { Tr2SkinnedObject } from "../trinityCore/Tr2SkinnedObject.js";
  * variable-store metadata.
  */
 @type.define({ className: "Tr2IntSkinnedObject", family: "interior" })
+@carbon.inherit(IInitialize, INotify)
 export class Tr2IntSkinnedObject extends Tr2SkinnedObject
 {
 
@@ -56,3 +58,6 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
   }
 
 }
+
+// Interior rendering, picking and placement contracts remain outside the maintained CPU LOD port.
+carbon.interfaceTable({ interfaces: [Tr2IntSkinnedObject, IInitialize, INotify], chainTo: Tr2SkinnedObject })(Tr2IntSkinnedObject, { kind: "class" });
