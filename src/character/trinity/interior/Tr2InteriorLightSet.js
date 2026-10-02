@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Interior/Tr2InteriorLightSet.h
 import { carbon, impl, type } from "#schema";
-import { CjsModel } from "#model";
 import { Tr2InteriorPerObjectLightData } from "../../generated/interior/Tr2InteriorPerObjectLightData.js";
 
 /** Transient collection of active interior light sources and packed records. */
 @type.define({ className: "Tr2InteriorLightSet", family: "interior" })
-export class Tr2InteriorLightSet extends CjsModel
+export class Tr2InteriorLightSet
 {
 
   _lightInstances = [];

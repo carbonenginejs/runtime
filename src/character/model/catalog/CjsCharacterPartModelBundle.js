@@ -1,5 +1,4 @@
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /**
  * One producer-verified atomic configuration/geometry relationship.
@@ -10,7 +9,7 @@ import { CjsModel } from "#model";
  * Bundles do not remove candidates from the version's inventories.
  */
 @type.define({ className: "CjsCharacterPartModelBundle", family: "character" })
-export class CjsCharacterPartModelBundle extends CjsModel
+export class CjsCharacterPartModelBundle
 {
 
     @edit.readwrite

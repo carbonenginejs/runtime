@@ -1,5 +1,4 @@
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /**
  * Appearance contribution separating selection ownership from the asset that supplies it.
@@ -9,7 +8,7 @@ import { CjsModel } from "#model";
  * order, not bake order.
  */
 @type.define({ className: "CjsCharacterAppearanceLayer", family: "character" })
-export class CjsCharacterAppearanceLayer extends CjsModel
+export class CjsCharacterAppearanceLayer
 {
 
     @edit.readwrite

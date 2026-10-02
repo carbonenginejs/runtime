@@ -1,7 +1,6 @@
 // Not Carbon. A texture-pipeline step of our own, registered in
 // /docs/architecture/non-carbon-extensions.md.
 import { CjsSchema, edit, impl, type } from "#schema";
-import { CjsModel } from "#model";
 import { HostBitmap } from "#imageio";
 import { PixelFormat } from "#consts/render-context";
 import { CjsImageFormat } from "../format/CjsImageFormat.js";
@@ -17,7 +16,7 @@ import { CjsImageFormat } from "../format/CjsImageFormat.js";
  * Each converted input is a COPY that replaces its entry in the pipeline's
  * `inputs` map, so the cached source bitmap is never changed.
  */
-export class CjsTexturePipelineStepConvert extends CjsModel
+export class CjsTexturePipelineStepConvert
 {
 
   /** The pixel format every named input is converted to. */

@@ -1,5 +1,4 @@
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /**
  * One self-contained resource-version inventory with effective metadata and exact candidates.
@@ -10,7 +9,7 @@ import { CjsModel } from "#model";
  * version records.
  */
 @type.define({ className: "CjsCharacterPartSourceVersion", family: "character" })
-export class CjsCharacterPartSourceVersion extends CjsModel
+export class CjsCharacterPartSourceVersion
 {
 
     @edit.readwrite

@@ -1,9 +1,8 @@
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Named logical input to one character texture-composition pass. */
 @type.define({ className: "CjsCharacterCompositionInput", family: "character" })
-export class CjsCharacterCompositionInput extends CjsModel
+export class CjsCharacterCompositionInput
 {
 
     @edit.readwrite

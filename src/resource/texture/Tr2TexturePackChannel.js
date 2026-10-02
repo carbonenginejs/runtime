@@ -1,10 +1,9 @@
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepPack.h
 // Schema: format-carbon resources/Tr2TexturePackChannel.json; maintained by the runtime resource layer.
 import { CjsSchema, edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Persisted data record mirroring Carbon's pack-step channel selection: the source channel index, fill value, and source texture path for one output channel. */
-export class Tr2TexturePackChannel extends CjsModel
+export class Tr2TexturePackChannel
 {
 
   /** m_channel (uint8_t) [READWRITE, PERSIST, ENUM] */

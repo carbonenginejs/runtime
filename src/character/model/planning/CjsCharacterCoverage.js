@@ -1,9 +1,8 @@
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Reusable appearance coverage expression shared across logical composition passes. */
 @type.define({ className: "CjsCharacterCoverage", family: "character" })
-export class CjsCharacterCoverage extends CjsModel
+export class CjsCharacterCoverage
 {
 
     @edit.readwrite

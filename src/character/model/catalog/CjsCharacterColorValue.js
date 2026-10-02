@@ -1,9 +1,8 @@
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** One authored RGBA character color value. */
 @type.define({ className: "CjsCharacterColorValue", family: "character" })
-export class CjsCharacterColorValue extends CjsModel
+export class CjsCharacterColorValue
 {
 
     @edit.readwrite

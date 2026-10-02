@@ -1,9 +1,8 @@
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** One authored character recipe selection and its material values. */
 @type.define({ className: "CjsCharacterRecipeEntry", family: "character" })
-export class CjsCharacterRecipeEntry extends CjsModel
+export class CjsCharacterRecipeEntry
 {
 
     @edit.readwrite

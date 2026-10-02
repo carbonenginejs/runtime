@@ -1,9 +1,8 @@
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Additive typed projection beside one losslessly retained authored modifier string. */
 @type.define({ className: "CjsCharacterModifierReference", family: "character" })
-export class CjsCharacterModifierReference extends CjsModel
+export class CjsCharacterModifierReference
 {
 
     @edit.readwrite

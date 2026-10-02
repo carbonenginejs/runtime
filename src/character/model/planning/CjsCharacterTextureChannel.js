@@ -1,9 +1,8 @@
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Reference to one logical channel of a resolved character texture. */
 @type.define({ className: "CjsCharacterTextureChannel", family: "character" })
-export class CjsCharacterTextureChannel extends CjsModel
+export class CjsCharacterTextureChannel
 {
 
     @edit.readwrite

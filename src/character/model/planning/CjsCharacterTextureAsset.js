@@ -1,9 +1,8 @@
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Resolved texture asset with independent decoded placement and semantic role. */
 @type.define({ className: "CjsCharacterTextureAsset", family: "character" })
-export class CjsCharacterTextureAsset extends CjsModel
+export class CjsCharacterTextureAsset
 {
 
     @edit.readwrite

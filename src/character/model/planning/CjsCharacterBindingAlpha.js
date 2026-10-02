@@ -1,9 +1,8 @@
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Logical alpha policy for one final character texture binding. */
 @type.define({ className: "CjsCharacterBindingAlpha", family: "character" })
-export class CjsCharacterBindingAlpha extends CjsModel
+export class CjsCharacterBindingAlpha
 {
 
     @edit.readwrite

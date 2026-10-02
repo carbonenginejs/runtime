@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Schema: format-carbon resources/AudioGeometryResData.json; maintained by the runtime resource layer.
 import { CjsSchema, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 
 /** Data record mirroring Carbon's per-mesh audio-geometry block: an id plus the vertices, indices, and min/max bounds consumed by audio occlusion. */
-export class AudioGeometryResData extends CjsModel
+export class AudioGeometryResData
 {
 
   /** m_id (uint64_t) */

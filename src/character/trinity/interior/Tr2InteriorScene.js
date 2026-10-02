@@ -1,6 +1,5 @@
 // Source: trinity/trinity/Interior/Tr2InteriorScene.h
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { color } from "#math/color";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -10,7 +9,7 @@ import { vec4 } from "#math/vec4";
  * sun, shadows, and diagnostics.
  */
 @type.define({ className: "Tr2InteriorScene", family: "interior" })
-export class Tr2InteriorScene extends CjsModel
+export class Tr2InteriorScene
 {
 
   /** m_backgroundCubeMapPath (std::string) [READWRITE, PERSIST, NOTIFY] */

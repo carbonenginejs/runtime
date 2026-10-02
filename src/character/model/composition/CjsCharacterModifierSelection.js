@@ -1,9 +1,8 @@
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** One authored paper-doll resource selection at a resolved modifier location. */
 @type.define({ className: "CjsCharacterModifierSelection", family: "character" })
-export class CjsCharacterModifierSelection extends CjsModel
+export class CjsCharacterModifierSelection
 {
 
     @edit.readwrite

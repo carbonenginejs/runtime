@@ -1,5 +1,4 @@
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /**
  * One exact renderer-neutral morph-target request in an appearance plan.
@@ -8,7 +7,7 @@ import { CjsModel } from "#model";
  * renderer-owned; the request never implies hiding another garment.
  */
 @type.define({ className: "CjsCharacterMorphTargetWeight", family: "character" })
-export class CjsCharacterMorphTargetWeight extends CjsModel
+export class CjsCharacterMorphTargetWeight
 {
 
     @edit.readwrite

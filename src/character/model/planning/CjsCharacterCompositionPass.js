@@ -1,5 +1,4 @@
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /**
  * One ordered logical operation in a character texture-composition target.
@@ -13,7 +12,7 @@ import { CjsModel } from "#model";
  * projection placement is resolved to an ordinary alpha overlay first.
  */
 @type.define({ className: "CjsCharacterCompositionPass", family: "character" })
-export class CjsCharacterCompositionPass extends CjsModel
+export class CjsCharacterCompositionPass
 {
 
     @edit.readwrite

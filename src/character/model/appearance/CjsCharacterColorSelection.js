@@ -1,9 +1,8 @@
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** One authored paper-doll color selection with resolved catalog references. */
 @type.define({ className: "CjsCharacterColorSelection", family: "character" })
-export class CjsCharacterColorSelection extends CjsModel
+export class CjsCharacterColorSelection
 {
 
     @edit.readwrite

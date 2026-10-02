@@ -1,9 +1,8 @@
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** One authored three-axis paper-doll sculpt selection. */
 @type.define({ className: "CjsCharacterSculptSelection", family: "character" })
-export class CjsCharacterSculptSelection extends CjsModel
+export class CjsCharacterSculptSelection
 {
 
     @edit.readwrite

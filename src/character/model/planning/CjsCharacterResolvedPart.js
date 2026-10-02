@@ -1,9 +1,8 @@
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Plan-local source-version contributor with optional exact configuration and geometry choices. */
 @type.define({ className: "CjsCharacterResolvedPart", family: "character" })
-export class CjsCharacterResolvedPart extends CjsModel
+export class CjsCharacterResolvedPart
 {
 
     @edit.readwrite

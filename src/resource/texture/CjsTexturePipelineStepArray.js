@@ -1,7 +1,6 @@
 // Not Carbon. A texture-pipeline step of our own, registered in
 // /docs/architecture/non-carbon-extensions.md.
 import { CjsSchema, edit, impl, type } from "#schema";
-import { CjsModel } from "#model";
 
 /**
  * Stacks the named inputs, in order, into one 2D texture array: layer 0 is the
@@ -16,7 +15,7 @@ import { CjsModel } from "#model";
  * The layers must already match in format, size and mip count - run
  * `CjsTexturePipelineStepConvert` and `CjsTexturePipelineStepResize` first.
  */
-export class CjsTexturePipelineStepArray extends CjsModel
+export class CjsTexturePipelineStepArray
 {
 
   /** Layer paths, layer 0 first. */

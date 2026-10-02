@@ -1,5 +1,4 @@
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /**
  * Logical output texture and its authoritative ordered composition passes.
@@ -10,7 +9,7 @@ import { CjsModel } from "#model";
  * renderer's own resource/shader transaction.
  */
 @type.define({ className: "CjsCharacterCompositionTarget", family: "character" })
-export class CjsCharacterCompositionTarget extends CjsModel
+export class CjsCharacterCompositionTarget
 {
 
     @edit.readwrite

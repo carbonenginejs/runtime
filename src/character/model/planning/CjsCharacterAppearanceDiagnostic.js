@@ -1,9 +1,8 @@
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Serializable diagnostic emitted while resolving a character appearance plan. */
 @type.define({ className: "CjsCharacterAppearanceDiagnostic", family: "character" })
-export class CjsCharacterAppearanceDiagnostic extends CjsModel
+export class CjsCharacterAppearanceDiagnostic
 {
 
     @edit.readwrite
