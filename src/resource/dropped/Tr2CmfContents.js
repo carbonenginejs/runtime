@@ -2,10 +2,9 @@
 // Dropped reference shape. CjsCmfFormat replaces this native section-lifetime helper.
 // Verify fields against format-carbon resources/Tr2CmfContents.json.
 import { CjsSchema, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Retained-only reference shape mirroring Carbon's native CMF section lifetime and decompression holder, superseded by `CjsCmfFormat`'s bounded section access and typed-array data. */
-export class Tr2CmfContents extends CjsModel
+export class Tr2CmfContents
 {
 
   /** section (cmf::Section) */

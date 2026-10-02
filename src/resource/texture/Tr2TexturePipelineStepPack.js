@@ -8,14 +8,13 @@
 // formats and mip pitches.
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { carbon, CjsSchema, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { GetBytesPerPixel, PixelFormat, TextureType } from "#consts/render-context";
 
 // Source: trinity/trinity/Resources/TexturePipeline/ITr2TexturePipelineStep.h:26
 const s_texturePipelineChannel = CcpLog.CCP_LOG_DEFINE_CHANNEL("TexturePipeline", "trinity");
 
 /** Persisted pipeline-step record mirroring Carbon's pack step, naming the target pixel format and the four per-channel pack sources. */
-export class Tr2TexturePipelineStepPack extends CjsModel
+export class Tr2TexturePipelineStepPack
 {
 
   /** m_format (Tr2RenderContextEnum::PixelFormat - enum PixelFormat) [READWRITE, PERSIST, ENUM] */

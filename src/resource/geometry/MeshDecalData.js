@@ -6,11 +6,10 @@
 // every test importing the geometry barrel onto `npm/dist`, which is built code
 // that can lag the source it is being used to check.
 import { CjsSchema, type } from "#schema";
-import { CjsModel } from "#model";
 import { mat4 } from "#math";
 
 /** Data record mirroring Carbon's per-mesh decal block: an index-buffer allocation reference, a LOD mask, and the per-LOD decal ranges. */
-export class MeshDecalData extends CjsModel
+export class MeshDecalData
 {
 
   /**

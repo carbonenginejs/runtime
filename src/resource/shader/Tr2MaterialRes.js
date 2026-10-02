@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Resources/Tr2MaterialRes.h
 // Schema: format-carbon resources/Tr2MaterialRes.json; maintained by the runtime resource layer.
 import { CjsSchema, edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /**
  * Root persisted material record containing its authored name and material
@@ -10,7 +9,7 @@ import { CjsModel } from "#model";
  * It owns the serializable material description, not device shaders,
  * descriptor bindings, or pipelines.
  */
-export class Tr2MaterialRes extends CjsModel
+export class Tr2MaterialRes
 {
 
   /** Persisted dictionary of material meshes. */

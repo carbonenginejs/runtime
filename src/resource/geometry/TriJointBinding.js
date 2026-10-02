@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Schema: format-carbon resources/TriJointBinding.json; maintained by the runtime resource layer.
 import { CjsSchema, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 
 /** Data record mirroring Carbon's joint binding: a joint name with its oriented-bounding-box minimum and maximum. */
-export class TriJointBinding extends CjsModel
+export class TriJointBinding
 {
 
   /** m_name (std::string) */

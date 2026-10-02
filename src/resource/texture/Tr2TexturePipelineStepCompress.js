@@ -1,10 +1,9 @@
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepCompress.h
 // Schema: format-carbon resources/Tr2TexturePipelineStepCompress.json; maintained by the runtime resource layer.
 import { carbon, CjsSchema, edit, impl, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Persisted pipeline-step record mirroring Carbon's compress step, naming the target pixel format and per-channel error weights. */
-export class Tr2TexturePipelineStepCompress extends CjsModel
+export class Tr2TexturePipelineStepCompress
 {
 
   /** m_format (Tr2RenderContextEnum::PixelFormat - enum PixelFormat) [READWRITE, PERSIST, ENUM] */

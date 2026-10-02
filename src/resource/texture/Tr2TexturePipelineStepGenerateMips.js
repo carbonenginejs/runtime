@@ -3,13 +3,12 @@
 // generation itself happens where the pipeline is executed.
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { carbon, CjsSchema, impl, type } from "#schema";
-import { CjsModel } from "#model";
 
 // Source: trinity/trinity/Resources/TexturePipeline/ITr2TexturePipelineStep.h:26
 const s_texturePipelineChannel = CcpLog.CCP_LOG_DEFINE_CHANNEL("TexturePipeline", "trinity");
 
 /** Attribute-free persisted Blue marker step mirroring Carbon's mip-generation step; the mip generation itself happens where the pipeline executes. */
-export class Tr2TexturePipelineStepGenerateMips extends CjsModel
+export class Tr2TexturePipelineStepGenerateMips
 {
 
   /**

@@ -1,10 +1,9 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Schema: format-carbon resources/TriGeometryResLodData.json; maintained by the runtime resource layer.
 import { CjsSchema, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Data record mirroring Carbon's per-LOD geometry block: mesh reference, naming and screen-size selection data, vertex/primitive counts, UV densities, areas, and buffer-allocation references. */
-export class TriGeometryResLodData extends CjsModel
+export class TriGeometryResLodData
 {
 
   /** m_mesh (TriGeometryResMeshData*) */

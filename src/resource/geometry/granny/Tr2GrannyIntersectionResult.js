@@ -1,12 +1,11 @@
 // Source: trinity/trinity/Resources/TriGrannyRes.h
 // Schema: format-carbon resources/Tr2GrannyIntersectionResult.json; maintained by the runtime resource layer.
 import { CjsSchema, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 
 /** Data record mirroring Carbon's Granny intersection-query result: hit position, normal, UV, bone index, and mesh/area indices with per-field presence flags. */
-export class Tr2GrannyIntersectionResult extends CjsModel
+export class Tr2GrannyIntersectionResult
 {
 
   /** m_result.position (Vector3) [READWRITE] */

@@ -8,10 +8,9 @@
 // Nothing of the behaviour survives elsewhere, unlike a flattened record: there
 // is no JavaScript place where "release or delete" has to be chosen.
 import { CjsSchema, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Carbon's unique_ptr frame deleter; dropped with FrameOwner, because GC reclaims frames. */
-export class FrameDeleter extends CjsModel
+export class FrameDeleter
 {
 
   /** m_owner (FrameOwner<Frame>*) - the pool to return the frame to, or null to delete it. */

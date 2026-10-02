@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Schema: format-carbon resources/TriGeometryResAreaData.json; maintained by the runtime resource layer.
 import { CjsSchema, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 
 /** Data record mirroring Carbon's geometry area block: a named draw range with bounds, joint bindings, skinning/morph flags, and ray-tracing structure references. */
-export class TriGeometryResAreaData extends CjsModel
+export class TriGeometryResAreaData
 {
 
   /** m_name (std::string) */

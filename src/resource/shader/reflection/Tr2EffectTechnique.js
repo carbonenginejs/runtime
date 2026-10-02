@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
 import { CjsSchema, impl, type } from "#schema";
-import { CjsModel } from "#model";
 import {
 } from "#utils/is";
 import { Tr2EffectLibrary } from "./Tr2EffectLibrary.js";
@@ -9,7 +8,7 @@ import { Tr2Pass } from "./Tr2Pass.js";
 import { recordText, toRecordText } from "./carbonRecordFields.js";
 
 /** Reflected effect technique and its passes and libraries. */
-export class Tr2EffectTechnique extends CjsModel
+export class Tr2EffectTechnique
 {
 
   /** name (BlueSharedString) */

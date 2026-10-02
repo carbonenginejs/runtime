@@ -3,13 +3,12 @@
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { carbon, CjsSchema, edit, impl, type } from "#schema";
 import { HostBitmap } from "#imageio";
-import { CjsModel } from "#model";
 
 // Source: trinity/trinity/Resources/TexturePipeline/ITr2TexturePipelineStep.h:26
 const s_texturePipelineChannel = CcpLog.CCP_LOG_DEFINE_CHANNEL("TexturePipeline", "trinity");
 
 /** Persisted pipeline-step record mirroring Carbon's size-limit step, holding the maximum width and height the bitmap may keep. */
-export class Tr2TexturePipelineStepLimitSize extends CjsModel
+export class Tr2TexturePipelineStepLimitSize
 {
 
   /** m_maxHeight (uint32_t) [READWRITE, PERSIST] */

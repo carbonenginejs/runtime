@@ -1,10 +1,9 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Schema: format-carbon resources/MeshDecalLodData.json; maintained by the runtime resource layer.
 import { CjsSchema, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Data record mirroring Carbon's per-LOD decal range, holding the start index and primitive count for one decal LOD. */
-export class MeshDecalLodData extends CjsModel
+export class MeshDecalLodData
 {
 
   /** m_startIndex (uint32_t) */

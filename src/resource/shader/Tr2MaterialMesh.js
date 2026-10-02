@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Resources/Tr2MaterialRes.h
 // Schema: format-carbon resources/Tr2MaterialMesh.json; maintained by the runtime resource layer.
 import { CjsSchema, edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /**
  * Holds the persisted material-area dictionary for one material mesh.
@@ -9,7 +8,7 @@ import { CjsModel } from "#model";
  * Area lookup remains resource metadata; engines decide how the selected
  * material becomes backend draw state.
  */
-export class Tr2MaterialMesh extends CjsModel
+export class Tr2MaterialMesh
 {
 
   /** Persisted dictionary of material areas. */

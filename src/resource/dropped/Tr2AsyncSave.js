@@ -2,10 +2,9 @@
 // Dropped reference shape. Promise-based format writers replace this native callback base.
 // Verify fields against format-carbon resources/Tr2AsyncSave.json.
 import { CjsSchema, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Retained-only reference shape mirroring Carbon's abstract prepare/save callback base, superseded by promise-based format `Write`/`WriteAsync` operations and resource-level save-status compatibility methods. */
-export class Tr2AsyncSave extends CjsModel
+export class Tr2AsyncSave
 {
 
   /** m_prepareSaveCbId (return m_isSavePrepared || m_saveCbId ||) */

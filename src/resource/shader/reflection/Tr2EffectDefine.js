@@ -1,9 +1,8 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { CjsSchema, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Effect compile define retained as source metadata. */
-export class Tr2EffectDefine extends CjsModel
+export class Tr2EffectDefine
 {
 
   /** name (const char*) */

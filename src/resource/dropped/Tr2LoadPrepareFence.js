@@ -2,10 +2,9 @@
 // Dropped reference shape. CjsResMan.Wait replaces this native two-queue fence.
 // Verify fields against format-carbon resources/Tr2LoadPrepareFence.json.
 import { CjsSchema, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Retained-only reference shape mirroring Carbon's two-queue load/prepare fence helper, superseded by the snapshot-fence contract owned by `CjsResMan.Wait()`. */
-export class Tr2LoadPrepareFence extends CjsModel
+export class Tr2LoadPrepareFence
 {
 
   /** m_resourceLoadCbId (CcpAtomic<uint32_t>) */

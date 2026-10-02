@@ -1,11 +1,10 @@
 // Source: trinityaudioapi/include/IStretchAudio.h
-import { CjsModel } from "#model";
 import { carbon, impl, type } from "#schema";
 
 
 /** Required stretch-audio component contract. */
 @type.define({ className: "IStretchAudio", family: "trinityAudioApi" })
-export class IStretchAudio extends CjsModel
+export class IStretchAudio
 {
 
   /** Starts playback for the stretch-audio component. */

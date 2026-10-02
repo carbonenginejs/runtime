@@ -1,12 +1,11 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Schema: format-carbon resources/TriGeometryResMeshData.json; maintained by the runtime resource layer.
 import { CjsSchema, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
 /** Data record mirroring Carbon's per-mesh geometry block: name, vertex layout facts, bounds, joint bindings, audio geometry, decals, and the LOD list. */
-export class TriGeometryResMeshData extends CjsModel
+export class TriGeometryResMeshData
 {
 
   /** m_name (std::string) */

@@ -1,10 +1,9 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Schema: format-carbon resources/TriMorphTargetGeometryConstants.json; maintained by the runtime resource layer.
 import { CjsSchema, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Data record mirroring Carbon's morph-target geometry constants: vertex-buffer stride, position/tangent offsets and types, and vertex count. */
-export class TriMorphTargetGeometryConstants extends CjsModel
+export class TriMorphTargetGeometryConstants
 {
 
   /** vertexBufferStride (uint32_t) */

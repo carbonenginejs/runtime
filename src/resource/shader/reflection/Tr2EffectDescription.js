@@ -47,7 +47,7 @@ export class Tr2EffectDescription extends CjsModel
           String(parameterName),
           records.map(record => record instanceof Tr2EffectParameterAnnotation
             ? record
-            : Tr2EffectParameterAnnotation.from(record, options))
+            : CjsSchema.from("Tr2EffectParameterAnnotation", record, options))
         );
       }
       normalized = { ...values, annotations };

@@ -1,3 +1,4 @@
+import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import test from "node:test";
 import { WwiseSoundEngineStubWith, AudioManagerWith } from "../../support/audioStub.js";
 import assert from "node:assert/strict";
@@ -580,7 +581,7 @@ test("AudGeometry preserves Carbon set reference counts and RH-to-LH backend pro
   try
   {
     const geometry = new AudGeometry();
-    const data = Tr2AudGeometryData.from({
+    const data = CjsSchema.from("Tr2AudGeometryData", {
       vertices: [ [ 1, 2, 3 ], [ 4, 5, 6 ], [ 7, 8, 9 ] ],
       indices: [ 0, 1, 2 ]
     });

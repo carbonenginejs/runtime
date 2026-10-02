@@ -260,8 +260,8 @@ test("Tr2Shader lookups match Carbon pass-stage traversal", () =>
   const shader = loaded([ QUALITY ]).GetShaderByIndex(0);
   const technique = shader.effect.techniques[0];
   const pass = technique.passes[0];
-  pass.stageInputs[0].uavs.set(3, Tr2EffectResource.from({ name: "Collision" }));
-  pass.stageInputs[1].resources.set(4, Tr2EffectResource.from({
+  pass.stageInputs[0].uavs.set(3, CjsSchema.from("Tr2EffectResource", { name: "Collision" }));
+  pass.stageInputs[1].resources.set(4, CjsSchema.from("Tr2EffectResource", {
     name: "Collision"
   }));
 

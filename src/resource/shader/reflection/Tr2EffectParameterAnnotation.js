@@ -1,14 +1,13 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
 import { CjsSchema, impl, type } from "#schema";
-import { CjsModel } from "#model";
 import { dwordToFloat } from "#math/num";
 import {
 } from "#utils/is";
 import { recordRawValue, recordText, toRecordRawValue, toRecordText } from "./carbonRecordFields.js";
 
 /** Typed annotation attached to a reflected effect parameter. */
-export class Tr2EffectParameterAnnotation extends CjsModel
+export class Tr2EffectParameterAnnotation
 {
 
   /** name (const char*) */

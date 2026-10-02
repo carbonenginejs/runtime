@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Resources/Tr2EffectRes.h
 // Schema: format-carbon resources/Tr2ShaderPermutation.json; maintained by the runtime resource layer.
 import { CjsSchema, type } from "#schema";
-import { CjsModel } from "#model";
 
 /**
  * Describes one authored effect permutation and the option values a shader
@@ -10,7 +9,7 @@ import { CjsModel } from "#model";
  * This is resource metadata only. Backend shader compilation and pipeline
  * realization remain engine responsibilities.
  */
-export class Tr2ShaderPermutation extends CjsModel
+export class Tr2ShaderPermutation
 {
 
   /** Authored permutation name. */

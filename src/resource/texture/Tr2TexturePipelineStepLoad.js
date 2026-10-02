@@ -2,13 +2,12 @@
 // Schema: format-carbon resources/Tr2TexturePipelineStepLoad.json; maintained by the runtime resource layer.
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { carbon, CjsSchema, edit, impl, type } from "#schema";
-import { CjsModel } from "#model";
 
 // Source: trinity/trinity/Resources/TexturePipeline/ITr2TexturePipelineStep.h:26
 const s_texturePipelineChannel = CcpLog.CCP_LOG_DEFINE_CHANNEL("TexturePipeline", "trinity");
 
 /** Persisted pipeline-step record mirroring Carbon's load step, holding the source texture path the pipeline reads. */
-export class Tr2TexturePipelineStepLoad extends CjsModel
+export class Tr2TexturePipelineStepLoad
 {
 
   /** m_path (std::wstring) [READWRITE, PERSIST] */

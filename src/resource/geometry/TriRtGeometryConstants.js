@@ -1,10 +1,9 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Schema: format-carbon resources/TriRtGeometryConstants.json; maintained by the runtime resource layer.
 import { CjsSchema, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Data record mirroring Carbon's ray-tracing geometry constants: index/vertex buffer ids and strides plus attribute offsets and types. */
-export class TriRtGeometryConstants extends CjsModel
+export class TriRtGeometryConstants
 {
 
   /** indexBufferId (uint32_t) */

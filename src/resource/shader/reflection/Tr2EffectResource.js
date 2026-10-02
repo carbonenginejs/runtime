@@ -1,13 +1,12 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
 import { CjsSchema, impl, type } from "#schema";
-import { CjsModel } from "#model";
 import {
 } from "#utils/is";
 import { recordText, toRecordText } from "./carbonRecordFields.js";
 
 /** Reflected SRV or UAV resource metadata. */
-export class Tr2EffectResource extends CjsModel
+export class Tr2EffectResource
 {
 
   /** isSRGB (bool) */

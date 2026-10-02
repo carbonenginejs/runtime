@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Resources/Tr2MaterialRes.h
 // Schema: format-carbon resources/Tr2MaterialArea.json; maintained by the runtime resource layer.
 import { CjsSchema, edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /**
  * Associates one material-area metatype with its persisted parameter store.
@@ -9,7 +8,7 @@ import { CjsModel } from "#model";
  * The record describes resource data and does not own shader bindings or
  * backend material realization.
  */
-export class Tr2MaterialArea extends CjsModel
+export class Tr2MaterialArea
 {
 
   /** Persisted material parameter-store reference. */

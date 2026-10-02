@@ -471,7 +471,7 @@ export class Tr2EffectStageInput extends CjsModel
         registerIndex,
         value instanceof Constructor
           ? value
-          : Constructor.from(value, options)
+          : CjsSchema.from(CjsSchema.getClassName(Constructor), value, options)
       );
     }
     return result;
