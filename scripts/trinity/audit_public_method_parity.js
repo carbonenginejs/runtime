@@ -3,7 +3,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { parse } from "@babel/parser";
-import { isCarbonDecorator } from "./carbon-decorators.js";
+import { isCarbonDecorator, findCarbonMethod } from "./carbon-decorators.js";
 
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -25,6 +25,7 @@ const classes = await ReadJavaScriptClasses(sourceRoot);
 // Use the real shared declarations for both primary and composed-base lookup.
 const baseClasses = new Map([
   ...await ReadJavaScriptClasses(path.join(root, "src", "global", "blue")),
+  ...await ReadJavaScriptClasses(path.join(root, "src", "trinityal")),
   ...classes
 ]);
 const schema = await ReadSchemaClasses(schemaRoot);
@@ -61,7 +62,7 @@ for (const entry of promoted)
     if (!methodName || seen.has(methodName)) continue;
     if (!IsPortableMember(entry.className, methodName)) continue;
     seen.add(methodName);
-    const actualMethod = actualMethods.get(methodName);
+    const actualMethod = findCarbonMethod(actualMethods, methodName, method.static === true);
     if (actualMethod?.hasCarbon) continue;
 
     const record = {
@@ -227,7 +228,7 @@ async function ReadJavaScriptClasses(directory, includeDropped = false)
       {
         if (member.type !== "ClassMethod" || member.kind === "constructor") continue;
         const name = GetMemberName(member);
-        if (name) methods.set(name, { hasCarbon: HasCarbonDecorator(member, "method") });
+        if (name) methods.set(name, { hasCarbon: HasCarbonDecorator(member, "method"), isStatic: member.static === true });
       }
       const localBase = GetSuperClassName(declaration.superClass);
       const baseClass = localBase ? imports.get(localBase) ?? localBase : null;
@@ -304,7 +305,7 @@ async function ReadSchemaClasses(directory)
     // six frame statics went missing unnoticed. `nativeMethods` is the C++
     // surface and is what a port is judged against.
     const native = Array.isArray(doc.nativeMethods)
-      ? doc.nativeMethods.map(entry => ({ target: entry.cppName, blueName: null, declaredOn: entry.declaredOn }))
+      ? doc.nativeMethods.map(entry => ({ target: entry.cppName, blueName: null, declaredOn: entry.declaredOn, static: entry.static === true }))
       : [];
     const merged = [ ...(Array.isArray(doc.methods) ? doc.methods : []), ...native ];
     if (!merged.length) continue;

@@ -33,7 +33,12 @@ function samplerBytes(stride = 56)
 function forbidValues(context)
 {
     context.mock.method(Tr2Effect.prototype, "Initialize", () => assert.fail("Lifecycle is unqualified"));
-    context.mock.method(Tr2SamplerOverride.prototype, "SetValues", () => assert.fail("Native rows must not require values machinery"));
+    assert.equal("SetValues" in Tr2SamplerOverride.prototype, false);
+    Object.defineProperty(Tr2SamplerOverride.prototype, "SetValues", {
+        configurable: true,
+        value: () => assert.fail("Native rows must not require values machinery")
+    });
+    context.after(() => { delete Tr2SamplerOverride.prototype.SetValues; });
 }
 
 test("canonical sampler records preserve list identity, unsigned fields and full opaque native stride", context =>

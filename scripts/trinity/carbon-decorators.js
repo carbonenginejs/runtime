@@ -22,3 +22,19 @@ export function isCarbonDecorator(expression, name)
     && owner.property?.type === "Identifier"
     && owner.property.name === "carbon";
 }
+
+/**
+ * Resolves an exact method or the prescribed lower-camel JavaScript static name.
+ * Instance methods never gain a casing alias, and the fallback must be static.
+ * @param {Map<string,object>} methods JavaScript method declarations.
+ * @param {string} name Native method name.
+ * @param {boolean} isStatic Whether the donor declares a static method.
+ * @returns {object|undefined} The matching declaration, if present.
+ */
+export function findCarbonMethod(methods, name, isStatic = false)
+{
+  const exact = methods.get(name);
+  if (exact || !isStatic || !name) return exact;
+  const candidate = methods.get(name[0].toLowerCase() + name.slice(1));
+  return candidate?.isStatic === true ? candidate : undefined;
+}

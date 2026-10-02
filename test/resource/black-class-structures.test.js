@@ -70,8 +70,8 @@ test("Tr2Effect's struct lists derive with 8-byte shared strings, as Carbon's de
   assert.deepEqual(offsets(classStructureLayout("Tr2Effect", "constParameters")), [ [ "name", 0 ], [ "value", 8 ] ]);
   assert.equal(classStructureLayout("Tr2Effect", "constParameters").size, 24);
   // Tr2SamplerOverrideStructureDef (Tr2Effect.cpp:84-95, offsetof on
-  // Tr2SamplerOverride). Carbon's address/filter members are UINT32; the class
-  // declares int32 enums of the same width.
+  // Tr2SamplerOverride). Carbon's address/filter members and the canonical
+  // record declarations are UINT32.
   assert.deepEqual(offsets(classStructureLayout("Tr2Effect", "samplerOverrides")), [
     [ "name", 0 ], [ "addressU", 8 ], [ "addressV", 12 ], [ "addressW", 16 ], [ "filter", 20 ],
     [ "mipFilter", 24 ], [ "lodBias", 28 ], [ "maxMipLevel", 32 ], [ "maxAnisotropy", 36 ]

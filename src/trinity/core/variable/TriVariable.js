@@ -1,9 +1,8 @@
 // Source: trinity/trinity/TriVariable.h
 // Source: trinity/trinity/TriVariable.cpp
-import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
+import { meta, types } from "#schema";
 import { Tr2ColorSpace } from "#consts/render-context";
-import { ResourceFlags } from "../../shader/parameter/ITr2EffectValue.js";
+import { ITr2EffectValue, ResourceFlags } from "../../shader/parameter/ITr2EffectValue.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 import { RealizeTexture } from "../Tr2ImageIOHelpers.js";
 
@@ -11,36 +10,50 @@ import { RealizeTexture } from "../Tr2ImageIOHelpers.js";
 /**
  * One named shader-binding variable: the content type fixed when it was
  * registered, plus the value payload standing in for Carbon's typed union.
+ * Carbon uses BLUE_DEFINE_NONEXPOSED; the existing JavaScript catalog keeps
+ * construction available to the variable store and direct consumers.
  */
-@type.define({
+@meta.define({
   className: "TriVariable",
   family: "trinityCore"
 })
-export class TriVariable extends CjsModel
+export class TriVariable extends ITr2EffectValue
 {
-  @edit.read
-  @type.string
+  /** Existing JavaScript name inspection declaration; not a native Blue member. */
+  @meta.edit.read
+  @types.string
   name = "";
 
-  /** m_type (TriVariableContentType). */
-  @edit.read
-  @type.int32
+  /** Existing JavaScript type inspection declaration; native TriVariable exposes no members. */
+  @meta.edit.read
+  @types.int32
   contentType = TriVariableContentType.TRIVARIABLE_INVALID;
 
-  /** Runtime value payload; the typed C++ union collapses to one slot. */
+  /**
+   * Runtime value payload; the typed C++ union collapses to one slot.
+   * Held gap: a texture/buffer provider in this mixed scalar/array/reference
+   * slot is not discovered by declared resource traversal. The existing
+   * single-slot adapter is retained without adding duplicate resource storage.
+   */
   value = null;
 
-  /** The registered variable name, which the store also uses as its key. */
-  @carbon.method
-  @impl.implemented
+  /**
+   * The registered variable name, which the store also uses as its key.
+   * @returns {string} Variable result.
+   */
+  @meta.carbon.method
+  @meta.impl.implemented
   GetName()
   {
     return this.name;
   }
 
-  /** The TriVariableContentType fixed at registration; SetValue never changes it. */
-  @carbon.method
-  @impl.implemented
+  /**
+   * The TriVariableContentType fixed at registration; SetValue never changes it.
+   * @returns {number} Variable result.
+   */
+  @meta.carbon.method
+  @meta.impl.implemented
   GetType()
   {
     return this.contentType;
@@ -49,9 +62,12 @@ export class TriVariable extends CjsModel
   /**
    * Assigns the value payload. The content type stays as registered; Carbon
    * fixes it at registration time and SetValue only stores.
+   * Adapted: Preserves the single JavaScript payload slot instead of the native typed union and returns success to existing callers.
+   * @param {*} value Portable value payload.
+   * @returns {boolean} Variable result.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   SetValue(value)
   {
     this.value = value;
@@ -62,9 +78,12 @@ export class TriVariable extends CjsModel
    * Reads the payload; when out is array-like and so is the payload, the
    * overlapping components are copied into out and out is returned, otherwise
    * the stored payload itself is returned and is not a copy.
+   * Adapted: Adapts native typed output arguments to an optional array output or a direct JavaScript value return.
+   * @param {ArrayLike|undefined} [out] Optional destination for array components.
+   * @returns {*} Variable result.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   GetValue(out = undefined)
   {
     const value = this.value;
@@ -83,9 +102,11 @@ export class TriVariable extends CjsModel
   /**
    * Clears the payload and returns the variable to the reserved INVALID
    * type, releasing texture/buffer references as Carbon's Clear does.
+   * Adapted: Releases the single JavaScript payload and invalidates its type; native Clear separately releases resource fields and clears union storage.
+   * @returns {void} No return value.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.adapted
   Invalidate()
   {
     this.value = null;
@@ -96,9 +117,11 @@ export class TriVariable extends CjsModel
    * Clears the value but leaves the type alone, so a new SetValue will
    * still work. Carbon zeroes the union slot and drops texture/buffer
    * references; the JS payload slot zero-fills arrays and nulls references.
+   * Adapted: Preserves the portable array/scalar/reference clearing rules instead of zeroing the native union and separate resource pointers.
+   * @returns {void} No return value.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   Clear()
   {
     const value = this.value;
@@ -137,9 +160,10 @@ export class TriVariable extends CjsModel
    *   first bind (Carbon creates it in DoPrepare), so a provider that has
    *   resolved but not yet realized is realized through the context.
    * @returns {boolean} Whether the slot took the binding.
+   * Adapted: Retains the existing JavaScript provider representation and optional texture realization context, with direct resource-set calls.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0, renderContext = null)
   {
     if (this.contentType === TriVariableContentType.TRIVARIABLE_TEXTURE_RES)
@@ -148,12 +172,12 @@ export class TriVariable extends CjsModel
         ? Tr2ColorSpace.COLOR_SPACE_SRGB
         : Tr2ColorSpace.COLOR_SPACE_LINEAR;
 
-      return resourceDesc.SetSrv(stage, registerIndex, this.#Texture(renderContext), colorSpace);
+      return resourceDesc.SetSrv(stage, registerIndex, this._Texture(renderContext), colorSpace);
     }
 
     if (this.contentType === TriVariableContentType.TRIVARIABLE_GPUBUFFER)
     {
-      return resourceDesc.SetSrv(stage, registerIndex, this.#GpuBuffer(), 0, 1);
+      return resourceDesc.SetSrv(stage, registerIndex, this._GpuBuffer(), 0, 1);
     }
 
     return false;
@@ -169,26 +193,33 @@ export class TriVariable extends CjsModel
    * @param {number} stage A `ShaderType`.
    * @param {number} registerIndex The register.
    * @returns {boolean} Whether the slot took the binding.
+   * Adapted: Retains the existing JavaScript provider representation when selecting a texture or GPU buffer.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.adapted
   ApplyUav(resourceDesc, stage, registerIndex)
   {
     if (this.contentType === TriVariableContentType.TRIVARIABLE_TEXTURE_RES)
     {
-      return resourceDesc.SetUav(stage, registerIndex, this.#Texture());
+      return resourceDesc.SetUav(stage, registerIndex, this._Texture());
     }
 
     if (this.contentType === TriVariableContentType.TRIVARIABLE_GPUBUFFER)
     {
-      return resourceDesc.SetUav(stage, registerIndex, this.#GpuBuffer(), 0, 1);
+      return resourceDesc.SetUav(stage, registerIndex, this._GpuBuffer(), 0, 1);
     }
 
     return false;
   }
 
-  /** The provider's texture, realized through the context if it has resolved but not yet been created; null otherwise. */
-  #Texture(renderContext = null)
+  /**
+   * The provider's texture, realized through the context if it has resolved but not yet been created; null otherwise.
+   * Custom: preserves the existing JavaScript provider admission and realization adapter.
+   * @param {object|null} [renderContext] Optional texture realization context.
+   * @returns {object|null} Variable result.
+   */
+  @meta.impl.custom
+  _Texture(renderContext = null)
   {
     const provider = this.value;
 
@@ -201,8 +232,13 @@ export class TriVariable extends CjsModel
     return RealizeTexture(provider, renderContext);
   }
 
-  /** The provider's first buffer, which is the index Carbon passes. */
-  #GpuBuffer()
+  /**
+   * The provider's first buffer, which is the index Carbon passes.
+   * Custom: preserves the existing JavaScript provider admission and realization adapter.
+   * @returns {object|null} Variable result.
+   */
+  @meta.impl.custom
+  _GpuBuffer()
   {
     const provider = this.value;
 
@@ -212,23 +248,38 @@ export class TriVariable extends CjsModel
   /**
    * Carbon's display name for a content type, defaulting to this variable's own
    * type.
+   * @param {number} [contentType] Native content-type value.
+   * @returns {string} Variable result.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetTypeName(contentType = this.contentType)
   {
-    return TriVariable.GetTypeName(contentType);
+    return TriVariable.getTypeName(contentType);
   }
 
   /**
    * Constant-buffer byte size of a content type, defaulting to this variable's
    * own type.
+   * @param {number} [contentType] Native content-type value.
+   * @returns {number} Variable result.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetTypeSize(contentType = this.contentType)
   {
-    return TriVariable.GetTypeSize(contentType);
+    return TriVariable.getTypeSize(contentType);
+  }
+
+  /**
+   * Native constant-buffer value size.
+   * @returns {number} Byte size for this variable's registered type.
+   */
+  @meta.carbon.method
+  @meta.impl.implemented
+  GetValueSize()
+  {
+    return this.GetTypeSize();
   }
 
   /**
@@ -236,9 +287,13 @@ export class TriVariable extends CjsModel
    * bridge does: integers and booleans register as INT (Python bools are
    * ints), other numbers as FLOAT, arrays by length, texture-provider
    * shapes as TEXTURE_RES. Unknown values map to INVALID, which
-   * RegisterVariable treats as unsupported (GPU-buffer duck detection has
-   * no reliable JS shape yet and is left to the realization layer).
+   * RegisterVariable treats as unsupported; the existing GPU-buffer adapter
+   * recognizes providers exposing GetGpuBuffer.
+   * Adapted: Classifies portable JavaScript payloads for the script registration bridge instead of using native C++ type overloads.
+   * @param {*} value Portable value payload.
+   * @returns {number} Variable result.
    */
+  @meta.impl.adapted
   static getVariableType(value)
   {
     if (typeof value === "boolean")
@@ -293,7 +348,10 @@ export class TriVariable extends CjsModel
    * @param {ArrayLike} destination Constant destination.
    * @param {number} [size] Byte budget in the destination.
    * @returns {boolean} Whether anything was written.
+   * Adapted: Copies JavaScript scalar/array storage into a bounded constant destination, transposing matrices for shaders and returning whether data was written.
    */
+  @meta.carbon.method
+  @meta.impl.adapted
   CopyValueToEffect(_inputType, destination, size = Number.POSITIVE_INFINITY)
   {
     if (!destination || typeof destination.length !== "number") return false;
@@ -329,10 +387,14 @@ export class TriVariable extends CjsModel
   /**
    * Carbon's display name for a content type; an unrecognised type falls back to
    * the INVALID label.
+   * Adapted: Uses the existing JavaScript lookup table and preserves its INVALID fallback for an unknown index.
+   * @param {number} contentType Native content-type value.
+   * @returns {string} Variable result.
    */
-  static GetTypeName(contentType)
+  @meta.impl.adapted
+  static getTypeName(contentType)
   {
-    return TriVariable.#typeNames[contentType] ?? TriVariable.#typeNames[0];
+    return TriVariable._typeNames[contentType] ?? TriVariable._typeNames[0];
   }
 
   /**
@@ -341,13 +403,18 @@ export class TriVariable extends CjsModel
    * they must register as the largest type. Texture and GPU-buffer slots are
    * pointer-sized in Carbon; the JS reference slot keeps the same 8 bytes so
    * shared-buffer offset math stays aligned with Carbon's.
+   * Adapted: Uses the existing JavaScript size table, including eight-byte reference slots and the zero fallback for an unknown index.
+   * @param {number} contentType Native content-type value.
+   * @returns {number} Variable result.
    */
-  static GetTypeSize(contentType)
+  @meta.impl.adapted
+  static getTypeSize(contentType)
   {
-    return TriVariable.#typeSizes[contentType] ?? 0;
+    return TriVariable._typeSizes[contentType] ?? 0;
   }
 
-  static #typeNames = Object.freeze([
+  /** Native content-type table exposed through the existing JavaScript adapter. */
+  static _typeNames = [
     "INVALID TYPE!",
     "TRIVARIABLE_UNKNOWN_FLOAT",
     "TRIVARIABLE_TEXTURE_RES",
@@ -359,9 +426,10 @@ export class TriVariable extends CjsModel
     "TRIVARIABLE_FLOAT4X4",
     "TRIVARIABLE_COLOR",
     "TRIVARIABLE_GPUBUFFER"
-  ]);
+  ];
 
-  static #typeSizes = Object.freeze([
+  /** Native content-type table exposed through the existing JavaScript adapter. */
+  static _typeSizes = [
     4 * 16,
     4 * 16,
     8,
@@ -373,7 +441,11 @@ export class TriVariable extends CjsModel
     4 * 16,
     4 * 4,
     8
-  ]);
+  ];
 
+  /** Native content-type table exposed through the existing JavaScript adapter. */
   static ContentType = TriVariableContentType;
 }
+
+// Native nonexposed table has only concrete/IRoot identity; ITr2EffectValue is nominal only.
+meta.carbon.interfaceTable({ interfaces: [TriVariable], chainTo: null })(TriVariable, { kind: "class" });

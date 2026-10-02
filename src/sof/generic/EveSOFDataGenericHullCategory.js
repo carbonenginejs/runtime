@@ -1,28 +1,37 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
-// Maintained CarbonEngineJS implementation; generated schema is reference-only.
+// Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:557-566
 import "#blue/registerTrinityEnums";
-import { edit, type } from "#schema";
-import { CjsModel } from "#model";
+import { meta, types } from "#schema";
 import { ReflectionMode } from "#consts/graphics";
 
-/** Names a generic hull category and records its reflection mode. */
-@type.define({ className: "EveSOFDataGenericHullCategory", family: "eve" })
-export class EveSOFDataGenericHullCategory extends CjsModel
+/** Names a generic hull category and records its reflection mode.
+ * Native IRoot-only data with a self-only Blue table. Field initializers
+ * preserve native defaults; no initialization, update or resource lifecycle
+ * is required, and the native destructor is empty.
+ */
+@meta.define({ className: "EveSOFDataGenericHullCategory", family: "eve" })
+export class EveSOFDataGenericHullCategory
 {
+  /** Existing JavaScript alias for the native reflection-mode chooser. */
   static ReflectionMode = ReflectionMode;
 
 
-  /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, ENUM] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.EntityComponents.ReflectionMode")
-  reflectionMode = ReflectionMode.REFLECT_NEVER;
-
   /** m_categoryName (BlueSharedString) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   name = "";
 
+  /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, ENUM] */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.int32
+  @types.enum("trinity.EntityComponents.ReflectionMode")
+  reflectionMode = ReflectionMode.REFLECT_NEVER;
+
 }
+
+meta.carbon.interfaceTable({
+  interfaces: [ EveSOFDataGenericHullCategory ],
+  chainTo: null
+})(EveSOFDataGenericHullCategory);

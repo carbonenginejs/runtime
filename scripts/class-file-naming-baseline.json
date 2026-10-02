@@ -99,6 +99,10 @@
       "CjsAudioLibraryBuilderBusGraphConstructionSession",
       "CjsAudioLibraryBuilderSfxNameCatalogAccumulator"
     ],
+    "src/global/blue/CjsFormatStore.js": [
+      "CjsFormatRoute",
+      "CjsFormatStore"
+    ],
     "src/global/model/CjsModel.js": [
       "CjsModel",
       "CjsPendingReference"
@@ -111,10 +115,6 @@
       "CjsFormatReadError",
       "CjsFormatRangeError",
       "CjsFormatWriteError"
-    ],
-    "src/global/blue/CjsFormatStore.js": [
-      "CjsFormatRoute",
-      "CjsFormatStore"
     ],
     "src/resource/formats/fbx/core/helpers.js": [
       "DeflateBitReader",
@@ -155,6 +155,12 @@
     "src/global/blue/CcpTime.js": [
       "CcpTime"
     ],
+    "src/global/blue/ResourceHandlerMode.js": [
+      "ResourceHandlerMode"
+    ],
+    "src/global/blue/ResourceRequirement.js": [
+      "ResourceRequirement"
+    ],
     "src/resource/formats/hlsl/core/HlslBinaryUtils.js": [
       "HlslBinaryUtils"
     ],
@@ -163,12 +169,6 @@
     ],
     "src/resource/generated/resources/GrannyDeprecationLevel.js": [
       "GrannyDeprecationLevel"
-    ],
-    "src/global/blue/ResourceHandlerMode.js": [
-      "ResourceHandlerMode"
-    ],
-    "src/global/blue/ResourceRequirement.js": [
-      "ResourceRequirement"
     ],
     "src/trinity/core/mesh/TriGeometryResAllocations.js": [
       "TriGeometryResAllocations"
@@ -202,9 +202,6 @@
     ],
     "src/trinity/eve/renderable/stretch/CjsStretchRuntime.js": [
       "CjsStretchRuntime"
-    ],
-    "src/trinity/shader/parameter/ITr2EffectValue.js": [
-      "ITr2EffectValue"
     ],
     "src/trinityal/ALResult.js": [
       "ALResult"

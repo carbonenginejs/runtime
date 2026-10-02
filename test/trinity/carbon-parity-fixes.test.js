@@ -117,10 +117,10 @@ test("TriVariable.Clear zeroes the payload but keeps the type", () =>
 
 test("TriVariable type tables match Carbon's sizes", () =>
 {
-  assert.equal(TriVariable.GetTypeSize(TriVariable.ContentType.TRIVARIABLE_FLOAT4X4), 64);
-  assert.equal(TriVariable.GetTypeSize(TriVariable.ContentType.TRIVARIABLE_INVALID), 64, "INVALID registers as the largest type");
-  assert.equal(TriVariable.GetTypeSize(TriVariable.ContentType.TRIVARIABLE_FLOAT2), 8);
-  assert.equal(TriVariable.GetTypeName(TriVariable.ContentType.TRIVARIABLE_COLOR), "TRIVARIABLE_COLOR");
+  assert.equal(TriVariable.getTypeSize(TriVariable.ContentType.TRIVARIABLE_FLOAT4X4), 64);
+  assert.equal(TriVariable.getTypeSize(TriVariable.ContentType.TRIVARIABLE_INVALID), 64, "INVALID registers as the largest type");
+  assert.equal(TriVariable.getTypeSize(TriVariable.ContentType.TRIVARIABLE_FLOAT2), 8);
+  assert.equal(TriVariable.getTypeName(TriVariable.ContentType.TRIVARIABLE_COLOR), "TRIVARIABLE_COLOR");
 });
 
 test("Tr2VisibilityEvent carries Carbon's defaults and flag enum", () =>

@@ -1,32 +1,42 @@
 // Source: trinity/trinity/TriRect.h
 // Source: trinity/trinity/TriRect.cpp
 // Source: trinity/trinity/TriRect_Blue.cpp
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 
 
-/** An integer screen rectangle given by its left, top, right and bottom edges. */
+/**
+ * An integer screen rectangle given by its left, top, right and bottom edges.
+ * Native storage comes from a plain four-int Tr2Rect struct, represented here
+ * by direct fields. The native query table contains only IPythonMethods, whose
+ * Python host bridge is unavailable in JavaScript. The supported query table
+ * is therefore empty, not a claim of complete native interface parity. Neither
+ * the native concrete self query nor a model-service base is exposed.
+ */
 @type.define({
   className: "TriRect",
   family: "trinityCore"
 })
-export class TriRect extends CjsModel
+export class TriRect
 {
+  /** Stored signed left edge. */
   @edit.readwrite
   @edit.persist
   @type.int32
   left = 0;
 
+  /** Stored signed top edge. */
   @edit.readwrite
   @edit.persist
   @type.int32
   top = 0;
 
+  /** Stored signed right edge. */
   @edit.readwrite
   @edit.persist
   @type.int32
   right = 0;
 
+  /** Stored signed bottom edge. */
   @edit.readwrite
   @edit.persist
   @type.int32
@@ -34,7 +44,8 @@ export class TriRect extends CjsModel
 
   /**
    * Python-style constructor hook; assigns all four edges, each defaulting to
-   * zero.
+   * zero. JavaScript defaults adapt the exposed native SetDimentions wrapper;
+   * direct assignments retain the existing JavaScript number representation.
    */
   @carbon.method
   @impl.adapted
@@ -48,7 +59,9 @@ export class TriRect extends CjsModel
 
   /**
    * Assigns the supplied edges, leaving any edge passed as undefined at its
-   * current value.
+   * current value. This is the exposed native PySetRect optional-argument
+   * wrapper, using undefined instead of Be::Optional assignment state; it is
+   * not the unexposed native SetRect(Tr2Rect*) overload.
    */
   @carbon.method
   @impl.adapted
@@ -72,3 +85,6 @@ export class TriRect extends CjsModel
     }
   }
 }
+
+// Native maps IPythonMethods only; that host-specific bridge is unavailable.
+carbon.interfaceTable({ interfaces: [], chainTo: null })(TriRect);

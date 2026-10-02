@@ -200,7 +200,7 @@ test("SOF-owned enum fields resolve native choosers without merging independent 
 test("shared SOF enum fields resolve through Blue with native reflection labels and signed LOD values", async () =>
 {
     const { CjsSchema: schema } = await import("../../npm/dist/global/schema/index.js");
-    const { blue: services } = await import("../../npm/dist/global/blue/index.js");
+    const { blue: services, DictReader } = await import("../../npm/dist/global/blue/index.js");
     const cases = [
         ["generic", "EveSOFDataGenericHullCategory", "reflectionMode", "ReflectionMode", "trinity.EntityComponents.ReflectionMode"],
         ["hull", "EveSOFDataHullChild", "lowestLodVisible", "Tr2Lod", "trinity.Tr2Lod"],
@@ -216,7 +216,14 @@ test("shared SOF enum fields resolve through Blue with native reflection labels 
         assert.equal(field.enum.members, Constructor[staticName]);
         const instance = new Constructor();
         const key = staticName === "Tr2Lod" ? "TR2_LOD_UNSPECIFIED" : "REFLECT_HIGH";
-        instance.SetValues({ [member]: services.enums.GetEnum(identity)[key] });
+        if (name === "EveSOFDataGenericHullCategory")
+        {
+            new DictReader({ declarations: true }).ReadInto(instance, { [member]: services.enums.GetEnum(identity)[key] });
+        }
+        else
+        {
+            instance.SetValues({ [member]: services.enums.GetEnum(identity)[key] });
+        }
         assert.equal(instance[member], staticName === "Tr2Lod" ? -1 : 0);
     }
     const reflection = "trinity.EntityComponents.ReflectionMode";

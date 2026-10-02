@@ -27,3 +27,6 @@ export * from "./Tr2ResourceSetAL/index.js";
 export * from "./renderContextAL.js";
 export * from "./vertexLayoutMatch.js";
 export * from "./stub/index.js";
+
+export * from "./Tr2DisplayModeInfo.js";
+export * from "./Tr2PresentParametersAL.js";

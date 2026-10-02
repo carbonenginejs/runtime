@@ -83,6 +83,26 @@ Carbon's per-stage bind masks; dropped because WebGPU resolves binding validity 
 - Visibility: Internal
 - Kind: Carbon dropped
 
+<!-- class:Tr2DisplayModeInfo -->
+## `Tr2DisplayModeInfo`
+
+Native display-mode value shape.
+
+- Export: `@carbonenginejs/runtime/trinityal`
+- Source: `src/trinityal/Tr2DisplayModeInfo.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2PresentParametersAL -->
+## `Tr2PresentParametersAL`
+
+Native presentation value shape.
+
+- Export: `@carbonenginejs/runtime/trinityal`
+- Source: `src/trinityal/Tr2PresentParametersAL.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:Tr2BufferALWebgl2 -->
 ## `Tr2BufferALWebgl2`
 

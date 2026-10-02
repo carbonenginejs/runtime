@@ -1,93 +1,130 @@
 // Source: trinity/trinity/Tr2ExpressionTermInfo.h
 // Source: trinity/trinity/Tr2ExpressionTermInfo.cpp
 // Source: trinity/trinity/Tr2ExpressionTermInfo_Blue.cpp
-import { CjsModel } from "#model";
-import { carbon, impl, edit, type } from "#schema";
+import { meta, types } from "#schema";
 import { blue } from "#blue";
 
 
-const TermType = Object.freeze({
+const TermType = {
   VARIABLE: 0,
   FUNCTION: 1,
   STRING_FUNCTION: 2
-});
+};
 
 
 /**
  * Describes one term the expression language exposes - a variable, a function or
  * a string function - with its category, argument names and help text.
  */
-@type.define({
+@meta.define({
   className: "Tr2ExpressionTermInfo",
   family: "trinityCore"
 })
-export class Tr2ExpressionTermInfo extends CjsModel
+export class Tr2ExpressionTermInfo
 {
-  @edit.readwrite
-  @type.int32
-  @type.enum("trinity.Tr2ExpressionTermInfo.TermType")
+  /** Native term category; not persisted. */
+  @meta.edit.readwrite
+  @types.int32
+  @types.enum("trinity.Tr2ExpressionTermInfo.TermType")
   type = TermType.VARIABLE;
 
-  @edit.readwrite
-  @type.string
+  /** Help category name; not persisted. */
+  @meta.edit.readwrite
+  @types.string
   category = "";
 
-  @edit.readwrite
-  @type.string
+  /** Exposed term name; not persisted. */
+  @meta.edit.readwrite
+  @types.string
   name = "";
 
-  @edit.readwrite
-  @type.string
+  /** Help text for the term; not persisted. */
+  @meta.edit.readwrite
+  @types.string
   description = "";
 
-  #arguments = [];
+  /** Factory-owned argument names, absent from the native member table. */
+  _arguments = [];
 
-  /** A detached copy of the argument-name list. */
-  @carbon.method
-  @impl.implemented
+  /**
+   * A detached copy of the argument-name list.
+   * @returns {string[]} Argument names in factory order.
+   */
+  @meta.carbon.method
+  @meta.impl.implemented
   GetArguments()
   {
-    return this.#arguments.slice();
+    return this._arguments.slice();
   }
 
-  /** Builds a VARIABLE term, which takes no arguments. */
-  static Variable(category, name, description)
+  /**
+   * Builds a VARIABLE term, which takes no arguments.
+   * @param {string} category Help category.
+   * @param {string} name Variable name.
+   * @param {string} description Help text.
+   * @returns {Tr2ExpressionTermInfo} New term record.
+   */
+  @meta.impl.implemented
+  static variable(category, name, description)
   {
-    return Tr2ExpressionTermInfo.#create(TermType.VARIABLE, category, name, [], description);
+    return Tr2ExpressionTermInfo._create(TermType.VARIABLE, category, name, [], description);
   }
 
   /**
    * Builds a FUNCTION term where every trailing value but the last is an
    * argument name and the last is the description.
+   * Adapted: combines the native fixed-arity factory overloads in one JavaScript rest parameter.
+   * @param {string} category Help category.
+   * @param {string} name Function name.
+   * @param {...string} argumentsAndDescription Argument names followed by help text.
+   * @returns {Tr2ExpressionTermInfo} New term record.
    */
-  static Function(category, name, ...argumentsAndDescription)
+  @meta.impl.adapted
+  static function(category, name, ...argumentsAndDescription)
   {
     const values = argumentsAndDescription.slice();
     const description = values.pop() ?? "";
-    return Tr2ExpressionTermInfo.#create(TermType.FUNCTION, category, name, values, description);
+    return Tr2ExpressionTermInfo._create(TermType.FUNCTION, category, name, values, description);
   }
 
-  /** Builds a STRING_FUNCTION term taking exactly one argument. */
-  static StringFunction(category, name, argument, description)
+  /**
+   * Builds a STRING_FUNCTION term taking exactly one argument.
+   * @param {string} category Help category.
+   * @param {string} name Function name.
+   * @param {string} argument Sole argument name.
+   * @param {string} description Help text.
+   * @returns {Tr2ExpressionTermInfo} New term record.
+   */
+  @meta.impl.implemented
+  static stringFunction(category, name, argument, description)
   {
-    return Tr2ExpressionTermInfo.#create(TermType.STRING_FUNCTION, category, name, [argument], description);
+    return Tr2ExpressionTermInfo._create(TermType.STRING_FUNCTION, category, name, [argument], description);
   }
 
   /**
    * Constructs and fills a term of the given type, copying the argument list so
    * the caller's array is not retained.
+   * Custom: shares record construction among the portable factory overloads.
+   * @param {number} termType Native term category.
+   * @param {string} category Help category.
+   * @param {string} name Term name.
+   * @param {string[]} args Argument names.
+   * @param {string} description Help text.
+   * @returns {Tr2ExpressionTermInfo} New term record.
    */
-  static #create(termType, category, name, args, description)
+  @meta.impl.custom
+  static _create(termType, category, name, args, description)
   {
     const term = new Tr2ExpressionTermInfo();
     term.type = termType;
     term.category = category;
     term.name = name;
     term.description = description;
-    term.#arguments = args.slice();
+    term._arguments = args.slice();
     return term;
   }
 
+  /** Native enum values exposed by the existing JavaScript catalog adapter. */
   static TermType = TermType;
 
 }
@@ -96,3 +133,6 @@ export class Tr2ExpressionTermInfo extends CjsModel
 blue.enums.RegisterEnum("trinity.Tr2ExpressionTermInfo.TermType", TermType, {
   source: "trinity/trinity/Tr2ExpressionTermInfo.h", family: "trinityCore", line: 12
 });
+
+// Native IRoot record: concrete query identity with no exposure chain.
+meta.carbon.interfaceTable({ interfaces: [Tr2ExpressionTermInfo], chainTo: null })(Tr2ExpressionTermInfo, { kind: "class" });

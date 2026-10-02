@@ -1,22 +1,21 @@
 // Source: trinity/trinity/Tr2KelvinColor.h
-// Hand-maintained from Carbon source, promoted out of generated intake.
+// Source: trinity/trinity/Tr2KelvinColor.cpp
+// Source: trinity/trinity/Tr2KelvinColor_Blue.cpp
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
+import { IInitialize } from "#blue/IInitialize";
 import { vec3 } from "#math/vec3";
 import { Tr2StandardIlluminant } from "../../generated/trinityCore/enums.js";
 import { blue, EnumRegistrationType } from "#blue";
 
-/** A light colour authored as a temperature in kelvin, a tint, and a white-balance illuminant. */
+/**
+ * A light colour authored as a temperature in kelvin, a tint, and a white-balance
+ * illuminant. The existing JavaScript RGB surface is retained; native non-update
+ * GetTemperature/GetTint/GetWhiteBalance accessors and RGBA AsRGB are not exposed
+ * here. Initialization and the native self/IInitialize query are supported.
+ */
 @type.define({ className: "Tr2KelvinColor", family: "trinityCore" })
-export class Tr2KelvinColor extends CjsModel
+export class Tr2KelvinColor extends IInitialize
 {
-
-  /** m_whiteBalance (Tr2StandardIlluminant - enum Tr2StandardIlluminant) [ENUM, READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.Tr2StandardIlluminant")
-  whiteBalance = 2;
 
   /** m_temperature (float) [READWRITE, PERSIST] */
   @edit.readwrite
@@ -30,6 +29,14 @@ export class Tr2KelvinColor extends CjsModel
   @type.float32
   tint = 0.5;
 
+  /** m_whiteBalance (Tr2StandardIlluminant - enum Tr2StandardIlluminant) [ENUM, READWRITE, PERSIST] */
+  @edit.readwrite
+  @edit.persist
+  @type.int32
+  @type.enum("trinity.Tr2StandardIlluminant")
+  whiteBalance = 2;
+
+  /** Existing JavaScript reference to the native illuminant enum. */
   static Tr2StandardIlluminant = Tr2StandardIlluminant;
 
   // Carbon Tr2KelvinColor.cpp:23-186. An artist authors a light as a colour
@@ -41,21 +48,31 @@ export class Tr2KelvinColor extends CjsModel
   // white point renders as white, then tinted and normalised so the brightest
   // channel is exactly one.
   //
-  // Carbon works in doubles throughout and only narrows at the end, which
-  // JavaScript gets for free.
+  // The retained JavaScript adapter narrows intermediate XYZ conversions
+  // through vec3 storage; native Vector3d keeps doubles until AsRGB returns.
   //
   // Two behaviours are Carbon's and are worth keeping: a temperature outside
   // 1000-25000 K returns BLACK rather than clamping, and the tint is not a
   // hue shift - it scales red and blue by (1 - tint) while scaling green by
   // tint, so the neutral value is 0.5 and the result is renormalised after.
 
+  /** Native initialization has no work and always succeeds. */
+  @carbon.method
+  @impl.implemented
+  Initialize()
+  {
+    return true;
+  }
+
   /** The chromaticity of a standard illuminant, as Carbon's table gives it. */
+  @impl.custom
   static illuminantChromaticity(illuminant)
   {
-    return Tr2KelvinColor.#CHROMATICITY[illuminant] ?? Tr2KelvinColor.#CHROMATICITY[2];
+    return Tr2KelvinColor._CHROMATICITY[illuminant] ?? Tr2KelvinColor._CHROMATICITY[2];
   }
 
   /** CIE 1931 two-degree standard observer XYZ to RGB. */
+  @impl.custom
   static xyzToRgb(x, y, z, out = vec3.create())
   {
     return vec3.set(out,
@@ -67,7 +84,10 @@ export class Tr2KelvinColor extends CjsModel
   /**
    * The linear RGB colour for a temperature in kelvin, a tint and a white
    * point; black when the temperature is outside 1000-25000 K.
+   * This retained JavaScript helper also maps NaN to black, uses decimal table
+   * constants and float32 vec3 intermediates; native double arithmetic differs.
    */
+  @impl.custom
   static fromKelvin(temperature, tint, whitePoint, out = vec3.create())
   {
     const T = Number(temperature);
@@ -123,16 +143,19 @@ export class Tr2KelvinColor extends CjsModel
     return vec3.set(out, red / brightest, green / brightest, blue / brightest);
   }
 
-  /** This record's authored colour as linear RGB. */
+  /**
+   * This record's authored colour as linear RGB. Existing JavaScript adapter
+   * exposes RGB in an optional output buffer instead of native AsRGB RGBA.
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   GetColor(out = vec3.create())
   {
     return Tr2KelvinColor.fromKelvin(this.temperature, this.tint, this.whiteBalance, out);
   }
 
   /** Carbon's standard-illuminant chromaticity table, indexed by the enum. */
-  static #CHROMATICITY = Object.freeze([
+  static _CHROMATICITY = Object.freeze([
     [ 0.44757, 0.40745 ], [ 0.34567, 0.35850 ], [ 0.33242, 0.34743 ],
     [ 0.31271, 0.32902 ], [ 0.29902, 0.31485 ], [ 0.33333, 0.33333 ],
     [ 0.31310, 0.33727 ], [ 0.37208, 0.37529 ], [ 0.40910, 0.39430 ],
@@ -169,3 +192,5 @@ blue.enums.RegisterEnum("trinity.Tr2StandardIlluminant", Tr2KelvinColor.Tr2Stand
     { name: "CIE_F12", value: Tr2KelvinColor.Tr2StandardIlluminant.TR2STANDARDILLUMINANT_F12, description: "(CIE F12) Philips TL83, Ultralume 30" }
   ]
 });
+
+carbon.interfaceTable({ interfaces: [ Tr2KelvinColor, IInitialize ], chainTo: null })(Tr2KelvinColor);

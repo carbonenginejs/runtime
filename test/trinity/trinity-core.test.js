@@ -874,21 +874,21 @@ test("TriRect uses int32 fields and preserves omitted SetRect components", () =>
 
 test("Tr2ExpressionTermInfo factories preserve Carbon term types and isolate arguments", () =>
 {
-  const variable = Tr2ExpressionTermInfo.Variable("Math", "Time", "Current time");
+  const variable = Tr2ExpressionTermInfo.variable("Math", "Time", "Current time");
   assertEquals(variable.type, TermType.VARIABLE);
   assertEquals(variable.category, "Math");
   assertEquals(variable.name, "Time");
   assertEquals(variable.description, "Current time");
   assertEquals(variable.GetArguments().length, 0);
 
-  const fn = Tr2ExpressionTermInfo.Function("Math", "Clamp", "value", "min", "max", "Clamps a value");
+  const fn = Tr2ExpressionTermInfo.function("Math", "Clamp", "value", "min", "max", "Clamps a value");
   assertEquals(fn.type, TermType.FUNCTION);
   assertEquals(fn.GetArguments().join(","), "value,min,max");
   const copiedArguments = fn.GetArguments();
   copiedArguments.push("mutated");
   assertEquals(fn.GetArguments().join(","), "value,min,max");
 
-  const stringFn = Tr2ExpressionTermInfo.StringFunction("Object", "Find", "name", "Finds by name");
+  const stringFn = Tr2ExpressionTermInfo.stringFunction("Object", "Find", "name", "Finds by name");
   assertEquals(stringFn.type, TermType.STRING_FUNCTION);
   assertEquals(stringFn.GetArguments().join(","), "name");
   assertEquals(CjsSchema.getField(Tr2ExpressionTermInfo, "type")?.type.kind, "int32");

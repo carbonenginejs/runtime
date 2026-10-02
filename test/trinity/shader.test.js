@@ -95,7 +95,7 @@ test("sampler overrides preserve Carbon structure and AddSamplerOverride default
   assertEquals(defaults.lodBias, 0);
   assertEquals(defaults.maxMipLevel, 0);
   assertEquals(defaults.maxAnisotropy, 4);
-  assertEquals(CjsSchema.getField(Tr2SamplerOverride, "filter")?.type.kind, "int32");
+  assertEquals(CjsSchema.getField(Tr2SamplerOverride, "filter")?.type.kind, "uint32");
   assertEquals(CjsSchema.getField(Tr2SamplerOverride, "sampler"), null);
 
   const effect = new Tr2Effect();

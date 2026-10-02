@@ -1317,7 +1317,7 @@ Named-variable collection used by the shader system for binding.
 <!-- class:TriFloat -->
 ## `TriFloat`
 
-TriFloat (trinityCore) - generated from schema shapeHash b5384f79....
+Separate scalar storage that breaks stretch-to-binding reference cycles.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
 - Source: `src/trinity/core/variable/TriFloat.js`
@@ -1521,6 +1521,16 @@ Base for the multi-component shader parameters, adding fixed-length destination 
 - Visibility: Internal
 - Kind: CarbonEngineJS
 
+<!-- class:ITr2EffectValue -->
+## `ITr2EffectValue`
+
+Native effect-value contract.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/parameter/ITr2EffectValue.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:ITriEffectParameter -->
 ## `ITriEffectParameter`
 
@@ -1704,7 +1714,7 @@ Mutable authored option on the Tr2Effect facade.
 <!-- class:Tr2SamplerOverride -->
 ## `Tr2SamplerOverride`
 
-Overrides one named sampler's address, filtering, LOD-bias, mip, and anisotropy settings.
+Plain native structure overriding one named sampler's addressing, filtering and LOD settings.
 
 - Export: `@carbonenginejs/runtime/trinity/shader`
 - Source: `src/trinity/shader/sampler/Tr2SamplerOverride.js`
@@ -1714,7 +1724,7 @@ Overrides one named sampler's address, filtering, LOD-bias, mip, and anisotropy 
 <!-- class:Tr2SamplerOverrideData -->
 ## `Tr2SamplerOverrideData`
 
-Associates a shader sampler register with the sampler-state object to bind.
+Plain native record associating a sampler register with opaque AL state.
 
 - Export: `@carbonenginejs/runtime/trinity/shader`
 - Source: `src/trinity/shader/sampler/Tr2SamplerOverrideData.js`
@@ -1774,7 +1784,7 @@ Owns a detached byte payload for one shader stage while leaving device binding t
 <!-- class:Tr2PresentParameters -->
 ## `Tr2PresentParameters`
 
-Carries the software-device, back-buffer size, and windowed-mode values used when creating a rendering device.
+Native IRoot presentation record over AL storage.
 
 - Export: `@carbonenginejs/runtime/trinity/ui`
 - Source: `src/trinity/ui/Tr2PresentParameters.js`

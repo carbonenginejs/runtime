@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { parseExpression } from "@babel/parser";
-import { isCarbonDecorator } from "../scripts/trinity/carbon-decorators.js";
+import { isCarbonDecorator, findCarbonMethod } from "../scripts/trinity/carbon-decorators.js";
 
 test("Trinity parity recognizes both Carbon method decorator namespaces", () =>
 {
@@ -32,4 +32,29 @@ test("Trinity parity rejects unrelated and computed decorator expressions", () =
   {
     assert.equal(isCarbonDecorator(parseExpression(source), "method"), false, source);
   }
+});
+
+test("Trinity parity resolves native statics through the prescribed JavaScript casing", () =>
+{
+  for (const name of ["Variable", "Function", "StringFunction"])
+  {
+    const declaration = { isStatic: true, hasCarbon: false };
+    const methods = new Map([[name[0].toLowerCase() + name.slice(1), declaration]]);
+    assert.equal(findCarbonMethod(methods, name, true), declaration);
+    assert.equal(findCarbonMethod(methods, name, false), undefined);
+  }
+});
+
+test("Trinity parity casing cannot hide a missing static behind an instance method", () =>
+{
+  const methods = new Map([["variable", { isStatic: false }]]);
+  assert.equal(findCarbonMethod(methods, "Variable", true), undefined);
+  assert.equal(findCarbonMethod(methods, "Function", true), undefined);
+});
+
+test("Trinity parity keeps exact method lookup ahead of a casing alternative", () =>
+{
+  const exact = { isStatic: true, hasCarbon: true };
+  const alternate = { isStatic: true, hasCarbon: false };
+  assert.equal(findCarbonMethod(new Map([["Variable", exact], ["variable", alternate]]), "Variable", true), exact);
 });

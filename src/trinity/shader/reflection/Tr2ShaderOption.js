@@ -1,15 +1,17 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /**
  * Mutable authored option on the Tr2Effect facade.
  *
  * Tr2EffectRes accepts this plain name/value shape but does not own authored
- * option lifetime.
+ * option lifetime. Carbon declares a plain structure-list value with two
+ * BlueSharedString slots, not an IRoot class or native query interface. The
+ * JavaScript record retains persistence flags for authored dictionary options;
+ * the native effect owns persistence through its options structure list.
  */
 @type.define({ className: "Tr2ShaderOption", family: "shader" })
-export class Tr2ShaderOption extends CjsModel
+export class Tr2ShaderOption
 {
 
   /** name (BlueSharedString) */

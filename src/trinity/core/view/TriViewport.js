@@ -1,44 +1,50 @@
 // Source: trinity/trinity/TriViewport.h
 // Source: trinity/trinity/TriViewport_Blue.cpp
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 
 
 /**
  * A screen viewport rectangle in pixels together with its minimum and maximum
- * depth.
+ * depth. Native IRoot contributes no JavaScript storage or lifecycle services;
+ * the native query table exposes only this concrete class.
  */
 @type.define({
   className: "TriViewport",
   family: "trinityCore"
 })
-export class TriViewport extends CjsModel
+export class TriViewport
 {
+  /** Horizontal raster origin; negative window coordinates are valid. */
   @edit.readwrite
   @edit.persist
   @type.int32
   x = 0;
 
+  /** Vertical raster origin; negative window coordinates are valid. */
   @edit.readwrite
   @edit.persist
   @type.int32
   y = 0;
 
+  /** Raster width in pixels. */
   @edit.readwrite
   @edit.persist
   @type.int32
   width = 1;
 
+  /** Raster height in pixels. */
   @edit.readwrite
   @edit.persist
   @type.int32
   height = 1;
 
+  /** Minimum viewport depth. */
   @edit.readwrite
   @edit.persist
   @type.float32
   minZ = 0;
 
+  /** Maximum viewport depth. */
   @edit.readwrite
   @edit.persist
   @type.float32
@@ -47,6 +53,8 @@ export class TriViewport extends CjsModel
   /**
    * Python-style constructor hook; assigns origin, size and depth range,
    * defaulting to a 1x1 viewport over the full zero-to-one depth range.
+   * JavaScript default arguments replace the native optional Python wrapper;
+   * direct field assignments preserve the existing JavaScript number adapter.
    */
   @carbon.method
   @impl.adapted
@@ -80,3 +88,5 @@ export function Vec3TransformByViewport(vec, viewport)
   vec[2] = viewport.minZ + vec[2] * (viewport.maxZ - viewport.minZ);
   return vec;
 }
+
+carbon.interfaceTable({ interfaces: [ TriViewport ], chainTo: null })(TriViewport);

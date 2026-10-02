@@ -36,8 +36,8 @@ import { CjsTextureArrayBridge } from "./parameter/CjsTextureArrayBridge.js";
 import { ResourceFlags } from "./parameter/ITr2EffectValue.js";
 import { Tr2VariableStore } from "../core/variable/Tr2VariableStore.js";
 
-// The authored scalar API keeps Tr2SamplerOverride's existing coercion types;
-// Black's native structure separately declares unsigned address/filter slots.
+// The authored scalar API retains its legacy signed address/filter coercion;
+// the record declarations and native Black structure use unsigned slots.
 const SAMPLER_OVERRIDE_VALUE_TYPES = {
   name: "string",
   addressU: "int32",
