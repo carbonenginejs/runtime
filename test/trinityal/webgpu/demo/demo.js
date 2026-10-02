@@ -128,6 +128,7 @@ import { RegisterShaderResources } from "../../../../npm/dist/resource/shader/in
 import CjsWebgpuFormat from "../../../../npm/dist/resource/formats/webgpu/index.js";
 import { CjsGr2Format } from "../../../../npm/dist/resource/formats/gr2/index.js";
 import { CjsBlackFormat } from "../../../../npm/dist/resource/formats/black/index.js";
+import { selectDemoScene, demoSceneLighting } from "./demoScene.js";
 import { POST_TEMPLATES } from "./postTemplates.js";
 import { createDemoActions } from "./demoActions.js";
 import { createEffectFields, createPostProcessPanel } from "./postProcessPanel.js";
@@ -1746,6 +1747,8 @@ const SCENE_MODE = new URLSearchParams(globalThis.location?.search ?? "").get("s
  */
 const SCENE_UNIVERSE = `res:/dx9/scene/universe/${new URLSearchParams(globalThis.location?.search ?? "").get("nebula") || "a01"}_cube.black`;
 
+const demoScenes = new WeakMap();
+
 /**
  * Builds the ship through the runtime's own EveSOF, reading SOF's data files
  * lazily from tools-core through the runner's resource route - only the
@@ -1796,7 +1799,10 @@ async function BuildSofShip(dna)
   // The client starts a loaded ship's controllers (EveSpaceObject2::
   // StartControllers, cpp:4318, reaching every effect child); unstarted, no
   // state machine runs, so speed readouts, heat and state effects never show.
-  return hydrateDemoShip(values);
+  const root = hydrateDemoShip(values);
+  const hull = sof.dataMgr.GetHullData(String(dna).split(":")[0]);
+  demoScenes.set(root, selectDemoScene(hull, SCENE_UNIVERSE, path => bePathsReady && blue.paths.FileExists(path)));
+  return root;
 }
 
 
@@ -3194,12 +3200,30 @@ export async function RunDemo(canvas)
   // client has its device before it loads a scene. Initialize runs below, once
   // the device exists.
   const realScene = SCENE_MODE === "sof" ? new EveSpaceScene() : null;
+  let environment = { interior: false, path: SCENE_UNIVERSE };
   if (realScene)
   {
-    const universe = CjsBlackFormat.read(await ResourceBytes(SCENE_UNIVERSE.replace(/^res:\/+/u, "")), { emit: "json" }).object;
-    if (universe._type !== "EveSpaceScene") throw new Error(`demo: ${SCENE_UNIVERSE} is a ${universe._type}, not an EveSpaceScene`);
-    CjsSchema.setValues(realScene, universe);
+    ship = await BuildSofShip(DNA);
+    environment = demoScenes.get(ship);
+    if (environment.path)
+    {
+      const values = CjsBlackFormat.read(await ResourceBytes(environment.path.replace(/^res:\/+/u, "")), { emit: "json" }).object;
+      if (values._type !== "EveSpaceScene") throw new Error(`demo: ${environment.path} is a ${values._type}, not an EveSpaceScene`);
+      CjsSchema.setValues(realScene, values);
+      console.log(`scene ${environment.path}`);
+    }
+    else console.warn("No indexed hangar scene; using a neutral environment without an outdoor sun.");
+    if (environment.interior)
+    {
+      realScene.backgroundRenderingEnabled = false;
+      if (!new URLSearchParams(globalThis.location?.search ?? "").has("sun")) SUN.direction.set(realScene.sunDirection);
+    }
   }
+  const initialLighting = demoSceneLighting(environment, {
+    post: POST_SUN, flare: FLARE,
+    explicitPost: !!POST_PARAMETER, explicitFlare: !!FLARE_PARAMETER
+  });
+  const authoredScenePost = realScene?.postprocess;
 
   if (realScene)
   {
@@ -3221,7 +3245,6 @@ export async function RunDemo(canvas)
     // renderer copies it into m_useNewBloom at construction (cpp:525).
     // ?newBloom=1 restores Carbon's default for comparison.
     Tr2Renderer.getSettings().SetValue("newBloom", new URLSearchParams(globalThis.location?.search ?? "").get("newBloom") === "1");
-    ship = await BuildSofShip(DNA);
     ship.displayKillCounterValue = KILLS;
     const banners = ApplyDemoBanners(ship);
     if (banners.length) console.info(`demo banners: ${banners.join(", ")}`);
@@ -4199,7 +4222,7 @@ export async function RunDemo(canvas)
     // "replaces scene default" puts the location template where the sun's
     // would go; "volume" keeps the sun's and blends the location over it.
     const sceneDefault = locationPost.mode === "replace" && locationPost.record ? locationPost.record : postTemplate;
-    if (realScene) realScene.postprocess = !postState.off && sceneDefault ? sceneDefault.postProcess : new Tr2PostProcess2();
+    if (realScene) realScene.postprocess = postState.off ? new Tr2PostProcess2() : (sceneDefault?.postProcess ?? authoredScenePost ?? new Tr2PostProcess2());
     FillLocationAttributes();
     AttachLocation(locationPost.mode === "volume" && locationPost.record !== null);
   };
@@ -4327,7 +4350,7 @@ export async function RunDemo(canvas)
 
   // The loaded Tr2PostProcess2, for editing live: demo.postProcess.colorCorrection.
   globalThis.demo.postProcess = null;
-  if (POST_SUN) await SelectPostTemplate(POST_SUN);
+  if (initialLighting.post) await SelectPostTemplate(initialLighting.post);
   if (POST_LOCATION) await SelectLocationTemplate(POST_LOCATION);
 
   postState.apply();
@@ -4363,7 +4386,7 @@ export async function RunDemo(canvas)
   // A swapped-out flare returns its occlusion-buffer slots (EveLensflare.Destroy,
   // Carbon's destructor releasing its Offset handles).
   const flare = {
-    current: FLARE,
+    current: initialLighting.flare,
     async select(name)
     {
       flare.current = name;
@@ -4385,7 +4408,7 @@ export async function RunDemo(canvas)
       }
     }
   };
-  await flare.select(FLARE);
+  await flare.select(initialLighting.flare);
 
   const mainWindow = new Tr2MainWindow({ window: globalThis.window, document: globalThis.document, target: canvas });
   canvas.tabIndex = 0;
@@ -4428,7 +4451,7 @@ export async function RunDemo(canvas)
     actions,
     driver,
     postState,
-    initialTemplate: POST_SUN,
+    initialTemplate: initialLighting.post,
     select: SelectPostTemplate,
     // The effect switches act on the template that is the scene default now:
     // the location's in "replaces scene default" mode, else the sun's.
