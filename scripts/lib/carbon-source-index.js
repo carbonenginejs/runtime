@@ -1,6 +1,6 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
-import { headerTypes, jsClasses } from "./carbon-header-shape.js";
+import { headerTypes, jsClasses, jsProvenance } from "./carbon-header-shape.js";
 
 /** Enumerate source files, keeping generated classes but excluding dropped code. */
 export async function filesUnder(directory, extensions)
@@ -79,7 +79,7 @@ export async function sourceIndex(packageRoot, carbonRoot)
             classes.get(donor).push({ file: relative, node: null, declared: true });
         }
         if (relative.split("/").includes("generated")) continue;
-        const head = source.match(/^(?:\s*\/\/[^\n]*(?:\n|$))+/)?.[0] ?? "";
+        const head = jsProvenance(source);
         if (!head.includes("Source:")) continue;
         for (const match of head.matchAll(/(?:Source:\s*|^\/\/\s+)([\w./\\-]+\.h(?:pp)?)(?=[\s:+(),]|$)/gm))
         {

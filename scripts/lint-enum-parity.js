@@ -23,7 +23,7 @@ import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { headerEnums } from "./lib/carbon-header-shape.js";
+import { headerEnums, jsProvenance } from "./lib/carbon-header-shape.js";
 import { sourceIndex, filesUnder, baselineProblems } from "./lib/carbon-source-index.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -99,7 +99,7 @@ else
     {
         const relative = path.relative(root, file).replaceAll("\\", "/");
         const source = await readFile(file, "utf8");
-        const head = source.match(/^(?:\s*\/\/[^\n]*(?:\n|$))+/)?.[0] ?? "";
+        const head = jsProvenance(source);
 
         for (const [ name, members ] of jsVocabularies(source))
         {

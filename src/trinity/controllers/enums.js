@@ -1,3 +1,4 @@
+// Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { blue } from "#blue";
 

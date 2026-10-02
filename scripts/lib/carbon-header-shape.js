@@ -59,6 +59,20 @@ export function headerTypes(source)
     return result;
 }
 
+/**
+ * Module provenance comments may appear between imports and the first runtime
+ * declaration. Parse comments so strings and method-body citations cannot turn
+ * into module authority, and an inserted import cannot silently hide a donor.
+ */
+export function jsProvenance(source)
+{
+    const ast = parse(source, { sourceType: "module", plugins: [ [ "decorators", { version: "2023-11" } ] ] });
+    const firstDeclaration = ast.program.body.find(node => node.type !== "ImportDeclaration");
+    const end = firstDeclaration?.start ?? source.length;
+    return ast.comments.filter(comment => comment.type === "CommentLine" && comment.end <= end)
+        .map(comment => `//${comment.value}`).join("\n");
+}
+
 /** Parse the actual JS declarations, including decorated source. */
 export function jsClasses(source)
 {
