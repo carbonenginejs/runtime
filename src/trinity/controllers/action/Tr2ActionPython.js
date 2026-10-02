@@ -134,7 +134,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @type {Uint8Array}
    */
   @meta.blue.persistOnly
-  @meta.type.typedArray("Uint8Array")
+  @meta.type.custom("Tr2ActionPython.state")
   state = new Uint8Array(0);
 
   _controller = null;

@@ -70,15 +70,30 @@ function DeclaringClass(instance, methodName, thrower)
  */
 export function composeAbstractDecorator(getClassName)
 {
-    return function (value, context)
+    return function requires(value, context, ...rest)
     {
+        if (typeof value === "string")
+        {
+            const names = [value, ...(context === undefined ? [] : [context]), ...rest];
+            if (names.some(name => typeof name !== "string" || !name.trim()))
+                throw new TypeError("meta.requires expects nonempty method names.");
+            return function (Constructor, classContext)
+            {
+                if (typeof Constructor !== "function" || (classContext && classContext.kind !== "class"))
+                    throw new TypeError("Named meta.requires only supports classes.");
+                for (const name of new Set(names))
+                {
+                    if (!(name in Constructor.prototype)) requires(Constructor.prototype, name);
+                }
+            };
+        }
         // The 2022 decorator form: a method decorator receives the function and
         // a context carrying its name and kind.
         if (context && typeof context === "object" && "kind" in context)
         {
             if (context.kind !== "method")
             {
-                throw new TypeError("compose.abstract only supports methods.");
+                throw new TypeError("meta.requires only supports methods or named class requirements.");
             }
             const methodName = String(context.name);
             const thrower = function (...args)
@@ -94,7 +109,7 @@ export function composeAbstractDecorator(getClassName)
         const methodName = String(context);
         if (!prototype || typeof prototype !== "object")
         {
-            throw new TypeError("compose.abstract only supports methods.");
+            throw new TypeError("meta.requires only supports methods or named class requirements.");
         }
         const thrower = function (...args)
         {

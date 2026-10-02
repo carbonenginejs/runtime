@@ -228,3 +228,22 @@ aged three recording frames across temporary and persistent textures and buffers
 Outstanding handles and explicit value copies survive retirement. Every debug-mode
 setter call clears membership, and device release clears it only for the exact
 all-storage flag. Pool destruction unregisters its device and sweep membership.
+
+## Declared types and Black binary blocks
+
+Decorator namespaces follow ownership: meta.blue is Carbon exposure, meta.ui is
+presentation, meta.type is shared type declarations, meta.struct is binary struct
+layout, and the flat meta namespace contains our registration and installers.
+Meaning types resolve to ordinary storage: rgb and translation use vector3;
+rgba, linear and mixed use vector4; rotation uses quaternion; local and world
+use matrix4. Scale uses vector3 with a unit default. Components supplies labels
+for packed channels. Formats dispatch the resolved data type, not these meanings.
+Flags stores uint32 and carries enum/FLAGS metadata. Named meta.requires installs
+throwing methods for missing class requirements and preserves implementations.
+
+Black reads uint32Array as Carbon BINARYBLOCK: signed byte length followed by
+little-endian words. The member name does not select a codec. Opaque blocks use
+meta.type.custom(name); Black opts into Tr2ActionPython.state as Uint8Array.
+Other names require a customTypes map or own-property object of handlers in the
+reader options. A handler receives (bytes, descriptor); an unknown name fails.
+These handlers belong to Black and do not register handlers in other formats.

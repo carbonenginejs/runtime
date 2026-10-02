@@ -82,6 +82,10 @@ export class CjsBlackSchemaRegistry
         {
             return CjsBlackSchemaRegistry.compactTypeDescriptor(scalarTypes[kind], type);
         }
+        if (kind === "typedArray" && type.arrayType === "Uint32Array")
+            return CjsBlackSchemaRegistry.compactBlackType("BINARYBLOCK", type);
+        if (kind === "custom" && typeof type.name === "string" && type.name)
+            return CjsBlackSchemaRegistry.compactBlackType("BINARYBLOCK", type);
         if (kind === "model" || kind === "objectRef" || kind === "weakRef")
         {
             return CjsBlackSchemaRegistry.compactBlackType(
@@ -509,6 +513,11 @@ export class CjsBlackSchemaRegistry
                     cppType: spec.cppType || "StructureList",
                     structure: spec.structure
                 });
+            case "uint32Array":
+                return CjsBlackSchemaRegistry.compactBlackType("BINARYBLOCK", { kind: "typedArray", arrayType: "Uint32Array" });
+            case "custom":
+                if (typeof spec.name !== "string" || !spec.name) throw new TypeError("Black custom type requires a name.");
+                return CjsBlackSchemaRegistry.compactBlackType("BINARYBLOCK", { kind: "custom", name: spec.name });
             case "binaryBlock":
                 return CjsBlackSchemaRegistry.compactBlackType("BINARYBLOCK", { kind: "typedArray" });
             default:

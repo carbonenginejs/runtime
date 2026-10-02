@@ -89,8 +89,12 @@ export class CjsBlackPropertyReaders
             case CARBON_TYPE.ARRAY:
                 return CjsBlackPropertyReaders.readArray(reader, descriptor);
 
+            case "custom":
+                return CjsBlackPropertyReaders.readBinaryBlock(reader, { beType: "BINARYBLOCK" }, descriptor);
             case CARBON_TYPE.TYPED_ARRAY:
-                return CjsBlackPropertyReaders.readTypedArray(reader, descriptor);
+                return descriptor.arrayType === "Uint32Array"
+                    ? CjsBlackPropertyReaders.readBinaryBlock(reader, { beType: "BINARYBLOCK" }, descriptor)
+                    : CjsBlackPropertyReaders.readTypedArray(reader, descriptor);
 
             case CARBON_TYPE.STRUCT:
             case CARBON_TYPE.RAW_STRUCT:
@@ -161,7 +165,7 @@ export class CjsBlackPropertyReaders
                 return CjsBlackPropertyReaders.readFloatArray(reader, black.length || descriptor.length || 0);
 
             case "BINARYBLOCK":
-                return CjsBlackPropertyReaders.readBinaryBlock(reader, black);
+                return CjsBlackPropertyReaders.readBinaryBlock(reader, black, descriptor);
 
             case "IROOTPTR":
             case "IROOTWEAKREF":
@@ -227,8 +231,13 @@ export class CjsBlackPropertyReaders
             case CARBON_TYPE.ARRAY:
                 CjsBlackPropertyReaders.skipArray(reader, descriptor);
                 return;
+            case "custom":
+                CjsBlackPropertyReaders.customReader(reader, descriptor.name);
+                CjsBlackPropertyReaders.skipBinaryBlock(reader);
+                return;
             case CARBON_TYPE.TYPED_ARRAY:
-                CjsBlackPropertyReaders.skipTypedArray(reader);
+                if (descriptor.arrayType === "Uint32Array") CjsBlackPropertyReaders.skipBinaryBlock(reader);
+                else CjsBlackPropertyReaders.skipTypedArray(reader);
                 return;
             case CARBON_TYPE.STRUCT:
             case CARBON_TYPE.RAW_STRUCT:
@@ -283,6 +292,7 @@ export class CjsBlackPropertyReaders
                 reader.Skip((black.length || descriptor.length || 0) * 4);
                 return;
             case "BINARYBLOCK":
+                if (descriptor.kind === "custom") CjsBlackPropertyReaders.customReader(reader, descriptor.name);
                 CjsBlackPropertyReaders.skipBinaryBlock(reader);
                 return;
             case "IROOTPTR":
@@ -389,35 +399,31 @@ export class CjsBlackPropertyReaders
         }
     }
 
-    /** Reads binary block from the current Black object-graph reader. */
-    static readBinaryBlock(reader, black)
+    /** Reads a Carbon BINARYBLOCK using its declared data type. */
+    static readBinaryBlock(reader, black, descriptor = {})
     {
+        const custom = descriptor.kind === "custom" ? CjsBlackPropertyReaders.customReader(reader, descriptor.name) : null;
         const byteLength = reader.ReadI32();
+        if (byteLength < 0) throw new RangeError("Black binary block length must be nonnegative.");
+        const uint32 = descriptor.kind === "typedArray" && descriptor.arrayType === "Uint32Array";
+        if (uint32 && byteLength % 4) throw new RangeError("Black Uint32Array block length must be a multiple of four.");
         const bytes = reader.ReadBytes(byteLength);
-        if (CjsBlackPropertyReaders.isUint32IndexBufferBlock(reader, black, byteLength))
-        {
+        if (custom) return custom(bytes, descriptor);
+        if (uint32 && !(reader.context?.readMode === "document" && !reader.context?.options.decodeBinaryBlocks))
             return CjsBlackPropertyReaders.readUint32Array(bytes);
-        }
-
-        return {
-            $type: "black.binaryBlock",
-            beType: black.beType,
-            byteLength,
-            bytes: Array.from(bytes)
-        };
+        return { $type: "black.binaryBlock", beType: black.beType, byteLength, bytes };
     }
 
-    /**
-     * Reports whether a binary block is tagged as a 32-bit index buffer for the
-     * Black object-graph reader.
-     */
-    static isUint32IndexBufferBlock(reader, black, byteLength)
+    /** Named opaque types are opted into by this format or this reader only. */
+    static customReader(reader, name)
     {
-        if (byteLength % 4 !== 0) return false;
-        if (reader.context?.readMode === "document" && !reader.context?.options.decodeBinaryBlocks) return false;
-        return black.name === "indexBuffer" ||
-            black.fieldName === "indexBuffer" ||
-            black.storageName === "indexBuffer";
+        const configured = reader.context?.options?.customTypes;
+        const handler = configured instanceof Map ? configured.get(name)
+            : configured && Object.hasOwn(configured, name) ? configured[name] : undefined;
+        if (typeof handler === "function") return handler;
+        // Native Python state is an opaque byte payload, never a persistence callback.
+        if (name === "Tr2ActionPython.state") return bytes => bytes;
+        throw new TypeError('Black has no custom type handler for "' + name + '".');
     }
 
     /**

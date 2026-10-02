@@ -16,7 +16,7 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
 
   /** Native custom binary block; retained Uint32Array values-transport adaptation. */
   @meta.blue.persistOnly
-  @meta.type.typedArray("Uint32Array")
+  @meta.type.uint32Array
   indexBuffer = new Uint32Array(0);
 
   /**

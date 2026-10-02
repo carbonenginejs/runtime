@@ -52,6 +52,7 @@ const sampleSchema = {
                 classSchema("TestIndexBuffer", [
                     blackField("indexBuffer", "m_indexBuffer", "IndexBuffer", "BINARYBLOCK", {
                         macro: "MAP_ATTRIBUTE_AS_CUSTOM_BINARY_BLOCK",
+                        jsType: { kind: "typedArray", arrayType: "Uint32Array" },
                         wireType: "binaryBlock"
                     })
                 ]),
@@ -475,6 +476,7 @@ function blackField(fieldName, cppName, cppType, beType, extra = {})
             [fieldName]: "name fieldName",
             [cppName]: "cppName member memberPath memberRoot"
         },
+        cppName,
         cppType,
         beType,
         wireType: extra.wireType || wireTypeForBeType(beType),

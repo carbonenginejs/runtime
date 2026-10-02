@@ -678,6 +678,28 @@ export class CjsSchema
         array: (itemType, options) => collectionDecorator("array", itemType, options),
         boolean: fieldDecorator("type", { kind: "boolean" }),
         color: fieldDecorator("type", { kind: "color" }),
+        rgb: fieldDecorator("type", { kind: "vec3", semantic: "rgb" }),
+        rgba: fieldDecorator("type", { kind: "vec4", semantic: "rgba" }),
+        linear: fieldDecorator("type", { kind: "vec4", semantic: "linear" }),
+        local: fieldDecorator("type", { kind: "mat4", semantic: "local" }),
+        world: fieldDecorator("type", { kind: "mat4", semantic: "world" }),
+        translation: fieldDecorator("type", { kind: "vec3", semantic: "translation" }),
+        rotation: fieldDecorator("type", { kind: "quat", semantic: "rotation" }),
+        scale: fieldDecorator("type", { kind: "vec3", semantic: "scale", default: [1, 1, 1] }),
+        mixed: fieldDecorator("type", { kind: "vec4", semantic: "mixed" }),
+        int8Array: fieldDecorator("type", { kind: "typedArray", arrayType: "Int8Array" }),
+        uint8Array: fieldDecorator("type", { kind: "typedArray", arrayType: "Uint8Array" }),
+        uint8ClampedArray: fieldDecorator("type", { kind: "typedArray", arrayType: "Uint8ClampedArray" }),
+        int16Array: fieldDecorator("type", { kind: "typedArray", arrayType: "Int16Array" }),
+        uint16Array: fieldDecorator("type", { kind: "typedArray", arrayType: "Uint16Array" }),
+        int32Array: fieldDecorator("type", { kind: "typedArray", arrayType: "Int32Array" }),
+        uint32Array: fieldDecorator("type", { kind: "typedArray", arrayType: "Uint32Array" }),
+        float32Array: fieldDecorator("type", { kind: "typedArray", arrayType: "Float32Array" }),
+        float64Array: fieldDecorator("type", { kind: "typedArray", arrayType: "Float64Array" }),
+        bigInt64Array: fieldDecorator("type", { kind: "typedArray", arrayType: "BigInt64Array" }),
+        bigUint64Array: fieldDecorator("type", { kind: "typedArray", arrayType: "BigUint64Array" }),
+        flags: values => combinedFieldDecorator({ type: { kind: "uint32" }, enum: normalizeEnumDefinition(values), edit: { flags: true } }),
+        custom: name => fieldDecorator("type", { kind: "custom", name: requireTypeName(name) }),
         define: definition => classDefinitionDecorator(definition),
         expression: fieldDecorator("type", { kind: "expression", js: "string" }),
         float32: fieldDecorator("type", { kind: "float32" }),
@@ -740,10 +762,9 @@ export class CjsSchema
      * EDIT_FORCELONG are not decorators. Flags combine independently, and
      * persistence does not imply script access.
      *
-     * - `notify` queues `OnModified(name)` after every accepted values write,
-     *   equal writes included; equality only decides the changed-set result.
-     *   `notify: false` or `markDirty: false` suppresses it and
-     *   `skipUpdate: true` defers it.
+     * - `notify` calls `OnModified(nameOrNames)` once for changed values.
+     *   Equal writes do not notify. `notify: false`, `markDirty: false` and
+     *   `skipUpdate: true` suppress this call without retaining names.
      * - `type.enum(...)` already reports `edit.enum: true` in the resolved
      *   schema; `flags` describes a bitmask and supplies no chooser.
      * - Values transport does not enforce READ, and direct JS field access is
@@ -813,6 +834,7 @@ export class CjsSchema
      */
     static #jessica = {
         group: name => fieldDecorator("jessica", { group: name }),
+        description: text => fieldDecorator("jessica", { description: String(text) }),
         hidden: fieldDecorator("jessica", { hidden: true }),
         readOnly: fieldDecorator("jessica", { readOnly: true }),
         widget: name => fieldDecorator("jessica", { widget: name })
@@ -1548,6 +1570,31 @@ function settingDecorator(name, { applies = SETTING_APPLIES.ALWAYS, enum: enumTy
             return initialValue;
         };
     }, "carbon", value);
+}
+
+/** A named custom type is meaningful only when a format explicitly handles it. */
+function requireTypeName(name)
+{
+    if (typeof name !== "string" || !name.trim()) throw new TypeError("meta.type.custom requires a nonempty name.");
+    return name.trim();
+}
+
+/** Retains all namespaces in both Stage-3 and imperative field declarations. */
+function combinedFieldDecorator(definition)
+{
+    const parts = Object.entries(definition).map(([namespace, value]) => ({ namespace, value }));
+    const decorators = parts.map(({namespace, value}) => fieldDecorator(namespace, value));
+    const combined = (target, context) =>
+    {
+        const initializers = decorators.map(decorator => decorator(target, context)).filter(value => typeof value === "function");
+        if (initializers.length) return function (value)
+        {
+            for (const initialize of initializers) value = initialize.call(this, value);
+            return value;
+        };
+    };
+    Object.defineProperty(combined, DECORATOR_METADATA, { value: { parts } });
+    return combined;
 }
 
 function fieldDecorator(namespace, value)
@@ -2917,7 +2964,10 @@ function normalizeManualMember(name, definition, memberType)
         const decorator = getDecoratorMetadata(entry);
         if (decorator)
         {
-            member[decorator.namespace] = mergeNamespace(member[decorator.namespace], decorator.value);
+            for (const part of decorator.parts ?? [decorator])
+            {
+                member[part.namespace] = mergeNamespace(member[part.namespace], part.value);
+            }
             continue;
         }
 
@@ -3006,6 +3056,12 @@ function normalizeEnumDefinition(values)
 
 function normalizeComponentDefinition(definition)
 {
+    if (Array.isArray(definition))
+    {
+        if (definition.length > 4 || definition.some(label => typeof label !== "string"))
+            throw new TypeError("meta.ui.components requires up to four string labels.");
+        definition = Object.fromEntries(definition.map((label, index) => ["xyzw"[index], label]));
+    }
     if (!isPlainObject(definition))
     {
         throw new TypeError("CjsSchema.components requires a plain object definition.");

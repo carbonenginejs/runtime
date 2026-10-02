@@ -86,7 +86,7 @@ test("Python reader initialization and copy own state bytes without claiming cus
   const calls = [];
   HostFactory(t, (_module, _class, action) => ({ OnLoad: bytes => calls.push([action, bytes]) }));
   const action = new DictReader({ declarations: true }).CreateObject({
-    _type: "Tr2ActionPython", module: "m", className: "c", state: [1, 2]
+    _type: "Tr2ActionPython", module: "m", className: "c", state: Uint8Array.of(1, 2)
   });
   assert.equal(calls.length, 1);
   assert.equal(calls[0][0], action);
