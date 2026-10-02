@@ -1,3 +1,5 @@
+import { carbon } from "../../npm/dist/global/schema/index.js";
+import { ITriVectorFunction } from "../../npm/dist/global/blue/index.js";
 import { HostBitmap } from "../../npm/dist/global/imageio/index.js";
 import { PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js";
 import assert from "node:assert/strict";
@@ -197,15 +199,19 @@ test("FollowASpline registry: list events wire the callback; the registry flatte
   assert.deepEqual(spline.privateTunnels, tunnels);
 });
 
+class SequencerFunction extends ITriVectorFunction {}
+carbon.interfaceTable({interfaces:[SequencerFunction,ITriVectorFunction],chainTo:null})(SequencerFunction);
+
 function constantCurve(x, y, z)
 {
-  return { GetValueAt(_time, out) { out[0] = x; out[1] = y; out[2] = z; return out; } };
+  return Object.assign(new SequencerFunction(), { GetValueAt(_time, out) { out[0] = x; out[1] = y; out[2] = z; return out; } });
 }
 
 test("TriVectorSequencer combiners follow Carbon's dispatch, including the else-averages arm (cpp:70-176)", () =>
 {
   const sequencer = new TriVectorSequencer();
-  sequencer.functions.push(constantCurve(2, 3, 4), constantCurve(5, 6, 7));
+  assert.equal(sequencer.functions.Append(constantCurve(2, 3, 4)), true);
+  assert.equal(sequencer.functions.Append(constantCurve(5, 6, 7)), true);
   const out = new Float32Array(3);
 
   sequencer.operator = TriVectorSequencer.TRIOPERATOR.TRIOP_MULTIPLY;
@@ -223,7 +229,7 @@ test("TriVectorSequencer combiners follow Carbon's dispatch, including the else-
   assert.deepEqual([ ...sequencer.GetValueAt(0, out) ], [ 3.5, 4.5, 5.5 ]);
 
   // Empty list: the infinite multiplier is never used; zeros come back.
-  sequencer.functions.length = 0;
+  sequencer.functions.Clear();
   assert.deepEqual([ ...sequencer.GetValueAtAverage(0, out) ], [ 0, 0, 0 ]);
 });
 

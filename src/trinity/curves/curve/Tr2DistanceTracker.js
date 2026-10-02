@@ -1,9 +1,9 @@
 // Source: trinity/trinity/Curves/Tr2DistanceTracker.h
 // Source: trinity/trinity/Curves/Tr2DistanceTracker.cpp
+// Source: trinity/trinity/Curves/Tr2DistanceTracker_Blue.cpp
 import { vec3 } from "#math/vec3";
-import { blue, TimeAsDouble } from "#blue";
-import { CjsModel } from "#model";
-import { carbon, impl, edit, type } from "#schema";
+import { blue, TimeAsDouble, ITriFunction, INotify } from "#blue";
+import { meta, types } from "#schema";
 
 
 /**
@@ -11,65 +11,73 @@ import { carbon, impl, edit, type } from "#schema";
  * the full separation or its projection onto a fixed direction, and optionally
  * signed by which side of that direction the target lies.
  */
-@type.define({
+@meta.define({
   className: "Tr2DistanceTracker",
   family: "curves"
 })
-export class Tr2DistanceTracker extends CjsModel
+@meta.carbon.inherit(INotify)
+export class Tr2DistanceTracker extends ITriFunction
 {
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.wstring
   name = "";
 
-  @edit.read
-  @type.float32
+  /** Native READ stored value, not a live accessor or persisted input. */
+  @meta.edit.read
+  @types.float32
   value = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.boolean
   signedDistance = true;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.boolean
   distanceToClosest = true;
 
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.vec3
   direction = vec3.create();
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("ITriVectorFunction")
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.objectRef("ITriVectorFunction")
   sourceObject = null;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("ITriVectorFunction")
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.objectRef("ITriVectorFunction")
   targetObject = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.vec3
   sourcePosition = vec3.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.vec3
   targetPosition = vec3.create();
 
-  #difference = vec3.create();
+  /** Reused JS vector replaces native UpdateValue's stack temporary. */
+  _difference = vec3.create();
 
   /**
    * Updates source and target positions, then recalculates distance.
+   * Adapted: the vector-function contract writes into an output buffer passed
+   * after time; a reusable vector replaces the native stack temporary. Direction
+   * is used as authored, without normalization or a zero-vector special case.
+   * @param {number} time Sampling time in seconds.
+   * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.adapted
   UpdateValue(time)
   {
     if (this.sourceObject)
@@ -80,8 +88,8 @@ export class Tr2DistanceTracker extends CjsModel
     {
       this.targetObject.GetValueAt(time, this.targetPosition);
     }
-    vec3.subtract(this.#difference, this.targetPosition, this.sourcePosition);
-    const projection = vec3.dot(this.#difference, this.direction);
+    vec3.subtract(this._difference, this.targetPosition, this.sourcePosition);
+    const projection = vec3.dot(this._difference, this.direction);
     if (this.distanceToClosest)
     {
       this.value = projection;
@@ -91,7 +99,7 @@ export class Tr2DistanceTracker extends CjsModel
       }
       return;
     }
-    this.value = vec3.length(this.#difference);
+    this.value = vec3.length(this._difference);
     if (this.signedDistance && projection < 0)
     {
       this.value = -this.value;
@@ -99,13 +107,23 @@ export class Tr2DistanceTracker extends CjsModel
   }
 
   /**
-   * Refreshes the value after a notified source/target modification.
+   * Refreshes the value at Blue's current frame time after a notification.
+   * Only sourceObject and targetObject have native NOTIFY flags; explicit calls
+   * still recompute regardless of the supplied member name, as Carbon does.
+   * @param {string|null} [_value=null] Unused notified member identity.
+   * @returns {boolean} True after updating the stored value.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   OnModified(_value = null)
   {
     this.UpdateValue(TimeAsDouble(blue.os.GetCurrentFrameTime()));
     return true;
   }
 }
+
+// Native exposure is deprecated in Jessica and maps no concrete self identity.
+meta.carbon.interfaceTable({
+  interfaces: [ITriFunction, INotify],
+  chainTo: null
+})(Tr2DistanceTracker);

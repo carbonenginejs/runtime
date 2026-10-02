@@ -1,18 +1,20 @@
 // Source: trinity/trinity/Tr2BindingVector3.h
-// Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema trinityCore/Tr2BindingVector3.json.).
-import { edit, type } from "#schema";
-import { CjsModel } from "#model";
+// Source: trinity/trinity/Tr2BindingVector3_Blue.cpp
+import { meta, types } from "#schema";
 import { vec3 } from "#math/vec3";
 
-/** Tr2BindingVector3 (trinityCore) - generated from schema shapeHash a8ef1406.... */
-@type.define({ className: "Tr2BindingVector3", family: "trinityCore" })
-export class Tr2BindingVector3 extends CjsModel
+/** A shared vector value used by bindings, including space-object position deltas. */
+@meta.define({ className: "Tr2BindingVector3", family: "trinityCore" })
+export class Tr2BindingVector3
 {
 
   /** m_value (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.vec3
   value = vec3.create();
 
 }
+
+// Carbon's own query table has no exposure chain.
+meta.carbon.interfaceTable({ interfaces: [Tr2BindingVector3], chainTo: null })(Tr2BindingVector3, { kind: "class" });

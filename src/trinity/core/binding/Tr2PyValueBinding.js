@@ -1,56 +1,61 @@
 // Source: trinity/trinity/Tr2PyValueBinding.h
-// Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema trinityCore/Tr2PyValueBinding.json.).
-import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
+// Source: trinity/trinity/Tr2PyValueBinding.cpp
+// Source: trinity/trinity/Tr2PyValueBinding_Blue.cpp
+import { meta, types } from "#schema";
+import { INotify } from "#blue/INotify";
+import { ITr2ValueBinding } from "../../curves/ITr2ValueBinding.js";
 
-/** Tr2PyValueBinding (trinityCore) - generated from schema shapeHash 435f9fdc.... */
-@type.define({ className: "Tr2PyValueBinding", family: "trinityCore" })
-export class Tr2PyValueBinding extends CjsModel
+/** Copies named JavaScript attributes through the portable Python-value adapter. */
+@meta.define({ className: "Tr2PyValueBinding", family: "trinityCore" })
+@meta.carbon.inherit(ITr2ValueBinding)
+export class Tr2PyValueBinding extends INotify
 {
 
-  /** m_destinationAttribute (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
-  destinationAttribute = "";
+  /** m_name (std::string) [READWRITE, PERSIST] */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
+  name = "";
+
+  /** m_isValid (bool) [READ] */
+  @meta.edit.read
+  @types.boolean
+  isValid = false;
+
+  /** m_sourceObject (PyObject*) [READWRITE, NOTIFY] */
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @types.objectRef("PyObject")
+  sourceObject = null;
 
   /** m_sourceAttribute (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   sourceAttribute = "";
 
   /** m_destinationObject (PyObject*) [READWRITE, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @type.objectRef("PyObject")
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @types.objectRef("PyObject")
   destinationObject = null;
 
-  /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
-  name = "";
-
-  /** m_sourceObject (PyObject*) [READWRITE, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @type.objectRef("PyObject")
-  sourceObject = null;
-
-  /** m_isValid (bool) [READ] */
-  @edit.read
-  @type.boolean
-  isValid = false;
+  /** m_destinationAttribute (std::string) [READWRITE, NOTIFY, PERSIST] */
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
+  destinationAttribute = "";
 
   /**
    * Marks the binding valid only when both objects are present and both
    * attribute names are non-empty; no type checking is performed.
+   * Native private helper; deliberately does not expose IInitialize.
+   * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   Initialize()
   {
     this.isValid = (
@@ -61,9 +66,13 @@ export class Tr2PyValueBinding extends CjsModel
     );
   }
 
-  /** Re-validates the binding after any field change. */
-  @carbon.method
-  @impl.implemented
+  /**
+   * Re-validates the binding after any field change.
+   * @param {string|null} [_value=null] Changed member name.
+   * @returns {boolean} True after revalidation.
+   */
+  @meta.carbon.method
+  @meta.impl.implemented
   OnModified(_value = null)
   {
     this.Initialize();
@@ -73,10 +82,11 @@ export class Tr2PyValueBinding extends CjsModel
   /**
    * Assigns the source attribute onto the destination attribute; does nothing
    * when the binding is invalid or the source does not carry the attribute.
+   * Adapted: Copies JavaScript object attributes in place of Carbon's Python C-API get/set calls.
+   * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Copies JavaScript object attributes in place of Carbon's Python C-API get/set calls.")
+  @meta.carbon.method
+  @meta.impl.adapted
   CopyValue()
   {
     if (
@@ -90,3 +100,6 @@ export class Tr2PyValueBinding extends CjsModel
   }
 
 }
+
+// Carbon's own query table has no exposure chain.
+meta.carbon.interfaceTable({ interfaces: [Tr2PyValueBinding, ITr2ValueBinding, INotify], chainTo: null })(Tr2PyValueBinding, { kind: "class" });

@@ -1,7 +1,8 @@
 // Source: trinity/trinity/Curves/Tr2CurveVector3Expression.h
 // Source: trinity/trinity/Curves/Tr2CurveVector3Expression.cpp
-import { CjsModel } from "#model";
-import { carbon, impl, edit, type } from "#schema";
+// Source: trinity/trinity/Curves/Tr2CurveVector3Expression_Blue.cpp
+import { ITriColorFunction, ITriVectorFunction, ITriFunction, IInitialize } from "#blue";
+import { meta, types } from "#schema";
 import { vec3 } from "#math/vec3";
 import { CjsControllerExpressionProgram } from "../../controllers/expression/CjsControllerExpressionProgram.js";
 
@@ -9,88 +10,171 @@ import { CjsControllerExpressionProgram } from "../../controllers/expression/Cjs
 /**
  * Vector curve whose x, y and z components are each produced by an independently
  * compiled expression evaluated at time divided by timeScale.
+ *
+ * Native inheritance and Blue query exposure are declared separately below.
+ * Existing JavaScript expression parsing, evaluation fallback, random generation
+ * and floating-point arithmetic remain adaptations; no native differential parity
+ * is claimed. Sampling retains the seconds overloads with time-first output-buffer
+ * signatures; Be::Time overloads remain unimplemented. Programs are not resources.
  */
-@type.define({
+@meta.define({
   className: "Tr2CurveVector3Expression",
   family: "curves"
 })
-export class Tr2CurveVector3Expression extends CjsModel
+@meta.carbon.inherit(ITriVectorFunction, IInitialize)
+export class Tr2CurveVector3Expression extends ITriColorFunction
 {
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  /** Authored narrow-string name. */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   name = "";
 
-  @edit.readwrite
-  @edit.persistOnly
-  @type.expression
-  expressionX = "";
+  /** Native PERSISTONLY expression storage; readers bypass the live setter. */
+  @meta.member("expressionX")
+  @meta.edit.persistOnly
+  @types.expression
+  _expressionX = "";
 
-  @edit.readwrite
-  @edit.persistOnly
-  @type.expression
-  expressionY = "";
+  /** Live expression property, separate from persisted backing storage. */
+  @meta.property()
+  @meta.edit.readwrite
+  @types.expression
+  @meta.impl.implemented
+  get expressionX()
+  {
+    return this.GetExpressionX();
+  }
 
-  @edit.readwrite
-  @edit.persistOnly
-  @type.expression
-  expressionZ = "";
+  /** @param {string} value Source compiled immediately by the native setter. */
+  @meta.impl.implemented
+  set expressionX(value)
+  {
+    this.SetExpressionX(value);
+  }
 
-  @edit.read
-  @type.vec3
+  /** Native PERSISTONLY expression storage; readers bypass the live setter. */
+  @meta.member("expressionY")
+  @meta.edit.persistOnly
+  @types.expression
+  _expressionY = "";
+
+  /** Live expression property, separate from persisted backing storage. */
+  @meta.property()
+  @meta.edit.readwrite
+  @types.expression
+  @meta.impl.implemented
+  get expressionY()
+  {
+    return this.GetExpressionY();
+  }
+
+  /** @param {string} value Source compiled immediately by the native setter. */
+  @meta.impl.implemented
+  set expressionY(value)
+  {
+    this.SetExpressionY(value);
+  }
+
+  /** Native PERSISTONLY expression storage; readers bypass the live setter. */
+  @meta.member("expressionZ")
+  @meta.edit.persistOnly
+  @types.expression
+  _expressionZ = "";
+
+  /** Live expression property, separate from persisted backing storage. */
+  @meta.property()
+  @meta.edit.readwrite
+  @types.expression
+  @meta.impl.implemented
+  get expressionZ()
+  {
+    return this.GetExpressionZ();
+  }
+
+  /** @param {string} value Source compiled immediately by the native setter. */
+  @meta.impl.implemented
+  set expressionZ(value)
+  {
+    this.SetExpressionZ(value);
+  }
+
+  /** Cached value after the last update. */
+  @meta.edit.read
+  @types.vec3
   currentValue = vec3.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
-  input1 = 0;
-
-  @edit.readwrite
-  @edit.persist
-  @type.float32
-  input2 = 0;
-
-  @edit.readwrite
-  @edit.persist
-  @type.float32
-  input3 = 0;
-
-  @edit.readwrite
-  @edit.persist
-  @type.float32
-  input4 = 0;
-
-  @edit.read
-  @edit.persist
-  @type.list("ITriScalarFunction")
+  /** Owned scalar input functions in native declaration order. */
+  @meta.edit.read
+  @meta.edit.persist
+  @types.list("ITriScalarFunction")
   inputs = [];
 
+  /** First authored scalar argument. */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
+  input1 = 0;
+
+  /** Second authored scalar argument. */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
+  input2 = 0;
+
+  /** Third authored scalar argument. */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
+  input3 = 0;
+
+  /** Fourth authored scalar argument. */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
+  input4 = 0;
+
+  /** Native runtime time scale; not an exposed member. */
   timeScale = 1;
 
+  /** Runtime random constant using the existing JavaScript random adapter. */
   randomConstant = Math.random();
 
-  #programs = [null, null, null];
+  /** Compiled JavaScript component programs; no held resources. */
+  _programs = [null, null, null];
 
-  #sources = ["", "", ""];
+  /** Last successfully compiled component sources, separate from hydrated backing text. */
+  _compiledSources = ["", "", ""];
 
-  #currentTime = 0;
+  /** Last scaled seconds value supplied to expression inputs. */
+  _currentTime = 0;
 
   /**
-   * Compiles component expressions.
+   * Compiles nonempty persisted components through their indexed setter.
+   * Adapted: uses the existing JavaScript expression program.
+   * @returns {boolean} True.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   Initialize()
   {
-    this.Compile();
+    for (let index = 0; index < 3; index++)
+    {
+      const expression = this.GetExpression(index);
+      if (expression !== "")
+      {
+        this["_expression" + "XYZ"[index]] = "";
+        this.SetExpression(index, expression);
+      }
+    }
     return true;
   }
 
   /**
    * Updates the cached vector value.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   UpdateValue(time)
   {
     this.GetValue(time, this.currentValue);
@@ -100,11 +184,11 @@ export class Tr2CurveVector3Expression extends CjsModel
    * Updates and returns the vector value.
    */
 
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   Update(time, out)
   {
-    this.#sample(time, this.currentValue);
+    this._sample(time, this.currentValue);
     vec3.copy(out, this.currentValue);
     if (out.length > 3)
     {
@@ -117,33 +201,33 @@ export class Tr2CurveVector3Expression extends CjsModel
    * Gets the vector value at a time.
    */
 
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   GetValueAt(time, out)
   {
-    return this.#sample(time, out);
+    return this._sample(time, out);
   }
 
   /**
    * Gets the vector value.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   GetValue(time, out)
   {
     this.Compile();
     const context = this.GetContext(time);
-    out[0] = Tr2CurveVector3Expression.#evaluate(this.#programs[0], context);
-    out[1] = Tr2CurveVector3Expression.#evaluate(this.#programs[1], context);
-    out[2] = Tr2CurveVector3Expression.#evaluate(this.#programs[2], context);
+    out[0] = Tr2CurveVector3Expression._evaluate(this._programs[0], context);
+    out[1] = Tr2CurveVector3Expression._evaluate(this._programs[1], context);
+    out[2] = Tr2CurveVector3Expression._evaluate(this._programs[2], context);
     return out;
   }
 
   /**
    * Derivatives are not represented by Carbon expression curves.
    */
-  @carbon.method
-  @impl.noop
+  @meta.carbon.method
+  @meta.impl.noop
   GetValueDotAt(_time, out)
   {
     return out;
@@ -152,8 +236,8 @@ export class Tr2CurveVector3Expression extends CjsModel
   /**
    * Derivatives are not represented by Carbon expression curves.
    */
-  @carbon.method
-  @impl.noop
+  @meta.carbon.method
+  @meta.impl.noop
   GetValueDoubleDotAt(_time, out)
   {
     return out;
@@ -162,105 +246,128 @@ export class Tr2CurveVector3Expression extends CjsModel
   /**
    * Expression curves do not have segment interpolation state.
    */
-  @carbon.method
-  @impl.noop
+  @meta.carbon.method
+  @meta.impl.noop
   InterpolatedPosition(_time, out)
   {
     return out;
   }
 
+  /**
+   * Gets one authored component source; native callers supply indices 0 through 2.
+   * @param {number} index Native component index.
+   * @returns {string} Stored source text.
+   */
+  @meta.carbon.method
+  @meta.impl.implemented
+  GetExpression(index)
+  {
+    return this["_expression" + "XYZ"[index]];
+  }
+
+  /**
+   * Compiles a nonempty component source immediately and commits it on success.
+   * Adapted: the existing JavaScript program replaces native parser bytecode.
+   * Empty input changes only stored source, retaining the compiled program.
+   * @param {number} index Native component index, 0 through 2.
+   * @param {string} expression Authored source text.
+   * @returns {void}
+   */
+  @meta.carbon.method
+  @meta.impl.adapted
+  SetExpression(index, expression)
+  {
+    if (expression === "")
+    {
+      this["_expression" + "XYZ"[index]] = expression;
+      return;
+    }
+    const program = CjsControllerExpressionProgram.Compile(expression, { emptyValue: 0 });
+    if (!program.IsValid()) return;
+    this._programs[index] = program;
+    this._compiledSources[index] = expression;
+    this["_expression" + "XYZ"[index]] = expression;
+  }
+
   /** Gets the authored x-component expression source. */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetExpressionX()
   {
-    return this.expressionX;
+    return this.GetExpression(0);
   }
 
   /** Gets the authored y-component expression source. */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetExpressionY()
   {
-    return this.expressionY;
+    return this.GetExpression(1);
   }
 
   /** Gets the authored z-component expression source. */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetExpressionZ()
   {
-    return this.expressionZ;
+    return this.GetExpression(2);
   }
 
   /**
-   * Sets the x-component expression and drops its cached program so the next
-   * sample recompiles; returns false and changes nothing when the source is
-   * unchanged.
+   * Sets the x-component source through the native indexed setter.
+   * Adapted: compilation uses the existing JavaScript expression program.
+   * @param {string} expression Authored source text.
+   * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
-  SetExpressionX(expression, options = {})
+  @meta.carbon.method
+  @meta.impl.adapted
+  SetExpressionX(expression)
   {
-    const changed = this.SetValues({ expressionX: expression }, { ...options, skipUpdate: true, returnBoolean: true });
-    if (!changed) return false;
-    this.#programs[0] = null;
-    if (options.skipUpdate !== true)
-    {
-      this.UpdateValues({ ...options, source: options.source ?? this });
-    }
-    return true;
+    this.SetExpression(0, expression);
   }
 
   /**
-   * Sets the y-component expression and drops its cached program so the next
-   * sample recompiles; returns false and changes nothing when the source is
-   * unchanged.
+   * Sets the y-component source through the native indexed setter.
+   * Adapted: compilation uses the existing JavaScript expression program.
+   * @param {string} expression Authored source text.
+   * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
-  SetExpressionY(expression, options = {})
+  @meta.carbon.method
+  @meta.impl.adapted
+  SetExpressionY(expression)
   {
-    const changed = this.SetValues({ expressionY: expression }, { ...options, skipUpdate: true, returnBoolean: true });
-    if (!changed) return false;
-    this.#programs[1] = null;
-    if (options.skipUpdate !== true)
-    {
-      this.UpdateValues({ ...options, source: options.source ?? this });
-    }
-    return true;
+    this.SetExpression(1, expression);
   }
 
   /**
-   * Sets the z-component expression and drops its cached program so the next
-   * sample recompiles; returns false and changes nothing when the source is
-   * unchanged.
+   * Sets the z-component source through the native indexed setter.
+   * Adapted: compilation uses the existing JavaScript expression program.
+   * @param {string} expression Authored source text.
+   * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
-  SetExpressionZ(expression, options = {})
+  @meta.carbon.method
+  @meta.impl.adapted
+  SetExpressionZ(expression)
   {
-    const changed = this.SetValues({ expressionZ: expression }, { ...options, skipUpdate: true, returnBoolean: true });
-    if (!changed) return false;
-    this.#programs[2] = null;
-    if (options.skipUpdate !== true)
-    {
-      this.UpdateValues({ ...options, source: options.source ?? this });
-    }
-    return true;
+    this.SetExpression(2, expression);
   }
 
   /**
    * Backs the expression `input`/`inputAt` functions by sampling the n-th input
    * curve, defaulting to the time of the most recent GetContext call and
-   * returning 0 when no such input exists.
+   * returning 0 only for an out-of-range index. In-range inputs must implement
+   * the owned scalar-function contract.
    */
-  @carbon.method
-  @impl.implemented
-  GetInputValue(index, time = this.#currentTime)
+  @meta.carbon.method
+  @meta.impl.implemented
+  GetInputValue(index, time = this._currentTime)
   {
-    const input = this.inputs[index | 0];
-    return input ? input.GetValueAt(time) : 0;
+    index |= 0;
+    if (index < 0 || index >= this.inputs.length)
+    {
+      return 0;
+    }
+    return this.inputs[index].GetValueAt(time);
   }
 
   /**
@@ -268,24 +375,24 @@ export class Tr2CurveVector3Expression extends CjsModel
    * ResetRandomConstant is called so `randomConstant` expressions are stable
    * over time.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetRandomConstant()
   {
     return this.randomConstant;
   }
 
   /** Draws a new per-instance random constant in [0, 1). */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   ResetRandomConstant()
   {
     this.randomConstant = Math.random();
   }
 
   /** Gets the curve expression terms offered to an editor for autocompletion. */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   GetExpressionTermInfo()
   {
     return CjsControllerExpressionProgram.getCurveTermInfo();
@@ -295,8 +402,8 @@ export class Tr2CurveVector3Expression extends CjsModel
    * Compiles and evaluates an arbitrary expression against this curve's context
    * at time 0, returning 0 when it does not compile.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   EvaluateExpression(expression)
   {
     const program = CjsControllerExpressionProgram.Compile(expression, {
@@ -306,20 +413,20 @@ export class Tr2CurveVector3Expression extends CjsModel
   }
 
   /**
-   * Compiles any component expression whose cached program is missing or stale
-   * against the currently authored source.
+   * Compiles changed nonempty stored source through the native setters.
+   * Adapted: SOF can hydrate backing members without Initialize on a warm object.
+   * Compare against each last successful source; failed parsing and empty source
+   * retain existing programs, including after failed initialization.
+   * Invalid nonempty backing text is retried on later samples.
    */
   Compile()
   {
-    const expressions = [this.expressionX, this.expressionY, this.expressionZ];
-    for (let i = 0; i < expressions.length; i++)
+    for (let index = 0; index < 3; index++)
     {
-      if (!this.#programs[i] || this.#sources[i] !== expressions[i])
+      const expression = this.GetExpression(index);
+      if (expression !== "" && (!this._programs[index] || this._compiledSources[index] !== expression))
       {
-        this.#programs[i] = CjsControllerExpressionProgram.Compile(expressions[i], {
-          emptyValue: 0
-        });
-        this.#sources[i] = expressions[i];
+        this.SetExpression(index, expression);
       }
     }
   }
@@ -332,7 +439,7 @@ export class Tr2CurveVector3Expression extends CjsModel
   GetContext(time)
   {
     const scaledTime = time / this.timeScale;
-    this.#currentTime = scaledTime;
+    this._currentTime = scaledTime;
     return {
       curve: this,
       self: this,
@@ -351,13 +458,13 @@ export class Tr2CurveVector3Expression extends CjsModel
    * Compiles as needed and writes the three evaluated components into the
    * caller-owned `out`, zeroing a fourth component when `out` is longer than 3.
    */
-  #sample(time, out)
+  _sample(time, out)
   {
     this.Compile();
     const context = this.GetContext(time);
-    out[0] = Tr2CurveVector3Expression.#evaluate(this.#programs[0], context);
-    out[1] = Tr2CurveVector3Expression.#evaluate(this.#programs[1], context);
-    out[2] = Tr2CurveVector3Expression.#evaluate(this.#programs[2], context);
+    out[0] = Tr2CurveVector3Expression._evaluate(this._programs[0], context);
+    out[1] = Tr2CurveVector3Expression._evaluate(this._programs[1], context);
+    out[2] = Tr2CurveVector3Expression._evaluate(this._programs[2], context);
     if (out.length > 3)
     {
       out[3] = 0;
@@ -367,10 +474,15 @@ export class Tr2CurveVector3Expression extends CjsModel
 
   /**
    * Evaluates one component program, substituting 0 for a missing or invalid
-   * program and for any non-finite result.
+   * program and for NaN/zero results; infinities remain unchanged.
    */
-  static #evaluate(program, context)
+  static _evaluate(program, context)
   {
     return program?.IsValid() ? Number(program.Evaluate(context)) || 0 : 0;
   }
 }
+
+meta.carbon.interfaceTable({
+  interfaces: [ Tr2CurveVector3Expression, ITriColorFunction, ITriVectorFunction, ITriFunction, IInitialize ],
+  chainTo: null
+})(Tr2CurveVector3Expression);

@@ -3885,7 +3885,7 @@ test("SOF emits and hydrates Carbon impact overlays and preserves the HULL shiel
   assert.equal(hullEmitterNode.fields.colorMidpoint, 0.65);
   assert.equal(hullEmitterNode.raw, undefined);
   const flicker = referencedNode(document, overlayNode.fields.hullDamageFlickerCurve);
-  assert.deepEqual(flicker.fields, { alpha: 1.5, beta: 2.5, n: 4, speed: 1.25, offset: 1, scale: 0 });
+  assert.deepEqual(flicker.fields, { alpha: 1.5, beta: 2.5, N: 4, speed: 1.25, offset: 1, scale: 0 });
 
   const trinity = await import(new URL("../../../npm/dist/trinity/index.js", import.meta.url));
   const audioTrinity = await import(new URL("../../../npm/dist/audio/trinity/index.js", import.meta.url));
@@ -3896,6 +3896,7 @@ test("SOF emits and hydrates Carbon impact overlays and preserves the HULL shiel
   });
   assert.deepEqual(hydrated.reports, []);
   const overlay = hydrated.root.impactOverlay;
+  assert.equal(overlay.GetDamageOverlay().GetHullDamageFlickerCurve().n, 4);
   assert.equal(overlay.GetDamageLocatorCount(), 2);
   assert.equal(overlay.HasShieldEllipsoid(), true);
   assert.equal(overlay.mesh.geometryResPath, "res:/shield.gr2");

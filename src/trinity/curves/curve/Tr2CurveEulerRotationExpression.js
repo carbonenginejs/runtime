@@ -1,8 +1,8 @@
 // Source: trinity/trinity/Curves/Tr2CurveEulerRotationExpression.h
 // Source: trinity/trinity/Curves/Tr2CurveEulerRotationExpression.cpp
 import { fromYawPitchRoll, quat } from "#math/quat";
-import { CjsModel } from "#model";
-import { carbon, impl, edit, type } from "#schema";
+import { ITriFunction, ITriQuaternionFunction, ITriScalarFunction, IInitialize, BlueList } from "#blue";
+import { carbon, impl, edit, type, meta } from "#schema";
 import { CjsControllerExpressionProgram } from "../../controllers/expression/CjsControllerExpressionProgram.js";
 
 
@@ -14,31 +14,88 @@ import { CjsControllerExpressionProgram } from "../../controllers/expression/Cjs
   className: "Tr2CurveEulerRotationExpression",
   family: "curves"
 })
-export class Tr2CurveEulerRotationExpression extends CjsModel
+@carbon.inherit(IInitialize)
+export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
 {
   @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
-  @edit.readwrite
+  @meta.member("expressionYaw")
   @edit.persistOnly
   @type.expression
-  expressionYaw = "";
+  _expressionYaw = "";
 
+  /** Gets the live yaw expression text. @returns {string} Source text. */
+  @meta.property()
   @edit.readwrite
-  @edit.persistOnly
   @type.expression
-  expressionPitch = "";
+  @impl.implemented
+  get expressionYaw()
+  {
+    return this.GetExpressionYaw();
+  }
 
-  @edit.readwrite
+  /** Writes through the compile/commit setter. @param {string} expression Source text. */
+  @impl.implemented
+  set expressionYaw(expression)
+  {
+    this.SetExpressionYaw(expression);
+  }
+
+  @meta.member("expressionPitch")
   @edit.persistOnly
   @type.expression
-  expressionRoll = "";
+  _expressionPitch = "";
+
+  /** Gets the live pitch expression text. @returns {string} Source text. */
+  @meta.property()
+  @edit.readwrite
+  @type.expression
+  @impl.implemented
+  get expressionPitch()
+  {
+    return this.GetExpressionPitch();
+  }
+
+  /** Writes through the compile/commit setter. @param {string} expression Source text. */
+  @impl.implemented
+  set expressionPitch(expression)
+  {
+    this.SetExpressionPitch(expression);
+  }
+
+  @meta.member("expressionRoll")
+  @edit.persistOnly
+  @type.expression
+  _expressionRoll = "";
+
+  /** Gets the live roll expression text. @returns {string} Source text. */
+  @meta.property()
+  @edit.readwrite
+  @type.expression
+  @impl.implemented
+  get expressionRoll()
+  {
+    return this.GetExpressionRoll();
+  }
+
+  /** Writes through the compile/commit setter. @param {string} expression Source text. */
+  @impl.implemented
+  set expressionRoll(expression)
+  {
+    this.SetExpressionRoll(expression);
+  }
 
   @edit.read
   @type.quat
   currentValue = quat.create();
+
+  @edit.read
+  @edit.persist
+  @type.list("ITriScalarFunction")
+  inputs = new BlueList(ITriScalarFunction, { className: null, listOps: 0 });
 
   @edit.readwrite
   @edit.persist
@@ -60,34 +117,41 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
   @type.float32
   input4 = 0;
 
-  @edit.read
-  @edit.persist
-  @type.list("ITriScalarFunction")
-  inputs = [];
-
   timeScale = 1;
 
   randomConstant = Math.random();
 
-  #programs = [null, null, null];
+  _programs = [null, null, null];
 
-  #sources = ["", "", ""];
+  _sources = ["", "", ""];
 
-  #currentTime = 0;
+  _currentTime = 0;
 
   /**
-   * Compiles component expressions.
+   * Replays nonempty stored source through setters after clearing each backing field.
+   * Uses the existing JavaScript parser; a failed compile retains its old program.
+   * @returns {boolean} True.
    */
   @carbon.method
   @impl.adapted
   Initialize()
   {
-    this.Compile();
+    for (let index = 0; index < 3; index++)
+    {
+      const expression = this.GetExpression(index);
+      if (expression !== "")
+      {
+        this["_expression" + ["Yaw", "Pitch", "Roll"][index]] = "";
+        this.SetExpression(index, expression);
+      }
+    }
     return true;
   }
 
   /**
    * Updates the cached quaternion.
+   * @param {number} time Time in seconds.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
@@ -97,7 +161,10 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
   }
 
   /**
-   * Updates and returns the quaternion.
+   * Updates the cache and copies to a caller destination using the JavaScript output convention.
+   * @param {number} time Time in seconds.
+   * @param {Float32Array} out Destination.
+   * @returns {Float32Array} The destination.
    */
   @carbon.method
   @impl.adapted
@@ -108,7 +175,10 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
   }
 
   /**
-   * Gets the quaternion value at a time.
+   * Preserves the native GetValueAt alias via the JavaScript caller-output convention.
+   * @param {number} time Time in seconds.
+   * @param {Float32Array} out Destination.
+   * @returns {Float32Array} The destination.
    */
   @carbon.method
   @impl.adapted
@@ -118,7 +188,11 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
   }
 
   /**
-   * Gets the quaternion value.
+   * Samples with the existing JavaScript parser, context and quaternion conversion.
+   * Native float-time rounding, parser and error policies remain adapted.
+   * @param {number} time Time in seconds.
+   * @param {Float32Array} out Destination.
+   * @returns {Float32Array} The destination.
    */
   @carbon.method
   @impl.adapted
@@ -126,11 +200,14 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
   {
     this.Compile();
     const context = this.GetContext(time);
-    return fromYawPitchRoll(out, Tr2CurveEulerRotationExpression.#evaluate(this.#programs[0], context), Tr2CurveEulerRotationExpression.#evaluate(this.#programs[1], context), Tr2CurveEulerRotationExpression.#evaluate(this.#programs[2], context));
+    return fromYawPitchRoll(out, Tr2CurveEulerRotationExpression._evaluate(this._programs[0], context), Tr2CurveEulerRotationExpression._evaluate(this._programs[1], context), Tr2CurveEulerRotationExpression._evaluate(this._programs[2], context));
   }
 
   /**
-   * Derivative stub retained for interface compatibility.
+   * Retains the native no-op first derivative.
+   * @param {number} _time Unused time.
+   * @param {Float32Array} out Destination.
+   * @returns {Float32Array} Unchanged destination.
    */
   @carbon.method
   @impl.noop
@@ -140,7 +217,10 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
   }
 
   /**
-   * Second-derivative stub retained for interface compatibility.
+   * Retains the native no-op second derivative.
+   * @param {number} _time Unused time.
+   * @param {Float32Array} out Destination.
+   * @returns {Float32Array} Unchanged destination.
    */
   @carbon.method
   @impl.noop
@@ -149,74 +229,109 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
     return out;
   }
 
-  /** The authored yaw expression source text, before compilation. */
+  /** Reads one stored component expression. @param {number} index Component index. @returns {string} Source. */
+  @carbon.method
+  @impl.implemented
+  GetExpression(index)
+  {
+    return this["_expression" + ["Yaw", "Pitch", "Roll"][index]];
+  }
+
+  /**
+   * Compiles nonempty source before committing it; invalid source preserves the old
+   * source/program and empty source retains the old program. Uses the existing JS parser.
+   * @param {number} index Component index.
+   * @param {string} expression Source text.
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.adapted
+  SetExpression(index, expression)
+  {
+    const field = "_expression" + ["Yaw", "Pitch", "Roll"][index];
+    if (expression === "")
+    {
+      this[field] = expression;
+      return;
+    }
+    const program = CjsControllerExpressionProgram.Compile(expression, { emptyValue: 0 });
+    if (!program.IsValid()) return;
+    this._programs[index] = program;
+    this._sources[index] = expression;
+    this[field] = expression;
+  }
+
+  /** Gets the stored yaw expression text. @returns {string} Source text. */
   @carbon.method
   @impl.implemented
   GetExpressionYaw()
   {
-    return this.expressionYaw;
+    return this.GetExpression(0);
   }
 
-  /** The authored pitch expression source text, before compilation. */
+  /** Gets the stored pitch expression text. @returns {string} Source text. */
   @carbon.method
   @impl.implemented
   GetExpressionPitch()
   {
-    return this.expressionPitch;
+    return this.GetExpression(1);
   }
 
-  /** The authored roll expression source text, before compilation. */
+  /** Gets the stored roll expression text. @returns {string} Source text. */
   @carbon.method
   @impl.implemented
   GetExpressionRoll()
   {
-    return this.expressionRoll;
+    return this.GetExpression(2);
   }
 
   /**
-   * Sets the yaw expression and drops its cached program so the next sample
-   * recompiles.
+   * Sets the yaw expression through the adapted parser/commit contract.
+   * @param {string} expression Source text.
+   * @returns {void}
    */
   @carbon.method
   @impl.adapted
   SetExpressionYaw(expression)
   {
-    this.expressionYaw = expression;
-    this.#programs[0] = null;
+    this.SetExpression(0, expression);
   }
 
   /**
-   * Sets the pitch expression and drops its cached program so the next sample
-   * recompiles.
+   * Sets the pitch expression through the adapted parser/commit contract.
+   * @param {string} expression Source text.
+   * @returns {void}
    */
   @carbon.method
   @impl.adapted
   SetExpressionPitch(expression)
   {
-    this.expressionPitch = expression;
-    this.#programs[1] = null;
+    this.SetExpression(1, expression);
   }
 
   /**
-   * Sets the roll expression and drops its cached program so the next sample
-   * recompiles.
+   * Sets the roll expression through the adapted parser/commit contract.
+   * @param {string} expression Source text.
+   * @returns {void}
    */
   @carbon.method
   @impl.adapted
   SetExpressionRoll(expression)
   {
-    this.expressionRoll = expression;
-    this.#programs[2] = null;
+    this.SetExpression(2, expression);
   }
 
   /**
    * Backs the expression `input`/`inputAt` functions by sampling the n-th input
    * curve, defaulting to the time of the most recent GetContext call and
-   * returning 0 when no such input exists.
+   * returning 0 when no such input exists. JavaScript coerces the index to int32.
+   * @param {number} index Input index.
+   * @param {number} [time] Sample time, defaulting to the scaled context time.
+   * @returns {number} Sample or zero.
    */
   @carbon.method
-  @impl.implemented
-  GetInputValue(index, time = this.#currentTime)
+  @impl.adapted
+  GetInputValue(index, time = this._currentTime)
   {
     const input = this.inputs[index | 0];
     return input ? input.GetValueAt(time) : 0;
@@ -225,18 +340,19 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
   /**
    * Gets this curve's per-instance random constant, which stays fixed until
    * ResetRandomConstant is called so `randomConstant` expressions are stable
-   * over time.
+   * over time. Native fake-random override is not implemented.
+   * @returns {number} Cached random constant.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   GetRandomConstant()
   {
     return this.randomConstant;
   }
 
-  /** Draws a new per-instance random constant in [0, 1). */
+  /** Draws via Math.random rather than the native RNG. @returns {void} */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   ResetRandomConstant()
   {
     this.randomConstant = Math.random();
@@ -244,7 +360,8 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
 
   /**
    * Gets the curve expression terms offered to an editor, including `radians`
-   * because this curve's outputs are angles.
+   * because this curve's outputs are angles. Uses the shared JavaScript term schema.
+   * @returns {Array} Editor term descriptors.
    */
   @carbon.method
   @impl.adapted
@@ -257,7 +374,9 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
 
   /**
    * Compiles and evaluates an arbitrary expression against this curve's context
-   * at time 0, returning 0 when it does not compile.
+   * at time 0, returning 0 when it does not compile; uses the JavaScript parser.
+   * @param {string} expression Source text.
+   * @returns {number} Evaluation result or zero.
    */
   @carbon.method
   @impl.adapted
@@ -270,21 +389,18 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
   }
 
   /**
-   * Compiles any of the yaw, pitch or roll expressions whose cached program is
-   * missing or stale against the currently authored source.
+   * Compiles changed nonempty persisted source for hydration without Initialize.
+   * Only successful compilation advances the source associated with each program.
+   * Retained programs survive empty source and failed initialization.
+   * @returns {void}
    */
+  @impl.custom
   Compile()
   {
-    const expressions = [this.expressionYaw, this.expressionPitch, this.expressionRoll];
-    for (let i = 0; i < expressions.length; i++)
+    for (let index = 0; index < 3; index++)
     {
-      if (!this.#programs[i] || this.#sources[i] !== expressions[i])
-      {
-        this.#programs[i] = CjsControllerExpressionProgram.Compile(expressions[i], {
-          emptyValue: 0
-        });
-        this.#sources[i] = expressions[i];
-      }
+      const expression = this.GetExpression(index);
+      if (expression !== "" && (!this._programs[index] || this._sources[index] !== expression)) this.SetExpression(index, expression);
     }
   }
 
@@ -292,11 +408,14 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
    * Builds the evaluation context for a sample, dividing the caller time by
    * timeScale, recording it as the current input time, and exposing it alongside
    * input1..input4 as expression variables.
+   * @param {number} time Time in seconds.
+   * @returns {object} JavaScript evaluation context.
    */
+  @impl.custom
   GetContext(time)
   {
     const scaledTime = time / this.timeScale;
-    this.#currentTime = scaledTime;
+    this._currentTime = scaledTime;
     return {
       curve: this,
       self: this,
@@ -313,10 +432,17 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
 
   /**
    * Evaluates one angle program, substituting 0 for a missing or invalid program
-   * and for any non-finite result.
+   * and for NaN/zero results; Infinity retains the existing evaluator behavior.
+   * @param {CjsControllerExpressionProgram|null} program Cached program.
+   * @param {object} context Evaluation context.
+   * @returns {number} Angle value.
    */
-  static #evaluate(program, context)
+  @impl.custom
+  static _evaluate(program, context)
   {
-    return program?.IsValid() ? Number(program.Evaluate(context)) || 0 : 0;
+    return program && program.IsValid() ? Number(program.Evaluate(context)) || 0 : 0;
   }
 }
+
+// Exact native exposure table; no inherited exposure chain.
+carbon.interfaceTable({ interfaces: [Tr2CurveEulerRotationExpression, ITriQuaternionFunction, ITriFunction, IInitialize], chainTo: null })(Tr2CurveEulerRotationExpression);

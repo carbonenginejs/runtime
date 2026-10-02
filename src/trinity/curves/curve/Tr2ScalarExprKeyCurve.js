@@ -1,8 +1,9 @@
 // Source: trinity/trinity/Curves/Tr2ScalarExprKeyCurve.h
 // Source: trinity/trinity/Curves/Tr2ScalarExprKeyCurve.cpp
+// Source: trinity/trinity/Curves/Tr2ScalarExprKeyCurve_Blue.cpp
 import { num } from "#math/num";
-import { CjsModel } from "#model";
-import { carbon, impl, edit, type } from "#schema";
+import { BlueList, ITriFunction, IInitialize, ITriCurveLength } from "#blue";
+import { meta, types } from "#schema";
 import { Tr2CurveInterpolation } from "../enums.js";
 import { Tr2ScalarExprKey } from "../key/Tr2ScalarExprKey.js";
 
@@ -12,71 +13,81 @@ import { Tr2ScalarExprKey } from "../key/Tr2ScalarExprKey.js";
  * expressions re-evaluated on every sample, with optional cycling and reversed
  * playback over the key range.
  */
-@type.define({
+@meta.define({
   className: "Tr2ScalarExprKeyCurve",
   family: "curves"
 })
-export class Tr2ScalarExprKeyCurve extends CjsModel
+@meta.carbon.inherit(IInitialize, ITriCurveLength)
+export class Tr2ScalarExprKeyCurve extends ITriFunction
 {
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
-  interpolation = Tr2CurveInterpolation.LINEAR;
-
-  @edit.read
-  @type.float32
-  currentValue = 0;
-
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   name = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.boolean
   cycle = false;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.boolean
   reversed = false;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   timeOffset = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   timeScale = 1;
 
-  @edit.read
-  @edit.persist
-  @type.list("Tr2ScalarExprKey")
-  keys = [];
+  @meta.edit.read
+  @types.float32
+  currentValue = 0;
+
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.enum("trinity.Tr2CurveInterpolation")
+  interpolation = Tr2CurveInterpolation.LINEAR;
+
+  @meta.edit.read
+  @meta.edit.persist
+  @types.list("Tr2ScalarExprKey")
+  keys = new BlueList(Tr2ScalarExprKey, { className: "Tr2ScalarExprKey", listOps: 0 });
+
+  /** Native live duration; key expressions are evaluated by Initialize/Sort/sampling. */
+  @meta.property()
+  @meta.edit.read
+  @types.float32
+  get length()
+  {
+    return this.Length();
+  }
 
   startTangent = 0;
 
   endTangent = 0;
 
   /**
-   * Initializes and sorts keys.
+   * Re-evaluates expressions in stored key order without sorting.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.implemented
   Initialize()
   {
-    this.#reEvaluateKeys();
+    this._reEvaluateKeys();
     return true;
   }
 
   /**
    * Gets authored duration.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   Length()
   {
     if (!this.keys.length)
@@ -89,16 +100,17 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
   /**
    * Updates cached value.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   UpdateValue(time)
   {
     this.currentValue = this.GetValueAt(time);
   }
 
   /**
-   * Updates and returns value.
+   * JS convenience sample returning the cached value, unlike native void UpdateValue.
    */
+  @meta.impl.custom
   Update(time)
   {
     this.currentValue = this.GetValueAt(time);
@@ -107,16 +119,18 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
 
   /**
    * Gets value at a time.
+   * Adapted: JS Number arithmetic and the existing scalar Hermite helper replace
+   * native float temporaries. Native key-value-based cycling/reversal is retained.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   GetValueAt(time)
   {
     if (!this.keys.length)
     {
       return 0;
     }
-    this.#reEvaluateKeys();
+    this._reEvaluateKeys();
     const length = this.Length();
     time = time / this.timeScale - this.timeOffset;
     if (length <= 0 || time <= 0)
@@ -142,30 +156,33 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
     }
     if (time <= Number(first.time))
     {
-      return this.#interpolate(time, null, first);
+      return this._interpolate(time, null, first);
     }
     if (time >= Number(last.time))
     {
-      return this.#interpolate(time, last, null);
+      return this._interpolate(time, last, null);
     }
+    let startKey = first;
     let endKey = first;
     for (let i = 1; i < this.keys.length; i++)
     {
-      const startKey = endKey;
+      startKey = endKey;
       endKey = this.keys[i];
       if (Number(endKey.time) > time)
       {
-        return this.#interpolate(time, startKey, endKey);
+        break;
       }
     }
-    return Number(last.value);
+    // Native comparisons all fail for NaN; it still samples the final segment.
+    return this._interpolate(time, startKey, endKey);
   }
 
   /**
    * Gets a key time.
+   * Adapted: retains the existing JS out-of-range zero fallback instead of native unchecked indexing.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.adapted
   GetKeyTime(index)
   {
     return Number(this.keys[index]?.time ?? 0);
@@ -173,9 +190,10 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
 
   /**
    * Sets a key time.
+   * Adapted: retains the existing JS out-of-range no-op instead of native unchecked indexing.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.adapted
   SetKeyTime(index, time)
   {
     if (this.keys[index])
@@ -186,9 +204,10 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
 
   /**
    * Gets a key value.
+   * Adapted: retains the existing JS out-of-range zero fallback instead of native unchecked indexing.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.adapted
   GetKeyValue(index)
   {
     return Number(this.keys[index]?.value ?? 0);
@@ -196,9 +215,10 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
 
   /**
    * Sets a key value.
+   * Adapted: retains the existing JS out-of-range no-op instead of native unchecked indexing.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.adapted
   SetKeyValue(index, value)
   {
     if (this.keys[index])
@@ -210,8 +230,8 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
   /**
    * Gets the number of keys.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetKeyCount()
   {
     return this.keys.length;
@@ -219,9 +239,10 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
 
   /**
    * Gets a key interpolation value.
+   * Adapted: retains the existing JS out-of-range zero fallback instead of native unchecked indexing.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.adapted
   GetKeyInterpolation(index)
   {
     return Number(this.keys[index]?.interpolation ?? 0);
@@ -229,9 +250,10 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
 
   /**
    * Sets a key interpolation value.
+   * Adapted: retains the existing JS out-of-range no-op instead of native unchecked indexing.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.adapted
   SetKeyInterpolation(index, interpolation)
   {
     if (this.keys[index])
@@ -243,8 +265,8 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
   /**
    * Gets a key left tangent.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetKeyLeftTangent(index)
   {
     const key = this.keys[index];
@@ -254,8 +276,8 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
   /**
    * Sets a key left tangent.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   SetKeyLeftTangent(index, tangent)
   {
     if (this.keys[index])
@@ -267,8 +289,8 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
   /**
    * Gets a key right tangent.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetKeyRightTangent(index)
   {
     const key = this.keys[index];
@@ -278,8 +300,8 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
   /**
    * Sets a key right tangent.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   SetKeyRightTangent(index, tangent)
   {
     if (this.keys[index])
@@ -291,6 +313,7 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
   /**
    * JS convenience tangent accessor.
    */
+  @meta.impl.custom
   GetKeyTangent(index, left = false)
   {
     return left ? this.GetKeyLeftTangent(index) : this.GetKeyRightTangent(index);
@@ -299,6 +322,7 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
   /**
    * JS convenience tangent setter.
    */
+  @meta.impl.custom
   SetKeyTangent(index, value, left = false)
   {
     if (left)
@@ -312,10 +336,12 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
   }
 
   /**
-   * Adds a key.
+   * Adds a key through the native typed list mutation surface.
+   * Adapted: construction uses new and retains JS optional defaults and the existing
+   * insertion scan (NaN inserts first); native instance creation can fail.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   AddKey(time, value, leftTangent = 0, rightTangent = 0, interpolation = this.interpolation)
   {
     let index = 0;
@@ -329,35 +355,38 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
     key.left = leftTangent;
     key.right = rightTangent;
     key.interpolation = interpolation;
-    this.keys.splice(index, 0, key);
+    this.keys.Insert(index, key);
     return index;
   }
 
   /**
-   * Removes a key.
+   * Removes a key through the native typed list mutation surface.
+   * Adapted: invalid JS indexes are ignored; a negative index must not become the
+   * BlueList clear sentinel because the native method receives an unsigned index.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.adapted
   RemoveKey(index)
   {
-    this.keys.splice(index, 1);
+    if (Number.isInteger(index) && index >= 0) this.keys.Remove(index);
   }
 
   /**
-   * Sorts and re-evaluates keys.
+   * Re-evaluates expressions; the native editor compatibility name does not sort.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.implemented
   Sort()
   {
-    this.#reEvaluateKeys();
+    this._reEvaluateKeys();
   }
 
   /**
    * Re-evaluates every key's expressions in order, passing each key its
    * predecessor so expressions can reference prevKeyTime and prevKeyValue.
    */
-  #reEvaluateKeys()
+  @meta.impl.implemented
+  _reEvaluateKeys()
   {
     let previousKey = null;
     for (const key of this.keys)
@@ -368,10 +397,12 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
   }
 
   /**
+   * JS convenience conversion, separate from the native key-value-based sample gates.
    * Converts caller time into curve-local time by applying timeScale and
    * timeOffset, reversing it when `reversed` is set and wrapping it into the
    * key-range length when `cycle` is set.
    */
+  @meta.impl.custom
   GetLocalTime(time)
   {
     const length = this.Length();
@@ -395,8 +426,11 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
    * Interpolates between two adjacent keys using the left key's mode; a null key
    * on either side means the sample lies outside the key range and that end is
    * held flat at the present key's value.
+   * Adapted: JS Number arithmetic and a scalar return replace native float/out storage;
+   * Hermite uses the existing equivalent scalar helper.
    */
-  #interpolate(time, lastKey, nextKey)
+  @meta.impl.adapted
+  _interpolate(time, lastKey, nextKey)
   {
     let deltaTime = this.Length();
     let startValue = Number(this.keys[0].value);
@@ -462,3 +496,9 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
     }
   }
 }
+
+// Native exposure maps the three contracts without the concrete class.
+meta.carbon.interfaceTable({
+  interfaces: [ITriFunction, IInitialize, ITriCurveLength],
+  chainTo: null
+})(Tr2ScalarExprKeyCurve);

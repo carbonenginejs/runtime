@@ -1,9 +1,11 @@
 // Source: trinity/trinity/Curves/Tr2BoneMatrixCurve.h
 // Source: trinity/trinity/Curves/Tr2BoneMatrixCurve.cpp
+// Source: trinity/trinity/Curves/Tr2BoneMatrixCurve_Blue.cpp
+// Source: trinity/trinity/Include/Tr2Curve.h
 import { mat4 } from "#math/mat4";
 import { isArrayLike } from "#utils/is";
-import { CjsModel } from "#model";
-import { carbon, impl, edit, type } from "#schema";
+import { ITriFunction, ITriCurveLength, IInitialize } from "#blue";
+import { meta, types } from "#schema";
 import { Tr2MatrixKey } from "../key/Tr2MatrixKey.js";
 
 
@@ -15,72 +17,104 @@ const SPHERICAL_LINEAR = 4;
  * authored transform composed with that bone's current matrix and the object's
  * world transform rather than sampling its own keys.
  */
-@type.define({
+@meta.define({
   className: "Tr2BoneMatrixCurve",
   family: "curves"
 })
-export class Tr2BoneMatrixCurve extends CjsModel
+@meta.carbon.inherit(IInitialize, ITriCurveLength)
+export class Tr2BoneMatrixCurve extends ITriFunction
 {
-  static #identityMatrix = mat4.create();
+  static _identityMatrix = mat4.create();
 
-  static #keyInterpolations = new WeakMap();
+  static _keyInterpolations = new WeakMap();
 
-  @edit.read
-  @type.mat4
-  currentValue = mat4.create();
-
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   name = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   length = 1;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.boolean
   cycle = true;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.boolean
   reversed = false;
 
-  @edit.readwrite
-  @edit.persist
-  @type.mat4
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.mat4
   startValue = mat4.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.mat4
+  @meta.edit.read
+  @types.mat4
+  currentValue = mat4.create();
+
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.mat4
   endValue = mat4.create();
 
-  @edit.readwrite
-  @type.objectRef("Tr2SkinnedObject")
+  @meta.edit.readwrite
+  @types.objectRef("Tr2SkinnedObject")
   skinnedObject = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.mat4
-  transform = mat4.create();
-
-  @edit.persistOnly
-  @type.list("Tr2MatrixKey")
+  @meta.edit.persistOnly
+  @types.list("Tr2MatrixKey")
   keys = [];
 
-  #bone = "";
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.mat4
+  transform = mat4.create();
 
-  #scratch = mat4.create();
+  /** Native live bone property; setting it uses the retained name lookup adapter. */
+  @meta.property()
+  @meta.edit.readwrite
+  @types.string
+  get bone()
+  {
+    return this.GetBone();
+  }
+  /** Sets the live bone name through the existing lookup adapter. */
+  set bone(value)
+  {
+    this.SetBone(value);
+  }
+
+  _bone = "";
+
+  _scratch = mat4.create();
+
+  /** Gets the native curve template's name. */
+  @meta.carbon.method
+  @meta.impl.implemented
+  GetName()
+  {
+    return this.name;
+  }
+
+  /** Sets the native curve template's name. */
+  @meta.carbon.method
+  @meta.impl.implemented
+  SetName(value)
+  {
+    this.name = value;
+  }
 
   /**
    * Initializes sorted keys and cached value.
+   * Adapted: native Initialize only sorts; the existing JS adapter also samples zero.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   Initialize()
   {
     this.Sort();
@@ -90,9 +124,10 @@ export class Tr2BoneMatrixCurve extends CjsModel
 
   /**
    * Gets authored duration.
+   * Adapted: retains the JS last-key fallback when authored length is zero.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.adapted
   Length()
   {
     const keys = this.keys;
@@ -103,8 +138,8 @@ export class Tr2BoneMatrixCurve extends CjsModel
   /**
    * Updates cached matrix value.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   UpdateValue(time)
   {
     this.GetValueAt(time, this.currentValue);
@@ -112,28 +147,40 @@ export class Tr2BoneMatrixCurve extends CjsModel
 
   /**
    * Gets matrix value at a time.
+   * Adapted: out-parameter matrices and structural bone-name lookup replace
+   * native value returns and skeleton-tag/joint caching. World transform is
+   * optional in the retained JS skinned-object adapter.
    */
-  @carbon.method
-  @impl.adapted
-  GetValueAt(_time, out)
+  @meta.carbon.method
+  @meta.impl.adapted
+  GetValueAt(time, out)
   {
-    const boneMatrix = Tr2BoneMatrixCurve.#getBoneMatrix(this.skinnedObject, this.#bone);
+    // Native Tr2CurveBase gates precede bone interpolation; its key segments
+    // do not affect this subclass, whose Interpolate ignores both keys.
+    if (Number.isNaN(time)) time = 0;
+    if (this.length <= 0 || time <= 0) return mat4.copy(out, this.startValue);
+    if (time > this.length && !this.cycle)
+      return mat4.copy(out, this.reversed ? this.startValue : this.endValue);
+    const boneMatrix = Tr2BoneMatrixCurve._getBoneMatrix(this.skinnedObject, this._bone);
     if (!boneMatrix)
     {
       return mat4.identity(out);
     }
     // Carbon (row-vector): (m_transform * bone) * world - m_transform first,
     // world last (XMMatrixMultiply is row-vector A*B).
-    mat4.multiply(this.#scratch, boneMatrix, this.transform);
-    const worldTransform = Tr2BoneMatrixCurve.#getSkinnedObjectTransform(this.skinnedObject);
-    return worldTransform ? mat4.multiply(out, worldTransform, this.#scratch) : mat4.copy(out, this.#scratch);
+    mat4.multiply(this._scratch, boneMatrix, this.transform);
+    const worldTransform = Tr2BoneMatrixCurve._getSkinnedObjectTransform(this.skinnedObject);
+    return worldTransform ? mat4.multiply(out, worldTransform, this._scratch) : mat4.copy(out, this._scratch);
   }
 
   /**
    * Gets matrix value at a time.
+   * Adapted: out-parameter matrices and structural bone-name lookup replace
+   * native value returns and skeleton-tag/joint caching. World transform is
+   * optional in the retained JS skinned-object adapter.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   GetValue(time, out)
   {
     return this.GetValueAt(time, out);
@@ -142,8 +189,8 @@ export class Tr2BoneMatrixCurve extends CjsModel
   /**
    * Sorts keys by time.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   Sort()
   {
     const keys = this.keys;
@@ -153,25 +200,26 @@ export class Tr2BoneMatrixCurve extends CjsModel
     if (lastKey && lastKey.time > length)
     {
       const previousLength = this.length;
-      mat4.copy(this.#scratch, this.endValue);
+      mat4.copy(this._scratch, this.endValue);
       this.length = lastKey.time;
       mat4.copy(this.endValue, lastKey.value);
       if (previousLength > 0)
       {
         lastKey.time = previousLength;
-        mat4.copy(lastKey.value, this.#scratch);
+        mat4.copy(lastKey.value, this._scratch);
       }
     }
   }
 
   /**
    * Adds a matrix key.
+   * Adapted: retains the JS direct key insertion and endpoint rollover helper.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   AddKey(time, value = null)
   {
-    const keyValue = value ?? Tr2BoneMatrixCurve.#identityMatrix;
+    const keyValue = value ?? Tr2BoneMatrixCurve._identityMatrix;
     const keys = this.keys;
     for (let i = 0; i < this.keys.length; i++)
     {
@@ -185,31 +233,31 @@ export class Tr2BoneMatrixCurve extends CjsModel
     const key = new Tr2MatrixKey();
     key.time = time;
     mat4.copy(key.value, keyValue);
-    Tr2BoneMatrixCurve.#keyInterpolations.set(key, SPHERICAL_LINEAR);
+    Tr2BoneMatrixCurve._keyInterpolations.set(key, SPHERICAL_LINEAR);
     keys.push(key);
     this.Sort();
     return keys.indexOf(key);
   }
 
   /** Gets the number of matrix keys. */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetKeyCount()
   {
     return this.keys.length;
   }
 
   /** Gets a key time, or the curve length when the index is out of range. */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetKeyTime(index)
   {
     return Number(this.keys[index]?.time ?? this.length);
   }
 
   /** Sets a key time without reordering; Carbon requires an explicit Sort call. */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   SetKeyTime(index, time)
   {
     if (this.keys[index])
@@ -218,19 +266,17 @@ export class Tr2BoneMatrixCurve extends CjsModel
     }
   }
 
-  /** Gets a detached key matrix, or the curve end value when out of range. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JavaScript returns a detached matrix instead of exposing Carbon's const Matrix reference.")
+  /** Adapted: returns a detached matrix rather than the native const reference. */
+  @meta.carbon.method
+  @meta.impl.adapted
   GetKeyValue(index)
   {
     return mat4.clone(this.keys[index]?.value ?? this.endValue);
   }
 
-  /** Copies a matrix into an existing key. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JavaScript copies authored matrix values so curve storage never aliases caller-owned arrays.")
+  /** Adapted: validates and copies caller matrices into existing key storage. */
+  @meta.carbon.method
+  @meta.impl.adapted
   SetKeyValue(index, value)
   {
     if (this.keys[index])
@@ -244,61 +290,62 @@ export class Tr2BoneMatrixCurve extends CjsModel
   }
 
   /** Gets a key interpolation, or Carbon's spherical-linear curve default. */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetKeyInterpolation(index)
   {
     const key = this.keys[index];
     return key
-      ? Tr2BoneMatrixCurve.#keyInterpolations.get(key) ?? SPHERICAL_LINEAR
+      ? Tr2BoneMatrixCurve._keyInterpolations.get(key) ?? SPHERICAL_LINEAR
       : SPHERICAL_LINEAR;
   }
 
   /** Sets the unpersisted interpolation mode on an existing matrix key. */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   SetKeyInterpolation(index, interpolation)
   {
     const key = this.keys[index];
     if (key)
     {
-      Tr2BoneMatrixCurve.#keyInterpolations.set(key, Math.trunc(Number(interpolation)) >>> 0);
+      Tr2BoneMatrixCurve._keyInterpolations.set(key, Math.trunc(Number(interpolation)) >>> 0);
     }
   }
 
   /**
    * Removes a matrix key.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   RemoveKey(index)
   {
     if (Number.isInteger(index) && index >= 0 && index < this.keys.length)
     {
       const [key] = this.keys.splice(index, 1);
-      Tr2BoneMatrixCurve.#keyInterpolations.delete(key);
+      Tr2BoneMatrixCurve._keyInterpolations.delete(key);
       this.Sort();
     }
   }
 
   /**
    * Sets the source bone name.
+   * Adapted: native also resets joint/skeleton caches; JS resolves by name per sample.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.adapted
   SetBone(bone)
   {
-    this.#bone = bone;
+    this._bone = bone;
   }
 
   /**
    * Gets the source bone name.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetBone()
   {
-    return this.#bone;
+    return this._bone;
   }
 
   /**
@@ -306,6 +353,7 @@ export class Tr2BoneMatrixCurve extends CjsModel
    * falling back to the first key when the time precedes all of them; returns
    * null for an empty curve.
    */
+  @meta.impl.custom
   GetKeyForTime(time)
   {
     const keys = this.keys;
@@ -333,7 +381,8 @@ export class Tr2BoneMatrixCurve extends CjsModel
    * GetBoneTransform, returning null when the object exposes neither or returns
    * a wrongly sized value.
    */
-  static #getBoneMatrix(skinnedObject, bone)
+  @meta.impl.custom
+  static _getBoneMatrix(skinnedObject, bone)
   {
     if (!skinnedObject || !bone)
     {
@@ -356,7 +405,8 @@ export class Tr2BoneMatrixCurve extends CjsModel
    * Reads the skinned object's own 16-component world transform, or null when it
    * exposes none.
    */
-  static #getSkinnedObjectTransform(skinnedObject)
+  @meta.impl.custom
+  static _getSkinnedObjectTransform(skinnedObject)
   {
     if (skinnedObject && typeof skinnedObject === "object" && "GetTransform" in skinnedObject && typeof skinnedObject.GetTransform === "function")
     {
@@ -366,3 +416,9 @@ export class Tr2BoneMatrixCurve extends CjsModel
     return null;
   }
 }
+
+// Native table stops here; the C++ curve template is flattened above.
+meta.carbon.interfaceTable({
+  interfaces: [Tr2BoneMatrixCurve, ITriFunction, IInitialize, ITriCurveLength],
+  chainTo: null
+})(Tr2BoneMatrixCurve);

@@ -188,7 +188,7 @@ One render-batch accumulator per TriBatchType, with the scene-level collect, fin
 <!-- class:Tr2BindingVector3 -->
 ## `Tr2BindingVector3`
 
-Tr2BindingVector3 (trinityCore) - generated from schema shapeHash a8ef1406....
+A shared vector value used by bindings, including space-object position deltas.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
 - Source: `src/trinity/core/binding/Tr2BindingVector3.js`
@@ -218,7 +218,7 @@ A named handle onto one attribute - optionally one vector component - of another
 <!-- class:Tr2PyValueBinding -->
 ## `Tr2PyValueBinding`
 
-Tr2PyValueBinding (trinityCore) - generated from schema shapeHash 435f9fdc....
+Copies named JavaScript attributes through the portable Python-value adapter.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
 - Source: `src/trinity/core/binding/Tr2PyValueBinding.js`

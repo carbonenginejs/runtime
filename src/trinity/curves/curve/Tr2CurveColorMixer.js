@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveColorMixer.cpp
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
-import { CjsModel } from "#model";
+import { ITriFunction, ITriColorFunction, ITriCurveLength } from "#blue";
 import { carbon, impl, edit, type } from "#schema";
 
 
@@ -15,16 +15,13 @@ import { carbon, impl, edit, type } from "#schema";
   className: "Tr2CurveColorMixer",
   family: "curves"
 })
-export class Tr2CurveColorMixer extends CjsModel
+@carbon.inherit(ITriCurveLength)
+export class Tr2CurveColorMixer extends ITriColorFunction
 {
   @edit.readwrite
   @edit.persist
   @type.string
   name = "";
-
-  @edit.read
-  @type.color
-  convertedLinearValue = color.createLinear();
 
   @edit.readwrite
   @edit.persist
@@ -35,10 +32,6 @@ export class Tr2CurveColorMixer extends CjsModel
   @edit.persist
   @type.color
   color2 = color.createLinear();
-
-  @edit.read
-  @type.color
-  currentValue = color.createLinear();
 
   @edit.readwrite
   @edit.persist
@@ -55,10 +48,20 @@ export class Tr2CurveColorMixer extends CjsModel
   @type.float32
   brightness = 1;
 
-  #grayscale = vec4.create();
+  @edit.read
+  @type.color
+  currentValue = color.createLinear();
+
+  @edit.read
+  @type.color
+  convertedLinearValue = color.createLinear();
+
+  _grayscale = vec4.create();
 
   /**
-   * Updates the cached mixed color and converted linear color.
+   * Updates both native color caches; RGB conversion preserves converted alpha.
+   * @param {number} time Time in seconds.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
@@ -69,18 +72,26 @@ export class Tr2CurveColorMixer extends CjsModel
   }
 
   /**
-   * Updates the cached value and copies it into `out`.
+   * Updates the mixed color cache without refreshing convertedLinearValue.
+   * JavaScript uses seconds-first/output-last calls instead of native overloads.
+   * @param {number} time Time in seconds.
+   * @param {Float32Array} out Destination value.
+   * @returns {Float32Array} The destination.
    */
   @carbon.method
   @impl.adapted
   Update(time, out)
   {
-    this.UpdateValue(time);
+    this.GetValueAt(time, this.currentValue);
     return vec4.copy(out, this.currentValue);
   }
 
   /**
-   * Gets the mixed color value at `time` into `out`.
+   * Samples the existing saturation and brightness algorithm into the output.
+   * JavaScript uses seconds-first/output-last calls; native tick overloads are not dispatched.
+   * @param {number} time Time in seconds.
+   * @param {Float32Array} out Destination value.
+   * @returns {Float32Array} The destination.
    */
   @carbon.method
   @impl.adapted
@@ -91,17 +102,18 @@ export class Tr2CurveColorMixer extends CjsModel
     if (this.saturation !== 1)
     {
       const intensity = out[0] * 0.299 + out[1] * 0.587 + out[2] * 0.114;
-      this.#grayscale[0] = intensity;
-      this.#grayscale[1] = intensity;
-      this.#grayscale[2] = intensity;
-      this.#grayscale[3] = intensity;
-      vec4.lerp(out, this.#grayscale, out, Math.max(0, this.saturation));
+      this._grayscale[0] = intensity;
+      this._grayscale[1] = intensity;
+      this._grayscale[2] = intensity;
+      this._grayscale[3] = intensity;
+      vec4.lerp(out, this._grayscale, out, Math.max(0, this.saturation));
     }
     return vec4.scale(out, out, this.brightness);
   }
 
   /**
-   * Gets the authored duration for this mixer.
+   * Returns the native zero mixer duration.
+   * @returns {number} Duration in seconds.
    */
   @carbon.method
   @impl.implemented
@@ -111,7 +123,10 @@ export class Tr2CurveColorMixer extends CjsModel
   }
 
   /**
-   * Gets the mixed color value at `time` into `out`.
+   * Samples into a caller-owned destination instead of returning a native value.
+   * @param {number} time Time in seconds.
+   * @param {Float32Array} out Destination value.
+   * @returns {Float32Array} The destination.
    */
   @carbon.method
   @impl.adapted
@@ -120,3 +135,6 @@ export class Tr2CurveColorMixer extends CjsModel
     return this.GetValueAt(time, out);
   }
 }
+
+// Exact native exposure table, with no inherited exposure chain.
+carbon.interfaceTable({ interfaces: [Tr2CurveColorMixer, ITriColorFunction, ITriFunction, ITriCurveLength], chainTo: null })(Tr2CurveColorMixer);

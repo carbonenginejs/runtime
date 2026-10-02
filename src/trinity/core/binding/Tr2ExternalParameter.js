@@ -1,86 +1,99 @@
 // Source: trinity/trinity/Tr2ExternalParameter.h
 // Source: trinity/trinity/Tr2ExternalParameter.cpp
 // Source: trinity/trinity/Tr2ExternalParameter_Blue.cpp
-import { carbon, CjsSchema, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
+import { CjsSchema, meta, types } from "#schema";
+import { IInitialize } from "#blue/IInitialize";
+import { INotify } from "#blue/INotify";
 import { TriValueBinding } from "./TriValueBinding.js";
 
 /**
  * A named handle onto one attribute - optionally one vector component - of
  * another object, exposing it for type-checked reads and writes.
  */
-@type.define({ className: "Tr2ExternalParameter", family: "trinityCore" })
-export class Tr2ExternalParameter extends CjsModel
+@meta.define({ className: "Tr2ExternalParameter", family: "trinityCore" })
+@meta.carbon.inherit(INotify)
+export class Tr2ExternalParameter extends IInitialize
 {
 
-  #destinationName = "";
+  /** Resolved destination member name; rebuilt by Initialize. */
+  _destinationName = "";
 
-  #destinationOffset = -1;
+  /** Resolved component offset, or -1 for the complete member. */
+  _destinationOffset = -1;
 
-  #destinationEntry = null;
+  /** Cached schema field or portable plain-object entry. */
+  _destinationEntry = null;
 
-  #destinationType = null;
+  /** Cached portable value category used for conversion. */
+  _destinationType = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   name = "";
 
   /** m_destinationObject (IRootPtr) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.model("IRoot")
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.objectRef("IRoot")
   destinationObject = null;
 
   /** m_destinationAttribute (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   destinationAttribute = "";
 
   /** m_valid (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.edit.read
+  @types.boolean
   valid = false;
 
-  /** Carbon method GetValue (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Returns a defensive JavaScript value copy in place of Carbon's BlueScriptValue conversion.")
+  /**
+   * Carbon method GetValue (MAP_METHOD_AND_WRAP).
+   * Adapted: Returns a defensive JavaScript value copy in place of Carbon's BlueScriptValue conversion.
+   * @returns {*} Defensive copy for arrays, otherwise the bound value.
+   */
+  @meta.carbon.method
+  @meta.impl.adapted
   GetValue()
   {
     if (!this.valid) this.Initialize();
     if (!this.valid) throw new Error("invalid binding");
-    const value = this.destinationObject[this.#destinationName];
-    if (this.#destinationOffset !== -1) return value[this.#destinationOffset];
+    const value = this.destinationObject[this._destinationName];
+    if (this._destinationOffset !== -1) return value[this._destinationOffset];
     if (ArrayBuffer.isView(value)) return value.slice();
     if (Array.isArray(value)) return value.slice();
     return value;
   }
 
-  /** Carbon method SetValue (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Validates and converts portable schema values before assignment instead of using Carbon's Python Blue conversion bridge.")
+  /**
+   * Carbon method SetValue (MAP_METHOD_AND_WRAP).
+   * Adapted: Validates and converts portable schema values before assignment instead of using Carbon's Python Blue conversion bridge.
+   * @param {*} value Value to convert and assign.
+   * @returns {boolean} True after assignment and notification.
+   */
+  @meta.carbon.method
+  @meta.impl.adapted
   SetValue(value)
   {
     if (!this.valid) this.Initialize();
     if (!this.valid) throw new Error("invalid binding");
-    const current = this.destinationObject[this.#destinationName];
-    const converted = Tr2ExternalParameter.#ConvertValue(
+    const current = this.destinationObject[this._destinationName];
+    const converted = Tr2ExternalParameter._convertValue(
       value,
       current,
-      this.#destinationType,
-      this.#destinationOffset
+      this._destinationType,
+      this._destinationOffset
     );
     if (!converted.valid) throw new TypeError(converted.message);
 
-    if (this.#destinationOffset !== -1)
+    if (this._destinationOffset !== -1)
     {
-      current[this.#destinationOffset] = converted.value;
+      current[this._destinationOffset] = converted.value;
     }
     else if (ArrayBuffer.isView(current))
     {
@@ -92,9 +105,9 @@ export class Tr2ExternalParameter extends CjsModel
     }
     else
     {
-      this.destinationObject[this.#destinationName] = converted.value;
+      this.destinationObject[this._destinationName] = converted.value;
     }
-    Tr2ExternalParameter.#Notify(this.destinationObject, this.#destinationName, this);
+    Tr2ExternalParameter._notify(this.destinationObject, this._destinationName, this);
     return true;
   }
 
@@ -102,23 +115,24 @@ export class Tr2ExternalParameter extends CjsModel
    * Resolves destinationAttribute against the destination object, caching the
    * schema field, component offset and value category; an unresolvable attribute
    * leaves valid false and still returns true.
+   * Adapted: Resolves Carbon Blue entries through CjsSchema with a narrow plain-object fallback for portable graph adapters.
+   * @returns {boolean} True, including when the destination is invalid.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Resolves Carbon Blue entries through CjsSchema with a narrow plain-object fallback for portable graph adapters.")
+  @meta.carbon.method
+  @meta.impl.adapted
   Initialize()
   {
     this.valid = false;
-    this.#destinationName = "";
-    this.#destinationOffset = -1;
-    this.#destinationEntry = null;
-    this.#destinationType = null;
+    this._destinationName = "";
+    this._destinationOffset = -1;
+    this._destinationEntry = null;
+    this._destinationType = null;
     if (!this.destinationObject || !this.destinationAttribute) return true;
-    const parsed = Tr2ExternalParameter.#ParseAttribute(this.destinationAttribute);
+    const parsed = Tr2ExternalParameter._parseAttribute(this.destinationAttribute);
     if (!parsed || !(parsed.name in this.destinationObject)) return true;
     const value = this.destinationObject[parsed.name];
     const field = CjsSchema.getField(this.destinationObject.constructor, parsed.name);
-    const valueType = Tr2ExternalParameter.#DescribeValue(value, field);
+    const valueType = Tr2ExternalParameter._describeValue(value, field);
     if (!valueType) return true;
     if (
       parsed.offset !== -1 &&
@@ -127,37 +141,49 @@ export class Tr2ExternalParameter extends CjsModel
     {
       return true;
     }
-    this.#destinationName = parsed.name;
-    this.#destinationOffset = parsed.offset;
-    this.#destinationEntry = field ?? {
+    this._destinationName = parsed.name;
+    this._destinationOffset = parsed.offset;
+    this._destinationEntry = field ?? {
       name: parsed.name,
       type: { kind: valueType.kind }
     };
-    this.#destinationType = valueType;
+    this._destinationType = valueType;
     this.valid = true;
     return true;
   }
 
-  /** Re-resolves the cached destination entry after any field change. */
-  @carbon.method
-  @impl.implemented
+  /**
+   * Re-resolves the cached destination entry after any field change.
+   * @param {string|null} [_value=null] Changed member name.
+   * @returns {boolean} True after resolving the destination.
+   */
+  @meta.carbon.method
+  @meta.impl.implemented
   OnModified(_value = null)
   {
     this.Initialize();
     return true;
   }
 
-  /** The parameter's exposed name. */
-  @carbon.method
-  @impl.implemented
+  /**
+   * The parameter's exposed name.
+   * @returns {string} Exposed name.
+   */
+  @meta.carbon.method
+  @meta.impl.implemented
   GetName()
   {
     return this.name;
   }
 
-  /** Sets the exposed name, coercing null to an empty string. */
-  @carbon.method
-  @impl.implemented
+  /**
+   * Sets the exposed name, coercing null to an empty string.
+   * Adapted: Normalizes JavaScript inputs to a string, including null to an empty name, before assignment.
+   * @param {*} name Name normalized by the portable string adapter.
+   * @returns {void}
+   */
+  @meta.carbon.method
+  @meta.impl.adapted
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -166,10 +192,12 @@ export class Tr2ExternalParameter extends CjsModel
   /**
    * Rebinds the destination object and immediately re-resolves the cached entry,
    * where Carbon defers that to its notify lifecycle.
+   * Adapted: Normalizes a nullish object and eagerly rebuilds the portable entry cache; Carbon assigns the pointer and uses its notify lifecycle.
+   * @param {object|null} destinationObject Destination owner.
+   * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Eagerly rebuilds the portable entry cache; Carbon performs the same rebuild through its notify lifecycle.")
+  @meta.carbon.method
+  @meta.impl.adapted
   SetDestinationObject(destinationObject)
   {
     this.destinationObject = destinationObject ?? null;
@@ -179,10 +207,12 @@ export class Tr2ExternalParameter extends CjsModel
   /**
    * Rebinds the destination attribute and immediately re-resolves the cached
    * entry.
+   * Adapted: Normalizes the attribute to a string and eagerly rebuilds the portable entry cache; Carbon assigns the string and uses its notify lifecycle.
+   * @param {*} destinationAttribute Member name with an optional component.
+   * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Eagerly rebuilds the portable entry cache; Carbon performs the same rebuild through its notify lifecycle.")
+  @meta.carbon.method
+  @meta.impl.adapted
   SetDestinationAttribute(destinationAttribute)
   {
     this.destinationAttribute = String(destinationAttribute ?? "");
@@ -192,9 +222,10 @@ export class Tr2ExternalParameter extends CjsModel
   /**
    * Whether the destination attribute currently resolves to a supported value
    * shape.
+   * @returns {boolean} Whether the destination resolved.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   IsValid()
   {
     return this.valid;
@@ -204,35 +235,38 @@ export class Tr2ExternalParameter extends CjsModel
    * The live value of the bound attribute, re-resolving first if needed; null
    * when the binding cannot be resolved. Array values are the destination's own
    * buffers, not copies.
+   * Adapted: Returns the portable field value instead of Carbon's raw Be::Var pointer.
+   * @returns {*} Live destination value, or null.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Returns the portable field value instead of Carbon's raw Be::Var pointer.")
+  @meta.carbon.method
+  @meta.impl.adapted
   GetDestination()
   {
     if (!this.valid) this.Initialize();
-    return this.valid ? this.destinationObject[this.#destinationName] : null;
+    return this.valid ? this.destinationObject[this._destinationName] : null;
   }
 
   /**
    * The cached schema field metadata plus the component offset, or null while
    * invalid; stands in for Carbon's Be::VarEntry pointer.
+   * Adapted: Returns CjsSchema field metadata plus the component offset instead of Carbon's Be::VarEntry pointer.
+   * @returns {object|null} Portable field metadata and component offset.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Returns CjsSchema field metadata plus the component offset instead of Carbon's Be::VarEntry pointer.")
+  @meta.carbon.method
+  @meta.impl.adapted
   GetDestinationEntry()
   {
-    return this.valid ? { ...this.#destinationEntry, offset: this.#destinationOffset } : null;
+    return this.valid ? { ...this._destinationEntry, offset: this._destinationOffset } : null;
   }
 
   /**
    * Creates a TriValueBinding already pointed at this parameter's destination
    * endpoint, leaving the source for the caller to set.
+   * Adapted: Constructs the maintained portable TriValueBinding rather than a native Blue instance.
+   * @returns {TriValueBinding} Binding with its destination assigned.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Constructs the maintained portable TriValueBinding rather than a native Blue instance.")
+  @meta.carbon.method
+  @meta.impl.adapted
   CreateBinding()
   {
     const binding = new TriValueBinding();
@@ -244,8 +278,13 @@ export class Tr2ExternalParameter extends CjsModel
    * Classifies the destination value as boolean, string, number, fixed-length
    * float array or object reference, preferring the schema field kind over the
    * runtime value's shape.
+   * Custom: classifies the existing JavaScript value adapter.
+   * @param {*} value Current member value.
+   * @param {object|null} field Declared schema field.
+   * @returns {object|null} Portable value category.
    */
-  static #DescribeValue(value, field)
+  @meta.impl.custom
+  static _describeValue(value, field)
   {
     const kind = field?.type?.kind ?? null;
     if (kind === "boolean" || (kind === null && typeof value === "boolean"))
@@ -276,7 +315,7 @@ export class Tr2ExternalParameter extends CjsModel
       mat4: 16
     };
     const length = floatArrayLengths[kind] ?? (
-      kind === null && Tr2ExternalParameter.#IsArrayLike(value) ? Number(value.length) : 0
+      kind === null && Tr2ExternalParameter._isArrayLike(value) ? Number(value.length) : 0
     );
     if (length)
     {
@@ -296,8 +335,15 @@ export class Tr2ExternalParameter extends CjsModel
    * Validates an incoming value against the destination category and converts
    * it, returning { valid, value } or { valid, message }; a component write only
    * accepts a finite number.
+   * Custom: preserves portable value conversion and validation.
+   * @param {*} value Incoming value.
+   * @param {*} current Current member value.
+   * @param {object|null} destinationType Resolved category.
+   * @param {number} offset Component offset or -1.
+   * @returns {object} Conversion result or failure message.
    */
-  static #ConvertValue(value, current, destinationType, offset)
+  @meta.impl.custom
+  static _convertValue(value, current, destinationType, offset)
   {
     if (offset !== -1)
     {
@@ -318,12 +364,12 @@ export class Tr2ExternalParameter extends CjsModel
           : { valid: false, message: "incompatible type" };
       case "number":
         return typeof value === "number" && Number.isFinite(value)
-          ? { valid: true, value: Tr2ExternalParameter.#CastNumber(destinationType.kind, value) }
+          ? { valid: true, value: Tr2ExternalParameter._castNumber(destinationType.kind, value) }
           : { valid: false, message: "incompatible type" };
       case "floatArray":
       {
         if (
-          !Tr2ExternalParameter.#IsArrayLike(value) ||
+          !Tr2ExternalParameter._isArrayLike(value) ||
           value.length !== destinationType.length
         )
         {
@@ -354,8 +400,13 @@ export class Tr2ExternalParameter extends CjsModel
   /**
    * Truncates a number to the destination's integer kind; float kinds pass
    * through unchanged.
+   * Custom: adapts integer storage to JavaScript numbers.
+   * @param {string} kind Declared numeric kind.
+   * @param {number} value Incoming number.
+   * @returns {number} Converted number.
    */
-  static #CastNumber(kind, value)
+  @meta.impl.custom
+  static _castNumber(kind, value)
   {
     switch (kind)
     {
@@ -372,8 +423,12 @@ export class Tr2ExternalParameter extends CjsModel
   /**
    * Splits `field` or `field.x` into a name plus a component index (x/r zero
    * through w/a three); null for an empty name or an unrecognized suffix.
+   * Custom: parses the portable component-name adapter.
+   * @param {*} attribute Destination member expression.
+   * @returns {object|null} Member name and component offset.
    */
-  static #ParseAttribute(attribute)
+  @meta.impl.custom
+  static _parseAttribute(attribute)
   {
     const value = String(attribute ?? "");
     const dot = value.indexOf(".");
@@ -383,8 +438,14 @@ export class Tr2ExternalParameter extends CjsModel
     return component.length === 1 && offsets[component] !== undefined ? { name: value.slice(0, dot), offset: offsets[component] } : null;
   }
 
-  /** Whether the value is an array or a typed-array view. */
-  static #IsArrayLike(value)
+  /**
+   * Whether the value is an array or a typed-array view.
+   * Custom: recognizes JavaScript array storage.
+   * @param {*} value Candidate array.
+   * @returns {boolean} Whether array storage is present.
+   */
+  @meta.impl.custom
+  static _isArrayLike(value)
   {
     return Array.isArray(value) || ArrayBuffer.isView(value);
   }
@@ -392,8 +453,14 @@ export class Tr2ExternalParameter extends CjsModel
   /**
    * Notifies the destination of the changed field through UpdateValues,
    * OnValueChanged or OnModified, whichever it implements.
+   * Custom: preserves the existing JavaScript destination-notification adapter.
+   * @param {object} object Destination owner.
+   * @param {string} name Changed member name.
+   * @param {Tr2ExternalParameter} source Source parameter.
+   * @returns {void}
    */
-  static #Notify(object, name, source)
+  @meta.impl.custom
+  static _notify(object, name, source)
   {
     if (typeof object.UpdateValues === "function") object.UpdateValues({ property: name, source });
     else if (typeof object.OnValueChanged === "function") object.OnValueChanged(name, object[name], source);
@@ -401,3 +468,6 @@ export class Tr2ExternalParameter extends CjsModel
   }
 
 }
+
+// Carbon's own query table has no exposure chain.
+meta.carbon.interfaceTable({ interfaces: [Tr2ExternalParameter, IInitialize, INotify], chainTo: null })(Tr2ExternalParameter, { kind: "class" });

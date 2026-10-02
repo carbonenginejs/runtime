@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Curves/TriEventCurve.h
 // Source: trinity/trinity/Curves/TriEventCurve.cpp
-import { CjsModel } from "#model";
-import { carbon, impl, edit, type } from "#schema";
+import { ITriFunction, IInitialize, ITriCurveLength, BlueList } from "#blue";
+import { CjsSchema, carbon, impl, edit, type } from "#schema";
 import { TRIEXTRAPOLATION } from "#consts/graphics";
 import { TriEventKey } from "../key/TriEventKey.js";
 import "#blue/registerTrinityEnums";
@@ -16,20 +16,30 @@ import "#blue/registerTrinityEnums";
   className: "TriEventCurve",
   family: "curves"
 })
-export class TriEventCurve extends CjsModel
+@carbon.inherit(IInitialize, ITriCurveLength)
+export class TriEventCurve extends ITriFunction
 {
-  static #postUpdateCallbacks = [];
+  static _postUpdateCallbacks = [];
 
-  /** Queues work for the runtime's post-update phase. */
+  /**
+   * Queues work in the retained class-local JavaScript post-update queue.
+   * @param {Function} callback Work to run.
+   * @returns {void}
+   */
+  @impl.custom
   static queuePostUpdateCallback(callback)
   {
-    this.#postUpdateCallbacks.push(callback);
+    this._postUpdateCallbacks.push(callback);
   }
 
-  /** Runs one queued post-update callback. */
+  /**
+   * Runs one class-local callback in JavaScript.
+   * @returns {boolean} Whether one ran.
+   */
+  @impl.custom
   static runNextPostUpdateCallback()
   {
-    const callback = this.#postUpdateCallbacks.shift();
+    const callback = this._postUpdateCallbacks.shift();
     if (!callback)
     {
       return false;
@@ -38,7 +48,12 @@ export class TriEventCurve extends CjsModel
     return true;
   }
 
-  /** Flushes queued post-update callbacks up to the supplied limit. */
+  /**
+   * Flushes class-local callbacks up to a JavaScript limit.
+   * @param {number} limit Maximum callbacks.
+   * @returns {number} Callbacks run.
+   */
+  @impl.custom
   static flushPostUpdateCallbacks(limit = Number.POSITIVE_INFINITY)
   {
     let count = 0;
@@ -50,34 +65,29 @@ export class TriEventCurve extends CjsModel
   }
 
   /**
-   * Gets the number of callable-key invocations still queued for the post-update
-   * phase.
+   * Returns the class-local callback count.
+   * @returns {number}
    */
+  @impl.custom
   static getPostUpdateCallbackCount()
   {
-    return this.#postUpdateCallbacks.length;
+    return this._postUpdateCallbacks.length;
   }
 
-  /** Discards every queued post-update callback without running it. */
+  /**
+   * Clears the class-local JavaScript callback queue.
+   * @returns {void}
+   */
+  @impl.custom
   static clearPostUpdateCallbacks()
   {
-    this.#postUpdateCallbacks.length = 0;
+    this._postUpdateCallbacks.length = 0;
   }
-
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("blue.TRIEXTRAPOLATION")
-  extrapolation = TRIEXTRAPOLATION.TRIEXT_NONE;
 
   @edit.readwrite
   @edit.persist
   @type.string
   name = "";
-
-  @edit.readwrite
-  @type.objectRef("IBlueEventListener")
-  eventListener = null;
 
   @edit.read
   @type.float64
@@ -93,17 +103,30 @@ export class TriEventCurve extends CjsModel
 
   @edit.readwrite
   @edit.persist
-  @type.string
+  @type.wstring
   value = "";
 
   @edit.persistOnly
   @type.list("TriEventKey")
-  keys = [];
+  keys = new BlueList(TriEventKey, { className: "TriEventKey", listOps: 0 });
 
-  #currentKeyIndex = 0;
+  @edit.readwrite
+  @edit.persist
+  @type.int32
+  @type.enum("blue.TRIEXTRAPOLATION")
+  extrapolation = TRIEXTRAPOLATION.TRIEXT_NONE;
+
+  @edit.readwrite
+  @type.objectRef("IBlueEventListener")
+  eventListener = null;
+
+  _currentKeyIndex = 0;
 
   /**
-   * Updates the curve time and fires newly-crossed event keys.
+   * Advances event time, preserving the existing JavaScript callback-queue adaptation.
+   * JavaScript retains numeric seconds, cursor indices and the class-local post-update queue; native uses device callbacks and key lifetimes.
+   * @param {number} time Time in seconds.
+   * @returns {void}
    */
   @carbon.method
   @impl.adapted
@@ -117,7 +140,7 @@ export class TriEventCurve extends CjsModel
     this.time = time;
     if (this.time < before)
     {
-      this.#currentKeyIndex = 0;
+      this._currentKeyIndex = 0;
       return;
     }
     if (this.extrapolation === TRIEXTRAPOLATION.TRIEXT_CYCLE)
@@ -125,7 +148,7 @@ export class TriEventCurve extends CjsModel
       const localNow = this.time % this.length;
       if (localNow < this.localTime)
       {
-        this.#currentKeyIndex = 0;
+        this._currentKeyIndex = 0;
       }
       this.localTime = localNow;
     }
@@ -133,18 +156,20 @@ export class TriEventCurve extends CjsModel
     {
       this.localTime = this.time;
     }
-    while (this.#currentKeyIndex < this.keys.length && this.localTime >= this.keys[this.#currentKeyIndex].time)
+    while (this._currentKeyIndex < this.keys.length && this.localTime >= this.keys[this._currentKeyIndex].time)
     {
-      this.FireKey(this.keys[this.#currentKeyIndex]);
-      this.#currentKeyIndex++;
+      this.FireKey(this.keys[this._currentKeyIndex]);
+      this._currentKeyIndex++;
     }
   }
 
   /**
-   * Sorts keys after hydration.
+   * Sorts hydrated keys using the retained JavaScript helper.
+   * The helper resets an empty track length to zero, unlike the native empty-list branch.
+   * @returns {boolean} True.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   Initialize()
   {
     this.Sort();
@@ -152,7 +177,8 @@ export class TriEventCurve extends CjsModel
   }
 
   /**
-   * Gets the curve length.
+   * Returns the cached track length.
+   * @returns {number} Duration in seconds.
    */
   @carbon.method
   @impl.implemented
@@ -162,22 +188,24 @@ export class TriEventCurve extends CjsModel
   }
 
   /**
-   * Sorts keys stably by time and resets the event cursor.
+   * Sorts constructor-owned keys in place and resets the cursor.
+   * Native declares Sort without a donor body; this retained JavaScript helper also resets empty length to zero.
+   * @returns {void}
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   Sort()
   {
-    this.keys = this.keys.map((key, index) => ({
-      key: TriEventCurve.#ensureEventKey(key),
-      index
-    })).sort((a, b) => a.key.time - b.key.time || a.index - b.index).map(entry => entry.key);
-    this.#currentKeyIndex = 0;
+    this.keys.Sort((_context, a, b) => a.time < b.time, null);
+    this._currentKeyIndex = 0;
     this.length = this.keys.length ? this.keys[this.keys.length - 1].time : 0;
   }
 
   /**
-   * Adds a string event key.
+   * Creates and inserts a named event key.
+   * @param {number} time Key time in seconds.
+   * @param {string} eventName Event name.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
@@ -190,7 +218,12 @@ export class TriEventCurve extends CjsModel
   }
 
   /**
-   * Adds a callable event key.
+   * Creates and inserts a callable event key.
+   * JavaScript functions and argument arrays replace Python objects; omitted arguments remain an empty array.
+   * @param {number} time Key time in seconds.
+   * @param {Function} callable Function to queue.
+   * @param {*} args Callable arguments.
+   * @returns {void}
    */
   @carbon.method
   @impl.adapted
@@ -204,18 +237,24 @@ export class TriEventCurve extends CjsModel
   }
 
   /**
-   * Inserts an event key and refreshes key ordering.
+   * Inserts a key into the owned typed list and refreshes ordering.
+   * JavaScript retains plain-record adoption before native list insertion.
+   * @param {TriEventKey|object} key Key or compatible record.
+   * @returns {void}
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   InsertKey(key)
   {
-    this.keys.push(TriEventCurve.#ensureEventKey(key));
+    this.keys.Insert(-1, TriEventCurve._ensureEventKey(key));
     this.Sort();
   }
 
   /**
-   * Removes an event key by index.
+   * Removes an in-range key and refreshes ordering.
+   * JavaScript retains range checks and empty-length reset through Sort.
+   * @param {number} index Key index.
+   * @returns {void}
    */
   @carbon.method
   @impl.adapted
@@ -223,13 +262,14 @@ export class TriEventCurve extends CjsModel
   {
     if (index >= 0 && index < this.keys.length)
     {
-      this.keys.splice(index, 1);
+      this.keys.Remove(index);
       this.Sort();
     }
   }
 
   /**
-   * Gets the number of event keys.
+   * Returns the number of event keys.
+   * @returns {number}
    */
   @carbon.method
   @impl.implemented
@@ -239,7 +279,9 @@ export class TriEventCurve extends CjsModel
   }
 
   /**
-   * Gets a key time by index, or zero when out of range.
+   * Returns a key time or zero outside the list.
+   * @param {number} index Key index.
+   * @returns {number}
    */
   @carbon.method
   @impl.implemented
@@ -249,7 +291,9 @@ export class TriEventCurve extends CjsModel
   }
 
   /**
-   * Gets a key string value by index, or an empty string when out of range.
+   * Returns a key string or an empty string outside the list.
+   * @param {number} index Key index.
+   * @returns {string}
    */
   @carbon.method
   @impl.implemented
@@ -259,10 +303,14 @@ export class TriEventCurve extends CjsModel
   }
 
   /**
-   * Sets a key time and refreshes key ordering.
+   * Sets an in-range key time and reorders the list.
+   * JavaScript retains Sort cursor reset; the native setter does not reset its iterator.
+   * @param {number} index Key index.
+   * @param {number} time Time in seconds.
+   * @returns {void}
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   SetKeyTime(index, time)
   {
     if (this.keys[index])
@@ -273,10 +321,14 @@ export class TriEventCurve extends CjsModel
   }
 
   /**
-   * Sets a key string value.
+   * Sets an in-range key event string.
+   * JavaScript retains nullish-value coercion to an empty string.
+   * @param {number} index Key index.
+   * @param {string|null} value Event name.
+   * @returns {void}
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   SetKeyValue(index, value)
   {
     if (this.keys[index])
@@ -286,7 +338,9 @@ export class TriEventCurve extends CjsModel
   }
 
   /**
-   * Gets a callable key by index.
+   * Returns a JavaScript callable instead of a Python object.
+   * @param {number} index Key index.
+   * @returns {Function|null}
    */
   @carbon.method
   @impl.adapted
@@ -296,7 +350,9 @@ export class TriEventCurve extends CjsModel
   }
 
   /**
-   * Gets callable arguments by index.
+   * Returns JavaScript arguments instead of a Python tuple.
+   * @param {number} index Key index.
+   * @returns {*}
    */
   @carbon.method
   @impl.adapted
@@ -306,15 +362,19 @@ export class TriEventCurve extends CjsModel
   }
 
   /**
-   * Fires one event key.
+   * Dispatches the named event or queues a JavaScript callable.
+   * Extracted helper retains capture-at-queue-time and existing invalid-callable handling; native device-queue/key-lifetime behavior is not reworked.
+   * @param {TriEventKey} key Event key.
+   * @returns {void}
    */
+  @impl.custom
   FireKey(key)
   {
     this.value = key.value || "";
     if (typeof key.callable === "function")
     {
       const callable = key.callable;
-      const args = TriEventCurve.#normalizeCallableArgs(key.callableArgs);
+      const args = TriEventCurve._normalizeCallableArgs(key.callableArgs);
       TriEventCurve.queuePostUpdateCallback(() => callable(...args));
       return;
     }
@@ -325,19 +385,23 @@ export class TriEventCurve extends CjsModel
   }
 
   /**
-   * Adopts a plain record as a TriEventKey so externally supplied keys carry the
-   * full key shape.
+   * Adopts a plain JavaScript record as a registered event key.
+   * @param {TriEventKey|object} key Input record.
+   * @returns {TriEventKey}
    */
-  static #ensureEventKey(key)
+  @impl.custom
+  static _ensureEventKey(key)
   {
-    return key instanceof TriEventKey ? key : Object.assign(new TriEventKey(), key);
+    return CjsSchema.cast(key, TriEventKey) ? key : Object.assign(new TriEventKey(), key);
   }
 
   /**
-   * Normalizes callable-key arguments to an array, treating null or undefined as
-   * no arguments and a bare value as a single argument.
+   * Normalizes JavaScript callable arguments without Python tuple ownership.
+   * @param {*} args Input arguments.
+   * @returns {Array}
    */
-  static #normalizeCallableArgs(args)
+  @impl.custom
+  static _normalizeCallableArgs(args)
   {
     if (args === null || args === undefined)
     {
@@ -349,3 +413,6 @@ export class TriEventCurve extends CjsModel
   static TRIEXTRAPOLATION = TRIEXTRAPOLATION;
 
 }
+
+// Exact native exposure table, with no inherited exposure chain.
+carbon.interfaceTable({ interfaces: [TriEventCurve, ITriFunction, IInitialize, ITriCurveLength], chainTo: null })(TriEventCurve);

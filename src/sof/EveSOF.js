@@ -1857,7 +1857,7 @@ export class EveSOF extends CjsModel
     const flickerCurve = document.AddNode("TriPerlinCurve", {
       alpha: damage.flickerPerlinAlpha,
       beta: damage.flickerPerlinBeta,
-      n: damage.flickerPerlinN,
+      N: damage.flickerPerlinN,
       speed: damage.flickerPerlinSpeed,
       offset: 1,
       scale: 0

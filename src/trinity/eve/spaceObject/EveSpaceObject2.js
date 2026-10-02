@@ -43,7 +43,7 @@ import { EveCustomMask } from "../EveCustomMask.js";
 import { EveCollectAreas } from "../child/EveSpaceObjectChild.js";
 import { EveGetLocatorPose, EveLocatorSets } from "../locator/EveLocatorSets.js";
 import { Locator } from "../locator/Locator.js";
-import { TriPerlinCurve } from "../../curves/curve/TriPerlinCurve.js";
+import { Copier } from "#blue/Copier";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 
@@ -3674,7 +3674,7 @@ export class EveSpaceObject2 extends EveEntity
       // needs the skinned variant, which the ship-wide effect is not.
       overlay.SetArmorDamageShaderEffect(range.owner.GetPartArmorDamageShaderEffect(range.partTag));
       const flicker = shipDamage.GetHullDamageFlickerCurve();
-      if (flicker) overlay.SetHullDamageFlickerCurve(TriPerlinCurve.from(flicker.GetValues()));
+      if (flicker) overlay.SetHullDamageFlickerCurve(new Copier().CloneTo(flicker));
       overlay.SetSeed(shipDamage.GetSeed() + range.partTag);
     }
 
