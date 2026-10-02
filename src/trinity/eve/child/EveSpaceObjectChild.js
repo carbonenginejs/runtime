@@ -312,3 +312,6 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
   static NO_PART_TAG = 0;
 
 }
+
+// EveSpaceObjectChild_Blue.cpp: native exposure.
+carbon.interfaceTable({ interfaces: [EveSpaceObjectChild], chainTo: null })(EveSpaceObjectChild, { kind: "class" });

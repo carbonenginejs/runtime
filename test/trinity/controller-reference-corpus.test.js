@@ -1,3 +1,4 @@
+import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 // Optional offline proof using unmodified copies of indexed Black files.
 // Set CONTROLLER_BLACK_CORPUS_DIR to a directory containing the two filenames
 // below. Game data is not committed; hashes and sizes pin the inspected inputs.
@@ -55,7 +56,7 @@ test("real fx_01a loads its stand-alone controller and animates all five rib Dif
   const resourceHandles = new StubResMan();
   manager.GetResource = resourceHandles.GetResource.bind(resourceHandles);
   blue.resMan = manager;
-  const root = EveChildContainer.from(CjsBlackFormat.readPayload(bytes[0]).object);
+  const root = CjsSchema.from("EveChildContainer", CjsBlackFormat.readPayload(bytes[0]).object);
   root.SetInheritProperties(Array.from({ length: 128 }, () => [ 1, 1, 1, 1 ]));
   root.StartControllers();
   const reference = root.controllers.find(value => value.path?.includes("ShipStandard_FxStandAlone"));

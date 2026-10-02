@@ -1,3 +1,9 @@
+import { INotify } from "../../../global/blue/INotify.js";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { ITr2Renderable } from "../../core/ITr2Renderable.js";
+import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
+import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
+import { EveEntity } from "../EveEntity.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceMeshRenderer.h
 //   trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceMeshRenderer.cpp
 //   trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceMeshRenderer_Blue.cpp
@@ -81,6 +87,7 @@ const INSTANCE_SPHERE = vec4.create();
   "sofLocatorSetName",
   "sofLocatorIndex"
 ])
+@carbon.inherit(IInitialize, INotify)
 export class EveChildInstanceMeshRenderer extends EveChildMesh
 {
   @edit.readwrite
@@ -632,3 +639,6 @@ blue.enums.RegisterEnum("trinity.EveChildInstanceMeshRenderer.RotationalConstrai
     { name: "lockZ", value: EveChildInstanceMeshRenderer.RotationalConstraints.BILLBOARD_WITH_Z_LOCKED, description: "face the camera but keep the original UP" }
   ]
 });
+
+// EveChildInstanceMeshRenderer_Blue.cpp: native exposure; unported contracts: IEveShadowCaster.
+carbon.interfaceTable({ interfaces: [EveChildInstanceMeshRenderer, EveEntity, EveChildMesh, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IInitialize, INotify], chainTo: null })(EveChildInstanceMeshRenderer, { kind: "class" });

@@ -1,3 +1,6 @@
+import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
+import { INotify } from "../../../global/blue/INotify.js";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud.h
 // Hand-maintained from Carbon source.
 import { mat4 } from "#math/mat4";
@@ -36,6 +39,7 @@ function updateBoundingSphere(cloud)
  */
 @type.define({ className: "EveChildCloud", family: "eve/child", purpose: "Describes a transformable volumetric cloud child, including its effect, editable volume, tessellation, LOD, and bounds state." })
 @carbon.inherit(ITr2Renderable)
+@carbon.inherit(IInitialize, INotify)
 export class EveChildCloud extends EveSpaceObjectChild
 {
   @edit.readwrite
@@ -185,3 +189,6 @@ export class EveChildCloud extends EveSpaceObjectChild
     return true;
   }
 }
+
+// EveChildCloud_Blue.cpp: native exposure.
+carbon.interfaceTable({ interfaces: [EveChildCloud, ITr2Renderable, IInitialize, INotify, EveSpaceObjectChild, IEveSpaceObjectChild], chainTo: null })(EveChildCloud, { kind: "class" });

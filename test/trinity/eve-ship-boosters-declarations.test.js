@@ -84,12 +84,12 @@ test("retained model construction reads a real booster through the stored declar
     initialization.push("ship");
     return shipInitialize.call(this);
   });
-  const ship = EveShip2.from({ boosters: { _type: "EveBoosterSet2", staticTrailLength: 19 } });
+  const ship = CjsSchema.from("EveShip2", { boosters: { _type: "EveBoosterSet2", staticTrailLength: 19 } });
   assert.equal(ship._boosters.constructor, EveBoosterSet2);
   assert.equal(ship.boosters, ship._boosters);
   assert.equal(ship.boosters.staticTrailLength, 19);
   assert.deepEqual(initialization, [ "booster", "ship" ]);
-  assert.equal(ship.GetValues({ persistOnly: true }).boosters.staticTrailLength, 19);
+  assert.equal(CjsSchema.getValues(ship, {}, { persistOnly: true }).boosters.staticTrailLength, 19);
 });
 
 test("direct live assignment delegates to GetBoosters and SetBoosters", t =>

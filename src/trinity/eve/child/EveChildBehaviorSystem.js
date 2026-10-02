@@ -1,3 +1,9 @@
+import { IListNotify } from "../../../global/blue/IListNotify.js";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { EveEntity } from "../EveEntity.js";
+import { INotify } from "../../../global/blue/INotify.js";
+import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
+import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBehaviorSystem.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBehaviorSystem.cpp
 import { carbon, impl, edit, type } from "#schema";
@@ -18,6 +24,7 @@ import { ITr2Renderable } from "../../core/ITr2Renderable.js";
  */
 @type.define({ className: "EveChildBehaviorSystem", family: "eve/child" })
 @carbon.inherit(ITr2Renderable)
+@carbon.inherit(INotify, IInitialize, IListNotify)
 export class EveChildBehaviorSystem extends EveChildTransform
 {
 
@@ -587,3 +594,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
   }
 
 }
+
+// EveChildBehaviorSystem_Blue.cpp: native exposure.
+carbon.interfaceTable({ interfaces: [EveChildBehaviorSystem, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, INotify, EveEntity], chainTo: null })(EveChildBehaviorSystem, { kind: "class" });

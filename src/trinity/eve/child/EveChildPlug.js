@@ -1,13 +1,21 @@
+import { IListNotify } from "../../../global/blue/IListNotify.js";
+import { ITr2SoundEmitterOwner } from "../ITr2SoundEmitterOwner.js";
+import { INotify } from "../../../global/blue/INotify.js";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
+import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
+import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPlug.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { EveEntity } from "../EveEntity.js";
 import { carbon, impl, edit, type, CjsSchema } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
-import { CjsModel } from "#model";
+import { addChild, removeChild, clearChildren } from "../../../global/blue/children.js";
 import { EveChildTransform } from "./EveChildTransform.js";
 
 /** A container of child objects plugged into a socket, forwarding controller events, controller variables and component registration to what it contains. */
 @type.define({ className: "EveChildPlug", family: "eve/child" })
+@carbon.inherit(IInitialize, INotify, IListNotify)
 export class EveChildPlug extends EveChildTransform
 {
 
@@ -133,20 +141,20 @@ export class EveChildPlug extends EveChildTransform
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through CjsModel.addChild rather than the list driving it.")
+  @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through the shared child service rather than the list driving it.")
   AddToEffectChildrenList(child)
   {
-    CjsModel.addChild(this, "objects", child);
+    addChild(this, "objects", child, { listNotify: this });
     return child;
   }
 
   /** Removes one plugged child; the unregistration is the REMOVED arm's. */
   @carbon.method
   @impl.adapted
-  @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through CjsModel.removeChild rather than the list driving it.")
+  @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through the shared child service rather than the list driving it.")
   RemoveFromEffectChildrenList(child)
   {
-    return CjsModel.removeChild(this, "objects", child);
+    return removeChild(this, "objects", child, { listNotify: this });
   }
 
   /** Propagates the owning space object through the plugged subtree. */
@@ -231,3 +239,6 @@ export class EveChildPlug extends EveChildTransform
   }
 
 }
+
+// EveChildPlug_Blue.cpp: native exposure; unported contracts: IEveEffectChildrenOwner, IShaderConfigurer.
+carbon.interfaceTable({ interfaces: [EveChildPlug, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, ITr2SoundEmitterOwner, EveEntity], chainTo: null })(EveChildPlug, { kind: "class" });

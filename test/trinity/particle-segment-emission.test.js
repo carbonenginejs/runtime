@@ -1,3 +1,4 @@
+import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import {readFile} from "node:fs/promises";
@@ -51,7 +52,7 @@ test("real VDS fire during-life smoke reaches GPU Emit with distinct segment end
 },async t=>{
   setup(t);const bytes=await readFile(join(corpus,"vds_trail_fire_01a.black"));
   assert.equal(createHash("md5").update(bytes).digest("hex"),"bad944852d13145ae96983af73858927");
-  const root=EveChildContainer.from(CjsBlackFormat.readPayload(bytes).object);
+  const root=CjsSchema.from("EveChildContainer", CjsBlackFormat.readPayload(bytes).object);
   const source=root.objects[0].effect.source;
   const p=source.objects[0].objects[2].objects[1].objects[1].mesh.instanceGeometryResource;
   assert.equal(p.name,"FireMainParticleSystem");const emitter=p.emitParticleDuringLifeEmitter;assert.equal(emitter.name,"postSmoke");

@@ -30,7 +30,7 @@ async function realMissile(t)
     blue.resMan = managers.get(t);
     t.after(() => { blue.resMan = previous; managers.delete(t); });
   }
-  const missile = EveMissile.from(CjsBlackFormat.readPayload(bytes).object);
+  const missile = CjsSchema.from("EveMissile", CjsBlackFormat.readPayload(bytes).object);
   assert.equal(missile.warheads.length, 1, "one authored warhead, not an authored MIRV recipe");
   const warhead = missile.warheads[0];
   assert.equal(warhead.children.length, 0);

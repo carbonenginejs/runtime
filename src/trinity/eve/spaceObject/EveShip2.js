@@ -1,3 +1,7 @@
+import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { IListNotify } from "../../../global/blue/IListNotify.js";
+import { ITr2Renderable } from "../../core/ITr2Renderable.js";
+import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 // Source: trinity/trinity/Eve/SpaceObject/EveShip2.h
 // Source: trinity/trinity/Eve/SpaceObject/EveShip2.cpp
 // Hand-maintained after promotion from generated schema intake.
@@ -10,6 +14,7 @@ import { TriFloat } from "../../core/variable/TriFloat.js";
 
 /** A ship space object: booster drive, speed state, and ship shader data. */
 @type.define({ className: "EveShip2", family: "eve/spaceObject" })
+@carbon.inherit(IListNotify, IInitialize)
 export class EveShip2 extends EveMobile
 {
 
@@ -362,3 +367,6 @@ export class EveShip2 extends EveMobile
   }
 
 }
+
+// EveShip2_Blue.cpp: native exposure.
+carbon.interfaceTable({ interfaces: [EveShip2, IEveSpaceObject2, ITr2Renderable, IListNotify], chainTo: EveMobile })(EveShip2, { kind: "class" });

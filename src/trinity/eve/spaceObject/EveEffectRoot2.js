@@ -1,8 +1,15 @@
+import { IListNotify } from "../../../global/blue/IListNotify.js";
+import { IWorldPosition } from "../../core/IWorldPosition.js";
+import { ITr2SoundEmitterOwner } from "../ITr2SoundEmitterOwner.js";
+import { ITr2ControllerOwner } from "../../controllers/ITr2ControllerOwner.js";
+import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
+import { INotify } from "../../../global/blue/INotify.js";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/EveEffectRoot2.h
 // Source: trinity/trinity/Eve/EveEffectRoot2.cpp
 // Source: trinity/trinity/Eve/EveEffectRoot2_Blue.cpp
 import "#blue/registerTrinityEnums";
-import { CjsModel } from "#model";
+import { addChild, removeChild, clearChildren } from "../../../global/blue/children.js";
 import { mat4 } from "#math/mat4";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { box3 } from "#math/box3";
@@ -29,6 +36,7 @@ import { BLUELISTEVENT } from "#consts/blue";
 @type.define({ className: "EveEffectRoot2", family: "eve/spaceObject" })
 @carbon.inherit(ITr2BoundingBox, IEveSpaceObject2, ITr2SecondaryLightSource)
 @carbon.mapInterface(ITr2SecondaryLightSource)
+@carbon.inherit(IInitialize, INotify, IListNotify)
 export class EveEffectRoot2 extends EveEntity
 {
 
@@ -210,10 +218,10 @@ export class EveEffectRoot2 extends EveEntity
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through CjsModel.addChild rather than the list driving it.")
+  @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through the shared child service rather than the list driving it.")
   AddController(controller)
   {
-    CjsModel.addChild(this, "controllers", controller);
+    addChild(this, "controllers", controller, { listNotify: this });
     return controller;
   }
 
@@ -223,10 +231,10 @@ export class EveEffectRoot2 extends EveEntity
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through CjsModel.removeChild rather than the list driving it.")
+  @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through the shared child service rather than the list driving it.")
   RemoveController(controller)
   {
-    return CjsModel.removeChild(this, "controllers", controller);
+    return removeChild(this, "controllers", controller, { listNotify: this });
   }
 
   /** Evaluates root curves and updates children that require synchronous placement. */
@@ -1244,3 +1252,6 @@ export class EveEffectRoot2 extends EveEntity
   static Tr2Lod = Tr2Lod;
 
 }
+
+// EveEffectRoot2_Blue.cpp: native exposure; unported contracts: ITriTargetable, IEveEffectChildrenOwner, IShaderConfigurer, ITr2LightOwner.
+carbon.interfaceTable({ interfaces: [IEveSpaceObject2, IInitialize, INotify, ITr2SecondaryLightSource, ITr2CurveSetOwner, ITr2ControllerOwner, ITr2SoundEmitterOwner, ITr2BoundingBox, IWorldPosition, EveEntity], chainTo: null })(EveEffectRoot2, { kind: "class" });

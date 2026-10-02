@@ -37,6 +37,7 @@ import {
  */
 @type.define({ className: "EveBoosterSet2", family: "eve/attachment/boosters" })
 @carbon.mapInterface(INotify, IInitialize)
+@carbon.inherit(INotify, IInitialize)
 export class EveBoosterSet2 extends EveEntity
 {
 
@@ -1090,3 +1091,6 @@ export class EveBoosterSet2 extends EveEntity
   });
 
 }
+
+// EveBoosterSet2_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
+carbon.interfaceTable({ interfaces: [EveBoosterSet2, INotify, IInitialize, EveEntity], chainTo: null })(EveBoosterSet2, { kind: "class" });

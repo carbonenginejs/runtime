@@ -50,7 +50,7 @@ test("real Apocalypse skin-change bindings fade ship constants and authored spri
   const ships=[];
   for(const dna of ["ab1_t1:amarrbase:amarr","ab1_t1:angelbase:amarr"])
   {
-    const ship=EveShip2.from(await sof.BuildValuesFromDNAAsync(dna));
+    const ship=CjsSchema.from("EveShip2", await sof.BuildValuesFromDNAAsync(dna));
     ship.lodLevel=Tr2Lod.TR2_LOD_HIGH;ship.isVisible=true;
     ships.push(ship);
   }
@@ -111,7 +111,7 @@ test("real Abaddon sprite and Archon spotlight light records follow root async a
   const sof=await builder(t);
   for(const [dna,type,count] of [["ab3_t1:amarrbase:amarr","EveSpriteSet",6],["aca1_t1:amarrbase:amarr","EveSpotlightSet",7]])
   {
-    const ship=EveShip2.from(await sof.BuildValuesFromDNAAsync(dna));
+    const ship=CjsSchema.from("EveShip2", await sof.BuildValuesFromDNAAsync(dna));
     const attachment=ship.attachments.find(a=>CjsSchema.getClassName(a.constructor)===type && a.lights.length>0);
     assert.ok(attachment,`${dna} must have real authored ${type} light records`);
     assert.equal(attachment.lights.length,count);

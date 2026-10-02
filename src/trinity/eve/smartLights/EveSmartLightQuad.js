@@ -1,3 +1,7 @@
+import { IListNotify } from "../../../global/blue/IListNotify.js";
+import { INotify } from "../../../global/blue/INotify.js";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { EveSmartLightBaseGroup } from "./EveSmartLightBaseGroup.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightQuad.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
@@ -16,6 +20,7 @@ import { packQuadInstanceData, QUAD_INSTANCE_SIZE } from "../child/packQuadInsta
 
 /** A smart-light group member that places faction-colour-aware flare quads at each distribution placement and submits them to the quad renderer. */
 @type.define({ className: "EveSmartLightQuad", family: "eve/smartLights" })
+@carbon.inherit(IInitialize, INotify, IListNotify)
 export class EveSmartLightQuad extends EveChildTransform
 {
 
@@ -436,3 +441,6 @@ export class EveSmartLightQuad extends EveChildTransform
   static _color = vec3.create();
 
 }
+
+// EveSmartLightQuad_Blue.cpp: native exposure.
+carbon.interfaceTable({ interfaces: [EveSmartLightQuad, EveSmartLightBaseGroup, IInitialize, INotify, IListNotify], chainTo: EveSmartLightBaseGroup })(EveSmartLightQuad, { kind: "class" });

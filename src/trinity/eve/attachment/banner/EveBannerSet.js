@@ -1,3 +1,5 @@
+import { EveEntity } from "../../EveEntity.js";
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveBannerSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveBannerSet.cpp
 import { box3 } from "#math/box3";
@@ -59,6 +61,7 @@ import {
  * largest single banner radius its LOD is measured on, and the banner lights.
  */
 @type.define({ className: "EveBannerSet", family: "eve/attachment/banners" })
+@carbon.inherit(IInitialize)
 export class EveBannerSet extends IEveSpaceObjectAttachment
 {
 
@@ -1073,3 +1076,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   }
 
 }
+
+// EveBannerSet_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
+carbon.interfaceTable({ interfaces: [EveBannerSet, IInitialize, IEveSpaceObjectAttachment, EveEntity], chainTo: null })(EveBannerSet, { kind: "class" });

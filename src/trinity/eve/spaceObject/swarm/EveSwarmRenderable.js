@@ -1,3 +1,4 @@
+import { Copier } from "../../../../global/blue/Copier.js";
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.h
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.cpp
 import { carbon, impl, type } from "#schema";
@@ -138,7 +139,7 @@ export class EveSwarmRenderable extends EveEntity
   @impl.adapted
   InitDecals(decals)
   {
-    this.decals = decals.map(decal => decal.Clone());
+    this.decals = decals.map(decal => new Copier().CloneTo(decal));
   }
 
   /**

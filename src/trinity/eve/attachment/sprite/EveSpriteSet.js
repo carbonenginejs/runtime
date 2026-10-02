@@ -1,3 +1,5 @@
+import { EveEntity } from "../../EveEntity.js";
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
 ﻿// Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSet.cpp
 import { box3 } from "#math/box3";
@@ -47,6 +49,7 @@ function colorByte(value)
  * and the point lights the sprites emit.
  */
 @type.define({ className: "EveSpriteSet", family: "eve/attachment/sprites" })
+@carbon.inherit(IInitialize)
 export class EveSpriteSet extends IEveSpaceObjectAttachment
 {
 
@@ -564,3 +567,6 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
 
   static _lightRecord = CreateLightRecord();
 }
+
+// EveSpriteSet_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
+carbon.interfaceTable({ interfaces: [EveSpriteSet, IInitialize, IEveSpaceObjectAttachment, EveEntity], chainTo: null })(EveSpriteSet, { kind: "class" });

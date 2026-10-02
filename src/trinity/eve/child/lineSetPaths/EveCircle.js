@@ -1,3 +1,5 @@
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
+import { INotify } from "../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/LineSetPaths/EveCircle.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/LineSetPaths/EveCircle.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/LineSetPaths/EveCircle_Blue.cpp
@@ -18,6 +20,7 @@ import { IEveLineSetPath } from "./IEveLineSetPath.js";
   className: "EveCircle",
   family: "eve/child/lineSetPaths"
 })
+@carbon.inherit(INotify, IInitialize)
 export class EveCircle extends IEveLineSetPath
 {
   @edit.readwrite
@@ -352,3 +355,6 @@ export class EveCircle extends IEveLineSetPath
     return vec3.transformMat4(vec3.create(), point, transform);
   }
 }
+
+// EveCircle_Blue.cpp: native exposure.
+carbon.interfaceTable({ interfaces: [EveCircle, IEveLineSetPath, INotify], chainTo: null })(EveCircle, { kind: "class" });

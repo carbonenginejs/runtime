@@ -1,3 +1,8 @@
+import { ReadValues } from "../../../global/blue/values.js";
+import { IListNotify } from "../../../global/blue/IListNotify.js";
+import { INotify } from "../../../global/blue/INotify.js";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { EveSmartLightBaseGroup } from "./EveSmartLightBaseGroup.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightPointLight.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
@@ -20,6 +25,7 @@ import { BLUELISTEVENT } from "#consts/blue";
 
 /** A smart-light group member that places faction-colour-aware point or spot lights at each distribution placement and submits them to the light manager. */
 @type.define({ className: "EveSmartLightPointLight", family: "eve/smartLights" })
+@carbon.inherit(IInitialize, INotify, IListNotify)
 export class EveSmartLightPointLight extends EveEntity
 {
   /** m_lightGroupData.flags (uint16_t) [READWRITE, PERSIST] */
@@ -187,7 +193,7 @@ export class EveSmartLightPointLight extends EveEntity
       this,
       values,
       options,
-      (ownerValues, ownerOptions) => super.SetValues(ownerValues, ownerOptions),
+      (ownerValues, ownerOptions) => ReadValues(this, ownerValues, ownerOptions),
       this.constructor.LightDataFields
     );
   }
@@ -492,3 +498,6 @@ export class EveSmartLightPointLight extends EveEntity
   };
 
 }
+
+// EveSmartLightPointLight_Blue.cpp: native exposure.
+carbon.interfaceTable({ interfaces: [EveSmartLightPointLight, EveSmartLightBaseGroup, IInitialize, INotify, IListNotify, EveEntity], chainTo: EveSmartLightBaseGroup })(EveSmartLightPointLight, { kind: "class" });

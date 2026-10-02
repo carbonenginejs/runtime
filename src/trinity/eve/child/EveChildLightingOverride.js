@@ -1,3 +1,8 @@
+import { ITr2DebugRenderable } from "../../../global/interfaces/ITr2DebugRenderable.js";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
+import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
+import { EveEntity } from "../EveEntity.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLightingOverride.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLightingOverride.cpp
 import { mat4 } from "#math/mat4";
@@ -18,6 +23,7 @@ import "../../postProcess/Tr2PostProcessAttributes.js";
  */
 @type.define({ className: "EveChildLightingOverride", family: "eve/child" })
 @carbon.inherit(IEveLightingOverride)
+@carbon.inherit(IInitialize)
 export class EveChildLightingOverride extends EveChildTransform
 {
   _overrideIntensity = 0;
@@ -274,3 +280,6 @@ export class EveChildLightingOverride extends EveChildTransform
     target.radius = radius;
   }
 }
+
+// EveChildLightingOverride_Blue.cpp: native exposure.
+carbon.interfaceTable({ interfaces: [EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, IEveLightingOverride, IInitialize, ITr2DebugRenderable], chainTo: null })(EveChildLightingOverride, { kind: "class" });

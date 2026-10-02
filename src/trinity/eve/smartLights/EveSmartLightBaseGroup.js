@@ -1,3 +1,4 @@
+import { IListNotify } from "../../../global/blue/IListNotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightBaseGroup.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
@@ -27,6 +28,7 @@ export function resolveGroupColor(customColor, useFactionColor, factionColor, pa
 
 /** The shared faction-colour resolution and attribute-modifier surface flattened into every smart-light group implementation. */
 @type.define({ className: "EveSmartLightBaseGroup", family: "eve/smartLights" })
+@carbon.inherit(IListNotify)
 export class EveSmartLightBaseGroup
 {
 
@@ -176,3 +178,6 @@ export class EveSmartLightBaseGroup
   }
 
 }
+
+// EveSmartLightBaseGroup_Blue.cpp: native exposure; unported contracts: IEveSmartLightGroup.
+carbon.interfaceTable({ interfaces: [EveSmartLightBaseGroup, IListNotify], chainTo: null })(EveSmartLightBaseGroup, { kind: "class" });

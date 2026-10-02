@@ -1,3 +1,6 @@
+import { IListNotify } from "../../../../global/blue/IListNotify.js";
+import { INotify } from "../../../../global/blue/INotify.js";
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroup.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroup.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -33,6 +36,7 @@ function ClampLength(value, maxLength)
 
 /** Owns a group of drone agents, running its priority-ordered behaviours each frame to integrate their acceleration, velocity, orientation and position, and managing their count, visibility, lighting and rendering. */
 @type.define({ className: "BehaviorGroup", family: "eve/child/behaviors" })
+@carbon.inherit(IInitialize, INotify, IListNotify)
 export class BehaviorGroup extends EveEntity
 {
 
@@ -1082,3 +1086,6 @@ export class BehaviorGroup extends EveEntity
   }
 
 }
+
+// BehaviorGroup_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
+carbon.interfaceTable({ interfaces: [BehaviorGroup, IInitialize, INotify, IListNotify, EveEntity], chainTo: null })(BehaviorGroup, { kind: "class" });

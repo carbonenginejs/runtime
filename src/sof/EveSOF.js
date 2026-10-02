@@ -4,7 +4,6 @@ import { normalizeResourcePath } from "#utils/path";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOF.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOF.cpp
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOF_Blue.cpp
-import { CjsModel } from "#model";
 import { CjsSchema, carbon, impl, edit, type } from "#schema";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -908,13 +907,13 @@ export class EveSOF
    *
    * Adapted: Carbon mutates a live EveSpaceObject2 and accepts an armor-damage
    * effect cache. This method composes model values without importing Trinity.
-   * A CjsModel owner is exported and repopulated through SetValues; an object
+   * A registered owner is exported and repopulated through SetValues; an object
    * values root has its enumerable fields replaced. The owner object is retained,
    * but existing nested identities are not guaranteed. Invalid DNA returns false
    * before applying the composed graph. Errors during hydration or replacement
    * can leave the owner partially updated.
    *
-   * @param {CjsModel|object} owner Supported self-describing space-object root.
+   * @param {object} owner Supported self-describing space-object root.
    * @param {string} dnaString Modular hull DNA.
    * @param {number} partTag Value coerced and validated as a uint32 part tag.
    * @param {ArrayLike<number>} [transform] Placement matrix; defaults to identity.
@@ -926,9 +925,9 @@ export class EveSOF
   @impl.adapted
   BuildChild(owner, dnaString, partTag, transform = identityMatrix(), options = {})
   {
-    const isModel = owner instanceof CjsModel;
+    const isModel = owner != null && CjsSchema.GetConstructor(CjsSchema.getClassName(owner.constructor)) === owner.constructor;
     const source = isModel
-      ? owner.GetValues({ refs: true, forceTypeTags: true })
+      ? CjsSchema.getValues(owner, {}, { refs: true, forceTypeTags: true })
       : owner;
     const values = this.BuildChildValues(source, dnaString, partTag, transform, options);
     if (!values) return false;
@@ -936,7 +935,7 @@ export class EveSOF
     if (isModel)
     {
       const hydrationOptions = options?.hydration ?? {};
-      owner.SetValues(values, Object.hasOwn(options ?? {}, "registry")
+      CjsSchema.setValues(owner, values, Object.hasOwn(options ?? {}, "registry")
         ? { ...hydrationOptions, registry: options.registry }
         : hydrationOptions);
     }
@@ -1019,7 +1018,7 @@ export class EveSOF
    * the network: callers hand it bytes or data they acquired however they
    * chose.
    *
-   * (`Create`, not `from` - CjsModel.from is the schema hydration contract
+   * (`Create`, not `from` - CjsSchema.from is the schema hydration contract
    * and keeps its signature.)
    */
   static Create({ black, resFileIndex } = {})
@@ -5064,7 +5063,7 @@ function replacePlainValues(target, values)
 {
   if (!target || typeof target !== "object" || Array.isArray(target))
   {
-    throw new TypeError("EveSOF.BuildChild requires a CjsModel or plain model-values root");
+    throw new TypeError("EveSOF.BuildChild requires a registered object or plain values root");
   }
   for (const key of Object.keys(target)) delete target[key];
   Object.assign(target, values);

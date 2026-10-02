@@ -1,3 +1,4 @@
+import { carbon } from "#schema";
 // Source: trinity/trinity/Eve/Turret/EveTurretSet.h
 // Source: trinity/trinity/Eve/Turret/EveTurretSet.cpp
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -59,6 +60,7 @@ function BoundingSphereTransform(transform, sphere)
 @types.define({ className: "EveTurretSet", family: "eve/attachment/turrets" })
 @meta.carbon.inherit(IInitialize, INotify, ITr2Renderable, ITr2ControllerOwner)
 @meta.carbon.mapInterface(EveEntity, IInitialize, INotify, ITr2Renderable)
+@carbon.inherit(IInitialize, INotify)
 export class EveTurretSet extends EveEntity
 {
 
@@ -2605,3 +2607,6 @@ blue.enums.RegisterEnum("trinity.EveTurretSet.State", EveTurretSet.State, {
 
 // Native Blue explicitly maps its concrete identity.
 meta.carbon.mapInterface(EveTurretSet)(EveTurretSet, { kind: "class" });
+
+// EveTurretSet_Blue.cpp: native exposure.
+carbon.interfaceTable({ interfaces: [EveTurretSet, EveEntity, IInitialize, INotify, ITr2Renderable], chainTo: null })(EveTurretSet, { kind: "class" });

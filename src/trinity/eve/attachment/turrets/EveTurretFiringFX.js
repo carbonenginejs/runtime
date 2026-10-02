@@ -1,3 +1,4 @@
+import { carbon } from "#schema";
 // Source: trinity/trinity/Eve/Turret/EveTurretFiringFX.h
 // Source: trinity/trinity/Eve/Turret/EveTurretFiringFX.cpp
 // Source: trinity/trinity/Eve/Turret/EveTurretFiringFX_Blue.cpp
@@ -20,6 +21,7 @@ import { EveUpdateContext } from "../../EveUpdateContext.js";
 @meta.define({ className: "EveTurretFiringFX", family: "eve/attachment/turrets" })
 @meta.carbon.inherit(IInitialize, INotify, IListNotify, ITr2ControllerOwner)
 @meta.carbon.mapInterface(IInitialize, INotify, IListNotify, ITr2ControllerOwner, EveEntity)
+@carbon.inherit(IInitialize, INotify, IListNotify)
 export class EveTurretFiringFX extends EveEntity
 {
 
@@ -1073,3 +1075,6 @@ export class EveTurretFiringFX extends EveEntity
 
 // Native exposure includes the concrete class itself; JS has no implicit self mapping.
 meta.carbon.mapInterface(EveTurretFiringFX)(EveTurretFiringFX);
+
+// EveTurretFiringFX_Blue.cpp: native exposure.
+carbon.interfaceTable({ interfaces: [EveTurretFiringFX, IInitialize, INotify, IListNotify, ITr2ControllerOwner, EveEntity], chainTo: null })(EveTurretFiringFX, { kind: "class" });

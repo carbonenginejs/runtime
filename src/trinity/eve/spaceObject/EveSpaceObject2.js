@@ -1,3 +1,8 @@
+import { IListNotify } from "../../../global/blue/IListNotify.js";
+import { ITr2ControllerOwner } from "../../controllers/ITr2ControllerOwner.js";
+import { ITr2SoundEmitterOwner } from "../ITr2SoundEmitterOwner.js";
+import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
+import { ITr2ImpostorSource } from "../../core/mesh/ITr2ImpostorSource/ITr2ImpostorSource.js";
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2.cpp
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2_Blue.cpp
@@ -22,7 +27,7 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsModel } from "#model";
+import { addChild, removeChild, clearChildren } from "../../../global/blue/children.js";
 import { ccpHashFnv1 } from "#utils";
 import { BLUELISTEVENT } from "#consts/blue";
 import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
@@ -66,6 +71,7 @@ const OVERLAY_TYPE_ALL = 1;
  */
 @type.define({ className: "EveSpaceObject2", family: "eve/spaceObject" })
 @carbon.inherit(IWorldPosition, ITr2BoundingBox, ITr2Renderable, IEveSpaceObject2, ITr2ShLightingReceiver, ITr2SecondaryLightSource, IEveInheritPropertiesOwner)
+@carbon.inherit(IInitialize, INotify, IListNotify)
 export class EveSpaceObject2 extends EveEntity
 {
 
@@ -988,7 +994,7 @@ export class EveSpaceObject2 extends EveEntity
   AddController(controller)
   {
     // The link and the variable replay are the INSERTED arm's (cpp:297-311).
-    CjsModel.addChild(this, "controllers", controller);
+    addChild(this, "controllers", controller, { listNotify: this });
     return controller;
   }
 
@@ -1198,7 +1204,7 @@ export class EveSpaceObject2 extends EveEntity
   {
     // The ownership, the inherited properties and the variable replay are the
     // INSERTED arm's (cpp:322-342), reached through the managed mutation.
-    CjsModel.addChild(this, "effectChildren", child);
+    addChild(this, "effectChildren", child, { listNotify: this });
     this.InvalidateMergedLocators("structure");
     return child;
   }
@@ -1210,7 +1216,7 @@ export class EveSpaceObject2 extends EveEntity
   {
     // The inherited properties and the LightOwner registration on the FIRST
     // light are the hook's (cpp:402-431).
-    CjsModel.addChild(this, "lights", light);
+    addChild(this, "lights", light, { listNotify: this });
   }
 
   /**
@@ -1223,7 +1229,7 @@ export class EveSpaceObject2 extends EveEntity
   {
     // UNLOADSTART, which is what drops the LightOwner component registration
     // (cpp:413-421). Emptying the array by hand left it registered.
-    CjsModel.clearChildren(this, "lights");
+    clearChildren(this, "lights", { listNotify: this });
   }
 
   /**
@@ -1236,7 +1242,7 @@ export class EveSpaceObject2 extends EveEntity
   {
     // The unregister and the cleared ownership are the REMOVED arm's
     // (cpp:343-353).
-    if (!CjsModel.removeChild(this, "effectChildren", child)) return false;
+    if (!removeChild(this, "effectChildren", child, { listNotify: this })) return false;
     this.InvalidateMergedLocators("structure");
     return true;
   }
@@ -4758,3 +4764,6 @@ blue.enums.RegisterEnum("trinity.EveSpaceObject2.LocatorType", EveSpaceObject2.L
 
 // Supported native mappings; the concrete self slot enables locator queries.
 carbon.mapInterface(EveSpaceObject2, IInitialize, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource)(EveSpaceObject2);
+
+// EveSpaceObject2_Blue.cpp: native exposure; unported contracts: IEveShadowCaster, ITr2Pickable, ITriTargetable, IEveEffectChildrenOwner, IShaderConfigurer, ITr2GrannyAnimationOwner, IEveSpaceObjectDecalOwner, ITr2LightOwner, IEveSpaceObjectAttachmentOwner.
+carbon.interfaceTable({ interfaces: [EveSpaceObject2, EveEntity, IInitialize, ITr2BoundingBox, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource, ITr2ImpostorSource, ITr2CurveSetOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner], chainTo: null })(EveSpaceObject2, { kind: "class" });

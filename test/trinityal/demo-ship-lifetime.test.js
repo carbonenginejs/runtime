@@ -1,3 +1,5 @@
+import { Traverse } from "../../npm/dist/global/blue/find.js";
+import { GetResources } from "../../npm/dist/global/blue/getResources.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -119,11 +121,11 @@ test("retained real ship protects a provider through a plain declared Map bridge
 test("ship traversal and resource collection visit geometry without retiring the asset", t => {
   const baseline = setup(t), { ship, mesh, provider } = makeShip();
   const geometry = mesh.GetGeometryResource(), visited = [];
-  ship.Traverse(value => { visited.push(value); });
+  Traverse(ship, value => { visited.push(value); });
   assert.equal(visited.filter(value => value === geometry).length, 1);
   assert.equal(visited.filter(value => value === provider).length, 1);
   const out = ["replaced"];
-  assert.equal(ship.GetResources(out), out);
+  assert.equal(GetResources(ship, out), out);
   assert.deepEqual(out, [geometry]);
   const release = t.mock.method(geometry, "ReleaseResources");
   retireDemoShips([ship], []);
@@ -232,7 +234,7 @@ test("demo hydration selects the declared station root and starts its controller
 {
   setup(t);
   const values = { _type: "EveStation2", name: "station root" };
-  assert.throws(() => EveShip2.from(values), /not EveShip2/);
+  assert.equal(CjsSchema.from("EveShip2", values).constructor, EveStation2, "the schema reader honors the authored concrete root");
   const start = t.mock.method(EveStation2.prototype, "StartControllers", function () {});
   const station = hydrateDemoShip(values);
   assert.equal(station.constructor, EveStation2);

@@ -1,3 +1,8 @@
+import { ITr2ControllerOwner } from "../../controllers/ITr2ControllerOwner.js";
+import { EveEntity } from "../EveEntity.js";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { INotify } from "../../../global/blue/INotify.js";
+import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBoosterSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBoosterSet.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBoosterSet_Blue.cpp
@@ -51,6 +56,7 @@ const SPHERE_SCRATCH = vec4.create();
  */
 @type.define({ className: "EveChildBoosterSet", family: "eve/child" })
 @carbon.inherit(ITr2Renderable)
+@carbon.inherit(INotify, IInitialize)
 export class EveChildBoosterSet extends EveSpaceObjectChild
 {
 
@@ -743,3 +749,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
 
 }
 
+
+// EveChildBoosterSet_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
+carbon.interfaceTable({ interfaces: [EveChildBoosterSet, EveSpaceObjectChild, IEveSpaceObjectChild, INotify, IInitialize, EveEntity, ITr2Renderable, ITr2ControllerOwner], chainTo: null })(EveChildBoosterSet, { kind: "class" });

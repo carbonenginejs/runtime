@@ -1,3 +1,4 @@
+import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { blue } from "../../npm/dist/global/blue/index.js";
@@ -17,7 +18,7 @@ function loader(t)
 test("socket hydration loads without a hook and replays calls after native registration and binding", async t =>
 {
   const requests = loader(t);
-  const socket = EveChildSocket.from({_type: "EveChildSocket", resPath: "res:/plug.red"});
+  const socket = CjsSchema.from("EveChildSocket", {_type: "EveChildSocket", resPath: "res:/plug.red"});
   assert.ok(requests.length > 0, "hydration starts the authored load");
   assert.equal(Object.hasOwn(socket,"resourceLoader"), false);
   const owner = {};

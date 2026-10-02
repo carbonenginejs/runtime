@@ -1,3 +1,4 @@
+import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 // Offline CPU particle proof. Fixtures are immutable copies; no graphics device.
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
@@ -33,7 +34,7 @@ test("real Crisis Dark_Front smoke emits into Carbon's physical particle layout"
   // Hydrate the whole child so mesh, emitter and system references stay shared.
   const authored = CjsBlackFormat.readPayload(bytes).object.objects[2].objects[0];
   assert.equal(authored.name, "Dark_Front");
-  const child = EveChildParticleSystem.from(authored);
+  const child = CjsSchema.from("EveChildParticleSystem", authored);
   const system = child.particleSystems[0];
   t.after(() => system.ReleaseResources());
   assert.equal(child.mesh.instanceGeometryResource, system);

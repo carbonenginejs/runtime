@@ -1,3 +1,7 @@
+import { INotify } from "../../../global/blue/INotify.js";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
+import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildAudio.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildAudio.cpp
 import { mat4 } from "#math/mat4";
@@ -12,6 +16,7 @@ import { EveChildTransform } from "./EveChildTransform.js";
  * and orientation tracking the child's world transform.
  */
 @type.define({ className: "EveChildAudio", family: "eve/child" })
+@carbon.inherit(IInitialize, INotify)
 export class EveChildAudio extends EveChildTransform
 {
   @edit.notify
@@ -170,3 +175,6 @@ export class EveChildAudio extends EveChildTransform
   static FRONT = Object.freeze([0, 1, 0]);
   static TOP = Object.freeze([0, 0, 1]);
 }
+
+// EveChildAudio_Blue.cpp: native exposure.
+carbon.interfaceTable({ interfaces: [EveChildAudio, IEveSpaceObjectChild, EveSpaceObjectChild, IInitialize, INotify], chainTo: null })(EveChildAudio, { kind: "class" });

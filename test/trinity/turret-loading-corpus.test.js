@@ -51,7 +51,7 @@ test("synthetic child turrets load separate real pulse FX graphs; real set accep
   }
   assert.notEqual(children[0].firingEffect,children[1].firingEffect);
   assert.notEqual(children[0].firingEffect.stretch[0],children[1].firingEffect.stretch[0]);
-  const set=EveTurretSet.from(CjsBlackFormat.readPayload(turretBytes).object);
+  const set=CjsSchema.from("EveTurretSet", CjsBlackFormat.readPayload(turretBytes).object);
   assert.equal(set.firingEffect,null,"native set loading is caller-owned");
   set.SetFiringEffect(children[0].firingEffect);
   assert.equal(set.firingEffect,children[0].firingEffect,"SetFiringEffect takes the FX root, not its stretch child");
@@ -79,7 +79,7 @@ async function realPulse(t)
 {
   const bytes=await fixture("pulse_mega_fx.black",2483,"ec84e9ee2b9d9af295dff3ad7ad79551e8785027fd30a5121d4d92eaa31a1eb2");
   useFixtureResources(t);
-  return EveTurretFiringFX.from(CjsBlackFormat.readPayload(bytes).object);
+  return CjsSchema.from("EveTurretFiringFX", CjsBlackFormat.readPayload(bytes).object);
 }
 
 async function realBreacher(t)
@@ -88,7 +88,7 @@ async function realBreacher(t)
   assert.equal(bytes.length,5470);
   assert.equal(createHash("sha256").update(bytes).digest("hex"),"706005c7b2ad7026a3ce933c4578db4e11cf4461bd95c196b87eb5e4d72da282");
   useFixtureResources(t);
-  return EveTurretFiringFX.from(CjsBlackFormat.readPayload(bytes).object);
+  return CjsSchema.from("EveTurretFiringFX", CjsBlackFormat.readPayload(bytes).object);
 }
 
 function quadView()
@@ -333,7 +333,7 @@ for (const [method, args] of [
   {
     const bytes=await fixture("pulse_mega_fx.black",2483,"ec84e9ee2b9d9af295dff3ad7ad79551e8785027fd30a5121d4d92eaa31a1eb2");
     const previous=blue.resMan;blue.resMan=new StubResMan();t.after(()=>{blue.resMan=previous;});
-    const effect=EveTurretFiringFX.from(CjsBlackFormat.readPayload(bytes).object);
+    const effect=CjsSchema.from("EveTurretFiringFX", CjsBlackFormat.readPayload(bytes).object);
     assert.equal(CjsSchema.getClassName(effect.stretch[0].constructor),"EveStretch2");
     assert.doesNotThrow(()=>effect[method](...args));
     assert.equal(method in effect.stretch[0],false,"do not invent controller methods on the authored Stretch2");
@@ -442,7 +442,7 @@ test("controlled persisted stretch-child placement initializes a modifier on the
   payload.stretch[0].stretchObject=payload.stretch[0].sourceObject;
   payload.stretch[0].sourceObject=null;
   const setter=t.mock.method(EveStretch3.prototype,"SetStretchObject",()=>assert.fail("stored hydration bypasses live replacement"));
-  const effect=EveTurretFiringFX.from(payload),stretch=effect.stretch[0];
+  const effect=CjsSchema.from("EveTurretFiringFX", payload),stretch=effect.stretch[0];
   assert.equal(setter.mock.callCount(),0);
   assert.equal(stretch.sourceObject,null);
   assert.equal(CjsSchema.getClassName(stretch.stretchObject.constructor),"EveChildContainer");
@@ -548,7 +548,7 @@ test("real Breacher FX forwards variable writes and start to its authored Stretc
   assert.equal(bytes.length,5470);
   assert.equal(createHash("sha256").update(bytes).digest("hex"),"706005c7b2ad7026a3ce933c4578db4e11cf4461bd95c196b87eb5e4d72da282");
   const previous=blue.resMan;blue.resMan=new StubResMan();t.after(()=>{blue.resMan=previous;});
-  const effect=EveTurretFiringFX.from(CjsBlackFormat.readPayload(bytes).object);
+  const effect=CjsSchema.from("EveTurretFiringFX", CjsBlackFormat.readPayload(bytes).object);
   const stretch=effect.stretch[0];
   assert.equal(CjsSchema.getClassName(stretch.constructor),"EveStretch3");
   assert.equal(stretch.controllers.length,1);

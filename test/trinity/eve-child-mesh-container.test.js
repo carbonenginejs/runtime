@@ -319,7 +319,7 @@ test("EveChildPartData owns persistent modular part state", () =>
     "EveChildPartData.PartData"
   );
   assert.equal(data.GetUnusedPartID(), 10);
-  assert.deepEqual(data.GetValues({ persistOnly: true }), {
+  assert.deepEqual(CjsSchema.getValues(data, {}, { persistOnly: true }), {
     name: "",
     faction: "amarr",
     race: "hull",
@@ -413,13 +413,13 @@ test("EveChildInstancedMeshes owns shared SOF mesh records without backend state
   assert.throws(() => child.GetMeshInfo(1), RangeError);
   assert.throws(() => child.GetAreaInfo(0, 1), RangeError);
 
-  const values = child.GetValues({ persistOnly: true });
+  const values = CjsSchema.getValues(child, {}, { persistOnly: true });
   assert.equal(values.meshes[0].geometryPath, "res:/extension.gr2");
   assert.equal(values.meshes[0].areas[0].areaIndex, 4);
   assert.deepEqual(values.meshes[0].instances[0].transform.slice(12, 15), [1, 2, 3]);
   assert.deepEqual(values.meshes[0].partTags, [17, 17]);
 
-  const restored = EveChildInstancedMeshes.from(values);
+  const restored = CjsSchema.from("EveChildInstancedMeshes", values);
   assert.ok(restored.meshes[0] instanceof EveChildInstancedMesh);
   assert.ok(restored.meshes[0].areas[0] instanceof EveChildInstancedMeshArea);
   assert.ok(restored.meshes[0].instances[0] instanceof EveChildInstancedMeshInstance);
@@ -533,7 +533,7 @@ test("EveChildMesh acts on what changed, the way Carbon's three tests do", () =>
   child.OnModified();
   assert.deepEqual(calls, []);
   assert.deepEqual(owner.reasons, []);
-  child.SetValues({ translation: [1, 2, 3] });
+  CjsSchema.setValues(child, { translation: [1, 2, 3] });
   assert.deepEqual(owner.reasons, ["partMoved"]);
 });
 

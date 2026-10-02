@@ -1,3 +1,8 @@
+import { INotify } from "../../../global/blue/INotify.js";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
+import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
+import { EveEntity } from "../EveEntity.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildParticleSystem.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import "#blue/registerTrinityEnums";
@@ -19,6 +24,7 @@ import { TimeAsDouble } from "../../../global/blue/CcpTime.js";
 /** A child that hosts particle systems and emitters, driving their transforms, LOD-based particle budgets, and per-frame visibility and render submission. */
 @type.define({ className: "EveChildParticleSystem", family: "eve/child" })
 @carbon.inherit(ITr2Renderable)
+@carbon.inherit(IInitialize, INotify)
 export class EveChildParticleSystem extends EveChildTransform
 {
 
@@ -688,3 +694,6 @@ export class EveChildParticleSystem extends EveChildTransform
   static _systemArgs = new ITr2GenericEmitterUpdateArguments();
 
 }
+
+// EveChildParticleSystem_Blue.cpp: native exposure.
+carbon.interfaceTable({ interfaces: [EveChildParticleSystem, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IInitialize, INotify], chainTo: null })(EveChildParticleSystem, { kind: "class" });

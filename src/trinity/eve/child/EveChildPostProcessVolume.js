@@ -1,3 +1,7 @@
+import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
+import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
+import { EveEntity } from "../EveEntity.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPostProcessVolume.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
@@ -10,6 +14,7 @@ import { EveComponentType } from "../EveComponentTypes.js";
 
 /** A child that unions a set of inclusion and exclusion volumes into a bounding sphere and drives a post-process effect's intensity from the camera's position relative to them. */
 @type.define({ className: "EveChildPostProcessVolume", family: "eve/child" })
+@carbon.inherit(IInitialize)
 export class EveChildPostProcessVolume extends EveChildTransform
 {
 
@@ -328,3 +333,6 @@ export class EveChildPostProcessVolume extends EveChildTransform
   static _cameraInObjectSpace = vec3.create();
 
 }
+
+// EveChildPostProcessVolume_Blue.cpp: native exposure; unported contracts: ITr2PostProcessOwner.
+carbon.interfaceTable({ interfaces: [EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize], chainTo: null })(EveChildPostProcessVolume, { kind: "class" });

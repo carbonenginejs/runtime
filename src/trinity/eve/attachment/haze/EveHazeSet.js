@@ -1,3 +1,5 @@
+import { EveEntity } from "../../EveEntity.js";
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveHazeSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveHazeSet.cpp
 import { box3 } from "#math/box3";
@@ -40,6 +42,7 @@ const BOX_INDICES = [ [ 0, 1, 2, 3 ], [ 7, 6, 5, 4 ], [ 0, 4, 5, 1 ], [ 3, 2, 6,
  * lights the haze emits.
  */
 @type.define({ className: "EveHazeSet", family: "eve/attachment/haze" })
+@carbon.inherit(IInitialize)
 export class EveHazeSet extends IEveSpaceObjectAttachment
 {
 
@@ -401,3 +404,6 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
 
   static _lightRecord = CreateLightRecord();
 }
+
+// EveHazeSet_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
+carbon.interfaceTable({ interfaces: [EveHazeSet, IInitialize, IEveSpaceObjectAttachment, EveEntity], chainTo: null })(EveHazeSet, { kind: "class" });

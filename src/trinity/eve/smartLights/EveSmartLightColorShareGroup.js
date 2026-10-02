@@ -1,3 +1,6 @@
+import { IListNotify } from "../../../global/blue/IListNotify.js";
+import { INotify } from "../../../global/blue/INotify.js";
+import { EveSmartLightBaseGroup } from "./EveSmartLightBaseGroup.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightColorShareGroup.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
@@ -11,6 +14,7 @@ import { BLUELISTEVENT } from "#consts/blue";
 
 /** A smart-light group that computes one shared faction-aware colour, applies it to its child light groups, and fans out their per-frame updates. */
 @type.define({ className: "EveSmartLightColorShareGroup", family: "eve/smartLights" })
+@carbon.inherit(INotify, IListNotify)
 export class EveSmartLightColorShareGroup extends EveEntity
 {
 
@@ -361,3 +365,6 @@ export class EveSmartLightColorShareGroup extends EveEntity
   static _sharedColor = vec4.create();
 
 }
+
+// EveSmartLightColorShareGroup_Blue.cpp: native exposure.
+carbon.interfaceTable({ interfaces: [EveSmartLightColorShareGroup, EveSmartLightBaseGroup, INotify, IListNotify, EveEntity], chainTo: EveSmartLightBaseGroup })(EveSmartLightColorShareGroup, { kind: "class" });

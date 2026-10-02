@@ -1,3 +1,5 @@
+import { EveEntity } from "../../EveEntity.js";
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteLineSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteLineSet.cpp
 import { box3 } from "#math/box3";
@@ -22,6 +24,7 @@ import { EveSpriteSet } from "./EveSpriteSet.js";
  * owning their static and per-bone bounds and the point lights they emit.
  */
 @type.define({ className: "EveSpriteLineSet", family: "eve/attachment/sprites" })
+@carbon.inherit(IInitialize)
 export class EveSpriteLineSet extends IEveSpaceObjectAttachment
 {
 
@@ -361,3 +364,6 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
 
   static _lightRecord = CreateLightRecord();
 }
+
+// EveSpriteLineSet_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
+carbon.interfaceTable({ interfaces: [EveSpriteLineSet, IInitialize, IEveSpaceObjectAttachment, EveEntity], chainTo: null })(EveSpriteLineSet, { kind: "class" });

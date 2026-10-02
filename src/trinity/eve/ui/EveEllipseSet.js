@@ -1,3 +1,6 @@
+import { INotify } from "../../../global/blue/INotify.js";
+import { IEveSpaceObjectChild } from "../child/IEveSpaceObjectChild.js";
+import { EveSpaceObjectChild } from "../child/EveSpaceObjectChild.js";
 // Source: trinity/trinity/Eve/UI/EveEllipseSet.h
 //   trinity/trinity/Eve/UI/EveEllipseSet.cpp
 import { vec3 } from "#math/vec3";
@@ -17,6 +20,7 @@ import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 @type.define({ className: "EveEllipseSet", family: "eve/ui" })
 @carbon.inherit(ITr2Renderable)
 @carbon.inherit(IListNotify)
+@carbon.inherit(IListNotify, INotify)
 export class EveEllipseSet extends EveChildTransform
 {
 
@@ -196,3 +200,6 @@ export class EveEllipseSet extends EveChildTransform
     ellipse.SetDirtyFlag(() => this._MarkGeometryDirty());
   }
 }
+
+// EveEllipseSet_Blue.cpp: native exposure; unported contracts: ITr2Pickable.
+carbon.interfaceTable({ interfaces: [EveEllipseSet, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IListNotify, INotify], chainTo: null })(EveEllipseSet, { kind: "class" });

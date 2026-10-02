@@ -1,3 +1,4 @@
+import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import {readFile} from "node:fs/promises";
@@ -91,7 +92,7 @@ test("real Svipul dynamic bounds survive stance animation and GR2/CMF rebinding"
   const previous=blue.resMan;blue.resMan=new StubResMan();t.after(()=>{blue.resMan=previous;});
   const sof=new EveSOF().Register({lazyData:{source:async path=>{assert.ok(files.has(path),path);return files.get(path);}},resources:{exists:async path=>files.has(path)}});
   const values=await sof.BuildValuesFromDNAAsync("mde3_t3:minmatarbase:minmatar");
-  const ship=EveShip2.from(values);assert.equal(ship.dynamicBoundingSphereEnabled,true);
+  const ship=CjsSchema.from("EveShip2", values);assert.equal(ship.dynamicBoundingSphereEnabled,true);
   const geometry=new TriGeometryRes();geometry.SetPayload(geometry.ReadGrannyFile(bytes));geometry.MarkPrepared();
   ship.mesh.SetGeometryRes(geometry);ship.PrepareForAnimation();
   assert.equal(ship.animationUpdater.GetMeshBoneCount(),30);

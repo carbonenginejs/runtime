@@ -1,3 +1,5 @@
+import { IListNotify } from "../../../../global/blue/IListNotify.js";
+import { INotify } from "../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/LineSetPaths/EveLineChildContainer.h
 // Promoted from generated intake so its required IEveLineSetPath behavior remains explicit.
 import { mat4 } from "#math/mat4";
@@ -10,6 +12,7 @@ import { IEveLineSetPath } from "./IEveLineSetPath.js";
 
 /** Groups line-path children beneath a shared transform with naming and visibility state. */
 @type.define({ className: "EveLineChildContainer", family: "eve/child/lineSetPaths", purpose: "Groups line-path children beneath an EveChildTransform with shared naming and visibility state." })
+@carbon.inherit(INotify, IListNotify)
 export class EveLineChildContainer extends IEveLineSetPath
 {
 
@@ -236,3 +239,6 @@ export class EveLineChildContainer extends IEveLineSetPath
   static _identity = mat4.create();
 
 }
+
+// EveLineChildContainer_Blue.cpp: native exposure.
+carbon.interfaceTable({ interfaces: [EveLineChildContainer, IEveLineSetPath, INotify, IListNotify], chainTo: null })(EveLineChildContainer, { kind: "class" });

@@ -141,3 +141,6 @@ export class EveChildSpherePin extends EveChildMesh
 
 }
 
+
+// EveChildSpherePin_Blue.cpp: native exposure.
+carbon.interfaceTable({ interfaces: [EveChildSpherePin], chainTo: EveChildMesh })(EveChildSpherePin, { kind: "class" });

@@ -41,3 +41,6 @@ export class EveSmartLightSpotLight extends EveSmartLightPointLight
   ];
 
 }
+
+// EveSmartLightSpotLight_Blue.cpp: native exposure.
+carbon.interfaceTable({ interfaces: [EveSmartLightSpotLight], chainTo: EveSmartLightPointLight })(EveSmartLightSpotLight, { kind: "class" });

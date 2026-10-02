@@ -1,3 +1,5 @@
+import { INotify } from "../../../global/blue/INotify.js";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildTurret.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildTurret.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildTurret_Blue.cpp
@@ -47,6 +49,7 @@ function FindJoint(skeletonData, name)
  * serialized scene data - SOF never constructs one.
  */
 @type.define({ className: "EveChildTurret", family: "eve/child" })
+@carbon.inherit(IInitialize, INotify)
 export class EveChildTurret extends EveChildMesh
 {
 
@@ -1255,3 +1258,6 @@ export class EveChildTurret extends EveChildMesh
   static MUZZLECOUNT_MAX = EveTurretFiringFX.MUZZLE_COUNT_MAX;
 
 }
+
+// EveChildTurret_Blue.cpp: native exposure.
+carbon.interfaceTable({ interfaces: [EveChildTurret], chainTo: EveChildMesh })(EveChildTurret, { kind: "class" });

@@ -1,3 +1,5 @@
+import { carbon } from "#schema";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/EveMobile.h
 // Source: trinity/trinity/Eve/SpaceObject/EveMobile.cpp
 import { mat4 } from "#math/mat4";
@@ -22,6 +24,7 @@ import { EveSpaceObject2 } from "./EveSpaceObject2.js";
  */
 @types.define({ className: "EveMobile", family: "eve/spaceObject" })
 @meta.carbon.mapInterface(IEveSpaceObject2, ITr2Renderable, IListNotify)
+@carbon.inherit(IListNotify, IInitialize)
 export class EveMobile extends EveSpaceObject2
 {
   @meta.edit.notify
@@ -500,3 +503,6 @@ export class EveMobile extends EveSpaceObject2
 
 // Native exposure maps the concrete class explicitly.
 meta.carbon.mapInterface(EveMobile)(EveMobile, { kind: "class" });
+
+// EveMobile_Blue.cpp: native exposure.
+carbon.interfaceTable({ interfaces: [EveMobile, IEveSpaceObject2, ITr2Renderable, IListNotify], chainTo: EveSpaceObject2 })(EveMobile, { kind: "class" });

@@ -1,3 +1,4 @@
+import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
@@ -65,12 +66,12 @@ async function assets(t, slots = [1, 2, 8])
     lazyData: { source: async path => { assert.ok(files.has(path), path); return files.get(path); } },
     resources: { exists: async path => files.has(path) }
   });
-  const ship = EveShip2.from(await sof.BuildValuesFromDNAAsync("mde3_t3:minmatarbase:minmatar"));
+  const ship = CjsSchema.from("EveShip2", await sof.BuildValuesFromDNAAsync("mde3_t3:minmatarbase:minmatar"));
   ship.mesh.SetGeometryRes(hullGeometry);
   ship.PrepareForAnimation();
   const sets = slots.map(slot =>
   {
-    const set = EveTurretSet.from(CjsBlackFormat.readPayload(data.turretBytes).object);
+    const set = CjsSchema.from("EveTurretSet", CjsBlackFormat.readPayload(data.turretBytes).object);
     set.geometryResPath = turretGeometryPath;
     set.slotNumber = slot;
     set.lodLevel = EveTurretSet.LOD.LOD_HIGHEST;

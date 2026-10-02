@@ -154,7 +154,7 @@ test("real gc3_t1 SOF ship prepares direct instance providers without an abstrac
   });
   await sof.InitializeAsync();
   const values = await sof.BuildValuesFromDNAAsync("gc3_t1:gallentebase:gallente");
-  const ship = EveShip2.from(values);
+  const ship = CjsSchema.from("EveShip2", values);
   assert.ok(ship);
   const meshes = TriDevice.GetResourcesRegistered().filter(resource =>
     CjsSchema.cast(resource, Tr2InstancedMesh) &&

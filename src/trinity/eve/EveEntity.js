@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/EveEntity.h
 //   trinity/trinity/Eve/EveEntity.cpp
 import { carbon, impl, type } from "#schema";
-import { CjsModel } from "#model";
 
 /**
  * Base for Eve objects that publish themselves to a scene's component registry,
@@ -9,7 +8,7 @@ import { CjsModel } from "#model";
  * assigned for each component type.
  */
 @type.define({ className: "EveEntity", family: "eve" })
-export class EveEntity extends CjsModel
+export class EveEntity
 {
 
   _componentIndexLookup = new Map();
@@ -161,3 +160,6 @@ export class EveEntity extends CjsModel
   }
 
 }
+
+// EveEntity_Blue.cpp: native exposure.
+carbon.interfaceTable({ interfaces: [EveEntity], chainTo: null })(EveEntity, { kind: "class" });

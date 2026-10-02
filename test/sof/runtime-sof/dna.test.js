@@ -1,3 +1,4 @@
+import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { composeStubResMan } from "../../support/stubResMan.js";
 
 // blue.resMan has no source until something configures it, so a test that
@@ -5946,7 +5947,7 @@ test("BuildChild composes modular values with transformed bounds and part tags",
   const audioTrinity = await import(audioTrinityConsumerEntry);
   const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
   const RootClass = registry.GetConstructor(owner._type);
-  const liveOwner = RootClass.from(JSON.parse(JSON.stringify(owner)), { registry });
+  const liveOwner = CjsSchema.from(CjsSchema.getClassName(RootClass), JSON.parse(JSON.stringify(owner)), { registry });
   assert.equal(sof.BuildChild(
     liveOwner,
     "rifter:minmatar:minmatar",
@@ -5954,7 +5955,7 @@ test("BuildChild composes modular values with transformed bounds and part tags",
     transform,
     { registry },
   ), true);
-  const liveValues = liveOwner.GetValues({ refs: true, forceTypeTags: true });
+  const liveValues = CjsSchema.getValues(liveOwner, {}, { refs: true, forceTypeTags: true });
   const liveShared = liveValues.effectChildren.find(child => child._type === "EveChildInstancedMeshes");
   assert.deepEqual(liveShared.meshes[0].partTags, [23]);
   assert.deepEqual(liveValues.boundingSphereCenter, [4, 22, 42]);
@@ -6064,7 +6065,7 @@ test("BuildValuesFromDNA emits plain model values with parity to document hydrat
   // deprecated document compatibility path; shared identity is restored in
   // both.
   const RootClass = registry.GetConstructor(transported._type);
-  const fromValues = RootClass.from(transported, { registry });
+  const fromValues = CjsSchema.from(CjsSchema.getClassName(RootClass), transported, { registry });
   const hydratedSets = fromValues.attachments.filter(item => item.constructor.name === "EveSpriteSet");
   assert.equal(hydratedSets[0].effect, hydratedSets[1].effect);
 
@@ -6072,8 +6073,8 @@ test("BuildValuesFromDNA emits plain model values with parity to document hydrat
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry, adapter: createSofHydrationAdapter() });
   assert.deepEqual(hydrated.reports, []);
   assert.deepEqual(
-    fromValues.GetValues({ refs: true, typeTags: true }),
-    hydrated.root.GetValues({ refs: true, typeTags: true })
+    CjsSchema.getValues(fromValues, {}, { refs: true, typeTags: true }),
+    CjsSchema.getValues(hydrated.root, {}, { refs: true, typeTags: true })
   );
 });
 
@@ -6116,7 +6117,7 @@ test("values projection carries the audio emitter as a declared node", {
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry, adapter: createSofHydrationAdapter() });
   assert.deepEqual(hydrated.reports, []);
   const RootClass = registry.GetConstructor(values._type);
-  const fromValues = RootClass.from(JSON.parse(JSON.stringify(values)), { registry });
+  const fromValues = CjsSchema.from(CjsSchema.getClassName(RootClass), JSON.parse(JSON.stringify(values)), { registry });
   // The two graphs are built independently, so two things can differ without
   // the paths disagreeing: AudEmitter carries a per-instance runtime counter
   // that increments per construction, and a negated zero in a vector component
@@ -6129,8 +6130,8 @@ test("values projection carries the audio emitter as a declared node", {
     return Object.is(item, -0) ? 0 : item;
   }));
   assert.deepEqual(
-    forParity(fromValues.GetValues({ refs: true, typeTags: true })),
-    forParity(hydrated.root.GetValues({ refs: true, typeTags: true }))
+    forParity(CjsSchema.getValues(fromValues, {}, { refs: true, typeTags: true })),
+    forParity(CjsSchema.getValues(hydrated.root, {}, { refs: true, typeTags: true }))
   );
 });
 

@@ -1,3 +1,5 @@
+import { EveEntity } from "../../EveEntity.js";
+import { IEveSpaceObjectChild } from "../IEveSpaceObjectChild.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstancedMeshes.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstancedMeshes.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstancedMeshes_Blue.cpp
@@ -1595,3 +1597,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   }
 
 }
+
+// EveChildInstancedMeshes_Blue.cpp: native exposure; unported contracts: IEveShadowCaster.
+carbon.interfaceTable({ interfaces: [EveChildInstancedMeshes, EveSpaceObjectChild, IEveSpaceObjectChild, EveEntity, ITr2Renderable], chainTo: null })(EveChildInstancedMeshes, { kind: "class" });

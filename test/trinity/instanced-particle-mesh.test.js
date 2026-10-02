@@ -1,3 +1,4 @@
+import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import {readFile} from "node:fs/promises";
@@ -118,9 +119,9 @@ test("real green Crisis smoke on two hulls reaches a nonzero instanced stub draw
     const values=CjsBlackFormat.readPayload(bytes).object;
     let child;
     if(file.startsWith("angbc")){
-      child=EveChildParticleSystem.from(values.objects[2].objects[0]);child.particleEmitters[0].UpdateSimulation(4);
+      child=CjsSchema.from("EveChildParticleSystem", values.objects[2].objects[0]);child.particleEmitters[0].UpdateSimulation(4);
     }else{
-      const root=EveChildContainer.from(values),ship=new EveShip2();CjsModel.addChild(ship,"effectChildren",root);
+      const root=CjsSchema.from("EveChildContainer", values),ship=new EveShip2();CjsModel.addChild(ship,"effectChildren",root);
       child=root.objects[1].objects[0];ship.lodLevel=3;ship.isVisible=true;ship.StartControllers();
       const update=new EveUpdateContext();
       const zapMax=root.objects[4].objects.map(()=>0);
@@ -173,7 +174,7 @@ test("every CPU particle declaration in the copied Crisis and VDS graphs fits it
   setup(t);
   for (const file of ["angbc1_t1_crisis_fx.black","angde1_t1_crisis_fx.black","vds_trail_fire_01a.black"]) {
     const values=CjsBlackFormat.readPayload(await readFile(join(corpus,file))).object;
-    const root=EveChildContainer.from(values),systems=new Set(),seen=new Set();
+    const root=CjsSchema.from("EveChildContainer", values),systems=new Set(),seen=new Set();
     function visit(child) {
       if(!child||seen.has(child))return;seen.add(child);
       for(const p of child.particleSystems??[])systems.add(p);
@@ -268,7 +269,7 @@ test("real Mabebu traffic geometry hydrates and submits nonzero instances from w
     provider.SetPayload(provider.ReadGrannyFile(await readFile(join(mabebuCorpus,"gfr1_mabebu_traffic.gr2"))));
     if(warm){base.MarkPrepared();provider.MarkPrepared();}
     blue.resMan=new StubResMan(path=>path.endsWith("gfr1_mabebu_traffic.gr2")?provider:base);
-    const root=EveChildContainer.from(values),child=root.objects[0],mesh=child.mesh;
+    const root=CjsSchema.from("EveChildContainer", values),child=root.objects[0],mesh=child.mesh;
     assert.equal(child.name,"traffic");assert.equal(mesh.GetInstanceGeometryResource(),provider);
     assert.deepEqual(provider.GetMeshVertexElements(0).map(element=>element.elementCount),[4,4],"authored Position4 and TexCoord4 survive projection");
     if(!warm){base.MarkPrepared();provider.MarkPrepared();}
@@ -303,7 +304,7 @@ test("real angde1 and angbc2 warp electricity draws repeatedly while kill lightn
       ticks=100*1e7;let seed=123456789;
       Math.random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
       const registered=new Set(TriDevice.GetResourcesRegistered());
-      const root=EveChildContainer.from(CjsBlackFormat.readPayload(bytes).object),ship=new EveShip2();
+      const root=CjsSchema.from("EveChildContainer", CjsBlackFormat.readPayload(bytes).object),ship=new EveShip2();
       CjsModel.addChild(ship,"effectChildren",root);
       const electric=root.objects.find(child=>child.name==="Electric"),owners=[];
       electric.Traverse(child=>{if(child.particleEmitters?.length)owners.push(child);});

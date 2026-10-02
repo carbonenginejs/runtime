@@ -1,3 +1,6 @@
+import { EveEntity } from "../../EveEntity.js";
+import { INotify } from "../../../../global/blue/INotify.js";
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EvePlaneSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EvePlaneSet.cpp
 import { box3 } from "#math/box3";
@@ -50,6 +53,7 @@ const PLANE_VERTEX_SIZE = 108;
  * the four shared texture parameters and the plane lights.
  */
 @type.define({ className: "EvePlaneSet", family: "eve/attachment/planes" })
+@carbon.inherit(IInitialize, INotify)
 export class EvePlaneSet extends IEveSpaceObjectAttachment
 {
   /** Carbon EvePlaneSet.cpp:116: only the pick buffer change rebuilds. */
@@ -547,3 +551,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
 
   static _averageColorScratch = new Float32Array(4);
 }
+
+// EvePlaneSet_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
+carbon.interfaceTable({ interfaces: [EvePlaneSet, IInitialize, INotify, IEveSpaceObjectAttachment, EveEntity], chainTo: null })(EvePlaneSet, { kind: "class" });

@@ -79,7 +79,7 @@ test("real Aurora requests its absent authored plug and preserves its owner on f
   const echo = (channel,type,data,message) => messages.push(message);
   CcpLog.RegisterLogEcho(echo);
   t.after(() => CcpLog.UnregisterLogEcho(echo));
-  const root = EveChildContainer.from(CjsBlackFormat.readPayload(bytes).object);
+  const root = CjsSchema.from("EveChildContainer", CjsBlackFormat.readPayload(bytes).object);
   const aurora = root.objects.find(child=>child.name==="Aurora");
   assert.ok(aurora);
   const authored = "res:/dx9/model/Shared/fx/Skin/PLUG_Aurora01.red";

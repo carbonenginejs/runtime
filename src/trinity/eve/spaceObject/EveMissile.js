@@ -1,3 +1,5 @@
+import { carbon } from "#schema";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/EveMissile.h
 // Source: trinity/trinity/Eve/SpaceObject/EveMissile.cpp
 import { mat4 } from "#math/mat4";
@@ -19,6 +21,7 @@ import { EveMissileWarhead } from "./EveMissileWarhead.js";
  * it, own the targeting state and supply the missile bounds.
  */
 @types.define({ className: "EveMissile", family: "eve/spaceObject" })
+@carbon.inherit(IInitialize)
 export class EveMissile extends EveSpaceObject2
 {
   @meta.edit.read

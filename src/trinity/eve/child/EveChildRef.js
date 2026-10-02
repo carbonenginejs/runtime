@@ -1,3 +1,9 @@
+import { EveEntity } from "../EveEntity.js";
+import { ITr2SoundEmitterOwner } from "../ITr2SoundEmitterOwner.js";
+import { INotify } from "../../../global/blue/INotify.js";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
+import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildRef.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildRef.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -19,6 +25,7 @@ import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
  * child joins (registered and forwarded to) once the file has loaded.
  */
 @type.define({ className: "EveChildRef", family: "eve/child" })
+@carbon.inherit(IInitialize, INotify)
 export class EveChildRef extends EveChildTransform
 {
 
@@ -433,3 +440,6 @@ export class EveChildRef extends EveChildTransform
   }
 
 }
+
+// EveChildRef_Blue.cpp: native exposure; unported contracts: IEveEffectChildrenOwner, IShaderConfigurer.
+carbon.interfaceTable({ interfaces: [EveChildRef, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, ITr2SoundEmitterOwner, EveEntity], chainTo: null })(EveChildRef, { kind: "class" });

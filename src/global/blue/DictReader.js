@@ -223,6 +223,7 @@ export class DictReader extends IRootReaderBase
       return instance;
     }
     if (!IsPlainObject(source)) this._ThrowError("Expected a dictionary");
+    if (IsReference(source)) this._ThrowError(`Unresolved root _ref ${JSON.stringify(source._ref)}`);
 
     const Constructor = this._ResolveClass(source._type, Declared);
     this._contextStack[this._contextStack.length - 1] += `(${CjsSchema.getClassName(Constructor)})`;

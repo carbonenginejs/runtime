@@ -1,3 +1,8 @@
+import { carbon } from "#schema";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
+import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
+import { EveEntity } from "../EveEntity.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildFogVolume.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildFogVolume.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildFogVolume_Blue.cpp
@@ -50,6 +55,7 @@ function createFroxelFogSettings()
  * it owns.
  */
 @type.define({ className: "EveChildFogVolume", family: "eve/child" })
+@carbon.inherit(IInitialize)
 export class EveChildFogVolume extends ITr2FroxelFogSettings
 {
   _fogIntensity = 0;
@@ -409,3 +415,6 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
     this.boundingSphereRadius = radius;
   }
 }
+
+// EveChildFogVolume_Blue.cpp: native exposure.
+carbon.interfaceTable({ interfaces: [ITr2FroxelFogSettings, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize], chainTo: null })(EveChildFogVolume, { kind: "class" });

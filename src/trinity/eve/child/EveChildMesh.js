@@ -1,3 +1,7 @@
+import { INotify } from "../../../global/blue/INotify.js";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
+import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh_Blue.cpp
@@ -63,6 +67,7 @@ const NO_BONE_TRANSFORMS = { bones: null, boneCount: 0 };
 @type.define({ className: "EveChildMesh", family: "eve/child" })
 @carbon.inherit(ITr2Renderable)
 @carbon.inherit(IListNotify)
+@carbon.inherit(IInitialize, INotify, IListNotify)
 export class EveChildMesh extends EveChildTransform
 {
   _isMorphsBaked = false;
@@ -2027,3 +2032,6 @@ function NormalizeMorphFilter(value)
   if (filter === 0 || filter === 1 || filter === 2) return filter;
   throw new TypeError(`Unsupported EveChildMesh morph target filter "${value}"`);
 }
+
+// EveChildMesh_Blue.cpp: native exposure; unported contracts: IEveSpaceObjectDecalOwner, ITr2GrannyAnimationOwner, IEveSpaceObjectAttachmentOwner, ITr2LightOwner, ITr2Pickable, IEveShadowCaster.
+carbon.interfaceTable({ interfaces: [EveChildMesh, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IInitialize, INotify], chainTo: null })(EveChildMesh, { kind: "class" });

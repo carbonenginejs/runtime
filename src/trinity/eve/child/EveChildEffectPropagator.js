@@ -1,3 +1,4 @@
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp
@@ -57,6 +58,7 @@ function SortByCircleDist(lhs, rhs)
 
 /** EveChildEffectPropagator (eve/child) - generated from schema shapeHash 0f2a96e8.... */
 @type.define({ className: "EveChildEffectPropagator", family: "eve/child" })
+@carbon.inherit(INotify, IInitialize)
 export class EveChildEffectPropagator extends EveChildContainer
 {
 

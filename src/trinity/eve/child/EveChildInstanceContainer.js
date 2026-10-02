@@ -1,3 +1,9 @@
+import { IListNotify } from "../../../global/blue/IListNotify.js";
+import { ITr2ControllerOwner } from "../../controllers/ITr2ControllerOwner.js";
+import { INotify } from "../../../global/blue/INotify.js";
+import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
+import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
+import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceContainer.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type, CjsSchema } from "#schema";
@@ -19,6 +25,7 @@ import { blue } from "#blue";
 /** A child that instantiates a source template across a list of authored or locator-driven transforms, forwarding controller and registration calls to the instances. */
 @type.define({ className: "EveChildInstanceContainer", family: "eve/child" })
 @carbon.mapInterface(EveEntity)
+@carbon.inherit(INotify, IListNotify)
 export class EveChildInstanceContainer extends EveChildTransform
 {
 
@@ -524,3 +531,6 @@ export class EveChildInstanceContainer extends EveChildTransform
   static Origin = Origin;
 
 }
+
+// EveChildInstanceContainer_Blue.cpp: native exposure; unported contracts: IEveEffectChildrenOwner, IShaderConfigurer.
+carbon.interfaceTable({ interfaces: [EveChildInstanceContainer, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, INotify, ITr2ControllerOwner, IListNotify, EveEntity], chainTo: null })(EveChildInstanceContainer, { kind: "class" });

@@ -52,7 +52,7 @@ test("a reference cycle initializes each model once and terminates", (t) =>
   const system = values.mesh.instanceGeometryResource;
   system.emitParticleOnDeathEmitter = { _ref: values.particleEmitters[0]._id };
 
-  const built = EveChildParticleSystem.from(values);
+  const built = CjsSchema.from("EveChildParticleSystem", values);
   const emitter = built.particleEmitters[0];
 
   assert.equal(emitter.particleSystem.emitParticleOnDeathEmitter, emitter, "the cycle is intact");

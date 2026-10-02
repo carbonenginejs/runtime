@@ -1,3 +1,4 @@
+import { carbon } from "#schema";
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch3.h
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch3.cpp
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch3_Blue.cpp
@@ -39,6 +40,7 @@ import { mergeSphere, translationMatrix } from "./CjsStretchRuntime.js";
 @meta.carbon.mapInterface(INotify, IListNotify, IInitialize, IEveSpaceObject2,
   IEveFiringEffectElement, ITr2ControllerOwner, ITr2CurveSetOwner,
   ITr2DynamicBindingOwner, ITr2SoundEmitterOwner, EveEntity)
+@carbon.inherit(INotify, IListNotify, IInitialize)
 export class EveStretch3 extends IEveFiringEffectElement
 {
   @meta.edit.read
@@ -1106,3 +1108,6 @@ export class EveStretch3 extends IEveFiringEffectElement
 
 // Native exposure includes the concrete class itself; JS has no implicit self mapping.
 meta.carbon.mapInterface(EveStretch3)(EveStretch3);
+
+// EveStretch3_Blue.cpp: native exposure.
+carbon.interfaceTable({ interfaces: [EveStretch3, INotify, IListNotify, IInitialize, IEveSpaceObject2, IEveFiringEffectElement, ITr2ControllerOwner, ITr2CurveSetOwner, ITr2DynamicBindingOwner, ITr2SoundEmitterOwner, EveEntity], chainTo: null })(EveStretch3, { kind: "class" });

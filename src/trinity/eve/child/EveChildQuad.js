@@ -1,3 +1,6 @@
+import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
+import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildQuad.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
@@ -15,6 +18,7 @@ import { Tr2VertexDefinition } from "../../core/vertex/Tr2VertexDefinition/index
 /** A billboard quad child that renders through the shared quad renderer's additive instance batch rather than the normal render-batch path. */
 @type.define({ className: "EveChildQuad", family: "eve/child" })
 @carbon.inherit(ITr2Renderable)
+@carbon.inherit(IInitialize)
 export class EveChildQuad extends EveChildTransform
 {
 
@@ -399,3 +403,6 @@ export class EveChildQuad extends EveChildTransform
   static _sphere = vec4.create();
 
 }
+
+// EveChildQuad_Blue.cpp: native exposure.
+carbon.interfaceTable({ interfaces: [EveChildQuad, EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize], chainTo: null })(EveChildQuad, { kind: "class" });

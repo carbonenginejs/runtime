@@ -1,3 +1,11 @@
+import { INotify } from "../../../../global/blue/INotify.js";
+import { EveEntity } from "../../EveEntity.js";
+import { ITr2SoundEmitterOwner } from "../../ITr2SoundEmitterOwner.js";
+import { IListNotify } from "../../../../global/blue/IListNotify.js";
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
+import { ITr2CurveSetOwner } from "../../../curves/ITr2CurveSetOwner.js";
+import { IEveSpaceObjectChild } from "../IEveSpaceObjectChild.js";
+import { EveSpaceObjectChild } from "../EveSpaceObjectChild.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/EveChildProceduralContainer.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { CjsSchema, carbon, impl, edit, type } from "#schema";
@@ -13,6 +21,7 @@ import { Tr2Lod } from "../../EveLODHelper.js";
 /** EveChildProceduralContainer (eve/child/procedural) - generated from schema shapeHash 91d6cbc5.... */
 @type.define({ className: "EveChildProceduralContainer", family: "eve/child/procedural" })
 @carbon.inherit(IEveInheritPropertiesOwner)
+@carbon.inherit(IInitialize, IListNotify, INotify)
 export class EveChildProceduralContainer extends EveChildTransform
 {
 
@@ -466,3 +475,6 @@ export class EveChildProceduralContainer extends EveChildTransform
   }
 
 }
+
+// EveChildProceduralContainer_Blue.cpp: native exposure; unported contracts: IShaderConfigurer.
+carbon.interfaceTable({ interfaces: [EveChildProceduralContainer, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, IListNotify, ITr2SoundEmitterOwner, IEveInheritPropertiesOwner, EveEntity], chainTo: null })(EveChildProceduralContainer, { kind: "class" });

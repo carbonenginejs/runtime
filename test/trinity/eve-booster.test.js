@@ -111,13 +111,13 @@ test("EveBoosterSet2 builds Carbon booster, glow, trail, light, and bounds CPU d
   assert.equal(trails.GetTrailData().length, 1);
   assertVecNear(trails.GetTrailData()[0].transform.slice(12, 15), [10, 20, 29.5]);
 
-  boosters.SetValues({ staticTrailLength: 40 });
+  CjsSchema.setValues(boosters, { staticTrailLength: 40 });
   assertVecNear(boosters.trailsStaticOffsets0, [0, 0, 0]);
   assertVecNear(boosters.trailsStaticOffsets4, [0, 0, -40]);
-  boosters.SetValues({ glowScale: 2.5 });
+  CjsSchema.setValues(boosters, { glowScale: 2.5 });
   assert.equal(glows.sprites.length, 3);
 
-  boosters.SetValues({ flareLodEnabled: false });
+  CjsSchema.setValues(boosters, { flareLodEnabled: false });
   assert.equal(glows.sprites.length, 3);
 
   const dataSnapshot = boosters.GetBoosterData();
@@ -127,10 +127,10 @@ test("EveBoosterSet2 builds Carbon booster, glow, trail, light, and bounds CPU d
   assert.equal(boosters.boosterBoundingSphereCenter.length, 3);
   assert.deepEqual(EveBoosterSet2.Shape, { STAR: 0, BOX: 1, SHAPE_COUNT: 2 });
 
-  const values = boosters.GetValues({ persistOnly: true });
+  const values = CjsSchema.getValues(boosters, {}, { persistOnly: true });
   assert.equal(values.items.length, 1);
   assert.equal(values.items[0].lightScale, 2);
-  const restored = EveBoosterSet2.from({
+  const restored = CjsSchema.from("EveBoosterSet2", {
     lightOffset: values.lightOffset,
     items: values.items
   });
@@ -175,7 +175,7 @@ test("EveBoosterSet2Renderable follows Carbon intensity damping and owner update
   boosters.Update(1, 0, mat4.create(), 0, [0, 0, 0], [0, 0, 0, 1], 1);
   assert.equal(boosters.GetBoosterIntensity(1), 1.25);
   assert.equal(boosters.Initialize(), true);
-  assert.doesNotThrow(() => JSON.stringify(boosters.GetValues()));
+  assert.doesNotThrow(() => JSON.stringify(CjsSchema.getValues(boosters, {})));
 });
 
 test("EveBoosterSet2Renderable maintains Carbon trail spline CPU data", () =>
@@ -186,7 +186,7 @@ test("EveBoosterSet2Renderable maintains Carbon trail spline CPU data", () =>
   boosters.SetCount(1);
   boosters.physicsUpdate = false;
   boosters.alwaysOn = true;
-  boosters.SetValues({ staticTrailLength: 40 });
+  CjsSchema.setValues(boosters, { staticTrailLength: 40 });
   boosters.Add(mat4.create(), [0, 1, 1, 1], true, 0, 0, 1);
 
   const parentTransform = mat4.fromTranslation(mat4.create(), [10, 20, 30]);
@@ -242,16 +242,16 @@ test("EveBoosterSet2Renderable preserves Carbon trail fades and fixed-step motio
   ];
   for (const [length, intensity] of samples)
   {
-    boosters.SetValues({ staticTrailLength: length });
+    CjsSchema.setValues(boosters, { staticTrailLength: length });
     boosters.UpdateTrails(1, 0);
     assert.ok(Math.abs(boosters.instances[0].trailIntensity - intensity) < 1e-6,
       `length ${length}`);
   }
 
-  boosters.SetValues({ staticTrailLength: 400 });
+  CjsSchema.setValues(boosters, { staticTrailLength: 400 });
   boosters.UpdateTrails(1, 0);
   const before = boosters.instances[0].GetTrailSplineData();
-  boosters.SetValues({ staticTrailLength: 100 });
+  CjsSchema.setValues(boosters, { staticTrailLength: 100 });
   boosters.UpdateTrails(0, 0);
   const after = boosters.instances[0].GetTrailSplineData();
   assert.deepEqual(after.positions, before.positions);
@@ -423,9 +423,9 @@ test("static trail offsets are rebuilt only while glows are attached", () =>
 {
   const boosters = new EveBoosterSet2();
   const before = Array.from(boosters.trailsStaticOffsets4);
-  boosters.SetValues({ staticTrailLength: 40 });
+  CjsSchema.setValues(boosters, { staticTrailLength: 40 });
   assert.deepEqual(Array.from(boosters.trailsStaticOffsets4), before);
   boosters.SetGlow(new EveSpriteSet());
-  boosters.SetValues({ staticTrailLength: 80 });
+  CjsSchema.setValues(boosters, { staticTrailLength: 80 });
   assert.notDeepEqual(Array.from(boosters.trailsStaticOffsets4), before);
 });

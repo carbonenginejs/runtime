@@ -81,7 +81,7 @@ async function assets(t)
   blue.resMan=manager;t.after(()=>{blue.resMan=previous;});
   const makeResource=(prepared=true)=>{const value=new TriGeometryRes();value.SetPayload(value.ReadGrannyFile(bytes));if(prepared)value.MarkPrepared();return value;};
   const resource=makeResource();resources.set(geometryPath,resource);
-  const set=EveTurretSet.from(CjsBlackFormat.readPayload(turretBytes).object);set.geometryResPath=geometryPath;set.lodLevel=EveTurretSet.LOD.LOD_HIGHEST;set.slotNumber=1;
+  const set=CjsSchema.from("EveTurretSet", CjsBlackFormat.readPayload(turretBytes).object);set.geometryResPath=geometryPath;set.lodLevel=EveTurretSet.LOD.LOD_HIGHEST;set.slotNumber=1;
   t.after(()=>{set.ReleaseResources();TriDevice.UnregisterResource(set);});
   const ship=new EveShip2();ship.locators=hull.locatorTurrets.map(value=>CjsSchema.from("EveLocator2", value));ship.turretSets.push(set);
   return {set,ship,resource,makeResource,resources,requests,hull};
@@ -311,7 +311,7 @@ for(const geometryFirst of [false,true])test(`real muzzle binding handles ${geom
   const {set,ship}=await assets(t);ship.RebuildTurretPositions();
   set.geometryResPath="";set.InitializeGeometryResource();assert.equal(set.geometryResource,null);
   const bytes=await readFile(join(corpus,"pulse_mega_fx.black"));assert.equal(createHash("sha256").update(bytes).digest("hex"),"ec84e9ee2b9d9af295dff3ad7ad79551e8785027fd30a5121d4d92eaa31a1eb2");
-  const effect=EveTurretFiringFX.from(CjsBlackFormat.readPayload(bytes).object);
+  const effect=CjsSchema.from("EveTurretFiringFX", CjsBlackFormat.readPayload(bytes).object);
   const duration=effect.firingDuration,initialize=t.mock.method(effect,"Initialize");
   const loadGeometry=()=>{set.geometryResPath=geometryPath;set.Initialize();};
   if(geometryFirst)loadGeometry();set.firingEffect=effect;if(!geometryFirst)loadGeometry();
@@ -340,7 +340,7 @@ for(const geometryFirst of [false,true])test(`real muzzle binding handles ${geom
 test("native missing-joint and unloaded-pose muzzle fallbacks preserve transform order and effect registry",{skip},async t=>
 {
   const {set,ship,resource}=await assets(t);ship.RebuildTurretPositions();set.Initialize();
-  const bytes=await readFile(join(corpus,"pulse_mega_fx.black")),makeEffect=()=>EveTurretFiringFX.from(CjsBlackFormat.readPayload(bytes).object);
+  const bytes=await readFile(join(corpus,"pulse_mega_fx.black")),makeEffect=()=>CjsSchema.from("EveTurretFiringFX", CjsBlackFormat.readPayload(bytes).object);
   const registry=new EveComponentRegistry();set.Register(registry);
   const old=makeEffect(),effect=makeEffect();set.firingEffect=old;set.firingEffect=effect;
   assert.equal(old.GetComponentRegistry(),null);assert.ok(effect.GetComponentRegistry()===registry);
@@ -367,7 +367,7 @@ test("first actual firing without an active turret initializes muzzle positions 
 {
   const {set,ship}=await assets(t);ship.RebuildTurretPositions();set.Initialize();
   const bytes=await readFile(join(corpus,"pulse_mega_fx.black"));
-  const effect=EveTurretFiringFX.from(CjsBlackFormat.readPayload(bytes).object);set.SetFiringEffect(effect);
+  const effect=CjsSchema.from("EveTurretFiringFX", CjsBlackFormat.readPayload(bytes).object);set.SetFiringEffect(effect);
   const parent=mat4.fromTranslation(mat4.create(),[80,20,-30]);
   effect.PrepareFiring(0);set.UpdateAsyncronous(updateContext({deltaTime:.1,currentTime:1}),parent);
   assert.equal(set._firingEffectMuzzlePosSet,false,"no active turret: do not replace the muzzle with a closest mount during update");
@@ -663,7 +663,7 @@ async function pulseStateAssets(t)
   set.Initialize();
   const bytes = await readFile(join(corpus, "pulse_mega_fx.black"));
   assert.equal(createHash("sha256").update(bytes).digest("hex"), "ec84e9ee2b9d9af295dff3ad7ad79551e8785027fd30a5121d4d92eaa31a1eb2");
-  const effect = EveTurretFiringFX.from(CjsBlackFormat.readPayload(bytes).object);
+  const effect = CjsSchema.from("EveTurretFiringFX", CjsBlackFormat.readPayload(bytes).object);
   set.firingEffect = effect;
   set.useRandomFiringDelay = false;
   set.chooseRandomLocator = false;

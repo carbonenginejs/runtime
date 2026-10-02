@@ -1,3 +1,4 @@
+import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import {readFile} from "node:fs/promises";
@@ -35,7 +36,7 @@ test("real Crisis Angel destroyer bone children follow all warp clips through no
   assert.equal(createHash("md5").update(fx).digest("hex"),"007204e6136609a2969ddb38e7a57a8d");
   const ship=new EveShip2(),mesh=new Tr2Mesh(),geometry=new TriGeometryRes();
   geometry.SetPayload(geometry.ReadGrannyFile(bytes));geometry.MarkPrepared();mesh.SetGeometryRes(geometry);ship.SetMesh(mesh);
-  const crisis=EveChildContainer.from(CjsBlackFormat.readPayload(fx).object);
+  const crisis=CjsSchema.from("EveChildContainer", CjsBlackFormat.readPayload(fx).object);
   CjsModel.addChild(ship,"effectChildren",crisis);
   ship.lodLevel=Tr2Lod.TR2_LOD_HIGH;ship.isVisible=true;
   const updater=ship.animationUpdater;

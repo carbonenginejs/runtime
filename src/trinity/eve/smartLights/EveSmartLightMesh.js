@@ -1,3 +1,7 @@
+import { IListNotify } from "../../../global/blue/IListNotify.js";
+import { INotify } from "../../../global/blue/INotify.js";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightMesh.h
 //   trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightMesh.cpp
 //   trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightMesh_Blue.cpp
@@ -32,6 +36,7 @@ import { BLUELISTEVENT } from "#consts/blue";
   "partTag",
   "distribution"
 ])
+@carbon.inherit(IInitialize, INotify, IListNotify)
 export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
 {
   @edit.readwrite
@@ -378,3 +383,6 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
 
   static _firstRotationQuaternion = quat.create();
 }
+
+// EveSmartLightMesh_Blue.cpp: native exposure; unported contracts: IEveSmartLightGroup, IEveShadowCaster.
+carbon.interfaceTable({ interfaces: [EveSmartLightMesh, EveChildInstanceMeshRenderer, ITr2Renderable, IInitialize, INotify], chainTo: null })(EveSmartLightMesh, { kind: "class" });

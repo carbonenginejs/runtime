@@ -1,3 +1,5 @@
+import { INotify } from "../../../../global/blue/INotify.js";
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch2.h
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch2.cpp
 import { mat4 } from "#math/mat4";
@@ -52,6 +54,7 @@ const STRETCH_VERTEX_DECL = [ { usage: Tr2VertexUsageCode.POSITION, usageIndex: 
 @type.define({ className: "EveStretch2", family: "eve/renderable/stretch" })
 @carbon.inherit(ITr2Renderable)
 @carbon.mapInterface(EveEntity)
+@carbon.inherit(IInitialize, INotify)
 export class EveStretch2 extends IEveFiringEffectElement
 {
   static MAX_QUAD_COUNT = 128;
@@ -510,3 +513,6 @@ export class EveStretch2 extends IEveFiringEffectElement
 
   static _destinationEmitterArguments = new ITr2GenericEmitterUpdateArguments();
 }
+
+// EveStretch2_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
+carbon.interfaceTable({ interfaces: [EveStretch2, ITr2Renderable, IEveFiringEffectElement, IInitialize, INotify, EveEntity], chainTo: null })(EveStretch2, { kind: "class" });

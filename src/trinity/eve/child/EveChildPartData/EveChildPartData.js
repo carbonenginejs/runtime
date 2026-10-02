@@ -1,3 +1,5 @@
+import { carbon } from "#schema";
+import { IEveSpaceObjectChild } from "../IEveSpaceObjectChild.js";
 // Carbon source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData.h
 // Carbon source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData.cpp
 // Carbon source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData_Blue.cpp
@@ -45,3 +47,6 @@ export class EveChildPartData extends EveSpaceObjectChild
 
   static PartData = EveChildPartDataPartData;
 }
+
+// EveChildPartData_Blue.cpp: native exposure.
+carbon.interfaceTable({ interfaces: [EveSpaceObjectChild, IEveSpaceObjectChild], chainTo: EveSpaceObjectChild })(EveChildPartData, { kind: "class" });

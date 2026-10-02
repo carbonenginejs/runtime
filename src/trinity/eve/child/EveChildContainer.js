@@ -1,10 +1,14 @@
+import { INotify } from "../../../global/blue/INotify.js";
+import { IListNotify } from "../../../global/blue/IListNotify.js";
+import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
+import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp
 import { EveEntity } from "../EveEntity.js";
 import { IInitialize } from "#blue/IInitialize";
 import { BLUELISTEVENT } from "#consts/blue";
-import { CjsModel } from "#model";
+import { addChild, removeChild, clearChildren } from "../../../global/blue/children.js";
 import { mat4 } from "#math/mat4";
 import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
 import { quat } from "#math/quat";
@@ -48,6 +52,7 @@ const ZERO_VEC3 = vec3.create();
 @type.define({ className: "EveChildContainer", family: "eve/child" })
 @carbon.inherit(ITr2Renderable, ITr2CurveSetOwner, IInitialize, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner)
 @carbon.mapInterface(EveEntity, IInitialize, ITr2CurveSetOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner)
+@carbon.inherit(IInitialize, IListNotify, INotify)
 export class EveChildContainer extends EveChildTransform
 {
   @edit.notify
@@ -400,7 +405,7 @@ export class EveChildContainer extends EveChildTransform
   AddController(controller)
   {
     // The link and the variable replay are the INSERTED arm (cpp:119-128).
-    CjsModel.addChild(this, "controllers", controller);
+    addChild(this, "controllers", controller, { listNotify: this });
   }
 
   /**
@@ -609,20 +614,20 @@ export class EveChildContainer extends EveChildTransform
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through CjsModel.addChild rather than the list driving it.")
+  @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through the shared child service rather than the list driving it.")
   AddToEffectChildrenList(child)
   {
-    CjsModel.addChild(this, "objects", child);
+    addChild(this, "objects", child, { listNotify: this });
     return child;
   }
 
   /** Removes a child by identity; the unregistration is the REMOVED arm's. */
   @carbon.method
   @impl.adapted
-  @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through CjsModel.removeChild rather than the list driving it.")
+  @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through the shared child service rather than the list driving it.")
   RemoveFromEffectChildrenList(child)
   {
-    return CjsModel.removeChild(this, "objects", child);
+    return removeChild(this, "objects", child, { listNotify: this });
   }
 
   /**
@@ -676,7 +681,7 @@ export class EveChildContainer extends EveChildTransform
   AddAttachment(attachment)
   {
     // Registering the attachment as an entity is the hook (cpp:180-210).
-    CjsModel.addChild(this, "attachments", attachment);
+    addChild(this, "attachments", attachment, { listNotify: this });
   }
 
   /**
@@ -1619,3 +1624,6 @@ blue.enums.RegisterEnum("trinity.EveSpaceObjectChild.Origin", EveChildContainer.
     { name: "SOF", value: EveChildContainer.Origin.SOF, description: "Origin in SOF" }
   ]
 });
+
+// EveChildContainer_Blue.cpp: native exposure; unported contracts: ITr2LightOwner, IEveEffectChildrenOwner, IShaderConfigurer, IEveSpaceObjectAttachmentOwner.
+carbon.interfaceTable({ interfaces: [EveChildContainer, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, IListNotify, INotify, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner, ITr2Renderable], chainTo: null })(EveChildContainer, { kind: "class" });

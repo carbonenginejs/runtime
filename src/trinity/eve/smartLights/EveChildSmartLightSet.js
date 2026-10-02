@@ -1,3 +1,8 @@
+import { IListNotify } from "../../../global/blue/IListNotify.js";
+import { INotify } from "../../../global/blue/INotify.js";
+import { ITr2DebugRenderable } from "../../../global/interfaces/ITr2DebugRenderable.js";
+import { IEveSpaceObjectChild } from "../child/IEveSpaceObjectChild.js";
+import { EveSpaceObjectChild } from "../child/EveSpaceObjectChild.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveChildSmartLightSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
@@ -11,6 +16,7 @@ import { BLUELISTEVENT } from "#consts/blue";
 /** A child that drives a placement distribution and fans its per-frame update, visibility, rendering and registration across a set of smart-light groups. */
 @type.define({ className: "EveChildSmartLightSet", family: "eve/smartLights" })
 @carbon.inherit(IEveInheritPropertiesOwner)
+@carbon.inherit(INotify, IListNotify)
 export class EveChildSmartLightSet extends EveChildTransform
 {
 
@@ -357,3 +363,6 @@ export class EveChildSmartLightSet extends EveChildTransform
   static _identity = mat4.create();
 
 }
+
+// EveChildSmartLightSet_Blue.cpp: native exposure.
+carbon.interfaceTable({ interfaces: [EveChildSmartLightSet, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2DebugRenderable, INotify, IListNotify, IEveInheritPropertiesOwner, EveEntity], chainTo: null })(EveChildSmartLightSet, { kind: "class" });

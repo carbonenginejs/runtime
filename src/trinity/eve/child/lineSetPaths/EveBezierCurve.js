@@ -1,3 +1,5 @@
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
+import { INotify } from "../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/LineSetPaths/EveBezierCurve.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/LineSetPaths/EveBezierCurve.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/LineSetPaths/EveBezierCurve_Blue.cpp
@@ -19,6 +21,7 @@ import { IEveLineSetPath } from "./IEveLineSetPath.js";
   className: "EveBezierCurve",
   family: "eve/child/lineSetPaths"
 })
+@carbon.inherit(INotify, IInitialize)
 export class EveBezierCurve extends IEveLineSetPath
 {
   @edit.readwrite
@@ -367,3 +370,6 @@ export class EveBezierCurve extends IEveLineSetPath
     return vec3.transformMat4(vec3.create(), point, transform);
   }
 }
+
+// EveBezierCurve_Blue.cpp: native exposure.
+carbon.interfaceTable({ interfaces: [EveBezierCurve, IEveLineSetPath, INotify], chainTo: null })(EveBezierCurve, { kind: "class" });

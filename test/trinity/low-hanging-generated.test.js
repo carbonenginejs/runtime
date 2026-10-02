@@ -1,3 +1,4 @@
+import { EveSpaceObjectDecal } from "../../npm/dist/trinity/eve/attachment/decal/EveSpaceObjectDecal.js";
 import test from "node:test";
 import { RawData } from "../../src/trinity/core/rawData/RawData.js";
 import assert from "node:assert/strict";
@@ -946,9 +947,12 @@ test("EveSwarmRenderable copies transforms and shared ship shader data", () =>
   assert.deepEqual(Array.from(stored.ps.GetIndex("shLightingCoefficients", 0)), [29, 30, 31, 32]);
   assert.deepEqual(Array.from(stored.ps.Get("shipData")), [0.75, 21, 22, 23]);
 
-  const decal = { Clone: () => ({ clone: true }) };
+  const decal = new EveSpaceObjectDecal();
+  decal.name = "swarm decal";
   renderable.InitDecals([decal]);
-  assert.deepEqual(renderable.decals, [{ clone: true }]);
+  assert.equal(renderable.decals[0].name, "swarm decal");
+  assert.ok(renderable.decals[0] instanceof EveSpaceObjectDecal);
+  assert.notEqual(renderable.decals[0], decal);
   renderable.SetShaderOption("QUALITY", "HIGH");
   assert.deepEqual(shaderOptions, [["QUALITY", "HIGH"]]);
 });

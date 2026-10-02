@@ -259,10 +259,10 @@ test("EveChildSpherePin aliases its Blue colors and fills the Carbon per-object 
   assert.equal(pin.color, pin.pinColor);
   pin.color = [0.1, 0.2, 0.3, 0.4];
   closeArray(pin.pinColor, [0.1, 0.2, 0.3, 0.4]);
-  pin.SetValues({ pinColor: [0.5, 0.6, 0.7, 0.8] });
+  CjsSchema.setValues(pin, { pinColor: [0.5, 0.6, 0.7, 0.8] });
   closeArray(pin.color, [0.5, 0.6, 0.7, 0.8]);
-  pin.SetValues({ color: [0.1, 0.2, 0.3, 0.4] });
-  const values = pin.GetValues();
+  CjsSchema.setValues(pin, { color: [0.1, 0.2, 0.3, 0.4] });
+  const values = CjsSchema.getValues(pin, {});
   assert.deepEqual(values.color, values.pinColor);
   assert.equal(CjsSchema.getField(EveChildSpherePin, "color")?.type?.kind, "color");
   assert.equal(CjsSchema.getField(EveChildSpherePin, "pinColor")?.type?.kind, "color");

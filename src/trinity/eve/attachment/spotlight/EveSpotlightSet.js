@@ -1,3 +1,5 @@
+import { EveEntity } from "../../EveEntity.js";
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpotlightSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpotlightSet.cpp
 import { box3 } from "#math/box3";
@@ -52,6 +54,7 @@ const SPRITE_QUAD_COUNT = 2;
  * cone and glow effects that draw them, and the spot lights they emit.
  */
 @type.define({ className: "EveSpotlightSet", family: "eve/attachment/spotlights" })
+@carbon.inherit(IInitialize)
 export class EveSpotlightSet extends IEveSpaceObjectAttachment
 {
 
@@ -522,3 +525,6 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
 
   static _lightRecord = CreateLightRecord();
 }
+
+// EveSpotlightSet_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
+carbon.interfaceTable({ interfaces: [EveSpotlightSet, IInitialize, IEveSpaceObjectAttachment, EveEntity], chainTo: null })(EveSpotlightSet, { kind: "class" });

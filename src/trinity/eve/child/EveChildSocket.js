@@ -1,3 +1,10 @@
+import { EveEntity } from "../EveEntity.js";
+import { ITr2SoundEmitterOwner } from "../ITr2SoundEmitterOwner.js";
+import { INotify } from "../../../global/blue/INotify.js";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
+import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
+import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildSocket.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { blue } from "#blue";
@@ -11,6 +18,7 @@ import { EveSocketParameterString } from "../socket/EveSocketParameterString.js"
 
 /** A named attachment point on a ship that resolves and hot-reloads a plugged-in child resource, forwarding controller and registration calls to it. */
 @type.define({ className: "EveChildSocket", family: "eve/child" })
+@carbon.inherit(IInitialize, INotify)
 export class EveChildSocket extends EveChildTransform
 {
 
@@ -308,3 +316,6 @@ export class EveChildSocket extends EveChildTransform
   }
 
 }
+
+// EveChildSocket_Blue.cpp: native exposure; unported contracts: IEveEffectChildrenOwner, IShaderConfigurer.
+carbon.interfaceTable({ interfaces: [EveChildSocket, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, ITr2SoundEmitterOwner, EveEntity], chainTo: null })(EveChildSocket, { kind: "class" });

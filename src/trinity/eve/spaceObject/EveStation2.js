@@ -1,3 +1,6 @@
+import { carbon } from "#schema";
+import { ITr2Renderable } from "../../core/ITr2Renderable.js";
+import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 // Source: trinity/trinity/Eve/SpaceObject/EveStation2.h
 import { type } from "#schema";
 import { EveSpaceObject2 } from "./EveSpaceObject2.js";
@@ -13,3 +16,6 @@ export class EveStation2 extends EveSpaceObject2
 {
 
 }
+
+// EveStation2_Blue.cpp: native exposure.
+carbon.interfaceTable({ interfaces: [EveStation2, IEveSpaceObject2, ITr2Renderable], chainTo: EveSpaceObject2 })(EveStation2, { kind: "class" });

@@ -1,3 +1,8 @@
+import { ITr2BoundingBox } from "../../../../global/interfaces/ITr2BoundingBox.js";
+import { IWorldPosition } from "../../../core/IWorldPosition.js";
+import { ITr2SoundEmitterOwner } from "../../ITr2SoundEmitterOwner.js";
+import { ITr2CurveSetOwner } from "../../../curves/ITr2CurveSetOwner.js";
+import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 // Source: trinity/trinity/Eve/EvePlanet.h
 // Source: trinity/trinity/Eve/EvePlanet.cpp
 // Hand-maintained after promotion from generated schema intake.
@@ -123,3 +128,6 @@ export class EvePlanet extends EveEffectRoot2
   static _worldTransformScratch = mat4.create();
 
 }
+
+// EvePlanet_Blue.cpp: native exposure; unported contracts: IEveEffectChildrenOwner, IShaderConfigurer.
+carbon.interfaceTable({ interfaces: [EvePlanet, IEveSpaceObject2, ITr2SecondaryLightSource, ITr2CurveSetOwner, ITr2SoundEmitterOwner, IWorldPosition, ITr2BoundingBox], chainTo: EveEffectRoot2 })(EvePlanet, { kind: "class" });
