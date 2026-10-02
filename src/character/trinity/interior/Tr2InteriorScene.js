@@ -1,14 +1,25 @@
 // Source: trinity/trinity/Interior/Tr2InteriorScene.h
+// Source: trinity/trinity/Interior/Tr2InteriorScene.cpp
+// Source: trinity/trinity/Interior/Tr2InteriorScene_Blue.cpp
 import { meta } from "#schema";
+import { blue, IInitialize, INotify, IsMatch, ResourceRequirement } from "#blue";
+import { PixelFormat, DepthStencilFormat } from "#consts/render-context";
+import { Tr2RenderTarget } from "../../../trinity/core/device/Tr2RenderTarget.js";
+import { Tr2DepthStencil } from "../../../trinity/core/device/Tr2DepthStencil.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../trinity/core/context/Tr2RenderContext.js";
 import { color } from "#math/color";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
 /**
  * Interior-scene state record for authored dynamics, lights, environment, fog,
- * sun, shadows, and diagnostics.
+ * sun, shadows, and diagnostics. Member notifications acquire the cubemap
+ * through the installed resource manager and rebuild shadow-target wrappers
+ * through the supplied or installed Trinity context. List lifecycle, picking
+ * and scene rendering remain unported; allocation is not rendered shadows.
  */
 @meta.define({ className: "Tr2InteriorScene", family: "interior" })
+@meta.blue.inherit(IInitialize, INotify)
 export class Tr2InteriorScene
 {
 
@@ -238,12 +249,80 @@ export class Tr2InteriorScene
     throw new Error("Tr2InteriorScene.UpdateScene is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method SetupShadowMaps (MAP_METHOD_AND_WRAP). */
+  /** Native depth-stencil owner, replaced whenever shadow targets are rebuilt. */
+  _lightDepthStencil = null;
+
+  /** Native initialization acquires the background, without allocating shadows. */
   @meta.blue.method
-  @meta.notImplemented
-  SetupShadowMaps(...args)
+  @meta.implemented
+  Initialize()
   {
-    throw new Error("Tr2InteriorScene.SetupShadowMaps is not implemented in CarbonEngineJS.");
+    this.SetBackgroundCubemapResPath();
+    return true;
+  }
+
+  /**
+   * Applies the native background and shadow member branches. JS coalesces
+   * changed names, so a size/count batch rebuilds once using both final values.
+   */
+  @meta.blue.method
+  @meta.adapted
+  OnModified(name)
+  {
+    if (IsMatch(name, "backgroundCubemapPath")) this.SetBackgroundCubemapResPath();
+    if (IsMatch(name, "shadowSize") || IsMatch(name, "shadowCount")) this.SetupShadowMaps();
+    return true;
+  }
+
+  /**
+   * Acquires a shared texture through the installed or supplied resource host.
+   * An empty native path clears the pointer; JS omits that request because its
+   * resource manager rejects empty paths. The background effect is unchanged.
+   */
+  @meta.blue.method
+  @meta.adapted
+  SetBackgroundCubemapResPath(resMan = blue.resMan)
+  {
+    this.backgroundCubemapRes = null;
+    if (this.backgroundCubemapPath)
+    {
+      this.backgroundCubemapRes = resMan.GetResource(this.backgroundCubemapPath, { requirement: ResourceRequirement.TEXTURE });
+    }
+  }
+
+  /**
+   * Recreates native R32_FLOAT targets and the D32 depth surface, even with no
+   * lights. Shared Trinity wrappers realize them through the injected context;
+   * JS explicitly destroys replaced wrappers instead of releasing BluePtrs.
+   * Carbon ignores Create results here; failed wrappers remain visibly invalid.
+   */
+  @meta.blue.method
+  @meta.adapted
+  SetupShadowMaps(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
+  {
+    for (const target of this.lightRenderTargets) target.Destroy();
+    this.lightRenderTargets.length = 0;
+    for (let i = 0; i < this.lights.length && i < this.shadowCount; i++)
+    {
+      const target = new Tr2RenderTarget();
+      target.SetName("ShadowMap");
+      target.Create(this.shadowSize, this.shadowSize, 1, PixelFormat.PIXEL_FORMAT_R32_FLOAT, 1, 0, 0, undefined, renderContext);
+      this.lightRenderTargets.push(target);
+    }
+    if (this._lightDepthStencil) this._lightDepthStencil.Destroy();
+    this._lightDepthStencil = new Tr2DepthStencil();
+    this._lightDepthStencil.Create(this.shadowSize, this.shadowSize, DepthStencilFormat.DSFMT_D32, 0, 0, 0, renderContext);
+  }
+
+  /** Explicit JS final lifetime releases the shadow wrappers owned by this scene. */
+  @meta.ours
+  Destroy()
+  {
+    for (const target of this.lightRenderTargets) target.Destroy();
+    this.lightRenderTargets.length = 0;
+    if (this._lightDepthStencil) this._lightDepthStencil.Destroy();
+    this._lightDepthStencil = null;
+    this.backgroundCubemapRes = null;
   }
 
   static VisualizeMethod = Object.freeze({

@@ -16,6 +16,17 @@ and the backend upload stay outside this layer.
 Historical classes with no current Carbon declaration live in `../incarna/`,
 not here.
 
+## Interior scene resource notifications
+
+`Tr2InteriorScene` acquires its background cubemap through the installed resource
+manager. Shadow size/count edits recreate shared Trinity render-target and
+depth-stencil wrappers through the supplied or application-installed render
+context. The scene chooses native dimensions/formats and owns wrapper lifetime;
+resource acquisition and backend texture realization remain in their existing
+owners. Final `Destroy` releases the scene's shadow surfaces. Initializing the
+scene acquires the cubemap only. List lifecycle and scene render passes remain
+unported, so allocation tests do not establish rendered interior shadows.
+
 ## Interior interfaces
 
 Carbon's `ITr2Interior.h` declares four `BLUE_INTERFACE`s:

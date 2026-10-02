@@ -107,8 +107,17 @@ async function writeEntries() {
 async function buildSourceBundle() {
   const bundle = await rollup({
     input: sourceEntry,
-    external: id => id.startsWith("#"),
+    // Rendering dependencies also contain decorators. Resolve package aliases
+    // into this source graph so Babel transforms those modules too, rather
+    // than letting Node import raw decorated source behind an external alias.
+    external: id => !id.startsWith("#") && !id.startsWith(".") && !path.isAbsolute(id),
     plugins: [
+      {
+        name: "runtime-source-imports",
+        resolveId(id) {
+          return id.startsWith("#") ? fileURLToPath(import.meta.resolve(id)) : null;
+        }
+      },
       babel({
         babelHelpers: "bundled",
         extensions: [".js", ".mjs"],
@@ -119,7 +128,7 @@ async function buildSourceBundle() {
     ]
   });
 
-  await bundle.write({ file: sourceBundle, format: "esm", sourcemap: false });
+  await bundle.write({ dir: sourceScratch, entryFileNames: "source-bundle.mjs", chunkFileNames: "[name]-[hash].mjs", format: "esm", sourcemap: false });
   await bundle.close();
 }
 
