@@ -96,6 +96,15 @@ export class CjsSofLibraryBuilder
 
   _bootOperation = null;
 
+  /** True only after the generic record and its dependent materials are ready. */
+  _bootComplete = false;
+
+  /** Replacing a catalog invalidates publication from older asynchronous reads. */
+  _dataRevision = 0;
+
+  /** Failed forced generic/material refreshes remain required until readiness succeeds. */
+  _forceGenericRefresh = false;
+
   /** The host's file-existence probe, or null (no absence rule). */
   _exists = null;
 
@@ -144,7 +153,12 @@ export class CjsSofLibraryBuilder
     return this._dataMgr;
   }
 
-  /** Replaces the partial source catalog and rebuilds the manager from it. */
+  /**
+   * Replaces the partial source catalog and rebuilds the manager from it.
+   * Custom: async readiness is rechecked because a partial source may omit
+   * materials referenced by generic data.
+   */
+  @meta.ours
   SetData(data)
   {
     if (!data || typeof data !== "object" || Array.isArray(data))
@@ -167,12 +181,19 @@ export class CjsSofLibraryBuilder
     {
       throw new TypeError("CjsSofLibraryBuilder data requires generic SOF data.");
     }
+    // The manager clears its tables before validating replacement entries.
+    // Invalidate readiness first, even if that replacement is rejected.
+    this._dataRevision++;
+    this._pending.clear();
+    this._loadErrors.clear();
+    this._bootOperation = null;
+    this._bootComplete = false;
+    this._forceGenericRefresh = false;
     if (!this._dataMgr.SetData(catalog))
     {
       throw new TypeError("CjsSofLibraryBuilder could not install the supplied SOF catalog.");
     }
     this.data = catalog;
-    this._bootOperation = Promise.resolve(catalog.generic);
     return this;
   }
 
@@ -189,35 +210,50 @@ export class CjsSofLibraryBuilder
     return this;
   }
 
-  /** Ensures the minimum generic.black catalog record is installed. */
+  /**
+   * Ensures generic.black and its material dependencies are ready together.
+   * Custom: Carbon loads one monolithic catalog; per-file JS acquisition must
+   * join the complete dependency operation and retry failed material reads.
+   */
+  @meta.ours
   EnsureGeneric(options = {})
   {
-    const force = requireForceOption(options);
-    if (!force && this._dataMgr.HasGenericData())
-    {
-      if (!this.data.generic) this.data.generic = this._dataMgr.GetGenericData();
-      return Promise.resolve(this.data.generic);
-    }
-    if (!force && this._bootOperation) return this._bootOperation;
+    const force = requireForceOption(options) || this._forceGenericRefresh;
+    // Publishing generic data precedes its material fetches. Every external
+    // caller must join that whole operation, including during forced refresh.
+    if (this._bootOperation && (!force || !this._bootComplete)) return this._bootOperation;
 
+    const revision = this._dataRevision;
     const path = `${this.basePath}/${GENERIC_FILE_NAME}`;
-    const operation = this._Read(path, {
-      kind: "generic",
-      name: "generic",
-      role: "sofCatalog",
-      signal: options.signal ?? null
-    }).then(async value =>
+    const reuse = !force && this._dataMgr.HasGenericData();
+    this._bootComplete = false;
+    if (force) this._forceGenericRefresh = true;
+    const operation = (reuse
+      ? Promise.resolve(this.data.generic ?? this._dataMgr.GetGenericData())
+      : this._Read(path, {
+        kind: "generic",
+        name: "generic",
+        role: "sofCatalog",
+        signal: options.signal ?? null
+      })).then(async value =>
     {
+      if (revision !== this._dataRevision) throw new Error(`SOF catalog replaced while loading: ${path}`);
       if (!value || typeof value !== "object" || Array.isArray(value))
       {
         throw new TypeError(`SOF generic catalog did not contain an object: ${path}`);
       }
-      if (!this._dataMgr.UpdateGeneric(value))
+      if (!reuse && !this._dataMgr.UpdateGeneric(value))
       {
         throw new TypeError(`SOF manager rejected generic catalog data: ${path}`);
       }
       this.data.generic = value;
-      await this._EnsureGenericDependencies(options);
+      await this._EnsureGenericDependencies({ ...options, force: this._forceGenericRefresh });
+      if (revision !== this._dataRevision) throw new Error(`SOF catalog replaced while loading: ${path}`);
+      if (this._bootOperation === operation)
+      {
+        this._bootComplete = true;
+        this._forceGenericRefresh = false;
+      }
       return value;
     });
     this._bootOperation = operation;
@@ -335,10 +371,10 @@ export class CjsSofLibraryBuilder
    * Missing materials stay absent, so native parameter fallback still applies.
    */
   @meta.ours
-  async _FetchNamed(kind, nameOrPath, options)
+  async _FetchNamed(kind, nameOrPath, options, ensureGeneric = true)
   {
     const force = requireForceOption(options);
-    await this.EnsureGeneric({ signal: options.signal ?? null });
+    if (ensureGeneric) await this.EnsureGeneric({ signal: options.signal ?? null });
     const request = normalizeNamedRequest(kind, nameOrPath, this.basePath);
     const config = CATALOGS[kind];
     if (!force && this._dataMgr[config.has](request.name))
@@ -347,6 +383,7 @@ export class CjsSofLibraryBuilder
         ?? this._dataMgr[config.get](request.name);
     }
 
+    const revision = this._dataRevision;
     const key = `${kind}:${request.name}`;
     const existing = this._pending.get(key);
     if (existing) return this._ResolveNamedOperation(existing, request.path, options);
@@ -364,12 +401,14 @@ export class CjsSofLibraryBuilder
         return null;
       }
 
-      return this._PublishNamed(kind, request, await this._Read(request.path, {
+      const value = await this._Read(request.path, {
         kind,
         name: request.name,
         role: "sofCatalog",
         signal: options.signal ?? null
-      }));
+      });
+      if (revision !== this._dataRevision) throw new Error(`SOF catalog replaced while loading: ${request.path}`);
+      return this._PublishNamed(kind, request, value);
     })();
     this._pending.set(key, operation);
     const clear = () =>
@@ -437,13 +476,19 @@ export class CjsSofLibraryBuilder
     ]);
   }
 
-  /** Loads every material referenced by the normalized generic wreck areas. */
+  /**
+   * Loads generic wreck materials after publishing the generic record. This
+   * internal fetch bypasses the generic readiness join to avoid waiting on
+   * its own operation; external named fetches always join the complete boot.
+   * Custom: per-file acquisition replaces Carbon's monolithic catalog read.
+   */
+  @meta.ours
   async _EnsureGenericDependencies(options)
   {
     const generic = this._dataMgr.GetGenericData();
     await Promise.all(freezeNames([
       ...generic.genericWreckMaterialData.materialNames.values()
-    ]).map(name => this.FetchMaterial(name, options)));
+    ]).map(name => this._FetchNamed("material", name, options, false)));
   }
 
   /**
@@ -495,15 +540,17 @@ export class CjsSofLibraryBuilder
   /** Reads one source result and normalizes decoded objects or Black bytes. */
   async _Read(path, context)
   {
+    const revision = this._dataRevision;
     try
     {
       const value = await normalizeSofObject(await this._readObject(path, context), path);
+      if (revision !== this._dataRevision) throw new Error(`SOF catalog replaced while loading: ${path}`);
       this._loadErrors.delete(path);
       return value;
     }
     catch (error)
     {
-      this._loadErrors.set(path, error);
+      if (revision === this._dataRevision) this._loadErrors.set(path, error);
       throw error;
     }
   }

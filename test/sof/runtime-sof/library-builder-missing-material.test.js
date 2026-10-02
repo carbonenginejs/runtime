@@ -14,8 +14,7 @@ const LISTED = "rock_lightgrey_sand";
 function builder({ exists = null, reads = [] } = {})
 {
   const dataMgr = new EveSOFDataMgr();
-  dataMgr.HasGenericData = () => true;
-  dataMgr.GetGenericData = () => ({});
+  assert.equal(dataMgr.SetData({ generic: {} }), true);
   const source = path =>
   {
     reads.push(path);

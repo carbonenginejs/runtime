@@ -404,6 +404,15 @@ export class EveSOF
    */
   _dataLoadOperations = new Map();
 
+  /** Last successfully installed monolithic path; initialization reuses it. */
+  _loadedDataPath = "";
+
+  /** Source identity shared by readiness and in-flight catalog reads. */
+  _dataLoadSource = null;
+
+  /** Configured object-source revision rejects superseded source publication. */
+  _dataLoadRevision = 0;
+
   /**
    * Optional custom incremental catalog loader sharing this factory's data manager and ensuring
    * records needed by asynchronous DNA builds.
@@ -462,7 +471,14 @@ export class EveSOF
 
     if (Object.prototype.hasOwnProperty.call(options, "dataPath"))
     {
-      this._dataPath = normalizeResourcePath(options.dataPath);
+      const path = normalizeResourcePath(options.dataPath);
+      if (path !== this._dataPath)
+      {
+        this._loadedDataPath = "";
+        this._dataLoadRevision++;
+        this._dataLoadOperations.clear();
+      }
+      this._dataPath = path;
     }
     if (Object.prototype.hasOwnProperty.call(options, "resources"))
     {
@@ -485,6 +501,12 @@ export class EveSOF
       const exists = Object.hasOwn(resources, "exists")
         ? resources.exists ?? null
         : this._asyncResources.exists;
+      if (getObject !== this._asyncResources.getObject)
+      {
+        this._loadedDataPath = "";
+        this._dataLoadRevision++;
+        this._dataLoadOperations.clear();
+      }
       if (exists !== this._asyncResources.exists) this._existingFilesCache.clear();
       this._asyncResources = {
         getObject,
@@ -679,16 +701,26 @@ export class EveSOF
   @meta.ours
   async Fetch(dna, options = {})
   {
-    await this.InitializeAsync(options);
     return this.BuildFromDNAAsync(dna, options);
   }
 
-  /** Boots configured lazy generic data or the configured monolithic catalog. */
+  /**
+   * Ensures configured catalog readiness. Successful monolithic initialization
+   * is reused; LoadDataAsync remains the explicit reload operation. Failed
+   * loads can be retried and never count as initialized. Custom: Carbon loads
+   * the catalog synchronously; JS must join asynchronous resource acquisition.
+   */
+  @meta.ours
   async InitializeAsync(options = {})
   {
     if (this._dataPath)
     {
-      await this.LoadDataAsync(this._dataPath);
+      const source = this._asyncResources.getObject ?? this.dataMgr._resourceLoader;
+      if ((this._loadedDataPath !== this._dataPath || source !== this._dataLoadSource)
+        && !await this.LoadDataAsync(this._dataPath))
+      {
+        throw new Error(`SOF catalog could not be loaded: ${this._dataPath}`);
+      }
     }
     else if (this._sofLibraryBuilder)
     {
@@ -697,36 +729,62 @@ export class EveSOF
     return this;
   }
 
-  /** Routes Carbon's resource load call through the SOF data manager. */
+  /**
+   * Loads the catalog through the same readiness boundary as asynchronous builds.
+   * Adapted: Carbon loads synchronously; public JS acquisition returns a promise
+   * so explicit reloads cannot bypass pending reads or source-replacement checks.
+   */
   @meta.blue.method
-  @meta.implemented
-  LoadData(filePath)
+  @meta.adapted
+  async LoadData(filePath = this._dataPath)
   {
-    return this.dataMgr.LoadData(filePath);
+    return this.LoadDataAsync(filePath);
   }
 
-  /** Load SOF data through the configured promise-capable object resolver. */
+  /**
+   * Reloads SOF data through a promise-capable object resolver. Custom: unlike
+   * Carbon's synchronous LoadData, concurrent reads join one operation and
+   * successful installation supplies readiness for later asynchronous builds.
+   */
+  @meta.ours
   async LoadDataAsync(filePath = this._dataPath)
   {
     const path = normalizeResourcePath(filePath);
     if (!path) throw new TypeError("EveSOF.LoadDataAsync requires a data path");
-    const getObject = this._asyncResources.getObject;
-    if (!getObject)
+    // The manager's existing loader is the legacy configuration entry point.
+    // Capture either source here so neither can publish before our readiness
+    // revision check; delegating a fallback load would let it mutate first.
+    const configuredSource = this._asyncResources.getObject;
+    const source = configuredSource ?? this.dataMgr._resourceLoader;
+    if (source !== this._dataLoadSource)
     {
-      return this.dataMgr.LoadDataAsync(path);
+      this._dataLoadSource = source;
+      this._dataLoadRevision++;
+      this._dataLoadOperations.clear();
     }
-
+    const revision = this._dataLoadRevision;
     const existing = this._dataLoadOperations.get(path);
     if (existing) return existing;
+    this._loadedDataPath = "";
+    if (!source) return false;
     const operation = ResolveSofDependency(
-      () => getObject(path, { role: "sofData", output: "runtime" }),
+      () => configuredSource ? source(path, { role: "sofData", output: "runtime" }) : source(path),
       path,
       "sofData",
       new Map()
-    )
-      .then(data => this._sofLibraryBuilder
-        ? (this._sofLibraryBuilder.SetData(data), true)
-        : this.dataMgr.SetData(data));
+    ).then(data =>
+      {
+        const currentSource = this._asyncResources.getObject ?? this.dataMgr._resourceLoader;
+        if (revision !== this._dataLoadRevision || source !== currentSource)
+        {
+          throw new Error(`SOF catalog configuration changed while loading: ${path}`);
+        }
+        const loaded = this._sofLibraryBuilder
+          ? (this._sofLibraryBuilder.SetData(data), true)
+          : this.dataMgr.SetData(data);
+        if (loaded) this._loadedDataPath = path;
+        return loaded;
+      });
     this._dataLoadOperations.set(path, operation);
     const clear = () =>
     {
@@ -1124,10 +1182,13 @@ export class EveSOF
    * filters. They are fetched concurrently, then the unchanged builder runs a
    * second time against synchronous per-call caches.
    *
+   * Custom: asynchronous acquisition precedes Carbon's synchronous assembly.
    * @deprecated Use BuildValuesFromDNAAsync(...).
    */
+  @meta.ours
   async BuildFromDNAAsync(dnaString, options = {})
   {
+    if (this._dataPath) await this.InitializeAsync(options);
     if (this._sofLibraryBuilder)
     {
       await this._sofLibraryBuilder.EnsureFromDNA(dnaString, options.catalog ?? {});
