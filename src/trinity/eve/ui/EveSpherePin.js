@@ -4,7 +4,6 @@
 import { carbon, impl, edit, type } from "#schema";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { IEveTransform } from "../IEveTransform.js";
-import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -14,7 +13,7 @@ import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 /** A UI sphere pin: authored SRT placement plus the pin constant record. */
 @type.define({ className: "EveSpherePin", family: "eve/ui" })
 @carbon.inherit(ITr2Renderable, IEveSpaceObject2, IEveTransform)
-export class EveSpherePin extends CjsModel
+export class EveSpherePin
 {
 
   /** m_primitiveCount (int) [READ] */

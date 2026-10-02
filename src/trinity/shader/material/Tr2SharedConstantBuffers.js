@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Shader/Tr2Material.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Tracks shared constant-buffer contents by size and hash together with its backing buffer and reference count. */
 @type.define({ className: "Tr2SharedConstantBuffers", family: "shader" })
-export class Tr2SharedConstantBuffers extends CjsModel
+export class Tr2SharedConstantBuffers
 {
 
   /** size (uint32_t) */

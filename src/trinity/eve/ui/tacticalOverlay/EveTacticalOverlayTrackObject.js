@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay.h
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay.cpp
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay_Blue.cpp
-import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { carbon, impl, edit, type } from "#schema";
 
@@ -11,7 +10,7 @@ import { carbon, impl, edit, type } from "#schema";
  * presents it with.
  */
 @type.define({ className: "EveTacticalOverlayTrackObject", family: "eve/ui" })
-export class EveTacticalOverlayTrackObject extends CjsModel
+export class EveTacticalOverlayTrackObject
 {
   @edit.readwrite
   @edit.persist

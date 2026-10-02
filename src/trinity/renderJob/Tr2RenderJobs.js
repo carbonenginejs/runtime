@@ -1,6 +1,5 @@
 // Source: trinity/trinity/RenderJob/Tr2RenderJobs.h
 // Source: trinity/trinity/RenderJob/Tr2RenderJobs.cpp
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
 import { TriRenderJob } from "./TriRenderJob.js";
@@ -11,7 +10,7 @@ import { TriRenderJob } from "./TriRenderJob.js";
  * and update-recurring - and the order in which they are run.
  */
 @type.define({ className: "Tr2RenderJobs", family: "renderJob" })
-export class Tr2RenderJobs extends CjsModel
+export class Tr2RenderJobs
 {
   @edit.read
   @edit.persist

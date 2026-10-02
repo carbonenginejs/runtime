@@ -1,6 +1,5 @@
 // Source: trinity/trinity/RenderJob/TriRenderJob.h
 // Source: trinity/trinity/RenderJob/TriRenderJob.cpp
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
 import { TriRenderStep } from "./step/TriRenderStep.js";
@@ -13,7 +12,7 @@ import { blue, EnumRegistrationType } from "#blue";
  * sequence pause mid-list and resume on a later frame.
  */
 @type.define({ className: "TriRenderJob", family: "renderJob" })
-export class TriRenderJob extends CjsModel
+export class TriRenderJob
 {
   static Status = TriRenderJobStatus;
 

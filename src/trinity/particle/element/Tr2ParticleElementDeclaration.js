@@ -1,12 +1,11 @@
 // Source: trinity/trinity/Particle/Tr2ParticleElementDeclaration.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema particle/Tr2ParticleElementDeclaration.json.).
 import { carbon, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { Tr2ParticleElementDeclarationName } from "./Tr2ParticleElementDeclarationName.js";
 
 /** Tr2ParticleElementDeclaration (particle) - generated from schema shapeHash 272e6639.... */
 @type.define({ className: "Tr2ParticleElementDeclaration", family: "particle" })
-export class Tr2ParticleElementDeclaration extends CjsModel
+export class Tr2ParticleElementDeclaration
 {
 
   /** m_name.m_type (Tr2ParticleElementDeclarationName::Type) [READWRITE, PERSIST, ENUM] */

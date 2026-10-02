@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Shader/Parameter/TriFloatArrayParameter.h
 // Source: trinity/trinity/Shader/Parameter/TriFloatArrayParameter.cpp
 import { vec4 } from "#math/vec4";
-import { CjsModel } from "#model";
 import { edit, type } from "#schema";
 
 
@@ -10,7 +9,7 @@ import { edit, type } from "#schema";
   className: "TriVector4",
   family: "shader"
 })
-export class TriVector4 extends CjsModel
+export class TriVector4
 {
   @edit.readwrite
   @edit.persist

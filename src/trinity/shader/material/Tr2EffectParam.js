@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Shader/Tr2Material.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Maps a named effect value onto a contiguous shader-register span. */
 @type.define({ className: "Tr2EffectParam", family: "shader" })
-export class Tr2EffectParam extends CjsModel
+export class Tr2EffectParam
 {
 
   /** m_sourceName (std::string) */

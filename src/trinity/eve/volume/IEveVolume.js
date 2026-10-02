@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Eve/Volume/IEveVolume.h
-import { CjsModel } from "#model";
 import { carbon, impl, type } from "#schema";
 
 
 /** Required EVE volume contract. */
 @type.define({ className: "IEveVolume", family: "eve/volume" })
-export class IEveVolume extends CjsModel
+export class IEveVolume
 {
 
   /** Returns the volume intensity at a position. */

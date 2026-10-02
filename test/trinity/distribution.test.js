@@ -397,7 +397,7 @@ test("volume generators consume Carbon volume points and change callbacks", () =
     assert.ok(vec3.distance(direction, vec3.fromValues(0, 0, -1)) < 1e-6);
     assert.equal(generator.IsRequestingRegeneration(), false);
 
-    sphere.SetValues({ radius: 4 });
+    CjsSchema.setValues(sphere, { radius: 4 });
     assert.equal(generator.IsRequestingRegeneration(), true);
     generator.GetInitialPlacements([], { value: 0 });
     assert.equal(generator.IsRequestingRegeneration(), false);

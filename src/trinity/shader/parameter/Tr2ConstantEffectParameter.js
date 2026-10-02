@@ -2,7 +2,6 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
 import { vec4 } from "#math/vec4";
-import { CjsModel } from "#model";
 
 /**
  * One named persistent vec4 constant authored directly on an effect.
@@ -16,7 +15,7 @@ import { CjsModel } from "#model";
  * parameter surface it never had in Carbon.
  */
 @type.define({ className: "Tr2ConstantEffectParameter", family: "shader" })
-export class Tr2ConstantEffectParameter extends CjsModel
+export class Tr2ConstantEffectParameter
 {
 
   /** name (BlueSharedString) - persisted via the constParameters structure list. */

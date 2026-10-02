@@ -1,6 +1,5 @@
 // Source: trinity/trinity/RenderJob/TriRenderStep.h
 // Source: trinity/trinity/RenderJob/TriRenderStep.cpp
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 
 
@@ -9,7 +8,7 @@ import { carbon, impl, edit, type } from "#schema";
  * begin/execute/end contract the owning job drives.
  */
 @type.define({ className: "TriRenderStep", family: "renderJob" })
-export class TriRenderStep extends CjsModel
+export class TriRenderStep
 {
   static Result = Object.freeze({
     RS_OK: 0,

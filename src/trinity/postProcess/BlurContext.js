@@ -1,13 +1,12 @@
 // Source: trinity/trinity/PostProcess/Tr2PostProcessRenderer.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema postProcess/BlurContext.json.).
 import { type } from "#schema";
-import { CjsModel } from "#model";
 import { BlurChannel, BlurFinalize, BlurProcess, BlurType } from "../generated/postProcess/enums.js";
 import { blue } from "#blue";
 
 /** Describes one post-process blur variant and produces its stable cache key from type, channel, processing, and finalization modes. */
 @type.define({ className: "BlurContext", family: "postProcess" })
-export class BlurContext extends CjsModel
+export class BlurContext
 {
 
   /** channel (BlurChannel - enum BlurChannel) */

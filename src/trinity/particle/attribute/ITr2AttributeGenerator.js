@@ -1,11 +1,10 @@
 // Source: trinity/trinity/ITr2AttributeGenerator.h
-import { CjsModel } from "#model";
 import { carbon, impl, type } from "#schema";
 
 
 /** Required particle-attribute generation contract. */
 @type.define({ className: "ITr2AttributeGenerator", family: "particle" })
-export class ITr2AttributeGenerator extends CjsModel
+export class ITr2AttributeGenerator
 {
 
   /** Binds this generator to a particle-system declaration. */

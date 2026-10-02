@@ -1,12 +1,11 @@
 // Source: trinity/trinity/Shader/Tr2Material.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type } from "#schema";
-import { CjsModel } from "#model";
 import { Tr2MaterialStageInput } from "./Tr2MaterialStageInput.js";
 
 /** Collects one effect library's local and global stage inputs, rerouted parameters, and resource-set state. */
 @type.define({ className: "Tr2EffectLibraryParameters", family: "shader" })
-export class Tr2EffectLibraryParameters extends CjsModel
+export class Tr2EffectLibraryParameters
 {
 
   /** m_localInput (Tr2MaterialStageInput) */

@@ -1534,11 +1534,11 @@ test("EveSphereVolume follows Carbon intensity, bounds, and change constraints",
 
   let changes = 0;
   const id = volume.RegisterForChanges(() => changes++);
-  volume.SetValues({ innerRadius: 5 });
+  CjsSchema.setValues(volume, { innerRadius: 5 });
   assertEquals(volume.radius, 5);
   assertEquals(changes, 1);
   volume.UnregisterForChanges(id);
-  volume.SetValues({ radius: -2 });
+  CjsSchema.setValues(volume, { radius: -2 });
   assertEquals(volume.radius, 0);
   assertEquals(volume.innerRadius, 0);
   assertEquals(changes, 1);

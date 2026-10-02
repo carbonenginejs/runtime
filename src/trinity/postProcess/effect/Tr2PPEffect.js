@@ -1,13 +1,12 @@
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPEffect.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema postProcess/Tr2PPEffect.json.).
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { blue, EnumRegistrationType } from "#blue";
 import { Quality } from "../../generated/postProcess/enums.js";
 
 /** Provides the shared display gate for a post-process effect. */
 @type.define({ className: "Tr2PPEffect", family: "postProcess" })
-export class Tr2PPEffect extends CjsModel
+export class Tr2PPEffect
 {
 
   /** m_display (bool) [READWRITE, NOTIFY] */

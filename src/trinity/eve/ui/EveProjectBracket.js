@@ -2,7 +2,6 @@
 // Source: trinity/trinity/Eve/UI/EveProjectBracket.cpp
 // Source: trinity/trinity/Eve/UI/EveProjectBracket_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; projection is portable CPU work.
-import { CjsModel } from "#model";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { carbon, impl, edit, type } from "#schema";
 import { vec2 } from "#math/vec2";
@@ -56,7 +55,7 @@ function callBlueCallback(callback, ...args)
 
 /** Projects an authored world position into a Sprite2D bracket. */
 @type.define({ className: "EveProjectBracket", family: "eve/ui" })
-export class EveProjectBracket extends CjsModel
+export class EveProjectBracket
 {
   /**
    * Projects the tracked position using the active frame context.

@@ -1,13 +1,12 @@
 // Source: trinity/trinity/Tr2RenderNodeSprite2dScene.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
 
 /** A render-graph node that draws a sprite scene into a destination texture, over an optional background node. */
 @type.define({ className: "Tr2RenderNodeSprite2dScene", family: "renderJob" })
 @carbon.inherit(ITr2RenderNode)
-export class Tr2RenderNodeSprite2dScene extends CjsModel
+export class Tr2RenderNodeSprite2dScene
 {
 
   /** m_scene (Tr2Sprite2dScenePtr) [READWRITE, PERSIST] */

@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Particle/ITr2GenericParticleConstraint.h
-import { CjsModel } from "#model";
 import { carbon, impl, type } from "#schema";
 
 
 /** Required particle-constraint contract. */
 @type.define({ className: "ITr2GenericParticleConstraint", family: "particle" })
-export class ITr2GenericParticleConstraint extends CjsModel
+export class ITr2GenericParticleConstraint
 {
 
   /** Binds the constraint to the particle-system declaration. */

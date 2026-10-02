@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Particle/ITr2ParticleForce.h
-import { CjsModel } from "#model";
 import { carbon, impl, type } from "#schema";
 
 
 /** Required particle-force contract. */
 @type.define({ className: "ITr2ParticleForce", family: "particle" })
-export class ITr2ParticleForce extends CjsModel
+export class ITr2ParticleForce
 {
 
   /** Updates force-owned state before particle integration. */

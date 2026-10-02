@@ -1,6 +1,5 @@
 // Source: trinity/trinity/PostProcess/Tr2PostProcess2.h
 // Source: trinity/trinity/PostProcess/Tr2PostProcess2.cpp
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { Tr2PPDepthOfFieldEffect } from "./effect/Tr2PPDepthOfFieldEffect.js";
 import { Quality } from "../generated/postProcess/enums.js";
@@ -12,7 +11,7 @@ import { Quality } from "../generated/postProcess/enums.js";
  * to use.
  */
 @type.define({ className: "Tr2PostProcess2", family: "postProcess" })
-export class Tr2PostProcess2 extends CjsModel
+export class Tr2PostProcess2
 {
 
   // Carbon exposes this as a registered engine setting. Keeping it static makes

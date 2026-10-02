@@ -2,7 +2,6 @@
 // Source: trinity/trinity/EveSprite2dBracket.cpp
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 
 
@@ -11,7 +10,7 @@ import { carbon, impl, edit, type } from "#schema";
  * translation and display flag.
  */
 @type.define({ className: "EveSprite2dBracket", family: "eve/ui" })
-export class EveSprite2dBracket extends CjsModel
+export class EveSprite2dBracket
 {
   @edit.readwrite
   @type.color

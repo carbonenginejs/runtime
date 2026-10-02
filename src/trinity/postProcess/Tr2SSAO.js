@@ -2,7 +2,6 @@
 // Carbon source: trinity/trinity/Tr2SSAO.cpp
 // Carbon source: trinity/trinity/Tr2SSAO_Blue.cpp
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { PixelFormat, ShaderType, TextureType, Tr2GpuUsage } from "#consts/render-context";
 import { Failed, Tr2ConstantUsageAL } from "#trinityal";
@@ -56,7 +55,7 @@ function DispatchSize(tileSize, totalSize)
  * (`PerformPass`, AMD's FidelityFX CACAO) is not.
  */
 @type.define({ className: "Tr2SSAO", family: "trinityCore" })
-export class Tr2SSAO extends CjsModel
+export class Tr2SSAO
 {
   @edit.notify
   @edit.readwrite
