@@ -1,8 +1,8 @@
 {
   "outRoot": "src/trinity/generated",
   "classes": {
-    "written": 30,
-    "skipped": 665
+    "written": 29,
+    "skipped": 666
   },
   "enums": {
     "written": 15,
@@ -2892,6 +2892,11 @@
     {
       "family": "trinityCore",
       "className": "Tr2HostBitmap",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2ImpostorManager",
       "reason": "hand-maintained source exists"
     },
     {
@@ -5954,11 +5959,6 @@
       "file": "trinity/generated/trinityCore/Tr2GrannyPrimitiveSet.js"
     },
     {
-      "className": "Tr2ImpostorManager",
-      "family": "trinityCore",
-      "file": "trinity/generated/trinityCore/Tr2ImpostorManager.js"
-    },
-    {
       "className": "Tr2PrimitiveScene",
       "family": "trinityCore",
       "file": "trinity/generated/trinityCore/Tr2PrimitiveScene.js"
@@ -7798,6 +7798,11 @@
     {
       "family": "trinityCore",
       "className": "Tr2GpuBuffer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2ImpostorManager",
       "reason": "hand-maintained source exists"
     },
     {

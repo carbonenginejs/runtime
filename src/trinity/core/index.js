@@ -38,3 +38,4 @@ export * from "./IWorldPosition.js";
 
 export * from "./ITr2Scene.js";
 export * from "./Tr2HostBitmap.js";
+export * from "./Tr2ImpostorManager/index.js";

@@ -3,14 +3,14 @@ import { CjsSchema } from "../../../../npm/dist/global/schema/index.js";
 import { Traverse } from "../../../../npm/dist/global/blue/find.js";
 import { mat4 } from "../../../../npm/dist/global/math/mat4.js";
 import { CjsBlackFormat } from "../../../../npm/dist/resource/formats/black/index.js";
-import { TriDevice, EveSpherePin, EveChildLineSet, Tr2CurveLineSet, EveChildBehaviorSystem, Tr2ParticleSystem, Tr2InstancedMesh, Tr2DirectInstanceData, Tr2RuntimeInstanceData } from "../../../../npm/dist/trinity/index.js";
+import { TriDevice, Tr2ImpostorManager, EveSpherePin, EveChildLineSet, Tr2CurveLineSet, EveChildBehaviorSystem, Tr2ParticleSystem, Tr2InstancedMesh, Tr2DirectInstanceData, Tr2RuntimeInstanceData } from "../../../../npm/dist/trinity/index.js";
 
 /** Whether a model has an explicitly managed device or behavior lifetime owned by demo ships. */
 function isShipResource(model)
 {
   return CjsSchema.cast(model, Tr2ParticleSystem) || CjsSchema.cast(model, Tr2InstancedMesh)
     || CjsSchema.cast(model, Tr2RuntimeInstanceData) || CjsSchema.cast(model, Tr2DirectInstanceData) || CjsSchema.cast(model, EveChildBehaviorSystem)
-    || CjsSchema.cast(model, EveSpherePin) || CjsSchema.cast(model, EveChildLineSet) || CjsSchema.cast(model, Tr2CurveLineSet);
+    || CjsSchema.cast(model, Tr2ImpostorManager) || CjsSchema.cast(model, EveSpherePin) || CjsSchema.cast(model, EveChildLineSet) || CjsSchema.cast(model, Tr2CurveLineSet);
 }
 
 /** Hydrates synchronously; a failed graph may be inaccessible except through device registration. */
@@ -31,7 +31,7 @@ export function hydrateDemoShip(values)
     {
       if (!before.has(resource) && isShipResource(resource))
       {
-        if (CjsSchema.cast(resource, EveChildLineSet) || CjsSchema.cast(resource, EveSpherePin)) resource.Destroy(managedResources);
+        if (CjsSchema.cast(resource, EveChildLineSet) || CjsSchema.cast(resource, EveSpherePin) || CjsSchema.cast(resource, Tr2ImpostorManager)) resource.Destroy(managedResources);
         else resource.Destroy();
       }
     }
@@ -45,10 +45,16 @@ export function retireDemoShips(roots, retained)
   const keep = new Set(), candidates = new Set();
   for (const root of retained) Traverse(root, model => { keep.add(model); });
   for (const root of roots) Traverse(root, model => { if (isShipResource(model)) candidates.add(model); });
-  // Pin effects have explicit JS lifetimes but no device registration. Include
+  // Pin/impostor effects have explicit JS lifetimes but no device registration. Include
   // current and replaced constructor effects so shared defaults retire once.
   for (const model of candidates)
   {
+    if (CjsSchema.cast(model, Tr2ImpostorManager))
+    {
+      for (const effect of model._ownedEffects) candidates.add(effect);
+      if (model.effect) candidates.add(model.effect);
+      continue;
+    }
     if (!CjsSchema.cast(model, EveSpherePin)) continue;
     for (const effect of model._ownedEffects) candidates.add(effect);
     if (model.pinEffect) candidates.add(model.pinEffect);
@@ -62,7 +68,7 @@ export function retireDemoShips(roots, retained)
   for (const model of candidates)
   {
     if (keep.has(model)) continue;
-    if (CjsSchema.cast(model, EveChildLineSet) || CjsSchema.cast(model, EveSpherePin)) model.Destroy(managedResources);
+    if (CjsSchema.cast(model, EveChildLineSet) || CjsSchema.cast(model, EveSpherePin) || CjsSchema.cast(model, Tr2ImpostorManager)) model.Destroy(managedResources);
     else model.Destroy();
   }
 }
