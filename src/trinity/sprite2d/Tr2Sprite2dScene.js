@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dScene.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dScene_Blue.cpp
 import { meta } from "#schema";
-import { INotify, BlueList } from "#blue";
+import { IsMatch, INotify, BlueList } from "#blue";
 import { ITr2Scene } from "../core/ITr2Scene.js";
 import { ITr2Updateable } from "../core/ITr2Updateable.js";
 import { ITr2SpriteObject } from "./ITr2SpriteObject.js";
@@ -256,7 +256,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
   @meta.notImplemented
   OnModified(value)
   {
-    if (value === "maxSpriteCount")
+    if (IsMatch(value, "maxSpriteCount"))
     {
       if (this.maxSpriteCount > 16383) this.maxSpriteCount = 16383;
       throw new Error("Tr2Sprite2dScene maxSpriteCount requires unimplemented ReleaseResources.");

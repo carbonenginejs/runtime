@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodThresholdParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -55,13 +56,13 @@ export class EveProceduralMethodThresholdParameter
   @meta.reason("The Be::Var notification identity is represented by either the field name or assigned value.")
   OnModified(value = null)
   {
-    if (value === "threshold")
+    if (IsMatch(value, "threshold"))
     {
       this.threshold = Math.max(this.threshold, 0);
       this._modified = true;
     }
 
-    if (value === "child")
+    if (IsMatch(value, "child"))
     {
       if (this.child)
       {

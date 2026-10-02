@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Parameter/Tr2TextureAnimationParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { INotify } from "#blue";
+import { IsMatch, INotify } from "#blue";
 import { meta } from "#schema";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { CjsParameter } from "./CjsParameter.js";
@@ -62,7 +62,7 @@ export class Tr2TextureAnimationParameter extends CjsParameter
   @meta.adapted
   OnModified(propertyName)
   {
-    if (propertyName !== "animation") return true;
+    if (!IsMatch(propertyName, "animation")) return true;
     for (const material of this._materials)
     {
       material.InvalidateResourceSets();

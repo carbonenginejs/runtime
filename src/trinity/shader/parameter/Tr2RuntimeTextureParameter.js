@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter.h
 // Source: trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter.cpp
 // Source: trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter_Blue.cpp
-import { INotify } from "#blue";
+import { IsMatch, INotify } from "#blue";
 import { meta } from "#schema";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
@@ -98,7 +98,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
   @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
-    if (propertyName === "texture") this.#invalidateResourceSets();
+    if (IsMatch(propertyName, "texture")) this.#invalidateResourceSets();
     return true;
   }
 

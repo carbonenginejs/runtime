@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionBindRTPC.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionBindRTPC_Blue.cpp
 import { meta } from "#schema";
-import { blue, INotify } from "#blue";
+import { IsMatch, blue, INotify } from "#blue";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { ITr2Updateable } from "../../core/ITr2Updateable.js";
@@ -191,7 +191,7 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
   @meta.adapted
   OnModified(propertyName)
   {
-    if (this._runtime.controller && propertyName === "value")
+    if (this._runtime.controller && IsMatch(propertyName, "value"))
     {
       this._runtime.program = null;
       this.CompileExpression();

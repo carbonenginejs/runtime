@@ -3,7 +3,7 @@ import { mappedInterfaces } from "../compose/interface.js";
 import { CjsSchema } from "../schema/index.js";
 import { DictReader, CreateAnchorTable } from "./DictReader.js";
 import { ensureRuntimeState } from "../compose/runtimeState.js";
-import { queueModifiedMember, settleModifiedMembers } from "../compose/values.js";
+import { NotifyModified } from "../compose/values.js";
 import { NOTIFY_METHODS } from "../compose/notify.js";
 import { BLUELISTEVENT } from "../consts/blue.js";
 
@@ -185,7 +185,6 @@ function recordChildMutation(target, field, options)
 {
     if (options.markDirty === false) return;
     ensureRuntimeState(target).dirty = true;
-    if (options.notify !== false && field.edit?.notify) queueModifiedMember(target, field.name);
 }
 
 function notifyListModified(target, event, index, secondIndex, child, collection, options)
@@ -234,8 +233,8 @@ function settleChildMutation(target, field, options)
         return;
     }
 
-    const state = ensureRuntimeState(target);
-    if (!state.updating && settleModifiedMembers(target) && options.skipEvents !== true)
+    const accepted = NotifyModified(target, field.name, { ...options, notify: options.notify !== false && !!field.edit?.notify, skipEvents: true });
+    if (accepted && options.skipEvents !== true)
     {
         NOTIFY_METHODS.EmitEvent.call(target, "modified", target, { source: options.source ?? target });
     }

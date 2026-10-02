@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2SkinnedObject.h
 import { meta } from "#schema";
-import { IListNotify, INotify } from "#blue";
+import { IsMatch, IListNotify, INotify } from "#blue";
 import { IWorldPosition } from "../../../trinity/core/IWorldPosition.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -213,7 +213,7 @@ export class Tr2SkinnedObject
   @meta.reason("JS passes the exposed member name instead of Carbon's field address; the boolean reports whether the base handled it.")
   OnModified(propertyName)
   {
-    if (propertyName === "visualModel")
+    if (IsMatch(propertyName, "visualModel"))
     {
       this.lod.OnModelChanged(this.visualModel);
       return true;

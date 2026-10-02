@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { INotify } from "../../../../global/blue/INotify.js";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch2.h
@@ -147,7 +148,7 @@ export class EveStretch2 extends IEveFiringEffectElement
   @meta.blue.method @meta.adapted
   OnModified(propertyName)
   {
-    if (propertyName === "quadCount")
+    if (IsMatch(propertyName, "quadCount"))
     {
       if (this.quadCount > EveStretch2.MAX_QUAD_COUNT)
       {

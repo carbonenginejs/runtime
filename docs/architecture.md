@@ -81,12 +81,22 @@ constructor chains only that class's table. Listing a concrete class in
 The declaration can be a class decorator or be applied to the constructor after
 its definition. It replaces earlier interface mappings on that class. Later
 `meta.blue.mapInterface` calls add local entries without changing the explicit
-chain. The legacy `carbon` namespace exposes the same operations. Classes not
-migrated to an explicit table retain the legacy mapping behavior.
+chain. Classes not migrated to an explicit table retain the legacy mapping
+behavior.
 
 Copier and declared readers use the resolved table to select initialization or
 member notifications. Declaring a table does not initialize objects, change
 JavaScript inheritance, or change stored-member and property inheritance.
+
+## Values editing notifications
+
+SetValues compares writes, deduplicates canonical changed member names and calls
+OnModified once for the changed NOTIFY members: a string for one, an array for
+several. Equal values do not notify. IsMatch accepts either argument shape.
+Explicit edits can call NotifyModified(target, names, options) from the Blue
+export. There is no pending-name queue, settle loop or reentrancy guard; nested
+calls run immediately. skipUpdate leaves dirty state without retaining names.
+Reader initialization and declaration-based notification selection are unchanged.
 
 ## Trinity to WebGPU draw path
 

@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 // Source: audio/src/AudGameObjResource.h + AudGameObjResource.cpp
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/AudGameObjResource.json.
@@ -1081,12 +1082,11 @@ export class AudGameObjResource
   @meta.reason("JS identifies Carbon's member address by its exposed name; playback remains on the injected audio backend.")
   OnModified(propertyName)
   {
-    if (propertyName === "rotation")
+    if (IsMatch(propertyName, "rotation"))
     {
       this.RefreshPlacementFromRotation();
-      return true;
     }
-    if (propertyName === "eventName")
+    if (IsMatch(propertyName, "eventName"))
     {
       this.StopAll();
       if (this.eventName) this.PostEvent(this.eventName);

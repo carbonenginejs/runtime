@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { INotify } from "../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/LineSetPaths/EveBezierCurve.h
@@ -158,9 +159,9 @@ export class EveBezierCurve extends IEveLineSetPath
   @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
-    if (propertyName === "completeness") this.completeness = Math.min(2, Math.max(0, this.completeness));
-    if (propertyName === "segments") this.segments = Math.min(128, Math.max(1, this.segments));
-    if (propertyName === "segmentOffset") this.segmentOffset = Math.min(1, Math.max(0, this.segmentOffset));
+    if (IsMatch(propertyName, "completeness")) this.completeness = Math.min(2, Math.max(0, this.completeness));
+    if (IsMatch(propertyName, "segments")) this.segments = Math.min(128, Math.max(1, this.segments));
+    if (IsMatch(propertyName, "segmentOffset")) this.segmentOffset = Math.min(1, Math.max(0, this.segmentOffset));
     this._regeneratePoints = true;
     return true;
   }

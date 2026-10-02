@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { INotify } from "../../../global/blue/INotify.js";
 import { EveSmartLightBaseGroup } from "./EveSmartLightBaseGroup.js";
@@ -101,7 +102,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
   @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
-    if (propertyName === "display") this.ReRegister();
+    if (IsMatch(propertyName, "display")) this.ReRegister();
     return true;
   }
 

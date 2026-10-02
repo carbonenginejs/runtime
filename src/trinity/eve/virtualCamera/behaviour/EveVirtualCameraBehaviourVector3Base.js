@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { INotify } from "../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
@@ -58,7 +59,7 @@ export class EveVirtualCameraBehaviourVector3Base
   @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
-    if (propertyName === "name") this.SetName(this.name);
+    if (IsMatch(propertyName, "name")) this.SetName(this.name);
     return true;
   }
 

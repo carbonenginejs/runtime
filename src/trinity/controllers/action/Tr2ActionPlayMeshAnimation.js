@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation_Blue.cpp
@@ -284,8 +285,8 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
   OnModified(propertyName)
   {
     if (this._controller && !this.HasDelayedBinding()
-      && (propertyName === "destinationType" || propertyName === "path" || propertyName === "attribute"
-        || propertyName === "destination" || propertyName === "delayBinding"))
+      && (IsMatch(propertyName, "destinationType") || IsMatch(propertyName, "path") || IsMatch(propertyName, "attribute")
+        || IsMatch(propertyName, "destination") || IsMatch(propertyName, "delayBinding")))
     {
       this.LinkDestination(this._controller);
     }

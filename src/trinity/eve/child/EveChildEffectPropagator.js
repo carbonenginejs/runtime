@@ -13,7 +13,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { Tr2Lod } from "../EveLODHelper.js";
 import { PropagationType, TriggerType } from "../../generated/eve/child/enums.js";
-import { blue, EnumRegistrationType } from "#blue";
+import { IsMatch, blue, EnumRegistrationType } from "#blue";
 
 // Module scratch for the trigger-driven locator paths (allocation rules:
 // copy-into, never allocate per frame; child updates run sequentially so the
@@ -298,27 +298,27 @@ export class EveChildEffectPropagator extends EveChildContainer
   @meta.reason("Field matching follows the repo OnModified duck and DisableEditMode is duck-typed on the staged instance container.")
   OnModified(value = null)
   {
-    if (value === "effect")
+    if (IsMatch(value, "effect"))
     {
       this.effect?.DisableEditMode?.(true);
     }
 
-    if (value === "completeness")
+    if (IsMatch(value, "completeness"))
     {
       this.completeness = Math.min(1, Math.max(0, this.completeness));
     }
 
-    if (value === "randScaleMin")
+    if (IsMatch(value, "randScaleMin"))
     {
       this.randScaleMin = Math.min(this.randScaleMax, Math.max(0, this.randScaleMin));
     }
 
-    if (value === "randScaleMax")
+    if (IsMatch(value, "randScaleMax"))
     {
       this.randScaleMax = Math.max(this.randScaleMax, this.randScaleMin);
     }
 
-    if (value === "frequency")
+    if (IsMatch(value, "frequency"))
     {
       if (this.frequency !== 0)
       {

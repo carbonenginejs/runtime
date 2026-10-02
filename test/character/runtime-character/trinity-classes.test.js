@@ -1,3 +1,4 @@
+import { NotifyModified } from "../../../npm/dist/global/blue/index.js";
 import "../../../npm/dist/trinity/index.js";
 import { finalizeReaderObject } from "../../../npm/dist/global/schema/hydration.js";
 import test from "node:test";
@@ -277,15 +278,15 @@ test("Tr2SkinnedModel selects exact resource skeletons and resets bindings", () 
 
   model.geometryRes = geometryRes;
   model.skeletonName = "Hero";
-  CjsSchema.setValues(model, { skeletonName: model.skeletonName });
+  NotifyModified(model, "skeletonName");
   assert.equal(model.GetSkeleton(), skeletons[1]);
 
   model.skeletonName = "hero";
-  CjsSchema.setValues(model, { skeletonName: model.skeletonName });
+  NotifyModified(model, "skeletonName");
   assert.equal(model.GetSkeleton(), null, "native skeleton selection is case-sensitive");
 
   model.skeletonName = "Other";
-  CjsSchema.setValues(model, { skeletonName: model.skeletonName });
+  NotifyModified(model, "skeletonName");
   assert.equal(model.GetSkeleton(), skeletons[0]);
   model.ReleaseCachedData(geometryRes);
   assert.equal(model.GetSkeleton(), null);
@@ -371,7 +372,7 @@ test("Tr2SkinnedObject rebuilds immediate CPU rig mappings and skinning palettes
       return true;
     }
   } ];
-  CjsSchema.setValues(model, { skeletonName: model.skeletonName });
+  NotifyModified(model, "skeletonName");
 
   const object = new Tr2SkinnedObject();
   const animationBoneNames = [ "Root", "Head" ];
@@ -433,7 +434,7 @@ test("whole-model LOD swaps rebuild valid rig mappings but ignore missing skelet
     GetSkeletonData: () => skeleton
   };
   model.skeletonName = "Hero";
-  CjsSchema.setValues(model, { skeletonName: model.skeletonName });
+  NotifyModified(model, "skeletonName");
 
   const object = new Tr2SkinnedObject();
   object.highDetailModel = new FakeLodProxy("high", { model });

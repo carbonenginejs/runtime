@@ -37,7 +37,7 @@ import { TriGeometryRes } from "#resource/geometry/TriGeometryRes";
 import { Tr2GrannyAnimation } from "../../../core/animation/Tr2GrannyAnimation.js";
 import { Tr2Vector4Parameter } from "../../../shader/parameter/Tr2Vector4Parameter.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
-import { blue, EnumRegistrationType, ResourceRequirement } from "#blue";
+import { IsMatch, blue, EnumRegistrationType, ResourceRequirement } from "#blue";
 import { TriGeometryResSkeletonData } from "#resource/geometry/TriGeometryResSkeletonData";
 
 /** Carbon BoundingSphereTransform (Utilities/BoundingSphere.cpp:70-81):
@@ -1134,9 +1134,8 @@ export class EveTurretSet extends EveEntity
   }
 
   /**
-   * Carbon OnModified (EveTurretSet.cpp:167-201). FIVE arms, and they are an
-   * `else if` CHAIN: Carbon is notified once per changed member, so exactly one
-   * arm runs per notification.
+   * Carbon OnModified (EveTurretSet.cpp:167-201). Each member consequence
+   * runs independently when an edit reports several names together.
    *
    * JS notifications identify the exposed property name in place of Carbon's
    * Be::Var address; each arm retains the donor's single-member semantics.
@@ -1145,25 +1144,24 @@ export class EveTurretSet extends EveEntity
   @meta.adapted
   OnModified(propertyName)
   {
-    if (propertyName === "display")
+    if (IsMatch(propertyName, "display") || IsMatch(propertyName, "geometryResPath"))
     {
       this.ReRegister();
     }
-    else if (propertyName === "geometryResPath")
+    if (IsMatch(propertyName, "geometryResPath"))
     {
-      this.ReRegister();
       this.InitializeGeometryResource();
     }
-    else if (propertyName === "ambientEffectEditingMode")
+    if (IsMatch(propertyName, "ambientEffectEditingMode"))
     {
       this.SetAmbientEffect(this.ambientEffect);
     }
-    else if (propertyName === "laserMissBehaviour" || propertyName === "projectileMissBehaviour"
-      || propertyName === "impactSize" || propertyName === "impactBehaviour")
+    if (IsMatch(propertyName, "laserMissBehaviour") || IsMatch(propertyName, "projectileMissBehaviour")
+      || IsMatch(propertyName, "impactSize") || IsMatch(propertyName, "impactBehaviour"))
     {
       this.target.SetBehaviour(this.laserMissBehaviour, this.projectileMissBehaviour, this.impactSize, this.impactBehaviour);
     }
-    else if (propertyName === "useDynamicBounds")
+    if (IsMatch(propertyName, "useDynamicBounds"))
     {
       if (!this.geometryResource || !this.geometryResource.IsGood() || this.geometryResource.IsUsingCMF())
         this.InitializeDynamicBounds();

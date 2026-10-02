@@ -6,7 +6,7 @@ import { meta } from "#schema";
 import { EveEffectRoot2 } from "../../spaceObject/EveEffectRoot2.js";
 import { EveSpaceObject2 } from "../../spaceObject/EveSpaceObject2.js";
 import { ParameterType } from "../../../generated/eve/enums.js";
-import { blue, EnumRegistrationType } from "#blue";
+import { IsMatch, blue, EnumRegistrationType } from "#blue";
 
 /**
  * One named slot in an EveMultiEffect, holding the object bound to that name
@@ -100,7 +100,7 @@ export class EveMultiEffectParameter
   @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
-    if (propertyName === "object" && this._owner) this._owner.Rebind();
+    if (IsMatch(propertyName, "object") && this._owner) this._owner.Rebind();
     return true;
   }
 

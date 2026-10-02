@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Tr2Mesh_Blue.cpp
 import { meta } from "#schema";
 import { ResourceRequirement } from "#resource";
-import { blue, IInitialize, INotify } from "#blue";
+import { IsMatch, blue, IInitialize, INotify } from "#blue";
 import { Tr2MeshBase } from "./Tr2MeshBase.js";
 import { Tr2SerializedMorphAnimation } from "./Tr2SerializedMorphAnimation.js";
 
@@ -121,15 +121,15 @@ export class Tr2Mesh extends Tr2MeshBase
   @meta.reason("JS identifies Carbon's changed member address by its exposed property name.")
   OnModified(propertyName)
   {
-    if (propertyName === "geometryResPath")
+    if (IsMatch(propertyName, "geometryResPath"))
     {
       this.InitializeGeometryResource();
     }
-    else if (propertyName === "deferGeometryLoad")
+    else if (IsMatch(propertyName, "deferGeometryLoad"))
     {
       if (!this.deferGeometryLoad && !this.geometry) this.Initialize();
     }
-    else if (propertyName === "meshIndex")
+    if (IsMatch(propertyName, "meshIndex"))
     {
       this.InitializeMorphTargets();
     }

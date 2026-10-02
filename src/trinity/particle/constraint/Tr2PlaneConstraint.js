@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Particle/Tr2PlaneConstraint.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -110,7 +111,7 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
   @meta.implemented
   OnModified(propertyName)
   {
-    if (propertyName === "plane")
+    if (IsMatch(propertyName, "plane"))
     {
       this.#normalizePlane();
     }

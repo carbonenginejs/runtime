@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierControllerVariableListener.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -61,7 +62,7 @@ export class EveSmartLightAttributeModifierControllerVariableListener extends Ev
   @meta.reason("JS identifies Carbon's changed member address by its exposed property name.")
   OnModified(propertyName)
   {
-    if (propertyName === "value" || propertyName === "invertReceivedValue") this._ApplyValue();
+    if (IsMatch(propertyName, "value") || IsMatch(propertyName, "invertReceivedValue")) this._ApplyValue();
     super.OnModified(propertyName);
     return true;
   }

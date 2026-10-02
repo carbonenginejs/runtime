@@ -7,7 +7,7 @@
 // EveSpaceScene::Update and the scene-owned EveUpdateContext member (Carbon
 // m_updateContext - protected, so absent from the Blue schema scan).
 import { CjsSchema, meta } from "#schema";
-import { BlueList, IInitialize, INotify, IListNotify } from "#blue";
+import { IsMatch, BlueList, IInitialize, INotify, IListNotify } from "#blue";
 import { ITr2Scene } from "../../core/ITr2Scene.js";
 import { ITr2Updateable } from "../../core/ITr2Updateable.js";
 import { EvePlanet } from "../spaceObject/planet/EvePlanet.js";
@@ -1269,7 +1269,7 @@ export class EveSpaceScene
   @meta.reason("Exposed member names replace native addresses; null releases references and resource requirements replace interface IIDs.")
   OnModified(property, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
-    if (property === "reflectionProbe" || property === "envMapResPath")
+    if (IsMatch(property, "reflectionProbe") || IsMatch(property, "envMapResPath"))
     {
       this._staticEnvMapTextureRes = null;
       if (this._staticEnvMapHandle)
@@ -1284,18 +1284,18 @@ export class EveSpaceScene
     }
     for (const field of ["envMap1", "envMap2", "envMap3"])
     {
-      if (property !== field + "ResPath") continue;
+      if (!IsMatch(property, field + "ResPath")) continue;
       this[field] = null;
       if (this[field + "ResPath"])
         this[field] = blue.resMan.GetResource(this[field + "ResPath"], { requirement: ResourceRequirement.TEXTURE });
     }
-    if ((property === "reflectionBackLightingColor" || property === "reflectionBackLightingContrast")
+    if ((IsMatch(property, "reflectionBackLightingColor") || IsMatch(property, "reflectionBackLightingContrast"))
       && this.reflectionProbe && this.reflectionProbe.IsValid(renderContext))
     {
-      if (property === "reflectionBackLightingColor") this.reflectionProbe.SetBackLightColor(this.reflectionBackLightingColor);
-      else this.reflectionProbe.SetBackLightContrast(this.reflectionBackLightingContrast);
+      if (IsMatch(property, "reflectionBackLightingColor")) this.reflectionProbe.SetBackLightColor(this.reflectionBackLightingColor);
+      if (IsMatch(property, "reflectionBackLightingContrast")) this.reflectionProbe.SetBackLightContrast(this.reflectionBackLightingContrast);
     }
-    if (property === "shadowQuality" && this.cascadedShadowMap)
+    if (IsMatch(property, "shadowQuality") && this.cascadedShadowMap)
     {
       if (this.shadowQuality === ShadowQuality.SHADOW_LOW) this.cascadedShadowMap.ShouldUseDenoiser(false);
       if (this.shadowQuality === ShadowQuality.SHADOW_HIGH) this.cascadedShadowMap.ShouldUseDenoiser(true);

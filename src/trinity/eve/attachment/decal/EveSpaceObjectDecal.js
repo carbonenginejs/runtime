@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveSpaceObjectDecal.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveSpaceObjectDecal.cpp
@@ -183,7 +184,7 @@ export class EveSpaceObjectDecal
   @meta.invalidates("#decalGeometry")
   OnModified(propertyName)
   {
-    if (propertyName === "position" || propertyName === "rotation" || propertyName === "scaling")
+    if (IsMatch(propertyName, "position") || IsMatch(propertyName, "rotation") || IsMatch(propertyName, "scaling"))
     {
       this._updateDecalMatrix();
       if (!this.HasStaticIndexBuffers()) this._decalGeometry = null;

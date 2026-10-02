@@ -7,7 +7,7 @@ import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildSocket.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { blue } from "#blue";
+import { IsMatch, blue } from "#blue";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { EveChildPlug } from "./EveChildPlug.js";
 import { CjsSchema, meta } from "#schema";
@@ -200,8 +200,8 @@ export class EveChildSocket extends EveChildTransform
   @meta.implemented
   OnModified(propertyName = null)
   {
-    if (propertyName === "resPath") this.Initialize();
-    if (propertyName === "display") this.ReRegister();
+    if (IsMatch(propertyName, "resPath")) this.Initialize();
+    if (IsMatch(propertyName, "display")) this.ReRegister();
     return true;
   }
 

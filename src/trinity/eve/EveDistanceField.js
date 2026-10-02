@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { INotify } from "../../global/blue/INotify.js";
 import { IListNotify } from "../../global/blue/IListNotify.js";
 // Source: trinity/trinity/Eve/EveDistanceField.h
@@ -185,7 +186,7 @@ export class EveDistanceField
   @meta.invalidates("#updateDistanceCurve")
   OnModified(propertyName)
   {
-    if (propertyName === "minDistance" || propertyName === "maxDistance")
+    if (IsMatch(propertyName, "minDistance") || IsMatch(propertyName, "maxDistance"))
     {
       this._updateDistanceCurve = true;
     }

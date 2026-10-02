@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Curves/Tr2GrannyTrack.h
 // Source: trinity/trinity/Curves/Tr2GrannyTrack.cpp
@@ -68,8 +69,8 @@ export class Tr2GrannyTrack
   @meta.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
   OnModified(propertyName)
   {
-    if (propertyName === "grannyResPath") this.SetGrannyResource();
-    else if (propertyName === "name" || propertyName === "group")
+    if (IsMatch(propertyName, "grannyResPath")) this.SetGrannyResource();
+    else if (IsMatch(propertyName, "name") || IsMatch(propertyName, "group"))
     {
       this.ResetTracks();
       this.duration = 0;

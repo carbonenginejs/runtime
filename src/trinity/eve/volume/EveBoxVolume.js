@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/Volume/EveBoxVolume.h
 // Source: trinity/trinity/Eve/Volume/EveBoxVolume.cpp
@@ -230,7 +231,7 @@ export class EveBoxVolume extends IEveVolume
   @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
-    if (["position", "scaling", "rotation", "innerScaling"].includes(propertyName)) this.Setup();
+    if (["position", "scaling", "rotation", "innerScaling"].some(name => IsMatch(propertyName, name))) this.Setup();
     for (const callback of this._callbacks.values())
     {
       callback?.();

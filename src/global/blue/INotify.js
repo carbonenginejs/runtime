@@ -26,7 +26,7 @@ export class INotify
    * `OnModified` - a Be::NOTIFY member changed; re-derive whatever depended on
    * it. Editor settlement retains dirty state when this returns false.
    *
-   * @param {string|null} _propertyName The changed member's name in JavaScript.
+   * @param {string|string[]|null} _propertyName The changed member's name in JavaScript.
    * @returns {boolean} False to halt the caller.
    */
   OnModified(_propertyName) {}
@@ -53,11 +53,11 @@ CjsSchema.define(INotify, {
  * That collapses all nine overloads into one comparison and removes the trap
  * the overloads exist to prevent, since a name has no wrapper to look past.
  *
- * @param {string|null} propertyName The argument `OnModified` received.
+ * @param {string|string[]|null} propertyName The argument `OnModified` received.
  * @param {string} name The member being tested for.
  * @returns {boolean} True when that member is the one that changed.
  */
 export function IsMatch(propertyName, name)
 {
-  return propertyName === name;
+  return Array.isArray(propertyName) ? propertyName.includes(name) : propertyName === name;
 }

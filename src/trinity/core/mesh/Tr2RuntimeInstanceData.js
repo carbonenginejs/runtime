@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 // Source: trinity/trinity/Tr2RuntimeInstanceData.h
 // Source: trinity/trinity/Tr2RuntimeInstanceData.cpp
 // Source: trinity/trinity/Tr2RuntimeInstanceData_Blue.cpp
@@ -134,7 +135,7 @@ export class Tr2RuntimeInstanceData
   @meta.invalidates("#dirty")
   OnModified(propertyName)
   {
-    if (propertyName === "layout" || propertyName === "rows")
+    if (IsMatch(propertyName, "layout") || IsMatch(propertyName, "rows"))
     {
       this.#rebuildCpuData();
     }

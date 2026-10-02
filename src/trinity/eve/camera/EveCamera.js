@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { INotify } from "../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/EveCamera.h
 //   trinity/trinity/Eve/EveCamera.cpp
@@ -878,14 +879,14 @@ export class EveCamera
   @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
-    if (propertyName === "rotationAroundParent")
+    if (IsMatch(propertyName, "rotationAroundParent"))
     {
       quaternionToYawPitchRoll(CAMERA_YAW_PITCH_ROLL, this.rotationAroundParent);
       this.yaw = CAMERA_YAW_PITCH_ROLL[0];
       this.pitch = CAMERA_YAW_PITCH_ROLL[1];
     }
 
-    else if (propertyName === "interest")
+    if (IsMatch(propertyName, "interest"))
     {
       this._trackInterest = !!this.interest && this.interest !== this.parent;
       if (!this._trackInterest)

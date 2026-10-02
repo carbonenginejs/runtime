@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { ITr2ControllerOwner } from "../../controllers/ITr2ControllerOwner.js";
 import { ITr2SoundEmitterOwner } from "../ITr2SoundEmitterOwner.js";
@@ -4058,46 +4059,24 @@ export class EveSpaceObject2 extends EveEntity
   @meta.implemented
   OnModified(propertyName = null)
   {
-    switch (propertyName)
+    if (IsMatch(propertyName, "dirtLevel")) this.SetControllerVariable("DirtLevel", this.dirtLevel);
+    if (IsMatch(propertyName, "clipSphereFactor") || IsMatch(propertyName, "clipSphereFactor2"))
     {
-      case "dirtLevel":
-        this.SetControllerVariable("DirtLevel", this.dirtLevel);
-        break;
-
-      case "clipSphereFactor":
-      case "clipSphereFactor2":
+      const clipping = this.clipSphereFactor !== 0 || this.clipSphereFactor2 !== 0;
+      const oldClipping = this._oldClipSphereFactor !== 0 || this._oldClipSphereFactor2 !== 0;
+      if (clipping !== oldClipping)
       {
-        const clipping = this.clipSphereFactor !== 0 || this.clipSphereFactor2 !== 0;
-        const oldClipping = this._oldClipSphereFactor !== 0 || this._oldClipSphereFactor2 !== 0;
-        if (clipping !== oldClipping)
-        {
-          this.SetShaderOption("SPACE_OBJECT_CLIPPING", clipping ? "SOC_ENABLED" : "SOC_DISABLED");
-        }
-        this._oldClipSphereFactor = this.clipSphereFactor;
-        this._oldClipSphereFactor2 = this.clipSphereFactor2;
-        this.SetControllerVariable("ClipSphereFactor", this.clipSphereFactor);
-        this.SetControllerVariable("ClipSphereFactor2", this.clipSphereFactor2);
-        break;
+        this.SetShaderOption("SPACE_OBJECT_CLIPPING", clipping ? "SOC_ENABLED" : "SOC_DISABLED");
       }
-
-      case "reflectionMode":
-      case "display":
-      case "castShadow":
-        this.ReRegister();
-        break;
-
-      case "name":
-        this.impactOverlay?.SetSeed(ccpHashFnv1(this.name));
-        break;
-
-      case "mute":
-        this.SetMute(this.mute);
-        break;
-
-      case "damageLocatorAutoFilterEnabled":
-        if (this._damageFilterState === 0) this._damageFilterState = 1;
-        break;
+      this._oldClipSphereFactor = this.clipSphereFactor;
+      this._oldClipSphereFactor2 = this.clipSphereFactor2;
+      this.SetControllerVariable("ClipSphereFactor", this.clipSphereFactor);
+      this.SetControllerVariable("ClipSphereFactor2", this.clipSphereFactor2);
     }
+    if (IsMatch(propertyName, "reflectionMode") || IsMatch(propertyName, "display") || IsMatch(propertyName, "castShadow")) this.ReRegister();
+    if (IsMatch(propertyName, "name")) this.impactOverlay?.SetSeed(ccpHashFnv1(this.name));
+    if (IsMatch(propertyName, "mute")) this.SetMute(this.mute);
+    if (IsMatch(propertyName, "damageLocatorAutoFilterEnabled") && this._damageFilterState === 0) this._damageFilterState = 1;
     return true;
   }
 

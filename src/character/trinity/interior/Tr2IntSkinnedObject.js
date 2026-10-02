@@ -44,7 +44,7 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
   @meta.reason("Exposed owner *DetailModel names map to the native LOD helper proxy members.")
   OnModified(propertyName)
   {
-    if (super.OnModified(propertyName)) return true;
+    super.OnModified(propertyName);
     this.lod.OnModified(propertyName);
     return true;
   }

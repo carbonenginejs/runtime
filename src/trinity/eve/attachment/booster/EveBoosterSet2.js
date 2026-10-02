@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveBoosterSet2.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveBoosterSet2.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveBoosterSet2_Blue.cpp
@@ -469,17 +470,17 @@ export class EveBoosterSet2 extends EveEntity
   {
     // Persisted items stand in for Carbon's Clear / Add... / PrepareResources
     // sequence (EveShip2.cpp:234-259), so the prepare lands here.
-    if (propertyName === "items")
+    if (IsMatch(propertyName, "items"))
     {
       EveBoosterSet2._RebuildItems(this);
       this.PrepareResources();
     }
     if (this.glows)
     {
-      if (propertyName === "glowScale" || propertyName === "haloScaleX"
-        || propertyName === "haloScaleY" || propertyName === "symHaloScale"
-        || propertyName === "glowColor" || propertyName === "warpGlowColor"
-        || propertyName === "haloColor" || propertyName === "warpHaloColor")
+      if (IsMatch(propertyName, "glowScale") || IsMatch(propertyName, "haloScaleX")
+        || IsMatch(propertyName, "haloScaleY") || IsMatch(propertyName, "symHaloScale")
+        || IsMatch(propertyName, "glowColor") || IsMatch(propertyName, "warpGlowColor")
+        || IsMatch(propertyName, "haloColor") || IsMatch(propertyName, "warpHaloColor"))
       {
         this.glows.Clear();
         for (const booster of this._singleBoosters)
@@ -488,7 +489,7 @@ export class EveBoosterSet2 extends EveEntity
         }
         this.glows.Rebuild();
       }
-      else if (propertyName === "staticTrailLength")
+      if (IsMatch(propertyName, "staticTrailLength"))
       {
         EveBoosterSet2._UpdateStaticTrailOffsets(this);
       }

@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { INotify } from "../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerControllerTrigger.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -75,7 +76,7 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
   @meta.adapted
   OnModified(name)
   {
-    if (name === "value")
+    if (IsMatch(name, "value"))
     {
       this._applyValue();
     }

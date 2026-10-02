@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { EveEntity } from "../../EveEntity.js";
 import { INotify } from "../../../../global/blue/INotify.js";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
@@ -62,7 +63,7 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   @meta.reason("JS identifies Carbon's changed member address by its exposed property name.")
   OnModified(propertyName)
   {
-    if (propertyName === "pickBufferID") this.Rebuild();
+    if (IsMatch(propertyName, "pickBufferID")) this.Rebuild();
     return true;
   }
 

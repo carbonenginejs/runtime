@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { IListNotify } from "../../../../global/blue/IListNotify.js";
 import { INotify } from "../../../../global/blue/INotify.js";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
@@ -223,11 +224,11 @@ export class BehaviorGroup extends EveEntity
   @meta.reason("Blue Var matching maps to the repo's OnModified duck; a mesh change refreshes the (stubbed) vertex declaration and a booster change re-syncs the flare count.")
   OnModified(value = null)
   {
-    if (value === "mesh")
+    if (IsMatch(value, "mesh"))
     {
       this.CreateVertexDeclaration();
     }
-    if ((value === "boosters") && this.boosters !== null)
+    if ((IsMatch(value, "boosters")) && this.boosters !== null)
     {
       this.boosters.RebuildFlareBuffer?.(this.actualCount);
     }

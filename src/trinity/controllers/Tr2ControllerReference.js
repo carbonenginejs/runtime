@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Tr2ControllerReference.h
 // Source: trinity/trinity/Controllers/Tr2ControllerReference.cpp
 // Source: trinity/trinity/Controllers/Tr2ControllerReference_Blue.cpp
-import { blue, INotify, IInitialize } from "#blue";
+import { IsMatch, blue, INotify, IInitialize } from "#blue";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { meta } from "#schema";
 import { mappedInterfaces } from "../../global/compose/interface.js";
@@ -74,7 +74,7 @@ export class Tr2ControllerReference extends ITr2Controller
   @meta.adapted
   OnModified(propertyName)
   {
-    if (propertyName === "path")
+    if (IsMatch(propertyName, "path"))
     {
       this.ResolveController();
     }

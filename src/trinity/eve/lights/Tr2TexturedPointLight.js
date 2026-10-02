@@ -1,4 +1,4 @@
-import { IInitialize, INotify } from "#blue";
+import { IsMatch, IInitialize, INotify } from "#blue";
 ﻿// Source: trinity/trinity/Lights/Tr2TexturedPointLight.h
 // Source: trinity/trinity/Lights/Tr2TexturedPointLight.cpp
 // Source: trinity/trinity/Lights/Tr2TexturedPointLight_Blue.cpp
@@ -77,7 +77,7 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   @meta.reason("JS identifies Carbon's changed member address by its exposed property name.")
   OnModified(propertyName)
   {
-    if (propertyName === "texturePath") this.SetTexturePath(this.texturePath);
+    if (IsMatch(propertyName, "texturePath")) this.SetTexturePath(this.texturePath);
     return super.OnModified(propertyName);
   }
 

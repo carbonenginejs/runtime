@@ -4,7 +4,7 @@
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { ITr2Updateable } from "../../core/ITr2Updateable.js";
 import { meta } from "#schema";
-import { blue, TimeAsFloat, INotify, IInitialize, ICustomPersist } from "#blue";
+import { IsMatch, blue, TimeAsFloat, INotify, IInitialize, ICustomPersist } from "#blue";
 import { ContinueOnMainThread } from "../../core/continueOnMainThread.js";
 
 
@@ -175,7 +175,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
   @meta.adapted
   OnModified(propertyName)
   {
-    if (propertyName !== "module" && propertyName !== "className") return true;
+    if (!IsMatch(propertyName, "module") && !IsMatch(propertyName, "className")) return true;
     const controller = this._controller;
     const wasPlaying = this._isPlaying;
     if (controller)

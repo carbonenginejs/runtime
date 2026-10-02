@@ -5,7 +5,7 @@ import { vec3 } from "#math/vec3";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
-import { INotify, IInitialize } from "#blue";
+import { IsMatch, INotify, IInitialize } from "#blue";
 import { ITr2FollowCurveKey } from "../ITr2FollowCurveKey.js";
 import { meta } from "#schema";
 import { Tr2FollowCurveKeyInterpolation } from "../enums.js";
@@ -164,11 +164,11 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
   @meta.adapted
   OnModified(propertyName = null)
   {
-    if (propertyName === "fovMultiplication")
+    if (IsMatch(propertyName, "fovMultiplication"))
     {
       this.fovMultiplication = Math.min(0.999, Math.max(0.001, this.fovMultiplication));
     }
-    if (propertyName === "enabled")
+    if (IsMatch(propertyName, "enabled"))
     {
       const context = Tr2RenderContext_GetMainThreadRenderContext();
       this._lastEnabledFOV = Math.fround(context.GetFieldOfView() * 0.5);

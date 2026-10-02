@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateValue.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateValue_Blue.cpp
 import { meta } from "#schema";
-import { blue } from "#blue";
+import { IsMatch, blue } from "#blue";
 import { INotify } from "#blue/INotify";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
@@ -221,11 +221,11 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
   OnModified(propertyName)
   {
     if (!this._runtime.controller) return true;
-    if (propertyName === "path" || propertyName === "attribute" || propertyName === "destination" || propertyName === "delayBinding")
+    if (IsMatch(propertyName, "path") || IsMatch(propertyName, "attribute") || IsMatch(propertyName, "destination") || IsMatch(propertyName, "delayBinding"))
     {
       if (!this.HasDelayedBinding()) this.LinkDestination(this._runtime.controller);
     }
-    else if (propertyName === "value")
+    if (IsMatch(propertyName, "value"))
     {
       this._runtime.program = null;
       this.CompileExpression();

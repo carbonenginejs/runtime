@@ -7,7 +7,7 @@ import { EveSmartLightBaseGroup } from "./EveSmartLightBaseGroup.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta } from "#schema";
 import { ResourceRequirement } from "#resource";
-import { blue } from "#blue";
+import { IsMatch, blue } from "#blue";
 import { EveEntity } from "../EveEntity.js";
 import { resolveGroupColor } from "../../eve/smartLights/EveSmartLightBaseGroup.js";
 import { color } from "#math/color";
@@ -311,7 +311,7 @@ export class EveSmartLightPointLight extends EveEntity
   @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
-    if (propertyName === "lightProfilePath") this._ResolveLightProfile();
+    if (IsMatch(propertyName, "lightProfilePath")) this._ResolveLightProfile();
     return true;
   }
 

@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetValue.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetValue.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetValue_Blue.cpp
@@ -167,11 +168,11 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
   OnModified(propertyName)
   {
     if (!this._controller) return true;
-    if (propertyName === "path" || propertyName === "attribute" || propertyName === "destination" || propertyName === "delayBinding")
+    if (IsMatch(propertyName, "path") || IsMatch(propertyName, "attribute") || IsMatch(propertyName, "destination") || IsMatch(propertyName, "delayBinding"))
     {
       if (!this.HasDelayedBinding()) this.LinkDestination(this._controller);
     }
-    else if (propertyName === "value")
+    if (IsMatch(propertyName, "value"))
     {
       this._expression.program = null;
       this.CompileExpression();

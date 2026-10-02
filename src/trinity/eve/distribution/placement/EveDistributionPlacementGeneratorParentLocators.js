@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { INotify } from "../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionPlacementGenerators/EveDistributionPlacementGeneratorParentLocators.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -113,7 +114,7 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
   @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
-    if (propertyName === "locatorSetName") this._regenerated = false;
+    if (IsMatch(propertyName, "locatorSetName")) this._regenerated = false;
     return true;
   }
 

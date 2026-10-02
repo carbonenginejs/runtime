@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Tr2MaterialParameterStore.cpp
 // Source: trinity/trinity/Tr2MaterialParameterStore_Blue.cpp
 import { meta } from "#schema";
-import { blue, IInitialize, INotify } from "#blue";
+import { IsMatch, blue, IInitialize, INotify } from "#blue";
 import { mappedInterfaces } from "../../global/compose/interface.js";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 
@@ -77,7 +77,7 @@ export class Tr2MaterialParameterStore extends IInitialize
   @meta.adapted
   OnModified(propertyName)
   {
-    if (propertyName === "parentPath") this._LoadParentResource();
+    if (IsMatch(propertyName, "parentPath")) this._LoadParentResource();
     return true;
   }
 

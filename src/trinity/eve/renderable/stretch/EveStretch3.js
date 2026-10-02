@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch3.h
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch3.cpp
@@ -388,7 +389,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   @meta.adapted
   OnModified(propertyName)
   {
-    if (propertyName === "dest")
+    if (IsMatch(propertyName, "dest"))
     {
       if (!this.dest) this._stretchModifier = null;
       else
@@ -397,7 +398,7 @@ export class EveStretch3 extends IEveFiringEffectElement
         this._stretchModifier.SetDest(this.dest);
       }
     }
-    else if (propertyName === "display") this.ReRegister();
+    if (IsMatch(propertyName, "display")) this.ReRegister();
     return true;
   }
 

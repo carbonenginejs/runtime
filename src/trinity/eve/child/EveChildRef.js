@@ -8,7 +8,7 @@ import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildRef.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { blue } from "#blue";
+import { IsMatch, blue } from "#blue";
 import { CjsSchema, meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { quat } from "#math/quat";
@@ -128,8 +128,8 @@ export class EveChildRef extends EveChildTransform
   @meta.implemented
   OnModified(propertyName = null)
   {
-    if (propertyName === "resPath" && this.loadChildAutomatically) this.LoadChild();
-    if (propertyName === "display") this.ReRegister();
+    if (IsMatch(propertyName, "resPath") && this.loadChildAutomatically) this.LoadChild();
+    if (IsMatch(propertyName, "display")) this.ReRegister();
     return true;
   }
 

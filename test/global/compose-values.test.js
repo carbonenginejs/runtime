@@ -191,7 +191,7 @@ test("a write marks dirty and the settle clears it", () =>
   assert.equal(thing.IsDirty(), true, "skipUpdate leaves it dirty for a later settle");
 });
 
-test("OnModified receives the changed notified field names individually", () =>
+test("OnModified receives the changed notified field names together", () =>
 {
   const seen = [];
   const Fixture = declare({
@@ -205,7 +205,7 @@ test("OnModified receives the changed notified field names individually", () =>
   };
 
   new Fixture().SetValues({ n: 1, name: "x" });
-  assert.deepEqual(seen, [ "n", "name" ]);
+  assert.deepEqual(seen, [[ "n", "name" ]]);
 });
 
 test("a positional OnModified override receives member identity", () =>
@@ -228,15 +228,7 @@ test("OnModified returning false leaves the target dirty", () =>
   assert.equal(thing.IsDirty(), true);
 });
 
-test("a settle that never converges throws rather than spinning", () =>
-{
-  const Fixture = declare({ n: { type: { kind: "int32" }, initial: 0, edit: { notify: true } } });
-  Fixture.prototype.OnModified = function () { this.SetValues({ n: this.n + 1 }); return true; };
-
-  assert.throws(() => new Fixture().SetValues({ n: 1 }), /settle passes/);
-});
-
-test("the settle is re-entrant-safe", () =>
+test("explicit nested UpdateValues calls back immediately", () =>
 {
   let calls = 0;
   let depth = 0;
@@ -253,7 +245,7 @@ test("the settle is re-entrant-safe", () =>
 
   new Fixture().SetValues({ n: 1 });
   assert.equal(calls, 2);
-  assert.equal(max, 1, "a nested UpdateValues returns instead of recursing");
+  assert.equal(max, 2, "nested updates execute immediately");
 });
 
 test("nothing is emitted without a listener, and the payload carries the fields", () =>

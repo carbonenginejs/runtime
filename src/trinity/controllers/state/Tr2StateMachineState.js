@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Tr2StateMachineState.h
 // Source: trinity/trinity/Controllers/Tr2StateMachineState.cpp
 // Source: trinity/trinity/Controllers/Tr2StateMachineState_Blue.cpp
-import { BlueList, IListNotify, INotify } from "#blue";
+import { IsMatch, BlueList, IListNotify, INotify } from "#blue";
 import { meta } from "#schema";
 import { UnlinkReason } from "../enums.js";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -96,7 +96,7 @@ export class Tr2StateMachineState
   @meta.adapted
   OnModified(propertyName)
   {
-    if (propertyName === "finalizer" && this.finalizer && this._stateMachine)
+    if (IsMatch(propertyName, "finalizer") && this.finalizer && this._stateMachine)
     {
       this.finalizer.Link(this._stateMachine.GetController());
     }

@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { IInitialize } from "../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/AudioGameObject.h
 // Source: trinity/trinity/Eve/AudioGameObject.cpp
@@ -126,11 +127,11 @@ export class AudioGameObject
   /** Applies a changed mute flag or name to the emitter after a model update. */
   OnModified(value = null)
   {
-    if (value === "mute")
+    if (IsMatch(value, "mute"))
     {
       this.audioEmitter?.[this.mute ? "Mute" : "Unmute"]();
     }
-    else if (value === "name")
+    if (IsMatch(value, "name"))
     {
       this.SetEmitterName(this.name || "audio_object");
     }

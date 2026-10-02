@@ -12,7 +12,7 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2Rende
 import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 import { CarbonVertexElements } from "../vertex/vertexUsage.js";
 import { CreateLodAllocations } from "./TriGeometryResAllocations.js";
-import { blue, EnumRegistrationType } from "#blue";
+import { IsMatch, blue, EnumRegistrationType } from "#blue";
 
 
 /**
@@ -196,7 +196,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   @meta.adapted
   OnModified(propertyName)
   {
-    if (propertyName === "instanceGeometryResPath")
+    if (IsMatch(propertyName, "instanceGeometryResPath"))
     {
       if (!this.deferGeometryLoad)
       {
@@ -205,11 +205,11 @@ export class Tr2InstancedMesh extends Tr2Mesh
           : null);
       }
     }
-    else if (propertyName === "deferGeometryLoad")
+    else if (IsMatch(propertyName, "deferGeometryLoad"))
     {
       if (!this.deferGeometryLoad && !this._loadedGeometryResource) this.Initialize();
     }
-    else if (propertyName === "instanceMeshIndex" || propertyName === "meshIndex") this.CreateVertexDeclaration();
+    if (IsMatch(propertyName, "instanceMeshIndex") || IsMatch(propertyName, "meshIndex")) this.CreateVertexDeclaration();
     return super.OnModified(propertyName);
   }
 

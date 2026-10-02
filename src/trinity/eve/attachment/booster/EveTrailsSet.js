@@ -2,7 +2,7 @@ import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveTrailsSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveTrailsSet.cpp
 import { mat4 } from "#math/mat4";
-import { blue } from "#blue";
+import { IsMatch, blue } from "#blue";
 import { ResourceRequirement } from "#resource";
 import { TriStorageFlags } from "#consts/graphics";
 import { meta } from "#schema";
@@ -181,7 +181,7 @@ export class EveTrailsSet
   @meta.adapted
   OnModified(propertyName)
   {
-    if (propertyName === "geometryResPath") this.InitializeGeometryResource();
+    if (IsMatch(propertyName, "geometryResPath")) this.InitializeGeometryResource();
     return true;
   }
 

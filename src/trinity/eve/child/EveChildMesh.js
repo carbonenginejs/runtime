@@ -16,7 +16,7 @@ import { Tr2RingBuffer, Tr2RingBufferOffsets } from "../../core/device/Tr2RingBu
 import { vec4 } from "#math/vec4";
 import { CjsSchema, meta } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
-import { IListNotify } from "#blue";
+import { IsMatch, IListNotify } from "#blue";
 import { EveEntity } from "../EveEntity.js";
 import { ReflectionMode, TriBatchType } from "#consts/graphics";
 import { EveChildTransform, applyTransformModifiers } from "./EveChildTransform.js";
@@ -1710,18 +1710,18 @@ export class EveChildMesh extends EveChildTransform
   @meta.reason("JS identifies Carbon's changed member address by its exposed property name; the instanced-mesh cast is performed where that interface is used.")
   OnModified(propertyName)
   {
-    if (propertyName === "reflectionMode" || propertyName === "display"
-      || propertyName === "mesh" || propertyName === "castShadow")
+    if (IsMatch(propertyName, "reflectionMode") || IsMatch(propertyName, "display")
+      || IsMatch(propertyName, "mesh") || IsMatch(propertyName, "castShadow"))
     {
       this.ReRegister();
     }
-    if (propertyName === "mesh" || propertyName === "animationUpdater")
+    if (IsMatch(propertyName, "mesh") || IsMatch(propertyName, "animationUpdater"))
     {
       this.InitializeAnimation();
     }
-    if (this.ownedLocatorSets.length && (propertyName === "scaling"
-      || propertyName === "rotation" || propertyName === "translation"
-      || propertyName === "localTransform"))
+    if (this.ownedLocatorSets.length && (IsMatch(propertyName, "scaling")
+      || IsMatch(propertyName, "rotation") || IsMatch(propertyName, "translation")
+      || IsMatch(propertyName, "localTransform")))
     {
       this.InvalidateOwnerMergedLocators("partMoved");
     }

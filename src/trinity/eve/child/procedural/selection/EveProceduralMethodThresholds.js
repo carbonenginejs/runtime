@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodThresholds.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -76,7 +77,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
   @meta.reason("Field matching follows the repo OnModified duck.")
   OnModified(value = null)
   {
-    if (value === "seed_temp")
+    if (IsMatch(value, "seed_temp"))
     {
       this.SelectParameter();
     }

@@ -1,4 +1,4 @@
-import { IInitialize, INotify } from "#blue";
+import { IsMatch, IInitialize, INotify } from "#blue";
 // Source: trinity/trinity/Tr2SkinnedModel.h
 import { meta } from "#schema";
 import { Tr2Model } from "./Tr2Model.js";
@@ -53,7 +53,7 @@ export class Tr2SkinnedModel extends Tr2Model
   @meta.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
   OnModified(propertyName)
   {
-    if (propertyName === "geometryResPath" || propertyName === "skeletonName") this.Initialize();
+    if (IsMatch(propertyName, "geometryResPath") || IsMatch(propertyName, "skeletonName")) this.Initialize();
     return true;
   }
 

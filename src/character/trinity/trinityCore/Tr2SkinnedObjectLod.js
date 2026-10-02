@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 // Source: trinity/trinity/Tr2SkinnedObjectLOD.h
 // Source: trinity/trinity/Tr2SkinnedObjectLOD.cpp
 import { meta } from "#schema";
@@ -32,9 +33,9 @@ export class Tr2SkinnedObjectLod
   @meta.implemented
   OnModified(value)
   {
-    if (value === "highDetailModel"
-      || value === "mediumDetailModel"
-      || value === "lowDetailModel")
+    if (IsMatch(value, "highDetailModel")
+      || IsMatch(value, "mediumDetailModel")
+      || IsMatch(value, "lowDetailModel"))
     {
       this.PopulateLods();
     }

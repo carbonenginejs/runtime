@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { INotify } from "../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/Volume/EveSphereVolume.h
 // Source: trinity/trinity/Eve/Volume/EveSphereVolume.cpp
@@ -156,11 +157,11 @@ export class EveSphereVolume extends IEveVolume
   @meta.reason("JS identifies the changed radius member by its exposed property name; callbacks remain class-owned.")
   OnModified(propertyName)
   {
-    if (propertyName === "innerRadius" && this.innerRadius > this.radius)
+    if (IsMatch(propertyName, "innerRadius") && this.innerRadius > this.radius)
     {
       this.radius = this.innerRadius;
     }
-    if (propertyName === "radius")
+    if (IsMatch(propertyName, "radius"))
     {
       this.radius = Math.max(0, this.radius);
       if (this.innerRadius > this.radius)

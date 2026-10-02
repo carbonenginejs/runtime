@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { IInitialize } from "../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Particle/Tr2GpuParticleSystem.h
 // Source: trinity/trinity/Particle/Tr2GpuParticleSystem.cpp
@@ -488,8 +489,11 @@ export class Tr2GpuParticleSystem
   @meta.adapted
   OnModified(propertyName)
   {
-    if (EFFECT_SLOTS.includes(propertyName)) this.SetVariableStore(this[propertyName]);
-    else if (propertyName === "maxParticles") this.SetMaxParticles(this.maxParticles);
+    for (const slot of EFFECT_SLOTS)
+    {
+      if (IsMatch(propertyName, slot)) this.SetVariableStore(this[slot]);
+    }
+    if (IsMatch(propertyName, "maxParticles")) this.SetMaxParticles(this.maxParticles);
     return true;
   }
 

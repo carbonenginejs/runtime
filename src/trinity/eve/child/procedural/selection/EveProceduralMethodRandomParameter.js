@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodRandomParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -55,13 +56,13 @@ export class EveProceduralMethodRandomParameter
   @meta.reason("The Be::Var notification identity is represented by either the field name or assigned value.")
   OnModified(value = null)
   {
-    if (value === "weighting")
+    if (IsMatch(value, "weighting"))
     {
       this.weighting = Math.max(this.weighting, 1);
       this._modified = true;
     }
 
-    if (value === "child")
+    if (IsMatch(value, "child"))
     {
       if (this.child)
       {

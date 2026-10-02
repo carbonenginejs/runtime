@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Curves/Tr2FollowCurveKey_Blue.cpp:45-64
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { INotify, IInitialize } from "#blue";
+import { IsMatch, INotify, IInitialize } from "#blue";
 import { mappedInterfaces } from "../../../global/compose/interface.js";
 import { IWorldPosition } from "../../core/IWorldPosition.js";
 import { EveSpaceObject2 } from "../../eve/spaceObject/EveSpaceObject2.js";
@@ -124,7 +124,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
   @meta.adapted
   OnModified(propertyName = null)
   {
-    if (propertyName === "object" || propertyName === "offsetLocatorName")
+    if (IsMatch(propertyName, "object") || IsMatch(propertyName, "offsetLocatorName"))
     {
       this._locator = this.GetLocator();
     }

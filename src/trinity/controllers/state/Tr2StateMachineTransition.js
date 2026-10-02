@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Tr2StateMachineTransition.cpp
 // Source: trinity/trinity/Controllers/Tr2StateMachineTransition_Blue.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { INotify } from "#blue";
+import { IsMatch, INotify } from "#blue";
 import { meta } from "#schema";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 
@@ -115,7 +115,7 @@ export class Tr2StateMachineTransition
   OnModified(propertyName)
   {
     if (!this._source) return true;
-    if (propertyName === "condition")
+    if (IsMatch(propertyName, "condition"))
     {
       this._program = null;
       this._programSource = null;
@@ -124,7 +124,7 @@ export class Tr2StateMachineTransition
       this.Compile();
       this._source.UpdateVariableMask();
     }
-    else if (propertyName === "name") this._updateDestination();
+    if (IsMatch(propertyName, "name")) this._updateDestination();
     return true;
   }
 

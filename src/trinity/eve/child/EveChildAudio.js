@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { INotify } from "../../../global/blue/INotify.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
@@ -90,11 +91,11 @@ export class EveChildAudio extends EveChildTransform
    */
   OnModified(value = null)
   {
-    if (value === "mute")
+    if (IsMatch(value, "mute"))
     {
       this.audioEmitter?.[this.mute ? "Mute" : "Unmute"]();
     }
-    else if (value === "name")
+    if (IsMatch(value, "name"))
     {
       this.SetEmitterName(this.name || "audio_object");
     }

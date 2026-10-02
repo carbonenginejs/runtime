@@ -1030,7 +1030,7 @@ test("uses schema metadata as the default schema value shape", () => {
 
     (ensureRuntimeState(node).dirty = false);
     CjsSchema.setValues(node, { position: [4, 5, 6] }, { source, skipEvents: true, skipUpdate: true });
-    assert.equal((getRuntimeState(node)?.dirty === true), true, "an accepted notified write owes settlement even when equal");
+    assert.equal((getRuntimeState(node)?.dirty === true), false, "an equal write does not mark dirty or notify");
 
     CjsSchema.setValues(node, { position: [7, 8, 9] }, { notify: false, source, skipEvents: true, skipUpdate: true });
     assert.equal(node.__state.dirty, true);

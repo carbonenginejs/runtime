@@ -1,87 +1,9 @@
 // Optional values methods and batched editing state for explicitly composed classes.
-// Schema services use the same apply/settle operations without an instance base.
+// Schema services use the same write/notification operations without an instance base.
 // State is created lazily on the first edit or event subscription.
 import { NOTIFY_METHODS } from "./notify.js";
-import { getRegisteredClassName } from "./className.js";
 import { ensureRuntimeState, getRuntimeState } from "./runtimeState.js";
 
-
-/** Bound for the JS values transport's cooperative settle. */
-const MAX_UPDATE_PASSES = 32;
-
-/** Records a member before a deferred or reentrant values update returns. */
-export function queueModifiedMember(target, propertyName)
-{
-    const state = ensureRuntimeState(target);
-    (state.pendingModified ??= new Set()).add(propertyName);
-}
-
-/**
- * JS values batching over Carbon's single-member INotify hook. The queue is
- * transport state, not class invalidation state. Callers apply their own
- * NOTIFY gate before recording a member. A null member preserves the existing
- * explicit, unnamed UpdateValues contract pending its separate policy review.
- */
-export function settleModifiedMembers(target)
-{
-    const state = ensureRuntimeState(target);
-    if (state.updating) return true;
-    state.updating = true;
-    try
-    {
-        for (let pass = 0; ; pass++)
-        {
-            if (pass >= MAX_UPDATE_PASSES)
-            {
-                throw new Error(`${getRegisteredClassName(target.constructor)} exceeded ${MAX_UPDATE_PASSES} settle passes.`);
-            }
-            const pending = state.pendingModified ?? new Set();
-            state.pendingModified = new Set();
-            state.dirty = false;
-            const members = Array.from(pending);
-            for (let index = 0; index < members.length; index++)
-            {
-                let accepted;
-                try
-                {
-                    accepted = typeof target.OnModified !== "function"
-                        || target.OnModified(members[index]) !== false;
-                }
-                catch (error)
-                {
-                    restore(index);
-                    throw error;
-                }
-                if (!accepted)
-                {
-                    restore(index);
-                    state.dirty = true;
-                    return false;
-                }
-            }
-            if (!state.pendingModified.size) break;
-
-            function restore(index)
-            {
-                const remaining = new Set();
-                for (; index < members.length; index++) remaining.add(members[index]);
-                for (const member of state.pendingModified) remaining.add(member);
-                state.pendingModified = remaining;
-            }
-        }
-        state.dirty = false;
-        return true;
-    }
-    catch (error)
-    {
-        state.dirty = true;
-        throw error;
-    }
-    finally
-    {
-        state.updating = false;
-    }
-}
 
 /**
  * Whether a declared field accepts an incoming value.
@@ -232,7 +154,6 @@ export function composeValuesDecorator(transport)
         {
             const state = ensureRuntimeState(this);
             state.dirty = true;
-            if (state.updating) queueModifiedMember(this, null);
             return this;
         },
         ClearDirty() { const state = getRuntimeState(this); if (state) state.dirty = false; return this; }
@@ -261,34 +182,26 @@ export function composeValuesDecorator(transport)
     };
 }
 
-/** Applies writes while retaining the values editing notification and settle contract. */
+/** Applies writes and reports each changed NOTIFY member once per call. */
 export function applyValues(target, options, populate)
 {
     const changed = new Set();
-    let notifyRequested = false;
-
+    const notified = new Set();
     populate(recordWrite);
 
-    // Settle actual changes or explicitly requested equal-write notifications.
-    if ((changed.size || notifyRequested) && options.markDirty !== false)
+    if (changed.size && options.markDirty !== false && options.skipUpdate !== true)
     {
-        if (options.skipUpdate !== true) updateValues(target, options, changed);
+        dispatchModified(target, [...notified], options, changed);
     }
 
-    // Preserve each successful mutation if a later import or setter throws.
     function recordWrite(field, didChange)
     {
-        if (didChange) changed.add(field.name);
+        if (!didChange) return;
+        changed.add(field.name);
         if (options.markDirty !== false)
         {
-            if (didChange) ensureRuntimeState(target).dirty = true;
-            // BluePyWrap writes first, then tests NOTIFY without equality.
-            if (options.notify !== false && field.edit?.notify)
-            {
-                queueModifiedMember(target, field.name);
-                ensureRuntimeState(target).dirty = true;
-                notifyRequested = true;
-            }
+            ensureRuntimeState(target).dirty = true;
+            if (options.notify !== false && field.edit?.notify) notified.add(field.name);
         }
     }
 
@@ -296,57 +209,72 @@ export function applyValues(target, options, populate)
 }
 
 /**
- * Settles queued single-member notifications and emits once after success.
+ * Reports explicit changes made outside SetValues. Names are canonical member
+ * names; the caller chooses them independently of the member NOTIFY flag.
  *
- * @param {object} target
- * @param {object} options
- * @param {Set<String>} changedFields
- * @returns {Boolean} False when a hook refused, leaving the target dirty.
+ * @param {object} target Changed object.
+ * @param {string|string[]} names Changed member or members; duplicates collapse.
+ * @param {object} [options] Event source and notification suppression options.
+ * @returns {boolean} False when OnModified refuses the change.
  */
-function updateValues(target, options, changedFields)
+export function NotifyModified(target, names, options = {})
+{
+    if (typeof names !== "string" && !Array.isArray(names))
+    {
+        throw new TypeError("NotifyModified requires a member name or array of names.");
+    }
+    const changed = new Set(typeof names === "string" ? [names] : names);
+    for (const name of changed)
+    {
+        if (typeof name !== "string") throw new TypeError("Modified member names must be strings.");
+    }
+    if (!changed.size || options.markDirty === false) return true;
+    ensureRuntimeState(target).dirty = true;
+    if (options.skipUpdate === true) return true;
+    return dispatchModified(target, options.notify === false ? [] : [...changed], options, changed);
+}
+
+/** Preserves the composed UpdateValues options form without retaining a queue. */
+function updateValues(target, options = {}, changedFields = null)
+{
+    const names = options.property ?? options.properties ?? changedFields;
+    if (names != null)
+    {
+        return NotifyModified(target, typeof names === "string" ? names : [...names], options);
+    }
+    if (options.markDirty === false) return true;
+    ensureRuntimeState(target).dirty = true;
+    if (options.skipUpdate === true) return true;
+    return dispatchModified(target, options.notify === false ? [] : null, options, null);
+}
+
+/** Calls the hook once, then emits this operation's event after acceptance. */
+function dispatchModified(target, names, options, changedFields)
 {
     const state = ensureRuntimeState(target);
-    const properties = options.property ?? options.properties;
-    if (properties != null)
+    // Clear before the hook: nested skipped or failed edits must stay dirty.
+    state.dirty = false;
+    const hook = target.OnModified;
+    try
     {
-        for (const name of typeof properties === "string" ? [properties] : properties)
+        if (typeof hook === "function" && (names === null || names.length))
         {
-            queueModifiedMember(target, name);
+            const argument = names === null ? null : names.length === 1 ? names[0] : names.slice();
+            if (hook.call(target, argument) === false)
+            {
+                state.dirty = true;
+                return false;
+            }
         }
     }
-    else if (changedFields == null && (state.updating || !state.pendingModified?.size))
+    catch (error)
     {
-        queueModifiedMember(target, null);
+        state.dirty = true;
+        throw error;
     }
-    if (state.updating) return true;
-
-    // INotify is OPTIONAL, in Carbon as here: an object that does not
-    // implement the hook is simply never notified. The statics serve any
-    // decorated class, including ones that never took @compose.values and
-    // so have no OnModified - those settle trivially rather than throwing.
-    const hook = target.OnModified;
-    if (typeof hook !== "function")
-    {
-        state.pendingModified?.clear();
-        state.dirty = false;
-        return true;
-    }
-
-    const source = options.source ?? target;
-    if (!settleModifiedMembers(target)) return false;
-
-    // `HasListener` lives on the state slot itself, so it exists whatever
-    // decorators the class took, and answers false when no emitter was
-    // ever attached - which is also what keeps EmitEvent from being called
-    // on a class that does not have it.
-    //
-    // The emitter no-ops without listeners anyway, so the guard is really
-    // about the PAYLOAD: it stops one being built per settle for nobody,
-    // the waste the audit measured on the per-frame binding path.
     if (options.skipEvents !== true && !state.suppressEvents && state.HasListener())
     {
-        NOTIFY_METHODS.EmitEvent.call(target, "modified", target, { source, changedFields });
+        NOTIFY_METHODS.EmitEvent.call(target, "modified", target, { source: options.source ?? target, changedFields });
     }
-
     return true;
 }

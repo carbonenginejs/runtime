@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay.h
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay.cpp
@@ -119,9 +120,9 @@ export class EveTacticalOverlay
   @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
-    if (propertyName === "anchorEffect") this._SetVariableStore(this.anchorEffect);
-    else if (propertyName === "connectorEffect") this._SetVariableStore(this.connectorEffect);
-    else if (propertyName === "velocityEffect") this._SetVariableStore(this.velocityEffect);
+    if (IsMatch(propertyName, "anchorEffect")) this._SetVariableStore(this.anchorEffect);
+    if (IsMatch(propertyName, "connectorEffect")) this._SetVariableStore(this.connectorEffect);
+    if (IsMatch(propertyName, "velocityEffect")) this._SetVariableStore(this.velocityEffect);
     return true;
   }
 

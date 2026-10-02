@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodAttributeMapParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -47,7 +48,7 @@ export class EveProceduralMethodAttributeMapParameter
   @meta.reason("The Be::Var notification identity is represented by either the field name or assigned value.")
   OnModified(value = null)
   {
-    if (value === "child")
+    if (IsMatch(value, "child"))
     {
       if (this.child)
       {

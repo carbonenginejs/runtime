@@ -6,7 +6,7 @@ import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { CjsSchema, meta } from "#schema";
-import { blue } from "#blue";
+import { IsMatch, blue } from "#blue";
 import { TriBatchType } from "#consts/graphics";
 import { EveChildMesh } from "./EveChildMesh.js";
 import { Tr2GrannyAnimation } from "../../core/animation/Tr2GrannyAnimation.js";
@@ -305,11 +305,11 @@ export class EveChildTurret extends EveChildMesh
   @meta.adapted
   OnModified(value = null)
   {
-    if (value === "impactSize" || value === "impactBehaviour")
+    if (IsMatch(value, "impactSize") || IsMatch(value, "impactBehaviour"))
     {
       this._target.SetImpactBehaviour(this.impactSize, this.impactBehaviour);
     }
-    if (value === "firingEffectResPath")
+    if (IsMatch(value, "firingEffectResPath"))
     {
       if (this.firingEffectResPath) this._LoadFiringEffectFromPath();
       else

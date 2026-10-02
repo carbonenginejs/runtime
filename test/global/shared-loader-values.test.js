@@ -32,7 +32,7 @@ test("shared schema loader resolves the real Crisis particle graph before initia
   assert.equal(early.isValid, true, "dependency-first initialization restores binding");
 });
 
-test("dictionary editing retains equal-write notifications, deferred settles and suppression", () =>
+test("dictionary editing diffs writes and suppresses notifications without queued replay", () =>
 {
   class Record
   {
@@ -46,15 +46,15 @@ test("dictionary editing retains equal-write notifications, deferred settles and
   const record = new Record();
   CjsSchema.setValues(record, { value: 1 });
   CjsSchema.setValues(record, { value: 1 });
-  assert.deepEqual(record.calls, ["value", "value"]);
+  assert.deepEqual(record.calls, ["value"]);
   CjsSchema.setValues(record, { value: 2 }, { notify: false });
   CjsSchema.setValues(record, { value: 3 }, { markDirty: false });
-  assert.equal(record.calls.length, 2);
+  assert.equal(record.calls.length, 1);
   CjsSchema.setValues(record, { value: 4 }, { skipUpdate: true });
-  assert.equal(record.calls.length, 2);
+  assert.equal(record.calls.length, 1);
   assert.equal(record.__state.dirty, true);
   CjsSchema.setValues(record, { value: 5 });
-  assert.deepEqual(record.calls, ["value", "value", "value"]);
+  assert.deepEqual(record.calls, ["value", "value"]);
   assert.equal(record.__state.dirty, false);
   assert.throws(() => CjsSchema.setValues(record, { value: 6, unknown: 1 }), /Invalid attribute/);
   assert.equal(record.value, 6);
@@ -134,7 +134,7 @@ test("mapped initialization suppresses construction notifications while later ed
   const built = CjsSchema.from("SharedLoaderConstructionRecord", values);
   assert.deepEqual(built.calls, [["initialize", 2]]);
   CjsSchema.setValues(built, { first: 3, second: 4 });
-  assert.deepEqual(built.calls, [["initialize", 2], ["first", 4], ["second", 4]]);
+  assert.deepEqual(built.calls, [["initialize", 2], [["first", "second"], 4]]);
   for (const options of [{ notify: false }, { markDirty: false }, { skipUpdate: true }])
   {
     const record = CjsSchema.from("SharedLoaderConstructionRecord", values, options);
@@ -221,4 +221,28 @@ test("the real Crisis effect custom setter initializes once after population, an
   const control = new Tr2Effect();
   control.SetValues(structuredClone(values));
   assert.ok(observations.length > 1, "an unsuppressed setter reproduces early initialization");
+});
+
+test("dictionary aliases dedupe canonical names while indexed members stay distinct", () =>
+{
+  class Record
+  {
+    stored = 0;
+    slots = [0, 0];
+    calls = [];
+    OnModified(names) { this.calls.push(names); return true; }
+  }
+  CjsSchema.define(Record, { className: "SharedLoaderNotificationAliases", fields: [
+    { name: "value", key: "stored", aliases: ["oldValue"], type: { kind: "int32" }, edit: { notify: true } },
+    { name: "first", key: "slots", index: 0, type: { kind: "int32" }, edit: { notify: true } },
+    { name: "second", key: "slots", index: 1, type: { kind: "int32" }, edit: { notify: true } }
+  ] });
+  const record = new Record();
+  const changed = CjsSchema.setValues(record, { oldValue: 1, value: 2, first: 3, second: 4 });
+  assert.equal(record.stored, 2);
+  assert.deepEqual(record.slots, [3, 4]);
+  assert.deepEqual([...changed], ["value", "first", "second"]);
+  assert.deepEqual(record.calls, [["value", "first", "second"]]);
+  CjsSchema.setValues(record, { oldValue: 2, value: 2, first: 3, second: 4 });
+  assert.equal(record.calls.length, 1);
 });

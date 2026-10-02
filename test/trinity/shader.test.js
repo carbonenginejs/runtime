@@ -1,3 +1,4 @@
+import { NotifyModified } from "../../npm/dist/global/blue/index.js";
 import { NOTIFY_METHODS } from "../../npm/dist/global/compose/notify.js";
 import { composeStubResMan } from "../support/stubResMan.js";
 
@@ -304,7 +305,7 @@ test("Tr2Effect populates and prunes shader parameters from reflection data", ()
   effect.PruneParameters();
   assertEquals(effect.FindParameterByName("Tint"), null);
 });
-test("equal effect-path writes still initialize without reporting a changed path", () =>
+test("equal effect-path writes do not initialize or emit again", () =>
 {
   const effect = new Tr2Effect();
   const events = [];
@@ -319,8 +320,8 @@ test("equal effect-path writes still initialize without reporting a changed path
 
   assertEquals(effect.SetEffectPathName("res:/effect/test.sm_hi"), true);
   assertEquals(effect.SetEffectPathName("res:/effect/test.sm_hi"), false);
-  assertEquals(initializeCount, 2);
-  assertEquals(events.length, 2);
+  assertEquals(initializeCount, 1);
+  assertEquals(events.length, 1);
   assertEquals(CjsSchema.getField(Tr2Effect, "effectFilePath")?.edit?.notify, true);
   effect.effectFilePath = "res:\\effect\\Ship\\main.sm_hi";
   class TestEffectRes extends ResourceShader.Tr2EffectRes
@@ -558,7 +559,7 @@ test("promoted variable, transform, and shader buffer classes expose graph behav
     modifiedOrder.push("name");
     return rebuildEffectHandles(...args);
   };
-  CjsSchema.setValues(variable, { name: variable.name, variableName: variable.variableName }, { skipEvents: true });
+  NotifyModified(variable, ["name", "variableName"], { skipEvents: true });
   assertEquals(modifiedOrder.join(","), "name,variableName");
   const shader = new Tr2Shader();
   shader.effect.techniques = [Object.assign(new Tr2EffectTechnique(), {

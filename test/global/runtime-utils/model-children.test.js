@@ -3,7 +3,7 @@ import test from "node:test";
 import * as children from "../../../src/global/blue/children.js";
 import { NOTIFY_METHODS } from "../../../src/global/compose/notify.js";
 import { getRuntimeState } from "../../../src/global/compose/runtimeState.js";
-import { settleModifiedMembers } from "../../../src/global/compose/values.js";
+import { NotifyModified } from "../../../src/global/compose/values.js";
 import { CjsSchema } from "../../../src/global/schema/index.js";
 
 const BELIST_UNLOADSTART = 0x07;
@@ -178,7 +178,7 @@ test("Schema child mutation options preserve SetValues dirty and notification ru
     assert.equal(getRuntimeState(parent)?.dirty ?? false, true);
     assert.equal(eventCount, 0);
 
-    settleModifiedMembers(parent);
+    NotifyModified(parent, "children");
     parent.RemoveChild(child, { markDirty: false, skipEvents: true });
     assert.equal(getRuntimeState(parent)?.dirty ?? false, false);
 });

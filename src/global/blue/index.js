@@ -61,6 +61,7 @@ export * from "./IList.js";
 export * from "./BlueList.js";
 export * from "./IListNotify.js";
 export * from "./INotify.js";
+export { NotifyModified } from "../compose/values.js";
 export * from "./IBlueResFileSystem.js";
 export * from "./RemoteFileCache.js";
 export * from "./BlueResFileSystemRemote.js";

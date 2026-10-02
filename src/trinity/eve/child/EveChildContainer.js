@@ -37,7 +37,7 @@ import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { ITr2SoundEmitterOwner } from "../ITr2SoundEmitterOwner.js";
 import { ITr2ControllerOwner } from "../../controllers/ITr2ControllerOwner.js";
-import { blue, EnumRegistrationType } from "#blue";
+import { IsMatch, blue, EnumRegistrationType } from "#blue";
 
 // Module scratch (read-only zero vector; container recursion forbids mutable
 // module scratch here - see GetBoundingSphere).
@@ -259,11 +259,11 @@ export class EveChildContainer extends EveChildTransform
   @meta.reason("Uses the exposed property name for native address comparisons and the runtime scene registry adapter.")
   OnModified(value = null)
   {
-    if (value === "display" || value === "displayFilter")
+    if (IsMatch(value, "display") || IsMatch(value, "displayFilter"))
     {
       this.ReRegister();
     }
-    else if (value === "mute")
+    if (IsMatch(value, "mute"))
     {
       this.MuteChildren();
     }

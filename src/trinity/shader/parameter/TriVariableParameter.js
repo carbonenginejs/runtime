@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Parameter/TriVariableParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { IInitialize } from "#blue";
+import { IsMatch, IInitialize } from "#blue";
 import { INotify } from "#blue";
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { meta } from "#schema";
@@ -91,11 +91,11 @@ export class TriVariableParameter extends CjsParameter
   @meta.reason("JS identifies the changed member by its exposed property name; variable-store and effect binding adaptations remain on their owning methods.")
   OnModified(propertyName)
   {
-    if (propertyName === "name")
+    if (IsMatch(propertyName, "name"))
     {
       this.RebuildEffectHandles(this.cachedEffect);
     }
-    else
+    if (Array.isArray(propertyName) ? propertyName.some(name => name !== "name") : propertyName !== "name")
     {
       this.Initialize();
     }

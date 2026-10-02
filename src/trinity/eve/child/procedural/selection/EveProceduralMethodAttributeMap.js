@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { INotify } from "../../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodAttributeMap.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -49,7 +50,7 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
   @meta.reason("Field matching follows the repo OnModified duck.")
   OnModified(value = null)
   {
-    if (value === "seed_temp")
+    if (IsMatch(value, "seed_temp"))
     {
       this.SelectParameter();
     }

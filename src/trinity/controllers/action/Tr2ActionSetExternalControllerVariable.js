@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetExternalControllerVariable.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetExternalControllerVariable.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetExternalControllerVariable_Blue.cpp
-import { INotify } from "#blue";
+import { IsMatch, INotify } from "#blue";
 import { meta } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
@@ -156,7 +156,7 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
   @meta.adapted
   OnModified(propertyName)
   {
-    if (propertyName === "destinationOwner") this._linkToDestinationOwner();
+    if (IsMatch(propertyName, "destinationOwner")) this._linkToDestinationOwner();
     return true;
   }
 

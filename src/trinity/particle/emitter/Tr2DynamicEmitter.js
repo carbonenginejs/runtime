@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Particle/Tr2DynamicEmitter.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta } from "#schema";
-import { IInitialize, INotify } from "#blue";
+import { IsMatch, IInitialize, INotify } from "#blue";
 import { hasUnboundParticleElements } from "../element/particleElementBinding.js";
 import { ITr2GenericEmitterUpdateArguments, ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 
@@ -144,7 +144,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    */
   OnModified(propertyName)
   {
-    if (propertyName === "particleSystem")
+    if (IsMatch(propertyName, "particleSystem"))
     {
       this.Rebind();
       if (this.#isThreadSafe && this.particleSystem)

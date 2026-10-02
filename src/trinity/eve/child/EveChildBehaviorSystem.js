@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { EveEntity } from "../EveEntity.js";
@@ -114,7 +115,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
   @meta.reason("Component-registry re-registration is limited to an optional duck-typed call, matching the repo's registry seam.")
   OnModified(value = null)
   {
-    if (value === "display")
+    if (IsMatch(value, "display"))
     {
       this.ReRegister?.();
     }

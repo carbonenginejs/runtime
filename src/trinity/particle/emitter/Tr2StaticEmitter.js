@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Particle/Tr2StaticEmitter.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -123,7 +124,7 @@ export class Tr2StaticEmitter
   @meta.reason("Geometry reloads are host-owned; only Carbon's particle-system thread-safe propagation applies on the CPU side.")
   OnModified(propertyName)
   {
-    if ((propertyName === "particleSystem") && this.#isThreadSafe && this.particleSystem)
+    if ((IsMatch(propertyName, "particleSystem")) && this.#isThreadSafe && this.particleSystem)
     {
       this.particleSystem.SetThreadSafeFlag();
     }

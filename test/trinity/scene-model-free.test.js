@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { blue, BlueList } from "../../npm/dist/global/blue/index.js";
+import { blue, BlueList, NotifyModified } from "../../npm/dist/global/blue/index.js";
 import { addChild, removeChild, clearChildren } from "../../npm/dist/global/blue/children.js";
 import { EveSpaceScene, EveEffectRoot2 } from "../../npm/dist/trinity/index.js";
 import { ShadowQuality } from "../../npm/dist/trinity/generated/trinityCore/enums.js";
@@ -21,6 +21,8 @@ test("real nebula scene changes update only the notified texture and release emp
   assert.equal(scene.envMap1, original, "negative control: raw assignment never refreshes the provider");
   const count = requests.length;
   CjsSchema.setValues(scene, { envMap1ResPath: scene.envMap1ResPath });
+  assert.equal(requests.length, count, "equal SetValues is not a manual refresh");
+  NotifyModified(scene, "envMap1ResPath");
   assert.equal(requests.length, count + 1);
   assert.equal(scene.envMap1.path, assets.c07.object.envMap1ResPath);
   assert.notEqual(scene.envMap1, original);

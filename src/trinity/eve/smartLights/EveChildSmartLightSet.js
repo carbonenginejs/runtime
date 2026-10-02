@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { INotify } from "../../../global/blue/INotify.js";
 import { ITr2DebugRenderable } from "../../../global/interfaces/ITr2DebugRenderable.js";
@@ -149,7 +150,7 @@ export class EveChildSmartLightSet extends EveChildTransform
   @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
-    if (propertyName === "display" || propertyName === "distribution") this.ReRegister();
+    if (IsMatch(propertyName, "display") || IsMatch(propertyName, "distribution")) this.ReRegister();
     return true;
   }
 

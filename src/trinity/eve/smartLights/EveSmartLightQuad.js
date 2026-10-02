@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { INotify } from "../../../global/blue/INotify.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
@@ -193,7 +194,7 @@ export class EveSmartLightQuad extends EveChildTransform
   @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
-    if (propertyName === "softQuad") this._ApplyEffectPath();
+    if (IsMatch(propertyName, "softQuad")) this._ApplyEffectPath();
     return true;
   }
 

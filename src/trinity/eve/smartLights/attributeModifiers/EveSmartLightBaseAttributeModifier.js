@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightBaseAttributeModifier.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -127,7 +128,7 @@ export class EveSmartLightBaseAttributeModifier
   @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
-    if (propertyName === "active")
+    if (IsMatch(propertyName, "active"))
     {
       this.isChangingActivation = true;
       if (this.crossFadeIntensity > 0)

@@ -3,7 +3,7 @@
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { meta } from "#schema";
 import { UnlinkReason } from "../enums.js";
-import { blue, BlueList, TimeAsFloat, IListNotify, ISimTimeRebaseNotify, INotify } from "#blue";
+import { IsMatch, blue, BlueList, TimeAsFloat, IListNotify, ISimTimeRebaseNotify, INotify } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { mappedInterfaces } from "../../../global/compose/interface.js";
 import { Tr2StateMachineState } from "./Tr2StateMachineState.js";
@@ -134,7 +134,7 @@ export class Tr2StateMachine
   @meta.adapted
   OnModified(propertyName)
   {
-    if (propertyName === "startState" && this.startState && this._controller) this.startState.Link(this);
+    if (IsMatch(propertyName, "startState") && this.startState && this._controller) this.startState.Link(this);
     return true;
   }
 

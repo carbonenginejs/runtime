@@ -5,7 +5,7 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { meta } from "#schema";
 import { ResourceRequirement } from "#resource";
-import { blue, IInitialize, INotify } from "#blue";
+import { IsMatch, blue, IInitialize, INotify } from "#blue";
 import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
 import { createCjsLightDataView, setCjsLightDataOwnerValues } from "./CjsLightData.js";
 import {
@@ -305,7 +305,7 @@ export class Tr2Light
   @meta.reason("JS identifies Carbon's changed member address by its exposed property name.")
   OnModified(propertyName)
   {
-    if (propertyName === "lightProfilePath") this._ResolveLightProfile();
+    if (IsMatch(propertyName, "lightProfilePath")) this._ResolveLightProfile();
     return true;
   }
 

@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 
 // Source: trinity/trinity/Eve/Turret/EveTurretFiringFX.h
 // Source: trinity/trinity/Eve/Turret/EveTurretFiringFX.cpp
@@ -372,11 +373,11 @@ export class EveTurretFiringFX extends EveEntity
   @meta.implemented
   OnModified(propertyName)
   {
-    if (propertyName === "firingDurationOverride")
+    if (IsMatch(propertyName, "firingDurationOverride"))
     {
       this.firingDuration = this.firingDurationOverride >= 0 ? this.firingDurationOverride : this.GetCurveDuration();
     }
-    if (propertyName === "display") this.ReRegister();
+    if (IsMatch(propertyName, "display")) this.ReRegister();
     return true;
   }
 

@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 // Source: audio/src/AudParameter.h
 // Source: audio/src/AudParameter.cpp
 // Source: audio/src/AudParameter_Blue.cpp
@@ -51,7 +52,7 @@ export class AudParameter extends INotify
   @meta.adapted
   OnModified(propertyName)
   {
-    if (propertyName === "value" && AudGameObjResource.manager !== null
+    if (IsMatch(propertyName, "value") && AudGameObjResource.manager !== null
       && AudGameObjResource.manager.enabled && this._gameObjID)
     {
       AudGameObjResource.backend.SetRTPCValue(this.name, this.value, this._gameObjID);
