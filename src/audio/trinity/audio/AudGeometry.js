@@ -1,7 +1,7 @@
 // Source: audio/src/AudGeometry.h + AudGeometry.cpp
 // Hand-owned browser/backend adaptation. Verify against audio/AudGeometry.json.
 import { carbon, impl, type } from "#schema";
-import { CjsModel } from "#model";
+import { ITr2AudGeometry } from "../trinityAudioApi/ITr2AudGeometry.js";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 
 const geometrySets = new Map();
@@ -95,7 +95,7 @@ function MakeGeometryParams(geometryData, manager)
  * geometry lifecycle values to an optional browser backend.
  */
 @type.define({ className: "AudGeometry", family: "audio" })
-export class AudGeometry extends CjsModel
+export class AudGeometry extends ITr2AudGeometry
 {
 
   /** Removes every registered set and instance from the current backend. */
@@ -198,3 +198,6 @@ export class AudGeometry extends CjsModel
   }
 
 }
+
+// Exact native exposure identities; no inherited lifecycle policy.
+carbon.interfaceTable({ interfaces: [ ITr2AudGeometry ], chainTo: null })(AudGeometry, { kind: "class" });

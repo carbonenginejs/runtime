@@ -1,7 +1,7 @@
 ﻿// Source: audio/src/AudStaticDataRepository.h + AudStaticDataRepository.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { carbon, impl, type } from "#schema";
-import { CjsModel } from "#model";
+
 
 // Wwise AK_INVALID_UNIQUE_ID - the C++ GetEventID default.
 const INVALID_UNIQUE_ID = 0;
@@ -13,7 +13,7 @@ const INVALID_UNIQUE_ID = 0;
  * runtime (no persisted fields) from a plain audio metadata object.
  */
 @type.define({ className: "AudStaticDataRepository", family: "audio" })
-export class AudStaticDataRepository extends CjsModel
+export class AudStaticDataRepository
 {
 
   _events = new Map();
@@ -265,3 +265,6 @@ function ToStringArray(value)
 {
   return Array.isArray(value) ? value.map(String) : [];
 }
+
+// Exact native exposure identities; no inherited lifecycle policy.
+carbon.interfaceTable({ interfaces: [ AudStaticDataRepository ], chainTo: null })(AudStaticDataRepository, { kind: "class" });

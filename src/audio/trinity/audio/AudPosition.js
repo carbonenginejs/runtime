@@ -1,7 +1,7 @@
 // Source: audio/src/AudPosition.h + AudPosition.cpp
 // Hand-owned behavior port. Verify against audio/AudPosition.json.
 import { carbon, impl, type } from "#schema";
-import { CjsModel } from "#model";
+import { IBluePlacementObserver } from "#blue/IBluePlacementObserver";
 import { vec3 } from "#math/vec3";
 
 /**
@@ -9,7 +9,7 @@ import { vec3 } from "#math/vec3";
  * placement-observer updates.
  */
 @type.define({ className: "AudPosition", family: "audio" })
-export class AudPosition extends CjsModel
+export class AudPosition extends IBluePlacementObserver
 {
 
   /** Native AkSoundPosition replacement; not part of Blue serialization. */
@@ -55,3 +55,6 @@ export class AudPosition extends CjsModel
   }
 
 }
+
+// Exact native exposure identities; no inherited lifecycle policy.
+carbon.interfaceTable({ interfaces: [ AudPosition, IBluePlacementObserver ], chainTo: null })(AudPosition, { kind: "class" });
