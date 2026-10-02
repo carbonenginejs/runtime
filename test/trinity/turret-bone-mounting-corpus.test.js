@@ -1,3 +1,4 @@
+import { removeChild, addChild } from "../../npm/dist/global/blue/children.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
@@ -11,7 +12,6 @@ import { TriGeometryRes } from "../../npm/dist/resource/geometry/TriGeometryRes.
 import { EveSOF } from "../../npm/dist/sof/index.js";
 import { EveShip2, EveTurretSet, EveUpdateContext, EveComponentRegistry, Tr2Controller, TriDevice, EveChildMesh, Tr2Mesh, Tr2MeshArea } from "../../npm/dist/trinity/index.js";
 import { Copier } from "../../npm/dist/global/blue/Copier.js";
-import { CjsModel } from "../../npm/dist/global/model/CjsModel.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import "../../npm/dist/audio/index.js";
 import { StubResMan } from "../support/stubResMan.js";
@@ -222,12 +222,12 @@ test("real Svipul live turret changes transfer registry ownership and preserve b
   ship.Register(registry);
   assert.equal(first.GetComponentRegistry(), registry);
   assert.equal(second.GetComponentRegistry(), registry);
-  CjsModel.removeChild(ship, "turretSets", first);
+  removeChild(ship, "turretSets", first, { listNotify: ship });
   assert.equal(first.IsInRegistry(), false);
   assert.deepEqual([0, 1, 2].map(index => ship.GetTurretLocatorIndex(0, index)), [23, 29, 10]);
   ship.display = false;
   ship.OnModified("display");
-  CjsModel.addChild(ship, "turretSets", first);
+  addChild(ship, "turretSets", first, { listNotify: ship });
   assert.equal(first.GetComponentRegistry(), registry, "native live insertion checks hull registration, independently of display");
   ship.OnListModified(BLUELISTEVENT.BELIST_UNLOADSTART, 0, 0, null, ship.turretSets);
   assert.equal(first.IsInRegistry(), false);
@@ -235,9 +235,9 @@ test("real Svipul live turret changes transfer registry ownership and preserve b
   // Controlled real controller augmentation observes the inherited list owner;
   // the authored Svipul controller resources are outside this CPU fixture.
   const controller = new Tr2Controller();
-  CjsModel.addChild(ship, "controllers", controller);
+  addChild(ship, "controllers", controller, { listNotify: ship });
   assert.equal(controller.IsLinked(), true, "Mobile must dispatch its base controller-list notification");
-  CjsModel.removeChild(ship, "controllers", controller);
+  removeChild(ship, "controllers", controller, { listNotify: ship });
   assert.equal(controller.IsLinked(), false);
 });
 

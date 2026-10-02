@@ -1,0 +1,194 @@
+{
+  "a01": {
+    "source": "res:/dx9/scene/universe/a01_cube.black",
+    "md5": "837330911e4aa88bf4f854e606db50e8",
+    "object": {
+      "_type": "EveSpaceScene",
+      "backgroundEffect": {
+        "_type": "Tr2Effect",
+        "effectFilePath": "res:/graphics/effect/managed/space/specialfx/background.fx",
+        "constParameters": [
+          {
+            "name": "AlphaBlend1",
+            "value": [
+              0.061500001698732376,
+              0.7616000175476074,
+              0.7003999948501587,
+              1
+            ]
+          },
+          {
+            "name": "AlphaBlend2",
+            "value": [
+              0.21979999542236328,
+              0.8374999761581421,
+              0,
+              0
+            ]
+          },
+          {
+            "name": "NebulaScaling",
+            "value": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "name": "StarParameters",
+            "value": [
+              4,
+              5,
+              6,
+              0.800000011920929
+            ]
+          },
+          {
+            "name": "Tint",
+            "value": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "resources": [
+          {
+            "_type": "TriTextureParameter",
+            "name": "AlphaMap",
+            "resourcePath": "res:/dx9/scene/universe/a01_cube_refl.dds"
+          },
+          {
+            "_type": "TriTextureParameter",
+            "name": "NebulaMap",
+            "resourcePath": "res:/dx9/scene/universe/a01_cube.dds"
+          },
+          {
+            "_type": "TriTextureParameter",
+            "name": "OverlayMap",
+            "resourcePath": "res:/texture/fx/misc/rgb_01a.dds"
+          },
+          {
+            "_type": "TriTextureParameter",
+            "name": "StarMap",
+            "resourcePath": "res:/dx9/scene/starfield/stars01_tile2.dds"
+          }
+        ]
+      },
+      "backgroundRenderingEnabled": true,
+      "envMapResPath": "res:/dx9/scene/universe/a01_cube_refl.dds",
+      "envMap1ResPath": "res:/dx9/scene/universe/a01_cube_refl.dds",
+      "lowQualityNebulaResPath": "res:/dx9/scene/universe/lowquality/wormhole_a01.dds",
+      "lowQualityNebulaMixResPath": "res:/dx9/scene/universe/lowquality/wormhole_a01_mix.dds",
+      "envMap2ResPath": "res:/dx9/scene/universe/a01_cube_blur.dds",
+      "ambientColor": [
+        0.09411759674549103,
+        0.07058820128440857,
+        0.04313730075955391,
+        1
+      ],
+      "nebulaIntensity": 1.25,
+      "fogStart": -500000,
+      "fogEnd": 800000,
+      "reflectionIntensity": 1.5499999523162842
+    }
+  },
+  "c07": {
+    "source": "res:/dx9/scene/universe/c07_cube.black",
+    "md5": "5f461a3abc4327b0126d518a4373f3b4",
+    "object": {
+      "_type": "EveSpaceScene",
+      "backgroundEffect": {
+        "_type": "Tr2Effect",
+        "effectFilePath": "res:/graphics/effect/managed/space/specialfx/background.fx",
+        "constParameters": [
+          {
+            "name": "AlphaBlend1",
+            "value": [
+              0.061500001698732376,
+              0.7616000175476074,
+              0.7003999948501587,
+              1
+            ]
+          },
+          {
+            "name": "AlphaBlend2",
+            "value": [
+              0.21979999542236328,
+              0.8374999761581421,
+              0,
+              0
+            ]
+          },
+          {
+            "name": "NebulaScaling",
+            "value": [
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "name": "StarParameters",
+            "value": [
+              4,
+              5,
+              6,
+              0.800000011920929
+            ]
+          },
+          {
+            "name": "Tint",
+            "value": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "resources": [
+          {
+            "_type": "TriTextureParameter",
+            "name": "AlphaMap",
+            "resourcePath": "res:/dx9/scene/universe/c07_cube_refl.dds"
+          },
+          {
+            "_type": "TriTextureParameter",
+            "name": "NebulaMap",
+            "resourcePath": "res:/dx9/scene/universe/c07_cube.dds"
+          },
+          {
+            "_type": "TriTextureParameter",
+            "name": "OverlayMap",
+            "resourcePath": "res:/texture/fx/misc/rgb_01a.dds"
+          },
+          {
+            "_type": "TriTextureParameter",
+            "name": "StarMap",
+            "resourcePath": "res:/dx9/scene/starfield/stars01_tile2.dds"
+          }
+        ]
+      },
+      "backgroundRenderingEnabled": true,
+      "envMapResPath": "res:/dx9/scene/universe/c07_cube_refl.dds",
+      "envMap1ResPath": "res:/dx9/scene/universe/c07_cube_refl.dds",
+      "lowQualityNebulaResPath": "res:/dx9/scene/universe/lowquality/wormhole_c07.dds",
+      "lowQualityNebulaMixResPath": "res:/dx9/scene/universe/lowquality/wormhole_c07_mix.dds",
+      "envMap2ResPath": "res:/dx9/scene/universe/c07_cube_blur.dds",
+      "ambientColor": [
+        0.03921569883823395,
+        0.03921569883823395,
+        0.04313730075955391,
+        1
+      ],
+      "nebulaIntensity": 1.25,
+      "fogStart": -500000,
+      "fogEnd": 800000,
+      "reflectionIntensity": 1.5499999523162842
+    }
+  }
+}

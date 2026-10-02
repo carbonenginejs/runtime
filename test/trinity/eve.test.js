@@ -1,3 +1,4 @@
+import { addChild, removeChild, clearChildren } from "../../npm/dist/global/blue/children.js";
 import test from "node:test";
 import { readFile, readdir } from "node:fs/promises";
 import { AudioGameObject, BackAndForthData, CjsEveThrottleableState, CjsLightData, EveBannerItem, EveBannerLight, EveBannerSet, EveBezierCurve, EveBoxVolume, EveChildAudio, EveChildFogVolume, EveChildLightingOverride, EveChildModifierSRT, EveChildTransform, EveChildUpdateParams, EveCircle, EveCustomMask, EveDistanceField, EveEllipseDefinition, EveEllipseSet, EveEllipsoidVolume, EveHazeSet, EveHazeSetLight, EveImpactOverlay, EveLODHelper, EveLineData, EveLocator2, EveLocatorSets, EvePlaneLight, EvePlaneSet, EvePlaneSetItem, EveRemotePositionCurve, EveSpaceObjectDecal, EveSphereVolume, EveSpotlightLight, EveSpotlightSet, EveSpotlightSetItem, EveSpriteLight, EveSpriteLineSet, EveSpriteLineSetItem, EveSpriteSet, EveSpriteSetItem, EveThrottleable, EveVirtualCamera, EveVirtualCameraBehaviourFloatAdd, EveVirtualCameraBehaviourFloatBase, EveVirtualCameraBehaviourFloatDamping, EveVirtualCameraBehaviourFloatNoise, EveVirtualCameraBehaviourFloatSet, EveVirtualCameraBehaviourVector3Base, EveVirtualCameraBehaviourVector3Damping, EveVirtualCameraBehaviourVector3Inertia, EveVirtualCameraBehaviourVector3MoveBetween, EveVirtualCameraBehaviourVector3MoveForward, EveVirtualCameraBehaviourVector3MoveRight, EveVirtualCameraBehaviourVector3MoveUp, EveVirtualCameraBehaviourVector3Offset, EveVirtualCameraBehaviourVector3Orbit, EveVirtualCameraBehaviourVector3Shake, EveVirtualCameraSystem, EveVirtualCameraTransitionCut, EveVirtualCameraTransitionLerp, FollowASplineData, FormationData, InertiaData, Locator, LocatorData, PlacementDataWithIdentifier, PlayFXData, ProcessLifetimeData, SeekTargetData, Tr2CurveExtrapolation, Tr2Light, Tr2Lod, Tr2PointLight, Tr2ScalarFader, Tr2SpotLight, Tr2TexturedPointLight, TriPerlinCurve } from "../../npm/dist/trinity/index.js";
@@ -9,7 +10,6 @@ import { quat } from "../../npm/dist/global/math/quat.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { CjsModel } from "../../npm/dist/global/model/CjsModel.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 
 
@@ -79,9 +79,9 @@ test("ellipse list mutations bind and release owner callbacks with Carbon event 
   const set = new EveEllipseSet();
   const ellipse = new TrackedEllipse();
   const options = { skipUpdate: true, skipEvents: true };
-  CjsModel.addChild(set, "ellipses", ellipse, options);
+  addChild(set, "ellipses", ellipse, { ...options, listNotify: set });
   assertEquals(typeof ellipse.bindings[0], "function");
-  CjsModel.removeChild(set, "ellipses", ellipse, options);
+  removeChild(set, "ellipses", ellipse, { ...options, listNotify: set });
   assertEquals(ellipse.bindings[1], null);
 
   set.ellipses.push(ellipse);
@@ -91,7 +91,7 @@ test("ellipse list mutations bind and release owner callbacks with Carbon event 
   assertEquals(ellipse.bindings.length, 2);
   set.OnListModified(BLUELISTEVENT.BELIST_LOADFINISHED, 0, 0, null, set.ellipses);
   assertEquals(typeof ellipse.bindings[2], "function");
-  CjsModel.clearChildren(set, "ellipses", options);
+  clearChildren(set, "ellipses", { ...options, listNotify: set });
   assertEquals(ellipse.bindings[3], null);
   assertEquals(set.ellipses.length, 0);
 });

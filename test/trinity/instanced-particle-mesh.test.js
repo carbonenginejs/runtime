@@ -1,3 +1,4 @@
+import { addChild } from "../../npm/dist/global/blue/children.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -121,7 +122,7 @@ test("real green Crisis smoke on two hulls reaches a nonzero instanced stub draw
     if(file.startsWith("angbc")){
       child=CjsSchema.from("EveChildParticleSystem", values.objects[2].objects[0]);child.particleEmitters[0].UpdateSimulation(4);
     }else{
-      const root=CjsSchema.from("EveChildContainer", values),ship=new EveShip2();CjsModel.addChild(ship,"effectChildren",root);
+      const root=CjsSchema.from("EveChildContainer", values),ship=new EveShip2();addChild(ship, "effectChildren", root, { listNotify: ship });
       child=root.objects[1].objects[0];ship.lodLevel=3;ship.isVisible=true;ship.StartControllers();
       const update=new EveUpdateContext();
       const zapMax=root.objects[4].objects.map(()=>0);
@@ -305,7 +306,7 @@ test("real angde1 and angbc2 warp electricity draws repeatedly while kill lightn
       Math.random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
       const registered=new Set(TriDevice.GetResourcesRegistered());
       const root=CjsSchema.from("EveChildContainer", CjsBlackFormat.readPayload(bytes).object),ship=new EveShip2();
-      CjsModel.addChild(ship,"effectChildren",root);
+      addChild(ship, "effectChildren", root, { listNotify: ship });
       const electric=root.objects.find(child=>child.name==="Electric"),owners=[];
       electric.Traverse(child=>{if(child.particleEmitters?.length)owners.push(child);});
       assert.equal(owners.length,6,file);

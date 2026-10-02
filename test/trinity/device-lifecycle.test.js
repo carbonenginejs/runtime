@@ -1,4 +1,4 @@
-import { CjsModel } from "../../npm/dist/global/model/index.js";
+import { addChild, removeChild } from "../../npm/dist/global/blue/children.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 
@@ -310,7 +310,7 @@ test("scene and context setters preserve a shared system until its final caller 
     assert.ok(scene.GetGpuParticleSystem() === shared, "EveSpaceScene.h:526 forwards the same shared assignment");
     assert.ok(TriDevice.GetResourcesRegistered().includes(shared));assert.ok(shared._variableStore === store);
     const oldHull = new EveShip2(), nextHull = new EveShip2();
-    CjsModel.addChild(scene, "objects", oldHull);CjsModel.addChild(scene, "objects", nextHull);CjsModel.removeChild(scene, "objects", oldHull);
+    addChild(scene, "objects", oldHull, { listNotify: scene });addChild(scene, "objects", nextHull, { listNotify: scene });removeChild(scene, "objects", oldHull, { listNotify: scene });
     assert.ok(scene.GetGpuParticleSystem() === shared, "ordinary hull swap leaves scene-owned particles alive");
     assert.ok(TriDevice.GetResourcesRegistered().includes(shared));assert.ok(shared._variableStore === store);
     // This caller owns the only remaining scene reference. Mirror the existing

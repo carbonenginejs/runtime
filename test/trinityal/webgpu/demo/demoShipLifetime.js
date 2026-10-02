@@ -1,5 +1,5 @@
+import { addChild, removeChild } from "../../../../npm/dist/global/blue/children.js";
 import { CjsSchema } from "../../../../npm/dist/global/schema/index.js";
-import { CjsModel } from "../../../../npm/dist/global/model/index.js";
 import { Traverse } from "../../../../npm/dist/global/blue/find.js";
 import { mat4 } from "../../../../npm/dist/global/math/mat4.js";
 import { CjsBlackFormat } from "../../../../npm/dist/resource/formats/black/index.js";
@@ -82,14 +82,14 @@ export async function replaceDemoShip({ old, nextDna, scene, pending, isDisposed
       overlay.curveSet.ApplyTime(0);
       overlay.PlayCurveSet(overlay.curveSet.name);
     }
-    CjsModel.addChild(scene, "objects", next);
+    addChild(scene, "objects", next, { listNotify: scene });
     await wait(overlays[0].overlay.curveSet.GetMaxCurveDuration() * 1000 + 100);
     check();
     next.clipSphereFactor = 0;
     next.clipSphereFactor2 = 0;
     next.activationStrength = 1;
     next.OnModified("clipSphereFactor2");
-    if (!CjsModel.removeChild(scene, "objects", old)) throw new Error("skin change: old ship is no longer in scene");
+    if (!removeChild(scene, "objects", old, { listNotify: scene })) throw new Error("skin change: old ship is no longer in scene");
     commit(next);
     succeeded = true;
   }
@@ -108,7 +108,7 @@ export async function replaceDemoShip({ old, nextDna, scene, pending, isDisposed
     }
     else
     {
-      CjsModel.removeChild(scene, "objects", next);
+      removeChild(scene, "objects", next, { listNotify: scene });
       if (!isDisposed())
       {
         [old.clipSphereFactor, old.clipSphereFactor2, old.activationStrength] = saved;

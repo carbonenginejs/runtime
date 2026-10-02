@@ -1,3 +1,4 @@
+import { removeChild, addChild } from "../../npm/dist/global/blue/children.js";
 // Synthetic child callers load an unmodified published FX. The real turret
 // set uses its native caller-owned SetFiringEffect API; no automatic set load.
 import assert from "node:assert/strict";
@@ -8,7 +9,6 @@ import test from "node:test";
 import { blue, CjsResMan } from "../../npm/dist/global/blue/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { CjsModel } from "../../npm/dist/global/model/index.js";
 import { EveChildTurret, EveTurretSet, EveTurretFiringFX, EveStretch3, EveLocalPositionCurve, EveUpdateContext, EveComponentRegistry, EveComponentType, TriFrustum, Tr2ControllerEventHandler, Tr2ActionSetValue, Tr2DynamicBinding } from "../../npm/dist/trinity/index.js";
 import "../../npm/dist/audio/index.js"; // The published FX owns AudEventCurve/AudEmitter objects.
 import { StubResMan } from "../support/stubResMan.js";
@@ -193,16 +193,16 @@ test("real pulse FX registers lights on firing transitions and live list edits",
   assert.ok(original.GetComponentRegistry()===registry,"expected component registry membership");
   assert.deepEqual(registry.GetComponents(EveComponentType.LightOwner),[original]);
   assert.equal(effect._perMuzzleData[0].started,false,"registration precedes the muzzle's first update");
-  assert.equal(CjsModel.removeChild(donor,"stretch",added),true);
-  CjsModel.addChild(effect,"stretch",added);
+  assert.equal(removeChild(donor, "stretch", added, { listNotify: donor }),true);
+  addChild(effect, "stretch", added, { listNotify: effect });
   assert.ok(added.GetComponentRegistry()===registry,"expected component registry membership");
   assert.deepEqual(new Set(registry.GetComponents(EveComponentType.LightOwner)),new Set([original,added]));
-  assert.equal(CjsModel.removeChild(effect,"stretch",added),true);
+  assert.equal(removeChild(effect, "stretch", added, { listNotify: effect }),true);
   assert.ok(added.GetComponentRegistry()===null,"expected component registry membership");
-  assert.equal(CjsModel.removeChild(effect,"stretch",added),false);
+  assert.equal(removeChild(effect, "stretch", added, { listNotify: effect }),false);
   effect.SetValues({display:false});
   assert.ok(original.GetComponentRegistry()===null,"expected component registry membership");
-  CjsModel.addChild(effect,"stretch",added);
+  addChild(effect, "stretch", added, { listNotify: effect });
   assert.ok(added.GetComponentRegistry()===null,"hidden insertion stays unregistered");
   effect.SetValues({display:true});
   assert.ok(added.GetComponentRegistry()===registry,"expected component registry membership");
@@ -300,7 +300,7 @@ test("controlled composition of two real pulse elements preserves merge gates an
   const effect=await realPulse(t), donor=await realPulse(t);
   // The asset has one element; this explicitly composed pair is not an authored multi-muzzle asset.
   const second=donor.stretch[0];
-  CjsModel.removeChild(donor,"stretch",second);CjsModel.addChild(effect,"stretch",second);
+  removeChild(donor, "stretch", second, { listNotify: donor });addChild(effect, "stretch", second, { listNotify: effect });
   const context=new EveUpdateContext(), frustum=new TriFrustum();
   frustum.viewPos.set([0,0,10000]);frustum.fov=1;context.SetFrustum(frustum);
   effect.PrepareFiring(0);
@@ -398,10 +398,10 @@ for (const role of ["source","dest","stretch","move"])
 test("real Breacher controller list removal and insertion unlink and relink ownership", {skip:skipController}, async t =>
 {
   const stretch=(await realBreacher(t)).stretch[0], controller=stretch.controllers[0];
-  assert.equal(CjsModel.removeChild(stretch,"controllers",controller),true);
+  assert.equal(removeChild(stretch, "controllers", controller, { listNotify: stretch }),true);
   assert.ok(controller.GetOwner()===null,"removed controller clears its owner");
   assert.equal(controller.IsLinked(),false);
-  CjsModel.addChild(stretch,"controllers",controller);
+  addChild(stretch, "controllers", controller, { listNotify: stretch });
   assert.equal(controller.GetOwner(),stretch);
   assert.equal(controller.IsLinked(),true);
 });
@@ -412,11 +412,11 @@ test("controlled dynamic binding on real Breacher roots follows native list owne
   // Breacher authors TriValueBindings inside its curve set, not a dynamic binding list.
   binding.sourceObjectPath="Owner";binding.sourceObjectAttribute="display";
   binding.destinationObjectPath="SourceObject";binding.destinationObjectAttribute="display";
-  CjsModel.addChild(stretch,"dynamicBindings",binding);
+  addChild(stretch, "dynamicBindings", binding, { listNotify: stretch });
   assert.equal(binding.isSourceValid,true);assert.equal(binding.isDestinationValid,true);
   stretch.display=false;assert.equal(binding.Update(1),true);
   assert.equal(stretch.sourceObject.display,false);
-  CjsModel.removeChild(stretch,"dynamicBindings",binding);
+  removeChild(stretch, "dynamicBindings", binding, { listNotify: stretch });
   assert.equal(binding.Link(),false,"removed binding no longer resolves through the stretch owner");
 });
 

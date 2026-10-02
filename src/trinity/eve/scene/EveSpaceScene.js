@@ -7,7 +7,10 @@
 // EveSpaceScene::Update and the scene-owned EveUpdateContext member (Carbon
 // m_updateContext - protected, so absent from the Blue schema scan).
 import { CjsSchema, carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
+import { BlueList, IInitialize, INotify, IListNotify } from "#blue";
+import { ITr2Scene } from "../../core/ITr2Scene.js";
+import { ITr2Updateable } from "../../core/ITr2Updateable.js";
+import { EvePlanet } from "../spaceObject/planet/EvePlanet.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -159,7 +162,7 @@ function EmptyShadowResources()
 //     "ReflectionRenderable" (secondary gather cpp:1886-1895).
 //
 // Registration triggers: adding or removing through the notified list helpers
-// (`CjsModel.addChild` / `removeChild(scene, "objects", object)`) raises
+// (`objects.Append` / `objects.Remove`) raises
 // OnListModified, which registers or unregisters that one object as Carbon's
 // BlueList does. After a plain-array graph build or mutation, call
 // `scene.ReregisterEntities()` - covers objects + backgroundObjects + planets
@@ -171,7 +174,8 @@ function EmptyShadowResources()
 
 /** Owns and updates an Eve space scene's entities, component registry, lighting, fog, post-process state, culling, and per-frame shader data. */
 @type.define({ className: "EveSpaceScene", family: "eve/scene" })
-export class EveSpaceScene extends CjsModel
+@carbon.inherit(ITr2Scene, ITr2Updateable, IInitialize, INotify, IListNotify)
+export class EveSpaceScene
 {
 
   /** m_visualizeMethod (EveVisualizeMethod - enum EveVisualizeMethod) [READWRITE, ENUM] */
@@ -388,25 +392,25 @@ export class EveSpaceScene extends CjsModel
   @edit.read
   @edit.persist
   @type.list("IEveSpaceObject2")
-  objects = [];
+  objects = new BlueList(IEveSpaceObject2);
 
   /** m_uiObjects (PIEveSpaceObject2Vector) [READ, PERSIST] */
   @edit.read
   @edit.persist
   @type.list("IEveSpaceObject2")
-  uiObjects = [];
+  uiObjects = new BlueList(IEveSpaceObject2);
 
   /** m_backgroundObjects (PIEveSpaceObject2Vector) [READ, PERSIST] */
   @edit.read
   @edit.persist
   @type.list("IEveSpaceObject2")
-  backgroundObjects = [];
+  backgroundObjects = new BlueList(IEveSpaceObject2);
 
   /** m_planets (PEvePlanetVector) [READ, PERSIST] */
   @edit.read
   @edit.persist
   @type.list("EvePlanet")
-  planets = [];
+  planets = new BlueList(EvePlanet, { className: "EvePlanet" });
 
   /** m_rtManager (Tr2RaytracingManagerPtr) [READWRITE] */
   @edit.readwrite
@@ -1243,10 +1247,64 @@ export class EveSpaceScene extends CjsModel
     Tr2OcclusionBuffer.getInstance().ProcessBuffer(renderContext);
   }
 
+  /** Native scene Render entry point is intentionally empty (EveSpaceScene.cpp:2950). */
+  @carbon.method
+  @impl.implemented
+  Render(_renderContext) {}
+
+  /** Scene debugging requires the pending debug renderer and global flush port. */
+  @carbon.method
+  @impl.notImplemented
+  RenderDebugInfo(_renderContext)
+  {
+    if (!this.debugRenderer) return;
+    throw new Error("EveSpaceScene.RenderDebugInfo requires the debug renderer BeginRender/EndRender and global flush port.");
+  }
+
+  /** Updates only the notified scene property (EveSpaceScene.cpp:3268-3353). */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Exposed member names replace native addresses; null releases references and resource requirements replace interface IIDs.")
+  OnModified(property, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
+  {
+    if (property === "reflectionProbe" || property === "envMapResPath")
+    {
+      this._staticEnvMapTextureRes = null;
+      if (this._staticEnvMapHandle)
+        this._staticEnvMapTextureRes = blue.resMan.GetResource(this.envMapResPath, { requirement: ResourceRequirement.TEXTURE });
+      if (this.reflectionProbe && this.reflectionProbe.IsValid(renderContext))
+      {
+        this._envMapTextureRes = this.reflectionProbe.GetReflection();
+        this.reflectionProbe.SetBackLightColor(this.reflectionBackLightingColor);
+        this.reflectionProbe.SetBackLightContrast(this.reflectionBackLightingContrast);
+      }
+      else if (this._envMapHandle) this._envMapTextureRes = this._staticEnvMapTextureRes;
+    }
+    for (const field of ["envMap1", "envMap2", "envMap3"])
+    {
+      if (property !== field + "ResPath") continue;
+      this[field] = null;
+      if (this[field + "ResPath"])
+        this[field] = blue.resMan.GetResource(this[field + "ResPath"], { requirement: ResourceRequirement.TEXTURE });
+    }
+    if ((property === "reflectionBackLightingColor" || property === "reflectionBackLightingContrast")
+      && this.reflectionProbe && this.reflectionProbe.IsValid(renderContext))
+    {
+      if (property === "reflectionBackLightingColor") this.reflectionProbe.SetBackLightColor(this.reflectionBackLightingColor);
+      else this.reflectionProbe.SetBackLightContrast(this.reflectionBackLightingContrast);
+    }
+    if (property === "shadowQuality" && this.cascadedShadowMap)
+    {
+      if (this.shadowQuality === ShadowQuality.SHADOW_LOW) this.cascadedShadowMap.ShouldUseDenoiser(false);
+      if (this.shadowQuality === ShadowQuality.SHADOW_HIGH) this.cascadedShadowMap.ShouldUseDenoiser(true);
+    }
+    return true;
+  }
+
   /** Registers the bone provider before effect hydration (EveSpaceScene.cpp:257-258). */
   constructor()
   {
-    super();
+    for (const list of [this.backgroundObjects, this.planets, this.objects, this.uiObjects]) list.SetNotify(this);
     const bones = Tr2RingBuffer.GetInstance("Float4x3", 48, Tr2RenderContext_GetMainThreadRenderContext());
     bones.SetName("BoneTransformsBuffer");
     Tr2VariableStore.globalStore().RegisterVariable("BoneTransforms", bones);
@@ -2530,8 +2588,7 @@ export class EveSpaceScene extends CjsModel
    * cleared) and the registry; unloading a list does the same for all of it.
    * Casts are Carbon's BlueCastPtr, CjsSchema.cast.
    *
-   * The events come from the notified list helpers - CjsModel.addChild /
-   * removeChild(scene, "objects", object) - as Carbon's BlueList raises them;
+   * The subscribed BlueList raises these events from Append/Remove;
    * a plain array push raises none, and ReregisterEntities joins such late
    * objects instead.
    *
@@ -2787,3 +2844,5 @@ new TriSettingsRegistrar("eveReflectionSetting", {
   get eveReflectionSetting() { return GetReflectionSetting(); },
   set eveReflectionSetting(value) { SetReflectionSetting(value); }
 }, "eveReflectionSetting", { enum: ReflectionSetting, carbon: true });
+
+carbon.interfaceTable({ interfaces: [EveSpaceScene, ITr2Scene, ITr2Updateable, IInitialize, INotify], chainTo: null })(EveSpaceScene, { kind: "class" });

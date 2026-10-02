@@ -1,3 +1,4 @@
+import { addChild, removeChild } from "../../../../npm/dist/global/blue/children.js";
 import { CjsSchema } from "../../../../npm/dist/global/schema/index.js";
 // A real EVE hull drawn with its own shader, through the shipped path.
 //
@@ -119,7 +120,6 @@ import { RegisterGeometryResources } from "../../../../npm/dist/resource/index.j
 import { RegisterObjectResources } from "../../../../npm/dist/resource/object/index.js";
 import { hydrateDemoShip, retireDemoShips, replaceDemoShip } from "./demoShipLifetime.js";
 import { createDemoSkinChange, resolveDemoDefaultDna } from "./demoSkinSelection.js";
-import { CjsModel } from "../../../../npm/dist/global/model/index.js";
 import { createDemoFramePump } from "./demoFramePump.js";
 import { gTriDev } from "../../../../npm/dist/trinity/core/device/gTriDev.js";
 import { Tr2Effect, Tr2EffectStateManager, TriTextureParameter } from "../../../../npm/dist/trinity/shader/index.js";
@@ -4155,8 +4155,8 @@ export async function RunDemo(canvas)
   {
     if (!realScene) return;
     const present = realScene.objects.includes(locationPost.root);
-    if (attach && !present) CjsModel.addChild(realScene, "objects", locationPost.root);
-    else if (!attach && present) CjsModel.removeChild(realScene, "objects", locationPost.root);
+    if (attach && !present) addChild(realScene, "objects", locationPost.root, { listNotify: realScene });
+    else if (!attach && present) removeChild(realScene, "objects", locationPost.root, { listNotify: realScene });
   };
 
   /**
@@ -4401,7 +4401,7 @@ export async function RunDemo(canvas)
     if (realScene)
     {
       const retired = new Set([ship, ...pendingShips]);
-      for (const root of retired) CjsModel.removeChild(realScene, "objects", root);
+      for (const root of retired) removeChild(realScene, "objects", root, { listNotify: realScene });
       retireDemoShips(retired, []);
     }
     // This demo loaded its own system.black instance. Rendering has stopped;

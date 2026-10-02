@@ -1,3 +1,4 @@
+import { addChild, removeChild } from "../../npm/dist/global/blue/children.js";
 // EveSpaceScene::OnListModified (EveSpaceScene.cpp:3414-3491): adding to the
 // scene's objects through the notified list registers the entity and the
 // secondary light source; removing unregisters both; a plain push raises
@@ -5,7 +6,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { EveEffectRoot2, EveSpaceScene, Tr2ShLightingManager } from "../../npm/dist/trinity/index.js";
-import { CjsModel } from "../../npm/dist/global/model/index.js";
 
 /** A real manager whose register/unregister results are recorded. */
 function RecordingManager()
@@ -27,11 +27,11 @@ test("adding and removing through the notified list registers and unregisters, a
   const root = new EveEffectRoot2();
   const registered = () => scene.componentRegistry.registeredEntities.includes(root);
 
-  CjsModel.addChild(scene, "objects", root);
+  addChild(scene, "objects", root, { listNotify: scene });
   assert.equal(registered(), true, "an inserted entity joins the component registry");
   assert.equal(calls.registered, 1, "an inserted light source joins the SH lighting manager");
 
-  assert.equal(CjsModel.removeChild(scene, "objects", root), true);
+  assert.equal(removeChild(scene, "objects", root, { listNotify: scene }), true);
   assert.equal(registered(), false, "a removed entity leaves the component registry");
   // The manager matches by the registered translation's identity: found.
   assert.deepEqual(calls.unregistered, [ true ], "a removed light source leaves the manager");
@@ -52,6 +52,6 @@ test("uiObjects insertions register no entity, as Carbon gates entities to three
 {
   const scene = new EveSpaceScene();
   const root = new EveEffectRoot2();
-  CjsModel.addChild(scene, "uiObjects", root);
+  addChild(scene, "uiObjects", root, { listNotify: scene });
   assert.equal(scene.componentRegistry.registeredEntities.includes(root), false);
 });

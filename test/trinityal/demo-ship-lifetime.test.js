@@ -1,9 +1,9 @@
+import { addChild, removeChild } from "../../npm/dist/global/blue/children.js";
 import { Traverse } from "../../npm/dist/global/blue/find.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { CjsModel } from "../../npm/dist/global/model/index.js";
 import { blue } from "../../npm/dist/global/blue/index.js";
 import { TriGeometryRes } from "../../npm/dist/resource/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
@@ -35,7 +35,7 @@ function makeShip(provider = new Tr2ParticleSystem())
   const ship=new EveShip2(),child=new EveChildParticleSystem(),mesh=new Tr2InstancedMesh();
   const geometry=new TriGeometryRes();geometry.MarkPrepared();mesh.SetGeometryRes(geometry);
   mesh.SetInstanceGeometryRes(provider);child.mesh=mesh;child.particleSystems.push(provider);
-  CjsModel.addChild(ship,"effectChildren",child);ship.mesh=mesh;
+  addChild(ship, "effectChildren", child, { listNotify: ship });ship.mesh=mesh;
   return {ship,provider,mesh};
 }
 
@@ -162,15 +162,15 @@ function overlay(t, failAt = 0)
 
 test("repeated successful swaps retire old resources after detaching mutual overlay bindings",async t=>{
   const baseline=setup(t);overlay(t);let current=makeShip();const scene=new EveSpaceScene(),pending=new Set();
-  CjsModel.addChild(scene,"objects",current.ship);
+  addChild(scene, "objects", current.ship, { listNotify: scene });
   for(let i=0;i<4;i++){
     const next=makeShip(current.provider),old=current;
     await replaceDemoShip({old:old.ship,nextDna:"test",scene,pending,isDisposed:()=>false,
       buildShip:async()=>next.ship,applyBanners(){},resourceBytes:async()=>new Uint8Array(),wait:async()=>{},commit:ship=>{current={...next,ship};}});
-    assert.deepEqual(scene.objects,[next.ship]);assert.equal(old.ship.overlayEffects.length,0);assert.equal(next.ship.overlayEffects.length,0);
+    assert.deepEqual(Array.from(scene.objects),[next.ship]);assert.equal(old.ship.overlayEffects.length,0);assert.equal(next.ship.overlayEffects.length,0);
     assert.equal(namedResources().length,baseline.size+2);assert.equal(pending.size,0);
   }
-  CjsModel.removeChild(scene,"objects",current.ship);retireDemoShips([current.ship],[]);
+  removeChild(scene, "objects", current.ship, { listNotify: scene });retireDemoShips([current.ship],[]);
   assert.deepEqual(new Set(namedResources()),baseline);
 });
 
@@ -178,10 +178,10 @@ for(const boundary of ["build","geometry","bytes","transition","overlay"])
 test(`replacement ${boundary} cancellation/failure leaves no new registrations`,async t=>{
   const baseline=setup(t);overlay(t,boundary==="overlay"?2:0);
   const old=makeShip(),next=makeShip(),scene=new EveSpaceScene(),pending=new Set();
-  CjsModel.addChild(scene,"objects",old.ship);old.ship.clipSphereFactor=0.25;
+  addChild(scene, "objects", old.ship, { listNotify: scene });old.ship.clipSphereFactor=0.25;
   if(boundary==="geometry")next.mesh.SetGeometryRes(new TriGeometryRes());
   let disposed=false,committed=false;
-  const dispose=()=>{disposed=true;const roots=[old.ship,...pending];for(const root of roots)CjsModel.removeChild(scene,"objects",root);retireDemoShips(roots,[]);};
+  const dispose=()=>{disposed=true;const roots=[old.ship,...pending];for(const root of roots)removeChild(scene, "objects", root, { listNotify: scene });retireDemoShips(roots,[]);};
   await assert.rejects(replaceDemoShip({old:old.ship,nextDna:"test",scene,pending,isDisposed:()=>disposed,
     buildShip:async()=>{if(boundary==="build")dispose();return next.ship;},applyBanners(){},
     resourceBytes:async()=>{if(boundary==="bytes")dispose();return new Uint8Array();},
@@ -189,7 +189,7 @@ test(`replacement ${boundary} cancellation/failure leaves no new registrations`,
   }),/disposed|overlay failed/);
   assert.equal(committed,false);assert.equal(pending.size,0);assert.equal(old.ship.overlayEffects.length,0);assert.equal(next.ship.overlayEffects.length,0);
   if(boundary==="overlay"){
-    assert.deepEqual(scene.objects,[old.ship]);assert.equal(old.ship.clipSphereFactor,0.25);
+    assert.deepEqual(Array.from(scene.objects),[old.ship]);assert.equal(old.ship.clipSphereFactor,0.25);
     assert.equal(namedResources().length,baseline.size+2);retireDemoShips([old.ship],[]);
   } else assert.equal(scene.objects.length,0);
   assert.deepEqual(new Set(namedResources()),baseline);

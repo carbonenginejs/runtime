@@ -1,3 +1,5 @@
+import { IList } from "./IList.js";
+import { mappedInterfaces } from "../compose/interface.js";
 import { CjsSchema } from "../schema/index.js";
 import { DictReader, CreateAnchorTable } from "./DictReader.js";
 import { ensureRuntimeState } from "../compose/runtimeState.js";
@@ -36,9 +38,14 @@ export function addChild(target, property, child, options = {})
     assertChildCallback(options.onAdded, "onAdded");
 
     const index = collection.length;
-    collection.push(child);
+    const nativeList = mappedInterfaces(collection.constructor).has(IList);
+    if (nativeList)
+    {
+        if (!collection.Append(child)) throw new TypeError(`Child is not admitted by ${field.name}.`);
+    }
+    else collection.push(child);
     recordChildMutation(target, field, options);
-    notifyListModified(target, BLUELISTEVENT.BELIST_INSERTED, index, 0, child, collection, options);
+    if (!nativeList) notifyListModified(target, BLUELISTEVENT.BELIST_INSERTED, index, 0, child, collection, options);
 
     const payload = createChildEventPayload(target, field.name, child, index, options);
     invokeChildCallback(options.onAdded, target, payload, "onAdded");
@@ -56,9 +63,11 @@ export function removeChild(target, property, child, options = {})
     if (index === -1) return false;
     assertChildCallback(options.onRemoved, "onRemoved");
 
-    collection.splice(index, 1);
+    const nativeList = mappedInterfaces(collection.constructor).has(IList);
+    if (nativeList) collection.Remove(index);
+    else collection.splice(index, 1);
     recordChildMutation(target, field, options);
-    notifyListModified(target, BLUELISTEVENT.BELIST_REMOVED, index, 0, child, collection, options);
+    if (!nativeList) notifyListModified(target, BLUELISTEVENT.BELIST_REMOVED, index, 0, child, collection, options);
 
     const payload = createChildEventPayload(target, field.name, child, index, options);
     invokeChildCallback(options.onRemoved, target, payload, "onRemoved");
@@ -105,8 +114,12 @@ export function clearChildren(target, property, options = {})
     assertChildCallback(options.onCleared, "onCleared");
 
     recordChildMutation(target, field, options);
-    notifyListModified(target, BLUELISTEVENT.BELIST_UNLOADSTART, 0, 0, null, collection, options);
-    collection.length = 0;
+    if (mappedInterfaces(collection.constructor).has(IList)) collection.Remove(-1);
+    else
+    {
+        notifyListModified(target, BLUELISTEVENT.BELIST_UNLOADSTART, 0, 0, null, collection, options);
+        collection.length = 0;
+    }
 
     const payload = {
         property: field.name,
