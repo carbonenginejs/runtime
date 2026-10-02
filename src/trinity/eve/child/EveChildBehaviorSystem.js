@@ -14,9 +14,17 @@ import { EveChildTransform } from "./EveChildTransform.js";
 import { TriBatchType } from "#consts/graphics";
 import { mat4 } from "#math/mat4";
 import {
-  createChildPerObjectRecords,
-  inheritParentPerObjectData
+  createChildPerObjectRecords
 } from "../perObjectData/childPerObjectRecords.js";
+import { Tr2BufferAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferAL.js";
+import { Tr2BufferDescriptionAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferDescriptionAL.js";
+import { Failed } from "../../../trinityal/ALResult.js";
+import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
+import { TriDevice } from "../../core/device/TriDevice.js";
+import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/index.js";
+import { CreateLodAllocations } from "../../core/mesh/TriGeometryResAllocations.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 
 /**
@@ -75,8 +83,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
   // System-wide flattened tunnel registry with reassigned IDs (Carbon m_tunnels).
   _tunnels = [];
 
-  // Base-instance offsets per group (Carbon m_startInstanceValues); the JS
-  // port keeps only the CPU bookkeeping the batch path reads.
+  // Base-instance offsets per group (Carbon m_startInstanceValues).
   _startInstanceValues = [];
 
   // Carbon m_hasUpdated: until an update ran, the object cannot be rendered.
@@ -92,6 +99,62 @@ export class EveChildBehaviorSystem extends EveChildTransform
   _behaviorGroupLoaded = false;
 
   _behaviorGroupLoadedForTunnel = false;
+
+  /** Carbon instance streams: six float4 rows per ship, three per booster. */
+  _shipInstanceBuffer = new Tr2BufferAL();
+
+  _boosterInstanceBuffer = new Tr2BufferAL();
+
+  _shipStride = 96;
+
+  _boosterStride = 48;
+
+  /** Registers the inherited native device-resource lifetime. */
+  constructor()
+  {
+    super();
+    // Carbon's constructor memsets these records; child-mesh defaults differ.
+    this._perObjectData.vs.Zero();
+    this._perObjectData.ps.Zero();
+    TriDevice.RegisterResource(this);
+    this.PrepareResources();
+  }
+
+  /** Explicit final ownership release replaces Carbon's member destructors. */
+  @meta.ours
+  Destroy()
+  {
+    this._shipInstanceBuffer.Destroy();
+    this._boosterInstanceBuffer.Destroy();
+    for (const group of this.behaviorGroups) group.SetVertexFunctionReferance(null);
+    TriDevice.UnregisterResource(this);
+  }
+
+  /** Carbon's device-release override is empty (EveChildBehaviorSystem.h). */
+  @meta.blue.method
+  @meta.noop
+  ReleaseResources()
+  {
+  }
+
+  /** Carbon Tr2DeviceResource::PrepareResources resource-creation guard. */
+  @meta.blue.method
+  @meta.implemented
+  PrepareResources()
+  {
+    return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
+  }
+
+  /** Replaces the two native AL values, then allocates their current count. */
+  @meta.blue.method
+  @meta.adapted
+  OnPrepareResources()
+  {
+    this._shipInstanceBuffer.Destroy();
+    this._boosterInstanceBuffer.Destroy();
+    this.ChangeBufferInstanceCount();
+    return this._shipInstanceBuffer.IsValid() && this._boosterInstanceBuffer.IsValid();
+  }
 
   /** Carbon EveChildBehaviorSystem::Initialize (cpp:67-77). */
   @meta.blue.method
@@ -157,7 +220,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
 
   /**
    * Sync-side frame update (Carbon UpdateSyncronous, cpp:258-283): late
-   * callback wiring, per-group vertex-declaration refresh (stubbed GPU-side),
+   * callback wiring, per-group vertex-declaration refresh,
    * group sync updates, then the agent simulation step.
    * @param {Object} updateContext - frame context (EveUpdateContext)
    * @param {Object} params - EveChildUpdateParams
@@ -193,27 +256,30 @@ export class EveChildBehaviorSystem extends EveChildTransform
 
   /**
    * Per-frame async update (Carbon UpdateAsyncronous, cpp:582-616): rebuild
-   * the world transform from the parent, then fan out to the groups. The
-   * per-object VS/PS constant structs Carbon refreshes here are a GPU
-   * constant-buffer seam.
+   * the world transform from the parent, refresh the persistent VS/PS records,
+   * then fan out to the groups.
    * @param {Object} updateContext - frame context (EveUpdateContext)
    * @param {Object} params - EveChildUpdateParams (localToWorldTransform)
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The parent transform arrives via params.localToWorldTransform per repo convention; the per-object VS/PS struct refresh is a GPU constant-buffer seam.")
   UpdateAsyncronous(updateContext, params)
   {
-    // Carbon cpp:590-598: a space-object parent supplies BOTH the placement and
-    // the inherited per-object values; otherwise the params transform is used.
-    const parent = params?.spaceObjectParent;
-    const parentTransform = parent?.GetLocalToWorldTransform?.() ?? params?.localToWorldTransform;
-
-    inheritParentPerObjectData(this._perObjectData, parent, this.translation);
+    // Carbon chooses the immediate child parent first. Only a direct hull
+    // parent supplies inherited per-object values as well as placement.
+    const parent = params.childParent ?? params.spaceObjectParent;
+    const parentTransform = parent ? parent.GetLocalToWorldTransform() : params.localToWorldTransform;
+    if (!params.childParent && params.spaceObjectParent)
+    {
+      // Carbon copies the hull records only for a direct space-object parent;
+      // unlike EveChildMesh it does not rebase clip data by child translation.
+      params.spaceObjectParent.GetPerObjectStructs(this._perObjectData.vs, this._perObjectData.ps);
+    }
 
     // cpp:599: the OUTGOING transform becomes worldTransformLast, before the
     // new one is built.
     this._perObjectData.vs.SetAndTranspose("worldTransformLast", this.worldTransform);
+    this._perObjectData.ps.SetAndTranspose("worldTransformLast", this.worldTransform);
 
     if (parentTransform && parentTransform.length === 16)
     {
@@ -221,6 +287,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
     }
 
     this._perObjectData.vs.SetAndTranspose("worldTransform", this.worldTransform);
+    this._perObjectData.ps.SetAndTranspose("worldTransform", this.worldTransform);
 
     // CARBON QUIRK (cpp:604), reproduced deliberately. Every other filler of
     // this field inverts the ALREADY-TRANSPOSED matrix - EveChildMesh.cpp:949,
@@ -240,13 +307,10 @@ export class EveChildBehaviorSystem extends EveChildTransform
     mat4.transpose(inverse, inverse);
     this._perObjectData.vs.SetAndTranspose("invWorldTransform", inverse);
 
-    // cpp:606-608: the PS record takes those three matrices as they stand. Only
-    // the three - the two records are different structs that happen to be the
-    // same size, so a whole-record copy would clobber the PS-only fields.
-    for (const name of [ "worldTransform", "worldTransformLast", "invWorldTransform" ])
-    {
-      this._perObjectData.ps.SetAndTranspose(name, this._perObjectData.vs.GetTransposed(name));
-    }
+    // Carbon copies these stored matrices into PS unchanged. Encoding the same
+    // logical inputs once preserves that; feeding GetTransposed back into the
+    // encoder would transpose them a second time.
+    this._perObjectData.ps.SetAndTranspose("invWorldTransform", inverse);
 
     for (const group of this.behaviorGroups)
     {
@@ -274,15 +338,11 @@ export class EveChildBehaviorSystem extends EveChildTransform
   }
 
   /**
-   * Publishes the system and its groups' PlayFX effects (Carbon
-   * GetRenderables, cpp:628-649). Carbon maps and fills the ship/booster
-   * instance buffers here (UpdateBuffer) - the GPU writes are a device seam;
-   * the CPU bookkeeping (group index indicators + base instance offsets) is
-   * kept.
+   * Publishes the updated system, fills both AL streams, then its PlayFX
+   * renderables (Carbon GetRenderables). Mapping remains on the render thread.
    */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("UpdateBuffer's instance-buffer writes are a GPU seam; the group-index/base-instance bookkeeping it also performs is ported.")
+  @meta.implemented
   GetRenderables(renderables = [])
   {
     if (!this.display || !this._hasUpdated)
@@ -297,7 +357,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
 
     renderables.push(this);
 
-    this._UpdateInstanceBookkeeping();
+    this.UpdateBuffer(Tr2RenderContext_GetMainThreadRenderContext());
 
     for (const group of this.behaviorGroups)
     {
@@ -411,23 +471,25 @@ export class EveChildBehaviorSystem extends EveChildTransform
   }
 
   /**
-   * Recomputes the instance count from the live agents (Carbon
-   * ChangeBufferInstanceCount, cpp:529-564). The Tr2Buffer creation is a GPU
-   * seam; the never-zero count rule is kept.
+   * Allocates the ship and booster streams after agent-count changes (Carbon
+   * ChangeBufferInstanceCount). AL descriptions replace the native overload.
+   * Before device creation the requested count is retained for prepare.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Instance vertex-buffer creation is a GPU seam; the CPU instance-count bookkeeping is ported.")
   ChangeBufferInstanceCount()
   {
-    let numAgents = 0;
-    for (const group of this.behaviorGroups)
-    {
-      numAgents += Number(group?.GetSize?.() ?? 0);
-    }
-
-    // Prevent the count from being 0 (Carbon keeps the buffers non-empty).
-    this.instanceCount = numAgents === 0 ? 1 : numAgents;
+    let count = 0;
+    for (const group of this.behaviorGroups) count += group.GetSize();
+    this.instanceCount = Math.max(1, count);
+    if (!Tr2Renderer.IsResourceCreationAllowed()) return;
+    const context = Tr2RenderContext_GetMainThreadRenderContext();
+    if (Failed(this._shipInstanceBuffer.Create(Tr2BufferDescriptionAL.FromStride(
+      this._shipStride, this.instanceCount, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN
+    ), null, context))) return;
+    this._boosterInstanceBuffer.Create(Tr2BufferDescriptionAL.FromStride(
+      this._boosterStride, this.instanceCount, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN
+    ), null, context);
   }
 
   /** Carbon EveChildBehaviorSystem::GetTunnels (cpp:498-501). */
@@ -535,12 +597,71 @@ export class EveChildBehaviorSystem extends EveChildTransform
     return 0;
   }
 
-  /** Carbon method GetBatches (cpp:387-421) - render-batch accumulation. */
+  /** Carbon GetBatches: hide unready systems and mesh groups fully at sprite LOD. */
   @meta.blue.method
-  @meta.notImplemented
-  GetBatches(..._args)
+  @meta.implemented
+  GetBatches(batches, batchType, perObjectData, _reason = 0)
   {
-    throw new Error("EveChildBehaviorSystem.GetBatches is not implemented in CarbonEngineJS.");
+    if (!this.display || !this._shipInstanceBuffer.IsValid() || !this._boosterInstanceBuffer.IsValid()) return;
+    if (!this.behaviorGroups.some(group => group.IsGroupVisible())) return;
+    for (const group of this.behaviorGroups)
+    {
+      if (group.AllTheSame() === 1) continue;
+      this.GetGroupBatches(batches, batchType, perObjectData, group.GetMesh(), group);
+      this.GetGroupBoosterBatches(batches, batchType, perObjectData, group);
+    }
+  }
+
+  /**
+   * Carbon GetGroupBatches binds the group's mesh and the shared ship stream.
+   * Adapted: realize cold geometry through Trinity's existing allocation seam
+   * before binding; a deferred geometry descriptor would overwrite instancing.
+   */
+  @meta.blue.method
+  @meta.adapted
+  GetGroupBatches(batches, batchType, perObjectData, mesh, group)
+  {
+    if (!group.display || !mesh) return;
+    const geometry = mesh.GetGeometryResource();
+    if (!geometry || !geometry.IsGood()) return;
+    const lod = geometry.GetMeshLod(mesh.GetMeshIndex(), 0);
+    if (!lod || !CreateLodAllocations(geometry, mesh.GetMeshIndex(), lod, Tr2RenderContext_GetMainThreadRenderContext())) return;
+    group.CreateVertexDeclaration();
+    for (const area of mesh.GetAreas(batchType))
+    {
+      if (!area.GetDisplay()) continue;
+      const material = area.GetMaterialInterface();
+      if (!material) continue;
+      const reversed = area.GetReversed();
+      if (reversed && !lod.reversedIndicesValid) continue;
+      const draw = Tr2RenderBatch.resolveDrawArguments(lod, area.GetIndex(), area.GetCount(), reversed);
+      if (!draw) continue;
+      const batch = new Tr2RenderBatch();
+      batch.SetMaterial(material);
+      if (!batch.IsValid()) continue;
+      batch.SetPerObjectData(perObjectData);
+      batch.SetPickingData(mesh.GetMeshIndex(), area.GetIndex());
+      batch.SetGeometryFromAllocations(group.GetVertexDeclarationHandle(), lod.vertexAllocation,
+        reversed ? lod.reversedIndexAllocation : lod.indexAllocation);
+      batch.SetStreamSource(1, this._shipInstanceBuffer, this._shipStride);
+      batch.SetDrawIndexedInstanced(draw.indexCountPerInstance, group.GetSize(),
+        draw.startIndexLocation, draw.baseVertexLocation, this._startInstanceValues[group.GetGroupIndexIndicator()]);
+      batches.Commit(batch);
+    }
+  }
+
+  /** Carbon GetGroupBoosterBatches submits boosters only to the additive pass. */
+  @meta.blue.method
+  @meta.implemented
+  GetGroupBoosterBatches(batches, batchType, perObjectData, group)
+  {
+    if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE) return;
+    const booster = group.GetBooster();
+    if (!booster || !booster.GetDisplay()) return;
+    const batch = booster.GetBatch(this._boosterInstanceBuffer,
+      this._startInstanceValues[group.GetGroupIndexIndicator()], this._boosterStride, group.GetSize());
+    batch.SetPerObjectData(perObjectData);
+    batches.Commit(batch);
   }
 
   /**
@@ -576,22 +697,38 @@ export class EveChildBehaviorSystem extends EveChildTransform
   }
 
   /**
-   * The CPU half of Carbon UpdateBuffer (cpp:295-329): assigns each group its
-   * index indicator and records the running base-instance offsets that the
-   * instanced draw needs.
+   * Carbon UpdateBuffer maps both streams and writes groups in instance order.
+   * Float views and offsets replace native byte-pointer arithmetic; finally
+   * blocks preserve the native scope-exit unmaps, including packing failures.
    */
-  _UpdateInstanceBookkeeping()
+  @meta.blue.method
+  @meta.adapted
+  UpdateBuffer(renderContext)
   {
     this._startInstanceValues.length = 0;
-
-    let totalShipsSoFar = 0;
-    for (const group of this.behaviorGroups)
+    const ships = this._shipInstanceBuffer.MapForWriting(renderContext);
+    if (Failed(ships.result)) return;
+    try
     {
-      const count = Number(group?.GetCount?.() ?? 0);
-      group?.SetGroupIndexIndicator?.(this._startInstanceValues.length);
-      this._startInstanceValues.push(totalShipsSoFar);
-      totalShipsSoFar += count;
+      const boosters = this._boosterInstanceBuffer.MapForWriting(renderContext);
+      if (Failed(boosters.result)) return;
+      try
+      {
+        const shipData = new Float32Array(ships.data.buffer, ships.data.byteOffset, ships.data.byteLength / 4); // alloc: zero-copy view scoped to this AL mapping.
+        const boosterData = new Float32Array(boosters.data.buffer, boosters.data.byteOffset, boosters.data.byteLength / 4); // alloc: zero-copy view scoped to this AL mapping.
+        let start = 0;
+        for (const group of this.behaviorGroups)
+        {
+          group.GetShipInfoForBuffer(shipData, this.worldTransform, start * 24);
+          group.GetBoosterInfoForBuffer(boosterData, this.worldTransform, start * 12);
+          group.SetGroupIndexIndicator(this._startInstanceValues.length);
+          this._startInstanceValues.push(start);
+          start += group.GetCount();
+        }
+      }
+      finally { this._boosterInstanceBuffer.UnmapForWriting(renderContext); }
     }
+    finally { this._shipInstanceBuffer.UnmapForWriting(renderContext); }
   }
 
 }

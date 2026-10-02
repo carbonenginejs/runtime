@@ -14,6 +14,9 @@ import { vec4 } from "#math/vec4";
 import { ProcessPriority } from "./enums.js";
 import { EveKDdroneManagementTree } from "../../../eve/child/behaviors/EveKDdroneManagementTree.js";
 import { PlayFX } from "./PlayFX.js";
+import { CarbonVertexElements } from "../../../core/vertex/vertexUsage.js";
+import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
+import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 
 // Module scratch for the per-agent integration and visibility loops (child
@@ -23,6 +26,10 @@ const INTEREST_POINT = vec3.create();
 const ACTUAL_FACING = vec3.create();
 const AGENT_SPHERE = vec4.create();
 const EMPTY_SEARCH_TREE = [];
+const INSTANCE_POSE = mat4.create();
+const AGENT_WORLD = mat4.create();
+const BOOSTER_POSITION = vec3.create();
+const IDENTITY = mat4.create();
 
 // Carbon ClampLength: in-place clamp of a vec3 to a maximum length.
 function ClampLength(value, maxLength)
@@ -42,6 +49,10 @@ export class BehaviorGroup extends EveEntity
 {
 
   _agents = [];
+
+  _cachedVD = null;
+
+  _vertexDeclarationHandle = Tr2EffectStateManager.Unknown;
 
   // Per-behavior scratch: #scratchData[behaviorIndex] is an array of plain
   // per-agent records (behavior.InitializeScratch()) or null when the
@@ -202,7 +213,7 @@ export class BehaviorGroup extends EveEntity
   /** Carbon BehaviorGroup::Initialize (cpp:45-57). */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Vertex-declaration creation is a GPU seam; scratch sizing, booster flare-count sync, and the PlayFX cache are ported.")
+  @meta.reason("Creates the declaration through the existing effect-state manager; agent scratch and flare storage remain group-owned.")
   Initialize()
   {
     this._EnsureScratchArrays();
@@ -221,7 +232,7 @@ export class BehaviorGroup extends EveEntity
    * the repo's OnModified duck (field name or field value). */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Blue Var matching maps to the repo's OnModified duck; a mesh change refreshes the (stubbed) vertex declaration and a booster change re-syncs the flare count.")
+  @meta.reason("Blue Var matching maps to the repo's OnModified duck; a mesh change refreshes the vertex declaration and a booster change re-syncs the flare count.")
   OnModified(value = null)
   {
     if (IsMatch(value, "mesh"))
@@ -671,28 +682,127 @@ export class BehaviorGroup extends EveEntity
     return same;
   }
 
-  /** Carbon method GetShipInfoForBuffer (cpp:692-742) - GPU instance-buffer fill. */
+  /**
+   * Carbon GetShipInfoForBuffer: current and previous local poses, each packed
+   * as three float4 rows. The optional float offset replaces a native pointer.
+   * Parent placement is deliberately left to the per-object constants.
+   */
   @meta.blue.method
-  @meta.notImplemented
-  GetShipInfoForBuffer(..._args)
+  @meta.adapted
+  GetShipInfoForBuffer(data, _parentWorldLocation, offset = 0)
   {
-    throw new Error("BehaviorGroup.GetShipInfoForBuffer is not implemented in CarbonEngineJS (GPU instance-buffer fill).");
+    this._lightInfo.clear();
+    data.fill(0, offset, offset + this._agents.length * 24);
+    if (this.currentScreenSize === 0) return;
+    for (const agent of this._agents)
+    {
+      const lod = this.debugMode ? this.debugLodLevel : agent.xfade;
+      mat4.fromRotationTranslation(INSTANCE_POSE, agent.rotation, agent.position);
+      if (agent.isVisible && this.display && lod < 0.75)
+      {
+        const scale = this.scale * (1 - lod) * (0.5 + (1 - lod) * 0.5);
+        // Carbon Transpose(ScalingMatrix(scale) * pose): scale first;
+        // gl-matrix's equivalent is pose * scale, packed column-stride.
+        for (let row = 0; row < 3; row++)
+        {
+          for (let column = 0; column < 3; column++)
+          {
+            data[offset + row * 4 + column] = INSTANCE_POSE[column * 4 + row] * scale;
+            data[offset + 12 + row * 4 + column] = agent.lastTransform[column * 4 + row] * scale;
+          }
+          data[offset + row * 4 + 3] = INSTANCE_POSE[12 + row];
+          data[offset + 12 + row * 4 + 3] = agent.lastTransform[12 + row];
+        }
+      }
+      mat4.copy(agent.lastTransform, INSTANCE_POSE);
+      offset += 24;
+    }
   }
 
-  /** Carbon method GetBoosterInfoForBuffer (cpp:748-821) - GPU instance-buffer fill. */
+  /**
+   * Carbon GetBoosterInfoForBuffer packs position, rotation and intensity/phase/
+   * atlas indices, and updates the group's lights and flares. The per-ID phase
+   * reproduces Windows CRT's first rand after srand without global RNG mutation.
+   * A float offset replaces native byte-pointer arithmetic.
+   */
   @meta.blue.method
-  @meta.notImplemented
-  GetBoosterInfoForBuffer(..._args)
+  @meta.adapted
+  GetBoosterInfoForBuffer(data, parentWorldLocation, offset = 0)
   {
-    throw new Error("BehaviorGroup.GetBoosterInfoForBuffer is not implemented in CarbonEngineJS (GPU instance-buffer fill).");
+    this._lightInfo.clear();
+    data.fill(0, offset, offset + this._agents.length * 12);
+    if (this.currentScreenSize === 0) return;
+    for (let index = 0; index < this._agents.length; index++, offset += 12)
+    {
+      const agent = this._agents[index];
+      if (!agent.isVisible || !this.display)
+      {
+        if (this.boosters && this.display) this.boosters.AddFlare(IDENTITY, 0, 0, index, 0, 0);
+        continue;
+      }
+      // Carbon writes an identity quaternion even when no booster is authored.
+      data[offset + 7] = 1;
+      if (!this.boosters) continue;
+      const lod = this.debugMode ? this.debugLodLevel : agent.xfade;
+      mat4.fromRotationTranslation(INSTANCE_POSE, agent.rotation, agent.position);
+      vec3.copy(BOOSTER_POSITION, agent.position);
+      const intensity = this.debugMode ? this.debugIntensity : vec3.length(agent.velocity) / Math.max(1, this.maxVelocity);
+      if (lod < 0.3)
+      {
+        vec3.scale(BOOSTER_POSITION, this.boosters.GetOffset(), this.scale);
+        vec3.transformMat4(BOOSTER_POSITION, BOOSTER_POSITION, INSTANCE_POSE);
+        data[offset + 8] = intensity;
+        data[offset + 9] = ((Math.imul(agent.id, 214013) + 2531011) >>> 16 & 0x7fff) / 32767;
+        data[offset + 10] = this.boosters.GetAtlasIndex0();
+        data[offset + 11] = this.boosters.GetAtlasIndex1();
+        if (lod < 0.25)
+        {
+          const lightScale = intensity * (1 - 4 * lod) * (2 * lod + 1) * this.scale;
+          this._lightInfo.set(index, vec4.fromValues(...BOOSTER_POSITION, lightScale)); // alloc: native light-map value survives packing until light collection.
+        }
+      }
+      data.set(BOOSTER_POSITION, offset);
+      data[offset + 3] = this.scale;
+      data.set(agent.rotation, offset + 4);
+      // Carbon agentTransform * parentWorldLocation: agent first, reverse in gl.
+      mat4.multiply(AGENT_WORLD, parentWorldLocation, INSTANCE_POSE);
+      this.boosters.AddFlare(AGENT_WORLD, lod, intensity, index, this.boundingSphereRadius, this.scale);
+    }
   }
 
-  /** Carbon method CreateVertexDeclaration (cpp:828-865) - renderer vertex
-   * declaration bookkeeping; safe frame-loop no-op in JS. */
+  /**
+   * Carbon CreateVertexDeclaration appends TEXCOORD8..13 in instance stream1.
+   * Adapted: the resource's stable decoded elements identify the cached layout;
+   * the existing CarbonVertexElements bridge translates its CMF vocabulary.
+   */
   @meta.blue.method
-  @meta.noop
+  @meta.adapted
   CreateVertexDeclaration()
   {
+    const geometry = this.mesh ? this.mesh.GetGeometryResource() : null;
+    if (this.mesh && !geometry) return;
+    if (geometry && geometry.IsGood())
+    {
+      const elements = CarbonVertexElements(geometry.GetMeshVertexElements(this.mesh.GetMeshIndex()));
+      if (elements !== this._cachedVD)
+      {
+        const instances = new Tr2VertexDefinition();
+        for (let index = 8; index <= 13; index++) instances.Add("FLOAT32_4", "TEXCOORD", index, 1, 1);
+        this._vertexDeclarationHandle = Tr2EffectStateManager.getVertexDeclarationHandle([...elements, ...instances.items]);
+        this._cachedVD = elements;
+      }
+      return;
+    }
+    this._cachedVD = null;
+    this._vertexDeclarationHandle = Tr2EffectStateManager.Unknown;
+  }
+
+  /** Carbon BehaviorGroup.h returns the merged vertex declaration handle. */
+  @meta.blue.method
+  @meta.implemented
+  GetVertexDeclarationHandle()
+  {
+    return this._vertexDeclarationHandle;
   }
 
   /** Carbon BehaviorGroup::GetRenderables (cpp:871-877): PlayFX effects only. */
@@ -1062,6 +1172,7 @@ export class BehaviorGroup extends EveEntity
       lifetime: 0,
       playFX: false,
       fxStartTime: -1,
+      lastTransform: mat4.create(), // alloc: persistent motion history owned by this new agent.
       xfade: 0,
       isVisible: false,
       screenSize: 0

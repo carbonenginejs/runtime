@@ -1,3 +1,4 @@
+import { IsMatch, INotify, blue, TimeAsDouble } from "#blue";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroupBooster.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroupBooster.cpp
@@ -5,18 +6,51 @@ import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { quat } from "#math/quat";
+import { vec2 } from "#math/vec2";
+import { mat4 } from "#math/mat4";
+import { TriBatchType, TR2SHADERMODEL } from "#consts/graphics";
+import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
+import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
+import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
+import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
+import { MakeBoosterBoxBuffer } from "../../attachment/booster/boosterUtilities.js";
+import { EveChildQuad } from "../EveChildQuad.js";
+import { EveChildModifierHalo } from "../modifiers/EveChildModifierHalo.js";
+import { packQuadInstanceData, QUAD_INSTANCE_SIZE } from "../packQuadInstanceData.js";
 import { carbonPerlin1D } from "#math/noise";
 import { Tr2Effect } from "../../../shader/Tr2Effect.js";
 
 // Module scratch for the light registration path.
 const LIGHT_COLOR = vec4.create();
+const HALO_TRANSFORM = mat4.create();
+const HALO_OFFSET = vec3.create();
+const GROUP_SCALE = vec3.create();
+const HALO_ROTATION = quat.fromValues(0, 1, 0, 0);
 
 /** A drone-group component that builds and drives the group's shared booster and ambient or halo flare effects and contributes their point light to the scene. */
 @meta.define({ className: "BehaviorGroupBooster", family: "eve/child/behaviors" })
-@meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.inherit(IInitialize, INotify)
+@meta.blue.mapInterface(IInitialize, INotify)
 export class BehaviorGroupBooster
 {
+
+  _vertexBuffer = MakeBoosterBoxBuffer();
+
+  _vertexDeclarationHandle = Tr2EffectStateManager.Unknown;
+
+  _haloModifier = new EveChildModifierHalo();
+
+  _haloFlare = null;
+
+  _ambientFlare = null;
+
+  _haloFlares = [];
+
+  _ambientFlares = [];
+
+  _quadBytes = new Uint8Array(QUAD_INSTANCE_SIZE);
 
   /** m_display (bool) [READWRITE, PERSIST] */
   @meta.blue.readwrite
@@ -188,13 +222,12 @@ export class BehaviorGroupBooster
 
   /**
    * Creates the hardcoded booster and flare effects when absent (Carbon
-   * InitializeEffects, cpp:149-166). Carbon also registers the flare effects
-   * with the Tr2QuadRenderer singleton - a quad-renderer/GPU seam that the
-   * JS port omits.
+   * InitializeEffects, cpp:149-166). The scene registers their flare buckets
+   * through RegisterWithQuadRenderer.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Effect graph construction is ported; Tr2QuadRenderer::Instance() flare registration and the quad buffers are renderer-owned seams.")
+  @meta.reason("Flare registration is performed by the existing scene-owned quad renderer rather than a native singleton.")
   InitializeEffects()
   {
     if (this.boosterEffect === null)
@@ -209,6 +242,7 @@ export class BehaviorGroupBooster
     {
       this.haloFlareEffect = BehaviorGroupBooster._CreateFlareEffect();
     }
+    this.SetupQuads();
   }
 
   /** Carbon BehaviorGroupBooster::GetDisplay (cpp:254-257). */
@@ -263,17 +297,79 @@ export class BehaviorGroupBooster
     return this.boosterEffect;
   }
 
-  /**
-   * Tracks the flare instance count (Carbon RebuildFlareBuffer, cpp:359-363).
-   * The Quad lists Carbon resizes alongside it are GPU quad packing, kept
-   * with the quad-renderer seam.
-   */
+  /** Resizes the authored flare lists after an agent-count change. */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("The flare Quad lists are GPU quad packing owned by the quad-renderer seam; only the CPU count is tracked.")
+  @meta.implemented
   RebuildFlareBuffer(count)
   {
     this.flareCount = Math.max(0, Number(count) | 0);
+    this.AdjustFlareLists();
+  }
+
+  /**
+   * Carbon SetupQuads updates the templates, retaining already-sized flare
+   * records as native vector::resize does. JavaScript stores explicit row fields.
+   */
+  @meta.blue.method
+  @meta.adapted
+  SetupQuads()
+  {
+    if (!this.ambientFlareEffect && !this.haloFlareEffect) return;
+    for (const [name, color, scale, offset] of [
+      ["_ambientFlare", this.ambientFlareColor, [1, 1, 1], this.ambientFlareOffset],
+      ["_haloFlare", this.haloFlareColor, this.haloFlareScale, [0, 0, 0]]
+    ])
+    {
+      this[name] = {
+        parentTransform0: vec4.fromValues(1, 0, 0, 0), // alloc: persistent native Quad template.
+        parentTransform1: vec4.fromValues(0, 1, 0, 0), // alloc: persistent native Quad template.
+        parentTransform2: vec4.fromValues(0, 0, 1, 0), // alloc: persistent native Quad template.
+        localTransform0: vec4.fromValues(scale[0], 0, 0, offset[0]), // alloc: persistent native Quad template.
+        localTransform1: vec4.fromValues(0, scale[1], 0, offset[1]), // alloc: persistent native Quad template.
+        localTransform2: vec4.fromValues(0, 0, scale[2], offset[2]), // alloc: persistent native Quad template.
+        color: vec4.clone(color), // alloc: persistent native Quad template.
+        brightness: vec2.create() // alloc: persistent native Quad template.
+      };
+    }
+    this.AdjustFlareLists();
+  }
+
+  /** Carbon AdjustFlareLists preserves old records and copies templates on growth. */
+  @meta.blue.method
+  @meta.adapted
+  AdjustFlareLists()
+  {
+    if ((!this.ambientFlareEffect && !this.haloFlareEffect) || !this.flareCount) return;
+    for (const [list, template] of [
+      [this._ambientFlares, this._ambientFlare], [this._haloFlares, this._haloFlare]
+    ])
+    {
+      if (list.length > this.flareCount) list.length = this.flareCount;
+      while (list.length < this.flareCount)
+      {
+        list.push({
+          parentTransform0: vec4.clone(template.parentTransform0), // alloc: owned native Quad value on list growth.
+          parentTransform1: vec4.clone(template.parentTransform1), // alloc: owned native Quad value on list growth.
+          parentTransform2: vec4.clone(template.parentTransform2), // alloc: owned native Quad value on list growth.
+          localTransform0: vec4.clone(template.localTransform0), // alloc: owned native Quad value on list growth.
+          localTransform1: vec4.clone(template.localTransform1), // alloc: owned native Quad value on list growth.
+          localTransform2: vec4.clone(template.localTransform2), // alloc: owned native Quad value on list growth.
+          color: vec4.clone(template.color), // alloc: owned native Quad value on list growth.
+          brightness: vec2.clone(template.brightness) // alloc: owned native Quad value on list growth.
+        });
+      }
+    }
+  }
+
+  /** Carbon OnModified refreshes flare templates and removes detached effects. */
+  @meta.blue.method
+  @meta.adapted
+  OnModified(value)
+  {
+    if (IsMatch(value, "haloFlareEffect") && !this.haloFlareEffect) this._haloFlares.length = 0;
+    else if (IsMatch(value, "ambientFlareEffect") && !this.ambientFlareEffect) this._ambientFlares.length = 0;
+    else this.SetupQuads();
+    return true;
   }
 
   /**
@@ -288,13 +384,13 @@ export class BehaviorGroupBooster
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon's frame clock maps to Date.now seconds for the noise phase; the light registers through the duck-typed manager (AddPointLight), never a GPU structure.")
+  @meta.reason("Carbon's Blue frame clock converts once to seconds for the noise phase; the light registers through the duck-typed manager (AddPointLight), never a GPU structure.")
   AddLight(lightManager, position, radiusModifier, agentIndex, _parentTransform)
   {
     vec4.copy(LIGHT_COLOR, this.lightColor);
     if (this.ambientFlareNoiseAmplitude !== 0)
     {
-      const time = Date.now() / 1000 + agentIndex * 0.01;
+      const time = TimeAsDouble(blue.os.GetCurrentFrameTime()) + agentIndex * 0.01;
       const noise = carbonPerlin1D(time * this.ambientFlareNoiseSpeed, 2, 2, this.ambientFlareNoiseOctaves);
       vec4.scale(LIGHT_COLOR, LIGHT_COLOR, ((noise + 1) / 2) * this.ambientFlareNoiseAmplitude);
     }
@@ -302,52 +398,149 @@ export class BehaviorGroupBooster
     lightManager?.AddPointLight(position, radiusModifier * this.lightRadius, LIGHT_COLOR);
   }
 
-  /** Carbon method Initialize (cpp:119-147) - flare quad setup and the
-   * booster instanced vertex declaration; renderer-owned in JS. */
+  /**
+   * Carbon Initialize builds the booster declaration and shared box indices.
+   * Flare registration uses the scene-owned quad renderer when it collects us.
+   */
   @meta.blue.method
-  @meta.noop
+  @meta.adapted
   Initialize()
   {
+    this.SetupQuads();
+    const definition = new Tr2VertexDefinition();
+    definition.Add("FLOAT32_3", "POSITION");
+    definition.Add("FLOAT32_2", "TEXCOORD");
+    for (let index = 1; index <= 3; index++) definition.Add("FLOAT32_4", "TEXCOORD", index, 1, 1);
+    this._vertexDeclarationHandle = Tr2EffectStateManager.getVertexDeclarationHandle(definition);
+    Tr2Renderer.ReserveQuadListIndexBuffer(6);
     return true;
   }
 
-  /** Carbon method AddFlare (cpp:447-515) - fills the GPU flare quad lists. */
+  /**
+   * Carbon AddFlare writes world/local quad rows and the two authored LOD curves.
+   * Existing quad packing handles float16 storage; Blue ticks convert once to
+   * seconds for noise. The halo modifier receives the owning render context.
+   */
   @meta.blue.method
-  @meta.notImplemented
-  AddFlare(..._args)
+  @meta.adapted
+  AddFlare(agentTransform, lod, intensity, agentIndex, shipBoundingSphereRadius, groupScale)
   {
-    throw new Error("BehaviorGroupBooster.AddFlare is not implemented in CarbonEngineJS (GPU flare-quad fill).");
+    if (!this.flareCount) return;
+    const time = TimeAsDouble(blue.os.GetCurrentFrameTime()) + agentIndex * 0.01;
+    if (this.haloFlareEffect && this._haloFlares.length === this.flareCount)
+    {
+      const quad = this._haloFlares[agentIndex];
+      const mod = Math.max(0, (1 + lod) ** 2 * (lod - 1) ** 2);
+      let brightness = 0.1 + 0.9 * intensity * this.haloFlareBrightness * mod;
+      vec3.scale(HALO_OFFSET, this.haloFlareOffset, mod * groupScale);
+      vec3.set(GROUP_SCALE, groupScale, groupScale, groupScale);
+      // Carbon haloRotation * translation * groupScale * agent: rotation
+      // first, reverse the composition for gl-matrix.
+      mat4.fromRotationTranslationScale(HALO_TRANSFORM, HALO_ROTATION, HALO_OFFSET, GROUP_SCALE);
+      mat4.multiply(HALO_TRANSFORM, agentTransform, HALO_TRANSFORM);
+      this._haloModifier.ApplyTransform({renderContext: Tr2RenderContext_GetMainThreadRenderContext()},
+        HALO_TRANSFORM, 0, null, HALO_TRANSFORM);
+      if (this.haloFlareNoiseAmplitude !== 0)
+      {
+        brightness *= (carbonPerlin1D(time * this.haloFlareNoiseSpeed, 2, 2, this.haloFlareNoiseOctaves) + 1) / 2 * this.haloFlareNoiseAmplitude;
+      }
+      quad.brightness[0] = brightness;
+      BehaviorGroupBooster._setParentRows(quad, HALO_TRANSFORM);
+    }
+    if (this.ambientFlareEffect && this._ambientFlares.length === this.flareCount)
+    {
+      const quad = this._ambientFlares[agentIndex];
+      const mod = (1 - lod) * (lod + 1) * (lod - 1) ** 2;
+      let brightness = (0.25 + 0.25 * intensity + 0.5 * mod * intensity) * this.ambientFlareBrightness;
+      if (this.ambientFlareNoiseAmplitude !== 0)
+      {
+        brightness *= (carbonPerlin1D(time * this.ambientFlareNoiseSpeed, 2, 2, this.ambientFlareNoiseOctaves) + 1) / 2 * this.ambientFlareNoiseAmplitude;
+      }
+      quad.brightness[0] = brightness;
+      BehaviorGroupBooster._setParentRows(quad, agentTransform);
+      const farScale = (1 - mod) * shipBoundingSphereRadius * groupScale * 2;
+      for (let row = 0; row < 3; row++)
+      {
+        const local = quad[`localTransform${row}`];
+        local[row] = mod * this.ambientFlareScale[row] * groupScale + farScale;
+        local[3] = mod * this.ambientFlareOffset[row] * groupScale;
+      }
+    }
   }
 
-  /** Carbon method GetBatch (cpp:375-400) - builds the instanced render batch. */
-  @meta.blue.method
-  @meta.notImplemented
-  GetBatch(..._args)
+  /** Writes Carbon Quad's three parent rows using the shared matrix byte layout. */
+  static _setParentRows(quad, transform)
   {
-    throw new Error("BehaviorGroupBooster.GetBatch is not implemented in CarbonEngineJS (render-batch construction).");
+    for (let row = 0; row < 3; row++)
+    {
+      const target = quad[`parentTransform${row}`];
+      for (let column = 0; column < 4; column++) target[column] = transform[column * 4 + row];
+    }
   }
 
-  /** Carbon method CreateBuffer (cpp:351-357) - procedural GPU vertex buffer. */
+  /** Carbon GetVertexDeclaration returns the combined box/instance declaration. */
   @meta.blue.method
-  @meta.noop
+  @meta.implemented
+  GetVertexDeclaration()
+  {
+    return this._vertexDeclarationHandle;
+  }
+
+  /** Carbon GetBatch binds the shared box and the owning system's instance stream. */
+  @meta.blue.method
+  @meta.adapted
+  GetBatch(instanceBuffer, startInstance, instanceDataStride, count)
+  {
+    const batch = new Tr2RenderBatch();
+    const vertices = this._vertexBuffer.GetSharedResource();
+    if (!instanceBuffer || !this.displayBoosters || !this.display || !vertices || !vertices.IsValid()) return batch;
+    if (Tr2Renderer.GetShaderModel() < TR2SHADERMODEL.TR2SM_3_0_HI) return batch;
+    const indices = Tr2Renderer.GetQuadListIndexBuffer();
+    if (!indices.IsValid()) return batch;
+    batch.SetMaterial(this.boosterEffect);
+    batch.SetVertexDeclaration(this.GetVertexDeclaration());
+    batch.SetIndices(indices.GetBuffer(), indices.GetStride());
+    batch.SetStreamSource(0, vertices.GetBuffer(), vertices.GetStride());
+    batch.SetStreamSource(1, instanceBuffer, instanceDataStride);
+    batch.SetDrawIndexedInstanced(36, count, indices.GetStartIndex(), vertices.GetOffset() / vertices.GetStride(), startInstance);
+    return batch;
+  }
+
+  /** Carbon CreateBuffer selects the shared box for high shader quality. */
+  @meta.blue.method
+  @meta.implemented
   CreateBuffer()
   {
+    if (Tr2Renderer.GetShaderModel() >= TR2SHADERMODEL.TR2SM_3_0_HI) this._vertexBuffer = MakeBoosterBoxBuffer();
   }
 
-  /** Carbon method RegisterWithQuadRenderer (cpp:402-415) - quad renderer
-   * effect registration seam. */
+  /** Registers Carbon's identical child-quad layout with the scene-owned renderer. */
   @meta.blue.method
-  @meta.noop
-  RegisterWithQuadRenderer(_quadRenderer)
+  @meta.adapted
+  RegisterWithQuadRenderer(quadRenderer)
   {
+    for (const effect of [this.ambientFlareEffect, this.haloFlareEffect])
+    {
+      if (effect) quadRenderer.RegisterEffect(effect.GetHashValue(), TriBatchType.TRIBATCHTYPE_ADDITIVE,
+        QUAD_INSTANCE_SIZE, 1, EveChildQuad.GetQuadDefinition(), effect);
+    }
   }
 
-  /** Carbon method AddQuadsToQuadRenderer (cpp:417-433) - quad renderer
-   * submission seam. */
+  /** Submits the native flare lists with their independent display switches. */
   @meta.blue.method
-  @meta.noop
-  AddQuadsToQuadRenderer(_frustum, _quadRenderer)
+  @meta.adapted
+  AddQuadsToQuadRenderer(_frustum, quadRenderer)
   {
+    if (!this.display) return;
+    for (const [effect, display, quads] of [
+      [this.haloFlareEffect, this.displayHazeFlare, this._haloFlares],
+      [this.ambientFlareEffect, this.displayAmbientFlare, this._ambientFlares]
+    ])
+    {
+      if (!effect || !display || !quads.length) continue;
+      for (let index = 0; index < this.flareCount; index++)
+        quadRenderer.AddQuads(effect.GetHashValue(), packQuadInstanceData(quads[index], this._quadBytes), 1);
+    }
   }
 
   // Builds the hardcoded volumetric drone booster effect (Carbon

@@ -3,13 +3,13 @@ import { CjsSchema } from "../../../../npm/dist/global/schema/index.js";
 import { Traverse } from "../../../../npm/dist/global/blue/find.js";
 import { mat4 } from "../../../../npm/dist/global/math/mat4.js";
 import { CjsBlackFormat } from "../../../../npm/dist/resource/formats/black/index.js";
-import { TriDevice, Tr2ParticleSystem, Tr2InstancedMesh, Tr2DirectInstanceData } from "../../../../npm/dist/trinity/index.js";
+import { TriDevice, EveChildBehaviorSystem, Tr2ParticleSystem, Tr2InstancedMesh, Tr2DirectInstanceData } from "../../../../npm/dist/trinity/index.js";
 
 /** Whether a model has a particle or instance-stream lifetime owned by demo ships. */
 function isShipResource(model)
 {
   return CjsSchema.cast(model, Tr2ParticleSystem) || CjsSchema.cast(model, Tr2InstancedMesh)
-    || CjsSchema.cast(model, Tr2DirectInstanceData);
+    || CjsSchema.cast(model, Tr2DirectInstanceData) || CjsSchema.cast(model, EveChildBehaviorSystem);
 }
 
 /** Hydrates synchronously; a failed graph may be inaccessible except through device registration. */
