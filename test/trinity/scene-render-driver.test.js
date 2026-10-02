@@ -647,15 +647,15 @@ test("retiring one driver preserves the other driver's published SSAO value", as
   const context=StubContext(),target=StubTarget();
   const first=driverOver([]),second=driverOver([]);
   assert.equal(first.Execute([target],null,0,0,null,context),true);
-  const firstValue=Tr2VariableStore.GlobalStore().FindVariable('SSAOMap').GetValue().GetTexture();
+  const firstValue=Tr2VariableStore.globalStore().FindVariable('SSAOMap').GetValue().GetTexture();
   const firstBackend=firstValue.TrinityALImpl_GetObject();
   assert.equal(second.Execute([target],null,0,0,null,context),true);
-  const published=Tr2VariableStore.GlobalStore().FindVariable('SSAOMap').GetValue();
+  const published=Tr2VariableStore.globalStore().FindVariable('SSAOMap').GetValue();
   const secondBackend=published.GetTexture().TrinityALImpl_GetObject();
   assert.notEqual(firstBackend,secondBackend);
   first.Destroy();first.Destroy();
   assert.equal(firstBackend.IsRegistered(),false);
-  assert.equal(Tr2VariableStore.GlobalStore().FindVariable('SSAOMap').GetValue(),published);
+  assert.equal(Tr2VariableStore.globalStore().FindVariable('SSAOMap').GetValue(),published);
   assert.equal(published.GetTexture().IsValid(),true);
   assert.equal(second.Execute([target],null,0,0,null,context),true);
   second.Destroy();assert.equal(secondBackend.IsRegistered(),false);

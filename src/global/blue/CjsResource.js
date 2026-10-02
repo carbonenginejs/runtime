@@ -52,12 +52,32 @@ export class CjsResource
    */
   static maxReloadAttempts = 3;
 
+  /**
+   * Logical source path assigned by Initialize and returned by GetPath.
+   * Resource-path normalization preserves the payload portion of dynamic paths.
+   * @type {string}
+   */
   path = "";
 
+  /**
+   * Resource extension without its leading dot, used to resolve format routes.
+   * Initialize derives it from path or normalizes an explicit override; empty when absent.
+   * @type {string}
+   */
   ext = "";
 
+  /**
+   * Requested semantic resource kind used by CjsResMan to select a resource
+   * class. Initialize trims and lowercases it; an empty string leaves it unspecified.
+   * @type {string}
+   */
   requirement = "";
 
+  /**
+   * Current JavaScript load/preparation phase from CjsResource.State.
+   * SetState publishes state-change events; Initialize resets it to EMPTY.
+   * @type {string}
+   */
   state = CjsResource.State.EMPTY;
 
   /**
@@ -935,6 +955,11 @@ export class CjsResource
     return this;
   }
 
+  /**
+   * Frozen JavaScript lifecycle vocabulary used by state predicates and
+   * SetState validation. Values also name the corresponding resource events.
+   * @type {Readonly<Record<string, string>>}
+   */
   static State = Object.freeze({
     EMPTY: "empty",
     REQUESTED: "requested",

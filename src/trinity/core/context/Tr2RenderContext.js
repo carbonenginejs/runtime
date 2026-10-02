@@ -1757,7 +1757,7 @@ export class Tr2RenderContext extends CjsModel
   {
     if (!Tr2RenderContext.#cameraVariables)
     {
-      const store = Tr2VariableStore.GlobalStore();
+      const store = Tr2VariableStore.globalStore();
       const matrix = name => store.RegisterVariable(name, mat4.create());
       const plane = name => store.RegisterVariable(name, [ 0, 0, 1, 0 ]);
 
@@ -1940,7 +1940,7 @@ export class Tr2RenderContext extends CjsModel
   {
     if (!this.#objectIdVariable)
     {
-      this.#objectIdVariable = Tr2VariableStore.GlobalStore().RegisterVariable("objectId", 0.0);
+      this.#objectIdVariable = Tr2VariableStore.globalStore().RegisterVariable("objectId", 0.0);
     }
     return this.#objectIdVariable;
   }

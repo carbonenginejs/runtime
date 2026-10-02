@@ -88,7 +88,7 @@ A Sprite2D leaf that executes an authored render job.
 <!-- class:Tr2Sprite2dScene -->
 ## `Tr2Sprite2dScene`
 
-Owns a 2D sprite tree together with display transforms, clipping, picking, batching limits, background, and render-mode state.
+Owns sprite declarations and CPU curve updates using raw Blue frame clocks.
 
 - Export: `@carbonenginejs/runtime/trinity`
 - Source: `src/trinity/sprite2d/Tr2Sprite2dScene.js`

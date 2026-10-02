@@ -1,172 +1,252 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { edit, type } from "#schema";
-import { CjsModel } from "#model";
+import { carbon, impl, edit, type } from "#schema";
 import { vec4 } from "#math/vec4";
 import { EveSOFDataBoosterShape } from "./EveSOFDataBoosterShape.js";
 
 /** Combines normal and warp booster colors, scales, shapes, textures, and light settings. */
 @type.define({ className: "EveSOFDataBooster", family: "eve" })
-export class EveSOFDataBooster extends CjsModel
+export class EveSOFDataBooster
 {
 
-  /** m_scale (Vector4) [READWRITE, PERSIST] */
+  /**
+   * Four-component scale control forwarded to the booster effect; component meanings follow that shader.
+   * @type {Float32Array}
+   */
   @edit.readwrite
   @edit.persist
   @type.vec4
   scale = vec4.fromValues(1, 1, 1, 1);
 
-  /** m_glowColor (Color) [READWRITE, PERSIST] */
+  /**
+   * Normal-flight glow color forwarded to the booster sprites.
+   * @type {Float32Array}
+   */
   @edit.readwrite
   @edit.persist
   @type.color
   glowColor = vec4.create();
 
-  /** m_warpGlowColor (Color) [READWRITE, PERSIST] */
+  /**
+   * Warp-flight glow color forwarded to the booster sprites.
+   * @type {Float32Array}
+   */
   @edit.readwrite
   @edit.persist
   @type.color
   warpGlowColor = vec4.create();
 
-  /** m_glowScale (float) [READWRITE, PERSIST] */
+  /**
+   * Size multiplier for the booster glow sprite.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   glowScale = 1;
 
-  /** m_haloColor (Color) [READWRITE, PERSIST] */
+  /**
+   * Normal-flight halo color for the booster sprites.
+   * @type {Float32Array}
+   */
   @edit.readwrite
   @edit.persist
   @type.color
   haloColor = vec4.create();
 
-  /** m_warpHaloColor (Color) [READWRITE, PERSIST] */
+  /**
+   * Warp-flight halo color; native exposure preserves this typo while its member is m_warpHaloColor.
+   * @type {Float32Array}
+   */
   @edit.readwrite
   @edit.persist
   @type.color
   warpHalpColor = vec4.create();
 
-  /** m_haloScaleX (float) [READWRITE, PERSIST] */
+  /**
+   * Horizontal size multiplier for the booster halo.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   haloScaleX = 1;
 
-  /** m_haloScaleY (float) [READWRITE, PERSIST] */
+  /**
+   * Vertical size multiplier for the booster halo.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   haloScaleY = 1;
 
-  /** m_symHaloScale (float) [READWRITE, PERSIST] */
+  /**
+   * Size multiplier for the symmetric booster halo.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   symHaloScale = 1;
 
-  /** m_trailColor (Color) [READWRITE, PERSIST] */
+  /**
+   * Color of the trail behind the booster.
+   * @type {Float32Array}
+   */
   @edit.readwrite
   @edit.persist
   @type.color
   trailColor = vec4.create();
 
-  /** m_trailSize (Vector4) [READWRITE, PERSIST] */
+  /**
+   * Four-component trail-size control forwarded to the trail effect without unit conversion.
+   * @type {Float32Array}
+   */
   @edit.readwrite
   @edit.persist
   @type.vec4
   trailSize = vec4.create();
 
-  /** m_shape0 (EveSOFDataBoosterShapePtr) [READWRITE, PERSIST] */
+  /**
+   * First normal-flight plume shape; constructed independently by default, while authored references may be null.
+   * @type {EveSOFDataBoosterShape|null}
+   */
   @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataBoosterShape")
   shape0 = new EveSOFDataBoosterShape();
 
-  /** m_shape1 (EveSOFDataBoosterShapePtr) [READWRITE, PERSIST] */
+  /**
+   * Second normal-flight plume shape; constructed independently by default, while authored references may be null.
+   * @type {EveSOFDataBoosterShape|null}
+   */
   @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataBoosterShape")
   shape1 = new EveSOFDataBoosterShape();
 
-  /** m_warpShape0 (EveSOFDataBoosterShapePtr) [READWRITE, PERSIST] */
+  /**
+   * First warp-flight plume shape; constructed independently by default, while authored references may be null.
+   * @type {EveSOFDataBoosterShape|null}
+   */
   @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataBoosterShape")
   warpShape0 = new EveSOFDataBoosterShape();
 
-  /** m_warpShape1 (EveSOFDataBoosterShapePtr) [READWRITE, PERSIST] */
+  /**
+   * Second warp-flight plume shape; constructed independently by default, while authored references may be null.
+   * @type {EveSOFDataBoosterShape|null}
+   */
   @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataBoosterShape")
   warpShape1 = new EveSOFDataBoosterShape();
 
-  /** m_shapeAtlasResPath (std::string) [READWRITE, PERSIST] */
+  /**
+   * Resource path of the booster shape-atlas texture; a string rather than a held resource.
+   * @type {string}
+   */
   @edit.readwrite
   @edit.persist
   @type.string
   shapeAtlasResPath = "";
 
-  /** m_gradient0ResPath (std::string) [READWRITE, PERSIST] */
+  /**
+   * Resource path of the first booster gradient texture.
+   * @type {string}
+   */
   @edit.readwrite
   @edit.persist
   @type.string
   gradient0ResPath = "";
 
-  /** m_gradient1ResPath (std::string) [READWRITE, PERSIST] */
+  /**
+   * Resource path of the second booster gradient texture.
+   * @type {string}
+   */
   @edit.readwrite
   @edit.persist
   @type.string
   gradient1ResPath = "";
 
-  /** m_shapeAtlasHeight (uint32_t) [READWRITE, PERSIST] */
+  /**
+   * Unsigned atlas-height parameter packed into ShapeAtlasSize; no unit conversion is performed here.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.uint32
   shapeAtlasHeight = 0;
 
-  /** m_shapeAtlasCount (uint32_t) [READWRITE, PERSIST] */
+  /**
+   * Unsigned number of shape-atlas entries packed into ShapeAtlasSize.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.uint32
   shapeAtlasCount = 0;
 
-  /** m_lightOffset (float) [READWRITE, PERSIST] */
+  /**
+   * Offset used to place the booster light relative to its locator; no distance-unit conversion occurs here.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   lightOffset = 0;
 
-  /** m_lightRadius (float) [READWRITE, PERSIST] */
+  /**
+   * Normal-flight booster-light radius in the consumer scene-distance convention.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   lightRadius = 0;
 
-  /** m_lightWarpRadius (float) [READWRITE, PERSIST] */
+  /**
+   * Warp-flight booster-light radius in the consumer scene-distance convention.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   lightWarpRadius = 0;
 
-  /** m_lightFlickerAmplitude (float) [READWRITE, PERSIST] */
+  /**
+   * Amplitude of booster-light flickering forwarded to the light setup.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   lightFlickerAmplitude = 0;
 
-  /** m_lightFlickerFrequency (float) [READWRITE, PERSIST] */
+  /**
+   * Frequency control for booster-light flickering; no hertz conversion is established by this record.
+   * @type {number}
+   */
   @edit.readwrite
   @edit.persist
   @type.float32
   lightFlickerFrequency = 0;
 
-  /** m_lightColor (Color) [READWRITE, PERSIST] */
+  /**
+   * Normal-flight booster-light color.
+   * @type {Float32Array}
+   */
   @edit.readwrite
   @edit.persist
   @type.color
   lightColor = vec4.create();
 
-  /** m_lightWarpColor (Color) [READWRITE, PERSIST] */
+  /**
+   * Warp-flight booster-light color.
+   * @type {Float32Array}
+   */
   @edit.readwrite
   @edit.persist
   @type.color
@@ -175,13 +255,18 @@ export class EveSOFDataBooster extends CjsModel
   /**
    * Exposes the typo-preserved Carbon storage vector backing the public warp
    * halo color alias.
+   * @returns {Float32Array} The existing warpHalpColor storage.
    */
+  @impl.custom
   get warpHaloColor()
   {
     return this.warpHalpColor;
   }
 
-  /** Copies a supplied vector into the typo-preserved Carbon warp-halo storage. */
+  /** Copies a vector into the existing typo-preserved warp-halo storage.
+   * @param {ArrayLike<number>} value Four color components.
+   */
+  @impl.custom
   set warpHaloColor(value)
   {
     vec4.copy(this.warpHalpColor, value);
@@ -189,8 +274,14 @@ export class EveSOFDataBooster extends CjsModel
 
   /**
    * Merges scalar, vector, resource-path, light, and four shape values from base
-   * and optional booster overrides into a reusable instance.
+   * and optional booster overrides into a reusable instance. This is a JS-only
+   * helper; zero overrides are accepted while null/undefined/empty strings fall back.
+   * @param {EveSOFDataBooster|null} base Optional base record.
+   * @param {EveSOFDataBooster|null} overrides Optional override record.
+   * @param {EveSOFDataBooster|null} [out=null] Reused result or newly constructed booster.
+   * @returns {EveSOFDataBooster} The output record.
    */
+  @impl.custom
   static combine(base, overrides, out = null)
   {
     out ??= new this();
@@ -238,8 +329,17 @@ export class EveSOFDataBooster extends CjsModel
 
 }
 
+/** Selects a non-null, defined, nonempty-string override; JS composition helper.
+ * @param {object} base Fallback record.
+ * @param {object|null} overrides Optional override record.
+ * @param {string} name Field to select.
+ * @returns {*} Override or base field, without cloning.
+ */
 function selectValue(base, overrides, name)
 {
   const value = overrides?.[name];
   return value !== null && value !== undefined && value !== "" ? value : base[name];
 }
+
+// Native IRoot-only data: self query, no initialization or update contract.
+carbon.interfaceTable({ interfaces: [EveSOFDataBooster], chainTo: null })(EveSOFDataBooster);

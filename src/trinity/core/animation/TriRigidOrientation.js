@@ -1,54 +1,90 @@
 // Source: trinity/trinity/TriRigidOrientation.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
+import { ITriFunction, ITriQuaternionFunction } from "#blue";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
-/** Integrates torque into an orientation over time, sampling the result at a given moment. */
+/**
+ * Integrates torque into an orientation over time using relative seconds.
+ * Native ITriQuaternionFunction base and exact query order are retained.
+ * The existing JS API implements the double-time overloads, not Be::Time
+ * conversion/subtraction of start. GetValueDotAt is the Vector3 overload;
+ * native quaternion first/second derivative overloads return their input
+ * unchanged and remain unimplemented here (the inherited second-derivative
+ * declaration returns undefined). No initialization contract sorts
+ * the states automatically: callers explicitly invoke Sort.
+ * Existing arrays adapt native PTriTorqueVector ownership/admission; TriTorque
+ * has no native query mapping for BlueList admission. Number arithmetic,
+ * Float32Array intermediates and module scratch retain the JS numeric path.
+ */
 @type.define({ className: "TriRigidOrientation", family: "trinityCore" })
-export class TriRigidOrientation extends CjsModel
+export class TriRigidOrientation extends ITriQuaternionFunction
 {
 
-  /** mDrag (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
-  drag = 1;
-
-  /** mStart (Be::Time) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float64
-  start = 0;
-
-  /** mI (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
-  I = 1;
-
-  /** mStates (PTriTorqueVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("TriTorque")
-  states = [];
-
-  /** mValue (Quaternion) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.quat
-  value = quat.create();
-
-  /** mName (std::wstring) [READWRITE, PERSIST] */
+  /**
+   * Human-readable identifier for this orientation curve; changing it does
+   * not alter key selection or the torque integration.
+   * @type {string}
+   */
   @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  /**
+   * Scalar moment of inertia shared by all torque intervals. Together with
+   * drag it controls exponential decay of the integration rate through drag / I.
+   * @type {number}
+   */
+  @edit.readwrite
+  @edit.persist
+  @type.float32
+  I = 1;
+
+  /**
+   * Angular drag coefficient shared by all torque intervals. The integration
+   * rate approaches torque / drag with exponential decay set by drag / I.
+   * @type {number}
+   */
+  @edit.readwrite
+  @edit.persist
+  @type.float32
+  drag = 1;
+
+  /**
+   * Retained [x, y, z, w] orientation quaternion, updated by curve sampling
+   * and seeded from the first key by Sort. Returned before the first key or with no keys.
+   * @type {Float32Array|Float64Array|number[]}
+   */
+  @edit.readwrite
+  @edit.persist
+  @type.quat
+  value = quat.create();
+
+  /**
+   * Stored native Be::Time origin for absolute-time sampling. The current JS
+   * sampling methods accept relative seconds and do not subtract this field.
+   * @type {number}
+   */
+  @edit.readwrite
+  @edit.persist
+  @type.float64
+  start = 0;
+
+  /**
+   * Mutable array of torque-key references owned by this curve. Call Sort
+   * after edits to order the keys and propagate later keys' initial states.
+   * @type {TriTorque[]}
+   */
+  @edit.read
+  @edit.persist
+  @type.list("TriTorque")
+  states = [];
+
   /** Sorts torque keys, resets the sampling cursor and propagates initial states. */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   Sort()
   {
     this.states.sort((a, b) => a.time - b.time);
@@ -91,10 +127,11 @@ export class TriRigidOrientation extends CjsModel
   /**
    * Selects the key covering a time, matching Carbon's cursor reuse: the
    * cached key is kept when it still brackets the time, and only a miss walks
-   * the list.
+   * the list. The JS helper returns the cursor (native returns void) and
+   * handles an empty list with -1; native callers guard before invoking Seek.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   Seek(time)
   {
     const count = this.states.length;
@@ -128,7 +165,7 @@ export class TriRigidOrientation extends CjsModel
    * before the first key it is the retained value.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   GetValueAt(out, time)
   {
     if (!this.states.length || time < 0 || time < this.states[0].time)
@@ -161,7 +198,7 @@ export class TriRigidOrientation extends CjsModel
    * `out`; before the first key it is zero.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   GetValueDotAt(out, time)
   {
     if (!this.states.length || time < 0 || time < this.states[0].time)
@@ -195,12 +232,13 @@ export class TriRigidOrientation extends CjsModel
 
   /**
    * Samples and retains orientation for the curve-set update interface.
+   * Reuses value as the ignored output instead of native stack-local storage.
    *
    * @param {number} time Seconds relative to the curve start.
    * @returns {void}
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   UpdateValue(time)
   {
     this.Update(this.value, time);
@@ -212,3 +250,5 @@ export class TriRigidOrientation extends CjsModel
 
 const ANGLE_SCRATCH = vec3.create();
 const CONVERTER_SCRATCH = quat.create();
+
+carbon.interfaceTable({ interfaces: [ITriFunction, ITriQuaternionFunction], chainTo: null })(TriRigidOrientation);

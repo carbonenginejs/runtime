@@ -284,8 +284,11 @@ test("Tr2Sprite2dContainerBase owns child parents and propagates dirty state", (
   assert.deepEqual(outer.children, []);
   assert.equal(outer.opacity, 1);
 
-  CjsModel.addChild(outer, "children", inner);
-  CjsModel.addChild(inner, "children", leaf);
+  // Existing JS arrays require explicit native list callbacks after mutation.
+  outer.children.push(inner);
+  outer.OnListModified(0x08, 0, 0, inner, outer.children);
+  inner.children.push(leaf);
+  inner.OnListModified(0x08, 0, 0, leaf, inner.children);
   outer.isDirty = false;
   inner.isDirty = false;
   leaf.isDirty = false;
@@ -298,7 +301,8 @@ test("Tr2Sprite2dContainerBase owns child parents and propagates dirty state", (
   outer.isDirty = false;
   inner.isDirty = false;
   leaf.isDirty = false;
-  assert.equal(CjsModel.removeChild(inner, "children", leaf), true);
+  assert.equal(inner.children.splice(0, 1)[0], leaf);
+  inner.OnListModified(0x09, 0, 0, leaf, inner.children);
   assert.equal(inner.isDirty, true);
   assert.equal(outer.isDirty, true);
 
@@ -311,9 +315,13 @@ test("Tr2Sprite2dContainerBase owns child parents and propagates dirty state", (
 
   const first = new Tr2SpriteObjectBase();
   const second = new Tr2SpriteObjectBase();
-  CjsModel.addChild(inner, "background", first);
-  CjsModel.addChild(inner, "background", second);
-  CjsModel.clearChildren(inner, "background");
+  inner.background.push(first);
+  inner.OnListModified(0x08, 0, 0, first, inner.background);
+  inner.background.push(second);
+  inner.OnListModified(0x08, 1, 0, second, inner.background);
+  // Native UNLOADSTART precedes clearing, while children can still be detached.
+  inner.OnListModified(0x07, 0, 0, null, inner.background);
+  inner.background.length = 0;
   assert.equal(inner.background.length, 0);
   inner.isDirty = false;
   first.isDirty = false;

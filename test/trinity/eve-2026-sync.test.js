@@ -182,7 +182,7 @@ test("Tr2DataTextureManager packs blocks into the ImpactShieldDataMap texture (C
     assert.ok(texture, "the constructor prepared the texture");
     assert.equal(texture.GetDesc().GetWidth(), 256);
     assert.equal(texture.GetDesc().GetHeight(), 4);
-    assert.equal(Tr2VariableStore.GlobalStore().GetVariable("ImpactShieldDataMap").GetValue(), manager._dataTexture);
+    assert.equal(Tr2VariableStore.globalStore().GetVariable("ImpactShieldDataMap").GetValue(), manager._dataTexture);
 
     let mapped = null;
     const mapForWriting = texture.MapForWriting.bind(texture);

@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { edit, type } from "#schema";
-import { CjsModel } from "#model";
+import { carbon, impl, edit, type } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
 import { EveSOFDataLogo } from "./EveSOFDataLogo.js";
 import { ErrSOFLogoSetTypeUnknown } from "./ErrSOFLogoSetTypeUnknown.js";
@@ -9,9 +8,12 @@ import { ErrSOFLogoSetTypeNotFound } from "./ErrSOFLogoSetTypeNotFound.js";
 
 /** Provides enum-based primary, secondary, tertiary, and marking-logo lookup plus logo-set composition. */
 @type.define({ className: "EveSOFDataLogoSet", family: "eve" })
-export class EveSOFDataLogoSet extends CjsModel
+export class EveSOFDataLogoSet
 {
 
+  /** Native logo-slot enum, including TYPE_MAX as the non-slot count sentinel.
+   * @type {Readonly<Object<string, number>>}
+   */
   static LogoType = Object.freeze({
     TYPE_PRIMARY: 0,
     TYPE_SECONDARY: 1,
@@ -21,6 +23,9 @@ export class EveSOFDataLogoSet extends CjsModel
     TYPE_MAX: 5
   });
 
+  /** Enum-indexed slot names used by the JavaScript lookup and composition helpers.
+   * @type {ReadonlyArray<string>}
+   */
   static Types = Object.freeze([
     "Primary",
     "Secondary",
@@ -29,37 +34,51 @@ export class EveSOFDataLogoSet extends CjsModel
     "Marking_02"
   ]);
 
-  /** m_logos[TYPE_PRIMARY] (EveSOFDataLogoPtr) [READWRITE, PERSIST] */
+  /** Optional primary logo record; native EveSOFDataLogoPtr, READWRITE/PERSIST.
+   * @type {EveSOFDataLogo|null}
+   */
   @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataLogo")
   Primary = null;
 
-  /** m_logos[TYPE_SECONDARY] (EveSOFDataLogoPtr) [READWRITE, PERSIST] */
+  /** Optional secondary logo record; native EveSOFDataLogoPtr, READWRITE/PERSIST.
+   * @type {EveSOFDataLogo|null}
+   */
   @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataLogo")
   Secondary = null;
 
-  /** m_logos[TYPE_TERTIARY] (EveSOFDataLogoPtr) [READWRITE, PERSIST] */
+  /** Optional tertiary logo record; native EveSOFDataLogoPtr, READWRITE/PERSIST.
+   * @type {EveSOFDataLogo|null}
+   */
   @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataLogo")
   Tertiary = null;
 
-  /** m_logos[TYPE_MARKING_01] (EveSOFDataLogoPtr) [READWRITE, PERSIST] */
+  /** Optional first marking logo record; native EveSOFDataLogoPtr, READWRITE/PERSIST.
+   * @type {EveSOFDataLogo|null}
+   */
   @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataLogo")
   Marking_01 = null;
 
-  /** m_logos[TYPE_MARKING_02] (EveSOFDataLogoPtr) [READWRITE, PERSIST] */
+  /** Optional second marking logo record; native EveSOFDataLogoPtr, READWRITE/PERSIST.
+   * @type {EveSOFDataLogo|null}
+   */
   @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataLogo")
   Marking_02 = null;
 
-  /** Validates an enum slot and reports whether that slot contains a logo. */
+  /** Validates an enum slot and checks for a logo; a JS-only helper.
+   * @param {number} type LogoType slot value.
+   * @returns {boolean} Whether the slot is non-null; an unknown slot throws.
+   */
+  @impl.custom
   Has(type)
   {
     const name = this.constructor.Types[type];
@@ -67,7 +86,11 @@ export class EveSOFDataLogoSet extends CjsModel
     return this[name] !== null;
   }
 
-  /** Resolves a defined enum slot to its logo, throwing when the slot is empty. */
+  /** Resolves a logo through the JS lookup, throwing for unknown or empty slots.
+   * @param {number} type LogoType slot value.
+   * @returns {EveSOFDataLogo} The requested logo.
+   */
+  @impl.custom
   Get(type)
   {
     if (!this.Has(type)) throw new ErrSOFLogoSetTypeNotFound(type);
@@ -76,8 +99,15 @@ export class EveSOFDataLogoSet extends CjsModel
 
   /**
    * Composes every logo slot from a required base set and optional per-slot
-   * overrides into a reusable result.
+   * overrides into a reusable result. This is a JS-only composition helper;
+   * a missing base slot creates an empty logo when no output exists, otherwise
+   * it retains the existing output unchanged.
+   * @param {EveSOFDataLogoSet|null} base Base set; null leaves output unchanged.
+   * @param {EveSOFDataLogoSet|null} overrides Optional per-slot overrides.
+   * @param {EveSOFDataLogoSet|null} [out=null] Reused output, or a new set when null.
+   * @returns {EveSOFDataLogoSet} The output set.
    */
+  @impl.custom
   static combine(base, overrides, out = null)
   {
     out ??= new this();
@@ -104,3 +134,6 @@ blue.enums.RegisterEnum("trinity.EveSOFDataLogoSet.LogoType", EveSOFDataLogoSet.
     { name: "Marking_02", value: EveSOFDataLogoSet.LogoType.TYPE_MARKING_02, description: "Marking 02 Logo" }
   ]
 });
+
+// Native IRoot-only data exposes its own identity, with no lifecycle/update contract.
+carbon.interfaceTable({ interfaces: [EveSOFDataLogoSet], chainTo: null })(EveSOFDataLogoSet);

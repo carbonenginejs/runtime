@@ -261,3 +261,13 @@ Allocates GPU slots for lens-flare occlusion and runs the buffer's per-frame com
 - Source: `src/trinity/eve/effect/lensflare/Tr2OcclusionBuffer.js`
 - Visibility: Public
 - Kind: Carbon
+
+<!-- class:ITr2SpriteObject -->
+## `ITr2SpriteObject`
+
+Native IRoot-shaped abstract contract shared by Sprite2D objects.
+
+- Export: `@carbonenginejs/runtime/trinity`
+- Source: `src/trinity/sprite2d/ITr2SpriteObject.js`
+- Visibility: Public
+- Kind: Carbon

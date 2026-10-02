@@ -77,7 +77,7 @@ test("Tr2VolumetricsRenderer is maintained with Carbon defaults and scene owners
     "EveSceneFroxelFogMap"
   ])
   {
-    assert.ok(core.Tr2VariableStore.GlobalStore().FindLocalVariable(name), `${name} reserved`);
+    assert.ok(core.Tr2VariableStore.globalStore().FindLocalVariable(name), `${name} reserved`);
   }
   assert.equal(CjsSchema.getField(core.Tr2VolumetricsRenderer, "fogColor")?.type.kind, "color");
   assert.equal(CjsSchema.getField(core.Tr2VolumetricsRenderer, "fogNoiseMovementSpeed")?.type.kind, "vec3");
@@ -292,7 +292,7 @@ test("UpdateVariableStore publishes the Mie map, taking no arguments", () =>
   assert.equal(renderer.UpdateVariableStore.length, 0);
   renderer.UpdateVariableStore();
 
-  const variable = core.Tr2VariableStore.GlobalStore().GetVariable("EveSceneMieEnvironmentMap");
+  const variable = core.Tr2VariableStore.globalStore().GetVariable("EveSceneMieEnvironmentMap");
 
   assert.ok(variable, "registers under the name effects sample it by");
 });

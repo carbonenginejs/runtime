@@ -1,3 +1,4 @@
+export * from "./ITr2SpriteObject.js";
 export * from "./Tr2Sprite2dClipRect.js";
 export * from "./Tr2Sprite2dContainerBase.js";
 export * from "./Tr2Sprite2dD3DVertex.js";

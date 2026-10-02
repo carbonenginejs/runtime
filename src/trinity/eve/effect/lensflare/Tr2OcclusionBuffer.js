@@ -61,7 +61,7 @@ export class Tr2OcclusionBuffer extends CjsModel
     this.management = new Tr2Effect();
     this.management.SetEffectPathName(OCCLUDER_MANAGEMENT_EFFECT_PATH);
     this.buffer = new Tr2GpuBuffer();
-    Tr2VariableStore.GlobalStore().RegisterVariable("FlareOcclusionBuffer", this.buffer);
+    Tr2VariableStore.globalStore().RegisterVariable("FlareOcclusionBuffer", this.buffer);
   }
 
   /**
@@ -106,7 +106,7 @@ export class Tr2OcclusionBuffer extends CjsModel
     {
       // Slot 0's offset is the float 0, which the store would type as an int
       // and refuse against the float registration; the variable is updated.
-      const store = Tr2VariableStore.GlobalStore();
+      const store = Tr2VariableStore.globalStore();
       const value = bitsAsFloat(offset);
       if (!store.RegisterVariable("OcclusionBufferOffset", value)) store.FindVariable("OcclusionBufferOffset").SetValue(value);
       success = Tr2Renderer.runComputeShader(this.management, "Clear", 1, 1, 1, renderContext) && success;
@@ -198,7 +198,7 @@ export class Tr2OcclusionBuffer extends CjsModel
     const instance = Tr2OcclusionBuffer._instance;
     if (!instance) return;
     Tr2OcclusionBuffer._instance = null;
-    const store = Tr2VariableStore.GlobalStore();
+    const store = Tr2VariableStore.globalStore();
     const published = store.FindVariable("FlareOcclusionBuffer");
     if (published && published.GetValue() === instance.buffer) store.UnregisterVariable("FlareOcclusionBuffer");
     instance.management.Destroy();

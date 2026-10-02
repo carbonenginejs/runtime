@@ -463,7 +463,7 @@ export class EveSpaceSceneRenderDriver extends CjsModel
       if (offscreen)
       {
         this.#depthMapReference.SetTexture(offscreen.depth.Get());
-        Tr2VariableStore.GlobalStore().RegisterVariable("DepthMap", this.#depthMapReference);
+        Tr2VariableStore.globalStore().RegisterVariable("DepthMap", this.#depthMapReference);
       }
 
       // The shadow globals start empty, with the white fallbacks: the shadow
@@ -563,7 +563,7 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     {
       if (handle) this.#gpuResourcePool.Free(handle);
     }
-    Tr2VariableStore.GlobalStore().RegisterVariable("SSAOMap", this.#ssaoMapReference);
+    Tr2VariableStore.globalStore().RegisterVariable("SSAOMap", this.#ssaoMapReference);
   }
 
   /**
@@ -738,7 +738,7 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     }
 
     this.#normalMapReference.SetTexture(offscreen?.normal?.Get() ?? null);
-    Tr2VariableStore.GlobalStore().RegisterVariable("SpaceSceneNormalMap", this.#normalMapReference);
+    Tr2VariableStore.globalStore().RegisterVariable("SpaceSceneNormalMap", this.#normalMapReference);
 
     // Carbon gates the main pass on the scene's display flag AND this switch
     // (cpp:527).
@@ -825,7 +825,7 @@ export class EveSpaceSceneRenderDriver extends CjsModel
       }
 
       this._opaqueMapReference.SetTexture(opaque);
-      Tr2VariableStore.GlobalStore().RegisterVariable("EveSpaceSceneOpaqueMap", this._opaqueMapReference);
+      Tr2VariableStore.globalStore().RegisterVariable("EveSpaceSceneOpaqueMap", this._opaqueMapReference);
     }
 
     // THE TRANSPARENT FAMILY (EveSpaceScene.cpp:2758). Carbon runs subsurface

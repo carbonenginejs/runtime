@@ -1,44 +1,132 @@
 // Source: trinity/trinity/Tr2MaterialParameterStore.h
 // Source: trinity/trinity/Tr2MaterialParameterStore.cpp
 // Source: trinity/trinity/Tr2MaterialParameterStore_Blue.cpp
-import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
+import { meta, types } from "#schema";
+import { blue, IInitialize, INotify } from "#blue";
+import { mappedInterfaces } from "../../global/compose/interface.js";
+import * as CcpLog from "../../global/logging/ccpLog.js";
 
-/** Tr2MaterialParameterStore (trinityCore) - generated from schema shapeHash 119f32c2.... */
-@type.define({ className: "Tr2MaterialParameterStore", family: "trinityCore" })
-export class Tr2MaterialParameterStore extends CjsModel
+/** Local shader parameter overrides with an optional resource-loaded parent store. */
+@meta.define({ className: "Tr2MaterialParameterStore", family: "trinityCore" })
+@meta.carbon.inherit(INotify)
+export class Tr2MaterialParameterStore extends IInitialize
 {
-
-  /** m_parentStore (Tr2MaterialParameterStorePtr) [READ] */
-  @edit.read
-  @type.objectRef("Tr2MaterialParameterStore")
-  parent = null;
-
-  /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  /**
+   * Native m_name: authored material name.
+   * @type {string}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   name = "";
 
-  /** m_parentPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.path
+  /**
+   * Native m_parentPath string: resource address of the inherited material.
+   * Retains the existing JavaScript path declaration for resource addressing.
+   * @type {string}
+   */
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.path
   parentPath = "";
 
-  /** m_parameters (PITriEffectParameterDict) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.map("ITriEffectParameter")
+  /**
+   * Native m_parentStore: loaded parent searched after local overrides.
+   * @type {Tr2MaterialParameterStore|null}
+   */
+  @meta.edit.read
+  @types.objectRef("Tr2MaterialParameterStore")
+  parent = null;
+
+  /**
+   * Native m_parameters: named local effect parameters, including null shadows.
+   * @type {Map<string, import("../shader/parameter/ITriEffectParameter.js").ITriEffectParameter|null>}
+   */
+  @meta.edit.read
+  @meta.edit.persist
+  @types.map("ITriEffectParameter")
   parameters = new Map();
 
   /**
-   * Looks a parameter up in this store and then walks the parent chain; null
-   * when no store in the chain defines it.
+   * Latest async parent request; prevents earlier completions replacing it.
+   * @type {number}
    */
-  @carbon.method
-  @impl.implemented
+  _loadRequest = 0;
+
+  /**
+   * Requests the authored parent after Blue finishes populating this store.
+   * Adapted: the existing resource manager completes LoadObject asynchronously.
+   * @returns {boolean} True after starting or clearing the parent request.
+   */
+  @meta.carbon.method
+  @meta.impl.adapted
+  Initialize()
+  {
+    this._LoadParentResource();
+    return true;
+  }
+
+  /**
+   * Reloads only when the notified native parentPath member changes.
+   * Adapted: JavaScript receives the member name instead of a Be::Var pointer.
+   * @param {string|null} propertyName Changed declaration name.
+   * @returns {boolean} True after handling the notification.
+   */
+  @meta.carbon.method
+  @meta.impl.adapted
+  OnModified(propertyName)
+  {
+    if (propertyName === "parentPath") this._LoadParentResource();
+    return true;
+  }
+
+  /**
+   * Releases the old parent before the native typed LoadObject request.
+   * Adapted: JavaScript drops the reference instead of unlocking a BluePtr.
+   * Awaiting the existing manager needs stale-result guards; failures leave
+   * the parent empty and are logged. No resource-manager lifecycle is added.
+   * @returns {Promise<Tr2MaterialParameterStore|null>} Accepted current parent.
+   */
+  @meta.impl.adapted
+  async _LoadParentResource()
+  {
+    const path = this.parentPath;
+    const request = ++this._loadRequest;
+    this.parent = null;
+    if (!path) return null;
+
+    let object;
+    try
+    {
+      object = await blue.resMan.LoadObject(path);
+    }
+    catch (error)
+    {
+      if (request === this._loadRequest && path === this.parentPath)
+      {
+        CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Material parent ${path} failed to load: ${error?.message ?? error}`);
+      }
+      return null;
+    }
+    if (request !== this._loadRequest || path !== this.parentPath) return null;
+    const parent = object && mappedInterfaces(object.constructor).has(Tr2MaterialParameterStore) ? object : null;
+    if (!parent)
+    {
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Resource ${path} is not a Tr2MaterialParameterStore.`);
+      return null;
+    }
+    this.parent = parent;
+    return parent;
+  }
+
+  /**
+   * Looks a parameter up locally, then walks the parent chain.
+   * @param {string} name Parameter name.
+   * @returns {object|null} First entry, including a local null shadow, or null.
+   */
+  @meta.carbon.method
+  @meta.impl.implemented
   FindParameter(name)
   {
     let currentStore = this;
@@ -53,5 +141,6 @@ export class Tr2MaterialParameterStore extends CjsModel
     }
     return null;
   }
-
 }
+
+meta.carbon.interfaceTable({ interfaces: [INotify, IInitialize, Tr2MaterialParameterStore], chainTo: null })(Tr2MaterialParameterStore);

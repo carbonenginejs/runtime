@@ -86,7 +86,7 @@ export class Tr2DataTextureManager extends CjsModel
   {
     super();
     TriDevice.RegisterResource(this);
-    Tr2VariableStore.GlobalStore().RegisterVariable(IMPACT_SHIELD_DATA_MAP, this._dataTexture);
+    Tr2VariableStore.globalStore().RegisterVariable(IMPACT_SHIELD_DATA_MAP, this._dataTexture);
     this.PrepareResources();
   }
 
@@ -101,7 +101,7 @@ export class Tr2DataTextureManager extends CjsModel
   @impl.custom
   Release()
   {
-    Tr2VariableStore.GlobalStore().UnregisterVariable(IMPACT_SHIELD_DATA_MAP);
+    Tr2VariableStore.globalStore().UnregisterVariable(IMPACT_SHIELD_DATA_MAP);
     TriDevice.UnregisterResource(this);
     this.ReleaseResources();
   }
@@ -181,7 +181,7 @@ export class Tr2DataTextureManager extends CjsModel
   @impl.implemented
   SetVariables()
   {
-    Tr2VariableStore.GlobalStore().RegisterVariable(IMPACT_SHIELD_DATA_MAP, this._dataTexture);
+    Tr2VariableStore.globalStore().RegisterVariable(IMPACT_SHIELD_DATA_MAP, this._dataTexture);
   }
 
   /**

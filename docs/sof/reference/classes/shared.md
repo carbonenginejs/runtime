@@ -68,7 +68,7 @@ Chooses a faction color and four material names for an area and supports assignm
 <!-- class:EveSOFDataBlink -->
 ## `EveSOFDataBlink`
 
-Provides the empty Carbon-compatible base shape for blink settings.
+Empty native IRoot blink settings record; self exposure is in EveSOFData_Blue2.cpp:137-142.
 
 - Export: `@carbonenginejs/runtime/sof`
 - Source: `src/sof/shared/EveSOFDataBlink.js`
@@ -78,7 +78,7 @@ Provides the empty Carbon-compatible base shape for blink settings.
 <!-- class:EveSOFDataBlinkType -->
 ## `EveSOFDataBlinkType`
 
-Defines an enum-indexed blink mode with optional blink, fade, cycle, and timing values.
+Native IRoot container of optional empty blink settings records.
 
 - Export: `@carbonenginejs/runtime/sof`
 - Source: `src/sof/shared/EveSOFDataBlinkType.js`

@@ -65,7 +65,7 @@ export class EveOccluder extends CjsModel
   {
     if (!this.display) return;
 
-    const store = Tr2VariableStore.GlobalStore();
+    const store = Tr2VariableStore.globalStore();
     EveOccluder._RegisterFloat(store, "OcclusionBufferOffset", bitsAsFloat(bufferOffset));
     EveOccluder._RegisterFloat(store, "OcclusionFogWeight", fogWeight);
 

@@ -112,13 +112,11 @@ test("Blue roundtrip and copier retain concrete typed payloads and independent b
   }
 });
 
-test("actual material owner AssignParameters and Copy/GetValues retain typed parameter children", () =>
+test("material AssignParameters and Blue copy/values retain typed parameter children", () =>
 {
   const owner = new EveSOFDataMaterial(); owner.name = "testMaterial"; owner.parameters.push(...parameters());
-  // The list declares the base parameter; preserve polymorphic type tags using
-  // the existing Copy option, as required by the same path before migration.
-  const copy = new EveSOFDataMaterial(); copy.Copy(owner, {typeTags: true});
-  const assigned = copy.AssignParameters({}, "Prefix"), values = copy.GetValues({refs: true, forceTypeTags: true});
+  const copy = new EveSOFDataMaterial(); new Copier().CopyTo(owner, copy);
+  const assigned = copy.AssignParameters({}, "Prefix"), values = new DictWriter().WriteObject(copy, {}, {refs: true, forceTypeTags: true});
   cases.forEach(([Class, , input, projected], index) => {
     assert.equal(copy.parameters[index].constructor, Class); assert.notEqual(copy.parameters[index], owner.parameters[index]);
     if (ArrayBuffer.isView(owner.parameters[index].value)) assert.notEqual(copy.parameters[index].value, owner.parameters[index].value);
@@ -140,7 +138,7 @@ test("vector-record composition retains name filtering, overrides and reusable i
   Parameter.combineArrays([base], null, out); assert.deepEqual(Array.from(out[0].GetValue()), [1, 2, 3, 4]);
 });
 
-test("area material helpers and actual Area Copy/GetValues preserve zero selectors and slot overrides", () =>
+test("area material helpers and Blue area copy/values preserve zero selectors and slot overrides", () =>
 {
   const base = areaMaterial(), overrides = new AreaMaterial(); overrides.colorType = 0; overrides.material2 = "override";
   base.colorType = 12;
@@ -149,10 +147,10 @@ test("area material helpers and actual Area Copy/GetValues preserve zero selecto
   assert.equal(AreaMaterial.combine(null, overrides), null);
   assert.deepEqual(new AreaMaterial().Assign({material1: "keep"}), {material1: "keep", colorType: 12});
   const owner = new EveSOFDataArea(); owner.Primary = reused;
-  const copy = new EveSOFDataArea(); copy.Copy(owner);
+  const copy = new EveSOFDataArea(); new Copier().CopyTo(owner, copy);
   assert.equal(copy.Primary.constructor, AreaMaterial); assert.notEqual(copy.Primary, reused);
   assert.equal(copy.Get(0), copy.Primary);
-  const values = copy.GetValues({refs: true, forceTypeTags: true}); assert.equal(values.Primary.material2, "override"); assert.equal(values.Primary.colorType, 0);
+  const values = new DictWriter().WriteObject(copy, {}, {refs: true, forceTypeTags: true}); assert.equal(values.Primary.material2, "override"); assert.equal(values.Primary.colorType, 0);
 });
 
 test("actual manager projects typed parameter vec4s and generic wreck material slots", () =>

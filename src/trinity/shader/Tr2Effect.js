@@ -119,7 +119,11 @@ function describe(value)
 export class Tr2Effect extends Tr2Material
 {
 
-  /** m_effectFilePath (std::string) [READWRITE, PERSIST, NOTIFY] */
+  /**
+   * m_effectFilePath (std::string) [READWRITE, PERSIST, NOTIFY]
+   * Authored shader effect path used to resolve the effect resource.
+   * @type {string}
+   */
   @edit.notify
   @edit.readwrite
   @edit.persist
@@ -127,7 +131,11 @@ export class Tr2Effect extends Tr2Material
   @type.string
   effectFilePath = "";
 
-  /** m_options (PTr2ShaderOptionStructureList) [READ, PERSIST] */
+  /**
+   * m_options (PTr2ShaderOptionStructureList) [READ, PERSIST]
+   * Named shader options used to select the effect variation.
+   * @type {Array<Tr2ShaderOption>}
+   */
 
   @edit.read
   @edit.persist
@@ -144,13 +152,21 @@ export class Tr2Effect extends Tr2Material
   })
   options = [];
 
-  /** m_name (std::string) [READWRITE, PERSIST] */
+  /**
+   * m_name (std::string) [READWRITE, PERSIST]
+   * Authored name identifying this effect instance.
+   * @type {string}
+   */
   @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
-  /** m_constParameters (PTr2ConstantEffectParameterStructureList) [READ, PERSIST] */
+  /**
+   * m_constParameters (PTr2ConstantEffectParameterStructureList) [READ, PERSIST]
+   * Named constant values supplied directly to the effect.
+   * @type {Array<Tr2ConstantEffectParameter>}
+   */
 
   @edit.read
   @edit.persist
@@ -167,31 +183,51 @@ export class Tr2Effect extends Tr2Material
   })
   constParameters = [];
 
-  /** m_parameters (PITriEffectParameterVector) [READ, PERSIST] */
+  /**
+   * m_parameters (PITriEffectParameterVector) [READ, PERSIST]
+   * Constant and variable parameters supplying shader values.
+   * @type {Array<import("./parameter/ITriEffectParameter.js").ITriEffectParameter>}
+   */
 
   @edit.read
   @edit.persist
   @type.list("ITriEffectParameter")
   parameters = [];
 
-  /** m_resources (PITriEffectResourceParameterVector) [READ, PERSIST] */
+  /**
+   * m_resources (PITriEffectResourceParameterVector) [READ, PERSIST]
+   * Resource parameters supplying textures and buffers to shader slots.
+   * @type {Array<ITriEffectResourceParameter>}
+   */
 
   @edit.read
   @edit.persist
   @type.list("ITriEffectResourceParameter")
   resources = [];
 
-  /** m_effectResource (Tr2EffectResPtr) [READ] */
+  /**
+   * m_effectResource (Tr2EffectResPtr) [READ]
+   * Loaded effect resource whose shader variations this instance uses.
+   * @type {Tr2EffectRes|null}
+   */
   @edit.read
   @type.objectRef("Tr2EffectRes")
   effectResource = null;
 
-  /** m_actualEffectFilePath (std::string) [READ] */
+  /**
+   * m_actualEffectFilePath (std::string) [READ]
+   * Resolved shader path after applying the effect-path defaults.
+   * @type {string}
+   */
   @edit.read
   @type.string
   actualEffectFilePath = "";
 
-  /** m_samplerOverrides (PTr2SamplerOverrideStructureList) [READ, PERSIST] */
+  /**
+   * m_samplerOverrides (PTr2SamplerOverrideStructureList) [READ, PERSIST]
+   * Named sampler addressing, filtering and LOD overrides.
+   * @type {Array<Tr2SamplerOverride>}
+   */
 
   @edit.read
   @edit.persist
@@ -216,21 +252,36 @@ export class Tr2Effect extends Tr2Material
   })
   samplerOverrides = [];
 
+  /**
+   * Cached parameter hash; 0xffffffff marks its invalidation during rebuild.
+   * @type {number}
+   */
   parameterHash = 0xffffffff;
 
+  /**
+   * Whether this effect is enabled for display.
+   * @type {boolean}
+   */
   display = true;
 
   /**
    * Carbon keeps m_variableStore null and falls back to the GLOBAL store at
    * call time, so a later global-store swap is seen by existing effects.
    * Read through GetVariableStore(); never capture the global eagerly.
+   * @type {Tr2VariableStore|null}
    */
   variableStore = null;
 
-  /** Only adapters minted by this effect are final-owned here. Caller providers remain borrowed. */
+  /**
+   * Only adapters minted by this effect are final-owned here. Caller providers remain borrowed.
+   * @type {Map<ITriEffectResourceParameter, {provider: Tr2TextureReference|Tr2RuntimeGpuBuffer, kind: "texture"|"buffer"}>}
+   */
   _ownedProviders = new Map();
 
-  /** Whether the explicit final owner has retired this effect. */
+  /**
+   * Whether the explicit final owner has retired this effect.
+   * @type {boolean}
+   */
   _destroyed = false;
 
   /** Releases a provider minted for one parameter, preserving caller-owned providers. */
@@ -283,6 +334,10 @@ export class Tr2Effect extends Tr2Material
     this.effectResource = null;
   }
 
+  /**
+   * Whether authored changes are batched until EndUpdate rebuilds the effect.
+   * @type {boolean}
+   */
   insideStartUpdate = false;
 
   /** Carbon method RebuildCachedData -> RebuildCachedDataInternal (MAP_METHOD_AND_WRAP). */
@@ -333,7 +388,7 @@ export class Tr2Effect extends Tr2Material
    */
   static #GlobalVariable(name)
   {
-    return Tr2VariableStore.GlobalStore().GetVariable?.(name) ?? null;
+    return Tr2VariableStore.globalStore().GetVariable?.(name) ?? null;
   }
 
   /** The effect's store, falling back to the global store at call time. */
@@ -341,7 +396,7 @@ export class Tr2Effect extends Tr2Material
   @impl.implemented
   GetVariableStore()
   {
-    return this.variableStore ?? Tr2VariableStore.GlobalStore();
+    return this.variableStore ?? Tr2VariableStore.globalStore();
   }
 
   /**
@@ -1713,6 +1768,10 @@ export class Tr2Effect extends Tr2Material
     samplerOverrides: { setter: "SetSamplerOverrides", field: "samplerOverrides" }
   });
 
+  /**
+   * Ordered parameter constructors considered when inferring a parameter from a value.
+   * @type {ReadonlyArray<Function>}
+   */
   static INFERRED_PARAMETER_TYPES = Object.freeze([
     Tr2FloatParameter,
     Tr2Vector2Parameter,

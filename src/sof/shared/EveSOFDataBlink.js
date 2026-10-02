@@ -1,16 +1,20 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
-import { type } from "#schema";
-import { CjsModel } from "#model";
+import { carbon, impl, type } from "#schema";
 
-/** Provides the empty Carbon-compatible base shape for blink settings. */
+/** Empty native IRoot blink settings record; self exposure is in EveSOFData_Blue2.cpp:137-142. */
 @type.define({ className: "EveSOFDataBlink", family: "eve" })
-export class EveSOFDataBlink extends CjsModel
+export class EveSOFDataBlink
 {
 
-  /** Carbon currently exposes an empty SOF blink value shape. */
+  /** Reports the empty settings shape; this convenience has no native method.
+   * @returns {boolean} Always true.
+   */
+  @impl.custom
   IsEmpty()
   {
     return true;
   }
 
 }
+
+carbon.interfaceTable({ interfaces: [EveSOFDataBlink], chainTo: null })(EveSOFDataBlink);

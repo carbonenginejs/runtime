@@ -69,7 +69,7 @@ export class TriStepSetVariableStore extends TriRenderStep
   @impl.adapted
   Execute(_realTime, _simTime, _renderContext)
   {
-    if (this.variableName && this.value !== null) Tr2VariableStore.GlobalStore().RegisterVariable(this.variableName, this.value);
+    if (this.variableName && this.value !== null) Tr2VariableStore.globalStore().RegisterVariable(this.variableName, this.value);
     return TriRenderStep.Result.RS_OK;
   }
 

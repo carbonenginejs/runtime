@@ -267,7 +267,7 @@ export class Tr2ShadowMap extends CjsModel
   constructor()
   {
     super();
-    const store = Tr2VariableStore.GlobalStore();
+    const store = Tr2VariableStore.globalStore();
     store.RegisterVariable("EveSpaceSceneShadowMap");
     store.RegisterVariable("EveSpaceSceneCascadedShadowMap");
   }

@@ -131,7 +131,7 @@ export class Tr2Blitter
     // anything is published. A JS null has no type and registered an INVALID
     // variable whose binding was skipped, so every blit sampled nothing. The
     // empty reference is the typed null: same type, no texture.
-    Tr2VariableStore.GlobalStore().RegisterVariable(BLIT_SOURCE, this.#textureReference);
+    Tr2VariableStore.globalStore().RegisterVariable(BLIT_SOURCE, this.#textureReference);
 
     this.#blitEffect = new Tr2Effect();
     this.#blitEffect.SetEffectPathName(BLIT_EFFECT_PATH);
@@ -310,7 +310,7 @@ export class Tr2Blitter
     // a `BlitSource` sampler by name and the material's own parameter path
     // resolves it. It clears the entry afterwards so the next blit cannot
     // inherit this one's texture.
-    const blitSource = texture ? Tr2VariableStore.GlobalStore().GetVariable(BLIT_SOURCE) : null;
+    const blitSource = texture ? Tr2VariableStore.globalStore().GetVariable(BLIT_SOURCE) : null;
 
     if (blitSource)
     {

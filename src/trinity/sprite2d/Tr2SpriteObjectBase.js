@@ -3,16 +3,24 @@
 // Source: trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; portable sprite state is maintained here.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
+import { ITr2SpriteObject } from "./ITr2SpriteObject.js";
 import { Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
-import { blue } from "#blue";
+import { blue, INotify } from "#blue";
 
-/** Shared portable state and dirty propagation for Sprite2D objects. */
-@type.define({ className: "Tr2SpriteObjectBase", family: "sprite2d" })
-export class Tr2SpriteObjectBase extends CjsModel
+/**
+ * Shared portable state and dirty propagation for Sprite2D objects.
+ * Native Python-only associatedObject weak-reference accessors are not exposed
+ * by this JavaScript port. Required rendering/picking remain abstract.
+ * Parent and auxiliary links are non-owning in declaration traversal but remain
+ * ordinary JavaScript references; native destructor detach assertions have no
+ * deterministic destruction counterpart here.
+ */
+@type.define({ className: "Tr2SpriteObjectBase", family: "sprite2d", abstract: true })
+@carbon.inherit(INotify)
+export class Tr2SpriteObjectBase extends ITr2SpriteObject
 {
 
-  /** Required ITr2SpriteObject traversal contract. */
+  /** Required ITr2SpriteObject traversal contract. @param {...*} _args Renderer arguments. @returns {void} */
   @carbon.method
   @impl.abstract
   GatherSprites(..._args)
@@ -20,7 +28,7 @@ export class Tr2SpriteObjectBase extends CjsModel
     throw new Error("Tr2SpriteObjectBase.GatherSprites must be implemented by a concrete Sprite2D object.");
   }
 
-  /** Required ITr2SpriteObject picking contract. */
+  /** Required ITr2SpriteObject picking contract. @param {...*} _args Picking arguments. @returns {ITr2SpriteObject|null} */
   @carbon.method
   @impl.abstract
   PickPoint(..._args)
@@ -28,28 +36,36 @@ export class Tr2SpriteObjectBase extends CjsModel
     throw new Error("Tr2SpriteObjectBase.PickPoint must be implemented by a concrete Sprite2D object.");
   }
 
-  /** Carbon method GetDisplay. */
+  /** Carbon method GetDisplay.
+   * @returns {boolean} Whether the sprite is displayed.
+   */
   @carbon.method
   @impl.implemented
   GetDisplay()
   {
-    return this.display;
+    return this._display;
   }
 
-  /** Carbon method SetDisplay. */
+  /** Carbon method SetDisplay.
+   * @param {boolean} value Display state.
+   * @returns {void}
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
+  @impl.reason("Retains JavaScript boolean coercion before native change detection and dirty propagation.")
   SetDisplay(value)
   {
     const next = Boolean(value);
-    if (next !== this.display)
+    if (next !== this._display)
     {
-      this.display = next;
+      this._display = next;
       this.SetDirty();
     }
   }
 
-  /** Carbon method GetDisplayX. */
+  /** Carbon method GetDisplayX.
+   * @returns {number} Display x.
+   */
   @carbon.method
   @impl.implemented
   GetDisplayX()
@@ -57,15 +73,21 @@ export class Tr2SpriteObjectBase extends CjsModel
     return this.displayX;
   }
 
-  /** Carbon method SetDisplayX. */
+  /** Carbon method SetDisplayX.
+   * @param {number} value Display x.
+   * @returns {void}
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
+  @impl.reason("Retains Number coercion through the shared scalar helper before native change detection.")
   SetDisplayX(value)
   {
-    this.#SetDisplayValue("displayX", value);
+    this._SetDisplayValue("displayX", value);
   }
 
-  /** Carbon method GetDisplayY. */
+  /** Carbon method GetDisplayY.
+   * @returns {number} Display y.
+   */
   @carbon.method
   @impl.implemented
   GetDisplayY()
@@ -73,15 +95,21 @@ export class Tr2SpriteObjectBase extends CjsModel
     return this.displayY;
   }
 
-  /** Carbon method SetDisplayY. */
+  /** Carbon method SetDisplayY.
+   * @param {number} value Display y.
+   * @returns {void}
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
+  @impl.reason("Retains Number coercion through the shared scalar helper before native change detection.")
   SetDisplayY(value)
   {
-    this.#SetDisplayValue("displayY", value);
+    this._SetDisplayValue("displayY", value);
   }
 
-  /** Carbon method GetDisplayWidth. */
+  /** Carbon method GetDisplayWidth.
+   * @returns {number} Display width.
+   */
   @carbon.method
   @impl.implemented
   GetDisplayWidth()
@@ -89,15 +117,21 @@ export class Tr2SpriteObjectBase extends CjsModel
     return this.displayWidth;
   }
 
-  /** Carbon method SetDisplayWidth. */
+  /** Carbon method SetDisplayWidth.
+   * @param {number} value Display width.
+   * @returns {void}
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
+  @impl.reason("Retains Number coercion through the shared scalar helper before native change detection.")
   SetDisplayWidth(value)
   {
-    this.#SetDisplayValue("displayWidth", value);
+    this._SetDisplayValue("displayWidth", value);
   }
 
-  /** Carbon method GetDisplayHeight. */
+  /** Carbon method GetDisplayHeight.
+   * @returns {number} Display height.
+   */
   @carbon.method
   @impl.implemented
   GetDisplayHeight()
@@ -105,43 +139,57 @@ export class Tr2SpriteObjectBase extends CjsModel
     return this.displayHeight;
   }
 
-  /** Carbon method SetDisplayHeight. */
+  /** Carbon method SetDisplayHeight.
+   * @param {number} value Display height.
+   * @returns {void}
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
+  @impl.reason("Retains Number coercion through the shared scalar helper before native change detection.")
   SetDisplayHeight(value)
   {
-    this.#SetDisplayValue("displayHeight", value);
+    this._SetDisplayValue("displayHeight", value);
   }
 
-  /** Carbon method SetParent. */
+  /** Carbon method SetParent.
+   * @param {ITr2SpriteObject|null} parent New parent.
+   * @returns {void}
+   */
   @carbon.method
   @impl.implemented
   SetParent(parent)
   {
-    this.#parent = parent;
+    this._parent = parent;
     this.SetDirty();
   }
 
-  /** Carbon method SetDirty (MAP_METHOD_AND_WRAP). */
+  /** Carbon method SetDirty (MAP_METHOD_AND_WRAP).
+   * @returns {void}
+   */
   @carbon.method
   @impl.implemented
   SetDirty()
   {
     this.isDirty = true;
-    if (this.#parent)
+    if (this._parent)
     {
-      this.#parent.SetChildDirty(this);
+      this._parent.SetChildDirty(this);
     }
   }
 
-  /** Carbon's base container notification is intentionally a no-op. */
+  /** Carbon's base container notification is intentionally a no-op.
+   * @param {ITr2SpriteObject|null} _child Changed child.
+   * @returns {void}
+   */
   @carbon.method
-  @impl.implemented
+  @impl.noop
   SetChildDirty(_child)
   {
   }
 
-  /** Carbon's base object is never an auxiliary mouse-over result. */
+  /** Carbon's base object is never an auxiliary mouse-over result.
+   * @returns {boolean} Always false for the base object.
+   */
   @carbon.method
   @impl.implemented
   IsAuxMouseover()
@@ -149,7 +197,10 @@ export class Tr2SpriteObjectBase extends CjsModel
     return false;
   }
 
-  /** Carbon INotify callback. */
+  /** Carbon INotify callback.
+   * @param {string|null} _value Changed declaration name.
+   * @returns {boolean} Always true.
+   */
   @carbon.method
   @impl.implemented
   OnModified(_value)
@@ -158,8 +209,14 @@ export class Tr2SpriteObjectBase extends CjsModel
     return true;
   }
 
-  /** Updates one display scalar and marks the object dirty on change. */
-  #SetDisplayValue(name, value)
+  /**
+   * Updates one display scalar and marks the object dirty on change.
+   * @param {string} name Scalar field name.
+   * @param {number} value New scalar value.
+   * @returns {void}
+   */
+  @impl.custom
+  _SetDisplayValue(name, value)
   {
     const next = Number(value);
     if (next !== this[name])
@@ -169,64 +226,80 @@ export class Tr2SpriteObjectBase extends CjsModel
     }
   }
 
-  /** m_display (bool) [READWRITE] */
+  /** Sprite label stored as native std::wstring. @type {string} */
+  @edit.readwrite
+  @type.wstring
+  name = "";
+
+  /** Native non-owning auxiliary mouseover object; READ only. @type {ITr2SpriteObject|null} */
+  @edit.read
+  @type.weakRef("ITr2SpriteObject")
+  auxMouseover = null;
+
+  /** Native READWRITE display property. @returns {boolean} */
   @edit.readwrite
   @type.boolean
-  display = true;
+  @impl.custom
+  get display()
+  {
+    return this.GetDisplay();
+  }
 
-  /** m_pickState (Tr2SpriteObjectPickState - enum Tr2SpriteObjectPickState) [READWRITE, PERSIST, ENUM] */
+  /** Delegates external display writes to native dirty propagation. @param {boolean} value Display state. */
+  @impl.custom
+  set display(value)
+  {
+    this.SetDisplay(value);
+  }
+
+  /** Whether sprite state has changed since the last render. @type {boolean} */
+  @edit.readwrite
+  @type.boolean
+  isDirty = true;
+
+  /** Horizontal translation component, stored separately from native Vector2. @type {number} */
+  @edit.notify
+  @edit.readwrite
+  @type.float32
+  displayX = 0;
+
+  /** Vertical translation component, stored separately from native Vector2. @type {number} */
+  @edit.notify
+  @edit.readwrite
+  @type.float32
+  displayY = 0;
+
+  /** Displayed sprite width in pixels; external writes notify. @type {number} */
+  @edit.notify
+  @edit.readwrite
+  @type.float32
+  displayWidth = 0;
+
+  /** Displayed sprite height in pixels; external writes notify. @type {number} */
+  @edit.notify
+  @edit.readwrite
+  @type.float32
+  displayHeight = 0;
+
+  /** Persistent native pick-state chooser controlling self/child hit testing. @type {number} */
   @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("trinity.Tr2SpriteObjectPickState")
   pickState = Tr2SpriteObjectPickState.TR2_SPS_ON;
 
-  /** m_isDirty (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
-  isDirty = true;
-
-  /** m_displayHeight (float) [READWRITE, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @type.float32
-  displayHeight = 0;
-
-  /** m_pickingMask (Tr2Sprite2dPickingMaskPtr) [READWRITE] */
+  /** Optional owned mask consulted by concrete sprite picking. @type {Tr2Sprite2dPickingMask|null} */
   @edit.readwrite
   @type.objectRef("Tr2Sprite2dPickingMask")
   pickingMask = null;
 
-  /** m_name (std::wstring) [READWRITE] */
-  @edit.readwrite
-  @type.string
-  name = "";
+  /** Native display backing state. @type {boolean} */
+  _display = true;
 
-  /** m_auxMouseover (ITr2SpriteObject*) [READ] */
-  @edit.read
-  @type.objectRef("ITr2SpriteObject")
-  auxMouseover = null;
+  /** Native non-owning parent link; excluded from declared graph traversal. @type {ITr2SpriteObject|null} */
+  _parent = null;
 
-  /** m_displayWidth (float) [READWRITE, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @type.float32
-  displayWidth = 0;
-
-  /** m_translation.x (Vector2) [READWRITE, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @type.float32
-  displayX = 0;
-
-  /** m_translation.y (Vector2) [READWRITE, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @type.float32
-  displayY = 0;
-
-  #parent = null;
-
+  /** Existing class-local view of the native chooser vocabulary. @type {object} */
   static Tr2SpriteObjectPickState = Tr2SpriteObjectPickState;
 
 }
@@ -242,3 +315,6 @@ blue.enums.RegisterEnum("trinity.Tr2SpriteObjectPickState", Tr2SpriteObjectBase.
     { name: "TR2_SPS_CHILDREN", value: Tr2SpriteObjectBase.Tr2SpriteObjectPickState.TR2_SPS_CHILDREN, description: "Only children are pickable" }
   ]
 });
+
+// Native exposure maps both contracts, without concrete self or parent chaining.
+carbon.interfaceTable({ interfaces: [ITr2SpriteObject, INotify], chainTo: null })(Tr2SpriteObjectBase);

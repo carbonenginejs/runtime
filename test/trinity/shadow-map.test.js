@@ -55,7 +55,7 @@ test("Tr2ShadowMap is one maintained CPU producer with Carbon defaults", () =>
   assert.ok(shadowMap.cascadeEffect.GetResourceByName("EveSpaceSceneCascadedShadowMap"));
   assert.ok(shadowMap.cascadeEffect.GetResourceByName("DepthMap"));
   assert.equal(CjsSchema.getField(core.Tr2ShadowMap, "size")?.type.kind, "uint32");
-  const globalStore = core.Tr2VariableStore.GlobalStore();
+  const globalStore = core.Tr2VariableStore.globalStore();
   assert.ok(globalStore.FindLocalVariable("EveSpaceSceneShadowMap"));
   assert.ok(globalStore.FindLocalVariable("EveSpaceSceneCascadedShadowMap"));
 

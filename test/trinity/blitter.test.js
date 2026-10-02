@@ -126,7 +126,7 @@ test("BlitSource is published for a textured blit and cleared afterwards", () =>
   // Carbon clears the entry after the draw (cpp:157-158) so the next blit
   // cannot inherit this one's texture. A blitter that only ever set it would
   // look correct on the first draw and wrong on every later untextured one.
-  const blitSource = Tr2VariableStore.GlobalStore().GetVariable("BlitSource");
+  const blitSource = Tr2VariableStore.globalStore().GetVariable("BlitSource");
   assert.notEqual(blitSource, null);
   assert.equal(blitSource.GetValue(), null);
 });
@@ -136,7 +136,7 @@ test("BlitSource is a texture variable, and the draw sees the texture through a 
   const context = stubContext();
   const blitter = new Tr2Blitter();
   const texture = StubTarget();
-  const blitSource = Tr2VariableStore.GlobalStore().GetVariable("BlitSource");
+  const blitSource = Tr2VariableStore.globalStore().GetVariable("BlitSource");
   const seen = [];
   const drawing = material();
 

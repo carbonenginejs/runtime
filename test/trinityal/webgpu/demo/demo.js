@@ -3679,7 +3679,7 @@ export async function RunDemo(canvas)
     const boneOffsets = new Tr2RingBufferOffsets();
 
     bones.SetName("BoneTransformsBuffer");
-    Tr2VariableStore.GlobalStore().RegisterVariable("BoneTransforms", bones);
+    Tr2VariableStore.globalStore().RegisterVariable("BoneTransforms", bones);
     boneOffsets.UploadTransforms(bones, RestPoseBones(REST_POSE_BONES), REST_POSE_BONES);
     bones.PrepareBuffer(renderContext);
     perObject.vs.Set("boneOffsets", [ boneOffsets.GetCurrentFrameOffset(), boneOffsets.GetPreviousFrameOffset(), REST_POSE_BONES, 0 ]);

@@ -24,7 +24,7 @@ test("a lens flare allocates Carbon's slots and publishes them as LensflareFxOcc
   // foreground takes 39, the background 26 (cpp:34-35, 118-121).
   assert.equal(lensflare.occlusionOffset, 39);
   assert.equal(lensflare.backgroundOcclusionOffset, 26);
-  assert.deepEqual(bits(Tr2VariableStore.GlobalStore().FindVariable("LensflareFxOccScale").GetValue()), [ 39, 26, 0, 0 ]);
+  assert.deepEqual(bits(Tr2VariableStore.globalStore().FindVariable("LensflareFxOccScale").GetValue()), [ 39, 26, 0, 0 ]);
 
   // Both new slots are queued for the Clear compute, which writes visibility 1.0.
   assert.deepEqual(Tr2OcclusionBuffer.getInstance().clear.slice(-2), [ 39, 26 ]);
@@ -38,7 +38,7 @@ test("a lens flare allocates Carbon's slots and publishes them as LensflareFxOcc
 
 test("FlareOcclusionBuffer is registered as a GPU-buffer global by the occlusion buffer", () =>
 {
-  const variable = Tr2VariableStore.GlobalStore().FindVariable("FlareOcclusionBuffer");
+  const variable = Tr2VariableStore.globalStore().FindVariable("FlareOcclusionBuffer");
   assert.equal(variable.GetValue(), Tr2OcclusionBuffer.getInstance().buffer);
 });
 
@@ -86,7 +86,7 @@ test("EveOccluder.RunQuery publishes the slot as float bits and the fog weight, 
 
   occluder.RunQuery(context, null, new Float32Array(16), 44, 1);
 
-  const store = Tr2VariableStore.GlobalStore();
+  const store = Tr2VariableStore.globalStore();
   assert.equal(floatBits(store.FindVariable("OcclusionBufferOffset").GetValue()), 44);
   assert.equal(store.FindVariable("OcclusionFogWeight").GetValue(), 1);
   // TRIBATCHTYPE_OPAQUE is 0.

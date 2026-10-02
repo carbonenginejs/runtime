@@ -58,7 +58,7 @@ Advances a multi-channel texture flipbook, tracking frame and restart state per 
 <!-- class:TriRigidOrientation -->
 ## `TriRigidOrientation`
 
-Integrates torque into an orientation over time, sampling the result at a given moment.
+Integrates torque into an orientation over time using relative seconds.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
 - Source: `src/trinity/core/animation/TriRigidOrientation.js`
@@ -68,7 +68,7 @@ Integrates torque into an orientation over time, sampling the result at a given 
 <!-- class:TriTorque -->
 ## `TriTorque`
 
-TriTorque (trinityCore) - generated from schema shapeHash 10c5e0d6....
+Native IRoot torque key; TriRigidOrientation_Blue.cpp maps no query interfaces.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
 - Source: `src/trinity/core/animation/TriTorque.js`
@@ -449,6 +449,16 @@ Trinity-owned contract for objects collected through the renderable path.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
 - Source: `src/trinity/core/ITr2Renderable.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:ITr2Scene -->
+## `ITr2Scene`
+
+Native scene contract adding render entry points to the two-clock update contract.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/ITr2Scene.js`
 - Visibility: Public
 - Kind: Carbon
 
@@ -1178,7 +1188,7 @@ Pooled scratch textures and buffers.
 <!-- class:Tr2MaterialParameterStore -->
 ## `Tr2MaterialParameterStore`
 
-Tr2MaterialParameterStore (trinityCore) - generated from schema shapeHash 119f32c2....
+Local shader parameter overrides with an optional resource-loaded parent store.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
 - Source: `src/trinity/core/Tr2MaterialParameterStore.js`

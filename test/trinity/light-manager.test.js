@@ -208,7 +208,7 @@ test("UpdateLists builds the shared chain in the light-list layout, 0-based, and
   assert.equal(Tr2LightManager.getInstance(), manager);
   assert.equal(Tr2LightManager.getOrCreateInstance("other"), manager, "one manager per process");
 
-  const store = Tr2VariableStore.GlobalStore();
+  const store = Tr2VariableStore.globalStore();
   assert.equal(store.FindVariable("LightBuffer").GetValue(), manager._lightBuffer);
   assert.equal(store.FindVariable("LightIndexBuffer").GetValue(), manager._indexBuffer);
 

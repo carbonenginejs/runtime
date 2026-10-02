@@ -138,7 +138,7 @@ Fires authored audio events as playback time crosses ordered event keys on a tim
 <!-- class:AudGameObjResource -->
 ## `AudGameObjResource`
 
-Maintains per-object event, RTPC, switch, placement, and culling state for Carbon audio objects.
+The base Wwise game object: per-object event, RTPC, switch, placement and culling state.
 
 - Export: `@carbonenginejs/runtime/audio/trinity`
 - Source: `src/audio/trinity/audio/AudGameObjResource.js`

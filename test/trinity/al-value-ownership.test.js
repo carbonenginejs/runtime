@@ -113,7 +113,7 @@ test('device final teardown releases the occlusion singleton without creating a 
  Tr2OcclusionBuffer.ReleaseStaticResources();Tr2OcclusionBuffer.ReleaseStaticResources();
  assert.equal(Tr2OcclusionBuffer._instance,null);
  assert.equal(backend.IsRegistered(),false);
- assert.equal(Tr2VariableStore.GlobalStore().FindVariable('FlareOcclusionBuffer'),null);
+ assert.equal(Tr2VariableStore.globalStore().FindVariable('FlareOcclusionBuffer'),null);
  renderContext.Destroy();
 });
 

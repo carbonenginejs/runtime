@@ -1249,7 +1249,7 @@ export class EveSpaceScene extends CjsModel
     super();
     const bones = Tr2RingBuffer.GetInstance("Float4x3", 48, Tr2RenderContext_GetMainThreadRenderContext());
     bones.SetName("BoneTransformsBuffer");
-    Tr2VariableStore.GlobalStore().RegisterVariable("BoneTransforms", bones);
+    Tr2VariableStore.globalStore().RegisterVariable("BoneTransforms", bones);
   }
 
   // THE SCENE'S GLOBAL TEXTURES (EveSpaceScene.cpp:252-261). Carbon registers
@@ -1260,26 +1260,26 @@ export class EveSpaceScene extends CjsModel
   // construction.
 
   /** m_envMapHandle: "EveSpaceSceneEnvMap", the reflection (probe or nebula). */
-  _envMapHandle = Tr2VariableStore.GlobalStore().RegisterVariable("EveSpaceSceneEnvMap", new Tr2TextureReference());
+  _envMapHandle = Tr2VariableStore.globalStore().RegisterVariable("EveSpaceSceneEnvMap", new Tr2TextureReference());
 
   /** m_staticEnvMapHandle: "EveSpaceSceneStaticEnvMap", the nebula itself. */
-  _staticEnvMapHandle = Tr2VariableStore.GlobalStore().RegisterVariable("EveSpaceSceneStaticEnvMap", new Tr2TextureReference());
+  _staticEnvMapHandle = Tr2VariableStore.globalStore().RegisterVariable("EveSpaceSceneStaticEnvMap", new Tr2TextureReference());
 
   /** "SSAOMap", registered empty (cpp:256); the driver fills it when SSAO runs. */
-  _ssaoMapHandle = Tr2VariableStore.GlobalStore().RegisterVariable("SSAOMap", new Tr2TextureReference());
+  _ssaoMapHandle = Tr2VariableStore.globalStore().RegisterVariable("SSAOMap", new Tr2TextureReference());
 
   /** m_envMap1Var / m_envMap2Var: "EnvMap1" and "EnvMap2" (cpp:188-189). */
-  _envMap1Handle = Tr2VariableStore.GlobalStore().RegisterVariable("EnvMap1", new Tr2TextureReference());
+  _envMap1Handle = Tr2VariableStore.globalStore().RegisterVariable("EnvMap1", new Tr2TextureReference());
 
-  _envMap2Handle = Tr2VariableStore.GlobalStore().RegisterVariable("EnvMap2", new Tr2TextureReference());
+  _envMap2Handle = Tr2VariableStore.globalStore().RegisterVariable("EnvMap2", new Tr2TextureReference());
 
   /** m_reflectionMapVar / m_reflectionMaskMapVar: the same two maps under "ReflectionMap" and "ReflectionMaskMap" (cpp:190-191). */
-  _reflectionMapHandle = Tr2VariableStore.GlobalStore().RegisterVariable("ReflectionMap", new Tr2TextureReference());
+  _reflectionMapHandle = Tr2VariableStore.globalStore().RegisterVariable("ReflectionMap", new Tr2TextureReference());
 
-  _reflectionMaskMapHandle = Tr2VariableStore.GlobalStore().RegisterVariable("ReflectionMaskMap", new Tr2TextureReference());
+  _reflectionMaskMapHandle = Tr2VariableStore.globalStore().RegisterVariable("ReflectionMaskMap", new Tr2TextureReference());
 
   /** m_nebulaIntensityVar: "NebulaIntensity" (cpp:202), which the background effect reads. */
-  _nebulaIntensityHandle = Tr2VariableStore.GlobalStore().RegisterVariable("NebulaIntensity", 1);
+  _nebulaIntensityHandle = Tr2VariableStore.globalStore().RegisterVariable("NebulaIntensity", 1);
 
   /**
    * m_velocityMapDirty (EveSpaceScene.h:476): whether the background pass has
@@ -1316,7 +1316,7 @@ export class EveSpaceScene extends CjsModel
   @impl.adapted
   static registerWithVariableStore(shadowResources, gpuResourcePool)
   {
-    const store = Tr2VariableStore.GlobalStore();
+    const store = Tr2VariableStore.globalStore();
     const references = EveSpaceScene._shadowReferences;
 
     const publish = (name, texture) =>

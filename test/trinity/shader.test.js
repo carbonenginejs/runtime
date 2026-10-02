@@ -513,8 +513,8 @@ test("promoted shader resource parameters stay graph-only", () =>
 });
 test("promoted variable, transform, and shader buffer classes expose graph behavior", () =>
 {
-  const previousStore = Tr2VariableStore.GlobalStore();
-  const globalStore = Tr2VariableStore.SetGlobalStore(new Tr2VariableStore());
+  const previousStore = Tr2VariableStore.globalStore();
+  const globalStore = Tr2VariableStore.setGlobalStore(new Tr2VariableStore());
   globalStore.RegisterVariable("EnvMapTransform", {
     GetTexture()
     {
@@ -581,7 +581,7 @@ test("promoted variable, transform, and shader buffer classes expose graph behav
   effect.RebuildCachedDataInternal();
   assert(effect.parameters[0].variable);
   assert(effect.parameters[0].usedByCurrentEffect);
-  Tr2VariableStore.SetGlobalStore(previousStore);
+  Tr2VariableStore.setGlobalStore(previousStore);
   const transform = new TriTransformParameter();
   transform.translation = vec3.fromValues(1, 2, 3);
   const copied = new Float32Array(16);

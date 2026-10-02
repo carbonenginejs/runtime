@@ -900,8 +900,8 @@ test("Tr2ExpressionTermInfo factories preserve Carbon term types and isolate arg
 
 test("Tr2VariableStore forms a global-rooted graph with Carbon lookup rules", () =>
 {
-  const globalStore = Tr2VariableStore.GlobalStore();
-  assertEquals(Tr2VariableStore.GlobalStore(), globalStore);
+  const globalStore = Tr2VariableStore.globalStore();
+  assertEquals(Tr2VariableStore.globalStore(), globalStore);
   assertEquals(globalStore.GetParentVariableStore(), null);
   // The global store refuses a parent, as Carbon enforces.
   globalStore.SetParentVariableStore(new Tr2VariableStore());

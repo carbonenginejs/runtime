@@ -1,39 +1,55 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { edit, type } from "#schema";
-import { CjsModel } from "#model";
+import { carbon, impl, edit, type } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
 
-/** Defines an enum-indexed blink mode with optional blink, fade, cycle, and timing values. */
+/**
+ * Native IRoot container of optional empty blink settings records.
+ * Exposure order follows EveSOFData_Blue.cpp:1137-1147. The native header
+ * declares m_blinkType[TYPE_CYCLE] (four slots), yet exposure indexes
+ * TYPE_CYCLE (four); the existing safe JavaScript Cycle=null slot is retained.
+ */
 @type.define({ className: "EveSOFDataBlinkType", family: "eve" })
-export class EveSOFDataBlinkType extends CjsModel
+export class EveSOFDataBlinkType
 {
 
-  /** m_blinkType[TYPE_BLINK] (EveSOFDataBlinkPtr) [READWRITE, PERSIST] */
+  /** Optional empty settings record for regular blink; native EveSOFDataBlinkPtr.
+   * @type {EveSOFDataBlink|null}
+   */
   @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataBlink")
   Blink = null;
 
-  /** m_blinkType[TYPE_FADE_IN] (EveSOFDataBlinkPtr) [READWRITE, PERSIST] */
+  /** Optional empty settings record for fade-in; native EveSOFDataBlinkPtr.
+   * @type {EveSOFDataBlink|null}
+   */
   @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataBlink")
   FadeIn = null;
 
-  /** m_blinkType[TYPE_FADE_OUT] (EveSOFDataBlinkPtr) [READWRITE, PERSIST] */
+  /** Optional empty settings record for fade-out; native EveSOFDataBlinkPtr.
+   * @type {EveSOFDataBlink|null}
+   */
   @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataBlink")
   FadeOut = null;
 
-  /** m_blinkType[TYPE_CYCLE] (EveSOFDataBlinkPtr) [READWRITE, PERSIST] */
+  /** Optional empty settings record for fade-in/out cycle; native EveSOFDataBlinkPtr.
+   * @type {EveSOFDataBlink|null}
+   */
   @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataBlink")
   Cycle = null;
 
-  /** Gets blink data by Carbon enum value; TYPE_STATIC has no data record. */
+  /** Looks up the named slot through the existing JS enum table; no native method.
+   * @param {number} blinkType BlinkType enum value.
+   * @returns {EveSOFDataBlink|null} Settings, or null for static/unknown modes.
+   */
+  @impl.custom
   GetByType(blinkType)
   {
     const property = this.constructor.Types[blinkType];
@@ -42,6 +58,9 @@ export class EveSOFDataBlinkType extends CjsModel
 
   // Source: EveSOFData.h, EveSOFDataBlinkType::BlinkType. Keep the donor
   // spelling for schema choosers; Type below is the existing JS compatibility map.
+  /** Native BlinkType numeric choices, shared with plane-item enum metadata.
+   * @type {Readonly<Object<string, number>>}
+   */
   static BlinkType = Object.freeze({
     TYPE_STATIC: 0,
     TYPE_BLINK: 1,
@@ -50,6 +69,9 @@ export class EveSOFDataBlinkType extends CjsModel
     TYPE_CYCLE: 4
   });
 
+  /** Existing JavaScript aliases for the native TYPE_* enum names.
+   * @type {Readonly<Object<string, number>>}
+   */
   static Type = Object.freeze({
     STATIC: EveSOFDataBlinkType.BlinkType.TYPE_STATIC,
     BLINK: EveSOFDataBlinkType.BlinkType.TYPE_BLINK,
@@ -58,6 +80,9 @@ export class EveSOFDataBlinkType extends CjsModel
     CYCLE: EveSOFDataBlinkType.BlinkType.TYPE_CYCLE
   });
 
+  /** Enum-indexed property names; static mode has no settings slot.
+   * @type {ReadonlyArray<string|null>}
+   */
   static Types = Object.freeze([
     null,
     "Blink",
@@ -81,3 +106,5 @@ blue.enums.RegisterEnum("trinity.EveSOFDataBlinkType.BlinkType", EveSOFDataBlink
     { name: "Cycle", value: EveSOFDataBlinkType.BlinkType.TYPE_CYCLE, description: "Cycle (fade in/out)" }
   ]
 });
+
+carbon.interfaceTable({ interfaces: [EveSOFDataBlinkType], chainTo: null })(EveSOFDataBlinkType);

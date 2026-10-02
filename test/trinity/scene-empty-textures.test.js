@@ -18,7 +18,7 @@ function Pool()
 
 function Global(name)
 {
-  return Tr2VariableStore.GlobalStore().FindVariable(name).GetValue().GetTexture();
+  return Tr2VariableStore.globalStore().FindVariable(name).GetValue().GetTexture();
 }
 
 const noShadows = () => ({

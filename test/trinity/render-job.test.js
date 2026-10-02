@@ -370,7 +370,7 @@ test("callback, debug-renderer, and variable-store steps preserve Carbon behavio
   read[0] = 9;
   assertEquals(variable.GetValue()[0], 1);
   assertEquals(variable.Execute(0, 0, context), TriRenderStep.RS_OK);
-  assertEquals(Tr2VariableStore.GlobalStore().FindVariable("renderStepTestValue").GetValue()[2], 3);
+  assertEquals(Tr2VariableStore.globalStore().FindVariable("renderStepTestValue").GetValue()[2], 3);
 });
 
 test("TriRenderJob exposes the ordered Carbon graph contract", () =>

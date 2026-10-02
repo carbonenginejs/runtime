@@ -1,16 +1,24 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
-// Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { edit, type } from "#schema";
-import { CjsModel } from "#model";
+// Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:130-145
+import { meta, types } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
 import { ErrSOFAreaTypeNotFound } from "./ErrSOFAreaTypeNotFound.js";
 
-/** Carbon area-material slots in canonical AreaType order. */
-@type.define({ className: "EveSOFDataArea", family: "eve" })
-export class EveSOFDataArea extends CjsModel
+/** Carbon area-material slots in canonical AreaType order.
+ * Native IRoot-only data with a self-only Blue table. Owned authored records
+ * are not loaded resources; native construction and empty destruction need
+ * no additional initialization or update lifecycle.
+ */
+@meta.define({ className: "EveSOFDataArea", family: "eve" })
+export class EveSOFDataArea
 {
 
-  static Types = Object.freeze([
+  /**
+   * JavaScript slot-name lookup indexed by AreaType; index 5 is null because
+   * native Wreck has no exposed authored slot.
+   * @type {Array<string|null>}
+   */
+  static Types = [
     "Primary",
     "Glass",
     "Sails",
@@ -22,8 +30,13 @@ export class EveSOFDataArea extends CjsModel
     "Ornament",
     "SimplePrimary",
     "Turret"
-  ]);
+  ];
 
+  /**
+   * Native numeric area-enum map and canonical chooser vocabulary. TYPE_MAX
+   * and TYPE_NO_OVERWRITE share the value 11; neither identifies a stored slot.
+   * @type {Object<string, number>}
+   */
   static AreaType = Object.freeze({
     TYPE_PRIMARY: 0,
     TYPE_GLASS: 1,
@@ -40,77 +53,127 @@ export class EveSOFDataArea extends CjsModel
     TYPE_NO_OVERWRITE: 11
   });
 
-  /** m_materials[TYPE_PRIMARY] (EveSOFDataAreaMaterialPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveSOFDataAreaMaterial")
+  /**
+   * Primary-area material names and faction color selector, or null when absent.
+   * Native m_materials[TYPE_PRIMARY], READWRITE | PERSIST.
+   * @type {EveSOFDataAreaMaterial|null}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.objectRef("EveSOFDataAreaMaterial")
   Primary = null;
 
-  /** m_materials[TYPE_GLASS] (EveSOFDataAreaMaterialPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveSOFDataAreaMaterial")
+  /**
+   * Glass-area material names and faction color selector, or null when absent.
+   * Native m_materials[TYPE_GLASS], READWRITE | PERSIST.
+   * @type {EveSOFDataAreaMaterial|null}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.objectRef("EveSOFDataAreaMaterial")
   Glass = null;
 
-  /** m_materials[TYPE_SAILS] (EveSOFDataAreaMaterialPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveSOFDataAreaMaterial")
+  /**
+   * Sails-area material names and faction color selector, or null when absent.
+   * Native m_materials[TYPE_SAILS], READWRITE | PERSIST.
+   * @type {EveSOFDataAreaMaterial|null}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.objectRef("EveSOFDataAreaMaterial")
   Sails = null;
 
-  /** m_materials[TYPE_REACTOR] (EveSOFDataAreaMaterialPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveSOFDataAreaMaterial")
+  /**
+   * Reactor-area material names and faction color selector, or null when absent.
+   * Native m_materials[TYPE_REACTOR], READWRITE | PERSIST.
+   * @type {EveSOFDataAreaMaterial|null}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.objectRef("EveSOFDataAreaMaterial")
   Reactor = null;
 
-  /** m_materials[TYPE_DARKHULL] (EveSOFDataAreaMaterialPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveSOFDataAreaMaterial")
+  /**
+   * Darkhull-area material names and faction color selector, or null when absent.
+   * Native m_materials[TYPE_DARKHULL], READWRITE | PERSIST.
+   * @type {EveSOFDataAreaMaterial|null}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.objectRef("EveSOFDataAreaMaterial")
   Darkhull = null;
 
-  /** m_materials[TYPE_ROCK] (EveSOFDataAreaMaterialPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveSOFDataAreaMaterial")
+  /**
+   * Rock-area material names and faction color selector, or null when absent.
+   * Native m_materials[TYPE_ROCK], READWRITE | PERSIST.
+   * @type {EveSOFDataAreaMaterial|null}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.objectRef("EveSOFDataAreaMaterial")
   Rock = null;
 
-  /** m_materials[TYPE_MONUMENT] (EveSOFDataAreaMaterialPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveSOFDataAreaMaterial")
+  /**
+   * Monument-area material names and faction color selector, or null when absent.
+   * Native m_materials[TYPE_MONUMENT], READWRITE | PERSIST.
+   * @type {EveSOFDataAreaMaterial|null}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.objectRef("EveSOFDataAreaMaterial")
   Monument = null;
 
-  /** m_materials[TYPE_ORNAMENT] (EveSOFDataAreaMaterialPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveSOFDataAreaMaterial")
+  /**
+   * Ornament-area material names and faction color selector, or null when absent.
+   * Native m_materials[TYPE_ORNAMENT], READWRITE | PERSIST.
+   * @type {EveSOFDataAreaMaterial|null}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.objectRef("EveSOFDataAreaMaterial")
   Ornament = null;
 
-  /** m_materials[TYPE_SIMPLEPRIMARY] (EveSOFDataAreaMaterialPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveSOFDataAreaMaterial")
+  /**
+   * Simple-primary material names and faction color selector, or null when absent.
+   * Native m_materials[TYPE_SIMPLEPRIMARY], READWRITE | PERSIST.
+   * @type {EveSOFDataAreaMaterial|null}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.objectRef("EveSOFDataAreaMaterial")
   SimplePrimary = null;
 
-  /** m_materials[TYPE_TURRET] (EveSOFDataAreaMaterialPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveSOFDataAreaMaterial")
+  /**
+   * Turret-area material names and faction color selector, or null when absent.
+   * Native m_materials[TYPE_TURRET], READWRITE | PERSIST.
+   * @type {EveSOFDataAreaMaterial|null}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.objectRef("EveSOFDataAreaMaterial")
   Turret = null;
 
   /**
    * Maps a canonical area enum index to its stored material, returning null for
    * unmapped or empty slots.
+   * Custom: retained JavaScript slot lookup, not a native exposed method.
+   * @param {number} type Native area index.
+   * @returns {EveSOFDataAreaMaterial|null} The selected record or null.
    */
+  @meta.impl.custom
   GetTypeByIndex(type)
   {
     const name = this.constructor.Types[type];
     return name ? this[name] : null;
   }
 
-  /** Reports whether the canonical area enum slot resolves to a material. */
+  /**
+   * Reports whether the canonical area enum slot resolves to a material.
+   * Custom: retained JavaScript SOF lookup convenience.
+   * @param {number} type Native area index.
+   * @returns {boolean} Whether the slot contains a record.
+   */
+  @meta.impl.custom
   Has(type)
   {
     return this.GetTypeByIndex(type) !== null;
@@ -119,7 +182,12 @@ export class EveSOFDataArea extends CjsModel
   /**
    * Returns the material in a canonical area slot or throws when the slot is
    * empty.
+   * Custom: retained JavaScript SOF lookup convenience.
+   * @param {number} type Native area index.
+   * @returns {EveSOFDataAreaMaterial} The selected record.
+   * @throws {ErrSOFAreaTypeNotFound} When the slot has no material.
    */
+  @meta.impl.custom
   Get(type)
   {
     const value = this.GetTypeByIndex(type);
@@ -149,3 +217,8 @@ blue.enums.RegisterEnum("trinity.EveSOFDataArea.AreaType", EveSOFDataArea.AreaTy
     { name: "NoOverwrite", value: EveSOFDataArea.AreaType.TYPE_NO_OVERWRITE, description: "Area Type No Overwrite" }
   ]
 });
+
+meta.carbon.interfaceTable({
+  interfaces: [ EveSOFDataArea ],
+  chainTo: null
+})(EveSOFDataArea);

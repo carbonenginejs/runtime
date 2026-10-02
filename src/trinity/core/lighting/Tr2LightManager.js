@@ -748,7 +748,7 @@ export class Tr2LightManager extends CjsModel
   _InitializeDevice(effectPath)
   {
     this._effectPath = String(effectPath ?? "");
-    const store = Tr2VariableStore.GlobalStore();
+    const store = Tr2VariableStore.globalStore();
     this._lightBufferVariable = store.RegisterVariable(Tr2LightManager.LIGHT_BUFFER_NAME, this._lightBuffer);
     this._indexBufferVariable = store.RegisterVariable(Tr2LightManager.LIGHT_INDEX_BUFFER_NAME, this._indexBuffer);
     TriDevice.RegisterResource(this);
@@ -791,7 +791,7 @@ export class Tr2LightManager extends CjsModel
     if (!instance) return;
     Tr2LightManager._instance = null;
     TriDevice.UnregisterResource(instance);
-    const store = Tr2VariableStore.GlobalStore();
+    const store = Tr2VariableStore.globalStore();
     store.RegisterVariable(Tr2LightManager.LIGHT_BUFFER_NAME, new Tr2GpuStructuredBuffer());
     store.RegisterVariable(Tr2LightManager.LIGHT_INDEX_BUFFER_NAME, new Tr2GpuStructuredBuffer());
   }

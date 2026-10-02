@@ -122,7 +122,7 @@ export class Tr2VolumetricsRenderer extends CjsModel
   constructor()
   {
     super();
-    const store = Tr2VariableStore.GlobalStore();
+    const store = Tr2VariableStore.globalStore();
     store.RegisterVariable("EveSceneFogVolumeMap");
     store.RegisterVariable("VolumetricDepthMap");
     store.RegisterVariable("EveSceneMieEnvironmentMap");
@@ -448,7 +448,7 @@ export class Tr2VolumetricsRenderer extends CjsModel
   @impl.implemented
   UpdateVariableStore()
   {
-    Tr2VariableStore.GlobalStore().RegisterVariable("EveSceneMieEnvironmentMap", this.mieEnvironmentMap);
+    Tr2VariableStore.globalStore().RegisterVariable("EveSceneMieEnvironmentMap", this.mieEnvironmentMap);
   }
 
   /**

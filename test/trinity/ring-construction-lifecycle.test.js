@@ -10,7 +10,7 @@ import { Tr2BaseDeviceResourceAL, Tr2RenderContextALStub } from "../../npm/dist/
 function reset()
 {
   Tr2RingBuffer.ResetInstances();
-  Tr2VariableStore.SetGlobalStore();
+  Tr2VariableStore.setGlobalStore();
   const context = Tr2RenderContext_GetMainThreadRenderContext();
   context.SetRenderContextAL(new Tr2RenderContextALStub());
   return context;
@@ -42,7 +42,7 @@ test("scene construction registers the bone provider before material mapping and
   Tr2RingBuffer.GetInstance("Float4x3", 48, context);
   assert.equal(Tr2BaseDeviceResourceAL.GetResourceCount(), before, "deferred ring allocation leaks no invalid factory resource");
   new EveSpaceScene();
-  const variable = Tr2VariableStore.GlobalStore().FindVariable("BoneTransforms");
+  const variable = Tr2VariableStore.globalStore().FindVariable("BoneTransforms");
   const ring = variable.GetValue();
   assert.equal(context.IsValid(), false);
   assert.equal(ring.GetGpuBuffer(), null, "native Resize retains the ring after failed Create (cpp:105-108)");
@@ -62,7 +62,7 @@ test("old-order negative control misses only BoneTransforms and later registrati
 {
   reset();
   new EveSpaceScene();
-  const store = Tr2VariableStore.GlobalStore();
+  const store = Tr2VariableStore.globalStore();
   const ring = store.FindVariable("BoneTransforms").GetValue();
   store.UnregisterVariable("BoneTransforms");
   const mappings = mappedResources();
@@ -160,7 +160,7 @@ test("ambient context recreation preserves provider identity and realizes throug
   const previous = reset();
   previous.GetRenderContextAL().CreateDevice();
   new EveSpaceScene();
-  const provider = Tr2VariableStore.GlobalStore().FindVariable("BoneTransforms").GetValue();
+  const provider = Tr2VariableStore.globalStore().FindVariable("BoneTransforms").GetValue();
   const oldBuffer = provider.GetGpuBuffer();
   Tr2RenderContext.DestroyMainThreadRenderContext();
   const current = Tr2RenderContext_GetMainThreadRenderContext();
@@ -172,7 +172,7 @@ test("ambient context recreation preserves provider identity and realizes throug
   {
     new TriDevice().PrepareDeviceResources();
     assert.equal(creations, 1, "native OnPrepareResources reacquires USE_MAIN_THREAD_RENDER_CONTEXT (cpp:151)");
-    assert.equal(Tr2VariableStore.GlobalStore().FindVariable("BoneTransforms").GetValue(), provider);
+    assert.equal(Tr2VariableStore.globalStore().FindVariable("BoneTransforms").GetValue(), provider);
     assert.notEqual(provider.GetGpuBuffer(), oldBuffer);
     assert.equal(oldBuffer.IsValid(), false);
     assert.ok(provider.GetGpuBuffer().IsValid());

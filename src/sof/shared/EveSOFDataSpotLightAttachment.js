@@ -1,78 +1,124 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { edit, type } from "#schema";
-import { CjsModel } from "#model";
+import { meta, types } from "#schema";
 import { vec3 } from "#math/vec3";
 
 /** Defines spotlight placement, intensity, saturation, cone angles, scales, noise, and profile data for an attachment. */
-@type.define({ className: "EveSOFDataSpotLightAttachment", family: "eve" })
-export class EveSOFDataSpotLightAttachment extends CjsModel
+@meta.define({ className: "EveSOFDataSpotLightAttachment", family: "eve" })
+export class EveSOFDataSpotLightAttachment
 {
 
-  /** m_saturation (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  /**
+   * Color saturation applied to the attachment light.
+   * Native m_saturation (float) [READWRITE, PERSIST]
+   * @type {number}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   saturation = 1;
 
-  /** m_intensity (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  /**
+   * Brightness multiplier applied to the attachment light.
+   * Native m_intensity (float) [READWRITE, PERSIST]
+   * @type {number}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   intensity = 1;
 
-  /** m_translation (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  /**
+   * Local translation of the light relative to its attachment.
+   * Native m_translation (Vector3) [READWRITE, PERSIST]
+   * @type {Float32Array}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.vec3
   translation = vec3.create();
 
-  /** m_innerAngleMultiplier (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  /**
+   * Multiplier for the spotlight inner cone angle.
+   * Native m_innerAngleMultiplier (float) [READWRITE, PERSIST]
+   * @type {number}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   innerAngleMultiplier = 0.5;
 
-  /** m_outerAngleMultiplier (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  /**
+   * Multiplier for the spotlight outer cone angle.
+   * Native m_outerAngleMultiplier (float) [READWRITE, PERSIST]
+   * @type {number}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   outerAngleMultiplier = 1;
 
-  /** m_innerScaleMultiplier (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  /**
+   * Multiplier for the inner light radius.
+   * Native m_innerScaleMultiplier (float) [READWRITE, PERSIST]
+   * @type {number}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   innerScaleMultiplier = 1;
 
-  /** m_outerScaleMultiplier (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  /**
+   * Multiplier for the outer light radius.
+   * Native m_outerScaleMultiplier (float) [READWRITE, PERSIST]
+   * @type {number}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   outerScaleMultiplier = 1;
 
-  /** m_noiseAmplitude (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  /**
+   * Amplitude of light intensity noise.
+   * Native m_noiseAmplitude (float) [READWRITE, PERSIST]
+   * @type {number}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   noiseAmplitude = 0;
 
-  /** m_noiseFrequency (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  /**
+   * Frequency of light intensity noise.
+   * Native m_noiseFrequency (float) [READWRITE, PERSIST]
+   * @type {number}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   noiseFrequency = 1;
 
-  /** m_noiseOctaves (int32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  /**
+   * Number of octaves used for light intensity noise.
+   * Native m_noiseOctaves (int32_t) [READWRITE, PERSIST]
+   * @type {number}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.int32
   noiseOctaves = 1;
 
-  /** m_lightProfilePath (std::wstring) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  /**
+   * Profile path passed to the downstream light consumer; this record acquires no resource.
+   * Native m_lightProfilePath (std::wstring) [READWRITE, PERSIST]
+   * @type {string}
+   */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   lightProfilePath = "";
 
 }
+
+// Native IRoot record: concrete query identity with no exposure chain.
+meta.carbon.interfaceTable({ interfaces: [EveSOFDataSpotLightAttachment], chainTo: null })(EveSOFDataSpotLightAttachment, { kind: "class" });

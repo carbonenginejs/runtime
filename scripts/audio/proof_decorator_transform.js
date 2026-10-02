@@ -74,5 +74,14 @@ const source = await import(pathToFileURL(sourceBundle));
 const dist = await import(pathToFileURL(distEntry));
 // Default model values may themselves be class instances from the source and
 // dist module graphs. The proof compares their data, not constructor identity.
-assert.deepEqual(structuredClone(source.capture()), structuredClone(dist.capture()));
+// Constructor clock samples must be identical across the two captures. Keep
+// comparing all fields, including runtime timers exposed by ordinary JS fields.
+const nowDescriptor = Object.getOwnPropertyDescriptor(globalThis.performance, "now");
+Object.defineProperty(globalThis.performance, "now", { configurable: true, value: () => 1234.5 });
+try {
+  assert.deepEqual(structuredClone(source.capture()), structuredClone(dist.capture()));
+} finally {
+  if (nowDescriptor) Object.defineProperty(globalThis.performance, "now", nowDescriptor);
+  else delete globalThis.performance.now;
+}
 console.log("decorator transform proof passed for all audio classes");

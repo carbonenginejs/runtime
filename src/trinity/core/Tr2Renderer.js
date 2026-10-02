@@ -781,7 +781,7 @@ export class Tr2Renderer
   {
     if (!Tr2Renderer.#renderTimeVar)
     {
-      Tr2Renderer.#renderTimeVar = Tr2VariableStore.GlobalStore().RegisterVariable("Time", [ 0, 0, 0, 0 ]);
+      Tr2Renderer.#renderTimeVar = Tr2VariableStore.globalStore().RegisterVariable("Time", [ 0, 0, 0, 0 ]);
     }
     return Tr2Renderer.#renderTimeVar;
   }
