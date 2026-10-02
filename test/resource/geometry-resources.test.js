@@ -26,7 +26,7 @@ function RecordingManager()
     loaders,
     extensions,
     RegisterObjectLoader: (extension, loader) => loaders.set(extension, loader),
-    RegisterExtension: (extension, type) => extensions.set(extension, type)
+    RegisterExtension: (extension, type, route) => { extensions.set(extension, type); loaders.set(extension, route); }
   };
 }
 
@@ -49,19 +49,23 @@ function WithStubbedReaders(t)
   return seen;
 }
 
-test("the .gr2 route loads TriGeometryRes through ReadGrannyFile, rebuilding missing bounds", (t) =>
+test("the .gr2 format route retains Granny provenance and rebuilds missing bounds", (t) =>
 {
   const seen = WithStubbedReaders(t);
   const manager = RegisterGeometryResources(RecordingManager());
   assert.equal(manager.extensions.get("gr2"), TriGeometryRes);
 
   const resource = new TriGeometryRes();
-  const payload = manager.loaders.get("gr2")(new Uint8Array(4), { resource });
+  const route = manager.loaders.get("gr2");
+  const decoded = route.Format.read(new Uint8Array(4), route.defaults);
+  decoded.grannyFileFormatRevision = 7;
+  resource.SetPayload(decoded);
+  const payload = resource.GetPayload();
 
-  assert.deepEqual(payload, { meshes: [], projected: { granny: true } });
+  assert.deepEqual(payload, { meshes: [], projected: decoded });
   assert.equal(seen.length, 1);
   assert.equal(seen[0]?.rebuildMissingBounds, true);
-  assert.deepEqual(resource.GetGrannyInfo(), { granny: true }, "the granny read is kept whole");
+  assert.equal(resource.GetGrannyInfo(), decoded, "the Granny graph is retained without another decode or clone");
 });
 
 test("IsUsingCMF follows the reader that ran, not the payload's shape", (t) =>

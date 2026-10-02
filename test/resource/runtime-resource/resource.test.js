@@ -1857,7 +1857,9 @@ test("TriTextureRes holds a HostBitmap, and TriGeometryRes a validated payload",
   assert.equal(CjsSchema.getMethod(TriTextureRes, "PrepareResources").carbon.method, true);
   assert.equal(CjsSchema.getMethod(TriTextureRes, "Save").impl.status, "notSupported");
   assert.equal(CjsSchema.getMethod(TriTextureRes, "CreateEmptyTexture").impl.status, "notSupported");
-  assert.equal(CjsSchema.getMethod(TriTextureRes, "SetPayload"), null);
+  assert.equal(CjsSchema.getMethod(TriTextureRes, "SetPayload").impl.status, "custom");
+  assert.notEqual(CjsSchema.getMethod(TriTextureRes, "SetPayload").carbon?.method, true,
+    "payload application is a marked JS adaptation, not a Carbon-exposed method");
 
   assert.equal(geometry.GetMeshCount(), 1);
   assert.equal(geometry.GetAnimationCount(), 0);

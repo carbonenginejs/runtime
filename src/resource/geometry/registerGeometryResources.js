@@ -4,11 +4,11 @@
 // reason: the manager knows no resource type until composition registers one,
 // and without this a SOF-built ship's mesh stayed a failed resource.
 //
-// The resource reads its own file, as Carbon's TriGeometryRes::DoLoad does
-// (cpp:548-582): `ReadGrannyFile` keeps the granny read for the animation path
-// and returns its CMF projection, the meshes/areas/declaration graph the mesh
-// draw path reads.
+// The format route lets ResMan decode in its worker. Publication on the owning
+// thread retains the Granny read for animation and projects the geometry into
+// the CMF graph the mesh draw path consumes (TriGeometryRes::DoLoad, cpp:548-582).
 import { TriGeometryRes } from "./TriGeometryRes.js";
+import { CjsGr2Format } from "../formats/gr2/CjsGr2Format.js";
 
 /** The extensions Carbon loads as geometry resources. */
 export const GeometryResourceExtensions = Object.freeze([ "gr2" ]);
@@ -21,14 +21,12 @@ export const GeometryResourceExtensions = Object.freeze([ "gr2" ]);
  */
 export function RegisterGeometryResources(resourceManager)
 {
-  // The context's resource is the TriGeometryRes this route registers, and
-  // the payload returned here is published to that same resource.
-  const loader = (bytes, context) => context.resource.ReadGrannyFile(bytes);
-
   for (const extension of GeometryResourceExtensions)
   {
-    resourceManager.RegisterObjectLoader(extension, loader);
-    resourceManager.RegisterExtension(extension, TriGeometryRes);
+    resourceManager.RegisterExtension(extension, TriGeometryRes, {
+      Format: CjsGr2Format,
+      defaults: { emit: "json", rebuildMissingBounds: true }
+    });
   }
 
   return resourceManager;

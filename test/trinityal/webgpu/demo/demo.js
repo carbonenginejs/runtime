@@ -2455,6 +2455,9 @@ blue.resMan.Register({
     }
   }
 });
+// Explicit browser entry: bundled format modules have their own worker URLs.
+blue.resMan.SetWorkerLoader({ workerUrl: new URL("./resource.worker.bundle.js", import.meta.url) });
+blue.resMan.UseWorkerLoading(new URLSearchParams(globalThis.location?.search ?? "").get("workers") !== "0");
 RegisterTextureResources(blue.resMan);
 RegisterSolidColorTexture(blue.resMan);
 RegisterTextureArray(blue.resMan);

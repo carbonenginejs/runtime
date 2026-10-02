@@ -74,7 +74,10 @@ export class TriGeometryRes extends CjsResource
   }
 
   /**
-   * Attach a plain geometry payload.
+   * Attach a plain geometry payload or an already decoded Granny graph.
+   *
+   * Ours: resource publication is separate from decoding so a worker can read
+   * Granny bytes while this thread retains and applies the decoded graph.
    *
    * @param {object|null} payload
    * @param {object|null} options
@@ -86,6 +89,9 @@ export class TriGeometryRes extends CjsResource
     {
       throw new Error("TriGeometryRes payload cannot change during an active raycast session.");
     }
+    // A format route may have decoded the Granny graph in a worker already.
+    // Apply it through the same ownership path without reading its bytes again.
+    if (payload?.grannyFileFormatRevision !== undefined) payload = this.ReadGrannyFile(payload);
     this._raycastGeometry = null;
     this._raycastPreparationFailed = false;
     // A payload ReadGrannyFile did not produce came from no granny file, so the
@@ -156,7 +162,10 @@ export class TriGeometryRes extends CjsResource
    * also projected, and the projection borrows its arrays rather than copying
    * them.
    *
-   * @param {Uint8Array} bytes The .gr2 file.
+   * A format worker may supply its plain decoded graph directly. Retaining
+   * that graph preserves its animation references without decoding it twice.
+   *
+   * @param {Uint8Array|object} bytes The .gr2 file or its decoded Granny graph.
    * @returns {object} The CMF-form payload.
    */
   ReadGrannyFile(bytes)
@@ -165,7 +174,9 @@ export class TriGeometryRes extends CjsResource
     // Carbon's SetupModels accumulates it from them (cpp:1016-1017). Without
     // the rebuild every mesh read as a zero sphere and EveTransform culled it -
     // the lens-flare occluder sprites (zsprite.gr2) never drew.
-    const grannyFile = CjsGr2Format.read(bytes, { rebuildMissingBounds: true });
+    const grannyFile = bytes?.grannyFileFormatRevision !== undefined
+      ? bytes
+      : CjsGr2Format.read(bytes, { rebuildMissingBounds: true });
     const payload = CjsCmfFormat.loadShared(grannyFile);
 
     this._useCMF = false;
@@ -1420,6 +1431,8 @@ CjsSchema.define(TriGeometryRes, {
     name: [ meta.type.string, meta.blue.readwrite ]
   },
   methods: {
+    SetPayload: [ meta.ours ],
+    ReadGrannyFile: [ meta.adapted ],
     GetMeshCount: [ meta.blue.method, meta.adapted ],
     GetAnimationCount: [ meta.blue.method, meta.adapted ],
     GetSkeletonCount: [ meta.blue.method, meta.adapted ],

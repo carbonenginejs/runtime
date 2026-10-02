@@ -12,3 +12,5 @@ CLAUDE.md
 *.log
 *.tgz
 /demo/
+
+/test/trinityal/webgpu/demo/*.worker.bundle.js

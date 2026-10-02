@@ -3,6 +3,7 @@
 // Source: trinity/trinity/Resources/TriTextureRes_Blue.cpp
 import { CjsSchema, meta } from "#schema";
 import { HostBitmap } from "#imageio";
+import { createDdsBitmap } from "./ddsBitmap.js";
 import { TriStorageFlags, Tr2ALMemoryType } from "#consts/graphics";
 import { CjsResource } from "#blue";
 import { IsSolidColorTexturePath, RasterizeSolidColor } from "./solidColorTexture.js";
@@ -297,8 +298,11 @@ export class TriTextureRes extends CjsResource
   }
 
   /**
-   * Attach a plain texture, RGBA, or video payload and mirror Carbon-exposed
+   * Attach a native bitmap, DDS worker bitmap, or video payload and mirror Carbon-exposed
    * metadata. Invalid payloads are rejected before replacing the current one.
+   *
+   * Ours: a DDS format worker returns plain bitmap data; materialization here
+   * retains native bitmap identity without another decode or shared-code changes.
    *
    * @param {object|null} payload
    * @param {object|null} options
@@ -314,7 +318,9 @@ export class TriTextureRes extends CjsResource
     }
 
     // Carbon's resource IS its bitmap (TriTextureRes.cpp:606, 960-978).
-    const bitmap = CjsSchema.cast(payload, HostBitmap);
+    const bitmap = payload?.payloadType === "bitmap" && payload.sourceFormat === "dds"
+      ? createDdsBitmap(payload)
+      : CjsSchema.cast(payload, HostBitmap);
 
     if (bitmap) {
       this.CreateFromHostBitmap(bitmap);
@@ -702,6 +708,7 @@ CjsSchema.define(TriTextureRes, {
     loadedBitmap: [ meta.type.unknown, meta.blue.read ]
   },
   methods: {
+    SetPayload: [ meta.ours ],
     Initialize: [ meta.blue.method, meta.adapted, meta.reason("Carbon rasterizes a procedural path into a half-float HostBitmap and creates the GPU texture inside Initialize; this resource cannot reach a render context, so it publishes the half-float-quantized colour as an rgba32float payload. The gradient_1d branch is not ported.") ],
     GetMipCount: [ meta.blue.method, meta.adapted ],
     GetMsaaType: [ meta.blue.method, meta.implemented ],

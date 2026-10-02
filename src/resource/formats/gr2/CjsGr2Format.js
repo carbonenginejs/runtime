@@ -310,6 +310,14 @@ export class CjsGr2Format extends CjsGeometryFormat
         return toJsonValue(value);
     }
 
+    /** Plain Granny data crosses the worker boundary; runtime class outputs do not. */
+    static worker = {
+        module: import.meta.url,
+        exportName: "CjsGr2Format",
+        outputTypes: [ "json", "gr2Json" ],
+        defaultOutput: "json"
+    };
+
     static classKeys = CLASS_KEYS;
     static id = "CjsGr2Format";
     // Same shape as the other geometry writers: a native CMF v1 graph is the

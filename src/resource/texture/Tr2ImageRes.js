@@ -5,6 +5,7 @@ import * as CcpLog from "../../global/logging/ccpLog.js";
 import { CjsSchema, meta } from "#schema";
 import { CjsResource } from "#blue";
 import { HostBitmap } from "#imageio";
+import { createDdsBitmap } from "./ddsBitmap.js";
 import { PixelFormat } from "#consts/render-context";
 import { resourcePayloadError, validateResourcePayload } from "../resourceBoundary.js";
 import { ResourceRequirement } from "#blue";
@@ -37,7 +38,10 @@ export class Tr2ImageRes extends CjsResource
   }
 
   /**
-   * Attach a plain canonical RGBA payload and mirror Carbon-exposed metadata.
+   * Attach a native bitmap or DDS worker bitmap and mirror Carbon-exposed metadata.
+   *
+   * Ours: a DDS format worker returns plain bitmap data; materialization here
+   * retains native bitmap identity without another decode or shared-code changes.
    *
    * @param {object|null} payload
    * @param {object|null} options
@@ -54,7 +58,9 @@ export class Tr2ImageRes extends CjsResource
 
     // Carbon's DoLoad reads straight into m_bitmap (Tr2ImageRes.cpp:39-52),
     // so a HostBitmap is what this resource is made of.
-    const bitmap = CjsSchema.cast(payload, HostBitmap);
+    const bitmap = payload?.payloadType === "bitmap" && payload.sourceFormat === "dds"
+      ? createDdsBitmap(payload)
+      : CjsSchema.cast(payload, HostBitmap);
 
     if (!bitmap)
     {
@@ -193,6 +199,7 @@ CjsSchema.define(Tr2ImageRes, {
     height: [ meta.type.uint32, meta.blue.persist ]
   },
   methods: {
+    SetPayload: [ meta.ours ],
     GetWidth: [ meta.blue.method, meta.adapted ],
     GetHeight: [ meta.blue.method, meta.adapted ],
     GetPixelColor: [ meta.blue.method, meta.adapted ],

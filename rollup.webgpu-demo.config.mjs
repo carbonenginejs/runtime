@@ -1,24 +1,40 @@
-// Bundles the WebGPU demo for the browser.
-//
-// The same resolver the harness config uses, for the same reason: the demo
-// imports the runtime by its `#` subpath specifiers, which a browser cannot
-// resolve, and `node:` anything in this graph is a layering mistake worth
-// failing on rather than shimming.
+// The page and format-worker entries all consume the same built runtime.
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-
 import harness from "./rollup.webgpu-harness.config.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
 const [ shared ] = harness;
+const destination = path.join(root, "test/trinityal/webgpu/demo");
 
-export default [ {
-    onwarn: shared.onwarn,
-    plugins: shared.plugins,
-    input: path.join(root, "test/trinityal/webgpu/demo/demo.js"),
-    output: {
-        file: path.join(root, "test/trinityal/webgpu/demo/demo.bundle.js"),
-        format: "esm",
-        inlineDynamicImports: true
+// In a bundle, a format's import.meta.url would otherwise name the page
+// bundle, which does not export that format. Keep an explicit importable
+// facade per format; shared runtime instances never cross this boundary.
+const workerFormatUrls = {
+    name: "resource-worker-format-urls",
+    resolveImportMeta(property, { moduleId })
+    {
+        if (property !== "url") return null;
+        const id = moduleId.replaceAll("\\", "/");
+        for (const format of [ "Gr2", "Dds" ])
+        {
+            if (id.endsWith("/Cjs" + format + "Format.js"))
+            {
+                return 'new URL("./' + format.toLowerCase() + '.worker.bundle.js", import.meta.url).href';
+            }
+        }
+        return null;
     }
-} ];
+};
+
+export default [
+    [ "test/trinityal/webgpu/demo/demo.js", "demo.bundle.js" ],
+    [ "npm/dist/global/blue/worker/CjsResManWorker.js", "resource.worker.bundle.js" ],
+    [ "npm/dist/resource/formats/gr2/CjsGr2Format.js", "gr2.worker.bundle.js" ],
+    [ "npm/dist/resource/formats/dds/CjsDdsFormat.js", "dds.worker.bundle.js" ]
+].map(([ input, output ]) => ({
+    onwarn: shared.onwarn,
+    plugins: [ ...shared.plugins, workerFormatUrls ],
+    input: path.join(root, input),
+    output: { file: path.join(destination, output), format: "esm", inlineDynamicImports: true }
+}));

@@ -2,7 +2,7 @@ import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { CjsImageFormat } from "../../format/CjsImageFormat.js";
 import { bcDecompress } from "./core/bcDecompress.js";
-import { BitmapDimensions, Cutout, ImageIOResult } from "#imageio";
+import { BitmapDimensions, Cutout, HostBitmap, ImageIOResult, LoadParameters, Metadata } from "#imageio";
 import { PixelFormat, PixelFormatFromCanonical, TextureType } from "#consts/render-context";
 import {
     DEFAULT_VALUES,
@@ -46,7 +46,7 @@ const LEGACY_PIXEL_FORMATS = {
  * DDS texture format profile that inspects header metadata, probes output
  * support, and reads DDS bytes into raw, GPU-free texture, image, or
  * software-decoded RGBA and float payloads (BC1-BC5, BC7, and BC6H
- * included).
+ * included). The resource route uses the plain native-layout bitmap output.
  *
  * The decoded `rgba`/`image` output is narrower than `texture`: it decodes only
  * the first subresource (every slice of a volume, but no further mips, cube
@@ -104,7 +104,7 @@ export class CjsDdsFormat extends CjsImageFormat
      */
     Read(input, options = {})
     {
-        return readWithValues(input, this.GetValues(options), "dds");
+        return CjsDdsFormat.read(input, this.GetValues(options));
     }
 
     /**
@@ -151,6 +151,7 @@ export class CjsDdsFormat extends CjsImageFormat
      */
     static read(input, options = {})
     {
+        if (options.emit === "bitmap") return CjsDdsFormat.readBitmap(input, options);
         return readWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "dds", ...options }, FORMAT_NAME), "dds");
     }
 
@@ -444,6 +445,49 @@ export class CjsDdsFormat extends CjsImageFormat
         bcDecompress
     };
 
+    /**
+     * Read the native bitmap layout as plain data for a resource worker.
+     *
+     * This uses the resource image path, including legacy conversions and
+     * partial-read behavior, rather than the stricter texture output.
+     * No device operations or runtime resources cross the worker boundary.
+     *
+     * @param {Uint8Array|ArrayBuffer} input DDS bytes.
+     * @param {object} [options] Format options; source labels error messages.
+     * @returns {object} Native dimensions, metadata and pixel/block storage.
+     */
+    static readBitmap(input, options = {})
+    {
+        const bitmap = new HostBitmap();
+        const metadata = new Metadata();
+        const result = CjsDdsFormat.readImage(input, new LoadParameters(options.source || ""), bitmap, metadata);
+        if (!result.IsOk())
+        {
+            const error = new Error(result.GetErrorMessage());
+            error.code = "CJS_RESOURCE_IMAGE_READ_FAILED";
+            throw error;
+        }
+        return {
+            payloadType: "bitmap",
+            sourceFormat: "dds",
+            description: {
+                type: bitmap.GetType(), format: bitmap.GetFormat(),
+                width: bitmap.GetWidth(), height: bitmap.GetHeight(), depth: bitmap.GetDepth(),
+                mipCount: bitmap.GetMipCount(), arraySize: bitmap.GetArraySize()
+            },
+            data: bitmap.GetRawData(),
+            metadata: { cutout: { ...metadata.cutout }, metadata: metadata.metadata }
+        };
+    }
+
+    /** Resource-safe output only; caller-owned source buffers are never detached. */
+    static worker = {
+        module: import.meta.url,
+        exportName: "CjsDdsFormat",
+        outputTypes: [ "bitmap" ],
+        defaultOutput: "raw"
+    };
+
     static id = "CjsDdsFormat";
     static mediaTypes = [ "texture", "image" ];
     static outputs = CjsFormat.defineOutputs({
@@ -451,7 +495,8 @@ export class CjsDdsFormat extends CjsImageFormat
         image: { decoded: true, probes: [ "image", "rgba" ] },
         rgba: { decoded: true },
         ddsJson: { role: "debug", probes: [ "ddsJson", "raw" ] },
-        raw: { role: "debug", default: true, passthrough: true }
+        raw: { role: "debug", default: true, passthrough: true },
+        bitmap: { decoded: true }
     });
     static extensions = [ ".dds" ];
 }

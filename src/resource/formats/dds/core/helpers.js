@@ -132,7 +132,7 @@ export function normalizeInputType(inputType)
 export function normalizeEmit(emit, inputType, readerName)
 {
     if (emit === undefined || emit === null) return OUTPUT_RAW;
-    if ([ OUTPUT_IMAGE, OUTPUT_TEXTURE, OUTPUT_RGBA, OUTPUT_RAW].includes(emit)) return emit;
+    if ([ "bitmap", OUTPUT_IMAGE, OUTPUT_TEXTURE, OUTPUT_RGBA, OUTPUT_RAW].includes(emit)) return emit;
     if (Object.values(DEBUG_OUTPUTS).includes(emit)) return emit;
     throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
