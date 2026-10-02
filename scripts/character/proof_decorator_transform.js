@@ -15,10 +15,10 @@ const distEntry = path.join(distScratch, "dist-entry.mjs");
 function entryText(kind) {
   const base = kind === "source" ? "../../src/character/index.js" : "../../dist/character/index.js";
   return `
-import { CjsSchema, compose } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import * as character from "${base}";
 
-// The composition half of the proof (the @compose.notify spike): pins that
+// The composition half of the proof (the @meta.events installer): pins that
 // Babel's 2023-11 class-decorator output applies prototype mutations to the
 // SAME prototype object in both pipelines - which schema metadata cannot see.
 export function captureComposition() {
@@ -60,7 +60,7 @@ export function captureComposition() {
   class OwnOnEventProbe {
     OnEvent() { return "own"; }
   }
-  compose.notify(OwnOnEventProbe);
+  meta.events(OwnOnEventProbe);
   result.ownMethodSurvives = new OwnOnEventProbe().OnEvent() === "own";
   result.probeGainsRest = typeof OwnOnEventProbe.prototype.EmitEvent === "function";
 
@@ -132,4 +132,4 @@ assert.deepEqual(structuredClone(source.capture()), structuredClone(dist.capture
 assert.deepEqual(source.captureComposition(), dist.captureComposition());
 assert.equal(dist.captureComposition().baseIsObject, true, "the extends is gone in dist");
 assert.equal(dist.captureComposition().observed, 1, "composed emitter dispatches in dist");
-console.log("decorator transform proof passed for all decorated character classes, including the composed notify surface");
+console.log("decorator transform proof passed for all decorated character classes, including the installed event surface");
