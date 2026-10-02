@@ -1,7 +1,7 @@
 // Source: audio/src/AudEmitter.h + AudEmitter.cpp
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/AudEmitter.json.
-import { carbon, impl, edit, type } from "#schema";
+import { carbon, impl, edit, meta, type } from "#schema";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { AudGameObjResource } from "./AudGameObjResource.js";
@@ -21,15 +21,23 @@ export class AudEmitter extends AudGameObjResource
   @type.quat
   rotation = quat.create();
 
-  /** Effective front vector sent to the audio backend [READ]. */
+  /** Effective front vector sent to Wwise; Carbon's read-only `front` property (GetFront). */
+  @meta.property()
   @edit.read
   @type.vec3
-  front = vec3.fromValues(0, 0, 1);
+  get front()
+  {
+    return this.GetFront();
+  }
 
-  /** Effective top vector sent to the audio backend [READ]. */
+  /** Effective top vector sent to Wwise; Carbon's read-only `top` property (GetTop). */
+  @meta.property()
   @edit.read
   @type.vec3
-  top = vec3.fromValues(0, 1, 0);
+  get top()
+  {
+    return this.GetTop();
+  }
 
   /** m_normalizeAttenuationScaling (bool) [READWRITE, PERSIST] */
   @edit.readwrite
@@ -67,12 +75,18 @@ export class AudEmitter extends AudGameObjResource
   @type.float32
   minNormalizedScalingFactor = 0.4;
 
-  /** Carbon method __init__ -> Py__init__: forwards to Initialize. */
+  /**
+   * Carbon `Py__init__` (AudEmitter_Blue.cpp), the Python constructor: sets
+   * the name, then runs the no-argument `Initialize()`.
+   *
+   * @param {string} [name] Emitter name; Carbon defaults it to empty.
+   */
   @carbon.renamed("__init__")
   @impl.implemented
-  __init__(name, prefix, position)
+  __init__(name = "")
   {
-    return this.Initialize(name, prefix, position);
+    this.name = name;
+    this.Initialize();
   }
 
   /** Carbon method SendEvent -> PostEvent (ITr2AudEmitter). */
@@ -91,12 +105,16 @@ export class AudEmitter extends AudGameObjResource
     this.PostEvent(eventName);
   }
 
-  /** Carbon method SetPosition: marks the emitter positioned (unblocks Wake), then stores/pushes. */
+  /**
+   * Carbon method SetPosition (AudEmitter.cpp:75-79): the one place Carbon marks
+   * a game object as placed (which lets Wake register it), then applies the
+   * parent placement.
+   */
   @carbon.method
   @impl.implemented
   SetPosition(front, top, position)
   {
-    this.MarkPositionReceived();
+    this._hasReceivedPosition = true;
     return this.SetPlacementFromParent(front, top, position);
   }
 

@@ -77,9 +77,9 @@ export class AudioGameObject extends CjsModel
     this.audioEmitter = new Emitter();
     this.UpdateWorldTransform(0);
     const position = this.GetWorldPosition(vec3.create());
-    const initialized = this.audioEmitter.Initialize(this.name || "audio_object", "", position);
+    this.audioEmitter.InitializeWithParameters(this.name || "audio_object", "", position);
     this._SetEmitterPosition(position);
-    return initialized !== false;
+    return true;
   }
 
   /** Post-hydration hook; runs Initialize. */

@@ -481,10 +481,14 @@ export class CjsAudioSystem
         return this.musicEngine?.ClearMedia() ?? 0;
     }
 
-    /** Creates and adopts one Carbon AudEmitter from a plain descriptor. */
+    /**
+     * Creates and adopts one Carbon AudEmitter from a plain descriptor. A
+     * descriptor position places the emitter through SetPosition, the one call
+     * that marks a Carbon game object as placed; `position` itself is READ.
+     */
     CreateEmitter(descriptor = {})
     {
-        const values = { ...descriptor };
+        const { position, ...values } = descriptor;
         if (values.eventPrefix === undefined && values.prefix !== undefined)
         {
             values.eventPrefix = values.prefix;
@@ -495,7 +499,9 @@ export class CjsAudioSystem
         }
         delete values.prefix;
         delete values.attenuationScalingFactor;
-        return this.AdoptEmitter(AudEmitter.from(values));
+        const emitter = AudEmitter.from(values);
+        if (position !== undefined) emitter.SetPosition([ 0, 0, 1 ], [ 0, 1, 0 ], position);
+        return this.AdoptEmitter(emitter);
     }
 
     /**

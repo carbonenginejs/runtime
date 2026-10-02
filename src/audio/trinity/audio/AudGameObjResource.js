@@ -9,6 +9,9 @@
 // state, bank statuses, prioritization) and `backend` (Wwise-shaped calls)
 // via the statics at the bottom.
 import { BLUELISTEVENT } from "#consts/blue";
+import { IInitialize } from "#blue/IInitialize";
+import { IListNotify } from "#blue/IListNotify";
+import { INotify } from "#blue/INotify";
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { quat } from "#math/quat";
@@ -19,6 +22,21 @@ import { SoundPrioritization } from "./SoundPrioritization.js";
 const INVALID_PLAYING_ID = 0;
 // Audio2.h:31 WWISE_INIT_POSITION - the FLT_MAX far-away init sentinel.
 const WWISE_INIT_POSITION = 3.4028234663852886e38;
+
+/**
+ * Whether a position is still Carbon's `WWISE_INIT_POSITION` sentinel, the
+ * value every game object starts at until something places it. Carbon compares
+ * `GetPosition() != WWISE_INIT_POSITION` directly (AudEventCurve.cpp:59,72).
+ *
+ * @param {ArrayLike<number>} position Position to test.
+ * @returns {boolean} True while the object has never been placed.
+ */
+export function IsWwiseInitPosition(position)
+{
+  return position[0] === WWISE_INIT_POSITION
+    && position[1] === WWISE_INIT_POSITION
+    && position[2] === WWISE_INIT_POSITION;
+}
 
 /** Whether a position is a real world placement. Source: Audio2.h:35 IsUsableWorldPosition. */
 function IsUsableWorldPosition(position)
@@ -41,8 +59,14 @@ function NowMs()
   return globalThis.performance?.now() ?? Date.now();
 }
 
-/** Maintains per-object event, RTPC, switch, placement, and culling state for Carbon audio objects. The base Wwise game object. */
-@type.define({ className: "AudGameObjResource", family: "audio" })
+/**
+ * The base Wwise game object: per-object event, RTPC, switch, placement and
+ * culling state. Abstract in Carbon (`BLUE_DEFINE_ABSTRACT`, _Blue.cpp:8):
+ * AudEmitter, AudListener, AudUIPlayer and AudMusicPlayer build on it.
+ */
+@type.define({ className: "AudGameObjResource", family: "audio", abstract: true })
+@carbon.inherit(IInitialize, IListNotify, INotify)
+@carbon.mapInterface(IInitialize, IListNotify, INotify)
 export class AudGameObjResource extends CjsModel
 {
 
@@ -128,60 +152,67 @@ export class AudGameObjResource extends CjsModel
   @type.boolean
   forceCullingState = false;
 
-  /** m_position (Vector3) [AUTHORED] */
-  @impl.adapted
-  @impl.reason("Carbon routes this through Initialize(name, prefix, position) outside Blue serialization; CarbonEngineJS persists it for values interchange.")
-  @edit.persist
+  /**
+   * m_position (Vector3) [READ]. Starts at the `WWISE_INIT_POSITION` sentinel
+   * (cpp:30,69), so an object nobody has placed reports no usable position.
+   */
+  @edit.read
   @type.vec3
-  position = vec3.create();
+  position = vec3.fromValues(WWISE_INIT_POSITION, WWISE_INIT_POSITION, WWISE_INIT_POSITION);
 
-  // Runtime bookkeeping (C++ members) - rebuildable, never serialized.
-  #culled = true;
+  /**
+   * m_authoredRotation (Quaternion), identity by default (cpp:33). A base
+   * member in Carbon; only AudEmitter maps it to Blue, as `rotation`.
+   */
+  rotation = quat.create();
 
-  #muted = false;
+  // Runtime bookkeeping (C++ protected members) - rebuildable, never serialized.
+  _culled = true;
 
-  #gameObjRegistered = false;
+  _muted = false;
 
-  #hasReceivedPosition = false;
+  _gameObjRegistered = false;
 
-  #maxAttenuationRadiusSq = 0;
+  _hasReceivedPosition = false;
 
-  #playingEvents = new Map();
+  _maxAttenuationRadiusSq = 0;
 
-  #eventsOnWake = new Set();
+  _playingEvents = new Map();
 
-  #pendingStoppedPlayingIDs = new Set();
+  _eventsOnWake = new Set();
 
-  #rtpcValues = new Map();
+  _pendingStoppedPlayingIDs = new Set();
 
-  #switchValues = new Map();
+  _rtpcValues = new Map();
 
-  #waitingOneShotTime = 0;
+  _switchValues = new Map();
 
-  #waitingOneShotName = "";
+  _waitingOneShotTime = 0;
 
-  #parentFront = vec3.fromValues(0, 0, 1);
+  _waitingOneShotName = "";
 
-  #parentTop = vec3.fromValues(0, 1, 0);
+  _parentFront = vec3.fromValues(0, 0, 1);
 
-  #effectiveFront = vec3.fromValues(0, 0, 1);
+  _parentTop = vec3.fromValues(0, 1, 0);
 
-  #effectiveTop = vec3.fromValues(0, 1, 0);
+  _effectiveFront = vec3.fromValues(0, 0, 1);
 
-  #candidateFront = vec3.fromValues(0, 0, 1);
+  _effectiveTop = vec3.fromValues(0, 1, 0);
 
-  #candidateTop = vec3.fromValues(0, 1, 0);
+  _candidateFront = vec3.fromValues(0, 0, 1);
 
-  #candidateOrientation = {
-    front: this.#candidateFront,
-    top: this.#candidateTop
+  _candidateTop = vec3.fromValues(0, 1, 0);
+
+  _candidateOrientation = {
+    front: this._candidateFront,
+    top: this._candidateTop
   };
 
-  #normalizedTop = vec3.fromValues(0, 1, 0);
+  _normalizedTop = vec3.fromValues(0, 1, 0);
 
-  #cross = vec3.fromValues(-1, 0, 0);
+  _cross = vec3.fromValues(-1, 0, 0);
 
-  #normalizedRotation = quat.create();
+  _normalizedRotation = quat.create();
 
 
 
@@ -193,34 +224,29 @@ export class AudGameObjResource extends CjsModel
   {
     super();
     this.ID = gameObjID ?? GenerateEntityID();
-    this.#waitingOneShotTime = NowMs();
+    this._waitingOneShotTime = NowMs();
     const manager = AudGameObjResource.manager;
     if (manager)
     {
       if (!manager.audioCullingEnabled)
       {
-        this.#culled = false;
+        this._culled = false;
       }
       manager.RegisterGameObject(this.ID, this);
     }
   }
 
-  /** Carbon method Initialize: optional (name, prefix, position), then register + replay eventName. */
+  /**
+   * `IInitialize::Initialize` (cpp:442-453): registers the Wwise object,
+   * applies the default parent placement at the current position, and posts
+   * `eventName` when one is set. Readers call this after building the object.
+   *
+   * @returns {boolean} True.
+   */
   @carbon.method
-  @impl.adapted
-  @impl.reason("Single method covers Carbon's no-arg and (name, prefix, position) overloads; backend registration is a no-op until realization.")
-  Initialize(name, prefix, position)
+  @impl.implemented
+  Initialize()
   {
-    if (name !== undefined)
-    {
-      this.name = String(name);
-      this.eventPrefix = String(prefix ?? "");
-      if (position)
-      {
-        vec3.copy(this.position, position);
-        this.#hasReceivedPosition = true;
-      }
-    }
     this.RegisterWwiseObject();
     this.SetPlacementFromParent([0, 0, 1], [0, 1, 0], this.position);
     if (this.eventName)
@@ -228,6 +254,27 @@ export class AudGameObjResource extends CjsModel
       this.PostEvent(this.eventName);
     }
     return true;
+  }
+
+  /**
+   * Carbon's `Initialize(name, prefix, position)` overload (cpp:489-495).
+   * Adapted: renamed because JavaScript has no overloads and readers call the
+   * no-argument `Initialize`. Sets the name, event prefix and position, then
+   * runs `Initialize()`. Like Carbon, it does not mark the position as
+   * received; only `AudEmitter.SetPosition` does.
+   *
+   * @param {string} name Logical object name.
+   * @param {string} prefix Event prefix.
+   * @param {ArrayLike<number>} position World position.
+   */
+  @carbon.renamed("Initialize")
+  @impl.adapted
+  InitializeWithParameters(name, prefix, position)
+  {
+    this.name = name;
+    this.eventPrefix = prefix;
+    vec3.copy(this.position, position);
+    this.Initialize();
   }
 
   /** Carbon method PostEvent: returns a playing id, or 0 when queued/culled/failed. */
@@ -247,21 +294,21 @@ export class AudGameObjResource extends CjsModel
     let playingID = INVALID_PLAYING_ID;
     const manager = AudGameObjResource.manager;
 
-    if (this.#culled || !manager || !manager.enabled)
+    if (this._culled || !manager || !manager.enabled)
     {
       this.ApplyEventStopRelationships(fullEventName);
       if (repository.EventIsLoop(fullEventName) || eventIsVital)
       {
-        this.#eventsOnWake.add(fullEventName);
+        this._eventsOnWake.add(fullEventName);
       }
       else
       {
-        this.#waitingOneShotTime = NowMs();
-        this.#waitingOneShotName = fullEventName;
+        this._waitingOneShotTime = NowMs();
+        this._waitingOneShotName = fullEventName;
       }
       eventUsed = true;
     }
-    else if (this.#gameObjRegistered)
+    else if (this._gameObjRegistered)
     {
       const banks = repository.SoundBanksRequiredForEvent(fullEventName);
       if (!banks.length)
@@ -291,7 +338,7 @@ export class AudGameObjResource extends CjsModel
         if (playingID !== INVALID_PLAYING_ID)
         {
           this.ApplyEventStopRelationships(fullEventName);
-          this.#playingEvents.set(playingID, fullEventName);
+          this._playingEvents.set(playingID, fullEventName);
           eventUsed = true;
         }
       }
@@ -319,7 +366,7 @@ export class AudGameObjResource extends CjsModel
   {
     const fullEventName = PrepareEvent(this.eventPrefix, eventName, false);
     let stopped = false;
-    for (const [playingID, playing] of this.#playingEvents)
+    for (const [playingID, playing] of this._playingEvents)
     {
       if (playing === fullEventName)
       {
@@ -359,7 +406,7 @@ export class AudGameObjResource extends CjsModel
   @impl.implemented
   SeekOnEventPercent(playingID, percentToSeek)
   {
-    if (!AudGameObjResource.manager?.enabled || !this.#playingEvents.has(playingID))
+    if (!AudGameObjResource.manager?.enabled || !this._playingEvents.has(playingID))
     {
       return false;
     }
@@ -371,7 +418,7 @@ export class AudGameObjResource extends CjsModel
   @impl.implemented
   SeekOnEventMs(playingID, msToSeek)
   {
-    if (!AudGameObjResource.manager?.enabled || !this.#playingEvents.has(playingID))
+    if (!AudGameObjResource.manager?.enabled || !this._playingEvents.has(playingID))
     {
       return false;
     }
@@ -385,7 +432,7 @@ export class AudGameObjResource extends CjsModel
   {
     if (AudGameObjResource.manager?.enabled)
     {
-      for (const playingID of this.#playingEvents.keys())
+      for (const playingID of this._playingEvents.keys())
       {
         this.StopSound(playingID);
       }
@@ -397,7 +444,7 @@ export class AudGameObjResource extends CjsModel
   @impl.implemented
   ExecuteActionOnPlayingID(playingID, action, fadeOutDuration = 1000)
   {
-    if (!AudGameObjResource.manager?.enabled || !this.#playingEvents.has(playingID))
+    if (!AudGameObjResource.manager?.enabled || !this._playingEvents.has(playingID))
     {
       return false;
     }
@@ -412,11 +459,11 @@ export class AudGameObjResource extends CjsModel
   @impl.implemented
   MarkPlayingIDStoppedByRequest(playingID)
   {
-    const playing = this.#playingEvents.get(playingID);
+    const playing = this._playingEvents.get(playingID);
     if (playing !== undefined)
     {
-      this.#pendingStoppedPlayingIDs.add(playingID);
-      this.#eventsOnWake.delete(playing);
+      this._pendingStoppedPlayingIDs.add(playingID);
+      this._eventsOnWake.delete(playing);
       this.UpdateEventSoundPrioritizationAttributes();
     }
   }
@@ -426,8 +473,8 @@ export class AudGameObjResource extends CjsModel
   @impl.implemented
   EventFinishedCallback(playingID)
   {
-    this.#pendingStoppedPlayingIDs.delete(playingID);
-    this.#playingEvents.delete(playingID);
+    this._pendingStoppedPlayingIDs.delete(playingID);
+    this._playingEvents.delete(playingID);
     this.UpdateEventSoundPrioritizationAttributes();
   }
 
@@ -436,12 +483,12 @@ export class AudGameObjResource extends CjsModel
   @impl.implemented
   SetRTPC(rtpcName, rtpcValue)
   {
-    this.#rtpcValues.set(String(rtpcName), Number(rtpcValue));
+    this._rtpcValues.set(String(rtpcName), Number(rtpcValue));
     if (!AudGameObjResource.manager?.enabled)
     {
       return false;
     }
-    if (this.#gameObjRegistered)
+    if (this._gameObjRegistered)
     {
       if (AudGameObjResource.backend?.SetRTPCValue(rtpcName, rtpcValue, this.ID) === false)
       {
@@ -458,12 +505,12 @@ export class AudGameObjResource extends CjsModel
   @impl.implemented
   SetSwitch(switchGroup, switchState)
   {
-    this.#switchValues.set(String(switchGroup), String(switchState));
+    this._switchValues.set(String(switchGroup), String(switchState));
     if (!AudGameObjResource.manager?.enabled)
     {
       return false;
     }
-    if (this.#gameObjRegistered)
+    if (this._gameObjRegistered)
     {
       if (AudGameObjResource.backend?.SetSwitch(switchGroup, switchState, this.ID) === false)
       {
@@ -480,7 +527,7 @@ export class AudGameObjResource extends CjsModel
   @impl.implemented
   Wake()
   {
-    if (!AudGameObjResource.manager?.enabled || this.forceCullingState || this.#muted || !this.#hasReceivedPosition)
+    if (!AudGameObjResource.manager?.enabled || this.forceCullingState || this._muted || !this._hasReceivedPosition)
     {
       return;
     }
@@ -493,25 +540,25 @@ export class AudGameObjResource extends CjsModel
       return;
     }
     this.RegisterWwiseObject();
-    this.ApplyEffectivePlacement(this.#effectiveFront, this.#effectiveTop, this.position);
-    this.#culled = false;
-    if (this.#waitingOneShotName && this.listenerInRange)
+    this.ApplyEffectivePlacement(this._effectiveFront, this._effectiveTop, this.position);
+    this._culled = false;
+    if (this._waitingOneShotName && this.listenerInRange)
     {
-      this.PostEvent(this.#waitingOneShotName, true);
-      this.#waitingOneShotTime = NowMs();
-      this.#waitingOneShotName = "";
+      this.PostEvent(this._waitingOneShotName, true);
+      this._waitingOneShotTime = NowMs();
+      this._waitingOneShotName = "";
     }
-    for (const [rtpcName, rtpcValue] of this.#rtpcValues)
+    for (const [rtpcName, rtpcValue] of this._rtpcValues)
     {
       this.SetRTPC(rtpcName, rtpcValue);
     }
-    for (const [switchGroup, switchState] of this.#switchValues)
+    for (const [switchGroup, switchState] of this._switchValues)
     {
       this.SetSwitch(switchGroup, switchState);
     }
     this.SetAttenuationScalingFactor(this.scalingFactor);
-    const queued = [...this.#eventsOnWake];
-    this.#eventsOnWake.clear();
+    const queued = [...this._eventsOnWake];
+    this._eventsOnWake.clear();
     for (const queuedEvent of queued)
     {
       this.PostEvent(queuedEvent, true);
@@ -528,13 +575,13 @@ export class AudGameObjResource extends CjsModel
       return;
     }
     const repository = AudGameObjResource.staticDataRepository;
-    for (const [playingID, playing] of this.#playingEvents)
+    for (const [playingID, playing] of this._playingEvents)
     {
       if (repository?.EventIsLoop(playing))
       {
-        if (!this.#pendingStoppedPlayingIDs.has(playingID) && this.ExecuteActionOnPlayingID(playingID, "stop", 3000))
+        if (!this._pendingStoppedPlayingIDs.has(playingID) && this.ExecuteActionOnPlayingID(playingID, "stop", 3000))
         {
-          this.#eventsOnWake.add(playing);
+          this._eventsOnWake.add(playing);
         }
       }
       else if (this.listenerInRange)
@@ -547,7 +594,7 @@ export class AudGameObjResource extends CjsModel
       }
     }
     this.UnregisterWwiseObject();
-    this.#culled = true;
+    this._culled = true;
   }
 
   /** Carbon method IsCulled. */
@@ -555,7 +602,7 @@ export class AudGameObjResource extends CjsModel
   @impl.implemented
   IsCulled()
   {
-    return this.#culled;
+    return this._culled;
   }
 
   /** Carbon method ForceCullingStateChange: toggle culled state, then hold it forced. */
@@ -564,7 +611,7 @@ export class AudGameObjResource extends CjsModel
   ForceCullingStateChange()
   {
     this.forceCullingState = false;
-    if (this.#culled)
+    if (this._culled)
     {
       this.Wake();
     }
@@ -588,32 +635,37 @@ export class AudGameObjResource extends CjsModel
   @impl.implemented
   Mute()
   {
-    if (this.#muted)
+    if (this._muted)
     {
       return;
     }
-    if (!this.#culled)
+    if (!this._culled)
     {
       this.ForceCullingStateChange();
     }
-    this.#muted = true;
+    this._muted = true;
   }
 
-  /** Carbon method Unmute. */
+  /**
+   * Carbon method Unmute (cpp:1026-1040), in Carbon's order: the forced wake
+   * runs while the object is still muted, so `Wake` returns early and a culled
+   * object stays culled until the prioritization system wakes it; the muted
+   * flag clears last. Kept as shipped (carbon-known-defects: Unmute order).
+   */
   @carbon.method
   @impl.implemented
   Unmute()
   {
-    if (!this.#muted)
+    if (!this._muted)
     {
       return;
     }
-    this.#muted = false;
-    if (this.#culled)
+    if (this._culled)
     {
       this.ForceCullingStateChange();
     }
     this.ReleaseForcedCullingState();
+    this._muted = false;
   }
 
   /** Carbon method IsMuted. */
@@ -621,7 +673,7 @@ export class AudGameObjResource extends CjsModel
   @impl.implemented
   IsMuted()
   {
-    return this.#muted;
+    return this._muted;
   }
 
   /**
@@ -645,8 +697,8 @@ export class AudGameObjResource extends CjsModel
   @impl.reason("The RH->LH conversion and Wwise SetPosition happen in the backend seam; the headless graph stores the position.")
   SetPlacementFromParent(front, top, positionValue)
   {
-    vec3.copy(this.#parentFront, front);
-    vec3.copy(this.#parentTop, top);
+    vec3.copy(this._parentFront, front);
+    vec3.copy(this._parentTop, top);
     const orientation = this.GetEffectiveOrientation();
     return this.ApplyEffectivePlacement(orientation.front, orientation.top, positionValue);
   }
@@ -658,46 +710,33 @@ export class AudGameObjResource extends CjsModel
   ApplyEffectivePlacement(front, top, positionValue)
   {
     AudGameObjResource.Orthonormalize(
-      this.#effectiveFront,
-      this.#effectiveTop,
+      this._effectiveFront,
+      this._effectiveTop,
       front,
       top,
-      this.#normalizedTop,
-      this.#cross);
+      this._normalizedTop,
+      this._cross);
     vec3.copy(this.position, positionValue);
-    if (this.front)
-    {
-      vec3.copy(this.front, this.#effectiveFront);
-    }
-    if (this.top)
-    {
-      vec3.copy(this.top, this.#effectiveTop);
-    }
-    if (AudGameObjResource.manager?.enabled && this.#gameObjRegistered)
+    if (AudGameObjResource.manager?.enabled && this._gameObjRegistered)
     {
       AudGameObjResource.backend?.SetPosition(
         this.ID,
-        this.#effectiveFront,
-        this.#effectiveTop,
+        this._effectiveFront,
+        this._effectiveTop,
         this.position);
     }
     return 1;
   }
 
-  /** Carbon method HasAuthoredRotation. */
+  /** Carbon method HasAuthoredRotation (cpp:415-418): the authored rotation is not identity. */
   @carbon.method
   @impl.implemented
   HasAuthoredRotation()
   {
-    return Boolean(
-      this.rotation &&
-      (
-        this.rotation[0] !== 0 ||
-        this.rotation[1] !== 0 ||
-        this.rotation[2] !== 0 ||
-        this.rotation[3] !== 1
-      )
-    );
+    return this.rotation[0] !== 0
+      || this.rotation[1] !== 0
+      || this.rotation[2] !== 0
+      || this.rotation[3] !== 1;
   }
 
   /** Carbon method GetEffectiveOrientation: resolves parent axes through authored rotation into owned buffers. */
@@ -708,15 +747,15 @@ export class AudGameObjResource extends CjsModel
   {
     if (!this.HasAuthoredRotation() || quat.squaredLength(this.rotation) <= 0)
     {
-      vec3.copy(this.#candidateFront, this.#parentFront);
-      vec3.copy(this.#candidateTop, this.#parentTop);
-      return this.#candidateOrientation;
+      vec3.copy(this._candidateFront, this._parentFront);
+      vec3.copy(this._candidateTop, this._parentTop);
+      return this._candidateOrientation;
     }
 
-    quat.normalize(this.#normalizedRotation, this.rotation);
-    vec3.transformQuat(this.#candidateFront, this.#parentFront, this.#normalizedRotation);
-    vec3.transformQuat(this.#candidateTop, this.#parentTop, this.#normalizedRotation);
-    return this.#candidateOrientation;
+    quat.normalize(this._normalizedRotation, this.rotation);
+    vec3.transformQuat(this._candidateFront, this._parentFront, this._normalizedRotation);
+    vec3.transformQuat(this._candidateTop, this._parentTop, this._normalizedRotation);
+    return this._candidateOrientation;
   }
 
   /** Carbon method RefreshPlacementFromRotation. */
@@ -733,7 +772,7 @@ export class AudGameObjResource extends CjsModel
   @impl.implemented
   SetAttenuationScalingFactor(value)
   {
-    if (AudGameObjResource.manager?.enabled && this.#gameObjRegistered)
+    if (AudGameObjResource.manager?.enabled && this._gameObjRegistered)
     {
       if (AudGameObjResource.backend?.SetScalingFactor(this.ID, value) === false)
       {
@@ -777,25 +816,24 @@ export class AudGameObjResource extends CjsModel
     {
       return;
     }
-    const backendOwnsStop = AudGameObjResource.backend
-      ?.HandlesEventStops?.(stoppingEventName) === true;
+    const backendOwnsStop = AudGameObjResource.backend?.HandlesEventStops(stoppingEventName) === true;
     let changed = false;
     const playingIDsToStop = [];
-    for (const queued of [...this.#eventsOnWake])
+    for (const queued of [...this._eventsOnWake])
     {
       if (repository.EventIsStopped(queued, stoppingEventName))
       {
-        this.#eventsOnWake.delete(queued);
+        this._eventsOnWake.delete(queued);
         changed = true;
       }
     }
-    for (const [playingID, playing] of this.#playingEvents)
+    for (const [playingID, playing] of this._playingEvents)
     {
       if (repository.EventIsStopped(playing, stoppingEventName))
       {
         if (!backendOwnsStop)
         {
-          this.#pendingStoppedPlayingIDs.add(playingID);
+          this._pendingStoppedPlayingIDs.add(playingID);
           playingIDsToStop.push(playingID);
           changed = true;
         }
@@ -819,22 +857,22 @@ export class AudGameObjResource extends CjsModel
   @impl.implemented
   RegisterWwiseObject()
   {
-    if (AudGameObjResource.manager?.enabled && !this.#gameObjRegistered)
+    if (AudGameObjResource.manager?.enabled && !this._gameObjRegistered)
     {
       AudGameObjResource.backend?.RegisterGameObj(this.ID, this.name);
-      this.#gameObjRegistered = true;
+      this._gameObjRegistered = true;
     }
   }
 
-  /** Carbon method UnregisterWwiseObject. */
+  /** Carbon method UnregisterWwiseObject (cpp:134-146): any state but uninitialized. */
   @carbon.method
   @impl.implemented
   UnregisterWwiseObject()
   {
-    if (AudGameObjResource.manager && this.#gameObjRegistered)
+    if (AudGameObjResource.manager && AudGameObjResource.manager.GetStateValue() !== 0 && this._gameObjRegistered)
     {
       AudGameObjResource.backend?.UnregisterGameObj(this.ID);
-      this.#gameObjRegistered = false;
+      this._gameObjRegistered = false;
     }
   }
 
@@ -846,7 +884,7 @@ export class AudGameObjResource extends CjsModel
     const repository = AudGameObjResource.staticDataRepository;
     if (repository)
     {
-      this.#maxAttenuationRadiusSq = Math.max(this.#maxAttenuationRadiusSq, repository.GetEventRadiusSq(eventName));
+      this._maxAttenuationRadiusSq = Math.max(this._maxAttenuationRadiusSq, repository.GetEventRadiusSq(eventName));
     }
   }
 
@@ -863,18 +901,23 @@ export class AudGameObjResource extends CjsModel
   @impl.implemented
   GetMaxAttenuationRadius()
   {
-    return this.#maxAttenuationRadiusSq * this.scalingFactor;
+    return this._maxAttenuationRadiusSq * this.scalingFactor;
   }
 
-  /** Carbon method UpdateEventSoundPrioritizationAttributes: recompute 2D/vital flags + max radius. */
+  /**
+   * Carbon method UpdateEventSoundPrioritizationAttributes (cpp:896-939):
+   * recomputes the 2D and vital flags from playing and queued events. The max
+   * attenuation radius only GROWS here (through UpdateMaxAttenuationRadiusForEvent)
+   * and resets to zero only when nothing plays or waits, as in Carbon.
+   */
   @carbon.method
   @impl.implemented
   UpdateEventSoundPrioritizationAttributes()
   {
     const repository = AudGameObjResource.staticDataRepository;
-    if (this.#playingEvents.size === 0 && this.#eventsOnWake.size === 0)
+    if (this._playingEvents.size === 0 && this._eventsOnWake.size === 0)
     {
-      this.#maxAttenuationRadiusSq = 0;
+      this._maxAttenuationRadiusSq = 0;
       this.playing2DSound = false;
       this.playingVitalSound = false;
       return;
@@ -885,19 +928,17 @@ export class AudGameObjResource extends CjsModel
     }
     let is2D = false;
     let isVital = false;
-    let maxRadiusSq = 0;
-    for (const collection of [this.#playingEvents.values(), this.#eventsOnWake.values()])
+    for (const collection of [this._playingEvents.values(), this._eventsOnWake.values()])
     {
       for (const playing of collection)
       {
+        this.UpdateMaxAttenuationRadiusForEvent(playing);
         is2D = is2D || repository.EventIs2D(playing);
         isVital = isVital || repository.EventIsVital(playing);
-        maxRadiusSq = Math.max(maxRadiusSq, repository.GetEventRadiusSq(playing));
       }
     }
     this.playing2DSound = is2D;
     this.playingVitalSound = isVital;
-    this.#maxAttenuationRadiusSq = maxRadiusSq;
   }
 
   /** Carbon method CalculateCullingWeight: refresh in-range/one-shot state and store the weight. */
@@ -911,7 +952,7 @@ export class AudGameObjResource extends CjsModel
     {
       return;
     }
-    if (!this.#muted)
+    if (!this._muted)
     {
       // Carbon AudGameObjResource.cpp:741 compares the squared distance
       // strictly against complete authored metadata. Portable libraries may
@@ -922,12 +963,12 @@ export class AudGameObjResource extends CjsModel
         || this.distanceFromListener < maxAttenuationRadius;
     }
     let waitingOneShotWeight = 0;
-    if (this.#culled && this.#waitingOneShotName)
+    if (this._culled && this._waitingOneShotName)
     {
-      if (now - this.#waitingOneShotTime > prioritization.GetOneShotWindow())
+      if (now - this._waitingOneShotTime > prioritization.GetOneShotWindow())
       {
-        this.#waitingOneShotTime = now;
-        this.#waitingOneShotName = "";
+        this._waitingOneShotTime = now;
+        this._waitingOneShotName = "";
       }
       else if (this.listenerInRange)
       {
@@ -935,8 +976,8 @@ export class AudGameObjResource extends CjsModel
       }
     }
     this.cumulativeWeight = SoundPrioritization.calculateObjectWeight(
-      this.distanceFromListener, this.#muted, this.listenerInRange, this.isUsed, this.isVisible,
-      this.playing2DSound, this.playingVitalSound, this.additionalCullingWeight, this.#playingEvents.size,
+      this.distanceFromListener, this._muted, this.listenerInRange, this.isUsed, this.isVisible,
+      this.playing2DSound, this.playingVitalSound, this.additionalCullingWeight, this._playingEvents.size,
       waitingOneShotWeight, prioritization.GetUsedEmitterWeight(), prioritization.GetRangeWeight(),
       prioritization.GetPlayingEventsWeight(), prioritization.GetVisibleWeight(),
       prioritization.GetPlaying2DWeight(), prioritization.GetPlayingVitalSoundWeight());
@@ -971,7 +1012,7 @@ export class AudGameObjResource extends CjsModel
   @impl.implemented
   GetFront()
   {
-    return this.#effectiveFront;
+    return this._effectiveFront;
   }
 
   /** Carbon method GetTop. */
@@ -979,7 +1020,7 @@ export class AudGameObjResource extends CjsModel
   @impl.implemented
   GetTop()
   {
-    return this.#effectiveTop;
+    return this._effectiveTop;
   }
 
   /** Carbon method SetDistanceSqFromListener. */
@@ -995,7 +1036,7 @@ export class AudGameObjResource extends CjsModel
   @impl.implemented
   GetPlayingEvents()
   {
-    return new Map(this.#playingEvents);
+    return new Map(this._playingEvents);
   }
 
   /** Carbon method GetSwitches. */
@@ -1003,7 +1044,7 @@ export class AudGameObjResource extends CjsModel
   @impl.implemented
   GetSwitches()
   {
-    return this.#switchValues;
+    return this._switchValues;
   }
 
   /** Queued events replayed on Wake (introspection/test surface). */
@@ -1011,7 +1052,7 @@ export class AudGameObjResource extends CjsModel
   @impl.reason("CarbonEngineJS-only accessor over private wake-queue state; Carbon exposes no equivalent read.")
   GetEventsOnWake()
   {
-    return [...this.#eventsOnWake];
+    return [...this._eventsOnWake];
   }
 
   /** The pending culled one-shot event name, "" when none. */
@@ -1019,23 +1060,7 @@ export class AudGameObjResource extends CjsModel
   @impl.reason("CarbonEngineJS-only accessor over private one-shot state; Carbon exposes no equivalent read.")
   GetWaitingOneShot()
   {
-    return this.#waitingOneShotName;
-  }
-
-  /** Marks the object as positioned (C++ protected m_hasReceivedPosition; unblocks Wake). */
-  @impl.custom
-  @impl.reason("JS #private fields are not subclass-visible; AudEmitter.SetPosition sets Carbon's protected m_hasReceivedPosition through this accessor.")
-  MarkPositionReceived()
-  {
-    this.#hasReceivedPosition = true;
-  }
-
-  /** Whether the placement gate required by Wake/event curves has been satisfied. */
-  @impl.custom
-  @impl.reason("Carbon tests its FLT_MAX sentinel position; CarbonEngineJS tracks the equivalent state explicitly.")
-  HasReceivedPosition()
-  {
-    return this.#hasReceivedPosition;
+    return this._waitingOneShotName;
   }
 
   /**
@@ -1080,19 +1105,6 @@ export class AudGameObjResource extends CjsModel
     {
       value.SetGameObjectID(this.ID);
     }
-  }
-
-  /** Values write hook: a supplied position counts as received placement. */
-  @impl.adapted
-  @impl.reason("Carbon marks m_hasReceivedPosition in Initialize/SetPosition only; CarbonEngineJS also accepts it at values write time because the cooperative model pipeline holds per-field knowledge only here, so `from({ position })` emitters can Wake.")
-  SetValues(values = {}, options = {})
-  {
-    const result = super.SetValues(values, options);
-    if (values && values.position !== undefined)
-    {
-      this.#hasReceivedPosition = true;
-    }
-    return result;
   }
 
   /**

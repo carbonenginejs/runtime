@@ -2395,10 +2395,9 @@ test("pre-attachment authored eventName is recovered exactly once", async () =>
       WemFileIDs: {},
     },
   });
-  const emitter = AudEmitter.from({
-    eventName: "engine_loop",
-    position: [ 10, 0, 0 ],
-  });
+  const emitter = AudEmitter.from({ eventName: "engine_loop" });
+  // Placement is SetPosition's job; position is READ in Carbon.
+  emitter.SetPosition([ 0, 0, 1 ], [ 0, 1, 0 ], [ 10, 0, 0 ]);
 
   system.AdoptEmitter(emitter);
   system.Attach();
@@ -2468,7 +2467,7 @@ test("pre-backend listener placement realizes its actual stored orientation once
   const listener = new AudListener();
 
   listener.SetPosition([ 1, 0, 0 ], [ 0, 1, 0 ], [ 3, 4, 5 ]);
-  listener.MarkPositionReceived();
+  listener._hasReceivedPosition = true;
   system.AdoptEmitter(listener);
   system.Attach();
   try

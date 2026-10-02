@@ -192,7 +192,7 @@ test("behavior method metadata reflects implementation status", () =>
   assert.equal(CjsSchema.getMethod(AudStaticDataRepository, "Initialize").impl.status, "adapted");
 });
 
-test("values-hydrated emitters count as positioned and can Wake", async () =>
+test("only SetPosition places an emitter; a values position is read-only", async () =>
 {
   const { AudEmitter, AudGameObjResource } = await import("../../../npm/dist/audio/index.js");
   const registered = [];
@@ -210,10 +210,15 @@ test("values-hydrated emitters count as positioned and can Wake", async () =>
     });
     assert.equal(emitter.name, "Engine_SFX");
     assert.equal(emitter.eventPrefix, "ship_engine_S_");
-    assert.equal(emitter.position[2], -69.5);
-
+    // Negative control: Carbon maps position READ, so values cannot place it.
+    assert.equal(emitter.HasUsableWorldPosition(), false, "values position is ignored");
     emitter.Wake();
-    assert.equal(emitter.IsCulled(), false, "hydrated position unblocks Wake");
+    assert.equal(emitter.IsCulled(), true, "an unplaced emitter does not wake");
+
+    emitter.SetPosition([0, 0, 1], [0, 1, 0], [0, 2, -69.5]);
+    assert.equal(emitter.position[2], -69.5);
+    emitter.Wake();
+    assert.equal(emitter.IsCulled(), false, "SetPosition unblocks Wake");
 
     // Parity guard: a positionless hydration still refuses to Wake.
     const unplaced = AudEmitter.from({ name: "NoPosition" });

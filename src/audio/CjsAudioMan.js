@@ -436,7 +436,9 @@ export class CjsAudioMan
             [ 0, 1, 0 ],
             [ 0, 0, 0 ],
         );
-        this._listener.MarkPositionReceived();
+        // Our composition adopts the listener into culling, so it must count as placed
+        // for Wake (Carbon sets the flag only in AudEmitter::SetPosition).
+        this._listener._hasReceivedPosition = true;
         this._system.AdoptEmitter(this._listener);
 
         if (!this._languagesExplicit)

@@ -81,10 +81,9 @@ test("audio graph hydrates and round-trips headlessly", () =>
   assert.equal(values.name, "locator_audio_engine_01");
   assert.equal(values.eventPrefix, "ship_");
   assert.equal(values.scalingFactor, 2.5);
-  // position is an [AUTHORED] promotion (kb.md authored-value rule): Blue
-  // routes it through Initialize(name, prefix, position), the JS graph
-  // serializes it.
-  assert.deepEqual(Array.from(values.position), [1, 2, 3]);
+  // position is READ in Carbon (AudGameObjResource_Blue.cpp:34): values input
+  // cannot place an emitter, so it still holds the WWISE_INIT_POSITION sentinel.
+  assert.equal(emitter.HasUsableWorldPosition(), false);
 });
 
 test("AudEmitter resolves authored rotation over its parent placement", () =>
@@ -151,11 +150,11 @@ test("schema canary: field metadata survives", () =>
   assert.equal(CjsSchema.getField(AudGameObjResource, "eventPrefix").type.kind, "string");
   assert.equal(CjsSchema.getField(AudEmitter, "maxNormalizedValue").type.kind, "float32");
 
-  // Promoted fields carry machine-readable divergence metadata: the authored
-  // exposure is an implementation decision, stamped impl.adapted + reason.
+  // position follows Carbon's Blue mapping exactly: READ, not persisted.
   const position = CjsSchema.getField(AudGameObjResource, "position");
-  assert.equal(position.impl.status, "adapted");
-  assert.match(position.impl.reason, /outside Blue serialization/);
+  assert.equal(position.edit.read, true);
+  assert.notEqual(position.edit.persist, true);
+  assert.equal(position.impl, undefined);
   // A faithful Blue field carries no impl metadata.
   assert.equal(CjsSchema.getField(AudGameObjResource, "eventPrefix").impl, undefined);
 });

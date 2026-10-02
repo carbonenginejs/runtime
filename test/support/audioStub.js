@@ -20,10 +20,17 @@ export function WwiseSoundEngineStubWith(overrides = {})
     return Override(new CjsWwiseSoundEngineStub(), overrides);
 }
 
-/** A real AudManager with the test's overrides. */
+/**
+ * A real AudManager with the test's overrides. `enabled: true` sets the
+ * manager's real state rather than shadowing its derived `enabled` getter, so
+ * every state reader (enabled, GetState, GetStateValue) agrees.
+ */
 export function AudioManagerWith(overrides = {})
 {
-    return Override(new AudManager(), overrides);
+    const { enabled, ...rest } = overrides;
+    const manager = Override(new AudManager(), rest);
+    if (enabled === true) manager._state = "enabled";
+    return manager;
 }
 
 /**

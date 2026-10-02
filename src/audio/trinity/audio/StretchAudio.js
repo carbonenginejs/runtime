@@ -70,17 +70,17 @@ export class StretchAudio extends IStretchAudio
     if (!this.sourceEmitter)
     {
       this.sourceEmitter = new AudEmitter();
-      this.sourceEmitter.Initialize("stretch_source_sfx", "", [0, 0, 0]);
+      this.sourceEmitter.InitializeWithParameters("stretch_source_sfx", "", [0, 0, 0]);
     }
     if (!this.destinationEmitter)
     {
       this.destinationEmitter = new AudEmitter();
-      this.destinationEmitter.Initialize("stretch_dest_sfx", "", [0, 0, 0]);
+      this.destinationEmitter.InitializeWithParameters("stretch_dest_sfx", "", [0, 0, 0]);
     }
     if (!this.stretchEmitter)
     {
       this.stretchEmitter = new AudEmitter();
-      this.stretchEmitter.Initialize("stretch_mid_sfx", "", [0, 0, 0]);
+      this.stretchEmitter.InitializeWithParameters("stretch_mid_sfx", "", [0, 0, 0]);
     }
     return true;
   }

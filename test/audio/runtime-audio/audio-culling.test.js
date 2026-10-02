@@ -63,6 +63,10 @@ test("CullAudio keeps the nearest set awake (with Carbon's +1 quirk) and skips m
   try
   {
     const listener = new AudListener();
+    // Distances are measured from the listener's position. An unplaced game
+    // object sits at Carbon's FLT_MAX WWISE_INIT_POSITION sentinel, so place
+    // the listener at the origin for "nearest" to mean anything.
+    listener.SetPosition([0, 0, 1], [0, 1, 0], [0, 0, 0]);
     const emitters = [];
     for (let i = 0; i < 4; i++)
     {
@@ -85,9 +89,10 @@ test("CullAudio keeps the nearest set awake (with Carbon's +1 quirk) and skips m
     // Ascending weight order: listener (FLT_MAX additional weight subtracts to
     // a huge negative) then nearest emitters. Strict > keeps
     // maxAwakeGameObjects + 1 = 2 slots: listener + nearest emitter. The
-    // listener itself stays flagged culled - Wake() early-returns for a
-    // positionless object (Carbon registers the listener specially at Enable).
-    assert.equal(listener.IsCulled(), true, "positionless listener Wake no-ops (faithful)");
+    // listener itself stays flagged culled - Wake() early-returns because only
+    // AudEmitter.SetPosition marks a game object as placed (Carbon registers
+    // the listener specially at Enable).
+    assert.equal(listener.IsCulled(), true, "listener Wake no-ops (faithful)");
     assert.equal(emitters[0].IsCulled(), false, "nearest emitter woke");
     assert.equal(emitters[1].IsCulled(), true);
     assert.equal(emitters[2].IsCulled(), true);
@@ -669,6 +674,37 @@ test("a non-finite position cannot wake, and the awake set is enumerable without
     }
     emitter.Cull();
     assert.ok(!manager.GetAwakeAudioEmitters().includes(emitter), "culled emitter drops out");
+  }
+  finally
+  {
+    teardown();
+  }
+});
+
+test("Unmute keeps Carbon's order: the forced wake runs while still muted", () =>
+{
+  makeWorld();
+  try
+  {
+    const emitter = new AudEmitter();
+    emitter.SetPosition([1, 0, 0], [0, 1, 0], [1, 0, 0]);
+    emitter.Wake();
+    assert.equal(emitter.IsCulled(), false, "a placed emitter wakes");
+
+    emitter.Mute();
+    assert.equal(emitter.IsCulled(), true, "muting force-culls");
+
+    // AudGameObjResource.cpp:1026-1040 calls ForceCullingStateChange (Wake)
+    // before clearing m_muted, so Wake returns early and the object stays
+    // culled; clearing the flag first (the order this port used before) would
+    // wake it here. Docketed in carbon-known-defects.md.
+    emitter.Unmute();
+    assert.equal(emitter.IsMuted(), false);
+    assert.equal(emitter.IsCulled(), true, "Carbon's Unmute leaves it culled");
+    assert.equal(emitter.forceCullingState, false, "control returns to prioritization");
+
+    emitter.Wake();
+    assert.equal(emitter.IsCulled(), false, "the next wake succeeds");
   }
   finally
   {

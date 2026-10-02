@@ -5,6 +5,7 @@ import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { TRIEXTRAPOLATION } from "#consts/graphics";
 import { AudEmitter } from "./AudEmitter.js";
+import { IsWwiseInitPosition } from "./AudGameObjResource.js";
 import { AudEventKey } from "../../generated/audio/AudEventKey.js";
 import "#blue/registerTrinityEnums";
 
@@ -244,7 +245,7 @@ export class AudEventCurve extends CjsModel
       return existing;
     }
     const emitter = new AudEmitter();
-    emitter.Initialize(this.name);
+    emitter.__init__(this.name);
     this.sourceTriObserver.SetObserver(emitter);
     if (!this.sourceTriObserver.SetObserver)
     {
@@ -288,7 +289,9 @@ export class AudEventCurve extends CjsModel
     {
       this.CreateAudioEmitter();
     }
-    const positioned = this.audioEmitter?.HasReceivedPosition?.() === true;
+    // Carbon tests the emitter's position against the WWISE_INIT_POSITION
+    // sentinel (AudEventCurve.cpp:59,72): an emitter nobody has placed queues.
+    const positioned = this.audioEmitter !== null && !IsWwiseInitPosition(this.audioEmitter.GetPosition());
     if (this._queuedEvent && positioned)
     {
       this.audioEmitter.SendEvent(this._queuedEvent);

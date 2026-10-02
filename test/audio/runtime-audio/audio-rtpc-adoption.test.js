@@ -116,7 +116,8 @@ test("AudParameter binds to its owning object and backend RTPC/switch state rema
 test("pre-attachment emitters and plain descriptors can be adopted after enable", () =>
 {
   const orphan = new AudEmitter();
-  orphan.SetValues({ name: "orphan", position: [ 2, 3, 4 ] });
+  orphan.SetValues({ name: "orphan" });
+  orphan.SetPosition([ 0, 0, 1 ], [ 0, 1, 0 ], [ 2, 3, 4 ]);
   const system = new CjsAudioSystem({
     createContext: FakeContext,
     audioMetadata: EmptyMetadata()
