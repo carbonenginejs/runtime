@@ -30,7 +30,7 @@ Carbon's `ITr2Interior.h` declares four `BLUE_INTERFACE`s:
 A `BLUE_INTERFACE` is not a constructible Blue model, so `ITr2InteriorLight`
 is a JSDoc `@typedef` with no class and no `type.define` registration. The
 other three would follow the same form. Because none of them declares a
-class, class catalogs, parity audits and naming lints do not list them.
+class, parity audits and naming lints do not list them.
 
 ## Skinned per-object data (not ported)
 

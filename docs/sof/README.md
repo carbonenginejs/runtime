@@ -85,5 +85,4 @@ before requesting expanded output.
 
 ## Documentation map
 
-- [Class catalog](reference/classes/README.md)
 - [Package README](../../README.md)

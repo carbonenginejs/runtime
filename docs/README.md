@@ -85,7 +85,6 @@ core, and tools.
 - [Audio: browser playback](audio/guides/browser-playback.md)
 - [Character: runtime usage](character/guides/runtime-usage.md)
 - [Trinity to WebGPU draw path](architecture.md#trinity-to-webgpu-draw-path)
-- [WebGPU class catalog](trinityal/webgpu/reference/classes/README.md)
 - [Repository migration procedure](../migration/README.md)
 - [Machine-readable layer contract](../layers.json)
 - [Machine-readable donor manifest](../migration/sources.json)
