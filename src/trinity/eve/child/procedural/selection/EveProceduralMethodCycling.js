@@ -2,6 +2,7 @@ import { INotify } from "../../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodCycling.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta } from "#schema";
+import { TimeAsDouble } from "#blue";
 import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.js";
 
 // Carbon BELIST_LOADING (blueexposure IList.h:50): list events raised while a
@@ -16,7 +17,7 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
 
   _selectedChildModified = false;
 
-  // Carbon m_startTime (Be::Time): stamped by restart from the caller-supplied
+  // Carbon m_startTime is Be::Time; this JS cursor is seconds, stamped by restart from the caller-supplied
   // clock (frame time when the update loop reselects, wall clock for the
   // Date.now default); UpdateAsyncronous must feed the same clock.
   _startTime = 0;
@@ -145,13 +146,14 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
   /** Carbon EveProceduralMethodCycling::UpdateAsyncronous (cpp:89-106):
    * reselect when no valid index exists or the current parameter's play
    * duration has elapsed on the frame clock (BeOS GetCurrentFrameTime maps to
-   * the update context time, falling back to restart's wall-clock default). */
+   * the update context time, falling back to restart's wall-clock default).
+   * Adapted: the JS restart cursor, offset and durations use seconds. Convert
+   * incoming Blue ticks once here (native cpp:57,101 converts offset/delta). */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The BeOS frame clock arrives via the duck-typed update context time; both restart and the elapsed check share the same value per call.")
   UpdateAsyncronous(updateContext, _params)
   {
-    const now = Number(updateContext?.GetTime?.() ?? updateContext?.currentTime ?? Date.now() / 1000);
+    const now = TimeAsDouble(Number(updateContext?.GetTime?.() ?? updateContext?.currentTime ?? Date.now() * 10000));
 
     if (this.selectedChild < 0 || this.selectedChild > this.parameters.length - 1)
     {

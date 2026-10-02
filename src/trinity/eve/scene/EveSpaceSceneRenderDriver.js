@@ -20,6 +20,7 @@
 // calls in order; that contract is written on EveSpaceScene itself, and this is
 // the driver it describes.
 import { meta } from "#schema";
+import { TimeAsDouble } from "#blue";
 import { vec4 } from "#math/vec4";
 import { mat4 } from "#math/mat4";
 import { PixelFormat, TextureType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
@@ -1258,12 +1259,15 @@ export class EveSpaceSceneRenderDriver
    * Carbon UpdateGpuParticleSystem (EveSpaceSceneRenderDriver.cpp:634-642):
    * after the scene update, the per-frame data the particle kernels read, then
    * the particle system's update. Carbon's GPU region is not ported.
+   * Adapted: scene time retains Blue ticks; the existing JS particle Update
+   * takes seconds. Convert once at this boundary; the native particle method
+   * instead converts its tick delta (Tr2GpuParticleSystem.cpp:325).
    *
    * @param {object} renderContext The Tr2RenderContext.
    * @returns {void}
    */
   @meta.blue.method
-  @meta.implemented
+  @meta.adapted
   UpdateGpuParticleSystem(renderContext)
   {
     const ps = this.scene.GetGpuParticleSystem();
@@ -1271,7 +1275,7 @@ export class EveSpaceSceneRenderDriver
     if (!ps) return;
 
     this.scene.PopulateAndApplyPerFrameData(renderContext);
-    ps.Update(this.scene.updateTime, this.scene.updateContext.GetOriginShift(), renderContext);
+    ps.Update(TimeAsDouble(this.scene.updateTime), this.scene.updateContext.GetOriginShift(), renderContext);
   }
 
   /**

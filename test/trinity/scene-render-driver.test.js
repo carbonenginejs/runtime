@@ -189,7 +189,7 @@ test("a GPU particle system updates after the scene and renders in the main pass
   };
   driver.scene.GetGpuParticleSystem = () => ps;
   driver.scene.PopulateAndApplyPerFrameData = () => calls.push([ "PopulateAndApplyPerFrameData" ]);
-  driver.scene.updateTime = 2;
+  driver.scene.updateTime = 20_000_000;
   driver.scene.updateContext.GetOriginShift = () => "shift";
 
   assert.equal(driver.Execute([ StubTarget() ], null, 1, 2, null, StubContext()), true);
@@ -197,7 +197,7 @@ test("a GPU particle system updates after the scene and renders in the main pass
   const names = calls.map(([ name ]) => name);
   const update = names.indexOf("Update");
   assert.deepEqual(names.slice(update, update + 3), [ "Update", "PopulateAndApplyPerFrameData", "ParticlesUpdate" ]);
-  assert.deepEqual(calls[update + 2], [ "ParticlesUpdate", 2, "shift" ], "the scene's update time and origin shift");
+  assert.deepEqual(calls[update + 2], [ "ParticlesUpdate", 2, "shift" ], "scene ticks become particle seconds; origin shift is unchanged");
   assert.equal(names.filter(name => name === "ParticlesRender").length, 1);
   assert.ok(names.indexOf("ParticlesRender") < names.indexOf("EndRender"), "within the frame, before EndRender");
 });
