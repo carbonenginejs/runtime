@@ -1,8 +1,8 @@
 {
   "outRoot": "src/trinity/generated",
   "classes": {
-    "written": 31,
-    "skipped": 664
+    "written": 30,
+    "skipped": 665
   },
   "enums": {
     "written": 15,
@@ -2677,6 +2677,11 @@
     {
       "family": "sprite2d",
       "className": "Tr2Sprite2dScene",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dTexture",
       "reason": "hand-maintained source exists"
     },
     {
@@ -6034,11 +6039,6 @@
       "file": "trinity/generated/sprite2d/Tr2Sprite2dTextObject.js"
     },
     {
-      "className": "Tr2Sprite2dTexture",
-      "family": "sprite2d",
-      "file": "trinity/generated/sprite2d/Tr2Sprite2dTexture.js"
-    },
-    {
       "className": "Tr2SpriteObject",
       "family": "sprite2d",
       "file": "trinity/generated/sprite2d/Tr2SpriteObject.js"
@@ -7728,6 +7728,11 @@
     {
       "family": "sprite2d",
       "className": "Tr2Sprite2dRenderJob",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dTexture",
       "reason": "hand-maintained source exists"
     },
     {

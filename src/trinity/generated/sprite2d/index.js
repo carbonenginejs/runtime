@@ -8,7 +8,6 @@ export * from "./Tr2Sprite2dLine.js";
 export * from "./Tr2Sprite2dStretch.js";
 export * from "./Tr2Sprite2dStretchVertical.js";
 export * from "./Tr2Sprite2dTextObject.js";
-export * from "./Tr2Sprite2dTexture.js";
 export * from "./Tr2SpriteObject.js";
 export * from "./Tr2TexturedSpriteObject.js";
 export * from "./enums.js";
