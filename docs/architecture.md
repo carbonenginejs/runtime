@@ -72,15 +72,15 @@ why). It carries the browser platform and adapter snapshots, also at
 ## Native interface exposure
 
 Native base composition and Blue interface exposure are separate declarations.
-`meta.carbon.inherit` supplies the base relationships used by dynamic casts.
-`meta.carbon.interfaceTable({ interfaces, chainTo })` describes a concrete
+`meta.blue.inherit` supplies the base relationships used by dynamic casts.
+`meta.blue.interfaceTable({ interfaces, chainTo })` describes a concrete
 class's complete interface table: `chainTo: null` ends exposure, while a class
 constructor chains only that class's table. Listing a concrete class in
 `interfaces` adds its identity; it does not traverse that class's table.
 
 The declaration can be a class decorator or be applied to the constructor after
 its definition. It replaces earlier interface mappings on that class. Later
-`meta.carbon.mapInterface` calls add local entries without changing the explicit
+`meta.blue.mapInterface` calls add local entries without changing the explicit
 chain. The legacy `carbon` namespace exposes the same operations. Classes not
 migrated to an explicit table retain the legacy mapping behavior.
 

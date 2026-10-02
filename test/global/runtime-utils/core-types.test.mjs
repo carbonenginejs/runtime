@@ -188,7 +188,7 @@ test("Traverse is cycle-safe and GetResources visits every model", () => {
     class GraphModel {}
     for (const field of ["_geometryRes", "_textureRes", "_sharedRes"])
     {
-        CjsSchema.decorateField(GraphModel, field, CjsSchema.type.resource(GraphResource));
+        CjsSchema.decorateField(GraphModel, field, CjsSchema.meta.type.resource(GraphResource));
     }
     CjsSchema.defineField(GraphModel, "children", "type", { kind: "array", itemType: "GraphModel" });
     CjsSchema.defineField(GraphModel, "children", "edit", { read: true, write: true, persist: true });
@@ -546,11 +546,11 @@ test("schema.hideInherited registers through Stage-3 metadata and rejects typos"
         });
     };
 
-    decorateField("visible", CjsSchema.type.string);
-    decorateField("visible", CjsSchema.edit.persist);
-    decorateField("hidden", CjsSchema.type.string);
-    decorateField("hidden", CjsSchema.edit.persist);
-    CjsSchema.type.define({ className: "Stage3HideBase" })(Stage3HideBase, {
+    decorateField("visible", CjsSchema.meta.type.string);
+    decorateField("visible", CjsSchema.meta.blue.persist);
+    decorateField("hidden", CjsSchema.meta.type.string);
+    decorateField("hidden", CjsSchema.meta.blue.persist);
+    CjsSchema.meta.define({ className: "Stage3HideBase" })(Stage3HideBase, {
         kind: "class",
         metadata: baseMetadata
     });
@@ -561,7 +561,7 @@ test("schema.hideInherited registers through Stage-3 metadata and rejects typos"
         kind: "class",
         metadata: childMetadata
     });
-    CjsSchema.type.define({ className: "Stage3HideChild" })(Stage3HideChild, {
+    CjsSchema.meta.define({ className: "Stage3HideChild" })(Stage3HideChild, {
         kind: "class",
         metadata: childMetadata
     });
@@ -704,16 +704,16 @@ test("registers Carbon method provenance and implementation metadata", () => {
     CjsSchema.decorateMethod(
         MethodNode,
         "Reset",
-        CjsSchema.carbon.method,
-        CjsSchema.impl.notImplemented,
-        CjsSchema.impl.reason("schema generated stub")
+        CjsSchema.meta.blue.method,
+        CjsSchema.meta.notImplemented,
+        CjsSchema.meta.reason("schema generated stub")
     );
     CjsSchema.decorateMethod(
         MethodNode,
         "GpuOnly",
-        CjsSchema.carbon.method,
-        CjsSchema.impl.notSupported,
-        CjsSchema.impl.note("requires a native graphics boundary")
+        CjsSchema.meta.blue.method,
+        CjsSchema.meta.notSupported,
+        CjsSchema.meta.note("requires a native graphics boundary")
     );
 
     const reset = CjsSchema.getMethod(MethodNode, "Reset");
@@ -743,8 +743,8 @@ test("records renamed Carbon method provenance", () => {
     CjsSchema.decorateMethod(
         RenamedMethodNode,
         "ReEvaluate",
-        CjsSchema.carbon.renamed("UpdateValues"),
-        CjsSchema.impl.adapted
+        CjsSchema.meta.blue.renamed("UpdateValues"),
+        CjsSchema.meta.adapted
     );
 
     const method = CjsSchema.getMethod(RenamedMethodNode, "ReEvaluate");
@@ -760,8 +760,8 @@ test("registers component metadata and reads vector swizzles", () => {
     CjsSchema.decorateField(
         PackedNode,
         "shipData",
-        CjsSchema.type.vec4,
-        CjsSchema.components({
+        CjsSchema.meta.type.vec4,
+        CjsSchema.meta.ui.components({
             x: { name: "boosterGlowIntensity" },
             y: { name: "activationStrength" },
             z: { name: "dirtLevel" },
@@ -776,18 +776,18 @@ test("registers component metadata and reads vector swizzles", () => {
     assert.equal(field.components.xyz.name, "shipVisibleState");
 
     const values = new Float32Array([2, 3, 5, 7]);
-    assert.equal(CjsSchema.components.get(values, "x"), 2);
-    assert.deepEqual(CjsSchema.components.get(values, "rgb"), [2, 3, 5]);
+    assert.equal(CjsSchema.meta.ui.components.get(values, "x"), 2);
+    assert.deepEqual(CjsSchema.meta.ui.components.get(values, "rgb"), [2, 3, 5]);
 
-    CjsSchema.components.set(values, "yw", [11, 13]);
+    CjsSchema.meta.ui.components.set(values, "yw", [11, 13]);
     assert.deepEqual(Array.from(values), [2, 11, 5, 13]);
 });
 
 test("exposes canonical model descriptors", () => {
     class DescriptorNode {}
 
-    CjsSchema.decorateField(DescriptorNode, "child", CjsSchema.type.model("DescriptorChild"));
-    CjsSchema.decorateField(DescriptorNode, "payload", CjsSchema.type.rawStruct("NativePayload"));
+    CjsSchema.decorateField(DescriptorNode, "child", CjsSchema.meta.type.model("DescriptorChild"));
+    CjsSchema.decorateField(DescriptorNode, "payload", CjsSchema.meta.type.rawStruct("NativePayload"));
     CjsSchema.define(DescriptorNode, { className: "DescriptorNode", family: "test" });
 
     assert.equal(CARBON_TYPE.MODEL, "model");
@@ -821,8 +821,8 @@ test("stage-3 static method decorators register on the class constructor", () =>
         }
     };
 
-    CjsSchema.carbon.method(StaticMethodNode.Rasterize, context);
-    CjsSchema.impl.adapted(StaticMethodNode.Rasterize, context);
+    CjsSchema.meta.blue.method(StaticMethodNode.Rasterize, context);
+    CjsSchema.meta.adapted(StaticMethodNode.Rasterize, context);
     for (const initializer of initializers)
     {
         initializer.call(StaticMethodNode);
@@ -888,8 +888,8 @@ test("preserves canonical model references while hydrating neutral document grap
 
     CjsSchema.defineField(PlainDocumentChild, "value", "type", { kind: CARBON_TYPE.FLOAT32 });
     CjsSchema.define(PlainDocumentChild, { className: "PlainDocumentChild" });
-    CjsSchema.decorateField(PlainDocumentParent, "child", CjsSchema.type.model("PlainDocumentChild"));
-    CjsSchema.decorateField(PlainDocumentParent, "children", CjsSchema.type.list({
+    CjsSchema.decorateField(PlainDocumentParent, "child", CjsSchema.meta.type.model("PlainDocumentChild"));
+    CjsSchema.decorateField(PlainDocumentParent, "children", CjsSchema.meta.type.list({
         kind: "model",
         className: "PlainDocumentChild"
     }));
@@ -1497,8 +1497,8 @@ test("records carbon.contextual tier provenance", () => {
     CjsSchema.decorateMethod(
         ContextualNode,
         "ApplyTransform",
-        CjsSchema.carbon.contextual(["camera"]),
-        CjsSchema.impl.implemented
+        CjsSchema.meta.blue.contextual(["camera"]),
+        CjsSchema.meta.implemented
     );
 
     const method = CjsSchema.getMethod(ContextualNode, "ApplyTransform");
@@ -1508,8 +1508,8 @@ test("records carbon.contextual tier provenance", () => {
     assert.equal(method.impl.implemented, true);
 
     // Rejects an empty tier list.
-    assert.throws(() => CjsSchema.carbon.contextual([]), TypeError);
-    assert.throws(() => CjsSchema.carbon.contextual(["  "]), TypeError);
+    assert.throws(() => CjsSchema.meta.blue.contextual([]), TypeError);
+    assert.throws(() => CjsSchema.meta.blue.contextual(["  "]), TypeError);
 
     // Context-first validation: a contextual method whose first parameter is
     // not the frame context throws at decoration time.
@@ -1520,7 +1520,7 @@ test("records carbon.contextual tier provenance", () => {
     }
     CjsSchema.define(NotContextFirst, { className: "NotContextFirst", family: "test" });
     assert.throws(
-        () => CjsSchema.decorateMethod(NotContextFirst, "ApplyTransform", CjsSchema.carbon.contextual(["camera"])),
+        () => CjsSchema.decorateMethod(NotContextFirst, "ApplyTransform", CjsSchema.meta.blue.contextual(["camera"])),
         /context-first/
     );
 
@@ -1535,7 +1535,7 @@ test("records carbon.contextual tier provenance", () => {
     // not. The name check above is skipped once a build has renamed them, so
     // this case must be caught by the half that always holds (5b23597c).
     assert.throws(
-        () => CjsSchema.decorateMethod(ZeroArgContextual, "Tick", CjsSchema.carbon.contextual(["camera"])),
+        () => CjsSchema.decorateMethod(ZeroArgContextual, "Tick", CjsSchema.meta.blue.contextual(["camera"])),
         /must take a context as its first parameter/
     );
 });
@@ -1551,8 +1551,8 @@ test("marks CarbonEngineJS-original methods with impl.custom + a reason", () => 
     CjsSchema.decorateMethod(
         CustomMethodNode,
         "FoldModifiers",
-        CjsSchema.impl.custom,
-        CjsSchema.impl.reason("JS-only zero-alloc fold; Carbon inlines this loop")
+        CjsSchema.meta.ours,
+        CjsSchema.meta.reason("JS-only zero-alloc fold; Carbon inlines this loop")
     );
 
     const method = CjsSchema.getMethod(CustomMethodNode, "FoldModifiers");
@@ -1587,8 +1587,8 @@ test("type.enum and type.hideInherited are the same decorators as their schema.*
     EnumViaSchema.EnumMode = members;
     EnumViaType.EnumMode = members;
 
-    CjsSchema.decorateField(EnumViaSchema, "mode", CjsSchema.type.int32, CjsSchema.enum("EnumMode"));
-    CjsSchema.decorateField(EnumViaType, "mode", CjsSchema.type.int32, CjsSchema.type.enum("EnumMode"));
+    CjsSchema.decorateField(EnumViaSchema, "mode", CjsSchema.meta.type.int32, CjsSchema.enum("EnumMode"));
+    CjsSchema.decorateField(EnumViaType, "mode", CjsSchema.meta.type.int32, CjsSchema.meta.type.enum("EnumMode"));
     CjsSchema.define(EnumViaSchema, { className: "EnumViaSchema" });
     CjsSchema.define(EnumViaType, { className: "EnumViaType" });
 
@@ -1614,7 +1614,7 @@ test("type.enum and type.hideInherited are the same decorators as their schema.*
             { name: "dropped", type: { kind: "string" } }
         ]
     });
-    CjsSchema.type.hideInherited(["dropped"])(HideViaType, { kind: "class", metadata: Object.create(null) });
+    CjsSchema.meta.hideInherited(["dropped"])(HideViaType, { kind: "class", metadata: Object.create(null) });
     CjsSchema.define(HideViaType, { className: "HideViaType" });
 
     const names = CjsSchema.getSchema(HideViaType).fields.map(field => field.name);

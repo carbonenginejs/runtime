@@ -18,7 +18,7 @@ test("reader uses hidden backing data, not a live accessor or values service", (
     SetValues() { throw new Error("editor transport"); }
     OnModified(name) { this.calls.push(name); return false; }
   }
-  CjsSchema.carbon.mapInterface(INotify)(Target);
+  CjsSchema.meta.blue.mapInterface(INotify)(Target);
   const target = new Target();
   const field = member("value", "int32", { key: "_value", edit: { persist: true, hidden: true, notify: true } });
   assert.equal(getReaderMemberValue(target, field), 3);
@@ -36,7 +36,7 @@ test("mapped initialization suppresses notifications even when initialization is
     Initialize() { this.calls.push("initialize"); return false; }
     OnModified() { throw new Error("mapped initialization suppresses notify"); }
   }
-  CjsSchema.carbon.mapInterface(IInitialize, INotify)(Target);
+  CjsSchema.meta.blue.mapInterface(IInitialize, INotify)(Target);
   const target = new Target();
   applyReaderMember(target, member("value", "int32", { edit: { persist: true, notify: true } }), 2);
   finalizeReaderObject(target, { initialize: false });
@@ -66,7 +66,7 @@ test("reader interface mappings use stable identities across constructor copies"
     calls = [];
     OnModified(name) { this.calls.push(name); }
   }
-  CjsSchema.carbon.mapInterface(OtherNotify)(Target);
+  CjsSchema.meta.blue.mapInterface(OtherNotify)(Target);
   const target = new Target();
   applyReaderMember(target, member("value", "int32", { edit: { persist: true, notify: true } }), 2);
   assert.deepEqual(target.calls, ["value"]);
@@ -147,7 +147,7 @@ test("indexed storage rejects out-of-bounds data before reading or notifying", (
     calls = 0;
     OnModified() { this.calls++; }
   }
-  CjsSchema.carbon.mapInterface(INotify)(Target);
+  CjsSchema.meta.blue.mapInterface(INotify)(Target);
   const target = new Target();
   const field = member("outside", "float32", { key: "values", index: 1, edit: { persist: true, notify: true } });
   assert.throws(() => getReaderMemberValue(target, field), /storage length/);

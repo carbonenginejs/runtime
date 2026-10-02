@@ -1,4 +1,4 @@
-import { carbon } from "../../npm/dist/global/schema/index.js";
+import { meta } from "../../npm/dist/global/schema/index.js";
 import { ITriVectorFunction } from "../../npm/dist/global/blue/index.js";
 import { HostBitmap } from "../../npm/dist/global/imageio/index.js";
 import { PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js";
@@ -200,7 +200,7 @@ test("FollowASpline registry: list events wire the callback; the registry flatte
 });
 
 class SequencerFunction extends ITriVectorFunction {}
-carbon.interfaceTable({interfaces:[SequencerFunction,ITriVectorFunction],chainTo:null})(SequencerFunction);
+meta.blue.interfaceTable({interfaces:[SequencerFunction,ITriVectorFunction],chainTo:null})(SequencerFunction);
 
 function constantCurve(x, y, z)
 {

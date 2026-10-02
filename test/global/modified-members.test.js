@@ -27,8 +27,8 @@ function fixture(model, liveB = false)
   CjsSchema.define(Probe, { className: `MemberNotificationProbe${serial++}` });
   if (!model)
   {
-    CjsSchema.compose.values(Probe, { kind: "class" });
-    CjsSchema.compose.notify(Probe, { kind: "class" });
+    CjsSchema.meta.values(Probe, { kind: "class" });
+    CjsSchema.meta.events(Probe, { kind: "class" });
   }
   return new Probe();
 }

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CjsSchema, compose, impl } from "../../../npm/dist/global/schema/index.js";
+import { CjsSchema, meta } from "../../../npm/dist/global/schema/index.js";
 
 function probeInterface()
 {
@@ -10,8 +10,8 @@ function probeInterface()
     GetData() {}
     Run() {}
   }
-  CjsSchema.decorateMethod(IProbe, "GetData", compose.abstract, impl.abstract);
-  CjsSchema.decorateMethod(IProbe, "Run", compose.abstract, impl.abstract);
+  CjsSchema.decorateMethod(IProbe, "GetData", meta.requires, meta.abstract);
+  CjsSchema.decorateMethod(IProbe, "Run", meta.requires, meta.abstract);
   CjsSchema.define(IProbe, { className: "IProbe", fields: {} });
   return IProbe;
 }
@@ -49,5 +49,5 @@ test("the decorator installs while impl.abstract still describes", () =>
 
 test("it refuses anything that is not a method", () =>
 {
-  assert.throws(() => compose.abstract(null, "Name"), /only supports methods/u);
+  assert.throws(() => meta.requires(null, "Name"), /only supports methods/u);
 });

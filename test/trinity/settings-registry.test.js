@@ -5,7 +5,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { EveSpaceScene, Tr2PostProcessRenderer, Tr2Renderer, TriFrustum } from "../../npm/dist/trinity/index.js";
 import { GetReflectionSetting } from "../../npm/dist/trinity/eve/EveComponentTypes.js";
-import { edit } from "../../npm/dist/global/schema/index.js";
+import { meta } from "../../npm/dist/global/schema/index.js";
 
 const settings = Tr2Renderer.getSettings();
 
@@ -88,8 +88,8 @@ test("a new post-process renderer takes the newBloom setting (cpp:525)", () =>
 
 test("the registry records when a change applies, and a setting's enum", () =>
 {
-  assert.equal(settings.FindSetting("eveSpaceSceneDynamicLighting").applies, edit.setting.ALWAYS);
-  assert.equal(settings.FindSetting("newBloom").applies, edit.setting.CREATE, "copied at construction (cpp:525)");
+  assert.equal(settings.FindSetting("eveSpaceSceneDynamicLighting").applies, meta.setting.ALWAYS);
+  assert.equal(settings.FindSetting("newBloom").applies, meta.setting.CREATE, "copied at construction (cpp:525)");
   assert.equal(settings.FindSetting("eveReflectionSetting").enum.REFLECTION_SETTING_HIGH, GetReflectionSetting());
 });
 
@@ -101,12 +101,12 @@ test("every registered setting is one Carbon registers, so a misspelt name shows
 
 test("edit.setting takes any name, on static fields only", () =>
 {
-  const described = edit.setting("demoOnlySetting");
+  const described = meta.setting("demoOnlySetting");
   assert.equal(typeof described, "function", "a name Carbon lacks is ours, not an error");
-  assert.throws(() => edit.setting("newBloom", { applies: "sometimes" }), TypeError);
-  assert.throws(() => edit.setting("newBloom", { enum: {}, values: [] }), TypeError);
+  assert.throws(() => meta.setting("newBloom", { applies: "sometimes" }), TypeError);
+  assert.throws(() => meta.setting("newBloom", { enum: {}, values: [] }), TypeError);
   // What the decorator receives for an instance field.
-  assert.throws(() => edit.setting("debugLODShader")(undefined, { kind: "field", static: false, name: "debugLODShader" }), TypeError);
+  assert.throws(() => meta.setting("debugLODShader")(undefined, { kind: "field", static: false, name: "debugLODShader" }), TypeError);
 });
 
 test("a setting keeps the type it was registered with", () =>

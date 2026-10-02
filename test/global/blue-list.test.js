@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { BlueList, IList, IListNotify, ICopierCustomAssignment, Copier, ICopier, blue } from "@carbonenginejs/runtime/blue";
-import { CjsSchema, meta, types } from "@carbonenginejs/runtime/schema";
+import { CjsSchema, meta } from "@carbonenginejs/runtime/schema";
 import { BLUELISTEVENT } from "../../src/global/consts/blue.js";
 import { mappedInterfaces } from "../../src/global/compose/interface.js";
 
@@ -13,15 +13,15 @@ class Item
 CjsSchema.define(Item, {
   className: "TestBlueListItem",
   fields: {
-    value: [ types.float64, meta.edit.persist ],
-    peer: [ types.objectRef("TestBlueListItem"), meta.edit.persist ]
+    value: [ meta.type.float64, meta.blue.persist ],
+    peer: [ meta.type.objectRef("TestBlueListItem"), meta.blue.persist ]
   }
 });
-meta.carbon.interfaceTable({ interfaces: [ Item ], chainTo: null })(Item);
+meta.blue.interfaceTable({ interfaces: [ Item ], chainTo: null })(Item);
 
 class UnexposedItem extends Item {}
 CjsSchema.define(UnexposedItem, { className: "TestBlueListUnexposedItem" });
-meta.carbon.interfaceTable({ interfaces: [], chainTo: null })(UnexposedItem);
+meta.blue.interfaceTable({ interfaces: [], chainTo: null })(UnexposedItem);
 
 // This test class fixes the generic constructor arguments. Production generic
 // dispatch and stored-list preservation need their explicit Copier integration;

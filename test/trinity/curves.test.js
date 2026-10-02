@@ -4,7 +4,7 @@ import { ITriVectorFunction, ITriColorFunction, ITriCurveLength } from "../../np
 import { ITriFunction } from "../../npm/dist/global/blue/ITriFunction.js";
 import { ITriDuration } from "../../npm/dist/trinity/curves/ITriDuration.js";
 import { ITr2ValueBinding } from "../../npm/dist/trinity/curves/ITr2ValueBinding.js";
-import { carbon } from "../../npm/dist/global/schema/index.js";
+import { meta } from "../../npm/dist/global/schema/index.js";
 import test from "node:test";
 import { TRIEXTRAPOLATION } from "../../npm/dist/global/consts/graphics/index.js";
 import { CjsGrannyCurves, Tr2BoneMatrixCurve, Tr2CameraFollowCurveKey, Tr2CurveColor, Tr2CurveColorMixer, Tr2CurveCombiner, Tr2CurveConstant, Tr2CurveEulerRotation, Tr2CurveEulerRotationExpression, Tr2CurveExtrapolation, Tr2CurveInterpolation, Tr2CurveQuaternion, Tr2CurveQuaternionKey, Tr2CurveRandomAxisRotation, Tr2CurveScalar, Tr2CurveScalarExpression, Tr2CurveScalarKey, Tr2CurveSetRange, Tr2CurveVector2, Tr2CurveVector3, Tr2CurveVector3Expression, Tr2CurveVector3Lerp, Tr2CurveVector3LerpKeyInterpolation, Tr2DistanceTracker, Tr2FollowCurve, Tr2FollowCurveKeyInterpolation, Tr2GrannyEventTrack, Tr2GrannyTrack, Tr2GrannyTransformTrack, Tr2GrannyVectorTrack, Tr2MatrixKey, Tr2ObjectFollowCurveKey, Tr2ObjectFollowCurveKeyRotationSetting, Tr2QuaternionLerpCurve, Tr2RotationAdapter, Tr2ScalarExprKey, Tr2ScalarExprKeyCurve, Tr2ScalarFader, Tr2TranslationAdapter, TriColorSequencer, TriCurveSet, TriEventCurve, TriPerlinCurve, TriVectorSequencer } from "../../npm/dist/trinity/index.js";
@@ -50,7 +50,7 @@ function assertVector(actual, expected, epsilon = 1e-6)
 test("TriVectorSequencer ports Carbon combination and derivative behavior", () =>
 {
   class TestFunction extends ITriVectorFunction {}
-  carbon.interfaceTable({ interfaces: [TestFunction, ITriVectorFunction], chainTo: null })(TestFunction);
+  meta.blue.interfaceTable({ interfaces: [TestFunction, ITriVectorFunction], chainTo: null })(TestFunction);
   const makeFunction = (value, dot, doubleDot) => Object.assign(new TestFunction(), {
       GetValueAt: (_time, out) => vec3.copy(out, value),
       GetValueDotAt: (_time, out) => vec3.copy(out, dot),
@@ -87,7 +87,7 @@ test("TriVectorSequencer ports Carbon combination and derivative behavior", () =
 test("TriColorSequencer preserves Carbon's double-time additive quirk", () =>
 {
   class TestFunction extends ITriColorFunction {}
-  carbon.interfaceTable({ interfaces: [TestFunction, ITriColorFunction, ITriCurveLength], chainTo: null })(TestFunction);
+  meta.blue.interfaceTable({ interfaces: [TestFunction, ITriColorFunction, ITriCurveLength], chainTo: null })(TestFunction);
   const makeFunction = (value, length) => Object.assign(new TestFunction(), {
       GetValueAt: (_time, out) => vec4.copy(out, value),
       Length: () => length
@@ -1368,8 +1368,8 @@ test("TriCurveSet plays, ranges, applies curves, and copies bindings", () =>
       return 7;
     }
   }
-  carbon.inherit(ITriDuration)(TestCurve, { kind: "class" });
-  carbon.interfaceTable({ interfaces: [TestCurve, ITriFunction, ITriDuration], chainTo: null })(TestCurve, { kind: "class" });
+  meta.blue.inherit(ITriDuration)(TestCurve, { kind: "class" });
+  meta.blue.interfaceTable({ interfaces: [TestCurve, ITriFunction, ITriDuration], chainTo: null })(TestCurve, { kind: "class" });
   const curve = new TestCurve();
   curveSet.AddCurve(curve);
   class TestBinding extends ITr2ValueBinding
@@ -1379,7 +1379,7 @@ test("TriCurveSet plays, ranges, applies curves, and copies bindings", () =>
       bindingCopies++;
     }
   }
-  carbon.interfaceTable({ interfaces: [TestBinding, ITr2ValueBinding], chainTo: null })(TestBinding, { kind: "class" });
+  meta.blue.interfaceTable({ interfaces: [TestBinding, ITr2ValueBinding], chainTo: null })(TestBinding, { kind: "class" });
   curveSet.AddBinding(new TestBinding());
   curveSet.PlayFrom(1);
   assertEquals(resets, 1);

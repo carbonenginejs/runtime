@@ -10,7 +10,7 @@ import "../../../src/global/blue/values.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CjsSchema, type } from "../../../src/global/schema/index.js";
+import { CjsSchema, meta } from "../../../src/global/schema/index.js";
 
 
 function createResource(name)
@@ -25,8 +25,8 @@ class LeafHolder
   res = null;
 }
 
-CjsSchema.decorateField(LeafHolder, "name", type.string);
-CjsSchema.decorateField(LeafHolder, "res", type.resource("TestRes"));
+CjsSchema.decorateField(LeafHolder, "name", meta.type.string);
+CjsSchema.decorateField(LeafHolder, "res", meta.type.resource("TestRes"));
 CjsSchema.define(LeafHolder, { className: "LeafHolder", family: "test" });
 
 
@@ -36,8 +36,8 @@ class BranchHolder
   res = null;
 }
 
-CjsSchema.decorateField(BranchHolder, "child", type.struct(LeafHolder));
-CjsSchema.decorateField(BranchHolder, "res", type.resource("TestRes"));
+CjsSchema.decorateField(BranchHolder, "child", meta.type.struct(LeafHolder));
+CjsSchema.decorateField(BranchHolder, "res", meta.type.resource("TestRes"));
 CjsSchema.define(BranchHolder, { className: "BranchHolder", family: "test" });
 
 
@@ -69,10 +69,10 @@ class DeclaredHolder
   child = null;
 }
 
-CjsSchema.decorateField(DeclaredHolder, "texture", type.objectRef("TestRes"));
-CjsSchema.decorateField(DeclaredHolder, "geometry", type.objectRef("TestRes"));
-CjsSchema.decorateField(DeclaredHolder, "profiles", type.list("TestRes"));
-CjsSchema.decorateField(DeclaredHolder, "child", type.struct(DeclaredHolder));
+CjsSchema.decorateField(DeclaredHolder, "texture", meta.type.objectRef("TestRes"));
+CjsSchema.decorateField(DeclaredHolder, "geometry", meta.type.objectRef("TestRes"));
+CjsSchema.decorateField(DeclaredHolder, "profiles", meta.type.list("TestRes"));
+CjsSchema.decorateField(DeclaredHolder, "child", meta.type.struct(DeclaredHolder));
 CjsSchema.define(DeclaredHolder, { className: "DeclaredHolder", family: "test" });
 
 

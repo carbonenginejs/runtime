@@ -132,7 +132,7 @@ test("concrete child tables retain exact exposure in a fresh process", () =>
     ...process.execArgv,
     "--input-type=module", "--eval", `
       import assert from "node:assert/strict";
-      import { carbon, CjsSchema } from ${JSON.stringify(moduleURL("global/schema/index.js"))};
+      import { meta, CjsSchema } from ${JSON.stringify(moduleURL("global/schema/index.js"))};
       import { mappedInterfaces } from ${JSON.stringify(moduleURL("global/compose/interface.js"))};
       import { IInitialize } from ${JSON.stringify(moduleURL("global/blue/IInitialize.js"))};
       import { IListNotify } from ${JSON.stringify(moduleURL("global/blue/IListNotify.js"))};

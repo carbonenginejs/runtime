@@ -38,9 +38,9 @@ function declareParent(Child)
     children = [];
     byName = new Map();
   };
-  CjsSchema.decorateField(Parent, "child", CjsSchema.type.model(Child.name));
-  CjsSchema.decorateField(Parent, "children", CjsSchema.type.list({ kind: "model", className: Child.name }));
-  CjsSchema.decorateField(Parent, "byName", CjsSchema.type.map(Child.name));
+  CjsSchema.decorateField(Parent, "child", CjsSchema.meta.type.model(Child.name));
+  CjsSchema.decorateField(Parent, "children", CjsSchema.meta.type.list({ kind: "model", className: Child.name }));
+  CjsSchema.decorateField(Parent, "byName", CjsSchema.meta.type.map(Child.name));
   CjsSchema.define(Parent, { className: `HydrationParent${next++}` });
   return Parent;
 }
@@ -153,7 +153,7 @@ test("a field that does not hold references copies a non-plain value", () =>
 {
   const Child = declareBaseless();
   const Holder = class { payload = null; };
-  CjsSchema.decorateField(Holder, "payload", CjsSchema.type.unknown);
+  CjsSchema.decorateField(Holder, "payload", CjsSchema.meta.type.unknown);
   CjsSchema.define(Holder, { className: `HydrationHolder${next++}` });
 
   const live = new Child();

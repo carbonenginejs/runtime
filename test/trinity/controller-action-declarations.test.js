@@ -160,7 +160,7 @@ test("the action-interface list rejects nominal-only, duck, null and wrong-child
 {
   class UnexposedControllerAction extends Tr2ActionCallback {}
   CjsSchema.define(UnexposedControllerAction, { className: "ControllerActionDeclarationsUnexposed" });
-  meta.carbon.interfaceTable({ interfaces: [], chainTo: null })(UnexposedControllerAction);
+  meta.blue.interfaceTable({ interfaces: [], chainTo: null })(UnexposedControllerAction);
   const nominalOnly = new UnexposedControllerAction();
   assert.equal(CjsSchema.cast(nominalOnly, Tr2ActionCallback), nominalOnly);
   assert.equal(CjsSchema.cast(nominalOnly, ITr2ControllerAction), nominalOnly);
@@ -335,7 +335,7 @@ test("all action null-chain tables isolate a temporary native parent query mappi
   execFileSync(process.execPath, [
     ...process.execArgv, "--input-type=module", "--eval", `
       import assert from "node:assert/strict";
-      import { carbon, CjsSchema } from ${JSON.stringify(moduleURL("global/schema/index.js"))};
+      import { meta, CjsSchema } from ${JSON.stringify(moduleURL("global/schema/index.js"))};
       import { mappedInterfaces } from ${JSON.stringify(moduleURL("global/compose/interface.js"))};
             import { ICustomPersist } from ${JSON.stringify(moduleURL("global/blue/ICustomPersist.js"))};
       import { IInitialize } from ${JSON.stringify(moduleURL("global/blue/IInitialize.js"))};
@@ -349,7 +349,7 @@ test("all action null-chain tables isolate a temporary native parent query mappi
         const module = await import(row.url);
         const Type = module[row.name];
         const Parent = Object.getPrototypeOf(Type);
-        if (Parent.prototype) carbon.mapInterface(ParentOnlyInterface)(Parent);
+        if (Parent.prototype) meta.blue.mapInterface(ParentOnlyInterface)(Parent);
         const expectedTable = row.query.map(name => name === row.name ? Type : contracts[name]);
         assert.deepEqual([...mappedInterfaces(Type)], expectedTable, row.name);
         assert.equal(mappedInterfaces(Type).has(ParentOnlyInterface), false, row.name);

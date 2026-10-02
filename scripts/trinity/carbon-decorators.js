@@ -1,5 +1,5 @@
 /**
- * Matches the legacy carbon namespace or its canonical meta.carbon alias in an AST.
+ * Matches Carbon exposure in meta.blue and legacy decorator spellings in an AST.
  * Computed properties and unrelated owners are not decorator declarations.
  * @param {object} expression The decorator expression or callee.
  * @param {string} name The Carbon decorator member name.
@@ -20,7 +20,7 @@ export function isCarbonDecorator(expression, name)
     && owner.object?.type === "Identifier"
     && owner.object.name === "meta"
     && owner.property?.type === "Identifier"
-    && owner.property.name === "carbon";
+    && ["blue", "carbon"].includes(owner.property.name);
 }
 
 /**

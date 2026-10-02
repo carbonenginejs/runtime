@@ -24,7 +24,7 @@ class Action extends ITr2ControllerAction
   Stop(owner) { this.calls.push(["stop", owner]); }
 }
 CjsSchema.define(Action, { className: "Phase2RecordAction", fields: { name: { type: "string", edit: { read: true, write: true, persist: true } } } });
-meta.carbon.interfaceTable({ interfaces: [Action, ITr2ControllerAction], chainTo: null })(Action, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [Action, ITr2ControllerAction], chainTo: null })(Action, { kind: "class" });
 
 test("three records have native bases without model conveniences or invented struct exposure", () =>
 {

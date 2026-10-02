@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { transformSync } from "@babel/core";
 import decorators from "@babel/plugin-proposal-decorators";
-import { CjsSchema, carbon, meta, types } from "../../src/global/schema/index.js";
+import { CjsSchema, meta } from "../../src/global/schema/index.js";
 import { composedContracts, mappedInterfaces } from "../../src/global/compose/interface.js";
 import { Copier } from "../../src/global/blue/Copier.js";
 import { IInitialize } from "../../src/global/blue/IInitialize.js";
@@ -16,9 +16,9 @@ test("legacy mappings preserve inherited identity and independent child addition
   class Parent {}
   class Child extends Parent {}
   class Sibling extends Parent {}
-  carbon.mapInterface(First)(Parent);
+  meta.blue.mapInterface(First)(Parent);
   assert.equal(mappedInterfaces(Child), mappedInterfaces(Parent));
-  carbon.mapInterface(Second)(Child);
+  meta.blue.mapInterface(Second)(Child);
   assert.deepEqual([...mappedInterfaces(Child)], [First, Second]);
   assert.deepEqual([...mappedInterfaces(Parent)], [First]);
   assert.equal(mappedInterfaces(Sibling), mappedInterfaces(Parent));
@@ -35,10 +35,10 @@ test("an exact table stops JS exposure inheritance without changing bases or met
   {
     Ping() { return "composed"; }
   }
-  carbon.mapInterface(IInitialize)(Parent);
+  meta.blue.mapInterface(IInitialize)(Parent);
   class Child extends Parent {}
-  carbon.inherit(AdditionalBase)(Child);
-  meta.carbon.interfaceTable({ interfaces: [Parent], chainTo: null })(Child);
+  meta.blue.inherit(AdditionalBase)(Child);
+  meta.blue.interfaceTable({ interfaces: [Parent], chainTo: null })(Child);
   const child = new Child();
   assert.deepEqual([...mappedInterfaces(Child)], [Parent]);
   assert.equal(mappedInterfaces(Child).has(IInitialize), false, "a listed class is one IID, not an exposure parent");
@@ -58,26 +58,26 @@ test("an explicit chain follows only its named exposure parent and protects owne
   class JavaScriptBase {}
   class ExposureParent {}
   class Child extends JavaScriptBase {}
-  carbon.mapInterface(JavaScriptInterface)(JavaScriptBase);
-  meta.carbon.interfaceTable({ interfaces: [IInitialize], chainTo: null })(ExposureParent);
+  meta.blue.mapInterface(JavaScriptInterface)(JavaScriptBase);
+  meta.blue.interfaceTable({ interfaces: [IInitialize], chainTo: null })(ExposureParent);
   const entries = [OwnInterface, OwnInterface];
-  meta.carbon.interfaceTable({ interfaces: entries, chainTo: ExposureParent })(Child);
+  meta.blue.interfaceTable({ interfaces: entries, chainTo: ExposureParent })(Child);
   entries.push(JavaScriptInterface);
   assert.deepEqual([...mappedInterfaces(Child)], [OwnInterface, IInitialize]);
   mappedInterfaces(Child).add(JavaScriptInterface);
   assert.equal(mappedInterfaces(Child).has(JavaScriptInterface), false);
-  carbon.mapInterface(LaterInterface)(ExposureParent);
+  meta.blue.mapInterface(LaterInterface)(ExposureParent);
   assert.deepEqual([...mappedInterfaces(Child)], [OwnInterface, IInitialize, LaterInterface]);
   assert.deepEqual([...mappedInterfaces(ExposureParent)], [IInitialize, LaterInterface]);
   assert.deepEqual([...mappedInterfaces(JavaScriptBase)], [JavaScriptInterface]);
 });
 
-test("Stage-3 and imperative table declarations share the public meta and carbon facade", async () =>
+test("Stage-3 and imperative table declarations share the public Blue exposure facade", async () =>
 {
   const source = `
     import { meta } from ${JSON.stringify(new URL("../../src/global/schema/index.js", import.meta.url).href)};
     import { INotify } from ${JSON.stringify(new URL("../../src/global/blue/INotify.js", import.meta.url).href)};
-    @meta.carbon.interfaceTable({ interfaces: [INotify], chainTo: null })
+    @meta.blue.interfaceTable({ interfaces: [INotify], chainTo: null })
     export class Decorated {}
   `;
   const { code } = transformSync(source, {
@@ -87,9 +87,8 @@ test("Stage-3 and imperative table declarations share the public meta and carbon
   });
   const { Decorated } = await import(`data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);
   class Explicit {}
-  carbon.interfaceTable({ interfaces: [INotify], chainTo: null })(Explicit);
-  assert.equal(meta.carbon, carbon);
-  assert.equal(carbon, CjsSchema.carbon);
+  meta.blue.interfaceTable({ interfaces: [INotify], chainTo: null })(Explicit);
+  assert.equal(meta.blue, CjsSchema.meta.blue);
   assert.deepEqual([...mappedInterfaces(Decorated)], [...mappedInterfaces(Explicit)]);
 });
 
@@ -98,22 +97,22 @@ test("table replacement and later self additions have explicit declaration order
   class Earlier {}
   class Parent {}
   class Target extends Parent {}
-  carbon.mapInterface(IInitialize)(Parent);
-  carbon.mapInterface(Earlier)(Target);
-  meta.carbon.interfaceTable({ interfaces: [INotify], chainTo: null })(Target);
+  meta.blue.mapInterface(IInitialize)(Parent);
+  meta.blue.mapInterface(Earlier)(Target);
+  meta.blue.interfaceTable({ interfaces: [INotify], chainTo: null })(Target);
   CjsSchema.define(Target, { className: "ExactInterfaceTableSelfAddition" });
-  carbon.mapInterface(Target)(Target);
+  meta.blue.mapInterface(Target)(Target);
   assert.deepEqual([...mappedInterfaces(Target)], [INotify, Target]);
   assert.equal(mappedInterfaces(Target).has(Earlier), false, "the complete table replaces earlier additions");
   assert.equal(mappedInterfaces(Target).has(IInitialize), false, "later additions preserve the explicit boundary");
 
   class Child extends Target {}
   class Sibling extends Target {}
-  carbon.mapInterface(Earlier)(Child);
+  meta.blue.mapInterface(Earlier)(Child);
   assert.deepEqual([...mappedInterfaces(Child)], [INotify, Target, Earlier]);
   assert.deepEqual([...mappedInterfaces(Sibling)], [INotify, Target]);
   assert.deepEqual([...mappedInterfaces(Target)], [INotify, Target], "a legacy child does not mutate its parent's exact table");
-  meta.carbon.interfaceTable({ interfaces: [], chainTo: null })(Child);
+  meta.blue.interfaceTable({ interfaces: [], chainTo: null })(Child);
   assert.deepEqual([...mappedInterfaces(Child)], []);
   assert.deepEqual([...mappedInterfaces(Target)], [INotify, Target]);
 });
@@ -126,11 +125,11 @@ test("invalid interface tables and decorator targets are rejected before replaci
     { interfaces: [], chainTo: {} }, { interfaces: [], chainTo: () => {} },
     { interfaces: [], chainTo: null, parent: null }])
   {
-    assert.throws(() => meta.carbon.interfaceTable(definition), TypeError);
+    assert.throws(() => meta.blue.interfaceTable(definition), TypeError);
   }
-  const decorate = meta.carbon.interfaceTable({ interfaces: [], chainTo: null });
+  const decorate = meta.blue.interfaceTable({ interfaces: [], chainTo: null });
   class Target {}
-  carbon.mapInterface(INotify)(Target);
+  meta.blue.mapInterface(INotify)(Target);
   for (const kind of ["field", "method", "getter", "setter", "accessor"])
     assert.throws(() => decorate(Target, { kind }), /only supports classes/);
   for (const value of [null, {}, () => {}])
@@ -142,18 +141,18 @@ test("explicit exposure cycles reject the new declaration atomically", () =>
 {
   class Parent {}
   class Child extends Parent {}
-  carbon.mapInterface(INotify)(Parent);
-  assert.throws(() => meta.carbon.interfaceTable({ interfaces: [], chainTo: Parent })(Parent), /cycle/);
-  assert.throws(() => meta.carbon.interfaceTable({ interfaces: [], chainTo: Child })(Parent), /cycle/,
+  meta.blue.mapInterface(INotify)(Parent);
+  assert.throws(() => meta.blue.interfaceTable({ interfaces: [], chainTo: Parent })(Parent), /cycle/);
+  assert.throws(() => meta.blue.interfaceTable({ interfaces: [], chainTo: Child })(Parent), /cycle/,
     "a child without its own record would inherit the pending parent table");
   assert.deepEqual([...mappedInterfaces(Parent)], [INotify]);
   assert.deepEqual([...mappedInterfaces(Child)], [INotify]);
 
   class First {}
   class Second {}
-  carbon.mapInterface(INotify)(Second);
-  meta.carbon.interfaceTable({ interfaces: [IInitialize], chainTo: Second })(First);
-  assert.throws(() => meta.carbon.interfaceTable({ interfaces: [], chainTo: First })(Second), /cycle/);
+  meta.blue.mapInterface(INotify)(Second);
+  meta.blue.interfaceTable({ interfaces: [IInitialize], chainTo: Second })(First);
+  assert.throws(() => meta.blue.interfaceTable({ interfaces: [], chainTo: First })(Second), /cycle/);
   assert.deepEqual([...mappedInterfaces(Second)], [INotify]);
   assert.deepEqual([...mappedInterfaces(First)], [IInitialize, INotify]);
 });
@@ -167,17 +166,17 @@ class InterfaceLifecycleParent
 }
 CjsSchema.define(InterfaceLifecycleParent, {
   className: "InterfaceTableLifecycleParent",
-  fields: { value: [types.int32, meta.edit.persist, meta.edit.notify] }
+  fields: { value: [meta.type.int32, meta.blue.persist, meta.blue.notify] }
 });
-carbon.mapInterface(IInitialize, INotify)(InterfaceLifecycleParent);
+meta.blue.mapInterface(IInitialize, INotify)(InterfaceLifecycleParent);
 
 class InterfaceLifecycleEnded extends InterfaceLifecycleParent {}
 CjsSchema.define(InterfaceLifecycleEnded, { className: "InterfaceTableLifecycleEnded" });
-meta.carbon.interfaceTable({ interfaces: [INotify, InterfaceLifecycleParent], chainTo: null })(InterfaceLifecycleEnded);
+meta.blue.interfaceTable({ interfaces: [INotify, InterfaceLifecycleParent], chainTo: null })(InterfaceLifecycleEnded);
 
 class InterfaceLifecycleChained extends InterfaceLifecycleParent {}
 CjsSchema.define(InterfaceLifecycleChained, { className: "InterfaceTableLifecycleChained" });
-meta.carbon.interfaceTable({ interfaces: [], chainTo: InterfaceLifecycleParent })(InterfaceLifecycleChained);
+meta.blue.interfaceTable({ interfaces: [], chainTo: InterfaceLifecycleParent })(InterfaceLifecycleChained);
 
 test("Copier selects notification or initialization from the exact exposure boundary", () =>
 {

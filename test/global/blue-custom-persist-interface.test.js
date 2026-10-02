@@ -43,7 +43,7 @@ test("all ICustomPersist operations remain required, including release", () =>
 test("ICustomPersist composition installs missing obligations without inventing lifecycle methods", () =>
 {
   class MissingPersist {}
-  meta.carbon.inherit(ICustomPersist)(MissingPersist);
+  meta.blue.inherit(ICustomPersist)(MissingPersist);
   CjsSchema.define(MissingPersist, { className: "TestBlueCustomPersistMissing" });
   const instance = new MissingPersist();
   assert.equal(CjsSchema.cast(instance, ICustomPersist), instance);
@@ -88,13 +88,13 @@ test("ICustomPersist preserves concrete methods and keeps nominal composition se
     }
   }
   const originals = methods.map(method => Persist.prototype[method]);
-  meta.carbon.inherit(ICustomPersist)(Persist);
+  meta.blue.inherit(ICustomPersist)(Persist);
   CjsSchema.define(Persist, { className: "TestBlueCustomPersistProvider" });
   const instance = new Persist();
   assert.deepEqual(methods.map(method => Persist.prototype[method]), originals);
   assert.equal(CjsSchema.cast(instance, ICustomPersist), instance);
   assert.equal(mappedInterfaces(Persist).has(ICustomPersist), false);
-  meta.carbon.interfaceTable({ interfaces: [ Persist, ICustomPersist ], chainTo: null })(Persist);
+  meta.blue.interfaceTable({ interfaces: [ Persist, ICustomPersist ], chainTo: null })(Persist);
   assert.deepEqual(Array.from(mappedInterfaces(Persist)), [ Persist, ICustomPersist ]);
   assert.equal(CjsSchema.cast(instance, ICustomPersist), instance);
   assert.deepEqual(calls, [], "nominal/query declarations must not invoke persistence callbacks");

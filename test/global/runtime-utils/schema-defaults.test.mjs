@@ -11,7 +11,7 @@ test("CjsSchema.getDefaults lazily captures field initializers without Initializ
     let constructorCount = 0;
     let initializeCount = 0;
 
-    const initializeID = CjsSchema.type.rawStruct("AkGameObjectID")(undefined, {
+    const initializeID = CjsSchema.meta.type.rawStruct("AkGameObjectID")(undefined, {
         kind: "field",
         name: "ID",
         static: false,
@@ -21,7 +21,7 @@ test("CjsSchema.getDefaults lazily captures field initializers without Initializ
             extraInitializers.push(initializer);
         }
     });
-    const initializeOptional = CjsSchema.type.string(undefined, {
+    const initializeOptional = CjsSchema.meta.type.string(undefined, {
         kind: "field",
         name: "optional",
         static: false,
@@ -62,7 +62,7 @@ test("CjsSchema.getDefaults lazily captures field initializers without Initializ
         "edit",
         { read: true }
     );
-    CjsSchema.type.define({
+    CjsSchema.meta.define({
         className: "SchemaDefaultCaptureProbe",
         family: "test"
     })(SchemaDefaultCaptureProbe, { kind: "class", metadata });
@@ -90,14 +90,14 @@ test("CjsSchema.getDefaults prefers an explicitly decorated subclass initializer
     const baseMetadata = Object.create(null);
     const subclassMetadata = Object.create(baseMetadata);
     const addInitializer = () => {};
-    const initializeBaseType = CjsSchema.type.int32(undefined, {
+    const initializeBaseType = CjsSchema.meta.type.int32(undefined, {
         kind: "field",
         name: "type",
         static: false,
         metadata: baseMetadata,
         addInitializer
     });
-    const initializeSubclassType = CjsSchema.type.int32(undefined, {
+    const initializeSubclassType = CjsSchema.meta.type.int32(undefined, {
         kind: "field",
         name: "type",
         static: false,
@@ -114,7 +114,7 @@ test("CjsSchema.getDefaults prefers an explicitly decorated subclass initializer
         }
     }
 
-    CjsSchema.type.define({
+    CjsSchema.meta.define({
         className: "SchemaDefaultBaseProbe",
         family: "test"
     })(SchemaDefaultBaseProbe, { kind: "class", metadata: baseMetadata });
@@ -128,7 +128,7 @@ test("CjsSchema.getDefaults prefers an explicitly decorated subclass initializer
         }
     }
 
-    CjsSchema.type.define({
+    CjsSchema.meta.define({
         className: "SchemaDefaultSubclassProbe",
         family: "test"
     })(SchemaDefaultSubclassProbe, { kind: "class", metadata: subclassMetadata });
@@ -154,7 +154,7 @@ test("CjsSchema.getDefaults reads an explicitly registered schema accessor", () 
     CjsSchema.decorateField(
         SchemaDefaultAccessorProbe,
         "color",
-        CjsSchema.type.color
+        CjsSchema.meta.type.color
     );
     CjsSchema.define(SchemaDefaultAccessorProbe, {
         className: "SchemaDefaultAccessorProbe",

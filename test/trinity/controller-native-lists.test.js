@@ -182,7 +182,7 @@ test("notification payloads require exact self exposure even for nominal subclas
   for (const [Type, className] of [[UnexposedMachine, "ControllerListUnexposedMachine"], [UnexposedHandler, "ControllerListUnexposedHandler"]])
   {
     CjsSchema.define(Type, { className });
-    meta.carbon.interfaceTable({ interfaces: [], chainTo: null })(Type);
+    meta.blue.interfaceTable({ interfaces: [], chainTo: null })(Type);
   }
   const controller = new Tr2Controller(), machine = new UnexposedMachine(), handler = new UnexposedHandler(), calls = [];
   controller.Link({});

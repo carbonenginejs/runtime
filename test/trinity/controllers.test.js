@@ -160,8 +160,8 @@ test("Tr2BindingPoint settles direct and swizzled writes through explicit editin
 {
   class BindingNotificationTarget { OnModified() { return true; } }
   CjsSchema.define(BindingNotificationTarget, { className: "BindingNotificationTarget" });
-  CjsSchema.compose.values(BindingNotificationTarget, { kind: "class" });
-  CjsSchema.compose.notify(BindingNotificationTarget, { kind: "class" });
+  CjsSchema.meta.values(BindingNotificationTarget, { kind: "class" });
+  CjsSchema.meta.events(BindingNotificationTarget, { kind: "class" });
   const target = new BindingNotificationTarget();
   target.value = 1;
   target.vector = new Float32Array([1, 2, 3]);
@@ -318,7 +318,7 @@ test("Tr2ControllerEventHandler links and executes controller actions", () =>
   handler.name = "activate";
   for (const action of [first, second])
   {
-    meta.carbon.interfaceTable({ interfaces: [action.constructor, ITr2ControllerAction], chainTo: null })(action.constructor, { kind: "class" });
+    meta.blue.interfaceTable({ interfaces: [action.constructor, ITr2ControllerAction], chainTo: null })(action.constructor, { kind: "class" });
     handler.actions.Append(action);
   }
   assertEquals(handler.GetName(), "activate");
@@ -327,7 +327,7 @@ test("Tr2ControllerEventHandler links and executes controller actions", () =>
   handler.Execute(controller);
   assertEquals(events.join(","), "first:link,second:link,first:start,second:start,first:stop,second:stop");
   const inserted = makeAction("inserted", events, controller);
-  meta.carbon.interfaceTable({ interfaces: [inserted.constructor, ITr2ControllerAction], chainTo: null })(inserted.constructor, { kind: "class" });
+  meta.blue.interfaceTable({ interfaces: [inserted.constructor, ITr2ControllerAction], chainTo: null })(inserted.constructor, { kind: "class" });
   handler.actions.Append(inserted);
   assertEquals(events.at(-1), "inserted:link");
   handler.actions.Remove(2);
@@ -350,7 +350,7 @@ test("Tr2Controller links variables, events, callbacks, and updateables", () =>
   const action = makeAction("ignite", events, controller);
   const handler = new Tr2ControllerEventHandler();
   handler.name = "ignite";
-  meta.carbon.interfaceTable({ interfaces: [action.constructor, ITr2ControllerAction], chainTo: null })(action.constructor, { kind: "class" });
+  meta.blue.interfaceTable({ interfaces: [action.constructor, ITr2ControllerAction], chainTo: null })(action.constructor, { kind: "class" });
   handler.actions.Append(action);
   const stateMachine = {
     Link(value)

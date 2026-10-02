@@ -125,7 +125,7 @@ CjsSchema.decorateMethod(ScannerProbe, "Imperative", ${imperative});
 test("native-method CLI credits legacy and canonical inheritance and every renamed path equally", () =>
 {
   const reports = [];
-  for (const carbon of [ "carbon", "meta.carbon" ])
+  for (const carbon of [ "carbon", "meta.carbon", "meta.blue" ])
   {
     const probe = runScanner("scripts/trinity/lint-native-method-parity.js", nativeFixture({
       inherit: `${carbon}.inherit(Owner)`,
@@ -168,7 +168,7 @@ ${decorators.map((decorator, index) => `  @${decorator}
 
 test("style CLI applies context-first rules equally to legacy and canonical markers", () =>
 {
-  for (const carbon of [ "carbon", "meta.carbon" ])
+  for (const carbon of [ "carbon", "meta.carbon", "meta.blue" ])
   {
     const decorators = [`${carbon}.contextual(["camera"])`, `${carbon}.contextual(["camera"])`];
     const good = runScanner("scripts/trinity/lint_source_style.js",
@@ -229,6 +229,7 @@ test("implementation-gap CLI inventories legacy and canonical aliases identicall
   const legacy = implementationInventory(inventoryFixture("impl", "type"));
   const canonical = implementationInventory(inventoryFixture("meta.impl", "types"));
   assert.deepEqual(canonical, legacy);
+  assert.deepEqual(implementationInventory(inventoryFixture("meta", "meta.type")), legacy);
 });
 
 test("implementation-gap CLI rejects unrelated and computed decorators without losing real gaps", () =>
@@ -244,6 +245,10 @@ test("implementation-gap CLI rejects unrelated and computed decorators without l
   unrelatedField = null;
   @(types["unknown"]("NativeType"))
   computedField = null;
+  @meta.ui.unknown("NativeType")
+  uiField = null;
+  @meta.type.notImplemented
+  WrongTypeMethod() {}
   @meta.types.unknown("NativeType")
   nestedType = null;
 `));

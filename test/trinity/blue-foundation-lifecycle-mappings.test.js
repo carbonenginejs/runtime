@@ -4,7 +4,7 @@ import { Copier } from "../../npm/dist/global/blue/Copier.js";
 import { IInitialize } from "../../npm/dist/global/blue/IInitialize.js";
 import { INotify } from "../../npm/dist/global/blue/INotify.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { CjsSchema, meta, types } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema, meta } from "../../npm/dist/global/schema/index.js";
 import { CjsBlackReader } from "../../npm/dist/resource/formats/black/core/CjsBlackReader.js";
 import { EveBoosterSet2, EveEntity, EveMobile, EveShip2, EveSpaceObject2, TriDevice, Tr2Renderer } from "../../npm/dist/trinity/index.js";
 import { ITr2ShLightingReceiver } from "../../npm/dist/trinity/core/lighting/ITr2ShLightingReceiver.js";
@@ -81,7 +81,7 @@ test("having lifecycle methods without native mappings does not opt into Black o
   }
   CjsSchema.define(UnmappedLifecycle, {
     className: "BlueFoundationUnmappedLifecycle",
-    fields: { value: [ types.float32, meta.edit.persist, meta.edit.notify ] }
+    fields: { value: [ meta.type.float32, meta.blue.persist, meta.blue.notify ] }
   });
   const reader = new CjsBlackReader(authoredUnmappedBytes(), { schema: null });
   const source = reader.CreateObject();

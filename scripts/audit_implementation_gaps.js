@@ -122,7 +122,7 @@ async function GetJavaScriptFiles(directory)
 }
 
 /**
- * Checks legacy implementation/type decorators and their exact meta/types aliases.
+ * Checks compact implementation/type decorators and their legacy spellings.
  *
  * @param {object} member
  * @param {string} namespace
@@ -142,15 +142,16 @@ function HasDecorator(member, namespace, name)
     const owner = expression.object;
     if (owner?.type === "Identifier")
     {
-      return owner.name === namespace || (namespace === "type" && owner.name === "types");
+      return owner.name === namespace || (namespace === "type" && owner.name === "types")
+        || (namespace === "impl" && owner.name === "meta");
     }
-    return namespace === "impl"
+    return ["impl", "type"].includes(namespace)
       && owner?.type === "MemberExpression"
       && owner.computed === false
       && owner.object?.type === "Identifier"
       && owner.object.name === "meta"
       && owner.property?.type === "Identifier"
-      && owner.property.name === "impl";
+      && owner.property.name === namespace;
   });
 }
 
@@ -256,8 +257,8 @@ function PrintMarkdown(audit)
   const propertySummary = audit.summary.properties;
   console.log(`# ${audit.scope} implementation-gap audit`);
   console.log();
-  console.log(`- Explicit \`@impl.notImplemented\` methods: ${methodSummary.count} across ${methodSummary.classes} classes.`);
-  console.log(`- Explicit \`@type.unknown\` properties: ${propertySummary.count} across ${propertySummary.classes} classes.`);
+  console.log(`- Explicit \`@meta.notImplemented\` methods: ${methodSummary.count} across ${methodSummary.classes} classes.`);
+  console.log(`- Explicit \`@meta.type.unknown\` properties: ${propertySummary.count} across ${propertySummary.classes} classes.`);
   console.log(`- Includes \`src/**/dropped\`: ${audit.includeDropped ? "yes" : "no"}.`);
   console.log();
   PrintSection("Methods", audit.methods);

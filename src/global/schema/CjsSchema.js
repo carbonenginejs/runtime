@@ -671,7 +671,7 @@ export class CjsSchema
      * - `rawStruct(nativeType)` is an opaque native payload whose plain values
      *   never construct a model.
      */
-    static type = {
+    static #type = {
         /**
          * Declares array item types; native struct layout belongs to the item class.
          */
@@ -749,7 +749,7 @@ export class CjsSchema
      * - Values transport does not enforce READ, and direct JS field access is
      *   never intercepted.
      */
-    static edit = {
+    static #edit = {
         none: fieldDecorator("edit", {}),
         // MODMASK 0x00F
         read: fieldDecorator("edit", { read: true }),
@@ -791,7 +791,7 @@ export class CjsSchema
     // Stored ownership metadata remains available to explicit graph traversal.
     // Readers initialize only their own newly allocated objects; ownership does
     // not make them initialize constructor defaults or borrowed instances.
-    static lifecycle = {
+    static #lifecycle = {
         owned: fieldDecorator("lifecycle", { ownership: "owned" }),
         reference: fieldDecorator("lifecycle", { ownership: "reference" })
     };
@@ -799,7 +799,7 @@ export class CjsSchema
     // Composition decorators: type/edit/carbon/impl/jessica DESCRIBE, compose
     // INSTALLS (design record, direction item 11). All three are live; the
     // migration of existing classes onto them is separate work.
-    static compose = {
+    static #compose = {
         abstract: composeAbstractDecorator(Constructor => CjsSchema.getClassName(Constructor)),
         notify: composeNotifyDecorator,
         values: composeValuesDecorator(CjsSchema._statelessTransport)
@@ -811,7 +811,7 @@ export class CjsSchema
      * `jessica.hidden` is not `hideInherited`, and `jessica.readOnly` does not
      * block SetValues.
      */
-    static jessica = {
+    static #jessica = {
         group: name => fieldDecorator("jessica", { group: name }),
         hidden: fieldDecorator("jessica", { hidden: true }),
         readOnly: fieldDecorator("jessica", { readOnly: true }),
@@ -823,7 +823,7 @@ export class CjsSchema
     // an implementation decision, so it carries impl.adapted/impl.custom +
     // impl.reason just like a diverging method. carbon.* stays factual
     // provenance and remains method-only.
-    static impl = {
+    static #impl = {
         abstract: memberDecorator("impl", { abstract: true, status: "abstract" }),
         adapted: memberDecorator("impl", { adapted: true, status: "adapted" }),
         custom: memberDecorator("impl", { custom: true, status: "custom" }),
@@ -872,18 +872,18 @@ export class CjsSchema
         }
 
         const status = declared?.status;
-        const decorator = status ? CjsSchema.impl[status] : null;
-        const decorators = [ typeof decorator === "function" ? decorator : CjsSchema.impl.abstract ];
+        const decorator = status ? CjsSchema.#impl[status] : null;
+        const decorators = [ typeof decorator === "function" ? decorator : CjsSchema.#impl.abstract ];
 
         // A reason the interface wrote belongs to the member wherever it lands;
         // a consumer left holding the marking without it could not be reviewed.
-        if (declared?.reason) decorators.push(CjsSchema.impl.reason(declared.reason));
-        if (declared?.note) decorators.push(CjsSchema.impl.note(declared.note));
+        if (declared?.reason) decorators.push(CjsSchema.#impl.reason(declared.reason));
+        if (declared?.note) decorators.push(CjsSchema.#impl.note(declared.note));
 
         return decorators;
     }
 
-    static carbon = {
+    static #carbon = {
         // Carbon's base list and Carbon's exposure table: two different facts,
         // two decorators, both factual and so both here rather than in
         // `compose`. See compose/interface.js for the black-reader branch that
@@ -961,30 +961,23 @@ export class CjsSchema
      * decorator arrays remain JS-keyed and also populate the compatibility view.
      */
     static meta = {
-        blue: { ...this.edit, ...this.carbon },
-        ui: { ...this.jessica, components: createComponentsNamespace() },
-        type: this.type,
-        ...this.impl,
-        ours: this.impl.custom,
-        ...this.lifecycle,
-        events: this.compose.notify,
-        requires: this.compose.abstract,
-        values: this.compose.values,
-        setting: this.edit.setting,
-        edit: this.edit,
-        impl: this.impl,
-        carbon: this.carbon,
-        lifecycle: this.lifecycle,
-        jessica: this.jessica,
-        compose: this.compose,
+        blue: { ...Object.fromEntries(Object.entries(this.#edit).filter(([name]) => !["none", "enum", "setting"].includes(name))), ...this.#carbon },
+        ui: { ...this.#jessica, components: createComponentsNamespace() },
+        type: Object.fromEntries(Object.entries(this.#type).filter(([name]) => !["define", "hideInherited"].includes(name))),
+        ...Object.fromEntries(Object.entries(this.#impl).filter(([name]) => name !== "custom")),
+        ours: this.#impl.custom,
+        ...this.#lifecycle,
+        events: this.#compose.notify,
+        requires: this.#compose.abstract,
+        values: this.#compose.values,
+        setting: this.#edit.setting,
         struct: createStructNamespace(),
         member: (name, options) => declarationDecorator("member", name, options),
         property: (name, options) => declarationDecorator("property", name, options),
-        define: this.type.define,
+        define: this.#type.define,
         hideInherited: this.hideInherited
     };
 
-    static components = createComponentsNamespace();
 }
 
 
@@ -3235,5 +3228,5 @@ CjsSchema.define(CjsBlueEnumRegistry, {
     methods: Object.fromEntries([
         "RegisterEnum", "HasEnum", "GetEnum", "GetEnumInfo", "GetEnumName",
         "GetNameFromValue", "GetNameFromBitmask"
-    ].map(name => [name, [CjsSchema.impl.adapted]]))
+    ].map(name => [name, [CjsSchema.meta.adapted]]))
 });

@@ -104,7 +104,7 @@ test("Sync retains exact exposure and composition in a fresh process", () =>
   execFileSync(process.execPath, [
     ...process.execArgv, "--input-type=module", "--eval", `
       import assert from "node:assert/strict";
-      import { carbon, CjsSchema } from ${JSON.stringify(moduleURL("global/schema/index.js"))};
+      import { meta, CjsSchema } from ${JSON.stringify(moduleURL("global/schema/index.js"))};
       import { mappedInterfaces } from ${JSON.stringify(moduleURL("global/compose/interface.js"))};
       import { ITr2StateMachineStateFinalizer } from ${JSON.stringify(moduleURL("trinity/controllers/state/ITr2StateMachineStateFinalizer.js"))};
       const { Tr2SyncToAnimation } = await import(${JSON.stringify(moduleURL("trinity/controllers/Tr2SyncToAnimation.js"))});

@@ -82,7 +82,7 @@ test("multi-placement composition preserves the caller's ordered records without
     }
   }
   const implementation = MultiObserver.prototype.UpdatePlacements;
-  meta.carbon.inherit(IBlueMultiPlacementObserver)(MultiObserver, { kind: "class" });
+  meta.blue.inherit(IBlueMultiPlacementObserver)(MultiObserver, { kind: "class" });
   CjsSchema.define(MultiObserver, { className: "TestBlueMultiPlacementObserverProvider" });
   const observer = new MultiObserver();
   const first = new PositionDescription();
@@ -102,7 +102,7 @@ test("multi-placement composition preserves the caller's ordered records without
   assert.equal(CjsSchema.cast(observer, IBlueMultiPlacementObserver), observer);
   assert.equal(CjsSchema.cast({ UpdatePlacements() {} }, IBlueMultiPlacementObserver), null);
   assert.equal(mappedInterfaces(MultiObserver).has(IBlueMultiPlacementObserver), false);
-  meta.carbon.interfaceTable({ interfaces: [IBlueMultiPlacementObserver], chainTo: null })(MultiObserver);
+  meta.blue.interfaceTable({ interfaces: [IBlueMultiPlacementObserver], chainTo: null })(MultiObserver);
   assert.deepEqual(mappedInterfaces(MultiObserver), new Set([IBlueMultiPlacementObserver]));
 });
 
@@ -123,7 +123,7 @@ test("Blue observer composition retains concrete calls and requires explicit que
   }
   const handleEvent = Observer.prototype.HandleEvent;
   const updatePlacement = Observer.prototype.UpdatePlacement;
-  meta.carbon.inherit(IBlueEventListener, IBluePlacementObserver)(Observer, { kind: "class" });
+  meta.blue.inherit(IBlueEventListener, IBluePlacementObserver)(Observer, { kind: "class" });
   CjsSchema.define(Observer, { className: "TestBlueObserverInterfaceProvider" });
 
   const observer = new Observer();
@@ -147,7 +147,7 @@ test("Blue observer composition retains concrete calls and requires explicit que
   assert.equal(calls[1][3], position);
   assert.deepEqual(Array.from(position), [12, -3, 4]);
 
-  meta.carbon.interfaceTable({ interfaces: [IBlueEventListener, IBluePlacementObserver], chainTo: null })(Observer);
+  meta.blue.interfaceTable({ interfaces: [IBlueEventListener, IBluePlacementObserver], chainTo: null })(Observer);
   assert.deepEqual(mappedInterfaces(Observer), new Set([IBlueEventListener, IBluePlacementObserver]));
   assert.equal("Initialize" in observer, false);
   assert.equal("SetValues" in observer, false);

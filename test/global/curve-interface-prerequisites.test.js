@@ -82,7 +82,7 @@ for (const { name, Contract, direct, base, own, abstract } of contracts)
   {
     class Derived extends Contract {}
     class Composed {}
-    meta.carbon.inherit(Contract)(Composed);
+    meta.blue.inherit(Contract)(Composed);
     CjsSchema.define(Composed, { className: `TestCurvePrerequisiteMissing${name}` });
     const composed = new Composed();
     assert.equal(CjsSchema.cast(composed, Contract), composed);
@@ -143,13 +143,13 @@ for (const { name, Contract, direct, base, own, abstract } of contracts)
     }
     class Consumer extends Operations {}
     const methods = hasReset ? [ ...required, "Reset" ] : required;
-    meta.carbon.inherit(Contract)(Consumer);
+    meta.blue.inherit(Contract)(Consumer);
     CjsSchema.define(Consumer, { className: `TestCurvePrerequisiteConcrete${name}` });
     const instance = new Consumer();
     for (const method of methods) assert.equal(instance[method], Operations.prototype[method]);
     assert.equal(CjsSchema.cast(instance, Contract), instance);
     assert.deepEqual(Array.from(mappedInterfaces(Consumer)), []);
-    meta.carbon.interfaceTable({ interfaces: [ Consumer, Contract ], chainTo: null })(Consumer);
+    meta.blue.interfaceTable({ interfaces: [ Consumer, Contract ], chainTo: null })(Consumer);
     assert.deepEqual(Array.from(mappedInterfaces(Consumer)), [ Consumer, Contract ]);
     if (base)
     {

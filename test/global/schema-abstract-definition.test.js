@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsSchema, meta, type } from "../../src/global/schema/index.js";
+import { CjsSchema, meta } from "../../src/global/schema/index.js";
 import { BlueClasses } from "../../src/global/blue/BlueClasses.js";
 import * as classRegistry from "../../src/global/blue/classes/registry.js";
 
@@ -9,7 +9,7 @@ const { ClassRegistrarNullFactory, getClassRegistrationRevision } = classRegistr
 const registry = new BlueClasses();
 const routes = [
   ["explicit", (Constructor, definition) => CjsSchema.define(Constructor, definition)],
-  ["type", (Constructor, definition) => type.define(definition)(Constructor)],
+  ["type", (Constructor, definition) => meta.define(definition)(Constructor)],
   ["stage3", (Constructor, definition, metadata = {}) => meta.define(definition)(Constructor, {kind: "class", metadata})],
 ];
 
@@ -36,7 +36,7 @@ for (const [route, define] of routes)
     assert.equal(Object.hasOwn(before, "abstract"), false);
     define(Abstract, {
       className: name, aliases: [alias, alias], alias: secondAlias,
-      abstract: true, fields: {value: type.float32},
+      abstract: true, fields: {value: meta.type.float32},
     });
     try
     {
@@ -82,7 +82,7 @@ test("abstract registration is own-class policy rather than inherited metadata o
   CjsSchema.define(Base, {className: names[0], abstract: true});
   CjsSchema.define(Concrete, {className: names[1]});
   meta.define({className: names[2], abstract: false})(ExplicitConcrete);
-  type.define({className: names[3], abstract: true})(AbstractChild);
+  meta.define({className: names[3], abstract: true})(AbstractChild);
   try
   {
     assert.equal(CjsSchema.getSchema(Base).abstract, true);
@@ -105,7 +105,7 @@ test("abstract registration is own-class policy rather than inherited metadata o
 test("abstract method provenance alone does not select class factory refusal", () =>
 {
   class MethodOnly { Work() {} }
-  CjsSchema.decorateMethod(MethodOnly, "Work", meta.impl.abstract);
+  CjsSchema.decorateMethod(MethodOnly, "Work", meta.abstract);
   CjsSchema.define(MethodOnly, {className: "AbstractMethodOnly"});
   try
   {
@@ -147,7 +147,7 @@ test("invalid Stage-3 declaration does not consume field metadata before a corre
 {
   class Staged {}
   const metadata = {};
-  type.float32(undefined, {kind: "field", name: "value", metadata, addInitializer() {}});
+  meta.type.float32(undefined, {kind: "field", name: "value", metadata, addInitializer() {}});
   const context = {kind: "class", metadata};
   assert.throws(() => meta.define({className: "InvalidAbstractStaged", abstract: null})(Staged, context), /abstract must be a boolean/);
   assert.deepEqual(CjsSchema.getSchema(Staged).members, []);

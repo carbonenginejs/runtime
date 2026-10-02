@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema, meta, type } from "../../src/global/schema/index.js";
+import { CjsSchema, meta } from "../../src/global/schema/index.js";
 
 let serial = 0;
 function register(fields, size)
@@ -24,9 +24,9 @@ for (const [reason, fields, size, message] of [
     ["misaligned 32-bit", { value: meta.struct.UINT32_1(2) }, 8, /misaligned/],
     ["misaligned 16-bit", { value: meta.struct.USHORT_1(1) }, 4, /misaligned/],
     ["misaligned shared string", { value: meta.struct.SHAREDSTRING_1(4) }, 16, /misaligned/],
-    ["incompatible meaning", { value: [meta.struct.INT32_1(0), type.color] }, 4, /incompatible/],
-    ["repeated type", { value: [meta.struct.UINT32_1(0), type.uint32] }, 4, /repeated/],
-    ["noninteger enum", { value: [meta.struct.FLOAT32_1(0), type.enum({ A: 0 })] }, 4, /integer struct/]
+    ["incompatible meaning", { value: [meta.struct.INT32_1(0), meta.type.color] }, 4, /incompatible/],
+    ["repeated type", { value: [meta.struct.UINT32_1(0), meta.type.uint32] }, 4, /repeated/],
+    ["noninteger enum", { value: [meta.struct.FLOAT32_1(0), meta.type.enum({ A: 0 })] }, 4, /integer struct/]
 ])
 {
     test(`struct registration rejects ${reason} with class and member`, () =>
@@ -68,9 +68,9 @@ test("field reordering leaves native offsets unchanged and permits gaps", () =>
 test("quaternion, color and integer enum meanings refine compatible storage", () =>
 {
     const info = register({
-        rotation: [meta.struct.FLOAT32_4(0), type.quat],
-        color: [meta.struct.FLOAT32_4(16), type.color],
-        mode: [meta.struct.UINT32_1(32), type.enum({ A: 0 })]
+        rotation: [meta.struct.FLOAT32_4(0), meta.type.quat],
+        color: [meta.struct.FLOAT32_4(16), meta.type.color],
+        mode: [meta.struct.UINT32_1(32), meta.type.enum({ A: 0 })]
     }, 36);
     assert.deepEqual(info.members.map(member => member.type.kind), ["quat", "color", "uint32"]);
     assert.deepEqual(info.structureDefinition.members.map(member => member.type), ["quaternion", "color", "uint32"]);

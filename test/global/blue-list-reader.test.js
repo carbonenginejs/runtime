@@ -12,11 +12,11 @@ const itemName = "BlueListReaderItem";
 
 class Item { value = 0; }
 CjsSchema.define(Item, { className: itemName, fields: { value: { type: { kind: "int32" }, edit: { persist: true } } } });
-meta.carbon.interfaceTable({ interfaces: [ Item ], chainTo: null })(Item);
+meta.blue.interfaceTable({ interfaces: [ Item ], chainTo: null })(Item);
 
 class WrongItem extends Item {}
 CjsSchema.define(WrongItem, { className: "BlueListReaderWrongItem" });
-meta.carbon.interfaceTable({ interfaces: [], chainTo: null })(WrongItem);
+meta.blue.interfaceTable({ interfaces: [], chainTo: null })(WrongItem);
 
 class Owner
 {
@@ -118,7 +118,7 @@ test("observer capture occurs after clear and before muting", () =>
 test("composition without an exact IList mapping retains the ordinary array path", () =>
 {
   class UnexposedList extends BlueList {}
-  meta.carbon.interfaceTable({ interfaces: [], chainTo: null })(UnexposedList);
+  meta.blue.interfaceTable({ interfaces: [], chainTo: null })(UnexposedList);
   const { owner, observer } = Setup();
   const list = new UnexposedList(Item, { className: itemName });
   list.SetNotify(observer);

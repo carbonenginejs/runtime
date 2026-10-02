@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { carbon, CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema, meta } from "../../npm/dist/global/schema/index.js";
 import { blue, BlueList, ITriFunction, ITriVectorFunction, ITriColorFunction, ITriQuaternionFunction, ITriScalarFunction, ITriCurveLength, IInitialize } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
@@ -32,7 +32,7 @@ for(const [Class,Base,table] of [
 });
 
 for(const [Class,Base,math,n] of [[TriVectorSequencer,ITriVectorFunction,vec3,3],[TriColorSequencer,ITriColorFunction,vec4,4]])test(Class.name+" commits successful sampling and releases failed output lease",()=>{
- class Child extends Base{}carbon.interfaceTable({interfaces:[Child,Base],chainTo:null})(Child);
+ class Child extends Base{}meta.blue.interfaceTable({interfaces:[Child,Base],chainTo:null})(Child);
  const curve=new Class(),a=new Child(),b=new Child(),calls=[];curve.functions.Append(a);curve.functions.Append(b);
  a.GetValueAt=(time,out)=>{calls.push(time);out.fill(2);return out;};b.GetValueAt=(_time,out)=>{out.fill(3);return out;};
  a.Update=()=>{throw new Error("must sample child");};b.Update=a.Update;
@@ -50,7 +50,7 @@ test("color length uses declared duration/length interfaces and required methods
  class Hidden extends ITriColorFunction{Length(){throw new Error("unmapped");}}
  class Duration extends ITriColorFunction{Length(){return 7;}}
  class Length extends ITriColorFunction{Length(){return 4;}}
- for(const [Class,extra]of [[Hidden,[]],[Duration,[ITriDuration]],[Length,[ITriCurveLength]]])carbon.interfaceTable({interfaces:[Class,ITriColorFunction,...extra],chainTo:null})(Class);
+ for(const [Class,extra]of [[Hidden,[]],[Duration,[ITriDuration]],[Length,[ITriCurveLength]]])meta.blue.interfaceTable({interfaces:[Class,ITriColorFunction,...extra],chainTo:null})(Class);
  const curve=new TriColorSequencer();curve.functions.Append(new Hidden());assert.equal(curve.Length(),0);
  const duration=new Duration();curve.functions.Append(duration);curve.functions.Append(new Length());assert.equal(curve.Length(),7);
  duration.Length=null;assert.throws(()=>curve.Length(),TypeError);
@@ -90,7 +90,7 @@ test("Euler stored hydration bypasses live setter then factory Initialize compil
 test("Euler SOF lazy compilation and typed scalar input times remain available",()=>{
  const curve=new Tr2CurveEulerRotationExpression(),adapter=createSofHydrationAdapter();adapter.applyValues(curve,{expressionYaw:"time"});adapter.finalize(curve,{kind:"Tr2CurveEulerRotationExpression"});assert.equal(curve._programs[0],null);
  curve.timeScale=2;const out=quat.create();curve.GetValueAt(2,out);assert.ok(curve._programs[0]);assert.deepEqual([...out],[...fromYawPitchRoll(quat.create(),1,0,0)]);
- class Scalar extends ITriScalarFunction{GetValueAt(time){return time+3;}}carbon.interfaceTable({interfaces:[Scalar,ITriScalarFunction],chainTo:null})(Scalar);
+ class Scalar extends ITriScalarFunction{GetValueAt(time){return time+3;}}meta.blue.interfaceTable({interfaces:[Scalar,ITriScalarFunction],chainTo:null})(Scalar);
  const input=new Scalar();curve.inputs.Append(input);assert.equal(curve.GetInputValue(0),4);assert.equal(curve.GetInputValue(0,5),8);assert.equal(curve.GetInputValue(8),0);
  input.GetValueAt=null;assert.throws(()=>curve.GetInputValue(0),TypeError);
 });

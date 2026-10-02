@@ -60,8 +60,8 @@ function fixture()
         { name: "set", key: "set", type: { kind: "set", itemType: Leaf }, lifecycle: { ownership: "owned" } },
         { name: "borrowed", key: "borrowed", type: { kind: "objectRef", className: Leaf } },
     ] });
-    CjsSchema.carbon.mapInterface(IInitialize)(Leaf);
-    CjsSchema.carbon.mapInterface(IInitialize)(Root);
+    CjsSchema.meta.blue.mapInterface(IInitialize)(Leaf);
+    CjsSchema.meta.blue.mapInterface(IInitialize)(Root);
     return { prefix, Leaf, Plain, Resource, Root, calls };
 }
 
@@ -122,7 +122,7 @@ test("public inherited traversal order is independent of reader ownership", () =
     CjsSchema.define(Base, { className: `${prefix}Base`, fields: [
         { name: "base", key: "base", type: { kind: "objectRef", className: Leaf }, lifecycle: { ownership: "owned" } }
     ] });
-    CjsSchema.carbon.mapInterface(IInitialize)(Base);
+    CjsSchema.meta.blue.mapInterface(IInitialize)(Base);
     class Derived extends Base { derived = new Leaf("derived"); }
     CjsSchema.define(Derived, { className: `${prefix}Derived`, fields: [
         { name: "derived", key: "derived", type: { kind: "objectRef", className: Leaf }, lifecycle: { ownership: "owned" } }
@@ -154,7 +154,7 @@ test("public resource collection forwards independently of Traverse overrides ac
     {
         Traverse() { assert.fail("resource collection called public Traverse override"); }
     }
-    CjsSchema.decorateField(Overridden, "_geometryRes", CjsSchema.type.resource(Resource));
+    CjsSchema.decorateField(Overridden, "_geometryRes", CjsSchema.meta.type.resource(Resource));
     CjsSchema.define(Overridden, { className: `${prefix}ResourceOverride` });
     const root = new Overridden();
     const dependency = new Resource();
@@ -176,7 +176,7 @@ test("native initialization ignores a false return but propagates a thrown failu
     for (const Type of [ReturnsFalse, Throws])
     {
         CjsSchema.define(Type, { className: "ReaderCompletion" + Type.name });
-        CjsSchema.carbon.mapInterface(IInitialize)(Type);
+        CjsSchema.meta.blue.mapInterface(IInitialize)(Type);
     }
     assert.ok(CjsSchema.from("ReaderCompletionReturnsFalse", {}) instanceof ReturnsFalse);
     assert.throws(() => CjsSchema.from("ReaderCompletionThrows", {}), /fixture initialization error/);

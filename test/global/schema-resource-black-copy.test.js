@@ -6,7 +6,7 @@ import { CjsBlackReader } from "../../src/resource/formats/black/core/CjsBlackRe
 import { CjsBlackSchemaRegistry } from "../../src/resource/formats/black/core/CjsBlackSchemaRegistry.js";
 import { classStructureLayout } from "../../src/resource/formats/black/core/blackClassStructures.js";
 
-const { type, edit } = CjsSchema;
+
 const member = (name, kind, extra = {}) => ({
     name, key: name, type: { kind }, edit: { persist: true }, ...extra
 });
@@ -16,7 +16,7 @@ class ResourceLeaf
     value = 1;
 }
 CjsSchema.define(ResourceLeaf, { className: "ResourceBlackCopyLeaf", fields: {
-    value: [type.int32, edit.persist]
+    value: [CjsSchema.meta.type.int32, CjsSchema.meta.blue.persist]
 } });
 
 class ResourceHolder
@@ -26,10 +26,10 @@ class ResourceHolder
     ordinary = null;
 }
 CjsSchema.define(ResourceHolder, { className: "ResourceBlackCopyHolder", fields: {
-    count: [type.uint32, edit.persist],
+    count: [CjsSchema.meta.type.uint32, CjsSchema.meta.blue.persist],
     // Contradictory persistence flags must never override the runtime-only fact.
-    _cache: [type.resource(ResourceLeaf), edit.persist],
-    ordinary: [type.objectRef(ResourceLeaf), edit.persist]
+    _cache: [CjsSchema.meta.type.resource(ResourceLeaf), CjsSchema.meta.blue.persist],
+    ordinary: [CjsSchema.meta.type.objectRef(ResourceLeaf), CjsSchema.meta.blue.persist]
 } });
 
 class ResourceBase
@@ -194,12 +194,12 @@ test("Black structure layouts exclude marked fields independently of erroneous P
     }
     class StructureOwner { items = []; }
     CjsSchema.define(StructureItem, { className: "ResourceBlackCopyStructureItem", struct: { size: 8 }, fields: {
-        first: [CjsSchema.meta.struct.FLOAT32_1(0), edit.persist],
-        _cache: [type.resource(ResourceLeaf), edit.persist],
-        second: [CjsSchema.meta.struct.UINT32_1(4), edit.persist]
+        first: [CjsSchema.meta.struct.FLOAT32_1(0), CjsSchema.meta.blue.persist],
+        _cache: [CjsSchema.meta.type.resource(ResourceLeaf), CjsSchema.meta.blue.persist],
+        second: [CjsSchema.meta.struct.UINT32_1(4), CjsSchema.meta.blue.persist]
     } });
     CjsSchema.define(StructureOwner, { className: "ResourceBlackCopyStructureOwner", fields: {
-        items: [type.list("ResourceBlackCopyStructureItem"), edit.persist]
+        items: [CjsSchema.meta.type.list("ResourceBlackCopyStructureItem"), CjsSchema.meta.blue.persist]
     } });
     const layout = classStructureLayout("ResourceBlackCopyStructureOwner", "items");
     assert.equal(layout.size, 8);

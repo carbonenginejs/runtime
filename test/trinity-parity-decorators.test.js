@@ -5,7 +5,7 @@ import { isCarbonDecorator, findCarbonMethod } from "../scripts/trinity/carbon-d
 
 test("Trinity parity recognizes both Carbon method decorator namespaces", () =>
 {
-  for (const source of [ "carbon.method", "carbon.method()", "meta.carbon.method", "meta.carbon.method()" ])
+  for (const source of [ "carbon.method", "carbon.method()", "meta.carbon.method", "meta.carbon.method()", "meta.blue.method", "meta.blue.method()" ])
   {
     assert.equal(isCarbonDecorator(parseExpression(source), "method"), true, source);
   }
@@ -13,7 +13,7 @@ test("Trinity parity recognizes both Carbon method decorator namespaces", () =>
 
 test("Trinity parity recognizes composed bases through both Carbon namespaces", () =>
 {
-  for (const source of [ "carbon.inherit(Owner)", "meta.carbon.inherit(Owner, OtherOwner)" ])
+  for (const source of [ "carbon.inherit(Owner)", "meta.carbon.inherit(Owner, OtherOwner)", "meta.blue.inherit(Owner, OtherOwner)" ])
   {
     const expression = parseExpression(source);
     assert.equal(isCarbonDecorator(expression, "inherit"), true, source);
@@ -27,7 +27,8 @@ test("Trinity parity rejects unrelated and computed decorator expressions", () =
   for (const source of [
     "method", "other.method", "other.carbon.method", "meta.method", "meta.other.method",
     "meta.carbon.other", "carbon['method']", "meta['carbon'].method", "meta.carbon['method']",
-    "factory().method", "meta.carbon.method()()"
+    "factory().method", "meta.carbon.method()()", "meta.blue.method()()",
+    "meta.ui.method", "meta.type.method", "meta['blue'].method", "meta.blue['method']", "other.blue.method"
   ])
   {
     assert.equal(isCarbonDecorator(parseExpression(source), "method"), false, source);
@@ -57,4 +58,13 @@ test("Trinity parity keeps exact method lookup ahead of a casing alternative", (
   const exact = { isStatic: true, hasCarbon: true };
   const alternate = { isStatic: true, hasCarbon: false };
   assert.equal(findCarbonMethod(new Map([["Variable", exact], ["variable", alternate]]), "Variable", true), exact);
+});
+
+test("Blue exposure matching preserves renamed, contextual and interface declarations", () =>
+{
+  for (const name of ["renamed", "contextual", "mapInterface"])
+  {
+    assert.equal(isCarbonDecorator(parseExpression("meta.blue." + name + "(Value)"), name), true);
+    assert.equal(isCarbonDecorator(parseExpression("meta.type." + name + "(Value)"), name), false);
+  }
 });

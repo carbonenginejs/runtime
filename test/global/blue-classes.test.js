@@ -267,11 +267,11 @@ test("registration revisions refresh schemas and defaults through both facades",
   class Holder { reference = null; }
   CjsSchema.define(Holder, {
     className: "RegistrationRevisionHolder",
-    fields: { reference: CjsSchema.type.model("LateRegisteredResource") }
+    fields: { reference: CjsSchema.meta.type.model("LateRegisteredResource") }
   });
   let constructions = 0;
   class Defaults { constructor() { this.value = ++constructions; } }
-  CjsSchema.define(Defaults, { className: "RegistrationRevisionDefaults", fields: { value: CjsSchema.type.uint32 } });
+  CjsSchema.define(Defaults, { className: "RegistrationRevisionDefaults", fields: { value: CjsSchema.meta.type.uint32 } });
   class Resource { static isResource = true; }
   class Ordinary {}
   const registry = new BlueClasses();
@@ -320,8 +320,8 @@ test("canonical and alias collisions resolve independently without erasing seale
   class Later { declared = 4; }
   CjsSchema.define(Original, { className: "CanonicalCollision", aliases: [ "OriginalAlias" ] });
   registry.RegisterClasses([ { name: "OccupiedAlias", type: Other } ]);
-  CjsSchema.type.define({
-    className: "CanonicalCollision", aliases: [ "OccupiedAlias", "AvailableAlias" ], fields: { declared: CjsSchema.type.uint32 }
+  CjsSchema.meta.define({
+    className: "CanonicalCollision", aliases: [ "OccupiedAlias", "AvailableAlias" ], fields: { declared: CjsSchema.meta.type.uint32 }
   })(Later);
   try
   {

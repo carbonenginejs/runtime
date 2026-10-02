@@ -24,7 +24,7 @@ class Item
 CjsSchema.define(Item, { className: itemName, fields: {
   value: { type: { kind: "int32" }, edit: { persist: true } }
 } });
-meta.carbon.interfaceTable({ interfaces: [Item, IInitialize], chainTo: null })(Item);
+meta.blue.interfaceTable({ interfaces: [Item, IInitialize], chainTo: null })(Item);
 
 function Info(list)
 {
@@ -56,12 +56,12 @@ class Owner
     this.childInitializeCounts = Array.from(this.items, item => item.initializeCount);
   }
 }
-meta.carbon.inherit(IListNotify)(Owner);
+meta.blue.inherit(IListNotify)(Owner);
 CjsSchema.define(Owner, { className: ownerName, fields: {
   name: { type: { kind: "string" }, edit: { persist: true } },
   items: { type: { kind: "list", itemType: itemName }, edit: { read: true, persist: true } }
 } });
-meta.carbon.interfaceTable({ interfaces: [Owner, IListNotify, IInitialize], chainTo: null })(Owner);
+meta.blue.interfaceTable({ interfaces: [Owner, IListNotify, IInitialize], chainTo: null })(Owner);
 
 const classes = { [itemName]: Item, [ownerName]: Owner };
 
@@ -167,10 +167,10 @@ class Notified
 CjsSchema.define(Notified, { className: "BlueReaderPlainNotified", fields: {
   value: { type: { kind: "int32" }, edit: { persist: true, notify: true } }
 } });
-meta.carbon.interfaceTable({ interfaces: [Notified, INotify], chainTo: null })(Notified);
+meta.blue.interfaceTable({ interfaces: [Notified, INotify], chainTo: null })(Notified);
 class UnexposedNotify extends Notified {}
 CjsSchema.define(UnexposedNotify, { className: "BlueReaderPlainUnexposedNotify" });
-meta.carbon.interfaceTable({ interfaces: [UnexposedNotify], chainTo: null })(UnexposedNotify);
+meta.blue.interfaceTable({ interfaces: [UnexposedNotify], chainTo: null })(UnexposedNotify);
 
 test("the declared plain branch uses mapped notifications after assignment and rejects method-only exposure", () =>
 {

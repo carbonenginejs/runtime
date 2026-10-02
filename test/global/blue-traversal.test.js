@@ -190,8 +190,8 @@ test("resource root and recursive resource dependencies are collected once", () 
 test("runtime-only resource declarations retain encounter order and descendant collection", () =>
 {
     class Holder extends Graph {}
-    CjsSchema.decorateField(Holder, "_geometryRes", CjsSchema.type.resource(Resource));
-    CjsSchema.decorateField(Holder, "_sharedRes", CjsSchema.type.resource(Resource));
+    CjsSchema.decorateField(Holder, "_geometryRes", CjsSchema.meta.type.resource(Resource));
+    CjsSchema.decorateField(Holder, "_sharedRes", CjsSchema.meta.type.resource(Resource));
     CjsSchema.define(Holder, { className: "BlueTraversalRuntimeResourceHolder" });
     const root = new Holder("root");
     const local = new Resource("local");

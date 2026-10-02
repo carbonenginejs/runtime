@@ -303,8 +303,7 @@ test("lists document names without exporting the complete library graph", () =>
         "characterRecipeProfiles",
         "characterTextureMetadata"
     ];
-    const documentSchema = CjsSchema
-        .getSchema(CjsCharacterLibraryDocuments);
+    const documentSchema = CjsSchema.getSchema(CjsCharacterLibraryDocuments);
     const schemaFields = documentSchema.fields.map(field => field.name);
 
     assert.deepEqual(library.ListDocuments(), expected);

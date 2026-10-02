@@ -22,7 +22,7 @@ class ValuesInputParent
   child = null;
 }
 CjsSchema.defineField(ValuesInputParent, "label", "type", { kind: "string" });
-CjsSchema.decorateField(ValuesInputParent, "child", CjsSchema.type.model("ValuesInputChild"));
+CjsSchema.decorateField(ValuesInputParent, "child", CjsSchema.meta.type.model("ValuesInputChild"));
 CjsSchema.define(ValuesInputParent, { className: "ValuesInputParent" });
 
 const NOT_VALUES = [

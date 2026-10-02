@@ -30,7 +30,7 @@ function declare(fields, { compose = true } = {})
 
   CjsSchema.define(Fixture, { className });
 
-  if (compose) CjsSchema.compose.values(Fixture, { kind: "class" });
+  if (compose) CjsSchema.meta.values(Fixture, { kind: "class" });
   return Fixture;
 }
 
@@ -143,7 +143,7 @@ test("install-if-absent: a hand-rolled SetValues keeps its own", () =>
 {
   const Fixture = declare({ name: { type: { kind: "string" }, initial: "" } }, { compose: false });
   Fixture.prototype.SetValues = function () { return "mine"; };
-  CjsSchema.compose.values(Fixture, { kind: "class" });
+  CjsSchema.meta.values(Fixture, { kind: "class" });
 
   assert.equal(new Fixture().SetValues({}), "mine");
   assert.equal(typeof new Fixture().GetValues, "function", "the absent half still installs");
@@ -162,8 +162,8 @@ test("the statics answer for a class carrying neither method", () =>
 
 test("the decorator refuses a non-class", () =>
 {
-  assert.throws(() => CjsSchema.compose.values({}, { kind: "class" }), TypeError);
-  assert.throws(() => CjsSchema.compose.values(() => {}, { kind: "method" }), TypeError);
+  assert.throws(() => CjsSchema.meta.values({}, { kind: "class" }), TypeError);
+  assert.throws(() => CjsSchema.meta.values(() => {}, { kind: "method" }), TypeError);
 });
 
 // --- lazy state, the settle, and the listener door ---------------------------
@@ -259,7 +259,7 @@ test("the settle is re-entrant-safe", () =>
 test("nothing is emitted without a listener, and the payload carries the fields", () =>
 {
   const Fixture = declare({ n: { type: { kind: "int32" }, initial: 0 } });
-  CjsSchema.compose.notify(Fixture, { kind: "class" });
+  CjsSchema.meta.events(Fixture, { kind: "class" });
 
   const thing = new Fixture();
   const heard = [];
@@ -291,7 +291,7 @@ test("skipEvents suppresses the emit but not the settle", () =>
 {
   const settled = [];
   const Fixture = declare({ n: { type: { kind: "int32" }, initial: 0, edit: { notify: true } } });
-  CjsSchema.compose.notify(Fixture, { kind: "class" });
+  CjsSchema.meta.events(Fixture, { kind: "class" });
   Fixture.prototype.OnModified = function () { settled.push(1); return true; };
 
   const thing = new Fixture();

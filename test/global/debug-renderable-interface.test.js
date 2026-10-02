@@ -57,7 +57,7 @@ test("debug composition preserves caller-owned option accumulation and renderer 
   }
   const getDebugOptions = DebugRenderable.prototype.GetDebugOptions;
   const renderDebugInfo = DebugRenderable.prototype.RenderDebugInfo;
-  meta.carbon.inherit(ITr2DebugRenderable)(DebugRenderable, { kind: "class" });
+  meta.blue.inherit(ITr2DebugRenderable)(DebugRenderable, { kind: "class" });
   CjsSchema.define(DebugRenderable, { className: "TestSharedDebugRenderableProvider" });
 
   const renderable = new DebugRenderable();
@@ -77,7 +77,7 @@ test("debug composition preserves caller-owned option accumulation and renderer 
   assert.equal(calls[1], options);
   assert.equal(calls[2], renderer);
 
-  meta.carbon.interfaceTable({ interfaces: [ITr2DebugRenderable], chainTo: null })(DebugRenderable);
+  meta.blue.interfaceTable({ interfaces: [ITr2DebugRenderable], chainTo: null })(DebugRenderable);
   assert.deepEqual(mappedInterfaces(DebugRenderable), new Set([ITr2DebugRenderable]));
   assert.equal("Initialize" in renderable, false);
   assert.equal("SetValues" in renderable, false);
@@ -181,7 +181,7 @@ test("renderer composition preserves query booleans and caller-owned color outpu
   }
   const implementations = ["HasOption", "IsSelected", "GetColorForOption", "SetColorForOption"]
     .map(name => [name, Renderer.prototype[name]]);
-  meta.carbon.inherit(ITr2DebugRenderer2)(Renderer, { kind: "class" });
+  meta.blue.inherit(ITr2DebugRenderer2)(Renderer, { kind: "class" });
   CjsSchema.define(Renderer, { className: "TestSharedDebugRendererQueries" });
   const renderer = new Renderer();
   for (const [name, implementation] of implementations) assert.equal(Renderer.prototype[name], implementation);
@@ -202,7 +202,7 @@ test("renderer composition preserves query booleans and caller-owned color outpu
   assert.equal(calls[4][2], color);
   assert.equal(CjsSchema.cast(renderer, ITr2DebugRenderer2), renderer);
   assert.equal(mappedInterfaces(Renderer).has(ITr2DebugRenderer2), false);
-  meta.carbon.interfaceTable({ interfaces: [ITr2DebugRenderer2], chainTo: null })(Renderer);
+  meta.blue.interfaceTable({ interfaces: [ITr2DebugRenderer2], chainTo: null })(Renderer);
   assert.deepEqual(mappedInterfaces(Renderer), new Set([ITr2DebugRenderer2]));
   assert.throws(() => renderer.DrawAxis(owner, mat4.create(), 0), /TestSharedDebugRendererQueries\.DrawAxis must be implemented/u);
   assert.equal("GetRawRoot" in renderer, false);
@@ -229,7 +229,7 @@ test("concrete renderer overload dispatch retains native argument order and iden
     }
   }
   const drawSphere = Renderer.prototype.DrawSphere;
-  meta.carbon.inherit(ITr2DebugRenderer2)(Renderer, { kind: "class" });
+  meta.blue.inherit(ITr2DebugRenderer2)(Renderer, { kind: "class" });
   CjsSchema.define(Renderer, { className: "TestSharedDebugRendererOverloads" });
   const renderer = new Renderer();
   const owner = {};

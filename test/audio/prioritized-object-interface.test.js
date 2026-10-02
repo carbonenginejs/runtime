@@ -37,7 +37,7 @@ test("IPrioritizedObject composes inheritance without fabricating a Blue exposur
     Cull() { this.culled = true; }
   }
   const getID = PrioritizedObject.prototype.GetID;
-  meta.carbon.inherit(IPrioritizedObject)(PrioritizedObject, { kind: "class" });
+  meta.blue.inherit(IPrioritizedObject)(PrioritizedObject, { kind: "class" });
   const object = new PrioritizedObject();
   assert.equal(PrioritizedObject.prototype.GetID, getID);
   assert.equal(CjsSchema.cast(object, IPrioritizedObject), object);
