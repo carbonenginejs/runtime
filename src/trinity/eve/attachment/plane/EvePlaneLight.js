@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EvePlaneSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EvePlaneSet.cpp
-import { CjsModel } from "#model";
+import { DictReader } from "#blue/DictReader";
 import { mat4 } from "#math/mat4";
 import { lifecycle, type } from "#schema";
 import { CjsLightData } from "../../lights/CjsLightData.js";
@@ -13,7 +13,7 @@ import { FadeType } from "../EveSpaceObjectAttachmentUtils.js";
  * frame.
  */
 @type.define({ className: "EvePlaneLight", family: "eve/attachment/planes" })
-export class EvePlaneLight extends CjsModel
+export class EvePlaneLight
 {
   static FadeType = FadeType;
 
@@ -60,9 +60,11 @@ export class EvePlaneLight extends CjsModel
   static FromSOF(value)
   {
     const values = value ?? {};
-    return EvePlaneLight.from({
+    const light = new EvePlaneLight();
+    new DictReader({ declarations: true, initialize: false }).ReadInto(light, {
       ...values,
       lightProfilePath: String(values.lightProfilePath ?? values.lightData?.texturePath ?? "")
-    });
+    }, null);
+    return light;
   }
 }

@@ -1,10 +1,9 @@
 // Source: trinity/trinity/Lights/Tr2Light.h
 // Source: trinity/trinity/Lights/Tr2Light.cpp
-import { CjsModel } from "#model";
 import { color } from "#math/color";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
 import { blue, EnumRegistrationType } from "#blue";
 
@@ -21,7 +20,7 @@ import { blue, EnumRegistrationType } from "#blue";
   aliases: ["LightData"],
   family: "eve/lights"
 })
-export class CjsLightData extends CjsModel
+export class CjsLightData
 {
   static Fields = [
     "position", "color", "brightness", "noiseAmplitude", "noiseFrequency",
@@ -111,7 +110,7 @@ export function createCjsLightDataView(owner, fieldNames)
       },
       set(value)
       {
-        owner.SetValues({ [fieldName]: value });
+        CjsSchema.setValues(owner, { [fieldName]: value });
       }
     };
   }
@@ -136,7 +135,7 @@ export function setCjsLightDataOwnerValues(owner, values, options, setOwnerValue
     if (key !== "lightData") merged[key] = value;
   }
 
-  const nested = values.lightData?.GetValues?.() ?? values.lightData;
+  const nested = values.lightData;
   if (nested && typeof nested === "object")
   {
     const fieldSet = new Set(fieldNames);

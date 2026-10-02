@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpotlightSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpotlightSet.cpp
-import { CjsModel } from "#model";
+import { DictReader } from "#blue/DictReader";
 import { mat4 } from "#math/mat4";
 import { lifecycle, type } from "#schema";
 import { CjsLightData } from "../../lights/CjsLightData.js";
@@ -11,7 +11,7 @@ import { CjsLightData } from "../../lights/CjsLightData.js";
  * influence flag, light profile and the bone matrix resolved for it each frame.
  */
 @type.define({ className: "EveSpotlightLight", family: "eve/attachment/spotlights" })
-export class EveSpotlightLight extends CjsModel
+export class EveSpotlightLight
 {
   @lifecycle.owned
   @type.struct("CjsLightData")
@@ -40,9 +40,11 @@ export class EveSpotlightLight extends CjsModel
   static FromSOF(value)
   {
     const values = value ?? {};
-    return EveSpotlightLight.from({
+    const light = new EveSpotlightLight();
+    new DictReader({ declarations: true, initialize: false }).ReadInto(light, {
       ...values,
       lightProfilePath: String(values.lightProfilePath ?? values.lightData?.texturePath ?? "")
-    });
+    }, null);
+    return light;
   }
 }

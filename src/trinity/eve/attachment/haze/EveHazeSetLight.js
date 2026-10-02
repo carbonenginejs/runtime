@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveHazeSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveHazeSet.cpp
-import { CjsModel } from "#model";
+import { DictReader } from "#blue/DictReader";
 import { mat4 } from "#math/mat4";
 import { lifecycle, type } from "#schema";
 import { CjsLightData } from "../../lights/CjsLightData.js";
@@ -11,7 +11,7 @@ import { CjsLightData } from "../../lights/CjsLightData.js";
  * light profile and the bone matrix resolved for it each frame.
  */
 @type.define({ className: "EveHazeSetLight", family: "eve/attachment/haze" })
-export class EveHazeSetLight extends CjsModel
+export class EveHazeSetLight
 {
   @lifecycle.owned
   @type.struct("CjsLightData")
@@ -40,9 +40,11 @@ export class EveHazeSetLight extends CjsModel
   static FromSOF(value)
   {
     const values = value ?? {};
-    return EveHazeSetLight.from({
+    const light = new EveHazeSetLight();
+    new DictReader({ declarations: true, initialize: false }).ReadInto(light, {
       ...values,
       lightProfilePath: String(values.lightProfilePath ?? values.lightData?.texturePath ?? "")
-    });
+    }, null);
+    return light;
   }
 }

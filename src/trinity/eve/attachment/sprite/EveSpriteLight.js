@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSet.cpp
-import { CjsModel } from "#model";
+import { DictReader } from "#blue/DictReader";
 import { mat4 } from "#math/mat4";
 import { lifecycle, type } from "#schema";
 import { CjsLightData } from "../../lights/CjsLightData.js";
@@ -12,7 +12,7 @@ import { CjsLightData } from "../../lights/CjsLightData.js";
  * resolved for it each frame.
  */
 @type.define({ className: "EveSpriteLight", family: "eve/attachment/sprites" })
-export class EveSpriteLight extends CjsModel
+export class EveSpriteLight
 {
   @lifecycle.owned
   @type.struct("CjsLightData")
@@ -50,9 +50,11 @@ export class EveSpriteLight extends CjsModel
   static FromSOF(value)
   {
     const values = value ?? {};
-    return EveSpriteLight.from({
+    const light = new EveSpriteLight();
+    new DictReader({ declarations: true, initialize: false }).ReadInto(light, {
       ...values,
       lightProfilePath: String(values.lightProfilePath ?? values.lightData?.texturePath ?? "")
-    });
+    }, null);
+    return light;
   }
 }
