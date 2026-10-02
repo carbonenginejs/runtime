@@ -2,6 +2,9 @@
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import "#blue/registerTrinityEnums";
 import { meta } from "#schema";
+import { INotify, IsMatch } from "#blue";
+import { Tr2TextureReference } from "../../core/Tr2TextureReference.js";
+import { Tr2VariableStore } from "../../core/variable/Tr2VariableStore.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -109,6 +112,7 @@ function TransformNormal(out, v, m)
 /** A volumetric cloud entity that renders as a raymarched unit-cube volume with its own lightmap, shadow map and lighting, and can also contribute reflection batches. */
 @meta.define({ className: "EveChildCloud2", family: "eve/child" })
 @meta.blue.inherit(ITr2Renderable)
+@meta.blue.mapInterface(INotify)
 export class EveChildCloud2 extends EveSpaceObjectChild
 {
 
@@ -148,7 +152,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   /** m_lightMap (Tr2TextureReferencePtr) [READ] */
   @meta.blue.read
   @meta.type.objectRef("Tr2TextureReference")
-  lightmap = null;
+  lightmap = new Tr2TextureReference();
 
   /** m_lightmapSizeScale (float) [READ] */
   @meta.blue.read
@@ -341,6 +345,47 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * (cpp:115) - the variable store is not ported yet in JS, so the handle is an
    * engine-injected duck. */
   depthShadowMapHandle = null;
+
+  /** Native constructor-owned empty lightmap provider (EveChildCloud2.cpp:105). */
+  _emptyLightMap = new Tr2TextureReference();
+
+  /** Native per-cloud shader variable store (EveChildCloud2.cpp:107). */
+  _variableStore = new Tr2VariableStore();
+
+  /**
+   * Owns the lightmap bindings from EveChildCloud2.cpp:103-109.
+   * Adapted: initializes the CPU references here; native cube-buffer resource
+   * preparation and Initialize remain unported, as the rendering methods document.
+   */
+  constructor()
+  {
+    super();
+    this._variableStore.RegisterVariable("LightMap", this._emptyLightMap);
+    this._variableStore.RegisterVariable("LightMapRW", this.lightmap);
+  }
+
+  /** Native EveChildCloud2.cpp:182-204: refresh affected registrations and effects. */
+  @meta.implemented
+  OnModified(names)
+  {
+    if (IsMatch(names, "reflectionMode") || IsMatch(names, "display") || IsMatch(names, "reflectionEffect"))
+      this.ReRegister();
+    if (IsMatch(names, "effect"))
+    {
+      if (this.effect)
+      {
+        this.effect.SetVariableStore(this._variableStore);
+        this.effect.RebuildCachedData();
+      }
+      this.MarkLightmapDirty(true);
+    }
+    if (IsMatch(names, "reflectionEffect") && this.reflectionEffect)
+    {
+      this.reflectionEffect.SetVariableStore(this._variableStore);
+      this.reflectionEffect.RebuildCachedData();
+    }
+    return true;
+  }
 
   /** Carbon EveChildCloud2::RegisterComponents (EveChildCloud2.cpp:148-163):
    * LightOwner when lights are authored; VolumetricRenderable UNCONDITIONAL;
