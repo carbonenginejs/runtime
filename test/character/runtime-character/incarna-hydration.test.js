@@ -17,7 +17,7 @@ test("historical Incarna records hydrate directly from plain JSON", () =>
     isUnbounded: true,
     shProbeResPath: "res:/synthetic/interior/example.shp"
   });
-  const colorCurve = Tr2ColorCurve.from({
+  const colorCurve = CjsSchema.from("Tr2ColorCurve", {
     length: 1,
     cycle: true,
     startValue: [0, 0, 0, 1],
@@ -27,7 +27,7 @@ test("historical Incarna records hydrate directly from plain JSON", () =>
       { time: 0.75, value: [0.75, 0.375, 0.1875, 1] }
     ]
   });
-  const scalarCurve = Tr2ScalarCurve.from({
+  const scalarCurve = CjsSchema.from("Tr2ScalarCurve", {
     length: 1,
     cycle: false,
     startValue: 0,
@@ -49,7 +49,7 @@ test("historical Incarna records hydrate directly from plain JSON", () =>
 
 test("historical Curve2 behavior retains cycle, reverse, and Hermite evaluation", () =>
 {
-  const colorCurve = Tr2ColorCurve.from({
+  const colorCurve = CjsSchema.from("Tr2ColorCurve", {
     length: 2,
     cycle: true,
     startValue: [0, 0, 0, 1],
@@ -57,10 +57,10 @@ test("historical Curve2 behavior retains cycle, reverse, and Hermite evaluation"
   });
   assert.deepEqual(Array.from(colorCurve.GetValueAt(2.5, vec4.create())), [0.25, 0.25, 0.25, 1]);
 
-  colorCurve.SetValues({ cycle: false, reversed: true });
+  CjsSchema.setValues(colorCurve, { cycle: false, reversed: true });
   assert.deepEqual(Array.from(colorCurve.GetValueAt(2.5, vec4.create())), [0, 0, 0, 1]);
 
-  const scalarCurve = Tr2ScalarCurve.from({
+  const scalarCurve = CjsSchema.from("Tr2ScalarCurve", {
     length: 1,
     startValue: 0,
     endValue: 1,
@@ -92,4 +92,19 @@ test("historical Incarna shells remain explicitly separated from current Carbon 
   assert.equal(CjsSchema.GetConstructor("Tr2ShaderMaterial"), null);
   assert.equal(CjsSchema.GetConstructor("Tr2ShaderManager"), null);
   assert.equal(CjsSchema.GetConstructor("Tr2HighLevelShader"), null);
+});
+
+
+test("historical curve construction retains typed keys and initialization ordering without model helpers", () =>
+{
+  for (const [name, key, values] of [
+    ["Tr2ScalarCurve", Tr2ScalarKey, [0.8, 0.2]],
+    ["Tr2ColorCurve", Tr2ColorKey, [[0.8, 0, 0, 1], [0.2, 0, 0, 1]]]
+  ])
+  {
+    const curve = CjsSchema.from(name, { length: 1, keys: [{ time: 0.8, value: values[0] }, { time: 0.2, value: values[1] }] });
+    assert.deepEqual(curve.keys.map(value => value.time), [0.2, 0.8]);
+    assert.equal(curve.keys[0].constructor, key);
+    assert.equal("GetValues" in curve, false);
+  }
 });

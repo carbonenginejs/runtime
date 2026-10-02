@@ -2,7 +2,6 @@
 // ccpgames rawrafox cppctamber) and corroborated by historical Tr2ColorCurve
 // Black records.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec4 } from "#math/vec4";
 import { IncarnaColorCurveInterpolation } from "./enums.js";
 import { Tr2ColorKey } from "./Tr2ColorKey.js";
@@ -14,7 +13,7 @@ import { Tr2ColorKey } from "./Tr2ColorKey.js";
  * whose persisted representation is four component scalar curves.
  */
 @type.define({ className: "Tr2ColorCurve", family: "incarna" })
-export class Tr2ColorCurve extends CjsModel
+export class Tr2ColorCurve
 {
 
   @edit.persist

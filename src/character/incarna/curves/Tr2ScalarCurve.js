@@ -2,7 +2,6 @@
 // ccpgames rawrafox cppctamber) and corroborated by historical Tr2ScalarCurve
 // Black records.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { IncarnaScalarCurveInterpolation } from "./enums.js";
 import { Tr2ScalarKey } from "./Tr2ScalarKey.js";
 
@@ -13,7 +12,7 @@ import { Tr2ScalarKey } from "./Tr2ScalarKey.js";
  * which owns the modern key, tangent, and extrapolation representation.
  */
 @type.define({ className: "Tr2ScalarCurve", family: "incarna" })
-export class Tr2ScalarCurve extends CjsModel
+export class Tr2ScalarCurve
 {
 
   @edit.persist
