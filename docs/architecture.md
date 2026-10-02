@@ -152,20 +152,28 @@ providers. An authored instance resource path takes precedence over the assigned
 provider. SOF CPU attachments set only the base geometry path and bind their
 `Tr2RuntimeInstanceData` directly.
 
+Runtime instance rows retain their CPU bytes and publish them to the existing
+shared geometry allocator. The provider returns a registered vertex declaration
+and an AL buffer with its physical byte offset. Its transform layout uses
+TEXCOORD0..6; the instanced mesh adds eight when merging stream 1, so the shader
+receives TEXCOORD8..14. CPU publication before device creation does not imply
+render readiness; device preparation allocates and uploads the retained rows.
+
 Carbon prepares geometry at resource load; the resource layer here cannot import
 Trinity, so the instanced mesh prepares loaded and assigned geometry providers
 through the existing LOD allocation helper at first use. The selected instance
 LOD supplies its buffer, byte offset, aligned stride and vertex count. An already
 prepared declaration does not require allocating an unrelated full-detail LOD.
 
-`Tr2ParticleSystem` and `Tr2InstancedMesh` register with `TriDevice`. Device
+`Tr2ParticleSystem`, `Tr2InstancedMesh` and runtime/direct instance providers
+register with `TriDevice`. Device
 `ReleaseResources` retains their owned lifetime; the final owner explicitly calls
 `Destroy` to release CPU storage or mesh subscriptions and unregister. Mesh
 destruction detaches its provider without destroying that shared object.
 
 The WebGPU demo snapshots device identities only around synchronous ship
-hydration. A failed hydration destroys newly registered CPU particle systems and
-instanced meshes. Successful replacement, cancellation and disposal retire those
+hydration. A failed hydration destroys newly registered particle systems,
+instanced meshes, instance providers and behavior systems. Successful replacement, cancellation and disposal retire those
 same named resources through model traversal, preserving objects reachable from
 other live or pending ships. Transition overlays are detached before this walk
 because their bindings reference both ships. This policy belongs to the demo;

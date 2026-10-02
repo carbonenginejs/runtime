@@ -10,7 +10,7 @@ import {mat4} from "../../npm/dist/global/math/mat4.js";
 import {TriBatchType} from "../../npm/dist/global/consts/graphics/index.js";
 import {TriGeometryRes} from "../../npm/dist/resource/index.js";
 import {CjsBlackFormat} from "../../npm/dist/resource/formats/black/index.js";
-import {Tr2InstancedMesh,Tr2MeshArea,Tr2ParticleSystem,Tr2ParticleElementDeclaration,Tr2EffectStateManager,
+import {Tr2InstancedMesh,Tr2RuntimeInstanceData,Tr2MeshArea,Tr2ParticleSystem,Tr2ParticleElementDeclaration,Tr2EffectStateManager,
   TriDevice,EveChildParticleSystem,EveChildContainer,EveShip2,EveUpdateContext,ExecuteMainThreadActions,
   Tr2RenderContext_GetMainThreadRenderContext} from "../../npm/dist/trinity/index.js";
 import {Tr2RenderContextALStub} from "../../npm/dist/trinityal/index.js";
@@ -23,7 +23,7 @@ import { WebgpuVertexBufferLayout } from "../../npm/dist/trinityal/webgpu/index.
 function setup(t)
 {
   const registered=new Set(TriDevice.GetResourcesRegistered());
-  t.after(()=>{for(const resource of TriDevice.GetResourcesRegistered())if(!registered.has(resource)&&(resource.constructor===Tr2ParticleSystem||resource.constructor===Tr2InstancedMesh))resource.Destroy();});
+  t.after(()=>{for(const resource of TriDevice.GetResourcesRegistered())if(!registered.has(resource)&&(resource.constructor===Tr2RuntimeInstanceData||resource.constructor===Tr2ParticleSystem||resource.constructor===Tr2InstancedMesh))resource.Destroy();});
   const context=Tr2RenderContext_GetMainThreadRenderContext(),prior=context.GetRenderContextAL(),manager=blue.resMan;
   const al=new Tr2RenderContextALStub();context.SetRenderContextAL(al);al.CreateDevice();al.BeginScene();blue.resMan=new StubResMan();
   context.SetViewTransform(mat4.create());
@@ -373,4 +373,73 @@ test("real angde1 and angbc2 warp electricity draws repeatedly while kill lightn
       for(const resource of TriDevice.GetResourcesRegistered())if(!registered.has(resource)&&(resource.constructor===Tr2ParticleSystem||resource.constructor===Tr2InstancedMesh))resource.Destroy();
     }
   }
+});
+
+
+test("runtime instance streams upload, merge native semantics, update and release only their own range", t => {
+  const {context,draws,material,uploads}=setup(t);
+  const provider=new Tr2RuntimeInstanceData(),sibling=new Tr2RuntimeInstanceData();
+  const transform=mat4.fromTranslation(mat4.create(),[17,-8,91]);
+  provider.SetTransformInstances([{transform,boneIndex:7},{transform,boneIndex:9}]);
+  sibling.SetTransformInstances([{transform}]);
+  const data={...provider.GetInstanceData()},siblingData={...sibling.GetInstanceData()};
+  assert.equal(provider.IsInstanceDataReady(),true);
+  assert.equal(data.buffer.IsValid(),true);
+  assert.equal(data.stride,100);
+  assert.equal(data.count,2);
+  assert.deepEqual(uploads[0].args[2],provider.GetData(),"uploaded bytes equal packed CPU rows");
+  const mesh=new Tr2InstancedMesh(),area=new Tr2MeshArea();area.SetMaterial(material);
+  mesh.SetGeometryRes(geometry());mesh.SetInstanceGeometryRes(provider);
+  const declaration=Tr2EffectStateManager.getVertexDeclarationElements(mesh.GetVertexDeclaration());
+  assert.deepEqual(declaration.slice(1).map(item=>item.usageIndex),[8,9,10,11,12,13,14]);
+  const batches=collect(mesh,[area]);assert.equal(batches.length,1);
+  context.RenderBatches({GetBatches:()=>batches});
+  assert.equal(draws.at(-1)[1],2);
+  assert.equal(batches[0].vertexStreams[1],data.buffer);
+  assert.equal(batches[0].startInstanceLocation,data.offset/data.stride);
+  const before=uploads.length;
+  provider.SetItemElement(0,0,[2,0,0,33]);assert.equal(provider.UpdateData(),true);
+  assert.equal(uploads.length,before+1);assert.deepEqual(uploads.at(-1).args[2],provider.GetData());
+  assert.equal(provider.UpdateData(),false);assert.equal(uploads.length,before+1);
+  const saved=provider.GetData().slice();
+  provider.ReleaseResources();assert.equal(provider.IsInstanceDataReady(),false);
+  assert.equal(collect(mesh,[area]).length,0);
+  assert.equal(sibling.IsInstanceDataReady(),true);assert.equal(siblingData.buffer.IsValid(),true);
+  assert.equal(provider.PrepareResources(),true);assert.deepEqual(provider.GetData(),saved);
+  assert.equal(collect(mesh,[area]).length,1,"device preparation restores the stream");
+  provider.SetData([provider.GetItem(0)]);assert.equal(provider.IsInstanceDataReady(),false);
+  provider.UpdateData();assert.equal(collect(mesh,[area])[0].instanceCount,1);
+  provider.DestroyData();assert.equal(provider.IsInstanceDataReady(),false);
+  assert.equal(collect(mesh,[area]).length,0);
+  provider.Destroy();assert.equal(TriDevice.GetResourcesRegistered().includes(provider),false);
+});
+
+const deathlessValues=process.env.CJS_DEATHLESS_VALUES;
+test("real Deathless layout runtime instances reach draw submission", {
+  skip:!deathlessValues&&"set CJS_DEATHLESS_VALUES to the real SOF Deathless graph"
+}, async t => {
+  const {context,draws,material}=setup(t);
+  const root=JSON.parse(await readFile(deathlessValues));
+  const meshes=[];
+  function visit(value) {
+    if(!value||typeof value!=="object")return;
+    if(value._type==="Tr2InstancedMesh"&&value.instanceGeometryResource?._type==="Tr2RuntimeInstanceData")meshes.push(value);
+    for(const child of Object.values(value))visit(child);
+  }
+  visit(root);assert.ok(meshes.length>0);
+  let instances=0;
+  for(const authored of meshes) {
+    const provider=Tr2RuntimeInstanceData.from(authored.instanceGeometryResource);
+    const mesh=new Tr2InstancedMesh(),area=new Tr2MeshArea();area.SetMaterial(material);
+    // Real authored instance rows and layout; a known triangle isolates the
+    // instance-provider contract from external geometry/effect availability.
+    mesh.SetGeometryRes(geometry());mesh.SetInstanceGeometryRes(provider);
+    assert.ok(provider.count>0,authored.geometryResPath);
+    const batches=collect(mesh,[area]);assert.equal(batches.length,1,authored.geometryResPath);
+    context.RenderBatches({GetBatches:()=>batches});
+    assert.equal(draws.at(-1)[1],provider.count);
+    instances+=provider.count;
+    provider.Destroy();mesh.Destroy();
+  }
+  t.diagnostic(JSON.stringify({meshGroups:meshes.length,instances,draws:draws.length}));
 });

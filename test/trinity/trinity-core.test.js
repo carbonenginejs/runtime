@@ -424,7 +424,7 @@ test("instanced meshes retain the Tr2Mesh CPU graph and distinct resource paths"
   assertEquals(mesh.maxInstanceSize, 4);
 });
 
-test("runtime instance data packs Carbon SOF records without realizing a GPU buffer", () =>
+test("runtime instance data packs and publishes Carbon SOF records", () =>
 {
   const data = new Tr2RuntimeInstanceData();
   const layout = [
@@ -502,7 +502,7 @@ test("runtime instance data packs Carbon SOF records without realizing a GPU buf
   assert.equal(Object.hasOwn(restored, "gpuBuffer"), false);
 });
 
-test("runtime instance data builds the standard transform stream as a non-GPU graph", () =>
+test("runtime instance data builds the standard transform stream", () =>
 {
   const data = new Tr2RuntimeInstanceData();
   const transform = mat4.fromRotationTranslationScale(

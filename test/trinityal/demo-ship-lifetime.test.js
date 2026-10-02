@@ -7,7 +7,7 @@ import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { blue } from "../../npm/dist/global/blue/index.js";
 import { TriGeometryRes } from "../../npm/dist/resource/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
-import { TriDevice, Tr2ParticleSystem, Tr2ParticleElementDeclaration, Tr2InstancedMesh, Tr2DirectInstanceData,
+import { TriDevice, Tr2ParticleSystem, Tr2ParticleElementDeclaration, Tr2InstancedMesh, Tr2DirectInstanceData, Tr2RuntimeInstanceData,
   EveShip2, EveStation2, EveChildParticleSystem, EveSpaceScene, EveMeshOverlayEffect, TriCurveSet, TriValueBinding,
   Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
@@ -241,4 +241,33 @@ test("demo hydration selects the declared station root and starts its controller
   assert.equal(station.name, "station root");
   assert.equal(start.mock.callCount(), 1);
   retireDemoShips([station], []);
+});
+
+
+test("runtime instance providers retain shared allocations until their final demo owner retires", t => {
+  setup(t);
+  const baseline=new Set(TriDevice.GetResourcesRegistered());
+  const provider=new Tr2RuntimeInstanceData();
+  provider.SetElementLayout([{usage:"POSITION",usageIndex:0,type:"FLOAT32_3",name:"position"}]);
+  provider.SetData([[[1,2,3]]]);provider.UpdateData();
+  const makeRoot=()=>{const ship=new EveShip2();ship.mesh=new Tr2InstancedMesh();ship.mesh.SetInstanceGeometryRes(provider);return ship;};
+  const first=makeRoot(),last=makeRoot();
+  const destroy=t.mock.method(provider,"Destroy");
+  retireDemoShips([first],[last]);
+  assert.equal(destroy.mock.callCount(),0);assert.equal(provider.IsInstanceDataReady(),true);
+  retireDemoShips([last,last],[]);
+  assert.equal(destroy.mock.callCount(),1);assert.equal(provider.IsInstanceDataReady(),false);
+  assert.deepEqual(new Set(TriDevice.GetResourcesRegistered()),baseline);
+});
+
+test("failed demo startup retires newly hydrated runtime instance buffers", t => {
+  setup(t);
+  const baseline=new Set(TriDevice.GetResourcesRegistered());
+  const destroy=t.mock.method(Tr2RuntimeInstanceData.prototype,"Destroy");
+  t.mock.method(EveShip2.prototype,"StartControllers",()=>{throw Error("runtime instance startup failure");});
+  assert.throws(()=>hydrateDemoShip({_type:"EveShip2",mesh:{_type:"Tr2InstancedMesh",
+    instanceGeometryResource:{_type:"Tr2RuntimeInstanceData",layout:[{usage:"POSITION",usageIndex:0,type:"FLOAT32_3",name:"position"}],rows:[[[1,2,3]]]}
+  }}),/runtime instance startup failure/);
+  assert.equal(destroy.mock.callCount(),1);
+  assert.deepEqual(new Set(TriDevice.GetResourcesRegistered()),baseline);
 });

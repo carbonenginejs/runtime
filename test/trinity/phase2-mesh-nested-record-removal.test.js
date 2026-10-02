@@ -85,7 +85,9 @@ test("runtime instance-data owner reuses its plain borrowed record after CPU pub
   owner.UpdateData();
   const data = owner.GetInstanceData();
   assert.equal(data, empty, "owner returns its existing record");
-  assert.equal(data.buffer, owner.GetData().buffer);
+  assert.equal(data.buffer, null, "CPU publication does not fabricate an AL buffer before device creation");
+  assert.equal(owner.GetData().byteLength, 32);
   assert.deepEqual([data.offset, data.stride, data.count], [0, 16, 2]);
   assert.equal("SetValues" in data, false);
+  owner.Destroy();
 });

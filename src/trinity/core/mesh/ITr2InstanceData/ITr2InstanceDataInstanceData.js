@@ -11,7 +11,7 @@ export class ITr2InstanceDataInstanceData
 {
   /**
    * Borrowed native const Tr2BufferAL reference; null represents empty AL state.
-   * @type {object|ArrayBuffer|null}
+   * @type {object|null}
    */
   @meta.type.rawStruct("Tr2BufferAL")
   buffer = null;

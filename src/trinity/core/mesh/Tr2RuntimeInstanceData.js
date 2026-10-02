@@ -1,4 +1,11 @@
 import { IsMatch } from "#blue";
+import { Failed } from "../../../trinityal/ALResult.js";
+import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
+import { Tr2VertexDefinition } from "../vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
+import { TriDevice } from "../device/TriDevice.js";
+import { Tr2Renderer } from "../Tr2Renderer.js";
+import { SharedGeometryBuffer } from "./TriGeometryResAllocations.js";
 // Source: trinity/trinity/Tr2RuntimeInstanceData.h
 // Source: trinity/trinity/Tr2RuntimeInstanceData.cpp
 // Source: trinity/trinity/Tr2RuntimeInstanceData_Blue.cpp
@@ -11,7 +18,7 @@ import { ITr2InstanceDataInstanceData, ITr2InstanceData } from "./ITr2InstanceDa
 
 
 /**
- * Owns a CPU-side instance stream - a vertex element layout, the packed
+ * Owns a CPU instance stream and its shared AL allocation - a layout, packed
  * per-instance rows and their bounding box - and can spawn the same rows into a
  * particle system on demand.
  */
@@ -91,6 +98,8 @@ export class Tr2RuntimeInstanceData
 
   #data = null;
 
+  #bytes = null;
+
   #stride = 0;
 
   #dirty = false;
@@ -98,6 +107,73 @@ export class Tr2RuntimeInstanceData
   #dataRevision = 0;
 
   #instanceData = new ITr2InstanceDataInstanceData();
+
+  #allocation = null;
+
+  #vertexDeclaration = Tr2EffectStateManager.Unknown;
+
+  /** Registers Carbon's inherited Tr2DeviceResource lifetime. */
+  constructor()
+  {
+    TriDevice.RegisterResource(this);
+  }
+
+  /** Explicit final-owner teardown replaces Carbon's resource destructor. */
+  @meta.ours
+  Destroy()
+  {
+    this.ReleaseResources();
+    TriDevice.UnregisterResource(this);
+  }
+
+  /** Releases the borrowed allocator range and declaration; CPU rows survive. */
+  @meta.blue.method
+  @meta.adapted
+  ReleaseResources()
+  {
+    this.#freeAllocation();
+    this.#vertexDeclaration = Tr2EffectStateManager.Unknown;
+  }
+
+  /** Inherited Tr2DeviceResource.cpp:21-32 creation guard. */
+  @meta.blue.method
+  @meta.implemented
+  PrepareResources()
+  {
+    return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
+  }
+
+  /** Allocates the native shared stream and interns its layout (cpp:210-231). */
+  @meta.blue.method
+  @meta.adapted
+  OnPrepareResources()
+  {
+    if (this.#data && this.#stride && this.count && (!this.#allocation || !this.#allocation.IsValid()))
+    {
+      const context = Tr2RenderContext_GetMainThreadRenderContext();
+      this.#allocation = SharedGeometryBuffer(context).Allocate(
+        this.#stride, this.count, this.#bytes, context
+      );
+      if (!this.#allocation) return false;
+    }
+    if (this.#vertexDeclaration === Tr2EffectStateManager.Unknown && this.#layout.length)
+    {
+      const definition = new Tr2VertexDefinition();
+      for (const element of this.#layout)
+      {
+        definition.Add(element.type, element.usageCode, element.usageIndex);
+      }
+      this.#vertexDeclaration = Tr2EffectStateManager.getVertexDeclarationHandle(definition);
+    }
+    return true;
+  }
+
+  /** Frees only this provider's range, leaving sibling allocations alive. */
+  #freeAllocation()
+  {
+    if (this.#allocation && this.#allocation.IsValid()) this.#allocation.m_parent.Free(this.#allocation);
+    this.#allocation = null;
+  }
 
   /** True when rows or layout have changed since the last UpdateData. */
   get dirty()
@@ -227,8 +303,8 @@ export class Tr2RuntimeInstanceData
   }
 
   /**
-   * Publishes pending changes by clearing the dirty flag and bumping the data
-   * revision; returns false when nothing was dirty.
+   * Publishes pending bytes to the shared AL allocation (cpp:442-458).
+   * The JS dirty/revision counters also track publication before device setup.
    */
   @meta.blue.method
   @meta.adapted
@@ -237,6 +313,15 @@ export class Tr2RuntimeInstanceData
     if (!this.#dirty)
     {
       return false;
+    }
+    if (this.#data)
+    {
+      if (this.#allocation && this.#allocation.IsValid())
+      {
+        const context = Tr2RenderContext_GetMainThreadRenderContext();
+        if (Failed(this.#allocation.Update(this.#bytes, context))) return false;
+      }
+      else if (!this.PrepareResources()) return false;
     }
     this.#dirty = false;
     this.#dataRevision++;
@@ -373,41 +458,39 @@ export class Tr2RuntimeInstanceData
     return this.#data ? new Uint8Array(this.#data) : null;
   }
 
-  /**
-   * CPU readiness for the nominal ITr2InstanceData contract. Carbon also tests
-   * the realized vertex declaration and GPU buffer; those are not ported yet in
-   * CarbonEngineJS, so Trinity reports whether a published layout and byte
-   * payload are available for realization.
-   */
+  /** Both a declaration and a valid allocation are required (cpp:239-242). */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Physical vertex-declaration and buffer readiness belongs to the engine; Trinity reports published CPU layout/bytes.")
+  @meta.implemented
   IsInstanceDataReady()
   {
-    return this.#layout.length > 0 && this.#data !== null && !this.#dirty;
+    return this.#vertexDeclaration !== Tr2EffectStateManager.Unknown &&
+      this.#allocation !== null && this.#allocation.IsValid();
   }
 
-  /**
-   * Returns the published CPU byte buffer and its row geometry. The buffer is
-   * borrowed, matching Carbon's borrowed AL buffer reference.
-   */
-  @meta.adapted
-  @meta.reason("The CPU ArrayBuffer replaces Carbon's realized Tr2BufferAL; the selected engine uploads or aliases it.")
+  /** Borrowed AL buffer and physical row slice (cpp:244-250). */
+  @meta.implemented
   GetInstanceData(_bufferIndex = 0, _screenSize = 0)
   {
-    this.#instanceData.buffer = this.#data;
-    this.#instanceData.offset = 0;
+    this.#instanceData.buffer = this.#allocation ? this.#allocation.GetBuffer() : null;
+    this.#instanceData.offset = this.#allocation ? this.#allocation.GetOffset() : 0;
     this.#instanceData.stride = this.#stride;
     this.#instanceData.count = this.count;
     return this.#instanceData;
   }
 
-  /** Returns the normalized CPU vertex layout an engine must realize. */
-  @meta.adapted
-  @meta.reason("The normalized layout replaces Carbon's engine-owned numeric vertex-declaration handle.")
+  /** The registered instance-stream declaration handle (cpp:260-263). */
+  @meta.implemented
   GetInstanceBufferVertexDeclaration(_bufferIndex = 0)
   {
-    return this.#layout;
+    return this.#vertexDeclaration;
+  }
+
+  /** Borrowed instance AL buffer (cpp:278-281). */
+  @meta.blue.method
+  @meta.implemented
+  GetGpuBuffer(_bufferIndex = 0)
+  {
+    return this.#allocation ? this.#allocation.GetBuffer() : null;
   }
 
   /**
@@ -419,8 +502,10 @@ export class Tr2RuntimeInstanceData
   @meta.invalidates("#dirty")
   DestroyData()
   {
+    this.#freeAllocation();
     this.rows = [];
     this.#data = null;
+    this.#bytes = null;
     this.count = 0;
     this.#dirty = true;
   }
@@ -536,8 +621,7 @@ export class Tr2RuntimeInstanceData
   }
 
   /**
-   * Builds Carbon's common current/previous-transform instance stream without
-   * creating renderer or GPU resources.
+   * Builds and publishes Carbon's common current/previous-transform instance stream.
    *
    * @param {Array<object|ArrayLike<number>>} instances
    * @returns {number} Maximum instance scale.
@@ -614,6 +698,7 @@ export class Tr2RuntimeInstanceData
       }
       this.rows = [];
       this.#data = null;
+      this.#bytes = null;
       this.count = 0;
       this.#dirty = true;
       return;
@@ -640,6 +725,7 @@ export class Tr2RuntimeInstanceData
       return descriptor;
     });
 
+    this.ReleaseResources();
     this.layout = normalized.map(Tr2RuntimeInstanceData.#describeElement);
     this.#layout = normalized;
     this.#stride = offset;
@@ -668,8 +754,10 @@ export class Tr2RuntimeInstanceData
       this.#writeRow(view, index, normalizedRows[index]);
     }
 
+    if (this.count !== normalizedRows.length) this.#freeAllocation();
     this.rows = normalizedRows;
     this.#data = data;
+    this.#bytes = data ? new Uint8Array(data) : null; // alloc: one byte view per repacked instance stream
     this.count = normalizedRows.length;
     this.#dirty = true;
   }
@@ -967,20 +1055,17 @@ export class Tr2RuntimeInstanceData
   }
 
   /**
-   * Shared instanced-transform shader contract. Carbon's
-   * EveChildInstanceMeshRenderer declares TEXCOORD0..6, but that collides with
-   * geometry UVs and disagrees with every other instanced producer and the
-   * measured ubershader inputs. The organization contract therefore uses the
-   * working TEXCOORD8..14 range on stream 1.
+   * Provider-local TEXCOORD0..6. Tr2InstancedMesh adds the native semantic
+   * offset of eight when merging stream 1, producing shader TEXCOORD8..14.
    */
   static TransformLayout = Object.freeze([
-    Object.freeze({ usage: "TEXCOORD", usageIndex: 8, type: "FLOAT32_4", name: "transform0" }),
-    Object.freeze({ usage: "TEXCOORD", usageIndex: 9, type: "FLOAT32_4", name: "transform1" }),
-    Object.freeze({ usage: "TEXCOORD", usageIndex: 10, type: "FLOAT32_4", name: "transform2" }),
-    Object.freeze({ usage: "TEXCOORD", usageIndex: 11, type: "FLOAT32_4", name: "lastTransform0" }),
-    Object.freeze({ usage: "TEXCOORD", usageIndex: 12, type: "FLOAT32_4", name: "lastTransform1" }),
-    Object.freeze({ usage: "TEXCOORD", usageIndex: 13, type: "FLOAT32_4", name: "lastTransform2" }),
-    Object.freeze({ usage: "TEXCOORD", usageIndex: 14, type: "BYTE_4", name: "boneIndex" })
+    Object.freeze({ usage: "TEXCOORD", usageIndex: 0, type: "FLOAT32_4", name: "transform0" }),
+    Object.freeze({ usage: "TEXCOORD", usageIndex: 1, type: "FLOAT32_4", name: "transform1" }),
+    Object.freeze({ usage: "TEXCOORD", usageIndex: 2, type: "FLOAT32_4", name: "transform2" }),
+    Object.freeze({ usage: "TEXCOORD", usageIndex: 3, type: "FLOAT32_4", name: "lastTransform0" }),
+    Object.freeze({ usage: "TEXCOORD", usageIndex: 4, type: "FLOAT32_4", name: "lastTransform1" }),
+    Object.freeze({ usage: "TEXCOORD", usageIndex: 5, type: "FLOAT32_4", name: "lastTransform2" }),
+    Object.freeze({ usage: "TEXCOORD", usageIndex: 6, type: "BYTE_4", name: "boneIndex" })
   ]);
 
   static #zero = vec3.create();

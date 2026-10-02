@@ -265,7 +265,7 @@ test("instance-mesh and smart-light promotions expose maintained exact schemas",
 });
 
 
-test("instance transforms preserve logical matrices and pack shader TEXCOORD8 through 14", () =>
+test("instance transforms preserve logical matrices and pack provider TEXCOORD0 through 6", () =>
 {
   const expectedRows = [
     [1.09308803, -1.14840758, 4.95025349, 2.09147716],
@@ -276,10 +276,11 @@ test("instance transforms preserve logical matrices and pack shader TEXCOORD8 th
     EveChildInstanceMeshRenderer.RotationalConstraints.NONE
   );
 
-  assert.deepEqual(provider.layout.map(value => value.usageIndex), [8, 9, 10, 11, 12, 13, 14]);
+  assert.deepEqual(provider.layout.map(value => value.usageIndex), [0, 1, 2, 3, 4, 5, 6]);
   assert.equal(provider.GetStride(), 100);
   assert.equal(provider.GetData().byteLength, 100);
-  assert.equal(provider.IsInstanceDataReady(), true);
+  assert.equal(provider.dirty, false, "CPU rows are published before device creation");
+  assert.equal(provider.IsInstanceDataReady(), false, "CPU publication alone is not AL readiness");
   assert.equal(mesh.boundsMethod, Tr2InstancedMesh.BoundsMethod.DYNAMIC_SCALED);
 
   const row = provider.GetItem(0);
