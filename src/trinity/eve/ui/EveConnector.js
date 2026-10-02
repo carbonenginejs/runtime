@@ -23,7 +23,7 @@ const MIDDLE = vec3.create();
 const END_COLOR = vec4.create();
 
 
-export const ConnectorType = Object.freeze({
+export const ConnectorType = {
   PointToPoint: 0,
   XZ_CircleStraight: 1,
   XZ_Circle: 2,
@@ -32,7 +32,7 @@ export const ConnectorType = Object.freeze({
   Orbit: 5,
   Circle: 6,
   Ellipse: 7,
-});
+};
 
 
 function projectOnPlane(out, point, planePoint, normal)
@@ -420,7 +420,7 @@ export class EveConnector
 }
 
 // Registered as Carbon registers it (trinity/trinity/Eve/UI/EveConnector_Blue.cpp:34).
-blue.enums.RegisterEnum("trinity.EveConnector.ConnectorType", EveConnector.ConnectorType, {
+blue.enums.Create("trinity.EveConnector.ConnectorType", EveConnector.ConnectorType, {
   source: "trinity/trinity/Eve/UI/EveConnector.h", family: "eve/ui", line: 24,
   exposedName: "EveConnectorStyle", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/UI/EveConnector_Blue.cpp:6",

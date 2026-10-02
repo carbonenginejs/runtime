@@ -3,42 +3,42 @@
 // Source: trinity/trinity/Curves/Tr2FollowCurveKey.h
 import { blue, EnumRegistrationType } from "#blue";
 
-export const Tr2CurveInterpolation = Object.freeze({
+export const Tr2CurveInterpolation = {
   CONSTANT: 0,
   LINEAR: 1,
   HERMITE: 2
-});
-export const Tr2CurveTangentType = Object.freeze({
+};
+export const Tr2CurveTangentType = {
   AUTO_CLAMP: 0,
   AUTO: 1,
   FREE_JOINED: 2,
   FREE_SPLIT: 3
-});
-export const Tr2CurveExtrapolation = Object.freeze({
+};
+export const Tr2CurveExtrapolation = {
   CLAMP: 0,
   CYCLE: 1,
   MIRROR: 2,
   LINEAR: 3
-});
-export const Tr2CurveVector3LerpKeyInterpolation = Object.freeze({
+};
+export const Tr2CurveVector3LerpKeyInterpolation = {
   LINEAR: 1,
   HERMITE: 2
-});
-export const Tr2FollowCurveKeyInterpolation = Object.freeze({
+};
+export const Tr2FollowCurveKeyInterpolation = {
   CONSTANT: 0,
   LINEAR: 1,
   HERMITE: 2
-});
-export const RotationSetting = Object.freeze({
+};
+export const RotationSetting = {
   NO_ROTATION: 0,
   MODEL_ROTATION: 1,
   LOCATOR_ROTATION: 2
-});
+};
 export const Tr2ObjectFollowCurveKeyRotationSetting = RotationSetting;
 
 // Registered as Carbon registers them (Tr2CurveScalar_Blue.cpp:55-57,
 // Tr2CurveVector3Lerp_Blue.cpp:17, Tr2FollowCurveKey_Blue.cpp:38-39).
-blue.enums.RegisterEnum("trinity.Tr2CurveExtrapolation", Tr2CurveExtrapolation, {
+blue.enums.Create("trinity.Tr2CurveExtrapolation", Tr2CurveExtrapolation, {
   source: "trinity/trinity/Curves/Tr2CurveScalar.h", family: "curves", line: 38,
   exposedName: "Tr2CurveExtrapolation", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Curves/Tr2CurveScalar_Blue.cpp:38",
@@ -50,7 +50,7 @@ blue.enums.RegisterEnum("trinity.Tr2CurveExtrapolation", Tr2CurveExtrapolation, 
   ]
 });
 
-blue.enums.RegisterEnum("trinity.Tr2CurveInterpolation", Tr2CurveInterpolation, {
+blue.enums.Create("trinity.Tr2CurveInterpolation", Tr2CurveInterpolation, {
   source: "trinity/trinity/Curves/Tr2CurveScalar.h", family: "curves", line: 8,
   exposedName: "Tr2CurveInterpolation", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Curves/Tr2CurveScalar_Blue.cpp:9",
@@ -61,7 +61,7 @@ blue.enums.RegisterEnum("trinity.Tr2CurveInterpolation", Tr2CurveInterpolation, 
   ]
 });
 
-blue.enums.RegisterEnum("trinity.Tr2CurveTangentType", Tr2CurveTangentType, {
+blue.enums.Create("trinity.Tr2CurveTangentType", Tr2CurveTangentType, {
   source: "trinity/trinity/Curves/Tr2CurveScalar.h", family: "curves", line: 22,
   exposedName: "Tr2CurveTangentType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Curves/Tr2CurveScalar_Blue.cpp:22",
@@ -73,7 +73,7 @@ blue.enums.RegisterEnum("trinity.Tr2CurveTangentType", Tr2CurveTangentType, {
   ]
 });
 
-blue.enums.RegisterEnum("trinity.Tr2CurveVector3LerpKeyInterpolation", Tr2CurveVector3LerpKeyInterpolation, {
+blue.enums.Create("trinity.Tr2CurveVector3LerpKeyInterpolation", Tr2CurveVector3LerpKeyInterpolation, {
   source: "trinity/trinity/Curves/Tr2CurveVector3Lerp.h", family: "curves", line: 10,
   exposedName: "Tr2CurveVector3LerpKeyInterpolation", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Curves/Tr2CurveVector3Lerp_Blue.cpp:7",
@@ -83,7 +83,7 @@ blue.enums.RegisterEnum("trinity.Tr2CurveVector3LerpKeyInterpolation", Tr2CurveV
   ]
 });
 
-blue.enums.RegisterEnum("trinity.Tr2FollowCurveKeyInterpolation", Tr2FollowCurveKeyInterpolation, {
+blue.enums.Create("trinity.Tr2FollowCurveKeyInterpolation", Tr2FollowCurveKeyInterpolation, {
   source: "trinity/trinity/Curves/Tr2FollowCurveKey.h", family: "curves", line: 9,
   exposedName: "Tr2FollowCurveKeyInterpolation", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Curves/Tr2FollowCurveKey_Blue.cpp:24",
@@ -95,7 +95,7 @@ blue.enums.RegisterEnum("trinity.Tr2FollowCurveKeyInterpolation", Tr2FollowCurve
 });
 
 // Carbon's chooser lists LOCATOR_ROTATION before MODEL_ROTATION.
-blue.enums.RegisterEnum("trinity.Tr2ObjectFollowCurveKey.RotationSetting", RotationSetting, {
+blue.enums.Create("trinity.Tr2ObjectFollowCurveKey.RotationSetting", RotationSetting, {
   source: "trinity/trinity/Curves/Tr2FollowCurveKey.h", family: "curves", line: 41,
   exposedName: "Tr2ObjectFollowCurveKeyRotationSetting", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Curves/Tr2FollowCurveKey_Blue.cpp:11",

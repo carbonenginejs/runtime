@@ -32,7 +32,7 @@ function packageTarget(map, name)
   throw new Error(`Consumer fixture cannot resolve ${name}`);
 }
 
-async function bundleConsumer(source, manifest, sideEffects)
+async function bundleConsumer(source, manifest, sideEffects, allowDomains = false)
 {
   const entry = "\0enum-consumer";
   const dependencies = new Set(Object.keys(manifest.dependencies));
@@ -63,7 +63,7 @@ async function bundleConsumer(source, manifest, sideEffects)
         else if (specifier.startsWith(".")) resolved = path.resolve(path.dirname(importer), specifier);
         else throw new Error(`Unexpected consumer dependency: ${specifier}`);
         const relative = "./" + path.relative(publishedRoot, resolved).replaceAll(path.sep, "/");
-        if (/^\.\/dist\/(audio|character|trinity|sof)\//.test(relative))
+        if (!allowDomains && /^\.\/dist\/(audio|character|trinity|sof)\//.test(relative))
         {
           throw new Error(`Shared enum bundle reached a domain: ${relative}`);
         }
@@ -187,4 +187,31 @@ test("published metadata retains early shared enums in real consumer bundles", a
     assert.ok(path.basename(directory).startsWith("cjs-enum-consumer-"));
     await rm(directory, { recursive: true, force: true });
   }
+});
+
+test("domain definition registrations survive bare public family imports", async () =>
+{
+  const manifest = JSON.parse(await readFile(path.join(publishedRoot, "package.json"), "utf8"));
+  const directory = await mkdtemp(path.join(tmpdir(), "cjs-domain-enum-consumer-"));
+  try
+  {
+    for (const [subpath, file, name] of [
+      ["sof/hull", "sof/hull/EveSOFDataHull.js", "trinity.EveSOFDataHull.BuildClass"],
+      ["trinity/eve", "trinity/eve/child/behaviors/enums.js", "trinity.BackAndForth.LocatorType"]
+    ])
+    {
+      const source = `import "@carbonenginejs/runtime/${subpath}";
+        import { blueEnums } from "enum-registry-observer";
+        export const ready = blueEnums.HasEnum(${JSON.stringify(name)});`;
+      const bundle = await bundleConsumer(source, manifest, manifest.sideEffects, true);
+      const positive = await runBundle(bundle, directory, file.replaceAll("/", "-"));
+      assert.equal(positive.status, 0, positive.stderr || positive.stdout);
+      const withoutDefinition = manifest.sideEffects.filter(p => p !== "./dist/" + file);
+      const negativeBundle = await bundleConsumer(source, manifest, withoutDefinition, true);
+      const negative = await runBundle(negativeBundle, directory, "negative-" + file.replaceAll("/", "-"));
+      assert.notEqual(negative.status, 0, "omitting the defining module must lose its registration");
+      assert.match(negative.stderr, /Shared enum registration was not retained/);
+    }
+  }
+  finally { await rm(directory, {recursive: true, force: true}); }
 });

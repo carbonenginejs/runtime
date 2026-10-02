@@ -4729,15 +4729,15 @@ export class EveSpaceObject2 extends EveEntity
    * Native tags distinguishing authored-transform, joint and missing locators.
    * @type {Readonly<{ELT_TRANSFORM: number, ELT_JOINT: number, ELT_COUNT: number}>}
    */
-  static LocatorType = Object.freeze({
+  static LocatorType = {
     ELT_TRANSFORM: 0,
     ELT_JOINT: 1,
     ELT_COUNT: 2
-  });
+  };
 
 }
 
-blue.enums.RegisterEnum("trinity.EveSpaceObject2.LocatorType", EveSpaceObject2.LocatorType, {
+blue.enums.Create("trinity.EveSpaceObject2.LocatorType", EveSpaceObject2.LocatorType, {
   source: "trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h", family: "eve/spaceObject", line: 263
 });
 

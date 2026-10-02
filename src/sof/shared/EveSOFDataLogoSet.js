@@ -14,14 +14,14 @@ export class EveSOFDataLogoSet
   /** Native logo-slot enum, including TYPE_MAX as the non-slot count sentinel.
    * @type {Readonly<Object<string, number>>}
    */
-  static LogoType = Object.freeze({
+  static LogoType = {
     TYPE_PRIMARY: 0,
     TYPE_SECONDARY: 1,
     TYPE_TERTIARY: 2,
     TYPE_MARKING_01: 3,
     TYPE_MARKING_02: 4,
     TYPE_MAX: 5
-  });
+  };
 
   /** Enum-indexed slot names used by the JavaScript lookup and composition helpers.
    * @type {ReadonlyArray<string>}
@@ -122,7 +122,7 @@ export class EveSOFDataLogoSet
 }
 
 // Native chooser labels and descriptions are distinct from C++ member names.
-blue.enums.RegisterEnum("trinity.EveSOFDataLogoSet.LogoType", EveSOFDataLogoSet.LogoType, {
+blue.enums.Create("trinity.EveSOFDataLogoSet.LogoType", EveSOFDataLogoSet.LogoType, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 271,
   exposedName: "EveSOFDataLogoSetType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:60",

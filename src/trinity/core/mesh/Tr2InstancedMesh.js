@@ -503,15 +503,15 @@ export class Tr2InstancedMesh extends Tr2Mesh
 
   static _zero = [0, 0, 0];
 
-  static BoundsMethod = Object.freeze({
+  static BoundsMethod = {
     STATIC: 0,
     DYNAMIC: 1,
     DYNAMIC_SCALED: 2
-  });
+  };
 }
 
 // Registered as Carbon registers it (trinity/trinity/Tr2InstancedMesh_Blue.cpp:21).
-blue.enums.RegisterEnum("trinity.Tr2InstancedMesh.BoundsMethod", Tr2InstancedMesh.BoundsMethod, {
+blue.enums.Create("trinity.Tr2InstancedMesh.BoundsMethod", Tr2InstancedMesh.BoundsMethod, {
   source: "trinity/trinity/Tr2InstancedMesh.h", family: "trinityCore", line: 29,
   exposedName: "Tr2InstanceMeshBoundsMethod", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Tr2InstancedMesh_Blue.cpp:13",

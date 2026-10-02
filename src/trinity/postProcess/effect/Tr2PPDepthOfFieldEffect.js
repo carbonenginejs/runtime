@@ -69,7 +69,7 @@ export class Tr2PPDepthOfFieldEffect extends Tr2PPEffect
 
   static PostProcessDofEnabled = false;
 
-  static Shape = Object.freeze({ Disk: 0, Triangle: 1, Rectangle: 2, Pentagon: 3, Hexagon: 4, Heart: 5 });
+  static Shape = { Disk: 0, Triangle: 1, Rectangle: 2, Pentagon: 3, Hexagon: 4, Heart: 5 };
 
   static Disk = 0;
 
@@ -94,7 +94,7 @@ export class Tr2PPDepthOfFieldEffect extends Tr2PPEffect
 
 }
 
-blue.enums.RegisterEnum("trinity.Tr2Bokeh.Shape", Tr2PPDepthOfFieldEffect.Shape, {
+blue.enums.Create("trinity.Tr2Bokeh.Shape", Tr2PPDepthOfFieldEffect.Shape, {
   source: "trinity/trinity/PostProcess/Effects/Tr2PPDepthOfFieldEffect.h", family: "postProcess", line: 8,
   exposedName: "BokehShapeType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/PostProcess/Effects/Tr2PPDepthOfFieldEffect_Blue.cpp:10",

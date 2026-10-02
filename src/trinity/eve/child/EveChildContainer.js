@@ -1584,7 +1584,7 @@ export class EveChildContainer extends EveChildTransform
   // EVE ships, so every quality-gated container renders by default.
   static shaderModel = TR2SHADERMODEL.TR2SM_3_0_DEPTH;
 
-  static DisplayQualityModifier = Object.freeze({
+  static DisplayQualityModifier = {
     ONLY_REFLECTIONS: 6,
     SHADER_ALL: 5,
     SHADER_HIGHMID: 3,
@@ -1592,14 +1592,14 @@ export class EveChildContainer extends EveChildTransform
     SHADER_HIGH: 4,
     SHADER_MED: 2,
     SHADER_LOW: 0
-  });
+  };
 
   static Origin = Origin;
 
 }
 
 // Registered as Carbon registers it (trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp:24).
-blue.enums.RegisterEnum("trinity.EveChildContainer.DisplayQualityModifier", EveChildContainer.DisplayQualityModifier, {
+blue.enums.Create("trinity.EveChildContainer.DisplayQualityModifier", EveChildContainer.DisplayQualityModifier, {
   source: "trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.h", family: "eve/child", line: 158,
   exposedName: "SetShader", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp:14",

@@ -764,15 +764,15 @@ export class Tr2ShadowMap
     return this[`SplitNr${index}`];
   }
 
-  static ShadowSplitMode = Object.freeze({
+  static ShadowSplitMode = {
     STATIC: 0,
     DYNAMIC: 1,
     MANUAL: 2
-  });
+  };
 }
 
 // Registered as Carbon registers it (trinity/trinity/Tr2ShadowMap_Blue.cpp:14).
-blue.enums.RegisterEnum("trinity.Tr2ShadowMap.ShadowSplitMode", Tr2ShadowMap.ShadowSplitMode, {
+blue.enums.Create("trinity.Tr2ShadowMap.ShadowSplitMode", Tr2ShadowMap.ShadowSplitMode, {
   source: "trinity/trinity/Tr2ShadowMap.h", family: "trinityCore", line: 102,
   exposedName: "ShadowSplitModeChooser", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Tr2ShadowMap_Blue.cpp:8",

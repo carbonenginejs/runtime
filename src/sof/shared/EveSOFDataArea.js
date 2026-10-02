@@ -37,7 +37,7 @@ export class EveSOFDataArea
    * and TYPE_NO_OVERWRITE share the value 11; neither identifies a stored slot.
    * @type {Object<string, number>}
    */
-  static AreaType = Object.freeze({
+  static AreaType = {
     TYPE_PRIMARY: 0,
     TYPE_GLASS: 1,
     TYPE_SAILS: 2,
@@ -51,7 +51,7 @@ export class EveSOFDataArea
     TYPE_TURRET: 10,
     TYPE_MAX: 11,
     TYPE_NO_OVERWRITE: 11
-  });
+  };
 
   /**
    * Primary-area material names and faction color selector, or null when absent.
@@ -198,7 +198,7 @@ export class EveSOFDataArea
 }
 
 // Native chooser labels and descriptions are distinct from C++ member names.
-blue.enums.RegisterEnum("trinity.EveSOFDataArea.AreaType", EveSOFDataArea.AreaType, {
+blue.enums.Create("trinity.EveSOFDataArea.AreaType", EveSOFDataArea.AreaType, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 363,
   exposedName: "EveSOFDataAreaType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:113",

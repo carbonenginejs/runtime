@@ -625,16 +625,16 @@ export class EveChildLineSet extends EveChildTransform
     mat4_1: mat4.create()
   };
 
-  static lineSetType = Object.freeze({
+  static lineSetType = {
     OBJECT_RENDER: 0,
     LINE_RENDER: 1,
     BOTH: 2,
-  });
+  };
 
 }
 
 // Registered as Carbon registers it (trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet_Blue.cpp:13).
-blue.enums.RegisterEnum("trinity.EveChildLineSet.lineSetType", EveChildLineSet.lineSetType, {
+blue.enums.Create("trinity.EveChildLineSet.lineSetType", EveChildLineSet.lineSetType, {
   source: "trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet.h", family: "eve/child", line: 92,
   exposedName: "LineSetTypes", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet_Blue.cpp:7",

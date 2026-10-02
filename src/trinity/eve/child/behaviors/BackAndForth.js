@@ -6,7 +6,6 @@ import { LocatorType } from "./enums.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { EveLocatorSets } from "../../locator/EveLocatorSets.js";
-import { blue, EnumRegistrationType } from "#blue";
 
 // Module scratch for the per-agent loop (behavior updates run sequentially).
 const Z_AXIS = vec3.fromValues(0, 0, 1);
@@ -387,15 +386,3 @@ export class BackAndForth
   static LocatorType = LocatorType;
 
 }
-
-// Registered as Carbon registers it (trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth_Blue.cpp:16).
-blue.enums.RegisterEnum("trinity.BackAndForth.LocatorType", BackAndForth.LocatorType, {
-  source: "trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.h", family: "eve/child/behaviors", line: 40,
-  exposedName: "LocatorType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth_Blue.cpp:10",
-  chooser: [
-    { name: "localLocators", value: BackAndForth.LocatorType.LOCAL_LOCATORS, description: "Place locators manually, this is for back and forth locators." },
-    { name: "parentLocatorSet", value: BackAndForth.LocatorType.PARENT_LOCATORS, description: "use the parent's locatorSet for drones to seek. Remember to set the locatorSetName" },
-    { name: "targetLocatorSet", value: BackAndForth.LocatorType.TARGET_LOCATORS, description: "use the target's locatorSet for drones to seek. Remember to set the locatorSetName" }
-  ]
-});

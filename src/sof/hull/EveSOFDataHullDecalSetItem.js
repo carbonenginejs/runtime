@@ -16,7 +16,7 @@ export class EveSOFDataHullDecalSetItem
   static LogoType = EveSOFDataLogoSet.LogoType;
 
 
-  static Usage = Object.freeze({
+  static Usage = {
     USAGE_STANDARD: 0,
     USAGE_KILLCOUNTER: 1,
     USAGE_HOLE: 2,
@@ -25,7 +25,7 @@ export class EveSOFDataHullDecalSetItem
     USAGE_GLOWSTANDARD: 5,
     USAGE_LOGO: 6,
     USAGE_MAX: 7
-  });
+  };
 
   /** m_logoType (EveSOFDataLogoSet::LogoType - enum LogoType) [READWRITE, PERSIST, ENUM] */
   @meta.blue.readwrite
@@ -111,7 +111,7 @@ export class EveSOFDataHullDecalSetItem
 }
 
 // Native chooser labels and selection; the enum object retains all C++ members.
-blue.enums.RegisterEnum("trinity.EveSOFDataHullDecalSetItem.Usage", EveSOFDataHullDecalSetItem.Usage, {
+blue.enums.Create("trinity.EveSOFDataHullDecalSetItem.Usage", EveSOFDataHullDecalSetItem.Usage, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 1350,
   exposedName: "DecalUsage", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:1027",

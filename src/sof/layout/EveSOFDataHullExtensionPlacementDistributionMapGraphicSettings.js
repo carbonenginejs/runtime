@@ -22,7 +22,7 @@ export class EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings exte
   @meta.type.string
   name = "";
 
-  static DisplayQualityModifier = Object.freeze({
+  static DisplayQualityModifier = {
     ONLY_REFLECTIONS: 6,
     SHADER_ALL: 5,
     SHADER_HIGHMID: 3,
@@ -30,13 +30,13 @@ export class EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings exte
     SHADER_HIGH: 4,
     SHADER_MED: 2,
     SHADER_LOW: 0,
-  });
+  };
 
 }
 
 // Native chooser labels and selection; the enum object retains all C++ members.
 // Carbon reuses this chooser but declares this enum type independently.
-blue.enums.RegisterEnum("trinity.EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings.DisplayQualityModifier", EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings.DisplayQualityModifier, {
+blue.enums.Create("trinity.EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings.DisplayQualityModifier", EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings.DisplayQualityModifier, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 2017,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:52",
   chooser: [

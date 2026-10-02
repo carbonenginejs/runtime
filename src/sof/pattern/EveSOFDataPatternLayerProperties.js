@@ -8,11 +8,11 @@ import { blue } from "#blue";
 export class EveSOFDataPatternLayerProperties
 {
 
-  static ProjectionType = Object.freeze({
+  static ProjectionType = {
     PROJECTION_REPEAT: 0,
     PROJECTION_CLAMP: 1,
     PROJECTION_BORDER: 2
-  });
+  };
 
   static AreaTypes = Object.freeze([
     "Primary",
@@ -134,7 +134,7 @@ export class EveSOFDataPatternLayerProperties
 
 // Native chooser labels and selection; the enum object retains all C++ members.
 // Carbon reuses this chooser but declares this enum type independently.
-blue.enums.RegisterEnum("trinity.EveSOFDataPatternLayerProperties.ProjectionType", EveSOFDataPatternLayerProperties.ProjectionType, {
+blue.enums.Create("trinity.EveSOFDataPatternLayerProperties.ProjectionType", EveSOFDataPatternLayerProperties.ProjectionType, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 500,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:1152",
   chooser: [

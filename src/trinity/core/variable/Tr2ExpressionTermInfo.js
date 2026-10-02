@@ -130,7 +130,7 @@ export class Tr2ExpressionTermInfo
 }
 
 // Carbon neither registers this nor gives it a chooser.
-blue.enums.RegisterEnum("trinity.Tr2ExpressionTermInfo.TermType", TermType, {
+blue.enums.Create("trinity.Tr2ExpressionTermInfo.TermType", TermType, {
   source: "trinity/trinity/Tr2ExpressionTermInfo.h", family: "trinityCore", line: 12
 });
 

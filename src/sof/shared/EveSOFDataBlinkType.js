@@ -61,13 +61,13 @@ export class EveSOFDataBlinkType
   /** Native BlinkType numeric choices, shared with plane-item enum metadata.
    * @type {Readonly<Object<string, number>>}
    */
-  static BlinkType = Object.freeze({
+  static BlinkType = {
     TYPE_STATIC: 0,
     TYPE_BLINK: 1,
     TYPE_FADE_IN: 2,
     TYPE_FADE_OUT: 3,
     TYPE_CYCLE: 4
-  });
+  };
 
   /** Existing JavaScript aliases for the native TYPE_* enum names.
    * @type {Readonly<Object<string, number>>}
@@ -94,7 +94,7 @@ export class EveSOFDataBlinkType
 }
 
 // Native chooser labels and descriptions are distinct from C++ member names.
-blue.enums.RegisterEnum("trinity.EveSOFDataBlinkType.BlinkType", EveSOFDataBlinkType.BlinkType, {
+blue.enums.Create("trinity.EveSOFDataBlinkType.BlinkType", EveSOFDataBlinkType.BlinkType, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 312,
   exposedName: "EveSOFDataBlinkType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:70",

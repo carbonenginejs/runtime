@@ -11,7 +11,7 @@ import { EveSOFDataHullBanner } from "./EveSOFDataHullBanner.js";
 export class EveSOFDataHullBannerSetItem
 {
 
-  static Usage = Object.freeze({
+  static Usage = {
     ALLIANCE_LOGO: 0,
     CORP_LOGO: 1,
     CEO_PORTRAIT: 2,
@@ -37,7 +37,7 @@ export class EveSOFDataHullBannerSetItem
     RECRUITMENT_INFORMATION_3: 22,
     RECRUITMENT_INFORMATION_4: 23,
     _USAGE_COUNT: 24
-  });
+  };
 
   /** m_usage (Usage - enum Usage) [READWRITE, PERSIST, ENUM] */
   @meta.blue.readwrite
@@ -212,7 +212,7 @@ export class EveSOFDataHullBannerSetItem
 
 // Native chooser labels and selection; the enum object retains all C++ members.
 // Native chooser quirk: HorizontalBanner's description says "Vertical banner".
-blue.enums.RegisterEnum("trinity.EveSOFDataHullBannerSetItem.Usage", EveSOFDataHullBannerSetItem.Usage, {
+blue.enums.Create("trinity.EveSOFDataHullBannerSetItem.Usage", EveSOFDataHullBannerSetItem.Usage, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 905,
   exposedName: "HullBannerSetItemUsage", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:585",

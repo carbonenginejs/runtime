@@ -9,13 +9,13 @@
 import { blue } from "#blue";
 
 /** Carbon FadeType (EveSpaceObjectAttachmentUtils.h:7-14). */
-export const FadeType = Object.freeze({
+export const FadeType = {
   FT_NONE: 0,
   FT_BLINK: 1,
   FT_FADEIN: 2,
   FT_FADEOUT: 3,
   FT_FADEINOUT: 4
-});
+};
 
 /** Carbon EveSpaceObjectAttachmentUtils::Blink (cpp:9-40): zero rate returns
  * minScale; f = frac(time * rate + phase); peak = 0.05 * rate - QUIRK: a peak
@@ -118,6 +118,6 @@ export function Saturate(out, color, saturation)
 }
 
 // Carbon neither registers this nor gives it a chooser.
-blue.enums.RegisterEnum("trinity.FadeType", FadeType, {
+blue.enums.Create("trinity.FadeType", FadeType, {
   source: "trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpaceObjectAttachmentUtils.h", family: "eve/attachment/planes", line: 7
 });

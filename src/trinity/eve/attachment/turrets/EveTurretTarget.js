@@ -420,7 +420,7 @@ export class EveTurretTarget
     return !(this._projectileMissBehaviour && this.GetShotMissed());
   }
 
-  static ImpactBehaviour = Object.freeze({ DAMAGE_LOCATOR: 0, SHIELD_ELLIPSOID: 1, CENTER: 2 });
+  static ImpactBehaviour = { DAMAGE_LOCATOR: 0, SHIELD_ELLIPSOID: 1, CENTER: 2 };
   static ImpactConfiguration = ImpactConfiguration;
   static _zero = vec3.create();
   static _direction = vec3.create();
@@ -442,7 +442,7 @@ function copyOrReturn(value, out)
 
 // Carbon gives this a chooser (trinity/trinity/Eve/Turret/EveTurretSet_Blue.cpp:34) but never registers it,
 // so it takes no exposure.
-blue.enums.RegisterEnum("trinity.ImpactBehaviour", EveTurretTarget.ImpactBehaviour, {
+blue.enums.Create("trinity.ImpactBehaviour", EveTurretTarget.ImpactBehaviour, {
   source: "trinity/trinity/Eve/Turret/EveTurretTarget.h", family: "eve/attachment/turrets", line: 13,
   chooserSource: "trinity/trinity/Eve/Turret/EveTurretSet_Blue.cpp:34",
   chooser: [

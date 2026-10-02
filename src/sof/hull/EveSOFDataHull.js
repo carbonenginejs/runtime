@@ -10,20 +10,20 @@ import { vec4 } from "#math/vec4";
 export class EveSOFDataHull
 {
 
-  static BuildClass = Object.freeze({
+  static BuildClass = {
     BUILDCLASS_SHIP: 0,
     BUILDCLASS_MOBILE: 1,
     BUILDCLASS_STATIONARY: 2,
     BUILDCLASS_SWARM: 3,
     BUILDCLASS_EXTENSION: 4,
     BUILDCLASS_COUNT: 5
-  });
+  };
 
-  static ImpactEffectType = Object.freeze({
+  static ImpactEffectType = {
     IMPACTEFFECT_NONE: 0,
     IMPACTEFFECT_ELLIPSOID: 1,
     IMPACTEFFECT_HULL: 2
-  });
+  };
 
   static BuildFilter = Object.freeze({
     STANDALONE: 1,
@@ -277,7 +277,7 @@ export class EveSOFDataHull
 }
 
 // Native chooser labels and selection; the enum object retains all C++ members.
-blue.enums.RegisterEnum("trinity.EveSOFDataHull.BuildClass", EveSOFDataHull.BuildClass, {
+blue.enums.Create("trinity.EveSOFDataHull.BuildClass", EveSOFDataHull.BuildClass, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 1536,
   exposedName: "BuildClass", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:936",
@@ -291,7 +291,7 @@ blue.enums.RegisterEnum("trinity.EveSOFDataHull.BuildClass", EveSOFDataHull.Buil
 });
 
 // Native chooser labels and selection; the enum object retains all C++ members.
-blue.enums.RegisterEnum("trinity.EveSOFDataHull.ImpactEffectType", EveSOFDataHull.ImpactEffectType, {
+blue.enums.Create("trinity.EveSOFDataHull.ImpactEffectType", EveSOFDataHull.ImpactEffectType, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 1548,
   exposedName: "ImpactEffectType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:946",

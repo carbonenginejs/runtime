@@ -37,7 +37,7 @@ export class Tr2PPTaaEffect extends Tr2PPEffect
     return this.display !== false;
   }
 
-  static Quality = Object.freeze({ TAA_LOW: 1, TAA_MEDIUM: 2, TAA_HIGH: 3 });
+  static Quality = { TAA_LOW: 1, TAA_MEDIUM: 2, TAA_HIGH: 3 };
 
   static Debug = Debug;
 
@@ -55,7 +55,7 @@ export class Tr2PPTaaEffect extends Tr2PPEffect
 
 }
 
-blue.enums.RegisterEnum("trinity.Tr2PPTaaEffect.Quality", Tr2PPTaaEffect.Quality, {
+blue.enums.Create("trinity.Tr2PPTaaEffect.Quality", Tr2PPTaaEffect.Quality, {
   source: "trinity/trinity/PostProcess/Effects/Tr2PPTaaEffect.h", family: "postProcess", line: 16,
   exposedName: "TaaQuality", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/PostProcess/Effects/Tr2PPTaaEffect_Blue.cpp:9",

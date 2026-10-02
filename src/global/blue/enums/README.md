@@ -20,3 +20,9 @@ chooser entries are preserved by value-name and bitmask lookup.
 The npm side-effect list retains defining modules and their public constant
 barrels. Bundle regressions observe the registry leaf independently of Blue so
 Blue's imports cannot hide a missing bare-import registration.
+
+For class-owned enums, the class static holds the literal and the same module
+calls Create after the class declaration. This keeps chooser expressions that
+refer to class statics out of the initializer's temporal dead zone. Shared family
+enums register in their defining module; consuming class statics remain aliases.
+Do not freeze the literal before Create: it must first attach its hidden name.

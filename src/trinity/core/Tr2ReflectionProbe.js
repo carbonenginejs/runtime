@@ -466,15 +466,15 @@ export class Tr2ReflectionProbe
     return this._stencilMaps[face];
   }
 
-  static ReflectionProbeRenderFrequency = Object.freeze({
+  static ReflectionProbeRenderFrequency = {
     ONE_SIDE_PER_FRAME: 0,
     ALL_SIDES_PER_FRAME: 1,
-  });
+  };
 
 }
 
 // Registered as Carbon registers it (trinity/trinity/Tr2ReflectionProbe_Blue.cpp:14).
-blue.enums.RegisterEnum("trinity.Tr2ReflectionProbe.ReflectionProbeRenderFrequency", Tr2ReflectionProbe.ReflectionProbeRenderFrequency, {
+blue.enums.Create("trinity.Tr2ReflectionProbe.ReflectionProbeRenderFrequency", Tr2ReflectionProbe.ReflectionProbeRenderFrequency, {
   source: "trinity/trinity/Tr2ReflectionProbe.h", family: "trinityCore", line: 22,
   exposedName: "ReflectionProbeRenderFrequency", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Tr2ReflectionProbe_Blue.cpp:8",

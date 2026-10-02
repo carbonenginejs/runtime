@@ -2531,25 +2531,25 @@ export class EveTurretSet extends EveEntity
 
   static ImpactBehaviour = EveTurretTarget.ImpactBehaviour;
 
-  static LOD = Object.freeze({
+  static LOD = {
     LOD_INVALID: 0,
     LOD_EMPTY: 1,
     LOD_HIGHEST: 2,
     LOD_DISABLED: 3,
-  });
+  };
 
   // The enum belongs to the extracted aiming math (EveTurretAiming.h:13-31);
   // the alias keeps this host's established surface on one identity.
   static SystemBones = EveTurretAiming.SystemBones;
 
-  static State = Object.freeze({
+  static State = {
     STATE_INVALID: 0,
     STATE_DEACTIVE: 1,
     STATE_IDLE: 2,
     STATE_TARGETING: 3,
     STATE_FIRING: 4,
     STATE_RELOADING: 5
-  });
+  };
 
   static INVALID_INDEX = 0xffffffff;
 
@@ -2586,7 +2586,7 @@ export class EveTurretSet extends EveEntity
 }
 
 // Registered as Carbon registers it (trinity/trinity/Eve/Turret/EveTurretSet_Blue.cpp:27).
-blue.enums.RegisterEnum("trinity.EveTurretSet.LOD", EveTurretSet.LOD, {
+blue.enums.Create("trinity.EveTurretSet.LOD", EveTurretSet.LOD, {
   source: "trinity/trinity/Eve/Turret/EveTurretSet.h", family: "eve/attachment/turrets", line: 235,
   exposedName: "EveTurretSetLOD", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/Turret/EveTurretSet_Blue.cpp:11",
@@ -2599,7 +2599,7 @@ blue.enums.RegisterEnum("trinity.EveTurretSet.LOD", EveTurretSet.LOD, {
 });
 
 // Carbon neither registers this nor gives it a chooser.
-blue.enums.RegisterEnum("trinity.EveTurretSet.State", EveTurretSet.State, {
+blue.enums.Create("trinity.EveTurretSet.State", EveTurretSet.State, {
   source: "trinity/trinity/Eve/Turret/EveTurretSet.h", family: "eve/attachment/turrets", line: 245
 });
 

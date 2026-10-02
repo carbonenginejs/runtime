@@ -59,7 +59,7 @@ export class TriDevice
 
   static DeviceScreenType = Object.freeze({ WINDOWED: 0, FULLSCREEN: 1, NO_ADAPTER: 2 });
 
-  static DeviceType = Object.freeze({ DEVICE_TYPE_HARDWARE: 0, DEVICE_TYPE_SOFTWARE: 1 });
+  static DeviceType = { DEVICE_TYPE_HARDWARE: 0, DEVICE_TYPE_SOFTWARE: 1 };
 
   static ApplicationActivation = Object.freeze({ APP_ACTIVATED: 0, APP_DEACTIVATED: 1 });
 
@@ -1116,7 +1116,7 @@ export class TriDevice
 }
 
 // Registered as Carbon registers it (trinity/trinity/TriDevice_Blue.cpp:164).
-blue.enums.RegisterEnum("trinity.TriDevice.DeviceType", TriDevice.DeviceType, {
+blue.enums.Create("trinity.TriDevice.DeviceType", TriDevice.DeviceType, {
   source: "trinity/trinity/TriDevice.h", family: "trinityCore", line: 110,
   exposedName: "TriDeviceType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/TriDevice_Blue.cpp:151",

@@ -8,20 +8,20 @@ import { blue, EnumRegistrationType } from "#blue";
 export class EveSOFDataPatternLayer
 {
 
-  static ProjectionType = Object.freeze({
+  static ProjectionType = {
     PROJECTION_REPEAT: 0,
     PROJECTION_CLAMP: 1,
     PROJECTION_BORDER: 2
-  });
+  };
 
-  static MaterialSource = Object.freeze({
+  static MaterialSource = {
     SOURCE_MATERIAL1: 0,
     SOURCE_MATERIAL2: 1,
     SOURCE_MATERIAL3: 2,
     SOURCE_MATERIAL4: 3,
     SOURCE_PATTERN1: 4,
     SOURCE_PATTERN2: 5
-  });
+  };
 
   static EMPTY_TEXTURE_RES_FILE_PATH = "";
 
@@ -182,7 +182,7 @@ export class EveSOFDataPatternLayer
 }
 
 // Native chooser labels and selection; the enum object retains all C++ members.
-blue.enums.RegisterEnum("trinity.EveSOFDataPatternLayer.ProjectionType", EveSOFDataPatternLayer.ProjectionType, {
+blue.enums.Create("trinity.EveSOFDataPatternLayer.ProjectionType", EveSOFDataPatternLayer.ProjectionType, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 457,
   exposedName: "EveSOFDataPatternLayerProjectionType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:1152",
@@ -194,7 +194,7 @@ blue.enums.RegisterEnum("trinity.EveSOFDataPatternLayer.ProjectionType", EveSOFD
 });
 
 // Native chooser labels and selection; the enum object retains all C++ members.
-blue.enums.RegisterEnum("trinity.EveSOFDataPatternLayer.MaterialSource", EveSOFDataPatternLayer.MaterialSource, {
+blue.enums.Create("trinity.EveSOFDataPatternLayer.MaterialSource", EveSOFDataPatternLayer.MaterialSource, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 465,
   exposedName: "EveSOFDataPatternLayerMaterialSource", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:1185",

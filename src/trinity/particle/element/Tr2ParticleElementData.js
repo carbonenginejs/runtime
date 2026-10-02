@@ -49,19 +49,19 @@ export class Tr2ParticleElementData
    * Tr2ConsecutiveIntegerAttributeGenerator.cpp:50) - so GPU and CPU are
    * positions, and COUNT is the array's length rather than a state.
    */
-  static BufferType = Object.freeze({
+  static BufferType = {
     /** Buffer that is copied to the GPU vertex buffer. */
     GPU: 0,
     /** CPU-only buffer. */
     CPU: 1,
     /** Number of buffers. */
     COUNT: 2
-  });
+  };
 
 }
 
 
 // This native enum has no Blue chooser or enum exposure registration.
-blue.enums.RegisterEnum("trinity.Tr2ParticleElementData.BufferType", Tr2ParticleElementData.BufferType, {
+blue.enums.Create("trinity.Tr2ParticleElementData.BufferType", Tr2ParticleElementData.BufferType, {
   source: "trinity/trinity/Particle/Tr2ParticleElementDeclaration.h", family: "particle", line: 62
 });

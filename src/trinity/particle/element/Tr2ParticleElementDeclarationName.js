@@ -64,18 +64,18 @@ export class Tr2ParticleElementDeclarationName
   /** Tr2VertexDefinition::UsageCode values (shared with Tr2RuntimeInstanceData.UsageCode). */
   static #usageCodes = Object.freeze([3, 0, 2, 4, 5]);
 
-  static Type = Object.freeze({
+  static Type = {
     LIFETIME: 0,
     POSITION: 1,
     VELOCITY: 2,
     MASS: 3,
     CUSTOM: 4,
-  });
+  };
 
 }
 
 
-blue.enums.RegisterEnum("trinity.Tr2ParticleElementDeclarationName.Type", Tr2ParticleElementDeclarationName.Type, {
+blue.enums.Create("trinity.Tr2ParticleElementDeclarationName.Type", Tr2ParticleElementDeclarationName.Type, {
   source: "trinity/trinity/Particle/Tr2ParticleElementDeclaration.h", family: "particle", line: 22,
   exposedName: "PARTICLE_ELEMENT_TYPE", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Particle/Tr2ParticleElementDeclaration_Blue.cpp:6",

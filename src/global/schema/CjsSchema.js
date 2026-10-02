@@ -3007,7 +3007,7 @@ function registerClassMetadata(Constructor, schema)
 function defineEnumMetadata(values, schema)
 {
     if (!values || typeof values !== "object" || !schema?.name) return;
-    blueEnums.RegisterEnum(schema.name, schema.type, schema);
+    blueEnums.Register(schema.name, schema.type, schema);
 }
 
 function normalizeEnumSchema(values, definition)

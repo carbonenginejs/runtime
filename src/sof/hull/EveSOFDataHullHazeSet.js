@@ -39,15 +39,15 @@ export class EveSOFDataHullHazeSet
   @meta.type.list("EveSOFDataHullHazeSetItem")
   items = [];
 
-  static HazeType = Object.freeze({
+  static HazeType = {
     TYPE_SPHERICAL: 0,
     TYPE_HALFSPHERICAL: 1
-  });
+  };
 
 }
 
 // Native chooser labels and selection; the enum object retains all C++ members.
-blue.enums.RegisterEnum("trinity.EveSOFDataHullHazeSet.HazeType", EveSOFDataHullHazeSet.HazeType, {
+blue.enums.Create("trinity.EveSOFDataHullHazeSet.HazeType", EveSOFDataHullHazeSet.HazeType, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 861,
   exposedName: "HazeType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:95",

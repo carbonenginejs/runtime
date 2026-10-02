@@ -56,19 +56,19 @@ export class EveSOFDataInstancedMesh
   @meta.type.string
   shader = "";
 
-  static DisplayQualityModifier = Object.freeze({
+  static DisplayQualityModifier = {
     SHADER_LOW: 0,
     SHADER_LOWMID: 1,
     SHADER_MED: 2,
     SHADER_HIGHMID: 3,
     SHADER_HIGH: 4,
     SHADER_ALL: 5
-  });
+  };
 
 }
 
 // Native chooser labels and selection; the enum object retains all C++ members.
-blue.enums.RegisterEnum("trinity.EveSOFDataInstancedMesh.DisplayQualityModifier", EveSOFDataInstancedMesh.DisplayQualityModifier, {
+blue.enums.Create("trinity.EveSOFDataInstancedMesh.DisplayQualityModifier", EveSOFDataInstancedMesh.DisplayQualityModifier, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 137,
   exposedName: "DisplayModifierChooser", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:52",

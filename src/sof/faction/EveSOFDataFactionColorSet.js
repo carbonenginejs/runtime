@@ -299,7 +299,7 @@ export class EveSOFDataFactionColorSet
     return vec4.copy(out, this[this.constructor.Types[type]]);
   }
 
-  static ColorType = Object.freeze({
+  static ColorType = {
     TYPE_PRIMARY: 0,
     TYPE_SECONDARY: 1,
     TYPE_TERTIARY: 2,
@@ -345,7 +345,7 @@ export class EveSOFDataFactionColorSet
     TYPE_PRIMARY_SIEGE_FX: 42,
     TYPE_PRIMARY_DOCKED_FX: 43,
     TYPE_MAX: 44
-  });
+  };
 
   static Types = Object.freeze([
     "Primary",
@@ -397,7 +397,7 @@ export class EveSOFDataFactionColorSet
 }
 
 // Native chooser labels and descriptions are distinct from C++ member names.
-blue.enums.RegisterEnum("trinity.SOFDataFactionColorChooser.ColorType", EveSOFDataFactionColorSet.ColorType, {
+blue.enums.Create("trinity.SOFDataFactionColorChooser.ColorType", EveSOFDataFactionColorSet.ColorType, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 177,
   exposedName: "EveSOFDataFactionColorSetType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:10",

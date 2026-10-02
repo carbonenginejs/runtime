@@ -130,10 +130,10 @@ export class Tr2ShLightingManager
    * enum name; Carbon declares exactly two orders here
    * (Tr2ShLightingManager.h:34-38) and constructs at L2.
    */
-  static Quality = Object.freeze({
+  static Quality = {
     L1: 0,
     L2: 1
-  });
+  };
 
   /** PACKED_COEFFICIENT_COUNT (h:51) - packed vec4s per receiver. */
   static PACKED_COEFFICIENT_COUNT = 7;
@@ -491,7 +491,7 @@ export class Tr2ShLightingManager
 }
 
 // Registered as Carbon registers it (trinity/trinity/Tr2ShLightingManager_Blue.cpp:16).
-blue.enums.RegisterEnum("trinity.Tr2ShLightingManager.Quality", Tr2ShLightingManager.Quality, {
+blue.enums.Create("trinity.Tr2ShLightingManager.Quality", Tr2ShLightingManager.Quality, {
   source: "trinity/trinity/Tr2ShLightingManager.h", family: "trinityCore", line: 34,
   exposedName: "ShQuality", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Tr2ShLightingManager_Blue.cpp:10",

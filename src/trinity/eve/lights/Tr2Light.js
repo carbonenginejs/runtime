@@ -28,12 +28,12 @@ export class Tr2Light
 {
   static LightDataFields = [];
 
-  static LightType = Object.freeze({
+  static LightType = {
     UNDEFINED_LIGHT: 0,
     POINT_LIGHT: 1,
     SPOT_LIGHT: 2,
     COUNT: 3
-  });
+  };
 
   static UNDEFINED_LIGHT = 0;
   static POINT_LIGHT = 1;
@@ -353,7 +353,7 @@ export class Tr2Light
 }
 
 // Carbon neither registers this nor gives it a chooser.
-blue.enums.RegisterEnum("trinity.Tr2Light.LIGHT_TYPE", Tr2Light.LightType, {
+blue.enums.Create("trinity.Tr2Light.LIGHT_TYPE", Tr2Light.LightType, {
   source: "trinity/trinity/Lights/Tr2Light.h", family: "eve/lights", line: 71
 });
 
