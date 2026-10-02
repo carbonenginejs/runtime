@@ -63,7 +63,8 @@ for (const entry of promoted)
     if (!IsPortableMember(entry.className, methodName)) continue;
     seen.add(methodName);
     const actualMethod = findCarbonMethod(actualMethods, methodName, method.static === true);
-    if (actualMethod?.hasCarbon) continue;
+    // Native obligations require a body; only Blue-mapped methods require exposure.
+    if (actualMethod && (method.native === true || actualMethod.hasCarbon)) continue;
 
     const record = {
       family: entry.family,
@@ -305,7 +306,7 @@ async function ReadSchemaClasses(directory)
     // six frame statics went missing unnoticed. `nativeMethods` is the C++
     // surface and is what a port is judged against.
     const native = Array.isArray(doc.nativeMethods)
-      ? doc.nativeMethods.map(entry => ({ target: entry.cppName, blueName: null, declaredOn: entry.declaredOn, static: entry.static === true }))
+      ? doc.nativeMethods.map(entry => ({ target: entry.cppName, blueName: null, declaredOn: entry.declaredOn, static: entry.static === true, native: true }))
       : [];
     const merged = [ ...(Array.isArray(doc.methods) ? doc.methods : []), ...native ];
     if (!merged.length) continue;
