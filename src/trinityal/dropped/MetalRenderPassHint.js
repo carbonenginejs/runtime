@@ -15,11 +15,10 @@
 // Writing this class is what surfaced the flattening: a search for the NAME
 // finds nothing, and would have reported the concept as unported.
 import { type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Carbon's deferred render-pass attachment record; ported as flattened colors/depth arguments rather than a struct. */
 @type.define({ className: "MetalRenderPassHint", carbon: "MetalRenderPassHint", family: "trinityal" })
-export class MetalRenderPassHint extends CjsModel
+export class MetalRenderPassHint
 {
 
   /** depth (DepthAttachment): load, store, clearValue. */

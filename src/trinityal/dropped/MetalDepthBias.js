@@ -26,11 +26,10 @@
 // WebGL has no equivalent projection yet. When it needs one it comes from the
 // same Tr2RenderStateSetup and the same consts, not from this struct.
 import { type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Carbon's Metal depth-bias triple; dropped because the authored render states already carry these values through Tr2RenderStateSetup into the pipeline. */
 @type.define({ className: "MetalDepthBias", carbon: "MetalDepthBias", family: "trinityal" })
-export class MetalDepthBias extends CjsModel
+export class MetalDepthBias
 {
 
   /** depthBias (float) -> RS_DEPTHBIAS -> GPUDepthStencilState.depthBias */

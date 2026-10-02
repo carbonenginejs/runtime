@@ -18,11 +18,10 @@
 // this file existed, donor coverage reported MetalWorkQueue as covered only by a
 // class that declines to replicate it.
 import { type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Carbon's Metal command recorder; its encoder-lifetime half is ported as CjsWebgpuWorkQueue and the rest is distributed across the WebGPU backend. */
 @type.define({ className: "MetalWorkQueue", carbon: "MetalWorkQueue", family: "trinityal" })
-export class MetalWorkQueue extends CjsModel
+export class MetalWorkQueue
 {
 
 }

@@ -1,7 +1,6 @@
 // Source: audio/src/SoundPrioritization.h + SoundPrioritization.cpp (not Blue-exposed; pure logic port)
 // Hand-owned since 2026-07-18; the generator skips this file.
 import { carbon, impl, type } from "#schema";
-import { CjsModel } from "#model";
 
 // Audio2.h:19 - the listener's fixed game-object id.
 export const LISTENER_GAME_OBJ_ID = 4;
@@ -33,7 +32,7 @@ function DefaultSettings()
 
 /** Ranks audio game objects by weight and keeps the configured highest-priority set awake. */
 @type.define({ className: "SoundPrioritization", family: "audio" })
-export class SoundPrioritization extends CjsModel
+export class SoundPrioritization
 {
 
   _settings = DefaultSettings();

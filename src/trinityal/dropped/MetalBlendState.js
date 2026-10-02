@@ -9,11 +9,10 @@
 // Its hashValue member has a live counterpart too: the pipeline cache keys on
 // the whole PSO description rather than on blend state alone.
 import { type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Carbon's hashable Metal blend record; dropped because WebGPU folds blending into the render pipeline. */
 @type.define({ className: "MetalBlendState", carbon: "MetalBlendState", family: "trinityal" })
-export class MetalBlendState extends CjsModel
+export class MetalBlendState
 {
 
   /** blendType (MetalBlendType) */

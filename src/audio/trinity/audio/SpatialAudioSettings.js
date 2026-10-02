@@ -1,14 +1,13 @@
 // Source: audio/src/SpatialAudioSettings.h + SpatialAudioSettings.cpp
 // Hand-owned behavior port. Verify against audio/SpatialAudioSettings.json.
 import { carbon, impl, type } from "#schema";
-import { CjsModel } from "#model";
 
 /**
  * Retains Carbon spatial-audio initialization defaults and getter/setter
  * semantics for manager and injected-backend use.
  */
 @type.define({ className: "SpatialAudioSettings", family: "audio" })
-export class SpatialAudioSettings extends CjsModel
+export class SpatialAudioSettings
 {
 
   _spatialAudioGeometryEnabled = false;

@@ -9,11 +9,10 @@
 // plain numbers here because JavaScript uploads from one thread, which is the
 // whole reason the class did not need to come across.
 import { type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Carbon's atomic constant-arena token; dropped because the port carries it as a plain field on the constant buffer. */
 @type.define({ className: "ConstantBufferToken", carbon: "ConstantBufferToken", family: "trinityal" })
-export class ConstantBufferToken extends CjsModel
+export class ConstantBufferToken
 {
 
   /** offset (std::atomic<uint64_t>) - page index in the high 32 bits, offset in the low 32. */

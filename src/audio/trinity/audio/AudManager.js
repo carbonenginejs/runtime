@@ -7,7 +7,6 @@
 // (AudGameObjResource.backend); state, bank tracking, deferred-event flush,
 // monitored-parameter refcounts, and prioritization wiring are pure logic.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 import { AudGeometry } from "./AudGeometry.js";
 import { AudObstructionOcclusion } from "./AudObstructionOcclusion/index.js";
@@ -26,7 +25,7 @@ function BankKey(name)
 
 /** Coordinates audio lifecycle, banks, global controls, culling, and caller-supplied obstruction/occlusion. */
 @type.define({ className: "AudManager", family: "audio" })
-export class AudManager extends CjsModel
+export class AudManager
 {
 
   /** m_log (IAudActionLogPtr) [READWRITE] */

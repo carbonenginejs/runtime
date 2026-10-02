@@ -8,11 +8,10 @@
 // Written down rather than ignored so the correspondence is recorded: a reader
 // meeting MetalColor in Carbon should land here and be told it is vec4.
 import { type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Carbon's plain RGBA aggregate for Metal clear and blend colours; dropped because vec4 already is one. */
 @type.define({ className: "MetalColor", carbon: "MetalColor", family: "trinityal" })
-export class MetalColor extends CjsModel
+export class MetalColor
 {
 
   /** red (float) */

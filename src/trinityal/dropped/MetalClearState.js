@@ -11,11 +11,10 @@
 // state object holding them for the whole pass would be a second source of
 // truth for something the descriptor already owns.
 import { type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Carbon's per-pass load/store/clear state; dropped because WebGPU carries the same fields on each attachment. */
 @type.define({ className: "MetalClearState", carbon: "MetalClearState", family: "trinityal" })
-export class MetalClearState extends CjsModel
+export class MetalClearState
 {
 
   /** colorLoadAction[METAL_MAX_RENDER_TARGETS] (MTLLoadAction) */

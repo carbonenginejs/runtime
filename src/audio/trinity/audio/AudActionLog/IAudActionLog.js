@@ -1,10 +1,9 @@
 // Source: audio/src/AudActionLog.h
 import { carbon, impl, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Required logging contract consumed by AudManager. */
 @type.define({ className: "IAudActionLog", family: "audio" })
-export class IAudActionLog extends CjsModel
+export class IAudActionLog
 {
   /** Records an event post. */
   @carbon.method

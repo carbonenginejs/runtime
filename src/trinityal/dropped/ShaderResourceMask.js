@@ -10,11 +10,10 @@
 // The four uint32 masks and the textureTypes array below are what that
 // vocabulary replaces, kept here so the correspondence is checkable.
 import { type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Carbon's per-stage bind masks; dropped because WebGPU resolves binding validity in the bind group layout. */
 @type.define({ className: "ShaderResourceMask", carbon: "ShaderResourceMask", family: "trinityal" })
-export class ShaderResourceMask extends CjsModel
+export class ShaderResourceMask
 {
 
   /** constantBufferMask (uint32_t) */
