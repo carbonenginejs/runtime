@@ -4577,7 +4577,10 @@ export async function RunDemo(canvas)
   // the animation time and frame counter the scene's per-frame fills read
   // (Tr2Renderer.GetAnimationTime / GetCurrentFrameCounter). The demo pumps
   // blue.os once per animation frame, as Carbon's main loop pumps the OS.
-  const clock = () => performance.now() / 1000;
+  // Blue time: 100ns ticks, as Carbon's device passes real/sim time to its jobs.
+  // The scene converts tick differences to seconds (EveUpdateContext.GetDeltaT,
+  // TriCurveSet), so passing seconds here ran every timed effect ~1e7x slow.
+  const clock = () => Math.round(performance.now() * 10000);
   framePump = createDemoFramePump(gTriDev.device, () => {
     al.SetRenderTarget(0, renderTarget);
     al.SetDepthStencil(null); // Canvas owns its depth attachment.
