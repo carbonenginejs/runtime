@@ -113,6 +113,31 @@ export class EveLineChildContainer extends IEveLineSetPath
     this._regenerate = false;
   }
 
+  /**
+   * Emits zero-scale records when hidden, otherwise forwards the native shared
+   * data pointer to every child unchanged. The mutable byte cursor replaces
+   * uint8_t*&; no extra container transform is applied (cpp:58-83).
+   */
+  @meta.blue.method
+  @meta.adapted
+  UpdateBuffer(renderContext, cursor, systemLocation, stride)
+  {
+    if (!this.isVisible || !this.display)
+    {
+      const count = this.GetPointCount();
+      for (let point = 0; point < count; point++)
+      {
+        for (let index = 0; index < stride / 4; index++) cursor.view.setFloat32(cursor.offset + index * 4, index === 15 ? 1 : 0, true);
+        cursor.offset += stride;
+      }
+      return;
+    }
+    for (const line of this.lines)
+    {
+      line.UpdateBuffer(renderContext, cursor, systemLocation, stride);
+    }
+  }
+
   /** Returns the sum of every child path's generated-point count. */
   @meta.blue.method
   @meta.implemented

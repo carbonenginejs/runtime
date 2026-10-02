@@ -319,6 +319,69 @@ export class EveCircle extends IEveLineSetPath
     }
   }
 
+  /**
+   * Writes the native transposed instance transforms (12 floats at stride 48).
+   * A { view: DataView, offset: byteOffset } cursor replaces uint8_t*& and is
+   * advanced for every point, including invisible zero-scale records. Matrix
+   * products reverse Carbon's row-vector operands; packing transposes once.
+   * Camera state is read from the supplied context instead of renderer globals.
+   * JS scalar intermediates are not claimed SIMD/libm byte-identical.
+   */
+  @meta.blue.method
+  @meta.adapted
+  UpdateBuffer(renderContext, cursor, systemLocation, stride)
+  {
+    if (!this.isVisible || !this.display)
+    {
+      for (let point = 0; point < this._points.length; point++)
+      {
+        for (let index = 0; index < stride / 4; index++) cursor.view.setFloat32(cursor.offset + index * 4, index === 15 ? 1 : 0, true);
+        cursor.offset += stride;
+      }
+      return;
+    }
+    const { vec3_0, vec3_1, vec3_2, vec3_3, vec3_4, quat_0, quat_1, mat4_0, mat4_1, mat4_2 } = EveCircle.scratch;
+    for (let count = 0; count < this._points.length; count++)
+    {
+      let sizeMod = 1;
+      if (this.scaleEndpoints && this.completeness !== 1)
+      {
+        if (count + 2 >= this._points.length) sizeMod = 1 - this.animValue;
+        if (count === 0) sizeMod *= this.animValue;
+        sizeMod = Math.max(0.01, sizeMod);
+      }
+      const nextPoint = count + 1 >= this._points.length ? 0 : count + 1;
+      vec3.lerp(vec3_0, this._points[count], this._points[nextPoint], this.animValue);
+      if (!this.billboardObjects)
+      {
+        const farPoint = nextPoint + 1 >= this._points.length ? 0 : nextPoint + 1;
+        vec3.lerp(vec3_1, this._points[nextPoint], this._points[farPoint], this.animValue);
+        vec3.subtract(vec3_1, vec3_1, vec3_0);
+      }
+      if (this.billboardObjects)
+      {
+        // Carbon: localTransform * systemLocation, local first.
+        mat4.multiply(mat4_0, systemLocation, this.localTransform);
+        mat4.decomposeCarbon(mat4_0, quat_1, vec3_3, vec3_4);
+        mat4.fromQuat(mat4_1, quat_1);
+        mat4.invert(mat4_1, mat4_1);
+        vec3.transformMat4(vec3_1, vec3_0, mat4_0);
+        vec3.subtract(vec3_1, renderContext.GetViewPosition(), vec3_1);
+        vec3.transformMat4(vec3_1, vec3_1, mat4_1);
+      }
+      quat.arcFromForward(quat_0, vec3_1);
+      vec3.scale(vec3_2, this.objectScale, sizeMod);
+      mat4.fromRotationTranslationScale(mat4_0, quat_0, vec3_0, vec3_2);
+      // Carbon: TransformationMatrix(scale, rotation, translation) * localTransform.
+      mat4.multiply(mat4_2, this.localTransform, mat4_0);
+      for (let index = 0; index < stride / 4; index++)
+      {
+        cursor.view.setFloat32(cursor.offset + index * 4, mat4_2[(index % 4) * 4 + Math.floor(index / 4)], true);
+      }
+      cursor.offset += stride;
+    }
+  }
+
   /** Carbon declares no circle-specific debug options (cpp:269-271). */
   @meta.blue.method
   @meta.noop
@@ -335,6 +398,19 @@ export class EveCircle extends IEveLineSetPath
     const completenessScale = 1 - Math.abs(this.completeness - 1);
     return Math.trunc(this.scaleSegmentsByCompleteness ? (this.numSegments + 0.5) * completenessScale : this.numSegments + 0.5);
   }
+
+  static scratch = {
+    vec3_0: vec3.create(),
+    vec3_1: vec3.create(),
+    vec3_2: vec3.create(),
+    vec3_3: vec3.create(),
+    vec3_4: vec3.create(),
+    quat_0: quat.create(),
+    quat_1: quat.create(),
+    mat4_0: mat4.create(),
+    mat4_1: mat4.create(),
+    mat4_2: mat4.create()
+  };
 
   static _identityMatrix = mat4.create();
 

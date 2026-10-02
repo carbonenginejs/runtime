@@ -16,10 +16,13 @@ export class IEveLineSetPath extends EveChildTransform
     throw new Error("IEveLineSetPath.Update must be implemented by a concrete line path.");
   }
 
-  /** Writes this path's line data into a renderer-neutral buffer. */
+  /**
+   * Writes instance transforms to a mutable { view: DataView, offset: bytes }
+   * cursor. The cursor replaces Carbon's advancing uint8_t*&; stride is bytes.
+   */
   @meta.blue.method
   @meta.abstract
-  UpdateBuffer(_renderContext, _cursor, _transform, _lineOffset)
+  UpdateBuffer(_renderContext, _cursor, _transform, _stride)
   {
     throw new Error("IEveLineSetPath.UpdateBuffer must be implemented by a concrete line path.");
   }

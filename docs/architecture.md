@@ -154,6 +154,11 @@ the context caches the inverse-projected frustum corner radius for depth sorting
 Device recreation rebuilds the buffer from retained line records. Final owners
 call `Destroy` to unregister and release storage. The headless AL exercises the
 same upload and submission path; it does not establish shader pixel parity.
+Circle and Bézier paths also provide packed instance transforms. Their buffer
+contract advances a shared byte cursor through nested path containers; hidden
+paths keep their record slots and write zero-scale transforms. Instance records
+contain the local transform, with the owning child's world transform supplied
+separately. Billboards read camera state from the supplied render context.
 
 ## Tools, demos, and generated source
 

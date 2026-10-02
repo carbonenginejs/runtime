@@ -1442,7 +1442,7 @@ test("line-set paths inherit one abstract root contract", () =>
   assert.doesNotThrow(() => new EveBezierCurve().GetDebugOptions(new Set()));
   assert.doesNotThrow(() => new EveCircle().GetDebugOptions(new Set()));
   assert.throws(
-    () => new EveLineChildContainer().UpdateBuffer(null, 0, null, 0),
+    () => new IEveLineSetPath().UpdateBuffer(null, 0, null, 0),
     /must be implemented/
   );
   assert.throws(
