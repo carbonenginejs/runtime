@@ -791,9 +791,10 @@ test("TriView builds Carbon's right-handed look-at transform", () =>
   assertEquals(existsSync(new URL("../../src/trinity/generated/trinityCore/TriView.js", import.meta.url)), false);
 });
 
-test("Tr2DirectInstanceData retains detached CPU bounds", () =>
+test("Tr2DirectInstanceData retains detached CPU bounds", t =>
 {
   const data = new Tr2DirectInstanceData();
+  t.after(() => data.Destroy());
   const min = [-3, -2, -1];
   const max = [4, 5, 6];
 

@@ -2,12 +2,13 @@ import { CjsSchema } from "../../../../npm/dist/global/schema/index.js";
 import { CjsModel } from "../../../../npm/dist/global/model/index.js";
 import { mat4 } from "../../../../npm/dist/global/math/mat4.js";
 import { CjsBlackFormat } from "../../../../npm/dist/resource/formats/black/index.js";
-import { TriDevice, Tr2ParticleSystem, Tr2InstancedMesh, EveShip2 } from "../../../../npm/dist/trinity/index.js";
+import { TriDevice, Tr2ParticleSystem, Tr2InstancedMesh, Tr2DirectInstanceData, EveShip2 } from "../../../../npm/dist/trinity/index.js";
 
-/** Whether a model has one of the two CPU-particle lifetimes owned by demo ships. */
+/** Whether a model has a particle or instance-stream lifetime owned by demo ships. */
 function isShipResource(model)
 {
-  return CjsSchema.cast(model, Tr2ParticleSystem) || CjsSchema.cast(model, Tr2InstancedMesh);
+  return CjsSchema.cast(model, Tr2ParticleSystem) || CjsSchema.cast(model, Tr2InstancedMesh)
+    || CjsSchema.cast(model, Tr2DirectInstanceData);
 }
 
 /** Hydrates synchronously; a failed graph may be inaccessible except through device registration. */
@@ -30,7 +31,7 @@ export function hydrateDemoShip(values)
   }
 }
 
-/** Retires only named CPU resources unreachable from the other live or pending ships. */
+/** Retires only named ship resources unreachable from the other live or pending ships. */
 export function retireDemoShips(roots, retained)
 {
   const keep = new Set(), candidates = new Set();

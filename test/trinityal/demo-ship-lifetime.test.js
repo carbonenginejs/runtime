@@ -5,7 +5,7 @@ import { CjsModel } from "../../npm/dist/global/model/index.js";
 import { blue } from "../../npm/dist/global/blue/index.js";
 import { TriGeometryRes } from "../../npm/dist/resource/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
-import { TriDevice, Tr2ParticleSystem, Tr2ParticleElementDeclaration, Tr2InstancedMesh,
+import { TriDevice, Tr2ParticleSystem, Tr2ParticleElementDeclaration, Tr2InstancedMesh, Tr2DirectInstanceData,
   EveShip2, EveChildParticleSystem, EveSpaceScene, EveMeshOverlayEffect, TriCurveSet, TriValueBinding,
   Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
@@ -191,4 +191,38 @@ test(`replacement ${boundary} cancellation/failure leaves no new registrations`,
     assert.equal(namedResources().length,baseline.size+2);retireDemoShips([old.ship],[]);
   } else assert.equal(scene.objects.length,0);
   assert.deepEqual(new Set(namedResources()),baseline);
+});
+
+test("direct instance providers survive shared ship roots and retire with their final owner", t =>
+{
+  setup(t);
+  const provider = new Tr2DirectInstanceData();
+  const old = new EveShip2(), next = new EveShip2();
+  old.mesh = new Tr2InstancedMesh();
+  next.mesh = new Tr2InstancedMesh();
+  old.mesh.SetInstanceGeometryRes(provider);
+  next.mesh.SetInstanceGeometryRes(provider);
+  let destroyed = 0;
+  const destroy = provider.Destroy.bind(provider);
+  provider.Destroy = () => { destroyed++; destroy(); };
+  retireDemoShips([old], [next]);
+  assert.equal(destroyed, 0);
+  assert.ok(TriDevice.GetResourcesRegistered().includes(provider));
+  retireDemoShips([next], []);
+  assert.equal(destroyed, 1);
+  assert.equal(TriDevice.GetResourcesRegistered().includes(provider), false);
+});
+
+test("failed ship startup retires its newly hydrated direct instance providers", t =>
+{
+  setup(t);
+  const existing = new Tr2DirectInstanceData();
+  const before = new Set(TriDevice.GetResourcesRegistered());
+  t.mock.method(EveShip2.prototype, "StartControllers", () => { throw Error("startup"); });
+  assert.throws(() => hydrateDemoShip({
+    _type: "EveShip2",
+    mesh: { _type: "Tr2InstancedMesh", instanceGeometryResource: { _type: "Tr2DirectInstanceData" } }
+  }), /startup/);
+  assert.deepEqual(new Set(TriDevice.GetResourcesRegistered()), before);
+  assert.ok(TriDevice.GetResourcesRegistered().includes(existing));
 });
