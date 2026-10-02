@@ -1,0 +1,4398 @@
+{
+  "source": "res:/graphics/character/unique/characterselect/aam/unique.black",
+  "md5": "35cae4f6c98de473e40af1f704aff7d3",
+  "object": {
+    "_type": "Tr2SkinnedModel",
+    "geometryResPath": "res:/Graphics/Character/Male/Skeleton/masterSkeletonMale.gr2",
+    "skeletonName": "Root",
+    "name": "male",
+    "meshes": [
+      {
+        "_type": "Tr2Mesh",
+        "geometryResPath": "res:/Graphics/Character/Male/Paperdoll/BottomInner/legs_nude/legs_nude.gr2",
+        "name": "bottominner",
+        "opaqueAreas": [
+          {
+            "_type": "Tr2MeshArea",
+            "name": "LegsShape",
+            "effect": {
+              "_type": "Tr2Effect",
+              "name": "C_SkinShiny_Body",
+              "effectFilePath": "res:/graphics/effect/managed/interior/avatar/skinnedavatarbrdfsinglepassskin_double.fx",
+              "parameters": [
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "TransformUV0",
+                  "value": [
+                    0,
+                    0,
+                    0.5,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleNormalStrength1",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleNormalStrength2",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleNormalStrength3",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleParams",
+                  "value": [
+                    1,
+                    1,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2FloatParameter",
+                  "name": "CutMaskInfluence",
+                  "value": 0
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularCurve",
+                  "value": [
+                    0,
+                    60,
+                    0,
+                    10
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularFactors",
+                  "value": [
+                    2,
+                    2,
+                    2,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialLibraryID",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularColor",
+                  "value": [
+                    2.5764710903167725,
+                    2.5764710903167725,
+                    2.5764710903167725,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularFactors",
+                  "value": [
+                    3,
+                    0,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularCurve",
+                  "value": [
+                    50,
+                    300,
+                    0.20000000298023224,
+                    10
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularColor",
+                  "value": [
+                    3,
+                    3,
+                    3,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2LibraryID",
+                  "value": [
+                    10,
+                    23,
+                    26,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleDarkeningFactor",
+                  "value": [
+                    0,
+                    2,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "ColorCorrectionSource",
+                  "value": [
+                    0.5,
+                    0.5,
+                    0.5,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "ColorCorrectionTarget",
+                  "value": [
+                    0.5,
+                    0.5,
+                    0.5,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PhotoFilterMoodColor",
+                  "value": [
+                    0.5,
+                    0.5,
+                    0.5,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PhotoFilterParams",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "FilmicMappingParams1",
+                  "value": [
+                    0.2199999988079071,
+                    0.30000001192092896,
+                    0.10000000149011612,
+                    0.20000000298023224
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "FilmicMappingParams2",
+                  "value": [
+                    0.009999999776482582,
+                    0.30000001192092896,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PortraitRoughnessParams",
+                  "value": [
+                    -1,
+                    1,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialCutoutColor",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PortraitShaderArtParams",
+                  "value": [
+                    0,
+                    1,
+                    1,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PortraitShaderArtDiffuseColor"
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj0",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData0",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj1",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData1",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj2",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData2",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj3",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData3",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "resources": [
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "NormalMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/NormalMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "SpecularMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/SpecularMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "DiffuseMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/DiffuseMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "FresnelLookupMap",
+                  "resourcePath": "res:/texture/global/brdflibrary.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "ColorNdotLLookupMap",
+                  "resourcePath": "res:/Texture/Global/NdotLLibrary.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "CutMaskMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/CutMaskMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleNormalMap"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleNormalCorrectionMap"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleDiffuseMap"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleZoneMap"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "BeckmannLookup",
+                  "resourcePath": "res:/Texture/Global/beckmannSpecular.dds"
+                }
+              ],
+              "samplerOverrides": [
+                {
+                  "name": "DiffuseMapSampler",
+                  "addressU": 3,
+                  "addressV": 3,
+                  "addressW": 1,
+                  "filter": 2,
+                  "mipFilter": 2,
+                  "lodBias": 0,
+                  "maxMipLevel": 0,
+                  "maxAnisotropy": 16
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "_type": "Tr2Mesh",
+        "geometryResPath": "res:/Graphics/Character/Male/Paperdoll/Feet/feet_nude/feet_nude.gr2",
+        "name": "feet",
+        "opaqueAreas": [
+          {
+            "_type": "Tr2MeshArea",
+            "name": "FeetShape",
+            "effect": {
+              "_type": "Tr2Effect",
+              "name": "C_SkinShiny_Body",
+              "effectFilePath": "res:/graphics/effect/managed/interior/avatar/skinnedavatarbrdfsinglepassskin_double.fx",
+              "parameters": [
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "TransformUV0",
+                  "value": [
+                    0,
+                    0,
+                    0.5,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleNormalStrength1",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleNormalStrength2",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleNormalStrength3",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleParams",
+                  "value": [
+                    1,
+                    1,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2FloatParameter",
+                  "name": "CutMaskInfluence",
+                  "value": 0
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularCurve",
+                  "value": [
+                    0,
+                    60,
+                    0,
+                    10
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularFactors",
+                  "value": [
+                    2,
+                    2,
+                    2,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialLibraryID",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularColor",
+                  "value": [
+                    2.5764710903167725,
+                    2.5764710903167725,
+                    2.5764710903167725,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularFactors",
+                  "value": [
+                    3,
+                    0,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularCurve",
+                  "value": [
+                    50,
+                    300,
+                    0.20000000298023224,
+                    10
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularColor",
+                  "value": [
+                    3,
+                    3,
+                    3,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2LibraryID",
+                  "value": [
+                    10,
+                    23,
+                    26,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleDarkeningFactor",
+                  "value": [
+                    0,
+                    2,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "ColorCorrectionSource",
+                  "value": [
+                    0.5,
+                    0.5,
+                    0.5,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "ColorCorrectionTarget",
+                  "value": [
+                    0.5,
+                    0.5,
+                    0.5,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PhotoFilterMoodColor",
+                  "value": [
+                    0.5,
+                    0.5,
+                    0.5,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PhotoFilterParams",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "FilmicMappingParams1",
+                  "value": [
+                    0.2199999988079071,
+                    0.30000001192092896,
+                    0.10000000149011612,
+                    0.20000000298023224
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "FilmicMappingParams2",
+                  "value": [
+                    0.009999999776482582,
+                    0.30000001192092896,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PortraitRoughnessParams",
+                  "value": [
+                    -1,
+                    1,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialCutoutColor",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PortraitShaderArtParams",
+                  "value": [
+                    0,
+                    1,
+                    1,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PortraitShaderArtDiffuseColor"
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj0",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData0",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj1",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData1",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj2",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData2",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj3",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData3",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "resources": [
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "NormalMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/NormalMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "SpecularMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/SpecularMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "DiffuseMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/DiffuseMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "FresnelLookupMap",
+                  "resourcePath": "res:/texture/global/brdflibrary.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "ColorNdotLLookupMap",
+                  "resourcePath": "res:/Texture/Global/NdotLLibrary.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "CutMaskMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/CutMaskMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleNormalMap"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleNormalCorrectionMap"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleDiffuseMap"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleZoneMap"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "BeckmannLookup",
+                  "resourcePath": "res:/Texture/Global/beckmannSpecular.dds"
+                }
+              ],
+              "samplerOverrides": [
+                {
+                  "name": "DiffuseMapSampler",
+                  "addressU": 3,
+                  "addressV": 3,
+                  "addressW": 1,
+                  "filter": 2,
+                  "mipFilter": 2,
+                  "lodBias": 0,
+                  "maxMipLevel": 0,
+                  "maxAnisotropy": 16
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "_type": "Tr2Mesh",
+        "geometryResPath": "res:/Graphics/Character/Male/Paperdoll/Hands/Hands_nude/Hands_nude.gr2",
+        "name": "hands",
+        "opaqueAreas": [
+          {
+            "_type": "Tr2MeshArea",
+            "name": "HandsShape",
+            "effect": {
+              "_type": "Tr2Effect",
+              "name": "C_SkinShiny_Body",
+              "effectFilePath": "res:/graphics/effect/managed/interior/avatar/skinnedavatarbrdfsinglepassskin_double.fx",
+              "parameters": [
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "TransformUV0",
+                  "value": [
+                    0,
+                    0,
+                    0.5,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleNormalStrength1",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleNormalStrength2",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleNormalStrength3",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleParams",
+                  "value": [
+                    1,
+                    1,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2FloatParameter",
+                  "name": "CutMaskInfluence",
+                  "value": 0
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularCurve",
+                  "value": [
+                    0,
+                    60,
+                    0,
+                    10
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularFactors",
+                  "value": [
+                    2,
+                    2,
+                    2,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialLibraryID",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularColor",
+                  "value": [
+                    2.5764710903167725,
+                    2.5764710903167725,
+                    2.5764710903167725,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularFactors",
+                  "value": [
+                    3,
+                    0,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularCurve",
+                  "value": [
+                    50,
+                    300,
+                    0.20000000298023224,
+                    10
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularColor",
+                  "value": [
+                    3,
+                    3,
+                    3,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2LibraryID",
+                  "value": [
+                    10,
+                    23,
+                    26,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleDarkeningFactor",
+                  "value": [
+                    0,
+                    2,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "ColorCorrectionSource",
+                  "value": [
+                    0.5,
+                    0.5,
+                    0.5,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "ColorCorrectionTarget",
+                  "value": [
+                    0.5,
+                    0.5,
+                    0.5,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PhotoFilterMoodColor",
+                  "value": [
+                    0.5,
+                    0.5,
+                    0.5,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PhotoFilterParams",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "FilmicMappingParams1",
+                  "value": [
+                    0.2199999988079071,
+                    0.30000001192092896,
+                    0.10000000149011612,
+                    0.20000000298023224
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "FilmicMappingParams2",
+                  "value": [
+                    0.009999999776482582,
+                    0.30000001192092896,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PortraitRoughnessParams",
+                  "value": [
+                    -1,
+                    1,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialCutoutColor",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PortraitShaderArtParams",
+                  "value": [
+                    0,
+                    1,
+                    1,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PortraitShaderArtDiffuseColor"
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj0",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData0",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj1",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData1",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj2",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData2",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj3",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData3",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "resources": [
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "NormalMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/NormalMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "SpecularMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/SpecularMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "DiffuseMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/DiffuseMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "FresnelLookupMap",
+                  "resourcePath": "res:/texture/global/brdflibrary.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "ColorNdotLLookupMap",
+                  "resourcePath": "res:/Texture/Global/NdotLLibrary.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "CutMaskMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/CutMaskMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleNormalMap"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleNormalCorrectionMap"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleDiffuseMap"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleZoneMap"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "BeckmannLookup",
+                  "resourcePath": "res:/Texture/Global/beckmannSpecular.dds"
+                }
+              ],
+              "samplerOverrides": [
+                {
+                  "name": "DiffuseMapSampler",
+                  "addressU": 3,
+                  "addressV": 3,
+                  "addressW": 1,
+                  "filter": 2,
+                  "mipFilter": 2,
+                  "lodBias": 0,
+                  "maxMipLevel": 0,
+                  "maxAnisotropy": 16
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "_type": "Tr2Mesh",
+        "geometryResPath": "res:/Graphics/Character/Male/Paperdoll/Head/Amarr_Amarr/AA_Male_Head_LOD0.gr2",
+        "name": "head",
+        "meshIndex": 8,
+        "opaqueAreas": [
+          {
+            "_type": "Tr2MeshArea",
+            "name": "Eyeball_Right_GeoShape",
+            "effect": {
+              "_type": "Tr2Effect",
+              "name": "C_Eyes",
+              "effectFilePath": "res:/graphics/effect/managed/interior/avatar/eyeshader.fx",
+              "parameters": [
+                {
+                  "_type": "Tr2FloatParameter",
+                  "name": "CutMaskInfluence",
+                  "value": 0
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "TransformUV0",
+                  "value": [
+                    0.5,
+                    0,
+                    1,
+                    0.5
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularCurve",
+                  "value": [
+                    1,
+                    800,
+                    0.009999999776482582,
+                    10
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularFactors",
+                  "value": [
+                    10,
+                    10.5,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialLibraryID",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularColor",
+                  "value": [
+                    2.3478260040283203,
+                    2.590061902999878,
+                    3,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularFactors",
+                  "value": [
+                    2,
+                    2,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularCurve",
+                  "value": [
+                    5,
+                    800,
+                    0.009999999776482582,
+                    10
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularColor",
+                  "value": [
+                    1.8433740139007568,
+                    2.289155960083008,
+                    3,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2LibraryID",
+                  "value": [
+                    10,
+                    23,
+                    26,
+                    0
+                  ]
+                }
+              ],
+              "resources": [
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "NormalMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/NormalMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "SpecularMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/SpecularMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "DiffuseMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/DiffuseMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "FresnelLookupMap",
+                  "resourcePath": "res:/texture/global/brdflibrary.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "ColorNdotLLookupMap",
+                  "resourcePath": "res:/Texture/Global/NdotLLibrary.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "CutMaskMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/CutMaskMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "EyeReflectionCube",
+                  "resourcePath": "res:/Texture/Global/EyeReflection_cube.dds"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "_type": "Tr2Mesh",
+        "geometryResPath": "res:/Graphics/Character/Male/Paperdoll/Head/Amarr_Amarr/AA_Male_Head_LOD0.gr2",
+        "name": "head1",
+        "meshIndex": 1,
+        "opaqueAreas": [
+          {
+            "_type": "Tr2MeshArea",
+            "name": "Tongue_GeoShape",
+            "effect": {
+              "_type": "Tr2Effect",
+              "name": "C_Teeth",
+              "effectFilePath": "res:/graphics/effect/managed/interior/avatar/portraitbasic.fx",
+              "parameters": [
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "TransformUV0",
+                  "value": [
+                    0.5,
+                    0,
+                    1,
+                    0.5
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularCurve",
+                  "value": [
+                    0,
+                    400,
+                    0,
+                    10
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularFactors",
+                  "value": [
+                    0.22333340346813202,
+                    0.9116668105125427,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularColor",
+                  "value": [
+                    3,
+                    3,
+                    3,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialDiffuseColor",
+                  "value": [
+                    0.9137254953384399,
+                    0.9137254953384399,
+                    0.9137254953384399,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "ShadingOptions",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "resources": [
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "NormalMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/NormalMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "SpecularMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/SpecularMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "DiffuseMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/DiffuseMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "FresnelLookupMap",
+                  "resourcePath": "res:/texture/global/brdflibrary.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "ColorNdotLLookupMap",
+                  "resourcePath": "res:/Texture/Global/NdotLLibrary.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "CutMaskMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/CutMaskMap.dds"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "_type": "Tr2Mesh",
+        "geometryResPath": "res:/Graphics/Character/Male/Paperdoll/Head/Amarr_Amarr/AA_Male_Head_LOD0.gr2",
+        "name": "head2",
+        "opaqueAreas": [
+          {
+            "_type": "Tr2MeshArea",
+            "name": "meshShape",
+            "effect": {
+              "_type": "Tr2Effect",
+              "name": "C_Skin_AA",
+              "effectFilePath": "res:/graphics/effect/managed/interior/avatar/skinnedavatarbrdfsinglepassskin_single.fx",
+              "parameters": [
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "TransformUV0",
+                  "value": [
+                    0.5,
+                    0,
+                    1,
+                    0.5
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleNormalStrength1",
+                  "value": [
+                    0,
+                    0,
+                    1,
+                    0.0003173000004608184
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleNormalStrength2",
+                  "value": [
+                    0,
+                    0,
+                    0.0052756997756659985,
+                    0.0036842001136392355
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleNormalStrength3",
+                  "value": [
+                    0.0009970000246539712,
+                    0,
+                    0,
+                    0.0028347999323159456
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleParams",
+                  "value": [
+                    1,
+                    2,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2FloatParameter",
+                  "name": "CutMaskInfluence",
+                  "value": 0
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularCurve",
+                  "value": [
+                    0,
+                    60,
+                    0,
+                    10
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularFactors",
+                  "value": [
+                    2,
+                    2,
+                    2,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialLibraryID",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularColor",
+                  "value": [
+                    2.5764710903167725,
+                    2.5764710903167725,
+                    2.5764710903167725,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularFactors",
+                  "value": [
+                    3,
+                    0,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularCurve",
+                  "value": [
+                    50,
+                    300,
+                    0.20000000298023224,
+                    10
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularColor",
+                  "value": [
+                    3,
+                    3,
+                    3,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2LibraryID",
+                  "value": [
+                    10,
+                    23,
+                    26,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleDarkeningFactor",
+                  "value": [
+                    0,
+                    2,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "ColorCorrectionSource",
+                  "value": [
+                    0.5,
+                    0.5,
+                    0.5,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "ColorCorrectionTarget",
+                  "value": [
+                    0.5,
+                    0.5,
+                    0.5,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PhotoFilterMoodColor",
+                  "value": [
+                    0.5,
+                    0.5,
+                    0.5,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PhotoFilterParams",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "FilmicMappingParams1",
+                  "value": [
+                    0.2199999988079071,
+                    0.30000001192092896,
+                    0.10000000149011612,
+                    0.20000000298023224
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "FilmicMappingParams2",
+                  "value": [
+                    0.009999999776482582,
+                    0.30000001192092896,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PortraitRoughnessParams",
+                  "value": [
+                    -1,
+                    1,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj0",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData0",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj1",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData1",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj2",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData2",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj3",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData3",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialCutoutColor",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PortraitShaderArtParams",
+                  "value": [
+                    0,
+                    1,
+                    1,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PortraitShaderArtDiffuseColor"
+                }
+              ],
+              "resources": [
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "NormalMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/NormalMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "SpecularMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/SpecularMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "DiffuseMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/DiffuseMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "FresnelLookupMap",
+                  "resourcePath": "res:/texture/global/brdflibrary.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "ColorNdotLLookupMap",
+                  "resourcePath": "res:/Texture/Global/NdotLLibrary.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "CutMaskMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/CutMaskMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleNormalMap",
+                  "resourcePath": "res:/Graphics/Character/Male/Paperdoll/head/Head_Generic/WrinkleNormal.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleNormalCorrectionMap",
+                  "resourcePath": "res:/Graphics/Character/Male/Paperdoll/head/Head_Generic/WrinkleNormalCorrection.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleDiffuseMap",
+                  "resourcePath": "res:/Graphics/Character/Male/Paperdoll/head/Head_Generic/WrinkleDiffuse.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleZoneMap",
+                  "resourcePath": "res://Graphics/Character/Global/FaceSetup/FaceZones.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "BeckmannLookup",
+                  "resourcePath": "res:/Texture/Global/beckmannSpecular.dds"
+                }
+              ],
+              "samplerOverrides": [
+                {
+                  "name": "DiffuseMapSampler",
+                  "addressU": 3,
+                  "addressV": 3,
+                  "addressW": 1,
+                  "filter": 2,
+                  "mipFilter": 2,
+                  "lodBias": 0,
+                  "maxMipLevel": 0,
+                  "maxAnisotropy": 16
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "_type": "Tr2Mesh",
+        "geometryResPath": "res:/Graphics/Character/Male/Paperdoll/Head/Amarr_Amarr/AA_Male_Head_LOD0.gr2",
+        "name": "head3",
+        "meshIndex": 3,
+        "opaqueAreas": [
+          {
+            "_type": "Tr2MeshArea",
+            "name": "TeethUpper_GeoShape",
+            "effect": {
+              "_type": "Tr2Effect",
+              "name": "C_Teeth",
+              "effectFilePath": "res:/graphics/effect/managed/interior/avatar/portraitbasic.fx",
+              "parameters": [
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "TransformUV0",
+                  "value": [
+                    0.5,
+                    0,
+                    1,
+                    0.5
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularCurve",
+                  "value": [
+                    0,
+                    400,
+                    0,
+                    10
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularFactors",
+                  "value": [
+                    0.22333340346813202,
+                    0.9116668105125427,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularColor",
+                  "value": [
+                    3,
+                    3,
+                    3,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialDiffuseColor",
+                  "value": [
+                    0.9137254953384399,
+                    0.9137254953384399,
+                    0.9137254953384399,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "ShadingOptions",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "resources": [
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "NormalMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/NormalMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "SpecularMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/SpecularMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "DiffuseMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/DiffuseMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "FresnelLookupMap",
+                  "resourcePath": "res:/texture/global/brdflibrary.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "ColorNdotLLookupMap",
+                  "resourcePath": "res:/Texture/Global/NdotLLibrary.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "CutMaskMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/CutMaskMap.dds"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "_type": "Tr2Mesh",
+        "geometryResPath": "res:/Graphics/Character/Male/Paperdoll/Head/Amarr_Amarr/AA_Male_Head_LOD0.gr2",
+        "name": "head4",
+        "meshIndex": 6,
+        "transparentAreas": [
+          {
+            "_type": "Tr2MeshArea",
+            "name": "EyeShadow_GeoShape",
+            "effect": {
+              "_type": "Tr2Effect",
+              "name": "C_SkinShiny_EyeLashes",
+              "effectFilePath": "res:/graphics/effect/managed/interior/avatar/skinnedavatarbrdfsinglepassskin_double.fx",
+              "parameters": [
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "TransformUV0",
+                  "value": [
+                    0.5,
+                    0,
+                    1,
+                    0.5
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleNormalStrength1",
+                  "value": [
+                    0,
+                    0,
+                    1,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleNormalStrength2",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleNormalStrength3",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleParams",
+                  "value": [
+                    1,
+                    2,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2FloatParameter",
+                  "name": "CutMaskInfluence",
+                  "value": 0
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularCurve",
+                  "value": [
+                    0,
+                    60,
+                    0,
+                    10
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularFactors",
+                  "value": [
+                    2,
+                    2,
+                    2,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialLibraryID",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularColor",
+                  "value": [
+                    2.5764710903167725,
+                    2.5764710903167725,
+                    2.5764710903167725,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularFactors",
+                  "value": [
+                    3,
+                    0,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularCurve",
+                  "value": [
+                    50,
+                    300,
+                    0.20000000298023224,
+                    10
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularColor",
+                  "value": [
+                    3,
+                    3,
+                    3,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2LibraryID",
+                  "value": [
+                    10,
+                    23,
+                    26,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleDarkeningFactor",
+                  "value": [
+                    0,
+                    2,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "ColorCorrectionSource",
+                  "value": [
+                    0.5,
+                    0.5,
+                    0.5,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "ColorCorrectionTarget",
+                  "value": [
+                    0.5,
+                    0.5,
+                    0.5,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PhotoFilterMoodColor",
+                  "value": [
+                    0.5,
+                    0.5,
+                    0.5,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PhotoFilterParams",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "FilmicMappingParams1",
+                  "value": [
+                    0.2199999988079071,
+                    0.30000001192092896,
+                    0.10000000149011612,
+                    0.20000000298023224
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "FilmicMappingParams2",
+                  "value": [
+                    0.009999999776482582,
+                    0.30000001192092896,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PortraitRoughnessParams",
+                  "value": [
+                    -1,
+                    1,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialCutoutColor",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PortraitShaderArtParams",
+                  "value": [
+                    0,
+                    1,
+                    1,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PortraitShaderArtDiffuseColor"
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj0",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData0",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj1",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData1",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj2",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData2",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj3",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData3",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "resources": [
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "NormalMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/NormalMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "SpecularMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/SpecularMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "DiffuseMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/DiffuseMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "FresnelLookupMap",
+                  "resourcePath": "res:/texture/global/brdflibrary.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "ColorNdotLLookupMap",
+                  "resourcePath": "res:/Texture/Global/NdotLLibrary.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "CutMaskMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/CutMaskMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleNormalMap",
+                  "resourcePath": "res:/Graphics/Character/Male/Paperdoll/head/Head_Generic/WrinkleNormal.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleNormalCorrectionMap",
+                  "resourcePath": "res:/Graphics/Character/Male/Paperdoll/head/Head_Generic/WrinkleNormalCorrection.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleDiffuseMap",
+                  "resourcePath": "res:/Graphics/Character/Male/Paperdoll/head/Head_Generic/WrinkleDiffuse.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleZoneMap",
+                  "resourcePath": "res://Graphics/Character/Global/FaceSetup/FaceZones.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "BeckmannLookup",
+                  "resourcePath": "res:/Texture/Global/beckmannSpecular.dds"
+                }
+              ],
+              "samplerOverrides": [
+                {
+                  "name": "DiffuseMapSampler",
+                  "addressU": 3,
+                  "addressV": 3,
+                  "addressW": 1,
+                  "filter": 2,
+                  "mipFilter": 2,
+                  "lodBias": 0,
+                  "maxMipLevel": 0,
+                  "maxAnisotropy": 16
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "_type": "Tr2Mesh",
+        "geometryResPath": "res:/Graphics/Character/Male/Paperdoll/Head/Amarr_Amarr/AA_Male_Head_LOD0.gr2",
+        "name": "head5",
+        "meshIndex": 4,
+        "transparentAreas": [
+          {
+            "_type": "Tr2MeshArea",
+            "name": "EyeWet_GeoShape",
+            "effect": {
+              "_type": "Tr2Effect",
+              "name": "C_eyewetness_eyes",
+              "effectFilePath": "res:/graphics/effect/managed/interior/avatar/eyewetnessshader.fx",
+              "parameters": [
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "TransformUV0",
+                  "value": [
+                    0.5,
+                    0,
+                    1,
+                    0.5
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularCurve",
+                  "value": [
+                    0,
+                    50,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularFactors",
+                  "value": [
+                    1,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularColor"
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialCutoutColor",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialLibraryID",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PortraitShaderArtParams",
+                  "value": [
+                    0,
+                    1,
+                    1,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PortraitShaderArtDiffuseColor"
+                },
+                {
+                  "_type": "Tr2FloatParameter",
+                  "name": "CutMaskInfluence",
+                  "value": 0
+                }
+              ],
+              "resources": [
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "NormalMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/NormalMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "SpecularMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/SpecularMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "DiffuseMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/DiffuseMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "FresnelLookupMap",
+                  "resourcePath": "res:/texture/global/brdflibrary.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "ColorNdotLLookupMap",
+                  "resourcePath": "res:/Texture/Global/NdotLLibrary.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "CutMaskMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/CutMaskMap.dds"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "_type": "Tr2Mesh",
+        "geometryResPath": "res:/Graphics/Character/Male/Paperdoll/Head/Amarr_Amarr/AA_Male_Head_LOD0.gr2",
+        "name": "head6",
+        "meshIndex": 9,
+        "opaqueAreas": [
+          {
+            "_type": "Tr2MeshArea",
+            "name": "Eyeball_Left_GeoShape",
+            "effect": {
+              "_type": "Tr2Effect",
+              "name": "C_Eyes",
+              "effectFilePath": "res:/graphics/effect/managed/interior/avatar/eyeshader.fx",
+              "parameters": [
+                {
+                  "_type": "Tr2FloatParameter",
+                  "name": "CutMaskInfluence",
+                  "value": 0
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "TransformUV0",
+                  "value": [
+                    0.5,
+                    0,
+                    1,
+                    0.5
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularCurve",
+                  "value": [
+                    1,
+                    800,
+                    0.009999999776482582,
+                    10
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularFactors",
+                  "value": [
+                    10,
+                    10.5,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialLibraryID",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularColor",
+                  "value": [
+                    2.3478260040283203,
+                    2.590061902999878,
+                    3,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularFactors",
+                  "value": [
+                    2,
+                    2,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularCurve",
+                  "value": [
+                    5,
+                    800,
+                    0.009999999776482582,
+                    10
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularColor",
+                  "value": [
+                    1.8433740139007568,
+                    2.289155960083008,
+                    3,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2LibraryID",
+                  "value": [
+                    10,
+                    23,
+                    26,
+                    0
+                  ]
+                }
+              ],
+              "resources": [
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "NormalMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/NormalMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "SpecularMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/SpecularMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "DiffuseMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/DiffuseMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "FresnelLookupMap",
+                  "resourcePath": "res:/texture/global/brdflibrary.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "ColorNdotLLookupMap",
+                  "resourcePath": "res:/Texture/Global/NdotLLibrary.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "CutMaskMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/CutMaskMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "EyeReflectionCube",
+                  "resourcePath": "res:/Texture/Global/EyeReflection_cube.dds"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "_type": "Tr2Mesh",
+        "geometryResPath": "res:/Graphics/Character/Male/Paperdoll/Head/Amarr_Amarr/AA_Male_Head_LOD0.gr2",
+        "name": "head7",
+        "meshIndex": 7,
+        "transparentAreas": [
+          {
+            "_type": "Tr2MeshArea",
+            "name": "Eyelashes_GeoShape",
+            "effect": {
+              "_type": "Tr2Effect",
+              "name": "C_SkinShiny_EyeLashes",
+              "effectFilePath": "res:/graphics/effect/managed/interior/avatar/skinnedavatarbrdfsinglepassskin_double.fx",
+              "parameters": [
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "TransformUV0",
+                  "value": [
+                    0.5,
+                    0,
+                    1,
+                    0.5
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleNormalStrength1",
+                  "value": [
+                    0,
+                    0,
+                    1,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleNormalStrength2",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleNormalStrength3",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleParams",
+                  "value": [
+                    1,
+                    2,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2FloatParameter",
+                  "name": "CutMaskInfluence",
+                  "value": 0
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularCurve",
+                  "value": [
+                    0,
+                    60,
+                    0,
+                    10
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularFactors",
+                  "value": [
+                    2,
+                    2,
+                    2,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialLibraryID",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularColor",
+                  "value": [
+                    2.5764710903167725,
+                    2.5764710903167725,
+                    2.5764710903167725,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularFactors",
+                  "value": [
+                    3,
+                    0,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularCurve",
+                  "value": [
+                    50,
+                    300,
+                    0.20000000298023224,
+                    10
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularColor",
+                  "value": [
+                    3,
+                    3,
+                    3,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2LibraryID",
+                  "value": [
+                    10,
+                    23,
+                    26,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleDarkeningFactor",
+                  "value": [
+                    0,
+                    2,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "ColorCorrectionSource",
+                  "value": [
+                    0.5,
+                    0.5,
+                    0.5,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "ColorCorrectionTarget",
+                  "value": [
+                    0.5,
+                    0.5,
+                    0.5,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PhotoFilterMoodColor",
+                  "value": [
+                    0.5,
+                    0.5,
+                    0.5,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PhotoFilterParams",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "FilmicMappingParams1",
+                  "value": [
+                    0.2199999988079071,
+                    0.30000001192092896,
+                    0.10000000149011612,
+                    0.20000000298023224
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "FilmicMappingParams2",
+                  "value": [
+                    0.009999999776482582,
+                    0.30000001192092896,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PortraitRoughnessParams",
+                  "value": [
+                    -1,
+                    1,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialCutoutColor",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PortraitShaderArtParams",
+                  "value": [
+                    0,
+                    1,
+                    1,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PortraitShaderArtDiffuseColor"
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj0",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData0",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj1",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData1",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj2",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData2",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj3",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData3",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "resources": [
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "NormalMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/NormalMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "SpecularMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/SpecularMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "DiffuseMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/DiffuseMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "FresnelLookupMap",
+                  "resourcePath": "res:/texture/global/brdflibrary.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "ColorNdotLLookupMap",
+                  "resourcePath": "res:/Texture/Global/NdotLLibrary.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "CutMaskMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/CutMaskMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleNormalMap",
+                  "resourcePath": "res:/Graphics/Character/Male/Paperdoll/head/Head_Generic/WrinkleNormal.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleNormalCorrectionMap",
+                  "resourcePath": "res:/Graphics/Character/Male/Paperdoll/head/Head_Generic/WrinkleNormalCorrection.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleDiffuseMap",
+                  "resourcePath": "res:/Graphics/Character/Male/Paperdoll/head/Head_Generic/WrinkleDiffuse.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleZoneMap",
+                  "resourcePath": "res://Graphics/Character/Global/FaceSetup/FaceZones.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "BeckmannLookup",
+                  "resourcePath": "res:/Texture/Global/beckmannSpecular.dds"
+                }
+              ],
+              "samplerOverrides": [
+                {
+                  "name": "DiffuseMapSampler",
+                  "addressU": 3,
+                  "addressV": 3,
+                  "addressW": 1,
+                  "filter": 2,
+                  "mipFilter": 2,
+                  "lodBias": 0,
+                  "maxMipLevel": 0,
+                  "maxAnisotropy": 16
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "_type": "Tr2Mesh",
+        "geometryResPath": "res:/Graphics/Character/Male/Paperdoll/Head/Amarr_Amarr/AA_Male_Head_LOD0.gr2",
+        "name": "head8",
+        "meshIndex": 5,
+        "opaqueAreas": [
+          {
+            "_type": "Tr2MeshArea",
+            "name": "Tearducts_GeoShape",
+            "effect": {
+              "_type": "Tr2Effect",
+              "name": "C_SkinShiny_TearDucts",
+              "effectFilePath": "res:/graphics/effect/managed/interior/avatar/skinnedavatarbrdfsinglepassskin_double.fx",
+              "parameters": [
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "TransformUV0",
+                  "value": [
+                    0.5,
+                    0,
+                    1,
+                    0.5
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleNormalStrength1",
+                  "value": [
+                    0,
+                    0,
+                    1,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleNormalStrength2",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleNormalStrength3",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleParams",
+                  "value": [
+                    1,
+                    2,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2FloatParameter",
+                  "name": "CutMaskInfluence",
+                  "value": 0
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularCurve",
+                  "value": [
+                    0,
+                    60,
+                    0,
+                    10
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularFactors",
+                  "value": [
+                    2,
+                    2,
+                    2,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialLibraryID",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularColor",
+                  "value": [
+                    2.5764710903167725,
+                    2.5764710903167725,
+                    2.5764710903167725,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularFactors",
+                  "value": [
+                    3,
+                    0,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularCurve",
+                  "value": [
+                    50,
+                    300,
+                    0.20000000298023224,
+                    10
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularColor",
+                  "value": [
+                    3,
+                    3,
+                    3,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2LibraryID",
+                  "value": [
+                    10,
+                    23,
+                    26,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleDarkeningFactor",
+                  "value": [
+                    0,
+                    2,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "ColorCorrectionSource",
+                  "value": [
+                    0.5,
+                    0.5,
+                    0.5,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "ColorCorrectionTarget",
+                  "value": [
+                    0.5,
+                    0.5,
+                    0.5,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PhotoFilterMoodColor",
+                  "value": [
+                    0.5,
+                    0.5,
+                    0.5,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PhotoFilterParams",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "FilmicMappingParams1",
+                  "value": [
+                    0.2199999988079071,
+                    0.30000001192092896,
+                    0.10000000149011612,
+                    0.20000000298023224
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "FilmicMappingParams2",
+                  "value": [
+                    0.009999999776482582,
+                    0.30000001192092896,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PortraitRoughnessParams",
+                  "value": [
+                    -1,
+                    1,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialCutoutColor",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PortraitShaderArtParams",
+                  "value": [
+                    0,
+                    1,
+                    1,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PortraitShaderArtDiffuseColor"
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj0",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData0",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj1",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData1",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj2",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData2",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj3",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData3",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "resources": [
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "NormalMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/NormalMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "SpecularMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/SpecularMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "DiffuseMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/DiffuseMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "FresnelLookupMap",
+                  "resourcePath": "res:/texture/global/brdflibrary.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "ColorNdotLLookupMap",
+                  "resourcePath": "res:/Texture/Global/NdotLLibrary.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "CutMaskMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/CutMaskMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleNormalMap",
+                  "resourcePath": "res:/Graphics/Character/Male/Paperdoll/head/Head_Generic/WrinkleNormal.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleNormalCorrectionMap",
+                  "resourcePath": "res:/Graphics/Character/Male/Paperdoll/head/Head_Generic/WrinkleNormalCorrection.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleDiffuseMap",
+                  "resourcePath": "res:/Graphics/Character/Male/Paperdoll/head/Head_Generic/WrinkleDiffuse.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleZoneMap",
+                  "resourcePath": "res://Graphics/Character/Global/FaceSetup/FaceZones.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "BeckmannLookup",
+                  "resourcePath": "res:/Texture/Global/beckmannSpecular.dds"
+                }
+              ],
+              "samplerOverrides": [
+                {
+                  "name": "DiffuseMapSampler",
+                  "addressU": 3,
+                  "addressV": 3,
+                  "addressW": 1,
+                  "filter": 2,
+                  "mipFilter": 2,
+                  "lodBias": 0,
+                  "maxMipLevel": 0,
+                  "maxAnisotropy": 16
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "_type": "Tr2Mesh",
+        "geometryResPath": "res:/Graphics/Character/Male/Paperdoll/Head/Amarr_Amarr/AA_Male_Head_LOD0.gr2",
+        "name": "head9",
+        "meshIndex": 2,
+        "opaqueAreas": [
+          {
+            "_type": "Tr2MeshArea",
+            "name": "TeethLower_GeoShape",
+            "effect": {
+              "_type": "Tr2Effect",
+              "name": "C_Teeth",
+              "effectFilePath": "res:/graphics/effect/managed/interior/avatar/portraitbasic.fx",
+              "parameters": [
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "TransformUV0",
+                  "value": [
+                    0.5,
+                    0,
+                    1,
+                    0.5
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularCurve",
+                  "value": [
+                    0,
+                    400,
+                    0,
+                    10
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularFactors",
+                  "value": [
+                    0.22333340346813202,
+                    0.9116668105125427,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularColor",
+                  "value": [
+                    3,
+                    3,
+                    3,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialDiffuseColor",
+                  "value": [
+                    0.9137254953384399,
+                    0.9137254953384399,
+                    0.9137254953384399,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "ShadingOptions",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "resources": [
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "NormalMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/NormalMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "SpecularMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/SpecularMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "DiffuseMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/DiffuseMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "FresnelLookupMap",
+                  "resourcePath": "res:/texture/global/brdflibrary.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "ColorNdotLLookupMap",
+                  "resourcePath": "res:/Texture/Global/NdotLLibrary.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "CutMaskMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/CutMaskMap.dds"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "_type": "Tr2Mesh",
+        "geometryResPath": "res:/Graphics/Character/Male/Paperdoll/TopInner/torso_nude/torso_nude.gr2",
+        "name": "topinner",
+        "opaqueAreas": [
+          {
+            "_type": "Tr2MeshArea",
+            "name": "TorsoShape",
+            "effect": {
+              "_type": "Tr2Effect",
+              "name": "C_SkinShiny_Body",
+              "effectFilePath": "res:/graphics/effect/managed/interior/avatar/skinnedavatarbrdfsinglepassskin_double.fx",
+              "parameters": [
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "TransformUV0",
+                  "value": [
+                    0,
+                    0,
+                    0.5,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleNormalStrength1",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleNormalStrength2",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleNormalStrength3",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleParams",
+                  "value": [
+                    1,
+                    1,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2FloatParameter",
+                  "name": "CutMaskInfluence",
+                  "value": 0
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularCurve",
+                  "value": [
+                    0,
+                    60,
+                    0,
+                    10
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularFactors",
+                  "value": [
+                    2,
+                    2,
+                    2,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialLibraryID",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialSpecularColor",
+                  "value": [
+                    2.5764710903167725,
+                    2.5764710903167725,
+                    2.5764710903167725,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularFactors",
+                  "value": [
+                    3,
+                    0,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularCurve",
+                  "value": [
+                    50,
+                    300,
+                    0.20000000298023224,
+                    10
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2SpecularColor",
+                  "value": [
+                    3,
+                    3,
+                    3,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "Material2LibraryID",
+                  "value": [
+                    10,
+                    23,
+                    26,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "WrinkleDarkeningFactor",
+                  "value": [
+                    0,
+                    2,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "ColorCorrectionSource",
+                  "value": [
+                    0.5,
+                    0.5,
+                    0.5,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "ColorCorrectionTarget",
+                  "value": [
+                    0.5,
+                    0.5,
+                    0.5,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PhotoFilterMoodColor",
+                  "value": [
+                    0.5,
+                    0.5,
+                    0.5,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PhotoFilterParams",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "FilmicMappingParams1",
+                  "value": [
+                    0.2199999988079071,
+                    0.30000001192092896,
+                    0.10000000149011612,
+                    0.20000000298023224
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "FilmicMappingParams2",
+                  "value": [
+                    0.009999999776482582,
+                    0.30000001192092896,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PortraitRoughnessParams",
+                  "value": [
+                    -1,
+                    1,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "MaterialCutoutColor",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PortraitShaderArtParams",
+                  "value": [
+                    0,
+                    1,
+                    1,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "PortraitShaderArtDiffuseColor"
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj0",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData0",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj1",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData1",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj2",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData2",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Matrix4Parameter",
+                  "name": "spotLightViewProj3",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "_type": "Tr2Vector4Parameter",
+                  "name": "spotLightData3",
+                  "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "resources": [
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "NormalMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/NormalMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "SpecularMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/SpecularMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "DiffuseMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/DiffuseMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "FresnelLookupMap",
+                  "resourcePath": "res:/texture/global/brdflibrary.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "ColorNdotLLookupMap",
+                  "resourcePath": "res:/Texture/Global/NdotLLibrary.png"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "CutMaskMap",
+                  "resourcePath": "res:/Graphics/Character/Unique/CharacterSelect/AAM/CutMaskMap.dds"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleNormalMap"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleNormalCorrectionMap"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleDiffuseMap"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "WrinkleZoneMap"
+                },
+                {
+                  "_type": "TriTextureParameter",
+                  "name": "BeckmannLookup",
+                  "resourcePath": "res:/Texture/Global/beckmannSpecular.dds"
+                }
+              ],
+              "samplerOverrides": [
+                {
+                  "name": "DiffuseMapSampler",
+                  "addressU": 3,
+                  "addressV": 3,
+                  "addressW": 1,
+                  "filter": 2,
+                  "mipFilter": 2,
+                  "lodBias": 0,
+                  "maxMipLevel": 0,
+                  "maxAnisotropy": 16
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,3 +1,4 @@
+import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { TriTextureRes } from "../../../npm/dist/resource/index.js";
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -25,7 +26,7 @@ function AverageTexture(r, g, b, a)
 test("PopulateLightData ports Carbon's exact field rules", () =>
 {
     const source = new Tr2InteriorLightSource();
-    source.SetValues({
+    CjsSchema.setValues(source, {
         position: [ 1, 2, 3 ],
         radius: -5, // negative means box light; the record clamps at zero
         color: [ 0.5, 1, 0.25, 1 ],
@@ -52,7 +53,7 @@ test("PopulateLightData ports Carbon's exact field rules", () =>
     assert.ok(Math.abs(data.spotDirection[2] - 1) < 1e-6, "cone direction normalized");
 
     // A non-spot (outer >= 89) forces BOTH angles to 360 degrees.
-    source.SetValues({ coneAlphaOuter: 180, coneAlphaInner: 10 });
+    CjsSchema.setValues(source, { coneAlphaOuter: 180, coneAlphaInner: 10 });
     source.PopulateLightData(data);
     const cos360 = Math.cos(360 * Math.PI / 180);
     assert.ok(Math.abs(data.coneCosAlphaOuter - cos360) < 1e-6);
@@ -63,7 +64,7 @@ test("kelvin colour wins when enabled, linearized like the rgb path", () =>
 {
     const source = new Tr2InteriorLightSource();
     const kelvin = new Tr2KelvinColor();
-    source.SetValues({ useKelvinColor: true });
+    CjsSchema.setValues(source, { useKelvinColor: true });
     source.kelvinColor = kelvin;
 
     const expected = kelvin.GetColor();
@@ -76,7 +77,7 @@ test("kelvin colour wins when enabled, linearized like the rgb path", () =>
 test("IsInFrustum gates on primaryLighting and tests the position box", () =>
 {
     const source = new Tr2InteriorLightSource();
-    source.SetValues({ position: [ 10, 0, 0 ], radius: 2 });
+    CjsSchema.setValues(source, { position: [ 10, 0, 0 ], radius: 2 });
     source.Initialize();
 
     const calls = [];
@@ -94,7 +95,7 @@ test("IsInFrustum gates on primaryLighting and tests the position box", () =>
     assert.deepEqual(calls[0], [ [ 8, -2, -2 ], [ 12, 2, 2 ] ], "box is position +- radius");
     assert.equal(out[12], 10, "out matrix carries the translation");
 
-    source.SetValues({ primaryLighting: false });
+    CjsSchema.setValues(source, { primaryLighting: false });
     assert.equal(source.IsInFrustum(frustum), false, "non-primary lights are never in frustum");
 });
 

@@ -1,0 +1,113 @@
+{
+  "source": "res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/lights_client.black",
+  "md5": "d2dd459d413e6528f8a7531eb7ac4a7e",
+  "object": [
+    {
+      "_type": "Tr2InteriorLightSource",
+      "name": "FrontMain",
+      "position": [
+        -0.07693559676408768,
+        2.019958257675171,
+        0.8128498196601868
+      ],
+      "radius": 3,
+      "color": [
+        0.10980390012264252,
+        0.10980390012264252,
+        0.1568627953529358,
+        1
+      ],
+      "kelvinColor": {
+        "_type": "Tr2KelvinColor"
+      },
+      "falloff": 5.593402862548828,
+      "coneAlphaOuter": 40,
+      "coneAlphaInner": 15,
+      "coneDirection": [
+        0.13388429582118988,
+        -0.6256973743438721,
+        -0.7684903740882874
+      ]
+    },
+    {
+      "_type": "Tr2InteriorLightSource",
+      "name": "FrontAmbient",
+      "position": [
+        -0.18151339888572693,
+        1.3628984689712524,
+        0.5900179147720337
+      ],
+      "radius": 1.5,
+      "color": [
+        0.23137259483337402,
+        0.32549020648002625,
+        0.5215687155723572,
+        1
+      ],
+      "kelvinColor": {
+        "_type": "Tr2KelvinColor"
+      },
+      "coneAlphaOuter": 60,
+      "coneAlphaInner": 30,
+      "coneDirection": [
+        0.6632711291313171,
+        0.12917399406433105,
+        -0.7371469140052795
+      ]
+    },
+    {
+      "_type": "Tr2InteriorLightSource",
+      "name": "BackLeft",
+      "position": [
+        -1.164764165878296,
+        1.9526398181915283,
+        -0.4567019045352936
+      ],
+      "radius": 3,
+      "color": [
+        0,
+        0.565097987651825,
+        1.100000023841858,
+        1
+      ],
+      "kelvinColor": {
+        "_type": "Tr2KelvinColor"
+      },
+      "falloff": 50,
+      "coneAlphaOuter": 30,
+      "coneAlphaInner": 15,
+      "coneDirection": [
+        0.7167742848396301,
+        -0.5106207728385925,
+        0.4748693108558655
+      ]
+    },
+    {
+      "_type": "Tr2InteriorLightSource",
+      "name": "BackRight",
+      "position": [
+        0.9143062233924866,
+        2.3057429790496826,
+        -0.410671591758728
+      ],
+      "radius": 2.7352941036224365,
+      "color": [
+        1.264433741569519,
+        0.22809390723705292,
+        0.7884116172790527,
+        1
+      ],
+      "kelvinColor": {
+        "_type": "Tr2KelvinColor"
+      },
+      "falloff": 3.5219740867614746,
+      "coneAlphaOuter": 40.818660736083984,
+      "coneAlphaInner": 15,
+      "coneDirection": [
+        -0.6961897015571594,
+        -0.6246315240859985,
+        0.3537733852863312
+      ]
+    }
+  ]
+}

@@ -96,14 +96,15 @@ test("verified Trinity classes are exported from src/character/trinity with thei
   assert.ok(new Tr2SkinnedModel() instanceof Tr2Model, "Tr2SkinnedModel extends Tr2Model");
 });
 
-test("the character layer owns ITr2InteriorLight as a type-only Carbon contract", () =>
+test("the character layer owns ITr2InteriorLight as a field-free nominal Carbon contract", () =>
 {
   new Tr2InteriorScene();
   assert.equal(
     existsSync(new URL("../../../src/character/trinity/interior/ITr2InteriorLight.js", import.meta.url)),
     true
   );
-  assert.equal(CjsSchema.GetConstructor("ITr2InteriorLight"), null);
+  assert.equal(CjsSchema.GetConstructor("ITr2InteriorLight").name, "ITr2InteriorLight");
+  assert.equal(CjsSchema.getSchema(CjsSchema.GetConstructor("ITr2InteriorLight")).fields.length, 0);
   assert.equal(CjsSchema.getField(Tr2InteriorScene, "lights")?.type?.itemType, "ITr2InteriorLight");
 });
 
@@ -274,15 +275,15 @@ test("Tr2SkinnedModel selects exact resource skeletons and resets bindings", () 
 
   model.geometryRes = geometryRes;
   model.skeletonName = "Hero";
-  model.UpdateValues({ property: "skeletonName" });
+  CjsSchema.setValues(model, { skeletonName: model.skeletonName });
   assert.equal(model.GetSkeleton(), skeletons[1]);
 
   model.skeletonName = "hero";
-  model.UpdateValues({ property: "skeletonName" });
+  CjsSchema.setValues(model, { skeletonName: model.skeletonName });
   assert.equal(model.GetSkeleton(), null, "native skeleton selection is case-sensitive");
 
   model.skeletonName = "Other";
-  model.UpdateValues({ property: "skeletonName" });
+  CjsSchema.setValues(model, { skeletonName: model.skeletonName });
   assert.equal(model.GetSkeleton(), skeletons[0]);
   model.ReleaseCachedData(geometryRes);
   assert.equal(model.GetSkeleton(), null);
@@ -368,7 +369,7 @@ test("Tr2SkinnedObject rebuilds immediate CPU rig mappings and skinning palettes
       return true;
     }
   } ];
-  model.UpdateValues({ property: "skeletonName" });
+  CjsSchema.setValues(model, { skeletonName: model.skeletonName });
 
   const object = new Tr2SkinnedObject();
   const animationBoneNames = [ "Root", "Head" ];
@@ -430,7 +431,7 @@ test("whole-model LOD swaps rebuild valid rig mappings but ignore missing skelet
     GetSkeletonData: () => skeleton
   };
   model.skeletonName = "Hero";
-  model.UpdateValues({ property: "skeletonName" });
+  CjsSchema.setValues(model, { skeletonName: model.skeletonName });
 
   const object = new Tr2SkinnedObject();
   object.highDetailModel = new FakeLodProxy("high", { model });

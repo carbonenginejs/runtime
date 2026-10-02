@@ -72,7 +72,7 @@ scanner had incorrectly promoted to constructible `CjsModel` classes:
   as `CjsModel` constructors would turn array members, pointer/count pairs, and
   operator locals into false serialized state.
 
-`ITr2InteriorLight` is deliberately not in this list: its type-only Carbon
+`ITr2InteriorLight` is deliberately not in this list: its field-free nominal Carbon
 interface contract is owned by `src/character/trinity/interior`.
 
 The browser platform/input classes are also deliberately not dropped.

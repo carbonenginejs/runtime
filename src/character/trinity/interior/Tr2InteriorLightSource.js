@@ -1,7 +1,8 @@
 // Source: trinity/trinity/Interior/Tr2InteriorLightSource.h
 //   trinity/trinity/Interior/Tr2InteriorLightSource.cpp
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
+import { IInitialize, INotify } from "#blue";
+import { ITr2InteriorLight } from "./ITr2InteriorLight.js";
 import { color } from "#math/color";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -12,7 +13,8 @@ import { mat4 } from "#math/mat4";
  * animation settings.
  */
 @type.define({ className: "Tr2InteriorLightSource", family: "interior" })
-export class Tr2InteriorLightSource extends CjsModel
+@carbon.inherit(IInitialize, INotify, ITr2InteriorLight)
+export class Tr2InteriorLightSource
 {
 
   /** m_coneDirection (Vector3) [READWRITE, PERSIST, NOTIFY] */
@@ -130,7 +132,7 @@ export class Tr2InteriorLightSource extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("CjsModel notifications expose settled state rather than Be::Var identity; Carbon's two OnModified branches perform the same rebuild, so no per-member dispatch is needed.")
+  @impl.reason("Schema notifications expose settled state rather than Be::Var identity; Carbon's two OnModified branches perform the same rebuild, so no per-member dispatch is needed.")
   OnModified()
   {
     this._RebuildWorldBoundingBox();
@@ -232,3 +234,5 @@ export class Tr2InteriorLightSource extends CjsModel
   }
 
 }
+
+carbon.interfaceTable({ interfaces: [Tr2InteriorLightSource, IInitialize, INotify, ITr2InteriorLight], chainTo: null })(Tr2InteriorLightSource, { kind: "class" });

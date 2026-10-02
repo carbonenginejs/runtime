@@ -1,3 +1,4 @@
+export * from "./ITr2InteriorCullable.js";
 export * from "./ITr2InteriorLight.js";
 export * from "./Tr2IntKeyGenerator.js";
 export * from "./Tr2IntSkinnedObject.js";

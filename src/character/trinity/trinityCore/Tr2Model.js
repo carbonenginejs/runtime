@@ -1,10 +1,9 @@
 // Source: trinity/trinity/Tr2Model.h
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Named character model record grouping its Trinity mesh objects. */
 @type.define({ className: "Tr2Model", family: "trinityCore" })
-export class Tr2Model extends CjsModel
+export class Tr2Model
 {
 
   /** m_meshes (PTr2MeshVector) [READ, PERSIST] */
@@ -28,3 +27,5 @@ export class Tr2Model extends CjsModel
   }
 
 }
+
+carbon.interfaceTable({ interfaces: [Tr2Model], chainTo: null })(Tr2Model, { kind: "class" });

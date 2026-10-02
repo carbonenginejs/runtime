@@ -1,3 +1,4 @@
+import { IInitialize, INotify } from "#blue";
 // Source: trinity/trinity/Tr2SkinnedModel.h
 import { carbon, impl, edit, type } from "#schema";
 import { Tr2Model } from "./Tr2Model.js";
@@ -9,6 +10,7 @@ import { BLUELISTEVENT } from "#consts/blue";
  * and coordinating mesh-to-rig bindings.
  */
 @type.define({ className: "Tr2SkinnedModel", family: "trinityCore" })
+@carbon.inherit(IInitialize, INotify)
 export class Tr2SkinnedModel extends Tr2Model
 {
 
@@ -210,3 +212,5 @@ export class Tr2SkinnedModel extends Tr2Model
   }
 
 }
+
+carbon.interfaceTable({ interfaces: [Tr2SkinnedModel, IInitialize, INotify], chainTo: Tr2Model })(Tr2SkinnedModel, { kind: "class" });

@@ -22,15 +22,15 @@ Carbon's `ITr2Interior.h` declares four `BLUE_INTERFACE`s:
 
 | Carbon interface | Here |
 | --- | --- |
-| `ITr2InteriorCullable` | not represented |
+| `ITr2InteriorCullable` | `interior/ITr2InteriorCullable.js` |
 | `ITr2Interior` | not represented |
 | `ITr2InteriorDynamic` | not represented |
 | `ITr2InteriorLight` | `interior/ITr2InteriorLight.js` |
 
-A `BLUE_INTERFACE` is not a constructible Blue model, so `ITr2InteriorLight`
-is a JSDoc `@typedef` with no class and no `type.define` registration. The
-other three would follow the same form. Because none of them declares a
-class, parity audits and naming lints do not list them.
+The light and culling interfaces are registered nominal identities with abstract
+methods and no persisted fields. Their registration supports native casts and
+composition; it does not turn the nested `LightSourceItem` helper into a model.
+The other two interfaces remain unrepresented.
 
 ## Skinned per-object data (not ported)
 
