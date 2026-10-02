@@ -20,18 +20,30 @@ import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
 @meta.carbon.inherit(INotify)
 export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
 {
+  /**
+   * Name of the geometry animation to play or enqueue.
+   * @type {string}
+   */
   @meta.member("animation")
   @meta.edit.readwrite
   @meta.edit.persist
   @types.string
   animation = "";
 
+  /**
+   * Animation track-mask and layer name; empty selects the default layer.
+   * @type {string}
+   */
   @meta.member("mask")
   @meta.edit.readwrite
   @meta.edit.persist
   @types.string
   mask = "";
 
+  /**
+   * PlayAction enum selecting immediate or queued playback on Start.
+   * @type {number}
+   */
   @meta.member("playAction")
   @meta.edit.readwrite
   @meta.edit.persist
@@ -39,6 +51,10 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
   @types.enum("trinity.Tr2ActionPlayMeshAnimation.PlayAction")
   playAction = PlayAction.ENQUEUE_PLAY;
 
+  /**
+   * StopAction enum selecting immediate stop, queued stop, or no stop.
+   * @type {number}
+   */
   @meta.member("stopAction")
   @meta.edit.readwrite
   @meta.edit.persist
@@ -46,24 +62,40 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
   @types.enum("trinity.Tr2ActionPlayMeshAnimation.StopAction")
   stopAction = StopAction.ENQUEUE_STOP;
 
+  /**
+   * Signed loop count; native values at or below zero request infinite playback.
+   * @type {number}
+   */
   @meta.member("loops")
   @meta.edit.readwrite
   @meta.edit.persist
   @types.int32
   loops = -1;
 
+  /**
+   * Delay before animation playback, in seconds (native float).
+   * @type {number}
+   */
   @meta.member("delay")
   @meta.edit.readwrite
   @meta.edit.persist
   @types.float32
   delay = 0;
 
+  /**
+   * Animation playback speed multiplier (native float).
+   * @type {number}
+   */
   @meta.member("speed")
   @meta.edit.readwrite
   @meta.edit.persist
   @types.float32
   speed = 1;
 
+  /**
+   * DestinationType enum selecting the controller owner or a bound child.
+   * @type {number}
+   */
   @meta.member("destinationType")
   @meta.edit.notify
   @meta.edit.readwrite
@@ -72,6 +104,10 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
   @types.enum("trinity.Tr2ActionPlayMeshAnimation.DestinationType")
   destinationType = DestinationType.OWNER;
 
+  /**
+   * Child binding path used by the flattened JavaScript destination adapter.
+   * @type {string}
+   */
   @meta.member("path")
   @meta.edit.notify
   @meta.edit.readwrite
@@ -79,6 +115,10 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
   @types.string
   path = "";
 
+  /**
+   * Explicit destination object in the JavaScript adapter for native embedded Tr2BindingPoint storage.
+   * @type {IRoot|null}
+   */
   @meta.member("destination")
   @meta.edit.notify
   @meta.edit.readwrite
@@ -86,6 +126,10 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
   @types.objectRef("IRoot")
   destination = null;
 
+  /**
+   * Whether a nonempty destination path is resolved at action execution instead of Link.
+   * @type {boolean}
+   */
   @meta.member("delayBinding")
   @meta.edit.notify
   @meta.edit.readwrite
@@ -93,7 +137,10 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
   @types.boolean
   delayBinding = false;
 
-  /** Live native READ property observing the cached destination without resolving. */
+  /**
+   * Live binding validity: OWNER is valid; CHILD requires a cached destination.
+   * @returns {boolean} Whether the binding is valid without resolving it.
+   */
   @meta.property()
   @meta.edit.read
   @types.boolean
@@ -337,10 +384,22 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
     return null;
   }
 
+  /**
+   * Numeric OWNER/CHILD choices exposed for destination selection.
+   * @type {Object<string, number>}
+   */
   static DestinationType = DestinationType;
 
+  /**
+   * Numeric PLAY/ENQUEUE_PLAY choices exposed for playback selection.
+   * @type {Object<string, number>}
+   */
   static PlayAction = PlayAction;
 
+  /**
+   * Numeric STOP/ENQUEUE_STOP/NONE choices exposed for stopping behavior.
+   * @type {Object<string, number>}
+   */
   static StopAction = StopAction;
 
 }

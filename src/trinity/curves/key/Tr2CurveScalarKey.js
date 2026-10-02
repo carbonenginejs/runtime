@@ -16,30 +16,58 @@ import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
 })
 export class Tr2CurveScalarKey
 {
+  /**
+   * Key position on the curve's local timeline, in seconds.
+   * @type {number}
+   */
   @edit.persist
   @type.float32
   time = 0;
 
+  /**
+   * Scalar value at this key, in units chosen by the curve's consumer.
+   * @type {number}
+   */
   @edit.persist
   @type.float32
   value = 0;
 
+  /**
+   * Incoming slope in value units per second of local curve time.
+   * @type {number}
+   */
   @edit.persist
   @type.float32
   leftTangent = 0;
 
+  /**
+   * Outgoing slope in value units per second of local curve time.
+   * @type {number}
+   */
   @edit.persist
   @type.float32
   rightTangent = 0;
 
+  /**
+   * Unsigned 16-bit key identifier used by the editor.
+   * @type {number}
+   */
   @edit.persist
   @type.uint16
   id = 0;
 
+  /**
+   * Tr2CurveInterpolation value selecting interpolation for the following segment.
+   * @type {number}
+   */
   @edit.persist
   @type.uint8
   interpolation = Tr2CurveInterpolation.HERMITE;
 
+  /**
+   * Tr2CurveTangentType value controlling automatic, joined or independent tangents.
+   * @type {number}
+   */
   @edit.persist
   @type.uint8
   tangentType = Tr2CurveTangentType.AUTO_CLAMP;

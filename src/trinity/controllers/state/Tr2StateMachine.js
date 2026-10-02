@@ -22,21 +22,40 @@ import { Tr2StateMachineState } from "./Tr2StateMachineState.js";
 @carbon.inherit(IListNotify, ISimTimeRebaseNotify, INotify)
 export class Tr2StateMachine
 {
+  /**
+   * Owned, ordered list of Tr2StateMachineState references. List operations
+   * notify this machine so it can maintain state linkage.
+   * @type {BlueList}
+   */
   @edit.read
   @edit.persist
   @type.list("Tr2StateMachineState")
   states = new BlueList(Tr2StateMachineState, { className: "Tr2StateMachineState", listOps: 0 });
 
+  /**
+   * Runtime reference to the selected state, or null when none is running.
+   * This reference is not persisted with the authored machine.
+   * @type {Tr2StateMachineState|null}
+   */
   @edit.read
   @type.objectRef("Tr2StateMachineState")
   currentState = null;
 
+  /**
+   * Authored entry-state reference used by Start and when removing a state
+   * restarts the machine; it refers to the state itself rather than a copy.
+   * @type {Tr2StateMachineState|null}
+   */
   @edit.notify
   @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2StateMachineState")
   startState = null;
 
+  /**
+   * Authored identifier for this state machine within a controller.
+   * @type {string}
+   */
   @edit.readwrite
   @edit.persist
   @type.string

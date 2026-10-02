@@ -18,38 +18,64 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 @meta.carbon.inherit(INotify)
 export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
 {
+  /**
+   * Binding-root name used to resolve the object whose controller variable is changed.
+   * @type {string}
+   */
   @meta.edit.notify
   @meta.edit.readwrite
   @meta.edit.persist
   @types.string
   destinationOwner = "";
 
-  /** Native weak pointer; a live reference in this JavaScript adapter. */
+  /**
+   * Resolved destination owner; native BlueWeakRef<IRoot>, retained as a live JavaScript reference.
+   * @type {IRoot|null}
+   */
   @meta.edit.read
   @types.weakRef("IRoot")
   destination = null;
 
+  /**
+   * Name of the destination controller variable written on Start.
+   * @type {string}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.string
   variable = "";
 
+  /**
+   * Constant float value, also used when the selected source variable is unavailable.
+   * @type {number}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.float32
   value = 0;
 
+  /**
+   * Optional linked-controller float-variable name sampled instead of the authored constant.
+   * @type {string}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.string
   sourceVariable = "";
 
+  /**
+   * Whether Start first starts the resolved destination controllers before writing the variable.
+   * @type {boolean}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.boolean
   startControllers = false;
 
-  /** Native READ property observing the cached destination without relinking. */
+  /**
+   * Reports whether a destination owner has resolved, without validating the variable or relinking.
+   * @returns {boolean} Whether the cached destination is non-null.
+   */
   @meta.property()
   @meta.edit.read
   @types.boolean

@@ -19,16 +19,28 @@ import { ITr2Updateable } from "../../core/ITr2Updateable.js";
 @meta.carbon.inherit(ITr2Updateable)
 export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
 {
+  /**
+   * Name of the owner curve set played on Start and stopped on Stop.
+   * @type {string}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.string
   curveSetName = "";
 
+  /**
+   * Named time range to play; an empty string selects the full curve set.
+   * @type {string}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.string
   rangeName = "";
 
+  /**
+   * Whether transitions wait for a named range iteration boundary when its duration is positive.
+   * @type {boolean}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.boolean

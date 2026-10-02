@@ -15,11 +15,19 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 })
 export class Tr2ActionSetShaderOption extends ITr2ControllerAction
 {
+  /**
+   * Shader-option name forwarded to the controller owner.
+   * @type {string}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.string
   key = "";
 
+  /**
+   * Shader-option value selecting the requested permutation on the owner.
+   * @type {string}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.string

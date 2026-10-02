@@ -16,16 +16,28 @@ import { ITr2SoundEmitterOwner } from "../../eve/ITr2SoundEmitterOwner.js";
 })
 export class Tr2ActionSetAudioSwitch extends ITr2ControllerAction
 {
+  /**
+   * Name of the sound emitter resolved on the controller owner.
+   * @type {string}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.string
   emitter = "";
 
+  /**
+   * Wwise switch group receiving the selected state; native std::wstring.
+   * @type {string}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.wstring
   switchGroup = "";
 
+  /**
+   * Wwise state applied to switchGroup on the emitter; native std::wstring.
+   * @type {string}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.wstring

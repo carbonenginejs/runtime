@@ -18,12 +18,22 @@ import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpre
 @carbon.inherit(INotify)
 export class Tr2StateMachineTransition
 {
+  /**
+   * Destination state name resolved within the source state's machine.
+   * Changing it refreshes the linked transition's destination reference.
+   * @type {string}
+   */
   @edit.notify
   @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  /**
+   * Controller expression tested to enable this transition; a successful
+   * evaluation with a nonzero result permits activation.
+   * @type {string}
+   */
   @edit.notify
   @edit.readwrite
   @edit.persist

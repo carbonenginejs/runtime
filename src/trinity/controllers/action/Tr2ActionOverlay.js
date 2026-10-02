@@ -15,26 +15,46 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 })
 export class Tr2ActionOverlay extends ITr2ControllerAction
 {
+  /**
+   * Resource path for loading the overlay when no matching overlay exists.
+   * @type {string}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.path
   path = "";
 
+  /**
+   * Name used to find an existing overlay and assign to a newly loaded one.
+   * @type {string}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.string
   overlayName = "";
 
+  /**
+   * Named parameter or stretch endpoint used to redirect overlay ownership when the controller owner cannot hold overlays.
+   * @type {string}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.string
   targetAnotherOwner = "";
 
+  /**
+   * Whether Start may load and attach an overlay when none is already found.
+   * @type {boolean}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.boolean
   addOnStart = true;
 
+  /**
+   * Whether Stop removes the retained overlay from the resolved owner.
+   * @type {boolean}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.boolean

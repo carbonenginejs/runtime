@@ -16,11 +16,19 @@ import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmi
 })
 export class Tr2ActionSpawnParticles extends ITr2ControllerAction
 {
+  /**
+   * Dynamic emitter receiving the one-shot SpawnParticles request.
+   * @type {Tr2DynamicEmitter|null}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.objectRef("Tr2DynamicEmitter")
   emitter = null;
 
+  /**
+   * Float multiplier applied to the emitter's rate for this Start, with emitCountFactor set to one.
+   * @type {number}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.float32

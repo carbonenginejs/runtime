@@ -16,18 +16,34 @@ import { Tr2CurveInterpolation } from "../enums.js";
 })
 export class Tr2CurveQuaternionKey
 {
+  /**
+   * Key position on the curve's local timeline, in seconds.
+   * @type {number}
+   */
   @edit.persist
   @type.float32
   time = 0;
 
+  /**
+   * Quaternion value in [x, y, z, w] order; initial storage belongs to this key.
+   * @type {Float32Array|Float64Array|number[]}
+   */
   @edit.persist
   @type.quat
   value = quat.create();
 
+  /**
+   * Unsigned 16-bit key identifier used by the editor.
+   * @type {number}
+   */
   @edit.persist
   @type.uint16
   id = 0;
 
+  /**
+   * Tr2CurveInterpolation value selecting interpolation for the following segment.
+   * @type {number}
+   */
   @edit.persist
   @type.uint16
   interpolation = Tr2CurveInterpolation.LINEAR;

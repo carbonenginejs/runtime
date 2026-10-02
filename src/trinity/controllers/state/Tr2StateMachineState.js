@@ -24,22 +24,41 @@ import { Tr2StateMachineTransition } from "./Tr2StateMachineTransition.js";
 @carbon.inherit(IListNotify, INotify)
 export class Tr2StateMachineState
 {
+  /**
+   * Owned, ordered list of ITr2ControllerAction references started on entry
+   * and stopped on exit. The same actions can veto an outgoing transition.
+   * @type {BlueList}
+   */
   @edit.read
   @edit.persist
   @type.list("ITr2ControllerAction")
   actions = new BlueList(ITr2ControllerAction, { className: null, listOps: 0 });
 
+  /**
+   * Owned, ordered list of Tr2StateMachineTransition references evaluated
+   * to select the next state. This state receives the list's notifications.
+   * @type {BlueList}
+   */
   @edit.read
   @edit.persist
   @type.list("Tr2StateMachineTransition")
   transitions = new BlueList(Tr2StateMachineTransition, { className: "Tr2StateMachineTransition", listOps: 0 });
 
+  /**
+   * Optional finalizer that can delay leaving this state after action stops
+   * have been requested; null permits completion without this check.
+   * @type {ITr2StateMachineStateFinalizer|null}
+   */
   @edit.notify
   @edit.readwrite
   @edit.persist
   @type.objectRef("ITr2StateMachineStateFinalizer")
   finalizer = null;
 
+  /**
+   * State name matched by machine lookups and transition destinations.
+   * @type {string}
+   */
   @edit.readwrite
   @edit.persist
   @type.string

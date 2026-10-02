@@ -15,6 +15,10 @@ import { meta, types } from "#schema";
 })
 export class Tr2ActionCallback extends ITr2ControllerAction
 {
+  /**
+   * Name of the controller callback invoked when this action starts.
+   * @type {string}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.string

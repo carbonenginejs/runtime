@@ -17,6 +17,11 @@ import { ITr2StateMachineStateFinalizer } from "./state/ITr2StateMachineStateFin
 @carbon.inherit(ITr2StateMachineStateFinalizer)
 export class Tr2SyncToAnimation
 {
+  /**
+   * Animation mask/layer whose completion permits leaving the state.
+   * An empty string selects the animation controller's base layer.
+   * @type {string}
+   */
   @edit.readwrite
   @edit.persist
   @type.string

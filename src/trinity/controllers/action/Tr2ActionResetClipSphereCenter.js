@@ -19,21 +19,27 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 })
 export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
 {
-  /** Named locator set used by the current custom-mode adapter. */
+  /** Named locator set used by the current custom-mode adapter.
+   * @type {string}
+   */
   @meta.member("locatorSetName")
   @meta.edit.readwrite
   @meta.edit.persist
   @types.string
   locatorSetName = "";
 
-  /** Locator index; the existing adapter selects randomly for negative values. */
+  /** Locator index; the existing adapter selects randomly for negative values.
+   * @type {number}
+   */
   @meta.member("locatorIndex")
   @meta.edit.readwrite
   @meta.edit.persist
   @types.int32
   locatorIndex = -1;
 
-  /** Authored reset mode; preserves the existing ResetBehavior identity. */
+  /** Authored reset mode; preserves the existing ResetBehavior identity.
+   * @type {number}
+   */
   @meta.member("resetBehavior")
   @meta.edit.readwrite
   @meta.edit.persist
@@ -136,6 +142,10 @@ export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
     return Number.isFinite(number) ? number | 0 : fallback;
   }
 
+  /**
+   * Numeric object-center, last-damage-locator and custom-locator reset choices.
+   * @type {Object<string, number>}
+   */
   static ResetBehavior = ResetBehavior;
 
 }

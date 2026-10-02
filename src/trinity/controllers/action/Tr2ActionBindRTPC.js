@@ -20,28 +20,47 @@ import { ITr2Updateable } from "../../core/ITr2Updateable.js";
 @meta.carbon.inherit(ITr2Updateable, INotify)
 export class Tr2ActionBindRTPC extends ITr2ControllerAction
 {
+  /**
+   * Expression evaluated each update to produce the RTPC value.
+   * @type {string}
+   */
   @meta.edit.notify
   @meta.edit.readwrite
   @meta.edit.persist
   @types.string
   value = "";
 
+  /**
+   * Name of the sound emitter receiving the RTPC updates.
+   * @type {string}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.string
   emitter = "";
 
+  /**
+   * Wwise real-time parameter name; native storage is std::wstring.
+   * @type {string}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.wstring
   rtpcName = "";
 
+  /**
+   * Optional scalar curve sampled by the expression Curve(time) helper.
+   * @type {ITriScalarFunction|null}
+   */
   @meta.edit.readwrite
   @meta.edit.persist
   @types.objectRef("ITriScalarFunction")
   curve = null;
 
-  /** Live readonly validity of the retained AST evaluator, without recompilation. */
+  /**
+   * Live readonly validity of the retained AST evaluator, without recompilation.
+   * @returns {boolean} Whether a valid compiled expression is retained.
+   */
   @meta.property()
   @meta.edit.read
   @types.boolean

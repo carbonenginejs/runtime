@@ -107,12 +107,20 @@ export class Tr2ActionPython extends ITr2ControllerAction
     return null;
   }
 
+  /**
+   * Native Python module import path, forwarded to the registered JavaScript action factory.
+   * @type {string}
+   */
   @meta.edit.notify
   @meta.edit.readwrite
   @meta.edit.persist
   @types.string
   module = "";
 
+  /**
+   * Implementation class name passed with module to the registered action factory.
+   * @type {string}
+   */
   @meta.edit.notify
   @meta.edit.readwrite
   @meta.edit.persist
@@ -123,6 +131,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * Adapted state storage for the existing JavaScript reader/copy path.
    * Native state is MAP_ATTRIBUTE_AS_CUSTOM_BINARY_BLOCK, not ordinary storage.
    * Keeping this field does not make DictWriter call OnSave automatically.
+   * @type {Uint8Array}
    */
   @meta.edit.persistOnly
   @types.typedArray("Uint8Array")
