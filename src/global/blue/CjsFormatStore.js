@@ -148,6 +148,8 @@ class CjsFormatRoute
 export class CjsFormatStore
 {
   _byExtension = new Map();
+  /** Explicit named routes are independent of filename extensions. */
+  _byName = new Map();
 
   /**
    * Register a format, by default under every extension it declares.
@@ -170,6 +172,7 @@ export class CjsFormatStore
    * store.Register(CjsPngFormat);                                   // as declared
    * store.Register(CjsGr2Format, { extensions: ".gsf", read: "readGsf" });
    * store.Register(CjsDdsFormat, { extensions: ".dds", output: "texture" });
+   * store.Register(CjsGraphFormat, { byName: true });               // no extension claim
    * ```
    *
    * Registering the same route twice under one extension is a no-op, so a
@@ -178,7 +181,10 @@ export class CjsFormatStore
    * point of naming them.
    *
    * @param {Function} Format Format class.
-   * @param {string|string[]|object|null} [options] Extensions, or a route descriptor.
+   * With byName: true, register the explicit Format.id as well. An empty extension
+   * list is then valid. Resolve(id) selects it directly; Resolve(null, bytes)
+   * probes only named registrations, even when there is exactly one candidate.
+   * @param {string|string[]|object|null} [options] Extensions, or a route descriptor including byName.
    * @returns {CjsFormatStore} This store.
    */
   Register(Format, options = null)
@@ -198,7 +204,16 @@ export class CjsFormatStore
       ? null
       : Array.isArray(settings.extensions) ? settings.extensions : [ settings.extensions ];
     const declared = supplied || Format.extensions;
-    if (!Array.isArray(declared) || declared.length === 0)
+    if (settings.byName === true)
+    {
+      if (typeof Format.id !== "string" || !Format.id || !Array.isArray(declared))
+      {
+        throw new TypeError("Named format registration requires an id and extension array.");
+      }
+      const existing = this._byName.get(Format.id) || [];
+      if (existing.some(route => route.Format !== Format)) throw new TypeError(`Format name '${Format.id}' is already registered.`);
+    }
+    if (!Array.isArray(declared) || (declared.length === 0 && settings.byName !== true))
     {
       const name = Format.name || "format";
       const error = new Error(
@@ -213,7 +228,8 @@ export class CjsFormatStore
     }
 
     const route = new CjsFormatRoute(Format, settings);
-    for (const extension of declared)
+    // Validate the entire registration before publishing any named or extension route.
+    const keys = declared.map(extension =>
     {
       const key = normalizeResourceExtension(extension);
       if (!key)
@@ -225,6 +241,15 @@ export class CjsFormatStore
           + `under ${JSON.stringify(extension)}, which is not an extension.`
         );
       }
+      return key;
+    });
+    if (settings.byName === true)
+    {
+      const existing = this._byName.get(Format.id) || [];
+      if (!existing.some(entry => isSameRoute(entry, route))) this._byName.set(Format.id, [...existing, route]);
+    }
+    for (const key of keys)
+    {
       const existing = this._byExtension.get(key);
       if (!existing) this._byExtension.set(key, [ route ]);
       else if (!existing.some(entry => isSameRoute(entry, route))) existing.push(route);
@@ -259,7 +284,7 @@ export class CjsFormatStore
    */
   Get(extension)
   {
-    return [ ...(this._byExtension.get(normalizeResourceExtension(extension)) || []) ];
+    return [ ...(this._byName.get(extension) || this._byExtension.get(normalizeResourceExtension(extension)) || []) ];
   }
 
   /**
@@ -270,7 +295,7 @@ export class CjsFormatStore
    */
   Has(extension)
   {
-    return this._byExtension.has(normalizeResourceExtension(extension));
+    return this._byName.has(extension) || this._byExtension.has(normalizeResourceExtension(extension));
   }
 
   /**
@@ -304,7 +329,9 @@ export class CjsFormatStore
    */
   Resolve(extension, data, options = null)
   {
-    let candidates = this._byExtension.get(normalizeResourceExtension(extension)) || [];
+    const byHeader = extension === null || extension === undefined;
+    let candidates = byHeader ? Array.from(this._byName.values()).flat()
+      : this._byName.get(extension) || this._byExtension.get(normalizeResourceExtension(extension)) || [];
 
     const output = options?.output || null;
     if (output)
@@ -318,6 +345,9 @@ export class CjsFormatStore
     }
 
     if (candidates.length === 0) return null;
+    if (byHeader) return data === undefined ? null : candidates.find(route =>
+      (typeof route.accepts === "function" || typeof route.Format[route.accepts || "is"] === "function")
+      && route.Accepts(data)) || null;
     if (candidates.length === 1) return candidates[0];
     if (data === undefined) return candidates[0];
 
@@ -334,6 +364,7 @@ export class CjsFormatStore
   Clear()
   {
     this._byExtension.clear();
+    this._byName.clear();
     return this;
   }
 }

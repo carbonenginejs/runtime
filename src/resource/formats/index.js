@@ -24,6 +24,8 @@ export { CjsFsdFormat } from "./fsd/index.js";
 export { CjsGifFormat } from "./gif/index.js";
 export { CjsIESFormat } from "./ies/index.js";
 export { CjsGltfFormat } from "./gltf/index.js";
+export { CjsGraphFormat } from "./graph/index.js";
+export { CjsGraphBinaryFormat } from "./graphbinary/index.js";
 export { CjsGr2Format } from "./gr2/index.js";
 export { CjsJpegFormat } from "./jpeg/index.js";
 export { CjsJsonlFormat } from "./jsonl/index.js";

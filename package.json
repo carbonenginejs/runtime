@@ -97,6 +97,8 @@
     "./resource/formats/fsd/64/readers": "./src/resource/formats/fsd/64/readers/index.js",
     "./resource/formats/gif": "./src/resource/formats/gif/index.js",
     "./resource/formats/gltf": "./src/resource/formats/gltf/index.js",
+    "./resource/formats/graph": "./src/resource/formats/graph/index.js",
+    "./resource/formats/graphbinary": "./src/resource/formats/graphbinary/index.js",
     "./resource/formats/gr2": "./src/resource/formats/gr2/index.js",
     "./resource/formats/jpeg": "./src/resource/formats/jpeg/index.js",
     "./resource/formats/jsonl": "./src/resource/formats/jsonl/index.js",
