@@ -3,12 +3,12 @@ import { CjsSchema } from "../../../../npm/dist/global/schema/index.js";
 import { Traverse } from "../../../../npm/dist/global/blue/find.js";
 import { mat4 } from "../../../../npm/dist/global/math/mat4.js";
 import { CjsBlackFormat } from "../../../../npm/dist/resource/formats/black/index.js";
-import { TriDevice, Tr2ImpostorManager, EveSpherePin, EveChildLineSet, Tr2CurveLineSet, EveChildBehaviorSystem, Tr2ParticleSystem, Tr2InstancedMesh, Tr2DirectInstanceData, Tr2RuntimeInstanceData } from "../../../../npm/dist/trinity/index.js";
+import { TriDevice, Tr2GrannyPrimitiveSet, Tr2ImpostorManager, EveSpherePin, EveChildLineSet, Tr2CurveLineSet, EveChildBehaviorSystem, Tr2ParticleSystem, Tr2InstancedMesh, Tr2DirectInstanceData, Tr2RuntimeInstanceData } from "../../../../npm/dist/trinity/index.js";
 
 /** Whether a model has an explicitly managed device or behavior lifetime owned by demo ships. */
 function isShipResource(model)
 {
-  return CjsSchema.cast(model, Tr2ParticleSystem) || CjsSchema.cast(model, Tr2InstancedMesh)
+  return CjsSchema.cast(model, Tr2GrannyPrimitiveSet) || CjsSchema.cast(model, Tr2ParticleSystem) || CjsSchema.cast(model, Tr2InstancedMesh)
     || CjsSchema.cast(model, Tr2RuntimeInstanceData) || CjsSchema.cast(model, Tr2DirectInstanceData) || CjsSchema.cast(model, EveChildBehaviorSystem)
     || CjsSchema.cast(model, Tr2ImpostorManager) || CjsSchema.cast(model, EveSpherePin) || CjsSchema.cast(model, EveChildLineSet) || CjsSchema.cast(model, Tr2CurveLineSet);
 }

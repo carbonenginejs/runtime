@@ -1320,20 +1320,6 @@
   "Tr2GrannyIntersectionResult": [
     "Result"
   ],
-  "Tr2GrannyPrimitiveSet": [
-    "CleanUp",
-    "CreatePrimitive",
-    "CreatePrimitiveFromCMF",
-    "CreatePrimitiveFromGranny",
-    "GetBatchesImpl",
-    "GetDescription",
-    "Initialize",
-    "OnPrepareResources",
-    "RebuildCachedData",
-    "ReleaseCachedData",
-    "ReleaseResources",
-    "SetGrannyResource"
-  ],
   "Tr2GrannyStateRes": [
     "Cleanup",
     "DoPrepare",
@@ -1764,14 +1750,6 @@
     "SetupTransformsForPicking",
     "USE_MAIN_THREAD_RENDER_CONTEXT",
     "Update"
-  ],
-  "Tr2PrimitiveSet": [
-    "GetBatchesImpl",
-    "GetBoundingSphere",
-    "GetID",
-    "GetPickingBatches",
-    "GetWorldTransform",
-    "UpdateTransform"
   ],
   "Tr2PrimitiveText": [
     "Render"

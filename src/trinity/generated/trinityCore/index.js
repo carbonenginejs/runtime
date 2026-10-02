@@ -1,6 +1,5 @@
 ﻿export * from "./Tr2AtlasTexture.js";
 export * from "./Tr2GpuProfiler.js";
-export * from "./Tr2GrannyPrimitiveSet.js";
 export * from "./Tr2PrimitiveScene.js";
 export * from "./Tr2PrimitiveText.js";
 export * from "./Tr2SSSSS.js";

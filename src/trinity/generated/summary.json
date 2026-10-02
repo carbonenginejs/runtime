@@ -1,8 +1,8 @@
 {
   "outRoot": "src/trinity/generated",
   "classes": {
-    "written": 29,
-    "skipped": 666
+    "written": 28,
+    "skipped": 667
   },
   "enums": {
     "written": 15,
@@ -2887,6 +2887,11 @@
     {
       "family": "trinityCore",
       "className": "Tr2GrannyAnimation",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2GrannyPrimitiveSet",
       "reason": "hand-maintained source exists"
     },
     {
@@ -5954,11 +5959,6 @@
       "file": "trinity/generated/trinityCore/Tr2GpuProfiler.js"
     },
     {
-      "className": "Tr2GrannyPrimitiveSet",
-      "family": "trinityCore",
-      "file": "trinity/generated/trinityCore/Tr2GrannyPrimitiveSet.js"
-    },
-    {
       "className": "Tr2PrimitiveScene",
       "family": "trinityCore",
       "file": "trinity/generated/trinityCore/Tr2PrimitiveScene.js"
@@ -7798,6 +7798,11 @@
     {
       "family": "trinityCore",
       "className": "Tr2GpuBuffer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2GrannyPrimitiveSet",
       "reason": "hand-maintained source exists"
     },
     {

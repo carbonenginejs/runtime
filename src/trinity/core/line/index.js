@@ -6,3 +6,4 @@ export * from "./Tr2LineSet.js";
 export * from "./Tr2PrimitiveSet.js";
 export * from "./Tr2SolidSet.js";
 export * from "./TriLineSet.js";
+export * from "./Tr2GrannyPrimitiveSet.js";
