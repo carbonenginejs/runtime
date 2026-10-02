@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Names per-layer pattern properties and provides searchable per-hull projections. */
 @type.define({ className: "EveSOFDataPatternApplicationGroup", family: "eve" })
-export class EveSOFDataPatternApplicationGroup extends CjsModel
+export class EveSOFDataPatternApplicationGroup
 {
 
   /** m_layer1Properties (EveSOFDataPatternLayerPropertiesPtr) [READWRITE, PERSIST] */

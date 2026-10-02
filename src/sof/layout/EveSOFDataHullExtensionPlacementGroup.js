@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Groups enabled nested placements with group-level conditions and depletion counters. */
 @type.define({ className: "EveSOFDataHullExtensionPlacementGroup", family: "eve" })
-export class EveSOFDataHullExtensionPlacementGroup extends CjsModel
+export class EveSOFDataHullExtensionPlacementGroup
 {
 
   /** m_placements (PIEveSOFDataHullExtensionPlacementVector) [READ, PERSIST] */

@@ -1,14 +1,13 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.js";
 import { EveSOFDataBooster } from "../shared/EveSOFDataBooster.js";
 import { EveSOFDataRaceDamage } from "./EveSOFDataRaceDamage.js";
 
 /** Names a race, stores its heat color, and combines race-level booster and damage configuration. */
 @type.define({ className: "EveSOFDataRace", family: "eve" })
-export class EveSOFDataRace extends CjsModel
+export class EveSOFDataRace
 {
   static ColorType = EveSOFDataFactionColorSet.ColorType;
 

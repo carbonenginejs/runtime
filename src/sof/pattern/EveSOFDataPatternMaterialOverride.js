@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Defines a four-slot target mask for overriding pattern materials. */
 @type.define({ className: "EveSOFDataPatternMaterialOverride", family: "eve" })
-export class EveSOFDataPatternMaterialOverride extends CjsModel
+export class EveSOFDataPatternMaterialOverride
 {
 
   /** m_isTargetMtl1 (bool) [READWRITE, PERSIST] */

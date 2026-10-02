@@ -1,14 +1,13 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
 /** Stores pattern position, scale, rotation, and mirror settings and composes their transformation matrix. */
 @type.define({ className: "EveSOFDataPatternTransform", family: "eve" })
-export class EveSOFDataPatternTransform extends CjsModel
+export class EveSOFDataPatternTransform
 {
 
   /** m_position (Vector3) [READWRITE, PERSIST] */

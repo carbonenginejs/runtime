@@ -1,13 +1,12 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
 /** Identifies a hull animation and records its rotation, translation, timing, and rate endpoints. */
 @type.define({ className: "EveSOFDataHullAnimation", family: "eve" })
-export class EveSOFDataHullAnimation extends CjsModel
+export class EveSOFDataHullAnimation
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */

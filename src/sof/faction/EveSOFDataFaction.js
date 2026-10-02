@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Aggregates a faction's area, color, logo, pattern, material-slot, visibility, plane, spotlight, child, and resource-path configuration. */
 @type.define({ className: "EveSOFDataFaction", family: "eve" })
-export class EveSOFDataFaction extends CjsModel
+export class EveSOFDataFaction
 {
 
   /** m_areaTypes (EveSOFDataAreaPtr) [READWRITE, PERSIST] */

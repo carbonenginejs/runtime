@@ -174,7 +174,7 @@ test("SOF-owned enum fields resolve native choosers without merging independent 
         assert.equal(info.chooser.length, count);
         // Named values transport remains based on native identifiers, not UI labels.
         const key = Object.keys(Constructor[enumName])[0];
-        instance.SetValues({ [member]: Constructor[enumName][key] });
+        schema.setValues(instance, { [member]: Constructor[enumName][key] });
         assert.equal(instance[member], Constructor[enumName][key]);
     }
     for (const [first, second] of [
@@ -222,7 +222,7 @@ test("shared SOF enum fields resolve through Blue with native reflection labels 
         }
         else
         {
-            instance.SetValues({ [member]: services.enums.GetEnum(identity)[key] });
+            schema.setValues(instance, { [member]: services.enums.GetEnum(identity)[key] });
         }
         assert.equal(instance[member], staticName === "Tr2Lod" ? -1 : 0);
     }

@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Stores a named integer counter used to deplete layout-distribution capacity deterministically. */
 @type.define({ className: "EveSOFDataDistributionDepletionCounter", family: "eve" })
-export class EveSOFDataDistributionDepletionCounter extends CjsModel
+export class EveSOFDataDistributionDepletionCounter
 {
 
   /** m_value (int32_t) [READWRITE, PERSIST] */

@@ -1,13 +1,12 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec4 } from "#math/vec4";
 
 /** Defines a booster transform, functionality, trail, atlas, and light scale. */
 @type.define({ className: "EveSOFDataHullBoosterItem", family: "eve" })
-export class EveSOFDataHullBoosterItem extends CjsModel
+export class EveSOFDataHullBoosterItem
 {
 
   /** m_transform (Matrix) [READWRITE, PERSIST] */

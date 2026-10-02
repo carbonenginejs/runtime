@@ -1,13 +1,12 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { EveSOFDataParameter } from "../shared/EveSOFDataParameter.js";
 import { EveSOFDataTexture } from "../shared/EveSOFDataTexture.js";
 
 /** Stores, combines, and assigns race-level armor and shield damage parameters and textures. */
 @type.define({ className: "EveSOFDataRaceDamage", family: "eve" })
-export class EveSOFDataRaceDamage extends CjsModel
+export class EveSOFDataRaceDamage
 {
 
   /** m_armorImpactParameters (PEveSOFDataParameterVector) [READ, PERSIST] */

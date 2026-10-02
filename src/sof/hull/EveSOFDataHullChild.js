@@ -2,14 +2,13 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import "#blue/registerTrinityEnums";
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { Tr2Lod } from "#consts/trinity";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
 /** Places a RED child resource with build and LOD policy, transform, identifier, and group metadata, deriving its display name from the resource path. */
 @type.define({ className: "EveSOFDataHullChild", family: "eve" })
-export class EveSOFDataHullChild extends CjsModel
+export class EveSOFDataHullChild
 {
   static Tr2Lod = Tr2Lod;
 

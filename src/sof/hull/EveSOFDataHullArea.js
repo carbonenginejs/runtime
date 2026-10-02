@@ -1,12 +1,11 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { EveSOFDataArea } from "../shared/EveSOFDataArea.js";
 
 /** Carbon-authored hull mesh-area record. */
 @type.define({ className: "EveSOFDataHullArea", family: "eve" })
-export class EveSOFDataHullArea extends CjsModel
+export class EveSOFDataHullArea
 {
   static AreaType = EveSOFDataArea.AreaType;
 

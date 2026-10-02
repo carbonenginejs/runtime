@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Defines a named, seeded top-level layout with placements, counters, and randomization policy. */
 @type.define({ className: "EveSOFDataLayout", family: "eve" })
-export class EveSOFDataLayout extends CjsModel
+export class EveSOFDataLayout
 {
 
   /** m_depletionCounters (PEveSOFDataDistributionDepletionCounterVector) [READ, PERSIST] */

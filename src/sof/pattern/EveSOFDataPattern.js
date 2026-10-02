@@ -1,14 +1,13 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { EveSOFDataPatternLayer } from "./EveSOFDataPatternLayer.js";
 import { EveSOFDataPatternPerHull } from "./EveSOFDataPatternPerHull.js";
 import { ErrSOFProjectionNotFound } from "./ErrSOFProjectionNotFound.js";
 
 /** Defines a named two-layer pattern with application groups, per-hull lookup, flip policy, and custom mask support. */
 @type.define({ className: "EveSOFDataPattern", family: "eve" })
-export class EveSOFDataPattern extends CjsModel
+export class EveSOFDataPattern
 {
 
   /** m_projections (PEveSOFDataPatternPerHullVector) [READ, PERSIST] */

@@ -3,12 +3,11 @@
 import "#blue/registerTrinityEnums";
 import { edit, type } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
-import { CjsModel } from "#model";
 import { Tr2Lod } from "#consts/trinity";
 
 /** Defines instanced-mesh geometry, shader, display and LOD policy, textures, and instance transforms. */
 @type.define({ className: "EveSOFDataInstancedMesh", family: "eve" })
-export class EveSOFDataInstancedMesh extends CjsModel
+export class EveSOFDataInstancedMesh
 {
   static Tr2Lod = Tr2Lod;
 

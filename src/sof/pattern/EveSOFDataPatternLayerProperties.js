@@ -2,11 +2,10 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
 import { blue } from "#blue";
-import { CjsModel } from "#model";
 
 /** Stores a pattern layer's projection modes, area types, and material slots. */
 @type.define({ className: "EveSOFDataPatternLayerProperties", family: "eve" })
-export class EveSOFDataPatternLayerProperties extends CjsModel
+export class EveSOFDataPatternLayerProperties
 {
 
   static ProjectionType = Object.freeze({

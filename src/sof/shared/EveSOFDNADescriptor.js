@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Stores the hull, faction, race, pattern, and layout selections encoded by one parsed SOF DNA value. */
 @type.define({ className: "EveSOFDNADescriptor", family: "eve" })
-export class EveSOFDNADescriptor extends CjsModel
+export class EveSOFDNADescriptor
 {
 
   /** m_material1 (std::string) [READWRITE, PERSIST] */

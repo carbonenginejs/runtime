@@ -1,10 +1,9 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Common Carbon interface for hull-extension placement conditions. */
 @type.define({ className: "IEveSOFDataHullExtensionPlacementDistribution", family: "eve" })
-export class IEveSOFDataHullExtensionPlacementDistribution extends CjsModel
+export class IEveSOFDataHullExtensionPlacementDistribution
 {
 
   /** m_name (std::string); persisted by each concrete Blue class. */

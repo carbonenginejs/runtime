@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Stores the brightness, radius, noise, saturation, and octave tuning for a banner light. */
 @type.define({ className: "EveSOFDataHullBannerLight", family: "eve" })
-export class EveSOFDataHullBannerLight extends CjsModel
+export class EveSOFDataHullBannerLight
 {
 
   /** m_brightness (float) [READWRITE, PERSIST] */

@@ -2,7 +2,6 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
-import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -10,7 +9,7 @@ import { EveSOFDataHullBannerLight } from "./EveSOFDataHullBannerLight.js";
 
 /** Defines a banner's usage, bone-relative transform, visibility, optional light override, aspect ratio, and flat or curved presentation. */
 @type.define({ className: "EveSOFDataHullBanner", family: "eve" })
-export class EveSOFDataHullBanner extends CjsModel
+export class EveSOFDataHullBanner
 {
 
   static Usage = Object.freeze({

@@ -1,5 +1,4 @@
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /**
  * CarbonEngineJS-original external graph reference.
@@ -14,7 +13,7 @@ import { CjsModel } from "#model";
  * `expects`, and splicing it into the owning slot.
  */
 @type.define({ className: "CjsExternalRef", family: "sof" })
-export class CjsExternalRef extends CjsModel
+export class CjsExternalRef
 {
 
   @edit.persist

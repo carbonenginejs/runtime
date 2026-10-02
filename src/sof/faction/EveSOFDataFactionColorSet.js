@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { blue, EnumRegistrationType } from "#blue";
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
@@ -10,7 +9,7 @@ import { ErrSOFFactionColorSetTypeNotFound } from "./ErrSOFFactionColorSetTypeNo
 
 /** Stores a faction's semantic color palette and resolves enum-selected colors into vectors. */
 @type.define({ className: "EveSOFDataFactionColorSet", family: "eve" })
-export class EveSOFDataFactionColorSet extends CjsModel
+export class EveSOFDataFactionColorSet
 {
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_KILLMARK] (Color) [READWRITE, PERSIST] */

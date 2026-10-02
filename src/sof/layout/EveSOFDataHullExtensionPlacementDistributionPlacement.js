@@ -3,14 +3,13 @@
 import { edit, type } from "#schema";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
 
 /** Controls placement completeness, caps, bias, random scale and rotation, uniformity, and locator-occupancy policy. */
 // Carbon derives this record directly from IRoot with its own m_name
 // (EveSOFData.h:1999-2021); it is NOT a distribution condition, despite the
 // name - the distribution conditions implement the separate BLUE_INTERFACE.
 @type.define({ className: "EveSOFDataHullExtensionPlacementDistributionPlacement", family: "eve" })
-export class EveSOFDataHullExtensionPlacementDistributionPlacement extends CjsModel
+export class EveSOFDataHullExtensionPlacementDistributionPlacement
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */

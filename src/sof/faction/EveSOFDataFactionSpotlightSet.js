@@ -1,12 +1,11 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec4 } from "#math/vec4";
 
 /** Names a faction spotlight-set group and supplies its cone, sprite, and flare colors. */
 @type.define({ className: "EveSOFDataFactionSpotlightSet", family: "eve" })
-export class EveSOFDataFactionSpotlightSet extends CjsModel
+export class EveSOFDataFactionSpotlightSet
 {
 
   /** m_groupIndex (int32_t) [READWRITE, PERSIST] */
