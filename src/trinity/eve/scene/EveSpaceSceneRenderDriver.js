@@ -522,6 +522,9 @@ export class EveSpaceSceneRenderDriver
       this.#RegisterSSAOMap(EveSpaceSceneRenderDriver.getEmptySSAO(this.#gpuResourcePool));
       this.#depthMapReference.SetTexture(null);
 
+      // An interrupted scene pass must also drop the opaque-map share.
+      if (this._opaqueMapReference.GetTexture()) this._opaqueMapReference.SetTexture(null);
+
       // The normal map is an Execute local in Carbon (cpp:514), never handed
       // to the post process.
       if (offscreen?.normal)
@@ -1155,6 +1158,11 @@ export class EveSpaceSceneRenderDriver
 
     esm.SetRenderTarget(0, target);
     esm.SetDepthStencilBuffer(null);
+
+    // Carbon clears this global before post-processing (cpp:604). Leaving
+    // the provider populated retains the opaque copy after AA is disabled.
+    this._opaqueMapReference.SetTexture(null);
+    Tr2VariableStore.globalStore().RegisterVariable("EveSpaceSceneOpaqueMap", this._opaqueMapReference);
 
     this.postProcess.Execute(target, offscreen.color, offscreen.depth, offscreen.velocity, offscreen.opaque, this.scene, null, this.#gpuResourcePool, renderContext, this.#renderer);
   }

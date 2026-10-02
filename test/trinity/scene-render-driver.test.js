@@ -10,6 +10,7 @@ import {
   Tr2PostProcess2,
   Tr2RenderContext,
   Tr2SSAO,
+  Tr2VariableStore,
   TriProjection,
   TriView
 } from "../../npm/dist/trinity/index.js";
@@ -660,4 +661,82 @@ test("retiring one driver preserves the other driver's published SSAO value", as
   assert.equal(second.Execute([target],null,0,0,null,context),true);
   second.Destroy();assert.equal(secondBackend.IsRegistered(),false);
   target.Destroy();context.Destroy();
+});
+
+test("the opaque map is available to scene draws and cleared before post-processing across AA toggles", () =>
+{
+  // EveSpaceScene.cpp:2749 publishes it; EveSpaceSceneRenderDriver.cpp:604 clears it.
+  const driver = driverOver([]);
+  const context = StubContext();
+  const target = StubTarget();
+  const execute = driver.postProcess.Execute.bind(driver.postProcess);
+  const transparent = driver._SubmitTransparent.bind(driver);
+  const store = Tr2VariableStore.globalStore();
+  let expectedOpaque = false;
+  let draws = 0;
+
+  driver.scene.postprocess = new Tr2PostProcess2();
+  driver._SubmitTransparent = (...args) =>
+  {
+    assert.equal(Boolean(driver._opaqueMapReference.GetTexture()), expectedOpaque);
+    draws++;
+    return transparent(...args);
+  };
+  driver.postProcess.Execute = (...args) =>
+  {
+    assert.equal(driver._opaqueMapReference.GetTexture(), null, "no stale global at post-process entry");
+    const opaqueVariable = store.GetVariable("EveSpaceSceneOpaqueMap");
+    if (opaqueVariable) assert.equal(opaqueVariable.GetValue().GetTexture(), null);
+    assert.equal(Boolean(args[4]?.IsValid()), expectedOpaque, "the post-process still owns the opaque input");
+    return execute(...args);
+  };
+
+  try
+  {
+    for (const quality of [ 0, 3, 0, 3, 0, 1 ])
+    {
+      driver.antiAliasingQuality = quality;
+      expectedOpaque = quality >= 2;
+      driver.Execute([ target ], null, 0, 0, null, context);
+      assert.equal(driver._opaqueMapReference.GetTexture(), null);
+    }
+    // A forced opaque output remains useful even when AA is disabled.
+    driver.antiAliasingQuality = 0;
+    driver.forceOpaqueBuffer = true;
+    expectedOpaque = true;
+    driver.Execute([ target ], null, 0, 0, null, context);
+    assert.equal(draws, 7);
+  }
+  finally
+  {
+    driver.Destroy();
+    target.Destroy();
+    context.Destroy();
+  }
+});
+
+test("an interrupted transparent pass releases the published opaque-map share", () =>
+{
+  const driver = driverOver([]);
+  const context = StubContext();
+  const target = StubTarget();
+
+  driver.antiAliasingQuality = 3;
+  driver._SubmitTransparent = () =>
+  {
+    assert.ok(driver._opaqueMapReference.GetTexture().IsValid());
+    throw new Error("interrupted scene pass");
+  };
+  try
+  {
+    assert.throws(() => driver.Execute([ target ], null, 0, 0, null, context), /interrupted scene pass/);
+    assert.equal(driver._opaqueMapReference.GetTexture(), null);
+    assert.equal(Tr2VariableStore.globalStore().GetVariable("EveSpaceSceneOpaqueMap").GetValue().GetTexture(), null);
+  }
+  finally
+  {
+    driver.Destroy();
+    target.Destroy();
+    context.Destroy();
+  }
 });
