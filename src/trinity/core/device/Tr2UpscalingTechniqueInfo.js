@@ -2,7 +2,7 @@
 // Source: trinity/trinity/TriDevice.cpp
 import { meta } from "#schema";
 import { UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
-import "#blue/registerTrinityEnums";
+import "#consts/renderContext/upscaling";
 
 
 /**

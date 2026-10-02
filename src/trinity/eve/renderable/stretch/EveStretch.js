@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch.h
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch.cpp
-import "#blue/registerTrinityEnums";
+import "#consts/trinity";
 import { Tr2Lod } from "#consts/trinity";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { IEveTransform } from "../../IEveTransform.js";

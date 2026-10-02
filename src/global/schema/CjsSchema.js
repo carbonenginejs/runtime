@@ -13,7 +13,7 @@ import { CJS_CLASS_NAME, getRegisteredClassName } from "../compose/className.js"
 import { composeNotifyDecorator } from "../compose/notify.js";
 import { carbonInheritDecorator, carbonMapInterfaceDecorator, carbonInterfaceTableDecorator, cast } from "../compose/interface.js";
 import { composeValuesDecorator, createValuesTransport, isExportableField, isWritableField } from "../compose/values.js";
-import { blueEnums, CjsBlueEnumRegistry } from "../blue/enums/CjsBlueEnumRegistry.js";
+import { blueEnums, CjsBlueEnumRegistry, CJS_ENUM_NAME } from "../blue/enums/CjsBlueEnumRegistry.js";
 import { TriSettingNames } from "../consts/trinity.js";
 import { registerClass, unregisterClass, getRegisteredConstructor, getClassRegistrationRevision, ClassRegistrarNullFactory } from "../blue/classes/registry.js";
 
@@ -56,7 +56,7 @@ const CONSUMED_DECORATOR_METADATA = new WeakSet();
 // any const declared after the class is initialized.
 const DECORATOR_METADATA = Symbol("carbonenginejs.schema.decoratorMetadata");
 
-export const CJS_ENUM_NAME = Symbol.for("carbonenginejs.enum.name");
+export { CJS_ENUM_NAME } from "../blue/enums/CjsBlueEnumRegistry.js";
 
 /**
  * Cross-copy carrier for a declared class name.
@@ -3282,6 +3282,7 @@ CjsSchema.define(CjsBlueEnumRegistry, {
     family: "blue",
     fields: {},
     methods: Object.fromEntries([
+        "Create", "Register", "Get", "Set", "GetValueName", "GetValueNameAsBitMask", "_Register",
         "RegisterEnum", "HasEnum", "GetEnum", "GetEnumInfo", "GetEnumName",
         "GetNameFromValue", "GetNameFromBitmask"
     ].map(name => [name, [CjsSchema.meta.adapted]]))

@@ -5,7 +5,8 @@ import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh_Blue.cpp
-import "#blue/registerTrinityEnums";
+import "#consts/graphics/trinityEnums";
+import "#consts/trinity";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";

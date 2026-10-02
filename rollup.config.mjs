@@ -13,7 +13,7 @@ const unpublishedInputs = new Set([
 ]);
 // Internal direct-import entries retain their exports when a public barrel
 // omits them or their imports alias stays external.
-const privateInputs = [ "src/trinityal/webgpu/internal.js", "src/global/blue/registerTrinityEnums.js", "src/global/blue/blue.js" ];
+const privateInputs = [ "src/trinityal/webgpu/internal.js", "src/global/blue/blue.js" ];
 
 function collectTargets(value, out = [])
 {

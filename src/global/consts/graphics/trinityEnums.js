@@ -1,5 +1,6 @@
+import { blueEnums, EnumRegistrationType } from "../../blue/enums/CjsBlueEnumRegistry.js";
 /** Global Trinity render-batch vocabulary from ITr2Renderable.h. */
-export const TriBatchType = Object.freeze({
+export const TriBatchType = {
     TRIBATCHTYPE_OPAQUE: 0,
     TRIBATCHTYPE_DECAL: 1,
     TRIBATCHTYPE_TRANSPARENT: 2,
@@ -15,13 +16,13 @@ export const TriBatchType = Object.freeze({
     TRIBATCHTYPE_FLARE: 12,
     TRIBATCHTYPE_DISTORTION: 13,
     TRIBATCHTYPE_COUNT_OF_BATCH_TYPES: 14
-});
+};
 
 /** Trinity standard render-state selector from Shader/Tr2EffectStateManager.h.
  * Cross-layer: Trinity batches/accumulators and engine dispatch both
  * key on it. Distinct from TriBatchType (batch bucket) — a render-state mode.
  * Unscoped Carbon enum: values are sequential from RM_ANY = 0. */
-export const RenderingMode = Object.freeze({
+export const RenderingMode = {
     RM_ANY: 0,
     RM_OPAQUE: 1,
     RM_DECAL: 2,
@@ -37,22 +38,22 @@ export const RenderingMode = Object.freeze({
     RM_ERASE: 12,
     RM_PREPASS_COLOR: 13,
     RM_COUNT: 14
-});
+};
 
 /** Shared EVE entity reflection vocabulary from EntityComponents. */
-export const ReflectionMode = Object.freeze({
+export const ReflectionMode = {
     REFLECT_HIGH: 0,
     REFLECT_MEDIUM_AND_HIGH: 1,
     REFLECT_LOW_MEDIUM_HIGH: 2,
     REFLECT_NEVER: 3
-});
+};
 
 /** Trinity graph value-combination operator from blue/include/ITriConstants.h. */
-export const TRIOPERATOR = Object.freeze({
+export const TRIOPERATOR = {
     TRIOP_MULTIPLY: 0,
     TRIOP_ADD: 1,
     TRIOP_AVERAGE: 2
-});
+};
 
 /** Trinity transform-parameter base frame from blue/include/ITriConstants.h. */
 export const TRITRANSFORMBASE = Object.freeze({
@@ -79,12 +80,12 @@ export const TRITRANSFORMBASE = Object.freeze({
 // Carbon TRIEXTRAPOLATION (blue/include/ITriConstants.h:33) - curve
 // extrapolation modes, shared by trinity curves (TriEventCurve) and audio
 // (AudEventCurve). Class statics alias this export (TRIOPERATOR pattern).
-export const TRIEXTRAPOLATION = Object.freeze({
+export const TRIEXTRAPOLATION = {
     TRIEXT_NONE: 0,
     TRIEXT_CONSTANT: 1,
     TRIEXT_GRADIENT: 2,
     TRIEXT_CYCLE: 3
-});
+};
 
 /** Storage classes a device resource may be released from, Tr2DeviceResource.h:7-15.
  * A release takes a mask: VIDEOMEMORY for a device reset, MANAGEDMEMORY for
@@ -120,4 +121,62 @@ export const Tr2ALMemoryType = Object.freeze({
 
   /** Created in device-managed memory. */
   AL_MEMORY_MANAGED: 1 << 1
+});
+
+// Definition-site Blue registration preserves Carbon chooser order and exposure.
+
+blueEnums.Create("trinity.EntityComponents.ReflectionMode", ReflectionMode, {
+  source: "trinity/trinity/Eve/EveEntity.h", family: "trinity", line: 9,
+  exposedName: "ReflectionModeType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Eve/EveEntity_Blue.cpp:10",
+  chooser: [
+    { name: "Never", value: ReflectionMode.REFLECT_NEVER, description: "Never render into the reflection map" },
+    { name: "LowMediumAndHigh", value: ReflectionMode.REFLECT_LOW_MEDIUM_HIGH, description: "Render into the reflection map when reflection settings is set to low, medium or high" },
+    { name: "MediumAndHigh", value: ReflectionMode.REFLECT_MEDIUM_AND_HIGH, description: "Render into the reflection map when reflection settings is set to medium or high" },
+    { name: "High", value: ReflectionMode.REFLECT_HIGH, description: "Only render into the reflection map when reflection settings is set to high" }
+  ]
+});
+// Blue's ITriConstants.h enums, shared by audio and Trinity. Neither is
+// registered; the choosers are Trinity's (audio's AudConstants.cpp:6 copy of
+// TriExtrapolation is identical).
+blueEnums.Create("blue.TRIEXTRAPOLATION", TRIEXTRAPOLATION, {
+  source: "blue/include/ITriConstants.h", family: "blue", line: 33,
+  chooserSource: "trinity/trinity/TriConstants.cpp:94",
+  chooser: [
+    { name: "TRIEXT_NONE", value: TRIEXTRAPOLATION.TRIEXT_NONE, description: "no comment" },
+    { name: "TRIEXT_CONSTANT", value: TRIEXTRAPOLATION.TRIEXT_CONSTANT, description: "no comment" },
+    { name: "TRIEXT_GRADIENT", value: TRIEXTRAPOLATION.TRIEXT_GRADIENT, description: "no comment" },
+    { name: "TRIEXT_CYCLE", value: TRIEXTRAPOLATION.TRIEXT_CYCLE, description: "no comment" }
+  ]
+});
+
+blueEnums.Create("blue.TRIOPERATOR", TRIOPERATOR, {
+  source: "blue/include/ITriConstants.h", family: "blue", line: 80,
+  chooserSource: "trinity/trinity/TriConstants.cpp:185",
+  chooser: [
+    { name: "TRIOP_MULTIPLY", value: TRIOPERATOR.TRIOP_MULTIPLY, description: "multiply" },
+    { name: "TRIOP_ADD", value: TRIOPERATOR.TRIOP_ADD, description: "add" },
+    { name: "TRIOP_AVERAGE", value: TRIOPERATOR.TRIOP_AVERAGE, description: "average" }
+  ]
+});
+// Registered as Carbon registers it (trinity/trinity/RenderJob/TriStepSetStandardRenderStates_Blue.cpp:23).
+blueEnums.Create("trinity.Tr2EffectStateManager.RenderingMode", RenderingMode, {
+  source: "trinity/trinity/Shader/Tr2EffectStateManager.h", family: "trinity", line: 59,
+  exposedName: "RENDERING_MODE", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/RenderJob/TriStepSetStandardRenderStates_Blue.cpp:9",
+  chooser: [
+    { name: "RM_OPAQUE", value: RenderingMode.RM_OPAQUE, description: "Opaque rendering" },
+    { name: "RM_DECAL", value: RenderingMode.RM_DECAL, description: "Decal rendering" },
+    { name: "RM_DECAL_NO_DEPTH", value: RenderingMode.RM_DECAL_NO_DEPTH, description: "Decal rendering (Normals Only)" },
+    { name: "RM_ALPHA", value: RenderingMode.RM_ALPHA, description: "Alpha-blended rendering" },
+    { name: "RM_ALPHA_ADDITIVE", value: RenderingMode.RM_ALPHA_ADDITIVE, description: "Additive rendering" },
+    { name: "RM_DEPTH_ONLY", value: RenderingMode.RM_DEPTH_ONLY, description: "Depth-only rendering" },
+    { name: "RM_PICKING", value: RenderingMode.RM_PICKING, description: "Rendering for picking" },
+    { name: "RM_FULLSCREEN", value: RenderingMode.RM_FULLSCREEN, description: "Full-screen effects (2D) rendering" },
+    { name: "RM_SPRITE2D", value: RenderingMode.RM_SPRITE2D, description: "2D sprite rendering" }
+  ]
+});
+// Carbon neither registers this nor gives it a chooser.
+blueEnums.Create("trinity.TriBatchType", TriBatchType, {
+  source: "trinity/trinity/ITr2Renderable.h", family: "trinity", line: 18
 });

@@ -6,7 +6,13 @@
 // JavaScript supplies inert defaults early: stores and registrations exist,
 // but importing Blue does not pump ticks, fetch resources or start a backend.
 // Required providers are configured before their operations are requested.
-import "./registerTrinityEnums.js";
+import "../consts/graphics/trinityEnums.js";
+import "../consts/trinity.js";
+import "../consts/renderContext/presentation.js";
+import "../consts/renderContext/window.js";
+import "../consts/renderContext/formats.js";
+import "../consts/renderContext/upscaling.js";
+import "../consts/renderContext/resources.js";
 import { CjsSchema } from "#schema";
 import { IBlueEvents } from "./IBlueEvents.js";
 import { IBlueResMan } from "./IBlueResMan.js";

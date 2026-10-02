@@ -6,7 +6,7 @@ import { ITriDuration } from "../ITriDuration.js";
 import { mappedInterfaces } from "../../../global/compose/interface.js";
 import { meta } from "#schema";
 import { TRIOPERATOR } from "#consts/graphics";
-import "#blue/registerTrinityEnums";
+import "#consts/graphics/trinityEnums";
 
 
 /**

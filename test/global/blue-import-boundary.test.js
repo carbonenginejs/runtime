@@ -6,7 +6,8 @@ import { fileURLToPath } from "node:url";
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
-test("Blue and global imports provide inert facilities without evaluating optional domains", () =>
+for (const first of ["blue", "schema", "consts/trinity", "consts/graphics", "consts/render-context"])
+test(`Blue imports stay inert with ${first} evaluated first`, () =>
 {
   // Reject loading the implementation module, even if its constructor is lazy.
   const guard = String.raw`
@@ -34,6 +35,7 @@ test("Blue and global imports provide inert facilities without evaluating option
       {
         globalThis[name] = () => { throw new Error("Shared import started " + name); };
       }
+      await import("@carbonenginejs/runtime/" + ${JSON.stringify(first)});
       const shared = await import("@carbonenginejs/runtime/blue");
       const names = [
         "trinity.EntityComponents.ReflectionMode", "trinity.Tr2Lod",

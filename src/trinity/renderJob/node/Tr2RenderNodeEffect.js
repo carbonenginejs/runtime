@@ -3,7 +3,7 @@
 import { meta } from "#schema";
 import { RenderingMode } from "#consts/graphics";
 import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
-import "#blue/registerTrinityEnums";
+import "#consts/graphics/trinityEnums";
 
 /** A render-graph node that binds named sources onto an effect and produces its output. */
 @meta.define({ className: "Tr2RenderNodeEffect", family: "renderJob" })

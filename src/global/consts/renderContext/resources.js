@@ -1,17 +1,18 @@
+import { blueEnums } from "../../blue/enums/CjsBlueEnumRegistry.js";
 // Source: trinity/trinityal/Tr2RenderContextEnum.h (Tr2CpuUsage, Tr2GpuUsage namespaces)
 
 /** CPU access usage flags. */
-export const Tr2CpuUsage = Object.freeze({
+export const Tr2CpuUsage = {
     NONE: 0,
     READ: 1,
     WRITE: 2,
     READ_OFTEN: 5,
     WRITE_OFTEN: 10,
     NON_SYNCRONIZED_WRITE: 16
-});
+};
 
 /** GPU resource usage flags. */
-export const Tr2GpuUsage = Object.freeze({
+export const Tr2GpuUsage = {
     NONE: 0,
     VERTEX_BUFFER: 1,
     INDEX_BUFFER: 2,
@@ -23,7 +24,7 @@ export const Tr2GpuUsage = Object.freeze({
     DRAW_INDIRECT_ARGS: 128,
     ACCELERATION_STRUCTURE: 256,
     SHARED: 512
-});
+};
 
 
 // Carbon declares these inside the same namespaces as the flags they test
@@ -86,3 +87,13 @@ export function HasTextureFlags(value)
 {
     return (value & (Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.DEPTH_STENCIL)) !== 0;
 }
+
+// Definition-site Blue registration preserves Carbon chooser order and exposure.
+// Carbon neither registers this nor gives it a chooser.
+blueEnums.Create("trinity.Tr2CpuUsage", Tr2CpuUsage, {
+  source: "trinity/trinityal/Tr2RenderContextEnum.h", family: "trinity", line: 438
+});
+// Carbon neither registers this nor gives it a chooser.
+blueEnums.Create("trinity.Tr2GpuUsage", Tr2GpuUsage, {
+  source: "trinity/trinityal/Tr2RenderContextEnum.h", family: "trinity", line: 461
+});

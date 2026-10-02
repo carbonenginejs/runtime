@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import "#blue/registerTrinityEnums";
+import "#consts/trinity";
 import { meta } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
 import { Tr2Lod } from "#consts/trinity";

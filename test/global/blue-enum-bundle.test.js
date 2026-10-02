@@ -43,6 +43,12 @@ async function bundleConsumer(source, manifest, sideEffects)
       resolveId(specifier, importer)
       {
         if (specifier === entry) return entry;
+        // Test observation only: reach the registry leaf without importing Blue,
+        // whose own dependencies could mask a dropped bare constant import.
+        if (specifier === "enum-registry-observer") return {
+          id: path.join(publishedRoot, "dist/global/blue/enums/CjsBlueEnumRegistry.js"),
+          moduleSideEffects: false
+        };
         const packageName = specifier.startsWith("@") ? specifier.split("/").slice(0, 2).join("/") : specifier.split("/")[0];
         if (dependencies.has(packageName)) return { id: specifier, external: true };
         let resolved;
@@ -143,25 +149,36 @@ test("published metadata retains early shared enums in real consumer bundles", a
       const bundled = await bundleConsumer(source, manifest, manifest.sideEffects);
       const positive = await runBundle(bundled, directory, name);
       assert.equal(positive.status, 0, positive.stderr || positive.stdout);
-      // This control must fail: otherwise the test did not expose the removal
-      // that the package's previous sideEffects:false declaration permitted.
-      const pruned = await bundleConsumer(source, manifest, false);
-      const negative = await runBundle(pruned, directory, name + "-pruned");
-      assert.notEqual(negative.status, 0);
-      assert.match(negative.stderr, /Enum is not registered|Shared enum registration was not retained/);
     }
-    for (const [file, fixture] of [
-      ["./dist/global/index.js", 2],
-      ["./dist/global/blue/index.js", 1],
-      ["./dist/global/blue/blue.js", 1],
-      ["./dist/global/blue/registerTrinityEnums.js", 0]
+    // A bare definition import must execute even when no constant binding is
+    // referenced. Suppressing its side effect must remove the registration.
+    // Named imports need no artificial failure: the used definition may itself
+    // keep Create alive, unlike the former separate central registrar.
+    for (const [module, enumName] of [
+      ["graphics/trinityEnums", "trinity.EntityComponents.ReflectionMode"],
+      ["trinity", "trinity.Tr2Lod"],
+      ["renderContext/presentation", "trinity.Tr2RenderContextEnum.PresentInterval"],
+      ["renderContext/window", "trinity.Tr2WindowMode"],
+      ["renderContext/formats", "trinity.ImageIO.PixelFormat"],
+      ["renderContext/upscaling", "trinity.Tr2UpscalingAL.Technique"],
+      ["renderContext/resources", "trinity.Tr2CpuUsage"]
     ])
     {
+      const file = "./dist/global/consts/" + module + ".js";
       assert.ok(manifest.sideEffects.includes(file), file);
-      const pruned = await bundleConsumer(fixtures[fixture][1], manifest, manifest.sideEffects.filter(entry => entry !== file));
-      const missing = await runBundle(pruned, directory, `missing-${fixture}-${path.basename(file)}`);
-      assert.notEqual(missing.status, 0, `${file} must be necessary to the tested import chain`);
-      assert.match(missing.stderr, /Enum is not registered|Shared enum registration was not retained/);
+      const publicModule = module.startsWith("graphics/") ? "graphics"
+        : module.startsWith("renderContext/") ? "render-context" : "trinity";
+      const source = `
+        import "@carbonenginejs/runtime/consts/${publicModule}";
+        import { blueEnums } from "enum-registry-observer";
+        export const ready = blueEnums.Get(${JSON.stringify(enumName)}) !== null;
+      `;
+      const positive = await runBundle(await bundleConsumer(source, manifest, manifest.sideEffects), directory, path.basename(module));
+      assert.equal(positive.status, 0, positive.stderr || positive.stdout);
+      const pruned = await bundleConsumer(source, manifest, manifest.sideEffects.filter(entry => entry !== file));
+      const negative = await runBundle(pruned, directory, "pruned-" + path.basename(module));
+      assert.notEqual(negative.status, 0, file + " must retain its definition-site registration");
+      assert.match(negative.stderr, /Enum is not registered/);
     }
   }
   finally

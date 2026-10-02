@@ -5,7 +5,7 @@ import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { EveEntity } from "../EveEntity.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildParticleSystem.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import "#blue/registerTrinityEnums";
+import "#consts/graphics/trinityEnums";
 import { meta } from "#schema";
 import { quat } from "#math/quat";
 import { EveChildTransform, applyTransformModifiers } from "./EveChildTransform.js";

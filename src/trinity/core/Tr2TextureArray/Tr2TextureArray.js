@@ -5,7 +5,7 @@ import { meta } from "#schema";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { BitmapDimensions, HostBitmap } from "#imageio";
 import { Tr2TextureArrayElement } from "./Tr2TextureArrayElement.js";
-import "#blue/registerTrinityEnums";
+import "#consts/renderContext/resources";
 
 /** Describes a texture array's elements, dimensions, resource usage, upload increment, backing texture, and change callback. */
 @meta.define({ className: "Tr2TextureArray", family: "trinityCore", purpose: "Describes a texture array's elements, dimensions, resource usage, upload increment, backing texture, and change callback." })

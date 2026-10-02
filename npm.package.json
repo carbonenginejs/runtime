@@ -5,7 +5,16 @@
     "./dist/global/index.js",
     "./dist/global/blue/index.js",
     "./dist/global/blue/blue.js",
-    "./dist/global/blue/registerTrinityEnums.js"
+    "./dist/global/consts/graphics/trinityEnums.js",
+    "./dist/global/consts/trinity.js",
+    "./dist/global/consts/renderContext/presentation.js",
+    "./dist/global/consts/renderContext/window.js",
+    "./dist/global/consts/renderContext/formats.js",
+    "./dist/global/consts/renderContext/upscaling.js",
+    "./dist/global/consts/renderContext/resources.js",
+    "./dist/global/consts/index.js",
+    "./dist/global/consts/graphics/index.js",
+    "./dist/global/consts/renderContext/index.js"
   ],
   "publishConfig": {
     "access": "public",

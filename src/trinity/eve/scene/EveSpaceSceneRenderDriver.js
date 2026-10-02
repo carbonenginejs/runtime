@@ -48,7 +48,7 @@ import "../../core/volumetrics/Tr2VolumetricsRenderer.js";
 import { EveSpaceScene } from "./EveSpaceScene.js";
 import { blue, EnumRegistrationType } from "#blue";
 import "../../postProcess/effect/Tr2PPEffect.js";
-import "#blue/registerTrinityEnums";
+import "#consts/renderContext/formats";
 
 /** Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame. */
 @meta.define({ className: "EveSpaceSceneRenderDriver", family: "eve/scene", purpose: "Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame." })

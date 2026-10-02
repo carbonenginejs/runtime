@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:557-566
-import "#blue/registerTrinityEnums";
+import "#consts/graphics/trinityEnums";
 import { meta } from "#schema";
 import { ReflectionMode } from "#consts/graphics";
 

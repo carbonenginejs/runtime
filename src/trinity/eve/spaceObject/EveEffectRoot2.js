@@ -8,7 +8,7 @@ import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/EveEffectRoot2.h
 // Source: trinity/trinity/Eve/EveEffectRoot2.cpp
 // Source: trinity/trinity/Eve/EveEffectRoot2_Blue.cpp
-import "#blue/registerTrinityEnums";
+import "#consts/trinity";
 import { addChild, removeChild, clearChildren } from "../../../global/blue/children.js";
 import { mat4 } from "#math/mat4";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";

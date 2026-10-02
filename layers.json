@@ -90,7 +90,9 @@
       ]
     },
     "global/consts": {
-      "mayImport": []
+      "mayImport": [
+        "global/blue/enums"
+      ]
     },
     "global/imageio": {
       "mayImport": [
@@ -153,7 +155,7 @@
     "global/blue/enums": {
       "mayImport": [],
       "why": [
-        "Dependency-free enum storage shared by schema and Blue; never imports either facade."
+        "Dependency-free enum identity and registration shared by constant definition sites, schema and Blue. Constants may not import the Blue holder or services."
       ]
     },
     "global/blue": {

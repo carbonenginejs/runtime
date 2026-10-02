@@ -1,16 +1,17 @@
+import { blueEnums } from "../blue/enums/CjsBlueEnumRegistry.js";
 // Source: trinity/trinity/Resources/Tr2LodResource.h
 
 /**
  * Shared Trinity level-of-detail values.
  */
-export const Tr2Lod = Object.freeze({
+export const Tr2Lod = {
     TR2_LOD_UNSPECIFIED: -1,
     TR2_LOD_LOW: 0,
     TR2_LOD_MEDIUM: 1,
     TR2_LOD_HIGH: 2,
     TR2_LOD_ULTRA: 3,
     TR2_LOD_COUNT: 4
-});
+};
 
 
 // Source: every TRI_REGISTER_SETTING in trinity (TriSettingsRegistrar.h:13-14),
@@ -90,3 +91,10 @@ export const TriSettingNames = Object.freeze([
     "useDynamicLightsShadows",
     "volumetricTrailPath"
 ]);
+
+// Definition-site Blue registration preserves Carbon chooser order and exposure.
+// No native chooser or BLUE_REGISTER_ENUM was found for Tr2Lod in Trinity.
+// Register its declared identifiers without inventing Python exposure metadata.
+blueEnums.Create("trinity.Tr2Lod", Tr2Lod, {
+  source: "trinity/trinity/Resources/Tr2LodResource.h", family: "trinity", line: 7
+});

@@ -9,7 +9,7 @@ import { TRIEXTRAPOLATION } from "#consts/graphics";
 import { AudEmitter } from "./AudEmitter.js";
 import { IsWwiseInitPosition } from "./AudGameObjResource.js";
 import { AudEventKey } from "../../generated/audio/AudEventKey.js";
-import "#blue/registerTrinityEnums";
+import "#consts/graphics/trinityEnums";
 
 /** Fires authored audio events as playback time crosses ordered event keys on a timeline curve. */
 @meta.define({ className: "AudEventCurve", family: "audio" })

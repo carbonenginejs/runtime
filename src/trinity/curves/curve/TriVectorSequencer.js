@@ -4,7 +4,7 @@ import { vec3 } from "#math/vec3";
 import { ITriFunction, ITriVectorFunction, BlueList } from "#blue";
 import { meta } from "#schema";
 import { TRIOPERATOR } from "#consts/graphics";
-import "#blue/registerTrinityEnums";
+import "#consts/graphics/trinityEnums";
 
 
 /**

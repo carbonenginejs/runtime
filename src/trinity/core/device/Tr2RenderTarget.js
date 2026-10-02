@@ -20,7 +20,7 @@ import { ALResult } from "#trinityal";
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
 import { Tr2MsaaDesc } from "../../../trinityal/Tr2HalHelperStructures/Tr2MsaaDesc.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
-import "#blue/registerTrinityEnums";
+import "#consts/renderContext/formats";
 
 /**
  * Carbon's anonymous `GetUsage` (`cpp:11-27`): a render target is always a

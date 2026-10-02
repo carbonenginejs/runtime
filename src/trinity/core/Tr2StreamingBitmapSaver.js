@@ -15,7 +15,7 @@
 import { meta } from "#schema";
 import { GetBytesPerPixel, PixelFormat } from "#consts/render-context";
 import { ALResult } from "../../trinityal/ALResult.js";
-import "#blue/registerTrinityEnums";
+import "#consts/renderContext/formats";
 
 /** TGA image types (Tr2TgaHandler.cpp): raw RGB and raw greyscale. */
 const IMAGE_TYPE_RAW_RGB = 2;

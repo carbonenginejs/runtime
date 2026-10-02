@@ -20,7 +20,8 @@ import { Tr2RenderContext } from "../context/Tr2RenderContext.js";
 import { Tr2Renderer } from "../Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { ExecuteMainThreadActions } from "../continueOnMainThread.js";
-import "#blue/registerTrinityEnums";
+import "#consts/renderContext/presentation";
+import "#consts/renderContext/upscaling";
 
 /** TriDevice (trinityCore) - generated from schema shapeHash 1db3a492.... */
 @meta.define({ className: "TriDevice", family: "trinityCore" })

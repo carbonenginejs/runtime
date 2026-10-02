@@ -21,7 +21,7 @@ import { CarbonVertexElements } from "../../../core/vertex/vertexUsage.js";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
 import { Tr2PickType } from "../../../core/view/Tr2PickType.js";
 import { BuildDecalGeometry, BuildStaticDecalGeometry, FindCachedDecalGeometry } from "./decalIndices.js";
-import "#blue/registerTrinityEnums";
+import "#consts/graphics/trinityEnums";
 
 
 /**

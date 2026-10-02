@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud2.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import "#blue/registerTrinityEnums";
+import "#consts/graphics/trinityEnums";
 import { meta } from "#schema";
 import { INotify, IsMatch } from "#blue";
 import { Tr2TextureReference } from "../../core/Tr2TextureReference.js";

@@ -7,7 +7,8 @@ import { ITr2ImpostorSource } from "../../core/mesh/ITr2ImpostorSource/ITr2Impos
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2.cpp
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2_Blue.cpp
-import "#blue/registerTrinityEnums";
+import "#consts/graphics/trinityEnums";
+import "#consts/trinity";
 import { CjsSchema, meta } from "#schema";
 import { blue } from "#blue";
 import { IInitialize } from "#blue/IInitialize";

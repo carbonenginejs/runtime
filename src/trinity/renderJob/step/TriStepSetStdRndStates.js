@@ -4,7 +4,7 @@ import { meta } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { RenderingMode } from "#consts/graphics";
-import "#blue/registerTrinityEnums";
+import "#consts/graphics/trinityEnums";
 
 
 /**

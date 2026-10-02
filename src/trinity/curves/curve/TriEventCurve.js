@@ -4,7 +4,7 @@ import { ITriFunction, IInitialize, ITriCurveLength, BlueList } from "#blue";
 import { CjsSchema, meta } from "#schema";
 import { TRIEXTRAPOLATION } from "#consts/graphics";
 import { TriEventKey } from "../key/TriEventKey.js";
-import "#blue/registerTrinityEnums";
+import "#consts/graphics/trinityEnums";
 
 
 /**

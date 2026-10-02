@@ -1,14 +1,15 @@
+import { blueEnums, EnumRegistrationType } from "../../blue/enums/CjsBlueEnumRegistry.js";
 // Source: trinity/trinityal/Tr2RenderContextEnum.h (SwapEffect, PresentInterval, RenderState)
 
-export const SwapEffect = Object.freeze({
+export const SwapEffect = {
     SWAP_EFFECT_DISCARD: 0,
     SWAP_EFFECT_SEQUENTIAL: 1
-});
+};
 
-export const PresentInterval = Object.freeze({
+export const PresentInterval = {
     PRESENT_INTERVAL_IMMEDIATE: 0,
     PRESENT_INTERVAL_ONE: 1
-});
+};
 
 /** Sparse D3D-derived render state ids. */
 export const RenderState = Object.freeze({
@@ -123,4 +124,26 @@ export const RenderState = Object.freeze({
     // C enum-width padding rather than vocabulary, kept to mirror the header.
     // Carbon declares 0x7fffffff; this read 0 until 2026-09-01.
     RS_FORCE_DWORD: 0x7fffffff
+});
+
+// Definition-site Blue registration preserves Carbon chooser order and exposure.
+// Tr2MainWindowState's presentation interval uses Carbon's exposed chooser.
+blueEnums.Create("trinity.Tr2RenderContextEnum.PresentInterval", PresentInterval, {
+  source: "trinity/trinityal/Tr2RenderContextEnum.h", family: "trinity", line: 391,
+  exposedName: "PRESENT_INTERVAL", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Tr2RenderContext_Blue.cpp:277",
+  chooser: [
+    { name: "IMMEDIATE", value: PresentInterval.PRESENT_INTERVAL_IMMEDIATE, description: "" },
+    { name: "ONE", value: PresentInterval.PRESENT_INTERVAL_ONE, description: "" }
+  ]
+});
+// Registered as Carbon registers it (trinity/trinity/Tr2RenderContext_Blue.cpp:271).
+blueEnums.Create("trinity.Tr2RenderContextEnum.SwapEffect", SwapEffect, {
+  source: "trinity/trinityal/Tr2RenderContextEnum.h", family: "trinity", line: 385,
+  exposedName: "SWAP_EFFECT", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Tr2RenderContext_Blue.cpp:265",
+  chooser: [
+    { name: "DISCARD", value: SwapEffect.SWAP_EFFECT_DISCARD, description: "" },
+    { name: "SEQUENTIAL", value: SwapEffect.SWAP_EFFECT_SEQUENTIAL, description: "" }
+  ]
 });
