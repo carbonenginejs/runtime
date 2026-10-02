@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CjsSchema } from "../../../src/global/schema/index.js";
+import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import {
   CjsLoadingObject,
   CjsMotherLode,
   CjsResMan,
   CjsResource
-} from "../../../src/resource/index.js";
+} from "../../../npm/dist/resource/index.js";
 import { LoadData } from "../../support/loadData.js";
 
 // Carbon's LoadObject caches a builder and creates a new object per call

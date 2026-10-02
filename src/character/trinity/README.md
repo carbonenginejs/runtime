@@ -27,6 +27,24 @@ owners. Final `Destroy` releases the scene's shadow surfaces. Initializing the
 scene acquires the cubemap only. List lifecycle and scene render passes remain
 unported, so allocation tests do not establish rendered interior shadows.
 
+## Placeable resource ownership
+
+`Tr2InteriorPlaceable` starts typed object loading after reader initialization and
+reloads on resource-path notifications. Enabling uniqueness clones the current
+authored graph through Blue; path edits take precedence in a combined notification.
+Asynchronous completions cannot replace a newer request or a destroyed owner.
+`WodPlaceableRes` belongs to `resource/geometry`: it is a loaded object graph,
+not a resource-manager handle. Its visual `Tr2Model` remains in this character
+tree and owns mesh bounds, transparency and batch ordering. Render allocations
+use Trinity's existing geometry and AL owners.
+
+Model resource bounds require every mesh to finish preparing; the public local
+query aggregates whichever mesh bounds are available. A placeable resource caches
+its first successful bounds. The mesh readiness adaptation observes its selected
+request through completion, including failure and low-detail fallback; it does
+not reproduce Carbon's queue-wide load fence. Whole interior-scene rendering,
+placeable world bounds and the unresolved TriMatrix boundary remain unported.
+
 ## Interior interfaces
 
 Carbon's `ITr2Interior.h` declares four `BLUE_INTERFACE`s:

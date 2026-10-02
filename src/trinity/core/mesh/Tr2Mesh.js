@@ -54,6 +54,32 @@ export class Tr2Mesh extends Tr2MeshBase
     return this.geometry?.IsLoading?.() ?? false;
   }
 
+  /** Selected request tracked in place of the native queue-wide prepare fence. */
+  _loadFenceResource = null;
+  _loadFenceReached = true;
+
+  /** Retains completion across purges and drops the one pending subscription. */
+  _loadFenceCompleted = (_event, resource) =>
+  {
+    if (resource !== this._loadFenceResource) return;
+    this._loadFenceReached = true;
+    resource.OffEvent("completed", this._loadFenceCompleted, this);
+    this._loadFenceResource = null;
+  };
+
+  /**
+   * Adapted: Carbon's fence covers all earlier manager jobs through preparation.
+   * JavaScript has no queue-wide fence; this owner observes completion of its
+   * selected request, including failure, and retains completion across purges.
+   * Low-detail fallback precedes the native fence; the primary request follows.
+   */
+  @meta.blue.method
+  @meta.adapted
+  IsLoading()
+  {
+    return !this._loadFenceReached;
+  }
+
   /** Carbon Initialize (cpp:28-36): load the geometry unless the load is deferred. */
   @meta.blue.method
   @meta.implemented
@@ -68,13 +94,16 @@ export class Tr2Mesh extends Tr2MeshBase
 
   /**
    * Carbon InitializeGeometryResource (cpp:107-138): fetch the authored path
-   * through the resource manager and bind the result.
+   * through the resource manager and bind the result. Adapted: resource-local
+   * completion substitutes for Carbon's queue-wide load/prepare fence.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon's load fence (m_loadFence.Put) is unported; there is no prepare-phase fence here, so both requests are simply issued.")
   InitializeGeometryResource()
   {
+    if (this._loadFenceResource) this._loadFenceResource.OffEvent("completed", this._loadFenceCompleted, this);
+    this._loadFenceResource = null;
+    this._loadFenceReached = true;
     if (!this.geometryResPath)
     {
       // Carbon requests the empty path anyway and gets nothing back
@@ -99,8 +128,14 @@ export class Tr2Mesh extends Tr2MeshBase
       if (lowResPath && blue.paths.FileExistsLocally(lowResPath)) lowRes = request(lowResPath);
     }
 
+    const geometry = request(this.geometryResPath);
+    // Tr2Mesh.cpp:123 puts the fence before requesting the primary when the
+    // low-detail sibling exists. Capture that request even if it is later unbound.
+    this._loadFenceResource = lowRes ?? geometry;
+    this._loadFenceReached = !this._loadFenceResource;
+    if (this._loadFenceResource) this._loadFenceResource.OnCompleted(this._loadFenceCompleted, this);
     this.SetLowResGeometryRes(lowRes);
-    this.SetGeometryRes(request(this.geometryResPath));
+    this.SetGeometryRes(geometry);
   }
 
   /** Carbon cpp:115-118: the sibling path, inserting _lowdetail before the extension. */

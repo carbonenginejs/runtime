@@ -3,14 +3,14 @@ import { test } from "node:test";
 import { pathToFileURL } from "node:url";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import * as RuntimeResource from "../../../src/resource/index.js";
+import * as RuntimeResource from "../../../npm/dist/resource/index.js";
 import {
   CjsResManMainThreadLoader,
   CjsResManWorkerLoader,
   CjsResMan,
   CjsResManQueue
-} from "../../../src/resource/index.js";
-import { CjsResManWorker } from "../../../src/global/blue/worker/CjsResManWorker.js";
+} from "../../../npm/dist/resource/index.js";
+import { CjsResManWorker } from "../../../npm/dist/global/blue/worker/CjsResManWorker.js";
 import { LoadData } from "../../support/loadData.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
@@ -433,9 +433,9 @@ test("CjsResMan sends worker-safe reads off the main queue and publishes on it",
 
 test("Black, BNK, and WEM format facades declare worker module identities", async () => {
   const [{ CjsBlackFormat }, { CjsBnkFormat }, { CjsWemFormat }] = await Promise.all([
-    import("../../../src/resource/formats/black/index.js"),
-    import("../../../src/resource/formats/bnk/index.js"),
-    import("../../../src/resource/formats/wem/index.js")
+    import("../../../npm/dist/resource/formats/black/index.js"),
+    import("../../../npm/dist/resource/formats/bnk/index.js"),
+    import("../../../npm/dist/resource/formats/wem/index.js")
   ]);
 
   for (const Format of [ CjsBlackFormat, CjsBnkFormat, CjsWemFormat ]) {

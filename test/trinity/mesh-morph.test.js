@@ -4,6 +4,7 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { EveChildMesh } from "../../npm/dist/trinity/eve/child/EveChildMesh.js";
 import { Tr2Mesh } from "../../npm/dist/trinity/core/mesh/Tr2Mesh.js";
 import { Tr2SerializedMorphAnimation } from "../../npm/dist/trinity/core/mesh/Tr2SerializedMorphAnimation.js";
+import { TriGeometryRes } from "../../npm/dist/resource/index.js";
 import { localFileSystem } from "../support/localFileSystem.js";
 
 function CreateGeometry(names, baked = names.map(() => false))
@@ -13,7 +14,8 @@ function CreateGeometry(names, baked = names.map(() => false))
     isBakedMorphTarget: baked.slice()
   };
 
-  return {
+  // Real completion lifecycle is required by the mesh prepare fence.
+  return Object.assign(new TriGeometryRes().MarkPrepared(), {
     lod,
     IsGood() { return true; },
     GetPayload()
@@ -29,7 +31,7 @@ function CreateGeometry(names, baked = names.map(() => false))
       outMax.set(max);
       return true;
     }
-  };
+  });
 }
 
 test("Tr2Mesh initializes indexed morph state and preserves exact serialized weights", () =>

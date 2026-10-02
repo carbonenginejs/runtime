@@ -1,9 +1,9 @@
 import { PixelFormat } from "../../../npm/dist/global/consts/renderContext/index.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CjsSchema } from "../../../src/global/schema/index.js";
+import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { normalizeResourcePath } from "#utils/path";
-import { num } from "../../../src/global/math/num.js";
+import { num } from "../../../npm/dist/global/math/num.js";
 import {
   CjsResMan,
   ParseColor,
@@ -11,7 +11,7 @@ import {
   RegisterSolidColorTexture,
   SolidColorTextureConstructor,
   TriTextureRes
-} from "../../../src/resource/index.js";
+} from "../../../npm/dist/resource/index.js";
 
 function countingManager()
 {
@@ -169,7 +169,7 @@ test("a dynamic constructor registered under a backslash path still resolves", (
 
 test("each dynamic constructor declares its cache policy; Carbon's default is not to keep it", async () =>
 {
-  const { IBlueDynamicResourceConstructor } = await import("../../../src/global/blue/index.js");
+  const { IBlueDynamicResourceConstructor } = await import("../../../npm/dist/global/blue/index.js");
   const { GradientTextureConstructor } = await import("../../../npm/dist/trinity/core/procedural/GradientTextureConstructor.js");
 
   // Carbon inserts every dynamic resource CACHING_NOT_ALLOWED (BlueResMan.cpp:233).

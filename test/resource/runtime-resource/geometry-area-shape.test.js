@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { TriGeometryRes } from "../../../src/resource/geometry/index.js";
+import { TriGeometryRes } from "../../../npm/dist/resource/geometry/index.js";
 
 // Tr2RenderBatch is the ONE import here still taken from the built package:
 // `src/trinity` has 648 decorated files, decorators are not JavaScript without a

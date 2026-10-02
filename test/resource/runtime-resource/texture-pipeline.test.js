@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CjsSchema } from "../../../src/global/schema/index.js";
+import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { PixelFormat } from "#consts/render-context";
-import { HostBitmap } from "../../../src/global/imageio/index.js";
+import { HostBitmap } from "../../../npm/dist/global/imageio/index.js";
 import {
   Tr2TextureLodManager,
   Tr2TexturePackChannel,
@@ -13,7 +13,7 @@ import {
   Tr2TexturePipelineStepLoad,
   Tr2TexturePipelineStepPack,
   TriTextureRes
-} from "../../../src/resource/index.js";
+} from "../../../npm/dist/resource/index.js";
 
 test("Tr2TextureLodManager mirrors Carbon registration and removal order", () =>
 {
@@ -171,7 +171,7 @@ function Bgra(width, height, data)
 
 test("our Convert and Resize steps let Pack join a compressed source and a differently sized one", async () =>
 {
-  const { CjsTexturePipelineStepConvert, CjsTexturePipelineStepResize } = await import("../../../src/resource/index.js");
+  const { CjsTexturePipelineStepConvert, CjsTexturePipelineStepResize } = await import("../../../npm/dist/resource/index.js");
 
   // A 4x4 BC1 block of pure red (color0 = 0xF800, all indices 0) - EVE ships
   // scalar maps compressed, and Carbon's Pack refuses block formats.

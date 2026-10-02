@@ -4,11 +4,11 @@ import test from "node:test";
 import {
   CjsAudioBufferRes,
   CjsAudioRes
-} from "../../../src/resource/audio/index.js";
+} from "../../../npm/dist/resource/audio/index.js";
 import {
   CjsAudioBufferRes as RootCjsAudioBufferRes,
   CjsAudioRes as RootCjsAudioRes
-} from "../../../src/resource/index.js";
+} from "../../../npm/dist/resource/index.js";
 
 function CreateBacking(bytes, info = {})
 {

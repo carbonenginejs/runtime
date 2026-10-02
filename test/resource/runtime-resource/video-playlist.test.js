@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CjsSchema } from "../../../src/global/schema/index.js";
-import { CjsResMan, RegisterVideoPlaylists, TriTextureRes, VideoPlaylistController } from "../../../src/resource/index.js";
+import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { CjsResMan, RegisterVideoPlaylists, TriTextureRes, VideoPlaylistController } from "../../../npm/dist/resource/index.js";
 
 function countingManager()
 {

@@ -12,7 +12,7 @@ import {
   StreamType,
   VideoFrame,
   VideoMetadata
-} from "../../../src/resource/index.js";
+} from "../../../npm/dist/resource/index.js";
 
 test("the video enums carry Carbon's members and values", () =>
 {
