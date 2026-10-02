@@ -8,7 +8,7 @@ Summary: Catalogs maintained portable Sprite2D state, traversal, and wrapped val
 <!-- class:Tr2Sprite2dClipRect -->
 ## `Tr2Sprite2dClipRect`
 
-Carries the left, top, right, and bottom bounds of one Sprite2D clipping rectangle.
+Carries the bounds of a Sprite2D clipping rectangle as a plain native struct.
 
 - Export: `@carbonenginejs/runtime/trinity`
 - Source: `src/trinity/sprite2d/Tr2Sprite2dClipRect.js`

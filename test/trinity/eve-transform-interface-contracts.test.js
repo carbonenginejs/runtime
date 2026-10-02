@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { IWorldPosition } from "../../npm/dist/trinity/core/IWorldPosition.js";
 import { Copier } from "../../npm/dist/global/blue/Copier.js";
 import { IInitialize } from "../../npm/dist/global/blue/IInitialize.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
@@ -34,7 +35,7 @@ function AssertMeshCopy(copy, source)
 test("transform exposure distinguishes Root from ordinary transforms and inherited Warhead completion", () =>
 {
   const ordinary = mappedInterfaces(EveTransform);
-  for (const Interface of [ EveTransform, IEveTransform, IEveSpaceObject2, IInitialize, ITr2BoundingBox ])
+  for (const Interface of [ EveTransform, IEveTransform, IEveSpaceObject2, IWorldPosition, IInitialize, ITr2BoundingBox ])
   {
     assert.equal(ordinary.has(Interface), true);
   }
@@ -49,7 +50,7 @@ test("transform exposure distinguishes Root from ordinary transforms and inherit
   // EveTransform exposure table while retaining ordinary C++/JS inheritance.
   const root = new EveRootTransform();
   const rootInterfaces = mappedInterfaces(EveRootTransform);
-  for (const Interface of [ EveRootTransform, IEveSpaceObject2, ITr2BoundingBox ])
+  for (const Interface of [ EveRootTransform, IEveSpaceObject2, IWorldPosition, ITr2BoundingBox ])
   {
     assert.equal(rootInterfaces.has(Interface), true);
   }

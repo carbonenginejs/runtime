@@ -1,8 +1,11 @@
 // Source: trinity/trinity/Curves/Tr2FollowCurve.h
 // Source: trinity/trinity/Curves/Tr2FollowCurve.cpp
+// Source: trinity/trinity/Curves/Tr2FollowCurve_Blue.cpp
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
-import { carbon, impl, edit, type } from "#schema";
+import { BlueList, ITriFunction, ITriVectorFunction, IListNotify } from "#blue";
+import { BLUELISTEVENT } from "#consts/blue";
+import { ITr2FollowCurveKey } from "../ITr2FollowCurveKey.js";
+import { meta, types } from "#schema";
 import { Tr2FollowCurveKeyInterpolation } from "../enums.js";
 
 
@@ -11,53 +14,64 @@ import { Tr2FollowCurveKeyInterpolation } from "../enums.js";
  * supplying its own position, tangents and interpolation for the segment that
  * follows it.
  */
-@type.define({
+@meta.define({
   className: "Tr2FollowCurve",
   family: "curves"
 })
-export class Tr2FollowCurve extends CjsModel
+@meta.carbon.inherit(IListNotify)
+export class Tr2FollowCurve extends ITriVectorFunction
 {
-  @edit.read
-  @type.vec3
-  currentValue = vec3.create();
-
-  @edit.read
-  @edit.persist
-  @type.list("ITr2FollowCurveKey")
-  keys = [];
-
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   name = "";
 
-  #keyValue0 = vec3.create();
+  @meta.edit.read
+  @meta.edit.persist
+  @types.list("ITr2FollowCurveKey")
+  keys = new BlueList(ITr2FollowCurveKey, { className: null, listOps: 0 });
 
-  #keyValue1 = vec3.create();
+  @meta.edit.read
+  @types.vec3
+  currentValue = vec3.create();
 
-  #leftTangent = vec3.create();
+  _keyValue0 = vec3.create();
 
-  #rightTangent = vec3.create();
+  _keyValue1 = vec3.create();
 
-  #inTangent = vec3.create();
+  _leftTangent = vec3.create();
 
-  #outTangent = vec3.create();
+  _rightTangent = vec3.create();
+
+  _inTangent = vec3.create();
+
+  _outTangent = vec3.create();
+
+  /** Installs the native list observer after the owned key list has been created. */
+  constructor()
+  {
+    super();
+    this.keys.SetNotify(this);
+  }
 
   /**
    * Updates the cached vector value for the supplied time.
+   * Adapted: the existing JS vector output buffer replaces native value assignment.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.adapted
   UpdateValue(time)
   {
-    this.GetValueAt(time, this.currentValue);
+    this.GetValue(time, this.currentValue);
   }
 
   /**
    * Updates the cached value and copies it into `out`.
+   * Adapted: retains JS time-first/output-last arguments and numeric seconds;
+   * native Be::Time and double overloads share this seconds-based entry point.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   Update(time, out)
   {
     this.UpdateValue(time);
@@ -66,10 +80,54 @@ export class Tr2FollowCurve extends CjsModel
 
   /**
    * Gets the vector value at `time` into `out`.
+   * Adapted: retains JS time-first/output-last arguments, numeric seconds and
+   * caller-owned vectors instead of native overloads/value returns.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   GetValueAt(time, out)
+  {
+    return this.GetValue(time, out);
+  }
+
+  /**
+   * Native first-derivative no-op leaves output untouched; JS keeps time first.
+   */
+  @meta.carbon.method
+  @meta.impl.noop
+  GetValueDotAt(_time, out)
+  {
+    return out;
+  }
+
+  /**
+   * Native second-derivative no-op leaves output untouched; JS keeps time first.
+   */
+  @meta.carbon.method
+  @meta.impl.noop
+  GetValueDoubleDotAt(_time, out)
+  {
+    return out;
+  }
+
+  /**
+   * Native interpolated-position no-op leaves output untouched; JS keeps time first.
+   */
+  @meta.carbon.method
+  @meta.impl.noop
+  InterpolatedPosition(_time, out)
+  {
+    return out;
+  }
+
+  /**
+   * Gets the vector value at `time` into `out`.
+   * Adapted: retains JS time-first/output-last arguments, numeric seconds and
+   * caller-owned vectors instead of native overloads/value returns.
+   */
+  @meta.carbon.method
+  @meta.impl.adapted
+  GetValue(time, out)
   {
     let currentKey = null;
     let nextKey = null;
@@ -94,69 +152,42 @@ export class Tr2FollowCurve extends CjsModel
   }
 
   /**
-   * Derivative stub retained for Carbon interface compatibility.
+   * JS helper for native OnListModified's stable, in-place ordering.
+   * Keeps the owned list and its observer; equal keys retain their stored order.
    */
-  @carbon.method
-  @impl.noop
-  GetValueDotAt(_time, out)
-  {
-    return out;
-  }
-
-  /**
-   * Second-derivative stub retained for Carbon interface compatibility.
-   */
-  @carbon.method
-  @impl.noop
-  GetValueDoubleDotAt(_time, out)
-  {
-    return out;
-  }
-
-  /**
-   * Position interpolation stub retained for Carbon interface compatibility.
-   */
-  @carbon.method
-  @impl.noop
-  InterpolatedPosition(_time, out)
-  {
-    return out;
-  }
-
-  /**
-   * Gets the vector value at `time` into `out`.
-   */
-  @carbon.method
-  @impl.adapted
-  GetValue(time, out)
-  {
-    return this.GetValueAt(time, out);
-  }
-
-  /**
-   * Sorts keys by authored time after list edits.
-   */
+  @meta.impl.custom
   Sort()
   {
-    this.keys = this.keys.map((key, index) => ({
-      key,
-      index
-    })).sort((a, b) => a.key.GetTime() - b.key.GetTime() || a.index - b.index).map(entry => entry.key);
+    // Native stable_sort compares keys directly and does not notify the list.
+    this.keys.sort((a, b) => a.GetTime() < b.GetTime() ? -1 : b.GetTime() < a.GetTime() ? 1 : 0);
   }
 
   /**
    * Handles a Carbon list-modified notification.
    */
-  @carbon.method
-  @impl.adapted
-  OnListModified()
+  @meta.carbon.method
+  @meta.impl.implemented
+  OnListModified(event, _key, _key2, _value, list)
   {
-    this.Sort();
+    if (list !== this.keys) return;
+    switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
+    {
+      case BLUELISTEVENT.BELIST_REMOVED:
+      case BLUELISTEVENT.BELIST_INSERTED:
+        this.Sort();
+        break;
+      default:
+        break;
+    }
   }
 
   /**
-   * Evaluates a key segment into `out`.
+   * Evaluates the native key segment into `out`.
+   * Adapted: caller-owned vectors and JS Number arithmetic replace native vector
+   * returns/float temporaries; direct key contract calls remain required.
    */
+  @meta.carbon.method
+  @meta.impl.adapted
   GetSegmentValue(out, time, k0, k1)
   {
     switch (k0.GetInterpolationType())
@@ -168,7 +199,7 @@ export class Tr2FollowCurve extends CjsModel
         {
           return k1.GetValue(out);
         }
-        return vec3.lerp(out, k0.GetValue(this.#keyValue0), k1.GetValue(this.#keyValue1), (time - k0.GetTime()) / (k1.GetTime() - k0.GetTime()));
+        return vec3.lerp(out, k0.GetValue(this._keyValue0), k1.GetValue(this._keyValue1), (time - k0.GetTime()) / (k1.GetTime() - k0.GetTime()));
       case Tr2FollowCurveKeyInterpolation.HERMITE:
         return this.GetHermiteSegmentValue(out, time, k0, k1);
       default:
@@ -177,8 +208,10 @@ export class Tr2FollowCurve extends CjsModel
   }
 
   /**
-   * Evaluates a Hermite segment into `out`.
+   * JS helper for the native GetSegmentValue Hermite branch, using scratch
+   * vectors and the existing equivalent vector Hermite helper.
    */
+  @meta.impl.custom
   GetHermiteSegmentValue(out, time, k0, k1)
   {
     const length = k1.GetTime() - k0.GetTime();
@@ -186,8 +219,14 @@ export class Tr2FollowCurve extends CjsModel
     {
       return k1.GetValue(out);
     }
-    vec3.scale(this.#inTangent, k0.GetRightTangent(this.#rightTangent), length);
-    vec3.scale(this.#outTangent, k1.GetLeftTangent(this.#leftTangent), length);
-    return vec3.hermite(out, k0.GetValue(this.#keyValue0), this.#inTangent, this.#outTangent, k1.GetValue(this.#keyValue1), (time - k0.GetTime()) / length);
+    vec3.scale(this._inTangent, k0.GetRightTangent(this._rightTangent), length);
+    vec3.scale(this._outTangent, k1.GetLeftTangent(this._leftTangent), length);
+    return vec3.hermite(out, k0.GetValue(this._keyValue0), this._inTangent, this._outTangent, k1.GetValue(this._keyValue1), (time - k0.GetTime()) / length);
   }
 }
+
+// IListNotify is native C++ inheritance, deliberately absent from its QI table.
+meta.carbon.interfaceTable({
+  interfaces: [ITriVectorFunction, ITriFunction],
+  chainTo: null
+})(Tr2FollowCurve);

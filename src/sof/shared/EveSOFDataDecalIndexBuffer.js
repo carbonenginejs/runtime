@@ -1,16 +1,22 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
-// Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
+// Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:101-111
+import { meta, types } from "#schema";
+import { ICustomPersist } from "#blue";
 
-/** Stores an unsigned decal index buffer with helpers for appending indices and exposing its contents. */
-@type.define({ className: "EveSOFDataDecalIndexBuffer", family: "eve" })
-export class EveSOFDataDecalIndexBuffer extends CjsModel
+/**
+ * Stores an unsigned decal index buffer with helpers for appending indices and exposing its contents.
+ * Native ICustomPersist owns custom BINARYBLOCK/PERSISTONLY data. The existing
+ * JavaScript Uint32Array declaration is a values-transport adaptation; mapping
+ * this interface does not add native custom-binary serializer dispatch.
+ * Empty native constructor/destructor require no additional lifecycle.
+ */
+@meta.define({ className: "EveSOFDataDecalIndexBuffer", family: "eve" })
+export class EveSOFDataDecalIndexBuffer extends ICustomPersist
 {
 
-  /** indexBuffer (typedArray) [PERSISTONLY] */
-  @edit.persistOnly
-  @type.typedArray("Uint32Array")
+  /** Native custom binary block; retained Uint32Array values-transport adaptation. */
+  @meta.edit.persistOnly
+  @types.typedArray("Uint32Array")
   indexBuffer = new Uint32Array(0);
 
   /**
@@ -19,8 +25,8 @@ export class EveSOFDataDecalIndexBuffer extends CjsModel
    * @param {number} index Unsigned 32-bit index.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   AddIndex(index)
   {
     const source = this.indexBuffer;
@@ -35,11 +41,11 @@ export class EveSOFDataDecalIndexBuffer extends CjsModel
    *
    * @returns {number[]} Copied indices.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetIndices()
   {
-    return Array.from(this.indexBuffer ?? [], value => Number(value) >>> 0);
+    return Array.from(this.indexBuffer, value => Number(value) >>> 0);
   }
 
   // ICustomPersist interface (EveSOFData.h:1314-1318, cpp:958-978):
@@ -57,8 +63,8 @@ export class EveSOFDataDecalIndexBuffer extends CjsModel
    * @param {number} byteSize Nonnegative byte count; incomplete uint32 bytes are discarded.
    * @returns {Uint32Array} New backing storage.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   AllocateReadBuffer(byteSize)
   {
     this.indexBuffer = new Uint32Array(Math.floor(byteSize / 4));
@@ -75,11 +81,11 @@ export class EveSOFDataDecalIndexBuffer extends CjsModel
    *
    * @returns {{buffer: Uint32Array, byteSize: number}} Storage and byte count.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   GetWriteBufferAndSize()
   {
-    const buffer = this.indexBuffer ?? new Uint32Array(0);
+    const buffer = this.indexBuffer;
     return { buffer, byteSize: buffer.length * 4 };
   }
 
@@ -89,8 +95,8 @@ export class EveSOFDataDecalIndexBuffer extends CjsModel
    *
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.noop
   ReleaseWriteBuffer()
   {
   }
@@ -108,13 +114,18 @@ export class EveSOFDataDecalIndexBuffer extends CjsModel
    * @param {number} byteSize Nonnegative byte count; incomplete uint32 bytes are discarded.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   SetBufferAndSize(_buffer, byteSize)
   {
     const elements = Math.floor(byteSize / 4);
-    const source = this.indexBuffer ?? new Uint32Array(0);
+    const source = this.indexBuffer;
     this.indexBuffer = source.subarray(0, Math.min(elements, source.length)).slice();
   }
 
 }
+
+meta.carbon.interfaceTable({
+  interfaces: [ EveSOFDataDecalIndexBuffer, ICustomPersist ],
+  chainTo: null
+})(EveSOFDataDecalIndexBuffer);

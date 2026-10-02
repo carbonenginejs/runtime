@@ -1,26 +1,35 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
-// Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { edit, type } from "#schema";
-import { CjsModel } from "#model";
+// Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:752-760
+import { meta, types } from "#schema";
 
-/** Stores a named texture binding and supports assignment and composition. */
-@type.define({ className: "EveSOFDataTexture", family: "eve" })
-export class EveSOFDataTexture extends CjsModel
+/**
+ * Stores a named texture binding and supports assignment and composition.
+ * Native IRoot-only data with a self-only Blue table. The authored path is a
+ * string, not a held resource; empty constructor/destructor need no lifecycle.
+ */
+@meta.define({ className: "EveSOFDataTexture", family: "eve" })
+export class EveSOFDataTexture
 {
 
-  /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
-  name = "";
-
   /** m_resFilePath (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   resFilePath = "";
 
-  /** Writes this resource path into a map under its authored texture name. */
+  /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
+  name = "";
+
+  /**
+   * Writes this resource path into a map under its authored texture name.
+   * Custom: existing SOF map-assignment helper; native texture records are data only.
+   * @param {object} [out={}] Destination texture map.
+   * @returns {object} The supplied map.
+   */
+  @meta.impl.custom
   Assign(out = {})
   {
     out[this.name] = this.resFilePath;
@@ -30,7 +39,13 @@ export class EveSOFDataTexture extends CjsModel
   /**
    * Synchronizes a reusable list to base texture names and selects each matching
    * override path when truthy.
+   * Custom: existing JavaScript SOF composition helper, not a native record method.
+   * @param {EveSOFDataTexture[]} [base=[]] Base texture records.
+   * @param {EveSOFDataTexture[]|null} [overrides=null] Named overrides.
+   * @param {EveSOFDataTexture[]} [out=[]] Reused output records.
+   * @returns {EveSOFDataTexture[]} The output list.
    */
+  @meta.impl.custom
   static combineArrays(base = [], overrides = null, out = [])
   {
     const validNames = new Set(base.map(value => value.name));
@@ -54,3 +69,8 @@ export class EveSOFDataTexture extends CjsModel
   }
 
 }
+
+meta.carbon.interfaceTable({
+  interfaces: [ EveSOFDataTexture ],
+  chainTo: null
+})(EveSOFDataTexture);

@@ -9,6 +9,7 @@ import { EveTransform } from "./EveTransform.js";
 import { Tr2Transform } from "../../core/Tr2Transform.js";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { ITr2BoundingBox } from "#interfaces";
+import { IWorldPosition } from "../../core/IWorldPosition.js";
 
 
 /**
@@ -274,9 +275,9 @@ export class EveRootTransform extends EveTransform
 
 }
 
-// Supported native interfaces; ITriTargetable, ITr2Pickable and IWorldPosition are not declared yet.
+// Supported native interfaces; ITriTargetable and ITr2Pickable are not declared yet.
 // EveRootTransform_Blue.cpp:11-16,60 bypasses the EveTransform exposure table.
 carbon.interfaceTable({
-  interfaces: [ EveRootTransform, IEveSpaceObject2, ITr2BoundingBox ],
+  interfaces: [ EveRootTransform, IEveSpaceObject2, IWorldPosition, ITr2BoundingBox ],
   chainTo: Tr2Transform
 })(EveRootTransform, { kind: "class" });

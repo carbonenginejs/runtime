@@ -1,9 +1,14 @@
 // Source: trinity/trinity/Curves/Tr2FollowCurveKey.h
 // Source: trinity/trinity/Curves/Tr2FollowCurveKey.cpp
+// Source: trinity/trinity/Curves/Tr2FollowCurveKey_Blue.cpp:45-64
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
-import { carbon, impl, edit, type } from "#schema";
+import { INotify, IInitialize } from "#blue";
+import { mappedInterfaces } from "../../../global/compose/interface.js";
+import { IWorldPosition } from "../../core/IWorldPosition.js";
+import { EveSpaceObject2 } from "../../eve/spaceObject/EveSpaceObject2.js";
+import { ITr2FollowCurveKey } from "../ITr2FollowCurveKey.js";
+import { meta, types } from "#schema";
 import { Tr2FollowCurveKeyInterpolation, RotationSetting } from "../enums.js";
 
 
@@ -11,102 +16,126 @@ import { Tr2FollowCurveKeyInterpolation, RotationSetting } from "../enums.js";
  * Follow-curve key positioned by another object rather than a fixed point,
  * taking its place from that object's locator or offset and optionally rotating
  * its tangents with the object.
+ * Native exposure omits self and maps only the follow-key, notify and initialize
+ * contracts. Vector output buffers and quaternion math retain the JS adapter.
+ * Native destruction only clears references; no resource disposal is required.
  */
-@type.define({
+@meta.define({
   className: "Tr2ObjectFollowCurveKey",
   family: "curves"
 })
-export class Tr2ObjectFollowCurveKey extends CjsModel
+@meta.carbon.inherit(INotify, IInitialize)
+export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
 {
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  /** Authored key name. */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   name = "";
 
-  @edit.notify
-  @edit.readwrite
-  @type.objectRef("IRoot")
+  /** Runtime followed object; notified but not persisted. */
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @types.objectRef("IRoot")
   object = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  /** Authored key time. */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.float32
   time = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.Tr2FollowCurveKeyInterpolation")
+  /** Authored interpolation of the outgoing segment. */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.int32
+  @types.enum("trinity.Tr2FollowCurveKeyInterpolation")
   interpolation = Tr2FollowCurveKeyInterpolation.LINEAR;
 
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  /** Authored incoming tangent. */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.vec3
   leftTangent = vec3.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  /** Authored outgoing tangent. */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.vec3
   rightTangent = vec3.create();
 
-  @edit.read
-  @type.vec3
+  /** Last sampled incoming tangent. */
+  @meta.edit.read
+  @types.vec3
   rotatedLeftTangent = vec3.create();
 
-  @edit.read
-  @type.vec3
+  /** Last sampled outgoing tangent. */
+  @meta.edit.read
+  @types.vec3
   rotatedRightTangent = vec3.create();
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  /** Authored locator set name. */
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   offsetLocatorName = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  /** Authored local position offset. */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.vec3
   offset = vec3.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.Tr2ObjectFollowCurveKey.RotationSetting")
+  /** Authored rotation selection. */
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.int32
+  @types.enum("trinity.Tr2ObjectFollowCurveKey.RotationSetting")
   rotationSetting = RotationSetting.NO_ROTATION;
 
-  #locator = null;
+  /** Cached first locator; owned by the followed object. */
+  _locator = null;
 
-  #offset = vec3.create();
+  /** Reusable local offset scratch. */
+  _offset = vec3.create();
 
-  #rotation = quat.create();
+  /** Reusable normalized rotation scratch. */
+  _rotation = quat.create();
 
   /**
    * Resolves the current locator cache.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   Initialize()
   {
-    this.#locator = this.GetLocator();
+    this._locator = this.GetLocator();
     return true;
   }
 
   /**
    * Re-resolves the locator after object or locator-name changes.
+   * JavaScript property-name tokens replace native Be::Var member matching.
+   * @param {string|null} propertyName Changed member name.
+   * @returns {boolean} True.
    */
-  @carbon.method
-  @impl.adapted
-  OnModified()
+  @meta.carbon.method
+  @meta.impl.adapted
+  OnModified(propertyName = null)
   {
-    this.#locator = this.GetLocator();
+    if (propertyName === "object" || propertyName === "offsetLocatorName")
+    {
+      this._locator = this.GetLocator();
+    }
     return true;
   }
 
   /**
    * Gets the key time.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetTime()
   {
     return this.time;
@@ -115,8 +144,8 @@ export class Tr2ObjectFollowCurveKey extends CjsModel
   /**
    * Gets the segment interpolation mode starting at this key.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetInterpolationType()
   {
     return this.interpolation;
@@ -124,9 +153,10 @@ export class Tr2ObjectFollowCurveKey extends CjsModel
 
   /**
    * Gets the rotated left tangent into `out`.
+   * The caller's output buffer replaces the native vector value return.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   GetLeftTangent(out)
   {
     return vec3.copy(out, this.rotatedLeftTangent);
@@ -134,9 +164,10 @@ export class Tr2ObjectFollowCurveKey extends CjsModel
 
   /**
    * Gets the rotated right tangent into `out`.
+   * The caller's output buffer replaces the native vector value return.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   GetRightTangent(out)
   {
     return vec3.copy(out, this.rotatedRightTangent);
@@ -144,24 +175,26 @@ export class Tr2ObjectFollowCurveKey extends CjsModel
 
   /**
    * Gets the followed object position plus local offset into `out`.
+   * The caller's output buffer and quaternion transform replace native values
+   * and rotation matrices while preserving the native sampling order.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   GetValue(out)
   {
     if (!this.object)
     {
       return vec3.copy(out, this.offset);
     }
-    vec3.copy(this.#offset, this.offset);
-    if (this.#locator)
+    vec3.copy(this._offset, this.offset);
+    if (this._locator)
     {
-      vec3.add(this.#offset, this.#offset, this.#locator.position);
+      vec3.add(this._offset, this._offset, this._locator.position);
     }
     const rotation = this.GetRotation();
     this.TransformByRotation(this.rotatedLeftTangent, this.leftTangent, rotation);
     this.TransformByRotation(this.rotatedRightTangent, this.rightTangent, rotation);
-    this.TransformByRotation(out, this.#offset, rotation);
+    this.TransformByRotation(out, this._offset, rotation);
     const worldPosition = this.GetWorldPosition();
     if (worldPosition)
     {
@@ -172,7 +205,10 @@ export class Tr2ObjectFollowCurveKey extends CjsModel
 
   /**
    * Finds the first locator in the requested Carbon locator set.
+   * Mapped constructor identities implement the native BlueCastPtr query.
    */
+  @meta.carbon.method
+  @meta.impl.adapted
   GetLocator()
   {
     const object = this.object;
@@ -180,34 +216,38 @@ export class Tr2ObjectFollowCurveKey extends CjsModel
     {
       return null;
     }
-    const methodLocators = object.GetLocatorsForSet?.(this.offsetLocatorName);
-    if (methodLocators && methodLocators.length > 0)
+    if (mappedInterfaces(object.constructor).has(EveSpaceObject2))
     {
-      return methodLocators[0] ?? null;
+      const locators = object.GetLocatorsForSet(this.offsetLocatorName);
+      if (locators && locators.length > 0)
+      {
+        return locators[0];
+      }
     }
-    const set = object.locatorSets?.find(entry => entry.name === this.offsetLocatorName);
-    return set?.locators[0] ?? null;
+    return null;
   }
 
   /**
    * Gets the active rotation as a normalized quaternion, when any applies.
+   * Retained JavaScript helper replaces native GetLocatorRotation and
+   * GetModelRotation matrices with a reusable quaternion.
    */
+  @meta.impl.custom
   GetRotation()
   {
     switch (this.rotationSetting)
     {
       case RotationSetting.LOCATOR_ROTATION:
-        if (this.#locator)
+        if (this._locator)
         {
-          return quat.normalize(this.#rotation, this.#locator.direction);
+          return quat.normalize(this._rotation, this._locator.direction);
         }
         break;
       case RotationSetting.MODEL_ROTATION:
         {
-          const rotation = this.object?.GetWorldRotation?.() ?? this.object?.worldRotation;
-          if (rotation)
+          if (this.object && mappedInterfaces(this.object.constructor).has(IWorldPosition))
           {
-            return quat.normalize(this.#rotation, rotation);
+            return quat.normalize(this._rotation, this.object.GetWorldRotation());
           }
           break;
         }
@@ -218,14 +258,17 @@ export class Tr2ObjectFollowCurveKey extends CjsModel
   /**
    * Gets the followed object's world position, if it exposes one.
    */
+  @meta.impl.custom
   GetWorldPosition()
   {
-    return this.object?.GetWorldPosition?.() ?? this.object?.worldPosition ?? null;
+    return this.object && mappedInterfaces(this.object.constructor).has(IWorldPosition)
+      ? this.object.GetWorldPosition() : null;
   }
 
   /**
    * Applies a pure rotation transform, or copies unchanged for identity.
    */
+  @meta.impl.custom
   TransformByRotation(out, value, rotation)
   {
     if (!rotation)
@@ -235,8 +278,15 @@ export class Tr2ObjectFollowCurveKey extends CjsModel
     return vec3.transformQuat(out, value, rotation);
   }
 
+  /** Existing JavaScript access to the native rotation enum. */
   static RotationSetting = RotationSetting;
 
+  /** Existing JavaScript access to the native interpolation enum. */
   static Tr2FollowCurveKeyInterpolation = Tr2FollowCurveKeyInterpolation;
 
 }
+
+meta.carbon.interfaceTable({
+  interfaces: [ ITr2FollowCurveKey, INotify, IInitialize ],
+  chainTo: null
+})(Tr2ObjectFollowCurveKey);

@@ -16,6 +16,7 @@ import { Tr2Transform } from "../../core/Tr2Transform.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
 import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../core/view/Tr2PickType.js";
 import { ITr2BoundingBox } from "#interfaces";
+import { IWorldPosition } from "../../core/IWorldPosition.js";
 import { IInitialize } from "#blue/IInitialize";
 
 // Static scratch for the singular-world patch fixup (allocation rules: hot
@@ -29,7 +30,7 @@ const INVERSE_PATCH_SCRATCH = mat4.create();
  * with its own frustum and LOD visibility pass.
  */
 @type.define({ className: "EveTransform", family: "eve/spaceObject" })
-@carbon.inherit(ITr2BoundingBox, IEveSpaceObject2, IEveTransform)
+@carbon.inherit(IWorldPosition, ITr2BoundingBox, IEveSpaceObject2, IEveTransform)
 export class EveTransform extends Tr2Transform
 {
 
@@ -525,9 +526,9 @@ export class EveTransform extends Tr2Transform
   static _worldBounds = box3.create();
 }
 
-// Supported native interfaces; ITr2Pickable and IWorldPosition have no runtime declarations yet.
+// Supported native interfaces; ITr2Pickable has no runtime declaration yet.
 // EveTransform_Blue.cpp:13-19,88 chains Tr2Transform explicitly.
 carbon.interfaceTable({
-  interfaces: [ EveTransform, IEveTransform, IEveSpaceObject2, IInitialize, ITr2BoundingBox ],
+  interfaces: [ EveTransform, IEveTransform, IEveSpaceObject2, IWorldPosition, IInitialize, ITr2BoundingBox ],
   chainTo: Tr2Transform
 })(EveTransform, { kind: "class" });

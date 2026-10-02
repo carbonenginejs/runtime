@@ -116,7 +116,7 @@ test("actual follow-curve owner evaluates the model-free camera key through the 
   key.time = 2; key.angleZero = 0; key.offset.set([1,2,3]);
   const expected = key.GetValue(new Float32Array(3));
   const curve = new Tr2FollowCurve();
-  curve.keys.push(key);
+  assert.equal(curve.keys.Append(key), true);
   const out = new Float32Array(3);
   assert.equal(curve.GetValueAt(3, out), out);
   assert.deepEqual(out, expected);

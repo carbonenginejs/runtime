@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { test } from "node:test";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
+import { DictReader } from "../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import {
@@ -88,9 +89,9 @@ test("Tr2DynamicBinding only relinks for Carbon NOTIFY fields", () =>
   binding.Link();
   const first = binding.binding;
 
-  binding.SetValues({ name: "renamed", bindingDelay: 500 });
+  new DictReader({ declarations: true }).ReadInto(binding, { name: "renamed", bindingDelay: 500 });
   assert.equal(binding.binding, first);
-  binding.SetValues({ scale: 2 });
+  new DictReader({ declarations: true }).ReadInto(binding, { scale: 2 });
   assert.notEqual(binding.binding, first);
 });
 

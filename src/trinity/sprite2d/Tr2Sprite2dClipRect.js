@@ -1,11 +1,15 @@
 // Source: trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema sprite2d/Tr2Sprite2dClipRect.json.).
 import { type } from "#schema";
-import { CjsModel } from "#model";
 
-/** Carries the left, top, right, and bottom bounds of one Sprite2D clipping rectangle. */
+/**
+ * Carries the bounds of a Sprite2D clipping rectangle as a plain native struct.
+ * No native query interface or persistence flags are declared. The existing
+ * JavaScript zero defaults are deterministic adapters: Carbon leaves the
+ * default-constructed scalar fields uninitialized until the caller fills them.
+ */
 @type.define({ className: "Tr2Sprite2dClipRect", family: "sprite2d" })
-export class Tr2Sprite2dClipRect extends CjsModel
+export class Tr2Sprite2dClipRect
 {
 
   /** left (float) */

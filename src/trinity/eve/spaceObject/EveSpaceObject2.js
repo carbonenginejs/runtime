@@ -9,6 +9,7 @@ import { INotify } from "#blue/INotify";
 import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { ITr2BoundingBox } from "#interfaces";
+import { IWorldPosition } from "../../core/IWorldPosition.js";
 import { ITr2SecondaryLightSource } from "../../core/lighting/ITr2SecondaryLightSource.js";
 import { ITr2ShLightingReceiver } from "../../core/lighting/ITr2ShLightingReceiver.js";
 import { EveEntity } from "../EveEntity.js";
@@ -64,8 +65,7 @@ const OVERLAY_TYPE_ALL = 1;
  * and batch submission that drive them each frame.
  */
 @type.define({ className: "EveSpaceObject2", family: "eve/spaceObject" })
-@carbon.inherit(ITr2BoundingBox, ITr2Renderable, IEveSpaceObject2, ITr2ShLightingReceiver, ITr2SecondaryLightSource, IEveInheritPropertiesOwner)
-@carbon.mapInterface(ITr2ShLightingReceiver, ITr2SecondaryLightSource, IInitialize, INotify)
+@carbon.inherit(IWorldPosition, ITr2BoundingBox, ITr2Renderable, IEveSpaceObject2, ITr2ShLightingReceiver, ITr2SecondaryLightSource, IEveInheritPropertiesOwner)
 export class EveSpaceObject2 extends EveEntity
 {
 
@@ -4313,3 +4313,6 @@ blue.enums.RegisterEnum("trinity.EveSpaceObject2.LocatorType", EveSpaceObject2.L
   source: "trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h", family: "eve/spaceObject", line: 263
 });
 
+
+// Supported native mappings; the concrete self slot enables locator queries.
+carbon.mapInterface(EveSpaceObject2, IInitialize, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource)(EveSpaceObject2);

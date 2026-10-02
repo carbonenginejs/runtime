@@ -472,6 +472,16 @@ A value whose storage can be pointed elsewhere, notifying its bindings.
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:IWorldPosition -->
+## `IWorldPosition`
+
+Native IRoot-derived contract for a receiver's world position and rotation.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/IWorldPosition.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:ITr2SecondaryLightSource -->
 ## `ITr2SecondaryLightSource`
 
