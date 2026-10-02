@@ -193,10 +193,10 @@ test("Black structure layouts exclude marked fields independently of erroneous P
         second = 0;
     }
     class StructureOwner { items = []; }
-    CjsSchema.define(StructureItem, { className: "ResourceBlackCopyStructureItem", fields: {
-        first: [type.float32, edit.persist],
+    CjsSchema.define(StructureItem, { className: "ResourceBlackCopyStructureItem", struct: { size: 8 }, fields: {
+        first: [CjsSchema.meta.struct.FLOAT32_1(0), edit.persist],
         _cache: [type.resource(ResourceLeaf), edit.persist],
-        second: [type.uint32, edit.persist]
+        second: [CjsSchema.meta.struct.UINT32_1(4), edit.persist]
     } });
     CjsSchema.define(StructureOwner, { className: "ResourceBlackCopyStructureOwner", fields: {
         items: [type.list("ResourceBlackCopyStructureItem"), edit.persist]

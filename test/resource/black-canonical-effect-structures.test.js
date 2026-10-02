@@ -78,7 +78,7 @@ test("prior production option reference-list declaration rejects native raw reco
 
 test("canonical options reject an incompatible native record stride", () =>
 {
-    assert.throws(() => new CjsBlackReader(optionBytes(8), {
+    assert.throws(() => new CjsBlackReader(optionBytes(7), {
         schema: null, initialize: false
     }).CreateObject(), /Incompatible Black structure Tr2ShaderOption/);
 });

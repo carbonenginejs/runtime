@@ -28,14 +28,12 @@ test("real Angel showinfo scene decodes its full sampler records after class reg
   const bytes = await readFile(process.env.SAMPLER_BLACK_CORPUS_FILE);
   assert.equal(bytes.length, 8387);
   assert.equal(createHash("sha256").update(bytes).digest("hex"), "111133b37cc8e5391bf9505b05ab33cdb62fbbbbd5cfa4e5d3fb587e70a13fda");
-  // Without the item class, the existing reader preserves the opaque native
-  // bytes. An early read must not cache the absence of a class-derived layout.
-  const opaque = samplerLists(CjsBlackFormat.readPayload(bytes).object);
-  assert.ok(opaque.length > 0);
-  assert.ok(opaque.every(value => value.$type === "black.structureList" && value.structureSize === 56));
+  // Every structure list requires its registered item class; an early failure
+  // must not cache the missing definition once the host registers its classes.
+  assert.throws(() => CjsBlackFormat.readPayload(bytes), /Black struct .*has no (declared item class|structureDefinition)/);
   await import("../../npm/dist/trinity/index.js");
   const decoded = samplerLists(CjsBlackFormat.readPayload(bytes).object);
-  assert.equal(decoded.length, opaque.length);
+  assert.ok(decoded.length > 0);
   assert.ok(decoded.every(Array.isArray), "registered metadata must decode fields, not retain opaque blobs");
   assert.ok(decoded.flat().length > 0);
   for (const value of decoded.flat())

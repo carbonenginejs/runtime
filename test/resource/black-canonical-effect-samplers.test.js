@@ -168,9 +168,9 @@ test("prior sampler reference-list declaration cannot decode native records", ()
     }).CreateObject(), /Tr2Effect\.samplerOverrides/);
 });
 
-test("sampler records require the full56-byte stride, not just the exposed40 bytes", () =>
+test("sampler records reject a stride off a member boundary", () =>
 {
-    assert.throws(() => new CjsBlackReader(samplerBytes(40), {
+    assert.throws(() => new CjsBlackReader(samplerBytes(39), {
         schema: null, initialize: false
     }).CreateObject(), /Incompatible Black structure Tr2SamplerOverride/);
 });

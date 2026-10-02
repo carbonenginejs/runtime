@@ -139,17 +139,7 @@ export class Tr2Effect extends Tr2Material
 
   @edit.read
   @edit.persist
-  @type.list({ kind: "rawStruct", className: "Tr2ShaderOption" }, {
-    structure: {
-      name: "Tr2ShaderOption",
-      size: 16,
-      // Tr2EffectDescription.h:272-276: two 64-bit BlueSharedString slots.
-      members: [
-        { name: "name", offset: 0, type: "string" },
-        { name: "value", offset: 8, type: "string" }
-      ]
-    }
-  })
+  @type.list({ kind: "rawStruct", className: "Tr2ShaderOption" })
   options = [];
 
   /**
@@ -170,17 +160,7 @@ export class Tr2Effect extends Tr2Material
 
   @edit.read
   @edit.persist
-  @type.list({ kind: "rawStruct", className: "Tr2ConstantEffectParameter" }, {
-    structure: {
-      name: "Tr2ConstantEffectParameter",
-      size: 24,
-      // Tr2Effect.cpp:33-37: 64-bit BlueSharedString storage followed by vec4.
-      members: [
-        { name: "name", offset: 0, type: "string" },
-        { name: "value", offset: 8, type: "vector4" }
-      ]
-    }
-  })
+  @type.list({ kind: "rawStruct", className: "Tr2ConstantEffectParameter" })
   constParameters = [];
 
   /**
@@ -231,25 +211,7 @@ export class Tr2Effect extends Tr2Material
 
   @edit.read
   @edit.persist
-  @type.list({ kind: "rawStruct", className: "Tr2SamplerOverride" }, {
-    structure: {
-      name: "Tr2SamplerOverride",
-      // Tr2Effect.h:23-37: full 64-bit stride includes opaque sampler@40..55.
-      size: 56,
-      // Tr2Effect.cpp:84-95: wire address/filter members are unsigned.
-      members: [
-        { name: "name", offset: 0, type: "string" },
-        { name: "addressU", offset: 8, type: "uint32" },
-        { name: "addressV", offset: 12, type: "uint32" },
-        { name: "addressW", offset: 16, type: "uint32" },
-        { name: "filter", offset: 20, type: "uint32" },
-        { name: "mipFilter", offset: 24, type: "uint32" },
-        { name: "lodBias", offset: 28, type: "float32" },
-        { name: "maxMipLevel", offset: 32, type: "uint32" },
-        { name: "maxAnisotropy", offset: 36, type: "uint32" }
-      ]
-    }
-  })
+  @type.list({ kind: "rawStruct", className: "Tr2SamplerOverride" })
   samplerOverrides = [];
 
   /**

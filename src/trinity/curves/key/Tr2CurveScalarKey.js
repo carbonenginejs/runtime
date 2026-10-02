@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Curves/Tr2CurveScalar.h
 // Source: trinity/trinity/Curves/Tr2CurveScalar.cpp
-import { edit, type } from "#schema";
+import { meta, edit, type } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
 
 
@@ -9,11 +9,14 @@ import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
  * One key of a Tr2CurveScalar: a time in seconds, a value, its left and right
  * tangents in value units per unit time, the interpolation used to reach the
  * next key, and the tangent-type rule that maintains the tangents.
+ * Native 64-bit size 20; offsets and storage types: trinity/trinity/
+ * Curves/Tr2CurveScalar.h:54-70; Curves/Tr2CurveScalar.cpp:12-21.
  */
 @type.define({
   className: "Tr2CurveScalarKey",
   family: "curves"
 })
+@meta.struct.define({ size: 20 })
 export class Tr2CurveScalarKey
 {
   /**
@@ -21,7 +24,7 @@ export class Tr2CurveScalarKey
    * @type {number}
    */
   @edit.persist
-  @type.float32
+  @meta.struct.FLOAT32_1(0)
   time = 0;
 
   /**
@@ -29,7 +32,7 @@ export class Tr2CurveScalarKey
    * @type {number}
    */
   @edit.persist
-  @type.float32
+  @meta.struct.FLOAT32_1(4)
   value = 0;
 
   /**
@@ -37,7 +40,7 @@ export class Tr2CurveScalarKey
    * @type {number}
    */
   @edit.persist
-  @type.float32
+  @meta.struct.FLOAT32_1(8)
   leftTangent = 0;
 
   /**
@@ -45,7 +48,7 @@ export class Tr2CurveScalarKey
    * @type {number}
    */
   @edit.persist
-  @type.float32
+  @meta.struct.FLOAT32_1(12)
   rightTangent = 0;
 
   /**
@@ -53,7 +56,7 @@ export class Tr2CurveScalarKey
    * @type {number}
    */
   @edit.persist
-  @type.uint16
+  @meta.struct.USHORT_1(16)
   id = 0;
 
   /**
@@ -61,7 +64,7 @@ export class Tr2CurveScalarKey
    * @type {number}
    */
   @edit.persist
-  @type.uint8
+  @meta.struct.UBYTE_1(18)
   interpolation = Tr2CurveInterpolation.HERMITE;
 
   /**
@@ -69,6 +72,6 @@ export class Tr2CurveScalarKey
    * @type {number}
    */
   @edit.persist
-  @type.uint8
+  @meta.struct.UBYTE_1(19)
   tangentType = Tr2CurveTangentType.AUTO_CLAMP;
 }

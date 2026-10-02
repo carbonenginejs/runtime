@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import "../../npm/dist/trinity/index.js";
+import "../../npm/dist/sof/index.js";
 import { classStructureLayout } from "../../npm/dist/resource/formats/black/core/blackClassStructures.js";
 import { definitions } from "../../npm/dist/resource/formats/black/core/blackDefinitions.js";
 import { CjsBlackPropertyReaders } from "../../npm/dist/resource/formats/black/core/CjsBlackPropertyReaders.js";
@@ -13,34 +14,22 @@ import { CjsSchema } from "../../npm/dist/global/schema/CjsSchema.js";
 
 const offsets = layout => layout.members.map(member => [ member.name, member.offset ]);
 
-test("explicit canonical native layouts need no item class and retain gaps without inferred defaults", () =>
+test("inline layouts cannot replace registered item-class definitions", () =>
 {
   class Owner {}
-  const structure = { name: "BlackExplicitUnregisteredRecord", size: 32, members: [
-    { name: "value", offset: 16, type: "uint32" }
-  ] };
-  CjsSchema.define(Owner, { className: "BlackExplicitLayoutOwner", members: [{
+  assert.throws(() => CjsSchema.define(Owner, { className: "BlackInvalidLayoutOwner", members: [{
     name: "records", key: "records", role: "member", edit: { persist: true },
-    type: { kind: "list", itemType: { kind: "rawStruct", className: structure.name }, structure }
-  }], properties: [{ name: "records", key: "liveRecords", role: "property",
-    edit: { read: true }, type: { kind: "list", itemType: "Tr2ShaderOption" } }] });
-  const declared = CjsSchema.getSchema(Owner).members[0].type.structure;
-  const layout = classStructureLayout("BlackExplicitLayoutOwner", "records");
-  assert.equal(layout, declared);
-  assert.deepEqual(layout, structure);
-  assert.equal(layout.boundaries, undefined);
-  assert.equal(layout.defaults, undefined);
+    type: { kind: "list", itemType: { kind: "rawStruct", className: "Tr2ShaderOption" }, structure: {} }
+  }] }), /BlackInvalidLayoutOwner.records: inline structure layouts are removed/);
 });
 
-test("invalid explicit native layouts cannot fall back to registered item-class packing", () =>
+test("persisted fields and byteSize cannot substitute for a struct definition", () =>
 {
+  class Item { static byteSize = 4; value = 0; }
   class Owner {}
-  CjsSchema.define(Owner, { className: "BlackInvalidLayoutOwner", members: [{
-    name: "records", key: "records", role: "member", edit: { persist: true },
-    type: { kind: "list", itemType: { kind: "rawStruct", className: "Tr2ShaderOption" },
-      structure: { name: "Tr2ShaderOption", size: 4, members: [{ name: "name", offset: 0, type: "string" }] } }
-  }] });
-  assert.throws(() => classStructureLayout("BlackInvalidLayoutOwner", "records"), /Invalid canonical Black structure member/);
+  CjsSchema.define(Item, { className: "BlackMissingStructItem", fields: { value: [CjsSchema.type.uint32, CjsSchema.edit.persist] } });
+  CjsSchema.define(Owner, { className: "BlackMissingStructOwner", fields: { records: CjsSchema.type.list("BlackMissingStructItem") } });
+  assert.throws(() => classStructureLayout("BlackMissingStructOwner", "records"), /BlackMissingStructItem has no structureDefinition/);
 });
 
 test("derived offsets match Carbon's BlueStructureDefinitions", () =>
@@ -135,4 +124,43 @@ test("sampler records advance by native sizeof while ignoring trailing runtime s
   assert.ok(values.every(value => !Object.hasOwn(value, "sampler")), "native pointers are never hydrated");
   view.setUint16(4, 55, true);
   assert.throws(() => CjsBlackPropertyReaders.readStructureList(new CjsBlackBinaryReader(view), { structure: layout }), /Incompatible Black structure/);
+});
+
+// Additional native families: EveBannerSet.cpp:22-30,
+// EveChildInstanceContainer.cpp:13-19, EveSOFData.cpp:123-129,
+// Tr2TimelineController.cpp:24-28. Sizes include C++ storage not listed in the definition.
+test("banner, child, SOF and timeline layouts match their donor definitions", () =>
+{
+  for (const [owner, field, size, expected] of [
+    ["EveBannerSet", "banners", 56, [["bone",0],["position",4],["rotation",16],["scaling",32],["angleX",44],["angleY",48]]],
+    ["EveChildInstanceContainer", "transforms", 44, [["scale",0],["rotation",12],["translation",28],["boneIndex",40]]],
+    ["EveSOFDataInstancedMesh", "instances", 44, [["rotation",0],["scaling",16],["translation",28],["boneIndex",40]]],
+    ["Tr2TimelineController", "entries", 12, [["startTime",0],["endTime",4],["trackID",8]]]
+  ])
+  {
+    const layout = classStructureLayout(owner, field);
+    assert.equal(layout.size, size);
+    assert.deepEqual(offsets(layout), expected);
+  }
+  assert.ok(!classStructureLayout("EveBannerSet", "banners").members.some(member => member.name === "reference"));
+});
+
+test("short shared-string records retain independent vector defaults and padding is not a boundary", () =>
+{
+  const layout = classStructureLayout("Tr2Effect", "constParameters");
+  const bytes = new Uint8Array(6 + 2 * 8);
+  const view = new DataView(bytes.buffer);
+  view.setInt32(0, 2, true);
+  view.setUint16(4, 8, true);
+  const reader = new CjsBlackBinaryReader(view, { info: { strings: ["constant"] } });
+  const rows = CjsBlackPropertyReaders.readStructureList(reader, { structure: layout });
+  assert.deepEqual(rows, [{ name: "constant", value: [0, 0, 0, 0] }, { name: "constant", value: [0, 0, 0, 0] }]);
+  rows[0].value[0] = 9;
+  assert.equal(rows[1].value[0], 0);
+  assert.equal(layout.defaults.value[0], 0);
+  for (const size of [2, 4, 7, 9, 25])
+  {
+    view.setUint16(4, size, true);
+    assert.throws(() => CjsBlackPropertyReaders.readStructureList(new CjsBlackBinaryReader(view), { structure: layout }), /Incompatible Black structure/);
+  }
 });

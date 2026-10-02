@@ -1079,15 +1079,14 @@ const CJS_BLACK_INDEX_TOKEN_NAMES = Object.freeze({
 /**
  * A structure-list field's descriptor with its layout taken from the
  * registered item class (blackClassStructures.js), which wins over the
- * snapshot's; unchanged for any other field or when no class layout exists.
+ * snapshot's; unchanged for any other field.
  */
 function WithClassStructure(field, className, fieldName)
 {
-    // Canonical fields already carry explicit ABI facts. Do not replace them
-    // with the legacy field view or inferred packing.
+    // Canonical fields already resolve the registered item class.
     if (field.declaration) return field;
     const black = field?.black;
     if (!black || black.container !== "list" || !/StructureList/u.test(String(black.cppType ?? ""))) return field;
     const layout = classStructureLayout(className, fieldName);
-    return layout ? { ...field, black: { ...black, structure: layout } } : field;
+    return { ...field, black: { ...black, structure: layout } };
 }

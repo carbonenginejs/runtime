@@ -542,7 +542,7 @@ export class CjsBlackPropertyReaders
             // members keep the class defaults. Not Carbon
             // (docs/architecture/non-carbon-extensions.md).
             const exact = structureSize === structure.size;
-            const earlier = !exact && Array.isArray(structure.boundaries) && structure.boundaries.includes(structureSize);
+            const earlier = structureSize < structure.size && Array.isArray(structure.boundaries) && structure.boundaries.includes(structureSize);
             if (count < 0 || (!exact && !earlier))
             {
                 throw new RangeError(`Incompatible Black structure ${structure.name}: ${count} x ${structureSize}`);

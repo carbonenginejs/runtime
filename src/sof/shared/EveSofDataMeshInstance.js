@@ -11,8 +11,11 @@ import { vec3 } from "#math/vec3";
  * with independently owned buffers and deterministic construction defaults.
  * Native declares no struct constructor or bone-index initializer; the retained
  * identity scale and zero bone index are JavaScript defaults, not native defaults.
+ * Native 64-bit size 44; offsets and storage types: trinity/trinity/
+ * Eve/SpaceObjectFactory/EveSOFData.h:112-120; Eve/SpaceObjectFactory/EveSOFData.cpp:123-129.
  */
 @meta.define({ className: "EveSofDataMeshInstance", family: "eve" })
+@meta.struct.define({ size: 44 })
 export class EveSofDataMeshInstance
 {
   /**
@@ -20,6 +23,7 @@ export class EveSofDataMeshInstance
    * @type {Float32Array}
    */
   @meta.edit.persist
+  @meta.struct.FLOAT32_4(0)
   @types.quat
   rotation = quat.create();
 
@@ -29,7 +33,7 @@ export class EveSofDataMeshInstance
    * @type {Float32Array}
    */
   @meta.edit.persist
-  @types.vec3
+  @meta.struct.FLOAT32_3(16)
   scaling = vec3.fromValues(1, 1, 1);
 
   /**
@@ -37,7 +41,7 @@ export class EveSofDataMeshInstance
    * @type {Float32Array}
    */
   @meta.edit.persist
-  @types.vec3
+  @meta.struct.FLOAT32_3(28)
   translation = vec3.create();
 
   /**
@@ -46,7 +50,7 @@ export class EveSofDataMeshInstance
    * @type {number}
    */
   @meta.edit.persist
-  @types.int32
+  @meta.struct.INT32_1(40)
   boneIndex = 0;
 
 }

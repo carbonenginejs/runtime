@@ -4,7 +4,7 @@ import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { carbon, edit, impl, type } from "#schema";
+import { meta, carbon, edit, impl, type } from "#schema";
 
 
 // Carbon persists banners as a raw structure list (BLUE_DECLARE_STRUCTURE_LIST
@@ -15,33 +15,37 @@ import { carbon, edit, impl, type } from "#schema";
  * One authored banner quad: its bone attachment, placement, the two curvature
  * angles that bend it, and the SOF reference id identifying which banner is
  * shown.
+ * Native 64-bit size 56; offsets and storage types: trinity/trinity/
+ * Eve/SpaceObject/Attachments/Sets/EveBannerSet.h:16-28; Eve/SpaceObject/Attachments/Sets/EveBannerSet.cpp:22-30 (reference storage is not exposed).
  */
 @type.define({ className: "EveBannerItem", family: "eve/attachment/banners" })
+@meta.struct.define({ size: 56 })
 export class EveBannerItem
 {
 
   @edit.persist
-  @type.int32
+  @meta.struct.INT32_1(0)
   bone = -1;
 
   @edit.persist
-  @type.vec3
+  @meta.struct.FLOAT32_3(4)
   position = vec3.create();
 
   @edit.persist
+  @meta.struct.FLOAT32_4(16)
   @type.quat
   rotation = quat.create();
 
   @edit.persist
-  @type.vec3
+  @meta.struct.FLOAT32_3(32)
   scaling = vec3.fromValues(1, 1, 1);
 
   @edit.persist
-  @type.float32
+  @meta.struct.FLOAT32_1(44)
   angleX = 0;
 
   @edit.persist
-  @type.float32
+  @meta.struct.FLOAT32_1(48)
   angleY = 0;
 
   // Carbon keeps this as private structure metadata, but SOF-authored banner

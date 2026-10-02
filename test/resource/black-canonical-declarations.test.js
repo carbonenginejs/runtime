@@ -44,11 +44,11 @@ test("canonical Black refuses missing wire facts instead of borrowing legacy fie
     assert.throws(() => CjsBlackSchemaRegistry.fromDeclaredType({ kind: "list" }), /item type: missing/);
     assert.throws(() => CjsBlackSchemaRegistry.fromDeclaredType({
         kind: "list", itemType: { kind: "rawStruct", className: "NativeRecord" }
-    }), /native structure layout/);
+    }), /NativeRecord has no structureDefinition/);
     assert.throws(() => CjsBlackSchemaRegistry.fromDeclaredType({
         kind: "list", itemType: { kind: "rawStruct" },
         structure: { name: "BadNativeRecord", size: 4, members: [{ name: "name", offset: 0, type: "string" }] }
-    }), /Invalid canonical Black structure member/);
+    }), /Inline structure layouts are removed/);
 });
 
 test("canonical Black keeps declared reference, embedded and collection codec distinctions", () =>
@@ -266,11 +266,10 @@ test("complete scene graphs decode with explicit baseless test classes and canon
     class Scene {}
     class Effect {}
     class Texture {}
-    const structure = {
-        name: "Tr2ConstantEffectParameter", size: 24,
-        // Tr2Effect.cpp:33-37, 64-bit BlueSharedString storage followed by vec4.
-        members: [{ name: "name", offset: 0, type: "string" }, { name: "value", offset: 8, type: "vector4" }]
-    };
+    class Constant { name = ""; value = [0, 0, 0, 0]; }
+    CjsSchema.define(Constant, { className: "Tr2ConstantEffectParameter", struct: { size: 24 }, fields: {
+        name: CjsSchema.meta.struct.SHAREDSTRING_1(0), value: CjsSchema.meta.struct.FLOAT32_4(8)
+    } });
     CjsSchema.define(Scene, { className: "EveSpaceScene", members: [
         member("backgroundEffect", "objectRef"), member("backgroundRenderingEnabled", "boolean"),
         ...["envMapResPath", "envMap1ResPath", "lowQualityNebulaResPath", "lowQualityNebulaMixResPath", "envMap2ResPath"].map(name => member(name, "string")),
@@ -279,7 +278,7 @@ test("complete scene graphs decode with explicit baseless test classes and canon
     CjsSchema.define(Effect, { className: "Tr2Effect", members: [
         member("effectFilePath", "string"),
         member("resources", "list", { type: { kind: "list", itemType: { kind: "objectRef", className: "TriTextureParameter" } } }),
-        member("constParameters", "list", { type: { kind: "list", itemType: { kind: "rawStruct", className: "Tr2ConstantEffectParameter" }, structure } })
+        member("constParameters", "list", { type: { kind: "list", itemType: { kind: "rawStruct", className: "Tr2ConstantEffectParameter" } } })
     ] });
     CjsSchema.define(Texture, { className: "TriTextureParameter", members: [member("name", "string"), member("resourcePath", "path")] });
     const verify = bytes =>

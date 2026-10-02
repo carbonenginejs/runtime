@@ -95,6 +95,21 @@ export { CJS_CLASS_NAME };
  */
 export const CJS_MODEL_BRAND = Symbol.for("carbonenginejs.model");
 
+// Be::BlueStructureDataType storage used by native BlueStructureDefinition.
+const STRUCT_TYPES = {
+    UINT32_1: ["uint32", "uint32", 4, 4],
+    FLOAT32_1: ["float32", "float32", 4, 4],
+    FLOAT32_3: ["vec3", "vector3", 12, 4],
+    FLOAT32_4: ["vec4", "vector4", 16, 4],
+    INT32_1: ["int32", "int32", 4, 4],
+    SHAREDSTRING_1: ["string", "string", 8, 8],
+    USHORT_1: ["uint16", "uint16", 2, 2],
+    UBYTE_1: ["uint8", "uint8", 1, 1],
+    BOOL8_1: ["boolean", "boolean", 1, 1],
+    SHORT_1: ["int16", "int16", 2, 2],
+    BYTE_1: ["int8", "int8", 1, 1]
+};
+
 /**
  * Reusable schema/decorator metadata surface.
  *
@@ -693,13 +708,9 @@ export class CjsSchema
      */
     static type = {
         /**
-         * Declares an array with optional verified native layout facts (name,
-         * byte size and member offsets). Preserves structure verbatim; readers
-         * own format-specific validation, and no layout is inferred here.
+         * Declares array item types; native struct layout belongs to the item class.
          */
-        array: (itemType, { structure } = {}) => fieldDecorator("type", {
-            kind: "array", itemType, ...(structure === undefined ? {} : { structure })
-        }),
+        array: (itemType, options) => collectionDecorator("array", itemType, options),
         boolean: fieldDecorator("type", { kind: "boolean" }),
         color: fieldDecorator("type", { kind: "color" }),
         define: definition => classDefinitionDecorator(definition),
@@ -711,13 +722,9 @@ export class CjsSchema
         int32: fieldDecorator("type", { kind: "int32" }),
         int64: fieldDecorator("type", { kind: "int64" }),
         /**
-         * Declares a list with optional verified native layout facts (name,
-         * byte size and member offsets). Preserves structure verbatim; readers
-         * own format-specific validation, and no layout is inferred here.
+         * Declares list item types; native struct layout belongs to the item class.
          */
-        list: (itemType, { structure } = {}) => fieldDecorator("type", {
-            kind: "list", itemType, ...(structure === undefined ? {} : { structure })
-        }),
+        list: (itemType, options) => collectionDecorator("list", itemType, options),
         mat3: fieldDecorator("type", { kind: "mat3" }),
         mat4: fieldDecorator("type", { kind: "mat4" }),
         map: valueType => fieldDecorator("type", { kind: "map", valueType }),
@@ -998,6 +1005,7 @@ export class CjsSchema
         lifecycle: this.lifecycle,
         jessica: this.jessica,
         compose: this.compose,
+        struct: createStructNamespace(),
         member: (name, options) => declarationDecorator("member", name, options),
         property: (name, options) => declarationDecorator("property", name, options),
         define: this.type.define,
@@ -1005,6 +1013,99 @@ export class CjsSchema
     };
 
     static components = createComponentsNamespace();
+}
+
+
+/** Collection layouts are owned by the registered item class. */
+function collectionDecorator(kind, itemType, options)
+{
+    if (options && Object.hasOwn(options, "structure"))
+    {
+        throw new TypeError("Inline structure layouts are removed; use meta.struct on the item class.");
+    }
+    return fieldDecorator("type", { kind, itemType });
+}
+
+/**
+ * Describes native struct offsets without installing instance behavior.
+ * Apply struct.define before class registration (below meta.define in source).
+ * @impl custom JavaScript holds BlueStructureDefinition on its class info.
+ */
+function createStructNamespace()
+{
+    const result = {
+        define: ({ size } = {}) => function defineStruct(Constructor)
+        {
+            RejectAfterRegistration(Constructor, "structure size");
+            getOrCreateClassSchema(Constructor).structureSize = size;
+        }
+    };
+    for (const dataType of Object.keys(STRUCT_TYPES))
+    {
+        result[dataType] = offset => fieldDecorator("struct", { dataType, offset });
+    }
+    return result;
+}
+
+/**
+ * Builds the one canonical native layout during class registration.
+ * Carbon binds static BlueStructureDefinition arrays to list instances
+ * (blueexposure/include/IBlueStructureList.h:116). JavaScript instead stores
+ * this description on CjsClassInfo so the resource reader needs no domain import.
+ * @impl custom Class-owned layout metadata is a JavaScript extension.
+ */
+function buildStructureDefinition(schema)
+{
+    const members = [];
+    const className = schema.className;
+    for (const { entry } of schema.declarations)
+    {
+        if (entry.type?.structure !== undefined)
+        {
+            throw new TypeError(className + "." + entry.name + ": inline structure layouts are removed");
+        }
+        if (!entry.struct) continue;
+        const { dataType, offset } = entry.struct;
+        const storage = STRUCT_TYPES[dataType];
+        const fail = reason => { throw new TypeError(className + "." + entry.name + ": " + reason); };
+        if (!storage) fail("unsupported structure data type " + dataType);
+        const [kind, wireType, width, alignment] = storage;
+        if (!Number.isSafeInteger(offset) || offset < 0) fail("struct offset must be a non-negative integer");
+        if (!Number.isSafeInteger(schema.structureSize) || schema.structureSize <= 0) fail("struct requires a positive integer size");
+        if (offset % alignment) fail("misaligned struct offset for " + dataType);
+        if (offset + width > schema.structureSize) fail("struct member ends outside size");
+        if (entry.role !== "member") fail("struct storage must be a member");
+        if (entry.type && !(dataType === "FLOAT32_4" && ["color", "quat"].includes(entry.type.kind)))
+        {
+            fail("incompatible or repeated schema type " + entry.type.kind + " for " + dataType);
+        }
+        if (entry.enum && !["uint32", "int32", "uint16", "int16", "uint8", "int8"].includes(kind))
+        {
+            fail("enum requires integer struct storage");
+        }
+        entry.type ||= { kind };
+        members.push({ name: entry.name, offset, dataType,
+            type: entry.type.kind === "quat" ? "quaternion" : entry.type.kind === "color" ? "color" : wireType,
+            width });
+    }
+    if (!members.length)
+    {
+        if (Object.hasOwn(schema, "structureSize")) throw new TypeError(className + ".<struct>: struct requires members");
+        return;
+    }
+    members.sort((left, right) => left.offset - right.offset);
+    let end = 0;
+    for (const member of members)
+    {
+        if (member.offset < end) throw new TypeError(className + "." + member.name + ": overlapping struct members");
+        end = member.offset + member.width;
+    }
+    schema.structureDefinition = {
+        name: className, size: schema.structureSize,
+        members: members.map(({ width, ...member }) => member),
+        boundaries: members.map(member => member.offset + member.width)
+    };
+    refreshLegacyFields(schema);
 }
 
 function captureFieldInitialDefault(Constructor, fieldName, initialValue, declarationMetadata = null)
@@ -1901,6 +2002,7 @@ function defineClassMetadata(Constructor, definition)
             configurable: true
         });
     }
+    if (definition.struct) schema.structureSize = definition.struct.size;
     if (definition.family) schema.family = definition.family;
     if (definition.purpose) schema.purpose = definition.purpose;
     if (definition.sourceClass) schema.sourceClass = definition.sourceClass;
@@ -1922,6 +2024,7 @@ function defineClassMetadata(Constructor, definition)
         defineManualMemberMetadata(Constructor, "methods", method);
     }
 
+    buildStructureDefinition(schema);
     registerClassMetadata(Constructor, schema);
     sealClassSchema(Constructor, schema);
 }
@@ -2337,6 +2440,7 @@ function mergeMemberMetadata(target, source)
  * @property {Array<object>} properties Live declarations, derived class first, without name merging.
  * @property {Array<object>} [methods] Method provenance metadata.
  * @property {string} [family] Registered schema family.
+ * @property {object} [structureDefinition] Native struct offsets and stride. @impl JavaScript class-info extension.
  * @property {boolean} [abstract] This class's explicit registration policy, never inherited. Existing name registrations may retain another factory.
  */
 function buildClassInfo(Constructor, namespaces)
@@ -2374,6 +2478,8 @@ function buildClassInfo(Constructor, namespaces)
         properties: getCanonicalDeclarations(Constructor, "property").map(entry =>
             enrichEnumField(exportCanonicalDeclaration(entry, namespaces), entry.declaringClass))
     };
+
+    if (schema?.structureDefinition) result.structureDefinition = schema.structureDefinition;
 
     const family = schema?.family || CjsSchema.getClassFamily(Constructor);
     if (family)

@@ -25,25 +25,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    */
   @edit.read
   @edit.persist
-  @type.array({ kind: "rawStruct", className: "Tr2CurveQuaternionKey" }, {
-    structure: {
-      name: "Tr2CurveQuaternionKey",
-      size: 24,
-      // Tr2CurveQuaternion.cpp:11-17: quaternion storage is four float32s.
-      members: [
-        { name: "time", offset: 0, type: "float32" },
-        { name: "value", offset: 4, type: "quaternion" },
-        { name: "id", offset: 20, type: "uint16" },
-        { name: "interpolation", offset: 22, type: "uint16" }
-      ],
-      // Native records have the exact stride above. The existing JS extension
-      // accepts shorter records only at member boundaries and fills missing
-      // trailing fields with these defaults; each missing quaternion is copied.
-      // Defaults match s_defaultKey in Tr2CurveQuaternion.cpp:19.
-      boundaries: [4, 20, 22, 24],
-      defaults: { time: 0, value: [0, 0, 0, 1], id: 0, interpolation: Tr2CurveInterpolation.LINEAR }
-    }
-  })
+  @type.array({ kind: "rawStruct", className: "Tr2CurveQuaternionKey" })
   keys = [];
 
   /**

@@ -1,3 +1,5 @@
+import { structClassLayout } from "./blackClassStructures.js";
+
 /**
  * Registry that normalizes caller-supplied schemas into per-class source
  * shapes the Black reader uses to resolve persisted fields.
@@ -93,18 +95,15 @@ export class CjsBlackSchemaRegistry
         {
             let itemType = kind === "map" ? type.valueType : type.itemType;
             // Legacy list("Class") is a reference collection. Raw structure
-            // lists must instead declare rawStruct plus their native ABI layout.
+            // lists must instead declare rawStruct with a registered struct class.
             if (typeof itemType === "string") itemType = { kind: "objectRef", className: itemType };
             if (typeof itemType === "function") itemType = { kind: "objectRef", className: itemType };
             if (itemType?.kind === "rawStruct" && kind !== "map")
             {
-                if (!type.structure)
-                {
-                    throw new TypeError("Canonical Black structure list requires a native structure layout");
-                }
-                CjsBlackSchemaRegistry.validateDeclaredStructure(type.structure);
+                if (Object.hasOwn(type, "structure")) throw new TypeError("Inline structure layouts are removed; use meta.struct on the item class.");
+                const structure = structClassLayout(itemType.className);
                 return CjsBlackSchemaRegistry.compactBlackType("IROOT", { kind: "array" }, {
-                    container: "list", cppType: "StructureList", structure: type.structure
+                    container: "list", cppType: "StructureList", structure
                 });
             }
             if (![ "model", "objectRef", "weakRef" ].includes(itemType?.kind))
@@ -117,39 +116,6 @@ export class CjsBlackSchemaRegistry
             }, { container: kind === "map" ? "dict" : kind === "set" ? "set" : "list" });
         }
         throw new TypeError(`Unsupported canonical Black type: ${kind || "missing"}`);
-    }
-
-    /**
-     * Checks explicit native record offsets before using the existing codec.
-     * String slots are 8-byte BlueSharedString storage in the supported 64-bit
-     * Black ABI; their wire table reference occupies the first two bytes.
-     *
-     * @param {object} structure Verified native structure layout.
-     * @returns {void}
-     * @impl adapted JavaScript cannot derive C++ sizeof or member offsets.
-     */
-    static validateDeclaredStructure(structure)
-    {
-        const sizes = {
-            string: 8, float32: 4, float64: 8, int8: 1, uint8: 1,
-            int16: 2, uint16: 2, int32: 4, uint32: 4, int64: 8, uint64: 8,
-            vector2: 8, vector3: 12, vector4: 16, color: 16,
-            quaternion: 16, matrix3: 36, matrix4: 64
-        };
-        if (!structure.name || !Number.isInteger(structure.size) || structure.size <= 0
-            || !Array.isArray(structure.members) || !structure.members.length)
-        {
-            throw new TypeError("Canonical Black structure requires name, positive native size and members");
-        }
-        for (const member of structure.members)
-        {
-            const size = sizes[member.type];
-            if (!member.name || !size || !Number.isInteger(member.offset) || member.offset < 0
-                || member.offset + size > structure.size)
-            {
-                throw new TypeError(`Invalid canonical Black structure member ${structure.name}.${member.name}`);
-            }
-        }
     }
 
     /** Creates a CjsBlackSchemaRegistry with caller-provided initial state. */

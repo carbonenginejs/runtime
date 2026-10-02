@@ -201,29 +201,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
    */
   @edit.read
   @edit.persist
-  @type.array({ kind: "rawStruct", className: "Tr2CurveScalarKey" }, {
-    structure: {
-      name: "Tr2CurveScalarKey",
-      size: 20,
-      // Tr2CurveScalar.cpp:12-20, matching Tr2CurveScalar.h's native key.
-      members: [
-        { name: "time", offset: 0, type: "float32" },
-        { name: "value", offset: 4, type: "float32" },
-        { name: "leftTangent", offset: 8, type: "float32" },
-        { name: "rightTangent", offset: 12, type: "float32" },
-        { name: "id", offset: 16, type: "uint16" },
-        { name: "interpolation", offset: 18, type: "uint8" },
-        { name: "tangentType", offset: 19, type: "uint8" }
-      ],
-      // Native records have the exact stride above. The existing JS extension
-      // accepts shorter records only at member boundaries and fills missing
-      // trailing fields with these defaults, matching s_defaultKey in
-      // Tr2CurveScalar.cpp:23 and the maintained key class.
-      boundaries: [4, 8, 12, 16, 18, 19, 20],
-      defaults: { time: 0, value: 0, leftTangent: 0, rightTangent: 0, id: 0,
-        interpolation: Tr2CurveInterpolation.HERMITE, tangentType: Tr2CurveTangentType.AUTO_CLAMP }
-    }
-  })
+  @type.array({ kind: "rawStruct", className: "Tr2CurveScalarKey" })
   keys = [];
 
   /**

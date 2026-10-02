@@ -29,7 +29,7 @@ test("sampler override record follows unsigned native structure fields and defau
   }
   assert.deepEqual(names.map(name => row[name]), ["", 1, 1, 1, 2, 2, 0, 0, 4]);
   assert.equal(CjsSchema.getField(Tr2SamplerOverride, "sampler"), null);
-  assert.equal(Tr2SamplerOverride.byteSize, 56);
+  assert.equal(CjsSchema.getSchema(Tr2SamplerOverride).structureDefinition.size, 56);
 });
 
 test("sampler data retains opaque AL value semantics without resource traversal", () =>
