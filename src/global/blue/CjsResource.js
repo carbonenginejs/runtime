@@ -161,12 +161,18 @@ export class CjsResource
   }
 
   /**
-   * Initialize the resource identity from a path and optional extension.
+   * `IBlueResource::Initialize` (`blue/include/IBlueResource.h:14`): sets the
+   * resource identity from a path and optional extension.
    *
-   * @param {string} path
-   * @param {string|null} ext
-   * @param {string|null} requirement
-   * @returns {CjsResource}
+   * Adapted: adds a third `requirement` argument, the lowercase semantic
+   * outcome the caller asked for, which selects the resource class
+   * (`CjsResMan.RegisterResourceType`); it also resets state and error and
+   * returns this resource, where Carbon's returns void.
+   *
+   * @param {string} path Resource path.
+   * @param {string|null} [ext] Extension override; derived from the path when absent.
+   * @param {string|null} [requirement] Semantic requirement; normalized to lowercase.
+   * @returns {CjsResource} This resource.
    */
   Initialize(path, ext = null, requirement = "") {
     this.path = normalizeResourcePath(path);
