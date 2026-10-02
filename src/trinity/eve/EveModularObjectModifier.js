@@ -5,7 +5,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { EveChildPartData, EveChildPartDataPartData } from "./child/EveChildPartData/index.js";
 import { EveChildInstancedMeshes } from "./child/EveChildInstancedMeshes/index.js";
 import { EveStation2 } from "./spaceObject/EveStation2.js";
@@ -26,11 +26,18 @@ export class EveModularObjectModifier
 
   _objectLoader = null;
 
+  /** Serializes asynchronous hull/resource edits across sessions on one owner. */
+  static _pendingEdits = new WeakMap();
+
   /** Opens an edit session and creates persistent part data when absent. */
   @meta.blue.method
   @meta.adapted
   Create(object, sof, objectLoader = null)
   {
+    if (this._object && EveModularObjectModifier._pendingEdits.has(this._object))
+    {
+      throw new Error("Cannot replace a modular edit session while an edit is pending.");
+    }
     this._object = object;
     this._sof = sof;
     this._objectLoader = objectLoader;
@@ -45,16 +52,31 @@ export class EveModularObjectModifier
     return this;
   }
 
-  /** Builds and attaches one SOF hull part, returning its unique part tag. */
+  /**
+   * Builds and attaches one SOF hull part, returning its unique part tag.
+   * Adapted: async SOF acquisition requires serialization per owner so IDs
+   * and composed graphs cannot be overwritten by concurrent edit sessions.
+   */
   @meta.blue.method
-  @meta.implemented
-  AddHull(hullName, factionName, raceName, position, rotation, scale)
+  @meta.adapted
+  async AddHull(hullName, factionName, raceName, position, rotation, scale)
+  {
+    // Preserve the call's transform while preceding edits or resources await.
+    const savedPosition = Array.from(position);
+    const savedRotation = Array.from(rotation);
+    const savedScale = Array.from(scale);
+    return this._QueueEdit(() => this._AddHull(hullName, factionName, raceName, savedPosition, savedRotation, savedScale));
+  }
+
+  /** Completes one serialized native hull edit after awaiting its SOF build. */
+  @meta.adapted
+  async _AddHull(hullName, factionName, raceName, position, rotation, scale)
   {
     this._AssertReady();
     const id = this._AllocatePartId();
     const dna = `${hullName}:${factionName || this._data.faction}:${raceName || this._data.race}`;
     const transform = mat4.fromRotationTranslationScale(mat4.create(), rotation, position, scale);
-    if (!this._sof.BuildChild(this._object, dna, id, transform))
+    if (!await this._sof.BuildChild(this._object, dna, id, transform))
     {
       return EveModularObjectModifier.INVALID_PART_TAG;
     }
@@ -83,10 +105,24 @@ export class EveModularObjectModifier
     return id;
   }
 
-  /** Loads and attaches one resource child, returning its unique part tag. */
+  /**
+   * Loads and attaches one resource child, returning its unique part tag.
+   * Adapted: promise-capable browser acquisition shares the owner's edit order.
+   */
   @meta.blue.method
   @meta.adapted
-  AddChild(resourcePath, position, rotation, scale)
+  async AddChild(resourcePath, position, rotation, scale)
+  {
+    // Preserve the call's transform while preceding edits or resources await.
+    const savedPosition = Array.from(position);
+    const savedRotation = Array.from(rotation);
+    const savedScale = Array.from(scale);
+    return this._QueueEdit(() => this._AddChild(resourcePath, savedPosition, savedRotation, savedScale));
+  }
+
+  /** Completes one serialized child load before updating tags, records and bounds. */
+  @meta.adapted
+  async _AddChild(resourcePath, position, rotation, scale)
   {
     this._AssertReady();
     if (!this._objectLoader)
@@ -94,7 +130,7 @@ export class EveModularObjectModifier
       throw new Error("EveModularObjectModifier.AddChild requires a CjsEveChildResourceLoader.");
     }
 
-    const child = this._objectLoader.LoadChild(String(resourcePath), this._object);
+    const child = await this._objectLoader.LoadChild(String(resourcePath), this._object);
     if (!child) return EveModularObjectModifier.INVALID_PART_TAG;
 
     child.Setup(scale, rotation, position, Tr2Lod.TR2_LOD_LOW);
@@ -111,6 +147,28 @@ export class EveModularObjectModifier
     this._object.InvalidateMergedLocators("structure");
     this.ApplyBounds();
     return id;
+  }
+
+  /**
+   * Serializes asynchronous edits without retaining rejected operations.
+   * Custom: native edits cannot suspend, while JS must allocate a tag and
+   * read the current owner only after preceding edits have finished.
+   */
+  @meta.ours
+  _QueueEdit(edit)
+  {
+    this._AssertReady();
+    const owner = this._object;
+    const pending = EveModularObjectModifier._pendingEdits;
+    const previous = pending.get(owner) ?? Promise.resolve();
+    const operation = previous.then(() => edit());
+    const settled = operation.then(() => undefined, () => undefined);
+    pending.set(owner, settled);
+    settled.then(() =>
+    {
+      if (pending.get(owner) === settled) pending.delete(owner);
+    });
+    return operation;
   }
 
   /** Removes a modular part and every child carrying its tag. */
@@ -256,6 +314,13 @@ export class EveModularObjectModifier
   /** Throws until the modifier has an object, part data and SOF service. */
   _AssertReady()
   {
+    // Another session's SOF composition can replace nested record identities.
+    // Every read and mutation must use the owner's current graph.
+    if (this._object)
+    {
+      this._data = this._object.effectChildren.find(child => CjsSchema.cast(child, EveChildPartData)) ?? null;
+      this._instancedMeshes = this._object.effectChildren.find(child => CjsSchema.cast(child, EveChildInstancedMeshes)) ?? null;
+    }
     if (!this._object || !this._data || !this._sof)
     {
       throw new Error("EveModularObjectModifier.Create must be called before editing.");
@@ -296,9 +361,10 @@ export class EveModularObjectModifier
 }
 
 
-/** Creates an empty modular station plus its edit session. */
-export function CreateModularObject(sof, factionName = "", raceName = "", objectLoader = null)
+/** Creates an empty modular station after the injected SOF catalog is ready. */
+export async function CreateModularObject(sof, factionName = "", raceName = "", objectLoader = null)
 {
+  await sof.InitializeAsync();
   const object = new EveStation2();
   const data = new EveChildPartData();
   data.faction = String(factionName);

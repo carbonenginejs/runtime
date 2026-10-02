@@ -1761,7 +1761,7 @@ const demoScenes = new WeakMap();
  */
 async function BuildSofShip(dna)
 {
-  const sof = new EveSOF().Register({
+  const sof = (await new EveSOF().Register({
     lazyData: {
       source: path => ResourceBytes(String(path).replace(/^res:\/+/u, "")),
       // The file index, once composed: a material it does not list is absent,
@@ -1784,7 +1784,7 @@ async function BuildSofShip(dna)
     // empty, EveSOF.cpp:64-65, and the client fills it): the one generic
     // booster trail mesh in the client's resources.
     volumetricTrailPath: "res:/dx9/model/ship/booster/volumetrictrail.gr2"
-  });
+  }));
 
   await sof.InitializeAsync();
   // Inserts need BePaths, so the build waits for it (about 0.3 s). The 15 s cap
@@ -1795,13 +1795,13 @@ async function BuildSofShip(dna)
   ]);
   if (!composed) console.warn(`BePaths still loading from ${bePathsUrl} after 15 s; ${dna} is built without resPathInserts.`);
   const values = await sof.BuildValuesFromDNAAsync(dna);
-  const diagnostics = sof.GetBuildDiagnostics();
+  const diagnostics = await sof.GetBuildDiagnostics();
   if (diagnostics?.length) console.warn(`SOF ${dna}: ${JSON.stringify(diagnostics).slice(0, 400)}`);
   // The client starts a loaded ship's controllers (EveSpaceObject2::
   // StartControllers, cpp:4318, reaching every effect child); unstarted, no
   // state machine runs, so speed readouts, heat and state effects never show.
   const root = hydrateDemoShip(values);
-  const hull = sof.dataMgr.GetHullData(String(dna).split(":")[0]);
+  const hull = await sof.GetHullData(String(dna).split(":")[0]);
   demoScenes.set(root, selectDemoScene(hull, SCENE_UNIVERSE, path => bePathsReady && blue.paths.FileExists(path)));
   return root;
 }

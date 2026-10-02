@@ -143,7 +143,7 @@ test("real gc3_t1 SOF ship prepares direct instance providers without an abstrac
     assert.equal(response.ok, true, `${path}: HTTP ${response.status}`);
     return new Uint8Array(await response.arrayBuffer());
   };
-  const sof = new EveSOF().Register({
+  const sof = (await new EveSOF().Register({
     lazyData: { source: bytes },
     resources: { getObject: async path =>
     {
@@ -151,7 +151,7 @@ test("real gc3_t1 SOF ship prepares direct instance providers without an abstrac
       return (read.root ?? read).object ?? null;
     } },
     volumetricTrailPath: "res:/dx9/model/ship/booster/volumetrictrail.gr2"
-  });
+  }));
   await sof.InitializeAsync();
   const values = await sof.BuildValuesFromDNAAsync("gc3_t1:gallentebase:gallente");
   const ship = CjsSchema.from("EveShip2", values);

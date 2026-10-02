@@ -462,7 +462,7 @@ export class EveSOF
    * @throws {TypeError} for a malformed option value.
    */
   @meta.ours
-  Register(options = {})
+  async Register(options = {})
   {
     if (!options || typeof options !== "object" || Array.isArray(options))
     {
@@ -522,7 +522,7 @@ export class EveSOF
       }
       else if (lazyData instanceof CjsSofLibraryBuilder)
       {
-        this.SetSofLibraryBuilder(lazyData);
+        await this.SetSofLibraryBuilder(lazyData);
       }
       else
       {
@@ -540,7 +540,7 @@ export class EveSOF
           }
           return getObject(path, { ...context, output: "runtime" });
         });
-        this.SetSofLibraryBuilder(new CjsSofLibraryBuilder({
+        await this.SetSofLibraryBuilder(new CjsSofLibraryBuilder({
           ...builderOptions,
           exists: Object.hasOwn(builderOptions, "exists") ? builderOptions.exists : this._asyncResources.exists,
           dataMgr: this.dataMgr,
@@ -584,17 +584,17 @@ export class EveSOF
       // Carbon's existence-driven path rewriting. Rich tool-owned indexes are
       // adapted to this list/predicate boundary by their composition layer.
       const index = options.resFileIndex;
-      if (index === null) this.SetResourceExistsResolver(null);
+      if (index === null) await this.SetResourceExistsResolver(null);
       else if (Array.isArray(index))
       {
         // The canonical shape: a plain list of res file names, from wherever
         // the caller got them. Existence is case-insensitive membership,
         // matching Carbon's file-system semantics.
         const names = new Set(index.map(name => String(name ?? "").toLowerCase()));
-        this.SetResourceExistsResolver(path => names.has(String(path ?? "").toLowerCase()));
+        await this.SetResourceExistsResolver(path => names.has(String(path ?? "").toLowerCase()));
       }
-      else if (typeof index === "function") this.SetResourceExistsResolver(path => Boolean(index(path)));
-      else if (index instanceof Set || index instanceof Map) this.SetResourceExistsResolver(path => index.has(path));
+      else if (typeof index === "function") await this.SetResourceExistsResolver(path => Boolean(index(path)));
+      else if (index instanceof Set || index instanceof Map) await this.SetResourceExistsResolver(path => index.has(path));
       else throw new TypeError("EveSOF resFileIndex must be an array of file names, a predicate, a Set, a Map, or null");
     }
     if (Object.prototype.hasOwnProperty.call(options, "editorMode"))
@@ -618,7 +618,7 @@ export class EveSOF
   }
 
   /** Supplies the synchronous resource-existence probe used by texture inserts. */
-  SetResourceExistsResolver(resolver)
+  async SetResourceExistsResolver(resolver)
   {
     if (resolver !== null && typeof resolver !== "function")
     {
@@ -652,7 +652,7 @@ export class EveSOF
    * Target is `children` for an EveTransform root or `effectChildren` for an
    * IEveSpaceObjectChild root.
    */
-  SetChildResourceResolver(resolver)
+  async SetChildResourceResolver(resolver)
   {
     if (resolver !== null && typeof resolver !== "function")
     {
@@ -663,7 +663,7 @@ export class EveSOF
   }
 
   /** Supplies synchronous controller and model-curve values or legacy compatibility fragments. */
-  SetObjectResourceResolver(resolver)
+  async SetObjectResourceResolver(resolver)
   {
     if (resolver !== null && typeof resolver !== "function")
     {
@@ -674,7 +674,7 @@ export class EveSOF
   }
 
   /** Installs the nominal partial-catalog builder used by asynchronous DNA builds. */
-  SetSofLibraryBuilder(builder)
+  async SetSofLibraryBuilder(builder)
   {
     if (builder !== null && !(builder instanceof CjsSofLibraryBuilder))
     {
@@ -689,7 +689,7 @@ export class EveSOF
   }
 
   /** Returns the installed partial-catalog builder, or null. */
-  GetSofLibraryBuilder()
+  async GetSofLibraryBuilder()
   {
     return this._sofLibraryBuilder;
   }
@@ -794,10 +794,21 @@ export class EveSOF
     return operation;
   }
 
-  /** Creates and resolves one DNA instance against the loaded SOF library. */
+  /**
+   * Creates a DNA selection after acquiring its catalog closure.
+   * Adapted: Carbon starts with a monolithic catalog; JS callers await readiness.
+   */
   @meta.blue.method
-  @meta.implemented
-  CreateDna(dnaString)
+  @meta.adapted
+  async CreateDna(dnaString, options = {})
+  {
+    if (!await this._EnsureDnaData(dnaString, options)) return null;
+    return this._CreateDna(dnaString);
+  }
+
+  /** Resolves Carbon's DNA against prepared data during synchronous assembly. */
+  @meta.adapted
+  _CreateDna(dnaString)
   {
     const dna = new EveSOFDNA();
     dna.Setup(dnaString, this.dataMgr);
@@ -818,9 +829,9 @@ export class EveSOF
    * whose visibility group is enabled.
    */
   @meta.ours
-  GetDnaVisibilityGroups(dnaString)
+  async GetDnaVisibilityGroups(dnaString, options = {})
   {
-    const dna = this.CreateDna(dnaString);
+    const dna = await this.CreateDna(dnaString, options);
     if (dna === null) return null;
 
     const declared = [...new Set(dna.factionData?.visibilityGroups ?? [])];
@@ -868,9 +879,11 @@ export class EveSOF
     };
   }
 
-  /** Inspects one DNA selection without creating a graph or runtime values. */
-  InspectDna(dnaString)
+  /** Inspects a DNA selection after awaiting its catalog, without building a graph. */
+  @meta.ours
+  async InspectDna(dnaString, options = {})
   {
+    await this._EnsureDnaData(dnaString, options);
     const dna = new EveSOFDNA();
     dna.Setup(dnaString, this.dataMgr);
     const buildable = dna.IsValid();
@@ -882,12 +895,15 @@ export class EveSOF
     };
   }
 
-  /** Performs Carbon's separate slow/offline DNA validation path. */
+  /**
+   * Performs Carbon's separate slow/offline DNA validation after data acquisition.
+   * Adapted: asynchronous catalogs must be ready before native validation runs.
+   */
   @meta.blue.method
-  @meta.implemented
-  ValidateDNA(dnaString)
+  @meta.adapted
+  async ValidateDNA(dnaString, options = {})
   {
-    const dna = this.CreateDna(dnaString);
+    const dna = await this.CreateDna(dnaString, options);
     return dna !== null && dna.ValidateContent();
   }
 
@@ -901,16 +917,16 @@ export class EveSOF
    */
   @meta.blue.method
   @meta.adapted
-  Build(hullName, factionName, raceName)
+  async Build(hullName, factionName, raceName, options = {})
   {
-    return this.BuildFromDNA(`${hullName}:${factionName}:${raceName}`);
+    return this.BuildFromDNA(`${hullName}:${factionName}:${raceName}`, options);
   }
 
   /**
    * Promise-facing legacy `carbon.document` compatibility form.
    * @deprecated Use BuildValuesAsync(...).
    */
-  BuildAsync(hullName, factionName, raceName, options = {})
+  async BuildAsync(hullName, factionName, raceName, options = {})
   {
     return this.BuildFromDNAAsync(`${hullName}:${factionName}:${raceName}`, options);
   }
@@ -919,21 +935,21 @@ export class EveSOF
    * Returns shallow copies of accumulated build diagnostics.
    * BuildFromDNA resets the collection; modular-child builds can append to it.
    *
-   * @returns {object[]} Diagnostic records with nested values retained.
+   * @returns {Promise<object[]>} Diagnostic records with nested values retained.
    */
-  GetBuildDiagnostics()
+  async GetBuildDiagnostics()
   {
     return this._buildDiagnostics.map(entry => ({ ...entry }));
   }
 
   /** Builds the supported public model-values graph from three selections. */
-  BuildValues(hullName, factionName, raceName, options = {})
+  async BuildValues(hullName, factionName, raceName, options = {})
   {
     return this.BuildValuesFromDNA(`${hullName}:${factionName}:${raceName}`, options);
   }
 
   /** Builds the supported public model-values graph asynchronously. */
-  BuildValuesAsync(hullName, factionName, raceName, options = {})
+  async BuildValuesAsync(hullName, factionName, raceName, options = {})
   {
     return this.BuildValuesFromDNAAsync(`${hullName}:${factionName}:${raceName}`, options);
   }
@@ -965,9 +981,9 @@ export class EveSOF
    * ordinary declared data, an `AudEmitter` node in
    * `TriObserverLocal.observer`, so either form is a complete rebuild source.
    */
-  BuildValuesFromDNA(dnaString, options = {})
+  async BuildValuesFromDNA(dnaString, options = {})
   {
-    const document = this.BuildFromDNA(dnaString, options);
+    const document = await this.BuildFromDNA(dnaString, options);
     return document ? EveSOF.projectDocumentValues(document, options) : null;
   }
 
@@ -987,19 +1003,36 @@ export class EveSOF
    * @param {number} partTag Value coerced and validated as a uint32 part tag.
    * @param {ArrayLike<number>} [transform] Placement matrix; defaults to identity.
    * @param {object} [options={}] Layout/projection options; hydration and registry options are forwarded to SetValues.
-   * @returns {boolean} Whether the composed values were applied.
+   * @returns {Promise<boolean>} Whether the composed values were applied.
    * @throws {TypeError|RangeError} If the owner, part tag or transform is invalid; downstream build and hydration errors also propagate.
    */
   @meta.blue.method
   @meta.adapted
-  BuildChild(owner, dnaString, partTag, transform = identityMatrix(), options = {})
+  async BuildChild(owner, dnaString, partTag, transform = identityMatrix(), options = {})
+  {
+    transform = normalizePlacementTransform(transform);
+    if (!await this._EnsureDnaData(dnaString, options)) return false;
+    return this._ResolveResources(
+      () => this._BuildChild(owner, dnaString, partTag, transform, options),
+      () => this._BuildChild(owner, dnaString, partTag, transform, options, true)
+    );
+  }
+
+  /**
+   * Composes against the current owner only after acquisition. The collection
+   * pass computes dependencies without publishing values or mutating the owner.
+   * Adapted: JS values composition replaces native in-place object assembly.
+   */
+  @meta.adapted
+  _BuildChild(owner, dnaString, partTag, transform, options, collectOnly = false)
   {
     const isModel = owner != null && CjsSchema.GetConstructor(CjsSchema.getClassName(owner.constructor)) === owner.constructor;
     const source = isModel
       ? CjsSchema.getValues(owner, {}, { refs: true, forceTypeTags: true })
       : owner;
-    const values = this.BuildChildValues(source, dnaString, partTag, transform, options);
+    const values = this._BuildChildValues(source, dnaString, partTag, transform, options);
     if (!values) return false;
+    if (collectOnly) return true;
 
     if (isModel)
     {
@@ -1030,17 +1063,26 @@ export class EveSOF
    * @param {number} partTag Value coerced and validated as a uint32 part tag.
    * @param {ArrayLike<number>} [transform] Sixteen finite matrix values; defaults to identity.
    * @param {object} [options={}] Layout and values-projection options.
-   * @returns {object|null} New mutable values, or null for invalid DNA.
+   * @returns {Promise<object|null>} New mutable values, or null for invalid DNA.
    * @throws {TypeError|RangeError} If the owner, part tag or transform is invalid; downstream build errors also propagate.
    */
   @meta.ours
-  BuildChildValues(ownerValues, dnaString, partTag, transform = identityMatrix(), options = {})
+  async BuildChildValues(ownerValues, dnaString, partTag, transform = identityMatrix(), options = {})
+  {
+    transform = normalizePlacementTransform(transform);
+    if (!await this._EnsureDnaData(dnaString, options)) return null;
+    return this._ResolveResources(() => this._BuildChildValues(ownerValues, dnaString, partTag, transform, options));
+  }
+
+  /** Composes prepared modular hull values synchronously for both resolver passes. */
+  @meta.ours
+  _BuildChildValues(ownerValues, dnaString, partTag, transform, options)
   {
     if (!ownerValues || typeof ownerValues !== "object" || Array.isArray(ownerValues))
     {
       throw new TypeError("EveSOF.BuildChildValues requires a self-describing space-object values root");
     }
-    const dna = this.CreateDna(dnaString);
+    const dna = this._CreateDna(dnaString);
     if (!dna) return null;
 
     const tag = normalizePartTag(partTag);
@@ -1071,8 +1113,7 @@ export class EveSOF
   /** Supported async values build; dependency collection currently reuses the deprecated internal document builder. */
   async BuildValuesFromDNAAsync(dnaString, options = {})
   {
-    const document = await this.BuildFromDNAAsync(dnaString, options);
-    return document ? EveSOF.projectDocumentValues(document, options) : null;
+    return this.BuildValuesFromDNA(dnaString, options);
   }
 
   /**
@@ -1090,7 +1131,7 @@ export class EveSOF
    * (`Create`, not `from` - CjsSchema.from is the schema hydration contract
    * and keeps its signature.)
    */
-  static Create({ black, resFileIndex } = {})
+  static async Create({ black, resFileIndex } = {})
   {
     if (black === undefined || black === null)
     {
@@ -1113,7 +1154,7 @@ export class EveSOF
     // Carbon does. `resFileIndex` is the temporary host adapter (see Register).
     if (resFileIndex !== undefined && resFileIndex !== null)
     {
-      sof.Register({ resFileIndex });
+      await sof.Register({ resFileIndex });
     }
     return sof;
   }
@@ -1188,14 +1229,45 @@ export class EveSOF
   @meta.ours
   async BuildFromDNAAsync(dnaString, options = {})
   {
+    return this.BuildFromDNA(dnaString, options);
+  }
+
+  /**
+   * Acquires data before public DNA operations. Custom: per-file acquisition
+   * replaces Carbon's startup catalog; malformed syntax retains native invalid
+   * results without attempting to fetch nonsensical resource names.
+   */
+  @meta.ours
+  async _EnsureDnaData(dnaString, options)
+  {
     if (this._dataPath) await this.InitializeAsync(options);
     if (this._sofLibraryBuilder)
     {
+      try
+      {
+        CjsSofLibraryBuilder.ParseDnaRequirements(dnaString);
+      }
+      catch (error)
+      {
+        if (error instanceof TypeError) return false;
+        throw error;
+      }
       await this._sofLibraryBuilder.EnsureFromDNA(dnaString, options.catalog ?? {});
     }
+    return true;
+  }
+
+  /**
+   * Runs synchronous collection and assembly around awaited dependencies.
+   * Custom: callbacks let ordinary and modular builds share request-local
+   * resolver state; neither callback may suspend while those bindings are set.
+   */
+  @meta.ours
+  async _ResolveResources(build, collect = build)
+  {
     const getObject = this._asyncResources.getObject;
     const exists = this._asyncResources.exists;
-    if (!getObject && !exists) return this.BuildFromDNA(dnaString, options);
+    if (!getObject && !exists) return build();
 
     const documentRequests = new Map();
     const existenceRequests = new Map();
@@ -1231,7 +1303,7 @@ export class EveSOF
           return false;
         };
       }
-      this.BuildFromDNA(dnaString, options);
+      collect();
     }
     finally
     {
@@ -1279,7 +1351,7 @@ export class EveSOF
         this.allowFileCaching = false;
         this._resourceExists = path => existenceResults.get(SofRequestKey(path, "boolean")) === true;
       }
-      return this.BuildFromDNA(dnaString, options);
+      return build();
     }
     finally
     {
@@ -1297,9 +1369,9 @@ export class EveSOF
    * performs selection and placement during assembly, without an equivalent query.
    */
   @meta.ours
-  PlanLayoutFromDNA(dnaString, options = {})
+  async PlanLayoutFromDNA(dnaString, options = {})
   {
-    const dna = this.CreateDna(dnaString);
+    const dna = await this.CreateDna(dnaString, options);
     return dna ? planSofLayouts(dna, options ?? {}) : null;
   }
 
@@ -1317,10 +1389,21 @@ export class EveSOF
    */
   @meta.blue.method
   @meta.adapted
-  BuildFromDNA(dnaString, options = {})
+  async BuildFromDNA(dnaString, options = {})
+  {
+    if (!await this._EnsureDnaData(dnaString, options)) return null;
+    return this._ResolveResources(() => this._BuildFromDNA(dnaString, options));
+  }
+
+  /**
+   * Executes prepared native assembly without suspension. Adapted: produces
+   * the existing intermediate graph instead of constructing Trinity objects.
+   */
+  @meta.adapted
+  _BuildFromDNA(dnaString, options)
   {
     this._buildDiagnostics = [];
-    const dna = this.CreateDna(dnaString);
+    const dna = this._CreateDna(dnaString);
     if (!dna) return null;
 
     const buildClass = dna.GetBuildClass();
@@ -1574,6 +1657,7 @@ export class EveSOF
    * Custom: Extracts extension-root assembly into a document helper with a
    * synthetic solo placement and extension container. Carbon performs this work through
    * BuildFromDNA and CreatePlacement, without a method of this name.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.ours
   SetupExtensionBuild(document, rootFields, dna, layoutOptions = {})
@@ -1656,8 +1740,8 @@ export class EveSOF
    * Adapted: Creates a Tr2Mesh document node and shader-area references instead of
    * allocating a live mesh. Transparent-area records feed depth generation; missing
    * shader records produce build diagnostics.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   CreateMesh(dna, document)
   {
@@ -1683,8 +1767,8 @@ export class EveSOF
    * Adapted: Populates document area-reference arrays and collects transparent-area
    * records for depth generation. Category order and accumulated mesh-index offsets
    * follow Carbon; the method returns true instead of void.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   SetupShaders(dna, document, meshFields, transparent)
   {
@@ -1716,8 +1800,8 @@ export class EveSOF
    * Adapted: Creates mesh-area and effect nodes and returns build records alongside
    * the source count. Missing shaders produce diagnostics; already produced areas are
    * retained while that source contributes zero count. Missing source vectors are empty.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   FillMeshAreaVector(target, batchType, dna, hullIndex, meshIndexOffset, document)
   {
@@ -1770,8 +1854,8 @@ export class EveSOF
    * Adapted: Creates depth-area and effect nodes from transparent-area records
    * instead of copying live objects through Carbon’s class system. The depth effect
    * retains the transparency-resource reference selected by the generic depth shader.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   GenerateDepthFromAreaVector(document, depthAreas, transparentAreas, dna)
   {
@@ -1803,8 +1887,8 @@ export class EveSOF
    *
    * Adapted: Emits mask nodes and fields instead of constructing live masks and
    * calling their Setup method.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   SetupCustomMask(document, rootFields, dna)
   {
@@ -1836,8 +1920,8 @@ export class EveSOF
    *
    * Adapted: Emits decal/effect nodes and staticIndexBuffers for hydration instead
    * of constructing live decals and calling their initialization methods.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   SetupDecalSets(document, rootFields, dna)
   {
@@ -1946,8 +2030,8 @@ export class EveSOF
    * Adapted: Emits effect, emitter and overlay nodes instead of creating live
    * Trinity objects or preparing GPU resources. Space-object initialization derives
    * the damage-locator count after hydration.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   SetupImpactEffects(document, rootFields, dna)
   {
@@ -2029,8 +2113,8 @@ export class EveSOF
    *
    * Adapted: Selects the legacy or SOF6 branch using document field owners in place
    * of live object interfaces.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   SetupEffects(document, objectFields, childOwnerFields, dna, offsets = [identityMatrix()], buildFlags = EveSOFDataHull.BuildFilter.STANDALONE)
   {
@@ -2051,8 +2135,8 @@ export class EveSOF
    * of blocking BeResMan loads. Without a resolver, emits deferred EveChildRef nodes;
    * emitter-rate bindings into unloaded children are diagnosed rather than constructed.
    * Curves and bindings are data for later initialization.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   SetupChildrenAndAnimations(document, objectFields, childOwnerFields, dna, offsets = [identityMatrix()], buildFlags = EveSOFDataHull.BuildFilter.STANDALONE)
   {
@@ -2150,8 +2234,8 @@ export class EveSOF
    * Adapted: Imports resolved child graphs or emits deferred references instead of
    * loading live objects. Placement is stored in node fields; visibility/build filtering
    * and wrong-type early termination follow Carbon.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   SetupEffectChildren(document, objectFields, childOwnerFields, dna, offsets = [identityMatrix()], buildFlags = EveSOFDataHull.BuildFilter.STANDALONE)
   {
@@ -2343,8 +2427,8 @@ export class EveSOF
    * Adapted: Emits TriObserverLocal and AudEmitter nodes with placement and attenuation
    * values instead of constructing and initializing audio interfaces. Hydration and
    * audio realization remain caller-owned.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   SetupAudio(document, rootFields, dna, parentOffset = identityMatrix())
   {
@@ -2402,8 +2486,8 @@ export class EveSOF
    * Adapted: Uses the synchronous resolver for typed controller data. Without a
    * resolver, emits Tr2ControllerReference. Unresolved or incompatible resolved roots
    * are diagnosed and skipped.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   SetupControllers(document, rootFields, dna, buildFlags = EveSOFDataHull.BuildFilter.STANDALONE)
   {
@@ -2421,8 +2505,8 @@ export class EveSOF
    * Adapted: Imports typed curve graphs through the resolver. Without a resolver,
    * emits CjsExternalRef nodes carrying the required interface instead of loading typed
    * resources immediately.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   SetupModelCurves(document, rootFields, dna)
   {
@@ -2446,8 +2530,8 @@ export class EveSOF
    * Adapted: Emits instance rows, bounds, shader descriptions and child nodes instead
    * of allocating runtime instance buffers and preparing effects. Identity/general
    * transform paths retain Carbon’s different auxiliary-matrix orientations.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   SetupInstancedMeshes(document, rootFields, dna, offsets = [identityMatrix()])
   {
@@ -2529,8 +2613,8 @@ export class EveSOF
    * Adapted: Stores the instance layout, rows and bounds in document nodes instead
    * of copying records into Tr2RuntimeInstanceData and uploading them. Empty input
    * returns null.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   CreateInstancedMesh(document, instances, resourcePath)
   {
@@ -2569,8 +2653,8 @@ export class EveSOF
    * within this document; resource and animation realization follow hydration. Ordinary
    * builds omit Carbon’s incrementing per-placement tags; modular builds supply a fixed
    * part tag through buildContext.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   SetupLayout(document, rootFields, dna, options = {}, targetFields = null, buildContext = {})
   {
@@ -2598,7 +2682,7 @@ export class EveSOF
     for (const occurrences of batches)
     {
       const first = occurrences[0];
-      const extensionDna = this.CreateDna(first.dna);
+      const extensionDna = this._CreateDna(first.dna);
       if (!extensionDna) continue;
       if (first.isInstanced) extensionDna.DisableAnimation();
       const transforms = occurrences.map(value => arrayValue(value.transform, identityMatrix()));
@@ -2805,6 +2889,7 @@ export class EveSOF
    * Custom: Extracts shared-mesh area construction from Carbon’s CreatePlacement
    * branches into a document helper. Preserves batch routing, instanced shader options,
    * area ranges and cutout/winding flags.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.ours
   CreateSharedLayoutAreas(document, dna)
@@ -2864,6 +2949,7 @@ export class EveSOF
    *
    * Custom: Combines document mesh/shader construction with emitted instance data
    * for the non-shared instanced branch of Carbon’s CreatePlacement.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.ours
   CreateLayoutInstancedMesh(document, dna, instances)
@@ -2900,8 +2986,8 @@ export class EveSOF
    * Adapted: Emits booster effects, items, trails and locators instead of populating
    * live sets and preparing resources. Multi-hull offsets accumulate; the last hull
    * supplies alwaysOn, and any hull can enable trails.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   SetupBoosters(document, rootFields, dna)
   {
@@ -3051,8 +3137,8 @@ export class EveSOF
    * Adapted: Emits the child booster graph for later hydration and resource
    * preparation. The first hull supplies the drive name, shader path, parameter and
    * texture overrides for the whole set; all hulls contribute items with offsets.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   SetupChildBoosters(document, placementFields, dna)
   {
@@ -3286,8 +3372,8 @@ export class EveSOF
    * Adapted: Emits document nodes in Carbon stage order and uses the presence of
    * externalParameters to select banner-capable roots. The native instanced-placement
    * build flag is a boolean here. Sprite and sprite-line effects share within this call.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   SetupAttachments(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false)
   {
@@ -3316,8 +3402,8 @@ export class EveSOF
    * Adapted: Emits sprite, effect and light descriptors without native resource
    * acquisition or set rebuilding. The supplied sharedEffect carries document-local
    * effect identity, and light timestamps use the injected buildTime.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   SetupSpriteSets(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false, sharedEffect = { ref: null })
   {
@@ -3423,8 +3509,8 @@ export class EveSOF
    *
    * Adapted: Emits effect, texture, spotlight and light descriptors instead of
    * constructing and rebuilding native attachments. Light timestamps use buildTime.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   SetupSpotlightSets(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false)
   {
@@ -3573,8 +3659,8 @@ export class EveSOF
    * Adapted: Emits plane, effect, texture and light descriptors, preserving texture
    * references for light-driven planes without native effect updates or set rebuilding.
    * Light timestamps use the injected buildTime.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   SetupPlaneSets(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false)
   {
@@ -3763,8 +3849,8 @@ export class EveSOF
    * Adapted: Emits sprite-line and per-sprite light descriptors, stores light-profile
    * paths instead of acquiring resources, and uses the supplied document-local effect.
    * Light timestamps use the injected buildTime.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   SetupSpriteLineSets(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false, sharedEffect = { ref: null })
   {
@@ -3892,8 +3978,8 @@ export class EveSOF
    * Adapted: Emits haze and light descriptors without native resource acquisition
    * or set rebuilding. Effects share by path within this call instead of being retained
    * on the EveSOF instance. Light timestamps use the injected buildTime.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   SetupHazeSets(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false)
   {
@@ -4040,8 +4126,8 @@ export class EveSOF
    * effect updates, set rebuilding and parameter initialization are deferred to the
    * consumer. Light timestamps use buildTime. Explicit empty offsets emit no set here;
    * Carbon can retain an empty set and external parameter for visible authored items.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   SetupBanners(document, rootFields, dna, offsets = [identityMatrix()])
   {
@@ -4103,8 +4189,8 @@ export class EveSOF
    * effect updates, set rebuilding and parameter initialization are deferred to the
    * consumer. Light timestamps use buildTime. Explicit empty offsets emit no set here;
    * Carbon can retain an empty set and external parameter for visible authored items.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   SetupBannerSets(document, rootFields, dna, offsets = [identityMatrix()])
   {
@@ -4186,8 +4272,8 @@ export class EveSOF
    * Adapted: Emits flattened light descriptors instead of constructing native lights
    * and calling SetLightData. Timestamps use buildTime; unsupported light kinds and
    * missing colors are skipped without native error logging.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   SetupLights(document, rootFields, dna, offsets = [identityMatrix()])
   {
@@ -4269,8 +4355,8 @@ export class EveSOF
    *
    * Adapted: Appends document references instead of constructing native EveLocator2
    * objects; hull selection and translation offsets follow Carbon.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   SetupLocators(document, rootFields, dna)
   {
@@ -4315,8 +4401,8 @@ export class EveSOF
    * @param {object} document Target document builder.
    * @param {EveSOFDNA} dna Resolved DNA.
    * @returns {object|null} Effect node reference or null.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   CreateArmorDamageEffect(document, dna)
   {
@@ -4342,8 +4428,8 @@ export class EveSOF
    * Adapted: Returns document references for merged locator sets instead of native
    * EveLocatorSets instances. Hull-local positions, authored scale and bone indices
    * remain available to the placement child.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   BuildHullLocalLocatorSets(document, dna)
   {
@@ -4388,8 +4474,8 @@ export class EveSOF
    * Adapted: Emits and merges document locator nodes. Omitted, empty or non-array
    * offsets use one identity placement; Carbon does not populate locators in its explicit
    * empty-offset branch. Optional part tags are normalized to uint32 here.
+   * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.blue.method
   @meta.adapted
   SetupLocatorSets(document, rootFields, dna, offsets = [identityMatrix()], partTag = null)
   {
@@ -4441,6 +4527,96 @@ export class EveSOF
     }
   }
 
+  /** Acquires generic data before returning its normalized projection. */
+  @meta.ours
+  async GetGenericData(options = {})
+  {
+    await this.InitializeAsync(options);
+    return this.dataMgr.GetGenericData();
+  }
+
+  /** Acquires the hull catalog before returning its normalized projection. */
+  @meta.ours
+  async GetHullData(name, options = {})
+  {
+    name = String(name).trim().toLowerCase();
+    await this.InitializeAsync(options);
+    if (this._sofLibraryBuilder)
+    {
+      await this._sofLibraryBuilder.FetchHull(name, options.catalog ?? {});
+    }
+    return this.dataMgr.GetHullData(name);
+  }
+
+  /** Acquires the faction catalog before returning its normalized projection. */
+  @meta.ours
+  async GetFactionData(name, options = {})
+  {
+    name = String(name).trim().toLowerCase();
+    await this.InitializeAsync(options);
+    if (this._sofLibraryBuilder)
+    {
+      const data = await this._sofLibraryBuilder.FetchFaction(name, options.catalog ?? {});
+      await this._sofLibraryBuilder._EnsureFactionDependencies(data, options.catalog ?? {});
+    }
+    return this.dataMgr.GetFactionData(name);
+  }
+
+  /** Acquires the race catalog before returning its normalized projection. */
+  @meta.ours
+  async GetRaceData(name, options = {})
+  {
+    name = String(name).trim().toLowerCase();
+    await this.InitializeAsync(options);
+    if (this._sofLibraryBuilder)
+    {
+      await this._sofLibraryBuilder.FetchRace(name, options.catalog ?? {});
+    }
+    return this.dataMgr.GetRaceData(name);
+  }
+
+  /** Acquires the material catalog before returning its normalized projection. */
+  @meta.ours
+  async GetMaterialData(name, options = {})
+  {
+    name = String(name).trim().toLowerCase();
+    await this.InitializeAsync(options);
+    if (this._sofLibraryBuilder)
+    {
+      await this._sofLibraryBuilder.FetchMaterial(name, options.catalog ?? {});
+    }
+    return this.dataMgr.GetMaterialData(name);
+  }
+
+  /** Acquires the pattern catalog before returning its normalized projection. */
+  @meta.ours
+  async GetPatternData(name, options = {})
+  {
+    name = String(name).trim().toLowerCase();
+    await this.InitializeAsync(options);
+    if (this._sofLibraryBuilder)
+    {
+      await this._sofLibraryBuilder.FetchPattern(name, options.catalog ?? {});
+    }
+    return this.dataMgr.GetPatternData(name);
+  }
+
+  /** Acquires selected layouts before returning their normalized projections. */
+  @meta.ours
+  async GetLayoutData(names, options = {})
+  {
+    names = Array.isArray(names)
+      ? names.map(name => String(name).trim().toLowerCase())
+      : String(names).trim().toLowerCase();
+    await this.InitializeAsync(options);
+    const selected = Array.isArray(names) ? names : [names];
+    if (this._sofLibraryBuilder)
+    {
+      await Promise.all(selected.map(name => this._sofLibraryBuilder.FetchLayout(name, options.catalog ?? {})));
+    }
+    return this.dataMgr.GetLayoutData(names);
+  }
+
   /**
    * Overwrites turret shader constants or vector parameters with the
    * turret-area material selected by a faction catalog entry (Carbon
@@ -4451,11 +4627,11 @@ export class EveSOF
    */
   @meta.blue.method
   @meta.adapted
-  SetupTurretMaterialFromFaction(turretSet, factionName)
+  async SetupTurretMaterialFromFaction(turretSet, factionName, options = {})
   {
-    const factionData = this.dataMgr.GetFactionData(factionName);
+    const factionData = await this.GetFactionData(factionName, options);
     if (!factionData) return;
-    this.ApplyFactionToTurretShader(turretSet, this.dataMgr.GetGenericData(), factionData);
+    this._ApplyFactionToTurretShader(turretSet, this.dataMgr.GetGenericData(), factionData);
   }
 
   /**
@@ -4468,11 +4644,23 @@ export class EveSOF
    * @param {object} turret Turret exposing ApplySofTurretMaterial.
    * @param {object} genericData Generic turret material configuration.
    * @param {object} factionData Faction material and color configuration.
-   * @returns {void}
+   * @returns {Promise<void>} Resolves after materials have been applied.
    */
   @meta.blue.method
   @meta.adapted
-  ApplyFactionToTurretShader(turret, genericData, factionData)
+  async ApplyFactionToTurretShader(turret, genericData, factionData, options = {})
+  {
+    await this.InitializeAsync(options);
+    if (this._sofLibraryBuilder)
+    {
+      await this._sofLibraryBuilder._EnsureFactionProjectionDependencies(factionData, options.catalog ?? {});
+    }
+    this._ApplyFactionToTurretShader(turret, genericData, factionData);
+  }
+
+  /** Applies already-resolved native faction material parameters synchronously. */
+  @meta.adapted
+  _ApplyFactionToTurretShader(turret, genericData, factionData)
   {
     turret.ApplySofTurretMaterial(parameterName => findTurretFactionParameter(
       this.dataMgr,
@@ -4491,11 +4679,11 @@ export class EveSOF
    */
   @meta.blue.method
   @meta.adapted
-  SetupChildTurretMaterialFromFaction(childTurret, factionName)
+  async SetupChildTurretMaterialFromFaction(childTurret, factionName, options = {})
   {
-    const factionData = this.dataMgr.GetFactionData(factionName);
+    const factionData = await this.GetFactionData(factionName, options);
     if (!childTurret || !factionData) return;
-    this.ApplyFactionToTurretShader(childTurret, this.dataMgr.GetGenericData(), factionData);
+    this._ApplyFactionToTurretShader(childTurret, this.dataMgr.GetGenericData(), factionData);
   }
 
   /**
@@ -4507,9 +4695,9 @@ export class EveSOF
    */
   @meta.blue.method
   @meta.adapted
-  SetupTurretMaterialFromDNA(turretSet, dnaString)
+  async SetupTurretMaterialFromDNA(turretSet, dnaString, options = {})
   {
-    const dna = this.CreateDna(dnaString);
+    const dna = await this.CreateDna(dnaString, options);
     if (!dna) return;
     turretSet.ApplySofTurretMaterial(parameterName => dna.GetFactionTurretParameters(parameterName));
   }

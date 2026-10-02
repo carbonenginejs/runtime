@@ -37,33 +37,38 @@ import, not a new consumer-facing node-table output contract.
 ```js
 import { EveSOF } from "@carbonenginejs/runtime/sof";
 
-const sof = EveSOF.Create({
+const sof = await EveSOF.Create({
   black: decodedSofData,
   resFileIndex
 });
 
-const values = sof.BuildValuesFromDNA("rifter:minmatar:minmatar");
+const values = await sof.BuildValuesFromDNA("rifter:minmatar:minmatar");
 ```
 
 For a partial lazy catalog, provide the ordinary decoded-object resource seam
 and enable `lazyData`:
 
 ```js
-const sof = new EveSOF().Register({
+const sof = await new EveSOF().Register({
   resources: {
     getObject: (path, context) => library.FetchObject(path, context)
   },
   lazyData: true
 });
 
-await sof.InitializeAsync(); // generic.black only
+await sof.InitializeAsync(); // generic.black and its referenced wreck materials
 const values = await sof.BuildValuesFromDNAAsync(
   "rifter:minmatar:minmatar"
 ); // named hull/faction/race and their dependency closure
 ```
 
+All public factory methods return promises. Await configuration, builds, queries
+and turret updates; the `Async` build names remain aliases. Internal prepared
+assembly stays synchronous. Data lookups such as `await sof.GetHullData(name)`
+acquire their required records before returning a normalized projection.
+
 Individual records can also be requested or replaced explicitly through
-`sof.GetSofLibraryBuilder().FetchHull()`, `FetchFaction()`, `FetchRace()`,
+`(await sof.GetSofLibraryBuilder()).FetchHull()`, `FetchFaction()`, `FetchRace()`,
 `FetchMaterial()`, `FetchPattern()`, and `FetchLayout()`.
 
 Sparse output is canonical. Offline consumers that need explicit class defaults
@@ -74,7 +79,7 @@ plain-data overlay:
 import "@carbonenginejs/runtime/trinity";
 import "@carbonenginejs/runtime/audio/trinity";
 
-const expanded = sof.BuildValuesFromDNA("rifter:minmatar:minmatar", {
+const expanded = await sof.BuildValuesFromDNA("rifter:minmatar:minmatar", {
   populateDefaults: true
 });
 ```

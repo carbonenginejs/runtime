@@ -557,7 +557,7 @@ test("TriGeometryRes raycast sessions expose parametric hit distance", () =>
 });
 
 
-test("EveModularObjectModifier adds, transforms, bounds and removes parts", () =>
+test("EveModularObjectModifier adds, transforms, bounds and removes parts", async () =>
 {
   const object = new EveStation2();
   object.SetImpactOverlay(new EveImpactOverlay());
@@ -580,8 +580,8 @@ test("EveModularObjectModifier adds, transforms, bounds and removes parts", () =
   const partData = object.effectChildren.find(child => child instanceof EveChildPartData);
   partData.faction = "amarr";
   partData.race = "race";
-  const id = modifier.AddHull(
-    "hull", "", "", [ 2, 0, 0 ], [ 0, 0, 0, 1 ], [ 1, 1, 1 ]);
+  const id = (await modifier.AddHull(
+    "hull", "", "", [ 2, 0, 0 ], [ 0, 0, 0, 1 ], [ 1, 1, 1 ]));
   assert.equal(id, 1);
   assert.equal(partData.parts.length, 1);
   assertVectorClose(modifier.GetPosition(id), [ 2, 0, 0 ], "part position");
@@ -613,7 +613,7 @@ test("EveModularObjectModifier adds, transforms, bounds and removes parts", () =
 });
 
 
-test("EveModularObjectModifier reacquires graph records replaced by SOF hydration", () =>
+test("EveModularObjectModifier reacquires graph records replaced by SOF hydration", async () =>
 {
   const object = new EveStation2();
   object.Initialize();
@@ -642,8 +642,8 @@ test("EveModularObjectModifier reacquires graph records replaced by SOF hydratio
   };
 
   const modifier = new EveModularObjectModifier().Create(object, sof);
-  const id = modifier.AddHull(
-    "hull", "faction", "race", [ 0, 0, 0 ], [ 0, 0, 0, 1 ], [ 1, 1, 1 ]);
+  const id = (await modifier.AddHull(
+    "hull", "faction", "race", [ 0, 0, 0 ], [ 0, 0, 0, 1 ], [ 1, 1, 1 ]));
   const liveData = object.effectChildren.find(child => child instanceof EveChildPartData);
   assert.equal(detachedData.parts.length, 0, "detached pre-hydration data stays untouched");
   assert.equal(liveData.parts.length, 1, "part is appended to the live hydrated graph");
@@ -655,7 +655,7 @@ test("EveModularObjectModifier reacquires graph records replaced by SOF hydratio
 });
 
 
-test("EveModularObjectModifier AddChild is atomic and keeps bounds current", () =>
+test("EveModularObjectModifier AddChild is atomic and keeps bounds current", async () =>
 {
   const object = new EveStation2();
   object.Initialize();
@@ -669,8 +669,8 @@ test("EveModularObjectModifier AddChild is atomic and keeps bounds current", () 
     object, { BuildChild: () => false }, loader);
   const partData = object.effectChildren.find(child => child instanceof EveChildPartData);
 
-  const id = modifier.AddChild(
-    "res:/child.red", [ 3, 4, 5 ], [ 0, 0, 0, 1 ], [ 2, 2, 2 ]);
+  const id = (await modifier.AddChild(
+    "res:/child.red", [ 3, 4, 5 ], [ 0, 0, 0, 1 ], [ 2, 2, 2 ]));
   assert.equal(id, 1);
   assert.equal(partData.parts.length, 1);
   const child = object.effectChildren.find(candidate => candidate instanceof EveChildMesh);
@@ -678,8 +678,8 @@ test("EveModularObjectModifier AddChild is atomic and keeps bounds current", () 
   assertVectorClose(child.translation, [ 3, 4, 5 ], "loaded child transform");
 
   const childCount = object.effectChildren.length;
-  assert.equal(modifier.AddChild(
-    "res:/missing.red", [ 0, 0, 0 ], [ 0, 0, 0, 1 ], [ 1, 1, 1 ]),
+  assert.equal((await modifier.AddChild(
+    "res:/missing.red", [ 0, 0, 0 ], [ 0, 0, 0, 1 ], [ 1, 1, 1 ])),
   EveModularObjectModifier.INVALID_PART_TAG);
   assert.equal(partData.parts.length, 1, "failed loads do not append part data");
   assert.equal(object.effectChildren.length, childCount, "failed loads do not append children");
@@ -806,7 +806,7 @@ test("Carbon bounding-box providers publish local, world, mesh, and planet bound
 });
 
 
-test("SetTransform moves shared instanced-part geometry outside the child partTag gate", () =>
+test("SetTransform moves shared instanced-part geometry outside the child partTag gate", async () =>
 {
   const object = new EveStation2();
   object.Initialize();
@@ -834,7 +834,7 @@ test("SetTransform moves shared instanced-part geometry outside the child partTa
   const partData = object.effectChildren.find(child => child instanceof EveChildPartData);
   partData.faction = "amarr";
   partData.race = "race";
-  const id = modifier.AddHull("hull", "", "", [ 0, 0, 0 ], [ 0, 0, 0, 1 ], [ 1, 1, 1 ]);
+  const id = (await modifier.AddHull("hull", "", "", [ 0, 0, 0 ], [ 0, 0, 0, 1 ], [ 1, 1, 1 ]));
   assert.equal(id, 1);
 
   modifier.SetTransform(id, [ 4, 5, 6 ], [ 0, 0, 0, 1 ], [ 1, 1, 1 ]);

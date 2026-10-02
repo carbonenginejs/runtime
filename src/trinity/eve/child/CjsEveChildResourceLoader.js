@@ -1,7 +1,7 @@
 import { meta } from "#schema";
 
 
-/** Trinity-owned synchronous child-resource resolution contract. */
+/** Trinity-owned promise-capable child-resource resolution contract. */
 @meta.define({ className: "CjsEveChildResourceLoader", family: "eve/child" })
 export class CjsEveChildResourceLoader
 {

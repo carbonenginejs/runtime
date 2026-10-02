@@ -165,11 +165,11 @@ test("EveSOFDataMgr indexes every top-level SOF catalog", () => {
 // the tree, so porting it faithfully rejected real authored DNA and would have
 // dropped the materials even had it passed. This fixture declares two prefixes,
 // so "one per prefix" is two here rather than the four a live hull has.
-test("a mesh command carries one material per prefix, exactly like material", () => {
+test("a mesh command carries one material per prefix, exactly like material", async () => {
   const sof = new EveSOF();
   sof.dataMgr.SetData(createData());
 
-  assert.deepEqual(sof.InspectDna("rifter:minmatar:minmatar:mesh?rust;paint"), {
+  assert.deepEqual((await sof.InspectDna("rifter:minmatar:minmatar:mesh?rust;paint")), {
     buildable: true,
     valid: true,
     error: null,
@@ -177,19 +177,19 @@ test("a mesh command carries one material per prefix, exactly like material", ()
 
   // One argument is what the snapshot demanded. It is wrong for any hull with
   // more than one material prefix.
-  assert.equal(sof.InspectDna("rifter:minmatar:minmatar:mesh?rust").valid, false);
+  assert.equal((await sof.InspectDna("rifter:minmatar:minmatar:mesh?rust")).valid, false);
 
   // An unknown material is still rejected, and "none" is still a valid slot.
-  assert.equal(sof.InspectDna("rifter:minmatar:minmatar:mesh?rust;missing").valid, false);
-  assert.equal(sof.InspectDna("rifter:minmatar:minmatar:mesh?none;paint").valid, true);
+  assert.equal((await sof.InspectDna("rifter:minmatar:minmatar:mesh?rust;missing")).valid, false);
+  assert.equal((await sof.InspectDna("rifter:minmatar:minmatar:mesh?none;paint")).valid, true);
 
   // Accepting the command is only half of it: the materials must reach the
   // reader, which asks for CMD_MATERIAL.
-  const dna = sof.CreateDna("rifter:minmatar:minmatar:mesh?rust;paint");
+  const dna = (await sof.CreateDna("rifter:minmatar:minmatar:mesh?rust;paint"));
   assert.deepEqual(dna.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_MATERIAL), [ "rust", "paint" ]);
 
   // An explicit `material` command still wins when both are present.
-  const both = sof.CreateDna("rifter:minmatar:minmatar:mesh?rust;rust:material?paint;paint");
+  const both = (await sof.CreateDna("rifter:minmatar:minmatar:mesh?rust;rust:material?paint;paint"));
   assert.deepEqual(both.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_MATERIAL), [ "paint", "paint" ]);
 });
 
@@ -235,7 +235,7 @@ test("lazy SOF data boots generic and publishes each requested catalog record on
   ]);
   const calls = [];
   const sof = new EveSOF();
-  sof.Register({
+  (await sof.Register({
     resources: {
       async getObject(path, context)
       {
@@ -245,9 +245,9 @@ test("lazy SOF data boots generic and publishes each requested catalog record on
       },
     },
     lazyData: true,
-  });
+  }));
 
-  assert.ok(sof.GetSofLibraryBuilder() instanceof CjsSofLibraryBuilder);
+  assert.ok((await sof.GetSofLibraryBuilder()) instanceof CjsSofLibraryBuilder);
   await sof.InitializeAsync();
   assert.deepEqual(calls.map(call => call.path), [
     "res:/dx9/model/spaceobjectfactory/generic.black",
@@ -279,7 +279,7 @@ test("lazy SOF data boots generic and publishes each requested catalog record on
   }
   for (const path of records.keys()) assert.equal(counts.get(path), 1, path);
 
-  const builder = sof.GetSofLibraryBuilder();
+  const builder = (await sof.GetSofLibraryBuilder());
   const replacement = { ...data.hull[0], boundingSphere: [9, 8, 7, 6] };
   records.set("res:/dx9/model/spaceobjectfactory/hulls/rifter.black", replacement);
   assert.equal(await builder.FetchHull("rifter"), data.hull[0]);
@@ -307,14 +307,14 @@ test("lazy SOF DNA requirements include multi-hull and command catalogs", () => 
 
 // Designs in the live feed carry `MATERIAL?...`. Carbon compares command names
 // exactly, so the faithful port rejected them outright.
-test("a DNA string is lowercased before parsing, so case never decides validity", () => {
+test("a DNA string is lowercased before parsing, so case never decides validity", async () => {
   const sof = new EveSOF();
   sof.dataMgr.SetData(createData());
 
-  assert.equal(sof.InspectDna("rifter:minmatar:minmatar:MATERIAL?rust;paint").valid, true);
-  assert.equal(sof.InspectDna("RIFTER:MINMATAR:MINMATAR:MESH?RUST;PAINT").valid, true);
+  assert.equal((await sof.InspectDna("rifter:minmatar:minmatar:MATERIAL?rust;paint")).valid, true);
+  assert.equal((await sof.InspectDna("RIFTER:MINMATAR:MINMATAR:MESH?RUST;PAINT")).valid, true);
 
-  const dna = sof.CreateDna("Rifter:Minmatar:Minmatar:Material?Rust;Paint");
+  const dna = (await sof.CreateDna("Rifter:Minmatar:Minmatar:Material?Rust;Paint"));
   assert.deepEqual(dna.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_MATERIAL), [ "rust", "paint" ]);
   assert.deepEqual(dna.GetHullNames(), [ "rifter" ]);
 
@@ -323,26 +323,26 @@ test("a DNA string is lowercased before parsing, so case never decides validity"
   assert.equal(dna.GetDnaString(), "rifter:minmatar:minmatar:material?rust;paint");
 });
 
-test("EveSOF DNA inspection distinguishes malformed and unknown selections", () => {
+test("EveSOF DNA inspection distinguishes malformed and unknown selections", async () => {
   const sof = new EveSOF();
   sof.dataMgr.SetData(createData());
 
-  assert.deepEqual(sof.InspectDna("rifter:minmatar:minmatar"), {
+  assert.deepEqual((await sof.InspectDna("rifter:minmatar:minmatar")), {
     buildable: true,
     valid: true,
     error: null,
   });
-  assert.deepEqual(sof.InspectDna("rifter:minmatar"), {
+  assert.deepEqual((await sof.InspectDna("rifter:minmatar")), {
     buildable: false,
     valid: false,
     error: "not-enough-parts",
   });
-  assert.deepEqual(sof.InspectDna("missing:minmatar:minmatar"), {
+  assert.deepEqual((await sof.InspectDna("missing:minmatar:minmatar")), {
     buildable: false,
     valid: false,
     error: "unknown-hull",
   });
-  assert.deepEqual(sof.InspectDna("rifter:minmatar:minmatar:pattern"), {
+  assert.deepEqual((await sof.InspectDna("rifter:minmatar:minmatar:pattern")), {
     buildable: false,
     valid: false,
     error: "malformed-command",
@@ -423,7 +423,7 @@ test("EveSOF emits and hydrates Carbon swarm behavior on the EveShip2-derived ro
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const document = sof.BuildFromDNA("rifter:minmatar:minmatar");
+  const document = (await sof.BuildFromDNA("rifter:minmatar:minmatar"));
   const root = rootNode(document);
   assert.equal(root.kind, "EveSwarm");
   assert.equal(root.fields.mass, 1);
@@ -552,7 +552,7 @@ test("EveSOFDataMgr rejects duplicates and supports deterministic reload", () =>
 test("EveSOF async data loading consumes one deduplicated object result", async () => {
   const data = createData();
   let loads = 0;
-  const sof = new EveSOF().Register({
+  const sof = (await new EveSOF().Register({
     dataPath: "res:/sof/data.black",
     resources: {
       async getObject(path, request)
@@ -564,7 +564,7 @@ test("EveSOF async data loading consumes one deduplicated object result", async 
         return data;
       },
     },
-  });
+  }));
 
   const first = sof.LoadDataAsync();
   const second = sof.LoadDataAsync();
@@ -573,12 +573,12 @@ test("EveSOF async data loading consumes one deduplicated object result", async 
   assert.equal(loads, 1);
   assert.equal(sof.dataMgr.HasHullData("rifter"), true);
 
-  sof.Register({ resources: { exists: async () => true } });
+  (await sof.Register({ resources: { exists: async () => true } }));
   assert.equal(await sof.LoadDataAsync("RES:\\SOF\\DATA.BLACK"), true);
   assert.equal(loads, 2);
-  assert.throws(() => sof.Register({ resources: "" }), /must be an object or null/);
+  (await assert.rejects(async () => (await sof.Register({ resources: "" })), /must be an object or null/));
 
-  sof.Register({ resources: { getObject: null } });
+  (await sof.Register({ resources: { getObject: null } }));
   assert.equal(await sof.LoadDataAsync(), false);
   assert.equal(loads, 2);
 });
@@ -812,7 +812,7 @@ test("EveSOFDNA indexes all seven Carbon decal minimum-screen-size usages", () =
   assert.equal(dna.GetDecalMinScreenSize(7), undefined);
 });
 
-test("EveSOF plans Carbon layout RNG, occupancy, and deterministic scramble offsets", () => {
+test("EveSOF plans Carbon layout RNG, occupancy, and deterministic scramble offsets", async () => {
   const data = createData();
   data.hull[0].locatorSets = [{
     name: "hardpoints",
@@ -861,8 +861,8 @@ test("EveSOF plans Carbon layout RNG, occupancy, and deterministic scramble offs
   assert.equal(sof.dataMgr.SetData(data), true);
   const dna = "rifter:minmatar:minmatar:layout?deterministic;scrambled";
   const options = { scrambleSeedOffset: 10 };
-  const first = sof.PlanLayoutFromDNA(dna, options);
-  const second = sof.PlanLayoutFromDNA(dna, options);
+  const first = (await sof.PlanLayoutFromDNA(dna, options));
+  const second = (await sof.PlanLayoutFromDNA(dna, options));
   assert.deepEqual(second, first);
   assert.equal(first.schemaVersion, 1);
   assert.equal(first.layouts[0].effectiveSeed, 1337);
@@ -881,12 +881,12 @@ test("EveSOF plans Carbon layout RNG, occupancy, and deterministic scramble offs
 
   first.placements[0].descriptor.hull = "mutated";
   first.placements[0].transform[12] = 99;
-  const third = sof.PlanLayoutFromDNA(dna, options);
+  const third = (await sof.PlanLayoutFromDNA(dna, options));
   assert.equal(third.placements[0].descriptor.hull, "rifter2");
   assert.equal(third.placements[0].transform[12], 1);
 });
 
-test("EveSOF composes randomized locator rotations in Carbon quaternion order", () => {
+test("EveSOF composes randomized locator rotations in Carbon quaternion order", async () => {
   const data = createData();
   const halfSqrt = Math.sqrt(0.5);
   data.hull[0].locatorSets = [{
@@ -922,7 +922,7 @@ test("EveSOF composes randomized locator rotations in Carbon quaternion order", 
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const plan = sof.PlanLayoutFromDNA("rifter:minmatar:minmatar:layout?random-rotation");
+  const plan = (await sof.PlanLayoutFromDNA("rifter:minmatar:minmatar:layout?random-rotation"));
   const expected = [0.5, 0.5, -0.5, 0.5];
   const dot = plan.placements[0].rotation.reduce(
     (sum, value, index) => sum + value * expected[index],
@@ -931,7 +931,7 @@ test("EveSOF composes randomized locator rotations in Carbon quaternion order", 
   assert.ok(Math.abs(dot) > 1 - 1e-5, "randomized locator rotation");
 });
 
-test("EveSOF layout planning preserves Carbon condition quirks and nested transform order", () => {
+test("EveSOF layout planning preserves Carbon condition quirks and nested transform order", async () => {
   const data = createData();
   data.hull[0].locatorSets = [{
     name: "root",
@@ -976,9 +976,9 @@ test("EveSOF layout planning preserves Carbon condition quirks and nested transf
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const plan = sof.PlanLayoutFromDNA("rifter:minmatar:minmatar:layout?parent", {
+  const plan = (await sof.PlanLayoutFromDNA("rifter:minmatar:minmatar:layout?parent", {
     graphicsQuality: "high",
-  });
+  }));
   assert.deepEqual(
     plan.placements.map(value => value.name),
     ["ignored-parent-fields", "depletion", "high", "nested-request", "nested-leaf"],
@@ -993,7 +993,7 @@ test("EveSOF layout planning preserves Carbon condition quirks and nested transf
   assert.equal(plan.skipped.find(value => value.name === "unknown").reason, "placement-condition-failed");
   assert.ok(plan.diagnostics.some(value => value.code === "parent-match-fields-not-implemented-in-carbon"));
   assert.ok(plan.diagnostics.some(value => value.code === "depletion-condition-not-implemented-in-carbon"));
-  assert.equal(sof.PlanLayoutFromDNA("missing:minmatar:minmatar"), null);
+  assert.equal((await sof.PlanLayoutFromDNA("missing:minmatar:minmatar")), null);
 });
 
 test("SOF emits and hydrates non-instanced, instanced, and shared layout placement graphs", {
@@ -1153,20 +1153,20 @@ test("SOF emits and hydrates non-instanced, instanced, and shared layout placeme
   }];
 
   const sof = new EveSOF();
-  sof.SetChildResourceResolver(path => path === "res:/layout-child.red" ? {
+  (await sof.SetChildResourceResolver(path => path === "res:/layout-child.red" ? {
     kind: "EveChildMesh",
     target: "effectChildren",
     fields: { name: "layout-effect", mesh: null, decals: [], attachments: [], lights: [] },
-  } : null);
-  sof.SetObjectResourceResolver((path, context) => {
+  } : null));
+  (await sof.SetObjectResourceResolver((path, context) => {
     if (path === "res:/layout-controller.red" && context.role === "controller")
     {
       return { kind: "Tr2ControllerReference", fields: { path } };
     }
     return null;
-  });
+  }));
   assert.equal(sof.dataMgr.SetData(data), true);
-  const document = sof.BuildFromDNA("rifter:minmatar:minmatar:layout?graph");
+  const document = (await sof.BuildFromDNA("rifter:minmatar:minmatar:layout?graph"));
   const root = rootNode(document);
   assert.deepEqual(root.fields.boundingSphereCenter, [3.5, 0, 0]);
   assert.equal(root.fields.boundingSphereRadius, 4.5);
@@ -1362,7 +1362,7 @@ test("EveSOFDataMgr recursively normalizes locator sets in Carbon order", () => 
   assert.equal(hull.meshIndexToOpaqueAreaLookup.get(9), 1);
 });
 
-test("SOF locator sets apply Carbon placement matrix order and retain authored metadata", () => {
+test("SOF locator sets apply Carbon placement matrix order and retain authored metadata", async () => {
   const data = createData();
   const halfSqrt = Math.sqrt(0.5);
   const nestedOffset = [
@@ -1411,9 +1411,9 @@ test("SOF locator sets apply Carbon placement matrix order and retain authored m
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
   const dna = "rifter:minmatar:minmatar:layout?locator-transform";
-  const plan = sof.PlanLayoutFromDNA(dna, { offsets: [nestedOffset] });
+  const plan = (await sof.PlanLayoutFromDNA(dna, { offsets: [nestedOffset] }));
   assert.deepEqual(plan.placements[0].transform.slice(12, 15), [110, 22, 30]);
-  const document = sof.BuildFromDNA(dna, { offsets: [nestedOffset] });
+  const document = (await sof.BuildFromDNA(dna, { offsets: [nestedOffset] }));
   // A non-instanced placement no longer bakes its locators into the root
   // sets: the child owns them UNTRANSFORMED and the object merges through
   // the child's live transform at runtime (Carbon EveSOF.cpp:4171-4174).
@@ -1441,7 +1441,7 @@ test("SOF locator sets apply Carbon placement matrix order and retain authored m
   assert.equal(locator.boneIndex, 11);
 });
 
-test("SOF applies Carbon row transforms to placed attachments, audio, and instances", () => {
+test("SOF applies Carbon row transforms to placed attachments, audio, and instances", async () => {
   const data = createData();
   const halfSqrt = Math.sqrt(0.5);
   data.hull[0].locatorSets = [{
@@ -1535,7 +1535,7 @@ test("SOF applies Carbon row transforms to placed attachments, audio, and instan
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const document = sof.BuildFromDNA("rifter:minmatar:minmatar:layout?placed-transforms");
+  const document = (await sof.BuildFromDNA("rifter:minmatar:minmatar:layout?placed-transforms"));
   const root = rootNode(document);
   const containers = root.fields.effectChildren.map(ref => referencedNode(document, ref));
   const layouts = containers.find(node => node.fields.name === "layouts");
@@ -1712,7 +1712,7 @@ test("SOF projects first-hull legacy children, faction visibility, and animation
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const dna = sof.CreateDna("rifter:minmatar:minmatar");
+  const dna = (await sof.CreateDna("rifter:minmatar:minmatar"));
   assert.equal(dna.GetHullChildren().length, 3);
   assert.equal(dna.GetHullAnimations().length, 2);
   assert.equal(dna.GetFactionChildData(-1), null);
@@ -1720,11 +1720,11 @@ test("SOF projects first-hull legacy children, faction visibility, and animation
   assert.equal(dna.GetFactionChildData(99), null);
 
   const resolved = [];
-  sof.SetChildResourceResolver((path, context) => {
+  (await sof.SetChildResourceResolver((path, context) => {
     resolved.push([path, context.sof6]);
     return { kind: "EveTransform", target: "children", fields: {} };
-  });
-  const document = sof.Build("rifter", "minmatar", "minmatar");
+  }));
+  const document = (await sof.Build("rifter", "minmatar", "minmatar"));
   const root = rootNode(document);
   assert.deepEqual(resolved, [["res:/visible-transform.red", false]]);
   assert.equal(root.fields.children.length, 1);
@@ -1761,7 +1761,7 @@ test("SOF projects first-hull legacy children, faction visibility, and animation
   assert.equal(hydrated.root.curveSets[0].bindings[0].destinationObject, hydrated.root.modelRotationCurve);
 });
 
-test("SOF6 child sets apply primary visibility and standalone filters", () => {
+test("SOF6 child sets apply primary visibility and standalone filters", async () => {
   const data = createData();
   data.hull[0].sof6 = true;
   data.hull[0].childSets = [
@@ -1779,14 +1779,14 @@ test("SOF6 child sets apply primary visibility and standalone filters", () => {
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const dna = sof.CreateDna("rifter:minmatar:minmatar");
+  const dna = (await sof.CreateDna("rifter:minmatar:minmatar"));
   assert.equal(dna.GetHullChildSets()[0].items[0].buildFilter, 0xffffffff);
   const resolved = [];
-  sof.SetChildResourceResolver(path => {
+  (await sof.SetChildResourceResolver(path => {
     resolved.push(path);
     return { kind: "EveChildRef", target: "effectChildren", fields: { resPath: path } };
-  });
-  const document = sof.Build("rifter", "minmatar", "minmatar");
+  }));
+  const document = (await sof.Build("rifter", "minmatar", "minmatar"));
   const root = rootNode(document);
   assert.deepEqual(resolved, ["res:/primary.red"]);
   assert.equal(root.fields.children.length, 0);
@@ -1800,7 +1800,7 @@ test("SOF6 child sets apply primary visibility and standalone filters", () => {
   assert.equal(Object.hasOwn(child.fields, "origin"), false);
 });
 
-test("SOF child sets hash authored empty visibility groups like Carbon", () => {
+test("SOF child sets hash authored empty visibility groups like Carbon", async () => {
   // Carbon hashes the authored string as-is: an explicitly authored empty
   // string is its own visibility group. Only an absent value falls back to
   // "primary" (the projections use nullish, not falsy, defaults).
@@ -1814,17 +1814,17 @@ test("SOF child sets hash authored empty visibility groups like Carbon", () => {
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
   const resolved = [];
-  sof.SetChildResourceResolver(path => {
+  (await sof.SetChildResourceResolver(path => {
     resolved.push(path);
     return { kind: "EveChildRef", target: "effectChildren", fields: { resPath: path } };
-  });
-  assert.ok(sof.Build("rifter", "minmatar", "minmatar"));
+  }));
+  assert.ok((await sof.Build("rifter", "minmatar", "minmatar")));
   // The faction authorizes only the empty-string group; the absent-value set
   // still resolves to "primary" and stays unplaced.
   assert.deepEqual(resolved, ["res:/empty-group.red"]);
 });
 
-test("SOF booster trails take the injected volumetric trail path", () => {
+test("SOF booster trails take the injected volumetric trail path", async () => {
   // Carbon: trail->SetMeshResPath(g_volumetricTrailPath), a TRI setting that
   // defaults to the empty string (EveSOF.cpp:64-65,2720).
   const makeData = () => {
@@ -1840,26 +1840,26 @@ test("SOF booster trails take the injected volumetric trail path", () => {
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(makeData()), true);
-  const trails = findTrails(sof.Build("rifter", "minmatar", "minmatar"));
+  const trails = findTrails((await sof.Build("rifter", "minmatar", "minmatar")));
   assert.ok(trails);
   assert.equal(trails.fields.geometryResPath, "");
 
-  const configured = new EveSOF().Register({ volumetricTrailPath: "res:/trail.gr2" });
+  const configured = (await new EveSOF().Register({ volumetricTrailPath: "res:/trail.gr2" }));
   assert.equal(configured.dataMgr.SetData(makeData()), true);
-  const configuredTrails = findTrails(configured.Build("rifter", "minmatar", "minmatar"));
+  const configuredTrails = findTrails((await configured.Build("rifter", "minmatar", "minmatar")));
   assert.ok(configuredTrails);
   assert.equal(configuredTrails.fields.geometryResPath, "res:/trail.gr2");
 });
 
-test("SOF child resolver is explicit and synchronous", () => {
+test("SOF child resolver is explicit and synchronous", async () => {
   const data = createData();
   data.hull[0].children = [{ redFilePath: "res:/child.red" }];
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  assert.deepEqual(rootNode(sof.Build("rifter", "minmatar", "minmatar")).fields.children, []);
-  assert.throws(() => sof.SetChildResourceResolver({}), /function or null/);
-  sof.SetChildResourceResolver(() => Promise.resolve(null));
-  assert.throws(() => sof.Build("rifter", "minmatar", "minmatar"), /must be synchronous/);
+  assert.deepEqual(rootNode((await sof.Build("rifter", "minmatar", "minmatar"))).fields.children, []);
+  (await assert.rejects(async () => (await sof.SetChildResourceResolver({})), /function or null/));
+  (await sof.SetChildResourceResolver(() => Promise.resolve(null)));
+  (await assert.rejects(async () => (await sof.Build("rifter", "minmatar", "minmatar")), /must be synchronous/));
 });
 
 test("SOF async builds collect and deduplicate selected child resources", async () => {
@@ -1869,7 +1869,7 @@ test("SOF async builds collect and deduplicate selected child resources", async 
     { redFilePath: "res:/child.red" },
   ];
   let loads = 0;
-  const sof = new EveSOF().Register({
+  const sof = (await new EveSOF().Register({
     resources: {
       async getObject(path, request)
       {
@@ -1879,7 +1879,7 @@ test("SOF async builds collect and deduplicate selected child resources", async 
         return { kind: "EveTransform", target: "children", fields: { name: "async-child" } };
       },
     },
-  });
+  }));
   assert.equal(sof.dataMgr.SetData(data), true);
 
   const document = await sof.BuildAsync("rifter", "minmatar", "minmatar");
@@ -1942,7 +1942,7 @@ test("SOF async builds resolve selected direct documents and existence probes de
     ["res:/translation.red", carbonDocument("Tr2TranslationAdapter", {})],
   ]);
   const requests = [];
-  const sof = new EveSOF().Register({
+  const sof = (await new EveSOF().Register({
     resources: {
       async getObject(path, request) {
         requests.push([path, request.role, request.output]);
@@ -1953,7 +1953,7 @@ test("SOF async builds resolve selected direct documents and existence probes de
         return path === "res:/x/insert/ship_insert_d.dds";
       },
     },
-  });
+  }));
   assert.equal(sof.dataMgr.SetData(data), true);
 
   const asyncDocument = await sof.BuildFromDNAAsync("rifter:minmatar:minmatar");
@@ -1968,10 +1968,10 @@ test("SOF async builds resolve selected direct documents and existence probes de
 
   const sync = new EveSOF();
   assert.equal(sync.dataMgr.SetData(data), true);
-  sync.SetChildResourceResolver(path => documents.get(normalizeTestResourcePath(path)) ?? null);
-  sync.SetObjectResourceResolver(path => documents.get(normalizeTestResourcePath(path)) ?? null);
-  sync.SetResourceExistsResolver(path => normalizeTestResourcePath(path) === "res:/x/insert/ship_insert_d.dds");
-  assert.deepEqual(asyncDocument, sync.BuildFromDNA("rifter:minmatar:minmatar"));
+  (await sync.SetChildResourceResolver(path => documents.get(normalizeTestResourcePath(path)) ?? null));
+  (await sync.SetObjectResourceResolver(path => documents.get(normalizeTestResourcePath(path)) ?? null));
+  (await sync.SetResourceExistsResolver(path => normalizeTestResourcePath(path) === "res:/x/insert/ship_insert_d.dds"));
+  assert.deepEqual(asyncDocument, (await sync.BuildFromDNA("rifter:minmatar:minmatar")));
 
   const root = rootNode(asyncDocument);
   assert.equal(root.fields.children.length, 3);
@@ -2002,7 +2002,7 @@ test("SOF async document requests deduplicate one normalized path across consume
   data.hull[0].children = [{ redFilePath: "RES:\\SHARED.RED" }];
   data.hull[0].controllers = [{ path: "res:/shared.red" }];
   let loads = 0;
-  const sof = new EveSOF().Register({
+  const sof = (await new EveSOF().Register({
     resources: {
       async getObject(path, request) {
         loads += 1;
@@ -2011,7 +2011,7 @@ test("SOF async document requests deduplicate one normalized path across consume
         return carbonDocument("EveTransform", { name: "shared", children: [] });
       },
     },
-  });
+  }));
   assert.equal(sof.dataMgr.SetData(data), true);
   const document = await sof.BuildFromDNAAsync("rifter:minmatar:minmatar");
   const root = rootNode(document);
@@ -2022,7 +2022,7 @@ test("SOF async document requests deduplicate one normalized path across consume
   // Carbon's typed-load gate: an EveTransform root is not an ITr2Controller,
   // so the controller is skipped with a diagnostic (EveSOF.cpp:2024-2031).
   assert.equal(root.fields.controllers.length, 0);
-  assert.deepEqual(sof.GetBuildDiagnostics(), [{
+  assert.deepEqual((await sof.GetBuildDiagnostics()), [{
     code: "object-resource-wrong-type",
     role: "controller",
     path: "res:/shared.red",
@@ -2031,7 +2031,7 @@ test("SOF async document requests deduplicate one normalized path across consume
   }]);
 });
 
-test("SOF enforces Carbon resource interfaces at the resolver boundary", () => {
+test("SOF enforces Carbon resource interfaces at the resolver boundary", async () => {
   // Children: a root that casts to neither EveTransform nor
   // IEveSpaceObjectChild logs "not of correct type" and aborts the setup
   // pass, skipping the remaining children AND the animation pass
@@ -2045,19 +2045,19 @@ test("SOF enforces Carbon resource interfaces at the resolver boundary", () => {
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
   const resolved = [];
-  sof.SetChildResourceResolver(path => {
+  (await sof.SetChildResourceResolver(path => {
     resolved.push(path);
     return path === "res:/wrong.red"
       ? { kind: "Tr2Effect", target: "effectChildren", fields: {} }
       : { kind: "EveTransform", fields: {} };
-  });
-  const document = sof.Build("rifter", "minmatar", "minmatar");
+  }));
+  const document = (await sof.Build("rifter", "minmatar", "minmatar"));
   const root = rootNode(document);
   assert.deepEqual(resolved, ["res:/wrong.red"]);
   assert.equal(root.fields.children.length, 0);
   assert.equal(root.fields.effectChildren.length, 0);
   assert.equal(root.fields.curveSets.length, 0, "animation pass is skipped like Carbon");
-  assert.deepEqual(sof.GetBuildDiagnostics(), [{
+  assert.deepEqual((await sof.GetBuildDiagnostics()), [{
     code: "child-resource-wrong-type",
     path: "res:/wrong.red",
     kind: "Tr2Effect",
@@ -2072,14 +2072,14 @@ test("SOF enforces Carbon resource interfaces at the resolver boundary", () => {
   curveData.hull[0].modelTranslationCurvePath = "res:/translation.red";
   const curveSof = new EveSOF();
   assert.equal(curveSof.dataMgr.SetData(curveData), true);
-  curveSof.SetObjectResourceResolver(path => path.includes("rotation")
+  (await curveSof.SetObjectResourceResolver(path => path.includes("rotation")
     ? { kind: "Tr2CurveScalar", fields: {} }
-    : { kind: "CjsCustomCurve", implements: ["ITriVectorFunction"], fields: {} });
-  const curveDocument = curveSof.Build("rifter", "minmatar", "minmatar");
+    : { kind: "CjsCustomCurve", implements: ["ITriVectorFunction"], fields: {} }));
+  const curveDocument = (await curveSof.Build("rifter", "minmatar", "minmatar"));
   const curveRoot = rootNode(curveDocument);
   assert.equal(curveRoot.fields.modelRotationCurve, null);
   assert.ok(curveRoot.fields.modelTranslationCurve, "implements claim satisfies the gate");
-  assert.deepEqual(curveSof.GetBuildDiagnostics(), [{
+  assert.deepEqual((await curveSof.GetBuildDiagnostics()), [{
     code: "object-resource-wrong-type",
     role: "modelRotationCurve",
     path: "res:/rotation.red",
@@ -2097,10 +2097,10 @@ test("SOF enforces Carbon resource interfaces at the resolver boundary", () => {
   sof6Data.faction[0].visibilityGroupSet = { visibilityGroups: [{ str: "primary" }] };
   const sof6 = new EveSOF();
   assert.equal(sof6.dataMgr.SetData(sof6Data), true);
-  sof6.SetChildResourceResolver(path => path === "res:/wrong.red"
+  (await sof6.SetChildResourceResolver(path => path === "res:/wrong.red"
     ? { kind: "Tr2Effect", target: "effectChildren", fields: {} }
-    : { kind: "EveChildMesh", fields: {} });
-  const sof6Root = rootNode(sof6.Build("rifter", "minmatar", "minmatar"));
+    : { kind: "EveChildMesh", fields: {} }));
+  const sof6Root = rootNode((await sof6.Build("rifter", "minmatar", "minmatar")));
   assert.equal(sof6Root.fields.children.length, 0);
   assert.equal(sof6Root.fields.effectChildren.length, 0);
 });
@@ -2132,7 +2132,7 @@ test("SOF async builds isolate concurrent descriptor and existence results", asy
   let existenceCall = 0;
   const documentResolvers = [];
   const existenceResolvers = [];
-  const sof = new EveSOF().Register({
+  const sof = (await new EveSOF().Register({
     resources: {
       getObject() {
         const call = ++documentCall;
@@ -2145,21 +2145,22 @@ test("SOF async builds isolate concurrent descriptor and existence results", asy
         return new Promise(resolve => existenceResolvers.push(() => resolve(call === 1)));
       },
     },
-  });
-  sof.SetResourceExistsResolver(() => false);
+  }));
+  (await sof.SetResourceExistsResolver(() => false));
   assert.equal(sof.dataMgr.SetData(data), true);
 
   const firstPending = sof.BuildFromDNAAsync("rifter:minmatar:minmatar");
   const secondPending = sof.BuildFromDNAAsync("rifter:minmatar:minmatar");
+  await new Promise(setImmediate);
   assert.equal(documentResolvers.length, 2);
   assert.equal(existenceResolvers.length, 2);
 
   sof.allowFileCaching = false;
-  sof.SetChildResourceResolver(() => ({
+  (await sof.SetChildResourceResolver(() => ({
     kind: "EveTransform",
     target: "children",
     fields: { name: "latest-sync", children: [] },
-  }));
+  })));
   documentResolvers[1]();
   existenceResolvers[1]();
   const second = await secondPending;
@@ -2177,7 +2178,8 @@ test("SOF async builds isolate concurrent descriptor and existence results", asy
   assert.equal(documentCall, 2);
   assert.equal(existenceCall, 2);
   assert.equal(sof.allowFileCaching, false);
-  const postBuild = sof.BuildFromDNA("rifter:minmatar:minmatar");
+  (await sof.Register({ resources: { getObject: null, exists: null } }));
+  const postBuild = (await sof.BuildFromDNA("rifter:minmatar:minmatar"));
   assert.equal(findTextureResourcePath(postBuild, "DiffuseMap"), "res:/x/ship_d.dds");
   assert.equal(referencedNode(postBuild, rootNode(postBuild).fields.children[0]).fields.name, "latest-sync");
 });
@@ -2187,14 +2189,14 @@ test("SOF async dependency failures are stable and null remains optional", async
   data.hull[0].children = [{ redFilePath: "res:/optional.red" }];
   data.hull[0].controllers = [{ path: "RES:\\BROKEN.RED" }];
   const cause = new Error("adapter failed");
-  const sof = new EveSOF().Register({
+  const sof = (await new EveSOF().Register({
     resources: {
       async getObject(path) {
         if (path === "res:/optional.red") return null;
         throw cause;
       },
     },
-  });
+  }));
   assert.equal(sof.dataMgr.SetData(data), true);
   await assert.rejects(sof.BuildFromDNAAsync("rifter:minmatar:minmatar"), error => {
     assert.equal(error.code, "EVE_SOF_RESOURCE_RESOLUTION_FAILED");
@@ -2205,14 +2207,14 @@ test("SOF async dependency failures are stable and null remains optional", async
   });
 
   data.hull[0].controllers = [];
-  const optional = new EveSOF().Register({ resources: { getObject: async () => null } });
+  const optional = (await new EveSOF().Register({ resources: { getObject: async () => null } }));
   assert.equal(optional.dataMgr.SetData(data), true);
   assert.deepEqual(rootNode(await optional.BuildFromDNAAsync("rifter:minmatar:minmatar")).fields.children, []);
 
-  const dataLoad = new EveSOF().Register({
+  const dataLoad = (await new EveSOF().Register({
     dataPath: "RES:\\SOF\\BROKEN.BLACK",
     resources: { getObject: async () => { throw cause; } },
-  });
+  }));
   await assert.rejects(dataLoad.LoadDataAsync(), error => {
     assert.equal(error.code, "EVE_SOF_RESOURCE_RESOLUTION_FAILED");
     assert.equal(error.path, "res:/sof/broken.black");
@@ -2220,13 +2222,13 @@ test("SOF async dependency failures are stable and null remains optional", async
     assert.equal(error.cause, cause);
     return true;
   });
-  dataLoad.Register({ resources: { getObject: async () => createData() } });
+  (await dataLoad.Register({ resources: { getObject: async () => createData() } }));
   assert.equal(await dataLoad.LoadDataAsync(), true);
 
   const existsData = configureTestTextureInsert(createData());
-  const existsFailure = new EveSOF().Register({
+  const existsFailure = (await new EveSOF().Register({
     resources: { exists: async () => { throw cause; } },
-  });
+  }));
   assert.equal(existsFailure.dataMgr.SetData(existsData), true);
   await assert.rejects(existsFailure.BuildFromDNAAsync("rifter:minmatar:minmatar"), error => {
     assert.equal(error.code, "EVE_SOF_RESOURCE_RESOLUTION_FAILED");
@@ -2258,20 +2260,20 @@ test("SOF async collection skips hidden, build-filtered, and unplaced-layout dep
   }];
 
   const requests = [];
-  const sof = new EveSOF().Register({
+  const sof = (await new EveSOF().Register({
     resources: {
       async getObject(path, request) {
         requests.push([path, request.role]);
         return carbonDocument("EveTransform", { children: [] });
       },
     },
-  });
+  }));
   assert.equal(sof.dataMgr.SetData(data), true);
   await sof.BuildFromDNAAsync("rifter:minmatar:minmatar:layout?skip");
   assert.deepEqual(requests, [["res:/selected.red", "child"]]);
 });
 
-test("synchronous existence resolution rejects promise results", () => {
+test("synchronous existence resolution rejects promise results", async () => {
   const data = createData();
   data.hull[0].opaqueAreas = [{
     name: "hull",
@@ -2294,8 +2296,8 @@ test("synchronous existence resolution rejects promise results", () => {
   }];
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  sof.SetResourceExistsResolver(() => Promise.resolve(true));
-  assert.throws(() => sof.BuildFromDNA("rifter:minmatar:minmatar"), /must be synchronous/);
+  (await sof.SetResourceExistsResolver(() => Promise.resolve(true)));
+  (await assert.rejects(async () => (await sof.BuildFromDNA("rifter:minmatar:minmatar")), /must be synchronous/));
 
   const manager = new EveSOFDataMgr();
   manager.SetResourceLoader(async () => createData());
@@ -2350,11 +2352,11 @@ test("SOF imports complete child carbon.document fragments with remapped refs", 
   };
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  sof.SetChildResourceResolver(() => ({
+  (await sof.SetChildResourceResolver(() => ({
     document: fragment,
     target: "children",
-  }));
-  const document = sof.Build("rifter", "minmatar", "minmatar");
+  })));
+  const document = (await sof.Build("rifter", "minmatar", "minmatar"));
   const root = rootNode(document);
   const importedRoot = referencedNode(document, root.fields.children[0]);
   const importedChild = referencedNode(document, importedRoot.fields.children[0]);
@@ -2377,14 +2379,14 @@ test("SOF imports complete child carbon.document fragments with remapped refs", 
 
   const invalid = new EveSOF();
   assert.equal(invalid.dataMgr.SetData(data), true);
-  invalid.SetChildResourceResolver(() => ({
+  (await invalid.SetChildResourceResolver(() => ({
     document: { ...fragment, nodes: [{ id: 40, kind: "EveTransform", fields: { children: [{ $ref: 999 }] } }] },
     target: "children",
-  }));
-  assert.throws(() => invalid.Build("rifter", "minmatar", "minmatar"), /ref 999 does not exist/);
+  })));
+  (await assert.rejects(async () => (await invalid.Build("rifter", "minmatar", "minmatar")), /ref 999 does not exist/));
 });
 
-test("SOF imports self-describing child model values with placement and remapped identity", () => {
+test("SOF imports self-describing child model values with placement and remapped identity", async () => {
   const data = createData();
   data.hull[0].children = [
     { redFilePath: "res:/direct-values.red", translation: [1, 2, 3] },
@@ -2392,7 +2394,7 @@ test("SOF imports self-describing child model values with placement and remapped
   ];
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  sof.SetChildResourceResolver(path => {
+  (await sof.SetChildResourceResolver(path => {
     if (path === "res:/direct-values.red")
     {
       return { _type: "EveTransform", name: "direct", children: [] };
@@ -2421,9 +2423,9 @@ test("SOF imports self-describing child model values with placement and remapped
       target: "children",
       raw: { compatibilityOverlay: true },
     };
-  });
+  }));
 
-  const values = sof.BuildValues("rifter", "minmatar", "minmatar");
+  const values = (await sof.BuildValues("rifter", "minmatar", "minmatar"));
   const direct = values.children[0];
   const wrapped = values.children[1];
   assert.equal(direct._type, "EveTransform");
@@ -2446,20 +2448,20 @@ test("SOF imports self-describing child model values with placement and remapped
   assert.deepEqual(wrapped.children[1], { _ref: wrapped.children[0]._id });
 });
 
-test("SOF prefers a direct model-values discriminator over document-shaped ordinary fields", () => {
+test("SOF prefers a direct model-values discriminator over document-shaped ordinary fields", async () => {
   const data = createData();
   data.hull[0].children = [{ redFilePath: "res:/document-shaped-values.red" }];
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  sof.SetChildResourceResolver(() => ({
+  (await sof.SetChildResourceResolver(() => ({
     _type: "EveTransform",
     name: "values-win",
     schema: "carbon.document",
     roots: [],
     nodes: [],
-  }));
+  })));
 
-  const values = sof.BuildValues("rifter", "minmatar", "minmatar");
+  const values = (await sof.BuildValues("rifter", "minmatar", "minmatar"));
   assert.equal(values.children[0]._type, "EveTransform");
   assert.equal(values.children[0].name, "values-win");
   assert.equal(values.children[0].schema, "carbon.document");
@@ -2467,28 +2469,28 @@ test("SOF prefers a direct model-values discriminator over document-shaped ordin
   assert.deepEqual(values.children[0].nodes, []);
 });
 
-test("SOF rejects malformed self-describing model-values fragments", () => {
-  const build = fragment => {
+test("SOF rejects malformed self-describing model-values fragments", async () => {
+  const build = async fragment => {
     const data = createData();
     data.hull[0].children = [{ redFilePath: "res:/invalid-values.red" }];
     const sof = new EveSOF();
     assert.equal(sof.dataMgr.SetData(data), true);
-    sof.SetChildResourceResolver(() => ({ values: fragment, target: "children" }));
-    return () => sof.BuildValues("rifter", "minmatar", "minmatar");
+    (await sof.SetChildResourceResolver(() => ({ values: fragment, target: "children" })));
+    return async () => (await sof.BuildValues("rifter", "minmatar", "minmatar"));
   };
 
-  assert.throws(build({ _ref: 1 }), /self-describing root with _type/);
-  assert.throws(build({ _type: "EveTransform", children: [{ _ref: 7 }] }), /_ref 7 does not exist/);
-  assert.throws(build({
+  await assert.rejects((await build({ _ref: 1 })), /self-describing root with _type/);
+  await assert.rejects((await build({ _type: "EveTransform", children: [{ _ref: 7 }] })), /_ref 7 does not exist/);
+  await assert.rejects((await build({
     _type: "EveTransform",
     children: [
       { _type: "EveTransform", _id: 2 },
       { _type: "EveTransform", _id: 2 },
     ],
-  }), /duplicate _id 2/);
-  assert.throws(build({ _type: "EveTransform", children: [{ _id: 3 }] }), /_type on every identified model/);
-  assert.throws(build({ _type: "EveTransform", children: [{ _ref: 4, extra: true }] }), /must contain only _ref/);
-  assert.throws(build(Object.create({ _type: "EveTransform" })), /self-describing root with _type/);
+  })), /duplicate _id 2/);
+  await assert.rejects((await build({ _type: "EveTransform", children: [{ _id: 3 }] })), /_type on every identified model/);
+  await assert.rejects((await build({ _type: "EveTransform", children: [{ _ref: 4, extra: true }] })), /must contain only _ref/);
+  await assert.rejects((await build(Object.create({ _type: "EveTransform" }))), /self-describing root with _type/);
 });
 
 test("SOF async values builds accept values dependencies without changing the legacy request token", async () => {
@@ -2498,7 +2500,7 @@ test("SOF async values builds accept values dependencies without changing the le
   data.hull[0].modelRotationCurvePath = "res:/rotation-values.red";
   data.hull[0].modelTranslationCurvePath = "res:/translation-values.red";
   const requests = [];
-  const sof = new EveSOF().Register({
+  const sof = (await new EveSOF().Register({
     resources: {
       async getObject(path, request)
       {
@@ -2524,7 +2526,7 @@ test("SOF async values builds accept values dependencies without changing the le
         };
       },
     },
-  });
+  }));
   assert.equal(sof.dataMgr.SetData(data), true);
 
   const values = await sof.BuildValuesFromDNAAsync("rifter:minmatar:minmatar");
@@ -2542,7 +2544,7 @@ test("SOF async values builds accept values dependencies without changing the le
   assert.equal(values.modelTranslationCurve._type, "CustomVectorCurve");
 });
 
-test("legacy child animations bind only recursively reachable dynamic emitters", () => {
+test("legacy child animations bind only recursively reachable dynamic emitters", async () => {
   const data = createData();
   data.hull[0].children = [{ redFilePath: "res:/particles.red", id: 4 }];
   data.hull[0].animations = [{ name: "rate", id: 4, startRate: 1, endRate: 9 }];
@@ -2559,8 +2561,8 @@ test("legacy child animations bind only recursively reachable dynamic emitters",
   };
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  sof.SetChildResourceResolver(() => ({ document: fragment, target: "effectChildren" }));
-  const document = sof.Build("rifter", "minmatar", "minmatar");
+  (await sof.SetChildResourceResolver(() => ({ document: fragment, target: "effectChildren" })));
+  const document = (await sof.Build("rifter", "minmatar", "minmatar"));
   const root = rootNode(document);
   const curveSet = referencedNode(document, root.fields.curveSets[0]);
   assert.equal(curveSet.fields.curves.length, 1);
@@ -2571,7 +2573,7 @@ test("legacy child animations bind only recursively reachable dynamic emitters",
   assert.equal(referencedNode(document, binding.fields.destinationObject).kind, "Tr2DynamicEmitter");
 });
 
-test("legacy child animations bind through self-describing model-values fragments", () => {
+test("legacy child animations bind through self-describing model-values fragments", async () => {
   const data = createData();
   data.hull[0].children = [{ redFilePath: "res:/particles-values.red", id: 4 }];
   data.hull[0].animations = [{ name: "rate", id: 4, startRate: 1, endRate: 9 }];
@@ -2587,8 +2589,8 @@ test("legacy child animations bind through self-describing model-values fragment
   };
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  sof.SetChildResourceResolver(() => ({ values: fragment, target: "effectChildren" }));
-  const document = sof.Build("rifter", "minmatar", "minmatar");
+  (await sof.SetChildResourceResolver(() => ({ values: fragment, target: "effectChildren" })));
+  const document = (await sof.Build("rifter", "minmatar", "minmatar"));
   const root = rootNode(document);
   const curveSet = referencedNode(document, root.fields.curveSets[0]);
   assert.equal(curveSet.fields.curves.length, 1);
@@ -2628,20 +2630,20 @@ test("SOF emits first-hull audio, filtered controllers, and model curve resource
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const dna = sof.CreateDna("rifter:minmatar:minmatar");
+  const dna = (await sof.CreateDna("rifter:minmatar:minmatar"));
   assert.equal(dna.GetHullSoundEmitters().length, 1);
   assert.equal(dna.GetHullControllers()[0].buildFilter, 0xffffffff);
   assert.equal(dna.GetModelRotationCurvePath(), "res:/rotation.red");
   assert.equal(dna.GetModelTranslationCurvePath(), "res:/translation.red");
 
   const resolved = [];
-  sof.SetObjectResourceResolver((path, context) => {
+  (await sof.SetObjectResourceResolver((path, context) => {
     resolved.push([path, context.role]);
     if (context.role === "controller") return { kind: "Tr2ControllerReference", fields: { path } };
     if (context.role === "modelRotationCurve") return { kind: "Tr2RotationAdapter", fields: {} };
     return { kind: "Tr2TranslationAdapter", fields: {} };
-  });
-  const document = sof.Build("rifter", "minmatar", "minmatar");
+  }));
+  const document = (await sof.Build("rifter", "minmatar", "minmatar"));
   const root = rootNode(document);
   assert.deepEqual(resolved, [
     ["res:/standalone-controller.red", "controller"],
@@ -2686,7 +2688,7 @@ test("SOF emits first-hull audio, filtered controllers, and model curve resource
   assert.equal(hydrated.root.modelTranslationCurve.constructor.name, "Tr2TranslationAdapter");
 });
 
-test("SOF object resource resolution is explicit and synchronous", () => {
+test("SOF object resource resolution is explicit and synchronous", async () => {
   const data = createData();
   data.hull[0].controllers = [{ path: "res:/controller.red" }];
   data.hull[0].modelRotationCurvePath = "res:/missing-rotation.red";
@@ -2699,7 +2701,7 @@ test("SOF object resource resolution is explicit and synchronous", () => {
   }];
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const unresolvedDocument = sof.Build("rifter", "minmatar", "minmatar");
+  const unresolvedDocument = (await sof.Build("rifter", "minmatar", "minmatar"));
   const unresolved = rootNode(unresolvedDocument);
   // Without a resolver the controller defers through Carbon's own
   // Tr2ControllerReference node instead of dropping silently.
@@ -2708,10 +2710,10 @@ test("SOF object resource resolution is explicit and synchronous", () => {
   assert.equal(controllerRef.kind, "Tr2ControllerReference");
   assert.equal(controllerRef.fields.path, "res:/controller.red");
   assert.equal(unresolved.fields.modelRotationCurve.$ref > 0, true);
-  assert.equal(sof.CreateDna("rifter:minmatar:minmatar").GetModelTranslationCurvePath(), null);
-  assert.throws(() => sof.SetObjectResourceResolver(false), /function or null/);
-  sof.SetObjectResourceResolver(() => Promise.resolve(null));
-  assert.throws(() => sof.Build("rifter", "minmatar", "minmatar"), /must be synchronous/);
+  assert.equal((await sof.CreateDna("rifter:minmatar:minmatar")).GetModelTranslationCurvePath(), null);
+  (await assert.rejects(async () => (await sof.SetObjectResourceResolver(false)), /function or null/));
+  (await sof.SetObjectResourceResolver(() => Promise.resolve(null)));
+  (await assert.rejects(async () => (await sof.Build("rifter", "minmatar", "minmatar")), /must be synchronous/));
 });
 
 test("SOF emits and hydrates Carbon decal sets with uint32 static indices", {
@@ -2796,7 +2798,7 @@ test("SOF emits and hydrates Carbon decal sets with uint32 static indices", {
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const document = sof.Build("rifter", "minmatar", "minmatar");
+  const document = (await sof.Build("rifter", "minmatar", "minmatar"));
   const decalNode = referencedNode(document, rootNode(document).fields.decals[0]);
   assert.deepEqual(decalNode.fields.position, [1, 2, 3]);
   assert.equal(decalNode.fields.parentBoneIndex, 7);
@@ -2834,7 +2836,7 @@ test("SOF emits and hydrates Carbon decal sets with uint32 static indices", {
   assert.equal(decal.batchType, 1);
 });
 
-test("SOF selects multi-hull decal indices by the lowercased combined geometry path", () => {
+test("SOF selects multi-hull decal indices by the lowercased combined geometry path", async () => {
   const data = createData();
   data.hull[0].decalSets = [{
     visibilityGroup: "primary",
@@ -2862,7 +2864,7 @@ test("SOF selects multi-hull decal indices by the lowercased combined geometry p
   data.generic.decalShaders = [];
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const document = sof.BuildFromDNA("rifter;rifter2:minmatar:minmatar");
+  const document = (await sof.BuildFromDNA("rifter;rifter2:minmatar:minmatar"));
   const decals = rootNode(document).fields.decals.map(ref => referencedNode(document, ref));
   assert.deepEqual(decals[0].fields.staticIndexBuffers, [[9, 8, 7]]);
   assert.deepEqual(decals[1].fields.staticIndexBuffers, []);
@@ -2922,9 +2924,9 @@ test("SOF emits and hydrates Carbon sprite sets with SOF6 light metadata", {
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const dna = sof.CreateDna("rifter;rifter2:minmatar:minmatar");
+  const dna = (await sof.CreateDna("rifter;rifter2:minmatar:minmatar"));
   assert.equal(dna.GetHullSpriteSets(0)[0].visibilityGroup > 0, true);
-  const document = sof.BuildFromDNA("rifter;rifter2:minmatar:minmatar");
+  const document = (await sof.BuildFromDNA("rifter;rifter2:minmatar:minmatar"));
   const attachments = rootNode(document).fields.attachments.map(ref => referencedNode(document, ref));
   assert.equal(attachments.length, 2);
   assert.deepEqual(attachments.map(node => node.kind), ["EveSpriteSet", "EveSpriteSet"]);
@@ -3046,9 +3048,9 @@ test("SOF emits and hydrates Carbon SOF6 spotlight sets with public typed lights
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const dna = sof.CreateDna("rifter;rifter2:minmatar:minmatar");
+  const dna = (await sof.CreateDna("rifter;rifter2:minmatar:minmatar"));
   assert.equal(dna.GetHullSpotlightSets(0)[0].items[0].colorType, 12);
-  const document = sof.BuildFromDNA("rifter;rifter2:minmatar:minmatar");
+  const document = (await sof.BuildFromDNA("rifter;rifter2:minmatar:minmatar"));
   const attachments = rootNode(document).fields.attachments.map(ref => referencedNode(document, ref));
   assert.deepEqual(attachments.map(node => node.kind), ["EveSpotlightSet", "EveSpotlightSet"]);
   assert.equal(attachments[0].fields.skinned, true);
@@ -3111,7 +3113,7 @@ test("SOF emits and hydrates Carbon SOF6 spotlight sets with public typed lights
   assert.equal(hydrated.root.attachments[0].lights[0].lightData.rotation.constructor.name, "Float32Array");
 });
 
-test("SOF legacy spotlight sets use faction groups without SOF6 visibility filtering", () => {
+test("SOF legacy spotlight sets use faction groups without SOF6 visibility filtering", async () => {
   const data = createData();
   data.hull[0].spotlightSets = [{
     visibilityGroup: "not-enabled",
@@ -3131,10 +3133,10 @@ test("SOF legacy spotlight sets use faction groups without SOF6 visibility filte
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const dna = sof.CreateDna("rifter:minmatar:minmatar");
+  const dna = (await sof.CreateDna("rifter:minmatar:minmatar"));
   assert.deepEqual(dna.GetFactionSpotlightSetData(7).coneColor, [1, 2, 3, 4]);
   assert.equal(dna.GetFactionSpotlightSetData(-1), null);
-  const document = sof.BuildFromDNA("rifter:minmatar:minmatar");
+  const document = (await sof.BuildFromDNA("rifter:minmatar:minmatar"));
   const attachment = referencedNode(document, rootNode(document).fields.attachments[0]);
   assert.equal(attachment.kind, "EveSpotlightSet");
   assert.equal(attachment.fields.spotlightItems.length, 1);
@@ -3205,9 +3207,9 @@ test("SOF emits and hydrates Carbon SOF6 plane sets with public typed blink and 
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const dna = sof.CreateDna("rifter;rifter2:minmatar:minmatar");
+  const dna = (await sof.CreateDna("rifter;rifter2:minmatar:minmatar"));
   assert.equal(dna.GetHullPlaneSets(0)[0].items[0].dutyCycle, 1);
-  const document = sof.BuildFromDNA("rifter;rifter2:minmatar:minmatar");
+  const document = (await sof.BuildFromDNA("rifter;rifter2:minmatar:minmatar"));
   const attachments = rootNode(document).fields.attachments.map(ref => referencedNode(document, ref));
   assert.deepEqual(attachments.map(node => node.kind), ["EvePlaneSet", "EvePlaneSet"]);
   assert.equal(attachments[0].fields.skinned, true);
@@ -3269,7 +3271,7 @@ test("SOF emits and hydrates Carbon SOF6 plane sets with public typed blink and 
   assert.equal(hydrated.root.attachments[0].lights[0].lightData.position.constructor.name, "Float32Array");
 });
 
-test("SOF legacy hangar-video plane sets use faction colors without SOF6 visibility filtering", () => {
+test("SOF legacy hangar-video plane sets use faction colors without SOF6 visibility filtering", async () => {
   const data = createData();
   data.hull[0].planeSets = [{
     usage: EveSOFDataHullPlaneSet.Usage.USAGE_HANGAR_VIDEO,
@@ -3280,10 +3282,10 @@ test("SOF legacy hangar-video plane sets use faction colors without SOF6 visibil
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const dna = sof.CreateDna("rifter:minmatar:minmatar");
+  const dna = (await sof.CreateDna("rifter:minmatar:minmatar"));
   assert.deepEqual(dna.GetFactionPlaneSetData(7).color, [2, 3, 4, 5]);
   assert.equal(dna.GetFactionPlaneSetData(-1), null);
-  const document = sof.BuildFromDNA("rifter:minmatar:minmatar");
+  const document = (await sof.BuildFromDNA("rifter:minmatar:minmatar"));
   const attachment = referencedNode(document, rootNode(document).fields.attachments[0]);
   assert.equal(attachment.kind, "EvePlaneSet");
   assert.equal(attachment.fields.pickBufferID, 100);
@@ -3341,9 +3343,9 @@ test("SOF emits Carbon sprite-line sets with shared effects and per-sprite SOF6 
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const dna = sof.CreateDna("rifter:minmatar:minmatar");
+  const dna = (await sof.CreateDna("rifter:minmatar:minmatar"));
   assert.equal(dna.GetHullSpriteLineSets(0)[0].visibilityGroup > 0, true);
-  const document = sof.BuildFromDNA("rifter:minmatar:minmatar");
+  const document = (await sof.BuildFromDNA("rifter:minmatar:minmatar"));
   const attachments = rootNode(document).fields.attachments.map(ref => referencedNode(document, ref));
   assert.deepEqual(attachments.map(node => node.kind), ["EveSpriteSet", "EveSpriteLineSet"]);
   assert.deepEqual(attachments[0].fields.effect, attachments[1].fields.effect);
@@ -3382,7 +3384,7 @@ test("SOF emits Carbon sprite-line sets with shared effects and per-sprite SOF6 
   assert.equal(hydrated.root.attachments[1].lights[0].constructor.name, "EveSpriteLight");
 });
 
-test("SOF applies sprite-line visibility filtering to legacy hulls", () => {
+test("SOF applies sprite-line visibility filtering to legacy hulls", async () => {
   const data = createData();
   data.hull[0].spriteLineSets = [{
     visibilityGroup: "hidden",
@@ -3391,7 +3393,7 @@ test("SOF applies sprite-line visibility filtering to legacy hulls", () => {
   data.faction[0].colorSet = { Primary: [1, 1, 1, 1] };
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const document = sof.BuildFromDNA("rifter:minmatar:minmatar");
+  const document = (await sof.BuildFromDNA("rifter:minmatar:minmatar"));
   assert.deepEqual(rootNode(document).fields.attachments, []);
 });
 
@@ -3453,7 +3455,7 @@ test("SOF emits and operationally hydrates Carbon haze sets with SOF6 lights", {
   const dna = new EveSOFDNA();
   dna.Setup("rifter:minmatar:minmatar", sof.dataMgr);
   assert.equal(dna.GetHullHazeSets(0)[0].visibilityGroup > 0, true);
-  const document = sof.BuildFromDNA("rifter:minmatar:minmatar");
+  const document = (await sof.BuildFromDNA("rifter:minmatar:minmatar"));
   const attachments = rootNode(document).fields.attachments.map(ref => referencedNode(document, ref));
   assert.deepEqual(attachments.map(node => node.kind), ["EveHazeSet", "EveHazeSet", "EveHazeSet"]);
   assert.deepEqual(attachments[0].fields.effect, attachments[1].fields.effect);
@@ -3521,7 +3523,7 @@ test("SOF emits and operationally hydrates Carbon haze sets with SOF6 lights", {
   assert.equal(hydrated.root.attachments[0].lights[0].lightData.color.constructor.name, "Float32Array");
 });
 
-test("SOF applies haze visibility filtering to legacy hulls", () => {
+test("SOF applies haze visibility filtering to legacy hulls", async () => {
   const data = createData();
   data.hull[0].hazeSets = [{
     visibilityGroup: "hidden",
@@ -3530,7 +3532,7 @@ test("SOF applies haze visibility filtering to legacy hulls", () => {
   data.faction[0].colorSet = { Primary: [1, 1, 1, 1] };
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const document = sof.BuildFromDNA("rifter:minmatar:minmatar");
+  const document = (await sof.BuildFromDNA("rifter:minmatar:minmatar"));
   assert.deepEqual(rootNode(document).fields.attachments, []);
 });
 
@@ -3579,7 +3581,7 @@ test("SOF emits and hydrates legacy banners with external texture bindings", {
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const document = sof.BuildFromDNA("rifter:minmatar:minmatar");
+  const document = (await sof.BuildFromDNA("rifter:minmatar:minmatar"));
   const root = rootNode(document);
   assert.equal(root.fields.attachments.length, 1);
   assert.equal(root.fields.externalParameters.length, 1);
@@ -3661,7 +3663,7 @@ test("SOF6 banner sets group usages numerically and preserve optional lights", {
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const document = sof.BuildFromDNA("rifter:minmatar:minmatar");
+  const document = (await sof.BuildFromDNA("rifter:minmatar:minmatar"));
   const root = rootNode(document);
   const sets = root.fields.attachments.map(ref => referencedNode(document, ref));
   assert.deepEqual(sets.map(set => set.fields.key), [
@@ -3758,7 +3760,7 @@ test("SOF emits and hydrates visible Carbon hull light types with cumulative hul
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const document = sof.BuildFromDNA("rifter;rifter2:minmatar:minmatar");
+  const document = (await sof.BuildFromDNA("rifter;rifter2:minmatar:minmatar"));
   const lights = rootNode(document).fields.lights.map(ref => referencedNode(document, ref));
   assert.deepEqual(lights.map(node => node.kind), [
     "Tr2PointLight",
@@ -3867,7 +3869,7 @@ test("SOF emits and hydrates Carbon impact overlays and preserves the HULL shiel
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const document = sof.Build("rifter", "minmatar", "minmatar");
+  const document = (await sof.Build("rifter", "minmatar", "minmatar"));
   const overlayNode = referencedNode(document, rootNode(document).fields.impactOverlay);
   const shieldMesh = referencedNode(document, overlayNode.fields.mesh);
   assert.equal(shieldMesh.fields.geometryResPath, "res:/shield.gr2");
@@ -3914,14 +3916,14 @@ test("SOF emits and hydrates Carbon impact overlays and preserves the HULL shiel
   hullData.generic.hullDamage = data.generic.hullDamage;
   const hullSof = new EveSOF();
   assert.equal(hullSof.dataMgr.SetData(hullData), true);
-  const hullDocument = hullSof.Build("rifter", "minmatar", "minmatar");
+  const hullDocument = (await hullSof.Build("rifter", "minmatar", "minmatar"));
   const hullOverlay = referencedNode(hullDocument, rootNode(hullDocument).fields.impactOverlay);
   assert.equal(hullOverlay.fields.mesh, null);
   assert.equal(hullOverlay.fields.shieldIsEllipsoid, false);
 
   const noneSof = new EveSOF();
   assert.equal(noneSof.dataMgr.SetData(createData()), true);
-  assert.equal(rootNode(noneSof.Build("rifter", "minmatar", "minmatar")).fields.impactOverlay, null);
+  assert.equal(rootNode((await noneSof.Build("rifter", "minmatar", "minmatar"))).fields.impactOverlay, null);
 });
 
 test("EveSOFDataMgr normalizes impact damage records and DNA selectors", () => {
@@ -4086,11 +4088,11 @@ test("EveSOFDNA descriptor setup inherits parent selections deterministically", 
   assert.equal(child.ValidateContent(), true);
 });
 
-test("EveSOF emits the minimal GPU-free Trinity graph slice", () => {
+test("EveSOF emits the minimal GPU-free Trinity graph slice", async () => {
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(createData()), true);
 
-  const document = sof.Build("rifter", "minmatar", "minmatar");
+  const document = (await sof.Build("rifter", "minmatar", "minmatar"));
   const graph = rootNode(document);
   const mesh = referencedNode(document, graph.fields.mesh);
   assert.equal(document.schema, "carbon.document");
@@ -4105,11 +4107,11 @@ test("EveSOF emits the minimal GPU-free Trinity graph slice", () => {
   assert.equal(mesh.fields.geometryResPath, "res:/model/rifter.gr2");
   assert.equal("meshResPath" in mesh.fields, false);
   assert.deepEqual(graph.fields.effectChildren, []);
-  assert.equal(sof.ValidateDNA("rifter:minmatar:minmatar"), true);
-  assert.equal(sof.BuildFromDNA("missing:minmatar:minmatar"), null);
+  assert.equal((await sof.ValidateDNA("rifter:minmatar:minmatar")), true);
+  assert.equal((await sof.BuildFromDNA("missing:minmatar:minmatar")), null);
 });
 
-test("EveSOF stamps Carbon mesh-area shadow, depth, and LOD state", () => {
+test("EveSOF stamps Carbon mesh-area shadow, depth, and LOD state", async () => {
   // FillMeshAreaVector runtime state (Carbon EveSOF.cpp:576-592,668-672,
   // 2149-2153): opaque areas cast shadows, decals follow the injected
   // alphaCutoutShadowsEnabled setting (Carbon default false), other batch
@@ -4135,7 +4137,7 @@ test("EveSOF stamps Carbon mesh-area shadow, depth, and LOD state", () => {
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(makeData()), true);
-  const document = sof.BuildFromDNA("rifter:minmatar:minmatar");
+  const document = (await sof.BuildFromDNA("rifter:minmatar:minmatar"));
   const mesh = referencedNode(document, rootNode(document).fields.mesh);
   const areaFields = (list, index = 0) => referencedNode(document, mesh.fields[list][index]).fields;
 
@@ -4158,16 +4160,16 @@ test("EveSOF stamps Carbon mesh-area shadow, depth, and LOD state", () => {
   assert.equal(depth.castsShadows, false);
   assert.equal(depth.generateDepthArea, true);
 
-  const enabled = new EveSOF().Register({ alphaCutoutShadowsEnabled: true });
+  const enabled = (await new EveSOF().Register({ alphaCutoutShadowsEnabled: true }));
   assert.equal(enabled.dataMgr.SetData(makeData()), true);
-  const enabledDocument = enabled.BuildFromDNA("rifter:minmatar:minmatar");
+  const enabledDocument = (await enabled.BuildFromDNA("rifter:minmatar:minmatar"));
   const enabledMesh = referencedNode(enabledDocument, rootNode(enabledDocument).fields.mesh);
   const enabledDecal = referencedNode(enabledDocument, enabledMesh.fields.opaqueAreas[1]).fields;
   assert.equal(enabledDecal.castsShadows, true);
   assert.equal(referencedNode(enabledDocument, enabledMesh.fields.opaqueAreas[0]).fields.castsShadows, true);
 });
 
-test("EveSOF composes multi-hull bounds, mesh indices, and locator graphs", () => {
+test("EveSOF composes multi-hull bounds, mesh indices, and locator graphs", async () => {
   const data = createData();
   const identity = [
     1, 0, 0, 0,
@@ -4212,14 +4214,14 @@ test("EveSOF composes multi-hull bounds, mesh indices, and locator graphs", () =
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const dna = sof.CreateDna("rifter;rifter2:minmatar:minmatar");
+  const dna = (await sof.CreateDna("rifter;rifter2:minmatar:minmatar"));
   assert.deepEqual(dna.GetHullLocatorSetNames(0), ["alpha", "next_subsystem", "zeta"]);
   assert.equal(dna.GetLocatorCount("alpha"), 2);
   assert.deepEqual(dna.GetHullNextSubsystemOffset(0), [10, 0, 0]);
   assert.equal(dna.GetHullAudioPosition(0), null);
   assert.deepEqual(dna.GetHullBoundingSphere(), [4.5, 0, 0, 6.5]);
 
-  const document = sof.BuildFromDNA("rifter;rifter2:minmatar:minmatar");
+  const document = (await sof.BuildFromDNA("rifter;rifter2:minmatar:minmatar"));
   const graph = rootNode(document);
   const mesh = referencedNode(document, graph.fields.mesh);
   assert.deepEqual([graph.fields.boundingSphereCenter, graph.fields.boundingSphereRadius], [[4.5, 0, 0], 6.5]);
@@ -4244,7 +4246,7 @@ test("EveSOF composes multi-hull bounds, mesh indices, and locator graphs", () =
   );
 });
 
-test("EveSOF emits mesh areas, effects, parameters, resources, and depth clones", () => {
+test("EveSOF emits mesh areas, effects, parameters, resources, and depth clones", async () => {
   const data = createData();
   data.hull[0].opaqueAreas = [{
     name: "Hull",
@@ -4302,7 +4304,7 @@ test("EveSOF emits mesh areas, effects, parameters, resources, and depth clones"
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const document = sof.BuildFromDNA("rifter:minmatar:minmatar:material?rust;none");
+  const document = (await sof.BuildFromDNA("rifter:minmatar:minmatar:material?rust;none"));
   const mesh = referencedNode(document, rootNode(document).fields.mesh);
 
   assert.equal(mesh.fields.opaqueAreas.length, 1);
@@ -4333,7 +4335,7 @@ test("EveSOF emits mesh areas, effects, parameters, resources, and depth clones"
   assert.equal(referencedNode(document, depthEffect.fields.resources[0]).fields.resourcePath, "res:/glass.dds");
 });
 
-test("EveSOF routes all five Carbon hull-area batches", () => {
+test("EveSOF routes all five Carbon hull-area batches", async () => {
   const data = createData();
   const categories = [
     ["opaqueAreas", "opaque.fx"],
@@ -4364,7 +4366,7 @@ test("EveSOF routes all five Carbon hull-area batches", () => {
   }));
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const document = sof.Build("rifter", "minmatar", "minmatar");
+  const document = (await sof.Build("rifter", "minmatar", "minmatar"));
   const mesh = referencedNode(document, rootNode(document).fields.mesh);
 
   assert.equal(mesh.fields.opaqueAreas.length, 2);
@@ -4377,7 +4379,7 @@ test("EveSOF routes all five Carbon hull-area batches", () => {
   assert.equal(referencedNode(document, decalEffect.fields.options[0]).fields.value, "SOT_CLIP");
 });
 
-test("EveSOFDataMgr and EveSOFDNA resolve legacy and SOF6 pattern applications", () => {
+test("EveSOFDataMgr and EveSOFDNA resolve legacy and SOF6 pattern applications", async () => {
   const data = createData();
   const layer = {
     materialSource: 0,
@@ -4435,7 +4437,7 @@ test("EveSOFDataMgr and EveSOFDNA resolve legacy and SOF6 pattern applications",
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const document = sof.BuildFromDNA("rifter:minmatar:minmatar:pattern?legacy;none;none");
+  const document = (await sof.BuildFromDNA("rifter:minmatar:minmatar:pattern?legacy;none;none"));
   const masks = rootNode(document).fields.customMasks.map(ref => referencedNode(document, ref));
   assert.equal(masks.length, 1);
   assert.deepEqual(masks[0].fields, {
@@ -4515,7 +4517,7 @@ test("EveSOF emits SOF6 PPT resources and Carbon sampler overrides", async () =>
   }];
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const document = sof.Build("rifter", "minmatar", "minmatar");
+  const document = (await sof.Build("rifter", "minmatar", "minmatar"));
   const effect = referencedNode(
     document,
     referencedNode(document, referencedNode(document, rootNode(document).fields.mesh).fields.opaqueAreas[0]).fields.effect,
@@ -4654,9 +4656,9 @@ test("EveSOF emits and hydrates Carbon's extension-root placement branch", {
   }];
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const document = sof.BuildFromDNA(
+  const document = (await sof.BuildFromDNA(
     "rifter:minmatar:minmatar:pattern?legacy;none;none:layout?extension-layout",
-  );
+  ));
   const root = rootNode(document);
   assert.equal(root.kind, "EveMobile");
   assert.deepEqual(root.fields.customMasks, []);
@@ -4737,7 +4739,7 @@ test("EveSOF emits and hydrates Carbon's extension-root placement branch", {
   assert.deepEqual(Array.from(inheritedColors[36]), [36, 136, 236, 1]);
 });
 
-test("EveSOF degrades missing generic shaders to partial meshes with diagnostics", () => {
+test("EveSOF degrades missing generic shaders to partial meshes with diagnostics", async () => {
   // Carbon never aborts the build on a missing generic shader record: it
   // logs, returns zero for that source vector (keeping areas it already
   // appended), and continues with the remaining batches and hulls
@@ -4761,7 +4763,7 @@ test("EveSOF degrades missing generic shaders to partial meshes with diagnostics
   ];
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const document = sof.Build("rifter", "minmatar", "minmatar");
+  const document = (await sof.Build("rifter", "minmatar", "minmatar"));
   assert.ok(document, "build continues despite the missing shader record");
   const mesh = referencedNode(document, rootNode(document).fields.mesh);
   // The area appended before the failure stays; the failed source stops there.
@@ -4770,7 +4772,7 @@ test("EveSOF degrades missing generic shaders to partial meshes with diagnostics
   // Later batch types still fill, including their depth clones.
   assert.equal(mesh.fields.transparentAreas.length, 1);
   assert.equal(mesh.fields.depthAreas.length, 1);
-  assert.deepEqual(sof.GetBuildDiagnostics(), [{
+  assert.deepEqual((await sof.GetBuildDiagnostics()), [{
     code: "missing-generic-shader",
     batchType: TriBatchType.TRIBATCHTYPE_OPAQUE,
     hullIndex: 0,
@@ -4781,11 +4783,11 @@ test("EveSOF degrades missing generic shaders to partial meshes with diagnostics
   data.hull[0].opaqueAreas = [area("Good", 0, "ship.fx")];
   const clean = new EveSOF();
   assert.equal(clean.dataMgr.SetData(data), true);
-  assert.ok(clean.Build("rifter", "minmatar", "minmatar"));
-  assert.deepEqual(clean.GetBuildDiagnostics(), []);
+  assert.ok((await clean.Build("rifter", "minmatar", "minmatar")));
+  assert.deepEqual((await clean.GetBuildDiagnostics()), []);
 });
 
-test("EveSOF extension builds continue when a placed hull shader is missing", () => {
+test("EveSOF extension builds continue when a placed hull shader is missing", async () => {
   const data = createData();
   data.hull[0].buildClass = EveSOFDataHull.BuildClass.BUILDCLASS_EXTENSION;
   data.hull[0].opaqueAreas = [{
@@ -4801,15 +4803,15 @@ test("EveSOF extension builds continue when a placed hull shader is missing", ()
   data.generic.areaShaders = [];
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const document = sof.Build("rifter", "minmatar", "minmatar");
+  const document = (await sof.Build("rifter", "minmatar", "minmatar"));
   assert.ok(document, "Carbon-aligned extension build degrades instead of aborting");
   assert.equal(
-    sof.GetBuildDiagnostics().some(entry => entry.code === "missing-generic-shader"),
+    (await sof.GetBuildDiagnostics()).some(entry => entry.code === "missing-generic-shader"),
     true,
   );
 });
 
-test("EveSOF placement routing preserves root transform children without a Solo container", () => {
+test("EveSOF placement routing preserves root transform children without a Solo container", async () => {
   const data = createData();
   data.hull[0].buildClass = EveSOFDataHull.BuildClass.BUILDCLASS_EXTENSION;
   data.hull[0].children = [{
@@ -4821,7 +4823,7 @@ test("EveSOF placement routing preserves root transform children without a Solo 
     buildFilter: EveSOFDataHull.BuildFilter.NON_INSTANCED_PLACEMENT,
   }];
   const sof = new EveSOF();
-  sof.SetChildResourceResolver(path => path === "res:/direct-transform.red" ? {
+  (await sof.SetChildResourceResolver(path => path === "res:/direct-transform.red" ? {
     kind: "EveTransform",
     target: "children",
     fields: { children: [], particleEmitters: [] },
@@ -4829,10 +4831,10 @@ test("EveSOF placement routing preserves root transform children without a Solo 
     kind: "EveChildMesh",
     target: "effectChildren",
     fields: { name: "unowned-effect", mesh: null, decals: [], attachments: [], lights: [] },
-  } : null);
+  } : null));
   assert.equal(sof.dataMgr.SetData(data), true);
 
-  const document = sof.Build("rifter", "minmatar", "minmatar");
+  const document = (await sof.Build("rifter", "minmatar", "minmatar"));
   const root = rootNode(document);
   const extension = referencedNode(document, root.fields.effectChildren.at(-1));
   assert.equal(root.fields.children.length, 1);
@@ -4876,7 +4878,7 @@ test("EveSOF routes animated extension children through Solo Placement", {
   }];
 
   const sof = new EveSOF();
-  sof.SetChildResourceResolver(path => {
+  (await sof.SetChildResourceResolver(path => {
     if (path === "res:/extension-child.red") return {
       kind: "EveChildMesh",
       target: "effectChildren",
@@ -4888,14 +4890,14 @@ test("EveSOF routes animated extension children through Solo Placement", {
       fields: { name: "legacy-extension-transform", children: [], particleEmitters: [] },
     };
     return null;
-  });
-  sof.SetObjectResourceResolver((path, context) => (
+  }));
+  (await sof.SetObjectResourceResolver((path, context) => (
     path === "res:/extension-controller.red" && context.role === "controller"
       ? { kind: "Tr2ControllerReference", fields: { path } }
       : null
-  ));
+  )));
   assert.equal(sof.dataMgr.SetData(data), true);
-  const document = sof.Build("rifter", "minmatar", "minmatar");
+  const document = (await sof.Build("rifter", "minmatar", "minmatar"));
   const root = rootNode(document);
   const extension = referencedNode(document, root.fields.effectChildren.at(-1));
   assert.equal(extension.fields.name, "Extension Container");
@@ -4981,7 +4983,7 @@ test("EveSOFDNA remaps turret material slots through faction usage", () => {
   assert.equal(faction.GetFactionTurretParameters("Unknown"), null);
 });
 
-test("EveSOF applies faction and DNA turret materials to both effect parameter paths", () => {
+test("EveSOF applies faction and DNA turret materials to both effect parameter paths", async () => {
   const data = createData();
   data.generic.turretAreaType = EveSOFDataArea.AreaType.TYPE_PRIMARY;
   data.material.push(
@@ -5010,7 +5012,7 @@ test("EveSOF applies faction and DNA turret materials to both effect parameter p
   constantSet.turretEffect = constantEffect;
   assert.equal(constantSet.GetShader(), constantEffect);
 
-  sof.SetupTurretMaterialFromFaction(constantSet, "minmatar");
+  (await sof.SetupTurretMaterialFromFaction(constantSet, "minmatar"));
   assert.deepEqual(Array.from(constantParameter.value), [0, 0, 1, 1]);
   assert.equal(starts, 1);
   assert.equal(ends, 1);
@@ -5021,23 +5023,23 @@ test("EveSOF applies faction and DNA turret materials to both effect parameter p
   dynamicParameter.name = "Mtl1Diffuse";
   dynamicEffect.parameters = [dynamicParameter];
   dynamicSet.turretEffect = dynamicEffect;
-  sof.SetupTurretMaterialFromDNA(
+  (await sof.SetupTurretMaterialFromDNA(
     dynamicSet,
     "rifter:minmatar:minmatar:material?explicit0;explicit1",
-  );
+  ));
   assert.deepEqual(Array.from(dynamicParameter.value), [0, 1, 0, 1]);
 
   dynamicParameter.SetValue([1, 1, 1, 1]);
-  sof.SetupTurretMaterialFromDNA(dynamicSet, "invalid");
+  (await sof.SetupTurretMaterialFromDNA(dynamicSet, "invalid"));
   assert.deepEqual(Array.from(dynamicParameter.value), [1, 1, 1, 1]);
 
-  assert.throws(
-    () => sof.SetupTurretMaterialFromFaction({}, "minmatar"),
+  (await assert.rejects(
+    async () => (await sof.SetupTurretMaterialFromFaction({}, "minmatar")),
     TypeError,
-  );
+  ));
 });
 
-test("faction turret materials read generic turretAreaType for ship and child turrets (Carbon bc9cb374)", () => {
+test("faction turret materials read generic turretAreaType for ship and child turrets (Carbon bc9cb374)", async () => {
   const createTurretData = () => {
     const data = createData();
     data.material.push(
@@ -5067,7 +5069,7 @@ test("faction turret materials read generic turretAreaType for ship and child tu
   const shipSet = new EveTurretSet();
   const ship = createConstantEffect();
   shipSet.turretEffect = ship.effect;
-  sof.SetupTurretMaterialFromFaction(shipSet, "minmatar");
+  (await sof.SetupTurretMaterialFromFaction(shipSet, "minmatar"));
   assert.deepEqual(Array.from(ship.parameter.value), [1, 1, 0, 1], "ship turret reads the turret area");
 
   // Child turret: every OPAQUE area material, and only those.
@@ -5083,15 +5085,15 @@ test("faction turret materials read generic turretAreaType for ship and child tu
   mesh.transparentAreas.push(transparent);
   turret.mesh = mesh;
   const untouched = Array.from(transparentEffect.parameter.value);
-  sof.SetupChildTurretMaterialFromFaction(turret, "minmatar");
+  (await sof.SetupChildTurretMaterialFromFaction(turret, "minmatar"));
   assert.deepEqual(Array.from(opaqueEffect.parameter.value), [1, 1, 0, 1]);
   assert.deepEqual(Array.from(transparentEffect.parameter.value), untouched);
 
   // Carbon's early returns: unknown faction, null turret, no mesh.
   opaqueEffect.parameter.value.set([9, 9, 9, 9]);
-  sof.SetupChildTurretMaterialFromFaction(turret, "missing");
-  sof.SetupChildTurretMaterialFromFaction(null, "minmatar");
-  sof.SetupChildTurretMaterialFromFaction(new EveChildTurret(), "minmatar");
+  (await sof.SetupChildTurretMaterialFromFaction(turret, "missing"));
+  (await sof.SetupChildTurretMaterialFromFaction(null, "minmatar"));
+  (await sof.SetupChildTurretMaterialFromFaction(new EveChildTurret(), "minmatar"));
   assert.deepEqual(Array.from(opaqueEffect.parameter.value), [9, 9, 9, 9]);
 
   // Negative control: without the generic override the default area is Primary.
@@ -5102,7 +5104,7 @@ test("faction turret materials read generic turretAreaType for ship and child tu
   const defaultSet = new EveTurretSet();
   const fallback = createConstantEffect();
   defaultSet.turretEffect = fallback.effect;
-  defaultSof.SetupTurretMaterialFromFaction(defaultSet, "minmatar");
+  (await defaultSof.SetupTurretMaterialFromFaction(defaultSet, "minmatar"));
   assert.deepEqual(Array.from(fallback.parameter.value), [0, 0, 1, 1]);
 });
 
@@ -5218,9 +5220,9 @@ test("SOF emits and hydrates Carbon instanced attachments with public CPU instan
   }];
 
   const sof = new EveSOF();
-  sof.SetResourceExistsResolver(path => path.includes("/insert/"));
+  (await sof.SetResourceExistsResolver(path => path.includes("/insert/")));
   assert.equal(sof.dataMgr.SetData(data), true);
-  const document = sof.Build("rifter", "minmatar", "minmatar");
+  const document = (await sof.Build("rifter", "minmatar", "minmatar"));
   const root = rootNode(document);
   assert.equal(root.fields.effectChildren.length, 1);
   const mainContainer = referencedNode(document, root.fields.effectChildren[0]);
@@ -5388,7 +5390,7 @@ test("SOF projects, emits, and hydrates multi-hull Carbon boosters", {
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const dna = sof.CreateDna("rifter;rifter2:minmatar:minmatar");
+  const dna = (await sof.CreateDna("rifter;rifter2:minmatar:minmatar"));
   assert.equal(dna.GetHullBoosterCount(), 2);
   assert.deepEqual(dna.GetRaceBoosterData().warpHaloColor, [0.6, 0.7, 0.8, 0.9]);
   assert.equal(dna.GetHullBoosterData(1).items[0].atlasIndex1, 7);
@@ -5410,7 +5412,7 @@ test("SOF projects, emits, and hydrates multi-hull Carbon boosters", {
   assert.equal(dna.GetRaceBoosterData().glowColor[0], 0.1);
   assert.equal(dna.GetHullBoosterData(0).items[0].transform[12], 1);
 
-  const document = sof.BuildFromDNA("rifter;rifter2:minmatar:minmatar");
+  const document = (await sof.BuildFromDNA("rifter;rifter2:minmatar:minmatar"));
   const root = rootNode(document);
   const booster = referencedNode(document, root.fields.boosters);
   assert.equal(booster.kind, "EveBoosterSet2");
@@ -5611,7 +5613,7 @@ test("SOF carbon.document hydrates through the sibling Trinity and audio consume
   }];
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const document = sof.Build("rifter", "minmatar", "minmatar");
+  const document = (await sof.Build("rifter", "minmatar", "minmatar"));
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry });
 
   assert.deepEqual(hydrated.reports, []);
@@ -5656,7 +5658,7 @@ test("DNA parent-bound accessors copy Carbon parent values", () => {
   assert.equal(dna.IsHullUsingDecalSets(), false);
 });
 
-test("banners only attach to space-object roots, never layout children", () => {
+test("banners only attach to space-object roots, never layout children", async () => {
   const data = createData();
   data.faction[0].visibilityGroupSet = { visibilityGroups: [{ str: "primary" }] };
   data.generic.bannerShader = { shader: "res:/banner.fx", defaultParameters: [], defaultTextures: [] };
@@ -5684,14 +5686,14 @@ test("banners only attach to space-object roots, never layout children", () => {
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const document = sof.BuildFromDNA("rifter:minmatar:minmatar:layout?graph");
+  const document = (await sof.BuildFromDNA("rifter:minmatar:minmatar:layout?graph"));
   const root = rootNode(document);
   const bannerSets = document.nodes.filter(node => node.kind === "EveBannerSet");
   assert.equal(bannerSets.length, 1);
   assert.ok(root.fields.attachments.some(ref => referencedNode(document, ref).kind === "EveBannerSet"));
 });
 
-test("editor mode records Carbon placement metadata on layout children", () => {
+test("editor mode records Carbon placement metadata on layout children", async () => {
   const makeData = () =>
   {
     const data = createData();
@@ -5761,9 +5763,9 @@ test("editor mode records Carbon placement metadata on layout children", () => {
     return layouts.fields.objects.map(ref => referencedNode(document, ref));
   };
 
-  const editor = new EveSOF().Register({ editorMode: true });
+  const editor = (await new EveSOF().Register({ editorMode: true }));
   assert.equal(editor.dataMgr.SetData(makeData()), true);
-  const document = editor.BuildFromDNA("rifter:minmatar:minmatar:layout?graph");
+  const document = (await editor.BuildFromDNA("rifter:minmatar:minmatar:layout?graph"));
   const children = layoutChildren(document);
   const ordinary = children.find(node => node.fields.name === "Hull");
   const instanced = children.find(node => node.fields.name === "Instanced Hull");
@@ -5780,7 +5782,7 @@ test("editor mode records Carbon placement metadata on layout children", () => {
 
   const plain = new EveSOF();
   assert.equal(plain.dataMgr.SetData(makeData()), true);
-  const plainChildren = layoutChildren(plain.BuildFromDNA("rifter:minmatar:minmatar:layout?graph"));
+  const plainChildren = layoutChildren((await plain.BuildFromDNA("rifter:minmatar:minmatar:layout?graph")));
   for (const child of plainChildren)
   {
     assert.equal(child.fields.sofDna, "");
@@ -5796,7 +5798,7 @@ test("editor mode records Carbon placement metadata on layout children", () => {
 // property instead: values build with nothing supplied. It must not be given a
 // registry, so it fails the moment a Trinity class library becomes a required
 // input again.
-test("values build with no registry, because SOF emits JSON and JSON needs no classes", () => {
+test("values build with no registry, because SOF emits JSON and JSON needs no classes", async () => {
   const data = createData();
   data.hull[0].soundEmitters = [{
     name: "engine",
@@ -5815,7 +5817,7 @@ test("values build with no registry, because SOF emits JSON and JSON needs no cl
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
 
-  const values = sof.BuildValuesFromDNA("rifter:minmatar:minmatar");
+  const values = (await sof.BuildValuesFromDNA("rifter:minmatar:minmatar"));
 
   assert.equal(values._type, "EveShip2");
   assert.equal(values.schema, undefined);
@@ -5841,14 +5843,14 @@ test("values build with no registry, because SOF emits JSON and JSON needs no cl
 
 test("values build can opt into defaults from caller-registered class families", {
   skip: !hasHydrationConsumerBundles,
-}, () => {
+}, async () => {
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(createData()), true);
 
-  const sparse = sof.BuildValuesFromDNA("rifter:minmatar:minmatar");
-  const expanded = sof.BuildValuesFromDNA("rifter:minmatar:minmatar", {
+  const sparse = (await sof.BuildValuesFromDNA("rifter:minmatar:minmatar"));
+  const expanded = (await sof.BuildValuesFromDNA("rifter:minmatar:minmatar", {
     populateDefaults: true,
-  });
+  }));
 
   assert.equal(Object.hasOwn(sparse, "name"), false);
   assert.equal(Object.hasOwn(sparse, "display"), false);
@@ -5858,12 +5860,12 @@ test("values build can opt into defaults from caller-registered class families",
   assert.equal(expanded.mesh._type, "Tr2Mesh");
   assert.equal(expanded.mesh.display, true);
 
-  assert.throws(
-    () => sof.BuildValuesFromDNA("rifter:minmatar:minmatar", {
+  (await assert.rejects(
+    async () => (await sof.BuildValuesFromDNA("rifter:minmatar:minmatar", {
       populateDefaults: "yes",
-    }),
+    })),
     /populateDefaults option must be a boolean/,
-  );
+  ));
 });
 
 test("BuildChild composes modular values with transformed bounds and part tags", {
@@ -5903,7 +5905,7 @@ test("BuildChild composes modular values with transformed bounds and part tags",
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const owner = sof.BuildValuesFromDNA("rifter:minmatar:minmatar");
+  const owner = (await sof.BuildValuesFromDNA("rifter:minmatar:minmatar"));
   const before = JSON.parse(JSON.stringify(owner));
   const transform = [
     0, 2, 0, 0,
@@ -5912,12 +5914,12 @@ test("BuildChild composes modular values with transformed bounds and part tags",
     10, 20, 30, 1,
   ];
 
-  const composed = sof.BuildChildValues(
+  const composed = (await sof.BuildChildValues(
     owner,
     "rifter:minmatar:minmatar",
     23,
     transform,
-  );
+  ));
   assert.deepEqual(owner, before, "the immutable values helper leaves its input unchanged");
   assert.deepEqual(composed.boundingSphereCenter, [4, 22, 42]);
   assert.equal(composed.boundingSphereRadius, 16);
@@ -5940,7 +5942,7 @@ test("BuildChild composes modular values with transformed bounds and part tags",
   assert.ok(shared.meshes[0].armorDamageShader, "a part with damage locators gets its own armour shader");
 
   const mutable = JSON.parse(JSON.stringify(owner));
-  assert.equal(sof.BuildChild(mutable, "rifter:minmatar:minmatar", 23, transform), true);
+  assert.equal((await sof.BuildChild(mutable, "rifter:minmatar:minmatar", 23, transform)), true);
   assert.deepEqual(mutable, composed);
 
   const trinity = await import(trinityConsumerEntry);
@@ -5948,28 +5950,28 @@ test("BuildChild composes modular values with transformed bounds and part tags",
   const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
   const RootClass = registry.GetConstructor(owner._type);
   const liveOwner = CjsSchema.from(CjsSchema.getClassName(RootClass), JSON.parse(JSON.stringify(owner)), { registry });
-  assert.equal(sof.BuildChild(
+  assert.equal((await sof.BuildChild(
     liveOwner,
     "rifter:minmatar:minmatar",
     23,
     transform,
     { registry },
-  ), true);
+  )), true);
   const liveValues = CjsSchema.getValues(liveOwner, {}, { refs: true, forceTypeTags: true });
   const liveShared = liveValues.effectChildren.find(child => child._type === "EveChildInstancedMeshes");
   assert.deepEqual(liveShared.meshes[0].partTags, [23]);
   assert.deepEqual(liveValues.boundingSphereCenter, [4, 22, 42]);
 
   const unchanged = JSON.parse(JSON.stringify(mutable));
-  assert.equal(sof.BuildChild(mutable, "missing:minmatar:minmatar", 24, transform), false);
+  assert.equal((await sof.BuildChild(mutable, "missing:minmatar:minmatar", 24, transform)), false);
   assert.deepEqual(mutable, unchanged);
-  assert.throws(
-    () => sof.BuildChildValues(owner, "rifter:minmatar:minmatar", -1, transform),
+  (await assert.rejects(
+    async () => (await sof.BuildChildValues(owner, "rifter:minmatar:minmatar", -1, transform)),
     /unsigned 32-bit integer/,
-  );
+  ));
 });
 
-test("BuildChild stamps animated and nested layout children with one modular part tag", () => {
+test("BuildChild stamps animated and nested layout children with one modular part tag", async () => {
   const data = createData();
   Object.assign(data.hull[1], {
     geometryResFilePath: "res:/model/animated-extension.gr2",
@@ -6002,19 +6004,19 @@ test("BuildChild stamps animated and nested layout children with one modular par
 
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const owner = sof.BuildValuesFromDNA("rifter:minmatar:minmatar");
+  const owner = (await sof.BuildValuesFromDNA("rifter:minmatar:minmatar"));
   const transform = [
     1, 0, 0, 0,
     0, 1, 0, 0,
     0, 0, 1, 0,
     5, 6, 7, 1,
   ];
-  const composed = sof.BuildChildValues(
+  const composed = (await sof.BuildChildValues(
     owner,
     "rifter2:minmatar:minmatar:layout?modular",
     91,
     transform,
-  );
+  ));
   const placement = composed.effectChildren.find(child => (
     child._type === "EveChildContainer" && child.partTag === 91
   ));
@@ -6043,7 +6045,7 @@ test("BuildValuesFromDNA emits plain model values with parity to document hydrat
   const audioTrinity = await import(audioTrinityConsumerEntry);
   const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
 
-  const values = sof.BuildValuesFromDNA("rifter:minmatar:minmatar", { registry });
+  const values = (await sof.BuildValuesFromDNA("rifter:minmatar:minmatar", { registry }));
 
   // The direct projection has the model-values shape expected by GetValues: no
   // document wrappers, and no model was constructed to produce it.
@@ -6069,7 +6071,7 @@ test("BuildValuesFromDNA emits plain model values with parity to document hydrat
   const hydratedSets = fromValues.attachments.filter(item => item.constructor.name === "EveSpriteSet");
   assert.equal(hydratedSets[0].effect, hydratedSets[1].effect);
 
-  const document = sof.BuildFromDNA("rifter:minmatar:minmatar");
+  const document = (await sof.BuildFromDNA("rifter:minmatar:minmatar"));
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry, adapter: createSofHydrationAdapter() });
   assert.deepEqual(hydrated.reports, []);
   assert.deepEqual(
@@ -6096,7 +6098,7 @@ test("values projection carries the audio emitter as a declared node", {
   const audioTrinity = await import(audioTrinityConsumerEntry);
   const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
 
-  const values = sof.BuildValuesFromDNA("rifter:minmatar:minmatar", { registry });
+  const values = (await sof.BuildValuesFromDNA("rifter:minmatar:minmatar", { registry }));
 
   // The emitter is declared data in the supported values and the internal
   // document form, so the public values graph retains audio placement.
@@ -6108,7 +6110,7 @@ test("values projection carries the audio emitter as a declared node", {
 
   // The retired audio observer side channel writes no raw bag; this fixture
   // imports no external raw state, so its document has none.
-  const document = sof.BuildFromDNA("rifter:minmatar:minmatar");
+  const document = (await sof.BuildFromDNA("rifter:minmatar:minmatar"));
   const observerNode = referencedNode(document, rootNode(document).fields.observers[0]);
   assert.equal(observerNode.raw, undefined);
   assert.equal(referencedNode(document, observerNode.fields.observer).kind, "AudEmitter");
@@ -6135,7 +6137,7 @@ test("values projection carries the audio emitter as a declared node", {
   );
 });
 
-test("SOF sync builds defer references and diagnose failed resolution", () => {
+test("SOF sync builds defer references and diagnose failed resolution", async () => {
   // Without resolvers the build stays complete AS DATA: children and
   // controllers defer through Carbon's own reference nodes (EveChildRef,
   // Tr2ControllerReference) and model curves through the CarbonEngineJS
@@ -6147,7 +6149,7 @@ test("SOF sync builds defer references and diagnose failed resolution", () => {
   data.hull[0].modelTranslationCurvePath = "res:/translation.red";
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
-  const document = sof.Build("rifter", "minmatar", "minmatar");
+  const document = (await sof.Build("rifter", "minmatar", "minmatar"));
   const root = rootNode(document);
   assert.equal(root.fields.children.length, 0);
   assert.equal(root.fields.effectChildren.length, 1);
@@ -6162,7 +6164,7 @@ test("SOF sync builds defer references and diagnose failed resolution", () => {
   assert.equal(curveRef.kind, "CjsExternalRef");
   assert.equal(curveRef.fields.resPath, "res:/translation.red");
   assert.equal(curveRef.fields.expects, "ITriVectorFunction");
-  assert.deepEqual(sof.GetBuildDiagnostics(), [
+  assert.deepEqual((await sof.GetBuildDiagnostics()), [
     { code: "deferred-child-animation-binding", path: "res:/child.red", id: 3 },
   ]);
 
@@ -6170,36 +6172,36 @@ test("SOF sync builds defer references and diagnose failed resolution", () => {
   // invalid-resource skip (EveSOF.cpp:1779-1783,2028-2031).
   const resolving = new EveSOF();
   assert.equal(resolving.dataMgr.SetData(data), true);
-  resolving.SetChildResourceResolver(() => null);
-  resolving.SetObjectResourceResolver(() => null);
-  const resolved = rootNode(resolving.Build("rifter", "minmatar", "minmatar"));
+  (await resolving.SetChildResourceResolver(() => null));
+  (await resolving.SetObjectResourceResolver(() => null));
+  const resolved = rootNode((await resolving.Build("rifter", "minmatar", "minmatar")));
   assert.equal(resolved.fields.effectChildren.length, 0);
   assert.equal(resolved.fields.controllers.length, 0);
   assert.deepEqual(
-    resolving.GetBuildDiagnostics().map(entry => entry.reason),
+    (await resolving.GetBuildDiagnostics()).map(entry => entry.reason),
     ["not-resolved", "not-resolved", "not-resolved"],
   );
 });
 
-test("SOF resFileIndex registration wires the synchronous existence oracle", () => {
+test("SOF resFileIndex registration wires the synchronous existence oracle", async () => {
   const sof = new EveSOF();
-  assert.throws(() => sof.Register({ resFileIndex: 5 }), /resFileIndex/);
+  (await assert.rejects(async () => (await sof.Register({ resFileIndex: 5 })), /resFileIndex/));
   const seen = [];
-  sof.Register({ resFileIndex: path => { seen.push(path); return path.endsWith("_d.dds"); } });
+  (await sof.Register({ resFileIndex: path => { seen.push(path); return path.endsWith("_d.dds"); } }));
   // Built-in collections are accepted; richer tool-owned indexes adapt to a
   // predicate before they cross the SOF boundary.
-  new EveSOF().Register({ resFileIndex: new Set(["res:/a.dds"]) });
-  new EveSOF().Register({ resFileIndex: new Map([["res:/a.dds", true]]) });
-  assert.throws(() => new EveSOF().Register({ resFileIndex: { Has: () => true } }), /resFileIndex/);
-  new EveSOF().Register({ resFileIndex: null });
+  (await new EveSOF().Register({ resFileIndex: new Set(["res:/a.dds"]) }));
+  (await new EveSOF().Register({ resFileIndex: new Map([["res:/a.dds", true]]) }));
+  (await assert.rejects(async () => (await new EveSOF().Register({ resFileIndex: { Has: () => true } })), /resFileIndex/));
+  (await new EveSOF().Register({ resFileIndex: null }));
 });
 
-test("EveSOF.Create instantiates from raw catalog inputs only", () => {
+test("EveSOF.Create instantiates from raw catalog inputs only", async () => {
   // The catalog is mandatory; garbage bytes propagate the black decoder's
   // failure instead of silently producing an empty factory.
-  assert.throws(() => EveSOF.Create(), /requires the sof catalog/);
-  assert.throws(() => EveSOF.Create({}), /requires the sof catalog/);
-  assert.throws(() => EveSOF.Create({ black: new Uint8Array([1, 2, 3, 4]) }));
+  (await assert.rejects(async () => (await EveSOF.Create()), /requires the sof catalog/));
+  (await assert.rejects(async () => (await EveSOF.Create({})), /requires the sof catalog/));
+  (await assert.rejects(async () => (await EveSOF.Create({ black: new Uint8Array([1, 2, 3, 4]) }))));
 
   const makeData = () => {
     const data = createData();
@@ -6233,26 +6235,26 @@ test("EveSOF.Create instantiates from raw catalog inputs only", () => {
   let bare;
   try
   {
-    bare = EveSOF.Create({ black: makeData() });
+    bare = (await EveSOF.Create({ black: makeData() }));
   }
   finally
   {
     console.warn = originalWarn;
   }
   assert.equal(warnings.length, 0);
-  const bareDocument = bare.BuildFromDNA("rifter:minmatar:minmatar");
+  const bareDocument = (await bare.BuildFromDNA("rifter:minmatar:minmatar"));
   assert.equal(findTextureResourcePath(bareDocument, "DiffuseMap"), "res:/x/ship_d.dds");
 
   // A plain (case-insensitive) file list is the whole existence oracle.
-  const indexed = EveSOF.Create({
+  const indexed = (await EveSOF.Create({
     black: makeData(),
     resFileIndex: ["RES:/X/INSERT/SHIP_INSERT_D.DDS"],
-  });
-  const indexedDocument = indexed.BuildFromDNA("rifter:minmatar:minmatar");
+  }));
+  const indexedDocument = (await indexed.BuildFromDNA("rifter:minmatar:minmatar"));
   assert.equal(findTextureResourcePath(indexedDocument, "DiffuseMap"), "res:/x/insert/ship_insert_d.dds");
 });
 
-test("resPathInsert existence goes through BePaths, as Carbon's FileExists does", () => {
+test("resPathInsert existence goes through BePaths, as Carbon's FileExists does", async () => {
   // EveSOFDNA.cpp:11-14: FileExists asks BePaths. :944-1011: the faction's
   // insert applies when the DNA has no respathinsert clause, "none" suppresses
   // it, and an insert whose file is missing falls back to the base path.
@@ -6281,14 +6283,14 @@ test("resPathInsert existence goes through BePaths, as Carbon's FileExists does"
   };
   const files = new Set([ "res:/x/insert/ship_insert_d.dds", "res:/x/named/ship_named_d.dds" ]);
   const paths = { FileExists: path => files.has(path) };
-  const diffuse = (sof, dna) => findTextureResourcePath(sof.BuildFromDNA(dna), "DiffuseMap");
+  const diffuse = async (sof, dna) => findTextureResourcePath((await sof.BuildFromDNA(dna)), "DiffuseMap");
 
   // A factory given its own paths service.
-  const own = EveSOF.Create({ black: makeData("insert") }).Register({ paths });
-  assert.equal(diffuse(own, "rifter:minmatar:minmatar"), "res:/x/insert/ship_insert_d.dds", "no clause: the faction's insert");
-  assert.equal(diffuse(own, "rifter:minmatar:minmatar:respathinsert?none"), "res:/x/ship_d.dds", "none suppresses it");
-  assert.equal(diffuse(own, "rifter:minmatar:minmatar:respathinsert?named"), "res:/x/named/ship_named_d.dds", "a named insert that exists applies");
-  assert.equal(diffuse(own, "rifter:minmatar:minmatar:respathinsert?missing"), "res:/x/ship_d.dds", "a missing insert falls back");
+  const own = (await (await EveSOF.Create({ black: makeData("insert") })).Register({ paths }));
+  assert.equal((await diffuse(own, "rifter:minmatar:minmatar")), "res:/x/insert/ship_insert_d.dds", "no clause: the faction's insert");
+  assert.equal((await diffuse(own, "rifter:minmatar:minmatar:respathinsert?none")), "res:/x/ship_d.dds", "none suppresses it");
+  assert.equal((await diffuse(own, "rifter:minmatar:minmatar:respathinsert?named")), "res:/x/named/ship_named_d.dds", "a named insert that exists applies");
+  assert.equal((await diffuse(own, "rifter:minmatar:minmatar:respathinsert?missing")), "res:/x/ship_d.dds", "a missing insert falls back");
 
   // The default is the global BePaths: compose it with a file system.
   const fileSystem = {
@@ -6301,9 +6303,9 @@ test("resPathInsert existence goes through BePaths, as Carbon's FileExists does"
   blue.paths.RegisterFileSystem(fileSystem);
   try
   {
-    const global = EveSOF.Create({ black: makeData("insert") });
-    assert.equal(diffuse(global, "rifter:minmatar:minmatar"), "res:/x/insert/ship_insert_d.dds", "global BePaths answers");
-    assert.equal(diffuse(global, "rifter:minmatar:minmatar:respathinsert?none"), "res:/x/ship_d.dds");
+    const global = (await EveSOF.Create({ black: makeData("insert") }));
+    assert.equal((await diffuse(global, "rifter:minmatar:minmatar")), "res:/x/insert/ship_insert_d.dds", "global BePaths answers");
+    assert.equal((await diffuse(global, "rifter:minmatar:minmatar:respathinsert?none")), "res:/x/ship_d.dds");
   }
   finally
   {
@@ -6311,13 +6313,13 @@ test("resPathInsert existence goes through BePaths, as Carbon's FileExists does"
   }
 
   // The temporary resFileIndex adapter still overrides paths.
-  const adapted = EveSOF.Create({ black: makeData("insert"), resFileIndex: [] }).Register({ paths });
-  assert.equal(diffuse(adapted, "rifter:minmatar:minmatar"), "res:/x/ship_d.dds", "resFileIndex overrides paths");
+  const adapted = (await (await EveSOF.Create({ black: makeData("insert"), resFileIndex: [] })).Register({ paths }));
+  assert.equal((await diffuse(adapted, "rifter:minmatar:minmatar")), "res:/x/ship_d.dds", "resFileIndex overrides paths");
 
-  assert.throws(() => new EveSOF().Register({ paths: {} }), /FileExists/);
+  (await assert.rejects(async () => (await new EveSOF().Register({ paths: {} })), /FileExists/));
 });
 
-test("SOF stamps the injected buildTime as every light's startTime", () => {
+test("SOF stamps the injected buildTime as every light's startTime", async () => {
   // Carbon initializes m_lightData.startTime from GetCurrentTime() at build,
   // phase-offsetting noise flicker; the injected buildTime seam reproduces
   // that with a deterministic default of zero.
@@ -6356,13 +6358,13 @@ test("SOF stamps the injected buildTime as every light's startTime", () => {
 
   const deterministic = new EveSOF();
   assert.equal(deterministic.dataMgr.SetData(makeData()), true);
-  const zeroTimes = findStartTimes(deterministic.BuildFromDNA("rifter:minmatar:minmatar"));
+  const zeroTimes = findStartTimes((await deterministic.BuildFromDNA("rifter:minmatar:minmatar")));
   assert.ok(zeroTimes.length >= 1, "expected light emissions with startTime");
   assert.ok(zeroTimes.every(([, value]) => value === 0));
 
-  const clocked = new EveSOF().Register({ buildTime: 42.5 });
+  const clocked = (await new EveSOF().Register({ buildTime: 42.5 }));
   assert.equal(clocked.dataMgr.SetData(makeData()), true);
-  const stamped = findStartTimes(clocked.BuildFromDNA("rifter:minmatar:minmatar"));
+  const stamped = findStartTimes((await clocked.BuildFromDNA("rifter:minmatar:minmatar")));
   assert.equal(stamped.length, zeroTimes.length);
   assert.ok(stamped.every(([, value]) => value === 42.5), JSON.stringify(stamped));
 });
@@ -6449,7 +6451,7 @@ test("faction area materials, colors, and logos survive the decoded data.black s
   assert.deepEqual(flat.colorData.colors[0], [1, 0, 0, 1]);
 });
 
-test("mesh area parameters resolve faction materials into Mtl shader values", () => {
+test("mesh area parameters resolve faction materials into Mtl shader values", async () => {
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData({
     hull: [
@@ -6480,7 +6482,7 @@ test("mesh area parameters resolve faction materials into Mtl shader values", ()
     },
   }), true);
 
-  const document = sof.BuildFromDNA("rifter:minmatar:minmatar");
+  const document = (await sof.BuildFromDNA("rifter:minmatar:minmatar"));
   const nodes = new Map(document.nodes.map(node => [node.id, node]));
   const parameters = document.nodes
     .filter(node => node.kind === "Tr2ConstantEffectParameter")
@@ -6493,7 +6495,7 @@ test("mesh area parameters resolve faction materials into Mtl shader values", ()
   );
 });
 
-test("DNA visibility groups report what a faction turns on and off", () => {
+test("DNA visibility groups report what a faction turns on and off", async () => {
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData({
     hull: [
@@ -6521,7 +6523,7 @@ test("DNA visibility groups report what a faction turns on and off", () => {
     generic: {},
   }), true);
 
-  const standard = sof.GetDnaVisibilityGroups("rifter:minmatar:minmatar");
+  const standard = (await sof.GetDnaVisibilityGroups("rifter:minmatar:minmatar"));
   assert.deepEqual(standard.declared, ["primary", "unused"]);
   assert.deepEqual(standard.authored, ["holiday_19", "police", "primary"]);
   assert.deepEqual(standard.visible, ["primary"]);
@@ -6538,11 +6540,11 @@ test("DNA visibility groups report what a faction turns on and off", () => {
   );
 
   // The same hull under a faction that declares only "police" flips which sets build.
-  const police = sof.GetDnaVisibilityGroups("rifter:police:minmatar");
+  const police = (await sof.GetDnaVisibilityGroups("rifter:police:minmatar"));
   assert.deepEqual(police.visible, ["police"]);
   assert.deepEqual(police.hidden, ["holiday_19", "primary"]);
 
-  assert.equal(sof.GetDnaVisibilityGroups("missing:minmatar:minmatar"), null);
+  assert.equal((await sof.GetDnaVisibilityGroups("missing:minmatar:minmatar")), null);
 });
 
 
@@ -6595,7 +6597,7 @@ test("typed EveSOFDataParameter subclasses flatten with Carbon's GetValue rules"
 });
 
 
-test("BuildChildValues emits the child booster set into the placement container", () => {
+test("BuildChildValues emits the child booster set into the placement container", async () => {
   const data = createData();
   data.hull[0].boundingSphere = [0, 0, 0, 4];
   data.hull[0].booster = {
@@ -6666,7 +6668,7 @@ test("BuildChildValues emits the child booster set into the placement container"
     shapeEllipsoidCenter: [0, 0, 0],
     shapeEllipsoidRadius: [0, 0, 0],
   };
-  const composed = sof.BuildChildValues(owner, "rifter:minmatar:minmatar", 5, [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
+  const composed = (await sof.BuildChildValues(owner, "rifter:minmatar:minmatar", 5, [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]));
   const container = composed.effectChildren.find(child => child._type === "EveChildContainer");
   assert.ok(container, "hasBoosters forces the placement container");
   const boosterSet = container.objects.find(child => child._type === "EveChildBoosterSet");

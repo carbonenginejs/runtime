@@ -61,11 +61,11 @@ for (const [dna, dynamicName] of [["chjita:caldarinavy:caldari", "hangarvideos"]
       return new Uint8Array(await response.arrayBuffer());
     };
     const paths = await (await fetch(resourceBase + "/resfiles")).json();
-    const sof = new EveSOF().Register({ lazyData: { source: Read }, resFileIndex: paths,
+    const sof = (await new EveSOF().Register({ lazyData: { source: Read }, resFileIndex: paths,
       resources: { getObject: async path => {
         const read = CjsBlackFormat.read(await Read(path), { emit: "json" });
         return (read.root ?? read).object;
-      } }, volumetricTrailPath: "res:/dx9/model/ship/booster/volumetrictrail.gr2" });
+      } }, volumetricTrailPath: "res:/dx9/model/ship/booster/volumetrictrail.gr2" }));
     const values = await sof.BuildValuesFromDNAAsync(dna);
     assert.notEqual(values._type, "EveShip2");
     const ordinary = new StubResMan();

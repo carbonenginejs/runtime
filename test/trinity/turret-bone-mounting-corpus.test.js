@@ -62,10 +62,10 @@ async function assets(t, slots = [1, 2, 8])
   const previous = blue.resMan;
   blue.resMan = new StubResMan(path => resources.get(path.toLowerCase()));
   t.after(() => { blue.resMan = previous; });
-  const sof = new EveSOF().Register({
+  const sof = (await new EveSOF().Register({
     lazyData: { source: async path => { assert.ok(files.has(path), path); return files.get(path); } },
     resources: { exists: async path => files.has(path) }
-  });
+  }));
   const ship = CjsSchema.from("EveShip2", await sof.BuildValuesFromDNAAsync("mde3_t3:minmatarbase:minmatar"));
   ship.mesh.SetGeometryRes(hullGeometry);
   ship.PrepareForAnimation();

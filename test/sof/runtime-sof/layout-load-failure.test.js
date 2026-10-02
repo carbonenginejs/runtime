@@ -6,7 +6,7 @@ const base = "res:/dx9/model/spaceobjectfactory";
 const missing = base + "/hulls/missing.black";
 const dna = "root:faction:race:layout?hangar";
 
-function fixture()
+async function fixture()
 {
   const hull = name => ({ name, buildClass: 0, geometryResFilePath: "res:/" + name + ".gr2", opaqueAreas: [] });
   const records = new Map([
@@ -23,25 +23,25 @@ function fixture()
   ]);
   const failures = new Map();
   const sof = new EveSOF();
-  sof.Register({ lazyData: { source: async path => {
+  (await sof.Register({ lazyData: { source: async path => {
     if (records.has(path)) return records.get(path);
     const error = failures.get(path) ?? new Error("Unavailable: " + path);
     failures.set(path, error);
     throw error;
-  } } });
+  } } }));
   return { sof, records, failures, hull };
 }
 
 test("optional layout failure preserves the path error and builds both siblings", async () =>
 {
-  const { sof, records, failures, hull } = fixture();
+  const { sof, records, failures, hull } = (await fixture());
   const values = await sof.BuildValuesFromDNAAsync(dna);
   assert.equal(values._type, "EveShip2");
   const json = JSON.stringify(values);
   assert.ok(json.includes("res:/before.gr2"));
   assert.ok(json.includes("res:/after.gr2"));
   assert.ok(!json.includes("res:/missing.gr2"));
-  const library = sof.GetSofLibraryBuilder();
+  const library = (await sof.GetSofLibraryBuilder());
   assert.deepEqual(library.GetLoadErrors(), [{ path: missing, error: failures.get(missing) }]);
   assert.equal(sof.dataMgr.HasHullData("missing"), false);
   await assert.rejects(library.FetchHull("missing"), error => error === failures.get(missing));
@@ -55,7 +55,7 @@ for (const suffix of ["generic.black", "hulls/root.black", "factions/faction.bla
 {
   test("essential failure still aborts: " + suffix, async () =>
   {
-    const { sof, records } = fixture();
+    const { sof, records } = (await fixture());
     records.delete(base + "/" + suffix);
     await assert.rejects(sof.BuildValuesFromDNAAsync(dna), /Unavailable/);
   });
@@ -63,8 +63,8 @@ for (const suffix of ["generic.black", "hulls/root.black", "factions/faction.bla
 
 test("an aborted layout load is not treated as an optional missing part", async () =>
 {
-  const { sof } = fixture();
-  const library = sof.GetSofLibraryBuilder();
+  const { sof } = (await fixture());
+  const library = (await sof.GetSofLibraryBuilder());
   const original = library._readObject;
   library._readObject = path => path === missing ? Promise.reject(new DOMException("Cancelled", "AbortError")) : original(path);
   await assert.rejects(sof.BuildValuesFromDNAAsync(dna), { name: "AbortError" });
@@ -72,8 +72,8 @@ test("an aborted layout load is not treated as an optional missing part", async 
 
 test("a required caller sharing an optional layout read still receives its error", async () =>
 {
-  const { sof } = fixture();
-  const library = sof.GetSofLibraryBuilder();
+  const { sof } = (await fixture());
+  const library = (await sof.GetSofLibraryBuilder());
   const original = library._readObject;
   let release;
   let reached;

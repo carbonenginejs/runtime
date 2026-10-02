@@ -90,7 +90,7 @@ test("real Svipul dynamic bounds survive stance animation and GR2/CMF rebinding"
   for(const [kind,dir] of Object.entries({hull:"hulls",faction:"factions",race:"races",material:"materials",pattern:"patterns",layout:"layouts"}))
     for(const item of catalog[kind]??[])files.set(`res:/dx9/model/spaceobjectfactory/${dir}/${item.name}.black`,item);
   const previous=blue.resMan;blue.resMan=new StubResMan();t.after(()=>{blue.resMan=previous;});
-  const sof=new EveSOF().Register({lazyData:{source:async path=>{assert.ok(files.has(path),path);return files.get(path);}},resources:{exists:async path=>files.has(path)}});
+  const sof=(await new EveSOF().Register({lazyData:{source:async path=>{assert.ok(files.has(path),path);return files.get(path);}},resources:{exists:async path=>files.has(path)}}));
   const values=await sof.BuildValuesFromDNAAsync("mde3_t3:minmatarbase:minmatar");
   const ship=CjsSchema.from("EveShip2", values);assert.equal(ship.dynamicBoundingSphereEnabled,true);
   const geometry=new TriGeometryRes();geometry.SetPayload(geometry.ReadGrannyFile(bytes));geometry.MarkPrepared();

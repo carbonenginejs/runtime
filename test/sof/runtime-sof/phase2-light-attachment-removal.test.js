@@ -151,11 +151,11 @@ test("actual SOF manager snapshots typed light attachments without retaining the
   }
 });
 
-test("typed parent graph feeds existing CPU sprite and spotlight generation", () =>
+test("typed parent graph feeds existing CPU sprite and spotlight generation", async () =>
 {
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(createGraph()), true);
-  const values = sof.BuildValuesFromDNA("lighthull:lightfaction:lightrace");
+  const values = (await sof.BuildValuesFromDNA("lighthull:lightfaction:lightrace"));
   const sprite = values.attachments.find(value => value._type === "EveSpriteSet").lights[0];
   const spot = values.attachments.find(value => value._type === "EveSpotlightSet").lights[0];
   assert.equal(sprite._type, "EveSpriteLight");

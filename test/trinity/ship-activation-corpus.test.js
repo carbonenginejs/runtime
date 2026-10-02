@@ -37,10 +37,10 @@ async function builder(t)
 {
   const files=await loadCatalog();
   const previous=blue.resMan;blue.resMan=new StubResMan();t.after(()=>{blue.resMan=previous;});
-  return new EveSOF().Register({
+  return (await new EveSOF().Register({
     lazyData:{source:async path=>{assert.ok(files.has(path),path);return files.get(path);}},
     resources:{exists:async path=>files.has(path)}
-  });
+  }));
 }
 const near=(a,b,message)=>assert.ok(Math.abs(a-b)<1e-5,`${message}: ${a} vs ${b}`);
 

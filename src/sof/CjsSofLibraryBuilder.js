@@ -465,6 +465,16 @@ export class CjsSofLibraryBuilder
     const managedFaction = this._dataMgr.GetFactionData(
       normalizeCatalogName(faction.name, "faction object name")
     );
+    await this._EnsureFactionProjectionDependencies(managedFaction, options);
+  }
+
+  /**
+   * Acquires dependencies of the exact projection passed to turret assembly.
+   * Custom: callers can supply edited projections independently of the catalog.
+   */
+  @meta.ours
+  async _EnsureFactionProjectionDependencies(managedFaction, options)
+  {
     await Promise.all([
       ...freezeNames([
         managedFaction.defaultPatternLayer1MaterialName,

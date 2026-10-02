@@ -38,13 +38,13 @@ for (const [name, build] of Object.entries(builds))
   test(`${name} waits for a cold monolithic catalog and reuses successful initialization`, { timeout: 5000 }, async () => {
     const gate = deferred();
     const reads = [];
-    const sof = new EveSOF().Register({
+    const sof = (await new EveSOF().Register({
       dataPath: DATA_PATH,
       resources: { getObject: async (path, request) => {
         reads.push([path, request.role]);
         return gate.promise;
       } }
-    });
+    }));
     let settled = false;
     const first = build(sof).then(value => { settled = true; return value; });
     const second = build(sof);
@@ -64,7 +64,7 @@ for (const [name, build] of Object.entries(builds))
 
 test("monolithic readiness retries rejection and invalid catalog results", async () => {
   let attempts = 0;
-  const sof = new EveSOF().Register({
+  const sof = (await new EveSOF().Register({
     dataPath: DATA_PATH,
     resources: { getObject: async () => {
       attempts++;
@@ -72,7 +72,7 @@ test("monolithic readiness retries rejection and invalid catalog results", async
       if (attempts === 2) return null;
       return catalog();
     } }
-  });
+  }));
   await assert.rejects(sof.Fetch(DNA), error => error.path === DATA_PATH && error.cause?.message === "catalog temporarily unavailable");
   await assert.rejects(sof.Fetch(DNA), /catalog could not be loaded/);
   assert.ok(await sof.BuildValuesFromDNAAsync(DNA));
@@ -82,7 +82,7 @@ test("monolithic readiness retries rejection and invalid catalog results", async
 });
 
 test("monolithic readiness also tracks the data manager's async loader", async () => {
-  const sof = new EveSOF().Register({ dataPath: DATA_PATH });
+  const sof = (await new EveSOF().Register({ dataPath: DATA_PATH }));
   await assert.rejects(sof.Fetch(DNA), /catalog could not be loaded/);
   let reads = 0;
   sof.dataMgr.SetResourceLoader(async () => { reads++; return catalog(); });
@@ -93,14 +93,14 @@ test("monolithic readiness also tracks the data manager's async loader", async (
 
 test("changing a monolithic source invalidates readiness and rejects superseded publication", async () => {
   const gate = deferred();
-  const sof = new EveSOF().Register({ dataPath: DATA_PATH, resources: { getObject: () => gate.promise } });
+  const sof = (await new EveSOF().Register({ dataPath: DATA_PATH, resources: { getObject: () => gate.promise } }));
   const pending = sof.Fetch(DNA);
   const rejected = assert.rejects(pending, /configuration changed while loading/);
   await nextTurn();
   let replacements = 0;
   const replacement = catalog();
   replacement.hull[0].boundingSphere = [1, 2, 3, 4];
-  sof.Register({ resources: { getObject: async () => { replacements++; return replacement; } } });
+  (await sof.Register({ resources: { getObject: async () => { replacements++; return replacement; } } }));
   assert.ok(await sof.Fetch(DNA));
   gate.resolve(catalog());
   await rejected;
@@ -109,7 +109,7 @@ test("changing a monolithic source invalidates readiness and rejects superseded 
   assert.equal(replacements, 1);
 });
 
-function lazyFactory(source)
+async function lazyFactory(source)
 {
   const data = catalog();
   data.generic.genericWreckMaterial = { material1: "wreck" };
@@ -121,32 +121,32 @@ function lazyFactory(source)
     [`${BASE_PATH}/materials/wreck.black`, { name: "wreck", parameters: [] }]
   ]);
   const reads = [];
-  const sof = new EveSOF().Register({ lazyData: { source: async path => {
+  const sof = (await new EveSOF().Register({ lazyData: { source: async path => {
     reads.push(path);
     assert.ok(records.has(path), `unexpected catalog request ${path}`);
     await source(path);
     return records.get(path);
-  } } });
+  } } }));
   return { sof, reads };
 }
 
 test("lazy builds and named fetches join generic material readiness", { timeout: 5000 }, async () => {
   const materialGate = deferred();
   const materialStarted = deferred();
-  const { sof, reads } = lazyFactory(async path => {
+  const { sof, reads } = (await lazyFactory(async path => {
     if (path.endsWith("/materials/wreck.black"))
     {
       materialStarted.resolve();
       await materialGate.promise;
     }
-  });
+  }));
   const first = sof.BuildValuesFromDNAAsync(DNA);
   await materialStarted.promise;
   assert.equal(sof.dataMgr.HasGenericData(), true);
   let secondSettled = false;
   let hullSettled = false;
   const second = sof.BuildValuesFromDNAAsync(DNA).then(value => { secondSettled = true; return value; });
-  const hull = sof.GetSofLibraryBuilder().FetchHull("test").then(value => { hullSettled = true; return value; });
+  const hull = (await sof.GetSofLibraryBuilder()).FetchHull("test").then(value => { hullSettled = true; return value; });
   await nextTurn();
   assert.equal(secondSettled, false, "a published generic record is not complete readiness");
   assert.equal(hullSettled, false, "named fetches join the same dependency closure");
@@ -161,9 +161,9 @@ test("lazy builds and named fetches join generic material readiness", { timeout:
 
 test("generic material failure can retry after generic itself was published", { timeout: 5000 }, async () => {
   let attempts = 0;
-  const { sof, reads } = lazyFactory(async path => {
+  const { sof, reads } = (await lazyFactory(async path => {
     if (path.endsWith("/materials/wreck.black") && ++attempts === 1) throw new Error("wreck not ready");
-  });
+  }));
   await assert.rejects(sof.BuildValuesFromDNAAsync(DNA), /wreck not ready/);
   assert.equal(sof.dataMgr.HasGenericData(), true);
   assert.equal(sof.dataMgr.HasMaterialData("wreck"), false);
@@ -174,8 +174,8 @@ test("generic material failure can retry after generic itself was published", { 
 });
 
 test("concurrent forced generic refreshes join one full dependency operation", { timeout: 5000 }, async () => {
-  const { sof, reads } = lazyFactory(async () => {});
-  const builder = sof.GetSofLibraryBuilder();
+  const { sof, reads } = (await lazyFactory(async () => {}));
+  const builder = (await sof.GetSofLibraryBuilder());
   await builder.EnsureGeneric();
   await Promise.all([builder.EnsureGeneric({ force: true }), builder.EnsureGeneric({ force: true })]);
   assert.equal(reads.filter(path => path.endsWith("/generic.black")).length, 2);
@@ -184,10 +184,10 @@ test("concurrent forced generic refreshes join one full dependency operation", {
 
 test("failed explicit reload invalidates earlier readiness and permits a clean retry", async () => {
   let reads = 0;
-  const sof = new EveSOF().Register({ dataPath: DATA_PATH, resources: { getObject: async () => {
+  const sof = (await new EveSOF().Register({ dataPath: DATA_PATH, resources: { getObject: async () => {
     reads++;
     return reads === 2 ? { ...catalog(), generic: null } : catalog();
-  } } });
+  } } }));
   assert.ok(await sof.Fetch(DNA));
   assert.equal(await sof.LoadDataAsync(), false);
   assert.ok(await sof.Fetch(DNA));
@@ -197,10 +197,10 @@ test("failed explicit reload invalidates earlier readiness and permits a clean r
 test("builds await an explicit reload already in progress", { timeout: 5000 }, async () => {
   let reads = 0;
   const gate = deferred();
-  const sof = new EveSOF().Register({ dataPath: DATA_PATH, resources: { getObject: async () => {
+  const sof = (await new EveSOF().Register({ dataPath: DATA_PATH, resources: { getObject: async () => {
     reads++;
     return reads === 1 ? catalog() : gate.promise;
-  } } });
+  } } }));
   assert.ok(await sof.Fetch(DNA));
   const reload = sof.LoadDataAsync();
   let settled = false;
@@ -217,13 +217,13 @@ test("builds await an explicit reload already in progress", { timeout: 5000 }, a
 
 test("superseded manager fallback loads cannot overwrite a replacement source", async () => {
   const gate = deferred();
-  const sof = new EveSOF().Register({ dataPath: DATA_PATH });
+  const sof = (await new EveSOF().Register({ dataPath: DATA_PATH }));
   sof.dataMgr.SetResourceLoader(() => gate.promise);
   const old = assert.rejects(sof.Fetch(DNA), /configuration changed while loading/);
   await nextTurn();
   const replacement = catalog();
   replacement.hull[0].boundingSphere = [7, 8, 9, 10];
-  sof.Register({ resources: { getObject: async () => replacement } });
+  (await sof.Register({ resources: { getObject: async () => replacement } }));
   assert.ok(await sof.Fetch(DNA));
   gate.resolve(catalog());
   await old;
@@ -231,7 +231,7 @@ test("superseded manager fallback loads cannot overwrite a replacement source", 
 });
 
 test("replacing the manager loader invalidates readiness and pending reads", async () => {
-  const sof = new EveSOF().Register({ dataPath: DATA_PATH });
+  const sof = (await new EveSOF().Register({ dataPath: DATA_PATH }));
   sof.dataMgr.SetResourceLoader(async () => catalog());
   assert.ok(await sof.Fetch(DNA));
   const gate = deferred();
@@ -252,10 +252,10 @@ for (const delayed of ["generic.black", "materials/wreck.black"])
   test(`replacing lazy data rejects publication from delayed ${delayed}`, { timeout: 5000 }, async () => {
     const gate = deferred();
     const started = deferred();
-    const { sof } = lazyFactory(async path => {
+    const { sof } = (await lazyFactory(async path => {
       if (path.endsWith("/" + delayed)) { started.resolve(); await gate.promise; }
-    });
-    const builder = sof.GetSofLibraryBuilder();
+    }));
+    const builder = (await sof.GetSofLibraryBuilder());
     const old = assert.rejects(builder.EnsureGeneric(), /catalog replaced while loading/);
     await started.promise;
     const replacement = catalog();
@@ -274,10 +274,10 @@ for (const delayed of ["generic.black", "materials/wreck.black"])
 
 test("public LoadData is asynchronous and shares reload readiness", async () => {
   let reads = 0;
-  const sof = new EveSOF().Register({ dataPath: DATA_PATH, resources: { getObject: async () => {
+  const sof = (await new EveSOF().Register({ dataPath: DATA_PATH, resources: { getObject: async () => {
     reads++;
     return reads === 2 ? { ...catalog(), generic: null } : catalog();
-  } } });
+  } } }));
   const initial = sof.LoadData();
   assert.equal(typeof initial.then, "function");
   assert.equal(await initial, true);
@@ -289,8 +289,8 @@ test("public LoadData is asynchronous and shares reload readiness", async () => 
 });
 
 test("failed lazy catalog replacement invalidates readiness before manager tables are cleared", async () => {
-  const { sof, reads } = lazyFactory(async () => {});
-  const builder = sof.GetSofLibraryBuilder();
+  const { sof, reads } = (await lazyFactory(async () => {}));
+  const builder = (await sof.GetSofLibraryBuilder());
   await builder.EnsureGeneric();
   assert.throws(() => builder.SetData({ generic: {}, hull: [null] }), /could not install/);
   assert.equal(sof.dataMgr.HasGenericData(), false);
@@ -302,14 +302,14 @@ test("failed lazy catalog replacement invalidates readiness before manager table
 
 test("ordinary readiness retries a failed forced material refresh instead of accepting stale material", async () => {
   let materialReads = 0;
-  const sof = new EveSOF().Register({ lazyData: { source: async path => {
+  const sof = (await new EveSOF().Register({ lazyData: { source: async path => {
     if (path.endsWith("/generic.black")) return { genericWreckMaterial: { material1: "wreck" } };
     assert.ok(path.endsWith("/materials/wreck.black"));
     materialReads++;
     if (materialReads === 2) throw new Error("forced material temporarily unavailable");
     return { name: "wreck", parameters: [{ name: "Color", value: [materialReads, 0, 0, 1] }] };
-  } } });
-  const builder = sof.GetSofLibraryBuilder();
+  } } }));
+  const builder = (await sof.GetSofLibraryBuilder());
   await builder.EnsureGeneric();
   await assert.rejects(builder.EnsureGeneric({ force: true }), /forced material temporarily unavailable/);
   await builder.EnsureGeneric();
@@ -319,12 +319,12 @@ test("ordinary readiness retries a failed forced material refresh instead of acc
 
 test("ordinary readiness retries the generic record after a forced generic read fails", async () => {
   let genericReads = 0;
-  const sof = new EveSOF().Register({ lazyData: { source: async () => {
+  const sof = (await new EveSOF().Register({ lazyData: { source: async () => {
     genericReads++;
     if (genericReads === 2) throw new Error("forced generic temporarily unavailable");
     return { areaShaderLocation: `res:/generation${genericReads}` };
-  } } });
-  const builder = sof.GetSofLibraryBuilder();
+  } } }));
+  const builder = (await sof.GetSofLibraryBuilder());
   await builder.EnsureGeneric();
   await assert.rejects(builder.EnsureGeneric({ force: true }), /forced generic temporarily unavailable/);
   await builder.EnsureGeneric();

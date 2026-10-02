@@ -34,14 +34,14 @@ test("real Apocalypse Lavacore DNA builds with an absent authored material", {
   CcpLog.RegisterLogEcho(echo);
   try
   {
-    const sof = new EveSOF().Register({
+    const sof = (await new EveSOF().Register({
       lazyData: {source: async path => {
         reads.push(path);
         if (!files.has(path)) throw new Error(`Resource file not found: ${path}`);
         return files.get(path);
       }},
       resources: {exists: async path => files.has(path)}
-    });
+    }));
     const result = await sof.BuildFromDNAAsync(DNA);
     assert.equal(result.schema, "carbon.document");
     assert.ok(result.nodes.some(value => value.kind === "Tr2Mesh" && value.fields.opaqueAreas.length > 0), "the real hull emits mesh areas");
