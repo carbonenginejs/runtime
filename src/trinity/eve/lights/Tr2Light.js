@@ -1,11 +1,11 @@
 // Source: trinity/trinity/Lights/Tr2Light.h
 // Source: trinity/trinity/Lights/Tr2Light.cpp
-import { CjsModel } from "#model";
+import { ReadValues } from "../../../global/blue/values.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { carbon, impl, edit, type } from "#schema";
 import { ResourceRequirement } from "#resource";
-import { blue } from "#blue";
+import { blue, IInitialize, INotify } from "#blue";
 import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
 import { createCjsLightDataView, setCjsLightDataOwnerValues } from "./CjsLightData.js";
 import {
@@ -23,7 +23,8 @@ import {
  * each frame.
  */
 @type.define({ className: "Tr2Light", family: "eve/lights" })
-export class Tr2Light extends CjsModel
+@carbon.inherit(IInitialize, INotify)
+export class Tr2Light
 {
   static LightDataFields = [];
 
@@ -98,7 +99,7 @@ export class Tr2Light extends CjsModel
       this,
       values,
       options,
-      (ownerValues, ownerOptions) => super.SetValues(ownerValues, ownerOptions),
+      (ownerValues, ownerOptions) => ReadValues(this, ownerValues, ownerOptions),
       this.constructor.LightDataFields
     );
   }
@@ -355,3 +356,5 @@ export class Tr2Light extends CjsModel
 blue.enums.RegisterEnum("trinity.Tr2Light.LIGHT_TYPE", Tr2Light.LightType, {
   source: "trinity/trinity/Lights/Tr2Light.h", family: "eve/lights", line: 71
 });
+
+carbon.interfaceTable({ interfaces: [Tr2Light], chainTo: null })(Tr2Light, { kind: "class" });

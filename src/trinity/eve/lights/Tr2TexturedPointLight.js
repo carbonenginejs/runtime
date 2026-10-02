@@ -1,3 +1,4 @@
+import { IInitialize, INotify } from "#blue";
 ﻿// Source: trinity/trinity/Lights/Tr2TexturedPointLight.h
 // Source: trinity/trinity/Lights/Tr2TexturedPointLight.cpp
 // Source: trinity/trinity/Lights/Tr2TexturedPointLight_Blue.cpp
@@ -109,3 +110,5 @@ export class Tr2TexturedPointLight extends Tr2PointLight
     color.saturate(this.color, this.texture.GetAverageColor(), this._saturation);
   }
 }
+
+carbon.interfaceTable({ interfaces: [Tr2TexturedPointLight, Tr2Light, IInitialize, INotify], chainTo: null })(Tr2TexturedPointLight, { kind: "class" });

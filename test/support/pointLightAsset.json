@@ -1,0 +1,16 @@
+{
+  "source": "res:/dx9/model/turret/chain/l/chain_l01_t1_fx_stretch_01a.black",
+  "md5": "2fa38218652e9f8575d240955dba6529",
+  "object": {
+    "_type": "Tr2PointLight",
+    "radius": 6666,
+    "color": [
+      0.29926639795303345,
+      0.44103118777275085,
+      1,
+      1
+    ],
+    "brightness": 0,
+    "_id": 63
+  }
+}

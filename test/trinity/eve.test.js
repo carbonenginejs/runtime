@@ -716,16 +716,16 @@ test("Tr2Light subclasses preserve Carbon graph defaults without resource realiz
   assertVec4(point.color, [0.1, 0.2, 0.3, 0.4]);
   assertVec4(point.lightData.color, [0.1, 0.2, 0.3, 0.4]);
 
-  const hydrated = Tr2PointLight.from({ position: [4, 5, 6], brightness: 3 });
+  const hydrated = CjsSchema.from("Tr2PointLight", { position: [4, 5, 6], brightness: 3 });
   assertVec3(hydrated.position, [4, 5, 6]);
   assertVec3(hydrated.lightData.position, [4, 5, 6]);
   assertEquals(hydrated.brightness, 3);
   assert(hydrated.position !== point.position, "light instances keep independent mutable values");
   // The pre-flatten nested shape still hydrates (runtime-sof compat).
-  const nested = Tr2PointLight.from({ lightData: { position: [7, 8, 9], radius: 5 } });
+  const nested = CjsSchema.from("Tr2PointLight", { lightData: { position: [7, 8, 9], radius: 5 } });
   assertVec3(nested.position, [7, 8, 9]);
   assertEquals(nested.radius, 5);
-  const values = hydrated.GetValues();
+  const values = CjsSchema.getValues(hydrated);
   assertEquals(Object.hasOwn(values, "lightData"), false, "flattened fields serialize flat");
   assertVec3(values.position, [4, 5, 6]);
 });

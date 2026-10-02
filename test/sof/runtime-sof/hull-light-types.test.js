@@ -23,9 +23,8 @@ function buildLights(rawHull)
   const document = new SofDocumentBuilder();
   const owner = { lights: [] };
   sof.SetupLights(document, owner, dna);
-  const types = { Tr2PointLight, Tr2TexturedPointLight, Tr2SpotLight };
   const nodes = owner.lights.map(value => document.GetNode(value.$ref));
-  const live = nodes.map(node => types[node.kind].from({ _type: node.kind, ...node.fields }));
+  const live = nodes.map(node => CjsSchema.from(node.kind, { _type: node.kind, ...node.fields }));
   return { hull, nodes, live };
 }
 

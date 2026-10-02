@@ -1,3 +1,4 @@
+import { IInitialize, INotify } from "#blue";
 // Source: trinity/trinity/Lights/Tr2FactionLight.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 // Flattened LightData surface (2026-07-23 decision): the m_lightData.* Blue
@@ -230,3 +231,5 @@ export class Tr2FactionLight extends Tr2Light
   ];
 
 }
+
+carbon.interfaceTable({ interfaces: [Tr2FactionLight, IEveInheritPropertiesOwner, Tr2Light, IInitialize, INotify], chainTo: null })(Tr2FactionLight, { kind: "class" });

@@ -1,9 +1,10 @@
+import { IInitialize, INotify } from "#blue";
 // Source: trinity/trinity/Lights/Tr2PointLight.cpp
 // Source: trinity/trinity/Lights/Tr2PointLight_Blue.cpp
 // Flattened LightData surface (2026-07-23 decision): the m_lightData.* Blue
 // attributes are real decorated fields here, verified against
 // lights/Tr2PointLight.json (tools-core schema build).
-import { edit, type } from "#schema";
+import { carbon, edit, type } from "#schema";
 import { color } from "#math/color";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -127,3 +128,5 @@ export class Tr2PointLight extends Tr2Light
   type = Tr2Light.POINT_LIGHT;
 
 }
+
+carbon.interfaceTable({ interfaces: [Tr2PointLight, Tr2Light, IInitialize, INotify], chainTo: null })(Tr2PointLight, { kind: "class" });
