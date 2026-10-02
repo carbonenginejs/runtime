@@ -2,7 +2,6 @@
 // Source: trinity/trinity/Eve/EveLensflare.cpp
 // Hand-maintained after promotion from generated schema intake.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -19,7 +18,7 @@ const bitsAsFloat = value => new Float32Array(new Uint32Array([ value >>> 0 ]).b
 /** Represents a lens-flare graph with CPU-side visibility and controller state. */
 @type.define({ className: "EveLensflare", family: "eve/effect" })
 @carbon.inherit(ITr2Renderable)
-export class EveLensflare extends CjsModel
+export class EveLensflare
 {
 
   _controllerVariables = new Map();

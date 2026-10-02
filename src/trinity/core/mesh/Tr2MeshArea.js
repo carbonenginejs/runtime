@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Tr2MeshArea.h
 // Source: trinity/trinity/Tr2MeshArea.cpp
 // Source: trinity/trinity/Tr2MeshArea_Blue.cpp
-import { CjsModel } from "#model";
 import { carbon, edit, impl, type } from "#schema";
 
 
@@ -10,7 +9,7 @@ import { carbon, edit, impl, type } from "#schema";
  * effect, shadow, depth and LOD state that decide how the range is batched.
  */
 @type.define({ className: "Tr2MeshArea", family: "trinityCore" })
-export class Tr2MeshArea extends CjsModel
+export class Tr2MeshArea
 {
   // m_ownerMeshes (std::vector<Tr2MeshBase*>)
   #ownerMeshes = [];

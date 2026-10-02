@@ -1,7 +1,6 @@
 // Source: trinity/trinity/TriLineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 
@@ -14,7 +13,7 @@ function swizzleColor(color)
 
 /** A debug line set that builds boxes, spheres, cylinders and cones out of coloured line segments. */
 @type.define({ className: "TriLineSet", family: "trinityCore" })
-export class TriLineSet extends CjsModel
+export class TriLineSet
 {
 
   @type.uint32

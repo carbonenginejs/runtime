@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Shader/Tr2Material.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Organizes one shader stage's constants, parameters, textures, UAVs, and CPU-side constant mirror. */
 @type.define({ className: "Tr2MaterialStageInput", family: "shader" })
-export class Tr2MaterialStageInput extends CjsModel
+export class Tr2MaterialStageInput
 {
 
   /** m_constantBufferDirty (bool) */

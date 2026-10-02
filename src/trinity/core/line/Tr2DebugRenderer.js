@@ -1,13 +1,12 @@
 // Source: trinity/trinity/Tr2DebugRenderer.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
 /** Resolves which debug visualisations an object draws, from per-owner options over a default set. */
 @type.define({ className: "Tr2DebugRenderer", family: "trinityCore" })
-export class Tr2DebugRenderer extends CjsModel
+export class Tr2DebugRenderer
 {
 
   #options = new Map();

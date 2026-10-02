@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/EveOccluder.h
 // Source: trinity/trinity/Eve/EveOccluder.cpp
 import { carbon, edit, impl, type } from "#schema";
-import { CjsModel } from "#model";
 import { RenderingMode, TriBatchType } from "#consts/graphics";
 import { EffectKeyGenerator, TriRenderBatchAccumulator } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2VariableStore } from "../../../core/variable/Tr2VariableStore.js";
@@ -17,7 +16,7 @@ const bitsAsFloat = value => new Float32Array(new Uint32Array([ value >>> 0 ]).b
  * the visibility the flare and the god rays read.
  */
 @type.define({ className: "EveOccluder", family: "eve/effect", purpose: "Groups sprite occlusion elements that can be displayed as one named EVE scene effect." })
-export class EveOccluder extends CjsModel
+export class EveOccluder
 {
 
   /** m_sprites (PEveTransformVector) [READ, PERSIST] */

@@ -8,12 +8,11 @@
 // Tr2ResourceSetDescriptionAL/Tr2TextureAL device work and stays with the
 // engine lane.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { CjsParameter } from "../../shader/parameter/CjsParameter.js";
 
 /** Binds an editable cloud volume to a named effect texture parameter and records whether the effect consumes it. */
 @type.define({ className: "EveCloudVolumeTextureParameter", family: "eve/child", purpose: "Binds an editable cloud volume to a named effect texture parameter and records whether the effect consumes it." })
-export class EveCloudVolumeTextureParameter extends CjsModel
+export class EveCloudVolumeTextureParameter
 {
 
   /** m_volume (EveCloudEditableVolumePtr) [READWRITE, PERSIST] */

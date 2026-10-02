@@ -13,7 +13,6 @@
 // SaveHeader's switch, whose default returns SAVE_NOT_SUPPORTED. This port
 // keeps that net behaviour: no pre-check, the header switch rejects.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { GetBytesPerPixel, PixelFormat } from "#consts/render-context";
 import { ALResult } from "../../trinityal/ALResult.js";
 import "#blue/registerTrinityEnums";
@@ -24,7 +23,7 @@ const IMAGE_TYPE_RAW_GREYSCALE = 3;
 
 /** Models Carbon's incremental bitmap saver through its dimensions, pixel format, current offset, and batch-copy entry points. */
 @type.define({ className: "Tr2StreamingBitmapSaver", family: "trinityCore", purpose: "Models Carbon's incremental bitmap saver through its dimensions, pixel format, current offset, and batch-copy entry points." })
-export class Tr2StreamingBitmapSaver extends CjsModel
+export class Tr2StreamingBitmapSaver
 {
 
   /** m_currentOffset (uint32_t) [READ] - rows are written bottom-up, so it

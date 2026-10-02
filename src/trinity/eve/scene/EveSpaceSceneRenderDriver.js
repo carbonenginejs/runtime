@@ -20,7 +20,6 @@
 // calls in order; that contract is written on EveSpaceScene itself, and this is
 // the driver it describes.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec4 } from "#math/vec4";
 import { mat4 } from "#math/mat4";
 import { PixelFormat, TextureType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
@@ -52,7 +51,7 @@ import "#blue/registerTrinityEnums";
 
 /** Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame. */
 @type.define({ className: "EveSpaceSceneRenderDriver", family: "eve/scene", purpose: "Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame." })
-export class EveSpaceSceneRenderDriver extends CjsModel
+export class EveSpaceSceneRenderDriver
 {
 
   /** m_settings.aoQuality (AmbientOcclusionQuality - enum AmbientOcclusionQuality) [READWRITE, ENUM] */

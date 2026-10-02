@@ -1,6 +1,5 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraTransition.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraTransition.cpp
-import { CjsModel } from "#model";
 import { carbon, impl, type } from "#schema";
 import { EveVirtualCamera } from "../EveVirtualCamera.js";
 
@@ -13,7 +12,7 @@ import { EveVirtualCamera } from "../EveVirtualCamera.js";
   className: "EveVirtualCameraTransitionBase",
   family: "eve/virtualCamera/transition"
 })
-export class EveVirtualCameraTransitionBase extends CjsModel
+export class EveVirtualCameraTransitionBase
 {
   @type.objectRef("EveVirtualCamera")
   sourceCamera = null;

@@ -18,7 +18,6 @@ import { Tr2BufferAL } from "../../trinityal/Tr2BufferAL/index.js";
 // an entirely unimplemented class reports clean. Do not read a green audit as
 // evidence that this file is finished.
 import { type, impl } from "#schema";
-import { CjsModel } from "#model";
 import { RenderingMode } from "#consts/graphics";
 import {
   BlendMode,
@@ -312,7 +311,7 @@ function failState(message)
 
 /** Tracks the portable render, stream, buffer, viewport, and override state used while applying an effect, owns the process-wide shader, shader-program and render-state registration tables its handle fields index, and filters redundant binds out of the Apply* surface that carries those handles to the abstraction layer. */
 @type.define({ className: "Tr2EffectStateManager", family: "shader" })
-export class Tr2EffectStateManager extends CjsModel
+export class Tr2EffectStateManager
 {
 
   /** m_renderContext (Tr2RenderContext&) */

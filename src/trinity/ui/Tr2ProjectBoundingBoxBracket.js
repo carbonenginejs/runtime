@@ -4,7 +4,6 @@
 // Promoted to hand-maintained source 2026-08-22; projection is portable CPU work.
 import { mat4 } from "#math/mat4";
 import { ITr2BoundingBox } from "#interfaces";
-import { CjsModel } from "#model";
 import { CjsSchema, carbon, impl, edit, type } from "#schema";
 
 
@@ -208,7 +207,7 @@ function clampProjectedSize(size, minSize, maxSize)
 
 /** Projects an owned world-space bounding box into a Sprite2D bracket. */
 @type.define({ className: "Tr2ProjectBoundingBoxBracket", family: "trinityCore" })
-export class Tr2ProjectBoundingBoxBracket extends CjsModel
+export class Tr2ProjectBoundingBoxBracket
 {
   /**
    * Updates the projection using the active render context threaded by

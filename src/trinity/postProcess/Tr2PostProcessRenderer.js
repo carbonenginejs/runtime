@@ -11,7 +11,6 @@
 // without them runs the chain end to end: copy, sharpening, tonemapping.
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { BloomDebugMode, Quality } from "../generated/postProcess/enums.js";
 import { blue, EnumRegistrationType } from "#blue";
 import { num } from "#math/num";
@@ -82,7 +81,7 @@ function effectAt(path, options = null)
  * the back buffer, driven by the scene's combined Tr2PostProcess2.
  */
 @type.define({ className: "Tr2PostProcessRenderer", family: "postProcess" })
-export class Tr2PostProcessRenderer extends CjsModel
+export class Tr2PostProcessRenderer
 {
   @edit.notify
   @edit.readwrite

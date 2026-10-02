@@ -4,7 +4,6 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 
 
@@ -20,7 +19,7 @@ const SCRUB_MAX_ITERATIONS = 20;
   className: "EveVirtualCamera",
   family: "eve/virtualCamera"
 })
-export class EveVirtualCamera extends CjsModel
+export class EveVirtualCamera
 {
   @edit.read
   @type.vec3

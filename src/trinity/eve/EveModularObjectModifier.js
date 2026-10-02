@@ -5,7 +5,6 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsModel } from "#model";
 import { carbon, impl, type } from "#schema";
 import { EveChildPartData, EveChildPartDataPartData } from "./child/EveChildPartData/index.js";
 import { EveChildInstancedMeshes } from "./child/EveChildInstancedMeshes/index.js";
@@ -15,7 +14,7 @@ import { Tr2Lod } from "./EveLODHelper.js";
 
 /** Transient edit session for one modular EveSpaceObject2. */
 @type.define({ className: "EveModularObjectModifier", family: "eve" })
-export class EveModularObjectModifier extends CjsModel
+export class EveModularObjectModifier
 {
   _object = null;
 

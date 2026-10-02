@@ -2,7 +2,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveLocatorSets.cpp
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
 import { carbon, CjsSchema, impl, edit, type } from "#schema";
 import { MatrixCopyFrom3x4 } from "../lights/lightConversion.js";
 import { Locator } from "./Locator.js";
@@ -56,7 +55,7 @@ export function EveGetLocatorPose(outPosition, outDirection, animationUpdater, l
   className: "EveLocatorSets",
   family: "eve/utils"
 })
-export class EveLocatorSets extends CjsModel
+export class EveLocatorSets
 {
   @edit.read
   @edit.persist

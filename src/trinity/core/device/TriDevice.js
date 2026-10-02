@@ -7,7 +7,6 @@ import { EveSpaceScene } from "../../eve/scene/EveSpaceScene.js";
 // class and calls the AL from it.
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { PresentInterval, SwapEffect, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
 import {
   convertProjectionCoordToWorldPickRay,
@@ -48,7 +47,7 @@ import "#blue/registerTrinityEnums";
 // `ITriDevice` is not declared here because it is still in `trinity/dropped`;
 // it is the one entry this class's `@carbon.mapInterface` will carry.
 @carbon.inherit(IBlueEvents, ISimTimeRebaseNotify)
-export class TriDevice extends CjsModel
+export class TriDevice
 {
 
   static ThrottlingReason = Object.freeze({

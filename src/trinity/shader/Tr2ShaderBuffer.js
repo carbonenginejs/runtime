@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Shader/Tr2ShaderBuffer.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 
 /** Owns a detached byte payload for one shader stage while leaving device binding to the engine. */
 @type.define({ className: "Tr2ShaderBuffer", family: "shader" })
-export class Tr2ShaderBuffer extends CjsModel
+export class Tr2ShaderBuffer
 {
 
   /** m_size (int) [READ] */
