@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Tr2Mesh_Blue.cpp
 import { carbon, edit, impl, type } from "#schema";
 import { ResourceRequirement } from "#resource";
-import { blue } from "#blue";
+import { blue, IInitialize, INotify } from "#blue";
 import { Tr2MeshBase } from "./Tr2MeshBase.js";
 import { Tr2SerializedMorphAnimation } from "./Tr2SerializedMorphAnimation.js";
 
@@ -13,6 +13,7 @@ import { Tr2SerializedMorphAnimation } from "./Tr2SerializedMorphAnimation.js";
  * morph-target weights and baked-morph state on top of Tr2MeshBase.
  */
 @type.define({ className: "Tr2Mesh", family: "trinityCore" })
+@carbon.inherit(IInitialize, INotify)
 export class Tr2Mesh extends Tr2MeshBase
 {
   _bakedMorphTargets = [];
@@ -465,3 +466,5 @@ function GetMorphLod(resource, meshIndex)
     ?? GetMeshRecord(resource, meshIndex)?.lods?.[0]
     ?? null;
 }
+
+carbon.interfaceTable({ interfaces: [Tr2Mesh, IInitialize, INotify], chainTo: Tr2MeshBase })(Tr2Mesh, { kind: "class" });

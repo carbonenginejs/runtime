@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Tr2MeshBase_Blue.cpp
 import { Tr2MeshArea } from "./Tr2MeshArea.js";
 import { BLUELISTEVENT } from "#consts/blue";
-import { CjsModel } from "#model";
+import { BlueList, IListNotify } from "#blue";
 import { vec3 } from "#math/vec3";
 import { carbon, CjsSchema, edit, impl, type } from "#schema";
 import { TriBatchType } from "#consts/graphics";
@@ -17,7 +17,8 @@ import { CarbonVertexElements } from "../vertex/vertexUsage.js";
  * areas into GPU-free render batches and shadow area blocks.
  */
 @type.define({ className: "Tr2MeshBase", family: "trinityCore" })
-export class Tr2MeshBase extends CjsModel
+@carbon.inherit(IListNotify)
+export class Tr2MeshBase
 {
   @edit.readwrite
   @edit.persist
@@ -37,74 +38,74 @@ export class Tr2MeshBase extends CjsModel
   @edit.read
   @edit.persist
   @type.list("Tr2MeshArea")
-  opaqueAreas = [];
+  opaqueAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
   @edit.read
   @edit.persist
   @type.list("Tr2MeshArea")
-  decalAreas = [];
+  decalAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
   @edit.read
   @edit.persist
   @type.list("Tr2MeshArea")
-  depthAreas = [];
+  depthAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
   @edit.read
   @edit.persist
   @type.list("Tr2MeshArea")
-  transparentAreas = [];
+  transparentAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
   @edit.read
   @edit.persist
   @type.list("Tr2MeshArea")
-  additiveAreas = [];
+  additiveAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
   @edit.read
   @edit.persist
   @type.list("Tr2MeshArea")
-  pickableAreas = [];
+  pickableAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
   @edit.read
   @edit.persist
   @type.list("Tr2MeshArea")
-  mirrorAreas = [];
+  mirrorAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
   @edit.read
   @edit.persist
   @type.list("Tr2MeshArea")
-  decalNormalAreas = [];
+  decalNormalAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
   @edit.read
   @edit.persist
   @type.list("Tr2MeshArea")
-  depthNormalAreas = [];
+  depthNormalAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
   @edit.read
   @edit.persist
   @type.list("Tr2MeshArea")
-  opaquePrepassAreas = [];
+  opaquePrepassAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
   @edit.read
   @edit.persist
   @type.list("Tr2MeshArea")
-  decalPrepassAreas = [];
+  decalPrepassAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
   @edit.read
   @edit.persist
   @type.list("Tr2MeshArea")
-  geometryEraserAreas = [];
+  geometryEraserAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
   @edit.read
   @edit.persist
   @type.list("Tr2MeshArea")
-  distortionAreas = [];
+  distortionAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
   // Carbon routes TRIBATCHTYPE_FLARE but does not expose this list to Blue, so
   // this list is typed without being read or persisted: the type declaration is
   // what makes its areas reachable to graph traversal, independent of edit.
 
   @type.list("Tr2MeshArea")
-  flareAreas = [];
+  flareAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
   @edit.read
   @edit.persist
@@ -120,6 +121,12 @@ export class Tr2MeshBase extends CjsModel
   @edit.persist
   @type.boolean
   rotatesVertices = false;
+
+  /** Installs the twelve native area-list observers (Tr2MeshBase.cpp:31-42). */
+  constructor()
+  {
+    for (const property of Tr2MeshBase._observedAreaProperties) this[property].SetNotify(this);
+  }
 
   /** Whether this mesh participates in rendering. */
   @carbon.method
@@ -222,7 +229,7 @@ export class Tr2MeshBase extends CjsModel
 
   /**
    * Carbon OnListModified (Tr2MeshBase.cpp:76-118), one behaviour across all
-   * ten area lists it installs itself on (cpp:31-40): an area records the mesh
+   * twelve area lists it installs itself on (cpp:31-42): an area records the mesh
    * that took it, and forgets it when removed. LOADFINISHED and UNLOADSTART do
    * the same for every area at once, which is what a read and a teardown
    * produce.
@@ -232,8 +239,8 @@ export class Tr2MeshBase extends CjsModel
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     // Which list, not merely whether it is one: a mesh has other array fields,
-    // and Carbon reaches this only from the ten it installed itself on
-    // (cpp:31-40).
+    // and Carbon reaches this only from the twelve it installed itself on
+    // (cpp:31-42).
     if (!this._IsAreaList(list)) return;
 
     // Carbon's arms are guarded by BlueCastPtr to Tr2MeshAreaPtr - a real cast,
@@ -257,11 +264,11 @@ export class Tr2MeshBase extends CjsModel
     }
   }
 
-  /** Whether a list is one of the ten area lists this mesh observes. */
+  /** Whether a list is one of the twelve area lists this mesh observes. */
   _IsAreaList(list)
   {
     if (!Array.isArray(list)) return false;
-    return Tr2MeshBase._areaProperties.some(property => this[property] === list);
+    return Tr2MeshBase._observedAreaProperties.some(property => this[property] === list);
   }
 
   /**
@@ -269,14 +276,12 @@ export class Tr2MeshBase extends CjsModel
    * has no list. The area's record of this mesh is the INSERTED arm's.
    */
   @carbon.method
-  @impl.adapted
-  @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through CjsModel.addChild rather than the list driving it.")
+  @impl.implemented
   AddArea(areaType, area)
   {
     const property = Number.isInteger(areaType) ? Tr2MeshBase._areaProperties[areaType] : null;
     if (!property) return false;
-    CjsModel.addChild(this, property, area);
-    return true;
+    return this[property].Append(area);
   }
 
   /**
@@ -284,13 +289,13 @@ export class Tr2MeshBase extends CjsModel
    * in the REMOVED arm.
    */
   @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon removes through the Blue list, which notifies; here the owner drives the same notification through CjsModel.removeChild.")
+  @impl.implemented
   RemoveArea(areaType, area)
   {
     const property = Number.isInteger(areaType) ? Tr2MeshBase._areaProperties[areaType] : null;
     if (!property) return false;
-    return CjsModel.removeChild(this, property, area);
+    const key = this[property].FindKey(area);
+    return key >= 0 && this[property].Remove(key);
   }
 
   /**
@@ -569,6 +574,12 @@ export class Tr2MeshBase extends CjsModel
     return collectors;
   }
 
+  static _observedAreaProperties = Object.freeze([
+    "opaqueAreas", "decalAreas", "depthAreas", "transparentAreas", "additiveAreas",
+    "pickableAreas", "mirrorAreas", "depthNormalAreas", "opaquePrepassAreas",
+    "decalPrepassAreas", "geometryEraserAreas", "distortionAreas"
+  ]);
+
   static _areaProperties = Object.freeze([
     "opaqueAreas",
     "decalAreas",
@@ -586,3 +597,5 @@ export class Tr2MeshBase extends CjsModel
     "distortionAreas"
   ]);
 }
+
+carbon.interfaceTable({ interfaces: [], chainTo: null })(Tr2MeshBase, { kind: "class" });

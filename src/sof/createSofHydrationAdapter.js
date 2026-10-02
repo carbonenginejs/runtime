@@ -1,4 +1,4 @@
-import { DictReader } from "#blue";
+import { CjsSchema } from "#schema";
 
 const ROOT_KINDS = Object.freeze([
   "EveShip2",
@@ -28,7 +28,7 @@ const INITIALIZE_KINDS = [
  * `carbon.document` path.
  *
  * SOF-authored node fields retain existing instance SetValues overrides. Other
- * instances use declared dictionary population without reader initialization.
+ * instances use the shared schema editing service and its member notifications.
  * The adapter retains the per-kind Initialize lifecycle used by this path.
  *
  * It used to carry a second job. The audio emitter was emitted as a plain
@@ -51,7 +51,7 @@ export function createSofHydrationAdapter()
       }
       else
       {
-        new DictReader({ declarations: true, initialize: false }).ReadInto(instance, values);
+        CjsSchema.setValues(instance, values, context?.options);
       }
       return instance;
     },

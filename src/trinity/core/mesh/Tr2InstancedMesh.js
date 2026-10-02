@@ -521,3 +521,5 @@ blue.enums.RegisterEnum("trinity.Tr2InstancedMesh.BoundsMethod", Tr2InstancedMes
     { name: "DYNAMIC_SCALED", value: Tr2InstancedMesh.BoundsMethod.DYNAMIC_SCALED, description: "Bounds are defined by instance geometry and max instance size; instance size is scaled by geometry size" }
   ]
 });
+
+carbon.interfaceTable({ interfaces: [Tr2InstancedMesh], chainTo: Tr2Mesh })(Tr2InstancedMesh, { kind: "class" });

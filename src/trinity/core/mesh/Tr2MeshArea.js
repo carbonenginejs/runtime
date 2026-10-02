@@ -382,3 +382,5 @@ export class Tr2MeshArea
     return this.#ownerMeshes;
   }
 }
+
+carbon.interfaceTable({ interfaces: [Tr2MeshArea], chainTo: null })(Tr2MeshArea, { kind: "class" });
