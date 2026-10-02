@@ -2,13 +2,12 @@
 // ccpgames rawrafox cppctamber) and corroborated by historical Tr2ColorKey
 // Black records.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec4 } from "#math/vec4";
 import { IncarnaColorCurveInterpolation } from "./enums.js";
 
 /** One key in a historical Incarna color curve. */
 @type.define({ className: "Tr2ColorKey", family: "incarna" })
-export class Tr2ColorKey extends CjsModel
+export class Tr2ColorKey
 {
 
   @edit.persist

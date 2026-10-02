@@ -2,12 +2,11 @@
 // ccpgames rawrafox cppctamber) and corroborated by historical Tr2ScalarKey
 // Black records.
 import { edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { IncarnaScalarCurveInterpolation } from "./enums.js";
 
 /** One key in a historical Incarna scalar curve. */
 @type.define({ className: "Tr2ScalarKey", family: "incarna" })
-export class Tr2ScalarKey extends CjsModel
+export class Tr2ScalarKey
 {
 
   @edit.persist

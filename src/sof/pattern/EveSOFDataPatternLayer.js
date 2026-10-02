@@ -2,11 +2,10 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
-import { CjsModel } from "#model";
 
 /** Defines a pattern layer's texture, material source, UV modes and slots, and helpers that populate textures and custom masks. */
 @type.define({ className: "EveSOFDataPatternLayer", family: "eve" })
-export class EveSOFDataPatternLayer extends CjsModel
+export class EveSOFDataPatternLayer
 {
 
   static ProjectionType = Object.freeze({
@@ -86,7 +85,6 @@ export class EveSOFDataPatternLayer extends CjsModel
   /** Creates a pattern layer associated with the supplied texture parameter name. */
   constructor(textureName = "")
   {
-    super();
     this.textureName = textureName;
   }
 
