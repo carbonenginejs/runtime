@@ -114,6 +114,9 @@ export class TriTextureRes extends CjsResource
    */
   texture = null;
 
+  /** Shared playlist owner; only a full resource purge stops playback. */
+  videoController = null;
+
   /** m_ownTexture: the value produced by deferred realization; SetTexture only borrows. */
   _ownTexture = null;
 
@@ -138,7 +141,9 @@ export class TriTextureRes extends CjsResource
    * @returns {TriTextureRes} This resource.
    */
   SetTexture(texture) {
+    const previous = this.texture;
     this.texture = texture ?? null;
+    if (previous !== this.texture) this.EmitEvent("texturechange", this);
     return this;
   }
 
@@ -243,7 +248,7 @@ export class TriTextureRes extends CjsResource
    * @returns {number} Width of mip zero, or 0 before load.
    */
   GetWidth() {
-    return this.loadedBitmap ? this.loadedBitmap.GetWidth() : 0;
+    return this.loadedBitmap ? this.loadedBitmap.GetWidth() : this.width;
   }
 
   /**
@@ -252,7 +257,7 @@ export class TriTextureRes extends CjsResource
    * @returns {number} Height of mip zero, or 0 before load.
    */
   GetHeight() {
-    return this.loadedBitmap ? this.loadedBitmap.GetHeight() : 0;
+    return this.loadedBitmap ? this.loadedBitmap.GetHeight() : this.height;
   }
 
   /**
@@ -261,7 +266,7 @@ export class TriTextureRes extends CjsResource
    * @returns {number} Mip count, or 0 before load.
    */
   GetMipLevelCount() {
-    return this.loadedBitmap ? this.loadedBitmap.GetMipCount() : 0;
+    return this.loadedBitmap ? this.loadedBitmap.GetMipCount() : this.cpuMip;
   }
 
   /**
@@ -346,6 +351,14 @@ export class TriTextureRes extends CjsResource
     const validator = validateVideoPayload;
     validateResourcePayload("TriTextureRes", payload, validator);
 
+    // Browser frames replace the placeholder once. Same-size frames retain GPU
+    // storage, cached views and resource sets; dimensions require a new texture.
+    const previous = this.GetPayload();
+    if (this.loadedBitmap || previous?.width !== payload.width || previous?.height !== payload.height)
+    {
+      this.ReleaseResources();
+      this.loadedBitmap = null;
+    }
     const values = { ...(options || {}) };
     if (payload.pixelFormat !== undefined || payload.format !== undefined) values.format = payload.pixelFormat || payload.format;
     if (payload.width !== undefined) values.width = payload.width;
@@ -644,6 +657,7 @@ export class TriTextureRes extends CjsResource
       this.wrappedRenderTarget = null;
       this.originalMemoryUsage = 0;
       this.SetState(CjsResource.State.UNLOADED);
+      if (this.videoController) this.EmitEvent("texturechange", this);
     }
     return this;
   }
@@ -659,6 +673,8 @@ export class TriTextureRes extends CjsResource
    */
   ReleasePayload()
   {
+    if (this.videoController) this.videoController.Destroy();
+    this.videoController = null;
     this.ReleaseResources();
     this.loadedBitmap = null;
     return super.ReleasePayload();

@@ -78,13 +78,13 @@ export class TriTextureParameter extends CjsParameter
   @meta.type.float32
   uvDensityScale3 = 0;
 
-  #cachedEffect = null;
+  _cachedEffect = null;
 
-  #lowResResource = null;
+  _lowResResource = null;
 
-  #materials = [];
+  _materials = [];
 
-  #textureLodEnabled = false;
+  _textureLodEnabled = false;
 
   /** The shader resource name this texture binds to. */
   @meta.blue.method
@@ -152,11 +152,13 @@ export class TriTextureParameter extends CjsParameter
   {
     if (this.resource !== resource)
     {
+      this._ReleaseCompletion(this.resource);
       this.resource = resource;
+      this._ArmCompletion(resource);
     }
-    this.#ReleaseCompletion(this.#lowResResource);
-    this.#lowResResource = null;
-    this.RebuildEffectHandles(this.#cachedEffect);
+    this._ReleaseCompletion(this._lowResResource);
+    this._lowResResource = null;
+    this.RebuildEffectHandles(this._cachedEffect);
     this.OnTextureChanged();
   }
 
@@ -181,11 +183,11 @@ export class TriTextureParameter extends CjsParameter
   @meta.adapted
   GetResource()
   {
-    if (this.#lowResResource)
+    if (this._lowResResource)
     {
-      if (!this.resource.IsPrepared()) return this.#lowResResource;
-      this.#ReleaseCompletion(this.#lowResResource);
-      this.#lowResResource = null;
+      if (!this.resource.IsPrepared()) return this._lowResResource;
+      this._ReleaseCompletion(this._lowResResource);
+      this._lowResResource = null;
     }
     return this.resource;
   }
@@ -238,33 +240,37 @@ export class TriTextureParameter extends CjsParameter
 
     const texture = RealizeTexture(resource, renderContext);
 
-    if (!texture) this.#ArmCompletion(resource);
+    if (!texture) this._ArmCompletion(resource);
 
     return resourceDesc.SetSrv(stage, registerIndex, texture, colorSpace);
   }
 
   /** Resources whose completion already re-dirties this parameter's materials. */
-  #armed = new WeakSet();
+  _armed = new WeakSet();
 
   /**
    * Carbon's `m_onTextureChange` route: when the resource finishes, the
    * materials binding it rebuild their resource sets.
    */
-  #ArmCompletion(resource)
+  _ArmCompletion(resource)
   {
-    if (!resource || typeof resource.OnCompleted !== "function" || this.#armed.has(resource)) return;
+    if (!resource || typeof resource.OnCompleted !== "function" || this._armed.has(resource)) return;
 
-    this.#armed.add(resource);
+    this._armed.add(resource);
     resource.OnCompleted(() => this.OnTextureChanged(), this);
+    // Carbon m_onTextureChange persists beyond initial load: video dimensions
+    // and device recreation replace the texture without changing the resource.
+    resource.OnEvent("texturechange", () => this.OnTextureChanged(), this);
   }
 
   /** Releases this parameter's CjsResource completion subscription. */
-  #ReleaseCompletion(resource)
+  _ReleaseCompletion(resource)
   {
-    if (resource && this.#armed.has(resource))
+    if (resource && this._armed.has(resource))
     {
       resource.OffEvent("completed", null, this);
-      this.#armed.delete(resource);
+      resource.OffEvent("texturechange", null, this);
+      this._armed.delete(resource);
     }
   }
 
@@ -304,7 +310,7 @@ export class TriTextureParameter extends CjsParameter
   @meta.adapted
   EnableTextureLoding(uvDensityScale)
   {
-    this.#textureLodEnabled = true;
+    this._textureLodEnabled = true;
     this.positionScale = Number(uvDensityScale[0] ?? 0);
     this.uvDensityScale0 = Number(uvDensityScale[1] ?? 0);
     this.uvDensityScale1 = Number(uvDensityScale[2] ?? 0);
@@ -317,7 +323,7 @@ export class TriTextureParameter extends CjsParameter
   @meta.implemented
   DisableTextureLoding()
   {
-    this.#textureLodEnabled = false;
+    this._textureLodEnabled = false;
   }
 
   /**
@@ -328,9 +334,9 @@ export class TriTextureParameter extends CjsParameter
   @meta.adapted
   UsedWithScreenSize(screenSize, worldRadius, uvDensities = [])
   {
-    if (!this.#textureLodEnabled)
+    if (!this._textureLodEnabled)
     {
-      this.#requestResourceResolution(0);
+      this._requestResourceResolution(0);
       return 0;
     }
     let resolution = 0;
@@ -360,7 +366,7 @@ export class TriTextureParameter extends CjsParameter
         requestedLod = Math.floor(Math.log2(resolutionChange));
       }
     }
-    this.#requestResourceResolution(requestedLod);
+    this._requestResourceResolution(requestedLod);
     return requestedLod;
   }
 
@@ -373,12 +379,12 @@ export class TriTextureParameter extends CjsParameter
   @meta.reason("Carbon's OnTextureChange listeners are CjsResource completion subscriptions here.")
   OnModified(_propertyName)
   {
-    this.#ReleaseCompletion(this.resource);
-    this.#ReleaseCompletion(this.#lowResResource);
+    this._ReleaseCompletion(this.resource);
+    this._ReleaseCompletion(this._lowResResource);
     this.resource = null;
-    this.#lowResResource = null;
+    this._lowResResource = null;
     this.Initialize();
-    this.RebuildEffectHandles(this.#cachedEffect);
+    this.RebuildEffectHandles(this._cachedEffect);
     return true;
   }
 
@@ -392,10 +398,10 @@ export class TriTextureParameter extends CjsParameter
   @meta.implemented
   Initialize()
   {
-    this.#ReleaseCompletion(this.resource);
-    this.#ReleaseCompletion(this.#lowResResource);
+    this._ReleaseCompletion(this.resource);
+    this._ReleaseCompletion(this._lowResResource);
     this.resource = null;
-    this.#lowResResource = null;
+    this._lowResResource = null;
 
     if (this.resourcePath)
     {
@@ -412,14 +418,14 @@ export class TriTextureParameter extends CjsParameter
           const lowResPath = `${this.resourcePath.slice(0, dot)}_lowdetail${this.resourcePath.slice(dot)}`;
           if (blue.paths.FileExistsLocally(lowResPath))
           {
-            this.#lowResResource = request(lowResPath);
-            this.#ArmCompletion(this.#lowResResource);
+            this._lowResResource = request(lowResPath);
+            this._ArmCompletion(this._lowResResource);
           }
         }
       }
 
       this.resource = request(this.resourcePath);
-      this.#ArmCompletion(this.resource);
+      this._ArmCompletion(this.resource);
     }
     this.OnTextureChanged();
     return true;
@@ -433,7 +439,7 @@ export class TriTextureParameter extends CjsParameter
   @meta.adapted
   RebuildEffectHandles(effectRes)
   {
-    this.#cachedEffect = effectRes;
+    this._cachedEffect = effectRes;
     const used = !!this.name && (CjsParameter.hasEffectResource(effectRes, this.name) || CjsParameter.hasEffectConstant(effectRes, this.name));
     this.usedByCurrentEffect = used;
     this.usedByCurrentTechnique = used;
@@ -447,9 +453,9 @@ export class TriTextureParameter extends CjsParameter
   @meta.implemented
   OnAddedToMaterial(material)
   {
-    if (!this.#materials.includes(material))
+    if (!this._materials.includes(material))
     {
-      this.#materials.push(material);
+      this._materials.push(material);
     }
   }
 
@@ -461,10 +467,10 @@ export class TriTextureParameter extends CjsParameter
   @meta.implemented
   OnRemovedFromMaterial(material)
   {
-    const index = this.#materials.indexOf(material);
+    const index = this._materials.indexOf(material);
     if (index >= 0)
     {
-      this.#materials.splice(index, 1);
+      this._materials.splice(index, 1);
     }
   }
 
@@ -476,7 +482,7 @@ export class TriTextureParameter extends CjsParameter
   @meta.adapted
   OnTextureChanged()
   {
-    for (const material of this.#materials)
+    for (const material of this._materials)
     {
       const target = material;
       target?.ResourceChanged?.();
@@ -488,7 +494,7 @@ export class TriTextureParameter extends CjsParameter
    * Asks the texture currently in use for a mip level, if it supports resolution
    * requests.
    */
-  #requestResourceResolution(lod)
+  _requestResourceResolution(lod)
   {
     const target = this.GetResource();
     target?.RequestResolution?.(lod);

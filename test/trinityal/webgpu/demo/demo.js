@@ -118,6 +118,7 @@ import "../../../../npm/dist/audio/index.js";
 import { EveSOF } from "../../../../npm/dist/sof/index.js";
 import { RegisterGeometryResources } from "../../../../npm/dist/resource/index.js";
 import { RegisterObjectResources } from "../../../../npm/dist/resource/object/index.js";
+import { VideoPlayer } from "../../../../npm/dist/core/platform/index.js";
 import { DEMO_VIDEO_PLAYLISTS } from "./demoVideoPlaylists.js";
 import { hydrateDemoShip, retireDemoShips, replaceDemoShip } from "./demoShipLifetime.js";
 import { createDemoSkinChange, resolveDemoDefaultDna } from "./demoSkinSelection.js";
@@ -2462,7 +2463,7 @@ RegisterTextureResources(blue.resMan);
 RegisterSolidColorTexture(blue.resMan);
 RegisterTextureArray(blue.resMan);
 RegisterTexturePack(blue.resMan);
-RegisterVideoPlaylists(blue.resMan, DEMO_VIDEO_PLAYLISTS);
+RegisterVideoPlaylists(blue.resMan, DEMO_VIDEO_PLAYLISTS, { createPlayer: () => new VideoPlayer() });
 RegisterShaderResources(blue.resMan, { translator: CjsWebgpuFormat });
 // A SOF ship's Tr2Mesh asks the manager for its .gr2 as GEOMETRY.
 RegisterGeometryResources(blue.resMan);

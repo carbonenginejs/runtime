@@ -15,7 +15,7 @@
 // the resource exactly where Carbon stores it. A resource not yet prepared
 // yields null, and the parameter binds Carbon's fallback instead.
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
-import { Tr2SubresourceData } from "#trinityal";
+import { Tr2SubresourceData, Tr2TextureSubresource } from "#trinityal";
 import { PixelFormat, PixelFormatFromCanonical, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 
 
@@ -211,6 +211,16 @@ export function CreateTextureFromBitmap(bitmap, renderContext, name = "")
  */
 export function CreateTexture(resource, renderContext)
 {
+  const payload = resource.GetPayload();
+  if (payload?.payloadType === "video" && payload.frameSource)
+  {
+    // Browser images require COPY_DST and RENDER_ATTACHMENT on WebGPU. The
+    // result stays an ordinary sampled texture, including its sRGB view.
+    return renderContext.CreateTexture(Tr2BitmapDimensions.texture2D(
+      payload.width, payload.height, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM
+    ), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.RENDER_TARGET,
+      cpuUsage: Tr2CpuUsage.NONE });
+  }
   const bitmap = resource.GetBitmap();
 
   if (bitmap) return CreateTextureFromBitmap(bitmap, renderContext, resource.GetPath() || resource.name || "TriTextureRes");
@@ -243,19 +253,51 @@ export function CreateTexture(resource, renderContext)
  */
 export function RealizeTexture(resource, renderContext)
 {
-  const existing = resource.GetTexture();
-
-  if (existing) return existing;
-  if (!renderContext || !resource.IsPrepared()) return null;
-
-  const texture = CreateTexture(resource, renderContext);
-
-  if (texture)
+  const payload = resource.GetPayload();
+  const video = payload?.payloadType === "video" && payload.frameSource;
+  let texture = resource.GetTexture();
+  if (!texture)
   {
+    // ReleaseResources retains the frame source for device/resource recreation.
+    if (!renderContext || (!resource.IsPrepared() && !video)) return null;
+    texture = CreateTexture(resource, renderContext);
+    if (!texture) return null;
     if (resource._ownTexture) resource._ownTexture.Destroy();
     resource._ownTexture = texture;
     resource.SetTexture(texture);
+    if (video) resource.MarkPrepared();
   }
-
+  if (video && (texture._videoSerial !== payload.frameSerial || texture._videoSource !== video))
+  {
+    // Once per shared decoded frame, including the initial bind. No source
+    // pixels enter JS and no material/resource-set notification is emitted.
+    const result = texture.UpdateSubresource(videoSubresource, video, 0, 0, renderContext);
+    if (result === 0)
+    {
+      texture._videoSerial = payload.frameSerial;
+      texture._videoSource = video;
+    }
+  }
   return texture;
+}
+
+const videoSubresource = Tr2TextureSubresource.ForMipLevel(0);
+
+
+/**
+ * Carbon VideoPlayer::ClearTextures upload, kept on the renderer side of the resource boundary.
+ * This explicit clear allocates once per request, never in the normal video frame path.
+ * @param {object} resource The shared video texture resource.
+ * @param {object} renderContext The upload context.
+ */
+export function ClearVideoTexture(resource, renderContext)
+{
+  // Before the first decoded frame the shared placeholder is already black.
+  if (resource.GetPayload()?.payloadType !== "video") return;
+  const texture = resource.GetTexture(), width = resource.GetWidth(), height = resource.GetHeight();
+  if (texture && texture.IsValid() && width && height)
+  {
+    texture.UpdateSubresource(videoSubresource, new Uint8Array(width * height * 4), // alloc: explicit donor ClearTextures request, never normal presentation.
+      width * 4, width * height * 4, renderContext);
+  }
 }

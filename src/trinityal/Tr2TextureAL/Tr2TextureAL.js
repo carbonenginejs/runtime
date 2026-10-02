@@ -45,6 +45,15 @@ export class Tr2TextureAL
     return ALResult.E_FAIL;
   }
 
+  /** Ours: optional asynchronous video colour reduction; null selects the browser fallback. */
+  @meta.ours
+  RequestAverageColor()
+  {
+    const implementation = this._texture ? this._texture.implementation : null;
+    return implementation && typeof implementation.RequestAverageColor === "function"
+      ? implementation.RequestAverageColor() : null;
+  }
+
   /** Reports whether this value references valid backend storage. */
   @meta.blue.method
   @meta.implemented

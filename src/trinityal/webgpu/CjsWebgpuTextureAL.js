@@ -5,7 +5,7 @@ import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 //
 // A `Tr2TextureAL` holding a real `GPUTexture`.
 //
-// CREATED WITH ITS DATA, NEVER UPDATED INTO. Carbon's texture resource creates
+// BITMAPS ARRIVE WITH DATA; browser video updates existing storage. Carbon's texture resource creates
 // its texture from the decoded bitmap with one `Tr2SubresourceData` per
 // (mip, layer), indexed `mip + layer * mipCount`
 // (`Tr2ImageIOHelpers.cpp:104-128`), and Metal uploads them one
@@ -19,12 +19,14 @@ import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 // `viewFormats` at creation, so it is.
 //
 // FIELDS ARE PUBLIC AND CARBON-NAMED, for the reason recorded on `CjsWebgpuShaderAL`.
-import { CjsSchema } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, CopyRegion, Crop, Tr2MsaaDesc, Tr2TextureSubresource } from "#trinityal";
 import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage, HasFlag, IsWritable } from "#consts/render-context";
 import { RenderContextALOf } from "../renderContextAL.js";
 import { ForgetBindingResource } from "./core/bindingIndex.js";
+
+import { CjsWebgpuVideoColorSampler } from "./CjsWebgpuVideoColorSampler.js";
 
 const NO_HEAP_INDEX = 0xffffffff;
 
@@ -159,6 +161,7 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
 
     const webgpu = al.GetWebgpu();
     if (!webgpu) return ALResult.E_INVALIDCALL;
+    if (!webgpu.IsReady()) return ALResult.E_DEVICELOST;
 
     const device = webgpu.GetDevice();
 
@@ -227,6 +230,7 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
     this.m_gpuUsage = gpuUsage;
     this.m_cpuUsage = cpuUsage;
     this.m_webgpu = webgpu;
+    this._videoGeneration = null;
     this._al = al;
 
     if (depthShadow) this._CreateDepthShadow(device, usageFlags);
@@ -453,7 +457,8 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
   /** Whether the texture holds a `GPUTexture`. */
   IsValid()
   {
-    return this.m_texture !== null;
+    return this.m_texture !== null && (this._videoGeneration == null
+      || (this.m_webgpu.IsReady() && this._videoGeneration === this.m_webgpu.GetGeneration()));
   }
 
   /** Shared textures need a native handle WebGPU does not expose; always fails. */
@@ -634,11 +639,14 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    * Replaces one mip of one slice, Carbon's `UpdateSubresource`.
    *
    * @param {object} region A `Tr2TextureSubresource` naming one mip and slice.
-   * @param {ArrayBufferView} source The texels.
+   * Browser adaptation: external images copy into reusable storage with straight
+   * sRGB bytes, leaving transfer functions to ordinary shader-resource views.
+   * @param {ArrayBufferView|HTMLVideoElement} source The texels or browser frame.
    * @param {number} pitch Bytes per row.
    * @param {number} slicePitch Bytes per slice.
    * @returns {number} An `ALResult` value.
    */
+  @meta.adapted
   UpdateSubresource(region, source, pitch, slicePitch, _renderContext)
   {
     if (!this.IsValid()) return ALResult.E_INVALIDCALL;
@@ -647,6 +655,18 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
     const mip = region.m_startMipLevel ?? 0;
     const layer = region.m_startFace ?? 0;
 
+    if (!ArrayBuffer.isView(source) && !(source instanceof ArrayBuffer))
+    {
+      if (!region.IsSingleSubresource() || region.HasBox() || mip !== 0 || layer !== 0
+        || this.m_format !== "rgba8unorm" || !HasFlag(this.m_gpuUsage, Tr2GpuUsage.RENDER_TARGET)) return ALResult.E_INVALIDARG;
+      this._videoGeneration = this.m_webgpu.GetGeneration();
+      this.m_webgpu.GetDevice().queue.copyExternalImageToTexture(
+        { source, flipY: false },
+        { texture: this.m_texture, colorSpace: "srgb", premultipliedAlpha: false },
+        { width: this.m_desc.GetWidth(), height: this.m_desc.GetHeight(), depthOrArrayLayers: 1 }
+      );
+      return ALResult.S_OK;
+    }
     this.m_webgpu.GetDevice().queue.writeTexture(
       { texture: this.m_texture, mipLevel: mip, origin: { x: 0, y: 0, z: layer } },
       source,
@@ -767,6 +787,15 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
     return NO_HEAP_INDEX;
   }
 
+  /** Ours: asynchronously average the existing straight encoded video texture. */
+  RequestAverageColor()
+  {
+    if (!this.IsValid() || this._videoGeneration == null || this.m_format !== "rgba8unorm") return null;
+    if (!this._videoSampler) this._videoSampler = new CjsWebgpuVideoColorSampler(this.m_webgpu.GetDevice(), this.m_texture);
+    // Busy is a skipped GPU sample, not a request to start a canvas fallback.
+    return this._videoSampler.Request() ?? Promise.resolve(null);
+  }
+
   /** Releases this implementation and unregisters its final owner. */
   Destroy()
   {
@@ -777,6 +806,8 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
   /** Retires platform storage after queued commands have been submitted. */
   _Reset()
   {
+    if (this._videoSampler) this._videoSampler.Destroy();
+    this._videoSampler = null;
     // Cached bind groups that bind any of this texture's views go with it.
     for (const view of this.m_views.values()) ForgetBindingResource(view);
     const texture = this.m_texture;
@@ -853,4 +884,4 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.define(CjsWebgpuTextureAL, { className: "CjsWebgpuTextureAL", carbon: "Tr2TextureAL" });
+CjsSchema.define(CjsWebgpuTextureAL, { className: "CjsWebgpuTextureAL", carbon: "Tr2TextureAL", methods: { RequestAverageColor: [meta.ours] } });

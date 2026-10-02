@@ -65,6 +65,9 @@ classes to register) according to what its environment offers; it does not
 have to create it. `@carbonenginejs/tools-core` is one possible data provider,
 never a requirement.
 
+[Browser video playback](video-playback.md) covers shared billboard and plane
+textures, cached lighting colour, browser requirements and cleanup.
+
 ## Start here
 
 Run the current structural checks from the repository root:

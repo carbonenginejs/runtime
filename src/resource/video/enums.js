@@ -25,3 +25,14 @@ export const StreamType = Object.freeze({
   STREAM_VIDEO: 2,
   STREAM_AUDIO_VIDEO: 3
 });
+
+/** VideoController::State (VideoController.h:35-53), exposed as videoplayer.State. */
+export const State = Object.freeze({
+  UNINITIALIZED: 0,
+  PARSING_METADATA: 1,
+  INITIAL_BUFFERING: 2,
+  PLAYING: 3,
+  BUFFERING: 4,
+  FINISHING_BUFFERING: 5,
+  DONE: 6
+});

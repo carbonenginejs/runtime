@@ -975,7 +975,8 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
   }
 
   /**
-   * Writes pixels into one subresource (`:1052-1097`).
+   * Writes pixels into one subresource (`:1052-1097`). Browser video is uploaded
+   * directly with straight alpha; GL unpack and binding state are restored.
    *
    * @param {Tr2TextureSubresource} region The subresource to write.
    * @param {ArrayBufferView} source The pixels.
@@ -984,6 +985,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to write against.
    * @returns {number} An `ALResult` value.
    */
+  @meta.adapted
   UpdateSubresource(region, source, pitch, slicePitch, renderContext)
   {
     if (HasFlag(this._cpuUsage, Tr2CpuUsage.WRITE_OFTEN)) return ALResult.E_INVALIDCALL;
@@ -995,6 +997,44 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
     if (!region.IsSingleSubresource()) return ALResult.E_INVALIDARG;
     if (this._renderbuffer) return ALResult.E_INVALIDCALL;
 
+    if (!ArrayBuffer.isView(source) && !(source instanceof ArrayBuffer))
+    {
+      const gl = this._gl;
+      if (this._target !== gl.TEXTURE_2D || region.HasBox() || region.m_startMipLevel !== 0
+        || this._layout.compressed || this._layout.type !== gl.UNSIGNED_BYTE) return ALResult.E_INVALIDARG;
+      const previous = gl.getParameter(gl.TEXTURE_BINDING_2D);
+      const names = [gl.UNPACK_FLIP_Y_WEBGL, gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,
+        gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.UNPACK_ALIGNMENT, gl.UNPACK_ROW_LENGTH,
+        gl.UNPACK_SKIP_PIXELS, gl.UNPACK_SKIP_ROWS];
+      const values = names.map(name => gl.getParameter(name));
+      const unpackBuffer = gl.getParameter(gl.PIXEL_UNPACK_BUFFER_BINDING);
+      try
+      {
+        gl.bindBuffer(gl.PIXEL_UNPACK_BUFFER, null);
+        gl.bindTexture(gl.TEXTURE_2D, this._texture);
+        [false, false, gl.BROWSER_DEFAULT_WEBGL, 1, 0, 0, 0].forEach((value, i) => gl.pixelStorei(names[i], value));
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, source);
+        // WebGL2 has no reinterpretation views. Allocate the sRGB twin once
+        // for a video, then update both cached views from each decoded frame.
+        if (!this._twin)
+        {
+          const layout = this._ResolveLayout(gl, this._desc, this._gpuUsage, MakeSrgb(this._desc.GetFormat()));
+          if (layout) this._twin = this._CreateStorage(gl, layout, null);
+        }
+        if (this._twin)
+        {
+          gl.bindTexture(gl.TEXTURE_2D, this._twin);
+          gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, source);
+        }
+      }
+      finally
+      {
+        names.forEach((name, i) => gl.pixelStorei(name, values[i]));
+        gl.bindTexture(gl.TEXTURE_2D, previous);
+        gl.bindBuffer(gl.PIXEL_UNPACK_BUFFER, unpackBuffer);
+      }
+      return ALResult.S_OK;
+    }
     this._Upload(region.m_startFace, region.m_startMipLevel, region.HasBox() ? region.m_box : null, source, pitch, slicePitch);
     return ALResult.S_OK;
   }

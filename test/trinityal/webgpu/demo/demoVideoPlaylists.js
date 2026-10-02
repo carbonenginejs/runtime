@@ -1,5 +1,5 @@
 // Host policy: SOF plane usages 2 and 3 name these dynamic video playlists.
-// The existing controller supplies its black texture until VideoPlayer is ported.
+// The browser host injects VideoPlayer; headless consumers retain a black placeholder.
 const videos = Object.freeze([
   "res:/video/billboards/common/matigu_sushi.webm",
   "res:/video/billboards/common/2036671_fun_inc.webm",
