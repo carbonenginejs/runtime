@@ -1,0 +1,26 @@
+{
+  "source": "res:/dx9/model/artifact/universal/ballandpillar/ubp01/effects/ubp01_fx.black",
+  "md5": "99cb09ce766fabc469e9fd6f0004f04d",
+  "object": {
+    "_type": "AudEventCurve",
+    "name": "audio",
+    "keys": [
+      {
+        "_type": "AudEventKey",
+        "value": "worldobject_pillars_active_play"
+      },
+      {
+        "_type": "AudEventKey",
+        "time": 1
+      }
+    ],
+    "sourceTriObserver": {
+      "_type": "TriObserverLocal",
+      "observer": {
+        "_type": "AudEmitter",
+        "name": "audio"
+      },
+      "_id": 210
+    }
+  }
+}

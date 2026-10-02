@@ -67,7 +67,7 @@ test("audio graph hydrates and round-trips headlessly", () =>
   // The whole point of the data layer: no AudioContext exists here.
   assert.equal(typeof globalThis.AudioContext, "undefined");
 
-  const emitter = AudEmitter.from({
+  const emitter = CjsSchema.from("AudEmitter", {
     name: "locator_audio_engine_01",
     eventPrefix: "ship_",
     scalingFactor: 2.5,
@@ -77,7 +77,7 @@ test("audio graph hydrates and round-trips headlessly", () =>
   assert.equal(emitter.eventPrefix, "ship_");
   assert.equal(emitter.scalingFactor, 2.5);
 
-  const values = emitter.GetValues();
+  const values = CjsSchema.getValues(emitter);
   assert.equal(values.name, "locator_audio_engine_01");
   assert.equal(values.eventPrefix, "ship_");
   assert.equal(values.scalingFactor, 2.5);
@@ -96,7 +96,7 @@ test("AudEmitter resolves authored rotation over its parent placement", () =>
   assert.deepEqual(Array.from(emitter.position), [4, 5, 6]);
 
   const halfSqrt = Math.SQRT1_2;
-  emitter.SetValues({ rotation: [0, halfSqrt, 0, halfSqrt] });
+  CjsSchema.setValues(emitter, { rotation: [0, halfSqrt, 0, halfSqrt] });
 
   assert.ok(Math.abs(emitter.front[0] - 1) < 1e-6);
   assert.ok(Math.abs(emitter.front[1]) < 1e-6);
@@ -110,14 +110,14 @@ test("AudEmitter resolves authored rotation over its parent placement", () =>
 
 test("AudEventCurve hydrates typed AudEventKey children", () =>
 {
-  const curve = AudEventCurve.from({
+  const curve = CjsSchema.from("AudEventCurve", {
     name: "boost",
     keys: [{ time: 0.5, value: "play_boost" }]
   });
   assert.ok(curve.keys[0] instanceof AudEventKey, "keys hydrate as AudEventKey");
   assert.equal(curve.keys[0].time, 0.5);
 
-  const values = curve.GetValues();
+  const values = CjsSchema.getValues(curve);
   assert.equal(values.keys[0].value, "play_boost");
 });
 

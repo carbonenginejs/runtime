@@ -1,0 +1,22 @@
+{
+  "source": "res:/dx9/model/turret/chain/l/chain_l01_t1_fx_stretch_01a.black",
+  "md5": "2fa38218652e9f8575d240955dba6529",
+  "object": {
+    "_type": "Tr2AudioStretchAuto",
+    "sourceEmitter": {
+      "_type": "AudEmitter",
+      "name": "stretch_source_sfx"
+    },
+    "destinationEmitter": {
+      "_type": "AudEmitter",
+      "name": "stretch_dest_sfx"
+    },
+    "stretchEmitter": {
+      "_type": "AudEmitter",
+      "name": "stretch_mid_sfx"
+    },
+    "outburstEvent": "chain_lightning_outburst_play",
+    "impactEvent": "chain_lightning_impact_play",
+    "stretchEvent": "chain_lightning_stretch_play"
+  }
+}

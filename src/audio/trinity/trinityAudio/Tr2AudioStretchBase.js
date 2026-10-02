@@ -1,15 +1,18 @@
 // Source: trinity/trinity/Audio/Tr2AudioStretchBase.h
 // Promoted from generated output 2026-07-18; now hand-owned by the audio
 // layer. Verify against trinityAudio/Tr2AudioStretchBase.json.
-import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
+import { CjsSchema, carbon, impl, edit, type } from "#schema";
+import { IInitialize } from "#blue/IInitialize";
+import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
+import { ITr2Audio } from "../trinityAudioApi/ITr2Audio.js";
 import { AudEmitter } from "../audio/AudEmitter.js";
 import { AudGameObjResource } from "../audio/AudGameObjResource.js";
 import { StretchAudio } from "../audio/StretchAudio.js";
 
 /** Creates and updates the three Carbon emitters used by a Trinity audio stretch. */
 @type.define({ className: "Tr2AudioStretchBase", family: "trinityAudio" })
-export class Tr2AudioStretchBase extends CjsModel
+@carbon.inherit(IInitialize, ITr2DebugRenderable, ITr2Audio)
+export class Tr2AudioStretchBase
 {
 
   /** m_stretchEmitter (ITr2AudEmitterPtr) [READWRITE, PERSIST] */
@@ -37,7 +40,6 @@ export class Tr2AudioStretchBase extends CjsModel
   /** Creates and initializes Carbon's three-emitter stretch-audio bridge. */
   constructor()
   {
-    super();
     this.Initialize();
   }
 
@@ -95,6 +97,30 @@ export class Tr2AudioStretchBase extends CjsModel
     return null;
   }
 
+  /** Forwards supported debug options to the three nominal emitter interfaces. */
+  @carbon.method
+  @impl.implemented
+  GetDebugOptions(options)
+  {
+    for (const emitter of [ this.sourceEmitter, this.destinationEmitter, this.stretchEmitter ])
+    {
+      const debug = CjsSchema.cast(emitter, ITr2DebugRenderable);
+      if (debug) debug.GetDebugOptions(options);
+    }
+  }
+
+  /** Forwards debug drawing to the three nominal emitter interfaces. */
+  @carbon.method
+  @impl.implemented
+  RenderDebugInfo(renderer)
+  {
+    for (const emitter of [ this.sourceEmitter, this.destinationEmitter, this.stretchEmitter ])
+    {
+      const debug = CjsSchema.cast(emitter, ITr2DebugRenderable);
+      if (debug) debug.RenderDebugInfo(renderer);
+    }
+  }
+
   /** Projects one point onto the finite source-to-destination segment. */
   static _ProjectOntoSegment(point, source, destination)
   {
@@ -114,3 +140,5 @@ export class Tr2AudioStretchBase extends CjsModel
   }
 
 }
+
+carbon.interfaceTable({ interfaces: [IInitialize, ITr2DebugRenderable, ITr2Audio], chainTo: null })(Tr2AudioStretchBase, { kind: "class" });

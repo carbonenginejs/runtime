@@ -1,4 +1,4 @@
-import { CjsModel } from "../../../npm/dist/global/model/index.js";
+import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { DictReader } from "../../../npm/dist/global/blue/DictReader.js";
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -79,7 +79,7 @@ test("AudParameter binds to its owning object and backend RTPC/switch state rema
     const second = system.CreateEmitter({ name: "second", position: [ 1, 0, 0 ] });
     const parameter = new AudParameter();
     new DictReader().ReadInto(parameter, { name: "speed", value: 2 }, parameter);
-    CjsModel.addChild(first, "parameters", parameter);
+    first.parameters.Insert(-1, parameter);
     assert.equal(applied.length, 0, "binding does not push the existing value");
     new DictReader().ReadInto(parameter, { name: "renamed" }, parameter);
     assert.equal(applied.length, 0, "name-only changes do not push");
@@ -116,7 +116,7 @@ test("AudParameter binds to its owning object and backend RTPC/switch state rema
 test("pre-attachment emitters and plain descriptors can be adopted after enable", () =>
 {
   const orphan = new AudEmitter();
-  orphan.SetValues({ name: "orphan" });
+  CjsSchema.setValues(orphan, { name: "orphan" });
   orphan.SetPosition([ 0, 0, 1 ], [ 0, 1, 0 ], [ 2, 3, 4 ]);
   const system = new CjsAudioSystem({
     createContext: FakeContext,

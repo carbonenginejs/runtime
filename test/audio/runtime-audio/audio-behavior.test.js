@@ -84,7 +84,7 @@ test("AudEventCurve key management matches Carbon semantics", () =>
 
 test("AudEventCurve.Initialize sorts hydrated keys and refreshes length", () =>
 {
-  const curve = AudEventCurve.from({
+  const curve = CjsSchema.from("AudEventCurve", {
     keys: [
       { time: 5, value: "late" },
       { time: 1, value: "early" }
@@ -106,7 +106,7 @@ test("AudEventCurve dispatches crossed keys and holds the latest event until pla
   const events = [];
   emitter.SendEvent = eventName => (events.push(eventName), events.length);
   const observer = { observer: emitter, GetObserver() { return this.observer; }, SetObserver(value) { this.observer = value; } };
-  const curve = AudEventCurve.from({
+  const curve = CjsSchema.from("AudEventCurve", {
     keys: [
       { time: 0.25, value: "first" },
       { time: 0.5, value: "second" }
@@ -133,7 +133,7 @@ test("AudEventCurve Reset preserves a placement-waiting event", () =>
     GetObserver() { return this.observer; },
     SetObserver(value) { this.observer = value; },
   };
-  const curve = AudEventCurve.from({
+  const curve = CjsSchema.from("AudEventCurve", {
     keys: [ { time: 0.25, value: "waiting" } ],
   });
 
@@ -167,9 +167,9 @@ test("notified eventName changes stop the previous event before posting the repl
   emitter.StopAll = () => actions.push([ "stop" ]);
   emitter.PostEvent = eventName => (actions.push([ "post", eventName ]), 1);
 
-  emitter.SetValues({ eventName: "first" });
-  emitter.SetValues({ name: "unrelated" });
-  emitter.SetValues({ eventName: "" });
+  CjsSchema.setValues(emitter, { eventName: "first" });
+  CjsSchema.setValues(emitter, { name: "unrelated" });
+  CjsSchema.setValues(emitter, { eventName: "" });
 
   assert.deepEqual(actions, [
     [ "stop" ],
@@ -203,7 +203,7 @@ test("only SetPosition places an emitter; a values position is read-only", async
   });
   try
   {
-    const emitter = AudEmitter.from({
+    const emitter = CjsSchema.from("AudEmitter", {
       name: "Engine_SFX",
       eventPrefix: "ship_engine_S_",
       position: [0, 2, -69.5]
@@ -221,7 +221,7 @@ test("only SetPosition places an emitter; a values position is read-only", async
     assert.equal(emitter.IsCulled(), false, "SetPosition unblocks Wake");
 
     // Parity guard: a positionless hydration still refuses to Wake.
-    const unplaced = AudEmitter.from({ name: "NoPosition" });
+    const unplaced = CjsSchema.from("AudEmitter", { name: "NoPosition" });
     unplaced.Wake();
     assert.equal(unplaced.IsCulled(), true, "positionless Wake stays a no-op");
   }

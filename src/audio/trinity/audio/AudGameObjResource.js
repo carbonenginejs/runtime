@@ -13,7 +13,8 @@ import { IInitialize } from "#blue/IInitialize";
 import { IListNotify } from "#blue/IListNotify";
 import { INotify } from "#blue/INotify";
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
+import { BlueList } from "#blue/BlueList";
+import { AudParameter } from "./AudParameter.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { SoundPrioritization } from "./SoundPrioritization.js";
@@ -66,8 +67,7 @@ function NowMs()
  */
 @type.define({ className: "AudGameObjResource", family: "audio", abstract: true })
 @carbon.inherit(IInitialize, IListNotify, INotify)
-@carbon.mapInterface(IInitialize, IListNotify, INotify)
-export class AudGameObjResource extends CjsModel
+export class AudGameObjResource
 {
 
   /** m_eventPrefix (std::wstring) [READWRITE, PERSIST] */
@@ -90,7 +90,7 @@ export class AudGameObjResource extends CjsModel
   @edit.read
   @edit.persist
   @type.list("AudParameter")
-  parameters = [];
+  parameters = new BlueList(AudParameter);
 
   /** m_name (std::string) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
@@ -222,7 +222,7 @@ export class AudGameObjResource extends CjsModel
   /** Creates a generated-id game object or Carbon's fixed-id protected variant. */
   constructor(gameObjID)
   {
-    super();
+    this.parameters.SetNotify(this);
     this.ID = gameObjID ?? GenerateEntityID();
     this._waitingOneShotTime = NowMs();
     const manager = AudGameObjResource.manager;
@@ -1138,3 +1138,5 @@ export function PrepareEvent(prefix, event, bypassPrefix)
   const trimmed = String(event).trim();
   return prefix && !bypassPrefix ? `${prefix}${trimmed}` : trimmed;
 }
+
+carbon.interfaceTable({ interfaces: [IInitialize, IListNotify, INotify, AudGameObjResource], chainTo: null })(AudGameObjResource, { kind: "class" });

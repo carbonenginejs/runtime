@@ -499,7 +499,7 @@ export class CjsAudioSystem
         }
         delete values.prefix;
         delete values.attenuationScalingFactor;
-        const emitter = AudEmitter.from(values);
+        const emitter = CjsSchema.from("AudEmitter", values);
         if (position !== undefined) emitter.SetPosition([ 0, 0, 1 ], [ 0, 1, 0 ], position);
         return this.AdoptEmitter(emitter);
     }
@@ -523,7 +523,7 @@ export class CjsAudioSystem
         {
             this.manager.RegisterGameObject(emitter.ID, emitter);
         }
-        emitter.UpdateValues({ skipEvents: true });
+        CjsSchema.setValues(emitter, {}, { skipEvents: true });
         this._adoptedEmitters.add(emitter);
         if (this.manager.enabled)
         {

@@ -2,7 +2,9 @@
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/AudEventCurve.json.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
+import { IInitialize } from "#blue/IInitialize";
+import { ITriFunction } from "#blue/ITriFunction";
+import { ITriCurveLength } from "#blue/ITriCurveLength";
 import { TRIEXTRAPOLATION } from "#consts/graphics";
 import { AudEmitter } from "./AudEmitter.js";
 import { IsWwiseInitPosition } from "./AudGameObjResource.js";
@@ -11,7 +13,8 @@ import "#blue/registerTrinityEnums";
 
 /** Fires authored audio events as playback time crosses ordered event keys on a timeline curve. */
 @type.define({ className: "AudEventCurve", family: "audio" })
-export class AudEventCurve extends CjsModel
+@carbon.inherit(IInitialize, ITriFunction, ITriCurveLength)
+export class AudEventCurve
 {
 
   /** m_extrapolation (TRIEXTRAPOLATION - enum TRIEXTRAPOLATION) [READWRITE, PERSIST, ENUM] */
@@ -159,7 +162,7 @@ export class AudEventCurve extends CjsModel
     }
   }
 
-  /** Carbon method Initialize (IInitialize, not Blue-mapped): sort persisted keys, refresh length and attach an emitter. */
+  /** Carbon method Initialize (IInitialize): sort persisted keys, refresh length and attach an emitter. */
   @carbon.method
   @impl.implemented
   Initialize()
@@ -334,3 +337,5 @@ function InRange(keys, ix)
 {
   return Number.isInteger(ix) && ix >= 0 && ix < keys.length;
 }
+
+carbon.interfaceTable({ interfaces: [AudEventCurve, ITriFunction, IInitialize, ITriCurveLength], chainTo: null })(AudEventCurve, { kind: "class" });

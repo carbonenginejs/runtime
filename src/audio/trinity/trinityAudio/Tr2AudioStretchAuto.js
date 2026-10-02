@@ -2,6 +2,7 @@
 // Promoted from generated output 2026-07-18; now hand-owned by the audio
 // layer. Verify against trinityAudio/Tr2AudioStretchAuto.json.
 import { carbon, impl, edit, type } from "#schema";
+import { ITr2Audio } from "../trinityAudioApi/ITr2Audio.js";
 import { Tr2AudioStretchBase } from "./Tr2AudioStretchBase.js";
 
 /** Adds authored impact, outburst, and stretch event triggers to a three-emitter audio stretch. */
@@ -52,3 +53,5 @@ export class Tr2AudioStretchAuto extends Tr2AudioStretchBase
   }
 
 }
+
+carbon.interfaceTable({ interfaces: [Tr2AudioStretchBase, ITr2Audio], chainTo: null })(Tr2AudioStretchAuto, { kind: "class" });
