@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Controllers/Tr2ControllerReference_Blue.cpp
 import { blue, INotify, IInitialize } from "#blue";
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { mappedInterfaces } from "../../global/compose/interface.js";
 import { UnlinkReason } from "./enums.js";
 import { ITr2Controller } from "./ITr2Controller/index.js";
@@ -17,19 +17,19 @@ import { ITr2Controller } from "./ITr2Controller/index.js";
   className: "Tr2ControllerReference",
   family: "controllers"
 })
-@meta.carbon.inherit(INotify, IInitialize)
+@meta.blue.inherit(INotify, IInitialize)
 export class Tr2ControllerReference extends ITr2Controller
 {
   /** Authored controller resource path; notifications reload the reference. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.path
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.path
   path = "";
 
   /** Runtime loaded controller, exposed read-only and not persisted. */
-  @meta.edit.read
-  @types.objectRef("ITr2Controller")
+  @meta.blue.read
+  @meta.type.objectRef("ITr2Controller")
   controller = null;
 
   /** Owner retained while an asynchronous load is pending. */
@@ -51,8 +51,8 @@ export class Tr2ControllerReference extends ITr2Controller
    * Adapted: BeResMan is blue.resMan; its LoadObject completes asynchronously.
    * @returns {boolean} True after requesting any authored load.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Initialize()
   {
     if (this.path)
@@ -70,8 +70,8 @@ export class Tr2ControllerReference extends ITr2Controller
    * @param {string} propertyName Native exposed member name.
    * @returns {boolean} True after handling the notification.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnModified(propertyName)
   {
     if (propertyName === "path")
@@ -88,8 +88,8 @@ export class Tr2ControllerReference extends ITr2Controller
    * @param {object} owner Owner forwarded to the loaded controller.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Link(owner)
   {
     if (this._owner !== owner)
@@ -108,8 +108,8 @@ export class Tr2ControllerReference extends ITr2Controller
    * @param {number} [reason=UnlinkReason.UNLINKING] Native unlink reason.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Unlink(reason = UnlinkReason.UNLINKING)
   {
     this._owner = null;
@@ -122,8 +122,8 @@ export class Tr2ControllerReference extends ITr2Controller
    * Checks whether this reference is linked to an owner.
    * @returns {boolean} Whether an owner is retained.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsLinked()
   {
     return this._owner !== null;
@@ -134,8 +134,8 @@ export class Tr2ControllerReference extends ITr2Controller
    * Adapted: retain start intent until the asynchronous load is linked.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Start()
   {
     this._isActive = true;
@@ -147,8 +147,8 @@ export class Tr2ControllerReference extends ITr2Controller
    * Adapted: cancel pending start intent before the asynchronous load completes.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Stop()
   {
     this._isActive = false;
@@ -160,8 +160,8 @@ export class Tr2ControllerReference extends ITr2Controller
    * @param {number} [normalizedUpdateFrequency=0] Update frequency forwarded unchanged.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Update(normalizedUpdateFrequency = 0)
   {
     this.controller?.Update(normalizedUpdateFrequency);
@@ -175,8 +175,8 @@ export class Tr2ControllerReference extends ITr2Controller
    * @param {number} value Latest value to forward or replay.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetVariable(name, value)
   {
     if (this.controller) this.controller.SetVariable(name, value);
@@ -188,8 +188,8 @@ export class Tr2ControllerReference extends ITr2Controller
    * @param {string} eventName Event forwarded to the loaded controller.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HandleEvent(eventName)
   {
     this.controller?.HandleEvent(eventName);
@@ -199,8 +199,8 @@ export class Tr2ControllerReference extends ITr2Controller
    * Gets the linked owner.
    * @returns {object|null} Current owner.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetOwner()
   {
     return this._owner;
@@ -216,7 +216,7 @@ export class Tr2ControllerReference extends ITr2Controller
    *
    * @returns {Promise<ITr2Controller|null>} The current loaded controller, or null.
    */
-  @meta.impl.custom
+  @meta.ours
   async ResolveController()
   {
     const path = this.path;
@@ -263,4 +263,4 @@ export class Tr2ControllerReference extends ITr2Controller
 }
 
 // Native EXPOSURE_END: no primary-base table chain.
-meta.carbon.interfaceTable({ interfaces: [Tr2ControllerReference, IInitialize, INotify, ITr2Controller], chainTo: null })(Tr2ControllerReference, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [Tr2ControllerReference, IInitialize, INotify, ITr2Controller], chainTo: null })(Tr2ControllerReference, { kind: "class" });

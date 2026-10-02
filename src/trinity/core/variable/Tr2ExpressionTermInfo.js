@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2ExpressionTermInfo.h
 // Source: trinity/trinity/Tr2ExpressionTermInfo.cpp
 // Source: trinity/trinity/Tr2ExpressionTermInfo_Blue.cpp
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { blue } from "#blue";
 
 
@@ -23,24 +23,24 @@ const TermType = {
 export class Tr2ExpressionTermInfo
 {
   /** Native term category; not persisted. */
-  @meta.edit.readwrite
-  @types.int32
-  @types.enum("trinity.Tr2ExpressionTermInfo.TermType")
+  @meta.blue.readwrite
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2ExpressionTermInfo.TermType")
   type = TermType.VARIABLE;
 
   /** Help category name; not persisted. */
-  @meta.edit.readwrite
-  @types.string
+  @meta.blue.readwrite
+  @meta.type.string
   category = "";
 
   /** Exposed term name; not persisted. */
-  @meta.edit.readwrite
-  @types.string
+  @meta.blue.readwrite
+  @meta.type.string
   name = "";
 
   /** Help text for the term; not persisted. */
-  @meta.edit.readwrite
-  @types.string
+  @meta.blue.readwrite
+  @meta.type.string
   description = "";
 
   /** Factory-owned argument names, absent from the native member table. */
@@ -50,8 +50,8 @@ export class Tr2ExpressionTermInfo
    * A detached copy of the argument-name list.
    * @returns {string[]} Argument names in factory order.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetArguments()
   {
     return this._arguments.slice();
@@ -64,7 +64,7 @@ export class Tr2ExpressionTermInfo
    * @param {string} description Help text.
    * @returns {Tr2ExpressionTermInfo} New term record.
    */
-  @meta.impl.implemented
+  @meta.implemented
   static variable(category, name, description)
   {
     return Tr2ExpressionTermInfo._create(TermType.VARIABLE, category, name, [], description);
@@ -79,7 +79,7 @@ export class Tr2ExpressionTermInfo
    * @param {...string} argumentsAndDescription Argument names followed by help text.
    * @returns {Tr2ExpressionTermInfo} New term record.
    */
-  @meta.impl.adapted
+  @meta.adapted
   static function(category, name, ...argumentsAndDescription)
   {
     const values = argumentsAndDescription.slice();
@@ -95,7 +95,7 @@ export class Tr2ExpressionTermInfo
    * @param {string} description Help text.
    * @returns {Tr2ExpressionTermInfo} New term record.
    */
-  @meta.impl.implemented
+  @meta.implemented
   static stringFunction(category, name, argument, description)
   {
     return Tr2ExpressionTermInfo._create(TermType.STRING_FUNCTION, category, name, [argument], description);
@@ -112,7 +112,7 @@ export class Tr2ExpressionTermInfo
    * @param {string} description Help text.
    * @returns {Tr2ExpressionTermInfo} New term record.
    */
-  @meta.impl.custom
+  @meta.ours
   static _create(termType, category, name, args, description)
   {
     const term = new Tr2ExpressionTermInfo();
@@ -135,4 +135,4 @@ blue.enums.RegisterEnum("trinity.Tr2ExpressionTermInfo.TermType", TermType, {
 });
 
 // Native IRoot record: concrete query identity with no exposure chain.
-meta.carbon.interfaceTable({ interfaces: [Tr2ExpressionTermInfo], chainTo: null })(Tr2ExpressionTermInfo, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [Tr2ExpressionTermInfo], chainTo: null })(Tr2ExpressionTermInfo, { kind: "class" });

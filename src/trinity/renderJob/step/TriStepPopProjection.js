@@ -1,4 +1,4 @@
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 
@@ -9,12 +9,12 @@ import { TriRenderJob } from "../TriRenderJob.js";
  * Step that pops the render context's projection stack, restoring the projection saved
  * by an earlier push.
  */
-@type.define({ className: "TriStepPopProjection", family: "renderJob" })
+@meta.define({ className: "TriStepPopProjection", family: "renderJob" })
 export class TriStepPopProjection extends TriRenderStep
 {
   /** Restores the projection saved by the matching push step. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     renderContext.PopProjection();

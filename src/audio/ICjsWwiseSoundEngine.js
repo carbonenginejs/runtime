@@ -5,7 +5,7 @@
 // documented CarbonEngineJS backend capabilities.
 // The Trinity -> Carbon Audio layer is a different one: trinityaudioapi.
 
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /**
  * What Carbon Audio (`AudManager`, `AudGameObjResource`, `AudGeometry` ...)
@@ -288,7 +288,7 @@ export class ICjsWwiseSoundEngine
 
 for (const method of Object.getOwnPropertyNames(ICjsWwiseSoundEngine.prototype))
 {
-    if (method !== "constructor") CjsSchema.decorateMethod(ICjsWwiseSoundEngine, method, impl.abstract);
+    if (method !== "constructor") CjsSchema.decorateMethod(ICjsWwiseSoundEngine, method, meta.abstract);
 }
 
 CjsSchema.define(ICjsWwiseSoundEngine, { className: "ICjsWwiseSoundEngine", family: "audio", fields: {} });

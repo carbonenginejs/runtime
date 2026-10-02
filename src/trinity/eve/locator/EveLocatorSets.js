@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveLocatorSets.cpp
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { carbon, CjsSchema, impl, edit, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { MatrixCopyFrom3x4 } from "../lights/lightConversion.js";
 import { Locator } from "./Locator.js";
 
@@ -51,28 +51,28 @@ export function EveGetLocatorPose(outPosition, outDirection, animationUpdater, l
  * Named group of locators that a space object publishes for turrets, effects and
  * distributions to attach to.
  */
-@type.define({
+@meta.define({
   className: "EveLocatorSets",
   family: "eve/utils"
 })
 export class EveLocatorSets
 {
-  @edit.read
-  @edit.persist
-  @type.list("Locator")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Locator")
   locators = [];
 
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /**
    * Shifts the position of every locator in the set by an offset, doing nothing
    * for a zero offset.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Translate(offset)
   {
     if (EveLocatorSets._lengthSq(offset) === 0)
@@ -89,8 +89,8 @@ export class EveLocatorSets
    * Appends copies of the given locators, so the set never aliases the caller's
    * records.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Append(locators)
   {
     for (const locator of locators)
@@ -106,32 +106,32 @@ export class EveLocatorSets
    * Reports whether the set carries exactly this name; set lookups are an exact
    * string match.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HasName(name)
   {
     return this.name === String(name);
   }
 
   /** Returns the set's live locator list, not a copy. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetLocators()
   {
     return this.locators;
   }
 
   /** Returns the name callers look this set up by. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetName()
   {
     return this.name;
   }
 
   /** Sets the name callers look this set up by, coercing the value to a string. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetName(name)
   {
     this.name = String(name);
@@ -141,8 +141,8 @@ export class EveLocatorSets
    * Replaces both the set name and its whole locator list with copies of the
    * given locators.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Set(name, locators)
   {
     this.SetName(name);
@@ -161,8 +161,8 @@ export class EveLocatorSets
    * scale to zero and a missing bone index to 0; an index outside the list is
    * ignored.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetLocator(index, value)
   {
     const existing = this.locators[index];

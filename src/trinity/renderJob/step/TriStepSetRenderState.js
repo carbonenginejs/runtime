@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepSetRenderState.cpp
 // Source: trinity/trinity/RenderJob/TriStepSetRenderState_Blue.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { RenderState } from "#consts/render-context";
@@ -10,26 +10,26 @@ import { RenderState } from "#consts/render-context";
  * Step that sets a single render state to a single value for the steps that
  * follow.
  */
-@type.define({ className: "TriStepSetRenderState", family: "renderJob" })
+@meta.define({ className: "TriStepSetRenderState", family: "renderJob" })
 export class TriStepSetRenderState extends TriRenderStep
 {
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("RenderState")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("RenderState")
   state = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   value = 0;
 
   /**
    * Accepts either no arguments or both a state and a value; supplying only one
    * of the pair throws.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   __init__(state, value)
   {
     const hasState = arguments.length > 0 && state !== undefined;
@@ -58,8 +58,8 @@ export class TriStepSetRenderState extends TriRenderStep
    * Forwards the state/value pair to the render context, which owns the mapping onto
    * real pipeline state.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     renderContext.SetRenderState(this.state, this.value);

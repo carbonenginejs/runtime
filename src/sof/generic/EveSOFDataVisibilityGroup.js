@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:418-427
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 
 /** Names and describes a generic visibility group.
  * Native IRoot-only data with a self-only Blue table. Field initializers
@@ -12,20 +12,20 @@ export class EveSOFDataVisibilityGroup
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_description (std::string) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   description = "";
 
 }
 
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ EveSOFDataVisibilityGroup ],
   chainTo: null
 })(EveSOFDataVisibilityGroup);

@@ -1,43 +1,43 @@
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 
 /** Plan-local source-version contributor with optional exact configuration and geometry choices. */
-@type.define({ className: "CjsCharacterResolvedPart", family: "character" })
+@meta.define({ className: "CjsCharacterResolvedPart", family: "character" })
 export class CjsCharacterResolvedPart
 {
 
-    @edit.readwrite
-    @edit.persist
-    @type.path
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.path
     configurationPath = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.path
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.path
     geometryPath = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.list("string")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.list("string")
     texturePaths = [];
 
-    @edit.readwrite
-    @edit.persist
-    @type.int32
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.int32
     requestedLod = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.int32
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.int32
     resolvedLod = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     modelFamily = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.model("CjsCharacterOrigin")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.model("CjsCharacterOrigin")
     origin = null;
 
 }

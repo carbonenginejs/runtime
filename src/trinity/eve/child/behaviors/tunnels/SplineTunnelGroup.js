@@ -2,7 +2,7 @@ import { INotify } from "../../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SplineTunnelGroup.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/SplineTunnelGroup.cpp
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -15,8 +15,8 @@ const DEBUG_START = vec3.create();
 const DEBUG_END = vec3.create();
 
 /** SplineTunnelGroup (eve/child/behaviors) - generated from schema shapeHash da595535.... */
-@type.define({ className: "SplineTunnelGroup", family: "eve" })
-@carbon.inherit(INotify)
+@meta.define({ className: "SplineTunnelGroup", family: "eve" })
+@meta.blue.inherit(INotify)
 export class SplineTunnelGroup
 {
   static TunnelGroupType = TunnelGroupType;
@@ -25,46 +25,46 @@ export class SplineTunnelGroup
   tunnels = [];
 
   /** m_tunnelGroupType (TunnelGroupType - enum TunnelGroupType) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.SplineTunnelGroup.TunnelGroupType")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.SplineTunnelGroup.TunnelGroupType")
   tunnelGroupType = 2;
 
   /** m_curveSets (PTr2CurveVector3Vector) [READ, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.read
-  @edit.persist
-  @type.list("Tr2CurveVector3")
+  @meta.blue.notify
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2CurveVector3")
   curveSets = [];
 
   /** m_numBreakPoints (int32_t) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   breakPoints = 2;
 
   /** m_tunnelWidth (float) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   tunnelWidth = 15;
 
   /** m_entrancePullSize (float) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   entrancePullSize = 50;
 
   /** m_entrySize (float) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   entrySize = 20;
 
   // Owner callback into the system/behavior tunnel registry (Carbon
@@ -78,8 +78,8 @@ export class SplineTunnelGroup
   _creatingTunnels = false;
 
   /** Carbon SplineTunnelGroup::GetTunnelGroupType (cpp:24-27). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetTunnelGroupType()
   {
     return this.tunnelGroupType;
@@ -92,8 +92,8 @@ export class SplineTunnelGroup
    * @param {Function} callback
    * @param {Number} color - debug color (retained for parity; debug rendering is omitted)
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetSystemTunnelFunctionReferenceAndColor(callback, color = 0xffffff00)
   {
     this._changeSystemTunnelRegistry = typeof callback === "function" ? callback : null;
@@ -102,10 +102,10 @@ export class SplineTunnelGroup
   }
 
   /** Carbon method createSplineTunnels -> CreateSplineTunnels (cpp:37-79). */
-  @carbon.method
-  @carbon.renamed("createSplineTunnels")
-  @impl.adapted
-  @impl.reason("Samples portable vector curves into CPU tunnel records and reports registry changes through an injected callback.")
+  @meta.blue.method
+  @meta.blue.renamed("createSplineTunnels")
+  @meta.adapted
+  @meta.reason("Samples portable vector curves into CPU tunnel records and reports registry changes through an injected callback.")
   createSplineTunnels()
   {
     if (this._creatingTunnels)
@@ -158,8 +158,8 @@ export class SplineTunnelGroup
   }
 
   /** Carbon SplineTunnelGroup::OnListModified. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, _value = null, list = null)
   {
     if (list !== this.curveSets) return;
@@ -175,9 +175,9 @@ export class SplineTunnelGroup
    * lazily when curves are present - the JS load path has no Blue notify to
    * trigger the first CreateSplineTunnels.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Lazily builds the tunnels on first access because the Blue curve-set list notify does not exist in JS.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Lazily builds the tunnels on first access because the Blue curve-set list notify does not exist in JS.")
   GetTunnels()
   {
     if (this.tunnels.length === 0 && this.curveSets.length !== 0 && !this._creatingTunnels)
@@ -188,32 +188,32 @@ export class SplineTunnelGroup
   }
 
   /** Carbon SplineTunnelGroup::GetCurveSets (cpp:86-89). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetCurveSets()
   {
     return this.curveSets;
   }
 
   /** Carbon SplineTunnelGroup::SetNumBreakPoints (cpp:91-94). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetNumBreakPoints(value)
   {
     this.breakPoints = Number(value) | 0;
   }
 
   /** Carbon SplineTunnelGroup::GetNumBreakPoints (cpp:96-99). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetNumBreakPoints()
   {
     return Math.max(this.breakPoints, 0);
   }
 
   /** Carbon SplineTunnelGroup::Initialize (cpp:104-107). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     this.createSplineTunnels();
@@ -222,8 +222,8 @@ export class SplineTunnelGroup
 
   /** Carbon SplineTunnelGroup::OnModified (cpp:112-117): any property change
    * rebuilds the tunnels. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnModified(_value = null)
   {
     this.createSplineTunnels();
@@ -234,9 +234,9 @@ export class SplineTunnelGroup
    * Registers this group's "SplineTunnels" debug option in the caller's option
    * bag (Set-like add or insert) and returns that bag.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Tr2DebugRendererOptions is represented by an injected Set-like option bag.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Tr2DebugRendererOptions is represented by an injected Set-like option bag.")
   GetDebugOptions(options = new Set())
   {
     if (options?.add) options.add("SplineTunnels");
@@ -249,9 +249,9 @@ export class SplineTunnelGroup
    * @param {Object} renderer - injected debug renderer capability
    * @param {Float32Array} [parentWorldLocation] - places the tunnel geometry in world space
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Emits Carbon's tunnel primitives through an injected ITr2DebugRenderer2-compatible capability.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Emits Carbon's tunnel primitives through an injected ITr2DebugRenderer2-compatible capability.")
   RenderDebugInfo(renderer, parentWorldLocation = mat4.create())
   {
     for (const tunnel of this.tunnels)
@@ -280,4 +280,4 @@ export class SplineTunnelGroup
 }
 
 // Exact native Blue exposure: only these identities participate in loading.
-carbon.interfaceTable({ interfaces: [SplineTunnelGroup, INotify], chainTo: null })(SplineTunnelGroup, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [SplineTunnelGroup, INotify], chainTo: null })(SplineTunnelGroup, { kind: "class" });

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2SkinnedObjectLOD.h
 // Source: trinity/trinity/Tr2SkinnedObjectLOD.cpp
-import { carbon, impl } from "#schema";
+import { meta } from "#schema";
 
 const LOW_DETAIL_THRESHOLD = 150;
 const MEDIUM_DETAIL_THRESHOLD = 500;
@@ -28,8 +28,8 @@ export class Tr2SkinnedObjectLod
    * Repopulates availability when one of the three owned proxy references
    * changes.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnModified(value)
   {
     if (value === "highDetailModel"
@@ -42,8 +42,8 @@ export class Tr2SkinnedObjectLod
   }
 
   /** Enables whole-model selection whenever at least one detail proxy is present. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PopulateLods()
   {
     this._allowLodSelection = !!(
@@ -57,8 +57,8 @@ export class Tr2SkinnedObjectLod
    * Selects the best available or resident whole-model proxy for a projected
    * pixel diameter.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetLOD(_frustum, estimatedPixelDiameter)
   {
     if (!this._allowLodSelection)
@@ -127,9 +127,9 @@ export class Tr2SkinnedObjectLod
    * Replaces the object held by the existing high-detail proxy when both values
    * are available.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Uses an already supplied Blue proxy; proxy construction belongs to the outer runtime adapter.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Uses an already supplied Blue proxy; proxy construction belongs to the outer runtime adapter.")
   SetHighDetailModel(model)
   {
     SetProxyObject(this.highDetailProxy, model);
@@ -139,9 +139,9 @@ export class Tr2SkinnedObjectLod
    * Replaces the object held by the existing medium-detail proxy when both
    * values are available.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Uses an already supplied Blue proxy; proxy construction belongs to the outer runtime adapter.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Uses an already supplied Blue proxy; proxy construction belongs to the outer runtime adapter.")
   SetMediumDetailModel(model)
   {
     SetProxyObject(this.mediumDetailProxy, model);
@@ -151,9 +151,9 @@ export class Tr2SkinnedObjectLod
    * Replaces the object held by the existing low-detail proxy when both values
    * are available.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Uses an already supplied Blue proxy; proxy construction belongs to the outer runtime adapter.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Uses an already supplied Blue proxy; proxy construction belongs to the outer runtime adapter.")
   SetLowDetailModel(model)
   {
     SetProxyObject(this.lowDetailProxy, model);
@@ -163,8 +163,8 @@ export class Tr2SkinnedObjectLod
    * Updates unselected proxy lifetimes on acceptable frame times while keeping
    * the selected model resident.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UnloadLodIfNeeded(time, deltaTime)
   {
     if (!this._allowLodSelection || Number(deltaTime) > UNLOAD_MAX_FRAME_TIME)
@@ -185,32 +185,32 @@ export class Tr2SkinnedObjectLod
    * Overrides the selected whole-model detail index used by proxy lifecycle and
    * capability queries.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetCurrentLod(lod)
   {
     this._currentLod = lod;
   }
 
   /** Returns the selected whole-model detail index, or -1 before selection. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetCurrentLod()
   {
     return this._currentLod;
   }
 
   /** Reports whether at least one detail proxy permits whole-model selection. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HaveLodSetup()
   {
     return this._allowLodSelection;
   }
 
   /** Allows shadow casting without selection or only for the high-detail model. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsCastingShadow()
   {
     return !this._allowLodSelection || this._currentLod === 0;
@@ -220,8 +220,8 @@ export class Tr2SkinnedObjectLod
    * Allows cloth simulation when selection is disabled or the current detail
    * index is within the requested maximum.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsSimulatingCloth(maxClothLod)
   {
     return !this._allowLodSelection || this._currentLod <= maxClothLod;
@@ -231,9 +231,9 @@ export class Tr2SkinnedObjectLod
    * Installs a changed model into the selected proxy, falling through to a lower
    * proxy when it is absent.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("CarbonEngineJS proxies receive the model object when no native raw-root handle exists.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("CarbonEngineJS proxies receive the model object when no native raw-root handle exists.")
   OnModelChanged(model)
   {
     if (!model)

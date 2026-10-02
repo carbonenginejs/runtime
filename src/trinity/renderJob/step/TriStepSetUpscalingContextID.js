@@ -1,21 +1,21 @@
 // Source: trinity/trinity/RenderJob/TriStepSetUpscalingContextID.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that selects which upscaling context subsequent work resolves against. */
-@type.define({ className: "TriStepSetUpscalingContextID", family: "renderJob" })
+@meta.define({ className: "TriStepSetUpscalingContextID", family: "renderJob" })
 export class TriStepSetUpscalingContextID extends TriRenderStep
 {
 
   /** m_upscalingContextID (uint32_t) [READ] */
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   upscalingContextID = 0xffffffff;
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   __init__(upscalingContextID = 0xffffffff)
   {
     this.upscalingContextID = Number(upscalingContextID) >>> 0;
@@ -24,8 +24,8 @@ export class TriStepSetUpscalingContextID extends TriRenderStep
   /**
    * Selects the upscaling context subsequent steps resolve against.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Execute(_realTime, _simTime, renderContext)
   {
     renderContext.SetUpscalingContextID(this.upscalingContextID);

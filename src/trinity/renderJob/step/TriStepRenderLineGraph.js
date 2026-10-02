@@ -1,56 +1,56 @@
 // Source: trinity/trinity/RenderJob/TriStepRenderLineGraph.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that draws a set of line graphs with a shared scale and legend. */
-@type.define({ className: "TriStepRenderLineGraph", family: "renderJob" })
+@meta.define({ className: "TriStepRenderLineGraph", family: "renderJob" })
 export class TriStepRenderLineGraph extends TriRenderStep
 {
 
   /** m_lineGraphs (PTr2LineGraphVector) [READ] */
-  @edit.read
-  @type.list("Tr2LineGraph")
+  @meta.blue.read
+  @meta.type.list("Tr2LineGraph")
   lineGraphs = [];
 
   /** m_scale (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   scale = 1;
 
   /** m_legendScale (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   legendScale = 1;
 
   /** m_autoScale (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   autoScale = true;
 
   /** m_showLegend (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   showLegend = true;
 
   /** m_maxLegend (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxLegend = 1000000000000;
 
   /** m_scaleChangeCallback (BlueScriptCallback) [READWRITE] */
-  @edit.readwrite
-  @type.rawStruct("BlueScriptCallback")
+  @meta.blue.readwrite
+  @meta.type.rawStruct("BlueScriptCallback")
   scaleChangeCallback = null;
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   __init__(graphs = [], legendScale = undefined, scale = undefined, autoScale = undefined)
   {
     this.lineGraphs.push(...graphs);
@@ -63,8 +63,8 @@ export class TriStepRenderLineGraph extends TriRenderStep
    * Updates the graphs' scale, as Carbon does, then refuses: drawing them is
    * not ported (it needs Tr2Renderer::PrintfImmediate and fonts).
    */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   Execute(_realTime, _simTime, _renderContext)
   {
     if (this.autoScale)

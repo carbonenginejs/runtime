@@ -16,7 +16,7 @@
 //   - the app wires the resource layer's wem->ogg->decode chain behind this.
 // - isLoop(eventName) - loop flag source (usually the static data repository).
 import * as CcpLog from "../global/logging/ccpLog.js";
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { ICjsWwiseSoundEngine } from "./ICjsWwiseSoundEngine.js";
 import { CjsAudioBackendSfxControls } from "./internal/CjsAudioBackendSfxControls.js";
 import { evaluateWwiseInterpolation } from "./internal/wwiseCurve.js";
@@ -9972,5 +9972,5 @@ function EvaluateCrossfadeGain(from, to, progress, mode)
 CjsSchema.define(CjsWebAudioSoundEngine, { className: "CjsWebAudioSoundEngine", family: "audio", fields: {} });
 for (const method of [ "InitSpatialAudioGeometry", "SetGeometry", "SetGeometryInstance", "RemoveGeometry", "RemoveGeometryInstance" ])
 {
-    CjsSchema.decorateMethod(CjsWebAudioSoundEngine, method, impl.notImplemented);
+    CjsSchema.decorateMethod(CjsWebAudioSoundEngine, method, meta.notImplemented);
 }

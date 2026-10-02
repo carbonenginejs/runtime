@@ -2,42 +2,42 @@
 // Hand-maintained from Carbon source. Unimplemented backend methods here are
 // unported Carbon behaviour, not a boundary: Carbon holds its handles on this
 // class and calls the AL from it.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { PixelFormat, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { ALResult, Tr2BufferDescriptionAL } from "#trinityal";
 import "#blue/registerTrinityEnums";
 
 /** Tr2GpuBuffer (trinityCore) - generated from schema shapeHash 7a225a45.... */
-@type.define({ className: "Tr2GpuBuffer", family: "trinityCore" })
+@meta.define({ className: "Tr2GpuBuffer", family: "trinityCore" })
 export class Tr2GpuBuffer
 {
 
   static CreationFlags = Object.freeze({ CPU_WRITABLE: 1, GPU_WRITABLE: 2, DRAW_INDIRECT: 4 });
 
   /** m_creationFlags (CreationFlags) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   creationFlags = 0;
 
   /** m_format (Tr2RenderContextEnum::PixelFormat - enum PixelFormat) [READWRITE, ENUM, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.ImageIO.PixelFormat")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.ImageIO.PixelFormat")
   format = 0;
 
   /** m_count (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   count = 0;
 
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   isValid = false;
 
   /** m_name - debug label; not Blue-exposed. */
@@ -47,8 +47,8 @@ export class Tr2GpuBuffer
    * Sets the debug label, coercing null to an empty string; Carbon keeps this
    * private with no getter, so the paired GetName is a JS addition.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetName(name)
   {
     this.#name = String(name ?? "");
@@ -78,8 +78,8 @@ export class Tr2GpuBuffer
    * @param {Tr2RenderContext} renderContext The context to create on.
    * @returns {number} An `ALResult`.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Create(count, format, creationFlags, renderContext)
   {
     this.count = count;
@@ -96,8 +96,8 @@ export class Tr2GpuBuffer
    * @param {Tr2RenderContext} renderContext The context to create on.
    * @returns {number} An `ALResult`.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   CreateBuffer(renderContext)
   {
     if (this.#buffer) this.#buffer.Destroy();
@@ -128,7 +128,7 @@ export class Tr2GpuBuffer
    * Explicit final-owner teardown replaces destruction of Carbon's AL value member.
    * Operational device-resource release remains separate.
    */
-  @impl.adapted
+  @meta.adapted
   Destroy()
   {
     if (this.#buffer) this.#buffer.Destroy();
@@ -144,40 +144,40 @@ export class Tr2GpuBuffer
    * @param {number} [_index] Unused, as in Carbon.
    * @returns {object|null} The AL buffer.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetGpuBuffer(_index = 0)
   {
     return this.#buffer;
   }
 
   /** Carbon IsValid (cpp:130-133). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsValid()
   {
     return this.#buffer !== null;
   }
 
   /** Carbon GetCount (cpp:190-193): the created buffer's element count. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetCount()
   {
     return this.#buffer ? this.#buffer.GetDesc().count : 0;
   }
 
   /** Carbon method __init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   __init__(...args)
   {
     throw new Error("Tr2GpuBuffer.__init__ is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method DebugGetData -> PyGetData (MAP_METHOD). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   DebugGetData(...args)
   {
     throw new Error("Tr2GpuBuffer.DebugGetData is not implemented in CarbonEngineJS.");

@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/Formation.h
-import { type } from "#schema";
+import { meta } from "#schema";
 
 
 /**
@@ -7,12 +7,12 @@ import { type } from "#schema";
  * agent has been assigned, or -1 while it has none. The behaviour allocates one
  * record per agent and rewrites it on every behaviour update.
  */
-@type.define({
+@meta.define({
   className: "FormationData",
   family: "eve/child/behaviors"
 })
 export class FormationData
 {
-  @type.int32
+  @meta.type.int32
   assignedSlot = -1;
 }

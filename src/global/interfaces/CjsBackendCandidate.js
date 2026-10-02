@@ -1,4 +1,4 @@
-import { CjsSchema, impl } from "../schema/index.js";
+import { CjsSchema, meta } from "../schema/index.js";
 
 /**
  * Dependency-free participant in runtime backend selection.
@@ -30,4 +30,4 @@ export class CjsBackendCandidate
 
 }
 
-CjsSchema.decorateMethod(CjsBackendCandidate, "Prove", impl.abstract);
+CjsSchema.decorateMethod(CjsBackendCandidate, "Prove", meta.abstract);

@@ -12,7 +12,7 @@
 // with TriDevice and whose PrepareResources gates OnPrepareResources. There is
 // no JS base, so both halves are on the class, and JavaScript has no
 // destructor, so Release() stands in for ~Tr2DataTextureManager.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { PixelFormat, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
 import { Succeeded } from "../../trinityal/ALResult.js";
@@ -27,39 +27,39 @@ const IMPACT_SHIELD_DATA_MAP = "ImpactShieldDataMap";
 const VEC4_BYTES = 16;
 
 /** Packs shader-readable data blocks into the shared impact data texture. */
-@type.define({ className: "Tr2DataTextureManager", family: "shader" })
+@meta.define({ className: "Tr2DataTextureManager", family: "shader" })
 export class Tr2DataTextureManager
 {
 
   /** m_textureWidth (uint32_t) [READ] */
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   textureWidth = 256;
 
   /** m_textureHeight (uint32_t) [READ] */
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   textureHeight = 4;
 
   /** m_blockDataNextIdx (int32_t) [READ] */
-  @edit.read
-  @type.int32
+  @meta.blue.read
+  @meta.type.int32
   blockDataNextIdx = 1;
 
   /** m_maxBlockCount (uint32_t) [READ] */
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   maxBlockCount = 0;
 
   /** m_maxPixelCount (uint32_t) [READ] */
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   maxPixelCount = 0;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_blockData: id -> flat Float32Array, header vec4s then data[x*H + y] vec4s. */
@@ -96,7 +96,7 @@ export class Tr2DataTextureManager
    * JavaScript has no destructor, so the owner releases explicitly, as
    * Tr2GpuResourcePool handles do.
    */
-  @impl.custom
+  @meta.ours
   Release()
   {
     Tr2VariableStore.globalStore().UnregisterVariable(IMPACT_SHIELD_DATA_MAP);
@@ -105,8 +105,8 @@ export class Tr2DataTextureManager
   }
 
   /** Nothing to do after loading (Carbon cpp:31-34). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     return true;
@@ -120,8 +120,8 @@ export class Tr2DataTextureManager
    * Tr2Renderer::IsResourceCreationAllowed, which has no JS counterpart; a context
    * with no device refuses Create instead.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   PrepareResources()
   {
     return this.OnPrepareResources();
@@ -134,8 +134,8 @@ export class Tr2DataTextureManager
    * Carbon creates in place on the by-value Tr2TextureAL; JS textures come from the
    * render-context factory and are installed on the reference, which broadcasts.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnPrepareResources()
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -167,16 +167,16 @@ export class Tr2DataTextureManager
    * Carbon resets the by-value texture to an empty Tr2TextureAL; JS destroys the
    * texture and installs null.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   ReleaseResources(_storage)
   {
     this._dataTexture.SetTexture(null);
   }
 
   /** Republishes the data texture as ImpactShieldDataMap (Carbon cpp:84-87). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetVariables()
   {
     Tr2VariableStore.globalStore().RegisterVariable(IMPACT_SHIELD_DATA_MAP, this._dataTexture);
@@ -188,8 +188,8 @@ export class Tr2DataTextureManager
    * queued the previous offsets survive, as in Carbon; offsets are recorded
    * only when the texture maps.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Update(_updateContext)
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -254,8 +254,8 @@ export class Tr2DataTextureManager
    * @param {Float32Array[][]} data - blockLength columns of textureHeight vec4s
    * @param {Number} priority - higher packs first
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RequestBlockData(header, blockLength, data, priority)
   {
     if (priority <= 0) return -1;
@@ -276,8 +276,8 @@ export class Tr2DataTextureManager
   }
 
   /** Returns a block's pixel offset from the last packing Update, or -1 (Carbon cpp:211-220). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetTextureOffset(blockID)
   {
     return this._dataTextureOffsets.get(Number(blockID) | 0) ?? -1;

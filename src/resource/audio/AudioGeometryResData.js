@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Schema: format-carbon resources/AudioGeometryResData.json; maintained by the runtime resource layer.
-import { CjsSchema, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { vec3 } from "#math/vec3";
 
 /** Data record mirroring Carbon's per-mesh audio-geometry block: an id plus the vertices, indices, and min/max bounds consumed by audio occlusion. */
@@ -30,11 +30,11 @@ export class AudioGeometryResData
 CjsSchema.define(AudioGeometryResData, {
   className: "AudioGeometryResData", family: "resources",
   fields: {
-    id: type.uint64,
-    vertices: type.list("Vector3"),
-    indices: type.list("uint32_t"),
-    minBounds: type.vec3,
-    maxBounds: type.vec3,
-    s_nextId: type.rawStruct("static std::atomic<uint64_t>")
+    id: meta.type.uint64,
+    vertices: meta.type.list("Vector3"),
+    indices: meta.type.list("uint32_t"),
+    minBounds: meta.type.vec3,
+    maxBounds: meta.type.vec3,
+    s_nextId: meta.type.rawStruct("static std::atomic<uint64_t>")
   }
 });

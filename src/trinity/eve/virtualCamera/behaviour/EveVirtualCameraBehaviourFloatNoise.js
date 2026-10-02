@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
 import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
 import { TriPerlinCurve } from "../../../curves/curve/TriPerlinCurve.js";
@@ -11,7 +11,7 @@ import { EveVirtualCameraBehaviourFloatBase } from "./EveVirtualCameraBehaviourF
  * Float behaviour that adds a Perlin-noise wobble to a scalar camera value such
  * as field of view or roll.
  */
-@type.define({
+@meta.define({
   className: "EveVirtualCameraBehaviourFloatNoise",
   family: "eve/virtualCamera/behaviour"
 })
@@ -19,24 +19,24 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
 {
   static _nextPhase = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   octaves = 8;
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2CurveScalar")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2CurveScalar")
   magnitudeCurve = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   magnitude = 1;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   perlineScale = 1;
 
   _phase = EveVirtualCameraBehaviourFloatNoise._allocatePhase();
@@ -53,8 +53,8 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
   }
 
   /** Sets the behaviour name and renames the owned magnitude curve to match. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetName(name)
   {
     super.SetName(name);
@@ -66,8 +66,8 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
    * phase-offset local time (rate set by perlineScale, detail by octaves) and by
    * the magnitude envelope at normalized timeline time.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(camera, _current, _deltaTime, localElapsedTime)
   {
     let offset = this.magnitude * TriPerlinCurve.PerlinNoise1D(

@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dScene.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dScene.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dScene_Blue.cpp
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { INotify, BlueList } from "#blue";
 import { ITr2Scene } from "../core/ITr2Scene.js";
 import { ITr2Updateable } from "../core/ITr2Updateable.js";
@@ -26,7 +26,7 @@ import "./Tr2SpriteObjectBase.js";
  * Complete canonical members retain native order and indexed aliases. Legacy
  * getField/getDefaults expose no Scene fields; use Blue declaration consumers.
  */
-@type.define({
+@meta.define({
   className: "Tr2Sprite2dScene", family: "sprite2d",
   // Explicit ordered declarations keep native stored aliases in member order.
   members: [
@@ -63,7 +63,7 @@ import "./Tr2SpriteObjectBase.js";
     {"name":"captureIndexDataCapacity","type":{"kind":"uint32"},"edit":{"read":true}}
   ]
 })
-@carbon.inherit(INotify)
+@meta.blue.inherit(INotify)
 export class Tr2Sprite2dScene extends ITr2Scene
 {
   /** Native wide-string scene label. @type {string} */
@@ -202,9 +202,9 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @param {Tr2RenderContext|null} [renderContext=null] Relocated camera state.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Reads relocated view state from the supplied or main-thread context and writes through the existing variable-store handle; curve-set clocks remain raw ticks.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Reads relocated view state from the supplied or main-thread context and writes through the existing variable-store handle; curve-set clocks remain raw ticks.")
   Update(realTime, simTime, renderContext = null)
   {
     this._realTime = realTime;
@@ -235,8 +235,8 @@ export class Tr2Sprite2dScene extends ITr2Scene
   }
 
   /** Removes stopped sets in place using native Blue list removal semantics. @returns {void} */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RemoveFinishedCurveSets()
   {
     for (let index = 0; index < this.curveSets.length;)
@@ -252,8 +252,8 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {boolean} True for notifications that require no invalidation.
    * @throws {Error} maxSpriteCount requires the unported ReleaseResources path.
    */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   OnModified(value)
   {
     if (value === "maxSpriteCount")
@@ -265,27 +265,27 @@ export class Tr2Sprite2dScene extends ITr2Scene
   }
 
   /** Native sprite rendering remains unsupported. @param {Tr2RenderContext} _renderContext Active context. @returns {void} */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   Render(_renderContext)
   {
     throw new Error("Tr2Sprite2dScene.Render is not implemented in CarbonEngineJS.");
   }
 
   /** Native scene debug rendering is empty. @param {Tr2RenderContext} _renderContext Active context. @returns {void} */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   RenderDebugInfo(_renderContext)
   {
   }
 
   /** Native picking requires the unported viewport/clipping stack. @param {...*} args Picking arguments. @returns {ITr2SpriteObject|null} */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   PickObject(...args)
   {
     throw new Error("Tr2Sprite2dScene.PickObject is not implemented in CarbonEngineJS.");
   }
 }
 
-carbon.interfaceTable({ interfaces: [Tr2Sprite2dScene, ITr2Scene, ITr2Updateable, INotify], chainTo: null })(Tr2Sprite2dScene);
+meta.blue.interfaceTable({ interfaces: [Tr2Sprite2dScene, ITr2Scene, ITr2Updateable, INotify], chainTo: null })(Tr2Sprite2dScene);

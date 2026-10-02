@@ -12,7 +12,7 @@ import { BLUELISTEVENT } from "#consts/blue";
 import { IInitialize } from "#blue/IInitialize";
 import { IListNotify } from "#blue/IListNotify";
 import { INotify } from "#blue/INotify";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { BlueList } from "#blue/BlueList";
 import { AudParameter } from "./AudParameter.js";
 import { quat } from "#math/quat";
@@ -65,99 +65,99 @@ function NowMs()
  * culling state. Abstract in Carbon (`BLUE_DEFINE_ABSTRACT`, _Blue.cpp:8):
  * AudEmitter, AudListener, AudUIPlayer and AudMusicPlayer build on it.
  */
-@type.define({ className: "AudGameObjResource", family: "audio", abstract: true })
-@carbon.inherit(IInitialize, IListNotify, INotify)
+@meta.define({ className: "AudGameObjResource", family: "audio", abstract: true })
+@meta.blue.inherit(IInitialize, IListNotify, INotify)
 export class AudGameObjResource
 {
 
   /** m_eventPrefix (std::wstring) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   eventPrefix = "";
 
   /** m_additionalCullingWeight (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   additionalCullingWeight = 0;
 
   /** m_ID (AkGameObjectID) [READ] */
-  @edit.read
-  @type.rawStruct("AkGameObjectID")
+  @meta.blue.read
+  @meta.type.rawStruct("AkGameObjectID")
   ID = null;
 
   /** m_parameters (PAudParameterVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("AudParameter")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("AudParameter")
   parameters = new BlueList(AudParameter);
 
   /** m_name (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_playingVitalSound (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   playingVitalSound = false;
 
   /** m_playing2DSound (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   playing2DSound = false;
 
   /** m_listenerInRange (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   listenerInRange = false;
 
   /** m_isUsed (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   isUsed = false;
 
   /** m_eventName (std::wstring) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   eventName = "";
 
   /** m_cumulativeWeight (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   cumulativeWeight = 0;
 
   /** m_distanceSqFromListener (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   distanceFromListener = 0;
 
   /** m_scalingFactor (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   scalingFactor = 1;
 
   /** m_isVisible (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   isVisible = false;
 
   /** m_forceCullingState (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   forceCullingState = false;
 
   /**
    * m_position (Vector3) [READ]. Starts at the `WWISE_INIT_POSITION` sentinel
    * (cpp:30,69), so an object nobody has placed reports no usable position.
    */
-  @edit.read
-  @type.vec3
+  @meta.blue.read
+  @meta.type.vec3
   position = vec3.fromValues(WWISE_INIT_POSITION, WWISE_INIT_POSITION, WWISE_INIT_POSITION);
 
   /**
@@ -243,8 +243,8 @@ export class AudGameObjResource
    *
    * @returns {boolean} True.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     this.RegisterWwiseObject();
@@ -267,8 +267,8 @@ export class AudGameObjResource
    * @param {string} prefix Event prefix.
    * @param {ArrayLike<number>} position World position.
    */
-  @carbon.renamed("Initialize")
-  @impl.adapted
+  @meta.blue.renamed("Initialize")
+  @meta.adapted
   InitializeWithParameters(name, prefix, position)
   {
     this.name = name;
@@ -278,8 +278,8 @@ export class AudGameObjResource
   }
 
   /** Carbon method PostEvent: returns a playing id, or 0 when queued/culled/failed. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PostEvent(eventName, bypassPrefix = false, additionalFlags = 0)
   {
     const repository = AudGameObjResource.staticDataRepository;
@@ -360,8 +360,8 @@ export class AudGameObjResource
   }
 
   /** Carbon method StopEvent: stops every playing instance of the (prefixed) event; returns whether any matched. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   StopEvent(eventName, fadeOutDuration = 1000)
   {
     const fullEventName = PrepareEvent(this.eventPrefix, eventName, false);
@@ -378,8 +378,8 @@ export class AudGameObjResource
   }
 
   /** Carbon method StopSound: request stop for one playing id (removal happens in EventFinishedCallback). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   StopSound(playingID, fadeOutDuration = 1000)
   {
     if (AudGameObjResource.manager?.enabled)
@@ -390,8 +390,8 @@ export class AudGameObjResource
   }
 
   /** Carbon method BreakSound: loops stop, one-shots play out. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   BreakSound(playingID, fadeOutDuration = 1000)
   {
     if (AudGameObjResource.manager?.enabled)
@@ -402,8 +402,8 @@ export class AudGameObjResource
   }
 
   /** Carbon method SeekOnEventPercent: seek a playing event owned by this object. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SeekOnEventPercent(playingID, percentToSeek)
   {
     if (!AudGameObjResource.manager?.enabled || !this._playingEvents.has(playingID))
@@ -414,8 +414,8 @@ export class AudGameObjResource
   }
 
   /** Carbon method SeekOnEventMs: seek a playing event owned by this object. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SeekOnEventMs(playingID, msToSeek)
   {
     if (!AudGameObjResource.manager?.enabled || !this._playingEvents.has(playingID))
@@ -426,8 +426,8 @@ export class AudGameObjResource
   }
 
   /** Carbon method StopAll. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   StopAll()
   {
     if (AudGameObjResource.manager?.enabled)
@@ -440,8 +440,8 @@ export class AudGameObjResource
   }
 
   /** Carbon method ExecuteActionOnPlayingID: backend stop/break when the id is tracked. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ExecuteActionOnPlayingID(playingID, action, fadeOutDuration = 1000)
   {
     if (!AudGameObjResource.manager?.enabled || !this._playingEvents.has(playingID))
@@ -455,8 +455,8 @@ export class AudGameObjResource
   }
 
   /** Carbon method MarkPlayingIDStoppedByRequest: a stopped loop must not resume on wake. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   MarkPlayingIDStoppedByRequest(playingID)
   {
     const playing = this._playingEvents.get(playingID);
@@ -469,8 +469,8 @@ export class AudGameObjResource
   }
 
   /** Carbon method EventFinishedCallback: the only place playing entries are removed (backend end-of-event). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   EventFinishedCallback(playingID)
   {
     this._pendingStoppedPlayingIDs.delete(playingID);
@@ -479,8 +479,8 @@ export class AudGameObjResource
   }
 
   /** Carbon method SetRTPC: value always stored; true only when live-applied. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetRTPC(rtpcName, rtpcValue)
   {
     this._rtpcValues.set(String(rtpcName), Number(rtpcValue));
@@ -501,8 +501,8 @@ export class AudGameObjResource
   }
 
   /** Carbon method SetSwitch: value always stored; true only when live-applied. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetSwitch(switchGroup, switchState)
   {
     this._switchValues.set(String(switchGroup), String(switchState));
@@ -523,8 +523,8 @@ export class AudGameObjResource
   }
 
   /** Carbon method Wake: register, restore position/params/attenuation, replay queued events. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Wake()
   {
     if (!AudGameObjResource.manager?.enabled || this.forceCullingState || this._muted || !this._hasReceivedPosition)
@@ -566,8 +566,8 @@ export class AudGameObjResource
   }
 
   /** Carbon method Cull: loops saved to events-on-wake; in-range one-shots break, others stop. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Cull()
   {
     if (!AudGameObjResource.manager?.enabled || this.forceCullingState)
@@ -598,16 +598,16 @@ export class AudGameObjResource
   }
 
   /** Carbon method IsCulled. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsCulled()
   {
     return this._culled;
   }
 
   /** Carbon method ForceCullingStateChange: toggle culled state, then hold it forced. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ForceCullingStateChange()
   {
     this.forceCullingState = false;
@@ -623,16 +623,16 @@ export class AudGameObjResource
   }
 
   /** Carbon method ReleaseForcedCullingState. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ReleaseForcedCullingState()
   {
     this.forceCullingState = false;
   }
 
   /** Carbon method Mute: muting is forcibly culling. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Mute()
   {
     if (this._muted)
@@ -652,8 +652,8 @@ export class AudGameObjResource
    * object stays culled until the prioritization system wakes it; the muted
    * flag clears last. Kept as shipped (carbon-known-defects: Unmute order).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Unmute()
   {
     if (!this._muted)
@@ -669,8 +669,8 @@ export class AudGameObjResource
   }
 
   /** Carbon method IsMuted. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsMuted()
   {
     return this._muted;
@@ -680,8 +680,8 @@ export class AudGameObjResource
    * Forces an orientation to unit-length, mutually perpendicular axes while
    * preserving the supplied front direction.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   static Orthonormalize(outFront, outTop, front, top, normalizedTop, cross)
   {
     vec3.normalize(outFront, front);
@@ -692,9 +692,9 @@ export class AudGameObjResource
   }
 
   /** Carbon method SetPlacementFromParent: stores the parent pose, resolves authored rotation, then applies it. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The RH->LH conversion and Wwise SetPosition happen in the backend seam; the headless graph stores the position.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("The RH->LH conversion and Wwise SetPosition happen in the backend seam; the headless graph stores the position.")
   SetPlacementFromParent(front, top, positionValue)
   {
     vec3.copy(this._parentFront, front);
@@ -704,9 +704,9 @@ export class AudGameObjResource
   }
 
   /** Carbon method ApplyEffectivePlacement: corrects, stores, exposes, and pushes the effective pose. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The RH->LH conversion and Wwise call remain in the backend seam; the runtime owns the effective orientation buffers.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("The RH->LH conversion and Wwise call remain in the backend seam; the runtime owns the effective orientation buffers.")
   ApplyEffectivePlacement(front, top, positionValue)
   {
     AudGameObjResource.Orthonormalize(
@@ -729,8 +729,8 @@ export class AudGameObjResource
   }
 
   /** Carbon method HasAuthoredRotation (cpp:415-418): the authored rotation is not identity. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HasAuthoredRotation()
   {
     return this.rotation[0] !== 0
@@ -740,9 +740,9 @@ export class AudGameObjResource
   }
 
   /** Carbon method GetEffectiveOrientation: resolves parent axes through authored rotation into owned buffers. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon returns a value struct; CarbonEngineJS returns a stable object backed by owned buffers to avoid placement-path allocations.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon returns a value struct; CarbonEngineJS returns a stable object backed by owned buffers to avoid placement-path allocations.")
   GetEffectiveOrientation()
   {
     if (!this.HasAuthoredRotation() || quat.squaredLength(this.rotation) <= 0)
@@ -759,8 +759,8 @@ export class AudGameObjResource
   }
 
   /** Carbon method RefreshPlacementFromRotation. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RefreshPlacementFromRotation()
   {
     const orientation = this.GetEffectiveOrientation();
@@ -768,8 +768,8 @@ export class AudGameObjResource
   }
 
   /** Carbon method SetAttenuationScalingFactor: stored only when live-applied (Carbon parity). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetAttenuationScalingFactor(value)
   {
     if (AudGameObjResource.manager?.enabled && this._gameObjRegistered)
@@ -785,8 +785,8 @@ export class AudGameObjResource
   }
 
   /** Carbon method SetEventName: replays the event when the name changes. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetEventName(eventName)
   {
     const changed = this.eventName !== eventName;
@@ -798,17 +798,17 @@ export class AudGameObjResource
   }
 
   /** Carbon method GetEventName. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetEventName()
   {
     return this.eventName;
   }
 
   /** Carbon method ApplyEventStopRelationships: purge queued/playing events this event stops. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon relies on Wwise to execute the posted Stop action; the portable backend executes an installed authored program or falls back to the equivalent metadata stop.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon relies on Wwise to execute the posted Stop action; the portable backend executes an installed authored program or falls back to the equivalent metadata stop.")
   ApplyEventStopRelationships(stoppingEventName)
   {
     const repository = AudGameObjResource.staticDataRepository;
@@ -853,8 +853,8 @@ export class AudGameObjResource
   }
 
   /** Carbon method RegisterWwiseObject. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterWwiseObject()
   {
     if (AudGameObjResource.manager?.enabled && !this._gameObjRegistered)
@@ -865,8 +865,8 @@ export class AudGameObjResource
   }
 
   /** Carbon method UnregisterWwiseObject (cpp:134-146): any state but uninitialized. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UnregisterWwiseObject()
   {
     if (AudGameObjResource.manager && AudGameObjResource.manager.GetStateValue() !== 0 && this._gameObjRegistered)
@@ -877,8 +877,8 @@ export class AudGameObjResource
   }
 
   /** Carbon method UpdateMaxAttenuationRadiusForEvent. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateMaxAttenuationRadiusForEvent(eventName)
   {
     const repository = AudGameObjResource.staticDataRepository;
@@ -897,8 +897,8 @@ export class AudGameObjResource
    * be culled before its distance curve reaches its endpoint; the quirk is
    * kept as shipped.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetMaxAttenuationRadius()
   {
     return this._maxAttenuationRadiusSq * this.scalingFactor;
@@ -910,8 +910,8 @@ export class AudGameObjResource
    * attenuation radius only GROWS here (through UpdateMaxAttenuationRadiusForEvent)
    * and resets to zero only when nothing plays or waits, as in Carbon.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateEventSoundPrioritizationAttributes()
   {
     const repository = AudGameObjResource.staticDataRepository;
@@ -942,9 +942,9 @@ export class AudGameObjResource
   }
 
   /** Carbon method CalculateCullingWeight: refresh in-range/one-shot state and store the weight. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon reads complete authored radii and manager property delegates. CarbonEngineJS reads the manager's SoundPrioritization directly and treats a nonpositive radius as unknown/unbounded so optional metadata cannot make an event inaudible.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon reads complete authored radii and manager property delegates. CarbonEngineJS reads the manager's SoundPrioritization directly and treats a nonpositive radius as unknown/unbounded so optional metadata cannot make an event inaudible.")
   CalculateCullingWeight(now = NowMs())
   {
     const prioritization = AudGameObjResource.manager?.soundPrioritization;
@@ -984,80 +984,80 @@ export class AudGameObjResource
   }
 
   /** Carbon method GetCullingWeight. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetCullingWeight()
   {
     return this.cumulativeWeight;
   }
 
   /** Carbon method GetID. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetID()
   {
     return this.ID;
   }
 
   /** Carbon method GetPosition. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetPosition()
   {
     return this.position;
   }
 
   /** Carbon method GetFront. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetFront()
   {
     return this._effectiveFront;
   }
 
   /** Carbon method GetTop. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetTop()
   {
     return this._effectiveTop;
   }
 
   /** Carbon method SetDistanceSqFromListener. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetDistanceSqFromListener(distanceSq)
   {
     this.distanceFromListener = distanceSq;
   }
 
   /** Carbon method GetPlayingEvents: copy of playingID -> full event name. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetPlayingEvents()
   {
     return new Map(this._playingEvents);
   }
 
   /** Carbon method GetSwitches. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetSwitches()
   {
     return this._switchValues;
   }
 
   /** Queued events replayed on Wake (introspection/test surface). */
-  @impl.custom
-  @impl.reason("CarbonEngineJS-only accessor over private wake-queue state; Carbon exposes no equivalent read.")
+  @meta.ours
+  @meta.reason("CarbonEngineJS-only accessor over private wake-queue state; Carbon exposes no equivalent read.")
   GetEventsOnWake()
   {
     return [...this._eventsOnWake];
   }
 
   /** The pending culled one-shot event name, "" when none. */
-  @impl.custom
-  @impl.reason("CarbonEngineJS-only accessor over private one-shot state; Carbon exposes no equivalent read.")
+  @meta.ours
+  @meta.reason("CarbonEngineJS-only accessor over private one-shot state; Carbon exposes no equivalent read.")
   GetWaitingOneShot()
   {
     return this._waitingOneShotName;
@@ -1069,16 +1069,16 @@ export class AudGameObjResource
    * Source: audio/src/Audio2.h:35 IsUsableWorldPosition,
    * AudGameObjResource.cpp:1067 (commit 2756050).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HasUsableWorldPosition()
   {
     return IsUsableWorldPosition(this.position);
   }
 
   /** Values settle hook: refresh notified event-name and rotation consequences. */
-  @impl.adapted
-  @impl.reason("JS identifies Carbon's member address by its exposed name; playback remains on the injected audio backend.")
+  @meta.adapted
+  @meta.reason("JS identifies Carbon's member address by its exposed name; playback remains on the injected audio backend.")
   OnModified(propertyName)
   {
     if (propertyName === "rotation")
@@ -1095,9 +1095,9 @@ export class AudGameObjResource
   }
 
   /** Binds only a newly inserted, non-loading parameter to this object. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon friendship assigning AudParameter::m_ID uses the class-owned SetGameObjectID seam.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon friendship assigning AudParameter::m_ID uses the class-owned SetGameObjectID seam.")
   OnListModified(event, _key, _key2, value, list = this.parameters)
   {
     if (!(event & BLUELISTEVENT.BELIST_LOADING) && list === this.parameters
@@ -1113,8 +1113,8 @@ export class AudGameObjResource
    * below carries the logic so the two internal call sites (cpp:184, cpp:311
    * equivalents) can use it without an instance.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PrepareEvent(event, bypassPrefix = false)
   {
     return PrepareEvent(this.eventPrefix, event, bypassPrefix);
@@ -1139,4 +1139,4 @@ export function PrepareEvent(prefix, event, bypassPrefix)
   return prefix && !bypassPrefix ? `${prefix}${trimmed}` : trimmed;
 }
 
-carbon.interfaceTable({ interfaces: [IInitialize, IListNotify, INotify, AudGameObjResource], chainTo: null })(AudGameObjResource, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [IInitialize, IListNotify, INotify, AudGameObjResource], chainTo: null })(AudGameObjResource, { kind: "class" });

@@ -1,5 +1,5 @@
 // Source: trinity/trinity/ITr2RenderNode.h
-import { CjsSchema, impl } from "../schema/index.js";
+import { CjsSchema, meta } from "../schema/index.js";
 
 
 /** Dependency-free contract for one node in a Trinity render graph. */
@@ -19,6 +19,6 @@ export class ITr2RenderNode
   }
 }
 
-CjsSchema.decorateMethod(ITr2RenderNode, "Validate", impl.abstract);
-CjsSchema.decorateMethod(ITr2RenderNode, "Execute", impl.abstract);
+CjsSchema.decorateMethod(ITr2RenderNode, "Validate", meta.abstract);
+CjsSchema.decorateMethod(ITr2RenderNode, "Execute", meta.abstract);
 CjsSchema.define(ITr2RenderNode, { className: "ITr2RenderNode" });

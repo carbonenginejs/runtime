@@ -4,7 +4,7 @@ import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { meta, carbon, edit, impl, type } from "#schema";
+import { meta } from "#schema";
 
 
 // Carbon persists banners as a raw structure list (BLUE_DECLARE_STRUCTURE_LIST
@@ -18,49 +18,49 @@ import { meta, carbon, edit, impl, type } from "#schema";
  * Native 64-bit size 56; offsets and storage types: trinity/trinity/
  * Eve/SpaceObject/Attachments/Sets/EveBannerSet.h:16-28; Eve/SpaceObject/Attachments/Sets/EveBannerSet.cpp:22-30 (reference storage is not exposed).
  */
-@type.define({ className: "EveBannerItem", family: "eve/attachment/banners" })
+@meta.define({ className: "EveBannerItem", family: "eve/attachment/banners" })
 @meta.struct.define({ size: 56 })
 export class EveBannerItem
 {
 
-  @edit.persist
+  @meta.blue.persist
   @meta.struct.INT32_1(0)
   bone = -1;
 
-  @edit.persist
+  @meta.blue.persist
   @meta.struct.FLOAT32_3(4)
   position = vec3.create();
 
-  @edit.persist
+  @meta.blue.persist
   @meta.struct.FLOAT32_4(16)
-  @type.quat
+  @meta.type.quat
   rotation = quat.create();
 
-  @edit.persist
+  @meta.blue.persist
   @meta.struct.FLOAT32_3(32)
   scaling = vec3.fromValues(1, 1, 1);
 
-  @edit.persist
+  @meta.blue.persist
   @meta.struct.FLOAT32_1(44)
   angleX = 0;
 
-  @edit.persist
+  @meta.blue.persist
   @meta.struct.FLOAT32_1(48)
   angleY = 0;
 
   // Carbon keeps this as private structure metadata, but SOF-authored banner
   // identity is part of the editable description in CarbonEngineJS.
-  @edit.persist
-  @type.int32
+  @meta.blue.persist
+  @meta.type.int32
   reference = 0;
 
   /** Carbon builds this inline in EveBannerSet::Rebuild (cpp:417-419): the
    * authored box is HALF-OPEN in z - (-0.5, -0.5, -0.5) to (0.5, 0.5, 0) - so a
    * banner bounds its own face and the depth behind it, not in front. Carbon
    * (row-vector) composes TransformationMatrix(scaling, rotation, position). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon inlines the per-banner box inside the set rebuild; the port moves it onto the item so the shared item-set builder can read it.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon inlines the per-banner box inside the set rebuild; the port moves it onto the item so the shared item-set builder can read it.")
   GetBounds(out)
   {
     const transform = mat4.fromRotationTranslationScale(
@@ -74,9 +74,9 @@ export class EveBannerItem
 
   /** Carbon reads the item member directly (cpp:424); the item-set builder
    * needs the accessor every other set item already has. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Accessor for the shared item-set bounds builder; Carbon reads jt->bone directly.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Accessor for the shared item-set bounds builder; Carbon reads jt->bone directly.")
   GetBoneIndex()
   {
     return this.bone;

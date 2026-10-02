@@ -1,6 +1,6 @@
 // Source: audio/src/AudGeometry.h + AudGeometry.cpp
 // Hand-owned browser/backend adaptation. Verify against audio/AudGeometry.json.
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { ITr2AudGeometry } from "../trinityAudioApi/ITr2AudGeometry.js";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 
@@ -94,7 +94,7 @@ function MakeGeometryParams(geometryData, manager)
  * Maintains Carbon geometry-set reference counts and routes Wwise-shaped
  * geometry lifecycle values to an optional browser backend.
  */
-@type.define({ className: "AudGeometry", family: "audio" })
+@meta.define({ className: "AudGeometry", family: "audio" })
 export class AudGeometry extends ITr2AudGeometry
 {
 
@@ -115,9 +115,9 @@ export class AudGeometry extends ITr2AudGeometry
   }
 
   /** Carbon ITr2AudGeometry method SetGeometry. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Wwise geometry calls route through optional SetGeometry/SetGeometryInstance backend methods using plain browser-safe parameter objects.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Wwise geometry calls route through optional SetGeometry/SetGeometryInstance backend methods using plain browser-safe parameter objects.")
   SetGeometry(geometrySetId, instanceId, geometryData, worldTransform)
   {
     const manager = AudGameObjResource.manager;
@@ -155,9 +155,9 @@ export class AudGeometry extends ITr2AudGeometry
   }
 
   /** Carbon ITr2AudGeometry method SetGeometryTransform. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The Wwise transform call routes through an optional browser backend with a plain parameter object.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("The Wwise transform call routes through an optional browser backend with a plain parameter object.")
   SetGeometryTransform(geometrySetId, instanceId, worldTransform)
   {
     const manager = AudGameObjResource.manager;
@@ -176,9 +176,9 @@ export class AudGeometry extends ITr2AudGeometry
   }
 
   /** Carbon ITr2AudGeometry method RemoveGeometry. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Wwise geometry removal routes through optional browser backend methods while retaining Carbon's set reference counts.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Wwise geometry removal routes through optional browser backend methods while retaining Carbon's set reference counts.")
   RemoveGeometry(geometrySetId, instanceId)
   {
     const set = geometrySets.get(geometrySetId);
@@ -200,4 +200,4 @@ export class AudGeometry extends ITr2AudGeometry
 }
 
 // Exact native exposure identities; no inherited lifecycle policy.
-carbon.interfaceTable({ interfaces: [ ITr2AudGeometry ], chainTo: null })(AudGeometry, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [ ITr2AudGeometry ], chainTo: null })(AudGeometry, { kind: "class" });

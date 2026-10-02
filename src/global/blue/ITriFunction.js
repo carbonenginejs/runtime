@@ -29,8 +29,8 @@ export class ITriFunction
   }
 }
 
-CjsSchema.decorateMethod(ITriFunction, "UpdateValue", meta.compose.abstract, meta.impl.abstract);
-CjsSchema.decorateMethod(ITriFunction, "Reset", meta.impl.noop);
+CjsSchema.decorateMethod(ITriFunction, "UpdateValue", meta.requires, meta.abstract);
+CjsSchema.decorateMethod(ITriFunction, "Reset", meta.noop);
 CjsSchema.define(ITriFunction, {
   className: "ITriFunction", carbon: "ITriFunction", family: "blue", fields: {}
 });

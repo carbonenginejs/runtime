@@ -2,7 +2,7 @@
 //   struct Mesh, nested in EveChildInstancedMeshes (line 132); flattened for JS
 //   under a name that drops the donor's plural. See EveChildInstancedMeshArea.js.
 import { vec3 } from "#math/vec3";
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveChildInstancedMeshArea } from "./EveChildInstancedMeshArea.js";
 import { EveChildInstancedMeshInstance } from "./EveChildInstancedMeshInstance.js";
 
@@ -12,67 +12,67 @@ import { EveChildInstancedMeshInstance } from "./EveChildInstancedMeshInstance.j
  * its instance placements, per-instance world cull spheres, instance flags and
  * manager registration handles.
  */
-@type.define({ className: "EveChildInstancedMesh", family: "eve/child" })
+@meta.define({ className: "EveChildInstancedMesh", family: "eve/child" })
 export class EveChildInstancedMesh
 {
-  @edit.persist
-  @type.string
+  @meta.blue.persist
+  @meta.type.string
   geometryPath = "";
 
-  @edit.persist
-  @type.boolean
+  @meta.blue.persist
+  @meta.type.boolean
   castsShadow = false;
 
-  @edit.persist
-  @type.int32
+  @meta.blue.persist
+  @meta.type.int32
   reflectionMode = 3;
 
-  @edit.persist
-  @type.uint32
+  @meta.blue.persist
+  @meta.type.uint32
   meshIndex = 0;
 
-  @edit.persist
-  @type.list("EveChildInstancedMeshArea")
+  @meta.blue.persist
+  @meta.type.list("EveChildInstancedMeshArea")
   areas = [];
 
-  @edit.persist
-  @type.list("EveChildInstancedMeshInstance")
+  @meta.blue.persist
+  @meta.type.list("EveChildInstancedMeshInstance")
   instances = [];
 
   /** Carbon's one-to-one modular ownership tag array for instances. */
-  @edit.persist
-  @type.array("uint32")
+  @meta.blue.persist
+  @meta.type.array("uint32")
   partTags = [];
 
-  @edit.persist
-  @type.string
+  @meta.blue.persist
+  @meta.type.string
   sofHullName = "";
 
-  @edit.persist
-  @type.string
+  @meta.blue.persist
+  @meta.type.string
   sofLocatorSetName = "";
 
   // Carbon Mesh::ownedLocatorSets and Mesh::armorDamageShader
   // (EveChildInstancedMeshes.h:163-164), set by SOF BuildChild through AddMesh;
   // CarbonEngineJS delivers built objects as documents, so both persist.
-  @edit.persist
-  @type.list("EveLocatorSets")
+  @meta.blue.persist
+  @meta.type.list("EveLocatorSets")
   ownedLocatorSets = [];
 
-  @edit.persist
-  @type.objectRef("Tr2Effect")
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2Effect")
   armorDamageShader = null;
 
-  @edit.persist
-  @type.boolean
+  @meta.blue.persist
+  @meta.type.boolean
   display = true;
 
-  @edit.persist
-  @type.boolean
+  @meta.blue.persist
+  @meta.type.boolean
   inheritOverlayEffects = true;
 
-  @edit.persist
-  @type.list("EveMeshOverlayEffect")
+  @meta.blue.persist
+  @meta.type.list("EveMeshOverlayEffect")
   ownOverlayEffects = [];
 
   overlayAreaBlocks = [ [], [] ];

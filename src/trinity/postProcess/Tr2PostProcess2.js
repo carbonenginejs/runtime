@@ -1,6 +1,6 @@
 // Source: trinity/trinity/PostProcess/Tr2PostProcess2.h
 // Source: trinity/trinity/PostProcess/Tr2PostProcess2.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2PPDepthOfFieldEffect } from "./effect/Tr2PPDepthOfFieldEffect.js";
 import { Quality } from "../generated/postProcess/enums.js";
 
@@ -10,90 +10,90 @@ import { Quality } from "../generated/postProcess/enums.js";
  * with per-effect quality thresholds deciding which of them a frame is allowed
  * to use.
  */
-@type.define({ className: "Tr2PostProcess2", family: "postProcess" })
+@meta.define({ className: "Tr2PostProcess2", family: "postProcess" })
 export class Tr2PostProcess2
 {
 
   // Carbon exposes this as a registered engine setting. Keeping it static makes
   // the graph deterministic while allowing a concrete backend to configure it.
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2PPSignalLossEffect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2PPSignalLossEffect")
   signalLoss = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2PPGodRaysEffect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2PPGodRaysEffect")
   godRays = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2PPBloomEffect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2PPBloomEffect")
   bloom = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2PPDynamicExposureEffect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2PPDynamicExposureEffect")
   dynamicExposure = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2PPFilmGrainEffect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2PPFilmGrainEffect")
   filmGrain = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2PPDesaturateEffect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2PPDesaturateEffect")
   desaturate = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2PPFadeEffect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2PPFadeEffect")
   fade = null;
 
-  @edit.read
-  @edit.persist
-  @type.list("Tr2PPLutEffect")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2PPLutEffect")
   luts = [];
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2PPLutEffect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2PPLutEffect")
   lut = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2PPVignetteEffect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2PPVignetteEffect")
   vignette = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2PPFogEffect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2PPFogEffect")
   fog = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2PPDepthOfFieldEffect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2PPDepthOfFieldEffect")
   depthOfField = null;
 
-  @edit.readwrite
-  @type.objectRef("Tr2PPTaaEffect")
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2PPTaaEffect")
   taa = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2PPTonemappingEffect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2PPTonemappingEffect")
   tonemapping = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2PPColorCorrectionEffect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2PPColorCorrectionEffect")
   colorCorrection = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2PPGenericEffect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2PPGenericEffect")
   genericEffect = null;
 
   exposureAdjustment = 0;
@@ -102,8 +102,8 @@ export class Tr2PostProcess2
    * Returns the -1 mip LOD bias temporal anti-aliasing requires when TAA is
    * active, and 0 otherwise.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetMipLodBias()
   {
     return Tr2PostProcess2.IsEffectActive(this.taa) ? -1 : 0;
@@ -114,8 +114,8 @@ export class Tr2PostProcess2
    * @param {Array} [container] caller-owned array, cleared and refilled in place
    * @returns {Array} the same container, left untouched when the quality setting is below LOW
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetAvilableSortedLuts(container = [], qualitySetting = Tr2PostProcess2.HIGH)
   {
     if (qualitySetting < Tr2PostProcess2.LOW) return container;
@@ -133,16 +133,16 @@ export class Tr2PostProcess2
    * Appends a LUT effect to the list; a nullish argument is stored as an
    * explicit null entry.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddLut(effect)
   {
     this.luts.push(effect ?? null);
   }
 
   /** Empties the LUT list in place, leaving the single lut slot alone. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ClearLuts()
   {
     this.luts.length = 0;

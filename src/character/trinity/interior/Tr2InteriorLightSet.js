@@ -1,17 +1,17 @@
 // Source: trinity/trinity/Interior/Tr2InteriorLightSet.h
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2InteriorPerObjectLightData } from "../../generated/interior/Tr2InteriorPerObjectLightData.js";
 
 /** Transient collection of active interior light sources and packed records. */
-@type.define({ className: "Tr2InteriorLightSet", family: "interior" })
+@meta.define({ className: "Tr2InteriorLightSet", family: "interior" })
 export class Tr2InteriorLightSet
 {
 
   _lightInstances = [];
 
   /** Adds one native light identity to the transient active-light set. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddLight(lightSource, _viewPosition)
   {
     this._lightInstances.push({
@@ -22,24 +22,24 @@ export class Tr2InteriorLightSet
   }
 
   /** Clears every transient light instance. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Clear()
   {
     this._lightInstances.length = 0;
   }
 
   /** Returns the source-backed active-light count. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetNumOfActiveLights()
   {
     return this._lightInstances.length;
   }
 
   /** Requires the maintained light-data population contract before it can run. */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   PopulateLightData(_perObjectPSData)
   {
     throw new Error("Tr2InteriorLightSet.PopulateLightData is not implemented in CarbonEngineJS.");

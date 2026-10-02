@@ -961,6 +961,16 @@ export class CjsSchema
      * decorator arrays remain JS-keyed and also populate the compatibility view.
      */
     static meta = {
+        blue: { ...this.edit, ...this.carbon },
+        ui: { ...this.jessica, components: createComponentsNamespace() },
+        type: this.type,
+        ...this.impl,
+        ours: this.impl.custom,
+        ...this.lifecycle,
+        events: this.compose.notify,
+        requires: this.compose.abstract,
+        values: this.compose.values,
+        setting: this.edit.setting,
         edit: this.edit,
         impl: this.impl,
         carbon: this.carbon,

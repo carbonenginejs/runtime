@@ -4,12 +4,12 @@
 //   maskPath property pair)
 // Hand-maintained from Carbon source, promoted out of generated intake
 // 2026-09-06.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { ResourceRequirement } from "#resource";
 import { blue } from "#blue";
 
 /** Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite. */
-@type.define({ className: "Tr2Sprite2dPickingMask", family: "sprite2d", purpose: "Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite." })
+@meta.define({ className: "Tr2Sprite2dPickingMask", family: "sprite2d", purpose: "Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite." })
 export class Tr2Sprite2dPickingMask
 {
 
@@ -17,60 +17,60 @@ export class Tr2Sprite2dPickingMask
   _maskPath = "";
 
   /** Native READWRITE wide-string property backed by GetMaskPath. @returns {string} */
-  @edit.readwrite
-  @type.wstring
-  @impl.custom
+  @meta.blue.readwrite
+  @meta.type.wstring
+  @meta.ours
   get maskPath()
   {
     return this.GetMaskPath();
   }
 
   /** Delegates property writes to the native path method adapter. @param {string} value Image path. */
-  @impl.custom
+  @meta.ours
   set maskPath(value)
   {
     this.SetMaskPath(value);
   }
 
   /** Native anonymous BGRA channel chooser. @type {number} */
-  @edit.readwrite
-  @type.enum({ Red: 2, Green: 1, Blue: 0, Alpha: 3 })
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.type.enum({ Red: 2, Green: 1, Blue: 0, Alpha: 3 })
+  @meta.type.uint32
   channel = 3;
 
   /** Sampled channel must exceed this native READWRITE threshold. @type {number} */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   threshold = 0;
 
   /** Native READWRITE mask edge in pixels. @type {number} */
-  @edit.readwrite
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.type.uint32
   leftEdge = 0;
 
   /** Native READWRITE mask edge in pixels. @type {number} */
-  @edit.readwrite
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.type.uint32
   topEdge = 0;
 
   /** Native READWRITE mask edge in pixels. @type {number} */
-  @edit.readwrite
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.type.uint32
   rightEdge = 0;
 
   /** Native READWRITE mask edge in pixels. @type {number} */
-  @edit.readwrite
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.type.uint32
   bottomEdge = 0;
 
   /** Native READ held image resource; excluded from value serialization. @type {Tr2ImageRes|null} */
-  @edit.read
-  @type.resource("Tr2ImageRes")
+  @meta.blue.read
+  @meta.type.resource("Tr2ImageRes")
   mask = null;
 
   /** Carbon GetMaskPath (Tr2Sprite2dPickingMask.cpp:18-21). @returns {string} */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetMaskPath()
   {
     return this._maskPath;
@@ -84,9 +84,9 @@ export class Tr2Sprite2dPickingMask
    * @param {string} path Image resource path.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Uses the composed IMAGE resource route, coerces paths to strings and clears empty paths without acquisition.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Uses the composed IMAGE resource route, coerces paths to strings and clears empty paths without acquisition.")
   SetMaskPath(path)
   {
     if (this._maskPath === path) return;
@@ -117,9 +117,9 @@ export class Tr2Sprite2dPickingMask
    * @param {number} height The sprite's height.
    * @returns {boolean} Whether the mask passes at the point.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Preserves the RGBA byte-array adapter; normalized Tr2ImageRes color objects and native R8 sampling remain unsupported.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Preserves the RGBA byte-array adapter; normalized Tr2ImageRes color objects and native R8 sampling remain unsupported.")
   SampleMask(point, topLeft, width, height)
   {
     const mask = this.mask;
@@ -186,4 +186,4 @@ export class Tr2Sprite2dPickingMask
 }
 
 // Native IRoot exposure maps only the concrete mask interface.
-carbon.interfaceTable({ interfaces: [Tr2Sprite2dPickingMask], chainTo: null })(Tr2Sprite2dPickingMask);
+meta.blue.interfaceTable({ interfaces: [Tr2Sprite2dPickingMask], chainTo: null })(Tr2Sprite2dPickingMask);

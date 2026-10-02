@@ -1,18 +1,18 @@
 // Source: trinity/trinity/Shader/Tr2Material.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { type } from "#schema";
+import { meta } from "#schema";
 
 /** Groups the pass and library parameter records prepared for one effect technique. */
-@type.define({ className: "Tr2EffectTechniqueInputs", family: "shader" })
+@meta.define({ className: "Tr2EffectTechniqueInputs", family: "shader" })
 export class Tr2EffectTechniqueInputs
 {
 
   /** passes (std::vector<std::unique_ptr<Tr2EffectPassParameters>>) */
-  @type.list("Tr2EffectPassParameters")
+  @meta.type.list("Tr2EffectPassParameters")
   passes = [];
 
   /** libraries (std::vector<std::unique_ptr<Tr2EffectLibraryParameters>>) */
-  @type.list("Tr2EffectLibraryParameters")
+  @meta.type.list("Tr2EffectLibraryParameters")
   libraries = [];
 
 }

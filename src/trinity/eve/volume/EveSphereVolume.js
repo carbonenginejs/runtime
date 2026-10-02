@@ -4,41 +4,41 @@ import { INotify } from "../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/Volume/EveSphereVolume_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { IEveVolume } from "./IEveVolume.js";
-import { carbon, edit, impl, type } from "#schema";
+import { meta } from "#schema";
 
 
 /**
  * Sphere of influence with a solid inner radius and a falloff out to the outer
  * radius, weighting points and seeding random ones inside it.
  */
-@type.define({
+@meta.define({
   className: "EveSphereVolume",
   family: "eve/volume"
 })
-@carbon.inherit(INotify)
+@meta.blue.inherit(INotify)
 export class EveSphereVolume extends IEveVolume
 {
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   position = vec3.create();
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   radius = 1;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   innerRadius = 1;
 
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   _callbacks = new Map();
@@ -46,8 +46,8 @@ export class EveSphereVolume extends IEveVolume
   _nextCallbackId = 1;
 
   /** Returns a fresh sphere centred on the volume position with its outer radius. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetBoundingSphere()
   {
     return {
@@ -61,8 +61,8 @@ export class EveSphereVolume extends IEveVolume
    * within the inner radius, 0 past the outer radius, and a ramp that is linear
    * in squared distance between them.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetIntensity(position)
   {
     const distanceSq = vec3.squaredDistance(position, this.position);
@@ -86,8 +86,8 @@ export class EveSphereVolume extends IEveVolume
    * @param points Caller-owned array the new points are pushed onto.
    * @param excludeInnerVolume Keeps every point outside the inner radius.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GeneratePointsInVolume(points, howManyToAdd, excludeInnerVolume, fallOffFactor)
   {
     const count = Math.max(0, Math.trunc(howManyToAdd));
@@ -130,8 +130,8 @@ export class EveSphereVolume extends IEveVolume
    * Registers a callback fired whenever the volume changes, returning the id
    * needed to unregister it again.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RegisterForChanges(callback)
   {
     const id = this._nextCallbackId++;
@@ -140,8 +140,8 @@ export class EveSphereVolume extends IEveVolume
   }
 
   /** Drops a change callback by the id RegisterForChanges returned. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UnregisterForChanges(callbackId)
   {
     this._callbacks.delete(callbackId);
@@ -151,9 +151,9 @@ export class EveSphereVolume extends IEveVolume
    * Clamps the radii so the outer radius stays non-negative and never smaller
    * than the inner one, then notifies every registered listener.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JS identifies the changed radius member by its exposed property name; callbacks remain class-owned.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JS identifies the changed radius member by its exposed property name; callbacks remain class-owned.")
   OnModified(propertyName)
   {
     if (propertyName === "innerRadius" && this.innerRadius > this.radius)
@@ -176,12 +176,12 @@ export class EveSphereVolume extends IEveVolume
   }
 
   /** No debug drawing in this port. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   RenderDebugInfo()
   {
   }
 }
 
 // Exact native Blue exposure: only these identities participate in loading.
-carbon.interfaceTable({ interfaces: [EveSphereVolume, IEveVolume, INotify], chainTo: null })(EveSphereVolume, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveSphereVolume, IEveVolume, INotify], chainTo: null })(EveSphereVolume, { kind: "class" });

@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionCallback.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionCallback_Blue.cpp
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 
 
 /**
@@ -19,16 +19,16 @@ export class Tr2ActionCallback extends ITr2ControllerAction
    * Name of the controller callback invoked when this action starts.
    * @type {string}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   callbackName = "";
 
   /**
    * Notifies the linked controller callback registry.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Start(controller)
   {
     if (this.callbackName)
@@ -39,7 +39,7 @@ export class Tr2ActionCallback extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionCallback_Blue.cpp:12-13,20).
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [Tr2ActionCallback, ITr2ControllerAction],
   chainTo: null
 })(Tr2ActionCallback);

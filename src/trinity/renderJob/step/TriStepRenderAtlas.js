@@ -1,64 +1,64 @@
 // Source: trinity/trinity/RenderJob/TriStepRenderAtlas.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
 
 /** A render step that draws a texture atlas for inspection, focused on one entry. */
-@type.define({ className: "TriStepRenderAtlas", family: "renderJob" })
+@meta.define({ className: "TriStepRenderAtlas", family: "renderJob" })
 export class TriStepRenderAtlas extends TriRenderStep
 {
 
   /** m_focus (Tr2AtlasTexture*) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("Tr2AtlasTexture")
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2AtlasTexture")
   focus = null;
 
   /** m_atlas (Tr2TextureAtlas*) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("Tr2TextureAtlas")
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2TextureAtlas")
   atlas = null;
 
   /** m_focusColour (Vector4) [READWRITE] */
-  @edit.readwrite
-  @type.vec4
+  @meta.blue.readwrite
+  @meta.type.vec4
   focusColour = vec4.fromValues(1, 0, 1, 1);
 
   /** m_borderColour (Vector4) [READWRITE] */
-  @edit.readwrite
-  @type.vec4
+  @meta.blue.readwrite
+  @meta.type.vec4
   borderColour = vec4.fromValues(1, 1, 0, 1);
 
   /** m_freeColour (Vector4) [READWRITE] */
-  @edit.readwrite
-  @type.vec4
+  @meta.blue.readwrite
+  @meta.type.vec4
   freeColour = vec4.fromValues(0, 0.5, 0, 1);
 
   /** m_brTexCoord (Vector2) [READWRITE] */
-  @edit.readwrite
-  @type.vec2
+  @meta.blue.readwrite
+  @meta.type.vec2
   brTexCoord = vec2.fromValues(1, 1);
 
   /** m_showFree (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   showFree = false;
 
   /** m_showUsed (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   showUsed = true;
 
   /** m_tlTexCoord (Vector2) [READWRITE] */
-  @edit.readwrite
-  @type.vec2
+  @meta.blue.readwrite
+  @meta.type.vec2
   tlTexCoord = vec2.create();
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS);
    *  the donor body is exactly the two setter calls (TriStepRenderAtlas.cpp:29). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   __init__(atlas = null, focus = null)
   {
     this.SetAtlas(atlas);
@@ -66,16 +66,16 @@ export class TriStepRenderAtlas extends TriRenderStep
   }
 
   /** Carbon SetAtlas (TriStepRenderAtlas.cpp:104): selects the atlas the step draws. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetAtlas(atlas)
   {
     this.atlas = atlas;
   }
 
   /** Carbon SetFocus (TriStepRenderAtlas.cpp:109): the highlighted atlas entry. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetFocus(texture)
   {
     this.focus = texture;
@@ -85,8 +85,8 @@ export class TriStepRenderAtlas extends TriRenderStep
    * Draws the bound texture atlas for inspection. Not ported: Carbon draws it
    * itself from Tr2TextureAtlas's free and used areas, which are unported.
    */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   Execute(_realTime, _simTime, _renderContext)
   {
     if (this.atlas) throw new Error("TriStepRenderAtlas.Execute is not ported yet; it needs Tr2TextureAtlas GetFreeAreas/GetUsedAreas/GetMargin.");

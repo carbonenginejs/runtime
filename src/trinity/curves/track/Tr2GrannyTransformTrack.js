@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2GrannyTransformTrack.cpp
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
 import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
 
@@ -12,26 +12,26 @@ import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
  * curves together, exposing them as a translation vector, rotation quaternion
  * and scale vector.
  */
-@type.define({
+@meta.define({
   className: "Tr2GrannyTransformTrack",
   family: "curves"
 })
 export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
 {
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   compressCurves = false;
 
-  @edit.read
-  @type.quat
+  @meta.blue.read
+  @meta.type.quat
   rotation = quat.create();
 
-  @edit.read
-  @type.vec3
+  @meta.blue.read
+  @meta.type.vec3
   translation = vec3.create();
 
-  @edit.read
-  @type.vec3
+  @meta.blue.read
+  @meta.type.vec3
   scale = vec3.create();
 
   #positionCurve = null;
@@ -45,8 +45,8 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
   /**
    * Checks whether transform track handles are ready.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   TracksReady()
   {
     return this.#positionCurve !== null && this.#orientationCurve !== null && this.#scaleCurve !== null;
@@ -55,8 +55,8 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
   /**
    * Clears transform track handles.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ResetTracks()
   {
     this.#positionCurve = null;
@@ -67,8 +67,8 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
   /**
    * Applies transform track handles.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   ApplyTracks(group, duration, _timeStep)
   {
     const track = CjsGrannyCurves.findTransformTrack(group, this.name);
@@ -93,8 +93,8 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
   /**
    * Updates sampled transform values.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateValueImpl(time)
   {
     if (!this.#positionCurve || !this.#orientationCurve || !this.#scaleCurve)

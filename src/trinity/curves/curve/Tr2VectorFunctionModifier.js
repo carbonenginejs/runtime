@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2VectorFunctionModifier.h
 // Source: trinity/trinity/Tr2VectorFunctionModifier.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { ITriVectorFunction } from "#blue";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -10,33 +10,33 @@ const OFFSET_SCRATCH = vec3.create();
 const DIRECTION_SCRATCH = vec4.create();
 
 /** Wraps a position source, offsetting and scaling what it reports, optionally in view space. */
-@type.define({ className: "Tr2VectorFunctionModifier", family: "curves" })
+@meta.define({ className: "Tr2VectorFunctionModifier", family: "curves" })
 export class Tr2VectorFunctionModifier extends ITriVectorFunction
 {
 
   /** m_clientBall (ITriVectorFunctionPtr) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("ITriVectorFunction")
+  @meta.blue.readwrite
+  @meta.type.objectRef("ITriVectorFunction")
   clientBall = null;
 
   /** m_offsetPosition (Vector3) [READWRITE] */
-  @edit.readwrite
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.type.vec3
   offsetPosition = vec3.create();
 
   /** m_scaleModifier (float) [READWRITE] */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   scaleModifier = 1;
 
   /** m_useViewSpace (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   useViewSpace = false;
 
   /** m_useSystemCoordinates (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   useSystemCoordinates = false;
 
   // Carbon Tr2VectorFunctionModifier.cpp:35-141. The modifier wraps a position
@@ -62,8 +62,8 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Float32Array} out Destination vector; defaults to shared scratch.
    * @returns {Float32Array} The destination.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetOffsetPosition(renderContext = null, out = OFFSET_SCRATCH)
   {
     vec3.copy(out, this.offsetPosition);
@@ -89,8 +89,8 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Tr2RenderContext|null} renderContext Optional renderer context.
    * @returns {Float32Array} The position buffer.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetTransformedPosition(inOut, renderContext = null)
   {
     const offset = this.GetOffsetPosition(renderContext);
@@ -107,8 +107,8 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Tr2RenderContext|null} renderContext Optional renderer context.
    * @returns {Float32Array} The destination.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(time, inOut, renderContext = null)
   {
     this._ReadSource(time, inOut, "Update");
@@ -123,8 +123,8 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Tr2RenderContext|null} renderContext Optional renderer context.
    * @returns {Float32Array} The destination.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValueAt(time, inOut, renderContext = null)
   {
     this._ReadSource(time, inOut, "GetValueAt");
@@ -138,8 +138,8 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Float32Array} inOut Destination velocity.
    * @returns {Float32Array} The destination.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValueDotAt(time, inOut)
   {
     if (this.clientBall)
@@ -156,8 +156,8 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Float32Array} inOut Destination acceleration.
    * @returns {Float32Array} The destination.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValueDoubleDotAt(time, inOut)
   {
     if (this.clientBall)
@@ -174,8 +174,8 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Float32Array|Float64Array} out Destination position.
    * @returns {Float32Array|Float64Array} The destination.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   InterpolatedPosition(time, out)
   {
     if (this.clientBall)
@@ -190,8 +190,8 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {number} _time Unused time.
    * @returns {void}
    */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   UpdateValue(_time)
   {
   }
@@ -210,7 +210,7 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {string} method Required child method name.
    * @returns {Float32Array} The destination.
    */
-  @impl.custom
+  @meta.ours
   _ReadSource(time, inOut, method)
   {
     if (!this.clientBall) return inOut;
@@ -228,7 +228,7 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
 }
 
 // Exact native exposure table; ITriFunction is intentionally not mapped.
-carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ITriVectorFunction, Tr2VectorFunctionModifier],
   chainTo: null
 })(Tr2VectorFunctionModifier);

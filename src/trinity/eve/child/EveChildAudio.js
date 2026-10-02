@@ -7,7 +7,7 @@ import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { carbon, CjsSchema, impl, edit, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 
 
@@ -15,24 +15,24 @@ import { EveChildTransform } from "./EveChildTransform.js";
  * Space-object child that owns a positional audio emitter and keeps its position
  * and orientation tracking the child's world transform.
  */
-@type.define({ className: "EveChildAudio", family: "eve/child" })
-@carbon.inherit(IInitialize, INotify)
+@meta.define({ className: "EveChildAudio", family: "eve/child" })
+@meta.blue.inherit(IInitialize, INotify)
 export class EveChildAudio extends EveChildTransform
 {
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "EveChildAudio";
 
-  @edit.notify
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.boolean
   mute = false;
 
-  @edit.read
-  @edit.persist
-  @type.model("ITr2AudEmitter")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.model("ITr2AudEmitter")
   audioEmitter = null;
 
   /**
@@ -52,16 +52,16 @@ export class EveChildAudio extends EveChildTransform
   }
 
   /** Construction hook; forwards to Initialize. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   __init__()
   {
     return this.Initialize();
   }
 
   /** Renames the underlying emitter without touching this child's own name field. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetEmitterName(name)
   {
     this.audioEmitter?.SetName(String(name));
@@ -177,4 +177,4 @@ export class EveChildAudio extends EveChildTransform
 }
 
 // EveChildAudio_Blue.cpp: native exposure.
-carbon.interfaceTable({ interfaces: [EveChildAudio, IEveSpaceObjectChild, EveSpaceObjectChild, IInitialize, INotify], chainTo: null })(EveChildAudio, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveChildAudio, IEveSpaceObjectChild, EveSpaceObjectChild, IInitialize, INotify], chainTo: null })(EveChildAudio, { kind: "class" });

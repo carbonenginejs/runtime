@@ -6,7 +6,7 @@ import { EveSpaceScene } from "../../eve/scene/EveSpaceScene.js";
 // unported Carbon behaviour, not a boundary: Carbon holds its handles on this
 // class and calls the AL from it.
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { PresentInterval, SwapEffect, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
 import {
   convertProjectionCoordToWorldPickRay,
@@ -23,7 +23,7 @@ import { ExecuteMainThreadActions } from "../continueOnMainThread.js";
 import "#blue/registerTrinityEnums";
 
 /** TriDevice (trinityCore) - generated from schema shapeHash 1db3a492.... */
-@type.define({ className: "TriDevice", family: "trinityCore" })
+@meta.define({ className: "TriDevice", family: "trinityCore" })
 // CARBON'S BASE LIST, AND IT HAS THREE ENTRIES (`TriDevice.h:33-36`):
 //
 //     BLUE_CLASS( TriDevice ) : public ITriDevice, public IBlueEvents,
@@ -46,7 +46,7 @@ import "#blue/registerTrinityEnums";
 //
 // `ITriDevice` is not declared here because it is still in `trinity/dropped`;
 // it is the one entry this class's `@carbon.mapInterface` will carry.
-@carbon.inherit(IBlueEvents, ISimTimeRebaseNotify)
+@meta.blue.inherit(IBlueEvents, ISimTimeRebaseNotify)
 export class TriDevice
 {
 
@@ -63,178 +63,178 @@ export class TriDevice
   static ApplicationActivation = Object.freeze({ APP_ACTIVATED: 0, APP_DEACTIVATED: 1 });
 
   /** mPresentParam.presentInterval (Tr2PresentParametersAL - enum Tr2PresentParametersAL) [READWRITE, NOTIFY, PERSIST, ENUM] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.Tr2RenderContextEnum.PresentInterval")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2RenderContextEnum.PresentInterval")
   presentationInterval = 1;
 
   /** mSwapEffect (Tr2RenderContextEnum::SwapEffect - enum SwapEffect) [READWRITE, NOTIFY, PERSIST, ENUM] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.Tr2RenderContextEnum.SwapEffect")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2RenderContextEnum.SwapEffect")
   swapEffect = 0;
 
   /** m_throttlingState (uint32_t) [READ] */
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   throttlingState = 0;
 
   /** m_deviceType (DeviceType - enum DeviceType) [READWRITE, ENUM] */
-  @edit.readwrite
-  @type.int32
-  @type.enum("trinity.TriDevice.DeviceType")
+  @meta.blue.readwrite
+  @meta.type.int32
+  @meta.type.enum("trinity.TriDevice.DeviceType")
   deviceType = 0;
 
   /** m_allowThrottling (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   allowThrottling = true;
 
   /** m_onDeviceRemoved (BlueScriptCallback) [READWRITE] */
-  @edit.readwrite
-  @type.rawStruct("BlueScriptCallback")
+  @meta.blue.readwrite
+  @meta.type.rawStruct("BlueScriptCallback")
   onDeviceRemoved = null;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("TriCurveSet")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("TriCurveSet")
   curveSets = [];
 
   /** m_supportedUpscalingTechniques (PTr2UpscalingTechniqueInfoStructureList) [READ] */
-  @edit.read
-  @type.list("Tr2UpscalingTechniqueInfo")
+  @meta.blue.read
+  @meta.type.list("Tr2UpscalingTechniqueInfo")
   supportedUpscalingTechniques = [];
 
   /** mViewport (PTriViewport) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.objectRef("TriViewport")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.objectRef("TriViewport")
   viewport = null;
 
   /** mDisplayMode.width (Tr2DisplayModeInfo) [READ] */
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   adapterWidth = 0;
 
   /** mDisplayMode.height (Tr2DisplayModeInfo) [READ] */
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   adapterHeight = 0;
 
   /** mDisplayMode.refreshRateDenominator (Tr2DisplayModeInfo) [READ] */
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   adapterRefreshRate = 0;
 
   /** mAdapter (int) [READ] */
-  @edit.read
-  @type.int32
+  @meta.blue.read
+  @meta.type.int32
   adapter = 0;
 
   /** mWidth (int32_t) [READ] */
-  @edit.read
-  @type.int32
+  @meta.blue.read
+  @meta.type.int32
   width = 0;
 
   /** mHeight (int32_t) [READ] */
-  @edit.read
-  @type.int32
+  @meta.blue.read
+  @meta.type.int32
   height = 0;
 
   /** mPresentParam.msaaType (Tr2PresentParametersAL) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   multiSampleType = 0;
 
   /** mPresentParam.msaaQuality (Tr2PresentParametersAL) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   multiSampleQuality = 0;
 
   /** m_scene (ITr2ScenePtr) [READWRITE, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @type.objectRef("ITr2Scene")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.objectRef("ITr2Scene")
   scene = null;
 
   /** mBackBufferCount (int) [READWRITE, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @type.int32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.int32
   backBufferCount = 1;
 
   /** mTickInterval (int) [READWRITE] */
-  @edit.readwrite
-  @type.int32
+  @meta.blue.readwrite
+  @meta.type.int32
   tickInterval = 0;
 
   /** m_mipLevelSkipCount (unsigned int) [READWRITE] */
-  @edit.readwrite
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.type.uint32
   mipLevelSkipCount = 0;
 
   /** m_animationTimeScale (float) [READWRITE] */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   animationTimeScale = 1;
 
   /** m_animationTime (float) [READWRITE] */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   animationTime = 0;
 
   /** m_upscalingSetting (Tr2UpscalingAL::Setting) [READ] */
-  @edit.read
-  @type.uint32
-  @type.enum("trinity.Tr2UpscalingAL.Setting")
+  @meta.blue.read
+  @meta.type.uint32
+  @meta.type.enum("trinity.Tr2UpscalingAL.Setting")
   upscalingSetting = 1;
 
   /** m_upscalingTechnique (Tr2UpscalingAL::Technique) [READ] */
-  @edit.read
-  @type.uint32
-  @type.enum("trinity.Tr2UpscalingAL.Technique")
+  @meta.blue.read
+  @meta.type.uint32
+  @meta.type.enum("trinity.Tr2UpscalingAL.Technique")
   upscalingTechnique = 0;
 
   /** m_upscalingWithFrameGeneration (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   frameGeneration = false;
 
   /** Get/SetGeometryLoadDisabled (MAP_PROPERTY) - disables external geometry loads for batch processing. */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   disableGeometryLoad = false;
 
   /** Get/SetTextureLoadDisabled (MAP_PROPERTY) - disables external texture loads for batch processing. */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   disableTextureLoad = false;
 
   /** Get/SetAsyncLoadDisabled (MAP_PROPERTY) - makes resource loads synchronous. */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   disableAsyncLoad = false;
 
   /** Get/SetMinimumModelLOD (MAP_PROPERTY) - prevents the first N model LODs from loading; 0 disables. */
-  @edit.readwrite
-  @type.int32
+  @meta.blue.readwrite
+  @meta.type.int32
   minimumModelLOD = 0;
 
   /**
    * Width over height of the device viewport in pixels; zero when there is no
    * viewport or its height is zero.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AspectRatio()
   {
     const viewport = this.viewport;
@@ -250,8 +250,8 @@ export class TriDevice
    * DX maps viewport pixel CENTRES to view space, so for four pixels, pixel
    * 3 maps to 1 and pixel 0 to -1.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   ScreenToProjection(x, y, viewport = this.viewport, out = {})
   {
     const vx = x - (viewport?.x ?? 0);
@@ -270,8 +270,8 @@ export class TriDevice
    * The returned vectors are detached from the picking helper's reusable
    * scratch storage, so a later query cannot mutate an earlier result.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetPickRayFromViewport(x, y, viewport, view, projection)
   {
     const projected = screenToProjection(x, y, viewport);
@@ -284,8 +284,8 @@ export class TriDevice
   }
 
   /** Time in seconds, recentered regularly (once per hour). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetAnimationTime()
   {
     return this.animationTime;
@@ -295,8 +295,8 @@ export class TriDevice
    * Elapsed animation time since startTime, correct across the hourly
    * ANIMATION_TIME_MAX recenter.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetAnimationTimeElapsed(startTime)
   {
     let elapsed = this.animationTime - startTime;
@@ -333,8 +333,8 @@ export class TriDevice
   previousAnimationTime = 0;
 
   /** `Tr2Renderer::GetCurrentFrameCounter` reads this through gTriDev. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetCurrentFrameCounter()
   {
     return this.frameCounter;
@@ -360,9 +360,9 @@ export class TriDevice
    * @param {*} [_cookie] The cookie this device registered with; unread.
    * @returns {TriDevice} This device.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon's OnTick also sets a crash key and schedules the next event; those two operations are not ported. The clock, Update, HandleRenderTick, main-thread action drain and resource-pool sweep are. The cookie is accepted so the signature matches IBlueEvents, and ignored because Carbon's body ignores it too - it exists for registrants that register more than once.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon's OnTick also sets a crash key and schedules the next event; those two operations are not ported. The clock, Update, HandleRenderTick, main-thread action drain and resource-pool sweep are. The cookie is accepted so the signature matches IBlueEvents, and ignored because Carbon's body ignores it too - it exists for registrants that register more than once.")
   OnTick(realTime = 0, simTime = 0, _cookie = null)
   {
     this.frameCounter++;
@@ -406,8 +406,8 @@ export class TriDevice
    *
    * @returns {TriDevice} This device.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   InvalidateAndUnregisterForTicks()
   {
     blue.os.UnregisterForTicks(this, TriDevice.TICK_COOKIE);
@@ -468,8 +468,8 @@ export class TriDevice
    *
    * @returns {object[]} Registered resources at the time of this call.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   static GetResourcesRegistered()
   {
     return Array.from(TriDevice.#resourcesRegistered);
@@ -481,8 +481,8 @@ export class TriDevice
    * @param {object} resource A `Tr2DeviceResource`.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   static RegisterResource(resource)
   {
     // CHECKED AT THE DOOR, because both verbs are non-optional on Carbon's
@@ -509,8 +509,8 @@ export class TriDevice
    * @param {object} resource The registered resource.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   static UnregisterResource(resource)
   {
     TriDevice.#resourcesRegistered.delete(resource);
@@ -526,8 +526,8 @@ export class TriDevice
    *
    * @returns {boolean} Whether the ambient context has a live backend.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   DeviceExists()
   {
     return Tr2RenderContext_GetMainThreadRenderContext().IsValid();
@@ -544,8 +544,8 @@ export class TriDevice
    *
    * @returns {boolean} Whether the ambient context has a live backend.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   DoesD3DDeviceExist()
   {
     return this.DeviceExists();
@@ -557,8 +557,8 @@ export class TriDevice
    *
    * @returns {TriDevice} This device.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   DestroyRenderContext()
   {
     if (this.DeviceExists())
@@ -576,9 +576,9 @@ export class TriDevice
    * @param {number} [storage] A `TriStorage` mask.
    * @returns {TriDevice} This device.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon guards against a resource unregistering itself mid-iteration with an s_resourcesToBeRemoved set and an s_iteratingForRelease flag; iterating over a copy of the registry answers the same problem without two statics to keep in step. Carbon also logs a warning for a null entry, which this registry cannot hold because RegisterResource refuses it at the door.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon guards against a resource unregistering itself mid-iteration with an s_resourcesToBeRemoved set and an s_iteratingForRelease flag; iterating over a copy of the registry answers the same problem without two statics to keep in step. Carbon also logs a warning for a null entry, which this registry cannot hold because RegisterResource refuses it at the door.")
   ReleaseDeviceResources(storage = TriStorageFlags.TRISTORAGE_ALL)
   {
     for (const resource of [ ...TriDevice.#resourcesRegistered ])
@@ -594,9 +594,9 @@ export class TriDevice
    *
    * @returns {TriDevice} This device.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon's third step is RebuildDeviceResourcesInPython, which has no counterpart: there is no Python here and no second resource registry to rebuild.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon's third step is RebuildDeviceResourcesInPython, which has no counterpart: there is no Python here and no second resource registry to rebuild.")
   PrepareDeviceResources()
   {
     for (const resource of [ ...TriDevice.#resourcesRegistered ])
@@ -627,8 +627,8 @@ export class TriDevice
    * @param {object} presentParameters A `Tr2PresentParametersAL`.
    * @returns {boolean} Whether the parameters were accepted.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetPresentParameters(adapter, presentParameters)
   {
     if (!this.#hwnd && presentParameters.software) return true;
@@ -650,9 +650,9 @@ export class TriDevice
    *
    * @returns {boolean} False when there is no device to describe.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon also reads the adapter display mode into mDisplayMode when there is an output window or the device is not software. That enumeration has no browser counterpart - see CreateSimpleDevice - so the viewport half is ported and the display-mode half is not.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon also reads the adapter display mode into mDisplayMode when there is an output window or the device is not software. That enumeration has no browser counterpart - see CreateSimpleDevice - so the viewport half is ported and the display-mode half is not.")
   InitD3DDevice()
   {
     if (!this.DeviceExists()) return false;
@@ -691,8 +691,8 @@ export class TriDevice
    * @param {number} [adapter] Which adapter.
    * @returns {boolean} Whether a device now exists.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   CreateSimpleDevice(
     hwnd,
     width,
@@ -777,8 +777,8 @@ export class TriDevice
    * @param {object|null} presentParameters A `Tr2PresentParametersAL`, or null.
    * @returns {boolean} True, as Carbon's does unconditionally.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetPresentation(adapter, presentParameters)
   {
     if (presentParameters)
@@ -802,8 +802,8 @@ export class TriDevice
    *
    * @returns {object|null} A `Tr2PresentParametersAL`.
    */
-  @impl.custom
-  @impl.reason("Carbon's mPresentParam is a member its own methods read directly; a private field needs an accessor for a host to see what the device was created with.")
+  @meta.ours
+  @meta.reason("Carbon's mPresentParam is a member its own methods read directly; a private field needs an accessor for a host to see what the device was created with.")
   GetPresentParameters()
   {
     return this.#presentParam;
@@ -814,8 +814,8 @@ export class TriDevice
    *
    * @returns {*} The window, a canvas here.
    */
-  @impl.custom
-  @impl.reason("Carbon's mHwnd is a member its own methods read directly; same reason as GetPresentParameters.")
+  @meta.ours
+  @meta.reason("Carbon's mHwnd is a member its own methods read directly; same reason as GetPresentParameters.")
   GetOutputWindow()
   {
     return this.#hwnd;
@@ -829,9 +829,9 @@ export class TriDevice
    * @param {*} [context] Passed back to it.
    * @returns {TriDevice} This device.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon delegates to an IBlueCallbackMan, which carries flags and a comparison function neither of which has a caller here; this is the list itself.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon delegates to an IBlueCallbackMan, which carries flags and a comparison function neither of which has a caller here; this is the list itself.")
   AddPostUpdateCallback(callback, context = null)
   {
     if (typeof callback === "function") this.#postUpdateCallbacks.push({ callback, context });
@@ -853,9 +853,9 @@ export class TriDevice
    * @param {number} simTime The same, for simulation.
    * @returns {TriDevice} This device.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon opens with TriSrand( simTime ), seeding its global random stream so a frame is reproducible from its simulation time; the math layer's random is not a seedable global, so there is nothing to seed. The BlueList refcount dance around Remove has no counterpart either, because a JS array holds no references to release.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon opens with TriSrand( simTime ), seeding its global random stream so a frame is reproducible from its simulation time; the math layer's random is not a seedable global, so there is nothing to seed. The BlueList refcount dance around Remove has no counterpart either, because a JS array holds no references to release.")
   Update(realTime, simTime)
   {
     for (const curveSet of [ ...this.curveSets ])
@@ -878,8 +878,8 @@ export class TriDevice
    * @param {number} simTime The same, for simulation.
    * @returns {TriDevice} This device.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HandleRenderTick(realTime, simTime)
   {
     this.#renderJobs?.RunUpdate(realTime, simTime);
@@ -903,8 +903,8 @@ export class TriDevice
    * @param {number} newTime The simulation time after it.
    * @returns {TriDevice} This device.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnSimClockRebase(oldTime, newTime)
   {
     this.simTime += newTime - oldTime;
@@ -912,32 +912,32 @@ export class TriDevice
   }
 
   /** Carbon method CreateUpscalingContext (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   CreateUpscalingContext(...args)
   {
     throw new Error("TriDevice.CreateUpscalingContext is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method DeleteUpscalingContext (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   DeleteUpscalingContext(...args)
   {
     throw new Error("TriDevice.DeleteUpscalingContext is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method GetRenderResolution (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   GetRenderResolution(...args)
   {
     throw new Error("TriDevice.GetRenderResolution is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method RefreshDeviceResources (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   RefreshDeviceResources(...args)
   {
     throw new Error("TriDevice.RefreshDeviceResources is not implemented in CarbonEngineJS.");
@@ -962,9 +962,9 @@ export class TriDevice
    *
    * @returns {boolean} True, as Carbon's does.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Tr2SyncToGpu is unported and Tr2GpuProfiler is a fields-only shell, so their two calls are absent from the body. Everything else is Carbon's order verbatim.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Tr2SyncToGpu is unported and Tr2GpuProfiler is a fields-only shell, so their two calls are absent from the body. Everything else is Carbon's order verbatim.")
   Render()
   {
     this.Throttle();
@@ -997,9 +997,9 @@ export class TriDevice
    *
    * @returns {void}
    */
-  @carbon.method
-  @impl.notSupported
-  @impl.reason("Carbon throttles by blocking the render thread with CcpThreadSleep and by shrinking the TBB thread pool. A browser has neither: blocking the main thread is what a frame budget is trying to avoid, and requestAnimationFrame already stops delivering frames to a hidden document, which is the case this exists for. Kept as a call site so the frame body is Carbon's order and a host that CAN throttle has somewhere to do it.")
+  @meta.blue.method
+  @meta.notSupported
+  @meta.reason("Carbon throttles by blocking the render thread with CcpThreadSleep and by shrinking the TBB thread pool. A browser has neither: blocking the main thread is what a frame budget is trying to avoid, and requestAnimationFrame already stops delivering frames to a hidden document, which is the case this exists for. Kept as a call site so the frame body is Carbon's order and a host that CAN throttle has somewhere to do it.")
   Throttle()
   {
   }
@@ -1010,8 +1010,8 @@ export class TriDevice
    * @param {object|null} renderJobs A `Tr2RenderJobs`, or null to detach.
    * @returns {TriDevice} This device.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetRenderJobs(renderJobs)
   {
     this.#renderJobs = renderJobs ?? null;
@@ -1023,8 +1023,8 @@ export class TriDevice
    *
    * @returns {object|null} The installed `Tr2RenderJobs`.
    */
-  @impl.custom
-  @impl.reason("Carbon's m_renderJobs is a member the frame body reads directly; a private field needs an accessor for anyone else to see what is installed.")
+  @meta.ours
+  @meta.reason("Carbon's m_renderJobs is a member the frame body reads directly; a private field needs an accessor for anyone else to see what is installed.")
   GetRenderJobs()
   {
     return this.#renderJobs;
@@ -1034,16 +1034,16 @@ export class TriDevice
   #renderJobs = null;
 
   /** Carbon method GetRenderingPlatformID (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   GetRenderingPlatformID(...args)
   {
     throw new Error("TriDevice.GetRenderingPlatformID is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method SupportsRenderTargetFormat (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   SupportsRenderTargetFormat(...args)
   {
     throw new Error("TriDevice.SupportsRenderTargetFormat is not implemented in CarbonEngineJS.");
@@ -1054,33 +1054,33 @@ export class TriDevice
    *
    * @returns {boolean} False.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon asks the adapter through DXGI. A browser is never told whether the display has a variable refresh rate - requestAnimationFrame reports no such thing - so the only truthful answer is no. Constant rather than a refusal because CreateSimpleDevice records it in the present parameters on every creation, and a device that cannot be created is worse than one that reports a capability it does not have.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon asks the adapter through DXGI. A browser is never told whether the display has a variable refresh rate - requestAnimationFrame reports no such thing - so the only truthful answer is no. Constant rather than a refusal because CreateSimpleDevice records it in the present parameters on every creation, and a device that cannot be created is worse than one that reports a capability it does not have.")
   IsVariableRefreshRateSupported()
   {
     return false;
   }
 
   /** Carbon method SupportsRaytracing (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   SupportsRaytracing(...args)
   {
     throw new Error("TriDevice.SupportsRaytracing is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method SetUpscaling (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   SetUpscaling(...args)
   {
     throw new Error("TriDevice.SetUpscaling is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method GetRenderContext (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   GetRenderContext(...args)
   {
     throw new Error("TriDevice.GetRenderContext is not implemented in CarbonEngineJS.");
@@ -1092,9 +1092,9 @@ export class TriDevice
    *
    * @returns {TriDevice} This device.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon enumerates DLSS, FSR and XeSS through vendor SDKs. No backend here offers any of them, so the list is empty - which is the truthful answer, not a stub. SetUpscaling still REFUSES, because that is the verb where a caller asks for upscaling and would otherwise be silently given none. CreateSimpleDevice calls this on every creation, so a refusal here would break device creation to report a capability nobody asked for.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon enumerates DLSS, FSR and XeSS through vendor SDKs. No backend here offers any of them, so the list is empty - which is the truthful answer, not a stub. SetUpscaling still REFUSES, because that is the verb where a caller asks for upscaling and would otherwise be silently given none. CreateSimpleDevice calls this on every creation, so a refusal here would break device creation to report a capability nobody asked for.")
   UpdateAvailableUpscalingTechniques()
   {
     this.supportedUpscalingTechniques = [];

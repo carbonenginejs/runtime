@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildSpherePin.h
 //   trinity/trinity/Eve/SpaceObject/Children/EveChildSpherePin.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveChildMesh } from "./EveChildMesh.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -10,16 +10,16 @@ import { vec4 } from "#math/vec4";
  * centre normal, radius, rotation, alpha threshold and colour to its own
  * per-object shader data.
  */
-@type.define({ className: "EveChildSpherePin", family: "eve/child" })
+@meta.define({ className: "EveChildSpherePin", family: "eve/child" })
 export class EveChildSpherePin extends EveChildMesh
 {
 
   _pinColor = vec4.fromValues(1, 1, 1, 1);
 
   /** Carbon maps both Blue names to the same m_pinColor storage. */
-  @edit.notify
-  @edit.persist
-  @type.color
+  @meta.blue.notify
+  @meta.blue.persist
+  @meta.type.color
   get pinColor()
   {
     return this._pinColor;
@@ -38,9 +38,9 @@ export class EveChildSpherePin extends EveChildMesh
   }
 
   /** Blue alias for pinColor. */
-  @edit.notify
-  @edit.persist
-  @type.color
+  @meta.blue.notify
+  @meta.blue.persist
+  @meta.type.color
   get color()
   {
     return this._pinColor;
@@ -53,49 +53,49 @@ export class EveChildSpherePin extends EveChildMesh
   }
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("TriCurveSet")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("TriCurveSet")
   curveSets = [];
 
   /** m_centerNormal (Vector3) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   centerNormal = vec3.create();
 
   /** m_pinMaxRadius (float) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   pinMaxRadius = 0.2;
 
   /** m_pinRadius (float) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   pinRadius = 0;
 
   /** m_pinRotation (float) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   pinRotation = 0;
 
   /** m_pinAlphaThreshold (float) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   pinAlphaThreshold = 0;
 
   /** Carbon updates the mesh first, then advances every attached curve set. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateAsyncronous(updateContext, params)
   {
     super.UpdateAsyncronous(updateContext, params);
@@ -112,8 +112,8 @@ export class EveChildSpherePin extends EveChildMesh
    * The struct registers with stages ["vs", "ps"]: the SAME bytes are bound
    * to both per-object slots (cpp:68-75).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetPerObjectData(accumulator)
   {
     const data = accumulator.Alloc("EveChildSpherePinPerObjectData");
@@ -143,4 +143,4 @@ export class EveChildSpherePin extends EveChildMesh
 
 
 // EveChildSpherePin_Blue.cpp: native exposure.
-carbon.interfaceTable({ interfaces: [EveChildSpherePin], chainTo: EveChildMesh })(EveChildSpherePin, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveChildSpherePin], chainTo: EveChildMesh })(EveChildSpherePin, { kind: "class" });

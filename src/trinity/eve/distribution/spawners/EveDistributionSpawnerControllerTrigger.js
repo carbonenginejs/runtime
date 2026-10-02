@@ -1,64 +1,64 @@
 import { INotify } from "../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerControllerTrigger.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 
 /** Gates a nested set of distribution spawners from a named controller variable. */
-@type.define({ className: "EveDistributionSpawnerControllerTrigger", family: "eve/distribution/spawners" })
-@carbon.inherit(INotify)
+@meta.define({ className: "EveDistributionSpawnerControllerTrigger", family: "eve/distribution/spawners" })
+@meta.blue.inherit(INotify)
 export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpawner
 {
 
   /** m_variableName (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   variableName = "";
 
   /** m_value (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   value = 0;
 
   /** m_invertReceivedValue (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   invertTrigger = false;
 
   /** m_isActive (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   isActive = false;
 
   /** m_distributionSpawners (PIEveDistributionSpawnerVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("IEveDistributionSpawner")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("IEveDistributionSpawner")
   spawners = [];
 
   /** m_restartOnReceivingValue (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   restartOnReceivingValue = false;
 
   /**
    * Restarts the wrapped spawners; the placement pool is not used by this
    * trigger.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Reset(_placements)
   {
     this.Restart();
   }
 
   /** Restarts every wrapped spawner, leaving the active state untouched. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Restart()
   {
     for (const spawner of this.spawners)
@@ -71,8 +71,8 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
    * Re-evaluates the active state when the `value` property is written directly
    * rather than through a controller.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnModified(name)
   {
     if (name === "value")
@@ -83,8 +83,8 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
   }
 
   /** Ticks the wrapped spawners only while the trigger is active. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateSyncronous(updateContext, params, owner)
   {
     if (!this.isActive)
@@ -102,8 +102,8 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
    * Adopts the value when the name matches this trigger's variable and
    * re-evaluates the active state; other names are ignored.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetControllerVariable(name, value)
   {
     if (this.variableName !== name)
@@ -131,4 +131,4 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
 }
 
 // Exact native Blue exposure: only these identities participate in loading.
-carbon.interfaceTable({ interfaces: [EveDistributionSpawnerControllerTrigger, IEveDistributionSpawner, INotify], chainTo: null })(EveDistributionSpawnerControllerTrigger, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveDistributionSpawnerControllerTrigger, IEveDistributionSpawner, INotify], chainTo: null })(EveDistributionSpawnerControllerTrigger, { kind: "class" });

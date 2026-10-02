@@ -1,28 +1,28 @@
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 
 /** Named logical input to one character texture-composition pass. */
-@type.define({ className: "CjsCharacterCompositionInput", family: "character" })
+@meta.define({ className: "CjsCharacterCompositionInput", family: "character" })
 export class CjsCharacterCompositionInput
 {
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     role = "";
 
-    @edit.readwrite
-    @edit.persist
-    @type.model("CjsCharacterTextureAsset")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.model("CjsCharacterTextureAsset")
     texture = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.vec4
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.vec4
     sampleBounds = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.unknown
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.unknown
     value = null;
 
 }

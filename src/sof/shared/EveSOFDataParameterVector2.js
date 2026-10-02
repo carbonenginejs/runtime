@@ -3,7 +3,7 @@
 //   parameters through one macro beside their base.
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:20-38
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.cpp:85-102
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
 import { EveSOFDataParameter } from "./EveSOFDataParameter.js";
@@ -17,20 +17,20 @@ export class EveSOFDataParameterVector2 extends EveSOFDataParameter
    * Native m_value (Vector2) replaces the base vector in authored values.
    * @type {Float32Array}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.vec2
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec2
   value = vec2.create();
 
   /** Returns a new four-component vector with zero-filled z and w components. */
-  @meta.impl.implemented
+  @meta.implemented
   GetValue()
   {
     return vec4.fromValues(this.value[0], this.value[1], 0, 0);
   }
 }
 
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ EveSOFDataParameterVector2, EveSOFDataParameter ],
   chainTo: null
 })(EveSOFDataParameterVector2);

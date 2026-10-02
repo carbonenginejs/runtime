@@ -18,7 +18,7 @@
 //
 // Free is explicit at the owning resource's release because JavaScript has no
 // deterministic Allocation destructor. MapForReading remains unported.
-import { CjsSchema, carbon, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /** `SHARED_BUFFER_BLOCK_SIZE` (`TriGeometryRes.h:15`). */
@@ -99,4 +99,4 @@ export class Tr2SuballocatedBufferAllocation
   }
 }
 
-CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "IsValid", carbon.method, impl.implemented);
+CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "IsValid", meta.blue.method, meta.implemented);

@@ -4,85 +4,85 @@ import { quat } from "#math/quat";
 import { box3 } from "#math/box3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, edit, impl, type } from "#schema";
+import { meta } from "#schema";
 
 
 /**
  * One authored run of identical sprites, laid out either evenly along a line or
  * distributed around a circle, with the blink timing and colour they share.
  */
-@type.define({ className: "EveSpriteLineSetItem", family: "eve/attachment/sprites" })
+@meta.define({ className: "EveSpriteLineSetItem", family: "eve/attachment/sprites" })
 export class EveSpriteLineSetItem
 {
 
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   boneIndex = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   isCircle = false;
 
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   position = vec3.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.quat
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   rotation = quat.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   spacing = 1;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   blinkRate = 0.1;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   blinkPhase = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   blinkPhaseShift = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   minScale = 1;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxScale = 10;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   falloff = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
   /**
@@ -100,8 +100,8 @@ export class EveSpriteLineSetItem
    * around the position at the larger of the two radii; for a line, a box
    * centred on the run covering its full spaced length.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetBounds(out)
   {
     if (this.isCircle)
@@ -117,8 +117,8 @@ export class EveSpriteLineSetItem
   }
 
   /** The parent bone this sprite run rides. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBoneIndex()
   {
     return this.boneIndex;
@@ -129,8 +129,8 @@ export class EveSpriteLineSetItem
    * stepped around the rotated ellipse for a circle, or spaced along the rotated
    * X axis for a line - as freshly allocated vectors.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetPositions()
   {
     const positions = [];

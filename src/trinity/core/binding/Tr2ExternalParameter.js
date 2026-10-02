@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2ExternalParameter.h
 // Source: trinity/trinity/Tr2ExternalParameter.cpp
 // Source: trinity/trinity/Tr2ExternalParameter_Blue.cpp
-import { CjsSchema, meta, types } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { IInitialize } from "#blue/IInitialize";
 import { INotify } from "#blue/INotify";
 import { TriValueBinding } from "./TriValueBinding.js";
@@ -11,7 +11,7 @@ import { TriValueBinding } from "./TriValueBinding.js";
  * another object, exposing it for type-checked reads and writes.
  */
 @meta.define({ className: "Tr2ExternalParameter", family: "trinityCore" })
-@meta.carbon.inherit(INotify)
+@meta.blue.inherit(INotify)
 export class Tr2ExternalParameter extends IInitialize
 {
 
@@ -28,28 +28,28 @@ export class Tr2ExternalParameter extends IInitialize
   _destinationType = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_destinationObject (IRootPtr) [READWRITE, PERSIST, NOTIFY] */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.objectRef("IRoot")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("IRoot")
   destinationObject = null;
 
   /** m_destinationAttribute (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   destinationAttribute = "";
 
   /** m_valid (bool) [READ] */
-  @meta.edit.read
-  @types.boolean
+  @meta.blue.read
+  @meta.type.boolean
   valid = false;
 
   /**
@@ -57,8 +57,8 @@ export class Tr2ExternalParameter extends IInitialize
    * Adapted: Returns a defensive JavaScript value copy in place of Carbon's BlueScriptValue conversion.
    * @returns {*} Defensive copy for arrays, otherwise the bound value.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValue()
   {
     if (!this.valid) this.Initialize();
@@ -76,8 +76,8 @@ export class Tr2ExternalParameter extends IInitialize
    * @param {*} value Value to convert and assign.
    * @returns {boolean} True after assignment and notification.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetValue(value)
   {
     if (!this.valid) this.Initialize();
@@ -118,8 +118,8 @@ export class Tr2ExternalParameter extends IInitialize
    * Adapted: Resolves Carbon Blue entries through CjsSchema with a narrow plain-object fallback for portable graph adapters.
    * @returns {boolean} True, including when the destination is invalid.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Initialize()
   {
     this.valid = false;
@@ -157,8 +157,8 @@ export class Tr2ExternalParameter extends IInitialize
    * @param {string|null} [_value=null] Changed member name.
    * @returns {boolean} True after resolving the destination.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnModified(_value = null)
   {
     this.Initialize();
@@ -169,8 +169,8 @@ export class Tr2ExternalParameter extends IInitialize
    * The parameter's exposed name.
    * @returns {string} Exposed name.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetName()
   {
     return this.name;
@@ -182,8 +182,8 @@ export class Tr2ExternalParameter extends IInitialize
    * @param {*} name Name normalized by the portable string adapter.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -196,8 +196,8 @@ export class Tr2ExternalParameter extends IInitialize
    * @param {object|null} destinationObject Destination owner.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetDestinationObject(destinationObject)
   {
     this.destinationObject = destinationObject ?? null;
@@ -211,8 +211,8 @@ export class Tr2ExternalParameter extends IInitialize
    * @param {*} destinationAttribute Member name with an optional component.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetDestinationAttribute(destinationAttribute)
   {
     this.destinationAttribute = String(destinationAttribute ?? "");
@@ -224,8 +224,8 @@ export class Tr2ExternalParameter extends IInitialize
    * shape.
    * @returns {boolean} Whether the destination resolved.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsValid()
   {
     return this.valid;
@@ -238,8 +238,8 @@ export class Tr2ExternalParameter extends IInitialize
    * Adapted: Returns the portable field value instead of Carbon's raw Be::Var pointer.
    * @returns {*} Live destination value, or null.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetDestination()
   {
     if (!this.valid) this.Initialize();
@@ -252,8 +252,8 @@ export class Tr2ExternalParameter extends IInitialize
    * Adapted: Returns CjsSchema field metadata plus the component offset instead of Carbon's Be::VarEntry pointer.
    * @returns {object|null} Portable field metadata and component offset.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetDestinationEntry()
   {
     return this.valid ? { ...this._destinationEntry, offset: this._destinationOffset } : null;
@@ -265,8 +265,8 @@ export class Tr2ExternalParameter extends IInitialize
    * Adapted: Constructs the maintained portable TriValueBinding rather than a native Blue instance.
    * @returns {TriValueBinding} Binding with its destination assigned.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   CreateBinding()
   {
     const binding = new TriValueBinding();
@@ -283,7 +283,7 @@ export class Tr2ExternalParameter extends IInitialize
    * @param {object|null} field Declared schema field.
    * @returns {object|null} Portable value category.
    */
-  @meta.impl.custom
+  @meta.ours
   static _describeValue(value, field)
   {
     const kind = field?.type?.kind ?? null;
@@ -342,7 +342,7 @@ export class Tr2ExternalParameter extends IInitialize
    * @param {number} offset Component offset or -1.
    * @returns {object} Conversion result or failure message.
    */
-  @meta.impl.custom
+  @meta.ours
   static _convertValue(value, current, destinationType, offset)
   {
     if (offset !== -1)
@@ -405,7 +405,7 @@ export class Tr2ExternalParameter extends IInitialize
    * @param {number} value Incoming number.
    * @returns {number} Converted number.
    */
-  @meta.impl.custom
+  @meta.ours
   static _castNumber(kind, value)
   {
     switch (kind)
@@ -427,7 +427,7 @@ export class Tr2ExternalParameter extends IInitialize
    * @param {*} attribute Destination member expression.
    * @returns {object|null} Member name and component offset.
    */
-  @meta.impl.custom
+  @meta.ours
   static _parseAttribute(attribute)
   {
     const value = String(attribute ?? "");
@@ -444,7 +444,7 @@ export class Tr2ExternalParameter extends IInitialize
    * @param {*} value Candidate array.
    * @returns {boolean} Whether array storage is present.
    */
-  @meta.impl.custom
+  @meta.ours
   static _isArrayLike(value)
   {
     return Array.isArray(value) || ArrayBuffer.isView(value);
@@ -459,7 +459,7 @@ export class Tr2ExternalParameter extends IInitialize
    * @param {Tr2ExternalParameter} source Source parameter.
    * @returns {void}
    */
-  @meta.impl.custom
+  @meta.ours
   static _notify(object, name, source)
   {
     if (typeof object.UpdateValues === "function") object.UpdateValues({ property: name, source });
@@ -470,4 +470,4 @@ export class Tr2ExternalParameter extends IInitialize
 }
 
 // Carbon's own query table has no exposure chain.
-meta.carbon.interfaceTable({ interfaces: [Tr2ExternalParameter, IInitialize, INotify], chainTo: null })(Tr2ExternalParameter, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [Tr2ExternalParameter, IInitialize, INotify], chainTo: null })(Tr2ExternalParameter, { kind: "class" });

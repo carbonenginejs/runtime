@@ -1,5 +1,5 @@
 // Source: trinity/trinity/ITr2DynamicBindingOwner.h:5-9
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /** Contract for an object that supplies named roots to dynamic bindings. */
@@ -15,5 +15,5 @@ export class ITr2DynamicBindingOwner
   }
 }
 
-CjsSchema.decorateMethod(ITr2DynamicBindingOwner, "GetParameterMap", impl.abstract);
+CjsSchema.decorateMethod(ITr2DynamicBindingOwner, "GetParameterMap", meta.abstract);
 CjsSchema.define(ITr2DynamicBindingOwner, { className: "ITr2DynamicBindingOwner" });

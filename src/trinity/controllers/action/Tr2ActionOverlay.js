@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionOverlay.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionOverlay.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionOverlay_Blue.cpp
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
@@ -19,45 +19,45 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * Resource path for loading the overlay when no matching overlay exists.
    * @type {string}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.path
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.path
   path = "";
 
   /**
    * Name used to find an existing overlay and assign to a newly loaded one.
    * @type {string}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   overlayName = "";
 
   /**
    * Named parameter or stretch endpoint used to redirect overlay ownership when the controller owner cannot hold overlays.
    * @type {string}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   targetAnotherOwner = "";
 
   /**
    * Whether Start may load and attach an overlay when none is already found.
    * @type {boolean}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   addOnStart = true;
 
   /**
    * Whether Stop removes the retained overlay from the resolved owner.
    * @type {boolean}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   removeOnStop = true;
 
   /** Native m_overlay: retained loaded or preexisting overlay until Stop. */
@@ -69,8 +69,8 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * The current scene owners lack the complete overlay accessor/loading API,
    * so this action retains its existing injected-owner and plain-array protocol.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Start(controller)
   {
     const controllerOwner = controller.GetOwner();
@@ -91,8 +91,8 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * Adapted: resolves and removes through the same injected-owner/array protocol
    * as Start; the concrete native scene-owner API remains an external gap.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Stop(controller)
   {
     const overlay = this._overlay;
@@ -119,7 +119,7 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * BeResMan urgent synchronous LoadObject<EveMeshOverlayEffect>. Urgency and
    * nominal resource/owner contracts are not implemented by this adapter.
    */
-  @meta.impl.adapted
+  @meta.adapted
   _loadOverlay(owner)
   {
     this._overlay = this.overlayName ? ITr2ControllerAction.callTarget(owner, "GetOverlayEffectByName", this.overlayName) ?? Tr2ActionOverlay._findNamed(owner, "overlays", this.overlayName) : null;
@@ -144,7 +144,7 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * to match whether the owner is animated.
    * Adapted: keeps the existing owner adapter and JS suffix string operations.
    */
-  @meta.impl.adapted
+  @meta.adapted
   _normalizePath(owner)
   {
     let path = this.path.toLowerCase();
@@ -168,7 +168,7 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * Adapted: preserves the existing parameter/endpoint shape lookup instead of
    * native concrete scene casts until those owners supply the required methods.
    */
-  @meta.impl.adapted
+  @meta.adapted
   _resolveOwner(owner)
   {
     if (!owner)
@@ -218,7 +218,7 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * Attaches an overlay through the owner's AddOverlayEffect, falling back to
    * pushing onto a plain `overlays` array.
    */
-  @meta.impl.custom
+  @meta.ours
   static _addOverlay(owner, overlay)
   {
     if (ITr2ControllerAction.hasFunction(owner, "AddOverlayEffect"))
@@ -233,7 +233,7 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * Appends a value to a named array property on the owner if it is not already
    * present.
    */
-  @meta.impl.custom
+  @meta.ours
   static _addToArray(owner, listName, value)
   {
     if (ITr2ControllerAction.hasProperty(owner, listName) && Array.isArray(owner[listName]) && !owner[listName].includes(value))
@@ -246,7 +246,7 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * Finds an entry in a named array property whose GetName() or `name` matches,
    * or null.
    */
-  @meta.impl.custom
+  @meta.ours
   static _findNamed(owner, listName, name)
   {
     if (ITr2ControllerAction.hasProperty(owner, listName) && Array.isArray(owner[listName]))
@@ -260,7 +260,7 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * Resolves the `SourceSpaceObject` and `DestSpaceObject` endpoints of a
    * stretch owner, returning null for any other name.
    */
-  @meta.impl.custom
+  @meta.ours
   static _getStretchOwner(owner, name)
   {
     if (name === "SourceSpaceObject")
@@ -278,7 +278,7 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * Checks whether an object can hold overlays, by exposing any of the overlay
    * accessor methods or a plain `overlays` array.
    */
-  @meta.impl.custom
+  @meta.ours
   static _isOverlayOwner(owner)
   {
     return !!owner && typeof owner === "object" && (ITr2ControllerAction.hasFunction(owner, "GetOverlayEffectByName") || ITr2ControllerAction.hasFunction(owner, "AddOverlayEffect") || ITr2ControllerAction.hasFunction(owner, "RemoveOverlayEffect") || ITr2ControllerAction.hasProperty(owner, "overlays"));
@@ -288,7 +288,7 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * Loads an overlay from a path through whichever owner loader exists,
    * reporting in `added` whether that loader already attached it to the owner.
    */
-  @meta.impl.custom
+  @meta.ours
   static _loadOverlayResource(owner, path)
   {
     const loaded = ITr2ControllerAction.callTarget(owner, "LoadOverlayEffectFromPath", path) ?? ITr2ControllerAction.callTarget(owner, "LoadOverlayEffect", path);
@@ -304,7 +304,7 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * Removes the first occurrence of a value from a named array property on the
    * owner.
    */
-  @meta.impl.custom
+  @meta.ours
   static _removeFromArray(owner, listName, value)
   {
     if (ITr2ControllerAction.hasProperty(owner, listName) && Array.isArray(owner[listName]))
@@ -321,7 +321,7 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * Detaches an overlay through the owner's RemoveOverlayEffect, falling back to
    * splicing it out of a plain `overlays` array.
    */
-  @meta.impl.custom
+  @meta.ours
   static _removeOverlay(owner, overlay)
   {
     if (ITr2ControllerAction.hasFunction(owner, "RemoveOverlayEffect"))
@@ -336,7 +336,7 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * Names a loaded overlay through SetName when available, otherwise by
    * assigning the `name` property; an empty name is ignored.
    */
-  @meta.impl.custom
+  @meta.ours
   static _setName(target, name)
   {
     if (!name || !target || typeof target !== "object")
@@ -353,7 +353,7 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionOverlay_Blue.cpp:12-13,37).
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [Tr2ActionOverlay, ITr2ControllerAction],
   chainTo: null
 })(Tr2ActionOverlay);

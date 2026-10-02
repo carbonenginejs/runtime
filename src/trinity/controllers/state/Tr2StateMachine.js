@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Tr2StateMachine.h
 // Source: trinity/trinity/Controllers/Tr2StateMachine.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { UnlinkReason } from "../enums.js";
 import { blue, BlueList, TimeAsFloat, IListNotify, ISimTimeRebaseNotify, INotify } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -15,11 +15,11 @@ import { Tr2StateMachineState } from "./Tr2StateMachineState.js";
  * change. Its typed BlueList reports explicit list operations to this owner;
  * raw array operations bypass admission and notification.
  */
-@type.define({
+@meta.define({
   className: "Tr2StateMachine",
   family: "controllers"
 })
-@carbon.inherit(IListNotify, ISimTimeRebaseNotify, INotify)
+@meta.blue.inherit(IListNotify, ISimTimeRebaseNotify, INotify)
 export class Tr2StateMachine
 {
   /**
@@ -27,9 +27,9 @@ export class Tr2StateMachine
    * notify this machine so it can maintain state linkage.
    * @type {BlueList}
    */
-  @edit.read
-  @edit.persist
-  @type.list("Tr2StateMachineState")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2StateMachineState")
   states = new BlueList(Tr2StateMachineState, { className: "Tr2StateMachineState", listOps: 0 });
 
   /**
@@ -37,8 +37,8 @@ export class Tr2StateMachine
    * This reference is not persisted with the authored machine.
    * @type {Tr2StateMachineState|null}
    */
-  @edit.read
-  @type.objectRef("Tr2StateMachineState")
+  @meta.blue.read
+  @meta.type.objectRef("Tr2StateMachineState")
   currentState = null;
 
   /**
@@ -46,19 +46,19 @@ export class Tr2StateMachine
    * restarts the machine; it refers to the state itself rather than a copy.
    * @type {Tr2StateMachineState|null}
    */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2StateMachineState")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2StateMachineState")
   startState = null;
 
   /**
    * Authored identifier for this state machine within a controller.
    * @type {string}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   _controller = null;
@@ -90,8 +90,8 @@ export class Tr2StateMachine
    * @param {IList|null} [list=this.states] Emitting list identity.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = this.states)
   {
     if (list !== this.states)
@@ -130,8 +130,8 @@ export class Tr2StateMachine
    * @param {string} propertyName Exposed member name.
    * @returns {boolean} True after the notification is handled.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnModified(propertyName)
   {
     if (propertyName === "startState" && this.startState && this._controller) this.startState.Link(this);
@@ -144,8 +144,8 @@ export class Tr2StateMachine
    * @param {number} newTime Replacement simulation time in Blue ticks.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnSimClockRebase(oldTime, newTime)
   {
     const diff = newTime - oldTime;
@@ -162,8 +162,8 @@ export class Tr2StateMachine
    * @param {Tr2Controller} controller Controller owning this machine.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Link(controller)
   {
     this.Unlink();
@@ -179,8 +179,8 @@ export class Tr2StateMachine
    * @param {number} [reason=UnlinkReason.UNLINKING] Native unlink reason.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Unlink(reason = UnlinkReason.UNLINKING)
   {
     if (!this._controller)
@@ -203,8 +203,8 @@ export class Tr2StateMachine
    * Adapted: BigInt preserves the native all-bits uint64 dirty mask.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Start()
   {
     if (this.currentState || !this._controller)
@@ -227,8 +227,8 @@ export class Tr2StateMachine
    * Stops the current state.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Stop()
   {
     if (this.currentState)
@@ -246,8 +246,8 @@ export class Tr2StateMachine
    * @param {bigint} [dirtyVariables=0n] Variables changed by the controller.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(dirtyVariables = 0n)
   {
     if (this.currentState)
@@ -260,8 +260,8 @@ export class Tr2StateMachine
    * Gets the linked controller.
    * @returns {Tr2Controller|null} Linked controller, or null while unlinked.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetController()
   {
     return this._controller;
@@ -271,7 +271,7 @@ export class Tr2StateMachine
    * Gets the active state for JavaScript consumers.
    * @returns {Tr2StateMachineState|null} Current state, or null while stopped.
    */
-  @impl.custom
+  @meta.ours
   GetCurrentState()
   {
     return this.currentState;
@@ -282,7 +282,7 @@ export class Tr2StateMachine
    * @param {number} index State list index.
    * @returns {Tr2StateMachineState|null} State, or null outside the list.
    */
-  @impl.custom
+  @meta.ours
   GetState(index)
   {
     return this.states[index] ?? null;
@@ -293,8 +293,8 @@ export class Tr2StateMachine
    * @param {string} name Authored state name.
    * @returns {Tr2StateMachineState|null} Matching state, or null when absent.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetStateByName(name)
   {
     return this.states.find(state => state.GetName() === name) ?? null;
@@ -305,8 +305,8 @@ export class Tr2StateMachine
    * difference in ticks, converted with TimeAsFloat (`Tr2StateMachine.cpp:206-209`).
    * @returns {number} Elapsed seconds, or zero when the timestamp is zero.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetMachineRunTime()
   {
     return this._machineStartTime ? TimeAsFloat(blue.os.GetCurrentFrameTime() - this._machineStartTime) : 0;
@@ -316,8 +316,8 @@ export class Tr2StateMachine
    * Gets seconds since the current state started (`Tr2StateMachine.cpp:211-214`).
    * @returns {number} Elapsed seconds, or zero when the timestamp is zero.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetStateRunTime()
   {
     return this._stateStartTime ? TimeAsFloat(blue.os.GetCurrentFrameTime() - this._stateStartTime) : 0;
@@ -327,7 +327,7 @@ export class Tr2StateMachine
    * Gets state runtime through the retained JavaScript convenience name.
    * @returns {number} Elapsed seconds from GetStateRunTime.
    */
-  @impl.custom
+  @meta.ours
   GetStateTime()
   {
     return this.GetStateRunTime();
@@ -342,9 +342,9 @@ export class Tr2StateMachine
    * @param {bigint} dirtyVariables Variables changed for the first transition.
    * @returns {void}
    */
-  @carbon.method
-  @carbon.renamed("FollowTransitions")
-  @impl.adapted
+  @meta.blue.method
+  @meta.blue.renamed("FollowTransitions")
+  @meta.adapted
   _followTransitions(dirtyVariables)
   {
     let next = this.currentState?.Update(dirtyVariables) ?? null;
@@ -384,7 +384,7 @@ export class Tr2StateMachine
 }
 
 // Native exposure ends at this concrete table (Tr2StateMachine_Blue.cpp).
-carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [Tr2StateMachine, IListNotify, INotify],
   chainTo: null
 })(Tr2StateMachine);

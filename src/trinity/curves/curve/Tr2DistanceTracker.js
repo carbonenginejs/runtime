@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Curves/Tr2DistanceTracker_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { blue, TimeAsDouble, ITriFunction, INotify } from "#blue";
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 
 
 /**
@@ -15,16 +15,16 @@ import { meta, types } from "#schema";
   className: "Tr2DistanceTracker",
   family: "curves"
 })
-@meta.carbon.inherit(INotify)
+@meta.blue.inherit(INotify)
 export class Tr2DistanceTracker extends ITriFunction
 {
   /**
    * Authored name identifying this distance-tracking function; native wide string.
    * @type {string}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.wstring
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.wstring
   name = "";
 
   /**
@@ -32,8 +32,8 @@ export class Tr2DistanceTracker extends ITriFunction
    * units when direction is normalized. Read-only metadata; not persisted.
    * @type {number}
    */
-  @meta.edit.read
-  @types.float32
+  @meta.blue.read
+  @meta.type.float32
   value = 0;
 
   /**
@@ -41,18 +41,18 @@ export class Tr2DistanceTracker extends ITriFunction
    * nonnegative.
    * @type {boolean}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   signedDistance = true;
 
   /**
    * Selects directional projection instead of full source-to-target separation.
    * @type {boolean}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   distanceToClosest = true;
 
   /**
@@ -60,29 +60,29 @@ export class Tr2DistanceTracker extends ITriFunction
    * sampling uses the authored components unchanged.
    * @type {Float32Array}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   direction = vec3.create();
 
   /**
    * Optional position function sampled into sourcePosition during updates.
    * @type {ITriVectorFunction|null}
    */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.objectRef("ITriVectorFunction")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("ITriVectorFunction")
   sourceObject = null;
 
   /**
    * Optional position function sampled into targetPosition during updates.
    * @type {ITriVectorFunction|null}
    */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.objectRef("ITriVectorFunction")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("ITriVectorFunction")
   targetObject = null;
 
   /**
@@ -90,9 +90,9 @@ export class Tr2DistanceTracker extends ITriFunction
    * source function is attached.
    * @type {Float32Array}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   sourcePosition = vec3.create();
 
   /**
@@ -100,9 +100,9 @@ export class Tr2DistanceTracker extends ITriFunction
    * target function is attached.
    * @type {Float32Array}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   targetPosition = vec3.create();
 
   /**
@@ -120,8 +120,8 @@ export class Tr2DistanceTracker extends ITriFunction
    * @param {number} time Sampling time in seconds.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateValue(time)
   {
     if (this.sourceObject)
@@ -157,8 +157,8 @@ export class Tr2DistanceTracker extends ITriFunction
    * @param {string|null} [_value=null] Unused notified member identity.
    * @returns {boolean} True after updating the stored value.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnModified(_value = null)
   {
     this.UpdateValue(TimeAsDouble(blue.os.GetCurrentFrameTime()));
@@ -167,7 +167,7 @@ export class Tr2DistanceTracker extends ITriFunction
 }
 
 // Native exposure is deprecated in Jessica and maps no concrete self identity.
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ITriFunction, INotify],
   chainTo: null
 })(Tr2DistanceTracker);

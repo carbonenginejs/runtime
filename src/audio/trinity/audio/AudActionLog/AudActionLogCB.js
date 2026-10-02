@@ -2,7 +2,7 @@
 // Hand-owned behavior port. Verify against audio/AudActionLogCB.json and the
 // AudActionRecord*.json schema documents.
 
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { IAudActionLog } from "./IAudActionLog.js";
 import { AudActionRecordPostEvent } from "./AudActionRecordPostEvent.js";
 import { AudActionRecordExecuteActionOnPlayingID } from "./AudActionRecordExecuteActionOnPlayingID.js";
@@ -19,7 +19,7 @@ function Now()
  * Queues Carbon-shaped audio action records and flushes them to a registered
  * JavaScript callback during manager processing.
  */
-@type.define({ className: "AudActionLogCB", family: "audio" })
+@meta.define({ className: "AudActionLogCB", family: "audio" })
 export class AudActionLogCB extends IAudActionLog
 {
 
@@ -38,8 +38,8 @@ export class AudActionLogCB extends IAudActionLog
    * @returns {void}
    * @throws {TypeError} If the callback cannot be invoked.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RegisterCallback(callback)
   {
     if (callback !== null && callback !== undefined
@@ -63,8 +63,8 @@ export class AudActionLogCB extends IAudActionLog
    * @param {string} name Event name.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   LogPostEvent(emitterID, playID, eventID, name)
   {
     this._queue.push(new AudActionRecordPostEvent(Now(), emitterID, playID, eventID, name));
@@ -82,8 +82,8 @@ export class AudActionLogCB extends IAudActionLog
    * @param {string} action Action name.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   LogExecuteActionOnPlayingID(emitterID, playID, action)
   {
     this._queue.push(new AudActionRecordExecuteActionOnPlayingID(Now(), emitterID, playID, action));
@@ -101,8 +101,8 @@ export class AudActionLogCB extends IAudActionLog
    * @param {string} state Selected state.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   LogSetSwitch(emitterID, group, state)
   {
     this._queue.push(new AudActionRecordSetSwitch(Now(), emitterID, group, state));
@@ -119,8 +119,8 @@ export class AudActionLogCB extends IAudActionLog
    * @param {string} state Selected state.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   LogSetState(group, state)
   {
     this._queue.push(new AudActionRecordSetState(Now(), group, state));
@@ -139,8 +139,8 @@ export class AudActionLogCB extends IAudActionLog
    * @param {number} [playID=0] Playing identifier.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   LogSetRTPC(emitterID, name, value, playID = 0)
   {
     this._queue.push(new AudActionRecordSetRTPC(Now(), emitterID, name, value, playID));
@@ -157,8 +157,8 @@ export class AudActionLogCB extends IAudActionLog
    * @returns {void}
    * @throws {*} Propagates callback exceptions without removing the current record.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Flush()
   {
     while (this._callback && this._queue.length)

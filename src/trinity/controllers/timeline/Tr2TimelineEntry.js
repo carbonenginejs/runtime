@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Controllers/Tr2TimelineController.h
 // Source: trinity/trinity/Controllers/Tr2TimelineController.cpp:24-28
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 
 
 /**

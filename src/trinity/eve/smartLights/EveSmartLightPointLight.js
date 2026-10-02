@@ -5,7 +5,7 @@ import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { EveSmartLightBaseGroup } from "./EveSmartLightBaseGroup.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightPointLight.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { ResourceRequirement } from "#resource";
 import { blue } from "#blue";
 import { EveEntity } from "../EveEntity.js";
@@ -24,68 +24,68 @@ import {
 import { BLUELISTEVENT } from "#consts/blue";
 
 /** A smart-light group member that places faction-colour-aware point or spot lights at each distribution placement and submits them to the light manager. */
-@type.define({ className: "EveSmartLightPointLight", family: "eve/smartLights" })
-@carbon.inherit(IInitialize, INotify, IListNotify)
+@meta.define({ className: "EveSmartLightPointLight", family: "eve/smartLights" })
+@meta.blue.inherit(IInitialize, INotify, IListNotify)
 export class EveSmartLightPointLight extends EveEntity
 {
   /** m_lightGroupData.flags (uint16_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.uint16
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint16
   flags = 1;
 
   /** m_lightGroupData.innerRadius (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   innerRadius = 0;
 
   /** m_lightGroupData.brightness (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   brightness = 1;
 
   /** m_lightGroupData.radius (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   radius = 0;
 
   /** m_lightProfile (Tr2LightProfileResPtr) [READ] */
-  @edit.read
-  @type.objectRef("Tr2LightProfileRes")
+  @meta.blue.read
+  @meta.type.objectRef("Tr2LightProfileRes")
   lightProfile = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   display = true;
 
   /** m_lightProfilePath (std::wstring) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   lightProfilePath = "";
 
   /** m_staticOffsetTranslation (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   staticOffsetTranslation = vec3.create();
 
   /** m_staticOffsetRotation (Quaternion) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.quat
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   staticOffsetRotation = quat.create();
 
   // Flattened EveSmartLightBaseGroup secondary base (Carbon multiple
@@ -93,24 +93,24 @@ export class EveSmartLightPointLight extends EveEntity
   // this class carries these fields).
 
   /** m_selectedColor (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] (EveSmartLightBaseGroup.h:31) */
-  @edit.notify
-  @edit.persist
-  @type.int32
+  @meta.blue.notify
+  @meta.blue.persist
+  @meta.type.int32
   factionColor = -1;
 
   /** m_useFactionColor (bool) [READWRITE, PERSIST] (EveSmartLightBaseGroup.h:32) */
-  @edit.persist
-  @type.boolean
+  @meta.blue.persist
+  @meta.type.boolean
   useFactionColor = false;
 
   /** m_attributeModifiers (PIEveSmartLightGroupAttributeModifierVector) [READ, PERSIST] (EveSmartLightBaseGroup.h:29) */
-  @edit.persist
-  @type.list("IEveSmartLightGroupAttributeModifier")
+  @meta.blue.persist
+  @meta.type.list("IEveSmartLightGroupAttributeModifier")
   attributeModifiers = [];
 
   /** m_color (Color) [READWRITE, PERSIST] (EveSmartLightBaseGroup.h:30) */
-  @edit.persist
-  @type.color
+  @meta.blue.persist
+  @meta.type.color
   customColor = color.createLinear();
 
   /** m_lightType (Tr2Light::LIGHT_TYPE) - POINT_LIGHT here, SPOT_LIGHT on the subclass (EveSmartLightPointLight.cpp:15). */
@@ -139,37 +139,37 @@ export class EveSmartLightPointLight extends EveEntity
   _lightDataView = null;
 
   /** IEveSmartLightGroup default: point-light groups have no async work. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   UpdateAsyncronous(_updateContext, _params, _distribution)
   {
   }
 
   /** IEveSmartLightGroup default: light-manager visibility is handled later. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
 
   /** IEveSmartLightGroup default: point lights are components, not renderables. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   GetRenderables(renderables = [])
   {
     return renderables;
   }
 
   /** IEveSmartLightGroup default: point lights contribute no quads. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   AddQuadsToQuadRenderer(_placements, _size, _frustum, _quadRenderer)
   {
   }
 
   /** IEveSmartLightGroup default: point lights register no quad effect. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   RegisterWithQuadRenderer(_quadRenderer)
   {
   }
@@ -199,9 +199,9 @@ export class EveSmartLightPointLight extends EveEntity
   }
 
   /** Faction-aware group color (Carbon base EveSmartLightBaseGroup.cpp:43-53). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the base-group surface through the shared resolveGroupColor helper.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the base-group surface through the shared resolveGroupColor helper.")
   GetGroupColor()
   {
     return resolveGroupColor(
@@ -214,9 +214,9 @@ export class EveSmartLightPointLight extends EveEntity
   }
 
   /** Overwrites the custom color (Carbon base EveSmartLightBaseGroup.cpp:55-58). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the base-group surface.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the base-group surface.")
   SetColor(color)
   {
     vec4.copy(this.customColor, color);
@@ -226,9 +226,9 @@ export class EveSmartLightPointLight extends EveEntity
    * Stores the inherited faction color set and fans it out to the attribute
    * modifiers (Carbon base EveSmartLightBaseGroup.cpp:30-41).
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the base-group surface.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the base-group surface.")
   SetInheritProperties(colorSet)
   {
     if (colorSet)
@@ -243,9 +243,9 @@ export class EveSmartLightPointLight extends EveEntity
   }
 
   /** Fans a controller variable out to the attribute modifiers (Carbon base EveSmartLightBaseGroup.cpp:60-66). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the base-group surface.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the base-group surface.")
   SetControllerVariable(name, value)
   {
     for (const attributeModifier of this.attributeModifiers)
@@ -258,9 +258,9 @@ export class EveSmartLightPointLight extends EveEntity
    * Newly inserted attribute modifiers inherit the parent color set (Carbon
    * base EveSmartLightBaseGroup.cpp:16-28).
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon's EveSmartLightBaseGroup secondary base is flattened; CjsModel still forwards its exact BELIST event and inserted value.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon's EveSmartLightBaseGroup secondary base is flattened; CjsModel still forwards its exact BELIST event and inserted value.")
   OnListModified(event, _key, _key2, value, list)
   {
     if (
@@ -275,8 +275,8 @@ export class EveSmartLightPointLight extends EveEntity
   }
 
   /** Carbon Initialize (EveSmartLightPointLight.cpp:18-27): resolve the profile. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     this._ResolveLightProfile();
@@ -306,9 +306,9 @@ export class EveSmartLightPointLight extends EveEntity
    * A lightProfilePath edit re-resolves the profile
    * (EveSmartLightPointLight.cpp:29-41).
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
     if (propertyName === "lightProfilePath") this._ResolveLightProfile();
@@ -319,8 +319,8 @@ export class EveSmartLightPointLight extends EveEntity
    * Captures the frame state and updates the attribute modifiers with full
    * strength (EveSmartLightPointLight.cpp:43-54).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateSyncronous(updateContext, params, distribution)
   {
     this._activationStrength = params?.activationStrength ?? 1;
@@ -335,9 +335,9 @@ export class EveSmartLightPointLight extends EveEntity
   }
 
   /** Registers this entity as a light owner (EveSmartLightPointLight.cpp:56-63). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon's RegisterComponent<ITr2LightOwner> template is expressed as the registry's explicit component-name signature (verbatim \"LightOwner\", Lights/ITr2LightOwner.h:18).")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon's RegisterComponent<ITr2LightOwner> template is expressed as the registry's explicit component-name signature (verbatim \"LightOwner\", Lights/ITr2LightOwner.h:18).")
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -357,9 +357,9 @@ export class EveSmartLightPointLight extends EveEntity
    * The record is scratch - the manager must copy, as Carbon's
    * Tr2LightManager::AddLight copies PerLightData by value.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Physical per-light packing (half floats, profile-index flag bits) moves to the renderer backend; Trinity submits the typed CPU record per placement.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Physical per-light packing (half floats, profile-index flag bits) moves to the renderer backend; Trinity submits the typed CPU record per placement.")
   GetLights(lightManager)
   {
     if (!this.display || !this._distribution)
@@ -451,8 +451,8 @@ export class EveSmartLightPointLight extends EveEntity
   }
 
   /** Carbon method RenderDebugInfo (EveSmartLightPointLight.cpp:133-161). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   RenderDebugInfo(..._args)
   {
     throw new Error("EveSmartLightPointLight.RenderDebugInfo is not implemented in CarbonEngineJS.");
@@ -500,4 +500,4 @@ export class EveSmartLightPointLight extends EveEntity
 }
 
 // EveSmartLightPointLight_Blue.cpp: native exposure.
-carbon.interfaceTable({ interfaces: [EveSmartLightPointLight, EveSmartLightBaseGroup, IInitialize, INotify, IListNotify, EveEntity], chainTo: EveSmartLightBaseGroup })(EveSmartLightPointLight, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveSmartLightPointLight, EveSmartLightBaseGroup, IInitialize, INotify, IListNotify, EveEntity], chainTo: EveSmartLightBaseGroup })(EveSmartLightPointLight, { kind: "class" });

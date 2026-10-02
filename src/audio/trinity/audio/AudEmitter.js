@@ -1,30 +1,30 @@
 // Source: audio/src/AudEmitter.h + AudEmitter.cpp
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/AudEmitter.json.
-import { carbon, impl, edit, meta, type } from "#schema";
+import { meta } from "#schema";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 import { ITr2AudEmitter } from "../trinityAudioApi/ITr2AudEmitter.js";
 
 /** Represents the concrete content-facing audio emitter (ITr2AudEmitter) with authored placement and attenuation controls. */
-@type.define({ className: "AudEmitter", family: "audio" })
-@carbon.inherit(ITr2AudEmitter)
-@carbon.mapInterface(ITr2AudEmitter)
+@meta.define({ className: "AudEmitter", family: "audio" })
+@meta.blue.inherit(ITr2AudEmitter)
+@meta.blue.mapInterface(ITr2AudEmitter)
 export class AudEmitter extends AudGameObjResource
 {
 
   /** m_authoredRotation (Quaternion) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.quat
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   rotation = quat.create();
 
   /** Effective front vector sent to Wwise; Carbon's read-only `front` property (GetFront). */
   @meta.property()
-  @edit.read
-  @type.vec3
+  @meta.blue.read
+  @meta.type.vec3
   get front()
   {
     return this.GetFront();
@@ -32,47 +32,47 @@ export class AudEmitter extends AudGameObjResource
 
   /** Effective top vector sent to Wwise; Carbon's read-only `top` property (GetTop). */
   @meta.property()
-  @edit.read
-  @type.vec3
+  @meta.blue.read
+  @meta.type.vec3
   get top()
   {
     return this.GetTop();
   }
 
   /** m_normalizeAttenuationScaling (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   normalizeAttenuationScaling = false;
 
   /** m_visualizationRadius (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   visualizationRadius = 0;
 
   /** m_maxNormalizedValue (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxNormalizedValue = 9000;
 
   /** m_maxNormalizedScalingFactor (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxNormalizedScalingFactor = 3.5;
 
   /** m_minNormalizedValue (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   minNormalizedValue = 30;
 
   /** m_minNormalizedScalingFactor (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   minNormalizedScalingFactor = 0.4;
 
   /**
@@ -81,8 +81,8 @@ export class AudEmitter extends AudGameObjResource
    *
    * @param {string} [name] Emitter name; Carbon defaults it to empty.
    */
-  @carbon.renamed("__init__")
-  @impl.implemented
+  @meta.blue.renamed("__init__")
+  @meta.implemented
   __init__(name = "")
   {
     this.name = name;
@@ -90,16 +90,16 @@ export class AudEmitter extends AudGameObjResource
   }
 
   /** Carbon method SendEvent -> PostEvent (ITr2AudEmitter). */
-  @carbon.renamed("SendEvent")
-  @impl.implemented
+  @meta.blue.renamed("SendEvent")
+  @meta.implemented
   SendEvent(name, bypassPrefix = false)
   {
     return this.PostEvent(name, bypassPrefix);
   }
 
   /** Carbon method HandleEvent (IBlueEventListener): event tracks post directly on this emitter. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HandleEvent(eventName)
   {
     this.PostEvent(eventName);
@@ -110,8 +110,8 @@ export class AudEmitter extends AudGameObjResource
    * a game object as placed (which lets Wake register it), then applies the
    * parent placement.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetPosition(front, top, position)
   {
     this._hasReceivedPosition = true;
@@ -119,16 +119,16 @@ export class AudEmitter extends AudGameObjResource
   }
 
   /** Carbon Blue method SetPlacement -> SetPosition. */
-  @carbon.renamed("SetPlacement")
-  @impl.implemented
+  @meta.blue.renamed("SetPlacement")
+  @meta.implemented
   SetPlacement(front, top, position)
   {
     return this.SetPosition(front, top, position);
   }
 
   /** Carbon method UpdatePlacement: placement observers forward here. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdatePlacement(front, top, position)
   {
     this.SetPosition(front, top, position);
@@ -138,8 +138,8 @@ export class AudEmitter extends AudGameObjResource
   // to [minNormalizedScalingFactor, maxNormalizedScalingFactor]. Carbon does
   // NOT clamp - out-of-domain inputs extrapolate. Preserved.
   /** Carbon method SetAttenuationScalingFactor: optional normalization, then base store/push. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetAttenuationScalingFactor(scalingFactor)
   {
     let finalScalingFactor = scalingFactor;
@@ -154,32 +154,32 @@ export class AudEmitter extends AudGameObjResource
   }
 
   /** Carbon method SetName (ITr2AudEmitter). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetName(name)
   {
     this.name = String(name ?? "");
   }
 
   /** Carbon method GetName (ITr2AudEmitter). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetName()
   {
     return this.name;
   }
 
   /** Carbon method SetPrefix (ITr2AudEmitter). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetPrefix(prefix)
   {
     this.eventPrefix = String(prefix ?? "");
   }
 
   /** Carbon method SetVisibility (ITr2AudEmitter). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetVisibility(isVisible)
   {
     this.isVisible = !!isVisible;

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraTransition.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraTransition.cpp
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { EveVirtualCamera } from "../EveVirtualCamera.js";
 
 
@@ -8,27 +8,27 @@ import { EveVirtualCamera } from "../EveVirtualCamera.js";
  * Base for camera hand-overs, owning the source and target cameras plus the
  * temporary camera that is rendered while the hand-over runs.
  */
-@type.define({
+@meta.define({
   className: "EveVirtualCameraTransitionBase",
   family: "eve/virtualCamera/transition"
 })
 export class EveVirtualCameraTransitionBase
 {
-  @type.objectRef("EveVirtualCamera")
+  @meta.type.objectRef("EveVirtualCamera")
   sourceCamera = null;
 
-  @type.objectRef("EveVirtualCamera")
+  @meta.type.objectRef("EveVirtualCamera")
   targetCamera = null;
 
-  @type.objectRef("EveVirtualCamera")
+  @meta.type.objectRef("EveVirtualCamera")
   transitionCamera = null;
 
   /**
    * Returns the camera to render from: the target once the transition has
    * completed, otherwise the temporary transition camera.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetCamera()
   {
     return this.IsComplete() ? this.targetCamera : this.transitionCamera;
@@ -38,8 +38,8 @@ export class EveVirtualCameraTransitionBase
    * Sets the camera the transition starts from; it is paused when the transition
    * stops.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetSource(camera)
   {
     this.sourceCamera = camera;
@@ -49,8 +49,8 @@ export class EveVirtualCameraTransitionBase
    * Sets the camera the transition hands control to; its timeline is reset on
    * Play and it is resumed on Stop.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetTarget(camera)
   {
     this.targetCamera = camera;
@@ -61,8 +61,8 @@ export class EveVirtualCameraTransitionBase
    * the source camera's transform, rewinds the target camera's timeline, and
    * starts the transition camera running.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Play()
   {
     this.transitionCamera = new EveVirtualCamera();
@@ -79,8 +79,8 @@ export class EveVirtualCameraTransitionBase
    * Ends the transition by resuming the target camera and pausing the source and
    * transition cameras.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Stop()
   {
     this.targetCamera?.Play();
@@ -92,8 +92,8 @@ export class EveVirtualCameraTransitionBase
    * Advances the transition camera and stops the transition as soon as the
    * subclass reports it complete.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Update(deltaTime)
   {
     this.transitionCamera?.Update(deltaTime);

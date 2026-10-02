@@ -1,36 +1,36 @@
 // Source: trinity/trinity/Shader/Parameter/Tr2TextureAnimationParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { INotify } from "#blue";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 import { ResourceFlags } from "./ITr2EffectValue.js";
 
 /** Exposes one named channel of a texture animation as a shader resource and invalidates attached materials as it changes. */
-@type.define({ className: "Tr2TextureAnimationParameter", family: "shader" })
-@carbon.inherit(ITriEffectResourceParameter)
-@carbon.inherit(INotify)
+@meta.define({ className: "Tr2TextureAnimationParameter", family: "shader" })
+@meta.blue.inherit(ITriEffectResourceParameter)
+@meta.blue.inherit(INotify)
 export class Tr2TextureAnimationParameter extends CjsParameter
 {
 
   /** m_animation (Tr2TextureAnimationPtr) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2TextureAnimation")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2TextureAnimation")
   animation = null;
 
   /** m_channel (BlueSharedString) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   channel = "";
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   resourceType = 0;
@@ -38,16 +38,16 @@ export class Tr2TextureAnimationParameter extends CjsParameter
   _materials = [];
 
   /** The shader resource name the animated texture binds to. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetParameterName()
   {
     return this.name;
   }
 
   /** Content hash: the animation object's identity (Carbon hashes its pointer). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
   {
     return CjsParameter.hashFnv1Identity(this.animation, startingHash);
@@ -58,8 +58,8 @@ export class Tr2TextureAnimationParameter extends CjsParameter
    *
    * Adapted: Dispatches by exposed property name instead of a native field pointer.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnModified(propertyName)
   {
     if (propertyName !== "animation") return true;
@@ -75,8 +75,8 @@ export class Tr2TextureAnimationParameter extends CjsParameter
    * one, and leaves the previous type in place otherwise; no GPU binding is
    * created.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RebuildEffectHandles(effectRes)
   {
     const resource = this.name ? CjsParameter.getEffectResource(effectRes, this.name) : null;
@@ -101,8 +101,8 @@ export class Tr2TextureAnimationParameter extends CjsParameter
    * @param {number} [flags] A `ResourceFlags` word; bit 0 is sRGB.
    * @returns {boolean} Whether the slot took the binding.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0)
   {
     const colorSpace = (flags & ResourceFlags.RESOURCE_FLAG_SRGB)
@@ -118,8 +118,8 @@ export class Tr2TextureAnimationParameter extends CjsParameter
    *
    * @returns {boolean} False, always.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ApplyUav()
   {
     return false;
@@ -128,8 +128,8 @@ export class Tr2TextureAnimationParameter extends CjsParameter
   /**
    * Registers one material occurrence for animation-reference invalidation.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnAddedToMaterial(material)
   {
     this._materials.push(material);
@@ -138,8 +138,8 @@ export class Tr2TextureAnimationParameter extends CjsParameter
   /**
    * Removes the first matching material registration, retaining duplicates.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnRemovedFromMaterial(material)
   {
     const index = this._materials.indexOf(material);
@@ -153,8 +153,8 @@ export class Tr2TextureAnimationParameter extends CjsParameter
    * The animation's texture for this parameter's channel, or null when no
    * animation is attached.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetTexture()
   {
     return this.animation ? this.animation.GetTexture(this.channel) : null;
@@ -163,4 +163,4 @@ export class Tr2TextureAnimationParameter extends CjsParameter
 }
 
 // Exact identities from Tr2TextureAnimationParameter_Blue.cpp; no exposure chain.
-carbon.interfaceTable({ interfaces: [Tr2TextureAnimationParameter, ITriEffectResourceParameter, INotify], chainTo: null })(Tr2TextureAnimationParameter, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [Tr2TextureAnimationParameter, ITriEffectResourceParameter, INotify], chainTo: null })(Tr2TextureAnimationParameter, { kind: "class" });

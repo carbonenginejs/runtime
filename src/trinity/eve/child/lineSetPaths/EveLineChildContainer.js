@@ -6,13 +6,13 @@ import { mat4 } from "#math/mat4";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveLineSetPath } from "./IEveLineSetPath.js";
 
 
 /** Groups line-path children beneath a shared transform with naming and visibility state. */
-@type.define({ className: "EveLineChildContainer", family: "eve/child/lineSetPaths", purpose: "Groups line-path children beneath an EveChildTransform with shared naming and visibility state." })
-@carbon.inherit(INotify, IListNotify)
+@meta.define({ className: "EveLineChildContainer", family: "eve/child/lineSetPaths", purpose: "Groups line-path children beneath an EveChildTransform with shared naming and visibility state." })
+@meta.blue.inherit(INotify, IListNotify)
 export class EveLineChildContainer extends IEveLineSetPath
 {
 
@@ -25,31 +25,31 @@ export class EveLineChildContainer extends IEveLineSetPath
   _regenerate = false;
 
   /** m_isVisible (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   isVisible = true;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   display = true;
 
   /** m_lines (PIEveLineSetPathVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("IEveLineSetPath")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("IEveLineSetPath")
   lines = [];
 
   /** Carbon invalidates generated points and bounds for every authored change. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnModified(_value = null)
   {
     this._regenerate = true;
@@ -57,16 +57,16 @@ export class EveLineChildContainer extends IEveLineSetPath
   }
 
   /** Carbon invalidates generated points and bounds for every line-list change. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnListModified(_event = 0, _key = 0, _key2 = 0, _value = null, _list = null)
   {
     this._regenerate = true;
   }
 
   /** Updates every child and rebuilds points or aggregate bounds when required. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Update(updateContext, params)
   {
     let updateBounds = false;
@@ -92,8 +92,8 @@ export class EveLineChildContainer extends IEveLineSetPath
   }
 
   /** Regenerates child points beneath this container's composed world transform. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GeneratePoints(parentTransform = EveLineChildContainer._identity)
   {
     if (!mat4.exactEquals(parentTransform, EveLineChildContainer._identity))
@@ -114,8 +114,8 @@ export class EveLineChildContainer extends IEveLineSetPath
   }
 
   /** Returns the sum of every child path's generated-point count. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetPointCount()
   {
     let count = 0;
@@ -130,8 +130,8 @@ export class EveLineChildContainer extends IEveLineSetPath
    * Rebuilds Carbon's intentionally loose preliminary sphere: the mean child
    * centre plus the largest centre distance and largest child radius.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   CalculateBoundingSphere(meshSize = 0, reCalculateChildren = true)
   {
     meshSize = Number(meshSize);
@@ -183,16 +183,16 @@ export class EveLineChildContainer extends IEveLineSetPath
   }
 
   /** Writes the aggregate sphere after applying this container's local transform. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBoundingSphere(out = vec4.create())
   {
     return sph3.transformMat4(out, this._boundingSphere, this.localTransform);
   }
 
   /** Culls the container before forwarding visibility to every child path. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateVisibility(frustum, parentLod, systemLocation)
   {
     if (!this.display)
@@ -215,8 +215,8 @@ export class EveLineChildContainer extends IEveLineSetPath
   }
 
   /** Forwards line emission while both authored and computed visibility permit it. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddLinesToSet(lineSet, color, animationColor, scrollSpeed)
   {
     if (!this.display || !this.isVisible)
@@ -230,8 +230,8 @@ export class EveLineChildContainer extends IEveLineSetPath
   }
 
   /** Carbon declares no container-specific debug options. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   GetDebugOptions(_options)
   {
   }
@@ -241,4 +241,4 @@ export class EveLineChildContainer extends IEveLineSetPath
 }
 
 // EveLineChildContainer_Blue.cpp: native exposure.
-carbon.interfaceTable({ interfaces: [EveLineChildContainer, IEveLineSetPath, INotify, IListNotify], chainTo: null })(EveLineChildContainer, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveLineChildContainer, IEveLineSetPath, INotify, IListNotify], chainTo: null })(EveLineChildContainer, { kind: "class" });

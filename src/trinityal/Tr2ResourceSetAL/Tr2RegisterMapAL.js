@@ -1,6 +1,6 @@
 // Source: trinity/trinityal/include/Tr2ResourceSetAL.h:23
 // Source: trinity/trinityal/src/Tr2ResourceSetAL.cpp:27-144
-import { impl } from "#schema";
+import { meta } from "#schema";
 import { ShaderType } from "#consts/render-context";
 
 export const MAX_RESOURCES_IN_STAGE = 32;
@@ -57,8 +57,8 @@ export class Tr2RegisterMapAL
   }
 
   /** Carbon's operator==; a struct method uses lower camel case. */
-  @impl.adapted
-  @impl.reason("JavaScript spells the C++ equality operator as a method.")
+  @meta.adapted
+  @meta.reason("JavaScript spells the C++ equality operator as a method.")
   equals(other)
   {
     for (const [ count, slots ] of [ [ "srvCount", "srvs" ], [ "uavCount", "uavs" ], [ "samplerCount", "samplers" ] ])

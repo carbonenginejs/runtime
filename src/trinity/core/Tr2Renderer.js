@@ -32,7 +32,7 @@
 // could not have reached them without copying them.
 
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2Blitter } from "./Tr2Blitter.js";
 import { TriSettingsRegistrar } from "./TriSettingsRegistrar.js";
 import { AdjustTextureCoordsToViewport } from "./Tr2RenderUtils.js";
@@ -90,7 +90,7 @@ export const PER_OBJECT_PS = 4;
  * identity that tooling and the UI read, and `@carbon.method` is how the
  * parity audit sees a method at all. Dropping `CjsModel` costs neither.
  */
-@type.define({ className: "Tr2Renderer", family: "trinityCore" })
+@meta.define({ className: "Tr2Renderer", family: "trinityCore" })
 export class Tr2Renderer
 {
   // Carbon's header calls these the defaults "for the currently set shader
@@ -121,8 +121,8 @@ export class Tr2Renderer
    *
    * @returns {number} A constant-buffer register.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetPerFrameVSStartRegister()
   {
     return this.#perFrameVSStartRegister;
@@ -133,8 +133,8 @@ export class Tr2Renderer
    *
    * @returns {number} A constant-buffer register.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetPerFramePSStartRegister()
   {
     return this.#perFramePSStartRegister;
@@ -145,8 +145,8 @@ export class Tr2Renderer
    *
    * @returns {number} A constant-buffer register.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetPerObjectVSStartRegister()
   {
     return this.#perObjectVSStartRegister;
@@ -157,8 +157,8 @@ export class Tr2Renderer
    *
    * @returns {number} A constant-buffer register.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetPerObjectPSStartRegister()
   {
     return this.#perObjectPSStartRegister;
@@ -169,8 +169,8 @@ export class Tr2Renderer
    *
    * @returns {number} A constant-buffer register.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetPerObjectRTVertexBufferDataRegister()
   {
     return this.#perObjectRTVertexBufferDataRegister;
@@ -181,8 +181,8 @@ export class Tr2Renderer
    *
    * @returns {number} A constant-buffer register.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetPerObjectVSGUIStartRegister()
   {
     return this.#perObjectVSGUIStartRegister;
@@ -198,8 +198,8 @@ export class Tr2Renderer
    * @param {number} [shaderType] A Carbon `ShaderType` value.
    * @returns {number} A constant-buffer register.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetPerObjectStartRegister(shaderType = 0)
   {
     return shaderType === Tr2Renderer.PIXEL_SHADER
@@ -219,7 +219,7 @@ export class Tr2Renderer
   #blitter = null;
 
   /** Explicit final release of this renderer's instance-owned blitter. */
-  @impl.custom
+  @meta.ours
   Destroy()
   {
     if (this.#blitter) this.#blitter.Destroy();
@@ -242,9 +242,9 @@ export class Tr2Renderer
    * @param {object} [renderContext] The context to prepare the blitter against.
    * @returns {Tr2Blitter} The renderer's blitter.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon also allocates the quad vertex buffer and the debug line set here; only the blitter and the quad-list index buffer are ported.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon also allocates the quad vertex buffer and the debug line set here; only the blitter and the quad-list index buffer are ported.")
   PrepareDeviceResources(renderContext = null)
   {
     this.#blitter ??= new Tr2Blitter();
@@ -280,8 +280,8 @@ export class Tr2Renderer
    * @param {object} material The material to draw with.
    * @returns {boolean} Whether the quad was drawn.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   DrawScreenQuad(renderContext, material)
   {
     if (!this.#blitter) return false;
@@ -302,9 +302,9 @@ export class Tr2Renderer
    * @param {Array<number>} bottomRight Bottom-right vertex corner.
    * @returns {boolean} Whether the quad was drawn.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon distinguishes this from the material form by overload; JavaScript has none, so the rectangle form carries its own name.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon distinguishes this from the material form by overload; JavaScript has none, so the rectangle form carries its own name.")
   DrawScreenQuadRect(renderContext, effect, topLeft, bottomRight)
   {
     if (!this.#blitter) return false;
@@ -326,8 +326,8 @@ export class Tr2Renderer
    * @param {object} material The material supplying its parameters.
    * @returns {boolean} Whether the quad was drawn.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   DrawCameraSpaceScreenQuad(renderContext, shader, material)
   {
     if (!this.#blitter) return false;
@@ -343,8 +343,8 @@ export class Tr2Renderer
    * @param {object} material The material to draw with.
    * @returns {boolean} Whether the quad was drawn.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   DrawFullScreenWithShader(renderContext, material)
   {
     if (!this.#blitter) return false;
@@ -365,9 +365,9 @@ export class Tr2Renderer
    * @param {object} [options] `material`, `tlTexCoord`, `brTexCoord`, `filter`.
    * @returns {boolean} Whether the quad was drawn.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon's four overloads differ only in an optional material and optional coordinates, which are defaults here.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon's four overloads differ only in an optional material and optional coordinates, which are defaults here.")
   DrawTexture(renderContext, texture, options = {})
   {
     if (!this.#blitter) return false;
@@ -408,8 +408,8 @@ export class Tr2Renderer
    *
    * @returns {TriSettings} The renderer's settings.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   static getSettings()
   {
     return TriSettingsRegistrar.getSettings();
@@ -424,8 +424,8 @@ export class Tr2Renderer
    *
    * @returns {number} Seconds since the clock was last recentred.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   static GetAnimationTime()
   {
     return gTriDev.device.GetAnimationTime();
@@ -438,8 +438,8 @@ export class Tr2Renderer
    * @param {number} startTime An earlier reading of the animation clock.
    * @returns {number} The elapsed seconds.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   static GetAnimationTimeElapsed(startTime)
   {
     return gTriDev.device.GetAnimationTimeElapsed(startTime);
@@ -456,8 +456,8 @@ export class Tr2Renderer
    *
    * @returns {number[]} The published vector.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   static BeginFrame()
   {
     const variable = Tr2Renderer.#RenderTimeVariable();
@@ -480,9 +480,9 @@ export class Tr2Renderer
    *
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon clears two of its own statics, s_debugTextRenderer and s_debugLineSet (Tr2Renderer.cpp:1053-1064). Neither type is ported; the installed debug renderer on the ambient context is the only thing here that accumulates per-frame debug drawing, so it is what gets cleared.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon clears two of its own statics, s_debugTextRenderer and s_debugLineSet (Tr2Renderer.cpp:1053-1064). Neither type is ported; the installed debug renderer on the ambient context is the only thing here that accumulates per-frame debug drawing, so it is what gets cleared.")
   static EndFrame()
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -499,8 +499,8 @@ export class Tr2Renderer
    *
    * @returns {*} Whatever the backend's BeginScene returns.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   static BeginRenderContext()
   {
     return Tr2RenderContext_GetMainThreadRenderContext().BeginScene();
@@ -514,9 +514,9 @@ export class Tr2Renderer
    *
    * @returns {*} Whatever the backend's EndScene returns.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon's pool allocator is a Tr2Renderer static (s_poolAllocator); ours is per render context, so this clears the ambient context's. Moving the pool is open work - it has three call sites that read it off a context they were handed.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon's pool allocator is a Tr2Renderer static (s_poolAllocator); ours is per render context, so this clears the ambient context's. Moving the pool is open work - it has three call sites that read it off a context they were handed.")
   static EndRenderContext()
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -533,8 +533,8 @@ export class Tr2Renderer
    *
    * @returns {number} The frame number.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   static GetCurrentFrameCounter()
   {
     return gTriDev.device.GetCurrentFrameCounter();
@@ -546,16 +546,16 @@ export class Tr2Renderer
    *
    * @returns {number} A `TR2SHADERMODEL` value.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   static GetShaderModel()
   {
     return Tr2Renderer.#shaderModel;
   }
 
   /** Carbon IsLowQuality (Tr2Renderer.cpp:1193-1197): the low shader model or below. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   static IsLowQuality()
   {
     return Tr2Renderer.GetShaderModel() <= TR2SHADERMODEL.TR2SM_3_0_LO;
@@ -567,9 +567,9 @@ export class Tr2Renderer
    * @param {number} shaderModel A `TR2SHADERMODEL` value.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon also requests a device reset on change (Tr2Renderer.cpp:1126-1145); no device reset is ported, so nothing rebuilds tier-dependent resources.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon also requests a device reset on change (Tr2Renderer.cpp:1126-1145); no device reset is ported, so nothing rebuilds tier-dependent resources.")
   static SetShaderModel(shaderModel)
   {
     Tr2Renderer.#shaderModel = shaderModel;
@@ -581,9 +581,9 @@ export class Tr2Renderer
    *
    * @returns {boolean} True when creation is allowed.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon also ANDs s_isResourceCreationAllowed, which TriDevice clears during a reset (TriDevice.cpp:886); no device reset is ported, so the flag has nothing to clear it.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon also ANDs s_isResourceCreationAllowed, which TriDevice clears during a reset (TriDevice.cpp:886); no device reset is ported, so the flag has nothing to clear it.")
   static IsResourceCreationAllowed()
   {
     return Tr2RenderContext_GetMainThreadRenderContext().IsValid();
@@ -597,8 +597,8 @@ export class Tr2Renderer
    * @param {number} [numOfQuads] Quads the caller needs indices for.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   static ReserveQuadListIndexBuffer(numOfQuads = 0)
   {
     if (!Tr2Renderer.IsResourceCreationAllowed()) return;
@@ -660,8 +660,8 @@ export class Tr2Renderer
    *
    * @returns {Tr2SuballocatedBufferAllocation} The allocation.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   static GetQuadListIndexBuffer()
   {
     return Tr2Renderer.#quadListIndexBuffer;
@@ -682,8 +682,8 @@ export class Tr2Renderer
    *     `(techniqueName, groupDimX, groupDimY, groupDimZ, renderContext)`.
    * @returns {boolean} Whether at least one pass dispatched, and none failed.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   static runComputeShader(effect, ...args)
   {
     const named = typeof args[0] === "string";
@@ -736,8 +736,8 @@ export class Tr2Renderer
    * @param {object} renderContext The context to dispatch on.
    * @returns {boolean} False when there is no effect or shader, or a dispatch failed.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   static runComputeShaderIndirect(effect, indirectParams, offset, renderContext)
   {
     if (!effect) return false;

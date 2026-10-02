@@ -1,52 +1,52 @@
 // Source: trinity/trinity/RenderJob/TriStepRenderTexture.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { vec2 } from "#math/vec2";
 
 /** A render step that draws a provided texture into the current target. */
-@type.define({ className: "TriStepRenderTexture", family: "renderJob" })
+@meta.define({ className: "TriStepRenderTexture", family: "renderJob" })
 export class TriStepRenderTexture extends TriRenderStep
 {
 
   /** m_brTexCoord (Vector2) [READWRITE] */
-  @edit.readwrite
-  @type.vec2
+  @meta.blue.readwrite
+  @meta.type.vec2
   brTexCoord = vec2.fromValues(1, 1);
 
   /** m_failClearColor (unsigned) [READWRITE] */
-  @edit.readwrite
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.type.uint32
   failClearColor = 0;
 
   /** m_textureSize (Vector2) [READ] */
-  @edit.read
-  @type.vec2
+  @meta.blue.read
+  @meta.type.vec2
   textureSize = vec2.create();
 
   /** m_tlTexCoord (Vector2) [READWRITE] */
-  @edit.readwrite
-  @type.vec2
+  @meta.blue.readwrite
+  @meta.type.vec2
   tlTexCoord = vec2.create();
 
   /** m_texture (ITr2TextureProviderPtr) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("ITr2TextureProvider")
+  @meta.blue.readwrite
+  @meta.type.objectRef("ITr2TextureProvider")
   depthStencil = null;
 
   /** m_texture (ITr2TextureProviderPtr) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("ITr2TextureProvider")
+  @meta.blue.readwrite
+  @meta.type.objectRef("ITr2TextureProvider")
   renderTarget = null;
 
   /** m_texture (ITr2TextureProviderPtr) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("ITr2TextureProvider")
+  @meta.blue.readwrite
+  @meta.type.objectRef("ITr2TextureProvider")
   texture = null;
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   __init__(source = null)
   {
     this.texture = null;
@@ -89,8 +89,8 @@ export class TriStepRenderTexture extends TriRenderStep
    * dereference on the only path that reaches it - so there is nothing here
    * worth transcribing until the atlas type exists.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Execute(_realTime, _simTime, renderContext)
   {
     const source = this.renderTarget ?? this.depthStencil ?? this.texture;

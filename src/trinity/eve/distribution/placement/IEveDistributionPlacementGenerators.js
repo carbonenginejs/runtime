@@ -1,31 +1,31 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionPlacementGenerators/IEveDistributionPlacementGenerators.h
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 
 
 /** Required distribution placement-generator contract. */
-@type.define({ className: "IEveDistributionPlacementGenerators", family: "eve/distribution" })
+@meta.define({ className: "IEveDistributionPlacementGenerators", family: "eve/distribution" })
 export class IEveDistributionPlacementGenerators
 {
 
   /** Writes the generator's initial placement records. */
-  @carbon.method
-  @impl.abstract
+  @meta.blue.method
+  @meta.abstract
   GetInitialPlacements(_out)
   {
     throw new Error("IEveDistributionPlacementGenerators.GetInitialPlacements must be implemented by a concrete generator.");
   }
 
   /** Reports whether this generator requests placement regeneration. */
-  @carbon.method
-  @impl.abstract
+  @meta.blue.method
+  @meta.abstract
   IsRequestingRegeneration()
   {
     throw new Error("IEveDistributionPlacementGenerators.IsRequestingRegeneration must be implemented by a concrete generator.");
   }
 
   /** Runs the optional synchronous placement-generator update hook. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   UpdateSyncronous(_updateContext)
   {
   }

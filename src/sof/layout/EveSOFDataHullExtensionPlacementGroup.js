@@ -1,40 +1,40 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 
 /** Groups enabled nested placements with group-level conditions and depletion counters. */
-@type.define({ className: "EveSOFDataHullExtensionPlacementGroup", family: "eve" })
+@meta.define({ className: "EveSOFDataHullExtensionPlacementGroup", family: "eve" })
 export class EveSOFDataHullExtensionPlacementGroup
 {
 
   /** m_placements (PIEveSOFDataHullExtensionPlacementVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("IEveSOFDataHullExtensionPlacement")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("IEveSOFDataHullExtensionPlacement")
   placements = [];
 
   /** m_distributionConditions (PIEveSOFDataHullExtensionPlacementDistributionVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("IEveSOFDataHullExtensionPlacementDistribution")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("IEveSOFDataHullExtensionPlacementDistribution")
   distributionConditions = [];
 
   /** m_depletionCounters (PEveSOFDataDistributionDepletionCounterVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataDistributionDepletionCounter")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataDistributionDepletionCounter")
   depletionCounters = [];
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   enabled = true;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
 }

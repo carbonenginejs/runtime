@@ -1,4 +1,4 @@
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 
@@ -9,12 +9,12 @@ import { TriRenderJob } from "../TriRenderJob.js";
  * Step that pops the render context's view-transform stack, restoring the view saved
  * by an earlier push.
  */
-@type.define({ className: "TriStepPopViewTransform", family: "renderJob" })
+@meta.define({ className: "TriStepPopViewTransform", family: "renderJob" })
 export class TriStepPopViewTransform extends TriRenderStep
 {
   /** Restores the view transform saved by the matching push step. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     renderContext.PopViewTransform();

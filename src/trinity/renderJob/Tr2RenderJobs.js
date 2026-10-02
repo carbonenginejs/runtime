@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/Tr2RenderJobs.h
 // Source: trinity/trinity/RenderJob/Tr2RenderJobs.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
 import { TriRenderJob } from "./TriRenderJob.js";
 
@@ -9,27 +9,27 @@ import { TriRenderJob } from "./TriRenderJob.js";
  * The four render-job schedules a frame draws from - recurring, one-off, chained
  * and update-recurring - and the order in which they are run.
  */
-@type.define({ className: "Tr2RenderJobs", family: "renderJob" })
+@meta.define({ className: "Tr2RenderJobs", family: "renderJob" })
 export class Tr2RenderJobs
 {
-  @edit.read
-  @edit.persist
-  @type.list("TriRenderJob")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("TriRenderJob")
   recurring = [];
 
-  @edit.read
-  @edit.persist
-  @type.list("TriRenderJob")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("TriRenderJob")
   once = [];
 
-  @edit.read
-  @edit.persist
-  @type.list("TriRenderJob")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("TriRenderJob")
   chained = [];
 
-  @edit.read
-  @edit.persist
-  @type.list("TriRenderJob")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("TriRenderJob")
   updateRecurring = [];
 
   /**
@@ -37,8 +37,8 @@ export class Tr2RenderJobs
    * The whole pass is bracketed by a render-target/depth-stencil batch so no job can leak a binding past the frame.
    * @param {object} [executor] performs the work the jobs describe; defaults to the shared Tr2RenderContext
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Run(realTime, simTime, executor = null)
   {
     const context = executor ?? Tr2RenderContext_GetMainThreadRenderContext();
@@ -86,8 +86,8 @@ export class Tr2RenderJobs
    * jobs only; unlike Run this pass reschedules nothing and is not bracketed by
    * a batch.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RunUpdate(realTime, simTime, executor = null)
   {
     const context = executor ?? Tr2RenderContext_GetMainThreadRenderContext();

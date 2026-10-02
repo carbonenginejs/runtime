@@ -1,15 +1,15 @@
 // Source: trinity/trinity/Shader/Tr2ShaderBuffer.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 
 /** Owns a detached byte payload for one shader stage while leaving device binding to the engine. */
-@type.define({ className: "Tr2ShaderBuffer", family: "shader" })
+@meta.define({ className: "Tr2ShaderBuffer", family: "shader" })
 export class Tr2ShaderBuffer
 {
 
   /** m_size (int) [READ] */
-  @edit.read
-  @type.int32
+  @meta.blue.read
+  @meta.type.int32
   size = 0;
 
   data = null;
@@ -17,8 +17,8 @@ export class Tr2ShaderBuffer
   shaderType = 1;
 
   /** Carbon method SetData -> SetDataFromScript (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetData(data, size = data?.byteLength ?? data?.length ?? 0)
   {
     const byteSize = Math.max(0, Number(size) || 0);

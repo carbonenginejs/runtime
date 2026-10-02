@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2BoneMatrixCurve_Blue.cpp
 // Source: trinity/trinity/include/Tr2Curve.h:26-33
 import { mat4 } from "#math/mat4";
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 
 
 /**
@@ -20,18 +20,18 @@ import { meta, types } from "#schema";
 export class Tr2MatrixKey
 {
   /** Key time in seconds. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   time = 0;
 
   /** Owned matrix storage; each key has a distinct buffer. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.mat4
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.mat4
   value = mat4.create();
 
 }
 
 // Native own query table; no inherited exposure chain.
-meta.carbon.interfaceTable({ interfaces: [ Tr2MatrixKey ], chainTo: null })(Tr2MatrixKey);
+meta.blue.interfaceTable({ interfaces: [ Tr2MatrixKey ], chainTo: null })(Tr2MatrixKey);

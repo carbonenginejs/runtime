@@ -5,14 +5,14 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { IInitialize } from "#blue/IInitialize";
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 
 
 /**
  * Per-bone rotation and translation offsets layered on top of an animated rig,
  * keyed by bone name until bound into the rig's joint order.
  */
-@type.define({ className: "GrannyBoneOffset", family: "trinityCore" })
+@meta.define({ className: "GrannyBoneOffset", family: "trinityCore" })
 export class GrannyBoneOffset extends IInitialize
 {
   /** Runtime name-to-offset storage; not exposed or persisted. */
@@ -21,16 +21,16 @@ export class GrannyBoneOffset extends IInitialize
   _riggedTransforms = [];
 
   /** Nothing to prepare; always succeeds. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     return true;
   }
 
   /** Whether any bone offset has been set. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HaveTransforms()
   {
     return this._transforms.size !== 0;
@@ -40,8 +40,8 @@ export class GrannyBoneOffset extends IInitialize
    * True when offsets exist but the cached rig binding does not cover the given
    * bone count, so BindToRig must run again.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   NeedRebind(numBones)
   {
     return this.HaveTransforms() && this._riggedTransforms.length !== numBones;
@@ -51,16 +51,16 @@ export class GrannyBoneOffset extends IInitialize
    * Drops the joint-order cache, forcing the next BindToRig to rebuild it; the
    * named offsets are kept.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ClearRigBindings()
   {
     this._riggedTransforms.length = 0;
   }
 
   /** Drops every named bone offset along with the rig binding. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ClearTransforms()
   {
     this._transforms.clear();
@@ -73,8 +73,8 @@ export class GrannyBoneOffset extends IInitialize
    * rig binding. JavaScript string coercion and falsy-name rejection preserve
    * the existing name adapter; gl-matrix stores the native quaternion layout.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetRotation(bone, r, i, j, k)
   {
     if (!bone) return;
@@ -88,8 +88,8 @@ export class GrannyBoneOffset extends IInitialize
    * stored for it, and invalidates the rig binding. The existing JavaScript
    * adapter coerces truthy names to strings and rejects falsy names.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetOffset(bone, x, y, z)
   {
     if (!bone) return;
@@ -108,8 +108,8 @@ export class GrannyBoneOffset extends IInitialize
    * adapter defaults the count and rebuilds all slots, unlike native resize
    * which can retain unmatched slots when rebinding an unchanged size.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   BindToRig(bones, numBones = bones?.length ?? 0)
   {
     if (!bones || !numBones) return;
@@ -124,8 +124,8 @@ export class GrannyBoneOffset extends IInitialize
    * (bone * offset)` here, and the translation is added component-wise rather
    * than transformed.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Apply(out, joint, boneMatrix, parentMatrix)
   {
     const offset = this._riggedTransforms[joint];
@@ -148,8 +148,8 @@ export class GrannyBoneOffset extends IInitialize
    * that joint has no offset. JavaScript treats an absent/out-of-range slot
    * as unbound and uses gl-matrix decomposition and reversed composition.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   ApplyToLocal(joint, rotation, position)
   {
     const offset = this._riggedTransforms[joint];
@@ -162,4 +162,4 @@ export class GrannyBoneOffset extends IInitialize
   }
 }
 
-carbon.interfaceTable({ interfaces: [ GrannyBoneOffset, IInitialize ], chainTo: null })(GrannyBoneOffset);
+meta.blue.interfaceTable({ interfaces: [ GrannyBoneOffset, IInitialize ], chainTo: null })(GrannyBoneOffset);

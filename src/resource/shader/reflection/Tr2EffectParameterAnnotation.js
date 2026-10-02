@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
-import { CjsSchema, impl, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { dwordToFloat } from "#math/num";
 import {
 } from "#utils/is";
@@ -126,12 +126,12 @@ CjsSchema.define(Tr2EffectParameterAnnotation, {
   className: "Tr2EffectParameterAnnotation",
   family: "shader",
   fields: {
-    name: type.string,
-    type: [ type.int32, type.enum("Type") ],
-    boolValue: type.boolean,
-    rawValue: [ impl.adapted, impl.reason("Carbon reads numeric annotations into typed values; the portable source contract retains the exact uint32 payload so NaN, negative zero, and integer bit patterns round-trip losslessly."), type.uint32 ],
-    intValue: type.int32,
-    floatValue: type.float32,
-    stringValue: type.string
+    name: meta.type.string,
+    type: [ meta.type.int32, meta.type.enum("Type") ],
+    boolValue: meta.type.boolean,
+    rawValue: [ meta.adapted, meta.reason("Carbon reads numeric annotations into typed values; the portable source contract retains the exact uint32 payload so NaN, negative zero, and integer bit patterns round-trip losslessly."), meta.type.uint32 ],
+    intValue: meta.type.int32,
+    floatValue: meta.type.float32,
+    stringValue: meta.type.string
   }
 });

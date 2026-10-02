@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Utilities/MatrixUtils.h:9-17 (the struct)
 //   trinity/trinity/Utilities/MatrixUtils.cpp:6-26 (both conversions)
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { mat4 } from "#math/mat4";
 
 /**
@@ -12,7 +12,7 @@ import { mat4 } from "#math/mat4";
  * aggregate storage. The typed-array initializer fixes the runtime width at 12;
  * the existing dictionary array declaration does not enforce that width.
  */
-@type.define({ className: "Float4x3", family: "utilities" })
+@meta.define({ className: "Float4x3", family: "utilities" })
 export class Float4x3
 {
 
@@ -23,7 +23,7 @@ export class Float4x3
    * to this record; dictionary array input can replace it with a number array.
    * @type {Float32Array|number[]}
    */
-  @type.array("float32")
+  @meta.type.array("float32")
   elements = new Float32Array(12);
 
   // Carbon MatrixUtils.cpp:6-20 writes elements[0..3] from _11,_21,_31,_41 -
@@ -41,8 +41,8 @@ export class Float4x3
    * Packs a transform into the twelve floats, writing into `out`. The static
    * helper and optional output buffer adapt the native Matrix constructor.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   static fromMat4(matrix, out = new Float32Array(12))
   {
     for (let column = 0; column < 3; column++)
@@ -60,8 +60,8 @@ export class Float4x3
    * Carbon reconstructs as (0, 0, 0, 1); writes into `out`. The static helper
    * and optional output buffer adapt the native Matrix conversion operator.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   static toMat4(elements, out = mat4.create())
   {
     for (let column = 0; column < 3; column++)
@@ -80,7 +80,7 @@ export class Float4x3
   }
 
   /** Packs a transform into this record's elements. */
-  @impl.custom
+  @meta.ours
   SetFromMat4(matrix)
   {
     Float4x3.fromMat4(matrix, this.elements);
@@ -88,7 +88,7 @@ export class Float4x3
   }
 
   /** This record's elements unpacked into a transform, written into `out`. */
-  @impl.custom
+  @meta.ours
   GetMat4(out = mat4.create())
   {
     return Float4x3.toMat4(this.elements, out);
@@ -96,4 +96,4 @@ export class Float4x3
 
 }
 
-carbon.interfaceTable({ interfaces: [], chainTo: null })(Float4x3);
+meta.blue.interfaceTable({ interfaces: [], chainTo: null })(Float4x3);

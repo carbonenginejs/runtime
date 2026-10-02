@@ -1,7 +1,7 @@
 import { Copier } from "../../../../global/blue/Copier.js";
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.h
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.cpp
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { mat4 } from "#math/mat4";
@@ -19,33 +19,33 @@ const TRANSPARENT_AABB_MAX = vec3.create();
 const TRANSPARENT_CENTER = vec3.create();
 
 /** Runtime implementation of Carbon's swarm renderable component. */
-@type.define({ className: "EveSwarmRenderable", family: "eve/spaceObject/swarm" })
-@carbon.inherit(ITr2Renderable)
+@meta.define({ className: "EveSwarmRenderable", family: "eve/spaceObject/swarm" })
+@meta.blue.inherit(ITr2Renderable)
 export class EveSwarmRenderable extends EveEntity
 {
 
   /** m_mesh (Tr2MeshBasePtr) */
-  @type.objectRef("Tr2MeshBase")
+  @meta.type.objectRef("Tr2MeshBase")
   mesh = null;
 
   /** m_owner (BlueWeakRef<EveSwarm>) */
-  @type.objectRef("EveSwarm")
+  @meta.type.objectRef("EveSwarm")
   owner = null;
 
   /** m_worldTransform (Matrix) */
-  @type.mat4
+  @meta.type.mat4
   worldTransform = mat4.create();
 
   /** m_decals (PEveSpaceObjectDecalVector) */
-  @type.list("EveSpaceObjectDecal")
+  @meta.type.list("EveSpaceObjectDecal")
   decals = [];
 
   /** m_perObjectDataVs (Tr2PersistentPerObjectData<EveSwarmRenderable>) */
-  @type.rawStruct("Tr2PersistentPerObjectData")
+  @meta.type.rawStruct("Tr2PersistentPerObjectData")
   perObjectDataVs = null;
 
   /** m_perObjectDataPs (Tr2PersistentPerObjectData<EveSwarmRenderable>) */
-  @type.rawStruct("Tr2PersistentPerObjectData")
+  @meta.type.rawStruct("Tr2PersistentPerObjectData")
   perObjectDataPs = null;
 
   /** m_vsData / m_psData - this renderable PERSISTENT per-object pair. */
@@ -59,7 +59,7 @@ export class EveSwarmRenderable extends EveEntity
    * @param {Object} owner - the owning swarm; also this renderable's pick ID
    * @param {Object} mesh - the shared fighter mesh
    */
-  @impl.adapted
+  @meta.adapted
   InitializeRenderable(owner, mesh)
   {
     this.owner = owner ?? null;
@@ -71,7 +71,7 @@ export class EveSwarmRenderable extends EveEntity
    * OUTGOING transform becomes worldTransformLast, then the new one is stamped
    * into both records.
    */
-  @impl.implemented
+  @meta.implemented
   SetWorldTransform(transform)
   {
     // The previous LOGICAL transform is what stampChildTransforms needs, so it
@@ -85,14 +85,14 @@ export class EveSwarmRenderable extends EveEntity
    * This fighter's world placement, as last set by SetWorldTransform.
    * @returns {Float32Array} the live logical transform, not a copy
    */
-  @impl.implemented
+  @meta.implemented
   GetWorldTransform()
   {
     return this.worldTransform;
   }
 
   /** Carbon EveSwarm.cpp:132: the booster glow rides in shipData.x. */
-  @impl.implemented
+  @meta.implemented
   SetBoosterIntensity(intensity)
   {
     const shipData = this._perObjectData.ps.Get("shipData");
@@ -106,7 +106,7 @@ export class EveSwarmRenderable extends EveEntity
    * @param {RawData} vsData - the owner EveSpaceObjectVSData record
    * @param {RawData} psData - the owner EveSpaceObjectPSData record
    */
-  @impl.implemented
+  @meta.implemented
   SetShaderData(vsData, psData)
   {
     const vs = this._perObjectData.vs;
@@ -136,7 +136,7 @@ export class EveSwarmRenderable extends EveEntity
    * animating on one ship does not move on the rest.
    * @param {Array} decals - authored decals; each is cloned when it can be
    */
-  @impl.adapted
+  @meta.adapted
   InitDecals(decals)
   {
     this.decals = decals.map(decal => new Copier().CloneTo(decal));
@@ -146,7 +146,7 @@ export class EveSwarmRenderable extends EveEntity
    * The pick identity of this fighter, which Carbon reports as its owning swarm.
    * @returns {Object} the owner, or null before InitializeRenderable
    */
-  @impl.implemented
+  @meta.implemented
   GetID()
   {
     return this.owner;
@@ -157,7 +157,7 @@ export class EveSwarmRenderable extends EveEntity
    * @param {String} name - option name
    * @param {String|Number} value - option value
    */
-  @impl.adapted
+  @meta.adapted
   SetShaderOption(name, value)
   {
     if (this.mesh)
@@ -171,9 +171,9 @@ export class EveSwarmRenderable extends EveEntity
    * mesh areas directly and transparent areas back-to-front by their
    * world-space bounding-box centres.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The render context supplies Carbon's renderer-global view position; GPU-free mesh batches retain geometry source descriptors and the upload is not ported yet.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("The render context supplies Carbon's renderer-global view position; GPU-free mesh batches retain geometry source descriptors and the upload is not ported yet.")
   GetBatches(batches, batchType, perObjectData, _reason, renderContext = null)
   {
     if (!this.mesh)
@@ -235,8 +235,8 @@ export class EveSwarmRenderable extends EveEntity
   }
 
   /** Carbon reports whether the shared fighter mesh has transparent areas. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HasTransparentBatches()
   {
     return this.mesh !== null
@@ -244,9 +244,9 @@ export class EveSwarmRenderable extends EveEntity
   }
 
   /** Distance from the active view position to this fighter's translation. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The render context replaces Carbon's Tr2Renderer global view-position accessor.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("The render context replaces Carbon's Tr2Renderer global view-position accessor.")
   GetSortValue(renderContext)
   {
     const viewPosition = renderContext.GetViewPosition();
@@ -259,8 +259,8 @@ export class EveSwarmRenderable extends EveEntity
 
   /** Carbon EveSwarmRenderable::RegisterComponents (EveSwarm.cpp:306-313):
    * unconditional ShadowCaster leaf self-registration. */
-  @impl.adapted
-  @impl.reason("Carbon's RegisterComponent<IEveShadowCaster> template is expressed as the registry's explicit component-name signature.")
+  @meta.adapted
+  @meta.reason("Carbon's RegisterComponent<IEveShadowCaster> template is expressed as the registry's explicit component-name signature.")
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -280,8 +280,8 @@ export class EveSwarmRenderable extends EveEntity
    * casts volumetric/spot shadows (whose call sites ignore the return and
    * re-check > 5 themselves) but not cascades. Carbon's float& out-param
    * becomes the optional trailing length-1 array. */
-  @impl.adapted
-  @impl.reason("The length-1 out array replaces the float& out-param; the shadow math is ported, including exactly which paths write the out value.")
+  @meta.adapted
+  @meta.reason("The length-1 out array replaces the float& out-param; the shadow math is ported, including exactly which paths write the out value.")
   IsCastingShadow(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
   {
     if (!this.owner)
@@ -323,8 +323,8 @@ export class EveSwarmRenderable extends EveEntity
    * unlike the turret, shadowPixelSize IS consumed here - it drives the LOD
    * select (cpp:282), which is engine-resolved at realization. Returns
    * whether any batch was committed (JS addition; Carbon returns void). */
-  @impl.adapted
-  @impl.reason("Geometry IsGood/GetMeshLod realization (cpp:276-286) and the shadowPixelSize LOD select are engine-resolved; the delegation structure is ported (EveChildMesh precedent).")
+  @meta.adapted
+  @meta.reason("Geometry IsGood/GetMeshLod realization (cpp:276-286) and the shadowPixelSize LOD select are engine-resolved; the delegation structure is ported (EveChildMesh precedent).")
   GetShadowBatches(batches, perObjectData, _shadowPixelSize)
   {
     if (!this.mesh || this.mesh.display === false)
@@ -339,7 +339,7 @@ export class EveSwarmRenderable extends EveEntity
    * over the two PERSISTENT records this class maintains through
    * SetWorldTransform and SetShaderData. No early-outs, unlike the turret gates.
    */
-  @impl.implemented
+  @meta.implemented
   GetPerObjectData(_accumulator = null)
   {
     return { vs: this._perObjectData.vs, ps: this._perObjectData.ps };
@@ -347,7 +347,7 @@ export class EveSwarmRenderable extends EveEntity
 
   /** Carbon EveSwarmRenderable::GetShadowPerObjectData (EveSwarm.cpp:300-303):
    * pure forward to GetPerObjectData. */
-  @impl.implemented
+  @meta.implemented
   GetShadowPerObjectData(accumulator = null)
   {
     return this.GetPerObjectData(accumulator);

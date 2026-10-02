@@ -98,6 +98,6 @@ export class IList
 
 for (const name of [ "GetSize", "GetInfo", "Insert", "Remove", "Append", "GetAt", "FindKey", "Swap", "Sort", "SetNotify", "Move", "GetAllItems" ])
 {
-  CjsSchema.decorateMethod(IList, name, meta.compose.abstract, meta.impl.abstract);
+  CjsSchema.decorateMethod(IList, name, meta.requires, meta.abstract);
 }
 CjsSchema.define(IList, { className: "IList", carbon: "IList", family: "blue", fields: {} });

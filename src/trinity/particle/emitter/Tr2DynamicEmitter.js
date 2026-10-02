@@ -1,14 +1,14 @@
 // Source: trinity/trinity/Particle/Tr2DynamicEmitter.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IInitialize, INotify } from "#blue";
 import { hasUnboundParticleElements } from "../element/particleElementBinding.js";
 import { ITr2GenericEmitterUpdateArguments, ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 
 /** A continuous-rate particle emitter that binds attribute generators to a particle system and spawns particles over time from an accumulated emission rate. */
-@type.define({ className: "Tr2DynamicEmitter", family: "particle" })
-@carbon.inherit(IInitialize)
-@carbon.inherit(INotify)
+@meta.define({ className: "Tr2DynamicEmitter", family: "particle" })
+@meta.blue.inherit(IInitialize)
+@meta.blue.inherit(INotify)
 export class Tr2DynamicEmitter extends ITr2GenericEmitter
 {
 
@@ -23,45 +23,45 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   #lastUpdate = 0;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_isValid (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   isValid = false;
 
   /** m_generators (PITr2AttributeGeneratorVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("ITr2AttributeGenerator")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITr2AttributeGenerator")
   generators = [];
 
   /** m_maxParticles (int32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   maxParticles = -1;
 
   /** m_rate (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   rate = 0;
 
   /** m_particleSystem (Tr2ParticleSystemPtr) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2ParticleSystem")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2ParticleSystem")
   particleSystem = null;
 
   /** Carbon method Rebind (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Browser attribute generators bind directly to the CPU particle-system adapter rather than native declaration pointers.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Browser attribute generators bind directly to the CPU particle-system adapter rather than native declaration pointers.")
   Rebind()
   {
     this.#emittedParticles = 0;
@@ -89,8 +89,8 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   }
 
   /** Carbon method UpdateSimulation (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateSimulation(dt)
   {
     return this.SpawnParticles(null, null, Math.max(0, Number(dt) || 0));
@@ -101,8 +101,8 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    * delta to 0.3s and spawn at the constant rate scaled by the LOD
    * emit-count factor.
    */
-  @impl.adapted
-  @impl.reason("Be::Time is represented as float seconds on the nominal JavaScript update-arguments record.")
+  @meta.adapted
+  @meta.reason("Be::Time is represented as float seconds on the nominal JavaScript update-arguments record.")
   Update(updateArguments)
   {
     if (!this.isValid || !this.particleSystem)
@@ -123,7 +123,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   /**
    * Rebinds the attribute generators against the particle system, re-propagating the thread-safe flag when it was already set.
    */
-  @impl.implemented
+  @meta.implemented
   Initialize()
   {
     if (this.particleSystem)
@@ -138,7 +138,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   }
 
   /** INotify.OnModified (Tr2DynamicEmitter.cpp:63-74): rebind on particle-system changes. */
-  @impl.implemented
+  @meta.implemented
   /**
    * Rebinds the attribute generators and re-propagates the thread-safe flag whenever the particle-system reference changes.
    */
@@ -156,8 +156,8 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   }
 
   /** ITr2GenericEmitter.SetThreadSafeFlag (Tr2DynamicEmitter.cpp:81-88). */
-  @impl.adapted
-  @impl.reason("JavaScript updates are single-threaded; the flag is retained and propagated only for Carbon contract parity.")
+  @meta.adapted
+  @meta.reason("JavaScript updates are single-threaded; the flag is retained and propagated only for Carbon contract parity.")
   SetThreadSafeFlag()
   {
     this.#isThreadSafe = true;
@@ -174,8 +174,8 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    *   overload 1 exactly as Tr2DynamicEmitter.cpp:213-221 does.
    * The Carbon overloads are selected by the leading update-arguments class.
    */
-  @impl.adapted
-  @impl.reason("JavaScript cannot overload; Carbon's signatures are distinguished by the nominal leading update-arguments record and the argument count.")
+  @meta.adapted
+  @meta.reason("JavaScript cannot overload; Carbon's signatures are distinguished by the nominal leading update-arguments record and the argument count.")
   SpawnParticles(a = null, b = null, c = undefined, d = undefined, e = undefined, f = undefined)
   {
     let position;
@@ -247,7 +247,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   /**
    * The running count of particles emitted since the last reset.
    */
-  @impl.implemented
+  @meta.implemented
   GetEmittedParticleCount()
   {
     return this.#emittedParticles;
@@ -256,7 +256,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   /**
    * Resets the running emitted-particle count to zero.
    */
-  @impl.implemented
+  @meta.implemented
   ResetEmittedParticleCount()
   {
     this.#emittedParticles = 0;
@@ -271,4 +271,4 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
 }
 
 // Tr2DynamicEmitter_Blue.cpp maps these identities without a base chain.
-carbon.interfaceTable({ interfaces: [Tr2DynamicEmitter, ITr2GenericEmitter, INotify, IInitialize], chainTo: null })(Tr2DynamicEmitter, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [Tr2DynamicEmitter, ITr2GenericEmitter, INotify, IInitialize], chainTo: null })(Tr2DynamicEmitter, { kind: "class" });

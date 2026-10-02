@@ -7,7 +7,7 @@ export class ITr2InteriorCullable
   /** Tests the frustum and writes the object-to-world matrix. */
   IsInFrustum(_frustum, _objectToWorld) {}
 }
-CjsSchema.decorateMethod(ITr2InteriorCullable, "IsInFrustum", meta.compose.abstract, meta.impl.abstract);
+CjsSchema.decorateMethod(ITr2InteriorCullable, "IsInFrustum", meta.requires, meta.abstract);
 CjsSchema.define(ITr2InteriorCullable, {
   className: "ITr2InteriorCullable", carbon: "ITr2InteriorCullable", family: "interior", fields: {}
 });

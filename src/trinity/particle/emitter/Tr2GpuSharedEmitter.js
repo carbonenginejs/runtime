@@ -6,7 +6,7 @@ import { ccpHashFnv1 } from "#utils/hash";
 import { color } from "#math/color";
 import { vec3 } from "#math/vec3";
 import { IInitialize, INotify } from "#blue";
-import { CjsSchema, carbon, impl, edit, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 
 
@@ -15,168 +15,168 @@ import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
  * particle lifetime and speed range, size and colour ramp, and the drag,
  * turbulence and gravity terms the simulation applies.
  */
-@type.define({ className: "Tr2GpuSharedEmitter", family: "particle" })
-@carbon.inherit(ITr2GenericEmitter, IInitialize, INotify)
+@meta.define({ className: "Tr2GpuSharedEmitter", family: "particle" })
+@meta.blue.inherit(ITr2GenericEmitter, IInitialize, INotify)
 export class Tr2GpuSharedEmitter
 {
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   continuousEmitter = true;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   rate = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   emissionDensity = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxEmissionDensity = 10000;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxDisplacement = 1000;
 
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   position = vec3.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   direction = vec3.fromValues(0, 1, 0);
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   angle = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   innerAngle = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   radius = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   inheritVelocity = 1;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   minSpeed = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxSpeed = 0;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   minLifeTime = 0;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxLifeTime = 0;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   sizes = vec3.create();
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   sizeVariance = 0;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   color0 = color.create();
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   color1 = color.create();
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   color2 = color.create();
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   color3 = color.create();
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   textureIndex = 0;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   colorMidpoint = 0.5;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   velocityStretchRotation = 0;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   drag = 0;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   turbulenceAmplitude = 0;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   turbulenceFrequency = 1;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   gravity = 0;
 
   _id = 0;
@@ -204,8 +204,8 @@ export class Tr2GpuSharedEmitter
    * Hashes the native parameter bytes and selects the shared parameter ID.
    * The revision counter is retained for existing JavaScript consumers.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Initialize()
   {
     this._ReadParameters();
@@ -219,8 +219,8 @@ export class Tr2GpuSharedEmitter
    * Rehashes changed parameters and regenerates the shared ID, retaining the
    * JavaScript revision counter for existing consumers.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnModified()
   {
     this._ReadParameters();
@@ -234,8 +234,8 @@ export class Tr2GpuSharedEmitter
    * Turns emission on or off; disabling also clears the spawn-time cursor so
    * re-enabling restarts timing instead of catching up on the idle interval.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Enable(value)
   {
     this._enabled = !!value;
@@ -243,24 +243,24 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Reports whether this emitter is currently emitting. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   IsEnabled()
   {
     return this._enabled;
   }
 
   /** Sets the emission cone axis in place, treating a missing value as zero. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetDirection(value)
   {
     vec3.copy(this.direction, value || Tr2GpuSharedEmitter._zero3);
   }
 
   /** Sets the emitter origin in place, treating a missing value as zero. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetPosition(value)
   {
     vec3.copy(this.position, value || Tr2GpuSharedEmitter._zero3);
@@ -271,8 +271,8 @@ export class Tr2GpuSharedEmitter
    * JavaScript update arguments carry seconds instead of native Be::Time ticks.
    * Authored schema fields are projected onto the native structs at entry.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(arguments_)
   {
     this._ReadParameters();
@@ -280,7 +280,7 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Shared Update body after schema projection or unique-emitter scaling. */
-  @impl.custom
+  @meta.ours
   _Update(arguments_)
   {
     if (!arguments_.system)
@@ -322,8 +322,8 @@ export class Tr2GpuSharedEmitter
    * while the ordinary four-argument call retains point emission.
    * A reusable value copy preserves the continuous emitter's direction history.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SpawnParticles(arguments_, position = null, velocity = null, rateModifier = 1, velocityEnd, deltaTime)
   {
     // ITr2GenericEmitter.h:75/93 uses one name for the two native overloads.
@@ -340,8 +340,8 @@ export class Tr2GpuSharedEmitter
    * Emits along a segment (Tr2GpuSharedEmitter.cpp:165-191). The distinct name
    * also exposes Carbon's second overload explicitly for existing JS callers.
    */
-  @carbon.renamed("SpawnParticles")
-  @impl.adapted
+  @meta.blue.renamed("SpawnParticles")
+  @meta.adapted
   SpawnParticlesSegment(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime)
   {
     this._ReadParameters();
@@ -349,7 +349,7 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Point overload body shared with the subclass after parameter scaling. */
-  @impl.custom
+  @meta.ours
   _SpawnPoint(arguments_, position, velocity, rateModifier)
   {
     if (!arguments_.system || !this._enabled) return;
@@ -364,7 +364,7 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Segment overload body shared with the subclass after parameter scaling. */
-  @impl.custom
+  @meta.ours
   _SpawnSegment(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime)
   {
     if (!arguments_.system || !this._enabled) return;
@@ -390,8 +390,8 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Carbon's protected SpawnParticles overload, with a distinct JS name. */
-  @carbon.renamed("SpawnParticles")
-  @impl.adapted
+  @meta.blue.renamed("SpawnParticles")
+  @meta.adapted
   _SpawnParticles(emitter, arguments_, positionStart, positionEnd, velocityStart, velocityEnd, carryOverCount, deltaTime)
   {
     vec3.copy(emitter.position, positionEnd);
@@ -417,8 +417,8 @@ export class Tr2GpuSharedEmitter
    * Emits one scaled burst (cpp:236-276). Reusable scratch replaces native
    * stack value copies; the supplied velocity is already in world coordinates.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SpawnOnce(arguments_, velocity, scale = 1, rateModifier = 1)
   {
     if (!arguments_.system || !this._enabled) return;
@@ -451,8 +451,8 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Selects the parameter-sharing ID from the current native-byte hash. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GenerateID()
   {
     this._id = this.GetID(this._paramsHash);
@@ -463,16 +463,16 @@ export class Tr2GpuSharedEmitter
    * cpp:74 uses sizeof(uintptr_t)-1, so the cleared bit is 7, not 63.
    * JS hashes are uint32; the unused high native bits are zero.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetID(hash)
   {
     return (hash & ~128) >>> 0;
   }
 
   /** Hashes the current CPU parameters without changing the stable ID. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateHash()
   {
     this._paramsHash = this.GetHash(this._params);
@@ -484,8 +484,8 @@ export class Tr2GpuSharedEmitter
    * native struct memory to hash; integer fields retain their uint32 bit patterns.
    * All bytes in the module scratch buffer are overwritten before each hash.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetHash(params)
   {
     const data = HASH_DATA;
@@ -517,7 +517,7 @@ export class Tr2GpuSharedEmitter
    * projection must run at call entry, not just on notifications. It does not
    * rehash or replace native motion history and the transformed world attractor.
    */
-  @impl.custom
+  @meta.ours
   _ReadParameters()
   {
     const emitter = this._emitter;
@@ -545,7 +545,7 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Native XMVector3TransformNormal, writing into caller-owned storage. */
-  @impl.custom
+  @meta.ours
   _TransformNormal(out, value, matrix)
   {
     const x = value[0], y = value[1], z = value[2];
@@ -561,8 +561,8 @@ export class Tr2GpuSharedEmitter
    * @param {object} paramsData per-particle parameters; colors may be supplied either as a colors array or as color0..color3
    * attractorStrength is only forwarded on subclasses that declare it.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Setup(rate, emitterData, paramsData)
   {
     const emitter = emitterData || {};
@@ -617,21 +617,21 @@ export class Tr2GpuSharedEmitter
    * Returns the counter bumped by Initialize and OnModified, which a renderer
    * compares against its own copy to detect parameter changes.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetRevision()
   {
     return this._revision;
   }
 
   /** Carbon's GPU emitter thread-safety hook is intentionally empty. */
-  @impl.noop
+  @meta.noop
   SetThreadSafeFlag()
   {
   }
 
   /** Allocates a native emitter record once for instance state or module scratch. */
-  @impl.custom
+  @meta.ours
   static _createEmitter()
   {
     return {
@@ -643,7 +643,7 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Allocates native parameter defaults once for instance state or module scratch. */
-  @impl.custom
+  @meta.ours
   static _createParams()
   {
     return {
@@ -656,7 +656,7 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Models native Emitter value assignment without allocating JS storage. */
-  @impl.custom
+  @meta.ours
   static _copyEmitter(out, value)
   {
     vec3.copy(out.position, value.position);
@@ -677,7 +677,7 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Models native EmitterParams value assignment without allocating JS storage. */
-  @impl.custom
+  @meta.ours
   static _copyParams(out, value)
   {
     out.minLifeTime = value.minLifeTime;
@@ -716,4 +716,4 @@ const SPAWN_VELOCITY_END = vec3.create();
 const HASH_BYTES = new Uint8Array(132);
 const HASH_DATA = new DataView(HASH_BYTES.buffer);
 
-carbon.interfaceTable({ interfaces: [Tr2GpuSharedEmitter, IInitialize, INotify, ITr2GenericEmitter], chainTo: null })(Tr2GpuSharedEmitter, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [Tr2GpuSharedEmitter, IInitialize, INotify, ITr2GenericEmitter], chainTo: null })(Tr2GpuSharedEmitter, { kind: "class" });

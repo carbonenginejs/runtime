@@ -1,4 +1,4 @@
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { Origin } from "../../generated/eve/child/enums.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 
@@ -34,16 +34,16 @@ export function EveCollectAreas(type, mesh, areaPool)
  * Carbon supplies real no-op defaults for the optional child capabilities;
  * owner, parent and part-tag state remain concrete shared behavior.
  */
-@type.define({ className: "EveSpaceObjectChild", family: "eve/child" })
+@meta.define({ className: "EveSpaceObjectChild", family: "eve/child" })
 export class EveSpaceObjectChild extends IEveSpaceObjectChild
 {
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   partTag = 0;
 
   _owner = null;
@@ -171,8 +171,8 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
     this.partTag = Number(tag) >>> 0;
   }
 
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   /** Returns the owning space object. */
   GetOwner()
   {
@@ -185,8 +185,8 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
     this._owner = owner ?? null;
   }
 
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   /** Returns the parent child node. */
   GetParent()
   {
@@ -218,16 +218,16 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
    * Returns the damage overlay of one part of this child, or null while the
    * part has none (Carbon EveSpaceObjectChild.cpp:138-141 base default).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetPartDamageOverlay(_partTag)
   {
     return null;
   }
 
   /** Creates the damage overlay of one part (Carbon cpp:143-145 base no-op). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   CreatePartDamageOverlay(_partTag)
   {
   }
@@ -236,8 +236,8 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
    * Returns the armour damage shader of one part, or null when the child has
    * none (Carbon cpp:147-150 base default).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetPartArmorDamageShaderEffect(_partTag)
   {
     return null;
@@ -247,8 +247,8 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
    * Writes the animated child-local pose of one of a part's damage locators;
    * the base child owns none, so nothing is written (Carbon cpp:152-155).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetPartDamageLocatorAnimatedLocal(_partTag, _index, _position, _direction)
   {
     return false;
@@ -314,4 +314,4 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
 }
 
 // EveSpaceObjectChild_Blue.cpp: native exposure.
-carbon.interfaceTable({ interfaces: [EveSpaceObjectChild], chainTo: null })(EveSpaceObjectChild, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveSpaceObjectChild], chainTo: null })(EveSpaceObjectChild, { kind: "class" });

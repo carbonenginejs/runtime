@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Curves/Fader/Tr2ScalarFader.h
 // Source: trinity/trinity/Curves/Fader/Tr2ScalarFader.cpp
 import { num } from "#math/num";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 
 
 const TRI_PI = Math.PI;
@@ -11,7 +11,7 @@ const TRI_PI = Math.PI;
  * length, and also exposes a separate non-linear kick-in pulse that runs once
  * per fade-in.
  */
-@type.define({
+@meta.define({
   className: "Tr2ScalarFader",
   family: "curves"
 })
@@ -22,16 +22,16 @@ export class Tr2ScalarFader
    * to 1.
    * @type {number}
    */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   value = 0;
 
   /**
    * Signed rate of change in envelope units per second; zero stops the linear fade.
    * @type {number}
    */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   fading = 0;
 
   /**
@@ -39,8 +39,8 @@ export class Tr2ScalarFader
    * zero.
    * @type {number}
    */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   fadeTime = -1;
 
   /**
@@ -54,8 +54,8 @@ export class Tr2ScalarFader
    * @param {EveUpdateContext} updateContext Update context supplying GetDeltaT().
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Update(updateContext)
   {
     if (this.fading !== 0)
@@ -88,8 +88,8 @@ export class Tr2ScalarFader
    * @param {number} fadeLength Fade duration in seconds.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   StartFade(isFadeIn, fadeLength)
   {
     this.kickInLength = fadeLength;
@@ -104,8 +104,8 @@ export class Tr2ScalarFader
    * Checks whether the fader is inactive and contributes no value.
    * @returns {boolean}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsZero()
   {
     return this.value === 0 && this.fading === 0;
@@ -115,8 +115,8 @@ export class Tr2ScalarFader
    * Gets the current linear fade value.
    * @returns {number}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetFaderValue()
   {
     return this.value;
@@ -126,8 +126,8 @@ export class Tr2ScalarFader
    * Checks whether the kick-in envelope is inactive or at its start.
    * @returns {boolean}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsKickInZero()
   {
     return this.fadeTime <= 0;
@@ -137,8 +137,8 @@ export class Tr2ScalarFader
    * Gets Carbon's non-linear kick-in envelope value.
    * @returns {number}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetKickInValue()
   {
     if (this.fadeTime < 0)
@@ -152,7 +152,7 @@ export class Tr2ScalarFader
 }
 
 // Exact native exposure table; no inherited or implicit entries.
-carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [Tr2ScalarFader],
   chainTo: null
 })(Tr2ScalarFader);

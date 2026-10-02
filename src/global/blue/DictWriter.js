@@ -20,7 +20,7 @@
 //   when `typeTags` (only where the class differs from the declared one) or
 //   `forceTypeTags` asks, and anchoring when `refs` asks - the interchange
 //   contract's options; without `refs` a shared object is written each time.
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { IRootWriter } from "./IRootWriter.js";
 import { BeObjectMetadata } from "./BlueObjectMetadata.js";
 import { BLUE_OBJECT_METADATA_KEY } from "./IBlueObjectMetadata.js";
@@ -191,5 +191,5 @@ export class DictWriter extends IRootWriter
 }
 
 CjsSchema.define(DictWriter, { className: "DictWriter", modelledOn: "YamlWriter" });
-CjsSchema.decorateMethod(DictWriter, "WriteIRoot", impl.adapted);
-CjsSchema.decorateMethod(DictWriter, "WriteObject", impl.custom);
+CjsSchema.decorateMethod(DictWriter, "WriteIRoot", meta.adapted);
+CjsSchema.decorateMethod(DictWriter, "WriteObject", meta.ours);

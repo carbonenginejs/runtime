@@ -1,17 +1,17 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Hand-authored following the eve/socket generated pattern (SOCKET_PARAM_DECLARE macro family).
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.js";
 
 /** Binds a named boolean socket value to external parameters, capturing and restoring each binding's previous value. */
-@type.define({ className: "EveSocketParameterBool", family: "eve/socket" })
+@meta.define({ className: "EveSocketParameterBool", family: "eve/socket" })
 export class EveSocketParameterBool extends EveSocketParameterBindingBase
 {
 
   /** m_value (bool) */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   value = false;
 
   /** m_defaults - one default captured per bound external parameter. */
@@ -21,8 +21,8 @@ export class EveSocketParameterBool extends EveSocketParameterBindingBase
    * Discards the captured defaults along with the bindings, so nothing can be
    * restored afterwards.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ClearBindings()
   {
     this._defaults.length = 0;
@@ -30,8 +30,8 @@ export class EveSocketParameterBool extends EveSocketParameterBindingBase
   }
 
   /** Restores every binding's default and copies it out, then clears. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Reset()
   {
     for (let index = 0; index < this.bindings.length; index++)
@@ -66,8 +66,8 @@ export class EveSocketParameterBool extends EveSocketParameterBindingBase
    * Restores the first captured default, falling back to false when nothing was
    * captured.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetValueToDefault()
   {
     this.value = this._defaults.length ? this._defaults[0] : false;

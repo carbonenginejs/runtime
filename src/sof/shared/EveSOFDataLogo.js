@@ -1,26 +1,26 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveSOFDataTexture } from "./EveSOFDataTexture.js";
 
 /** Stores a logo texture set and supports assignment and composition with another logo value. */
-@type.define({ className: "EveSOFDataLogo", family: "eve" })
+@meta.define({ className: "EveSOFDataLogo", family: "eve" })
 export class EveSOFDataLogo
 {
 
   /** Named texture bindings assigned into the logo texture map; native m_textures is a READ/PERSIST pointer vector, retained as a JS array.
    * @type {EveSOFDataTexture[]}
    */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataTexture")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataTexture")
   textures = [];
 
   /** Populates a logo configuration with authored texture paths; a JS-only helper.
    * @param {object} [config={}] Reused logo configuration.
    * @returns {object} The supplied configuration.
    */
-  @impl.custom
+  @meta.ours
   Assign(config = {})
   {
     config.textures = this.AssignTextures(config.textures);
@@ -31,7 +31,7 @@ export class EveSOFDataLogo
    * @param {Object<string, string>} [out={}] Reused texture map.
    * @returns {Object<string, string>} The supplied map.
    */
-  @impl.custom
+  @meta.ours
   AssignTextures(out = {})
   {
     for (const texture of this.textures) texture.Assign(out);
@@ -46,7 +46,7 @@ export class EveSOFDataLogo
    * @param {EveSOFDataLogo|null} [out=null] Reused output, or a new logo when null.
    * @returns {EveSOFDataLogo} The output logo.
    */
-  @impl.custom
+  @meta.ours
   static combine(base, overrides, out = null)
   {
     out ??= new this();
@@ -58,4 +58,4 @@ export class EveSOFDataLogo
 }
 
 // Native IRoot-only data exposes its own identity, with no lifecycle/update contract.
-carbon.interfaceTable({ interfaces: [EveSOFDataLogo], chainTo: null })(EveSOFDataLogo);
+meta.blue.interfaceTable({ interfaces: [EveSOFDataLogo], chainTo: null })(EveSOFDataLogo);

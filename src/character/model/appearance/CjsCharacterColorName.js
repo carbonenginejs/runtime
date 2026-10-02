@@ -1,19 +1,19 @@
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /** Authored appearance-color name and hair-color classification. */
-@type.define({ className: "CjsCharacterColorName", family: "character" })
+@meta.define({ className: "CjsCharacterColorName", family: "character" })
 export class CjsCharacterColorName extends CjsCharacterRecord
 {
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     colorName = "";
 
-    @edit.readwrite
-    @edit.persist
-    @type.uint8
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.uint8
     hairColor = 0;
 
 }

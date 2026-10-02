@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepSetViewport.h
 // Source: trinity/trinity/RenderJob/TriStepSetViewport.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -9,17 +9,17 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * Step that installs a viewport, or restores the full-screen viewport when none
  * is authored.
  */
-@type.define({ className: "TriStepSetViewport", family: "renderJob" })
+@meta.define({ className: "TriStepSetViewport", family: "renderJob" })
 export class TriStepSetViewport extends TriRenderStep
 {
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("TriViewport")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("TriViewport")
   viewport = null;
 
   /** Stores the viewport this step installs. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   __init__(viewport = null)
   {
     this.SetViewport(viewport);
@@ -29,8 +29,8 @@ export class TriStepSetViewport extends TriRenderStep
    * Replaces the viewport; null selects the full-screen viewport instead of
    * leaving the current one.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetViewport(viewport)
   {
     this.viewport = viewport ?? null;
@@ -40,8 +40,8 @@ export class TriStepSetViewport extends TriRenderStep
    * Sets the authored viewport, or asks the render context for its full-screen
    * viewport when none is set.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     // Through the effect state manager, as Carbon's step does

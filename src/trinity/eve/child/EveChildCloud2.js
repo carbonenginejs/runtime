@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud2.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import "#blue/registerTrinityEnums";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -107,160 +107,160 @@ function TransformNormal(out, v, m)
 }
 
 /** A volumetric cloud entity that renders as a raymarched unit-cube volume with its own lightmap, shadow map and lighting, and can also contribute reflection batches. */
-@type.define({ className: "EveChildCloud2", family: "eve/child" })
-@carbon.inherit(ITr2Renderable)
+@meta.define({ className: "EveChildCloud2", family: "eve/child" })
+@meta.blue.inherit(ITr2Renderable)
 export class EveChildCloud2 extends EveSpaceObjectChild
 {
 
   /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.EntityComponents.ReflectionMode")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.EntityComponents.ReflectionMode")
   reflectionMode = 0;
 
   /** m_minVisibleQuality (Tr2VolumerticQuality - enum Tr2VolumerticQuality) [READWRITE, PERSIST, ENUM] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.Tr2VolumerticQuality")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2VolumerticQuality")
   minVisibleQuality = 0;
 
   /** m_sortingModifier (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   sortingModifier = 0;
 
   /** m_animation (Tr2TextureAnimationPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2TextureAnimation")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2TextureAnimation")
   animation = null;
 
   /** m_shadowMapDS (Tr2DepthStencilPtr) [READWRITE, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @type.objectRef("Tr2DepthStencil")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2DepthStencil")
   shadowMapDS = null;
 
   /** m_lightMap (Tr2TextureReferencePtr) [READ] */
-  @edit.read
-  @type.objectRef("Tr2TextureReference")
+  @meta.blue.read
+  @meta.type.objectRef("Tr2TextureReference")
   lightmap = null;
 
   /** m_lightmapSizeScale (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   lightmapSizeScale = 0;
 
   /** m_lights (PTr2LightVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("Tr2Light")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2Light")
   lights = [];
 
   /** m_minScreenSize (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   minScreenSize = 0;
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.quat
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   rotation = quat.create();
 
   /** m_translation (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   translation = vec3.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   scaling = vec3.create();
 
   /** m_reflectionEffect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2Effect")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2Effect")
   reflectionEffect = null;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2Effect")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2Effect")
   effect = null;
 
   /** m_noiseTextureSize (uint32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   noiseTextureSize = 0;
 
   /** m_mapOffsets[0] (Vector3) [READ] */
-  @edit.read
-  @type.vec3
+  @meta.blue.read
+  @meta.type.vec3
   mapOffset0 = vec3.create();
 
   /** m_mapOffsets[1] (Vector3) [READ] */
-  @edit.read
-  @type.vec3
+  @meta.blue.read
+  @meta.type.vec3
   mapOffset1 = vec3.create();
 
   /** m_mapOffsets[2] (Vector3) [READ] */
-  @edit.read
-  @type.vec3
+  @meta.blue.read
+  @meta.type.vec3
   mapOffset2 = vec3.create();
 
   /** m_castShadows (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   castShadows = false;
 
   /** m_receiveShadows (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   receiveShadows = false;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_mapTiling[1] (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   detailTiling1 = vec3.create();
 
   /** m_mapTiling[2] (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   detailTiling2 = vec3.create();
 
   /** m_mapTiling[0] (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   textureTiling = vec3.create();
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   display = false;
 
   // --- Runtime state (Carbon ctor cpp:72-118; not persisted). NOTE: the
@@ -348,7 +348,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * reflectionEffect. Note: no whole-block display gate in Carbon. No
    * UnRegisterComponents override (base no-op; EveEntity::UnRegister already
    * removes the components, EveEntity.cpp:90). */
-  @impl.implemented
+  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -374,8 +374,8 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * renderedLastFrame is cleared every pass (cpp:684) - the flag is only
    * re-stamped by the volumetric batch path (GetVolumetricBatches cpp:283),
    * deliberately NOT by the reflection path. */
-  @impl.adapted
-  @impl.reason("DensityMap texture discovery and empty-lightmap creation (cpp:634-674) are not ported yet resource work - lightmapWidth stays 0 until the engine stamps it, which fail-closes UpdateVolumetricLightmap; the hash invalidation, animation gate and renderedLastFrame contract are ported.")
+  @meta.adapted
+  @meta.reason("DensityMap texture discovery and empty-lightmap creation (cpp:634-674) are not ported yet resource work - lightmapWidth stays 0 until the engine stamps it, which fail-closes UpdateVolumetricLightmap; the hash invalidation, animation gate and renderedLastFrame contract are ported.")
   UpdateSyncronous(updateContext, _params)
   {
     if (this.effect)
@@ -410,7 +410,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * corrected world movement rotated into local space (cpp:697-704 - QUIRK
    * kept verbatim: the .z offset scrolls by mapTiling.y, cpp:703); adjusted
    * min screen size (cpp:706); hasUpdated stamp (cpp:707). */
-  @impl.implemented
+  @meta.implemented
   UpdateAsyncronous(updateContext, params = {})
   {
     // Carbon TransformationMatrix(m_scaling, m_rotation, m_translation)
@@ -465,7 +465,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   /** Carbon EveChildCloud2::GetBoundingSphere (cpp:226-230): the packed
    * (center, radius) cloud sphere, unconditionally true. IEveSpaceObjectChild
    * override - parent bounds unions consume it optional-chained. */
-  @impl.implemented
+  @meta.implemented
   GetBoundingSphere(out = new Float32Array(4), _query = 0)
   {
     out[0] = this.boundingSphere.center[0];
@@ -477,7 +477,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
 
   /** Carbon EveChildCloud2::GetLocalToWorldTransform (cpp:232-235); the
    * optional out follows the EveChildContainer copy-out shape. */
-  @impl.implemented
+  @meta.implemented
   GetLocalToWorldTransform(out = null)
   {
     if (out)
@@ -493,7 +493,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * the LIVE lodFactor (not the adjusted stamp). Carbon's override of the
    * defaulted ITr2Renderable::IsVisible (h:47-50 returns true) - without it
    * the reflection gather would treat the cloud as always visible. */
-  @impl.implemented
+  @meta.implemented
   IsVisible(updateContext)
   {
     const frustum = updateContext?.GetFrustum();
@@ -516,7 +516,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
 
   /** Carbon EveChildCloud2::HasValidTransform (cpp:309-317): determinant is
    * nonzero and finite. */
-  @impl.implemented
+  @meta.implemented
   HasValidTransform()
   {
     const det = mat4.determinant(this.worldTransform);
@@ -524,7 +524,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   }
 
   /** Carbon EveChildCloud2::IsLightmapDirty (cpp:748-751). */
-  @impl.implemented
+  @meta.implemented
   IsLightmapDirty()
   {
     return this.lightmapDirty;
@@ -533,7 +533,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   /** Carbon EveChildCloud2::MarkLightmapDirty (cpp:753-757): also zeroes the
    * dirty offset (contrast SetSceneInformation's scale-change path, which
    * sets the flag WITHOUT resetting the offset - cpp:398-402). */
-  @impl.implemented
+  @meta.implemented
   MarkLightmapDirty(dirty)
   {
     this.lightmapDirty = !!dirty;
@@ -547,7 +547,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * transform through the duck-typed manager. Inside Tr2Light::AddLight
    * Carbon composes boneTransform * transform (Tr2Light.cpp:132) - that swap
    * belongs to the Tr2Light port, not here. */
-  @impl.implemented
+  @meta.implemented
   GetLights(lightManager)
   {
     if (!this.display)
@@ -573,7 +573,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * Tr2VolumetricsRenderer.cpp:276-287) - and the ITr2Renderable zero-arg
    * form (cpp:914-917) - float32 max (finite, NOT Infinity), so the
    * transparent reflection pass sorts the cloud to draw first. */
-  @impl.implemented
+  @meta.implemented
   GetSortValue(frustum = null)
   {
     if (!frustum)
@@ -596,8 +596,8 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * screenSize per-object data and Carbon's 36-index draw (cpp:276-281).
    * Stamps renderedLastFrame (cpp:283) - the texture-animation keep-alive.
    * Returns whether a batch was committed (JS addition; Carbon returns void). */
-  @impl.adapted
-  @impl.reason("The procedural unit-cube vertex/index buffers and declaration (OnPrepareResources cpp:453-532) are engine-realized, so the buffer-validity gate (cpp:267-270) and shader-state gate (cpp:271-274) reduce to the effect presence check; the batch records the effect, per-object data and draw arguments for the engine to bind the cube.")
+  @meta.adapted
+  @meta.reason("The procedural unit-cube vertex/index buffers and declaration (OnPrepareResources cpp:453-532) are engine-realized, so the buffer-validity gate (cpp:267-270) and shader-state gate (cpp:271-274) reduce to the effect presence check; the batch records the effect, per-object data and draw arguments for the engine to bind the cube.")
   GetVolumetricBatches(frustum, batches)
   {
     if (this.currentQuality < this.minVisibleQuality)
@@ -648,8 +648,8 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * the slice count uses the scaled ones (cpp:359-361). Success advances
    * lightmapDirtyOffset by slices; reaching scaledWidth completes the map
    * (dirty false, offset 0); failure resets the offset and returns false. */
-  @impl.adapted
-  @impl.reason("The 3D lightmap texture lifecycle, per-object upload and LightMap variable swaps (cpp:327-352, 363-372) are not ported yet; the GenerateLightmap dispatch goes through Tr2Renderer.runComputeShader as Carbon's does (cpp:338-344).")
+  @meta.adapted
+  @meta.reason("The 3D lightmap texture lifecycle, per-object upload and LightMap variable swaps (cpp:327-352, 363-372) are not ported yet; the GenerateLightmap dispatch goes through Tr2Renderer.runComputeShader as Carbon's does (cpp:338-344).")
   UpdateVolumetricLightmap(renderContext)
   {
     if (this.currentQuality < this.minVisibleQuality || !this.hasUpdated)
@@ -697,8 +697,8 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * cos(5/180) - QUIRK verbatim: Carbon omits the degree conversion, so the
    * threshold is ~1.59 degrees, not 5 (cpp:408); stamps target dims; flips
    * the two cloud-shadow effect options (cpp:417-423). */
-  @impl.adapted
-  @impl.reason("Carbon dereferences m_effect with no null guard (cpp:417); the JS option writes are optional-chained. Everything else is verbatim, including the missing degree conversion in the sun-motion threshold.")
+  @meta.adapted
+  @meta.reason("Carbon dereferences m_effect with no null guard (cpp:417); the JS option writes are optional-chained. Everything else is verbatim, including the missing degree conversion in the sun-motion threshold.")
   SetSceneInformation(sceneInformation)
   {
     let lightmapSizeScale;
@@ -756,8 +756,8 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * cpp:782), non-indexed single-triangle batch with screenSize-1 per-object
    * data (cpp:778-784). Does NOT stamp renderedLastFrame. Returns whether the
    * batch was committed (JS addition). */
-  @impl.adapted
-  @impl.reason("The 'Shadow' technique gate applies only when a shader-state interface is present, and the batch is dropped otherwise; NULL_DECLARATION maps to declaration 0.")
+  @meta.adapted
+  @meta.reason("The 'Shadow' technique gate applies only when a shader-state interface is present, and the batch is dropped otherwise; NULL_DECLARATION maps to declaration 0.")
   GetVolumetricShadowBatches(batches)
   {
     if (!this.display || !this.effect || !this.castShadows)
@@ -790,7 +790,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * delegation to SetupShadowFrustum. The scene calls this to build the
    * shadow-camera package before rendering casters into the cloud shadow map
    * (EveSpaceScene.cpp:2355-2371). */
-  @impl.implemented
+  @meta.implemented
   GetVolumetricShadowInfo(shadowInfo, sunDir)
   {
     return this.SetupShadowFrustum(shadowInfo, sunDir);
@@ -808,7 +808,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * formula both preserved; DeriveFrustum(lightView, aabb.min, aabb.max)
    * (cpp:900-901); outputs aabbMax / lightViewProj copy / shadowFrustum /
    * shadowMapSize (cpp:903-906). */
-  @impl.implemented
+  @meta.implemented
   SetupShadowFrustum(shadowInfo, sunDir)
   {
     vec3.set(SUN_SCRATCH, -sunDir[0], -sunDir[1], -sunDir[2]);
@@ -882,9 +882,9 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @returns {boolean} False when this cloud receives no shadows; otherwise
    *   never returns.
    */
-  @carbon.method
-  @impl.notImplemented
-  @impl.reason("Needs Tr2DepthStencil, which is a generated shell: Create throws and GetTexture/IsValid/GetWidth/GetHeight are absent. The receiveShadows gate and the false return are ported.")
+  @meta.blue.method
+  @meta.notImplemented
+  @meta.reason("Needs Tr2DepthStencil, which is a generated shell: Create throws and GetTexture/IsValid/GetWidth/GetHeight are absent. The receiveShadows gate and the false return are ported.")
   PrepareCloudShadowMap()
   {
     if (!this.receiveShadows)
@@ -903,8 +903,8 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * (registered in the Carbon ctor, cpp:115). QUIRK: Carbon dereferences
    * m_shadowMapDS with no null guard - safe only via the
    * PrepareCloudShadowMap-first call order (see above). */
-  @impl.adapted
-  @impl.reason("The variable store is not ported yet (depthShadowMapHandle is an injected duck); Carbon's unguarded m_shadowMapDS dereference is optional-chained.")
+  @meta.adapted
+  @meta.reason("The variable store is not ported yet (depthShadowMapHandle is an injected duck); Carbon's unguarded m_shadowMapDS dereference is optional-chained.")
   SetCloudShadowMapHandle()
   {
     if (this.shadowMapDS?.IsValid?.())
@@ -921,8 +921,8 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * (cpp:878). QUIRK: unlike GetVolumetricBatches this does NOT stamp
    * renderedLastFrame - reflection-only rendering does not keep texture
    * animations alive. Returns whether a batch was committed (JS addition). */
-  @impl.adapted
-  @impl.reason("Unit-cube buffers/declaration are engine-realized (as GetVolumetricBatches); the perObjectData parameter is unused because Carbon allocates the cloud's own with screenSize 10000 (cpp:878).")
+  @meta.adapted
+  @meta.reason("Unit-cube buffers/declaration are engine-realized (as GetVolumetricBatches); the perObjectData parameter is unused because Carbon allocates the cloud's own with screenSize 10000 (cpp:878).")
   GetBatches(batches, batchType, _perObjectData, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
     if (this.currentQuality < this.minVisibleQuality)
@@ -953,7 +953,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   /** Carbon EveChildCloud2::HasTransparentBatches (cpp:909-912):
    * unconditionally true - the reflection gather always routes the cloud
    * through the transparent leg that feeds GetBatches' type/reason filter. */
-  @impl.implemented
+  @meta.implemented
   HasTransparentBatches()
   {
     return true;
@@ -965,8 +965,8 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * reference plus the CPU-populated field block (cloudData); view-dependent
    * members are refreshed by the engine calling PopulatePerObjectData again
    * with its render context at realization (screenSize is stamped for that). */
-  @impl.adapted
-  @impl.reason("EveChildCloudPerObjectData's device constant buffers are not ported yet; the record carries the object reference, the collection-time screenSize and the CPU field block.")
+  @meta.adapted
+  @meta.reason("EveChildCloudPerObjectData's device constant buffers are not ported yet; the record carries the object reference, the collection-time screenSize and the CPU field block.")
   GetPerObjectData(accumulator = null, screenSize = 1)
   {
     const data = typeof accumulator?.Allocate === "function"
@@ -993,8 +993,8 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * Single-matrix sites (NO swap): the cpp:546/547/551 HLSL packing
    * transposes, cpp:550 TransformCoord with the inverted world, cpp:578
    * Decompose (mat4.getScaling). */
-  @impl.adapted
-  @impl.reason("Tr2Renderer's view/projection globals relocate onto the optional renderContext duck (identity/zero fallbacks when absent - the engine repopulates at realization); rand() maps to Math.random with a zero-size guard Carbon's UB-free ctor default (32) never needed; the Tr2Light Perlin flicker inside GetLight awaits the frame-clock seam.")
+  @meta.adapted
+  @meta.reason("Tr2Renderer's view/projection globals relocate onto the optional renderContext duck (identity/zero fallbacks when absent - the engine repopulates at realization); rand() maps to Math.random with a zero-size guard Carbon's UB-free ctor default (32) never needed; the Tr2Light Perlin flicker inside GetLight awaits the frame-clock seam.")
   PopulatePerObjectData(data, screenSize = 1, renderContext = null)
   {
     const w = this.worldTransform;

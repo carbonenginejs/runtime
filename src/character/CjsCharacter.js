@@ -1,11 +1,11 @@
-import { compose } from "#schema";
+import { meta } from "#schema";
 import { CjsCharacterDiagnostics } from "./CjsCharacterDiagnostics.js";
 
 /** Owns one selected paper doll and its current resolved appearance state. */
 // The first composed emitter (the @compose.notify spike, design record items
 // 9/11): the notify surface arrives by decorator, and the inheritance slot
 // stays free - this class never needed a base for anything else.
-@compose.notify
+@meta.events
 export class CjsCharacter
 {
     _appearanceManager;

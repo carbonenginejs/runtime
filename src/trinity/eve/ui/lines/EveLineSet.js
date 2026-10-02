@@ -2,7 +2,7 @@ import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/UI/EveLineSet.h
 // Source: trinity/trinity/Eve/UI/EveLineSet.cpp
 // Hand-maintained after promotion from generated schema intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { IEveTransform } from "../../IEveTransform.js";
 import { mat4 } from "#math/mat4";
@@ -12,64 +12,64 @@ import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { Tr2PerObjectDataStandard } from "../../../core/rawData/perObjectData/Tr2PerObjectDataStandard.js";
 
 /** Stores editable tactical line records before renderer submission. */
-@type.define({ className: "EveLineSet", family: "eve/ui" })
-@carbon.inherit(ITr2Renderable, IEveSpaceObject2, IEveTransform)
-@carbon.inherit(IInitialize)
-@carbon.mapInterface(IInitialize)
+@meta.define({ className: "EveLineSet", family: "eve/ui" })
+@meta.blue.inherit(ITr2Renderable, IEveSpaceObject2, IEveTransform)
+@meta.blue.inherit(IInitialize)
+@meta.blue.mapInterface(IInitialize)
 export class EveLineSet
 {
 
   /** Carbon's pending CPU line records. */
-  @type.list("EveLineData")
+  @meta.type.list("EveLineData")
   lines = [];
 
-  @type.uint32
+  @meta.type.uint32
   maxCurrentLineCount = 0;
 
-  @type.uint32
+  @meta.type.uint32
   currentSubmittedLineCount = 0;
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_ballRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("ITriQuaternionFunction")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("ITriQuaternionFunction")
   rotationCurve = null;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2Effect")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2Effect")
   effect = null;
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   display = true;
 
   /** m_isRenderedAsTransparent (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   renderTransparent = false;
 
   /** m_ballPosition (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("ITriVectorFunction")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("ITriVectorFunction")
   translationCurve = null;
 
   /** m_worldTransform (EveLineSet.h:119) - runtime state stamped by
@@ -81,8 +81,8 @@ export class EveLineSet
    * rotation, translation). Carbon (s, r, t) is gl
    * fromRotationTranslationScale (r, t, s) - equivalent matrix, different
    * argument order (math skill rule table). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateSyncronous(updateContext)
   {
     const rotation = vec4.fromValues(0, 0, 0, 1);
@@ -96,17 +96,17 @@ export class EveLineSet
   }
 
   /** Carbon EveLineSet::Update forwards to UpdateSyncronous (cpp:120-123). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Update(updateContext)
   {
     this.UpdateSyncronous(updateContext);
   }
 
   /** Carbon method AddLine (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Stores Carbon's pending line data as renderer-neutral JavaScript records; buffer realization is not ported yet.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Stores Carbon's pending line data as renderer-neutral JavaScript records; buffer realization is not ported yet.")
   AddLine(position1, color1, position2, color2)
   {
     this.lines.push({
@@ -119,9 +119,9 @@ export class EveLineSet
   }
 
   /** Carbon method ChangeLineColor (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Mutates the renderer-neutral CPU record because GPU buffer updates belong to an engine package.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Mutates the renderer-neutral CPU record because GPU buffer updates belong to an engine package.")
   ChangeLineColor(id, color1, color2)
   {
     const line = this.lines[id];
@@ -132,9 +132,9 @@ export class EveLineSet
   }
 
   /** Carbon method ChangeLine (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Mutates the renderer-neutral CPU record because GPU buffer updates belong to an engine package.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Mutates the renderer-neutral CPU record because GPU buffer updates belong to an engine package.")
   ChangeLine(id, position1, color1, position2, color2)
   {
     const line = this.lines[id];
@@ -147,9 +147,9 @@ export class EveLineSet
   }
 
   /** Carbon method ChangeLinePosition (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Mutates the renderer-neutral CPU record because GPU buffer updates belong to an engine package.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Mutates the renderer-neutral CPU record because GPU buffer updates belong to an engine package.")
   ChangeLinePosition(id, position1, position2)
   {
     const line = this.lines[id];
@@ -165,9 +165,9 @@ export class EveLineSet
    * capacity watermark; the PrepareResources hop is the AL half and stays
    * with the device lane (OnPrepareResources is classified there).
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon reserves vector capacity and calls PrepareResources; JS arrays need no reserve and the device half belongs to the AL lane.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon reserves vector capacity and calls PrepareResources; JS arrays need no reserve and the device half belongs to the AL lane.")
   Initialize()
   {
     this.maxCurrentLineCount = Math.max(this.maxCurrentLineCount, 100);
@@ -175,17 +175,17 @@ export class EveLineSet
   }
 
   /** Carbon method ClearLines (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ClearLines()
   {
     this.lines.length = 0;
   }
 
   /** Carbon method RemoveLine (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Returns a Boolean for JavaScript callers while preserving Carbon's indexed CPU-line removal.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Returns a Boolean for JavaScript callers while preserving Carbon's indexed CPU-line removal.")
   RemoveLine(id)
   {
     if (!this.lines[id]) return false;
@@ -194,9 +194,9 @@ export class EveLineSet
   }
 
   /** Carbon method SubmitChanges (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Records submitted counts without creating Carbon's GPU vertex buffer; realization is not ported yet.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Records submitted counts without creating Carbon's GPU vertex buffer; realization is not ported yet.")
   SubmitChanges()
   {
     this.maxCurrentLineCount = Math.max(this.maxCurrentLineCount, this.lines.length);
@@ -205,16 +205,16 @@ export class EveLineSet
   }
 
   /** Carbon EveLineSet::HasTransparentBatches is always true (cpp:161-164). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HasTransparentBatches()
   {
     return true;
   }
 
   /** Carbon EveLineSet::GetBatches submits its GPU-backed line vertex buffer (cpp:166-201). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   GetBatches(_accumulator, _batchType, _perObjectData, _reason)
   {
     throw new Error("EveLineSet.GetBatches is not implemented in CarbonEngineJS.");
@@ -223,9 +223,9 @@ export class EveLineSet
   /** Carbon EveLineSet::GetSortValue (cpp:203-208): distance from the view
    * position to the world translation. Carbon reads the Tr2Renderer static;
    * the collector threads the render context instead. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon reads the Tr2Renderer view-position static; the batch collector supplies the render context explicitly.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon reads the Tr2Renderer view-position static; the batch collector supplies the render context explicitly.")
   GetSortValue(renderContext = null)
   {
     const viewPosition = renderContext?.GetViewPosition();
@@ -253,8 +253,8 @@ export class EveLineSet
    * layouts, so the writes below land where the copy would have put them.
    * SetAndTranspose is Carbon's `Transpose( m_worldTransform )`.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetPerObjectData(accumulator)
   {
     const data = Tr2PerObjectDataStandard.alloc(accumulator, "EvePerObjectVSData", "EvePerObjectPSData");

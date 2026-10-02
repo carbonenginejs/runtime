@@ -9,7 +9,7 @@
 // A JavaScript frame is reclaimed when nothing holds it, so the interface has no
 // job. A decoder that wants to reuse its buffers keeps its own free list, which
 // is a private decision rather than a contract between the queue and the owner.
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 
 /** Carbon's frame-pool owner interface; dropped because GC reclaims frames. */
 export class FrameOwner

@@ -73,7 +73,7 @@ export class ITriVectorFunction extends ITriFunction
 
 for (const method of [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleDotAt", "InterpolatedPosition" ])
 {
-  CjsSchema.decorateMethod(ITriVectorFunction, method, meta.compose.abstract, meta.impl.abstract);
+  CjsSchema.decorateMethod(ITriVectorFunction, method, meta.requires, meta.abstract);
 }
 CjsSchema.define(ITriVectorFunction, {
   className: "ITriVectorFunction", carbon: "ITriVectorFunction", family: "blue", fields: {}

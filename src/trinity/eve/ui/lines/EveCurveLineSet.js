@@ -5,7 +5,7 @@ import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { IEveTransform } from "../../IEveTransform.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2CurveLineSet } from "../../../core/line/Tr2CurveLineSet.js";
 import { Tr2PerObjectDataStandard } from "../../../core/rawData/perObjectData/Tr2PerObjectDataStandard.js";
 import { Tr2Effect } from "../../../shader/Tr2Effect.js";
@@ -17,8 +17,8 @@ const WORLD_SPHERE = vec4.create();
 
 
 /** An Eve-owned, transformed and visibility-culled Carbon curve-line set. */
-@type.define({ className: "EveCurveLineSet", family: "eve/ui" })
-@carbon.inherit(IEveSpaceObject2, IEveTransform)
+@meta.define({ className: "EveCurveLineSet", family: "eve/ui" })
+@meta.blue.inherit(IEveSpaceObject2, IEveTransform)
 export class EveCurveLineSet extends Tr2CurveLineSet
 {
 
@@ -33,34 +33,34 @@ export class EveCurveLineSet extends Tr2CurveLineSet
   }
 
   /** Carbon's last visibility result. */
-  @type.boolean
+  @meta.type.boolean
   isVisible = false;
 
   /** Carbon performs no synchronous work for this leaf. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateSyncronous(_updateContext)
   {
   }
 
   /** Carbon performs no asynchronous work for this leaf. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateAsyncronous(_updateContext)
   {
   }
 
   /** Carbon's IEveTransform update is intentionally empty. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Update(_updateContext)
   {
   }
 
   /** Composes local SRT with the parent and culls the transformed local sphere. */
-  @carbon.method
-  @carbon.contextual(["camera"])
-  @impl.implemented
+  @meta.blue.method
+  @meta.blue.contextual(["camera"])
+  @meta.implemented
   UpdateVisibility(updateContext, parentTransform)
   {
     this.isVisible = false;
@@ -82,8 +82,8 @@ export class EveCurveLineSet extends Tr2CurveLineSet
   }
 
   /** Appends this renderable only when the last cull passed. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetRenderables(renderables, _impostors = null)
   {
     if (this.isVisible)
@@ -94,8 +94,8 @@ export class EveCurveLineSet extends Tr2CurveLineSet
   }
 
   /** Copies Carbon's local-space bound. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBoundingSphere(out = vec4.create(), _query = 0)
   {
     vec4.copy(out, this.boundingSphere);
@@ -106,8 +106,8 @@ export class EveCurveLineSet extends Tr2CurveLineSet
    * Carbon EveCurveLineSet::GetPerObjectData (cpp:106-125): the same standard
    * pair as EveLineSet, each with a transposed WorldMat.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetPerObjectData(accumulator)
   {
     const data = Tr2PerObjectDataStandard.alloc(accumulator, "EvePerObjectVSData", "EvePerObjectPSData");
@@ -119,38 +119,38 @@ export class EveCurveLineSet extends Tr2CurveLineSet
   }
 
   /** Carbon always reports the high LOD for this UI renderable. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetLODLevel()
   {
     return Tr2Lod.TR2_LOD_HIGH;
   }
 
   /** Carbon provides no model-center update for this object. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateModelCenterWorldPosition(_position, _time)
   {
   }
 
   /** Carbon provides no model-center result for this object. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetModelCenterWorldPosition(_position)
   {
   }
 
   /** Carbon provides no local box for this object. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetLocalBoundingBox(_minBounds, _maxBounds)
   {
     return false;
   }
 
   /** Carbon's IEveTransform implementation deliberately returns identity. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetLocalToWorldTransform(out = mat4.create())
   {
     return mat4.identity(out);

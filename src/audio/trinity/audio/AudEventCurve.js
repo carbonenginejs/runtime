@@ -1,7 +1,7 @@
 // Source: audio/src/AudEventCurve.h + AudEventCurve.cpp
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/AudEventCurve.json.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IInitialize } from "#blue/IInitialize";
 import { ITriFunction } from "#blue/ITriFunction";
 import { ITriCurveLength } from "#blue/ITriCurveLength";
@@ -12,59 +12,59 @@ import { AudEventKey } from "../../generated/audio/AudEventKey.js";
 import "#blue/registerTrinityEnums";
 
 /** Fires authored audio events as playback time crosses ordered event keys on a timeline curve. */
-@type.define({ className: "AudEventCurve", family: "audio" })
-@carbon.inherit(IInitialize, ITriFunction, ITriCurveLength)
+@meta.define({ className: "AudEventCurve", family: "audio" })
+@meta.blue.inherit(IInitialize, ITriFunction, ITriCurveLength)
 export class AudEventCurve
 {
 
   /** m_extrapolation (TRIEXTRAPOLATION - enum TRIEXTRAPOLATION) [READWRITE, PERSIST, ENUM] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("blue.TRIEXTRAPOLATION")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("blue.TRIEXTRAPOLATION")
   extrapolation = 0;
 
   /** m_time (double) [READ] */
-  @edit.read
-  @type.float64
+  @meta.blue.read
+  @meta.type.float64
   time = 0;
 
   /** m_length (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   length = 0;
 
   /** m_localTime (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   localTime = 0;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_value (std::wstring) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   value = "";
 
   /** m_sourceTriObserver (ITriObserverLocalPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("ITriObserverLocal")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("ITriObserverLocal")
   sourceTriObserver = null;
 
   /** m_keys (PAudEventKeyVector) [PERSISTONLY] */
-  @edit.persistOnly
-  @type.list("AudEventKey")
+  @meta.blue.persistOnly
+  @meta.type.list("AudEventKey")
   keys = [];
 
   /** m_audioEmitter (AudEmitterPtr) [READ] */
-  @edit.read
-  @type.objectRef("AudEmitter")
+  @meta.blue.read
+  @meta.type.objectRef("AudEmitter")
   audioEmitter = null;
 
   // Playback cursor (C++ m_currentKeyIt) - runtime state, rebuildable.
@@ -73,8 +73,8 @@ export class AudEventCurve
   _queuedEvent = "";
 
   /** Carbon method AddKey (MAP_METHOD_AND_WRAP). Appends a key and resorts. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddKey(time, evtName)
   {
     const key = new AudEventKey();
@@ -84,8 +84,8 @@ export class AudEventCurve
   }
 
   /** Carbon method InsertKey (not Blue-mapped): insert, sort, reset cursor, refresh length. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   InsertKey(key)
   {
     this.keys.push(key);
@@ -95,32 +95,32 @@ export class AudEventCurve
   }
 
   /** Carbon method GetKeyCount (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetKeyCount()
   {
     return this.keys.length;
   }
 
   /** Carbon method GetKeyTime (MAP_METHOD_AND_WRAP). Returns 0 out of range. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetKeyTime(ix)
   {
     return InRange(this.keys, ix) ? this.keys[ix].time : 0;
   }
 
   /** Carbon method GetKeyValue (MAP_METHOD_AND_WRAP). Returns "" out of range. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetKeyValue(ix)
   {
     return InRange(this.keys, ix) ? this.keys[ix].value : "";
   }
 
   /** Carbon method SetKeyTime (MAP_METHOD_AND_WRAP). Resorts and refreshes length. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetKeyTime(ix, time)
   {
     if (!InRange(this.keys, ix))
@@ -133,8 +133,8 @@ export class AudEventCurve
   }
 
   /** Carbon method SetKeyValue (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetKeyValue(ix, value)
   {
     if (InRange(this.keys, ix))
@@ -145,8 +145,8 @@ export class AudEventCurve
 
   // Carbon leaves length untouched when the last key is removed - preserved.
   /** Carbon method RemoveKey (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RemoveKey(ix)
   {
     if (!InRange(this.keys, ix))
@@ -163,8 +163,8 @@ export class AudEventCurve
   }
 
   /** Carbon method Initialize (IInitialize): sort persisted keys, refresh length and attach an emitter. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     SortKeys(this.keys);
@@ -189,9 +189,9 @@ export class AudEventCurve
    * externally tweaked key list can restore the invariant, which is what
    * the declaration was evidently for.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Declared but never defined in Carbon; the body is the shared key sort every mutating call site runs.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Declared but never defined in Carbon; the body is the shared key sort every mutating call site runs.")
   Sort()
   {
     SortKeys(this.keys);
@@ -199,32 +199,32 @@ export class AudEventCurve
   }
 
   /** Carbon method Length (ITriCurveLength): returns the cached final key time. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Length()
   {
     return this.length;
   }
 
   /** Carbon method Reset (ITriFunction, not Blue-mapped): rewind the playback cursor. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Reset()
   {
     this._currentKeyIndex = 0;
   }
 
   /** Carbon method GetSourceTriObserver (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetSourceTriObserver()
   {
     return this.sourceTriObserver;
   }
 
   /** Carbon method SetSourceTriObserver (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetSourceTriObserver(sourceTriObserver)
   {
     this.sourceTriObserver = sourceTriObserver;
@@ -232,9 +232,9 @@ export class AudEventCurve
   }
 
   /** Carbon method CreateAudioEmitter: reuse or attach an AudEmitter placement observer. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("This preserves the donor's structural placement-observer seam until the combined runtime has a nominal multi-interface representation for the cross-layer Carbon contract.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("This preserves the donor's structural placement-observer seam until the combined runtime has a nominal multi-interface representation for the cross-layer Carbon contract.")
   CreateAudioEmitter()
   {
     if (!this.sourceTriObserver)
@@ -259,8 +259,8 @@ export class AudEventCurve
   }
 
   /** Carbon method UpdateValue (ITriFunction): fires keyed events as time advances. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateValue(time)
   {
     if (this.length === 0)
@@ -338,4 +338,4 @@ function InRange(keys, ix)
   return Number.isInteger(ix) && ix >= 0 && ix < keys.length;
 }
 
-carbon.interfaceTable({ interfaces: [AudEventCurve, ITriFunction, IInitialize, ITriCurveLength], chainTo: null })(AudEventCurve, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [AudEventCurve, ITriFunction, IInitialize, ITriCurveLength], chainTo: null })(AudEventCurve, { kind: "class" });

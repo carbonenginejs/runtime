@@ -7,7 +7,7 @@ import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, edit, impl, type } from "#schema";
+import { meta } from "#schema";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveSpriteLight } from "./EveSpriteLight.js";
 import { EveSpriteSetItem } from "./EveSpriteSetItem.js";
@@ -48,45 +48,45 @@ function colorByte(value)
  * A hull's authored blinking sprites, owning their static and per-bone bounds
  * and the point lights the sprites emit.
  */
-@type.define({ className: "EveSpriteSet", family: "eve/attachment/sprites" })
-@carbon.inherit(IInitialize)
+@meta.define({ className: "EveSpriteSet", family: "eve/attachment/sprites" })
+@meta.blue.inherit(IInitialize)
 export class EveSpriteSet extends IEveSpaceObjectAttachment
 {
 
-  @edit.notify
-  @edit.read
-  @edit.persist
-  @type.list("EveSpriteSetItem")
+  @meta.blue.notify
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSpriteSetItem")
   sprites = [];
 
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2Effect")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2Effect")
   effect = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   skinned = false;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   intensity = 1;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   display = true;
 
-  @edit.persist
-  @type.list("EveSpriteLight")
+  @meta.blue.persist
+  @meta.type.list("EveSpriteLight")
   lights = [];
 
   _rebuildRevision = 0;
@@ -121,8 +121,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * Drops every sprite and every light; the bounds only follow on the next
    * Rebuild.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Clear()
   {
     this.sprites.length = 0;
@@ -136,8 +136,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * boneMatrix *= parentTransform - Carbon row-vector, bone FIRST, so the
    * gl-matrix operands SWAP; otherwise boneMatrix = parentTransform. Stamps
    * the activation strength (boosterGain is accepted but unused by sprites). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateLights(parentTransform, bones, boneCount, activationStrength, _boosterGain = 0)
   {
     for (const light of this.lights)
@@ -166,8 +166,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * @param {object|vec3} positionOrItem An existing sprite item, or the sprite position.
    * @param {...*} args Either (scale, color, warpColor) for a non-blinking sprite, or (blinkRate, blinkPhase, minScale, maxScale, falloff, color, warpColor).
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Add(positionOrItem, ...args)
   {
     if (positionOrItem && !ArrayBuffer.isView(positionOrItem) && !Array.isArray(positionOrItem) && args.length === 0)
@@ -206,40 +206,40 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
   }
 
   /** The live sprite item list, not a copy. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetSprites()
   {
     return this.sprites;
   }
 
   /** The authored set name, which SOF uses to match this set to its DNA entry. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetName()
   {
     return this.name;
   }
 
   /** Sets the authored set name, coercing null or undefined to an empty string. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetName(name)
   {
     this.name = String(name ?? "");
   }
 
   /** The effect that draws the sprites. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetEffect()
   {
     return this.effect;
   }
 
   /** Sets the effect that draws the sprites. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetEffect(effect)
   {
     this.effect = effect ?? null;
@@ -249,8 +249,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * Sets whether the sprites ride skeleton bones, which is what decides if
    * GetAabb consults the caller's bone list at all.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetSkinned(skinned)
   {
     this.skinned = !!skinned;
@@ -260,8 +260,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * Recomputes the static and per-bone bounds from the authored sprites and
    * marks the packed geometry stale.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Rebuild()
   {
     this._rebuildRevision++;
@@ -324,8 +324,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * (Rebuild does) and this called again - exactly Carbon's SetShaderOption
    * flow (cpp:430-438), whose singleton reach is not ported yet here.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     if (!this.effect) return;
@@ -354,8 +354,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * @param {Float32Array} [bones] Flat Float4x3 list, stride 12.
    * @param {number} [boneCount] Bones available.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddToQuadRenderer(quadRenderer, parentTransform, activation, _boosterGain = 0, bones = null, boneCount = 0)
   {
     if (!this.display || this._spriteData.length === 0) return;
@@ -402,8 +402,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * DESTRUCTIVE in the shared persistent buffer, exactly as Carbon's: a set
    * serves either path each frame, and whichever runs repacks it.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddBoosterGlowToQuadRenderer(quadRenderer, world, boosterGain, warpIntensity)
   {
     if (!this.display || this._spriteData.length === 0) return;
@@ -460,8 +460,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
 
   /** Carbon EveSpriteSet::GetAabb (cpp:163-166): the item-set bounds, with the
    * bone list forwarded only when the set is skinned. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetAabb(out, bones = null, boneCount = 0)
   {
     return GetItemSetAabb(
@@ -477,8 +477,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * is NOT visible; otherwise its bounds move into world space and take the
    * frustum box test. No LOD and no display gate - Carbon tests display at draw
    * time, not here. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
   {
     const aabb = this.GetAabb(EveSpriteSet._aabbScratch, bones, boneCount);
@@ -495,8 +495,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * Runs the first Rebuild so the set has bounds before its first visibility
    * test.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Initialize()
   {
     this.Rebuild();
@@ -507,8 +507,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * Converts a SOF-authored light description into an EveSpriteLight and appends
    * it to the set.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   AddLightFromSOF(light)
   {
     this.lights.push(EveSpriteLight.FromSOF(light));
@@ -516,8 +516,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
 
   /** Carbon EveSpriteSet::RegisterComponents (cpp:445-452): LightOwner when
    * lights are authored. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -534,9 +534,9 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * profile rides the record by reference (Carbon: GetTextureIndex() with NO
    * +1, unlike Tr2Light::AddLight - the asymmetry is moot by-reference but
    * recorded). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("profile-index packing is by-reference per lightConversion.js.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("profile-index packing is by-reference per lightConversion.js.")
   GetLights(lightManager)
   {
     const features = EveSpriteSet._features;
@@ -569,4 +569,4 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
 }
 
 // EveSpriteSet_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
-carbon.interfaceTable({ interfaces: [EveSpriteSet, IInitialize, IEveSpaceObjectAttachment, EveEntity], chainTo: null })(EveSpriteSet, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveSpriteSet, IInitialize, IEveSpaceObjectAttachment, EveEntity], chainTo: null })(EveSpriteSet, { kind: "class" });

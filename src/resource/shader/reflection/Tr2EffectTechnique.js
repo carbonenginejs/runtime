@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
-import { CjsSchema, impl, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import {
 } from "#utils/is";
 import { Tr2EffectLibrary } from "./Tr2EffectLibrary.js";
@@ -78,9 +78,9 @@ CjsSchema.define(Tr2EffectTechnique, {
   className: "Tr2EffectTechnique",
   family: "shader",
   fields: {
-    name: type.string,
-    passes: type.list("Tr2Pass"),
-    libraries: type.list("Tr2EffectLibrary"),
-    shaderTypeMask: type.uint32
+    name: meta.type.string,
+    passes: meta.type.list("Tr2Pass"),
+    libraries: meta.type.list("Tr2EffectLibrary"),
+    shaderTypeMask: meta.type.uint32
   }
 });

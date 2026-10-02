@@ -1,7 +1,7 @@
 // Source: audio/src/AudParameter.h
 // Source: audio/src/AudParameter.cpp
 // Source: audio/src/AudParameter_Blue.cpp
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { INotify } from "#blue/INotify";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 
@@ -10,14 +10,14 @@ import { AudGameObjResource } from "./AudGameObjResource.js";
 export class AudParameter extends INotify
 {
   /** m_name: std::wstring, READWRITE without persistence. */
-  @meta.edit.readwrite
-  @types.wstring
+  @meta.blue.readwrite
+  @meta.type.wstring
   name = "";
 
   /** m_value: float, READWRITE and NOTIFY without persistence. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @types.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.float32
   value = 0;
 
   /** m_ID: unexposed owner identifier; zero means unbound. */
@@ -32,7 +32,7 @@ export class AudParameter extends INotify
    * @param {number} gameObjID Owner identifier; zero leaves the parameter unbound.
    * @returns {void}
    */
-  @meta.impl.custom
+  @meta.ours
   SetGameObjectID(gameObjID)
   {
     this._gameObjID = Number(gameObjID) || 0;
@@ -47,8 +47,8 @@ export class AudParameter extends INotify
    * @param {string|null} propertyName Modified member name.
    * @returns {boolean} Always true when the calls complete.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnModified(propertyName)
   {
     if (propertyName === "value" && AudGameObjResource.manager !== null
@@ -62,7 +62,7 @@ export class AudParameter extends INotify
 }
 
 // Native maps these identities explicitly and has no exposure parent.
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ INotify, AudParameter ],
   chainTo: null
 })(AudParameter, { kind: "class" });

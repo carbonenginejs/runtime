@@ -40,7 +40,7 @@
 // Each public operation owns fresh anchors. After references resolve, mapped
 // IInitialize runs once on its factory results, dependencies first. Existing
 // roots, embedded storage and supplied live objects remain borrowed.
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { omitRuntimeValues } from "../schema/CjsSchema.js";
 import { normalizeCarbonValue } from "../schema/types/index.js";
 import { IRootReaderBase } from "./IRootReaderBase.js";
@@ -1151,9 +1151,9 @@ function IsPlainObject(value)
 }
 
 CjsSchema.define(DictReader, { className: "DictReader", carbon: "DictReader" });
-CjsSchema.decorateMethod(DictReader, "CreateObject", impl.adapted);
-CjsSchema.decorateMethod(DictReader, "ReadInto", impl.custom);
-CjsSchema.decorateMethod(DictReader, "ReadList", impl.adapted);
-CjsSchema.decorateMethod(DictReader, "_ReadIList", impl.adapted);
-CjsSchema.decorateMethod(DictReader, "_Finish", impl.custom);
-CjsSchema.decorateMethod(DictReader, "_CancelPendingListReads", impl.custom);
+CjsSchema.decorateMethod(DictReader, "CreateObject", meta.adapted);
+CjsSchema.decorateMethod(DictReader, "ReadInto", meta.ours);
+CjsSchema.decorateMethod(DictReader, "ReadList", meta.adapted);
+CjsSchema.decorateMethod(DictReader, "_ReadIList", meta.adapted);
+CjsSchema.decorateMethod(DictReader, "_Finish", meta.ours);
+CjsSchema.decorateMethod(DictReader, "_CancelPendingListReads", meta.ours);

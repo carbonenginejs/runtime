@@ -1,46 +1,46 @@
 // Source: trinity/trinity/Tr2RenderNodeEffect.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { RenderingMode } from "#consts/graphics";
 import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
 import "#blue/registerTrinityEnums";
 
 /** A render-graph node that binds named sources onto an effect and produces its output. */
-@type.define({ className: "Tr2RenderNodeEffect", family: "renderJob" })
-@carbon.inherit(ITr2RenderNode)
+@meta.define({ className: "Tr2RenderNodeEffect", family: "renderJob" })
+@meta.blue.inherit(ITr2RenderNode)
 export class Tr2RenderNodeEffect
 {
 
   /** Carbon's grouped source/parameter bindings. */
-  @type.list("Tr2RenderNodeEffectSource")
+  @meta.type.list("Tr2RenderNodeEffectSource")
   sources = [];
 
   /** m_renderingMode (Tr2EffectStateManager::RenderingMode - enum RenderingMode) [READWRITE, ENUM] */
-  @edit.readwrite
-  @type.int32
-  @type.enum("trinity.Tr2EffectStateManager.RenderingMode")
+  @meta.blue.readwrite
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2EffectStateManager.RenderingMode")
   renderingMode = 8;
 
   /** m_effect (Tr2EffectPtr) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("Tr2Effect")
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2Effect")
   effect = null;
 
   /** m_viewport (TriViewportPtr) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("TriViewport")
+  @meta.blue.readwrite
+  @meta.type.objectRef("TriViewport")
   viewport = null;
 
   /** m_inputNodes (PITr2RenderNodeVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("ITr2RenderNode")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITr2RenderNode")
   inputNodes = [];
 
   /** Carbon Tr2RenderNodeEffect::Validate (cpp:15-46). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Tr2BitmapDimensions spans are represented by JavaScript arrays of value records.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Tr2BitmapDimensions spans are represented by JavaScript arrays of value records.")
   Validate(destinationDimensions, outputs, realTime, simTime)
   {
     if (!destinationDimensions.length || outputs.length)
@@ -77,8 +77,8 @@ export class Tr2RenderNodeEffect
   }
 
   /** Carbon method AddSource (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   AddSource(name, source, outputName = "")
   {
     if (!source) return false;

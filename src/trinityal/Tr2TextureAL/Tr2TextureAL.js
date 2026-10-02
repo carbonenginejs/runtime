@@ -1,6 +1,6 @@
 // Source: trinity/trinityal/include/Tr2TextureAL.h
 // Source: trinity/trinityal/src/Tr2TextureAL.cpp
-import { CjsSchema, carbon, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -25,8 +25,8 @@ export class Tr2TextureAL
   }
 
   /** Creates a fresh implementation, preserving existing copies. Context allocation replaces compile-time backend selection. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Create(description, options, renderContext)
   {
     description = Object.assign(new BitmapDimensions(), description);
@@ -37,8 +37,8 @@ export class Tr2TextureAL
   }
 
   /** Shared external textures are unsupported by the current JS backends; failure resets this value. */
-  @carbon.method
-  @impl.notSupported
+  @meta.blue.method
+  @meta.notSupported
   OpenShared(_handle, _gpuUsage, _renderContext)
   {
     this.Destroy();
@@ -46,136 +46,136 @@ export class Tr2TextureAL
   }
 
   /** Reports whether this value references valid backend storage. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsValid()
   {
     return this._texture !== null && this._texture.implementation.IsValid();
   }
 
   /** Returns the backend memory class, or managed for an uncreated value. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetMemoryClass()
   {
     return this._texture ? this._texture.implementation.GetMemoryClass() : Tr2ALMemoryType.AL_MEMORY_MANAGED;
   }
 
   /** Returns the native description, including its empty-value defaults. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetDesc()
   {
     return this._texture ? this._texture.implementation.GetDesc() : emptyDescription;
   }
 
   /** Returns the native multisample description. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetMsaaDesc()
   {
     return this._texture ? this._texture.implementation.GetMsaaDesc() : emptyMsaa;
   }
 
   /** Returns the native usage flags. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetGpuUsage()
   {
     return this._texture ? this._texture.implementation.GetGpuUsage() : 0;
   }
 
   /** Returns the native usage flags. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetCpuUsage()
   {
     return this._texture ? this._texture.implementation.GetCpuUsage() : 0;
   }
 
   /** Returns the corresponding native texture dimension. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetWidth()
   {
     return this.GetDesc().GetWidth();
   }
 
   /** Returns the corresponding native texture dimension. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetHeight()
   {
     return this.GetDesc().GetHeight();
   }
 
   /** Returns the corresponding native texture dimension. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetDepth()
   {
     return this.GetDesc().GetDepth();
   }
 
   /** Returns the corresponding native texture dimension. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetMipCount()
   {
     return this.GetDesc().GetMipCount();
   }
 
   /** Returns the corresponding native texture dimension. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetTrueMipCount()
   {
     return this.GetDesc().GetTrueMipCount();
   }
 
   /** Returns the corresponding native texture dimension. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetFormat()
   {
     return this.GetDesc().GetFormat();
   }
 
   /** Returns the corresponding native texture dimension. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetType()
   {
     return this.GetDesc().GetType();
   }
 
   /** Returns the corresponding native texture dimension. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetArraySize()
   {
     return this.GetDesc().GetArraySize();
   }
 
   /** Returns the byte size of a mip level. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetMipSize(mip)
   {
     return this.GetDesc().GetMipSize(mip);
   }
 
   /** Compares shared implementation identity; JavaScript has no overloadable equality operator. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Equals(other)
   {
     return this._texture === other._texture;
   }
 
   /** Forwards MapForReading to the implementation, preserving the empty-value result. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   MapForReading(region, synchronize, renderContext)
   {
     if (arguments.length === 2)
@@ -187,40 +187,40 @@ export class Tr2TextureAL
   }
 
   /** Forwards UnmapForReading to the implementation, preserving the empty-value result. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UnmapForReading(renderContext)
   {
     return this._texture ? this._texture.implementation.UnmapForReading(renderContext) : undefined;
   }
 
   /** Forwards MapForWriting to the implementation, preserving the empty-value result. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   MapForWriting(region, renderContext)
   {
     return this._texture ? this._texture.implementation.MapForWriting(region, renderContext) : { result: ALResult.E_INVALIDCALL, data: null, pitch: 0 };
   }
 
   /** Forwards UnmapForWriting to the implementation, preserving the empty-value result. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UnmapForWriting(renderContext)
   {
     return this._texture ? this._texture.implementation.UnmapForWriting(renderContext) : undefined;
   }
 
   /** Forwards UpdateSubresource to the implementation, preserving the empty-value result. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateSubresource(region, source, pitch, slicePitch, renderContext)
   {
     return this._texture ? this._texture.implementation.UpdateSubresource(region, source, pitch, slicePitch, renderContext) : ALResult.E_INVALIDCALL;
   }
 
   /** Forwards CopySubresourceRegion to the implementation, preserving the empty-value result. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   CopySubresourceRegion(destinationRegion, source, sourceRegion, renderContext)
   {
     if (!this.IsValid() || !RenderContextALOf(renderContext).IsValid()) return ALResult.E_INVALIDCALL;
@@ -229,8 +229,8 @@ export class Tr2TextureAL
   }
 
   /** Forwards Resolve to the implementation, preserving the empty-value result. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Resolve(destination, renderContext)
   {
     if (this.GetMsaaDesc().samples <= 1)
@@ -243,32 +243,32 @@ export class Tr2TextureAL
   }
 
   /** Forwards GetSharedHandle to the implementation, preserving the empty-value result. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetSharedHandle()
   {
     return this._texture ? this._texture.implementation.GetSharedHandle() : 0;
   }
 
   /** Forwards GetSrvIndexInHeap to the implementation, preserving the empty-value result. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetSrvIndexInHeap(colorSpace = 0)
   {
     return this._texture ? this._texture.implementation.GetSrvIndexInHeap(colorSpace) : 0xffffffff;
   }
 
   /** Forwards GetUavIndexInHeap to the implementation, preserving the empty-value result. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetUavIndexInHeap(mip)
   {
     return this._texture ? this._texture.implementation.GetUavIndexInHeap(mip) : 0xffffffff;
   }
 
   /** Generates mips with Carbon’s validity, mip-count and BGR-format gates. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GenerateMipMaps(renderContext)
   {
     if (!this.IsValid()) return ALResult.E_INVALIDCALL;
@@ -278,8 +278,8 @@ export class Tr2TextureAL
   }
 
   /** Names valid storage; invalid values and absent names retain Carbon’s errors. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetName(name)
   {
     if (!this.IsValid()) return ALResult.E_INVALIDCALL;
@@ -288,23 +288,23 @@ export class Tr2TextureAL
   }
 
   /** Returns the backend name for valid storage. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetName()
   {
     return this.IsValid() ? this._texture.implementation.GetName() : null;
   }
 
   /** Returns the borrowed backend implementation for backend-only operations. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   TrinityALImpl_GetObject()
   {
     return this._texture ? this._texture.implementation : null;
   }
 
   /** Releases this value explicitly because JavaScript has no deterministic scope destructor. Copies remain valid until their own final release. */
-  @impl.custom
+  @meta.ours
   Destroy()
   {
     const owned = this._texture;

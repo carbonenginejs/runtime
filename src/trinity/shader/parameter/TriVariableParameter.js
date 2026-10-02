@@ -3,40 +3,40 @@
 import { IInitialize } from "#blue";
 import { INotify } from "#blue";
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
-import { carbon, edit, impl, type } from "#schema";
+import { meta } from "#schema";
 import { CjsParameter } from "./CjsParameter.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
 /** Forwards a named variable-store entry into a named effect constant or resource. */
-@type.define({ className: "TriVariableParameter", family: "shader" })
-@carbon.inherit(INotify, IInitialize)
+@meta.define({ className: "TriVariableParameter", family: "shader" })
+@meta.blue.inherit(INotify, IInitialize)
 export class TriVariableParameter extends CjsParameter
 {
 
   /** m_name (BlueSharedString) [READWRITE, NOTIFY, PERSIST] */
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_isUsedByEffect (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   usedByCurrentTechnique = false;
 
   /** m_isUsedByEffect (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   usedByCurrentEffect = false;
 
   /** m_variableName (BlueSharedString) [READWRITE, NOTIFY, PERSIST] */
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   variableName = "";
 
   variable = null;
@@ -49,16 +49,16 @@ export class TriVariableParameter extends CjsParameter
    * The shader constant or resource name the variable's value is uploaded to;
    * distinct from variableName, which names the store entry.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetParameterName()
   {
     return this.name;
   }
 
   /** Content hash: name only - the variable's value comes from the store. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
   {
     return CjsParameter.hashFnv1String(this.name, startingHash);
@@ -68,8 +68,8 @@ export class TriVariableParameter extends CjsParameter
    * Resolves variableName against a store and caches the variable object; an empty variableName clears the binding. Always returns true.
    * @param variableStore store to bind against; null keeps the store supplied by an earlier call
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Initialize(variableStore = null)
   {
     this.variableStore = variableStore ?? this.variableStore;
@@ -86,9 +86,9 @@ export class TriVariableParameter extends CjsParameter
    * Consumes the two dirty flags: `variable` re-resolves the store binding,
    * `effectHandles` re-resolves usage against the cached shader.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JS identifies the changed member by its exposed property name; variable-store and effect binding adaptations remain on their owning methods.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JS identifies the changed member by its exposed property name; variable-store and effect binding adaptations remain on their owning methods.")
   OnModified(propertyName)
   {
     if (propertyName === "name")
@@ -107,8 +107,8 @@ export class TriVariableParameter extends CjsParameter
    * variable is a texture or buffer type and as a shader constant otherwise; an
    * unbound variable always counts as unused.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RebuildEffectHandles(effectRes)
   {
     this.cachedEffect = effectRes;
@@ -131,8 +131,8 @@ export class TriVariableParameter extends CjsParameter
    * Delegates the write to the bound variable, so the store owns the value; does
    * nothing when no variable is bound.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   CopyValueToEffect(inputType, dest, size, renderContext)
   {
     this.variable?.CopyValueToEffect?.(inputType, dest, size, renderContext);
@@ -153,8 +153,8 @@ export class TriVariableParameter extends CjsParameter
    * @param {number} [flags] A `ResourceFlags` word; bit 0 is sRGB.
    * @returns {boolean} Whether the slot took the binding.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0, renderContext = null)
   {
     return this.variable?.CopyToResourceSet(resourceDesc, stage, registerIndex, flags, renderContext) ?? false;
@@ -168,8 +168,8 @@ export class TriVariableParameter extends CjsParameter
    * @param {number} registerIndex The register.
    * @returns {boolean} Whether the slot took the binding.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   ApplyUav(resourceDesc, stage, registerIndex)
   {
     return this.variable?.ApplyUav(resourceDesc, stage, registerIndex) ?? false;
@@ -179,8 +179,8 @@ export class TriVariableParameter extends CjsParameter
    * The bound variable's type tag, which decides whether the name binds as a
    * resource or a constant; `invalid` when nothing is bound.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetVariableType()
   {
     return this.variable?.GetType?.() ?? this.variable?.type ?? "invalid";
@@ -189,4 +189,4 @@ export class TriVariableParameter extends CjsParameter
 }
 
 // Exact identities from TriVariableParameter_Blue.cpp; no exposure chain.
-carbon.interfaceTable({ interfaces: [ITriEffectParameter, INotify, IInitialize], chainTo: null })(TriVariableParameter, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [ITriEffectParameter, INotify, IInitialize], chainTo: null })(TriVariableParameter, { kind: "class" });

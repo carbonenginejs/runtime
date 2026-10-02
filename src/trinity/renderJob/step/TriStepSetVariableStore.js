@@ -1,27 +1,27 @@
 // Source: trinity/trinity/RenderJob/TriStepSetVariableStore.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { Tr2VariableStore } from "../../core/variable/Tr2VariableStore.js";
 
 /** A render step that writes one named value into the variable store shaders read. */
-@type.define({ className: "TriStepSetVariableStore", family: "renderJob" })
+@meta.define({ className: "TriStepSetVariableStore", family: "renderJob" })
 export class TriStepSetVariableStore extends TriRenderStep
 {
 
   /** m_variableName (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   variableName = "";
 
-  @edit.readwrite
-  @type.rawStruct("TriVariableValue")
+  @meta.blue.readwrite
+  @meta.type.rawStruct("TriVariableValue")
   value = null;
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   __init__(name = undefined, value = undefined)
   {
     if (name !== undefined) this.SetName(name);
@@ -31,8 +31,8 @@ export class TriStepSetVariableStore extends TriRenderStep
   /**
    * Sets the name of the variable this step writes.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetName(name)
   {
     this.variableName = String(name ?? "");
@@ -41,8 +41,8 @@ export class TriStepSetVariableStore extends TriRenderStep
   /**
    * The value this step writes into the variable store.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValue()
   {
     if (ArrayBuffer.isView(this.value)) return this.value.slice();
@@ -54,8 +54,8 @@ export class TriStepSetVariableStore extends TriRenderStep
    * Sets the value this step writes, copying array and typed-array values so a
    * later mutation by the caller cannot change what the step publishes.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetValue(value)
   {
     this.value = ArrayBuffer.isView(value) || Array.isArray(value) ? value.slice() : value;
@@ -65,8 +65,8 @@ export class TriStepSetVariableStore extends TriRenderStep
    * Registers the named value on the global variable store, so shaders reading
    * that variable see it from this point in the job order onward.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Execute(_realTime, _simTime, _renderContext)
   {
     if (this.variableName && this.value !== null) Tr2VariableStore.globalStore().RegisterVariable(this.variableName, this.value);

@@ -1,7 +1,7 @@
 // Source: audio/src/AudUIPlayer.h + AudUIPlayer.cpp
 // Hand-owned since 2026-07-23 (behavior port); the generator skips this file.
 // Verify against audio/AudUIPlayer.json.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { AudEmitter } from "./AudEmitter.js";
 
 export const UI_GAME_OBJ_ID = 2;
@@ -9,13 +9,13 @@ export const UI_GAME_OBJ_ID = 2;
 const FLOAT_MAX = 3.4028234663852886e38;
 
 /** Provides the fixed Carbon UI emitter with dialogue position and completion callbacks. */
-@type.define({ className: "AudUIPlayer", family: "audio" })
+@meta.define({ className: "AudUIPlayer", family: "audio" })
 export class AudUIPlayer extends AudEmitter
 {
 
   /** m_callback (BlueScriptCallback) [READWRITE] */
-  @edit.readwrite
-  @type.rawStruct("BlueScriptCallback")
+  @meta.blue.readwrite
+  @meta.type.rawStruct("BlueScriptCallback")
   eventSenderCallback = null;
 
   _callbackEvents = new Map();
@@ -30,8 +30,8 @@ export class AudUIPlayer extends AudEmitter
   }
 
   /** The UI player has no world placement. Source: AudUIPlayer.cpp:20-23 (commit 2756050). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HasUsableWorldPosition()
   {
     return false;
@@ -47,8 +47,8 @@ export class AudUIPlayer extends AudEmitter
    * @param {number} playingID Event playing identifier.
    * @returns {number} Elapsed milliseconds, or -1.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetEventPlayPosition(playingID)
   {
     if (!this.constructor.manager?.enabled)
@@ -59,8 +59,8 @@ export class AudUIPlayer extends AudEmitter
   }
 
   /** Carbon method PostDialogueEvent (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PostDialogueEvent(eventName)
   {
     return this.constructor.manager?.enabled ? this.PostEvent(eventName, false, 0) : 0;
@@ -82,8 +82,8 @@ export class AudUIPlayer extends AudEmitter
    * @param {string} name Event name.
    * @returns {number} Playing identifier, or zero when not posted.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SendEventWithCallback(name)
   {
     if (!this.constructor.manager?.enabled || !this.eventSenderCallback)
@@ -113,8 +113,8 @@ export class AudUIPlayer extends AudEmitter
    * @param {number} playingID Completed event identifier.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   EventFinishedCallback(playingID)
   {
     const callbackEvent = this._callbackEvents.get(playingID) ?? null;

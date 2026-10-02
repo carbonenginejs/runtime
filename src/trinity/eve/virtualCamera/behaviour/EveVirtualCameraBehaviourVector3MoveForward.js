@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { vec3 } from "#math/vec3";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviourVector3Base.js";
 
 
@@ -9,25 +9,25 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
  * Vector3 behaviour that displaces the camera along its own forward axis by a
  * curve-shaped distance, and the base for the sideways and vertical variants.
  */
-@type.define({
+@meta.define({
   className: "EveVirtualCameraBehaviourVector3MoveForward",
   family: "eve/virtualCamera/behaviour"
 })
 export class EveVirtualCameraBehaviourVector3MoveForward extends EveVirtualCameraBehaviourVector3Base
 {
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2CurveScalar")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2CurveScalar")
   scaleCurve = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   proportional = true;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   value = 0;
 
   /**
@@ -42,8 +42,8 @@ export class EveVirtualCameraBehaviourVector3MoveForward extends EveVirtualCamer
   }
 
   /** Sets the behaviour name and renames the owned scale curve to match. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetName(name)
   {
     super.SetName(name);
@@ -51,8 +51,8 @@ export class EveVirtualCameraBehaviourVector3MoveForward extends EveVirtualCamer
   }
 
   /** Returns the camera's forward direction scaled by the current distance. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, anchorRadius, _anchorForwardDirection, out = vec3.create())
   {
     return vec3.scale(out, camera.GetForwardDirection(out), this.GetCurrentValue(camera, localElapsedTime, anchorRadius));

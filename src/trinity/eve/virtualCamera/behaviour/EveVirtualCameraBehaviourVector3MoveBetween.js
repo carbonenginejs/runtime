@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { vec3 } from "#math/vec3";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviourVector3Base.js";
 
 
@@ -9,35 +9,35 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
  * Vector3 behaviour that sweeps the camera value from one authored endpoint to
  * another across the animation timeline.
  */
-@type.define({
+@meta.define({
   className: "EveVirtualCameraBehaviourVector3MoveBetween",
   family: "eve/virtualCamera/behaviour"
 })
 export class EveVirtualCameraBehaviourVector3MoveBetween extends EveVirtualCameraBehaviourVector3Base
 {
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   end = vec3.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   proportional = false;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   world = true;
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2CurveScalar")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2CurveScalar")
   interpolationCurve = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   start = vec3.create();
 
   /**
@@ -52,8 +52,8 @@ export class EveVirtualCameraBehaviourVector3MoveBetween extends EveVirtualCamer
   }
 
   /** Sets the behaviour name and renames the owned interpolation curve to match. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetName(name)
   {
     super.SetName(name);
@@ -67,8 +67,8 @@ export class EveVirtualCameraBehaviourVector3MoveBetween extends EveVirtualCamer
    * world is false, and end is returned directly when the timeline has zero
    * length.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, anchorRadius, anchorForwardDirection, out = vec3.create())
   {
     const duration = Number(camera?.GetAnimationTimelineLength?.() ?? 0);

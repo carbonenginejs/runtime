@@ -1,32 +1,32 @@
 // Source: trinity/trinity/Eve/EveComponentRegistry.h
 // Source: trinity/trinity/Eve/EveComponentRegistry.cpp
 // Hand-maintained after promotion from generated schema intake.
-import { CjsSchema, carbon, impl, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { EveComponentCollection } from "./EveComponentCollection.js";
 import { EveComponentRequiredMethods, EveComponentType } from "../../EveComponentTypes.js";
 import { ITr2FroxelFogSettings } from "../../child/ITr2FroxelFogSettings.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 
 /** Indexes Eve entities and their component collections for scene processing. */
-@type.define({ className: "EveComponentRegistry", family: "eve/scene" })
+@meta.define({ className: "EveComponentRegistry", family: "eve/scene" })
 export class EveComponentRegistry
 {
 
   #componentCollections = [];
 
   /** m_componentCollectionLoopGuard (mutable std::shared_mutex) */
-  @type.rawStruct("std::shared_mutex")
+  @meta.type.rawStruct("std::shared_mutex")
   componentCollectionLoopGuard = null;
 
   /** m_registeredEntities (std::vector<EveEntity*>) */
-  @type.list("EveEntity")
+  @meta.type.list("EveEntity")
   registeredEntities = [];
 
   /**
    * Empties every component collection and detaches all registered entities,
    * resetting their registry link and component state.
    */
-  @impl.implemented
+  @meta.implemented
   Clear()
   {
     for (const collection of this.#componentCollections)
@@ -49,7 +49,7 @@ export class EveComponentRegistry
    * Removes the entity from this registry and adds it back, moving it to the end
    * of the registration order.
    */
-  @impl.implemented
+  @meta.implemented
   ReRegister(entity)
   {
     entity.UnRegister(this);
@@ -60,7 +60,7 @@ export class EveComponentRegistry
    * Adds an entity to the registry and records its index, returning false if the
    * entity is already registered anywhere.
    */
-  @impl.implemented
+  @meta.implemented
   Register(entity)
   {
     if (entity.indexInRegistry !== -1)
@@ -78,7 +78,7 @@ export class EveComponentRegistry
    * keeping the entity list dense, and returns false if the entity is not
    * registered here.
    */
-  @impl.implemented
+  @meta.implemented
   UnRegister(entity)
   {
     const index = entity.indexInRegistry;
@@ -103,7 +103,7 @@ export class EveComponentRegistry
    * Drops the entity from every component collection while leaving it registered
    * in the entity list.
    */
-  @impl.implemented
+  @meta.implemented
   UnRegisterAllComponents(entity)
   {
     for (const collection of this.#componentCollections)
@@ -116,7 +116,7 @@ export class EveComponentRegistry
    * Returns the collection for a component name, or null when no collection has
    * been created for it yet.
    */
-  @impl.implemented
+  @meta.implemented
   GetComponentCollection(componentName)
   {
     return this.#componentCollections.find(collection => collection.name === componentName) ?? null;
@@ -128,8 +128,8 @@ export class EveComponentRegistry
    * interface requires - the fail-closed stand-in for Carbon's compile-time
    * RegisterComponent<T> constraint.
    */
-  @impl.adapted
-  @impl.reason("JavaScript passes Carbon's compile-time component name explicitly because it has no C++ template specialization.")
+  @meta.adapted
+  @meta.reason("JavaScript passes Carbon's compile-time component name explicitly because it has no C++ template specialization.")
   RegisterComponent(componentName, entity)
   {
     if (componentName === EveComponentType.ReflectionRenderable)
@@ -174,8 +174,8 @@ export class EveComponentRegistry
    * Removes an entity from the named component's collection, returning false
    * when no such collection exists.
    */
-  @impl.adapted
-  @impl.reason("JavaScript passes Carbon's compile-time component name explicitly because it has no C++ template specialization.")
+  @meta.adapted
+  @meta.reason("JavaScript passes Carbon's compile-time component name explicitly because it has no C++ template specialization.")
   UnRegisterComponent(componentName, entity)
   {
     const collection = this.GetComponentCollection(componentName);
@@ -187,7 +187,7 @@ export class EveComponentRegistry
    * throws once 32 collections exist because the entity component mask is 32
    * bits wide.
    */
-  @impl.implemented
+  @meta.implemented
   AddCollection(componentName)
   {
     if (this.#componentCollections.length >= 32)
@@ -206,7 +206,7 @@ export class EveComponentRegistry
    * entity under the collection's bit, returning false if it is already a
    * member.
    */
-  @impl.implemented
+  @meta.implemented
   AddToCollection(collection, entity)
   {
     if (entity.GetComponentIndex(collection.GetBit()) !== undefined)
@@ -223,7 +223,7 @@ export class EveComponentRegistry
    * slot and fixing up the moved entity's stored index, returning false if it
    * was not a member.
    */
-  @impl.implemented
+  @meta.implemented
   RemoveFromCollection(collection, entity)
   {
     const bit = collection.GetBit();
@@ -246,7 +246,7 @@ export class EveComponentRegistry
    * empty array when the collection does not exist; the array is borrowed and
    * changes as entities register.
    */
-  @impl.implemented
+  @meta.implemented
   GetComponents(componentName)
   {
     return this.GetComponentCollection(componentName)?.collection ?? [];
@@ -256,7 +256,7 @@ export class EveComponentRegistry
    * Returns how many entities are in the named component collection, or 0 when
    * the collection does not exist.
    */
-  @impl.implemented
+  @meta.implemented
   ComponentCount(componentName)
   {
     return this.GetComponentCollection(componentName)?.Size() ?? 0;
@@ -269,7 +269,7 @@ export class EveComponentRegistry
    * name from the template type and holds a shared_lock; single-threaded JS
    * takes the name directly and needs no lock.
    */
-  @impl.implemented
+  @meta.implemented
   ProcessComponents(componentName, processor)
   {
     const collection = this.GetComponentCollection(componentName);
@@ -284,7 +284,7 @@ export class EveComponentRegistry
    * Carbon ProcessComponentsUntil (h:270-290): identical to ProcessComponents
    * except it stops at the first processor call that returns true.
    */
-  @impl.implemented
+  @meta.implemented
   ProcessComponentsUntil(componentName, processor)
   {
     const collection = this.GetComponentCollection(componentName);
@@ -299,16 +299,16 @@ export class EveComponentRegistry
    * Carbon RemoveCollectionFromEntityState (EveComponentRegistry.cpp:147-150):
    * clears the collection's bit from the entity's component mask.
    */
-  @impl.implemented
+  @meta.implemented
   RemoveCollectionFromEntityState(collection, entity)
   {
     entity.RemoveComponentState(collection.GetBit());
   }
 
   /** Carbon method GetComponentInfo (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Returns Carbon's vector of name/count pairs as JavaScript tuple arrays.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Returns Carbon's vector of name/count pairs as JavaScript tuple arrays.")
   GetComponentInfo()
   {
     return this.#componentCollections.map(collection => [collection.name, collection.Size()]);

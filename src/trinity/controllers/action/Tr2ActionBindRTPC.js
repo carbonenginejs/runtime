@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionBindRTPC.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionBindRTPC.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionBindRTPC_Blue.cpp
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { blue, INotify } from "#blue";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
@@ -17,44 +17,44 @@ import { ITr2Updateable } from "../../core/ITr2Updateable.js";
   className: "Tr2ActionBindRTPC",
   family: "controllers"
 })
-@meta.carbon.inherit(ITr2Updateable, INotify)
+@meta.blue.inherit(ITr2Updateable, INotify)
 export class Tr2ActionBindRTPC extends ITr2ControllerAction
 {
   /**
    * Expression evaluated each update to produce the RTPC value.
    * @type {string}
    */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   value = "";
 
   /**
    * Name of the sound emitter receiving the RTPC updates.
    * @type {string}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   emitter = "";
 
   /**
    * Wwise real-time parameter name; native storage is std::wstring.
    * @type {string}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.wstring
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.wstring
   rtpcName = "";
 
   /**
    * Optional scalar curve sampled by the expression Curve(time) helper.
    * @type {ITriScalarFunction|null}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.objectRef("ITriScalarFunction")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("ITriScalarFunction")
   curve = null;
 
   /**
@@ -62,9 +62,9 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * @returns {boolean} Whether a valid compiled expression is retained.
    */
   @meta.property()
-  @meta.edit.read
-  @types.boolean
-  @meta.impl.adapted
+  @meta.blue.read
+  @meta.type.boolean
+  @meta.adapted
   get isExpressionValid()
   {
     return this._runtime.program !== null && this._runtime.program.IsValid();
@@ -80,8 +80,8 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * Links and compiles the RTPC value expression.
    * Adapted: a CSP-safe AST program replaces native parser bytecode.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Link(controller)
   {
     this._runtime.controller = controller;
@@ -93,8 +93,8 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * Adapted: the existing JS cache reset also resets timestamps; native clears
    * only its controller and evaluator. The emitter remains retained in both.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Unlink()
   {
     this._runtime = CjsControllerExpressionProgram.createRuntimeState();
@@ -106,8 +106,8 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * JS controller/last time, and resolves or clears the target before registering.
    * Native registers first and retains an old target if lookup finds none.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Start(controller = this._runtime.controller)
   {
     if (!controller)
@@ -125,8 +125,8 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * Starts manually with an explicit controller.
    * Adapted: JavaScript TypeError represents native Python null-argument errors.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   StartWithController(controller)
   {
     this.Start(ITr2ControllerAction.requireController(controller, "StartWithController"));
@@ -136,8 +136,8 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * Stops RTPC updates.
    * Adapted: the omitted-controller JS convenience uses the current link, if any.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Stop(controller = this._runtime.controller)
   {
     if (controller) controller.UnRegisterUpdateable(this);
@@ -147,8 +147,8 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * Stops manually with an explicit controller.
    * Adapted: JavaScript TypeError represents native Python null-argument errors.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   StopWithController(controller)
   {
     this.Stop(ITr2ControllerAction.requireController(controller, "StopWithController"));
@@ -160,8 +160,8 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * Evaluation failures skip the target; successful NaN/Infinity are preserved.
    * Required target errors remain visible outside the evaluator failure boundary.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(_realTime, simTime)
   {
     this._runtime.lastTime = simTime;
@@ -187,8 +187,8 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * Recompiles when the authored value receives its notification.
    * Adapted: the exposed member name replaces native member-address matching.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnModified(propertyName)
   {
     if (this._runtime.controller && propertyName === "value")
@@ -204,8 +204,8 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * Adapted: retains the JS explicit lazy-compilation helper. The live property
    * observes the retained program without compiling.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   IsExpressionValid()
   {
     return this.CompileExpression().IsValid();
@@ -217,8 +217,8 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * takes and discards the attribute name. Same forward here for nominal
    * parity.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsAttrExpressionValid(_attributeName)
   {
     return this.IsExpressionValid();
@@ -228,8 +228,8 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * Gets a curve value for expression helpers.
    * Returns zero for no curve; a present ITriScalarFunction supplies GetValueAt.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetCurveValue(time)
   {
     return this.curve ? this.curve.GetValueAt(time) : 0;
@@ -239,8 +239,8 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * Gets expression term metadata from the linked controller.
    * Adapted: shared AST term records replace native Tr2ExpressionTermInfo objects.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetExpressionTermInfo()
   {
     const result = [];
@@ -256,8 +256,8 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * Adapted: retains JS unlinked evaluation and zero fallback for invalid syntax
    * rather than native BlueStdResult error returns.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   EvaluateExpression(expression)
   {
     const state = {
@@ -282,7 +282,7 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * this action's curve, reusing the cached program while the text is unchanged.
    * This JS-only helper owns the CSP-safe AST cache.
    */
-  @meta.impl.custom
+  @meta.ours
   CompileExpression()
   {
     return CjsControllerExpressionProgram.compileCached(this._runtime, this.value, 0, {
@@ -292,7 +292,7 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionBindRTPC_Blue.cpp:14-17,52).
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [Tr2ActionBindRTPC, ITr2ControllerAction, ITr2Updateable, INotify],
   chainTo: null
 })(Tr2ActionBindRTPC);

@@ -1,56 +1,56 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierColor.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
 import { color } from "#math/color";
 import { resolveFactionColor } from "../../resolveFactionColor.js";
 
 /** EveSmartLightAttributeModifierColor (eve/smartLights/attributeModifiers) - generated from schema shapeHash 1d22dfd5.... */
-@type.define({ className: "EveSmartLightAttributeModifierColor", family: "eve/smartLights/attributeModifiers" })
+@meta.define({ className: "EveSmartLightAttributeModifierColor", family: "eve/smartLights/attributeModifiers" })
 export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttributeModifier
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_selectedColor (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   factionColor = -1;
 
   /** m_blendValue (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   blendValue = 1;
 
   /** m_useFactionColor (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   useFactionColor = false;
 
   /** m_blendColor (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   blendColor = color.createLinear();
 
   /** m_brightnessMultiplier (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   brightnessMultiplier = 1;
 
   /** m_saturationMultiplier (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   saturationMultiplier = 1;
 
   /** m_parentColorSet (const Color*) - inherited faction color set, never persisted. */
@@ -60,8 +60,8 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
   _resolvedGroupColor = color.createLinear();
 
   /** Stores the inherited faction color set (EveSmartLightAttributeModifierColor.cpp:18-24). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetInheritProperties(colorSet)
   {
     if (colorSet)
@@ -77,9 +77,9 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
    * SOFDataFactionColorChooser::TYPE_MAX; the inherited JS color set is
    * exactly that array, so its length is the bound.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JS accepts Carbon's indexed colour array and the combined runtime's named SOF colour-set model through one direct two-representation boundary.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JS accepts Carbon's indexed colour array and the combined runtime's named SOF colour-set model through one direct two-representation boundary.")
   GetGroupColor()
   {
     return resolveFactionColor(
@@ -92,8 +92,8 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
   }
 
   /** Advances the crossfade state machine (EveSmartLightAttributeModifierColor.cpp:38-41). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateSyncronous(updateContext, _params, activationMultiplier)
   {
     this.UpdateActivationStrength(activationMultiplier, updateContext.GetDeltaT());
@@ -105,8 +105,8 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
    * [0, 1] (EveSmartLightAttributeModifierColor.cpp:43-69). Component math
    * only - no allocation.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ProcessAttributeModifier(attribute, placement, _entityPosition, _entityDirection, modifierStrength)
   {
     const activationStrength = this.GetActivationStrength(placement) * modifierStrength;

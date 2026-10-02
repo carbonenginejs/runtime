@@ -5,7 +5,7 @@ import { quat } from "#math/quat";
 import { copyArrayLike } from "#utils";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 
 
 /**
@@ -14,7 +14,7 @@ import { carbon, impl, type } from "#schema";
  * (identity for quaternions). JavaScript combines native overloads into time-first
  * calls with an optional output buffer; the mapped interfaces retain their identities.
  */
-@type.define({
+@meta.define({
   className: "Tr2CurveConstant",
   family: "curves",
   members: [
@@ -23,7 +23,7 @@ import { carbon, impl, type } from "#schema";
     { name: "value", key: "value", type: { kind: "vec4" }, edit: { read: true, write: true, persist: true } }
   ]
 })
-@carbon.inherit(ITriVectorFunction, ITriQuaternionFunction, ITriColorFunction)
+@meta.blue.inherit(ITriVectorFunction, ITriQuaternionFunction, ITriColorFunction)
 export class Tr2CurveConstant extends ITriScalarFunction
 {
   /**
@@ -42,7 +42,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * Carbon exposes m_value twice; the JavaScript alias follows replacement too.
    * @returns {Float32Array|number[]} The authored value storage.
    */
-  @impl.custom
+  @meta.ours
   get currentValue()
   {
     return this.value;
@@ -54,8 +54,8 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {number} _time Time in seconds.
    * @returns {void}
    */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   UpdateValue(_time)
   {
   }
@@ -67,8 +67,8 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {Float32Array|number[]} [out] Caller-owned output storage.
    * @returns {number|Float32Array|number[]} The supplied output or scalar value.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(time, out)
   {
     if (out === undefined)
@@ -86,8 +86,8 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {Float32Array|number[]} [out] Caller-owned output storage.
    * @returns {number|Float32Array|number[]} The supplied output or scalar value.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValueAt(time, out)
   {
     if (out === undefined)
@@ -104,8 +104,8 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {number} _scale Curve parameter.
    * @returns {void}
    */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   ScaleTime(_scale)
   {
   }
@@ -117,8 +117,8 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetValueDotAt(_time, out)
   {
     return Tr2CurveConstant._setDerivative(out);
@@ -131,8 +131,8 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetValueDoubleDotAt(_time, out)
   {
     return Tr2CurveConstant._setDerivative(out);
@@ -145,8 +145,8 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   InterpolatedPosition(_time, out)
   {
     return vec3.copy(out, this.value);
@@ -160,7 +160,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {Float32Array|number[]} value Curve parameter.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @impl.custom
+  @meta.ours
   static _copyValue(out, value)
   {
     return copyArrayLike(out, value);
@@ -173,7 +173,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @impl.custom
+  @meta.ours
   static _setDerivative(out)
   {
     if (out.length > 3)
@@ -185,7 +185,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
 }
 
 // Native exposure ends at this concrete table (Tr2CurveConstant_Blue.cpp).
-carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [Tr2CurveConstant, ITriScalarFunction, ITriVectorFunction, ITriQuaternionFunction, ITriColorFunction, ITriFunction],
   chainTo: null
 })(Tr2CurveConstant);

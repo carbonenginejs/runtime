@@ -4,7 +4,7 @@ import { EveSpaceObjectChild } from "../child/EveSpaceObjectChild.js";
 // Source: trinity/trinity/Eve/UI/EveEllipseSet.h
 //   trinity/trinity/Eve/UI/EveEllipseSet.cpp
 import { vec3 } from "#math/vec3";
-import { carbon, CjsSchema, edit, impl, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { quat } from "#math/quat";
 import { BLUELISTEVENT } from "#consts/blue";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
@@ -17,66 +17,66 @@ import { ITr2Renderable } from "../../core/ITr2Renderable.js";
  * Transform child that owns a list of ellipse definitions and the effect they
  * are drawn with, used for the ribbon rings of UI overlays.
  */
-@type.define({ className: "EveEllipseSet", family: "eve/ui" })
-@carbon.inherit(ITr2Renderable)
-@carbon.inherit(IListNotify)
-@carbon.inherit(IListNotify, INotify)
+@meta.define({ className: "EveEllipseSet", family: "eve/ui" })
+@meta.blue.inherit(ITr2Renderable)
+@meta.blue.inherit(IListNotify)
+@meta.blue.inherit(IListNotify, INotify)
 export class EveEllipseSet extends EveChildTransform
 {
 
   /** m_translation (Vector3) [READWRITE, PERSIST] - EveEllipseSet_Blue.cpp:22 */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   translation = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] - EveEllipseSet_Blue.cpp:23 */
-  @edit.readwrite
-  @edit.persist
-  @type.quat
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   rotation = quat.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] - EveEllipseSet_Blue.cpp:24 */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   scaling = vec3.fromValues(1, 1, 1);
   _geometryDirty = true;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   ribbonSegmentCount = 128;
 
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   display = true;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   enablePicking = true;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   depthOffset = 0;
 
-  @edit.read
-  @edit.persist
-  @type.list("EveEllipseDefinition")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveEllipseDefinition")
   ellipses = [];
 
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2Effect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2Effect")
   effect = null;
 
   /**
@@ -88,7 +88,7 @@ export class EveEllipseSet extends EveChildTransform
    * @param {Number} rotationDegrees In-plane rotation, in degrees
    * @returns {Boolean} Always true
    */
-  @carbon.method
+  @meta.blue.method
   AddEllipse(center, semiMajor, semiMinor, planeNormal, rotationDegrees)
   {
     const ellipse = new EveEllipseDefinition();
@@ -108,7 +108,7 @@ export class EveEllipseSet extends EveChildTransform
    * Carbon it does not create the default effect, since resource lookup is left
    * to the engine layer.
    */
-  @carbon.method
+  @meta.blue.method
   __init__()
   {
     // Carbon creates the configured default effect here. Resource lookup is
@@ -125,7 +125,7 @@ export class EveEllipseSet extends EveChildTransform
    * definitions can no longer invalidate this set, and marks the geometry for
    * rebuild.
    */
-  @carbon.method
+  @meta.blue.method
   ClearEllipses()
   {
     for (const ellipse of this.ellipses)
@@ -147,10 +147,10 @@ export class EveEllipseSet extends EveChildTransform
   }
 
   /** Binds or releases definition callbacks after a list mutation. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JavaScript represents the owner's dirty-flag pointer with a callback; list event ordering follows Carbon.")
-  @impl.invalidates("#geometryDirty")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JavaScript represents the owner's dirty-flag pointer with a callback; list event ordering follows Carbon.")
+  @meta.invalidates("#geometryDirty")
   OnListModified(event, _key, _key2, value, list)
   {
     // Source: Eve/UI/EveEllipseSet.cpp:139-175. Loading suppresses per-item
@@ -202,4 +202,4 @@ export class EveEllipseSet extends EveChildTransform
 }
 
 // EveEllipseSet_Blue.cpp: native exposure; unported contracts: ITr2Pickable.
-carbon.interfaceTable({ interfaces: [EveEllipseSet, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IListNotify, INotify], chainTo: null })(EveEllipseSet, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveEllipseSet, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IListNotify, INotify], chainTo: null })(EveEllipseSet, { kind: "class" });

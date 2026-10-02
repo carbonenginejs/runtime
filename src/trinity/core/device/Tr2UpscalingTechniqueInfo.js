@@ -1,6 +1,6 @@
 // Source: trinity/trinity/TriDevice.h
 // Source: trinity/trinity/TriDevice.cpp
-import { type } from "#schema";
+import { meta } from "#schema";
 import { UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
 import "#blue/registerTrinityEnums";
 
@@ -11,7 +11,7 @@ import "#blue/registerTrinityEnums";
  * value, not an IRoot class; registration supplies its record schema without
  * inventing a native query interface. Defaults match the device fallback record.
  */
-@type.define({
+@meta.define({
   className: "Tr2UpscalingTechniqueInfo",
   family: "trinityCore"
 })
@@ -35,8 +35,8 @@ export class Tr2UpscalingTechniqueInfo
    * Upscaling technique identified by this capability record.
    * @type {number}
    */
-  @type.uint32
-  @type.enum("trinity.Tr2UpscalingAL.Technique")
+  @meta.type.uint32
+  @meta.type.enum("trinity.Tr2UpscalingAL.Technique")
   technique = 0;
 
   /**
@@ -45,8 +45,8 @@ export class Tr2UpscalingTechniqueInfo
    * Bitmask of quality settings supported by this technique.
    * @type {number}
    */
-  @type.uint32
-  @type.enum("trinity.Tr2UpscalingAL.Setting")
+  @meta.type.uint32
+  @meta.type.enum("trinity.Tr2UpscalingAL.Setting")
   supportedSettings = 0;
 
   /**
@@ -55,6 +55,6 @@ export class Tr2UpscalingTechniqueInfo
    * Whether this technique supports frame generation.
    * @type {boolean}
    */
-  @type.boolean
+  @meta.type.boolean
   framegeneration = false;
 }

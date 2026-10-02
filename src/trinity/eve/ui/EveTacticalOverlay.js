@@ -5,7 +5,7 @@ import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Promoted to hand-maintained source 2026-08-22; quad instance policy is portable CPU work.
 import { mat4 } from "#math/mat4";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { TriBatchType } from "#consts/graphics";
@@ -90,10 +90,10 @@ function getSubdivisionCount(pixelSize, low, medium, high, updateContext)
 
 
 /** Produces tactical anchor, range, and velocity quad-instance records. */
-@type.define({ className: "EveTacticalOverlay", family: "eve/ui" })
-@carbon.inherit(IEveSpaceObject2)
-@carbon.inherit(IInitialize)
-@carbon.mapInterface(IInitialize)
+@meta.define({ className: "EveTacticalOverlay", family: "eve/ui" })
+@meta.blue.inherit(IEveSpaceObject2)
+@meta.blue.inherit(IInitialize)
+@meta.blue.mapInterface(IInitialize)
 export class EveTacticalOverlay
 {
   /** Initializes the effect-local variable-store records. */
@@ -103,8 +103,8 @@ export class EveTacticalOverlay
   }
 
   /** Attaches the owned variable store to every authored effect. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     this._SetVariableStore(this.anchorEffect);
@@ -114,9 +114,9 @@ export class EveTacticalOverlay
   }
 
   /** Reattaches only effect references that changed since the prior settle. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
     if (propertyName === "anchorEffect") this._SetVariableStore(this.anchorEffect);
@@ -126,9 +126,9 @@ export class EveTacticalOverlay
   }
 
   /** Samples the root and every owned track object, then refreshes effect variables. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon vector-function output pointers use the runtime's established time-first, out-last JavaScript contract.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon vector-function output pointers use the runtime's established time-first, out-last JavaScript contract.")
   UpdateSyncronous(updateContext)
   {
     if (this.translationCurve)
@@ -145,16 +145,16 @@ export class EveTacticalOverlay
   }
 
   /** Carbon's asynchronous overlay update is intentionally empty. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   UpdateAsyncronous(_updateContext)
   {
   }
 
   /** Rebuilds the flat CPU instance records for this frame. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon's typed vertex vectors are represented by flat Float32Array-compatible number buffers consumed by Tr2QuadRenderer.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon's typed vertex vectors are represented by flat Float32Array-compatible number buffers consumed by Tr2QuadRenderer.")
   UpdateVisibility(updateContext, _parentTransform)
   {
     this._anchorBuffer.length = 0;
@@ -307,56 +307,56 @@ export class EveTacticalOverlay
   }
 
   /** Carbon's tactical overlay has no ordinary renderable children. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   GetRenderables(_renderables, _impostors)
   {
   }
 
   /** The overlay supplies no spatial bounds. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBoundingSphere(_sphere, _query)
   {
     return false;
   }
 
   /** The overlay's model center is always the world origin. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateModelCenterWorldPosition(out, _time)
   {
     vec3.set(out, 0, 0, 0);
   }
 
   /** The overlay's model center is always the world origin. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetModelCenterWorldPosition(out)
   {
     vec3.set(out, 0, 0, 0);
   }
 
   /** The overlay supplies no local box. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetLocalBoundingBox(_min, _max)
   {
     return false;
   }
 
   /** The overlay has no authored object transform. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetLocalToWorldTransform(out)
   {
     mat4.identity(out);
   }
 
   /** Registers the three exact instance layouts with the shared quad renderer. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon combines an effect content hash with its native pointer; JavaScript combines it with a stable WeakMap identity.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon combines an effect content hash with its native pointer; JavaScript combines it with a stable WeakMap identity.")
   RegisterWithQuadRenderer(quadRenderer)
   {
     if (this.connectorEffect)
@@ -398,8 +398,8 @@ export class EveTacticalOverlay
   }
 
   /** Adds all three instance streams once their effect registrations exist. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddQuadsToQuadRenderer(_frustum, quadRenderer)
   {
     if (!this._connectorEffectKey || !this._anchorEffectKey || !this._velocityEffectKey) return;
@@ -433,134 +433,134 @@ export class EveTacticalOverlay
   }
 
   /** m_trackObjects (PEveTacticalOverlayTrackObjectVector) [READ] */
-  @edit.read
-  @type.list("EveTacticalOverlayTrackObject")
+  @meta.blue.read
+  @meta.type.list("EveTacticalOverlayTrackObject")
   trackObjects = [];
 
   /** m_totalSegmentsLast (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   totalSegmentsLast = 0;
 
   /** m_requestedSegmentsLast (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   requestedSegmentsLast = 0;
 
   /** m_anchorEffect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2Effect")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2Effect")
   anchorEffect = null;
 
   /** m_connectorEffect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2Effect")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2Effect")
   connectorEffect = null;
 
   /** m_velocityEffect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2Effect")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2Effect")
   velocityEffect = null;
 
   /** m_ranges.x (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   activeRange = 200000;
 
   /** m_ranges.y (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   rangeFadeLength = 50000;
 
   /** m_ranges.z (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   rangeMultiplier = 1;
 
   /** m_ranges.w (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   sourceRadius = 50;
 
   /** m_interestRange (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   interestRange = 0;
 
   /** m_outsideInterestIntensity (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   outsideInterestIntensity = 0.35;
 
   /** m_minRadiusForRange (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   minRadiusForRange = 150;
 
   /** m_connectorSegmentsLow (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   segmentsLow = 2;
 
   /** m_connectorSegmentsMedium (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   segmentsMedium = 5;
 
   /** m_connectorSegmentsHigh (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   segmentsHigh = 9;
 
   /** m_targetSegmentCount (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   targetMaxSegments = 25000;
 
   /** m_arcSegmentMultiplier (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   arcSegmentMultiplier = 1;
 
   /** m_segmentCountMultiplier (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   segmentCountMultiplier = 2;
 
   /** m_positionCurve (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("ITriVectorFunction")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("ITriVectorFunction")
   translationCurve = null;
 
   /** m_rootPosition (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   worldPosition = vec3.create();
 
   /** m_interestObject (EveTacticalOverlayTrackObjectPtr) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("EveTacticalOverlayTrackObject")
+  @meta.blue.readwrite
+  @meta.type.objectRef("EveTacticalOverlayTrackObject")
   interestObject = null;
 
   // Carbon's deterministic destructor detaches this local store from the three

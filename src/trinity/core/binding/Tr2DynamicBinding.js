@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2DynamicBinding.h
 // Source: trinity/trinity/Tr2DynamicBinding.cpp
 // Source: trinity/trinity/Tr2DynamicBinding_Blue.cpp
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { INotify } from "#blue/INotify";
 import { ISimTimeRebaseNotify } from "#blue/ISimTimeRebaseNotify";
 import { TriValueBinding } from "./TriValueBinding.js";
@@ -13,32 +13,32 @@ import { TriValueBinding } from "./TriValueBinding.js";
  * after a configured delay.
  */
 @meta.define({ className: "Tr2DynamicBinding", family: "trinityCore" })
-@meta.carbon.inherit(ISimTimeRebaseNotify)
+@meta.blue.inherit(ISimTimeRebaseNotify)
 export class Tr2DynamicBinding extends INotify
 {
   /** Native name member. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** Native destination object path member. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   destinationObjectPath = "";
 
   /** Native destination object attribute member. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   destinationObjectAttribute = "";
 
   /** Native destination member. */
-  @meta.edit.read
-  @types.weakRef("IRoot")
+  @meta.blue.read
+  @meta.type.weakRef("IRoot")
   destination = null;
 
   /**
@@ -46,44 +46,44 @@ export class Tr2DynamicBinding extends INotify
    * @returns {boolean} Whether the endpoint is alive.
    */
   @meta.property()
-  @meta.edit.read
-  @types.boolean
-  @meta.impl.implemented
+  @meta.blue.read
+  @meta.type.boolean
+  @meta.implemented
   get isDestinationValid()
   {
     return this.IsDestinationValid();
   }
 
   /** Native source object path member. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   sourceObjectPath = "";
 
   /** Native source object attribute member. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   sourceObjectAttribute = "";
 
   /** Native source member. */
-  @meta.edit.read
-  @types.weakRef("IRoot")
+  @meta.blue.read
+  @meta.type.weakRef("IRoot")
   source = null;
 
   /** Native scale member. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   scale = 1;
 
   /** Native binding delay member. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   bindingDelay = 0;
 
   /**
@@ -91,17 +91,17 @@ export class Tr2DynamicBinding extends INotify
    * @returns {boolean} Whether the endpoint is alive.
    */
   @meta.property()
-  @meta.edit.read
-  @types.boolean
-  @meta.impl.implemented
+  @meta.blue.read
+  @meta.type.boolean
+  @meta.implemented
   get isSourceValid()
   {
     return this.IsSourceValid();
   }
 
   /** Native binding member. */
-  @meta.edit.read
-  @types.objectRef("TriValueBinding")
+  @meta.blue.read
+  @meta.type.objectRef("TriValueBinding")
   binding = null;
 
   /** Runtime binding time state for the portable binding adapter. */
@@ -155,8 +155,8 @@ export class Tr2DynamicBinding extends INotify
    * @param {number|undefined} [currentFrameTime] Explicit frame time in seconds when supplied.
    * @returns {boolean} Binding result.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Link(currentFrameTime = undefined)
   {
     this.Unlink();
@@ -199,8 +199,8 @@ export class Tr2DynamicBinding extends INotify
    * Adapted: Explicitly detaches the held JavaScript binding destination before dropping it, replacing native reference-counted cleanup.
    * @returns {void} No return value.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Unlink()
   {
     this.binding?.SetDestinationObject(null);
@@ -219,8 +219,8 @@ export class Tr2DynamicBinding extends INotify
    * @param {object|null} owner Owner supplying GetParameterMap.
    * @returns {void} No return value.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetOwner(owner)
   {
     this._owner = owner ?? null;
@@ -233,8 +233,8 @@ export class Tr2DynamicBinding extends INotify
    * @param {number} time Frame time in seconds.
    * @returns {boolean} Binding result.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(time)
   {
     this._currentFrameTime = Number(time);
@@ -253,8 +253,8 @@ export class Tr2DynamicBinding extends INotify
    * @param {number} newTime New simulation time in seconds.
    * @returns {void} No return value.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnSimClockRebase(oldTime, newTime)
   {
     const adjustment = Number(newTime) - Number(oldTime);
@@ -267,8 +267,8 @@ export class Tr2DynamicBinding extends INotify
    * read-only flag.
    * @returns {boolean} Binding result.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsDestinationValid()
   {
     this._isDestinationValid = !!this.destination;
@@ -280,8 +280,8 @@ export class Tr2DynamicBinding extends INotify
    * read-only flag.
    * @returns {boolean} Binding result.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsSourceValid()
   {
     this._isSourceValid = !!this.source;
@@ -294,8 +294,8 @@ export class Tr2DynamicBinding extends INotify
    * @param {string|null} propertyName Changed member name.
    * @returns {boolean} Binding result.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnModified(propertyName)
   {
     if (this._owner) this.Link(this._currentFrameTime);
@@ -311,7 +311,7 @@ export class Tr2DynamicBinding extends INotify
    * @param {string} name Member or root name.
    * @returns {object|null} Binding result.
    */
-  @meta.impl.custom
+  @meta.ours
   static _getRoot(roots, name)
   {
     if (roots instanceof Map) return roots.get(name) ?? null;
@@ -326,7 +326,7 @@ export class Tr2DynamicBinding extends INotify
    * @param {number|string} selector Index or element name.
    * @returns {object|null} Binding result.
    */
-  @meta.impl.custom
+  @meta.ours
   static _getListElement(value, selector)
   {
     const length = Array.isArray(value) ? value.length : Number(value?.GetSize?.());
@@ -354,7 +354,7 @@ export class Tr2DynamicBinding extends INotify
    * @param {Map|object} roots Named parameter roots.
    * @returns {object|null} Binding result.
    */
-  @meta.impl.custom
+  @meta.ours
   static _resolveReference(reference, roots)
   {
     const value = String(reference ?? "");
@@ -401,7 +401,7 @@ export class Tr2DynamicBinding extends INotify
    * @param {*} value Incoming value.
    * @returns {WeakRef|object|null} Binding result.
    */
-  @meta.impl.custom
+  @meta.ours
   static _makeWeakRef(value)
   {
     if (!value || (typeof value !== "object" && typeof value !== "function")) return null;
@@ -414,7 +414,7 @@ export class Tr2DynamicBinding extends INotify
    * @param {*} value Incoming value.
    * @returns {boolean} Binding result.
    */
-  @meta.impl.custom
+  @meta.ours
   static _isReference(value)
   {
     return value !== null && (typeof value === "object" || typeof value === "function");
@@ -422,4 +422,4 @@ export class Tr2DynamicBinding extends INotify
 }
 
 // Tr2DynamicBinding_Blue.cpp: concrete self and notify, without an exposure chain.
-meta.carbon.interfaceTable({ interfaces: [Tr2DynamicBinding, INotify], chainTo: null })(Tr2DynamicBinding, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [Tr2DynamicBinding, INotify], chainTo: null })(Tr2DynamicBinding, { kind: "class" });

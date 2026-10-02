@@ -1,52 +1,52 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 
 /** Root SOF data catalog. */
-@type.define({ className: "EveSOFData", family: "eve" })
+@meta.define({ className: "EveSOFData", family: "eve" })
 export class EveSOFData
 {
 
   /** m_faction (PEveSOFDataFactionVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataFaction")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataFaction")
   faction = [];
 
   /** m_generic (EveSOFDataGenericPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveSOFDataGeneric")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSOFDataGeneric")
   generic = null;
 
   /** m_hull (PEveSOFDataHullVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataHull")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataHull")
   hull = [];
 
   /** m_layout (PEveSOFDataLayoutVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataLayout")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataLayout")
   layout = [];
 
   /** m_material (PEveSOFDataMaterialVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataMaterial")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataMaterial")
   material = [];
 
   /** m_pattern (PEveSOFDataPatternVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataPattern")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataPattern")
   pattern = [];
 
   /** m_race (PEveSOFDataRaceVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataRace")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataRace")
   race = [];
 
 }

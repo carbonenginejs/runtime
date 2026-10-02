@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepSetProjection.h
 // Source: trinity/trinity/RenderJob/TriStepSetProjection.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { mat4 } from "#math/mat4";
 import { TriProjection } from "../../core/view/TriProjection.js";
 import { TriRenderJob } from "../TriRenderJob.js";
@@ -8,19 +8,19 @@ import { TriRenderStep } from "./TriRenderStep.js";
 
 
 /** Step that installs an authored projection for the steps that follow. */
-@type.define({ className: "TriStepSetProjection", family: "renderJob" })
+@meta.define({ className: "TriStepSetProjection", family: "renderJob" })
 export class TriStepSetProjection extends TriRenderStep
 {
   #transform = mat4.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("TriProjection")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("TriProjection")
   projection = null;
 
   /** Stores the projection this step installs. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   __init__(projection = null)
   {
     this.SetProjection(projection);
@@ -30,8 +30,8 @@ export class TriStepSetProjection extends TriRenderStep
    * Replaces the projection; null makes the step a no-op rather than clearing
    * the current projection.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetProjection(projection)
   {
     this.projection = projection ?? null;
@@ -41,8 +41,8 @@ export class TriStepSetProjection extends TriRenderStep
    * Installs the projection on the render context when one is authored, leaving the
    * current projection untouched otherwise.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     if (this.projection)

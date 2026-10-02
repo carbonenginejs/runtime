@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/PlayFX.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/PlayFX.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 import { vec3 } from "#math/vec3";
 
@@ -12,44 +12,44 @@ const AGENT_TARGET_WS = vec3.create();
 const NO_FORCES = [];
 
 /** A steering-group behaviour that clones, aims, and starts or stops a firing effect on each drone as it arrives at and departs from its target. */
-@type.define({ className: "PlayFX", family: "eve/child/behaviors" })
+@meta.define({ className: "PlayFX", family: "eve/child/behaviors" })
 export class PlayFX extends EveEntity
 {
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   behaviorPriority = 0;
 
   /** m_behaviorWeight (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   behaviorWeight = 20;
 
   /** m_firingEffect (IEveFiringEffectElementPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("IEveFiringEffectElement")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("IEveFiringEffectElement")
   firingEffect = null;
 
   /** m_firingEffects (PIEveFiringEffectElementVector) [READ] */
-  @edit.read
-  @type.list("IEveFiringEffectElement")
+  @meta.blue.read
+  @meta.type.list("IEveFiringEffectElement")
   generatedFiringEffects = [];
 
   /** m_sec (int32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   sec = 1;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   enabled = true;
 
   // Carbon m_count/m_stop runtime state.
@@ -58,34 +58,34 @@ export class PlayFX extends EveEntity
   _stop = false;
 
   /** Carbon PlayFX::GetProcessPriority (cpp:25-28). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetProcessPriority()
   {
     return this.behaviorPriority;
   }
 
   /** Carbon PlayFX::GetBehaviorName (cpp:30-33). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBehaviorName()
   {
     return "PlayFX";
   }
 
   /** Per-agent scratch record count (Carbon sizeof(PlayFXData)). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero value means 'has scratch'.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero value means 'has scratch'.")
   GetScratchMemorySize()
   {
     return 1;
   }
 
   /** Fresh per-agent scratch record (Carbon PlayFXData placement init). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.")
   InitializeScratch()
   {
     return {
@@ -96,8 +96,8 @@ export class PlayFX extends EveEntity
   }
 
   /** Carbon IBehavior::UpdateState override (h:55-58). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateState(state)
   {
     this._stop = !!state;
@@ -115,9 +115,9 @@ export class PlayFX extends EveEntity
    * @param {Array} _dronesInSearchRadius - unused
    * @returns {Array} empty (as Carbon)
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon's Be::Time 100ns clock maps to Date.now seconds against agent.fxStartTime.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon's Be::Time 100ns clock maps to Date.now seconds against agent.fxStartTime.")
   CalculateBehavior(agents, scratchData, _deltaTime, group, system, _dronesInSearchRadius)
   {
     if (this.behaviorWeight <= 0 || !this.enabled)
@@ -219,8 +219,8 @@ export class PlayFX extends EveEntity
   }
 
   /** Carbon PlayFX::UpdateAsyncronous (cpp:141-148). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateAsyncronous(updateContext, parentTransform)
   {
     for (const fx of this.generatedFiringEffects)
@@ -232,8 +232,8 @@ export class PlayFX extends EveEntity
   }
 
   /** Carbon PlayFX::UpdateSyncronous (cpp:150-156). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateSyncronous(updateContext)
   {
     for (const fx of this.generatedFiringEffects)
@@ -244,8 +244,8 @@ export class PlayFX extends EveEntity
   }
 
   /** Carbon PlayFX::GetRenderables (cpp:158-164). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetRenderables(renderables = [])
   {
     for (const fx of this.generatedFiringEffects)
@@ -257,8 +257,8 @@ export class PlayFX extends EveEntity
   }
 
   /** Carbon PlayFX::RegisterComponents (cpp:202-215). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -272,8 +272,8 @@ export class PlayFX extends EveEntity
   }
 
   /** Carbon PlayFX::UnRegisterComponents (cpp:217-230). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UnRegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -288,16 +288,16 @@ export class PlayFX extends EveEntity
 
   /** Carbon method RegisterWithQuadRenderer (cpp:239-245) - quad renderer
    * registration seam; the firing effect elements own the real quads. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   RegisterWithQuadRenderer(_quadRenderer)
   {
   }
 
   /** Carbon method AddQuadsToQuadRenderer (cpp:253-259) - quad renderer
    * submission seam; the firing effect elements own the real quads. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   AddQuadsToQuadRenderer(_frustum, _quadRenderer)
   {
   }

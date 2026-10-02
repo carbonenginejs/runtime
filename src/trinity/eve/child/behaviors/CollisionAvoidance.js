@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/CollisionAvoidance.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/CollisionAvoidance.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { ProcessPriority } from "./enums.js";
 
@@ -12,36 +12,36 @@ const NO_FORCES = [];
  * Drone behavior that pushes agents away from the centre of every exclusion
  * volume they intersect, weighted by the volume's intensity at the agent.
  */
-@type.define({ className: "CollisionAvoidance", family: "eve/child/behaviors" })
+@meta.define({ className: "CollisionAvoidance", family: "eve/child/behaviors" })
 export class CollisionAvoidance
 {
 
   static ProcessPriority = ProcessPriority;
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.IBehavior.ProcessPriority")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.IBehavior.ProcessPriority")
   behaviorPriority = 0;
 
   /** m_exclusionVolumes (PIEveVolumeVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("IEveVolume")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("IEveVolume")
   exclusionVolumes = [];
 
   /** m_collisionAvoidanceScalar (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   avoidanceScalar = 12;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   enabled = true;
 
   // Per-frame cache of the exclusion volume centres, prefetched so the
@@ -49,8 +49,8 @@ export class CollisionAvoidance
   _volumeCenters = [];
 
   /** Carbon CollisionAvoidance::GetProcessPriority (cpp:18-21). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetProcessPriority()
   {
     return this.behaviorPriority;
@@ -68,8 +68,8 @@ export class CollisionAvoidance
    * @param {Array} _dronesInSearchRadius - unused
    * @returns {Array} empty (as Carbon)
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   CalculateBehavior(agents, _scratchData, _deltaTime, _group, _system, _dronesInSearchRadius)
   {
     if (!this.enabled)
@@ -102,9 +102,9 @@ export class CollisionAvoidance
   }
 
   /** Adds Carbon's exclusion-volume debug option. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Tr2DebugRendererOptions is represented by an injected Set-like option bag.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Tr2DebugRendererOptions is represented by an injected Set-like option bag.")
   GetDebugOptions(options = new Set())
   {
     if (options?.add)
@@ -119,9 +119,9 @@ export class CollisionAvoidance
   }
 
   /** Delegates exclusion-volume debug geometry when its option is enabled. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("ITr2DebugRenderer2 is an injected engine-owned capability.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("ITr2DebugRenderer2 is an injected engine-owned capability.")
   RenderDebugInfo(renderer, _agents, parentWorldLocation)
   {
     if (!renderer?.HasOption?.(this, "ExclusionVolumes"))

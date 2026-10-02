@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepLimitSize.h
 // Schema: format-carbon resources/Tr2TexturePipelineStepLimitSize.json; maintained by the runtime resource layer.
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { carbon, CjsSchema, edit, impl, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { HostBitmap } from "#imageio";
 
 // Source: trinity/trinity/Resources/TexturePipeline/ITr2TexturePipelineStep.h:26
@@ -118,12 +118,12 @@ export class Tr2TexturePipelineStepLimitSize
 CjsSchema.define(Tr2TexturePipelineStepLimitSize, {
   className: "Tr2TexturePipelineStepLimitSize", family: "resources",
   fields: {
-    maxHeight: [ edit.persist, type.uint32 ],
-    maxWidth: [ edit.persist, type.uint32 ]
+    maxHeight: [ meta.blue.persist, meta.type.uint32 ],
+    maxWidth: [ meta.blue.persist, meta.type.uint32 ]
   },
   methods: {
-    GetResourceDependencies: [ carbon.method, impl.implemented ],
-    Execute: [ carbon.method, impl.implemented ],
-    limitSize: [ carbon.method, impl.adapted, impl.reason("Carbon's LimitSize returns an all-zero texture for single-mip input and leaves the last level zeroed for a full chain (issue 1); fixed here.") ]
+    GetResourceDependencies: [ meta.blue.method, meta.implemented ],
+    Execute: [ meta.blue.method, meta.implemented ],
+    limitSize: [ meta.blue.method, meta.adapted, meta.reason("Carbon's LimitSize returns an all-zero texture for single-mip input and leaves the last level zeroed for a full chain (issue 1); fixed here.") ]
   }
 });

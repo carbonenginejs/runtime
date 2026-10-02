@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionAttributeModifiers/IEveDistributionModifier.h
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { type } from "#schema";
+import { meta } from "#schema";
 
 
 /**
@@ -10,42 +10,42 @@ import { type } from "#schema";
  * have accumulated, and the identity and lifetime that let those modifiers
  * recognise the same placement between frames.
  */
-@type.define({
+@meta.define({
   className: "PlacementDataWithIdentifier",
   family: "eve/distribution/attributeModifiers"
 })
 export class PlacementDataWithIdentifier
 {
-  @type.vec3
+  @meta.type.vec3
   initialTranslation = vec3.create();
 
-  @type.quat
+  @meta.type.quat
   initialRotation = quat.create();
 
-  @type.vec3
+  @meta.type.vec3
   initialScale = vec3.fromValues(1, 1, 1);
 
-  @type.vec3
+  @meta.type.vec3
   additionalTranslation = vec3.create();
 
-  @type.vec3
+  @meta.type.vec3
   translationFrameDelta = vec3.create();
 
-  @type.quat
+  @meta.type.quat
   additionalRotation = quat.create();
 
-  @type.vec3
+  @meta.type.vec3
   additionalScale = vec3.fromValues(1, 1, 1);
 
-  @type.int32
+  @meta.type.int32
   boneIndex = -1;
 
-  @type.float32
+  @meta.type.float32
   lifeTime = 0;
 
-  @type.uint32
+  @meta.type.uint32
   uniqueID = 0;
 
-  @type.int32
+  @meta.type.int32
   initialPlacementID = -1;
 }

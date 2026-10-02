@@ -1,21 +1,21 @@
 // Source: trinity/trinity/RenderJob/TriStepSetDebugRenderer.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that installs the debug renderer subsequent debug drawing routes through. */
-@type.define({ className: "TriStepSetDebugRenderer", family: "renderJob" })
+@meta.define({ className: "TriStepSetDebugRenderer", family: "renderJob" })
 export class TriStepSetDebugRenderer extends TriRenderStep
 {
 
   /** m_debugRenderer (ITr2DebugRendererPtr) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("ITr2DebugRenderer")
+  @meta.blue.readwrite
+  @meta.type.objectRef("ITr2DebugRenderer")
   renderer = null;
 
   /** Carbon method __init__ -> SetDebugRenderer (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   __init__(renderer = null)
   {
     this.SetDebugRenderer(renderer);
@@ -24,8 +24,8 @@ export class TriStepSetDebugRenderer extends TriRenderStep
   /**
    * Binds the debug renderer this step installs; null detaches it.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetDebugRenderer(renderer)
   {
     this.renderer = renderer ?? null;
@@ -34,8 +34,8 @@ export class TriStepSetDebugRenderer extends TriRenderStep
   /**
    * Installs the bound debug renderer on the render context.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Execute(_realTime, _simTime, renderContext)
   {
     renderContext.SetDebugRenderer(this.renderer);

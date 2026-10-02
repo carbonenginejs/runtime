@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Schema: format-carbon resources/TriMorphTargetGeometryConstants.json; maintained by the runtime resource layer.
-import { CjsSchema, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** Data record mirroring Carbon's morph-target geometry constants: vertex-buffer stride, position/tangent offsets and types, and vertex count. */
 export class TriMorphTargetGeometryConstants
@@ -29,11 +29,11 @@ export class TriMorphTargetGeometryConstants
 CjsSchema.define(TriMorphTargetGeometryConstants, {
   className: "TriMorphTargetGeometryConstants", family: "resources",
   fields: {
-    vertexBufferStride: type.uint32,
-    positionOffset: type.uint32,
-    positionType: type.uint32,
-    tangentOffset: type.uint32,
-    tangentType: type.uint32,
-    vertexCount: type.uint32
+    vertexBufferStride: meta.type.uint32,
+    positionOffset: meta.type.uint32,
+    positionType: meta.type.uint32,
+    tangentOffset: meta.type.uint32,
+    tangentType: meta.type.uint32,
+    vertexCount: meta.type.uint32
   }
 });

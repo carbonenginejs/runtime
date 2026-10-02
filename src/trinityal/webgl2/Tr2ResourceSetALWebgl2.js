@@ -29,7 +29,7 @@ import { Tr2ResourceSetDescriptionAL } from "../Tr2ResourceSetAL/Tr2ResourceSetD
 //   binds (`:139-168`); JavaScript objects have no addresses to hash, and the
 //   render context compares sets by identity instead.
 
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { ShaderType } from "#consts/render-context";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
@@ -114,7 +114,7 @@ export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} _renderContext Unused, as in dx11.
    * @returns {number} An `ALResult` value.
    */
-  @impl.adapted
+  @meta.adapted
   Create(description, program, _renderContext)
   {
     this._Reset();
@@ -253,7 +253,7 @@ export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
    * @param {import("./Tr2ShaderProgramALWebgl2.js").Tr2ShaderProgramALWebgl2} program The program.
    * @returns {object[]} The placements; see `GetUnits`.
    */
-  @impl.custom
+  @meta.ours
   _PlaceUnits(program)
   {
     return program.GetTextures().map(texture =>
@@ -286,7 +286,7 @@ export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {object[]} The placements.
    */
-  @impl.custom
+  @meta.ours
   GetUnits()
   {
     return this._units;

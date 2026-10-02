@@ -8,7 +8,7 @@
 // every other call answers as dx11 does for a query that was never created,
 // and a statistics record has no fields.
 
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -32,7 +32,7 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The primary context.
    * @returns {number} An `ALResult` value.
    */
-  @impl.adapted
+  @meta.adapted
   Create(renderContext)
   {
     const al = RenderContextALOf(renderContext);
@@ -76,7 +76,7 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {{result: number, data: Tr2PipelineStatsDataALWebgl2}} dx11's out argument comes back here.
    */
-  @impl.adapted
+  @meta.adapted
   GetStats(_renderContext)
   {
     return { result: ALResult.E_INVALIDARG, data: new Tr2PipelineStatsDataALWebgl2() };
@@ -89,7 +89,7 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
    * @param {Array} _data A statistics record.
    * @returns {number} Zero.
    */
-  @impl.adapted
+  @meta.adapted
   static GetValueCount(_data)
   {
     return 0;
@@ -102,7 +102,7 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
    * @param {number} _index The value index.
    * @returns {string} The empty string.
    */
-  @impl.adapted
+  @meta.adapted
   static GetLabel(_data, _index)
   {
     return "";
@@ -115,7 +115,7 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
    * @param {number} _index The value index.
    * @returns {string} The empty string.
    */
-  @impl.adapted
+  @meta.adapted
   static GetDescription(_data, _index)
   {
     return "";
@@ -128,7 +128,7 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
    * @param {number} _index The value index.
    * @returns {number} Zero.
    */
-  @impl.adapted
+  @meta.adapted
   static GetValue(_data, _index)
   {
     return 0;

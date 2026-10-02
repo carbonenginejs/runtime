@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Sprite2d/Tr2SpriteObject.cpp
 // Source: trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; portable sprite state is maintained here.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { ITr2SpriteObject } from "./ITr2SpriteObject.js";
 import { Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
 import { blue, INotify } from "#blue";
@@ -15,22 +15,22 @@ import { blue, INotify } from "#blue";
  * ordinary JavaScript references; native destructor detach assertions have no
  * deterministic destruction counterpart here.
  */
-@type.define({ className: "Tr2SpriteObjectBase", family: "sprite2d", abstract: true })
-@carbon.inherit(INotify)
+@meta.define({ className: "Tr2SpriteObjectBase", family: "sprite2d", abstract: true })
+@meta.blue.inherit(INotify)
 export class Tr2SpriteObjectBase extends ITr2SpriteObject
 {
 
   /** Required ITr2SpriteObject traversal contract. @param {...*} _args Renderer arguments. @returns {void} */
-  @carbon.method
-  @impl.abstract
+  @meta.blue.method
+  @meta.abstract
   GatherSprites(..._args)
   {
     throw new Error("Tr2SpriteObjectBase.GatherSprites must be implemented by a concrete Sprite2D object.");
   }
 
   /** Required ITr2SpriteObject picking contract. @param {...*} _args Picking arguments. @returns {ITr2SpriteObject|null} */
-  @carbon.method
-  @impl.abstract
+  @meta.blue.method
+  @meta.abstract
   PickPoint(..._args)
   {
     throw new Error("Tr2SpriteObjectBase.PickPoint must be implemented by a concrete Sprite2D object.");
@@ -39,8 +39,8 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   /** Carbon method GetDisplay.
    * @returns {boolean} Whether the sprite is displayed.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetDisplay()
   {
     return this._display;
@@ -50,9 +50,9 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @param {boolean} value Display state.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Retains JavaScript boolean coercion before native change detection and dirty propagation.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Retains JavaScript boolean coercion before native change detection and dirty propagation.")
   SetDisplay(value)
   {
     const next = Boolean(value);
@@ -66,8 +66,8 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   /** Carbon method GetDisplayX.
    * @returns {number} Display x.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetDisplayX()
   {
     return this.displayX;
@@ -77,9 +77,9 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @param {number} value Display x.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Retains Number coercion through the shared scalar helper before native change detection.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Retains Number coercion through the shared scalar helper before native change detection.")
   SetDisplayX(value)
   {
     this._SetDisplayValue("displayX", value);
@@ -88,8 +88,8 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   /** Carbon method GetDisplayY.
    * @returns {number} Display y.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetDisplayY()
   {
     return this.displayY;
@@ -99,9 +99,9 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @param {number} value Display y.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Retains Number coercion through the shared scalar helper before native change detection.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Retains Number coercion through the shared scalar helper before native change detection.")
   SetDisplayY(value)
   {
     this._SetDisplayValue("displayY", value);
@@ -110,8 +110,8 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   /** Carbon method GetDisplayWidth.
    * @returns {number} Display width.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetDisplayWidth()
   {
     return this.displayWidth;
@@ -121,9 +121,9 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @param {number} value Display width.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Retains Number coercion through the shared scalar helper before native change detection.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Retains Number coercion through the shared scalar helper before native change detection.")
   SetDisplayWidth(value)
   {
     this._SetDisplayValue("displayWidth", value);
@@ -132,8 +132,8 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   /** Carbon method GetDisplayHeight.
    * @returns {number} Display height.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetDisplayHeight()
   {
     return this.displayHeight;
@@ -143,9 +143,9 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @param {number} value Display height.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Retains Number coercion through the shared scalar helper before native change detection.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Retains Number coercion through the shared scalar helper before native change detection.")
   SetDisplayHeight(value)
   {
     this._SetDisplayValue("displayHeight", value);
@@ -155,8 +155,8 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @param {ITr2SpriteObject|null} parent New parent.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetParent(parent)
   {
     this._parent = parent;
@@ -166,8 +166,8 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   /** Carbon method SetDirty (MAP_METHOD_AND_WRAP).
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetDirty()
   {
     this.isDirty = true;
@@ -181,8 +181,8 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @param {ITr2SpriteObject|null} _child Changed child.
    * @returns {void}
    */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   SetChildDirty(_child)
   {
   }
@@ -190,8 +190,8 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   /** Carbon's base object is never an auxiliary mouse-over result.
    * @returns {boolean} Always false for the base object.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsAuxMouseover()
   {
     return false;
@@ -201,8 +201,8 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @param {string|null} _value Changed declaration name.
    * @returns {boolean} Always true.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnModified(_value)
   {
     this.SetDirty();
@@ -215,7 +215,7 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @param {number} value New scalar value.
    * @returns {void}
    */
-  @impl.custom
+  @meta.ours
   _SetDisplayValue(name, value)
   {
     const next = Number(value);
@@ -227,70 +227,70 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   }
 
   /** Sprite label stored as native std::wstring. @type {string} */
-  @edit.readwrite
-  @type.wstring
+  @meta.blue.readwrite
+  @meta.type.wstring
   name = "";
 
   /** Native non-owning auxiliary mouseover object; READ only. @type {ITr2SpriteObject|null} */
-  @edit.read
-  @type.weakRef("ITr2SpriteObject")
+  @meta.blue.read
+  @meta.type.weakRef("ITr2SpriteObject")
   auxMouseover = null;
 
   /** Native READWRITE display property. @returns {boolean} */
-  @edit.readwrite
-  @type.boolean
-  @impl.custom
+  @meta.blue.readwrite
+  @meta.type.boolean
+  @meta.ours
   get display()
   {
     return this.GetDisplay();
   }
 
   /** Delegates external display writes to native dirty propagation. @param {boolean} value Display state. */
-  @impl.custom
+  @meta.ours
   set display(value)
   {
     this.SetDisplay(value);
   }
 
   /** Whether sprite state has changed since the last render. @type {boolean} */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   isDirty = true;
 
   /** Horizontal translation component, stored separately from native Vector2. @type {number} */
-  @edit.notify
-  @edit.readwrite
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.float32
   displayX = 0;
 
   /** Vertical translation component, stored separately from native Vector2. @type {number} */
-  @edit.notify
-  @edit.readwrite
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.float32
   displayY = 0;
 
   /** Displayed sprite width in pixels; external writes notify. @type {number} */
-  @edit.notify
-  @edit.readwrite
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.float32
   displayWidth = 0;
 
   /** Displayed sprite height in pixels; external writes notify. @type {number} */
-  @edit.notify
-  @edit.readwrite
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.float32
   displayHeight = 0;
 
   /** Persistent native pick-state chooser controlling self/child hit testing. @type {number} */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.Tr2SpriteObjectPickState")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2SpriteObjectPickState")
   pickState = Tr2SpriteObjectPickState.TR2_SPS_ON;
 
   /** Optional owned mask consulted by concrete sprite picking. @type {Tr2Sprite2dPickingMask|null} */
-  @edit.readwrite
-  @type.objectRef("Tr2Sprite2dPickingMask")
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2Sprite2dPickingMask")
   pickingMask = null;
 
   /** Native display backing state. @type {boolean} */
@@ -317,4 +317,4 @@ blue.enums.RegisterEnum("trinity.Tr2SpriteObjectPickState", Tr2SpriteObjectBase.
 });
 
 // Native exposure maps both contracts, without concrete self or parent chaining.
-carbon.interfaceTable({ interfaces: [ITr2SpriteObject, INotify], chainTo: null })(Tr2SpriteObjectBase);
+meta.blue.interfaceTable({ interfaces: [ITr2SpriteObject, INotify], chainTo: null })(Tr2SpriteObjectBase);

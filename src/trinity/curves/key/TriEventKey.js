@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Curves/TriEventKey.h
 // Source: trinity/trinity/Curves/TriEventKey.cpp
 // Source: trinity/trinity/Curves/TriEventKey_Blue.cpp
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 
 
 /**
@@ -15,27 +15,27 @@ import { meta, types } from "#schema";
 export class TriEventKey
 {
   /** Event time in seconds. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   time = 0;
 
   /** Native wide event string, persisted independently of the callable. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.wstring
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.wstring
   value = "";
 
   /** Host callable; JavaScript GC replaces native Py_XDECREF ownership. */
-  @meta.edit.readwrite
-  @types.objectRef("PyObject")
+  @meta.blue.readwrite
+  @meta.type.objectRef("PyObject")
   callable = null;
 
   /** Host callable arguments; runtime-only and owned through ordinary JS references. */
-  @meta.edit.readwrite
-  @types.objectRef("PyObject")
+  @meta.blue.readwrite
+  @meta.type.objectRef("PyObject")
   callableArgs = null;
 }
 
 // Native own query table; no inherited exposure chain.
-meta.carbon.interfaceTable({ interfaces: [ TriEventKey ], chainTo: null })(TriEventKey);
+meta.blue.interfaceTable({ interfaces: [ TriEventKey ], chainTo: null })(TriEventKey);

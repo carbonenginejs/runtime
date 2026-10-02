@@ -2,7 +2,7 @@ import { Tr2ResourceSetDescriptionAL } from "./Tr2ResourceSetDescriptionAL.js";
 // Source: trinity/trinityal/include/Tr2ResourceSetAL.h
 // Source: trinity/trinityal/stub/Tr2ResourceSetALStub.cpp
 // Source: trinity/trinityal/stub/Tr2ResourceSetALStub.h
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -32,8 +32,8 @@ export class Tr2ResourceSetALStub extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult`.
    */
-  @impl.adapted
-  @impl.reason("The native stub unconditionally succeeds; JS additionally retains description and program for headless inspection.")
+  @meta.adapted
+  @meta.reason("The native stub unconditionally succeeds; JS additionally retains description and program for headless inspection.")
   Create(description, program, _renderContext)
   {
     if (this._description) this._description.ClearResources();

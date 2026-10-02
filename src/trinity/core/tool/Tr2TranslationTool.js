@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2TranslationTool.h
 // Source: trinity/trinity/Tr2TranslationTool.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2ManipulationTool } from "./Tr2ManipulationTool.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -14,19 +14,19 @@ const AXIS_COLORS = Object.freeze({
 });
 
 /** Extends the manipulation tool with the current three-axis translation result. */
-@type.define({ className: "Tr2TranslationTool", family: "trinityCore", purpose: "Extends the manipulation tool with the current three-axis translation result." })
+@meta.define({ className: "Tr2TranslationTool", family: "trinityCore", purpose: "Extends the manipulation tool with the current three-axis translation result." })
 export class Tr2TranslationTool extends Tr2ManipulationTool
 {
 
   /** m_translation (Vector3) [READ] */
-  @edit.read
-  @type.vec3
+  @meta.blue.read
+  @meta.type.vec3
   translation = vec3.create();
 
   /** Returns the full tool, or the captured axis and centre primitive. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JavaScript returns a fresh array instead of Carbon's reused private visible-object vector.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JavaScript returns a fresh array instead of Carbon's reused private visible-object vector.")
   GetPrimitivesToRender()
   {
     if (!this.captured)
@@ -38,8 +38,8 @@ export class Tr2TranslationTool extends Tr2ManipulationTool
   }
 
   /** Restores Carbon's authored axis and centre colours. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ResetPrimitiveColors()
   {
     for (const primitive of this.primitives)

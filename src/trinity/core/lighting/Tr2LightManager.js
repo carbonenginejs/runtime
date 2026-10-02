@@ -26,7 +26,7 @@
 // packed flag word, the premultiply and the fade band; the packing below
 // cites it rather than re-deriving it.
 
-import { carbon, edit, impl, type } from "#schema";
+import { meta } from "#schema";
 import { num } from "#math/num";
 import { vec3 } from "#math/vec3";
 import { ShadowQuality } from "../../generated/trinityCore/enums.js";
@@ -119,7 +119,7 @@ function calculateShadowMapAtlasSettings(shadowQuality)
 const toHalf = num.toHalfFloat;
 
 /** Owns the frame's local-light records, their selection, and the packed light-buffer bytes the abstraction layer uploads. */
-@type.define({ className: "Tr2LightManager", family: "trinityCore" })
+@meta.define({ className: "Tr2LightManager", family: "trinityCore" })
 export class Tr2LightManager
 {
 
@@ -198,7 +198,7 @@ export class Tr2LightManager
    * exercises the ported path (the tests do), and shipping behaviour is
    * unchanged while it stays false.
    */
-  @edit.setting("useDynamicLightsShadows")
+  @meta.setting("useDynamicLightsShadows")
   static useDynamicLightsShadows = false;
 
   /** The atlas-settings derivation, exposed for tests (Carbon cpp:92-122). */
@@ -208,8 +208,8 @@ export class Tr2LightManager
    * Carbon Tr2LightManager::AreLightFlagsValid (cpp:677-680): a light must
    * affect surfaces or particles to exist at all.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   static areLightFlagsValid(flags)
   {
     return (flags & (Tr2LightManager.Flags.AFFECTS_SURFACES | Tr2LightManager.Flags.AFFECTS_PARTICLES)) !== 0;
@@ -224,8 +224,8 @@ export class Tr2LightManager
    * may request different qualities in one frame and the texture must fit
    * the largest.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetShadowQuality(quality, frameCounter = 0)
   {
     const shadowQuality = Number(quality) || 0;
@@ -263,8 +263,8 @@ export class Tr2LightManager
   }
 
   /** Carbon GetShadowMapAtlasSettings (cpp:708-711). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetShadowMapAtlasSettings()
   {
     return this._shadowMap.atlasSettings;
@@ -278,8 +278,8 @@ export class Tr2LightManager
    * @param {object} [out] Receives scale/offsetX/offsetY.
    * @returns {object} out
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetUnpackedShadowMapData(record, out = {})
   {
     const shift = this._shadowMap.atlasSettings.entryMinSizeLog2;
@@ -297,8 +297,8 @@ export class Tr2LightManager
    * Without a render context (a CPU-only caller) the index clear is skipped;
    * there is no buffer to clear then.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Clear(renderContext = null)
   {
     this.SetVariableStore();
@@ -314,16 +314,16 @@ export class Tr2LightManager
   }
 
   /** Carbon SetFrustum (cpp:244-247). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetFrustum(frustum)
   {
     this._frustum = frustum ?? null;
   }
 
   /** Carbon AdjustLightCutoff (cpp:249-252): the cull threshold is 7px * lodFactor. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AdjustLightCutoff(lodFactor)
   {
     this._adjustedCutoff = CUTOFF_PIXEL_SIZE * (Number(lodFactor) || 0);
@@ -337,8 +337,8 @@ export class Tr2LightManager
    * is a legal bit pattern the shader normalises into NaN (contract §"third
    * texel").
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddPointLight(position, radius, color, innerRadius = 0, flags = Tr2LightManager.Flags.DEFAULT)
   {
     if (!Tr2LightManager.areLightFlagsValid(flags)) return;
@@ -375,8 +375,8 @@ export class Tr2LightManager
    * record is a by-value copy: every producer reuses a static scratch record,
    * exactly as Carbon's std::vector push copies.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddLight(record)
   {
     if (!Tr2LightManager.areLightFlagsValid(record.flags)) return;
@@ -427,8 +427,8 @@ export class Tr2LightManager
    * buffer: byte layout per the contract, profile slots biased by one into
    * flag bits 4-15, the shadow union in word 11.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ResolveLightData()
   {
     const volumetric = [];
@@ -678,32 +678,32 @@ export class Tr2LightManager
   }
 
   /** Carbon GetCurrentSpaceSceneShadowQuality (cpp:713-716): a bare field read; every record producer asks it before building. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetCurrentSpaceSceneShadowQuality()
   {
     return this._currentSpaceSceneShadowQuality;
   }
 
   /** Carbon GetLightData (cpp:695-698): the frame's resolved records, borrowed. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetLightData()
   {
     return this._records;
   }
 
   /** Carbon GetVolumetricLights (cpp:707-710): indices into GetLightData, borrowed. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetVolumetricLights()
   {
     return this._volumetricLights;
   }
 
   /** Carbon GetShadowCastingLights (cpp:688-691): empty under the shipping pin, kept for signature parity. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetShadowCastingLights()
   {
     return this._shadowCastingLights;
@@ -756,8 +756,8 @@ export class Tr2LightManager
   }
 
   /** Carbon GetOrCreateInstance (cpp:192-200): the process-wide manager. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   static getOrCreateInstance(effectPath)
   {
     Tr2LightManager._instance ??= new Tr2LightManager()._InitializeDevice(effectPath);
@@ -765,8 +765,8 @@ export class Tr2LightManager
   }
 
   /** Carbon GetInstance (cpp:202-205): the manager, or null when none exists. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   static getInstance()
   {
     return Tr2LightManager._instance;
@@ -782,8 +782,8 @@ export class Tr2LightManager
    * LightProfileArray and ShadowMapAtlas re-registrations are not made; the
    * manager does not publish either.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   static deleteInstance()
   {
     const instance = Tr2LightManager._instance;
@@ -798,8 +798,8 @@ export class Tr2LightManager
   static _instance = null;
 
   /** Carbon SetVariableStore (cpp:214-218): the globals name this manager's buffers. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetVariableStore()
   {
     this._lightBufferVariable?.SetValue(this._lightBuffer);
@@ -807,8 +807,8 @@ export class Tr2LightManager
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PrepareResources()
   {
     if (Tr2Renderer.IsResourceCreationAllowed())
@@ -831,8 +831,8 @@ export class Tr2LightManager
    * computelightlists, so the index buffer is CPU-writable and sized per
    * screen.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnPrepareResources()
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -845,8 +845,8 @@ export class Tr2LightManager
   }
 
   /** Carbon ReleaseResources (cpp:641-655): nothing of the light lists is released. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ReleaseResources(_storage)
   {
   }
@@ -861,8 +861,8 @@ export class Tr2LightManager
    * @param {Tr2RenderContext} renderContext The context to write through.
    * @returns {boolean} Whether the clear was written.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   ClearLightIndices(renderContext)
   {
     const buffer = this._indexBuffer.GetGpuBuffer(0);
@@ -878,8 +878,8 @@ export class Tr2LightManager
    * @param {Tr2RenderContext} renderContext The context to write through.
    * @returns {boolean} Whether the upload succeeded.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateLightBuffer(renderContext)
   {
     const count = this._packedCount;
@@ -903,8 +903,8 @@ export class Tr2LightManager
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {boolean} Whether the lists were built.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateLists(depthMap, renderContext)
   {
     this.SetVariableStore();
@@ -941,8 +941,8 @@ export class Tr2LightManager
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {boolean} Whether the lists were written.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   DoUpdateLists(depthMap, renderContext)
   {
     if (!this.UpdateLightBuffer(renderContext)) return false;
@@ -1025,24 +1025,24 @@ export class Tr2LightManager
   }
 
   /** The packed PerLightData bytes for the AL to upload, borrowed (contract layout, 3 RGBA32 texels per light). */
-  @impl.custom
-  @impl.reason("AL seam: Trinity owns the packed description bytes; the AL realizes LightBuffer from this view. Carbon has no such seam; Tr2DataTextureManager now writes its own texture, so this has no precedent.")
+  @meta.ours
+  @meta.reason("AL seam: Trinity owns the packed description bytes; the AL realizes LightBuffer from this view. Carbon has no such seam; Tr2DataTextureManager now writes its own texture, so this has no precedent.")
   GetLightBufferData()
   {
     return this._packed.subarray(0, this._packedCount * FLOATS_PER_LIGHT);
   }
 
   /** The number of packed lights in GetLightBufferData. */
-  @impl.custom
-  @impl.reason("AL seam companion to GetLightBufferData.")
+  @meta.ours
+  @meta.reason("AL seam companion to GetLightBufferData.")
   GetLightCount()
   {
     return this._packedCount;
   }
 
   /** Monotonic revision of the packed data, bumped by ResolveLightData, so the AL can skip unchanged re-uploads. */
-  @impl.custom
-  @impl.reason("Non-Carbon extension: cheaper than the AL diffing a typed array; Carbon re-uploads unconditionally.")
+  @meta.ours
+  @meta.reason("Non-Carbon extension: cheaper than the AL diffing a typed array; Carbon re-uploads unconditionally.")
   GetDataRevision()
   {
     return this._revision;

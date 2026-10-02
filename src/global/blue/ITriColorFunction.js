@@ -37,7 +37,7 @@ export class ITriColorFunction extends ITriFunction
 
 for (const method of [ "Update", "GetValueAt" ])
 {
-  CjsSchema.decorateMethod(ITriColorFunction, method, meta.compose.abstract, meta.impl.abstract);
+  CjsSchema.decorateMethod(ITriColorFunction, method, meta.requires, meta.abstract);
 }
 CjsSchema.define(ITriColorFunction, {
   className: "ITriColorFunction", carbon: "ITriColorFunction", family: "blue", fields: {}

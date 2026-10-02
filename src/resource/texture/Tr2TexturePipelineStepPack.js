@@ -7,7 +7,7 @@
 // strides exist because the inputs are separate host bitmaps with their own
 // formats and mip pitches.
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { carbon, CjsSchema, impl, edit, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { GetBytesPerPixel, PixelFormat, TextureType } from "#consts/render-context";
 
 // Source: trinity/trinity/Resources/TexturePipeline/ITr2TexturePipelineStep.h:26
@@ -251,16 +251,16 @@ export class Tr2TexturePipelineStepPack
 CjsSchema.define(Tr2TexturePipelineStepPack, {
   className: "Tr2TexturePipelineStepPack", family: "resources",
   fields: {
-    format: [ edit.persist, type.int32, type.enum("PixelFormat") ],
-    a: [ edit.persist, type.objectRef("Tr2TexturePackChannel") ],
-    b: [ edit.persist, type.objectRef("Tr2TexturePackChannel") ],
-    g: [ edit.persist, type.objectRef("Tr2TexturePackChannel") ],
-    r: [ edit.persist, type.objectRef("Tr2TexturePackChannel") ]
+    format: [ meta.blue.persist, meta.type.int32, meta.type.enum("PixelFormat") ],
+    a: [ meta.blue.persist, meta.type.objectRef("Tr2TexturePackChannel") ],
+    b: [ meta.blue.persist, meta.type.objectRef("Tr2TexturePackChannel") ],
+    g: [ meta.blue.persist, meta.type.objectRef("Tr2TexturePackChannel") ],
+    r: [ meta.blue.persist, meta.type.objectRef("Tr2TexturePackChannel") ]
   },
   methods: {
-    GetResourceDependencies: impl.implemented,
-    Execute: [ carbon.method, impl.adapted, impl.reason("Carbon's R8 case tests a format its own guard rejects (a heap overflow) and its BGRX case shifts every pixel after the first; both fixed (issue 2).") ],
-    swapRedBlue: [ carbon.method, impl.implemented ],
-    pack: [ carbon.method, impl.adapted, impl.reason("The destination advances by the output's bytes per pixel, so a BGRX output is not shifted (issue 2).") ]
+    GetResourceDependencies: meta.implemented,
+    Execute: [ meta.blue.method, meta.adapted, meta.reason("Carbon's R8 case tests a format its own guard rejects (a heap overflow) and its BGRX case shifts every pixel after the first; both fixed (issue 2).") ],
+    swapRedBlue: [ meta.blue.method, meta.implemented ],
+    pack: [ meta.blue.method, meta.adapted, meta.reason("The destination advances by the output's bytes per pixel, so a BGRX output is not shifted (issue 2).") ]
   }
 });

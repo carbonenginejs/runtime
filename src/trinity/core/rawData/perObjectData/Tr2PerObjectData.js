@@ -12,7 +12,7 @@
 // Tr2IndirectDrawBufferWriter and nothing on this path draws indirectly yet.
 
 import { CjsConstantPayload } from "#interfaces";
-import { CjsSchema, carbon, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { ShaderType } from "#consts/render-context";
 import { FillAndSetConstants } from "../../Tr2RenderUtils.js";
 import { PER_OBJECT_PS, PER_OBJECT_VS } from "../../Tr2Renderer.js";
@@ -75,8 +75,8 @@ export class Tr2PerObjectData
    *
    * @returns {number} How many payloads were uploaded; none, at this level.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetPerObjectDataToDevice()
   {
     return 0;
@@ -88,9 +88,9 @@ export class Tr2PerObjectData
    * Carbon's base asserts rather than defaulting (`Tr2PerObjectData.cpp:34-37`),
    * so a call that reached here is a porting mistake and must not look valid.
    */
-  @carbon.method
-  @impl.notImplemented
-  @impl.reason("Tr2IndirectDrawBufferWriter is unported and nothing on this path draws indirectly; Carbon's base asserts here too.")
+  @meta.blue.method
+  @meta.notImplemented
+  @meta.reason("Tr2IndirectDrawBufferWriter is unported and nothing on this path draws indirectly; Carbon's base asserts here too.")
   ApplyConstantBuffers()
   {
     throw new Error("Tr2PerObjectData.ApplyConstantBuffers: indirect draw is unported.");

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Schema: format-carbon resources/TriGeometryResMeshData.json; maintained by the runtime resource layer.
-import { CjsSchema, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
@@ -46,16 +46,16 @@ export class TriGeometryResMeshData
 CjsSchema.define(TriGeometryResMeshData, {
   className: "TriGeometryResMeshData", family: "resources",
   fields: {
-    name: type.string,
-    vertexDeclarationHandle: type.uint32,
-    bytesPerVertex: type.uint32,
-    minBounds: type.vec3,
-    maxBounds: type.vec3,
-    boundingSphere: type.vec4,
-    jointBindings: type.unknown,
-    audioGeometry: type.rawStruct("AudioGeometryResData"),
-    decals: type.list("MeshDecalData"),
-    lodMask: type.uint32,
-    lods: type.rawStruct("TrackableStdVector<std::unique_ptr<TriGeometryResLodData>>")
+    name: meta.type.string,
+    vertexDeclarationHandle: meta.type.uint32,
+    bytesPerVertex: meta.type.uint32,
+    minBounds: meta.type.vec3,
+    maxBounds: meta.type.vec3,
+    boundingSphere: meta.type.vec4,
+    jointBindings: meta.type.unknown,
+    audioGeometry: meta.type.rawStruct("AudioGeometryResData"),
+    decals: meta.type.list("MeshDecalData"),
+    lodMask: meta.type.uint32,
+    lods: meta.type.rawStruct("TrackableStdVector<std::unique_ptr<TriGeometryResLodData>>")
   }
 });

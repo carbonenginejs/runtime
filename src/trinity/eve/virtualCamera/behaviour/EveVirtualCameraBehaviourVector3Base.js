@@ -3,7 +3,7 @@ import { INotify } from "../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
 import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
 
@@ -12,27 +12,27 @@ import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
  * Base for the virtual camera behaviours that contribute a world-space vector3
  * offset to a camera's position or point of interest each update.
  */
-@type.define({
+@meta.define({
   className: "EveVirtualCameraBehaviourVector3Base",
   family: "eve/virtualCamera/behaviour"
 })
-@carbon.inherit(INotify)
+@meta.blue.inherit(INotify)
 export class EveVirtualCameraBehaviourVector3Base
 {
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   active = true;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** Returns the authored behaviour name shown in tooling. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetName()
   {
     return this.name;
@@ -42,8 +42,8 @@ export class EveVirtualCameraBehaviourVector3Base
    * Sets the behaviour name, coercing to a string; subclasses override this to
    * rename the curves they own alongside it.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetName(name)
   {
     this.name = String(name);
@@ -53,9 +53,9 @@ export class EveVirtualCameraBehaviourVector3Base
    * Re-applies the current name after a field change, which propagates it to any
    * owned curves through the subclass SetName override.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
     if (propertyName === "name") this.SetName(this.name);
@@ -63,8 +63,8 @@ export class EveVirtualCameraBehaviourVector3Base
   }
 
   /** Reports whether the camera should evaluate this behaviour this update. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsActive()
   {
     return this.active;
@@ -119,4 +119,4 @@ export class EveVirtualCameraBehaviourVector3Base
 }
 
 // Exact native Blue exposure: only these identities participate in loading.
-carbon.interfaceTable({ interfaces: [INotify], chainTo: null })(EveVirtualCameraBehaviourVector3Base, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [INotify], chainTo: null })(EveVirtualCameraBehaviourVector3Base, { kind: "class" });

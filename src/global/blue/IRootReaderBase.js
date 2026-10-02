@@ -25,7 +25,7 @@
 // back what it wrote (operator ruling 2026-09-27; see the research page
 // `blue-values-engine.md`). Selection is owner-first, stored-before-live within
 // an owner, with no flag merging or filter fallback. Selected aliases name it too.
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { omitRuntimeValues } from "../schema/CjsSchema.js";
 import { coerceCarbonMathInto, coerceCarbonTypedArrayInto, normalizeCarbonValue } from "../schema/types/index.js";
 import { IRootReaderException } from "./IRootReaderException.js";
@@ -282,6 +282,6 @@ export class IRootReaderBase
 }
 
 CjsSchema.define(IRootReaderBase, { className: "IRootReaderBase", carbon: "IRootReaderBase" });
-CjsSchema.decorateMethod(IRootReaderBase, "HandleAttribute", impl.adapted);
-CjsSchema.decorateMethod(IRootReaderBase, "HandlePropertyIRoot", impl.adapted);
-CjsSchema.decorateMethod(IRootReaderBase, "FindEntry", impl.adapted);
+CjsSchema.decorateMethod(IRootReaderBase, "HandleAttribute", meta.adapted);
+CjsSchema.decorateMethod(IRootReaderBase, "HandlePropertyIRoot", meta.adapted);
+CjsSchema.decorateMethod(IRootReaderBase, "FindEntry", meta.adapted);

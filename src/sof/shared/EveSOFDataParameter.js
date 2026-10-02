@@ -9,7 +9,7 @@
 // can carry these node types. Bool/Int/Float broadcast the scalar to all four
 // components; Vector2 zero-pads z and w; Vector3 zero-pads w (0, not 1);
 // Color passes through unchanged.
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { vec4 } from "#math/vec4";
 
 /** Stores a named vector parameter and supports assignment and composition; the typed subclasses flatten to a shader vec4 through `GetValue()`.
@@ -25,9 +25,9 @@ export class EveSOFDataParameter
    * (BlueSharedString).
    * @type {string}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /**
@@ -35,9 +35,9 @@ export class EveSOFDataParameter
    * m_value (Vector4); typed subclasses provide their own value representation.
    * @type {Float32Array}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.vec4
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec4
   value = vec4.create();
 
   /**
@@ -45,7 +45,7 @@ export class EveSOFDataParameter
    * their broadcast/zero-pad rules (Carbon virtual GetValue, EveSOFData.h:27).
    * @returns {Float32Array} Independent vector, matching native return-by-value.
    */
-  @meta.impl.implemented
+  @meta.implemented
   GetValue()
   {
     return vec4.clone(this.value);
@@ -59,7 +59,7 @@ export class EveSOFDataParameter
    * @param {string} [prefix=""] Optional authored name prefix.
    * @returns {object} The destination map.
    */
-  @meta.impl.custom
+  @meta.ours
   Assign(out = {}, prefix = "")
   {
     out[prefix ? prefix + this.name : this.name] = Array.from(this.GetValue());
@@ -76,7 +76,7 @@ export class EveSOFDataParameter
    * @param {EveSOFDataParameter[]} [out=[]] Reused destination records.
    * @returns {EveSOFDataParameter[]} The destination list.
    */
-  @meta.impl.custom
+  @meta.ours
   static combineArrays(base = [], overrides = null, out = [])
   {
     const validNames = new Set(base.map(value => value.name));
@@ -101,7 +101,7 @@ export class EveSOFDataParameter
 
 }
 
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ EveSOFDataParameter ],
   chainTo: null
 })(EveSOFDataParameter);

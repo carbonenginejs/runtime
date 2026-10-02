@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2ImpostorManager.h
 import { vec3 } from "#math/vec3";
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 
 /**
  * ITr2ImpostorSource::ImpostorHash, a plain nested pair of camera directions.
@@ -15,13 +15,13 @@ export class ITr2ImpostorSourceImpostorHash
    * View direction used to compare captures.
    * @type {Float32Array}
    */
-  @types.vec3
+  @meta.type.vec3
   viewDir = vec3.create();
 
   /**
    * Camera up direction used to compare captures.
    * @type {Float32Array}
    */
-  @types.vec3
+  @meta.type.vec3
   upDir = vec3.create();
 }

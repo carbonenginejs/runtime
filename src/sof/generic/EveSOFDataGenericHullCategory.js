@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:557-566
 import "#blue/registerTrinityEnums";
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { ReflectionMode } from "#consts/graphics";
 
 /** Names a generic hull category and records its reflection mode.
@@ -17,21 +17,21 @@ export class EveSOFDataGenericHullCategory
 
 
   /** m_categoryName (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, ENUM] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.int32
-  @types.enum("trinity.EntityComponents.ReflectionMode")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.EntityComponents.ReflectionMode")
   reflectionMode = ReflectionMode.REFLECT_NEVER;
 
 }
 
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ EveSOFDataGenericHullCategory ],
   chainTo: null
 })(EveSOFDataGenericHullCategory);

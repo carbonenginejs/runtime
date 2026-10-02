@@ -1,30 +1,30 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierNoise.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
 import { carbonPerlin1D } from "#math/noise";
 
 /** EveSmartLightAttributeModifierNoise (eve/smartLights/attributeModifiers) - generated from schema shapeHash 60b52eeb.... */
-@type.define({ className: "EveSmartLightAttributeModifierNoise", family: "eve/smartLights/attributeModifiers" })
+@meta.define({ className: "EveSmartLightAttributeModifierNoise", family: "eve/smartLights/attributeModifiers" })
 export class EveSmartLightAttributeModifierNoise extends IEveSmartLightGroupAttributeModifier
 {
 
   /** m_noiseAmplitude (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   noiseAmplitude = 0;
 
   /** m_noiseFrequency (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   noiseFrequency = 1;
 
   /** m_noiseOctaves (uint32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   noiseOctaves = 1;
 
   /** Frame time captured per update; Carbon reads BeOS->GetCurrentFrameTime(). */
@@ -35,9 +35,9 @@ export class EveSmartLightAttributeModifierNoise extends IEveSmartLightGroupAttr
    * per-placement noise sample
    * (EveSmartLightAttributeModifierNoise.cpp:14-17).
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon samples BeOS->GetCurrentFrameTime() inside ProcessAttributeModifier; the frame time is captured from the update context here because ProcessAttributeModifier carries no context.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon samples BeOS->GetCurrentFrameTime() inside ProcessAttributeModifier; the frame time is captured from the update context here because ProcessAttributeModifier carries no context.")
   UpdateSyncronous(updateContext, _params, activationMultiplier)
   {
     this._frameTime = Number(updateContext.GetTime());
@@ -49,8 +49,8 @@ export class EveSmartLightAttributeModifierNoise extends IEveSmartLightGroupAttr
    * (EveSmartLightAttributeModifierNoise.cpp:19-30). PerlinNoise1D(x, 2, 2, n)
    * maps to the shared carbonPerlin1D port.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ProcessAttributeModifier(attribute, placement, _entityPosition, _entityDirection, modifierStrength)
   {
     const activationStrength = this.GetActivationStrength(placement) * modifierStrength;

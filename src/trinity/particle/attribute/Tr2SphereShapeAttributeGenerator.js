@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Particle/Tr2SphereShapeAttributeGenerator.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { ITr2AttributeGenerator } from "./ITr2AttributeGenerator.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -8,7 +8,7 @@ import { bindParticleElement } from "../element/particleElementBinding.js";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
 
 /** Generates particle position and velocity offsets sampled within a rotated spherical cone and radius range. */
-@type.define({ className: "Tr2SphereShapeAttributeGenerator", family: "particle" })
+@meta.define({ className: "Tr2SphereShapeAttributeGenerator", family: "particle" })
 export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
 {
 
@@ -17,98 +17,98 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
   #velocityElement = null;
 
   /** m_minPhi (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   minPhi = 0;
 
   /** m_maxPhi (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxPhi = 360;
 
   /** m_minTheta (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   minTheta = 0;
 
   /** m_maxTheta (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxTheta = 360;
 
   /** m_distributionExponent (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   distributionExponent = 1;
 
   /** m_controlPosition (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   controlPosition = true;
 
   /** m_controlVelocity (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   controlVelocity = true;
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.quat
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   rotation = quat.create();
 
   /** m_position (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   position = vec3.create();
 
   /** m_parentVelocityFactor (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   parentVelocityFactor = 1;
 
   /** m_maxSpeed (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxSpeed = 0;
 
   /** m_minSpeed (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   minSpeed = 0;
 
   /** m_maxRadius (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxRadius = 0;
 
   /** m_minRadius (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   minRadius = 0;
 
   /** m_valid (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   valid = false;
 
   /**
    * Resolves the position and velocity elements according to the control flags, marking the generator valid only when every required element resolves.
    */
-  @impl.implemented
+  @meta.implemented
   Bind(particleSystem, boundElements)
   {
     this.#positionElement = this.controlPosition
@@ -133,8 +133,8 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
   /**
    * Samples a direction within the configured cone and radius range to write one particle's position and velocity offset.
    */
-  @impl.adapted
-  @impl.reason("Carbon's particle RNG is replaced by Math.random while retaining its cone sampling, rotation and distribution-exponent order.")
+  @meta.adapted
+  @meta.reason("Carbon's particle RNG is replaced by Math.random while retaining its cone sampling, rotation and distribution-exponent order.")
   Generate(parentPosition, parentVelocity, index)
   {
     if (!this.valid || (!this.controlPosition && !this.controlVelocity))
@@ -183,7 +183,7 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
   /**
    * A label saying whether the generator controls position, velocity, both, or neither.
    */
-  @impl.implemented
+  @meta.implemented
   GetName()
   {
     return this.controlPosition
@@ -192,11 +192,11 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
   }
 
   /** Carbon returns via reference arguments (Tr2SphereShapeAttributeGenerator.cpp:215-219). */
-  @impl.adapted
+  @meta.adapted
   /**
    * Writes the generator's current position and rotation into the caller's vector and quaternion.
    */
-  @impl.reason("Carbon's paired reference outputs become caller-provided out arguments.")
+  @meta.reason("Carbon's paired reference outputs become caller-provided out arguments.")
   GetTransform(outPosition, outRotation)
   {
     vec3.copy(outPosition, this.position);
@@ -206,7 +206,7 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
   /**
    * Copies the given position and rotation into the generator's transform.
    */
-  @impl.implemented
+  @meta.implemented
   SetTransform(position, rotation)
   {
     vec3.copy(this.position, position);

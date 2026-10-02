@@ -8,7 +8,7 @@ import { EveEntity } from "../EveEntity.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { EveComponentType } from "../EveComponentTypes.js";
 import { Priority } from "../../generated/postProcess/enums.js";
@@ -21,53 +21,53 @@ import "../../postProcess/Tr2PostProcessAttributes.js";
  * lighting, its blend strength driven by how deeply the camera sits inside the
  * volumes it owns.
  */
-@type.define({ className: "EveChildLightingOverride", family: "eve/child" })
-@carbon.inherit(IEveLightingOverride)
-@carbon.inherit(IInitialize)
+@meta.define({ className: "EveChildLightingOverride", family: "eve/child" })
+@meta.blue.inherit(IEveLightingOverride)
+@meta.blue.inherit(IInitialize)
 export class EveChildLightingOverride extends EveChildTransform
 {
   _overrideIntensity = 0;
   _boundingSphere = { center: vec3.create(), radius: 0, initialized: false };
 
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.PostProcessEnums.Priority")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.PostProcessEnums.Priority")
   priority = 2;
 
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   backgroundIntensity = 1;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   intensity = 1;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   reflectionIntensity = 1;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   sunIntensity = 1;
 
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   sunColor = vec4.fromValues(1, 1, 1, 1);
 
-  @edit.read
-  @edit.persist
-  @type.list("IEveVolume")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("IEveVolume")
   volumes = [];
 
   /** Carbon EveChildLightingOverride::RegisterComponents (cpp:47-50):
@@ -75,7 +75,7 @@ export class EveChildLightingOverride extends EveChildTransform
    * UnRegisterComponents (cpp:52-55) only removes this same component, which
    * EveEntity::UnRegister already did via UnRegisterAllComponents
    * (EveEntity.cpp:90), so the JS un-side keeps the base no-op. */
-  @impl.implemented
+  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -90,7 +90,7 @@ export class EveChildLightingOverride extends EveChildTransform
    * blend intensity resolved by the last async update, and the sun
    * colour/intensity plus background and reflection intensities to blend toward.
    */
-  @impl.implemented
+  @meta.implemented
   GetOverrides()
   {
     return {
@@ -125,7 +125,7 @@ export class EveChildLightingOverride extends EveChildTransform
    * @param {Float32Array} [out] - caller-owned; receives (x, y, z, radius)
    * @returns {Boolean} always true
    */
-  @impl.adapted
+  @meta.adapted
   GetBoundingSphere(out = vec4.create())
   {
     vec4.set(out, this._boundingSphere.center[0], this._boundingSphere.center[1], this._boundingSphere.center[2], this._boundingSphere.radius);
@@ -145,7 +145,7 @@ export class EveChildLightingOverride extends EveChildTransform
    * (short-circuiting at 1) is scaled by the authored intensity - a camera
    * outside leaves the strength at zero.
    */
-  @impl.adapted
+  @meta.adapted
   UpdateAsyncronous(updateContext, params = {})
   {
     this.UpdateTransform(params.localToWorldTransform ?? mat4.create());
@@ -282,4 +282,4 @@ export class EveChildLightingOverride extends EveChildTransform
 }
 
 // EveChildLightingOverride_Blue.cpp: native exposure.
-carbon.interfaceTable({ interfaces: [EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, IEveLightingOverride, IInitialize, ITr2DebugRenderable], chainTo: null })(EveChildLightingOverride, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, IEveLightingOverride, IInitialize, ITr2DebugRenderable], chainTo: null })(EveChildLightingOverride, { kind: "class" });

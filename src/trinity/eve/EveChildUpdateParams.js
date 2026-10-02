@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/IEveSpaceObjectChild.h
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { type } from "#schema";
+import { meta } from "#schema";
 
 
 /**
@@ -10,39 +10,39 @@ import { type } from "#schema";
  * and the owner's motion and activation state. Rebuilt by the parent for each
  * child update, so nothing in it survives the call.
  */
-@type.define({
+@meta.define({
   className: "EveChildUpdateParams",
   family: "eve/child"
 })
 export class EveChildUpdateParams
 {
-  @type.objectRef("IEveSpaceObject2")
+  @meta.type.objectRef("IEveSpaceObject2")
   spaceObjectParent = null;
 
-  @type.objectRef("IEveSpaceObjectChild")
+  @meta.type.objectRef("IEveSpaceObjectChild")
   childParent = null;
 
-  @type.uint64
+  @meta.type.uint64
   boneCount = 0;
 
-  @type.objectRef("Float4x3")
+  @meta.type.objectRef("Float4x3")
   bones = null;
 
-  @type.float32
+  @meta.type.float32
   ownerMaxSpeed = 0;
 
-  @type.float32
+  @meta.type.float32
   activationStrength = 1;
 
-  @type.float32
+  @meta.type.float32
   controllerUpdateFrequency = 0.5;
 
-  @type.boolean
+  @meta.type.boolean
   isVisible = true;
 
-  @type.mat4
+  @meta.type.mat4
   localToWorldTransform = mat4.create();
 
-  @type.vec3
+  @meta.type.vec3
   worldVelocity = vec3.create();
 }

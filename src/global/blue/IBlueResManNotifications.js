@@ -11,7 +11,7 @@
 // `impl.noop` at the foot of this file and never `impl.abstract`: doing
 // nothing IS the declared default, and a caller who supplied the object still
 // gets the other callback.
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** `IBlueResManNotifications` - optional per-call notice of how GetResource answered. */
 export class IBlueResManNotifications
@@ -42,5 +42,5 @@ CjsSchema.define(IBlueResManNotifications, {
 // divergence when left alone. That is `impl.noop`, not `impl.abstract`, and
 // declaring it is what stops `@carbon.inherit` falling back to abstract and
 // writing "Carbon leaves this unimplemented" onto every consumer.
-CjsSchema.decorateMethod(IBlueResManNotifications, "OnResourceCreated", impl.noop);
-CjsSchema.decorateMethod(IBlueResManNotifications, "OnResourceFromCache", impl.noop);
+CjsSchema.decorateMethod(IBlueResManNotifications, "OnResourceCreated", meta.noop);
+CjsSchema.decorateMethod(IBlueResManNotifications, "OnResourceFromCache", meta.noop);

@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Eve/UI/EveProjectBracket_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; projection is portable CPU work.
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { Vec3TransformByViewport } from "../../core/view/TriViewport.js";
@@ -54,7 +54,7 @@ function callBlueCallback(callback, ...args)
 
 
 /** Projects an authored world position into a Sprite2D bracket. */
-@type.define({ className: "EveProjectBracket", family: "eve/ui" })
+@meta.define({ className: "EveProjectBracket", family: "eve/ui" })
 export class EveProjectBracket
 {
   /**
@@ -63,9 +63,9 @@ export class EveProjectBracket
    * Carbon ignores the curve-set time and samples a global frame clock. The
    * JavaScript frame driver owns that clock on Tr2RenderContext.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Tr2Renderer camera state and BeOS current-frame time are supplied by the active Tr2RenderContext; BlueScriptCallback accepts a host function or a Carbon callback object; Carbon's optional global debug-text side effect is not ported yet and is omitted.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Tr2Renderer camera state and BeOS current-frame time are supplied by the active Tr2RenderContext; BlueScriptCallback accepts a host function or a Carbon callback object; Carbon's optional global debug-text side effect is not ported yet and is omitted.")
   UpdateValue(_time, renderContext)
   {
     const scratchIndex = this._scratchDepth++;
@@ -220,9 +220,9 @@ export class EveProjectBracket
   }
 
   /** Applies one visibility transition to both owned bracket representations. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("BlueScriptCallback accepts a host function or a Carbon callback object.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("BlueScriptCallback accepts a host function or a Carbon callback object.")
   SetBracketDisplayState(state)
   {
     const next = Boolean(state);
@@ -238,128 +238,128 @@ export class EveProjectBracket
   }
 
   /** m_marginLeft (float) [READWRITE] */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   marginLeft = 0;
 
   /** m_marginRight (float) [READWRITE] */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   marginRight = 0;
 
   /** m_marginTop (float) [READWRITE] */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   marginTop = 0;
 
   /** m_marginBottom (float) [READWRITE] */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   marginBottom = 0;
 
   /** m_ballTrackingScaling (float) [READWRITE] */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   ballTrackingScaling = 1;
 
   /** m_bracketUpdateCallback (BlueScriptCallback) [READWRITE] */
-  @edit.readwrite
-  @type.rawStruct("BlueScriptCallback")
+  @meta.blue.readwrite
+  @meta.type.rawStruct("BlueScriptCallback")
   bracketUpdateCallback = null;
 
   /** m_displayChangeCallback (BlueScriptCallback) [READWRITE] */
-  @edit.readwrite
-  @type.rawStruct("BlueScriptCallback")
+  @meta.blue.readwrite
+  @meta.type.rawStruct("BlueScriptCallback")
   displayChangeCallback = null;
 
   /** m_minDispRange (float) [READWRITE] */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   minDispRange = 0;
 
   /** m_maxDispRange (float) [READWRITE] */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   maxDispRange = FLOAT32_MAX;
 
   /** m_trackBall (ITriVectorFunctionPtr) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("ITriVectorFunction")
+  @meta.blue.readwrite
+  @meta.type.objectRef("ITriVectorFunction")
   trackBall = null;
 
   /** m_cameraDistance (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   cameraDistance = 0;
 
   /** m_trackPosition (Vector3) [READWRITE] */
-  @edit.readwrite
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.type.vec3
   trackPosition = vec3.create();
 
   /** m_isInFront (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   isInFront = true;
 
   /** m_offsetX (float) [READWRITE] */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   offsetX = 0;
 
   /** m_integerCoordinates (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   integerCoordinates = true;
 
   /** m_name (std::wstring) [READWRITE] */
-  @edit.readwrite
-  @type.string
+  @meta.blue.readwrite
+  @meta.type.string
   name = "";
 
   /** m_parent (Tr2Sprite2dContainerPtr) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("Tr2Sprite2dContainer")
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2Sprite2dContainer")
   parent = null;
 
   /** m_dock (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   dock = false;
 
   /** m_projectedPosition (Vector2) [READ] */
-  @edit.read
-  @type.vec2
+  @meta.blue.read
+  @meta.type.vec2
   projectedPosition = vec2.create();
 
   /** m_rawProjectedPosition (Vector2) [READ] */
-  @edit.read
-  @type.vec2
+  @meta.blue.read
+  @meta.type.vec2
   rawProjectedPosition = vec2.create();
 
   /** m_trackTransform (IWorldPositionPtr) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("IWorldPosition")
+  @meta.blue.readwrite
+  @meta.type.objectRef("IWorldPosition")
   trackTransform = null;
 
   /** m_bracket (Tr2Sprite2dContainerPtr) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("Tr2Sprite2dContainer")
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2Sprite2dContainer")
   bracket = null;
 
   /** m_bracketIcon (EveSprite2dBracketPtr) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("EveSprite2dBracket")
+  @meta.blue.readwrite
+  @meta.type.objectRef("EveSprite2dBracket")
   bracketIcon = null;
 
   /** m_offsetY (float) [READWRITE] */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   offsetY = 0;
 
   /** m_isVisible (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   isVisible = true;
 
   _isVisibleStateSet = false;

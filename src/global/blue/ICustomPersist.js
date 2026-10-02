@@ -68,7 +68,7 @@ export class ICustomPersist
 
 for (const method of [ "GetWriteBufferAndSize", "ReleaseWriteBuffer", "AllocateReadBuffer", "SetBufferAndSize" ])
 {
-  CjsSchema.decorateMethod(ICustomPersist, method, meta.compose.abstract, meta.impl.abstract);
+  CjsSchema.decorateMethod(ICustomPersist, method, meta.requires, meta.abstract);
 }
 // Carbon defines an IID, not a class factory. JavaScript registers the interface
 // constructor so named declarations and nominal composition resolve one identity.

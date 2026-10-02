@@ -1,4 +1,4 @@
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 
@@ -6,15 +6,15 @@ import { TriRenderJob } from "../TriRenderJob.js";
 // view transform (Tr2Renderer::PushViewTransform).
 
 /** Step that saves the current view transform so a later pop can restore it. */
-@type.define({ className: "TriStepPushViewTransform", family: "renderJob" })
+@meta.define({ className: "TriStepPushViewTransform", family: "renderJob" })
 export class TriStepPushViewTransform extends TriRenderStep
 {
   /**
    * Pushes the render context's current view transform; the value is not supplied by
    * the step, only the intent to save it.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     renderContext.PushViewTransform();

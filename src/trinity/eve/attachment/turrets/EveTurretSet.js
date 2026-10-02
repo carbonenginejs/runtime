@@ -1,8 +1,8 @@
-import { carbon } from "#schema";
+
 // Source: trinity/trinity/Eve/Turret/EveTurretSet.h
 // Source: trinity/trinity/Eve/Turret/EveTurretSet.cpp
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, types, CjsSchema } from "#schema";
+import { meta, CjsSchema } from "#schema";
 import { mappedInterfaces } from "../../../../global/compose/interface.js";
 import { IInitialize } from "#blue/IInitialize";
 import { INotify } from "#blue/INotify";
@@ -57,39 +57,39 @@ function BoundingSphereTransform(transform, sphere)
 }
 
 /** Owns a hull's instanced turrets and drives their aiming, animation, firing, visibility, batches, shadows, and per-object data. */
-@types.define({ className: "EveTurretSet", family: "eve/attachment/turrets" })
-@meta.carbon.inherit(IInitialize, INotify, ITr2Renderable, ITr2ControllerOwner)
-@meta.carbon.mapInterface(EveEntity, IInitialize, INotify, ITr2Renderable)
-@carbon.inherit(IInitialize, INotify)
+@meta.define({ className: "EveTurretSet", family: "eve/attachment/turrets" })
+@meta.blue.inherit(IInitialize, INotify, ITr2Renderable, ITr2ControllerOwner)
+@meta.blue.mapInterface(EveEntity, IInitialize, INotify, ITr2Renderable)
+@meta.blue.inherit(IInitialize, INotify)
 export class EveTurretSet extends EveEntity
 {
 
   /** m_impactBehaviour (ImpactBehaviour::Type - enum ImpactBehaviour) [READWRITE, NOTIFY, PERSIST, ENUM] */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.int32
-  @types.enum("trinity.ImpactBehaviour")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.ImpactBehaviour")
   impactBehaviour = 0;
 
   /** Hidden native backing member; not persisted (EveTurretSet_Blue.cpp:103). */
   @meta.member("firingEffect")
-  @meta.edit.hidden
-  @types.objectRef("EveTurretFiringFX")
+  @meta.blue.hidden
+  @meta.type.objectRef("EveTurretFiringFX")
   _firingEffect = null;
 
   /** Live firing effect property uses the native registration/muzzle setter. */
   @meta.property()
-  @meta.edit.readwrite
-  @types.objectRef("EveTurretFiringFX")
-  @meta.impl.implemented
+  @meta.blue.readwrite
+  @meta.type.objectRef("EveTurretFiringFX")
+  @meta.implemented
   get firingEffect()
   {
     return this.GetFiringEffect();
   }
 
   /** Transfers registration and binds the replacement's authored muzzle joints. */
-  @meta.impl.implemented
+  @meta.implemented
   set firingEffect(value)
   {
     this.SetFiringEffect(value);
@@ -97,22 +97,22 @@ export class EveTurretSet extends EveEntity
 
   /** Persisted ambient backing member (EveTurretSet_Blue.cpp:121). */
   @meta.member("ambientEffect")
-  @meta.edit.persistOnly
-  @types.objectRef("EveSpaceObjectChild")
+  @meta.blue.persistOnly
+  @meta.type.objectRef("EveSpaceObjectChild")
   _ambientEffect = null;
 
   /** Live ambient property rebuilds the distributed instances. */
   @meta.property()
-  @meta.edit.readwrite
-  @types.objectRef("EveSpaceObjectChild")
-  @meta.impl.implemented
+  @meta.blue.readwrite
+  @meta.type.objectRef("EveSpaceObjectChild")
+  @meta.implemented
   get ambientEffect()
   {
     return this.GetAmbientEffect();
   }
 
   /** Replaces ambient content through its native owner method. */
-  @meta.impl.implemented
+  @meta.implemented
   set ambientEffect(value)
   {
     this.SetAmbientEffect(value);
@@ -120,327 +120,327 @@ export class EveTurretSet extends EveEntity
 
   /** Live target property; validation remains owned by EveTurretTarget. */
   @meta.property()
-  @meta.edit.readwrite
-  @types.objectRef("ITriTargetable")
-  @meta.impl.implemented
+  @meta.blue.readwrite
+  @meta.type.objectRef("ITriTargetable")
+  @meta.implemented
   get targetObject()
   {
     return this.GetTargetObject();
   }
 
   /** Offers the replacement to the existing target admission contract. */
-  @meta.impl.implemented
+  @meta.implemented
   set targetObject(value)
   {
     this.SetTargetObject(value);
   }
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_firingEffectResPath (std::string) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   firingEffectResPath = "";
 
   /** m_chooseRandomLocator (bool) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   chooseRandomLocator = true;
 
   /** m_boundingSphere (Vector4) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.vec4
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec4
   boundingSphere = vec4.create();
 
   /** m_randomizeExplosionRotation (bool) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   randomizeExplosionRotation = true;
 
   /** m_lodLevel (LOD - enum LOD) [READ] */
-  @meta.edit.read
-  @types.int32
-  @types.enum("trinity.EveTurretSet.LOD")
+  @meta.blue.read
+  @meta.type.int32
+  @meta.type.enum("trinity.EveTurretSet.LOD")
   lodLevel = 0;
 
   /** m_currentCyclingFiresPos (uint32_t) [READ] */
-  @meta.edit.read
-  @types.uint32
+  @meta.blue.read
+  @meta.type.uint32
   currentCyclingFiresPos = 0;
 
   /** m_useRandomFiringDelay (bool) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   useRandomFiringDelay = true;
 
   /** m_bottomClipHeight (float) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   bottomClipHeight = 0;
 
   /** m_geometryResource (TriGeometryResPtr) [READ] */
-  @meta.edit.read
-  @types.resource("TriGeometryRes")
+  @meta.blue.read
+  @meta.type.resource("TriGeometryRes")
   geometryResource = null;
 
   /** m_maxTrackingTime (float) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxTrackingTime = 1;
 
   /** m_visibleCount (unsigned int) [READ] */
-  @meta.edit.read
-  @types.uint32
+  @meta.blue.read
+  @meta.type.uint32
   visibleCount = 0;
 
   /** m_trackingInfluence (float) [READ] */
-  @meta.edit.read
-  @types.float32
+  @meta.blue.read
+  @meta.type.float32
   trackingInfluence = 0;
 
   /** m_swarmID (unsigned int) [READWRITE] */
-  @meta.edit.readwrite
-  @types.uint32
+  @meta.blue.readwrite
+  @meta.type.uint32
   swarmID = 0;
 
   /** m_maxCyclingFirePos (uint32_t) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.uint32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   maxCyclingFirePos = 1;
 
   /** m_playMovementSound (bool) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   playMovementSound = true;
 
   /** m_isOnline (bool) [READWRITE] */
-  @meta.edit.readwrite
-  @types.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   isOnline = true;
 
   /** m_target (EveTurretTargetPtr) [READ] */
-  @meta.edit.read
-  @types.objectRef("EveTurretTarget")
+  @meta.blue.read
+  @meta.type.objectRef("EveTurretTarget")
   target = new EveTurretTarget();
 
   /** m_locatorName (std::string) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   locatorName = "";
 
   /** m_sysBonePitchFactor (float) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   sysBonePitchFactor = 1;
 
   /** m_sysBonePitchMax (float) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   sysBonePitchMax = 90;
 
   /** m_sysBonePitchMin (float) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   sysBonePitchMin = 0;
 
   /** m_sysBonePitchOffset (float) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   sysBonePitchOffset = 0;
 
   /** m_sysBonePitch01Factor (float) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   sysBonePitch01Factor = 1;
 
   /** m_sysBonePitch01Offset (float) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   sysBonePitch01Offset = 0;
 
   /** m_sysBonePitch02Factor (float) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   sysBonePitch02Factor = 1;
 
   /** m_sysBonePitch02Offset (float) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   sysBonePitch02Offset = 0;
 
   /** m_sysBonePitch03Factor (float) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   sysBonePitch03Factor = 1;
 
   /** m_sysBonePitch03Offset (float) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   sysBonePitch03Offset = 0;
 
   /** m_updatePitchPose (bool) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   updatePitchPose = false;
 
   /** m_geomResPath (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   geometryResPath = "";
 
   /** m_impactSize (float) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   impactSize = 0;
 
   /** m_state (State - enum State) [READ, PERSIST] */
-  @meta.edit.read
-  @meta.edit.persist
-  @types.int32
-  @types.enum("trinity.EveTurretSet.State")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.EveTurretSet.State")
   state = 2;
 
   /** m_sysBoneHeight (float) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   sysBoneHeight = 1;
 
   /** m_randomFiringDelay (float) [READ] */
-  @meta.edit.read
-  @types.float32
+  @meta.blue.read
+  @meta.type.float32
   randomFiringDelay = 0;
 
   /** m_turretEffect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.objectRef("Tr2Effect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2Effect")
   turretEffect = null;
 
   /** m_idleToTargetingMovementAudioEvent (std::wstring) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.wstring
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.wstring
   idleToTargetingMovementAudioEvent = "";
 
   /** m_targetingToIdleMovementAudioEvent (std::wstring) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.wstring
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.wstring
   targetingToIdleMovementAudioEvent = "";
 
   /** m_generatedDistributedAmbientEffect (EveChildInstanceContainerPtr) [READ] */
-  @meta.edit.read
-  @types.objectRef("EveChildInstanceContainer")
+  @meta.blue.read
+  @meta.type.objectRef("EveChildInstanceContainer")
   generatedDistributedAmbientEffect = null;
 
   /** m_cyclingFireGroupCount (uint32_t) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.uint32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   cyclingFireGroupCount = 1;
 
   /** m_turretMovementObserver (TriObserverLocalPtr) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.objectRef("TriObserverLocal")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("TriObserverLocal")
   turretMovementObserver = null;
 
   /** m_slotNumber (int) [READWRITE] */
-  @meta.edit.readwrite
-  @types.int32
+  @meta.blue.readwrite
+  @meta.type.int32
   slotNumber = -1;
 
   /** m_ambientEffectEditingMode (bool) [READWRITE, NOTIFY] */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @types.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.boolean
   ambientEffectEditingMode = false;
 
   /** m_displayEffects (bool) [READWRITE] */
-  @meta.edit.readwrite
-  @types.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   displayEffects = true;
 
   /** m_display (bool) [READWRITE] */
-  @meta.edit.readwrite
-  @types.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   display = true;
 
   /** m_useDynamicBounds (bool) [READWRITE, PERSIST, NOTIFY] */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   useDynamicBounds = false;
 
   /** m_estimatedPixelDiameter (float) [READ] */
-  @meta.edit.read
-  @types.float32
+  @meta.blue.read
+  @meta.type.float32
   estimatedPixelDiameter = -1;
 
   /** m_lowLodFiringEffectScale (Vector3) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   lowLodFiringEffectScale = vec3.fromValues(1, 1, 1);
 
   /** m_lowLodFiringEffectTranslation (Vector3) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   lowLodFiringEffectTranslation = vec3.create();
 
   /** m_lowLodFiringEffectRotation (Quaternion) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.quat
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   lowLodFiringEffectRotation = quat.create();
 
   /** m_useLowLodFiringTransform (bool) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   useLowLodFiringTransform = false;
 
   /** m_laserMissBehaviour (bool) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   laserMissBehaviour = false;
 
   /** m_projectileMissBehaviour (bool) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   projectileMissBehaviour = false;
 
   /** Values the OnModified chain compares against; null until first snapshot. */
@@ -548,7 +548,7 @@ export class EveTurretSet extends EveEntity
    * not destroyed; native firing cleanup, notifications and owned allocation
    * are released. Removing one shared parent is not final ownership.
    */
-  @meta.impl.custom
+  @meta.ours
   Destroy()
   {
     this.UnRegister(this.GetComponentRegistry());
@@ -567,8 +567,8 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources (cpp:21-32). */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PrepareResources()
   {
     return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
@@ -578,8 +578,8 @@ export class EveTurretSet extends EveEntity
    * Allocates float IDs0..23 (EveTurretSet.cpp:296-313). JS explicitly frees
    * the previous allocation before replacing the native value-owned handle.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   InitializeInstanceBuffer()
   {
     if (this._instanceBuffer.IsValid()) this._instanceBuffer.m_parent.Free(this._instanceBuffer);
@@ -589,8 +589,8 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Native device release (cpp:1092): the declaration and owned instance range. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ReleaseResources()
   {
     this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
@@ -598,8 +598,8 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Native declaration and instance preparation (cpp:1103-1120). */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnPrepareResources()
   {
     if (this._turretVertexDeclElementCount && this._vertexDeclHandle === Tr2EffectStateManager.Unknown)
@@ -615,8 +615,8 @@ export class EveTurretSet extends EveEntity
    * Rebuilds mesh-zero bounds only when geometry has meshes (cpp:3197-3203).
    * Adapted: returns whether the existing resource output operation succeeded.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RebuildBoundingSphere()
   {
     const resource = this.geometryResource;
@@ -626,48 +626,48 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Returns the native turret state. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetState()
   {
     return this.state;
   }
 
   /** Returns the authored mount prefix. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetLocatorName()
   {
     return this.locatorName;
   }
 
   /** Returns the application-assigned mount slot. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetSlotNumber()
   {
     return this.slotNumber;
   }
 
   /** Returns the transform group index. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetSwarmID()
   {
     return this.swarmID;
   }
 
   /** Returns the current firing effect. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetFiringEffect()
   {
     return this._firingEffect;
   }
 
   /** Returns the authored ambient effect. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetAmbientEffect()
   {
     return this._ambientEffect;
@@ -678,8 +678,8 @@ export class EveTurretSet extends EveEntity
    * (EveTurretSet.cpp:3118-3134). The existing JS sampler owns animation controls;
    * renderer-clock/rebase parity remains a separate required-update gate.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   ForceStateDeactive()
   {
     this.trackingInfluence = 0;
@@ -695,8 +695,8 @@ export class EveTurretSet extends EveEntity
    * Forces the selected mount into targeting without changing ambient variables
    * (cpp:3141-3155). Animation control storage remains the existing JS adaptation.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   ForceStateTargeting()
   {
     this.trackingInfluence = this.maxTrackingTime;
@@ -707,8 +707,8 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Disables LOD selection and reloads high-detail geometry (cpp:3212). */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   FreezeHighDetailLOD()
   {
     this.lodLevel = EveTurretSet.LOD.LOD_DISABLED;
@@ -716,8 +716,8 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Forwards shader options to material and selected ambient content (cpp:3739-3750). */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetShaderOption(name, value)
   {
     if (this.turretEffect) this.turretEffect.SetOption(name, value);
@@ -726,8 +726,8 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Returns the turret effect Carbon exposes to SOF material setup. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetShader()
   {
     return this.turretEffect;
@@ -742,7 +742,7 @@ export class EveTurretSet extends EveEntity
    *
    * Adapted: Carbon's by-value embed becomes an accessor because the pose pipeline (the aiming consumer) lives behind the animation seam.
    */
-  @meta.impl.adapted
+  @meta.adapted
   GetAiming()
   {
     const aiming = this._aiming;
@@ -768,7 +768,7 @@ export class EveTurretSet extends EveEntity
    *
    * Adapted: The combined runtime keeps SOF independently importable by putting the nominal Tr2Effect application boundary on the owning turret class.
    */
-  @meta.impl.custom
+  @meta.ours
   ApplySofTurretMaterial(resolveParameter)
   {
     const effect = this.GetShader();
@@ -789,7 +789,7 @@ export class EveTurretSet extends EveEntity
    * @param {Function} resolveParameter - parameter name -> vec4 or null
    * @returns {Boolean} true
    */
-  @meta.impl.custom
+  @meta.ours
   static applyFactionToTurretShader(effect, resolveParameter)
   {
     if (effect.constParameters.length)
@@ -834,24 +834,24 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Carbon method GetShotTimeVariance (EveTurretSet.h:223-226). */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetShotTimeVariance()
   {
     return EVE_TURRET_RANDOM_DELAY_MAX;
   }
 
   /** Carbon method MissQueueSize (EveTurretSet.cpp:3597-3600). */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   MissQueueSize()
   {
     return this.target.MissQueueSize();
   }
 
   /** Carbon method GetLastShotTime (EveTurretSet.cpp:3606-3609). */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetLastShotTime()
   {
     return this.target.GetLastShotTime();
@@ -862,8 +862,8 @@ export class EveTurretSet extends EveEntity
    * including repeated calls (cpp:2728-2774). The per-mount fade reset preserves
    * the native zero-mount behavior; animation controls use the existing sampler.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   EnterStateDeactive()
   {
     switch (this.state)
@@ -898,8 +898,8 @@ export class EveTurretSet extends EveEntity
    * SetupFiringState owns ambient baseline/selected writes; the final state assignment
    * does not broadcast. JS retains its Boolean success return for the native void method.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   EnterStateFiring()
   {
     if (!this.SetupFiringState()) return false;
@@ -928,8 +928,8 @@ export class EveTurretSet extends EveEntity
    * The native dynamic cast resolves through optional Audio type registration;
    * animation controls retain the existing sampler adaptation.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   EnterStateIdle()
   {
     if (!this.isOnline) return;
@@ -968,8 +968,8 @@ export class EveTurretSet extends EveEntity
   /** Carbon method EnterStateReloading (MAP_METHOD_AND_WRAP).
    * Adapted: Animation calls are forwarded to hydrated turret/controller objects without Carbon's Granny controller.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   EnterStateReloading()
   {
     if (this.state === EveTurretSet.State.STATE_TARGETING || this.state === EveTurretSet.State.STATE_FIRING)
@@ -990,8 +990,8 @@ export class EveTurretSet extends EveEntity
    * duration for tracking fade-in (cpp:2846-2902). Native sends no movement
    * audio here. Animation controls retain the existing sampler adaptation.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   EnterStateTargeting()
   {
     if (!this.isOnline) return;
@@ -1023,8 +1023,8 @@ export class EveTurretSet extends EveEntity
   /** Carbon method HandleControllerEvent (MAP_METHOD_AND_WRAP).
    * Adapted: Controller ownership is represented by direct firing/ambient child forwarding.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   HandleControllerEvent(name)
   {
     this.firingEffect?.HandleControllerEvent(name);
@@ -1036,8 +1036,8 @@ export class EveTurretSet extends EveEntity
    * active, then its current muzzle joint (EveTurretSet.cpp:1535-1561).
    * The optional JS output array avoids a native matrix return allocation.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetFiringBoneWorldTransform(muzzle = 0, out = mat4.create())
   {
     let turretIndex = this._activeTurret;
@@ -1055,8 +1055,8 @@ export class EveTurretSet extends EveEntity
    * branch order; rotationArc is the native math helper, including its quirks.
    * Without an output array, the returned matrix belongs to the caller.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetTurretBoneTransform(turretIndex, boneID, out = mat4.create()) // alloc: returned native matrix value belongs to the caller; hot-path callers provide out
   {
     const turret = this._turrets[turretIndex];
@@ -1092,8 +1092,8 @@ export class EveTurretSet extends EveEntity
   /** Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP).
    * Adapted: Controller ownership is represented by direct firing/ambient child forwarding.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetControllerVariable(name, value)
   {
     this.firingEffect?.SetControllerVariable(name, value);
@@ -1101,8 +1101,8 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Carbon method SetShotMissed (MAP_METHOD_AND_WRAP). */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetShotMissed(missed)
   {
     this.target.SetShotMissed(missed);
@@ -1111,8 +1111,8 @@ export class EveTurretSet extends EveEntity
   /** Carbon method StartControllers (MAP_METHOD_AND_WRAP).
    * Adapted: Controller ownership is represented by direct firing/ambient child forwarding.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   StartControllers()
   {
     this.firingEffect?.StartControllers();
@@ -1124,8 +1124,8 @@ export class EveTurretSet extends EveEntity
    * (EveTurretSet.cpp:152-159). Child initialization belongs to graph construction,
    * not this parent or its live firing-effect setter.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     this.target.SetBehaviour(this.laserMissBehaviour, this.projectileMissBehaviour, this.impactSize, this.impactBehaviour);
@@ -1141,8 +1141,8 @@ export class EveTurretSet extends EveEntity
    * JS notifications identify the exposed property name in place of Carbon's
    * Be::Var address; each arm retains the donor's single-member semantics.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnModified(propertyName)
   {
     if (propertyName === "display")
@@ -1178,8 +1178,8 @@ export class EveTurretSet extends EveEntity
    * subscription stays installed after an immediate prepared callback so a
    * later same-handle reload rebuilds the cache too.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   InitializeGeometryResource()
   {
     const previous = this.geometryResource;
@@ -1203,8 +1203,8 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Replaces and redistributes the authored ambient effect (cpp:3554). */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetAmbientEffect(ambientEffect)
   {
     const previous = this._ambientEffect;
@@ -1214,8 +1214,8 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Creates one Blue-copied ambient instance per current mount (cpp:364-425). */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   InitializeAmbientEffect()
   {
     const registry = this.GetComponentRegistry();
@@ -1242,8 +1242,8 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Routes per-mount variables to the source in editing mode or the generated instance (cpp:443). */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetAmbientEffectControllerVariableOnInstance(index, name, value)
   {
     if (this.ambientEffectEditingMode) this.ambientEffect.SetControllerVariable(name, value);
@@ -1253,8 +1253,8 @@ export class EveTurretSet extends EveEntity
   /** Caches every mesh on skeleton zero in skeleton-bone order (cpp:524-592).
    * The decoder's plain CMF data replaces native cmf records; corners retain native order.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   InitializeDynamicBounds(cmfData = null, skeleton = null)
   {
     this._boneBounds.length = 0;
@@ -1294,8 +1294,8 @@ export class EveTurretSet extends EveEntity
    * The GR2 decoder exposes mesh indices, minBounds/maxBounds and plain joint names;
    * the existing CPU sequencer supplies the native model-instance readiness gate.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   InitializeGrannyDynamicBounds(fi = null, skeleton = null)
   {
     this._boneBounds.length = 0;
@@ -1331,8 +1331,8 @@ export class EveTurretSet extends EveEntity
    * The existing JS sequencer supplies both GR2 and CMF world matrices; GR2 retains
    * model-zero initial-placement translation. No inverse-bind palette or mount transform is applied.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetDynamicBounds(turret, boundingSphere = null, aabbMin = null, aabbMax = null)
   {
     if (!this._boneBounds.length || !this.geometryResource || !turret.sequencer) return false;
@@ -1373,8 +1373,8 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Unions valid mounts' pose bounds without applying their mount matrices (cpp:1814-1838). */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetLocalBoundingBox(aabbMin, aabbMax)
   {
     if (!this.useDynamicBounds) return false;
@@ -1395,8 +1395,8 @@ export class EveTurretSet extends EveEntity
   /** Selects EMPTY or HIGHEST at twice the visibility threshold (cpp:1130-1167).
    * The obsolete native macOS Nvidia driver workaround has no JS backend equivalent.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateLOD(context)
   {
     if (this.lodLevel === EveTurretSet.LOD.LOD_DISABLED || this.estimatedPixelDiameter < 0) return false;
@@ -1412,8 +1412,8 @@ export class EveTurretSet extends EveEntity
    * (EveTurretSet.cpp:459-521). The JS sampler owns the decoded pose storage
    * in place of native CMF/Granny allocations.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Cleanup()
   {
     this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
@@ -1444,8 +1444,8 @@ export class EveTurretSet extends EveEntity
    * The shared JS sampler replaces native CMF/Granny allocations. The existing
    * CarbonVertexElements bridge translates decoded CMF usage names for the AL.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RebuildCachedData(resource)
   {
     if (resource !== this.geometryResource || !resource.IsPrepared()) return;
@@ -1488,8 +1488,8 @@ export class EveTurretSet extends EveEntity
    * updater's existing modifier phase runs native aiming after sampling and
    * before world composition; current-pitch queries reuse its hierarchy solver.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   InitializeAnimation()
   {
     if (!this._skeleton || !this.geometryResource?.IsPrepared()) return;
@@ -1548,8 +1548,8 @@ export class EveTurretSet extends EveEntity
    * on an absolute clock. Both names are resolved before stopping old playback.
    * This models the inspected CMF scheduler, not Granny SDK blend parity.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   PlayAnimation(turretIndex, animName, animNameIdle = "", delay = 0)
   {
     if (!this.geometryResource || !this.turretEffect) return 0;
@@ -1579,8 +1579,8 @@ export class EveTurretSet extends EveEntity
    * buffered requests (EveTurretSet.cpp:2657-2700). JS control metadata replaces
    * CMF player handles; a positive delay preserves playback until that time.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   StopAnimation(turretIndex, delay = 0)
   {
     if (!this.geometryResource || !this.turretEffect) return;
@@ -1593,8 +1593,8 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Selects the state's native idle clip (EveTurretSet.cpp:3161-3188). */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ForceIdleAnimation()
   {
     let name = "";
@@ -1613,8 +1613,8 @@ export class EveTurretSet extends EveEntity
    * composes full joint transforms. Its sampled-pose snapshot prevents aiming
    * from accumulating when a stationary frame is repeated.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateSingleTurrets()
   {
     this.GetAiming();
@@ -1636,8 +1636,8 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Clears derived state when Blue releases geometry (EveTurretSet.cpp:1081). */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ReleaseCachedData(_resource)
   {
     this.Cleanup();
@@ -1649,8 +1649,8 @@ export class EveTurretSet extends EveEntity
    * the canonical skeleton owner on decoded records; effect quad registration
    * precedes the geometry/skeleton gates, as in the donor.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   InitializeFiringEffect()
   {
     if (!this.firingEffect) return;
@@ -1667,8 +1667,8 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Transfers mapped entity registration and rebinds muzzle joints (cpp:3534-3546). */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetFiringEffect(effect)
   {
     const registry = this.GetComponentRegistry();
@@ -1686,8 +1686,8 @@ export class EveTurretSet extends EveEntity
    * Boolean acceptance return; target admission remains owned by EveTurretTarget.
    * Audio dispatch resolves the native nominal cast through optional registration.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetTargetObject(object)
   {
     if (!object) return false;
@@ -1706,8 +1706,8 @@ export class EveTurretSet extends EveEntity
   }
 
   /** The object currently being targeted, or null. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetTargetObject()
   {
     return this.target.GetTargetable();
@@ -1717,8 +1717,8 @@ export class EveTurretSet extends EveEntity
    * Rescales the firing effect from the target's radius, passing -1 when there
    * is no target.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetTargetScale()
   {
     this.firingEffect?.SetScaleByRadius(this.target.GetRadius());
@@ -1730,7 +1730,7 @@ export class EveTurretSet extends EveEntity
    *
    * Adapted: Carbon builds hidden SingleTurret records from geometry locators; browser hosts may provide equivalent portable records directly.
    */
-  @meta.impl.custom
+  @meta.ours
   SetTurrets(turrets = [])
   {
     this._turrets = Array.from(turrets).slice(0, EveTurretSet.MAX_TURRETS_PER_SET).map(turret => this._normalizeTurret(turret));
@@ -1744,7 +1744,7 @@ export class EveTurretSet extends EveEntity
    *
    * Adapted: Carbon builds hidden SingleTurret records from geometry locators; browser hosts may provide equivalent portable records directly.
    */
-  @meta.impl.custom
+  @meta.ours
   AddTurret(turret)
   {
     if (this._turrets.length >= EveTurretSet.MAX_TURRETS_PER_SET) return null;
@@ -1758,7 +1758,7 @@ export class EveTurretSet extends EveEntity
    * The live turret record list; the records are mutated in place by
    * UpdateTurretTransforms, so this is not a snapshot.
    */
-  @meta.impl.custom
+  @meta.ours
   GetTurrets()
   {
     return this._turrets;
@@ -1769,8 +1769,8 @@ export class EveTurretSet extends EveEntity
    * (EveTurretSet.cpp:1784; TriMath.cpp:683). JS plain records replace the
    * native SingleTurretData allocation; no second transform convention is used.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetLocalTransform(turretIndex, localMatrix)
   {
     const index = Number(turretIndex) >>> 0;
@@ -1808,7 +1808,7 @@ export class EveTurretSet extends EveEntity
    * Stores the hull transform and immediately recomputes every turret's world
    * matrix from it.
    */
-  @meta.impl.custom
+  @meta.ours
   SetParentTransform(transform)
   {
     mat4.copy(this._parentTransform, transform);
@@ -1820,8 +1820,8 @@ export class EveTurretSet extends EveEntity
    * local matrix and marks the record valid; defaults to the stored parent
    * transform.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateTurretTransforms(parentTransform = this._parentTransform)
   {
     for (const turret of this._turrets)
@@ -1838,8 +1838,8 @@ export class EveTurretSet extends EveEntity
    *
    * Adapted: The closest portable turret is selected from its world up-axis and the target tracking position.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetClosestTurret()
   {
     return this._getClosestTurretAndLocator().turret;
@@ -1851,7 +1851,7 @@ export class EveTurretSet extends EveEntity
    *
    * Adapted: This combined browser convenience update runs Carbon's explicit synchronous and asynchronous phases in order.
    */
-  @meta.impl.custom
+  @meta.ours
   Update(context)
   {
     this.UpdateSyncronous(context);
@@ -1867,8 +1867,8 @@ export class EveTurretSet extends EveEntity
    *
    * Adapted: The existing sampler and explicit phase calls replace native renderer-clock task dispatch.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateSyncronous(context, parentTransform = this._parentTransform)
   {
     if (!this._turrets.length) return;
@@ -1909,8 +1909,8 @@ export class EveTurretSet extends EveEntity
    * world transforms. JS update deltas replace the renderer animation clock;
    * the existing sampler modifier phase owns pose aiming and composition.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateAsyncronous(context, parentData = this._parentTransform)
   {
     this._boneOffsets.AdvanceFrame();
@@ -2003,8 +2003,8 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Registers firing and ambient quad content (cpp:3662-3673). */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     this.firingEffect?.RegisterWithQuadRenderer(quadRenderer);
@@ -2012,8 +2012,8 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Forwards visible turret quad content, applying the ambient clip gate (cpp:3677-3694). */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     if (!this.display) return;
@@ -2025,8 +2025,8 @@ export class EveTurretSet extends EveEntity
    * Collects this visible turret and its effects (cpp:2022-2049). JS returns
    * the supplied array; the borrowed hull SH coefficients retain native lifetime.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetRenderables(out = [], shLighting = null)
   {
     this._parentShLighting = null;
@@ -2042,8 +2042,8 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Native ambient visibility (cpp:428): clipping suppresses the effect. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsAmbientVisible()
   {
     return this.display && this.displayEffects && Math.abs(this._parentData.clipRadiusSq) < 0.05;
@@ -2054,8 +2054,8 @@ export class EveTurretSet extends EveEntity
    * views (EveTurretSet.cpp:1945-2010). JS forwards effect visibility through
    * existing scene contracts. Raytracing mesh/skeleton updates remain unsupported.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateVisibility(context)
   {
     this._parentShLighting = null;
@@ -2084,8 +2084,8 @@ export class EveTurretSet extends EveEntity
    * Registers the shadow component, then mapped firing/ambient entities while
    * displayed (EveTurretSet.cpp:208-224).
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -2103,8 +2103,8 @@ export class EveTurretSet extends EveEntity
    * Unregisters mapped firing/ambient entities without a display check.
    * EveEntity removes this owner's own components first (cpp:227-243).
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UnRegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -2118,8 +2118,8 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Carbon EveTurretSet::HasTransparentBatches: instanced turrets are opaque. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HasTransparentBatches()
   {
     return false;
@@ -2131,8 +2131,8 @@ export class EveTurretSet extends EveEntity
    * decoding cannot reach the AL. The explicit two-stream batch prevents
    * generic realization from overwriting its instance data. Returns commit status.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_OPAQUE || !this.display || !this.visibleCount || !this._instanceBuffer.IsValid()) return false;
@@ -2151,8 +2151,8 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Carbon EveTurretSet::GetSortValue: opaque turret instances use key one. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetSortValue()
   {
     return 1;
@@ -2170,8 +2170,8 @@ export class EveTurretSet extends EveEntity
    * becomes the optional trailing length-1 array (out-params last).
    * Adapted: The length-1 out array replaces the float& out-param; the shadow math is ported, including exactly which paths write the out value.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   IsCastingShadow(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
   {
     if (!this.display || !this.geometryResource)
@@ -2210,8 +2210,8 @@ export class EveTurretSet extends EveEntity
    * size. JS realizes cold geometry through the shared Trinity allocator and
    * returns commit status; native commits without the opaque validity check.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetShadowBatches(batches, perObjectData, _shadowPixelSize)
   {
     if (!this.display || !this.visibleCount || !this._instanceBuffer.IsValid()) return false;
@@ -2237,8 +2237,8 @@ export class EveTurretSet extends EveEntity
    * per-visible turret SRT arrays, and the SH/clip PS block (cpp:2300-2511).
    * JS uses canonical RawData records and concatenates the existing sampler
    * palettes into the shared Float4x3 ring, with one upload per frame. */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetPerObjectData(accumulator = null)
   {
     if (!this.geometryResource || !this.geometryResource.IsGood() || this.geometryResource.GetMeshCount() < 1 || !accumulator)
@@ -2334,8 +2334,8 @@ export class EveTurretSet extends EveEntity
 
   /** Carbon EveTurretSet::GetShadowPerObjectData (cpp:2520-2523): pure
    * forward to GetPerObjectData. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetShadowPerObjectData(accumulator = null)
   {
     return this.GetPerObjectData(accumulator);
@@ -2352,8 +2352,8 @@ export class EveTurretSet extends EveEntity
    * false when deactivated. INVALID/default retain the previous active mount;
    * valid predecessor states preserve native target-call/active-assignment order.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupFiringState()
   {
     if (this.state === EveTurretSet.State.STATE_DEACTIVE) return false;
@@ -2487,8 +2487,8 @@ export class EveTurretSet extends EveEntity
    * editing mode, otherwise the generated distributed instance container when
    * one exists (cpp:434); no authored fallback outside editing mode.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetAmbientEffectOrGeneratedEffect()
   {
     return this.ambientEffectEditingMode ? this.ambientEffect : this.generatedDistributedAmbientEffect;
@@ -2606,7 +2606,7 @@ blue.enums.RegisterEnum("trinity.EveTurretSet.State", EveTurretSet.State, {
 });
 
 // Native Blue explicitly maps its concrete identity.
-meta.carbon.mapInterface(EveTurretSet)(EveTurretSet, { kind: "class" });
+meta.blue.mapInterface(EveTurretSet)(EveTurretSet, { kind: "class" });
 
 // EveTurretSet_Blue.cpp: native exposure.
-carbon.interfaceTable({ interfaces: [EveTurretSet, EveEntity, IInitialize, INotify, ITr2Renderable], chainTo: null })(EveTurretSet, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveTurretSet, EveEntity, IInitialize, INotify, ITr2Renderable], chainTo: null })(EveTurretSet, { kind: "class" });

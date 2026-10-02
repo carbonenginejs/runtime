@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveQuaternion.cpp
 import { ITriQuaternionFunction, ITriCurveLength, ITriFunction } from "#blue";
 import { quat } from "#math/quat";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2CurveExtrapolation, Tr2CurveInterpolation } from "../enums.js";
 import { Tr2CurveQuaternionKey } from "../key/Tr2CurveQuaternionKey.js";
 
@@ -12,57 +12,57 @@ import { Tr2CurveQuaternionKey } from "../key/Tr2CurveQuaternionKey.js";
  * independent extrapolation modes before the first and after the last key.
  * JavaScript keeps time-first output-buffer calls instead of native output-first overloads.
  */
-@type.define({
+@meta.define({
   className: "Tr2CurveQuaternion",
   family: "curves"
 })
-@carbon.inherit(ITriCurveLength)
+@meta.blue.inherit(ITriCurveLength)
 export class Tr2CurveQuaternion extends ITriQuaternionFunction
 {
   /**
    * Quaternion key records containing time, rotation, identifier and interpolation mode.
    * @type {Tr2CurveQuaternionKey[]}
    */
-  @edit.read
-  @edit.persist
-  @type.array({ kind: "rawStruct", className: "Tr2CurveQuaternionKey" })
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.array({ kind: "rawStruct", className: "Tr2CurveQuaternionKey" })
   keys = [];
 
   /**
    * Authored curve label stored as native std::string.
    * @type {string}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /**
    * Cached sampled quaternion in native x, y, z, w component order.
    * @type {Float32Array}
    */
-  @edit.read
-  @type.quat
+  @meta.blue.read
+  @meta.type.quat
   currentValue = quat.create();
 
   /**
    * Native Tr2CurveExtrapolation policy used before the first key.
    * @type {number}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
-  @type.enum("trinity.Tr2CurveExtrapolation")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
+  @meta.type.enum("trinity.Tr2CurveExtrapolation")
   extrapolationBefore = Tr2CurveExtrapolation.CLAMP;
 
   /**
    * Native Tr2CurveExtrapolation policy used after the last key.
    * @type {number}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
-  @type.enum("trinity.Tr2CurveExtrapolation")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
+  @meta.type.enum("trinity.Tr2CurveExtrapolation")
   extrapolationAfter = Tr2CurveExtrapolation.CLAMP;
 
   /**
@@ -77,8 +77,8 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateValue(time)
   {
     this.GetValueAt(time, this.currentValue);
@@ -91,8 +91,8 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(time, out)
   {
     this.UpdateValue(time);
@@ -106,8 +106,8 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValueAt(time, out)
   {
     return this.Evaluate(out, time);
@@ -120,8 +120,8 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetValueDotAt(_time, out)
   {
     return quat.identity(out);
@@ -134,8 +134,8 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetValueDoubleDotAt(_time, out)
   {
     return quat.identity(out);
@@ -146,8 +146,8 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    *
    * @returns {number} The curve result.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Length()
   {
     return this.keys.length ? this.keys[this.keys.length - 1].time : 0;
@@ -158,7 +158,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    *
    * @returns {string} The curve result.
    */
-  @impl.custom
+  @meta.ours
   GetName()
   {
     return this.name;
@@ -170,7 +170,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {string} name Authored curve name.
    * @returns {void}
    */
-  @impl.custom
+  @meta.ours
   SetName(name)
   {
     this.name = name;
@@ -183,8 +183,8 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValue(time, out)
   {
     return this.Evaluate(out, time);
@@ -195,8 +195,8 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    *
    * @returns {Float32Array|number[]} The live cached quaternion storage.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetCurrentValue()
   {
     return this.currentValue;
@@ -207,8 +207,8 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    *
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnKeysChanged()
   {
     this.keys.sort((a, b) => a.time - b.time);
@@ -223,8 +223,8 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {number} [interpolation = Tr2CurveInterpolation.LINEAR] Curve parameter.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   AddKey(time, value, interpolation = Tr2CurveInterpolation.LINEAR)
   {
     const key = new Tr2CurveQuaternionKey();
@@ -242,8 +242,8 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {number} extrapolation Curve parameter.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetExtrapolation(extrapolation)
   {
     this.extrapolationAfter = this.extrapolationBefore = extrapolation;
@@ -255,8 +255,8 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {number} time Time in seconds.
    * @returns {number} The curve result.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetLocalTime(time)
   {
     if (!this.keys.length)
@@ -305,7 +305,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {number} time Time in seconds.
    * @returns {number} The curve result.
    */
-  @impl.custom
+  @meta.ours
   FindSegment(time)
   {
     const count = this.keys.length;
@@ -359,7 +359,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {number} time Time in seconds.
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
-  @impl.custom
+  @meta.ours
   Evaluate(out, time)
   {
     const count = this.keys.length;
@@ -395,8 +395,8 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {Tr2CurveQuaternionKey} k1 Segment end key.
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetSegmentValue(out, time, k0, k1)
   {
     if (k0.interpolation === Tr2CurveInterpolation.CONSTANT)
@@ -420,7 +420,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
 }
 
 // Native exposure ends at this concrete table (Tr2CurveQuaternion_Blue.cpp).
-carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [Tr2CurveQuaternion, ITriQuaternionFunction, ITriFunction, ITriCurveLength],
   chainTo: null
 })(Tr2CurveQuaternion);

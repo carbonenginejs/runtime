@@ -2,37 +2,37 @@
 // Source: trinity/trinity/EveSprite2dBracket.cpp
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 
 
 /**
  * Screen-space bracket drawn from an atlas icon, carrying its own colour, 2D
  * translation and display flag.
  */
-@type.define({ className: "EveSprite2dBracket", family: "eve/ui" })
+@meta.define({ className: "EveSprite2dBracket", family: "eve/ui" })
 export class EveSprite2dBracket
 {
-  @edit.readwrite
-  @type.color
+  @meta.blue.readwrite
+  @meta.type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
-  @edit.readwrite
-  @type.objectRef("Tr2AtlasTexture")
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2AtlasTexture")
   icon = null;
 
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   display = true;
 
-  @edit.readwrite
-  @type.vec2
+  @meta.blue.readwrite
+  @meta.type.vec2
   translation = vec2.create();
 
   /**
    * Copies the bracket translation into caller-provided storage.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetTranslation(out)
   {
     return vec2.copy(out, this.translation);
@@ -41,8 +41,8 @@ export class EveSprite2dBracket
   /**
    * Replaces the bracket translation while preserving field identity.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetTranslation(value)
   {
     vec2.copy(this.translation, value);
@@ -51,8 +51,8 @@ export class EveSprite2dBracket
   /**
    * Gets the authored atlas icon.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetIcon()
   {
     return this.icon;
@@ -61,8 +61,8 @@ export class EveSprite2dBracket
   /**
    * Gets the mutable authored color container.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetColor()
   {
     return this.color;
@@ -71,8 +71,8 @@ export class EveSprite2dBracket
   /**
    * Sets whether the bracket is displayed.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetDisplay(display)
   {
     this.display = Boolean(display);
@@ -81,8 +81,8 @@ export class EveSprite2dBracket
   /**
    * Gets whether the bracket is displayed.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsDisplay()
   {
     return this.display;

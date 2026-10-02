@@ -3,27 +3,27 @@
 // Source: trinity/trinity/Particle/Tr2ParticleFluidDragForce_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { ITr2ParticleForce } from "./ITr2ParticleForce.js";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 
 
 /**
  * Quadratic fluid drag on particles, clamped so a single integration step can
  * never push a particle's velocity past zero into a reversal.
  */
-@type.define({
+@meta.define({
   className: "Tr2ParticleFluidDragForce",
   family: "particle"
 })
 export class Tr2ParticleFluidDragForce extends ITr2ParticleForce
 {
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   drag = 1;
 
   /** Applies quadratic drag and Carbon's one-frame velocity reversal clamp. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetForce(_position, velocity, dt, mass, out = vec3.create())
   {
     const speed = vec3.length(velocity);
@@ -37,8 +37,8 @@ export class Tr2ParticleFluidDragForce extends ITr2ParticleForce
    * Nothing to advance per frame: the drag term is derived from the particle's
    * current velocity and the step it is being integrated over.
    */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   Update(_dt)
   {
   }

@@ -7,7 +7,7 @@ import "#blue/values";
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepCompress.cpp
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepPack.cpp
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { carbon, CjsSchema, impl, edit, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2TexturePipelineParams } from "./Tr2TexturePipelineParams.js";
 import { Tr2TexturePipelineStepLimitSize } from "./Tr2TexturePipelineStepLimitSize.js";
 
@@ -96,11 +96,11 @@ export class Tr2TexturePipeline
 CjsSchema.define(Tr2TexturePipeline, {
   className: "Tr2TexturePipeline", family: "resources",
   fields: {
-    pipelineType: [ edit.persist, type.string ],
-    steps: [ edit.persist, type.list("ITr2TexturePipelineStep") ]
+    pipelineType: [ meta.blue.persist, meta.type.string ],
+    steps: [ meta.blue.persist, meta.type.list("ITr2TexturePipelineStep") ]
   },
   methods: {
-    Execute: [ carbon.method, impl.adapted, impl.reason("Carbon ignores each step's result and runs the next one regardless; ours stops on the first failure (issue 19).") ],
-    GetResourceDependencies: [ carbon.method, impl.adapted, impl.reason("Carbon fills a caller-owned set; ours returns the paths sorted, for a stable load order.") ]
+    Execute: [ meta.blue.method, meta.adapted, meta.reason("Carbon ignores each step's result and runs the next one regardless; ours stops on the first failure (issue 19).") ],
+    GetResourceDependencies: [ meta.blue.method, meta.adapted, meta.reason("Carbon fills a caller-owned set; ours returns the paths sorted, for a stable load order.") ]
   }
 });

@@ -1,13 +1,13 @@
 // Source: trinity/trinity/Particle/Tr2SphereConstraint.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { ITr2GenericParticleConstraint } from "./ITr2GenericParticleConstraint.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
 
 /** A collision constraint that keeps particles outside or inside a sphere, reflecting velocity and triggering generators and emitters on contact. */
-@type.define({ className: "Tr2SphereConstraint", family: "particle" })
+@meta.define({ className: "Tr2SphereConstraint", family: "particle" })
 export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
 {
 
@@ -18,86 +18,86 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
   #radiusElement = null;
 
   /** m_affectPosition (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   affectPosition = true;
 
   /** m_affectVelocity (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   affectVelocity = true;
 
   /** m_position (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   position = vec3.create();
 
   /** m_radius (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   radius = 1;
 
   /** m_elasticity (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   elasticity = 1;
 
   /** m_friction (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   friction = 1;
 
   /** m_invertSphere (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   invertSphere = false;
 
   /** m_isValid (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   isValid = false;
 
   /** m_onCollisionEmitters (PITr2GenericEmitterVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("ITr2GenericEmitter")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITr2GenericEmitter")
   onCollisionEmitters = [];
 
   /** m_generators (PITr2AttributeGeneratorVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("ITr2AttributeGenerator")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITr2AttributeGenerator")
   generators = [];
 
   /** m_particleRadiusComponent (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   particleRadiusComponent = "";
 
   /** m_reflectionNoise (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   reflectionNoise = 0;
 
   /** m_particleRadiusCoefficient (Vector4) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec4
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec4
   particleRadiusCoefficient = vec4.fromValues(1, 0, 0, 0);
 
   /**
    * Propagates the thread-safe flag to the on-collision emitters.
    */
-  @impl.implemented
+  @meta.implemented
   Initialize()
   {
     for (const emitter of this.onCollisionEmitters)
@@ -110,7 +110,7 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
   /**
    * Resolves the position, velocity and radius elements and binds the attached generators, marking the constraint valid only when all of them resolve.
    */
-  @impl.adapted
+  @meta.adapted
   Bind(particleSystem)
   {
     this.isValid = false;
@@ -144,8 +144,8 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
    * nor enter the swept test still fall through to it, and that control flow
    * is preserved.
    */
-  @impl.adapted
-  @impl.reason("Runs single-threaded against the CPU element views; Carbon's particle RNG is replaced by Math.random.")
+  @meta.adapted
+  @meta.reason("Runs single-threaded against the CPU element views; Carbon's particle RNG is replaced by Math.random.")
   ApplyConstraint(_buffers, _strides, count, dt = 0)
   {
     if (!this.isValid)

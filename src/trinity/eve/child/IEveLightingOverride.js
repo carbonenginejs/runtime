@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLightingOverride.h
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /** Contract for an EVE entity that contributes a weighted lighting override. */
@@ -13,5 +13,5 @@ export class IEveLightingOverride
   }
 }
 
-CjsSchema.decorateMethod(IEveLightingOverride, "GetOverrides", impl.abstract);
+CjsSchema.decorateMethod(IEveLightingOverride, "GetOverrides", meta.abstract);
 CjsSchema.define(IEveLightingOverride, { className: "IEveLightingOverride" });

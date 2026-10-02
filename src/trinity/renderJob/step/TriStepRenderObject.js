@@ -1,7 +1,7 @@
 // Source: trinity/trinity/RenderJob/TriStepRenderObject.h
 //   trinity/trinity/RenderJob/TriStepRenderObject.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { RenderingMode, TriBatchType } from "#consts/graphics";
 import { TriRenderBatchMap } from "../../core/batch/TriRenderBatchMap.js";
 import { TriRenderStep } from "./TriRenderStep.js";
@@ -23,44 +23,44 @@ const RENDERING_MODES = [
 ];
 
 /** A render step that renders a single renderable, optionally overriding its material. */
-@type.define({ className: "TriStepRenderObject", family: "renderJob" })
+@meta.define({ className: "TriStepRenderObject", family: "renderJob" })
 export class TriStepRenderObject extends TriRenderStep
 {
 
   /** m_effectOverride (Tr2MaterialPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2Material")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2Material")
   effectOverride = null;
 
   /** m_typeEnabled[3] (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   renderAdditive = true;
 
   /** m_typeEnabled[1] (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   renderDecal = true;
 
   /** m_typeEnabled[0] (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   renderOpaque = true;
 
   /** m_typeEnabled[2] (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   renderTransparent = true;
 
   /** m_renderable (ITr2RenderablePtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("ITr2Renderable")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("ITr2Renderable")
   renderable = null;
 
   // m_batches (EveSpaceScene::BatchMap). Carbon builds the four accumulators in
@@ -71,8 +71,8 @@ export class TriStepRenderObject extends TriRenderStep
   #batches = null;
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   __init__(renderable = null)
   {
     this.renderable = renderable;
@@ -92,8 +92,8 @@ export class TriStepRenderObject extends TriRenderStep
    * The accumulators are cleared at the end of the call exactly as Carbon does
    * (cpp:65-68), so the step holds no batches between frames.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     if (!this.renderable) return TriRenderStep.Result.RS_OK;

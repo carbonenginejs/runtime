@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/Inertia.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/Inertia.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
@@ -24,64 +24,64 @@ function ClampLength(value, maxLength)
 }
 
 /** A steering behaviour that smooths each agent's acceleration by rotating it toward the previous frame's direction at a limited angular speed and blending its magnitude toward the desired value. */
-@type.define({ className: "Inertia", family: "eve/child/behaviors" })
+@meta.define({ className: "Inertia", family: "eve/child/behaviors" })
 export class Inertia
 {
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   behaviorPriority = 0;
 
   /** m_minInertiaWeight (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   minInertiaWeight = 0.1;
 
   /** m_maxRotationSpeed (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxRotationSpeed = 3.14;
 
   /** m_maxAcceleration (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxAcceleration = 60;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   enabled = true;
 
   _returnForces = [];
 
   /** Carbon Inertia::GetProcessPriority (cpp:20-23). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetProcessPriority()
   {
     return this.behaviorPriority;
   }
 
   /** Per-agent scratch record count (Carbon sizeof(InertiaData)). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero value means 'has scratch'.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero value means 'has scratch'.")
   GetScratchMemorySize()
   {
     return 1;
   }
 
   /** Fresh per-agent scratch record (Carbon InertiaData placement init). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.")
   InitializeScratch()
   {
     return {
@@ -102,9 +102,9 @@ export class Inertia
    * @param {Array} _dronesInSearchRadius - unused
    * @returns {Array} debug forces when group.collectForces is on
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon pushes the adjusted acceleration into the debug vector unconditionally; the JS port collects it only when group.collectForces is set to keep the per-agent loop allocation-free.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon pushes the adjusted acceleration into the debug vector unconditionally; the JS port collects it only when group.collectForces is set to keep the per-agent loop allocation-free.")
   CalculateBehavior(agents, scratchData, deltaTime, group, _system, _dronesInSearchRadius)
   {
     if (!this.enabled)

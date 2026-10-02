@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviourVector3Base.js";
 
 
@@ -10,46 +10,46 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
  * Vector3 behaviour that places the camera on a horizontal circle about the
  * anchor, sweeping from a start to an end angle over the timeline.
  */
-@type.define({
+@meta.define({
   className: "EveVirtualCameraBehaviourVector3Orbit",
   family: "eve/virtualCamera/behaviour"
 })
 export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehaviourVector3Base
 {
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2CurveScalar")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2CurveScalar")
   orbitCurve = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2CurveScalar")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2CurveScalar")
   distanceScalarCurve = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   end = 180;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   proportional = true;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   world = false;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   start = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   distance = 1;
 
   /**
@@ -65,8 +65,8 @@ export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehav
   }
 
   /** Sets the behaviour name and renames both owned curves to match. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetName(name)
   {
     super.SetName(name);
@@ -81,8 +81,8 @@ export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehav
    * timeline time, then scaled by distance, by the anchor radius when
    * proportional, and by the distance scalar curve.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, anchorRadius, anchorForwardDirection, out = vec3.create())
   {
     const duration = Number(camera?.GetAnimationTimelineLength?.() ?? 0);

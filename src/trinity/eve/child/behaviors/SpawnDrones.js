@@ -1,82 +1,82 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SpawnDrones.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/SpawnDrones.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
 const NO_FORCES = [];
 
 /** A steering behaviour that populates and repopulates a drone group's agents, either regenerating a jittered spawn grid or spawning agents by count on a schedule or one-shot trigger. */
-@type.define({ className: "SpawnDrones", family: "eve/child/behaviors" })
+@meta.define({ className: "SpawnDrones", family: "eve/child/behaviors" })
 export class SpawnDrones
 {
 
   /** m_gridSpacing (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   gridSpacing = vec3.create();
 
   /** m_gridFullnessFactor (float) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   gridFullnessFactor = 1;
 
   /** m_regenerateDrones (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   regenerateDrones = true;
 
   /** m_count (int) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   count = 1;
 
   /** m_seconds (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   seconds = -1;
 
   /** m_addOnGrid (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   addOnGrid = false;
 
   /** m_addByCount (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   addByCount = false;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   enabled = true;
 
   /** m_time (float) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.float32
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.float32
   time = 0;
 
   /** m_spawnPosition (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   spawnPosition = vec3.create();
 
   /** m_gridInfo (Vector4) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.vec4
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec4
   gridInfo = vec4.fromValues(1, 1, 1, 10);
 
   /**
@@ -85,9 +85,9 @@ export class SpawnDrones
    * allocated here - a regeneration event, not the per-frame path.
    * @param {Object} group - owning BehaviorGroup
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("TriRand maps to Math.random; the spawn-point grid walk is ported verbatim.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("TriRand maps to Math.random; the spawn-point grid walk is ported verbatim.")
   UpdateGrid(group)
   {
     // for behaviors to work we always have to add one decoy drone; delete it
@@ -160,9 +160,9 @@ export class SpawnDrones
    * @param {Array} _dronesInSearchRadius - unused
    * @returns {Array} empty (as Carbon)
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("rand() maps to Math.random when picking the timed entrance point; the spawn scheduling is ported verbatim.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("rand() maps to Math.random when picking the timed entrance point; the spawn scheduling is ported verbatim.")
   CalculateBehavior(_agents, _scratchData, deltaTime, group, _system, _dronesInSearchRadius)
   {
     if (!this.enabled)
@@ -214,8 +214,8 @@ export class SpawnDrones
   }
 
   /** Carbon method gridToggleReset -> GridToggleReset (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   gridToggleReset()
   {
     this.regenerateDrones = true;

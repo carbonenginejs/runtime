@@ -1,12 +1,12 @@
 // Source: trinity/trinity/Tr2GpuStructuredBuffer.h
 // Source: trinity/trinity/Tr2GpuStructuredBuffer.cpp
 // Hand-maintained from Carbon source; promoted from generated/trinityCore.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { ALResult, Tr2BufferDescriptionAL } from "#trinityal";
 
 /** Describes the element count, stride, and creation flags of a GPU structured buffer. */
-@type.define({ className: "Tr2GpuStructuredBuffer", family: "trinityCore", purpose: "Describes the element count, stride, and creation flags of a GPU structured buffer." })
+@meta.define({ className: "Tr2GpuStructuredBuffer", family: "trinityCore", purpose: "Describes the element count, stride, and creation flags of a GPU structured buffer." })
 export class Tr2GpuStructuredBuffer
 {
 
@@ -14,24 +14,24 @@ export class Tr2GpuStructuredBuffer
   static CreationFlag = Object.freeze({ CPU_WRITABLE: 1, GPU_WRITABLE: 2 });
 
   /** m_creationFlags (CreationFlags) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   creationFlags = 0;
 
   /** m_count (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   count = 0;
 
   /** m_stride (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   stride = 0;
 
   /** m_name - debug label; not Blue-exposed. */
@@ -54,8 +54,8 @@ export class Tr2GpuStructuredBuffer
    * @param {Tr2RenderContext} renderContext The context to create on.
    * @returns {number} An `ALResult`.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Create(count, stride, creationFlags, renderContext)
   {
     this.count = count;
@@ -73,8 +73,8 @@ export class Tr2GpuStructuredBuffer
    * @param {Tr2RenderContext} renderContext The context to create on.
    * @returns {number} An `ALResult`.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   CreateBuffer(renderContext)
   {
     if (!this.count || !this.stride) return ALResult.E_INVALIDARG;
@@ -95,8 +95,8 @@ export class Tr2GpuStructuredBuffer
   }
 
   /** Carbon SetName (cpp:151-158): labels the buffer now and on every re-create. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetName(name)
   {
     this._name = String(name ?? "");
@@ -107,7 +107,7 @@ export class Tr2GpuStructuredBuffer
    * Explicit final-owner teardown replaces destruction of Carbon's AL value member.
    * Operational device-resource release remains separate.
    */
-  @impl.adapted
+  @meta.adapted
   Destroy()
   {
     if (this._buffer) this._buffer.Destroy();
@@ -121,40 +121,40 @@ export class Tr2GpuStructuredBuffer
    * @param {number} [_index] Unused, as in Carbon.
    * @returns {object|null} The AL buffer.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetGpuBuffer(_index = 0)
   {
     return this._buffer;
   }
 
   /** Carbon IsValid (cpp:106-109). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsValid()
   {
     return this._buffer !== null;
   }
 
   /** Carbon GetCount (cpp:173-175): the created buffer's element count, 0 without one. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetCount()
   {
     return this._buffer ? this._buffer.GetDesc().count : 0;
   }
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   __init__(...args)
   {
     throw new Error("Tr2GpuStructuredBuffer.__init__ is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method DebugGetData -> PyGetData (MAP_METHOD). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   DebugGetData(...args)
   {
     throw new Error("Tr2GpuStructuredBuffer.DebugGetData is not implemented in CarbonEngineJS.");

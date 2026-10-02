@@ -8,7 +8,7 @@ import { mappedInterfaces } from "../../../global/compose/interface.js";
 import { IWorldPosition } from "../../core/IWorldPosition.js";
 import { EveSpaceObject2 } from "../../eve/spaceObject/EveSpaceObject2.js";
 import { ITr2FollowCurveKey } from "../ITr2FollowCurveKey.js";
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { Tr2FollowCurveKeyInterpolation, RotationSetting } from "../enums.js";
 
 
@@ -24,74 +24,74 @@ import { Tr2FollowCurveKeyInterpolation, RotationSetting } from "../enums.js";
   className: "Tr2ObjectFollowCurveKey",
   family: "curves"
 })
-@meta.carbon.inherit(INotify, IInitialize)
+@meta.blue.inherit(INotify, IInitialize)
 export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
 {
   /** Authored key name. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** Runtime followed object; notified but not persisted. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @types.objectRef("IRoot")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.objectRef("IRoot")
   object = null;
 
   /** Authored key time. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   time = 0;
 
   /** Authored interpolation of the outgoing segment. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.int32
-  @types.enum("trinity.Tr2FollowCurveKeyInterpolation")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2FollowCurveKeyInterpolation")
   interpolation = Tr2FollowCurveKeyInterpolation.LINEAR;
 
   /** Authored incoming tangent. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   leftTangent = vec3.create();
 
   /** Authored outgoing tangent. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   rightTangent = vec3.create();
 
   /** Last sampled incoming tangent. */
-  @meta.edit.read
-  @types.vec3
+  @meta.blue.read
+  @meta.type.vec3
   rotatedLeftTangent = vec3.create();
 
   /** Last sampled outgoing tangent. */
-  @meta.edit.read
-  @types.vec3
+  @meta.blue.read
+  @meta.type.vec3
   rotatedRightTangent = vec3.create();
 
   /** Authored locator set name. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   offsetLocatorName = "";
 
   /** Authored local position offset. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   offset = vec3.create();
 
   /** Authored rotation selection. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.int32
-  @types.enum("trinity.Tr2ObjectFollowCurveKey.RotationSetting")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2ObjectFollowCurveKey.RotationSetting")
   rotationSetting = RotationSetting.NO_ROTATION;
 
   /** Cached first locator; owned by the followed object. */
@@ -106,8 +106,8 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
   /**
    * Resolves the current locator cache.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     this._locator = this.GetLocator();
@@ -120,8 +120,8 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * @param {string|null} propertyName Changed member name.
    * @returns {boolean} True.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnModified(propertyName = null)
   {
     if (propertyName === "object" || propertyName === "offsetLocatorName")
@@ -134,8 +134,8 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
   /**
    * Gets the key time.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetTime()
   {
     return this.time;
@@ -144,8 +144,8 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
   /**
    * Gets the segment interpolation mode starting at this key.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetInterpolationType()
   {
     return this.interpolation;
@@ -155,8 +155,8 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * Gets the rotated left tangent into `out`.
    * The caller's output buffer replaces the native vector value return.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetLeftTangent(out)
   {
     return vec3.copy(out, this.rotatedLeftTangent);
@@ -166,8 +166,8 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * Gets the rotated right tangent into `out`.
    * The caller's output buffer replaces the native vector value return.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetRightTangent(out)
   {
     return vec3.copy(out, this.rotatedRightTangent);
@@ -178,8 +178,8 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * The caller's output buffer and quaternion transform replace native values
    * and rotation matrices while preserving the native sampling order.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValue(out)
   {
     if (!this.object)
@@ -207,8 +207,8 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * Finds the first locator in the requested Carbon locator set.
    * Mapped constructor identities implement the native BlueCastPtr query.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetLocator()
   {
     const object = this.object;
@@ -232,7 +232,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * Retained JavaScript helper replaces native GetLocatorRotation and
    * GetModelRotation matrices with a reusable quaternion.
    */
-  @meta.impl.custom
+  @meta.ours
   GetRotation()
   {
     switch (this.rotationSetting)
@@ -258,7 +258,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
   /**
    * Gets the followed object's world position, if it exposes one.
    */
-  @meta.impl.custom
+  @meta.ours
   GetWorldPosition()
   {
     return this.object && mappedInterfaces(this.object.constructor).has(IWorldPosition)
@@ -268,7 +268,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
   /**
    * Applies a pure rotation transform, or copies unchanged for identity.
    */
-  @meta.impl.custom
+  @meta.ours
   TransformByRotation(out, value, rotation)
   {
     if (!rotation)
@@ -286,7 +286,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
 
 }
 
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ ITr2FollowCurveKey, INotify, IInitialize ],
   chainTo: null
 })(Tr2ObjectFollowCurveKey);

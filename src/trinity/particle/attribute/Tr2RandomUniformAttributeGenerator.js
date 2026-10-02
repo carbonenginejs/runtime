@@ -1,52 +1,52 @@
 // Source: trinity/trinity/Particle/Tr2RandomUniformAttributeGenerator.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { ITr2AttributeGenerator } from "./ITr2AttributeGenerator.js";
 import { vec4 } from "#math/vec4";
 import { bindParticleElement } from "../element/particleElementBinding.js";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
 
 /** Generates a per-particle attribute by sampling each component uniformly between a minimum and maximum range. */
-@type.define({ className: "Tr2RandomUniformAttributeGenerator", family: "particle" })
+@meta.define({ className: "Tr2RandomUniformAttributeGenerator", family: "particle" })
 export class Tr2RandomUniformAttributeGenerator extends ITr2AttributeGenerator
 {
 
   #element = null;
 
   /** m_name.m_type (Tr2ParticleElementDeclarationName::Type) [READWRITE, PERSIST, ENUM] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.Tr2ParticleElementDeclarationName.Type")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2ParticleElementDeclarationName.Type")
   elementType = Tr2ParticleElementDeclaration.Type.CUSTOM;
 
   /** m_name.m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   customName = "";
 
   /** m_maxRange (Vector4) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec4
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec4
   maxRange = vec4.create();
 
   /** m_minRange (Vector4) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec4
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec4
   minRange = vec4.create();
 
   /** m_valid (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   valid = false;
 
   /**
    * Resolves the target element by semantic type or custom name, marking the generator valid only when it resolves.
    */
-  @impl.implemented
+  @meta.implemented
   Bind(particleSystem, boundElements)
   {
     this.#element = this.elementType === Tr2ParticleElementDeclaration.Type.CUSTOM
@@ -59,7 +59,7 @@ export class Tr2RandomUniformAttributeGenerator extends ITr2AttributeGenerator
   /**
    * Writes a per-component uniformly random value between the configured bounds into the particle's element slot.
    */
-  @impl.adapted
+  @meta.adapted
   Generate(position, velocity, index)
   {
     if (!this.valid)
@@ -77,7 +77,7 @@ export class Tr2RandomUniformAttributeGenerator extends ITr2AttributeGenerator
   /**
    * The bound element's component count, or zero when unbound.
    */
-  @impl.implemented
+  @meta.implemented
   GetDimension()
   {
     return this.valid ? this.#element.dimension : 0;
@@ -86,7 +86,7 @@ export class Tr2RandomUniformAttributeGenerator extends ITr2AttributeGenerator
   /**
    * The bound element's custom name, or its semantic type name.
    */
-  @impl.implemented
+  @meta.implemented
   GetName()
   {
     return this.elementType === Tr2ParticleElementDeclaration.Type.CUSTOM

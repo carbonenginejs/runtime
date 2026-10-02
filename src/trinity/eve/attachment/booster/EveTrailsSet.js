@@ -5,7 +5,7 @@ import { mat4 } from "#math/mat4";
 import { blue } from "#blue";
 import { ResourceRequirement } from "#resource";
 import { TriStorageFlags } from "#consts/graphics";
-import { carbon, edit, impl, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
@@ -23,39 +23,39 @@ const INSTANCE_VERTEX_SIZE = 16;
  * A booster set's trails: one trail mesh drawn once per booster, instanced,
  * its shape bent along each booster renderable's spline in the vertex shader.
  */
-@type.define({ className: "EveTrailsSet", family: "eve/attachment/boosters" })
-@carbon.inherit(IInitialize)
-@carbon.mapInterface(IInitialize)
+@meta.define({ className: "EveTrailsSet", family: "eve/attachment/boosters" })
+@meta.blue.inherit(IInitialize)
+@meta.blue.mapInterface(IInitialize)
 export class EveTrailsSet
 {
 
   /** m_geometryResource (TriGeometryResPtr) [READ] */
-  @edit.read
-  @type.objectRef("TriGeometryRes")
+  @meta.blue.read
+  @meta.type.objectRef("TriGeometryRes")
   geometryResource = null;
 
   /** m_fadeSpeed (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   fadeSpeed = 1;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2Effect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2Effect")
   effect = null;
 
   /** m_geometryResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   geometryResPath = "";
 
   /** m_display (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   display = true;
 
   /** m_trailData: { transform, size } per booster. */
@@ -83,8 +83,8 @@ export class EveTrailsSet
   }
 
   /** Carbon Initialize (cpp:38-43): load the trail mesh. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     this.InitializeGeometryResource();
@@ -98,8 +98,8 @@ export class EveTrailsSet
    * Adapted: Carbon's IBlueAsyncResNotifyTarget becomes the resource's own
    * completion event, as Tr2Mesh does.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   InitializeGeometryResource()
   {
     this.geometryResource?.OffEvent("completed", this._geometryCompleted, this);
@@ -117,24 +117,24 @@ export class EveTrailsSet
   _geometryCompleted = (_event, resource) => this.RebuildCachedData(resource ?? this.geometryResource);
 
   /** Carbon Cleanup (cpp:78-82): the declaration elements are no longer valid. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Cleanup()
   {
     this._trailVertexDeclElementCount = 0;
   }
 
   /** Sets the effect that draws the trails. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetEffect(effect)
   {
     this.effect = effect ?? null;
   }
 
   /** Carbon SetMeshResPath (cpp:96-101): set the path and fire its notification by hand. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetMeshResPath(path)
   {
     this.geometryResPath = String(path ?? "");
@@ -149,8 +149,8 @@ export class EveTrailsSet
    * Adapted: the decoded mesh keeps no declaration handle, so its elements
    * are read directly, as EveSpaceObjectDecal does.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RebuildCachedData(resource)
   {
     // Carbon's notify target is told only of a successful load.
@@ -169,16 +169,16 @@ export class EveTrailsSet
   }
 
   /** Carbon ReleaseCachedData (cpp:144-148). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ReleaseCachedData(_resource)
   {
     this.Cleanup();
   }
 
   /** Carbon OnModified (cpp:154-163): a new mesh path reloads. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnModified(propertyName)
   {
     if (propertyName === "geometryResPath") this.InitializeGeometryResource();
@@ -186,15 +186,15 @@ export class EveTrailsSet
   }
 
   /** Carbon Update (cpp:169-171): nothing; the motion lives on the booster renderables' splines. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Update(_time)
   {
   }
 
   /** Carbon Clear (cpp:177-184): drop the trails and the device half. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Clear()
   {
     this._trailData.length = 0;
@@ -203,8 +203,8 @@ export class EveTrailsSet
   }
 
   /** Carbon Add (cpp:198-206): one trail at a booster's transform, with its size. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Add(localMatrix, size)
   {
     if (!localMatrix || localMatrix.length !== 16)
@@ -221,8 +221,8 @@ export class EveTrailsSet
    * Adapted: Tr2SuballocatedBuffer has no Free, so the allocation is dropped
    * rather than returned.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   ReleaseResources(_storage)
   {
     this._instanceBuffer = null;
@@ -230,16 +230,16 @@ export class EveTrailsSet
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources: creation only when the device allows it. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PrepareResources()
   {
     return Tr2Renderer.IsResourceCreationAllowed() ? this.OnPrepareResources() : true;
   }
 
   /** Carbon OnPrepareResources (cpp:224-242): the declaration once the mesh is in, then the instances. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnPrepareResources()
   {
     if (this._trailVertexDeclElementCount && this._vertexDeclHandle === Tr2EffectStateManager.Unknown)
@@ -255,8 +255,8 @@ export class EveTrailsSet
    * Carbon InitializeInstanceBuffer (cpp:249-272): each trail's position
    * (_41, _42, _43 of its transform) and size as one float4.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   InitializeInstanceBuffer()
   {
     this._instanceBuffer = null;
@@ -284,8 +284,8 @@ export class EveTrailsSet
    * @param {object} accumulator The batches.
    * @param {object} perObjectData The booster renderable's per-object data.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetBatches(accumulator, perObjectData)
   {
     if (!this.display) return;
@@ -314,8 +314,8 @@ export class EveTrailsSet
   }
 
   /** The authored rate at which a trail fades out behind its booster. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetFadeSpeed()
   {
     return this.fadeSpeed;
@@ -325,7 +325,7 @@ export class EveTrailsSet
    * Binds a resolved trail geometry resource directly, rebuilding when it has
    * loaded; for hosts that resolve the mesh themselves.
    */
-  @impl.custom
+  @meta.ours
   SetGeometryResource(resource)
   {
     if (this.geometryResource === resource) return;
@@ -337,14 +337,14 @@ export class EveTrailsSet
   }
 
   /** The trail placements as copies, for diagnostics. */
-  @impl.custom
+  @meta.ours
   GetTrailData()
   {
     return this._trailData.map(trail => ({ transform: mat4.clone(trail.transform), size: trail.size }));
   }
 
   /** A counter bumped whenever the placements, mesh or declaration change. */
-  @impl.custom
+  @meta.ours
   GetRevision()
   {
     return this._revision;

@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Interior/Tr2InteriorConstantBufferFormats.h
-import { impl, type } from "#schema";
+import { meta } from "#schema";
 import { DictReader } from "#blue/DictReader";
 import { mat4 } from "#math/mat4";
 import { vec4 } from "#math/vec4";
@@ -9,36 +9,36 @@ import { Tr2InteriorPerObjectLightData } from "../../generated/interior/Tr2Inter
  * Per-light interior pixel-stage data holding light, mirror, shadow, bounds,
  * and auxiliary parameters.
  */
-@type.define({ className: "Tr2InteriorPerLightPSData", family: "interior" })
+@meta.define({ className: "Tr2InteriorPerLightPSData", family: "interior" })
 export class Tr2InteriorPerLightPSData
 {
 
   /** lightData (Tr2InteriorPerObjectLightData) */
-  @type.struct("Tr2InteriorPerObjectLightData")
+  @meta.type.struct("Tr2InteriorPerObjectLightData")
   lightData = new Tr2InteriorPerObjectLightData();
 
   /** mirrorToWorldMatrix (Matrix) */
-  @type.mat4
+  @meta.type.mat4
   mirrorToWorldMatrix = mat4.create();
 
   /** shadowMatrix (Matrix[6]) */
-  @type.array("mat4")
+  @meta.type.array("mat4")
   shadowMatrix = Array.from({ length: 6 }, () => mat4.create());
 
   /** shadowRect (Vector4[6]) */
-  @type.array("vec4")
+  @meta.type.array("vec4")
   shadowRect = Array.from({ length: 6 }, () => vec4.create());
 
   /** shadowInfluence (Vector4[6]) */
-  @type.array("vec4")
+  @meta.type.array("vec4")
   shadowInfluence = Array.from({ length: 6 }, () => vec4.create());
 
   /** boundingBox (Matrix) */
-  @type.mat4
+  @meta.type.mat4
   boundingBox = mat4.create();
 
   /** additionalParameters (Vector4) */
-  @type.vec4
+  @meta.type.vec4
   additionalParameters = vec4.create();
 
   /**
@@ -58,7 +58,7 @@ export class Tr2InteriorPerLightPSData
    * @param {object} [options={}] Options forwarded to the dictionary reader.
    * @returns {Set<string>|boolean} The dictionary reader's change result.
    */
-  @impl.custom
+  @meta.ours
   SetValues(values = {}, options = {})
   {
     const normalized = { ...values };

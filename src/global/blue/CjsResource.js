@@ -3,7 +3,7 @@ import {
   normalizeResourceExtension,
   normalizeResourcePath
 } from "#utils/path";
-import { CjsSchema, carbon, compose, impl, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { CjsFormatRoute } from "./CjsFormatStore.js";
 import { ResourceHandlerMode } from "./ResourceHandlerMode.js";
 
@@ -997,7 +997,7 @@ export class CjsResource
 // CjsEventEmitter`, keeping the inheritance slot free. Functional form, not
 // decorator syntax, for the same reason the schema below is data: the resource
 // tree stays plain ESM that loads from source without a transform.
-compose.notify(CjsResource);
+meta.events(CjsResource);
 
 // Declared as data rather than with decorators, so the resource tree stays
 // plain ESM that loads from source without a transform. Resources are not model
@@ -1008,22 +1008,22 @@ CjsSchema.define(CjsResource, {
   className: "CjsResource",
   family: "resource",
   fields: {
-    path: type.path,
-    ext: type.string,
-    requirement: type.string,
-    state: type.string
+    path: meta.type.path,
+    ext: meta.type.string,
+    requirement: meta.type.string,
+    state: meta.type.string
   },
   methods: {
-    DoLoad: [ impl.abstract ],
-    Initialize: [ carbon.method, impl.adapted ],
-    GetPath: [ carbon.method, impl.adapted ],
-    GetExt: [ carbon.method, impl.adapted ],
-    IsLoading: [ carbon.method, impl.adapted ],
-    HasLoaded: [ carbon.method, impl.adapted ],
-    IsPrepared: [ carbon.method, impl.adapted ],
-    IsGood: [ carbon.method, impl.adapted ],
-    IsFailed: [ carbon.method, impl.adapted ],
-    DestroyAdapterResources: [ impl.custom ]
+    DoLoad: [ meta.abstract ],
+    Initialize: [ meta.blue.method, meta.adapted ],
+    GetPath: [ meta.blue.method, meta.adapted ],
+    GetExt: [ meta.blue.method, meta.adapted ],
+    IsLoading: [ meta.blue.method, meta.adapted ],
+    HasLoaded: [ meta.blue.method, meta.adapted ],
+    IsPrepared: [ meta.blue.method, meta.adapted ],
+    IsGood: [ meta.blue.method, meta.adapted ],
+    IsFailed: [ meta.blue.method, meta.adapted ],
+    DestroyAdapterResources: [ meta.ours ]
   }
 });
 

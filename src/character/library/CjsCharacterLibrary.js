@@ -1,5 +1,5 @@
 import { normalizeResourcePath } from "#utils/path";
-import { CjsSchema, edit, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { ReadValues } from "../../global/blue/values.js";
 import { NOTIFY_METHODS } from "../../global/compose/notify.js";
 import { CjsCharacterLibraryDocuments } from "./CjsCharacterLibraryDocuments.js";
@@ -16,7 +16,7 @@ import { CjsCharacterUnresolvedRelationship } from "./CjsCharacterUnresolvedRela
  * Document indexes and lazy index flags are runtime state excluded from
  * JSON.
  */
-@type.define({ className: "CjsCharacterLibrary", family: "character" })
+@meta.define({ className: "CjsCharacterLibrary", family: "character" })
 export class CjsCharacterLibrary
 {
 
@@ -160,53 +160,53 @@ export class CjsCharacterLibrary
         return unresolved;
     }
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     schema = "carbonenginejs.characterLibrary";
 
-    @edit.readwrite
-    @edit.persist
-    @type.uint32
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.uint32
     schemaVersion = 11;
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     sourceTarget = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     sourceGame = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     sourceProvider = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     sourceBuild = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     generatedAt = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.model("CjsCharacterLibraryDocuments")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.model("CjsCharacterLibraryDocuments")
     documents = new CjsCharacterLibraryDocuments();
 
     /**
      * Source relationships whose target record does not exist. Each owning
      * member holds null; the builder records here which identity it named.
      */
-    @edit.readwrite
-    @edit.persist
-    @type.list("CjsCharacterUnresolvedRelationship")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.list("CjsCharacterUnresolvedRelationship")
     unresolvedRelationships = [];
 
     /** Hydrates a complete library after applying the explicit legacy migration. */

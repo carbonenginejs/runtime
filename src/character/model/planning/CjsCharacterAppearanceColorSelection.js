@@ -1,48 +1,48 @@
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 
 /** One plan-local authored paper-doll colour selection. */
-@type.define({ className: "CjsCharacterAppearanceColorSelection", family: "character" })
+@meta.define({ className: "CjsCharacterAppearanceColorSelection", family: "character" })
 export class CjsCharacterAppearanceColorSelection
 {
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     colorKey = "";
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     colorNameA = "";
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     colorNameBC = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.float64
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.float64
     gloss = 0;
 
-    @edit.readwrite
-    @edit.persist
-    @type.float64
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.float64
     weight = 0;
 
-    @edit.readwrite
-    @edit.persist
-    @type.uint8
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.uint8
     hasGloss = 0;
 
-    @edit.readwrite
-    @edit.persist
-    @type.uint8
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.uint8
     hasWeight = 0;
 
-    @edit.readwrite
-    @edit.persist
-    @type.model("CjsCharacterOrigin")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.model("CjsCharacterOrigin")
     origin = null;
 
 }

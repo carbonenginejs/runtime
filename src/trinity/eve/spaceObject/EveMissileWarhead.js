@@ -6,7 +6,7 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsSchema, meta, types } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { ShaderType } from "#consts/render-context";
 import { EveTransform } from "./EveTransform.js";
 import { mappedInterfaces } from "../../../global/compose/interface.js";
@@ -20,54 +20,54 @@ import { State, StateChangeEvent } from "../../generated/eve/spaceObject/enums.j
  * noise-perturbed offset path it flies relative to the missile, and the impact
  * test against the target.
  */
-@types.define({ className: "EveMissileWarhead", family: "eve/spaceObject" })
+@meta.define({ className: "EveMissileWarhead", family: "eve/spaceObject" })
 export class EveMissileWarhead extends EveTransform
 {
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32 pathOffsetNoiseScale = 0;
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32 pathOffsetNoiseSpeed = 1;
-  @meta.edit.readwrite
-  @types.boolean startDataValid = false;
-  @meta.edit.readwrite
-  @types.vec3 pathOffset = vec3.create();
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32 maxExplosionDistance = 40;
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32 impactDuration = 0.6;
-  @meta.edit.read
-  @types.vec3 explosionPosition = vec3.create();
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32 impactSize = 0;
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.objectRef("EveSpriteSet") spriteSet = null;
-  @meta.edit.read
-  @types.int32 targetLocatorID = -1;
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32 durationEjectPhase = 0;
-  @meta.edit.readwrite
-  @types.boolean doSpread = true;
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32 acceleration = 1;
-  @meta.edit.readwrite
-  @types.int32 id = -1;
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32 startEjectVelocity = 0;
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32 warheadLength = 1;
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32 warheadRadius = 1;
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32 pathOffsetNoiseScale = 0;
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32 pathOffsetNoiseSpeed = 1;
+  @meta.blue.readwrite
+  @meta.type.boolean startDataValid = false;
+  @meta.blue.readwrite
+  @meta.type.vec3 pathOffset = vec3.create();
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32 maxExplosionDistance = 40;
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32 impactDuration = 0.6;
+  @meta.blue.read
+  @meta.type.vec3 explosionPosition = vec3.create();
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32 impactSize = 0;
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSpriteSet") spriteSet = null;
+  @meta.blue.read
+  @meta.type.int32 targetLocatorID = -1;
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32 durationEjectPhase = 0;
+  @meta.blue.readwrite
+  @meta.type.boolean doSpread = true;
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32 acceleration = 1;
+  @meta.blue.readwrite
+  @meta.type.int32 id = -1;
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32 startEjectVelocity = 0;
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32 warheadLength = 1;
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32 warheadRadius = 1;
 
   _state = EveMissileWarhead.State.STATE_DELAYED;
   _flyingTime = 0;
@@ -93,16 +93,16 @@ export class EveMissileWarhead extends EveTransform
   _noisePhase = EveMissileWarhead._nextNoisePhase++ & 0xfff;
 
   /** Registers the sprite effect independently of launch state and mesh visibility. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     if (this.spriteSet) this.spriteSet.RegisterWithQuadRenderer(quadRenderer);
   }
 
   /** Submits valid, non-dead warhead sprites at the current world transform. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddQuadsToQuadRenderer(_frustum, quadRenderer)
   {
     if (!this.startDataValid || this._state === EveMissileWarhead.State.STATE_DEAD) return;
@@ -114,8 +114,8 @@ export class EveMissileWarhead extends EveTransform
    * explosion distance, speed modifier and final-target timing that vary this
    * flight.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PrepareLaunch()
   {
     this._currentEjectVelocity = this.startEjectVelocity;
@@ -147,8 +147,8 @@ export class EveMissileWarhead extends EveTransform
    * and marks the start data valid, which releases the state machine from its
    * delayed state.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Launch(startTransform)
   {
     mat4.getRotation(this._startOrientation, startTransform);
@@ -164,8 +164,8 @@ export class EveMissileWarhead extends EveTransform
    * also snapshots the previous destination and flight time so the change is
    * blended in rather than snapped.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateEndTransform(endTransform, switchLocators)
   {
     vec3.set(this._endOffset, endTransform[12], endTransform[13], endTransform[14]);
@@ -180,8 +180,8 @@ export class EveMissileWarhead extends EveTransform
    * Advances the delayed/launch/ejecting/tracking state machine by one frame, picking a damage locator when tracking begins and again at the spread-to-final switch.
    * @returns {number} The state-change event the missile must act on, or EVT_NONE.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateState(deltaTime, estimatedTotalAliveTime, target)
   {
     this._bombFlightpath = !target;
@@ -234,8 +234,8 @@ export class EveMissileWarhead extends EveTransform
    *
    * Adapted: Targetable output parameters are out-last. Missing: native timeout collision short-circuit and EXPLODED-before-CreateImpact ordering remain a separate repair.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   CheckImpact(deltaTime, estimatedTotalAliveTime, target)
   {
     if (this._state !== EveMissileWarhead.State.STATE_TRACKING_FINAL || this.id < 0) return EveMissileWarhead.StateChangeEvent.EVT_NONE;
@@ -274,8 +274,8 @@ export class EveMissileWarhead extends EveTransform
    *
    * Adapted: Carbon's pointer-derived Perlin phase is replaced with a stable per-instance 12-bit sequence.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(context)
   {
     const position = this._flyingTime * this.pathOffsetNoiseSpeed + this._noisePhase;
@@ -297,8 +297,8 @@ export class EveMissileWarhead extends EveTransform
    *
    * Adapted: Flight produces only the offset transform; visibility publishes world placement. Per-object data uses fresh CPU records instead of persistent native buffer invalidation.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateWarhead(deltaTime, estimatedTotalAliveTime, currentBallVelocity, currentInheritedVelocity, inverseBallRotation, missileTransform, originShift = EveMissileWarhead._zero)
   {
     const dt = Number(deltaTime) || 0;
@@ -354,8 +354,8 @@ export class EveMissileWarhead extends EveTransform
    * Enables only native shared GPU emitters, including those of children whose
    * Blue exposure maps EveTransform.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   EnableParticleEmitting(enable)
   {
     for (const child of this.children)
@@ -382,8 +382,8 @@ export class EveMissileWarhead extends EveTransform
    * the warhead mesh is hidden entirely at LOW, so the low-detail threshold
    * is not used). Returns the visibility.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateVisibility(context, parentTransform)
   {
     this._isVisible = false;
@@ -415,8 +415,8 @@ export class EveMissileWarhead extends EveTransform
    * EveMissileWarhead::GetRenderables never touches it, and EveSpriteSet has
    * no GetRenderables at all - attachments render through the batch path.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetRenderables(out = [])
   {
     if (!this._isVisible || this.lodLevel <= EveTransform.Tr2Lod.TR2_LOD_LOW) return out;
@@ -428,8 +428,8 @@ export class EveMissileWarhead extends EveTransform
    * Writes the world-space sphere enclosing the warhead body, sized and centred
    * from warheadLength.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBoundingSphere(out = vec4.create())
   {
     vec4.set(EveMissileWarhead._localSphere, 0, 0, this.warheadLength * 0.5, this.warheadLength * 0.5);
@@ -441,8 +441,8 @@ export class EveMissileWarhead extends EveTransform
    * Writes the warhead body sphere in the missile's space, which the missile
    * unions into its own bounding sphere.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetLocalBoundingSphere(out = vec4.create())
   {
     vec4.set(EveMissileWarhead._localSphere, 0, 0, this.warheadLength * 0.5, this.warheadLength * 0.5);
@@ -454,8 +454,8 @@ export class EveMissileWarhead extends EveTransform
    * Returns the warhead's live offset transform relative to the missile; it is
    * the warhead's own matrix and is rewritten by the next flight update.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetCurrentOffsetTransform()
   {
     return this._currentOffsetTransform;
@@ -465,24 +465,24 @@ export class EveMissileWarhead extends EveTransform
    * Returns the damage locator index this warhead is tracking, or -1 when none
    * has been chosen.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetTargetLocator()
   {
     return this.targetLocatorID;
   }
 
   /** Overrides the damage locator index this warhead tracks. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetTargetLocator(locator)
   {
     this.targetLocatorID = Number(locator) | 0;
   }
 
   /** Returns the current flight state, one of EveMissileWarhead.State. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetState()
   {
     return this._state;
@@ -492,8 +492,8 @@ export class EveMissileWarhead extends EveTransform
    * Returns the authored warhead id, which the missile passes to the explosion
    * callback.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetWarheadID()
   {
     return this.id;
@@ -506,8 +506,8 @@ export class EveMissileWarhead extends EveTransform
    *
    * Adapted: A fresh CPU record encodes the world and missile size fields instead of invalidating persistent native per-object buffers.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetPerObjectData(accumulator)
   {
     const data = accumulator.Alloc("EveMissileWarheadPerObjectData");
@@ -522,8 +522,8 @@ export class EveMissileWarhead extends EveTransform
    * vector. A pure size contract that must match UpdatePerObjectBuffer's
    * layout below.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetPerObjectDataSize(shaderType)
   {
     return shaderType === ShaderType.PIXEL_SHADER ? 0 : 64 + 16;
@@ -539,8 +539,8 @@ export class EveMissileWarhead extends EveTransform
    * @param {number} _size Caller's byte budget (Carbon ignores it too).
    * @param {DataView} data Caller-owned staging view, little-endian.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdatePerObjectBuffer(shaderType, _size, data)
   {
     if (shaderType === ShaderType.PIXEL_SHADER) return;
@@ -599,7 +599,7 @@ function transformNormal(out, vector, matrix)
 }
 
 // Native concrete exposure chains EveTransform.
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ EveMissileWarhead, EveTransform ],
   chainTo: EveTransform
 })(EveMissileWarhead, { kind: "class" });

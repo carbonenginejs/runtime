@@ -2,7 +2,7 @@
 // switches, states, RTPCs and voice properties inside the SDK. Our SFX engine
 // evaluates them in JavaScript and reads the posting emitter's live values
 // through this interface. Name held for the operator (docs research/audio-backend-interface.md).
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /**
  * One SFX post's live evaluation context: what `CjsSfxEngine` and
@@ -170,7 +170,7 @@ export class ICjsSfxControls
 
 for (const method of Object.getOwnPropertyNames(ICjsSfxControls.prototype))
 {
-    if (method !== "constructor") CjsSchema.decorateMethod(ICjsSfxControls, method, impl.abstract);
+    if (method !== "constructor") CjsSchema.decorateMethod(ICjsSfxControls, method, meta.abstract);
 }
 
 CjsSchema.define(ICjsSfxControls, { className: "ICjsSfxControls", family: "audio", fields: {} });

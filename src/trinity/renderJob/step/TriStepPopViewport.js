@@ -1,4 +1,4 @@
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 
@@ -9,12 +9,12 @@ import { TriRenderJob } from "../TriRenderJob.js";
  * Step that pops the render context's viewport stack, restoring the viewport saved by
  * an earlier push.
  */
-@type.define({ className: "TriStepPopViewport", family: "renderJob" })
+@meta.define({ className: "TriStepPopViewport", family: "renderJob" })
 export class TriStepPopViewport extends TriRenderStep
 {
   /** Restores the viewport saved by the matching push step. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     // The manager owns the viewport save stack (`TriStepPopViewport.cpp:9`).

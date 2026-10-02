@@ -3,7 +3,7 @@
 //   parameters through one macro beside their base.
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:20-38
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.cpp:85-102
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { vec4 } from "#math/vec4";
 import { EveSOFDataParameter } from "./EveSOFDataParameter.js";
 
@@ -16,13 +16,13 @@ export class EveSOFDataParameterFloat extends EveSOFDataParameter
    * Native m_value (float) replaces the base vector in authored values.
    * @type {number}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   value = 0;
 
   /** Returns a new vector containing the numeric value in all four components. */
-  @meta.impl.implemented
+  @meta.implemented
   GetValue()
   {
     const scalar = Number(this.value);
@@ -30,7 +30,7 @@ export class EveSOFDataParameterFloat extends EveSOFDataParameter
   }
 }
 
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ EveSOFDataParameterFloat, EveSOFDataParameter ],
   chainTo: null
 })(EveSOFDataParameterFloat);

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SeekTarget.h
 import { vec3 } from "#math/vec3";
-import { type } from "#schema";
+import { meta } from "#schema";
 
 
 /**
@@ -9,30 +9,30 @@ import { type } from "#schema";
  * spawned and arrived. The behaviour allocates one record per agent and rewrites
  * it on every behaviour update.
  */
-@type.define({
+@meta.define({
   className: "SeekTargetData",
   family: "eve/child/behaviors"
 })
 export class SeekTargetData
 {
-  @type.int32
+  @meta.type.int32
   bucketId = -1;
 
-  @type.int32
+  @meta.type.int32
   locatorIndex = -1;
 
-  @type.float32
+  @meta.type.float32
   timePassed = 0;
 
-  @type.vec3
+  @meta.type.vec3
   position = vec3.create();
 
-  @type.vec3
+  @meta.type.vec3
   direction = vec3.create();
 
-  @type.boolean
+  @meta.type.boolean
   arrived = true;
 
-  @type.boolean
+  @meta.type.boolean
   hasSpawned = false;
 }

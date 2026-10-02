@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/fxAttributes/EveCameraFxAttributes.h
 //   trinity/trinity/Eve/SpaceObject/Utils/fxAttributes/EveCameraFxAttributes.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveFxAttribute } from "./IEveFxAttribute.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -15,49 +15,49 @@ const IDENTITY_TRANSFORM = mat4.create();
  * object, and object, child and camera forward directions - refreshed each child
  * update for effect bindings to read.
  */
-@type.define({ className: "EveCameraFxAttributes", family: "eve/fxAttributes" })
+@meta.define({ className: "EveCameraFxAttributes", family: "eve/fxAttributes" })
 export class EveCameraFxAttributes extends IEveFxAttribute
 {
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_lookAngleToObject (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   lookAngleToObject = 0;
 
   /** m_objectRotation (Vector3) [READ] */
-  @edit.read
-  @type.vec3
+  @meta.blue.read
+  @meta.type.vec3
   objectRotation = vec3.create();
 
   /** m_rotationWithChildTransform (Vector3) [READ] */
-  @edit.read
-  @type.vec3
+  @meta.blue.read
+  @meta.type.vec3
   rotationWithChildTransform = vec3.create();
 
   /** m_cameraRotation (Vector3) [READ] */
-  @edit.read
-  @type.vec3
+  @meta.blue.read
+  @meta.type.vec3
   cameraRotation = vec3.create();
 
   /** m_distanceToCamera (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   distanceToCamera = 0;
 
   /**
    * Collects Carbon's camera-relative attributes for the current child update.
    * Renderer-global camera state is supplied by EveUpdateContext in Trinity.
    */
-  @carbon.method
-  @carbon.contextual(["camera"])
-  @impl.adapted
-  @impl.reason("Carbon reads Tr2Renderer camera globals; the runtime Trinity layer supplies the equivalent state through updateContext.renderContext.")
+  @meta.blue.method
+  @meta.blue.contextual(["camera"])
+  @meta.adapted
+  @meta.reason("Carbon reads Tr2Renderer camera globals; the runtime Trinity layer supplies the equivalent state through updateContext.renderContext.")
   UpdateAsyncronous(updateContext, params)
   {
     const renderContext = updateContext?.renderContext;

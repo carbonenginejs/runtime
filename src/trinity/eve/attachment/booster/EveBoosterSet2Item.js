@@ -11,37 +11,37 @@
 // it does not.
 import { mat4 } from "#math/mat4";
 import { vec4 } from "#math/vec4";
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 
 /**
  * One authored booster placement: its local transform, functionality inputs,
  * atlas slots, light scale and whether it emits a trail.
  */
-@type.define({ className: "EveBoosterSet2Item", family: "eve/attachment/boosters" })
+@meta.define({ className: "EveBoosterSet2Item", family: "eve/attachment/boosters" })
 export class EveBoosterSet2Item
 {
 
-  @edit.persist
-  @type.mat4
+  @meta.blue.persist
+  @meta.type.mat4
   transform = mat4.create();
 
-  @edit.persist
-  @type.vec4
+  @meta.blue.persist
+  @meta.type.vec4
   functionality = vec4.fromValues(0, 1, 1, 1);
 
-  @edit.persist
-  @type.boolean
+  @meta.blue.persist
+  @meta.type.boolean
   hasTrail = true;
 
-  @edit.persist
-  @type.uint32
+  @meta.blue.persist
+  @meta.type.uint32
   atlasIndex0 = 0;
 
-  @edit.persist
-  @type.uint32
+  @meta.blue.persist
+  @meta.type.uint32
   atlasIndex1 = 0;
 
-  @edit.persist
-  @type.float32
+  @meta.blue.persist
+  @meta.type.float32
   lightScale = 1;
 }

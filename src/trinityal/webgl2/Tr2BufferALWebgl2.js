@@ -42,7 +42,7 @@
 // `COPY_READ_BUFFER`, which the render context never draws from; only the
 // first bind, which fixes the buffer's type, uses the real target.
 
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -155,7 +155,7 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @impl.adapted
+  @meta.adapted
   Create(desc, initialData, renderContext)
   {
     this._Reset();
@@ -232,7 +232,7 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    * `ELEMENT_ARRAY_BUFFER` writes into whichever vertex array is bound; the
    * caller's bindings are put back afterwards.
    */
-  @impl.custom
+  @meta.ours
   _BindTypeFixing()
   {
     const gl = this._gl;
@@ -336,7 +336,7 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    * @param {number} [size] Bytes in the range; the whole buffer when omitted.
    * @returns {{result: number, data: Uint8Array|null}} The mapping.
    */
-  @impl.adapted
+  @meta.adapted
   MapForReading(renderContext, offset = 0, size = 0)
   {
     const al = RenderContextALOf(renderContext);
@@ -372,7 +372,7 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} _renderContext The context the read is made against.
    * @returns {number} An `ALResult` value.
    */
-  @impl.adapted
+  @meta.adapted
   CreateStagingBuffer(size, _renderContext)
   {
     if (this._staging && this._staging.length >= size) return ALResult.S_OK;
@@ -406,7 +406,7 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to map against.
    * @returns {{result: number, data: Uint8Array|null}} The mapping.
    */
-  @impl.adapted
+  @meta.adapted
   MapForWriting(renderContext)
   {
     const al = RenderContextALOf(renderContext);
@@ -430,7 +430,7 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    *
    * @param {object} renderContext The context the map was made against.
    */
-  @impl.adapted
+  @meta.adapted
   UnmapForWriting(renderContext)
   {
     const al = RenderContextALOf(renderContext);
@@ -581,7 +581,7 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    * @returns {WebGLTexture|null} The texture, or null for a buffer with no
    *   shader-resource usage.
    */
-  @impl.custom
+  @meta.ours
   GetShaderResourceTexture()
   {
     if (!this._srv) return null;
@@ -590,7 +590,7 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
   }
 
   /** Rebuilds the data texture from `_writeLockMemory`. */
-  @impl.custom
+  @meta.ours
   _UploadShaderResource()
   {
     const gl = this._gl;
@@ -621,7 +621,7 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {Uint8Array} The bytes.
    */
-  @impl.custom
+  @meta.ours
   GetCpuBytes()
   {
     return this._writeLockMemory;

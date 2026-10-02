@@ -1,12 +1,12 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerTriggerPlane.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { vec3 } from "#math/vec3";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 import { quat } from "#math/quat";
 
 /** Triggers pooled placements in the order reached by a timed plane sweep. */
-@type.define({ className: "EveDistributionSpawnerTriggerPlane", family: "eve/distribution/spawners" })
+@meta.define({ className: "EveDistributionSpawnerTriggerPlane", family: "eve/distribution/spawners" })
 export class EveDistributionSpawnerTriggerPlane extends IEveDistributionSpawner
 {
 
@@ -17,39 +17,39 @@ export class EveDistributionSpawnerTriggerPlane extends IEveDistributionSpawner
   _currentTrigger = 0;
 
   /** m_triggerChance (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   triggerChance = 1;
 
   /** m_planeRotation (Quaternion) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.quat
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   planeRotation = quat.create();
 
   /** m_startSequenceAtFirstTrigger (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   startSequenceAtFirstTrigger = true;
 
   /** m_playDuration (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   playDuration = 1;
 
   /** m_delayBeforeActivation (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   delayBeforeActivation = 0;
 
   /** m_reversePlaneAnimation (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   reversePlaneAnimation = false;
 
   /**
@@ -57,8 +57,8 @@ export class EveDistributionSpawnerTriggerPlane extends IEveDistributionSpawner
    * normalizes those distances into the 0..1 sweep order the update walks, then
    * restarts.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Reset(placements)
   {
     if (placements.length === 0)
@@ -88,8 +88,8 @@ export class EveDistributionSpawnerTriggerPlane extends IEveDistributionSpawner
    * Rewinds the sweep to its first placement, or its last when the animation is
    * reversed, and clears the play time.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Restart()
   {
     this._currentTrigger = this.reversePlaneAnimation ? this._distSortedIndexes.length - 1 : 0;
@@ -101,8 +101,8 @@ export class EveDistributionSpawnerTriggerPlane extends IEveDistributionSpawner
    * passed, each subject to triggerChance, ending once the sorted order is
    * exhausted or the play duration elapses.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateSyncronous(updateContext, _params, owner)
   {
     if (this._distSortedIndexes.length === 0
@@ -154,8 +154,8 @@ export class EveDistributionSpawnerTriggerPlane extends IEveDistributionSpawner
   }
 
   /** Ignores controller variables; the sweep is purely time-driven. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   SetControllerVariable(_name, _value)
   {
   }

@@ -11,7 +11,7 @@ import { Tr2BufferAL } from "../../../../trinityal/Tr2BufferAL/index.js";
 // BACKGROUND slot, indexed through LensflareFxOccScale (EveLensflare).
 //
 // Carbon keeps it as a function-local static singleton; getInstance is that.
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { PixelFormat } from "#consts/render-context";
 import { OCCLUDER_MANAGEMENT_EFFECT_PATH } from "#consts/effectPaths";
 import { Tr2Effect } from "../../../shader/Tr2Effect.js";
@@ -29,28 +29,28 @@ const INITIAL_SIZE = 4;
 const bitsAsFloat = value => new Float32Array(new Uint32Array([ value >>> 0 ]).buffer)[0];
 
 /** Allocates GPU slots for lens-flare occlusion and runs the buffer's per-frame compute. */
-@type.define({ className: "Tr2OcclusionBuffer", family: "eve/scene" })
+@meta.define({ className: "Tr2OcclusionBuffer", family: "eve/scene" })
 export class Tr2OcclusionBuffer
 {
 
   /** m_management (Tr2EffectPtr): Clear and CopyCounters (cpp:17-18). */
-  @type.objectRef("Tr2Effect")
+  @meta.type.objectRef("Tr2Effect")
   management = null;
 
   /** m_buffer (Tr2GpuBufferPtr), registered as "FlareOcclusionBuffer" (cpp:20-21). */
-  @type.objectRef("Tr2GpuBuffer")
+  @meta.type.objectRef("Tr2GpuBuffer")
   buffer = null;
 
   /** m_free (std::vector<uint32_t>): free slot bases, handed out from the back. */
-  @type.list("uint32_t")
+  @meta.type.list("uint32_t")
   free = [];
 
   /** m_clear (std::vector<uint32_t>): slots waiting for the Clear compute. */
-  @type.list("uint32_t")
+  @meta.type.list("uint32_t")
   clear = [];
 
   /** m_size (uint32_t): the buffer's element count; 0 until the first slot. */
-  @type.uint32
+  @meta.type.uint32
   size = 0;
 
   /** Carbon's constructor (cpp:15-22). */
@@ -73,8 +73,8 @@ export class Tr2OcclusionBuffer
    * @param {Tr2RenderContext} renderContext The context to create on.
    * @returns {number|null} The slot base, or null when none could be made.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   AllocateOffset(renderContext)
   {
     if (!this.free.length) this.ResizeBuffer(renderContext);
@@ -94,8 +94,8 @@ export class Tr2OcclusionBuffer
    * @param {Tr2RenderContext} renderContext The context to dispatch on.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ProcessBuffer(renderContext)
   {
     let success = true;
@@ -125,16 +125,16 @@ export class Tr2OcclusionBuffer
    * @param {number|null} offset A slot base from AllocateOffset.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   DestroyOffset(offset)
   {
     if (offset !== null && offset !== undefined) this.free.push(offset);
   }
 
   /** Carbon OnPrepareResources (cpp:76-79): nothing to prepare; answers true. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnPrepareResources()
   {
     return true;
@@ -146,8 +146,8 @@ export class Tr2OcclusionBuffer
    *
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ReleaseResources()
   {
     this.clear.length = 0;
@@ -162,8 +162,8 @@ export class Tr2OcclusionBuffer
    * @param {Tr2RenderContext} renderContext The context to create on.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   ResizeBuffer(renderContext)
   {
     const oldSize = this.size;
@@ -190,7 +190,7 @@ export class Tr2OcclusionBuffer
    * Adapted: explicit teardown replaces the C++ static shared_ptr destructor.
    * Individual scene drivers never release this device-wide owner.
    */
-  @impl.custom
+  @meta.ours
   static ReleaseStaticResources()
   {
     const instance = Tr2OcclusionBuffer._instance;
@@ -207,8 +207,8 @@ export class Tr2OcclusionBuffer
   }
 
   /** Carbon GetInstance (cpp:59-63). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   static getInstance()
   {
     Tr2OcclusionBuffer._instance ??= new Tr2OcclusionBuffer();
@@ -223,8 +223,8 @@ export class Tr2OcclusionBuffer
    * @param {number} index The occluder index, 0-3.
    * @returns {number} The element index.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   static getOccluderOffset(offset, index)
   {
     return offset !== null && offset !== undefined ? offset + 5 + index * 2 : 0;

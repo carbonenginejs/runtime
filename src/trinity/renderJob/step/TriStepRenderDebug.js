@@ -1,32 +1,32 @@
 // Source: trinity/trinity/RenderJob/TriStepRenderDebug.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriLineSet } from "../../core/line/TriLineSet.js";
 import { vec3 } from "#math/vec3";
 
 /** A render step that accumulates debug lines, boxes and 2D/3D text for one frame and hands them to the render context to draw. */
-@type.define({ className: "TriStepRenderDebug", family: "renderJob" })
+@meta.define({ className: "TriStepRenderDebug", family: "renderJob" })
 export class TriStepRenderDebug extends TriRenderStep
 {
 
-  @type.model("TriLineSet")
+  @meta.type.model("TriLineSet")
   lineSet = new TriLineSet();
 
-  @type.list("TriDebugText2D")
+  @meta.type.list("TriDebugText2D")
   text2d = [];
 
-  @type.list("TriDebugText3D")
+  @meta.type.list("TriDebugText3D")
   text3d = [];
 
   /** m_autoClear (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   autoClear = true;
 
   /** Carbon method Clear (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Clear()
   {
     this.lineSet.Clear();
@@ -35,16 +35,16 @@ export class TriStepRenderDebug extends TriRenderStep
   }
 
   /** Carbon method DrawBox (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   DrawBox(min, max, color = 0xffffffff)
   {
     this.lineSet.AddBox(min, max, color);
   }
 
   /** Carbon method DrawCapsule (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   DrawCapsule(start, end, radius, segments, color = 0xffffffff)
   {
     this.lineSet.AddCylinder(start, end, radius, segments, color);
@@ -53,56 +53,56 @@ export class TriStepRenderDebug extends TriRenderStep
   }
 
   /** Carbon method DrawCone (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   DrawCone(start, end, radius, segments, color = 0xffffffff)
   {
     this.lineSet.AddCone(start, end, radius, segments, color);
   }
 
   /** Carbon method DrawCylinder (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   DrawCylinder(start, end, radius, segments, color = 0xffffffff)
   {
     this.lineSet.AddCylinder(start, end, radius, segments, color);
   }
 
   /** Carbon method DrawLine -> PyDrawLine (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   DrawLine(from, fromColor, to, toColor)
   {
     this.lineSet.Add(from, fromColor, to, toColor);
   }
 
   /** Carbon method DrawSphere (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   DrawSphere(center, radius, segments, color = 0xffffffff)
   {
     this.lineSet.AddSphere(center, radius, segments, color);
   }
 
   /** Carbon method Print3D (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Print3D(position, color, message)
   {
     this.text3d.push({ position: vec3.clone(position), color: Number(color) >>> 0, message: String(message) });
   }
 
   /** Carbon method Print2D (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Print2D(x, y, color, message)
   {
     this.text2d.push({ x: Number(x) | 0, y: Number(y) | 0, width: 1024, height: 512, format: 0, color: Number(color) >>> 0, message: String(message) });
   }
 
   /** Carbon method Print2Df (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Print2Df(x, y, width, height, format, color, message)
   {
     this.text2d.push({ x: Number(x) | 0, y: Number(y) | 0, width: Number(width) | 0, height: Number(height) | 0, format: Number(format) >>> 0, color: Number(color) >>> 0, message: String(message) });
@@ -113,8 +113,8 @@ export class TriStepRenderDebug extends TriRenderStep
    * frame. Not ported: Carbon draws through its debug resource helper and
    * fonts (TriStepRenderDebug.cpp:57-64).
    */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   Execute(_realTime, _simTime, _renderContext)
   {
     throw new Error("TriStepRenderDebug.Execute is not ported yet; it needs the debug resource helper and fonts.");

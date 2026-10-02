@@ -41,5 +41,5 @@ for (const method of [
   "GetCullingWeight", "IsCulled", "Wake", "Cull"
 ])
 {
-  CjsSchema.decorateMethod(IPrioritizedObject, method, meta.compose.abstract, meta.impl.abstract);
+  CjsSchema.decorateMethod(IPrioritizedObject, method, meta.requires, meta.abstract);
 }

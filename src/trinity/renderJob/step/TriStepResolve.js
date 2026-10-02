@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepResolve.h
 // Source: trinity/trinity/RenderJob/TriStepResolve.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { Failed } from "#trinityal";
@@ -10,24 +10,24 @@ import { Failed } from "#trinityal";
  * Step that resolves one render target into another, optionally regenerating the
  * destination's mip chain afterwards.
  */
-@type.define({ className: "TriStepResolve", family: "renderJob" })
+@meta.define({ className: "TriStepResolve", family: "renderJob" })
 export class TriStepResolve extends TriRenderStep
 {
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   generateMipmap = false;
 
-  @edit.readwrite
-  @type.objectRef("Tr2RenderTarget")
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2RenderTarget")
   source = null;
 
-  @edit.readwrite
-  @type.objectRef("Tr2RenderTarget")
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2RenderTarget")
   destination = null;
 
   /** Stores the resolve operands in Carbon's destination-first argument order. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   __init__(destination = null, source = null)
   {
     this.destination = destination ?? null;
@@ -39,8 +39,8 @@ export class TriStepResolve extends TriRenderStep
    * into the destination's and, when asked, regenerate the destination's mips.
    * Missing or invalid operands are a no-op; a failed resolve is RS_FAILED.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     if (!this.source || !this.destination

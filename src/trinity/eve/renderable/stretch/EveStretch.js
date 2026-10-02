@@ -7,7 +7,7 @@ import { IEveTransform } from "../../IEveTransform.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { TriFloat } from "../../../core/variable/TriFloat.js";
@@ -33,72 +33,72 @@ import {
  * transform children pinned at each end, stretched along the span, and
  * travelling from one end to the other.
  */
-@type.define({ className: "EveStretch", family: "eve/renderable/stretch" })
-@carbon.inherit(IEveSpaceObject2, IEveTransform)
+@meta.define({ className: "EveStretch", family: "eve/renderable/stretch" })
+@meta.blue.inherit(IEveSpaceObject2, IEveTransform)
 export class EveStretch extends IEveFiringEffectElement
 {
-  @edit.readwrite
-  @edit.persist
- @type.string name = "";
-  @edit.readwrite
-  @edit.persist
- @type.model("ITriVectorFunction") source = null;
-  @edit.readwrite
-  @edit.persist
- @type.model("ITriVectorFunction") dest = null;
-  @edit.readwrite
-  @edit.persist
- @type.model("IStretchAudio") stretchAudio = null;
-  @edit.read
-  @type.int32
-  @type.enum("trinity.Tr2Lod")
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.string name = "";
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.model("ITriVectorFunction") source = null;
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.model("ITriVectorFunction") dest = null;
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.model("IStretchAudio") stretchAudio = null;
+  @meta.blue.read
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2Lod")
   lodLevel = 0;
-  @edit.readwrite
-  @edit.persist
- @type.model("ITriScalarFunction") progressCurve = null;
-  @edit.readwrite
-  @edit.persist
- @type.model("TriCurveSet") moveCompletion = null;
-  @edit.read
-  @edit.persist
- @type.list("TriCurveSet") curveSets = [];
-  @edit.read
-  @edit.persist
- @type.model("TriFloat") length = new TriFloat();
-  @edit.readwrite @type.boolean moving = false;
-  @edit.readwrite @type.boolean moveCompleted = false;
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
- @type.boolean display = true;
-  @edit.readwrite
-  @edit.persist
- @type.boolean update = true;
-  @edit.read
-  @edit.persist
- @type.list("Tr2Light") destLights = [];
-  @edit.read
-  @edit.persist
- @type.list("Tr2Light") sourceLights = [];
-  @edit.readwrite
-  @edit.persist
- @type.model("EveTransform") destObject = null;
-  @edit.readwrite
-  @edit.persist
- @type.model("EveTransform") sourceObject = null;
-  @edit.readwrite
-  @edit.persist
- @type.model("EveTransform") stretchObject = null;
-  @edit.readwrite
-  @edit.persist
- @type.boolean useCurveLod = true;
-  @edit.read @type.float64 startTime = -1;
-  @edit.readwrite
-  @edit.persist
- @type.model("ITr2Audio") audio = null;
-  @edit.readwrite
-  @edit.persist
- @type.model("EveTransform") moveObject = null;
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.model("ITriScalarFunction") progressCurve = null;
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.model("TriCurveSet") moveCompletion = null;
+  @meta.blue.read
+  @meta.blue.persist
+ @meta.type.list("TriCurveSet") curveSets = [];
+  @meta.blue.read
+  @meta.blue.persist
+ @meta.type.model("TriFloat") length = new TriFloat();
+  @meta.blue.readwrite @meta.type.boolean moving = false;
+  @meta.blue.readwrite @meta.type.boolean moveCompleted = false;
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.boolean display = true;
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.boolean update = true;
+  @meta.blue.read
+  @meta.blue.persist
+ @meta.type.list("Tr2Light") destLights = [];
+  @meta.blue.read
+  @meta.blue.persist
+ @meta.type.list("Tr2Light") sourceLights = [];
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.model("EveTransform") destObject = null;
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.model("EveTransform") sourceObject = null;
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.model("EveTransform") stretchObject = null;
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.boolean useCurveLod = true;
+  @meta.blue.read @meta.type.float64 startTime = -1;
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.model("ITr2Audio") audio = null;
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.model("EveTransform") moveObject = null;
 
   _sourcePosition = vec3.create();
   _destinationPosition = vec3.create();
@@ -117,7 +117,7 @@ export class EveStretch extends IEveFiringEffectElement
    * transform last given to SetSourceTransform. Skipped entirely while update is
    * false.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   UpdateSynchronous(context)
   {
     if (!this.update) return true;
@@ -139,8 +139,8 @@ export class EveStretch extends IEveFiringEffectElement
    * asynchronous phase to the displayed endpoint children plus the stretch and
    * move children, and feeds both audio objects the current endpoints.
    */
-  @carbon.method @impl.adapted
-  @impl.reason("Carbon splits synchronous and asynchronous work; the browser graph keeps both phases but executes child calls serially.")
+  @meta.blue.method @meta.adapted
+  @meta.reason("Carbon splits synchronous and asynchronous work; the browser graph keeps both phases but executes child calls serially.")
   UpdateAsynchronous(context)
   {
     if (!this.update) return true;
@@ -190,7 +190,7 @@ export class EveStretch extends IEveFiringEffectElement
    * Runs both update phases in order, for callers that drive the stretch outside
    * the scene's split synchronous/asynchronous pass.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   Update(context)
   {
     this.UpdateSynchronous(context);
@@ -203,8 +203,8 @@ export class EveStretch extends IEveFiringEffectElement
    * time measured from startTime, which is latched on the first frame after
    * StartMoving.
    */
-  @carbon.method @impl.adapted
-  @impl.reason("Curve LOD is renderer policy in Carbon; the runtime Trinity layer retains the authored gate and updates graph curves without device globals.")
+  @meta.blue.method @meta.adapted
+  @meta.reason("Curve LOD is renderer policy in Carbon; the runtime Trinity layer retains the authored gate and updates graph curves without device globals.")
   UpdateCurves(context)
   {
     const time = getTime(context);
@@ -229,8 +229,8 @@ export class EveStretch extends IEveFiringEffectElement
    * combined with parentTransform. Latches moveCompleted and hides the move
    * child once the progress curve reaches 1.
    */
-  @carbon.method @impl.adapted
-  @impl.reason("The transforms are computed in Trinity, while child rendering is not ported yet.")
+  @meta.blue.method @meta.adapted
+  @meta.reason("The transforms are computed in Trinity, while child rendering is not ported yet.")
   UpdateVisibility(context, parentTransform = EveStretch._identity)
   {
     if (!this.display) return;
@@ -302,8 +302,8 @@ export class EveStretch extends IEveFiringEffectElement
    * Appends the displayed children's renderables to out; this package stops at collection, and runtime-engine turns the collected objects into draw batches.
    * @returns {Array} out
    */
-  @carbon.method @impl.adapted
-  @impl.reason("Renderable collection is backend-neutral; runtime-engine turns the returned objects into draw batches.")
+  @meta.blue.method @meta.adapted
+  @meta.reason("Renderable collection is backend-neutral; runtime-engine turns the returned objects into draw batches.")
   GetRenderables(out = [])
   {
     if (!this.display) return out;
@@ -319,7 +319,7 @@ export class EveStretch extends IEveFiringEffectElement
    * time and the completion flag, re-shows the move child and fires the stretch
    * audio event.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   StartMoving()
   {
     this.startTime = -1;
@@ -331,7 +331,7 @@ export class EveStretch extends IEveFiringEffectElement
   }
 
   /** Starts the travelling child and plays the first curve set. */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   Start()
   {
     this.StartMoving();
@@ -342,7 +342,7 @@ export class EveStretch extends IEveFiringEffectElement
    * Shows or hides the whole stretch, gating visibility, renderable collection
    * and light contribution.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   SetDisplay(display)
   {
     this.display = !!display;
@@ -353,7 +353,7 @@ export class EveStretch extends IEveFiringEffectElement
    * stretch out of transform mode so the source orientation is derived from the
    * span again.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   SetSourcePosition(value)
   {
     this._useTransforms = false;
@@ -364,7 +364,7 @@ export class EveStretch extends IEveFiringEffectElement
    * Pins the destination endpoint and rebuilds its transform as a pure
    * translation.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   SetDestinationPosition(value)
   {
     vec3.copy(this._destinationPosition, value);
@@ -376,7 +376,7 @@ export class EveStretch extends IEveFiringEffectElement
    * transform mode, so UpdateVisibility uses the supplied orientation instead of
    * deriving one from the two endpoints.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   SetSourceTransform(value)
   {
     this._useTransforms = true;
@@ -388,7 +388,7 @@ export class EveStretch extends IEveFiringEffectElement
    * Pins the destination endpoint from a full transform and takes its position
    * from that transform's translation.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   SetDestinationTransform(value)
   {
     mat4.copy(this._destinationTransform, value);
@@ -399,7 +399,7 @@ export class EveStretch extends IEveFiringEffectElement
    * Reverses the direction the stretch child is scaled along, for effects
    * authored pointing down -Z.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   SetIsNegZForward(value)
   {
     this._negativeZ = !!value;
@@ -409,7 +409,7 @@ export class EveStretch extends IEveFiringEffectElement
    * Longest curve-set duration in seconds, each divided by that set's own time
    * scale.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   GetCurveDuration()
   {
     let duration = 0;
@@ -425,7 +425,7 @@ export class EveStretch extends IEveFiringEffectElement
    * Begins a firing cycle by curve-set name convention: play_start and play_loop are played from -delay, play_end is stopped, and the audio outburst/impact/stretch events are triggered. Starting play_start also restarts the travelling child.
    * @param {Number} [delay] - seconds the curve sets wait before reaching time zero
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   StartFiring(delay = 0)
   {
     for (const curveSet of this.curveSets)
@@ -452,7 +452,7 @@ export class EveStretch extends IEveFiringEffectElement
    * Ends a firing cycle: play_start and play_loop stop, play_end plays, the
    * travelling child restarts and the stretch audio stops.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   StopFiring()
   {
     for (const curveSet of this.curveSets)
@@ -476,7 +476,7 @@ export class EveStretch extends IEveFiringEffectElement
    * Sets both endpoints from a firing call, accepting either a 16-element source
    * transform or a source position, and marks the stretch as -Z forward.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   SetFiringTransform(source, destination)
   {
     if (source?.length === 16) this.SetSourceTransform(source);
@@ -489,7 +489,7 @@ export class EveStretch extends IEveFiringEffectElement
    * Selects which endpoint children take part in updates, visibility, renderable
    * collection and light contribution.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   DisplayEndPoints(displaySource, displayDestination)
   {
     this._displaySource = !!displaySource;
@@ -500,7 +500,7 @@ export class EveStretch extends IEveFiringEffectElement
    * Uniform scale applied to the source endpoint child's basis and to its light
    * placement.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   SetSourceObjectScale(scale)
   {
     this._sourceScale = Number(scale);
@@ -510,7 +510,7 @@ export class EveStretch extends IEveFiringEffectElement
    * Uniform scale applied to the destination endpoint child's basis and to its
    * light placement.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   SetDestObjectScale(scale)
   {
     this._destinationScale = Number(scale);
@@ -520,7 +520,7 @@ export class EveStretch extends IEveFiringEffectElement
    * IEveFiringEffectElement intensity hook; EveStretch has no intensity term of
    * its own.
    */
-  @carbon.method @impl.noop
+  @meta.blue.method @meta.noop
   SetIntensity(_intensity)
   {
   }
@@ -530,8 +530,8 @@ export class EveStretch extends IEveFiringEffectElement
    * @param {Array} out - caller-owned packed (x, y, z, radius), overwritten
    * @returns {Boolean} whether any child contributed a sphere
    */
-  @carbon.method @impl.adapted
-  @impl.reason("Bounds are merged from graph children without Carbon's native BoundingSphere helper.")
+  @meta.blue.method @meta.adapted
+  @meta.reason("Bounds are merged from graph children without Carbon's native BoundingSphere helper.")
   GetBoundingSphere(out = vec4.create())
   {
     vec4.set(out, 0, 0, 0, 0);
@@ -550,8 +550,8 @@ export class EveStretch extends IEveFiringEffectElement
    * endpoint positions, each scaled by its endpoint scale; a hidden stretch or a
    * hidden endpoint contributes nothing.
    */
-  @carbon.method @impl.adapted
-  @impl.reason("Light ownership is forwarded to browser light objects; device light-manager registration stays outside Trinity.")
+  @meta.blue.method @meta.adapted
+  @meta.reason("Light ownership is forwarded to browser light objects; device light-manager registration stays outside Trinity.")
   GetLights(lightManager)
   {
     if (!this.display) return;
@@ -563,7 +563,7 @@ export class EveStretch extends IEveFiringEffectElement
 
   /** Carbon EveStretch::RegisterComponents (cpp:606-613): LightOwner leaf
    * self-registration. Gate m_display. */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();

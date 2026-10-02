@@ -13,7 +13,7 @@
 // the concrete actions use to duck-type their OWNERS (which have no common
 // contract yet). They are unrelated to the instance surface.
 
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 const ACTION_DEFAULTS = [ "CanTransition" ];
@@ -185,5 +185,5 @@ export class ITr2ControllerAction
 }
 
 
-for (const name of ACTION_DEFAULTS) CjsSchema.decorateMethod(ITr2ControllerAction, name, impl.implemented);
+for (const name of ACTION_DEFAULTS) CjsSchema.decorateMethod(ITr2ControllerAction, name, meta.implemented);
 CjsSchema.define(ITr2ControllerAction, { className: "ITr2ControllerAction" });

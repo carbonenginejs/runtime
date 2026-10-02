@@ -12,7 +12,7 @@
 // Ours writes every declared field, or the persisted ones when
 // `options.persistOnly` asks, and never skips defaults: consumers read the
 // full shape (operator ruling 2026-09-27; research page `blue-values-engine.md`).
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { omitRuntimeValues } from "../schema/CjsSchema.js";
 import { exportCarbonValue } from "../schema/types/index.js";
 import { getDictionaryDeclarations, readDictionaryValue } from "./dictionaryDeclarations.js";
@@ -228,5 +228,5 @@ function IsObject(value)
 }
 
 CjsSchema.define(IRootWriter, { className: "IRootWriter", carbon: "IRootWriter" });
-CjsSchema.decorateMethod(IRootWriter, "WriteMembers", impl.adapted);
-CjsSchema.decorateMethod(IRootWriter, "WriteValue", impl.adapted);
+CjsSchema.decorateMethod(IRootWriter, "WriteMembers", meta.adapted);
+CjsSchema.decorateMethod(IRootWriter, "WriteValue", meta.adapted);

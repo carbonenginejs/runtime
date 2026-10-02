@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2ProceduralResources.h
 // Source: trinity/trinity/Tr2ProceduralResources.cpp
-import { carbon, impl } from "#schema";
+import { meta } from "#schema";
 import { Tr2Renderer } from "./Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "./context/Tr2RenderContext.js";
 import { TriDevice } from "./device/TriDevice.js";
@@ -98,9 +98,9 @@ export class Tr2ProceduralBuffer
    *
    * @returns {object|null} A `Tr2SuballocatedBufferAllocation`, or null.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon's factory fills an out-parameter allocation that is never null; ours returns the allocation, so there is none before a device has run the factory.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon's factory fills an out-parameter allocation that is never null; ours returns the allocation, so there is none before a device has run the factory.")
   GetSharedResource()
   {
     return this._resource.resource;

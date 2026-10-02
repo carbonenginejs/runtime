@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveVirtualCameraBehaviourFloatBase } from "./EveVirtualCameraBehaviourFloatBase.js";
 
 
@@ -8,15 +8,15 @@ import { EveVirtualCameraBehaviourFloatBase } from "./EveVirtualCameraBehaviourF
  * Float behaviour that overrides whatever the earlier behaviours accumulated
  * with an authored constant.
  */
-@type.define({
+@meta.define({
   className: "EveVirtualCameraBehaviourFloatSet",
   family: "eve/virtualCamera/behaviour"
 })
 export class EveVirtualCameraBehaviourFloatSet extends EveVirtualCameraBehaviourFloatBase
 {
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   value = 0;
 
   /**
@@ -33,8 +33,8 @@ export class EveVirtualCameraBehaviourFloatSet extends EveVirtualCameraBehaviour
    * Returns the delta that replaces the incoming value with the authored one,
    * since the camera accumulates behaviour results additively.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Update(_camera, current)
   {
     return this.value - current;

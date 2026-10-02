@@ -5,7 +5,7 @@ import { Tr2MeshArea } from "./Tr2MeshArea.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { BlueList, IListNotify } from "#blue";
 import { vec3 } from "#math/vec3";
-import { carbon, CjsSchema, edit, impl, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2RenderBatch, TriRenderBatchAreaBlock, TriRenderBatchAreaBlocksWithSharedMaterial } from "../batch/TriRenderBatch/index.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
@@ -16,110 +16,110 @@ import { CarbonVertexElements } from "../vertex/vertexUsage.js";
  * Base mesh: owns one mesh-area list per batch type and turns the displayed
  * areas into GPU-free render batches and shadow area blocks.
  */
-@type.define({ className: "Tr2MeshBase", family: "trinityCore" })
-@carbon.inherit(IListNotify)
+@meta.define({ className: "Tr2MeshBase", family: "trinityCore" })
+@meta.blue.inherit(IListNotify)
 export class Tr2MeshBase
 {
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   display = true;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   meshIndex = 0;
 
-  @edit.read
-  @edit.persist
-  @type.list("Tr2MeshArea")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2MeshArea")
   opaqueAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
-  @edit.read
-  @edit.persist
-  @type.list("Tr2MeshArea")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2MeshArea")
   decalAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
-  @edit.read
-  @edit.persist
-  @type.list("Tr2MeshArea")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2MeshArea")
   depthAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
-  @edit.read
-  @edit.persist
-  @type.list("Tr2MeshArea")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2MeshArea")
   transparentAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
-  @edit.read
-  @edit.persist
-  @type.list("Tr2MeshArea")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2MeshArea")
   additiveAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
-  @edit.read
-  @edit.persist
-  @type.list("Tr2MeshArea")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2MeshArea")
   pickableAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
-  @edit.read
-  @edit.persist
-  @type.list("Tr2MeshArea")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2MeshArea")
   mirrorAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
-  @edit.read
-  @edit.persist
-  @type.list("Tr2MeshArea")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2MeshArea")
   decalNormalAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
-  @edit.read
-  @edit.persist
-  @type.list("Tr2MeshArea")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2MeshArea")
   depthNormalAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
-  @edit.read
-  @edit.persist
-  @type.list("Tr2MeshArea")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2MeshArea")
   opaquePrepassAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
-  @edit.read
-  @edit.persist
-  @type.list("Tr2MeshArea")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2MeshArea")
   decalPrepassAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
-  @edit.read
-  @edit.persist
-  @type.list("Tr2MeshArea")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2MeshArea")
   geometryEraserAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
-  @edit.read
-  @edit.persist
-  @type.list("Tr2MeshArea")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2MeshArea")
   distortionAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
   // Carbon routes TRIBATCHTYPE_FLARE but does not expose this list to Blue, so
   // this list is typed without being read or persisted: the type declaration is
   // what makes its areas reachable to graph traversal, independent of edit.
 
-  @type.list("Tr2MeshArea")
+  @meta.type.list("Tr2MeshArea")
   flareAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
-  @edit.read
-  @edit.persist
-  @type.float32
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.float32
   maxVertexScale = 1;
 
-  @edit.read
-  @edit.persist
-  @type.float32
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.float32
   maxVertexDisplacement = 0;
 
-  @edit.read
-  @edit.persist
-  @type.boolean
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.boolean
   rotatesVertices = false;
 
   /** Installs the twelve native area-list observers (Tr2MeshBase.cpp:31-42). */
@@ -129,16 +129,16 @@ export class Tr2MeshBase
   }
 
   /** Whether this mesh participates in rendering. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetDisplay()
   {
     return this.display;
   }
 
   /** Index of this mesh inside its geometry resource. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetMeshIndex()
   {
     return this.meshIndex;
@@ -148,8 +148,8 @@ export class Tr2MeshBase
    * Returns the geometry bounds after applying Carbon's material-driven local
    * scale, displacement, and vertex-rotation expansion.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetBounds()
   {
     const geometry = this.GetGeometryResource();
@@ -184,8 +184,8 @@ export class Tr2MeshBase
   }
 
   /** Writes the adjusted mesh bounds into caller-owned minimum and maximum vectors. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBoundingBox(min, max)
   {
     const bounds = this.GetBounds();
@@ -207,8 +207,8 @@ export class Tr2MeshBase
    *
    * @returns {object} The geometry resource.
    */
-  @carbon.method
-  @impl.abstract
+  @meta.blue.method
+  @meta.abstract
   GetGeometryResource()
   {
     throw new Error("Tr2MeshBase.GetGeometryResource must be implemented by a mesh.");
@@ -218,8 +218,8 @@ export class Tr2MeshBase
    * The live area list for a TriBatchType, or null for a non-integer or unmapped
    * type.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetAreas(areaType)
   {
     if (!Number.isInteger(areaType)) return null;
@@ -234,8 +234,8 @@ export class Tr2MeshBase
    * the same for every area at once, which is what a read and a teardown
    * produce.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     // Which list, not merely whether it is one: a mesh has other array fields,
@@ -275,8 +275,8 @@ export class Tr2MeshBase
    * Appends an area to the list for a batch type; returns false when that type
    * has no list. The area's record of this mesh is the INSERTED arm's.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddArea(areaType, area)
   {
     const property = Number.isInteger(areaType) ? Tr2MeshBase._areaProperties[areaType] : null;
@@ -288,8 +288,8 @@ export class Tr2MeshBase
    * Removes an area from the list for a batch type; the area forgets this mesh
    * in the REMOVED arm.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RemoveArea(areaType, area)
   {
     const property = Number.isInteger(areaType) ? Tr2MeshBase._areaProperties[areaType] : null;
@@ -302,8 +302,8 @@ export class Tr2MeshBase
    * Every area of every batch type, in batch-type order, as one newly allocated
    * array.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetAllAreas()
   {
     return Tr2MeshBase._areaProperties.flatMap(property => this[property]);
@@ -319,8 +319,8 @@ export class Tr2MeshBase
    * Callers pass a screen size already scaled by the LOD factor
    * (EveSpaceObject2, EveTransform, EveChildMesh, BehaviorGroup).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UseWithScreenSize(screenSize, worldRadius)
   {
     const geometry = this.GetGeometryResource() ?? null;
@@ -351,8 +351,8 @@ export class Tr2MeshBase
    * Sets a shader option on every area effect that supports it; returns whether
    * at least one area was updated.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetShaderOption(name, value)
   {
     let updated = false;
@@ -370,8 +370,8 @@ export class Tr2MeshBase
    * local scale, max local displacement and whether the material rotates
    * vertices.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetMaterialBoundsAdjustment()
   {
     return {
@@ -385,8 +385,8 @@ export class Tr2MeshBase
    * Stores the bounds adjustment, coercing missing or non-numeric entries to
    * zero and false.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetMaterialBoundsAdjustment(value)
   {
     const source = value || {};
@@ -397,8 +397,8 @@ export class Tr2MeshBase
   }
 
   /** Empty at this level; Tr2Mesh overrides it with the real geometry path. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetGeometryResPath()
   {
     return "";
@@ -416,9 +416,9 @@ export class Tr2MeshBase
    * transform can drive the mesh directly; returns whether any batch was
    * committed (a JS addition, Carbon returns void).
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Emits descriptor batches; resolving geometry buffers and final draw args at dispatch is not ported yet.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Emits descriptor batches; resolving geometry buffers and final draw args at dispatch is not ported yet.")
   GetBatches(accumulator, areas, perObjectData, screenSize = Infinity, reverseWinding = false)
   {
     if (this.display === false) return false;
@@ -454,9 +454,9 @@ export class Tr2MeshBase
    * descriptor; returns null for a hidden or material-less area, where Carbon
    * returns an invalid batch.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Emits a geometry source descriptor; creating the Tr2BufferAL allocations Carbon makes here is not ported yet.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Emits a geometry source descriptor; creating the Tr2BufferAL allocations Carbon makes here is not ported yet.")
   CreateGeometryBatch(geometry, area, perObjectData, reverseWinding = false, lod = null)
   {
     if (!area || area.GetDisplay() === false) return null;
@@ -523,8 +523,8 @@ export class Tr2MeshBase
    * to the caller's collector, skipping non-shadow-casting OPAQUE areas as
    * Carbon does because overlay rendering over build effects misbehaves.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   CollectAreaBlocks(collector, areaType)
   {
     const areas = this.GetAreas(areaType);
@@ -548,9 +548,9 @@ export class Tr2MeshBase
    * non-shadow-casting OPAQUE and DECAL areas, and faithfully reproduces
    * Carbon's asymmetry by not clamping negative index or count.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Material grouping uses reference identity in place of Carbon's effect hash values.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Material grouping uses reference identity in place of Carbon's effect hash values.")
   CollectAreaBlocksWithSharedMaterials(collectors, areaType)
   {
     const areas = this.GetAreas(areaType);
@@ -598,4 +598,4 @@ export class Tr2MeshBase
   ]);
 }
 
-carbon.interfaceTable({ interfaces: [], chainTo: null })(Tr2MeshBase, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [], chainTo: null })(Tr2MeshBase, { kind: "class" });

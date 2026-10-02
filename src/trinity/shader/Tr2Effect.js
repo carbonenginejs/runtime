@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Tr2Effect.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, CjsSchema, edit, impl, normalizeCarbonValue, type } from "#schema";
+import { CjsSchema, normalizeCarbonValue, meta } from "#schema";
 import { Tr2RegisterMapAL, Tr2ResourceSetDescriptionAL } from "#trinityal";
 import { Tr2Material } from "./Tr2Material.js";
 import { vec4 } from "#math/vec4";
@@ -117,8 +117,8 @@ function describe(value)
 }
 
 /** Owns the mutable effect facade: shader path and options, authored parameters and resources, sampler overrides, variable-store resolution, and rebuild state. */
-@type.define({ className: "Tr2Effect", family: "shader" })
-@carbon.inherit(IInitialize, INotify, IListNotify)
+@meta.define({ className: "Tr2Effect", family: "shader" })
+@meta.blue.inherit(IInitialize, INotify, IListNotify)
 export class Tr2Effect extends Tr2Material
 {
   /** Subscribes the two native pointer lists (Tr2Effect.cpp:255-256). */
@@ -135,11 +135,11 @@ export class Tr2Effect extends Tr2Material
    * Authored shader effect path used to resolve the effect resource.
    * @type {string}
    */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
 
-  @type.string
+  @meta.type.string
   effectFilePath = "";
 
   /**
@@ -148,9 +148,9 @@ export class Tr2Effect extends Tr2Material
    * @type {Array<Tr2ShaderOption>}
    */
 
-  @edit.read
-  @edit.persist
-  @type.list({ kind: "rawStruct", className: "Tr2ShaderOption" })
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list({ kind: "rawStruct", className: "Tr2ShaderOption" })
   options = [];
 
   /**
@@ -158,9 +158,9 @@ export class Tr2Effect extends Tr2Material
    * Authored name identifying this effect instance.
    * @type {string}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /**
@@ -169,9 +169,9 @@ export class Tr2Effect extends Tr2Material
    * @type {Array<Tr2ConstantEffectParameter>}
    */
 
-  @edit.read
-  @edit.persist
-  @type.list({ kind: "rawStruct", className: "Tr2ConstantEffectParameter" })
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list({ kind: "rawStruct", className: "Tr2ConstantEffectParameter" })
   constParameters = [];
 
   /**
@@ -180,9 +180,9 @@ export class Tr2Effect extends Tr2Material
    * @type {Array<import("./parameter/ITriEffectParameter.js").ITriEffectParameter>}
    */
 
-  @edit.read
-  @edit.persist
-  @type.list("ITriEffectParameter")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITriEffectParameter")
   parameters = new BlueList(ITriEffectParameter);
 
   /**
@@ -191,9 +191,9 @@ export class Tr2Effect extends Tr2Material
    * @type {Array<ITriEffectResourceParameter>}
    */
 
-  @edit.read
-  @edit.persist
-  @type.list("ITriEffectResourceParameter")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITriEffectResourceParameter")
   resources = new BlueList(ITriEffectResourceParameter);
 
   /**
@@ -201,8 +201,8 @@ export class Tr2Effect extends Tr2Material
    * Loaded effect resource whose shader variations this instance uses.
    * @type {Tr2EffectRes|null}
    */
-  @edit.read
-  @type.objectRef("Tr2EffectRes")
+  @meta.blue.read
+  @meta.type.objectRef("Tr2EffectRes")
   effectResource = null;
 
   /**
@@ -210,8 +210,8 @@ export class Tr2Effect extends Tr2Material
    * Resolved shader path after applying the effect-path defaults.
    * @type {string}
    */
-  @edit.read
-  @type.string
+  @meta.blue.read
+  @meta.type.string
   actualEffectFilePath = "";
 
   /**
@@ -220,9 +220,9 @@ export class Tr2Effect extends Tr2Material
    * @type {Array<Tr2SamplerOverride>}
    */
 
-  @edit.read
-  @edit.persist
-  @type.list({ kind: "rawStruct", className: "Tr2SamplerOverride" })
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list({ kind: "rawStruct", className: "Tr2SamplerOverride" })
   samplerOverrides = [];
 
   /**
@@ -293,7 +293,7 @@ export class Tr2Effect extends Tr2Material
   }
 
   /** Deterministic adaptation of the effect destructor and its owned value members. */
-  @impl.custom
+  @meta.ours
   Destroy()
   {
     if (this._destroyed) return;
@@ -314,8 +314,8 @@ export class Tr2Effect extends Tr2Material
   insideStartUpdate = false;
 
   /** Carbon method RebuildCachedData -> RebuildCachedDataInternal (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RebuildCachedData()
   {
     this.RebuildCachedDataInternal();
@@ -326,8 +326,8 @@ export class Tr2Effect extends Tr2Material
    * insideStartUpdate so a shader arriving during a batched Start/EndUpdate
    * still rebuilds immediately.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RebuildCachedDataAsync()
   {
     const wasInsideStartUpdate = this.insideStartUpdate;
@@ -340,8 +340,8 @@ export class Tr2Effect extends Tr2Material
    * Overrides the store this effect's TriVariableParameter values resolve
    * against; passing null restores the fallback to the global store.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetVariableStore(store)
   {
     this.variableStore = store ?? null;
@@ -365,8 +365,8 @@ export class Tr2Effect extends Tr2Material
   }
 
   /** The effect's store, falling back to the global store at call time. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetVariableStore()
   {
     return this.variableStore ?? Tr2VariableStore.globalStore();
@@ -376,8 +376,8 @@ export class Tr2Effect extends Tr2Material
    * The authored constant-parameter list itself, not a copy - callers that
    * mutate it mutate the effect.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetConstParameters()
   {
     return this.constParameters;
@@ -389,8 +389,8 @@ export class Tr2Effect extends Tr2Material
    * hashes authored content; values coming from a variable store are not
    * included. Not lightweight - do not call every frame.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetHashValue()
   {
     let hash = 0;
@@ -421,16 +421,16 @@ export class Tr2Effect extends Tr2Material
   }
 
   /** Carbon method GetParameterAnnotations -> PyGetParameterAnnotations (MAP_METHOD). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetParameterAnnotations(parameterName)
   {
     return CjsParameter.getEffectAnnotations(this.shader, parameterName);
   }
 
   /** Carbon method PopulateParameters (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   PopulateParameters()
   {
     if (!this.shader)
@@ -473,8 +473,8 @@ export class Tr2Effect extends Tr2Material
   }
 
   /** Carbon method EndUpdate (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   EndUpdate()
   {
     if (this.insideStartUpdate)
@@ -485,8 +485,8 @@ export class Tr2Effect extends Tr2Material
   }
 
   /** Carbon method PruneParameters (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   PruneParameters()
   {
     if (!this.shader)
@@ -501,8 +501,8 @@ export class Tr2Effect extends Tr2Material
   }
 
   /** Carbon method IsParameterUsedByTechnique (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsParameterUsedByTechnique(parameterName)
   {
     return this.shader === null ? false : !!requireShader(this.shader).GetConstant(parameterName);
@@ -519,8 +519,8 @@ export class Tr2Effect extends Tr2Material
    * @param {object} renderContext The context to draw on.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Render(callback, renderContext)
   {
     const shader = this.GetShaderStateInterface();
@@ -538,8 +538,8 @@ export class Tr2Effect extends Tr2Material
   }
 
   /** Carbon method StartUpdate (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   StartUpdate()
   {
     this.insideStartUpdate = true;
@@ -579,8 +579,8 @@ export class Tr2Effect extends Tr2Material
    *
    * @returns {void}
    */
-  @impl.adapted
-  @impl.reason("Device-free JS reflection supplies stage signatures in authored order; pass descriptions allocate their map here and sampler states are seeded by the applying context.")
+  @meta.adapted
+  @meta.reason("Device-free JS reflection supplies stage signatures in authored order; pass descriptions allocate their map here and sampler states are seeded by the applying context.")
   #BuildParametersForPasses()
   {
     this._ClearPassBindings();
@@ -903,8 +903,8 @@ export class Tr2Effect extends Tr2Material
    * destination cleared and is detached from the material, an inserted one is
    * attached, and cached data is rebuilt either way.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnListModified(event, _key, _key2, value)
   {
     if (event & BLUELISTEVENT.BELIST_LOADING) return;
@@ -1082,8 +1082,8 @@ export class Tr2Effect extends Tr2Material
    * Carbon's SetResourceTexture2D - assigns the texture path on the named
    * resource, creating the TriTextureParameter when absent.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetResourceTexture2D(name, resourcePath = "")
   {
     const updated = this.#setNamedTexture(name, resourcePath);
@@ -1223,9 +1223,9 @@ export class Tr2Effect extends Tr2Material
    * Sets one named dynamic parameter. Carbon exposes this singular facade and
    * smart-light meshes use it while stamping their resolved group color.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JS explicitly rebuilds the cached CPU effect data after Carbon's Vector4 parameter reuse-or-append policy because plain array mutation has no Blue list notification.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JS explicitly rebuilds the cached CPU effect data after Carbon's Vector4 parameter reuse-or-append policy because plain array mutation has no Blue list notification.")
   SetParameter(name, value, uavMipLevel = 0)
   {
     const parameterName = String(name ?? "");
@@ -2158,4 +2158,4 @@ export class Tr2Effect extends Tr2Material
 
 }
 
-carbon.interfaceTable({ interfaces: [Tr2Effect, Tr2Material, INotify, IInitialize, IListNotify], chainTo: null })(Tr2Effect, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [Tr2Effect, Tr2Material, INotify, IInitialize, IListNotify], chainTo: null })(Tr2Effect, { kind: "class" });

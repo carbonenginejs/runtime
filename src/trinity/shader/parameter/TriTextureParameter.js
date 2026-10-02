@@ -1,12 +1,12 @@
 // Source: trinity/trinity/Shader/Parameter/TriTextureParameter.h
 // Source: trinity/trinity/Shader/Parameter/TriTextureParameter.cpp
-import { CjsSchema } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { ICopierCustomAssignment } from "#blue";
 import { INotify } from "#blue";
 import { IInitialize } from "#blue";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
-import { carbon, edit, impl, type } from "#schema";
+
 import { ResourceRequirement } from "#resource";
 import { blue } from "#blue";
 import { Tr2ColorSpace } from "#consts/render-context";
@@ -20,62 +20,62 @@ import { RealizeTexture } from "../../core/Tr2ImageIOHelpers.js";
  * A named texture slot on an effect, owning the authored res path, the resolved
  * texture provider and the UV-density scales that drive mip selection.
  */
-@type.define({
+@meta.define({
   className: "TriTextureParameter",
   family: "shader"
 })
-@carbon.inherit(ITriEffectTextureParameter)
-@carbon.inherit(IInitialize, INotify, ICopierCustomAssignment)
+@meta.blue.inherit(ITriEffectTextureParameter)
+@meta.blue.inherit(IInitialize, INotify, ICopierCustomAssignment)
 export class TriTextureParameter extends CjsParameter
 {
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.path
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.path
   resourcePath = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   uavMipLevel = 0;
 
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   positionScale = 0;
 
-  @edit.read
-  @type.objectRef("ITr2TextureProvider")
+  @meta.blue.read
+  @meta.type.objectRef("ITr2TextureProvider")
   resource = null;
 
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   usedByCurrentTechnique = false;
 
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   usedByCurrentEffect = false;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   uvDensityScale0 = 0;
 
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   uvDensityScale1 = 0;
 
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   uvDensityScale2 = 0;
 
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   uvDensityScale3 = 0;
 
   #cachedEffect = null;
@@ -87,16 +87,16 @@ export class TriTextureParameter extends CjsParameter
   #textureLodEnabled = false;
 
   /** The shader resource name this texture binds to. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetParameterName()
   {
     return this.name;
   }
 
   /** Content hash: resource path (when set) then name. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
   {
     if (this.resourcePath)
@@ -110,8 +110,8 @@ export class TriTextureParameter extends CjsParameter
    * Sets the name through schema values so the effectHandles rebuild flag fires;
    * returns whether it changed.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetParameterName(name)
   {
     return CjsSchema.setValues(this, { name: String(name) }, { source: this, returnBoolean: true });
@@ -122,8 +122,8 @@ export class TriTextureParameter extends CjsParameter
    * to the authored resourcePath - so after a redirect this can differ from what
    * was authored.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetResourcePath()
   {
     const resource = this.GetResource();
@@ -134,8 +134,8 @@ export class TriTextureParameter extends CjsParameter
    * Sets the authored path and raises the resource flag, so the next OnModified
    * drops the attached texture and asks for it again.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetResourcePath(resourcePath)
   {
     CjsSchema.setValues(this, { resourcePath: String(resourcePath) }, { source: this });
@@ -146,8 +146,8 @@ export class TriTextureParameter extends CjsParameter
    * re-resolves effect handles against the cached shader and notifies owning
    * materials.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetResource(resource)
   {
     if (this.resource !== resource)
@@ -161,8 +161,8 @@ export class TriTextureParameter extends CjsParameter
   }
 
   /** Copies a dynamically assigned provider, as TriTextureParameter.cpp:295-308. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AssignTo(other, _copier)
   {
     if (!this.resourcePath && this.resource) other.SetResource(this.resource);
@@ -177,8 +177,8 @@ export class TriTextureParameter extends CjsParameter
    * creates in DoPrepare. Ours is created at first bind, which never happens
    * while the stand-in is the one bound, so readiness is asked as IsPrepared.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetResource()
   {
     if (this.#lowResResource)
@@ -208,8 +208,8 @@ export class TriTextureParameter extends CjsParameter
    * @param {number} [flags] A `ResourceFlags` word; bit 0 is sRGB.
    * @returns {boolean} Whether the slot took the binding.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0, renderContext = null)
   {
     const colorSpace = (flags & ResourceFlags.RESOURCE_FLAG_SRGB)
@@ -279,8 +279,8 @@ export class TriTextureParameter extends CjsParameter
    * @param {number} registerIndex The register.
    * @returns {boolean} Whether the slot took the binding.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ApplyUav(resourceDesc, stage, registerIndex)
   {
     // Carbon binds m_cachedTexture, the provider's texture (cpp:189-195).
@@ -289,8 +289,8 @@ export class TriTextureParameter extends CjsParameter
   }
 
   /** Always true - a texture swap must dirty the owning materials' resource sets. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SupportsDirtyNotification()
   {
     return true;
@@ -300,8 +300,8 @@ export class TriTextureParameter extends CjsParameter
    * Turns on screen-size-driven mip selection and stores the density scales; Carbon's spelling of the method name is kept.
    * @param uvDensityScale five scales: the world-position scale first, then the four UV-set scales
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   EnableTextureLoding(uvDensityScale)
   {
     this.#textureLodEnabled = true;
@@ -313,8 +313,8 @@ export class TriTextureParameter extends CjsParameter
   }
 
   /** Turns mip selection off, so UsedWithScreenSize then always requests LOD 0. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   DisableTextureLoding()
   {
     this.#textureLodEnabled = false;
@@ -324,8 +324,8 @@ export class TriTextureParameter extends CjsParameter
    * Carbon TriTextureParameter::UsedWithScreenSize (cpp:53-97): takes the largest resolution demanded by the world-position and per-UV-set densities, compares it against the texture's native resolution, and asks the resource for the resulting mip level.
    * @returns {number} the requested LOD, 0 when LOD is disabled or no density applies
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UsedWithScreenSize(screenSize, worldRadius, uvDensities = [])
   {
     if (!this.#textureLodEnabled)
@@ -368,9 +368,9 @@ export class TriTextureParameter extends CjsParameter
    * Carbon drops texture subscriptions and resources on every notification,
    * then reinitializes and rebuilds effect handles.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon's OnTextureChange listeners are CjsResource completion subscriptions here.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon's OnTextureChange listeners are CjsResource completion subscriptions here.")
   OnModified(_propertyName)
   {
     this.#ReleaseCompletion(this.resource);
@@ -388,8 +388,8 @@ export class TriTextureParameter extends CjsParameter
    * local but its `<base>_lowdetail<ext>` sibling is, the sibling is fetched
    * too and renders until the authored one is ready (see GetResource).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     this.#ReleaseCompletion(this.resource);
@@ -429,8 +429,8 @@ export class TriTextureParameter extends CjsParameter
    * Caches the shader and records whether it exposes a resource or constant of
    * this name; no GPU binding is created.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RebuildEffectHandles(effectRes)
   {
     this.#cachedEffect = effectRes;
@@ -443,8 +443,8 @@ export class TriTextureParameter extends CjsParameter
    * Registers a material to be notified when the texture changes; duplicates are
    * ignored.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnAddedToMaterial(material)
   {
     if (!this.#materials.includes(material))
@@ -457,8 +457,8 @@ export class TriTextureParameter extends CjsParameter
    * Stops notifying a material; the material reference is dropped, not the
    * texture.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnRemovedFromMaterial(material)
   {
     const index = this.#materials.indexOf(material);
@@ -472,8 +472,8 @@ export class TriTextureParameter extends CjsParameter
    * Tells every owning material that its resource sets and constant buffers are
    * stale.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnTextureChanged()
   {
     for (const material of this.#materials)
@@ -503,4 +503,4 @@ export class TriTextureParameter extends CjsParameter
 }
 
 // Exact identities from TriTextureParameter_Blue.cpp; no exposure chain.
-carbon.interfaceTable({ interfaces: [ITriEffectParameter, ITriEffectResourceParameter, ITriEffectTextureParameter, IInitialize, INotify, ICopierCustomAssignment], chainTo: null })(TriTextureParameter, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [ITriEffectParameter, ITriEffectResourceParameter, ITriEffectTextureParameter, IInitialize, INotify, ICopierCustomAssignment], chainTo: null })(TriTextureParameter, { kind: "class" });

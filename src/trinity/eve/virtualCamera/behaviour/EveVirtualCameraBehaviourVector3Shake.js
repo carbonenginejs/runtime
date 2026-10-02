@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { vec3 } from "#math/vec3";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
 import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
 import { TriPerlinCurve } from "../../../curves/curve/TriPerlinCurve.js";
@@ -12,7 +12,7 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
  * Vector3 behaviour that shakes the camera with independent per-axis Perlin
  * noise applied along the camera's own right, up and forward axes.
  */
-@type.define({
+@meta.define({
   className: "EveVirtualCameraBehaviourVector3Shake",
   family: "eve/virtualCamera/behaviour"
 })
@@ -20,29 +20,29 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
 {
   static _nextPhase = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   octaves = 8;
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2CurveScalar")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2CurveScalar")
   magnitudeCurve = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   magnitude = vec3.fromValues(1, 0.6, 0.2);
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   perlineScale = 1;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   scaleByView = true;
 
   _phase = EveVirtualCameraBehaviourVector3Shake._allocatePhase();
@@ -59,8 +59,8 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
   }
 
   /** Sets the behaviour name and renames the owned magnitude curve to match. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetName(name)
   {
     super.SetName(name);
@@ -74,8 +74,8 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
    * the camera-to-interest distance when scaleByView is set, then mapped onto
    * the camera's right, up and forward axes.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, _anchorRadius, _anchorForwardDirection, out = vec3.create())
   {
     const offset = vec3.clone(this.magnitude);

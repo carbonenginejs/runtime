@@ -1,11 +1,11 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerTriggerSnake.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { vec3 } from "#math/vec3";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 
 /** Triggers a timed chain of nearby free placements, walking forward from each previously reached destination. */
-@type.define({ className: "EveDistributionSpawnerTriggerSnake", family: "eve/distribution/spawners" })
+@meta.define({ className: "EveDistributionSpawnerTriggerSnake", family: "eve/distribution/spawners" })
 export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
 {
 
@@ -20,45 +20,45 @@ export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
   _travelDurationToNextPoint = 1;
 
   /** m_minTimeBetweenTriggers (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   minBaseTimeBetweenTriggers = 1;
 
   /** m_maxTimeBetweenTriggers (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxBaseTimeBetweenTriggers = 1;
 
   /** m_travelProgress (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   travelProgress = 1;
 
   /** m_numDestinationsReached (int32_t) [READ] */
-  @edit.read
-  @type.int32
+  @meta.blue.read
+  @meta.type.int32
   destinationsReached = 0;
 
   /** m_totalDestinations (int32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   totalDestinations = 5;
 
   /** m_distanceToTravelTimeMultiplier (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   distanceToTravelTimeMultiplier = 0;
 
   /**
    * Picks a random pooled placement as the first target of the walk and
    * restarts.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Reset(placements)
   {
     if (placements.length === 0)
@@ -78,8 +78,8 @@ export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
    * Clears the travel timers and the destination count, leaving a zero travel
    * duration so the next update triggers the current target immediately.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Restart()
   {
     this.destinationsReached = -1;
@@ -93,8 +93,8 @@ export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
    * extra travel time for the distance covered; stops after totalDestinations,
    * which -1 makes unlimited.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateSyncronous(updateContext, _params, owner)
   {
     if (this.destinationsReached >= this.totalDestinations && this.totalDestinations !== -1)
@@ -138,8 +138,8 @@ export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
   }
 
   /** Ignores controller variables; the walk is purely time-driven. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   SetControllerVariable(_name, _value)
   {
   }

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Schema: format-carbon resources/TriGeometryResLodData.json; maintained by the runtime resource layer.
-import { CjsSchema, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** Data record mirroring Carbon's per-LOD geometry block: mesh reference, naming and screen-size selection data, vertex/primitive counts, UV densities, areas, and buffer-allocation references. */
 export class TriGeometryResLodData
@@ -71,25 +71,25 @@ export class TriGeometryResLodData
 CjsSchema.define(TriGeometryResLodData, {
   className: "TriGeometryResLodData", family: "resources",
   fields: {
-    mesh: type.objectRef("TriGeometryResMeshData"),
-    grannyMeshIndex: type.int32,
-    name: type.string,
-    originalLodIndex: type.int32,
-    maxScreenSize: type.float32,
-    vertexCount: type.uint32,
-    primitiveCount: type.uint32,
-    uvDensities: type.list("float"),
-    areas: type.unknown,
-    allocationsValid: type.boolean,
-    vertexAllocation: type.rawStruct("Tr2SuballocatedBuffer::Allocation"),
-    indexAllocation: type.rawStruct("Tr2SuballocatedBuffer::Allocation"),
-    morphTargetAllocation: type.rawStruct("Tr2SuballocatedBuffer::Allocation"),
-    morphTargetNames: type.list("std::string"),
-    morphTargetDeformationAmounts: type.list("float"),
-    isBakedMorphTarget: type.list("bool"),
-    morphVertexDeclaration: type.uint32,
-    bytesPerMorphTargetVertex: type.uint32,
-    reversedIndicesValid: type.boolean,
-    reversedIndexAllocation: type.rawStruct("Tr2SuballocatedBuffer::Allocation")
+    mesh: meta.type.objectRef("TriGeometryResMeshData"),
+    grannyMeshIndex: meta.type.int32,
+    name: meta.type.string,
+    originalLodIndex: meta.type.int32,
+    maxScreenSize: meta.type.float32,
+    vertexCount: meta.type.uint32,
+    primitiveCount: meta.type.uint32,
+    uvDensities: meta.type.list("float"),
+    areas: meta.type.unknown,
+    allocationsValid: meta.type.boolean,
+    vertexAllocation: meta.type.rawStruct("Tr2SuballocatedBuffer::Allocation"),
+    indexAllocation: meta.type.rawStruct("Tr2SuballocatedBuffer::Allocation"),
+    morphTargetAllocation: meta.type.rawStruct("Tr2SuballocatedBuffer::Allocation"),
+    morphTargetNames: meta.type.list("std::string"),
+    morphTargetDeformationAmounts: meta.type.list("float"),
+    isBakedMorphTarget: meta.type.list("bool"),
+    morphVertexDeclaration: meta.type.uint32,
+    bytesPerMorphTargetVertex: meta.type.uint32,
+    reversedIndicesValid: meta.type.boolean,
+    reversedIndexAllocation: meta.type.rawStruct("Tr2SuballocatedBuffer::Allocation")
   }
 });

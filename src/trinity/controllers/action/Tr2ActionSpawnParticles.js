@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSpawnParticles.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSpawnParticles_Blue.cpp
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmitter/index.js";
 
 
@@ -20,18 +20,18 @@ export class Tr2ActionSpawnParticles extends ITr2ControllerAction
    * Dynamic emitter receiving the one-shot SpawnParticles request.
    * @type {Tr2DynamicEmitter|null}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.objectRef("Tr2DynamicEmitter")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2DynamicEmitter")
   emitter = null;
 
   /**
    * Float multiplier applied to the emitter's rate for this Start, with emitCountFactor set to one.
    * @type {number}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   rate = 1;
 
   /**
@@ -39,8 +39,8 @@ export class Tr2ActionSpawnParticles extends ITr2ControllerAction
    * Adapted: a fresh JavaScript update-arguments object represents the native
    * temporary value; the emitter owns all particle allocation and algorithms.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Start(_controller)
   {
     if (!this.emitter)
@@ -55,7 +55,7 @@ export class Tr2ActionSpawnParticles extends ITr2ControllerAction
    * count factor of 1 so the authored rate is applied unscaled.
    * Custom: names the JavaScript construction of the native temporary.
    */
-  @meta.impl.custom
+  @meta.ours
   static _createEmitterUpdateArguments()
   {
     const args = new ITr2GenericEmitterUpdateArguments();
@@ -65,7 +65,7 @@ export class Tr2ActionSpawnParticles extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionSpawnParticles_Blue.cpp:12-13,17).
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [Tr2ActionSpawnParticles, ITr2ControllerAction],
   chainTo: null
 })(Tr2ActionSpawnParticles);

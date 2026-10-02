@@ -15,7 +15,7 @@ import { IInitialize } from "../../global/blue/IInitialize.js";
 // `EmitterGpu` (112 bytes, the emit constant buffer's array element),
 // `EmitterParamsGpu` (128 bytes, the `Emitters` structured-buffer stride) and
 // the update constants (160 bytes).
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { RenderingMode, TriStorageFlags } from "#consts/graphics";
@@ -86,110 +86,110 @@ function CheckEffect(effect)
 }
 
 /** Describes the GPU particle pipeline's capacity, visible-count controls, and compute and render effect stages. */
-@type.define({ className: "Tr2GpuParticleSystem", family: "particle", purpose: "Describes the GPU particle pipeline's capacity, visible-count controls, and compute and render effect stages." })
-@carbon.inherit(IInitialize)
-@carbon.mapInterface(IInitialize)
+@meta.define({ className: "Tr2GpuParticleSystem", family: "particle", purpose: "Describes the GPU particle pipeline's capacity, visible-count controls, and compute and render effect stages." })
+@meta.blue.inherit(IInitialize)
+@meta.blue.mapInterface(IInitialize)
 export class Tr2GpuParticleSystem
 {
 
   /** m_enableEmit (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   enableEmit = true;
 
   /** m_enableRender (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   display = true;
 
   /** m_enableSort (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   enableSort = true;
 
   /** m_enableUpdate (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   enableUpdate = true;
 
   /** m_updateVisibleCount (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   updateVisibleCount = false;
 
   /** m_maxParticles (uint32_t) [READWRITE, PERSIST, NOTIFY]; the constructor's DEFAULT_MAX_PARTICLES (cpp:81). */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   maxParticles = DEFAULT_MAX_PARTICLES;
 
   /** m_visibleCount (uint32_t) [READ] */
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   visibleCount = 0;
 
   /** m_clear (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2Effect")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2Effect")
   clear = null;
 
   /** m_emit (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2Effect")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2Effect")
   emit = null;
 
   /** m_sortInner (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2Effect")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2Effect")
   sortInner = null;
 
   /** m_sortStep (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2Effect")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2Effect")
   sortStep = null;
 
   /** m_sort (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2Effect")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2Effect")
   sort = null;
 
   /** m_render (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2Effect")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2Effect")
   render = null;
 
   /** m_update (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2Effect")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2Effect")
   update = null;
 
   /** m_setDrawParameters (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2Effect")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2Effect")
   setDrawParameters = null;
 
   /** m_setSortParameters (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2Effect")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2Effect")
   setSortParameters = null;
 
   /** m_particleData: per-particle data (ParticleData). */
@@ -314,7 +314,7 @@ export class Tr2GpuParticleSystem
    * explicitly. Device ReleaseResources is a separate reset operation. This
    * does not destroy buffers or effects that may still be shared by callers.
    */
-  @impl.custom
+  @meta.ours
   Destroy()
   {
     if (this._variableStore)
@@ -326,8 +326,8 @@ export class Tr2GpuParticleSystem
   }
 
   /** Carbon InitializeBuffers (cpp:125-134): the GPU buffer objects, created empty. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   InitializeBuffers()
   {
     this._particleData = new Tr2GpuStructuredBuffer();
@@ -343,8 +343,8 @@ export class Tr2GpuParticleSystem
    * Carbon RegisterVariables (cpp:140-149): the buffers, by the names the
    * effects bind them under.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterVariables()
   {
     const store = this._variableStore;
@@ -363,8 +363,8 @@ export class Tr2GpuParticleSystem
    *
    * @returns {boolean} True.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     for (const slot of EFFECT_SLOTS) this.SetVariableStore(this[slot]);
@@ -383,8 +383,8 @@ export class Tr2GpuParticleSystem
    *
    * @param {number} maxParticles The capacity.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetMaxParticles(maxParticles)
   {
     this.maxParticles = maxParticles >>> 0;
@@ -393,8 +393,8 @@ export class Tr2GpuParticleSystem
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PrepareResources()
   {
     if (Tr2Renderer.IsResourceCreationAllowed())
@@ -410,8 +410,8 @@ export class Tr2GpuParticleSystem
    *
    * @param {number} storage The TriStorage mask being released.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ReleaseResources(storage)
   {
     if (this._emitCB && (storage & this._emitCB.GetMemoryClass())) this._emitCB = null;
@@ -426,8 +426,8 @@ export class Tr2GpuParticleSystem
    *
    * @returns {boolean} True.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnPrepareResources()
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -484,8 +484,8 @@ export class Tr2GpuParticleSystem
    * @param {string} propertyName The Blue name that changed.
    * @returns {boolean} True.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnModified(propertyName)
   {
     if (EFFECT_SLOTS.includes(propertyName)) this.SetVariableStore(this[propertyName]);
@@ -498,8 +498,8 @@ export class Tr2GpuParticleSystem
    *
    * @param {object|null} effect A Tr2Effect.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetVariableStore(effect)
   {
     if (!effect) return;
@@ -509,8 +509,8 @@ export class Tr2GpuParticleSystem
   }
 
   /** Carbon Clear (cpp:305-308): the clear happens during the next Update. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Clear()
   {
     this._clearRequested = true;
@@ -524,8 +524,8 @@ export class Tr2GpuParticleSystem
    * @param {Float32Array|number[]} originShift The world origin shift since the previous frame.
    * @param {object} renderContext The Tr2RenderContext.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Update(time, originShift, renderContext)
   {
     if (!CheckEffect(this.emit) || !CheckEffect(this.update) || !CheckEffect(this.clear) || !CheckEffect(this.setDrawParameters))
@@ -587,8 +587,8 @@ export class Tr2GpuParticleSystem
    *
    * @param {object} _renderContext The Tr2RenderContext.
    */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   UpdateLiveCount(_renderContext)
   {
     if (!this.updateVisibleCount) return;
@@ -602,8 +602,8 @@ export class Tr2GpuParticleSystem
    * @param {object} renderContext The Tr2RenderContext.
    * @returns {boolean} Whether the clear kernel ran.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   DoClear(renderContext)
   {
     this._liveTime = 0;
@@ -625,8 +625,8 @@ export class Tr2GpuParticleSystem
    * @param {Float32Array|number[]} originShift The world origin shift.
    * @param {object} renderContext The Tr2RenderContext.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RunSimulation(dt, originShift, renderContext)
   {
     const { vec4_0 } = Tr2GpuParticleSystem.scratch;
@@ -670,8 +670,8 @@ export class Tr2GpuParticleSystem
    *
    * @param {number} dt The frame time.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   ExpireEmitterParams(dt)
   {
     for (const [ id, entry ] of this._emitterParamsIndex)
@@ -694,8 +694,8 @@ export class Tr2GpuParticleSystem
    *
    * @param {object} renderContext The Tr2RenderContext.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateEmitterParams(renderContext)
   {
     let maxLiveTime = 0;
@@ -749,8 +749,8 @@ export class Tr2GpuParticleSystem
    *
    * @param {object} renderContext The Tr2RenderContext.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateGpuEmitterParams(renderContext)
   {
     const buffer = this._emitterParamsBuffer;
@@ -773,8 +773,8 @@ export class Tr2GpuParticleSystem
    *
    * @param {object} renderContext The Tr2RenderContext.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   EmitParticles(renderContext)
   {
     const data = this._emitData;
@@ -801,8 +801,8 @@ export class Tr2GpuParticleSystem
    *
    * @param {object} renderContext The Tr2RenderContext.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Sort(renderContext)
   {
     if (!CheckEffect(this.setSortParameters) || !CheckEffect(this.sort) || !CheckEffect(this.sortStep) || !CheckEffect(this.sortInner))
@@ -839,8 +839,8 @@ export class Tr2GpuParticleSystem
    * @param {object} renderContext The Tr2RenderContext.
    * @returns {boolean} Whether this was the last level.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SortIncremental(presorted, renderContext)
   {
     const maxSize = this.maxParticles;
@@ -885,8 +885,8 @@ export class Tr2GpuParticleSystem
    *
    * @param {object} renderContext The Tr2RenderContext.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Render(renderContext)
   {
     if (!this.render || !this.display || this._liveTime <= 0) return;
@@ -902,8 +902,8 @@ export class Tr2GpuParticleSystem
    *
    * @param {object} renderContext The Tr2RenderContext.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SubmitGeometry(renderContext)
   {
     if (!this._drawParameters.IsValid()) return;
@@ -928,8 +928,8 @@ export class Tr2GpuParticleSystem
    * @param {number} hash The params' hash.
    * @param {object} params A Tr2GpuSharedEmitter params record.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Emit(emitter, id, hash, params)
   {
     if (!this.enableEmit) return;
@@ -963,32 +963,32 @@ export class Tr2GpuParticleSystem
    * Not implemented: Tr2ProfileTimer's GPU timing is not ported; WebGPU
    * timestamps need a query set resolved and read back asynchronously.
    */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   GetEmitTime()
   {
     throw new Error("Tr2GpuParticleSystem.GetEmitTime is not implemented: Tr2ProfileTimer is not ported.");
   }
 
   /** Carbon GetUpdateTime (cpp:737-740); see GetEmitTime. */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   GetUpdateTime()
   {
     throw new Error("Tr2GpuParticleSystem.GetUpdateTime is not implemented: Tr2ProfileTimer is not ported.");
   }
 
   /** Carbon GetSortTime (cpp:742-745); see GetEmitTime. */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   GetSortTime()
   {
     throw new Error("Tr2GpuParticleSystem.GetSortTime is not implemented: Tr2ProfileTimer is not ported.");
   }
 
   /** Carbon GetRenderTime (cpp:747-750); see GetEmitTime. */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   GetRenderTime()
   {
     throw new Error("Tr2GpuParticleSystem.GetRenderTime is not implemented: Tr2ProfileTimer is not ported.");
@@ -1000,8 +1000,8 @@ export class Tr2GpuParticleSystem
    *
    * @returns {boolean} Whether any particle may be alive.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HasParticles()
   {
     return this._liveTime > 0;

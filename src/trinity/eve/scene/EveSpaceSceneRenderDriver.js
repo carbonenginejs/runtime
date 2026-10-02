@@ -19,7 +19,7 @@
 // Carbon's BeginRender/GatherBatches into scene-owned CPU methods that a driver
 // calls in order; that contract is written on EveSpaceScene itself, and this is
 // the driver it describes.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { vec4 } from "#math/vec4";
 import { mat4 } from "#math/mat4";
 import { PixelFormat, TextureType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
@@ -50,179 +50,179 @@ import "../../postProcess/effect/Tr2PPEffect.js";
 import "#blue/registerTrinityEnums";
 
 /** Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame. */
-@type.define({ className: "EveSpaceSceneRenderDriver", family: "eve/scene", purpose: "Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame." })
+@meta.define({ className: "EveSpaceSceneRenderDriver", family: "eve/scene", purpose: "Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame." })
 export class EveSpaceSceneRenderDriver
 {
 
   /** m_settings.aoQuality (AmbientOcclusionQuality - enum AmbientOcclusionQuality) [READWRITE, ENUM] */
-  @edit.readwrite
-  @type.int32
-  @type.enum("trinity.EveSpaceSceneRenderDriver.AmbientOcclusionQuality")
+  @meta.blue.readwrite
+  @meta.type.int32
+  @meta.type.enum("trinity.EveSpaceSceneRenderDriver.AmbientOcclusionQuality")
   aoQuality = 0;
 
   /** m_settings.antiAliasingQuality (AntiAliasingQuality - enum AntiAliasingQuality) [READWRITE, ENUM] */
-  @edit.readwrite
-  @type.int32
-  @type.enum("trinity.EveSpaceSceneRenderDriver.AntiAliasingQuality")
+  @meta.blue.readwrite
+  @meta.type.int32
+  @meta.type.enum("trinity.EveSpaceSceneRenderDriver.AntiAliasingQuality")
   antiAliasingQuality = 0;
 
   /** m_settings.visualizeMethod (EveSpaceScene::EveVisualizeMethod - enum EveVisualizeMethod) [READWRITE, ENUM] */
-  @edit.readwrite
-  @type.int32
-  @type.enum("trinity.EveSpaceScene.EveVisualizeMethod")
+  @meta.blue.readwrite
+  @meta.type.int32
+  @meta.type.enum("trinity.EveSpaceScene.EveVisualizeMethod")
   visualizeMethod = 0;
 
   /** m_settings.postProcessingQuality (PostProcess::Quality - enum Quality) [READWRITE, ENUM] */
-  @edit.readwrite
-  @type.int32
-  @type.enum("trinity.PostProcess.Quality")
+  @meta.blue.readwrite
+  @meta.type.int32
+  @meta.type.enum("trinity.PostProcess.Quality")
   postProcessingQuality = 0;
 
   /** m_settings.shadowQuality (ShadowQuality - enum ShadowQuality) [READWRITE, ENUM] */
-  @edit.readwrite
-  @type.int32
-  @type.enum("trinity.ShadowQuality")
+  @meta.blue.readwrite
+  @meta.type.int32
+  @meta.type.enum("trinity.ShadowQuality")
   shadowQuality = 0;
 
   /** m_customStencilFormat (ImageIO::PixelFormat - enum PixelFormat) [READWRITE, ENUM] */
-  @edit.readwrite
-  @type.int32
-  @type.enum("trinity.ImageIO.PixelFormat")
+  @meta.blue.readwrite
+  @meta.type.int32
+  @meta.type.enum("trinity.ImageIO.PixelFormat")
   customStencilFormat = 0;
 
   /** m_internalPixelFormat (ImageIO::PixelFormat - enum PixelFormat) [READWRITE, ENUM] */
-  @edit.readwrite
-  @type.int32
-  @type.enum("trinity.ImageIO.PixelFormat")
+  @meta.blue.readwrite
+  @meta.type.int32
+  @meta.type.enum("trinity.ImageIO.PixelFormat")
   internalPixelFormat = 10;
 
   /** m_settings.volumetricQuality (Tr2VolumerticQuality - enum Tr2VolumerticQuality) [READWRITE, ENUM] */
-  @edit.readwrite
-  @type.int32
-  @type.enum("trinity.Tr2VolumerticQuality")
+  @meta.blue.readwrite
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2VolumerticQuality")
   volumetricQuality = 0;
 
   /** m_scene (EveSpaceScenePtr) [PERSISTONLY] */
-  @edit.readwrite
-  @edit.persistOnly
-  @type.model("EveSpaceScene")
+  @meta.blue.readwrite
+  @meta.blue.persistOnly
+  @meta.type.model("EveSpaceScene")
   scene = null;
 
   /** m_name (std::string) [READWRITE] */
-  @edit.readwrite
-  @type.string
+  @meta.blue.readwrite
+  @meta.type.string
   name = "";
 
   /** m_settings.enableUpscaling (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   enableUpscaling = false;
 
   /** m_projection (TriProjectionPtr) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("TriProjection")
+  @meta.blue.readwrite
+  @meta.type.objectRef("TriProjection")
   projection = null;
 
   /** m_camera (EveCameraPtr) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("EveCamera")
+  @meta.blue.readwrite
+  @meta.type.objectRef("EveCamera")
   camera = null;
 
   /** m_view (TriViewPtr) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("TriView")
+  @meta.blue.readwrite
+  @meta.type.objectRef("TriView")
   view = null;
 
   /** m_settings.clearColor (Color) [READWRITE]; Carbon's default is opaque black (EveSpaceSceneRenderDriver.h:59). */
-  @edit.readwrite
-  @type.color
+  @meta.blue.readwrite
+  @meta.type.color
   clearColor = vec4.fromValues(0, 0, 0, 1);
 
   /** m_distortionEffect (Tr2EffectPtr) [READ] */
-  @edit.read
-  @type.objectRef("Tr2Effect")
+  @meta.blue.read
+  @meta.type.objectRef("Tr2Effect")
   distortionEffect = null;
 
   /** m_settings.enableDistortion (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   enableDistortion = false;
 
   /** m_reflectionCorrectionEnabled (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   reflectionCorrectionEnabled = true;
 
   /** m_settings.forceOpaqueBuffer (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   forceOpaqueBuffer = false;
 
   /** m_settings.forceNormalMap (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   forceNormalMap = false;
 
   /** m_settings.forceVelocityMap (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   forceVelocityMap = false;
 
   /** m_fpsRenderer (TriStepRenderFpsPtr) [READ] */
-  @edit.read
-  @type.objectRef("TriStepRenderFps")
+  @meta.blue.read
+  @meta.type.objectRef("TriStepRenderFps")
   fpsRenderer = null;
 
   /** m_mainPassRenderingEnabled (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   mainPassRenderingEnabled = true;
 
   /** m_toolsScenes (PITr2SceneVector) [READ] */
-  @edit.read
-  @type.list("ITr2Scene")
+  @meta.blue.read
+  @meta.type.list("ITr2Scene")
   toolsScenes = [];
 
   /** m_depthPassTechnique (unknown) [READWRITE] */
-  @edit.readwrite
-  @type.string
+  @meta.blue.readwrite
+  @meta.type.string
   depthPassTechnique = "Depth";
 
   /** m_postProcess (Tr2PostProcessRendererPtr) [READ], created in the constructor (cpp:151). */
-  @edit.read
-  @type.objectRef("Tr2PostProcessRenderer")
+  @meta.blue.read
+  @meta.type.objectRef("Tr2PostProcessRenderer")
   postProcess = new Tr2PostProcessRenderer();
 
   /** m_settings.showFPS (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   showFPS = false;
 
   /** m_sceneOverlay (ITr2RenderNodePtr) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("ITr2RenderNode")
+  @meta.blue.readwrite
+  @meta.type.objectRef("ITr2RenderNode")
   sceneOverlay = null;
 
   /** m_background (ITr2RenderNodePtr) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("ITr2RenderNode")
+  @meta.blue.readwrite
+  @meta.type.objectRef("ITr2RenderNode")
   background = null;
 
   /** m_ssao (Tr2SSAOPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2SSAO")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2SSAO")
   SSAO = null;
 
   /** m_enableRendering (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   enableRendering = true;
 
   /** Carbon method GetAllTempTextures (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   GetAllTempTextures(...args)
   {
     throw new Error("EveSpaceSceneRenderDriver.GetAllTempTextures is not implemented in CarbonEngineJS.");
@@ -263,7 +263,7 @@ export class EveSpaceSceneRenderDriver
   _destroyed = false;
 
   /** Releases this driver's values after its render job has stopped. */
-  @impl.custom
+  @meta.ours
   Destroy()
   {
     if (this._destroyed) return;
@@ -572,8 +572,8 @@ export class EveSpaceSceneRenderDriver
    * @param {Tr2GpuResourcePool} gpuResourcePool The driver's pool.
    * @returns {GpuResourceHandle} The texture.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   static getEmptySSAO(gpuResourcePool)
   {
     return gpuResourcePool.GetPersistentTexture("EmptySSAO", {
@@ -1262,8 +1262,8 @@ export class EveSpaceSceneRenderDriver
    * @param {object} renderContext The Tr2RenderContext.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateGpuParticleSystem(renderContext)
   {
     const ps = this.scene.GetGpuParticleSystem();

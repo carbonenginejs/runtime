@@ -1,21 +1,21 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveSocketParameter } from "./IEveSocketParameter.js";
 
 /** Provides named typed socket parameters with external-value binding, default capture, and propagation hooks. */
-@type.define({ className: "EveSocketParameterBindingBase", family: "eve/socket" })
+@meta.define({ className: "EveSocketParameterBindingBase", family: "eve/socket" })
 export class EveSocketParameterBindingBase extends IEveSocketParameter
 {
 
   /** name (m_name =) */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_bindings (PITr2ValueBindingVector) */
-  @type.list("ITr2ValueBinding")
+  @meta.type.list("ITr2ValueBinding")
   bindings = [];
 
   /** Returns the name an external parameter has to match before it can bind here. */
@@ -34,8 +34,8 @@ export class EveSocketParameterBindingBase extends IEveSocketParameter
   }
 
   /** Drops every value binding, leaving the current value in place. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ClearBindings()
   {
     this.bindings.length = 0;
@@ -46,8 +46,8 @@ export class EveSocketParameterBindingBase extends IEveSocketParameter
    *
    * @returns {boolean} True when the binding was created and stored.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   BindToExternalParameter(externalParameter)
   {
     if (!externalParameter || !externalParameter.IsValid() || externalParameter.GetName() !== this.name) return false;
@@ -61,24 +61,24 @@ export class EveSocketParameterBindingBase extends IEveSocketParameter
   }
 
   /** Required hook where a typed subclass records the external parameter's current value as a restore default. */
-  @carbon.method
-  @impl.abstract
+  @meta.blue.method
+  @meta.abstract
   ExtractDefault(_externalParameter)
   {
     throw new Error("EveSocketParameterBindingBase.ExtractDefault must be implemented by a typed socket parameter.");
   }
 
   /** Reports whether anything is bound to this parameter. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Used()
   {
     return this.bindings.length !== 0;
   }
 
   /** Pushes the current value out through every binding. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Propagate()
   {
     for (const binding of this.bindings) binding.CopyValue();

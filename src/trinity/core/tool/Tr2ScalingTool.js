@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2ScalingTool.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2ManipulationTool } from "./Tr2ManipulationTool.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -14,19 +14,19 @@ const AXIS_COLORS = Object.freeze({
 });
 
 /** An interactive scaling manipulator that turns pointer drags along a selected axis into a scale. */
-@type.define({ className: "Tr2ScalingTool", family: "trinityCore" })
+@meta.define({ className: "Tr2ScalingTool", family: "trinityCore" })
 export class Tr2ScalingTool extends Tr2ManipulationTool
 {
 
   /** m_scale (Vector3) [READ] */
-  @edit.read
-  @type.vec3
+  @meta.blue.read
+  @meta.type.vec3
   scale = vec3.fromValues(1, 1, 1);
 
   /** Carbon method ResetPrimitives (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Copies the authored transform into portable primitive models; renderer-owned guide-line rebuilding remains optional.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Copies the authored transform into portable primitive models; renderer-owned guide-line rebuilding remains optional.")
   ResetPrimitives()
   {
     for (const primitive of this.primitives)
@@ -52,9 +52,9 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
   }
 
   /** Returns the full tool, or the captured axis, guide and centre primitives. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JavaScript returns a fresh array instead of Carbon's reused private visible-object vector.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JavaScript returns a fresh array instead of Carbon's reused private visible-object vector.")
   GetPrimitivesToRender()
   {
     if (!this.captured || this.selectedAxis === "w")
@@ -68,8 +68,8 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
   }
 
   /** Restores Carbon's authored axis and centre colours. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ResetPrimitiveColors()
   {
     for (const primitive of this.primitives)

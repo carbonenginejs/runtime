@@ -23,7 +23,7 @@ import { Tr2ResourceSetDescriptionAL } from "../Tr2ResourceSetAL/Tr2ResourceSetD
 // views (`Tr2ResourceSetALDx12.cpp:145-146`). A WebGPU bind group with a hole
 // is a validation error, so the same substitution happens here.
 //
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult } from "#trinityal";
 import { ShaderType } from "#consts/render-context";
@@ -85,8 +85,8 @@ export class CjsWebgpuResourceSetAL
    * @param {object} renderContext The WebGPU render context AL.
    * @returns {number} An `ALResult` value.
    */
-  @impl.adapted
-  @impl.reason("WebGPU resolves native dense records into bind-group entries, validates the program map and fills missing resources with dummies. Descriptor heap views have no WebGPU representation and return E_FAIL.")
+  @meta.adapted
+  @meta.reason("WebGPU resolves native dense records into bind-group entries, validates the program map and fills missing resources with dummies. Descriptor heap views have no WebGPU representation and return E_FAIL.")
   Create(description, program, renderContext)
   {
     this.Destroy();
@@ -128,8 +128,8 @@ export class CjsWebgpuResourceSetAL
   }
 
   /** One slot's resource, or the dummy Metal would put there. */
-  @impl.adapted
-  @impl.reason("Resolves dense native records to WebGPU views and buffers; a pending resource or empty slot uses the context dummy, following Metal.")
+  @meta.adapted
+  @meta.reason("Resolves dense native records to WebGPU views and buffers; a pending resource or empty slot uses the context dummy, following Metal.")
   _Resolve(description, binding, renderContext, storage)
   {
     if (binding.sampler)

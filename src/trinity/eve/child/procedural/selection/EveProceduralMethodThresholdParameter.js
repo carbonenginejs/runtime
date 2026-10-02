@@ -1,42 +1,42 @@
 import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodThresholdParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveChildRef } from "../../../../eve/child/EveChildRef.js";
 
 /** EveProceduralMethodThresholdParameter (eve/child/procedural/selection) - generated from schema shapeHash e31926d9.... */
-@type.define({ className: "EveProceduralMethodThresholdParameter", family: "eve/child/procedural/selection" })
-@carbon.inherit(IInitialize)
-@carbon.mapInterface(IInitialize)
+@meta.define({ className: "EveProceduralMethodThresholdParameter", family: "eve/child/procedural/selection" })
+@meta.blue.inherit(IInitialize)
+@meta.blue.mapInterface(IInitialize)
 export class EveProceduralMethodThresholdParameter
 {
 
   _modified = false;
 
   /** m_child (EveChildRefPtr) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.model("EveChildRef")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("EveChildRef")
   child = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_threshold (float) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   threshold = 1;
 
   /** Carbon EveProceduralMethodThresholdParameter::Initialize (cpp:16-23):
    * lazily create the child ref. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     if (!this.child)
@@ -50,9 +50,9 @@ export class EveProceduralMethodThresholdParameter
    * threshold change clamps to >= 0 and flags the parameter modified; a child
    * assignment blocks its auto-load. The value argument follows the repo's
    * OnModified duck. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The Be::Var notification identity is represented by either the field name or assigned value.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("The Be::Var notification identity is represented by either the field name or assigned value.")
   OnModified(value = null)
   {
     if (value === "threshold")
@@ -73,32 +73,32 @@ export class EveProceduralMethodThresholdParameter
   }
 
   /** Carbon method SetModified (cpp:44-47). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetModified(isModified)
   {
     this._modified = !!isModified;
   }
 
   /** Carbon method IsModified (cpp:49-52). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsModified()
   {
     return this._modified;
   }
 
   /** Carbon method GetThreshold (cpp:54-57). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetThreshold()
   {
     return this.threshold;
   }
 
   /** Carbon method GetChild (cpp:59-62). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetChild()
   {
     return this.child;
@@ -106,8 +106,8 @@ export class EveProceduralMethodThresholdParameter
 
   /** Carbon EveProceduralMethodThresholdParameter::Load (cpp:64-70): one-line
    * bypass-blocker reload delegate. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Load()
   {
     this.child?.Reload?.(true);

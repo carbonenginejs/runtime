@@ -3,7 +3,7 @@
 import { ReadValues } from "../../../global/blue/values.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { ResourceRequirement } from "#resource";
 import { blue, IInitialize, INotify } from "#blue";
 import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
@@ -22,8 +22,8 @@ import {
  * transform, and submits a converted point or spot record to the light manager
  * each frame.
  */
-@type.define({ className: "Tr2Light", family: "eve/lights" })
-@carbon.inherit(IInitialize, INotify)
+@meta.define({ className: "Tr2Light", family: "eve/lights" })
+@meta.blue.inherit(IInitialize, INotify)
 export class Tr2Light
 {
   static LightDataFields = [];
@@ -40,36 +40,36 @@ export class Tr2Light
   static SPOT_LIGHT = 2;
   static COUNT = 3;
 
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
-  @type.float64
+  @meta.type.float64
   startTime = 0;
 
-  @type.boolean
+  @meta.type.boolean
   isDynamic = false;
 
-  @type.float32
+  @meta.type.float32
   brightnessMultiplier = 1;
 
-  @type.mat4
+  @meta.type.mat4
   boneTransform = mat4.create();
 
   // Every subclass exposes it Be::READ (Tr2PointLight_Blue.cpp:44 and siblings).
-  @edit.read
-  @type.objectRef("Tr2LightProfileRes")
+  @meta.blue.read
+  @meta.type.objectRef("Tr2LightProfileRes")
   lightProfile = null;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   lightProfilePath = "";
 
-  @type.int32
-  @type.enum("trinity.Tr2Light.LIGHT_TYPE")
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2Light.LIGHT_TYPE")
   type = Tr2Light.UNDEFINED_LIGHT;
 
   // Compat view over the flattened light fields (2026-07-23 flatten
@@ -105,9 +105,9 @@ export class Tr2Light
   }
 
   /** Applies a whole LightData bag onto the flattened light fields. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Uses JS values coercion for the flattened light data without invoking notification or event transport.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Uses JS values coercion for the flattened light data without invoking notification or event transport.")
   SetLightData(lightData)
   {
     return this.SetValues({ lightData }, { markDirty: false, skipEvents: true });
@@ -117,17 +117,17 @@ export class Tr2Light
    * Sets the parent brightness factor, which scales the authored brightness only
    * when the light record is built for submission.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetBrightnessMultiplier(multiplier)
   {
     this.brightnessMultiplier = Number(multiplier);
   }
 
   /** Sets the light colour, returning whether the value actually changed. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Uses JS values coercion for the flattened light data without invoking notification or event transport.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Uses JS values coercion for the flattened light data without invoking notification or event transport.")
   ChangeLightColor(color)
   {
     return this.SetValues({ color }, { returnBoolean: true, markDirty: false, skipEvents: true });
@@ -144,8 +144,8 @@ export class Tr2Light
    * one-to-one LightData; attachment lights keep theirs nested
    * (/docs/architecture/sof-attachment-lights.md).
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetLightData()
   {
     return this.lightData;
@@ -155,8 +155,8 @@ export class Tr2Light
    * Returns the parent brightness factor applied at submission time, not the
    * authored brightness.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBrightnessMultiplier()
   {
     return this.brightnessMultiplier;
@@ -168,8 +168,8 @@ export class Tr2Light
    * identity (column-stride, MatrixUtils.cpp:81-96). QUIRK: on a non-match
    * the previous boneTransform STAYS (sticky, identity initially) - it is
    * not reset per call. `bones` is a flat Float32Array, stride 12. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetBoneMatrix(bones, boneCount)
   {
     const boneIndex = this.lightData.boneIndex ?? -1;
@@ -190,7 +190,7 @@ export class Tr2Light
    * profileIndex here is GetTextureIndex() + 1 while the packed sets use no
    * +1 - moot in JS (the profile rides the record by reference) but
    * recorded. The record is scratch; the manager must copy. */
-  @carbon.method
+  @meta.blue.method
   /**
    * Refreshes whatever this light derives from its own state each frame.
    *
@@ -208,8 +208,8 @@ export class Tr2Light
    * cannot be ported until `TriTextureRes.GetAverageColor` is, which Carbon
    * declares and we do not. Registered rather than guessed at.
    */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   Update()
   {
   }
@@ -218,8 +218,8 @@ export class Tr2Light
    * Updates dynamic light data and submits a transformed point or spot light
    * when its flags are valid.
    */
-  @impl.adapted
-  @impl.reason("The profile-index flag packing and half-float narrowing are renderer-backend concerns (record carries the profile by reference); the Perlin brightness flicker awaits the frame-clock seam (see lightConversion.js).")
+  @meta.adapted
+  @meta.reason("The profile-index flag packing and half-float narrowing are renderer-backend concerns (record carries the profile by reference); the Perlin brightness flicker awaits the frame-clock seam (see lightConversion.js).")
   AddLight(lightManager, transform, scale, bones = null, boneCount = 0)
   {
     if (this.isDynamic)
@@ -267,9 +267,9 @@ export class Tr2Light
    * and are returned). The color is the rgb triple - the alpha channel is
    * unused by every Carbon consumer of this method (EveChildCloud2's light
    * block takes GetXYZ). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The Perlin noise flicker (cpp:157-161) reads the global frame clock (BeOS GetCurrentFrameTime) - an engine seam; the base brightness is used until it lands.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("The Perlin noise flicker (cpp:157-161) reads the global frame clock (BeOS GetCurrentFrameTime) - an engine seam; the base brightness is used until it lands.")
   GetLight(out = { position: vec3.create(), radius: 0, color: vec3.create() })
   {
     const lightData = this.lightData;
@@ -288,8 +288,8 @@ export class Tr2Light
   }
 
   /** Carbon Initialize (Tr2Light.cpp:165-174): resolve the authored profile path. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     this._ResolveLightProfile();
@@ -300,9 +300,9 @@ export class Tr2Light
    * Carbon OnModified (Tr2Light.cpp:177-189): a lightProfilePath change
    * re-resolves the profile.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JS identifies Carbon's changed member address by its exposed property name.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JS identifies Carbon's changed member address by its exposed property name.")
   OnModified(propertyName)
   {
     if (propertyName === "lightProfilePath") this._ResolveLightProfile();
@@ -334,8 +334,8 @@ export class Tr2Light
    * same deliberate no-op so the debug-renderer traversal can call it
    * unconditionally.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RenderDebugInfo(_renderer = null)
   {
   }
@@ -357,4 +357,4 @@ blue.enums.RegisterEnum("trinity.Tr2Light.LIGHT_TYPE", Tr2Light.LightType, {
   source: "trinity/trinity/Lights/Tr2Light.h", family: "eve/lights", line: 71
 });
 
-carbon.interfaceTable({ interfaces: [Tr2Light], chainTo: null })(Tr2Light, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [Tr2Light], chainTo: null })(Tr2Light, { kind: "class" });

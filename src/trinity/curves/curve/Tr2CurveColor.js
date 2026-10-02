@@ -3,7 +3,7 @@
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
 import { ITriColorFunction, ITriFunction, ITriCurveLength } from "#blue";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
 import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
 
@@ -16,82 +16,82 @@ const CLAMP_MIN = vec4.create();
  * result is converted to gamma space when srgbOutput is set.
  * JavaScript combines native time overloads as seconds-first calls with output last.
  */
-@type.define({
+@meta.define({
   className: "Tr2CurveColor",
   family: "curves"
 })
-@carbon.inherit(ITriCurveLength)
+@meta.blue.inherit(ITriCurveLength)
 export class Tr2CurveColor extends ITriColorFunction
 {
   /**
    * Name identifying this composite color curve (native std::string m_name).
    * @type {string}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /**
    * Requests gamma-space conversion of the sampled linear color (native bool m_srgbOutput).
    * @type {boolean}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   srgbOutput = false;
 
   /**
    * Owned scalar curve supplying the red component (native PTr2CurveScalar m_r).
    * @type {Tr2CurveScalar}
    */
-  @edit.read
-  @edit.persist
-  @type.struct("Tr2CurveScalar")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.struct("Tr2CurveScalar")
   r = new Tr2CurveScalar();
 
   /**
    * Owned scalar curve supplying the green component (native PTr2CurveScalar m_g).
    * @type {Tr2CurveScalar}
    */
-  @edit.read
-  @edit.persist
-  @type.struct("Tr2CurveScalar")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.struct("Tr2CurveScalar")
   g = new Tr2CurveScalar();
 
   /**
    * Owned scalar curve supplying the blue component (native PTr2CurveScalar m_b).
    * @type {Tr2CurveScalar}
    */
-  @edit.read
-  @edit.persist
-  @type.struct("Tr2CurveScalar")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.struct("Tr2CurveScalar")
   b = new Tr2CurveScalar();
 
   /**
    * Owned scalar curve supplying alpha; the parent substitutes alpha one when this curve is empty (native PTr2CurveScalar m_a).
    * @type {Tr2CurveScalar}
    */
-  @edit.read
-  @edit.persist
-  @type.struct("Tr2CurveScalar")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.struct("Tr2CurveScalar")
   a = new Tr2CurveScalar();
 
   /**
    * Seconds subtracted from sample time before evaluating component curves (native float m_timeOffset).
    * @type {number}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   timeOffset = 0;
 
   /**
    * RGBA color cached by the last Update or UpdateValue call (native Color m_currentValue).
    * @type {Float32Array}
    */
-  @edit.read
-  @type.color
+  @meta.blue.read
+  @meta.type.color
   currentValue = color.createLinear();
 
   /**
@@ -100,8 +100,8 @@ export class Tr2CurveColor extends ITriColorFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateValue(time)
   {
     const t = time - this.timeOffset;
@@ -123,8 +123,8 @@ export class Tr2CurveColor extends ITriColorFunction
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(time, out)
   {
     this.GetValueAt(time, this.currentValue);
@@ -138,8 +138,8 @@ export class Tr2CurveColor extends ITriColorFunction
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValueAt(time, out)
   {
     const t = time - this.timeOffset;
@@ -161,8 +161,8 @@ export class Tr2CurveColor extends ITriColorFunction
    *
    * @returns {number} Longest scalar component length.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Length()
   {
     return Math.max(this.r.Length(), this.g.Length(), this.b.Length(), this.a.Length());
@@ -175,8 +175,8 @@ export class Tr2CurveColor extends ITriColorFunction
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValue(time, out)
   {
     return this.GetValueAt(time, out);
@@ -195,8 +195,8 @@ export class Tr2CurveColor extends ITriColorFunction
    * @param {number} [tangentType = Tr2CurveTangentType.AUTO_CLAMP] Scalar tangent-maintenance rule.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   AddKey(time, value, interpolation = Tr2CurveInterpolation.HERMITE, leftTangent, rightTangent, tangentType = Tr2CurveTangentType.AUTO_CLAMP)
   {
     const useRightTangent = !!leftTangent && !!rightTangent;
@@ -212,8 +212,8 @@ export class Tr2CurveColor extends ITriColorFunction
    * @param {number} extrapolation Before and after extrapolation mode.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetExtrapolation(extrapolation)
   {
     this.r.SetExtrapolation(extrapolation);
@@ -224,7 +224,7 @@ export class Tr2CurveColor extends ITriColorFunction
 }
 
 // Native exposure ends at this concrete table (Tr2CurveColor_Blue.cpp).
-carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [Tr2CurveColor, ITriColorFunction, ITriFunction, ITriCurveLength],
   chainTo: null
 })(Tr2CurveColor);

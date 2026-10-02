@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { vec3 } from "#math/vec3";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviourVector3Base.js";
 
 
@@ -9,25 +9,25 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
  * Vector3 behaviour that applies a fixed, time-independent displacement, either
  * in world space or in the anchor's yaw frame.
  */
-@type.define({
+@meta.define({
   className: "EveVirtualCameraBehaviourVector3Offset",
   family: "eve/virtualCamera/behaviour"
 })
 export class EveVirtualCameraBehaviourVector3Offset extends EveVirtualCameraBehaviourVector3Base
 {
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   proportional = true;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   world = false;
 
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   offset = vec3.create();
 
   /**
@@ -45,8 +45,8 @@ export class EveVirtualCameraBehaviourVector3Offset extends EveVirtualCameraBeha
    * set and multiplied by the anchor radius when proportional is set; it ignores
    * time and delta time entirely.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(_camera, _current, _deltaTime, _localElapsedTime, _anchorPosition, anchorRadius, anchorForwardDirection, out = vec3.create())
   {
     if (this.world)

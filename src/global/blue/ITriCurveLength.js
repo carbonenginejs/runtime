@@ -18,7 +18,7 @@ export class ITriCurveLength
   }
 }
 
-CjsSchema.decorateMethod(ITriCurveLength, "Length", meta.compose.abstract, meta.impl.abstract);
+CjsSchema.decorateMethod(ITriCurveLength, "Length", meta.requires, meta.abstract);
 CjsSchema.define(ITriCurveLength, {
   className: "ITriCurveLength", carbon: "ITriCurveLength", family: "blue", fields: {}
 });

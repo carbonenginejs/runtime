@@ -1,7 +1,7 @@
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Particle/Tr2PlaneConstraint.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, CjsSchema, impl, edit, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2GenericEmitter } from "../ITr2GenericEmitter/ITr2GenericEmitter.js";
 import { ITr2GenericParticleConstraint } from "./ITr2GenericParticleConstraint.js";
@@ -10,9 +10,9 @@ import { vec4 } from "#math/vec4";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
 
 /** A collision constraint that keeps particles on one side of a plane, reflecting velocity with elasticity, friction and noise, and triggering generators and emitters on contact. */
-@type.define({ className: "Tr2PlaneConstraint", family: "particle" })
-@carbon.inherit(IInitialize)
-@carbon.mapInterface(IInitialize)
+@meta.define({ className: "Tr2PlaneConstraint", family: "particle" })
+@meta.blue.inherit(IInitialize)
+@meta.blue.mapInterface(IInitialize)
 export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
 {
 
@@ -25,75 +25,75 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
   #radiusElement = null;
 
   /** m_affectPosition (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   affectPosition = true;
 
   /** m_affectVelocity (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   affectVelocity = true;
 
   /** m_plane (Vector4) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.vec4
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec4
   plane = vec4.fromValues(0, 1, 0, 0);
 
   /** m_elasticity (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   elasticity = 1;
 
   /** m_friction (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   friction = 1;
 
   /** m_isValid (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   isValid = false;
 
   /** m_onCollisionEmitters (PITr2GenericEmitterVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("ITr2GenericEmitter")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITr2GenericEmitter")
   onCollisionEmitters = [];
 
   /** m_generators (PITr2AttributeGeneratorVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("ITr2AttributeGenerator")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITr2AttributeGenerator")
   generators = [];
 
   /** m_particleRadiusComponent (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   particleRadiusComponent = "";
 
   /** m_reflectionNoise (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   reflectionNoise = 0;
 
   /** m_particleRadiusCoefficient (Vector4) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec4
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec4
   particleRadiusCoefficient = vec4.fromValues(1, 0, 0, 0);
 
   /**
    * Normalises the constraint plane and propagates the thread-safe flag to the on-collision emitters.
    */
-  @impl.implemented
+  @meta.implemented
   Initialize()
   {
     this.#normalizePlane();
@@ -107,7 +107,7 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
   /**
    * Renormalises the cached plane whenever the plane property changes.
    */
-  @impl.implemented
+  @meta.implemented
   OnModified(propertyName)
   {
     if (propertyName === "plane")
@@ -118,8 +118,8 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
   }
 
   /** Disables multithreaded updates on emitters inserted outside loading. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnListModified(event, _key, _key2, value, list)
   {
     if (!(event & BLUELISTEVENT.BELIST_LOADING)
@@ -134,7 +134,7 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
   /**
    * Resolves the position, velocity and radius elements and binds the attached generators, marking the constraint valid only when all of them resolve.
    */
-  @impl.adapted
+  @meta.adapted
   Bind(particleSystem)
   {
     this.isValid = false;
@@ -163,7 +163,7 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
   /**
    * Pushes particles that crossed the plane back to its surface, reflects their velocity with elasticity, friction and noise, and fires the generators and on-collision emitters.
    */
-  @impl.adapted
+  @meta.adapted
   ApplyConstraint(_buffers, _strides, count)
   {
     if (!this.isValid)

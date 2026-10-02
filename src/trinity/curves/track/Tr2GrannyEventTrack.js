@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Curves/Tr2GrannyEventTrack.h
 // Source: trinity/trinity/Curves/Tr2GrannyEventTrack.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
 import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
 
@@ -9,14 +9,14 @@ import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
  * Granny track that replays a text track's timed entries as engine events,
  * firing each entry once as the playhead crosses it.
  */
-@type.define({
+@meta.define({
   className: "Tr2GrannyEventTrack",
   family: "curves"
 })
 export class Tr2GrannyEventTrack extends Tr2GrannyTrack
 {
-  @edit.readwrite
-  @type.objectRef("IBlueEventListener")
+  @meta.blue.readwrite
+  @meta.type.objectRef("IBlueEventListener")
   eventListener = null;
 
   #entries = null;
@@ -28,8 +28,8 @@ export class Tr2GrannyEventTrack extends Tr2GrannyTrack
   /**
    * Checks whether event track handles are ready.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   TracksReady()
   {
     return this.#entries !== null;
@@ -38,8 +38,8 @@ export class Tr2GrannyEventTrack extends Tr2GrannyTrack
   /**
    * Clears event track handles.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ResetTracks()
   {
     this.#entries = null;
@@ -50,8 +50,8 @@ export class Tr2GrannyEventTrack extends Tr2GrannyTrack
   /**
    * Applies event track handles.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   ApplyTracks(group, duration, _timeStep)
   {
     const track = CjsGrannyCurves.findTextTrack(group, this.name);
@@ -68,8 +68,8 @@ export class Tr2GrannyEventTrack extends Tr2GrannyTrack
   /**
    * Emits resource events when available.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateValueImpl(time)
   {
     const entries = this.#entries;

@@ -36,7 +36,7 @@
 // match only when both are empty - two distinct containers' bytes match in
 // Carbon only then.
 import * as CcpLog from "../logging/ccpLog.js";
-import { CjsSchema, carbon, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { cloneCarbonValue, coerceCarbonMathInto, coerceCarbonTypedArrayInto } from "../schema/types/index.js";
 import { ICopier } from "./ICopier.js";
 import { mappedInterfaces } from "../compose/interface.js";
@@ -447,10 +447,10 @@ CjsSchema.define(Copier, {
   family: "blue",
   fields: {},
   methods: {
-    SetCopyOverrideCallback: [ carbon.method, impl.adapted ],
-    SetPostCopyCallback: [ carbon.method, impl.adapted ],
-    CopyTo: [ carbon.method, impl.adapted ],
-    CloneTo: [ carbon.method, impl.adapted ],
-    _CopyToInternal: [ impl.adapted ]
+    SetCopyOverrideCallback: [ meta.blue.method, meta.adapted ],
+    SetPostCopyCallback: [ meta.blue.method, meta.adapted ],
+    CopyTo: [ meta.blue.method, meta.adapted ],
+    CloneTo: [ meta.blue.method, meta.adapted ],
+    _CopyToInternal: [ meta.adapted ]
   }
 });

@@ -4,7 +4,7 @@ import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveHazeSet.cpp
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
-import { carbon, edit, impl, type } from "#schema";
+import { meta } from "#schema";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveHazeSetLight } from "./EveHazeSetLight.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
@@ -41,33 +41,33 @@ const BOX_INDICES = [ [ 0, 1, 2, 3 ], [ 7, 6, 5, 4 ], [ 0, 4, 5, 1 ], [ 3, 2, 6,
  * A hull's authored haze volumes, owning their per-bone bounds and the point
  * lights the haze emits.
  */
-@type.define({ className: "EveHazeSet", family: "eve/attachment/haze" })
-@carbon.inherit(IInitialize)
+@meta.define({ className: "EveHazeSet", family: "eve/attachment/haze" })
+@meta.blue.inherit(IInitialize)
 export class EveHazeSet extends IEveSpaceObjectAttachment
 {
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2Effect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2Effect")
   effect = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   display = true;
 
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
-  @edit.read
-  @edit.persist
-  @type.list("EveHazeSetItem")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveHazeSetItem")
   hazes = [];
 
-  @edit.persist
-  @type.list("EveHazeSetLight")
+  @meta.blue.persist
+  @meta.type.list("EveHazeSetLight")
   lights = [];
 
   _rebuildRevision = 0;
@@ -108,16 +108,16 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   }
 
   /** Sets the effect that draws the haze volumes. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Setup(effect)
   {
     this.effect = effect ?? null;
   }
 
   /** Carbon Initialize (cpp:77-82): the device half, then the bounds. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     this.PrepareResources();
@@ -129,8 +129,8 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * Carbon Rebuild (cpp:298-303): release and prepare the device half again,
    * then the bounds.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Rebuild()
   {
     this._rebuildRevision++;
@@ -145,8 +145,8 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * Adapted: Tr2SuballocatedBuffer has no Free, so the allocation is dropped
    * rather than returned, as EveBoosterSet2 does.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   ReleaseResources(_storage)
   {
     this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
@@ -154,8 +154,8 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources: creation only when the device allows it. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PrepareResources()
   {
     return Tr2Renderer.IsResourceCreationAllowed() ? this.OnPrepareResources() : true;
@@ -168,8 +168,8 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * index and bone index - into the shared buffer, and quad-list indices for
    * all of them.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnPrepareResources()
   {
     this._cachedTransforms = [];
@@ -231,8 +231,8 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * Carbon GetBatches (cpp:254-292): one additive batch of all the boxes,
    * indexed as quads, never in a reflection.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBatches(accumulator, batchType, perObjectData, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE || !this._vertexBuffer || reason === Tr2RenderReason.TR2RENDERREASON_REFLECTION) return;
@@ -257,8 +257,8 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * Carbon CreateBoundingBox (EveHazeSet.cpp:245-248): one delegation to the
    * shared item-set helper, always skinned.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   CreateBoundingBox()
   {
     CreateItemSetBoundingBoxes(this._staticBounds, this._boneBounds, true, this.hazes);
@@ -267,8 +267,8 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   /** Carbon EveHazeSet::UpdateVisibility (cpp:208-218). Unlike the other sets
    * this one has no GetAabb of its own and never gates the bone count, because
    * its bounds are always built skinned. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
   {
     const aabb = GetItemSetAabb(
@@ -291,8 +291,8 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * Appends an authored haze item; the bounds only pick it up on the next
    * Rebuild.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddHazeItem(item)
   {
     this.hazes.push(item);
@@ -302,8 +302,8 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * Sets a shader option on the haze effect, doing nothing when no effect that
    * accepts options is attached.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetShaderOption(name, value)
   {
     if (this.effect && typeof this.effect.SetOption === "function")
@@ -316,8 +316,8 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * Converts a SOF-authored light description into an EveHazeSetLight and
    * appends it to the set.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   AddLightFromSOF(light)
   {
     this.lights.push(EveHazeSetLight.FromSOF(light));
@@ -325,8 +325,8 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
 
   /** Carbon EveHazeSet::RegisterComponents (cpp:394-401): LightOwner when
    * lights are authored. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -341,8 +341,8 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * column zeroed, [15] = 1; boneMatrix *= parentTransform - Carbon
    * row-vector, bone FIRST: gl operands SWAP; else copy the parent). Stamps
    * BOTH activationStrength and boosterGain (cpp:237-238). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateLights(parentTransform, bones, boneCount, activationStrength, boosterGain = 0)
   {
     for (const light of this.lights)
@@ -371,9 +371,9 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * INSIDE the loop (cpp:409) because boosterGainInfluence lights multiply
    * it by the booster gain (cpp:410-413); point conversion on the bone
    * matrix; no blink/fade, no gates. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Profile-index packing is by-reference per lightConversion.js conventions.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Profile-index packing is by-reference per lightConversion.js conventions.")
   GetLights(lightManager)
   {
     const features = EveHazeSet._features;
@@ -406,4 +406,4 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
 }
 
 // EveHazeSet_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
-carbon.interfaceTable({ interfaces: [EveHazeSet, IInitialize, IEveSpaceObjectAttachment, EveEntity], chainTo: null })(EveHazeSet, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveHazeSet, IInitialize, IEveSpaceObjectAttachment, EveEntity], chainTo: null })(EveHazeSet, { kind: "class" });

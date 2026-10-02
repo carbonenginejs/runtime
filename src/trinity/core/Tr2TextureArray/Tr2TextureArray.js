@@ -1,45 +1,45 @@
 // Source: trinity/trinity/Tr2TextureArray.h
 //   trinity/trinity/Tr2TextureArray.cpp
 
-import { type } from "#schema";
+import { meta } from "#schema";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { BitmapDimensions, HostBitmap } from "#imageio";
 import { Tr2TextureArrayElement } from "./Tr2TextureArrayElement.js";
 import "#blue/registerTrinityEnums";
 
 /** Describes a texture array's elements, dimensions, resource usage, upload increment, backing texture, and change callback. */
-@type.define({ className: "Tr2TextureArray", family: "trinityCore", purpose: "Describes a texture array's elements, dimensions, resource usage, upload increment, backing texture, and change callback." })
+@meta.define({ className: "Tr2TextureArray", family: "trinityCore", purpose: "Describes a texture array's elements, dimensions, resource usage, upload increment, backing texture, and change callback." })
 export class Tr2TextureArray
 {
 
     /** m_elements (std::vector<ImageIO::HostBitmap>) */
-    @type.list("ImageIO::HostBitmap")
+    @meta.type.list("ImageIO::HostBitmap")
     elements = [];
 
     /** m_texture (Tr2TextureAL) */
-    @type.rawStruct("Tr2TextureAL")
+    @meta.type.rawStruct("Tr2TextureAL")
     texture = null;
 
     /** m_dimensions (Tr2BitmapDimensions) */
-    @type.rawStruct("Tr2BitmapDimensions")
+    @meta.type.rawStruct("Tr2BitmapDimensions")
     dimensions = null;
 
     /** m_onTextureChange (OnTextureChangeEvent) */
-    @type.rawStruct("OnTextureChangeEvent")
+    @meta.type.rawStruct("OnTextureChangeEvent")
     onTextureChange = null;
 
     /** m_increment (uint32_t) */
-    @type.uint32
+    @meta.type.uint32
     increment = 16;
 
     /** m_cpuUsage (Tr2CpuUsage::Type - enum Tr2CpuUsage) */
-    @type.int32
-    @type.enum("trinity.Tr2CpuUsage")
+    @meta.type.int32
+    @meta.type.enum("trinity.Tr2CpuUsage")
     cpuUsage = 0;
 
     /** m_gpuUsage (Tr2GpuUsage::Type - enum Tr2GpuUsage) */
-    @type.int32
-    @type.enum("trinity.Tr2GpuUsage")
+    @meta.type.int32
+    @meta.type.enum("trinity.Tr2GpuUsage")
     gpuUsage = 16;
 
 

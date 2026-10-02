@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepPushDepthStencil.h
 // Source: trinity/trinity/RenderJob/TriStepPushDepthStencil.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 
@@ -9,15 +9,15 @@ import { TriRenderJob } from "../TriRenderJob.js";
  * Step that pushes either a named depth-stencil or the currently bound one onto
  * the render context's depth-stencil stack.
  */
-@type.define({ className: "TriStepPushDepthStencil", family: "renderJob" })
+@meta.define({ className: "TriStepPushDepthStencil", family: "renderJob" })
 export class TriStepPushDepthStencil extends TriRenderStep
 {
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   pushCurrent = false;
 
-  @edit.readwrite
-  @type.objectRef("Tr2DepthStencil")
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2DepthStencil")
   depthStencil = null;
 
   /**
@@ -25,8 +25,8 @@ export class TriStepPushDepthStencil extends TriRenderStep
    * whatever is bound at execution time; passing an argument - including null -
    * pushes that value instead.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   __init__(depthStencil)
   {
     this.pushCurrent = arguments.length === 0;
@@ -38,8 +38,8 @@ export class TriStepPushDepthStencil extends TriRenderStep
    * an explicit false from the render context is RS_FAILED. Every push needs a
    * matching pop in the same job or the job's stack guard unwinds it.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     const accepted = renderContext.GetEffectStateManager().PushDepthStencilBuffer(this.pushCurrent ? undefined : this.depthStencil);

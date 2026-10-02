@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:80-91
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.js";
 
 /** Chooses a faction color and four material names for an area and supports assignment and override composition.
@@ -35,9 +35,9 @@ export class EveSOFDataAreaMaterial
    * (std::string).
    * @type {string}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   material1 = "";
 
   /**
@@ -45,9 +45,9 @@ export class EveSOFDataAreaMaterial
    * (std::string).
    * @type {string}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   material2 = "";
 
   /**
@@ -55,9 +55,9 @@ export class EveSOFDataAreaMaterial
    * (std::string).
    * @type {string}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   material3 = "";
 
   /**
@@ -65,9 +65,9 @@ export class EveSOFDataAreaMaterial
    * (std::string).
    * @type {string}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   material4 = "";
 
   /**
@@ -75,10 +75,10 @@ export class EveSOFDataAreaMaterial
    * (SOFDataFactionColorChooser.ColorType), defaulting to TYPE_HULL.
    * @type {number}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.int32
-  @types.enum("trinity.SOFDataFactionColorChooser.ColorType")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.SOFDataFactionColorChooser.ColorType")
   colorType = 12;
 
   /**
@@ -88,7 +88,7 @@ export class EveSOFDataAreaMaterial
    * @param {object} [out={}] Destination area descriptor.
    * @returns {object} The destination descriptor.
    */
-  @meta.impl.custom
+  @meta.ours
   Assign(out = {})
   {
     out.colorType = this.colorType;
@@ -108,7 +108,7 @@ export class EveSOFDataAreaMaterial
    * @param {EveSOFDataAreaMaterial|null} [out=null] Reused destination.
    * @returns {EveSOFDataAreaMaterial|null} The combined record or null.
    */
-  @meta.impl.custom
+  @meta.ours
   static combine(base, overrides, out = null)
   {
     if (!base) return null;
@@ -130,7 +130,7 @@ function selectValue(base, overrides, name)
     return value !== null && value !== undefined && value !== "" ? value : base[name];
 }
 
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ EveSOFDataAreaMaterial ],
   chainTo: null
 })(EveSOFDataAreaMaterial);

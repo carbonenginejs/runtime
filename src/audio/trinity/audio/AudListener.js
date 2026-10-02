@@ -1,5 +1,5 @@
 // Source: audio/src/AudListener.h + AudListener.cpp
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 import { LISTENER_GAME_OBJ_ID } from "./SoundPrioritization.js";
@@ -7,7 +7,7 @@ import { LISTENER_GAME_OBJ_ID } from "./SoundPrioritization.js";
 const FLOAT_MAX = 3.4028234663852886e38;
 
 /** Represents the singleton Carbon listener and its effective orientation and position. Its id is fixed at 4 and prioritization never culls it. */
-@type.define({ className: "AudListener", family: "audio" })
+@meta.define({ className: "AudListener", family: "audio" })
 export class AudListener extends AudGameObjResource
 {
 
@@ -41,8 +41,8 @@ export class AudListener extends AudGameObjResource
    * @param {ArrayLike<number>} position Listener position.
    * @returns {number} The placement result.
    */
-  @carbon.renamed("SetPosition")
-  @impl.implemented
+  @meta.blue.renamed("SetPosition")
+  @meta.implemented
   SetPosition(front, top, position)
   {
     return this.SetPlacementFromParent(front, top, position);
@@ -62,8 +62,8 @@ export class AudListener extends AudGameObjResource
    * @param {ArrayLike<number>} positionValue Listener position.
    * @returns {number} AK_Success (1).
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetPlacementFromParent(front, top, positionValue)
   {
     AudGameObjResource.Orthonormalize(
@@ -97,7 +97,7 @@ export class AudListener extends AudGameObjResource
    *
    * @returns {boolean} True when submitted; false when unsupported or already submitted to this backend.
    */
-  @impl.custom
+  @meta.ours
   RealizePlacement()
   {
     const backend = AudGameObjResource.backend;

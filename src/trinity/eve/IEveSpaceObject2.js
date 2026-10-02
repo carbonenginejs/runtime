@@ -16,7 +16,7 @@
 //   (the English spellings): the stretch family defines those as its own
 //   forwarding surface, probed with `typeof`, and a stub would flip the probe.
 
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { vec3 } from "#math/vec3";
 
 
@@ -213,5 +213,5 @@ export class IEveSpaceObject2
 }
 
 
-for (const name of SPACE_OBJECT_DEFAULTS) CjsSchema.decorateMethod(IEveSpaceObject2, name, impl.implemented);
+for (const name of SPACE_OBJECT_DEFAULTS) CjsSchema.decorateMethod(IEveSpaceObject2, name, meta.implemented);
 CjsSchema.define(IEveSpaceObject2, { className: "IEveSpaceObject2" });

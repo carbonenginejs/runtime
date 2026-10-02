@@ -1,26 +1,26 @@
 // Source: trinity/trinity/Tr2Model.h
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 
 /** Named character model record grouping its Trinity mesh objects. */
-@type.define({ className: "Tr2Model", family: "trinityCore" })
+@meta.define({ className: "Tr2Model", family: "trinityCore" })
 export class Tr2Model
 {
 
   /** m_meshes (PTr2MeshVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("Tr2Mesh")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2Mesh")
   meshes = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** Carbon method GetBoundingBoxInLocalSpace (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   GetBoundingBoxInLocalSpace(...args)
   {
     throw new Error("Tr2Model.GetBoundingBoxInLocalSpace is not implemented in CarbonEngineJS.");
@@ -28,4 +28,4 @@ export class Tr2Model
 
 }
 
-carbon.interfaceTable({ interfaces: [Tr2Model], chainTo: null })(Tr2Model, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [Tr2Model], chainTo: null })(Tr2Model, { kind: "class" });

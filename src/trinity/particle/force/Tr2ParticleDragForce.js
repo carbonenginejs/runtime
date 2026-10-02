@@ -3,24 +3,24 @@
 // Source: trinity/trinity/Particle/Tr2ParticleDragForce_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { ITr2ParticleForce } from "./ITr2ParticleForce.js";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 
 
 /** Linear particle drag: a force proportional to velocity and opposing it. */
-@type.define({
+@meta.define({
   className: "Tr2ParticleDragForce",
   family: "particle"
 })
 export class Tr2ParticleDragForce extends ITr2ParticleForce
 {
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   drag = 0.1;
 
   /** Carbon's drag force is proportional and opposite to velocity. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetForce(_position, velocity, _dt, _mass, out = vec3.create())
   {
     return vec3.scale(out, velocity, -this.drag);
@@ -30,8 +30,8 @@ export class Tr2ParticleDragForce extends ITr2ParticleForce
    * Nothing to advance per frame: drag is computed from each particle's current
    * velocity.
    */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   Update(_dt)
   {
   }

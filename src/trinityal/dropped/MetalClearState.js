@@ -10,47 +10,47 @@
 // CjsWebgpuRenderContextAL reads `loadOp === "clear"` back out. A separate
 // state object holding them for the whole pass would be a second source of
 // truth for something the descriptor already owns.
-import { type } from "#schema";
+import { meta } from "#schema";
 
 /** Carbon's per-pass load/store/clear state; dropped because WebGPU carries the same fields on each attachment. */
-@type.define({ className: "MetalClearState", carbon: "MetalClearState", family: "trinityal" })
+@meta.define({ className: "MetalClearState", carbon: "MetalClearState", family: "trinityal" })
 export class MetalClearState
 {
 
   /** colorLoadAction[METAL_MAX_RENDER_TARGETS] (MTLLoadAction) */
-  @type.unknown
+  @meta.type.unknown
   colorLoadAction = null;
 
   /** colorStoreAction[METAL_MAX_RENDER_TARGETS] (MTLStoreAction) */
-  @type.unknown
+  @meta.type.unknown
   colorStoreAction = null;
 
   /** clearColorValue[METAL_MAX_RENDER_TARGETS] (MTLClearColor) */
-  @type.unknown
+  @meta.type.unknown
   clearColorValue = null;
 
   /** depthLoadAction (MTLLoadAction) */
-  @type.unknown
+  @meta.type.unknown
   depthLoadAction = null;
 
   /** depthStoreAction (MTLStoreAction) */
-  @type.unknown
+  @meta.type.unknown
   depthStoreAction = null;
 
   /** clearDepthValue (float) */
-  @type.float32
+  @meta.type.float32
   clearDepthValue = 1;
 
   /** stencilLoadAction (MTLLoadAction) */
-  @type.unknown
+  @meta.type.unknown
   stencilLoadAction = null;
 
   /** stencilStoreAction (MTLStoreAction) */
-  @type.unknown
+  @meta.type.unknown
   stencilStoreAction = null;
 
   /** clearStencilValue (uint32_t) */
-  @type.uint32
+  @meta.type.uint32
   clearStencilValue = 0;
 
 }

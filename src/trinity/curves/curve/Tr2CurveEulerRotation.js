@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveEulerRotation_Blue.cpp
 import { fromYawPitchRoll, quat } from "#math/quat";
 import { ITriQuaternionFunction, ITriFunction, ITriCurveLength } from "#blue";
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
 import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
 
@@ -16,36 +16,36 @@ import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
   className: "Tr2CurveEulerRotation",
   family: "curves"
 })
-@meta.carbon.inherit(ITriCurveLength)
+@meta.blue.inherit(ITriCurveLength)
 export class Tr2CurveEulerRotation extends ITriQuaternionFunction
 {
   /** Authored narrow-string name. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** Owned yaw component curve in radians. */
-  @meta.edit.read
-  @meta.edit.persist
-  @types.objectRef("Tr2CurveScalar")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2CurveScalar")
   yaw = new Tr2CurveScalar();
 
   /** Owned pitch component curve in radians. */
-  @meta.edit.read
-  @meta.edit.persist
-  @types.objectRef("Tr2CurveScalar")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2CurveScalar")
   pitch = new Tr2CurveScalar();
 
   /** Owned roll component curve in radians. */
-  @meta.edit.read
-  @meta.edit.persist
-  @types.objectRef("Tr2CurveScalar")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2CurveScalar")
   roll = new Tr2CurveScalar();
 
   /** Cached quaternion; exposed read-only without persistence. */
-  @meta.edit.read
-  @types.quat
+  @meta.blue.read
+  @meta.type.quat
   currentValue = quat.create();
 
   /**
@@ -54,8 +54,8 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @param {number} time Source time in seconds.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateValue(time)
   {
     const yaw = this.yaw.Update(time),
@@ -73,8 +73,8 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(time, out)
   {
     this.GetValueAt(time, this.currentValue);
@@ -90,8 +90,8 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValueAt(time, out)
   {
     return fromYawPitchRoll(out, this.yaw.GetValue(time), this.pitch.GetValue(time), this.roll.GetValue(time));
@@ -104,8 +104,8 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The unchanged output buffer.
    */
-  @meta.carbon.method
-  @meta.impl.noop
+  @meta.blue.method
+  @meta.noop
   GetValueDotAt(_time, out)
   {
     return out;
@@ -118,8 +118,8 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The unchanged output buffer.
    */
-  @meta.carbon.method
-  @meta.impl.noop
+  @meta.blue.method
+  @meta.noop
   GetValueDoubleDotAt(_time, out)
   {
     return out;
@@ -130,8 +130,8 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    *
    * @returns {number} Duration in seconds.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Length()
   {
     return Math.max(this.yaw.Length(), this.pitch.Length(), this.roll.Length());
@@ -145,8 +145,8 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValue(time, out)
   {
     return this.GetValueAt(time, out);
@@ -166,8 +166,8 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @param {number} [tangentType=Tr2CurveTangentType.AUTO_CLAMP] Tangent policy.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   AddKey(time, value, interpolation = Tr2CurveInterpolation.HERMITE, leftTangent, rightTangent, tangentType = Tr2CurveTangentType.AUTO_CLAMP)
   {
     const useRightTangent = !!leftTangent && !!rightTangent;
@@ -182,8 +182,8 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @param {number} extrapolation Native extrapolation enum value.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetExtrapolation(extrapolation)
   {
     this.yaw.SetExtrapolation(extrapolation);
@@ -193,7 +193,7 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
 }
 
 // Native exposure ends at this concrete table; no inherited query-chain fallback.
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ Tr2CurveEulerRotation, ITriQuaternionFunction, ITriFunction, ITriCurveLength ],
   chainTo: null
 })(Tr2CurveEulerRotation);

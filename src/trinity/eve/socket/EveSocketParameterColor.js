@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Hand-authored following the eve/socket generated pattern (SOCKET_PARAM_DECLARE macro family).
 import { vec4 } from "#math/vec4";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.js";
 
 /**
@@ -9,14 +9,14 @@ import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.j
  * preserving defaults by copy for restoration. Carbon's Color is four floats;
  * the JavaScript runtime carries it as a vec4 like its other color values.
  */
-@type.define({ className: "EveSocketParameterColor", family: "eve/socket" })
+@meta.define({ className: "EveSocketParameterColor", family: "eve/socket" })
 export class EveSocketParameterColor extends EveSocketParameterBindingBase
 {
 
   /** m_value (Color) */
-  @edit.readwrite
-  @edit.persist
-  @type.vec4
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec4
   value = vec4.create();
 
   /** m_defaults - one default captured per bound external parameter. */
@@ -26,8 +26,8 @@ export class EveSocketParameterColor extends EveSocketParameterBindingBase
    * Discards the captured defaults along with the bindings, so nothing can be
    * restored afterwards.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ClearBindings()
   {
     this._defaults.length = 0;
@@ -35,8 +35,8 @@ export class EveSocketParameterColor extends EveSocketParameterBindingBase
   }
 
   /** Restores every binding's default and copies it out, then clears. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Reset()
   {
     for (let index = 0; index < this.bindings.length; index++)
@@ -75,8 +75,8 @@ export class EveSocketParameterColor extends EveSocketParameterBindingBase
    * Restores the first captured default into the existing value vector, or
    * zeroes it when nothing was captured.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetValueToDefault()
   {
     if (this._defaults.length)

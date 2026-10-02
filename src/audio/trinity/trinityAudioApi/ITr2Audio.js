@@ -13,7 +13,7 @@ export class ITr2Audio
 
 for (const method of [ "Update", "FindEmitterByName" ])
 {
-  CjsSchema.decorateMethod(ITr2Audio, method, meta.compose.abstract, meta.impl.abstract);
+  CjsSchema.decorateMethod(ITr2Audio, method, meta.requires, meta.abstract);
 }
 CjsSchema.define(ITr2Audio, {
   className: "ITr2Audio", carbon: "ITr2Audio", family: "trinityAudioApi", fields: {}

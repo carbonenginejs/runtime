@@ -9,31 +9,31 @@
 //
 // The four uint32 masks and the textureTypes array below are what that
 // vocabulary replaces, kept here so the correspondence is checkable.
-import { type } from "#schema";
+import { meta } from "#schema";
 
 /** Carbon's per-stage bind masks; dropped because WebGPU resolves binding validity in the bind group layout. */
-@type.define({ className: "ShaderResourceMask", carbon: "ShaderResourceMask", family: "trinityal" })
+@meta.define({ className: "ShaderResourceMask", carbon: "ShaderResourceMask", family: "trinityal" })
 export class ShaderResourceMask
 {
 
   /** constantBufferMask (uint32_t) */
-  @type.uint32
+  @meta.type.uint32
   constantBufferMask = 0;
 
   /** bufferMask (uint32_t) */
-  @type.uint32
+  @meta.type.uint32
   bufferMask = 0;
 
   /** textureMask (uint32_t) */
-  @type.uint32
+  @meta.type.uint32
   textureMask = 0;
 
   /** samplerMask (uint32_t) */
-  @type.uint32
+  @meta.type.uint32
   samplerMask = 0;
 
   /** textureTypes[METAL_MAX_BOUND_TEXTURES] (uint8_t) */
-  @type.unknown
+  @meta.type.unknown
   textureTypes = null;
 
   /** Clears the four bind masks; textureTypes is left alone, as in Carbon. */

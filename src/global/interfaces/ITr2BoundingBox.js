@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Include/ITr2BoundingBox.h
-import { CjsSchema, impl } from "../schema/index.js";
+import { CjsSchema, meta } from "../schema/index.js";
 
 
 /**
@@ -21,6 +21,6 @@ export class ITr2BoundingBox
     }
 }
 
-CjsSchema.decorateMethod(ITr2BoundingBox, "GetWorldBoundingBox", impl.abstract);
-CjsSchema.decorateMethod(ITr2BoundingBox, "IsBoundingBoxReady", impl.abstract);
+CjsSchema.decorateMethod(ITr2BoundingBox, "GetWorldBoundingBox", meta.abstract);
+CjsSchema.decorateMethod(ITr2BoundingBox, "IsBoundingBoxReady", meta.abstract);
 CjsSchema.define(ITr2BoundingBox, { className: "ITr2BoundingBox" });

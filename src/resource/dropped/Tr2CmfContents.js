@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Resources/Tr2CmfContent.h
 // Dropped reference shape. CjsCmfFormat replaces this native section-lifetime helper.
 // Verify fields against format-carbon resources/Tr2CmfContents.json.
-import { CjsSchema, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** Retained-only reference shape mirroring Carbon's native CMF section lifetime and decompression holder, superseded by `CjsCmfFormat`'s bounded section access and typed-array data. */
 export class Tr2CmfContents
@@ -21,8 +21,8 @@ export class Tr2CmfContents
 CjsSchema.define(Tr2CmfContents, {
   className: "Tr2CmfContents", family: "resources",
   fields: {
-    section: type.rawStruct("cmf::Section"),
-    data: type.rawStruct("uint8_t[]"),
-    sections: type.list("Section")
+    section: meta.type.rawStruct("cmf::Section"),
+    data: meta.type.rawStruct("uint8_t[]"),
+    sections: meta.type.list("Section")
   }
 });

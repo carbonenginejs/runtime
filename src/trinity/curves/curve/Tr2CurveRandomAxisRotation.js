@@ -4,7 +4,7 @@
 import { random } from "#math/random";
 import { fromYawPitchRoll, quat } from "#math/quat";
 import { ITriQuaternionFunction, ITriFunction, IInitialize } from "#blue";
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 
 
 /**
@@ -16,47 +16,47 @@ import { meta, types } from "#schema";
   className: "Tr2CurveRandomAxisRotation",
   family: "curves"
 })
-@meta.carbon.inherit(IInitialize)
+@meta.blue.inherit(IInitialize)
 export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
 {
   /** Authored narrow-string name. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** Full rotation period in seconds; zero disables the middle spin. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   period = 1;
 
   /** Native PERSISTONLY seed storage; readers bypass the live setter. */
   @meta.member("seed")
-  @meta.edit.persistOnly
-  @types.uint32
+  @meta.blue.persistOnly
+  @meta.type.uint32
   _seed = 0;
 
   /** Live Blue seed property, separate from persisted backing storage. */
   @meta.property()
-  @meta.edit.readwrite
-  @types.uint32
-  @meta.impl.implemented
+  @meta.blue.readwrite
+  @meta.type.uint32
+  @meta.implemented
   get seed()
   {
     return this.GetSeed();
   }
 
   /** @param {number} value New seed; every assignment rebuilds rotations. */
-  @meta.impl.implemented
+  @meta.implemented
   set seed(value)
   {
     this.SetSeed(value);
   }
 
   /** Cached quaternion; exposed read-only without persistence. */
-  @meta.edit.read
-  @types.quat
+  @meta.blue.read
+  @meta.type.quat
   currentValue = quat.create();
 
   /**
@@ -89,8 +89,8 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {number} time Source time in seconds.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateValue(time)
   {
     this.GetValueAt(time, this.currentValue);
@@ -105,8 +105,8 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(time, out)
   {
     this.UpdateValue(time);
@@ -122,8 +122,8 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValueAt(time, out)
   {
     return this.Evaluate(out, time);
@@ -136,8 +136,8 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The unchanged output buffer.
    */
-  @meta.carbon.method
-  @meta.impl.noop
+  @meta.blue.method
+  @meta.noop
   GetValueDotAt(_time, out)
   {
     return out;
@@ -150,8 +150,8 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The unchanged output buffer.
    */
-  @meta.carbon.method
-  @meta.impl.noop
+  @meta.blue.method
+  @meta.noop
   GetValueDoubleDotAt(_time, out)
   {
     return out;
@@ -165,8 +165,8 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValue(time, out)
   {
     return this.GetValueAt(time, out);
@@ -183,7 +183,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {number} time Source time in seconds.
    * @returns {Float32Array|number[]} The same output buffer.
    */
-  @meta.impl.custom
+  @meta.ours
   Evaluate(out, time)
   {
     quat.copy(out, this.postRotation);
@@ -203,8 +203,8 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    *
    * @returns {boolean} True.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     if (this.seed !== 0)
@@ -219,8 +219,8 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    *
    * @returns {number} Unsigned 32-bit seed.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetSeed()
   {
     return this._seed;
@@ -234,8 +234,8 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {number} seed Unsigned 32-bit seed.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetSeed(seed)
   {
     this._seed = seed >>> 0;
@@ -250,8 +250,8 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    *
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SeedChanged()
   {
     const engine = this.seed !== 0 ? Tr2CurveRandomAxisRotation._makeMsvcDefaultRandomEngine(this.seed) : Math.random;
@@ -267,7 +267,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {Function} engine Existing unit-interval generator.
    * @returns {Float32Array|number[]} The same output buffer.
    */
-  @meta.impl.custom
+  @meta.ours
   static _buildCarbonRandomRotation(out, engine)
   {
     const roll = Tr2CurveRandomAxisRotation._randomAngle(engine);
@@ -284,7 +284,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {Function} engine Existing unit-interval generator.
    * @returns {number} Angle in radians.
    */
-  @meta.impl.adapted
+  @meta.adapted
   static _randomAngle(engine)
   {
     return engine() * Math.PI * 2;
@@ -297,7 +297,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {number} seed Unsigned 32-bit seed.
    * @returns {Function} Existing unit-interval generator.
    */
-  @meta.impl.custom
+  @meta.ours
   static _makeMsvcDefaultRandomEngine(seed)
   {
     const engine = random.mt19937(seed >>> 0);
@@ -306,7 +306,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
 }
 
 // Native exposure ends at this concrete table; no inherited query-chain fallback.
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ Tr2CurveRandomAxisRotation, ITriFunction, ITriQuaternionFunction ],
   chainTo: null
 })(Tr2CurveRandomAxisRotation);

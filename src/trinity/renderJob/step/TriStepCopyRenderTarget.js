@@ -1,7 +1,7 @@
 // Source: trinity/trinity/RenderJob/TriStepCopyRenderTarget.h
 // Source: trinity/trinity/RenderJob/TriStepCopyRenderTarget.cpp
 // Source: trinity/trinity/RenderJob/TriStepCopyRenderTarget_Blue.cpp
-import { CjsSchema, carbon, impl, edit, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { ALResult, Failed, Tr2TextureSubresource } from "#trinityal";
@@ -13,27 +13,27 @@ import { Tr2RenderTarget } from "../../core/device/Tr2RenderTarget.js";
  * Step describing a copy out of one render target into another render target or
  * into a texture resource, including the source and destination sub-rectangles.
  */
-@type.define({ className: "TriStepCopyRenderTarget", family: "renderJob" })
+@meta.define({ className: "TriStepCopyRenderTarget", family: "renderJob" })
 export class TriStepCopyRenderTarget extends TriRenderStep
 {
-  @edit.readwrite
-  @type.objectRef("Tr2RenderTarget")
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2RenderTarget")
   Destination = null;
 
-  @edit.readwrite
-  @type.objectRef("TriTextureRes")
+  @meta.blue.readwrite
+  @meta.type.objectRef("TriTextureRes")
   destinationTexture = null;
 
-  @edit.readwrite
-  @type.objectRef("Tr2RenderTarget")
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2RenderTarget")
   Source = null;
 
-  @edit.readwrite
-  @type.objectRef("TriViewport")
+  @meta.blue.readwrite
+  @meta.type.objectRef("TriViewport")
   sourceViewport = null;
 
-  @edit.readwrite
-  @type.objectRef("TriViewport")
+  @meta.blue.readwrite
+  @meta.type.objectRef("TriViewport")
   destinationViewport = null;
 
   /** Reads the destination render target under Carbon's lower-case accessor name. */
@@ -64,8 +64,8 @@ export class TriStepCopyRenderTarget extends TriRenderStep
    * Carbon PyInitLowLevel (TriStepCopyRenderTarget_Blue.cpp:14-70): the
    * destination is cast to a render target, else to a texture resource.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   __init__(destination = null, source = null, destinationViewport = null, sourceViewport = null)
   {
     if (destination)
@@ -90,8 +90,8 @@ export class TriStepCopyRenderTarget extends TriRenderStep
    * zero and trims the same amount off the copied region; a source viewport
    * with no extent copies nothing.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     const destinationRT = this.Destination;

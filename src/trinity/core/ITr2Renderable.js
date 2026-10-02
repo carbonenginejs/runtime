@@ -1,5 +1,5 @@
 // Source: trinity/trinity/ITr2Renderable.h
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /**
@@ -54,6 +54,6 @@ for (const method of [
   "GetPerObjectData"
 ])
 {
-  CjsSchema.decorateMethod(ITr2Renderable, method, impl.abstract);
+  CjsSchema.decorateMethod(ITr2Renderable, method, meta.abstract);
 }
 CjsSchema.define(ITr2Renderable, { className: "ITr2Renderable" });

@@ -2,19 +2,19 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierTranslateWithCamera.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierTranslateWithCamera_Blue.cpp
 import { mat4 } from "#math/mat4";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 
 /**
  * Transform modifier that moves a child with the camera, either pinning its
  * translation to the view position or offsetting it by the view position.
  */
-@type.define({ className: "EveChildModifierTranslateWithCamera", family: "eve/child/modifiers" })
+@meta.define({ className: "EveChildModifierTranslateWithCamera", family: "eve/child/modifiers" })
 export class EveChildModifierTranslateWithCamera extends IEveChildTransformModifier
 {
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   attachedToCamera = false;
 
   /**
@@ -29,9 +29,9 @@ export class EveChildModifierTranslateWithCamera extends IEveChildTransformModif
    * @param {Float32Array} out - caller-owned; receives the result
    * @returns {Float32Array} out
    */
-  @carbon.method
-  @carbon.contextual(["camera"])
-  @impl.implemented
+  @meta.blue.method
+  @meta.blue.contextual(["camera"])
+  @meta.implemented
   ApplyTransform(context, transform, _boneCount = 0, _bones = null, out)
   {
     mat4.copy(out, transform);

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Schema: format-carbon resources/TriRtGeometryConstants.json; maintained by the runtime resource layer.
-import { CjsSchema, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** Data record mirroring Carbon's ray-tracing geometry constants: index/vertex buffer ids and strides plus attribute offsets and types. */
 export class TriRtGeometryConstants
@@ -71,25 +71,25 @@ export class TriRtGeometryConstants
 CjsSchema.define(TriRtGeometryConstants, {
   className: "TriRtGeometryConstants", family: "resources",
   fields: {
-    indexBufferId: type.uint32,
-    indexBufferStride: type.uint32,
-    indexOffset: type.uint32,
-    vertexBufferId: type.uint32,
-    vertexBufferStride: type.uint32,
-    positionOffset: type.uint32,
-    positionType: type.uint32,
-    normalOffset: type.uint32,
-    normalType: type.uint32,
-    tangentOffset: type.uint32,
-    tangentType: type.uint32,
-    bitangentOffset: type.uint32,
-    bitangentType: type.uint32,
-    texCoord0Offset: type.uint32,
-    texCoord0Type: type.uint32,
-    texCoord1Offset: type.uint32,
-    texCoord1Type: type.uint32,
-    texCoord2Offset: type.uint32,
-    texCoord2Type: type.uint32,
-    padding: type.uint32
+    indexBufferId: meta.type.uint32,
+    indexBufferStride: meta.type.uint32,
+    indexOffset: meta.type.uint32,
+    vertexBufferId: meta.type.uint32,
+    vertexBufferStride: meta.type.uint32,
+    positionOffset: meta.type.uint32,
+    positionType: meta.type.uint32,
+    normalOffset: meta.type.uint32,
+    normalType: meta.type.uint32,
+    tangentOffset: meta.type.uint32,
+    tangentType: meta.type.uint32,
+    bitangentOffset: meta.type.uint32,
+    bitangentType: meta.type.uint32,
+    texCoord0Offset: meta.type.uint32,
+    texCoord0Type: meta.type.uint32,
+    texCoord1Offset: meta.type.uint32,
+    texCoord1Type: meta.type.uint32,
+    texCoord2Offset: meta.type.uint32,
+    texCoord2Type: meta.type.uint32,
+    padding: meta.type.uint32
   }
 });

@@ -18,7 +18,7 @@
 // - ONE ELAPSED-TIME QUERY MAY BE ACTIVE AT A TIME, where timestamps nest
 //   freely; `Begin` while another timer is running answers false.
 
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -60,7 +60,7 @@ export class Tr2GpuTimerALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The primary context.
    * @returns {number} An `ALResult` value.
    */
-  @impl.adapted
+  @meta.adapted
   Create(renderContext)
   {
     this._Reset();
@@ -89,7 +89,7 @@ export class Tr2GpuTimerALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} _renderContext The context.
    * @returns {boolean} Whether timing started.
    */
-  @impl.adapted
+  @meta.adapted
   Begin(_renderContext)
   {
     if (!this._query || this._state !== READY) return false;
@@ -108,7 +108,7 @@ export class Tr2GpuTimerALWebgl2 extends Tr2DeviceResourceAL
    *
    * @param {object} _renderContext The context.
    */
-  @impl.adapted
+  @meta.adapted
   End(_renderContext)
   {
     if (!this._query || this._state !== BEGIN_ISSUED) return;
@@ -125,7 +125,7 @@ export class Tr2GpuTimerALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} _renderContext The context.
    * @returns {number} The time in seconds.
    */
-  @impl.adapted
+  @meta.adapted
   GetTime(_renderContext)
   {
     if (!this._query || this._state !== END_ISSUED) return this._lastTime;

@@ -1,4 +1,4 @@
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 
 /**
  * Final consumer/sampler binding to a resolved texture or composition target.
@@ -6,38 +6,38 @@ import { edit, type } from "#schema";
  * `consumerID` is opaque; the binding never carries a shader path or live
  * effect object.
  */
-@type.define({ className: "CjsCharacterAppearanceBinding", family: "character" })
+@meta.define({ className: "CjsCharacterAppearanceBinding", family: "character" })
 export class CjsCharacterAppearanceBinding
 {
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     consumerID = "";
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     sampler = "";
 
-    @edit.readwrite
-    @edit.persist
-    @type.unknown
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.unknown
     source = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.vec4
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.vec4
     sampleBounds = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.model("CjsCharacterBindingAlpha")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.model("CjsCharacterBindingAlpha")
     alpha = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.model("CjsCharacterOrigin")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.model("CjsCharacterOrigin")
     origin = null;
 
 }

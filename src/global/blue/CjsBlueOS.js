@@ -1,6 +1,6 @@
 // Source: blue/include/IBlueOS.h, blue/src/BlueOS.h and BlueOS.cpp.
 // Host-driven clock and tick pump; scheduler, IO and process services remain on the interface.
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { BeInfo } from "./BeInfo.js";
 import { IBlueEvents } from "./IBlueEvents.js";
 import { IBlueOS } from "./IBlueOS.js";
@@ -282,16 +282,16 @@ CjsSchema.define(CjsBlueOS, {
   carbon: "BlueOS",
   fields: {},
   methods: {
-    GetActualTime: [ impl.adapted ],
-    GetCurrentFrameTime: [ impl.adapted ],
-    PumpOS: [ impl.adapted ],
-    GetRealTime: [ impl.custom ],
-    GetInfo: [ impl.adapted ],
-    RegisterForTicks: [ impl.adapted ],
-    UnregisterForTicks: [ impl.adapted ],
-    IsRegisteredForTicks: [ impl.custom ],
-    RegisterForSimTimeRebase: [ impl.adapted ],
-    UnregisterForSimTimeRebase: [ impl.adapted ],
-    RunStackless: [ impl.adapted ]
+    GetActualTime: [ meta.adapted ],
+    GetCurrentFrameTime: [ meta.adapted ],
+    PumpOS: [ meta.adapted ],
+    GetRealTime: [ meta.ours ],
+    GetInfo: [ meta.adapted ],
+    RegisterForTicks: [ meta.adapted ],
+    UnregisterForTicks: [ meta.adapted ],
+    IsRegisteredForTicks: [ meta.ours ],
+    RegisterForSimTimeRebase: [ meta.adapted ],
+    UnregisterForSimTimeRebase: [ meta.adapted ],
+    RunStackless: [ meta.adapted ]
   }
 });

@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildExplosion.h
 //   trinity/trinity/Eve/SpaceObject/Children/EveChildExplosion.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { CjsSchema, carbon, impl, edit, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { blue, ICopier } from "#blue";
 import { EveChildContainer } from "./EveChildContainer.js";
 import { EveEntity } from "../EveEntity.js";
@@ -13,7 +13,7 @@ import { vec3 } from "#math/vec3";
 import { Tr2SphereShapeAttributeGenerator } from "../../particle/attribute/Tr2SphereShapeAttributeGenerator.js";
 
 /** A container child that sequences and spawns local and global explosion instances over time from authored transforms and delays. */
-@type.define({ className: "EveChildExplosion", family: "eve/child" })
+@meta.define({ className: "EveChildExplosion", family: "eve/child" })
 export class EveChildExplosion extends EveChildContainer
 {
 
@@ -28,139 +28,139 @@ export class EveChildExplosion extends EveChildContainer
 
   _nextLocalExplosionTime = 0;
 
-  @type.array("mat4")
+  @meta.type.array("mat4")
   localExplosionTransforms = [];
 
-  @type.vec3
+  @meta.type.vec3
   globalExplosionOffset = vec3.create();
 
-  @type.list("IEveSpaceObjectChild")
+  @meta.type.list("IEveSpaceObjectChild")
   globalExplosionInstances = [];
 
   /** m_globalExplosionContainer (EveChildContainerPtr) [READ] */
-  @edit.read
-  @type.objectRef("EveChildContainer")
+  @meta.blue.read
+  @meta.type.objectRef("EveChildContainer")
   generatedGlobalExplosions = null;
 
   /** m_localExplosionScaling (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   localScaling = vec3.fromValues(1, 1, 1);
 
   /** m_globalExplosionScaling (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   globalScaling = vec3.fromValues(1, 1, 1);
 
   /** m_globalExplosion (IEveSpaceObjectChildPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("IEveSpaceObjectChild")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("IEveSpaceObjectChild")
   globalExplosion = null;
 
   /** m_localExplosion (IEveSpaceObjectChildPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("IEveSpaceObjectChild")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("IEveSpaceObjectChild")
   localExplosion = null;
 
   /** m_localExplosionShared (IEveSpaceObjectChildPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("IEveSpaceObjectChild")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("IEveSpaceObjectChild")
   localExplosionShared = null;
 
   /** m_globalExplosions (PIEveSpaceObjectChildVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("IEveSpaceObjectChild")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("IEveSpaceObjectChild")
   globalExplosions = [];
 
   /** m_localExplosionIntervalFactor (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   localExplosionIntervalFactor = 1;
 
   /** m_localExplosionDelay (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   localExplosionDelay = 0;
 
   /** m_globalExplosionDelay (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   globalExplosionDelay = 0;
 
   /** m_totalDuration (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   totalDuration = 0;
 
   /** m_globalDuration (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   globalDuration = 0;
 
   /** m_isPlaying (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   isPlaying = false;
 
   /** m_localExplosions (PIEveSpaceObjectChildVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("IEveSpaceObjectChild")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("IEveSpaceObjectChild")
   localExplosions = [];
 
   /** m_localExplosionInterval (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   localExplosionInterval = 1;
 
   /** m_globalExplosionTime (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   globalExplosionTime = 0;
 
   /** m_wreckSwitchTime (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   wreckSwitchTime = 0;
 
   /** m_wreckSwitchOffsetFromGlobalStart (float) [READWRITE] */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   wreckSwitchOffsetFromGlobalStart = 0;
 
   /** m_playTime (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   playTime = 0;
 
   /** m_localDuration (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   localDuration = 0;
 
   /** Carbon method SetLocalExplosionTransforms (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetLocalExplosionTransforms(transforms)
   {
     this.localExplosionTransforms = Array.from(transforms ?? [], transform => mat4.clone(transform));
   }
 
   /** Carbon method SetGlobalExplosionOffset (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetGlobalExplosionOffset(offset)
   {
     vec3.copy(this.globalExplosionOffset, offset);
@@ -171,8 +171,8 @@ export class EveChildExplosion extends EveChildContainer
 
   /** Carbon EveChildExplosion::RegisterComponents (cpp:45-48): base container
    * registration only. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterComponents()
   {
     super.RegisterComponents();
@@ -181,8 +181,8 @@ export class EveChildExplosion extends EveChildContainer
   /** Carbon EveChildExplosion::UnRegisterComponents (cpp:54-65): manually
    * un-registers the global explosion container (spawned outside m_objects,
    * JS field generatedGlobalExplosions), then the base container forwarding. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UnRegisterComponents()
   {
     if (this.generatedGlobalExplosions)
@@ -193,8 +193,8 @@ export class EveChildExplosion extends EveChildContainer
   }
 
   /** Carbon method Play (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Play()
   {
     this.Stop();
@@ -214,8 +214,8 @@ export class EveChildExplosion extends EveChildContainer
   }
 
   /** Carbon method Stop (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Stop()
   {
     this.objects.length = 0;
@@ -224,7 +224,7 @@ export class EveChildExplosion extends EveChildContainer
     this.generatedGlobalExplosions = null;
   }
 
-  @impl.adapted
+  @meta.adapted
   /**
    * Advances play time, spawns due local explosions and switches to wreck-only mode past the wreck-switch time, fires the global explosion batch once its countdown elapses, updates the children, and stops once the total duration passes.
    */
@@ -314,8 +314,8 @@ export class EveChildExplosion extends EveChildContainer
    * CjsSchema field table is that member table here, and list fields ARE the
    * IList arm (this runtime's containers are fields, not container objects).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   FindSharedObjects()
   {
     this._sharedObjects.clear();
@@ -360,8 +360,8 @@ export class EveChildExplosion extends EveChildContainer
    * void* context and writes an out-pointer; this is bound to the explosion
    * and returns `{ result, dest }`.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   CopyElement(source)
   {
     return this._sharedObjects.has(source)
@@ -429,7 +429,7 @@ export class EveChildExplosion extends EveChildContainer
 }
 
 // EveChildExplosion_Blue.cpp ends this concrete interface table without chaining its base.
-carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ EveChildExplosion, EveChildContainer, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild ],
   chainTo: null
 })(EveChildExplosion, { kind: "class" });

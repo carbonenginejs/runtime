@@ -7,7 +7,7 @@
 // uploaded whole as the bloom upsample constant buffer, so `byteSize` and
 // `pack` reproduce its C++ layout: Vector3 + uint32 in the first 16 bytes,
 // then MAX_FILTER_STEPS / 2 Vector4s.
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
@@ -24,7 +24,7 @@ const TRI_PI = Math.PI;
  * without persistence flags or query interfaces. Zero-filled storage is a JS
  * construction adapter; native fills the aggregate in its calculator function.
  */
-@type.define({ className: "GaussianData", family: "postProcess" })
+@meta.define({ className: "GaussianData", family: "postProcess" })
 export class GaussianData
 {
 
@@ -32,14 +32,14 @@ export class GaussianData
    * RGB multiplier for the blur output, held in this record's three-component buffer.
    * @type {Float32Array|Float64Array|number[]}
    */
-  @type.vec3
+  @meta.type.vec3
   overallWeight = vec3.create();
 
   /**
    * Number of active weightOffset entries; each encodes two [weight, offset] pairs.
    * @type {number}
    */
-  @type.uint32
+  @meta.type.uint32
   count = 0;
 
   /**
@@ -47,7 +47,7 @@ export class GaussianData
    * order. Weights are normalized; offsets use normalized texture coordinates.
    * @type {Array<Float32Array|Float64Array|number[]>}
    */
-  @type.array("vec4")
+  @meta.type.array("vec4")
   weightOffset = Array.from({ length: MAX_FILTER_STEPS / 2 }, () => vec4.create());
 
   /**
@@ -70,7 +70,7 @@ export class GaussianData
    * @param {Uint8Array} [out] Destination, at least `byteSize` long.
    * @returns {Uint8Array} `out`.
    */
-  @impl.custom
+  @meta.ours
   static pack(data, out = new Uint8Array(GaussianData.byteSize))
   {
     const view = new DataView(out.buffer, out.byteOffset, GaussianData.byteSize);
@@ -95,7 +95,7 @@ export class GaussianData
    * @param {number} weight The centre weight.
    * @returns {number} The tap weight.
    */
-  @impl.adapted
+  @meta.adapted
   static normalDistribution(x, sigma, weight)
   {
     const dx = Math.abs(x);
@@ -125,7 +125,7 @@ export class GaussianData
    *   keeps, so a pass allocates nothing. Its previous taps are overwritten.
    * @returns {GaussianData} `out`, filled.
    */
-  @impl.adapted
+  @meta.adapted
   static calculateGaussianPassParameters(radius, centerWeight, normalizingFactor, overallWeight, _direction, out = new GaussianData())
   {
     const clampedRadius = Math.min(Math.max(radius, 0.0001), MAX_FILTER_STEPS - 1);
@@ -187,4 +187,4 @@ export class GaussianData
 
 }
 
-carbon.interfaceTable({ interfaces: [], chainTo: null })(GaussianData);
+meta.blue.interfaceTable({ interfaces: [], chainTo: null })(GaussianData);

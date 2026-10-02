@@ -5,7 +5,7 @@
 import { TriBatchType } from "#consts/graphics";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { Tr2TransformModifier } from "../generated/trinityCore/enums.js";
 import { ITr2Renderable } from "./ITr2Renderable.js";
@@ -125,15 +125,15 @@ function carbonLookAt(out, eye, target, up, forward, right, realUp)
 }
 
 /** Common transform, curve, mesh, sorting, and camera-modifier behavior. */
-@type.define({ className: "Tr2Transform", family: "trinityCore" })
-@carbon.inherit(ITr2Renderable)
+@meta.define({ className: "Tr2Transform", family: "trinityCore" })
+@meta.blue.inherit(ITr2Renderable)
 export class Tr2Transform
 {
 
   /** Advances authored curve sets while update is enabled. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The active render context is threaded to context-dependent curve functions instead of read from a process-global renderer.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("The active render context is threaded to context-dependent curve functions instead of read from a process-global renderer.")
   Update(time, renderContext = null)
   {
     if (!this.update)
@@ -153,10 +153,10 @@ export class Tr2Transform
    * The render-context argument is the JavaScript replacement for
    * Carbon's Tr2Renderer globals; camera-dependent modes fail when it is absent.
   */
-  @carbon.method
-  @carbon.contextual(["camera"])
-  @impl.adapted
-  @impl.reason("Carbon renderer globals are supplied explicitly as the active render context; matrix products reverse for gl-matrix semantics.")
+  @meta.blue.method
+  @meta.blue.contextual(["camera"])
+  @meta.adapted
+  @meta.reason("Carbon renderer globals are supplied explicitly as the active render context; matrix products reverse for gl-matrix semantics.")
   UpdateViewDependentData(context, parentTransform = Tr2Transform.#identity)
   {
     const scratch = Tr2Transform.#scratch;
@@ -222,48 +222,48 @@ export class Tr2Transform
   }
 
   /** Copies a new authored scale into the stable schema vector. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetScaling(value)
   {
     vec3.copy(this.scaling, value);
   }
 
   /** Copies a new authored rotation into the stable schema quaternion. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetRotation(value)
   {
     quat.copy(this.rotation, value);
   }
 
   /** Copies a new authored translation into the stable schema vector. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetTranslation(value)
   {
     vec3.copy(this.translation, value);
   }
 
   /** Carbon's default ITr2Renderable visibility contract. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsVisible(_updateContext)
   {
     return true;
   }
 
   /** Abstract ITr2Renderable per-object-data obligation. */
-  @carbon.method
-  @impl.abstract
+  @meta.blue.method
+  @meta.abstract
   GetPerObjectData(..._args)
   {
     throw new Error("Tr2Transform.GetPerObjectData must be implemented by a scene-specific subclass.");
   }
 
   /** Returns whether the displayed mesh has transparent areas. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HasTransparentBatches()
   {
     return !!(
@@ -274,9 +274,9 @@ export class Tr2Transform
   }
 
   /** Delegates the requested area vector to the authored mesh. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Returns whether JavaScript mesh delegation committed a batch; Carbon's void method exposes no result.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Returns whether JavaScript mesh delegation committed a batch; Carbon's void method exposes no result.")
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (this.display && this.mesh)
@@ -291,10 +291,10 @@ export class Tr2Transform
   }
 
   /** Returns camera distance times the authored sort multiplier. */
-  @carbon.method
-  @carbon.contextual(["camera"])
-  @impl.adapted
-  @impl.reason("The active render context replaces Carbon's Tr2Renderer view-position global.")
+  @meta.blue.method
+  @meta.blue.contextual(["camera"])
+  @meta.adapted
+  @meta.reason("The active render context replaces Carbon's Tr2Renderer view-position global.")
   GetSortValue(context)
   {
     const viewPosition = context.GetViewPosition();
@@ -305,8 +305,8 @@ export class Tr2Transform
   }
 
   /** Returns the authored mesh reference. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetMesh()
   {
     return this.mesh;
@@ -462,95 +462,95 @@ export class Tr2Transform
   }
 
   /** m_modifier (Tr2TransformModifier - enum Tr2TransformModifier) [READWRITE, PERSIST, ENUM] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.Tr2TransformModifier")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2TransformModifier")
   modifier = Tr2TransformModifier.TR2TM_NONE;
 
   /** m_localTransform (Matrix) [READ] */
-  @edit.read
-  @type.mat4
+  @meta.blue.read
+  @meta.type.mat4
   localTransform = mat4.create();
 
   /** m_worldTransform (Matrix) [READ] */
-  @edit.read
-  @type.mat4
+  @meta.blue.read
+  @meta.type.mat4
   worldTransform = mat4.create();
 
   /** Protected Carbon motion-history state; not part of the Blue schema. */
   lastWorldTransform = mat4.create();
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.quat
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   rotation = quat.create();
 
   /** m_translation (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   translation = vec3.create();
 
   /** m_distanceBasedScaleArg1 (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   distanceBasedScaleArg1 = 0.2;
 
   /** m_distanceBasedScaleArg2 (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   distanceBasedScaleArg2 = 0.63;
 
   /** m_mesh (Tr2MeshBasePtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2MeshBase")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2MeshBase")
   mesh = null;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("TriCurveSet")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("TriCurveSet")
   curveSets = [];
 
   /** m_useDistanceBasedScale (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   useDistanceBasedScale = false;
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   display = true;
 
   /** m_update (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   update = true;
 
   /** m_sortValueMultiplier (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   sortValueMultiplier = 1;
 
   static Tr2TransformModifier = Tr2TransformModifier;

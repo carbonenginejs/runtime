@@ -5,56 +5,56 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 
 
 /**
  * One oriented box projected onto a hull that replaces a source material with a
  * chosen blend of target materials inside it.
  */
-@type.define({ className: "EveCustomMask", family: "eve/spaceObject" })
+@meta.define({ className: "EveCustomMask", family: "eve/spaceObject" })
 export class EveCustomMask
 {
   static CUSTOM_MASK_COUNT = 2;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   clampU = false;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   clampV = false;
 
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   position = vec3.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @edit.readwrite
-  @edit.persist
-  @type.quat
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   rotation = quat.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.uint8
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint8
   materialIndex = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   isMirrored = false;
 
-  @edit.readwrite
-  @edit.persist
-  @type.vec4
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec4
   targetMaterials = vec4.fromValues(1, 1, 1, 1);
 
   /**
@@ -62,8 +62,8 @@ export class EveCustomMask
    * and target material weights in one call, substituting neutral defaults for
    * any argument that is missing.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Setup(position, scaling, rotation, isMirrored, clampU, clampV, sourceMaterialID, targets)
   {
     vec3.copy(this.position, position || EveCustomMask._zero);
@@ -82,8 +82,8 @@ export class EveCustomMask
    * @param {Array} [out] - caller-owned mat4; a fresh matrix is allocated when omitted
    * @returns {Array} out
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetDebugDrawMatrix(out = mat4.create(), objectRadius = 0)
   {
     const radius = Number(objectRadius) || 0;
@@ -96,8 +96,8 @@ export class EveCustomMask
    * @param {Number} index - custom-mask slot, 0 or 1
    * @returns {Boolean} false for an out-of-range slot, a missing struct, or a placement that cannot be inverted
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   FillPerObjectData(index, vsData, psData)
   {
     if (!EveCustomMask._isValidSlot(index) || !vsData || !psData)
@@ -132,8 +132,8 @@ export class EveCustomMask
    * @param {Number} index - custom-mask slot, 0 or 1
    * @returns {Boolean} false for an out-of-range slot or a missing struct
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   static ZeroPerObjectData(index, vsData, psData)
   {
     if (!EveCustomMask._isValidSlot(index) || !vsData || !psData)

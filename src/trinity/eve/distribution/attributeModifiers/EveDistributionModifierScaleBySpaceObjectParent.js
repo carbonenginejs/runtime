@@ -1,36 +1,36 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionAttributeModifiers/EveDistributionModifierScaleBySpaceObjectParent.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveDistributionModifier } from "./IEveDistributionModifier.js";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 
 /** Multiplies a distributed placement's additional scale from its parent space object's bounding radius or an authored scale curve. */
-@type.define({ className: "EveDistributionModifierScaleBySpaceObjectParent", family: "eve/distribution/attributeModifiers" })
+@meta.define({ className: "EveDistributionModifierScaleBySpaceObjectParent", family: "eve/distribution/attributeModifiers" })
 export class EveDistributionModifierScaleBySpaceObjectParent extends IEveDistributionModifier
 {
 
   /** m_scaleFactor (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   scaleFactor = 1;
 
   /** m_authoredForBoundingRadius (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   authoredForBoundingRadius = 1000;
 
   /** m_scaleCurve (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("ITriVectorFunction")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("ITriVectorFunction")
   scaleCurve = null;
 
   /** Reports a transform effect whenever a non-zero scale factor is authored. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AffectsTransform()
   {
     return this.scaleFactor !== 0;
@@ -41,8 +41,8 @@ export class EveDistributionModifierScaleBySpaceObjectParent extends IEveDistrib
    *
    * @returns {number} Always DO_NOTHING; this modifier never ends an entity's life.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   ProcessDistributionModifier(placement, _deltaTime, params)
   {
     if (!params.spaceObjectParent)

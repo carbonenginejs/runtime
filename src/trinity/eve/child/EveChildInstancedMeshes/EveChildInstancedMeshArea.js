@@ -3,7 +3,7 @@
 //   JS. Our name drops the donor's plural, so it reads as though Carbon had an
 //   EveChildInstancedMesh type. It does not; renaming is blocked because SOF
 //   writes this className into DNA documents as a string.
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 
 
 /**
@@ -11,40 +11,40 @@ import { edit, type } from "#schema";
  * range within the mesh, its cached effect hash and the mesh-group handle it is
  * registered under.
  */
-@type.define({ className: "EveChildInstancedMeshArea", family: "eve/child" })
+@meta.define({ className: "EveChildInstancedMeshArea", family: "eve/child" })
 export class EveChildInstancedMeshArea
 {
 
-  @edit.persist
-  @type.objectRef("Tr2Effect")
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2Effect")
   effect = null;
 
-  @edit.persist
-  @type.uint32
+  @meta.blue.persist
+  @meta.type.uint32
   batchType = 0;
 
-  @edit.persist
-  @type.uint32
+  @meta.blue.persist
+  @meta.type.uint32
   areaIndex = 0;
 
-  @edit.persist
-  @type.uint32
+  @meta.blue.persist
+  @meta.type.uint32
   areaCount = 1;
 
   /** Carbon MeshArea::alphaCutout (h:78) - one-sided cutout areas are ignored
    * for backface classification when raycasting occluders. */
-  @edit.persist
-  @type.boolean
+  @meta.blue.persist
+  @meta.type.boolean
   alphaCutout = false;
 
   /** Carbon MeshArea::reversed (h:79) - winding-reversed areas flip the
    * backface test during occluder raycasts. */
-  @edit.persist
-  @type.boolean
+  @meta.blue.persist
+  @meta.type.boolean
   reversed = false;
 
-  @edit.read
-  @type.uint64
+  @meta.blue.read
+  @meta.type.uint64
   effectHash = 0;
 
   /** Carbon MeshArea::meshGroupHandle (EveChildInstancedMeshes.h:72) - an

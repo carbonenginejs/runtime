@@ -3,7 +3,7 @@
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 
 
@@ -33,46 +33,46 @@ import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
  * transforms, and the rules by which a child's world transform is derived from
  * its parent's each frame.
  */
-@type.define({
+@meta.define({
   className: "EveChildTransform",
   family: "eve/child"
 })
 export class EveChildTransform extends EveSpaceObjectChild
 {
-  @type.vec3
+  @meta.type.vec3
   translation = vec3.create();
 
-  @type.vec3
+  @meta.type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @type.quat
+  @meta.type.quat
   rotation = quat.create();
 
-  @type.mat4
+  @meta.type.mat4
   localTransform = mat4.create();
 
-  @edit.read
-  @type.mat4
+  @meta.blue.read
+  @meta.type.mat4
   worldTransform = mat4.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   staticTransform = false;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   useSRT = true;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   useStaticRotation = false;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   useStaticScale = false;
 
   /**
@@ -88,8 +88,8 @@ export class EveChildTransform extends EveSpaceObjectChild
    * staticTransform. Carbon returns Matrix by value; the org out-last
    * convention receives it.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ComputeLocalTransform(out = mat4.create())
   {
     if (this.staticTransform || !this.useSRT)
@@ -103,8 +103,8 @@ export class EveChildTransform extends EveSpaceObjectChild
    * Rebuilds the local matrix from scale, rotation, and translation when useSRT
    * is enabled, then returns it.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RebuildLocalTransform()
   {
     if (this.useSRT)

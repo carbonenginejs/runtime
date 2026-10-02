@@ -1,73 +1,73 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
 import { vec2 } from "#math/vec2";
 
 /** Groups plane items with usage, texture, atlas, visibility, and skinning policy. */
-@type.define({ className: "EveSOFDataHullPlaneSet", family: "eve" })
+@meta.define({ className: "EveSOFDataHullPlaneSet", family: "eve" })
 export class EveSOFDataHullPlaneSet
 {
 
   /** m_usage (Usage - enum Usage) [READWRITE, PERSIST, ENUM] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.EveSOFDataHullPlaneSet.Usage")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.EveSOFDataHullPlaneSet.Usage")
   usage = 0;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_layer1MapResPath (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   layer1MapResPath = "";
 
   /** m_layer2MapResPath (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   layer2MapResPath = "";
 
   /** m_maskMapResPath (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   maskMapResPath = "";
 
   /** m_skinned (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   skinned = false;
 
   /** m_atlasAspectRatio (Vector2) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec2
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec2
   atlasAspectRatio = vec2.fromValues(1, 1);
 
   /** m_visibilityGroup (BlueSharedString) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   visibilityGroup = "primary";
 
   /** m_atlasSize (uint32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   atlasSize = 1;
 
   /** m_items (PEveSOFDataHullPlaneSetItemVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataHullPlaneSetItem")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataHullPlaneSetItem")
   items = [];
 
   static Usage = Object.freeze({

@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Tr2RuntimeInstanceData_Blue.cpp
 import { ReadValues } from "../../../global/blue/values.js";
 import { vec3 } from "#math/vec3";
-import { carbon, edit, impl, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2ParticleElementDeclaration } from "../../particle/element/Tr2ParticleElementDeclaration.js";
 import { Tr2VertexUsageCode } from "../vertex/usageCode.js";
 import { ITr2InstanceDataInstanceData, ITr2InstanceData } from "./ITr2InstanceData/index.js";
@@ -14,13 +14,13 @@ import { ITr2InstanceDataInstanceData, ITr2InstanceData } from "./ITr2InstanceDa
  * per-instance rows and their bounding box - and can spawn the same rows into a
  * particle system on demand.
  */
-@type.define({ className: "Tr2RuntimeInstanceData", family: "trinityCore" })
-@carbon.inherit(ITr2InstanceData)
+@meta.define({ className: "Tr2RuntimeInstanceData", family: "trinityCore" })
+@meta.blue.inherit(ITr2InstanceData)
 export class Tr2RuntimeInstanceData
 {
   /** Reconstructs the JS-only persisted CPU layout/rows, absent from native Black data. */
-  @impl.custom
-  @impl.reason("The JS values format persists private layout/rows; its factory explicitly repacks them without inventing native IInitialize exposure.")
+  @meta.ours
+  @meta.reason("The JS values format persists private layout/rows; its factory explicitly repacks them without inventing native IInitialize exposure.")
   static from(values = {}, options = {})
   {
     const instance = new Tr2RuntimeInstanceData();
@@ -35,14 +35,14 @@ export class Tr2RuntimeInstanceData
     return instance;
   }
 
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2ParticleSystem")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2ParticleSystem")
   particleSystem = null;
 
   // DIVERGENCE (deliberate): Carbon only Blue-persists name/particleSystem and
@@ -53,37 +53,37 @@ export class Tr2RuntimeInstanceData
   // .black files never populate these fields.
 
 
-  @edit.notify
-  @edit.persist
-  @type.array("unknown")
+  @meta.blue.notify
+  @meta.blue.persist
+  @meta.type.array("unknown")
   layout = [];
 
 
-  @edit.notify
-  @edit.persist
-  @type.array("unknown")
+  @meta.blue.notify
+  @meta.blue.persist
+  @meta.type.array("unknown")
   rows = [];
 
-  @edit.persist
-  @type.boolean
+  @meta.blue.persist
+  @meta.type.boolean
   explicitBoundingBox = false;
 
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   count = 0;
 
   // PERSIST is ours, not Carbon's: SOF's JSON output carries this value, which Carbon sets in C++.
-  @impl.adapted
-  @edit.read
-  @edit.persist
-  @type.vec3
+  @meta.adapted
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.vec3
   aabbMin = vec3.create();
 
   // PERSIST is ours, not Carbon's: SOF's JSON output carries this value, which Carbon sets in C++.
-  @impl.adapted
-  @edit.read
-  @edit.persist
-  @type.vec3
+  @meta.adapted
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.vec3
   aabbMax = vec3.create();
 
   #layout = Object.freeze([]);
@@ -117,8 +117,8 @@ export class Tr2RuntimeInstanceData
    * Repacks the CPU buffer from the persisted layout and rows, then publishes
    * it.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Initialize()
   {
     this.#rebuildCpuData();
@@ -129,9 +129,9 @@ export class Tr2RuntimeInstanceData
   /**
    * Repacks persisted JS layout/rows; GPU publication remains explicit.
    */
-  @impl.custom
-  @impl.reason("JS persists layout and rows, unlike Carbon; edits repack CPU data while UpdateData owns GPU publication.")
-  @impl.invalidates("#dirty")
+  @meta.ours
+  @meta.reason("JS persists layout and rows, unlike Carbon; edits repack CPU data while UpdateData owns GPU publication.")
+  @meta.invalidates("#dirty")
   OnModified(propertyName)
   {
     if (propertyName === "layout" || propertyName === "rows")
@@ -145,9 +145,9 @@ export class Tr2RuntimeInstanceData
    * Replaces the element layout and discards every existing row - a layout must
    * be set before any SetData.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.invalidates("#dirty")
+  @meta.blue.method
+  @meta.adapted
+  @meta.invalidates("#dirty")
   SetElementLayout(layout)
   {
     this.#setElementLayout(layout);
@@ -158,9 +158,9 @@ export class Tr2RuntimeInstanceData
    * Replaces all instance rows and repacks the byte buffer; throws when no
    * layout has been set.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.invalidates("#dirty")
+  @meta.blue.method
+  @meta.adapted
+  @meta.invalidates("#dirty")
   SetData(rows)
   {
     this.#setData(rows);
@@ -170,8 +170,8 @@ export class Tr2RuntimeInstanceData
    * A detached copy of one instance row, with its component arrays cloned so the
    * caller cannot alias stored data.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetItem(index)
   {
     this.#assertItemIndex(index);
@@ -182,9 +182,9 @@ export class Tr2RuntimeInstanceData
    * Validates one instance row against the layout, stores it and rewrites its
    * bytes in place, marking the data dirty.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.invalidates("#dirty")
+  @meta.blue.method
+  @meta.adapted
+  @meta.invalidates("#dirty")
   SetItem(index, row)
   {
     this.#assertItemIndex(index);
@@ -195,8 +195,8 @@ export class Tr2RuntimeInstanceData
   }
 
   /** A detached copy of one element of one instance row. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetItemElement(index, elementIndex)
   {
     this.#assertItemIndex(index);
@@ -208,9 +208,9 @@ export class Tr2RuntimeInstanceData
    * Validates and stores a single element of one row, patching only that
    * element's bytes in the packed buffer.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.invalidates("#dirty")
+  @meta.blue.method
+  @meta.adapted
+  @meta.invalidates("#dirty")
   SetItemElement(index, elementIndex, value)
   {
     this.#assertItemIndex(index);
@@ -229,8 +229,8 @@ export class Tr2RuntimeInstanceData
    * Publishes pending changes by clearing the dirty flag and bumping the data
    * revision; returns false when nothing was dirty.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateData()
   {
     if (!this.#dirty)
@@ -248,8 +248,8 @@ export class Tr2RuntimeInstanceData
    * explicitly, and zeroes the box when there is no such element or no
    * instances.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateBoundingBox()
   {
     if (this.explicitBoundingBox)
@@ -286,8 +286,8 @@ export class Tr2RuntimeInstanceData
    * Sets the box explicitly from either a { min, max } object or two vectors,
    * and latches explicitBoundingBox so UpdateBoundingBox stops recomputing it.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetBoundingBox(bounds, maxBounds)
   {
     const min = maxBounds === undefined ? bounds?.min ?? bounds?.minBounds : bounds;
@@ -307,8 +307,8 @@ export class Tr2RuntimeInstanceData
    * @param {vec3} [maxBounds] Caller-owned destination for the maximum.
    * @returns {boolean|{min: vec3, max: vec3}} True when written into the out vectors, otherwise a new { min, max } pair.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBoundingBox(minBounds, maxBounds)
   {
     if (minBounds && maxBounds)
@@ -327,24 +327,24 @@ export class Tr2RuntimeInstanceData
    * The bounding box of the single CPU instance buffer; the buffer index is
    * ignored because only one stream exists.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetInstanceBufferBoundingBox(_bufferIndex = 0)
   {
     return this.GetBoundingBox();
   }
 
   /** Number of packed instance rows. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetCount()
   {
     return this.count;
   }
 
   /** Byte size of one packed row, summed from the element layout. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetStride()
   {
     return this.#stride;
@@ -354,8 +354,8 @@ export class Tr2RuntimeInstanceData
    * The frozen normalized element descriptors, each carrying usage, type,
    * component count, byte size and byte offset.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetLayout()
   {
     return this.#layout;
@@ -365,8 +365,8 @@ export class Tr2RuntimeInstanceData
    * A copy of the packed instance bytes, or null when no rows are set; the
    * caller owns the returned array.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetData()
   {
     return this.#data ? new Uint8Array(this.#data) : null;
@@ -378,9 +378,9 @@ export class Tr2RuntimeInstanceData
    * CarbonEngineJS, so Trinity reports whether a published layout and byte
    * payload are available for realization.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Physical vertex-declaration and buffer readiness belongs to the engine; Trinity reports published CPU layout/bytes.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Physical vertex-declaration and buffer readiness belongs to the engine; Trinity reports published CPU layout/bytes.")
   IsInstanceDataReady()
   {
     return this.#layout.length > 0 && this.#data !== null && !this.#dirty;
@@ -390,8 +390,8 @@ export class Tr2RuntimeInstanceData
    * Returns the published CPU byte buffer and its row geometry. The buffer is
    * borrowed, matching Carbon's borrowed AL buffer reference.
    */
-  @impl.adapted
-  @impl.reason("The CPU ArrayBuffer replaces Carbon's realized Tr2BufferAL; the selected engine uploads or aliases it.")
+  @meta.adapted
+  @meta.reason("The CPU ArrayBuffer replaces Carbon's realized Tr2BufferAL; the selected engine uploads or aliases it.")
   GetInstanceData(_bufferIndex = 0, _screenSize = 0)
   {
     this.#instanceData.buffer = this.#data;
@@ -402,8 +402,8 @@ export class Tr2RuntimeInstanceData
   }
 
   /** Returns the normalized CPU vertex layout an engine must realize. */
-  @impl.adapted
-  @impl.reason("The normalized layout replaces Carbon's engine-owned numeric vertex-declaration handle.")
+  @meta.adapted
+  @meta.reason("The normalized layout replaces Carbon's engine-owned numeric vertex-declaration handle.")
   GetInstanceBufferVertexDeclaration(_bufferIndex = 0)
   {
     return this.#layout;
@@ -413,9 +413,9 @@ export class Tr2RuntimeInstanceData
    * Drops every row and the packed buffer while keeping the layout, and marks
    * the data dirty.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.invalidates("#dirty")
+  @meta.blue.method
+  @meta.adapted
+  @meta.invalidates("#dirty")
   DestroyData()
   {
     this.rows = [];
@@ -428,9 +428,9 @@ export class Tr2RuntimeInstanceData
    * Replaces the target particle system with particles decoded from the CPU
    * instance rows.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Maps Carbon vertex semantics into the maintained CPU particle-system declaration without GPU buffers.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Maps Carbon vertex semantics into the maintained CPU particle-system declaration without GPU buffers.")
   Spawn()
   {
     const particleSystem = this.particleSystem;
@@ -492,8 +492,8 @@ export class Tr2RuntimeInstanceData
    * Implements ITr2GenericEmitter. Does nothing as this emitter only emits
    * particles on demand (Spawn).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Update(_arguments)
   {
   }
@@ -502,8 +502,8 @@ export class Tr2RuntimeInstanceData
    * Implements ITr2GenericEmitter. Does nothing as this emitter only emits
    * particles on demand (Spawn); both Carbon overloads are deliberate no-ops.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SpawnParticles(..._args)
   {
   }
@@ -512,23 +512,23 @@ export class Tr2RuntimeInstanceData
    * Implements ITr2GenericEmitter. Nothing to prepare - this emitter never
    * spawns from the threaded particle update.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetThreadSafeFlag()
   {
   }
 
   /** Carbon's CMF writer requires the native resource-path and file encoder. */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   SaveToCMF(...args)
   {
     throw new Error("Tr2RuntimeInstanceData.SaveToCMF is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon's Granny writer requires the native Granny SDK and filesystem. */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   SaveToGranny(...args)
   {
     throw new Error("Tr2RuntimeInstanceData.SaveToGranny is not implemented in CarbonEngineJS.");

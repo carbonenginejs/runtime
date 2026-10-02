@@ -5,7 +5,7 @@ import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { ITriReroutable } from "../../core/ITriReroutable.js";
 import { num } from "#math/num";
 import { vec2 } from "#math/vec2";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { CjsVectorParameter } from "./CjsVectorParameter.js";
 
 
@@ -13,31 +13,31 @@ import { CjsVectorParameter } from "./CjsVectorParameter.js";
  * Two-component float value for a named shader constant, with sRGB gamma
  * handling and optional rerouting into an external destination.
  */
-@type.define({
+@meta.define({
   className: "Tr2Vector2Parameter",
   family: "shader"
 })
-@carbon.inherit(ITriReroutable)
-@carbon.inherit(IInitialize)
+@meta.blue.inherit(ITriReroutable)
+@meta.blue.inherit(IInitialize)
 export class Tr2Vector2Parameter extends CjsVectorParameter
 {
-  @edit.readwrite
-  @edit.persistOnly
-  @type.vec2
+  @meta.blue.readwrite
+  @meta.blue.persistOnly
+  @meta.type.vec2
   value = vec2.fromValues(1, 1);
 
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   usedByCurrentTechnique = false;
 
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   usedByCurrentEffect = false;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_isSrgb - shader-annotation driven; not Blue-exposed on vec2 in Carbon. */
@@ -111,48 +111,48 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
   // refresh-from-reroute read or write-through-reroute-and-linear write.
 
   /** Carbon GetX (cpp:265-273): refresh from the reroute, then component 0. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetX()
   {
     return this.x;
   }
 
   /** Carbon GetY (cpp:283-291). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetY()
   {
     return this.y;
   }
 
   /** Carbon SetX (cpp:301-313): write, refresh the linear mirror, write through the reroute. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetX(x)
   {
     this.x = x;
   }
 
   /** Carbon SetY (cpp:323-334). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetY(y)
   {
     this.y = y;
   }
 
   /** The shader constant name this value binds to; empty until authored. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetParameterName()
   {
     return this.name;
   }
 
   /** Content hash: authored value bytes then name. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetHashValue(startingHash = CjsVectorParameter.FNV1_INITIAL)
   {
     return CjsVectorParameter.hashFnv1String(this.name, CjsVectorParameter.hashFnv1Floats(this.value, startingHash));
@@ -169,9 +169,9 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
    * Refreshes from the reroute destination when one is set, then copies the
    * components into `out`, allocating only when the caller supplies nothing.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon returns a const reference to its own value; JavaScript cannot express that, so this copies rather than exposing internal state.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon returns a const reference to its own value; JavaScript cannot express that, so this copies rather than exposing internal state.")
   GetValue(out = vec2.create())
   {
     this.#RefreshFromReroute();
@@ -192,8 +192,8 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
    * Copies two components in, refreshes the linear mirror and writes through to
    * the reroute destination when one is set.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetValue(value)
   {
     CjsVectorParameter.copyNumberArray(this.value, value, 2);
@@ -209,8 +209,8 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
    * constant is never rerouted, because its value must be gamma-converted before
    * upload.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsRerouted()
   {
     return !this.isSrgb && this.#reroutedValue !== null;
@@ -220,8 +220,8 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
    * Points the parameter at an external destination and seeds it with the current value; a target smaller than 8 bytes, not writable as two components, or belonging to an sRGB constant clears the reroute instead. Registered bindings are notified of the effective destination either way.
    * @param size destination capacity in bytes, not components
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetDestination(dest, size = 8)
   {
     if (size >= 8 && !this.isSrgb && CjsVectorParameter.isVectorDestination(dest, 2))
@@ -242,8 +242,8 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
    * parameter's own value - paired with its 8-byte size. The array is borrowed,
    * not copied.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetDestination()
   {
     return {
@@ -256,16 +256,16 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
    * Adds a binding to be notified whenever the destination is repointed;
    * duplicates are ignored.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RegisterBinding(binding)
   {
     CjsVectorParameter.registerBinding(this.#bindings, binding);
   }
 
   /** Stops notifying a binding; unknown bindings are ignored. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UnregisterBinding(binding)
   {
     CjsVectorParameter.unregisterBinding(this.#bindings, binding);
@@ -276,8 +276,8 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
    * dropping the reroute when the shader is gone or the constant turns out to be
    * sRGB. Reads reflection metadata only; no GPU handle is bound.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RebuildEffectHandles(effectRes)
   {
     this.isSrgb = false;
@@ -301,8 +301,8 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
    * Seeds an existing reroute destination with the current value and refreshes
    * the linear mirror; always returns true.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     if (this.#reroutedValue)
@@ -318,8 +318,8 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
    * destination: the authored value while rerouted, otherwise the
    * gamma-converted linear mirror for an sRGB constant.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   CopyValueToEffect(_inputType, out)
   {
     if (this.#reroutedValue)
@@ -364,4 +364,4 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
 }
 
 // Exact identities from Tr2Vector2Parameter_Blue.cpp; no exposure chain.
-carbon.interfaceTable({ interfaces: [ITriEffectParameter, Tr2Vector2Parameter, ITriReroutable, IInitialize], chainTo: null })(Tr2Vector2Parameter, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [ITriEffectParameter, Tr2Vector2Parameter, ITriReroutable, IInitialize], chainTo: null })(Tr2Vector2Parameter, { kind: "class" });

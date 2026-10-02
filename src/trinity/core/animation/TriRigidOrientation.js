@@ -1,6 +1,6 @@
 // Source: trinity/trinity/TriRigidOrientation.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { ITriFunction, ITriQuaternionFunction } from "#blue";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -18,7 +18,7 @@ import { vec3 } from "#math/vec3";
  * has no native query mapping for BlueList admission. Number arithmetic,
  * Float32Array intermediates and module scratch retain the JS numeric path.
  */
-@type.define({ className: "TriRigidOrientation", family: "trinityCore" })
+@meta.define({ className: "TriRigidOrientation", family: "trinityCore" })
 export class TriRigidOrientation extends ITriQuaternionFunction
 {
 
@@ -27,9 +27,9 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * not alter key selection or the torque integration.
    * @type {string}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /**
@@ -37,9 +37,9 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * drag it controls exponential decay of the integration rate through drag / I.
    * @type {number}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   I = 1;
 
   /**
@@ -47,9 +47,9 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * rate approaches torque / drag with exponential decay set by drag / I.
    * @type {number}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   drag = 1;
 
   /**
@@ -57,9 +57,9 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * and seeded from the first key by Sort. Returned before the first key or with no keys.
    * @type {Float32Array|Float64Array|number[]}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.quat
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   value = quat.create();
 
   /**
@@ -67,9 +67,9 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * sampling methods accept relative seconds and do not subtract this field.
    * @type {number}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.float64
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float64
   start = 0;
 
   /**
@@ -77,14 +77,14 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * after edits to order the keys and propagate later keys' initial states.
    * @type {TriTorque[]}
    */
-  @edit.read
-  @edit.persist
-  @type.list("TriTorque")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("TriTorque")
   states = [];
 
   /** Sorts torque keys, resets the sampling cursor and propagates initial states. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Sort()
   {
     this.states.sort((a, b) => a.time - b.time);
@@ -130,8 +130,8 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * the list. The JS helper returns the cursor (native returns void) and
    * handles an empty list with -1; native callers guard before invoking Seek.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Seek(time)
   {
     const count = this.states.length;
@@ -164,8 +164,8 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * The orientation at a time measured from the start, written into `out`;
    * before the first key it is the retained value.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValueAt(out, time)
   {
     if (!this.states.length || time < 0 || time < this.states[0].time)
@@ -197,8 +197,8 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * The angular velocity at a time measured from the start, written into
    * `out`; before the first key it is zero.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValueDotAt(out, time)
   {
     if (!this.states.length || time < 0 || time < this.states[0].time)
@@ -222,8 +222,8 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * Samples the orientation at a time and retains it as the current value,
    * which is what a curve consumer reads back.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Update(out, time)
   {
     this.GetValueAt(this.value, time);
@@ -237,8 +237,8 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * @param {number} time Seconds relative to the curve start.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateValue(time)
   {
     this.Update(this.value, time);
@@ -251,4 +251,4 @@ export class TriRigidOrientation extends ITriQuaternionFunction
 const ANGLE_SCRATCH = vec3.create();
 const CONVERTER_SCRATCH = quat.create();
 
-carbon.interfaceTable({ interfaces: [ITriFunction, ITriQuaternionFunction], chainTo: null })(TriRigidOrientation);
+meta.blue.interfaceTable({ interfaces: [ITriFunction, ITriQuaternionFunction], chainTo: null })(TriRigidOrientation);

@@ -3,7 +3,7 @@
 // same free `AK::SoundEngine` functions as every other event, so Carbon has no
 // class here. The Web Audio backend routes music events to this engine.
 // Name held for the operator (docs research/audio-backend-interface.md).
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /**
  * What `CjsWebAudioSoundEngine` and `CjsAudioSystem` call on a music engine. Every
@@ -157,7 +157,7 @@ export class ICjsMusicEngine
 
 for (const method of Object.getOwnPropertyNames(ICjsMusicEngine.prototype))
 {
-    if (method !== "constructor") CjsSchema.decorateMethod(ICjsMusicEngine, method, impl.abstract);
+    if (method !== "constructor") CjsSchema.decorateMethod(ICjsMusicEngine, method, meta.abstract);
 }
 
 CjsSchema.define(ICjsMusicEngine, { className: "ICjsMusicEngine", family: "audio", fields: {} });

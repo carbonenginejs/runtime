@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/Allign.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/Allign.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 
 // Module scratch for the per-agent loop (behavior updates run sequentially).
@@ -10,39 +10,39 @@ const FORCE_OFFSET = vec3.create();
 const NO_FORCES = [];
 
 /** A steering behaviour that pulls each drone's acceleration toward the average acceleration direction of its nearby neighbours, recomputing the pull force on a throttled schedule and reusing it between refreshes. */
-@type.define({ className: "Allign", family: "eve/child/behaviors" })
+@meta.define({ className: "Allign", family: "eve/child/behaviors" })
 export class Allign
 {
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   behaviorPriority = 0;
 
   /** m_behaviorWeight (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   behaviorWeight = 1;
 
   /** m_visionRange (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   visionRange = 75;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   enabled = true;
 
   /** m_framesBetweenUpdates (int32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   framesBetweenUpdates = 61;
 
   // Carbon m_frameCounter/m_lastPullForces runtime state.
@@ -53,8 +53,8 @@ export class Allign
   _returnForces = [];
 
   /** Carbon Allign::GetProcessPriority (cpp:22-25). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetProcessPriority()
   {
     return this.behaviorPriority;
@@ -72,9 +72,9 @@ export class Allign
    * @param {Array} dronesInSearchRadius - per-agent neighbour lists
    * @returns {Array} debug force pairs when group.collectForces is on
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Debug force pairs are only collected when group.collectForces is set, keeping the per-agent loop allocation-free.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Debug force pairs are only collected when group.collectForces is set, keeping the per-agent loop allocation-free.")
   CalculateBehavior(agents, _scratchData, _deltaTime, group, _system, dronesInSearchRadius)
   {
     if (!this.enabled)
@@ -163,8 +163,8 @@ export class Allign
   }
 
   /** Carbon Allign::GetBehaviorSearchRadius (cpp:104-116). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBehaviorSearchRadius()
   {
     if (this._frameCounter >= this.framesBetweenUpdates)

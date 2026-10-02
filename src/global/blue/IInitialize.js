@@ -21,7 +21,7 @@
 // result. Subclasses chain - `return EveChildMesh::Initialize();` is the
 // donor's own idiom (EveChildTurret.cpp:59).
 
-import { CjsSchema, compose, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** `IInitialize` - everything has been written; link it up. */
 export class IInitialize
@@ -36,7 +36,7 @@ export class IInitialize
   Initialize() {}
 }
 
-CjsSchema.decorateMethod(IInitialize, "Initialize", compose.abstract, impl.abstract);
+CjsSchema.decorateMethod(IInitialize, "Initialize", meta.requires, meta.abstract);
 
 CjsSchema.define(IInitialize, {
   className: "IInitialize", carbon: "IInitialize", family: "blue", fields: {}

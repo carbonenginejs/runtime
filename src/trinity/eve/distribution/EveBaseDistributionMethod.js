@@ -1,7 +1,7 @@
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/EveBaseDistributionMethod.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveDistributionMethod } from "./IEveDistributionMethod.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -10,9 +10,9 @@ import { PlacementDataWithIdentifier } from "../PlacementDataWithIdentifier.js";
 import { DistributionEntityLifeTimeEvent } from "./attributeModifiers/enums.js";
 
 /** Manages an authored placement pool and updates its live entities through placement generators, spawners, and lifetime modifiers. */
-@type.define({ className: "EveBaseDistributionMethod", family: "eve/distribution" })
-@carbon.inherit(IInitialize)
-@carbon.mapInterface(IInitialize)
+@meta.define({ className: "EveBaseDistributionMethod", family: "eve/distribution" })
+@meta.blue.inherit(IInitialize)
+@meta.blue.mapInterface(IInitialize)
 export class EveBaseDistributionMethod extends IEveDistributionMethod
 {
 
@@ -29,81 +29,81 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   _resetTransformOnUpdate = false;
 
   /** m_distributionModifiers (PIEveDistributionModifierVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("IEveDistributionModifier")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("IEveDistributionModifier")
   lifetimeModifiers = [];
 
   /** m_locationsCanReTrigger (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   locationsCanReTrigger = true;
 
   /** m_timeOutOnTriggering (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   timeOutOnTriggering = 2;
 
   /** m_uniqueIDCounter (uint32_t) [READ] */
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   entitiesSpawned = 0;
 
   /** m_numFreePlacements (uint32_t) [READ] */
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   freePlacements = 0;
 
   /** m_playtimeMultiplier (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   playtimeMultiplier = 1;
 
   /** m_placementGenerators (PIEveDistributionPlacementGeneratorsVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("IEveDistributionPlacementGenerators")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("IEveDistributionPlacementGenerators")
   placementGenerators = [];
 
   /** m_placementData (PPlacementDataWithIdentifierStructureList) [READ] */
-  @edit.read
-  @type.list("PlacementDataWithIdentifier")
+  @meta.blue.read
+  @meta.type.list("PlacementDataWithIdentifier")
   placementData = [];
 
   /** m_distributionSpawnModifiers (PIEveDistributionSpawnModifierVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("IEveDistributionSpawnModifier")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("IEveDistributionSpawnModifier")
   spawnModifiers = [];
 
   /** m_distributionSpawners (PIEveDistributionSpawnerVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("IEveDistributionSpawner")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("IEveDistributionSpawner")
   spawnTriggers = [];
 
   /** Carbon method AddEntity -> AddEntities (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddEntity(howMany = 1)
   {
     this.AddEntities(howMany);
   }
 
   /** Carbon method Restart -> RestartDistribution (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Restart()
   {
     this.RestartDistribution();
   }
 
   /** Rebuilds the authored placement pool from every Carbon placement generator. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RegeneratePlacementData()
   {
     this._initialPlacements.length = 0;
@@ -128,8 +128,8 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * Returns how many entities are currently live, not how many placements the
    * generators authored.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetNumberOfPlacements()
   {
     return this.placementData.length;
@@ -139,8 +139,8 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * Returns the live list of spawned placements; entries are mutated in place
    * each update and removed as entities are killed.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetPlacementData()
   {
     return this.placementData;
@@ -150,8 +150,8 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * Returns a copy of the mean initial-plus-additional translation of the live
    * placements, recomputed on every synchronous update.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetPlacementDataCenter()
   {
     return vec3.clone(this._placementDataCenter);
@@ -162,16 +162,16 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * the per-entity additional transform is cleared and re-accumulated every
    * update.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetHasDynamicMovement()
   {
     return this._resetTransformOnUpdate;
   }
 
   /** Brings the distribution into its start state by running a full restart. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     this.RestartDistribution();
@@ -183,8 +183,8 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * changes, and re-evaluates dynamic movement when the lifetime modifier list
    * changes.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnListModified(_event, _key, _key2, _value, list)
   {
     if (list === this.placementGenerators || list === this.spawnTriggers)
@@ -202,8 +202,8 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * resets each spawner against the new pool and clears the play time and spawn
    * counter.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RestartDistribution()
   {
     this.placementData.length = 0;
@@ -225,8 +225,8 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    *
    * @param params Supplies the bone array and the space-object parent read by the bone transform and the lifetime modifiers.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateSyncronous(updateContext, params = new EveChildUpdateParams())
   {
     for (const generator of this.placementGenerators)
@@ -307,8 +307,8 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * No asynchronous work; the distribution is driven entirely from the
    * synchronous update.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateAsyncronous(_updateContext, _params)
   {
   }
@@ -317,8 +317,8 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * Spawns entities on randomly chosen free placements, capped by the free
    * placement count, each taking the next unique entity id.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddEntities(howMany = 1)
   {
     if (this.freePlacements < 1 || this._initialPlacements.length === 0)
@@ -340,8 +340,8 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    *
    * @returns {number} The index the placement ends up at, or -1 when nothing is free, the id is unknown, or the placement is still timing out.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   TriggerEntityByID(entityID)
   {
     if (this.freePlacements < 1 || this._initialPlacements.length === 0)
@@ -374,8 +374,8 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   }
 
   /** Returns how many pooled placements are currently free to be triggered. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetFreePlacementCount()
   {
     return this.freePlacements;
@@ -385,8 +385,8 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * Returns the unique id of the free placement whose initial translation is
    * nearest the given position, or -1 when none are free.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetClosestFreePlacement(position)
   {
     if (this._initialPlacements.length === 0 || this.freePlacements < 1)
@@ -412,8 +412,8 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * Returns the pooled placement carrying this unique id, or null when the id is
    * unknown; this is the pool entry itself, not a copy.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetInitialPlacementData(uniqueID)
   {
     const index = this._getInitialPlacementIndexByID(uniqueID);
@@ -426,8 +426,8 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * Forwards a named controller value to every spawner so controller-driven
    * triggers can react to it.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetControllerVariable(name, value)
   {
     for (const spawner of this.spawnTriggers)

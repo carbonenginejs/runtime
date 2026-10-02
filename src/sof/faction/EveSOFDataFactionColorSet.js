@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
@@ -8,272 +8,272 @@ import { ErrSOFFactionColorSetTypeUnknown } from "./ErrSOFFactionColorSetTypeUnk
 import { ErrSOFFactionColorSetTypeNotFound } from "./ErrSOFFactionColorSetTypeNotFound.js";
 
 /** Stores a faction's semantic color palette and resolves enum-selected colors into vectors. */
-@type.define({ className: "EveSOFDataFactionColorSet", family: "eve" })
+@meta.define({ className: "EveSOFDataFactionColorSet", family: "eve" })
 export class EveSOFDataFactionColorSet
 {
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_KILLMARK] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   Killmark = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_FORCEFIELD] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   PrimaryForcefield = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_SECONDARY_FORCEFIELD] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   SecondaryForcefield = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_FX] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   PrimaryFx = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_SECONDARY_FX] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   SecondaryFx = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_WARP_FX] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   PrimaryWarpFx = vec4.fromValues(1, 99 / 255, 51 / 255, 1);
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_ATTACK_FX] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   PrimaryAttackFX = vec4.fromValues(1, 24 / 255, 11 / 255, 1);
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_SIEGE_FX] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   PrimarySiegeFX = vec4.fromValues(1, 94 / 255, 45 / 255, 1);
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_DOCKED_FX] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   PrimaryDockedFX = vec4.fromValues(76 / 255, 130 / 255, 226 / 255, 1);
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   Primary = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_SECONDARY] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   Secondary = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_TERTIARY] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   Tertiary = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_BLACK] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   Black = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_WHITE] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   White = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_YELLOW] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   Yellow = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_ORANGE] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   Orange = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_RED] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   Red = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_BLUE] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   Blue = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_GREEN] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   Green = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_CYAN] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   Cyan = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_FIRE] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   Fire = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_HOLOGRAM] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   PrimaryHologram = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_SECONDARY_HOLOGRAM] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   SecondaryHologram = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_TERTIARY_HOLOGRAM] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   TertiaryHologram = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_LIGHT] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   PrimaryLight = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_SECONDARY_LIGHT] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   SecondaryLight = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_TERTIARY_LIGHT] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   TertiaryLight = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_WHITE_LIGHT] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   WhiteLight = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_HULL] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   Hull = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_GLASS] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   Glass = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_REACTOR] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   Reactor = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_DARKHULL] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   Darkhull = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_BOOSTER] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   Booster = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_BANNER] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   PrimaryBanner = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_BILLBOARD] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   PrimaryBillboard = vec4.fromValues(2.5, 2.5, 2.5, 2.5);
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_SPOTLIGHT] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   PrimarySpotlight = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_SECONDARY_SPOTLIGHT] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   SecondarySpotlight = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_TERTIARY_SPOTLIGHT] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   TertiarySpotlight = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_STATE_0] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   State0 = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_STATE_1] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   State1 = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_STATE_2] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   State2 = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_STATE_3] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   State3 = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_STATE_VULNERABLE] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   StateVulnerable = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_STATE_INVULNERABLE] (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   StateInvulnerable = color.createLinear();
 
 

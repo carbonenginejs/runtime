@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Particle/ITr2GenericEmitter.h
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /** Contract shared by CPU and GPU particle emitters. */
@@ -27,6 +27,6 @@ export class ITr2GenericEmitter
 
 for (const method of ["Update", "SpawnParticles", "SetThreadSafeFlag"])
 {
-  CjsSchema.decorateMethod(ITr2GenericEmitter, method, impl.abstract);
+  CjsSchema.decorateMethod(ITr2GenericEmitter, method, meta.abstract);
 }
 CjsSchema.define(ITr2GenericEmitter, { className: "ITr2GenericEmitter" });

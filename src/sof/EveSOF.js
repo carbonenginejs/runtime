@@ -4,7 +4,7 @@ import { normalizeResourcePath } from "#utils/path";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOF.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOF.cpp
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOF_Blue.cpp
-import { CjsSchema, carbon, impl, edit, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -271,7 +271,7 @@ const SOF_INSTANCE_LAYOUT = [
 /**
  * Carbon-first SOF builder whose sole supported public output is a GPU-free model-values graph.
  */
-@type.define({ className: "EveSOF", family: "eve" })
+@meta.define({ className: "EveSOF", family: "eve" })
 export class EveSOF
 {
 
@@ -280,8 +280,8 @@ export class EveSOF
    * m_allowFileCaching. Loaded objects are not cached by this flag.
    * @type {boolean}
    */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   allowFileCaching = true;
 
   // Carbon registers this as the global TRI setting "alphaCutoutShadowsEnabled"
@@ -292,8 +292,8 @@ export class EveSOF
    * counterpart of the native global setting.
    * @type {boolean}
    */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   alphaCutoutShadowsEnabled = false;
 
   // Carbon registers this as the global TRI setting "volumetricTrailPath"
@@ -304,8 +304,8 @@ export class EveSOF
    * counterpart of the native global setting; empty by default.
    * @type {string}
    */
-  @edit.readwrite
-  @type.string
+  @meta.blue.readwrite
+  @meta.type.string
   volumetricTrailPath = "";
 
   // Carbon initializes each light's startTime from the current frame time,
@@ -318,8 +318,8 @@ export class EveSOF
    * construction deterministic.
    * @type {number}
    */
-  @edit.readwrite
-  @type.float64
+  @meta.blue.readwrite
+  @meta.type.float64
   buildTime = 0;
 
   /**
@@ -327,8 +327,8 @@ export class EveSOF
    * assembly; native m_dataMgr.
    * @type {EveSOFDataMgr}
    */
-  @edit.read
-  @type.objectRef("EveSOFDataMgr")
+  @meta.blue.read
+  @meta.type.objectRef("EveSOFDataMgr")
   dataMgr = new EveSOFDataMgr();
 
   /**
@@ -336,8 +336,8 @@ export class EveSOF
    * objects; native m_editorMode.
    * @type {boolean}
    */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   editorMode = false;
 
   /**
@@ -452,7 +452,7 @@ export class EveSOF
    *
    * @throws {TypeError} for a malformed option value.
    */
-  @impl.custom
+  @meta.ours
   Register(options = {})
   {
     if (!options || typeof options !== "object" || Array.isArray(options))
@@ -687,8 +687,8 @@ export class EveSOF
   }
 
   /** Routes Carbon's resource load call through the SOF data manager. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   LoadData(filePath)
   {
     return this.dataMgr.LoadData(filePath);
@@ -726,8 +726,8 @@ export class EveSOF
   }
 
   /** Creates and resolves one DNA instance against the loaded SOF library. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   CreateDna(dnaString)
   {
     const dna = new EveSOFDNA();
@@ -748,7 +748,7 @@ export class EveSOF
    * Carbon exposes no equivalent query. Other build filters can still exclude sets
    * whose visibility group is enabled.
    */
-  @impl.custom
+  @meta.ours
   GetDnaVisibilityGroups(dnaString)
   {
     const dna = this.CreateDna(dnaString);
@@ -814,8 +814,8 @@ export class EveSOF
   }
 
   /** Performs Carbon's separate slow/offline DNA validation path. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ValidateDNA(dnaString)
   {
     const dna = this.CreateDna(dnaString);
@@ -830,8 +830,8 @@ export class EveSOF
    *
    * @deprecated Use BuildValues(...).
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Build(hullName, factionName, raceName)
   {
     return this.BuildFromDNA(`${hullName}:${factionName}:${raceName}`);
@@ -921,8 +921,8 @@ export class EveSOF
    * @returns {boolean} Whether the composed values were applied.
    * @throws {TypeError|RangeError} If the owner, part tag or transform is invalid; downstream build and hydration errors also propagate.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   BuildChild(owner, dnaString, partTag, transform = identityMatrix(), options = {})
   {
     const isModel = owner != null && CjsSchema.GetConstructor(CjsSchema.getClassName(owner.constructor)) === owner.constructor;
@@ -964,7 +964,7 @@ export class EveSOF
    * @returns {object|null} New mutable values, or null for invalid DNA.
    * @throws {TypeError|RangeError} If the owner, part tag or transform is invalid; downstream build errors also propagate.
    */
-  @impl.custom
+  @meta.ours
   BuildChildValues(ownerValues, dnaString, partTag, transform = identityMatrix(), options = {})
   {
     if (!ownerValues || typeof ownerValues !== "object" || Array.isArray(ownerValues))
@@ -1224,7 +1224,7 @@ export class EveSOF
    * Custom: Exposes the JavaScript layout planner as a detached CPU plan. Carbon
    * performs selection and placement during assembly, without an equivalent query.
    */
-  @impl.custom
+  @meta.ours
   PlanLayoutFromDNA(dnaString, options = {})
   {
     const dna = this.CreateDna(dnaString);
@@ -1243,8 +1243,8 @@ export class EveSOF
    *
    * @deprecated Use BuildValuesFromDNA(...).
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   BuildFromDNA(dnaString, options = {})
   {
     this._buildDiagnostics = [];
@@ -1503,7 +1503,7 @@ export class EveSOF
    * synthetic solo placement and extension container. Carbon performs this work through
    * BuildFromDNA and CreatePlacement, without a method of this name.
    */
-  @impl.custom
+  @meta.ours
   SetupExtensionBuild(document, rootFields, dna, layoutOptions = {})
   {
     const extensionFields = {
@@ -1585,8 +1585,8 @@ export class EveSOF
    * allocating a live mesh. Transparent-area records feed depth generation; missing
    * shader records produce build diagnostics.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   CreateMesh(dna, document)
   {
     const fields = {
@@ -1612,8 +1612,8 @@ export class EveSOF
    * records for depth generation. Category order and accumulated mesh-index offsets
    * follow Carbon; the method returns true instead of void.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupShaders(dna, document, meshFields, transparent)
   {
     let meshIndexOffset = 0;
@@ -1645,8 +1645,8 @@ export class EveSOF
    * the source count. Missing shaders produce diagnostics; already produced areas are
    * retained while that source contributes zero count. Missing source vectors are empty.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   FillMeshAreaVector(target, batchType, dna, hullIndex, meshIndexOffset, document)
   {
     // A missing source vector cannot occur in Carbon (hull area vectors always
@@ -1699,8 +1699,8 @@ export class EveSOF
    * instead of copying live objects through Carbon’s class system. The depth effect
    * retains the transparency-resource reference selected by the generic depth shader.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GenerateDepthFromAreaVector(document, depthAreas, transparentAreas, dna)
   {
     const depthShader = dna.GetGenericAreaShaderData("depthonlyv5.fx");
@@ -1732,8 +1732,8 @@ export class EveSOF
    * Adapted: Emits mask nodes and fields instead of constructing live masks and
    * calling their Setup method.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupCustomMask(document, rootFields, dna)
   {
     const application = dna.GetPatternApplicationData();
@@ -1765,8 +1765,8 @@ export class EveSOF
    * Adapted: Emits decal/effect nodes and staticIndexBuffers for hydration instead
    * of constructing live decals and calling their initialization methods.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupDecalSets(document, rootFields, dna)
   {
     const hullOffset = [0, 0, 0];
@@ -1875,8 +1875,8 @@ export class EveSOF
    * Trinity objects or preparing GPU resources. Space-object initialization derives
    * the damage-locator count after hydration.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupImpactEffects(document, rootFields, dna)
   {
     const impactType = dna.GetImpactEffectType();
@@ -1958,8 +1958,8 @@ export class EveSOF
    * Adapted: Selects the legacy or SOF6 branch using document field owners in place
    * of live object interfaces.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupEffects(document, objectFields, childOwnerFields, dna, offsets = [identityMatrix()], buildFlags = EveSOFDataHull.BuildFilter.STANDALONE)
   {
     if (dna.UsingSof6())
@@ -1980,8 +1980,8 @@ export class EveSOF
    * emitter-rate bindings into unloaded children are diagnosed rather than constructed.
    * Curves and bindings are data for later initialization.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupChildrenAndAnimations(document, objectFields, childOwnerFields, dna, offsets = [identityMatrix()], buildFlags = EveSOFDataHull.BuildFilter.STANDALONE)
   {
     const emitterTargetsById = new Map();
@@ -2079,8 +2079,8 @@ export class EveSOF
    * loading live objects. Placement is stored in node fields; visibility/build filtering
    * and wrong-type early termination follow Carbon.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupEffectChildren(document, objectFields, childOwnerFields, dna, offsets = [identityMatrix()], buildFlags = EveSOFDataHull.BuildFilter.STANDALONE)
   {
     for (const childSet of dna.GetHullChildSets())
@@ -2272,8 +2272,8 @@ export class EveSOF
    * values instead of constructing and initializing audio interfaces. Hydration and
    * audio realization remain caller-owned.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupAudio(document, rootFields, dna, parentOffset = identityMatrix())
   {
     const ignoredScale = vec3.create();
@@ -2331,8 +2331,8 @@ export class EveSOF
    * resolver, emits Tr2ControllerReference. Unresolved or incompatible resolved roots
    * are diagnosed and skipped.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupControllers(document, rootFields, dna, buildFlags = EveSOFDataHull.BuildFilter.STANDALONE)
   {
     for (const controller of dna.GetHullControllers())
@@ -2350,8 +2350,8 @@ export class EveSOF
    * emits CjsExternalRef nodes carrying the required interface instead of loading typed
    * resources immediately.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupModelCurves(document, rootFields, dna)
   {
     const rotationPath = dna.GetModelRotationCurvePath();
@@ -2375,8 +2375,8 @@ export class EveSOF
    * of allocating runtime instance buffers and preparing effects. Identity/general
    * transform paths retain Carbon’s different auxiliary-matrix orientations.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupInstancedMeshes(document, rootFields, dna, offsets = [identityMatrix()])
   {
     const hullInstanced = dna.GetHullInstancedMeshes();
@@ -2458,8 +2458,8 @@ export class EveSOF
    * of copying records into Tr2RuntimeInstanceData and uploading them. Empty input
    * returns null.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   CreateInstancedMesh(document, instances, resourcePath)
   {
     if (!Array.isArray(instances) || instances.length === 0) return null;
@@ -2498,8 +2498,8 @@ export class EveSOF
    * builds omit Carbon’s incrementing per-placement tags; modular builds supply a fixed
    * part tag through buildContext.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupLayout(document, rootFields, dna, options = {}, targetFields = null, buildContext = {})
   {
     const plan = planSofLayouts(dna, options ?? {});
@@ -2734,7 +2734,7 @@ export class EveSOF
    * branches into a document helper. Preserves batch routing, instanced shader options,
    * area ranges and cutout/winding flags.
    */
-  @impl.custom
+  @meta.ours
   CreateSharedLayoutAreas(document, dna)
   {
     const result = [];
@@ -2793,7 +2793,7 @@ export class EveSOF
    * Custom: Combines document mesh/shader construction with emitted instance data
    * for the non-shared instanced branch of Carbon’s CreatePlacement.
    */
-  @impl.custom
+  @meta.ours
   CreateLayoutInstancedMesh(document, dna, instances)
   {
     if (!instances.length) return null;
@@ -2829,8 +2829,8 @@ export class EveSOF
    * live sets and preparing resources. Multi-hull offsets accumulate; the last hull
    * supplies alwaysOn, and any hull can enable trails.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupBoosters(document, rootFields, dna)
   {
     if (dna.GetHullBoosterCount() === 0) return null;
@@ -2980,8 +2980,8 @@ export class EveSOF
    * preparation. The first hull supplies the drive name, shader path, parameter and
    * texture overrides for the whole set; all hulls contribute items with offsets.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupChildBoosters(document, placementFields, dna)
   {
     if (dna.GetHullBoosterCount() === 0) return null;
@@ -3215,8 +3215,8 @@ export class EveSOF
    * externalParameters to select banner-capable roots. The native instanced-placement
    * build flag is a boolean here. Sprite and sprite-line effects share within this call.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupAttachments(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false)
   {
     // Carbon caches this effect on the EveSOF instance. Document-local sharing
@@ -3245,8 +3245,8 @@ export class EveSOF
    * acquisition or set rebuilding. The supplied sharedEffect carries document-local
    * effect identity, and light timestamps use the injected buildTime.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupSpriteSets(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false, sharedEffect = { ref: null })
   {
     const hullOffset = [0, 0, 0];
@@ -3352,8 +3352,8 @@ export class EveSOF
    * Adapted: Emits effect, texture, spotlight and light descriptors instead of
    * constructing and rebuilding native attachments. Light timestamps use buildTime.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupSpotlightSets(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false)
   {
     const hullOffset = [0, 0, 0];
@@ -3502,8 +3502,8 @@ export class EveSOF
    * references for light-driven planes without native effect updates or set rebuilding.
    * Light timestamps use the injected buildTime.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupPlaneSets(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false)
   {
     const hullOffset = [0, 0, 0];
@@ -3692,8 +3692,8 @@ export class EveSOF
    * paths instead of acquiring resources, and uses the supplied document-local effect.
    * Light timestamps use the injected buildTime.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupSpriteLineSets(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false, sharedEffect = { ref: null })
   {
     const hullOffset = [0, 0, 0];
@@ -3821,8 +3821,8 @@ export class EveSOF
    * or set rebuilding. Effects share by path within this call instead of being retained
    * on the EveSOF instance. Light timestamps use the injected buildTime.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupHazeSets(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false)
   {
     const hullOffset = [0, 0, 0];
@@ -3969,8 +3969,8 @@ export class EveSOF
    * consumer. Light timestamps use buildTime. Explicit empty offsets emit no set here;
    * Carbon can retain an empty set and external parameter for visible authored items.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupBanners(document, rootFields, dna, offsets = [identityMatrix()])
   {
     const hullOffset = [0, 0, 0];
@@ -4032,8 +4032,8 @@ export class EveSOF
    * consumer. Light timestamps use buildTime. Explicit empty offsets emit no set here;
    * Carbon can retain an empty set and external parameter for visible authored items.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupBannerSets(document, rootFields, dna, offsets = [identityMatrix()])
   {
     const hullOffset = [0, 0, 0];
@@ -4115,8 +4115,8 @@ export class EveSOF
    * and calling SetLightData. Timestamps use buildTime; unsupported light kinds and
    * missing colors are skipped without native error logging.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupLights(document, rootFields, dna, offsets = [identityMatrix()])
   {
     const hullOffset = [0, 0, 0];
@@ -4198,8 +4198,8 @@ export class EveSOF
    * Adapted: Appends document references instead of constructing native EveLocator2
    * objects; hull selection and translation offsets follow Carbon.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupLocators(document, rootFields, dna)
   {
     const hullOffset = [0, 0, 0];
@@ -4244,8 +4244,8 @@ export class EveSOF
    * @param {EveSOFDNA} dna Resolved DNA.
    * @returns {object|null} Effect node reference or null.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   CreateArmorDamageEffect(document, dna)
   {
     const damage = dna.GetGenericDamageData();
@@ -4271,8 +4271,8 @@ export class EveSOF
    * EveLocatorSets instances. Hull-local positions, authored scale and bone indices
    * remain available to the placement child.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   BuildHullLocalLocatorSets(document, dna)
   {
     const bySetName = new Map();
@@ -4317,8 +4317,8 @@ export class EveSOF
    * offsets use one identity placement; Carbon does not populate locators in its explicit
    * empty-offset branch. Optional part tags are normalized to uint32 here.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupLocatorSets(document, rootFields, dna, offsets = [identityMatrix()], partTag = null)
   {
     const transforms = Array.isArray(offsets) && offsets.length !== 0
@@ -4377,8 +4377,8 @@ export class EveSOF
    * Adapted: Delegates effect traversal and mutation through the supplied turret’s
    * ApplySofTurretMaterial interface instead of walking Trinity objects inside SOF.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupTurretMaterialFromFaction(turretSet, factionName)
   {
     const factionData = this.dataMgr.GetFactionData(factionName);
@@ -4398,8 +4398,8 @@ export class EveSOF
    * @param {object} factionData Faction material and color configuration.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   ApplyFactionToTurretShader(turret, genericData, factionData)
   {
     turret.ApplySofTurretMaterial(parameterName => findTurretFactionParameter(
@@ -4417,8 +4417,8 @@ export class EveSOF
    * Adapted: Delegates opaque mesh-area traversal and mutation through the child
    * turret’s ApplySofTurretMaterial interface instead of walking Trinity objects in SOF.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupChildTurretMaterialFromFaction(childTurret, factionName)
   {
     const factionData = this.dataMgr.GetFactionData(factionName);
@@ -4433,8 +4433,8 @@ export class EveSOF
    * Adapted: Delegates effect traversal and mutation through the turret’s
    * ApplySofTurretMaterial interface. Invalid DNA returns without Carbon’s error log.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupTurretMaterialFromDNA(turretSet, dnaString)
   {
     const dna = this.CreateDna(dnaString);
@@ -5820,4 +5820,4 @@ async function ResolveSofDependency(load, path, role, results, resultKey = path)
 
 
 // Native service exposure has no lifecycle interfaces or exposure parent.
-carbon.interfaceTable({ interfaces: [ EveSOF ], chainTo: null })(EveSOF, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [ EveSOF ], chainTo: null })(EveSOF, { kind: "class" });

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Tr2Material.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 
 /**
  * Plain native record associating a sampler register with opaque AL state.
@@ -12,11 +12,11 @@ export class Tr2SamplerOverrideData
 {
 
   /** Native uint32 register; zero is the existing deterministic JavaScript default. */
-  @types.uint32
+  @meta.type.uint32
   registerIndex = 0;
 
   /** Opaque AL state wrapper, not a Blue resource edge; null until assigned. */
-  @types.rawStruct("Tr2SamplerStateAL")
+  @meta.type.rawStruct("Tr2SamplerStateAL")
   sampler = null;
 
 }

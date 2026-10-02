@@ -1,10 +1,10 @@
 // Source: trinity/trinity/Tr2LineGraph.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { vec4 } from "#math/vec4";
 
 /** A rolling sample history with named markers and running statistics, drawn as a line graph. */
-@type.define({ className: "Tr2LineGraph", family: "trinityCore" })
+@meta.define({ className: "Tr2LineGraph", family: "trinityCore" })
 export class Tr2LineGraph
 {
 
@@ -15,20 +15,20 @@ export class Tr2LineGraph
   #markers = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_color (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
   /** Carbon method AddMarker (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddMarker(name)
   {
     const last = this.#markers.at(-1);
@@ -45,16 +45,16 @@ export class Tr2LineGraph
   }
 
   /** Carbon method GetStatsHistory (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetStatsHistory()
   {
     return this.#data.slice(this.#currentIndex).concat(this.#data.slice(0, this.#currentIndex));
   }
 
   /** Carbon method SetSize (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetSize(size)
   {
     const length = Math.max(0, Math.trunc(Number(size)) || 0);
@@ -70,7 +70,7 @@ export class Tr2LineGraph
   }
 
   /** Adds a sample through Carbon's ICcpStatisticsAccumulator interface. */
-  @impl.adapted
+  @meta.adapted
   Add(value)
   {
     if (!this.#data.length) return false;
@@ -87,7 +87,7 @@ export class Tr2LineGraph
   /**
    * The number of samples the history retains.
    */
-  @impl.implemented
+  @meta.implemented
   GetSize()
   {
     return this.#data.length;
@@ -96,7 +96,7 @@ export class Tr2LineGraph
   /**
    * The largest sample currently in the history.
    */
-  @impl.implemented
+  @meta.implemented
   GetMaxValue()
   {
     let maximum = 0;

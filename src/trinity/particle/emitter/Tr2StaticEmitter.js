@@ -1,69 +1,69 @@
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Particle/Tr2StaticEmitter.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 
 /** A one-shot particle emitter that spawns particles from a geometry resource's baked emission points on first update. */
-@type.define({ className: "Tr2StaticEmitter", family: "particle" })
-@carbon.inherit(ITr2GenericEmitter)
-@carbon.inherit(IInitialize)
-@carbon.mapInterface(IInitialize)
+@meta.define({ className: "Tr2StaticEmitter", family: "particle" })
+@meta.blue.inherit(ITr2GenericEmitter)
+@meta.blue.inherit(IInitialize)
+@meta.blue.mapInterface(IInitialize)
 export class Tr2StaticEmitter
 {
 
   #isThreadSafe = false;
 
   /** Carbon's internal one-shot spawn state. */
-  @type.boolean
+  @meta.type.boolean
   hasSpawnedParticles = false;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_geometryResource (TriGrannyResPtr) [READ] */
-  @edit.read
-  @type.objectRef("TriGrannyRes")
+  @meta.blue.read
+  @meta.type.objectRef("TriGrannyRes")
   geometryResource = null;
 
   /** m_meshIndex (uint32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   meshIndex = 0;
 
   /** m_particleSystem (Tr2ParticleSystemPtr) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2ParticleSystem")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2ParticleSystem")
   particleSystem = null;
 
   /** m_geometryResourcePath (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   geometryResourcePath = "";
 
   /** Carbon method Spawn (MAP_METHOD_AND_WRAP). */
-  @carbon.method
+  @meta.blue.method
   /**
    * Resets the one-shot spawn flag so the emitter spawns again on the next update.
    */
-  @impl.implemented
+  @meta.implemented
   Spawn()
   {
     this.hasSpawnedParticles = false;
   }
 
   /** Carbon method ForceSpawn -> DoSpawn (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Accepts decoded particle rows or a host geometry SpawnParticles adapter; native CMF/Granny vertex-buffer mapping remains resource-owned.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Accepts decoded particle rows or a host geometry SpawnParticles adapter; native CMF/Granny vertex-buffer mapping remains resource-owned.")
   ForceSpawn()
   {
     if (!this.particleSystem?.isValid || !this.geometryResource)
@@ -103,8 +103,8 @@ export class Tr2StaticEmitter
    * IInitialize.Initialize (Tr2StaticEmitter.cpp:35-48): Carbon starts the
    * geometry resource fetch and propagates the thread-safe contract.
    */
-  @impl.adapted
-  @impl.reason("Resource streaming is host-owned in the browser; geometryResource arrives via the loader, so only the thread-safe propagation is mirrored.")
+  @meta.adapted
+  @meta.reason("Resource streaming is host-owned in the browser; geometryResource arrives via the loader, so only the thread-safe propagation is mirrored.")
   Initialize()
   {
     if (this.particleSystem && this.#isThreadSafe)
@@ -119,8 +119,8 @@ export class Tr2StaticEmitter
    * restart the resource fetch (host-owned here); particle-system changes
    * re-propagate the thread-safe contract.
    */
-  @impl.adapted
-  @impl.reason("Geometry reloads are host-owned; only Carbon's particle-system thread-safe propagation applies on the CPU side.")
+  @meta.adapted
+  @meta.reason("Geometry reloads are host-owned; only Carbon's particle-system thread-safe propagation applies on the CPU side.")
   OnModified(propertyName)
   {
     if ((propertyName === "particleSystem") && this.#isThreadSafe && this.particleSystem)
@@ -131,11 +131,11 @@ export class Tr2StaticEmitter
   }
 
   /** ITr2GenericEmitter.SetThreadSafeFlag (Tr2StaticEmitter.cpp:83-90). */
-  @impl.adapted
+  @meta.adapted
   /**
    * Marks the emitter thread-safe and propagates the flag to its particle system.
    */
-  @impl.reason("JavaScript updates are single-threaded; the flag is retained and propagated only for Carbon contract parity.")
+  @meta.reason("JavaScript updates are single-threaded; the flag is retained and propagated only for Carbon contract parity.")
   SetThreadSafeFlag()
   {
     this.#isThreadSafe = true;
@@ -146,7 +146,7 @@ export class Tr2StaticEmitter
    * Both Carbon SpawnParticles overloads are empty for the static emitter -
    * it only spawns once from Update (Tr2StaticEmitter.cpp:293-308).
    */
-  @impl.noop
+  @meta.noop
   /**
    * Does nothing: a static emitter spawns only during Update, never in response to a per-particle spawn call.
    */
@@ -155,7 +155,7 @@ export class Tr2StaticEmitter
   }
 
   /** ITr2GenericEmitter.Update (Tr2StaticEmitter.cpp:274-280): one-shot spawn. */
-  @impl.adapted
+  @meta.adapted
   Update(_updateArguments)
   {
     return this.hasSpawnedParticles ? false : this.ForceSpawn();

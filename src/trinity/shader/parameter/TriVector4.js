@@ -1,18 +1,18 @@
 // Source: trinity/trinity/Shader/Parameter/TriFloatArrayParameter.h
 // Source: trinity/trinity/Shader/Parameter/TriFloatArrayParameter.cpp
 import { vec4 } from "#math/vec4";
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 
 
 /** One vec4 row of a TriFloatArrayParameter's value list. */
-@type.define({
+@meta.define({
   className: "TriVector4",
   family: "shader"
 })
 export class TriVector4
 {
-  @edit.readwrite
-  @edit.persist
-  @type.vec4
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec4
   data = vec4.create();
 }

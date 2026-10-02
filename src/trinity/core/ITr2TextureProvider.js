@@ -8,7 +8,7 @@ export class ITr2TextureProvider
    * Returns the provider's borrowed AL texture.
    * @returns {object|null} Texture value supplied by the implementation.
    */
-  @meta.impl.abstract
+  @meta.abstract
   GetTexture()
   {
     throw new Error("ITr2TextureProvider.GetTexture must be implemented by a texture provider.");
@@ -20,7 +20,7 @@ export class ITr2TextureProvider
    * @param {Function} _listener Callback used by the JavaScript event adapter.
    * @returns {Function} Unsubscribe function supplied by the implementation.
    */
-  @meta.impl.abstract
+  @meta.abstract
   OnTextureChange(_listener)
   {
     throw new Error("ITr2TextureProvider.OnTextureChange must be implemented by a texture provider.");

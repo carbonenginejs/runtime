@@ -1,5 +1,5 @@
 // Historical Incarna hydration contract reviewed from complete Black records.
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 
 /**
  * Minimal persisted cell record used by historical Incarna interior scenes.
@@ -10,18 +10,18 @@ import { edit, type } from "#schema";
  * Tr2InteriorCells"); no Carbon header declares it, so its fields come from
  * the reviewed records, not from a port.
  */
-@type.define({ className: "Tr2InteriorCell", family: "incarna" })
+@meta.define({ className: "Tr2InteriorCell", family: "incarna" })
 export class Tr2InteriorCell
 {
 
   /** Persisted unbounded-cell flag observed in reviewed historical records. */
-  @edit.persist
-  @type.boolean
+  @meta.blue.persist
+  @meta.type.boolean
   isUnbounded = false;
 
   /** Optional spherical-harmonic probe resource path. */
-  @edit.persist
-  @type.string
+  @meta.blue.persist
+  @meta.type.string
   shProbeResPath = "";
 
 }

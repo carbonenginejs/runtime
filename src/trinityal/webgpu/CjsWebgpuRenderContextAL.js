@@ -73,7 +73,7 @@ import { Tr2TextureAL } from "../Tr2TextureAL/index.js";
 //   hatches. Ours are `GetWebgpu` and `GetWorkQueue` - Carbon names these per
 //   backend too, so a WebGPU spelling is the faithful thing, not a divergence.
 
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2ResourceSetAL } from "../Tr2ResourceSetAL/Tr2ResourceSetAL.js";
 import { PixelFormat, RenderState, ShaderType, Topology, Tr2LoadAction, Tr2StoreAction, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
 import { Tr2ColorAttachment, Tr2ConstantUsageAL, Tr2DepthAttachment, Tr2VertexLayoutALStub, resolveBindingPlan, ALResult, Failed, Tr2DrawUPHelper } from "#trinityal";
@@ -794,7 +794,7 @@ export class CjsWebgpuRenderContextAL
    * WebGPU destroy is safe after submit; a callback captures either a texture
    * or an engine buffer handle without retaining a cleared AL value.
    */
-  @impl.adapted
+  @meta.adapted
   ReleaseLater(release)
   {
     if (this._commandEncoder) this._pendingResourceReleases.push(release);
@@ -2308,8 +2308,8 @@ export class CjsWebgpuRenderContextAL
    * @param {object} program The `CjsWebgpuShaderProgramAL` it binds against.
    * @returns {object|null} The set, or null when Create refused.
    */
-  @impl.custom
-  @impl.reason("JavaScript chooses the AL implementation through this context factory instead of a compile-time platform include. The private allocation branch preserves the native Create result.")
+  @meta.ours
+  @meta.reason("JavaScript chooses the AL implementation through this context factory instead of a compile-time platform include. The private allocation branch preserves the native Create result.")
   CreateResourceSet(description, program, implementationOnly = false)
   {
     // JS platform selection for the public facade; the allocation branch
@@ -2445,8 +2445,8 @@ export class CjsWebgpuRenderContextAL
    * @param {object} resourceSet A `Tr2ResourceSetAL`.
    * @returns {number} `S_OK`.
    */
-  @impl.adapted
-  @impl.reason("A copied public wrapper retains the shared ownership record while this context binds the WebGPU implementation.")
+  @meta.adapted
+  @meta.reason("A copied public wrapper retains the shared ownership record while this context binds the WebGPU implementation.")
   SetResourceSet(resourceSet)
   {
     const next = resourceSet ? new Tr2ResourceSetAL({ copy: resourceSet }) : null;

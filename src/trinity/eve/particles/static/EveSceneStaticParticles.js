@@ -1,7 +1,7 @@
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/Renderable/EveSceneStaticParticles.h
 //   trinity/trinity/Eve/Renderable/EveSceneStaticParticles.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -40,63 +40,63 @@ function randomGauss(random, deviation)
  * around a double-precision aggregate origin and drawn through a single
  * instanced mesh.
  */
-@type.define({ className: "EveSceneStaticParticles", family: "eve/scene" })
-@carbon.inherit(ITr2Renderable)
-@carbon.inherit(IInitialize)
-@carbon.mapInterface(IInitialize)
+@meta.define({ className: "EveSceneStaticParticles", family: "eve/scene" })
+@meta.blue.inherit(ITr2Renderable)
+@meta.blue.inherit(IInitialize)
+@meta.blue.mapInterface(IInitialize)
 export class EveSceneStaticParticles
 {
 
   /** Carbon ClusterData records retained on the CPU. */
-  @type.list("ClusterData")
+  @meta.type.list("ClusterData")
   clusters = [];
 
   /** Double-precision aggregate origin used for camera-relative placement. */
-  @type.rawStruct("Vector3d")
+  @meta.type.rawStruct("Vector3d")
   centerOfClusters = new Float64Array(3);
 
   /** Local particle bounds rebuilt with the CPU instance data. */
-  @type.vec4
+  @meta.type.vec4
   boundingSphere = new Float32Array(4);
 
   /** m_clusterParticleDensityAdjust (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   clusterParticleDensityAdjust = 1;
 
   /** m_estimatedSize (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   estimatedSize = 0;
 
   /** m_clusterParticleDensity (float) [READWRITE] */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   clusterParticleDensity = 100;
 
   /** m_maxSize (float) [READWRITE] */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   maxSize = 200;
 
   /** m_minSize (float) [READWRITE] */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   minSize = 5;
 
   /** m_mesh (Tr2InstancedMeshPtr) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("Tr2InstancedMesh")
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2InstancedMesh")
   mesh = null;
 
   /** m_maxParticleCount (size_t) [READWRITE] */
-  @edit.readwrite
-  @type.uint64
+  @meta.blue.readwrite
+  @meta.type.uint64
   maxParticleCount = 100000;
 
   /** m_visible (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   visible = false;
 
   /** m_worldMatrix (EveSceneStaticParticles.h:93; ctor identity, cpp:27) -
@@ -112,8 +112,8 @@ export class EveSceneStaticParticles
   center = vec3.create();
 
   /** Carbon's post-hydration initializer has no additional work. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     return true;
@@ -125,9 +125,9 @@ export class EveSceneStaticParticles
    * the DOUBLE-precision offset centerOfClusters - origin (narrowed to
    * float32 per component only when it enters the matrix, Carbon's
    * float(offset.x) casts), and stamps the world-space sphere center. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Tr2Renderer::IsLowQuality relocates onto the update-context duck (lowQuality, default false).")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Tr2Renderer::IsLowQuality relocates onto the update-context duck (lowQuality, default false).")
   Update(updateContext)
   {
     if ((updateContext?.lowQuality ?? updateContext?.device?.lowQuality) === true ||
@@ -159,9 +159,9 @@ export class EveSceneStaticParticles
    * and the size gate; the size gate is strict > against
    * PARTICLE_CLUSTER_MIN_SIZE * lodFactor. estimatedSize is stamped even
    * when invisible - GetBatches consumes it as the LOD size (cpp:139). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Tr2Renderer::IsLowQuality relocates onto the update-context duck (lowQuality, default false).")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Tr2Renderer::IsLowQuality relocates onto the update-context duck (lowQuality, default false).")
   UpdateVisibility(updateContext)
   {
     this.visible = false;
@@ -192,8 +192,8 @@ export class EveSceneStaticParticles
   /** Carbon EveSceneStaticParticles::IsVisible (cpp:170-174): the world-space
    * center with the local radius through the ONE-ARG IsSphereVisible - the
    * back-plane-ignored TriFrustum quirk applies (cullBackPlane false). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsVisible(updateContext)
   {
     const frustum = updateContext?.GetFrustum();
@@ -208,8 +208,8 @@ export class EveSceneStaticParticles
   /** Carbon EveSceneStaticParticles::GetRenderables (cpp:129-135): pushes the
    * object ITSELF when visible; the frustum parameter is deliberately unused
    * (kept for the scene call-site contract, EveSpaceScene.cpp:1504-1507). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetRenderables(_frustum, out = [])
   {
     if (this.visible)
@@ -222,9 +222,9 @@ export class EveSceneStaticParticles
   /** Carbon EveSceneStaticParticles::GetBatches (cpp:137-140): the mesh's
    * areas of the requested type with the stamped estimatedSize as the LOD
    * screen size (resolving it against the real target is not ported yet). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The estimatedSize LOD select is engine-resolved at realization; the delegation structure is ported.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("The estimatedSize LOD select is engine-resolved at realization; the delegation structure is ported.")
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     const areas = this.mesh?.GetAreas(batchType) ?? batchType;
@@ -233,8 +233,8 @@ export class EveSceneStaticParticles
 
   /** Carbon EveSceneStaticParticles::GetShadowBatches (cpp:142-145): the
    * particle clusters never cast shadows. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetShadowBatches(_batches, _perObjectData, _shadowPixelSize)
   {
     return false;
@@ -243,9 +243,9 @@ export class EveSceneStaticParticles
   /** Carbon EveSceneStaticParticles::GetPerObjectData (cpp:147-158): the
    * world/lastWorld pair (HLSL packing transposes of single matrices - no
    * composition). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Trinity allocates the catalogued record and encodes world/lastWorld into the canonical stored layout. Both fields are CPU-filled; binding the packed payload is not ported yet.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Trinity allocates the catalogued record and encodes world/lastWorld into the canonical stored layout. Both fields are CPU-filled; binding the packed payload is not ported yet.")
   GetPerObjectData(accumulator)
   {
     const data = accumulator?.Alloc?.("EveSceneStaticParticlesPerObjectData");
@@ -259,25 +259,25 @@ export class EveSceneStaticParticles
   }
 
   /** Carbon EveSceneStaticParticles::HasTransparentBatches (cpp:160-163). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HasTransparentBatches()
   {
     return false;
   }
 
   /** Carbon EveSceneStaticParticles::GetSortValue (cpp:165-168). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetSortValue()
   {
     return 0;
   }
 
   /** Adds Carbon's sole debug option to a Set-like option bag. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Tr2DebugRendererOptions is represented by an injected Set-like option bag.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Tr2DebugRendererOptions is represented by an injected Set-like option bag.")
   GetDebugOptions(options = new Set())
   {
     if (options?.add)
@@ -292,9 +292,9 @@ export class EveSceneStaticParticles
   }
 
   /** Draws the transformed cluster bounds through the injected debug renderer. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("ITr2DebugRenderer2 is an injected engine-owned capability; its Effect::Wireframe value is retained as 0.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("ITr2DebugRenderer2 is an injected engine-owned capability; its Effect::Wireframe value is retained as 0.")
   RenderDebugInfo(renderer)
   {
     if (!renderer?.HasOption?.(this, "Bounding Sphere"))
@@ -313,9 +313,9 @@ export class EveSceneStaticParticles
   }
 
   /** Carbon method AddCluster (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon's native ClusterData/Vector3d value is represented by a plain record with a Float64Array position.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon's native ClusterData/Vector3d value is represented by a plain record with a Float64Array position.")
   AddCluster(position, radius, color1, color2, randomSeed)
   {
     this.clusters.push({
@@ -328,9 +328,9 @@ export class EveSceneStaticParticles
   }
 
   /** Carbon method Rebuild (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Builds Carbon's CPU instance rows and bounds; a deterministic local PRNG replaces Carbon's process-global C rand state, and boolean success plus safe empty-cluster cleanup replace Carbon's void native buffer path.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Builds Carbon's CPU instance rows and bounds; a deterministic local PRNG replaces Carbon's process-global C rand state, and boolean success plus safe empty-cluster cleanup replace Carbon's void native buffer path.")
   Rebuild()
   {
     const instanceData = this.mesh?.GetInstanceGeometryResource?.();
@@ -435,9 +435,9 @@ export class EveSceneStaticParticles
   }
 
   /** Carbon method ClearClusters (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon QueryInterface<Tr2RuntimeInstanceData> becomes the portable instance-resource duck exposed by the mesh.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon QueryInterface<Tr2RuntimeInstanceData> becomes the portable instance-resource duck exposed by the mesh.")
   ClearClusters()
   {
     this.clusters.length = 0;

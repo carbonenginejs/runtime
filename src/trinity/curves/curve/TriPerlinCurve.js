@@ -1,7 +1,7 @@
 // Source: trinity/trinity/TriSequencer.h
 // Source: trinity/trinity/TriSequencer.cpp
 // Source: trinity/trinity/TriMath.cpp
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { ITriScalarFunction } from "#blue/ITriScalarFunction";
 import { ITriFunction } from "#blue/ITriFunction";
 import { carbonPerlin1D } from "#math/noise";
@@ -23,58 +23,58 @@ export class TriPerlinCurve extends ITriScalarFunction
    * "expressionCurveFakeRandom" setting, default false): a deterministic
    * random for expression previews. It is held here, on its only reader.
    */
-  @meta.edit.setting("expressionCurveFakeRandom")
+  @meta.setting("expressionCurveFakeRandom")
   static expressionCurveFakeRandom = false;
 
   static _triRandState = 1234;
 
   /** Native mName (std::wstring). */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.wstring
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.wstring
   name = "";
 
   /** Native mValue: the externally writable cached result. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   value = 0;
 
   /** Native mOffset. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   offset = 0;
 
   /** Native mScale. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   scale = 1;
 
   /** Native mAlpha. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   alpha = 1.1;
 
   /** Native mSpeed. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   speed = 1;
 
   /** Native mBeta. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   beta = 2;
 
   /** Native mN exposed as N; n retains the existing JavaScript storage spelling. */
   @meta.member("N")
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   n = 3;
 
   /** Native mLastUpdated cache sentinel; Update(-1) initially retains mValue. */
@@ -82,8 +82,8 @@ export class TriPerlinCurve extends ITriScalarFunction
   _startOffset = TriPerlinCurve._nextStartOffset();
 
   /** Updates the cached value for the supplied time. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateValue(time)
   {
     this.Update(time);
@@ -94,8 +94,8 @@ export class TriPerlinCurve extends ITriScalarFunction
    * time is unchanged since the last call. Uses the native double-seconds overload;
    * callers of the native Be::Time overload must convert their ticks separately.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Update(time)
   {
     if (this._lastUpdated !== time)
@@ -114,8 +114,8 @@ export class TriPerlinCurve extends ITriScalarFunction
    * separate Be::Time overload with a first-call origin is not exposed. Existing
    * noise arithmetic retains JS precision rather than native float rounding.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValueAt(time)
   {
     let position = Number(time);
@@ -133,8 +133,8 @@ export class TriPerlinCurve extends ITriScalarFunction
   }
 
   /** Carbon's implementation changes output amplitude despite the historical name. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ScaleTime(scale)
   {
     this.scale = scale;
@@ -145,7 +145,7 @@ export class TriPerlinCurve extends ITriScalarFunction
    * [-1, 1]. Custom compatibility wrapper retains the existing static API;
    * native PerlinNoise1D is a free function in TriMath.cpp.
    */
-  @meta.impl.custom
+  @meta.ours
   static PerlinNoise1D(position, inverseAmplitude, frequency, octaves)
   {
     return carbonPerlin1D(position, inverseAmplitude, frequency, octaves);
@@ -157,7 +157,7 @@ export class TriPerlinCurve extends ITriScalarFunction
    * so offsets match that sequence. Adapted: state remains local to this JS
    * class, so interleaving with other native TriRand callers is not reproduced.
    */
-  @meta.impl.adapted
+  @meta.adapted
   static _nextStartOffset()
   {
     let state = TriPerlinCurve._triRandState;
@@ -172,7 +172,7 @@ export class TriPerlinCurve extends ITriScalarFunction
 }
 
 // Source: TriSequencer_Blue.cpp:110-112,178. No ancestor exposure chain.
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [TriPerlinCurve, ITriFunction, ITriScalarFunction],
   chainTo: null
 })(TriPerlinCurve);

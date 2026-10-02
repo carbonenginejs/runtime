@@ -1,7 +1,7 @@
 // Source: audio/src/AudioCurveSetDriver.h
 // Source: audio/src/AudioCurveSetDriver.cpp
 // Source: audio/src/AudioCurveSetDriver_Blue.cpp
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { ICurveSetDriver } from "#blue/ICurveSetDriver";
 import { IInitialize } from "#blue/IInitialize";
 import { AudGameObjResource } from "./AudGameObjResource.js";
@@ -13,57 +13,57 @@ import { AudGameObjResource } from "./AudGameObjResource.js";
  * and disposes drivers. Construction alone installs no manager or audio backend.
  */
 @meta.define({ className: "AudioCurveSetDriver", family: "audio" })
-@meta.carbon.inherit(IInitialize)
+@meta.blue.inherit(IInitialize)
 export class AudioCurveSetDriver extends ICurveSetDriver
 {
   /** m_name: authored display name, stored as std::wstring. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.wstring
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.wstring
   name = "";
 
   /** m_audioParameterName: persistence bypasses the live registration setter. */
   @meta.member("audioParameterName")
-  @meta.edit.persistOnly
-  @types.wstring
+  @meta.blue.persistOnly
+  @meta.type.wstring
   _audioParameterName = "";
 
   /** Live parameter name; assigning it transfers the monitored registration. */
   @meta.property()
-  @meta.edit.readwrite
-  @types.wstring
-  @meta.impl.implemented
+  @meta.blue.readwrite
+  @meta.type.wstring
+  @meta.implemented
   get audioParameterName()
   {
     return this.GetAudioParameterName();
   }
 
   /** @param {string} name Global audio parameter name. */
-  @meta.impl.implemented
+  @meta.implemented
   set audioParameterName(name)
   {
     this.SetAudioParameterName(name);
   }
 
   /** m_audioParameterValue: cached float, retained when no parameter record exists. */
-  @meta.edit.read
-  @types.float32
+  @meta.blue.read
+  @meta.type.float32
   audioParameterValue = 0;
 
   /** Whether the current manager and monitored parameter can drive the curve set. */
   @meta.property()
-  @meta.edit.read
-  @types.boolean
-  @meta.impl.implemented
+  @meta.blue.read
+  @meta.type.boolean
+  @meta.implemented
   get isValid()
   {
     return this.IsValid();
   }
 
   /** m_fallbackCurve: sampled at the caller's unmodified time when audio is invalid. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.objectRef("ITriScalarFunction")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("ITriScalarFunction")
   fallbackCurve = null;
 
   /** m_audioParameterExists: the last monitored record's existence flag. */
@@ -83,8 +83,8 @@ export class AudioCurveSetDriver extends ICurveSetDriver
    * @param {number} time Time forwarded unchanged to the fallback function.
    * @returns {number} Fallback sample or cached audio parameter value.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetCurveSetTime(time)
   {
     const manager = AudGameObjResource.manager;
@@ -102,8 +102,8 @@ export class AudioCurveSetDriver extends ICurveSetDriver
   }
 
   /** @returns {boolean} Whether audio is enabled and the named parameter exists. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsValid()
   {
     const manager = AudGameObjResource.manager;
@@ -111,8 +111,8 @@ export class AudioCurveSetDriver extends ICurveSetDriver
   }
 
   /** @returns {string} The stored global audio parameter name. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetAudioParameterName()
   {
     return this._audioParameterName;
@@ -128,8 +128,8 @@ export class AudioCurveSetDriver extends ICurveSetDriver
    *
    * @returns {boolean} Always true; a silent uncomposed driver remains usable.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Initialize()
   {
     if (this._registeredManager !== null && this._registeredParameterName !== this._audioParameterName)
@@ -158,8 +158,8 @@ export class AudioCurveSetDriver extends ICurveSetDriver
    * @param {string} name New global parameter name; an empty string detaches it.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetAudioParameterName(name)
   {
     if (this._registeredManager !== null)
@@ -180,7 +180,7 @@ export class AudioCurveSetDriver extends ICurveSetDriver
    *
    * @returns {void}
    */
-  @meta.impl.custom
+  @meta.ours
   Dispose()
   {
     if (this._registeredManager === null) return;
@@ -192,7 +192,7 @@ export class AudioCurveSetDriver extends ICurveSetDriver
 }
 
 // EXPOSURE_BEGIN adds concrete self; EXPOSURE_END has no exposure parent.
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ AudioCurveSetDriver, ICurveSetDriver, IInitialize ],
   chainTo: null
 })(AudioCurveSetDriver, { kind: "class" });

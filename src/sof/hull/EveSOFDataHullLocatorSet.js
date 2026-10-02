@@ -1,23 +1,23 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveSOFDataHullLocatorSet } from "./IEveSOFDataHullLocatorSet.js";
 
 /** Provides a concrete named list of hull locators. */
-@type.define({ className: "EveSOFDataHullLocatorSet", family: "eve" })
+@meta.define({ className: "EveSOFDataHullLocatorSet", family: "eve" })
 export class EveSOFDataHullLocatorSet extends IEveSOFDataHullLocatorSet
 {
 
   /** m_locators (PEveSOFDataTransformVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataTransform")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataTransform")
   locators = [];
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
 }

@@ -1,4 +1,4 @@
-import { impl } from "#schema";
+import { meta } from "#schema";
 
 
 /**
@@ -9,21 +9,21 @@ export class CjsTrinityBatchResolver
 {
 
   /** Resolves a canonical batch's material into renderer-owned pipeline inputs. */
-  @impl.abstract
+  @meta.abstract
   ResolveMaterial(_material, _batch, _context)
   {
     throw new Error("CjsTrinityBatchResolver.ResolveMaterial must be implemented by a concrete resolver.");
   }
 
   /** Resolves a canonical batch's geometry source into renderer-owned geometry. */
-  @impl.abstract
+  @meta.abstract
   ResolveGeometry(_geometrySource, _batch, _context)
   {
     throw new Error("CjsTrinityBatchResolver.ResolveGeometry must be implemented by a concrete resolver.");
   }
 
   /** Resolves a canonical batch's object data into renderer-owned bindings. */
-  @impl.abstract
+  @meta.abstract
   ResolveBindings(_batch, _objectData, _context)
   {
     throw new Error("CjsTrinityBatchResolver.ResolveBindings must be implemented by a concrete resolver.");

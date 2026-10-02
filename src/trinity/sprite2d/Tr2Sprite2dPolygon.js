@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPolygon.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPolygon_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; portable value helpers are maintained here.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2TexturedSpriteObject } from "../generated/sprite2d/Tr2TexturedSpriteObject.js";
 import { Tr2Sprite2dTriangle } from "./Tr2Sprite2dTriangle.js";
 import { Tr2Sprite2dVertex } from "./Tr2Sprite2dVertex.js";
@@ -11,23 +11,23 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
 /** Stores editable Sprite2D polygon vertices and triangles and validates wrapped append input. */
-@type.define({ className: "Tr2Sprite2dPolygon", family: "sprite2d" })
+@meta.define({ className: "Tr2Sprite2dPolygon", family: "sprite2d" })
 export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
 {
 
   /** m_triangles (PTr2Sprite2dTriangleVector) [READ] */
-  @edit.read
-  @type.list("Tr2Sprite2dTriangle")
+  @meta.blue.read
+  @meta.type.list("Tr2Sprite2dTriangle")
   triangles = [];
 
   /** m_vertices (PTr2Sprite2dVertexVector) [READ] */
-  @edit.read
-  @type.list("Tr2Sprite2dVertex")
+  @meta.blue.read
+  @meta.type.list("Tr2Sprite2dVertex")
   vertices = [];
 
   /** Carbon method AppendTriangles -> PyAppendTriangles (MAP_METHOD). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   AppendTriangles(triangles)
   {
     if (!Array.isArray(triangles))
@@ -51,8 +51,8 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
   }
 
   /** Carbon method AppendVertices -> PyAppendVertices (MAP_METHOD). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   AppendVertices(positions, positionTransform = null, colors = [1, 1, 1, 1], texCoords0 = null, texCoords1 = null)
   {
     const sources = [
@@ -77,8 +77,8 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
   }
 
   /** Carbon method SetVertices -> PySetVertices (MAP_METHOD). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetVertices(positions = null, positionTransform = null, colors = null, texCoords0 = null, texCoords1 = null)
   {
     const sources = [
@@ -106,8 +106,8 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
   }
 
   /** Carbon returns no vertices while hidden, otherwise the authored count. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetVertexCount()
   {
     return this.display ? this.vertices.length : 0;

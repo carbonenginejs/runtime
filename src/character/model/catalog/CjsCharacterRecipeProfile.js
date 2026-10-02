@@ -1,4 +1,4 @@
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /**
@@ -9,23 +9,23 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
  * read it; a consumer that needs a profile-to-part join must diagnose a
  * missing one rather than assume the catalog is populated.
  */
-@type.define({ className: "CjsCharacterRecipeProfile", family: "character" })
+@meta.define({ className: "CjsCharacterRecipeProfile", family: "character" })
 export class CjsCharacterRecipeProfile extends CjsCharacterRecord
 {
 
-    @edit.readwrite
-    @edit.persist
-    @type.path
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.path
     sourcePath = "";
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     sex = "";
 
-    @edit.readwrite
-    @edit.persist
-    @type.list("CjsCharacterRecipeEntry")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.list("CjsCharacterRecipeEntry")
     entries = [];
 
 }

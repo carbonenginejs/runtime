@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetExternalControllerVariable.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetExternalControllerVariable_Blue.cpp
 import { INotify } from "#blue";
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
@@ -15,61 +15,61 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
   className: "Tr2ActionSetExternalControllerVariable",
   family: "controllers"
 })
-@meta.carbon.inherit(INotify)
+@meta.blue.inherit(INotify)
 export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
 {
   /**
    * Binding-root name used to resolve the object whose controller variable is changed.
    * @type {string}
    */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   destinationOwner = "";
 
   /**
    * Resolved destination owner; native BlueWeakRef<IRoot>, retained as a live JavaScript reference.
    * @type {IRoot|null}
    */
-  @meta.edit.read
-  @types.weakRef("IRoot")
+  @meta.blue.read
+  @meta.type.weakRef("IRoot")
   destination = null;
 
   /**
    * Name of the destination controller variable written on Start.
    * @type {string}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   variable = "";
 
   /**
    * Constant float value, also used when the selected source variable is unavailable.
    * @type {number}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   value = 0;
 
   /**
    * Optional linked-controller float-variable name sampled instead of the authored constant.
    * @type {string}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   sourceVariable = "";
 
   /**
    * Whether Start first starts the resolved destination controllers before writing the variable.
    * @type {boolean}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   startControllers = false;
 
   /**
@@ -77,9 +77,9 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * @returns {boolean} Whether the cached destination is non-null.
    */
   @meta.property()
-  @meta.edit.read
-  @types.boolean
-  @meta.impl.implemented
+  @meta.blue.read
+  @meta.type.boolean
+  @meta.implemented
   get destinationIsValid()
   {
     return this.IsDestinationValid();
@@ -94,8 +94,8 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * ITr2ControllerOwner on the owner, GetRootObject result and selected target;
    * those nominal owner declarations are incomplete in the current domain.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Link(controller)
   {
     this._controller = controller;
@@ -105,8 +105,8 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
   /**
    * Clears the destination owner.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Unlink()
   {
     this.destination = null;
@@ -122,8 +122,8 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * Native Start keeps Link's controller rather than replacing it. That existing
    * no-argument/refresh convenience remains outside this model-base removal.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Start(controller = this._controller)
   {
     if (!controller)
@@ -152,8 +152,8 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    *
    * Adapted: Dispatches the native member notification by exposed property name.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnModified(propertyName)
   {
     if (propertyName === "destinationOwner") this._linkToDestinationOwner();
@@ -163,8 +163,8 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
   /**
    * Checks whether the destination owner resolved.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsDestinationValid()
   {
     return !!this.destination;
@@ -174,7 +174,7 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * Checks whether a target variable name is authored.
    * Custom: native declares this method but provides no body or Blue exposure.
    */
-  @meta.impl.custom
+  @meta.ours
   IsVariableValid()
   {
     return !!this.variable;
@@ -254,7 +254,7 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionSetExternalControllerVariable_Blue.cpp:13-15,27).
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [Tr2ActionSetExternalControllerVariable, ITr2ControllerAction, INotify],
   chainTo: null
 })(Tr2ActionSetExternalControllerVariable);

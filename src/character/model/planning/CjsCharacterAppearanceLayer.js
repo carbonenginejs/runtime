@@ -1,4 +1,4 @@
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 
 /**
  * Appearance contribution separating selection ownership from the asset that supplies it.
@@ -7,29 +7,29 @@ import { edit, type } from "#schema";
  * its mesh, material or visible alpha. `plan.layers` order is inventory
  * order, not bake order.
  */
-@type.define({ className: "CjsCharacterAppearanceLayer", family: "character" })
+@meta.define({ className: "CjsCharacterAppearanceLayer", family: "character" })
 export class CjsCharacterAppearanceLayer
 {
 
-    @edit.readwrite
-    @edit.persist
-    @type.model("CjsCharacterAppearanceSelection")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.model("CjsCharacterAppearanceSelection")
     owner = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.model("CjsCharacterResolvedPart")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.model("CjsCharacterResolvedPart")
     contributor = null;
 
     /** Authored contribution weight when the dependency carries one. */
-    @edit.readwrite
-    @edit.persist
-    @type.float64
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.float64
     weight = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.model("CjsCharacterOrigin")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.model("CjsCharacterOrigin")
     origin = null;
 
 }

@@ -1,25 +1,25 @@
 // Source: trinity/trinity/Eve/UI/EveLineSet.h
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { type } from "#schema";
+import { meta } from "#schema";
 
 
 /** One line in an EveLineSet: two endpoints, each with its own colour. */
-@type.define({
+@meta.define({
   className: "EveLineData",
   family: "eve/ui"
 })
 export class EveLineData
 {
-  @type.vec3
+  @meta.type.vec3
   position1 = vec3.create();
 
-  @type.color
+  @meta.type.color
   color1 = vec4.create();
 
-  @type.vec3
+  @meta.type.vec3
   position2 = vec3.create();
 
-  @type.color
+  @meta.type.color
   color2 = vec4.create();
 }

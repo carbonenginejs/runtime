@@ -2,7 +2,7 @@
 //   trinity/trinity/Tr2DynamicRingBuffer.cpp
 //
 // A ring vertex buffer, declared beside Tr2DynamicRingBuffer in Carbon's header.
-import { carbon, impl } from "#schema";
+import { meta } from "#schema";
 import { Tr2BufferDescriptionAL, ALResult } from "#trinityal";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Tr2DynamicRingBuffer } from "./Tr2DynamicRingBuffer.js";
@@ -12,8 +12,8 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2Rende
 export class Tr2RingVertexBuffer extends Tr2DynamicRingBuffer
 {
   /** Carbon Create (cpp:395-400). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Create(bufferSize)
   {
     this.ReleaseResources();
@@ -23,8 +23,8 @@ export class Tr2RingVertexBuffer extends Tr2DynamicRingBuffer
   }
 
   /** Carbon CreateBuffer (cpp:411-421): a stride-1 WRITE_OFTEN vertex buffer. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   CreateBuffer(size)
   {
     this._buffer?.Destroy();

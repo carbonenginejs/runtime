@@ -1,6 +1,6 @@
 // Source: trinity/trinity/TriLineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 
@@ -12,29 +12,29 @@ function swizzleColor(color)
 }
 
 /** A debug line set that builds boxes, spheres, cylinders and cones out of coloured line segments. */
-@type.define({ className: "TriLineSet", family: "trinityCore" })
+@meta.define({ className: "TriLineSet", family: "trinityCore" })
 export class TriLineSet
 {
 
-  @type.uint32
+  @meta.type.uint32
   defaultColor = 0xffffffff;
 
-  @type.list("TriDebugVertexPosColor")
+  @meta.type.list("TriDebugVertexPosColor")
   vertices = [];
 
   /** m_zEnable (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   zEnable = true;
 
   /** m_transform (Matrix) [READWRITE] */
-  @edit.readwrite
-  @type.mat4
+  @meta.blue.readwrite
+  @meta.type.mat4
   transform = mat4.create();
 
   /** Carbon method Add (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Add(from, fromColor, to, toColor)
   {
     if (this.vertices.length + 2 > 100000) return false;
@@ -46,8 +46,8 @@ export class TriLineSet
   }
 
   /** Carbon method AddBox (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddBox(min, max, color = 0xffffffff)
   {
     const minA = vec3.fromValues(max[0], min[1], min[2]);
@@ -63,8 +63,8 @@ export class TriLineSet
   }
 
   /** Carbon method AddLines (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   AddLines(lines)
   {
     if (!Array.isArray(lines)) return false;
@@ -79,8 +79,8 @@ export class TriLineSet
   }
 
   /** Carbon method AddSphere (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddSphere(center, radius, segments, color = 0xffffffff)
   {
     segments = Math.max(4, Math.trunc(Number(segments)) || 0);
@@ -128,7 +128,7 @@ export class TriLineSet
   /**
    * Appends a cylinder as line segments around an axis.
    */
-  @impl.adapted
+  @meta.adapted
   AddCylinder(start, end, radius, segments, color = 0xffffffff)
   {
     return this.#AddRoundPrimitive(start, end, radius, segments, color, false);
@@ -137,7 +137,7 @@ export class TriLineSet
   /**
    * Appends a cone as line segments around an axis.
    */
-  @impl.adapted
+  @meta.adapted
   AddCone(start, end, radius, segments, color = 0xffffffff)
   {
     return this.#AddRoundPrimitive(start, end, radius, segments, color, true);
@@ -181,8 +181,8 @@ export class TriLineSet
   }
 
   /** Carbon method Clear (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Clear()
   {
     this.vertices.length = 0;
@@ -193,8 +193,8 @@ export class TriLineSet
    * draws the line set's own vertex buffer through its own effect; that body
    * is not ported, so a set with vertices refuses by name.
    */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   Render(_renderContext = null)
   {
     if (!this.vertices.length) return false;
@@ -202,8 +202,8 @@ export class TriLineSet
   }
 
   /** Carbon method SetCurrentColor (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetCurrentColor(color)
   {
     const value = swizzleColor(color);
@@ -211,8 +211,8 @@ export class TriLineSet
   }
 
   /** Carbon method SetDefaultColor (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetDefaultColor(color)
   {
     this.defaultColor = Number(color) >>> 0;

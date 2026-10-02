@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/EveLensflare.h
 // Source: trinity/trinity/Eve/EveLensflare.cpp
 // Hand-maintained after promotion from generated schema intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -16,118 +16,118 @@ const prepareScratch = vec3.create();
 const bitsAsFloat = value => new Float32Array(new Uint32Array([ value >>> 0 ]).buffer)[0];
 
 /** Represents a lens-flare graph with CPU-side visibility and controller state. */
-@type.define({ className: "EveLensflare", family: "eve/effect" })
-@carbon.inherit(ITr2Renderable)
+@meta.define({ className: "EveLensflare", family: "eve/effect" })
+@meta.blue.inherit(ITr2Renderable)
 export class EveLensflare
 {
 
   _controllerVariables = new Map();
 
   /** m_translationCurve (ITriVectorFunctionPtr) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("ITriVectorFunction")
+  @meta.blue.readwrite
+  @meta.type.objectRef("ITriVectorFunction")
   translationCurve = null;
 
   /** m_mesh (Tr2MeshPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2Mesh")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2Mesh")
   mesh = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_backgroundOccluders (PEveOccluderVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveOccluder")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveOccluder")
   backgroundOccluders = [];
 
   /** m_occluders (PEveOccluderVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveOccluder")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveOccluder")
   occluders = [];
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("TriCurveSet")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("TriCurveSet")
   curveSets = [];
 
   /** m_distanceToEdgeCurves (PITriFunctionVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("ITriFunction")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITriFunction")
   distanceToEdgeCurves = [];
 
   /** m_distanceToCenterCurves (PITriFunctionVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("ITriFunction")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITriFunction")
   distanceToCenterCurves = [];
 
   /** m_radialAngleCurves (PITriFunctionVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("ITriFunction")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITriFunction")
   radialAngleCurves = [];
 
   /** m_xDistanceToCenter (PITriFunctionVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("ITriFunction")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITriFunction")
   xDistanceToCenter = [];
 
   /** m_yDistanceToCenter (PITriFunctionVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("ITriFunction")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITriFunction")
   yDistanceToCenter = [];
 
   /** m_controllers (PITr2ControllerVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("ITr2Controller")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITr2Controller")
   controllers = [];
 
   /** m_bindings (PITr2ValueBindingVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("ITr2ValueBinding")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITr2ValueBinding")
   bindings = [];
 
   /** m_cameraFactor (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   cameraFactor = 20;
 
   /** m_position (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   position = vec3.create();
 
   /** m_flares (PEveTransformVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveTransform")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveTransform")
   flares = [];
 
   /** m_update (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   update = true;
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   display = true;
 
   /** m_isVisible (EveLensflare.h:95; ctor false, cpp:68) - runtime state,
@@ -176,8 +176,8 @@ export class EveLensflare
    * rays read this GLOBAL, and until 2026-09-26 it was never written. The curve is
    * called out-last (Update(simTime, position)) per the org convention -
    * Carbon's is out-first. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Update(realTime, simTime)
   {
     if (!this.update) return;
@@ -219,8 +219,8 @@ export class EveLensflare
    * PrepareRender, so the dot uses the PREVIOUS frame's direction and
    * forwards the previous frame's transform - do not "fix" the order. Scene
    * call site: EveSpaceScene.cpp:1462-1466 (sequential, single-lensflare). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateVisibility(updateContext)
   {
     this.isVisible = false;
@@ -244,8 +244,8 @@ export class EveLensflare
    * @param {EveUpdateContext} updateContext The occluders' context.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RunOcclusionQueries(renderContext, updateContext)
   {
     if (!this.display) return;
@@ -270,8 +270,8 @@ export class EveLensflare
    * @param {EveUpdateContext} updateContext The occluders' context.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RunBackgroundOcclusionQueries(renderContext, updateContext)
   {
     if (!this.display) return;
@@ -289,8 +289,8 @@ export class EveLensflare
   }
 
   /** Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetControllerVariable(name, value)
   {
     const key = String(name);
@@ -307,8 +307,8 @@ export class EveLensflare
    * hedge at every call site meant a lens flare silently ignored every
    * controller event rather than failing.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HandleControllerEvent(name)
   {
     const key = String(name);
@@ -316,8 +316,8 @@ export class EveLensflare
   }
 
   /** Carbon method StartControllers (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   StartControllers()
   {
     for (const controller of this.controllers) controller?.Start();
@@ -341,8 +341,8 @@ export class EveLensflare
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   PrepareRender(frustum, renderContext)
   {
     if (!this.display) return;
@@ -386,8 +386,8 @@ export class EveLensflare
    * @param {Array} renderables Out: the renderables.
    * @returns {Array} `renderables`.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetRenderables(_frustum, renderables = [])
   {
     if (!this.display || !this.isVisible) return renderables;
@@ -398,8 +398,8 @@ export class EveLensflare
   }
 
   /** Carbon EveLensflare::GetBatches delegates the selected mesh areas (cpp:381-387). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (this.mesh)
@@ -409,16 +409,16 @@ export class EveLensflare
   }
 
   /** Carbon EveLensflare::HasTransparentBatches is always false (cpp:389-392). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HasTransparentBatches()
   {
     return false;
   }
 
   /** Carbon EveLensflare::GetSortValue is the constant one (cpp:394-397). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetSortValue()
   {
     return 1;
@@ -430,8 +430,8 @@ export class EveLensflare
    * per-element writes keep that arena-garbage parity. The struct registers
    * with stages ["vs", "ps"]: one payload, same bytes bound to both slots
    * (cpp:24-38). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetPerObjectData(accumulator)
   {
     const data = accumulator.Alloc("EveLensflarePerObjectData");

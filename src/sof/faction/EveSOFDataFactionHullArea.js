@@ -1,22 +1,22 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 
 /** Stores named faction hull-area parameters and provides case-insensitive lookup. */
-@type.define({ className: "EveSOFDataFactionHullArea", family: "eve" })
+@meta.define({ className: "EveSOFDataFactionHullArea", family: "eve" })
 export class EveSOFDataFactionHullArea
 {
 
   /** m_parameters (PEveSOFDataParameterVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataParameter")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataParameter")
   parameters = [];
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /**

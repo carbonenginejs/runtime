@@ -2,7 +2,7 @@ import { INotify } from "../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { TunnelGroupType } from "./enums.js";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -21,60 +21,60 @@ const FORCE_OFFSET = vec3.create();
 const NO_FORCES = [];
 
 /** A steering behaviour that pulls unassigned drones into spline tunnel entrances and steers locked drones along their assigned tunnel's points toward the exit. */
-@type.define({ className: "FollowASpline", family: "eve/child/behaviors" })
-@carbon.inherit(INotify)
+@meta.define({ className: "FollowASpline", family: "eve/child/behaviors" })
+@meta.blue.inherit(INotify)
 export class FollowASpline
 {
 
   /** Flattened CPU tunnel references used by the behavior system. */
-  @type.list("SplineTunnel")
+  @meta.type.list("SplineTunnel")
   privateTunnels = [];
 
-  @type.boolean
+  @meta.type.boolean
   shouldReassignTunnelIDs = true;
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   behaviorPriority = 0;
 
   /** m_tunnelGroupType (TunnelGroupType - enum TunnelGroupType) [READWRITE, PERSIST, ENUM] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.SplineTunnelGroup.TunnelGroupType")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.SplineTunnelGroup.TunnelGroupType")
   tunnelGroupType = 2;
 
   /** m_splineTunnels (PSplineTunnelGroupVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("SplineTunnelGroup")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("SplineTunnelGroup")
   splineTunnels = [];
 
   /** m_smoothPullFactor (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   smoothPullFactor = 0.8;
 
   /** m_behaviorWeight (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   behaviorWeight = 600;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   enabled = true;
 
   /** m_cornerSmoothener (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   cornerSmoothener = 0.8;
 
   // Carbon m_frameCounter/m_framesBetweenUpdates/m_lastPullForces/
@@ -92,16 +92,16 @@ export class FollowASpline
   _returnForces = [];
 
   /** Carbon FollowASpline::GetProcessPriority (cpp:32-35). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetProcessPriority()
   {
     return this.behaviorPriority;
   }
 
   /** Carbon FollowASpline::OnModified (cpp:26-30). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnModified(_value = null)
   {
     this.UpdateTunnelRegistry();
@@ -115,8 +115,8 @@ export class FollowASpline
    * UpdateTunnelRegistry callback with debug colour 0xff5555aa. One body
    * here; the duplication is the donor's, not three behaviours.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnListModified(event, _key, _key2, value, theList)
   {
     if (theList !== this.splineTunnels) return;
@@ -131,18 +131,18 @@ export class FollowASpline
   }
 
   /** Per-agent scratch record count (Carbon sizeof(FollowASplineData)). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero value means 'has scratch'.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero value means 'has scratch'.")
   GetScratchMemorySize()
   {
     return 1;
   }
 
   /** Fresh per-agent scratch record (Carbon FollowASplineData placement init). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.")
   InitializeScratch()
   {
     return {
@@ -163,9 +163,9 @@ export class FollowASpline
    * @param {Array} _dronesInSearchRadius - unused
    * @returns {Array} debug force pairs when group.collectForces is on
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Debug force pairs are only collected when group.collectForces is set, keeping the per-agent loop allocation-free.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Debug force pairs are only collected when group.collectForces is set, keeping the per-agent loop allocation-free.")
   CalculateBehavior(agents, scratchData, _deltaTime, group, system, _dronesInSearchRadius)
   {
     if (!this.enabled)
@@ -293,8 +293,8 @@ export class FollowASpline
    * flatten every group's tunnels into it, and raise the reassign flag so
    * ReassignTunnelIDsAndAddSystemTunnels renumbers on the next tick.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateTunnelRegistry()
   {
     this.privateTunnels.length = 0;
@@ -310,8 +310,8 @@ export class FollowASpline
   }
 
   /** Blue exposure "remapTunnels" of UpdateTunnelRegistry (FollowASpline_Blue.cpp:37). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   remapTunnels()
   {
     this.UpdateTunnelRegistry();
@@ -561,4 +561,4 @@ export class FollowASpline
 
 // Exact native Blue exposure: only these identities participate in loading.
 // Native IBehavior is not ported; this table exposes the supported subset.
-carbon.interfaceTable({ interfaces: [FollowASpline, INotify], chainTo: null })(FollowASpline, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [FollowASpline, INotify], chainTo: null })(FollowASpline, { kind: "class" });

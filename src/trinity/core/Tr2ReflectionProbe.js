@@ -18,7 +18,7 @@ import { INotify } from "../../global/blue/INotify.js";
 // THE RENDER CONTEXT. Carbon reaches the main-thread context through
 // USE_MAIN_THREAD_RENDER_CONTEXT(); ours is Tr2RenderContext_GetMainThreadRenderContext(),
 // the default here, with an optional trailing context.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { ExFlag, PixelFormat, ShaderType, TextureType, Tr2GpuUsage } from "#consts/render-context";
@@ -44,75 +44,75 @@ const FILTER_EFFECT = "res:/graphics/effect/managed/space/System/Reflection/Refl
 const COPY_MIP_EFFECT = "res:/graphics/effect/managed/space/System/Reflection/CopyCube.fx";
 
 /** Filters a cube into the prefiltered HDR reflection cube Eve's scene binds as its environment map. */
-@type.define({ className: "Tr2ReflectionProbe", family: "trinityCore", purpose: "Filters a cube into the prefiltered HDR reflection cube Eve's scene binds as its environment map." })
-@carbon.inherit(INotify)
+@meta.define({ className: "Tr2ReflectionProbe", family: "trinityCore", purpose: "Filters a cube into the prefiltered HDR reflection cube Eve's scene binds as its environment map." })
+@meta.blue.inherit(INotify)
 export class Tr2ReflectionProbe
 {
 
   /** m_renderFrequency (ReflectionProbeRenderFrequency - enum ReflectionProbeRenderFrequency) [READWRITE, NOTIFY, ENUM] */
-  @edit.notify
-  @edit.readwrite
-  @type.int32
-  @type.enum("trinity.Tr2ReflectionProbe.ReflectionProbeRenderFrequency")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2ReflectionProbe.ReflectionProbeRenderFrequency")
   renderFrequency = 0;
 
   /** m_currentFrame (uint8_t) [READ] */
-  @edit.read
-  @type.uint8
+  @meta.blue.read
+  @meta.type.uint8
   currentFrame = 0;
 
   /** m_customSourceTexture (ITriTextureResPtr) [READWRITE, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @type.objectRef("ITriTextureRes")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.objectRef("ITriTextureRes")
   customSourceTexture = null;
 
   /** m_backlightColor (Color) [READ] */
-  @edit.read
-  @type.color
+  @meta.blue.read
+  @meta.type.color
   backlightColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_backlightContrast (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   backlightContrast = 16;
 
   /** m_hollywoodMode (bool) [READWRITE, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.boolean
   hollywoodMode = true;
 
   /** m_postFilterTarget (Tr2RenderTargetPtr) [READ] */
-  @edit.read
-  @type.objectRef("Tr2RenderTarget")
+  @meta.blue.read
+  @meta.type.objectRef("Tr2RenderTarget")
   reflectionTexture = null;
 
   /** m_hdrOutput (bool) [READWRITE, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.boolean
   hdrOutput = true;
 
   /** m_lockPosition (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   lockPosition = false;
 
   /** m_position (Vector3) [READWRITE] */
-  @edit.readwrite
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.type.vec3
   position = vec3.create();
 
   /** m_intermediateSize (int) [READWRITE, NOTIFY]; Carbon's default is FILTER_SIZE * 4 (`cpp:32`). */
-  @edit.notify
-  @edit.readwrite
-  @type.int32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.int32
   reflectionSize = FILTER_SIZE * 4;
 
   /** m_renderTargetCube (Tr2RenderTargetPtr) [READ] */
-  @edit.read
-  @type.objectRef("Tr2RenderTarget")
+  @meta.blue.read
+  @meta.type.objectRef("Tr2RenderTarget")
   unfilteredTexture = null;
 
   /** m_initialized */
@@ -158,48 +158,48 @@ export class Tr2ReflectionProbe
    *
    * @returns {boolean} True when prepared.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsValid(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     return this.OnPrepareResources(renderContext);
   }
 
   /** Carbon `HasData` (`cpp:68-71`): whether a filter has written the reflection. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HasData()
   {
     return this._hasData && this.reflectionTexture.IsValid();
   }
 
   /** Carbon `GetReflection` (`cpp:206-209`): the filtered cube. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetReflection()
   {
     return this.reflectionTexture;
   }
 
   /** Carbon `SetBackLightColor` (`cpp:211-214`). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetBackLightColor(color)
   {
     vec4.copy(this.backlightColor, color);
   }
 
   /** Carbon `SetBackLightContrast` (`cpp:216-219`). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetBackLightContrast(contrast)
   {
     this.backlightContrast = contrast;
   }
 
   /** Carbon `ReleaseResources` (`cpp:221-224`). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ReleaseResources(_storage)
   {
     this._initialized = false;
@@ -213,8 +213,8 @@ export class Tr2ReflectionProbe
    *
    * @returns {boolean} Whether the resources are ready.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnPrepareResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     const al = renderContext.GetRenderContextAL();
@@ -232,8 +232,8 @@ export class Tr2ReflectionProbe
    *
    * @returns {boolean} Whether every target was created.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   DoPrepareResources(rtFormat, renderContext)
   {
     const size = this.reflectionSize;
@@ -312,8 +312,8 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `OnModified` (`cpp:323-329`): rebuild everything on any change. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnModified(_value)
   {
     this.DestroyRenderTargets();
@@ -321,8 +321,8 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `DestroyRenderTargets` (`cpp:331-345`). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   DestroyRenderTargets()
   {
     for (let face = 0; face < 6; face += 1)
@@ -346,8 +346,8 @@ export class Tr2ReflectionProbe
    * and copy the source into mip 0 - the last two with Hollywood backlighting
    * seen from the current view.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Filter(renderContext)
   {
     if (!this.IsValid(renderContext)) return;
@@ -378,8 +378,8 @@ export class Tr2ReflectionProbe
    * currently set texture": rebuild the targets in RGBA16F and filter
    * `customSourceTexture`.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RunFilter(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     this.DestroyRenderTargets();
@@ -388,24 +388,24 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `IsHollyWoodModeOn` (`cpp:391-394`). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsHollyWoodModeOn()
   {
     return this.hollywoodMode;
   }
 
   /** Carbon `ReadyForDynamicObjectReflections` (`cpp:396-400`). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ReadyForDynamicObjectReflections()
   {
     return this._onePassDone;
   }
 
   /** Carbon `GetStartFace` (`cpp:80-87`). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetStartFace()
   {
     return this.renderFrequency === Tr2ReflectionProbe.ReflectionProbeRenderFrequency.ALL_SIDES_PER_FRAME || !this._onePassDone
@@ -414,8 +414,8 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `GetEndFace` (`cpp:89-96`). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetEndFace()
   {
     return this.renderFrequency === Tr2ReflectionProbe.ReflectionProbeRenderFrequency.ALL_SIDES_PER_FRAME || !this._onePassDone
@@ -427,40 +427,40 @@ export class Tr2ReflectionProbe
    * Carbon `InitRenderPass` (`cpp:99-138`). Not ported: rendering the scene
    * into the six faces needs the scene's reflection pass.
    */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   InitRenderPass(_renderContext)
   {
     throw new Error("Tr2ReflectionProbe.InitRenderPass is not ported yet; it needs the scene's reflection pass.");
   }
 
   /** Carbon `StartRenderFace` (`cpp:145-176`). Not ported; see InitRenderPass. */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   StartRenderFace(_face, _renderContext)
   {
     throw new Error("Tr2ReflectionProbe.StartRenderFace is not ported yet; it needs the scene's reflection pass.");
   }
 
   /** Carbon `EndRenderPass` (`cpp:178-204`). Not ported; see InitRenderPass. */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   EndRenderPass(_renderContext)
   {
     throw new Error("Tr2ReflectionProbe.EndRenderPass is not ported yet; it needs the scene's reflection pass.");
   }
 
   /** Carbon `GetFrustum` (`cpp:73-78`). Not ported; see InitRenderPass. */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   GetFrustum(_face, _renderContext)
   {
     throw new Error("Tr2ReflectionProbe.GetFrustum is not ported yet; it needs the scene's reflection pass.");
   }
 
   /** Carbon `GetDepthBuffer` (`h:59`): face `face`'s depth buffer. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetDepthBuffer(face)
   {
     return this._stencilMaps[face];
@@ -485,4 +485,4 @@ blue.enums.RegisterEnum("trinity.Tr2ReflectionProbe.ReflectionProbeRenderFrequen
 });
 
 // Exact native Blue exposure: only these identities participate in loading.
-carbon.interfaceTable({ interfaces: [Tr2ReflectionProbe, INotify], chainTo: null })(Tr2ReflectionProbe, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [Tr2ReflectionProbe, INotify], chainTo: null })(Tr2ReflectionProbe, { kind: "class" });

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 
 /** Defines spotlight placement, intensity, saturation, cone angles, scales, noise, and profile data for an attachment. */
@@ -13,9 +13,9 @@ export class EveSOFDataSpotLightAttachment
    * Native m_saturation (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   saturation = 1;
 
   /**
@@ -23,9 +23,9 @@ export class EveSOFDataSpotLightAttachment
    * Native m_intensity (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   intensity = 1;
 
   /**
@@ -33,9 +33,9 @@ export class EveSOFDataSpotLightAttachment
    * Native m_translation (Vector3) [READWRITE, PERSIST]
    * @type {Float32Array}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   translation = vec3.create();
 
   /**
@@ -43,9 +43,9 @@ export class EveSOFDataSpotLightAttachment
    * Native m_innerAngleMultiplier (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   innerAngleMultiplier = 0.5;
 
   /**
@@ -53,9 +53,9 @@ export class EveSOFDataSpotLightAttachment
    * Native m_outerAngleMultiplier (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   outerAngleMultiplier = 1;
 
   /**
@@ -63,9 +63,9 @@ export class EveSOFDataSpotLightAttachment
    * Native m_innerScaleMultiplier (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   innerScaleMultiplier = 1;
 
   /**
@@ -73,9 +73,9 @@ export class EveSOFDataSpotLightAttachment
    * Native m_outerScaleMultiplier (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   outerScaleMultiplier = 1;
 
   /**
@@ -83,9 +83,9 @@ export class EveSOFDataSpotLightAttachment
    * Native m_noiseAmplitude (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   noiseAmplitude = 0;
 
   /**
@@ -93,9 +93,9 @@ export class EveSOFDataSpotLightAttachment
    * Native m_noiseFrequency (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   noiseFrequency = 1;
 
   /**
@@ -103,9 +103,9 @@ export class EveSOFDataSpotLightAttachment
    * Native m_noiseOctaves (int32_t) [READWRITE, PERSIST]
    * @type {number}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   noiseOctaves = 1;
 
   /**
@@ -113,12 +113,12 @@ export class EveSOFDataSpotLightAttachment
    * Native m_lightProfilePath (std::wstring) [READWRITE, PERSIST]
    * @type {string}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   lightProfilePath = "";
 
 }
 
 // Native IRoot record: concrete query identity with no exposure chain.
-meta.carbon.interfaceTable({ interfaces: [EveSOFDataSpotLightAttachment], chainTo: null })(EveSOFDataSpotLightAttachment, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveSOFDataSpotLightAttachment], chainTo: null })(EveSOFDataSpotLightAttachment, { kind: "class" });

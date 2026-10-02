@@ -1,73 +1,73 @@
 // Source: trinity/trinity/Tr2GStateParameter.h
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IInitialize } from "#blue/IInitialize";
 
 /** Named, node-scoped scalar value for a character GState animation. */
-@type.define({ className: "Tr2GStateParameter", family: "trinityCore" })
+@meta.define({ className: "Tr2GStateParameter", family: "trinityCore" })
 export class Tr2GStateParameter extends IInitialize
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_value (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   value = 0;
 
   /** m_nodeName (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   nodename = "";
 
   /** Carbon method GetName (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetName()
   {
     return this.name;
   }
 
   /** Carbon method GetNodeName (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetNodeName()
   {
     return this.nodename;
   }
 
   /** Carbon method GetValue (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetValue()
   {
     return this.value;
   }
 
   /** Carbon method SetName (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetName(name)
   {
     this.name = String(name ?? "");
   }
 
   /** Carbon method SetNodeName (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetNodeName(name)
   {
     this.nodename = String(name ?? "");
   }
 
   /** Carbon method SetValue (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetValue(value)
   {
     this.value = Number(value);
@@ -77,8 +77,8 @@ export class Tr2GStateParameter extends IInitialize
    * Reports successful portable initialization for the persisted parameter
    * record.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     return true;
@@ -86,4 +86,4 @@ export class Tr2GStateParameter extends IInitialize
 
 }
 
-carbon.interfaceTable({ interfaces: [ Tr2GStateParameter, IInitialize ], chainTo: null })(Tr2GStateParameter, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [ Tr2GStateParameter, IInitialize ], chainTo: null })(Tr2GStateParameter, { kind: "class" });

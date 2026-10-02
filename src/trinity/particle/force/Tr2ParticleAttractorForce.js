@@ -3,32 +3,32 @@
 // Source: trinity/trinity/Particle/Tr2ParticleAttractorForce_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { ITr2ParticleForce } from "./ITr2ParticleForce.js";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 
 
 /**
  * Particle force of constant magnitude pointing at a fixed position, regardless
  * of distance.
  */
-@type.define({
+@meta.define({
   className: "Tr2ParticleAttractorForce",
   family: "particle"
 })
 export class Tr2ParticleAttractorForce extends ITr2ParticleForce
 {
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   position = vec3.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   magnitude = 1;
 
   /** Applies a constant-magnitude force toward the configured origin. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetForce(position, _velocity, _dt, _mass, out = vec3.create())
   {
     vec3.subtract(out, this.position, position);
@@ -40,8 +40,8 @@ export class Tr2ParticleAttractorForce extends ITr2ParticleForce
    * Nothing to advance per frame: the force depends only on the authored
    * position and magnitude.
    */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   Update(_dt)
   {
   }

@@ -1,118 +1,118 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 
 /** Aggregates a faction's area, color, logo, pattern, material-slot, visibility, plane, spotlight, child, and resource-path configuration. */
-@type.define({ className: "EveSOFDataFaction", family: "eve" })
+@meta.define({ className: "EveSOFDataFaction", family: "eve" })
 export class EveSOFDataFaction
 {
 
   /** m_areaTypes (EveSOFDataAreaPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveSOFDataArea")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSOFDataArea")
   areaTypes = null;
 
   /** m_colorSet (EveSOFDataFactionColorSetPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveSOFDataFactionColorSet")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSOFDataFactionColorSet")
   colorSet = null;
 
   /** m_logoSet (EveSOFDataLogoSetPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveSOFDataLogoSet")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSOFDataLogoSet")
   logoSet = null;
 
   /** m_description (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   description = "";
 
   /** m_children (PEveSOFDataFactionChildVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataFactionChild")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataFactionChild")
   children = [];
 
   /** m_planeSets (PEveSOFDataFactionPlaneSetVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataFactionPlaneSet")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataFactionPlaneSet")
   planeSets = [];
 
   /** m_spotlightSets (PEveSOFDataFactionSpotlightSetVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataFactionSpotlightSet")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataFactionSpotlightSet")
   spotlightSets = [];
 
   /** m_visibilityGroupSet (EveSOFDataFactionVisibilityGroupSetPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveSOFDataFactionVisibilityGroupSet")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSOFDataFactionVisibilityGroupSet")
   visibilityGroupSet = null;
 
   /** m_resPathInsert (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   resPathInsert = "";
 
   /** m_materialUsageMtl1 (int32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   materialUsageMtl1 = 0;
 
   /** m_materialUsageMtl2 (int32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   materialUsageMtl2 = 1;
 
   /** m_materialUsageMtl3 (int32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   materialUsageMtl3 = 2;
 
   /** m_materialUsageMtl4 (int32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   materialUsageMtl4 = 3;
 
   /** m_defaultPattern (EveSOFDataPatternLayerPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveSOFDataPatternLayer")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSOFDataPatternLayer")
   defaultPattern = null;
 
   /** m_defaultPatternLayer1MaterialName (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   defaultPatternLayer1MaterialName = "";
 
   /** m_defaultPatternLayer2MaterialName (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   defaultPatternLayer2MaterialName = "";
 
   /** m_defaultPatternName (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   defaultPatternName = "";
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /**

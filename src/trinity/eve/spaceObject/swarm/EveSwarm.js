@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveShip2 } from "../EveShip2.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -8,203 +8,203 @@ import { vec3 } from "#math/vec3";
 import { EveSwarmRenderable } from "./EveSwarmRenderable.js";
 
 /** A ship that manages a squad of flocking sub-vehicle renderables with boid-style formation behaviour and aggregate bounding and component registration. */
-@type.define({ className: "EveSwarm", family: "eve/spaceObject/swarm" })
+@meta.define({ className: "EveSwarm", family: "eve/spaceObject/swarm" })
 export class EveSwarm extends EveShip2
 {
 
   /** CPU SwarmVehicle state; live draw resources remain renderer-owned. */
-  @type.list("SwarmVehicle")
+  @meta.type.list("SwarmVehicle")
   vehicles = [];
 
-  @type.list("EveSwarmRenderable")
+  @meta.type.list("EveSwarmRenderable")
   renderables = [];
 
-  @type.int32
+  @meta.type.int32
   targetIndex = 0;
 
-  @type.int32
+  @meta.type.int32
   firingIndex = 0;
 
-  @type.vec3
+  @meta.type.vec3
   squadBoundsMin = vec3.create();
 
-  @type.vec3
+  @meta.type.vec3
   squadBoundsMax = vec3.create();
 
   /** m_behavior.m_weightFormation (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   weightFormation = 1;
 
   /** m_behavior.m_weightCohesion (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   weightCohesion = 0.1;
 
   /** m_behavior.m_weightSeparation (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   weightSeparation = 0.1;
 
   /** m_behavior.m_weightWander (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   weightWander = 0.33;
 
   /** m_behavior.m_weightAnchor (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   weightAnchor = 0.5;
 
   /** m_behavior.m_anchorRadius0 (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   anchorRadius0 = 75;
 
   /** m_behavior.m_anchorRadius1 (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   anchorRadius1 = 250;
 
   /** m_behavior.m_weightDecelerate (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   weightDeceleration = 0.1;
 
   /** m_behavior.m_maxDeceleration (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxDeceleration = 200;
 
   /** m_behavior.m_separationDistance (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   separationDistance = 250;
 
   /** m_behavior.m_formationDistance (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   formationDistance = 50;
 
   /** m_behavior.m_wanderFluctuation (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   wanderFluctuation = 0.05;
 
   /** m_behavior.m_wanderDistance (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   wanderDistance = 100;
 
   /** m_behavior.m_wanderRadius (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   wanderRadius = 80;
 
   /** m_debugShowForces (bool) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   debugShowForces = false;
 
   /** m_count (int32_t) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.int32
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.int32
   count = 1;
 
   /** m_swarmingEnabled (bool) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.boolean
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.boolean
   swarmingEnabled = false;
 
   /** m_behavior.m_mass (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   mass = 1;
 
   /** m_behavior.m_speedMultiplier (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   speedMultiplier = 1.1;
 
   /** m_behavior.m_speedMinimum (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   speedMinimum = 10;
 
   /** m_behavior.m_maxDistance0 (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxDistance0 = 500;
 
   /** m_behavior.m_maxDistance1 (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxDistance1 = 125;
 
   /** m_behavior.m_maxTime (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxTime = 0.2;
 
   /** m_behavior.m_agility (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   agility = 2;
 
   /** m_behavior.m_speed0 (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   speed0 = 700;
 
   /** m_behavior.m_speed1 (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   speed1 = 1000;
 
   /** m_behavior.m_timeMultiplier (float) [READWRITE] */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   timeMultiplier = 1;
 
   /** m_behavior.m_weightAlign (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   weightAlign = 50;
 
   /** Carbon EveSwarm::RegisterComponents (EveSwarm.cpp:1000-1017): base
    * registration "to register all the turrets and things", then
    * UnRegisterAllComponents(this) because the swarm itself is container-only,
    * then forwards the per-swarmer renderables. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterComponents()
   {
     super.RegisterComponents();
@@ -221,8 +221,8 @@ export class EveSwarm extends EveShip2
 
   /** Carbon EveSwarm::UnRegisterComponents (EveSwarm.cpp:1019-1030): base,
    * then forwards the renderables. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UnRegisterComponents()
   {
     super.UnRegisterComponents();
@@ -242,8 +242,8 @@ export class EveSwarm extends EveShip2
    * sphere's RADIUS added on top (the ship sphere's center is discarded).
    * Always returns true. Feeds EveSwarmRenderable.IsCastingShadow's
    * squad-radius-at-the-fighter cull sphere. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBoundingSphere(sphere, query = 0)
   {
     super.GetBoundingSphere(EveSwarm._shipSphereScratch, query);
@@ -264,8 +264,8 @@ export class EveSwarm extends EveShip2
    * invisible aggregate hull. Row-vector renderableWorld * invWorld maps to
    * gl multiply(out, inverseWorldTransform, renderableWorld).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetLocatorInObjectSpace(outPosition, outDirection, locator, mergedDamageIndex = -1)
   {
     super.GetLocatorInObjectSpace(outPosition, outDirection, locator, mergedDamageIndex);
@@ -282,8 +282,8 @@ export class EveSwarm extends EveShip2
   }
 
   /** Carbon method AddSwarmer (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   AddSwarmer()
   {
     const renderable = new EveSwarmRenderable();
@@ -303,8 +303,8 @@ export class EveSwarm extends EveShip2
   }
 
   /** Carbon method RemoveSwarmer (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RemoveSwarmer()
   {
     if (this.vehicles.length === 0)
@@ -329,8 +329,8 @@ export class EveSwarm extends EveShip2
   }
 
   /** Carbon method PickFiringOrigin (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   PickFiringOrigin()
   {
     this.firingIndex = this._pickIndex(this.count);
@@ -338,8 +338,8 @@ export class EveSwarm extends EveShip2
   }
 
   /** Carbon method EnableSwarming (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   EnableSwarming(enable)
   {
     if (this.swarmingEnabled === enable)
@@ -357,9 +357,9 @@ export class EveSwarm extends EveShip2
   }
 
   /** Carbon method SetCount (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Clamps negative browser inputs and uses CPU vehicle count as the initialized source of truth.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Clamps negative browser inputs and uses CPU vehicle count as the initialized source of truth.")
   SetCount(count)
   {
     const desired = Math.max(0, Math.trunc(count));

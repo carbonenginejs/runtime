@@ -1,7 +1,7 @@
 // Source: trinity/trinityal/Tr2DeviceResourceAL.h
 // Source: trinity/trinityal/Tr2DeviceResourceAL.cpp
 //
-import { compose, impl } from "#schema";
+import { meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 
 // The base every abstraction-layer resource extends, and the registry that
@@ -71,8 +71,8 @@ export class Tr2BaseDeviceResourceAL
    *
    * @returns {boolean} True when live.
    */
-  @compose.abstract
-  @impl.abstract
+  @meta.requires
+  @meta.abstract
   IsResourceValid() {}
 
   /**
@@ -80,8 +80,8 @@ export class Tr2BaseDeviceResourceAL
    *
    * @returns {number} A `Tr2ALMemoryType` value.
    */
-  @compose.abstract
-  @impl.abstract
+  @meta.requires
+  @meta.abstract
   GetResourceMemoryClass() {}
 
   /**
@@ -94,8 +94,8 @@ export class Tr2BaseDeviceResourceAL
    *
    * @param {object} _description Accumulator, keyed by name.
    */
-  @impl.adapted
-  @impl.reason("The empty concrete stub descriptions share this inherited implementation instead of repeating it on each backend class.")
+  @meta.adapted
+  @meta.reason("The empty concrete stub descriptions share this inherited implementation instead of repeating it on each backend class.")
   Describe(_description)
   {
   }
@@ -106,8 +106,8 @@ export class Tr2BaseDeviceResourceAL
    * Unregistering here rather than in a finaliser is what makes the release
    * path deterministic; see the head comment.
    */
-  @impl.adapted
-  @impl.reason("JavaScript has no deterministic destructor; the existing registry unregisters at explicit Destroy. Recreating that object does not re-register it.")
+  @meta.adapted
+  @meta.reason("JavaScript has no deterministic destructor; the existing registry unregisters at explicit Destroy. Recreating that object does not re-register it.")
   Destroy()
   {
     if (!this._registered) return;

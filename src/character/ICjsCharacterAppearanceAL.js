@@ -1,4 +1,4 @@
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /**
  * The appearance realization layer `CjsCharacterAppearanceManager` drives:
@@ -127,7 +127,7 @@ for (const method of [
     "SetFoundationDisplay", "UpdateMorphTargets", "Handoff", "GetDiagnostics"
 ])
 {
-    CjsSchema.decorateMethod(ICjsCharacterAppearanceAL, method, impl.abstract);
+    CjsSchema.decorateMethod(ICjsCharacterAppearanceAL, method, meta.abstract);
 }
 
 CjsSchema.define(ICjsCharacterAppearanceAL, { className: "ICjsCharacterAppearanceAL", family: "character", fields: {} });

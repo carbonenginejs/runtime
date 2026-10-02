@@ -58,7 +58,7 @@ export class ITr2FollowCurveKey
 
 for (const method of [ "GetValue", "GetTime", "GetInterpolationType", "GetLeftTangent", "GetRightTangent" ])
 {
-  CjsSchema.decorateMethod(ITr2FollowCurveKey, method, meta.compose.abstract, meta.impl.abstract);
+  CjsSchema.decorateMethod(ITr2FollowCurveKey, method, meta.requires, meta.abstract);
 }
 CjsSchema.define(ITr2FollowCurveKey, {
   className: "ITr2FollowCurveKey", carbon: "ITr2FollowCurveKey", family: "curves", fields: {}

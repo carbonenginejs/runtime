@@ -1,7 +1,7 @@
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightBaseGroup.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
 import { resolveFactionColor } from "../resolveFactionColor.js";
@@ -27,34 +27,34 @@ export function resolveGroupColor(customColor, useFactionColor, factionColor, pa
 }
 
 /** The shared faction-colour resolution and attribute-modifier surface flattened into every smart-light group implementation. */
-@type.define({ className: "EveSmartLightBaseGroup", family: "eve/smartLights" })
-@carbon.inherit(IListNotify)
+@meta.define({ className: "EveSmartLightBaseGroup", family: "eve/smartLights" })
+@meta.blue.inherit(IListNotify)
 export class EveSmartLightBaseGroup
 {
 
   /** m_selectedColor (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   factionColor = -1;
 
   /** m_useFactionColor (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   useFactionColor = false;
 
   /** m_attributeModifiers (PIEveSmartLightGroupAttributeModifierVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("IEveSmartLightGroupAttributeModifier")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("IEveSmartLightGroupAttributeModifier")
   attributeModifiers = [];
 
   /** m_color (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   customColor = color.createLinear();
 
   /** m_parentColorSet (const Color*) - inherited faction color set, never persisted. */
@@ -64,51 +64,51 @@ export class EveSmartLightBaseGroup
   _resolvedGroupColor = color.createLinear();
 
   /** IEveSmartLightGroup default: no asynchronous work. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   UpdateAsyncronous(_updateContext, _params, _distribution)
   {
   }
 
   /** IEveSmartLightGroup default: no synchronous work. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   UpdateSyncronous(_updateContext, _params, _distribution)
   {
   }
 
   /** IEveSmartLightGroup default: no visibility state. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
 
   /** IEveSmartLightGroup default: contributes no renderables. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   GetRenderables(renderables = [])
   {
     return renderables;
   }
 
   /** IEveSmartLightGroup default: contributes no quads. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   AddQuadsToQuadRenderer(_placements, _size, _frustum, _quadRenderer)
   {
   }
 
   /** IEveSmartLightGroup default: registers no quad effect. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   RegisterWithQuadRenderer(_quadRenderer)
   {
   }
 
   /** Faction-aware group color (EveSmartLightBaseGroup.cpp:43-53). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetGroupColor()
   {
     return resolveGroupColor(
@@ -124,8 +124,8 @@ export class EveSmartLightBaseGroup
    * Stores the inherited faction color set and fans it out to the attribute
    * modifiers (EveSmartLightBaseGroup.cpp:30-41).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetInheritProperties(colorSet)
   {
     if (colorSet)
@@ -140,16 +140,16 @@ export class EveSmartLightBaseGroup
   }
 
   /** Overwrites the custom color (EveSmartLightBaseGroup.cpp:55-58). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetColor(color)
   {
     vec4.copy(this.customColor, color);
   }
 
   /** Fans a controller variable out to the attribute modifiers (EveSmartLightBaseGroup.cpp:60-66). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetControllerVariable(name, value)
   {
     for (const attributeModifier of this.attributeModifiers)
@@ -162,8 +162,8 @@ export class EveSmartLightBaseGroup
    * Newly inserted attribute modifiers inherit the parent color set
    * (EveSmartLightBaseGroup.cpp:16-28).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnListModified(event, _key, _key2, value, list)
   {
     if (
@@ -180,4 +180,4 @@ export class EveSmartLightBaseGroup
 }
 
 // EveSmartLightBaseGroup_Blue.cpp: native exposure; unported contracts: IEveSmartLightGroup.
-carbon.interfaceTable({ interfaces: [EveSmartLightBaseGroup, IListNotify], chainTo: null })(EveSmartLightBaseGroup, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveSmartLightBaseGroup, IListNotify], chainTo: null })(EveSmartLightBaseGroup, { kind: "class" });

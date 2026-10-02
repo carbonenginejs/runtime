@@ -1,6 +1,6 @@
 // Source: trinity/trinity/TriSettings.h
 //   trinity/trinity/TriSettings_Blue.cpp
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 
 
 /**
@@ -14,7 +14,7 @@ import { carbon, impl, type } from "#schema";
  * `RegisterSetting(name, value)` keeps its own value, for settings that have
  * no engine global (ccpwgl registers its switches this way).
  */
-@type.define({ className: "TriSettings", family: "trinityCore" })
+@meta.define({ className: "TriSettings", family: "trinityCore" })
 export class TriSettings
 {
   /** m_map: name -> { valueType, owner, key }; the value is owner[key]. */
@@ -37,8 +37,8 @@ export class TriSettings
    * @param {{ applies?: string, enum?: object|string|null, values?: Array|null, carbon?: boolean }} [options] See CjsSchema.edit.setting.
    * @returns {TriSettings} This registry.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RegisterSetting(name, ownerOrValue, key, { applies = "always", enum: enumType = null, values = null, carbon = false } = {})
   {
     const owner = key === undefined ? { value: ownerOrValue } : ownerOrValue;
@@ -69,8 +69,8 @@ export class TriSettings
    * @param {string} name The setting's name.
    * @returns {{ valueType: string, owner: object, key: string, applies: string, enum: object|string|null, values: Array|null, carbon: boolean }|null} The entry.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   FindSetting(name)
   {
     return this._settings.get(TriSettings._GetKey(name)) ?? null;
@@ -83,7 +83,7 @@ export class TriSettings
    *
    * @returns {string[]} The names.
    */
-  @impl.custom
+  @meta.ours
   GetNames()
   {
     return [ ...this._settings.keys() ].sort();
@@ -94,8 +94,8 @@ export class TriSettings
    * registered setting; an unknown name throws RangeError, as Python's
    * LookupError.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetValue(name)
   {
     const setting = this._Require(name);
@@ -107,8 +107,8 @@ export class TriSettings
    * through to the value it names. An unknown name throws RangeError; a value
    * whose type differs from the registered one throws TypeError.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetValue(name, value)
   {
     const setting = this._Require(name);
@@ -120,8 +120,8 @@ export class TriSettings
   }
 
   /** Carbon GetReprString (TriSettings.h:44-57): a Python dict literal of every setting, in name order. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetReprString()
   {
     let result = "{";
@@ -139,15 +139,15 @@ export class TriSettings
    * Adapted: Carbon formats by Be::VARTYPE (%d for integers, %f for floats);
    * JavaScript has one number type, so numbers format as JavaScript does.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetSettingReprString(setting)
   {
     return TriSettings._ReprValue(setting.owner[setting.key]);
   }
 
   /** Python repr hook, delegating to GetReprString. */
-  @carbon.method
+  @meta.blue.method
   __repr__()
   {
     return this.GetReprString();

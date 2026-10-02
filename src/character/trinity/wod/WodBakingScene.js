@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Wod/WodBakingScene.cpp
 // Source: trinity/trinity/Wod/WodBakingScene_Blue.cpp
 // CarbonEngineJS maintained source.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 
 /**
  * Baking-scene record pairing a skinned avatar with a diagnostic visualization
@@ -10,20 +10,20 @@ import { carbon, impl, edit, type } from "#schema";
  * skinned-object batches; CarbonEngineJS keeps the scene contract here and
  * leaves render-target realization to an engine adapter.
  */
-@type.define({ className: "WodBakingScene", family: "wod" })
+@meta.define({ className: "WodBakingScene", family: "wod" })
 export class WodBakingScene
 {
 
   /** m_visualizeMethod (VisualizeMethod - enum VisualizeMethod) [READWRITE, ENUM, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @type.int32
-  @type.enum("VisualizeMethod")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.int32
+  @meta.type.enum("VisualizeMethod")
   visualizeMethod = 0;
 
   /** m_skinnedObject (Tr2SkinnedObjectPtr) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("Tr2SkinnedObject")
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2SkinnedObject")
   Avatar = null;
 
   static VisualizeMethod = Object.freeze({
@@ -56,9 +56,9 @@ export class WodBakingScene
   /**
    * Engine-owned native render pass for baking the selected avatar.
    */
-  @carbon.method
-  @impl.notImplemented
-  @impl.reason("Requires a Tr2RenderContext, effect-state manager, constant buffers, and GPU batch rendering owned by an engine adapter.")
+  @meta.blue.method
+  @meta.notImplemented
+  @meta.reason("Requires a Tr2RenderContext, effect-state manager, constant buffers, and GPU batch rendering owned by an engine adapter.")
   Render()
   {
     throw new Error("WodBakingScene.Render is engine-owned and not implemented in CarbonEngineJS.");
@@ -67,9 +67,9 @@ export class WodBakingScene
   /**
    * Engine-owned diagnostic visualization hook.
    */
-  @carbon.method
-  @impl.notImplemented
-  @impl.reason("Carbon leaves this hook empty, and any useful visualization would belong with the engine render-target implementation.")
+  @meta.blue.method
+  @meta.notImplemented
+  @meta.reason("Carbon leaves this hook empty, and any useful visualization would belong with the engine render-target implementation.")
   RenderDebugInfo()
   {
     throw new Error("WodBakingScene.RenderDebugInfo is engine-owned and not implemented in CarbonEngineJS.");
@@ -78,9 +78,9 @@ export class WodBakingScene
   /**
    * Native update hook that advances the owned skinned object before baking.
    */
-  @carbon.method
-  @impl.notImplemented
-  @impl.reason("The native method calls PrePhysicsUpdate and PostPhysicsUpdate on the skinned object; frame ownership stays with the outer runtime adapter.")
+  @meta.blue.method
+  @meta.notImplemented
+  @meta.reason("The native method calls PrePhysicsUpdate and PostPhysicsUpdate on the skinned object; frame ownership stays with the outer runtime adapter.")
   Update()
   {
     throw new Error("WodBakingScene.Update is engine-owned and not implemented in CarbonEngineJS.");

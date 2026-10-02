@@ -4,7 +4,7 @@
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 
 /**
@@ -12,12 +12,12 @@ import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
  * position to a destination point, scaling it to the stretch length and centring
  * it on the midpoint.
  */
-@type.define({ className: "EveChildModifierStretch", family: "eve/child/modifiers" })
+@meta.define({ className: "EveChildModifierStretch", family: "eve/child/modifiers" })
 export class EveChildModifierStretch extends IEveChildTransformModifier
 {
-  @edit.readwrite
-  @edit.persist
-  @type.model("ITriVectorFunction")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("ITriVectorFunction")
   dest = null;
 
   /** m_destPosition - runtime fallback endpoint fed via SetDestPosition. */
@@ -37,9 +37,9 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
    * @param {Float32Array} out - caller-owned; receives the result
    * @returns {Float32Array} out
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon reads the global frame time; JavaScript receives the equivalent time through the threaded update context.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon reads the global frame time; JavaScript receives the equivalent time through the threaded update context.")
   ApplyTransform(context, transform, _boneCount = 0, _bones = null, out)
   {
     const { sourceRotation, sourceTranslation, sourceScale, end, diff, arcMat, arcQuat, scale, mid, srcRotMat } =
@@ -68,8 +68,8 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
    * endpoint; a nullish value clears it and leaves the SetDestPosition fallback
    * in effect.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetDest(dest)
   {
     this.dest = dest ?? null;
@@ -79,8 +79,8 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
    * Copies the fallback stretch endpoint used when no destination vector
    * function is bound, or before one yields a value.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetDestPosition(destPosition)
   {
     vec3.copy(this._destPosition, destPosition);

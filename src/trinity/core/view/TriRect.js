@@ -1,7 +1,7 @@
 // Source: trinity/trinity/TriRect.h
 // Source: trinity/trinity/TriRect.cpp
 // Source: trinity/trinity/TriRect_Blue.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 
 
 /**
@@ -12,34 +12,34 @@ import { carbon, impl, edit, type } from "#schema";
  * is therefore empty, not a claim of complete native interface parity. Neither
  * the native concrete self query nor a model-service base is exposed.
  */
-@type.define({
+@meta.define({
   className: "TriRect",
   family: "trinityCore"
 })
 export class TriRect
 {
   /** Stored signed left edge. */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   left = 0;
 
   /** Stored signed top edge. */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   top = 0;
 
   /** Stored signed right edge. */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   right = 0;
 
   /** Stored signed bottom edge. */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   bottom = 0;
 
   /**
@@ -47,8 +47,8 @@ export class TriRect
    * zero. JavaScript defaults adapt the exposed native SetDimentions wrapper;
    * direct assignments retain the existing JavaScript number representation.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   __init__(left = 0, top = 0, right = 0, bottom = 0)
   {
     this.left = left;
@@ -63,8 +63,8 @@ export class TriRect
    * wrapper, using undefined instead of Be::Optional assignment state; it is
    * not the unexposed native SetRect(Tr2Rect*) overload.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetRect(left, top, right, bottom)
   {
     if (left !== undefined)
@@ -87,4 +87,4 @@ export class TriRect
 }
 
 // Native maps IPythonMethods only; that host-specific bridge is unavailable.
-carbon.interfaceTable({ interfaces: [], chainTo: null })(TriRect);
+meta.blue.interfaceTable({ interfaces: [], chainTo: null })(TriRect);

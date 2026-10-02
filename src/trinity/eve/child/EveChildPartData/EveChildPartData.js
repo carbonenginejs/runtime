@@ -1,9 +1,9 @@
-import { carbon } from "#schema";
+import { meta } from "#schema";
 import { IEveSpaceObjectChild } from "../IEveSpaceObjectChild.js";
 // Carbon source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData.h
 // Carbon source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData.cpp
 // Carbon source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData_Blue.cpp
-import { edit, type } from "#schema";
+
 import { EveSpaceObjectChild } from "../EveSpaceObjectChild.js";
 import { EveChildPartDataPartData } from "./EveChildPartDataPartData.js";
 
@@ -16,19 +16,19 @@ import { EveChildPartDataPartData } from "./EveChildPartDataPartData.js";
  * below is the JavaScript adaptation required for the documented state to
  * survive a model values round trip.
  */
-@type.define({ className: "EveChildPartData", family: "eve/child" })
+@meta.define({ className: "EveChildPartData", family: "eve/child" })
 export class EveChildPartData extends EveSpaceObjectChild
 {
-  @edit.persist
-  @type.string
+  @meta.blue.persist
+  @meta.type.string
   faction = "";
 
-  @edit.persist
-  @type.string
+  @meta.blue.persist
+  @meta.type.string
   race = "";
 
-  @edit.persist
-  @type.list("EveChildPartData.PartData")
+  @meta.blue.persist
+  @meta.type.list("EveChildPartData.PartData")
   parts = [];
 
   /** Returns the first monotonically available positive Carbon part tag. */
@@ -49,4 +49,4 @@ export class EveChildPartData extends EveSpaceObjectChild
 }
 
 // EveChildPartData_Blue.cpp: native exposure.
-carbon.interfaceTable({ interfaces: [EveSpaceObjectChild, IEveSpaceObjectChild], chainTo: EveSpaceObjectChild })(EveChildPartData, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveSpaceObjectChild, IEveSpaceObjectChild], chainTo: EveSpaceObjectChild })(EveChildPartData, { kind: "class" });

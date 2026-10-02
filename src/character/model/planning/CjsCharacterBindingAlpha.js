@@ -1,18 +1,18 @@
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 
 /** Logical alpha policy for one final character texture binding. */
-@type.define({ className: "CjsCharacterBindingAlpha", family: "character" })
+@meta.define({ className: "CjsCharacterBindingAlpha", family: "character" })
 export class CjsCharacterBindingAlpha
 {
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     mode = "";
 
-    @edit.readwrite
-    @edit.persist
-    @type.model("CjsCharacterCoverage")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.model("CjsCharacterCoverage")
     coverage = null;
 
 }

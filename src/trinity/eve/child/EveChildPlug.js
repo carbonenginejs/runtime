@@ -8,53 +8,53 @@ import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPlug.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { EveEntity } from "../EveEntity.js";
-import { carbon, impl, edit, type, CjsSchema } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
 import { addChild, removeChild, clearChildren } from "../../../global/blue/children.js";
 import { EveChildTransform } from "./EveChildTransform.js";
 
 /** A container of child objects plugged into a socket, forwarding controller events, controller variables and component registration to what it contains. */
-@type.define({ className: "EveChildPlug", family: "eve/child" })
-@carbon.inherit(IInitialize, INotify, IListNotify)
+@meta.define({ className: "EveChildPlug", family: "eve/child" })
+@meta.blue.inherit(IInitialize, INotify, IListNotify)
 export class EveChildPlug extends EveChildTransform
 {
 
   _controllerVariables = new Map();
 
   /** m_objects (PIEveSpaceObjectChildVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("IEveSpaceObjectChild")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("IEveSpaceObjectChild")
   objects = [];
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   display = true;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_externalParameters (PTr2ExternalParameterVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("Tr2ExternalParameter")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2ExternalParameter")
   externalParameters = [];
 
   /** m_controllers (PITr2ControllerVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("ITr2Controller")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITr2Controller")
   controllers = [];
 
   /** Registers hydrated children and links hydrated controllers. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     this.RegisterChildren(this.objects);
@@ -74,8 +74,8 @@ export class EveChildPlug extends EveChildTransform
    * child-registration helper and, while this plug is in a registry, register
    * or unregister as entities.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     const masked = event & BLUELISTEVENT.BELIST_EVENTMASK;
@@ -139,9 +139,9 @@ export class EveChildPlug extends EveChildTransform
    * Appends one plugged child. The registration and the variable replay are the
    * INSERTED arm's, reached through the managed mutation.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through the shared child service rather than the list driving it.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("A JavaScript array has no notify slot, so the owner drives the notification through the shared child service rather than the list driving it.")
   AddToEffectChildrenList(child)
   {
     addChild(this, "objects", child, { listNotify: this });
@@ -149,17 +149,17 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Removes one plugged child; the unregistration is the REMOVED arm's. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through the shared child service rather than the list driving it.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("A JavaScript array has no notify slot, so the owner drives the notification through the shared child service rather than the list driving it.")
   RemoveFromEffectChildrenList(child)
   {
     return removeChild(this, "objects", child, { listNotify: this });
   }
 
   /** Propagates the owning space object through the plugged subtree. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetOwner(owner)
   {
     if (this.GetOwner() === owner) return;
@@ -168,8 +168,8 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Propagates a modular part tag through the plugged subtree. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetPartTag(tag)
   {
     const next = Number(tag) >>> 0;
@@ -179,16 +179,16 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Carbon method HandleControllerEvent (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HandleControllerEvent(name)
   {
     for (const controller of this.controllers) controller?.HandleEvent(name);
   }
 
   /** Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetControllerVariable(name, value)
   {
     const key = String(name);
@@ -199,8 +199,8 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Carbon method StartControllers (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   StartControllers()
   {
     for (const controller of this.controllers) controller?.Start();
@@ -208,8 +208,8 @@ export class EveChildPlug extends EveChildTransform
 
   /** Carbon EveChildPlug::RegisterComponents (cpp:122-135): forward-only to
    * the plugged objects. Gate m_display. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -224,8 +224,8 @@ export class EveChildPlug extends EveChildTransform
 
   /** Carbon EveChildPlug::UnRegisterComponents (cpp:141-154): forwards to the
    * plugged objects; no display re-check. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UnRegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -241,4 +241,4 @@ export class EveChildPlug extends EveChildTransform
 }
 
 // EveChildPlug_Blue.cpp: native exposure; unported contracts: IEveEffectChildrenOwner, IShaderConfigurer.
-carbon.interfaceTable({ interfaces: [EveChildPlug, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, ITr2SoundEmitterOwner, EveEntity], chainTo: null })(EveChildPlug, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveChildPlug, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, ITr2SoundEmitterOwner, EveEntity], chainTo: null })(EveChildPlug, { kind: "class" });

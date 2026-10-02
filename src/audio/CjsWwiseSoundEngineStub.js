@@ -3,7 +3,7 @@
 // switches, RTPCs, states, playing IDs - and makes no sound, the way the
 // trinityal stub keeps AL state without a device. Node hosts and tests use it.
 // Name held for the operator (docs research/audio-backend-interface.md).
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { ICjsWwiseSoundEngine } from "./ICjsWwiseSoundEngine.js";
 
 /** A headless `ICjsWwiseSoundEngine`: coherent state, no sound. */
@@ -309,5 +309,5 @@ export class CjsWwiseSoundEngineStub extends ICjsWwiseSoundEngine
 CjsSchema.define(CjsWwiseSoundEngineStub, { className: "CjsWwiseSoundEngineStub", family: "audio", fields: {} });
 for (const method of [ "InitSpatialAudioGeometry", "SetGeometry", "SetGeometryInstance", "RemoveGeometry", "RemoveGeometryInstance" ])
 {
-    CjsSchema.decorateMethod(CjsWwiseSoundEngineStub, method, impl.notImplemented);
+    CjsSchema.decorateMethod(CjsWwiseSoundEngineStub, method, meta.notImplemented);
 }

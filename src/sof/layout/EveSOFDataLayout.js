@@ -1,40 +1,40 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 
 /** Defines a named, seeded top-level layout with placements, counters, and randomization policy. */
-@type.define({ className: "EveSOFDataLayout", family: "eve" })
+@meta.define({ className: "EveSOFDataLayout", family: "eve" })
 export class EveSOFDataLayout
 {
 
   /** m_depletionCounters (PEveSOFDataDistributionDepletionCounterVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataDistributionDepletionCounter")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataDistributionDepletionCounter")
   depletionCounters = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_placements (PIEveSOFDataHullExtensionPlacementVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("IEveSOFDataHullExtensionPlacement")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("IEveSOFDataHullExtensionPlacement")
   placements = [];
 
   /** m_randomizeSeedOnLoad (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   randomizeSeedOnLoad = false;
 
   /** m_seed (int32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   seed = 1337;
 
 }

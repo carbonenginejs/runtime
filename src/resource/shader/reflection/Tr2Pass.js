@@ -1,7 +1,7 @@
 import "#blue/values";
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
-import { CjsSchema, impl, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import {
 } from "#utils/is";
 import { requireShaderStageType, SHADER_STAGE_COUNT, ShaderStageType } from "./shaderStage.js";
@@ -274,17 +274,17 @@ CjsSchema.define(Tr2Pass, {
   className: "Tr2Pass",
   family: "shader",
   fields: {
-    stageInputs: type.list("Tr2EffectStageInput"),
-    renderStates: type.uint32,
-    shaderTypeMask: type.uint32,
-    shaderProgram: type.uint32,
-    resourceSetDesc: type.rawStruct("Tr2ResourceSetDescriptionAL"),
-    indirectLayout: type.rawStruct("Tr2IndirectDrawBufferLayout"),
-    renderStateValues: [ impl.adapted, impl.reason("Carbon interns the state block while reading (Tr2EffectStateManager::RegisterRenderStateSetup, .h:118) and keeps only the renderStates index (Tr2EffectDescription.h:202). Ours interns at the Trinity boundary, so the authored state/value pairs are retained until then; see Tr2EffectStateManager.registerShaderHandles."), type.rawStruct("CjsEffectRenderStateValues") ],
-    stageOrder: [ impl.custom, impl.reason("Carbon indexes pass stages by type in a fixed array and loses the file's ordering; the port retains it so a body can be re-emitted as the file that produced it."), type.rawStruct("CjsEffectStageOrder") ],
-    backendBlock: [ impl.custom, impl.reason("Carbon ends a pass at its render states; CarbonEngineJS containers may append one per-pass block carrying the backend program, which the resource retains, reading only its texture merges."), type.rawStruct("CjsEffectBackendBlock") ]
+    stageInputs: meta.type.list("Tr2EffectStageInput"),
+    renderStates: meta.type.uint32,
+    shaderTypeMask: meta.type.uint32,
+    shaderProgram: meta.type.uint32,
+    resourceSetDesc: meta.type.rawStruct("Tr2ResourceSetDescriptionAL"),
+    indirectLayout: meta.type.rawStruct("Tr2IndirectDrawBufferLayout"),
+    renderStateValues: [ meta.adapted, meta.reason("Carbon interns the state block while reading (Tr2EffectStateManager::RegisterRenderStateSetup, .h:118) and keeps only the renderStates index (Tr2EffectDescription.h:202). Ours interns at the Trinity boundary, so the authored state/value pairs are retained until then; see Tr2EffectStateManager.registerShaderHandles."), meta.type.rawStruct("CjsEffectRenderStateValues") ],
+    stageOrder: [ meta.ours, meta.reason("Carbon indexes pass stages by type in a fixed array and loses the file's ordering; the port retains it so a body can be re-emitted as the file that produced it."), meta.type.rawStruct("CjsEffectStageOrder") ],
+    backendBlock: [ meta.ours, meta.reason("Carbon ends a pass at its render states; CarbonEngineJS containers may append one per-pass block carrying the backend program, which the resource retains, reading only its texture merges."), meta.type.rawStruct("CjsEffectBackendBlock") ]
   },
   methods: {
-    readMergedResources: impl.custom
+    readMergedResources: meta.ours
   }
 });

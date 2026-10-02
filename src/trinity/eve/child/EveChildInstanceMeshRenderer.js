@@ -12,7 +12,7 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, edit, type, CjsSchema } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { EveChildMesh } from "./EveChildMesh.js";
 import { ShouldReflect } from "../EveComponentTypes.js";
 import { Tr2InstancedMesh } from "../../core/mesh/Tr2InstancedMesh.js";
@@ -53,12 +53,12 @@ const INSTANCE_SPHERE = vec4.create();
  * current/previous transform record per instance. Trinity owns the placement,
  * culling and CPU-byte policy; an engine realizes Tr2RuntimeInstanceData.
  */
-@type.define({ className: "EveChildInstanceMeshRenderer", family: "eve/child" })
+@meta.define({ className: "EveChildInstanceMeshRenderer", family: "eve/child" })
 // Carbon's renderer Blue surface omits currentScreenSize, but its
 // EveSmartLightMesh descendant exposes that inherited field. CjsSchema hidden
 // fields cannot be reintroduced by descendants, so this one shared field stays
 // visible here while the other non-Blue EveChildMesh fields are hidden.
-@type.hideInherited([
+@meta.hideInherited([
   "translation",
   "scaling",
   "rotation",
@@ -87,33 +87,33 @@ const INSTANCE_SPHERE = vec4.create();
   "sofLocatorSetName",
   "sofLocatorIndex"
 ])
-@carbon.inherit(IInitialize, INotify)
+@meta.blue.inherit(IInitialize, INotify)
 export class EveChildInstanceMeshRenderer extends EveChildMesh
 {
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.EveChildInstanceMeshRenderer.RotationalConstraints")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.EveChildInstanceMeshRenderer.RotationalConstraints")
   rotationConstraint = RotationalConstraints.NONE;
 
-  @edit.readwrite
-  @edit.persist
-  @type.quat
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   staticOffsetRotation = quat.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   staticOffsetTranslation = vec3.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.model("IEveDistributionMethod")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("IEveDistributionMethod")
   distribution = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   staticOffsetScale = vec3.fromValues(1, 1, 1);
 
   /** Carbon m_lastEntityCount; protected-style for EveSmartLightMesh. */
@@ -139,8 +139,8 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
   _geometryDirty = false;
 
   /** Distribution-local bound, valid whenever mesh and distribution exist. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBoundingSphere(out = vec4.create(), _query = 0)
   {
     if (!this.mesh || !this.distribution)
@@ -152,10 +152,10 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
   }
 
   /** Distribution sphere culling before the full EveChildMesh visibility pass. */
-  @carbon.method
-  @carbon.contextual(["camera"])
-  @impl.adapted
-  @impl.reason("Carbon reads the active renderer frustum through EveUpdateContext; the CPU sphere and threshold policy are unchanged.")
+  @meta.blue.method
+  @meta.blue.contextual(["camera"])
+  @meta.adapted
+  @meta.reason("Carbon reads the active renderer frustum through EveUpdateContext; the CPU sphere and threshold policy are unchanged.")
   IsVisible(updateContext)
   {
     if (this.GetNumberOfEntities() === 0 || this._boundingSphere[3] === 0)
@@ -174,9 +174,9 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
    * Carbon's shadow-frustum overload. The optional final one-element array is
    * the JavaScript form of float& sizeInShadow.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The float& sizeInShadow output is an optional one-element array; all culling and >5-pixel policy are ported.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("The float& sizeInShadow output is an optional one-element array; all culling and >5-pixel policy are ported.")
   IsCastingShadow(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
   {
     if (!this.display || !this.castShadow)
@@ -229,8 +229,8 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
   }
 
   /** Two-stage cull: the distribution sphere first, then EveChildMesh. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateVisibility(updateContext, parentTransform, parentLod)
   {
     this._placementVisible = this.IsVisible(updateContext);
@@ -246,9 +246,9 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
   }
 
   /** Updates the distribution and republishes instance bytes when required. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Tr2RuntimeInstanceData replaces Carbon's GPU-backed Tr2DirectInstanceData; logical transform production and refresh policy remain Trinity-owned.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Tr2RuntimeInstanceData replaces Carbon's GPU-backed Tr2DirectInstanceData; logical transform production and refresh policy remain Trinity-owned.")
   UpdateSyncronous(updateContext, params)
   {
     super.UpdateSyncronous(updateContext, params);
@@ -302,8 +302,8 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
   }
 
   /** Async mesh update followed by distribution lifetime work. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateAsyncronous(updateContext, params)
   {
     super.UpdateAsyncronous(updateContext, params);
@@ -314,9 +314,9 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
   }
 
   /** Creates the canonical CPU transform-stream provider and binds it. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The engine realizes the bound Tr2RuntimeInstanceData; Trinity owns its canonical transform layout and bytes.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("The engine realizes the bound Tr2RuntimeInstanceData; Trinity owns its canonical transform layout and bytes.")
   ConfigureInstanceData()
   {
     if (!CjsSchema.cast(this.mesh, Tr2InstancedMesh))
@@ -329,16 +329,16 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
   }
 
   /** Number of live placements in the owned distribution. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetNumberOfEntities()
   {
     return this.distribution ? Number(this.distribution.GetNumberOfPlacements()) >>> 0 : 0;
   }
 
   /** Re-arms static instance geometry publication. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RefreshStaticGeometry()
   {
     this._refreshStaticGeometry = true;
@@ -349,9 +349,9 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
    * Builds logical current/previous matrices, publishes their canonical 3x4
    * bytes and stores the same logical matrices for ray/filter consumers.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon reads the global renderer camera, packs Tr2DirectInstanceData, and stores transposed auxiliary matrices; JS receives the active context, keeps auxiliary ray/filter transforms logical, and delegates row packing to Tr2RuntimeInstanceData.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon reads the global renderer camera, packs Tr2DirectInstanceData, and stores transposed auxiliary matrices; JS receives the active context, keeps auxiliary ray/filter transforms logical, and delegates row packing to Tr2RuntimeInstanceData.")
   UpdateGeometryResource(placements, size, renderContext)
   {
     this._totalObjectCount = Number(size) >>> 0;
@@ -478,9 +478,9 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
   }
 
   /** Recomputes the distribution-local bounding sphere. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The bounding calculation is unchanged; JS reads the same mesh sphere through TriGeometryRes's maintained geometry facade.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("The bounding calculation is unchanged; JS reads the same mesh sphere through TriGeometryRes's maintained geometry facade.")
   UpdateBoundingSphere(placements, distribution)
   {
     if (!this.mesh || !distribution)
@@ -529,9 +529,9 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
   }
 
   /** Publishes transform rows and updates the instanced mesh's dynamic scale. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Tr2RuntimeInstanceData owns the canonical CPU transform packing while engines own physical instance-buffer realization.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Tr2RuntimeInstanceData owns the canonical CPU transform packing while engines own physical instance-buffer realization.")
   UpdateInstanceData(instances)
   {
     if (!CjsSchema.cast(this.mesh, Tr2InstancedMesh))
@@ -641,4 +641,4 @@ blue.enums.RegisterEnum("trinity.EveChildInstanceMeshRenderer.RotationalConstrai
 });
 
 // EveChildInstanceMeshRenderer_Blue.cpp: native exposure; unported contracts: IEveShadowCaster.
-carbon.interfaceTable({ interfaces: [EveChildInstanceMeshRenderer, EveEntity, EveChildMesh, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IInitialize, INotify], chainTo: null })(EveChildInstanceMeshRenderer, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveChildInstanceMeshRenderer, EveEntity, EveChildMesh, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IInitialize, INotify], chainTo: null })(EveChildInstanceMeshRenderer, { kind: "class" });

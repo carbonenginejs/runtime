@@ -1,33 +1,33 @@
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 
 /** Reusable appearance coverage expression shared across logical composition passes. */
-@type.define({ className: "CjsCharacterCoverage", family: "character" })
+@meta.define({ className: "CjsCharacterCoverage", family: "character" })
 export class CjsCharacterCoverage
 {
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     region = "";
 
-    @edit.readwrite
-    @edit.persist
-    @type.model("CjsCharacterTextureChannel")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.model("CjsCharacterTextureChannel")
     source = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.list("CjsCharacterTextureChannel")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.list("CjsCharacterTextureChannel")
     subtract = [];
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     combine = "";
 
-    @edit.readwrite
-    @edit.persist
-    @type.model("CjsCharacterOrigin")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.model("CjsCharacterOrigin")
     origin = null;
 
 }

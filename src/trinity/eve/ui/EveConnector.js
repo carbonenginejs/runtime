@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/UI/EveConnector.cpp
 // Source: trinity/trinity/Eve/UI/EveConnector_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; this is portable CPU graph policy.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { blue, EnumRegistrationType } from "#blue";
@@ -59,102 +59,102 @@ function rotateToPlane(out, point, planePoint, normal)
 
 
 /** Builds authored tactical connector curves into an EveCurveLineSet. */
-@type.define({ className: "EveConnector", family: "eve/ui" })
+@meta.define({ className: "EveConnector", family: "eve/ui" })
 export class EveConnector
 {
 
   /** m_type (ConnectorType - enum ConnectorType) [READWRITE, PERSIST, ENUM] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.EveConnector.ConnectorType")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.EveConnector.ConnectorType")
   type = ConnectorType.PointToPoint;
 
   /** m_color (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   color = vec4.fromValues(0.5, 0.5, 0.5, 1);
 
   /** m_width (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   lineWidth = 1;
 
   /** m_animationColor (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   animationColor = vec4.fromValues(1, 0, 0, 1);
 
   /** m_animationScale (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   animationScale = 1;
 
   /** m_animationSpeed (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   animationSpeed = 0;
 
   /** m_isAnimated (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   isAnimated = false;
 
   /** m_autoScaleAnimation (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   autoScaleAnimation = false;
 
   /** m_destPosition (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   destPosition = vec3.create();
 
   /** m_sourcePosition (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   sourcePosition = vec3.create();
 
   /** m_destObject (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("ITriVectorFunction")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("ITriVectorFunction")
   destObject = null;
 
   /** m_sourceObject (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("ITriVectorFunction")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("ITriVectorFunction")
   sourceObject = null;
 
   /** m_normal (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   planeNormal = vec3.fromValues(0, 1, 0);
 
   /** m_length (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   length = 0;
 
   /** Carbon's animation normalization length. */
   _lineLength = 1;
 
   /** Samples any authored endpoint functions at the active update time. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JavaScript vector functions use GetValueAt(time, out); Carbon's pointer-first spelling is a native calling convention.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JavaScript vector functions use GetValueAt(time, out); Carbon's pointer-first spelling is a native calling convention.")
   Update(context)
   {
     const time = context.GetTime();
@@ -169,8 +169,8 @@ export class EveConnector
   }
 
   /** Adds the connector's selected logical line records to an owned line set. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddLine(lineSet)
   {
     switch (this.type)

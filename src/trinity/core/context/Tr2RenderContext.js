@@ -18,7 +18,7 @@
 //    (2026-09-06) and the RenderBatches family is next; GetBackBuffer is not.
 //    Fork/Join parallel encoding is deliberately omitted - it exists to spread
 //    batch encoding across threads, and there is one.
-import { CjsSchema, carbon, impl, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { ALResult, Failed } from "../../../trinityal/ALResult.js";
@@ -47,7 +47,7 @@ const DEFAULT_TECHNIQUE = "Main";
 const FRUSTUM_PLANES = [ "FrustumPlane0", "FrustumPlane1", "FrustumPlane2", "FrustumPlane3", "FrustumPlane4", "FrustumPlane5" ];
 
 /** Tr2RenderContext (trinityCore) - generated from schema shapeHash 73e2a4e7.... */
-@type.define({ className: "Tr2RenderContext", family: "trinityCore" })
+@meta.define({ className: "Tr2RenderContext", family: "trinityCore" })
 export class Tr2RenderContext
 {
   #diagnostics = [];
@@ -204,7 +204,7 @@ export class Tr2RenderContext
   }
 
   /** Explicit context teardown releases owned state values before its backend. */
-  @impl.custom
+  @meta.ours
   Destroy()
   {
     this.#esm.Destroy();
@@ -835,8 +835,8 @@ export class Tr2RenderContext
    * @param {object} program A `Tr2ShaderProgramAL`.
    * @returns {object|null} A `Tr2ResourceSetAL`, or null when Create refused.
    */
-  @impl.custom
-  @impl.reason("Forwards JS platform selection and its internal allocation mode to the installed abstraction-layer context.")
+  @meta.ours
+  @meta.reason("Forwards JS platform selection and its internal allocation mode to the installed abstraction-layer context.")
   CreateResourceSet(description, program, implementationOnly = false)
   {
     return this.#requireAL("CreateResourceSet").CreateResourceSet(description, program, implementationOnly);
@@ -1922,8 +1922,8 @@ export class Tr2RenderContext
    *
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   static DestroyMainThreadRenderContext()
   {
     if (s_mainThreadRenderContext) s_mainThreadRenderContext.Destroy();

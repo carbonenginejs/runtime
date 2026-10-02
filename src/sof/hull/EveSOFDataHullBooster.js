@@ -1,28 +1,28 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 
 /** Groups booster placements and records whether boosters and their trails remain active. */
-@type.define({ className: "EveSOFDataHullBooster", family: "eve" })
+@meta.define({ className: "EveSOFDataHullBooster", family: "eve" })
 export class EveSOFDataHullBooster
 {
 
   /** m_items (PEveSOFDataHullBoosterItemVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataHullBoosterItem")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataHullBoosterItem")
   items = [];
 
   /** m_alwaysOn (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   alwaysOn = false;
 
   /** m_hasTrails (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   hasTrails = true;
 
 }

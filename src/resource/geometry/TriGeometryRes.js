@@ -2,7 +2,7 @@ import { ResourceRequirement } from "#blue";
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Source: trinity/trinity/Resources/TriGeometryRes.cpp
 // Source: trinity/trinity/Resources/TriGeometryRes_Blue.cpp
-import { CjsSchema, carbon, impl, edit, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { box3 } from "#math/box3";
 import { triangleNormalTo } from "#math/mesh";
 import { ray3 } from "#math/ray3";
@@ -1415,42 +1415,42 @@ CjsSchema.define(TriGeometryRes, {
   className: "TriGeometryRes",
   family: "resources",
   fields: {
-    forceLod: [ type.boolean, edit.readwrite ],
-    forcedLodIndex: [ type.int32, edit.readwrite ],
-    name: [ type.string, edit.readwrite ]
+    forceLod: [ meta.type.boolean, meta.blue.readwrite ],
+    forcedLodIndex: [ meta.type.int32, meta.blue.readwrite ],
+    name: [ meta.type.string, meta.blue.readwrite ]
   },
   methods: {
-    GetMeshCount: [ carbon.method, impl.adapted ],
-    GetAnimationCount: [ carbon.method, impl.adapted ],
-    GetSkeletonCount: [ carbon.method, impl.adapted ],
-    GetSkeletonData: [ carbon.method, impl.adapted ],
-    GetMeshAreaCount: [ carbon.method, impl.adapted ],
-    GetLodIndexForScreenSize: [ carbon.method, impl.adapted ],
-    GetMeshLod: [ carbon.method, impl.adapted ],
-    GetMeshLodByIndex: [ carbon.method, impl.adapted ],
-    GetMeshName: [ carbon.method, impl.adapted ],
-    GetMeshAreaName: [ carbon.method, impl.adapted ],
-    GetAreaBoundingBox: [ carbon.method, impl.adapted ],
-    GetBoundingBox: [ carbon.method, impl.adapted ],
-    GetBoundingSphere: [ carbon.method, impl.adapted ],
-    CalculateBoundingBoxFromTransform: [ carbon.method, impl.adapted ],
-    RecalculateBoundingSphere: [ carbon.method, impl.adapted ],
-    Reload: [ carbon.method, impl.adapted ],
-    GetIntersectionPointNormalBone: [ carbon.method, impl.adapted ],
-    GetAreaIntersectionPointNormalBone: [ carbon.method, impl.adapted ],
-    PrepareRayCaster: [ carbon.method, impl.adapted ],
-    ResetRayCaster: [ carbon.method, impl.adapted ],
-    IsRayCasterReady: [ carbon.method, impl.adapted ],
-    HasRayCasterPreparationFailed: [ carbon.method, impl.adapted ],
-    DestroyRayCaster: [ carbon.method, impl.adapted ],
-    ReleaseResources: [ carbon.method, impl.adapted ],
-    ReleasePayload: [ impl.custom ],
-    GetIntersectionPoints: [ carbon.method, impl.adapted ],
-    GetMeshVertexElements: [ carbon.method, impl.adapted ],
-    IsInstanceDataReady: [ carbon.method, impl.implemented ],
-    GetInstanceData: [ carbon.method, impl.adapted ],
-    GetInstanceBufferVertexDeclaration: [ carbon.method, impl.adapted ],
-    GetInstanceBufferBoundingBox: [ carbon.method, impl.adapted ],
-    SaveMesh: [ carbon.method, impl.notSupported ]
+    GetMeshCount: [ meta.blue.method, meta.adapted ],
+    GetAnimationCount: [ meta.blue.method, meta.adapted ],
+    GetSkeletonCount: [ meta.blue.method, meta.adapted ],
+    GetSkeletonData: [ meta.blue.method, meta.adapted ],
+    GetMeshAreaCount: [ meta.blue.method, meta.adapted ],
+    GetLodIndexForScreenSize: [ meta.blue.method, meta.adapted ],
+    GetMeshLod: [ meta.blue.method, meta.adapted ],
+    GetMeshLodByIndex: [ meta.blue.method, meta.adapted ],
+    GetMeshName: [ meta.blue.method, meta.adapted ],
+    GetMeshAreaName: [ meta.blue.method, meta.adapted ],
+    GetAreaBoundingBox: [ meta.blue.method, meta.adapted ],
+    GetBoundingBox: [ meta.blue.method, meta.adapted ],
+    GetBoundingSphere: [ meta.blue.method, meta.adapted ],
+    CalculateBoundingBoxFromTransform: [ meta.blue.method, meta.adapted ],
+    RecalculateBoundingSphere: [ meta.blue.method, meta.adapted ],
+    Reload: [ meta.blue.method, meta.adapted ],
+    GetIntersectionPointNormalBone: [ meta.blue.method, meta.adapted ],
+    GetAreaIntersectionPointNormalBone: [ meta.blue.method, meta.adapted ],
+    PrepareRayCaster: [ meta.blue.method, meta.adapted ],
+    ResetRayCaster: [ meta.blue.method, meta.adapted ],
+    IsRayCasterReady: [ meta.blue.method, meta.adapted ],
+    HasRayCasterPreparationFailed: [ meta.blue.method, meta.adapted ],
+    DestroyRayCaster: [ meta.blue.method, meta.adapted ],
+    ReleaseResources: [ meta.blue.method, meta.adapted ],
+    ReleasePayload: [ meta.ours ],
+    GetIntersectionPoints: [ meta.blue.method, meta.adapted ],
+    GetMeshVertexElements: [ meta.blue.method, meta.adapted ],
+    IsInstanceDataReady: [ meta.blue.method, meta.implemented ],
+    GetInstanceData: [ meta.blue.method, meta.adapted ],
+    GetInstanceBufferVertexDeclaration: [ meta.blue.method, meta.adapted ],
+    GetInstanceBufferBoundingBox: [ meta.blue.method, meta.adapted ],
+    SaveMesh: [ meta.blue.method, meta.notSupported ]
   }
 });

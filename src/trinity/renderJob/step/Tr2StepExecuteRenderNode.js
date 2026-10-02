@@ -2,7 +2,7 @@
 // Source: trinity/trinity/RenderJob/Tr2StepExecuteRenderNode.cpp
 // Source: trinity/trinity/RenderJob/Tr2StepExecuteRenderNode_Blue.cpp
 // Promoted from generated source to supply TriRenderStep.Execute.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 
@@ -10,33 +10,33 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * Executes one render-graph node into a destination target, optionally clearing
  * the target when the node is absent or fails validation.
  */
-@type.define({ className: "Tr2StepExecuteRenderNode", family: "renderJob" })
+@meta.define({ className: "Tr2StepExecuteRenderNode", family: "renderJob" })
 export class Tr2StepExecuteRenderNode extends TriRenderStep
 {
 
   /** m_destinationTarget (Tr2RenderTargetPtr) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("Tr2RenderTarget")
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2RenderTarget")
   destinationTarget = null;
 
   /** m_clearTargetOnFailure (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   clearTargetOnFailure = true;
 
   /** m_node (ITr2RenderNodePtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("ITr2RenderNode")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("ITr2RenderNode")
   node = null;
 
   /**
    * Validates and executes the owned render-node contract. The runtime render
    * context records Carbon's failure clear as engine-consumable intents.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The JS node receives the Tr2RenderTarget graph object and a null root timer; its target and timing handles are not ported yet.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("The JS node receives the Tr2RenderTarget graph object and a null root timer; its target and timing handles are not ported yet.")
   Execute(realTime, simTime, renderContext)
   {
     const target = this.destinationTarget;

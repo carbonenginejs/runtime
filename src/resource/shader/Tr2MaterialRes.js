@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/Tr2MaterialRes.h
 // Schema: format-carbon resources/Tr2MaterialRes.json; maintained by the runtime resource layer.
-import { CjsSchema, edit, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /**
  * Root persisted material record containing its authored name and material
@@ -29,7 +29,7 @@ CjsSchema.define(Tr2MaterialRes, {
   className: "Tr2MaterialRes",
   family: "resources",
   fields: {
-    meshes: [ edit.persist, type.objectRef("Tr2MaterialMeshDict") ],
-    name: [ edit.persist, type.string ]
+    meshes: [ meta.blue.persist, meta.type.objectRef("Tr2MaterialMeshDict") ],
+    name: [ meta.blue.persist, meta.type.string ]
   }
 });

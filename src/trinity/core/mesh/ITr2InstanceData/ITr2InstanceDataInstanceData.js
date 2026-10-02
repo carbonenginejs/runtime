@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Include/ITr2InstanceData.h
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 
 /**
  * ITr2InstanceData::InstanceData, a plain nested record returned by a provider.
@@ -13,27 +13,27 @@ export class ITr2InstanceDataInstanceData
    * Borrowed native const Tr2BufferAL reference; null represents empty AL state.
    * @type {object|ArrayBuffer|null}
    */
-  @types.rawStruct("Tr2BufferAL")
+  @meta.type.rawStruct("Tr2BufferAL")
   buffer = null;
 
   /**
    * Byte offset into the borrowed buffer.
    * @type {number}
    */
-  @types.uint32
+  @meta.type.uint32
   offset = 0;
 
   /**
    * Byte stride between successive instances.
    * @type {number}
    */
-  @types.uint32
+  @meta.type.uint32
   stride = 0;
 
   /**
    * Number of instances in the slice.
    * @type {number}
    */
-  @types.uint32
+  @meta.type.uint32
   count = 0;
 }

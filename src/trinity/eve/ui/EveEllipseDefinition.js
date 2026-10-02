@@ -1,49 +1,49 @@
-import { carbon } from "#schema";
+import { meta } from "#schema";
 import { INotify } from "../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/UI/EveEllipseDefinition.h
 //   trinity/trinity/Eve/UI/EveEllipseDefinition.cpp
 import { vec3 } from "#math/vec3";
-import { edit, type } from "#schema";
+
 
 
 /**
  * One authored ellipse of an ellipse set - centre, plane normal, in-plane
  * rotation in degrees and the two semi-axis lengths.
  */
-@type.define({ className: "EveEllipseDefinition", family: "eve/ui" })
-@carbon.inherit(INotify)
+@meta.define({ className: "EveEllipseDefinition", family: "eve/ui" })
+@meta.blue.inherit(INotify)
 export class EveEllipseDefinition
 {
   _dirtyFlag = null;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   center = vec3.create();
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   planeNormal = vec3.fromValues(0, 1, 0);
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   rotationDegrees = 0;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   semiMajor = 1;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   semiMinor = 1;
 
   /**
@@ -71,4 +71,4 @@ export class EveEllipseDefinition
 }
 
 // Exact native Blue exposure: only these identities participate in loading.
-carbon.interfaceTable({ interfaces: [EveEllipseDefinition, INotify], chainTo: null })(EveEllipseDefinition, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveEllipseDefinition, INotify], chainTo: null })(EveEllipseDefinition, { kind: "class" });

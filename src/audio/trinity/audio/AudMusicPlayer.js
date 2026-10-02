@@ -1,6 +1,6 @@
 // Source: audio/src/AudMusicPlayer.h + AudMusicPlayer.cpp
 // Hand-owned since 2026-07-19 (behavior port); the generator skips this file.
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { AudEmitter } from "./AudEmitter.js";
 
 export const MUSIC_GAME_OBJ_ID = 3;
@@ -13,7 +13,7 @@ const FLOAT_MAX = 3.4028234663852886e38;
  * FLT_MAX culling weight, fixed origin pose (AudMusicPlayer.cpp:6-11); all
  * behavior is inherited from AudEmitter (SendEvent/SetSwitch/SetRTPC/...).
  */
-@type.define({ className: "AudMusicPlayer", family: "audio" })
+@meta.define({ className: "AudMusicPlayer", family: "audio" })
 export class AudMusicPlayer extends AudEmitter
 {
 
@@ -27,8 +27,8 @@ export class AudMusicPlayer extends AudEmitter
   }
 
   /** The music player has no world placement. Source: AudMusicPlayer.cpp:17-20 (commit 2756050). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HasUsableWorldPosition()
   {
     return false;

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
@@ -10,33 +10,33 @@ export class EveSOFDataHullSoundEmitter
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_prefix (std::wstring) [READWRITE, PERSIST]; JS stores both string widths as strings. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.wstring
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.wstring
   prefix = "";
 
   /** m_position (Vector3) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   position = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.quat
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   rotation = quat.create();
 
   /** m_attenuationScalingFactor (float) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   attenuationScalingFactor = 1;
 
 }

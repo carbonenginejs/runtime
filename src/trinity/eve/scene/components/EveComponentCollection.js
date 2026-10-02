@@ -1,29 +1,29 @@
 // Source: trinity/trinity/Eve/EveComponentRegistry.h
 // Hand-maintained after promotion from generated schema intake.
-import { impl, type } from "#schema";
+import { meta } from "#schema";
 
 /** Stores entities belonging to one Eve component type. */
-@type.define({ className: "EveComponentCollection", family: "eve/scene" })
+@meta.define({ className: "EveComponentCollection", family: "eve/scene" })
 export class EveComponentCollection
 {
 
   /** m_name (const char*) */
-  @type.string
+  @meta.type.string
   name = "";
 
   /** m_bit (uint32_t) */
-  @type.uint32
+  @meta.type.uint32
   bit = 0;
 
   /** m_collection (std::vector<T*>) */
-  @type.list("T")
+  @meta.type.list("T")
   collection = [];
 
   /**
    * Appends an entity and returns the index it was stored at, which the registry
    * records on the entity.
    */
-  @impl.implemented
+  @meta.implemented
   Add(entity)
   {
     const index = this.collection.length;
@@ -36,7 +36,7 @@ export class EveComponentCollection
    * returns that moved entity so the caller can fix up its stored index, or null
    * when nothing moved or the index is out of range.
    */
-  @impl.implemented
+  @meta.implemented
   SwapWithBack(index)
   {
     if (index < 0 || index >= this.collection.length)
@@ -58,7 +58,7 @@ export class EveComponentCollection
    * Drops all entities from the collection without touching their stored
    * component state.
    */
-  @impl.implemented
+  @meta.implemented
   Clear()
   {
     this.collection.length = 0;
@@ -68,14 +68,14 @@ export class EveComponentCollection
    * Returns the single mask bit the registry assigned to this collection, used
    * as the key for an entity's per-component index.
    */
-  @impl.implemented
+  @meta.implemented
   GetBit()
   {
     return this.bit;
   }
 
   /** Returns the number of entities currently in the collection. */
-  @impl.implemented
+  @meta.implemented
   Size()
   {
     return this.collection.length;

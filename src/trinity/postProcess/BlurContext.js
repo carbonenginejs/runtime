@@ -1,32 +1,32 @@
 // Source: trinity/trinity/PostProcess/Tr2PostProcessRenderer.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema postProcess/BlurContext.json.).
-import { type } from "#schema";
+import { meta } from "#schema";
 import { BlurChannel, BlurFinalize, BlurProcess, BlurType } from "../generated/postProcess/enums.js";
 import { blue } from "#blue";
 
 /** Describes one post-process blur variant and produces its stable cache key from type, channel, processing, and finalization modes. */
-@type.define({ className: "BlurContext", family: "postProcess" })
+@meta.define({ className: "BlurContext", family: "postProcess" })
 export class BlurContext
 {
 
   /** channel (BlurChannel - enum BlurChannel) */
-  @type.int32
-  @type.enum("trinity.PostProcessBlur.BlurChannel")
+  @meta.type.int32
+  @meta.type.enum("trinity.PostProcessBlur.BlurChannel")
   channel = 4;
 
   /** finalize (BlurFinalize - enum BlurFinalize) */
-  @type.int32
-  @type.enum("trinity.PostProcessBlur.BlurFinalize")
+  @meta.type.int32
+  @meta.type.enum("trinity.PostProcessBlur.BlurFinalize")
   finalize = 0;
 
   /** process (BlurProcess - enum BlurProcess) */
-  @type.int32
-  @type.enum("trinity.PostProcessBlur.BlurProcess")
+  @meta.type.int32
+  @meta.type.enum("trinity.PostProcessBlur.BlurProcess")
   process = 0;
 
   /** type (BlurType - enum BlurType) */
-  @type.int32
-  @type.enum("trinity.PostProcessBlur.BlurType")
+  @meta.type.int32
+  @meta.type.enum("trinity.PostProcessBlur.BlurType")
   type = 0;
 
   /** Carbon BlurContext::Hash - the blur-variant cache key. */

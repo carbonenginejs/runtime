@@ -1,4 +1,4 @@
-import { impl } from "#schema";
+import { meta } from "#schema";
 
 
 /**
@@ -8,21 +8,21 @@ export class CjsTrinityStepExecutor
 {
 
   /** Begins one canonical render step. */
-  @impl.abstract
+  @meta.abstract
   BeginStep(_step, _realTime, _simTime, _job, _context)
   {
     throw new Error("CjsTrinityStepExecutor.BeginStep must be implemented by a concrete executor.");
   }
 
   /** Executes one canonical render step. */
-  @impl.abstract
+  @meta.abstract
   ExecuteStep(_step, _realTime, _simTime, _job, _context)
   {
     throw new Error("CjsTrinityStepExecutor.ExecuteStep must be implemented by a concrete executor.");
   }
 
   /** Ends one canonical render step. */
-  @impl.abstract
+  @meta.abstract
   EndStep(_step, _realTime, _simTime, _job, _context)
   {
     throw new Error("CjsTrinityStepExecutor.EndStep must be implemented by a concrete executor.");
@@ -36,14 +36,14 @@ export class CjsTrinityStepExecutor
   // and no longer had a caller - the direct executor's were empty bodies.
 
   /** Opens a render-target and depth-stencil batch bracket. */
-  @impl.abstract
+  @meta.abstract
   BeginBatch(_owner, _context)
   {
     throw new Error("CjsTrinityStepExecutor.BeginBatch must be implemented by a concrete executor.");
   }
 
   /** Closes a render-target and depth-stencil batch bracket. */
-  @impl.abstract
+  @meta.abstract
   EndBatch(_owner, _context)
   {
     throw new Error("CjsTrinityStepExecutor.EndBatch must be implemented by a concrete executor.");

@@ -88,7 +88,7 @@ export class ITriDuration
 
 for (const method of [ "Start", "SetStartTime", "Sort", "ScaleTime", "Reverse", "ScaleValue", "Length", "Extrapolation" ])
 {
-  CjsSchema.decorateMethod(ITriDuration, method, meta.compose.abstract, meta.impl.abstract);
+  CjsSchema.decorateMethod(ITriDuration, method, meta.requires, meta.abstract);
 }
 CjsSchema.define(ITriDuration, {
   className: "ITriDuration", carbon: "ITriDuration", family: "curves", fields: {}

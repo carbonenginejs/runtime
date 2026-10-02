@@ -1,4 +1,4 @@
-import { carbon } from "#schema";
+
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/EveMobile.h
 // Source: trinity/trinity/Eve/SpaceObject/EveMobile.cpp
@@ -6,7 +6,7 @@ import { mat4 } from "#math/mat4";
 import { vec4 } from "#math/vec4";
 import { IEveSpaceObject2ParentData } from "./IEveSpaceObject2ParentData.js";
 import { vec3 } from "#math/vec3";
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { mappedInterfaces } from "../../../global/compose/interface.js";
 import { IListNotify } from "#blue/IListNotify";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -22,19 +22,19 @@ import { EveSpaceObject2 } from "./EveSpaceObject2.js";
  * locators or animated bones it fires from and tracking how many of its turrets
  * are active.
  */
-@types.define({ className: "EveMobile", family: "eve/spaceObject" })
-@meta.carbon.mapInterface(IEveSpaceObject2, ITr2Renderable, IListNotify)
-@carbon.inherit(IListNotify, IInitialize)
+@meta.define({ className: "EveMobile", family: "eve/spaceObject" })
+@meta.blue.mapInterface(IEveSpaceObject2, ITr2Renderable, IListNotify)
+@meta.blue.inherit(IListNotify, IInitialize)
 export class EveMobile extends EveSpaceObject2
 {
-  @meta.edit.notify
-  @meta.edit.read
-  @meta.edit.persist
-  @types.list("EveTurretSet")
+  @meta.blue.notify
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveTurretSet")
   turretSets = [];
 
-  @meta.edit.read
-  @types.uint32
+  @meta.blue.read
+  @meta.type.uint32
   ActiveTurretCount = 0;
 
   /** Native stack ParentData retained on the JS owner for reuse. */
@@ -47,8 +47,8 @@ export class EveMobile extends EveSpaceObject2
    * Runs the base initialization, then seeds the turret locator counters from
    * the current locators and binds every turret set to them.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     super.Initialize();
@@ -62,8 +62,8 @@ export class EveMobile extends EveSpaceObject2
    * multiplies shipData.y by the authored activationStrength. Recomputing the
    * base first prevents repeated frames from compounding the multiplication.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PrepareShaderData(updateContext)
   {
     super.PrepareShaderData(updateContext);
@@ -75,8 +75,8 @@ export class EveMobile extends EveSpaceObject2
    * registration on live insertion/removal; unload unregisters mapped entities.
    * Carbon EveMobile.cpp:56-100 keeps insertion independent of display.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnListModified(event, key = 0, key2 = 0, value = null, list = null)
   {
     super.OnListModified(event, key, key2, value, list);
@@ -103,8 +103,8 @@ export class EveMobile extends EveSpaceObject2
 
   /** Carbon EveMobile::RegisterComponents (cpp:109-120): base registration,
    * then forwards the turret sets. Gate m_display. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterComponents()
   {
     super.RegisterComponents();
@@ -120,8 +120,8 @@ export class EveMobile extends EveSpaceObject2
 
   /** Carbon EveMobile::UnRegisterComponents (cpp:126-138): base, then forwards
    * the turret sets without re-checking display. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UnRegisterComponents()
   {
     super.UnRegisterComponents();
@@ -139,8 +139,8 @@ export class EveMobile extends EveSpaceObject2
    * Returns the locator index a turret slot was bound to, or 0 when the set or
    * slot has no binding.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetTurretLocatorIndex(turretSetIndex, slotIndex)
   {
     const info = this._turretSetsLocatorInfo[turretSetIndex];
@@ -153,8 +153,8 @@ export class EveMobile extends EveSpaceObject2
    * Adapted: an index holder and caller-owned matrix replace native out pointers;
    * the existing JS return reports completion.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RebuildTurretPositions()
   {
     this._turretSetsLocatorInfo.length = 0;
@@ -224,8 +224,8 @@ export class EveMobile extends EveSpaceObject2
    * Carbon EveMobile.cpp:326-443 accepts a-only layouts and checks matching a/b
    * bitsets when b exists; trailing name text after a/b is accepted.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetTurretLocatorCount()
   {
     let foundA = 0;
@@ -255,8 +255,8 @@ export class EveMobile extends EveSpaceObject2
    * Returns how many turret sets were past the targeting state at the last
    * synchronous update.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetActiveTurretCount()
   {
     return this.ActiveTurretCount;
@@ -268,8 +268,8 @@ export class EveMobile extends EveSpaceObject2
    * Adapted: base typed locator lookup copies into a reusable output matrix
    * and the existing JS update returns completion.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateSyncronous(context)
   {
     super.UpdateSyncronous(context);
@@ -298,8 +298,8 @@ export class EveMobile extends EveSpaceObject2
   }
 
   /** Runs the base asynchronous update and then the turret sets. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateAsyncronous(context)
   {
     super.UpdateAsyncronous(context);
@@ -311,8 +311,8 @@ export class EveMobile extends EveSpaceObject2
    * turret set (EveMobile.cpp:213-231). JS retains the native stack record for
    * reuse; GetTurretTransform(0) supplies the same placement to all sets.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateTurretsAsyncronous(context)
   {
     const parent = this._turretParentData;
@@ -331,8 +331,8 @@ export class EveMobile extends EveSpaceObject2
    * Runs the base visibility pass and, while display is on, forwards visibility
    * to the turret sets.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateVisibility(context, _parentTransform = EveMobile._identity)
   {
     const visible = super.UpdateVisibility(context, _parentTransform);
@@ -346,8 +346,8 @@ export class EveMobile extends EveSpaceObject2
    * nothing is appended while display is off. Adapted: the existing base
    * accepts one output array; native impostor output remains unported.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetRenderables(out = [])
   {
     if (!this.display) return out;
@@ -361,8 +361,8 @@ export class EveMobile extends EveSpaceObject2
    * box. Adapted: with out parameters it fills them and returns true; without it
    * returns a { min, max } object.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetLocalBoundingBox(outMin, outMax)
   {
     const returnObject = !outMin || !outMax;
@@ -382,8 +382,8 @@ export class EveMobile extends EveSpaceObject2
   }
 
   /** Sets a controller variable on the hull and forwards it to every turret set. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetControllerVariable(name, value)
   {
     super.SetControllerVariable(name, value);
@@ -391,8 +391,8 @@ export class EveMobile extends EveSpaceObject2
   }
 
   /** Raises a controller event on the hull and forwards it to every turret set. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HandleControllerEvent(name)
   {
     super.HandleControllerEvent(name);
@@ -400,8 +400,8 @@ export class EveMobile extends EveSpaceObject2
   }
 
   /** Starts the hull's controllers and every turret set's controllers. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   StartControllers()
   {
     super.StartControllers();
@@ -412,16 +412,16 @@ export class EveMobile extends EveSpaceObject2
    * Children, turret sets and boosters are shown only while activation strength
    * is above 0.5.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   DisplayChildren()
   {
     return this.activationStrength > 0.5;
   }
 
   /** Forwards shader options to the hull and every turret (EveMobile.cpp:238-245). */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetShaderOption(name, value)
   {
     super.SetShaderOption(name, value);
@@ -429,8 +429,8 @@ export class EveMobile extends EveSpaceObject2
   }
 
   /** Registers hull content and every turret's quad content (EveMobile.cpp:681-688). */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     super.RegisterWithQuadRenderer(quadRenderer);
@@ -438,8 +438,8 @@ export class EveMobile extends EveSpaceObject2
   }
 
   /** Collects hull and turret quad content (EveMobile.cpp:690-697). */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     super.AddQuadsToQuadRenderer(frustum, quadRenderer);
@@ -450,8 +450,8 @@ export class EveMobile extends EveSpaceObject2
    * Returns the parent transform turret sets are placed against - the live hull
    * world transform, regardless of swarm index.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetTurretTransform(_turretSetIndex = 0)
   {
     return this.worldTransform;
@@ -502,7 +502,7 @@ export class EveMobile extends EveSpaceObject2
 }
 
 // Native exposure maps the concrete class explicitly.
-meta.carbon.mapInterface(EveMobile)(EveMobile, { kind: "class" });
+meta.blue.mapInterface(EveMobile)(EveMobile, { kind: "class" });
 
 // EveMobile_Blue.cpp: native exposure.
-carbon.interfaceTable({ interfaces: [EveMobile, IEveSpaceObject2, ITr2Renderable, IListNotify], chainTo: EveSpaceObject2 })(EveMobile, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveMobile, IEveSpaceObject2, ITr2Renderable, IListNotify], chainTo: EveSpaceObject2 })(EveMobile, { kind: "class" });

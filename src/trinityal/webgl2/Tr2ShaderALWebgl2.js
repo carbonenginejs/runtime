@@ -24,7 +24,7 @@
 // pass (its `computeFragment` recipe); geometry, hull and domain stages have
 // no WebGL2 counterpart and are refused.
 
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -99,7 +99,7 @@ export class Tr2ShaderALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @impl.adapted
+  @meta.adapted
   Create(type, bytecode, signature, shaderPath, renderContext)
   {
     this.ReleaseShader();
@@ -254,7 +254,7 @@ export class Tr2ShaderALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {WebGLShader|null} The stage object.
    */
-  @impl.custom
+  @meta.ours
   GetGpuResource()
   {
     return this._shader;
@@ -266,7 +266,7 @@ export class Tr2ShaderALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {object|null} The stage block.
    */
-  @impl.custom
+  @meta.ours
   GetStageBlock()
   {
     return this._stageBlock;
@@ -277,7 +277,7 @@ export class Tr2ShaderALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {string} The log, empty after a successful compile.
    */
-  @impl.custom
+  @meta.ours
   GetCompileLog()
   {
     return this._log;

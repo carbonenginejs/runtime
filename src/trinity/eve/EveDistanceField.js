@@ -3,7 +3,7 @@ import { IListNotify } from "../../global/blue/IListNotify.js";
 // Source: trinity/trinity/Eve/EveDistanceField.h
 // Source: trinity/trinity/Eve/EveDistanceField.cpp
 import { vec3 } from "#math/vec3";
-import { carbon, edit, impl, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../curves/enums.js";
 import { Tr2CurveScalar } from "../curves/curve/Tr2CurveScalar.js";
 import { TriCurveSet } from "../curves/TriCurveSet.js";
@@ -13,66 +13,66 @@ import { TriCurveSet } from "../curves/TriCurveSet.js";
  * Tracks a set of moving points, estimates the volume covering them, and drives
  * a curve set from the eased camera distance to that volume.
  */
-@type.define({
+@meta.define({
   className: "EveDistanceField",
   family: "eve"
 })
-@carbon.inherit(INotify)
+@meta.blue.inherit(INotify)
 export class EveDistanceField
 {
-  @edit.read
-  @type.vec3
+  @meta.blue.read
+  @meta.type.vec3
   dimensions = vec3.create();
 
-  @edit.read
-  @type.vec3
+  @meta.blue.read
+  @meta.type.vec3
   midpoint = vec3.create();
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   distanceThreshold = 3;
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   maxXZRatio = 1.5;
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   minYRatio = 0.2;
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   timeAdjustmentSecondsIn = 0.25;
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   timeAdjustmentSecondsOut = 2;
 
-  @edit.notify
-  @edit.read
-  @type.list("ITriVectorFunction")
+  @meta.blue.notify
+  @meta.blue.read
+  @meta.type.list("ITriVectorFunction")
   objects = [];
 
-  @edit.readwrite
-  @type.objectRef("TriView")
+  @meta.blue.readwrite
+  @meta.type.objectRef("TriView")
   cameraView = null;
 
-  @edit.readwrite
-  @type.objectRef("TriCurveSet")
+  @meta.blue.readwrite
+  @meta.type.objectRef("TriCurveSet")
   curveSet = null;
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   distance = -1;
 
-  @edit.notify
-  @edit.readwrite
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.float32
   minDistance = 0;
 
-  @edit.notify
-  @edit.readwrite
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.float32
   maxDistance = 75000;
 
   _distanceCurve = null;
@@ -88,8 +88,8 @@ export class EveDistanceField
    * ones rather than derived from tracked objects, and rebuilds the distance
    * curve set.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetupStaticDistanceField(dimensions, position, distanceThreshold, timeAdjustmentSecondsOut, timeAdjustmentSecondsIn)
   {
     this._isDynamic = false;
@@ -107,9 +107,9 @@ export class EveDistanceField
    * midpoint and extent are recomputed from the tracked objects on the next
    * update.
    */
-  @carbon.method
-  @impl.implemented
-  @impl.invalidates("#dirty")
+  @meta.blue.method
+  @meta.implemented
+  @meta.invalidates("#dirty")
   SetupDynamicDistanceField(distanceThreshold, timeAdjustmentSecondsOut, timeAdjustmentSecondsIn)
   {
     this._isDynamic = true;
@@ -127,8 +127,8 @@ export class EveDistanceField
    * moves, and drives the curve set. The distance is the curve set's time axis,
    * not a delta.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(updateContext)
   {
     const cameraPosition = EveDistanceField._getCameraPosition(this.cameraView);
@@ -179,10 +179,10 @@ export class EveDistanceField
    * Defers a distance-curve rebuild to the next update when the minimum or
    * maximum distance changed.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JS identifies the changed distance member by its exposed property name.")
-  @impl.invalidates("#updateDistanceCurve")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JS identifies the changed distance member by its exposed property name.")
+  @meta.invalidates("#updateDistanceCurve")
   OnModified(propertyName)
   {
     if (propertyName === "minDistance" || propertyName === "maxDistance")
@@ -197,9 +197,9 @@ export class EveDistanceField
    * midpoint and extent once the last one is removed; events for other lists are
    * ignored.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.invalidates("#dirty")
+  @meta.blue.method
+  @meta.adapted
+  @meta.invalidates("#dirty")
   OnListModified(event, _key = 0, _key2 = 0, _value = null, list = this.objects)
   {
     if (list !== this.objects)
@@ -221,8 +221,8 @@ export class EveDistanceField
   }
 
   /** Debug rendering hook; this package produces no debug geometry. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   RenderDebugInfo()
   {
   }
@@ -391,4 +391,4 @@ export class EveDistanceField
 }
 
 // Exact native Blue exposure: only these identities participate in loading.
-carbon.interfaceTable({ interfaces: [EveDistanceField, IListNotify, INotify], chainTo: null })(EveDistanceField, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveDistanceField, IListNotify, INotify], chainTo: null })(EveDistanceField, { kind: "class" });

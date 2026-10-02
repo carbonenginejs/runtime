@@ -1,59 +1,59 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import "#blue/registerTrinityEnums";
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
 import { Tr2Lod } from "#consts/trinity";
 
 /** Defines instanced-mesh geometry, shader, display and LOD policy, textures, and instance transforms. */
-@type.define({ className: "EveSOFDataInstancedMesh", family: "eve" })
+@meta.define({ className: "EveSOFDataInstancedMesh", family: "eve" })
 export class EveSOFDataInstancedMesh
 {
   static Tr2Lod = Tr2Lod;
 
 
   /** m_displayModifier (DisplayQualityModifier - enum DisplayQualityModifier) [READWRITE, PERSIST, ENUM] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.EveSOFDataInstancedMesh.DisplayQualityModifier")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.EveSOFDataInstancedMesh.DisplayQualityModifier")
   displayModifier = 5;
 
   /** m_instances (PEveSofDataMeshInstanceStructureList) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSofDataMeshInstance")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSofDataMeshInstance")
   instances = [];
 
   /** m_textures (PEveSOFDataTextureVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataTexture")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataTexture")
   textures = [];
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_lowestLodVisible (Tr2Lod - enum Tr2Lod) [READWRITE, PERSIST, ENUM] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.Tr2Lod")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2Lod")
   lowestLodVisible = 0;
 
   /** m_geometryResPath (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   geometryResPath = "";
 
   /** m_shader (BlueSharedString) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   shader = "";
 
   static DisplayQualityModifier = Object.freeze({

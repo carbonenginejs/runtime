@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Tr2ControllerFloatVariable.h
 // Source: trinity/trinity/Controllers/Tr2ControllerFloatVariable.cpp
 // Source: trinity/trinity/Controllers/Tr2ControllerFloatVariable_Blue.cpp
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { IInitialize } from "#blue/IInitialize";
 import { INotify } from "#blue/INotify";
 import { Type } from "../enums.js";
@@ -26,38 +26,38 @@ import { Type } from "../enums.js";
   className: "Tr2ControllerFloatVariable",
   family: "controllers"
 })
-@meta.carbon.inherit(INotify)
+@meta.blue.inherit(INotify)
 export class Tr2ControllerFloatVariable extends IInitialize
 {
   /** Authored variable name. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** Editor presentation type; runtime storage remains float32. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.int32
-  @types.enum("trinity.Tr2ControllerFloatVariable.Type")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2ControllerFloatVariable.Type")
   variableType = Type.FLOAT;
 
   /** Current runtime value; changes notify but do not persist. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @types.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.float32
   value = 0;
 
   /** Authored value assigned by Initialize without publishing. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   defaultValue = 0;
 
   /** Comma-separated editor value/name choices. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   enumValues = "";
 
   /** Caller-owned storage or callback for the live float. */
@@ -80,8 +80,8 @@ export class Tr2ControllerFloatVariable extends IInitialize
    *
    * @returns {boolean} Always true.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     this.value = this.defaultValue;
@@ -97,8 +97,8 @@ export class Tr2ControllerFloatVariable extends IInitialize
    * @param {string|null} _propertyName Unused modified member name.
    * @returns {boolean} Always true after both operations succeed.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnModified(_propertyName)
   {
     this._writeDestination();
@@ -111,8 +111,8 @@ export class Tr2ControllerFloatVariable extends IInitialize
    *
    * @returns {string} Name used by the controller to expose this expression slot.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetName()
   {
     return this.name;
@@ -123,8 +123,8 @@ export class Tr2ControllerFloatVariable extends IInitialize
    *
    * @returns {number} Current value, without reading the destination back.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetValue()
   {
     return this.value;
@@ -139,8 +139,8 @@ export class Tr2ControllerFloatVariable extends IInitialize
    * @param {number} value New value for the float32 schema field.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetValue(value)
   {
     this.value = value;
@@ -160,8 +160,8 @@ export class Tr2ControllerFloatVariable extends IInitialize
    * @param {number} [index=0] Slot used only for an indexed destination.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetDestinationBuffer(buffer, index = 0)
   {
     this._destination = buffer;
@@ -182,8 +182,8 @@ export class Tr2ControllerFloatVariable extends IInitialize
    * @returns {void}
    * @throws {RangeError|TypeError} If mask cannot be converted to BigInt.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetDirtyMask(maskDestination, mask)
   {
     this._dirtyMaskDestination = maskDestination;
@@ -198,7 +198,7 @@ export class Tr2ControllerFloatVariable extends IInitialize
    *
    * @returns {void}
    */
-  @meta.impl.custom
+  @meta.ours
   _writeDestination()
   {
     if (this._destination)
@@ -227,7 +227,7 @@ export class Tr2ControllerFloatVariable extends IInitialize
    * @returns {void}
    * @throws {RangeError|TypeError} If the holder value cannot convert to BigInt.
    */
-  @meta.impl.custom
+  @meta.ours
   _markDirty()
   {
     const destination = this._dirtyMaskDestination;
@@ -249,7 +249,7 @@ export class Tr2ControllerFloatVariable extends IInitialize
 }
 
 // Native exposure ends at this concrete table (Tr2ControllerFloatVariable_Blue.cpp).
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [Tr2ControllerFloatVariable, IInitialize, INotify],
   chainTo: null
 })(Tr2ControllerFloatVariable);

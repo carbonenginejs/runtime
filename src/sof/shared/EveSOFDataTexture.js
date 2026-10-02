@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:752-760
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 
 /**
  * Stores a named texture binding and supports assignment and composition.
@@ -12,15 +12,15 @@ export class EveSOFDataTexture
 {
 
   /** m_resFilePath (std::string) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   resFilePath = "";
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /**
@@ -29,7 +29,7 @@ export class EveSOFDataTexture
    * @param {object} [out={}] Destination texture map.
    * @returns {object} The supplied map.
    */
-  @meta.impl.custom
+  @meta.ours
   Assign(out = {})
   {
     out[this.name] = this.resFilePath;
@@ -45,7 +45,7 @@ export class EveSOFDataTexture
    * @param {EveSOFDataTexture[]} [out=[]] Reused output records.
    * @returns {EveSOFDataTexture[]} The output list.
    */
-  @meta.impl.custom
+  @meta.ours
   static combineArrays(base = [], overrides = null, out = [])
   {
     const validNames = new Set(base.map(value => value.name));
@@ -70,7 +70,7 @@ export class EveSOFDataTexture
 
 }
 
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ EveSOFDataTexture ],
   chainTo: null
 })(EveSOFDataTexture);

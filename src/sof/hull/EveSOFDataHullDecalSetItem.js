@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
 import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.js";
 import { EveSOFDataLogoSet } from "../shared/EveSOFDataLogoSet.js";
@@ -8,7 +8,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
 /** Defines a logo or usage decal with faction color, bone and transform placement, mesh and material data, and single- or multi-hull index buffers. */
-@type.define({ className: "EveSOFDataHullDecalSetItem", family: "eve" })
+@meta.define({ className: "EveSOFDataHullDecalSetItem", family: "eve" })
 export class EveSOFDataHullDecalSetItem
 {
   static ColorType = EveSOFDataFactionColorSet.ColorType;
@@ -28,84 +28,84 @@ export class EveSOFDataHullDecalSetItem
   });
 
   /** m_logoType (EveSOFDataLogoSet::LogoType - enum LogoType) [READWRITE, PERSIST, ENUM] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.EveSOFDataLogoSet.LogoType")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.EveSOFDataLogoSet.LogoType")
   logoType = 0;
 
   /** m_usage (Usage - enum Usage) [READWRITE, PERSIST, ENUM] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.EveSOFDataHullDecalSetItem.Usage")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.EveSOFDataHullDecalSetItem.Usage")
   usage = 0;
 
   /** m_glowColorType (SOFDataFactionColorChooser::ColorType - enum ColorType) [READWRITE, PERSIST, ENUM] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.SOFDataFactionColorChooser.ColorType")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.SOFDataFactionColorChooser.ColorType")
   glowColorType = 0;
 
   /** m_boneIndex (int32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   boneIndex = -1;
 
   /** m_parameters (PEveSOFDataParameterVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataParameter")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataParameter")
   parameters = [];
 
   /** m_textures (PEveSOFDataTextureVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataTexture")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataTexture")
   textures = [];
 
   /** m_indexBuffers (PEveSOFDataDecalIndexBufferVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataDecalIndexBuffer")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataDecalIndexBuffer")
   indexBuffers = [];
 
   /** m_multiHullIndexBuffers (PEveSOFDataMultiHullDecalIndexBuffersVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataMultiHullDecalIndexBuffers")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataMultiHullDecalIndexBuffers")
   multiHullIndexBuffers = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_position (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   position = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.quat
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   rotation = quat.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_meshIndex (int32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   meshIndex = -1;
 
 }

@@ -2,34 +2,34 @@ import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierExpressionBucket.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import * as CcpLog from "../../../../global/logging/ccpLog.js";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveSmartLightAttributeModifierBucket } from "./EveSmartLightAttributeModifierBucket.js";
 import { CjsControllerExpressionProgram } from "../../../controllers/expression/CjsControllerExpressionProgram.js";
 import { vec3 } from "#math/vec3";
 
 /** EveSmartLightAttributeModifierExpressionBucket (eve/smartLights/attributeModifiers) - generated from schema shapeHash 02cc58c3.... */
-@type.define({ className: "EveSmartLightAttributeModifierExpressionBucket", family: "eve/smartLights/attributeModifiers" })
-@carbon.inherit(IInitialize)
-@carbon.mapInterface(IInitialize)
+@meta.define({ className: "EveSmartLightAttributeModifierExpressionBucket", family: "eve/smartLights/attributeModifiers" })
+@meta.blue.inherit(IInitialize)
+@meta.blue.mapInterface(IInitialize)
 export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLightAttributeModifierBucket
 {
 
   /** m_expression (std::string) [PERSISTONLY] */
-  @edit.readwrite
-  @edit.persistOnly
-  @type.expression
+  @meta.blue.readwrite
+  @meta.blue.persistOnly
+  @meta.type.expression
   expression = "";
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "bucket";
 
   /** m_inputs (PITriScalarFunctionVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("ITriScalarFunction")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITriScalarFunction")
   expressionInputs = [];
 
   /** Compiled expression program (Carbon m_program, a CcpParser::Program). */
@@ -46,9 +46,9 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * Compiles the authored expression after load
    * (EveSmartLightAttributeModifierExpressionBucket.cpp:93-103).
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("CcpParser is replaced by the shared CjsControllerExpressionProgram VM, matching the Tr2CurveScalarExpression consumer pattern.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("CcpParser is replaced by the shared CjsControllerExpressionProgram VM, matching the Tr2CurveScalarExpression consumer pattern.")
   Initialize()
   {
     super.Initialize();
@@ -60,8 +60,8 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   }
 
   /** Gets the n-th input curve value at the given (default: current) time (cpp:105-121). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetInputValue(index, time = this._arguments.time)
   {
     const i = index | 0;
@@ -74,16 +74,16 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   }
 
   /** Gets this bucket's random constant (cpp:123-126). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetRandomConstant()
   {
     return this._randomConstant;
   }
 
   /** Gets the authored expression (cpp:128-131). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetExpression()
   {
     return this.expression;
@@ -98,8 +98,8 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * Adapted: the shared CjsControllerExpressionProgram VM replaces CcpParser;
    * parse errors are retained on the program and reported through CcpLog.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetExpression(expression)
   {
     this.expression = String(expression ?? "");
@@ -113,8 +113,8 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   }
 
   /** Regenerates the random constant (Carbon jessica hook, h:34). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ResetRandomConstant()
   {
     this._randomConstant = Math.random();
@@ -124,9 +124,9 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * Expression terms exposed for tooling
    * (EveSmartLightAttributeModifierExpressionBucket.cpp:166-184).
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Returns the term list in the CjsControllerExpressionProgram term-info shape instead of Tr2ExpressionTermInfo instances.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Returns the term list in the CjsControllerExpressionProgram term-info shape instead of Tr2ExpressionTermInfo instances.")
   GetExpressionTermInfo()
   {
     return [
@@ -151,9 +151,9 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * Evaluates an arbitrary expression against the current argument bindings
    * (EveSmartLightAttributeModifierExpressionBucket.cpp:186-213).
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Returns the numeric value directly (0 when the expression does not compile) instead of Carbon's BlueStdResult out-parameter pair.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Returns the numeric value directly (0 when the expression does not compile) instead of Carbon's BlueStdResult out-parameter pair.")
   EvaluateExpression(expression)
   {
     const program = CjsControllerExpressionProgram.Compile(String(expression ?? ""), { emptyValue: 0 });
@@ -169,8 +169,8 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * expression-variable hookup as a todo
    * (EveSmartLightAttributeModifierExpressionBucket.cpp:215-223).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetControllerVariable(name, value)
   {
     for (const modifier of this.attributeModifiers)
@@ -186,8 +186,8 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * updates the children with the UNSCALED parent multiplier, then evaluates
    * the expression into the attribute multiplier for the next fold.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateSyncronous(updateContext, params, activationMultiplier)
   {
     this.finalAttributeMultiplier = activationMultiplier * this.attributeMultiplier * this.activationValue;

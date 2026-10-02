@@ -1,23 +1,23 @@
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 
 /** One authored paper-doll resource selection at a resolved modifier location. */
-@type.define({ className: "CjsCharacterModifierSelection", family: "character" })
+@meta.define({ className: "CjsCharacterModifierSelection", family: "character" })
 export class CjsCharacterModifierSelection
 {
 
-    @edit.readwrite
-    @edit.persist
-    @type.model("CjsCharacterModifierLocation")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.model("CjsCharacterModifierLocation")
     modifierLocationID = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.model("CjsCharacterResource")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.model("CjsCharacterResource")
     paperdollResourceID = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.int32
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.int32
     paperdollResourceVariation = 0;
 
 }

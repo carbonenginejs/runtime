@@ -18,7 +18,7 @@ import { getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
 import { Tr2RingBuffer, Tr2RingBufferOffsets } from "../../core/device/Tr2RingBuffer/index.js";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, edit, type, CjsSchema } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { EveChildTransform, applyTransformModifiers } from "./EveChildTransform.js";
 import { EveChildInheritProperties } from "./EveChildInheritProperties.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
@@ -49,153 +49,153 @@ const ZERO_VEC3 = vec3.create();
  * their curve sets, controllers, observers, lights, attachments and transform
  * modifiers, and gating them on a display-quality filter.
  */
-@type.define({ className: "EveChildContainer", family: "eve/child" })
-@carbon.inherit(ITr2Renderable, ITr2CurveSetOwner, IInitialize, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner)
-@carbon.mapInterface(EveEntity, IInitialize, ITr2CurveSetOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner)
-@carbon.inherit(IInitialize, IListNotify, INotify)
+@meta.define({ className: "EveChildContainer", family: "eve/child" })
+@meta.blue.inherit(ITr2Renderable, ITr2CurveSetOwner, IInitialize, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner)
+@meta.blue.mapInterface(EveEntity, IInitialize, ITr2CurveSetOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner)
+@meta.blue.inherit(IInitialize, IListNotify, INotify)
 export class EveChildContainer extends EveChildTransform
 {
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.EveChildContainer.DisplayQualityModifier")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.EveChildContainer.DisplayQualityModifier")
   displayFilter = 5;
 
-  @edit.read
-  @edit.persist
-  @type.list("IEveSpaceObjectChild")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("IEveSpaceObjectChild")
   objects = [];
 
-  @edit.read
-  @edit.persist
-  @type.list("IEveChildTransformModifier")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("IEveChildTransformModifier")
   transformModifiers = [];
 
-  @edit.read
-  @edit.persist
-  @type.list("TriCurveSet")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("TriCurveSet")
   curveSets = [];
 
-  @edit.read
-  @type.mat4
+  @meta.blue.read
+  @meta.type.mat4
   worldTransform = mat4.create();
 
-  @edit.notify
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.boolean
   mute = false;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   display = true;
 
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   translation = vec3.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.quat
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   rotation = quat.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @edit.readwrite
-  @edit.persist
-  @type.mat4
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.mat4
   localTransform = mat4.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   staticTransform = false;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   alwaysOn = false;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   updateOnDisplay = true;
 
-  @edit.read
-  @edit.persist
-  @type.list("IEveSpaceObjectAttachment")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("IEveSpaceObjectAttachment")
   attachments = [];
 
-  @edit.read
-  @edit.persist
-  @type.list("TriObserverLocal")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("TriObserverLocal")
   observers = [];
 
-  @edit.read
-  @edit.persist
-  @type.list("IEveFxAttribute")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("IEveFxAttribute")
   fxAttributes = [];
 
-  @edit.read
-  @edit.persist
-  @type.list("Tr2Light")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2Light")
   lights = [];
 
-  @edit.read
-  @edit.persist
-  @type.list("ITr2Controller")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITr2Controller")
   controllers = [];
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveChildInheritProperties")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveChildInheritProperties")
   inheritProperties = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   useSRT = true;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   useStaticRotation = false;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   useStaticScale = false;
 
   // SOF-authored placement values; persisted so the values interchange
   // reproduces Carbon's hidden container placement state.
   // PERSIST is ours, not Carbon's: SOF's JSON output carries this value, which Carbon sets in C++.
-  @impl.adapted
-  @edit.read
-  @edit.persist
-  @type.objectRef("ITr2GrannyAnimationOwner")
+  @meta.adapted
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.objectRef("ITr2GrannyAnimationOwner")
   animationOwner = null;
 
   // PERSIST is ours, not Carbon's: SOF's JSON output carries this value, which Carbon sets in C++.
-  @impl.adapted
-  @edit.read
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.EveSpaceObjectChild.Origin")
+  @meta.adapted
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.EveSpaceObjectChild.Origin")
   origin = 0;
 
-  @edit.persist
-  @type.boolean
+  @meta.blue.persist
+  @meta.type.boolean
   isPlacementRoot = false;
 
   _controllerVariables = new Map();
@@ -236,8 +236,8 @@ export class EveChildContainer extends EveChildTransform
    * Links every authored controller that is not already linked to this
    * container, so controller variables and events reach them.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Initialize()
   {
     this.RegisterChildren(this.objects);
@@ -254,9 +254,9 @@ export class EveChildContainer extends EveChildTransform
   /** Carbon EveChildContainer::OnModified (cpp:76-88): display/displayFilter
    * changes re-register with the scene component registry; a mute notification
    * fans out to children and observers. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Uses the exposed property name for native address comparisons and the runtime scene registry adapter.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Uses the exposed property name for native address comparisons and the runtime scene registry adapter.")
   OnModified(value = null)
   {
     if (value === "display" || value === "displayFilter")
@@ -275,8 +275,8 @@ export class EveChildContainer extends EveChildTransform
    * transform setup and returns the rebuilt local transform; lowestLodVisible is
    * accepted for signature parity only.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Setup(scale = null, rotation = null, translation = null, lowestLodVisible = null)
   {
     return super.Setup(scale, rotation, translation, lowestLodVisible);
@@ -286,16 +286,16 @@ export class EveChildContainer extends EveChildTransform
    * Returns the authored container name, which GetEffectChildByName matches
    * against on the parent side.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetName()
   {
     return this.name;
   }
 
   /** Sets the authored container name, coercing nullish to the empty string. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -305,24 +305,24 @@ export class EveChildContainer extends EveChildTransform
    * Records whether this container's placement was authored in space or by SOF
    * (the Origin enum).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetOrigin(origin)
   {
     this.origin = Number(origin) | 0;
   }
 
   /** Stores the always-on flag that IsAlwaysOn reports to the owner. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetAlwaysOn(alwaysOn)
   {
     this.alwaysOn = !!alwaysOn;
   }
 
   /** Reports the authored always-on flag. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsAlwaysOn()
   {
     return this.alwaysOn;
@@ -333,8 +333,8 @@ export class EveChildContainer extends EveChildTransform
    * model against, which in turn gates every update and render path on this
    * container.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetDisplayQualityModifier(filter)
   {
     this.displayFilter = Number(filter) | 0;
@@ -344,8 +344,8 @@ export class EveChildContainer extends EveChildTransform
    * Sets the mute flag and, only when it changes, pushes it down to the
    * contained children and local observers.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetMute(mute)
   {
     const next = !!mute;
@@ -360,8 +360,8 @@ export class EveChildContainer extends EveChildTransform
    * Pushes this container's current mute flag onto every contained child and
    * local observer - it mutates their state, not the container's.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   MuteChildren()
   {
     for (const child of this.objects)
@@ -378,8 +378,8 @@ export class EveChildContainer extends EveChildTransform
    * Appends a transform modifier; modifiers fold over the container's world
    * transform in insertion order on each async update.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddTransformModifier(modifier)
   {
     this.transformModifiers.push(modifier);
@@ -389,8 +389,8 @@ export class EveChildContainer extends EveChildTransform
    * Appends a local audio observer, which is re-placed from the container's
    * world transform on every sync update.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddObserver(observer)
   {
     this.observers.push(observer);
@@ -400,8 +400,8 @@ export class EveChildContainer extends EveChildTransform
    * Appends a controller, links it to this container, and replays every
    * controller variable set so far onto it so it starts in sync.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   AddController(controller)
   {
     // The link and the variable replay are the INSERTED arm (cpp:119-128).
@@ -413,8 +413,8 @@ export class EveChildContainer extends EveChildTransform
    * container, and recurses into the contained children; the recorded value is
    * also replayed onto controllers and children added later.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetControllerVariable(name, value)
   {
     const key = String(name ?? "");
@@ -434,8 +434,8 @@ export class EveChildContainer extends EveChildTransform
    * Fires a named controller event on every controller here and recurses into
    * the contained children.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HandleControllerEvent(name)
   {
     const eventName = String(name ?? "");
@@ -450,8 +450,8 @@ export class EveChildContainer extends EveChildTransform
   }
 
   /** Starts every controller here and recurses into the contained children. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   StartControllers()
   {
     for (const controller of this.controllers)
@@ -468,8 +468,8 @@ export class EveChildContainer extends EveChildTransform
    * Forwards a procedural container variable to the contained children; a plain
    * container holds none of its own.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetProceduralContainerVariable(name, value)
   {
     for (const child of this.objects)
@@ -482,8 +482,8 @@ export class EveChildContainer extends EveChildTransform
    * Returns the first direct child whose GetName()/name matches, or null; the
    * search does not recurse into nested containers.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetEffectChildByName(name)
   {
     const target = String(name ?? "");
@@ -507,8 +507,8 @@ export class EveChildContainer extends EveChildTransform
    * register or unregister as entities; attachments do the entity half only.
    * A newly inserted object also receives the inherited properties.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     const masked = event & BLUELISTEVENT.BELIST_EVENTMASK;
@@ -612,9 +612,9 @@ export class EveChildContainer extends EveChildTransform
    * Appends a child. The registration, the variable replay and the inherited
    * properties are the INSERTED arm's, reached through the managed mutation.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through the shared child service rather than the list driving it.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("A JavaScript array has no notify slot, so the owner drives the notification through the shared child service rather than the list driving it.")
   AddToEffectChildrenList(child)
   {
     addChild(this, "objects", child, { listNotify: this });
@@ -622,9 +622,9 @@ export class EveChildContainer extends EveChildTransform
   }
 
   /** Removes a child by identity; the unregistration is the REMOVED arm's. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through the shared child service rather than the list driving it.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("A JavaScript array has no notify slot, so the owner drives the notification through the shared child service rather than the list driving it.")
   RemoveFromEffectChildrenList(child)
   {
     return removeChild(this, "objects", child, { listNotify: this });
@@ -634,8 +634,8 @@ export class EveChildContainer extends EveChildTransform
    * Forwards a shader option to every contained child and attachment; the
    * container compiles nothing itself.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetShaderOption(name, value)
   {
     for (const child of this.objects)
@@ -653,8 +653,8 @@ export class EveChildContainer extends EveChildTransform
    * Stores the Granny animation owner supplied by SOF placement; the bone-list
    * override that would consume it awaits the JS animation seam.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetAnimationOwner(animationOwner)
   {
     this.animationOwner = animationOwner ?? null;
@@ -665,8 +665,8 @@ export class EveChildContainer extends EveChildTransform
    * persisted for interchange parity, with no consumer inside the container
    * itself.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetIsPlacementRoot(isPlacementRoot)
   {
     this.isPlacementRoot = !!isPlacementRoot;
@@ -676,8 +676,8 @@ export class EveChildContainer extends EveChildTransform
    * Appends an attachment; attachments are the only thing a container renders
    * itself (HasRenderables) and the only thing GetBatches submits.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddAttachment(attachment)
   {
     // Registering the attachment as an entity is the hook (cpp:180-210).
@@ -688,8 +688,8 @@ export class EveChildContainer extends EveChildTransform
    * Drops every attachment, which also stops the container from contributing any
    * renderable of its own.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ClearAttachments()
   {
     this.attachments.length = 0;
@@ -699,8 +699,8 @@ export class EveChildContainer extends EveChildTransform
    * Reports whether the container owns nothing at all - no children, lights,
    * attachments, controllers, curve sets, transform modifiers or observers.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Empty()
   {
     return this.objects.length === 0 &&
@@ -720,8 +720,8 @@ export class EveChildContainer extends EveChildTransform
    * @param {Object} updateContext - frame context (EveUpdateContext)
    * @param {EveChildUpdateParams} params
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
     if (!this.IsUpdating())
@@ -759,10 +759,10 @@ export class EveChildContainer extends EveChildTransform
    * @param {EveChildUpdateParams} params - localToWorldTransform + boneCount/bones
    * @returns {Float32Array} worldTransform
    */
-  @carbon.method
-  @carbon.contextual(["camera"])
-  @impl.adapted
-  @impl.reason("The GPU bone ring buffer, task-group dispatch, per-object VS/PS struct refresh, and the Granny bone-list override are engine/animation seams; the CPU update fan-out is ported.")
+  @meta.blue.method
+  @meta.blue.contextual(["camera"])
+  @meta.adapted
+  @meta.reason("The GPU bone ring buffer, task-group dispatch, per-object VS/PS struct refresh, and the Granny bone-list override are engine/animation seams; the CPU update fan-out is ported.")
   UpdateAsyncronous(updateContext, params)
   {
     // Carbon cpp:516: re-arm the once-per-frame palette upload, before the gate.
@@ -885,8 +885,8 @@ export class EveChildContainer extends EveChildTransform
    * @param {Number} parentLod - parent Tr2Lod level
    * @returns {Boolean} whether the fan-out ran
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateVisibility(updateContext, parentTransform = null, parentLod = Tr2Lod.TR2_LOD_HIGH)
   {
     if (!this.display)
@@ -920,8 +920,8 @@ export class EveChildContainer extends EveChildTransform
 
   /** Carbon EveChildContainer::GetRenderables (cpp:412-432): the container
    * itself renders only when it owns attachments; children always recurse. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetRenderables(out = [])
   {
     if (!this.display || !this._hasUpdated)
@@ -950,8 +950,8 @@ export class EveChildContainer extends EveChildTransform
    * child sphere is a per-call local rather than module scratch because
    * containers nest - a shared scratch would be clobbered between recursion
    * levels; this is a bounds query, not the per-frame update hot path. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBoundingSphere(out = vec4.create(), _query = 0)
   {
     if (!this.IsUpdating())
@@ -981,8 +981,8 @@ export class EveChildContainer extends EveChildTransform
 
   /** Carbon EveChildContainer::RegisterWithQuadRenderer (cpp:448-458): the
    * children's quad effects, then the attachments'. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     for (const child of this.objects)
@@ -998,8 +998,8 @@ export class EveChildContainer extends EveChildTransform
   /** Carbon EveChildContainer::AddQuadsToQuadRenderer (cpp:460-488): the
    * children add theirs, then the attachments in world space at full
    * activation, posed by the animation owner's bones. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     if (!this.display || !this._hasUpdated)
@@ -1026,8 +1026,8 @@ export class EveChildContainer extends EveChildTransform
 
   /** Carbon EveChildContainer::GetLocalToWorldTransform (cpp:644-647); the
    * optional out follows the EveChildInstancedMeshes copy-out shape. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetLocalToWorldTransform(out = null)
   {
     if (out)
@@ -1038,8 +1038,8 @@ export class EveChildContainer extends EveChildTransform
   }
 
   /** Carbon EveChildContainer::ChangeLOD (cpp:649-655): fan-out only. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ChangeLOD(lod)
   {
     for (const child of this.objects)
@@ -1052,8 +1052,8 @@ export class EveChildContainer extends EveChildTransform
    * with the container world transform and the average basis-length scaling
    * ((|X| + |Y| + |Z|) / 3 of the world basis rows - single-matrix reads, no
    * composition). The light manager is duck-typed. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetLights(lightManager)
   {
     if (!this.display || !this._hasUpdated)
@@ -1082,8 +1082,8 @@ export class EveChildContainer extends EveChildTransform
    * gated on display, the NORMAL render reason, and a non-zero activation
    * strength. Returns whether any batch was committed (JS addition; Carbon
    * returns void). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBatches(batches, batchType, perObjectData, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
     if (!this.display || reason !== Tr2RenderReason.TR2RENDERREASON_NORMAL || this._activationStrength === 0)
@@ -1101,16 +1101,16 @@ export class EveChildContainer extends EveChildTransform
   }
 
   /** Carbon EveChildContainer::HasTransparentBatches (cpp:1145-1148). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HasTransparentBatches()
   {
     return false;
   }
 
   /** Carbon EveChildContainer::GetSortValue (cpp:1150-1153). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetSortValue()
   {
     return 0;
@@ -1124,8 +1124,8 @@ export class EveChildContainer extends EveChildTransform
    * INVALID_OFFSET, Carbon's no-draw state. Adapted: Carbon allocates a pooled
    * handle where this port returns the records directly.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetPerObjectData(_accumulator = null)
   {
     if (this.animationOwner)
@@ -1147,8 +1147,8 @@ export class EveChildContainer extends EveChildTransform
 
   /** Carbon EveChildContainer::HasRenderables (cpp:1129-1132): the container
    * renders only for its attachments. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HasRenderables()
   {
     return this.attachments.length > 0;
@@ -1156,9 +1156,9 @@ export class EveChildContainer extends EveChildTransform
 
   /** Carbon EveChildContainer::IsRendering (cpp:334-362): whether the current
    * shader model passes this container's display filter. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon reads the Tr2Renderer shader-model global; the browser runtime stamps EveChildContainer.shaderModel (default TR2SM_3_0_DEPTH, the DX11 depth path EVE ships).")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon reads the Tr2Renderer shader-model global; the browser runtime stamps EveChildContainer.shaderModel (default TR2SM_3_0_DEPTH, the DX11 depth path EVE ships).")
   IsRendering()
   {
     const settings = EveChildContainer.shaderModel;
@@ -1190,8 +1190,8 @@ export class EveChildContainer extends EveChildTransform
   }
 
   /** Carbon EveChildContainer::IsUpdating (cpp:364-367). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsUpdating()
   {
     return (this.display || !this.updateOnDisplay) &&
@@ -1201,8 +1201,8 @@ export class EveChildContainer extends EveChildTransform
   /** Carbon EveChildContainer::RegisterComponents (cpp:258-284): LightOwner
    * when lights are authored, then forwards the contained objects and the
    * attachments. Gate m_display && IsUpdating(). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -1229,8 +1229,8 @@ export class EveChildContainer extends EveChildTransform
    * the contained objects and attachments only (own components were already
    * removed by EveEntity::UnRegister, EveEntity.cpp:90); no display/IsUpdating
    * re-check. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UnRegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -1250,8 +1250,8 @@ export class EveChildContainer extends EveChildTransform
 
   /** Carbon EveChildContainer::PlayCurveSet (cpp:682-712): named own sets play
    * (or play a named range); children recurse via the curve-set-owner duck. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
     if (!this.IsUpdating())
@@ -1284,8 +1284,8 @@ export class EveChildContainer extends EveChildTransform
   }
 
   /** Carbon EveChildContainer::StopCurveSet (cpp:746-768). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   StopCurveSet(name)
   {
     if (!this.IsUpdating())
@@ -1310,8 +1310,8 @@ export class EveChildContainer extends EveChildTransform
 
   /** Carbon EveChildContainer::UpdateCurveSet (cpp:770-786): samples matching
    * own and child sets at an explicit time (both clocks, as Carbon does). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateCurveSet(name, time, renderContext = null)
   {
     const target = String(name ?? "");
@@ -1331,8 +1331,8 @@ export class EveChildContainer extends EveChildTransform
 
   /** Carbon EveChildContainer::PlayAllCurveSets (cpp:714-728): children
    * first, then every own set. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PlayAllCurveSets()
   {
     for (const child of this.objects)
@@ -1346,8 +1346,8 @@ export class EveChildContainer extends EveChildTransform
   }
 
   /** Carbon EveChildContainer::StopAllCurveSets (cpp:730-744). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   StopAllCurveSets()
   {
     for (const child of this.objects)
@@ -1362,8 +1362,8 @@ export class EveChildContainer extends EveChildTransform
 
   /** Carbon EveChildContainer::GetCurveSetDuration (cpp:788-813): maximum
    * GetMaxCurveDuration over matching own and child sets. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetCurveSetDuration(name)
   {
     if (!this.IsUpdating())
@@ -1390,8 +1390,8 @@ export class EveChildContainer extends EveChildTransform
 
   /** Carbon EveChildContainer::GetRangeDuration (cpp:815-840): maximum named
    * range duration over matching own and child sets. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetRangeDuration(name, rangeName)
   {
     if (!this.IsUpdating())
@@ -1419,9 +1419,9 @@ export class EveChildContainer extends EveChildTransform
   /** Carbon EveChildContainer::GetControllerValueByName (cpp:1083-1098):
    * Carbon returns bool with a float& out; the JS port returns the value or
    * null when no controller exposes the named float variable. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The bool + float& out-param pair collapses to value-or-null in JS.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("The bool + float& out-param pair collapses to value-or-null in JS.")
   GetControllerValueByName(name)
   {
     const key = String(name ?? "");
@@ -1437,24 +1437,24 @@ export class EveChildContainer extends EveChildTransform
   }
 
   /** Carbon EveChildContainer::GetWorldVelocity (cpp:1012-1015). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetWorldVelocity(out = vec3.create())
   {
     return vec3.copy(out, this._worldVelocity);
   }
 
   /** Carbon EveChildContainer::GetOwnerMaxSpeed (cpp:1073-1076). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetOwnerMaxSpeed()
   {
     return this._ownerMaxSpeed;
   }
 
   /** Propagates the owning space object through the complete child subtree. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetOwner(owner)
   {
     if (this.GetOwner() === owner) return;
@@ -1463,8 +1463,8 @@ export class EveChildContainer extends EveChildTransform
   }
 
   /** Propagates a modular part tag through the complete child subtree. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetPartTag(tag)
   {
     const next = Number(tag) >>> 0;
@@ -1474,8 +1474,8 @@ export class EveChildContainer extends EveChildTransform
   }
 
   /** Collects locator sets owned by nested children in object-local space. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   CollectOwnedLocatorSets(parentTransform, out)
   {
     const childToObject = mat4.create();
@@ -1484,8 +1484,8 @@ export class EveChildContainer extends EveChildTransform
   }
 
   /** Collects geometry owned by nested children in object-local space. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   CollectOwnedGeometry(type, parentTransform, out, areaPool)
   {
     const childToObject = mat4.create();
@@ -1496,8 +1496,8 @@ export class EveChildContainer extends EveChildTransform
   /** Carbon EveChildContainer::SetInheritProperties (cpp:1017-1040): lazily
    * creates the property holder, then fans the color set out to children and
    * lights. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetInheritProperties(colorSet)
   {
     if (!this.inheritProperties)
@@ -1518,8 +1518,8 @@ export class EveChildContainer extends EveChildTransform
 
   /** Carbon EveChildContainer::FindSoundEmitter (cpp:1042-1066): named local
    * observers first, then duck-typed recursion into the children. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   FindSoundEmitter(name)
   {
     const target = String(name ?? "");
@@ -1626,4 +1626,4 @@ blue.enums.RegisterEnum("trinity.EveSpaceObjectChild.Origin", EveChildContainer.
 });
 
 // EveChildContainer_Blue.cpp: native exposure; unported contracts: ITr2LightOwner, IEveEffectChildrenOwner, IShaderConfigurer, IEveSpaceObjectAttachmentOwner.
-carbon.interfaceTable({ interfaces: [EveChildContainer, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, IListNotify, INotify, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner, ITr2Renderable], chainTo: null })(EveChildContainer, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveChildContainer, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, IListNotify, INotify, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner, ITr2Renderable], chainTo: null })(EveChildContainer, { kind: "class" });

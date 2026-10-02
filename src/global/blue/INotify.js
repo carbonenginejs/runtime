@@ -17,7 +17,7 @@
 // for each and, finding IInitialize, nulls the notify pointer with the comment
 // "If IInitialize is provided, don't do individual notifications."
 
-import { CjsSchema, compose, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** `INotify` - a mapped member of this instance was modified from outside. */
 export class INotify
@@ -32,7 +32,7 @@ export class INotify
   OnModified(_propertyName) {}
 }
 
-CjsSchema.decorateMethod(INotify, "OnModified", compose.abstract, impl.abstract);
+CjsSchema.decorateMethod(INotify, "OnModified", meta.requires, meta.abstract);
 
 CjsSchema.define(INotify, {
   className: "INotify", carbon: "INotify", family: "blue", fields: {}

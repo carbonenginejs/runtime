@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveScalarExpression.cpp
 // Source: trinity/trinity/Curves/Tr2CurveScalarExpression_Blue.cpp
 import { ITriScalarFunction, ITriFunction, IInitialize } from "#blue";
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { CjsControllerExpressionProgram } from "../../controllers/expression/CjsControllerExpressionProgram.js";
 
 
@@ -21,41 +21,41 @@ import { CjsControllerExpressionProgram } from "../../controllers/expression/Cjs
   className: "Tr2CurveScalarExpression",
   family: "curves"
 })
-@meta.carbon.inherit(IInitialize)
+@meta.blue.inherit(IInitialize)
 export class Tr2CurveScalarExpression extends ITriScalarFunction
 {
   /** Authored narrow-string name. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** Native PERSISTONLY expression storage; readers bypass the live setter. */
   @meta.member("expression")
-  @meta.edit.persistOnly
-  @types.expression
+  @meta.blue.persistOnly
+  @meta.type.expression
   _expression = "";
 
   /** Live expression property, separate from persisted backing storage. */
   @meta.property()
-  @meta.edit.readwrite
-  @types.expression
-  @meta.impl.implemented
+  @meta.blue.readwrite
+  @meta.type.expression
+  @meta.implemented
   get expression()
   {
     return this.GetExpression();
   }
 
   /** @param {string} value Source compiled immediately by the native setter. */
-  @meta.impl.implemented
+  @meta.implemented
   set expression(value)
   {
     this.SetExpression(value);
   }
 
   /** Cached value after the last update. */
-  @meta.edit.read
-  @types.float32
+  @meta.blue.read
+  @meta.type.float32
   currentValue = 0;
 
   /** Compiled JavaScript expression program; no held resource. */
@@ -65,33 +65,33 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   _compiledSource = "";
 
   /** Owned scalar input functions in native declaration order. */
-  @meta.edit.read
-  @meta.edit.persist
-  @types.list("ITriScalarFunction")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITriScalarFunction")
   inputs = [];
 
   /** First authored scalar argument. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   input1 = 0;
 
   /** Second authored scalar argument. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   input2 = 0;
 
   /** Third authored scalar argument. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   input3 = 0;
 
   /** Fourth authored scalar argument. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   input4 = 0;
 
   /** Native runtime time scale; not an exposed member. */
@@ -108,8 +108,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * Adapted: uses the existing JavaScript expression program.
    * @returns {boolean} True.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Initialize()
   {
     if (this._expression !== "")
@@ -124,8 +124,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   /**
    * Updates the cached scalar value.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateValue(time)
   {
     this.currentValue = this.GetValue(time);
@@ -134,8 +134,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   /**
    * Updates and returns the scalar value.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Update(time)
   {
     this.currentValue = this.GetValue(time);
@@ -145,8 +145,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   /**
    * Gets the scalar value at a time.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetValueAt(time)
   {
     return this.GetValue(time);
@@ -155,8 +155,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   /**
    * Scales expression time.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ScaleTime(scale)
   {
     this.timeScale = scale;
@@ -166,8 +166,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * Evaluates the expression.
    * Adapted: retains the JavaScript program and evaluation-result fallback.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValue(time)
   {
     if (!this.expression)
@@ -198,8 +198,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   /**
    * Gets the authored expression.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetExpression()
   {
     return this._expression;
@@ -212,8 +212,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * @param {string} expression Authored source text.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetExpression(expression)
   {
     if (expression === "")
@@ -231,8 +231,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   /**
    * Gets this curve's random constant.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetRandomConstant()
   {
     return this.randomConstant;
@@ -241,8 +241,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   /**
    * Gets an input curve value at the current or supplied time.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetInputValue(index, time = this._currentTime)
   {
     index |= 0;
@@ -256,8 +256,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   /**
    * Regenerates the random constant.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ResetRandomConstant()
   {
     this.randomConstant = Math.random();
@@ -267,8 +267,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * Gets expression terms exposed by this curve.
    * Adapted: returns the existing JavaScript expression-term records.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetExpressionTermInfo()
   {
     return CjsControllerExpressionProgram.getCurveTermInfo();
@@ -278,8 +278,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * Evaluates an arbitrary expression with this curve's context.
    * Adapted: retains the JavaScript compiler and zero-on-invalid result contract.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   EvaluateExpression(expression)
   {
     const program = CjsControllerExpressionProgram.Compile(expression, {
@@ -312,7 +312,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   }
 }
 
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ Tr2CurveScalarExpression, ITriFunction, ITriScalarFunction, IInitialize ],
   chainTo: null
 })(Tr2CurveScalarExpression);

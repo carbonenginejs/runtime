@@ -1,5 +1,5 @@
 // Source: trinity/trinity/RenderJob/TriStepSetVisualizationMode.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -8,20 +8,20 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * Step that switches a renderer object into a debug visualization mode for the
  * remainder of the frame.
  */
-@type.define({ className: "TriStepSetVisualizationMode", family: "renderJob" })
+@meta.define({ className: "TriStepSetVisualizationMode", family: "renderJob" })
 export class TriStepSetVisualizationMode extends TriRenderStep
 {
-  @edit.readwrite
-  @type.objectRef("ITr2VisualizationModeRenderer")
+  @meta.blue.readwrite
+  @meta.type.objectRef("ITr2VisualizationModeRenderer")
   object = null;
 
-  @edit.readwrite
-  @type.int32
+  @meta.blue.readwrite
+  @meta.type.int32
   mode = 0;
 
   /** Stores the target object and the visualization mode to apply to it. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   __init__(object = null, mode = 0)
   {
     this.SetObject(object);
@@ -47,8 +47,8 @@ export class TriStepSetVisualizationMode extends TriRenderStep
    * Pushes the mode straight onto the target object; unlike most steps this one
    * does not go through the render context.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Execute()
   {
     this.object?.SetVisualizationMode?.(this.mode);

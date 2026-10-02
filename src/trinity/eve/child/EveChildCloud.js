@@ -7,7 +7,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 
@@ -37,67 +37,67 @@ function updateBoundingSphere(cloud)
  * state, SRT composition, visibility and bounds; GPU tessellation and draw
  * realization are not ported yet.
  */
-@type.define({ className: "EveChildCloud", family: "eve/child", purpose: "Describes a transformable volumetric cloud child, including its effect, editable volume, tessellation, LOD, and bounds state." })
-@carbon.inherit(ITr2Renderable)
-@carbon.inherit(IInitialize, INotify)
+@meta.define({ className: "EveChildCloud", family: "eve/child", purpose: "Describes a transformable volumetric cloud child, including its effect, editable volume, tessellation, LOD, and bounds state." })
+@meta.blue.inherit(ITr2Renderable)
+@meta.blue.inherit(IInitialize, INotify)
 export class EveChildCloud extends EveSpaceObjectChild
 {
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   sortingModifier = 1;
 
-  @edit.read
-  @type.uint64
+  @meta.blue.read
+  @meta.type.uint64
   currentLod = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   minScreenSize = 0;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   preTesselationLevel = 32;
 
-  @edit.readwrite
-  @edit.persist
-  @type.quat
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   rotation = quat.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   translation = vec3.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2Material")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2Material")
   effect = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.model("EveCloudEditableVolume")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("EveCloudEditableVolume")
   volume = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   cellScreenSize = 0.3;
 
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   display = true;
 
-  @edit.read
-  @type.vec4
+  @meta.blue.read
+  @meta.type.vec4
   boundingSphere = vec4.create();
 
   /** Runtime-local authored SRT transform. */
@@ -116,16 +116,16 @@ export class EveChildCloud extends EveSpaceObjectChild
   lastLodFactor = 1;
 
   /** Initializes the portable CPU half; GPU resources belong to the engine. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Initialize()
   {
     return true;
   }
 
   /** Advances the editable volume, composes local SRT with its live parent and refreshes bounds. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
     if (this.volume)
@@ -144,16 +144,16 @@ export class EveChildCloud extends EveSpaceObjectChild
   }
 
   /** Refreshes bounds from the transform finalized by the sync pass. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateAsyncronous(_updateContext, _params)
   {
     updateBoundingSphere(this);
   }
 
   /** Applies Carbon's display, frustum and minimum-screen-size visibility gate. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateVisibility(updateContext, _parentTransform, _parentLod)
   {
     const frustum = updateContext.GetFrustum();
@@ -165,8 +165,8 @@ export class EveChildCloud extends EveSpaceObjectChild
   }
 
   /** Copies the current world-space sphere and always reports it available. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBoundingSphere(out = vec4.create(), _query = 0)
   {
     vec4.copy(out, this.boundingSphere);
@@ -174,16 +174,16 @@ export class EveChildCloud extends EveSpaceObjectChild
   }
 
   /** Copies the transform composed during the last sync pass. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetLocalToWorldTransform(out = mat4.create())
   {
     return mat4.copy(out, this.worldTransform);
   }
 
   /** Carbon always routes this legacy cloud through transparent rendering. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HasTransparentBatches()
   {
     return true;
@@ -191,4 +191,4 @@ export class EveChildCloud extends EveSpaceObjectChild
 }
 
 // EveChildCloud_Blue.cpp: native exposure.
-carbon.interfaceTable({ interfaces: [EveChildCloud, ITr2Renderable, IInitialize, INotify, EveSpaceObjectChild, IEveSpaceObjectChild], chainTo: null })(EveChildCloud, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveChildCloud, ITr2Renderable, IInitialize, INotify, EveSpaceObjectChild, IEveSpaceObjectChild], chainTo: null })(EveChildCloud, { kind: "class" });

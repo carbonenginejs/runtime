@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveDamageOverlay_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2ScalarFader } from "../../curves/curve/Tr2ScalarFader.js";
 import { ImpactConfiguration } from "../../generated/include/enums.js";
@@ -20,79 +20,79 @@ export const IMPACT_ARMOR_SIZE_MAX = 10;
  * Self-contained armour and hull damage state shared by a ship impact overlay
  * and by independently rendered child meshes.
  */
-@type.define({ className: "EveDamageOverlay", family: "eve/overlays/impact" })
+@meta.define({ className: "EveDamageOverlay", family: "eve/overlays/impact" })
 export class EveDamageOverlay
 {
-  @edit.read
-  @type.int32
+  @meta.blue.read
+  @meta.type.int32
   impactDataNextIdx = 1;
 
-  @edit.read
-  @type.uint64
+  @meta.blue.read
+  @meta.type.uint64
   armorImpactGoalCount = 0;
 
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   armorImpactParentSize = 0;
 
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   renderPriority = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   display = true;
 
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2Effect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2Effect")
   armorDamageShader = null;
 
-  @edit.readwrite
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.type.uint32
   seed = 0;
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   armorImpactLifeTime = 10;
 
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   debugForceSpawnDebris = false;
 
-  @edit.readwrite
-  @type.objectRef("Tr2ScalarFader")
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2ScalarFader")
   armorRepairing = new Tr2ScalarFader();
 
-  @edit.readwrite
-  @type.objectRef("Tr2ScalarFader")
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2ScalarFader")
   armorHardening = new Tr2ScalarFader();
 
-  @edit.readwrite
-  @type.objectRef("Tr2ScalarFader")
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2ScalarFader")
   hullRepairing = new Tr2ScalarFader();
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   hullDamageFactor = 0;
 
-  @edit.read
-  @type.int32
-  @type.enum("trinity.ITriTargetable.ImpactConfiguration")
+  @meta.blue.read
+  @meta.type.int32
+  @meta.type.enum("trinity.ITriTargetable.ImpactConfiguration")
   configuration = ImpactConfiguration.IMPACT_INVALID;
 
-  @edit.readwrite
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.type.uint32
   damageLocatorCount = 0;
 
-  @edit.read
-  @type.int32
+  @meta.blue.read
+  @meta.type.int32
   dataTextureBlockID = -1;
 
-  @edit.readwrite
-  @edit.persist
-  @type.model("TriPerlinCurve")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("TriPerlinCurve")
   hullDamageFlickerCurve = null;
 
   _dataTextureOffset = -1;
@@ -118,24 +118,24 @@ export class EveDamageOverlay
   static impactEffectEnabled = true;
 
   /** Initializes the damage-overlay state. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     return true;
   }
 
   /** Sets the deterministic seed used to choose damage locators. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetSeed(seed)
   {
     this.seed = Number(seed) >>> 0;
   }
 
   /** Sets the number of damage locators owned by the target. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetDamageLocatorCount(count)
   {
     this.damageLocatorCount = Number(count) >>> 0;
@@ -143,8 +143,8 @@ export class EveDamageOverlay
   }
 
   /** Replaces the per-locator enabled mask. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetEnabledDamageLocators(enabled)
   {
     const filter = Array.from(enabled ?? []);
@@ -301,8 +301,8 @@ export class EveDamageOverlay
   }
 
   /** Copies the last shield, armour and hull values into an output vector. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetLastDamageState(out = vec3.create())
   {
     return vec3.copy(out, this._lastDamageState);
@@ -327,8 +327,8 @@ export class EveDamageOverlay
   }
 
   /** Allocates the next impact identifier from the shared or local source. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AllocateImpactIndex()
   {
     return this._impactIndexSource
@@ -337,8 +337,8 @@ export class EveDamageOverlay
   }
 
   /** Advances armour impacts, faders, priorities and data-texture rows. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateAsyncronous(updateContext, ownerInfo = {}, minTexelRows = 0, hasExternalActivity = false)
   {
     if (this.armorImpactGoalCount < this._armorImpacts.size)
@@ -400,16 +400,16 @@ export class EveDamageOverlay
   }
 
   /** Publishes the current damage block during the synchronous update. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateSyncronous(updateContext)
   {
     this.UpdateBlockData(updateContext.GetDataTextureManager(), this.HasGeneralActivity());
   }
 
   /** Requests or releases this overlay's shared data-texture block. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateBlockData(dataTextureManager, hasActivity)
   {
     if (!hasActivity)
@@ -443,8 +443,8 @@ export class EveDamageOverlay
   }
 
   /** Calculates the current hull-flicker activation strength. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetActivationStrength(updateContext)
   {
     if (EveDamageOverlay.impactEffectEnabled && this.hullDamageFactor > 0 && this.hullDamageFlickerCurve)
@@ -456,8 +456,8 @@ export class EveDamageOverlay
   }
 
   /** Starts or stops a named armour or hull fader. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ToggleEffect(name, on, duration)
   {
     let fader = null;
@@ -470,8 +470,8 @@ export class EveDamageOverlay
   }
 
   /** Applies shield, armour and hull state and optionally creates armour impacts. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetDamageState(shield, armor, hull, createArmorImpacts = false)
   {
     if (shield > 0.05) this.configuration = ImpactConfiguration.IMPACT_SHIELD;
@@ -511,16 +511,16 @@ export class EveDamageOverlay
   }
 
   /** Removes every live armour impact. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Clear()
   {
     this._armorImpacts.clear();
   }
 
   /** Creates or enlarges an armour impact at a damage locator. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   CreateImpact(damageLocatorIndex, size, spawnEffects = false)
   {
     for (const [ index, impact ] of this._armorImpacts)
@@ -541,16 +541,16 @@ export class EveDamageOverlay
   }
 
   /** Reports whether an armour impact identifier is live. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HasImpact(impactIndex)
   {
     return this._armorImpacts.has(Number(impactIndex) | 0);
   }
 
   /** Returns the active armour-damage material for the decal pass. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetArmorDamageShader(batchType)
   {
     if (!this.display || batchType !== TriBatchType.TRIBATCHTYPE_DECAL ||

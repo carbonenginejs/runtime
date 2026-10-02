@@ -3,7 +3,7 @@
 // Consumer interface: blue/include/IBlueResMan.h (see IBlueResMan.js).
 import { assertNonNegativeInteger, assertNonNegativeNumber, assertPositiveInteger } from "#utils/validation";
 import { CjsMotherLode, getMotherLodeKey } from "./CjsMotherLode.js";
-import { CjsSchema, compose, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { IBlueResMan } from "./IBlueResMan.js";
 import { IBlueEvents } from "./IBlueEvents.js";
 import { hasOwnThen } from "#utils/object";
@@ -3809,7 +3809,7 @@ export class CjsResMan
 // The notify surface arrives by composition rather than `extends
 // CjsEventEmitter` - functional form so the resource tree stays plain ESM
 // that loads from source without a transform.
-compose.notify(CjsResMan);
+meta.events(CjsResMan);
 
 /**
  * Deep-copy supported registered format defaults into a detached snapshot.
@@ -5104,6 +5104,6 @@ function createExtensionTargetError(resource, message, cause = null)
 // as calls - this folder cannot use decorator syntax (global/blue/index.js).
 // Ours is modelled on BlueResMan, not a replica: its browser work (workers,
 // fetch, routes) diverges too far to carry Carbon's name.
-CjsSchema.carbon.inherit(IBlueResMan, IBlueEvents)(CjsResMan);
-CjsSchema.decorateMethod(CjsResMan, "GetResource", impl.adapted);
+CjsSchema.meta.blue.inherit(IBlueResMan, IBlueEvents)(CjsResMan);
+CjsSchema.decorateMethod(CjsResMan, "GetResource", meta.adapted);
 CjsSchema.define(CjsResMan, { className: "CjsResMan", modelledOn: "BlueResMan" });

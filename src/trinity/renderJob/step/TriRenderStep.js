@@ -1,13 +1,13 @@
 // Source: trinity/trinity/RenderJob/TriRenderStep.h
 // Source: trinity/trinity/RenderJob/TriRenderStep.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 
 
 /**
  * Base of every render-job step: an enable flag, a name, and the
  * begin/execute/end contract the owning job drives.
  */
-@type.define({ className: "TriRenderStep", family: "renderJob" })
+@meta.define({ className: "TriRenderStep", family: "renderJob" })
 export class TriRenderStep
 {
   static Result = Object.freeze({
@@ -22,21 +22,21 @@ export class TriRenderStep
   static RS_IN_PROGRESS = 2;
   static RS_TERMINATE = 3;
 
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   enabled = true;
 
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /**
    * Reports whether the owning job should run this step; disabled steps are
    * skipped without advancing any state.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsEnabled()
   {
     return this.enabled;
@@ -46,8 +46,8 @@ export class TriRenderStep
    * Hook the owning job calls before Execute; the base step does nothing, and
    * subclasses use it to set up state that EndExecute tears down.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   BeginExecute()
   {
   }
@@ -57,8 +57,8 @@ export class TriRenderStep
    * concrete step that omits it is an incomplete implementation and fails
    * loudly when executed.
   */
-  @carbon.method
-  @impl.abstract
+  @meta.blue.method
+  @meta.abstract
   Execute(_realTime, _simTime, _context)
   {
     throw new Error("TriRenderStep.Execute must be implemented by a concrete render step.");
@@ -68,8 +68,8 @@ export class TriRenderStep
    * Hook the owning job calls after Execute, including when Execute threw; the
    * base step does nothing.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   EndExecute()
   {
   }

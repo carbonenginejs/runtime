@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.cpp:456-463
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:815-825
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -19,37 +19,37 @@ export class EveSOFDataTransform
    * Locator translation in the owning hull or bone's coordinate space; native m_position (Vector3).
    * @type {Float32Array}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   position = vec3.create();
 
   /**
    * Locator orientation quaternion (x, y, z, w); native m_rotation (Quaternion).
    * @type {Float32Array}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.quat
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   rotation = quat.create();
 
   /**
    * Independent locator scale along each local axis; native m_scaling (Vector3).
    * @type {Float32Array}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /**
    * Owning bone index, or -1 for an unbound locator; native m_boneIndex (int32_t).
    * @type {number}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @meta.jessica.widget("boneindex")
-  @types.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.ui.widget("boneindex")
+  @meta.type.int32
   boneIndex = -1;
 
   /**
@@ -61,7 +61,7 @@ export class EveSOFDataTransform
    * @param {Float32Array} out Destination matrix.
    * @returns {Float32Array} The destination matrix.
    */
-  @meta.impl.custom
+  @meta.ours
   GetTransform(out)
   {
     return mat4.fromRotationTranslationScale(out, this.rotation, this.position, this.scaling);
@@ -69,7 +69,7 @@ export class EveSOFDataTransform
 
 }
 
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ EveSOFDataTransform ],
   chainTo: null
 })(EveSOFDataTransform);

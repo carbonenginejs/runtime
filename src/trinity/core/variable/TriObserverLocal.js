@@ -3,7 +3,7 @@
 // Source: trinity/trinity/TriObserverLocal_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { ITriObserverLocal } from "../../../global/blue/ITriObserverLocal.js";
-import { CjsSchema, carbon, meta, impl, edit, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /**
@@ -13,34 +13,34 @@ import { CjsSchema, carbon, meta, impl, edit, type } from "#schema";
  * Native GetDebugOptions/RenderDebugInfo forwarding remains unported; this
  * migration does not provide debug-rendering parity.
  */
-@type.define({ className: "TriObserverLocal", family: "trinityCore" })
+@meta.define({ className: "TriObserverLocal", family: "trinityCore" })
 export class TriObserverLocal extends ITriObserverLocal
 {
   /**
    * Label identifying this local observer binding (native std::string m_name).
    * @type {string}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /**
    * Observer position in object-local coordinates (native Vector3 m_position).
    * @type {Float32Array}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   position = vec3.create();
 
   /**
    * Object-local facing direction, initially +Z (native Vector3 m_front).
    * @type {Float32Array}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   front = vec3.fromValues(0, 0, 1);
 
   /**
@@ -51,16 +51,16 @@ export class TriObserverLocal extends ITriObserverLocal
 
   /** Gets native mute state. @returns {boolean} Current mute state. */
   @meta.property()
-  @edit.readwrite
-  @type.boolean
-  @impl.implemented
+  @meta.blue.readwrite
+  @meta.type.boolean
+  @meta.implemented
   get mute()
   {
     return this.GetMute();
   }
 
   /** Applies mute through the native setter. @param {boolean} value Mute state. */
-  @impl.implemented
+  @meta.implemented
   set mute(value)
   {
     this.SetMute(value);
@@ -70,9 +70,9 @@ export class TriObserverLocal extends ITriObserverLocal
    * Placement observer receiving the transformed position and orientation (native IBluePlacementObserverPtr).
    * @type {IBluePlacementObserver|null}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("IBluePlacementObserver")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("IBluePlacementObserver")
   observer = null;
 
 
@@ -85,8 +85,8 @@ export class TriObserverLocal extends ITriObserverLocal
    * @param {Float32Array} worldTransform World matrix.
    * @returns {boolean} Whether an observer was updated.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(worldTransform)
   {
     if (!this.observer) return false;
@@ -120,8 +120,8 @@ export class TriObserverLocal extends ITriObserverLocal
   }
 
   /** Gets the bound placement observer. @returns {object|null} Observer. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetObserver()
   {
     return this.observer;
@@ -133,8 +133,8 @@ export class TriObserverLocal extends ITriObserverLocal
    * @param {object|null} observer Placement observer.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetObserver(observer)
   {
     this.observer = observer ?? null;
@@ -146,8 +146,8 @@ export class TriObserverLocal extends ITriObserverLocal
    * @param {Float32Array|number[]} position Local position.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetPosition(position)
   {
     vec3.copy(this.position, position);
@@ -159,16 +159,16 @@ export class TriObserverLocal extends ITriObserverLocal
    * @param {Float32Array|number[]} front Local facing vector.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetFront(front)
   {
     vec3.copy(this.front, front);
   }
 
   /** Gets mute state. @returns {boolean} Whether the observer is muted. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetMute()
   {
     return this._mute;
@@ -182,8 +182,8 @@ export class TriObserverLocal extends ITriObserverLocal
    * @param {boolean} mute Desired state.
    * @returns {boolean} Whether the stored state changed.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetMute(mute)
   {
     const next = !!mute;
@@ -204,8 +204,8 @@ export class TriObserverLocal extends ITriObserverLocal
   }
 
   /** Native no-op callback. @returns {boolean} True. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   OnModified()
   {
     return true;
@@ -219,7 +219,7 @@ export class TriObserverLocal extends ITriObserverLocal
    * @param {Float32Array} transform Matrix.
    * @returns {Float32Array} The destination.
    */
-  @impl.custom
+  @meta.ours
   static _TransformNormal(out, value, transform)
   {
     const x = value[0];
@@ -254,4 +254,4 @@ export function SendEventToAudEmitter(observer, audioEvent)
   if (emitter) emitter.SendEvent(audioEvent);
 }
 
-carbon.interfaceTable({ interfaces: [ITriObserverLocal], chainTo: null })(TriObserverLocal);
+meta.blue.interfaceTable({ interfaces: [ITriObserverLocal], chainTo: null })(TriObserverLocal);

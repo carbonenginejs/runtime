@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.h
 import { vec3 } from "#math/vec3";
-import { type } from "#schema";
+import { meta } from "#schema";
 
 
 /**
@@ -9,30 +9,30 @@ import { type } from "#schema";
  * trip it is. The behaviour allocates one record per agent and rewrites it on
  * every behaviour update.
  */
-@type.define({
+@meta.define({
   className: "BackAndForthData",
   family: "eve/child/behaviors"
 })
 export class BackAndForthData
 {
-  @type.vec3
+  @meta.type.vec3
   locatorTarget = vec3.create();
 
-  @type.vec3
+  @meta.type.vec3
   locatorDirection = vec3.create();
 
-  @type.int32
+  @meta.type.int32
   locatorIndex = -1;
 
-  @type.boolean
+  @meta.type.boolean
   seek = true;
 
-  @type.boolean
+  @meta.type.boolean
   deliver = false;
 
-  @type.boolean
+  @meta.type.boolean
   arrived = true;
 
-  @type.float32
+  @meta.type.float32
   timePassed = 0;
 }

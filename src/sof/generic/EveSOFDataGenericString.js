@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:409-416
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 
 /**
  * Provides the persisted wrapper used for a generic SOF string value.
@@ -12,14 +12,14 @@ export class EveSOFDataGenericString
 {
 
   /** m_str (std::string) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   str = "";
 
 }
 
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ EveSOFDataGenericString ],
   chainTo: null
 })(EveSOFDataGenericString);

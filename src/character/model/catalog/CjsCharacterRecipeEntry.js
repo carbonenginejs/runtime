@@ -1,58 +1,58 @@
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 
 /** One authored character recipe selection and its material values. */
-@type.define({ className: "CjsCharacterRecipeEntry", family: "character" })
+@meta.define({ className: "CjsCharacterRecipeEntry", family: "character" })
 export class CjsCharacterRecipeEntry
 {
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     category = "";
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     path = "";
 
-    @edit.readwrite
-    @edit.persist
-    @type.float64
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.float64
     weight = 1;
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     colorVariation = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.list("CjsCharacterColorValue")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.list("CjsCharacterColorValue")
     colors = [];
 
-    @edit.readwrite
-    @edit.persist
-    @type.list("CjsCharacterColorValue")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.list("CjsCharacterColorValue")
     specularColors = [];
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     pattern = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.list("CjsCharacterColorValue")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.list("CjsCharacterColorValue")
     patternColors = [];
 
-    @edit.readwrite
-    @edit.persist
-    @type.vec4
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.vec4
     patternTransform = [ 0, 0, 1, 1 ];
 
-    @edit.readwrite
-    @edit.persist
-    @type.float64
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.float64
     patternRotation = 0;
 
 }

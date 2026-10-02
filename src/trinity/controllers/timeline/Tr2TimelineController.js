@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Tr2TimelineController.h
 // Source: trinity/trinity/Controllers/Tr2TimelineController.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { blue, TimeAsDouble, TimeAsFloat } from "#blue";
 import { EveThrottleable } from "../../eve/EveThrottleable.js";
 import { ITr2Controller, ITr2ActionController } from "../ITr2Controller/index.js";
@@ -14,47 +14,47 @@ import { UnlinkReason } from "../enums.js";
  * stopping each action as the current time enters and leaves its authored
  * start/end range on an enabled track.
  */
-@type.define({
+@meta.define({
   className: "Tr2TimelineController",
   family: "controllers"
 })
-@carbon.inherit(ITr2ActionController)
+@meta.blue.inherit(ITr2ActionController)
 export class Tr2TimelineController extends EveThrottleable
 {
-  @edit.persistOnly
-  @type.list("ITr2ControllerAction")
+  @meta.blue.persistOnly
+  @meta.type.list("ITr2ControllerAction")
   actions = [];
 
-  @edit.persistOnly
-  @type.list("Tr2TimelineEntry")
+  @meta.blue.persistOnly
+  @meta.type.list("Tr2TimelineEntry")
   entries = [];
 
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
-  @edit.read
-  @edit.persist
-  @type.list("Tr2ControllerFloatVariable")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2ControllerFloatVariable")
   variables = [];
 
-  @edit.read
-  @edit.persist
-  @type.list("Tr2ControllerEventHandler")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2ControllerEventHandler")
   eventHandlers = [];
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   timeScale = 1;
 
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   isPlaying = false;
 
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   isPaused = false;
 
   _owner = null;
@@ -92,8 +92,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Links actions, variables, and event handlers to an owner.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Link(owner)
   {
     this.Unlink();
@@ -124,8 +124,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Unlinks runtime children and clears owner state.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Unlink(reason = UnlinkReason.UNLINKING)
   {
     if (!this._owner)
@@ -156,8 +156,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Checks whether this timeline is linked.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsLinked()
   {
     return this._owner !== null;
@@ -166,8 +166,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Starts actions already active at the current time.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Start()
   {
     if (this.isPlaying)
@@ -189,8 +189,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Stops currently active actions and resets timeline time.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Stop()
   {
     if (!this.isPlaying)
@@ -218,8 +218,8 @@ export class Tr2TimelineController extends EveThrottleable
    * JS EveThrottleable takes the clock as an argument where Carbon's reads
    * BeOS itself.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(normalizedUpdateFrequency = 0.5)
   {
     if (!this.isPlaying)
@@ -250,8 +250,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Sets a named variable.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetVariable(name, value)
   {
     this.variables.find(variable => variable.GetName() === name)?.SetValue(value);
@@ -260,8 +260,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Handles a named event.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HandleEvent(eventName)
   {
     if (!this.isPlaying)
@@ -280,8 +280,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Gets the linked owner.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetOwner()
   {
     return this._owner;
@@ -294,8 +294,8 @@ export class Tr2TimelineController extends EveThrottleable
    * CcpLog, preserving Carbon's continuation after a failed callback.
    * Returns whether a matching callback was invoked; native returns void.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Callback(callbackName)
   {
     if (!this.isPlaying)
@@ -325,8 +325,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Registers an updateable object.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterUpdateable(updateable)
   {
     this._updateables.add(updateable);
@@ -335,8 +335,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Unregisters an updateable object.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UnRegisterUpdateable(updateable)
   {
     this._updateables.delete(updateable);
@@ -345,8 +345,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Gets named roots for controller binding paths.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetBindingPathRoots()
   {
     if (!this._bindingPathRoots.length)
@@ -366,8 +366,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Gets a float variable by name.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetFloatVariableByName(name)
   {
     return this.variables.find(variable => variable.GetName() === name)?.GetValue();
@@ -376,8 +376,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Appends expression metadata for variables.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetExpressionTermInfo(out)
   {
     for (const variable of this.variables)
@@ -394,8 +394,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Gets expression variable metadata.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetVariableView()
   {
     return this._variableView;
@@ -404,8 +404,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Gets expression variable data.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetVariableBuffer()
   {
     return this._variableData;
@@ -414,8 +414,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Ensures the expression temporary arena is large enough.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   EnsureTempArenaSize(size)
   {
     if (this._tempArena.byteLength < size)
@@ -427,8 +427,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Gets the expression temporary arena.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetTempArena()
   {
     return this._tempArena;
@@ -437,8 +437,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Rebases action sim time.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnSimClockRebase(oldTime, newTime)
   {
     const diff = newTime - oldTime;
@@ -452,8 +452,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Gets action count.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetActionCount()
   {
     return this.actions.length;
@@ -462,8 +462,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Gets an action by index.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetAction(index)
   {
     return this.actions[index] ?? null;
@@ -473,8 +473,8 @@ export class Tr2TimelineController extends EveThrottleable
    * Gets the timeline start time in seconds of the action at an index, or 0 when
    * the index has no entry.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetActionStartTime(index)
   {
     return this._entryAt(index)?.startTime ?? 0;
@@ -484,8 +484,8 @@ export class Tr2TimelineController extends EveThrottleable
    * Gets the timeline end time in seconds of the action at an index, or 0 when
    * the index has no entry.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetActionEndTime(index)
   {
     return this._entryAt(index)?.endTime ?? 0;
@@ -495,8 +495,8 @@ export class Tr2TimelineController extends EveThrottleable
    * Gets the track the action at an index belongs to, or 0 when the index has no
    * entry.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetActionTrackID(index)
   {
     return this._entryAt(index)?.trackID ?? 0;
@@ -507,8 +507,8 @@ export class Tr2TimelineController extends EveThrottleable
    * when the edit changes whether it covers the current time; returns false for
    * an out-of-range index.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetActionStartTime(index, startTime)
   {
     if (index < 0 || index >= this.actions.length)
@@ -545,8 +545,8 @@ export class Tr2TimelineController extends EveThrottleable
    * the edit changes whether it covers the current time; returns false for an
    * out-of-range index.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetActionEndTime(index, endTime)
   {
     if (index < 0 || index >= this.actions.length)
@@ -583,8 +583,8 @@ export class Tr2TimelineController extends EveThrottleable
    * changes whether its track is enabled while the action covers the current
    * time.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetActionTrackID(index, trackID)
   {
     if (index < 0 || index >= this.actions.length)
@@ -619,8 +619,8 @@ export class Tr2TimelineController extends EveThrottleable
    *
    * Adapted: Stores a Tr2TimelineEntry object in place of Carbon's value struct.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   AddAction(action, startTime, endTime, trackID = 0)
   {
     if (!action)
@@ -648,8 +648,8 @@ export class Tr2TimelineController extends EveThrottleable
    *
    * Adapted: Returns false for an invalid index instead of a BlueStdResult error.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RemoveAction(index)
   {
     if (index < 0 || index >= this.actions.length)
@@ -674,8 +674,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Checks whether the action's track is enabled.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsActionEnabled(index)
   {
     const entry = this._entryAt(index);
@@ -685,8 +685,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Checks whether a track is enabled.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsTrackEnabled(trackID)
   {
     return !this._disabledTracks.has(trackID);
@@ -695,8 +695,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Enables or disables a track.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   EnableTrack(trackID, enable)
   {
     const wasEnabled = this.IsTrackEnabled(trackID);
@@ -731,8 +731,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Registers a callback.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RegisterCallback(name, callback)
   {
     this._callbacks.push({
@@ -744,8 +744,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Clears callbacks.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ClearCallbacks()
   {
     this._callbacks = [];
@@ -754,8 +754,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Gets current timeline time.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetTime()
   {
     return this._time;
@@ -764,8 +764,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Sets current timeline time and toggles action activity.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetTime(time)
   {
     if (!this.isPlaying || time === this._time)
@@ -817,8 +817,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Pauses time progression.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Pause()
   {
     this.isPaused = true;
@@ -827,8 +827,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Resumes time progression.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Resume()
   {
     this.isPaused = false;
@@ -837,8 +837,8 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Relinks to the current owner.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ReLink()
   {
     const owner = this._owner;
@@ -878,4 +878,4 @@ export class Tr2TimelineController extends EveThrottleable
 }
 
 // Tr2TimelineController_Blue.cpp exposes no initialization or list-notify contract.
-carbon.interfaceTable({ interfaces: [Tr2TimelineController, ITr2Controller, ITr2ActionController], chainTo: EveThrottleable })(Tr2TimelineController, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [Tr2TimelineController, ITr2Controller, ITr2ActionController], chainTo: EveThrottleable })(Tr2TimelineController, { kind: "class" });

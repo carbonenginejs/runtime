@@ -8,7 +8,7 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveLineSetPath } from "./IEveLineSetPath.js";
 
 
@@ -17,117 +17,117 @@ import { IEveLineSetPath } from "./IEveLineSetPath.js";
  * endpoints through one control point and emits the resulting chain as line
  * segments.
  */
-@type.define({
+@meta.define({
   className: "EveBezierCurve",
   family: "eve/child/lineSetPaths"
 })
-@carbon.inherit(INotify, IInitialize)
+@meta.blue.inherit(INotify, IInitialize)
 export class EveBezierCurve extends IEveLineSetPath
 {
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   display = true;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   translation = vec3.create();
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.quat
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   rotation = quat.create();
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   isVisible = true;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   point1 = vec3.create();
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   point2 = vec3.create();
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   bezierPoint = vec3.create();
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   completeness = 1;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   segments = 24;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   segmentOffset = 0;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   lineWidth = 1;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   scaleSegmentsByCompleteness = true;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   scaleEndpoints = true;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   billboardObjects = true;
 
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   objectScale = vec3.fromValues(1, 1, 1);
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   movementSpeed = 0;
 
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   animValue = 0;
 
   _points = [];
@@ -141,8 +141,8 @@ export class EveBezierCurve extends IEveLineSetPath
   _regeneratePoints = true;
 
   /** Marks the point chain dirty so the first update regenerates it. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     this._regeneratePoints = true;
@@ -153,9 +153,9 @@ export class EveBezierCurve extends IEveLineSetPath
    * Clamps completeness to 0..2, segments to 1..128 and segmentOffset to 0..1,
    * then marks the point chain dirty.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
     if (propertyName === "completeness") this.completeness = Math.min(2, Math.max(0, this.completeness));
@@ -170,8 +170,8 @@ export class EveBezierCurve extends IEveLineSetPath
    * (wrapped into 0..1) and, when the points are dirty, regenerates them and the
    * bounding sphere; returns whether a regeneration ran.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(updateContext, _params = null)
   {
     if (this.movementSpeed !== 0)
@@ -191,8 +191,8 @@ export class EveBezierCurve extends IEveLineSetPath
    * Samples the quadratic Bezier into the point chain across the sub-range selected by completeness, shifted by segmentOffset, and refreshes the world transform. Does nothing when fewer than two segments are requested.
    * @param {Float32Array} [parentTransform] - a non-identity matrix is used and cached, so later identity calls reuse the last real parent transform
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GeneratePoints(parentTransform = mat4.create())
   {
     const segmentCount = this._getSegmentCount();
@@ -231,8 +231,8 @@ export class EveBezierCurve extends IEveLineSetPath
   }
 
   /** Number of generated points; zero until GeneratePoints has run. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetPointCount()
   {
     return this._points.length;
@@ -242,8 +242,8 @@ export class EveBezierCurve extends IEveLineSetPath
    * Recomputes the local bounding sphere around the three control points, padded by the mesh size of the billboard objects riding the path.
    * @param {Number} [meshSize] - a non-zero value is remembered and reused on later zero-argument calls
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   CalculateBoundingSphere(meshSize = 0, _reCalculateChildren = true)
   {
     if (meshSize !== 0)
@@ -268,8 +268,8 @@ export class EveBezierCurve extends IEveLineSetPath
    * @param {Float32Array} [out] - caller-owned; allocated when omitted
    * @returns {Float32Array} out
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetBoundingSphere(out = vec4.create())
   {
     return sph3.transformMat4(out, this._boundingSphere, this.localTransform);
@@ -280,8 +280,8 @@ export class EveBezierCurve extends IEveLineSetPath
    * system location, against the frustum and stores the result in isVisible; a
    * non-displayed path returns early and keeps its previous flag.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateVisibility(frustum, _parentLod = null, systemLocation = mat4.create())
   {
     if (!this.display)
@@ -301,8 +301,8 @@ export class EveBezierCurve extends IEveLineSetPath
    * is skipped while completeness is below 1, and the last segment ends exactly
    * on point2 rather than on an interpolated sample.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   AddLinesToSet(lineSet, color, animColor, scrollSpeed = 0)
   {
     if (!this.display || !this.isVisible)
@@ -334,8 +334,8 @@ export class EveBezierCurve extends IEveLineSetPath
   }
 
   /** Carbon declares no Bezier-specific debug options (cpp:292-295). */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   GetDebugOptions(_options)
   {
   }
@@ -372,4 +372,4 @@ export class EveBezierCurve extends IEveLineSetPath
 }
 
 // EveBezierCurve_Blue.cpp: native exposure.
-carbon.interfaceTable({ interfaces: [EveBezierCurve, IEveLineSetPath, INotify], chainTo: null })(EveBezierCurve, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveBezierCurve, IEveLineSetPath, INotify], chainTo: null })(EveBezierCurve, { kind: "class" });

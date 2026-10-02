@@ -1,6 +1,6 @@
 ﻿// Source: audio/src/AudStaticDataRepository.h + AudStaticDataRepository.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 
 
 // Wwise AK_INVALID_UNIQUE_ID - the C++ GetEventID default.
@@ -12,7 +12,7 @@ const INVALID_UNIQUE_ID = 0;
  * project, letting the engine reason about events without Wwise. Populated at
  * runtime (no persisted fields) from a plain audio metadata object.
  */
-@type.define({ className: "AudStaticDataRepository", family: "audio" })
+@meta.define({ className: "AudStaticDataRepository", family: "audio" })
 export class AudStaticDataRepository
 {
 
@@ -39,8 +39,8 @@ export class AudStaticDataRepository
    * @param {object} audioMetadata Metadata containing Events, SoundBanks and WemFileIDs sections.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Initialize(audioMetadata)
   {
     if (!audioMetadata || typeof audioMetadata !== "object")
@@ -86,8 +86,8 @@ export class AudStaticDataRepository
    *
    * @returns {boolean} Whether initialization completed.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsInitialized()
   {
     return this._initialized;
@@ -117,8 +117,8 @@ export class AudStaticDataRepository
    * @param {string} eventName Event name.
    * @returns {number} Event ID or zero.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetEventID(eventName)
   {
     return this._GetAttribute(this._events, eventName, "eventID", INVALID_UNIQUE_ID);
@@ -133,8 +133,8 @@ export class AudStaticDataRepository
    * @param {string} eventName Event name.
    * @returns {number} Squared attenuation radius.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetEventRadiusSq(eventName)
   {
     const eventData = this._GetData(this._events, eventName);
@@ -151,8 +151,8 @@ export class AudStaticDataRepository
    * @param {string} eventName Event name.
    * @returns {boolean} Whether the event loops.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   EventIsLoop(eventName)
   {
     return this._GetAttribute(this._events, eventName, "isLoop", false);
@@ -164,8 +164,8 @@ export class AudStaticDataRepository
    * @param {string} eventName Event name.
    * @returns {boolean} Whether the event is 2D.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   EventIs2D(eventName)
   {
     return this._GetAttribute(this._events, eventName, "is2D", false);
@@ -177,8 +177,8 @@ export class AudStaticDataRepository
    * @param {string} eventName Event name.
    * @returns {boolean} Whether the event is vital.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   EventIsVital(eventName)
   {
     return this._GetAttribute(this._events, eventName, "isVital", false);
@@ -191,8 +191,8 @@ export class AudStaticDataRepository
    * @param {string} eventPotentiallyStopping Potential stopping event.
    * @returns {boolean} Whether the second event stops the first; false if the first is unknown.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   EventIsStopped(eventPotentiallyStopped, eventPotentiallyStopping)
   {
     const eventData = this._GetData(this._events, eventPotentiallyStopped);
@@ -205,8 +205,8 @@ export class AudStaticDataRepository
    * @param {number} sourceID WEM source ID.
    * @returns {boolean} Whether the source is essential.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SourceIsEssential(sourceID)
   {
     return this._GetAttribute(this._sources, sourceID, "isEssential", false);
@@ -218,8 +218,8 @@ export class AudStaticDataRepository
    * @param {string} soundBankName Sound-bank name.
    * @returns {boolean} Whether the bank is essential.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SoundBankIsEssential(soundBankName)
   {
     return this._GetAttribute(this._soundBanks, soundBankName, "isEssentialSoundBank", false);
@@ -232,8 +232,8 @@ export class AudStaticDataRepository
    * @param {string} eventName Event name.
    * @returns {ReadonlyArray<string>} Required sound-bank names.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SoundBanksRequiredForEvent(eventName)
   {
     return this._GetAttribute(this._events, eventName, "soundbanks", []);
@@ -267,4 +267,4 @@ function ToStringArray(value)
 }
 
 // Exact native exposure identities; no inherited lifecycle policy.
-carbon.interfaceTable({ interfaces: [ AudStaticDataRepository ], chainTo: null })(AudStaticDataRepository, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [ AudStaticDataRepository ], chainTo: null })(AudStaticDataRepository, { kind: "class" });

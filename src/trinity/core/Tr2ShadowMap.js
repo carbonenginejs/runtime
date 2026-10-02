@@ -1,7 +1,7 @@
 import { INotify } from "../../global/blue/INotify.js";
 // Source: trinity/trinity/Tr2ShadowMap.h
 //   trinity/trinity/Tr2ShadowMap.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -135,106 +135,106 @@ function writeOrthoOffCenter(out, left, right, bottom, top, near, far)
 }
 
 /** Cascaded-shadow split producer. Its GPU operations are not ported yet. */
-@type.define({ className: "Tr2ShadowMap", family: "trinityCore" })
-@carbon.inherit(INotify)
+@meta.define({ className: "Tr2ShadowMap", family: "trinityCore" })
+@meta.blue.inherit(INotify)
 export class Tr2ShadowMap
 {
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.Tr2ShadowMap.ShadowSplitMode")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2ShadowMap.ShadowSplitMode")
   shadowSplitMode = 0;
 
-  @edit.readwrite
-  @type.objectRef("Tr2Denoiser")
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2Denoiser")
   denoiser = new Tr2Denoiser();
 
-  @edit.readwrite
-  @type.objectRef("Tr2Effect")
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2Effect")
   cascadeEffect = createShadowEffect();
 
-  @edit.notify
-  @edit.read
-  @type.uint32
+  @meta.blue.notify
+  @meta.blue.read
+  @meta.type.uint32
   splitCount = SHADOW_FRUSTUM_COUNT;
 
-  @edit.notify
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.boolean
   debugColorSplit = false;
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   SplitNr15 = STATIC_SPLITS[15];
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   SplitNr8 = STATIC_SPLITS[8];
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   SplitNr6 = STATIC_SPLITS[6];
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   SplitNr5 = STATIC_SPLITS[5];
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   SplitNr14 = STATIC_SPLITS[14];
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   SplitNr10 = STATIC_SPLITS[10];
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   SplitNr13 = STATIC_SPLITS[13];
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   SplitNr4 = STATIC_SPLITS[4];
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   SplitNr3 = STATIC_SPLITS[3];
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   SplitNr7 = STATIC_SPLITS[7];
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   SplitNr1 = STATIC_SPLITS[1];
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   SplitNr9 = STATIC_SPLITS[9];
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   SplitNr0 = STATIC_SPLITS[0];
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   SplitNr11 = STATIC_SPLITS[11];
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   SplitNr12 = STATIC_SPLITS[12];
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   SplitNr2 = STATIC_SPLITS[2];
 
-  @edit.notify
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.boolean
   disableShimmer = true;
 
-  @edit.readwrite
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.type.uint32
   size = 2048;
 
   /**
@@ -273,9 +273,9 @@ export class Tr2ShadowMap
   }
 
   /** Applies the atlas element size/count and the one-way denoiser disable. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The fixed PerSplitData arrays make split counts above Carbon's 16-slot capacity fail immediately instead of corrupting adjacent native memory.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("The fixed PerSplitData arrays make split counts above Carbon's 16-slot capacity fail immediately instead of corrupting adjacent native memory.")
   Setup(elementSize, elementCount, useDenoiser)
   {
     const nextSize = elementSize >>> 0;
@@ -298,9 +298,9 @@ export class Tr2ShadowMap
   }
 
   /** Applies Carbon's notification consequences from the current owned state. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("CjsModel notifications expose settled state rather than Be::Var identity, so this compares the two notify-backed values against their cached state.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("CjsModel notifications expose settled state rather than Be::Var identity, so this compares the two notify-backed values against their cached state.")
   OnModified()
   {
     if (this.debugColorSplit !== this.#lastDebugColorSplit)
@@ -327,8 +327,8 @@ export class Tr2ShadowMap
     return true;
   }
 
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   /** Changes whether an existing denoiser should be used for future results. */
   ShouldUseDenoiser(value)
   {
@@ -336,16 +336,16 @@ export class Tr2ShadowMap
   }
 
   /** Engine-facing read of Carbon's private denoiser-use switch. */
-  @impl.custom
-  @impl.reason("The nominal engine executor needs Carbon's private denoiser-use decision without reading implementation fields.")
+  @meta.ours
+  @meta.reason("The nominal engine executor needs Carbon's private denoiser-use decision without reading implementation fields.")
   GetUseDenoiser()
   {
     return this.#useDenoiser;
   }
 
   /** Recomputes geometric dynamic split endpoints when the clip range changes. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateSplitValues(nearClip, farClip)
   {
     if (this.shadowSplitMode !== Tr2ShadowMap.ShadowSplitMode.DYNAMIC) return;
@@ -365,9 +365,9 @@ export class Tr2ShadowMap
    * Transforms the D3D clip cube through projection inverse, inverse view and
    * light view, returning its light-space bounds and writing all eight corners.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The caller supplies owned JS output containers; matrix bytes stay in logical gl-matrix form and are never pre-transposed.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("The caller supplies owned JS output containers; matrix bytes stay in logical gl-matrix form and are never pre-transposed.")
   static CalculateAABB(
     projection,
     invViewTransform,
@@ -414,9 +414,9 @@ export class Tr2ShadowMap
    * The returned object is an allocation-free borrowed view for this split and
    * is overwritten the next time the same split index is prepared.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon stores Transpose(lightViewProjection) and returns SplitSetup by value; Trinity stores the logical matrix for RawData's terminal transpose and reuses one allocation-free result per split.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon stores Transpose(lightViewProjection) and returns SplitSetup by value; Trinity stores the logical matrix for RawData's terminal transpose and reuses one allocation-free result per split.")
   SetupShadowSplit(splitIndex, invViewTransform, lightDirection, zNear, leftDivNear, rightDivNear, topDivNear, bottomDivNear)
   {
     if (!Number.isInteger(splitIndex) || splitIndex < 0 || splitIndex >= this.splitCount)
@@ -504,8 +504,8 @@ export class Tr2ShadowMap
    * @returns {object|null} The borrowed depth texture, or null when the pool
    *   could not supply one - which Carbon notes happens on a lost device.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PrepareShadowRendering(gpuResourcePool, renderContext)
   {
     // Carbon's GetTempTexture( name, width, height, format, usage ) overload:
@@ -551,8 +551,8 @@ export class Tr2ShadowMap
    * @param {object} renderContext The context to set the viewport on.
    * @param {number} splitIndex Which cascade split.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   BeginShadowRendering(renderContext, splitIndex)
   {
     const esm = renderContext.GetEffectStateManager();
@@ -573,8 +573,8 @@ export class Tr2ShadowMap
    *
    * @param {object} renderContext The context to restore.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   EndShadowRendering(renderContext)
   {
     renderContext.SetReadOnlyDepth(false);
@@ -613,9 +613,9 @@ export class Tr2ShadowMap
    * @param {object} renderer The renderer owning the blitter.
    * @returns {object|null} The shadow-factor target, or null without a pool.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon reaches the blitter and the reversed-depth projection through static Tr2Renderer; ours are an instance and the render context, so the renderer is passed in.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon reaches the blitter and the reversed-depth projection through static Tr2Renderer; ours are an instance and the render context, so the renderer is passed in.")
   DrawToShadowMapResult(renderContext, gpuResourcePool, depthMap, cascadedShadowDepth, upscaling, renderer)
   {
     let shadowMapResult = gpuResourcePool.GetTempTexture("shadowMapResult", {
@@ -667,16 +667,16 @@ export class Tr2ShadowMap
     }
   }
 
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   /** Returns the number of active cascade splits. */
   GetShadowSplitCount()
   {
     return this.splitCount;
   }
 
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   /** Returns the square pixel size of one atlas cell. */
   GetShadowMapSize()
   {
@@ -684,47 +684,47 @@ export class Tr2ShadowMap
   }
 
   /** Returns the fixed number of atlas columns. */
-  @impl.custom
-  @impl.reason("The nominal engine executor needs Carbon's private fixed atlas width without reading implementation fields.")
+  @meta.ours
+  @meta.reason("The nominal engine executor needs Carbon's private fixed atlas width without reading implementation fields.")
   GetShadowMapWidth()
   {
     return this.#width;
   }
 
   /** Returns the fixed number of atlas rows. */
-  @impl.custom
-  @impl.reason("The nominal engine executor needs Carbon's private fixed atlas height without reading implementation fields.")
+  @meta.ours
+  @meta.reason("The nominal engine executor needs Carbon's private fixed atlas height without reading implementation fields.")
   GetShadowMapHeight()
   {
     return this.#height;
   }
 
   /** Returns the stable owned record consumed by scene per-frame packing. */
-  @impl.custom
-  @impl.reason("The scene needs a nominal direct accessor to Carbon's public PerSplitData without structural probing.")
+  @meta.ours
+  @meta.reason("The scene needs a nominal direct accessor to Carbon's public PerSplitData without structural probing.")
   GetPerSplitData()
   {
     return this.perSplitData;
   }
 
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   /** Returns the logical effect used to resolve the screen-space shadow mask. */
   GetShadowEffect()
   {
     return this.cascadeEffect;
   }
 
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   /** Reports whether cascade-debug colouring is enabled. */
   GetDebugSplitValue()
   {
     return this.debugColorSplit;
   }
 
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   /** Returns Carbon's packed debug colour for a cascade colour index. */
   GetDebugColors(switchCase)
   {
@@ -784,4 +784,4 @@ blue.enums.RegisterEnum("trinity.Tr2ShadowMap.ShadowSplitMode", Tr2ShadowMap.Sha
 });
 
 // Exact native Blue exposure: only these identities participate in loading.
-carbon.interfaceTable({ interfaces: [Tr2ShadowMap, INotify], chainTo: null })(Tr2ShadowMap, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [Tr2ShadowMap, INotify], chainTo: null })(Tr2ShadowMap, { kind: "class" });

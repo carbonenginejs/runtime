@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Particle/Tr2GpuUniqueEmitter_Blue.cpp
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2GpuSharedEmitter } from "./Tr2GpuSharedEmitter.js";
 
 
@@ -20,24 +20,24 @@ const SCALED_PARAMS = Tr2GpuSharedEmitter._createParams();
  * GPU emitter owned by a single instance, adding parent scaling and a
  * per-instance attractor on top of the shared emitter parameters.
  */
-@type.define({ className: "Tr2GpuUniqueEmitter", family: "particle" })
+@meta.define({ className: "Tr2GpuUniqueEmitter", family: "particle" })
 export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
 {
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   scaledByParent = false;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   attractorPosition = vec3.create();
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   attractorStrength = 0;
 
   /**
@@ -52,14 +52,14 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
   }
 
   /** Retains the constructor's unique identity when parameters change. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   GenerateID()
   {
   }
 
   /** Copies the subclass's authored strength into the CPU parameter struct. */
-  @impl.custom
+  @meta.ours
   _ReadParameters()
   {
     super._ReadParameters();
@@ -71,8 +71,8 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
    * shared emission (cpp:18-53). Module scratch replaces C++ stack copies;
    * the schema's local attractor and other authored values remain unchanged.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(arguments_)
   {
     this._ReadParameters();
@@ -104,8 +104,8 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
    * since JavaScript cannot overload; scaling uses reusable value copies.
    * As in Carbon, spawning does not update the attractor's world position.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SpawnParticles(arguments_, position = null, velocity = null, rateModifier = 1, velocityEnd, deltaTime)
   {
     // ITr2GenericEmitter.h:75/93 uses one name for the two native overloads.
@@ -137,8 +137,8 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
    * Scales Carbon's segment overload (cpp:88-120) with separate scratch from
    * shared spawning. The renamed entry remains available to existing callers.
    */
-  @carbon.renamed("SpawnParticles")
-  @impl.adapted
+  @meta.blue.renamed("SpawnParticles")
+  @meta.adapted
   SpawnParticlesSegment(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime)
   {
     this._ReadParameters();
@@ -165,7 +165,7 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
    * forms. Module scratch models C++ stack temporaries without allocating
    * per call or mutating authored fields. Emit must copy before returning.
    */
-  @impl.custom
+  @meta.ours
   _ScaleParameters(parentTransform)
   {
     // Carbon ignores XMMatrixDecompose failure and consumes its scale output.
@@ -185,4 +185,4 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
   static _nextID = 0;
 }
 
-carbon.interfaceTable({ interfaces: [Tr2GpuUniqueEmitter], chainTo: Tr2GpuSharedEmitter })(Tr2GpuUniqueEmitter, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [Tr2GpuUniqueEmitter], chainTo: Tr2GpuSharedEmitter })(Tr2GpuUniqueEmitter, { kind: "class" });

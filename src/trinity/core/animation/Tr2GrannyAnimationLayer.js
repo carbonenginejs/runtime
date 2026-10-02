@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2GrannyAnimationLayer.h
 // Source: trinity/trinity/Tr2GrannyAnimationLayer.cpp
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { CjsGrannyCurves } from "../../curves/track/CjsGrannyCurves.js";
 
 
@@ -20,7 +20,7 @@ const NEVER = Infinity;
  * speed, clearWhenDone, held, stopAt? }`, `elapsed` counting unscaled layer
  * seconds since its start (negative while delayed).
  */
-@type.define({ className: "Tr2GrannyAnimationLayer", family: "trinityCore/animation" })
+@meta.define({ className: "Tr2GrannyAnimationLayer", family: "trinityCore/animation" })
 export class Tr2GrannyAnimationLayer
 {
 
@@ -71,8 +71,8 @@ export class Tr2GrannyAnimationLayer
    *
    * @returns {number} Remaining seconds; Infinity when a player never ends.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetAnimationRemainingTime()
   {
     let maxRemaining = 0;
@@ -140,8 +140,8 @@ export class Tr2GrannyAnimationLayer
    * Adapted: the chained requests are the JS queue's tail, so they are dropped
    * with the pending queue; Carbon keeps already-created chained players.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   EndAnimation()
   {
     const request = this.queue[0];
@@ -166,8 +166,8 @@ export class Tr2GrannyAnimationLayer
    * Adapted: the single active request carries the pinned stop as `stopAt`
    * in its own elapsed seconds, with the pending queue dropped.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   StopAnimations(delay = 0)
   {
     const request = this.queue[0];
@@ -183,32 +183,32 @@ export class Tr2GrannyAnimationLayer
   }
 
   /** Drops every animation, playing and queued (Tr2GrannyAnimationLayer.cpp:495-525). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ClearAnimations()
   {
     this.queue.length = 0;
   }
 
   /** Carbon GetLayerWeight (Tr2GrannyAnimationLayer.cpp:1071-1074). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetLayerWeight()
   {
     return this.weight;
   }
 
   /** Carbon SetLayerWeight (Tr2GrannyAnimationLayer.cpp:1076-1079). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetLayerWeight(layerWeight)
   {
     this.weight = Number(layerWeight) || 0;
   }
 
   /** Carbon SetControlParam (Tr2GrannyAnimationLayer.cpp:1081-1085). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetControlParam(controlParam)
   {
     this.controlParamTarget = Number(controlParam) || 0;
@@ -216,8 +216,8 @@ export class Tr2GrannyAnimationLayer
   }
 
   /** Carbon SetControlParamSkewRate (Tr2GrannyAnimationLayer.cpp:1087-1090). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetControlParamSkewRate(skewRate)
   {
     this.controlParamSkewRate = Number(skewRate) || 0;
@@ -229,8 +229,8 @@ export class Tr2GrannyAnimationLayer
    * Adapted: the mask is a name set resolved at sampling time, so no bone
    * index lookup is needed here.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   AddBone(_grannyAnimation, name)
   {
     this.bones.add(String(name ?? ""));
@@ -242,158 +242,158 @@ export class Tr2GrannyAnimationLayer
    * Adapted: a flag rather than Carbon's snapshot of the current bone list,
    * so bones of a later-loaded rig are admitted too.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   AddAllBones(_grannyAnimation)
   {
     this.allBones = true;
   }
 
   /** Removes a bone from the layer mask (Tr2GrannyAnimationLayer.cpp:1029-1069). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RemoveBone(_grannyAnimation, name)
   {
     return this.bones.delete(String(name ?? ""));
   }
 
   /** Not ported: queueing lives in Tr2GrannyAnimation._playLayer. */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   PlayAnimation(..._args)
   {
     throw new Error("Tr2GrannyAnimationLayer.PlayAnimation is not implemented in CarbonEngineJS; use Tr2GrannyAnimation.PlayLayerAnimation.");
   }
 
   /** Not ported: queueing lives in Tr2GrannyAnimation._playLayer. */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   QueueAnimation(..._args)
   {
     throw new Error("Tr2GrannyAnimationLayer.QueueAnimation is not implemented in CarbonEngineJS.");
   }
 
   /** Not ported: the layer holds no absolute animation clock in this port. */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   GetAnimationChainCompleteTime(..._args)
   {
     throw new Error("Tr2GrannyAnimationLayer.GetAnimationChainCompleteTime is not implemented in CarbonEngineJS.");
   }
 
   /** Not ported: no cmf::AnimationSequencer; the owner rebuilds rig state. */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   InitializeAnimationLayer(..._args)
   {
     throw new Error("Tr2GrannyAnimationLayer.InitializeAnimationLayer is not implemented in CarbonEngineJS.");
   }
 
   /** Not ported: requests are consumed by Tr2GrannyAnimation._advanceLayer. */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   ConsumeAnimationQueue(..._args)
   {
     throw new Error("Tr2GrannyAnimationLayer.ConsumeAnimationQueue is not implemented in CarbonEngineJS.");
   }
 
   /** Not ported: no sequencer or Granny controls to release. */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   Cleanup(..._args)
   {
     throw new Error("Tr2GrannyAnimationLayer.Cleanup is not implemented in CarbonEngineJS.");
   }
 
   /** Not ported: sampling lives in Tr2GrannyAnimation._sampleLayer. */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   SampleAnimation(..._args)
   {
     throw new Error("Tr2GrannyAnimationLayer.SampleAnimation is not implemented in CarbonEngineJS.");
   }
 
   /** Not ported: track masks are not decoded. */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   ExtractTrackMask(..._args)
   {
     throw new Error("Tr2GrannyAnimationLayer.ExtractTrackMask is not implemented in CarbonEngineJS.");
   }
 
   /** Not ported: pause is owner-wide (Tr2GrannyAnimation.TogglePauseAnimations). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   TogglePauseAnimation(..._args)
   {
     throw new Error("Tr2GrannyAnimationLayer.TogglePauseAnimation is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon private GetLayerAnimationTime (cpp:183-190). Not ported: no layer clock. */
-  @impl.notImplemented
+  @meta.notImplemented
   _GetLayerAnimationTime()
   {
     throw new Error("Tr2GrannyAnimationLayer.GetLayerAnimationTime is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon private FreeCompletedControls. Not ported: _advanceLayer retires requests. */
-  @impl.notImplemented
+  @meta.notImplemented
   _FreeCompletedControls()
   {
     throw new Error("Tr2GrannyAnimationLayer.FreeCompletedControls is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon private IsUsingCMF. Not ported: one decoded-payload path only. */
-  @impl.notImplemented
+  @meta.notImplemented
   _IsUsingCMF()
   {
     throw new Error("Tr2GrannyAnimationLayer.IsUsingCMF is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon private UpdateControlParam (cpp:1092-1125). Not ported: _advanceLayer skews it. */
-  @impl.notImplemented
+  @meta.notImplemented
   _UpdateControlParam()
   {
     throw new Error("Tr2GrannyAnimationLayer.UpdateControlParam is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon private RegisterTextTracks (Granny-only). Not ported. */
-  @impl.notImplemented
+  @meta.notImplemented
   _RegisterTextTracks()
   {
     throw new Error("Tr2GrannyAnimationLayer.RegisterTextTracks is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon private RegisterMorphTracks. Not ported: _sampleMorphs decodes per sample. */
-  @impl.notImplemented
+  @meta.notImplemented
   _RegisterMorphTracks()
   {
     throw new Error("Tr2GrannyAnimationLayer.RegisterMorphTracks is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon private ClearTextTracks (Granny-only). Not ported. */
-  @impl.notImplemented
+  @meta.notImplemented
   _ClearTextTracks()
   {
     throw new Error("Tr2GrannyAnimationLayer.ClearTextTracks is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon private ClearMorphTracks. Not ported. */
-  @impl.notImplemented
+  @meta.notImplemented
   _ClearMorphTracks()
   {
     throw new Error("Tr2GrannyAnimationLayer.ClearMorphTracks is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon private SampleTextTracks (Granny-only). Not ported. */
-  @impl.notImplemented
+  @meta.notImplemented
   _SampleTextTracks()
   {
     throw new Error("Tr2GrannyAnimationLayer.SampleTextTracks is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon private SampleMorphTracks. Not ported: _sampleMorphs on the owner. */
-  @impl.notImplemented
+  @meta.notImplemented
   _SampleMorphTracks()
   {
     throw new Error("Tr2GrannyAnimationLayer.SampleMorphTracks is not implemented in CarbonEngineJS.");

@@ -3,64 +3,64 @@
 import { INotify } from "#blue";
 import { IInitialize } from "#blue";
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
-import { carbon, edit, impl, type } from "#schema";
+import { meta } from "#schema";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 
 /** Carries a named shader-buffer path for host resolution or a caller-owned GPU buffer reference. */
-@type.define({ className: "Tr2GeometryBufferParameter", family: "shader" })
-@carbon.inherit(ITriEffectResourceParameter)
-@carbon.inherit(IInitialize, INotify)
+@meta.define({ className: "Tr2GeometryBufferParameter", family: "shader" })
+@meta.blue.inherit(ITriEffectResourceParameter)
+@meta.blue.inherit(IInitialize, INotify)
 export class Tr2GeometryBufferParameter extends CjsParameter
 {
 
   /** m_resourcePath (std::wstring) [READWRITE, NOTIFY, PERSIST] */
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   resourcePath = "";
 
   /** m_gpuBuffer (ITr2GpuBufferPtr) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("ITr2GpuBuffer")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("ITr2GpuBuffer")
   gpuBuffer = null;
 
   /** m_isUsedByEffect (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   usedByCurrentEffect = false;
 
   /** m_meshIndex (int32_t) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   meshIndex = 0;
 
   /** m_name (BlueSharedString) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   cachedEffect = null;
 
   /** The shader resource name this buffer binds to. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetParameterName()
   {
     return this.name;
   }
 
   /** Content hash: resource path (when set) then name. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
   {
     if (this.resourcePath)
@@ -74,8 +74,8 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    * Not ported yet - a resource path is never resolved
    * to a buffer here; returns true.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Initialize()
   {
     return true;
@@ -85,9 +85,9 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    * Consumes the `resource` dirty flag by re-initializing and re-resolving
    * handles against the cached shader.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JS releases its provider reference instead of unlocking a native smart pointer; Initialize resource acquisition remains an explicit port gap.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JS releases its provider reference instead of unlocking a native smart pointer; Initialize resource acquisition remains an explicit port gap.")
   OnModified(propertyName)
   {
     if (propertyName === "resourcePath")
@@ -103,8 +103,8 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    * Caches the shader and records whether it reflects a resource of this name;
    * no GPU buffer is bound.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RebuildEffectHandles(effectRes)
   {
     this.cachedEffect = effectRes;
@@ -129,8 +129,8 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    * @param {number} [_flags] A `ResourceFlags` word; unread for a buffer.
    * @returns {boolean} Whether the slot took the binding.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   CopyToResourceSet(resourceDesc, stage, registerIndex, _flags = 0)
   {
     const buffer = this.gpuBuffer?.GetGpuBuffer(this.meshIndex);
@@ -151,8 +151,8 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    * @param {number} registerIndex The register.
    * @returns {boolean} Whether the slot took the binding.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ApplyUav(resourceDesc, stage, registerIndex)
   {
     return resourceDesc.SetUav(stage, registerIndex, this.gpuBuffer?.GetGpuBuffer(this.meshIndex) ?? null, 0, 1);
@@ -162,8 +162,8 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    * Whether a buffer object has actually been attached; an authored resourcePath
    * alone does not make the parameter valid.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsValid()
   {
     return !!this.gpuBuffer;
@@ -173,8 +173,8 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    * Attaches a buffer object directly and clears the authored resource path, so
    * the path can no longer override it.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetGpuBuffer(buffer)
   {
     this.resourcePath = "";
@@ -185,8 +185,8 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    * The attached buffer object, or null; held by reference and never created
    * here.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetGpuBuffer()
   {
     return this.gpuBuffer;
@@ -195,4 +195,4 @@ export class Tr2GeometryBufferParameter extends CjsParameter
 }
 
 // Exact identities from Tr2GeometryBufferParameter_Blue.cpp; no exposure chain.
-carbon.interfaceTable({ interfaces: [ITriEffectParameter, ITriEffectResourceParameter, IInitialize, INotify], chainTo: null })(Tr2GeometryBufferParameter, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [ITriEffectParameter, ITriEffectResourceParameter, IInitialize, INotify], chainTo: null })(Tr2GeometryBufferParameter, { kind: "class" });

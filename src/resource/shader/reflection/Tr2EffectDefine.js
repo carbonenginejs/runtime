@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
-import { CjsSchema, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** Effect compile define retained as source metadata. */
 export class Tr2EffectDefine
@@ -22,7 +22,7 @@ CjsSchema.define(Tr2EffectDefine, {
   className: "Tr2EffectDefine",
   family: "shader",
   fields: {
-    name: type.string,
-    value: type.string
+    name: meta.type.string,
+    value: meta.type.string
   }
 });

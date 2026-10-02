@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { LocatorType } from "./enums.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -18,123 +18,123 @@ const INV_DIR = vec3.create();
 const NO_FORCES = [];
 
 /** A steering behaviour that shuttles each drone between seek and deliver locators, slowing on approach, snapping its facing, and triggering effects on arrival. */
-@type.define({ className: "BackAndForth", family: "eve/child/behaviors" })
+@meta.define({ className: "BackAndForth", family: "eve/child/behaviors" })
 export class BackAndForth
 {
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   behaviorPriority = 0;
 
   /** m_enabled (bool) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   enabled = true;
 
   /** m_locatorType (LocatorType - enum LocatorType) [READWRITE, PERSIST, ENUM, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.BackAndForth.LocatorType")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.BackAndForth.LocatorType")
   locatorType = 0;
 
   /** m_locatorSets (PEveLocatorSetsVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveLocatorSets")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveLocatorSets")
   locatorSet = [];
 
   /** m_arrivedRadius (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   arrivedRadius = 50;
 
   /** m_distFromOrigin (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   distFromOrigin = 20;
 
   /** m_slowDownRadius (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   slowDownRadius = 200;
 
   /** m_backAndForthWeight (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   backAndForthWeight = 100;
 
   /** m_fxBehavior (IBehavior*) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("IBehavior")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("IBehavior")
   fxBehavior = null;
 
   /** m_target (EveSpaceObject2*) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("EveSpaceObject2")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("EveSpaceObject2")
   target = null;
 
   /** m_parent (EveSpaceObject2*) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("EveSpaceObject2")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("EveSpaceObject2")
   parent = null;
 
   /** m_seconds (float) [READWRITE] */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   secondsToTurn = 0.25;
 
   /** m_locatorSetName (BlueSharedString) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   locatorSetName = "damage";
 
   // Debug arrival point (Carbon m_arrivalPoint).
   _arrivalPoint = vec3.create();
 
   /** Carbon BackAndForth::GetProcessPriority (cpp:31-34). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetProcessPriority()
   {
     return this.behaviorPriority;
   }
 
   /** Carbon BackAndForth::GetBehaviorName (cpp:36-39). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBehaviorName()
   {
     return "BackAndForth";
   }
 
   /** Per-agent scratch record count (Carbon sizeof(BackAndForthData)). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero value means 'has scratch'.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero value means 'has scratch'.")
   GetScratchMemorySize()
   {
     return 1;
   }
 
   /** Fresh per-agent scratch record (Carbon BackAndForthData placement init). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.")
   InitializeScratch()
   {
     return {
@@ -160,9 +160,9 @@ export class BackAndForth
    * @param {Array} _dronesInSearchRadius - unused
    * @returns {Array} empty (as Carbon)
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("TriRandInt maps to Math.random and Be::Time fx timestamps to Date.now seconds; the steering math is ported verbatim.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("TriRandInt maps to Math.random and Be::Time fx timestamps to Date.now seconds; the steering math is ported verbatim.")
   CalculateBehavior(agents, scratchData, deltaTime, group, system, _dronesInSearchRadius)
   {
     if (!this.enabled)
@@ -310,8 +310,8 @@ export class BackAndForth
   }
 
   /** Carbon method AddLocatorSet (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddLocatorSet()
   {
     const seek = new EveLocatorSets();
@@ -322,8 +322,8 @@ export class BackAndForth
   }
 
   /** Carbon BackAndForth::SetParent (cpp:348-354). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetParent(parent)
   {
     this.parent = parent ?? null;
@@ -350,16 +350,16 @@ export class BackAndForth
    * the parent, then the world position and direction of its indexed locator
    * from the behaviour's named set, into the caller's two out-vectors.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetParentLocatorPosition(locatorIndex, outPosition, outDirection)
   {
     this._ReadOwnerLocator(this.parent, locatorIndex, outPosition, outDirection);
   }
 
   /** Carbon GetTargetLocatorPosition (cpp:365-372): the target twin. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetTargetLocatorPosition(locatorIndex, outPosition, outDirection)
   {
     this._ReadOwnerLocator(this.target, locatorIndex, outPosition, outDirection);

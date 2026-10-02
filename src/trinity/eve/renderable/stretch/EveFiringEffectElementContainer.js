@@ -3,7 +3,7 @@
 import { mat4 } from "#math/mat4";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 
 
@@ -11,35 +11,35 @@ import { EveEntity } from "../../EveEntity.js";
  * A top-level wrapper that hosts one firing-effect element for editing, owning
  * the endpoint state that is pushed into that element every update.
  */
-@type.define({ className: "EveFiringEffectElementContainer", family: "eve/renderable/stretch" })
-@carbon.inherit(IEveSpaceObject2)
+@meta.define({ className: "EveFiringEffectElementContainer", family: "eve/renderable/stretch" })
+@meta.blue.inherit(IEveSpaceObject2)
 export class EveFiringEffectElementContainer extends EveEntity
 {
-  @edit.readwrite
-  @edit.persistOnly
- @type.model("IEveFiringEffectElement") element = null;
-  @edit.readwrite @type.vec3 source = vec3.create();
-  @edit.readwrite
-  @edit.persist
- @type.mat4 sourceTransform = mat4.create();
-  @edit.readwrite
-  @edit.persist
- @type.vec3 destination = vec3.create();
-  @edit.readwrite
-  @edit.persist
- @type.boolean useSourceTransform = false;
-  @edit.readwrite
-  @edit.persist
- @type.boolean displayDestination = true;
-  @edit.readwrite
-  @edit.persist
- @type.boolean displaySource = true;
-  @edit.readwrite
-  @edit.persist
- @type.boolean display = true;
-  @edit.readwrite
-  @edit.persist
- @type.float32 destinationScale = 1;
+  @meta.blue.readwrite
+  @meta.blue.persistOnly
+ @meta.type.model("IEveFiringEffectElement") element = null;
+  @meta.blue.readwrite @meta.type.vec3 source = vec3.create();
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.mat4 sourceTransform = mat4.create();
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.vec3 destination = vec3.create();
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.boolean useSourceTransform = false;
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.boolean displayDestination = true;
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.boolean displaySource = true;
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.boolean display = true;
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.float32 destinationScale = 1;
 
   _active = false;
 
@@ -48,8 +48,8 @@ export class EveFiringEffectElementContainer extends EveEntity
    * destination scale and endpoint display flags - into the wrapped element,
    * then updates the element, but only while the container is firing.
   */
-  @carbon.method @impl.adapted
-  @impl.reason("The browser runtime drives the nominal firing-element contract synchronously instead of Carbon task dispatch.")
+  @meta.blue.method @meta.adapted
+  @meta.reason("The browser runtime drives the nominal firing-element contract synchronously instead of Carbon task dispatch.")
   UpdateSynchronous(context)
   {
     if (!this.element) return true;
@@ -74,8 +74,8 @@ export class EveFiringEffectElementContainer extends EveEntity
    * The wrapped element is driven entirely from the synchronous phase, so this
    * only reports success.
    */
-  @carbon.method @impl.adapted
-  @impl.reason("The browser runtime forwards lifecycle calls directly to the hydrated element.")
+  @meta.blue.method @meta.adapted
+  @meta.reason("The browser runtime forwards lifecycle calls directly to the hydrated element.")
   UpdateAsynchronous(context)
   {
     void context;
@@ -95,8 +95,8 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Forwards the parent placement to the wrapped element under the container's
    * own display flag.
    */
-  @carbon.method @impl.adapted
-  @impl.reason("Visibility is graph-owned; the renderer consumes the collected element later.")
+  @meta.blue.method @meta.adapted
+  @meta.reason("Visibility is graph-owned; the renderer consumes the collected element later.")
   UpdateVisibility(context, transform)
   {
     if (this.display && this.element) this.element.UpdateVisibility(context, transform);
@@ -106,8 +106,8 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Appends the wrapped element's renderables to out while the container is displayed.
    * @returns {Array} out
    */
-  @carbon.method @impl.adapted
-  @impl.reason("Renderable collection is backend-neutral and does not build the batch yet.")
+  @meta.blue.method @meta.adapted
+  @meta.reason("Renderable collection is backend-neutral and does not build the batch yet.")
   GetRenderables(out = [])
   {
     if (this.display && this.element) this.element.GetRenderables(out);
@@ -118,7 +118,7 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Starts the wrapped element firing and marks the container active, which is
    * what enables the per-frame element update.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   StartFiring(delay = 0)
   {
     if (this.element) this.element.StartFiring(delay);
@@ -129,7 +129,7 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Stops the wrapped element and clears the active flag, halting the per-frame
    * element update while still pushing endpoint state.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   StopFiring()
   {
     if (this.element) this.element.StopFiring();
@@ -140,7 +140,7 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Toggles firing through StartFiring/StopFiring, ignoring a request that
    * matches the current state so a repeated true does not restart the effect.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   SetActive(active)
   {
     if (!!active === this._active) return;
@@ -149,7 +149,7 @@ export class EveFiringEffectElementContainer extends EveEntity
   }
 
   /** Whether the container is currently firing. */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   GetActive()
   {
     return this._active;
@@ -159,14 +159,14 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Replaces the wrapped firing-effect element; the container's active state is
    * not reapplied to the new element.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   SetElement(element)
   {
     this.element = element ?? null;
   }
 
   /** The wrapped firing-effect element, or null. */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   GetElement()
   {
     return this.element;
@@ -178,7 +178,7 @@ export class EveFiringEffectElementContainer extends EveEntity
    * which one was given is latched in useSourceTransform and applied on the next
    * synchronous update.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   SetFiringTransform(source, destination)
   {
     if (source?.length === 16)
@@ -199,7 +199,7 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Records the destination-end scale forwarded to the element on the next
    * synchronous update.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   SetDestObjectScale(scale)
   {
     this.destinationScale = Number(scale);
@@ -209,7 +209,7 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Records which endpoints the element should draw; forwarded on the next
    * synchronous update.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   DisplayEndPoints(displaySource, displayDestination)
   {
     this.displaySource = !!displaySource;
@@ -220,7 +220,7 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Shows or hides the container, gating visibility and renderable collection
    * but not the endpoint state push.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   SetDisplay(display)
   {
     this.display = !!display;
@@ -230,7 +230,7 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Curve duration reported by the wrapped element, or 0 when there is no
    * element.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   GetCurveDuration()
   {
     return this.element ? Number(this.element.GetCurveDuration()) : 0;
@@ -239,7 +239,7 @@ export class EveFiringEffectElementContainer extends EveEntity
   /** Carbon EveFiringEffectElementContainer::RegisterComponents
    * (cpp:140-146): forwards the wrapped element (no gates; EveEntity.Register
    * tolerates a null registry). */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   RegisterComponents()
   {
     this.element?.Register(this.GetComponentRegistry());
@@ -247,7 +247,7 @@ export class EveFiringEffectElementContainer extends EveEntity
 
   /** Carbon EveFiringEffectElementContainer::UnRegisterComponents
    * (cpp:148-154): forwards the wrapped element. */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   UnRegisterComponents()
   {
     this.element?.UnRegister(this.GetComponentRegistry());

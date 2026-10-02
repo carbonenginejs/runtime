@@ -26,7 +26,7 @@
 // Trinity setting `forceAnisotropy`). No shared JavaScript home exists for it
 // yet, so it is the static `forceAnisotropy` on this class.
 
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -107,7 +107,7 @@ export class Tr2SamplerStateALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @impl.adapted
+  @meta.adapted
   Create(description, renderContext)
   {
     const al = RenderContextALOf(renderContext);
@@ -239,7 +239,7 @@ export class Tr2SamplerStateALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {WebGLSampler|null} The sampler.
    */
-  @impl.custom
+  @meta.ours
   GetGpuResource()
   {
     return this._samplerState;

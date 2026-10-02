@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Include/ITr2InstanceData.h
-import { CjsSchema, impl, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /** Contract for a provider of instance-stream data and layout metadata. */
@@ -38,6 +38,6 @@ for (const method of [
   "GetInstanceBufferBoundingBox"
 ])
 {
-  CjsSchema.decorateMethod(ITr2InstanceData, method, impl.abstract);
+  CjsSchema.decorateMethod(ITr2InstanceData, method, meta.abstract);
 }
 CjsSchema.define(ITr2InstanceData, { className: "ITr2InstanceData" });

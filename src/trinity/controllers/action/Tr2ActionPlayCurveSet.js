@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayCurveSet.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayCurveSet.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayCurveSet_Blue.cpp
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { blue, TimeAsFloat } from "#blue";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { ITr2Updateable } from "../../core/ITr2Updateable.js";
@@ -16,34 +16,34 @@ import { ITr2Updateable } from "../../core/ITr2Updateable.js";
   className: "Tr2ActionPlayCurveSet",
   family: "controllers"
 })
-@meta.carbon.inherit(ITr2Updateable)
+@meta.blue.inherit(ITr2Updateable)
 export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
 {
   /**
    * Name of the owner curve set played on Start and stopped on Stop.
    * @type {string}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   curveSetName = "";
 
   /**
    * Named time range to play; an empty string selects the full curve set.
    * @type {string}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   rangeName = "";
 
   /**
    * Whether transitions wait for a named range iteration boundary when its duration is positive.
    * @type {boolean}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   syncToRange = false;
 
   _startTime = 0;
@@ -61,8 +61,8 @@ export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
    * start time is Blue's per-frame time in ticks, as Carbon's BeOS clock is
    * (`Tr2ActionPlayCurveSet.cpp:21-36`).
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Start(controller)
   {
     const owner = ITr2ControllerAction.getOwner(controller);
@@ -85,8 +85,8 @@ export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
    *
    * Adapted: Uses the runtime owner adapter instead of Carbon's owner cast.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Stop(controller)
   {
     const owner = ITr2ControllerAction.getOwner(controller);
@@ -100,8 +100,8 @@ export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
   /**
    * Rebases the sync-to-range time cursor.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RebaseSimTime(diff)
   {
     this._startTime += diff;
@@ -114,8 +114,8 @@ export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
    * (`Tr2ActionPlayCurveSet.cpp:53-67`). Blue's frame time is held for the whole
    * frame, so a probe in the frame the action started returns true.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   CanTransition()
   {
     if (!this.syncToRange || this._duration <= 0)
@@ -136,8 +136,8 @@ export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
    * Records the frame clock for synced transitions, ignoring the update arguments
    * (`Tr2ActionPlayCurveSet.cpp:69-72`).
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Update(_realTime, _simTime)
   {
     this._prevTime = blue.os.GetCurrentFrameTime();
@@ -173,7 +173,7 @@ export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionPlayCurveSet_Blue.cpp:12-13,18).
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [Tr2ActionPlayCurveSet, ITr2ControllerAction],
   chainTo: null
 })(Tr2ActionPlayCurveSet);

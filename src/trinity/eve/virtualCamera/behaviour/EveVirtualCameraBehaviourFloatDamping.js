@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveVirtualCameraBehaviourFloatBase } from "./EveVirtualCameraBehaviourFloatBase.js";
 
 
@@ -8,15 +8,15 @@ import { EveVirtualCameraBehaviourFloatBase } from "./EveVirtualCameraBehaviourF
  * Float behaviour that lags a scalar camera value behind the value the other
  * behaviours produced, smoothing sudden changes.
  */
-@type.define({
+@meta.define({
   className: "EveVirtualCameraBehaviourFloatDamping",
   family: "eve/virtualCamera/behaviour"
 })
 export class EveVirtualCameraBehaviourFloatDamping extends EveVirtualCameraBehaviourFloatBase
 {
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   dampingFactor = 1;
 
   _lastValue = 0;
@@ -37,8 +37,8 @@ export class EveVirtualCameraBehaviourFloatDamping extends EveVirtualCameraBehav
    * on the smoothed value; the first update (local time at or below zero) only
    * seeds the retained value and contributes nothing.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Update(_camera, current, _deltaTime, localElapsedTime)
   {
     if (localElapsedTime <= 0)

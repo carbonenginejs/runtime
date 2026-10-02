@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Resources/Tr2AsyncSave.h
 // Dropped reference shape. Promise-based format writers replace this native callback base.
 // Verify fields against format-carbon resources/Tr2AsyncSave.json.
-import { CjsSchema, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** Retained-only reference shape mirroring Carbon's abstract prepare/save callback base, superseded by promise-based format `Write`/`WriteAsync` operations and resource-level save-status compatibility methods. */
 export class Tr2AsyncSave
@@ -30,11 +30,11 @@ export class Tr2AsyncSave
 CjsSchema.define(Tr2AsyncSave, {
   className: "Tr2AsyncSave", family: "resources",
   fields: {
-    prepareSaveCbId: type.unknown,
-    saveFilename: type.string,
-    isSaving: type.unknown,
-    isSavePrepared: type.unknown,
-    saveSucceeded: type.unknown,
-    saveCbId: type.unknown
+    prepareSaveCbId: meta.type.unknown,
+    saveFilename: meta.type.string,
+    isSaving: meta.type.unknown,
+    isSavePrepared: meta.type.unknown,
+    saveSucceeded: meta.type.unknown,
+    saveCbId: meta.type.unknown
   }
 });

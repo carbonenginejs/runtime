@@ -26,7 +26,7 @@
 // Formats: the three-component byte, short and half types have no DXGI format,
 // and dx11 asserts on them; WebGL2 can read them, so they map here.
 
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -99,7 +99,7 @@ export class Tr2VertexLayoutALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @impl.adapted
+  @meta.adapted
   Create(definition, renderContext)
   {
     const al = RenderContextALOf(renderContext);
@@ -142,7 +142,7 @@ export class Tr2VertexLayoutALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context.
    * @returns {number} An `ALResult` value.
    */
-  @impl.adapted
+  @meta.adapted
   SetLayout(vertexShader, renderContext)
   {
     const al = RenderContextALOf(renderContext);
@@ -239,7 +239,7 @@ export class Tr2VertexLayoutALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {object[]|null} The plan.
    */
-  @impl.custom
+  @meta.ours
   GetCurrentPlan()
   {
     return this._current;

@@ -1,11 +1,11 @@
 // Source: trinity/trinity/Particle/Tr2ForceSphereVolume.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { ITr2ParticleForce } from "./ITr2ParticleForce.js";
 import { vec3 } from "#math/vec3";
 
 /** Aggregates child forces within a spherical region, scaling their combined contribution by a falloff toward the sphere's edge. */
-@type.define({ className: "Tr2ForceSphereVolume", family: "particle" })
+@meta.define({ className: "Tr2ForceSphereVolume", family: "particle" })
 export class Tr2ForceSphereVolume extends ITr2ParticleForce
 {
 
@@ -14,27 +14,27 @@ export class Tr2ForceSphereVolume extends ITr2ParticleForce
   #contribution = vec3.create();
 
   /** m_exponent (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   exponent = 1;
 
   /** m_forces (PITr2ParticleForceVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("ITr2ParticleForce")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITr2ParticleForce")
   forces = [];
 
   /** m_position (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   position = vec3.create();
 
   /** m_radius (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   radius = 1;
 
   /**
@@ -42,7 +42,7 @@ export class Tr2ForceSphereVolume extends ITr2ParticleForce
    * the contained forces intentionally do NOT receive per-frame updates
    * through the volume.
    */
-  @impl.noop
+  @meta.noop
   /**
    * Does nothing: the contained forces are not updated through the volume.
    */
@@ -54,7 +54,7 @@ export class Tr2ForceSphereVolume extends ITr2ParticleForce
    * Child-force aggregation with (1 - d/r)^exponent falloff inside the sphere
    * (Tr2ForceSphereVolume.cpp:38-59).
    */
-  @impl.adapted
+  @meta.adapted
   GetForce(position, velocity, dt, mass, out = vec3.create())
   {
     vec3.set(out, 0, 0, 0);

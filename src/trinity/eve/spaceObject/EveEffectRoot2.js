@@ -17,7 +17,7 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { ITr2BoundingBox } from "#interfaces";
 import { ITr2SecondaryLightSource } from "../../core/lighting/ITr2SecondaryLightSource.js";
 import { EveEntity } from "../EveEntity.js";
@@ -33,157 +33,157 @@ import { BLUELISTEVENT } from "#consts/blue";
  * lights, controllers, curve sets and observers that make up an effect not
  * attached to a hull.
  */
-@type.define({ className: "EveEffectRoot2", family: "eve/spaceObject" })
-@carbon.inherit(ITr2BoundingBox, IEveSpaceObject2, ITr2SecondaryLightSource)
-@carbon.mapInterface(ITr2SecondaryLightSource)
-@carbon.inherit(IInitialize, INotify, IListNotify)
+@meta.define({ className: "EveEffectRoot2", family: "eve/spaceObject" })
+@meta.blue.inherit(ITr2BoundingBox, IEveSpaceObject2, ITr2SecondaryLightSource)
+@meta.blue.mapInterface(ITr2SecondaryLightSource)
+@meta.blue.inherit(IInitialize, INotify, IListNotify)
 export class EveEffectRoot2 extends EveEntity
 {
 
   /** m_effectChildren (PIEveSpaceObjectChildVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("IEveSpaceObjectChild")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("IEveSpaceObjectChild")
   effectChildren = [];
 
   /** m_estimatedSize (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   estimatedSize = 0;
 
   /** m_lodLevel (Tr2Lod - enum Tr2Lod) [READ] */
-  @edit.read
-  @type.int32
-  @type.enum("trinity.Tr2Lod")
+  @meta.blue.read
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2Lod")
   lodLevel = Tr2Lod.TR2_LOD_HIGH;
 
   /** m_mute (bool) [READWRITE, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.boolean
   mute = false;
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   display = true;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_dynamicLODSelection (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   dynamicLOD = false;
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.quat
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   rotation = quat.create();
 
   /** m_translation (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   translation = vec3.create();
 
   /** m_effectDuration (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   duration = -1;
 
   /** m_secondaryLightingEmissiveColor (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   secondaryLightingEmissiveColor = vec4.create();
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("TriCurveSet")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("TriCurveSet")
   curveSets = [];
 
   /** m_lights (PTr2LightVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("Tr2Light")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2Light")
   lights = [];
 
   /** m_externalParameters (PTr2ExternalParameterVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("Tr2ExternalParameter")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2ExternalParameter")
   externalParameters = [];
 
   /** m_controllers (PITr2ControllerVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("ITr2Controller")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITr2Controller")
   controllers = [];
 
   /** m_observers (PTriObserverLocalVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("TriObserverLocal")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("TriObserverLocal")
   observers = [];
 
   /** m_ballRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("ITriQuaternionFunction")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("ITriQuaternionFunction")
   rotationCurve = null;
 
   /** m_secondaryLightingSphereRadiusLocal (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   secondaryLightingSphereRadius = 0.5;
 
   /** m_boundingSphere.xyz, exposed by Carbon's MAPFLOATARRAYSIZE Blue mapping. */
-  @impl.adapted
-  @impl.reason("The schema scanner omits MAPFLOATARRAYSIZE; Carbon exposes the three persisted center components separately from radius.")
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.adapted
+  @meta.reason("The schema scanner omits MAPFLOATARRAYSIZE; Carbon exposes the three persisted center components separately from radius.")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   boundingSphereCenter = vec3.create();
 
   /** m_boundingSphere.w (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   boundingSphereRadius = 0;
 
   /** m_modelTranslation (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("ITriVectorFunction")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("ITriVectorFunction")
   modelTranslationCurve = null;
 
   /** m_modelRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("ITriQuaternionFunction")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("ITriQuaternionFunction")
   modelRotationCurve = null;
 
   /** m_ballPosition (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("ITriVectorFunction")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("ITriVectorFunction")
   translationCurve = null;
 
   _changeLOD = true;
@@ -197,9 +197,9 @@ export class EveEffectRoot2 extends EveEntity
   _worldTranslation = null;
 
   /** Links authored controllers after graph hydration. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Blue root locking is represented by the hydrated JavaScript object identity.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Blue root locking is represented by the hydrated JavaScript object identity.")
   Initialize()
   {
     for (const controller of this.controllers)
@@ -216,9 +216,9 @@ export class EveEffectRoot2 extends EveEntity
    * them (EveEffectRoot2.cpp:94-102), which is what the managed child
    * mutation reproduces.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through the shared child service rather than the list driving it.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("A JavaScript array has no notify slot, so the owner drives the notification through the shared child service rather than the list driving it.")
   AddController(controller)
   {
     addChild(this, "controllers", controller, { listNotify: this });
@@ -229,18 +229,18 @@ export class EveEffectRoot2 extends EveEntity
    * Removes a controller. The unlink is OnListModified's REMOVED arm
    * (EveEffectRoot2.cpp:104-109), not this method's business.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through the shared child service rather than the list driving it.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("A JavaScript array has no notify slot, so the owner drives the notification through the shared child service rather than the list driving it.")
   RemoveController(controller)
   {
     return removeChild(this, "controllers", controller, { listNotify: this });
   }
 
   /** Evaluates root curves and updates children that require synchronous placement. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon task and lock ownership is omitted; child update parameters retain the source graph contract.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon task and lock ownership is omitted; child update parameters retain the source graph contract.")
   UpdateSyncronous(updateContext = null)
   {
     const time = EveEffectRoot2._GetContextValue(updateContext, "GetTime", "currentTime", "time");
@@ -261,9 +261,9 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Advances controllers, root curve sets, and effect children. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Controller and child work is forwarded synchronously through the GPU-free graph instead of Carbon task groups.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Controller and child work is forwarded synchronously through the GPU-free graph instead of Carbon task groups.")
   UpdateAsyncronous(updateContext = null)
   {
     let frequency = 0;
@@ -293,9 +293,9 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Updates dynamic LOD and forwards visibility to the effect children. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Frustum and threshold state is supplied by the explicit update context rather than renderer globals.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Frustum and threshold state is supplied by the explicit update context rather than renderer globals.")
   UpdateVisibility(updateContext = null, parentTransform = EveEffectRoot2._identity)
   {
     if (!this.display) return false;
@@ -326,8 +326,8 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Collects child renderables after applying a pending LOD change. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetRenderables(out = [])
   {
     if (!this.display) return out;
@@ -341,16 +341,16 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Advances every controller at the selected detail frequency. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateControllers(updateFrequency)
   {
     for (const controller of this.controllers) controller?.Update(updateFrequency);
   }
 
   /** Returns the authored local bounding sphere. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBoundingSphere(out = vec4.create())
   {
     vec4.set(
@@ -364,17 +364,17 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Returns the authored bounding-sphere radius. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBoundingSphereRadius()
   {
     return this.boundingSphereRadius;
   }
 
   /** Evaluates the ball/model curves into the detached root transform. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Curve outputs use CarbonEngineJS's time-first, output-second convention.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Curve outputs use CarbonEngineJS's time-first, output-second convention.")
   UpdateWorldTransform(time)
   {
     EveEffectRoot2._UpdateCurve(this.translationCurve, time, EveEffectRoot2._translation, EveEffectRoot2._zero);
@@ -399,9 +399,9 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Updates and returns the model-center world position. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("CarbonEngineJS uses an out-last signature for output parameters.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("CarbonEngineJS uses an out-last signature for output parameters.")
   UpdateModelCenterWorldPosition(time, out = vec3.create())
   {
     this.UpdateWorldTransform(time);
@@ -412,17 +412,17 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Returns the last model-center world position without advancing curves. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("CarbonEngineJS uses an out-last signature for output parameters.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("CarbonEngineJS uses an out-last signature for output parameters.")
   GetModelCenterWorldPosition(out = vec3.create())
   {
     return vec3.transformMat4(out, this.boundingSphereCenter, this._lastUpdateMatrix);
   }
 
   /** Writes the authored sphere's local axis-aligned bounds when its radius is valid. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetLocalBoundingBox(min, max)
   {
     if (this.boundingSphereRadius <= 0) return false;
@@ -443,17 +443,17 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Returns the last composed local-to-world transform. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("CarbonEngineJS returns the caller-owned output matrix.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("CarbonEngineJS returns the caller-owned output matrix.")
   GetLocalToWorldTransform(out = mat4.create())
   {
     return mat4.copy(out, this._lastUpdateMatrix);
   }
 
   /** Writes the authored sphere's bounds transformed by the last composed root matrix. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetWorldBoundingBox(min, max)
   {
     if (!this.GetLocalBoundingBox(min, max)) return false;
@@ -466,8 +466,8 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Reports whether the authored sphere can currently supply a bounding box. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsBoundingBoxReady()
   {
     return this.boundingSphereRadius > 0;
@@ -478,27 +478,27 @@ export class EveEffectRoot2 extends EveEntity
    * UpdateWorldTransform evaluates, WITHOUT the local SRT composition that
    * GetLocalToWorldTransform's #lastUpdateMatrix carries. EvePlanet reads the
    * member directly for the z-only depth-prepass drive (EvePlanet.cpp:137). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon's protected member access becomes a copying accessor; JS has no protected fields and the live buffer stays private.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon's protected member access becomes a copying accessor; JS has no protected fields and the live buffer stays private.")
   GetWorldTransform(out = mat4.create())
   {
     return mat4.copy(out, this._worldTransform);
   }
 
   /** Registers every child with an injected quad renderer. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The quad renderer is an injected engine-owned capability.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("The quad renderer is an injected engine-owned capability.")
   RegisterWithQuadRenderer(quadRenderer)
   {
     for (const child of this.effectChildren) child?.RegisterWithQuadRenderer?.(quadRenderer);
   }
 
   /** Adds visible child quads to an injected renderer. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The quad renderer is an injected engine-owned capability.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("The quad renderer is an injected engine-owned capability.")
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     if (!this.display) return;
@@ -507,8 +507,8 @@ export class EveEffectRoot2 extends EveEntity
 
   /** Carbon EveEffectRoot2::RegisterComponents (cpp:496-513): LightOwner when
    * lights are authored, then forwards the effect children. Gate m_display. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -528,8 +528,8 @@ export class EveEffectRoot2 extends EveEntity
   /** Carbon EveEffectRoot2::UnRegisterComponents (cpp:515-528): forwards the
    * effect children only (own components were already removed by
    * EveEntity::UnRegister, EveEntity.cpp:90); no display re-check. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UnRegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -556,8 +556,8 @@ export class EveEffectRoot2 extends EveEntity
    * unload-start) unregisters it - the same size-edge rule
    * RegisterComponents applies at registration time.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     const masked = event & BLUELISTEVENT.BELIST_EVENTMASK;
@@ -635,9 +635,9 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Adds authored lights using the effect's composed placement and average scale. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The light manager is an injected engine-owned capability.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("The light manager is an injected engine-owned capability.")
   GetLights(lightManager)
   {
     if (!this.display) return;
@@ -651,8 +651,8 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Adds an authored light. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddLight(light)
   {
     this.lights.push(light);
@@ -660,8 +660,8 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Removes all authored lights. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ClearLights()
   {
     this.lights.length = 0;
@@ -674,8 +674,8 @@ export class EveEffectRoot2 extends EveEntity
    * inherits neutral data rather than nothing.
    * @returns {{vs: RawData, ps: RawData}}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetPerObjectStructs(vsData = RawData.create("EveSpaceObjectVSData"), psData = RawData.create("EveSpaceObjectPSData"))
   {
     vsData.Zero();
@@ -698,8 +698,8 @@ export class EveEffectRoot2 extends EveEntity
    * @param {import("../../core/lighting/Tr2ShLightingManager.js").Tr2ShLightingManager} manager The scene's manager.
    * @returns {boolean} Whether the manager registered it.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RegisterSecondaryLightSource(manager)
   {
     return manager.RegisterSecondaryLightSource(
@@ -717,8 +717,8 @@ export class EveEffectRoot2 extends EveEntity
    * @param {import("../../core/lighting/Tr2ShLightingManager.js").Tr2ShLightingManager} manager The scene's manager.
    * @returns {boolean} Whether the manager removed it.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UnregisterSecondaryLightSource(manager)
   {
     return manager.UnregisterSecondaryLightSource(this._GetWorldTranslation());
@@ -738,8 +738,8 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Plays root and child-owned curve sets. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Start()
   {
     for (const curveSet of this.curveSets) curveSet?.Play();
@@ -751,8 +751,8 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Stops root and child-owned curve sets. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Stop()
   {
     for (const curveSet of this.curveSets) curveSet?.Stop();
@@ -764,17 +764,17 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Effect roots have no damage locators. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   GetDamageLocatorCount()
   {
     return 0;
   }
 
   /** Returns the detached root translation as the sole target point. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("CarbonEngineJS uses output parameters last and returns the targetable validity flag.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("CarbonEngineJS uses output parameters last and returns the targetable validity flag.")
   GetDamageLocatorPosition(_index, _inWorldSpace, out = vec3.create())
   {
     vec3.set(out, this._worldTransform[12], this._worldTransform[13], this._worldTransform[14]);
@@ -782,9 +782,9 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Returns Carbon's constant +Y target direction. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("CarbonEngineJS uses output parameters last and returns the targetable validity flag.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("CarbonEngineJS uses output parameters last and returns the targetable validity flag.")
   GetDamageLocatorDirection(_index, _inWorldSpace, out = vec3.create())
   {
     vec3.set(out, 0, 1, 0);
@@ -792,9 +792,9 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Tests whether a projectile has reached the root target point. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("CarbonEngineJS uses an out-last signature for output parameters.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("CarbonEngineJS uses an out-last signature for output parameters.")
   GetImpactPosition(locator, _posPrev, posNow, epsilon, out = vec3.create())
   {
     this.GetDamageLocatorPosition(locator, true, out);
@@ -802,66 +802,66 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Effect roots never use shield impact geometry. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   HasImpactConfigurationShield()
   {
     return false;
   }
 
   /** Effect roots use their only target point. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   GetClosestDamageLocatorIndex(_position)
   {
     return 0;
   }
 
   /** Effect roots use their only target point. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   GetGoodDamageLocatorIndex(_position)
   {
     return 0;
   }
 
   /** Returns the authored target radius. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetRadius()
   {
     return this.boundingSphereRadius;
   }
 
   /** Effect roots do not create attached impact overlays. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   CreateImpact(_damageLocatorIndex, _direction, _lifeTime, _size)
   {
     return -1;
   }
 
   /** Effect roots do not update attached impact overlays. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   UpdateImpact(_out, _direction, _impactIndex)
   {
     return false;
   }
 
   /** Returns the detached root world position. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("CarbonEngineJS returns the caller-owned output vector.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("CarbonEngineJS returns the caller-owned output vector.")
   GetWorldPosition(out = vec3.create())
   {
     return vec3.set(out, this._worldTransform[12], this._worldTransform[13], this._worldTransform[14]);
   }
 
   /** Returns the authored local rotation composed with the detached root rotation. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("CarbonEngineJS returns the caller-owned output quaternion.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("CarbonEngineJS returns the caller-owned output quaternion.")
   GetWorldRotation(out = quat.create())
   {
     mat4.getRotation(EveEffectRoot2._worldRotation, this._worldTransform);
@@ -871,8 +871,8 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Computes a miss point just outside the root's spherical silhouette. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetMissPosition(hit, source, out = vec3.create())
   {
     this.GetDamageLocatorPosition(-1, true, out);
@@ -893,16 +893,16 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Returns the owned effect-child list. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetChildren()
   {
     return this.effectChildren;
   }
 
   /** Decomposes a matrix into the authored local SRT fields. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetTransform(transform)
   {
     mat4.getScaling(this.scaling, transform);
@@ -911,8 +911,8 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Plays matching root and child curve sets. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
     const target = String(name ?? "");
@@ -930,8 +930,8 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Stops matching root and child curve sets. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   StopCurveSet(name)
   {
     const target = String(name ?? "");
@@ -943,8 +943,8 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Samples matching root and child curve sets at an explicit time. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateCurveSet(name, time, renderContext = null)
   {
     const target = String(name ?? "");
@@ -956,8 +956,8 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Returns the maximum duration of matching root and child curve sets. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetCurveSetDuration(name)
   {
     const target = String(name ?? "");
@@ -977,8 +977,8 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Returns the maximum named range duration in matching root and child sets. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetRangeDuration(name, rangeName)
   {
     const target = String(name ?? "");
@@ -998,9 +998,9 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Collects the Carbon debug-option names and child options. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The debug renderer/options collection is an injected engine-owned capability.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("The debug renderer/options collection is an injected engine-owned capability.")
   GetDebugOptions(options = new Set())
   {
     options.add?.("Bounding Sphere");
@@ -1011,9 +1011,9 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Forwards root debug geometry to an injected debug renderer. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The debug renderer is an injected engine-owned capability.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("The debug renderer is an injected engine-owned capability.")
   RenderDebugInfo(renderer)
   {
     if (renderer?.HasOption?.(this, "Bounding Sphere"))
@@ -1029,8 +1029,8 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Stores and propagates a controller variable to current and future members. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetControllerVariable(name, value)
   {
     const key = String(name ?? "");
@@ -1041,8 +1041,8 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Propagates an event to controllers and effect children. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HandleControllerEvent(name)
   {
     const eventName = String(name ?? "");
@@ -1051,8 +1051,8 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Starts controllers on the root and its effect children. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   StartControllers()
   {
     for (const controller of this.controllers) controller?.Start();
@@ -1060,8 +1060,8 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Finds a named direct effect child. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetEffectChildByName(name)
   {
     const target = String(name ?? "");
@@ -1073,9 +1073,9 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Adds and initializes an effect child through Carbon's list-notify behavior. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Plain JavaScript arrays have no Blue IList notifications, so insertion behavior is explicit.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Plain JavaScript arrays have no Blue IList notifications, so insertion behavior is explicit.")
   AddToEffectChildrenList(child)
   {
     this.effectChildren.push(child);
@@ -1085,9 +1085,9 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Removes an effect child. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Plain JavaScript arrays have no Blue IList notifications, so removal behavior is explicit.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Plain JavaScript arrays have no Blue IList notifications, so removal behavior is explicit.")
   RemoveFromEffectChildrenList(child)
   {
     const index = this.effectChildren.indexOf(child);
@@ -1097,16 +1097,16 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Applies a shader option to every effect child. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetShaderOption(name, value)
   {
     for (const child of this.effectChildren) child?.SetShaderOption?.(name, value);
   }
 
   /** Finds a named observer or child-owned sound emitter. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   FindSoundEmitter(name)
   {
     const target = String(name ?? "");
@@ -1126,8 +1126,8 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Adds a placement observer. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddObserver(observer)
   {
     this.observers.push(observer);
@@ -1135,9 +1135,9 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Applies the mute state to effect children and placement observers. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The explicit setter replaces Carbon's Blue field-notify callback.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("The explicit setter replaces Carbon's Blue field-notify callback.")
   SetMute(isMute)
   {
     this.mute = !!isMute;
@@ -1146,8 +1146,8 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Freezes every child at Carbon's high-detail LOD. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   FreezeHighDetailMesh()
   {
     this.lodLevel = Tr2Lod.TR2_LOD_HIGH;
@@ -1156,8 +1156,8 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Propagates a procedural-container variable to every effect child. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetProceduralContainerVariable(name, value)
   {
     for (const child of this.effectChildren) child?.SetProceduralContainerVariable?.(name, value);
@@ -1254,4 +1254,4 @@ export class EveEffectRoot2 extends EveEntity
 }
 
 // EveEffectRoot2_Blue.cpp: native exposure; unported contracts: ITriTargetable, IEveEffectChildrenOwner, IShaderConfigurer, ITr2LightOwner.
-carbon.interfaceTable({ interfaces: [IEveSpaceObject2, IInitialize, INotify, ITr2SecondaryLightSource, ITr2CurveSetOwner, ITr2ControllerOwner, ITr2SoundEmitterOwner, ITr2BoundingBox, IWorldPosition, EveEntity], chainTo: null })(EveEffectRoot2, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [IEveSpaceObject2, IInitialize, INotify, ITr2SecondaryLightSource, ITr2CurveSetOwner, ITr2ControllerOwner, ITr2SoundEmitterOwner, ITr2BoundingBox, IWorldPosition, EveEntity], chainTo: null })(EveEffectRoot2, { kind: "class" });

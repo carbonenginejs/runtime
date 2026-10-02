@@ -5,7 +5,7 @@
 // source without a transform. A decorated file anywhere under this folder forces
 // every test importing the geometry barrel onto `npm/dist`, which is built code
 // that can lag the source it is being used to check.
-import { CjsSchema, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { mat4 } from "#math";
 
 /** Data record mirroring Carbon's per-mesh decal block: an index-buffer allocation reference, a LOD mask, and the per-LOD decal ranges. */
@@ -37,9 +37,9 @@ CjsSchema.define(MeshDecalData, {
   className: "MeshDecalData",
   family: "resources",
   fields: {
-    inverseDecalMatrix: type.mat4,
-    indexBuffer: type.rawStruct("Tr2SuballocatedBuffer::Allocation"),
-    lodMask: type.uint32,
-    lods: type.list("MeshDecalLodData")
+    inverseDecalMatrix: meta.type.mat4,
+    indexBuffer: meta.type.rawStruct("Tr2SuballocatedBuffer::Allocation"),
+    lodMask: meta.type.uint32,
+    lods: meta.type.list("MeshDecalLodData")
   }
 });

@@ -2,14 +2,14 @@
 // Source: trinity/trinity/TriProjection.cpp
 // Source: trinity/trinity/TriProjection_Blue.cpp
 import { mat4 } from "#math/mat4";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 
 
 /**
  * The camera projection: the selected projection mode with its parameters, plus
  * the 4x4 matrix built from them.
  */
-@type.define({
+@meta.define({
   className: "TriProjection",
   family: "trinityCore"
 })
@@ -43,16 +43,16 @@ export class TriProjection
 
   customTransform = mat4.create();
 
-  @edit.read
-  @type.mat4
+  @meta.blue.read
+  @meta.type.mat4
   transform = mat4.create();
 
   /**
    * Selects the field-of-view perspective mode, storing fov (in radians), aspect
    * and the near/far planes, and rebuilds the transform.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PerspectiveFov(fov, aspect, zn, zf)
   {
     this.projectionType = TriProjection.FOV;
@@ -67,8 +67,8 @@ export class TriProjection
    * Selects the off-centre perspective mode from explicit frustum edges measured
    * at the near plane, and rebuilds the transform.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PerspectiveOffCenter(left, right, bottom, top, zn, zf)
   {
     this.projectionType = TriProjection.OFF_CENTER;
@@ -85,8 +85,8 @@ export class TriProjection
    * Selects the orthographic mode; width and height are stored in the left and
    * top slots and front/back in the near and far slots.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PerspectiveOrthographic(width, height, front, back)
   {
     this.projectionType = TriProjection.ORTHO;
@@ -101,8 +101,8 @@ export class TriProjection
    * Adopts a caller-supplied matrix verbatim as the projection, copying it
    * rather than retaining the caller's buffer.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   CustomProjection(value)
   {
     this.projectionType = TriProjection.CUSTOM;
@@ -111,8 +111,8 @@ export class TriProjection
   }
 
   /** The active mode, one of the FOV, OFF_CENTER, ORTHO or CUSTOM constants. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetProjectionType()
   {
     return this.projectionType;
@@ -123,8 +123,8 @@ export class TriProjection
    * @param {mat4} [out] Caller-owned destination; a new matrix is allocated when omitted.
    * @returns {mat4} The destination matrix.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetMatrixWithoutViewAdjustment(out = mat4.create())
   {
     switch (this.projectionType)
@@ -146,8 +146,8 @@ export class TriProjection
    * Rebuilds the cached transform field from the current parameters, then copies
    * it into out (a fresh matrix when omitted) and returns it.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetTransform(out = mat4.create())
   {
     this.GetMatrixWithoutViewAdjustment(this.transform);

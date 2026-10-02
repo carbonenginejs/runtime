@@ -1,26 +1,26 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionPlacementGenerators/EveDistributionPlacementGeneratorLocators.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveDistributionPlacementGenerators } from "./IEveDistributionPlacementGenerators.js";
 import { InitialPlacement } from "../attributeModifiers/InitialPlacement.js";
 import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.js";
 
 /** Builds distribution placements from an authored locator list and requests regeneration when that list changes. */
-@type.define({ className: "EveDistributionPlacementGeneratorLocators", family: "eve/distribution/placement" })
+@meta.define({ className: "EveDistributionPlacementGeneratorLocators", family: "eve/distribution/placement" })
 export class EveDistributionPlacementGeneratorLocators extends IEveDistributionPlacementGenerators
 {
 
   _requestRegeneration = false;
 
   /** m_locators (PLocatorStructureList) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("Locator")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Locator")
   locators = [];
 
   /** Flags the pool as stale when the authored locator list changes. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnStructureListModified(_event, _item, _index, _list)
   {
     this._requestRegeneration = true;
@@ -32,8 +32,8 @@ export class EveDistributionPlacementGeneratorLocators extends IEveDistributionP
    * @param placements Caller-owned pool array that is appended to.
    * @param trackingID Mutable counter shared across all generators; each placement consumes one unique id from it.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetInitialPlacements(placements, trackingID)
   {
     for (const locator of this.locators)
@@ -54,16 +54,16 @@ export class EveDistributionPlacementGeneratorLocators extends IEveDistributionP
   }
 
   /** Reports whether the locator list changed since the pool was last generated. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsRequestingRegeneration()
   {
     return this._requestRegeneration;
   }
 
   /** No per-frame work; this generator only reacts to locator list changes. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateSyncronous(_updateContext, _params, _owner)
   {
   }

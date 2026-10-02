@@ -27,7 +27,7 @@ import {
   PER_OBJECT_VS_FLOAT_CAPACITY,
   Tr2PerObjectDataPSBuffer
 } from "./Tr2PerObjectDataPSBuffer.js";
-import { carbon, impl } from "#schema";
+import { meta } from "#schema";
 
 
 /**
@@ -96,9 +96,9 @@ export class Tr2PerObjectDataStandard extends Tr2PerObjectDataPSBuffer
    * @param {object} renderContext The context to upload and bind against.
    * @returns {number} How many payloads were uploaded.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon binds the pixel payload without consulting the technique mask, distinguished from the gated form only by C++ overload resolution on an argument type. Our layouts declare the stages they serve, so the gate is per declaration and more precise than Carbon's hardcoded halves.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon binds the pixel payload without consulting the technique mask, distinguished from the gated form only by C++ overload resolution on an argument type. Our layouts declare the stages they serve, so the gate is per declaration and more precise than Carbon's hardcoded halves.")
   SetPerObjectDataToDevice(buffers, constantTypeMask, renderContext)
   {
     return Tr2PerObjectData.setPerObjectDataToDevice(this, buffers, constantTypeMask, renderContext);
@@ -112,9 +112,9 @@ export class Tr2PerObjectDataStandard extends Tr2PerObjectDataPSBuffer
    * on this path draws indirectly, and Carbon's base asserts rather than
    * defaulting (`:34-37`), so an accidental call must not look successful.
    */
-  @carbon.method
-  @impl.notImplemented
-  @impl.reason("Tr2IndirectDrawBufferWriter is unported and nothing on this path draws indirectly.")
+  @meta.blue.method
+  @meta.notImplemented
+  @meta.reason("Tr2IndirectDrawBufferWriter is unported and nothing on this path draws indirectly.")
   ApplyConstantBuffers()
   {
     throw new Error("Tr2PerObjectDataStandard.ApplyConstantBuffers: indirect draw is unported.");

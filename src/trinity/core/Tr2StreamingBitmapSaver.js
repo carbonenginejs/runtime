@@ -12,7 +12,7 @@
 // behaviour: the pre-check never fails and the REAL format gate is
 // SaveHeader's switch, whose default returns SAVE_NOT_SUPPORTED. This port
 // keeps that net behaviour: no pre-check, the header switch rejects.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { GetBytesPerPixel, PixelFormat } from "#consts/render-context";
 import { ALResult } from "../../trinityal/ALResult.js";
 import "#blue/registerTrinityEnums";
@@ -22,30 +22,30 @@ const IMAGE_TYPE_RAW_RGB = 2;
 const IMAGE_TYPE_RAW_GREYSCALE = 3;
 
 /** Models Carbon's incremental bitmap saver through its dimensions, pixel format, current offset, and batch-copy entry points. */
-@type.define({ className: "Tr2StreamingBitmapSaver", family: "trinityCore", purpose: "Models Carbon's incremental bitmap saver through its dimensions, pixel format, current offset, and batch-copy entry points." })
+@meta.define({ className: "Tr2StreamingBitmapSaver", family: "trinityCore", purpose: "Models Carbon's incremental bitmap saver through its dimensions, pixel format, current offset, and batch-copy entry points." })
 export class Tr2StreamingBitmapSaver
 {
 
   /** m_currentOffset (uint32_t) [READ] - rows are written bottom-up, so it
    *  starts at the height. */
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   currentOffset = 0;
 
   /** m_height (uint32_t) [READ] */
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   height = 0;
 
   /** m_format (Tr2RenderContextEnum::PixelFormat - enum PixelFormat) [READ] */
-  @edit.read
-  @type.int32
-  @type.enum("trinity.ImageIO.PixelFormat")
+  @meta.blue.read
+  @meta.type.int32
+  @meta.type.enum("trinity.ImageIO.PixelFormat")
   format = 0;
 
   /** m_width (uint32_t) [READ] */
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   width = 0;
 
   /** m_output - Carbon's Blue IResFile stream; here any { Write(Uint8Array) } sink. */
@@ -76,9 +76,9 @@ export class Tr2StreamingBitmapSaver
    * @param {number} pixelFormat A PixelFormat value.
    * @returns {number} An ALResult value.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon opens a Blue ResFile stream from a path; the runtime has no file layer, so the caller supplies the write sink.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon opens a Blue ResFile stream from a path; the runtime has no file layer, so the caller supplies the write sink.")
   StartSaving(output, width, height, pixelFormat)
   {
     if (this.IsSaving())
@@ -122,48 +122,48 @@ export class Tr2StreamingBitmapSaver
   }
 
   /** Carbon IsSaving (cpp:282-284): whether an output stream is open. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsSaving()
   {
     return this.#output !== null;
   }
 
   /** Carbon HasStartedBatch (cpp:294-296): whether a batch is in flight. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HasStartedBatch()
   {
     return this.#rowsPerBatch !== 0;
   }
 
   /** Carbon method CopyFromRenderTargetRegion (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   CopyFromRenderTargetRegion(...args)
   {
     throw new Error("Tr2StreamingBitmapSaver.CopyFromRenderTargetRegion is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon EndSaving closes and pads the stream; unported with the batch pair. */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   EndSaving(...args)
   {
     throw new Error("Tr2StreamingBitmapSaver.EndSaving is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method FlushBatch (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   FlushBatch(...args)
   {
     throw new Error("Tr2StreamingBitmapSaver.FlushBatch is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method StartBatch (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   StartBatch(...args)
   {
     throw new Error("Tr2StreamingBitmapSaver.StartBatch is not implemented in CarbonEngineJS.");

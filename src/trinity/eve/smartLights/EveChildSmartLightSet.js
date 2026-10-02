@@ -5,7 +5,7 @@ import { IEveSpaceObjectChild } from "../child/IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "../child/EveSpaceObjectChild.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveChildSmartLightSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
 import { EveChildTransform } from "../child/EveChildTransform.js";
 import { EveChildInheritProperties } from "../child/EveChildInheritProperties.js";
@@ -14,41 +14,41 @@ import { mat4 } from "#math/mat4";
 import { BLUELISTEVENT } from "#consts/blue";
 
 /** A child that drives a placement distribution and fans its per-frame update, visibility, rendering and registration across a set of smart-light groups. */
-@type.define({ className: "EveChildSmartLightSet", family: "eve/smartLights" })
-@carbon.inherit(IEveInheritPropertiesOwner)
-@carbon.inherit(INotify, IListNotify)
+@meta.define({ className: "EveChildSmartLightSet", family: "eve/smartLights" })
+@meta.blue.inherit(IEveInheritPropertiesOwner)
+@meta.blue.inherit(INotify, IListNotify)
 export class EveChildSmartLightSet extends EveChildTransform
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   display = true;
 
   /** m_distribution (IEveDistributionMethodPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("IEveDistributionMethod")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("IEveDistributionMethod")
   distribution = null;
 
   /** m_lightGroups (PIEveSmartLightGroupVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("IEveSmartLightGroup")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("IEveSmartLightGroup")
   lightGroups = [];
 
   /** m_inheritProperties (EveChildInheritPropertiesPtr) - lazily created, never persisted (EveChildSmartLightSet.h:72). */
   _inheritProperties = null;
 
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   /**
    * The smart light set's name.
    */
@@ -57,8 +57,8 @@ export class EveChildSmartLightSet extends EveChildTransform
     return this.name;
   }
 
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   /**
    * Sets the smart light set's name, coercing the value to a string.
    */
@@ -68,22 +68,22 @@ export class EveChildSmartLightSet extends EveChildTransform
   }
 
   /** Carbon declares Setup inline empty (EveChildSmartLightSet.h:48). */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   Setup(_scale = null, _rotation = null, _translation = null, _lowestLodVisible = null)
   {
   }
 
   /** Carbon declares ChangeLOD inline empty (EveChildSmartLightSet.h:49). */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   ChangeLOD(_lod)
   {
   }
 
   /** Smart light sets carry no bound (EveChildSmartLightSet.h:39-42). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBoundingSphere(_sphere = null, _query = 0)
   {
     return false;
@@ -93,8 +93,8 @@ export class EveChildSmartLightSet extends EveChildTransform
    * Rebuilds the world transform, then updates the distribution and every
    * light group (EveChildSmartLightSet.cpp:73-86).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
     this.UpdateTransform(params.localToWorldTransform);
@@ -111,8 +111,8 @@ export class EveChildSmartLightSet extends EveChildTransform
   }
 
   /** Asynchronous fan-out to the distribution and light groups (EveChildSmartLightSet.cpp:88-99). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateAsyncronous(updateContext, params)
   {
     if (this.distribution)
@@ -127,8 +127,8 @@ export class EveChildSmartLightSet extends EveChildTransform
   }
 
   /** Visibility fan-out, gated on the distribution and display (EveChildSmartLightSet.cpp:101-110). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateVisibility(updateContext, parentTransform, parentLod)
   {
     if (this.distribution && this.display)
@@ -144,9 +144,9 @@ export class EveChildSmartLightSet extends EveChildTransform
    * display/distribution edits re-register the entity components
    * (EveChildSmartLightSet.cpp:112-119).
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
     if (propertyName === "display" || propertyName === "distribution") this.ReRegister();
@@ -160,8 +160,8 @@ export class EveChildSmartLightSet extends EveChildTransform
    * stays a follow-up (registration is one-shot via
    * EveSpaceScene.ReregisterEntities in this pass).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnListModified(event, _key, _key2, value, list)
   {
     const maskedEvent = Number(event) & BLUELISTEVENT.BELIST_EVENTMASK;
@@ -205,8 +205,8 @@ export class EveChildSmartLightSet extends EveChildTransform
 
   /** Carbon EveChildSmartLightSet::RegisterComponents (cpp:121-134):
    * forward-only to the light groups. Gate m_distribution && m_display. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -224,8 +224,8 @@ export class EveChildSmartLightSet extends EveChildTransform
 
   /** Carbon EveChildSmartLightSet::UnRegisterComponents (cpp:136-149):
    * forwards to the light groups; no distribution/display re-check. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UnRegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -242,8 +242,8 @@ export class EveChildSmartLightSet extends EveChildTransform
   }
 
   /** Renderable fan-out, gated on the distribution and display (EveChildSmartLightSet.cpp:151-160). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetRenderables(renderables = [])
   {
     if (this.distribution && this.display)
@@ -257,9 +257,9 @@ export class EveChildSmartLightSet extends EveChildTransform
   }
 
   /** Returns the local-to-world matrix (EveChildSmartLightSet.cpp:162-165). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("CarbonEngineJS uses an out-last signature and returns the matrix when no output is supplied.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("CarbonEngineJS uses an out-last signature and returns the matrix when no output is supplied.")
   GetLocalToWorldTransform(out = null)
   {
     if (out)
@@ -270,8 +270,8 @@ export class EveChildSmartLightSet extends EveChildTransform
   }
 
   /** Fans a controller variable to the distribution and light groups (EveChildSmartLightSet.cpp:167-178). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetControllerVariable(name, value)
   {
     if (this.distribution)
@@ -286,8 +286,8 @@ export class EveChildSmartLightSet extends EveChildTransform
   }
 
   /** Carbon debug-render fan-out for every light group at every placement. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RenderDebugInfo(renderer)
   {
     if (this.display && this.distribution)
@@ -302,9 +302,9 @@ export class EveChildSmartLightSet extends EveChildTransform
   }
 
   /** Advertises the smartLightSets debug option (EveChildSmartLightSet.cpp:210-213). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("A JavaScript Set represents Carbon's Tr2DebugRendererOptions string set.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("A JavaScript Set represents Carbon's Tr2DebugRendererOptions string set.")
   GetDebugOptions(options)
   {
     options.add("smartLightSets");
@@ -314,8 +314,8 @@ export class EveChildSmartLightSet extends EveChildTransform
    * Quad fan-out with the distribution's placement data
    * (EveChildSmartLightSet.cpp:191-200).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     if (this.display && this.distribution)
@@ -330,8 +330,8 @@ export class EveChildSmartLightSet extends EveChildTransform
   }
 
   /** Effect-registration fan-out (EveChildSmartLightSet.cpp:202-208). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     for (const group of this.lightGroups)
@@ -344,8 +344,8 @@ export class EveChildSmartLightSet extends EveChildTransform
    * Lazily creates the property holder, stores the color set, and fans it out
    * to every light group (EveChildSmartLightSet.cpp:215-227).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetInheritProperties(colorSet)
   {
     if (!this._inheritProperties)
@@ -365,4 +365,4 @@ export class EveChildSmartLightSet extends EveChildTransform
 }
 
 // EveChildSmartLightSet_Blue.cpp: native exposure.
-carbon.interfaceTable({ interfaces: [EveChildSmartLightSet, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2DebugRenderable, INotify, IListNotify, IEveInheritPropertiesOwner, EveEntity], chainTo: null })(EveChildSmartLightSet, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveChildSmartLightSet, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2DebugRenderable, INotify, IListNotify, IEveInheritPropertiesOwner, EveEntity], chainTo: null })(EveChildSmartLightSet, { kind: "class" });

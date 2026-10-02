@@ -29,7 +29,7 @@
 // A compute stage runs as a fragment pass (see `Tr2ShaderALWebgl2`), so a
 // compute-only program is linked with a full-screen vertex stage of its own.
 
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -134,7 +134,7 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to link against.
    * @returns {number} An `ALResult` value.
    */
-  @impl.adapted
+  @meta.adapted
   Create(shaders, renderContext)
   {
     this._Reset();
@@ -210,7 +210,7 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
    * uniform a texture unit, from the stages' backend blocks, and sets the
    * sampler uniforms to their units.
    */
-  @impl.custom
+  @meta.ours
   _LayOutBindings(gl, program, stages)
   {
     const previous = gl.getParameter(gl.CURRENT_PROGRAM);
@@ -361,7 +361,7 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {WebGLProgram|null} The program.
    */
-  @impl.custom
+  @meta.ours
   GetGpuResource()
   {
     return this._program;
@@ -373,7 +373,7 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {object[]} The records.
    */
-  @impl.custom
+  @meta.ours
   GetConstantBuffers()
   {
     return this._constantBuffers;
@@ -385,7 +385,7 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {object[]} The records.
    */
-  @impl.custom
+  @meta.ours
   GetTextures()
   {
     return this._textures;
@@ -397,7 +397,7 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {object[]} The inputs.
    */
-  @impl.custom
+  @meta.ours
   GetVertexInputs()
   {
     return this._vertexInputs;
@@ -408,7 +408,7 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {string} The log.
    */
-  @impl.custom
+  @meta.ours
   GetLinkLog()
   {
     return this._log;

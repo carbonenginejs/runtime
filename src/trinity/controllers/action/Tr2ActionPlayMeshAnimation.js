@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation_Blue.cpp
 import { INotify } from "#blue/INotify";
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { DestinationType, PlayAction, StopAction } from "../enums.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
@@ -17,7 +17,7 @@ import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
   className: "Tr2ActionPlayMeshAnimation",
   family: "controllers"
 })
-@meta.carbon.inherit(INotify)
+@meta.blue.inherit(INotify)
 export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
 {
   /**
@@ -25,9 +25,9 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * @type {string}
    */
   @meta.member("animation")
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   animation = "";
 
   /**
@@ -35,9 +35,9 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * @type {string}
    */
   @meta.member("mask")
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   mask = "";
 
   /**
@@ -45,10 +45,10 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * @type {number}
    */
   @meta.member("playAction")
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.int32
-  @types.enum("trinity.Tr2ActionPlayMeshAnimation.PlayAction")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2ActionPlayMeshAnimation.PlayAction")
   playAction = PlayAction.ENQUEUE_PLAY;
 
   /**
@@ -56,10 +56,10 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * @type {number}
    */
   @meta.member("stopAction")
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.int32
-  @types.enum("trinity.Tr2ActionPlayMeshAnimation.StopAction")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2ActionPlayMeshAnimation.StopAction")
   stopAction = StopAction.ENQUEUE_STOP;
 
   /**
@@ -67,9 +67,9 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * @type {number}
    */
   @meta.member("loops")
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   loops = -1;
 
   /**
@@ -77,9 +77,9 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * @type {number}
    */
   @meta.member("delay")
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   delay = 0;
 
   /**
@@ -87,9 +87,9 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * @type {number}
    */
   @meta.member("speed")
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   speed = 1;
 
   /**
@@ -97,11 +97,11 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * @type {number}
    */
   @meta.member("destinationType")
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.int32
-  @types.enum("trinity.Tr2ActionPlayMeshAnimation.DestinationType")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2ActionPlayMeshAnimation.DestinationType")
   destinationType = DestinationType.OWNER;
 
   /**
@@ -109,10 +109,10 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * @type {string}
    */
   @meta.member("path")
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   path = "";
 
   /**
@@ -120,10 +120,10 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * @type {IRoot|null}
    */
   @meta.member("destination")
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.objectRef("IRoot")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("IRoot")
   destination = null;
 
   /**
@@ -131,10 +131,10 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * @type {boolean}
    */
   @meta.member("delayBinding")
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   delayBinding = false;
 
   /**
@@ -142,9 +142,9 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * @returns {boolean} Whether the binding is valid without resolving it.
    */
   @meta.property()
-  @meta.edit.read
-  @types.boolean
-  @meta.impl.implemented
+  @meta.blue.read
+  @meta.type.boolean
+  @meta.implemented
   get isBindingValid()
   {
     return this.destinationType === DestinationType.OWNER || this._resolvedDestination !== null;
@@ -159,8 +159,8 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Adapted: preserves the flattened JavaScript destination/cache adapter
    * instead of Carbon's embedded Tr2BindingPoint.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Link(controller)
   {
     this._controller = controller;
@@ -173,8 +173,8 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
   /**
    * Clears the resolved destination.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Unlink()
   {
     this._resolvedDestination = null;
@@ -189,8 +189,8 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Native Start only rebinds delayed destinations; this adapter retains lazy
    * resolution and optional linked-controller invocation.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Start(controller = this._controller)
   {
     const destination = this.GetDestination(controller);
@@ -228,8 +228,8 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Native Stop observes the already-bound child and does not rebind it. A
    * returned animation layer supplies its required ClearAnimations/EndAnimation.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Stop(controller = this._controller)
   {
     if (this.stopAction === StopAction.NONE)
@@ -279,8 +279,8 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Adapted: identifies native stored-member notifications by exposed names
    * and preserves the existing flattened destination/cache adapter.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnModified(propertyName)
   {
     if (this._controller && !this.HasDelayedBinding()
@@ -297,8 +297,8 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Adapted: stores the JavaScript resolved object instead of the native embedded
    * binding. OWNER also retains this adapter's resolution rather than unlinking.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   LinkDestination(controller = this._controller)
   {
     this._resolvedDestination = this.ResolveDestination(controller);
@@ -312,8 +312,8 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Adapted: preserves lazy resolution and explicit controller selection; native
    * GetDestination only observes its linked controller or cached child.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetDestination(controller = this._controller)
   {
     if (this.destinationType === DestinationType.OWNER)
@@ -328,8 +328,8 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
   }
 
   /** Reports whether a nonempty binding path defers destination resolution. */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HasDelayedBinding()
   {
     return this.delayBinding && this.path.length !== 0;
@@ -341,8 +341,8 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Adapted: the legacy method may resolve the child; the native READ property
    * above observes only the cached destination and never triggers binding.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   IsBindingValid()
   {
     if (this.destinationType === DestinationType.OWNER)
@@ -357,7 +357,7 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * wording.
    * Custom: retained JavaScript alias; Carbon names this query IsBindingValid.
    */
-  @meta.impl.custom
+  @meta.ours
   IsDestinationValid()
   {
     return this.IsBindingValid();
@@ -370,7 +370,7 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * binding. Direct destination precedence over path is an existing adaptation;
    * a supplied controller must implement its GetBindingPathRoots operation.
    */
-  @meta.impl.custom
+  @meta.ours
   ResolveDestination(controller)
   {
     if (this.destination)
@@ -405,7 +405,7 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionPlayMeshAnimation_Blue.cpp:33-35,80).
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [Tr2ActionPlayMeshAnimation, ITr2ControllerAction, INotify],
   chainTo: null
 })(Tr2ActionPlayMeshAnimation);

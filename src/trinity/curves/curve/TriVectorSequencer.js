@@ -2,7 +2,7 @@
 // Source: trinity/trinity/TriSequencer.cpp
 import { vec3 } from "#math/vec3";
 import { ITriFunction, ITriVectorFunction, BlueList } from "#blue";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { TRIOPERATOR } from "#consts/graphics";
 import "#blue/registerTrinityEnums";
 
@@ -13,16 +13,16 @@ import "#blue/registerTrinityEnums";
  * zero. Sampling retains the existing instance child scratch; native sampling
  * uses local temporaries. Numeric tick overloads remain unimplemented.
  */
-@type.define({ className: "TriVectorSequencer", family: "curves" })
+@meta.define({ className: "TriVectorSequencer", family: "curves" })
 export class TriVectorSequencer extends ITriVectorFunction
 {
   /**
    * Authored name identifying the vector sequencer; native wide string.
    * @type {string}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.wstring
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.wstring
   name = "";
 
   /**
@@ -30,9 +30,9 @@ export class TriVectorSequencer extends ITriVectorFunction
    * does not apply it.
    * @type {number}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.int64
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int64
   start = 0;
 
   /**
@@ -40,9 +40,9 @@ export class TriVectorSequencer extends ITriVectorFunction
    * depend on the child functions and selected operator.
    * @type {Float32Array}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   value = vec3.create();
 
   /**
@@ -50,19 +50,19 @@ export class TriVectorSequencer extends ITriVectorFunction
    * values also take the average branch.
    * @type {number}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("blue.TRIOPERATOR")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("blue.TRIOPERATOR")
   operator = TRIOPERATOR.TRIOP_MULTIPLY;
 
   /**
    * Ordered child vector functions sampled and combined at the supplied time.
    * @type {BlueList<ITriVectorFunction>}
    */
-  @edit.read
-  @edit.persist
-  @type.list("ITriVectorFunction")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITriVectorFunction")
   functions = new BlueList(ITriVectorFunction, { className: null, listOps: 0 });
 
   /**
@@ -77,8 +77,8 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateValue(time)
   {
     const out = vec3.alloc();
@@ -99,8 +99,8 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(time, out)
   {
     this.GetValueAt(time, out);
@@ -118,8 +118,8 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValueAt(time, out)
   {
     if (this.operator === TRIOPERATOR.TRIOP_MULTIPLY) return this.GetValueAtMult(time, out);
@@ -135,8 +135,8 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValueAtMult(time, out)
   {
     vec3.set(out, 1, 1, 1);
@@ -155,8 +155,8 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValueAtAdd(time, out)
   {
     vec3.zero(out);
@@ -178,8 +178,8 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValueAtAverage(time, out)
   {
     vec3.zero(out);
@@ -199,8 +199,8 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValueDotAt(time, out)
   {
     vec3.zero(out);
@@ -219,8 +219,8 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValueDoubleDotAt(time, out)
   {
     vec3.zero(out);
@@ -239,8 +239,8 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   InterpolatedPosition(_time, out)
   {
     return out;
@@ -255,4 +255,4 @@ export class TriVectorSequencer extends ITriVectorFunction
 }
 
 // Native query table deliberately omits the concrete class.
-carbon.interfaceTable({ interfaces: [ITriFunction, ITriVectorFunction], chainTo: null })(TriVectorSequencer);
+meta.blue.interfaceTable({ interfaces: [ITriFunction, ITriVectorFunction], chainTo: null })(TriVectorSequencer);

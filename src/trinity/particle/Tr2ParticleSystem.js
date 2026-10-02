@@ -1,7 +1,7 @@
 import { IInitialize } from "../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Particle/Tr2ParticleSystem.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Failed } from "../../trinityal/ALResult.js";
 import { Tr2BufferDescriptionAL } from "../../trinityal/Tr2BufferAL/Tr2BufferDescriptionAL.js";
@@ -19,10 +19,10 @@ import { ITr2InstanceDataInstanceData, ITr2InstanceData } from "../core/mesh/ITr
 import { ITr2GenericEmitterUpdateArguments } from "./ITr2GenericEmitter/index.js";
 
 /** Owns a particle system's element declaration, CPU-side attribute buffers, and per-frame simulation of aging, forces, movement, constraints and bounds. */
-@type.define({ className: "Tr2ParticleSystem", family: "particle" })
-@carbon.inherit(ITr2InstanceData)
-@carbon.inherit(IInitialize)
-@carbon.mapInterface(IInitialize)
+@meta.define({ className: "Tr2ParticleSystem", family: "particle" })
+@meta.blue.inherit(ITr2InstanceData)
+@meta.blue.inherit(IInitialize)
+@meta.blue.mapInterface(IInitialize)
 export class Tr2ParticleSystem
 {
 
@@ -37,7 +37,7 @@ export class Tr2ParticleSystem
    * 350-378). Adapted: explicit JS teardown replaces native destructors and
    * clears views of the owned CPU buffers; device reset retains that data.
    */
-  @impl.custom
+  @meta.ours
   Destroy()
   {
     this.ReleaseResources();
@@ -56,8 +56,8 @@ export class Tr2ParticleSystem
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PrepareResources()
   {
     if (Tr2Renderer.IsResourceCreationAllowed() && !this.OnPrepareResources()) return false;
@@ -109,115 +109,115 @@ export class Tr2ParticleSystem
   _mappedData = null;
 
   /** m_elements (PTr2ParticleElementDeclarationVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("Tr2ParticleElementDeclaration")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2ParticleElementDeclaration")
   elements = [];
 
   /** m_isValid (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   isValid = false;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_constraints (PITr2GenericParticleConstraintVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("ITr2GenericParticleConstraint")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITr2GenericParticleConstraint")
   constraints = [];
 
   /** m_forces (PITr2ParticleForceVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("ITr2ParticleForce")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITr2ParticleForce")
   forces = [];
 
   /** m_emissionOnDeathEmitter (ITr2GenericEmitterPtr) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.model("ITr2GenericEmitter")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("ITr2GenericEmitter")
   emitParticleOnDeathEmitter = null;
 
   /** m_emissionWhileAliveEmitter (ITr2GenericEmitterPtr) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.model("ITr2GenericEmitter")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("ITr2GenericEmitter")
   emitParticleDuringLifeEmitter = null;
 
   /** m_applyForce (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   applyForce = true;
 
   /** m_applyAging (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   applyAging = true;
 
   /** m_isGlobal (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   isGlobal = false;
 
   /** m_updateSimulation (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   updateSimulation = true;
 
   /** m_requiresSorting (bool) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   requiresSorting = false;
 
   /** m_AabbMax (Vector3) [READ] */
-  @edit.read
-  @type.vec3
+  @meta.blue.read
+  @meta.type.vec3
   aabbMax = vec3.create();
 
   /** m_AabbMin (Vector3) [READ] */
-  @edit.read
-  @type.vec3
+  @meta.blue.read
+  @meta.type.vec3
   aabbMin = vec3.create();
 
   /** m_peakAliveCount (unsigned) [READ] */
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   peakAliveCount = 0;
 
   /** m_useSimTimeRebase (bool) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   useSimTimeRebase = false;
 
   /** m_maxParticleCount (unsigned) [PERSISTONLY] */
-  @edit.readwrite
-  @edit.persistOnly
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.blue.persistOnly
+  @meta.type.uint32
   maxParticleCount = 0;
 
   /** m_aliveCount (unsigned) [READ] */
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   aliveCount = 0;
 
   /** m_originalMaxParticles (unsigned) [READ] */
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   originalMaxParticles = 0;
 
   /**
@@ -225,7 +225,7 @@ export class Tr2ParticleSystem
    * particles. Typed arrays replace aligned CPU allocations; this retained
    * JS setter returns the new capacity and clears its cached empty bounds.
    */
-  @impl.adapted
+  @meta.adapted
   SetMaxParticleCount(value)
   {
     this._vertexBuffer?.Destroy();
@@ -251,14 +251,14 @@ export class Tr2ParticleSystem
   }
 
   /** Returns the currently active, possibly LOD-clamped particle budget. */
-  @impl.implemented
+  @meta.implemented
   GetMaxParticleCount()
   {
     return this.maxParticleCount;
   }
 
   /** Returns the particle budget captured when the declaration was built. */
-  @impl.implemented
+  @meta.implemented
   GetOriginalMaxParticles()
   {
     return this.originalMaxParticles;
@@ -268,14 +268,14 @@ export class Tr2ParticleSystem
    * Carbon allocates an insertion mutex; JavaScript simulation is single
    * threaded, so the contract is an exact no-op at this layer.
    */
-  @impl.noop
+  @meta.noop
   SetThreadSafeFlag()
   {
   }
 
   /** Carbon method ClearParticles (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ClearParticles()
   {
     this.aliveCount = 0;
@@ -284,9 +284,9 @@ export class Tr2ParticleSystem
   }
 
   /** Carbon method RebindConstraints (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JavaScript has no particle-system pointer binding; constraints receive the owning model directly.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JavaScript has no particle-system pointer binding; constraints receive the owning model directly.")
   RebindConstraints()
   {
     for (const constraint of this.constraints)
@@ -296,16 +296,16 @@ export class Tr2ParticleSystem
   }
 
   /** Carbon method SaveToCMF (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   SaveToCMF(...args)
   {
     throw new Error("Tr2ParticleSystem.SaveToCMF is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method SaveToGranny (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   SaveToGranny(...args)
   {
     throw new Error("Tr2ParticleSystem.SaveToGranny is not implemented in CarbonEngineJS.");
@@ -317,8 +317,8 @@ export class Tr2ParticleSystem
    * existing duplicate-name check; global dynamic-particle budgeting is not
    * ported. The AL owns the physical allocation, including in headless runs.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateElementDeclaration()
   {
     this.isValid = false;
@@ -416,8 +416,8 @@ export class Tr2ParticleSystem
    * follow Tr2ParticleSystem.cpp:615,713-726. Retained scratch replaces native
    * stack copies of pre-integration position/velocity for segment emission.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateSimulation(dt, updateArguments = Tr2ParticleSystem._defaultUpdateArguments)
   {
     if (!this.isValid)
@@ -534,7 +534,7 @@ export class Tr2ParticleSystem
    * cadence, preserves previous-frame data, and advances CPU particles.
    * JS timestamps are seconds; native sorting hysteresis uses that delta.
    */
-  @impl.adapted
+  @meta.adapted
   Update(globalArguments)
   {
     const argumentsValue = this._updateArguments;
@@ -582,7 +582,7 @@ export class Tr2ParticleSystem
   }
 
   /** Whether the vertex declaration is initialized (independent of buffer validity). */
-  @impl.implemented
+  @meta.implemented
   IsInstanceDataReady()
   {
     return this._declaration !== Tr2EffectStateManager.Unknown;
@@ -593,7 +593,7 @@ export class Tr2ParticleSystem
    * Adapted: JS reuses a mutable record; Carbon returns InstanceData by value
    * (Tr2ParticleSystem.cpp:306-309). Copy fields before retaining a snapshot.
    */
-  @impl.adapted
+  @meta.adapted
   GetInstanceData(_bufferIndex = 0, _screenSize = 0)
   {
     this._instanceData.buffer = this._vertexBuffer;
@@ -604,14 +604,14 @@ export class Tr2ParticleSystem
   }
 
   /** Returns Carbon's interned vertex declaration handle. */
-  @impl.implemented
+  @meta.implemented
   GetInstanceBufferVertexDeclaration(_bufferIndex = 0)
   {
     return this._declaration;
   }
 
   /** Returns the borrowed physical particle buffer (the index is unused). */
-  @impl.implemented
+  @meta.implemented
   GetGpuBuffer(_bufferIndex = 0)
   {
     return this._vertexBuffer;
@@ -621,7 +621,7 @@ export class Tr2ParticleSystem
    * Releases the AL allocation and declaration while retaining CPU particles.
    * JS explicitly destroys the handle instead of replacing a C++ RAII value.
    */
-  @impl.adapted
+  @meta.adapted
   ReleaseResources()
   {
     this._declaration = Tr2EffectStateManager.Unknown;
@@ -632,7 +632,7 @@ export class Tr2ParticleSystem
   }
 
   /** Recreates the declaration and buffer; Carbon reports true even if allocation fails. */
-  @impl.implemented
+  @meta.implemented
   OnPrepareResources()
   {
     this.RebuildDeclaration();
@@ -645,7 +645,7 @@ export class Tr2ParticleSystem
    * JS uses the context factory and explicitly releases the prior handle;
    * null represents the AL's failed/default buffer value.
    */
-  @impl.adapted
+  @meta.adapted
   CreateVertexBuffer()
   {
     if (this.maxParticleCount > 0 && this._strides[0] > 0)
@@ -668,7 +668,7 @@ export class Tr2ParticleSystem
    * JS sorts the element values because Map preserves insertion order rather
    * than Carbon's type/name key order, and uses the AL's named data types.
    */
-  @impl.adapted
+  @meta.adapted
   RebuildDeclaration()
   {
     const definition = new Tr2VertexDefinition();
@@ -702,7 +702,7 @@ export class Tr2ParticleSystem
   }
 
   /** Moves POSITION and VELOCITY to four-float slots at the front of their streams. */
-  @impl.implemented
+  @meta.implemented
   EnsureAligned()
   {
     const position = this._semanticElements[Tr2ParticleElementDeclaration.Type.POSITION];
@@ -725,7 +725,7 @@ export class Tr2ParticleSystem
   }
 
   /** Shifts offsets at or after start; semantic and map entries share the same JS record. */
-  @impl.adapted
+  @meta.adapted
   ShiftOffsets(bufferType, start, shift)
   {
     for (const element of this._runtimeElements)
@@ -738,7 +738,7 @@ export class Tr2ParticleSystem
   }
 
   /** Returns the current particle bounds, or Carbon's zero box when empty. */
-  @impl.adapted
+  @meta.adapted
   GetInstanceBufferBoundingBox(_bufferIndex = 0)
   {
     if (this.aliveCount > 0)
@@ -759,7 +759,7 @@ export class Tr2ParticleSystem
    * true; validity is queried separately. JS omits native rebase registration
    * and emitter insertion mutexes, which are not part of this render path.
    */
-  @impl.adapted
+  @meta.adapted
   Initialize()
   {
     this.UpdateElementDeclaration();
@@ -771,7 +771,7 @@ export class Tr2ParticleSystem
   /**
    * The map of resolved runtime elements, keyed by semantic or custom name.
    */
-  @impl.implemented
+  @meta.implemented
   GetElementDeclaration()
   {
     return this._elementMap;
@@ -780,7 +780,7 @@ export class Tr2ParticleSystem
   /**
    * A counter that increments each time the element declaration is rebuilt, so a consumer can detect a stale binding.
    */
-  @impl.implemented
+  @meta.implemented
   GetElementDeclarationHash()
   {
     return this._declarationHash;
@@ -789,7 +789,7 @@ export class Tr2ParticleSystem
   /**
    * Whether an element of the given semantic type or name is present in the current declaration.
    */
-  @impl.implemented
+  @meta.implemented
   HasElement(type)
   {
     return !!this._ResolveElement(type);
@@ -798,7 +798,7 @@ export class Tr2ParticleSystem
   /**
    * Resolves the runtime element matching a semantic type index or element name.
    */
-  @impl.adapted
+  @meta.adapted
   GetElement(type)
   {
     return this._ResolveElement(type);
@@ -814,7 +814,7 @@ export class Tr2ParticleSystem
    * the peak-count update until EndSpawnParticle; these existing API behaviors
    * are preserved rather than claimed as native insertion parity.
    */
-  @impl.adapted
+  @meta.adapted
   BeginSpawnParticle()
   {
     if (!this.isValid || this.aliveCount >= this.maxParticleCount)
@@ -833,7 +833,7 @@ export class Tr2ParticleSystem
    * DoneInsertingParticle (cpp:1323) releases the insertion mutex instead.
    * JS performs these writes synchronously without that native mutex.
    */
-  @impl.adapted
+  @meta.adapted
   EndSpawnParticle()
   {
     this.peakAliveCount = Math.max(this.peakAliveCount, this.aliveCount);
@@ -842,7 +842,7 @@ export class Tr2ParticleSystem
   /**
    * Reserves a new particle slot and writes each supplied attribute into its matching element buffer.
    */
-  @impl.adapted
+  @meta.adapted
   SpawnParticle(values = {})
   {
     const index = this.BeginSpawnParticle();
@@ -869,7 +869,7 @@ export class Tr2ParticleSystem
    * Writes a scalar or vector into a resolved element. This existing JS
    * script setter marks data dirty like Carbon's constraint-write path.
    */
-  @impl.adapted
+  @meta.adapted
   SetParticleElement(index, type, value)
   {
     const element = this._ResolveElement(type);
@@ -897,7 +897,7 @@ export class Tr2ParticleSystem
   /**
    * A view onto one particle's stored values for the resolved element, or null when unresolved or out of range.
    */
-  @impl.adapted
+  @meta.adapted
   GetParticleElement(index, type)
   {
     const element = this._ResolveElement(type);
@@ -907,7 +907,7 @@ export class Tr2ParticleSystem
   /**
    * Copies the tracked axis-aligned bounds into the caller's vectors, reporting false when no particles are alive.
    */
-  @impl.implemented
+  @meta.implemented
   GetBoundingBox(outMin = vec3.create(), outMax = vec3.create())
   {
     if (this.aliveCount === 0)
@@ -924,8 +924,8 @@ export class Tr2ParticleSystem
    * sorting visibility state from the current CPU bounds. JS uses gl-matrix
    * vectors with Carbon-identical single-transform layout.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateViewDependentData(frustum, worldTransform)
   {
     this._shouldSortVisible = false;
@@ -975,7 +975,7 @@ export class Tr2ParticleSystem
    * gl-matrix returns null for a singular inverse, so NaNs explicitly retain
    * invalid coordinates instead of reusing a stale inverse.
    */
-  @impl.adapted
+  @meta.adapted
   SortParticles()
   {
     if (!this._bufferDirty && !this.requiresSorting) return;
@@ -1032,7 +1032,7 @@ export class Tr2ParticleSystem
   }
 
   /** Compares squared local-space xyz distances, with Carbon's farther-first boolean result. */
-  @impl.implemented
+  @meta.implemented
   CompareParticles(particle1, particle2)
   {
     const position = this._semanticElements[Tr2ParticleElementDeclaration.Type.POSITION];
@@ -1046,8 +1046,8 @@ export class Tr2ParticleSystem
   }
 
   /** Copies the owning world transform without evaluating view state. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateTransform(worldTransform)
   {
     mat4.copy(this._worldTransform, worldTransform);

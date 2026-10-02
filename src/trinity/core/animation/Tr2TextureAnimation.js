@@ -2,7 +2,7 @@ import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Tr2TextureAnimation.h
 // Source: trinity/trinity/Tr2TextureAnimation.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { blue } from "#blue";
 import { BitmapDimensions } from "#imageio";
 import { GetBytesPerPixel, PixelFormat, PixelFormatFromCanonical, TextureType, Tr2GpuUsage, Tr2CpuUsage } from "#consts/render-context";
@@ -12,9 +12,9 @@ import { Tr2TextureSubresource } from "../../../trinityal/Tr2HalHelperStructures
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 
 /** Advances a multi-channel texture flipbook, tracking frame and restart state per channel. */
-@type.define({ className: "Tr2TextureAnimation", family: "trinityCore" })
-@carbon.inherit(IInitialize)
-@carbon.mapInterface(IInitialize)
+@meta.define({ className: "Tr2TextureAnimation", family: "trinityCore" })
+@meta.blue.inherit(IInitialize)
+@meta.blue.mapInterface(IInitialize)
 export class Tr2TextureAnimation
 {
   _channels = new Map();
@@ -25,38 +25,38 @@ export class Tr2TextureAnimation
 
   _restartState = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   fps = 1;
 
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   frame = 0;
 
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   time = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   paused = false;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   updateOnlyWhenRendered = true;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   resPath = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   looped = true;
 
   /**
@@ -65,8 +65,8 @@ export class Tr2TextureAnimation
    * Adapted: Schedules promise-based reads and decoding instead of native queues.
    * @returns {boolean} True; asynchronous failures are reported by the load task.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Initialize()
   {
     this.ReadData();
@@ -79,8 +79,8 @@ export class Tr2TextureAnimation
    * Adapted: Uses promise-based resource reads instead of a native worker queue.
    * @returns {boolean} True.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnModified()
   {
     this.ReadData();
@@ -97,8 +97,8 @@ export class Tr2TextureAnimation
    * still bind one, since the parameter invalidates only on an `animation` edit.
    * @returns {Promise<boolean>} Whether the initial frame decoded successfully.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   ReadData()
   {
     this._clear();
@@ -119,8 +119,8 @@ export class Tr2TextureAnimation
    * because files are always fetched and never limited to a local low-detail install.
    * @returns {object} Request record.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   MakeRequest()
   {
     this._asyncState.bitmapsReady = false;
@@ -136,8 +136,8 @@ export class Tr2TextureAnimation
    * @param {number} dt Elapsed seconds.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   AdvanceTime(dt)
   {
     const state = this._asyncState;
@@ -227,8 +227,8 @@ export class Tr2TextureAnimation
    * Adapted: Calls the active AL backend through the ambient render context.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateGrids()
   {
     const context = Tr2RenderContext_GetMainThreadRenderContext();
@@ -251,8 +251,8 @@ export class Tr2TextureAnimation
    * retain their synchronous Restart/Reset adapter behavior when no VTA is loaded.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RestartAnimation()
   {
     if (!this._asyncState)
@@ -286,8 +286,8 @@ export class Tr2TextureAnimation
    * Adapted: Returns a JavaScript array instead of a vector of shared strings.
    * @returns {string[]} Channel names.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetChannelNames()
   {
     return this._asyncState ? this._grids.map(grid => grid.name) : Array.from(this._channels.keys());
@@ -300,8 +300,8 @@ export class Tr2TextureAnimation
    * @param {string} channel Channel name.
    * @returns {object|null} Texture handle.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetTexture(channel)
   {
     if (this._asyncState)
@@ -313,8 +313,8 @@ export class Tr2TextureAnimation
   }
 
   /** @returns {boolean} Whether the owner should advance only when rendered. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateOnlyWhenRendered()
   {
     return this.updateOnlyWhenRendered;
@@ -328,7 +328,7 @@ export class Tr2TextureAnimation
    * @param {Map<string, object>|Object<string, object>} channels Channel adapters.
    * @returns {void}
    */
-  @impl.custom
+  @meta.ours
   SetChannels(channels)
   {
     this._clear();
@@ -349,7 +349,7 @@ export class Tr2TextureAnimation
    * reclaims it after the last reference drops.
    * @returns {void}
    */
-  @impl.custom
+  @meta.ours
   Destroy()
   {
     this._clear();
@@ -397,8 +397,8 @@ export class Tr2TextureAnimation
    * @param {object} request Captured load request.
    * @returns {Promise<void>} Completion of the first decode.
    */
-  @carbon.renamed("ReadFile")
-  @impl.adapted
+  @meta.blue.renamed("ReadFile")
+  @meta.adapted
   static async readFile(request)
   {
     const bytes = await blue.resMan.ReadResource(request.filename);
@@ -413,8 +413,8 @@ export class Tr2TextureAnimation
    * @param {object} request Captured load request.
    * @returns {Promise<void>} Decode completion.
    */
-  @carbon.renamed("DecodeFirstFrame")
-  @impl.adapted
+  @meta.blue.renamed("DecodeFirstFrame")
+  @meta.adapted
   static async decodeFirstFrame(request)
   {
     request.state.decoder = CjsVtaFormat.readFrames(request.state.bytes);
@@ -427,8 +427,8 @@ export class Tr2TextureAnimation
    * @param {object} request Captured load request.
    * @returns {Promise<void>} Decode completion.
    */
-  @carbon.renamed("DecodeNextFrame")
-  @impl.adapted
+  @meta.blue.renamed("DecodeNextFrame")
+  @meta.adapted
   static async decodeNextFrame(request)
   {
     const state = request.state;
@@ -451,8 +451,8 @@ export class Tr2TextureAnimation
    * @param {object} request Captured load request.
    * @returns {Promise<void>} Decode completion.
    */
-  @carbon.renamed("RestartAndDecodeFrame")
-  @impl.adapted
+  @meta.blue.renamed("RestartAndDecodeFrame")
+  @meta.adapted
   static async restartAndDecodeFrame(request)
   {
     await this.decodeFirstFrame(request);

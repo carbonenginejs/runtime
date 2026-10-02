@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2VolumetricsRenderer.h
 // Source: trinity/trinity/Tr2VolumetricsRenderer.cpp
 // Source: trinity/trinity/Tr2VolumetricsRenderer_Blue.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { Tr2VolumerticQuality } from "../../generated/trinityCore/enums.js";
@@ -21,92 +21,92 @@ const FOG_COLOR_SCRATCH = vec3.create();
  * Physical fog/volumetric textures, passes and environment-map realization
  * remain explicit engine obligations.
  */
-@type.define({ className: "Tr2VolumetricsRenderer", family: "trinityCore" })
+@meta.define({ className: "Tr2VolumetricsRenderer", family: "trinityCore" })
 export class Tr2VolumetricsRenderer
 {
-  @edit.readwrite
-  @type.int32
-  @type.enum("trinity.Tr2VolumerticQuality")
+  @meta.blue.readwrite
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2VolumerticQuality")
   quality = Tr2VolumerticQuality.High;
 
-  @edit.read
-  @type.objectRef("Tr2TextureReference")
+  @meta.blue.read
+  @meta.type.objectRef("Tr2TextureReference")
   mieEnvironmentMap = new Tr2TextureReference();
 
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   blur = true;
 
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   logBlending = true;
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   gameBackClip = 1e6;
 
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   backgroundVisibility = 0;
 
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   thickness = 0;
 
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   environmentDirectionality = 0;
 
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   lightDirectionality = 0;
 
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   godRayNoiseAnimationSpeed = 0;
 
-  @edit.read
-  @type.vec3
+  @meta.blue.read
+  @meta.type.vec3
   fogNoiseMovementSpeed = vec3.create();
 
-  @edit.read
-  @type.color
+  @meta.blue.read
+  @meta.type.color
   fogColor = vec4.create();
 
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   godRayNoiseFrequency = 0;
 
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   fogNoiseFrequency = 0;
 
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   godRayNoiseIntensity = 0;
 
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   fogNoiseIntensity = 0;
 
-  @edit.readwrite
-  @type.float64
+  @meta.blue.readwrite
+  @meta.type.float64
   logBlendingSmoothness = 4;
 
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   environmentIntensity = 0;
 
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   castShadows = false;
 
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   receiveShadows = false;
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   scaleFactor = 0.7;
 
   #godRayNoiseAnimation = 0;
@@ -136,9 +136,9 @@ export class Tr2VolumetricsRenderer
    * `AccumulatePriorityAttribute`. With `logBlending`, thickness is blended in
    * log space and converted back.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The Eve component registry is supplied directly; Carbon's realized 64-deep noise texture becomes its fixed animation-depth constant while physical noise storage is not ported yet.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("The Eve component registry is supplied directly; Carbon's realized 64-deep noise texture becomes its fixed animation-depth constant while physical noise storage is not ported yet.")
   UpdateFogSettings(registry, updateContext)
   {
     const settings = Array.from(registry.GetComponents(FROXEL_FOG_COMPONENT), component =>
@@ -181,17 +181,17 @@ export class Tr2VolumetricsRenderer
   }
 
   /** Reports whether the blended fog thickness is strictly positive. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HasFog()
   {
     return this.thickness > 0;
   }
 
   /** Writes the inline FroxelPerFrameData fields into canonical RawData. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon writes an inline constant struct; Trinity writes the same terminal scalar/vector bytes through the canonical RawData layout.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon writes an inline constant struct; Trinity writes the same terminal scalar/vector bytes through the canonical RawData layout.")
   PopulatePerFrameData(out)
   {
     FOG_COLOR_SCRATCH[0] = this.fogColor[0];
@@ -210,8 +210,8 @@ export class Tr2VolumetricsRenderer
   }
 
   /** Applies Carbon's four quality presets. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetQuality(quality)
   {
     this.quality = quality;
@@ -241,9 +241,9 @@ export class Tr2VolumetricsRenderer
   }
 
   /** Copies the two planet spheres used by the fog shader. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon asserts a two-sphere span and memcpy-copies it; JavaScript throws RangeError and copies the two vec4 records.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon asserts a two-sphere span and memcpy-copies it; JavaScript throws RangeError and copies the two vec4 records.")
   SetPlanets(planets)
   {
     if (!planets || planets.length !== 2)
@@ -255,24 +255,24 @@ export class Tr2VolumetricsRenderer
   }
 
   /** Stores the sun angle consumed by later fog constant production. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetSunAngle(angle)
   {
     this.#sunAngle = angle;
   }
 
   /** Returns the wrapped 0..1 god-ray noise phase and the upload is not ported yet. */
-  @impl.custom
-  @impl.reason("Engines need Carbon's private CPU-produced phase without owning or recomputing its update policy.")
+  @meta.ours
+  @meta.reason("Engines need Carbon's private CPU-produced phase without owning or recomputing its update policy.")
   GetGodRayNoiseAnimation()
   {
     return this.#godRayNoiseAnimation;
   }
 
   /** Copies Carbon's accumulated double-precision fog-noise movement. */
-  @impl.custom
-  @impl.reason("Engines consume the CPU-produced movement but do not advance it independently.")
+  @meta.ours
+  @meta.reason("Engines consume the CPU-produced movement but do not advance it independently.")
   GetFogNoiseMovement(out)
   {
     out[0] = this.#fogNoiseMovement[0];
@@ -282,16 +282,16 @@ export class Tr2VolumetricsRenderer
   }
 
   /** Returns the scene-produced sun angle used by fog realization. */
-  @impl.custom
-  @impl.reason("Carbon stores this as private renderer state; the split needs an explicit read boundary.")
+  @meta.ours
+  @meta.reason("Carbon stores this as private renderer state; the split needs an explicit read boundary.")
   GetSunAngle()
   {
     return this.#sunAngle;
   }
 
   /** Copies one of the two scene-selected planet spheres. */
-  @impl.custom
-  @impl.reason("Carbon's physical fog pass reads private planet state; the engine executor receives it through this checked copy boundary.")
+  @meta.ours
+  @meta.reason("Carbon's physical fog pass reads private planet state; the engine executor receives it through this checked copy boundary.")
   GetPlanet(index, out)
   {
     if (index !== 0 && index !== 1)
@@ -314,9 +314,9 @@ export class Tr2VolumetricsRenderer
    *
    * @returns {object} Never; see above.
    */
-  @carbon.method
-  @impl.notImplemented
-  @impl.reason("Carbon's froxel compute and raymarch passes (Tr2VolumetricsRenderer.cpp:152-493) have no JS counterpart.")
+  @meta.blue.method
+  @meta.notImplemented
+  @meta.reason("Carbon's froxel compute and raymarch passes (Tr2VolumetricsRenderer.cpp:152-493) have no JS counterpart.")
   RenderVolumetrics()
   {
     throw new Error("Tr2VolumetricsRenderer.RenderVolumetrics: the froxel passes are unported.");
@@ -338,9 +338,9 @@ export class Tr2VolumetricsRenderer
    * @param {object} _gpuResourcePool The pool to borrow from.
    * @returns {object} Never; see above.
    */
-  @carbon.method
-  @impl.notImplemented
-  @impl.reason("Tr2GpuResourcePool's description carries no texture type or slice count, and no initial subresource data, so a 2D array of four slices cannot be asked for.")
+  @meta.blue.method
+  @meta.notImplemented
+  @meta.reason("Tr2GpuResourcePool's description carries no texture type or slice count, and no initial subresource data, so a 2D array of four slices cannot be asked for.")
   static GetEmptyVolumetricTexture(_gpuResourcePool)
   {
     throw new Error(
@@ -362,9 +362,9 @@ export class Tr2VolumetricsRenderer
    *
    * @returns {object} Never; see above.
    */
-  @carbon.method
-  @impl.notImplemented
-  @impl.reason("Carbon's fog passes (Tr2VolumetricsRenderer.cpp:494-554) have no JS counterpart.")
+  @meta.blue.method
+  @meta.notImplemented
+  @meta.reason("Carbon's fog passes (Tr2VolumetricsRenderer.cpp:494-554) have no JS counterpart.")
   RenderFog()
   {
     throw new Error("Tr2VolumetricsRenderer.RenderFog: the fog passes are unported.");
@@ -383,9 +383,9 @@ export class Tr2VolumetricsRenderer
    *
    * @returns {object} Never; see above.
    */
-  @carbon.method
-  @impl.notImplemented
-  @impl.reason("Carbon's reflection-map fog pass (Tr2VolumetricsRenderer.cpp:519-554) has no JS counterpart.")
+  @meta.blue.method
+  @meta.notImplemented
+  @meta.reason("Carbon's reflection-map fog pass (Tr2VolumetricsRenderer.cpp:519-554) has no JS counterpart.")
   RenderFogIntoReflectionMap()
   {
     throw new Error("Tr2VolumetricsRenderer.RenderFogIntoReflectionMap: the fog passes are unported.");
@@ -407,9 +407,9 @@ export class Tr2VolumetricsRenderer
    * @param {object} _gpuResourcePool The pool to borrow from.
    * @returns {object} Never; see above.
    */
-  @carbon.method
-  @impl.notImplemented
-  @impl.reason("Tr2GpuResourcePool's description carries no texture type or initial subresource data, so a 3D texture cannot be asked for.")
+  @meta.blue.method
+  @meta.notImplemented
+  @meta.reason("Tr2GpuResourcePool's description carries no texture type or initial subresource data, so a 3D texture cannot be asked for.")
   static GetEmptyFogTexture(_gpuResourcePool)
   {
     throw new Error(
@@ -427,9 +427,9 @@ export class Tr2VolumetricsRenderer
    *
    * @returns {void} Never returns; see above.
    */
-  @carbon.method
-  @impl.notImplemented
-  @impl.reason("Needs the fog pass machinery, which is unported.")
+  @meta.blue.method
+  @meta.notImplemented
+  @meta.reason("Needs the fog pass machinery, which is unported.")
   UpdateFogEnvironmentMap()
   {
     throw new Error("Tr2VolumetricsRenderer.UpdateFogEnvironmentMap: the fog passes are unported.");
@@ -442,8 +442,8 @@ export class Tr2VolumetricsRenderer
    * (`Tr2VolumetricsRenderer.cpp`, one line). The port had grown a
    * `renderContext` parameter that existed only to reach an executor.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateVariableStore()
   {
     Tr2VariableStore.globalStore().RegisterVariable("EveSceneMieEnvironmentMap", this.mieEnvironmentMap);
@@ -457,9 +457,9 @@ export class Tr2VolumetricsRenderer
    *
    * @returns {void} Never returns; see above.
    */
-  @carbon.method
-  @impl.notImplemented
-  @impl.reason("Needs the volumetric pass machinery, which is unported.")
+  @meta.blue.method
+  @meta.notImplemented
+  @meta.reason("Needs the volumetric pass machinery, which is unported.")
   RenderShadows()
   {
     throw new Error("Tr2VolumetricsRenderer.RenderShadows: the volumetric passes are unported.");

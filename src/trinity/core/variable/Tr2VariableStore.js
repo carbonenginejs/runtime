@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2VariableStore.h
 // Source: trinity/trinity/Tr2VariableStore.cpp
 // Source: trinity/trinity/Tr2VariableStore_Blue.cpp
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { TriVariable } from "./TriVariable.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
@@ -38,9 +38,9 @@ export class Tr2VariableStore
    * @returns {Tr2VariableStore|null} Parent searched after local lookup.
    */
   @meta.property()
-  @meta.edit.readwrite
-  @types.objectRef("Tr2VariableStore")
-  @meta.impl.implemented
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2VariableStore")
+  @meta.implemented
   get parentStore()
   {
     return this.GetParentVariableStore();
@@ -51,7 +51,7 @@ export class Tr2VariableStore
    * @param {Tr2VariableStore|null} value New parent store.
    * @returns {void}
    */
-  @meta.impl.implemented
+  @meta.implemented
   set parentStore(value)
   {
     this.SetParentVariableStore(value);
@@ -74,8 +74,8 @@ export class Tr2VariableStore
    * which is the root.
    * @returns {Tr2VariableStore|null} Current parent.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetParentVariableStore()
   {
     return this.parentVariableStore;
@@ -89,8 +89,8 @@ export class Tr2VariableStore
    * @param {Tr2VariableStore|null} variableStore Next store searched.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetParentVariableStore(variableStore)
   {
     if (this === Tr2VariableStore.globalStore())
@@ -113,8 +113,8 @@ export class Tr2VariableStore
    * @param {*} [value] Optional script value; nullish values reserve the name.
    * @returns {TriVariable|null} Registered variable, or unsupported type/conflict.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RegisterVariable(name, value = undefined)
   {
     if (value === undefined || value === null)
@@ -136,8 +136,8 @@ export class Tr2VariableStore
    * @param {string} name Variable name to remove.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UnregisterVariable(name)
   {
     let store = this;
@@ -159,8 +159,8 @@ export class Tr2VariableStore
    * @param {string|null} name Local key to remove.
    * @returns {boolean} Whether an entry was removed.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UnregisterLocalVariable(name)
   {
     const key = String(name ?? "");
@@ -179,8 +179,8 @@ export class Tr2VariableStore
    * @param {string} name Variable name to search.
    * @returns {TriVariable|null} First matching local or ancestor variable.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   FindVariable(name)
   {
     let store = this;
@@ -203,8 +203,8 @@ export class Tr2VariableStore
    * @param {string|null} name Local key to search.
    * @returns {TriVariable|null} Existing local variable.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   FindLocalVariable(name)
   {
     return this._variables.get(String(name ?? "")) ?? null;
@@ -216,8 +216,8 @@ export class Tr2VariableStore
    * @param {string} name Variable name to find or reserve.
    * @returns {TriVariable} Matching variable or a new local reservation.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetVariable(name)
   {
     const found = this.FindVariable(name);
@@ -236,8 +236,8 @@ export class Tr2VariableStore
    * @param {string|null} name Local key to find or reserve.
    * @returns {TriVariable} Existing or reserved local variable.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetLocalVariable(name)
   {
     return this.FindLocalVariable(name) ?? this._CreateReserved(name);
@@ -249,8 +249,8 @@ export class Tr2VariableStore
    * native unordered-map iteration order.
    * @returns {string[]} Local names in insertion order.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetLocalNames()
   {
     return [...this._variables.values()].map(variable => variable.GetName());
@@ -269,7 +269,7 @@ export class Tr2VariableStore
    * @param {number} contentType Native TriVariableContentType.
    * @returns {TriVariable|null} Reused or created variable, or type conflict.
    */
-  @meta.impl.adapted
+  @meta.adapted
   _RegisterVariableType(name, contentType)
   {
     const existing = this.FindLocalVariable(name);
@@ -295,7 +295,7 @@ export class Tr2VariableStore
    * @param {string} name Local key to reserve.
    * @returns {TriVariable} Newly reserved variable.
    */
-  @meta.impl.custom
+  @meta.ours
   _CreateReserved(name)
   {
     return this._CreateLocal(name, TriVariableContentType.TRIVARIABLE_INVALID);
@@ -310,7 +310,7 @@ export class Tr2VariableStore
    * @param {number} contentType Native TriVariableContentType.
    * @returns {TriVariable} Newly created local variable.
    */
-  @meta.impl.custom
+  @meta.ours
   _CreateLocal(name, contentType)
   {
     const variable = new TriVariable();
@@ -343,7 +343,7 @@ export class Tr2VariableStore
    * @param {Tr2VariableStore} [store] The new root; a fresh store when omitted.
    * @returns {Tr2VariableStore} The store now acting as the root.
    */
-  @meta.impl.custom
+  @meta.ours
   static setGlobalStore(store = null)
   {
     if (store)
@@ -366,7 +366,7 @@ export class Tr2VariableStore
    * without the protected-constructor overload.
    * @returns {Tr2VariableStore} Process-global store.
    */
-  @meta.impl.adapted
+  @meta.adapted
   static globalStore()
   {
     if (!Tr2VariableStore._global)
@@ -385,4 +385,4 @@ export class Tr2VariableStore
   }
 }
 
-meta.carbon.interfaceTable({ interfaces: [Tr2VariableStore], chainTo: null })(Tr2VariableStore);
+meta.blue.interfaceTable({ interfaces: [Tr2VariableStore], chainTo: null })(Tr2VariableStore);

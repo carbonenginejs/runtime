@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter_Blue.cpp
 import { isArrayLike } from "#utils/is";
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { ResetBehavior } from "../enums.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
@@ -23,28 +23,28 @@ export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
    * @type {string}
    */
   @meta.member("locatorSetName")
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   locatorSetName = "";
 
   /** Locator index; the existing adapter selects randomly for negative values.
    * @type {number}
    */
   @meta.member("locatorIndex")
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   locatorIndex = -1;
 
   /** Authored reset mode; preserves the existing ResetBehavior identity.
    * @type {number}
    */
   @meta.member("resetBehavior")
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.int32
-  @types.enum("trinity.Tr2ActionResetClipSphereCenter.ResetBehavior")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2ActionResetClipSphereCenter.ResetBehavior")
   resetBehavior = ResetBehavior.OBJECT_CENTER;
 
   /**
@@ -56,8 +56,8 @@ export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
    * and unknown modes follow the custom locator path instead of native default
    * object-center reset. Those behavior migrations require a separate owner pass.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Start(controller)
   {
     const owner = ITr2ControllerAction.getOwner(controller);
@@ -108,7 +108,7 @@ export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
    * each locator's position. This adapter also accepts locatorSets data, skips
    * empty sets, and uses Math.random rather than the native rand() stream.
    */
-  @meta.impl.custom
+  @meta.ours
   static _resolveLocatorPosition(owner, setName, index)
   {
     const locators = ITr2ControllerAction.callTarget(owner, "GetLocatorsForSet", setName) ?? (ITr2ControllerAction.hasProperty(owner, "locatorSets") && Array.isArray(owner.locatorSets) ? owner.locatorSets.find(set => ITr2ControllerAction.hasProperty(set, "name") && set.name === setName)?.locators : null);
@@ -135,7 +135,7 @@ export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
    * Custom: retained coercion for the JavaScript owner adapter; Carbon consumes
    * the int returned by EveSpaceObject2::GetLastDamageLocatorHit directly.
    */
-  @meta.impl.custom
+  @meta.ours
   static _toIndex(value, fallback)
   {
     const number = Number(value);
@@ -151,7 +151,7 @@ export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionResetClipSphereCenter_Blue.cpp:21-22,26).
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [Tr2ActionResetClipSphereCenter, ITr2ControllerAction],
   chainTo: null
 })(Tr2ActionResetClipSphereCenter);

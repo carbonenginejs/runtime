@@ -1,6 +1,6 @@
 // Source: trinity/trinityal/include/Tr2ResourceSetAL.h:129
 // Source: trinity/trinityal/src/Tr2ResourceSetAL.cpp:547-607
-import { impl } from "#schema";
+import { meta } from "#schema";
 import { ALResult, Failed } from "../ALResult.js";
 import { Tr2ALMemoryType } from "#consts/graphics";
 
@@ -32,8 +32,8 @@ export class Tr2ResourceSetAL
    * Creates a backend-selected resource set and replaces this handle's shared
    * ownership record.
    */
-  @impl.adapted
-  @impl.reason("Context allocation replaces the compile-time platform include. The final raytracing selector replaces the C++ pipeline overload; neither JS backend supports it. Shared ownership is explicitly released.")
+  @meta.adapted
+  @meta.reason("Context allocation replaces the compile-time platform include. The final raytracing selector replaces the C++ pipeline overload; neither JS backend supports it. Shared ownership is explicitly released.")
   Create(description, program, renderContext, raytracing = false)
   {
     this.Destroy();
@@ -65,8 +65,8 @@ export class Tr2ResourceSetAL
   }
 
   /** Resets this handle while allowing other owners to retain its implementation. */
-  @impl.adapted
-  @impl.reason("JavaScript has no scope destructor. Existing effect teardown resets this handle explicitly; shared copies retain the backend until their final explicit reset.")
+  @meta.adapted
+  @meta.reason("JavaScript has no scope destructor. Existing effect teardown resets this handle explicitly; shared copies retain the backend until their final explicit reset.")
   Destroy()
   {
     const owned = this.m_resourceSet;

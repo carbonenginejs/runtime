@@ -1,10 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerInterval.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 
 /** Spawns distribution entities at configurable, optionally randomized intervals for a bounded or unlimited repeat count. */
-@type.define({ className: "EveDistributionSpawnerInterval", family: "eve/distribution/spawners" })
+@meta.define({ className: "EveDistributionSpawnerInterval", family: "eve/distribution/spawners" })
 export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
 {
 
@@ -13,38 +13,38 @@ export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
   _numTriggered = 0;
 
   /** m_delayBetweenRepeats (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   delayBetweenRepeats = 1;
 
   /** m_numberOfTriggers (uint32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   numberOfRepeats = 0;
 
   /** m_useRandomStartOffset (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   useRandomStartOffset = true;
 
   /** m_maxRandomizedIntervalDelta (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxRandomizedIntervalDelta = 0;
 
   /** m_delayBeforeInitialSpawn (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   delayBeforeInitialSpawn = 0;
 
   /** Restarts the interval timer; the placement pool is not used by this spawner. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Reset(_placements)
   {
     this.Restart();
@@ -55,8 +55,8 @@ export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
    * random point inside one interval and backing the timer off by the initial
    * spawn delay.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Restart()
   {
     this._localTimer = this.useRandomStartOffset ? Math.random() * this.delayBetweenRepeats : 0;
@@ -69,8 +69,8 @@ export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
    * numberOfRepeats (unlimited when it is zero), reseeding the timer with a
    * randomized interval delta.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateSyncronous(updateContext, _params, owner)
   {
     if (this.numberOfRepeats !== 0 && this._numTriggered >= this.numberOfRepeats)
@@ -89,8 +89,8 @@ export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
   }
 
   /** Ignores controller variables; the interval is purely time-driven. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetControllerVariable(_name, _value)
   {
   }

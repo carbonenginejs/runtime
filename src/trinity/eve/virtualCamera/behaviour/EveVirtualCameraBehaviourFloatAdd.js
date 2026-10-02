@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveVirtualCameraBehaviourFloatBase } from "./EveVirtualCameraBehaviourFloatBase.js";
 
 
@@ -8,20 +8,20 @@ import { EveVirtualCameraBehaviourFloatBase } from "./EveVirtualCameraBehaviourF
  * Float behaviour that adds an authored constant, optionally shaped across the
  * timeline by a scale curve.
  */
-@type.define({
+@meta.define({
   className: "EveVirtualCameraBehaviourFloatAdd",
   family: "eve/virtualCamera/behaviour"
 })
 export class EveVirtualCameraBehaviourFloatAdd extends EveVirtualCameraBehaviourFloatBase
 {
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2CurveScalar")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2CurveScalar")
   scaleCurve = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   value = 0;
 
   /**
@@ -35,8 +35,8 @@ export class EveVirtualCameraBehaviourFloatAdd extends EveVirtualCameraBehaviour
   }
 
   /** Sets the behaviour name and renames the owned scale curve to match. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetName(name)
   {
     super.SetName(name);
@@ -47,8 +47,8 @@ export class EveVirtualCameraBehaviourFloatAdd extends EveVirtualCameraBehaviour
    * Returns the authored value, scaled by the scale curve at normalized timeline
    * time when one is set, and returned as-is when it is not.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(camera, _current, _deltaTime, localElapsedTime)
   {
     if (!this.scaleCurve)

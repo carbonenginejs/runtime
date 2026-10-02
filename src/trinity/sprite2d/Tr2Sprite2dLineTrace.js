@@ -1,68 +1,68 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLineTrace.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLineTrace_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; portable value helpers are maintained here.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2TexturedSpriteObject } from "../generated/sprite2d/Tr2TexturedSpriteObject.js";
 import { Tr2Sprite2dLineTraceVertex } from "./Tr2Sprite2dLineTraceVertex.js";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
 
 /** Stores editable Sprite2D line-strip vertices and validates wrapped append input. */
-@type.define({ className: "Tr2Sprite2dLineTrace", family: "sprite2d" })
+@meta.define({ className: "Tr2Sprite2dLineTrace", family: "sprite2d" })
 export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
 {
 
   /** m_cornerType (int) [READWRITE, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @type.int32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.int32
   cornerType = 0;
 
   /** m_isLoop (bool) [READWRITE, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.boolean
   isLoop = false;
 
   /** m_textureOffset (float) [READWRITE, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.float32
   textureOffset = 0;
 
   /** m_end (float) [READWRITE, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.float32
   end = 1;
 
   /** m_start (float) [READWRITE, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.float32
   start = 0;
 
   /** m_vertices (PTr2Sprite2dLineTraceVertexVector) [READ, NOTIFY] */
-  @edit.notify
-  @edit.read
-  @type.list("Tr2Sprite2dLineTraceVertex")
+  @meta.blue.notify
+  @meta.blue.read
+  @meta.type.list("Tr2Sprite2dLineTraceVertex")
   vertices = [];
 
   /** m_lineWidth (float) [READWRITE, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.float32
   lineWidth = 1;
 
   /** m_textureWidth (float) [READWRITE, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.float32
   textureWidth = 1;
 
   /** Carbon method AppendVertices -> PyAppendVertices (MAP_METHOD). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   AppendVertices(positions, positionTransform, colors, names = null)
   {
     const positionSource = Tr2Sprite2dLineTrace.#PrepareVectorSource(positions, 2, "positions", true);
@@ -84,8 +84,8 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
   }
 
   /** Carbon method SetVertices -> PySetVertices (MAP_METHOD). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetVertices(positions = null, positionTransform = null, colors = null, names = null)
   {
     const positionSource = Tr2Sprite2dLineTrace.#PrepareVectorSource(positions, 2, "positions");

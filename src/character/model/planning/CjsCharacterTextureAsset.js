@@ -1,48 +1,48 @@
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 
 /** Resolved texture asset with independent decoded placement and semantic role. */
-@type.define({ className: "CjsCharacterTextureAsset", family: "character" })
+@meta.define({ className: "CjsCharacterTextureAsset", family: "character" })
 export class CjsCharacterTextureAsset
 {
 
-    @edit.readwrite
-    @edit.persist
-    @type.path
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.path
     uri = "";
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     role = "";
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     region = "";
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     quality = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.vec2
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.vec2
     imageSize = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.vec2
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.vec2
     atlasSize = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.vec4
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.vec4
     atlasRect = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.model("CjsCharacterOrigin")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.model("CjsCharacterOrigin")
     origin = null;
 
 }

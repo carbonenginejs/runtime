@@ -1,75 +1,75 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/IEveSocketParameter.h
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 
 
 /** Carbon socket-parameter contract with its interface defaults. */
-@type.define({ className: "IEveSocketParameter", family: "eve/socket" })
+@meta.define({ className: "IEveSocketParameter", family: "eve/socket" })
 export class IEveSocketParameter
 {
 
   /** Returns Carbon's default empty socket-parameter name. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetName()
   {
     return "";
   }
 
   /** Applies an optional socket-parameter name. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   SetName(_name)
   {
   }
 
   /** Initializes the socket parameter and reports success. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     return true;
   }
 
   /** Clears any bindings owned by the socket parameter. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   ClearBindings()
   {
   }
 
   /** Binds an external parameter and reports success. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   BindToExternalParameter(_externalParameter)
   {
     return true;
   }
 
   /** Resets the socket parameter. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   Reset()
   {
   }
 
   /** Restores the socket parameter's default value. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   SetValueToDefault()
   {
   }
 
   /** Reports whether Carbon considers the socket parameter used. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Used()
   {
     return true;
   }
 
   /** Propagates the current value to owned bindings. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   Propagate()
   {
   }

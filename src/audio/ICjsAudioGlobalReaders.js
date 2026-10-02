@@ -2,7 +2,7 @@
 // RTPCs and States inside the SDK. Our shared bus mixer and music engine
 // evaluate them in JavaScript and read the backend's global values through
 // this interface. Name held for the operator (docs research/audio-backend-interface.md).
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /**
  * The global RTPC and State values the shared bus mixer and the music engine
@@ -62,7 +62,7 @@ export class ICjsAudioGlobalReaders
 
 for (const method of Object.getOwnPropertyNames(ICjsAudioGlobalReaders.prototype))
 {
-    if (method !== "constructor") CjsSchema.decorateMethod(ICjsAudioGlobalReaders, method, impl.abstract);
+    if (method !== "constructor") CjsSchema.decorateMethod(ICjsAudioGlobalReaders, method, meta.abstract);
 }
 
 CjsSchema.define(ICjsAudioGlobalReaders, { className: "ICjsAudioGlobalReaders", family: "audio", fields: {} });

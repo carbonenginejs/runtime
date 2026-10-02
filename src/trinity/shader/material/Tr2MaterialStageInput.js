@@ -1,42 +1,42 @@
 // Source: trinity/trinity/Shader/Tr2Material.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { type } from "#schema";
+import { meta } from "#schema";
 
 /** Organizes one shader stage's constants, parameters, textures, UAVs, and CPU-side constant mirror. */
-@type.define({ className: "Tr2MaterialStageInput", family: "shader" })
+@meta.define({ className: "Tr2MaterialStageInput", family: "shader" })
 export class Tr2MaterialStageInput
 {
 
   /** m_constantBufferDirty (bool) */
-  @type.boolean
+  @meta.type.boolean
   constantBufferDirty = false;
 
   /** m_sharedBufferKey (Tr2SharedConstantBuffers::Key) */
-  @type.rawStruct("Tr2SharedConstantBuffers::Key")
+  @meta.type.rawStruct("Tr2SharedConstantBuffers::Key")
   sharedBufferKey = null;
 
   /** m_shaderParameters (Tr2EffectParamVector) */
-  @type.list("Tr2EffectParam")
+  @meta.type.list("Tr2EffectParam")
   shaderParameters = [];
 
   /** m_shaderParametersWithNotification (Tr2EffectParamVector) */
-  @type.list("Tr2EffectParam")
+  @meta.type.list("Tr2EffectParam")
   shaderParametersWithNotification = [];
 
   /** m_textures (Tr2EffectParamVector) */
-  @type.list("Tr2EffectParam")
+  @meta.type.list("Tr2EffectParam")
   textures = [];
 
   /** m_uavs (Tr2EffectParamVector) */
-  @type.list("Tr2EffectParam")
+  @meta.type.list("Tr2EffectParam")
   uavs = [];
 
   /** m_constantBuffer (Tr2ConstantBufferAL) */
-  @type.rawStruct("Tr2ConstantBufferAL")
+  @meta.type.rawStruct("Tr2ConstantBufferAL")
   constantBuffer = null;
 
   /** m_constantMirror (CcpMallocBuffer) */
-  @type.rawStruct("CcpMallocBuffer")
+  @meta.type.rawStruct("CcpMallocBuffer")
   constantMirror = null;
 
   /**

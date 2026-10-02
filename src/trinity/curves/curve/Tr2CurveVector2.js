@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveVector2.cpp
 import { vec2 } from "#math/vec2";
 import { ITriFunction, ITriCurveLength } from "#blue";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
 import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
 
@@ -12,46 +12,46 @@ import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
  * its length is the longer of the two.
  * JavaScript writes native returned vectors into caller-owned output buffers.
  */
-@type.define({
+@meta.define({
   className: "Tr2CurveVector2",
   family: "curves"
 })
-@carbon.inherit(ITriCurveLength)
+@meta.blue.inherit(ITriCurveLength)
 export class Tr2CurveVector2 extends ITriFunction
 {
   /**
    * Authored curve label stored as native std::string.
    * @type {string}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /**
    * Owned scalar curve for the horizontal vector component.
    * @type {Tr2CurveScalar}
    */
-  @edit.read
-  @edit.persist
-  @type.struct("Tr2CurveScalar")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.struct("Tr2CurveScalar")
   x = new Tr2CurveScalar();
 
   /**
    * Owned scalar curve for the vertical vector component.
    * @type {Tr2CurveScalar}
    */
-  @edit.read
-  @edit.persist
-  @type.struct("Tr2CurveScalar")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.struct("Tr2CurveScalar")
   y = new Tr2CurveScalar();
 
   /**
    * Cached two-component vector assembled from the x and y scalar curves.
    * @type {Float32Array}
    */
-  @edit.read
-  @type.vec2
+  @meta.blue.read
+  @meta.type.vec2
   currentValue = vec2.create();
 
   /**
@@ -60,8 +60,8 @@ export class Tr2CurveVector2 extends ITriFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateValue(time)
   {
     this.currentValue[0] = this.x.Update(time);
@@ -73,8 +73,8 @@ export class Tr2CurveVector2 extends ITriFunction
    *
    * @returns {number} Longest scalar component length.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Length()
   {
     return Math.max(this.x.Length(), this.y.Length());
@@ -87,8 +87,8 @@ export class Tr2CurveVector2 extends ITriFunction
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValue(time, out)
   {
     return this.GetValueAt(time, out);
@@ -107,8 +107,8 @@ export class Tr2CurveVector2 extends ITriFunction
    * @param {number} [tangentType = Tr2CurveTangentType.AUTO_CLAMP] Scalar tangent-maintenance rule.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   AddKey(time, value, interpolation = Tr2CurveInterpolation.HERMITE, leftTangent, rightTangent, tangentType = Tr2CurveTangentType.AUTO_CLAMP)
   {
     const useRightTangent = !!leftTangent && !!rightTangent;
@@ -122,8 +122,8 @@ export class Tr2CurveVector2 extends ITriFunction
    * @param {number} extrapolation Before and after extrapolation mode.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetExtrapolation(extrapolation)
   {
     this.x.SetExtrapolation(extrapolation);
@@ -137,8 +137,8 @@ export class Tr2CurveVector2 extends ITriFunction
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValueAt(time, out)
   {
     out[0] = this.x.GetValue(time);
@@ -148,7 +148,7 @@ export class Tr2CurveVector2 extends ITriFunction
 }
 
 // Native exposure ends at this concrete table (Tr2CurveVector2_Blue.cpp).
-carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [Tr2CurveVector2, ITriFunction, ITriCurveLength],
   chainTo: null
 })(Tr2CurveVector2);

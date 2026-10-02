@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:187-195
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 
 /** Stores named material parameters and assigns them to a target with an optional parameter prefix.
  * Native IRoot-only data with a self-only Blue table. Owned authored records
@@ -16,9 +16,9 @@ export class EveSOFDataMaterial
    * Native m_name (std::string), READWRITE | PERSIST.
    * @type {string}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /**
@@ -26,9 +26,9 @@ export class EveSOFDataMaterial
    * Native m_parameters (PEveSOFDataParameterVector), READ | PERSIST.
    * @type {EveSOFDataParameter[]}
    */
-  @meta.edit.read
-  @meta.edit.persist
-  @types.list("EveSOFDataParameter")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataParameter")
   parameters = [];
 
   /**
@@ -39,7 +39,7 @@ export class EveSOFDataMaterial
    * @param {string} [prefix=""] Optional name prefix.
    * @returns {object} The destination map.
    */
-  @meta.impl.custom
+  @meta.ours
   AssignParameters(out = {}, prefix = "")
   {
     for (const parameter of this.parameters) parameter.Assign(out, prefix);
@@ -48,7 +48,7 @@ export class EveSOFDataMaterial
 
 }
 
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ EveSOFDataMaterial ],
   chainTo: null
 })(EveSOFDataMaterial);

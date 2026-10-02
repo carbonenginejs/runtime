@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2ImpostorManager.h
 import { vec3 } from "#math/vec3";
-import { CjsSchema, impl, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /** Contract for an object that can be captured into an impostor atlas. */
@@ -46,6 +46,6 @@ for (const method of [
   "GetLastImpostorBoundingSphere"
 ])
 {
-  CjsSchema.decorateMethod(ITr2ImpostorSource, method, impl.abstract);
+  CjsSchema.decorateMethod(ITr2ImpostorSource, method, meta.abstract);
 }
 CjsSchema.define(ITr2ImpostorSource, { className: "ITr2ImpostorSource" });

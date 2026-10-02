@@ -2,7 +2,7 @@
 // ccpgames rawrafox cppctamber) and corroborated by historical Tr2ScalarCurve
 // Black records.
 import { IInitialize } from "../../../global/blue/IInitialize.js";
-import { carbon, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IncarnaScalarCurveInterpolation } from "./enums.js";
 import { Tr2ScalarKey } from "./Tr2ScalarKey.js";
 
@@ -12,66 +12,66 @@ import { Tr2ScalarKey } from "./Tr2ScalarKey.js";
  * This is distinct from the Trinity layer's current Carbon `Tr2CurveScalar`,
  * which owns the modern key, tangent, and extrapolation representation.
  */
-@type.define({ className: "Tr2ScalarCurve", family: "incarna" })
+@meta.define({ className: "Tr2ScalarCurve", family: "incarna" })
 // Historical Incarna compatibility: loaded Curve2 keys must be sorted once.
 // This explicit contract preserves the legacy asset behavior; it is not a
 // declaration from the current Carbon curve exposure table.
-@carbon.inherit(IInitialize)
-@carbon.mapInterface(IInitialize)
+@meta.blue.inherit(IInitialize)
+@meta.blue.mapInterface(IInitialize)
 export class Tr2ScalarCurve
 {
 
-  @edit.persist
-  @type.string
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
-  @edit.persist
-  @type.boolean
+  @meta.blue.persist
+  @meta.type.boolean
   cycle = false;
 
-  @edit.persist
-  @type.boolean
+  @meta.blue.persist
+  @meta.type.boolean
   reversed = false;
 
-  @edit.persist
-  @type.float32
+  @meta.blue.persist
+  @meta.type.float32
   timeOffset = 0;
 
-  @edit.persist
-  @type.float32
+  @meta.blue.persist
+  @meta.type.float32
   timeScale = 1;
 
-  @edit.persist
-  @type.float32
+  @meta.blue.persist
+  @meta.type.float32
   startValue = 0;
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   currentValue = 0;
 
-  @edit.persist
-  @type.float32
+  @meta.blue.persist
+  @meta.type.float32
   endValue = 0;
 
-  @edit.persist
-  @type.float32
+  @meta.blue.persist
+  @meta.type.float32
   startTangent = 0;
 
-  @edit.persist
-  @type.float32
+  @meta.blue.persist
+  @meta.type.float32
   endTangent = 0;
 
-  @edit.persist
-  @type.uint32
-  @type.enum("Interpolation")
+  @meta.blue.persist
+  @meta.type.uint32
+  @meta.type.enum("Interpolation")
   interpolation = IncarnaScalarCurveInterpolation.LINEAR;
 
-  @edit.persist
-  @type.list("Tr2ScalarKey")
+  @meta.blue.persist
+  @meta.type.list("Tr2ScalarKey")
   keys = [];
 
-  @edit.persist
-  @type.float32
+  @meta.blue.persist
+  @meta.type.float32
   length = 0;
 
   /** Sorts keys and reconciles a last key beyond the authored end. */

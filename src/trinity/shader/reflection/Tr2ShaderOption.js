@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
-import { meta, edit, type } from "#schema";
+import { meta } from "#schema";
 
 /**
  * Mutable authored option on the Tr2Effect facade.
@@ -12,20 +12,20 @@ import { meta, edit, type } from "#schema";
  * Native 64-bit size 16; offsets and storage types: trinity/trinity/
  * Shader/Tr2EffectDescription.h:272-276; Shader/Tr2Effect.cpp:110-114.
  */
-@type.define({ className: "Tr2ShaderOption", family: "shader" })
+@meta.define({ className: "Tr2ShaderOption", family: "shader" })
 @meta.struct.define({ size: 16 })
 export class Tr2ShaderOption
 {
 
   /** name (BlueSharedString) */
 
-  @edit.persist
+  @meta.blue.persist
   @meta.struct.SHAREDSTRING_1(0)
   name = "";
 
   /** value (BlueSharedString) */
 
-  @edit.persist
+  @meta.blue.persist
   @meta.struct.SHAREDSTRING_1(8)
   value = "";
 

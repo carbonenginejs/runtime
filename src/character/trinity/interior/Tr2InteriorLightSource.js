@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Interior/Tr2InteriorLightSource.h
 //   trinity/trinity/Interior/Tr2InteriorLightSource.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IInitialize, INotify } from "#blue";
 import { ITr2InteriorLight } from "./ITr2InteriorLight.js";
 import { color } from "#math/color";
@@ -12,93 +12,93 @@ import { mat4 } from "#math/mat4";
  * Authored interior light definition with position, color, falloff, cone, and
  * animation settings.
  */
-@type.define({ className: "Tr2InteriorLightSource", family: "interior" })
-@carbon.inherit(IInitialize, INotify, ITr2InteriorLight)
+@meta.define({ className: "Tr2InteriorLightSource", family: "interior" })
+@meta.blue.inherit(IInitialize, INotify, ITr2InteriorLight)
 export class Tr2InteriorLightSource
 {
 
   /** m_coneDirection (Vector3) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   coneDirection = vec3.fromValues(0, -1, 0);
 
   /** m_coneAlphaInner (float) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   coneAlphaInner = 180;
 
   /** m_coneAlphaOuter (float) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   coneAlphaOuter = 180;
 
   /** m_specularIntensity (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   specularIntensity = 1;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("TriCurveSet")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("TriCurveSet")
   curveSets = [];
 
   /** m_primaryLighting (bool) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   primaryLighting = true;
 
   /** m_falloff (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   falloff = 1;
 
   /** m_kelvinColor (Tr2KelvinColorPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2KelvinColor")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2KelvinColor")
   kelvinColor = null;
 
   /** m_radius (float) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   radius = 1;
 
   /** m_position (Vector3) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   position = vec3.create();
 
   /** m_color (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_useKelvinColor (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   useKelvinColor = false;
 
   // m_worldBoundingBox - protected, not Blue-exposed, so constructor-derived
@@ -109,16 +109,16 @@ export class Tr2InteriorLightSource
   _boundsMax = vec3.fromValues(1, 1, 1);
 
   /** Carbon method IsSpotLight (MAP_METHOD_AND_WRAP, h:90-93). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsSpotLight()
   {
     return this.coneAlphaOuter < 89;
   }
 
   /** Carbon Initialize (cpp:59-63): derive the world box from position ± radius. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     this._RebuildWorldBoundingBox();
@@ -130,9 +130,9 @@ export class Tr2InteriorLightSource
    * radius, coneAlphaOuter and coneDirection changes - both branches run the
    * identical rebuild, so the settled-state notification just rebuilds.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Schema notifications expose settled state rather than Be::Var identity; Carbon's two OnModified branches perform the same rebuild, so no per-member dispatch is needed.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Schema notifications expose settled state rather than Be::Var identity; Carbon's two OnModified branches perform the same rebuild, so no per-member dispatch is needed.")
   OnModified()
   {
     this._RebuildWorldBoundingBox();
@@ -150,8 +150,8 @@ export class Tr2InteriorLightSource
    * @param {object} lightData Tr2InteriorPerObjectLightData-shaped record.
    * @returns {object} lightData
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PopulateLightData(lightData)
   {
     const f32 = Math.fround;
@@ -197,8 +197,8 @@ export class Tr2InteriorLightSource
    *
    * @param {number} time Seconds.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Update(time)
   {
     for (let i = 0; i < this.curveSets.length; i++)
@@ -216,8 +216,8 @@ export class Tr2InteriorLightSource
    * @param {Float32Array} [outObjectToWorld] Receives the translation matrix.
    * @returns {boolean}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsInFrustum(frustum, outObjectToWorld = null)
   {
     if (!this.primaryLighting) return false;
@@ -235,4 +235,4 @@ export class Tr2InteriorLightSource
 
 }
 
-carbon.interfaceTable({ interfaces: [Tr2InteriorLightSource, IInitialize, INotify, ITr2InteriorLight], chainTo: null })(Tr2InteriorLightSource, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [Tr2InteriorLightSource, IInitialize, INotify, ITr2InteriorLight], chainTo: null })(Tr2InteriorLightSource, { kind: "class" });

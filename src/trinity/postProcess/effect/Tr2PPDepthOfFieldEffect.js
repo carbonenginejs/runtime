@@ -1,6 +1,6 @@
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPDepthOfFieldEffect.h
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPDepthOfFieldEffect.cpp
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 import { blue, EnumRegistrationType } from "#blue";
 
@@ -10,42 +10,42 @@ import { blue, EnumRegistrationType } from "#blue";
  * blur scale, bokeh shape - plus the process-wide switch that enables the effect
  * at all.
  */
-@type.define({ className: "Tr2PPDepthOfFieldEffect", family: "postProcess" })
+@meta.define({ className: "Tr2PPDepthOfFieldEffect", family: "postProcess" })
 export class Tr2PPDepthOfFieldEffect extends Tr2PPEffect
 {
 
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.Tr2Bokeh.Shape")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2Bokeh.Shape")
   bokehShape = Tr2PPDepthOfFieldEffect.Disk;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   scale = 0;
 
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   cocScale = 1;
 
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   useTAAFriendlyBokeh = true;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   focalLength = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   foregroundBlurNeeded = true;
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   focalDistance = 0;
 
   /**

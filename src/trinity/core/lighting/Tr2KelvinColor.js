@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2KelvinColor.h
 // Source: trinity/trinity/Tr2KelvinColor.cpp
 // Source: trinity/trinity/Tr2KelvinColor_Blue.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IInitialize } from "#blue/IInitialize";
 import { vec3 } from "#math/vec3";
 import { Tr2StandardIlluminant } from "../../generated/trinityCore/enums.js";
@@ -13,27 +13,27 @@ import { blue, EnumRegistrationType } from "#blue";
  * GetTemperature/GetTint/GetWhiteBalance accessors and RGBA AsRGB are not exposed
  * here. Initialization and the native self/IInitialize query are supported.
  */
-@type.define({ className: "Tr2KelvinColor", family: "trinityCore" })
+@meta.define({ className: "Tr2KelvinColor", family: "trinityCore" })
 export class Tr2KelvinColor extends IInitialize
 {
 
   /** m_temperature (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   temperature = 5500;
 
   /** m_tint (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   tint = 0.5;
 
   /** m_whiteBalance (Tr2StandardIlluminant - enum Tr2StandardIlluminant) [ENUM, READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.Tr2StandardIlluminant")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2StandardIlluminant")
   whiteBalance = 2;
 
   /** Existing JavaScript reference to the native illuminant enum. */
@@ -57,22 +57,22 @@ export class Tr2KelvinColor extends IInitialize
   // tint, so the neutral value is 0.5 and the result is renormalised after.
 
   /** Native initialization has no work and always succeeds. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     return true;
   }
 
   /** The chromaticity of a standard illuminant, as Carbon's table gives it. */
-  @impl.custom
+  @meta.ours
   static illuminantChromaticity(illuminant)
   {
     return Tr2KelvinColor._CHROMATICITY[illuminant] ?? Tr2KelvinColor._CHROMATICITY[2];
   }
 
   /** CIE 1931 two-degree standard observer XYZ to RGB. */
-  @impl.custom
+  @meta.ours
   static xyzToRgb(x, y, z, out = vec3.create())
   {
     return vec3.set(out,
@@ -87,7 +87,7 @@ export class Tr2KelvinColor extends IInitialize
    * This retained JavaScript helper also maps NaN to black, uses decimal table
    * constants and float32 vec3 intermediates; native double arithmetic differs.
    */
-  @impl.custom
+  @meta.ours
   static fromKelvin(temperature, tint, whitePoint, out = vec3.create())
   {
     const T = Number(temperature);
@@ -147,8 +147,8 @@ export class Tr2KelvinColor extends IInitialize
    * This record's authored colour as linear RGB. Existing JavaScript adapter
    * exposes RGB in an optional output buffer instead of native AsRGB RGBA.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetColor(out = vec3.create())
   {
     return Tr2KelvinColor.fromKelvin(this.temperature, this.tint, this.whiteBalance, out);
@@ -193,4 +193,4 @@ blue.enums.RegisterEnum("trinity.Tr2StandardIlluminant", Tr2KelvinColor.Tr2Stand
   ]
 });
 
-carbon.interfaceTable({ interfaces: [ Tr2KelvinColor, IInitialize ], chainTo: null })(Tr2KelvinColor);
+meta.blue.interfaceTable({ interfaces: [ Tr2KelvinColor, IInitialize ], chainTo: null })(Tr2KelvinColor);

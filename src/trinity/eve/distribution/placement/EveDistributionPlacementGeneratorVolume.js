@@ -3,15 +3,15 @@ import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveDistributionPlacementGenerators } from "./IEveDistributionPlacementGenerators.js";
 import { InitialPlacement } from "../attributeModifiers/InitialPlacement.js";
 import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.js";
 
 /** Samples a volume into oriented distribution placements and requests regeneration when the volume or sampling settings change. */
-@type.define({ className: "EveDistributionPlacementGeneratorVolume", family: "eve/distribution/placement" })
-@carbon.inherit(IInitialize)
-@carbon.mapInterface(IInitialize)
+@meta.define({ className: "EveDistributionPlacementGeneratorVolume", family: "eve/distribution/placement" })
+@meta.blue.inherit(IInitialize)
+@meta.blue.mapInterface(IInitialize)
 export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPlacementGenerators
 {
 
@@ -22,30 +22,30 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   _subscribedVolume = null;
 
   /** m_numGenerated (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   numGenerated = 10;
 
   /** m_hollowVolume (bool) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   hollowVolume = false;
 
   /** m_falloffFactor (float) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   falloffFactor = 1.5;
 
   /** m_volume (IEveVolumePtr) [PERSISTONLY] */
-  @edit.readwrite
-  @edit.persistOnly
-  @type.model("IEveVolume")
+  @meta.blue.readwrite
+  @meta.blue.persistOnly
+  @meta.type.model("IEveVolume")
   volume = null;
 
   /**
@@ -54,8 +54,8 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * @param placements Caller-owned pool array that is appended to.
    * @param trackingID Mutable counter shared across all generators; each placement consumes one unique id from it.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetInitialPlacements(placements, trackingID)
   {
     this._syncVolumeCallbacks();
@@ -88,8 +88,8 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   }
 
   /** Carbon GetVolume (EveDistributionPlacementGeneratorVolume.cpp:21). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetVolume()
   {
     return this.volume;
@@ -99,8 +99,8 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * Carbon SetVolume (cpp:26): the ORDERED swap - the old volume is
    * unsubscribed before the new one subscribes.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetVolume(volume)
   {
     this.RemoveVolumeCallbacks();
@@ -113,8 +113,8 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * Carbon AddVolumeCallbacks (cpp:76): subscribe RequestRegeneration to the
    * assigned volume and keep the token. Also runs from Initialize (cpp:98).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddVolumeCallbacks()
   {
     this._subscribedVolume = this.volume;
@@ -129,8 +129,8 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * The donor does NOT zero the token afterwards; callers that need a fresh
    * token zero it themselves, exactly as SetVolume above does.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RemoveVolumeCallbacks()
   {
     if (this._subscribedVolume && this._volumeCallbackID !== 0)
@@ -140,8 +140,8 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   }
 
   /** Marks the placement pool as stale so the owning distribution rebuilds it. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RequestRegeneration()
   {
     this._isRequestingRegeneration = true;
@@ -151,16 +151,16 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * Reports whether the pool is stale; the owning distribution restarts while
    * this is true, and it clears once new placements are generated.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsRequestingRegeneration()
   {
     return this._isRequestingRegeneration;
   }
 
   /** Subscribes to change notifications on the assigned volume. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Initialize()
   {
     this._syncVolumeCallbacks();
@@ -171,8 +171,8 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * Requests regeneration and re-points the volume subscription after any
    * authored change.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnModified(_options = {})
   {
     this.RequestRegeneration();
@@ -184,8 +184,8 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * Re-checks the volume subscription each frame, so a volume swapped in at
    * runtime is picked up and triggers regeneration.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateSyncronous(_updateContext, _params, _owner)
   {
     this._syncVolumeCallbacks();

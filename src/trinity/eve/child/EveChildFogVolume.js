@@ -1,4 +1,4 @@
-import { carbon } from "#schema";
+import { meta } from "#schema";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
@@ -9,7 +9,7 @@ import { EveEntity } from "../EveEntity.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { impl, edit, type } from "#schema";
+
 import { ITr2FroxelFogSettings } from "./ITr2FroxelFogSettings.js";
 import { EveComponentType } from "../EveComponentTypes.js";
 import { Priority } from "../../generated/postProcess/enums.js";
@@ -54,129 +54,129 @@ function createFroxelFogSettings()
  * override, its strength driven by how deeply the camera sits inside the volumes
  * it owns.
  */
-@type.define({ className: "EveChildFogVolume", family: "eve/child" })
-@carbon.inherit(IInitialize)
+@meta.define({ className: "EveChildFogVolume", family: "eve/child" })
+@meta.blue.inherit(IInitialize)
 export class EveChildFogVolume extends ITr2FroxelFogSettings
 {
   _fogIntensity = 0;
 
   _froxelFogSettings = createFroxelFogSettings();
 
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.PostProcessEnums.Priority")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.PostProcessEnums.Priority")
   priority = 2;
 
-  @edit.read
-  @edit.persist
-  @type.list("IEveVolume")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("IEveVolume")
   volumes = [];
 
-  @edit.read
-  @type.vec3
+  @meta.blue.read
+  @meta.type.vec3
   boundingSphereCenter = vec3.create();
 
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   boundingSphereRadius = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   intensity = 1;
 
-  @edit.persist
-  @type.float32
+  @meta.blue.persist
+  @meta.type.float32
   thickness = 1;
 
-  @edit.persist
-  @type.boolean
+  @meta.blue.persist
+  @meta.type.boolean
   thicknessEnabled = false;
 
-  @edit.persist
-  @type.float32
+  @meta.blue.persist
+  @meta.type.float32
   lightDirectionality = 0.5;
 
-  @edit.persist
-  @type.boolean
+  @meta.blue.persist
+  @meta.type.boolean
   lightDirectionalityEnabled = false;
 
-  @edit.persist
-  @type.float32
+  @meta.blue.persist
+  @meta.type.float32
   environmentIntensity = 1;
 
-  @edit.persist
-  @type.boolean
+  @meta.blue.persist
+  @meta.type.boolean
   environmentIntensityEnabled = false;
 
-  @edit.persist
-  @type.float32
+  @meta.blue.persist
+  @meta.type.float32
   environmentDirectionality = 0.75;
 
-  @edit.persist
-  @type.boolean
+  @meta.blue.persist
+  @meta.type.boolean
   environmentDirectionalityEnabled = false;
 
-  @edit.persist
-  @type.color
+  @meta.blue.persist
+  @meta.type.color
   fogColor = vec4.fromValues(1, 1, 1, 1);
 
-  @edit.persist
-  @type.boolean
+  @meta.blue.persist
+  @meta.type.boolean
   fogColorEnabled = false;
 
-  @edit.persist
-  @type.float32
+  @meta.blue.persist
+  @meta.type.float32
   backgroundVisibility = 0;
 
-  @edit.persist
-  @type.boolean
+  @meta.blue.persist
+  @meta.type.boolean
   backgroundVisibilityEnabled = false;
 
-  @edit.persist
-  @type.float32
+  @meta.blue.persist
+  @meta.type.float32
   godRayNoiseIntensity = 0;
 
-  @edit.persist
-  @type.boolean
+  @meta.blue.persist
+  @meta.type.boolean
   godRayNoiseIntensityEnabled = false;
 
-  @edit.persist
-  @type.float32
+  @meta.blue.persist
+  @meta.type.float32
   godRayNoiseFrequency = 15;
 
-  @edit.persist
-  @type.boolean
+  @meta.blue.persist
+  @meta.type.boolean
   godRayNoiseFrequencyEnabled = false;
 
-  @edit.persist
-  @type.float32
+  @meta.blue.persist
+  @meta.type.float32
   godRayNoiseAnimationSpeed = 0;
 
-  @edit.persist
-  @type.boolean
+  @meta.blue.persist
+  @meta.type.boolean
   godRayNoiseAnimationSpeedEnabled = false;
 
-  @edit.persist
-  @type.float32
+  @meta.blue.persist
+  @meta.type.float32
   fogNoiseIntensity = 0;
 
-  @edit.persist
-  @type.boolean
+  @meta.blue.persist
+  @meta.type.boolean
   fogNoiseIntensityEnabled = false;
 
-  @edit.persist
-  @type.float32
+  @meta.blue.persist
+  @meta.type.float32
   fogNoiseFrequency = 15;
 
-  @edit.persist
-  @type.boolean
+  @meta.blue.persist
+  @meta.type.boolean
   fogNoiseFrequencyEnabled = false;
 
   /**
@@ -184,7 +184,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * spheres, skipping volumes with a missing centre or a non-finite/negative
    * radius; returns whether any volume contributed.
    */
-  @impl.adapted
+  @meta.adapted
   RebuildBoundingSphere()
   {
     vec3.set(this.boundingSphereCenter, 0, 0, 0);
@@ -242,7 +242,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * volume ignores its own local offset chain and adopts the parent's world
    * matrix verbatim - the override that makes fog volumes track parents.
    */
-  @impl.implemented
+  @meta.implemented
   UpdateTransformFromParent(params)
   {
     this.UpdateTransform(params.localToWorldTransform);
@@ -256,7 +256,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * (short-circuiting at 1) is scaled by the authored intensity - a camera
    * outside leaves the intensity at zero.
    */
-  @impl.adapted
+  @meta.adapted
   UpdateAsyncronous(updateContext, params)
   {
     this.UpdateTransform(params.localToWorldTransform);
@@ -289,8 +289,8 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * @param {Float32Array} [out] - caller-owned; allocated when omitted
    * @returns {Float32Array} out
    */
-  @impl.adapted
-  @impl.reason("Carbon's EveChildFogVolume body leaves the out matrix untouched; JavaScript's nominal child consumers require the current world transform and already consume that corrected contract.")
+  @meta.adapted
+  @meta.reason("Carbon's EveChildFogVolume body leaves the out matrix untouched; JavaScript's nominal child consumers require the current world transform and already consume that corrected contract.")
   GetLocalToWorldTransform(out = mat4.create())
   {
     return mat4.copy(out, this.worldTransform);
@@ -326,7 +326,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * (cpp:74-77) only removes this same component, which EveEntity::UnRegister
    * already did via UnRegisterAllComponents (EveEntity.cpp:90), so the JS
    * un-side keeps the base no-op. */
-  @impl.implemented
+  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -341,7 +341,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * place so per-frame fog blending neither allocates nor loses Carbon's
    * `fogNoiseMovementSpeed` and derived `logThickness` attributes.
    */
-  @impl.adapted
+  @meta.adapted
   GetFroxelFogSettings()
   {
     const out = this._froxelFogSettings;
@@ -417,4 +417,4 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
 }
 
 // EveChildFogVolume_Blue.cpp: native exposure.
-carbon.interfaceTable({ interfaces: [ITr2FroxelFogSettings, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize], chainTo: null })(EveChildFogVolume, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [ITr2FroxelFogSettings, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize], chainTo: null })(EveChildFogVolume, { kind: "class" });

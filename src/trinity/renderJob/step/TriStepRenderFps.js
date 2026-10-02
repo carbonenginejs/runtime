@@ -1,31 +1,31 @@
 // Source: trinity/trinity/RenderJob/TriStepRenderFps.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A step that averages the frame rate over a quarter second and reports it as text with a threshold colour. */
-@type.define({ className: "TriStepRenderFps", family: "renderJob" })
+@meta.define({ className: "TriStepRenderFps", family: "renderJob" })
 export class TriStepRenderFps extends TriRenderStep
 {
 
   /** m_alignBottom (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   alignBottom = true;
 
   /** m_alignRight (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   alignRight = true;
 
   /** m_displayX (int) [READWRITE] */
-  @edit.readwrite
-  @type.int32
+  @meta.blue.readwrite
+  @meta.type.int32
   displayX = 0;
 
   /** m_displayY (int) [READWRITE] */
-  @edit.readwrite
-  @type.int32
+  @meta.blue.readwrite
+  @meta.type.int32
   displayY = 0;
 
   /** m_averageFPS - the last computed average, held between recalculations. */
@@ -57,9 +57,9 @@ export class TriStepRenderFps extends TriRenderStep
    * Adds one frame-rate sample and recomputes the average when the quarter
    * second has elapsed; returns the average currently being displayed.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon samples its OS layer for the frame rate and clock and draws through the debug renderer; both are host concerns, so the sample and time are supplied and the text is the caller's.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon samples its OS layer for the frame rate and clock and draws through the debug renderer; both are host concerns, so the sample and time are supplied and the text is the caller's.")
   Sample(framesPerSecond, nowSeconds)
   {
     this.#fpsValuesCount += 1;
@@ -81,8 +81,8 @@ export class TriStepRenderFps extends TriRenderStep
    * The text colour for the current average: green above sixty, orange down to
    * thirty, red below that.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetTextColor()
   {
     if (this.averageFPS > 59.9) return TriStepRenderFps.Color.GOOD;
@@ -94,8 +94,8 @@ export class TriStepRenderFps extends TriRenderStep
    * The screen rectangle the text occupies within a viewport, inset by the
    * configured display offsets.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetDisplayRect(viewport, out = {})
   {
     const x = viewport?.x ?? 0;

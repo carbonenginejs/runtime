@@ -2,42 +2,42 @@
 // Source: trinity/trinity/Eve/UI/EveLineContainer.cpp
 // Source: trinity/trinity/Eve/UI/EveLineContainer_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; this is portable CPU graph policy.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 
 
 /** Owns and updates a connector-built EveCurveLineSet. */
-@type.define({ className: "EveLineContainer", family: "eve/ui" })
-@carbon.inherit(IEveSpaceObject2)
+@meta.define({ className: "EveLineContainer", family: "eve/ui" })
+@meta.blue.inherit(IEveSpaceObject2)
 export class EveLineContainer
 {
 
   /** m_connectors (PEveConnectorVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveConnector")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveConnector")
   connectors = [];
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_lineSet (EveCurveLineSetPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("EveCurveLineSet")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("EveCurveLineSet")
   lineSet = null;
 
   /** m_display (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   display = true;
 
   /** Rebuilds the complete logical line set from the authored connectors. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Update(context)
   {
     if (!this.lineSet)
@@ -55,24 +55,24 @@ export class EveLineContainer
   }
 
   /** Carbon's synchronous phase owns the connector rebuild. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateSyncronous(updateContext)
   {
     this.Update(updateContext);
   }
 
   /** Carbon performs no asynchronous work for this container. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateAsyncronous(_updateContext)
   {
   }
 
   /** Delegates transformed visibility only while this container is displayed. */
-  @carbon.method
-  @carbon.contextual(["camera"])
-  @impl.implemented
+  @meta.blue.method
+  @meta.blue.contextual(["camera"])
+  @meta.implemented
   UpdateVisibility(updateContext, parentTransform)
   {
     if (this.display && this.lineSet)
@@ -82,8 +82,8 @@ export class EveLineContainer
   }
 
   /** Collects the concrete line set only while this container is displayed. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetRenderables(renderables, impostors = null)
   {
     if (this.display && this.lineSet)
@@ -93,16 +93,16 @@ export class EveLineContainer
   }
 
   /** Delegates the line set's local bound when one is authored. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBoundingSphere(sphere, query = 0)
   {
     return this.lineSet ? this.lineSet.GetBoundingSphere(sphere, query) : false;
   }
 
   /** Delegates Carbon's model-center update hook. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateModelCenterWorldPosition(position, time)
   {
     if (this.lineSet)
@@ -112,8 +112,8 @@ export class EveLineContainer
   }
 
   /** Delegates Carbon's non-updating model-center query. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetModelCenterWorldPosition(position)
   {
     if (this.lineSet)
@@ -123,16 +123,16 @@ export class EveLineContainer
   }
 
   /** Delegates a local AABB query when the line set can supply one. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetLocalBoundingBox(minBounds, maxBounds)
   {
     return this.lineSet ? this.lineSet.GetLocalBoundingBox(minBounds, maxBounds) : false;
   }
 
   /** Delegates Carbon's local-to-world query without inventing a fallback. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetLocalToWorldTransform(transform)
   {
     if (this.lineSet)

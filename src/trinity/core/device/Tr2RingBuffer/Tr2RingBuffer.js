@@ -38,7 +38,7 @@
 // Carbon only erases it when an incomplete region follows. The tail is the
 // same, but the JS list stays bounded (documented native quirk).
 
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2BufferDescriptionAL } from "../../../../trinityal/index.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { TriDevice } from "../TriDevice.js";
@@ -64,35 +64,35 @@ const INVALID_OFFSET = 0xffffffff;
 /**
  * One upload arena per data type, fenced by frame.
  */
-@type.define({ className: "Tr2RingBuffer", family: "trinityCore" })
+@meta.define({ className: "Tr2RingBuffer", family: "trinityCore" })
 export class Tr2RingBuffer
 {
   /** One arena per data type, as Carbon's typed `GetInstance` gives. */
   static _instances = new Map();
 
   /** m_name */
-  @edit.persist
-  @type.string
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_stride - bytes per element; every upload must match it. */
-  @edit.persist
-  @type.uint32
+  @meta.blue.persist
+  @meta.type.uint32
   stride = 0;
 
   /** m_size - capacity in ELEMENTS, not bytes. */
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   size = 0;
 
   /** m_head - where the next upload lands, in elements. */
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   head = 0;
 
   /** m_tail - the oldest element the GPU may still be reading. */
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   tail = 0;
 
   /** m_frame - the frame being recorded. */
@@ -136,8 +136,8 @@ export class Tr2RingBuffer
    * @param {object} renderContext The context to create the buffer through.
    * @returns {Tr2RingBuffer} The arena.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   static GetInstance(key, stride, renderContext)
   {
     if (typeof key !== "string" || !key) failRing("an instance needs a data-type key");
@@ -173,7 +173,7 @@ export class Tr2RingBuffer
   }
 
   /** Destroys storage and unregisters arenas at test/teardown; Carbon's are process-lived. */
-  @impl.custom
+  @meta.ours
   static ResetInstances()
   {
     for (const ring of Tr2RingBuffer._instances.values())
@@ -219,8 +219,8 @@ export class Tr2RingBuffer
    * @param {string} name The debug label.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetName(name)
   {
     this.name = name;
@@ -233,8 +233,8 @@ export class Tr2RingBuffer
    *
    * @returns {object|null} The buffer, or null until backend creation succeeds.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetGpuBuffer()
   {
     return this._buffer;
@@ -252,8 +252,8 @@ export class Tr2RingBuffer
    * @param {number} count How many rows.
    * @returns {number} The element offset the rows landed at.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UploadTransforms(data, count)
   {
     if (!ArrayBuffer.isView(data)) failRing("UploadTransforms needs a typed array of rows");
@@ -299,8 +299,8 @@ export class Tr2RingBuffer
    * @param {object} renderContext The context to update through.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   PrepareBuffer(renderContext)
   {
     for (const region of this._dirtyRegions)
@@ -333,8 +333,8 @@ export class Tr2RingBuffer
    * @param {number} completedFrame The frame the device reports finished.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetFrameNumbers(recordingFrame, completedFrame)
   {
     this._frame = recordingFrame;
@@ -370,8 +370,8 @@ export class Tr2RingBuffer
    * @param {number} size The new capacity, in elements.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Resize(size)
   {
     if (!Number.isInteger(size) || size <= 0) failRing("a ring needs a positive size");
@@ -397,8 +397,8 @@ export class Tr2RingBuffer
    *
    * @returns {boolean} Whether preparation succeeded or was deferred.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PrepareResources()
   {
     if (Tr2Renderer.IsResourceCreationAllowed()) return this.OnPrepareResources();
@@ -412,8 +412,8 @@ export class Tr2RingBuffer
    * @param {number} _storage Storage mask.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ReleaseResources(_storage)
   {
   }
@@ -431,8 +431,8 @@ export class Tr2RingBuffer
    *
    * @returns {boolean} True, matching Carbon even if allocation fails.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnPrepareResources()
   {
     const renderContext = this._renderContext ?? Tr2RenderContext_GetMainThreadRenderContext();

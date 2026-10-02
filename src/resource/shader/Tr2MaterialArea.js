@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/Tr2MaterialRes.h
 // Schema: format-carbon resources/Tr2MaterialArea.json; maintained by the runtime resource layer.
-import { CjsSchema, edit, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /**
  * Associates one material-area metatype with its persisted parameter store.
@@ -28,7 +28,7 @@ CjsSchema.define(Tr2MaterialArea, {
   className: "Tr2MaterialArea",
   family: "resources",
   fields: {
-    material: [ edit.persist, type.objectRef("Tr2MaterialParameterStore") ],
-    metatype: [ edit.persist, type.string ]
+    material: [ meta.blue.persist, meta.type.objectRef("Tr2MaterialParameterStore") ],
+    metatype: [ meta.blue.persist, meta.type.string ]
   }
 });

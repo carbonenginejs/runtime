@@ -2,7 +2,7 @@ import { DictReader } from "#blue/DictReader";
 import "#blue/values";
 // Source: trinity/trinity/Shader/Tr2Shader.h
 // Source: trinity/trinity/Shader/Tr2Shader.cpp
-import { CjsSchema, carbon, impl, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2EffectDescription } from "./reflection/Tr2EffectDescription.js";
 
 /** GPU-free selected shader and its complete source reflection graph. */
@@ -376,7 +376,7 @@ export class Tr2Shader
 // verbatim as values, so the registered metadata is identical to the decorated
 // form. Field order is key order, and it drives GetValues() export order.
 // Statics belong in `methods`: the prototype is what carries instance fields.
-const UNVALIDATED_TECHNIQUE_INDEX = impl.reason(
+const UNVALIDATED_TECHNIQUE_INDEX = meta.reason(
   "Carbon assumes an already-validated technique index; CarbonEngineJS safely returns zero for an unavailable index."
 );
 
@@ -384,21 +384,21 @@ CjsSchema.define(Tr2Shader, {
   className: "Tr2Shader",
   family: "shader",
   fields: {
-    sortValue: type.uint32,
-    effect: type.rawStruct("Tr2EffectDescription"),
-    hasVertexBufferAccessInRtShadow: type.boolean
+    sortValue: meta.type.uint32,
+    effect: meta.type.rawStruct("Tr2EffectDescription"),
+    hasVertexBufferAccessInRtShadow: meta.type.boolean
   },
   methods: {
-    GetTechniqueIndex: [ carbon.method, impl.adapted, impl.reason("Carbon returns success through a bool plus output index; CarbonEngineJS returns the index directly or -1 while preserving exact name lookup.") ],
-    GetPassCount: [ carbon.method, impl.adapted, UNVALIDATED_TECHNIQUE_INDEX ],
-    GetConstant: [ carbon.method, impl.implemented ],
-    GetResource: [ carbon.method, impl.implemented ],
-    GetParameterAnnotations: [ carbon.method, impl.implemented ],
-    GetSortValue: [ carbon.method, impl.implemented ],
-    GetEffectDescription: [ carbon.method, impl.implemented ],
-    GetEffect: [ carbon.method, impl.implemented ],
-    GetShaderTypeMask: [ carbon.method, impl.adapted, UNVALIDATED_TECHNIQUE_INDEX ],
-    ProcessEffect: [ carbon.method, impl.adapted, impl.reason("Carbon packs renderer handles assigned while reading; here registration happens at prepare, so the sort key stays zero until the shader-registration tables assign stage handles. The difference is timing and table ownership, not device-freeness.") ],
-    HasVertexBufferAccessInRtShadow: [ carbon.method, impl.implemented ]
+    GetTechniqueIndex: [ meta.blue.method, meta.adapted, meta.reason("Carbon returns success through a bool plus output index; CarbonEngineJS returns the index directly or -1 while preserving exact name lookup.") ],
+    GetPassCount: [ meta.blue.method, meta.adapted, UNVALIDATED_TECHNIQUE_INDEX ],
+    GetConstant: [ meta.blue.method, meta.implemented ],
+    GetResource: [ meta.blue.method, meta.implemented ],
+    GetParameterAnnotations: [ meta.blue.method, meta.implemented ],
+    GetSortValue: [ meta.blue.method, meta.implemented ],
+    GetEffectDescription: [ meta.blue.method, meta.implemented ],
+    GetEffect: [ meta.blue.method, meta.implemented ],
+    GetShaderTypeMask: [ meta.blue.method, meta.adapted, UNVALIDATED_TECHNIQUE_INDEX ],
+    ProcessEffect: [ meta.blue.method, meta.adapted, meta.reason("Carbon packs renderer handles assigned while reading; here registration happens at prepare, so the sort key stays zero until the shader-registration tables assign stage handles. The difference is timing and table ownership, not device-freeness.") ],
+    HasVertexBufferAccessInRtShadow: [ meta.blue.method, meta.implemented ]
   }
 });

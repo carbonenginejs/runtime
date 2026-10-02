@@ -1,32 +1,32 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierBucket.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
 
 /** EveSmartLightAttributeModifierBucket (eve/smartLights/attributeModifiers) - generated from schema shapeHash cade668b.... */
-@type.define({ className: "EveSmartLightAttributeModifierBucket", family: "eve/smartLights/attributeModifiers" })
+@meta.define({ className: "EveSmartLightAttributeModifierBucket", family: "eve/smartLights/attributeModifiers" })
 export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAttributeModifier
 {
 
   /** m_attributeModifiers (PIEveSmartLightGroupAttributeModifierVector) [READ, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.read
-  @edit.persist
-  @type.list("IEveSmartLightGroupAttributeModifier")
+  @meta.blue.notify
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("IEveSmartLightGroupAttributeModifier")
   attributeModifiers = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "bucket";
 
   /**
    * Toggles the bucket, resetting the children only on an actual state change
    * (EveSmartLightAttributeModifierBucket.cpp:13-21).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetActive(isActive)
   {
     this.isChangingActivation = isActive !== this.active;
@@ -42,16 +42,16 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
    * touching the bucket's own timers
    * (EveSmartLightAttributeModifierBucket.cpp:23-26).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ResetPlayTime(active)
   {
     this.ResetChildren(active);
   }
 
   /** Fans the inherited color set out to the child modifiers (EveSmartLightAttributeModifierBucket.cpp:28-34). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetInheritProperties(colorSet)
   {
     for (const attributeModifier of this.attributeModifiers)
@@ -64,8 +64,8 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
    * Advances the bucket's crossfade, then updates the children with the
    * compounded multiplier (EveSmartLightAttributeModifierBucket.cpp:36-45).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateSyncronous(updateContext, params, activationMultiplier)
   {
     this.UpdateActivationStrength(activationMultiplier, updateContext.GetDeltaT());
@@ -81,8 +81,8 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
    * Runs the child modifiers with the bucket's per-placement activation
    * strength folded in (EveSmartLightAttributeModifierBucket.cpp:47-55).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ProcessAttributeModifier(attribute, placement, entityPosition, entityDirection, modifierStrength)
   {
     const activationStrength = this.GetActivationStrength(placement) * modifierStrength;
@@ -99,8 +99,8 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
    * (EveSmartLightAttributeModifierBucket.cpp:57-67). Carbon BlueCasts to
    * EveSmartLightBaseAttributeModifier; the JS children share that nominal base.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ResetChildren(parentActive = true)
   {
     const isActive = parentActive && this.active;

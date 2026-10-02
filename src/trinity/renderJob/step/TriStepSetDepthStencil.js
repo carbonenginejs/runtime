@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepSetDepthStencil.h
 // Source: trinity/trinity/RenderJob/TriStepSetDepthStencil.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -9,16 +9,16 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * Step that binds a depth-stencil directly, without touching the depth-stencil
  * stack.
  */
-@type.define({ className: "TriStepSetDepthStencil", family: "renderJob" })
+@meta.define({ className: "TriStepSetDepthStencil", family: "renderJob" })
 export class TriStepSetDepthStencil extends TriRenderStep
 {
-  @edit.readwrite
-  @type.objectRef("Tr2DepthStencil")
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2DepthStencil")
   depthStencil = null;
 
   /** Stores the depth-stencil to bind. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   __init__(depthStencil = null)
   {
     this.depthStencil = depthStencil ?? null;
@@ -28,8 +28,8 @@ export class TriStepSetDepthStencil extends TriRenderStep
    * Binds the depth-stencil, including null to unbind; an explicit false from
    * the render context is RS_FAILED.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     const accepted = renderContext.GetEffectStateManager().SetDepthStencilBuffer(this.depthStencil);

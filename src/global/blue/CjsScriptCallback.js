@@ -3,7 +3,7 @@
 //
 // Stores a JavaScript function or host callback object. Call returns its result;
 // CallVoid discards it. Invocation adaptations are documented on those methods.
-import { CjsSchema, impl } from "../schema/index.js";
+import { CjsSchema, meta } from "../schema/index.js";
 
 /**
  * A stored script callback that can be invoked later.
@@ -118,10 +118,10 @@ export class CjsScriptCallback
 }
 
 // DECLARED AS CALLS, NOT DECORATORS, matching every other file in this folder.
-CjsSchema.decorateMethod(CjsScriptCallback, "IsValid", impl.implemented);
-CjsSchema.decorateMethod(CjsScriptCallback, "Destroy", impl.implemented);
-CjsSchema.decorateMethod(CjsScriptCallback, "Call", impl.adapted);
-CjsSchema.decorateMethod(CjsScriptCallback, "CallVoid", impl.adapted);
+CjsSchema.decorateMethod(CjsScriptCallback, "IsValid", meta.implemented);
+CjsSchema.decorateMethod(CjsScriptCallback, "Destroy", meta.implemented);
+CjsSchema.decorateMethod(CjsScriptCallback, "Call", meta.adapted);
+CjsSchema.decorateMethod(CjsScriptCallback, "CallVoid", meta.adapted);
 
 // THE DONOR IS NAMED, not left to be derived from this class's name. The port
 // keeps its Cjs name - schema can call a class whatever we want - and this

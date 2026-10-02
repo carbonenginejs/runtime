@@ -1,4 +1,4 @@
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 
 /**
  * One ordered logical operation in a character texture-composition target.
@@ -11,53 +11,53 @@ import { edit, type } from "#schema";
  * subtraction lives in the shared `coverage` record, not in a mask pass, and
  * projection placement is resolved to an ordinary alpha overlay first.
  */
-@type.define({ className: "CjsCharacterCompositionPass", family: "character" })
+@meta.define({ className: "CjsCharacterCompositionPass", family: "character" })
 export class CjsCharacterCompositionPass
 {
 
-    @edit.readwrite
-    @edit.persist
-    @type.model("CjsCharacterAppearanceLayer")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.model("CjsCharacterAppearanceLayer")
     layer = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     op = "";
 
-    @edit.readwrite
-    @edit.persist
-    @type.list("CjsCharacterCompositionInput")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.list("CjsCharacterCompositionInput")
     inputs = [];
 
-    @edit.readwrite
-    @edit.persist
-    @type.model("CjsCharacterCoverage")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.model("CjsCharacterCoverage")
     coverage = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.vec4
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.vec4
     destination = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     blend = "replace";
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     write = "rgba";
 
-    @edit.readwrite
-    @edit.persist
-    @type.float64
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.float64
     strength = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.model("CjsCharacterOrigin")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.model("CjsCharacterOrigin")
     origin = null;
 
 }

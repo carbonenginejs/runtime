@@ -13,7 +13,7 @@
 // shape - which is all that distinguishes it from its siblings in Carbon either.
 
 import { Tr2PerObjectData } from "./Tr2PerObjectData.js";
-import { carbon, impl } from "#schema";
+import { meta } from "#schema";
 
 
 /**
@@ -60,9 +60,9 @@ export class EveChildBulletStormPerObjectData extends Tr2PerObjectData
    * @param {object} renderContext The context to upload and bind against.
    * @returns {number} How many payloads were uploaded.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon binds this payload without consulting the technique mask, a form distinguished from the gated one only by C++ overload resolution on an argument type. Our layouts declare the stages they serve, so the gate is per declaration; see the family README and CE-19.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon binds this payload without consulting the technique mask, a form distinguished from the gated one only by C++ overload resolution on an argument type. Our layouts declare the stages they serve, so the gate is per declaration; see the family README and CE-19.")
   SetPerObjectDataToDevice(buffers, constantTypeMask, renderContext)
   {
     return Tr2PerObjectData.setPerObjectDataToDevice(this, buffers, constantTypeMask, renderContext);

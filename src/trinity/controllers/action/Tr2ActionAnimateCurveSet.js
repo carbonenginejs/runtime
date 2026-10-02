@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateCurveSet.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateCurveSet.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateCurveSet_Blue.cpp
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { blue, INotify } from "#blue";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
@@ -16,27 +16,27 @@ import { ITr2Updateable } from "../../core/ITr2Updateable.js";
   className: "Tr2ActionAnimateCurveSet",
   family: "controllers"
 })
-@meta.carbon.inherit(ITr2Updateable, INotify)
+@meta.blue.inherit(ITr2Updateable, INotify)
 export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
 {
   /** m_value: expression text, recompiled by Link and its NOTIFY callback. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   value = "StateTime()";
 
   /** m_curveSet: the curve set whose playhead this action drives. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.objectRef("TriCurveSet")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("TriCurveSet")
   curveSet = null;
 
   /** Live readonly validity of the retained expression evaluator. */
   @meta.property()
-  @meta.edit.read
-  @types.boolean
-  @meta.impl.adapted
+  @meta.blue.read
+  @meta.type.boolean
+  @meta.adapted
   get isExpressionValid()
   {
     return this._runtime.program !== null && this._runtime.program.IsValid();
@@ -49,8 +49,8 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    * Links this action to a controller and compiles its expression.
    * Adapted: a CSP-safe AST program replaces native parser bytecode.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Link(controller)
   {
     this._runtime.controller = controller;
@@ -62,8 +62,8 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    * Adapted: the retained JS cache reset also zeros its timestamps, unlike native
    * Unlink which clears only the controller and evaluator.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Unlink()
   {
     this._runtime = CjsControllerExpressionProgram.createRuntimeState();
@@ -74,8 +74,8 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    * Adapted: retains the JS optional-controller convenience and records the
    * supplied controller and last time; native Start only sets the start time.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Start(controller = this._runtime.controller)
   {
     if (!controller || !this.curveSet)
@@ -92,8 +92,8 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    * Stops timeline updates for this action.
    * Adapted: an omitted controller uses the stored JS link; no link is a no-op.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Stop(controller = this._runtime.controller)
   {
     if (controller) controller.UnRegisterUpdateable(this);
@@ -102,8 +102,8 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
   /**
    * Rebases stored simulation time.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RebaseSimTime(diff)
   {
     this._runtime.startTime += diff;
@@ -117,8 +117,8 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    * successful nonfinite results and target errors remain visible. Stored text does not
    * compile during Update; Link or OnModified owns recompilation.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(_realTime, simTime)
   {
     this._runtime.lastTime = simTime;
@@ -145,8 +145,8 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    * Recompiles when the expression changes.
    * Adapted: the exposed property name identifies the native notified member.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnModified(propertyName)
   {
     if (this._runtime.controller && propertyName === "value")
@@ -162,8 +162,8 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    * Adapted: retains the JS explicit lazy-compilation helper. The live property
    * observes the retained evaluator without compiling, as native does.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   IsExpressionValid()
   {
     return this.CompileExpression().IsValid();
@@ -176,8 +176,8 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    * this forward takes and discards the attribute name. Same forward here
    * for nominal parity.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsAttrExpressionValid(_attributeName)
   {
     return this.IsExpressionValid();
@@ -188,8 +188,8 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    * Adapted: the shared AST adapter supplies term records instead of native
    * Tr2ExpressionTermInfo instances, followed by linked controller records.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetExpressionTermInfo()
   {
     const result = [];
@@ -203,8 +203,8 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    * Adapted: retains the existing AST convenience return of zero for invalid
    * syntax and permits unlinked evaluation, unlike native BlueStdResult errors.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   EvaluateExpression(expression)
   {
     const state = {
@@ -226,7 +226,7 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    * Compiles the authored time expression, reusing the cached program while the
    * expression text is unchanged. This JS-only helper owns the AST cache.
    */
-  @meta.impl.custom
+  @meta.ours
   CompileExpression()
   {
     return CjsControllerExpressionProgram.compileCached(this._runtime, this.value, 0);
@@ -234,7 +234,7 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionAnimateCurveSet_Blue.cpp:13-16,36).
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [Tr2ActionAnimateCurveSet, ITr2ControllerAction, ITr2Updateable, INotify],
   chainTo: null
 })(Tr2ActionAnimateCurveSet);

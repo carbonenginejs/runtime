@@ -1,6 +1,6 @@
 import { IInitialize, INotify } from "#blue";
 // Source: trinity/trinity/Tr2SkinnedModel.h
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2Model } from "./Tr2Model.js";
 import { vec3 } from "#math/vec3";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -9,8 +9,8 @@ import { BLUELISTEVENT } from "#consts/blue";
  * Skinned character model selecting a named skeleton from supplied geometry
  * and coordinating mesh-to-rig bindings.
  */
-@type.define({ className: "Tr2SkinnedModel", family: "trinityCore" })
-@carbon.inherit(IInitialize, INotify)
+@meta.define({ className: "Tr2SkinnedModel", family: "trinityCore" })
+@meta.blue.inherit(IInitialize, INotify)
 export class Tr2SkinnedModel extends Tr2Model
 {
 
@@ -23,34 +23,34 @@ export class Tr2SkinnedModel extends Tr2Model
   _skeletonResource = null;
 
   /** m_geometryResPath (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   geometryResPath = "";
 
   /** m_geometryRes (TriGeometryResPtr) [READ] */
-  @edit.read
-  @type.objectRef("TriGeometryRes")
+  @meta.blue.read
+  @meta.type.objectRef("TriGeometryRes")
   geometryRes = null;
 
   /** m_skeletonName (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   skeletonName = "";
 
   /** m_skinScale (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   skinScale = vec3.fromValues(1, 1, 1);
 
   /** Carbon INotify hook: refreshes the selected skeleton from an already supplied resource. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
   OnModified(propertyName)
   {
     if (propertyName === "geometryResPath" || propertyName === "skeletonName") this.Initialize();
@@ -61,10 +61,10 @@ export class Tr2SkinnedModel extends Tr2Model
    * Resets binding state and selects a skeleton from the supplied geometry
    * resource.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Character resource acquisition remains host-owned. Resets native skeleton/binding state and resolves against the supplied geometry; native resource subscription/acquisition is not implemented here.")
-  @impl.invalidates("_areAllMeshesBound")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Character resource acquisition remains host-owned. Resets native skeleton/binding state and resolves against the supplied geometry; native resource subscription/acquisition is not implemented here.")
+  @meta.invalidates("_areAllMeshesBound")
   Initialize()
   {
     this._skeletonIndex = -1;
@@ -74,26 +74,26 @@ export class Tr2SkinnedModel extends Tr2Model
   }
 
   /** Invalidates mesh binding completion when a mesh is inserted. */
-  @carbon.method
-  @impl.implemented
-  @impl.invalidates("_areAllMeshesBound")
+  @meta.blue.method
+  @meta.implemented
+  @meta.invalidates("_areAllMeshesBound")
   OnListModified(event)
   {
     if (event === BLUELISTEVENT.BELIST_INSERTED) this._areAllMeshesBound = false;
   }
 
   /** Carbon resource-notify hook: clears the selected skeleton index. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ReleaseCachedData(_resource = null)
   {
     this._skeletonIndex = -1;
   }
 
   /** Carbon resource-notify hook: selects the exact named skeleton. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Consumes the structural TriGeometryRes skeleton-query surface supplied by an outer resource adapter.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Consumes the structural TriGeometryRes skeleton-query surface supplied by an outer resource adapter.")
   RebuildCachedData(resource = this.geometryRes)
   {
     this._skeletonIndex = -1;
@@ -127,9 +127,9 @@ export class Tr2SkinnedModel extends Tr2Model
   }
 
   /** Carbon native method GetSkeleton. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Returns the selected structural geometry-resource skeleton object rather than a native pointer.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Returns the selected structural geometry-resource skeleton object rather than a native pointer.")
   GetSkeleton()
   {
     if (this._skeletonIndex < 0
@@ -143,9 +143,9 @@ export class Tr2SkinnedModel extends Tr2Model
   }
 
   /** Carbon native method BindToRig. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Uses JavaScript bone-name arrays and structural mesh BindToRig methods instead of native string pointers and mesh objects.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Uses JavaScript bone-name arrays and structural mesh BindToRig methods instead of native string pointers and mesh objects.")
   BindToRig(boneList, numBones = boneList?.length ?? 0, forceRebind = false)
   {
     if (!forceRebind && boneList === this._boneList && this._areAllMeshesBound)
@@ -196,16 +196,16 @@ export class Tr2SkinnedModel extends Tr2Model
   }
 
   /** Carbon native method ResetBindings. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ResetBindings()
   {
     this._areAllMeshesBound = false;
   }
 
   /** Carbon method ResetAnimationBindings -> ResetBindings (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ResetAnimationBindings()
   {
     this.ResetBindings();
@@ -213,4 +213,4 @@ export class Tr2SkinnedModel extends Tr2Model
 
 }
 
-carbon.interfaceTable({ interfaces: [Tr2SkinnedModel, IInitialize, INotify], chainTo: Tr2Model })(Tr2SkinnedModel, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [Tr2SkinnedModel, IInitialize, INotify], chainTo: Tr2Model })(Tr2SkinnedModel, { kind: "class" });

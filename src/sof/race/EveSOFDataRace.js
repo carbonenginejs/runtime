@@ -1,47 +1,47 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.js";
 import { EveSOFDataBooster } from "../shared/EveSOFDataBooster.js";
 import { EveSOFDataRaceDamage } from "./EveSOFDataRaceDamage.js";
 
 /** Names a race, stores its heat color, and combines race-level booster and damage configuration. */
-@type.define({ className: "EveSOFDataRace", family: "eve" })
+@meta.define({ className: "EveSOFDataRace", family: "eve" })
 export class EveSOFDataRace
 {
   static ColorType = EveSOFDataFactionColorSet.ColorType;
 
 
   /** m_hullPrimaryHeatColorType (SOFDataFactionColorChooser::ColorType - enum ColorType) [READWRITE, PERSIST, ENUM] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.SOFDataFactionColorChooser.ColorType")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.SOFDataFactionColorChooser.ColorType")
   hullPrimaryHeatColorType = 16;
 
   /** m_hullReactorHeatColorType (SOFDataFactionColorChooser::ColorType - enum ColorType) [READWRITE, PERSIST, ENUM] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.SOFDataFactionColorChooser.ColorType")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.SOFDataFactionColorChooser.ColorType")
   hullReactorHeatColorType = 14;
 
   /** m_booster (EveSOFDataBoosterPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveSOFDataBooster")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSOFDataBooster")
   booster = null;
 
   /** m_damage (EveSOFDataRaceDamagePtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveSOFDataRaceDamage")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSOFDataRaceDamage")
   damage = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /**

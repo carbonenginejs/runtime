@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:130-145
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
 import { ErrSOFAreaTypeNotFound } from "./ErrSOFAreaTypeNotFound.js";
 
@@ -58,9 +58,9 @@ export class EveSOFDataArea
    * Native m_materials[TYPE_PRIMARY], READWRITE | PERSIST.
    * @type {EveSOFDataAreaMaterial|null}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.objectRef("EveSOFDataAreaMaterial")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSOFDataAreaMaterial")
   Primary = null;
 
   /**
@@ -68,9 +68,9 @@ export class EveSOFDataArea
    * Native m_materials[TYPE_GLASS], READWRITE | PERSIST.
    * @type {EveSOFDataAreaMaterial|null}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.objectRef("EveSOFDataAreaMaterial")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSOFDataAreaMaterial")
   Glass = null;
 
   /**
@@ -78,9 +78,9 @@ export class EveSOFDataArea
    * Native m_materials[TYPE_SAILS], READWRITE | PERSIST.
    * @type {EveSOFDataAreaMaterial|null}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.objectRef("EveSOFDataAreaMaterial")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSOFDataAreaMaterial")
   Sails = null;
 
   /**
@@ -88,9 +88,9 @@ export class EveSOFDataArea
    * Native m_materials[TYPE_REACTOR], READWRITE | PERSIST.
    * @type {EveSOFDataAreaMaterial|null}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.objectRef("EveSOFDataAreaMaterial")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSOFDataAreaMaterial")
   Reactor = null;
 
   /**
@@ -98,9 +98,9 @@ export class EveSOFDataArea
    * Native m_materials[TYPE_DARKHULL], READWRITE | PERSIST.
    * @type {EveSOFDataAreaMaterial|null}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.objectRef("EveSOFDataAreaMaterial")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSOFDataAreaMaterial")
   Darkhull = null;
 
   /**
@@ -108,9 +108,9 @@ export class EveSOFDataArea
    * Native m_materials[TYPE_ROCK], READWRITE | PERSIST.
    * @type {EveSOFDataAreaMaterial|null}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.objectRef("EveSOFDataAreaMaterial")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSOFDataAreaMaterial")
   Rock = null;
 
   /**
@@ -118,9 +118,9 @@ export class EveSOFDataArea
    * Native m_materials[TYPE_MONUMENT], READWRITE | PERSIST.
    * @type {EveSOFDataAreaMaterial|null}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.objectRef("EveSOFDataAreaMaterial")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSOFDataAreaMaterial")
   Monument = null;
 
   /**
@@ -128,9 +128,9 @@ export class EveSOFDataArea
    * Native m_materials[TYPE_ORNAMENT], READWRITE | PERSIST.
    * @type {EveSOFDataAreaMaterial|null}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.objectRef("EveSOFDataAreaMaterial")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSOFDataAreaMaterial")
   Ornament = null;
 
   /**
@@ -138,9 +138,9 @@ export class EveSOFDataArea
    * Native m_materials[TYPE_SIMPLEPRIMARY], READWRITE | PERSIST.
    * @type {EveSOFDataAreaMaterial|null}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.objectRef("EveSOFDataAreaMaterial")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSOFDataAreaMaterial")
   SimplePrimary = null;
 
   /**
@@ -148,9 +148,9 @@ export class EveSOFDataArea
    * Native m_materials[TYPE_TURRET], READWRITE | PERSIST.
    * @type {EveSOFDataAreaMaterial|null}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.objectRef("EveSOFDataAreaMaterial")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSOFDataAreaMaterial")
   Turret = null;
 
   /**
@@ -160,7 +160,7 @@ export class EveSOFDataArea
    * @param {number} type Native area index.
    * @returns {EveSOFDataAreaMaterial|null} The selected record or null.
    */
-  @meta.impl.custom
+  @meta.ours
   GetTypeByIndex(type)
   {
     const name = this.constructor.Types[type];
@@ -173,7 +173,7 @@ export class EveSOFDataArea
    * @param {number} type Native area index.
    * @returns {boolean} Whether the slot contains a record.
    */
-  @meta.impl.custom
+  @meta.ours
   Has(type)
   {
     return this.GetTypeByIndex(type) !== null;
@@ -187,7 +187,7 @@ export class EveSOFDataArea
    * @returns {EveSOFDataAreaMaterial} The selected record.
    * @throws {ErrSOFAreaTypeNotFound} When the slot has no material.
    */
-  @meta.impl.custom
+  @meta.ours
   Get(type)
   {
     const value = this.GetTypeByIndex(type);
@@ -218,7 +218,7 @@ blue.enums.RegisterEnum("trinity.EveSOFDataArea.AreaType", EveSOFDataArea.AreaTy
   ]
 });
 
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ EveSOFDataArea ],
   chainTo: null
 })(EveSOFDataArea);

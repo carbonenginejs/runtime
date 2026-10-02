@@ -1,6 +1,6 @@
 // Source: audio/src/AudPosition.h + AudPosition.cpp
 // Hand-owned behavior port. Verify against audio/AudPosition.json.
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { IBluePlacementObserver } from "#blue/IBluePlacementObserver";
 import { vec3 } from "#math/vec3";
 
@@ -8,7 +8,7 @@ import { vec3 } from "#math/vec3";
  * Stores browser-safe front, top, and position vectors for Carbon
  * placement-observer updates.
  */
-@type.define({ className: "AudPosition", family: "audio" })
+@meta.define({ className: "AudPosition", family: "audio" })
 export class AudPosition extends IBluePlacementObserver
 {
 
@@ -31,8 +31,8 @@ export class AudPosition extends IBluePlacementObserver
    * @param {ArrayLike<number>} position Position.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdatePlacement(front, top, position)
   {
     vec3.copy(this.value.front, front);
@@ -47,8 +47,8 @@ export class AudPosition extends IBluePlacementObserver
    *
    * @returns {boolean} Always true.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnModified()
   {
     return true;
@@ -57,4 +57,4 @@ export class AudPosition extends IBluePlacementObserver
 }
 
 // Exact native exposure identities; no inherited lifecycle policy.
-carbon.interfaceTable({ interfaces: [ AudPosition, IBluePlacementObserver ], chainTo: null })(AudPosition, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [ AudPosition, IBluePlacementObserver ], chainTo: null })(AudPosition, { kind: "class" });

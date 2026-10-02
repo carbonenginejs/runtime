@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/UI/EveSpherePin.h
 // Source: trinity/trinity/Eve/UI/EveSpherePin.cpp
 // Hand-maintained after promotion from generated schema intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { IEveTransform } from "../IEveTransform.js";
 import { mat4 } from "#math/mat4";
@@ -11,143 +11,143 @@ import { vec4 } from "#math/vec4";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 
 /** A UI sphere pin: authored SRT placement plus the pin constant record. */
-@type.define({ className: "EveSpherePin", family: "eve/ui" })
-@carbon.inherit(ITr2Renderable, IEveSpaceObject2, IEveTransform)
+@meta.define({ className: "EveSpherePin", family: "eve/ui" })
+@meta.blue.inherit(ITr2Renderable, IEveSpaceObject2, IEveTransform)
 export class EveSpherePin
 {
 
   /** m_primitiveCount (int) [READ] */
-  @edit.read
-  @type.int32
+  @meta.blue.read
+  @meta.type.int32
   primitiveCount = 0;
 
   /** m_translation (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   translation = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.quat
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   rotation = quat.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   display = true;
 
   /** m_enablePicking (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   enablePicking = true;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_pinColor (Color) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   pinColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_pinColor (Color) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("TriCurveSet")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("TriCurveSet")
   curveSets = [];
 
   /** m_sortValueMultiplier (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   sortValueMultiplier = 1;
 
   /** m_centerNormal (Vector3) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   centerNormal = vec3.fromValues(0, 0, 1);
 
   /** m_pinMaxRadius (float) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   pinMaxRadius = 0.2;
 
   /** m_pinRadius (float) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   pinRadius = 0.2;
 
   /** m_pinEffectResPath (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   pinEffectResPath = "";
 
   /** m_geomResPath (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   geometryResPath = "";
 
   /** m_pinRotation (float) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   pinRotation = 0;
 
   /** m_pinAlphaThreshold (float) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   pinAlphaThreshold = 0;
 
   /** m_uvAtlasScaleOffset (Vector4) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.vec4
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec4
   uvAtlasScaleOffset = vec4.fromValues(1, 1, 0, 0);
 
   /** m_pinEffect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2Effect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2Effect")
   pinEffect = null;
 
   /** m_pickEffect (Tr2EffectPtr) [READ] */
-  @edit.read
-  @type.objectRef("Tr2Effect")
+  @meta.blue.read
+  @meta.type.objectRef("Tr2Effect")
   pickEffect = null;
 
   /** m_worldTransform (EveSpherePin.cpp:46; ctor identity) - runtime state
@@ -159,8 +159,8 @@ export class EveSpherePin
   boundingSphere = vec4.create();
 
   /** Carbon EveSpherePin::HasTransparentBatches is always true. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HasTransparentBatches()
   {
     return true;
@@ -170,9 +170,9 @@ export class EveSpherePin
    * position to the world-transformed bounding-sphere center, scaled by the
    * sort-value multiplier. Carbon reads the Tr2Renderer view-position static;
    * the batch collector supplies the render context instead. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon reads the Tr2Renderer view-position static; the batch collector supplies the render context explicitly.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon reads the Tr2Renderer view-position static; the batch collector supplies the render context explicitly.")
   GetSortValue(renderContext = null)
   {
     const viewPosition = renderContext?.GetViewPosition();
@@ -192,24 +192,24 @@ export class EveSpherePin
   }
 
   /** Carbon EveSpherePin::GetBatches submits the pin geometry with the pin effect (GPU-backed). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   GetBatches(_accumulator, _batchType, _perObjectData, _reason)
   {
     throw new Error("EveSpherePin.GetBatches is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon EveSpherePin::GetPickingBatches submits the pick-effect geometry (GPU-backed). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   GetPickingBatches(_accumulator, _perObjectData)
   {
     throw new Error("EveSpherePin.GetPickingBatches is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon EveSpherePin::GetID uses the pin itself as its picking identity. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetID()
   {
     return this;
@@ -221,8 +221,8 @@ export class EveSpherePin
    * gl multiply(world, parent, local); Carbon (s, r, t) is gl
    * fromRotationTranslationScale (r, t, s). The frustum argument is unused
    * in Carbon's body and kept for signature parity. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateViewDependentData(_frustum, parentTransform)
   {
     const local = mat4.fromRotationTranslationScale(mat4.create(), this.rotation, this.translation, this.scaling);
@@ -234,8 +234,8 @@ export class EveSpherePin
    * payload; Set(MATRIX) performs Carbon's `Transpose(m_worldTransform)`.
    * The struct registers with stages ["vs", "ps"]: the SAME bytes are bound
    * to both per-object slots (cpp:415-425). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetPerObjectData(accumulator)
   {
     const data = accumulator.Alloc("EveSpherePinPerObjectData");

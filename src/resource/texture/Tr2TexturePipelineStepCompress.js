@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepCompress.h
 // Schema: format-carbon resources/Tr2TexturePipelineStepCompress.json; maintained by the runtime resource layer.
-import { carbon, CjsSchema, edit, impl, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** Persisted pipeline-step record mirroring Carbon's compress step, naming the target pixel format and per-channel error weights. */
 export class Tr2TexturePipelineStepCompress
@@ -55,13 +55,13 @@ export class Tr2TexturePipelineStepCompress
 CjsSchema.define(Tr2TexturePipelineStepCompress, {
   className: "Tr2TexturePipelineStepCompress", family: "resources",
   fields: {
-    format: [ edit.persist, type.int32, type.enum("PixelFormat") ],
-    b: [ edit.persist, type.float32 ],
-    g: [ edit.persist, type.float32 ],
-    r: [ edit.persist, type.float32 ]
+    format: [ meta.blue.persist, meta.type.int32, meta.type.enum("PixelFormat") ],
+    b: [ meta.blue.persist, meta.type.float32 ],
+    g: [ meta.blue.persist, meta.type.float32 ],
+    r: [ meta.blue.persist, meta.type.float32 ]
   },
   methods: {
-    GetResourceDependencies: [ carbon.method, impl.implemented ],
-    Execute: [ carbon.method, impl.adapted, impl.reason("Carbon's step compresses nothing and returns true; ours refuses rather than pass uncompressed data off as compressed (issue 20).") ]
+    GetResourceDependencies: [ meta.blue.method, meta.implemented ],
+    Execute: [ meta.blue.method, meta.adapted, meta.reason("Carbon's step compresses nothing and returns true; ours refuses rather than pass uncompressed data off as compressed (issue 20).") ]
   }
 });

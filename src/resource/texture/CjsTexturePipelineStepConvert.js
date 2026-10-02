@@ -1,6 +1,6 @@
 // Not Carbon. A texture-pipeline step of our own, registered in
 // /docs/architecture/non-carbon-extensions.md.
-import { CjsSchema, edit, impl, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { HostBitmap } from "#imageio";
 import { PixelFormat } from "#consts/render-context";
 import { CjsImageFormat } from "../format/CjsImageFormat.js";
@@ -68,11 +68,11 @@ export class CjsTexturePipelineStepConvert
 CjsSchema.define(CjsTexturePipelineStepConvert, {
   className: "CjsTexturePipelineStepConvert", family: "resources",
   fields: {
-    format: [ edit.persist, type.int32, type.enum("PixelFormat") ],
-    paths: [ edit.persist, type.list("string") ]
+    format: [ meta.blue.persist, meta.type.int32, meta.type.enum("PixelFormat") ],
+    paths: [ meta.blue.persist, meta.type.list("string") ]
   },
   methods: {
-    GetResourceDependencies: impl.custom,
-    Execute: impl.custom
+    GetResourceDependencies: meta.ours,
+    Execute: meta.ours
   }
 });

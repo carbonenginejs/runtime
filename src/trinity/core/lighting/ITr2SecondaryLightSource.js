@@ -4,7 +4,7 @@
 // neighbours' SH lighting. EveEffectRoot2, EvePlanet and EveSpaceObject2
 // implement it; the scene registers each as it enters the scene's objects
 // (EveSpaceScene::OnListModified, cpp:3450-3456).
-import { CjsSchema, compose, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** Contract for a secondary light source Tr2ShLightingManager can register. */
 export class ITr2SecondaryLightSource
@@ -30,6 +30,6 @@ export class ITr2SecondaryLightSource
 
 for (const method of [ "RegisterSecondaryLightSource", "UnregisterSecondaryLightSource" ])
 {
-  CjsSchema.decorateMethod(ITr2SecondaryLightSource, method, compose.abstract, impl.abstract);
+  CjsSchema.decorateMethod(ITr2SecondaryLightSource, method, meta.requires, meta.abstract);
 }
 CjsSchema.define(ITr2SecondaryLightSource, { className: "ITr2SecondaryLightSource", carbon: "ITr2SecondaryLightSource", fields: {} });

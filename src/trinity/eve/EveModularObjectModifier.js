@@ -5,7 +5,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { EveChildPartData, EveChildPartDataPartData } from "./child/EveChildPartData/index.js";
 import { EveChildInstancedMeshes } from "./child/EveChildInstancedMeshes/index.js";
 import { EveStation2 } from "./spaceObject/EveStation2.js";
@@ -13,7 +13,7 @@ import { Tr2Lod } from "./EveLODHelper.js";
 
 
 /** Transient edit session for one modular EveSpaceObject2. */
-@type.define({ className: "EveModularObjectModifier", family: "eve" })
+@meta.define({ className: "EveModularObjectModifier", family: "eve" })
 export class EveModularObjectModifier
 {
   _object = null;
@@ -27,8 +27,8 @@ export class EveModularObjectModifier
   _objectLoader = null;
 
   /** Opens an edit session and creates persistent part data when absent. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Create(object, sof, objectLoader = null)
   {
     this._object = object;
@@ -46,8 +46,8 @@ export class EveModularObjectModifier
   }
 
   /** Builds and attaches one SOF hull part, returning its unique part tag. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddHull(hullName, factionName, raceName, position, rotation, scale)
   {
     this._AssertReady();
@@ -84,8 +84,8 @@ export class EveModularObjectModifier
   }
 
   /** Loads and attaches one resource child, returning its unique part tag. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   AddChild(resourcePath, position, rotation, scale)
   {
     this._AssertReady();
@@ -114,8 +114,8 @@ export class EveModularObjectModifier
   }
 
   /** Removes a modular part and every child carrying its tag. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Remove(partId)
   {
     const part = this._GetPart(partId);
@@ -138,8 +138,8 @@ export class EveModularObjectModifier
   }
 
   /** Replaces a modular part transform and updates its attached children. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetTransform(partId, position, rotation, scale)
   {
     const part = this._GetPart(partId);
@@ -187,8 +187,8 @@ export class EveModularObjectModifier
   }
 
   /** Recomputes culling bounds from the current modular part spheres. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   ApplyBounds()
   {
     this._AssertReady();
@@ -230,24 +230,24 @@ export class EveModularObjectModifier
   }
 
   /** Copies a modular part's authored position. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetPosition(partId, out = vec3.create())
   {
     return vec3.copy(out, this._GetPart(partId).position);
   }
 
   /** Copies a modular part's authored rotation. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetRotation(partId, out = quat.create())
   {
     return quat.copy(out, this._GetPart(partId).rotation);
   }
 
   /** Copies a modular part's authored scale. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetScale(partId, out = vec3.create())
   {
     return vec3.copy(out, this._GetPart(partId).scale);

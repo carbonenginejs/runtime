@@ -1,65 +1,65 @@
 // Source: trinity/trinity/Tr2ManipulationTool.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
 /** The interactive manipulator base: axis selection, drag handling and the callback a move reports through. */
-@type.define({ className: "Tr2ManipulationTool", family: "trinityCore" })
+@meta.define({ className: "Tr2ManipulationTool", family: "trinityCore" })
 export class Tr2ManipulationTool
 {
 
   /** Carbon's selected primitive/axis name. */
-  @type.string
+  @meta.type.string
   selectedAxis = "";
 
   /** Browser callback replacing BlueScriptCallback. */
-  @type.rawStruct("BlueScriptCallback")
+  @meta.type.rawStruct("BlueScriptCallback")
   moveCallback = null;
 
   /** m_captured (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   captured = false;
 
   /** m_primitives (PTr2PrimitiveSetVector) [READ] */
-  @edit.read
-  @type.list("Tr2PrimitiveSet")
+  @meta.blue.read
+  @meta.type.list("Tr2PrimitiveSet")
   primitives = [];
 
   /** m_pythonUserData (PyObject*) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("PyObject")
+  @meta.blue.readwrite
+  @meta.type.objectRef("PyObject")
   _userData = null;
 
   /** m_localTransform (Matrix) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.mat4
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.mat4
   localTransform = mat4.create();
 
   /** m_pivot (Vector3) [READWRITE] */
-  @edit.readwrite
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.type.vec3
   pivot = vec3.create();
 
   /** m_worldTransform (Matrix) [READ] */
-  @edit.read
-  @type.mat4
+  @meta.blue.read
+  @meta.type.mat4
   worldTransform = mat4.create();
 
   /** Carbon method SetMoveCallback (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetMoveCallback(callback)
   {
     this.moveCallback = callback ?? null;
   }
 
   /** Carbon method SelectAxis (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SelectAxis(axisName)
   {
     const selected = this.primitives.filter(primitive => primitive?.name === axisName);
@@ -78,8 +78,8 @@ export class Tr2ManipulationTool
   }
 
   /** Carbon method Init (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Init(initialTransform)
   {
     mat4.copy(this.localTransform, initialTransform);
@@ -95,8 +95,8 @@ export class Tr2ManipulationTool
    * @param {Float32Array} [outZ]
    * @returns {[Float32Array, Float32Array, Float32Array]} The three axes.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBaseVectors(outX = vec3.create(), outY = vec3.create(), outZ = vec3.create())
   {
     const local = this.localTransform;
@@ -107,43 +107,43 @@ export class Tr2ManipulationTool
   }
 
   /** Required per-frame manipulator update contract (Tr2ManipulationTool.h:37). */
-  @impl.abstract
+  @meta.abstract
   Update(..._args)
   {
     throw new Error("Tr2ManipulationTool.Update must be implemented by a concrete manipulation tool.");
   }
 
   /** Required guide-geometry construction contract (Tr2ManipulationTool.h:38). */
-  @impl.abstract
+  @meta.abstract
   GenLineSets(..._args)
   {
     throw new Error("Tr2ManipulationTool.GenLineSets must be implemented by a concrete manipulation tool.");
   }
 
   /** Required primitive-colour reset contract (Tr2ManipulationTool.h:39). */
-  @impl.abstract
+  @meta.abstract
   ResetPrimitiveColors(..._args)
   {
     throw new Error("Tr2ManipulationTool.ResetPrimitiveColors must be implemented by a concrete manipulation tool.");
   }
 
   /** Required visible-primitive collection contract (Tr2ManipulationTool.h:40). */
-  @impl.abstract
+  @meta.abstract
   GetPrimitivesToRender(..._args)
   {
     throw new Error("Tr2ManipulationTool.GetPrimitivesToRender must be implemented by a concrete manipulation tool.");
   }
 
   /** Carbon's pure-virtual Move contract, exposed through PyMove. */
-  @carbon.method
-  @impl.abstract
+  @meta.blue.method
+  @meta.abstract
   Move(..._args)
   {
     throw new Error("Tr2ManipulationTool.Move must be implemented by a concrete manipulation tool.");
   }
 
   /** Invokes Carbon's move veto callback with current and proposed transforms. */
-  @impl.adapted
+  @meta.adapted
   OnMoveCallback(currentTransform, nextTransform)
   {
     if (!this.moveCallback)

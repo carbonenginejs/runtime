@@ -1,4 +1,4 @@
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 
@@ -6,15 +6,15 @@ import { TriRenderJob } from "../TriRenderJob.js";
 // projection (Tr2Renderer::PushProjection).
 
 /** Step that saves the current projection so a later pop can restore it. */
-@type.define({ className: "TriStepPushProjection", family: "renderJob" })
+@meta.define({ className: "TriStepPushProjection", family: "renderJob" })
 export class TriStepPushProjection extends TriRenderStep
 {
   /**
    * Pushes the render context's current projection; the value is not supplied by the
    * step, only the intent to save it.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     renderContext.PushProjection();

@@ -33,7 +33,7 @@ export class ITr2DebugRenderable
 
 for (const method of [ "GetDebugOptions", "RenderDebugInfo" ])
 {
-  CjsSchema.decorateMethod(ITr2DebugRenderable, method, meta.compose.abstract, meta.impl.abstract);
+  CjsSchema.decorateMethod(ITr2DebugRenderable, method, meta.requires, meta.abstract);
 }
 // Carbon defines an IID, not a class factory. JavaScript registers the interface
 // constructor so named declarations and nominal composition resolve one identity.

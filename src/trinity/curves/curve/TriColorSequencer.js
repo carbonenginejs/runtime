@@ -4,7 +4,7 @@ import { vec4 } from "#math/vec4";
 import { ITriFunction, ITriColorFunction, BlueList, ITriCurveLength } from "#blue";
 import { ITriDuration } from "../ITriDuration.js";
 import { mappedInterfaces } from "../../../global/compose/interface.js";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { TRIOPERATOR } from "#consts/graphics";
 import "#blue/registerTrinityEnums";
 
@@ -15,17 +15,17 @@ import "#blue/registerTrinityEnums";
  * offset by white. Sampling retains the existing instance child scratch; native
  * sampling uses local temporaries. Numeric tick overloads remain unimplemented.
  */
-@type.define({ className: "TriColorSequencer", family: "curves" })
-@carbon.inherit(ITriCurveLength)
+@meta.define({ className: "TriColorSequencer", family: "curves" })
+@meta.blue.inherit(ITriCurveLength)
 export class TriColorSequencer extends ITriColorFunction
 {
   /**
    * Authored name identifying the color sequencer; native wide string.
    * @type {string}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.wstring
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.wstring
   name = "";
 
   /**
@@ -33,9 +33,9 @@ export class TriColorSequencer extends ITriColorFunction
    * does not apply it.
    * @type {number}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.int64
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int64
   start = 0;
 
   /**
@@ -43,9 +43,9 @@ export class TriColorSequencer extends ITriColorFunction
    * here.
    * @type {Float32Array}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   value = vec4.create();
 
   /**
@@ -53,19 +53,19 @@ export class TriColorSequencer extends ITriColorFunction
    * the current sampler.
    * @type {number}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("blue.TRIOPERATOR")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("blue.TRIOPERATOR")
   operator = TRIOPERATOR.TRIOP_MULTIPLY;
 
   /**
    * Ordered child color functions sampled and combined at the supplied time.
    * @type {BlueList<ITriColorFunction>}
    */
-  @edit.read
-  @edit.persist
-  @type.list("ITriColorFunction")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITriColorFunction")
   functions = new BlueList(ITriColorFunction, { className: null, listOps: 0 });
 
   /**
@@ -81,8 +81,8 @@ export class TriColorSequencer extends ITriColorFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateValue(time)
   {
     const out = vec4.alloc();
@@ -103,8 +103,8 @@ export class TriColorSequencer extends ITriColorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(time, out)
   {
     this.GetValueAt(time, out);
@@ -119,8 +119,8 @@ export class TriColorSequencer extends ITriColorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValueAt(time, out)
   {
     if (this.operator === TRIOPERATOR.TRIOP_MULTIPLY)
@@ -150,8 +150,8 @@ export class TriColorSequencer extends ITriColorFunction
    * JavaScript queries exact native ITriDuration before ITriCurveLength; an advertised method is required.
    * @returns {number} Greatest child duration.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Length()
   {
     let maxDuration = 0;
@@ -174,4 +174,4 @@ export class TriColorSequencer extends ITriColorFunction
 }
 
 // Native query table deliberately omits the concrete class.
-carbon.interfaceTable({ interfaces: [ITriFunction, ITriColorFunction, ITriCurveLength], chainTo: null })(TriColorSequencer);
+meta.blue.interfaceTable({ interfaces: [ITriFunction, ITriColorFunction, ITriCurveLength], chainTo: null })(TriColorSequencer);

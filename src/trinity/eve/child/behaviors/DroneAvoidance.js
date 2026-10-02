@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/DroneAvoidance.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/DroneAvoidance.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 
 // Module scratch for the per-agent loop (behavior updates run sequentially).
@@ -11,39 +11,39 @@ const FORCE_OFFSET = vec3.create();
 const NO_FORCES = [];
 
 /** A steering behaviour that pushes each drone away from its nearby neighbours, blended with its current velocity direction, to keep agents from clustering or overlapping. */
-@type.define({ className: "DroneAvoidance", family: "eve/child/behaviors" })
+@meta.define({ className: "DroneAvoidance", family: "eve/child/behaviors" })
 export class DroneAvoidance
 {
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   behaviorPriority = 0;
 
   /** m_behaviorWeight (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   behaviorWeight = 300;
 
   /** m_visionRange (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   visionRange = 5;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   enabled = true;
 
   /** m_framesBetweenUpdates (int32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   framesBetweenUpdates = 3;
 
   // Carbon m_frameCounter/m_lastPullForces runtime state.
@@ -54,8 +54,8 @@ export class DroneAvoidance
   _returnForces = [];
 
   /** Carbon DroneAvoidance::GetProcessPriority (cpp:22-25). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetProcessPriority()
   {
     return this.behaviorPriority;
@@ -73,9 +73,9 @@ export class DroneAvoidance
    * @param {Array} dronesInSearchRadius - per-agent neighbour lists
    * @returns {Array} debug force pairs when group.collectForces is on
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Debug force pairs are only collected when group.collectForces is set, keeping the per-agent loop allocation-free.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Debug force pairs are only collected when group.collectForces is set, keeping the per-agent loop allocation-free.")
   CalculateBehavior(agents, _scratchData, _deltaTime, group, _system, dronesInSearchRadius)
   {
     if (!this.enabled)
@@ -193,8 +193,8 @@ export class DroneAvoidance
   }
 
   /** Carbon DroneAvoidance::GetBehaviorSearchRadius (cpp:132-144). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBehaviorSearchRadius()
   {
     if (this._frameCounter >= this.framesBetweenUpdates)

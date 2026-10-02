@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/IEveSpaceObjectChild.h
-import { type } from "#schema";
+import { meta } from "#schema";
 import { Origin } from "../../generated/eve/child/enums.js";
 import { EveEntity } from "../EveEntity.js";
 
@@ -10,7 +10,7 @@ import { EveEntity } from "../EveEntity.js";
  *
  * @deprecated Use EveSpaceObjectChild.
  */
-@type.define({ className: "IEveSpaceObjectChild", family: "eve/child" })
+@meta.define({ className: "IEveSpaceObjectChild", family: "eve/child" })
 export class IEveSpaceObjectChild extends EveEntity
 {
   static Origin = Origin;

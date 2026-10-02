@@ -8,7 +8,7 @@
 //
 // The `W` variants collapse, as they do on the manager: they are Carbon's
 // wide-character twins.
-import { CjsSchema, carbon, compose, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** `IBluePaths` - search paths, resolution, existence and streams, per blue/include/IBluePaths.h. */
 export class IBluePaths
@@ -65,15 +65,15 @@ for (const method of [
   "FileExistsLocally", "FileNeedsDownload", "GetStreamFromPath", "GetFileContentsWithYield", "LogPaths"
 ])
 {
-  CjsSchema.decorateMethod(IBluePaths, method, compose.abstract, impl.abstract);
+  CjsSchema.decorateMethod(IBluePaths, method, meta.requires, meta.abstract);
 }
 
 // Carbon declares only the wide-character forms; a JS string covers both.
-CjsSchema.decorateMethod(IBluePaths, "SetSearchPath", carbon.renamed("SetSearchPathW"));
-CjsSchema.decorateMethod(IBluePaths, "GetSearchPath", carbon.renamed("GetSearchPathW"));
-CjsSchema.decorateMethod(IBluePaths, "ResolvePath", carbon.renamed("ResolvePathW"));
-CjsSchema.decorateMethod(IBluePaths, "ResolvePathForWriting", carbon.renamed("ResolvePathForWritingW"));
-CjsSchema.decorateMethod(IBluePaths, "ResolvePathToRoot", carbon.renamed("ResolvePathToRootW"));
-CjsSchema.decorateMethod(IBluePaths, "GetStreamFromPath", carbon.renamed("GetStreamFromPathW"));
+CjsSchema.decorateMethod(IBluePaths, "SetSearchPath", meta.blue.renamed("SetSearchPathW"));
+CjsSchema.decorateMethod(IBluePaths, "GetSearchPath", meta.blue.renamed("GetSearchPathW"));
+CjsSchema.decorateMethod(IBluePaths, "ResolvePath", meta.blue.renamed("ResolvePathW"));
+CjsSchema.decorateMethod(IBluePaths, "ResolvePathForWriting", meta.blue.renamed("ResolvePathForWritingW"));
+CjsSchema.decorateMethod(IBluePaths, "ResolvePathToRoot", meta.blue.renamed("ResolvePathToRootW"));
+CjsSchema.decorateMethod(IBluePaths, "GetStreamFromPath", meta.blue.renamed("GetStreamFromPathW"));
 
 CjsSchema.define(IBluePaths, { className: "IBluePaths", carbon: "IBluePaths", family: "blue", fields: {} });

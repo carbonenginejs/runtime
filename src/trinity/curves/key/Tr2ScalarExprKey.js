@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2ScalarExprKeyCurve.cpp
 // Source: trinity/trinity/Curves/Tr2ScalarExprKeyCurve_Blue.cpp
 import { finiteNumberOr } from "#utils/validation";
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { IInitialize, INotify } from "#blue";
 import { noise } from "#math/noise";
 import { CjsControllerExpressionProgram } from "../../controllers/expression/CjsControllerExpressionProgram.js";
@@ -18,120 +18,120 @@ import { Tr2CurveInterpolation } from "../enums.js";
   className: "Tr2ScalarExprKey",
   family: "curves"
 })
-@meta.carbon.inherit(INotify)
+@meta.blue.inherit(INotify)
 export class Tr2ScalarExprKey extends IInitialize
 {
   /** Key time in seconds. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   time = 0;
 
   /** Scalar sample value. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   value = 0;
 
   /** Incoming tangent value. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   left = 0;
 
   /** Outgoing tangent value. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   right = 0;
 
   /** Authored expression source for time. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.expression
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.expression
   timeExpression = "";
 
   /** Authored expression source for value. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.expression
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.expression
   valueExpression = "";
 
   /** Authored expression source for leftTangent. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.expression
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.expression
   leftTangentExpression = "";
 
   /** Authored expression source for rightTangent. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.expression
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.expression
   rightTangentExpression = "";
 
   /** Authored expression input 1. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   input1 = 0;
 
   /** Authored expression input 2. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   input2 = 0;
 
   /** Authored expression input 3. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   input3 = 0;
 
   /** Authored expression input 4. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   input4 = 0;
 
   /** Runtime random constant; readable without persistence. */
-  @meta.edit.read
-  @types.float32
+  @meta.blue.read
+  @meta.type.float32
   randomConstant = 0;
 
   /** Minimum authored random range. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   randomMin = 0;
 
   /** Maximum authored random range. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   randomMax = 0;
 
   /** Runtime previous-key time; zero for the first key. */
-  @meta.edit.read
-  @types.float32
+  @meta.blue.read
+  @meta.type.float32
   prevKeyTime = 0;
 
   /** Runtime previous-key value; zero for the first key. */
-  @meta.edit.read
-  @types.float32
+  @meta.blue.read
+  @meta.type.float32
   prevKeyValue = 0;
 
   /**
@@ -139,10 +139,10 @@ export class Tr2ScalarExprKey extends IInitialize
    * Adapted: the existing Tr2CurveInterpolation vocabulary has the same three
    * CONSTANT/LINEAR/HERMITE choices as ScalarInterpolationChooser.
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.int32
-  @types.enum("trinity.Tr2CurveInterpolation")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2CurveInterpolation")
   interpolation = Tr2CurveInterpolation.LINEAR;
 
   /**
@@ -154,8 +154,8 @@ export class Tr2ScalarExprKey extends IInitialize
    *
    * @returns {boolean} True.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Initialize()
   {
     this.RegenRandomConstant();
@@ -173,8 +173,8 @@ export class Tr2ScalarExprKey extends IInitialize
    * @param {string} propertyName Modified property name; unused.
    * @returns {boolean} True after evaluation completes.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnModified(propertyName)
   {
     const variables = this._expressionVariables();
@@ -195,8 +195,8 @@ export class Tr2ScalarExprKey extends IInitialize
    *
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RegenRandomConstant()
   {
     this.randomConstant = this.randomMin + Math.random() * (this.randomMax - this.randomMin);
@@ -212,8 +212,8 @@ export class Tr2ScalarExprKey extends IInitialize
    * @param {Tr2ScalarExprKey|null} previousKey Previous key, or null for the first key.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateValues(previousKey)
   {
     this.prevKeyTime = Number(previousKey?.time ?? 0);
@@ -237,7 +237,7 @@ export class Tr2ScalarExprKey extends IInitialize
    * @param {object} [variables] Input snapshot; defaults to the current key's values.
    * @returns {number} Evaluated value or fallback.
    */
-  @meta.impl.custom
+  @meta.ours
   Evaluate(expression, fallback, variables = this._expressionVariables())
   {
     if (!expression)
@@ -268,7 +268,7 @@ export class Tr2ScalarExprKey extends IInitialize
    *
    * @returns {object} Named expression inputs.
    */
-  @meta.impl.custom
+  @meta.ours
   _expressionVariables()
   {
     return {
@@ -297,4 +297,4 @@ const SCALAR_EXPR_KEY_PURE_FUNCTIONS = ["perlin_simple", "perlin"];
 
 
 // Native own query table; no inherited exposure chain.
-meta.carbon.interfaceTable({ interfaces: [ Tr2ScalarExprKey, IInitialize, INotify ], chainTo: null })(Tr2ScalarExprKey);
+meta.blue.interfaceTable({ interfaces: [ Tr2ScalarExprKey, IInitialize, INotify ], chainTo: null })(Tr2ScalarExprKey);

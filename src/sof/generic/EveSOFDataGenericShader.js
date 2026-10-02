@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:517-529
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 
 /** Defines a generic shader's parameters, textures, defaults, transparency and depth policy, and generated configuration.
  * Native IRoot-only data with a self-only Blue table. Independently initialized
@@ -17,9 +17,9 @@ export class EveSOFDataGenericShader
    * (BlueSharedString).
    * @type {string}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   shader = "";
 
   /**
@@ -27,9 +27,9 @@ export class EveSOFDataGenericShader
    * m_transparencyTextureName (BlueSharedString).
    * @type {string}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   transparencyTextureName = "";
 
   /**
@@ -37,9 +37,9 @@ export class EveSOFDataGenericShader
    * m_doGenerateDepthArea (bool).
    * @type {boolean}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   doGenerateDepthArea = true;
 
   /**
@@ -47,9 +47,9 @@ export class EveSOFDataGenericShader
    * Native m_parameters vector.
    * @type {Array<EveSOFDataGenericString>}
    */
-  @meta.edit.read
-  @meta.edit.persist
-  @types.list("EveSOFDataGenericString")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataGenericString")
   parameters = [];
 
   /**
@@ -57,9 +57,9 @@ export class EveSOFDataGenericShader
    * vector.
    * @type {Array<EveSOFDataTexture>}
    */
-  @meta.edit.read
-  @meta.edit.persist
-  @types.list("EveSOFDataTexture")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataTexture")
   defaultTextures = [];
 
   /**
@@ -67,9 +67,9 @@ export class EveSOFDataGenericShader
    * m_defaultParameters vector.
    * @type {Array<EveSOFDataParameter>}
    */
-  @meta.edit.read
-  @meta.edit.persist
-  @types.list("EveSOFDataParameter")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataParameter")
   defaultParameters = [];
 
   /**
@@ -79,7 +79,7 @@ export class EveSOFDataGenericShader
    * @param {string} key Authored usage name.
    * @returns {boolean} Whether this shader references the name.
    */
-  @meta.impl.custom
+  @meta.ours
   HasUsage(key)
   {
     if (!key) return false;
@@ -112,7 +112,7 @@ export class EveSOFDataGenericShader
    * @param {object|null} [provided={}] Caller-supplied parameter and texture maps.
    * @returns {object} The populated configuration.
    */
-  @meta.impl.custom
+  @meta.ours
   Assign(config = {}, provided = {})
   {
     config = config || {};
@@ -130,7 +130,7 @@ export class EveSOFDataGenericShader
    * @param {object|null} [provided=null] Caller-supplied parameter values.
    * @returns {object} The populated parameter map.
    */
-  @meta.impl.custom
+  @meta.ours
   AssignParameters(out = {}, provided = null)
   {
     out = out || {};
@@ -165,7 +165,7 @@ export class EveSOFDataGenericShader
    * @param {object|null} [provided=null] Caller-supplied texture values.
    * @returns {object} The populated texture map.
    */
-  @meta.impl.custom
+  @meta.ours
   AssignTextures(out = {}, provided = null)
   {
     out = out || {};
@@ -189,7 +189,7 @@ export class EveSOFDataGenericShader
 
 }
 
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ EveSOFDataGenericShader ],
   chainTo: null
 })(EveSOFDataGenericShader);

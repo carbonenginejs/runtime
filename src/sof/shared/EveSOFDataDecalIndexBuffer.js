@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:101-111
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { ICustomPersist } from "#blue";
 
 /**
@@ -15,8 +15,8 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
 {
 
   /** Native custom binary block; retained Uint32Array values-transport adaptation. */
-  @meta.edit.persistOnly
-  @types.typedArray("Uint32Array")
+  @meta.blue.persistOnly
+  @meta.type.typedArray("Uint32Array")
   indexBuffer = new Uint32Array(0);
 
   /**
@@ -25,8 +25,8 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
    * @param {number} index Unsigned 32-bit index.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddIndex(index)
   {
     const source = this.indexBuffer;
@@ -41,8 +41,8 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
    *
    * @returns {number[]} Copied indices.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetIndices()
   {
     return Array.from(this.indexBuffer, value => Number(value) >>> 0);
@@ -63,8 +63,8 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
    * @param {number} byteSize Nonnegative byte count; incomplete uint32 bytes are discarded.
    * @returns {Uint32Array} New backing storage.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   AllocateReadBuffer(byteSize)
   {
     this.indexBuffer = new Uint32Array(Math.floor(byteSize / 4));
@@ -81,8 +81,8 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
    *
    * @returns {{buffer: Uint32Array, byteSize: number}} Storage and byte count.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetWriteBufferAndSize()
   {
     const buffer = this.indexBuffer;
@@ -95,8 +95,8 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
    *
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.noop
+  @meta.blue.method
+  @meta.noop
   ReleaseWriteBuffer()
   {
   }
@@ -114,8 +114,8 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
    * @param {number} byteSize Nonnegative byte count; incomplete uint32 bytes are discarded.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetBufferAndSize(_buffer, byteSize)
   {
     const elements = Math.floor(byteSize / 4);
@@ -125,7 +125,7 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
 
 }
 
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ EveSOFDataDecalIndexBuffer, ICustomPersist ],
   chainTo: null
 })(EveSOFDataDecalIndexBuffer);

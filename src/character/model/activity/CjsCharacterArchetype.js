@@ -1,29 +1,29 @@
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /** Transparent activity-archetype record retained by the character source document. */
-@type.define({ className: "CjsCharacterArchetype", family: "character" })
+@meta.define({ className: "CjsCharacterArchetype", family: "character" })
 export class CjsCharacterArchetype extends CjsCharacterRecord
 {
 
-    @edit.readwrite
-    @edit.persist
-    @type.list("string")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.list("string")
     contentTags = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     location = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     descriptionID = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     titleID = null;
 
 }

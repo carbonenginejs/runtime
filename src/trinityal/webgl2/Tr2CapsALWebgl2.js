@@ -10,7 +10,7 @@
 // branch to take. So compute is denied until dispatch works here, even though
 // the plan is to lower it to fragment passes.
 
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /**
  * The platform capability constants (`Tr2CapsALDx11.h:9-18`), WebGL2's answers.
@@ -70,7 +70,7 @@ export class Tr2CapsALWebgl2
    *
    * @returns {boolean} Whether half-float render targets work.
    */
-  @impl.adapted
+  @meta.adapted
   SupportsFloat16()
   {
     const gl = this._gl;
@@ -95,7 +95,7 @@ export class Tr2CapsALWebgl2
    *
    * @returns {boolean} False.
    */
-  @impl.adapted
+  @meta.adapted
   SupportsStandaloneSwapChain()
   {
     return false;

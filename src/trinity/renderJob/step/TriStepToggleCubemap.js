@@ -1,10 +1,10 @@
 // Source: trinity/trinity/RenderJob/TriStepToggleCubemap.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that turns a scene cubemap display on or off. */
-@type.define({ className: "TriStepToggleCubemap", family: "renderJob" })
+@meta.define({ className: "TriStepToggleCubemap", family: "renderJob" })
 export class TriStepToggleCubemap extends TriRenderStep
 {
 
@@ -12,13 +12,13 @@ export class TriStepToggleCubemap extends TriRenderStep
   #scene = null;
 
   /** m_showCubemap (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   m_showCubemap = true;
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   __init__(showCubemap = true, scene = null)
   {
     this.m_showCubemap = Boolean(showCubemap);
@@ -26,8 +26,8 @@ export class TriStepToggleCubemap extends TriRenderStep
   }
 
   /** Enables or disables the interior scene's background cubemap. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Execute(_realTime, _simTime, _renderContext)
   {
     if (this.#scene)

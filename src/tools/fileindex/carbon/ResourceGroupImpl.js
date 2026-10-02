@@ -13,7 +13,7 @@
 // every scalar kept as its source text, as yaml-cpp's `as<std::string>()` reads
 // it, and written through the `yaml` package, so the formatting is not
 // byte-identical to yaml-cpp.
-import { CjsSchema, carbon, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { parse, stringify } from "yaml";
 import { CjsResFileIndexFormat } from "../../../resource/formats/resfileindex/CjsResFileIndexFormat.js";
 import { DocumentParameter } from "./DocumentParameter.js";
@@ -661,35 +661,35 @@ CjsSchema.define(ResourceGroupImpl, {
     family: "tools",
     fields: {},
     methods: {
-        typeId: [ carbon.method, impl.implemented ],
-        GetType: [ carbon.method, impl.implemented ],
-        GetSize: [ carbon.method, impl.implemented ],
-        AddResource: [ carbon.method, impl.implemented ],
-        ImportFromData: [ carbon.method, impl.implemented ],
-        ImportFromCSV: [ carbon.method, impl.adapted ],
-        ImportFromYamlString: [ carbon.method, impl.adapted ],
-        ImportFromYaml: [ carbon.method, impl.adapted ],
-        CreateResourceFromYaml: [ carbon.method, impl.adapted ],
-        ImportGroupSpecialisedYaml: [ carbon.method, impl.implemented ],
-        ExportGroupSpecialisedYaml: [ carbon.method, impl.implemented ],
-        GetGroupSpecificResourcesToBundle: [ carbon.method, impl.implemented ],
-        ExportToData: [ carbon.method, impl.implemented ],
-        ExportYaml: [ carbon.method, impl.adapted ],
-        ExportCsv: [ carbon.method, impl.adapted ],
-        Merge: [ carbon.method, impl.implemented ],
-        CreateResourceFromResource: [ carbon.method, impl.adapted ],
-        DiffChangesAsLists: [ carbon.method, impl.adapted ],
-        RemoveResource: [ carbon.method, impl.implemented ],
-        RemoveResources: [ carbon.method, impl.implemented ],
-        GetLargestResourceSize: [ carbon.method, impl.adapted ],
-        ImportFromFile: [ carbon.method, impl.adapted ],
-        ExportToFile: [ carbon.method, impl.adapted ],
-        _Compare: [ impl.custom ],
-        CreateFromDirectory: [ carbon.method, impl.notImplemented ],
-        CreateBundle: [ carbon.method, impl.notImplemented ],
-        ConstructPatchResourceInfo: [ carbon.method, impl.notImplemented ],
-        CreatePatch: [ carbon.method, impl.notImplemented ],
-        Diff: [ carbon.method, impl.notImplemented ],
-        createFromFilter: [ carbon.method, impl.notImplemented ]
+        typeId: [ meta.blue.method, meta.implemented ],
+        GetType: [ meta.blue.method, meta.implemented ],
+        GetSize: [ meta.blue.method, meta.implemented ],
+        AddResource: [ meta.blue.method, meta.implemented ],
+        ImportFromData: [ meta.blue.method, meta.implemented ],
+        ImportFromCSV: [ meta.blue.method, meta.adapted ],
+        ImportFromYamlString: [ meta.blue.method, meta.adapted ],
+        ImportFromYaml: [ meta.blue.method, meta.adapted ],
+        CreateResourceFromYaml: [ meta.blue.method, meta.adapted ],
+        ImportGroupSpecialisedYaml: [ meta.blue.method, meta.implemented ],
+        ExportGroupSpecialisedYaml: [ meta.blue.method, meta.implemented ],
+        GetGroupSpecificResourcesToBundle: [ meta.blue.method, meta.implemented ],
+        ExportToData: [ meta.blue.method, meta.implemented ],
+        ExportYaml: [ meta.blue.method, meta.adapted ],
+        ExportCsv: [ meta.blue.method, meta.adapted ],
+        Merge: [ meta.blue.method, meta.implemented ],
+        CreateResourceFromResource: [ meta.blue.method, meta.adapted ],
+        DiffChangesAsLists: [ meta.blue.method, meta.adapted ],
+        RemoveResource: [ meta.blue.method, meta.implemented ],
+        RemoveResources: [ meta.blue.method, meta.implemented ],
+        GetLargestResourceSize: [ meta.blue.method, meta.adapted ],
+        ImportFromFile: [ meta.blue.method, meta.adapted ],
+        ExportToFile: [ meta.blue.method, meta.adapted ],
+        _Compare: [ meta.ours ],
+        CreateFromDirectory: [ meta.blue.method, meta.notImplemented ],
+        CreateBundle: [ meta.blue.method, meta.notImplemented ],
+        ConstructPatchResourceInfo: [ meta.blue.method, meta.notImplemented ],
+        CreatePatch: [ meta.blue.method, meta.notImplemented ],
+        Diff: [ meta.blue.method, meta.notImplemented ],
+        createFromFilter: [ meta.blue.method, meta.notImplemented ]
     }
 });

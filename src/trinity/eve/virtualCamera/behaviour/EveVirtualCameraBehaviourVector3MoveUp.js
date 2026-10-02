@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { vec3 } from "#math/vec3";
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { EveVirtualCameraBehaviourVector3MoveForward } from "./EveVirtualCameraBehaviourVector3MoveForward.js";
 
 
@@ -9,7 +9,7 @@ import { EveVirtualCameraBehaviourVector3MoveForward } from "./EveVirtualCameraB
  * Vector3 behaviour that displaces the camera along its own up axis by a
  * curve-shaped distance.
  */
-@type.define({
+@meta.define({
   className: "EveVirtualCameraBehaviourVector3MoveUp",
   family: "eve/virtualCamera/behaviour"
 })
@@ -28,8 +28,8 @@ export class EveVirtualCameraBehaviourVector3MoveUp extends EveVirtualCameraBeha
    * Returns the camera's up direction scaled by the current distance; the up
    * axis already includes the camera roll.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, anchorRadius, _anchorForwardDirection, out = vec3.create())
   {
     return vec3.scale(out, camera.GetUpDirection(out), this.GetCurrentValue(camera, localElapsedTime, anchorRadius));

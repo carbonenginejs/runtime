@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Tr2BindingPoint.cpp
 import { copyArrayLike, fillArrayLike } from "#utils";
 import { isArrayLike } from "#utils/is";
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 
 
 const SWIZZLE_OFFSETS = {
@@ -31,50 +31,50 @@ const SWIZZLE_OFFSETS = {
 export class Tr2BindingPoint
 {
   /** Authored path, flattened by containing native actions. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   path = "";
 
   // Every embedding owner exposes it READWRITE|PERSIST|NOTIFY
   // (Tr2ActionSetValue_Blue.cpp:18, Tr2ActionAnimateValue_Blue.cpp:19).
   /** Authored direct object, used when the path is empty. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.objectRef("IRoot")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("IRoot")
   object = null;
 
   /** Authored member name and optional component swizzle. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   attribute = "";
 
   /** Native weak target pointer; retained as a live JS reference in this adapter. */
-  @types.weakRef("IRoot")
+  @meta.type.weakRef("IRoot")
   resolvedObject = null;
 
   /** Native weak notification pointer; the existing JS notification adapter resolves callbacks at write time. */
-  @types.weakRef("INotify")
+  @meta.type.weakRef("INotify")
   notifyPtr = null;
 
   /** Native member descriptor represented by a property name in this adapter. */
-  @types.objectRef("Be::VarEntry")
+  @meta.type.objectRef("Be::VarEntry")
   entry = null;
 
   /** Current JavaScript property value standing in for the native storage pointer. */
-  @types.objectRef("Be::Var")
+  @meta.type.objectRef("Be::Var")
   destination = null;
 
   /** Vector component offset, or -1 for the whole member. */
-  @types.int32
+  @meta.type.int32
   entryOffset = -1;
 
   /** Number of components in the resolved array-like value. */
-  @types.int32
+  @meta.type.int32
   arraySize = 0;
 
   /** Resolved destination retained by the JavaScript property adapter. */
@@ -89,8 +89,8 @@ export class Tr2BindingPoint
    * @param {object|null} [owner=null] Optional explicit owner.
    * @returns {boolean} Whether the destination resolved.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Link(roots = null, owner = null)
   {
     this.Unlink();
@@ -102,8 +102,8 @@ export class Tr2BindingPoint
    * Clears the resolved binding target.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Unlink()
   {
     this.resolvedObject = null;
@@ -120,8 +120,8 @@ export class Tr2BindingPoint
    * Checks whether this binding has resolved to a writable target.
    * @returns {boolean} Whether a target and key are retained.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsValid()
   {
     return !!this._target && !!this._attributeName;
@@ -134,9 +134,9 @@ export class Tr2BindingPoint
    * @param {object|null} [owner=null] Explicit owner for lazy linking.
    * @returns {boolean} Whether storage changed.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
-  @meta.impl.reason("JS returns whether a value changed; like the donor, successful writes notify regardless of equality through the existing JS notification adapter.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JS returns whether a value changed; like the donor, successful writes notify regardless of equality through the existing JS notification adapter.")
   SetValue(value, roots = null, owner = null)
   {
     if (!this.IsValid())
@@ -202,8 +202,8 @@ export class Tr2BindingPoint
    * @param {number} [fallback=0] Value for an unresolved or nonnumeric destination.
    * @returns {number} Sampled numeric value.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValue(roots = null, owner = null, fallback = 0)
   {
     if (!this.IsValid())
@@ -229,8 +229,8 @@ export class Tr2BindingPoint
    * @param {object|null} [owner=null] Explicit owner for lazy linking.
    * @returns {object|null} Resolved or authored object.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBoundObject(roots = null, owner = null)
   {
     if (!this.IsValid())
@@ -248,8 +248,8 @@ export class Tr2BindingPoint
    * @param {string} attribute Member and optional component suffix.
    * @returns {boolean} Whether storage resolved.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetDestination(target, attribute)
   {
     this.Unlink();
@@ -339,7 +339,7 @@ export class Tr2BindingPoint
    * @param {object|null} owner Explicit owner.
    * @returns {Array<Array>} Named root pairs.
    */
-  @meta.impl.custom
+  @meta.ours
   static _getLinkRoots(roots, owner)
   {
     if (Array.isArray(roots))
@@ -371,7 +371,7 @@ export class Tr2BindingPoint
    * @param {string} attribute Authored member name.
    * @returns {object|null} Name and component offset.
    */
-  @meta.impl.custom
+  @meta.ours
   static _parseAttribute(attribute)
   {
     const dot = attribute.indexOf(".");
@@ -394,7 +394,7 @@ export class Tr2BindingPoint
    * @param {number} index Character offset.
    * @returns {object|null} Identifier and next offset.
    */
-  @meta.impl.custom
+  @meta.ours
   static _readIdentifier(path, index)
   {
     const match = /^[A-Za-z_][A-Za-z0-9_]*/.exec(path.slice(index));
@@ -408,7 +408,7 @@ export class Tr2BindingPoint
    * @param {number} index Character offset.
    * @returns {object|null} Selector and next offset.
    */
-  @meta.impl.custom
+  @meta.ours
   static _readIndex(path, index)
   {
     if (path[index] !== "[")
@@ -439,7 +439,7 @@ export class Tr2BindingPoint
    * @param {number|string} selector Index or name.
    * @returns {object|null} Selected item.
    */
-  @meta.impl.custom
+  @meta.ours
   static _getListElement(object, selector)
   {
     if (!object)
@@ -465,7 +465,7 @@ export class Tr2BindingPoint
    * @param {object} object Existing JS list wrapper.
    * @returns {Array|null} First recognized array.
    */
-  @meta.impl.custom
+  @meta.ours
   static _findListProperty(object)
   {
     for (const name of ["items", "children", "curveSets", "controllers", "actions"])
@@ -491,7 +491,7 @@ export class Tr2BindingPoint
    * @param {Tr2BindingPoint} source Binding source.
    * @returns {void}
    */
-  @meta.impl.custom
+  @meta.ours
   static _notifyValueChanged(target, attribute, value, source)
   {
     if (Tr2BindingPoint._hasFunction(target, "UpdateValues"))
@@ -519,7 +519,7 @@ export class Tr2BindingPoint
    * @param {ArrayLike} b Current values.
    * @returns {boolean} Whether every value matches.
    */
-  @meta.impl.custom
+  @meta.ours
   static _areArrayValuesEqual(a, b)
   {
     if (a.length !== b.length)
@@ -542,7 +542,7 @@ export class Tr2BindingPoint
    * @param {*} value Candidate root map.
    * @returns {boolean} Whether it is a supported plain map.
    */
-  @meta.impl.custom
+  @meta.ours
   static _isPlainRootMap(value)
   {
     return Tr2BindingPoint._isObjectRecord(value) && !Tr2BindingPoint._hasFunction(value, "GetOwner") && !Tr2BindingPoint._hasFunction(value, "GetBindingPathRoots");
@@ -554,7 +554,7 @@ export class Tr2BindingPoint
    * @param {*} value Candidate object.
    * @returns {boolean} Whether it is non-null object storage.
    */
-  @meta.impl.custom
+  @meta.ours
   static _isObjectRecord(value)
   {
     return !!value && typeof value === "object";
@@ -565,7 +565,7 @@ export class Tr2BindingPoint
    * @param {string} key Method name.
    * @returns {boolean} Whether the existing adapter callback is callable.
    */
-  @meta.impl.custom
+  @meta.ours
   static _hasFunction(value, key)
   {
     return Tr2BindingPoint._isObjectRecord(value) && typeof value[key] === "function";

@@ -6,7 +6,7 @@ import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 // Source: trinity/trinity/Eve/EvePlanet.h
 // Source: trinity/trinity/Eve/EvePlanet.cpp
 // Hand-maintained after promotion from generated schema intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveEffectRoot2 } from "../EveEffectRoot2.js";
 import { ITr2SecondaryLightSource } from "../../../core/lighting/ITr2SecondaryLightSource.js";
 import { mat4 } from "#math/mat4";
@@ -14,8 +14,8 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
 /** Represents a planet scene object with CPU-side visibility state for its depth-only child mesh. */
-@type.define({ className: "EvePlanet", family: "eve/spaceObject" })
-@carbon.mapInterface(ITr2SecondaryLightSource)
+@meta.define({ className: "EvePlanet", family: "eve/spaceObject" })
+@meta.blue.mapInterface(ITr2SecondaryLightSource)
 export class EvePlanet extends EveEffectRoot2
 {
   /**
@@ -28,8 +28,8 @@ export class EvePlanet extends EveEffectRoot2
    * @param {import("../../../core/lighting/Tr2ShLightingManager.js").Tr2ShLightingManager} manager The scene's manager.
    * @returns {boolean} Whether the manager registered it.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RegisterSecondaryLightSource(manager)
   {
     return manager.RegisterSecondaryLightSource(this._GetWorldTranslation(), () => this.radius, this.albedoColor, this.emissiveColor);
@@ -39,52 +39,52 @@ export class EvePlanet extends EveEffectRoot2
   _renderScale = 1000000;
 
   /** m_zOnlyModel (EveChildMeshPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("EveChildMesh")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("EveChildMesh")
   zOnlyModel = null;
 
   /** m_emissiveColor (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   emissiveColor = vec4.create();
 
   /** m_minScreenSize (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   minScreenSize = 2;
 
   /** m_albedoColor (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   albedoColor = vec4.create();
 
   /** m_estimatedPixelDiameter (float) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.float32
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.float32
   estimatedPixelDiameter = 0;
 
   /** m_radius (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   radius = 1;
 
   /** Stores the world-to-render scale used by Carbon's planet render path. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetRenderScale(value)
   {
     this._renderScale = Number(value);
   }
 
   /** Writes the render-scaled world-space bounds of the planet sphere. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetWorldBoundingBox(min, max)
   {
     if (this.radius <= 0) return false;
@@ -100,8 +100,8 @@ export class EvePlanet extends EveEffectRoot2
   }
 
   /** Reports whether the planet radius can currently supply a bounding box. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsBoundingBoxReady()
   {
     return this.radius > 0;
@@ -115,7 +115,7 @@ export class EvePlanet extends EveEffectRoot2
    * gates whatsoever - the display / LOD-HIGH gates live downstream in
    * GetZOnlyRenderables (cpp:205-213). Scene call site:
    * EveSpaceScene.cpp:1458-1460 / EveSpaceScene.js UpdateVisibility. */
-  @impl.implemented
+  @meta.implemented
   UpdateZOnlyVisibility(updateContext)
   {
     this.zOnlyModel?.UpdateVisibility(
@@ -130,4 +130,4 @@ export class EvePlanet extends EveEffectRoot2
 }
 
 // EvePlanet_Blue.cpp: native exposure; unported contracts: IEveEffectChildrenOwner, IShaderConfigurer.
-carbon.interfaceTable({ interfaces: [EvePlanet, IEveSpaceObject2, ITr2SecondaryLightSource, ITr2CurveSetOwner, ITr2SoundEmitterOwner, IWorldPosition, ITr2BoundingBox], chainTo: EveEffectRoot2 })(EvePlanet, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EvePlanet, IEveSpaceObject2, ITr2SecondaryLightSource, ITr2CurveSetOwner, ITr2SoundEmitterOwner, IWorldPosition, ITr2BoundingBox], chainTo: EveEffectRoot2 })(EvePlanet, { kind: "class" });

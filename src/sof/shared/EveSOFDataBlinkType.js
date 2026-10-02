@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
 
 /**
@@ -9,47 +9,47 @@ import { blue, EnumRegistrationType } from "#blue";
  * declares m_blinkType[TYPE_CYCLE] (four slots), yet exposure indexes
  * TYPE_CYCLE (four); the existing safe JavaScript Cycle=null slot is retained.
  */
-@type.define({ className: "EveSOFDataBlinkType", family: "eve" })
+@meta.define({ className: "EveSOFDataBlinkType", family: "eve" })
 export class EveSOFDataBlinkType
 {
 
   /** Optional empty settings record for regular blink; native EveSOFDataBlinkPtr.
    * @type {EveSOFDataBlink|null}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveSOFDataBlink")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSOFDataBlink")
   Blink = null;
 
   /** Optional empty settings record for fade-in; native EveSOFDataBlinkPtr.
    * @type {EveSOFDataBlink|null}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveSOFDataBlink")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSOFDataBlink")
   FadeIn = null;
 
   /** Optional empty settings record for fade-out; native EveSOFDataBlinkPtr.
    * @type {EveSOFDataBlink|null}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveSOFDataBlink")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSOFDataBlink")
   FadeOut = null;
 
   /** Optional empty settings record for fade-in/out cycle; native EveSOFDataBlinkPtr.
    * @type {EveSOFDataBlink|null}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveSOFDataBlink")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSOFDataBlink")
   Cycle = null;
 
   /** Looks up the named slot through the existing JS enum table; no native method.
    * @param {number} blinkType BlinkType enum value.
    * @returns {EveSOFDataBlink|null} Settings, or null for static/unknown modes.
    */
-  @impl.custom
+  @meta.ours
   GetByType(blinkType)
   {
     const property = this.constructor.Types[blinkType];
@@ -107,4 +107,4 @@ blue.enums.RegisterEnum("trinity.EveSOFDataBlinkType.BlinkType", EveSOFDataBlink
   ]
 });
 
-carbon.interfaceTable({ interfaces: [EveSOFDataBlinkType], chainTo: null })(EveSOFDataBlinkType);
+meta.blue.interfaceTable({ interfaces: [EveSOFDataBlinkType], chainTo: null })(EveSOFDataBlinkType);

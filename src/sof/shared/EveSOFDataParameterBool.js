@@ -3,7 +3,7 @@
 //   parameters through one macro beside their base.
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:20-38
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.cpp:85-102
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { vec4 } from "#math/vec4";
 import { EveSOFDataParameter } from "./EveSOFDataParameter.js";
 
@@ -16,16 +16,16 @@ export class EveSOFDataParameterBool extends EveSOFDataParameter
    * Native m_value (bool) replaces the base vector in authored values.
    * @type {boolean}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   value = false;
 
   /**
    * Returns a new vector containing the boolean value as four identical
    * zero-or-one components.
    */
-  @meta.impl.implemented
+  @meta.implemented
   GetValue()
   {
     const scalar = this.value ? 1 : 0;
@@ -33,7 +33,7 @@ export class EveSOFDataParameterBool extends EveSOFDataParameter
   }
 }
 
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ EveSOFDataParameterBool, EveSOFDataParameter ],
   chainTo: null
 })(EveSOFDataParameterBool);

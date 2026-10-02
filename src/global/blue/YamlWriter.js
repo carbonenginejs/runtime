@@ -8,7 +8,7 @@
 // `DictWriter`, modelled on this class, which emits a plain object instead of
 // YAML events. Writing `.red` (authoring tools, which carry metadata) is what
 // this class is for; until then its entry points throw.
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { IRootWriter } from "./IRootWriter.js";
 
 /** `YamlWriter` - writes an object tree as YAML (`.red`); not yet implemented. */
@@ -36,5 +36,5 @@ export class YamlWriter extends IRootWriter
 }
 
 CjsSchema.define(YamlWriter, { className: "YamlWriter", carbon: "YamlWriter", family: "blue", fields: {} });
-CjsSchema.decorateMethod(YamlWriter, "WriteObjectToStream", impl.notImplemented);
-CjsSchema.decorateMethod(YamlWriter, "WriteObjectToString", impl.notImplemented);
+CjsSchema.decorateMethod(YamlWriter, "WriteObjectToStream", meta.notImplemented);
+CjsSchema.decorateMethod(YamlWriter, "WriteObjectToString", meta.notImplemented);

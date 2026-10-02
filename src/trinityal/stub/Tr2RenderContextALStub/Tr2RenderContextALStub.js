@@ -30,7 +30,7 @@ import { Tr2TextureAL } from "../../Tr2TextureAL/index.js";
 // `Tr2StreamlineAL`, none of which the stub implements.
 
 
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2ResourceSetAL } from "../../Tr2ResourceSetAL/Tr2ResourceSetAL.js";
 import { ALResult, Failed, Tr2BitmapDimensions, Tr2BufferALStub, Tr2CapsALStub, Tr2ConstantBufferALStub, Tr2ConstantUsageAL, Tr2FenceALStub, Tr2ResourceSetALStub, Tr2SamplerStateALStub, Tr2ShaderALStub, Tr2ShaderProgramALStub, Tr2TextureALStub, Tr2VertexLayoutALStub } from "../../../trinityal/index.js";
 import { SamplerDescriptionKey } from "../../Tr2HalHelperStructures/Tr2SamplerDescription.js";
@@ -311,8 +311,8 @@ export class Tr2RenderContextALStub
    * @param {object} program The shader program the bindings belong to.
    * @returns {object|null} The set, or null when it could not be created.
    */
-  @impl.custom
-  @impl.reason("JavaScript chooses the AL implementation through this context factory instead of a compile-time platform include. The private allocation branch preserves the native Create result.")
+  @meta.ours
+  @meta.reason("JavaScript chooses the AL implementation through this context factory instead of a compile-time platform include. The private allocation branch preserves the native Create result.")
   CreateResourceSet(description, program, implementationOnly = false)
   {
     // JS platform selection for the public facade; the allocation branch

@@ -1,11 +1,11 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SeekTarget.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { EveLocatorSets } from "../../locator/EveLocatorSets.js";
 
 /** A steering behaviour that assigns drones to repair locators on a target ship, splitting the target's bounding box into buckets so damage-seeking agents distribute evenly across it. */
-@type.define({ className: "SeekTarget", family: "eve/child/behaviors" })
+@meta.define({ className: "SeekTarget", family: "eve/child/behaviors" })
 export class SeekTarget
 {
 
@@ -22,94 +22,94 @@ export class SeekTarget
   _sortedLocators = false;
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   behaviorPriority = 0;
 
   /** m_behaviorWeight (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   behaviorWeight = 1200;
 
   /** m_distFromOrigin (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   distFromOrigin = 10;
 
   /** m_arrivedRadius (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   arrivedRadius = 10;
 
   /** m_slowDownRadius (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   slowDownRadius = 33;
 
   /** m_target (EveSpaceObject2*) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("EveSpaceObject2")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("EveSpaceObject2")
   target = null;
 
   /** m_firstSpawnAtRandomPlaces (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   firstSpawnAtRandomPlaces = false;
 
   /** m_onFirstDroneArrivedCallback (BlueScriptCallback) [READWRITE] */
-  @edit.readwrite
-  @type.rawStruct("BlueScriptCallback")
+  @meta.blue.readwrite
+  @meta.type.rawStruct("BlueScriptCallback")
   onFirstDroneArrivedCallback = null;
 
   /** m_totalRepairTime (float) [READWRITE] */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   totalRepairTime = -1;
 
   /** m_seconds (float) [READWRITE] */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   secondsToTurn = 0.35;
 
   /** m_locatorSetName (BlueSharedString) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   locatorSetName = "damage";
 
   /** m_locatorSet (EveLocatorSetsPtr) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.model("EveLocatorSets")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.model("EveLocatorSets")
   locatorSet = null;
 
   /** m_exit (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   exit = false;
 
   /** m_repair (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   repair = false;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   enabled = true;
 
   /** Carbon method AddLocatorSet (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddLocatorSet()
   {
     const locatorSet = new EveLocatorSets();
@@ -118,16 +118,16 @@ export class SeekTarget
   }
 
   /** Carbon method SetTarget (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetTarget(target)
   {
     this.target = target;
   }
 
   /** Carbon method ResetBehavior (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ResetBehavior()
   {
     this._counter = 0;
@@ -138,32 +138,32 @@ export class SeekTarget
   }
 
   /** Carbon method SetBehaviorWeight (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetBehaviorWeight(value)
   {
     this.behaviorWeight = value;
   }
 
   /** Carbon method SetExit (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetExit(value)
   {
     this.exit = value;
   }
 
   /** Carbon method SetTotalRepairTime (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetTotalRepairTime(seconds)
   {
     this.totalRepairTime = seconds;
   }
 
   /** Carbon method SetupShipRepair (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetupShipRepair()
   {
     this.exit = false;
@@ -172,9 +172,9 @@ export class SeekTarget
   }
 
   /** Carbon method SplitBoundingBox (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Uses EveSpaceObject2's portable bounds and locator query methods, and safely handles equal or degenerate box dimensions.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Uses EveSpaceObject2's portable bounds and locator query methods, and safely handles equal or degenerate box dimensions.")
   SplitBoundingBox()
   {
     this._boundingBoxes.length = 0;
@@ -272,7 +272,7 @@ export class SeekTarget
     return true;
   }
 
-  @impl.implemented
+  @meta.implemented
   /**
    * A shallow copy of the locator index buckets produced by splitting the target's bounding box, one array per slice.
    */

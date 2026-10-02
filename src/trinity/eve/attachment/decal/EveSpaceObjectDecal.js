@@ -7,7 +7,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, edit, impl, type } from "#schema";
+import { meta } from "#schema";
 import { MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
 import { IEveSpaceObject2ParentData } from "../../spaceObject/IEveSpaceObject2ParentData.js";
 import { TriBatchType } from "#consts/graphics";
@@ -28,10 +28,10 @@ import "#blue/registerTrinityEnums";
  * optional bone attachment, per-LOD triangle index lists and screen-size
  * visibility ramp.
  */
-@type.define({ className: "EveSpaceObjectDecal", family: "eve/attachment/decal" })
-@carbon.inherit(ITr2Renderable)
-@carbon.inherit(IInitialize)
-@carbon.mapInterface(IInitialize)
+@meta.define({ className: "EveSpaceObjectDecal", family: "eve/attachment/decal" })
+@meta.blue.inherit(ITr2Renderable)
+@meta.blue.inherit(IInitialize)
+@meta.blue.mapInterface(IInitialize)
 export class EveSpaceObjectDecal
 {
   /**
@@ -45,58 +45,58 @@ export class EveSpaceObjectDecal
     this.batchType = 1;
   }
 
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
-  @edit.read
-  @type.int32
-  @type.enum("trinity.TriBatchType")
+  @meta.blue.read
+  @meta.type.int32
+  @meta.type.enum("trinity.TriBatchType")
   batchType = 1;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   position = vec3.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   minScreenSize = 0;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.quat
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   rotation = quat.create();
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   parentBoneIndex = -1;
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2Effect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2Effect")
   decalEffect = null;
 
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   display = true;
 
   // SOF-authored per-LOD triangle indices; persisted so the values
   // interchange reproduces Carbon's hidden decal geometry selection.
 
-  @edit.persist
-  @type.array("unknown")
+  @meta.blue.persist
+  @meta.type.array("unknown")
   staticIndexBuffers = [];
 
   _decalMatrix = mat4.create();
@@ -166,8 +166,8 @@ export class EveSpaceObjectDecal
    * Builds the decal matrix and its inverse from the authored position, rotation
    * and scaling; returns false when the composed matrix is not invertible.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Initialize()
   {
     return this._updateDecalMatrix();
@@ -177,10 +177,10 @@ export class EveSpaceObjectDecal
    * Rebuilds the decal matrix and its inverse after an authored placement
    * change.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JS identifies placement members by their exposed names; dynamic geometry remains a class-owned cache.")
-  @impl.invalidates("#decalGeometry")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JS identifies placement members by their exposed names; dynamic geometry remains a class-owned cache.")
+  @meta.invalidates("#decalGeometry")
   OnModified(propertyName)
   {
     if (propertyName === "position" || propertyName === "rotation" || propertyName === "scaling")
@@ -197,8 +197,8 @@ export class EveSpaceObjectDecal
    * matrix; the per-LOD index buffers are not copied. Returns false when source
    * is missing.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   CopyFrom(source)
   {
     if (!source) return false;
@@ -218,8 +218,8 @@ export class EveSpaceObjectDecal
    * Copies the authored decal position into the caller-owned out vector and
    * returns it.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetPosition(out = vec3.create())
   {
     return vec3.copy(out, this.position);
@@ -229,8 +229,8 @@ export class EveSpaceObjectDecal
    * Sets the authored decal position and rebuilds the decal matrix; a missing
    * value is taken as the origin.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetPosition(value)
   {
     vec3.copy(this.position, value || EveSpaceObjectDecal._zero);
@@ -241,8 +241,8 @@ export class EveSpaceObjectDecal
    * Copies the authored decal rotation into the caller-owned out quaternion and
    * returns it.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetRotation(out = quat.create())
   {
     return quat.copy(out, this.rotation);
@@ -252,8 +252,8 @@ export class EveSpaceObjectDecal
    * Sets the authored decal rotation and rebuilds the decal matrix; a missing
    * value is taken as the identity rotation.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetRotation(value)
   {
     quat.copy(this.rotation, value || EveSpaceObjectDecal._identityRotation);
@@ -264,8 +264,8 @@ export class EveSpaceObjectDecal
    * Copies the authored decal scaling into the caller-owned out vector and
    * returns it.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetScaling(out = vec3.create())
   {
     return vec3.copy(out, this.scaling);
@@ -275,8 +275,8 @@ export class EveSpaceObjectDecal
    * Copies the decal's projection matrix into out; the value is only current as
    * of the last Initialize, OnModified or placement setter.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetDecalMatrix(out = mat4.create())
   {
     return mat4.copy(out, this._decalMatrix);
@@ -286,8 +286,8 @@ export class EveSpaceObjectDecal
    * Copies the inverse of the decal's projection matrix into out, which is what
    * maps hull-space positions into the decal's unit cube.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetInverseDecalMatrix(out = mat4.create())
   {
     return mat4.copy(out, this._inverseDecalMatrix);
@@ -297,8 +297,8 @@ export class EveSpaceObjectDecal
    * Sets the authored decal scaling and rebuilds the decal matrix; a missing
    * value is taken as unit scale.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetScaling(value)
   {
     vec3.copy(this.scaling, value || EveSpaceObjectDecal._one);
@@ -309,8 +309,8 @@ export class EveSpaceObjectDecal
    * The parent mesh bone the decal rides, or -1 when it rides the hull transform
    * directly.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetBoneIndex()
   {
     return this.parentBoneIndex;
@@ -320,8 +320,8 @@ export class EveSpaceObjectDecal
    * Sets the parent mesh bone the decal rides; the bone matrix itself is only
    * picked up on the next SetBoneMatrix.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetBoneIndex(index)
   {
     this.parentBoneIndex = Number(index) | 0;
@@ -332,8 +332,8 @@ export class EveSpaceObjectDecal
    * Replaces the SOF-authored triangle index lists, one array per LOD, coercing
    * each entry to an unsigned integer.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetIndices(indices)
   {
     this.staticIndexBuffers = Array.from(indices || [], lod => Array.from(lod || [], value => Number(value) >>> 0));
@@ -344,8 +344,8 @@ export class EveSpaceObjectDecal
    * The per-LOD triangle index lists as fresh copies, so a caller cannot mutate
    * the stored buffers.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetStaticIndexBuffers()
   {
     return this.staticIndexBuffers.map(lod => lod.slice());
@@ -355,16 +355,16 @@ export class EveSpaceObjectDecal
    * Whether any LOD carries triangle indices; a decal without them has no
    * geometry to draw.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   HasStaticIndexBuffers()
   {
     return this.staticIndexBuffers.some(lod => lod.length > 0);
   }
 
   /** The triangle count per LOD, being each index list's length divided by three. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetDecalPrimitiveCounts()
   {
     return this.staticIndexBuffers.map(lod => Math.trunc(lod.length / 3));
@@ -374,8 +374,8 @@ export class EveSpaceObjectDecal
    * Sets the LOD threshold in screen pixels below which UpdateVisibility culls
    * the decal; zero disables the test and makes the decal always visible.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetMinScreenSize(value)
   {
     this.minScreenSize = Number(value) || 0;
@@ -383,8 +383,8 @@ export class EveSpaceObjectDecal
   }
 
   /** Sets the effect that draws the decal; a decal without one is never visible. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetEffect(effect)
   {
     this.decalEffect = effect ?? null;
@@ -395,8 +395,8 @@ export class EveSpaceObjectDecal
    * Sets a shader option on the decal effect; returns false when no effect that
    * accepts options is attached.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetShaderOption(name, value)
   {
     if (!this.decalEffect?.SetOption) return false;
@@ -408,8 +408,8 @@ export class EveSpaceObjectDecal
    * Sets the TriBatchType the decal submits under, overriding the opaque default
    * the constructor establishes.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetBatchType(value)
   {
     this.batchType = Number(value) | 0;
@@ -420,8 +420,8 @@ export class EveSpaceObjectDecal
    * Sets the draw priority the engine sorts decals on; the value is runtime-only
    * and never persisted.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetPriority(value)
   {
     this._priority = Number(value) >>> 0;
@@ -435,8 +435,8 @@ export class EveSpaceObjectDecal
    * Adapted: returns whether a matrix was copied for existing JS callers;
    * the native method returns void.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetBoneMatrix(boneMatrices, boneMatrixCount)
   {
     if (this.parentBoneIndex >= boneMatrixCount || this.parentBoneIndex === -1)
@@ -479,8 +479,8 @@ export class EveSpaceObjectDecal
    * On every cull path Carbon leaves m_parentData STALE - only the visibility
    * is cleared - so the copy happens solely on the accept paths.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateVisibility(updateContext, parentData)
   {
     this._isVisible = 0;
@@ -570,25 +570,25 @@ export class EveSpaceObjectDecal
   }
 
   /** The visibility fade Carbon writes to displayData.y; 0 when lodded out. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon reads the m_isVisible member directly; JavaScript exposes the private runtime value through an accessor.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon reads the m_isVisible member directly; JavaScript exposes the private runtime value through an accessor.")
   GetVisibility()
   {
     return this._isVisible;
   }
 
   /** Carbon EveSpaceObjectDecal::HasTransparentBatches (cpp:241-244). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HasTransparentBatches()
   {
     return true;
   }
 
   /** Carbon EveSpaceObjectDecal::GetSortValue (cpp:337-340). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetSortValue()
   {
     return 1;
@@ -596,8 +596,8 @@ export class EveSpaceObjectDecal
 
   /** Carbon ITr2Pickable::GetID is inline on the decal (h:113-116) and returns
    * the object itself; the area id selects nothing on this class. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetID(_areaId)
   {
     return this;
@@ -615,8 +615,8 @@ export class EveSpaceObjectDecal
    * logical matrix and letting the encoder transpose produces byte-identical
    * output with one transpose less work.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetPerObjectData(accumulator)
   {
     const vs = accumulator.Alloc("DecalVSPerObjectData");
@@ -687,8 +687,8 @@ export class EveSpaceObjectDecal
    * @param {number} screenSize The parent's mesh screen size, for LOD choice.
    * @returns {boolean} Whether the decal was added.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetRenderables(out = [], _meshCache = null, geometryResource = null, screenSize = Infinity)
   {
     if (this._isVisible <= 0 || !geometryResource) return false;
@@ -780,8 +780,8 @@ export class EveSpaceObjectDecal
   }
 
   /** Carbon EveSpaceObjectDecal::SetHighDetailDecalState (cpp:514-517). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetHighDetailDecalState(isFrozen)
   {
     this._isGeometryFrozen = !!isFrozen;
@@ -805,8 +805,8 @@ export class EveSpaceObjectDecal
    * @param {object} perObjectData This decal's per-object data.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (batchType !== this.batchType) return;
@@ -860,8 +860,8 @@ export class EveSpaceObjectDecal
 
   /** Carbon EveSpaceObjectDecal::GetPickingBatches (cpp:919-926): the
    * attachment pick type, then the ordinary batches. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetPickingBatches(batches, pickTypes, perObjectData)
   {
     if ((pickTypes & Tr2PickType.PICK_TYPE_ATTACHMENTS) === 0) return;

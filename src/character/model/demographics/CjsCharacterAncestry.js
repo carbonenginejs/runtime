@@ -1,59 +1,59 @@
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /** Character-creation ancestry record linked to its owning bloodline. */
-@type.define({ className: "CjsCharacterAncestry", family: "character" })
+@meta.define({ className: "CjsCharacterAncestry", family: "character" })
 export class CjsCharacterAncestry extends CjsCharacterRecord
 {
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     shortDescription = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.model("CjsCharacterBloodline")
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.model("CjsCharacterBloodline")
     bloodlineID = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.int32
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.int32
     charisma = 0;
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     descriptionID = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     iconID = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.int32
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.int32
     intelligence = 0;
 
-    @edit.readwrite
-    @edit.persist
-    @type.int32
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.int32
     memory = 0;
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     nameID = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.int32
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.int32
     perception = 0;
 
-    @edit.readwrite
-    @edit.persist
-    @type.int32
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.int32
     willpower = 0;
 
 }

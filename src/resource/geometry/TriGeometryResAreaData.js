@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Schema: format-carbon resources/TriGeometryResAreaData.json; maintained by the runtime resource layer.
-import { CjsSchema, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { vec3 } from "#math/vec3";
 
 /** Data record mirroring Carbon's geometry area block: a named draw range with bounds, joint bindings, skinning/morph flags, and ray-tracing structure references. */
@@ -42,15 +42,15 @@ export class TriGeometryResAreaData
 CjsSchema.define(TriGeometryResAreaData, {
   className: "TriGeometryResAreaData", family: "resources",
   fields: {
-    name: type.string,
-    firstIndex: type.int32,
-    primitiveCount: type.int32,
-    minBounds: type.vec3,
-    maxBounds: type.vec3,
-    jointBindings: type.unknown,
-    staticBlas: type.rawStruct("Tr2RtBottomLevelAccelerationStructureAL"),
-    isSkinned: type.boolean,
-    isMorphed: type.boolean,
-    rtGeometryConstants: type.rawStruct("Tr2ConstantBufferAL")
+    name: meta.type.string,
+    firstIndex: meta.type.int32,
+    primitiveCount: meta.type.int32,
+    minBounds: meta.type.vec3,
+    maxBounds: meta.type.vec3,
+    jointBindings: meta.type.unknown,
+    staticBlas: meta.type.rawStruct("Tr2RtBottomLevelAccelerationStructureAL"),
+    isSkinned: meta.type.boolean,
+    isMorphed: meta.type.boolean,
+    rtGeometryConstants: meta.type.rawStruct("Tr2ConstantBufferAL")
   }
 });

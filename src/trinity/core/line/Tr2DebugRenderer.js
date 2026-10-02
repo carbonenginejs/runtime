@@ -1,11 +1,11 @@
 // Source: trinity/trinity/Tr2DebugRenderer.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
 /** Resolves which debug visualisations an object draws, from per-owner options over a default set. */
-@type.define({ className: "Tr2DebugRenderer", family: "trinityCore" })
+@meta.define({ className: "Tr2DebugRenderer", family: "trinityCore" })
 export class Tr2DebugRenderer
 {
 
@@ -14,64 +14,64 @@ export class Tr2DebugRenderer
   #optionColors = new Map();
 
   /** m_position (Vector3) */
-  @type.vec3
+  @meta.type.vec3
   position = vec3.create();
 
   /** m_normal (Vector3) */
-  @type.vec3
+  @meta.type.vec3
   normal = vec3.create();
 
   /** m_object (float) */
-  @type.float32
+  @meta.type.float32
   object = 0;
 
   /** m_line (float) */
-  @type.float32
+  @meta.type.float32
   line = 0;
 
   /** m_color (uint32_t) */
-  @type.uint32
+  @meta.type.uint32
   color = 0;
 
   /** m_zFailColor (uint32_t) */
-  @type.uint32
+  @meta.type.uint32
   zFailColor = 0;
 
   /** m_effect (Tr2EffectPtr) */
-  @type.objectRef("Tr2Effect")
+  @meta.type.objectRef("Tr2Effect")
   effect = null;
 
   /** m_pickingEffect (Tr2EffectPtr) */
-  @type.objectRef("Tr2Effect")
+  @meta.type.objectRef("Tr2Effect")
   pickingEffect = null;
 
   /** m_lines (std::vector<Vertex>) */
-  @type.list("Vertex")
+  @meta.type.list("Vertex")
   lines = [];
 
   /** m_triangles (std::vector<Vertex>) */
-  @type.list("Vertex")
+  @meta.type.list("Vertex")
   triangles = [];
 
   /** m_defaultOptions (Tr2DebugRendererOptions) */
-  @type.set("string")
+  @meta.type.set("string")
   defaultOptions = new Set();
 
   /** m_selectedObjects (std::set<Tr2DebugObjectReference>) */
-  @type.set("Tr2DebugObjectReference")
+  @meta.type.set("Tr2DebugObjectReference")
   selectedObjects = new Set();
 
   /** Carbon method SetDefaultOptions (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetDefaultOptions(options)
   {
     this.defaultOptions = Tr2DebugRenderer.#ToOptionSet(options);
   }
 
   /** Carbon method SetSelectedObjects (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetSelectedObjects(objects)
   {
     this.selectedObjects.clear();
@@ -83,8 +83,8 @@ export class Tr2DebugRenderer
   }
 
   /** Carbon method SetOptions (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetOptions(owner, options)
   {
     const values = Tr2DebugRenderer.#ToOptionSet(options);
@@ -93,8 +93,8 @@ export class Tr2DebugRenderer
   }
 
   /** Carbon method GetColorForOption -> PyGetColorForOption (MAP_METHOD). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetColorForOption(option)
   {
     const color = this.#optionColors.get(String(option ?? ""));
@@ -102,24 +102,24 @@ export class Tr2DebugRenderer
   }
 
   /** Carbon method GetOptions (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetOptions(owner)
   {
     return [...(this.#options.get(owner) ?? [])];
   }
 
   /** Carbon method GetDefaultOptions (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetDefaultOptions()
   {
     return [...this.defaultOptions];
   }
 
   /** Carbon method SetColorForOption (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetColorForOption(option, color)
   {
     if (!color || color.length < 4) throw new TypeError("color must contain four components");
@@ -129,7 +129,7 @@ export class Tr2DebugRenderer
   /**
    * Whether an owner has a debug option enabled, falling back to the defaults.
    */
-  @impl.implemented
+  @meta.implemented
   HasOption(owner, option)
   {
     const options = this.#options.get(owner);
@@ -139,7 +139,7 @@ export class Tr2DebugRenderer
   /**
    * Whether an object is in the current selection.
    */
-  @impl.implemented
+  @meta.implemented
   IsSelected(owner)
   {
     const object = owner?.object ?? owner;

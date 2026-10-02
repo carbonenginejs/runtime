@@ -1,5 +1,5 @@
 // Source: blueexposure/include/ICopier.h
-import { CjsSchema, compose, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /**
  * `ICopierCustomAssignment` - copies data a class holds outside its exposed
@@ -20,7 +20,7 @@ export class ICopierCustomAssignment
   AssignTo(_other, _copier) {}
 }
 
-CjsSchema.decorateMethod(ICopierCustomAssignment, "AssignTo", compose.abstract, impl.abstract);
+CjsSchema.decorateMethod(ICopierCustomAssignment, "AssignTo", meta.requires, meta.abstract);
 
 CjsSchema.define(ICopierCustomAssignment, {
   className: "ICopierCustomAssignment", carbon: "ICopierCustomAssignment", family: "blue", fields: {}

@@ -1,6 +1,6 @@
 // Not Carbon. A texture-pipeline step of our own, registered in
 // /docs/architecture/non-carbon-extensions.md.
-import { CjsSchema, edit, impl, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /**
  * Stacks the named inputs, in order, into one 2D texture array: layer 0 is the
@@ -75,10 +75,10 @@ export class CjsTexturePipelineStepArray
 CjsSchema.define(CjsTexturePipelineStepArray, {
   className: "CjsTexturePipelineStepArray", family: "resources",
   fields: {
-    paths: [ edit.persist, type.list("string") ]
+    paths: [ meta.blue.persist, meta.type.list("string") ]
   },
   methods: {
-    GetResourceDependencies: impl.custom,
-    Execute: impl.custom
+    GetResourceDependencies: meta.ours,
+    Execute: meta.ours
   }
 });

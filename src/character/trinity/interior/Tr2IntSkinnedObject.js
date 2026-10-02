@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Interior/Tr2IntSkinnedObject.h
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IInitialize, INotify } from "#blue";
 import { Tr2SkinnedObject } from "../trinityCore/Tr2SkinnedObject.js";
 
@@ -7,31 +7,31 @@ import { Tr2SkinnedObject } from "../trinityCore/Tr2SkinnedObject.js";
  * Interior skinned-object specialization carrying bounds, depth, and
  * variable-store metadata.
  */
-@type.define({ className: "Tr2IntSkinnedObject", family: "interior" })
-@carbon.inherit(IInitialize, INotify)
+@meta.define({ className: "Tr2IntSkinnedObject", family: "interior" })
+@meta.blue.inherit(IInitialize, INotify)
 export class Tr2IntSkinnedObject extends Tr2SkinnedObject
 {
 
   /** m_boundingSphere[3] (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   boundingSphereRadius = 0;
 
   /** m_depthOffset (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   depthOffset = 0;
 
   /** m_variableStore (Tr2VariableStorePtr) [READ] */
-  @edit.read
-  @type.objectRef("Tr2VariableStore")
+  @meta.blue.read
+  @meta.type.objectRef("Tr2VariableStore")
   variableStore = null;
 
   /** Carbon IInitialize hook populates the owner's LOD proxies. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JS exposes the native protected LOD member as lod; the owner model accessors alias its proxy storage.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JS exposes the native protected LOD member as lod; the owner model accessors alias its proxy storage.")
   Initialize()
   {
     this.lod.PopulateLods();
@@ -39,9 +39,9 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
   }
 
   /** Carbon INotify hook delegates to Tr2SkinnedObject and accepts all changes. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Exposed owner *DetailModel names map to the native LOD helper proxy members.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Exposed owner *DetailModel names map to the native LOD helper proxy members.")
   OnModified(propertyName)
   {
     if (super.OnModified(propertyName)) return true;
@@ -50,8 +50,8 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
   }
 
   /** Carbon override delegates LOD selection to Tr2SkinnedObject. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetLOD(frustum)
   {
     return super.SetLOD(frustum);
@@ -60,4 +60,4 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
 }
 
 // Interior rendering, picking and placement contracts remain outside the maintained CPU LOD port.
-carbon.interfaceTable({ interfaces: [Tr2IntSkinnedObject, IInitialize, INotify], chainTo: Tr2SkinnedObject })(Tr2IntSkinnedObject, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [Tr2IntSkinnedObject, IInitialize, INotify], chainTo: Tr2SkinnedObject })(Tr2IntSkinnedObject, { kind: "class" });

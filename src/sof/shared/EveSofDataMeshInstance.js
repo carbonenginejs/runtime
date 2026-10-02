@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:112-120
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
@@ -22,9 +22,9 @@ export class EveSofDataMeshInstance
    * Instance orientation quaternion (x, y, z, w), stored at native byte offset 0.
    * @type {Float32Array}
    */
-  @meta.edit.persist
+  @meta.blue.persist
   @meta.struct.FLOAT32_4(0)
-  @types.quat
+  @meta.type.quat
   rotation = quat.create();
 
   /**
@@ -32,7 +32,7 @@ export class EveSofDataMeshInstance
    * Identity is the retained JavaScript construction default.
    * @type {Float32Array}
    */
-  @meta.edit.persist
+  @meta.blue.persist
   @meta.struct.FLOAT32_3(16)
   scaling = vec3.fromValues(1, 1, 1);
 
@@ -40,7 +40,7 @@ export class EveSofDataMeshInstance
    * Instance translation in the owning mesh or bone's space, native Vector3 at byte offset 28.
    * @type {Float32Array}
    */
-  @meta.edit.persist
+  @meta.blue.persist
   @meta.struct.FLOAT32_3(28)
   translation = vec3.create();
 
@@ -49,7 +49,7 @@ export class EveSofDataMeshInstance
    * Zero is the retained JavaScript construction default.
    * @type {number}
    */
-  @meta.edit.persist
+  @meta.blue.persist
   @meta.struct.INT32_1(40)
   boneIndex = 0;
 

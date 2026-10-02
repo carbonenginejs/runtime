@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/Formation.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/Formation.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
@@ -28,50 +28,50 @@ function ClampLength(value, maxLength)
 }
 
 /** A steering behaviour that detects when a drone group's motion has converged, organises the agents into a rotating slot grid, and pulls each agent toward its assigned slot. */
-@type.define({ className: "Formation", family: "eve/child/behaviors" })
+@meta.define({ className: "Formation", family: "eve/child/behaviors" })
 export class Formation
 {
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   behaviorPriority = 0;
 
   /** m_behaviorWeight (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   behaviorWeight = 300;
 
   /** m_inFormation (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   inFormation = false;
 
   /** m_maxFormationVelocityScaler (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxFormationVelocityScaler = 0.85;
 
   /** m_stubbornness (int32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   stubbornness = 3;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   enabled = true;
 
   /** m_framesBetweenUpdates (int32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   framesBetweenUpdates = 15;
 
   // Carbon runtime state: the slot grid (vec3 offsets from the formation
@@ -95,34 +95,34 @@ export class Formation
   _stubbornnessCounter = 0;
 
   /** Carbon Formation::GetProcessPriority (cpp:43-46). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetProcessPriority()
   {
     return this.behaviorPriority;
   }
 
   /** Carbon Formation::GetBehaviorName (cpp:48-51). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBehaviorName()
   {
     return "Formation";
   }
 
   /** Per-agent scratch record count (Carbon sizeof(FormationData)). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero value means 'has scratch'.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero value means 'has scratch'.")
   GetScratchMemorySize()
   {
     return 1;
   }
 
   /** Fresh per-agent scratch record (Carbon FormationData placement init). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.")
   InitializeScratch()
   {
     return {
@@ -131,16 +131,16 @@ export class Formation
   }
 
   /** Carbon Formation::InFormation (cpp:53-56). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   InFormation()
   {
     return this.inFormation;
   }
 
   /** Carbon Formation::Reset (cpp:261-264). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Reset()
   {
     this._BreakFormation();
@@ -159,8 +159,8 @@ export class Formation
    * @param {Array} _dronesInSearchRadius - unused
    * @returns {Array} empty (as Carbon)
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   CalculateBehavior(agents, scratchData, deltaTime, group, _system, _dronesInSearchRadius)
   {
     if (!this.enabled)

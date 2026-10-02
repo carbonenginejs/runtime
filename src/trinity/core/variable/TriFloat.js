@@ -1,7 +1,7 @@
 // Source: trinity/trinity/TriFloat.h
 // Source: trinity/trinity/TriFloat.cpp
 // Source: trinity/trinity/TriFloat_Blue.cpp
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 
 /**
  * Separate scalar storage that breaks stretch-to-binding reference cycles.
@@ -13,12 +13,12 @@ export class TriFloat
 {
 
   /** m_value (float) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   value = 0;
 
 }
 
 // Native IRoot record: concrete query identity with no exposure chain.
-meta.carbon.interfaceTable({ interfaces: [TriFloat], chainTo: null })(TriFloat, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [TriFloat], chainTo: null })(TriFloat, { kind: "class" });

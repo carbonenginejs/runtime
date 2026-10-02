@@ -4,7 +4,7 @@ import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroup.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroup.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -35,8 +35,8 @@ function ClampLength(value, maxLength)
 }
 
 /** Owns a group of drone agents, running its priority-ordered behaviours each frame to integrate their acceleration, velocity, orientation and position, and managing their count, visibility, lighting and rendering. */
-@type.define({ className: "BehaviorGroup", family: "eve/child/behaviors" })
-@carbon.inherit(IInitialize, INotify, IListNotify)
+@meta.define({ className: "BehaviorGroup", family: "eve/child/behaviors" })
+@meta.blue.inherit(IInitialize, INotify, IListNotify)
 export class BehaviorGroup extends EveEntity
 {
 
@@ -84,124 +84,124 @@ export class BehaviorGroup extends EveEntity
   _groupIndex = 0;
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   display = true;
 
   /** m_maxVelocity (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxVelocity = 100;
 
   /** m_scale (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   scale = 1;
 
   /** m_blendScreenSizeMax (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   blendScreenSizeMax = 15;
 
   /** m_blendScreenSizeMin (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   blendScreenSizeMin = 5;
 
   /** m_currentScreenSize (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   currentScreenSize = 0;
 
   /** m_renderThreshold (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   renderThreshold = 1;
 
   /** m_debugIntensity (float) [READWRITE] */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   debugIntensity = 0;
 
   /** m_debugLodLevel (float) [READWRITE] */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   debugLodLevel = 0;
 
   /** m_actualCount (int32_t) [READ] */
-  @edit.read
-  @type.int32
+  @meta.blue.read
+  @meta.type.int32
   actualCount = 0;
 
   /** m_count (int32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   count = 0;
 
   /** m_booster (BehaviorGroupBoosterPtr) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.model("BehaviorGroupBooster")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("BehaviorGroupBooster")
   boosters = null;
 
   /** m_mesh (Tr2MeshPtr) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2Mesh")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2Mesh")
   mesh = null;
 
   /** m_behaviorGroupName (BlueSharedString) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_boundingSphereRadius (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   boundingSphereRadius = 5;
 
   /** m_debugMode (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   debugMode = false;
 
   /** m_update (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   update = true;
 
   /** m_behaviors (PIBehaviorVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("IBehavior")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("IBehavior")
   behaviors = [];
 
   /** m_spawnPosition (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   spawnPosition = vec3.create();
 
   /** m_collectForces (bool) - debug toggle read by the behaviors. */
-  @type.boolean
+  @meta.type.boolean
   collectForces = false;
 
   /** Carbon BehaviorGroup::Initialize (cpp:45-57). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Vertex-declaration creation is a GPU seam; scratch sizing, booster flare-count sync, and the PlayFX cache are ported.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Vertex-declaration creation is a GPU seam; scratch sizing, booster flare-count sync, and the PlayFX cache are ported.")
   Initialize()
   {
     this._EnsureScratchArrays();
@@ -218,9 +218,9 @@ export class BehaviorGroup extends EveEntity
 
   /** Carbon BehaviorGroup::OnModified (cpp:59-71); the value argument follows
    * the repo's OnModified duck (field name or field value). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Blue Var matching maps to the repo's OnModified duck; a mesh change refreshes the (stubbed) vertex declaration and a booster change re-syncs the flare count.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Blue Var matching maps to the repo's OnModified duck; a mesh change refreshes the (stubbed) vertex declaration and a booster change re-syncs the flare count.")
   OnModified(value = null)
   {
     if (value === "mesh")
@@ -239,8 +239,8 @@ export class BehaviorGroup extends EveEntity
    * indexes, and re-adds m_count agents (Carbon InitializeGeometryResource,
    * cpp:126-140). Behaviors like SpawnDrones use this as a full reset.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   InitializeGeometryResource()
   {
     this._agents.length = 0;
@@ -260,32 +260,32 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::SetVertexFunctionReferance (cpp:142-145). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetVertexFunctionReferance(callback)
   {
     this._changeBufferVertexCount = typeof callback === "function" ? callback : null;
   }
 
   /** Carbon BehaviorGroup::GetSize (cpp:151-154). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetSize()
   {
     return this._agents.length;
   }
 
   /** Carbon BehaviorGroup::GetCount (cpp:160-163). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetCount()
   {
     return this.actualCount;
   }
 
   /** Carbon method CreateAgentTree (cpp:169-177). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   CreateAgentTree()
   {
     this._tree = new EveKDdroneManagementTree();
@@ -294,8 +294,8 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::GetBehaviorByName (cpp:187-197). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBehaviorByName(name)
   {
     const target = String(name ?? "");
@@ -310,8 +310,8 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::SortBehaviorIndexes (cpp:206-221). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SortBehaviorIndexes()
   {
     this._sortedBehaviorIndexes.length = 0;
@@ -328,40 +328,40 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::GetMesh (cpp:227-230). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetMesh()
   {
     return this.mesh;
   }
 
   /** Carbon BehaviorGroup::GetMaxVelocity (cpp:236-239). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetMaxVelocity()
   {
     return this.maxVelocity;
   }
 
   /** Carbon BehaviorGroup::SetGroupIndexIndicator (cpp:254-257). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetGroupIndexIndicator(index)
   {
     this._groupIndex = Number(index) | 0;
   }
 
   /** Carbon BehaviorGroup::GetGroupIndexIndicator (cpp:263-266). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetGroupIndexIndicator()
   {
     return this._groupIndex;
   }
 
   /** Carbon method AddAgent (cpp:272-278). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddAgent()
   {
     this._AddAgentPrivate();
@@ -373,8 +373,8 @@ export class BehaviorGroup extends EveEntity
    * records (Carbon AddAgents, cpp:280-310).
    * @param {Array<Float32Array>} positions
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddAgents(positions)
   {
     if (!Array.isArray(positions))
@@ -401,9 +401,9 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon method RemoveAgent (cpp:415-426). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Math.random replaces Carbon's TriRandInt when selecting the removed agent.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Math.random replaces Carbon's TriRandInt when selecting the removed agent.")
   RemoveAgent()
   {
     if (this._agents.length === 0)
@@ -420,8 +420,8 @@ export class BehaviorGroup extends EveEntity
    * record aligned (Carbon RemoveSpecificAgent, cpp:432-452).
    * @param {Number} index
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RemoveSpecificAgent(index)
   {
     const lastIndex = this._agents.length - 1;
@@ -449,8 +449,8 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon method SetCount (cpp:350-368). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetCount(count)
   {
     const value = Number(count);
@@ -482,8 +482,8 @@ export class BehaviorGroup extends EveEntity
    * @param {Number} dt - delta time in seconds
    * @param {Object} system - owning EveChildBehaviorSystem
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateAgents(dt, system)
   {
     // make sure the update isn't too big when e.g. a player resizes his window
@@ -593,9 +593,9 @@ export class BehaviorGroup extends EveEntity
    * @param {Object} updateContext - frame context (frustum ducks)
    * @param {Float32Array} worldTransform - owning system's world transform
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Frustum ducks take a packed vec4 sphere per repo convention; a missing frustum treats agents as visible at infinite pixel size.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Frustum ducks take a packed vec4 sphere per repo convention; a missing frustum treats agents as visible at infinite pixel size.")
   UpdateVisibility(updateContext, worldTransform)
   {
     this.currentScreenSize = 0;
@@ -640,8 +640,8 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::IsGroupVisible (cpp:683-686). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsGroupVisible()
   {
     return this.currentScreenSize >= this.renderThreshold;
@@ -651,8 +651,8 @@ export class BehaviorGroup extends EveEntity
    * 1 if every agent lodded out to a sprite, 0 if every agent is a mesh,
    * -1 when mixed or empty (Carbon AllTheSame, cpp:397-409).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AllTheSame()
   {
     let same = -1;
@@ -671,16 +671,16 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon method GetShipInfoForBuffer (cpp:692-742) - GPU instance-buffer fill. */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   GetShipInfoForBuffer(..._args)
   {
     throw new Error("BehaviorGroup.GetShipInfoForBuffer is not implemented in CarbonEngineJS (GPU instance-buffer fill).");
   }
 
   /** Carbon method GetBoosterInfoForBuffer (cpp:748-821) - GPU instance-buffer fill. */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   GetBoosterInfoForBuffer(..._args)
   {
     throw new Error("BehaviorGroup.GetBoosterInfoForBuffer is not implemented in CarbonEngineJS (GPU instance-buffer fill).");
@@ -688,15 +688,15 @@ export class BehaviorGroup extends EveEntity
 
   /** Carbon method CreateVertexDeclaration (cpp:828-865) - renderer vertex
    * declaration bookkeeping; safe frame-loop no-op in JS. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   CreateVertexDeclaration()
   {
   }
 
   /** Carbon BehaviorGroup::GetRenderables (cpp:871-877): PlayFX effects only. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetRenderables(renderables = [])
   {
     if (this._playFXBehavior !== null)
@@ -707,8 +707,8 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::UpdateAsyncronous (cpp:883-894): PlayFX fan-out. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateAsyncronous(updateContext)
   {
     if (!this.update)
@@ -724,8 +724,8 @@ export class BehaviorGroup extends EveEntity
 
   /** Carbon BehaviorGroup::UpdateSyncronous (cpp:901-925): deferred tree
    * rebuild, PlayFX sync update, and parent capture. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
     if (!this.update)
@@ -750,32 +750,32 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::GetParent (cpp:927-930). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetParent()
   {
     return this._parent;
   }
 
   /** Carbon BehaviorGroup::GetBoundingSphereRadius (cpp:953-956). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBoundingSphereRadius()
   {
     return this.boundingSphereRadius * this.scale;
   }
 
   /** Carbon BehaviorGroup::GetKDTree (cpp:958-961). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetKDTree()
   {
     return this._tree;
   }
 
   /** Carbon BehaviorGroup::GetBooster (cpp:963-966). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBooster()
   {
     return this.boosters;
@@ -786,8 +786,8 @@ export class BehaviorGroup extends EveEntity
    * Carbon's dynamic_cast<PlayFX*> (cpp:973): the behaviors list is typed
    * IBehavior and resolved by string name, so a mis-named behavior of another
    * class must never land in the PlayFX slot. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetPlayFXBehavior()
   {
     const behavior = this.GetBehaviorByName("PlayFX");
@@ -813,8 +813,8 @@ export class BehaviorGroup extends EveEntity
    * the map stays empty and no lights register.
    * @param {Object} lightManager
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetLights(lightManager)
   {
     if (this.boosters && this.boosters.GetDisplay?.())
@@ -827,15 +827,15 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** ITr2LightOwner::AddLight - intentionally empty in Carbon (h:116). */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   AddLight(_light)
   {
   }
 
   /** ITr2LightOwner::ClearLights - intentionally empty in Carbon (h:117). */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   ClearLights()
   {
   }
@@ -843,8 +843,8 @@ export class BehaviorGroup extends EveEntity
   /** Carbon BehaviorGroup::RegisterComponents (cpp:1003-1015): unconditional
    * LightOwner (Carbon's verbatim "LightOwner" component name,
    * Lights/ITr2LightOwner.h:18), then forwards the PlayFX behavior. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -856,8 +856,8 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::UnRegisterComponents (cpp:1017-1027). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UnRegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -869,8 +869,8 @@ export class BehaviorGroup extends EveEntity
 
   /** Carbon BehaviorGroup::RegisterWithQuadRenderer (cpp:1029-1040): CPU
    * fan-out to the booster and PlayFX quad owners. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     if (this.boosters)
@@ -886,8 +886,8 @@ export class BehaviorGroup extends EveEntity
 
   /** Carbon BehaviorGroup::AddQuadsToQuadRenderer (cpp:1043-1059): CPU
    * fan-out, gated on display and group visibility. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     if (this.display && this.IsGroupVisible())
@@ -905,14 +905,14 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Returns the portable DroneAgent records in stable instance order. */
-  @impl.adapted
+  @meta.adapted
   GetAgents()
   {
     return this._agents;
   }
 
   /** Returns the collected debug force pairs (Carbon m_forces). */
-  @impl.adapted
+  @meta.adapted
   GetForces()
   {
     return this._forces;
@@ -1088,4 +1088,4 @@ export class BehaviorGroup extends EveEntity
 }
 
 // BehaviorGroup_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
-carbon.interfaceTable({ interfaces: [BehaviorGroup, IInitialize, INotify, IListNotify, EveEntity], chainTo: null })(BehaviorGroup, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [BehaviorGroup, IInitialize, INotify, IListNotify, EveEntity], chainTo: null })(BehaviorGroup, { kind: "class" });

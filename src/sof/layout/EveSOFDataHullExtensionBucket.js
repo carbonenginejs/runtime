@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveSOFDataHullExtensionPlacement } from "./EveSOFDataHullExtensionPlacement.js";
 
 /** Groups extension placements and depletion counters while preserving the compatible Blue bucket surface. */
@@ -9,8 +9,8 @@ import { EveSOFDataHullExtensionPlacement } from "./EveSOFDataHullExtensionPlace
 // and placements (EveSOFData_Blue2.cpp:292-299): the base placement surface
 // is not exposed for this type. The JavaScript inheritance stays real; the
 // inherited fields are hidden from this class's schema surface only.
-@type.define({ className: "EveSOFDataHullExtensionBucket", family: "eve" })
-@type.hideInherited([
+@meta.define({ className: "EveSOFDataHullExtensionBucket", family: "eve" })
+@meta.hideInherited([
   "distributionConditions",
   "extendsBoundingSphere",
   "extendsShieldEllipsoid",
@@ -26,21 +26,21 @@ export class EveSOFDataHullExtensionBucket extends EveSOFDataHullExtensionPlacem
 {
 
   /** m_depletionCounters (PEveSOFDataDistributionDepletionCounterVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataDistributionDepletionCounter")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataDistributionDepletionCounter")
   depletionCounters = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_placements (PEveSOFDataHullExtensionPlacementVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataHullExtensionPlacement")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataHullExtensionPlacement")
   placements = [];
 
   /** Carbon bucket/group-like discriminator used by the JavaScript runtime. */

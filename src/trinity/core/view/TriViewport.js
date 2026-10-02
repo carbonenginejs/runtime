@@ -1,6 +1,6 @@
 // Source: trinity/trinity/TriViewport.h
 // Source: trinity/trinity/TriViewport_Blue.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 
 
 /**
@@ -8,46 +8,46 @@ import { carbon, impl, edit, type } from "#schema";
  * depth. Native IRoot contributes no JavaScript storage or lifecycle services;
  * the native query table exposes only this concrete class.
  */
-@type.define({
+@meta.define({
   className: "TriViewport",
   family: "trinityCore"
 })
 export class TriViewport
 {
   /** Horizontal raster origin; negative window coordinates are valid. */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   x = 0;
 
   /** Vertical raster origin; negative window coordinates are valid. */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   y = 0;
 
   /** Raster width in pixels. */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   width = 1;
 
   /** Raster height in pixels. */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   height = 1;
 
   /** Minimum viewport depth. */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   minZ = 0;
 
   /** Maximum viewport depth. */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxZ = 1;
 
   /**
@@ -56,8 +56,8 @@ export class TriViewport
    * JavaScript default arguments replace the native optional Python wrapper;
    * direct field assignments preserve the existing JavaScript number adapter.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   __init__(x = 0, y = 0, width = 1, height = 1, minZ = 0, maxZ = 1)
   {
     this.x = x;
@@ -69,8 +69,8 @@ export class TriViewport
   }
 
   /** Pixel width divided by pixel height; a zero height is not guarded against. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetAspectRatio()
   {
     return this.width / this.height;
@@ -89,4 +89,4 @@ export function Vec3TransformByViewport(vec, viewport)
   return vec;
 }
 
-carbon.interfaceTable({ interfaces: [ TriViewport ], chainTo: null })(TriViewport);
+meta.blue.interfaceTable({ interfaces: [ TriViewport ], chainTo: null })(TriViewport);

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Utilities/Tr2MaterialBoundsAdjustment.h
 // Source: trinity/trinity/Utilities/Tr2MaterialBoundsAdjustment.cpp
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { box3 } from "#math/box3";
 
 /**
@@ -9,7 +9,7 @@ import { box3 } from "#math/box3";
  * class. The registered typed fields retain JavaScript inspection/dictionary
  * transport only: no native query, read or persistence flags are invented.
  */
-@type.define({ className: "Tr2MaterialBoundsAdjustment", family: "utilities" })
+@meta.define({ className: "Tr2MaterialBoundsAdjustment", family: "utilities" })
 export class Tr2MaterialBoundsAdjustment
 {
 
@@ -18,7 +18,7 @@ export class Tr2MaterialBoundsAdjustment
    * displacement growth; 1 leaves the original scale unchanged.
    * @type {number}
    */
-  @type.float32
+  @meta.type.float32
   maxLocalScale = 1;
 
   /**
@@ -26,7 +26,7 @@ export class Tr2MaterialBoundsAdjustment
    * bounding-box face outwards after applying maxLocalScale.
    * @type {number}
    */
-  @type.float32
+  @meta.type.float32
   maxLocalDisplacement = 0;
 
   /**
@@ -34,7 +34,7 @@ export class Tr2MaterialBoundsAdjustment
    * furthest corner of the scaled and displacement-expanded bounds.
    * @type {boolean}
    */
-  @type.boolean
+  @meta.type.boolean
   rotatesVertices = false;
 
   // Carbon Tr2MaterialBoundsAdjustment.cpp:7-22. A vertex shader that scales,
@@ -61,8 +61,8 @@ export class Tr2MaterialBoundsAdjustment
    * buffer replaces the native box value return. The existing JavaScript
    * empty-box early return is retained, including when rotation is enabled.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   AdjustBounds(box, out = box3.create())
   {
     box3.copy(out, box);
@@ -99,4 +99,4 @@ export class Tr2MaterialBoundsAdjustment
 
 }
 
-carbon.interfaceTable({ interfaces: [], chainTo: null })(Tr2MaterialBoundsAdjustment);
+meta.blue.interfaceTable({ interfaces: [], chainTo: null })(Tr2MaterialBoundsAdjustment);

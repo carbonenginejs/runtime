@@ -2,7 +2,7 @@
 //   trinity/trinity/Tr2DynamicRingBuffer.cpp
 //
 // A ring index buffer, declared beside Tr2DynamicRingBuffer in Carbon's header.
-import { carbon, impl } from "#schema";
+import { meta } from "#schema";
 import { Tr2BufferDescriptionAL, ALResult } from "#trinityal";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Tr2DynamicRingBuffer } from "./Tr2DynamicRingBuffer.js";
@@ -15,8 +15,8 @@ export class Tr2RingIndexBuffer extends Tr2DynamicRingBuffer
   _indexSize = 4;
 
   /** Carbon Create (cpp:440-447). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Create(numberOfIndices, indexSize)
   {
     this.ReleaseResources();
@@ -27,8 +27,8 @@ export class Tr2RingIndexBuffer extends Tr2DynamicRingBuffer
   }
 
   /** Carbon CreateBuffer (cpp:458-468). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   CreateBuffer(size)
   {
     this._buffer?.Destroy();

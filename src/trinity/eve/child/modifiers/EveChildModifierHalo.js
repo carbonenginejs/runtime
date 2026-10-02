@@ -2,14 +2,14 @@
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 
 
 /**
  * Transform modifier that screen-aligns a child and shrinks it by the squared
  * facing of its local Z axis toward the camera, so a halo fades out edge-on.
  */
-@type.define({
+@meta.define({
   className: "EveChildModifierHalo",
   family: "eve/child/modifiers"
 })
@@ -34,9 +34,9 @@ export class EveChildModifierHalo extends IEveChildTransformModifier
    * @param {Float32Array} out - caller-owned; receives the result
    * @returns {Float32Array} out
    */
-  @carbon.method
-  @carbon.contextual(["camera"])
-  @impl.implemented
+  @meta.blue.method
+  @meta.blue.contextual(["camera"])
+  @meta.implemented
   ApplyTransform(context, transform, boneCount, bones, out)
   {
     const renderContext = context?.renderContext;

@@ -1,226 +1,226 @@
 // Source: trinity/trinity/Include/TriMatrix.h
 // Maintained but intentionally unexported until the row-major Blue wrapper has
 // an explicit conversion contract with column-major runtime math matrices.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 
 /**
  * Unexported current Carbon row-major scripting matrix pending an explicit conversion contract.
  */
-@type.define({ className: "TriMatrix", family: "trinityCore" })
+@meta.define({ className: "TriMatrix", family: "trinityCore" })
 export class TriMatrix
 {
 
   /** _11 (unknown) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.unknown
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.unknown
   _11 = null;
 
   /** _12 (unknown) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.unknown
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.unknown
   _12 = null;
 
   /** _13 (unknown) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.unknown
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.unknown
   _13 = null;
 
   /** _14 (unknown) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.unknown
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.unknown
   _14 = null;
 
   /** _21 (unknown) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.unknown
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.unknown
   _21 = null;
 
   /** _22 (unknown) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.unknown
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.unknown
   _22 = null;
 
   /** _23 (unknown) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.unknown
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.unknown
   _23 = null;
 
   /** _24 (unknown) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.unknown
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.unknown
   _24 = null;
 
   /** _31 (unknown) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.unknown
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.unknown
   _31 = null;
 
   /** _32 (unknown) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.unknown
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.unknown
   _32 = null;
 
   /** _33 (unknown) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.unknown
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.unknown
   _33 = null;
 
   /** _34 (unknown) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.unknown
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.unknown
   _34 = null;
 
   /** _41 (unknown) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.unknown
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.unknown
   _41 = null;
 
   /** _42 (unknown) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.unknown
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.unknown
   _42 = null;
 
   /** _43 (unknown) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.unknown
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.unknown
   _43 = null;
 
   /** _44 (unknown) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.unknown
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.unknown
   _44 = null;
 
   /** Carbon method RotationZ (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   RotationZ(...args)
   {
     throw new Error("TriMatrix.RotationZ is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method RotationX (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   RotationX(...args)
   {
     throw new Error("TriMatrix.RotationX is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method RotationY (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   RotationY(...args)
   {
     throw new Error("TriMatrix.RotationY is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method RotationAxis -> PyRotationAxis (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   RotationAxis(...args)
   {
     throw new Error("TriMatrix.RotationAxis is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method LookAtRH -> PyLookAtRH (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   LookAtRH(...args)
   {
     throw new Error("TriMatrix.LookAtRH is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method Multiply -> PyMultiply (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   Multiply(...args)
   {
     throw new Error("TriMatrix.Multiply is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method RotationQuaternion -> PyRotationQuaternion (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   RotationQuaternion(...args)
   {
     throw new Error("TriMatrix.RotationQuaternion is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method Transformation -> PyTransformation (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   Transformation(...args)
   {
     throw new Error("TriMatrix.Transformation is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method Scaling (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   Scaling(...args)
   {
     throw new Error("TriMatrix.Scaling is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method Translation (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   Translation(...args)
   {
     throw new Error("TriMatrix.Translation is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method RotationYawPitchRoll (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   RotationYawPitchRoll(...args)
   {
     throw new Error("TriMatrix.RotationYawPitchRoll is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method Transpose (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   Transpose(...args)
   {
     throw new Error("TriMatrix.Transpose is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method Determinant (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   Determinant(...args)
   {
     throw new Error("TriMatrix.Determinant is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method Identity (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   Identity(...args)
   {
     throw new Error("TriMatrix.Identity is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method Inverse (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   Inverse(...args)
   {
     throw new Error("TriMatrix.Inverse is not implemented in CarbonEngineJS.");

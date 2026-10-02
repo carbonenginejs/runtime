@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/Inertia.h
 import { vec3 } from "#math/vec3";
-import { type } from "#schema";
+import { meta } from "#schema";
 
 
 /**
@@ -9,15 +9,15 @@ import { type } from "#schema";
  * behaviour allocates one record per agent and rewrites it on every behaviour
  * update.
  */
-@type.define({
+@meta.define({
   className: "InertiaData",
   family: "eve/child/behaviors"
 })
 export class InertiaData
 {
-  @type.vec3
+  @meta.type.vec3
   agentAccel = vec3.create();
 
-  @type.float32
+  @meta.type.float32
   inertiaWeight = 0;
 }

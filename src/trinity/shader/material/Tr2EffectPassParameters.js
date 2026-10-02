@@ -1,20 +1,20 @@
 // Source: trinity/trinity/Shader/Tr2Material.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { type } from "#schema";
+import { meta } from "#schema";
 import { Tr2ResourceSetDescriptionAL } from "../../../trinityal/Tr2ResourceSetAL/index.js";
 import { Tr2MaterialStageInput } from "./Tr2MaterialStageInput.js";
 
 /** Collects one effect pass's per-stage inputs, rerouted parameters, used resources, and resource-set state. */
-@type.define({ className: "Tr2EffectPassParameters", family: "shader" })
+@meta.define({ className: "Tr2EffectPassParameters", family: "shader" })
 export class Tr2EffectPassParameters
 {
 
   /** m_stageInput (Tr2MaterialStageInput) */
-  @type.rawStruct("Tr2MaterialStageInput")
+  @meta.type.rawStruct("Tr2MaterialStageInput")
   stageInput = Array.from({ length: 6 }, () => new Tr2MaterialStageInput());
 
   /** m_reroutedParameters (std::vector<ITriReroutable*>) */
-  @type.list("ITriReroutable")
+  @meta.type.list("ITriReroutable")
   reroutedParameters = [];
 
   // TWO DIFFERENT OBJECTS USED TO SHARE THIS NAME, and the field held the
@@ -30,35 +30,35 @@ export class Tr2EffectPassParameters
   // two are separated rather than one deleted.
 
   /** m_resourceSetDesc (Tr2ResourceSetDescriptionAL) */
-  @type.rawStruct("Tr2ResourceSetDescriptionAL")
+  @meta.type.rawStruct("Tr2ResourceSetDescriptionAL")
   resourceSetDesc = new Tr2ResourceSetDescriptionAL();
 
   /** m_resourceSet (Tr2ResourceSetAL) */
-  @type.rawStruct("Tr2ResourceSetAL")
+  @meta.type.rawStruct("Tr2ResourceSetAL")
   resourceSet = null;
 
   /** m_usedResources (std::vector<ITr2EffectValuePtr>) */
-  @type.list("ITr2EffectValue")
+  @meta.type.list("ITr2EffectValue")
   usedResources = [];
 
   /** m_usedTextures (Tr2BindlessResourcesAL) */
-  @type.rawStruct("Tr2BindlessResourcesAL")
+  @meta.type.rawStruct("Tr2BindlessResourcesAL")
   usedTextures = null;
 
   /** m_resourceSetHash (uint32_t) */
-  @type.uint32
+  @meta.type.uint32
   resourceSetHash = 0;
 
   /** m_resourceSetDirty (bool) */
-  @type.boolean
+  @meta.type.boolean
   resourceSetDirty = true;
 
   /** m_compatibleWithGdr (bool) */
-  @type.boolean
+  @meta.type.boolean
   compatibleWithGdr = true;
 
   /** m_usedTexturesDirty (bool) */
-  @type.boolean
+  @meta.type.boolean
   usedTexturesDirty = false;
 
   /** Records a resource this pass binds and marks the used-texture list stale. */

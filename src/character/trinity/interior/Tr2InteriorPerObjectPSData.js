@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Interior/Tr2InteriorConstantBufferFormats.h
-import { impl, type } from "#schema";
+import { meta } from "#schema";
 import { DictReader } from "#blue/DictReader";
 import { mat4 } from "#math/mat4";
 import { vec4 } from "#math/vec4";
@@ -9,35 +9,35 @@ import { Tr2InteriorPerObjectLightData } from "../../generated/interior/Tr2Inter
  * Per-object interior pixel-stage data holding fixed-capacity light and shadow
  * inputs.
  */
-@type.define({ className: "Tr2InteriorPerObjectPSData", family: "interior" })
+@meta.define({ className: "Tr2InteriorPerObjectPSData", family: "interior" })
 export class Tr2InteriorPerObjectPSData
 {
 
   /** lightCount (int32_t) */
-  @type.int32
+  @meta.type.int32
   lightCount = 0;
 
   /** padding (int32_t[3]) */
-  @type.array("int32")
+  @meta.type.array("int32")
   padding = [ 0, 0, 0 ];
 
   /** pointLights (Tr2InteriorPerObjectLightData[10]) */
-  @type.array({
+  @meta.type.array({
     kind: "struct",
     className: "Tr2InteriorPerObjectLightData"
   })
   pointLights = Array.from({ length: 10 }, () => new Tr2InteriorPerObjectLightData());
 
   /** shadowCaster0 (Vector4) */
-  @type.vec4
+  @meta.type.vec4
   shadowCaster0 = vec4.create();
 
   /** shadowCaster1 (Vector4) */
-  @type.vec4
+  @meta.type.vec4
   shadowCaster1 = vec4.create();
 
   /** spotLights (Matrix[4]) */
-  @type.array("mat4")
+  @meta.type.array("mat4")
   spotLights = Array.from({ length: 4 }, () => mat4.create());
 
   /**
@@ -58,7 +58,7 @@ export class Tr2InteriorPerObjectPSData
    * @param {object} [options={}] Options forwarded to the dictionary reader.
    * @returns {Set<string>|boolean} The dictionary reader's change result.
    */
-  @impl.custom
+  @meta.ours
   SetValues(values = {}, options = {})
   {
     const normalized = { ...values };

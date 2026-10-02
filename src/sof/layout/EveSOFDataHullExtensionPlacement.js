@@ -1,80 +1,80 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveSOFDataHullExtensionPlacement } from "./IEveSOFDataHullExtensionPlacement.js";
 import { EveSOFDNADescriptor } from "../shared/EveSOFDNADescriptor.js";
 import { EveSOFDataHullExtensionPlacementDistributionPlacement } from "./EveSOFDataHullExtensionPlacementDistributionPlacement.js";
 import { vec3 } from "#math/vec3";
 
 /** Defines a concrete hull extension by DNA, locator, offset, distribution, conditions, and build flags. */
-@type.define({ className: "EveSOFDataHullExtensionPlacement", family: "eve" })
+@meta.define({ className: "EveSOFDataHullExtensionPlacement", family: "eve" })
 export class EveSOFDataHullExtensionPlacement extends IEveSOFDataHullExtensionPlacement
 {
 
   /** m_distributionConditions (PIEveSOFDataHullExtensionPlacementDistributionVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("IEveSOFDataHullExtensionPlacementDistribution")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("IEveSOFDataHullExtensionPlacementDistribution")
   distributionConditions = [];
 
   /** m_extendsBoundingSphere (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   extendsBoundingSphere = true;
 
   /** m_extendsShieldEllipsoid (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   extendsShieldEllipsoid = true;
 
   /** m_isShared (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   isShared = false;
 
   /** m_isInstanced (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   isInstanced = true;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   enabled = true;
 
   /** m_distribution (EveSOFDataHullExtensionPlacementDistributionPlacementPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveSOFDataHullExtensionPlacementDistributionPlacement")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSOFDataHullExtensionPlacementDistributionPlacement")
   distribution = new EveSOFDataHullExtensionPlacementDistributionPlacement();
 
   /** m_descriptor (EveSOFDNADescriptorPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveSOFDNADescriptor")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSOFDNADescriptor")
   descriptor = new EveSOFDNADescriptor();
 
   /** m_locatorSetName (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   locatorSetName = "";
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_offset (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   offset = vec3.create();
 
 }

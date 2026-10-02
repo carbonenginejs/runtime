@@ -2,7 +2,7 @@
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { DistanceBase } from "./EveChildModifierTransformCommon.js";
 
 
@@ -11,7 +11,7 @@ import { DistanceBase } from "./EveChildModifierTransformCommon.js";
  * face the camera - the inverse of a halo, and despite the name not a subclass
  * of one.
  */
-@type.define({
+@meta.define({
   className: "EveChildModifierHaloInverted",
   family: "eve/child/modifiers"
 })
@@ -39,9 +39,9 @@ export class EveChildModifierHaloInverted extends IEveChildTransformModifier
    * @param {Float32Array} out - caller-owned; receives the result
    * @returns {Float32Array} out
    */
-  @carbon.method
-  @carbon.contextual(["camera"])
-  @impl.implemented
+  @meta.blue.method
+  @meta.blue.contextual(["camera"])
+  @meta.implemented
   ApplyTransform(context, transform, boneCount, bones, out)
   {
     const renderContext = context?.renderContext;

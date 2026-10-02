@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/UI/EveTacticalTrails.h
 // Source: trinity/trinity/Eve/UI/EveTacticalTrails.cpp
 // Hand-maintained after promotion from generated schema intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
@@ -69,8 +69,8 @@ function WriteLineVerticesToBuffer(pos1, time1, pos2, time2, pos3, floats, base)
 
 
 /** Tracks tactical trail objects without requiring a graphics device. */
-@type.define({ className: "EveTacticalTrails", family: "eve/ui" })
-@carbon.inherit(ITr2Renderable, IEveSpaceObject2)
+@meta.define({ className: "EveTacticalTrails", family: "eve/ui" })
+@meta.blue.inherit(ITr2Renderable, IEveSpaceObject2)
 export class EveTacticalTrails
 {
   /** m_vertexDeclHandle - interned once, -1 (UNINITIALIZED) until it is. */
@@ -86,29 +86,29 @@ export class EveTacticalTrails
   _egoBallPosition = [ 0, 0, 0 ];
 
 
-  @type.list("EveTacticalTrailTrackedObject")
+  @meta.type.list("EveTacticalTrailTrackedObject")
   trackedObjects = [];
 
   /** m_segmentCount (uint32_t) [READ] */
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   segments = 0;
 
   /** m_egoBall (ITriVectorFunctionPtr) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("ITriVectorFunction")
+  @meta.blue.readwrite
+  @meta.type.objectRef("ITriVectorFunction")
   egoBall = null;
 
   /** m_trailEffect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2Effect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2Effect")
   trailEffect = null;
 
   /** m_fadeOutTime (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   fadeOutTime = 5;
 
   /**
@@ -116,8 +116,8 @@ export class EveTacticalTrails
    * declaration handle. The class allocates its vertex data lazily inside
    * UpdateGraphicsState, so this is the whole teardown.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ReleaseResources(_storage)
   {
     this._vertexDeclHandle = -1;
@@ -139,8 +139,8 @@ export class EveTacticalTrails
    * @param {number} now Seconds, on the same clock as the samples' times.
    * @param {object} [renderContext] Defaults to Tr2RenderContext_GetMainThreadRenderContext().
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateGraphicsState(now, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     this.segments = this.trackedObjects.reduce(
@@ -221,9 +221,9 @@ export class EveTacticalTrails
   }
 
   /** Carbon method RegisterObject (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Uses WeakRef when available to model Carbon's non-owning pointer and returns success for JavaScript callers.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Uses WeakRef when available to model Carbon's non-owning pointer and returns success for JavaScript callers.")
   RegisterObject(object)
   {
     if (!object) return false;
@@ -234,9 +234,9 @@ export class EveTacticalTrails
   }
 
   /** Carbon method UnregisterObject (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Clears the non-owning JavaScript reference and returns success for JavaScript callers.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Clears the non-owning JavaScript reference and returns success for JavaScript callers.")
   UnregisterObject(object)
   {
     const found = this.trackedObjects.find(entry => entry.ball?.deref?.() === object || entry.ball === object);
@@ -246,32 +246,32 @@ export class EveTacticalTrails
   }
 
   /** Carbon EveTacticalTrails::GetBatches submits its GPU-backed trail vertex buffer (cpp:299-317). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   GetBatches(_batches, _batchType, _perObjectData, _reason)
   {
     throw new Error("EveTacticalTrails.GetBatches is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon EveTacticalTrails::HasTransparentBatches is always true (cpp:319-322). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HasTransparentBatches()
   {
     return true;
   }
 
   /** Carbon EveTacticalTrails::GetSortValue is zero (cpp:324-327). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetSortValue()
   {
     return 0;
   }
 
   /** Carbon EveTacticalTrails::GetPerObjectData returns null (cpp:329-332). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetPerObjectData(_accumulator)
   {
     return null;

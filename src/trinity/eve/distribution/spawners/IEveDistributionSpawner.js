@@ -1,36 +1,36 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/IEveDistributionSpawner.h
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 
 
 /** Distribution spawner contract with Carbon's optional no-op hooks. */
-@type.define({ className: "IEveDistributionSpawner", family: "eve/distribution" })
+@meta.define({ className: "IEveDistributionSpawner", family: "eve/distribution" })
 export class IEveDistributionSpawner
 {
 
   /** Resets the spawner against regenerated placement data. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   Reset()
   {
   }
 
   /** Restarts spawner state without regenerating placement data. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   Restart()
   {
   }
 
   /** Runs the optional synchronous spawning update hook. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   UpdateSyncronous(_updateContext)
   {
   }
 
   /** Accepts an optional controller variable. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   SetControllerVariable(_name, _value)
   {
   }

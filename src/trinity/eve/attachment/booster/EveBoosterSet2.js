@@ -6,7 +6,7 @@ import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, edit, impl, type } from "#schema";
+import { meta } from "#schema";
 import { IInitialize } from "#blue/IInitialize";
 import { INotify } from "#blue/INotify";
 import { EveEntity } from "../../EveEntity.js";
@@ -35,257 +35,257 @@ import {
  * flares, trails, set bounding sphere and flickering point lights that its
  * renderable instances draw.
  */
-@type.define({ className: "EveBoosterSet2", family: "eve/attachment/boosters" })
-@carbon.mapInterface(INotify, IInitialize)
-@carbon.inherit(INotify, IInitialize)
+@meta.define({ className: "EveBoosterSet2", family: "eve/attachment/boosters" })
+@meta.blue.mapInterface(INotify, IInitialize)
+@meta.blue.inherit(INotify, IInitialize)
 export class EveBoosterSet2 extends EveEntity
 {
 
   /** m_flareLodEnabled (bool) [READWRITE, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.boolean
   flareLodEnabled = true;
 
   /** m_staticTrailLength (float) [READWRITE, PERSIST, NOTIFY] */
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   staticTrailLength = 0;
 
   /** m_trailsStaticOffsets[0] (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   trailsStaticOffsets0 = vec3.create();
 
   /** m_trailsStaticOffsets[1] (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   trailsStaticOffsets1 = vec3.create();
 
   /** m_trailsStaticOffsets[2] (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   trailsStaticOffsets2 = vec3.create();
 
   /** m_trailsStaticOffsets[3] (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   trailsStaticOffsets3 = vec3.create();
 
   /** m_trailsStaticOffsets[4] (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   trailsStaticOffsets4 = vec3.create();
 
   /** m_lightOffset (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   lightOffset = 0;
 
   /** m_lightFlickerAmplitude (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   lightFlickerAmplitude = 0;
 
   /** m_lightFlickerFrequency (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   lightFlickerFrequency = 0;
 
   /** m_lightRadius (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   lightRadius = 0;
 
   /** m_lightColor (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   lightColor = vec4.create();
 
   /** m_lightWarpRadius (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   lightWarpRadius = 0;
 
   /** m_lightWarpColor (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   lightWarpColor = vec4.create();
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   display = true;
 
   /** m_alwaysOnIntensity (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   alwaysOnIntensity = 1;
 
   /** m_warpGlowColor (Color) [READWRITE, PERSIST, NOTIFY] */
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   warpGlowColor = vec4.create();
 
   /** m_glowColor (Color) [READWRITE, PERSIST, NOTIFY] */
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   glowColor = vec4.create();
 
   /** m_haloColor (Color) [READWRITE, PERSIST, NOTIFY] */
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   haloColor = vec4.create();
 
   /** m_warpHaloColor (Color) [READWRITE, PERSIST, NOTIFY] */
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   warpHaloColor = vec4.create();
 
   /** m_effectFar (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2Effect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2Effect")
   effectFar = null;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] */
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2Effect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2Effect")
   effect = null;
 
   /** m_boosterRenderables (PEveBoosterSet2RenderableVector) [READ] */
-  @edit.read
-  @type.list("EveBoosterSet2Renderable")
+  @meta.blue.read
+  @meta.type.list("EveBoosterSet2Renderable")
   instances = [];
 
   /** m_maxVel (float) [READWRITE] */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   maxVel = 250;
 
   /** m_glowScale (float) [READWRITE, PERSIST, NOTIFY] */
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   glowScale = 1;
 
   /** m_symHaloScale (float) [READWRITE, PERSIST, NOTIFY] */
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   symHaloScale = 1;
 
   /** m_haloScaleX (float) [READWRITE, PERSIST, NOTIFY] */
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   haloScaleX = 1;
 
   /** m_haloScaleY (float) [READWRITE, PERSIST, NOTIFY] */
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   haloScaleY = 1;
 
   /** m_trailsSmoothing (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   trailsSmoothing = 10;
 
   /** m_glows (EveSpriteSetPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveSpriteSet")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSpriteSet")
   glows = null;
 
   /** m_maxSize (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   maxSize = 0;
 
   /** m_boosterBoundingSphere.xyz (Vector4) [READ] */
-  @edit.read
-  @type.vec3
+  @meta.blue.read
+  @meta.type.vec3
   boosterBoundingSphereCenter = vec3.create();
 
   /** m_boosterBoundingSphere.w (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   boosterBoundingSphereRadius = 0;
 
   /** m_warpIntensity (float) [READWRITE] */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   warpIntensity = 0;
 
   /** m_physicsUpdate (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   physicsUpdate = true;
 
   /** m_destinyUpdate (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   destinyUpdate = true;
 
   /** m_alwaysOn (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   alwaysOn = false;
 
   /** m_trails (EveTrailsSetPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveTrailsSet")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveTrailsSet")
   trails = null;
 
 
-  @edit.notify
-  @edit.persist
-  @type.list("EveBoosterSet2Item")
+  @meta.blue.notify
+  @meta.blue.persist
+  @meta.type.list("EveBoosterSet2Item")
   items = [];
 
   /** m_singleBoosters (h:284); read by the friend EveBoosterSet2Renderable. */
@@ -318,23 +318,23 @@ export class EveBoosterSet2 extends EveEntity
   }
 
   /** Carbon g_eveSpaceObjectTrailsEnabled (cpp:31-32), a registered engine setting: trails update and draw. */
-  @edit.setting("eveSpaceObjectTrailsEnabled")
+  @meta.setting("eveSpaceObjectTrailsEnabled")
   static eveSpaceObjectTrailsEnabled = true;
 
   /** g_eveSpaceObjectTrailsMinLength (cpp:34-35): below this trail length, in metres, a trail is not drawn. */
-  @edit.setting("eveSpaceObjectTrailsMinLength")
+  @meta.setting("eveSpaceObjectTrailsMinLength")
   static eveSpaceObjectTrailsMinLength = 200;
 
   /** g_eveSpaceObjectTrailsMinLengthFade (cpp:36-37): the length over which a trail fades in above the minimum. */
-  @edit.setting("eveSpaceObjectTrailsMinLengthFade")
+  @meta.setting("eveSpaceObjectTrailsMinLengthFade")
   static eveSpaceObjectTrailsMinLengthFade = 1000;
 
   /** g_eveSpaceObjectTrailsMaxLength (cpp:39-40): above this trail length a trail is not drawn. */
-  @edit.setting("eveSpaceObjectTrailsMaxLength")
+  @meta.setting("eveSpaceObjectTrailsMaxLength")
   static eveSpaceObjectTrailsMaxLength = 50000;
 
   /** g_eveSpaceObjectTrailsMaxLengthFade (cpp:41-42): the length over which a trail fades out below the maximum. */
-  @edit.setting("eveSpaceObjectTrailsMaxLengthFade")
+  @meta.setting("eveSpaceObjectTrailsMaxLengthFade")
   static eveSpaceObjectTrailsMaxLengthFade = 20000;
 
   /**
@@ -342,8 +342,8 @@ export class EveBoosterSet2 extends EveEntity
    * binds every renderable instance back to this set, and prepares the device
    * resources (Carbon Initialize, cpp:654-658).
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Initialize()
   {
     EveBoosterSet2._RebuildItems(this);
@@ -357,8 +357,8 @@ export class EveBoosterSet2 extends EveEntity
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PrepareResources()
   {
     if (Tr2Renderer.IsResourceCreationAllowed())
@@ -369,9 +369,9 @@ export class EveBoosterSet2 extends EveEntity
   }
 
   /** Carbon EveBoosterSet2::ReleaseResources (cpp:891-895). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Tr2SuballocatedBuffer has no Free, so the instance allocation is dropped rather than returned to the shared buffer.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Tr2SuballocatedBuffer has no Free, so the instance allocation is dropped rather than returned to the shared buffer.")
   ReleaseResources(_storage)
   {
     this._instanceBuffer = new Tr2SuballocatedBufferAllocation();
@@ -383,8 +383,8 @@ export class EveBoosterSet2 extends EveEntity
    * vertex declaration, the box or star by shader model, and the instance
    * buffer.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnPrepareResources()
   {
     this._vertexDeclHandle = Tr2EffectStateManager.getVertexDeclarationHandle(EveBoosterSet2._BoosterInstancedVertex());
@@ -407,9 +407,9 @@ export class EveBoosterSet2 extends EveEntity
    * wavePhase, atlasIndex0, atlasIndex1. Carbon's Matrix and gl-matrix share
    * the byte layout, so the transform copies straight across.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Tr2SuballocatedBuffer has no Free, so the previous allocation is dropped rather than returned.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Tr2SuballocatedBuffer has no Free, so the previous allocation is dropped rather than returned.")
   RebuildInstanceData(renderContext)
   {
     this._instanceBuffer = new Tr2SuballocatedBufferAllocation();
@@ -461,10 +461,10 @@ export class EveBoosterSet2 extends EveEntity
    * Applies the changed member's native flare/trail consequence, plus the
    * persisted JS items adaptation, and advances the CPU revision.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Member names replace native addresses; persisted JS items rebuild Add-derived data and retain the existing CPU revision.")
-  @impl.invalidates("#revision")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Member names replace native addresses; persisted JS items rebuild Add-derived data and retain the existing CPU revision.")
+  @meta.invalidates("#revision")
   OnModified(propertyName)
   {
     // Persisted items stand in for Carbon's Clear / Add... / PrepareResources
@@ -502,8 +502,8 @@ export class EveBoosterSet2 extends EveEntity
    * booster set - keeping at least one, and rebinds every instance; returns the
    * resulting count.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetCount(count)
   {
     const requested = Math.trunc(Number(count));
@@ -531,8 +531,8 @@ export class EveBoosterSet2 extends EveEntity
    * acceleration and rotation, creating the first instance when the set has
    * none; returns false when boosterInstance is out of range.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(
     deltaTime,
     time,
@@ -567,8 +567,8 @@ export class EveBoosterSet2 extends EveEntity
    * Advances every instance's trail spline and then the trail set itself;
    * returns false when no trail set is attached.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateTrails(deltaTime, time)
   {
     // cpp:729: trails advance only while the setting is on.
@@ -589,8 +589,8 @@ export class EveBoosterSet2 extends EveEntity
    * Drops the authored items along with everything derived from them - runtime
    * boosters, glows, trails, bounding sphere and max size.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Clear()
   {
     this.items.length = 0;
@@ -605,8 +605,8 @@ export class EveBoosterSet2 extends EveEntity
    * booster, flares and trail; returns the new item's index and throws a
    * TypeError when localMatrix is not sixteen values.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Add(
     localMatrix,
     functionality,
@@ -712,8 +712,8 @@ export class EveBoosterSet2 extends EveEntity
    * Sets the whole flare description in one call: glow and halo scales with
    * their normal and warp colours, plus the always-on flag.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetData(
     glowScale,
     glowColor,
@@ -741,8 +741,8 @@ export class EveBoosterSet2 extends EveEntity
    * Sets the whole booster point-light description in one call: light offset,
    * flicker amplitude and frequency, and the normal and warp radius and colour.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetLightData(offset, flickerAmplitude, flickerFrequency, radius, color, warpRadius, warpColor)
   {
     this.lightOffset = Number(offset);
@@ -758,8 +758,8 @@ export class EveBoosterSet2 extends EveEntity
    * Sets the near and far booster effects; the renderable's boosterHighLod flag
    * picks between them at draw time.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetEffect(effect, effectFar)
   {
     this.effect = effect ?? null;
@@ -770,8 +770,8 @@ export class EveBoosterSet2 extends EveEntity
    * Attaches the sprite set that the per-booster flares are added to; without
    * one no flares are created.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetGlow(glow)
   {
     this.glows = glow ?? null;
@@ -781,8 +781,8 @@ export class EveBoosterSet2 extends EveEntity
    * Attaches the trails set that per-booster trails are added to; without one no
    * trails are created.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetTrail(trail)
   {
     this.trails = trail ?? null;
@@ -792,8 +792,8 @@ export class EveBoosterSet2 extends EveEntity
    * The intensity of one renderable instance, or the mean across every instance
    * when no index is given; zero when the set has no instances.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetBoosterIntensity(index = null)
   {
     if (index !== null && index !== undefined)
@@ -817,9 +817,9 @@ export class EveBoosterSet2 extends EveEntity
    * required so a caller can keep its own scratch. An empty set leaves `out`
    * empty (sph3 radius -1) rather than reporting a zero-radius sphere at the
    * origin. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon EveBoosterSet2.cpp:1115–1124 aggregates renderable spheres; JS writes the result to the caller's output array.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon EveBoosterSet2.cpp:1115–1124 aggregates renderable spheres; JS writes the result to the caller's output array.")
   GetBoundingSphere(out)
   {
     sph3.empty(out);
@@ -839,8 +839,8 @@ export class EveBoosterSet2 extends EveEntity
    * light position, radius and phase, atlas indices and trail flag - safe for an
    * adapter to keep.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetBoosterData()
   {
     return this._singleBoosters.map(booster => ({
@@ -859,8 +859,8 @@ export class EveBoosterSet2 extends EveEntity
    * A counter bumped whenever the authored items or the instance list change, so
    * an adapter can tell its packed data is stale.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetRevision()
   {
     return this._revision;
@@ -875,9 +875,9 @@ export class EveBoosterSet2 extends EveEntity
    * AABB against the frustum. A foreign glow duck without that method is taken
    * as visible rather than culled; the flare is still gated per renderable by
    * `boostersVisible` (cpp:1264). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("A glow duck lacking UpdateVisibility is treated as visible rather than culled.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("A glow duck lacking UpdateVisibility is treated as visible rather than culled.")
   UpdateVisibility(updateContext)
   {
     this._glowsVisible = false;
@@ -921,9 +921,9 @@ export class EveBoosterSet2 extends EveEntity
   /** Whether any booster glow sprite passed the last UpdateVisibility. Carbon
    * reads m_glowsVisible directly in AddToQuadRenderer (cpp:1257); the quad
    * renderer is engine-side here, so the flag is exposed instead. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon's mutable member read becomes an accessor; the quad renderer that consumes it is not ported yet.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon's mutable member read becomes an accessor; the quad renderer that consumes it is not ported yet.")
   GetGlowsVisible()
   {
     return this._glowsVisible;
@@ -932,8 +932,8 @@ export class EveBoosterSet2 extends EveEntity
   /** Carbon EveBoosterSet2::GetRenderables (cpp:1130-1145): gated on display
    * AND on the set owning an effect, then delegated to each renderable's own
    * visibility. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetRenderables(out = [])
   {
     if (!this.display || !this.effect)
@@ -949,8 +949,8 @@ export class EveBoosterSet2 extends EveEntity
 
   /** Carbon EveBoosterSet2::RegisterComponents (cpp:1272-1279): unconditional
    * LightOwner leaf self-registration. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -972,9 +972,9 @@ export class EveBoosterSet2 extends EveEntity
    * (TransformCoord - single matrix, no composition) with radius *
    * radiusFactor and color * flicker (the 3-arg overload: innerRadius 0,
    * FLAG_DEFAULT - manager-side). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("the g_lightNoise table is module state filled with Math.random (Carbon fills it with rand()/RAND_MAX - random either way).")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("the g_lightNoise table is module state filled with Math.random (Carbon fills it with rand()/RAND_MAX - random either way).")
   GetLights(lightManager)
   {
     if (this.lightRadius <= 0 && this.lightWarpRadius <= 0)
@@ -1093,4 +1093,4 @@ export class EveBoosterSet2 extends EveEntity
 }
 
 // EveBoosterSet2_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
-carbon.interfaceTable({ interfaces: [EveBoosterSet2, INotify, IInitialize, EveEntity], chainTo: null })(EveBoosterSet2, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveBoosterSet2, INotify, IInitialize, EveEntity], chainTo: null })(EveBoosterSet2, { kind: "class" });

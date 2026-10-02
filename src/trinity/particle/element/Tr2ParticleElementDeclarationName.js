@@ -1,20 +1,20 @@
 // Source: trinity/trinity/Particle/Tr2ParticleElementDeclaration.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema particle/Tr2ParticleElementDeclarationName.json).
-import { type } from "#schema";
+import { meta } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
 
 /** Tr2ParticleElementDeclarationName (particle) - generated from schema shapeHash 115c80e5.... */
-@type.define({ className: "Tr2ParticleElementDeclarationName", family: "particle" })
+@meta.define({ className: "Tr2ParticleElementDeclarationName", family: "particle" })
 export class Tr2ParticleElementDeclarationName
 {
 
   /** m_type (Type - enum Type) */
-  @type.int32
-  @type.enum("trinity.Tr2ParticleElementDeclarationName.Type")
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2ParticleElementDeclarationName.Type")
   type = 0;
 
   /** m_name (std::string) */
-  @type.string
+  @meta.type.string
   name = "";
 
   /** Carbon operator== - CUSTOM elements also compare their names. */

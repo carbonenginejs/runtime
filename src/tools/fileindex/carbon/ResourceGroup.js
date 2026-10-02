@@ -3,7 +3,7 @@
 import { ResourceGroupImpl } from "./ResourceGroupImpl.js";
 import { StatusSettings } from "./StatusSettings.js";
 import { StatusProgressType } from "./enums.js";
-import { CjsSchema, carbon, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** Carbon resource-group facade, preserving its separately owned nested implementation. */
 export class ResourceGroup
@@ -145,16 +145,16 @@ CjsSchema.define(ResourceGroup, {
     family: "tools",
     fields: {},
     methods: {
-        Merge: [ carbon.method, impl.implemented ],
-        DiffAgainstGroup: [ carbon.method, impl.implemented ],
-        RemoveResources: [ carbon.method, impl.implemented ],
-        ImportFromFile: [ carbon.method, impl.adapted ],
-        ExportToFile: [ carbon.method, impl.adapted ],
-        _Invoke: [ impl.custom ],
-        _InvokeAsync: [ impl.custom ],
-        CreateBundle: [ carbon.method, impl.notImplemented ],
-        CreatePatch: [ carbon.method, impl.notImplemented ],
-        CreateFromDirectory: [ carbon.method, impl.notImplemented ],
-        createFromFilter: [ carbon.method, impl.notImplemented ]
+        Merge: [ meta.blue.method, meta.implemented ],
+        DiffAgainstGroup: [ meta.blue.method, meta.implemented ],
+        RemoveResources: [ meta.blue.method, meta.implemented ],
+        ImportFromFile: [ meta.blue.method, meta.adapted ],
+        ExportToFile: [ meta.blue.method, meta.adapted ],
+        _Invoke: [ meta.ours ],
+        _InvokeAsync: [ meta.ours ],
+        CreateBundle: [ meta.blue.method, meta.notImplemented ],
+        CreatePatch: [ meta.blue.method, meta.notImplemented ],
+        CreateFromDirectory: [ meta.blue.method, meta.notImplemented ],
+        createFromFilter: [ meta.blue.method, meta.notImplemented ]
     }
 });

@@ -18,7 +18,7 @@
 // WebGL2 also allows one active query per target, where D3D11 nests them; a
 // `Begin` while another occlusion query is active is refused.
 
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -73,7 +73,7 @@ export class Tr2OcclusionQueryALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context.
    * @returns {number} An `ALResult` value.
    */
-  @impl.adapted
+  @meta.adapted
   Begin(renderContext)
   {
     if (!this._query) return ALResult.E_INVALIDARG;
@@ -94,7 +94,7 @@ export class Tr2OcclusionQueryALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context.
    * @returns {number} An `ALResult` value.
    */
-  @impl.adapted
+  @meta.adapted
   End(renderContext)
   {
     if (!this._query) return ALResult.E_INVALIDARG;
@@ -118,7 +118,7 @@ export class Tr2OcclusionQueryALWebgl2 extends Tr2DeviceResourceAL
    * @param {number} [_waitMode] A `WaitMode`; WebGL2 cannot wait.
    * @returns {{result: number, count: number}} dx11's out argument comes back here.
    */
-  @impl.adapted
+  @meta.adapted
   GetPixelCount(renderContext, _waitMode = Tr2OcclusionQueryALWebgl2.WaitMode.WAIT)
   {
     if (!this._query) return { result: ALResult.E_INVALIDARG, count: 0 };

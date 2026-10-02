@@ -1,4 +1,4 @@
-import { CjsSchema, impl } from "../schema/index.js";
+import { CjsSchema, meta } from "../schema/index.js";
 
 /**
  * Terminal constant-buffer bytes with an explicit upload dirty lifecycle.
@@ -47,6 +47,6 @@ export class CjsConstantPayload
 
 }
 
-CjsSchema.decorateMethod(CjsConstantPayload, "GetData", impl.abstract);
-CjsSchema.decorateMethod(CjsConstantPayload, "IsDirty", impl.abstract);
-CjsSchema.decorateMethod(CjsConstantPayload, "ClearDirty", impl.abstract);
+CjsSchema.decorateMethod(CjsConstantPayload, "GetData", meta.abstract);
+CjsSchema.decorateMethod(CjsConstantPayload, "IsDirty", meta.abstract);
+CjsSchema.decorateMethod(CjsConstantPayload, "ClearDirty", meta.abstract);

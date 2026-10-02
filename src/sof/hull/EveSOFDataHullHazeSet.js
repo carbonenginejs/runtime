@@ -1,42 +1,42 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
 
 /** Groups named haze items with spherical-type, visibility, and skinning policy. */
-@type.define({ className: "EveSOFDataHullHazeSet", family: "eve" })
+@meta.define({ className: "EveSOFDataHullHazeSet", family: "eve" })
 export class EveSOFDataHullHazeSet
 {
 
   /** m_hazeType (HazeType - enum HazeType) [READWRITE, PERSIST, ENUM] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.EveSOFDataHullHazeSet.HazeType")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.EveSOFDataHullHazeSet.HazeType")
   hazeType = 0;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_skinned (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   skinned = false;
 
   /** m_visibilityGroup (BlueSharedString) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   visibilityGroup = "primary";
 
   /** m_items (PEveSOFDataHullHazeSetItemVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveSOFDataHullHazeSetItem")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSOFDataHullHazeSetItem")
   items = [];
 
   static HazeType = Object.freeze({

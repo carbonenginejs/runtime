@@ -5,52 +5,52 @@ import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { IEveVolume } from "./IEveVolume.js";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 
 
 /**
  * Oriented box of influence with a hollow inner box, weighting points by falloff
  * and seeding random points across its shell.
  */
-@type.define({
+@meta.define({
   className: "EveBoxVolume",
   family: "eve/volume"
 })
-@carbon.inherit(IInitialize)
-@carbon.mapInterface(IInitialize)
+@meta.blue.inherit(IInitialize)
+@meta.blue.mapInterface(IInitialize)
 export class EveBoxVolume extends IEveVolume
 {
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   position = vec3.create();
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   scaling = vec3.create();
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   innerScaling = vec3.create();
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.quat
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   rotation = quat.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   debugShowIntersection = false;
 
   _callbacks = new Map();
@@ -63,8 +63,8 @@ export class EveBoxVolume extends IEveVolume
    * Clamps the authored scalings and caches the inverse rotation the intensity
    * test needs.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     this.Setup();
@@ -75,8 +75,8 @@ export class EveBoxVolume extends IEveVolume
    * Returns a fresh sphere centred on the box position whose radius is half the
    * length of the scaling vector.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetBoundingSphere()
   {
     return {
@@ -91,8 +91,8 @@ export class EveBoxVolume extends IEveVolume
    * compared radially against the inner and outer boxes - 1 inside the inner
    * box, 0 outside the outer one, and a squared ramp between them.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetIntensity(position)
   {
     const local = EveBoxVolume._toLocal(position, this.position, this._inverseRotation);
@@ -118,8 +118,8 @@ export class EveBoxVolume extends IEveVolume
    * @param points Caller-owned array the new points are pushed onto.
    * @param excludeInnerVolume Drops the inner box from the choice, keeping every point in the shell.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GeneratePointsInVolume(points, howManyToAdd, excludeInnerVolume, fallOffFactor)
   {
     if (this.scaling[0] === 0 || this.scaling[1] === 0 || this.scaling[2] === 0)
@@ -204,8 +204,8 @@ export class EveBoxVolume extends IEveVolume
    * Registers a callback fired whenever the volume changes, returning the id
    * needed to unregister it again.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RegisterForChanges(callback)
   {
     const id = this._nextCallbackId++;
@@ -214,8 +214,8 @@ export class EveBoxVolume extends IEveVolume
   }
 
   /** Drops a change callback by the id RegisterForChanges returned. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UnregisterForChanges(callbackId)
   {
     this._callbacks.delete(callbackId);
@@ -225,9 +225,9 @@ export class EveBoxVolume extends IEveVolume
    * Re-clamps the scalings and the cached inverse rotation after an authored
    * change, then notifies every registered listener.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
     if (["position", "scaling", "rotation", "innerScaling"].includes(propertyName)) this.Setup();
@@ -239,8 +239,8 @@ export class EveBoxVolume extends IEveVolume
   }
 
   /** No debug drawing in this port. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   RenderDebugInfo()
   {
   }
@@ -254,9 +254,9 @@ export class EveBoxVolume extends IEveVolume
    * fire change callbacks - OnModified does (cpp:194-215), unlike the
    * ellipsoid, whose Setup fires them itself.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon caches boxTransform/innerBoxTransform/inverses and the bounding sphere; this port derives them on demand, so Setup refreshes the clamps and the cached inverse rotation.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon caches boxTransform/innerBoxTransform/inverses and the bounding sphere; this port derives them on demand, so Setup refreshes the clamps and the cached inverse rotation.")
   Setup()
   {
     for (let i = 0; i < 3; i++)

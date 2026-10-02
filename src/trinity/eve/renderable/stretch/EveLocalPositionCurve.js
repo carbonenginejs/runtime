@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveLocalPositionCurve.cpp
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { LocalPositionBehavior } from "../../../generated/eve/renderable/stretch/enums.js";
 import { blue, EnumRegistrationType } from "#blue";
 
@@ -12,43 +12,43 @@ import { blue, EnumRegistrationType } from "#blue";
  * bounding hull, a damage or firing locator, a turret muzzle, or an authored
  * offset - selected by an authored behaviour.
  */
-@type.define({ className: "EveLocalPositionCurve", family: "eve/renderable/stretch" })
+@meta.define({ className: "EveLocalPositionCurve", family: "eve/renderable/stretch" })
 export class EveLocalPositionCurve
 {
-  @edit.readwrite
-  @edit.persist
- @type.int32 @type.enum("trinity.EveLocalPositionCurve.LocalPositionBehavior") behavior = 0;
-  @edit.readwrite @type.float32 impactSize = 1;
-  @edit.readwrite
-  @edit.persist
- @type.float32 offset = 0;
-  @edit.readwrite
-  @edit.persist
- @type.vec3 positionOffset = vec3.create();
-  @edit.readwrite
-  @edit.persist
- @type.model("ITriVectorFunction") parentPositionCurve = null;
-  @edit.readwrite
-  @edit.persist
- @type.model("ITriVectorFunction") alignPositionCurve = null;
-  @edit.readwrite
-  @edit.persist
- @type.vec3 value = vec3.create();
-  @edit.readwrite
-  @edit.persist
- @type.vec3 boundingSize = vec3.create();
-  @edit.readwrite @type.objectRef("ITriQuaternionFunction") parentRotationCurve = null;
-  @edit.readwrite @type.objectRef("IEveSpaceObject2") parent = null;
-  @edit.readwrite @type.objectRef("EveTurretSet") turretSetObject = null;
-  @edit.readwrite @type.int32 muzzleIndex = 0;
-  @edit.read @type.int32 damageLocatorIndex = -1;
-  @edit.readwrite @type.int32 locatorIndex = -1;
-  @edit.readwrite @type.string locatorSetName = "";
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.int32 @meta.type.enum("trinity.EveLocalPositionCurve.LocalPositionBehavior") behavior = 0;
+  @meta.blue.readwrite @meta.type.float32 impactSize = 1;
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.float32 offset = 0;
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.vec3 positionOffset = vec3.create();
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.model("ITriVectorFunction") parentPositionCurve = null;
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.model("ITriVectorFunction") alignPositionCurve = null;
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.vec3 value = vec3.create();
+  @meta.blue.readwrite
+  @meta.blue.persist
+ @meta.type.vec3 boundingSize = vec3.create();
+  @meta.blue.readwrite @meta.type.objectRef("ITriQuaternionFunction") parentRotationCurve = null;
+  @meta.blue.readwrite @meta.type.objectRef("IEveSpaceObject2") parent = null;
+  @meta.blue.readwrite @meta.type.objectRef("EveTurretSet") turretSetObject = null;
+  @meta.blue.readwrite @meta.type.int32 muzzleIndex = 0;
+  @meta.blue.read @meta.type.int32 damageLocatorIndex = -1;
+  @meta.blue.readwrite @meta.type.int32 locatorIndex = -1;
+  @meta.blue.readwrite @meta.type.string locatorSetName = "";
 
   _impactEffectIndex = -1;
 
   /** Post-construction hook that selects the behaviour, defaulting to POS_NONE. */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   __init__(behavior = EveLocalPositionCurve.LocalPositionBehavior.POS_NONE)
   {
     this.SetBehavior(behavior);
@@ -58,7 +58,7 @@ export class EveLocalPositionCurve
    * Selects which of the LocalPositionBehavior calculations this curve
    * evaluates.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   SetBehavior(behavior)
   {
     this.behavior = Number(behavior) | 0;
@@ -69,8 +69,8 @@ export class EveLocalPositionCurve
    * @param {Array} [out] - caller-owned vec3; defaults to the curve's own value field, so callers that pass nothing update it in place. Under POS_NONE the incoming out is stored as the curve's value and returned unchanged.
    * @returns {Array} out
    */
-  @carbon.method @impl.adapted
-  @impl.reason("Carbon overloads Be::Time and double; JavaScript has one numeric time domain and follows the org out-last convention.")
+  @meta.blue.method @meta.adapted
+  @meta.reason("Carbon overloads Be::Time and double; JavaScript has one numeric time domain and follows the org out-last convention.")
   Update(time, out = this.value)
   {
     switch (this.behavior)
@@ -102,8 +102,8 @@ export class EveLocalPositionCurve
    * @param {Array} [out] - caller-owned vec3; a fresh vector is allocated when omitted
    * @returns {Array} out
    */
-  @carbon.method @impl.adapted
-  @impl.reason("JavaScript uses CarbonEngineJS's standard time-first, out-last curve convention.")
+  @meta.blue.method @meta.adapted
+  @meta.reason("JavaScript uses CarbonEngineJS's standard time-first, out-last curve convention.")
   GetValueAt(time, out = vec3.create())
   {
     vec3.copy(out, this.value);
@@ -119,8 +119,8 @@ export class EveLocalPositionCurve
    * evaluates nothing. Ported as the no-op Carbon's overload resolution
    * actually produces.
    */
-  @carbon.method @impl.adapted
-  @impl.reason("Resolves to Carbon's no-op double Update overload; forwarding to the collapsed dispatching Update would be MORE active than the donor.")
+  @meta.blue.method @meta.adapted
+  @meta.reason("Resolves to Carbon's no-op double Update overload; forwarding to the collapsed dispatching Update would be MORE active than the donor.")
   UpdateValue(_time)
   {
   }
@@ -129,7 +129,7 @@ export class EveLocalPositionCurve
    * The first derivative is undefined for a locator-driven curve; out is
    * returned untouched.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   GetValueDotAt(_time, out = vec3.create())
   {
     return out;
@@ -139,7 +139,7 @@ export class EveLocalPositionCurve
    * The second derivative is undefined for a locator-driven curve; out is
    * returned untouched.
    */
-  @carbon.method @impl.implemented
+  @meta.blue.method @meta.implemented
   GetValueDoubleDotAt(_time, out = vec3.create())
   {
     return out;
@@ -150,8 +150,8 @@ export class EveLocalPositionCurve
    * @param {Float64Array} [out] - caller-owned; a fresh buffer is allocated when omitted
    * @returns {Float64Array} out
    */
-  @carbon.method @impl.adapted
-  @impl.reason("Vector3d is represented by any three-element numeric output buffer in JavaScript.")
+  @meta.blue.method @meta.adapted
+  @meta.reason("Vector3d is represented by any three-element numeric output buffer in JavaScript.")
   InterpolatedPosition(_time, out = new Float64Array(3))
   {
     out[0] = this.value[0];

@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierBillboard3D_Blue.cpp
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 import { Billboard2D, DistanceBase } from "./EveChildModifierTransformCommon.js";
 
@@ -12,12 +12,12 @@ import { Billboard2D, DistanceBase } from "./EveChildModifierTransformCommon.js"
  * billboard that preserves the child's authored scale or as a free one that
  * screen-aligns and then re-aligns along the camera direction.
  */
-@type.define({ className: "EveChildModifierBillboard3D", family: "eve/child/modifiers" })
+@meta.define({ className: "EveChildModifierBillboard3D", family: "eve/child/modifiers" })
 export class EveChildModifierBillboard3D extends IEveChildTransformModifier
 {
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   fixed = false;
 
   /**
@@ -33,9 +33,9 @@ export class EveChildModifierBillboard3D extends IEveChildTransformModifier
    * @param {Float32Array} out - caller-owned; receives the result
    * @returns {Float32Array} out
    */
-  @carbon.method
-  @carbon.contextual(["camera"])
-  @impl.implemented
+  @meta.blue.method
+  @meta.blue.contextual(["camera"])
+  @meta.implemented
   ApplyTransform(context, transform, _boneCount = 0, _bones = null, out)
   {
     const renderContext = context?.renderContext;

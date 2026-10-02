@@ -28,7 +28,7 @@
 // `IRoot`, Carbon's base for both, is not ported: it is Blue's reference-counted
 // object root, which a garbage-collected runtime has no use for.
 
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema } from "#schema";
 import { UnlinkReason } from "../enums.js";
 
 export const ITR2_CONTROLLER = Symbol.for("carbonenginejs.interface.ITr2Controller");

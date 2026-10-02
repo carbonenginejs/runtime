@@ -1,4 +1,4 @@
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { ResourceRequirement } from "./ResourceRequirement.js";
 import { assertNonNegativeInteger, assertNonNegativeNumber } from "#utils/validation";
 
@@ -1498,4 +1498,4 @@ function defaultNow()
   return Date.now();
 }
 
-CjsSchema.decorateMethod(CjsMotherLode, "PurgeInactive", impl.custom);
+CjsSchema.decorateMethod(CjsMotherLode, "PurgeInactive", meta.ours);

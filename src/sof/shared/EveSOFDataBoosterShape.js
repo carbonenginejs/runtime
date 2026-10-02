@@ -1,10 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { vec4 } from "#math/vec4";
 
 /** Combines the noise, frequency, speed, and color parameters that define a booster shape. */
-@type.define({ className: "EveSOFDataBoosterShape", family: "eve" })
+@meta.define({ className: "EveSOFDataBoosterShape", family: "eve" })
 export class EveSOFDataBoosterShape
 {
 
@@ -12,54 +12,54 @@ export class EveSOFDataBoosterShape
    * Numeric noise-function selector retained in authored and projected shape data (native float).
    * @type {number}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   noiseFunction = 0;
 
   /**
    * Animation-speed control for the shape noise; shader-domain units are not converted here.
    * @type {number}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   noiseSpeed = 0;
 
   /**
    * Four-component noise amplitude at the start of the plume; native member and exposure retain the Ampliture spelling.
    * @type {Float32Array}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.vec4
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec4
   noiseAmplitureStart = vec4.create();
 
   /**
    * Four-component noise amplitude at the end of the plume; native member and exposure retain the Ampliture spelling.
    * @type {Float32Array}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.vec4
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec4
   noiseAmplitureEnd = vec4.create();
 
   /**
    * Four-component frequency control for the plume noise; forwarded unchanged to the shape parameters.
    * @type {Float32Array}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.vec4
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec4
   noiseFrequency = vec4.create();
 
   /**
    * Color weight for this booster plume shape.
    * @type {Float32Array}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   color = vec4.create();
 
   /**
@@ -67,7 +67,7 @@ export class EveSOFDataBoosterShape
    * amplitude.
    * @returns {Float32Array} The existing noiseAmplitureStart storage.
    */
-  @impl.custom
+  @meta.ours
   get noiseAmplitudeStart()
   {
     return this.noiseAmplitureStart;
@@ -78,7 +78,7 @@ export class EveSOFDataBoosterShape
    * storage.
    * @param {ArrayLike<number>} value Four leading amplitude components.
    */
-  @impl.custom
+  @meta.ours
   set noiseAmplitudeStart(value)
   {
     vec4.copy(this.noiseAmplitureStart, value);
@@ -89,7 +89,7 @@ export class EveSOFDataBoosterShape
    * amplitude.
    * @returns {Float32Array} The existing noiseAmplitureEnd storage.
    */
-  @impl.custom
+  @meta.ours
   get noiseAmplitudeEnd()
   {
     return this.noiseAmplitureEnd;
@@ -100,7 +100,7 @@ export class EveSOFDataBoosterShape
    * storage.
    * @param {ArrayLike<number>} value Four trailing amplitude components.
    */
-  @impl.custom
+  @meta.ours
   set noiseAmplitudeEnd(value)
   {
     vec4.copy(this.noiseAmplitureEnd, value);
@@ -115,7 +115,7 @@ export class EveSOFDataBoosterShape
    * @param {EveSOFDataBoosterShape|null} [out=null] Reused result or newly constructed shape.
    * @returns {EveSOFDataBoosterShape} The output shape.
    */
-  @impl.custom
+  @meta.ours
   static combine(base, overrides, out = null)
   {
     out ??= new this();
@@ -145,4 +145,4 @@ function selectValue(base, overrides, name)
 }
 
 // Native IRoot-only data: self query, no initialization or update contract.
-carbon.interfaceTable({ interfaces: [EveSOFDataBoosterShape], chainTo: null })(EveSOFDataBoosterShape);
+meta.blue.interfaceTable({ interfaces: [EveSOFDataBoosterShape], chainTo: null })(EveSOFDataBoosterShape);

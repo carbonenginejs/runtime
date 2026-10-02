@@ -1,4 +1,4 @@
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /**
@@ -10,108 +10,108 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
  * `experimental-policy`, not PNG semantics. Chunk parsing belongs to the PNG
  * format.
  */
-@type.define({ className: "CjsCharacterTextureMetadata", family: "character" })
+@meta.define({ className: "CjsCharacterTextureMetadata", family: "character" })
 export class CjsCharacterTextureMetadata extends CjsCharacterRecord
 {
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     sourcePath = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     sourceFormat = "png";
 
-    @edit.readwrite
-    @edit.persist
-    @type.uint32
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.uint32
     width = 0;
 
-    @edit.readwrite
-    @edit.persist
-    @type.uint32
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.uint32
     height = 0;
 
-    @edit.readwrite
-    @edit.persist
-    @type.int32
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.int32
     offsetXRaw = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.int32
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.int32
     offsetYRaw = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.uint32
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.uint32
     offsetUnit = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.uint32
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.uint32
     physicalPixelDimensionsXRaw = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.uint32
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.uint32
     physicalPixelDimensionsYRaw = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.uint32
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.uint32
     physicalPixelDimensionsUnit = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.float64
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.float64
     offsetX = 0;
 
-    @edit.readwrite
-    @edit.persist
-    @type.float64
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.float64
     offsetY = 0;
 
-    @edit.readwrite
-    @edit.persist
-    @type.float64
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.float64
     extentX = 1;
 
-    @edit.readwrite
-    @edit.persist
-    @type.float64
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.float64
     extentY = 1;
 
-    @edit.readwrite
-    @edit.persist
-    @type.boolean
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.boolean
     hasOffsetMetadata = false;
 
-    @edit.readwrite
-    @edit.persist
-    @type.boolean
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.boolean
     hasPhysicalPixelDimensionsMetadata = false;
 
-    @edit.readwrite
-    @edit.persist
-    @type.boolean
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.boolean
     hasPlacementMetadata = false;
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     placementEncoding = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     placementPolicy = null;
 
-    @edit.readwrite
-    @edit.persist
-    @type.string
+    @meta.blue.readwrite
+    @meta.blue.persist
+    @meta.type.string
     placementStatus = null;
 
     /** Converts generic CjsPngFormat inspection facts into character placement. */

@@ -1,5 +1,5 @@
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPGenericEffect.h
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 import { Quality } from "../../generated/postProcess/enums.js";
 
@@ -8,18 +8,18 @@ import { Quality } from "../../generated/postProcess/enums.js";
  * Post-process slot wrapping an arbitrary authored Tr2Effect together with the
  * quality level it needs before a frame will run it.
  */
-@type.define({ className: "Tr2PPGenericEffect", family: "postProcess" })
+@meta.define({ className: "Tr2PPGenericEffect", family: "postProcess" })
 export class Tr2PPGenericEffect extends Tr2PPEffect
 {
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.PostProcess.Quality")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.PostProcess.Quality")
   quality = 1;
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2Effect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2Effect")
   effect = null;
 
   /** Returns the wrapped effect, which may be null when none was authored. */

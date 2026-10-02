@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:546-555
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 
 /** Names a generic variant and its optional hull-area override and transparency policy.
  * Native IRoot-only data with a self-only Blue table. Field initializers
@@ -13,26 +13,26 @@ export class EveSOFDataGenericVariant
 {
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_isTransparent (bool) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   isTransparent = false;
 
   /** m_hullArea (EveSOFDataHullAreaPtr) [READWRITE, PERSIST] */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.objectRef("EveSOFDataHullArea")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveSOFDataHullArea")
   hullArea = null;
 
 }
 
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ EveSOFDataGenericVariant ],
   chainTo: null
 })(EveSOFDataGenericVariant);

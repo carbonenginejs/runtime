@@ -2,51 +2,51 @@
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveRemotePositionCurve.cpp
 import { num } from "#math/num";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 
 
 /**
  * A vector function that offsets a start-point curve by a vector sweeping from
  * one authored direction to another over a fixed time, once or repeatedly.
  */
-@type.define({
+@meta.define({
   className: "EveRemotePositionCurve",
   family: "eve/renderable/stretch"
 })
 export class EveRemotePositionCurve
 {
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   delayTime = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   cycle = false;
 
-  @edit.readwrite
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.type.vec3
   value = vec3.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   offsetDir2 = vec3.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("ITriVectorFunction")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("ITriVectorFunction")
   startPositionCurve = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   offsetDir1 = vec3.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   sweepTime = 1;
 
   _startTime = 0;
@@ -59,9 +59,9 @@ export class EveRemotePositionCurve
    * Time-only entry point; evaluates the curve for its effect on value and
    * discards the returned vector.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon's output-first Be::Time overload is represented by the org-standard time-first JavaScript curve convention.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon's output-first Be::Time overload is represented by the org-standard time-first JavaScript curve convention.")
   UpdateValue(time)
   {
     this.Update(time, this._startPosition);
@@ -72,9 +72,9 @@ export class EveRemotePositionCurve
    * @param {Array} out - caller-owned vec3; zeroed when there is no start-position curve
    * @returns {Array} out
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon's output-first Be::Time overload is represented by the org-standard time-first JavaScript curve convention.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon's output-first Be::Time overload is represented by the org-standard time-first JavaScript curve convention.")
   Update(time, out)
   {
     if (!this.startPositionCurve)
@@ -108,8 +108,8 @@ export class EveRemotePositionCurve
    * Reports the value computed by the last Update; the time argument is ignored
    * and nothing is re-evaluated.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetValueAt(_time, out)
   {
     return vec3.copy(out, this.value);
@@ -119,8 +119,8 @@ export class EveRemotePositionCurve
    * The first derivative is not modelled for this curve; out is returned
    * untouched.
    */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   GetValueDotAt(_time, out)
   {
     return out;
@@ -130,8 +130,8 @@ export class EveRemotePositionCurve
    * The second derivative is not modelled for this curve; out is returned
    * untouched.
    */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   GetValueDoubleDotAt(_time, out)
   {
     return out;
@@ -141,8 +141,8 @@ export class EveRemotePositionCurve
    * Copies the value computed by the last Update; the time argument is ignored
    * and nothing is re-evaluated.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   InterpolatedPosition(_time, out)
   {
     return vec3.copy(out, this.value);

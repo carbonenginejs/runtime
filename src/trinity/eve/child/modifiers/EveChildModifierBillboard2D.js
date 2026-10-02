@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierBillboard2D.cpp
 import { mat4 } from "#math/mat4";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { Billboard2D } from "./EveChildModifierTransformCommon.js";
 
 
@@ -9,7 +9,7 @@ import { Billboard2D } from "./EveChildModifierTransformCommon.js";
  * Transform modifier that aligns a child to the screen plane, leaving it facing
  * the viewer whatever the camera does.
  */
-@type.define({
+@meta.define({
   className: "EveChildModifierBillboard2D",
   family: "eve/child/modifiers"
 })
@@ -26,9 +26,9 @@ export class EveChildModifierBillboard2D extends IEveChildTransformModifier
    * @param {Float32Array} out - caller-owned; receives the result
    * @returns {Float32Array} out
    */
-  @carbon.method
-  @carbon.contextual(["camera"])
-  @impl.implemented
+  @meta.blue.method
+  @meta.blue.contextual(["camera"])
+  @meta.implemented
   ApplyTransform(context, transform, boneCount, bones, out)
   {
     if (!context?.renderContext)

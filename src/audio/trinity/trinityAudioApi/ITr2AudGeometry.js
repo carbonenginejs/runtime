@@ -1,5 +1,5 @@
 // Source: trinityaudioapi/include/ITr2AudGeometry.h:23-40
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** Transfers Trinity geometry and placement to the audio implementation. */
 export class ITr2AudGeometry
@@ -25,6 +25,6 @@ export class ITr2AudGeometry
 
 for (const method of [ "SetGeometry", "SetGeometryTransform", "RemoveGeometry" ])
 {
-  CjsSchema.decorateMethod(ITr2AudGeometry, method, impl.abstract);
+  CjsSchema.decorateMethod(ITr2AudGeometry, method, meta.abstract);
 }
 CjsSchema.define(ITr2AudGeometry, { className: "ITr2AudGeometry", family: "trinityAudioApi" });

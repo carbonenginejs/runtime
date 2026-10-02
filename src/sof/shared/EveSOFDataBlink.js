@@ -1,15 +1,15 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 
 /** Empty native IRoot blink settings record; self exposure is in EveSOFData_Blue2.cpp:137-142. */
-@type.define({ className: "EveSOFDataBlink", family: "eve" })
+@meta.define({ className: "EveSOFDataBlink", family: "eve" })
 export class EveSOFDataBlink
 {
 
   /** Reports the empty settings shape; this convenience has no native method.
    * @returns {boolean} Always true.
    */
-  @impl.custom
+  @meta.ours
   IsEmpty()
   {
     return true;
@@ -17,4 +17,4 @@ export class EveSOFDataBlink
 
 }
 
-carbon.interfaceTable({ interfaces: [EveSOFDataBlink], chainTo: null })(EveSOFDataBlink);
+meta.blue.interfaceTable({ interfaces: [EveSOFDataBlink], chainTo: null })(EveSOFDataBlink);

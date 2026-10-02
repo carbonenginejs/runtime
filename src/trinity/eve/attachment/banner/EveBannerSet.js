@@ -7,7 +7,7 @@ import { mat4 } from "#math/mat4";
 import { sph3 } from "#math/sph3";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { CjsSchema, carbon, edit, impl, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
 import { TriTextureRes } from "#resource";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
@@ -60,48 +60,48 @@ import {
  * A hull's authored banner quads, owning their static and per-bone bounds, the
  * largest single banner radius its LOD is measured on, and the banner lights.
  */
-@type.define({ className: "EveBannerSet", family: "eve/attachment/banners" })
-@carbon.inherit(IInitialize)
+@meta.define({ className: "EveBannerSet", family: "eve/attachment/banners" })
+@meta.blue.inherit(IInitialize)
 export class EveBannerSet extends IEveSpaceObjectAttachment
 {
 
-  @edit.read
-  @edit.persist
-  @type.list("EveBannerItem")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveBannerItem")
   banners = [];
 
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2Effect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2Effect")
   effect = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   isPickable = false;
 
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   display = true;
 
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   key = 0;
 
-  @edit.persist
-  @type.list("EveBannerLight")
+  @meta.blue.persist
+  @meta.type.list("EveBannerLight")
   lights = [];
 
   // SOF-authored primary banner texture parameter; persisted so the values
   // interchange reproduces Carbon's hidden banner binding.
-  @edit.persist
-  @type.objectRef("TriTextureParameter")
+  @meta.blue.persist
+  @meta.type.objectRef("TriTextureParameter")
   primaryTextureParameter = null;
 
   _rebuildRevision = 0;
@@ -140,8 +140,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon ReleaseResources (cpp:362-364): nothing to release. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ReleaseResources(_storage)
   {
   }
@@ -159,8 +159,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * Adapted: Tr2SuballocatedBuffer has no Free, so the old allocations are
    * dropped rather than returned.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Rebuild()
   {
     this._rebuildRevision++;
@@ -219,8 +219,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources: creation only when the device allows it. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PrepareResources()
   {
     return Tr2Renderer.IsResourceCreationAllowed() ? this.OnPrepareResources() : true;
@@ -232,8 +232,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * advancing the ledger - so it reads the normal's z and w, where w carries
    * the bone. The buffers are built if they are missing.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnPrepareResources()
   {
     const definition = new Tr2VertexDefinition();
@@ -259,8 +259,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * Carbon GetBatches (cpp:185-217): one batch of every banner, additive (or
    * picking when pickable), not until the primary texture has loaded.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE && batchType !== TriBatchType.TRIBATCHTYPE_PICKING) return;
@@ -281,8 +281,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon CreateBannerGeometry (cpp:493-513): flat, or curved along one or both axes. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   CreateBannerGeometry(vertices, indices, item)
   {
     const flatX = item.angleX <= 0;
@@ -294,8 +294,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon CreateFlatBannerGeometry (cpp:515-533): one quad. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   CreateFlatBannerGeometry(vertices, indices, item)
   {
     const start = vertices.length;
@@ -311,8 +311,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon CreateVerticalCurvedBannerGeometry (cpp:535-583): bent around X, a segment per 5 degrees. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   CreateVerticalCurvedBannerGeometry(vertices, indices, item)
   {
     const start = vertices.length;
@@ -350,8 +350,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon CreateHorizontalCurvedBannerGeometry (cpp:585-634): bent around Y. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   CreateHorizontalCurvedBannerGeometry(vertices, indices, item)
   {
     const start = vertices.length;
@@ -390,8 +390,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon CreateCurvedBannerGeometry (cpp:636-693): bent around both axes. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   CreateCurvedBannerGeometry(vertices, indices, item)
   {
     const start = vertices.length;
@@ -454,26 +454,26 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
 
   /** Carbon EveBannerSet::GetAabb (cpp:392-395): the item-set bounds. The bone
    * count is forwarded ungated - a banner set has no skinned flag. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetAabb(out, bones = null, boneCount = 0)
   {
     return GetItemSetAabb(out, this._staticBounds, this._boneBounds, bones, boneCount);
   }
 
   /** The largest single banner half-diagonal, as measured by the last Rebuild. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon reads the m_maxBannerRadius member directly; JavaScript exposes it through an accessor.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon reads the m_maxBannerRadius member directly; JavaScript exposes it through an accessor.")
   GetMaxBannerRadius()
   {
     return this._maxBannerRadius;
   }
 
   /** The result of the last UpdateVisibility (Carbon m_isVisible). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon reads the m_isVisible member directly; JavaScript exposes it through an accessor.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon reads the m_isVisible member directly; JavaScript exposes it through an accessor.")
   GetVisibility()
   {
     return this._isVisible;
@@ -493,8 +493,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * The effect is told the screen size on EVERY path, culled or not, because it
    * drives texture streaming rather than drawing.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
   {
     const aabb = this.GetAabb(EveBannerSet._aabbScratch, bones, boneCount);
@@ -551,9 +551,9 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon EveBannerSet::GetDebugOptions (cpp:219-224). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Tr2DebugRendererOptions is an engine-owned set; a Set (add) or an insert duck is accepted.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Tr2DebugRendererOptions is an engine-owned set; a Set (add) or an insert duck is accepted.")
   GetDebugOptions(options = new Set())
   {
     for (const option of EveBannerSet.DebugOptions)
@@ -578,9 +578,9 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * the saturated authored color - or the texture average color when a primary
    * texture parameter is attached, exactly as GetLights decides it.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("ITr2DebugRenderer2 and Tr2DebugObjectReference are not ported yet; the reference collapses to (owner, index) arguments and the Effect enum to its ordinal.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("ITr2DebugRenderer2 and Tr2DebugObjectReference are not ported yet; the reference collapses to (owner, index) arguments and the Effect enum to its ordinal.")
   RenderDebugInfo(renderer, parentTransform, bones = null, boneCount = 0)
   {
     if (!renderer) return false;
@@ -652,8 +652,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * The SOF reference id of the banner at an index, which is how a caller maps a
    * picked banner back to its authored slot.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetReference(index)
   {
     return this.banners[index].reference;
@@ -663,8 +663,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * banners use authored X/Y scale, while curved banners sum the same
    * approximately five-degree transformed arc chords used by geometry
    * generation. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   static GetBannerAspectRatio(banner)
   {
     const flatX = banner.angleX <= 0;
@@ -716,8 +716,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * Adapted: a JS object is usually constructed before the device exists, so
    * the declaration is prepared here, after the first Rebuild.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Initialize()
   {
     this.Rebuild();
@@ -729,8 +729,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * Copies a loose banner description into a stored EveBannerItem, appends it
    * and returns the copy; the source object is not retained.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddBanner(banner)
   {
     const copy = EveBannerSet._copyBanner(banner);
@@ -740,16 +740,16 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon structure-list observer, EveBannerSet.cpp:357–360. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnStructureListModified()
   {
     this.Rebuild();
   }
 
   /** Refreshes derived banner bounds after supported list mutations. */
-  @impl.custom
-  @impl.reason("JS represents the native structure list as an array; child mutations forward to its native owner callback. Unload arrives before array clearing, so it clears the derived bounds directly.")
+  @meta.ours
+  @meta.reason("JS represents the native structure list as an array; child mutations forward to its native owner callback. Unload arrives before array clearing, so it clears the derived bounds directly.")
   OnListModified(event, _key, _key2, _value, list)
   {
     if (list !== this.banners) return;
@@ -767,24 +767,24 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * Sets the effect that draws the banners; without one Rebuild produces no
    * bounds and the set never draws.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetEffect(effect)
   {
     this.effect = effect ?? null;
   }
 
   /** Sets the banner key that the set's picking id is derived from. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetKey(key)
   {
     this.key = Number(key) | 0;
   }
 
   /** The picking id this set writes, which is 101 plus the authored key. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetPickingID()
   {
     return (101 + this.key) >>> 0;
@@ -794,8 +794,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * Sets a shader option on the banner effect, doing nothing when no effect that
    * accepts options is attached.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetShaderOption(name, value)
   {
     if (this.effect && typeof this.effect.SetOption === "function")
@@ -808,8 +808,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * Sets the texture parameter whose average colour replaces the authored colour
    * of every banner light.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetPrimaryTextureParameter(parameter)
   {
     this.primaryTextureParameter = parameter ?? null;
@@ -819,8 +819,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * Converts a SOF-authored light description into an EveBannerLight and appends
    * it to the set.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   AddLightFromSOF(light)
   {
     this.lights.push(EveBannerLight.FromSOF(light));
@@ -829,8 +829,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   /** Carbon EveBannerSet::RegisterComponents (cpp:457-464): LightOwner
    * UNCONDITIONAL (no lights-empty check, unlike the other packed sets -
    * GetLights self-gates on display/lights instead, cpp:468). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -845,8 +845,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * column zeroed, [15] = 1; boneMatrix *= parentTransform - Carbon
    * row-vector, bone FIRST: gl operands SWAP; else copy the parent). Stamps
    * the activation strength (boosterGain unused by banners). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateLights(parentTransform, bones, boneCount, activationStrength, _boosterGain = 0)
   {
     for (const light of this.lights)
@@ -873,7 +873,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   /** Carbon EveBannerSet::GetAverageColor (cpp:441-455): the PRIMARY texture
    * parameter's average color, (0,0,0,0) when the map or resource is
    * missing (contrast EvePlaneSet's white default and four-map product). */
-  @carbon.method
+  @meta.blue.method
   GetAverageColor(out = new Float32Array(4))
   {
     const parameter = this.primaryTextureParameter;
@@ -904,9 +904,9 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * Saturate(averageColor, saturation) on a scratch copy (cpp:484 -
    * contrast EvePlaneSet's multiply); no blink/fade; point conversion on
    * the bone matrix. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The texture average color and profile packing follow the adapted ducks above.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("The texture average color and profile packing follow the adapted ducks above.")
   GetLights(lightManager)
   {
     if (!this.display || this.lights.length === 0)
@@ -1078,4 +1078,4 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
 }
 
 // EveBannerSet_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
-carbon.interfaceTable({ interfaces: [EveBannerSet, IInitialize, IEveSpaceObjectAttachment, EveEntity], chainTo: null })(EveBannerSet, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveBannerSet, IInitialize, IEveSpaceObjectAttachment, EveEntity], chainTo: null })(EveBannerSet, { kind: "class" });

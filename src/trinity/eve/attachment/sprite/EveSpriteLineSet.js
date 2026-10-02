@@ -5,7 +5,7 @@ import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { box3 } from "#math/box3";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { mat4 } from "#math/mat4";
-import { carbon, edit, impl, type } from "#schema";
+import { meta } from "#schema";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveSpriteLight } from "./EveSpriteLight.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
@@ -23,41 +23,41 @@ import { EveSpriteSet } from "./EveSpriteSet.js";
  * A hull's authored sprite runs - lines and circles of evenly spaced sprites -
  * owning their static and per-bone bounds and the point lights they emit.
  */
-@type.define({ className: "EveSpriteLineSet", family: "eve/attachment/sprites" })
-@carbon.inherit(IInitialize)
+@meta.define({ className: "EveSpriteLineSet", family: "eve/attachment/sprites" })
+@meta.blue.inherit(IInitialize)
 export class EveSpriteLineSet extends IEveSpaceObjectAttachment
 {
 
-  @edit.read
-  @edit.persist
-  @type.list("EveSpriteLineSetItem")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveSpriteLineSetItem")
   spriteLines = [];
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   skinned = false;
 
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   effectHash = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2Effect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2Effect")
   effect = null;
 
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   display = true;
 
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
-  @edit.persist
-  @type.list("EveSpriteLight")
+  @meta.blue.persist
+  @meta.type.list("EveSpriteLight")
   lights = [];
 
   _rebuildRevision = 0;
@@ -82,8 +82,8 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   _activationStrength = 0;
 
   /** Carbon Rebuild (cpp:74-78): the packed sprites, then the bounds. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Rebuild()
   {
     this._rebuildRevision++;
@@ -99,8 +99,8 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    *
    * @returns {boolean} True.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ReallocateResources()
   {
     if (this.effect) this.effectHash = Number(this.effect.GetHashValue()) >>> 0;
@@ -141,8 +141,8 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon RegisterWithQuadRenderer (cpp:186-190): additive, one quad per sprite. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     quadRenderer.RegisterEffect(this.effectHash, TriBatchType.TRIBATCHTYPE_ADDITIVE, EveSpriteSet.poolVertexSize, 1, EveSpriteSet.getDefinition(), this.effect);
@@ -153,8 +153,8 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * through their bone when skinned and the bone exists; activation stamped
    * unscaled (unlike EveSpriteSet, no intensity).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddToQuadRenderer(quadRenderer, parentTransform, activation, _boosterGain, bones, boneCount)
   {
     if (!this.display || !this._spriteData.length) return;
@@ -198,8 +198,8 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * Runs the first Rebuild so the set has bounds before its first visibility
    * test.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Initialize()
   {
     this.Rebuild();
@@ -208,8 +208,8 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
 
   /** Carbon EveSpriteLineSet::GetAabb (cpp:177-180): the item-set bounds, with the bone
    * list forwarded only when the set is skinned. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetAabb(out, bones = null, boneCount = 0)
   {
     return GetItemSetAabb(
@@ -224,8 +224,8 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   /** Carbon EveSpriteLineSet::UpdateVisibility (cpp:140-150): an uninitialized set is
    * NOT visible; otherwise the bounds move into world space and take the
    * frustum box test. No LOD and no display gate. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
   {
     const aabb = this.GetAabb(EveSpriteLineSet._aabbScratch, bones, boneCount);
@@ -239,8 +239,8 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   }
 
   /** Sets the drawing effect and the skinned flag in one call. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Setup(effect, isSkinned)
   {
     this.effect = effect ?? null;
@@ -251,8 +251,8 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * Appends an authored sprite line item; the bounds only pick it up on the next
    * Rebuild.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Add(item)
   {
     this.spriteLines.push(item);
@@ -262,8 +262,8 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * Sets a shader option on the sprite line effect, doing nothing when no effect
    * that accepts options is attached.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetShaderOption(name, value)
   {
     if (this.effect && typeof this.effect.SetOption === "function")
@@ -276,8 +276,8 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * Converts a SOF-authored light description into an EveSpriteLight and appends
    * it to the set.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   AddLightFromSOF(light)
   {
     this.lights.push(EveSpriteLight.FromSOF(light));
@@ -285,8 +285,8 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
 
   /** Carbon EveSpriteLineSet::RegisterComponents (cpp:349-356): LightOwner
    * when lights are authored. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -302,8 +302,8 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * then boneMatrix *= parentTransform - Carbon row-vector, bone FIRST: the
    * gl-matrix operands SWAP; else boneMatrix = parentTransform. Stamps the
    * activation strength (boosterGain unused). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateLights(parentTransform, bones, boneCount, activationStrength, _boosterGain = 0)
   {
     for (const light of this.lights)
@@ -331,9 +331,9 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * EveSpriteSet's (shared EveSpriteLight items) - point conversion on the
    * bone matrix, Blink scales radius + innerRadius after conversion, no
    * gates. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("profile-index packing is by-reference per lightConversion.js.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("profile-index packing is by-reference per lightConversion.js.")
   GetLights(lightManager)
   {
     const features = EveSpriteLineSet._features;
@@ -366,4 +366,4 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
 }
 
 // EveSpriteLineSet_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
-carbon.interfaceTable({ interfaces: [EveSpriteLineSet, IInitialize, IEveSpaceObjectAttachment, EveEntity], chainTo: null })(EveSpriteLineSet, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveSpriteLineSet, IInitialize, IEveSpaceObjectAttachment, EveEntity], chainTo: null })(EveSpriteLineSet, { kind: "class" });

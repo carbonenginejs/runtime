@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Shader/Parameter/TriTransformParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -9,63 +9,63 @@ import { CjsParameter } from "./CjsParameter.js";
 import { TRITRANSFORMBASE } from "#consts/graphics";
 
 /** Composes authored translation, rotation, scale, and transform-base state into the matrix uploaded to a shader constant. */
-@type.define({ className: "TriTransformParameter", family: "shader" })
+@meta.define({ className: "TriTransformParameter", family: "shader" })
 export class TriTransformParameter extends CjsParameter
 {
 
   /** m_transformBase (TRITRANSFORMBASE - enum TRITRANSFORMBASE) [READWRITE, PERSIST, ENUM] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("TRITRANSFORMBASE")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("TRITRANSFORMBASE")
   transformBase = 0;
 
   /** m_rotationCenter (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   rotationCenter = vec3.create();
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.quat
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   rotation = quat.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_translation (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   translation = vec3.create();
 
   /** m_worldTransform (Matrix) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.mat4
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.mat4
   worldTransform = mat4.create();
 
   /** Native legacy-scene hook is empty (TriTransformParameter.h:42). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RebuildEffectHandles(_effectRes)
   {
   }
 
   /** The shader constant name the composed transform matrix is uploaded to. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetParameterName()
   {
     return this.name;
@@ -75,8 +75,8 @@ export class TriTransformParameter extends CjsParameter
    * Content hash: transform base + translation/scaling/rotation bytes, then
    * name (Carbon hashes the contiguous transform-state struct region).
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
   {
     startingHash = CjsParameter.hashFnv1Floats([this.transformBase], startingHash);
@@ -99,8 +99,8 @@ export class TriTransformParameter extends CjsParameter
    * (cpp:48-66) additionally multiplies in the object world matrix - an
    * unported composition (the JS treats every non-FIXED base as the zeroed
    * inverse view only); when ported it must swap per the convention. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   CopyValueToEffect(_inputType, dest, size = 64, context = null)
   {
     const transform = mat4.create();
@@ -137,4 +137,4 @@ export class TriTransformParameter extends CjsParameter
 }
 
 // Exact identities from TriTransformParameter_Blue.cpp; no exposure chain.
-carbon.interfaceTable({ interfaces: [ITriEffectParameter], chainTo: null })(TriTransformParameter, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [ITriEffectParameter], chainTo: null })(TriTransformParameter, { kind: "class" });

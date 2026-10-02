@@ -1,5 +1,5 @@
 // Source: trinity/trinity/ITr2SoundEmitterOwner.h:9-14
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /** Contract for a scene object that finds named sound emitters. */
@@ -25,6 +25,6 @@ export class ITr2SoundEmitterOwner
   }
 }
 
-CjsSchema.decorateMethod(ITr2SoundEmitterOwner, "FindSoundEmitter", impl.abstract);
-CjsSchema.decorateMethod(ITr2SoundEmitterOwner, "AddObserver", impl.noop);
+CjsSchema.decorateMethod(ITr2SoundEmitterOwner, "FindSoundEmitter", meta.abstract);
+CjsSchema.decorateMethod(ITr2SoundEmitterOwner, "AddObserver", meta.noop);
 CjsSchema.define(ITr2SoundEmitterOwner, { className: "ITr2SoundEmitterOwner" });

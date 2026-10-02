@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dTransform.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dTransform_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; portable point transforms are maintained here.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2Sprite2dContainerBase } from "./Tr2Sprite2dContainerBase.js";
 import { vec2 } from "#math/vec2";
 
@@ -11,7 +11,7 @@ import { vec2 } from "#math/vec2";
  * Native GatherSprites, PickPoint and GetTransformationMatrix remain unported;
  * inherited methods do not provide the native transform-aware renderer behavior.
  */
-@type.define({ className: "Tr2Sprite2dTransform", family: "sprite2d" })
+@meta.define({ className: "Tr2Sprite2dTransform", family: "sprite2d" })
 export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
 {
 
@@ -20,9 +20,9 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
    * Native m_rotationCenter (Vector2) [READWRITE, NOTIFY].
    * @type {Float32Array}
    */
-  @edit.notify
-  @edit.readwrite
-  @type.vec2
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.vec2
   rotationCenter = vec2.create();
 
   /**
@@ -30,9 +30,9 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
    * Native m_rotation (float) [READWRITE, NOTIFY].
    * @type {number}
    */
-  @edit.notify
-  @edit.readwrite
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.float32
   rotation = 0;
 
   /**
@@ -40,9 +40,9 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
    * Native m_scalingCenter (Vector2) [READWRITE, NOTIFY].
    * @type {Float32Array}
    */
-  @edit.notify
-  @edit.readwrite
-  @type.vec2
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.vec2
   scalingCenter = vec2.create();
 
   /**
@@ -50,9 +50,9 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
    * Native m_scalingRotation (float) [READWRITE, NOTIFY].
    * @type {number}
    */
-  @edit.notify
-  @edit.readwrite
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.float32
   scalingRotation = 0;
 
   /**
@@ -60,9 +60,9 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
    * Native m_scale (Vector2) [READWRITE, NOTIFY].
    * @type {Float32Array}
    */
-  @edit.notify
-  @edit.readwrite
-  @type.vec2
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.vec2
   scale = vec2.fromValues(1, 1);
 
   /**
@@ -71,9 +71,9 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
    * @param {number} y Local vertical coordinate.
    * @returns {Float32Array} Newly allocated transformed point.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Applies the native matrix operation order directly to a coordinate pair and returns a new vec2.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Applies the native matrix operation order directly to a coordinate pair and returns a new vec2.")
   TransformPoint(x, y)
   {
     const scalingCenterX = Math.floor(this.scalingCenter[0] * this.displayWidth + 0.5);
@@ -100,7 +100,7 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
    * @param {number} angle Rotation in radians.
    * @returns {number[]} Rotated coordinate pair.
    */
-  @impl.custom
+  @meta.ours
   static _Rotate(x, y, angle)
   {
     const sine = Math.sin(angle);
@@ -111,4 +111,4 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
 }
 
 // Native exposure adds no local interface and chains to its actual base.
-carbon.interfaceTable({ interfaces: [], chainTo: Tr2Sprite2dContainerBase })(Tr2Sprite2dTransform);
+meta.blue.interfaceTable({ interfaces: [], chainTo: Tr2Sprite2dContainerBase })(Tr2Sprite2dTransform);

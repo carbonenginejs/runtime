@@ -25,7 +25,7 @@
 //   garbage-collected runtime does not have, so the default is `out.Owner =
 //   this` - the same thing once the indirection is gone.
 
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /** Contract for an object that owns controllers and answers their variables. */
@@ -100,6 +100,6 @@ const OWNER_METHODS = [
 ];
 
 
-for (const name of OWNER_METHODS) CjsSchema.decorateMethod(ITr2ControllerOwner, name, impl.noop);
+for (const name of OWNER_METHODS) CjsSchema.decorateMethod(ITr2ControllerOwner, name, meta.noop);
 
 CjsSchema.define(ITr2ControllerOwner, { className: "ITr2ControllerOwner" });

@@ -14,19 +14,19 @@
 //
 // Writing this class is what surfaced the flattening: a search for the NAME
 // finds nothing, and would have reported the concept as unported.
-import { type } from "#schema";
+import { meta } from "#schema";
 
 /** Carbon's deferred render-pass attachment record; ported as flattened colors/depth arguments rather than a struct. */
-@type.define({ className: "MetalRenderPassHint", carbon: "MetalRenderPassHint", family: "trinityal" })
+@meta.define({ className: "MetalRenderPassHint", carbon: "MetalRenderPassHint", family: "trinityal" })
 export class MetalRenderPassHint
 {
 
   /** depth (DepthAttachment): load, store, clearValue. */
-  @type.unknown
+  @meta.type.unknown
   depth = null;
 
   /** color[METAL_MAX_RENDER_TARGETS] (ColorAttachment): load, store, clearColor. */
-  @type.unknown
+  @meta.type.unknown
   color = null;
 
 }

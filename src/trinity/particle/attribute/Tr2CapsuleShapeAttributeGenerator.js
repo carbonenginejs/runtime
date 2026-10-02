@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Particle/Tr2CapsuleShapeAttributeGenerator.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { ITr2AttributeGenerator } from "./ITr2AttributeGenerator.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -8,7 +8,7 @@ import { bindParticleElement } from "../element/particleElementBinding.js";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
 
 /** Generates particle position and velocity offsets sampled within a capsule volume interpolated between a start and end transform. */
-@type.define({ className: "Tr2CapsuleShapeAttributeGenerator", family: "particle" })
+@meta.define({ className: "Tr2CapsuleShapeAttributeGenerator", family: "particle" })
 export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
 {
 
@@ -17,98 +17,98 @@ export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
   #velocityElement = null;
 
   /** m_minPhi (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   minPhi = 0;
 
   /** m_maxPhi (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxPhi = 360;
 
   /** m_minTheta (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   minTheta = 0;
 
   /** m_maxTheta (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxTheta = 360;
 
   /** m_controlVelocity (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   controlVelocity = true;
 
   /** m_positionEnd (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   positionEnd = vec3.create();
 
   /** m_rotationStart (Quaternion) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.quat
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   rotationStart = quat.create();
 
   /** m_rotationEnd (Quaternion) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.quat
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   rotationEnd = quat.create();
 
   /** m_positionStart (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   positionStart = vec3.create();
 
   /** m_parentVelocityFactor (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   parentVelocityFactor = 1;
 
   /** m_maxSpeed (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxSpeed = 0;
 
   /** m_minSpeed (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   minSpeed = 0;
 
   /** m_maxRadius (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   maxRadius = 0;
 
   /** m_minRadius (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   minRadius = 0;
 
   /** m_valid (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   valid = false;
 
   /**
    * Resolves the position element, and the velocity element when velocity control is enabled, marking the generator valid only when both required elements resolve.
    */
-  @impl.implemented
+  @meta.implemented
   Bind(particleSystem, boundElements)
   {
     this.#positionElement = bindParticleElement(
@@ -131,8 +131,8 @@ export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
   /**
    * Samples a random cone direction and capsule interpolation point to write one particle's velocity and position offset from the parent transform.
    */
-  @impl.adapted
-  @impl.reason("Carbon's particle RNG is replaced by Math.random while retaining its capsule sampling and interpolation order.")
+  @meta.adapted
+  @meta.reason("Carbon's particle RNG is replaced by Math.random while retaining its capsule sampling and interpolation order.")
   Generate(parentPosition, parentVelocity, index)
   {
     if (!this.valid)
@@ -188,7 +188,7 @@ export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
   /**
    * A label saying whether the generator controls position only, or position and velocity.
    */
-  @impl.implemented
+  @meta.implemented
   GetName()
   {
     return this.controlVelocity ? "POSITION + VELOCITY" : "POSITION";
@@ -197,7 +197,7 @@ export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
   /**
    * Copies the given start and end positions and rotations into the capsule endpoints.
    */
-  @impl.implemented
+  @meta.implemented
   SetPositions(startPosition, startRotation, endPosition, endRotation)
   {
     vec3.copy(this.positionStart, startPosition);

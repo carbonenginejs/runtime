@@ -1,24 +1,24 @@
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPFadeEffect.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema postProcess/Tr2PPFadeEffect.json.).
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 import { vec4 } from "#math/vec4";
 
 /** Carries the color and intensity of a display-gated post-process fade. */
-@type.define({ className: "Tr2PPFadeEffect", family: "postProcess" })
+@meta.define({ className: "Tr2PPFadeEffect", family: "postProcess" })
 export class Tr2PPFadeEffect extends Tr2PPEffect
 {
 
   /** m_color (Color) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   color = vec4.create();
 
   /** m_intensity (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   intensity = 0;
 
   /** Carbon Tr2PPFadeEffect::IsActive override. */

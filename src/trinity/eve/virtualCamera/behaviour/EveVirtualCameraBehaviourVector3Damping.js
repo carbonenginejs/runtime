@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { vec3 } from "#math/vec3";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviourVector3Base.js";
 
 
@@ -9,15 +9,15 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
  * Vector3 behaviour that lags the camera position or point of interest behind
  * its target, giving a smooth follow with no overshoot.
  */
-@type.define({
+@meta.define({
   className: "EveVirtualCameraBehaviourVector3Damping",
   family: "eve/virtualCamera/behaviour"
 })
 export class EveVirtualCameraBehaviourVector3Damping extends EveVirtualCameraBehaviourVector3Base
 {
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   m_dampingRatio = 1;
 
   _lastPosition = vec3.create();
@@ -38,8 +38,8 @@ export class EveVirtualCameraBehaviourVector3Damping extends EveVirtualCameraBeh
    * first update (local time at or below zero) seeds the retained position and
    * returns zero.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(_camera, current, _deltaTime, localElapsedTime, _anchorPosition, _anchorRadius, _anchorForwardDirection, out = vec3.create())
   {
     if (localElapsedTime <= 0)

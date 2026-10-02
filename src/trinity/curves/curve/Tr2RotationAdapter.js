@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2RotationAdapter.cpp
 import { quat } from "#math/quat";
 import { ITriQuaternionFunction } from "#blue";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 
 
 /**
@@ -10,7 +10,7 @@ import { carbon, impl, edit, type } from "#schema";
  * remapping, falling back to a fixed authored quaternion when no child curve is
  * attached.
  */
-@type.define({
+@meta.define({
   className: "Tr2RotationAdapter",
   family: "curves"
 })
@@ -21,18 +21,18 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * is attached.
    * @type {Float32Array}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.quat
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   value = quat.create();
 
   /**
    * Optional child quaternion function sampled using the adapter's remapped time.
    * @type {ITriQuaternionFunction|null}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("ITriQuaternionFunction")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("ITriQuaternionFunction")
   curve = null;
 
   /**
@@ -40,8 +40,8 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * is attached.
    * @type {Float32Array}
    */
-  @edit.read
-  @type.quat
+  @meta.blue.read
+  @meta.type.quat
   currentValue = quat.create();
 
   /**
@@ -70,8 +70,8 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateValue(time)
   {
     if (this.curve)
@@ -87,8 +87,8 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(time, out)
   {
     if (this.curve)
@@ -109,8 +109,8 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValueAt(time, out)
   {
     if (this.curve)
@@ -127,8 +127,8 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @param {Float32Array} out Destination derivative.
    * @returns {Float32Array} The destination.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValueDotAt(_time, out)
   {
     return quat.identity(out);
@@ -141,8 +141,8 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @param {Float32Array} out Destination derivative.
    * @returns {Float32Array} The destination.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValueDoubleDotAt(_time, out)
   {
     return quat.identity(out);
@@ -154,8 +154,8 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @param {number} range Radius in seconds; zero or omission selects 60.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RandomizeStart(range = 60)
   {
     const radius = range || 60;
@@ -167,8 +167,8 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @param {number} scale Time divisor.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ScaleTime(scale)
   {
     this._timeScale = scale;
@@ -178,8 +178,8 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * Clears the retained start timestamp.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ResetStart()
   {
     this._start = 0;
@@ -190,8 +190,8 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @param {number} time Time in seconds.
    * @returns {number} Scaled time in seconds.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetLocalTime(time)
   {
     return time / this._timeScale;
@@ -203,7 +203,7 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @param {number} time Time in seconds.
    * @returns {number} Start-aware scaled seconds.
    */
-  @impl.custom
+  @meta.ours
   GetStartAwareLocalTime(time)
   {
     if (this._start === 0)
@@ -215,7 +215,7 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
 }
 
 // Exact native exposure table; ITriFunction is intentionally not mapped.
-carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [Tr2RotationAdapter, ITriQuaternionFunction],
   chainTo: null
 })(Tr2RotationAdapter);

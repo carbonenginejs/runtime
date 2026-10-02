@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Resources/Tr2ImageRes.cpp
 // Source: trinity/trinity/Resources/Tr2ImageRes_Blue.cpp
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { CjsSchema, carbon, impl, edit, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { CjsResource } from "#blue";
 import { HostBitmap } from "#imageio";
 import { PixelFormat } from "#consts/render-context";
@@ -189,16 +189,16 @@ CjsSchema.define(Tr2ImageRes, {
   className: "Tr2ImageRes",
   family: "resources",
   fields: {
-    width: [ type.uint32, edit.persist ],
-    height: [ type.uint32, edit.persist ]
+    width: [ meta.type.uint32, meta.blue.persist ],
+    height: [ meta.type.uint32, meta.blue.persist ]
   },
   methods: {
-    GetWidth: [ carbon.method, impl.adapted ],
-    GetHeight: [ carbon.method, impl.adapted ],
-    GetPixelColor: [ carbon.method, impl.adapted ],
-    IsPixelOpaque: [ carbon.method, impl.adapted ],
-    GetBitmap: [ carbon.method, impl.adapted ],
-    IsMemoryUsageKnown: [ carbon.method, impl.implemented ],
-    GetMemoryUsage: [ carbon.method, impl.adapted ]
+    GetWidth: [ meta.blue.method, meta.adapted ],
+    GetHeight: [ meta.blue.method, meta.adapted ],
+    GetPixelColor: [ meta.blue.method, meta.adapted ],
+    IsPixelOpaque: [ meta.blue.method, meta.adapted ],
+    GetBitmap: [ meta.blue.method, meta.adapted ],
+    IsMemoryUsageKnown: [ meta.blue.method, meta.implemented ],
+    GetMemoryUsage: [ meta.blue.method, meta.adapted ]
   }
 });

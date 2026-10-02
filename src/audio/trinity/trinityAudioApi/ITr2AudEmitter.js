@@ -18,7 +18,7 @@
 // - `SendEvent` returns the playing id (Carbon's unsigned int), 0 when
 //   invalid.
 
-import { CjsSchema, carbon, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 const EMITTER_METHODS = [
@@ -171,6 +171,6 @@ export class ITr2AudEmitter
 }
 
 
-for (const name of EMITTER_METHODS) CjsSchema.decorateMethod(ITr2AudEmitter, name, impl.abstract);
-CjsSchema.decorateMethod(ITr2AudEmitter, "InitializeWithParameters", carbon.renamed("Initialize"));
+for (const name of EMITTER_METHODS) CjsSchema.decorateMethod(ITr2AudEmitter, name, meta.abstract);
+CjsSchema.decorateMethod(ITr2AudEmitter, "InitializeWithParameters", meta.blue.renamed("Initialize"));
 CjsSchema.define(ITr2AudEmitter, { className: "ITr2AudEmitter", family: "trinityAudioApi" });

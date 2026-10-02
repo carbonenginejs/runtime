@@ -1,7 +1,7 @@
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Curves/Tr2GrannyTrack.h
 // Source: trinity/trinity/Curves/Tr2GrannyTrack.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
 
 
@@ -10,50 +10,50 @@ import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
  * resource path, group and track name plus the cycle flag and resolved duration;
  * subclasses supply the track binding and sampling.
  */
-@type.define({
+@meta.define({
   className: "Tr2GrannyTrack",
   family: "curves"
 })
-@carbon.inherit(IInitialize)
-@carbon.mapInterface(IInitialize)
+@meta.blue.inherit(IInitialize)
+@meta.blue.mapInterface(IInitialize)
 export class Tr2GrannyTrack
 {
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.path
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.path
   grannyResPath = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   cycle = false;
 
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   duration = 0;
 
-  @edit.read
-  @type.objectRef("TriGrannyRes")
+  @meta.blue.read
+  @meta.type.objectRef("TriGrannyRes")
   grannyRes = null;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   group = "";
 
   /**
    * Initializes the resource-backed track.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Initialize()
   {
     this.SetGrannyResource();
@@ -63,9 +63,9 @@ export class Tr2GrannyTrack
   /**
    * Relinks the resource when authored fields change.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
   OnModified(propertyName)
   {
     if (propertyName === "grannyResPath") this.SetGrannyResource();
@@ -81,8 +81,8 @@ export class Tr2GrannyTrack
   /**
    * Relinks the authored Granny resource path.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetGrannyResource()
   {
     this.ResetTracks();
@@ -98,8 +98,8 @@ export class Tr2GrannyTrack
   /**
    * Updates the track value.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateValue(time)
   {
     if (!this.TracksReady())
@@ -117,8 +117,8 @@ export class Tr2GrannyTrack
   /**
    * Gets track duration.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Length()
   {
     return Number(this.duration) || 0;
@@ -127,8 +127,8 @@ export class Tr2GrannyTrack
   /**
    * Locates resource curves.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetCurves()
   {
     if (!this.name || !this.group)
@@ -157,8 +157,8 @@ export class Tr2GrannyTrack
   /**
    * Subclass hook for sampled value updates.
    */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   UpdateValueImpl(_time)
   {
   }
@@ -166,8 +166,8 @@ export class Tr2GrannyTrack
   /**
    * Subclass hook for clearing resource track handles.
    */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   ResetTracks()
   {
   }
@@ -175,8 +175,8 @@ export class Tr2GrannyTrack
   /**
    * Subclass hook for applying resource track handles.
    */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   ApplyTracks(_group, _duration, _timeStep)
   {
   }
@@ -184,8 +184,8 @@ export class Tr2GrannyTrack
   /**
    * Checks whether resource track handles are ready.
    */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   TracksReady()
   {
     return false;

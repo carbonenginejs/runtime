@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Utilities/Obb.h
 // Source: trinity/trinity/Utilities/Obb.cpp
 // Promoted to hand-maintained source 2026-08-22; this is portable CPU geometry.
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { PlaneDotCoord, PlaneDotNormal } from "../core/view/TriFrustum.js";
 
@@ -35,14 +35,14 @@ const POINT_SIGNS = [
  * Zero-filled vectors adapt native uninitialized storage. Number arithmetic and
  * Float32Array intermediates retain the existing JS precision behavior.
  */
-@type.define({ className: "Obb", family: "utilities" })
+@meta.define({ className: "Obb", family: "utilities" })
 export class Obb
 {
 
   /** Builds the world-space box and optionally shrinks it against six frustum planes. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Retains the optional-null frustum and affine local-to-world JS adapter: transformMat4 divides by w, while native Transform takes xyz directly; affine inputs have w=1.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Retains the optional-null frustum and affine local-to-world JS adapter: transformMat4 divides by w, while native Transform takes xyz directly; affine inputs have w=1.")
   CreateClippedWorldBoundingObb(localMin, localMax, localToWorld, frustum = null)
   {
     vec3.add(this.center, localMax, localMin);
@@ -119,9 +119,9 @@ export class Obb
   }
 
   /** Returns one of Carbon's eight signed corner combinations. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon asserts the 0..7 range; JavaScript reports the same contract with RangeError.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon asserts the 0..7 range; JavaScript reports the same contract with RangeError.")
   GetPoint(index)
   {
     if (!Number.isInteger(index) || index < 0 || index > 7)
@@ -133,9 +133,9 @@ export class Obb
   }
 
   /** Computes the axis-aligned bounds after applying one logical transform. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Retains transformMat4's w || 1 denominator fallback; native TransformCoord returns zero xyz for w=0. Number/Float32Array precision also follows the existing JS math path.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Retains transformMat4's w || 1 denominator fallback; native TransformCoord returns zero xyz for w=0. Number/Float32Array precision also follows the existing JS math path.")
   ComputeAABB(min, max, transform)
   {
     const point = vec3.create();
@@ -155,7 +155,7 @@ export class Obb
   }
 
   /** Writes one corner using Carbon's ordered point table. */
-  @impl.custom
+  @meta.ours
   _WritePoint(out, index)
   {
     const signs = POINT_SIGNS[index];
@@ -167,7 +167,7 @@ export class Obb
   }
 
   /** Writes one corner selected by an XYZ sign bit mask. */
-  @impl.custom
+  @meta.ours
   _WriteMaskedPoint(out, mask)
   {
     vec3.copy(out, this.center);
@@ -182,7 +182,7 @@ export class Obb
    * retains the local-to-world transform's scale rather than normalizing it.
    * @type {Float32Array|Float64Array|number[]}
    */
-  @type.vec3
+  @meta.type.vec3
   x = vec3.create();
 
   /**
@@ -190,7 +190,7 @@ export class Obb
    * retains the local-to-world transform's scale rather than normalizing it.
    * @type {Float32Array|Float64Array|number[]}
    */
-  @type.vec3
+  @meta.type.vec3
   y = vec3.create();
 
   /**
@@ -198,7 +198,7 @@ export class Obb
    * retains the local-to-world transform's scale rather than normalizing it.
    * @type {Float32Array|Float64Array|number[]}
    */
-  @type.vec3
+  @meta.type.vec3
   z = vec3.create();
 
   /**
@@ -206,7 +206,7 @@ export class Obb
    * Frustum clipping can move it as the box's sides are tightened.
    * @type {Float32Array|Float64Array|number[]}
    */
-  @type.vec3
+  @meta.type.vec3
   center = vec3.create();
 
   /**
@@ -214,9 +214,9 @@ export class Obb
    * corner offset multiplies a basis vector by its corresponding coefficient.
    * @type {Float32Array|Float64Array|number[]}
    */
-  @type.vec3
+  @meta.type.vec3
   sizes = vec3.create();
 
 }
 
-carbon.interfaceTable({ interfaces: [], chainTo: null })(Obb);
+meta.blue.interfaceTable({ interfaces: [], chainTo: null })(Obb);

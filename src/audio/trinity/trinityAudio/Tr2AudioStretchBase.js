@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Audio/Tr2AudioStretchBase.h
 // Promoted from generated output 2026-07-18; now hand-owned by the audio
 // layer. Verify against trinityAudio/Tr2AudioStretchBase.json.
-import { CjsSchema, carbon, impl, edit, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { IInitialize } from "#blue/IInitialize";
 import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
 import { ITr2Audio } from "../trinityAudioApi/ITr2Audio.js";
@@ -10,27 +10,27 @@ import { AudGameObjResource } from "../audio/AudGameObjResource.js";
 import { StretchAudio } from "../audio/StretchAudio.js";
 
 /** Creates and updates the three Carbon emitters used by a Trinity audio stretch. */
-@type.define({ className: "Tr2AudioStretchBase", family: "trinityAudio" })
-@carbon.inherit(IInitialize, ITr2DebugRenderable, ITr2Audio)
+@meta.define({ className: "Tr2AudioStretchBase", family: "trinityAudio" })
+@meta.blue.inherit(IInitialize, ITr2DebugRenderable, ITr2Audio)
 export class Tr2AudioStretchBase
 {
 
   /** m_stretchEmitter (ITr2AudEmitterPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("ITr2AudEmitter")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("ITr2AudEmitter")
   stretchEmitter = null;
 
   /** m_destEmitter (ITr2AudEmitterPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("ITr2AudEmitter")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("ITr2AudEmitter")
   destinationEmitter = null;
 
   /** m_sourceEmitter (ITr2AudEmitterPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("ITr2AudEmitter")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("ITr2AudEmitter")
   sourceEmitter = null;
 
   _front = new Float32Array([ 0, 1, 0 ]);
@@ -44,8 +44,8 @@ export class Tr2AudioStretchBase
   }
 
   /** Carbon method Initialize: create the three standard emitters when absent. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     if (!this.sourceEmitter)
@@ -67,9 +67,9 @@ export class Tr2AudioStretchBase
   }
 
   /** Carbon method Update: position endpoints and project the listener onto the beam. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon reads Tr2Renderer's view position; the device-free audio graph uses the registered audio listener position.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon reads Tr2Renderer's view position; the device-free audio graph uses the registered audio listener position.")
   Update(sourcePosition, destPosition)
   {
     StretchAudio.GetStretchOrientation(sourcePosition, destPosition, this._front, this._top);
@@ -83,8 +83,8 @@ export class Tr2AudioStretchBase
   }
 
   /** Carbon method FindEmitterByName. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   FindEmitterByName(name)
   {
     for (const emitter of [ this.sourceEmitter, this.destinationEmitter, this.stretchEmitter ])
@@ -98,8 +98,8 @@ export class Tr2AudioStretchBase
   }
 
   /** Forwards supported debug options to the three nominal emitter interfaces. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetDebugOptions(options)
   {
     for (const emitter of [ this.sourceEmitter, this.destinationEmitter, this.stretchEmitter ])
@@ -110,8 +110,8 @@ export class Tr2AudioStretchBase
   }
 
   /** Forwards debug drawing to the three nominal emitter interfaces. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RenderDebugInfo(renderer)
   {
     for (const emitter of [ this.sourceEmitter, this.destinationEmitter, this.stretchEmitter ])
@@ -141,4 +141,4 @@ export class Tr2AudioStretchBase
 
 }
 
-carbon.interfaceTable({ interfaces: [IInitialize, ITr2DebugRenderable, ITr2Audio], chainTo: null })(Tr2AudioStretchBase, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [IInitialize, ITr2DebugRenderable, ITr2Audio], chainTo: null })(Tr2AudioStretchBase, { kind: "class" });

@@ -1,48 +1,48 @@
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierControllerVariableListener.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveSmartLightAttributeModifierBucket } from "./EveSmartLightAttributeModifierBucket.js";
 
 /** EveSmartLightAttributeModifierControllerVariableListener (eve/smartLights/attributeModifiers) - generated from schema shapeHash 8438774e.... */
-@type.define({ className: "EveSmartLightAttributeModifierControllerVariableListener", family: "eve/smartLights/attributeModifiers" })
-@carbon.inherit(IInitialize)
-@carbon.mapInterface(IInitialize)
+@meta.define({ className: "EveSmartLightAttributeModifierControllerVariableListener", family: "eve/smartLights/attributeModifiers" })
+@meta.blue.inherit(IInitialize)
+@meta.blue.mapInterface(IInitialize)
 export class EveSmartLightAttributeModifierControllerVariableListener extends EveSmartLightAttributeModifierBucket
 {
 
   /** m_variableName (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   variableName = "";
 
   /** m_value (float) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   value = 0;
 
   /** m_invertReceivedValue (bool) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   invertReceivedValue = false;
 
   /** m_defaultValue (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   defaultValue = 0;
 
   /**
    * Seeds the listener from its default value before the base crossfade seed
    * (EveSmartLightAttributeModifierControllerVariableListener.cpp:15-21).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     this.value = this.defaultValue;
@@ -56,9 +56,9 @@ export class EveSmartLightAttributeModifierControllerVariableListener extends Ev
    * flag is edited, then defers to the base active-edit handling
    * (EveSmartLightAttributeModifierControllerVariableListener.cpp:23-39).
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JS identifies Carbon's changed member address by its exposed property name.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JS identifies Carbon's changed member address by its exposed property name.")
   OnModified(propertyName)
   {
     if (propertyName === "value" || propertyName === "invertReceivedValue") this._ApplyValue();
@@ -71,8 +71,8 @@ export class EveSmartLightAttributeModifierControllerVariableListener extends Ev
    * and the value always fans out to the child modifiers
    * (EveSmartLightAttributeModifierControllerVariableListener.cpp:41-60).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetControllerVariable(name, value)
   {
     if (this.variableName === name)

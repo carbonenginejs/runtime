@@ -21,54 +21,54 @@
 // THE RENDER CONTEXT IS A PARAMETER. Carbon reaches the main-thread context
 // through USE_MAIN_THREAD_RENDER_CONTEXT(), a global we deliberately do not
 // have; the same reason Tr2Blitter takes one.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { ConvertDepthStencilFormat, DepthStencilFormat, ExFlag, Tr2GpuUsage } from "#consts/render-context";
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
 import { Tr2MsaaDesc } from "../../../trinityal/Tr2HalHelperStructures/Tr2MsaaDesc.js";
 import "#blue/registerTrinityEnums";
 
 /** Holds the depth-stencil surface a pass renders into, with the parameters it was created with. */
-@type.define({ className: "Tr2DepthStencil", family: "trinityCore" })
+@meta.define({ className: "Tr2DepthStencil", family: "trinityCore" })
 export class Tr2DepthStencil
 {
 
   /** m_name (std::string) [PERSISTONLY] */
-  @edit.readwrite
-  @edit.persistOnly
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persistOnly
+  @meta.type.string
   name = "";
 
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   width = 0;
 
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   height = 0;
 
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   multiSampleType = 0;
 
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   multiSampleQuality = 0;
 
-  @edit.read
-  @type.uint32
+  @meta.blue.read
+  @meta.type.uint32
   mipCount = 0;
 
-  @edit.read
-  @type.int32
-  @type.enum("trinity.Tr2RenderContextEnum.DepthStencilFormat")
+  @meta.blue.read
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2RenderContextEnum.DepthStencilFormat")
   format = 7;
 
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   isValid = false;
 
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   isReadable = false;
 
   /** m_depthStencil (Tr2TextureAL), the one resource this class exists to hold. */
@@ -103,9 +103,9 @@ export class Tr2DepthStencil
    * @param {object} [renderContext] The context to create through.
    * @returns {boolean} Whether the surface was created.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon returns an HRESULT and reaches the main-thread render context through a global; this returns a boolean and takes the context, which is the same reason Tr2Blitter does.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon returns an HRESULT and reaches the main-thread render context through a global; this returns a boolean and takes the context, which is the same reason Tr2Blitter does.")
   Create(width, height, format, msaaType = 1, msaaQuality = 0, flags = ExFlag.EX_NONE, renderContext = null)
   {
     let gpuUsage = Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE;
@@ -144,8 +144,8 @@ export class Tr2DepthStencil
    *
    * @returns {object|null} The `Tr2TextureAL`, or null when it is not readable.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetTexture()
   {
     return this.IsValid() && this.IsReadable() ? this.#depthStencil : null;
@@ -165,9 +165,9 @@ export class Tr2DepthStencil
    *
    * @returns {object|null} The `Tr2TextureAL`, or null before Create.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon exposes the member directly through a conversion operator; JavaScript has none, so the raw surface is reached by name.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon exposes the member directly through a conversion operator; JavaScript has none, so the raw surface is reached by name.")
   GetDepthStencil()
   {
     return this.#depthStencil;
@@ -179,9 +179,9 @@ export class Tr2DepthStencil
    * @param {Function} listener Called with this surface after each change.
    * @returns {Function} Unsubscribe.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon returns its event object for the caller to attach to; this takes the listener and returns the unsubscribe, matching Tr2TextureArray.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon returns its event object for the caller to attach to; this takes the listener and returns the unsubscribe, matching Tr2TextureArray.")
   OnTextureChange(listener)
   {
     this.#listeners.push(listener);
@@ -193,16 +193,16 @@ export class Tr2DepthStencil
   }
 
   /** Carbon `IsValid` (`cpp:95-98`): whether the texture exists. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsValid()
   {
     return Boolean(this.#depthStencil?.IsValid());
   }
 
   /** Carbon `IsReadable` (`cpp:90-93`): whether the surface carries SHADER_RESOURCE. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsReadable()
   {
     if (!this.#depthStencil) return false;
@@ -217,8 +217,8 @@ export class Tr2DepthStencil
    *
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Destroy()
   {
     if (this.#depthStencil) this.#depthStencil.Destroy();
@@ -231,56 +231,56 @@ export class Tr2DepthStencil
   }
 
   /** Carbon `GetWidth` (`cpp:141-144`), read off the texture. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetWidth()
   {
     return this.#depthStencil?.GetWidth() ?? 0;
   }
 
   /** Carbon `GetHeight` (`cpp:147-150`), read off the texture. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetHeight()
   {
     return this.#depthStencil?.GetHeight() ?? 0;
   }
 
   /** Carbon `GetMsaaSamples` (`cpp:153-156`). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetMsaaSamples()
   {
     return this.#msaa?.samples ?? 0;
   }
 
   /** Carbon `GetMsaaQuality` (`cpp:159-162`). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetMsaaQuality()
   {
     return this.#msaa?.quality ?? 0;
   }
 
   /** Carbon `GetMipCount` (`cpp:164-167`) returns a literal 1. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetMipCount()
   {
     return 1;
   }
 
   /** Carbon `GetFormat` (`cpp:170-173`), the format asked for rather than the texture's. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetFormat()
   {
     return this.format;
   }
 
   /** Carbon `SetName` (`cpp:20-24`), which names the texture too. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetName(name)
   {
     this.name = name ?? "";
@@ -288,24 +288,24 @@ export class Tr2DepthStencil
   }
 
   /** Carbon `GetName` (`cpp:26-29`). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetName()
   {
     return this.name;
   }
 
   /** Carbon Tr2DepthStencil::HasALObject always reports false (cpp:124-127). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HasALObject(_type, _object)
   {
     return false;
   }
 
   /** Carbon method sharedHandle -> GetSharedHandle (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
+  @meta.blue.method
+  @meta.notImplemented
   sharedHandle(...args)
   {
     throw new Error("Tr2DepthStencil.sharedHandle is not implemented in CarbonEngineJS.");

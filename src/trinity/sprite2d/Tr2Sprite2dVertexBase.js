@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema sprite2d/Tr2Sprite2dVertexBase.json.).
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -13,7 +13,7 @@ import { vec4 } from "#math/vec4";
  * existing authored-vertex adapter, inherited by the concrete polygon class;
  * the native plain base itself has no Blue exposure or persistence flags.
  */
-@type.define({ className: "Tr2Sprite2dVertexBase", family: "sprite2d" })
+@meta.define({ className: "Tr2Sprite2dVertexBase", family: "sprite2d" })
 export class Tr2Sprite2dVertexBase
 {
 
@@ -22,9 +22,9 @@ export class Tr2Sprite2dVertexBase
    * Native position (Vector3).
    * @type {Float32Array}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   position = vec3.create();
 
   /**
@@ -32,7 +32,7 @@ export class Tr2Sprite2dVertexBase
    * Native color (Color).
    * @type {Float32Array}
    */
-  @type.color
+  @meta.type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
   /**
@@ -40,7 +40,7 @@ export class Tr2Sprite2dVertexBase
    * Native texCoord (Vector2[2]).
    * @type {Float32Array[]}
    */
-  @type.array("vec2")
+  @meta.type.array("vec2")
   texCoord = [vec2.create(), vec2.create()];
 
 }

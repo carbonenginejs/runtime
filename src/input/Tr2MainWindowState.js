@@ -2,7 +2,7 @@
 // Source: trinity/trinity/UI/Tr2MainWindow.cpp
 // Source: trinity/trinity/UI/Tr2MainWindow_Blue.cpp
 import { PresentInterval, Tr2WindowMode, Tr2WindowShowState } from "#consts/render-context";
-import { CjsSchema, edit, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import "#blue/registerTrinityEnums";
 
 /**
@@ -140,14 +140,14 @@ CjsSchema.define(Tr2MainWindowState, {
     carbon: "Tr2MainWindowState",
     family: "input",
     fields: {
-        windowMode: [ type.int32, type.enum("trinity.Tr2WindowMode"), edit.readwrite, edit.persist ],
-        adapter: [ type.uint32, edit.readwrite, edit.persist ],
-        width: [ type.uint32, edit.readwrite, edit.persist ],
-        height: [ type.uint32, edit.readwrite, edit.persist ],
-        presentInterval: [ type.int32, type.enum("trinity.Tr2RenderContextEnum.PresentInterval"), edit.readwrite, edit.persist ],
-        left: [ type.int32, edit.readwrite, edit.persist ],
-        top: [ type.int32, edit.readwrite, edit.persist ],
-        showState: [ type.int32, type.enum("trinity.Tr2WindowShowState"), edit.readwrite, edit.persist ]
+        windowMode: [ meta.type.int32, meta.type.enum("trinity.Tr2WindowMode"), meta.blue.readwrite, meta.blue.persist ],
+        adapter: [ meta.type.uint32, meta.blue.readwrite, meta.blue.persist ],
+        width: [ meta.type.uint32, meta.blue.readwrite, meta.blue.persist ],
+        height: [ meta.type.uint32, meta.blue.readwrite, meta.blue.persist ],
+        presentInterval: [ meta.type.int32, meta.type.enum("trinity.Tr2RenderContextEnum.PresentInterval"), meta.blue.readwrite, meta.blue.persist ],
+        left: [ meta.type.int32, meta.blue.readwrite, meta.blue.persist ],
+        top: [ meta.type.int32, meta.blue.readwrite, meta.blue.persist ],
+        showState: [ meta.type.int32, meta.type.enum("trinity.Tr2WindowShowState"), meta.blue.readwrite, meta.blue.persist ]
     }
 });
 

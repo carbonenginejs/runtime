@@ -1,18 +1,18 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Hand-authored following the eve/socket generated pattern (SOCKET_PARAM_DECLARE macro family).
 import { vec4 } from "#math/vec4";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.js";
 
 /** Binds a named four-component vector socket value to external parameters, preserving defaults by copy for restoration. */
-@type.define({ className: "EveSocketParameterVector4", family: "eve/socket" })
+@meta.define({ className: "EveSocketParameterVector4", family: "eve/socket" })
 export class EveSocketParameterVector4 extends EveSocketParameterBindingBase
 {
 
   /** m_value (Vector4) */
-  @edit.readwrite
-  @edit.persist
-  @type.vec4
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec4
   value = vec4.create();
 
   /** m_defaults - one default captured per bound external parameter. */
@@ -22,8 +22,8 @@ export class EveSocketParameterVector4 extends EveSocketParameterBindingBase
    * Discards the captured defaults along with the bindings, so nothing can be
    * restored afterwards.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ClearBindings()
   {
     this._defaults.length = 0;
@@ -31,8 +31,8 @@ export class EveSocketParameterVector4 extends EveSocketParameterBindingBase
   }
 
   /** Restores every binding's default and copies it out, then clears. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Reset()
   {
     for (let index = 0; index < this.bindings.length; index++)
@@ -71,8 +71,8 @@ export class EveSocketParameterVector4 extends EveSocketParameterBindingBase
    * Restores the first captured default into the existing value vector, or
    * zeroes it when nothing was captured.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetValueToDefault()
   {
     if (this._defaults.length)

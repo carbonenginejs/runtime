@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraSystem.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraSystem.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveVirtualCamera } from "./EveVirtualCamera.js";
 import { EveVirtualCameraTransitionCut } from "./transition/EveVirtualCameraTransitionCut.js";
 import { EveVirtualCameraTransitionLerp } from "./transition/EveVirtualCameraTransitionLerp.js";
@@ -10,29 +10,29 @@ import { EveVirtualCameraTransitionLerp } from "./transition/EveVirtualCameraTra
  * Owns the registered virtual cameras plus the externally driven camera, and
  * runs the transition that hands control from one to another.
  */
-@type.define({
+@meta.define({
   className: "EveVirtualCameraSystem",
   family: "eve/virtualCamera"
 })
 export class EveVirtualCameraSystem
 {
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("EveVirtualCamera")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("EveVirtualCamera")
   externalCamera = null;
 
-  @edit.read
-  @edit.persist
-  @type.list("EveVirtualCamera")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveVirtualCamera")
   cameras = [];
 
-  @edit.read
-  @edit.persist
-  @type.objectRef("EveVirtualCamera")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.objectRef("EveVirtualCamera")
   mainCamera = null;
 
-  @edit.read
-  @type.objectRef("EveVirtualCameraTransitionBase")
+  @meta.blue.read
+  @meta.type.objectRef("EveVirtualCameraTransitionBase")
   transition = null;
 
   _lastUpdate = 0;
@@ -53,8 +53,8 @@ export class EveVirtualCameraSystem
    * Reports the system ready; the port has no device state to acquire, so this
    * always succeeds.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     return true;
@@ -64,8 +64,8 @@ export class EveVirtualCameraSystem
    * Returns the camera the scene should render from: the transition's camera
    * while a transition is running, otherwise the main camera.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetCurrentCamera()
   {
     return this.transition ? this.transition.GetCamera() : this.GetMainCamera();
@@ -75,8 +75,8 @@ export class EveVirtualCameraSystem
    * Registers a camera for updating and name lookup, refusing the external
    * camera and duplicates; returns whether it was added.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddCamera(camera)
   {
     if (camera === this.externalCamera || this.cameras.includes(camera))
@@ -91,8 +91,8 @@ export class EveVirtualCameraSystem
    * Returns the camera control has been handed to, ignoring any transition
    * currently blending towards it.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetMainCamera()
   {
     return this.mainCamera;
@@ -102,8 +102,8 @@ export class EveVirtualCameraSystem
    * Finds a registered camera by name, also matching the external camera, and
    * returns null when nothing matches.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetCameraByName(name)
   {
     if (name === this.externalCamera?.GetName())
@@ -117,8 +117,8 @@ export class EveVirtualCameraSystem
    * Hands control to a camera immediately through a cut transition; does nothing
    * when the camera is null or already the main camera.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   CutToCamera(camera)
   {
     if (camera && camera !== this.GetMainCamera())
@@ -131,8 +131,8 @@ export class EveVirtualCameraSystem
    * Hands control to a camera through a lerp transition lasting transitionTime
    * seconds; does nothing when the camera is null or already the main camera.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   LerpToCamera(camera, transitionTime = 1)
   {
     if (camera && camera !== this.GetMainCamera())
@@ -147,8 +147,8 @@ export class EveVirtualCameraSystem
    * Reports whether the currently rendering camera is the external one, meaning
    * the host application is driving the view rather than an authored camera.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsExternallyControlled()
   {
     return this.GetCurrentCamera() === this.externalCamera;
@@ -158,8 +158,8 @@ export class EveVirtualCameraSystem
    * Advances every registered camera, the external camera and any running transition, clearing the transition once it completes.
    * @param {Number} simTime Absolute simulation time; the delta is derived from the previous call, and the first call produces a zero delta
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(simTime)
   {
     const time = Number(simTime) || 0;
@@ -193,8 +193,8 @@ export class EveVirtualCameraSystem
    * transition is null, which collapses to the same end state as the 1-arg
    * form here.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetMainCamera(camera, transition = null)
   {
     const current = this.GetMainCamera();

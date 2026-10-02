@@ -4,7 +4,7 @@
 // Carbon's YamlReader and BlackReader implement it; DictReader does not (it
 // reads a dictionary, through IRootReaderBase). Our stream readers are the
 // formats (CjsBlackFormat, the yaml format), which do not implement it yet.
-import { CjsSchema, compose, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** `IRootReader` - reads an object tree from a stream, per blue/src/IRootReader.h:15-25. */
 export class IRootReader
@@ -30,7 +30,7 @@ export class IRootReader
 
 for (const method of [ "ReadFromStream", "ReadForCachingFromStream", "SetFileName", "SetDoInitialize", "SetTimeSlice", "GetErrorMessage" ])
 {
-  CjsSchema.decorateMethod(IRootReader, method, compose.abstract, impl.abstract);
+  CjsSchema.decorateMethod(IRootReader, method, meta.requires, meta.abstract);
 }
 
 CjsSchema.define(IRootReader, { className: "IRootReader", carbon: "IRootReader", family: "blue", fields: {} });

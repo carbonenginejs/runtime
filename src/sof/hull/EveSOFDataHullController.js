@@ -1,22 +1,22 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { edit, type } from "#schema";
+import { meta } from "#schema";
 
 /** Names a controller resource path and its build filter, deriving the controller name from the path. */
-@type.define({ className: "EveSOFDataHullController", family: "eve" })
+@meta.define({ className: "EveSOFDataHullController", family: "eve" })
 export class EveSOFDataHullController
 {
 
   /** m_buildFilter (uint32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   buildFilter = 0xffffffff;
 
   /** m_path (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   path = "";
 
   /**

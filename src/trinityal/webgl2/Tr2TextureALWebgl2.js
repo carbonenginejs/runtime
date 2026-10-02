@@ -47,7 +47,7 @@
 //   is not a texture, so there is nothing to attach; the swap chain draws to
 //   that framebuffer directly.
 
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
 import { CjsDdsFormat } from "../../resource/formats/dds/CjsDdsFormat.js";
 import { Tr2ALMemoryType } from "#consts/graphics";
@@ -348,7 +348,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @impl.adapted
+  @meta.adapted
   Create(desc, options, renderContext)
   {
     this._Reset();
@@ -448,7 +448,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    *   from; an addition to dx11's signature, which views the same resource.
    * @returns {number} An `ALResult` value.
    */
-  @impl.adapted
+  @meta.adapted
   CreateViews(_texture, desc, _msaa, gpuUsage, _cpuUsage, createSrgb, _renderContext, initialData = null)
   {
     const format = desc.GetFormat();
@@ -472,7 +472,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * @param {number} [format] The format to resolve; the description's by default.
    * @returns {object|null} The layout, or null when it cannot be held.
    */
-  @impl.custom
+  @meta.ours
   _ResolveLayout(gl, desc, gpuUsage, format = desc.GetFormat())
   {
     if (IsCompressedFormat(format))
@@ -510,7 +510,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
   }
 
   /** The GL texture target for a description. */
-  @impl.custom
+  @meta.ours
   _TargetOf(gl, desc)
   {
     switch (desc.GetType())
@@ -527,7 +527,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {WebGLTexture|null} The texture.
    */
-  @impl.custom
+  @meta.ours
   _CreateStorage(gl, layout, initialData)
   {
     const desc = this._desc;
@@ -570,7 +570,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
   }
 
   /** The `getParameter` name of a target's binding. */
-  @impl.custom
+  @meta.ours
   _BindingOf(gl, target)
   {
     switch (target)
@@ -598,7 +598,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * @param {number} pitch Bytes per row (per block row for compressed data).
    * @param {number} slicePitch Bytes per depth slice.
    */
-  @impl.custom
+  @meta.ours
   _UploadLevel(gl, layout, texture, slice, mip, box, source, pitch, slicePitch)
   {
     const desc = this._desc;
@@ -660,7 +660,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * @param {number} slicePitch Bytes per depth slice.
    * @returns {Uint8Array|Float32Array} The decoded pixels.
    */
-  @impl.custom
+  @meta.ours
   _DecodeBlocks(canonical, bytes, width, height, depth, pitch, slicePitch)
   {
     const rowPitch = pitch || undefined;
@@ -828,7 +828,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {WebGLFramebuffer} The framebuffer, bound to `READ_FRAMEBUFFER`.
    */
-  @impl.custom
+  @meta.ours
   _BindForRead(gl, mip, slice)
   {
     if (!this._framebuffer) this._framebuffer = gl.createFramebuffer();
@@ -852,7 +852,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to map against.
    * @returns {{result: number, data: Uint8Array|null, pitch: number}} The mapping.
    */
-  @impl.adapted
+  @meta.adapted
   MapForReading(region, _synchronize, renderContext)
   {
     const fail = result => ({ result, data: null, pitch: 0 });
@@ -908,7 +908,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to map against.
    * @returns {{result: number, data: Uint8Array|null, pitch: number}} The mapping.
    */
-  @impl.adapted
+  @meta.adapted
   MapForWriting(region, renderContext)
   {
     const fail = result => ({ result, data: null, pitch: 0 });
@@ -949,7 +949,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    *
    * @param {object} renderContext The context the map was made against.
    */
-  @impl.adapted
+  @meta.adapted
   UnmapForWriting(renderContext)
   {
     const al = RenderContextALOf(renderContext);
@@ -963,7 +963,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
   }
 
   /** Binds the texture, uploads one subresource, and restores the binding. */
-  @impl.custom
+  @meta.ours
   _Upload(slice, mip, box, source, pitch, slicePitch)
   {
     const gl = this._gl;
@@ -1013,7 +1013,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to copy against.
    * @returns {number} An `ALResult` value.
    */
-  @impl.adapted
+  @meta.adapted
   CopySubresourceRegion(destSubresource, source, sourceSubresource, renderContext)
   {
     const al = RenderContextALOf(renderContext);
@@ -1113,7 +1113,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context to resolve against.
    * @returns {number} An `ALResult` value.
    */
-  @impl.adapted
+  @meta.adapted
   Resolve(destination, renderContext)
   {
     if (this._msaa.samples <= 1)
@@ -1235,7 +1235,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * @param {number} [colorSpace] A `Tr2ColorSpace` value.
    * @returns {WebGLTexture|null} The texture.
    */
-  @impl.custom
+  @meta.ours
   GetShaderResourceTexture(colorSpace = Tr2ColorSpace.COLOR_SPACE_LINEAR)
   {
     if (colorSpace !== Tr2ColorSpace.COLOR_SPACE_SRGB || !this._texture) return this._texture;
@@ -1264,7 +1264,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {number} A GL target.
    */
-  @impl.custom
+  @meta.ours
   GetTarget()
   {
     return this._target;
@@ -1275,7 +1275,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {WebGLRenderbuffer|null} The renderbuffer.
    */
-  @impl.custom
+  @meta.ours
   GetRenderbuffer()
   {
     return this._renderbuffer;
@@ -1292,7 +1292,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * @param {number} mip The mip level.
    * @param {number} slice The array slice, cube face or depth slice.
    */
-  @impl.custom
+  @meta.ours
   AttachToFramebuffer(target, attachment, mip, slice)
   {
     const gl = this._gl;
@@ -1318,7 +1318,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {number} `DEPTH_STENCIL_ATTACHMENT` or `DEPTH_ATTACHMENT`.
    */
-  @impl.custom
+  @meta.ours
   GetDepthAttachmentPoint()
   {
     const gl = this._gl;

@@ -2,7 +2,7 @@ import { DictReader } from "#blue/DictReader";
 import "#blue/values";
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
-import { CjsSchema, impl, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import {
 } from "#utils/is";
 import { copyBytes } from "#utils/bytes";
@@ -187,18 +187,18 @@ CjsSchema.define(Tr2EffectLibrary, {
   className: "Tr2EffectLibrary",
   family: "shader",
   fields: {
-    payloadSize: type.uint32,
-    libraryHandle: type.uint32,
-    rayGenName: type.string,
-    missName: type.string,
-    closestHitName: type.string,
-    anyHitName: type.string,
-    intersectionName: type.string,
-    hitGroupName: type.string,
-    globalInput: type.rawStruct("Tr2EffectStageInput"),
-    localInput: type.rawStruct("Tr2EffectStageInput"),
-    globalResourceSetDesc: type.rawStruct("Tr2ResourceSetDescriptionAL"),
-    sourceProgram: [ impl.adapted, impl.reason("Carbon interns the library bytecode while reading (Tr2EffectStateManager::RegisterShaderLibrary, .h:115) and keeps only libraryHandle. Ours interns at the Trinity boundary instead, because the resource layer may not import Trinity, so the bytes are retained until then; see Tr2EffectStateManager.registerShaderHandles."), type.rawStruct("CjsEffectSourceProgram") ],
-    exports: [ impl.adapted, impl.reason("Carbon resolves these exports into the interned library handle while reading; the declarative export list is what survives until interning happens at the Trinity boundary."), type.rawStruct("CjsEffectLibraryExports") ]
+    payloadSize: meta.type.uint32,
+    libraryHandle: meta.type.uint32,
+    rayGenName: meta.type.string,
+    missName: meta.type.string,
+    closestHitName: meta.type.string,
+    anyHitName: meta.type.string,
+    intersectionName: meta.type.string,
+    hitGroupName: meta.type.string,
+    globalInput: meta.type.rawStruct("Tr2EffectStageInput"),
+    localInput: meta.type.rawStruct("Tr2EffectStageInput"),
+    globalResourceSetDesc: meta.type.rawStruct("Tr2ResourceSetDescriptionAL"),
+    sourceProgram: [ meta.adapted, meta.reason("Carbon interns the library bytecode while reading (Tr2EffectStateManager::RegisterShaderLibrary, .h:115) and keeps only libraryHandle. Ours interns at the Trinity boundary instead, because the resource layer may not import Trinity, so the bytes are retained until then; see Tr2EffectStateManager.registerShaderHandles."), meta.type.rawStruct("CjsEffectSourceProgram") ],
+    exports: [ meta.adapted, meta.reason("Carbon resolves these exports into the interned library handle while reading; the declarative export list is what survives until interning happens at the Trinity boundary."), meta.type.rawStruct("CjsEffectLibraryExports") ]
   }
 });

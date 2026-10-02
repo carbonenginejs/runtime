@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepRemoteSync.h
 // Source: trinity/trinity/RenderJob/TriStepRemoteSync.cpp
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 
@@ -8,14 +8,14 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * Step for Carbon's Windows-only cross-process render synchronization, which has
  * no browser equivalent and therefore always fails.
  */
-@type.define({ className: "TriStepRemoteSync", family: "renderJob" })
+@meta.define({ className: "TriStepRemoteSync", family: "renderJob" })
 export class TriStepRemoteSync extends TriRenderStep
 {
   #id = -1;
 
   /** Stores the identifier of the synchronization event this step would wait on. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   __init__(id = -1)
   {
     this.SetId(id);
@@ -42,7 +42,7 @@ export class TriStepRemoteSync extends TriRenderStep
    * cannot be opened from a browser, so the step refuses rather than claiming
    * synchronization happened.
    */
-  @impl.adapted
+  @meta.adapted
   Execute(_realTime, _simTime, _renderContext)
   {
     // Carbon implements this class only on Windows with named HANDLE events.

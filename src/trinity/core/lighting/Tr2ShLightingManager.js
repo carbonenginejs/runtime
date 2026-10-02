@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2ShLightingManager.h
 // Source: trinity/trinity/Tr2ShLightingManager.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { blue, EnumRegistrationType } from "#blue";
 
@@ -83,33 +83,33 @@ function readFloat(value)
  * lighting - a primary light reflected off nearby spheres - for any receiver
  * position in the scene.
  */
-@type.define({ className: "Tr2ShLightingManager", family: "trinityCore" })
+@meta.define({ className: "Tr2ShLightingManager", family: "trinityCore" })
 export class Tr2ShLightingManager
 {
 
   /** m_quality (Quality - enum Quality) [READWRITE, PERSIST, ENUM] */
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.Tr2ShLightingManager.Quality")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.Tr2ShLightingManager.Quality")
   quality = 1;
 
   /** m_lights (PTr2PointLightVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("Tr2PointLight")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2PointLight")
   lights = [];
 
   /** m_primaryIntensity (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   primaryIntensity = 1;
 
   /** m_secondaryIntensity (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   secondaryIntensity = 1;
 
   /** m_sunDirection - normalized, set through UpdateWithDirectionalLight. */
@@ -149,8 +149,8 @@ export class Tr2ShLightingManager
    * @param {Float32Array} emissive - self-emissive colour
    * @returns {Boolean} true once registered
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterSecondaryLightSource(position, radius, albedo, emissive)
   {
     this.#sources.push({ position, radius, albedo, emissive });
@@ -164,8 +164,8 @@ export class Tr2ShLightingManager
    * @param {Float32Array} position - the vector passed to the register call
    * @returns {Boolean} false when no source holds that vector
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UnregisterSecondaryLightSource(position)
   {
     const index = this.#sources.findIndex((source) => source.position === position);
@@ -185,8 +185,8 @@ export class Tr2ShLightingManager
    * @param {Float32Array} color - primary light colour
    * @returns {Boolean} true
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateWithDirectionalLight(direction, color)
   {
     vec3.copy(this.#sunColor, color);
@@ -203,8 +203,8 @@ export class Tr2ShLightingManager
    * never culled by the caller's cutoff radius.
    * @returns {Number} the processed source count
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateSourceData()
   {
     this.#sourceData.length = 0;
@@ -269,8 +269,8 @@ export class Tr2ShLightingManager
    * @param {Float32Array} out - seven packed vec4s, 28 floats
    * @returns {Float32Array} out
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetLighting(position, intensity, cutoffRadius, out)
   {
     const order = this.quality === Tr2ShLightingManager.Quality.L2 ? 3 : 2;

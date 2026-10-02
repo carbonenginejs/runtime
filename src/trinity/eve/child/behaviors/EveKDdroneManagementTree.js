@@ -1,82 +1,82 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/EveKDdroneManagementTree.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/EveKDdroneManagementTree.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, type } from "#schema";
+import { meta } from "#schema";
 import { PlaneType } from "./enums.js";
 import { vec3 } from "#math/vec3";
 
 /** A spatial index that builds and incrementally rebalances a k-d tree over a group's drone agents and answers nearest-neighbour and multi-radius range queries against it. */
-@type.define({ className: "EveKDdroneManagementTree", family: "eve/child/behaviors" })
+@meta.define({ className: "EveKDdroneManagementTree", family: "eve/child/behaviors" })
 export class EveKDdroneManagementTree
 {
 
   /** m_tree (AgentRef) */
-  @type.objectRef("Agent")
+  @meta.type.objectRef("Agent")
   tree = null;
 
   /** m_debugSquareSize (float) */
-  @type.float32
+  @meta.type.float32
   debugSquareSize = 0;
 
   /** m_updateTimeCounter (float) */
-  @type.float32
+  @meta.type.float32
   updateTimeCounter = 0;
 
   /** m_maxFoundPerAgent (size_t) */
-  @type.uint64
+  @meta.type.uint64
   maxFoundPerAgent = 5;
 
   /** m_timeBetweenUpdate (float) */
-  @type.float32
+  @meta.type.float32
   timeBetweenUpdate = 1;
 
   /** m_agentRefs (std::vector<AgentRef>) */
-  @type.list("Agent")
+  @meta.type.list("Agent")
   agentRefs = [];
 
   /** m_groupSearchReturnInfoBlock (std::vector<std::vector<std::vector<DroneAgent*>>>) */
-  @type.list("std::vector<std::vector<DroneAgent>>")
+  @meta.type.list("std::vector<std::vector<DroneAgent>>")
   groupSearchReturnInfoBlock = [];
 
   /** agents (std::vector<DroneAgent> &) */
-  @type.list("DroneAgent")
+  @meta.type.list("DroneAgent")
   agents = [];
 
   /** behaviorNbr (int) */
-  @type.int32
+  @meta.type.int32
   behaviorNbr = 0;
 
   /** radius (float) */
-  @type.float32
+  @meta.type.float32
   radius = 0;
 
   /** agent (DroneAgent*) */
-  @type.objectRef("DroneAgent")
+  @meta.type.objectRef("DroneAgent")
   agent = null;
 
   /** rangeBetween (float) */
-  @type.float32
+  @meta.type.float32
   rangeBetween = 0;
 
   /** planeType (PlaneType - enum PlaneType) */
-  @type.int32
-  @type.enum("trinity.EveKDdroneManagementTree.PlaneType")
+  @meta.type.int32
+  @meta.type.enum("trinity.EveKDdroneManagementTree.PlaneType")
   planeType = 0;
 
   /** b (int) */
-  @type.int32
+  @meta.type.int32
   b = 0;
 
   /** e (int) */
-  @type.int32
+  @meta.type.int32
   e = 0;
 
   /** left (AgentRef*) */
-  @type.objectRef("Agent")
+  @meta.type.objectRef("Agent")
   left = null;
 
   /** right (AgentRef*) */
-  @type.objectRef("Agent")
+  @meta.type.objectRef("Agent")
   right = null;
 
   // Reused SearchRange records ({behaviorNbr, radius}) - rebuilt each
@@ -93,9 +93,9 @@ export class EveKDdroneManagementTree
    * @param {Array} agents - DroneAgent records
    * @param {Number} numberOfBehaviors
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon copies the root AgentRef by value into m_tree; the JS port keeps a reference into agentRefs (same fields, shared identity).")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon copies the root AgentRef by value into m_tree; the JS port keeps a reference into agentRefs (same fields, shared identity).")
   CreateTree(agents, numberOfBehaviors)
   {
     if (!agents || agents.length === 0)
@@ -125,8 +125,8 @@ export class EveKDdroneManagementTree
    * invariant broke (Carbon UpdateTree, cpp:44-55).
    * @param {Number} dt - delta time in seconds
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateTree(dt)
   {
     if (this.timeBetweenUpdate !== -1 && this.updateTimeCounter >= this.timeBetweenUpdate)
@@ -146,8 +146,8 @@ export class EveKDdroneManagementTree
    * @param {Float32Array} pos
    * @returns {Object|null} the closest DroneAgent record
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   FindClosestAgent(pos)
   {
     if (!this.tree || !this.tree.agent)
@@ -173,8 +173,8 @@ export class EveKDdroneManagementTree
    * @param {Number} behaviorGroupBoundingSphereRadius
    * @returns {Array} groupSearchReturnInfoBlock
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   FindDronesInRange(agents, ranges, behaviorGroupBoundingSphereRadius)
   {
     const searchRanges = this._searchRanges;

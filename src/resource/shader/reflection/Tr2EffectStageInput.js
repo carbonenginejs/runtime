@@ -3,7 +3,7 @@ import "#blue/values";
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 // Source: trinity/trinity/Shader/Tr2EffectDescription.cpp
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
-import { CjsSchema, impl, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { copyBytes } from "#utils/bytes";
 import {
   isUint32
@@ -500,18 +500,18 @@ CjsSchema.define(Tr2EffectStageInput, {
   className: "Tr2EffectStageInput",
   family: "shader",
   fields: {
-    stageType: [ impl.adapted, impl.reason("The source format identifies stage inputs by array index; the index is retained explicitly so a body re-emits as the file that produced it."), type.int32 ],
-    exists: type.boolean,
-    resources: type.map("Tr2EffectResource"),
-    uavs: type.map("Tr2EffectResource"),
-    samplers: type.map("Tr2SamplerSetup"),
-    shader: type.uint32,
-    constants: type.list("Tr2EffectConstant"),
-    constantValueSize: type.uint32,
-    constantValues: type.typedArray("Uint8Array"),
-    constantValuesUnsetOffset: [ impl.custom, impl.reason("A zero-size blob's offset word is passed through rather than interned, and the shipped corpus does not always set it to the null sentinel; the graph retains it so a body re-emits as the file that produced it."), type.uint32 ],
-    signature: type.rawStruct("Tr2ShaderSignatureAL"),
-    annotation: type.list("Tr2EffectParameterAnnotation"),
-    sourceProgram: [ impl.adapted, impl.reason("Carbon interns the program inside Tr2EffectDescription::Read (cpp:587-666) and keeps only the m_shader handle (Tr2EffectDescription.h:183). Ours interns at the Trinity boundary, because the resource layer may not import Trinity, so the bytes are retained until then; see Tr2EffectStateManager.registerShaderHandles."), type.rawStruct("CjsEffectSourceProgram") ]
+    stageType: [ meta.adapted, meta.reason("The source format identifies stage inputs by array index; the index is retained explicitly so a body re-emits as the file that produced it."), meta.type.int32 ],
+    exists: meta.type.boolean,
+    resources: meta.type.map("Tr2EffectResource"),
+    uavs: meta.type.map("Tr2EffectResource"),
+    samplers: meta.type.map("Tr2SamplerSetup"),
+    shader: meta.type.uint32,
+    constants: meta.type.list("Tr2EffectConstant"),
+    constantValueSize: meta.type.uint32,
+    constantValues: meta.type.typedArray("Uint8Array"),
+    constantValuesUnsetOffset: [ meta.ours, meta.reason("A zero-size blob's offset word is passed through rather than interned, and the shipped corpus does not always set it to the null sentinel; the graph retains it so a body re-emits as the file that produced it."), meta.type.uint32 ],
+    signature: meta.type.rawStruct("Tr2ShaderSignatureAL"),
+    annotation: meta.type.list("Tr2EffectParameterAnnotation"),
+    sourceProgram: [ meta.adapted, meta.reason("Carbon interns the program inside Tr2EffectDescription::Read (cpp:587-666) and keeps only the m_shader handle (Tr2EffectDescription.h:183). Ours interns at the Trinity boundary, because the resource layer may not import Trinity, so the bytes are retained until then; see Tr2EffectStateManager.registerShaderHandles."), meta.type.rawStruct("CjsEffectSourceProgram") ]
   }
 });

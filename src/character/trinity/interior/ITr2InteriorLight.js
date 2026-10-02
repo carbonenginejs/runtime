@@ -13,7 +13,7 @@ export class ITr2InteriorLight extends ITr2InteriorCullable
 }
 for (const method of [ "PopulateLightData", "Update" ])
 {
-  CjsSchema.decorateMethod(ITr2InteriorLight, method, meta.compose.abstract, meta.impl.abstract);
+  CjsSchema.decorateMethod(ITr2InteriorLight, method, meta.requires, meta.abstract);
 }
 CjsSchema.define(ITr2InteriorLight, {
   className: "ITr2InteriorLight", carbon: "ITr2InteriorLight", family: "interior", fields: {}

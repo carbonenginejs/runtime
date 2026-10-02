@@ -3,7 +3,7 @@ import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveMeshOverlayEffect.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveMeshOverlayEffect_Blue.cpp
 import { TriBatchType } from "#consts/graphics";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
 
 
@@ -11,66 +11,66 @@ import { BLUELISTEVENT } from "#consts/blue";
  * Named overlay pass attached to a mesh, holding one effect list per batch type
  * together with the curve set and controllers that animate them.
  */
-@type.define({ className: "EveMeshOverlayEffect", family: "eve/overlays" })
-@carbon.inherit(IInitialize)
-@carbon.mapInterface(IInitialize)
+@meta.define({ className: "EveMeshOverlayEffect", family: "eve/overlays" })
+@meta.blue.inherit(IInitialize)
+@meta.blue.mapInterface(IInitialize)
 export class EveMeshOverlayEffect
 {
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
-  @edit.read
-  @edit.persist
-  @type.list("ITr2Controller")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITr2Controller")
   controllers = [];
 
-  @edit.readwrite
-  @edit.persist
-  @type.model("TriCurveSet")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("TriCurveSet")
   curveSet = null;
 
-  @edit.read
-  @edit.persist
-  @type.list("Tr2Effect")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2Effect")
   additiveEffects = [];
 
-  @edit.read
-  @edit.persist
-  @type.list("Tr2Effect")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2Effect")
   decalEffects = [];
 
-  @edit.read
-  @edit.persist
-  @type.list("Tr2Effect")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2Effect")
   distortionEffects = [];
 
-  @edit.read
-  @edit.persist
-  @type.list("Tr2Effect")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2Effect")
   opaqueEffects = [];
 
-  @edit.read
-  @edit.persist
-  @type.list("Tr2Effect")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2Effect")
   transparentEffects = [];
 
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   update = true;
 
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   display = true;
 
   /**
    * Returns the effect list for a batch type, or null when the overlay is hidden
    * or the batch type has no list of its own.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon reports success through a bool out-parameter; JavaScript returns null for unsupported or hidden batches.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon reports success through a bool out-parameter; JavaScript returns null for unsupported or hidden batches.")
   GetEffects(batchType)
   {
     if (!this.display) return null;
@@ -90,8 +90,8 @@ export class EveMeshOverlayEffect
    * Reports whether the overlay applies to the opaque batch alone or to all
    * batches, given the batch type being queried.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetType(batchType)
   {
     return batchType === TriBatchType.TRIBATCHTYPE_OPAQUE
@@ -103,16 +103,16 @@ export class EveMeshOverlayEffect
    * Reports whether the overlay contributes any transparent effects, which
    * decides whether it needs a transparent pass.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HasTransparentArea()
   {
     return this.transparentEffects.length > 0;
   }
 
   /** Sets a shader option on every effect across all five batch lists. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetShaderOption(name, value)
   {
     for (const effects of this._effectLists())
@@ -125,9 +125,9 @@ export class EveMeshOverlayEffect
    * Links each controller that is not already linked to this overlay so it can
    * resolve the overlay's variables; always succeeds.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Blue root locking is represented by the hydrated JavaScript object identity.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Blue root locking is represented by the hydrated JavaScript object identity.")
   Initialize()
   {
     for (const controller of this.controllers)
@@ -142,9 +142,9 @@ export class EveMeshOverlayEffect
    * controllers, unlinks removed ones and unlinks all of them on unload start;
    * loading events and notifications for any other list are ignored.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Plain JavaScript arrays do not raise Blue IList notifications; callers forward the equivalent event explicitly.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Plain JavaScript arrays do not raise Blue IList notifications; callers forward the equivalent event explicitly.")
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = this.controllers)
   {
     if (list !== this.controllers || (event & BLUELISTEVENT.BELIST_LOADING) !== 0) return;
@@ -164,24 +164,24 @@ export class EveMeshOverlayEffect
   }
 
   /** Forwards a named variable value to every controller. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetControllerVariable(name, value)
   {
     for (const controller of this.controllers) controller?.SetVariable(name, value);
   }
 
   /** Forwards a named event to every controller. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HandleControllerEvent(name)
   {
     for (const controller of this.controllers) controller?.HandleEvent(name);
   }
 
   /** Starts every controller attached to the overlay. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   StartControllers()
   {
     for (const controller of this.controllers) controller?.Start();
@@ -192,8 +192,8 @@ export class EveMeshOverlayEffect
    * plays that range, otherwise the range is reset and the set plays from the
    * start; a name that does not match is ignored.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
     const curveSet = this._matchingCurveSet(name);
@@ -210,8 +210,8 @@ export class EveMeshOverlayEffect
    * Stops the overlay's curve set when its name matches, and does nothing
    * otherwise.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   StopCurveSet(name)
   {
     this._matchingCurveSet(name)?.Stop();
@@ -221,8 +221,8 @@ export class EveMeshOverlayEffect
    * Returns the longest curve duration in the named curve set, or 0 when the
    * name does not match the overlay's set.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetCurveSetDuration(name)
   {
     return Math.max(0, Number(this._matchingCurveSet(name)?.GetMaxCurveDuration?.() ?? 0));
@@ -232,8 +232,8 @@ export class EveMeshOverlayEffect
    * Returns the duration of a named time range within the named curve set, or 0
    * when either name does not match.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetRangeDuration(name, rangeName)
   {
     return Math.max(0, Number(this._matchingCurveSet(name)?.GetRangeDuration?.(rangeName) ?? 0));
@@ -244,8 +244,8 @@ export class EveMeshOverlayEffect
    * every controller, matching Carbon's fixed 0.5 controller step; skipped
    * entirely when updates are disabled or no curve set is assigned.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Update(realTime, simTime, renderContext = null)
   {
     if (!this.update || !this.curveSet) return;

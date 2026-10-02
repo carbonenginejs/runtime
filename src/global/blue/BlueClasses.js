@@ -28,7 +28,7 @@
 // name clashes between modules", BlueClasses.cpp:340-343). With no GUIDs to
 // carry, the name is the only identity there is.
 import { registerClass, unregisterClass, getClassRegistration } from "./classes/registry.js";
-import { CjsSchema, carbon, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { IBlueClasses } from "./IBlueClasses.js";
 import { Copier } from "./Copier.js";
 
@@ -196,29 +196,29 @@ export class BlueClasses extends IBlueClasses
 
 }
 
-const NOT_YET = impl.reason("No consumer yet; ported when one needs it.");
+const NOT_YET = meta.reason("No consumer yet; ported when one needs it.");
 
 CjsSchema.define(BlueClasses, {
   className: "BlueClasses",
   family: "blue",
   fields: {},
   methods: {
-    RegisterClasses: [ carbon.method, impl.adapted, impl.reason("Carbon walks a null-terminated array; JavaScript takes any iterable of registrations.") ],
-    UnregisterClasses: [ carbon.method, impl.implemented ],
-    GetClassRegistration: [ carbon.method, impl.adapted, impl.reason("A class id is the class name: there are no GUIDs to carry, and Carbon already forbids name clashes between modules.") ],
-    FindClsid: [ carbon.method, impl.adapted, impl.reason("Carbon's out-parameter overload and its module argument collapse: the id is the name, and Carbon ignores the module.") ],
-    CreateInstance: [ carbon.method, impl.adapted, impl.reason("Carbon returns bool and writes the instance through ppv after a QueryInterface for riid; JavaScript returns the instance or null, with no interface id to query.") ],
-    CreateInstanceFromName: [ carbon.method, impl.adapted, impl.reason("Carbon returns bool and writes the instance through ppv after a QueryInterface for riid; JavaScript returns the instance or null, with no interface id to query.") ],
-    QueryThisInterface: [ carbon.method, impl.notImplemented, NOT_YET ],
-    FindVariable: [ carbon.method, impl.notImplemented, NOT_YET ],
-    UpdateObjectCount: [ carbon.method, impl.notImplemented, NOT_YET ],
-    CopyTo: [ carbon.method, impl.adapted ],
-    CloneTo: [ carbon.method, impl.adapted ],
-    ProcessPendingDeletes: [ carbon.method, impl.notImplemented, NOT_YET ],
-    ProcessAllPendingDeletes: [ carbon.method, impl.notImplemented, NOT_YET ],
-    SetPendingDeletesEnabled: [ carbon.method, impl.notImplemented, NOT_YET ],
-    IsPendingDeletesEnabled: [ carbon.method, impl.notImplemented, NOT_YET ],
-    RegisterThunker: [ carbon.method, impl.notImplemented, NOT_YET ],
-    GetRtti: [ carbon.method, impl.notImplemented, NOT_YET ]
+    RegisterClasses: [ meta.blue.method, meta.adapted, meta.reason("Carbon walks a null-terminated array; JavaScript takes any iterable of registrations.") ],
+    UnregisterClasses: [ meta.blue.method, meta.implemented ],
+    GetClassRegistration: [ meta.blue.method, meta.adapted, meta.reason("A class id is the class name: there are no GUIDs to carry, and Carbon already forbids name clashes between modules.") ],
+    FindClsid: [ meta.blue.method, meta.adapted, meta.reason("Carbon's out-parameter overload and its module argument collapse: the id is the name, and Carbon ignores the module.") ],
+    CreateInstance: [ meta.blue.method, meta.adapted, meta.reason("Carbon returns bool and writes the instance through ppv after a QueryInterface for riid; JavaScript returns the instance or null, with no interface id to query.") ],
+    CreateInstanceFromName: [ meta.blue.method, meta.adapted, meta.reason("Carbon returns bool and writes the instance through ppv after a QueryInterface for riid; JavaScript returns the instance or null, with no interface id to query.") ],
+    QueryThisInterface: [ meta.blue.method, meta.notImplemented, NOT_YET ],
+    FindVariable: [ meta.blue.method, meta.notImplemented, NOT_YET ],
+    UpdateObjectCount: [ meta.blue.method, meta.notImplemented, NOT_YET ],
+    CopyTo: [ meta.blue.method, meta.adapted ],
+    CloneTo: [ meta.blue.method, meta.adapted ],
+    ProcessPendingDeletes: [ meta.blue.method, meta.notImplemented, NOT_YET ],
+    ProcessAllPendingDeletes: [ meta.blue.method, meta.notImplemented, NOT_YET ],
+    SetPendingDeletesEnabled: [ meta.blue.method, meta.notImplemented, NOT_YET ],
+    IsPendingDeletesEnabled: [ meta.blue.method, meta.notImplemented, NOT_YET ],
+    RegisterThunker: [ meta.blue.method, meta.notImplemented, NOT_YET ],
+    GetRtti: [ meta.blue.method, meta.notImplemented, NOT_YET ]
   }
 });

@@ -1,7 +1,7 @@
 import { INotify } from "../../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodCycling.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.js";
 
 // Carbon BELIST_LOADING (blueexposure IList.h:50): list events raised while a
@@ -9,8 +9,8 @@ import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.j
 const BELIST_LOADING = 0x10;
 
 /** EveProceduralMethodCycling (eve/child/procedural/selection) - generated from schema shapeHash 2014815d.... */
-@type.define({ className: "EveProceduralMethodCycling", family: "eve/child/procedural/selection" })
-@carbon.inherit(INotify)
+@meta.define({ className: "EveProceduralMethodCycling", family: "eve/child/procedural/selection" })
+@meta.blue.inherit(INotify)
 export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
 {
 
@@ -22,40 +22,40 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
   _startTime = 0;
 
   /** m_parameters (PEveProceduralMethodCyclingParameterVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveProceduralMethodCyclingParameter")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveProceduralMethodCyclingParameter")
   parameters = [];
 
   /** m_debugVolumes (PIEveVolumeVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("IEveVolume")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("IEveVolume")
   debugVolumes = [];
 
   /** m_startTimeOffset (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   startTimeOffset = 0;
 
   /** m_randomizeOrder (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   randomizeOrder = false;
 
   /** m_selectedChildIndex (int) [READ] */
-  @edit.read
-  @type.int32
+  @meta.blue.read
+  @meta.type.int32
   selectedChild = -1;
 
   /** Carbon method restart -> SelectParameter (MAP_METHOD_AND_WRAP,
    * cpp:36-60): randomized order picks any OTHER index (the shifted draw);
    * otherwise a plain cycle. Math.random replaces Carbon's unseeded rand(). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("An optional timestamp provides Carbon's current-frame clock deterministically in browser tests.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("An optional timestamp provides Carbon's current-frame clock deterministically in browser tests.")
   restart(timestamp = Date.now() / 1000)
   {
     const count = this.parameters.length;
@@ -85,8 +85,8 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
 
   /** Carbon EveProceduralMethodCycling::OnModified (cpp:23-26) is an
    * intentional no-op notify. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnModified(_value = null)
   {
     return true;
@@ -94,9 +94,9 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
 
   /** Carbon EveProceduralMethodCycling::OnListModified (cpp:28-34): a
    * non-loading change to the parameter list reselects. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The list argument defaults to the parameters list; the reselect uses restart's default wall clock (no frame context reaches list notifies).")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("The list argument defaults to the parameters list; the reselect uses restart's default wall clock (no frame context reaches list notifies).")
   OnListModified(event = 0, _key = 0, _key2 = 0, _value = null, list = null)
   {
     if ((list === null || list === this.parameters) && (event & BELIST_LOADING) === 0)
@@ -107,8 +107,8 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
 
   /** Carbon EveProceduralMethodCycling::IsSelectedChildModified
    * (cpp:62-65). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsSelectedChildModified()
   {
     return this._selectedChildModified;
@@ -118,8 +118,8 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
    * bounds-check the index, clear the modified flag, then hand out the
    * parameter's child ref after loading it - only when it carries a res
    * path. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetSelectedChild()
   {
     if (this.selectedChild < 0 || this.selectedChild > this.parameters.length - 1)
@@ -146,9 +146,9 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
    * reselect when no valid index exists or the current parameter's play
    * duration has elapsed on the frame clock (BeOS GetCurrentFrameTime maps to
    * the update context time, falling back to restart's wall-clock default). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The BeOS frame clock arrives via the duck-typed update context time; both restart and the elapsed check share the same value per call.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("The BeOS frame clock arrives via the duck-typed update context time; both restart and the elapsed check share the same value per call.")
   UpdateAsyncronous(updateContext, _params)
   {
     const now = Number(updateContext?.GetTime?.() ?? updateContext?.currentTime ?? Date.now() / 1000);
@@ -171,8 +171,8 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
   }
 
   /** Carbon returns the owned volume vector by reference (cpp:108-111). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetDebugVolumes()
   {
     return this.debugVolumes;
@@ -181,4 +181,4 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
 }
 
 // Exact native Blue exposure: only these identities participate in loading.
-carbon.interfaceTable({ interfaces: [EveProceduralMethodCycling, IEveProceduralSelectionMethod, INotify], chainTo: null })(EveProceduralMethodCycling, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveProceduralMethodCycling, IEveProceduralSelectionMethod, INotify], chainTo: null })(EveProceduralMethodCycling, { kind: "class" });

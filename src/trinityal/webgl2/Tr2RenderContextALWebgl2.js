@@ -46,7 +46,7 @@ import { Tr2TextureAL } from "../Tr2TextureAL/index.js";
 // indirect draws and compute refuse; the coverage-discard mode is kept but no
 // shader reads it yet.
 
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { CompareFunc, CullMode, FillMode, HasFlag, PixelFormat, RenderState, ShaderType, Topology, Tr2GpuUsage, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
 import { float32FromBits } from "#utils/bytes";
 import { ALResult, Failed } from "../ALResult.js";
@@ -328,7 +328,7 @@ export class Tr2RenderContextALWebgl2
    *
    * @returns {WebGL2RenderingContext|null} The context.
    */
-  @impl.custom
+  @meta.ours
   GetWebgl2()
   {
     return this._gl;
@@ -375,7 +375,7 @@ export class Tr2RenderContextALWebgl2
    * @param {object} [presentParameters] `{ mode: { width, height } }`.
    * @returns {number} An `ALResult` value.
    */
-  @impl.adapted
+  @meta.adapted
   CreateDevice(presentParameters = null)
   {
     const gl = this._gl;
@@ -489,7 +489,7 @@ export class Tr2RenderContextALWebgl2
    * @param {boolean} [implementationOnly] Whether the handle is asking.
    * @returns {object|null} The set, `{ result, implementation }`, or null.
    */
-  @impl.custom
+  @meta.ours
   CreateResourceSet(description, program, implementationOnly = false)
   {
     if (implementationOnly)
@@ -577,7 +577,7 @@ export class Tr2RenderContextALWebgl2
    * @param {object} presentParameters `{ mode: { width, height } }`.
    * @returns {number} An `ALResult` value.
    */
-  @impl.adapted
+  @meta.adapted
   SetPresentParameters(presentParameters)
   {
     if (!presentParameters || !presentParameters.mode) return ALResult.E_INVALIDARG;
@@ -663,7 +663,7 @@ export class Tr2RenderContextALWebgl2
    *
    * @returns {number} An `ALResult`: whether the frame was shown.
    */
-  @impl.adapted
+  @meta.adapted
   Present()
   {
     if (!this.IsValid()) return ALResult.E_FAIL;
@@ -956,7 +956,7 @@ export class Tr2RenderContextALWebgl2
    *
    * @param {boolean} enable Whether depth is read-only.
    */
-  @impl.adapted
+  @meta.adapted
   SetReadOnlyDepth(enable)
   {
     if (this._readOnlyDepth === Boolean(enable)) return;
@@ -975,7 +975,7 @@ export class Tr2RenderContextALWebgl2
    *
    * @param {number} changedSlot The slot that changed, or `MAX_RENDER_TARGET` for depth.
    */
-  @impl.adapted
+  @meta.adapted
   _SetRtDsToDevice(changedSlot)
   {
     const gl = this._gl;
@@ -1064,7 +1064,7 @@ export class Tr2RenderContextALWebgl2
    *
    * @param {number} mode 0, 1 or 2.
    */
-  @impl.custom
+  @meta.ours
   SetCoverageDiscard(mode)
   {
     this._coverageDiscard = mode >>> 0;
@@ -1118,7 +1118,7 @@ export class Tr2RenderContextALWebgl2
    * @param {object} [options] `{ color, depth, stencil, clearColor, clearDepth, clearStencil, slot }`.
    * @returns {number} `S_OK`.
    */
-  @impl.adapted
+  @meta.adapted
   Clear(options = {})
   {
     if (!this._isValid) return ALResult.E_FAIL;
@@ -1290,7 +1290,7 @@ export class Tr2RenderContextALWebgl2
    * @param {number} registerIndex The constant-buffer register.
    * @returns {number} An `ALResult` value.
    */
-  @impl.adapted
+  @meta.adapted
   SetConstants(buffer, constantType, registerIndex, _unusedArgument = 0)
   {
     if (constantType < 0 || constantType >= ShaderType.SHADER_TYPE_COUNT || registerIndex >= CB_SLOT_COUNT) return ALResult.E_INVALIDARG;
@@ -1349,7 +1349,7 @@ export class Tr2RenderContextALWebgl2
    * @param {number} startInstance Added to every instanced stream's offset.
    * @returns {boolean} Whether the draw can proceed.
    */
-  @impl.custom
+  @meta.ours
   _ApplyDrawBindings(baseVertex, startInstance)
   {
     const gl = this._gl;
@@ -1515,7 +1515,7 @@ export class Tr2RenderContextALWebgl2
    * @param {object} [overrides] `{ invertedDepthTest, invertedCullMode, wireframe }`.
    * @returns {number} An `ALResult` value; `S_OK` for no setup, as dx11 answers a null list.
    */
-  @impl.adapted
+  @meta.adapted
   SetRenderStates(setup, overrides = null)
   {
     if (!setup) return ALResult.S_OK;
@@ -1656,7 +1656,7 @@ export class Tr2RenderContextALWebgl2
    *
    * @returns {boolean} False when a factor has no WebGL2 equivalent.
    */
-  @impl.adapted
+  @meta.adapted
   ApplyBlendState()
   {
     if (!this._dirty.blend) return true;
@@ -1695,7 +1695,7 @@ export class Tr2RenderContextALWebgl2
    *
    * @returns {boolean} True.
    */
-  @impl.adapted
+  @meta.adapted
   ApplyDepthStencilState()
   {
     if (!this._dirty.depthStencil) return true;
@@ -1737,7 +1737,7 @@ export class Tr2RenderContextALWebgl2
    * @returns {boolean} False for a fill mode other than solid, which WebGL2
    *   cannot rasterize.
    */
-  @impl.adapted
+  @meta.adapted
   ApplyRasterizerState()
   {
     if (!this._dirty.rasterizer) return true;
@@ -1783,7 +1783,7 @@ export class Tr2RenderContextALWebgl2
    * (`:960-969`). sRGB writes change nothing here, so only read-only depth
    * can rebind the targets.
    */
-  @impl.adapted
+  @meta.adapted
   ApplyReadOnlyDepth()
   {
     if (this._readOnlyDepth === this._isDepthReadOnly) return;
@@ -1800,7 +1800,7 @@ export class Tr2RenderContextALWebgl2
    *
    * @returns {boolean} Whether the draw can proceed.
    */
-  @impl.adapted
+  @meta.adapted
   ApplyShadowRenderStates()
   {
     if (!this._isValid) return false;
@@ -1963,7 +1963,7 @@ export class Tr2RenderContextALWebgl2
    *
    * @returns {number} `E_FAIL`.
    */
-  @impl.adapted
+  @meta.adapted
   DrawIndexedInstancedIndirect(_params, _offset)
   {
     return ALResult.E_FAIL;
@@ -1974,7 +1974,7 @@ export class Tr2RenderContextALWebgl2
    *
    * @returns {number} `E_FAIL`.
    */
-  @impl.adapted
+  @meta.adapted
   DrawInstancedIndirect(_params, _offset)
   {
     return ALResult.E_FAIL;

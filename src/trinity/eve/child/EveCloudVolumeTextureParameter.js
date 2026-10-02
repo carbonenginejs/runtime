@@ -7,29 +7,29 @@
 // CopyToResourceSet (cpp:415-433) is deliberately NOT here: it is
 // Tr2ResourceSetDescriptionAL/Tr2TextureAL device work and stays with the
 // engine lane.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { CjsParameter } from "../../shader/parameter/CjsParameter.js";
 
 /** Binds an editable cloud volume to a named effect texture parameter and records whether the effect consumes it. */
-@type.define({ className: "EveCloudVolumeTextureParameter", family: "eve/child", purpose: "Binds an editable cloud volume to a named effect texture parameter and records whether the effect consumes it." })
+@meta.define({ className: "EveCloudVolumeTextureParameter", family: "eve/child", purpose: "Binds an editable cloud volume to a named effect texture parameter and records whether the effect consumes it." })
 export class EveCloudVolumeTextureParameter
 {
 
   /** m_volume (EveCloudEditableVolumePtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("EveCloudEditableVolume")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("EveCloudEditableVolume")
   volume = null;
 
   /** m_isUsedByEffect (bool) [READ] */
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   isUsedByEffect = false;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /**
@@ -39,17 +39,17 @@ export class EveCloudVolumeTextureParameter
    * per-object id on first hash - same object, same hash, for the life of
    * the process, which is exactly what the pointer bought Carbon.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon hashes the volume pointer's bytes; the parameter library's identity hash gives the same same-object-same-hash contract.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon hashes the volume pointer's bytes; the parameter library's identity hash gives the same same-object-same-hash contract.")
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
   {
     return CjsParameter.hashFnv1Identity(this.volume, startingHash);
   }
 
   /** Carbon GetParameterName (cpp:394-397). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetParameterName()
   {
     return this.name;
@@ -63,8 +63,8 @@ export class EveCloudVolumeTextureParameter
    * TriTextureParameter convention (donor checks resources only, not
    * constants).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RebuildEffectHandles(effectRes)
   {
     this.isUsedByEffect = false;

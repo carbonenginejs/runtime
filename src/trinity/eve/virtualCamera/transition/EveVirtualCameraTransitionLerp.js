@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraTransition.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraTransition.cpp
 import { vec3 } from "#math/vec3";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
 import { EveVirtualCameraTransitionBase } from "./EveVirtualCameraTransitionBase.js";
 
@@ -10,15 +10,15 @@ import { EveVirtualCameraTransitionBase } from "./EveVirtualCameraTransitionBase
  * Transition that blends position, point of interest, field of view and roll
  * from the source camera to the target camera over a fixed duration.
  */
-@type.define({
+@meta.define({
   className: "EveVirtualCameraTransitionLerp",
   family: "eve/virtualCamera/transition"
 })
 export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBase
 {
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   tansitionTime = 1;
 
   _localTime = 0;
@@ -40,8 +40,8 @@ export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBa
    * Reports whether the elapsed blend time has passed the configured transition
    * time.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsComplete()
   {
     return this._localTime > this.tansitionTime;
@@ -52,8 +52,8 @@ export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBa
    * transition time, so its own timeline reaches zero exactly as the blend
    * finishes.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Play()
   {
     this._localTime = 0;
@@ -70,8 +70,8 @@ export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBa
    * the source and target transforms interpolated by the transition curve,
    * clamped to 0..1; a zero transition time jumps straight to the target.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(deltaTime)
   {
     this._localTime += deltaTime;
@@ -96,8 +96,8 @@ export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBa
    * Returns the blend duration in seconds; the backing field keeps Carbon's
    * misspelled attribute name "tansitionTime" so persisted data round-trips.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetTransitionTime()
   {
     return this.tansitionTime;
@@ -107,8 +107,8 @@ export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBa
    * Sets the blend duration in seconds; the camera system calls this before
    * playing the transition.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetTransitionTime(value)
   {
     this.tansitionTime = value;

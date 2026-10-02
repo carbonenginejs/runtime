@@ -5,71 +5,71 @@ import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 
 /**
  * One authored spotlight: its bone attachment, placement matrix, the separate
  * cone, flare and sprite colours drawn for it, and whether booster gain
  * modulates it.
  */
-@type.define({ className: "EveSpotlightSetItem", family: "eve/attachment/spotlights" })
+@meta.define({ className: "EveSpotlightSetItem", family: "eve/attachment/spotlights" })
 export class EveSpotlightSetItem
 {
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   boneIndex = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   coneColor = vec4.fromValues(1, 1, 1, 1);
 
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   flareColor = vec4.fromValues(1, 1, 1, 1);
 
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   spriteColor = vec4.fromValues(1, 1, 1, 1);
 
-  @edit.readwrite
-  @edit.persist
-  @type.mat4
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.mat4
   transform = mat4.create();
 
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   spriteScale = vec3.fromValues(1, 1, 1);
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   boosterGainInfluence = false;
 
   /**
    * Fills the caller-owned out box with the spotlight's unit box transformed by
    * its authored placement matrix.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied box3.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied box3.")
   GetBounds(out)
   {
     return box3.transformMat4(out, EveSpotlightSetItem._bounds, this.transform);
   }
 
   /** The parent bone this spotlight rides. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBoneIndex()
   {
     return this.boneIndex;

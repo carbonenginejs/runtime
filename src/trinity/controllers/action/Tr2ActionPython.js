@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPython_Blue.cpp
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { ITr2Updateable } from "../../core/ITr2Updateable.js";
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { blue, TimeAsFloat, INotify, IInitialize, ICustomPersist } from "#blue";
 import { ContinueOnMainThread } from "../../core/continueOnMainThread.js";
 
@@ -24,7 +24,7 @@ import { ContinueOnMainThread } from "../../core/continueOnMainThread.js";
   className: "Tr2ActionPython",
   family: "controllers"
 })
-@meta.carbon.inherit(ITr2Updateable, INotify, IInitialize, ICustomPersist)
+@meta.blue.inherit(ITr2Updateable, INotify, IInitialize, ICustomPersist)
 export class Tr2ActionPython extends ITr2ControllerAction
 {
   static _factory = null;
@@ -36,7 +36,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @param {Function|null} factory Host instance factory.
    * @returns {Function|null} Previous factory.
    */
-  @meta.impl.custom
+  @meta.ours
   static registerFactory(factory)
   {
     const previous = this._factory;
@@ -47,7 +47,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
   /** Clears the injected JavaScript factory; existing instances remain alive.
    * Custom: host registration has no native Python-import counterpart.
    */
-  @meta.impl.custom
+  @meta.ours
   static clearFactory()
   {
     this._factory = null;
@@ -62,7 +62,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @param {Tr2ActionPython} action Requesting action.
    * @returns {object|null} The factory result, or null when unavailable.
    */
-  @meta.impl.custom
+  @meta.ours
   static createInstance(moduleName, className, action)
   {
     if (!moduleName || !className || !this._factory)
@@ -79,7 +79,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @param {*} value Host persistence output.
    * @returns {Uint8Array|null} An independent byte buffer, or null.
    */
-  @meta.impl.custom
+  @meta.ours
   static stateToBytes(value)
   {
     if (value == null)
@@ -111,20 +111,20 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * Native Python module import path, forwarded to the registered JavaScript action factory.
    * @type {string}
    */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   module = "";
 
   /**
    * Implementation class name passed with module to the registered action factory.
    * @type {string}
    */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   className = "";
 
   /**
@@ -133,8 +133,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * Keeping this field does not make DictWriter call OnSave automatically.
    * @type {Uint8Array}
    */
-  @meta.edit.persistOnly
-  @types.typedArray("Uint8Array")
+  @meta.blue.persistOnly
+  @meta.type.typedArray("Uint8Array")
   state = new Uint8Array(0);
 
   _controller = null;
@@ -155,8 +155,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * state. Native Initialize instantiates Python but has no ordinary state field.
    * @returns {boolean} True after successful initialization.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Initialize()
   {
     this._ensureInstance();
@@ -171,8 +171,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @param {string} propertyName Modified authored member name.
    * @returns {boolean} True after successful notification.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnModified(propertyName)
   {
     if (propertyName !== "module" && propertyName !== "className") return true;
@@ -206,8 +206,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * up dynamically rather than captured in a native callable-only VTable.
    * @param {ITr2ActionController} controller The linked controller.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Link(controller)
   {
     this._controller = controller;
@@ -220,8 +220,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * Adapted: clears linkage before invoking the optional JS hook; host errors
    * propagate instead of native BlueScriptCallback exception handling.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Unlink()
   {
     this._controller = null;
@@ -237,8 +237,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * native callback table. Host errors can abort the queue's current batch.
    * @param {ITr2ActionController} [controller] Invoking or linked controller.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Start(controller = this._controller)
   {
     if (!controller)
@@ -271,8 +271,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * are retained; host errors propagate from the queue instead of native reporting.
    * @param {ITr2ActionController} [controller] Invoking or linked controller.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Stop(controller = this._controller)
   {
     if (!controller)
@@ -302,8 +302,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @param {number} realTime Actual time in Blue ticks.
    * @param {number} simTime Simulation time in Blue ticks.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(realTime, simTime)
   {
     const controller = this._controller;
@@ -328,8 +328,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * Adapted: returns a JavaScript host object instead of native BluePy.
    * @returns {object|null} The cached host instance.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetInstance()
   {
     return this._instance;
@@ -343,8 +343,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @param {string} [_memberName="state"] Ignored native member selector.
    * @returns {Uint8Array|null} Copied host bytes, or null.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetWriteBufferAndSize(_memberName = "state")
   {
     const bytes = Tr2ActionPython.stateToBytes(this._instance?.OnSave?.());
@@ -360,8 +360,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * Adapted: JavaScript owns the returned byte buffer; no delete[] is required.
    * @param {Uint8Array} _buffer Caller-owned buffer.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   ReleaseWriteBuffer(_buffer)
   {
   }
@@ -373,8 +373,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @param {number} bufferSize Requested byte count.
    * @returns {Uint8Array} New zero-filled read buffer.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   AllocateReadBuffer(_memberName, bufferSize)
   {
     return new Uint8Array(bufferSize);
@@ -388,8 +388,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @param {Uint8Array} buffer Input bytes.
    * @param {number} [bufferSize=buffer.byteLength] Number of bytes to copy.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetBufferAndSize(_memberName, buffer, bufferSize = buffer.byteLength)
   {
     this.state = buffer.slice(0, bufferSize);
@@ -404,7 +404,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * callable-only VTable. Empty state skips OnLoad; hook errors remain visible.
    * @returns {object|null} The cached host instance.
    */
-  @meta.impl.custom
+  @meta.ours
   _ensureInstance()
   {
     if (!this._instance)
@@ -421,7 +421,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionPython_Blue.cpp:12-17,24).
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [Tr2ActionPython, ITr2ControllerAction, ITr2Updateable, INotify, IInitialize, ICustomPersist],
   chainTo: null
 })(Tr2ActionPython);

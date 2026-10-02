@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveHazeSet.cpp
 import { DictReader } from "#blue/DictReader";
 import { mat4 } from "#math/mat4";
-import { lifecycle, type } from "#schema";
+import { meta } from "#schema";
 import { CjsLightData } from "../../lights/CjsLightData.js";
 
 
@@ -10,26 +10,26 @@ import { CjsLightData } from "../../lights/CjsLightData.js";
  * The light one haze item contributes, carrying its booster-gain influence flag,
  * light profile and the bone matrix resolved for it each frame.
  */
-@type.define({ className: "EveHazeSetLight", family: "eve/attachment/haze" })
+@meta.define({ className: "EveHazeSetLight", family: "eve/attachment/haze" })
 export class EveHazeSetLight
 {
-  @lifecycle.owned
-  @type.struct("CjsLightData")
+  @meta.owned
+  @meta.type.struct("CjsLightData")
   lightData = new CjsLightData();
 
-  @type.objectRef("Tr2LightProfileRes")
+  @meta.type.objectRef("Tr2LightProfileRes")
   lightProfile = null;
 
-  @type.uint32
+  @meta.type.uint32
   index = 0;
 
-  @type.boolean
+  @meta.type.boolean
   boosterGainInfluence = false;
 
-  @type.mat4
+  @meta.type.mat4
   boneMatrix = mat4.create();
 
-  @type.string
+  @meta.type.string
   lightProfilePath = "";
 
   /**

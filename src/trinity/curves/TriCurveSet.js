@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/TriCurveSet.cpp
 // Source: trinity/trinity/Curves/TriCurveSet_Blue.cpp
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { CjsScriptCallback, IInitialize, ISimTimeRebaseNotify, blue, TimeAsDouble, BlueList } from "#blue";
 import { ITriFunction } from "../../global/blue/ITriFunction.js";
 import { ITriCurveLength } from "../../global/blue/ITriCurveLength.js";
@@ -22,72 +22,72 @@ import { mappedInterfaces } from "../../global/compose/interface.js";
   className: "TriCurveSet",
   family: "curves"
 })
-@meta.carbon.inherit(ITr2Updateable, ISimTimeRebaseNotify)
+@meta.blue.inherit(ITr2Updateable, ISimTimeRebaseNotify)
 export class TriCurveSet extends IInitialize
 {
   /** Authored curve-set name. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** Functions sampled in stored order before bindings are copied. */
-  @meta.edit.read
-  @meta.edit.persist
-  @types.list("ITriFunction")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITriFunction")
   curves = new BlueList(ITriFunction, { className: null, listOps: 0 });
 
   /** Bindings copied after all function samples. */
-  @meta.edit.read
-  @meta.edit.persist
-  @types.list("ITr2ValueBinding")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITr2ValueBinding")
   bindings = new BlueList(ITr2ValueBinding, { className: null, listOps: 0 });
 
   /** Optional owner of the source-time conversion. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.objectRef("ICurveSetDriver")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("ICurveSetDriver")
   driver = null;
 
   /** Named playback intervals in scaled seconds. */
-  @meta.edit.read
-  @meta.edit.persist
-  @types.list("Tr2CurveSetRange")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2CurveSetRange")
   ranges = new BlueList(Tr2CurveSetRange, { className: "Tr2CurveSetRange", listOps: 0 });
 
   /** Multiplier applied to each source-time delta. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   scale = 1;
 
   /** Whether Initialize starts playback. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   playOnLoad = true;
 
   /** Whether updates sample functions and copy bindings. */
-  @meta.edit.read
-  @types.boolean
+  @meta.blue.read
+  @meta.type.boolean
   isPlaying = false;
 
   /** Current scaled sample time in seconds. */
-  @meta.edit.readwrite
-  @types.float64
+  @meta.blue.readwrite
+  @meta.type.float64
   scaledTime = 0;
 
   /** Whether initialization requests simulation-clock rebasing. */
-  @meta.edit.notify
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   useSimTimeRebase = false;
 
   /** Whether the two-clock Update overload selects real time. */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   useRealTime = false;
 
   _stopOnNextFrame = false;
@@ -122,8 +122,8 @@ export class TriCurveSet extends IInitialize
    * @param {object|null} [renderContext=null] Rendering context forwarded to curves.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Update(time, simTime, renderContext = null)
   {
     const selectedTime = simTime === undefined ? time : TimeAsDouble(this.useRealTime ? time : simTime);
@@ -136,8 +136,8 @@ export class TriCurveSet extends IInitialize
    * @param {number} newTime New simulation time in Blue ticks.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnSimClockRebase(oldTime, newTime)
   {
     const diff = TimeAsDouble(newTime - oldTime);
@@ -155,7 +155,7 @@ export class TriCurveSet extends IInitialize
    * @param {object|null} [renderContext=null] Active rendering context.
    * @returns {void}
    */
-  @meta.impl.custom
+  @meta.ours
   UpdateAt(time, renderContext = null)
   {
     if (this.driver)
@@ -197,8 +197,8 @@ export class TriCurveSet extends IInitialize
    * @param {object|null} [renderContext=null] Active rendering context forwarded to functions.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Apply(renderContext = null)
   {
     for (const curve of this.curves)
@@ -217,8 +217,8 @@ export class TriCurveSet extends IInitialize
    * @param {object|null} [renderContext=null] Active rendering context.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ApplyTime(time, renderContext = null)
   {
     this.scaledTime = time;
@@ -230,8 +230,8 @@ export class TriCurveSet extends IInitialize
    * Adapted: repeated reader/copy initialization acquires at most one OS subscription; Dispose releases that owner because JavaScript has no deterministic destructor. The current OS retains listeners but does not dispatch rebases.
    * @returns {boolean} True after playback initialization.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Initialize()
   {
     if (this.playOnLoad)
@@ -252,8 +252,8 @@ export class TriCurveSet extends IInitialize
    * Plays from the start.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Play()
   {
     this.PlayFrom(0);
@@ -264,8 +264,8 @@ export class TriCurveSet extends IInitialize
    * @param {string} name Authored range name.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PlayTimeRange(name)
   {
     const range = this.ranges.find(item => item.name === name);
@@ -282,8 +282,8 @@ export class TriCurveSet extends IInitialize
    * @param {number} time Initial scaled sample time in seconds.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PlayFrom(time)
   {
     this._startTime = -1;
@@ -302,8 +302,8 @@ export class TriCurveSet extends IInitialize
    * Stops playback.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Stop()
   {
     this.isPlaying = false;
@@ -313,8 +313,8 @@ export class TriCurveSet extends IInitialize
    * Stops playback after the next update.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   StopOnNextFrame()
   {
     this._stopOnNextFrame = true;
@@ -325,8 +325,8 @@ export class TriCurveSet extends IInitialize
    * @param {number} seconds Delay measured on the source timeline.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   StopAfter(seconds)
   {
     this._endTime = -seconds;
@@ -346,8 +346,8 @@ export class TriCurveSet extends IInitialize
    * @param {CjsScriptCallback|Function|object|null} callback Callback copied into the owned slot.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   StopAfterWithCallback(seconds, callback)
   {
     this.StopAfter(seconds);
@@ -358,8 +358,8 @@ export class TriCurveSet extends IInitialize
    * Gets the time scale.
    * @returns {number} Authored time multiplier.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetTimeScale()
   {
     return this.scale;
@@ -369,8 +369,8 @@ export class TriCurveSet extends IInitialize
    * Gets the current scaled time.
    * @returns {number} Current sample time in seconds.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetScaledTime()
   {
     return this.scaledTime;
@@ -381,8 +381,8 @@ export class TriCurveSet extends IInitialize
    * @param {string} name Authored curve-set name.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetName(name)
   {
     this.name = name;
@@ -392,8 +392,8 @@ export class TriCurveSet extends IInitialize
    * Gets the authored curve-set name.
    * @returns {string} Authored curve-set name.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetName()
   {
     return this.name;
@@ -403,8 +403,8 @@ export class TriCurveSet extends IInitialize
    * Gets the number of curves.
    * @returns {number} Number of stored functions.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetCurvesCount()
   {
     return this.curves.length;
@@ -415,8 +415,8 @@ export class TriCurveSet extends IInitialize
    * @param {number} index Stored function index.
    * @returns {ITriFunction} Stored function.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetCurve(index)
   {
     return this.curves[index];
@@ -427,8 +427,8 @@ export class TriCurveSet extends IInitialize
    * @param {ITriFunction} curve Function to append.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddCurve(curve)
   {
     this.curves.Append(curve);
@@ -438,8 +438,8 @@ export class TriCurveSet extends IInitialize
    * Gets the number of bindings.
    * @returns {number} Number of stored bindings.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBindingsCount()
   {
     return this.bindings.length;
@@ -450,8 +450,8 @@ export class TriCurveSet extends IInitialize
    * @param {number} index Stored binding index.
    * @returns {ITr2ValueBinding} Stored binding.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBinding(index)
   {
     return this.bindings[index];
@@ -462,8 +462,8 @@ export class TriCurveSet extends IInitialize
    * @param {ITr2ValueBinding} binding Binding to append.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddBinding(binding)
   {
     this.bindings.Append(binding);
@@ -474,8 +474,8 @@ export class TriCurveSet extends IInitialize
    * Adapted: native BlueCastPtr checks the exact exposure table, with ITriDuration before ITriCurveLength; JavaScript keeps the same object identity for either interface.
    * @returns {number} Greatest reported duration, or zero.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetMaxCurveDuration()
   {
     let maxDuration = 0;
@@ -497,8 +497,8 @@ export class TriCurveSet extends IInitialize
    * @param {string} rangeName Authored interval name.
    * @returns {number} End minus start, or zero when absent.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetRangeDuration(rangeName)
   {
     const range = this.ranges.find(item => item.name === rangeName);
@@ -509,8 +509,8 @@ export class TriCurveSet extends IInitialize
    * Gets whether playback is active.
    * @returns {boolean} Whether playback is active.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsPlaying()
   {
     return this.isPlaying;
@@ -522,8 +522,8 @@ export class TriCurveSet extends IInitialize
    * @param {number} [time] Source time in seconds.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateWithCurrentTime(time = Date.now() / 1000)
   {
     this.Update(time);
@@ -536,8 +536,8 @@ export class TriCurveSet extends IInitialize
    * @param {boolean} [looped=true] Whether the interval wraps.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetTimeRange(timeMin, timeMax, looped = true)
   {
     this._hasTimeRange = true;
@@ -550,8 +550,8 @@ export class TriCurveSet extends IInitialize
    * Clears the temporary scaled-time range.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ResetTimeRange()
   {
     this._hasTimeRange = false;
@@ -563,8 +563,8 @@ export class TriCurveSet extends IInitialize
    * Gets whether a temporary scaled-time range is active.
    * @returns {boolean} Whether an interval is active.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HasTimeRange()
   {
     return this._hasTimeRange;
@@ -574,8 +574,8 @@ export class TriCurveSet extends IInitialize
    * Gets the active temporary scaled-time range.
    * @returns {Array<number>} New pair of active interval endpoints.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetTimeRange()
   {
     return [this._timeRangeMin, this._timeRangeMax];
@@ -586,7 +586,7 @@ export class TriCurveSet extends IInitialize
    * Custom: exposes the native registration-state member for runtime inspection.
    * @returns {boolean} Whether rebasing was requested during initialization.
    */
-  @meta.impl.custom
+  @meta.ours
   IsUsingSimTimeRebase()
   {
     return this._isUsingSimTimeRebase;
@@ -599,7 +599,7 @@ export class TriCurveSet extends IInitialize
    * Custom: extracts the native scalar Update interval calculation.
    * @returns {void}
    */
-  @meta.impl.custom
+  @meta.ours
   ApplyTimeRange()
   {
     if (!this._hasTimeRange)
@@ -633,7 +633,7 @@ export class TriCurveSet extends IInitialize
    * stops; Carbon's BlueScriptCallbackStatus reports without throwing.
    * @returns {void}
    */
-  @meta.impl.custom
+  @meta.ours
   CallStopCallback()
   {
     if (!this._callback.IsValid())
@@ -659,7 +659,7 @@ export class TriCurveSet extends IInitialize
    * stop and PlayFrom paths.
    * @returns {void}
    */
-  @meta.impl.custom
+  @meta.ours
   DestroyStopCallback()
   {
     this._callback.Destroy();
@@ -672,7 +672,7 @@ export class TriCurveSet extends IInitialize
    * end its lifetime because the set may be shared or played again.
    * @returns {void}
    */
-  @meta.impl.custom
+  @meta.ours
   Dispose()
   {
     if (this._isUsingSimTimeRebase)
@@ -687,7 +687,7 @@ export class TriCurveSet extends IInitialize
 }
 
 // Native exposure omits nominal ISimTimeRebaseNotify and has no parent chain.
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [TriCurveSet, IInitialize, ITr2Updateable],
   chainTo: null
 })(TriCurveSet, { kind: "class" });

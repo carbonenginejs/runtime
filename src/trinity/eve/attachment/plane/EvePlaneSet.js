@@ -6,7 +6,7 @@ import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { box3 } from "#math/box3";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { mat4 } from "#math/mat4";
-import { CjsSchema, carbon, edit, impl, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { TriTextureRes } from "#resource";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EvePlaneLight } from "./EvePlaneLight.js";
@@ -52,76 +52,76 @@ const PLANE_VERTEX_SIZE = 108;
  * A hull's authored textured planes, owning their static and per-bone bounds,
  * the four shared texture parameters and the plane lights.
  */
-@type.define({ className: "EvePlaneSet", family: "eve/attachment/planes" })
-@carbon.inherit(IInitialize, INotify)
+@meta.define({ className: "EvePlaneSet", family: "eve/attachment/planes" })
+@meta.blue.inherit(IInitialize, INotify)
 export class EvePlaneSet extends IEveSpaceObjectAttachment
 {
   /** Carbon EvePlaneSet.cpp:116: only the pick buffer change rebuilds. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JS identifies Carbon's changed member address by its exposed property name.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JS identifies Carbon's changed member address by its exposed property name.")
   OnModified(propertyName)
   {
     if (propertyName === "pickBufferID") this.Rebuild();
     return true;
   }
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.uint8
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint8
   pickBufferID = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   hideOnLowQuality = false;
 
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("Tr2Effect")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2Effect")
   effect = null;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   skinned = false;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   display = true;
 
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
-  @edit.read
-  @edit.persist
-  @type.list("EvePlaneSetItem")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EvePlaneSetItem")
   planes = [];
 
-  @edit.persist
-  @type.list("EvePlaneLight")
+  @meta.blue.persist
+  @meta.type.list("EvePlaneLight")
   lights = [];
 
   // SOF-authored shared texture parameters; persisted so the values
   // interchange reproduces Carbon's hidden plane-set bindings.
-  @edit.persist
-  @type.objectRef("TriTextureParameter")
+  @meta.blue.persist
+  @meta.type.objectRef("TriTextureParameter")
   imageMapParameter = null;
 
-  @edit.persist
-  @type.objectRef("TriTextureParameter")
+  @meta.blue.persist
+  @meta.type.objectRef("TriTextureParameter")
   layerMap1Parameter = null;
 
-  @edit.persist
-  @type.objectRef("TriTextureParameter")
+  @meta.blue.persist
+  @meta.type.objectRef("TriTextureParameter")
   layerMap2Parameter = null;
 
-  @edit.persist
-  @type.objectRef("TriTextureParameter")
+  @meta.blue.persist
+  @meta.type.objectRef("TriTextureParameter")
   maskMapParameter = null;
   _rebuildRevision = 0;
 
@@ -149,8 +149,8 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * skipping any plane whose colour is fully zero, which contributes nothing -
    * and marks the packed geometry stale.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Rebuild()
   {
     this._rebuildRevision++;
@@ -191,8 +191,8 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * Runs the first Rebuild so the set has bounds before its first visibility
    * test.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Initialize()
   {
     this.Rebuild();
@@ -204,8 +204,8 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * Carbon RegisterWithQuadRenderer (cpp:147-171): the key from the effect's
    * current hash, one quad per plane, additive.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     if (this.effect) this._effectHash = Number(this.effect.GetHashValue()) >>> 0;
@@ -217,8 +217,8 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * its bone when skinned and the bone exists) as its three columns, and its
    * colour times activation.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddToQuadRenderer(quadRenderer, parentTransform, activation, _boosterGain, bones, boneCount)
   {
     if (!this.display) return;
@@ -263,8 +263,8 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   static _boneScratch = mat4.create();
 
   /** Sets the effect that draws the planes. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetEffect(effect)
   {
     this.effect = effect ?? null;
@@ -275,8 +275,8 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * immediately when planes are already authored because the id is packed into
    * it.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetPickBufferID(pickBufferID)
   {
     this.pickBufferID = Number(pickBufferID) & 0xff;
@@ -285,8 +285,8 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
 
   /** Carbon EvePlaneSet::GetAabb (cpp:273-276): the item-set bounds, with the bone
    * list forwarded only when the set is skinned. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetAabb(out, bones = null, boneCount = 0)
   {
     return GetItemSetAabb(
@@ -301,8 +301,8 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   /** Carbon EvePlaneSet::UpdateVisibility (cpp:236-246): an uninitialized set is
    * NOT visible; otherwise the bounds move into world space and take the
    * frustum box test. No LOD and no display gate. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
   {
     const aabb = this.GetAabb(EvePlaneSet._aabbScratch, bones, boneCount);
@@ -319,8 +319,8 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * Sets whether the planes ride skeleton bones, which is what decides if
    * GetAabb consults the caller's bone list at all.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetIsSkinned(skinned)
   {
     this.skinned = !!skinned;
@@ -330,16 +330,16 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * Appends an authored plane item; the bounds only pick it up on the next
    * Rebuild.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AddPlaneItem(item)
   {
     this.planes.push(item);
   }
 
   /** The live plane item list, not a copy. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetPlanes()
   {
     return this.planes;
@@ -349,8 +349,8 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * Sets a shader option on the plane effect, doing nothing when no effect that
    * accepts options is attached.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetShaderOption(name, value)
   {
     if (this.effect && typeof this.effect.SetOption === "function")
@@ -363,8 +363,8 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * Sets the shared image map texture parameter; its average colour is one of
    * the four factors tinting the plane lights.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetImageMapParameter(parameter)
   {
     this.imageMapParameter = parameter ?? null;
@@ -374,8 +374,8 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * Sets the shared first layer map texture parameter; its average colour is one
    * of the four factors tinting the plane lights.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetLayerMap1Parameter(parameter)
   {
     this.layerMap1Parameter = parameter ?? null;
@@ -385,8 +385,8 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * Sets the shared second layer map texture parameter; its average colour is
    * one of the four factors tinting the plane lights.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetLayerMap2Parameter(parameter)
   {
     this.layerMap2Parameter = parameter ?? null;
@@ -396,8 +396,8 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * Sets the shared mask map texture parameter; its average colour is one of the
    * four factors tinting the plane lights.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetMaskMapParameter(parameter)
   {
     this.maskMapParameter = parameter ?? null;
@@ -407,8 +407,8 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * Converts a SOF-authored light description into an EvePlaneLight and appends
    * it to the set.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   AddLightFromSOF(light)
   {
     this.lights.push(EvePlaneLight.FromSOF(light));
@@ -416,8 +416,8 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
 
   /** Carbon EvePlaneSet::RegisterComponents (cpp:535-542): LightOwner when
    * lights are authored. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -432,8 +432,8 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * column zeroed, [15] = 1; boneMatrix *= parentTransform - Carbon
    * row-vector, bone FIRST: gl operands SWAP; else copy the parent). Stamps
    * the activation strength (boosterGain unused by planes). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateLights(parentTransform, bones, boneCount, activationStrength, _boosterGain = 0)
   {
     for (const light of this.lights)
@@ -460,7 +460,7 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   /** Carbon EvePlaneSet::GetAverageColor (cpp:499-528): the componentwise
    * product of the four texture parameters' average colors, each defaulting
    * to white when the map or its resource is missing. */
-  @carbon.method
+  @meta.blue.method
   GetAverageColor(out = new Float32Array(4))
   {
     const layer1 = EvePlaneSet._MapAverageColor(this.layerMap1Parameter);
@@ -481,9 +481,9 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * mutated - a scratch copy carries: color = authored * averageColor
    * componentwise, then Saturate (extrapolating above 1), then brightness *=
    * Fade(fadeType, ...) (cpp:558-564); point conversion on the bone matrix. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Light-profile packing follows the adapted light-manager surface.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Light-profile packing follows the adapted light-manager surface.")
   GetLights(lightManager)
   {
     const features = EvePlaneSet._features;
@@ -553,4 +553,4 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
 }
 
 // EvePlaneSet_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
-carbon.interfaceTable({ interfaces: [EvePlaneSet, IInitialize, INotify, IEveSpaceObjectAttachment, EveEntity], chainTo: null })(EvePlaneSet, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EvePlaneSet, IInitialize, INotify, IEveSpaceObjectAttachment, EveEntity], chainTo: null })(EvePlaneSet, { kind: "class" });

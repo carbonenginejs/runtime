@@ -5,7 +5,7 @@ import { vec3 } from "#math/vec3";
 import { BlueList, ITriFunction, ITriVectorFunction, IListNotify } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2FollowCurveKey } from "../ITr2FollowCurveKey.js";
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { Tr2FollowCurveKeyInterpolation } from "../enums.js";
 
 
@@ -18,16 +18,16 @@ import { Tr2FollowCurveKeyInterpolation } from "../enums.js";
   className: "Tr2FollowCurve",
   family: "curves"
 })
-@meta.carbon.inherit(IListNotify)
+@meta.blue.inherit(IListNotify)
 export class Tr2FollowCurve extends ITriVectorFunction
 {
   /**
    * Authored name identifying the follow curve.
    * @type {string}
    */
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /**
@@ -35,17 +35,17 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * removal notifications sort them by key time in seconds.
    * @type {BlueList<ITr2FollowCurveKey>}
    */
-  @meta.edit.read
-  @meta.edit.persist
-  @types.list("ITr2FollowCurveKey")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("ITr2FollowCurveKey")
   keys = new BlueList(ITr2FollowCurveKey, { className: null, listOps: 0 });
 
   /**
    * Cached three-component position from the latest UpdateValue or Update.
    * @type {Float32Array}
    */
-  @meta.edit.read
-  @types.vec3
+  @meta.blue.read
+  @meta.type.vec3
   currentValue = vec3.create();
 
   /**
@@ -97,8 +97,8 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * Updates the cached vector value for the supplied time.
    * Adapted: the existing JS vector output buffer replaces native value assignment.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateValue(time)
   {
     this.GetValue(time, this.currentValue);
@@ -109,8 +109,8 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * Adapted: retains JS time-first/output-last arguments and numeric seconds;
    * native Be::Time and double overloads share this seconds-based entry point.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(time, out)
   {
     this.UpdateValue(time);
@@ -122,8 +122,8 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * Adapted: retains JS time-first/output-last arguments, numeric seconds and
    * caller-owned vectors instead of native overloads/value returns.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValueAt(time, out)
   {
     return this.GetValue(time, out);
@@ -132,8 +132,8 @@ export class Tr2FollowCurve extends ITriVectorFunction
   /**
    * Native first-derivative no-op leaves output untouched; JS keeps time first.
    */
-  @meta.carbon.method
-  @meta.impl.noop
+  @meta.blue.method
+  @meta.noop
   GetValueDotAt(_time, out)
   {
     return out;
@@ -142,8 +142,8 @@ export class Tr2FollowCurve extends ITriVectorFunction
   /**
    * Native second-derivative no-op leaves output untouched; JS keeps time first.
    */
-  @meta.carbon.method
-  @meta.impl.noop
+  @meta.blue.method
+  @meta.noop
   GetValueDoubleDotAt(_time, out)
   {
     return out;
@@ -152,8 +152,8 @@ export class Tr2FollowCurve extends ITriVectorFunction
   /**
    * Native interpolated-position no-op leaves output untouched; JS keeps time first.
    */
-  @meta.carbon.method
-  @meta.impl.noop
+  @meta.blue.method
+  @meta.noop
   InterpolatedPosition(_time, out)
   {
     return out;
@@ -164,8 +164,8 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * Adapted: retains JS time-first/output-last arguments, numeric seconds and
    * caller-owned vectors instead of native overloads/value returns.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValue(time, out)
   {
     let currentKey = null;
@@ -194,7 +194,7 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * JS helper for native OnListModified's stable, in-place ordering.
    * Keeps the owned list and its observer; equal keys retain their stored order.
    */
-  @meta.impl.custom
+  @meta.ours
   Sort()
   {
     // Native stable_sort compares keys directly and does not notify the list.
@@ -204,8 +204,8 @@ export class Tr2FollowCurve extends ITriVectorFunction
   /**
    * Handles a Carbon list-modified notification.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnListModified(event, _key, _key2, _value, list)
   {
     if (list !== this.keys) return;
@@ -225,8 +225,8 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * Adapted: caller-owned vectors and JS Number arithmetic replace native vector
    * returns/float temporaries; direct key contract calls remain required.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetSegmentValue(out, time, k0, k1)
   {
     switch (k0.GetInterpolationType())
@@ -250,7 +250,7 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * JS helper for the native GetSegmentValue Hermite branch, using scratch
    * vectors and the existing equivalent vector Hermite helper.
    */
-  @meta.impl.custom
+  @meta.ours
   GetHermiteSegmentValue(out, time, k0, k1)
   {
     const length = k1.GetTime() - k0.GetTime();
@@ -265,7 +265,7 @@ export class Tr2FollowCurve extends ITriVectorFunction
 }
 
 // IListNotify is native C++ inheritance, deliberately absent from its QI table.
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ITriVectorFunction, ITriFunction],
   chainTo: null
 })(Tr2FollowCurve);

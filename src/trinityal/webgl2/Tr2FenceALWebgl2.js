@@ -13,7 +13,7 @@
 // (`gl.finish`), which returns once every command, the fence included, has
 // completed, and then records the fence as passed.
 
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -48,7 +48,7 @@ export class Tr2FenceALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The primary context.
    * @returns {number} An `ALResult` value.
    */
-  @impl.adapted
+  @meta.adapted
   Create(renderContext)
   {
     this._Reset();
@@ -68,7 +68,7 @@ export class Tr2FenceALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context.
    * @returns {number} An `ALResult` value.
    */
-  @impl.adapted
+  @meta.adapted
   PutFence(renderContext)
   {
     if (!this.IsValid()) return ALResult.E_INVALIDCALL;
@@ -92,7 +92,7 @@ export class Tr2FenceALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context.
    * @returns {{result: number, isReached: boolean}} dx11's out argument comes back here.
    */
-  @impl.adapted
+  @meta.adapted
   IsReached(renderContext)
   {
     if (!this.IsValid()) return { result: ALResult.E_INVALIDCALL, isReached: false };
@@ -114,7 +114,7 @@ export class Tr2FenceALWebgl2 extends Tr2DeviceResourceAL
    * @param {object} renderContext The context.
    * @returns {number} An `ALResult` value.
    */
-  @impl.adapted
+  @meta.adapted
   Wait(renderContext)
   {
     if (!this.IsValid()) return ALResult.E_INVALIDCALL;

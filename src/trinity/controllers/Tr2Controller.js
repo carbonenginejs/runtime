@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Tr2Controller.cpp
 // Source: trinity/trinity/Controllers/Tr2Controller_Blue.cpp
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { UnlinkReason } from "./enums.js";
 import { blue, BlueList, IListNotify, TimeAsDouble } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -24,40 +24,40 @@ import { Tr2ControllerEventHandler } from "./Tr2ControllerEventHandler.js";
  * bypass both, as in BlueList. Retained CjsModel child helpers notify explicitly.
  * Link binds the owner, variables and children; no Initialize contract is added.
  */
-@type.define({
+@meta.define({
   className: "Tr2Controller",
   family: "controllers"
 })
-@carbon.inherit(ITr2ActionController, IListNotify)
+@meta.blue.inherit(ITr2ActionController, IListNotify)
 export class Tr2Controller extends EveThrottleable
 {
-  @edit.read
-  @edit.persist
-  @type.list("Tr2StateMachine")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2StateMachine")
   stateMachines = new BlueList(Tr2StateMachine, { className: "Tr2StateMachine", listOps: 0 });
 
-  @edit.read
-  @edit.persist
-  @type.list("Tr2ControllerFloatVariable")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2ControllerFloatVariable")
   variables = new BlueList(Tr2ControllerFloatVariable, { className: "Tr2ControllerFloatVariable", listOps: 0 });
 
-  @edit.read
-  @edit.persist
-  @type.list("Tr2ControllerEventHandler")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("Tr2ControllerEventHandler")
   eventHandlers = new BlueList(Tr2ControllerEventHandler, { className: "Tr2ControllerEventHandler", listOps: 0 });
 
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   isPlaying = false;
 
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   isShared = false;
 
   _updateables = new Set();
@@ -98,9 +98,9 @@ export class Tr2Controller extends EveThrottleable
    * JavaScript array length remains a Number, declared uint64.
    * @returns {number} Live callback count.
    */
-  @edit.read
-  @type.uint64
-  @impl.implemented
+  @meta.blue.read
+  @meta.type.uint64
+  @meta.implemented
   get callbackCount()
   {
     return this.GetCallbackCount();
@@ -110,8 +110,8 @@ export class Tr2Controller extends EveThrottleable
    * Returns the current callback-vector size (Tr2Controller.h:63-66).
    * @returns {number} Number of registered callbacks.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetCallbackCount()
   {
     return this._callbacks.length;
@@ -128,8 +128,8 @@ export class Tr2Controller extends EveThrottleable
    * @param {IList|null} [list=null] Emitting list identity.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     if (list === this.stateMachines)
@@ -153,8 +153,8 @@ export class Tr2Controller extends EveThrottleable
    * @param {object} owner Object controlled by this instance.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Link(owner)
   {
     this.Unlink();
@@ -194,8 +194,8 @@ export class Tr2Controller extends EveThrottleable
    * @param {number} [reason=UnlinkReason.UNLINKING] Native unlink reason.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Unlink(reason = UnlinkReason.UNLINKING)
   {
     if (!this._owner)
@@ -227,8 +227,8 @@ export class Tr2Controller extends EveThrottleable
    * Relinks the current owner when linked.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ReLink()
   {
     const owner = this._owner;
@@ -242,8 +242,8 @@ export class Tr2Controller extends EveThrottleable
    * Reports whether an owner is retained.
    * @returns {boolean} Whether Link has run without a following Unlink.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsLinked()
   {
     return this._owner !== null;
@@ -253,8 +253,8 @@ export class Tr2Controller extends EveThrottleable
    * Stops any previous run, marks all variables dirty, then starts every state machine.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Start()
   {
     if (this.isPlaying)
@@ -273,8 +273,8 @@ export class Tr2Controller extends EveThrottleable
    * Stops each state machine in list order when playing.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Stop()
   {
     if (!this.isPlaying)
@@ -295,8 +295,8 @@ export class Tr2Controller extends EveThrottleable
    * @param {number} [normalizedUpdateFrequency=0.5] Normalized throttle detail.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(normalizedUpdateFrequency = 0.5)
   {
     if (!this.isPlaying)
@@ -334,8 +334,8 @@ export class Tr2Controller extends EveThrottleable
    * @param {number} value New value.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetVariable(name, value)
   {
     this.SetVariableValue(name, value);
@@ -346,8 +346,8 @@ export class Tr2Controller extends EveThrottleable
    * @param {string} eventName Authored event name.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   HandleEvent(eventName)
   {
     if (!this.isPlaying)
@@ -367,8 +367,8 @@ export class Tr2Controller extends EveThrottleable
    * Returns the current linked owner.
    * @returns {object|null} Owner, or null when unlinked.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetOwner()
   {
     return this._owner;
@@ -380,7 +380,7 @@ export class Tr2Controller extends EveThrottleable
    * Tr2Controller.h/.cpp have no GetTime method.
    * @returns {number} Last sampled frame time in seconds.
    */
-  @impl.custom
+  @meta.ours
   GetTime()
   {
     return this._time;
@@ -391,8 +391,8 @@ export class Tr2Controller extends EveThrottleable
    * @param {string} name Variable name.
    * @returns {Tr2ControllerFloatVariable|null} Matching variable or null.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetVariableByName(name)
   {
     return this.variables.find(variable => variable.GetName() === name) ?? null;
@@ -404,8 +404,8 @@ export class Tr2Controller extends EveThrottleable
    * @param {string} name Variable name.
    * @returns {number|undefined} Value, or undefined when absent.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetFloatVariableByName(name)
   {
     const variable = this.GetVariableByName(name);
@@ -420,7 +420,7 @@ export class Tr2Controller extends EveThrottleable
    * @param {*} [fallback=0] Result when the variable or its value is absent.
    * @returns {*} Variable value or fallback.
    */
-  @impl.custom
+  @meta.ours
   GetVariableValue(name, fallback = 0)
   {
     const variable = this.GetVariableByName(name);
@@ -436,7 +436,7 @@ export class Tr2Controller extends EveThrottleable
    * @param {number} value New value.
    * @returns {boolean} Whether a matching variable was found.
    */
-  @impl.custom
+  @meta.ours
   SetVariableValue(name, value)
   {
     const variable = this.GetVariableByName(name);
@@ -454,8 +454,8 @@ export class Tr2Controller extends EveThrottleable
    * @param {Array<object>} out Caller-owned term collection.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetExpressionTermInfo(out)
   {
     for (const variable of this.variables)
@@ -473,8 +473,8 @@ export class Tr2Controller extends EveThrottleable
    * Returns the owned variable list as borrowed storage.
    * @returns {BlueList} Configured variable list.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetVariables()
   {
     return this.variables;
@@ -485,8 +485,8 @@ export class Tr2Controller extends EveThrottleable
    * Adapted: JS records expose both element index and byte offset.
    * @returns {Array<object>} Borrowed variable layout records.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetVariableView()
   {
     return this._variableView;
@@ -497,8 +497,8 @@ export class Tr2Controller extends EveThrottleable
    * Adapted: Float32Array replaces the native untyped buffer pointer.
    * @returns {Float32Array} Borrowed variable storage.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetVariableBuffer()
   {
     return this._variableData;
@@ -510,8 +510,8 @@ export class Tr2Controller extends EveThrottleable
    * @param {number} size Required byte capacity.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   EnsureTempArenaSize(size)
   {
     if (this._tempArena.byteLength < size)
@@ -525,8 +525,8 @@ export class Tr2Controller extends EveThrottleable
    * Adapted: ArrayBuffer replaces the native untyped arena pointer.
    * @returns {ArrayBuffer} Borrowed scratch storage.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetTempArena()
   {
     return this._tempArena;
@@ -537,8 +537,8 @@ export class Tr2Controller extends EveThrottleable
    * Adapted: JS references and two-item arrays replace native IRoot pointers/pairs.
    * @returns {Array<Array>} Borrowed name/object pairs.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetBindingPathRoots()
   {
     if (!this._bindingPathRoots.length)
@@ -560,8 +560,8 @@ export class Tr2Controller extends EveThrottleable
    * @param {ITr2Updateable} updateable Object updated after state machines.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterUpdateable(updateable)
   {
     this._updateables.add(updateable);
@@ -572,8 +572,8 @@ export class Tr2Controller extends EveThrottleable
    * @param {ITr2Updateable} updateable Previously registered object.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UnRegisterUpdateable(updateable)
   {
     this._updateables.delete(updateable);
@@ -586,8 +586,8 @@ export class Tr2Controller extends EveThrottleable
    * @param {string} callbackName Callback name.
    * @returns {boolean} Whether a matching callback was invoked.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Callback(callbackName)
   {
     if (!this.isPlaying || !this._callbacks.length)
@@ -622,8 +622,8 @@ export class Tr2Controller extends EveThrottleable
    * @param {Function} callback Function called without arguments.
    * @returns {boolean} Always true after registration.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RegisterCallback(callbackName, callback)
   {
     this._callbacks.push({
@@ -637,8 +637,8 @@ export class Tr2Controller extends EveThrottleable
    * Clears every registered callback.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ClearCallbacks()
   {
     this._callbacks = [];
@@ -652,7 +652,7 @@ export class Tr2Controller extends EveThrottleable
    * @param {object} [extra={}] Additional expression inputs.
    * @returns {object} New context with controller, owner, state machine and time.
    */
-  @impl.custom
+  @meta.ours
   GetExpressionContext(owner = this._owner, stateMachine = null, extra = {})
   {
     return {
@@ -672,7 +672,7 @@ export class Tr2Controller extends EveThrottleable
    * @param {object|null} value Event object.
    * @returns {void}
    */
-  @impl.custom
+  @meta.ours
   _OnStateMachineListModified(event, value)
   {
     const stateMachine = value && mappedInterfaces(value.constructor).has(Tr2StateMachine) ? value : null;
@@ -708,7 +708,7 @@ export class Tr2Controller extends EveThrottleable
    * @param {object|null} value Event object.
    * @returns {void}
    */
-  @impl.custom
+  @meta.ours
   _OnEventHandlerListModified(event, value)
   {
     const handler = value && mappedInterfaces(value.constructor).has(Tr2ControllerEventHandler) ? value : null;
@@ -733,7 +733,7 @@ export class Tr2Controller extends EveThrottleable
    * @param {number} event List event flags.
    * @returns {void}
    */
-  @impl.custom
+  @meta.ours
   _OnVariableListModified(event)
   {
     const maskedEvent = event & BLUELISTEVENT.BELIST_EVENTMASK;
@@ -751,7 +751,7 @@ export class Tr2Controller extends EveThrottleable
 }
 
 // Tr2Controller_Blue.cpp:15-19,65 maps this table and chains EveThrottleable.
-carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [Tr2Controller, ITr2Controller, ITr2ActionController, IListNotify],
   chainTo: EveThrottleable
 })(Tr2Controller, { kind: "class" });

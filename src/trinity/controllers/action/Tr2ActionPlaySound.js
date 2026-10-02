@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlaySound.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlaySound.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlaySound_Blue.cpp
-import { meta, types } from "#schema";
+import { meta } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
@@ -17,30 +17,30 @@ export class Tr2ActionPlaySound extends ITr2ControllerAction
 {
   /** m_emitterName: narrow BlueSharedString emitter lookup name. */
   @meta.member("emitter")
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   emitter = "";
 
   /** m_soundEvent: narrow BlueSharedString, converted to wide text by native SendEvent. */
   @meta.member("event")
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   event = "";
 
   /** m_target: optional parameter or effect-child name. */
   @meta.member("target")
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   target = "";
 
   /** m_bypassPrefix: whether SendEvent bypasses the emitter prefix. */
   @meta.member("bypassPrefix")
-  @meta.edit.readwrite
-  @meta.edit.persist
-  @types.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   bypassPrefix = false;
 
   /**
@@ -52,8 +52,8 @@ export class Tr2ActionPlaySound extends ITr2ControllerAction
    * strings replace the native narrow-to-wide conversion, and absent owners
    * remain silent rather than emitting the native diagnostic.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Start(controller)
   {
     const owner = Tr2ActionPlaySound._resolveOwner(ITr2ControllerAction.getOwner(controller), this.target);
@@ -71,8 +71,8 @@ export class Tr2ActionPlaySound extends ITr2ControllerAction
    * timeline controllers. Native BluePythonCast accepts Tr2Controller specifically
    * (Tr2ActionPlaySound.cpp:52-61); narrowing this entry point is deferred.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   StartWithController(controller)
   {
     this.Start(ITr2ControllerAction.requireController(controller, "StartWithController"));
@@ -88,7 +88,7 @@ export class Tr2ActionPlaySound extends ITr2ControllerAction
    * lookup takes precedence over effect-child lookup. Native cast/target parity
    * requires the separate owner-contract migration.
    */
-  @meta.impl.custom
+  @meta.ours
   static _resolveOwner(owner, target)
   {
     if (!owner || !target)
@@ -108,7 +108,7 @@ export class Tr2ActionPlaySound extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionPlaySound_Blue.cpp:13-14,25).
-meta.carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [Tr2ActionPlaySound, ITr2ControllerAction],
   chainTo: null
 })(Tr2ActionPlaySound);

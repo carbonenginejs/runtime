@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Controllers/Tr2ControllerExpression.h
 // Source: trinity/trinity/Controllers/Tr2ControllerExpression.cpp
-import { CjsSchema, meta, types } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2StateMachine } from "../state/Tr2StateMachine.js";
 import { CjsControllerExpressionProgram } from "./CjsControllerExpressionProgram.js";
 
@@ -19,19 +19,19 @@ import { CjsControllerExpressionProgram } from "./CjsControllerExpressionProgram
 export class Tr2ControllerExpression
 {
   /** Compiled JavaScript parser program; not persisted. */
-  @types.rawStruct("CcpParser::Program")
+  @meta.type.rawStruct("CcpParser::Program")
   program = null;
 
   /** State-machine overload context, or null. */
-  @types.objectRef("Tr2StateMachine")
+  @meta.type.objectRef("Tr2StateMachine")
   stateMachine = null;
 
   /** Action controller whose expression buffer and owner are read. */
-  @types.objectRef("ITr2ActionController")
+  @meta.type.objectRef("ITr2ActionController")
   controller = null;
 
   /** Cached variable dirty mask used to avoid unnecessary evaluation. */
-  @types.uint64
+  @meta.type.uint64
   variableMask = 0n;
 
   /** Source text retained by the JavaScript parser adapter. */
@@ -44,8 +44,8 @@ export class Tr2ControllerExpression
    * @param {object} [functions] Extra JavaScript parser functions.
    * @returns {string} Empty on success, otherwise the compile error.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetExpr(expression, source, functions)
   {
     this.Clear();
@@ -74,8 +74,8 @@ export class Tr2ControllerExpression
    * @param {object|null} [extra=null] Additional evaluator context.
    * @returns {Array<boolean|number>} Success and numeric result.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Eval(extra = null)
   {
     if (!this.program || !this.controller)
@@ -106,8 +106,8 @@ export class Tr2ControllerExpression
    * leaves that cached mask unchanged. This existing evaluator gap is held.
    * @returns {void}
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Clear()
   {
     this.program = null;
@@ -121,8 +121,8 @@ export class Tr2ControllerExpression
    * Checks whether the expression compiled successfully.
    * @returns {boolean} Whether a valid program is retained.
    */
-  @meta.carbon.method
-  @meta.impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsExpressionValid()
   {
     return !!this.program?.IsValid();
@@ -132,8 +132,8 @@ export class Tr2ControllerExpression
    * Gets the variable dirty mask referenced by this expression.
    * @returns {bigint} Cached variable bit mask.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetVariableMask()
   {
     return this.variableMask;
@@ -144,8 +144,8 @@ export class Tr2ControllerExpression
    * @param {Array} [out=[]] Output metadata list.
    * @returns {Array} The supplied list.
    */
-  @meta.carbon.method
-  @meta.impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetExpressionTermInfo(out = [])
   {
     CjsControllerExpressionProgram.addControllerTermInfo(out);
@@ -162,7 +162,7 @@ export class Tr2ControllerExpression
    * @param {ITr2ActionController|null} controller Bound controller.
    * @returns {bigint} Cached dependency mask.
    */
-  @meta.impl.custom
+  @meta.ours
   static _getVariableMask(program, controller)
   {
     const view = controller?.GetVariableView();
@@ -189,7 +189,7 @@ export class Tr2ControllerExpression
    * @param {object|null} value Overload argument.
    * @returns {boolean} Whether the state-machine overload applies.
    */
-  @meta.impl.custom
+  @meta.ours
   static _isStateMachine(value)
   {
     return CjsSchema.cast(value, Tr2StateMachine) !== null;

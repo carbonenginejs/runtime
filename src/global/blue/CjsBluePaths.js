@@ -22,7 +22,7 @@
 // Search paths, resolution and yielding reads stay refused, from IBluePaths:
 // they belong to a local file system with search paths, which no host here
 // provides yet.
-import { CjsSchema, carbon, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { IBluePaths } from "./IBluePaths.js";
 
 /** `BluePaths::BeforeOrAfter` (BluePaths.h:24-28) - where `RegisterFileSystem` places a file system. */
@@ -242,18 +242,18 @@ CjsSchema.define(CjsBluePaths, {
   family: "blue",
   fields: {},
   methods: {
-    SetLocalFileSystem: [ impl.custom ],
-    GetLocalFileSystem: [ impl.custom ],
-    SetRemoteFileCache: [ impl.custom ],
-    GetRemoteFileCache: [ impl.custom ],
-    RegisterFileSystem: [ carbon.method, impl.adapted ],
-    UnregisterFileSystem: [ carbon.method, impl.adapted ],
-    IsFileSystemRegistered: [ carbon.method, impl.adapted ],
-    GetDirectoryContents: [ carbon.method, impl.implemented ],
-    IsDirectory: [ carbon.method, impl.implemented ],
-    FileExists: [ carbon.method, impl.implemented ],
-    FileExistsLocally: [ carbon.method, impl.implemented ],
-    FileNeedsDownload: [ carbon.method, impl.implemented ],
-    GetStreamFromPath: [ carbon.renamed("GetStreamFromPathW"), impl.adapted ]
+    SetLocalFileSystem: [ meta.ours ],
+    GetLocalFileSystem: [ meta.ours ],
+    SetRemoteFileCache: [ meta.ours ],
+    GetRemoteFileCache: [ meta.ours ],
+    RegisterFileSystem: [ meta.blue.method, meta.adapted ],
+    UnregisterFileSystem: [ meta.blue.method, meta.adapted ],
+    IsFileSystemRegistered: [ meta.blue.method, meta.adapted ],
+    GetDirectoryContents: [ meta.blue.method, meta.implemented ],
+    IsDirectory: [ meta.blue.method, meta.implemented ],
+    FileExists: [ meta.blue.method, meta.implemented ],
+    FileExistsLocally: [ meta.blue.method, meta.implemented ],
+    FileNeedsDownload: [ meta.blue.method, meta.implemented ],
+    GetStreamFromPath: [ meta.blue.renamed("GetStreamFromPathW"), meta.adapted ]
   }
 });

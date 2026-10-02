@@ -4,7 +4,7 @@ import { IInitialize, INotify } from "#blue";
 // Flattened LightData surface (2026-07-23 decision): the m_lightData.* Blue
 // attributes are real decorated fields here, verified against
 // lights/Tr2FactionLight.json (tools-core schema build).
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
 import { color } from "#math/color";
 import { quat } from "#math/quat";
@@ -13,8 +13,8 @@ import { Tr2Light } from "./Tr2Light.js";
 import { hasFactionColor, resolveFactionColor } from "../resolveFactionColor.js";
 
 /** A light whose colour is derived from a faction palette entry blended by a saturation factor, in addition to its own authored light attributes. */
-@type.define({ className: "Tr2FactionLight", family: "eve/lights" })
-@carbon.inherit(IEveInheritPropertiesOwner)
+@meta.define({ className: "Tr2FactionLight", family: "eve/lights" })
+@meta.blue.inherit(IEveInheritPropertiesOwner)
 export class Tr2FactionLight extends Tr2Light
 {
 
@@ -24,136 +24,136 @@ export class Tr2FactionLight extends Tr2Light
   _selectedFactionColor = color.createLinear();
 
   /** m_lightData.castsShadows (PerLightShadowSetting) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.PerLightShadowSetting")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.PerLightShadowSetting")
   castsShadows = 0;
 
   /** m_lightData.flags (uint16_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.uint16
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint16
   flags = 1;
 
   /** m_lightData.position (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   position = vec3.create();
 
   /** m_lightData.rotation (Quaternion) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.quat
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   rotation = quat.create();
 
   /** m_lightData.boneIndex (int32_t) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   boneIndex = -1;
 
   /** m_lightData.radius (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   radius = 0;
 
   /** m_lightData.innerRadius (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   innerRadius = 0;
 
   /** m_lightData.innerAngle (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   innerAngle = 0;
 
   /** m_lightData.outerAngle (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   outerAngle = 0;
 
   /** m_lightData.color (Color) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.persist
-  @type.color
+  @meta.blue.notify
+  @meta.blue.persist
+  @meta.type.color
   color = color.createLinear();
 
   /** m_lightData.brightness (float) [READWRITE, PERSIST, NOTIFY] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   brightness = 1;
 
   /** m_lightData.noiseAmplitude (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   noiseAmplitude = 0;
 
   /** m_lightData.noiseFrequency (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   noiseFrequency = 1;
 
   /** m_lightData.noiseOctaves (uint32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   noiseOctaves = 1;
 
   /** m_lightData.isVolumetric (bool) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   isVolumetric = false;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_selectedColor (int) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.int32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
   factionColor = -1;
 
   /** m_saturation (float) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   saturation = 1;
 
   /** m_isSpotlight (bool) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   isSpotlight = false;
 
   /** m_lightProfilePath (std::wstring) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   lightProfilePath = "";
 
   /** m_lightProfile (Tr2LightProfileResPtr) [READ] */
-  @edit.read
-  @type.objectRef("Tr2LightProfileRes")
+  @meta.blue.read
+  @meta.type.objectRef("Tr2LightProfileRes")
   lightProfile = null;
 
   type = Tr2Light.POINT_LIGHT;
@@ -161,7 +161,7 @@ export class Tr2FactionLight extends Tr2Light
   /**
    * Stores an inherited faction colour palette and recomputes the light's colour from it.
    */
-  @impl.implemented
+  @meta.implemented
   SetInheritProperties(colorSet)
   {
     if (colorSet)
@@ -174,7 +174,7 @@ export class Tr2FactionLight extends Tr2Light
   /**
    * Recolours the light by blending its palette entry's luminance with the full palette colour by the saturation factor, reporting false when no palette entry is available.
    */
-  @impl.implemented
+  @meta.implemented
   SetLightColorFromFactionColor()
   {
     if (!hasFactionColor(this._parentColorSet, this.factionColor))
@@ -200,7 +200,7 @@ export class Tr2FactionLight extends Tr2Light
   /**
    * The light's current colour.
    */
-  @impl.implemented
+  @meta.implemented
   GetSelectedColor()
   {
     return this.color;
@@ -209,8 +209,8 @@ export class Tr2FactionLight extends Tr2Light
   /**
    * Switches the light between spot and point when the spotlight flag is edited, and recomputes the faction-derived colour when the faction colour or saturation changes.
    */
-  @impl.adapted
-  @impl.reason("Browser property notifications identify the changed field by name rather than Carbon's Be::Var pointer.")
+  @meta.adapted
+  @meta.reason("Browser property notifications identify the changed field by name rather than Carbon's Be::Var pointer.")
   OnModified(propertyName)
   {
     if (propertyName === "isSpotlight")
@@ -232,4 +232,4 @@ export class Tr2FactionLight extends Tr2Light
 
 }
 
-carbon.interfaceTable({ interfaces: [Tr2FactionLight, IEveInheritPropertiesOwner, Tr2Light, IInitialize, INotify], chainTo: null })(Tr2FactionLight, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [Tr2FactionLight, IEveInheritPropertiesOwner, Tr2Light, IInitialize, INotify], chainTo: null })(Tr2FactionLight, { kind: "class" });

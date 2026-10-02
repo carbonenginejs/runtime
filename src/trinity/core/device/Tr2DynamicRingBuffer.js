@@ -5,7 +5,7 @@
 // into the first region the GPU is no longer reading, DoneUsingData fences it,
 // and regions are reused once their fence is reached. Carbon's header also
 // declares Tr2RingVertexBuffer and Tr2RingIndexBuffer; each has its own file.
-import { carbon, impl } from "#schema";
+import { meta } from "#schema";
 import { ALResult, Failed } from "#trinityal";
 import { Tr2Renderer } from "../Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
@@ -56,8 +56,8 @@ export class Tr2DynamicRingBuffer
    * @param {object} renderContext The recording context.
    * @returns {{result: number, offset: number}} The result and the data's offset.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   PutData(data, size, alignment, renderContext)
   {
     this._lastPutSucceeded = false;
@@ -100,8 +100,8 @@ export class Tr2DynamicRingBuffer
    *
    * @param {object} renderContext The recording context.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   DoneUsingData(renderContext)
   {
     if (!this._lastPutSucceeded) return;
@@ -116,8 +116,8 @@ export class Tr2DynamicRingBuffer
   }
 
   /** Carbon IsRegionUsedByGpu (cpp:151-160). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsRegionUsedByGpu(region, renderContext)
   {
     if (!region.fence) return false;
@@ -128,8 +128,8 @@ export class Tr2DynamicRingBuffer
   }
 
   /** Carbon TrimUnusedRegions (cpp:168-180): drops leading regions the GPU is done with. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   TrimUnusedRegions(renderContext)
   {
     let used = 0;
@@ -145,8 +145,8 @@ export class Tr2DynamicRingBuffer
    * @param {number} minSize Bytes needed.
    * @returns {number|null} The region's offset, or null when none fits.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetUnusedRegion(minSize)
   {
     const totalSize = this._bufferSize;
@@ -168,8 +168,8 @@ export class Tr2DynamicRingBuffer
   }
 
   /** Carbon ReleaseResources (cpp:228-238). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ReleaseResources(_storage)
   {
     this._buffer?.Destroy();
@@ -180,16 +180,16 @@ export class Tr2DynamicRingBuffer
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources: creation only when the device allows it. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PrepareResources()
   {
     return Tr2Renderer.IsResourceCreationAllowed() ? this.OnPrepareResources() : true;
   }
 
   /** Carbon OnPrepareResources (cpp:246-253). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnPrepareResources()
   {
     if (!this._bufferSize) return true;
@@ -198,8 +198,8 @@ export class Tr2DynamicRingBuffer
   }
 
   /** Carbon AllocateFence (cpp:260-277): a recycled fence, or a new one. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   AllocateFence()
   {
     if (this._availableFences.length) return this._availableFences.pop();
@@ -208,8 +208,8 @@ export class Tr2DynamicRingBuffer
   }
 
   /** Carbon DeallocateFence (cpp:284-290). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   DeallocateFence(fence)
   {
     if (fence) this._availableFences.push(fence);
@@ -221,8 +221,8 @@ export class Tr2DynamicRingBuffer
    * @param {number} begin First region to remove.
    * @param {number} end One past the last.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RemoveRegions(begin, end)
   {
     for (let index = begin; index < end; index++) this.DeallocateFence(this._regions[index].fence);
@@ -231,24 +231,24 @@ export class Tr2DynamicRingBuffer
   }
 
   /** Carbon SetSizeIncrement (cpp:312-315). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetSizeIncrement(sizeIncrement)
   {
     this._sizeIncrement = sizeIncrement >>> 0;
   }
 
   /** Carbon GetBufferSize (cpp:321-324). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBufferSize()
   {
     return this._bufferSize;
   }
 
   /** Carbon SetName (cpp:326-333). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetName(name)
   {
     this._name = String(name ?? "");
@@ -256,16 +256,16 @@ export class Tr2DynamicRingBuffer
   }
 
   /** Carbon IsValid (cpp:342-345). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsValid()
   {
     return Boolean(this._buffer?.IsValid());
   }
 
   /** Carbon GetBuffer (cpp:353-356): the AL buffer, null before creation. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBuffer()
   {
     return this._buffer;
@@ -278,8 +278,8 @@ export class Tr2DynamicRingBuffer
    * @param {number} _size Bytes.
    * @returns {number} An `ALResult`.
    */
-  @carbon.method
-  @impl.abstract
+  @meta.blue.method
+  @meta.abstract
   CreateBuffer(_size)
   {
     return ALResult.E_FAIL;
@@ -290,8 +290,8 @@ export class Tr2DynamicRingBuffer
    *
    * @returns {number} An `ALResult`.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateBuffer(data, offset, size, renderContext)
   {
     const { result, data: mapped } = this._buffer.MapForWriting(renderContext);

@@ -2,7 +2,7 @@ import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/ProcessLifetime.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/ProcessLifetime.cpp
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -23,68 +23,68 @@ const FORCE_OFFSET = vec3.create();
 const SPAWN_POSITION = vec3.create();
 
 /** ProcessLifetime (eve/child/behaviors) - generated from schema shapeHash 1fd3ebfa.... */
-@type.define({ className: "ProcessLifetime", family: "eve" })
-@carbon.inherit(IInitialize)
-@carbon.mapInterface(IInitialize)
+@meta.define({ className: "ProcessLifetime", family: "eve" })
+@meta.blue.inherit(IInitialize)
+@meta.blue.mapInterface(IInitialize)
 export class ProcessLifetime
 {
   static ProcessPriority = ProcessPriority;
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.int32
-  @type.enum("trinity.IBehavior.ProcessPriority")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.int32
+  @meta.type.enum("trinity.IBehavior.ProcessPriority")
   behaviorPriority = 0;
 
   /** m_splineTunnels (PSplineTunnelGroupVector) [READ, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.read
-  @edit.persist
-  @type.list("SplineTunnelGroup")
+  @meta.blue.notify
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("SplineTunnelGroup")
   splineTunnels = [];
 
   /** m_respawnAgentsOnDeath (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   respawnAgentsOnDeath = true;
 
   /** m_firstAgentLifetime (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   firstAgentLifetime = 0;
 
   /** m_returningAge (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   returningAge = -1;
 
   /** m_wanderAmount (float) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   wanderAmount = 0.3;
 
   /** m_firstSpawnAtRandomPlaces (bool) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   firstSpawnAtRandomPlaces = true;
 
   /** m_behaviorWeight (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   behaviorWeight = 900;
 
   /** m_exit (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   exit = false;
 
   // Flattened tunnel pointers: system tunnels first, then local group
@@ -105,8 +105,8 @@ export class ProcessLifetime
   _tunnelGroupSnapshot = [];
 
   /** Carbon ProcessLifetime::Initialize (cpp:33-38). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Initialize()
   {
     this._intialSpawn = this.firstSpawnAtRandomPlaces;
@@ -116,9 +116,9 @@ export class ProcessLifetime
   }
 
   /** Carbon ProcessLifetime::OnListModified. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Detaches removed groups instead of preserving Carbon's erroneous callback reattachment, and accepts portable Blue-list event arguments.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Detaches removed groups instead of preserving Carbon's erroneous callback reattachment, and accepts portable Blue-list event arguments.")
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     if (list !== this.splineTunnels) return;
@@ -137,8 +137,8 @@ export class ProcessLifetime
   }
 
   /** Carbon ProcessLifetime::OnModified (cpp:27-31). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   OnModified(_value = null)
   {
     this.UpdateTunnelRegistry();
@@ -146,42 +146,42 @@ export class ProcessLifetime
   }
 
   /** Carbon ProcessLifetime::GetProcessPriority (cpp:74-77). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetProcessPriority()
   {
     return this.behaviorPriority;
   }
 
   /** Carbon ProcessLifetime::GetBehaviorName (cpp:79-82). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBehaviorName()
   {
     return "ProcessLifetime";
   }
 
   /** Per-agent scratch record count (Carbon sizeof(ProcessLifetimeData)). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero value means 'has scratch'.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero value means 'has scratch'.")
   GetScratchMemorySize()
   {
     return 1;
   }
 
   /** Fresh per-agent scratch record (Carbon ProcessLifetimeData placement init). */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.")
   InitializeScratch()
   {
     return new ProcessLifetimeData();
   }
 
   /** Carbon IBehavior::UpdateState override (h:59-62). */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateState(state)
   {
     this.exit = !!state;
@@ -201,9 +201,9 @@ export class ProcessLifetime
    * @param {Array} _dronesInSearchRadius - unused
    * @returns {Array} debug force pairs when group.collectForces is on
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("rand() maps to Math.random; debug force pairs are only collected when group.collectForces is set to keep the per-agent loop allocation-free.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("rand() maps to Math.random; debug force pairs are only collected when group.collectForces is set to keep the per-agent loop allocation-free.")
   CalculateBehavior(agents, scratchData, deltaTime, group, system, _dronesInSearchRadius)
   {
     if (!this._TunnelGroupsMatchSnapshot())
@@ -343,8 +343,8 @@ export class ProcessLifetime
    * groups and flags the ID reassignment (Carbon UpdateTunnelRegistry,
    * cpp:446-462).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateTunnelRegistry()
   {
     this._privateTunnels.length = 0;
@@ -364,9 +364,9 @@ export class ProcessLifetime
   }
 
   /** Adds Carbon's spline-tunnel debug option. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Tr2DebugRendererOptions is represented by an injected Set-like option bag.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Tr2DebugRendererOptions is represented by an injected Set-like option bag.")
   GetDebugOptions(options = new Set())
   {
     if (options?.add) options.add("SplineTunnels");
@@ -375,9 +375,9 @@ export class ProcessLifetime
   }
 
   /** Delegates local tunnel debug geometry when its option is enabled. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("ITr2DebugRenderer2 is an injected engine-owned capability.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("ITr2DebugRenderer2 is an injected engine-owned capability.")
   RenderDebugInfo(renderer, _agents, parentWorldLocation)
   {
     if (!renderer?.HasOption?.(this, "SplineTunnels")) return;
@@ -391,8 +391,8 @@ export class ProcessLifetime
    * First positions of every entrance tunnel; used by SpawnDrones to pick
    * timed spawn points (Carbon GetEntrancePoints, cpp:428-444).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetEntrancePoints()
   {
     const entrancePoints = [];

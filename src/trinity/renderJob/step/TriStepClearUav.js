@@ -1,59 +1,59 @@
 // Source: trinity/trinity/RenderJob/TriStepClearUav.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { vec4 } from "#math/vec4";
 
 /** A render step that clears an unordered-access buffer to a fixed value. */
-@type.define({ className: "TriStepClearUav", family: "renderJob" })
+@meta.define({ className: "TriStepClearUav", family: "renderJob" })
 export class TriStepClearUav extends TriRenderStep
 {
 
   /** m_buffer (ITr2GpuBufferPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("ITr2GpuBuffer")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("ITr2GpuBuffer")
   buffer = null;
 
   /** m_clearWithFloat (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   clearWithFloat = false;
 
   /** m_floatValue (Vector4) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec4
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec4
   floatValue = vec4.create();
 
   /** m_uintValue[0] (uint32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   bitValue0 = 0;
 
   /** m_uintValue[1] (uint32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   bitValue1 = 0;
 
   /** m_uintValue[2] (uint32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   bitValue2 = 0;
 
   /** m_uintValue[3] (uint32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   bitValue3 = 0;
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   __init__(buffer = null, values = null)
   {
     this.buffer = buffer;
@@ -77,8 +77,8 @@ export class TriStepClearUav extends TriRenderStep
   /**
    * Clears the bound unordered-access buffer to its configured value.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Execute(_realTime, _simTime, renderContext)
   {
     if (this.buffer)

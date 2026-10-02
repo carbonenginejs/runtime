@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Utilities/Range.h
 // Source: trinity/trinity/Utilities/Range.cpp
 // Source: trinity/trinity/Utilities/Range_Blue.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 
 
 /**
@@ -13,7 +13,7 @@ import { carbon, impl, edit, type } from "#schema";
  * direct dictionary writes do not invoke those setters. This cache and Number
  * arithmetic (rather than native float intermediates) are retained adapters.
  */
-@type.define({
+@meta.define({
   className: "Range",
   family: "utilities"
 })
@@ -24,8 +24,8 @@ export class Range
    * caller's range units. SetCenterPoint moves the endpoints with it.
    * @type {number}
    */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   centerPoint = 0;
 
   /**
@@ -33,8 +33,8 @@ export class Range
    * the slider minimum. Range setters refresh this value in the caller's units.
    * @type {number}
    */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   minRangePoint = 0;
 
   /**
@@ -42,8 +42,8 @@ export class Range
    * the slider maximum. Range setters refresh this value in the caller's units.
    * @type {number}
    */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   maxRangePoint = 0;
 
   /**
@@ -51,8 +51,8 @@ export class Range
    * centerPoint. Assigning this field directly does not rebalance the endpoints.
    * @type {boolean}
    */
-  @edit.read
-  @type.boolean
+  @meta.blue.read
+  @meta.type.boolean
   isUniform = true;
 
   _minRange = 0;
@@ -64,8 +64,8 @@ export class Range
   _sliderRangeMax = 0;
 
   /** Moves the range while preserving both distances from its center. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetCenterPoint(value)
   {
     const delta = value - this.centerPoint;
@@ -76,8 +76,8 @@ export class Range
   }
 
   /** Configures the symmetric range and its slider bounds. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Setup(rangeCenterPoint, rangeDeltaFromCenter, sliderMin, sliderMax)
   {
     this.centerPoint = rangeCenterPoint;
@@ -89,8 +89,8 @@ export class Range
   }
 
   /** Sets the lower range point and mirrors it when uniform. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetMinRangePoint(value)
   {
     this._minRange = Math.min(value, this.centerPoint);
@@ -102,8 +102,8 @@ export class Range
   }
 
   /** Sets the upper range point and mirrors it when uniform. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetMaxRangePoint(value)
   {
     this._maxRange = Math.max(value, this.centerPoint);
@@ -115,16 +115,16 @@ export class Range
   }
 
   /** Returns the point both range points are measured from. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetCenterPoint()
   {
     return this.centerPoint;
   }
 
   /** Preserves Carbon's exact lower-bound comparison behavior. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetMinRangePoint()
   {
     return this.minRangePoint;
@@ -134,8 +134,8 @@ export class Range
    * Returns the upper range point after Carbon's clamp, which is a min against
    * the slider maximum, not a max (Range.cpp:68-71).
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetMaxRangePoint()
   {
     return this.maxRangePoint;
@@ -145,8 +145,8 @@ export class Range
    * Flips symmetric mode, and when turning it on collapses both sides to the
    * smaller of the two distances from the center.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ToggleIsUniform()
   {
     this.isUniform = !this.isUniform;
@@ -160,8 +160,8 @@ export class Range
    * Sets symmetric mode, fixing up the range points immediately when enabling
    * it.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetIsUniform(value)
   {
     this.isUniform = value;
@@ -175,8 +175,8 @@ export class Range
    * Makes the range symmetric by adopting the smaller of the two distances from
    * the center on both sides, so uniformity narrows rather than widens.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   FixUniformity()
   {
     const minRangeDelta = this.centerPoint - this._minRange;
@@ -190,8 +190,8 @@ export class Range
    * Reports whether the two range points are being kept symmetric about the
    * center.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetIsUniform()
   {
     return this.isUniform;
@@ -201,8 +201,8 @@ export class Range
    * Sets the lower slider bound the exposed range points are clamped against,
    * and re-clamps them.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetSliderMin(value)
   {
     this._sliderRangeMin = value;
@@ -213,8 +213,8 @@ export class Range
    * Sets the upper slider bound the exposed range points are clamped against,
    * and re-clamps them.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   SetSliderMax(value)
   {
     this._sliderRangeMax = value;
@@ -222,16 +222,16 @@ export class Range
   }
 
   /** Returns the lower slider bound used when clamping the exposed range points. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetSliderMin()
   {
     return this._sliderRangeMin;
   }
 
   /** Returns the upper slider bound used when clamping the exposed range points. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetSliderMax()
   {
     return this._sliderRangeMax;
@@ -242,7 +242,7 @@ export class Range
    * range and the slider bounds; Carbon derives these on read (Range.cpp:63-71)
    * and clamps both with min, which is reproduced here rather than corrected.
    */
-  @impl.custom
+  @meta.ours
   _syncRangePoints()
   {
     this.minRangePoint = Math.min(this._minRange, this._sliderRangeMin);
@@ -250,4 +250,4 @@ export class Range
   }
 }
 
-carbon.interfaceTable({ interfaces: [Range], chainTo: null })(Range);
+meta.blue.interfaceTable({ interfaces: [Range], chainTo: null })(Range);

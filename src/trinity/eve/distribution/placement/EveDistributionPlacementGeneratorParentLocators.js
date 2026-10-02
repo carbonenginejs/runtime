@@ -1,14 +1,14 @@
 import { INotify } from "../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionPlacementGenerators/EveDistributionPlacementGeneratorParentLocators.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveDistributionPlacementGenerators } from "./IEveDistributionPlacementGenerators.js";
 import { InitialPlacement } from "../attributeModifiers/InitialPlacement.js";
 import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.js";
 
 /** Builds distribution placements from a named locator set resolved on the parent space object. */
-@type.define({ className: "EveDistributionPlacementGeneratorParentLocators", family: "eve/distribution/placement" })
-@carbon.inherit(INotify)
+@meta.define({ className: "EveDistributionPlacementGeneratorParentLocators", family: "eve/distribution/placement" })
+@meta.blue.inherit(INotify)
 export class EveDistributionPlacementGeneratorParentLocators extends IEveDistributionPlacementGenerators
 {
 
@@ -24,10 +24,10 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
   _locatorSetName = null;
 
   /** m_locatorSetName (BlueSharedString) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   locatorSetName = "damage";
 
   /**
@@ -36,8 +36,8 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
    * @param placements Caller-owned pool array that is appended to.
    * @param trackingID Mutable counter shared across all generators; each placement consumes one unique id from it.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetInitialPlacements(placements, trackingID)
   {
     this._requestRegeneration = false;
@@ -66,8 +66,8 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
    * Reports whether a locator set has just been resolved from the parent and the
    * pool therefore needs rebuilding.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   IsRequestingRegeneration()
   {
     return this._requestRegeneration;
@@ -78,8 +78,8 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
    * update params, re-resolving whenever the parent or the set name changes, and
    * requests regeneration once locators are found.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateSyncronous(_updateContext, params, _owner)
   {
     const parent = params.spaceObjectParent;
@@ -108,9 +108,9 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
    * Invalidates the resolved locator set after an authored change so the next
    * update re-reads it.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
     if (propertyName === "locatorSetName") this._regenerated = false;
@@ -121,9 +121,9 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
    * Invalidates the resolved locator set so the next update re-reads it from the
    * parent.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JavaScript retains explicit invalidation state in place of native structure-list notifier ownership.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JavaScript retains explicit invalidation state in place of native structure-list notifier ownership.")
   OnStructureListModified(_event, _item, _index, _list)
   {
     this._regenerated = false;
@@ -132,4 +132,4 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
 }
 
 // Exact native Blue exposure: only these identities participate in loading.
-carbon.interfaceTable({ interfaces: [EveDistributionPlacementGeneratorParentLocators, IEveDistributionPlacementGenerators, INotify], chainTo: null })(EveDistributionPlacementGeneratorParentLocators, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveDistributionPlacementGeneratorParentLocators, IEveDistributionPlacementGenerators, INotify], chainTo: null })(EveDistributionPlacementGeneratorParentLocators, { kind: "class" });

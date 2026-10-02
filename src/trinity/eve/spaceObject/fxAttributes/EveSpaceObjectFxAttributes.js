@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/fxAttributes/EveSpaceObjectFxAttributes.h
 //   trinity/trinity/Eve/SpaceObject/Utils/fxAttributes/EveSpaceObjectFxAttributes.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { IEveFxAttribute } from "./IEveFxAttribute.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -70,75 +70,75 @@ function RotationQuaternion(out, matrix)
  * active turret and kill counts - refreshed each child update for effect
  * bindings to read.
  */
-@type.define({ className: "EveSpaceObjectFxAttributes", family: "eve/fxAttributes" })
+@meta.define({ className: "EveSpaceObjectFxAttributes", family: "eve/fxAttributes" })
 export class EveSpaceObjectFxAttributes extends IEveFxAttribute
 {
 
   _initialized = false;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_activationStrength (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   activationStrength = 1;
 
   /** m_activeTurretCount (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   activeTurretCount = 0;
 
   /** m_distanceToChildParent (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   childParent = 0;
 
   /** m_generatedShapeEllipsoidCenter (Vector3) [READ] */
-  @edit.read
-  @type.vec3
+  @meta.blue.read
+  @meta.type.vec3
   generatedShapeEllipsoidCenter = vec3.create();
 
   /** m_generatedShapeEllipsoidRadius (Vector3) [READ] */
-  @edit.read
-  @type.vec3
+  @meta.blue.read
+  @meta.type.vec3
   generatedShapeEllipsoidRadius = vec3.create();
 
   /** m_killCount (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   killCount = 0;
 
   /** m_distanceToShip (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   ship = 0;
 
   /** m_boundingSphereRadius (float) [READ] */
-  @edit.read
-  @type.float32
+  @meta.blue.read
+  @meta.type.float32
   boundingSphereRadius = 0;
 
   /** m_parentWorldRotation (Quaternion) [READ] */
-  @edit.read
-  @type.quat
+  @meta.blue.read
+  @meta.type.quat
   parentWorldRotation = quat.fromValues(0, 0, 0, 0);
 
   /** m_parentWorldTranslation (Vector3) [READ] */
-  @edit.read
-  @type.vec3
+  @meta.blue.read
+  @meta.type.vec3
   parentWorldTranslation = vec3.create();
 
   /**
    * Collects the space-object attributes used by effect bindings. Carbon's
    * Blue casts are represented by the corresponding runtime constructors.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon BlueCastPtr checks become JavaScript instanceof checks; native out parameters are typed-array copy-outs.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon BlueCastPtr checks become JavaScript instanceof checks; native out parameters are typed-array copy-outs.")
   UpdateAsyncronous(_updateContext, params)
   {
     const parent = params?.spaceObjectParent;

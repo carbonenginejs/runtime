@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/Tr2TextureLodManager.h
 // Schema: format-carbon resources/Tr2TextureLodUpdateRequest.json; maintained by the runtime resource layer.
-import { CjsSchema, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** Data record mirroring Carbon's texture-LOD update request: the frame number, requested mip change, and RAM-cache flag. */
 export class Tr2TextureLodUpdateRequest
@@ -20,8 +20,8 @@ export class Tr2TextureLodUpdateRequest
 CjsSchema.define(Tr2TextureLodUpdateRequest, {
   className: "Tr2TextureLodUpdateRequest", family: "resources",
   fields: {
-    frameNumber: type.uint64,
-    mipChange: type.int32,
-    cachedInRam: type.boolean
+    frameNumber: meta.type.uint64,
+    mipChange: meta.type.int32,
+    cachedInRam: meta.type.boolean
   }
 });

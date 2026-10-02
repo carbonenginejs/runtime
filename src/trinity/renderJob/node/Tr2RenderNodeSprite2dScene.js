@@ -1,24 +1,24 @@
 // Source: trinity/trinity/Tr2RenderNodeSprite2dScene.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
 
 /** A render-graph node that draws a sprite scene into a destination texture, over an optional background node. */
-@type.define({ className: "Tr2RenderNodeSprite2dScene", family: "renderJob" })
-@carbon.inherit(ITr2RenderNode)
+@meta.define({ className: "Tr2RenderNodeSprite2dScene", family: "renderJob" })
+@meta.blue.inherit(ITr2RenderNode)
 export class Tr2RenderNodeSprite2dScene
 {
 
   /** m_scene (Tr2Sprite2dScenePtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("Tr2Sprite2dScene")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("Tr2Sprite2dScene")
   scene = null;
 
   /** m_background (ITr2RenderNodePtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("ITr2RenderNode")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("ITr2RenderNode")
   background = null;
 
   // Carbon Tr2RenderNodeSprite2dScene.cpp:8-26. The node refuses to run
@@ -36,9 +36,9 @@ export class Tr2RenderNodeSprite2dScene
    * Whether this node can run against the given destinations, requiring at
    * least one destination, a scene, and a background that validates first.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon asserts before returning false on an empty destination list; the port returns false without asserting and lets the caller decide.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon asserts before returning false on an empty destination list; the port returns false without asserting and lets the caller decide.")
   Validate(destinationDimensions, outputs, realTime, simTime)
   {
     if (!destinationDimensions.length) return false;

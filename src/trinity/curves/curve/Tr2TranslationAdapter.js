@@ -3,7 +3,7 @@
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { ITriVectorFunction } from "#blue";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 
 
 /**
@@ -11,7 +11,7 @@ import { carbon, impl, edit, type } from "#schema";
  * and rotating the sampled offset by a fixed rotation, falling back to a fixed
  * authored vector when no child curve is attached.
  */
-@type.define({
+@meta.define({
   className: "Tr2TranslationAdapter",
   family: "curves"
 })
@@ -22,18 +22,18 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * belong to the consuming object.
    * @type {Float32Array}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   value = vec3.create();
 
   /**
    * Optional child vector function sampled using the adapter's local time.
    * @type {ITriVectorFunction|null}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("ITriVectorFunction")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("ITriVectorFunction")
   curve = null;
 
   /**
@@ -41,17 +41,17 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * GetValueAt do not apply it.
    * @type {Float32Array}
    */
-  @edit.readwrite
-  @edit.persist
-  @type.quat
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
   rotationOffset = quat.create();
 
   /**
    * Cached three-component vector from the latest update, returned by InterpolatedPosition.
    * @type {Float32Array}
    */
-  @edit.read
-  @type.vec3
+  @meta.blue.read
+  @meta.type.vec3
   currentValue = vec3.create();
 
   /**
@@ -92,8 +92,8 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateValue(time)
   {
     if (this.curve)
@@ -109,8 +109,8 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(time, out)
   {
     if (this.curve)
@@ -132,8 +132,8 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValueAt(time, out)
   {
     if (this.curve)
@@ -150,8 +150,8 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {Float32Array} out Destination derivative.
    * @returns {Float32Array} The destination.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValueDotAt(time, out)
   {
     if (!this.curve)
@@ -172,8 +172,8 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {Float32Array} out Destination derivative.
    * @returns {Float32Array} The destination.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   GetValueDoubleDotAt(_time, out)
   {
     return vec3.zero(out);
@@ -186,8 +186,8 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {Float32Array|Float64Array} out Destination position.
    * @returns {Float32Array|Float64Array} The destination.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   InterpolatedPosition(_time, out)
   {
     return vec3.copy(out, this.currentValue);
@@ -199,8 +199,8 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {number} range Radius in seconds; zero or omission selects 60.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RandomizeStart(range = 60)
   {
     const radius = range || 60;
@@ -212,8 +212,8 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {number} scale Time divisor.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ScaleTime(scale)
   {
     this._timeScale = scale;
@@ -223,8 +223,8 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * Clears the retained start timestamp.
    * @returns {void}
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ResetStart()
   {
     this._start = 0;
@@ -235,8 +235,8 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {number} time Time in seconds.
    * @returns {number} Scaled time in seconds.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetLocalTime(time)
   {
     return time / this._timeScale;
@@ -248,7 +248,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {number} time Time in seconds.
    * @returns {number} Start-aware scaled seconds.
    */
-  @impl.custom
+  @meta.ours
   GetStartAwareLocalTime(time)
   {
     if (this._start === 0)
@@ -260,7 +260,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
 }
 
 // Exact native exposure table; ITriFunction is intentionally not mapped.
-carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [Tr2TranslationAdapter, ITriVectorFunction],
   chainTo: null
 })(Tr2TranslationAdapter);

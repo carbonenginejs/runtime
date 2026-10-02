@@ -4,7 +4,7 @@
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveTransform } from "./EveTransform.js";
 import { Tr2Transform } from "../../core/Tr2Transform.js";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
@@ -16,46 +16,46 @@ import { IWorldPosition } from "../../core/IWorldPosition.js";
  * A detached transform root whose own ball and model curves drive its matrix and
  * which stands in as a single targetable point for missiles and impacts.
  */
-@type.define({ className: "EveRootTransform", family: "eve/spaceObject" })
+@meta.define({ className: "EveRootTransform", family: "eve/spaceObject" })
 export class EveRootTransform extends EveTransform
 {
 
   /** m_boundingSphereRadius (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   boundingSphereRadius = -1;
 
   /** m_ballRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("ITriQuaternionFunction")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("ITriQuaternionFunction")
   rotationCurve = null;
 
   /** m_modelTranslation (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("ITriVectorFunction")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("ITriVectorFunction")
   modelTranslationCurve = null;
 
   /** m_modelRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("ITriQuaternionFunction")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("ITriQuaternionFunction")
   modelRotationCurve = null;
 
   /** m_ballPosition (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.model("ITriVectorFunction")
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.model("ITriVectorFunction")
   translationCurve = null;
 
   _lastUpdateMatrix = mat4.create();
 
   /** Evaluates the detached ball/model curves, then advances inherited content. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Curve outputs use CarbonEngineJS's time-first, output-second convention.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Curve outputs use CarbonEngineJS's time-first, output-second convention.")
   UpdateSyncronous(updateContext = null)
   {
     const time = EveRootTransform._GetContextValue(updateContext, "GetTime", "currentTime", "time");
@@ -84,15 +84,15 @@ export class EveRootTransform extends EveTransform
   }
 
   /** Carbon advances inherited async content from UpdateSyncronous for this root. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   UpdateAsyncronous(_updateContext)
   {
   }
 
   /** Advances this detached root in Carbon's synchronous/asynchronous order. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Update(updateContext)
   {
     this.UpdateSyncronous(updateContext);
@@ -100,25 +100,25 @@ export class EveRootTransform extends EveTransform
   }
 
   /** Applies the detached root matrix as the inherited transform parent. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateViewDependentData(context)
   {
     return super.UpdateViewDependentData(context, this._lastUpdateMatrix);
   }
 
   /** Root transforms have no damage locators. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   GetDamageLocatorCount()
   {
     return 0;
   }
 
   /** Returns the current root translation as the sole target point. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("CarbonEngineJS uses output parameters last and returns the targetable validity flag.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("CarbonEngineJS uses output parameters last and returns the targetable validity flag.")
   GetDamageLocatorPosition(_index, _inWorldSpace, out = vec3.create())
   {
     vec3.set(out, this.worldTransform[12], this.worldTransform[13], this.worldTransform[14]);
@@ -126,9 +126,9 @@ export class EveRootTransform extends EveTransform
   }
 
   /** Returns Carbon's constant +Y target direction. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("CarbonEngineJS uses output parameters last and returns the targetable validity flag.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("CarbonEngineJS uses output parameters last and returns the targetable validity flag.")
   GetDamageLocatorDirection(_index, _inWorldSpace, out = vec3.create())
   {
     vec3.set(out, 0, 1, 0);
@@ -136,9 +136,9 @@ export class EveRootTransform extends EveTransform
   }
 
   /** Tests whether a projectile has reached the root target point. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("CarbonEngineJS uses an out-last signature for output parameters.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("CarbonEngineJS uses an out-last signature for output parameters.")
   GetImpactPosition(locator, _posPrev, posNow, epsilon, out = vec3.create())
   {
     this.GetDamageLocatorPosition(locator, true, out);
@@ -146,56 +146,56 @@ export class EveRootTransform extends EveTransform
   }
 
   /** Root transforms never use shield impact geometry. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   HasImpactConfigurationShield()
   {
     return false;
   }
 
   /** Root transforms use their only target point. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   GetClosestDamageLocatorIndex(_position)
   {
     return 0;
   }
 
   /** Root transforms use their only target point. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   GetGoodDamageLocatorIndex(_position)
   {
     return 0;
   }
 
   /** Returns the authored target radius. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetRadius()
   {
     return this.boundingSphereRadius;
   }
 
   /** Root transforms do not create attached impact overlays. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   CreateImpact(_damageLocatorIndex, _direction, _lifeTime, _size)
   {
     return -1;
   }
 
   /** Root transforms do not update attached impact overlays. */
-  @carbon.method
-  @impl.noop
+  @meta.blue.method
+  @meta.noop
   UpdateImpact(_out, _direction, _impactIndex)
   {
     return false;
   }
 
   /** Computes a miss point just outside the root's spherical silhouette. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetMissPosition(hit, source, out = vec3.create())
   {
     this.GetDamageLocatorPosition(-1, true, out);
@@ -216,8 +216,8 @@ export class EveRootTransform extends EveTransform
   }
 
   /** Returns the authored bounding-sphere radius. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetBoundingSphereRadius()
   {
     return this.boundingSphereRadius;
@@ -277,7 +277,7 @@ export class EveRootTransform extends EveTransform
 
 // Supported native interfaces; ITriTargetable and ITr2Pickable are not declared yet.
 // EveRootTransform_Blue.cpp:11-16,60 bypasses the EveTransform exposure table.
-carbon.interfaceTable({
+meta.blue.interfaceTable({
   interfaces: [ EveRootTransform, IEveSpaceObject2, IWorldPosition, ITr2BoundingBox ],
   chainTo: Tr2Transform
 })(EveRootTransform, { kind: "class" });

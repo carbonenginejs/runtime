@@ -37,7 +37,7 @@
 // The error, startup-argument and process-control half of this interface is
 // declared and refused. It is a genuine operating-system service, it has no
 // consumer in this runtime, and guessing at it would be inventing.
-import { CjsSchema, compose, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** `IBlueOS` - the clock, the pump, error reporting and process control, per blue/include/IBlueOS.h. */
 export class IBlueOS
@@ -135,7 +135,7 @@ for (const method of [
   "SetMarkupZonesInPython", "ConstructPathListFromManifest"
 ])
 {
-  CjsSchema.decorateMethod(IBlueOS, method, compose.abstract, impl.abstract);
+  CjsSchema.decorateMethod(IBlueOS, method, meta.requires, meta.abstract);
 }
 
 CjsSchema.define(IBlueOS, { className: "IBlueOS", carbon: "IBlueOS", family: "blue", fields: {} });

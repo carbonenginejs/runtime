@@ -3,18 +3,18 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dRenderJob_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; all portable behavior is implemented here.
 import { vec2 } from "#math/vec2";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
 import { Tr2SpriteObjectBase } from "./Tr2SpriteObjectBase.js";
 
 /** A Sprite2D leaf that executes an authored render job. */
-@type.define({ className: "Tr2Sprite2dRenderJob", family: "sprite2d" })
+@meta.define({ className: "Tr2Sprite2dRenderJob", family: "sprite2d" })
 export class Tr2Sprite2dRenderJob extends Tr2SpriteObjectBase
 {
 
   /** Carbon method GatherSprites. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GatherSprites(renderer)
   {
     if (this.renderJob && this.display)
@@ -24,8 +24,8 @@ export class Tr2Sprite2dRenderJob extends Tr2SpriteObjectBase
   }
 
   /** Carbon method PickPoint. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   PickPoint(x, y, renderer)
   {
     if (!this.display || this.pickState !== Tr2SpriteObjectPickState.TR2_SPS_ON)
@@ -60,16 +60,16 @@ export class Tr2Sprite2dRenderJob extends Tr2SpriteObjectBase
   }
 
   /** Carbon method GetVertexCount. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetVertexCount()
   {
     return 0;
   }
 
   /** m_renderJob (TriRenderJobPtr) [READWRITE] */
-  @edit.readwrite
-  @type.objectRef("TriRenderJob")
+  @meta.blue.readwrite
+  @meta.type.objectRef("TriRenderJob")
   renderJob = null;
 
   #point = vec2.create();

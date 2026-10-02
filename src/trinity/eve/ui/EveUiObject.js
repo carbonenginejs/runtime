@@ -1,26 +1,26 @@
 // Source: trinity/trinity/Eve/UI/EveUiObject.h
 // Source: trinity/trinity/Eve/UI/EveUiObject.cpp
 // Source: trinity/trinity/Eve/UI/EveUiObject_Blue.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveSpaceObject2 } from "../spaceObject/EveSpaceObject2.js";
 import { TriBatchType } from "#consts/graphics";
 
 /** Represents an Eve UI space object whose mesh areas can be shown, hidden, and identified from picking ids. */
-@type.define({ className: "EveUiObject", family: "eve/ui" })
+@meta.define({ className: "EveUiObject", family: "eve/ui" })
 export class EveUiObject extends EveSpaceObject2
 {
 
   /** m_usePerspectiveScale (bool) [READWRITE] */
-  @edit.readwrite
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.type.boolean
   usePerspectiveScale = true;
 
   /**
    * Enables or disables display on every mesh area carrying the given name,
    * across all batch types.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetVisibilityForArea(areaName, enable)
   {
     const mesh = this.GetMesh();
@@ -45,8 +45,8 @@ export class EveUiObject extends EveSpaceObject2
    * when there is no mesh and "invalid_areaid" when no picking area has that
    * index.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetNameForPickingAreaID(areaID)
   {
     const mesh = this.GetMesh();

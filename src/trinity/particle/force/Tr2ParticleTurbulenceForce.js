@@ -1,47 +1,47 @@
 // Source: trinity/trinity/Particle/Tr2ParticleTurbulenceForce.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { ITr2ParticleForce } from "./ITr2ParticleForce.js";
 import { noise } from "#math/noise";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
 /** A time-evolving four-dimensional Perlin turbulence force applied to particle motion. */
-@type.define({ className: "Tr2ParticleTurbulenceForce", family: "particle" })
+@meta.define({ className: "Tr2ParticleTurbulenceForce", family: "particle" })
 export class Tr2ParticleTurbulenceForce extends ITr2ParticleForce
 {
 
   #time = 0;
 
   /** m_amplitude (Vector3) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   amplitude = vec3.fromValues(1, 1, 1);
 
   /** m_frequency (Vector4) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.vec4
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec4
   frequency = vec4.fromValues(1, 1, 1, 1);
 
   /** m_noiseLevel (uint32_t) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   noiseLevel = 3;
 
   /** m_noiseRatio (float) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   noiseRatio = 0.5;
 
   /**
    * Samples the four-dimensional turbulence field at a particle's position and time, scaled by the configured amplitude.
    */
-  @impl.adapted
-  @impl.reason("Uses core-math's browser port of Carbon's four-dimensional turbulence lookup.")
+  @meta.adapted
+  @meta.reason("Uses core-math's browser port of Carbon's four-dimensional turbulence lookup.")
   GetForce(position, _velocity, _dt, _mass, out = vec3.create())
   {
     vec3.set(out, 0, 0, 0);
@@ -81,7 +81,7 @@ export class Tr2ParticleTurbulenceForce extends ITr2ParticleForce
   /**
    * Advances the time accumulator that animates the turbulence field.
    */
-  @impl.implemented
+  @meta.implemented
   Update(dt)
   {
     this.#time += Math.max(0, Number(dt) || 0);

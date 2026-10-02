@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/Tr2MaterialRes.h
 // Schema: format-carbon resources/Tr2MaterialMesh.json; maintained by the runtime resource layer.
-import { CjsSchema, edit, type } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /**
  * Holds the persisted material-area dictionary for one material mesh.
@@ -25,6 +25,6 @@ CjsSchema.define(Tr2MaterialMesh, {
   className: "Tr2MaterialMesh",
   family: "resources",
   fields: {
-    areas: [ edit.persist, type.objectRef("Tr2MaterialAreaDict") ]
+    areas: [ meta.blue.persist, meta.type.objectRef("Tr2MaterialAreaDict") ]
   }
 });

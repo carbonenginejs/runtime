@@ -2,7 +2,7 @@
 // Source: trinity/trinity/RenderJob/TriStepClear.cpp
 // Source: trinity/trinity/RenderJob/TriStepClear_Blue.cpp
 import { vec4 } from "#math/vec4";
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -11,45 +11,45 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * Step that clears the bound colour, depth and stencil attachments, each
  * independently enabled with its own clear value.
  */
-@type.define({ className: "TriStepClear", family: "renderJob" })
+@meta.define({ className: "TriStepClear", family: "renderJob" })
 export class TriStepClear extends TriRenderStep
 {
-  @edit.readwrite
-  @edit.persist
-  @type.color
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
   color = vec4.fromValues(0, 0, 0, 1);
 
-  @edit.readwrite
-  @edit.persist
-  @type.float32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
   depth = 1;
 
-  @edit.readwrite
-  @edit.persist
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.uint32
   stencil = 0;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   isColorCleared = true;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   isDepthCleared = true;
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   isStencilCleared = false;
 
   /**
    * Enables each clear channel according to whether its argument was supplied
    * and non-null, so constructing with a colour alone clears colour only.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   __init__(color, depth, stencil)
   {
     this.isColorCleared = arguments.length >= 1 && color != null;
@@ -65,8 +65,8 @@ export class TriStepClear extends TriRenderStep
    * one enable flag per channel; which attachments those apply to is the
    * render context's decision.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     renderContext.Clear({

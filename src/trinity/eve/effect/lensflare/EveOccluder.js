@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/EveOccluder.h
 // Source: trinity/trinity/Eve/EveOccluder.cpp
-import { carbon, edit, impl, type } from "#schema";
+import { meta } from "#schema";
 import { RenderingMode, TriBatchType } from "#consts/graphics";
 import { EffectKeyGenerator, TriRenderBatchAccumulator } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2VariableStore } from "../../../core/variable/Tr2VariableStore.js";
@@ -15,26 +15,26 @@ const bitsAsFloat = value => new Float32Array(new Uint32Array([ value >>> 0 ]).b
  * their pixels pass. Tr2OcclusionBuffer's CopyCounters turns the counts into
  * the visibility the flare and the god rays read.
  */
-@type.define({ className: "EveOccluder", family: "eve/effect", purpose: "Groups sprite occlusion elements that can be displayed as one named EVE scene effect." })
+@meta.define({ className: "EveOccluder", family: "eve/effect", purpose: "Groups sprite occlusion elements that can be displayed as one named EVE scene effect." })
 export class EveOccluder
 {
 
   /** m_sprites (PEveTransformVector) [READ, PERSIST] */
-  @edit.read
-  @edit.persist
-  @type.list("EveTransform")
+  @meta.blue.read
+  @meta.blue.persist
+  @meta.type.list("EveTransform")
   sprites = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.boolean
   display = true;
 
   /** m_batches (h:82): the accumulator the sprites' batches are drawn from (cpp:115-119). */
@@ -58,8 +58,8 @@ export class EveOccluder
    * @param {number} fogWeight 1 for foreground occluders, 0 for background.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   RunQuery(renderContext, updateContext, transform, bufferOffset, fogWeight)
   {
     if (!this.display) return;

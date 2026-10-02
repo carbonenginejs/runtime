@@ -17,6 +17,6 @@ export class ITriObserverLocal
 
 for (const method of ["GetObserver", "SetObserver"])
 {
-  CjsSchema.decorateMethod(ITriObserverLocal, method, meta.compose.abstract, meta.impl.abstract);
+  CjsSchema.decorateMethod(ITriObserverLocal, method, meta.requires, meta.abstract);
 }
 CjsSchema.define(ITriObserverLocal, { className: "ITriObserverLocal", carbon: "ITriObserverLocal", family: "blue", fields: {} });

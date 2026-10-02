@@ -1,4 +1,4 @@
-import { CjsSchema, impl } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { normalizeResourcePath } from "#utils/path";
 import { CjsBlackFormat } from "#resource/formats/black";
 import { EveSOFData } from "./EveSOFData.js";
@@ -334,7 +334,7 @@ export class CjsSofLibraryBuilder
    * a monolithic catalog; Carbon EveSOFDataMgr.cpp:273-281 returns null silently.
    * Missing materials stay absent, so native parameter fallback still applies.
    */
-  @impl.custom
+  @meta.ours
   async _FetchNamed(kind, nameOrPath, options)
   {
     const force = requireForceOption(options);

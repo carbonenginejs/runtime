@@ -2,7 +2,7 @@ import { INotify } from "../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/EveMultiEffectParameter.h
 // Source: trinity/trinity/Eve/EveMultiEffectParameter.cpp
 // Source: trinity/trinity/Eve/EveMultiEffectParameter_Blue.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { EveEffectRoot2 } from "../../spaceObject/EveEffectRoot2.js";
 import { EveSpaceObject2 } from "../../spaceObject/EveSpaceObject2.js";
 import { ParameterType } from "../../../generated/eve/enums.js";
@@ -12,30 +12,30 @@ import { blue, EnumRegistrationType } from "#blue";
  * One named slot in an EveMultiEffect, holding the object bound to that name
  * together with the object type the effect expects there.
  */
-@type.define({ className: "EveMultiEffectParameter", family: "eve/effect" })
-@carbon.inherit(INotify)
+@meta.define({ className: "EveMultiEffectParameter", family: "eve/effect" })
+@meta.blue.inherit(INotify)
 export class EveMultiEffectParameter
 {
-  @edit.readwrite
-  @type.int32
-  @type.enum("trinity.EveMultiEffectParameter.ParameterType")
+  @meta.blue.readwrite
+  @meta.type.int32
+  @meta.type.enum("trinity.EveMultiEffectParameter.ParameterType")
   type = 3;
 
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.string
   name = "";
 
-  @edit.notify
-  @edit.readwrite
-  @type.objectRef("IRoot")
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.type.objectRef("IRoot")
   object = null;
 
   _owner = null;
 
   /** Binds an object to this slot, or clears it when given nothing. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetParameterObject(object)
   {
     this.object = object ?? null;
@@ -45,9 +45,9 @@ export class EveMultiEffectParameter
    * Whether the bound object matches the declared parameter type; TYPE_ANYTHING
    * accepts any non-null object, and an unrecognised type accepts none.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon BlueCast checks map to JavaScript instanceof checks against the maintained runtime classes.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Carbon BlueCast checks map to JavaScript instanceof checks against the maintained runtime classes.")
   IsValid()
   {
     if (!this.object) return false;
@@ -68,24 +68,24 @@ export class EveMultiEffectParameter
    * Sets the effect rebound when this slot's object changes; passing nothing
    * detaches the slot.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   SetOwner(owner)
   {
     this._owner = owner ?? null;
   }
 
   /** The object bound to this slot, or null. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetParameterObject()
   {
     return this.object;
   }
 
   /** The name bindings and controllers use to reach this slot. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetName()
   {
     return this.name;
@@ -95,9 +95,9 @@ export class EveMultiEffectParameter
    * Rebinds the owning effect after a model update, since the bound object is
    * the slot's only notifying field.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
     if (propertyName === "object" && this._owner) this._owner.Rebind();
@@ -122,4 +122,4 @@ blue.enums.RegisterEnum("trinity.EveMultiEffectParameter.ParameterType", EveMult
 });
 
 // Exact native Blue exposure: only these identities participate in loading.
-carbon.interfaceTable({ interfaces: [INotify], chainTo: null })(EveMultiEffectParameter, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [INotify], chainTo: null })(EveMultiEffectParameter, { kind: "class" });

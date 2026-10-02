@@ -1,31 +1,31 @@
 // Source: trinity/trinity/Tr2BoundingLineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2LineSet } from "./Tr2LineSet.js";
 import { vec3 } from "#math/vec3";
 
 /** A line set that draws an axis-aligned bounding box and its picking volume. */
-@type.define({ className: "Tr2BoundingLineSet", family: "trinityCore" })
+@meta.define({ className: "Tr2BoundingLineSet", family: "trinityCore" })
 export class Tr2BoundingLineSet extends Tr2LineSet
 {
 
   /** m_maxBounds (Vector3) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   maxBounds = vec3.create();
 
   /** m_minBounds (Vector3) [READWRITE, NOTIFY, PERSIST] */
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.vec3
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
   minBounds = vec3.create();
 
   /** Carbon method UpdateBounds (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateBounds(min, max)
   {
     vec3.copy(this.minBounds, min);

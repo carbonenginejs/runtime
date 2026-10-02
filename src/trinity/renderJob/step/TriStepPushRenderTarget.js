@@ -1,25 +1,25 @@
 // Source: trinity/trinity/RenderJob/TriStepPushRenderTarget.h
 // Source: trinity/trinity/RenderJob/TriStepPushRenderTarget.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 
 
 /** Step that pushes a render target onto the render context's stack for a given slot. */
-@type.define({ className: "TriStepPushRenderTarget", family: "renderJob" })
+@meta.define({ className: "TriStepPushRenderTarget", family: "renderJob" })
 export class TriStepPushRenderTarget extends TriRenderStep
 {
-  @edit.readwrite
-  @type.uint32
+  @meta.blue.readwrite
+  @meta.type.uint32
   slot = 0;
 
-  @edit.readwrite
-  @type.objectRef("Tr2RenderTarget")
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2RenderTarget")
   renderTarget = null;
 
   /** Stores the render target and the slot it is pushed for. */
-  @carbon.method
-  @impl.adapted
+  @meta.blue.method
+  @meta.adapted
   __init__(renderTarget = null, slot = 0)
   {
     this.renderTarget = renderTarget ?? null;
@@ -30,8 +30,8 @@ export class TriStepPushRenderTarget extends TriRenderStep
    * Pushes the render target for its slot; every push needs a matching
    * TriStepPopRenderTarget in the same job or the job's stack guard unwinds it.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     // CARBON BRANCHES BETWEEN TWO OVERLOADS HERE (`cpp:13-24`), and the

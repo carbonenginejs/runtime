@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2RotationTool.h
 // Source: trinity/trinity/Tr2RotationTool.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { meta } from "#schema";
 import { Tr2ManipulationTool } from "./Tr2ManipulationTool.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -17,26 +17,26 @@ const AXIS_COLORS = Object.freeze({
 });
 
 /** Extends the manipulation tool with quaternion rotation state and angular precision. */
-@type.define({ className: "Tr2RotationTool", family: "trinityCore", purpose: "Extends the manipulation tool with quaternion rotation state and angular precision." })
+@meta.define({ className: "Tr2RotationTool", family: "trinityCore", purpose: "Extends the manipulation tool with quaternion rotation state and angular precision." })
 export class Tr2RotationTool extends Tr2ManipulationTool
 {
 
   /** m_precision (float) [READWRITE] */
-  @edit.readwrite
-  @type.float32
+  @meta.blue.readwrite
+  @meta.type.float32
   precision = 1;
 
   /** m_rotation (Quaternion) [READ] */
-  @edit.read
-  @type.quat
+  @meta.blue.read
+  @meta.type.quat
   rotation = quat.create();
 
   /** m_wwLine (Tr2LineSetPtr, Tr2RotationTool.h:33): the screen-space ring
    *  primitive whose scale is the arcball radius. Carbon builds it in
    *  GenLineSets, which is not ported; a host supplies it (or any
    *  { scale } duck) before Hemisphere is useful. */
-  @edit.readwrite
-  @type.objectRef("Tr2LineSet")
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2LineSet")
   wwLine = null;
 
   /**
@@ -52,8 +52,8 @@ export class Tr2RotationTool extends Tr2ManipulationTool
    * @param {Float32Array} [out] Caller-owned; allocated when omitted.
    * @returns {Float32Array} The plane normal.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetDesiredPlaneNormal(_ray, viewMatrix, out = vec3.create())
   {
     vec3.set(Tr2RotationTool.#view, viewMatrix[2], viewMatrix[6], viewMatrix[10]);
@@ -79,8 +79,8 @@ export class Tr2RotationTool extends Tr2ManipulationTool
    * Carbon GetUnTransformedBaseVectors (Tr2RotationTool.cpp:211-216): the
    * identity axes, the untransformed counterpart to GetBaseVectors.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   GetUnTransformedBaseVectors(outX = vec3.create(), outY = vec3.create(), outZ = vec3.create())
   {
     vec3.set(outX, 1, 0, 0);
@@ -110,8 +110,8 @@ export class Tr2RotationTool extends Tr2ManipulationTool
    * @param {Float32Array} [out] Caller-owned; allocated when omitted.
    * @returns {Float32Array} The arcball vector.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   Hemisphere(mouseX, mouseY, viewport, viewMatrix, projectionMatrix, out = vec3.create())
   {
     const viewProj = mat4.multiply(Tr2RotationTool.#viewProj, projectionMatrix, viewMatrix);
@@ -153,17 +153,17 @@ export class Tr2RotationTool extends Tr2ManipulationTool
   }
 
   /** Returns all authored rotation primitives in their stored order. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("JavaScript returns a fresh array instead of Carbon's reused private visible-object vector.")
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("JavaScript returns a fresh array instead of Carbon's reused private visible-object vector.")
   GetPrimitivesToRender()
   {
     return Array.from(this.primitives);
   }
 
   /** Restores Carbon's authored axis and ring colours. */
-  @carbon.method
-  @impl.implemented
+  @meta.blue.method
+  @meta.implemented
   ResetPrimitiveColors()
   {
     for (const primitive of this.primitives)

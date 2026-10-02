@@ -206,7 +206,7 @@ for (const method of [
   "GetColorForOption", "SetColorForOption", "DrawAudioSpeaker"
 ])
 {
-  CjsSchema.decorateMethod(ITr2DebugRenderer2, method, meta.compose.abstract, meta.impl.abstract);
+  CjsSchema.decorateMethod(ITr2DebugRenderer2, method, meta.requires, meta.abstract);
 }
 // This JavaScript registration supplies one nominal interface identity for named
 // declarations and composition. It does not install a renderer implementation.

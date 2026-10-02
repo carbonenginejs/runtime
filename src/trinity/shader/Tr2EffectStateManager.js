@@ -1,4 +1,4 @@
-import { CjsSchema } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2BufferAL } from "../../trinityal/Tr2BufferAL/index.js";
 // Source: trinity/trinity/Shader/Tr2EffectStateManager.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -18,7 +18,7 @@ import { Tr2BufferAL } from "../../trinityal/Tr2BufferAL/index.js";
 // This class declares no @carbon.method, so the parity audit cannot see it:
 // an entirely unimplemented class reports clean. Do not read a green audit as
 // evidence that this file is finished.
-import { type, impl } from "#schema";
+
 import { RenderingMode } from "#consts/graphics";
 import {
   BlendMode,
@@ -311,16 +311,16 @@ function failState(message)
 }
 
 /** Tracks the portable render, stream, buffer, viewport, and override state used while applying an effect, owns the process-wide shader, shader-program and render-state registration tables its handle fields index, and filters redundant binds out of the Apply* surface that carries those handles to the abstraction layer. */
-@type.define({ className: "Tr2EffectStateManager", family: "shader" })
+@meta.define({ className: "Tr2EffectStateManager", family: "shader" })
 export class Tr2EffectStateManager
 {
 
   /** m_renderContext (Tr2RenderContext&) */
-  @type.rawStruct("Tr2RenderContext")
+  @meta.type.rawStruct("Tr2RenderContext")
   renderContext = null;
 
   /** m_perObjectConstantBuffers (Tr2ConstantBufferAL) */
-  @type.rawStruct("Tr2ConstantBufferAL")
+  @meta.type.rawStruct("Tr2ConstantBufferAL")
   perObjectConstantBuffers = null;
 
   // Carbon's CurrentValues and RenderStates are PRIVATE nested structs
@@ -375,27 +375,27 @@ export class Tr2EffectStateManager
   #overrides = { invertedDepthTest: false, invertedCullMode: false, wireframe: false };
 
   /** m_renderTargetWidth (int) */
-  @type.int32
+  @meta.type.int32
   renderTargetWidth = 0;
 
   /** m_renderTargetHeight (int) */
-  @type.int32
+  @meta.type.int32
   renderTargetHeight = 0;
 
   /** m_viewport (CTriViewport) */
-  @type.rawStruct("CTriViewport")
+  @meta.type.rawStruct("CTriViewport")
   viewport = null;
 
   /** m_viewportOnDevice (Tr2Viewport) */
-  @type.rawStruct("Tr2Viewport")
+  @meta.type.rawStruct("Tr2Viewport")
   viewportOnDevice = null;
 
   /** m_viewportStack (std::list<CTriViewport>) */
-  @type.rawStruct("std::list<CTriViewport>")
+  @meta.type.rawStruct("std::list<CTriViewport>")
   viewportStack = null;
 
   /** m_viewportSizeVar (Tr2Variable) */
-  @type.rawStruct("Tr2Variable")
+  @meta.type.rawStruct("Tr2Variable")
   viewportSizeVar = null;
 
   static RenderingMode = RenderingMode;
@@ -1132,7 +1132,7 @@ export class Tr2EffectStateManager
   }
 
   /** Explicitly releases values that Carbon releases with its state cache. */
-  @impl.custom
+  @meta.ours
   Destroy()
   {
     this._ReleaseBufferBindings();
