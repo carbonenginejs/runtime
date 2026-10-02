@@ -13,7 +13,6 @@
 // no JS base, so both halves are on the class, and JavaScript has no
 // destructor, so Release() stands in for ~Tr2DataTextureManager.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { PixelFormat, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
 import { Succeeded } from "../../trinityal/ALResult.js";
@@ -29,7 +28,7 @@ const VEC4_BYTES = 16;
 
 /** Packs shader-readable data blocks into the shared impact data texture. */
 @type.define({ className: "Tr2DataTextureManager", family: "shader" })
-export class Tr2DataTextureManager extends CjsModel
+export class Tr2DataTextureManager
 {
 
   /** m_textureWidth (uint32_t) [READ] */
@@ -84,7 +83,6 @@ export class Tr2DataTextureManager extends CjsModel
    */
   constructor()
   {
-    super();
     TriDevice.RegisterResource(this);
     Tr2VariableStore.globalStore().RegisterVariable(IMPACT_SHIELD_DATA_MAP, this._dataTexture);
     this.PrepareResources();

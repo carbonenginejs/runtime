@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightBaseGroup.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
 import { resolveFactionColor } from "../resolveFactionColor.js";
@@ -28,7 +27,7 @@ export function resolveGroupColor(customColor, useFactionColor, factionColor, pa
 
 /** The shared faction-colour resolution and attribute-modifier surface flattened into every smart-light group implementation. */
 @type.define({ className: "EveSmartLightBaseGroup", family: "eve/smartLights" })
-export class EveSmartLightBaseGroup extends CjsModel
+export class EveSmartLightBaseGroup
 {
 
   /** m_selectedColor (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */

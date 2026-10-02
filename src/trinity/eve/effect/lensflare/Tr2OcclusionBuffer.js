@@ -12,7 +12,6 @@ import { Tr2BufferAL } from "../../../../trinityal/Tr2BufferAL/index.js";
 //
 // Carbon keeps it as a function-local static singleton; getInstance is that.
 import { carbon, impl, type } from "#schema";
-import { CjsModel } from "#model";
 import { PixelFormat } from "#consts/render-context";
 import { OCCLUDER_MANAGEMENT_EFFECT_PATH } from "#consts/effectPaths";
 import { Tr2Effect } from "../../../shader/Tr2Effect.js";
@@ -31,7 +30,7 @@ const bitsAsFloat = value => new Float32Array(new Uint32Array([ value >>> 0 ]).b
 
 /** Allocates GPU slots for lens-flare occlusion and runs the buffer's per-frame compute. */
 @type.define({ className: "Tr2OcclusionBuffer", family: "eve/scene" })
-export class Tr2OcclusionBuffer extends CjsModel
+export class Tr2OcclusionBuffer
 {
 
   /** m_management (Tr2EffectPtr): Clear and CopyCounters (cpp:17-18). */
@@ -57,7 +56,6 @@ export class Tr2OcclusionBuffer extends CjsModel
   /** Carbon's constructor (cpp:15-22). */
   constructor(...args)
   {
-    super(...args);
     this.management = new Tr2Effect();
     this.management.SetEffectPathName(OCCLUDER_MANAGEMENT_EFFECT_PATH);
     this.buffer = new Tr2GpuBuffer();

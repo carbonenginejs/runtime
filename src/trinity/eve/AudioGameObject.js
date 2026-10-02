@@ -5,7 +5,6 @@ import { IEveSpaceObject2 } from "./IEveSpaceObject2.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsModel } from "#model";
 import { carbon, CjsSchema, impl, edit, type } from "#schema";
 
 
@@ -16,7 +15,7 @@ import { carbon, CjsSchema, impl, edit, type } from "#schema";
  */
 @type.define({ className: "AudioGameObject", family: "eve" })
 @carbon.inherit(IEveSpaceObject2)
-export class AudioGameObject extends CjsModel
+export class AudioGameObject
 {
   _worldTransform = mat4.create();
 

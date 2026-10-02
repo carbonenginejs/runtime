@@ -10,7 +10,6 @@ import { Tr2VertexDefinition } from "../core/vertex/Tr2VertexDefinition/Tr2Verte
 import { Tr2ParticleElementDeclarationName } from "./element/Tr2ParticleElementDeclarationName.js";
 import { TriDevice } from "../core/device/TriDevice.js";
 import { Tr2Renderer } from "../core/Tr2Renderer.js";
-import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -21,13 +20,12 @@ import { ITr2GenericEmitterUpdateArguments } from "./ITr2GenericEmitter/index.js
 /** Owns a particle system's element declaration, CPU-side attribute buffers, and per-frame simulation of aging, forces, movement, constraints and bounds. */
 @type.define({ className: "Tr2ParticleSystem", family: "particle" })
 @carbon.inherit(ITr2InstanceData)
-export class Tr2ParticleSystem extends CjsModel
+export class Tr2ParticleSystem
 {
 
   /** Registers the inherited device-resource lifetime (Tr2DeviceResource.cpp:8-12). */
   constructor()
   {
-    super();
     TriDevice.RegisterResource(this);
   }
 

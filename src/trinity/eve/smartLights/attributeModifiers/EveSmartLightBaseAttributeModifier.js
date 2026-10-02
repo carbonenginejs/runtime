@@ -1,12 +1,11 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightBaseAttributeModifier.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { LifeTimeFormulas } from "./enums.js";
 
 /** Owns common smart-light activation state and a nominal modifier contract whose optional colour and controller hooks default to no-ops while required update and attribute-processing methods throw until a concrete modifier implements them. */
 @type.define({ className: "EveSmartLightBaseAttributeModifier", family: "eve/smartLights/attributeModifiers" })
-export class EveSmartLightBaseAttributeModifier extends CjsModel
+export class EveSmartLightBaseAttributeModifier
 {
 
   /** m_lifeTimeFormula (LifeTimeFormulas - enum LifeTimeFormulas) [READWRITE, PERSIST, ENUM] */

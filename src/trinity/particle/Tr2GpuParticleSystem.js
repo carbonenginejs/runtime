@@ -15,7 +15,6 @@
 // `EmitterParamsGpu` (128 bytes, the `Emitters` structured-buffer stride) and
 // the update constants (160 bytes).
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { RenderingMode, TriStorageFlags } from "#consts/graphics";
@@ -87,7 +86,7 @@ function CheckEffect(effect)
 
 /** Describes the GPU particle pipeline's capacity, visible-count controls, and compute and render effect stages. */
 @type.define({ className: "Tr2GpuParticleSystem", family: "particle", purpose: "Describes the GPU particle pipeline's capacity, visible-count controls, and compute and render effect stages." })
-export class Tr2GpuParticleSystem extends CjsModel
+export class Tr2GpuParticleSystem
 {
 
   /** m_enableEmit (bool) [READWRITE] */
@@ -297,7 +296,6 @@ export class Tr2GpuParticleSystem extends CjsModel
    */
   constructor()
   {
-    super();
     TriDevice.RegisterResource(this);
     this.InitializeBuffers();
     this.RegisterVariables();

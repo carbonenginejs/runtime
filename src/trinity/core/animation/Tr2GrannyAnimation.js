@@ -10,7 +10,6 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { CjsGrannyCurves } from "../../curves/track/CjsGrannyCurves.js";
 import { CjsCmfFormat } from "#resource/formats/cmf";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
@@ -106,7 +105,7 @@ function sampleCmfChannel(out, curves, channel, time)
 
 /** Tr2GrannyAnimation (trinityCore) - promoted from generated; shapeHash 056bad2a. */
 @type.define({ className: "Tr2GrannyAnimation", family: "trinityCore" })
-export class Tr2GrannyAnimation extends CjsModel
+export class Tr2GrannyAnimation
 {
 
   /** Last path resolved by Initialize; empty for explicitly attached resources. */

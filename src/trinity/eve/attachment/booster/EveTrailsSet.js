@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveTrailsSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveTrailsSet.cpp
 import { mat4 } from "#math/mat4";
-import { CjsModel } from "#model";
 import { blue } from "#blue";
 import { ResourceRequirement } from "#resource";
 import { TriStorageFlags } from "#consts/graphics";
@@ -24,7 +23,7 @@ const INSTANCE_VERTEX_SIZE = 16;
  * its shape bent along each booster renderable's spline in the vertex shader.
  */
 @type.define({ className: "EveTrailsSet", family: "eve/attachment/boosters" })
-export class EveTrailsSet extends CjsModel
+export class EveTrailsSet
 {
 
   /** m_geometryResource (TriGeometryResPtr) [READ] */
@@ -76,7 +75,6 @@ export class EveTrailsSet extends CjsModel
   /** Carbon's constructor (cpp:13-20): a Tr2DeviceResource, prepared now and whenever the device can. */
   constructor()
   {
-    super();
     TriDevice.RegisterResource(this);
     this.PrepareResources();
   }

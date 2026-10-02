@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Tr2ShadowMap.h
 //   trinity/trinity/Tr2ShadowMap.cpp
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -136,7 +135,7 @@ function writeOrthoOffCenter(out, left, right, bottom, top, near, far)
 
 /** Cascaded-shadow split producer. Its GPU operations are not ported yet. */
 @type.define({ className: "Tr2ShadowMap", family: "trinityCore" })
-export class Tr2ShadowMap extends CjsModel
+export class Tr2ShadowMap
 {
   @edit.notify
   @edit.readwrite
@@ -266,7 +265,6 @@ export class Tr2ShadowMap extends CjsModel
   /** Creates the logical effect/denoiser state and reserves Carbon's globals. */
   constructor()
   {
-    super();
     const store = Tr2VariableStore.globalStore();
     store.RegisterVariable("EveSpaceSceneShadowMap");
     store.RegisterVariable("EveSpaceSceneCascadedShadowMap");

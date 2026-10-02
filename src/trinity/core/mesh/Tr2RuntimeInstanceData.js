@@ -2,7 +2,6 @@
 // Source: trinity/trinity/Tr2RuntimeInstanceData.cpp
 // Source: trinity/trinity/Tr2RuntimeInstanceData_Blue.cpp
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
 import { carbon, edit, impl, type } from "#schema";
 import { Tr2ParticleElementDeclaration } from "../../particle/element/Tr2ParticleElementDeclaration.js";
 import { Tr2VertexUsageCode } from "../vertex/usageCode.js";
@@ -16,7 +15,7 @@ import { ITr2InstanceDataInstanceData, ITr2InstanceData } from "./ITr2InstanceDa
  */
 @type.define({ className: "Tr2RuntimeInstanceData", family: "trinityCore" })
 @carbon.inherit(ITr2InstanceData)
-export class Tr2RuntimeInstanceData extends CjsModel
+export class Tr2RuntimeInstanceData
 {
   @edit.readwrite
   @edit.persist

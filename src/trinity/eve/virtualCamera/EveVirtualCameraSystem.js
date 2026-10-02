@@ -1,6 +1,5 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraSystem.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraSystem.cpp
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { EveVirtualCamera } from "./EveVirtualCamera.js";
 import { EveVirtualCameraTransitionCut } from "./transition/EveVirtualCameraTransitionCut.js";
@@ -15,7 +14,7 @@ import { EveVirtualCameraTransitionLerp } from "./transition/EveVirtualCameraTra
   className: "EveVirtualCameraSystem",
   family: "eve/virtualCamera"
 })
-export class EveVirtualCameraSystem extends CjsModel
+export class EveVirtualCameraSystem
 {
   @edit.readwrite
   @edit.persist
@@ -44,7 +43,6 @@ export class EveVirtualCameraSystem extends CjsModel
    */
   constructor()
   {
-    super();
     this.externalCamera = new EveVirtualCamera();
     this.externalCamera.SetName("externalCamera");
     this.externalCamera.SetAnimationTimelineLength(0);

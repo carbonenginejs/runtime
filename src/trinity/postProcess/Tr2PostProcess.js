@@ -1,6 +1,5 @@
 // Source: trinity/trinity/Tr2PostProcess.h
 // Source: trinity/trinity/Tr2PostProcess.cpp
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 
 
@@ -9,7 +8,7 @@ import { carbon, impl, edit, type } from "#schema";
  * to Tr2PostProcess2's named effect slots.
  */
 @type.define({ className: "Tr2PostProcess", family: "postProcess" })
-export class Tr2PostProcess extends CjsModel
+export class Tr2PostProcess
 {
   @edit.read
   @edit.persist

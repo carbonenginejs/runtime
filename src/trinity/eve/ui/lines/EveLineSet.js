@@ -4,7 +4,6 @@
 import { carbon, impl, edit, type } from "#schema";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { IEveTransform } from "../../IEveTransform.js";
-import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -14,7 +13,7 @@ import { Tr2PerObjectDataStandard } from "../../../core/rawData/perObjectData/Tr
 /** Stores editable tactical line records before renderer submission. */
 @type.define({ className: "EveLineSet", family: "eve/ui" })
 @carbon.inherit(ITr2Renderable, IEveSpaceObject2, IEveTransform)
-export class EveLineSet extends CjsModel
+export class EveLineSet
 {
 
   /** Carbon's pending CPU line records. */

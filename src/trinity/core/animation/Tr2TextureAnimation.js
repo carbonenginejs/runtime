@@ -2,7 +2,6 @@
 // Source: trinity/trinity/Tr2TextureAnimation.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { blue } from "#blue";
 import { BitmapDimensions } from "#imageio";
 import { GetBytesPerPixel, PixelFormat, PixelFormatFromCanonical, TextureType, Tr2GpuUsage, Tr2CpuUsage } from "#consts/render-context";
@@ -13,7 +12,7 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2Rende
 
 /** Advances a multi-channel texture flipbook, tracking frame and restart state per channel. */
 @type.define({ className: "Tr2TextureAnimation", family: "trinityCore" })
-export class Tr2TextureAnimation extends CjsModel
+export class Tr2TextureAnimation
 {
   _channels = new Map();
 

@@ -4,7 +4,6 @@
 // Promoted to hand-maintained source 2026-08-22; quad instance policy is portable CPU work.
 import { mat4 } from "#math/mat4";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -92,12 +91,11 @@ function getSubdivisionCount(pixelSize, low, medium, high, updateContext)
 /** Produces tactical anchor, range, and velocity quad-instance records. */
 @type.define({ className: "EveTacticalOverlay", family: "eve/ui" })
 @carbon.inherit(IEveSpaceObject2)
-export class EveTacticalOverlay extends CjsModel
+export class EveTacticalOverlay
 {
   /** Initializes the effect-local variable-store records. */
   constructor()
   {
-    super();
     this._RegisterVariables();
   }
 

@@ -478,7 +478,7 @@ test("runtime instance data packs Carbon SOF records without realizing a GPU buf
   assertEquals(data.dataRevision, 1);
   assertEquals(Object.hasOwn(data, "gpuBuffer"), false);
 
-  const values = data.GetValues({ persistOnly: true });
+  const values = CjsSchema.getValues(data, {}, { persistOnly: true });
   assert.deepEqual(values.layout, layout);
   assert.deepEqual(values.rows[0], [
     [2, 3, 4, 5],
@@ -491,7 +491,7 @@ test("runtime instance data packs Carbon SOF records without realizing a GPU buf
   ]);
   assert.equal(Object.hasOwn(values, "data"), false);
 
-  const restored = Tr2RuntimeInstanceData.from(values);
+  const restored = CjsSchema.from("Tr2RuntimeInstanceData", values);
   assert.equal(restored.GetStride(), 100);
   assert.equal(restored.GetCount(), 1);
   assert.deepEqual(restored.GetItem(0), values.rows[0]);
@@ -530,7 +530,7 @@ test("runtime instance data builds the standard transform stream as a non-GPU gr
   assert.equal(data.dirty, false);
   assert.equal(Object.hasOwn(data, "gpuBuffer"), false);
 
-  const restored = Tr2RuntimeInstanceData.from(data.GetValues({ persistOnly: true }));
+  const restored = CjsSchema.from("Tr2RuntimeInstanceData", CjsSchema.getValues(data, {}, { persistOnly: true }));
   assert.deepEqual(restored.GetItem(0), data.GetItem(0));
   assert.deepEqual(Array.from(restored.aabbMin), [5, 6, 7]);
   assert.deepEqual(Array.from(restored.aabbMax), [5, 6, 7]);

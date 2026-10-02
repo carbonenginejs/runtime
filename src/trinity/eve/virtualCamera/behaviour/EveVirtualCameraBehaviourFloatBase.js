@@ -1,6 +1,5 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 
 
@@ -12,7 +11,7 @@ import { carbon, impl, edit, type } from "#schema";
   className: "EveVirtualCameraBehaviourFloatBase",
   family: "eve/virtualCamera/behaviour"
 })
-export class EveVirtualCameraBehaviourFloatBase extends CjsModel
+export class EveVirtualCameraBehaviourFloatBase
 {
   @edit.readwrite
   @edit.persist

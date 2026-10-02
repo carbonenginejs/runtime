@@ -5,7 +5,6 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
@@ -24,7 +23,7 @@ import { EveBoosterSet2 } from "./EveBoosterSet2.js";
  */
 @type.define({ className: "EveBoosterSet2Renderable", family: "eve/attachment/boosters" })
 @carbon.inherit(ITr2Renderable)
-export class EveBoosterSet2Renderable extends CjsModel
+export class EveBoosterSet2Renderable
 {
 
   /** m_trailIntensity (float) [READ] */
@@ -141,7 +140,6 @@ export class EveBoosterSet2Renderable extends CjsModel
    */
   constructor()
   {
-    super();
     Tr2Renderer.ReserveQuadListIndexBuffer(EveBoosterSet2Renderable._planesCount[EveBoosterSet2Renderable._Shape()]);
   }
 

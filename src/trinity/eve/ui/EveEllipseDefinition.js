@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Eve/UI/EveEllipseDefinition.h
 //   trinity/trinity/Eve/UI/EveEllipseDefinition.cpp
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
 import { edit, type } from "#schema";
 
 
@@ -10,7 +9,7 @@ import { edit, type } from "#schema";
  * rotation in degrees and the two semi-axis lengths.
  */
 @type.define({ className: "EveEllipseDefinition", family: "eve/ui" })
-export class EveEllipseDefinition extends CjsModel
+export class EveEllipseDefinition
 {
   _dirtyFlag = null;
 

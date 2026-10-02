@@ -1,11 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/IEveSocketParameter.h
-import { CjsModel } from "#model";
 import { carbon, impl, type } from "#schema";
 
 
 /** Carbon socket-parameter contract with its interface defaults. */
 @type.define({ className: "IEveSocketParameter", family: "eve/socket" })
-export class IEveSocketParameter extends CjsModel
+export class IEveSocketParameter
 {
 
   /** Returns Carbon's default empty socket-parameter name. */

@@ -39,7 +39,6 @@
 // same, but the JS list stays bounded (documented native quirk).
 
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { Tr2BufferDescriptionAL } from "../../../../trinityal/index.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { TriDevice } from "../TriDevice.js";
@@ -66,7 +65,7 @@ const INVALID_OFFSET = 0xffffffff;
  * One upload arena per data type, fenced by frame.
  */
 @type.define({ className: "Tr2RingBuffer", family: "trinityCore" })
-export class Tr2RingBuffer extends CjsModel
+export class Tr2RingBuffer
 {
   /** One arena per data type, as Carbon's typed `GetInstance` gives. */
   static _instances = new Map();
@@ -120,7 +119,6 @@ export class Tr2RingBuffer extends CjsModel
   /** Registers the arena as Carbon's Tr2DeviceResource constructor does. */
   constructor()
   {
-    super();
     TriDevice.RegisterResource(this);
   }
 

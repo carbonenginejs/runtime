@@ -2,7 +2,6 @@
 // Source: trinity/trinity/Tr2VolumetricsRenderer.cpp
 // Source: trinity/trinity/Tr2VolumetricsRenderer_Blue.cpp
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { Tr2VolumerticQuality } from "../../generated/trinityCore/enums.js";
@@ -23,7 +22,7 @@ const FOG_COLOR_SCRATCH = vec3.create();
  * remain explicit engine obligations.
  */
 @type.define({ className: "Tr2VolumetricsRenderer", family: "trinityCore" })
-export class Tr2VolumetricsRenderer extends CjsModel
+export class Tr2VolumetricsRenderer
 {
   @edit.readwrite
   @type.int32
@@ -121,7 +120,6 @@ export class Tr2VolumetricsRenderer extends CjsModel
   /** Creates Carbon's logical Mie reference and reserves its texture globals. */
   constructor()
   {
-    super();
     const store = Tr2VariableStore.globalStore();
     store.RegisterVariable("EveSceneFogVolumeMap");
     store.RegisterVariable("VolumetricDepthMap");

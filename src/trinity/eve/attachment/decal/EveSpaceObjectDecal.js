@@ -6,7 +6,6 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsModel } from "#model";
 import { carbon, edit, impl, type } from "#schema";
 import { MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
 import { IEveSpaceObject2ParentData } from "../../spaceObject/IEveSpaceObject2ParentData.js";
@@ -30,7 +29,7 @@ import "#blue/registerTrinityEnums";
  */
 @type.define({ className: "EveSpaceObjectDecal", family: "eve/attachment/decal" })
 @carbon.inherit(ITr2Renderable)
-export class EveSpaceObjectDecal extends CjsModel
+export class EveSpaceObjectDecal
 {
   /**
    * Establishes Carbon's opaque decal batch type after schema initialization,
@@ -38,7 +37,6 @@ export class EveSpaceObjectDecal extends CjsModel
    */
   constructor()
   {
-    super();
     // The schema's legacy TriBatchType default is 0. Carbon's decal default is
     // the opaque batch (1), so establish it after model/schema initialization.
     this.batchType = 1;

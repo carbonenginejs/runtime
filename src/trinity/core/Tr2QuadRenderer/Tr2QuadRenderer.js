@@ -6,7 +6,6 @@
 // buffers (RecreateQuadBuffers) and the vertex declarations (OnPrepareResources).
 import { Tr2QuadRendererEffectRecord } from "./Tr2QuadRendererEffectRecord.js";
 import { carbon, impl, type } from "#schema";
-import { CjsModel } from "#model";
 import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 import { TriBatchType, TriStorageFlags } from "#consts/graphics";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
@@ -34,7 +33,7 @@ function Lcm(a, b)
 
 /** Collects quads from every registered effect into one merged instance buffer and emits them as batches. */
 @type.define({ className: "Tr2QuadRenderer", family: "trinityCore" })
-export class Tr2QuadRenderer extends CjsModel
+export class Tr2QuadRenderer
 {
 
   /** m_vertexBufferOffset: the frame's ring offset, -1 when the upload failed (cpp:27). */
@@ -71,7 +70,6 @@ export class Tr2QuadRenderer extends CjsModel
   /** Carbon's constructor (cpp:25-35): the ring grows 512 KiB at a time. */
   constructor()
   {
-    super();
     this._vertexBuffer = new Tr2RingVertexBuffer();
     this._vertexBuffer.SetSizeIncrement(512 * 1024);
   }

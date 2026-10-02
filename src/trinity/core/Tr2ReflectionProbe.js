@@ -18,7 +18,6 @@
 // USE_MAIN_THREAD_RENDER_CONTEXT(); ours is Tr2RenderContext_GetMainThreadRenderContext(),
 // the default here, with an optional trailing context.
 import { carbon, impl, edit, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { ExFlag, PixelFormat, ShaderType, TextureType, Tr2GpuUsage } from "#consts/render-context";
@@ -45,7 +44,7 @@ const COPY_MIP_EFFECT = "res:/graphics/effect/managed/space/System/Reflection/Co
 
 /** Filters a cube into the prefiltered HDR reflection cube Eve's scene binds as its environment map. */
 @type.define({ className: "Tr2ReflectionProbe", family: "trinityCore", purpose: "Filters a cube into the prefiltered HDR reflection cube Eve's scene binds as its environment map." })
-export class Tr2ReflectionProbe extends CjsModel
+export class Tr2ReflectionProbe
 {
 
   /** m_renderFrequency (ReflectionProbeRenderFrequency - enum ReflectionProbeRenderFrequency) [READWRITE, NOTIFY, ENUM] */
@@ -148,7 +147,6 @@ export class Tr2ReflectionProbe extends CjsModel
    */
   constructor(values)
   {
-    super(values);
     this.unfilteredTexture = new Tr2RenderTarget();
     this.reflectionTexture = new Tr2RenderTarget();
   }

@@ -2,7 +2,6 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
 import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
@@ -16,7 +15,7 @@ import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
   className: "EveVirtualCameraBehaviourVector3Base",
   family: "eve/virtualCamera/behaviour"
 })
-export class EveVirtualCameraBehaviourVector3Base extends CjsModel
+export class EveVirtualCameraBehaviourVector3Base
 {
   @edit.readwrite
   @edit.persist
