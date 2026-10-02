@@ -11,6 +11,7 @@ export { EveBasicPerObjectData } from "./EveBasicPerObjectData.js";
 export { EveBoosterSetPerObjectData } from "./EveBoosterSetPerObjectData.js";
 export { EveChildBoosterSetPerObjectData } from "./EveChildBoosterSetPerObjectData.js";
 export { EveChildBulletStormPerObjectData } from "./EveChildBulletStormPerObjectData.js";
+export { EveChildLineSetPerObjectData } from "./EveChildLineSetPerObjectData.js";
 export { EveChildSpherePinPerObjectData } from "./EveChildSpherePinPerObjectData.js";
 export { EveDecalPerObjectData } from "./EveDecalPerObjectData.js";
 export { EveLensflarePerObjectData } from "./EveLensflarePerObjectData.js";

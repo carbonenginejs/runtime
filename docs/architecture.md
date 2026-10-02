@@ -159,6 +159,14 @@ contract advances a shared byte cursor through nested path containers; hidden
 paths keep their record slots and write zero-scale transforms. Instance records
 contain the local transform, with the owning child's world transform supplied
 separately. Billboards read camera state from the supplied render context.
+The owning `EveChildLineSet` coordinates path updates, visibility and edit
+notifications with line tessellation and object instancing. It supplies persistent
+VS/PS constants, realizes shared geometry before binding its instance stream,
+and emits current/previous transform aliases at TEXCOORD8..13. Both render modes
+use the same native update gate. Its final `Destroy` releases its instance buffer
+and created default line sets; an explicitly assigned line set remains borrowed.
+Replaced defaults are retained until that final ownership decision so sharing
+cannot turn a later reinitialization into premature destruction.
 
 ## Tools, demos, and generated source
 
@@ -199,11 +207,13 @@ destruction detaches its provider without destroying that shared object.
 
 The WebGPU demo snapshots device identities only around synchronous ship
 hydration. A failed hydration destroys newly registered particle systems,
-instanced meshes, instance providers and behavior systems. Successful replacement, cancellation and disposal retire those
+instanced meshes, instance providers, child/curve-line sets and behavior systems. Successful replacement, cancellation and disposal retire those
 same named resources through model traversal, preserving objects reachable from
 other live or pending ships. Transition overlays are detached before this walk
 because their bindings reference both ships. This policy belongs to the demo;
-the runtime provides no generic graph-destruction policy.
+the runtime provides no generic graph-destruction policy. Child-line destruction
+accepts the line sets managed by that walk so shared defaults survive and each
+curve set is destroyed once.
 
 The optional `ELECTRICITY_CORPUS_DIR` regression in
 `test/trinity/instanced-particle-mesh.test.js` separates warp, kill-counter and

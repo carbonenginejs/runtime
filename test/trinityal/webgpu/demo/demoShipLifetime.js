@@ -3,13 +3,14 @@ import { CjsSchema } from "../../../../npm/dist/global/schema/index.js";
 import { Traverse } from "../../../../npm/dist/global/blue/find.js";
 import { mat4 } from "../../../../npm/dist/global/math/mat4.js";
 import { CjsBlackFormat } from "../../../../npm/dist/resource/formats/black/index.js";
-import { TriDevice, EveChildBehaviorSystem, Tr2ParticleSystem, Tr2InstancedMesh, Tr2DirectInstanceData, Tr2RuntimeInstanceData } from "../../../../npm/dist/trinity/index.js";
+import { TriDevice, EveChildLineSet, Tr2CurveLineSet, EveChildBehaviorSystem, Tr2ParticleSystem, Tr2InstancedMesh, Tr2DirectInstanceData, Tr2RuntimeInstanceData } from "../../../../npm/dist/trinity/index.js";
 
-/** Whether a model has a particle or instance-stream lifetime owned by demo ships. */
+/** Whether a model has an explicitly managed device or behavior lifetime owned by demo ships. */
 function isShipResource(model)
 {
   return CjsSchema.cast(model, Tr2ParticleSystem) || CjsSchema.cast(model, Tr2InstancedMesh)
-    || CjsSchema.cast(model, Tr2RuntimeInstanceData) || CjsSchema.cast(model, Tr2DirectInstanceData) || CjsSchema.cast(model, EveChildBehaviorSystem);
+    || CjsSchema.cast(model, Tr2RuntimeInstanceData) || CjsSchema.cast(model, Tr2DirectInstanceData) || CjsSchema.cast(model, EveChildBehaviorSystem)
+    || CjsSchema.cast(model, EveChildLineSet) || CjsSchema.cast(model, Tr2CurveLineSet);
 }
 
 /** Hydrates synchronously; a failed graph may be inaccessible except through device registration. */
@@ -24,9 +25,15 @@ export function hydrateDemoShip(values)
   }
   catch (error)
   {
-    for (const resource of TriDevice.GetResourcesRegistered())
+    const resources = TriDevice.GetResourcesRegistered();
+    const managedLineSets = new Set(resources);
+    for (const resource of resources)
     {
-      if (!before.has(resource) && isShipResource(resource)) resource.Destroy();
+      if (!before.has(resource) && isShipResource(resource))
+      {
+        if (CjsSchema.cast(resource, EveChildLineSet)) resource.Destroy(managedLineSets);
+        else resource.Destroy();
+      }
     }
     throw error;
   }
@@ -39,7 +46,16 @@ export function retireDemoShips(roots, retained)
   for (const root of retained) Traverse(root, model => { keep.add(model); });
   for (const root of roots) Traverse(root, model => { if (isShipResource(model)) candidates.add(model); });
   // Collect first: destroying a mesh clears its shared provider reference.
-  for (const model of candidates) if (!keep.has(model)) model.Destroy();
+  // This walk owns every visited line set; child destruction must neither
+  // destroy a kept set nor destroy a candidate again ahead of the walk.
+  const managedLineSets = new Set(keep);
+  for (const model of candidates) managedLineSets.add(model);
+  for (const model of candidates)
+  {
+    if (keep.has(model)) continue;
+    if (CjsSchema.cast(model, EveChildLineSet)) model.Destroy(managedLineSets);
+    else model.Destroy();
+  }
 }
 
 /** Replaces the demo's ship, rolling back partial overlays and retiring cancelled builds. */

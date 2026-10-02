@@ -1,4 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/LineSetPaths/IEveLineSetPath.h
+import { vec3 } from "#math/vec3";
+import { vec4 } from "#math/vec4";
 import { meta } from "#schema";
 import { EveChildTransform } from "../EveChildTransform.js";
 
@@ -91,4 +93,36 @@ export class IEveLineSetPath extends EveChildTransform
     throw new Error("IEveLineSetPath.RenderDebugInfo must be implemented by a concrete line path.");
   }
 
+  static scratch = { vec3_0: vec3.create(), vec4_0: vec4.create() };
+
+}
+
+/**
+ * Native IEveLineSetPath.h:28-72 preliminary sphere: average centers plus the
+ * maximum center distance and maximum radius. Empty input leaves out unchanged.
+ * Scratch is used only after recursive child recalculation has completed.
+ */
+export function CalculateBoundingSphereForLineSetPaths(out, lines, reCalculateChildren, meshSize)
+{
+  if (!lines.length) return;
+  if (reCalculateChildren)
+  {
+    for (const line of lines) line.CalculateBoundingSphere(meshSize, reCalculateChildren);
+  }
+  const { vec3_0, vec4_0 } = IEveLineSetPath.scratch;
+  vec3.set(vec3_0, 0, 0, 0);
+  let radius = 0, distanceSquared = 0;
+  for (const line of lines)
+  {
+    line.GetBoundingSphere(vec4_0);
+    vec3.add(vec3_0, vec3_0, vec4_0);
+    radius = Math.max(radius, vec4_0[3]);
+  }
+  vec3.scale(vec3_0, vec3_0, 1 / lines.length);
+  for (const line of lines)
+  {
+    line.GetBoundingSphere(vec4_0);
+    distanceSquared = Math.max(distanceSquared, vec3.squaredDistance(vec4_0, vec3_0));
+  }
+  vec4.set(out, vec3_0[0], vec3_0[1], vec3_0[2], Math.sqrt(distanceSquared) + radius);
 }

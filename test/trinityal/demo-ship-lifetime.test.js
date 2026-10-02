@@ -7,7 +7,7 @@ import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { blue } from "../../npm/dist/global/blue/index.js";
 import { TriGeometryRes } from "../../npm/dist/resource/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
-import { TriDevice, Tr2ParticleSystem, Tr2ParticleElementDeclaration, Tr2InstancedMesh, Tr2DirectInstanceData, Tr2RuntimeInstanceData,
+import { TriDevice, EveChildLineSet, Tr2CurveLineSet, EveCurveLineSet, EveCircle, Tr2ParticleSystem, Tr2ParticleElementDeclaration, Tr2InstancedMesh, Tr2DirectInstanceData, Tr2RuntimeInstanceData,
   EveShip2, EveStation2, EveChildParticleSystem, EveSpaceScene, EveMeshOverlayEffect, TriCurveSet, TriValueBinding,
   Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
@@ -22,7 +22,7 @@ function setup(t)
   blue.resMan=new StubResMan();
   t.after(()=>{
     for(const resource of TriDevice.GetResourcesRegistered())if(!before.has(resource)){
-      if(resource.constructor===Tr2ParticleSystem||resource.constructor===Tr2InstancedMesh)resource.Destroy();
+      if(resource.constructor===Tr2ParticleSystem||resource.constructor===Tr2InstancedMesh||CjsSchema.cast(resource,EveChildLineSet)||CjsSchema.cast(resource,Tr2CurveLineSet))resource.Destroy();
       else {resource.ReleaseResources();TriDevice.UnregisterResource(resource);}
     }
     context.SetRenderContextAL(prior);blue.resMan=manager;
@@ -270,4 +270,47 @@ test("failed demo startup retires newly hydrated runtime instance buffers", t =>
   }}),/runtime instance startup failure/);
   assert.equal(destroy.mock.callCount(),1);
   assert.deepEqual(new Set(TriDevice.GetResourcesRegistered()),baseline);
+});
+
+test("child and curve line resources retire once, retaining shared defaults and assigned sets",t=>{
+  setup(t);
+  for(const assigned of [false,true]) {
+    const old=new EveShip2(),next=new EveShip2(),child=new EveChildLineSet(),other=new EveChildLineSet();
+    if(assigned) child.lineSet=new EveCurveLineSet();
+    const path=new EveCircle();path.numSegments=4;child.lines=[path];child.Initialize();child.OnPrepareResources();
+    const shared=child.lineSet;other.lineSet=shared;other.Initialize();
+    addChild(old,"effectChildren",child,{listNotify:old});addChild(next,"effectChildren",other,{listNotify:next});
+    const destroy=t.mock.method(shared,"Destroy");
+    assert.equal(shared._vertexBuffer.IsValid(),true);assert.equal(child._vertexBuffer.IsValid(),true);
+    retireDemoShips([old,old],[next]);
+    assert.equal(destroy.mock.callCount(),0);assert.equal(child._vertexBuffer.IsValid(),false);
+    assert.equal(TriDevice.GetResourcesRegistered().includes(child),false);assert.equal(shared._vertexBuffer.IsValid(),true);
+    assert.equal(TriDevice.GetResourcesRegistered().includes(shared),true);
+    retireDemoShips([next,next],[]);assert.equal(destroy.mock.callCount(),1);
+    assert.equal(shared._vertexBuffer.IsValid(),false);assert.equal(TriDevice.GetResourcesRegistered().includes(shared),false);
+  }
+  const first=new EveShip2(),last=new EveShip2(),a=new EveChildLineSet(),b=new EveChildLineSet();
+  const shared=a.lineSet;b.lineSet=shared;b.Initialize();
+  addChild(first,"effectChildren",a,{listNotify:first});addChild(last,"effectChildren",b,{listNotify:last});
+  a.lineSet=new EveCurveLineSet();a.Initialize();
+  assert.equal(TriDevice.GetResourcesRegistered().includes(shared),true,"replacement cannot destroy another child's default");
+  const sharedDestroy=t.mock.method(shared,"Destroy");
+  retireDemoShips([first],[last]);assert.equal(sharedDestroy.mock.callCount(),0);
+  retireDemoShips([last],[]);assert.equal(sharedDestroy.mock.callCount(),1);
+  const root=new EveShip2(),child=new EveChildLineSet();addChild(root,"effectChildren",child,{listNotify:root});
+  const destroy=t.mock.method(child.lineSet,"Destroy");retireDemoShips([root,root],[]);assert.equal(destroy.mock.callCount(),1);
+});
+
+test("failed child-line hydration and startup retire both constructor and authored line resources",t=>{
+  setup(t);const before=new Set(TriDevice.GetResourcesRegistered());
+  const values={_type:"EveShip2",effectChildren:[{_type:"EveChildLineSet",lineSet:{_type:"EveCurveLineSet"},lines:[{_type:"EveCircle",numSegments:4}]}]};
+  const initialize=EveChildLineSet.prototype.Initialize;
+  const mock=t.mock.method(EveChildLineSet.prototype,"Initialize",function(){
+    const result=initialize.call(this);if(this.lines.length)throw Error("partial child line hydration");return result;
+  });
+  assert.throws(()=>hydrateDemoShip(values),/partial child line hydration/);mock.mock.restore();
+  assert.deepEqual(new Set(TriDevice.GetResourcesRegistered()),before);
+  const start=t.mock.method(EveShip2.prototype,"StartControllers",()=>{throw Error("child line startup");});
+  assert.throws(()=>hydrateDemoShip(values),/child line startup/);start.mock.restore();
+  assert.deepEqual(new Set(TriDevice.GetResourcesRegistered()),before);
 });
