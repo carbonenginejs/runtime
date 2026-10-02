@@ -1,3 +1,4 @@
+import { composeStubResMan } from "../support/stubResMan.js";
 ﻿import assert from "node:assert/strict";
 import { test } from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -312,9 +313,11 @@ test("EveChildSpherePin aliases its Blue colors and fills the Carbon per-object 
   closeArray(data.Copy("pinUV", new Float32Array(4)), [1, 1, 0, 0]);
 });
 
-test("EveSpherePin composes its world under the parent and fills the Carbon per-object record", () =>
+test("EveSpherePin composes its world under the parent and fills the Carbon per-object record", t =>
 {
+  const manager = composeStubResMan();
   const pin = new EveSpherePin();
+  t.after(() => { pin.Destroy(); manager.restore(); });
 
   // Carbon (row-vector): local * parent - local first (cpp:243-251). Parent
   // rotates 90deg about Z then translates (10,0,0); local translates (1,0,0).

@@ -9,10 +9,30 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
+import { blue, IInitialize, INotify, IsMatch, ResourceRequirement } from "#blue";
+import { TimeAsDouble } from "../../../global/blue/CcpTime.js";
+import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
+import { TriBatchType } from "#consts/graphics";
+import { Tr2Lod } from "../EveLODHelper.js";
+import { Tr2PickType, TR2_PICK_TYPE_DEFAULT } from "../../core/view/Tr2PickType.js";
+import { Tr2Effect } from "../../shader/Tr2Effect.js";
+import { TriDevice } from "../../core/device/TriDevice.js";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
+import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/index.js";
+import { CreateLodAllocations } from "../../core/mesh/TriGeometryResAllocations.js";
+import { Tr2BufferAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferAL.js";
+import { Tr2BufferDescriptionAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferDescriptionAL.js";
+import { Failed } from "../../../trinityal/ALResult.js";
+import { EveSpherePinIndexTree } from "./EveSpherePinIndexTree/index.js";
+
+// Native s_treeMap shares one index per source resource. Weak keys replace
+// its process-lifetime owning map so retired resources can be collected.
+const treeMap = new WeakMap();
 
 /** A UI sphere pin: authored SRT placement plus the pin constant record. */
 @meta.define({ className: "EveSpherePin", family: "eve/ui" })
-@meta.blue.inherit(ITr2Renderable, IEveSpaceObject2, IEveTransform)
+@meta.blue.inherit(IInitialize, ITr2Renderable, IEveSpaceObject2, IEveTransform, INotify)
 export class EveSpherePin
 {
 
@@ -57,19 +77,39 @@ export class EveSpherePin
   @meta.type.string
   name = "";
 
-  /** m_pinColor (Color) [READWRITE, NOTIFY, PERSIST] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  pinColor = vec4.fromValues(1, 1, 1, 1);
+  _pinColor = vec4.fromValues(1, 1, 1, 1);
 
-  /** m_pinColor (Color) [READWRITE, NOTIFY, PERSIST] */
+  /** Both native Blue color names address the same m_pinColor storage. */
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
   @meta.type.color
-  color = vec4.fromValues(1, 1, 1, 1);
+  get pinColor()
+  {
+    return this._pinColor;
+  }
+
+  /** Copies into the shared native color storage. */
+  set pinColor(value)
+  {
+    vec4.copy(this._pinColor, value);
+  }
+
+  /** Native Blue alias for pinColor. */
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.color
+  get color()
+  {
+    return this._pinColor;
+  }
+
+  /** Writes the same storage as pinColor. */
+  set color(value)
+  {
+    vec4.copy(this._pinColor, value);
+  }
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
   @meta.blue.read
@@ -154,9 +194,273 @@ export class EveSpherePin
    * stamped by UpdateViewDependentData; not persisted. */
   worldTransform = mat4.create();
 
-  /** m_boundingSphere - runtime state Carbon derives from the pin geometry
-   * resource; zero until a loader/engine stamps it. Not persisted. */
+  /** Native local sphere: centerNormal and pinRadius, independent of geometry. */
   boundingSphere = vec4.create();
+
+  _geometryResource = null;
+  _tree = null;
+  _rebuildIndices = 0;
+  _indexBuffer = new Tr2BufferAL();
+  _indexResult = { primitives: 0, indices: [] };
+  _ownedEffects = new Set();
+
+  /** Creates native effects, bounds and the device-resource registration. */
+  constructor()
+  {
+    this.pinEffect = new Tr2Effect();
+    this.pickEffect = new Tr2Effect();
+    this._ownedEffects.add(this.pinEffect);
+    this._ownedEffects.add(this.pickEffect);
+    this.pickEffect.SetEffectPathName("res:/Graphics/Effect/Managed/Space/UI/SpherePinPicking.fx");
+    this.BuildBoundingSphere();
+    TriDevice.RegisterResource(this);
+    this.PrepareResources();
+  }
+
+  /**
+   * Explicit JS lifetime replaces native member destruction. Constructor effects
+   * stay owned after replacement; a graph retirement walk can retain or retire
+   * shared effects itself by including them in managedResources.
+   */
+  @meta.ours
+  Destroy(managedResources = null)
+  {
+    this.ReleaseResources();
+    for (const effect of this._ownedEffects)
+    {
+      if (!managedResources?.has(effect)) effect.Destroy();
+    }
+    this._ownedEffects.clear();
+    this._indexBuffer.Destroy();
+    this._geometryResource = null;
+    this._tree = null;
+    this.pinEffect = this.pickEffect = null;
+    TriDevice.UnregisterResource(this);
+  }
+
+  /** Native initialization requests geometry and refreshes bounds, not the draw effect path. */
+  @meta.blue.method
+  @meta.implemented
+  Initialize()
+  {
+    this.InitializeGeometryResource();
+    this.BuildBoundingSphere();
+    return true;
+  }
+
+  /**
+   * Applies native notification branches in order. JS coalesces changed names
+   * into one call, so independent branches handle every field in that call.
+   */
+  @meta.blue.method
+  @meta.adapted
+  OnModified(name)
+  {
+    if (IsMatch(name, "geometryResPath")) this.InitializeGeometryResource();
+    if (IsMatch(name, "pinEffectResPath")) this.pinEffect.SetEffectPathName(this.pinEffectResPath);
+    if (IsMatch(name, "centerNormal") || IsMatch(name, "pinRadius")
+      || IsMatch(name, "pinMaxRadius") || IsMatch(name, "pinRotation")
+      || IsMatch(name, "pinColor") || IsMatch(name, "color")
+      || IsMatch(name, "pinAlphaThreshold") || IsMatch(name, "uvAtlasScaleOffset"))
+    {
+      this.BuildBoundingSphere();
+      if (IsMatch(name, "centerNormal") || IsMatch(name, "pinMaxRadius")) this._rebuildIndices = 1;
+    }
+    return true;
+  }
+
+  /**
+   * Requests the decoded geometry resource. Native notification callbacks are
+   * both empty; JS polls its readiness without installing inert subscriptions.
+   */
+  @meta.blue.method
+  @meta.adapted
+  InitializeGeometryResource()
+  {
+    this._tree = null;
+    this._geometryResource = this.geometryResPath
+      ? blue.resMan.GetResource(this.geometryResPath, { requirement: ResourceRequirement.GEOMETRY })
+      : null;
+  }
+
+  /** Native ReleaseResources is empty; final destruction releases the index buffer. */
+  @meta.blue.method
+  @meta.noop
+  ReleaseResources(_storage)
+  {
+  }
+
+  /** Native resource-creation guard. */
+  @meta.blue.method
+  @meta.implemented
+  PrepareResources()
+  {
+    return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
+  }
+
+  /** Requests index regeneration when initialized geometry outlives its AL buffer. */
+  @meta.blue.method
+  @meta.implemented
+  OnPrepareResources()
+  {
+    if (this._tree && this._tree.IsInitialized() && !this._indexBuffer.IsValid()) this._rebuildIndices = 1;
+    return true;
+  }
+
+  /** The native resource completion callback is empty. */
+  @meta.blue.method
+  @meta.noop
+  RebuildCachedData(_resource)
+  {
+  }
+
+  /** The native resource release callback is empty. */
+  @meta.blue.method
+  @meta.noop
+  ReleaseCachedData(_resource)
+  {
+  }
+
+  /**
+   * Builds selected uint16 triangles. A reusable result replaces native out
+   * references, and AL Create takes the existing JS description overload.
+   * Empty selections destroy the old buffer but retain the native rebuild flag.
+   */
+  @meta.blue.method
+  @meta.adapted
+  CreateIndexBuffer()
+  {
+    const output = this._indexResult;
+    if (!this._tree.GetIndices(this.centerNormal, this.pinMaxRadius, output)) return;
+    this.primitiveCount = output.primitives;
+    this._indexBuffer.Destroy();
+    if (this.primitiveCount <= 0) return;
+    // alloc: AL upload storage, created only when the native subset is dirty.
+    const indices = new Uint16Array(output.indices.slice(0, this.primitiveCount * 3)); // alloc: retained until AL copies the upload
+    const bytes = new Uint8Array(indices.buffer); // alloc: byte view of that upload
+    const result = this._indexBuffer.Create(Tr2BufferDescriptionAL.FromStride(
+      2, this.primitiveCount * 3, Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.NONE
+    ), bytes, Tr2RenderContext_GetMainThreadRenderContext());
+    if (Failed(result)) return;
+    this._rebuildIndices = 0;
+  }
+
+  /**
+   * Shares and builds the native spherical index, then publishes a dirty subset.
+   * JS geometry already retains decoded CPU channels, so the same resource
+   * replaces Carbon's separate "raw" TriGrannyRes request.
+   */
+  @meta.blue.method
+  @meta.adapted
+  UpdateSyncronous(_updateContext)
+  {
+    if (!this._tree && this.geometryResPath)
+    {
+      const geometry = this._geometryResource
+        ?? blue.resMan.GetResource(this.geometryResPath, { requirement: ResourceRequirement.GEOMETRY });
+      if (geometry)
+      {
+        let tree = treeMap.get(geometry);
+        if (!tree) treeMap.set(geometry, tree = new EveSpherePinIndexTree(geometry));
+        this._tree = tree;
+      }
+      this._rebuildIndices = 1;
+    }
+    if (this._tree && this._rebuildIndices)
+    {
+      if (this._tree.IsInitialized() || this._tree.Initialize()) this.CreateIndexBuffer();
+    }
+  }
+
+  /** Advances curves using native TimeAsDouble conversion from 100 ns ticks. */
+  @meta.blue.method
+  @meta.implemented
+  UpdateAsyncronous(updateContext)
+  {
+    for (const curveSet of this.curveSets) curveSet.Update(TimeAsDouble(updateContext.GetTime()));
+  }
+
+  /** Native update orders synchronous geometry publication before curve updates. */
+  @meta.blue.method
+  @meta.implemented
+  Update(updateContext)
+  {
+    this.UpdateSyncronous(updateContext);
+    this.UpdateAsyncronous(updateContext);
+  }
+
+  /** Native visibility updates placement but performs no frustum cull. */
+  @meta.blue.method
+  @meta.implemented
+  UpdateVisibility(updateContext, parentTransform)
+  {
+    if (!this.display) return;
+    this.UpdateViewDependentData(updateContext.GetFrustum(), parentTransform);
+  }
+
+  /** Native collection checks display only; the optional impostor manager is unused. */
+  @meta.blue.method
+  @meta.implemented
+  GetRenderables(renderables, _impostors = null)
+  {
+    if (this.display) renderables.push(this);
+  }
+
+  /** Native query returns the local sphere, without applying the world matrix. */
+  @meta.blue.method
+  @meta.implemented
+  GetBoundingSphere(out, _query = 0)
+  {
+    vec4.copy(out, this.boundingSphere);
+    return true;
+  }
+
+  /** Native bounds are the center normal and authored pin radius. */
+  @meta.blue.method
+  @meta.implemented
+  BuildBoundingSphere()
+  {
+    vec4.set(this.boundingSphere, this.centerNormal[0], this.centerNormal[1], this.centerNormal[2], this.pinRadius);
+  }
+
+  /** Native sphere pins always use high LOD. */
+  @meta.blue.method
+  @meta.implemented
+  GetLODLevel()
+  {
+    return Tr2Lod.TR2_LOD_HIGH;
+  }
+
+  /** Native model-center update is empty. */
+  @meta.blue.method
+  @meta.noop
+  UpdateModelCenterWorldPosition(_position, _time)
+  {
+  }
+
+  /** Native model-center query leaves its output untouched. */
+  @meta.blue.method
+  @meta.noop
+  GetModelCenterWorldPosition(_position)
+  {
+  }
+
+  /** Native pins do not provide a local bounding box. */
+  @meta.blue.method
+  @meta.implemented
+  GetLocalBoundingBox(_min, _max)
+  {
+    return false;
+  }
+
+  /** Native IEveTransform query deliberately returns identity. */
+  @meta.blue.method
+  @meta.implemented
+  GetLocalToWorldTransform(out)
+  {
+    mat4.identity(out);
+  }
+
 
   /** Carbon EveSpherePin::HasTransparentBatches is always true. */
   @meta.blue.method
@@ -166,46 +470,69 @@ export class EveSpherePin
     return true;
   }
 
-  /** Carbon EveSpherePin::GetSortValue (cpp:322-332): distance from the view
-   * position to the world-transformed bounding-sphere center, scaled by the
-   * sort-value multiplier. Carbon reads the Tr2Renderer view-position static;
-   * the batch collector supplies the render context instead. */
+  /** Uses the supplied context or main renderer, without per-frame vector allocation. */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon reads the Tr2Renderer view-position static; the batch collector supplies the render context explicitly.")
-  GetSortValue(renderContext = null)
+  GetSortValue(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
-    const viewPosition = renderContext?.GetViewPosition();
+    const vec3_0 = EveSpherePin.scratch.vec3_0;
+    vec3.transformMat4(vec3_0, this.boundingSphere, this.worldTransform);
+    return vec3.distance(renderContext.GetViewPosition(), vec3_0) * this.sortValueMultiplier;
+  }
 
-    if (!viewPosition)
+  /** Routes transparent and picking passes through the corresponding native effect. */
+  @meta.blue.method
+  @meta.implemented
+  GetBatches(accumulator, batchType, perObjectData, _reason)
+  {
+    if (batchType === TriBatchType.TRIBATCHTYPE_TRANSPARENT && this.pinEffect)
     {
-      return 0;
+      this.GetBatchWithEffect(accumulator, perObjectData, this.pinEffect);
     }
-
-    const center = vec3.transformMat4(
-      vec3.create(),
-      [this.boundingSphere[0], this.boundingSphere[1], this.boundingSphere[2]],
-      this.worldTransform
-    );
-
-    return vec3.distance(viewPosition, center) * this.sortValueMultiplier;
+    else if (batchType === TriBatchType.TRIBATCHTYPE_PICKING && this.pickEffect && this.enablePicking)
+    {
+      this.GetBatchWithEffect(accumulator, perObjectData, this.pickEffect);
+    }
   }
 
-  /** Carbon EveSpherePin::GetBatches submits the pin geometry with the pin effect (GPU-backed). */
+  /**
+   * Binds selected pin indices beside shared mesh-zero / LOD-zero vertices.
+   * JS realizes geometry lazily here because its resource layer cannot use AL.
+   */
   @meta.blue.method
-  @meta.notImplemented
-  GetBatches(_accumulator, _batchType, _perObjectData, _reason)
+  @meta.adapted
+  GetBatchWithEffect(accumulator, perObjectData, effect)
   {
-    throw new Error("EveSpherePin.GetBatches is not implemented in CarbonEngineJS.");
+    const geometry = this._geometryResource;
+    if (!geometry || !geometry.IsGood() || geometry.GetMeshCount() < 1) return;
+    const lod = geometry.GetMeshLodByIndex(0, 0);
+    if (!lod || !this._indexBuffer.IsValid()) return;
+    const context = Tr2RenderContext_GetMainThreadRenderContext();
+    if (!CreateLodAllocations(geometry, 0, lod, context)) return;
+    const vertices = lod.vertexAllocation;
+    const batch = new Tr2RenderBatch();
+    batch.SetMaterial(effect);
+    batch.SetPerObjectData(perObjectData);
+    batch.SetGeometry(geometry.GetMeshData(0).vertexDeclarationHandle,
+      vertices.GetBuffer(), vertices.GetStride(), this._indexBuffer, this._indexBuffer.GetDesc().stride);
+    batch.SetDrawIndexedInstanced(this.primitiveCount * 3, 1, 0, vertices.GetOffset() / vertices.GetStride(), 0);
+    accumulator.Commit(batch);
   }
 
-  /** Carbon EveSpherePin::GetPickingBatches submits the pick-effect geometry (GPU-backed). */
+  /** Native picking-mask routing, including transparent and additive requests. */
   @meta.blue.method
-  @meta.notImplemented
-  GetPickingBatches(_accumulator, _perObjectData)
+  @meta.implemented
+  GetPickingBatches(accumulator, pickTypes = TR2_PICK_TYPE_DEFAULT, perObjectData = null)
   {
-    throw new Error("EveSpherePin.GetPickingBatches is not implemented in CarbonEngineJS.");
+    if (pickTypes & Tr2PickType.PICK_TYPE_PICKING) this.GetBatches(accumulator, TriBatchType.TRIBATCHTYPE_PICKING, perObjectData);
+    if (pickTypes & Tr2PickType.PICK_TYPE_OPAQUE) this.GetBatches(accumulator, TriBatchType.TRIBATCHTYPE_OPAQUE, perObjectData);
+    if (pickTypes & Tr2PickType.PICK_TYPE_TRANSPARENT)
+    {
+      this.GetBatches(accumulator, TriBatchType.TRIBATCHTYPE_TRANSPARENT, perObjectData);
+      this.GetBatches(accumulator, TriBatchType.TRIBATCHTYPE_ADDITIVE, perObjectData);
+    }
   }
+
 
   /** Carbon EveSpherePin::GetID uses the pin itself as its picking identity. */
   @meta.blue.method
@@ -225,13 +552,14 @@ export class EveSpherePin
   @meta.implemented
   UpdateViewDependentData(_frustum, parentTransform)
   {
-    const local = mat4.fromRotationTranslationScale(mat4.create(), this.rotation, this.translation, this.scaling);
+    const mat4_0 = EveSpherePin.scratch.mat4_0;
+    mat4.fromRotationTranslationScale(mat4_0, this.rotation, this.translation, this.scaling);
 
-    mat4.multiply(this.worldTransform, parentTransform, local);
+    mat4.multiply(this.worldTransform, parentTransform, mat4_0);
   }
 
   /** Carbon EveSpherePin::GetPerObjectData (cpp:336-357). One transient
-   * payload; Set(MATRIX) performs Carbon's `Transpose(m_worldTransform)`.
+   * payload; SetAndTranspose performs Carbon's `Transpose(m_worldTransform)`.
    * The struct registers with stages ["vs", "ps"]: the SAME bytes are bound
    * to both per-object slots (cpp:415-425). */
   @meta.blue.method
@@ -239,6 +567,7 @@ export class EveSpherePin
   GetPerObjectData(accumulator)
   {
     const data = accumulator.Alloc("EveSpherePinPerObjectData");
+    if (!data) return null;
 
     data.SetAndTranspose("worldMatrix", this.worldTransform);
     data.Set("pinPosition", [
@@ -261,4 +590,10 @@ export class EveSpherePin
     return data;
   }
 
+  static scratch = { vec3_0: vec3.create(), mat4_0: mat4.create() };
+
 }
+
+// EveSpherePin_Blue.cpp: native mapped contracts; picking uses the existing
+// batch-mask API because this port has no ITr2Pickable contract class yet.
+meta.blue.interfaceTable({ interfaces: [IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2, INotify], chainTo: null })(EveSpherePin, { kind: "class" });

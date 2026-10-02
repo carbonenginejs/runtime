@@ -168,6 +168,15 @@ and created default line sets; an explicitly assigned line set remains borrowed.
 Replaced defaults are retained until that final ownership decision so sharing
 cannot turn a later reinitialization into premature destruction.
 
+Sphere pins share a CPU triangle index per decoded geometry resource. The
+resource layer supplies positions and indices; Trinity selects the subset and
+combines its own AL index buffer with the shared vertex allocation. The ordinary
+batch path uploads one pin payload to the distinct vertex and pixel registers.
+Scene retirement accounts for pin buffers and effects, including replaced
+constructor defaults and effects retained by another live graph. Headless tests
+exercise selection, edits, draw submission and lifetime; shader pixels remain
+outside that evidence.
+
 ## Tools, demos, and generated source
 
 `src/tools` holds the browser-safe file-index readers, off the default

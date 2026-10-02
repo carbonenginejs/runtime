@@ -7,7 +7,7 @@ import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { blue } from "../../npm/dist/global/blue/index.js";
 import { TriGeometryRes } from "../../npm/dist/resource/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
-import { TriDevice, EveChildLineSet, Tr2CurveLineSet, EveCurveLineSet, EveCircle, Tr2ParticleSystem, Tr2ParticleElementDeclaration, Tr2InstancedMesh, Tr2DirectInstanceData, Tr2RuntimeInstanceData,
+import { TriDevice, EveSpherePin, EveChildLineSet, Tr2CurveLineSet, EveCurveLineSet, EveCircle, Tr2ParticleSystem, Tr2ParticleElementDeclaration, Tr2InstancedMesh, Tr2DirectInstanceData, Tr2RuntimeInstanceData,
   EveShip2, EveStation2, EveChildParticleSystem, EveSpaceScene, EveMeshOverlayEffect, TriCurveSet, TriValueBinding,
   Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
@@ -22,7 +22,7 @@ function setup(t)
   blue.resMan=new StubResMan();
   t.after(()=>{
     for(const resource of TriDevice.GetResourcesRegistered())if(!before.has(resource)){
-      if(resource.constructor===Tr2ParticleSystem||resource.constructor===Tr2InstancedMesh||CjsSchema.cast(resource,EveChildLineSet)||CjsSchema.cast(resource,Tr2CurveLineSet))resource.Destroy();
+      if(resource.constructor===Tr2ParticleSystem||resource.constructor===Tr2InstancedMesh||CjsSchema.cast(resource,EveSpherePin)||CjsSchema.cast(resource,EveChildLineSet)||CjsSchema.cast(resource,Tr2CurveLineSet))resource.Destroy();
       else {resource.ReleaseResources();TriDevice.UnregisterResource(resource);}
     }
     context.SetRenderContextAL(prior);blue.resMan=manager;
@@ -312,5 +312,29 @@ test("failed child-line hydration and startup retire both constructor and author
   assert.deepEqual(new Set(TriDevice.GetResourcesRegistered()),before);
   const start=t.mock.method(EveShip2.prototype,"StartControllers",()=>{throw Error("child line startup");});
   assert.throws(()=>hydrateDemoShip(values),/child line startup/);start.mock.restore();
+  assert.deepEqual(new Set(TriDevice.GetResourcesRegistered()),before);
+});
+
+test("sphere pins retire registered buffers and shared effects once across scene replacement",t=>{
+  setup(t);const before=new Set(TriDevice.GetResourcesRegistered());
+  const first=new EveSpherePin(),last=new EveSpherePin(),shared=first.pinEffect;
+  last.pinEffect=shared;
+  const effect=t.mock.method(shared,"Destroy"),pick=t.mock.method(first.pickEffect,"Destroy");
+  const destroyed=t.mock.method(first._indexBuffer,"Destroy");
+  retireDemoShips([first,first],[last]);assert.equal(effect.mock.callCount(),0);assert.equal(pick.mock.callCount(),1);
+  assert.equal(destroyed.mock.callCount(),1);assert.equal(TriDevice.GetResourcesRegistered().includes(first),false);
+  retireDemoShips([last,last],[]);assert.equal(effect.mock.callCount(),1);
+  assert.deepEqual(new Set(TriDevice.GetResourcesRegistered()),before);
+});
+
+test("failed sphere-pin hydration retires constructor effects and device registration",t=>{
+  setup(t);const before=new Set(TriDevice.GetResourcesRegistered()),effects=[];
+  const initialize=EveSpherePin.prototype.Initialize;
+  t.mock.method(EveSpherePin.prototype,"Initialize",function(){
+    initialize.call(this);for(const effect of this._ownedEffects)effects.push(t.mock.method(effect,"Destroy"));
+    throw Error("sphere pin initialization failed");
+  });
+  assert.throws(()=>hydrateDemoShip({_type:"EveSpherePin"}),/sphere pin initialization failed/);
+  assert.equal(effects.length,2);effects.forEach(effect=>assert.equal(effect.mock.callCount(),1));
   assert.deepEqual(new Set(TriDevice.GetResourcesRegistered()),before);
 });

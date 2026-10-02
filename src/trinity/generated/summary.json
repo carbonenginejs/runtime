@@ -506,6 +506,11 @@
     },
     {
       "family": "eve",
+      "className": "EveSpherePinIndexTree",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
       "className": "EveSpherePinPerObjectData",
       "reason": "hand-maintained source exists"
     },
@@ -1692,11 +1697,6 @@
     {
       "family": "eve/ui",
       "className": "EveSpherePin",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/ui",
-      "className": "EveSpherePinIndexTree",
       "reason": "hand-maintained source exists"
     },
     {

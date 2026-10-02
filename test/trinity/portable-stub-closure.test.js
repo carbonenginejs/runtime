@@ -1,3 +1,4 @@
+import { composeStubResMan } from "../support/stubResMan.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
@@ -21,9 +22,11 @@ test("device graph wrappers preserve Carbon's false HasALObject result", () =>
 });
 
 
-test("EveSpherePin uses itself as its picking identity", () =>
+test("EveSpherePin uses itself as its picking identity", t =>
 {
+  const manager = composeStubResMan();
   const pin = new EveSpherePin();
+  t.after(() => { pin.Destroy(); manager.restore(); });
   assert.equal(pin.GetID(), pin);
 });
 

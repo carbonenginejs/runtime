@@ -4,6 +4,7 @@ export * from "./EveConnector.js";
 export * from "./EveLineContainer.js";
 export * from "./EveProjectBracket.js";
 export * from "./EveSpherePin.js";
+export * from "./EveSpherePinIndexTree/index.js";
 export * from "./EveSprite2dBracket.js";
 export * from "./EveSprite2dBracketRenderer.js";
 export * from "./EveTacticalOverlay.js";

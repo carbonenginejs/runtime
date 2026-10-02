@@ -14,7 +14,7 @@
 import { CjsConstantPayload } from "#interfaces";
 import { CjsSchema, meta } from "#schema";
 import { ShaderType } from "#consts/render-context";
-import { FillAndSetConstants } from "../../Tr2RenderUtils.js";
+import { FillAndSetConstants, SetConstants } from "../../Tr2RenderUtils.js";
 import { PER_OBJECT_PS, PER_OBJECT_VS } from "../../Tr2Renderer.js";
 
 /**
@@ -168,7 +168,8 @@ export class Tr2PerObjectData
    * ONE BUFFER PER STAGE, SUPPLIED BY THE CALLER, as Carbon does: the context
    * owns a small array of per-object constant buffers and hands the same ones
    * to every batch in a group, so the buffer is created once and refilled per
-   * object rather than allocated per draw.
+   * object rather than allocated per draw. A single payload shared by both
+   * families reuses the vertex buffer at each family's distinct register.
    *
    * STATIC, TAKING THE DATA, WHERE CARBON'S IS A VIRTUAL ON IT - and this is
    * forced rather than chosen. Carbon dispatches on the subclass
@@ -200,11 +201,12 @@ export class Tr2PerObjectData
 
     for (const record of Tr2PerObjectData.getConstantRecords(objectData, constantTypeMask))
     {
-      // The register is the payload's own: a pixel payload binds at the
-      // per-object PS register, everything else at the VS one. Carbon picks
-      // between exactly these two the same way.
-      const isPixel = record.stageMask === Tr2PerObjectData.StageBits.ps;
-      const buffer = buffers[isPixel ? ShaderType.PIXEL_SHADER : ShaderType.VERTEX_SHADER];
+      // A shared payload still needs two register addresses: native sphere
+      // pins bind VS at b3 and PS at b4 (EveSpherePin.cpp:415-425). Upload the
+      // shared bytes once, then bind that buffer at each family's own register.
+      const pixelMask = record.stageMask & Tr2PerObjectData.StageBits.ps;
+      const vertexMask = record.stageMask & ~Tr2PerObjectData.StageBits.ps;
+      const buffer = buffers[vertexMask ? ShaderType.VERTEX_SHADER : ShaderType.PIXEL_SHADER];
 
       if (!buffer) continue;
 
@@ -212,12 +214,16 @@ export class Tr2PerObjectData
         buffer,
         record.data,
         record.data.byteLength,
-        record.stageMask,
-        isPixel ? PER_OBJECT_PS : PER_OBJECT_VS,
+        vertexMask || pixelMask,
+        vertexMask ? PER_OBJECT_VS : PER_OBJECT_PS,
         renderContext
       );
 
-      if (bound) uploaded += 1;
+      if (bound)
+      {
+        if (vertexMask && pixelMask) SetConstants(buffer, pixelMask, PER_OBJECT_PS, renderContext);
+        uploaded += 1;
+      }
     }
 
     return uploaded;
