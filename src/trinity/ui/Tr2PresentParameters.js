@@ -59,11 +59,35 @@ export class Tr2PresentParameters extends Tr2PresentParametersAL
   software = false;
 
   // Explicit values from the native UI constructor, not added Blue members.
+  /**
+   * Requested swap-chain back-buffer count (native uint32_t); the UI constructor sets zero.
+   * @type {number}
+   */
   backBufferCount = 0;
+  /**
+   * Requested multisample type (native uint32_t); the UI constructor sets zero.
+   * @type {number}
+   */
   msaaType = 0;
+  /**
+   * Multisample quality level (native uint32_t); the UI constructor sets zero.
+   * @type {number}
+   */
   msaaQuality = 0;
+  /**
+   * Native SwapEffect policy for presenting back buffers; the UI default is DISCARD.
+   * @type {number}
+   */
   swapEffect = SwapEffect.SWAP_EFFECT_DISCARD;
+  /**
+   * Opaque native Tr2WindowHandle identifying the output window; the UI default is zero.
+   * @type {unknown}
+   */
   outputWindow = 0;
+  /**
+   * Native PresentInterval synchronization setting; the UI default is ONE refresh interval.
+   * @type {number}
+   */
   presentInterval = PresentInterval.PRESENT_INTERVAL_ONE;
 }
 
