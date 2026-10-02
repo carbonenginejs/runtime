@@ -84,9 +84,9 @@ export class CjsTextureArrayBridge
 
   /**
    * Binds the merged texture as `TriTextureParameter.CopyToResourceSet` binds
-   * its own: the realized texture, else the unprepared resource, which a
-   * backend treats as Carbon's fallback (its per-dimension dummy), with no
-   * stand-in resource. The effect's resource sets rebuild when it completes.
+   * its own: the realized texture, else null so the backend selects Carbon's
+   * fallback (its per-dimension dummy). A resource provider is never an AL
+   * texture value. The effect's resource sets rebuild when it completes.
    *
    * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
    * @param {number} stage A `ShaderType`.
@@ -103,6 +103,6 @@ export class CjsTextureArrayBridge
     const resource = this.GetResource();
     const texture = resource ? RealizeTexture(resource, renderContext) : null;
 
-    return resourceDesc.SetSrv(stage, registerIndex, texture ?? resource, colorSpace);
+    return resourceDesc.SetSrv(stage, registerIndex, texture, colorSpace);
   }
 }

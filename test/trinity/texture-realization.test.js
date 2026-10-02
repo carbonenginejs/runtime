@@ -1,3 +1,6 @@
+import { CjsTextureArrayBridge } from "../../npm/dist/trinity/shader/parameter/CjsTextureArrayBridge.js";
+import { CjsWebgpuResourceSetAL } from "../../npm/dist/trinityal/webgpu/CjsWebgpuResourceSetAL.js";
+import { composeStubResMan } from "../support/stubResMan.js";
 import { HostBitmap } from "../../npm/dist/global/imageio/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -141,4 +144,44 @@ test("a texture parameter binds the realized texture, or the resource until it i
 
   assert.ok(bound.texture.constructor === Tr2TextureAL && bound.texture.TrinityALImpl_GetObject().constructor === Tr2TextureALStub);
   assert.equal(bound.colorSpace, Tr2ColorSpace.COLOR_SPACE_SRGB);
+});
+
+
+test("merged texture parameters bind a fallback while pending, then a shared AL texture", () =>
+{
+  const manager = composeStubResMan();
+  const context = new Tr2RenderContext();
+  context.GetRenderContextAL().CreateDevice();
+  let changed = 0;
+  const effect = {
+    GetResourceByName: name => ({ resourcePath: "res:/" + name + ".dds" }),
+    ResourceChanged() { changed++; }
+  };
+  try
+  {
+    for (const packed of [false, true])
+    {
+      const bridge = new CjsTextureArrayBridge(effect, ["first", "second"], packed);
+      const description = new Tr2ResourceSetDescriptionAL({ registers: new Tr2RegisterMapAL({ stage: 1, signature: { registers: [{ registerType: 36, registerIndex: 3 }] } }) });
+      bridge.CopyToResourceSet(description, 1, 3, ResourceFlags.RESOURCE_FLAG_SRGB, context);
+      const dummy = {};
+      const binding = { texture: { viewDimension: "2d" }, registerIndex: 3, visibility: 2 };
+      const backend = new CjsWebgpuResourceSetAL();
+      assert.equal(backend._Resolve(description, binding, { GetDummyTexture: () => dummy }, {}), dummy);
+      assert.equal(description.m_srv[0].texture, null, "a pending provider must never enter an AL value copy");
+      const resource = bridge.GetResource();
+      const before = changed;
+      resource.SetPayload(bc1Bitmap());
+      resource.MarkPrepared();
+      assert.equal(changed, before + 1, "completion invalidates the effect's cached resource sets");
+      assert.equal(bridge.CopyToResourceSet(description, 1, 3, ResourceFlags.RESOURCE_FLAG_SRGB, context), true);
+      assert.equal(description.m_srv[0].texture.IsValid(), true);
+      assert.equal(description.m_srv[0].texture.TrinityALImpl_GetObject(), resource.GetTexture().TrinityALImpl_GetObject());
+      assert.equal(description.m_srv[0].colorSpace, Tr2ColorSpace.COLOR_SPACE_SRGB);
+      assert.equal(bridge.CopyToResourceSet(description, 1, 3, ResourceFlags.RESOURCE_FLAG_SRGB, context), false, "the completed texture remains shared");
+      description.ClearResources();
+      resource.SetPayload(null);
+    }
+  }
+  finally { manager.restore(); }
 });

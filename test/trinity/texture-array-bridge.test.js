@@ -78,9 +78,9 @@ test("a merged register binds the array made from its members' paths", () =>
     assert.equal(request.path, "dynamic:/texturearray/res:/a.dds;res:/b.dds;res:/c.dds");
     assert.equal(request.options.requirement, ResourceRequirement.TEXTURE);
     assert.equal(bound.register, 5);
-    // Not prepared: the resource itself is bound, which a backend treats as
-    // its fallback - no 1x1 stand-in resource.
-    assert.equal(bound.resource, stub.resources.get(request.path));
+    // Not prepared: an empty AL binding selects the backend fallback.
+    assert.equal(bound.resource, null);
+    assert.equal(stub.resources.get(request.path).IsPrepared(), false);
   }
   finally { stub.restore(); }
 });
