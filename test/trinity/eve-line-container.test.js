@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
-import { test } from "node:test";
+import { test, beforeEach, afterEach } from "node:test";
 
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
@@ -8,6 +8,23 @@ import { vec4 } from "../../npm/dist/global/math/vec4.js";
 import * as eve from "../../npm/dist/trinity/eve/index.js";
 import * as generatedEve from "../../npm/dist/trinity/generated/eve/index.js";
 import * as trinity from "../../npm/dist/trinity/index.js";
+import {Tr2RenderContextALStub} from "../../npm/dist/trinityal/index.js";
+
+let priorAL, previousResources;
+beforeEach(() => {
+  const context = trinity.Tr2RenderContext_GetMainThreadRenderContext();
+  priorAL = context.GetRenderContextAL();
+  previousResources = new Set(trinity.TriDevice.GetResourcesRegistered());
+  const al = new Tr2RenderContextALStub();
+  context.SetRenderContextAL(al);
+  al.CreateDevice();
+});
+afterEach(() => {
+  for (const resource of trinity.TriDevice.GetResourcesRegistered()) {
+    if (!previousResources.has(resource)) resource.Destroy();
+  }
+  trinity.Tr2RenderContext_GetMainThreadRenderContext().SetRenderContextAL(priorAL);
+});
 
 
 test("EveLineContainer is maintained with Carbon graph defaults", () =>

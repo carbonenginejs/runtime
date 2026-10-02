@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
-import { test } from "node:test";
+import { test, beforeEach, afterEach } from "node:test";
 
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
@@ -10,6 +10,23 @@ import * as core from "../../npm/dist/trinity/core/index.js";
 import * as eve from "../../npm/dist/trinity/eve/index.js";
 import * as generatedEve from "../../npm/dist/trinity/generated/eve/index.js";
 import * as trinity from "../../npm/dist/trinity/index.js";
+import {Tr2RenderContextALStub} from "../../npm/dist/trinityal/index.js";
+
+let priorAL, previousResources;
+beforeEach(() => {
+  const context = trinity.Tr2RenderContext_GetMainThreadRenderContext();
+  priorAL = context.GetRenderContextAL();
+  previousResources = new Set(trinity.TriDevice.GetResourcesRegistered());
+  const al = new Tr2RenderContextALStub();
+  context.SetRenderContextAL(al);
+  al.CreateDevice();
+});
+afterEach(() => {
+  for (const resource of trinity.TriDevice.GetResourcesRegistered()) {
+    if (!previousResources.has(resource)) resource.Destroy();
+  }
+  trinity.Tr2RenderContext_GetMainThreadRenderContext().SetRenderContextAL(priorAL);
+});
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 
 
@@ -42,7 +59,7 @@ test("EveCurveLineSet is a maintained Tr2CurveLineSet with Carbon graph defaults
   assert.equal(lines.HasTransparentBatches(), true);
   assert.equal(new core.Tr2CurveLineSet().GetPerObjectData({}), null,
     "the base intentionally supplies no constants");
-  assert.throws(() => lines.GetBatches(), /Tr2CurveLineSet.GetBatches is not ported yet/u);
+  assert.doesNotThrow(() => lines.GetBatches(), "no selected category produces no draw");
 });
 
 

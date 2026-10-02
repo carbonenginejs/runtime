@@ -148,6 +148,13 @@ host bitmap and texture, retaining Carbon's repeated DataReady publication.
 Explicit `Rasterize` drains the current job synchronously and returns that result;
 a dirty successor is scheduled separately. Debug geometry remains unimplemented.
 
+Curve-line sets own an AL vertex buffer and submit non-indexed triangles through
+the same batch walk. Width-factor notifications refill their tessellated stream;
+the context caches the inverse-projected frustum corner radius for depth sorting.
+Device recreation rebuilds the buffer from retained line records. Final owners
+call `Destroy` to unregister and release storage. The headless AL exercises the
+same upload and submission path; it does not establish shader pixel parity.
+
 ## Tools, demos, and generated source
 
 `src/tools` holds the browser-safe file-index readers, off the default

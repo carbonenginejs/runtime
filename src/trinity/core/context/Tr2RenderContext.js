@@ -102,6 +102,9 @@ export class Tr2RenderContext
   // state changes, not recomputed by every camera-dependent transform.
   #fieldOfView = 0;
 
+  /** Tr2Renderer::s_frustumRadius, cached beside its projection. */
+  #frustumRadius = 0;
+
   // Carbon-faithful cached view state (Tr2Renderer::SetViewTransform): the raw
   // column-major view matrix, its inverse (computed once per view change, read
   // many times per frame by camera-dependent modifiers), and the view/eye
@@ -1738,6 +1741,13 @@ export class Tr2RenderContext
     // god rays read ProjectionMat from the store; unregistered, it bound zeros.
     const variables = Tr2RenderContext.#CameraVariables();
     const inverse = mat4.invert(Tr2RenderContext.#inverseProjectionScratch, this.#projection) ?? mat4.identity(Tr2RenderContext.#inverseProjectionScratch);
+    // Tr2Renderer.cpp:198-201 inverse-projects the (1,1,1,1) corner.
+    const w = inverse[3] + inverse[7] + inverse[11] + inverse[15];
+    this.#frustumRadius = Math.hypot(
+      (inverse[0] + inverse[4] + inverse[8] + inverse[12]) / w,
+      (inverse[1] + inverse[5] + inverse[9] + inverse[13]) / w,
+      (inverse[2] + inverse[6] + inverse[10] + inverse[14]) / w
+    );
     variables.ProjectionMat.SetValue(this.#projection);
     variables.ProjectionInvMat.SetValue(inverse);
     this.#UpdateViewProjectionTransform();
@@ -1858,6 +1868,14 @@ export class Tr2RenderContext
     return this.#fieldOfView;
   }
 
+  /** Carbon's inverse-projected corner radius, relocated with context camera state. */
+  @meta.blue.method
+  @meta.adapted
+  GetFrustumRadius()
+  {
+    return this.#frustumRadius;
+  }
+
   // Save/restore stack for the current projection (Carbon Push/PopProjection).
 
   /** Saves the current projection on its own save/restore stack. */
@@ -1865,7 +1883,8 @@ export class Tr2RenderContext
   {
     this.#projectionStack.push({
       projection: this.#projection ? mat4.clone(this.#projection) : null,
-      fieldOfView: this.#fieldOfView
+      fieldOfView: this.#fieldOfView,
+      frustumRadius: this.#frustumRadius
     });
     return true;
   }
@@ -1887,6 +1906,7 @@ export class Tr2RenderContext
       this.#projection = null;
     }
     this.#fieldOfView = saved.fieldOfView;
+    this.#frustumRadius = saved.frustumRadius;
     return true;
   }
 

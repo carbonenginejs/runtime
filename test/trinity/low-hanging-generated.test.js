@@ -1,3 +1,5 @@
+import {Tr2RenderContext_GetMainThreadRenderContext} from "../../npm/dist/trinity/core/context/Tr2RenderContext.js";
+import {Tr2RenderContextALStub} from "../../npm/dist/trinityal/index.js";
 import { EveSpaceObjectDecal } from "../../npm/dist/trinity/eve/attachment/decal/EveSpaceObjectDecal.js";
 import test from "node:test";
 import { RawData } from "../../src/trinity/core/rawData/RawData.js";
@@ -666,8 +668,14 @@ test("EveCamera restores Carbon constructor defaults and portable controls", () 
   assert.equal(CjsSchema.getMethod(EveCamera, "Zoom")?.impl?.status, "adapted");
 });
 
-test("Tr2CurveLineSet preserves Carbon line IDs, edits, and segment submissions", () =>
+test("Tr2CurveLineSet preserves Carbon line IDs, edits, and segment submissions", t =>
 {
+  const context = Tr2RenderContext_GetMainThreadRenderContext();
+  const prior = context.GetRenderContextAL();
+  const al = new Tr2RenderContextALStub();
+  context.SetRenderContextAL(al);
+  al.CreateDevice();
+  t.after(() => { set.Destroy(); context.SetRenderContextAL(prior); });
   const set = new Tr2CurveLineSet();
   const straight = set.AddStraightLine([0, 0, 0], [1, 0, 0, 1], [1, 0, 0], [0, 1, 0, 1], 2);
   const curved = set.AddCurvedLineCrt([0, 0, 0], [1, 1, 1, 1], [4, 0, 0], [1, 1, 1, 1], [2, 2, 0], 3, 4);

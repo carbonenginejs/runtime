@@ -1,6 +1,18 @@
 // Source: trinity/trinity/Tr2CurveLineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta } from "#schema";
+import { INotify, IsMatch } from "#blue";
+import { color } from "#math/color";
+import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
+import { Failed } from "../../../trinityal/ALResult.js";
+import { Tr2BufferAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferAL.js";
+import { Tr2BufferDescriptionAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferDescriptionAL.js";
+import { Tr2VertexDefinition } from "../vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
+import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
+import { Tr2Renderer } from "../Tr2Renderer.js";
+import { TriDevice } from "../device/TriDevice.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
+import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -10,11 +22,22 @@ import { Tr2PickType, TR2_PICK_TYPE_DEFAULT } from "../view/Tr2PickType.js";
 import { ITr2Renderable } from "../ITr2Renderable.js";
 
 
-const ARC_AXIS = vec3.create();
-const ARC_CURRENT = vec3.create();
-const ARC_NEXT = vec3.create();
-const CURVE_CURRENT = vec3.create();
-const CURVE_NEXT = vec3.create();
+const LINE_STRIDE = 80;
+const FLOAT_MAX = 3.4028234663852886e38;
+
+/** Native SwizzleColor (Tr2CurveLineSet.cpp:160); ARGB word to RGBA bytes. */
+function swizzleColor(value)
+{
+  const word = color.toARGB(value);
+  return ((word & 0xff0000) >>> 16) | (word & 0xff00ff00) | ((word & 0xff) << 16);
+}
+
+/** Extends the native axis-aligned bound with one point. */
+function includeBox(min, max, point)
+{
+  vec3.min(min, min, point);
+  vec3.max(max, max, point);
+}
 
 
 function includePoint(sphere, point)
@@ -81,11 +104,11 @@ function sphericalToCartesian(value, center)
 
 /** A line set that draws curved and sphere-projected lines by tessellating them into straight segments. */
 @meta.define({ className: "Tr2CurveLineSet", family: "trinityCore" })
-@meta.blue.inherit(ITr2Renderable)
+@meta.blue.inherit(ITr2Renderable, INotify)
 export class Tr2CurveLineSet
 {
 
-  /** CPU-side Carbon LineData records; live vertex buffers belong to a renderer. */
+  /** Carbon LineData records tessellated into the owned AL vertex buffer. */
   @meta.type.list("LineData")
   lines = [];
 
@@ -106,8 +129,101 @@ export class Tr2CurveLineSet
   /** Whether the last submission changed the local bounds. */
   boundsDirty = false;
 
-  /** CPU update policy; engines decide how to realize the line stream. */
+  /** Selects WRITE_OFTEN rather than WRITE when allocating the vertex stream. */
   dynamic = false;
+
+  /** Native device storage and grow-only segment capacity. */
+  _vertexBuffer = new Tr2BufferAL();
+
+  _vertexBufferSize = 0;
+
+  _vertexDeclHandle = Tr2EffectStateManager.Unknown;
+
+  minBounds = vec3.create();
+
+  maxBounds = vec3.create();
+
+  /** Reused byte staging replaces Carbon's untyped pool allocation. */
+  _vertexBytes = null;
+
+  _vertexView = null;
+
+  /** Registers the inherited device-resource lifetime and prepares the empty set. */
+  constructor()
+  {
+    TriDevice.RegisterResource(this);
+    this.PrepareResources();
+  }
+
+  /** Explicit final-owner cleanup replaces the native destructor. */
+  @meta.ours
+  Destroy()
+  {
+    this.ReleaseResources();
+    TriDevice.UnregisterResource(this);
+  }
+
+  /** Inherited Tr2DeviceResource.cpp:21-32 creation guard. */
+  @meta.blue.method
+  @meta.implemented
+  PrepareResources()
+  {
+    return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
+  }
+
+  /** Explicit AL release replaces assigning the native empty buffer value. */
+  @meta.blue.method
+  @meta.adapted
+  ReleaseResources()
+  {
+    this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
+    this._vertexBuffer.Destroy();
+  }
+
+  /** Registers Carbon's 80-byte LineVertex declaration, then fills the stream. */
+  @meta.blue.method
+  @meta.implemented
+  OnPrepareResources()
+  {
+    if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown)
+    {
+      const declaration = Tr2CurveLineSet.#declaration;
+      if (declaration.empty())
+      {
+        declaration.Add("FLOAT32_3", "POSITION");
+        declaration.Add("FLOAT32_4", "TEXCOORD", 0);
+        declaration.Add("FLOAT32_4", "TEXCOORD", 1);
+        declaration.Add("FLOAT32_3", "TEXCOORD", 2);
+        declaration.Add("FLOAT32_3", "TEXCOORD", 3);
+        for (let index = 0; index < 3; index++) declaration.Add("UBYTE_4_NORM", "COLOR", index);
+      }
+      this._vertexDeclHandle = Tr2EffectStateManager.getVertexDeclarationHandle(declaration);
+      if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return false;
+    }
+    return this.FillVertexBuffer();
+  }
+
+  /** Only the mapped width factor requires a vertex refill (cpp:50-58). */
+  @meta.blue.method
+  @meta.implemented
+  OnModified(name)
+  {
+    if (IsMatch(name, "lineWidthFactor")) this.FillVertexBuffer();
+    return true;
+  }
+
+  /** Counts all live segments while retaining stable line identifiers. */
+  @meta.blue.method
+  @meta.implemented
+  GetNumOfLines()
+  {
+    let count = 0;
+    for (const line of this.lines)
+    {
+      if (line.type !== Tr2CurveLineSet.LineType.LINETYPE_INVALID) count += line.numOfSegments;
+    }
+    return count;
+  }
 
   /** m_additive (bool) [READWRITE, PERSIST] */
   @meta.blue.readwrite
@@ -372,70 +488,214 @@ export class Tr2CurveLineSet
     }
   }
 
-  /** Carbon method SubmitChanges (MAP_METHOD_AND_WRAP). */
+  /** Native submission intentionally reports success even when filling fails. */
+  @meta.blue.method
+  @meta.implemented
+  SubmitChanges()
+  {
+    this.FillVertexBuffer();
+    return true;
+  }
+
+  /**
+   * Tessellates and maps the native six-vertex segments (cpp:357-592).
+   * JS uses number intermediates and typed-array stores, not SIMD float math.
+   * The existing TriPoolAllocator only leases named RawData structs; reusable
+   * bytes on this owner replace its native untyped allocation. Unused capacity
+   * retains earlier bytes (initially zero), rather than unspecified pool memory.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Rebuilds Carbon's segment counts and logical bounds from CPU LineData; the vertex stream itself is not ported (Carbon builds it in SubmitChanges).")
-  SubmitChanges()
+  FillVertexBuffer()
   {
     this.currentSubmittedLineCount = 0;
     vec4.set(this.boundingSphere, 0, 0, 0, 0);
+    this.minBounds.fill(FLOAT_MAX);
+    this.maxBounds.fill(-FLOAT_MAX);
     this.boundsDirty = true;
+    if (!this.lines.length) return true;
 
-    for (const line of this.lines)
+    const context = Tr2RenderContext_GetMainThreadRenderContext();
+    const count = this.GetNumOfLines();
+    if (!this._vertexBuffer.IsValid() || count > this._vertexBufferSize)
     {
-      if (line.type === Tr2CurveLineSet.LineType.LINETYPE_INVALID)
+      const result = this._vertexBuffer.Create(Tr2BufferDescriptionAL.FromStride(
+        LINE_STRIDE, count * 6, Tr2GpuUsage.VERTEX_BUFFER,
+        this.dynamic ? Tr2CpuUsage.WRITE_OFTEN : Tr2CpuUsage.WRITE
+      ), null, context);
+      if (Failed(result)) return false;
+      this._vertexBufferSize = count;
+    }
+    const byteSize = this._vertexBufferSize * 6 * LINE_STRIDE;
+    if (!this._vertexBytes || this._vertexBytes.length !== byteSize)
+    {
+      this._vertexBytes = new Uint8Array(byteSize); // alloc: retained staging capacity, resized only with the owned buffer
+      this._vertexView = new DataView(this._vertexBytes.buffer);
+    }
+    const buffer = this._vertexView;
+    const { vec3_0, vec3_1, vec3_2, vec3_3, vec3_4, vec3_5, vec3_6, vec4_0, vec4_1 } = Tr2CurveLineSet.scratch;
+    const segmentPoints = Tr2CurveLineSet.#segmentPoints;
+    const absolutePoints = Tr2CurveLineSet.#absolutePoints;
+    const types = Tr2CurveLineSet.LineType;
+    for (let id = 0; id < this.lines.length; id++)
+    {
+      const line = this.lines[id], segments = line.numOfSegments;
+      let offset = this.currentSubmittedLineCount * 6 * LINE_STRIDE;
+      if (line.type === types.LINETYPE_STRAIGHT)
       {
-        continue;
-      }
-
-      const segments = Math.max(0, Math.trunc(line.numOfSegments));
-      if (line.type === Tr2CurveLineSet.LineType.LINETYPE_STRAIGHT ||
-        line.type === Tr2CurveLineSet.LineType.LINETYPE_PARTICLE)
-      {
+        vec3.scale(vec3_3, line.position1, 2);
+        vec3.subtract(vec3_3, vec3_3, line.position2);
+        vec3.scale(vec3_6, line.position2, 2);
+        vec3.subtract(vec3_6, vec3_6, line.position1);
+        this.WriteLineVerticesToBuffer(line.position1, line.color1, 0, line.position2,
+          line.color2, 1, vec3_3, vec3_6, id, buffer, offset);
         includePoint(this.boundingSphere, line.position1);
         includePoint(this.boundingSphere, line.position2);
+        includeBox(this.minBounds, this.maxBounds, line.position1);
+        includeBox(this.minBounds, this.maxBounds, line.position2);
+        this.currentSubmittedLineCount++;
       }
-      else if (line.type === Tr2CurveLineSet.LineType.LINETYPE_CURVED && segments > 0)
+      else if (line.type === types.LINETYPE_CURVED || line.type === types.LINETYPE_SPHERED)
       {
-        const tangentStart = ARC_CURRENT;
-        const tangentEnd = ARC_NEXT;
-        vec3.subtract(tangentStart, line.intermediatePosition, line.position1);
-        vec3.subtract(tangentEnd, line.position2, line.intermediatePosition);
-        vec3.copy(CURVE_CURRENT, line.position1);
+        const curved = line.type === types.LINETYPE_CURVED;
+        let angle = 0;
+        if (curved)
+        {
+          vec3.subtract(vec3_1, line.intermediatePosition, line.position1);
+          vec3.subtract(vec3_2, line.position2, line.intermediatePosition);
+          hermite(vec3_3, line.position1, vec3_1, line.position2, vec3_2, -1 / segments);
+          vec3.copy(vec3_4, line.position1);
+          hermite(vec3_5, line.position1, vec3_1, line.position2, vec3_2, 1 / segments);
+        }
+        else
+        {
+          vec3.subtract(vec3_4, line.position1, line.intermediatePosition);
+          vec3.subtract(vec3_5, line.position2, line.intermediatePosition);
+          vec3.cross(vec3_0, vec3_4, vec3_5);
+          vec3.normalize(vec3_1, vec3_4);
+          vec3.normalize(vec3_2, vec3_5);
+          angle = Math.acos(vec3.dot(vec3_1, vec3_2)) / segments;
+          rotateAroundAxis(vec3_3, vec3_4, vec3_0, -angle);
+          rotateAroundAxis(vec3_5, vec3_4, vec3_0, angle);
+        }
+        vec4.copy(vec4_0, line.color1);
         for (let segment = 0; segment < segments; segment++)
         {
-          hermite(CURVE_NEXT, line.position1, tangentStart, line.position2, tangentEnd,
-            (segment + 1) / segments);
-          includePoint(this.boundingSphere, CURVE_CURRENT);
-          includePoint(this.boundingSphere, CURVE_NEXT);
-          vec3.copy(CURVE_CURRENT, CURVE_NEXT);
+          const fraction = (segment + 1) / segments;
+          if (curved) hermite(vec3_6, line.position1, vec3_1, line.position2, vec3_2, (segment + 2) / segments);
+          else rotateAroundAxis(vec3_6, vec3_5, vec3_0, angle);
+          vec4.lerp(vec4_1, line.color1, line.color2, fraction);
+          // Native temporary sums leave the relative directions untouched.
+          // Translating float32 directions back would lose low bits each step.
+          const points = curved ? segmentPoints : absolutePoints;
+          if (!curved)
+          {
+            for (let index = 0; index < 4; index++) vec3.add(points[index], segmentPoints[index], line.intermediatePosition);
+          }
+          this.WriteLineVerticesToBuffer(points[1], vec4_0, segment / segments, points[2],
+            vec4_1, fraction, points[0], points[3], id, buffer, offset);
+          offset += 6 * LINE_STRIDE;
+          includePoint(this.boundingSphere, points[1]);
+          includePoint(this.boundingSphere, points[2]);
+          // Native quirk cpp:489-491: sphere-line AABB includes only the center.
+          includeBox(this.minBounds, this.maxBounds, curved ? vec3_4 : line.intermediatePosition);
+          includeBox(this.minBounds, this.maxBounds, curved ? vec3_5 : line.intermediatePosition);
+          vec3.copy(vec3_3, vec3_4);
+          vec3.copy(vec3_4, vec3_5);
+          vec3.copy(vec3_5, vec3_6);
+          vec4.copy(vec4_0, vec4_1);
         }
+        this.currentSubmittedLineCount += segments;
       }
-      else if (line.type === Tr2CurveLineSet.LineType.LINETYPE_SPHERED && segments > 0)
+      else if (line.type === types.LINETYPE_PARTICLE)
       {
-        vec3.subtract(ARC_CURRENT, line.position1, line.intermediatePosition);
-        vec3.subtract(ARC_NEXT, line.position2, line.intermediatePosition);
-        vec3.cross(ARC_AXIS, ARC_CURRENT, ARC_NEXT);
-        const denominator = vec3.length(ARC_CURRENT) * vec3.length(ARC_NEXT);
-        const angle = Math.acos(vec3.dot(ARC_CURRENT, ARC_NEXT) / denominator) / segments;
         for (let segment = 0; segment < segments; segment++)
         {
-          rotateAroundAxis(ARC_NEXT, ARC_CURRENT, ARC_AXIS, angle);
-          CURVE_CURRENT[0] = ARC_CURRENT[0] + line.intermediatePosition[0];
-          CURVE_CURRENT[1] = ARC_CURRENT[1] + line.intermediatePosition[1];
-          CURVE_CURRENT[2] = ARC_CURRENT[2] + line.intermediatePosition[2];
-          CURVE_NEXT[0] = ARC_NEXT[0] + line.intermediatePosition[0];
-          CURVE_NEXT[1] = ARC_NEXT[1] + line.intermediatePosition[1];
-          CURVE_NEXT[2] = ARC_NEXT[2] + line.intermediatePosition[2];
-          includePoint(this.boundingSphere, CURVE_CURRENT);
-          includePoint(this.boundingSphere, CURVE_NEXT);
-          vec3.copy(ARC_CURRENT, ARC_NEXT);
+          this.WriteParticleVerticesToBuffer(line.position1, line.color1, segment / segments,
+            line.position2, line.color2, segment / segments, id, buffer, offset);
+          offset += 6 * LINE_STRIDE;
         }
+        includePoint(this.boundingSphere, line.position1);
+        includePoint(this.boundingSphere, line.position2);
+        includeBox(this.minBounds, this.maxBounds, line.position1);
+        includeBox(this.minBounds, this.maxBounds, line.position2);
+        this.currentSubmittedLineCount += segments;
       }
-      this.currentSubmittedLineCount += segments;
     }
+    const mapped = this._vertexBuffer.MapForWriting(context);
+    if (Failed(mapped.result)) return false;
+    mapped.data.set(this._vertexBytes);
+    this._vertexBuffer.UnmapForWriting(context);
     return true;
+  }
+
+  /**
+   * Writes native LineVertex records; a DataView and byte offset replace the
+   * LineVertex pointer. Integer color words and float stores retain the layout.
+   */
+  @meta.blue.method
+  @meta.adapted
+  WriteLineVerticesToBuffer(pos1, col1, length1, pos2, col2, length2, posPrev, posNext, lineID, buffer, offset = 0)
+  {
+    const line = this.lines[lineID], width = this.lineWidthFactor * line.width;
+    const color1 = swizzleColor(col1), color2 = swizzleColor(col2);
+    const multi = swizzleColor(line.multiColor), overlay = swizzleColor(line.overlayColor);
+    for (let corner = 0; corner < 6; corner++, offset += LINE_STRIDE)
+    {
+      const end = corner === 2 || corner >= 4;
+      const position = end ? pos2 : pos1, neighbor = end ? posNext : posPrev;
+      for (let axis = 0; axis < 3; axis++)
+      {
+        buffer.setFloat32(offset + axis * 4, position[axis], true);
+        buffer.setFloat32(offset + 12 + axis * 4, (pos2[axis] - pos1[axis]) * (end ? -1 : 1), true);
+        buffer.setFloat32(offset + 56 + axis * 4, neighbor[axis], true);
+      }
+      buffer.setFloat32(offset + 24, corner === 0 || corner === 2 || corner === 5 ? -width : width, true);
+      buffer.setFloat32(offset + 28, end ? 1 : 0, true);
+      buffer.setFloat32(offset + 32, end ? length2 : length1, true);
+      buffer.setFloat32(offset + 36, line.multiColorBorder, true);
+      buffer.setFloat32(offset + 40, length2 - length1, true);
+      buffer.setFloat32(offset + 44, line.animationSpeed, true);
+      buffer.setFloat32(offset + 48, line.animationScale, true);
+      buffer.setFloat32(offset + 52, lineID, true);
+      buffer.setUint32(offset + 68, end ? color2 : color1, true);
+      buffer.setUint32(offset + 72, multi, true);
+      buffer.setUint32(offset + 76, overlay, true);
+    }
+  }
+
+  /**
+   * Writes particle quads with Math.random in place of the platform C rand
+   * stream. DataView replaces the native pointer; the native unwritten
+   * nextLineDir bytes are zeroed deterministically, with no seeded guarantee.
+   */
+  @meta.blue.method
+  @meta.adapted
+  WriteParticleVerticesToBuffer(pos1, col1, length1, pos2, col2, length2, lineID, buffer, offset = 0)
+  {
+    const line = this.lines[lineID], width = this.lineWidthFactor * line.width;
+    const random = Math.random(), color1 = swizzleColor(col1), color2 = swizzleColor(col2);
+    const multi = swizzleColor(line.multiColor), overlay = swizzleColor(line.overlayColor);
+    for (let corner = 0; corner < 6; corner++, offset += LINE_STRIDE)
+    {
+      const end = corner === 2 || corner >= 4;
+      for (let axis = 0; axis < 3; axis++)
+      {
+        buffer.setFloat32(offset + axis * 4, pos1[axis], true);
+        buffer.setFloat32(offset + 12 + axis * 4, pos2[axis] - pos1[axis], true);
+        buffer.setFloat32(offset + 44 + axis * 4, line.intermediatePosition[axis], true);
+        buffer.setFloat32(offset + 56 + axis * 4, 0, true);
+      }
+      buffer.setFloat32(offset + 24, corner === 0 || corner === 2 || corner === 5 ? -width : width, true);
+      buffer.setFloat32(offset + 28, end ? width : -width, true);
+      buffer.setFloat32(offset + 32, end ? length2 : length1, true);
+      buffer.setFloat32(offset + 36, random, true);
+      buffer.setFloat32(offset + 40, length2 - length1, true);
+      // Native quirk cpp:328: the fourth vertex omits the color swizzle.
+      buffer.setUint32(offset + 68, corner === 3 ? color.toARGB(col1) : end ? color2 : color1, true);
+      buffer.setUint32(offset + 72, multi, true);
+      buffer.setUint32(offset + 76, overlay, true);
+    }
   }
 
   /** Carbon's line sets participate in transparent sorting. */
@@ -446,16 +706,60 @@ export class Tr2CurveLineSet
     return true;
   }
 
-  // NOT PORTED. Carbon builds the vertex stream on this class:
-  // Tr2CurveLineSet::SubmitChanges (cpp:677) tessellates the curves and fills
-  // the buffer, which is pure CPU float maths.
-
-  /** Declares the unported curve-line batch collection operation. */
+  /** Collects transparent, additive, or picking lines through the native gates. */
   @meta.blue.method
-  @meta.notImplemented
-  GetBatches(_accumulator, _batchType, _perObjectData, _reason)
+  @meta.implemented
+  GetBatches(accumulator, batchType, perObjectData, _reason)
   {
-    throw new Error("Tr2CurveLineSet.GetBatches is not ported yet.");
+    if (!this.display) return;
+    if ((batchType === TriBatchType.TRIBATCHTYPE_TRANSPARENT && !this.additive) ||
+      (batchType === TriBatchType.TRIBATCHTYPE_ADDITIVE && this.additive))
+    {
+      this.GetBatchImpl(accumulator, perObjectData, this.lineEffect);
+    }
+    else if (batchType === TriBatchType.TRIBATCHTYPE_PICKING && this.pickEffect)
+    {
+      this.GetBatchImpl(accumulator, perObjectData, this.pickEffect);
+    }
+  }
+
+  /**
+   * Submits the native non-indexed triangle batch. Renderer camera state lives
+   * on the main context in JS. Native cpp:1117 uses the LOCAL sphere center for
+   * packed depth, unlike GetSortValue's transformed center; preserve that quirk.
+   */
+  @meta.blue.method
+  @meta.adapted
+  GetBatchImpl(accumulator, perObjectData, effect)
+  {
+    if (!effect || !this._vertexBuffer.IsValid() || this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
+    const batch = new Tr2RenderBatch();
+    batch.SetMaterial(effect);
+    batch.SetPerObjectData(perObjectData);
+    const context = Tr2RenderContext_GetMainThreadRenderContext(), view = context.GetViewPosition();
+    const distance = Math.hypot(this.boundingSphere[0] - view[0], this.boundingSphere[1] - view[1], this.boundingSphere[2] - view[2]);
+    const z = Math.min(Math.max(Math.fround((distance + this.depthOffset) / context.GetFrustumRadius()), 0), 1);
+    batch.depth = Math.fround(Math.fround(0xFFFFFFF) * Math.fround(1 - z)) >>> 0;
+    batch.SetVertexDeclaration(this._vertexDeclHandle);
+    batch.SetStreamSource(0, this._vertexBuffer, LINE_STRIDE);
+    batch.SetDrawInstanced(6 * this.currentSubmittedLineCount, 1, 0, 0);
+    accumulator.Commit(batch);
+  }
+
+  /** Assigns the native line material without refilling the vertex stream. */
+  @meta.blue.method
+  @meta.implemented
+  SetLineEffect(effect)
+  {
+    this.lineEffect = effect;
+  }
+
+  /** Assigns the native picking material without refilling the vertex stream. */
+  @meta.blue.method
+  @meta.implemented
+  SetPickEffect(effect)
+  {
+    this.pickEffect = effect;
   }
 
   /** Distance from the transformed local bound to the active view. */
@@ -465,14 +769,15 @@ export class Tr2CurveLineSet
   @meta.reason("Carbon reads the renderer-global view position; the collector supplies its active render context explicitly.")
   GetSortValue(context)
   {
+    const { vec3_11 } = Tr2CurveLineSet.scratch;
     const viewPosition = context.GetViewPosition();
-    CURVE_CURRENT[0] = this.boundingSphere[0];
-    CURVE_CURRENT[1] = this.boundingSphere[1];
-    CURVE_CURRENT[2] = this.boundingSphere[2];
-    vec3.transformMat4(CURVE_CURRENT, CURVE_CURRENT, this.worldTransform);
-    const dx = viewPosition[0] - CURVE_CURRENT[0];
-    const dy = viewPosition[1] - CURVE_CURRENT[1];
-    const dz = viewPosition[2] - CURVE_CURRENT[2];
+    vec3_11[0] = this.boundingSphere[0];
+    vec3_11[1] = this.boundingSphere[1];
+    vec3_11[2] = this.boundingSphere[2];
+    vec3.transformMat4(vec3_11, vec3_11, this.worldTransform);
+    const dx = viewPosition[0] - vec3_11[0];
+    const dy = viewPosition[1] - vec3_11[1];
+    const dz = viewPosition[2] - vec3_11[2];
     return Math.sqrt(dx * dx + dy * dy + dz * dz) + this.depthOffset;
   }
 
@@ -573,6 +878,29 @@ export class Tr2CurveLineSet
     return Number.isInteger(id) && id >= 0 && id < this.lines.length && this.lines[id].type !== Tr2CurveLineSet.LineType.LINETYPE_INVALID;
   }
 
+  static scratch = {
+    vec3_0: vec3.create(),
+    vec3_1: vec3.create(),
+    vec3_2: vec3.create(),
+    vec3_3: vec3.create(),
+    vec3_4: vec3.create(),
+    vec3_5: vec3.create(),
+    vec3_6: vec3.create(),
+    vec3_7: vec3.create(),
+    vec3_8: vec3.create(),
+    vec3_9: vec3.create(),
+    vec3_10: vec3.create(),
+    vec3_11: vec3.create(),
+    vec4_0: vec4.create(),
+    vec4_1: vec4.create()
+  };
+
+  static #segmentPoints = [3, 4, 5, 6].map(index => Tr2CurveLineSet.scratch[`vec3_${index}`]);
+
+  static #absolutePoints = [7, 8, 9, 10].map(index => Tr2CurveLineSet.scratch[`vec3_${index}`]);
+
+  static #declaration = new Tr2VertexDefinition();
+
   static LineType = Object.freeze({
     LINETYPE_INVALID: 0,
     LINETYPE_STRAIGHT: 1,
@@ -582,3 +910,6 @@ export class Tr2CurveLineSet
   });
 
 }
+
+// ITr2Pickable is not yet a registered JS contract; keep its existing methods.
+meta.blue.interfaceTable({ interfaces: [ITr2Renderable, INotify], chainTo: null })(Tr2CurveLineSet, { kind: "class" });
