@@ -1,8 +1,8 @@
 {
   "outRoot": "src/trinity/generated",
   "classes": {
-    "written": 34,
-    "skipped": 661
+    "written": 33,
+    "skipped": 662
   },
   "enums": {
     "written": 15,
@@ -2207,6 +2207,11 @@
     {
       "family": "postProcess",
       "className": "Tr2PPVignetteEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "raytracing",
+      "className": "Tr2RaytracingMesh",
       "reason": "hand-maintained source exists"
     },
     {
@@ -5969,11 +5974,6 @@
       "file": "trinity/generated/raytracing/Tr2RaytracingManager.js"
     },
     {
-      "className": "Tr2RaytracingMesh",
-      "family": "raytracing",
-      "file": "trinity/generated/raytracing/Tr2RaytracingMesh.js"
-    },
-    {
       "className": "Tr2RaytracingPipelineStateManager",
       "family": "raytracing",
       "file": "trinity/generated/raytracing/Tr2RaytracingPipelineStateManager.js"
@@ -7433,6 +7433,11 @@
     {
       "family": "postProcess",
       "className": "Tr2PPVignetteEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "raytracing",
+      "className": "Tr2RaytracingMesh",
       "reason": "hand-maintained source exists"
     },
     {
