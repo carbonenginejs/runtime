@@ -47,7 +47,7 @@ const UNIT_MAX = Object.freeze([ 1, 1, 1 ]);
  *
  * The `[-1, 1]` box is not arbitrary: it is the same box the decal's own
  * projection uses, dotting the position with rows 1 and 2 of the inverse decal
- * matrix. /docs/research/quad-family-blender-port.md carries the measurement.
+ * matrix (measured).
  *
  * @param {mat4} decalMatrix Places the unit volume in the hull's space.
  * @returns {{min: number[], max: number[]}} Axis-aligned world bounds.

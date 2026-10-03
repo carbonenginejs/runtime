@@ -1,6 +1,5 @@
 // The notify surface as COMPOSITION - the @compose.notify decorator and the
-// method map behind it (design record: docs/research/
-// cjsmodel-value-audit-2026-09-05.md, direction items 9 and 11).
+// method map behind it.
 //
 // Carbon's word for the concept is notify (INotify / Be::NOTIFY /
 // IListNotify); this surface deliberately widens Carbon's single slot to a

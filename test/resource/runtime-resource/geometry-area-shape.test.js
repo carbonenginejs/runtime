@@ -10,7 +10,7 @@ import { TriGeometryRes } from "../../../npm/dist/resource/geometry/index.js";
 // That is trinity's CORRECT state, not a pending task. Decorators are how a
 // ported class declares itself, and the recorded direction is more of them, not
 // fewer - `CjsModel` is being dissolved in favour of a `@compose` namespace
-// (docs/internal/decisions/cjsmodel-composition-decorators.md). Formats and
+// (a recorded decision). Formats and
 // resources are the deliberate exception: they take schema data through
 // `CjsSchema.define` instead, which is plain JavaScript, so `src/resource`
 // imports from source and a change to it is visible here without a rebuild.

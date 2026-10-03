@@ -1,5 +1,5 @@
 /**
- * Carbon Sphere — literal port of e:\carbonengine\math\include\Sphere.h / Sphere_inline.h + src\Sphere.cpp
+ * Carbon Sphere — literal port of math\include\Sphere.h / Sphere_inline.h + src\Sphere.cpp
  *
  * Storage: Float32Array(4) = [ centerX, centerY, centerZ, radius ]
  * A default sphere has radius -1 and is "not initialized" (Carbon's sentinel).

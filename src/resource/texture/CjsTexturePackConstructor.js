@@ -1,5 +1,4 @@
-// Not Carbon: `dynamic:/texturepack` is ours, registered in
-// /docs/architecture/non-carbon-extensions.md. Carbon's dynamic constructors
+// Not Carbon: `dynamic:/texturepack` is ours. Carbon's dynamic constructors
 // (SolidColorTexture.cpp, GradientTexture.cpp) rasterize from values in the
 // query; this one composes other resources.
 import { IBlueDynamicResourceConstructor } from "#blue";

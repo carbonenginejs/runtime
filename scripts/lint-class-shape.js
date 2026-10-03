@@ -58,8 +58,7 @@ const UNREGISTERING_BASES = new Set([ "Tr2BaseDeviceResourceAL", "Tr2DeviceResou
  * quotes that exact Carbon line while the code does something else.
  *
  * Removing the duplicate therefore means moving the resolve up into
- * `Tr2EffectStateManager` - the fifth piece of the immediate-draw route named
- * in `docs/projects/sof-ship-on-screen.md` - and touching four call sites plus
+ * `Tr2EffectStateManager` - the fifth piece of the immediate-draw route - and touching four call sites plus
  * a test. Recorded rather than rushed.
  */
 /**

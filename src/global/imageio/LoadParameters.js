@@ -9,7 +9,7 @@
 // format, even one it reports supporting, and merged texture arrays need every
 // layer in one format. So a caller can ask for a specific `PixelFormat`, and
 // the image format converts after its native read. null asks for the native
-// format, which is Carbon's behaviour. See /docs/projects/hostbitmap-port.md.
+// format, which is Carbon's behaviour.
 
 import { CjsSchema } from "#schema";
 

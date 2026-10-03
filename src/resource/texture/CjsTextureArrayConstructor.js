@@ -1,5 +1,4 @@
-// Not Carbon: `dynamic:/texturearray` is ours, registered in
-// /docs/architecture/non-carbon-extensions.md.
+// Not Carbon: `dynamic:/texturearray` is ours.
 import { IBlueDynamicResourceConstructor, ResourceRequirement } from "#blue";
 import { TriTextureRes } from "./TriTextureRes.js";
 import { Tr2TexturePipeline } from "./Tr2TexturePipeline.js";

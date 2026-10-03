@@ -63,7 +63,7 @@ test("every @type.enum field resolves a registered or class-static member map", 
   }
 });
 
-// docs/standards/enum-placement.md "Never both": a vocabulary has exactly one
+// Enum placement rule "Never both": a vocabulary has exactly one
 // home. Two frozen objects carrying the same members under the same name can
 // drift apart, and a consumer comparing one against the other still passes
 // today - which is what makes the drift silent. Aliasing (`static X = X`) keeps

@@ -152,7 +152,7 @@ test("the pixel-stage cb7 remap is carried, not re-derived", () =>
 
     // The whole reason names are on the wire: register 0 in the pixel stage is
     // `cb7`, so a reader deriving `cb${registerIndex}` would produce `cb0` and
-    // bind nothing. See docs/specifications/constant-buffer-slots.md.
+    // bind nothing.
     assert.equal(cb.registerIndex, 0);
     assert.equal(cb.name, "cb7");
 });

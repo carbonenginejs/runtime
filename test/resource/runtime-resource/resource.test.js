@@ -1589,7 +1589,7 @@ test("a resource refuses to load bytes it was never taught to read", () =>
   // DoLoad is the load contract, not an optional capability, so the base
   // declares it and refuses. Returning quietly would publish an empty resource
   // and let the manager mark it prepared - an absent load wearing the shape of
-  // a completed one. See /docs/internal/decisions/resource-population.md.
+  // a completed one.
   const resource = new CjsResource();
 
   assert.equal(CjsSchema.getMethod(CjsResource, "DoLoad")?.impl?.status, "abstract");
@@ -1823,8 +1823,7 @@ test("a geometry intersection query reports unavailable CPU data instead of a mi
   // The regression this guards is silent: reading `GetPayload()?.meshes` on a
   // released payload returned `hit: false`, which no caller can distinguish
   // from the ray genuinely missing. Picking degrades to "nothing is ever
-  // clickable" with no error anywhere. See
-  // /docs/specifications/cpu-geometry-residency.md.
+  // clickable" with no error anywhere.
   const geometry = new TriGeometryRes();
 
   assert.equal(geometry.HasPayload(), false);

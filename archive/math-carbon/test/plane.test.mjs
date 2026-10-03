@@ -8,7 +8,7 @@ function closeTo(expected, actual, message)
     assert.ok(Math.abs(expected - actual) <= 1e-6, `${message || ""} expected ${expected} got ${actual}`);
 }
 
-// Ported from e:\carbonengine\math\tests\Plane.cpp
+// Ported from math\tests\Plane.cpp
 describe("Plane", () =>
 {
 

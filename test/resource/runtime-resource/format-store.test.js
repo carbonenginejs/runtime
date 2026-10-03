@@ -9,7 +9,6 @@ import { CjsWebglFormat } from "../../../npm/dist/resource/formats/webgl/index.j
 // The store is the link between a resource and the formats that populate it.
 // It exists so neither imports the other: formats stay tree-shakeable subpaths
 // and the composing application decides which ones exist.
-// See /docs/internal/decisions/resource-population.md.
 
 
 test("a format is reachable by every extension it declares", () =>

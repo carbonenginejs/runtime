@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
@@ -82,7 +83,7 @@ test("constructor overrides and static fields cannot silently prove instance def
     assert.ok(instanceResult.unchecked.includes("JS constructor body requires review"));
 });
 
-const donor = path.join(process.env.CARBON_ROOT ?? "E:/carbonengine", "trinity/trinityal/Tr2HalHelperStructures.h");
+const donor = path.join(process.env.CARBON_ROOT ?? fileURLToPath(new URL("../../../carbonengine", import.meta.url)), "trinity/trinityal/Tr2HalHelperStructures.h");
 test("real Carbon sampler: filter, address and comparison zero mutations each fail", { skip: !existsSync(donor) && "Carbon checkout unavailable" }, () =>
 {
     const type = headerTypes(readFileSync(donor, "utf8")).find(value => value.name === "Tr2SamplerDescription");

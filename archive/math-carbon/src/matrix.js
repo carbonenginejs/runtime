@@ -1,7 +1,7 @@
 import { quaternion } from "./quaternion.js";
 
 /**
- * Carbon Matrix, ported literally from e:\carbonengine\math
+ * Carbon Matrix, ported literally from math
  * (Matrix.h, Matrix_inline.h, src\Matrix.cpp).
  *
  * Storage is a plain Float32Array of 16 floats in Carbon's row-major order:

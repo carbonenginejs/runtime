@@ -350,7 +350,7 @@ export class TriGeometryRes extends CjsResource
   // screenSize versus int lodIndex; JavaScript cannot, so the index form is
   // GetMeshLodByIndex. Carbon indexes m_lods with the result unguarded, so a
   // mesh with an EMPTY lod list reads out of bounds there; this port returns
-  // null (docs/research/carbon-known-defects.md).
+  // null (a known Carbon defect).
 
   /**
    * The LOD data this mesh should be drawn at for a screen size, or null when
@@ -732,8 +732,7 @@ export class TriGeometryRes extends CjsResource
    *
    * Throwing is the interim answer, not the final one: once accuracy tiers
    * exist a query degrades to bounds or sphere and reports which produced it.
-   * What it must never do again is report absence as a miss. See
-   * `/docs/specifications/cpu-geometry-residency.md`.
+   * What it must never do again is report absence as a miss.
    *
    * @returns {Array<*>} Canonical CPU meshes.
    * @throws {Error} When the CPU geometry is not resident.

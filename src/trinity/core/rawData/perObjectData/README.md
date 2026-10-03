@@ -73,7 +73,7 @@ uploads **the same bytes to both per-object registers** — two
 `FillAndSetConstants` calls over one `&m_worldMatrix`. A layout declaring
 `stages: [ "vs", "ps" ]` is one payload uploaded once, bound to both.
 
-Recorded as CE-19 in `docs/research/carbon-known-defects.md`.
+This is a known Carbon defect.
 
 ## The ownership patterns
 

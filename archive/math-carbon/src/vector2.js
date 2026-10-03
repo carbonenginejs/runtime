@@ -1,4 +1,4 @@
-// Carbon Vector2, ported literally from e:\carbonengine\math (Vector2.h / Vector2_inline.h).
+// Carbon Vector2, ported literally from math (Vector2.h / Vector2_inline.h).
 // Storage is a plain Float32Array [x, y]. Scalar locals that Carbon holds in a
 // `float` are rounded with Math.fround so numerics match Carbon's float32 arithmetic;
 // component stores round via the Float32Array itself.

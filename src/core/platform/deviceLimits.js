@@ -15,8 +15,7 @@
 // resources raw, and where a WebGL2 engine must lower the structured buffers
 // and the light-profile array to fit WebGL2's sixteen units, the runtime
 // WebGPU engine layer binds them natively and can instead ask for a higher
-// sampled-texture limit. See
-// docs/specifications/webgl2-texture-budget.md. Baking that count in would make it
+// sampled-texture limit. Baking that count in would make it
 // a fact about runtime core, which it is not.
 
 

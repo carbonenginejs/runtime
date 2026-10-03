@@ -370,7 +370,7 @@ test("promoted shader graph containers track dirty resources", () =>
   // a description is not touching a backend object - Trinity owns the
   // description, the abstraction layer owns the set built from it - and the
   // old assertion was the engine-means-`trinityal/webgpu` misreading written down
-  // as a guarantee. See /docs/research/graphics-path-review-2026-09-05.md.
+  // as a guarantee.
   let cleared = 0;
   let released = 0;
   pass.resourceSet = { Destroy() { released += 1; } };
@@ -444,8 +444,7 @@ test("promoted shader resource parameters stay graph-only", () =>
   // THESE TWO USED TO ASSERT THAT BINDING NEVER HAPPENED, with descriptions
   // whose setters threw ("runtime-trinity shader graph must not bind
   // resources"). Carbon's Tr2GeometryBufferParameter binds; see the retired
-  // assertion note further down this file and
-  // /docs/research/graphics-path-review-2026-09-05.md.
+  // assertion note further down this file.
   const srvCalls = [];
   assertEquals(geometry.CopyToResourceSet({
     SetSrv(stage, registerIndex, buffer)
@@ -824,7 +823,7 @@ test("promoted shader graph files do not import backend APIs", async () =>
     //
     // It was also load-bearing in the wrong direction: it would have failed
     // the ApplyMaterialDataForPass port outright, which is the next step of
-    // /docs/research/graphics-path-review-2026-09-05.md. Retired deliberately;
+    // the graphics path review. Retired deliberately;
     // do not restore it as a regression fix.
   }
 });

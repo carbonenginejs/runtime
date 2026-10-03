@@ -1,4 +1,4 @@
-﻿// Ported from e:\carbonengine\math\tests\Vector3.cpp (gtest). Same test names.
+﻿// Ported from math\tests\Vector3.cpp (gtest). Same test names.
 // EXPECT_FLOAT_EQ -> expectFloatEq (1e-6 relative); EXPECT_EQ on floats -> strict
 // equality (float expectation expressions wrapped in Math.fround).
 // Deliberately not ported: Vec3Transform, Vec3TransformCoord, Vec3TransformNormal -

@@ -19,8 +19,7 @@ import { buildEffectPackage } from "../../../../../src/resource/formats/webgl/co
  *   WEBGL_DEPTH_CORPUS_DIR=path/to/effect.dx11 npm test
  *
  * Point it at any directory above some `.sm_depth` files; the walk recurses, so
- * an effect tree root works as well as one leaf directory. See
- * docs/specifications/webgl2-texture-budget.md — in particular, `.sm_hi` is the wrong
+ * an effect tree root works as well as one leaf directory. Note `.sm_hi` is the wrong
  * file: it carries no lights and peaks at 16, so measuring it proves nothing
  * about this constraint.
  */

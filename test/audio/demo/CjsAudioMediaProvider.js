@@ -1,5 +1,5 @@
-// The demo's injected media provider - MODE 3 of the data-supply contract
-// (`docs/specifications/data-supply-modes.md`).
+// The demo's injected media provider - MODE 3 of the data-supply modes
+// (the application injects the media).
 //
 // IT LIVES HERE, NOT IN THE RUNTIME, and that is the whole point. The contract
 // says a package ships the DOCUMENT and the BUILDER, never the server, and that

@@ -4,7 +4,7 @@
 // WHY THIS EXISTS. Nothing checked either question. lint-donor-coverage indexes
 // only class/struct/BLUE_CLASS/BLUE_INTERFACE, so enums were invisible to it,
 // and test/trinity/enum-statics.test.js imports npm/dist/trinity only - it never
-// sees global/consts, which is where `docs/standards/enum-placement.md` sends
+// sees global/consts, which is where the enum placement standard sends
 // vocabulary shared across layers. So the home the standard prefers was the one
 // home nothing verified.
 //
@@ -27,7 +27,7 @@ import { headerEnums, jsProvenance } from "./lib/carbon-header-shape.js";
 import { sourceIndex, filesUnder, baselineProblems } from "./lib/carbon-source-index.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const carbonRoot = process.env.CARBON_ROOT ?? "E:/carbonengine";
+const carbonRoot = process.env.CARBON_ROOT ?? fileURLToPath(new URL("../../../carbonengine", import.meta.url));
 
 // A C++ idiom that pads the underlying type to 32 bits. It names no state, and
 // JavaScript numbers have no width to force, so it is never ported.

@@ -1,4 +1,4 @@
-// Carbon Vector3, ported literally from e:\carbonengine\math
+// Carbon Vector3, ported literally from math
 // (Vector3.h / Vector3_inline.h / src\Vector3.cpp).
 // Storage is a plain Float32Array [x, y, z]. Scalar locals that Carbon holds in a
 // `float` are rounded with Math.fround so numerics match Carbon's float32 arithmetic;

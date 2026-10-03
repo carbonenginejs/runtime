@@ -28,8 +28,8 @@
 // `imageio/ImageUtility.cpp` also defines; the formulas are identical, so this
 // uses `ImageUtility`'s ports rather than another copy.
 //
-// TWO CARBON QUIRKS, KEPT - do not "fix" them (docs/research/carbon-known-defects.md
-// CE-36 and CE-37):
+// TWO CARBON QUIRKS, KEPT - do not "fix" them (Carbon
+// defects CE-36 and CE-37):
 //
 // - Blocks are written whole, never clipped (`BcDecompress.cpp:58`, `:87`,
 //   `:133`, `:215`; buffer sized once at `:243-246`), so a block's columns past

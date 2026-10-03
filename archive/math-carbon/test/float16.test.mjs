@@ -1,4 +1,4 @@
-﻿// Ported from e:\carbonengine\math\tests\Float16.cpp (gtest). Same test names for
+﻿// Ported from math\tests\Float16.cpp (gtest). Same test names for
 // the three ported suites; the remaining tests are JS-added and prove the conversion
 // matches Carbon's src\Float16.cpp branch conversion across the special values:
 // zeros, subnormals, infinities, NaN, rounding at mantissa boundaries, and Carbon's

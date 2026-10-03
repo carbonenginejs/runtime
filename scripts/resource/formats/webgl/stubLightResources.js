@@ -23,8 +23,7 @@ export const LIGHT_STUB_RESOURCE_NAMES = new Set([ "LightBuffer", "LightIndexBuf
 // `DETAIL3_STUB_RESOURCE_NAMES` and `--drop-detail3-map` were removed. Dropping
 // Detail3Map freed one sampler unit and lost a texture, and it only helped
 // shaders carrying three detail maps — heat+detail carries two, so it stayed one
-// over. Merging the family into one array texture frees more and loses nothing;
-// see docs/specifications/detail-map-array.md.
+// over. Merging the family into one array texture frees more and loses nothing.
 
 /**
  * Resolves the `t#` register indices of named resources from a shader record's

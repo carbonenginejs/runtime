@@ -9,8 +9,7 @@
 // texture here. Carbon shares samplers across textures and stores the t#/s#
 // pairing only in the DXBC operands - quadv5 binds nine textures against a
 // single s0 - so a source that tried to hand out one sampler per texture would
-// be inventing a relationship the container does not express. See
-// /docs/specifications/texture-sampler-pairing.md.
+// be inventing a relationship the container does not express.
 import { CarbonSamplerDescriptor } from "./samplerDescriptor.js";
 
 

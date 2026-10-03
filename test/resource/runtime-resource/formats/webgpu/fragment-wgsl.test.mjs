@@ -2795,7 +2795,7 @@ test("a sampler authored with border addressing samples through the modes buffer
 {
   // WebGPU has no border address mode; decalv5's five decal maps share one
   // bordered sampler and smeared their edge texels (clamp-to-edge) until the
-  // emulation was wired. docs/specifications/webgl2-emulated-addressing.md.
+  // emulation was wired.
   const { withEmulatedAddressing, ADDRESS_MODES_SYMBOL } = await import("../../../../../src/resource/formats/webgpu/core/wgsl/emulatedAddressing.js");
   const ir = CjsWebgpuFormat.buildShaderIr(fragmentFixture(), { source: "synthetic-border-sample" });
   const bordered = (addressU, addressV) => [ {

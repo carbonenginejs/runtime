@@ -1,5 +1,4 @@
-// Not Carbon. A texture-pipeline step of our own, registered in
-// /docs/architecture/non-carbon-extensions.md.
+// Not Carbon. A texture-pipeline step of our own.
 import { CjsSchema, meta } from "#schema";
 
 /**

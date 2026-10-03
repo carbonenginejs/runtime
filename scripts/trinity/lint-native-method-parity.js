@@ -1,5 +1,5 @@
-// The nativeMethods parity ratchet - the checker the burn-down page names as
-// the next tooling job (docs/projects/port-fidelity-burn-down.md).
+// The nativeMethods parity ratchet - the next tooling job of the port-fidelity
+// burn-down.
 //
 // audit_public_method_parity.js compares BLUE-EXPOSED methods only
 // (schemaClass.methods); the plain C++ surface lives in nativeMethods and

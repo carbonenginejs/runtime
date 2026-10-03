@@ -23,7 +23,7 @@
 //
 // CARBON'S DEFECTS ARE FIXED, NOT REPRODUCED (operator, 2026-09-22: fix the
 // image-io defects in our library and report them upstream). Each fix is marked
-// `diverged:` with its issue number in /docs/research/carbon-imageio-issue.md. Behaviour
+// `diverged:` and reported upstream. Behaviour
 // that is Carbon's design rather than a defect is kept and marked `quirk:`.
 import * as CcpLog from "../logging/ccpLog.js";
 import { CjsSchema } from "#schema";

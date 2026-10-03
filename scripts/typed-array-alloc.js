@@ -4,7 +4,7 @@
 
 import { parse } from "@babel/parser";
 
-export const RULE = "docs/standards/source-style.md § Typed arrays and scratch";
+export const RULE = "source-style rule: typed arrays and scratch";
 
 const TYPED_ARRAY = /^(?:Int8|Uint8|Uint8Clamped|Int16|Uint16|Int32|Uint32|Float16|Float32|Float64|BigInt64|BigUint64)Array$/u;
 const MATH = new Set([ "vec2", "vec3", "vec4", "quat", "quat2", "mat2", "mat2d", "mat3", "mat4", "box3", "sph3", "ray3", "lne3", "tri3", "pln", "color" ]);

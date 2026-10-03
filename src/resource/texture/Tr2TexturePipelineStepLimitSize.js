@@ -50,7 +50,7 @@ export class Tr2TexturePipelineStepLimitSize
    * count is 1 and the loop copies nothing, so the result is an all-zero
    * texture; with a full chain the last level stays zeroed. Here the mips are
    * generated first, the count is `GetTrueMipCount() - mip`, and the copy runs
-   * to `mip + mipCount` (issue 1, /docs/research/carbon-imageio-issue.md).
+   * to `mip + mipCount` (Carbon imageio issue 1).
    *
    * @param {import("#imageio").HostBitmap} bitmap Bitmap to shrink in place.
    * @param {number} maxWidth Width limit, 0 for none.

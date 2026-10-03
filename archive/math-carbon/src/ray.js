@@ -1,5 +1,5 @@
 /**
- * Carbon Ray — literal port of e:\carbonengine\math\include\Ray.h / Ray_inline.h
+ * Carbon Ray — literal port of math\include\Ray.h / Ray_inline.h
  *
  * Storage: Float32Array(6) = [ originX, originY, originZ, directionX, directionY, directionZ ]
  * Carbon's Ray is a plain aggregate (origin, direction) with no methods beyond construction.

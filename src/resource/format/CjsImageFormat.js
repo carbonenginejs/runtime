@@ -36,7 +36,7 @@ const SRGB_BLOCK_FORMATS = new Set([
  * other than the native one, `readImage` converts after the native read
  * (`convertImage`): HostBitmap's own ConvertFormat, then block decode. Encoding
  * to a block format is the next step here, so every image format inherits it
- * from this one place (/docs/projects/hostbitmap-port.md).
+ * from this one place.
  */
 export class CjsImageFormat extends CjsFormat
 {
@@ -220,8 +220,7 @@ export class CjsImageFormat extends CjsFormat
    * kept: an sRGB block format decodes to R8G8B8A8_UNORM_SRGB.
    *
    * Not Carbon: D3D takes block formats directly, so Carbon never decodes. A
-   * browser may refuse a block format (/docs/projects/hostbitmap-port.md,
-   * "Declared divergence"). Encoding to a block format is the next step.
+   * browser may refuse a block format, so this decodes instead. Encoding to a block format is the next step.
    *
    * @param {HostBitmap} bitmap Bitmap to convert in place.
    * @param {number} requested A `PixelFormat` value.

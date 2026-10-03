@@ -1,6 +1,6 @@
 // Carbon math, ported. Every function carries Carbon's name (camelCased),
 // Carbon's argument order after the leading `out`, and Carbon's arithmetic
-// ported literally from e:\carbonengine\math - branch thresholds and epsilons
+// ported literally from math - branch thresholds and epsilons
 // included - so numerics match Carbon, not gl-matrix.
 //
 // Storage is plain Float32Array in Carbon's row-major flat order, which is

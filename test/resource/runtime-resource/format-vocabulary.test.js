@@ -44,7 +44,6 @@ test("every format is a CjsFormat with one canonical frozen contract", () =>
 
 // Extension declarations. Adding these is what lets a resource own its handler
 // registry without a parallel extension table, so the shape has to hold.
-// See /docs/internal/decisions/resource-population.md.
 
 test("a declared extension is dotted, lowercase, and unique within its format", () =>
 {

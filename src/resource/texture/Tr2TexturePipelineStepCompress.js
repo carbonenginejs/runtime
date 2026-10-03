@@ -48,7 +48,7 @@ export class Tr2TexturePipelineStepCompress
   /**
    * Carbon Execute (cpp:15-21) checks validity and returns true, compressing
    * nothing, so a pipeline asking for compression silently gets uncompressed
-   * output (issue 20, /docs/research/carbon-imageio-issue.md).
+   * output (Carbon imageio issue 20).
    *
    * Approved correction: encode through the shared DDS worker, then publish
    * the complete bitmap. Browser workers require an asynchronous result.

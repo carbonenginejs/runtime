@@ -150,7 +150,7 @@ export class Tr2PerObjectData
   // so the pixel constant buffer is filled and bound even for a technique with
   // no pixel stage - while Tr2PerObjectDataSkinned gates the same payload on
   // (constantTypeMask & (1 << PIXEL_SHADER)). This port takes the gated form
-  // for every struct. See docs/research/carbon-known-defects.md CE-19.
+  // for every struct; the unmasked form is a known Carbon defect.
 
   /**
    * Uploads this object's per-object constants and binds them.

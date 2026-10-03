@@ -1,4 +1,4 @@
-// Carbon Color, ported literally from e:\carbonengine\math (Color.h / Color_inline.h;
+// Carbon Color, ported literally from math (Color.h / Color_inline.h;
 // src\Color.cpp holds no definitions). Storage is a plain Float32Array [r, g, b, a].
 // The uint32 pack order is ARGB: (a << 24) | (r << 16) | (g << 8) | b.
 // Scalar locals that Carbon holds in a `float` are rounded with Math.fround;

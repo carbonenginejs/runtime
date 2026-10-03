@@ -549,8 +549,7 @@ export class CjsBlackPropertyReaders
             // one of its member boundaries: data written before a later Carbon
             // revision appended members (Locator.partTag, trinity a9a60056,
             // leaves build-3503375 locators at 44 of 48 bytes). The missing
-            // members keep the class defaults. Not Carbon
-            // (docs/architecture/non-carbon-extensions.md).
+            // members keep the class defaults. Not Carbon.
             const exact = structureSize === structure.size;
             const earlier = structureSize < structure.size && Array.isArray(structure.boundaries) && structure.boundaries.includes(structureSize);
             if (count < 0 || (!exact && !earlier))

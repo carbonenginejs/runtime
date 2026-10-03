@@ -7,8 +7,7 @@ import { buildDetailMapPixelDxbc } from "./synthetic.js";
 /**
  * The detail-map merge exists for one reason: the affected shaders sit at
  * exactly 16 textures against WebGL2's 16-unit guarantee, so three bindings must
- * become one to leave room for anything else - lighting in particular. See
- * docs/specifications/webgl2-texture-budget.md.
+ * become one to leave room for anything else - lighting in particular.
  */
 
 test("three detail maps become one array sampled at three literal layers", () =>

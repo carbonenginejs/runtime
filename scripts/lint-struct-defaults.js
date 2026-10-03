@@ -7,7 +7,7 @@ import { sourceIndex, baselineProblems } from "./lib/carbon-source-index.js";
 import { compareDefaults, literalValue } from "./lib/carbon-header-shape.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const carbonRoot = process.env.CARBON_ROOT ?? "E:/carbonengine";
+const carbonRoot = process.env.CARBON_ROOT ?? fileURLToPath(new URL("../../../carbonengine", import.meta.url));
 if (!existsSync(carbonRoot))
 {
     console.log("Struct defaults SKIPPED: set CARBON_ROOT to the Carbon source checkout.");

@@ -9,8 +9,8 @@
 //
 // OUR SPELLING OF BLUE'S DOCUMENT. Carbon's dictionary names its class under
 // `type`, and YAML marks shared objects with anchors and aliases. Our bag
-// spells these `_type`, `_id` and `{ _ref }` (the interchange contract,
-// `docs/specifications/model-values-interchange.md`, Reserved metadata). They
+// spells these `_type`, `_id` and `{ _ref }` (the interchange's reserved
+// metadata keys). They
 // are read exactly where Carbon reads the originals.
 //
 // WHAT FOLLOWS CARBON:

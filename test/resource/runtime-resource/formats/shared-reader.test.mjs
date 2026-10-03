@@ -598,7 +598,7 @@ test("Black reads past object metadata and never surfaces it (privacy)", () =>
     ]);
     const input = builder.Finish(builder.Object(1, "TestRoot", [
         [ "name", builder.StringValue("root") ],
-        [ "__bluemetadata__", builder.StringValue("C:/Users/someone/graphite") ],
+        [ "__bluemetadata__", builder.StringValue("authoring-tool-metadata") ],
         [ "child", child ],
         [ "again", u32(2) ]
     ]));

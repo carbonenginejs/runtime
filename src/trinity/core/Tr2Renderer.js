@@ -22,8 +22,7 @@
 //
 // The rest of the class is still instance members: the register map below, the
 // projection and view state; the blitter is process-wide again. That is not a second decision, it is
-// unfinished work, and it is recorded in the wrong-shape register in
-// `docs/projects/port-fidelity-burn-down.md`.
+// unfinished work, tracked as a known wrong shape.
 //
 // WHY THE REGISTER MAP IS HERE AND NOT IN AN ENGINE. Carbon keeps these six
 // numbers as `Tr2Renderer` statics (`Tr2Renderer.cpp:38-43`), because they are

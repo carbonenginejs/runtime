@@ -8,8 +8,7 @@
 // `SyntaxError: Invalid or unexpected token` in a test that looks unrelated.
 // Use `CjsSchema.define` and `CjsSchema.decorateMethod` at the foot of the
 // file, as every class here does. This is a packaging constraint, not a
-// preference, and it does not contradict the decorator direction in
-// /docs/internal/decisions/cjsmodel-composition-decorators.md.
+// preference, and it does not contradict the decorator direction elsewhere.
 
 /**
  * Resource lifecycle across CjsResource, CjsBlueResMan and CjsMotherLode.

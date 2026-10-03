@@ -8,7 +8,7 @@ import {
 import { CjsResFileIndexFormat } from "../../../src/resource/formats/resfileindex/CjsResFileIndexFormat.js";
 
 // Each test pins one finding of the 2026-09-27 fidelity review against
-// E:/carbonengine/resources, citing the Carbon lines it follows.
+// Carbon's resources/ source, citing the Carbon lines it follows.
 
 const csv = text =>
 {

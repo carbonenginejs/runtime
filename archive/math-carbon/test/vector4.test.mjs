@@ -1,4 +1,4 @@
-﻿// Ported from e:\carbonengine\math\tests\Vector4.cpp (gtest). Same test names.
+﻿// Ported from math\tests\Vector4.cpp (gtest). Same test names.
 // Deliberately not ported: Vec4Transform and MultiplyByMatrix - they exercise
 // Matrix's Transform / operator*(Vector4, Matrix), which belong to the matrix
 // module being ported separately.

@@ -1,4 +1,4 @@
-// Carbon Float_16 and packed half vectors, ported literally from e:\carbonengine\math
+// Carbon Float_16 and packed half vectors, ported literally from math
 // (Float16.h / Float16_inline.h / src\Float16.cpp). Carbon's conversion is a branch
 // conversion (no bit tables). Carbon quirks preserved deliberately:
 // only 0x7fff/0xffff decode as NaN (0x7c00 decodes to 65536, not Infinity), and

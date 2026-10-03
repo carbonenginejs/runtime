@@ -252,8 +252,7 @@ export function GetBlockByteSize(format)
 // CARBON'S TABLE, WITH ONE FIX. diverged: Carbon lists the R32G32B32 formats
 // with the four-channel ones, so they report 16 bytes rather than 12
 // (`PixelFormat.h:211-215`), and every size, pitch and offset for them is wrong.
-// Fixed here (operator, 2026-09-22); reported upstream as issue 5 in
-// /docs/research/carbon-imageio-issue.md.
+// Fixed here (operator, 2026-09-22); reported upstream.
 const BYTES_PER_PIXEL = new Map([
     [ 16, [
         PixelFormat.PIXEL_FORMAT_R32G32B32A32_TYPELESS,

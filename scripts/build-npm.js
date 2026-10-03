@@ -39,8 +39,7 @@ await resetNpmRoot();
 const sourceManifest = JSON.parse(await fs.readFile(path.join(root, "package.json"), "utf8"));
 
 // THE REGISTRY FIELDS LIVE IN `npm.package.json`, never here and never in the
-// generated `npm/package.json`, which this script overwrites
-// (`docs/standards/versioning-and-publishing.md`). `private: true` on the source
+// generated `npm/package.json`, which this script overwrites. `private: true` on the source
 // manifest is a GUARD that stops a publish at the repository root from shipping
 // `src`, decorators and scratch; the publish manifest is what lifts it.
 //

@@ -108,7 +108,7 @@ export const CARBON_BACKEND_UNORM_TARGET_OVERRIDE = "cjsUnormTarget";
  * pixel shader whose target 0 is a vec4<f32>. The depth-of-field layer pass
  * sets it so a transparent (1) or additive (2) material writes depth only
  * where it is visible. Not Carbon: the separated DoF layers follow ccpwgl
- * 89973207 (docs/architecture/non-carbon-extensions.md).
+ * 89973207.
  */
 export const CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE = "cjsCoverageDiscard";
 

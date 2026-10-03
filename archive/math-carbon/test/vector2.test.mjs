@@ -1,4 +1,4 @@
-﻿// Ported from e:\carbonengine\math\tests\Vector2.cpp (gtest). Same test names.
+﻿// Ported from math\tests\Vector2.cpp (gtest). Same test names.
 // EXPECT_EQ on floats -> strict equality (float expressions on the expectation side
 // are wrapped in Math.fround, matching the C++ float computation).
 

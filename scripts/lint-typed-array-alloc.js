@@ -1,4 +1,4 @@
-// Checks docs/standards/source-style.md § "Typed arrays and scratch": typed
+// Checks the source-style rule "Typed arrays and scratch": typed
 // arrays and math values allocated per call, scratch slots that are misnamed
 // or escape, and math-pool values that are taken and never given back.
 //

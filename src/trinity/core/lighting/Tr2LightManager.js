@@ -22,9 +22,8 @@
 // sequential. The file-static singleton is getOrCreateInstance; a manager
 // can still be constructed directly for CPU-only use and tests.
 //
-// docs/specifications/carbon-light-data.md owns the PerLightData layout, the
-// packed flag word, the premultiply and the fade band; the packing below
-// cites it rather than re-deriving it.
+// The packing below follows Carbon's PerLightData layout, packed flag word,
+// premultiply and fade band.
 
 import { meta } from "#schema";
 import { num } from "#math/num";

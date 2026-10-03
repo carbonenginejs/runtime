@@ -1,5 +1,5 @@
 /**
- * Carbon Quaternion, ported literally from e:\carbonengine\math
+ * Carbon Quaternion, ported literally from math
  * (Quaternion.h, Quaternion_inline.h, src\Quaternion.cpp).
  *
  * Storage is a plain Float32Array [x, y, z, w] - byte-identical to the

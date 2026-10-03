@@ -33,8 +33,7 @@ const TYPE_OF_DIMENSION = Object.freeze({
  *
  * TRANSITIONAL. Carbon uploads from an `ImageIO::HostBitmap`
  * (`DescribeBitmap`), and the plain payload is ours, not Carbon's. This route
- * stays only until every texture reader publishes a bitmap
- * (/docs/projects/hostbitmap-port.md).
+ * stays only until every texture reader publishes a bitmap.
  *
  * @param {object} payload A `"texture"` or `"rgba"` payload.
  * @returns {{desc: Tr2BitmapDimensions, initialData: object[]}|null} What to

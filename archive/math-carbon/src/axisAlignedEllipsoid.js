@@ -1,7 +1,7 @@
 import { axisAlignedBox } from "./axisAlignedBox.js";
 
 /**
- * Carbon AxisAlignedEllipsoid — literal port of e:\carbonengine\math\include\AxisAlignedEllipsoid.h /
+ * Carbon AxisAlignedEllipsoid — literal port of math\include\AxisAlignedEllipsoid.h /
  * AxisAlignedEllipsoid_inline.h
  *
  * Storage: Float32Array(6) = [ radiiX, radiiY, radiiZ, centerX, centerY, centerZ ]

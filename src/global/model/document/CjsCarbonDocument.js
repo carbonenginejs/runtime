@@ -2,8 +2,8 @@
 // values is decided and partially executed - the envelope was
 // over-engineered, and a _type-tagged values graph carries everything it
 // did. Kept only until the interchange retirement completes its inventory
-// (docs/specifications/model-values-interchange.md owns the rule: no document
-// producer or consumer retires without inventory and replacement proof).
+// (no document producer or consumer retires without inventory and
+// replacement proof).
 // Do not add new consumers.
 export const CARBON_DOCUMENT_SCHEMA = "carbon.document";
 export const CARBON_DOCUMENT_VERSION = 1;

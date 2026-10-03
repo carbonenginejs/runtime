@@ -7,7 +7,7 @@ import { CjsFormat } from "./CjsFormat.js";
  *
  * Not Carbon: Carbon reads geometry straight into Tr2GeometryRes and has no
  * per-format class registry. The registry was copied into each format before
- * this base existed (/docs/projects/geometry-format-overlap.md).
+ * this base existed.
  *
  * A subclass supplies:
  * - `static id` and `static classKeys`, the node keys `classes` may name;

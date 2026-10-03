@@ -1,5 +1,5 @@
-// Not Carbon: the texture-array bridge is ours, registered in
-// /docs/architecture/non-carbon-extensions.md with `dynamic:/texturearray`.
+// Not Carbon: the texture-array bridge is ours, a deliberate extension
+// served at `dynamic:/texturearray`.
 //
 // WebGL2 has sixteen texture units, so a browser container merges a family of
 // maps (Detail1Map..Detail3Map) into one texture at the register of the first,

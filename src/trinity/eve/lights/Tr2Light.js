@@ -141,8 +141,7 @@ export class Tr2Light
    * exposure already dissolves that struct into flat attributes on the light
    * (Tr2PointLight_Blue.cpp:18-34), so here the flat fields are the storage and
    * this view stands in for the struct. The flattening applies only to a light's
-   * one-to-one LightData; attachment lights keep theirs nested
-   * (/docs/architecture/sof-attachment-lights.md).
+   * one-to-one LightData; attachment lights keep theirs nested.
    */
   @meta.blue.method
   @meta.adapted

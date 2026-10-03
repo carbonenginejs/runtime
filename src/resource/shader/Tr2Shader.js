@@ -122,8 +122,7 @@ export class Tr2Shader
    *
    * THIS DOES NOT MAKE THE CLASS GPU-BOUND, and that is worth stating because
    * the rule it looks like it breaks is a real one
-   * (`/docs/architecture/effect-read-path.md`: "Tr2Shader is GPU-free; device
-   * objects belong to engine prepare"). Both arguments handed over are
+   * (Tr2Shader is GPU-free; device objects belong to engine prepare). Both arguments handed over are
    * INTEGER HANDLES the reflected effect already carries, the context arrives
    * as a parameter rather than an import, and no device object is created,
    * held or touched here.

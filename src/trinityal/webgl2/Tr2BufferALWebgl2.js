@@ -27,8 +27,7 @@
 //   `WebGLTexture`, refreshed from the buffer's bytes whenever they change.
 // - NO UNORDERED ACCESS. WebGL2 has no storage buffers, so a buffer asking for
 //   `UNORDERED_ACCESS` is refused at `Create`. The features that need one get
-//   their own WebGL2 replacement above this layer (docs/research/
-//   webgl-trinityal-backend.md).
+//   their own WebGL2 replacement above this layer.
 // - NO INDIRECT DRAWS. A `DRAW_INDIRECT_ARGS` buffer keeps its bytes on the CPU
 //   so the render context can read the arguments and issue a direct draw.
 //

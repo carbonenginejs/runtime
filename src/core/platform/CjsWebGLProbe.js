@@ -3,8 +3,7 @@
 // a library must be able to answer "is WebGL2 available" as a fact of its own,
 // not as the negation of a WebGPU probe: `capabilities.webgpu === false` says
 // only that WebGPU is absent, which is not the same statement as "WebGL2 is
-// present" and cannot select an engine. Registered in the organization's
-// docs/architecture/non-carbon-extensions.md.
+// present" and cannot select an engine.
 //
 // PROBING IS THE LIBRARY'S JOB, NOT AN ENGINE'S. An engine that probes is an
 // engine that will disagree with its library about what it is running on, so
@@ -23,8 +22,7 @@ import { finiteNumber } from "./browserHelpers.js";
  *
  * `MAX_TEXTURE_IMAGE_UNITS` is the load-bearing one. WebGL2 guarantees sixteen
  * per stage and the v5 quad `.sm_depth` family lands at exactly fifteen and
- * sixteen after lowering, with zero headroom. See
- * docs/specifications/webgl2-texture-budget.md.
+ * sixteen after lowering, with zero headroom.
  */
 export const WEBGL2_PARAMETERS = Object.freeze([
     "MAX_TEXTURE_IMAGE_UNITS",

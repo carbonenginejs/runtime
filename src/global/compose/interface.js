@@ -214,7 +214,7 @@ export function installInterface(Constructor, Contract, onInstalled = null)
  * call site touched.
  *
  * This is an INVENTION - Carbon needs no predicate because the cast doubles as
- * one. Registered in `docs/architecture/non-carbon-extensions.md`.
+ * one. A deliberate non-Carbon extension.
  *
  * @param {*} value The object to test.
  * @param {Function} Contract The contract to test against.

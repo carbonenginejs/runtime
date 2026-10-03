@@ -1,4 +1,4 @@
-// Guards the rule in `.agents/rules.md`: required organization-owned methods are
+// Guards the organization rule that required organization-owned methods are
 // called DIRECTLY, never hidden behind `?.`.
 //
 // WHY THIS SCRIPT EXISTS. The rule was written down and kept coming back anyway.

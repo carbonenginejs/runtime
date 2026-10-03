@@ -1,5 +1,5 @@
 /**
- * Carbon Plane — literal port of e:\carbonengine\math\include\Plane.h / Plane_inline.h
+ * Carbon Plane — literal port of math\include\Plane.h / Plane_inline.h
  *
  * Storage: Float32Array(4) = [ a, b, c, d ]
  *

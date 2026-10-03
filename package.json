@@ -297,7 +297,7 @@
   ],
   "scripts": {
     "build:npm": "node scripts/build-npm.js && rollup -c && node scripts/build-min.js",
-    "lint": "npm run lint:layers && npm run lint:source && npm run lint:optional-calls && npm run lint:instanceof && npm run lint:constructor-name && npm run lint:typed-array-alloc && npm run lint:carbon-methods && npm run lint:class-shape && npm run lint:class-file-naming && npm run lint:donor-coverage && npm run lint:enum-parity && npm run lint:struct-defaults && npm run lint:al-parity && npm run lint:al-contract && npm run lint:trinity && npm run audit:trinity:parity && npm run lint:docs",
+    "lint": "npm run lint:layers && npm run lint:source && npm run lint:optional-calls && npm run lint:instanceof && npm run lint:constructor-name && npm run lint:private-references && npm run lint:typed-array-alloc && npm run lint:carbon-methods && npm run lint:class-shape && npm run lint:class-file-naming && npm run lint:donor-coverage && npm run lint:enum-parity && npm run lint:struct-defaults && npm run lint:al-parity && npm run lint:al-contract && npm run lint:trinity && npm run audit:trinity:parity && npm run lint:docs",
     "lint:carbon-methods": "node scripts/trinity/lint-native-method-parity.js",
     "lint:optional-calls": "node scripts/lint-optional-calls.js",
     "lint:layers": "node scripts/lint-layering.js",
@@ -332,6 +332,7 @@
     "lint:instanceof": "node scripts/lint-instanceof.js",
     "lint:typed-array-alloc": "node scripts/lint-typed-array-alloc.js",
     "lint:constructor-name": "node scripts/lint-constructor-name.js",
+    "lint:private-references": "node scripts/lint-private-references.js",
     "test:minified": "node scripts/build-minified-mirror.js && node scripts/run-minified-suite.js",
     "test:bundle": "node --test scripts/tests/minified-bundle.cases.mjs"
   },

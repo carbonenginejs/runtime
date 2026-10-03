@@ -1,5 +1,5 @@
 /**
- * Carbon AxisAlignedBox — literal port of e:\carbonengine\math\include\AxisAlignedBox.h /
+ * Carbon AxisAlignedBox — literal port of math\include\AxisAlignedBox.h /
  * AxisAlignedBox_inline.h + src\AxisAlignedBox.cpp
  *
  * Storage: Float32Array(6) = [ minX, minY, minZ, maxX, maxY, maxZ ]

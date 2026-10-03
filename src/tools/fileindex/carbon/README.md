@@ -35,8 +35,6 @@ family:
   compressed resource.
 - CE-41: VersionInternal's `>` and `<` are true when any one component is.
 
-Both are in `docs/research/carbon-known-defects.md` in the organization docs.
-
 ## Not ported
 
 Resource data streams, hashing and compression of file contents, building a

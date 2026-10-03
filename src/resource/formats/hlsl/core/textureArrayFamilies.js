@@ -56,7 +56,6 @@
  * contribute exactly one scalar - the four roughness maps, the dirt pair, the
  * atlas trio, grunge, gradient and curvature. The storage is not
  * single-channel; the CONSUMPTION is, so the packing happens on our side.
- * `/docs/research/frontier-shader-budget.md`.
  *
  * ## PMDG is a packing family because it always was one texture
  *
@@ -79,10 +78,6 @@
  * the dx11 tree and absent from gles2, skipped because it could not be lowered.
  *
  * So there is no per-game family list. There is one ordered list and a budget.
- *
- * Numbers for both games: `/docs/specifications/quad-family-texture-budget.md`.
- * What happens when the sources disagree on shape or format:
- * `/docs/specifications/texture-array-realization.md`.
  */
 
 /** Carbon's resource type code for a 2D texture. */

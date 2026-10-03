@@ -45,8 +45,8 @@ export class Tr2TexturePipeline
    *
    * diverged: a failed step stops the pipeline. Carbon ignores each step's
    * result and runs the next one as though it had succeeded, so a failed Load
-   * leaves the following steps working on an empty bitmap (issue 19,
-   * /docs/research/carbon-imageio-issue.md).
+   * leaves the following steps working on an empty bitmap (Carbon imageio
+   * issue 19).
    *
    * @param {import("#imageio").HostBitmap} result Bitmap to fill; destroyed first.
    * @param {Map<string, import("#imageio").HostBitmap>} inputs Loaded inputs by path.

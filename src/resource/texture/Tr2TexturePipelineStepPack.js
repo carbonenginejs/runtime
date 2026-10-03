@@ -52,7 +52,7 @@ export class Tr2TexturePipelineStepPack
    * Carbon Execute (cpp:60-179): pack up to four single-byte channels, each
    * from its own input bitmap or a constant fill, into one bitmap.
    *
-   * diverged, both from issue 2 (/docs/research/carbon-imageio-issue.md):
+   * diverged, both from Carbon imageio issue 2:
    * Carbon's format switch tests `PIXEL_FORMAT_R8_UINT` while the guard above
    * it accepts `R8_UNORM`, so an R8 pack falls to the default and writes four
    * bytes per pixel into a one-byte-per-pixel bitmap - a heap overflow. And
