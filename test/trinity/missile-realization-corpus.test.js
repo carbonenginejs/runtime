@@ -726,7 +726,7 @@ test("real Svipul is the missile's mapped ITriTargetable and keeps Carbon's last
   assert.equal(declaration.type.className, "ITriTargetable");
   assert.equal(CjsSchema.GetConstructor(declaration.type.className), ITriTargetable, "the declared target type now resolves to a registered class");
   missile.target = ship;
-  assert.equal(missile.target, ship);
+  assert.ok(missile.target === ship, "the real ship is the missile's target");
 
   // Carbon's ITriTargetable.h defaults reach the two owners without their own bodies.
   for (const owner of [new EveRootTransform(), new EveEffectRoot2()])
@@ -874,7 +874,7 @@ test("all 16 real missile templates launch, track, impact and fall silent agains
     assert.deepEqual(log.updates, [], `${name}: EveMissile.cpp:174 skips Update and UpdateWarhead for DEAD warheads`);
     assert.equal(log.emits.filter(frame => frame > log.deadFrame).length, 0, `${name} DEAD warheads emit nothing`);
     // Native cessation, not cleanup: the warhead stays on the missile and draws nothing (EveMissileWarhead.cpp:97-99,114-117).
-    assert.equal(missile.warheads[0], warhead);
+    assert.ok(missile.warheads[0] === warhead, `${name} keeps its DEAD warhead`);
     assert.equal(warhead.GetState(), S.STATE_DEAD);
     assert.equal(missile.GetRenderables().includes(warhead), false);
     const renderer = new Tr2QuadRenderer();
