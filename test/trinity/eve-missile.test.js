@@ -18,6 +18,7 @@ import {
   EveTransform,
   EveTurretSet,
   EveUpdateContext,
+  IEveSpaceObject2ParentData,
   Locator,
   TriFrustum,
   TriRenderBatchAccumulator,
@@ -167,10 +168,10 @@ test("turret fixed POD arrays and tracking fade preserve Carbon dimensions and o
   const context = new EveUpdateContext();
   context.SetTime((1) * 10_000_000);
   context.SetTime((1.5) * 10_000_000);
-  turretSet.UpdateAsyncronous(context, mat4.create());
+  turretSet.UpdateAsyncronous(context, new IEveSpaceObject2ParentData());
   assert.equal(turretSet.trackingInfluence, 0);
   context.SetTime((2) * 10_000_000);
-  turretSet.UpdateAsyncronous(context, mat4.create());
+  turretSet.UpdateAsyncronous(context, new IEveSpaceObject2ParentData());
   assert.equal(turretSet.trackingInfluence, 0.5);
 });
 

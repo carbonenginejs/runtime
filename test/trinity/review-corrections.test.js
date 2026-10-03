@@ -29,7 +29,7 @@ test("ambient synchronous visibility and asynchronous display use different nati
     turret.displayEffects = displayEffects;
     turret._parentData.clipRadiusSq = clip;
     turret.UpdateSyncronous(context);
-    turret.UpdateAsyncronous(context);
+    turret.UpdateAsyncronous(context, turret._parentData);
     assert.equal(synchronous, expectedSync, "EveTurretSet.cpp:1272 uses IsAmbientVisible");
     assert.equal(asynchronous, expectedAsync, "EveTurretSet.cpp:1500 uses m_display alone");
   }

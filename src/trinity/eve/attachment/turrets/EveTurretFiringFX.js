@@ -430,14 +430,15 @@ export class EveTurretFiringFX extends EveEntity
   /**
    * Reads a muzzle slot's world transform, falling back to identity for a slot that was never populated.
    * @param {number} muzzleID Muzzle slot to read.
-   * @param {mat4} [out] Caller-owned matrix to fill; a fresh one is allocated when omitted.
+   * @param {mat4} out Caller-owned matrix to fill; identity outside the muzzle range.
    * @returns {mat4} out.
    */
   @meta.ours
-  GetMuzzleTransform(muzzleID, out = mat4.create())
+  GetMuzzleTransform(muzzleID, out)
   {
     this._ensureMuzzleData();
-    return mat4.copy(out, this._perMuzzleData[muzzleID]?.muzzleTransform ?? EveTurretFiringFX._identity);
+    if (muzzleID >= 0 && muzzleID < EveTurretFiringFX.MUZZLE_COUNT_MAX) return mat4.copy(out, this._perMuzzleData[muzzleID].muzzleTransform);
+    return mat4.copy(out, EveTurretFiringFX._identity);
   }
 
   /**
@@ -847,7 +848,8 @@ export class EveTurretFiringFX extends EveEntity
   GetPerMuzzleBoneID(muzzleID)
   {
     this._ensureMuzzleData();
-    return this._perMuzzleData[muzzleID]?.muzzlePositionBoneID ?? EveTurretFiringFX.INVALID_INDEX;
+    if (muzzleID >= 0 && muzzleID < EveTurretFiringFX.MUZZLE_COUNT_MAX) return this._perMuzzleData[muzzleID].muzzlePositionBoneID;
+    return EveTurretFiringFX.INVALID_INDEX;
   }
 
   /**
@@ -1013,13 +1015,13 @@ export class EveTurretFiringFX extends EveEntity
         muzzlePositionBoneID: EveTurretFiringFX.INVALID_INDEX,
         muzzleTransform: mat4.create(),
         currentStartDelay: 0,
-        constantDelay: Number(this[`firingDelay${index + 1}`] ?? 0),
+        constantDelay: this[`firingDelay${index + 1}`],
         elapsedTime: 0
       });
     }
     for (let index = 0; index < EveTurretFiringFX.MUZZLE_COUNT_MAX; index++)
     {
-      this._perMuzzleData[index].constantDelay = Number(this[`firingDelay${index + 1}`] ?? 0);
+      this._perMuzzleData[index].constantDelay = this[`firingDelay${index + 1}`];
     }
   }
 

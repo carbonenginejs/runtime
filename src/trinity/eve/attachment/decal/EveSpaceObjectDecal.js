@@ -7,7 +7,6 @@ import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { vec4 } from "#math/vec4";
 import { meta } from "#schema";
 import { MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
 import { IEveSpaceObject2ParentData } from "../../spaceObject/IEveSpaceObject2ParentData.js";
@@ -449,26 +448,6 @@ export class EveSpaceObjectDecal
     return true;
   }
 
-  /** Carbon copies the parent data by value at the two points UpdateVisibility
-   * accepts the decal (cpp:145, cpp:178): `m_parentData = *parentData`. Member
-   * by member is that struct copy - no export, no allocation, on a per-decal
-   * per-frame path. shLighting is a borrowed pointer into the parent's own PS
-   * data, so it is carried by reference exactly as Carbon carries the pointer. */
-  _CopyParentData(parentData)
-  {
-    const own = this._parentData;
-    mat4.copy(own.transform, parentData.transform);
-    own.killCount = parentData.killCount;
-    vec4.copy(own.shipData, parentData.shipData);
-    vec3.copy(own.clipSphereCenter, parentData.clipSphereCenter);
-    own.clipRadiusSq = parentData.clipRadiusSq;
-    own.clipRadius2Sq = parentData.clipRadius2Sq;
-    own.clipFactor = parentData.clipFactor;
-    own.clipFactor2 = parentData.clipFactor2;
-    own.shLighting = parentData.shLighting;
-    vec4.copy(own.customData, parentData.customData);
-  }
-
   /**
    * Carbon EveSpaceObjectDecal::UpdateVisibility (cpp:117-179).
    *
@@ -491,7 +470,7 @@ export class EveSpaceObjectDecal
     if (!(this.minScreenSize > 0))
     {
       this._isVisible = 1;
-      this._CopyParentData(parentData);
+      IEveSpaceObject2ParentData.Copy(this._parentData, parentData);
       return true;
     }
 
@@ -528,7 +507,7 @@ export class EveSpaceObjectDecal
       if (box3.containsPoint(bounds, frustum.viewPos))
       {
         this._isVisible = 1;
-        this._CopyParentData(parentData);
+        IEveSpaceObject2ParentData.Copy(this._parentData, parentData);
         return true;
       }
 
@@ -566,7 +545,7 @@ export class EveSpaceObjectDecal
     if (pixelSize < modifiedMinScreen) return false;
 
     this._isVisible = Math.min((pixelSize - modifiedMinScreen) / (modifiedMinScreen * 0.5), 1);
-    this._CopyParentData(parentData);
+    IEveSpaceObject2ParentData.Copy(this._parentData, parentData);
     return true;
   }
 

@@ -59,4 +59,26 @@ export class IEveSpaceObject2ParentData
    * (Tr2ShLightingManager::PACKED_COEFFICIENT_COUNT). */
   static SH_COEFFICIENT_COUNT = 7;
 
+  /**
+   * Carbon's struct assignment (`m_parentData = *parentData`), member by member with no allocation.
+   * shLighting is a borrowed pointer into the parent's PS data and is carried by reference.
+   * @param {IEveSpaceObject2ParentData} out Receiving record.
+   * @param {IEveSpaceObject2ParentData} parentData Source record.
+   * @returns {IEveSpaceObject2ParentData} out
+   */
+  static Copy(out, parentData)
+  {
+    mat4.copy(out.transform, parentData.transform);
+    out.killCount = parentData.killCount;
+    vec4.copy(out.shipData, parentData.shipData);
+    vec3.copy(out.clipSphereCenter, parentData.clipSphereCenter);
+    out.clipRadiusSq = parentData.clipRadiusSq;
+    out.clipRadius2Sq = parentData.clipRadius2Sq;
+    out.clipFactor = parentData.clipFactor;
+    out.clipFactor2 = parentData.clipFactor2;
+    vec4.copy(out.customData, parentData.customData);
+    out.shLighting = parentData.shLighting;
+    return out;
+  }
+
 }
