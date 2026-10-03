@@ -22,6 +22,8 @@ WebGPU is an explicit opt-in subpath. The residual `/tools` surface owns
 browser-safe file-index helpers; demo UI and the realtime client moved to
 `@carbonenginejs/demos`.
 
+[Celestial rendering](celestials.md) covers planet and moon placement, sun disc/light/glare ownership, scaled depth and application assembly responsibilities.
+
 ## Use this package when
 
 Use its focused subpaths for math, schemas, resources and formats, Trinity

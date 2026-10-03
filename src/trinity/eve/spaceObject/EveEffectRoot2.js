@@ -196,12 +196,13 @@ export class EveEffectRoot2 extends EveEntity
   /** The translation view registered with the SH lighting manager (_GetWorldTranslation). */
   _worldTranslation = null;
 
-  /** Links authored controllers after graph hydration. */
+  /** Assigns child owners and links authored controllers after hydration (EveEffectRoot2.cpp:59-72). */
   @meta.blue.method
   @meta.adapted
   @meta.reason("Blue root locking is represented by the hydrated JavaScript object identity.")
   Initialize()
   {
+    for (const child of this.effectChildren) child.SetOwner(this);
     for (const controller of this.controllers)
     {
       if (!controller?.IsLinked()) controller?.Link(this);

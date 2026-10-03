@@ -173,6 +173,10 @@ test("EveEffectRoot2 owns Carbon effect transforms, lifecycle, LOD, and target s
   };
   const child = {
     name: "visual",
+    SetOwner(owner)
+    {
+      this.owner = owner;
+    },
     UpdateSyncronous(context, params)
     {
       calls.push(["child-sync", context, params]);
@@ -259,6 +263,7 @@ test("EveEffectRoot2 owns Carbon effect transforms, lifecycle, LOD, and target s
   effect.boundingSphereRadius = 5;
 
   assert.equal(effect.Initialize(), true);
+  assert.equal(child.owner, effect);
   assert.equal(calls[0][0], "link");
   assert.equal(calls[0][1], effect);
   const context = { currentTime: 4, highDetailThreshold: 100 };

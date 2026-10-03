@@ -1,7 +1,13 @@
 // Source: trinity/trinity/Eve/EveLensflare.h
 // Source: trinity/trinity/Eve/EveLensflare.cpp
 // Hand-maintained after promotion from generated schema intake.
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
+import { BlueList, IInitialize, IListNotify } from "#blue";
+import { BLUELISTEVENT } from "#consts/blue";
+import { ITr2Controller } from "../../../controllers/ITr2Controller/ITr2Controller.js";
+import { ITr2ControllerOwner } from "../../../controllers/ITr2ControllerOwner.js";
+import { UnlinkReason } from "../../../controllers/enums.js";
+import { ITr2CurveSetOwner } from "../../../curves/ITr2CurveSetOwner.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -17,11 +23,120 @@ const bitsAsFloat = value => new Float32Array(new Uint32Array([ value >>> 0 ]).b
 
 /** Represents a lens-flare graph with CPU-side visibility and controller state. */
 @meta.define({ className: "EveLensflare", family: "eve/effect" })
-@meta.blue.inherit(ITr2Renderable)
+@meta.blue.inherit(ITr2Renderable, ITr2CurveSetOwner, ITr2ControllerOwner, IInitialize, IListNotify)
 export class EveLensflare
 {
 
   _controllerVariables = new Map();
+
+  /** Subscribes to controller list changes (EveLensflare.cpp:75). */
+  constructor()
+  {
+    this.controllers.SetNotify(this);
+  }
+
+  /** Links loaded controllers once (EveLensflare.cpp:78-88). */
+  @meta.blue.method
+  @meta.implemented
+  Initialize()
+  {
+    for (const controller of this.controllers)
+    {
+      if (!controller.IsLinked()) controller.Link(this);
+    }
+    return true;
+  }
+
+  /** Native controller insertion, removal and unload (cpp:91-122). */
+  @meta.blue.method
+  @meta.implemented
+  OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
+  {
+    if (list !== this.controllers || (event & BLUELISTEVENT.BELIST_LOADING) !== 0) return;
+    switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
+    {
+      case BLUELISTEVENT.BELIST_INSERTED:
+      {
+        const controller = CjsSchema.cast(value, ITr2Controller);
+        if (controller)
+        {
+          controller.Link(this);
+          for (const [name, variable] of this._controllerVariables) controller.SetVariable(name, variable);
+        }
+        break;
+      }
+      case BLUELISTEVENT.BELIST_REMOVED:
+      {
+        const controller = CjsSchema.cast(value, ITr2Controller);
+        if (controller) controller.Unlink();
+        break;
+      }
+      case BLUELISTEVENT.BELIST_UNLOADSTART:
+        for (const controller of this.controllers) controller.Unlink();
+        break;
+      default:
+        break;
+    }
+  }
+
+  /** Plays all matching curve sets, with an optional named range (cpp:414-431). */
+  @meta.blue.method
+  @meta.implemented
+  PlayCurveSet(name, rangeName = "")
+  {
+    for (const curveSet of this.curveSets)
+    {
+      if (curveSet.GetName() !== name) continue;
+      if (rangeName === "")
+      {
+        curveSet.ResetTimeRange();
+        curveSet.Play();
+      }
+      else curveSet.PlayTimeRange(rangeName);
+    }
+  }
+
+  /** Stops all matching curve sets (cpp:433-442). */
+  @meta.blue.method
+  @meta.implemented
+  StopCurveSet(name)
+  {
+    for (const curveSet of this.curveSets) if (curveSet.GetName() === name) curveSet.Stop();
+  }
+
+  /** Supplies the same time to both native clock inputs (cpp:444-453). */
+  @meta.blue.method
+  @meta.implemented
+  UpdateCurveSet(name, time)
+  {
+    for (const curveSet of this.curveSets) if (curveSet.GetName() === name) curveSet.Update(time, time);
+  }
+
+  /** Longest duration among matching curve sets (cpp:455-466). */
+  @meta.blue.method
+  @meta.implemented
+  GetCurveSetDuration(name)
+  {
+    let duration = 0;
+    for (const curveSet of this.curveSets)
+    {
+      if (curveSet.GetName() === name) duration = Math.max(duration, curveSet.GetMaxCurveDuration());
+    }
+    return duration;
+  }
+
+  /** Longest named-range duration among matching curve sets (cpp:468-479). */
+  @meta.blue.method
+  @meta.implemented
+  GetRangeDuration(name, rangeName)
+  {
+    let duration = 0;
+    for (const curveSet of this.curveSets)
+    {
+      if (curveSet.GetName() === name) duration = Math.max(duration, curveSet.GetRangeDuration(rangeName));
+    }
+    return duration;
+  }
 
   /** m_translationCurve (ITriVectorFunctionPtr) [READWRITE] */
   @meta.blue.readwrite
@@ -92,7 +207,7 @@ export class EveLensflare
   @meta.blue.read
   @meta.blue.persist
   @meta.type.list("ITr2Controller")
-  controllers = [];
+  controllers = new BlueList(ITr2Controller);
 
   /** m_bindings (PITr2ValueBindingVector) [READ, PERSIST] */
   @meta.blue.read
@@ -202,11 +317,11 @@ export class EveLensflare
 
     for (const curveSet of this.curveSets)
     {
-      curveSet?.Update(realTime, simTime);
+      curveSet.Update(realTime, simTime);
     }
     for (const controller of this.controllers)
     {
-      controller?.Update(0.5);
+      controller.Update(0.5);
     }
   }
 
@@ -224,13 +339,12 @@ export class EveLensflare
   UpdateVisibility(updateContext)
   {
     this.isVisible = false;
-    const frustum = updateContext?.GetFrustum?.() ?? updateContext?.frustum;
-    const viewDir = frustum?.viewDir ?? frustum?.m_viewDir;
-    const viewDotDir = viewDir ? vec3.dot(viewDir, this.direction) : 0;
+    const frustum = updateContext.GetFrustum();
+    const viewDotDir = vec3.dot(frustum.viewDir, this.direction);
     this.isVisible = viewDotDir >= 0;
     for (const flare of this.flares)
     {
-      flare?.UpdateVisibility(updateContext, this.transform);
+      flare.UpdateVisibility(updateContext, this.transform);
     }
   }
 
@@ -296,7 +410,7 @@ export class EveLensflare
     const key = String(name);
     const next = Number(value);
     this._controllerVariables.set(key, next);
-    for (const controller of this.controllers) controller?.SetVariable(key, next);
+    for (const controller of this.controllers) controller.SetVariable(key, next);
   }
 
   /**
@@ -312,7 +426,7 @@ export class EveLensflare
   HandleControllerEvent(name)
   {
     const key = String(name);
-    for (const controller of this.controllers) controller?.HandleEvent(key);
+    for (const controller of this.controllers) controller.HandleEvent(key);
   }
 
   /** Carbon method StartControllers (MAP_METHOD_AND_WRAP). */
@@ -320,7 +434,7 @@ export class EveLensflare
   @meta.implemented
   StartControllers()
   {
-    for (const controller of this.controllers) controller?.Start();
+    for (const controller of this.controllers) controller.Start();
   }
 
   /**
@@ -404,7 +518,7 @@ export class EveLensflare
   {
     if (this.mesh)
     {
-      this.mesh.GetBatches?.(batches, this.mesh.GetAreas(batchType), perObjectData);
+      this.mesh.GetBatches(batches, this.mesh.GetAreas(batchType), perObjectData);
     }
   }
 
@@ -447,12 +561,15 @@ export class EveLensflare
    * Returns this lensflare's occlusion-buffer slots. Carbon holds them as
    * Tr2OcclusionBuffer::Offset shared_ptrs whose deleter frees the slot when
    * the lensflare is destroyed (EveOccluder.cpp:36, 70-74); JavaScript has no
-   * destructor, so the owner removing a lensflare calls this.
+   * destructor, so the owner removing a lensflare calls this. Controllers unlink
+   * with DELETING as in EveLensflare.cpp:129-135.
    *
    * @returns {void}
    */
+  @meta.adapted
   Destroy()
   {
+    for (const controller of this.controllers) controller.Unlink(UnlinkReason.DELETING);
     const occlusionBuffer = Tr2OcclusionBuffer.getInstance();
     occlusionBuffer.DestroyOffset(this.occlusionOffset);
     occlusionBuffer.DestroyOffset(this.backgroundOcclusionOffset);

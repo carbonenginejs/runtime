@@ -30,7 +30,7 @@ import { CjsPerFrameLayouts } from "../../core/rawData/CjsPerFrameLayouts.js";
 import { PixelFormat, RenderState, ShaderType, TextureType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
 import { Tr2ColorAttachment, Tr2DepthAttachment, Tr2SubresourceData } from "#trinityal";
 import { RenderingMode, TriBatchType } from "#consts/graphics";
-import { EffectKeyGenerator, TriRenderBatchAccumulator } from "../../core/batch/TriRenderBatch/index.js";
+import { DefaultKeyGenerator, EffectKeyGenerator, TriRenderBatchAccumulator } from "../../core/batch/TriRenderBatch/index.js";
 import { FillAndSetConstants } from "../../core/Tr2RenderUtils.js";
 import { PER_FRAME_PS, PER_FRAME_VS, Tr2Renderer } from "../../core/Tr2Renderer.js";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
@@ -452,13 +452,13 @@ export class EveSpaceScene
   @meta.blue.readwrite
   @meta.blue.persist
   @meta.type.float32
-  planetScale = 1000000;
+  planetScale = EvePlanet.scale;
 
   /** m_planetCameraScale (float) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
   @meta.type.float32
-  planetCameraScale = 1000000;
+  planetCameraScale = EvePlanet.scale;
 
   /** m_sssss (Tr2SSSSSPtr) [READ] */
   @meta.blue.read
@@ -713,8 +713,7 @@ export class EveSpaceScene
    *
    * Adapted - deferred vs Carbon: the recording-frame dedup fast path,
    * frustum/threshold/LOD/raytracing stamping (now the driver's job via
-   * StampFrameContext, called BEFORE Update), planet update (planet
-   * view-matrix swap unported), and main-thread action flush (N/A).
+   * StampFrameContext, called BEFORE Update), and main-thread action flush (N/A).
    * @param {Number} realTime
    * @param {Number} simTime
    */
@@ -751,6 +750,8 @@ export class EveSpaceScene
       this.warpTunnel.UpdateSyncronous(context);
       this.warpTunnel.UpdateAsyncronous(context);
     }
+
+    this.UpdatePlanets(context);
 
     if (this.starfield) this.starfield.Update(simTime);
 
@@ -805,7 +806,7 @@ export class EveSpaceScene
 
     // Sun direction from the sun ball: the normalized sun position, negated
     // (Carbon: m_sunData.DirWorld = -Normalize(sunDirection)).
-    if (this.sunBall?.Update)
+    if (this.sunBall)
     {
       this.sunBall.Update(simTime, sunDirectionScratch);
       vec3.normalize(sunDirectionScratch, sunDirectionScratch);
@@ -1749,9 +1750,7 @@ export class EveSpaceScene
    * Adapted: the renderer is an added argument, as for RenderShadows, because
    * DrawCameraSpaceScreenQuad is an instance method here where Carbon's is a
    * static. Carbon clears the velocity map with an explicit Clear after its
-   * pass hint; here the hint's CLEAR does it, as in our main pass. The planet
-   * LOD and visibility update (cpp:2023-2045) is not ported: a scene with
-   * planets logs a warning once.
+   * pass hint; here the hint's CLEAR does it, as in our main pass. Planet LOD and visibility preserve Carbon's order (cpp:2023-2048).
    *
    * @param {object|null} depthMap The scene depth.
    * @param {object|null} distortionMap The distortion map, if distortion is on.
@@ -1775,7 +1774,36 @@ export class EveSpaceScene
       return hasBackgroundDistortionBatches;
     }
 
-    if (this.planets.length) this._WarnBackgroundPart("planets", "EvePlanet LOD, visibility and rendering in the background pass");
+    // Carbon cpp:2023-2048: LOD uses the previous estimate, then visibility
+    // records the next one. Only the view and child frustum change here.
+    if (this.planets.length)
+    {
+      renderContext.PushViewTransform();
+      const normalFrustum = this.updateContext.GetFrustum();
+      const planetView = mat4.alloc();
+      const planetProjection = mat4.alloc();
+      try
+      {
+        this.CreatePlanetViewMatrix(renderContext.GetViewTransform(), planetView);
+        renderContext.SetViewTransform(planetView);
+        EveCamera.ModifyClipPlanes(renderContext.GetProjection(), 0.01, 1e5, planetProjection);
+        this._planetFrustum.DeriveFrustum(planetView, renderContext.GetViewPosition(), planetProjection, renderContext.GetViewport());
+        this.updateContext.SetFrustum(this._planetFrustum);
+        for (const planet of this.planets)
+        {
+          planet.SetRenderScale(this.planetScale);
+          planet.UpdateLOD();
+        }
+        for (const planet of this.planets) planet.UpdatePlanetVisibility(this.updateContext, this.planetScale);
+      }
+      finally
+      {
+        this.updateContext.SetFrustum(normalFrustum);
+        renderContext.PopViewTransform();
+        mat4.unalloc(planetProjection);
+        mat4.unalloc(planetView);
+      }
+    }
 
     const esm = renderContext.GetEffectStateManager();
     if (velocityMap)
@@ -1805,6 +1833,7 @@ export class EveSpaceScene
       hasBackgroundDistortionBatches = this.RenderBackgroundPassObjects(depthMap, distortionMap, renderContext, renderer, EveSpaceScene.BackgroundRenderingReason.BACKGROUND_RENDER_COLOR);
     }
 
+    if (this.planets.length) renderContext.Clear({ clearDepth: true, depth: 0 });
     esm.EndManagedRendering();
     return hasBackgroundDistortionBatches;
   }
@@ -1816,8 +1845,8 @@ export class EveSpaceScene
    * tunnel. For a reflection render the nebula intensity is swapped for the
    * background reflection intensity around the draw.
    *
-   * Adapted: the nebula and seeded starfield are ported. Background objects,
-   * planets and the warp tunnel each log
+   * Adapted: the nebula, seeded starfield and planets are ported. Background objects
+   * and the warp tunnel each log
    * a warning once when the scene has them, rather than being skipped
    * silently, so this never reports distortion batches yet.
    *
@@ -1856,10 +1885,227 @@ export class EveSpaceScene
       this.RenderBatch(this._secondaryAdditiveBatches, RenderingMode.RM_ALPHA_ADDITIVE, renderContext);
     }
     if (this.backgroundObjects.length) this._WarnBackgroundPart("backgroundObjects", "background objects in the background pass");
+    if (this.planets.length)
+    {
+      this.RenderPlanets(renderContext);
+      if (reason === EveSpaceScene.BackgroundRenderingReason.BACKGROUND_RENDER_COLOR)
+      {
+        const oldReadOnlyDepth = renderContext.GetRenderContextAL().GetReadOnlyDepth();
+        renderContext.SetReadOnlyDepth(true);
+        try
+        {
+          for (const flare of this.lensflares) flare.RunBackgroundOcclusionQueries(renderContext, this.updateContext);
+        }
+        finally
+        {
+          renderContext.SetReadOnlyDepth(oldReadOnlyDepth);
+        }
+      }
+    }
     if (this.warpTunnel) this._WarnBackgroundPart("warpTunnel", "the warp tunnel in the background pass");
 
     renderContext.GetEffectStateManager().EndManagedRendering();
     return hasBackgroundDistortionBatches;
+  }
+
+  /** Native celestial visibility scratch, retained between frames. */
+  _planetFrustum = new TriFrustum();
+
+  /** Carbon m_secondaryBatches: effect-sorted except order-preserving transparency. */
+  _secondaryBatches = new Map([
+    [ TriBatchType.TRIBATCHTYPE_OPAQUE, new TriRenderBatchAccumulator(EffectKeyGenerator) ],
+    [ TriBatchType.TRIBATCHTYPE_DECAL, new TriRenderBatchAccumulator(EffectKeyGenerator) ],
+    [ TriBatchType.TRIBATCHTYPE_ADDITIVE, new TriRenderBatchAccumulator(EffectKeyGenerator) ],
+    [ TriBatchType.TRIBATCHTYPE_DEPTH, new TriRenderBatchAccumulator(EffectKeyGenerator) ],
+    [ TriBatchType.TRIBATCHTYPE_DISTORTION, new TriRenderBatchAccumulator(EffectKeyGenerator) ],
+    [ TriBatchType.TRIBATCHTYPE_TRANSPARENT, new TriRenderBatchAccumulator(DefaultKeyGenerator) ]
+  ]);
+
+  /**
+   * Scales view translation only (EveSpaceScene.cpp:3908-3915).
+   * Adapted: the output is caller-owned instead of returned by value.
+   */
+  @meta.adapted
+  CreatePlanetViewMatrix(original, out)
+  {
+    mat4.copy(out, original);
+    out[12] /= this.planetCameraScale;
+    out[13] /= this.planetCameraScale;
+    out[14] /= this.planetCameraScale;
+    return out;
+  }
+
+  /**
+   * Updates planet children with the scaled camera required by child modifiers
+   * (cpp:3828-3841). Adapted: renderer globals are explicit on the update context.
+   */
+  @meta.adapted
+  UpdatePlanets(updateContext)
+  {
+    if (!this.planets.length) return;
+    const context = updateContext.renderContext;
+    const view = mat4.alloc();
+    context.PushViewTransform();
+    try
+    {
+      this.CreatePlanetViewMatrix(context.GetViewTransform(), view);
+      context.SetViewTransform(view);
+      for (const planet of this.planets) planet.UpdatePlanetSyncronous(updateContext, this.planetScale);
+    }
+    finally
+    {
+      context.PopViewTransform();
+      mat4.unalloc(view);
+    }
+  }
+
+  /**
+   * Collects native opaque/decal/additive/depth batches plus the transparency list
+   * (cpp:856-876,956-981). Adapted: no parallel tasks; the context carries the pool.
+   */
+  @meta.adapted
+  GetAllBatchesFromRenderables(renderables, transparent, includeDistortions, batches, context, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
+  {
+    const pool = context.GetTriPoolAllocator();
+    if (!renderables.length) return;
+    for (const batch of batches.values()) batch.SetTriPoolAllocator(pool);
+    const types = [ TriBatchType.TRIBATCHTYPE_OPAQUE, TriBatchType.TRIBATCHTYPE_DECAL, TriBatchType.TRIBATCHTYPE_ADDITIVE, TriBatchType.TRIBATCHTYPE_DEPTH ];
+    if (includeDistortions) types.push(TriBatchType.TRIBATCHTYPE_DISTORTION);
+    for (const item of renderables)
+    {
+      const data = item.GetPerObjectData(batches.get(TriBatchType.TRIBATCHTYPE_OPAQUE));
+      for (const type of types) item.GetBatches(batches.get(type), type, data, reason);
+      if (item.HasTransparentBatches()) transparent.push({ object: item, distance: item.GetSortValue() });
+    }
+  }
+
+  /** Stable front-to-back sort, visited backwards, as cpp:838-852. */
+  @meta.implemented
+  PrepareTransparentBatch(transparent, batches, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
+  {
+    transparent.sort((a, b) => a.distance - b.distance);
+    const batch = batches.get(TriBatchType.TRIBATCHTYPE_TRANSPARENT);
+    for (let index = transparent.length - 1; index >= 0; index--)
+    {
+      const item = transparent[index].object;
+      item.GetBatches(batch, TriBatchType.TRIBATCHTYPE_TRANSPARENT, item.GetPerObjectData(batch), reason);
+    }
+  }
+
+  /** Finalizes every accumulator in the native BatchMap (cpp:2974-2982). */
+  @meta.implemented
+  FinalizeBatches(batches)
+  {
+    for (const batch of batches.values()) batch.Finalize();
+  }
+
+  /** Clears every accumulator in the native BatchMap (cpp:2960-2966). */
+  @meta.implemented
+  ClearBatches(batches)
+  {
+    for (const batch of batches.values()) batch.Clear();
+  }
+
+  /**
+   * Native opaque/decal order (cpp:1124-1147).
+   * Adapted: shader-replacement visualizers are unported; draws ordinary materials.
+   */
+  @meta.adapted
+  RenderOpaqueBatches(batches, context)
+  {
+    context.GetEffectStateManager().ApplyStandardStates(RenderingMode.RM_OPAQUE);
+    context.RenderBatches(batches.get(TriBatchType.TRIBATCHTYPE_OPAQUE));
+    context.GetEffectStateManager().ApplyStandardStates(RenderingMode.RM_DECAL);
+    context.RenderBatches(batches.get(TriBatchType.TRIBATCHTYPE_DECAL));
+  }
+
+  /**
+   * Native transparent/additive order (cpp:1156-1179).
+   * Adapted: shader-replacement visualizers are unported; draws ordinary materials.
+   */
+  @meta.adapted
+  RenderTransparentBatches(batches, context)
+  {
+    context.GetEffectStateManager().ApplyStandardStates(RenderingMode.RM_ALPHA);
+    context.RenderBatches(batches.get(TriBatchType.TRIBATCHTYPE_TRANSPARENT));
+    context.GetEffectStateManager().ApplyStandardStates(RenderingMode.RM_ALPHA_ADDITIVE);
+    context.RenderBatches(batches.get(TriBatchType.TRIBATCHTYPE_ADDITIVE));
+  }
+
+  /**
+   * Draws celestials at scale 1e6 with clips 0.01..1e5 (cpp:3844-3906).
+   * Adapted: renderer globals are the supplied context; try/finally implements
+   * native scope guards. The background caller queries occlusion before clearing
+   * this pass's depth. Per-frame constants are refilled for both camera spaces.
+   */
+  @meta.adapted
+  RenderPlanets(context)
+  {
+    const view = mat4.alloc();
+    const projection = mat4.alloc();
+    const lastView = mat4.alloc();
+    const lastProjection = mat4.alloc();
+    let constantsChanged = false;
+    context.PushProjection();
+    context.PushViewTransform();
+    try
+    {
+      this.CreatePlanetViewMatrix(context.GetViewTransform(), view);
+      context.SetViewTransform(view);
+      EveCamera.ModifyClipPlanes(this.projection, 0.01, 1e5, projection);
+      // Carbon projection * jitter: gl-matrix applies projection first.
+      mat4.multiply(projection, this.jitterMatrix, projection);
+      context.SetProjection(projection);
+      const visible = [];
+      for (const planet of this.planets) planet.GetRenderables(visible);
+      if (!visible.length) return;
+
+      constantsChanged = true;
+      this.PopulatePerFramePSData(context);
+      this.PopulatePerFrameVSData(context);
+      this.CreatePlanetViewMatrix(this.viewLast, lastView);
+      EveCamera.ModifyClipPlanes(this.projectionLast, 0.01, 1e5, lastProjection);
+      mat4.multiply(lastProjection, this.jitterMatrix, lastProjection);
+      mat4.multiply(lastProjection, lastProjection, lastView);
+      this._perFrameVS.SetAndTranspose("ViewProjectionLast", lastProjection);
+      this.ApplyPerFrameData(context);
+      const transparent = [];
+      this.GetAllBatchesFromRenderables(visible, transparent, false, this._secondaryBatches, context);
+      this.PrepareTransparentBatch(transparent, this._secondaryBatches);
+      this.FinalizeBatches(this._secondaryBatches);
+      const esm = context.GetEffectStateManager();
+      esm.ApplyStandardStates(RenderingMode.RM_DEPTH_ONLY);
+      context.RenderBatches(this._secondaryBatches.get(TriBatchType.TRIBATCHTYPE_DEPTH), "Depth");
+      this.RenderOpaqueBatches(this._secondaryBatches, context);
+      const oldDepth = context.GetRenderContextAL().GetReadOnlyDepth();
+      context.SetReadOnlyDepth(true);
+      esm.PushRenderTarget(null, 1);
+      try
+      {
+        this.RenderTransparentBatches(this._secondaryBatches, context);
+      }
+      finally
+      {
+        context.SetReadOnlyDepth(oldDepth);
+        esm.PopRenderTarget(1);
+      }
+    }
+    finally
+    {
+      this.ClearBatches(this._secondaryBatches);
+      context.PopViewTransform();
+      context.PopProjection();
+      mat4.unalloc(lastProjection);
+      mat4.unalloc(lastView);
+      mat4.unalloc(projection);
+      mat4.unalloc(view);
+      if (constantsChanged)
+      {
+        this.PopulatePerFramePSData(context);
+        this.PopulatePerFrameVSData(context);
+        this.ApplyPerFrameData(context);
+      }
+    }
   }
 
   /** Logs once per scene that part of Carbon's background pass is not drawn yet. */
@@ -1887,9 +2133,8 @@ export class EveSpaceScene
    * m_primaryBatches, and the gather that fills them is the driver's here.
    * Not ported, each a later insertion at its place in this order: the
    * mesh-morph update before the pass (cpp:2212-2228; nothing registers an
-   * ITr2MeshMorph), the planets' z-only areas (cpp:2285-2308; EvePlanet has no
-   * GetZOnlyRenderables), and the volumetrics sun angle and planet shadow
-   * casters after it (cpp:2328-2355).
+   * ITr2MeshMorph). The sun angle and planet shadow casters follow the pass
+   * (cpp:2328-2355).
    *
    * @param {object} depthMap The scene depth; the caller has bound it.
    * @param {object|null} normalMap The normal map, or null.
@@ -1957,6 +2202,29 @@ export class EveSpaceScene
       if (accumulator) renderContext.RenderBatches(accumulator, techniqueName);
     }
 
+    const planetDepth = [];
+    for (const planet of this.planets) planet.GetZOnlyRenderables(planetDepth);
+    if (planetDepth.length)
+    {
+      // Carbon cpp:2285-2308: collect the ordinary-world proxy in the main depth space.
+      for (const type of [ TriBatchType.TRIBATCHTYPE_OPAQUE, TriBatchType.TRIBATCHTYPE_DECAL, TriBatchType.TRIBATCHTYPE_DEPTH ])
+      {
+        const batch = this._secondaryBatches.get(type);
+        batch.SetTriPoolAllocator(renderContext.GetTriPoolAllocator());
+        try
+        {
+          for (const item of planetDepth) item.GetBatches(batch, type, item.GetPerObjectData(batch), Tr2RenderReason.TR2RENDERREASON_NORMAL);
+          batch.Finalize();
+          esm.ApplyStandardStates(renderingMode);
+          renderContext.RenderBatches(batch, techniqueName);
+        }
+        finally
+        {
+          batch.Clear();
+        }
+      }
+    }
+
     // Metal supports render-pass hints, so the hinted pass ends here
     // (cpp:2310-2314); without a normal map Carbon's Metal branch only pops.
     if (normalMap) renderContext.EndRenderPassHint();
@@ -1964,6 +2232,76 @@ export class EveSpaceScene
     esm.PopRenderTarget();
     esm.SetRenderTarget(1, null);
     esm.EndManagedRendering();
+    if (this.volumetricsRenderer)
+    {
+      // Carbon cpp:2328-2355: identity of the shared translation curve selects the sun.
+      let angle = 0;
+      for (const planet of this.planets)
+      {
+        if (planet.GetTranslationCurve() !== null && planet.GetTranslationCurve() === this.sunBall)
+        {
+          const position = vec3.alloc();
+          try
+          {
+            planet.GetWorldPosition(position);
+            const distance = vec3.length(position);
+            const radius = planet.GetRadius() * 0.5;
+            // Native quirk: distance < radius or distance == 0 is not guarded; keep its NaN behavior.
+            angle = Math.acos(Math.sqrt(distance * distance - radius * radius) / distance);
+          }
+          finally { vec3.unalloc(position); }
+          break;
+        }
+      }
+      this.volumetricsRenderer.SetSunAngle(angle);
+      this.SetupPlanetsAsShadowCaster(this._planetShadowSpheres, 2);
+      this.volumetricsRenderer.SetPlanets(this._planetShadowSpheres);
+    }
+  }
+
+  /** Carbon's two nearest significant planet shadow spheres (cpp:2350-2354). */
+  _planetShadowSpheres = [ vec4.create(), vec4.create() ];
+
+  /**
+   * Selects the largest on-screen planets, excluding the sun and bodies behind it
+   * (cpp:3930-3980). Adapted: caller-owned vec4 values represent native spheres.
+   */
+  @meta.adapted
+  SetupPlanetsAsShadowCaster(planets, maxPlanets)
+  {
+    const sun = vec3.alloc();
+    const position = vec3.alloc();
+    vec3.set(sun, 0, 0, 0);
+    const visible = [];
+    try
+    {
+      if (this.sunBall) this.sunBall.GetValueAt(this.updateContext.GetTime(), sun);
+      for (const planet of this.planets)
+      {
+        const size = planet.GetEstimatedPixelDiameter();
+        if (!(size > 50)) continue;
+        const curve = planet.GetTranslationCurve();
+        if (curve !== null && curve === this.sunBall) continue;
+        if (curve && this.sunBall)
+        {
+          curve.GetValueAt(this.updateContext.GetTime(), position);
+          if ((position[0] - sun[0]) * -sun[0] + (position[1] - sun[1]) * -sun[1] + (position[2] - sun[2]) * -sun[2] < 0) continue;
+        }
+        planet.GetWorldPosition(position);
+        visible.push({ size, sphere: [ position[0], position[1], position[2], planet.GetRadius() ] });
+      }
+      visible.sort((a, b) => b.size - a.size);
+      for (let index = 0; index < maxPlanets; index++)
+      {
+        if (index < visible.length) vec4.copy(planets[index], visible[index].sphere);
+        else vec4.set(planets[index], 0, 0, 0, 0);
+      }
+    }
+    finally
+    {
+      vec3.unalloc(position);
+      vec3.unalloc(sun);
+    }
   }
 
   /**
