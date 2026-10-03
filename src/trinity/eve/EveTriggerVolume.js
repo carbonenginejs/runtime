@@ -365,7 +365,7 @@ export class EveTriggerVolume
   /** The world translation of the trigger volume (cpp:206-209). */
   @meta.blue.method
   @meta.implemented
-  GetWorldPosition(out = vec3.create())
+  GetWorldPosition(out)
   {
     return vec3.set(out,
       this._worldTransform[12], this._worldTransform[13], this._worldTransform[14]);

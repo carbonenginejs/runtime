@@ -509,15 +509,15 @@ export class EveTransform extends Tr2Transform
   }
 
   /**
-   * Returns the world translation; called without an out parameter it returns a
-   * live subarray view of worldTransform that changes with the next transform
-   * update.
+   * Writes the world translation into a caller-owned vector.
+   * @param {Float32Array} out Caller-owned position.
+   * @returns {Float32Array} out
    */
   @meta.blue.method
   @meta.implemented
   GetWorldPosition(out)
   {
-    return out ? vec3.set(out, this.worldTransform[12], this.worldTransform[13], this.worldTransform[14]) : this.worldTransform.subarray(12, 15);
+    return vec3.set(out, this.worldTransform[12], this.worldTransform[13], this.worldTransform[14]);
   }
 
   /**

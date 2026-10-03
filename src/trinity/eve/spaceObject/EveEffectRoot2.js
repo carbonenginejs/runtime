@@ -855,7 +855,7 @@ export class EveEffectRoot2 extends EveEntity
   @meta.blue.method
   @meta.adapted
   @meta.reason("CarbonEngineJS returns the caller-owned output vector.")
-  GetWorldPosition(out = vec3.create())
+  GetWorldPosition(out)
   {
     return vec3.set(out, this._worldTransform[12], this._worldTransform[13], this._worldTransform[14]);
   }

@@ -16,6 +16,7 @@ import {
   EveRemotePositionCurve,
   EveStretch2,
   EveStretch3,
+  EveEffectRoot2,
   EveTurretFiringFX,
   EveTurretSet,
   EveTurretTarget,
@@ -23,6 +24,30 @@ import {
 } from "../../npm/dist/trinity/index.js";
 import { FixtureEffect } from "../support/fixtureEffect.js";
 
+
+/**
+ * A target EveTurretTarget admits: EveEffectRoot2 maps ITriTargetable and IWorldPosition (Carbon
+ * EveTurretTarget.cpp:69-79 queries both), and every locator answers one fixed world position.
+ */
+class FixedTarget extends EveEffectRoot2
+{
+  constructor(x, y, z)
+  {
+    super();
+    this.fixedPosition = vec3.fromValues(x, y, z);
+  }
+
+  GetDamageLocatorPosition(_index, _inWorldSpace, out)
+  {
+    vec3.copy(out, this.fixedPosition);
+    return true;
+  }
+
+  GetWorldPosition(out)
+  {
+    return vec3.copy(out, this.fixedPosition);
+  }
+}
 
 test("stretch and turret classes are maintained in their Carbon families", () =>
 {
@@ -180,15 +205,12 @@ test("EveStretch3 applies deferred controller firing state", () =>
 test("EveTurretTarget bounds the miss queue and switches projectile destination visibility", () =>
 {
   const target = new EveTurretTarget();
-  const targetable = {
-    position: vec3.fromValues(100, 0, 0),
-    GetDamageLocatorPosition(_locator, _world, out) { vec3.set(out, 100, 0, 0); return true; },
-    GetGoodDamageLocatorIndex() { return 2; },
-    GetClosestDamageLocatorIndex() { return 2; },
-    GetMissPosition(_source, out) { vec3.set(out, 100, 10, 0); },
-    GetRadius() { return 25; },
-    GetImpactConfiguration() { return EveTurretTarget.ImpactConfiguration.IMPACT_ARMOR; }
-  };
+  const targetable = new FixedTarget(100, 0, 0);
+  targetable.GetGoodDamageLocatorIndex = () => 2;
+  targetable.GetClosestDamageLocatorIndex = () => 2;
+  targetable.GetMissPosition = (_source, out) => { vec3.set(out, 100, 10, 0); };
+  targetable.GetRadius = () => 25;
+  targetable.GetImpactConfiguration = () => EveTurretTarget.ImpactConfiguration.IMPACT_ARMOR;
   assert.equal(target.SetTargetable(targetable), true);
   target.SetBehaviour(false, true, 0, EveTurretTarget.ImpactBehaviour.DAMAGE_LOCATOR);
   for (let index = 0; index < 6; index++) target.SetShotMissed(index % 2 === 0, index);
@@ -262,18 +284,7 @@ test("EveTurretSet exposes Carbon state values and portable firing transforms", 
 
 test("EveTurretTarget fades over locator changes only when opted in", () =>
 {
-  const targetable = {
-    GetDamageLocatorPosition(_index, _inWorldSpace, out)
-    {
-      out[0] = 100; out[1] = 0; out[2] = 0;
-      return true;
-    },
-    GetWorldPosition(out)
-    {
-      out[0] = 100; out[1] = 0; out[2] = 0;
-      return out;
-    }
-  };
+  const targetable = new FixedTarget(100, 0, 0);
 
   // Default behaviour: stopping fire snaps (influence disabled).
   const snapping = new EveTurretTarget();

@@ -6,10 +6,11 @@ import { CjsSchema, meta } from "#schema";
 export class IWorldPosition
 {
   /**
-   * Gets the receiver's world position.
-   * @returns {Float32Array} Position vector.
+   * Writes the receiver's world position into a caller-owned vector (Carbon returns it by value, IWorldPosition.h:13).
+   * @param {Float32Array} out Caller-owned position.
+   * @returns {Float32Array} out
    */
-  GetWorldPosition()
+  GetWorldPosition(out)
   {
   }
 

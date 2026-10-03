@@ -103,7 +103,7 @@ export class EveProjectBracket
     }
     else if (this.trackTransform)
     {
-      vec3.copy(position, this.trackTransform.GetWorldPosition());
+      this.trackTransform.GetWorldPosition(position);
     }
     else
     {

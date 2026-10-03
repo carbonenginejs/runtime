@@ -103,7 +103,7 @@ test("EveMissileWarhead follows Carbon launch, state, particle, impact, and POD 
   context.SetTime((0.1) * 10_000_000);
   warhead.Update(context);
   assert.equal(warhead.CheckImpact(0.1, 2, null), EveMissileWarhead.StateChangeEvent.EVT_EXPLODE);
-  assert.deepEqual(Array.from(warhead.explosionPosition), Array.from(warhead.GetWorldPosition()));
+  assert.deepEqual(Array.from(warhead.explosionPosition), Array.from(warhead.GetWorldPosition(vec3.create())));
   assert.equal(warhead.CheckImpact(0.1, 2, null), EveMissileWarhead.StateChangeEvent.EVT_NONE);
 
   const accumulator = new TriRenderBatchAccumulator().SetTriPoolAllocator(makePerObjectStore());

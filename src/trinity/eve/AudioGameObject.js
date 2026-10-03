@@ -193,10 +193,10 @@ export class AudioGameObject
 
   /**
    * Copies the translation of the transform stamped by the last UpdateWorldTransform.
-   * @param {Array} [out] - caller-owned vec3; a fresh vector is allocated when omitted
+   * @param {Array} out - caller-owned vec3
    * @returns {Array} out
    */
-  GetWorldPosition(out = vec3.create())
+  GetWorldPosition(out)
   {
     return mat4.getTranslation(out, this._worldTransform);
   }

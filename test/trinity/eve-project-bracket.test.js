@@ -80,7 +80,7 @@ test("EveProjectBracket samples the priority track ball at the active animation 
     }
   };
   bracket.trackTransform = {
-    GetWorldPosition()
+    GetWorldPosition(_out)
     {
       throw new Error("trackBall must have priority");
     }
@@ -102,9 +102,9 @@ test("EveProjectBracket uses transform and fixed-position fallbacks by direct co
   const context = makeContext();
   bracket.integerCoordinates = false;
   bracket.trackTransform = {
-    GetWorldPosition()
+    GetWorldPosition(out)
     {
-      return vec3.fromValues(-0.5, 0.5, -1);
+      return vec3.set(out, -0.5, 0.5, -1);
     }
   };
   bracket.UpdateValue(0, context);

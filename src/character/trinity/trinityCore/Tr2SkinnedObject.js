@@ -44,7 +44,7 @@ export class Tr2SkinnedObject
   /** World position awaits the maintained TriMatrix storage conversion contract. */
   @meta.blue.method
   @meta.notImplemented
-  GetWorldPosition() { throw new Error("Tr2SkinnedObject.GetWorldPosition requires the TriMatrix conversion port."); }
+  GetWorldPosition(_out) { throw new Error("Tr2SkinnedObject.GetWorldPosition requires the TriMatrix conversion port."); }
 
   /** World rotation awaits the maintained TriMatrix storage conversion contract. */
   @meta.blue.method

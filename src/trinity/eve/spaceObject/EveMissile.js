@@ -134,7 +134,7 @@ export class EveMissile extends EveSpaceObject2
       }
     }
 
-    vec3.copy(EveMissile._worldPosition, this.GetWorldPosition());
+    this.GetWorldPosition(EveMissile._worldPosition);
     const originShift = context.GetOriginShift();
     for (const warhead of this.warheads)
     {

@@ -4,6 +4,9 @@ import { vec3 } from "#math/vec3";
 import { meta } from "#schema";
 import { ImpactConfiguration } from "../../../generated/include/enums.js";
 import { blue } from "#blue";
+import { mappedInterfaces } from "../../../../global/compose/interface.js";
+import { ITriTargetable } from "../../../core/ITriTargetable.js";
+import { IWorldPosition } from "../../../core/IWorldPosition.js";
 
 
 /**
@@ -65,8 +68,7 @@ export class EveTurretTarget
    * Null clears the target (Carbon EveTurretTarget.cpp:62-67). Returns whether
    * the object was accepted.
    */
-  @meta.blue.method @meta.adapted
-  @meta.reason("Carbon QueryInterface checks are represented by validating the targetable's required duck-typed position surface.")
+  @meta.blue.method @meta.implemented
   SetTargetable(object)
   {
     if (!object)
@@ -75,9 +77,10 @@ export class EveTurretTarget
       this._worldPositionObject = null;
       return true;
     }
-    const hasTargetSurface = typeof object.GetDamageLocatorPosition === "function" || typeof object.GetImpactPosition === "function";
-    const hasPositionSurface = typeof object.GetWorldPosition === "function" || object.worldPosition?.length >= 3 || object.position?.length >= 3;
-    if (!(hasTargetSurface && hasPositionSurface)) return false;
+    // Carbon EveTurretTarget.cpp:69-79: QueryInterface for ITriTargetable, then IWorldPosition.
+    const interfaces = mappedInterfaces(object.constructor);
+    if (!interfaces.has(ITriTargetable)) return false;
+    if (!interfaces.has(IWorldPosition)) return false;
     if (object !== this._targetable)
     {
       this._targetable = object;
@@ -143,7 +146,7 @@ export class EveTurretTarget
         if (this.behaviour === EveTurretTarget.ImpactBehaviour.DAMAGE_LOCATOR)
         {
           vec3.subtract(EveTurretTarget._direction, source, this.targetPosition);
-          this._impactID = Number(this._targetable.CreateImpact?.(this.locator, EveTurretTarget._direction, this._impactLength, this._impactSize) ?? -1) | 0;
+          this._impactID = this._targetable.CreateImpact(this.locator, EveTurretTarget._direction, this._impactLength, this._impactSize);
           this._impactDelay = -1;
         }
       }
@@ -186,18 +189,22 @@ export class EveTurretTarget
     if (!this._targetable) return out;
     if (this.behaviour === EveTurretTarget.ImpactBehaviour.DAMAGE_LOCATOR)
     {
-      const valid = this._targetable.GetDamageLocatorPosition?.(this.locator, true, out);
-      if (valid === false || vec3.squaredLength(out) > 2.2379561604e22) getWorldPosition(this._worldPositionObject, out);
+      this._targetable.GetDamageLocatorPosition(this.locator, true, out);
+      // AU squared (EveTurretTarget.cpp:199).
+      if (vec3.squaredLength(out) > 2.2379561604e22) this._worldPositionObject.GetWorldPosition(out);
     }
     else if (this.behaviour === EveTurretTarget.ImpactBehaviour.CENTER)
     {
-      getWorldPosition(this._worldPositionObject, out);
+      this._worldPositionObject.GetWorldPosition(out);
     }
     else
     {
-      getWorldPosition(this._worldPositionObject, EveTurretTarget._worldPosition);
-      const valid = this._targetable.GetImpactPosition?.(this.locator, source, EveTurretTarget._worldPosition, 0, out);
-      if (valid === false) this._targetable.GetDamageLocatorPosition?.(this.locator, true, out);
+      this._worldPositionObject.GetWorldPosition(EveTurretTarget._worldPosition);
+      // Inside the shield ellipsoid there is no intercept (cpp:210-214).
+      if (!this._targetable.GetImpactPosition(this.locator, source, EveTurretTarget._worldPosition, 0, out))
+      {
+        this._targetable.GetDamageLocatorPosition(this.locator, true, out);
+      }
     }
     return out;
   }
@@ -219,9 +226,7 @@ export class EveTurretTarget
     {
       this.GetImpactPosition(source, this.targetPosition);
       vec3.subtract(EveTurretTarget._direction, source, this.targetPosition);
-      const missResult = this._targetable.GetMissPosition?.(this.targetPosition, source, this._positionMiss);
-      if (missResult?.length >= 3) vec3.copy(this._positionMiss, missResult);
-      else if (missResult === undefined && !this._targetable.GetMissPosition) vec3.copy(this._positionMiss, this.targetPosition);
+      this._targetable.GetMissPosition(this.targetPosition, source, this._positionMiss);
       vec3.add(this._positionMiss, this._positionMiss, this._randomMissPositionOffset);
       vec3.subtract(EveTurretTarget._missDirection, this._positionMiss, source);
       const distance = vec3.length(EveTurretTarget._missDirection);
@@ -237,13 +242,13 @@ export class EveTurretTarget
 
       if (this.behaviour === EveTurretTarget.ImpactBehaviour.DAMAGE_LOCATOR)
       {
-        if (this._impactID !== -1) this._targetable.UpdateImpact?.(this.targetPosition, EveTurretTarget._direction, this._impactID);
+        if (this._impactID !== -1) this._targetable.UpdateImpact(this.targetPosition, EveTurretTarget._direction, this._impactID);
         if (this._impactDelay > 0 && this._impactSize > 0)
         {
           this._impactDelay -= dt;
           if (this._impactDelay < 0)
           {
-            this._impactID = Number(this._targetable.CreateImpact?.(this.locator, EveTurretTarget._direction, this._impactLength, this._impactSize) ?? -1) | 0;
+            this._impactID = this._targetable.CreateImpact(this.locator, EveTurretTarget._direction, this._impactLength, this._impactSize);
             this._impactDelay = -1;
           }
         }
@@ -291,8 +296,10 @@ export class EveTurretTarget
   FindClosestLocator(source, out = vec3.create())
   {
     if (!this._targetable) return -1;
-    const locator = Number(this._targetable.GetClosestDamageLocatorIndex?.(source) ?? -1) | 0;
-    return this._targetable.GetDamageLocatorPosition?.(locator, true, out) === false ? -1 : locator;
+    // Carbon EveTurretTarget.cpp:318-333.
+    const locator = this._targetable.GetClosestDamageLocatorIndex(source);
+    if (!this._targetable.GetDamageLocatorPosition(locator, true, out)) return -1;
+    return locator;
   }
 
   /**
@@ -304,10 +311,12 @@ export class EveTurretTarget
   FindRandomValidLocator(source, out = vec3.create())
   {
     if (!this._targetable) return -1;
-    let locator = Number(this._targetable.GetGoodDamageLocatorIndex?.(source) ?? -1) | 0;
-    if (this._targetable.GetDamageLocatorPosition?.(locator, true, out) !== false) return locator;
-    locator = Number(this._targetable.GetClosestDamageLocatorIndex?.(source) ?? -1) | 0;
-    return this._targetable.GetDamageLocatorPosition?.(locator, true, out) === false ? -1 : locator;
+    // Carbon EveTurretTarget.cpp:336-353.
+    let locator = this._targetable.GetGoodDamageLocatorIndex(source);
+    if (this._targetable.GetDamageLocatorPosition(locator, true, out)) return locator;
+    locator = this._targetable.GetClosestDamageLocatorIndex(source);
+    if (this._targetable.GetDamageLocatorPosition(locator, true, out)) return locator;
+    return -1;
   }
 
   /**
@@ -397,7 +406,8 @@ export class EveTurretTarget
   @meta.blue.method @meta.implemented
   GetRadius()
   {
-    return Number(this._targetable?.GetRadius?.() ?? -1);
+    // Carbon EveTurretTarget.cpp:438-445.
+    return this._targetable ? this._targetable.GetRadius() : -1;
   }
 
   /**
@@ -407,7 +417,8 @@ export class EveTurretTarget
   @meta.blue.method @meta.implemented
   GetImpactConfiguration()
   {
-    return this._targetable?.GetImpactConfiguration?.() ?? EveTurretTarget.ImpactConfiguration.IMPACT_INVALID;
+    // Carbon EveTurretTarget.cpp:451-458.
+    return this._targetable ? this._targetable.GetImpactConfiguration() : EveTurretTarget.ImpactConfiguration.IMPACT_INVALID;
   }
 
   /**
@@ -426,13 +437,6 @@ export class EveTurretTarget
   static _direction = vec3.create();
   static _missDirection = vec3.create();
   static _worldPosition = vec3.create();
-}
-
-function getWorldPosition(object, out)
-{
-  const value = object?.GetWorldPosition?.(out) ?? object?.worldPosition ?? object?.position;
-  if (value?.length >= 3 && value !== out) vec3.copy(out, value);
-  return out;
 }
 
 function copyOrReturn(value, out)

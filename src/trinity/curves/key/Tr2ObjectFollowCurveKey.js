@@ -195,10 +195,10 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
     this.TransformByRotation(this.rotatedLeftTangent, this.leftTangent, rotation);
     this.TransformByRotation(this.rotatedRightTangent, this.rightTangent, rotation);
     this.TransformByRotation(out, this._offset, rotation);
-    const worldPosition = this.GetWorldPosition();
-    if (worldPosition)
+    const { vec3_0 } = Tr2ObjectFollowCurveKey.scratch;
+    if (this.GetWorldPosition(vec3_0))
     {
-      vec3.add(out, worldPosition, out);
+      vec3.add(out, vec3_0, out);
     }
     return out;
   }
@@ -256,13 +256,15 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
   }
 
   /**
-   * Gets the followed object's world position, if it exposes one.
+   * Writes the followed object's world position into out when it maps IWorldPosition; null otherwise.
+   * @param {Float32Array} out Caller-owned position.
+   * @returns {Float32Array|null} out, or null without a positioned object.
    */
   @meta.ours
-  GetWorldPosition()
+  GetWorldPosition(out)
   {
     return this.object && mappedInterfaces(this.object.constructor).has(IWorldPosition)
-      ? this.object.GetWorldPosition() : null;
+      ? this.object.GetWorldPosition(out) : null;
   }
 
   /**
@@ -277,6 +279,9 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
     }
     return vec3.transformQuat(out, value, rotation);
   }
+
+  /** Named scratch slots; always dirty, used within one method. */
+  static scratch = { vec3_0: vec3.create() };
 
   /** Existing JavaScript access to the native rotation enum. */
   static RotationSetting = RotationSetting;

@@ -8,6 +8,7 @@ import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { EveChildTurret } from "../../npm/dist/trinity/eve/child/EveChildTurret.js";
 import { EveTurretAiming } from "../../npm/dist/trinity/eve/attachment/turrets/EveTurretAiming.js";
 import { EveTurretSet } from "../../npm/dist/trinity/eve/attachment/turrets/EveTurretSet.js";
+import { EveEffectRoot2 } from "../../npm/dist/trinity/eve/spaceObject/EveEffectRoot2.js";
 import { Tr2GrannyAnimation } from "../../npm/dist/trinity/core/animation/Tr2GrannyAnimation.js";
 
 const { State } = EveChildTurret;
@@ -57,6 +58,30 @@ function createGeometryDuck(bones)
 }
 
 
+/**
+ * A target the turret admits: EveEffectRoot2 maps ITriTargetable and IWorldPosition (Carbon
+ * EveTurretTarget.cpp:69-79 queries both), and every locator answers one fixed world position.
+ */
+class FixedTarget extends EveEffectRoot2
+{
+  constructor(x, y, z)
+  {
+    super();
+    this.fixedPosition = vec3.fromValues(x, y, z);
+  }
+
+  GetDamageLocatorPosition(_index, _inWorldSpace, out)
+  {
+    vec3.copy(out, this.fixedPosition);
+    return true;
+  }
+
+  GetWorldPosition(out)
+  {
+    return vec3.copy(out, this.fixedPosition);
+  }
+}
+
 test("EveChildTurret hooks itself as the animation updater's pose modifier", () =>
 {
   const turret = new EveChildTurret();
@@ -90,14 +115,7 @@ test("EveChildTurret.ModifyPose aims found system bones toward the tracked targe
   turret.UpdateCachedGeometryData();
 
   turret.trackingInfluence = 1;
-  turret.GetTarget().SetTargetable({
-    GetDamageLocatorPosition(_index, _inWorldSpace, out)
-    {
-      out[0] = 10; out[1] = 0; out[2] = 10;
-      return true;
-    },
-    GetWorldPosition(out) { out[0] = 10; out[1] = 0; out[2] = 10; return out; }
-  });
+  assert.equal(turret.GetTarget().SetTargetable(new FixedTarget(10, 0, 10)), true);
   // Settle the new-target position blend so tracking reads the live target.
   turret.GetTarget().positionOldInfluence = -1;
   turret.GetTarget().Update(0, [ 0, 0, 0 ]);
@@ -143,11 +161,9 @@ test("EveChildTurret state machine drives animations, fades and the fire cycle",
 
   // Firing from targeting: the fire animation plays and the tracker engages.
   const started = [];
-  turret.GetTarget().SetTargetable({
-    GetDamageLocatorPosition(_index, _inWorldSpace, out) { vec3.set(out, 1, 0, 0); return true; },
-    GetWorldPosition(out) { return vec3.set(out, 1, 0, 0); },
-    GetClosestDamageLocatorIndex() { return 3; }
-  });
+  const firingTarget = new FixedTarget(1, 0, 0);
+  firingTarget.GetClosestDamageLocatorIndex = () => 3;
+  assert.equal(turret.GetTarget().SetTargetable(firingTarget), true);
   turret.GetTarget().StartFireAtLocator = (locator, delay, length, source) =>
   {
     started.push([ locator, delay, length, Array.from(source) ]);
@@ -227,10 +243,7 @@ test("EveChildTurret tracking fades, muzzle transforms and movement audio", () =
   turret.turretMovementObserver = { GetObserver: () => emitter };
   turret.idleToTargetingMovementAudioEvent = "turret_move_start";
   turret.state = State.STATE_IDLE;
-  turret.SetTargetObject({
-    GetDamageLocatorPosition(_index, _inWorldSpace, out) { vec3.set(out, 0, 0, 0); return true; },
-    GetWorldPosition(out) { return vec3.set(out, 0, 0, 0); }
-  });
+  turret.SetTargetObject(new FixedTarget(0, 0, 0));
   assert.deepEqual(events, [ "turret_move_start" ]);
 });
 
@@ -239,18 +252,15 @@ test("clearing a child turret's target drops it to idle and controllers reach th
 {
   const turret = new EveChildTurret();
   turret.animationUpdater = createUpdaterDuck();
-  const targetable = {
-    GetDamageLocatorPosition(_index, _inWorldSpace, out) { vec3.set(out, 1, 0, 0); return true; },
-    GetWorldPosition(out) { return vec3.set(out, 1, 0, 0); }
-  };
+  const targetable = new FixedTarget(1, 0, 0);
   turret.SetTargetObject(targetable);
   turret.EnterStateTargeting();
   assert.equal(turret.state, State.STATE_TARGETING);
-  assert.equal(turret.GetTargetObject(), targetable);
+  assert.ok(turret.GetTargetObject() === targetable, "child turret holds the targetable");
 
   turret.SetTargetObject(null);
   assert.equal(turret.state, State.STATE_IDLE);
-  assert.equal(turret.GetTargetObject(), null);
+  assert.ok(turret.GetTargetObject() === null, "child turret target cleared");
 
   const calls = [];
   turret.firingEffect = {
@@ -266,19 +276,16 @@ test("clearing a child turret's target drops it to idle and controllers reach th
 test("turret targets clear on null and expose the shot-time variance (Carbon 89f5a177)", () =>
 {
   const set = new EveTurretSet();
-  const targetable = {
-    GetDamageLocatorPosition(_index, _inWorldSpace, out) { vec3.set(out, 1, 0, 0); return true; },
-    GetWorldPosition(out) { return vec3.set(out, 1, 0, 0); }
-  };
+  const targetable = new FixedTarget(1, 0, 0);
   assert.equal(set.GetShotTimeVariance(), 0.6);
   assert.equal(set.target.GetShotTimeVariance(), 0.6);
   assert.equal(set.SetTargetObject(targetable), true);
   // The ship set cannot clear its target (Carbon EveTurretSet.cpp:3630-3633).
   assert.equal(set.SetTargetObject(null), false);
-  assert.equal(set.GetTargetObject(), targetable);
+  assert.ok(set.GetTargetObject() === targetable, "ship set keeps its target");
   // The target itself can (Carbon EveTurretTarget.cpp:62-67).
   assert.equal(set.target.SetTargetable(null), true);
-  assert.equal(set.GetTargetObject(), null);
+  assert.ok(set.GetTargetObject() === null, "target cleared through EveTurretTarget");
   set.target.SetShotMissed(true, 12);
   assert.equal(set.MissQueueSize(), 1);
   assert.equal(set.GetLastShotTime(), 12);

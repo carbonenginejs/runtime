@@ -207,7 +207,7 @@ export class EveMissileWarhead extends EveTransform
         }
         break;
       case EveMissileWarhead.State.STATE_START_TRACKING:
-        this.targetLocatorID = target ? Number(target.GetGoodDamageLocatorIndex(this.GetWorldPosition())) | 0 : -1;
+        this.targetLocatorID = target ? Number(target.GetGoodDamageLocatorIndex(this.GetWorldPosition(EveMissileWarhead._positionNow))) | 0 : -1;
         this._state = estimatedTotalAliveTime >= 5 && this.doSpread
           ? EveMissileWarhead.State.STATE_TRACKING_SPREAD
           : EveMissileWarhead.State.STATE_TRACKING_FINAL;
@@ -215,7 +215,7 @@ export class EveMissileWarhead extends EveTransform
       case EveMissileWarhead.State.STATE_TRACKING_SPREAD:
         if (flight >= this._finalTargetTime)
         {
-          this.targetLocatorID = target ? Number(target.GetGoodDamageLocatorIndex(this.GetWorldPosition())) | 0 : -1;
+          this.targetLocatorID = target ? Number(target.GetGoodDamageLocatorIndex(this.GetWorldPosition(EveMissileWarhead._positionNow))) | 0 : -1;
           event = EveMissileWarhead.StateChangeEvent.EVT_SWITCH_TARGET;
           this._state = EveMissileWarhead.State.STATE_TRACKING_FINAL;
         }

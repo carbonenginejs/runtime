@@ -2535,14 +2535,15 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /**
-   * Returns the live curve-sampled ball position; the array is the object's own
-   * field and is rewritten by the next transform update.
+   * Writes the curve-sampled ball position into a caller-owned vector.
+   * @param {Float32Array} out Caller-owned position.
+   * @returns {Float32Array} out
    */
   @meta.blue.method
   @meta.implemented
-  GetWorldPosition()
+  GetWorldPosition(out)
   {
-    return this.worldPosition;
+    return vec3.copy(out, this.worldPosition);
   }
 
   /**

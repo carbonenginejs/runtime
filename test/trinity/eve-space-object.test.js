@@ -304,7 +304,7 @@ test("EveEffectRoot2 owns Carbon effect transforms, lifecycle, LOD, and target s
   assert.equal(effect.GetBoundingSphere(sphere), true);
   assertVecNear(sphere, [1, 0, 0, 5]);
   assertVecNear(effect.GetModelCenterWorldPosition(), [11, 2, 0]);
-  assertVecNear(effect.GetWorldPosition(), [10, 0, 0]);
+  assertVecNear(effect.GetWorldPosition(new Float32Array(3)), [10, 0, 0]);
   assert.equal(effect.GetDamageLocatorPosition(0, true, new Float32Array(3)), true);
   assert.equal(effect.GetImpactPosition(0, null, [10, 0, 0], 0.1), true);
   assert.equal(effect.GetRadius(), 5);
