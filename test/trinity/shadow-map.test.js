@@ -337,7 +337,7 @@ test("the shadow effect does not keep the atlas or the scene depth bound", () =>
     assert.equal(runtime.length, 1, `${name} should have exactly one runtime slot`);
     // Carbon's Tr2TextureAL overload keeps the slot's Tr2TextureReference and
     // empties it (Tr2Effect.cpp:2199-2206).
-    assert.equal(runtime[0].GetTextureProvider().GetTexture(), null, `${name} should be cleared`);
+    assert.equal(runtime[0].GetTextureProvider().GetTexture().IsValid(), false, `${name} should be cleared`);
   }
 });
 

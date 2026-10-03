@@ -78,7 +78,7 @@ test("Execute runs copy, sharpening and tonemapping for a scene without a post p
   for (const name of [ "BlitCurrent", "BlitOriginal" ])
   {
     // Carbon keeps the slot's Tr2TextureReference and empties it (cpp:2199-2206).
-    assert.equal(effect.GetResourceByName(name).GetTextureProvider().GetTexture(), null, `${name} reset`);
+    assert.equal(effect.GetResourceByName(name).GetTextureProvider().GetTexture().IsValid(), false, `${name} reset`);
   }
   assert.equal(effect.GetResourceByName("Exposure").GetGpuBuffer().GetGpuBuffer(0), null, "Exposure reset");
 
@@ -124,8 +124,8 @@ test("god rays run Carbon's three steps and leave nothing bound or borrowed", ()
   assert.deepEqual(Array.from(effect.FindParameterByName("Intensity").value), [ 0.5, 0, 1, 1 ]);
 
   // TEMP_PARAM: the down-sampled depth is unbound again, on both effects.
-  assert.equal(effect.GetResourceByName("DepthMap").GetTextureProvider().GetTexture(), null);
-  assert.equal(postProcess._downsampleDepthEffect.GetResourceByName("DepthMap").GetTextureProvider().GetTexture(), null);
+  assert.equal(effect.GetResourceByName("DepthMap").GetTextureProvider().GetTexture().IsValid(), false);
+  assert.equal(postProcess._downsampleDepthEffect.GetResourceByName("DepthMap").GetTextureProvider().GetTexture().IsValid(), false);
   assert.equal(context.GetRenderTarget(0).Equals(destination.Get()), true, "render-target stack balanced");
 });
 
@@ -188,7 +188,7 @@ test("depth of field with foreground blur maximises the CoC through Blur, then r
 
   // Not temporal: no rotation, 2/5 samples per pixel (cpp:1644-1646).
   assert.deepEqual(Array.from(bokeh.FindParameterByName("BokehInfo").value), [ 2, 0, Math.fround(2 / 5), 0 ]);
-  assert.equal(bokeh.GetResourceByName("CoCMap").GetTextureProvider().GetTexture(), null, "CoCMap unbound again");
+  assert.equal(bokeh.GetResourceByName("CoCMap").GetTextureProvider().GetTexture().IsValid(), false, "CoCMap unbound again");
 });
 
 test("fog blurs its half-resolution colour with Carbon's default blur and composites", () =>
@@ -210,7 +210,7 @@ test("fog blurs its half-resolution colour with Carbon's default blur and compos
   // Half of the 64x32 composite; the default BlurContext is BT_Big, BC_rgba, BP_None, BF_None.
   assert.deepEqual(blurs, [ { width: 32, hash: new BlurContext().Hash() } ]);
   assert.equal(heldAfter, held - 1, "no pool handle leaked");
-  assert.equal(postProcess.fogCompositeEffect.GetResourceByName("BlitOriginal").GetTextureProvider().GetTexture(), null);
+  assert.equal(postProcess.fogCompositeEffect.GetResourceByName("BlitOriginal").GetTextureProvider().GetTexture().IsValid(), false);
 });
 
 test("scaledSize is Carbon's TextureSize2D * scale: truncated, at least one", () =>
@@ -292,7 +292,7 @@ test("new bloom downsamples through six steps, upsamples back, and leaves nothin
 
   // The bloom texture was handed to tonemapping and freed with the rest.
   assert.equal(heldAfter, held - 1, "no pool handle leaked");
-  assert.equal(postProcess._upsamplerVertical.GetResourceByName("LastMip").GetTextureProvider().GetTexture(), null);
+  assert.equal(postProcess._upsamplerVertical.GetResourceByName("LastMip").GetTextureProvider().GetTexture().IsValid(), false);
   assert.equal(context.GetRenderTarget(0).Equals(destination.Get()), true, "render-target stack balanced");
 });
 
@@ -417,7 +417,7 @@ test("TAA ping-pongs its persistent accumulators and blends toward Carbon's 0.96
   assert.deepEqual(weights, [ 0, 0.5, Math.fround(2 / 3) ]);
   assert.equal(postProcess.taaEffect.GetOption("QUALITY"), "QUALITY_HIGH");
   assert.equal(postProcess.taaEffect.GetOption("DEBUG"), "DEBUG_NONE");
-  assert.equal(postProcess.taaEffect.GetResourceByName("CurrentFrame").GetTextureProvider().GetTexture(), null, "TEMP_PARAM reset");
+  assert.equal(postProcess.taaEffect.GetResourceByName("CurrentFrame").GetTextureProvider().GetTexture().IsValid(), false, "TEMP_PARAM reset");
   assert.equal(pool.GetHeldCount(), held, "no pool handle leaked across frames");
 });
 

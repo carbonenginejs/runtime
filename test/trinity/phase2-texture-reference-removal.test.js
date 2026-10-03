@@ -4,7 +4,7 @@ import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { Copier, DictReader, INotify, IInitialize } from "../../npm/dist/global/blue/index.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
-import { Tr2TextureReference, ITr2TextureProvider } from "../../npm/dist/trinity/core/index.js";
+import { Tr2TextureReference, ITr2TextureProvider, Tr2Event } from "../../npm/dist/trinity/core/index.js";
 import { Tr2Effect } from "../../npm/dist/trinity/shader/Tr2Effect.js";
 import { Tr2TextureAL } from "../../npm/dist/trinityal/index.js";
 
@@ -54,7 +54,7 @@ test("texture reference declarations expose live readonly properties in native o
   }
   for (const field of info.members) assert.notEqual(field.edit?.persist, true);
   const reference = new Tr2TextureReference();
-  assert.deepEqual(info.properties.map(field => reference[field.name]), [0, 0, 0, 0, 0, 0, 0, ""]);
+  assert.deepEqual(info.properties.map(field => reference[field.name]), [0, 0, 0, 17, 0, 0, 1, ""]);
   const { value } = textureValue();
   reference.SetTexture(value);
   assert.deepEqual(info.properties.map(field => reference[field.name]), [8, 4, 2, 3, 2, 87, 6, "fixture"]);
@@ -83,22 +83,26 @@ test("texture replacement copies before release and preserves caller ownership",
   assert.equal(state.destroyed, 1);
 });
 
-test("texture change uses class-owned snapshot listeners and explicit unsubscribe", () =>
+test("texture reference exposes native mutable storage and Tr2Event broadcasts", () =>
 {
   const reference = new Tr2TextureReference(), calls = [];
-  let unsubscribeSecond;
-  const unsubscribeFirst = reference.OnTextureChange(owner => { calls.push(["first", owner.GetTexture()]); unsubscribeSecond(); });
-  unsubscribeSecond = reference.OnTextureChange(owner => calls.push(["second", owner.GetTexture()]));
+  const owner = { OnChange() { calls.push(reference.GetTexture().IsValid()); } };
+  const event = reference.OnTextureChange();
+  assert.equal(event, reference.OnTextureChange());
+  event.RegisterListener(owner, owner.OnChange);
+  assert.throws(() => event.RegisterListener(owner, owner.OnChange), /already registered/);
   const { value } = textureValue();
   reference.SetTexture(value);
-  assert.deepEqual(calls.map(call => call[0]), ["first", "second"]);
-  assert.equal(calls[0][1], reference.GetTexture());
-  reference.SetTexture(null);
-  assert.deepEqual(calls.map(call => call[0]), ["first", "second", "first"]);
-  assert.equal(calls.at(-1)[1], null);
-  unsubscribeFirst(); unsubscribeFirst();
-  reference.SetTexture(null);
-  assert.equal(calls.length, 3);
+  reference.GetTexture().Destroy();
+  event.Broadcast();
+  assert.deepEqual(calls, [true, false]);
+  event.UnregisterListener(owner, owner.OnChange);
+  event.Broadcast();
+  assert.equal(calls.length, 2);
+  const mutator = { OnChange() { event.UnregisterListener(this); } };
+  event.RegisterListener(mutator, mutator.OnChange);
+  assert.throws(() => event.Broadcast(), /while broadcasting/);
+  event.UnregisterListener(mutator);
   value.Destroy();
 });
 
@@ -107,15 +111,14 @@ test("opaque texture and event state stay outside Blue resources and persisted c
   const reference = new Tr2TextureReference();
   reference.texture = { isResource: true };
   reference.onTextureChange = { isResource: true };
-  reference.OnTextureChange(() => {});
   assert.deepEqual(GetResources(reference), []);
   const copy = new Copier().CopyTo(reference);
-  assert.equal(copy.GetTexture(), null);
-  assert.equal(copy.onTextureChange, null);
-  assert.deepEqual(copy._listeners, []);
+  assert.equal(copy.GetTexture().IsValid(), false);
+  assert.equal(copy.onTextureChange.constructor, Tr2Event);
+  assert.deepEqual(copy.onTextureChange.listeners, []);
   const read = new DictReader({ declarations: true }).CreateObject({ _type: "Tr2TextureReference" });
   assert.equal(read.constructor, Tr2TextureReference);
-  assert.equal(read.GetTexture(), null);
+  assert.equal(read.GetTexture().IsValid(), false);
   assert.throws(() => read.Save("unused"), /not implemented/);
 });
 
@@ -126,16 +129,17 @@ test("effect owner reuses its provider and releases only its own AL value share"
   const parameter = effect.GetResourceByName("InputTexture"), reference = parameter.GetTextureProvider();
   assert.equal(CjsSchema.cast(reference, ITr2TextureProvider), reference);
   const events = [];
-  reference.OnTextureChange(owner => events.push(owner.GetTexture()));
+  const listener = { Changed() { events.push(reference.GetTexture().IsValid()); } };
+  reference.OnTextureChange().RegisterListener(listener, listener.Changed);
   first.value.Destroy();
   effect.SetParameter("InputTexture", second.value);
   assert.equal(parameter.GetTextureProvider(), reference);
   assert.equal(first.state.destroyed, 1);
   assert.equal(events.length, 1);
-  assert.equal(events[0], reference.GetTexture());
+  assert.equal(events[0], true);
   effect.ClearAllResources();
-  assert.equal(reference.GetTexture(), null);
-  assert.equal(events.at(-1), null);
+  assert.equal(reference.GetTexture().IsValid(), false);
+  assert.equal(events.at(-1), false);
   assert.equal(second.state.destroyed, 0);
   assert.equal(second.value.IsValid(), true);
   second.value.Destroy();

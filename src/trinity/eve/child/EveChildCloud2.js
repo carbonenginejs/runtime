@@ -1,10 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud2.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import "#consts/graphics/trinityEnums";
-import { meta } from "#schema";
-import { BlueList, IListNotify, INotify, IsMatch } from "#blue";
+import { CjsSchema, meta } from "#schema";
+import { BlueList, IListNotify, IInitialize, INotify, IsMatch } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
-import { DepthStencilFormat, ExFlag } from "#consts/render-context";
+import { DepthStencilFormat, ExFlag, Tr2GpuUsage, Tr2CpuUsage, TextureType, PixelFormat, ShaderType } from "#consts/render-context";
 import { ITr2DebugRenderer2 } from "#interfaces";
 import { Tr2DepthStencil } from "../../core/device/Tr2DepthStencil.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
@@ -15,9 +15,20 @@ import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { ReflectionMode, RenderingMode, TriBatchType } from "#consts/graphics";
+import { ReflectionMode, RenderingMode, TriBatchType, TriStorageFlags } from "#consts/graphics";
 import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
-import { Tr2PerObjectData } from "../../core/rawData/perObjectData/Tr2PerObjectData.js";
+import { EveChildCloud2PerObjectData } from "../../core/rawData/perObjectData/EveChildCloud2PerObjectData.js";
+import { RawData } from "../../core/rawData/RawData.js";
+import { BitmapDimensions } from "#imageio";
+import { Failed } from "../../../trinityal/ALResult.js";
+import { Tr2BufferAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferAL.js";
+import { Tr2BufferDescriptionAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferDescriptionAL.js";
+import { Tr2SubresourceData } from "../../../trinityal/Tr2HalHelperStructures/Tr2SubresourceData.js";
+import { TriDevice } from "../../core/device/TriDevice.js";
+import { Tr2VertexDefinition } from "../../core/vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
+import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
+import { TriTextureParameter } from "../../shader/parameter/TriTextureParameter.js";
+import { Tr2TextureAnimationParameter } from "../../shader/parameter/Tr2TextureAnimationParameter.js";
 import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/index.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { TriFrustumOrtho } from "../../core/view/TriFrustumOrtho.js";
@@ -117,7 +128,7 @@ function TransformNormal(out, v, m)
 
 /** A volumetric cloud entity that renders as a raymarched unit-cube volume with its own lightmap, shadow map and lighting, and can also contribute reflection batches. */
 @meta.define({ className: "EveChildCloud2", family: "eve/child" })
-@meta.blue.inherit(ITr2Renderable, INotify, IListNotify)
+@meta.blue.inherit(ITr2Renderable, INotify, IListNotify, IInitialize)
 @meta.blue.mapInterface(INotify)
 export class EveChildCloud2 extends EveSpaceObjectChild
 {
@@ -350,10 +361,14 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   /** Native per-cloud shader variable store (EveChildCloud2.cpp:107). */
   _variableStore = new Tr2VariableStore();
 
+  _vertexBuffer = new Tr2BufferAL();
+  _indexBuffer = new Tr2BufferAL();
+  _declaration = Tr2EffectStateManager.Unknown;
+  _lightmapPerObjectData = new EveChildCloud2PerObjectData();
+
   /**
    * Owns the lightmap bindings from EveChildCloud2.cpp:103-109.
-   * Adapted: initializes the CPU references here; native cube-buffer resource
-   * preparation and Initialize remain unported, as the rendering methods document.
+   * Adapted: explicit ownership replaces native by-value resource destruction.
    */
   constructor()
   {
@@ -366,6 +381,102 @@ export class EveChildCloud2 extends EveSpaceObjectChild
       "DepthShadowMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES);
     this.depthShadowMapHandle.SetValue(null);
     this.lights.SetNotify(this);
+    this._lightmapPerObjectData.data = RawData.create("EveChildCloud2PerObjectData");
+    TriDevice.RegisterResource(this);
+    this.PrepareResources();
+  }
+
+  /** Rebinds effects and resets the vertex buffer (EveChildCloud2.cpp:165-180). */
+  @meta.adapted
+  Initialize()
+  {
+    for (const effect of [this.effect, this.reflectionEffect])
+      if (effect) { effect.SetVariableStore(this._variableStore); effect.RebuildCachedData(); }
+    this._vertexBuffer.Destroy();
+    this.PrepareResources();
+    return true;
+  }
+
+  /** Native device-resource creation gate (Tr2DeviceResource.cpp:21-32). */
+  @meta.implemented
+  PrepareResources()
+  {
+    return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
+  }
+
+  /**
+   * Creates the native eight vertices, 36 uint16 indices and float3 declaration
+   * (EveChildCloud2.cpp:435-514). Adapted: descriptions express the AL overload.
+   * Carbon does not check either buffer creation result; preserve that flow.
+   */
+  @meta.adapted
+  OnPrepareResources()
+  {
+    const context = Tr2RenderContext_GetMainThreadRenderContext();
+    if (!this._vertexBuffer.IsValid())
+    {
+      this._vertexBuffer.Create(Tr2BufferDescriptionAL.FromStride(
+        12, 8, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.NONE), EveChildCloud2._vertices, context);
+      this._indexBuffer.Destroy();
+      this._indexBuffer.Create(Tr2BufferDescriptionAL.FromStride(
+        2, 36, Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.NONE), EveChildCloud2._indices, context);
+    }
+    if (this._declaration === Tr2EffectStateManager.Unknown)
+    {
+      const definition = EveChildCloud2._vertexDefinition;
+      if (definition.empty()) definition.Add("FLOAT32_3", "POSITION");
+      this._declaration = Tr2EffectStateManager.getVertexDeclarationHandle(definition);
+    }
+    return true;
+  }
+
+  /**
+   * Resets native declaration, dirty state and shadow ownership (cpp:408-425).
+   * Adapted: explicitly releases the owned depth surface; cube buffers survive.
+   */
+  @meta.adapted
+  ReleaseResources(storage = 0)
+  {
+    this._declaration = Tr2EffectStateManager.Unknown;
+    this.lightmapDirty = true;
+    this.lightmapDirtyOffset = 0;
+    if (storage & TriStorageFlags.TRISTORAGE_MANAGEDMEMORY) this.lightmapWidth = 0;
+    this.ClearVariableStore();
+    if (this.shadowMapDS) this.shadowMapDS.Destroy();
+    this.shadowMapDS = null;
+  }
+
+  /** Explicit final release substitutes for Carbon's deterministic resource destructors. */
+  @meta.adapted
+  Destroy()
+  {
+    this.ReleaseResources();
+    this._vertexBuffer.Destroy();
+    this._indexBuffer.Destroy();
+    this.lightmap.GetTexture().Destroy();
+    this.lightmap.OnTextureChange().Broadcast();
+    this._emptyLightMap.GetTexture().Destroy();
+    this._emptyLightMap.OnTextureChange().Broadcast();
+    this.lights.SetNotify(null);
+    TriDevice.UnregisterResource(this);
+  }
+
+  /**
+   * Creates Carbon's sampled 1x1x1 RG8 fallback (cpp:268-289).
+   * Adapted: AL options express the native Create overload.
+   */
+  @meta.adapted
+  CreateEmptyLightMap(context = Tr2RenderContext_GetMainThreadRenderContext())
+  {
+    const texture = this._emptyLightMap.GetTexture();
+    if (texture.IsValid()) return;
+    texture.Create(new BitmapDimensions({
+      type: TextureType.TEX_TYPE_3D, format: PixelFormat.PIXEL_FORMAT_R8G8_UNORM,
+      width: 1, height: 1, depth: 1, mipCount: 1
+    }), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE,
+      initialData: [new Tr2SubresourceData(EveChildCloud2._gray, 4, 4)] }, context);
+    texture.SetName("EveChildCloud2 Empty Lightmap");
+    this._emptyLightMap.OnTextureChange().Broadcast();
   }
 
   /** Maintains light-owner membership on native list events (cpp:124-146). */
@@ -467,14 +578,13 @@ export class EveChildCloud2 extends EveSpaceObjectChild
 
   /** Carbon EveChildCloud2::UpdateSyncronous (cpp:621-685): an effect-hash
    * change invalidates the lightmap and zeroes its dimensions (cpp:625-633);
-   * the DensityMap-driven dimension discovery and the empty-lightmap fallback
-   * (cpp:634-674) are GPU/resource work; the texture animation advances gated
+   * dimensions come from DensityMap, with a 1x1x1 fallback when LightMap is
+   * absent from the shader; the texture animation advances gated
    * on UpdateOnlyWhenRendered/renderedLastFrame (cpp:677-683) and
    * renderedLastFrame is cleared every pass (cpp:684) - the flag is only
    * re-stamped by the volumetric batch path (GetVolumetricBatches cpp:283),
    * deliberately NOT by the reflection path. */
   @meta.adapted
-  @meta.reason("DensityMap texture discovery and empty-lightmap creation (cpp:634-674) are not ported yet resource work - lightmapWidth stays 0 until the engine stamps it, which fail-closes UpdateVolumetricLightmap; the hash invalidation, animation gate and renderedLastFrame contract are ported.")
   UpdateSyncronous(updateContext, _params)
   {
     if (this.effect)
@@ -487,6 +597,39 @@ export class EveChildCloud2 extends EveSpaceObjectChild
         this.lightmapWidth = 0;
         this.lightmapHeight = 0;
         this.lightmapDepth = 0;
+      }
+      const shader = this.effect.GetShaderStateInterface();
+      if (this.lightmapDirty && this.lightmapWidth === 0 && shader)
+      {
+        if (shader.GetResource("LightMap"))
+        {
+          const param = this.effect.GetResourceByName("DensityMap");
+          const textureParam = CjsSchema.cast(param, TriTextureParameter);
+          const animationParam = CjsSchema.cast(param, Tr2TextureAnimationParameter);
+          let texture = null;
+          if (textureParam)
+          {
+            const resource = textureParam.GetResource();
+            if (resource) texture = resource.GetTexture();
+          }
+          else if (animationParam) texture = animationParam.GetTexture();
+          if (texture && texture.IsValid())
+          {
+            const desc = texture.GetDesc();
+            this.lightmapWidth = desc.GetWidth();
+            this.lightmapHeight = desc.GetHeight();
+            this.lightmapDepth = desc.GetDepth();
+            this.MarkLightmapDirty(true);
+          }
+        }
+        else
+        {
+          this.CreateEmptyLightMap();
+          this._variableStore.RegisterVariable("LightMap", this._emptyLightMap);
+          this.lightmap.GetTexture().Destroy();
+          this.lightmap.OnTextureChange().Broadcast();
+          this.lightmapDirty = false;
+        }
       }
     }
 
@@ -696,7 +839,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * Stamps renderedLastFrame (cpp:283) - the texture-animation keep-alive.
    * Returns whether a batch was committed (JS addition; Carbon returns void). */
   @meta.adapted
-  @meta.reason("The procedural unit-cube vertex/index buffers and declaration (OnPrepareResources cpp:453-532) are engine-realized, so the buffer-validity gate (cpp:267-270) and shader-state gate (cpp:271-274) reduce to the effect presence check; the batch records the effect, per-object data and draw arguments for the engine to bind the cube.")
   GetVolumetricBatches(frustum, batches)
   {
     if (this.currentQuality < this.minVisibleQuality)
@@ -722,14 +864,13 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     {
       return false;
     }
-    if (!this.effect)
-    {
-      return false;
-    }
+    if (!this._vertexBuffer.IsValid() || this._declaration === Tr2EffectStateManager.Unknown ||
+      !this.effect || !this.effect.GetShaderStateInterface()) return false;
 
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.effect);
     batch.SetPerObjectData(this.GetPerObjectData(batches, screenSize));
+    batch.SetGeometry(this._declaration, this._vertexBuffer, 12, this._indexBuffer, this._indexBuffer.GetDesc().stride);
     batch.SetDrawIndexedInstanced(12 * 3, 1, 0, 0, 0);
     const committed = batches?.Commit(batch) === true;
 
@@ -748,7 +889,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * lightmapDirtyOffset by slices; reaching scaledWidth completes the map
    * (dirty false, offset 0); failure resets the offset and returns false. */
   @meta.adapted
-  @meta.reason("The 3D lightmap texture lifecycle, per-object upload and LightMap variable swaps (cpp:327-352, 363-372) are not ported yet; the GenerateLightmap dispatch goes through Tr2Renderer.runComputeShader as Carbon's does (cpp:338-344).")
   UpdateVolumetricLightmap(renderContext)
   {
     if (this.currentQuality < this.minVisibleQuality || !this.hasUpdated)
@@ -760,6 +900,25 @@ export class EveChildCloud2 extends EveSpaceObjectChild
       const scaledWidth = Math.max(1, Math.floor(this.lightmapWidth * this.lightmapSizeScale));
       const scaledHeight = Math.max(1, Math.floor(this.lightmapHeight * this.lightmapSizeScale));
       const scaledDepth = Math.max(1, Math.floor(this.lightmapDepth * this.lightmapSizeScale));
+
+      this.CreateEmptyLightMap(renderContext);
+      const texture = this.lightmap.GetTexture();
+      if (texture.GetWidth() !== scaledWidth || texture.GetHeight() !== scaledHeight ||
+        texture.GetDesc().GetDepth() !== scaledDepth)
+      {
+        const result = texture.Create(new BitmapDimensions({
+          type: TextureType.TEX_TYPE_3D, format: PixelFormat.PIXEL_FORMAT_R8G8_UNORM,
+          width: scaledWidth, height: scaledHeight, depth: scaledDepth, mipCount: 1
+        }), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.UNORDERED_ACCESS }, renderContext);
+        if (Failed(result)) return false;
+        texture.SetName("EveChildCloud2 Lightmap");
+        this.lightmap.OnTextureChange().Broadcast();
+        this.lightmapDirtyOffset = 0;
+        this._variableStore.RegisterVariable("LightMap", this._emptyLightMap);
+      }
+      const record = this._lightmapPerObjectData;
+      this.PopulatePerObjectData(record.data, 1, renderContext);
+      record.SetPerObjectDataToDevice([renderContext.GetConstantBuffer(0)], 1 << ShaderType.COMPUTE_SHADER, renderContext);
 
       const VOXELS_PER_UPDATE = Math.floor(6400000 * this.lightmapSizeScale ** 3);
       const slices = Math.max(Math.floor(VOXELS_PER_UPDATE / (scaledHeight * scaledDepth)), 1);
@@ -778,6 +937,9 @@ export class EveChildCloud2 extends EveSpaceObjectChild
         {
           this.lightmapDirty = false;
           this.lightmapDirtyOffset = 0;
+          this._variableStore.RegisterVariable("LightMap", this.lightmap);
+          this._emptyLightMap.GetTexture().Destroy();
+          this._emptyLightMap.OnTextureChange().Broadcast();
         }
         return true;
       }
@@ -1002,7 +1164,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * renderedLastFrame - reflection-only rendering does not keep texture
    * animations alive. Returns whether a batch was committed (JS addition). */
   @meta.adapted
-  @meta.reason("Unit-cube buffers/declaration are engine-realized (as GetVolumetricBatches); the perObjectData parameter is unused because Carbon allocates the cloud's own with screenSize 10000 (cpp:878).")
   GetBatches(batches, batchType, _perObjectData, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
     if (this.currentQuality < this.minVisibleQuality)
@@ -1017,14 +1178,13 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     {
       return false;
     }
-    if (!this.reflectionEffect)
-    {
-      return false;
-    }
+    if (!this._vertexBuffer.IsValid() || this._declaration === Tr2EffectStateManager.Unknown ||
+      !this.reflectionEffect || !this.reflectionEffect.GetShaderStateInterface()) return false;
 
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.reflectionEffect);
     batch.SetPerObjectData(this.GetPerObjectData(batches, 10000));
+    batch.SetGeometry(this._declaration, this._vertexBuffer, 12, this._indexBuffer, this._indexBuffer.GetDesc().stride);
     batch.SetDrawIndexedInstanced(12 * 3, 1, 0, 0, 0);
     batch.SetRenderingMode(RenderingMode.RM_ALPHA);
     return batches?.Commit(batch) === true;
@@ -1039,177 +1199,84 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     return true;
   }
 
-  /** Carbon's two GetPerObjectData overloads (public, screenSize 1:
-   * cpp:919-927; private, caller screenSize: cpp:534-542): allocate from the
-   * accumulator and populate. The GPU-free record carries the live object
-   * reference plus the CPU-populated field block (cloudData); view-dependent
-   * members are refreshed by the engine calling PopulatePerObjectData again
-   * with its render context at realization (screenSize is stamped for that). */
+  /** Allocates and fills Carbon's concrete cloud struct (cpp:516-524,901-909). */
   @meta.adapted
-  @meta.reason("EveChildCloudPerObjectData's device constant buffers are not ported yet; the record carries the object reference, the collection-time screenSize and the CPU field block.")
-  GetPerObjectData(accumulator = null, screenSize = 1)
+  GetPerObjectData(accumulator, screenSize = 1)
   {
-    const data = typeof accumulator?.Allocate === "function"
-      ? accumulator.Allocate(Tr2PerObjectData)
-      : new Tr2PerObjectData();
-    if (!data)
-    {
-      return null;
-    }
-    data.object = this;
-    data.screenSize = screenSize;
-    data.cloudData = this.PopulatePerObjectData({}, screenSize);
-    return data;
+    const record = EveChildCloud2PerObjectData.alloc(accumulator);
+    if (!record) return null;
+    this.PopulatePerObjectData(record.data, screenSize);
+    return record;
   }
 
-  /** Carbon EveChildCloud2::PopulatePerObjectData (cpp:544-619) against the
-   * PerObjectData block (EveChildCloud2.h:125-145). Compositions (Carbon
-   * row-vector -> gl-matrix operands swap):
-   *   - cpp:548/567 worldTransform * viewTransform (world first) ->
-   *     mat4.multiply(WV, view, world); the cpp:567 transpose is folded into
-   *     explicit element reads: viewDirection = TransformNormal((0,0,-1),
-   *     worldViewT) = (-WV[2], -WV[6], -WV[10]); depthSliceN =
-   *     -WV[14] - slice * WV[15].
-   * Single-matrix sites (NO swap): the cpp:546/547/551 HLSL packing
-   * transposes, cpp:550 TransformCoord with the inverted world, cpp:578
-   * Decompose (mat4.getScaling). */
+  /**
+   * Fills Cloud2's native struct (cpp:526-601), including integer bit patterns.
+   * Adapted: RawData transposes logical matrices once; the ambient context owns
+   * renderer camera state. Math.random replaces rand; zero noise size retains
+   * the previously documented zero guard rather than native modulo-zero UB.
+   */
   @meta.adapted
-  @meta.reason("Tr2Renderer's view/projection globals relocate onto the optional renderContext duck (identity/zero fallbacks when absent - the engine repopulates at realization); rand() maps to Math.random with a zero-size guard Carbon's UB-free ctor default (32) never needed; the Tr2Light Perlin flicker inside GetLight awaits the frame-clock seam.")
-  PopulatePerObjectData(data, screenSize = 1, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
+  PopulatePerObjectData(data, screenSize = 1, context = Tr2RenderContext_GetMainThreadRenderContext())
   {
     const w = this.worldTransform;
-    // cpp:546 - packing transpose of a single matrix.
-    data.world = mat4.transpose(mat4.create(), w);
-
-    // cpp:547 - Transpose(Inverse(reversed-depth projection)); renderer
-    // global (identity when the context duck is absent; a singular input
-    // mirrors Carbon's Inverse-returns-input).
-    data.projectionInv = mat4.create();
-    const projection = renderContext.GetReversedDepthProjectionTransform();
-    if (projection)
-    {
-      if (!mat4.invert(data.projectionInv, projection))
-      {
-        mat4.copy(data.projectionInv, projection);
-      }
-      mat4.transpose(data.projectionInv, data.projectionInv);
-    }
-
-    // cpp:548-549 - Inverse(world * view), COMPOSITION: operands swap.
-    // Singular product: Carbon's Inverse returns the input unchanged
-    // (math Matrix.cpp:12-16) - mirrored.
-    const view = renderContext.GetViewTransform();
-    mat4.multiply(WV_SCRATCH, view, w);
-    data.worldViewInv = mat4.create();
-    if (!mat4.invert(data.worldViewInv, WV_SCRATCH))
-    {
-      mat4.copy(data.worldViewInv, WV_SCRATCH);
-    }
-    mat4.transpose(data.worldViewInv, data.worldViewInv);
-
-    // cpp:550 - TransformCoord(viewPosition, Inverse(world)) - single matrix;
-    // same singular-input mirror.
-    data.viewPosition = vec3.create();
-    const viewPosition = renderContext.GetViewPosition();
-    if (viewPosition)
-    {
-      const inverseWorld = mat4.invert(INV_SCRATCH, w) ?? w;
-      vec3.transformMat4(data.viewPosition, viewPosition, inverseWorld);
-    }
-
-    // cpp:551 - packing transpose (stamped by SetupShadowFrustum).
-    data.lightViewProj = mat4.transpose(mat4.create(), this.lightViewProj);
-
-    // cpp:553-560 - scaled lightmap dims + dirty offset.
-    const scaledWidth = Math.max(1, Math.floor(this.lightmapWidth * this.lightmapSizeScale));
-    const scaledHeight = Math.max(1, Math.floor(this.lightmapHeight * this.lightmapSizeScale));
-    const scaledDepth = Math.max(1, Math.floor(this.lightmapDepth * this.lightmapSizeScale));
-    data.lightmapDimensions = [scaledWidth, scaledHeight, scaledDepth, this.lightmapDirtyOffset];
-
-    // cpp:562-565 - rand() % noiseTextureSize; nondeterministic by design.
-    // The generated schema default 0 would be modulo-by-zero UB in Carbon
-    // (its ctor default is 32) - guarded here.
+    data.SetAndTranspose("world", w);
+    const projection = context.GetReversedDepthProjectionTransform();
+    if (!mat4.invert(INV_SCRATCH, projection)) mat4.copy(INV_SCRATCH, projection);
+    data.SetAndTranspose("projectionInv", INV_SCRATCH);
+    // Carbon row-vector world * view: world first, so operands reverse.
+    mat4.multiply(WV_SCRATCH, context.GetViewTransform(), w);
+    if (!mat4.invert(INV_SCRATCH, WV_SCRATCH)) mat4.copy(INV_SCRATCH, WV_SCRATCH);
+    data.SetAndTranspose("worldViewInv", INV_SCRATCH);
+    if (!mat4.invert(INV_SCRATCH, w)) mat4.copy(INV_SCRATCH, w);
+    vec3.transformMat4(SHIFT_SCRATCH, context.GetViewPosition(), INV_SCRATCH);
+    data.Set("viewPosition", SHIFT_SCRATCH);
+    data.SetAndTranspose("lightViewProj", this.lightViewProj);
+    data.Set("lightmapDimensions", [Math.max(1, Math.floor(this.lightmapWidth * this.lightmapSizeScale)),
+      Math.max(1, Math.floor(this.lightmapHeight * this.lightmapSizeScale)),
+      Math.max(1, Math.floor(this.lightmapDepth * this.lightmapSizeScale)), this.lightmapDirtyOffset]);
     const noiseSize = this.noiseTextureSize >>> 0;
-    data.noiseConfig = [
-      noiseSize > 0 ? Math.floor(Math.random() * noiseSize) : 0,
-      noiseSize > 0 ? Math.floor(Math.random() * noiseSize) : 0,
-      noiseSize,
-      noiseSize,
-    ];
-
-    // cpp:567-571 - Transpose(world * view) consumed by row-vector transforms;
-    // ported as explicit element reads of the (already swapped) WV product.
-    const wv = WV_SCRATCH;
-    data.viewDirection = vec3.fromValues(-wv[2], -wv[6], -wv[10]);
-    data.depthSlice0 = -wv[14] - this.depthSlices[0] * wv[15];
-    data.depthSlice1 = -wv[14] - this.depthSlices[1] * wv[15];
-    data.depthSlice2 = -wv[14] - this.depthSlices[2] * wv[15];
-
-    // cpp:573.
-    data.sunDirection = vec3.fromValues(
-      -this.localSunDirection[0],
-      -this.localSunDirection[1],
-      -this.localSunDirection[2]
-    );
-
-    // cpp:575-580 - Decompose scale, normalized by the largest component
-    // (pure decomposition - no composition, no swap).
+    data.Set("noiseConfig", [noiseSize ? Math.floor(Math.random() * noiseSize) : 0,
+      noiseSize ? Math.floor(Math.random() * noiseSize) : 0, noiseSize, noiseSize]);
+    data.Set("viewDirection", [-WV_SCRATCH[2], -WV_SCRATCH[6], -WV_SCRATCH[10]]);
+    data.Set("depthSlice0", -WV_SCRATCH[14] - this.depthSlices[0] * WV_SCRATCH[15]);
+    data.Set("depthSlice1", -WV_SCRATCH[14] - this.depthSlices[1] * WV_SCRATCH[15]);
+    data.Set("depthSlice2", -WV_SCRATCH[14] - this.depthSlices[2] * WV_SCRATCH[15]);
+    vec3.negate(SUN_SCRATCH, this.localSunDirection);
+    data.Set("sunDirection", SUN_SCRATCH);
     mat4.getScaling(SCALE_SCRATCH, w);
-    const maxScale = Math.max(SCALE_SCRATCH[0], SCALE_SCRATCH[1], SCALE_SCRATCH[2]);
-    data.relativeScaling = vec3.fromValues(
-      SCALE_SCRATCH[0] / maxScale,
-      SCALE_SCRATCH[1] / maxScale,
-      SCALE_SCRATCH[2] / maxScale
-    );
-
-    // cpp:581.
-    data.lodFactor = Math.max(0, screenSize / Math.max(1, this.minScreenSize) - 1);
-
-    // cpp:583 - Infinity when target dims are unset, matching Carbon's float
-    // division semantics.
-    data.targetInvSize = [2 / this.targetWidth, 2 / this.targetHeight];
-
-    // cpp:585-614 - up to 4 lights via Tr2Light::GetLight; radius > 0 scales
-    // the color by brightnessMultiplier * (innerRadius*2 + 1)^3; remaining
-    // slots zero-filled (cpp:611-614).
-    data.lights = [];
-    for (const light of this.lights)
+    vec3.scale(SCALE_SCRATCH, SCALE_SCRATCH, 1 / Math.max(SCALE_SCRATCH[0], SCALE_SCRATCH[1], SCALE_SCRATCH[2]));
+    data.Set("relativeScaling", SCALE_SCRATCH);
+    data.Set("lodFactor", Math.max(0, screenSize / Math.max(1, this.minScreenSize) - 1));
+    data.Set("targetInvSize", [2 / this.targetWidth, 2 / this.targetHeight]);
+    for (let i = 0; i < 4; i++)
     {
-      if (data.lights.length >= 4)
+      if (i >= this.lights.length)
       {
-        break;
+        data.SetIndex("lights", i * 2, [0, 0, 0, 0]);
+        data.SetIndex("lights", i * 2 + 1, [0, 0, 0, 0]);
+        continue;
       }
-      const record = { position: vec3.create(), radius: 0, color: vec3.create(), innerRadius: 0 };
-      if (light?.GetLight(LIGHT_SCRATCH))
-      {
-        vec3.copy(record.position, LIGHT_SCRATCH.position);
-        record.radius = LIGHT_SCRATCH.radius;
-        if (record.radius > 0)
-        {
-          const lightData = light.GetLightData();
-          record.innerRadius = Math.max(Math.min((lightData?.innerRadius ?? 0) / record.radius, 1), 0);
-          const multiplier = light.GetBrightnessMultiplier() ?? 1;
-          const boost = (record.innerRadius * 2 + 1) ** 3;
-          record.color[0] = LIGHT_SCRATCH.color[0] * multiplier * boost;
-          record.color[1] = LIGHT_SCRATCH.color[1] * multiplier * boost;
-          record.color[2] = LIGHT_SCRATCH.color[2] * multiplier * boost;
-        }
-      }
-      data.lights.push(record);
+      const light = this.lights[i];
+      light.GetLight(LIGHT_SCRATCH);
+      const { position, radius, color } = LIGHT_SCRATCH;
+      data.SetIndex("lights", i * 2, [position[0], position[1], position[2], radius]);
+      const innerRadius = radius > 0 ? Math.max(0, Math.min(light.GetLightData().innerRadius / radius, 1)) : 0;
+      const boost = radius > 0 ? light.GetBrightnessMultiplier() * (innerRadius * 2 + 1) ** 3 : 0;
+      data.SetIndex("lights", i * 2 + 1, [color[0] * boost, color[1] * boost, color[2] * boost, innerRadius]);
     }
-    while (data.lights.length < 4)
-    {
-      data.lights.push({ position: vec3.create(), radius: 0, color: vec3.create(), innerRadius: 0 });
-    }
-
-    // cpp:616-618.
-    data.mapOffsets = [
-      [this.mapOffset0[0], this.mapOffset0[1], this.mapOffset0[2], 0],
-      [this.mapOffset1[0], this.mapOffset1[1], this.mapOffset1[2], 0],
-      [this.mapOffset2[0], this.mapOffset2[1], this.mapOffset2[2], 0],
-    ];
+    for (const [i, offset] of [this.mapOffset0, this.mapOffset1, this.mapOffset2].entries())
+      data.SetIndex("mapOffsets", i, [offset[0], offset[1], offset[2], 0]);
     return data;
   }
+
+  static _vertexDefinition = new Tr2VertexDefinition();
+  static _vertices = new Float32Array([
+    -0.5,-0.5,0.5, 0.5,-0.5,0.5, 0.5,0.5,0.5, -0.5,0.5,0.5,
+    -0.5,-0.5,-0.5, 0.5,-0.5,-0.5, 0.5,0.5,-0.5, -0.5,0.5,-0.5
+  ]);
+  static _indices = new Uint16Array([0,1,2,2,3,0, 1,5,6,6,2,1, 7,6,5,5,4,7,
+    4,0,3,3,7,4, 4,5,1,1,0,4, 3,2,6,6,7,3]);
+  static _gray = new Uint8Array([127,127,127,127]);
 
   static ReflectionMode = ReflectionMode;
 

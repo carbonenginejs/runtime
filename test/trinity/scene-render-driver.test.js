@@ -678,15 +678,15 @@ test("the opaque map is available to scene draws and cleared before post-process
   driver.scene.postprocess = new Tr2PostProcess2();
   driver._SubmitTransparent = (...args) =>
   {
-    assert.equal(Boolean(driver._opaqueMapReference.GetTexture()), expectedOpaque);
+    assert.equal(driver._opaqueMapReference.GetTexture().IsValid(), expectedOpaque);
     draws++;
     return transparent(...args);
   };
   driver.postProcess.Execute = (...args) =>
   {
-    assert.equal(driver._opaqueMapReference.GetTexture(), null, "no stale global at post-process entry");
+    assert.equal(driver._opaqueMapReference.GetTexture().IsValid(), false, "no stale global at post-process entry");
     const opaqueVariable = store.GetVariable("EveSpaceSceneOpaqueMap");
-    if (opaqueVariable) assert.equal(opaqueVariable.GetValue().GetTexture(), null);
+    if (opaqueVariable) assert.equal(opaqueVariable.GetValue().GetTexture().IsValid(), false);
     assert.equal(Boolean(args[4]?.IsValid()), expectedOpaque, "the post-process still owns the opaque input");
     return execute(...args);
   };
@@ -698,7 +698,7 @@ test("the opaque map is available to scene draws and cleared before post-process
       driver.antiAliasingQuality = quality;
       expectedOpaque = quality >= 2;
       driver.Execute([ target ], null, 0, 0, null, context);
-      assert.equal(driver._opaqueMapReference.GetTexture(), null);
+      assert.equal(driver._opaqueMapReference.GetTexture().IsValid(), false);
     }
     // A forced opaque output remains useful even when AA is disabled.
     driver.antiAliasingQuality = 0;
@@ -730,8 +730,8 @@ test("an interrupted transparent pass releases the published opaque-map share", 
   try
   {
     assert.throws(() => driver.Execute([ target ], null, 0, 0, null, context), /interrupted scene pass/);
-    assert.equal(driver._opaqueMapReference.GetTexture(), null);
-    assert.equal(Tr2VariableStore.globalStore().GetVariable("EveSpaceSceneOpaqueMap").GetValue().GetTexture(), null);
+    assert.equal(driver._opaqueMapReference.GetTexture().IsValid(), false);
+    assert.equal(Tr2VariableStore.globalStore().GetVariable("EveSpaceSceneOpaqueMap").GetValue().GetTexture().IsValid(), false);
   }
   finally
   {

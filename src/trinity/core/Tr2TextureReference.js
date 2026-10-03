@@ -3,12 +3,9 @@
 // Source: trinity/trinity/Tr2TextureReference_Blue.cpp
 // Hand-maintained from Carbon source.
 //
-// Carbon holds the Tr2TextureAL BY VALUE and owners create or reset it in
-// place through GetTexture(). CarbonEngineJS AL textures come from the render
-// context's factory as new objects, so an owner installs the texture it made
-// with SetTexture, which also raises the change event the owner broadcasts in
-// Carbon. GetTexture returns null while nothing is installed; a variable-store
-// consumer binds that as "no texture", as Carbon binds an invalid one.
+// Carbon holds its AL texture by value. Create/Destroy mutate that value;
+// owners broadcast its native event after each change.
+import { Tr2Event } from "./Tr2Event.js";
 import { meta } from "#schema";
 import { ITr2TextureProvider } from "./ITr2TextureProvider.js";
 import { Tr2TextureAL } from "../../trinityal/Tr2TextureAL/index.js";
@@ -26,20 +23,14 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * @type {Tr2TextureAL|null}
    */
   @meta.type.rawStruct("Tr2TextureAL")
-  texture = null;
+  texture = new Tr2TextureAL();
 
   /**
    * Native event storage declaration; the existing JS listeners carry subscriptions.
    * @type {object|null}
    */
   @meta.type.rawStruct("OnTextureChangeEvent")
-  onTextureChange = null;
-
-  /**
-   * Class-owned subscriptions for the native texture-change event adapter.
-   * @type {Array<(reference: Tr2TextureReference) => void>}
-   */
-  _listeners = [];
+  onTextureChange = new Tr2Event();
 
   /**
    * Texture width; native readonly Blue property.
@@ -145,62 +136,34 @@ export class Tr2TextureReference extends ITr2TextureProvider
     return this.GetName();
   }
 
-  /**
-   * Returns the referenced AL texture, or null while none is installed
-   * (Carbon Tr2TextureReference.cpp:11-14).
-   *
-   * Carbon returns a pointer to its by-value member; JS textures are factory-made
-   * objects, so this returns the installed texture or null.
-   */
+  /** Returns the borrowed native by-value texture (Tr2TextureReference.cpp:11-14). */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   GetTexture()
   {
     return this.texture;
   }
 
-  /**
-   * Registers a texture-change listener (Carbon's OnTextureChange event,
-   * cpp:16-19).
-   *
-   * Carbon returns its event object for the caller to attach to; this takes the
-   * listener and returns the unsubscribe, matching Tr2DepthStencil and
-   * Tr2TextureArray.
-   *
-   * @param {Function} listener - called with this reference after each change
-   * @returns {Function} unsubscribe
-   */
+  /** Returns the owned native change event (Tr2TextureReference.cpp:16-19). */
   @meta.blue.method
-  @meta.adapted
-  OnTextureChange(listener)
+  @meta.implemented
+  OnTextureChange()
   {
-    this._listeners.push(listener);
-    return () =>
-    {
-      const at = this._listeners.indexOf(listener);
-      if (at !== -1) this._listeners.splice(at, 1);
-    };
+    return this.onTextureChange;
   }
 
   /**
-   * Installs the owner's texture (null releases it) and broadcasts the change,
-   * the JS form of copying or resetting Carbon's by-value member and then
-   * calling OnTextureChange().Broadcast(). The caller keeps its own value;
-   * this owner explicitly retains a separate shared value.
-   *
-   * Carbon owners mutate the by-value Tr2TextureAL in place; JS AL textures are
-   * factory-made, so the owner installs the new one here.
-   *
-   * @param {Object|null} texture - a Tr2TextureAL from the render context factory
+   * Existing compatibility wrapper for callers awaiting direct native value mutation.
+   * This method has no Tr2TextureReference donor (only Tr2TransientTextureReference
+   * has SetTexture); cloud owners use GetTexture().Create/Destroy and Broadcast.
    */
   @meta.ours
   SetTexture(texture)
   {
-    // Copy before reset also makes assigning GetTexture() to this owner safe.
-    const next = texture ? new Tr2TextureAL({ copy: texture }) : null;
-    if (this.texture) this.texture.Destroy();
+    const next = texture ? new Tr2TextureAL({ copy: texture }) : new Tr2TextureAL();
+    this.texture.Destroy();
     this.texture = next;
-    for (const listener of this._listeners.slice()) listener(this);
+    this.onTextureChange.Broadcast();
   }
 
   /** Texture width, or 0 with no texture (Carbon GetWidth, cpp:65-68). */

@@ -21,3 +21,5 @@ export { EveSpherePinPerObjectData } from "./EveSpherePinPerObjectData.js";
 export { EveTurretSetPerObjectData } from "./EveTurretSetPerObjectData.js";
 export { StretchPerObjectData } from "./StretchPerObjectData.js";
 export { EveChildCloudPerObjectData } from "./EveChildCloudPerObjectData.js";
+
+export * from "./EveChildCloud2PerObjectData.js";

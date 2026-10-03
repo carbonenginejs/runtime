@@ -35,6 +35,7 @@
 // that declares it. This file composes them and resolves a struct name to the
 // layout RawData consumes.
 
+import { CjsEveChildCloud2Layout } from "./layouts/CjsEveChildCloud2Layout.js";
 import { CjsEveChildCloudLayout } from "./layouts/CjsEveChildCloudLayout.js";
 import { CjsConstantLayout } from "./CjsConstantLayout.js";
 
@@ -61,6 +62,7 @@ import { CjsTr2PerObjectLayout } from "./layouts/CjsTr2PerObjectLayout.js";
 // Each layout class owns its donor header; the resolver wants the configuration.
 const GROUPS = Object.freeze({
     EveChildCloud: CjsEveChildCloudLayout.structConfig,
+    EveChildCloud2: CjsEveChildCloud2Layout.structConfig,
     EveBasic: CjsEveBasicLayout.structConfig,
     EveMissileWarhead: CjsEveMissileWarheadLayout.structConfig,
     EveSceneStaticParticles: CjsEveSceneStaticParticlesLayout.structConfig,

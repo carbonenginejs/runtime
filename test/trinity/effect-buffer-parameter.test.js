@@ -61,5 +61,5 @@ test("SetParameter wraps an AL texture in a reused texture reference", () =>
 
   effect.SetParameter("InputTexture", null);
   assert.equal(parameter.GetTextureProvider(), reference, "TEMP_PARAM's reset empties it");
-  assert.equal(reference.GetTexture(), null);
+  assert.equal(reference.GetTexture().IsValid(), false);
 });

@@ -30,6 +30,7 @@ function assertEquals(actual, expected, message = "")
 
 // [struct, floats, Carbon declaration]
 const SIZES = [
+  [ "EveChildCloud2PerObjectData", 136, "EveChildCloud2.h:125-145 - 34 registers" ],
   [ "EveChildCloudPerObjectData", 76, "EveChildCloud.cpp:49-59 - four Matrix and three registers" ],
   [ "EveBasicPerObjectData", 48, "EveTransform.h:161-163 - three Matrix" ],
   [ "EveMissileWarheadPerObjectData", 20, "EveMissileWarhead.h:194" ],

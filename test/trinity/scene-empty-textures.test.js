@@ -47,9 +47,9 @@ test("registerWithVariableStore publishes the white fallbacks when no shadow pas
 
   assert.ok(Global("EveSpaceSceneShadowMap"), "EmptyShadow stands in for the screen-space shadow");
   assert.ok(Global("EveSpaceSceneDynamicShadowMap"), "EmptyShadowUint stands in for the point-light indices");
-  // The depth atlases go in as they are: empty stays a typed null.
-  assert.equal(Global("EveSpaceSceneCascadedShadowMap"), null);
-  assert.equal(Global("ShadowMapAtlas"), null);
+  // The depth atlases go in as they are: empty stays an invalid native texture value.
+  assert.equal(Global("EveSpaceSceneCascadedShadowMap").IsValid(), false);
+  assert.equal(Global("ShadowMapAtlas").IsValid(), false);
 });
 
 test("registerWithVariableStore publishes a real shadow map in place of the fallback", () =>

@@ -2,7 +2,7 @@
   "outRoot": "src/trinity/generated",
   "classes": {
     "written": 28,
-    "skipped": 667
+    "skipped": 668
   },
   "enums": {
     "written": 15,
@@ -2857,6 +2857,11 @@
     {
       "family": "trinityCore",
       "className": "Tr2DynamicRingBuffer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2Event",
       "reason": "hand-maintained source exists"
     },
     {

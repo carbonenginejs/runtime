@@ -8,7 +8,7 @@
 // SetCloudShadowMapHandle cpp:829-835, IsVisible cpp:837-852, GetBatches
 // cpp:854-884, PopulatePerObjectData cpp:544-619; math Sphere.cpp:10-17,
 // Matrix_inline.h:531-546 / 749-765; Tr2Light::GetLight Tr2Light.cpp:152-163.
-import test from "node:test";
+import test, { beforeEach } from "node:test";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 import assert from "node:assert/strict";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
@@ -17,11 +17,34 @@ import {
   EveChildCloud2,
   EveUpdateContext,
   Tr2PointLight,
-  Tr2RenderReason, Tr2RenderContext
+  Tr2RenderReason, Tr2RenderContext, TriDevice, TriPoolAllocator, RawData,
+  Tr2RenderContext_GetMainThreadRenderContext, TriRenderBatchAccumulator,
+  TriTextureParameter, Tr2TextureReference, Tr2EffectStateManager
 } from "../../npm/dist/trinity/index.js";
+import { BitmapDimensions } from "../../npm/dist/global/imageio/index.js";
+import { PixelFormat, TextureType, Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { FixtureEffect } from "../support/fixtureEffect.js";
 
+
+beforeEach(t =>
+{
+  const context = Tr2RenderContext_GetMainThreadRenderContext();
+  const prior = context.GetRenderContextAL();
+  const registered = new Set(TriDevice.GetResourcesRegistered());
+  const al = new Tr2RenderContextALStub();
+  context.SetRenderContextAL(al);
+  al.CreateDevice();
+  al.BeginScene();
+  context.SetViewTransform(mat4.create());
+  context.SetProjection(mat4.create());
+  t.after(() =>
+  {
+    for (const resource of TriDevice.GetResourcesRegistered())
+      if (!registered.has(resource) && resource.constructor === EveChildCloud2) resource.Destroy();
+    context.SetRenderContextAL(prior);
+  });
+});
 
 const EPSILON = 1e-5;
 
@@ -44,7 +67,10 @@ function assertVecClose(actual, expected, message, epsilon = EPSILON)
 function MakeAccumulator()
 {
   const committed = [];
+  const arena = new TriRenderBatchAccumulator().SetTriPoolAllocator(new TriPoolAllocator().RegisterCatalog());
   return {
+    Allocate: type => arena.Allocate(type),
+    Alloc: name => arena.Alloc(name),
     committed,
     Commit(batch)
     {
@@ -173,8 +199,7 @@ test("GetVolumetricBatches: gate order, one batch, renderedLastFrame stamp (cpp:
   assert.equal(batch.material, cloud.effect, "material is the cloud effect");
   assert.equal(batch.indexCountPerInstance, 36, "12*3 indices (cpp:280)");
   assert.equal(batch.instanceCount, 1, "single instance");
-  assert.equal(batch.objectData.object, cloud, "per-object record carries the object");
-  assertClose(batch.objectData.screenSize, 250, "real screen size threaded (cpp:278)");
+  assertClose(batch.objectData.data.Get("lodFactor")[0], Math.max(0, 250 / Math.max(1, cloud.minScreenSize) - 1), "real screen size threaded (cpp:278)");
   assert.equal(cloud.renderedLastFrame, true, "renderedLastFrame stamped (cpp:283)");
 
   // Singular transform gate (cpp:262-265) - zero-scale world.
@@ -193,7 +218,7 @@ test("UpdateVolumetricLightmap: budget contract and slice arithmetic (cpp:319-38
   cloud.lightmapSizeScale = 0.25;
 
   // lightmapWidth 0 fail-closes (cpp:325).
-  assert.equal(cloud.UpdateVolumetricLightmap(null), false, "no dimensions - false");
+  assert.equal(cloud.UpdateVolumetricLightmap(Tr2RenderContext_GetMainThreadRenderContext()), false, "no dimensions - false");
 
   cloud.lightmapWidth = 64;
   cloud.lightmapHeight = 64;
@@ -202,7 +227,7 @@ test("UpdateVolumetricLightmap: budget contract and slice arithmetic (cpp:319-38
   // No shader resolved, so Tr2Renderer.runComputeShader dispatches nothing -
   // failure resets the offset and returns false.
   cloud.lightmapDirtyOffset = 7;
-  assert.equal(cloud.UpdateVolumetricLightmap(null), false, "no shader - false");
+  assert.equal(cloud.UpdateVolumetricLightmap(Tr2RenderContext_GetMainThreadRenderContext()), false, "no shader - false");
   assert.equal(cloud.lightmapDirtyOffset, 0, "failure resets offset (cpp:378)");
 
   // Success: VOXELS = floor(6400000 * 0.25^3) = 100000; scaled dims 16;
@@ -220,13 +245,8 @@ test("UpdateVolumetricLightmap: budget contract and slice arithmetic (cpp:319-38
   cloud.effect.GetShaderStateInterface = () => shader;
   cloud.effect.ApplyMaterialDataForPass = (technique, pass) => { applied.push([ "material", technique, pass ]); return true; };
   const calls = [];
-  const renderContext = {
-    RunComputeShader(x, y, z)
-    {
-      calls.push([ x, y, z ]);
-      return true;
-    }
-  };
+  const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+  renderContext.GetRenderContextAL().RunComputeShader = (x, y, z) => { calls.push([x, y, z]); return true; };
   assert.equal(cloud.UpdateVolumetricLightmap(renderContext), true, "budget consumed");
   assert.deepEqual(applied, [ [ "state", 1, 0 ], [ "material", 1, 0 ] ], "the named technique's pass is bound first");
   assert.deepEqual(calls, [ [ 390, 8, 8 ] ], "dispatch arguments");
@@ -364,7 +384,7 @@ test("GetVolumetricShadowBatches: gates and the declaration-less alpha triangle 
   assert.equal(batch.renderingMode, 4, "RM_ALPHA (cpp:781)");
   assert.equal(batch.vertexDeclaration, 0, "NULL_DECLARATION (cpp:782)");
   assert.equal(batch.indexCountPerInstance, 3, "one triangle (cpp:783)");
-  assertClose(batch.objectData.screenSize, 1, "screenSize 1 (cpp:780)");
+  assertClose(batch.objectData.data.Get("lodFactor")[0], 0, "screenSize 1 (cpp:780)");
 });
 
 test("GetBatches: reflection-transparent only, screenSize 10000, no renderedLastFrame stamp (cpp:854-884)", () =>
@@ -394,7 +414,7 @@ test("GetBatches: reflection-transparent only, screenSize 10000, no renderedLast
   const batch = accumulator.committed[0];
   assert.equal(batch.material, cloud.reflectionEffect, "reflection effect");
   assert.equal(batch.renderingMode, 4, "RM_ALPHA (cpp:881)");
-  assertClose(batch.objectData.screenSize, 10000, "hardcoded 10000 (cpp:878)");
+  assertClose(batch.objectData.data.Get("lodFactor")[0], Math.max(0, 10000 / Math.max(1, cloud.minScreenSize) - 1), "hardcoded 10000 (cpp:878)");
   assert.equal(cloud.renderedLastFrame, false, "reflection does NOT stamp renderedLastFrame");
 });
 
@@ -450,7 +470,7 @@ test("UpdateSyncronous: effect-hash invalidation and the renderedLastFrame anima
 {
   const cloud = new EveChildCloud2();
   let hash = 1;
-  cloud.effect = { GetHashValue: () => hash };
+  cloud.effect = { GetHashValue: () => hash, GetShaderStateInterface: () => null };
   cloud.lightmapDirty = false;
   cloud.lightmapWidth = 64;
 
@@ -490,7 +510,7 @@ test("PopulatePerObjectData: swapped world*view product, element-read consumers,
   cloud.depthSlices[0] = 7;
   cloud.depthSlices[1] = 11;
   cloud.minScreenSize = 50;
-  cloud.noiseTextureSize = 0; // schema default - modulo-by-zero guard
+  cloud.noiseTextureSize = 0; // explicit invalid input, native default is 32
 
   const view = mat4.lookAt(mat4.create(), [3, 5, -7], [10, 2, 4], [0, 1, 0]);
   const renderContext = {
@@ -499,28 +519,28 @@ test("PopulatePerObjectData: swapped world*view product, element-read consumers,
     GetViewPosition: () => vec3.fromValues(3, 5, -7)
   };
 
-  const data = cloud.PopulatePerObjectData({}, 150, renderContext);
+  const data = cloud.PopulatePerObjectData(RawData.create("EveChildCloud2PerObjectData"), 150, renderContext);
 
   // Carbon: worldViewInv = Inverse(world * view), world applies FIRST - the
   // gl-matrix expression is multiply(WV, view, world).
   const wv = mat4.multiply(mat4.create(), view, cloud.worldTransform);
   const expectedInv = mat4.invert(mat4.create(), wv);
   mat4.transpose(expectedInv, expectedInv);
-  assertVecClose(data.worldViewInv, expectedInv, "worldViewInv (swapped product + packing transpose)", 1e-4);
+  assertVecClose(data.GetTransposed("worldViewInv"), expectedInv, "worldViewInv (swapped product + packing transpose)", 1e-4);
 
   // viewDirection = -(column 2 of WV); depthSliceN = -WV[14] - slice*WV[15].
-  assertVecClose(data.viewDirection, [-wv[2], -wv[6], -wv[10]], "view direction", 1e-4);
-  assertClose(data.depthSlice0, -wv[14] - 7 * wv[15], "depth slice 0", 1e-3);
-  assertClose(data.depthSlice1, -wv[14] - 11 * wv[15], "depth slice 1", 1e-3);
+  assertVecClose(data.Get("viewDirection"), [-wv[2], -wv[6], -wv[10]], "view direction", 1e-4);
+  assertClose(data.Get("depthSlice0")[0], -wv[14] - 7 * wv[15], "depth slice 0", 1e-3);
+  assertClose(data.Get("depthSlice1")[0], -wv[14] - 11 * wv[15], "depth slice 1", 1e-3);
 
   // relativeScaling = scale / max component: (2,1,3)/3.
-  assertVecClose(data.relativeScaling, [2 / 3, 1 / 3, 1], "relative scaling", 1e-4);
+  assertVecClose(data.Get("relativeScaling"), [2 / 3, 1 / 3, 1], "relative scaling", 1e-4);
 
   // lodFactor = max(0, screenSize / max(1, minScreenSize) - 1) = 150/50 - 1.
-  assertClose(data.lodFactor, 2, "lod factor");
+  assertClose(data.Get("lodFactor")[0], 2, "lod factor");
 
   // The zero noise size guard (Carbon's ctor default 32 never hits the UB).
-  assert.deepEqual(data.noiseConfig, [0, 0, 0, 0], "noise guard");
+  assert.deepEqual(Array.from(data.Get("noiseConfig")), [0, 0, 0, 0], "noise guard");
 
   // Light block: radius > 0 scales color by multiplier * (inner*2+1)^3 and
   // the remaining slots zero-fill (cpp:585-614).
@@ -535,15 +555,11 @@ test("PopulatePerObjectData: swapped world*view product, element-read consumers,
     GetLightData: () => ({ innerRadius: 2 }),
     GetBrightnessMultiplier: () => 3
   });
-  const withLights = cloud.PopulatePerObjectData({}, 1, renderContext);
-  assert.equal(withLights.lights.length, 4, "always four slots");
-  const light = withLights.lights[0];
-  assertVecClose(light.position, [1, 2, 3], "light position");
-  assertClose(light.radius, 4, "light radius");
-  assertClose(light.innerRadius, 0.5, "innerRadius = clamp(2/4)");
-  // boost = (0.5*2 + 1)^3 = 8; color = base * 3 * 8.
-  assertVecClose(light.color, [12, 6, 24], "boosted color");
-  assertClose(withLights.lights[1].radius, 0, "unused slots zeroed");
+  const withLights = cloud.PopulatePerObjectData(RawData.create("EveChildCloud2PerObjectData"), 1, renderContext);
+  assert.equal(withLights.Get("lights").length, 32, "four native LightData structs");
+  assertVecClose(withLights.GetIndex("lights", 0), [1, 2, 3, 4], "position and radius");
+  assertVecClose(withLights.GetIndex("lights", 1), [12, 6, 24, 0.5], "boosted color and inner radius");
+  assertVecClose(withLights.GetIndex("lights", 2), [0, 0, 0, 0], "unused slots zeroed");
 });
 
 test("PrepareCloudShadowMap creates and binds native D32F storage through the stub AL", () =>
@@ -581,4 +597,73 @@ test("Tr2Light.GetLight returns lightData position/radius and brightness-scaled 
   assertVecClose(out.position, [1, 2, 3], "position");
   assertClose(out.radius, 5, "radius");
   assertVecClose(out.color, [1, 0.5, 2], "rgb * brightness");
+});
+
+
+test("cube lifetime preserves Carbon release gates and binds native geometry", () =>
+{
+  const cloud = new EveChildCloud2();
+  cloud.UpdateAsyncronous(null, { localToWorldTransform: mat4.create() });
+  cloud.effect = FixtureEffect();
+  const frustum = { IsSphereVisible: () => true, GetPixelSizeAccross: () => 10000 };
+  const accumulator = MakeAccumulator();
+  assert.equal(cloud.GetVolumetricBatches(frustum, accumulator), true);
+  const batch = accumulator.committed[0];
+  assert.equal(batch.vertexDeclaration, cloud._declaration);
+  assert.equal(cloud._vertexBuffer.GetDesc().stride, 12);
+  assert.equal(cloud._indexBuffer.GetDesc().stride, 2);
+  cloud.ReleaseResources();
+  assert.equal(cloud._vertexBuffer.IsValid(), true);
+  assert.equal(cloud._indexBuffer.IsValid(), true);
+  assert.equal(cloud.GetVolumetricBatches(frustum, MakeAccumulator()), false);
+  cloud.PrepareResources();
+  assert.notEqual(cloud._declaration, Tr2EffectStateManager.Unknown);
+  assert.equal(cloud.GetVolumetricBatches(frustum, MakeAccumulator()), true);
+});
+
+test("DensityMap supplies native 3D dimensions; missing LightMap selects the gray fallback", () =>
+{
+  const context = Tr2RenderContext_GetMainThreadRenderContext();
+  const cloud = new EveChildCloud2(), provider = new Tr2TextureReference();
+  provider.GetTexture().Create(new BitmapDimensions({ type: TextureType.TEX_TYPE_3D,
+    format: PixelFormat.PIXEL_FORMAT_R8_UNORM, width: 64, height: 32, depth: 16, mipCount: 1 }),
+  { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.COPY_DESTINATION }, context);
+  const parameter = new TriTextureParameter();
+  parameter.resource = provider;
+  let hasLightMap = true;
+  cloud.effect = { GetHashValue: () => hasLightMap ? 1 : 2,
+    GetShaderStateInterface: () => ({ GetResource: () => hasLightMap ? {} : null }),
+    GetResourceByName: name => { assert.equal(name, "DensityMap"); return parameter; } };
+  cloud.UpdateSyncronous(null);
+  assert.deepEqual([cloud.lightmapWidth, cloud.lightmapHeight, cloud.lightmapDepth], [64, 32, 16]);
+  hasLightMap = false;
+  cloud.UpdateSyncronous(null);
+  const fallback = cloud._emptyLightMap.GetTexture();
+  assert.deepEqual([fallback.GetWidth(), fallback.GetHeight(), fallback.GetDepth()], [1, 1, 1]);
+  assert.equal(fallback.GetDesc().GetFormat(), PixelFormat.PIXEL_FORMAT_R8G8_UNORM);
+  assert.equal(cloud._variableStore.GetVariable("LightMap").GetValue(), cloud._emptyLightMap);
+  assert.equal(cloud.lightmapDirty, false);
+  provider.GetTexture().Destroy();
+});
+
+test("Cloud2 uses separate native vertex and pixel buffers and binds the entire vertex family", () =>
+{
+  const context = Tr2RenderContext_GetMainThreadRenderContext();
+  const cloud = new EveChildCloud2();
+  const data = cloud.GetPerObjectData(MakeAccumulator());
+  const buffers = [context.GetConstantBuffer(0), context.GetConstantBuffer(1)];
+  const bindings = [], original = context.SetConstants;
+  context.SetConstants = (buffer, stage, slot) => bindings.push([buffer, stage, slot]);
+  try
+  {
+    assert.equal(data.SetPerObjectDataToDevice(buffers, 4, context), 1);
+    assert.deepEqual(bindings.map(value => value[1]), [0, 2, 3, 4, 5]);
+    assert.ok(bindings.every(value => value[0] === buffers[0] && value[2] === 3));
+    bindings.length = 0;
+    assert.equal(data.SetPerObjectDataToDevice(buffers, 2, context), 1);
+    assert.deepEqual(bindings, [[buffers[1], 1, 4]]);
+    assert.equal(buffers[0].GetSize(), 544);
+    assert.equal(buffers[1].GetSize(), 544);
+  }
+  finally { context.SetConstants = original; }
 });
