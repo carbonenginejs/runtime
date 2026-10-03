@@ -6,7 +6,7 @@ import { CjsBlueResMan, CjsResManWorkerLoader, CjsResManQueue, ResourceRequireme
 import { CjsGr2Format } from "../../npm/dist/resource/formats/gr2/index.js";
 import { CjsDdsFormat } from "../../npm/dist/resource/formats/dds/index.js";
 import { RegisterGeometryResources, TriGeometryRes } from "../../npm/dist/resource/geometry/index.js";
-import { RegisterTextureResources, TriTextureRes, Tr2ImageRes } from "../../npm/dist/resource/texture/index.js";
+import { RegisterTextureResources, RegisterTextureArray, TriTextureRes, Tr2ImageRes } from "../../npm/dist/resource/texture/index.js";
 import { HostBitmap } from "../../npm/dist/global/imageio/index.js";
 import { TextureType } from "../../npm/dist/global/consts/renderContext/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -121,6 +121,56 @@ test("DDS texture and image routes execute in the worker", async t =>
   assert.ok(CjsSchema.cast(texture,TriTextureRes));
   assert.ok(CjsSchema.cast(image,Tr2ImageRes));
   assert.ok(messages.some(x=>x.operation === "format.read"));
+});
+
+test("detail arrays and named texture parameters fetch and decode each cached DDS once", async t =>
+{
+  const { loader, messages } = workerLoader(t);
+  for (const order of [ "parameters-first", "array-first", "concurrent" ])
+  {
+    const reads = new Map();
+    const manager = new CjsBlueResMan({ workerLoader: loader, source: {
+      Read(path) { reads.set(path, (reads.get(path) || 0) + 1); return ddsBytes(); }
+    } });
+    RegisterTextureResources(manager);
+    RegisterTextureArray(manager);
+    const paths = [ "res:/detail1.dds", "res:/detail2.dds", "res:/detail3.dds" ];
+    const start = messages.length;
+    const parameters = () => Promise.all(paths.map(path => manager.FetchResource(path, { requirement: ResourceRequirement.TEXTURE })));
+    const array = () => manager.GetResource("dynamic:/texturearray/" + paths.join(";")).Ready();
+    if (order === "parameters-first") { await parameters(); await array(); }
+    else if (order === "array-first") { await array(); await parameters(); }
+    else await Promise.all([ parameters(), array() ]);
+    await parameters();
+    await array();
+    assert.deepEqual([ ...reads.values() ], [ 1, 1, 1 ], order);
+    assert.equal(messages.slice(start).filter(x => x.operation === "format.read").length, 3, order);
+    for (const path of paths)
+    {
+      assert.equal(manager.Lookup(path, { requirement: ResourceRequirement.IMAGE }), null, "no duplicate raw-image owner");
+      assert.equal(manager.Lookup(path, { requirement: ResourceRequirement.TEXTURE }).GetBitmap().GetRawData()[0], 73, "array conversion does not mutate its inputs");
+    }
+    manager.Clear();
+  }
+});
+
+test("DDS loader honors the selected source and explicit shared decode policy", async t =>
+{
+  const { loader, messages } = workerLoader(t);
+  let reads = 0;
+  const source = { Read() { reads++; return ddsBytes(); } };
+  const manager = new CjsBlueResMan({ workerLoader: loader });
+  RegisterTextureResources(manager);
+  const options = { source, cacheSource: true, cacheFormat: true };
+  const [ texture, image ] = await Promise.all([
+    manager.FetchResource("res:/shared.dds", options),
+    manager.FetchResource("res:/shared.dds", { ...options, requirement: ResourceRequirement.IMAGE })
+  ]);
+  assert.equal(reads, 1);
+  assert.equal(messages.filter(x => x.operation === "format.read").length, 1);
+  assert.notEqual(texture.GetBitmap(), image.GetBitmap());
+  image.GetBitmap().GetRawData()[0] = 0;
+  assert.equal(texture.GetBitmap().GetRawData()[0], 73);
 });
 
 test("worker failure, disabled loading and unsupported outputs retain the existing fallback contract", async t =>

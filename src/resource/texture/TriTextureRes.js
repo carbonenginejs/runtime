@@ -143,7 +143,7 @@ export class TriTextureRes extends CjsResource
    * Build this texture from a texture pipeline: Carbon's `.ctr` route
    * (`TriTextureRes.cpp:238-258` then `ResourcePrepFinished`, `:296-340`).
    *
-   * Every path the pipeline names is loaded as a raw `Tr2ImageRes` (Carbon asks
+   * By default every path the pipeline names is a raw `Tr2ImageRes` (Carbon asks
    * for the `"raw"` requirement; ours is `ResourceRequirement.IMAGE`), the
    * pipeline runs once they have all settled, and the result becomes this
    * texture's bitmap. An input that failed to load reaches the pipeline as
@@ -163,15 +163,18 @@ export class TriTextureRes extends CjsResource
    *
    * @param {import("./Tr2TexturePipeline.js").Tr2TexturePipeline} pipeline The recipe.
    * @param {object} resourceManager The `CjsBlueResMan` that loads its inputs.
+   * @param {string} [requirement=ResourceRequirement.IMAGE] Input resource kind. The
+   * WebGPU detail-array extension uses TEXTURE to reuse its named parameters'
+   * already decoded bitmaps; Carbon's raw-image pipeline remains the default.
    * @returns {Promise<boolean>} Whether the pipeline produced a bitmap.
    */
-  async LoadPipeline(pipeline, resourceManager) {
+  async LoadPipeline(pipeline, resourceManager, requirement = ResourceRequirement.IMAGE) {
     this.MarkLoading();
 
     const images = new Map();
 
     for (const path of pipeline.GetResourceDependencies()) {
-      images.set(path, resourceManager.GetResource(path, { requirement: ResourceRequirement.IMAGE }));
+      images.set(path, resourceManager.GetResource(path, { requirement }));
     }
 
     // Carbon's m_pipelineFence: wait for every input, whatever became of it.

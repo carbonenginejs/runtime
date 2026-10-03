@@ -21,6 +21,8 @@ import { TriTextureRes } from "./TriTextureRes.js";
 import { Tr2ImageRes } from "./Tr2ImageRes.js";
 import { ResourceRequirement } from "#blue";
 
+/** Stable reader identity preserves the caller's requested DDS decode sharing. */
+const DDS_BITMAP_DESCRIPTOR = { Format: CjsDdsFormat, defaults: { emit: "bitmap" } };
 
 /**
  * The image extensions Carbon routes to a texture resource
@@ -52,8 +54,9 @@ async function ReadImageResource(bytes, context)
 {
   if (context.resource.GetExt() === "dds")
   {
-    const descriptor = { Format: CjsDdsFormat, defaults: { emit: "bitmap" } };
-    const packet = await context.resMan.ReadFormatOnce(context.resource, descriptor, bytes, { emit: "bitmap" });
+    const packet = await context.resMan.ReadFormatOnce(context.resource, DDS_BITMAP_DESCRIPTOR, bytes, {
+      ...context, emit: "bitmap"
+    });
     return createDdsBitmap(packet);
   }
   const bitmap = new HostBitmap();
