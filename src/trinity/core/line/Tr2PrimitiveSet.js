@@ -156,7 +156,11 @@ export class Tr2PrimitiveSet
     return this.worldTransform;
   }
 
-  /** The JS object is Carbon's raw-root picking identity (header:39). */
+  /**
+   * The JS object is Carbon's raw-root picking identity (header:39).
+   * GetID/GetPickingBatches are exposed directly and inherited by the concrete
+   * primitive classes; the undecided ITr2Pickable declaration is not required.
+   */
   @meta.blue.method
   @meta.adapted
   GetID(_areaId)

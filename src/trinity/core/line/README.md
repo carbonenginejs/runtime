@@ -3,7 +3,22 @@
 Tr2PrimitiveSet supplies native transform, bounds, sort and per-object data to
 its concrete debug-geometry subclasses. It dispatches opaque and picking passes;
 each subclass owns its geometry submission. The base remains abstract at
-GetBatchesImpl. Tr2LineSet and Tr2SolidSet still need their upload/draw closures.
+GetBatchesImpl. Tr2LineSet uploads colored endpoints plus separate picking
+triangles; Tr2SolidSet uploads position, normal and color for each triangle
+vertex. Both use TrinityAL mapped buffers and nonindexed draw batches. Call
+SubmitChanges after editing geometry and Destroy when its owner retires it.
+ReleaseResources permits later device preparation; Destroy unregisters the
+owner and prevents further uploads.
+
+GetID and GetPickingBatches are exposed on the primitive classes through
+Tr2PrimitiveSet. Picking uses their GPU batches and requires no additional CPU
+mirror or resource payload retention. No ITr2Pickable declaration is added.
+This does not implement the still-unfinished scene picking/readback entry points.
+
+Native quirks are retained: line picking requires a valid visible-line buffer;
+line submission always recreates storage; solid submission keeps the old draw
+count when its triangle list shrinks until storage is released. Bounds retain
+their previous value when no geometry is uploaded.
 
 Tr2GrannyPrimitiveSet acquires geometry after reader population, builds its CPU
 cache on completion, and uploads through the existing TrinityAL buffer API.

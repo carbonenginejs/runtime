@@ -7,9 +7,10 @@ import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js";
 import { NotifyModified } from "../../npm/dist/global/blue/index.js";
 
-test("primitive color notification updates real line endpoints; unrelated edits preserve them", () =>
+test("primitive color notification updates real line endpoints; unrelated edits preserve them", t =>
 {
   const lines = new Tr2LineSet();
+  t.after(() => lines.Destroy());
   lines.AddLine([0,0,0], [1,0,0,1], [1,1,1], [0,1,0,1]);
   lines.color.set([0,0,1,1]);
   lines.OnModified("name");
@@ -19,9 +20,15 @@ test("primitive color notification updates real line endpoints; unrelated edits 
   assert.deepEqual([...lines.lines[0].color2], [0,0,1,1]);
 });
 
-test("bounding notifications rebuild geometry and forward batched color to the native base", () =>
+test("bounding notifications rebuild geometry and forward batched color to the native base", t =>
 {
+  const context = Tr2RenderContext_GetMainThreadRenderContext(), previous = context.GetRenderContextAL();
+  const al = new Tr2RenderContextALStub();
+  al.CreateDevice();
+  al.BeginScene();
+  context.SetRenderContextAL(al);
   const bounds = new Tr2BoundingLineSet();
+  t.after(() => { bounds.Destroy(); context.SetRenderContextAL(previous); al.Destroy(); });
   bounds.UpdateBounds([-1,-1,-1], [1,1,1]);
   const before = bounds.lines[0];
   bounds.minBounds.set([-3,-4,-5]);

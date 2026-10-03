@@ -31,6 +31,8 @@ import { Tr2LineGraph } from "../../npm/dist/trinity/core/line/Tr2LineGraph.js";
 import { Tr2SolidSet } from "../../npm/dist/trinity/core/line/Tr2SolidSet.js";
 import { TriRigidOrientation } from "../../npm/dist/trinity/core/animation/TriRigidOrientation.js";
 import { TriTorque } from "../../npm/dist/trinity/core/animation/TriTorque.js";
+import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/core/context/Tr2RenderContext.js";
 import { TriLineSet } from "../../npm/dist/trinity/core/line/TriLineSet.js";
 
 
@@ -102,8 +104,18 @@ test("Tr2DebugRenderer stores Carbon option, selection, and color state", () =>
   assertEquals(renderer.GetOptions(owner).length, 0);
 });
 
-test("generated primitive sets retain CPU geometry and submission state", () =>
+test("primitive sets retain CPU geometry and native AL submission state", t =>
 {
+  const context = Tr2RenderContext_GetMainThreadRenderContext(), previous = context.GetRenderContextAL();
+  const registered = new Set(TriDevice.GetResourcesRegistered()), al = new Tr2RenderContextALStub();
+  al.CreateDevice();
+  al.BeginScene();
+  context.SetRenderContextAL(al);
+  t.after(() => {
+    for (const resource of TriDevice.GetResourcesRegistered()) if (!registered.has(resource)) resource.Destroy();
+    context.SetRenderContextAL(previous);
+    al.Destroy();
+  });
   const red = vec4.fromValues(1, 0, 0, 1);
   const green = vec4.fromValues(0, 1, 0, 1);
   const blue = vec4.fromValues(0, 0, 1, 1);
@@ -121,8 +133,11 @@ test("generated primitive sets retain CPU geometry and submission state", () =>
   lines.ClearLines();
   lines.ClearPickingTriangles();
   lines.SubmitChanges();
-  assertEquals(lines.currentSubmittedLineCount, 0);
-  assertEquals(lines.currentSubmittedTriangleCount, 0);
+  // Carbon Tr2LineSet.cpp:40-46,81-132: release retains counts; empty lists allocate nothing.
+  assertEquals(lines.currentSubmittedLineCount, 1);
+  assertEquals(lines.currentSubmittedTriangleCount, 1);
+  assert.equal(lines._vertexBuffer.IsValid(), false);
+  assert.equal(lines.pickingVertexBuffer.IsValid(), false);
   assertEquals(lines.maxCurrentLineCount, 1);
   assertEquals(lines.maxCurrentTriangleCount, 1);
 
