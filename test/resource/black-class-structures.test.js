@@ -32,6 +32,19 @@ test("persisted fields and byteSize cannot substitute for a struct definition", 
   assert.throws(() => classStructureLayout("BlackMissingStructOwner", "records"), /BlackMissingStructItem has no structureDefinition/);
 });
 
+test("an unregistered owner or item class is reported as unregistered, not as undeclared", () =>
+{
+  assert.throws(() => classStructureLayout("BlackNeverRegisteredOwner", "records"),
+    /BlackNeverRegisteredOwner\.records: class BlackNeverRegisteredOwner is not registered \(import its package\)/);
+  class Owner {}
+  CjsSchema.define(Owner, { className: "BlackUnregisteredItemOwner", fields: { records: CjsSchema.meta.type.list("BlackNeverRegisteredItem") } });
+  assert.throws(() => classStructureLayout("BlackUnregisteredItemOwner", "records"),
+    /item class BlackNeverRegisteredItem is not registered \(import its package\)/);
+  class Plain {}
+  CjsSchema.define(Plain, { className: "BlackRegisteredNoListOwner", fields: {} });
+  assert.throws(() => classStructureLayout("BlackRegisteredNoListOwner", "records"), /BlackRegisteredNoListOwner\.records has no declared item class/);
+});
+
 test("derived offsets match Carbon's BlueStructureDefinitions", () =>
 {
   // LocatorStructureDef, EveLocatorSets.cpp:32-39 (partTag from trinity a9a60056).

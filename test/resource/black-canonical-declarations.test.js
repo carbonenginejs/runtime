@@ -44,7 +44,7 @@ test("canonical Black refuses missing wire facts instead of borrowing legacy fie
     assert.throws(() => CjsBlackSchemaRegistry.fromDeclaredType({ kind: "list" }), /item type: missing/);
     assert.throws(() => CjsBlackSchemaRegistry.fromDeclaredType({
         kind: "list", itemType: { kind: "rawStruct", className: "NativeRecord" }
-    }), /NativeRecord has no structureDefinition/);
+    }), /item class NativeRecord is not registered \(import its package\)/);
     assert.throws(() => CjsBlackSchemaRegistry.fromDeclaredType({
         kind: "list", itemType: { kind: "rawStruct" },
         structure: { name: "BadNativeRecord", size: 4, members: [{ name: "name", offset: 0, type: "string" }] }
