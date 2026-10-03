@@ -323,6 +323,11 @@ export class CjsResource
     }
     const previous = this.state;
     if (previous === state) return this;
+    if (previous === CjsResource.State.FAILED && CjsResource.isLateResultState(state))
+    {
+      this.RecordLateResult(state);
+      return this;
+    }
     this.state = state;
     // A successful load clears the budget, so the cap bounds consecutive
     // failures rather than how many times a resource may ever be purged.
@@ -518,6 +523,33 @@ export class CjsResource
   IsPurged()
   {
     return this.state === CjsResource.State.PURGED;
+  }
+
+  /**
+   * Record a load result that arrived after this resource had already failed -
+   * a stub filled in after the watch's stall check failed it, say - and ignore
+   * it: the resource stays FAILED and not good.
+   *
+   * Ours (operator, 2026-10-04: late results are errors, so they can be
+   * tracked). Accepting it would reach nobody: owners stop re-registering once a
+   * resource fails, because registering on a finished resource calls back at
+   * once. Retrying is the deliberate `ResetReloadAttempts()` plus `Reload()`.
+   * The new error is `CJS_RESOURCE_COMPLETED_AFTER_FAILURE`, with the original
+   * failure as its cause. A payload stored by `SetPayload` before the state
+   * change stays, unused.
+   *
+   * @param {string} state The result state that was refused.
+   * @returns {CjsResource} This resource.
+   */
+  RecordLateResult(state)
+  {
+    const error = new Error(`Resource reached "${state}" after it had failed; the late result is ignored (${this.path}).`);
+    error.code = "CJS_RESOURCE_COMPLETED_AFTER_FAILURE";
+    error.path = this.path;
+    error.cause = this.error;
+    this.error = error;
+    this.EmitEvent("lateresult", this, error);
+    return this;
   }
 
   /** Stores a load failure and marks this resource as failed. */
@@ -1070,6 +1102,18 @@ export class CjsResource
     PURGED: "purged"
   });
 
+  /**
+   * Whether a state is a load result - the outcome of a load in flight - rather
+   * than the start of one. A FAILED resource leaves FAILED only by starting a new
+   * load (REQUESTED or LOADING, as `Reload()` does).
+   */
+  static isLateResultState(state)
+  {
+    return state === CjsResource.State.LOADED
+      || state === CjsResource.State.PREPARING
+      || state === CjsResource.State.PREPARED;
+  }
+
   /** Returns true when a value belongs to the resource state vocabulary. */
   static isValidState(state)
   {
@@ -1125,6 +1169,7 @@ CjsSchema.define(CjsResource, {
     RemoveNotifyTarget: [ meta.implemented ],
     NotifyRebuildCachedData: [ meta.adapted ],
     NotifyReleaseCachedData: [ meta.adapted ],
+    RecordLateResult: [ meta.ours ],
     DestroyAdapterResources: [ meta.ours ]
   }
 });

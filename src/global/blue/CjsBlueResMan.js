@@ -16,6 +16,7 @@ import {
   normalizeResourcePath
 } from "#utils/path";
 import { CjsResource } from "./CjsResource.js";
+import { GetResources } from "./getResources.js";
 import { ResourceHandlerMode } from "./ResourceHandlerMode.js";
 import {
   CjsResManQueue,
@@ -224,6 +225,15 @@ function isDynamicResourcePath(key)
  * @param {string} message Error message.
  * @returns {Error}
  */
+/** A watch rejection naming the resources still pending. */
+function watchError(code, message, pending)
+{
+  const error = new Error(`CjsBlueResMan ${message}`);
+  error.code = code;
+  error.pending = pending.map(resource => resource.path);
+  return error;
+}
+
 function dynamicResourceError(path, name, code, message)
 {
   const error = new Error(`CjsBlueResMan ${message} (${path})`);
@@ -274,6 +284,8 @@ export class CjsBlueResMan
   // BlueResMan::m_dynamicConstructors (BlueResMan.h:154-155).
   _dynamicConstructors = new Map();
   _dynamicResources = new WeakSet();
+  /** Objects waiting for every resource they reach to finish (`Watch`). */
+  _watches = [];
   // Carbon caches a LoadObject BUILDER and creates a new object per call
   // (BlueResMan.cpp:653-795). For an OBJECT-mode route that hydrates, the
   // payload is the decoded plain values - the builder - and this records what
@@ -810,7 +822,8 @@ export class CjsBlueResMan
       : this.PumpAutoPurge(purgeOptions);
     const purged = Boolean(purgeResult
       && (purgeResult.purged > 0 || purgeResult.payloadsReleased > 0));
-    return loaded || prepared || trimmed || purged;
+    const watched = this.UpdateWatched(options.watch || {}) > 0;
+    return loaded || prepared || trimmed || purged || watched;
   }
 
   /**
@@ -2918,6 +2931,145 @@ export class CjsBlueResMan
       releasePayload: policy.releasePayload,
       ...(policy.cleanup === undefined ? {} : { cleanup: policy.cleanup })
     });
+  }
+
+  /**
+   * Resolve once every resource an object reaches has finished loading, so the
+   * caller can keep the object hidden until it can be shown whole rather than
+   * watch it build in pieces.
+   *
+   * Ours, not Carbon's. Carbon's nearest mechanism is `Tr2LoadPrepareFence`, a
+   * marker in the load and prepare queues that
+   * `EveSpaceObject2::PushRenderables` waits on through `Tr2Mesh::IsLoading`;
+   * one slow resource then holds back every object queued after it. This is
+   * the operator's ccpwgl `Tw2MotherLode.Watch` (fork commit `da5a9786`, 2020)
+   * instead, so each object waits on its own resources only.
+   *
+   * Every manager update (`UpdateWatched`):
+   *
+   * - collects the object's resources again with `GetResources`, because
+   *   resources finishing can add more (an effect resolves its textures);
+   * - renews each one, so nothing is purged while the object waits;
+   * - counts a resource pending until it finishes, PREPARED or FAILED. A
+   *   PURGED one is pending, and renewing it starts its reload;
+   * - fails a resource still EMPTY after `stallMilliseconds` with
+   *   `CJS_RESOURCE_NEVER_STARTED`. A manager request never stays EMPTY, so
+   *   such a resource is a stub or hand-built one that nothing will start, and
+   *   it would otherwise hold the watch until the timeout.
+   *
+   * The watch resolves after two consecutive updates with nothing pending, so a
+   * child requested by the update that finished its parent is still counted. A
+   * failed resource does not hold it back: the object can be shown, and `failed`
+   * lists what failed. After `timeoutMilliseconds` the promise rejects with
+   * `CJS_RESOURCE_WATCH_TIMEOUT`, naming what was still pending.
+   *
+   * @param {object} root Object whose declared graph is watched.
+   * @param {object} [options={}] Watch limits.
+   * @param {number} [options.timeoutMilliseconds=60000] Give up after this long.
+   * @param {number} [options.stallMilliseconds=10000] Fail a resource still EMPTY after this long.
+   * @returns {Promise<{object: object, failed: CjsResource[]}>} The object, and the resources that failed.
+   * @throws {TypeError} If the root is not an object or a limit is invalid.
+   */
+  Watch(root, options = {})
+  {
+    if (!root || typeof root !== "object") throw new TypeError("CjsBlueResMan.Watch requires an object.");
+    const timeoutMilliseconds = options.timeoutMilliseconds === undefined ? 60000 : options.timeoutMilliseconds;
+    const stallMilliseconds = options.stallMilliseconds === undefined ? 10000 : options.stallMilliseconds;
+    assertNonNegativeNumber(timeoutMilliseconds, "CjsBlueResMan.Watch timeoutMilliseconds");
+    assertNonNegativeNumber(stallMilliseconds, "CjsBlueResMan.Watch stallMilliseconds");
+
+    return new Promise((resolve, reject) =>
+    {
+      this._watches.push({
+        root, resolve, reject, timeoutMilliseconds, stallMilliseconds,
+        started: null, quietUpdates: 0, emptySince: new Map(), resources: []
+      });
+    });
+  }
+
+  /**
+   * Stop watching an object. Its pending promises reject with
+   * `CJS_RESOURCE_WATCH_CANCELLED`.
+   *
+   * @param {object} root The watched object.
+   * @returns {boolean} Whether anything was watching it.
+   */
+  Unwatch(root)
+  {
+    let found = false;
+    for (const watch of this._watches.slice())
+    {
+      if (watch.root !== root) continue;
+      found = true;
+      this._watches.splice(this._watches.indexOf(watch), 1);
+      watch.reject(watchError("CJS_RESOURCE_WATCH_CANCELLED", "watch cancelled", []));
+    }
+    return found;
+  }
+
+  /**
+   * Advance every watch by one update (see `Watch`). Runs from `Update`.
+   *
+   * @param {object} [options={}] Optional deterministic time.
+   * @param {number} [options.time] Milliseconds; defaults to the wall clock.
+   * @returns {number} How many watches settled.
+   */
+  UpdateWatched(options = {})
+  {
+    if (!this._watches.length) return 0;
+    const time = options.time === undefined ? defaultAutoPurgeNow() : options.time;
+    assertNonNegativeNumber(time, "CjsBlueResMan.UpdateWatched time");
+
+    let settled = 0;
+    for (const watch of this._watches.slice())
+    {
+      if (watch.started === null) watch.started = time;
+      const { pending, failed } = this._CountWatched(watch, time);
+
+      watch.quietUpdates = pending.length ? 0 : watch.quietUpdates + 1;
+      if (watch.quietUpdates >= 2)
+      {
+        this._watches.splice(this._watches.indexOf(watch), 1);
+        watch.resolve({ object: watch.root, failed });
+        settled += 1;
+      }
+      else if (time - watch.started >= watch.timeoutMilliseconds)
+      {
+        this._watches.splice(this._watches.indexOf(watch), 1);
+        watch.reject(watchError("CJS_RESOURCE_WATCH_TIMEOUT",
+          `watch timed out after ${time - watch.started} ms`, pending));
+        settled += 1;
+      }
+    }
+    return settled;
+  }
+
+  /** One watch pass: renew everything, fail stalled EMPTY resources, sort the rest. */
+  _CountWatched(watch, time)
+  {
+    const pending = [];
+    const failed = [];
+    for (const resource of GetResources(watch.root, watch.resources))
+    {
+      resource.KeepAlive();
+      if (resource.state === CjsResource.State.EMPTY)
+      {
+        if (!watch.emptySince.has(resource)) watch.emptySince.set(resource, time);
+        const waited = time - watch.emptySince.get(resource);
+        if (waited < watch.stallMilliseconds)
+        {
+          pending.push(resource);
+          continue;
+        }
+        const error = new Error(`Resource remained EMPTY for ${waited} ms; it was never requested.`);
+        error.code = "CJS_RESOURCE_NEVER_STARTED";
+        error.path = resource.path;
+        resource.SetError(error);
+      }
+      if (!resource.HasCompleted()) pending.push(resource);
+      else if (resource.IsFailed()) failed.push(resource);
+    }
+    return { pending, failed };
   }
 
   /**
