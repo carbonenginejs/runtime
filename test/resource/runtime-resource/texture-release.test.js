@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { TriTextureRes } from "../../../src/resource/texture/TriTextureRes.js";
-import { CjsMotherLode } from "../../../src/global/blue/CjsMotherLode.js";
-import { CjsResource } from "../../../src/global/blue/CjsResource.js";
-import { HostBitmap } from "../../../src/global/imageio/index.js";
-import { PixelFormat } from "../../../src/global/consts/renderContext/index.js";
-import { TriStorageFlags, Tr2ALMemoryType } from "../../../src/global/consts/graphics/index.js";
+import { TriTextureRes } from "../../../npm/dist/resource/texture/TriTextureRes.js";
+import { CjsMotherLode } from "../../../npm/dist/global/blue/CjsMotherLode.js";
+import { CjsResource } from "../../../npm/dist/global/blue/CjsResource.js";
+import { HostBitmap } from "../../../npm/dist/global/imageio/index.js";
+import { PixelFormat } from "../../../npm/dist/global/consts/renderContext/index.js";
+import { TriStorageFlags, Tr2ALMemoryType } from "../../../npm/dist/global/consts/graphics/index.js";
 
-// Source imports intentionally exercise the eviction policy without a dist build.
+// Use the rebuilt package, including the texture LOAD setting decorator.
 function loadedTexture(memoryClass = Tr2ALMemoryType.AL_MEMORY_VIDEO)
 {
   const resource = new TriTextureRes();

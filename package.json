@@ -84,6 +84,7 @@
     "./resource/formats/bnk": "./src/resource/formats/bnk/index.js",
     "./resource/formats/cmf": "./src/resource/formats/cmf/index.js",
     "./resource/formats/dds": "./src/resource/formats/dds/index.js",
+    "./resource/formats/dds/compression-worker": "./src/resource/formats/dds/compressionWorker.js",
     "./resource/formats/ies": "./src/resource/formats/ies/index.js",
     "./resource/formats/dxbc": "./src/resource/formats/dxbc/index.js",
     "./resource/formats/hlsl": "./src/resource/formats/hlsl/index.js",

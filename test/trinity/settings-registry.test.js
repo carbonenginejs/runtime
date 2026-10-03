@@ -95,11 +95,13 @@ test("the registry records when a change applies, and a setting's enum", () =>
   assert.equal(settings.FindSetting("eveReflectionSetting").enum.REFLECTION_SETTING_HIGH, GetReflectionSetting());
 });
 
-test("only the three approved WebGPU names are exempt from Carbon setting-name checks", () =>
+test("only approved extension names are exempt from Carbon setting-name checks", () =>
 {
-  const approved = [ "webgpuMaxBufferSize", "webgpuTextureCompressionBC", "webgpuTextureCompressionBCSliced3D" ];
+  const approved = [ "webgpuMaxBufferSize", "webgpuTextureCompressionBC", "webgpuTextureCompressionBCSliced3D", "webgpuTextureCompressionUnaligned" ];
   const ours = settings.GetNames().filter(name => !settings.FindSetting(name).carbon);
-  assert.deepEqual(ours, approved);
+  assert.deepEqual(ours.slice().sort(), [...approved, "compressUncompressedTextures"].sort());
+  assert.equal(settings.FindSetting("compressUncompressedTextures").applies, meta.setting.LOAD);
+  assert.equal(settings.GetValue("compressUncompressedTextures"), false);
   for (const name of approved)
   {
     const entry = settings.FindSetting(name);
@@ -128,7 +130,7 @@ test("a setting keeps the type it was registered with", () =>
 
 test("WebGPU settings write through and apply only to the next resolved device", () =>
 {
-  const names = [ "webgpuMaxBufferSize", "webgpuTextureCompressionBC", "webgpuTextureCompressionBCSliced3D" ];
+  const names = [ "webgpuMaxBufferSize", "webgpuTextureCompressionBC", "webgpuTextureCompressionBCSliced3D", "webgpuTextureCompressionUnaligned" ];
   const original = names.map(name => settings.GetValue(name));
   const platform = new Tr2PlatformInfo({ backend: "webgpu", adapter: { limits: { maxBufferSize: 2147483648 }, features: [ "texture-compression-bc", "texture-compression-bc-sliced-3d" ] } });
   const first = platform.ResolveDeviceRequirements();

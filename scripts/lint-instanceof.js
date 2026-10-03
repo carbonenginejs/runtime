@@ -50,7 +50,7 @@ const PLATFORM = new Set([
     "BigInt64Array", "BigUint64Array",
     // Host objects: also facts about the environment, not about our contracts.
     "Blob", "File", "FileList", "FormData", "Headers", "Request", "Response", "URL", "URLSearchParams",
-    "AbortSignal", "AbortController", "Event", "EventTarget", "MessagePort", "MessageChannel", "Worker",
+    "AbortSignal", "AbortController", "Event", "EventTarget", "MessagePort", "MessageChannel", "Worker", "WorkerGlobalScope",
     "Element", "Node", "Document", "HTMLElement", "HTMLCanvasElement", "HTMLImageElement",
     "HTMLVideoElement", "OffscreenCanvas", "ImageBitmap", "ImageData", "VideoFrame",
     "AudioBuffer", "AudioContext", "AudioNode", "MediaStream",

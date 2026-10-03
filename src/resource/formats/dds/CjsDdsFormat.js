@@ -2,6 +2,11 @@ import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { CjsImageFormat } from "../../format/CjsImageFormat.js";
 import { bcDecompress } from "./core/bcDecompress.js";
+import { compressBitmap, compressSurface, compressionPixelFormat } from "./core/dxtCompression.js";
+import { compressAsync } from "./core/dxtCompressionAsync.js";
+import { isDdsSaveSupported, writeDds } from "./core/ddsWrite.js";
+import { loadCcpMetadata } from "./core/ccpMetadata.js";
+import { selectCompression } from "./core/compressionPolicy.js";
 import { BitmapDimensions, Cutout, HostBitmap, ImageIOResult, LoadParameters, Metadata } from "#imageio";
 import { PixelFormat, PixelFormatFromCanonical, TextureType } from "#consts/render-context";
 import {
@@ -56,6 +61,74 @@ const LEGACY_PIXEL_FORMATS = {
  */
 export class CjsDdsFormat extends CjsImageFormat
 {
+    /** Approved role-based optional load policy; capabilities describe the active device. */
+    static selectCompression(packet, request)
+    {
+        return selectCompression(packet, request);
+    }
+
+    /** Shared DDS block encoder; explicit mode selection preserves every bitmap subresource. */
+    static compressBitmap(packet, format, options = {})
+    {
+        return compressBitmap(packet, format, options);
+    }
+
+    /** Browser adaptation of Carbon's task: an owned worker returns complete bitmap storage. */
+    static compressBitmapAsync(packet, format, options = {})
+    {
+        return compressAsync({ kind: "bitmap", packet, format,
+            options: { quality: options.quality, srgb: options.srgb } }, options);
+    }
+
+    /** Shared surface encoder; source/output pitches are in bytes. */
+    static compressSurface(input, width, height, format, output, options = {})
+    {
+        return compressSurface(input, width, height, format, output, options);
+    }
+
+    /** Browser worker surface entry; caller input and output are never transferred. */
+    static compressSurfaceAsync(input, width, height, format, options = {})
+    {
+        return compressAsync({ kind: "surface", input, width, height, format,
+            options: { quality: options.quality, sourceFormat: options.sourceFormat,
+                inputPitch: options.inputPitch, outputPitch: options.outputPitch } }, options);
+    }
+
+    /** Carbon compression mode to corrected BC storage format. */
+    static compressionPixelFormat(format, srgb = false)
+    {
+        return compressionPixelFormat(format, srgb);
+    }
+
+    /** Carbon IsSaveSupported, limited to the implemented compressed DDS writer. */
+    static isSaveSupported(dimensions)
+    {
+        return new ImageIOResult(isDdsSaveSupported(dimensions) ? ImageIOResult.Code.OK : ImageIOResult.Code.SAVE_NOT_SUPPORTED);
+    }
+
+    /** Carbon Save stream adaptation: return a result and complete DDS bytes. */
+    static save(bitmap, metadata = null)
+    {
+        try
+        {
+            const bytes = writeDds({ description: {
+                type: bitmap.GetType(), format: bitmap.GetFormat(), width: bitmap.GetWidth(),
+                height: bitmap.GetHeight(), depth: bitmap.GetDepth(), mipCount: bitmap.GetMipCount(),
+                arraySize: bitmap.GetArraySize()
+            }, data: bitmap.GetRawData(), metadata });
+            return { result: new ImageIOResult(ImageIOResult.Code.OK), bytes };
+        }
+        catch (error)
+        {
+            return { result: new ImageIOResult(ImageIOResult.Code.SAVE_NOT_SUPPORTED, error.message), bytes: null };
+        }
+    }
+
+    /** Existing format-write entry: serialize a native compressed bitmap packet. */
+    static write(packet)
+    {
+        return writeDds(packet);
+    }
     /** Registered name; `constructor.name` does not survive minification. */
     static className = "CjsDdsFormat";
 
@@ -233,8 +306,8 @@ export class CjsDdsFormat extends CjsImageFormat
      * the HostBitmap layout.
      *
      * adapted: a cube ARRAY loads whole (arraySize = 6 x cubes); Carbon's
-     * CopyHeaderValuesToMembers always makes one cube (:447-449). Not yet
-     * ported: the CCP-META trailer; metadata gets its default cutout only.
+     * CopyHeaderValuesToMembers always makes one cube (:447-449). Optional
+     * CCP-META strings are read after the original complete pixel payload.
      *
      * @param {Uint8Array|ArrayBuffer} input DDS bytes.
      * @param {import("#imageio").LoadParameters} loadParameters Load parameters.
@@ -270,7 +343,8 @@ export class CjsDdsFormat extends CjsImageFormat
 
         const isRgb24 = meta.pixelFormat === "bgr8unorm";
         const description = {
-            type: meta.isCube ? TextureType.TEX_TYPE_CUBE : (meta.isVolume ? TextureType.TEX_TYPE_3D : TextureType.TEX_TYPE_2D),
+            type: meta.isCube ? TextureType.TEX_TYPE_CUBE : (meta.isVolume ? TextureType.TEX_TYPE_3D :
+                meta.dimension === "1d" ? TextureType.TEX_TYPE_1D : TextureType.TEX_TYPE_2D),
             format,
             width: meta.width,
             height: meta.height,
@@ -302,7 +376,11 @@ export class CjsDdsFormat extends CjsImageFormat
             }
         }
 
-        if (metadata) metadata.cutout = new Cutout();
+        if (metadata)
+        {
+            metadata.cutout = new Cutout();
+            metadata.metadata = loadCcpMetadata(bytes, meta.dataOffset + meta.expectedDataBytes);
+        }
 
         if (!bitmap.CreateFromBitmapDimensions(new BitmapDimensions(description)))
         {
@@ -488,6 +566,7 @@ export class CjsDdsFormat extends CjsImageFormat
     };
 
     static id = "CjsDdsFormat";
+    static inputs = CjsFormat.defineInputs({ bitmap: { default: true } });
     static outputs = CjsFormat.defineOutputs({
         texture: { probes: [ "texture", "compressed" ] },
         image: { decoded: true, probes: [ "image", "rgba" ] },

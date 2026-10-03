@@ -59,6 +59,7 @@ const DXGI_PIXEL_FORMATS = Object.freeze({
     34: "rg16float",
     41: "r32float",
     54: "r16float",
+    56: "r16unorm",
     28: "rgba8unorm",
     29: "rgba8unorm-srgb",
     49: "rg8unorm",
@@ -320,6 +321,7 @@ function inspectDDS(bytes)
     const pixelFormat = getDdsPixelFormat({ pfFlags, fourCc, fourCcCode, rgbBitCount, rBitMask, gBitMask, bBitMask, aBitMask, dxgiFormat });
     const width = readU32LE(bytes, 16);
     const height = readU32LE(bytes, 12);
+    if (resourceDimension === 2 && height !== 1) throw new RangeError("DDS 1D texture height must be one");
     const depth = readU32LE(bytes, 24);
     const mipCount = Math.max(readU32LE(bytes, 28), 1);
     const dataBytes = Math.max(bytes.byteLength - dataOffset, 0);
@@ -399,7 +401,7 @@ function inspectDDS(bytes)
         isCubeComplete: isCube && cubeFaces.length === 6,
         isCube,
         isVolume,
-        dimension: isVolume ? "3d" : (isCube ? "cube" : "2d"),
+        dimension: isVolume ? "3d" : (isCube ? "cube" : (resourceDimension === 2 ? "1d" : "2d")),
         pixelFormat,
         textureFormat: pixelFormat || fourCc || "dds-legacy",
         isCompressed: COMPRESSED_PIXEL_FORMATS.has(pixelFormat),
@@ -793,6 +795,7 @@ function getDdsLevelLayout(pixelFormat, width, height, depth)
         "rg16float": 4,
         "r32float": 4,
         "r16float": 2,
+        "r16unorm": 2,
         "rgba8unorm": 4,
         "rgba8unorm-srgb": 4,
         "bgra8unorm": 4,

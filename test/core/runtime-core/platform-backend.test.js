@@ -267,7 +267,7 @@ test("WebGPU settings negotiate preferences and preserve unmet content requireme
     assert.equal(result.descriptor.requiredLimits.maxBufferSize, 536870912);
     assert.deepEqual(result.descriptor.requiredFeatures, [ "texture-compression-bc", "texture-compression-bc-sliced-3d" ]);
     assert.equal(result.requestedSettings.webgpuMaxBufferSize, 536870912);
-    assert.deepEqual(result.unsupportedPreferences, { limits: [], features: [] });
+    assert.deepEqual(result.unsupportedPreferences, { limits: [], features: ["texture-compression-unaligned"] });
     assert.equal(result.requestedSettings.webgpuFloat32Filterable, undefined);
     assert.equal(result.requestedSettings.webgpuDepthClipControl, undefined);
 
@@ -276,7 +276,7 @@ test("WebGPU settings negotiate preferences and preserve unmet content requireme
     const reduced = platform.ResolveDeviceRequirements({ features: [ "texture-compression-bc" ], limits: { maxBufferSize: 400000000 } });
     assert.deepEqual(reduced.descriptor, {});
     assert.equal(reduced.unsupportedPreferences.limits[0].requested, 536870912);
-    assert.deepEqual(reduced.unsupportedPreferences.features, [ "texture-compression-bc", "texture-compression-bc-sliced-3d" ]);
+    assert.deepEqual(reduced.unsupportedPreferences.features, [ "texture-compression-unaligned", "texture-compression-bc", "texture-compression-bc-sliced-3d" ]);
     assert.equal(reduced.unsatisfiedLimits[0].requested, 400000000);
     assert.deepEqual(reduced.unavailableFeatures, [ "texture-compression-bc" ]);
     assert.equal(result.descriptor.requiredLimits.maxBufferSize, 536870912, "earlier device request stays a snapshot");

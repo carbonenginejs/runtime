@@ -15,7 +15,7 @@ import {
   TriTextureRes
 } from "../../../npm/dist/resource/index.js";
 
-test("Tr2TextureLodManager mirrors Carbon registration and removal order", () =>
+test("Tr2TextureLodManager mirrors Carbon registration and removal order", async () =>
 {
   const manager = new Tr2TextureLodManager();
   const first = new TriTextureRes({ name: "first" });
@@ -35,7 +35,7 @@ test("Tr2TextureLodManager mirrors Carbon registration and removal order", () =>
   );
 });
 
-test("Tr2TexturePipeline collects sorted unique Carbon step dependencies", () =>
+test("Tr2TexturePipeline collects sorted unique Carbon step dependencies", async () =>
 {
   const load = new Tr2TexturePipelineStepLoad();
   load.path = "res:/z.png";
@@ -52,7 +52,7 @@ test("Tr2TexturePipeline collects sorted unique Carbon step dependencies", () =>
   );
 });
 
-test("Tr2TexturePipeline runs Carbon's steps against one HostBitmap", () =>
+test("Tr2TexturePipeline runs Carbon's steps against one HostBitmap", async () =>
 {
   const load = new Tr2TexturePipelineStepLoad();
   load.path = "res:/source.png";
@@ -70,7 +70,7 @@ test("Tr2TexturePipeline runs Carbon's steps against one HostBitmap", () =>
   ]);
   const result = new HostBitmap();
 
-  assert.equal(pipeline.Execute(result, new Map([[ load.path, source ]])), true);
+  assert.equal(await pipeline.Execute(result, new Map([[ load.path, source ]])), true);
   assert.equal(result.GetWidth(), 1);
   assert.equal(result.GetHeight(), 1);
   // The box filter of the four source pixels, not a zeroed level (Carbon issue 1).
@@ -82,7 +82,7 @@ test("Tr2TexturePipeline runs Carbon's steps against one HostBitmap", () =>
   );
 });
 
-test("a failed step stops the pipeline (diverged from Carbon, issue 19)", () =>
+test("a failed step stops the pipeline (diverged from Carbon, issue 19)", async () =>
 {
   const load = new Tr2TexturePipelineStepLoad();
   load.path = "res:/missing.png";
@@ -91,11 +91,11 @@ test("a failed step stops the pipeline (diverged from Carbon, issue 19)", () =>
   pipeline.steps = [ load, mips ];
   const result = new HostBitmap();
 
-  assert.equal(pipeline.Execute(result, new Map()), false);
+  assert.equal(await pipeline.Execute(result, new Map()), false);
   assert.equal(result.IsValid(), false);
 });
 
-test("Tr2TexturePipeline packs channels from independent inputs", () =>
+test("Tr2TexturePipeline packs channels from independent inputs", async () =>
 {
   const pack = new Tr2TexturePipelineStepPack();
   pack.format = PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM;
@@ -112,13 +112,13 @@ test("Tr2TexturePipeline packs channels from independent inputs", () =>
     [ "res:/b.png", Bgra(1, 1, [ 55, 66, 77, 88 ]) ]
   ]);
 
-  assert.equal(pipeline.Execute(result, inputs), true);
+  assert.equal(await pipeline.Execute(result, inputs), true);
   assert.equal(result.GetFormat(), PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM);
   // b from b.png's channel 0 (byte 2), g filled, r from r.png's channel 2 (byte 0), a filled.
   assert.deepEqual([ ...result.GetMipRawData(0) ], [ 77, 7, 11, 255 ]);
 });
 
-test("an R8 pack writes one byte per pixel (diverged from Carbon, issue 2)", () =>
+test("an R8 pack writes one byte per pixel (diverged from Carbon, issue 2)", async () =>
 {
   const pack = new Tr2TexturePipelineStepPack();
   pack.format = PixelFormat.PIXEL_FORMAT_R8_UNORM;
@@ -127,13 +127,13 @@ test("an R8 pack writes one byte per pixel (diverged from Carbon, issue 2)", () 
   pipeline.steps = [ pack ];
   const result = new HostBitmap();
 
-  assert.equal(pipeline.Execute(result, new Map([[ "res:/r.png", Bgra(2, 1, [ 1, 2, 3, 4, 5, 6, 7, 8 ]) ]])), true);
+  assert.equal(await pipeline.Execute(result, new Map([[ "res:/r.png", Bgra(2, 1, [ 1, 2, 3, 4, 5, 6, 7, 8 ]) ]])), true);
   assert.equal(result.GetFormat(), PixelFormat.PIXEL_FORMAT_R8_UNORM);
   // Red is byte 2 of each BGRA pixel; Carbon's switch never reaches this arm.
   assert.deepEqual([ ...result.GetMipRawData(0) ], [ 3, 7 ]);
 });
 
-test("a BGRX pack leaves the X byte alone (diverged from Carbon, issue 2)", () =>
+test("a BGRX pack leaves the X byte alone (diverged from Carbon, issue 2)", async () =>
 {
   const pack = new Tr2TexturePipelineStepPack();
   pack.format = PixelFormat.PIXEL_FORMAT_B8G8R8X8_UNORM;
@@ -144,20 +144,20 @@ test("a BGRX pack leaves the X byte alone (diverged from Carbon, issue 2)", () =
   pipeline.steps = [ pack ];
   const result = new HostBitmap();
 
-  assert.equal(pipeline.Execute(result, new Map([[ "res:/x.png", Bgra(2, 1, [ 1, 2, 3, 4, 5, 6, 7, 8 ]) ]])), true);
+  assert.equal(await pipeline.Execute(result, new Map([[ "res:/x.png", Bgra(2, 1, [ 1, 2, 3, 4, 5, 6, 7, 8 ]) ]])), true);
   // Carbon writes three bytes per pixel into four-byte pixels, shifting pixel 2.
   assert.deepEqual([ ...result.GetMipRawData(0) ], [ 1, 9, 8, 0, 5, 9, 8, 0 ]);
 });
 
-test("the compress step refuses rather than passing data off as compressed", () =>
+test("the compress step refuses rather than passing data off as compressed", async () =>
 {
   const bitmap = Bgra(4, 4, new Array(4 * 4 * 4).fill(1));
   const compress = new Tr2TexturePipelineStepCompress();
   compress.format = PixelFormat.PIXEL_FORMAT_BC1_UNORM;
 
-  assert.equal(compress.Execute(bitmap), false);
+  assert.equal(await compress.Execute(bitmap), false);
   compress.format = PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM;
-  assert.equal(compress.Execute(bitmap), true);
+  assert.equal(await compress.Execute(bitmap), true);
 });
 
 /** A BGRA HostBitmap holding the supplied bytes. */
@@ -194,10 +194,10 @@ test("our Convert and Resize steps let Pack join a compressed source and a diffe
   // Carbon's Pack alone refuses both: a block format, and mismatched sizes.
   const carbonOnly = new Tr2TexturePipeline();
   carbonOnly.steps = [ pack ];
-  assert.equal(carbonOnly.Execute(new HostBitmap(), new Map(inputs)), false);
+  assert.equal(await carbonOnly.Execute(new HostBitmap(), new Map(inputs)), false);
 
   const result = new HostBitmap();
-  assert.equal(pipeline.Execute(result, inputs), true);
+  assert.equal(await pipeline.Execute(result, inputs), true);
   assert.equal(result.GetWidth(), 8, "resized up to the largest input");
   assert.equal(result.GetHeight(), 8);
   // BGRA: b (unset fill 0), g from the mask's red, r from the decoded red block.

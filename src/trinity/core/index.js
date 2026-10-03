@@ -1,4 +1,6 @@
 export * from "./Tr2MaterialParameterStore.js";
+export * from "./Tr2DxtCompressor.js";
+export * from "./Tr2DxtCompressControl.js";
 export * from "./ITr2Renderable.js";
 export * from "./ITriReroutable.js";
 export * from "./ITr2Updateable.js";

@@ -211,7 +211,8 @@ export class BitmapDimensions
     while (size)
     {
       ++count;
-      size >>= 1;
+      // Carbon uses unsigned dimensions; signed JS shifts can stay at -1.
+      size >>>= 1;
     }
 
     return count;
@@ -249,9 +250,9 @@ export class BitmapDimensions
   {
     if (level >= this.GetTrueMipCount()) return 0;
 
-    if (this.IsCompressed()) return Math.max(((this._width >> level) + 3) & ~3, 4);
+      if (this.IsCompressed()) return Math.max(Math.ceil((this._width >>> level) / 4) * 4, 4);
 
-    return Math.max(this._width >> level, 1);
+      return Math.max(this._width >>> level, 1);
   }
 
   /**
@@ -264,9 +265,9 @@ export class BitmapDimensions
   {
     if (level >= this.GetTrueMipCount()) return 0;
 
-    if (this.IsCompressed()) return Math.max(((this._height >> level) + 3) & ~3, 4);
+      if (this.IsCompressed()) return Math.max(Math.ceil((this._height >>> level) / 4) * 4, 4);
 
-    return Math.max(this._height >> level, 1);
+      return Math.max(this._height >>> level, 1);
   }
 
   /**
@@ -281,7 +282,7 @@ export class BitmapDimensions
 
     if (level >= this.GetTrueMipCount()) return 0;
 
-    return Math.max(this._depth >> level, 1);
+      return Math.max(this._depth >>> level, 1);
   }
 
   /**

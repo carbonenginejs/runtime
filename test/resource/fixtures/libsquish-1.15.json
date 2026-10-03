@@ -1,0 +1,4948 @@
+{
+  "reference": "libsquish 1.15",
+  "archiveSha256": "628796eeba608866183a61d080d46967c9dda6723bc0a3ec52324c85d2147269",
+  "compiler": "MSVC 14.50.35717 x64 /O2 /EHsc /fp:precise /DSQUISH_USE_SSE=0 /DSQUISH_USE_ALTIVEC=0",
+  "formats": [
+    "DXT1",
+    "DXT3",
+    "DXT5",
+    "BC4",
+    "BC5"
+  ],
+  "qualities": [
+    "ITER_CLUSTER_FIT",
+    "CLUSTER_FIT",
+    "RANGE_FIT"
+  ],
+  "byteOrder": "RGBA",
+  "cases": [
+    {
+      "name": "solid-0",
+      "rgba": "000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "0000000000000000",
+          "0000000000000000",
+          "0000000000000000"
+        ],
+        [
+          "ffffffffffffffff0000000000000000",
+          "ffffffffffffffff0000000000000000",
+          "ffffffffffffffff0000000000000000"
+        ],
+        [
+          "0005ffffffffffff0000000000000000",
+          "0005ffffffffffff0000000000000000",
+          "0005ffffffffffff0000000000000000"
+        ],
+        [
+          "0005000000000000",
+          "0005000000000000",
+          "0005000000000000"
+        ],
+        [
+          "00050000000000000005000000000000",
+          "00050000000000000005000000000000",
+          "00050000000000000005000000000000"
+        ]
+      ]
+    },
+    {
+      "name": "solid-1",
+      "rgba": "010101ff010101ff010101ff010101ff010101ff010101ff010101ff010101ff010101ff010101ff010101ff010101ff010101ff010101ff010101ff010101ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "21080000ffffffff",
+          "21080000ffffffff",
+          "21080000ffffffff"
+        ],
+        [
+          "ffffffffffffffff21080000ffffffff",
+          "ffffffffffffffff21080000ffffffff",
+          "ffffffffffffffff21080000ffffffff"
+        ],
+        [
+          "0005ffffffffffff21080000ffffffff",
+          "0005ffffffffffff21080000ffffffff",
+          "0005ffffffffffff21080000ffffffff"
+        ],
+        [
+          "0106000000000000",
+          "0106000000000000",
+          "0106000000000000"
+        ],
+        [
+          "01060000000000000106000000000000",
+          "01060000000000000106000000000000",
+          "01060000000000000106000000000000"
+        ]
+      ]
+    },
+    {
+      "name": "solid-7",
+      "rgba": "070707ff070707ff070707ff070707ff070707ff070707ff070707ff070707ff070707ff070707ff070707ff070707ff070707ff070707ff070707ff070707ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "0000410855555555",
+          "0000410855555555",
+          "0000410855555555"
+        ],
+        [
+          "ffffffffffffffff4108000000000000",
+          "ffffffffffffffff4108000000000000",
+          "ffffffffffffffff4108000000000000"
+        ],
+        [
+          "0005ffffffffffff4108000000000000",
+          "0005ffffffffffff4108000000000000",
+          "0005ffffffffffff4108000000000000"
+        ],
+        [
+          "070c000000000000",
+          "070c000000000000",
+          "070c000000000000"
+        ],
+        [
+          "070c000000000000070c000000000000",
+          "070c000000000000070c000000000000",
+          "070c000000000000070c000000000000"
+        ]
+      ]
+    },
+    {
+      "name": "solid-31",
+      "rgba": "1f1f1fff1f1f1fff1f1f1fff1f1f1fff1f1f1fff1f1f1fff1f1f1fff1f1f1fff1f1f1fff1f1f1fff1f1f1fff1f1f1fff1f1f1fff1f1f1fff1f1f1fff1f1f1fff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "ea520108ffffffff",
+          "ea520108ffffffff",
+          "ea520108ffffffff"
+        ],
+        [
+          "ffffffffffffffffea520108ffffffff",
+          "ffffffffffffffffea520108ffffffff",
+          "ffffffffffffffffea520108ffffffff"
+        ],
+        [
+          "0005ffffffffffffea520108ffffffff",
+          "0005ffffffffffffea520108ffffffff",
+          "0005ffffffffffffea520108ffffffff"
+        ],
+        [
+          "1f24000000000000",
+          "1f24000000000000",
+          "1f24000000000000"
+        ],
+        [
+          "1f240000000000001f24000000000000",
+          "1f240000000000001f24000000000000",
+          "1f240000000000001f24000000000000"
+        ]
+      ]
+    },
+    {
+      "name": "solid-63",
+      "rgba": "3f3f3fff3f3f3fff3f3f3fff3f3f3fff3f3f3fff3f3f3fff3f3f3fff3f3f3fff3f3f3fff3f3f3fff3f3f3fff3f3f3fff3f3f3fff3f3f3fff3f3f3fff3f3f3fff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "f7bd0000ffffffff",
+          "f7bd0000ffffffff",
+          "f7bd0000ffffffff"
+        ],
+        [
+          "fffffffffffffffff7bd0000ffffffff",
+          "fffffffffffffffff7bd0000ffffffff",
+          "fffffffffffffffff7bd0000ffffffff"
+        ],
+        [
+          "0005fffffffffffff7bd0000ffffffff",
+          "0005fffffffffffff7bd0000ffffffff",
+          "0005fffffffffffff7bd0000ffffffff"
+        ],
+        [
+          "3f44000000000000",
+          "3f44000000000000",
+          "3f44000000000000"
+        ],
+        [
+          "3f440000000000003f44000000000000",
+          "3f440000000000003f44000000000000",
+          "3f440000000000003f44000000000000"
+        ]
+      ]
+    },
+    {
+      "name": "solid-127",
+      "rgba": "7f7f7fff7f7f7fff7f7f7fff7f7f7fff7f7f7fff7f7f7fff7f7f7fff7f7f7fff7f7f7fff7f7f7fff7f7f7fff7f7f7fff7f7f7fff7f7f7fff7f7f7fff7f7f7fff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "0000ffffaaaaaaaa",
+          "0000ffffaaaaaaaa",
+          "0000ffffaaaaaaaa"
+        ],
+        [
+          "ffffffffffffffffdbdf0a52ffffffff",
+          "ffffffffffffffffdbdf0a52ffffffff",
+          "ffffffffffffffffdbdf0a52ffffffff"
+        ],
+        [
+          "0005ffffffffffffdbdf0a52ffffffff",
+          "0005ffffffffffffdbdf0a52ffffffff",
+          "0005ffffffffffffdbdf0a52ffffffff"
+        ],
+        [
+          "7f84000000000000",
+          "7f84000000000000",
+          "7f84000000000000"
+        ],
+        [
+          "7f840000000000007f84000000000000",
+          "7f840000000000007f84000000000000",
+          "7f840000000000007f84000000000000"
+        ]
+      ]
+    },
+    {
+      "name": "solid-128",
+      "rgba": "808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff808080ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "fbdf0a52ffffffff",
+          "fbdf0a52ffffffff",
+          "fbdf0a52ffffffff"
+        ],
+        [
+          "fffffffffffffffffbdf0a52ffffffff",
+          "fffffffffffffffffbdf0a52ffffffff",
+          "fffffffffffffffffbdf0a52ffffffff"
+        ],
+        [
+          "0005fffffffffffffbdf0a52ffffffff",
+          "0005fffffffffffffbdf0a52ffffffff",
+          "0005fffffffffffffbdf0a52ffffffff"
+        ],
+        [
+          "8085000000000000",
+          "8085000000000000",
+          "8085000000000000"
+        ],
+        [
+          "80850000000000008085000000000000",
+          "80850000000000008085000000000000",
+          "80850000000000008085000000000000"
+        ]
+      ]
+    },
+    {
+      "name": "solid-191",
+      "rgba": "bfbfbfffbfbfbfffbfbfbfffbfbfbfffbfbfbfffbfbfbfffbfbfbfffbfbfbfffbfbfbfffbfbfbfffbfbfbfffbfbfbfffbfbfbfffbfbfbfffbfbfbfffbfbfbfff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "def714a5ffffffff",
+          "def714a5ffffffff",
+          "def714a5ffffffff"
+        ],
+        [
+          "ffffffffffffffffdef714a5ffffffff",
+          "ffffffffffffffffdef714a5ffffffff",
+          "ffffffffffffffffdef714a5ffffffff"
+        ],
+        [
+          "0005ffffffffffffdef714a5ffffffff",
+          "0005ffffffffffffdef714a5ffffffff",
+          "0005ffffffffffffdef714a5ffffffff"
+        ],
+        [
+          "bfc4000000000000",
+          "bfc4000000000000",
+          "bfc4000000000000"
+        ],
+        [
+          "bfc4000000000000bfc4000000000000",
+          "bfc4000000000000bfc4000000000000",
+          "bfc4000000000000bfc4000000000000"
+        ]
+      ]
+    },
+    {
+      "name": "solid-254",
+      "rgba": "fefefefffefefefffefefefffefefefffefefefffefefefffefefefffefefefffefefefffefefefffefefefffefefefffefefefffefefefffefefefffefefeff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "0000ffff55555555",
+          "0000ffff55555555",
+          "0000ffff55555555"
+        ],
+        [
+          "ffffffffffffffffffff000000000000",
+          "ffffffffffffffffffff000000000000",
+          "ffffffffffffffffffff000000000000"
+        ],
+        [
+          "0005ffffffffffffffff000000000000",
+          "0005ffffffffffffffff000000000000",
+          "0005ffffffffffffffff000000000000"
+        ],
+        [
+          "faff6ddbb66ddbb6",
+          "faff6ddbb66ddbb6",
+          "faff6ddbb66ddbb6"
+        ],
+        [
+          "faff6ddbb66ddbb6faff6ddbb66ddbb6",
+          "faff6ddbb66ddbb6faff6ddbb66ddbb6",
+          "faff6ddbb66ddbb6faff6ddbb66ddbb6"
+        ]
+      ]
+    },
+    {
+      "name": "solid-255",
+      "rgba": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "0000ffff55555555",
+          "0000ffff55555555",
+          "0000ffff55555555"
+        ],
+        [
+          "ffffffffffffffffffff000000000000",
+          "ffffffffffffffffffff000000000000",
+          "ffffffffffffffffffff000000000000"
+        ],
+        [
+          "0005ffffffffffffffff000000000000",
+          "0005ffffffffffffffff000000000000",
+          "0005ffffffffffffffff000000000000"
+        ],
+        [
+          "0005ffffffffffff",
+          "0005ffffffffffff",
+          "0005ffffffffffff"
+        ],
+        [
+          "0005ffffffffffff0005ffffffffffff",
+          "0005ffffffffffff0005ffffffffffff",
+          "0005ffffffffffff0005ffffffffffff"
+        ]
+      ]
+    },
+    {
+      "name": "red",
+      "rgba": "ff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "000000f855555555",
+          "000000f855555555",
+          "000000f855555555"
+        ],
+        [
+          "ffffffffffffffff00f8000000000000",
+          "ffffffffffffffff00f8000000000000",
+          "ffffffffffffffff00f8000000000000"
+        ],
+        [
+          "0005ffffffffffff00f8000000000000",
+          "0005ffffffffffff00f8000000000000",
+          "0005ffffffffffff00f8000000000000"
+        ],
+        [
+          "0005ffffffffffff",
+          "0005ffffffffffff",
+          "0005ffffffffffff"
+        ],
+        [
+          "0005ffffffffffff0005000000000000",
+          "0005ffffffffffff0005000000000000",
+          "0005ffffffffffff0005000000000000"
+        ]
+      ]
+    },
+    {
+      "name": "blue",
+      "rgba": "0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "00001f0055555555",
+          "00001f0055555555",
+          "00001f0055555555"
+        ],
+        [
+          "ffffffffffffffff1f00000000000000",
+          "ffffffffffffffff1f00000000000000",
+          "ffffffffffffffff1f00000000000000"
+        ],
+        [
+          "0005ffffffffffff1f00000000000000",
+          "0005ffffffffffff1f00000000000000",
+          "0005ffffffffffff1f00000000000000"
+        ],
+        [
+          "0005000000000000",
+          "0005000000000000",
+          "0005000000000000"
+        ],
+        [
+          "00050000000000000005000000000000",
+          "00050000000000000005000000000000",
+          "00050000000000000005000000000000"
+        ]
+      ]
+    },
+    {
+      "name": "green",
+      "rgba": "00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "0000e00755555555",
+          "0000e00755555555",
+          "0000e00755555555"
+        ],
+        [
+          "ffffffffffffffffe007000000000000",
+          "ffffffffffffffffe007000000000000",
+          "ffffffffffffffffe007000000000000"
+        ],
+        [
+          "0005ffffffffffffe007000000000000",
+          "0005ffffffffffffe007000000000000",
+          "0005ffffffffffffe007000000000000"
+        ],
+        [
+          "0005000000000000",
+          "0005000000000000",
+          "0005000000000000"
+        ],
+        [
+          "00050000000000000005ffffffffffff",
+          "00050000000000000005ffffffffffff",
+          "00050000000000000005ffffffffffff"
+        ]
+      ]
+    },
+    {
+      "name": "transparent",
+      "rgba": "7f1fe7007f1fe7007f1fe7007f1fe7007f1fe7007f1fe7007f1fe7007f1fe7007f1fe7007f1fe7007f1fe7007f1fe7007f1fe7007f1fe7007f1fe7007f1fe700",
+      "mask": 65535,
+      "blocks": [
+        [
+          "00000000ffffffff",
+          "00000000ffffffff",
+          "00000000ffffffff"
+        ],
+        [
+          "0000000000000000fcda1c50ffffffff",
+          "0000000000000000fcda1c50ffffffff",
+          "0000000000000000fcda1c50ffffffff"
+        ],
+        [
+          "0005000000000000fcda1c50ffffffff",
+          "0005000000000000fcda1c50ffffffff",
+          "0005000000000000fcda1c50ffffffff"
+        ],
+        [
+          "7f84000000000000",
+          "7f84000000000000",
+          "7f84000000000000"
+        ],
+        [
+          "7f840000000000001f24000000000000",
+          "7f840000000000001f24000000000000",
+          "7f840000000000001f24000000000000"
+        ]
+      ]
+    },
+    {
+      "name": "alpha-threshold",
+      "rgba": "00ff000011ee1f7f22dd3e8033cc5dff44bb7c0055aa9b7f6699ba807788d9ff8877f8009966177faa553680bb4455ffcc337400dd22937fee11b280ff00d1ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "a92e58f00fafaf5f",
+          "a92e58f00fafaf5f",
+          "e82619f80fafaf5f"
+        ],
+        [
+          "70f870f870f870f815d9a60fd5afaa00",
+          "70f870f870f870f815d9a60fd5afaa00",
+          "70f870f870f870f819f8e007f5afae0a"
+        ],
+        [
+          "7f84866ee8866ee815d9a60fd5afaa00",
+          "7f84866ee8866ee815d9a60fd5afaa00",
+          "7f84866ee8866ee819f8e007f5afae0a"
+        ],
+        [
+          "ff00c96fb7e42601",
+          "ff00c96fb7e42601",
+          "ff00c96fb7e42601"
+        ],
+        [
+          "ff00c96fb7e42601ff0080b491adfd27",
+          "ff00c96fb7e42601ff0080b491adfd27",
+          "ff00c96fb7e42601ff0080b491adfd27"
+        ]
+      ]
+    },
+    {
+      "name": "gradient-mask-0",
+      "rgba": "00ff000011ee550022ddaa0033ccff0044bb005555aa55556699aa557788ff55887700aa996655aaaa55aaaabb44ffaacc3300ffdd2255ffee11aaffff00ffff",
+      "mask": 0,
+      "blocks": [
+        [
+          "00000000ffffffff",
+          "00000000ffffffff",
+          "00000000ffffffff"
+        ],
+        [
+          "00000000000000000000000000000000",
+          "00000000000000000000000000000000",
+          "00000000000000000000000000000000"
+        ],
+        [
+          "00050000000000000000000000000000",
+          "00050000000000000000000000000000",
+          "00050000000000000000000000000000"
+        ],
+        [
+          "0005000000000000",
+          "0005000000000000",
+          "0005000000000000"
+        ],
+        [
+          "00050000000000000005000000000000",
+          "00050000000000000005000000000000",
+          "00050000000000000005000000000000"
+        ]
+      ]
+    },
+    {
+      "name": "gradient-mask-1",
+      "rgba": "00ff000011ee550022ddaa0033ccff0044bb005555aa55556699aa557788ff55887700aa996655aaaa55aaaabb44ffaacc3300ffdd2255ffee11aaffff00ffff",
+      "mask": 1,
+      "blocks": [
+        [
+          "00000000ffffffff",
+          "00000000ffffffff",
+          "00000000ffffffff"
+        ],
+        [
+          "0000000000000000e0070000fcffffff",
+          "0000000000000000e0070000fcffffff",
+          "0000000000000000e0070000fcffffff"
+        ],
+        [
+          "0005000000000000e0070000fcffffff",
+          "0005000000000000e0070000fcffffff",
+          "0005000000000000e0070000fcffffff"
+        ],
+        [
+          "0005000000000000",
+          "0005000000000000",
+          "0005000000000000"
+        ],
+        [
+          "00050000000000000005070000000000",
+          "00050000000000000005070000000000",
+          "00050000000000000005070000000000"
+        ]
+      ]
+    },
+    {
+      "name": "gradient-mask-3",
+      "rgba": "00ff000011ee550022ddaa0033ccff0044bb005555aa55556699aa557788ff55887700aa996655aaaa55aaaabb44ffaacc3300ffdd2255ffee11aaffff00ffff",
+      "mask": 3,
+      "blocks": [
+        [
+          "00000000ffffffff",
+          "00000000ffffffff",
+          "00000000ffffffff"
+        ],
+        [
+          "00000000000000005f36e007adaaaaaa",
+          "00000000000000005f36e007adaaaaaa",
+          "00000000000000006a17e007a1aaaaaa"
+        ],
+        [
+          "00050000000000005f36e007adaaaaaa",
+          "00050000000000005f36e007adaaaaaa",
+          "00050000000000006a17e007a1aaaaaa"
+        ],
+        [
+          "1116060000000000",
+          "1116060000000000",
+          "1116060000000000"
+        ],
+        [
+          "1116060000000000eef3070000000000",
+          "1116060000000000eef3070000000000",
+          "1116060000000000eef3070000000000"
+        ]
+      ]
+    },
+    {
+      "name": "gradient-mask-7",
+      "rgba": "00ff000011ee550022ddaa0033ccff0044bb005555aa55556699aa557788ff55887700aa996655aaaa55aaaabb44ffaacc3300ffdd2255ffee11aaffff00ffff",
+      "mask": 7,
+      "blocks": [
+        [
+          "00000000ffffffff",
+          "00000000ffffffff",
+          "00000000ffffffff"
+        ],
+        [
+          "00000000000000005f36e007adaaaaaa",
+          "00000000000000005f36e007adaaaaaa",
+          "0000000000000000f526e0078daaaaaa"
+        ],
+        [
+          "00050000000000005f36e007adaaaaaa",
+          "00050000000000005f36e007adaaaaaa",
+          "0005000000000000f526e0078daaaaaa"
+        ],
+        [
+          "1122460000000000",
+          "1122460000000000",
+          "1122460000000000"
+        ],
+        [
+          "1122460000000000ddee0f0000000000",
+          "1122460000000000ddee0f0000000000",
+          "1122460000000000ddee0f0000000000"
+        ]
+      ]
+    },
+    {
+      "name": "gradient-mask-15",
+      "rgba": "00ff000011ee550022ddaa0033ccff0044bb005555aa55556699aa557788ff55887700aa996655aaaa55aaaabb44ffaacc3300ffdd2255ffee11aaffff00ffff",
+      "mask": 15,
+      "blocks": [
+        [
+          "00000000ffffffff",
+          "00000000ffffffff",
+          "00000000ffffffff"
+        ],
+        [
+          "00000000000000005f36e0072daaaaaa",
+          "00000000000000005f36e0072daaaaaa",
+          "00000000000000005f36e0072daaaaaa"
+        ],
+        [
+          "00050000000000005f36e0072daaaaaa",
+          "00050000000000005f36e0072daaaaaa",
+          "00050000000000005f36e0072daaaaaa"
+        ],
+        [
+          "1133060300000000",
+          "1133060300000000",
+          "1133060300000000"
+        ],
+        [
+          "1133060300000000ccee0f0100000000",
+          "1133060300000000ccee0f0100000000",
+          "1133060300000000ccee0f0100000000"
+        ]
+      ]
+    },
+    {
+      "name": "gradient-mask-51",
+      "rgba": "00ff000011ee550022ddaa0033ccff0044bb005555aa55556699aa557788ff55887700aa996655aaaa55aaaabb44ffaacc3300ffdd2255ffee11aaffff00ffff",
+      "mask": 51,
+      "blocks": [
+        [
+          "00000000ffffffff",
+          "00000000ffffffff",
+          "00000000ffffffff"
+        ],
+        [
+          "0000550000000000f083e007adabaaaa",
+          "0000550000000000f083e007adabaaaa",
+          "00005500000000004a55e007ada2aaaa"
+        ],
+        [
+          "555a360000000000f083e007adabaaaa",
+          "555a360000000000f083e007adabaaaa",
+          "555a3600000000004a55e007ada2aaaa"
+        ],
+        [
+          "115506d000000000",
+          "115506d000000000",
+          "115506d000000000"
+        ],
+        [
+          "115506d000000000aaee0f2000000000",
+          "115506d000000000aaee0f2000000000",
+          "115506d000000000aaee0f2000000000"
+        ]
+      ]
+    },
+    {
+      "name": "gradient-mask-119",
+      "rgba": "00ff000011ee550022ddaa0033ccff0044bb005555aa55556699aa557788ff55887700aa996655aaaa55aaaabb44ffaacc3300ffdd2255ffee11aaffff00ffff",
+      "mask": 119,
+      "blocks": [
+        [
+          "00000000ffffffff",
+          "00000000ffffffff",
+          "00000000ffffffff"
+        ],
+        [
+          "0000550500000000f664c00fad8baaaa",
+          "0000550500000000f664c00fad8baaaa",
+          "0000550500000000d564e007ad8baaaa"
+        ],
+        [
+          "555ab60100000000f664c00fad8baaaa",
+          "555ab60100000000f664c00fad8baaaa",
+          "555ab60100000000d564e007ad8baaaa"
+        ],
+        [
+          "116686c006000000",
+          "116686c006000000",
+          "116686c006000000"
+        ],
+        [
+          "116686c00600000099ee4f3101000000",
+          "116686c00600000099ee4f3101000000",
+          "116686c00600000099ee4f3101000000"
+        ]
+      ]
+    },
+    {
+      "name": "gradient-mask-1911",
+      "rgba": "00ff000011ee550022ddaa0033ccff0044bb005555aa55556699aa557788ff55887700aa996655aaaa55aaaabb44ffaacc3300ffdd2255ffee11aaffff00ffff",
+      "mask": 1911,
+      "blocks": [
+        [
+          "a08bb5aaffffd8ff",
+          "a08bb5aaffffd8ff",
+          "a08bb5aaffffd8ff"
+        ],
+        [
+          "00005505aa0a000095aae426b5ad8baa",
+          "00005505aa0a000095aae426b5ad8baa",
+          "00005505aa0a0000b5aae007bdaf8aaa"
+        ],
+        [
+          "55aab6010049000095aae426b5ad8baa",
+          "55aab6010049000095aae426b5ad8baa",
+          "55aab60100490000b5aae007bdaf8aaa"
+        ],
+        [
+          "aa00f95332129224",
+          "aa00f95332129224",
+          "aa00f95332129224"
+        ],
+        [
+          "aa00f95332129224ff559042367f9224",
+          "aa00f95332129224ff559042367f9224",
+          "aa00f95332129224ff559042367f9224"
+        ]
+      ]
+    },
+    {
+      "name": "gradient-mask-21845",
+      "rgba": "00ff000011ee550022ddaa0033ccff0044bb005555aa55556699aa557788ff55887700aa996655aaaa55aaaabb44ffaacc3300ffdd2255ffee11aaffff00ffff",
+      "mask": 21845,
+      "blocks": [
+        [
+          "a0aab5c9ffffdcdc",
+          "a0aab5c9ffffdcdc",
+          "a08b95e8ffffecde"
+        ],
+        [
+          "000005050a0a0f0f31f8a62e99b9ab8a",
+          "000005050a0a0f0f31f8a62e99b9ab8a",
+          "000005050a0a0f0f95e8e007b9abab8a"
+        ],
+        [
+          "55aa86010041701c31f8a62e99b9ab8a",
+          "55aa86010041701c31f8a62e99b9ab8a",
+          "55aa86010041701c95e8e007b9abab8a"
+        ],
+        [
+          "ee00c9e334cca220",
+          "ee00c9e334cca220",
+          "ee00c9e334cca220"
+        ],
+        [
+          "ee00c9e334cca220ff1188b2308df324",
+          "ee00c9e334cca220ff1188b2308df324",
+          "ee00c9e334cca220ff1188b2308df324"
+        ]
+      ]
+    },
+    {
+      "name": "gradient-mask-43690",
+      "rgba": "00ff000011ee550022ddaa0033ccff0044bb005555aa55556699aa557788ff55887700aa996655aaaa55aaaabb44ffaacc3300ffdd2255ffee11aaffff00ffff",
+      "mask": 43690,
+      "blocks": [
+        [
+          "2aba1fd9ffff7373",
+          "2aba1fd9ffff7373",
+          "2a9b1ff8ffffb37b"
+        ],
+        [
+          "00005050a0a0f0f059d1ce07e6ae2a22",
+          "00005050a0a0f0f059d1ce07e6ae2a22",
+          "00005050a0a0f0f01ff86a17e6aeae2a"
+        ],
+        [
+          "55aa300c000882e359d1ce07e6ae2a22",
+          "55aa300c000882e359d1ce07e6ae2a22",
+          "55aa300c000882e31ff86a17e6aeae2a"
+        ],
+        [
+          "ff11491ea7611605",
+          "ff11491ea7611605",
+          "ff11491ea7611605"
+        ],
+        [
+          "ff11491ea7611605ee00419485699c27",
+          "ff11491ea7611605ee00419485699c27",
+          "ff11491ea7611605ee00419485699c27"
+        ]
+      ]
+    },
+    {
+      "name": "gradient-mask-65535",
+      "rgba": "00ff000011ee550022ddaa0033ccff0044bb005555aa55556699aa557788ff55887700aa996655aaaa55aaaabb44ffaacc3300ffdd2255ffee11aaffff00ffff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "e0a21cd9ffff6858",
+          "e0a21cd9ffff6858",
+          "a08b1ff8ffff6868"
+        ],
+        [
+          "00005555aaaaffffd9e0261ff5bd2b0a",
+          "00005555aaaaffffd9e0261ff5bd2b0a",
+          "00005555aaaaffff1ff8e007f5bfab0a"
+        ],
+        [
+          "55aab60d0049f2ffd9e0261ff5bd2b0a",
+          "55aab60d0049f2ffd9e0261ff5bd2b0a",
+          "55aab60d0049f2ff1ff8e007f5bfab0a"
+        ],
+        [
+          "ff00c96fb7e42601",
+          "ff00c96fb7e42601",
+          "ff00c96fb7e42601"
+        ],
+        [
+          "ff00c96fb7e42601ff0080b491adfd27",
+          "ff00c96fb7e42601ff0080b491adfd27",
+          "ff00c96fb7e42601ff0080b491adfd27"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-0",
+      "rgba": "670c3dffd9a2e5ffe9064eff974c6eff8689b7ff0a61c0ff901a45ffc71414ff1e5d14ffd1ad35ff62407effdef385ffeceab6ffba5643ffd6dedfffa2c4edff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "98c6e778d15e390c",
+          "98c6e778d15e390c",
+          "fbd66768f15e390c"
+        ],
+        [
+          "ffffffffffffffff98c6e778d15e390c",
+          "ffffffffffffffff98c6e778d15e390c",
+          "fffffffffffffffffbd66768f15e390c"
+        ],
+        [
+          "0005ffffffffffff98c6e778d15e390c",
+          "0005ffffffffffff98c6e778d15e390c",
+          "0005fffffffffffffbd66768f15e390c"
+        ],
+        [
+          "ec0a15c850578169",
+          "ec0a15c850578169",
+          "ec0a15c850578169"
+        ],
+        [
+          "ec0a15c850578169f30659cc3e9d014b",
+          "ec0a15c850578169f30659cc3e9d014b",
+          "ec0a15c850578169f30659cc3e9d014b"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-1",
+      "rgba": "78637539e7acaca63d08a5a82925e071480849587eb584f35b619eb6824880cb9f0744be8e11de6a21fab83f665a0ebb848aa9f22c6464d12910d270b163b6d6",
+      "mask": 119,
+      "blocks": [
+        [
+          "543092adc7e7ffff",
+          "543092adc7e7ffff",
+          "543855e5c7ebffff"
+        ],
+        [
+          "a30ae50b0000000074cece3893b9aaaa",
+          "a30ae50b0000000074cece3893b9aaaa",
+          "a30ae50b0000000055e5494893b9aaaa"
+        ],
+        [
+          "f33921732c49922474cece3893b9aaaa",
+          "f33921732c49922474cece3893b9aaaa",
+          "f33921732c49922455e5494893b9aaaa"
+        ],
+        [
+          "3de70b8009000000",
+          "3de70b8009000000",
+          "3de70b8009000000"
+        ],
+        [
+          "3de70b8009000000b508441230499224",
+          "3de70b8009000000b508441230499224",
+          "3de70b8009000000b508441230499224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-2",
+      "rgba": "979d5bd5dfa0019e70d6357e003c7378fc38cf058aa40f693c777f1af2c9bdcd9759dc809570102974d7d61879bcf49314dd7bad8a5a91433dc4716182ed4814",
+      "mask": 1911,
+      "blocks": [
+        [
+          "3a8b40d5f6fffcff",
+          "3a8b40d5f6fffcff",
+          "db9200ddf6fffcff"
+        ],
+        [
+          "9d076002280100003cab248d97b4a4aa",
+          "9d076002280100003cab248d97b4a4aa",
+          "9d07600228010000d9f900dd97b4a4aa"
+        ],
+        [
+          "d50518933efc93243cab248d97b4a4aa",
+          "d50518933efc93243cab248d97b4a4aa",
+          "d50518933efc9324d9f900dd97b4a4aa"
+        ],
+        [
+          "fc3c958326ad9324",
+          "fc3c958326ad9324",
+          "fc3c958326ad9324"
+        ],
+        [
+          "fc3c958326ad932438d764000e5a0000",
+          "fc3c958326ad932438d764000e5a0000",
+          "fc3c958326ad932438d764000e5a0000"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-3",
+      "rgba": "ecb6d6b758e180213476c425a3b37d32734fd2a775bb3c23e59f121194fd5a33a1958dcb841c858bec607b33697d033df2b74fce42464c4b1819edc34bddb83b",
+      "mask": 42405,
+      "blocks": [
+        [
+          "a853baedfdfffeff",
+          "a853baedfdfffeff",
+          "b1a4baedfdfffcff"
+        ],
+        [
+          "0b0220300c03403092dd6f3498ae8ae6",
+          "0b0220300c03403092dd6f3498ae8ae6",
+          "0b0220300c034030baed2942b8aeaaa6"
+        ],
+        [
+          "cb234a92e4c813e792dd6f3498ae8ae6",
+          "cb234a92e4c813e792dd6f3498ae8ae6",
+          "cb234a92e4c813e7baed2942b8aeaaa6"
+        ],
+        [
+          "ec344812870c92e7",
+          "ec344812870c92e7",
+          "ec344812870c92e7"
+        ],
+        [
+          "ec344812870c92e7fd468c1306cd9344",
+          "ec344812870c92e7fd468c1306cd9344",
+          "ec344812870c92e7fd468c1306cd9344"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-4",
+      "rgba": "4863daff434bb1fffe4190ff3b0577ffb4204dffa6ab1eff98da88ff5622ebff32ee9bff3b76ddff941320ff9138d4ffcaa789fff1111cffef36ceff76d099ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "0ad11b2e8ff88de2",
+          "0ad11b2e8ff88de2",
+          "83e87337affaade3"
+        ],
+        [
+          "ffffffffffffffff0ad11b2e8ff88de2",
+          "ffffffffffffffff0ad11b2e8ff88de2",
+          "ffffffffffffffff83e87337affaade3"
+        ],
+        [
+          "0005ffffffffffff0ad11b2e8ff88de2",
+          "0005ffffffffffff0ad11b2e8ff88de2",
+          "0005ffffffffffff83e87337affaade3"
+        ],
+        [
+          "fe323f42f2493bc0",
+          "fe323f42f2493bc0",
+          "fe323f42f2493bc0"
+        ],
+        [
+          "fe323f42f2493bc0ee05b5f3e968bc5c",
+          "fe323f42f2493bc0ee05b5f3e968bc5c",
+          "fe323f42f2493bc0ee05b5f3e968bc5c"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-5",
+      "rgba": "4a7511126cd7ffcc10c0668b868f3d1679e639e1d889ed4614efef1e66bd612731d40e6584e77232a5f68619d956d15de12390341582314a0790f2dc08b46391",
+      "mask": 119,
+      "blocks": [
+        [
+          "8a46bf6ec7fcffff",
+          "8a46bf6ec7fcffff",
+          "bf6e277fe3fdffff"
+        ],
+        [
+          "c1084d02000000007d76013db183aaaa",
+          "c1084d02000000007d76013db183aaaa",
+          "c1084d02000000005dd4a24bb1a3aaaa"
+        ],
+        [
+          "e1121103274992247d76013db183aaaa",
+          "e1121103274992247d76013db183aaaa",
+          "e1121103274992245dd4a24bb1a3aaaa"
+        ],
+        [
+          "d8106e4224499224",
+          "d8106e4224499224",
+          "d8106e4224499224"
+        ],
+        [
+          "d8106e422449922475ef281105000000",
+          "d8106e422449922475ef281105000000",
+          "d8106e422449922475ef281105000000"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-6",
+      "rgba": "29dea8129e1092872e87562a542aeedc5885356f455b74d42aec065909905fa9cfbba0e5859e494acf0991a077437ed6d326cf46cd6972dcc11bd6b018790e74",
+      "mask": 1911,
+      "blocks": [
+        [
+          "7198b2a5f3fbcdff",
+          "7198b2a5f3fbcdff",
+          "9298d3cdf3fbcdff"
+        ],
+        [
+          "8102c7054d09000014b16527b39b8eaa",
+          "8102c7054d09000014b16527b39b8eaa",
+          "8102c7054d09000052c8412fb39b8eaa"
+        ],
+        [
+          "e512e15339f0922414b16527b39b8eaa",
+          "e512e15339f0922414b16527b39b8eaa",
+          "e512e15339f0922452c8412fb39b8eaa"
+        ],
+        [
+          "cf2959e227209224",
+          "cf2959e227209224",
+          "cf2959e227209224"
+        ],
+        [
+          "cf2959e22720922409ec01c105250000",
+          "cf2959e22720922409ec01c105250000",
+          "cf2959e22720922409ec01c105250000"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-7",
+      "rgba": "2c3a76b9c3692c65250475b1a2c5a3139f3df2cfacb0348b1b590470141f436da8b32c6803e13c99224932f0be43bdb8c9edad78dc149ff63821a78a79896d7d",
+      "mask": 42405,
+      "blocks": [
+        [
+          "6c290dc3ccf7cff7",
+          "6c290dc3ccf7cff7",
+          "2e2066adccf7effb"
+        ],
+        [
+          "0b0a8060060ee070e9bc6c109b62b8aa",
+          "0b0a8060060ee070e9bc6c109b62b8aa",
+          "0b0a8060060ee07066ad2e209b62b8ae"
+        ],
+        [
+          "f6680c13270912e4e9bc6c109b62b8aa",
+          "f6680c13270912e4e9bc6c109b62b8aa",
+          "f6680c13270912e466ad2e209b62b8ae"
+        ],
+        [
+          "dc14cf93254b1284",
+          "dc14cf93254b1284",
+          "dc14cf93254b1284"
+        ],
+        [
+          "dc14cf93254b1284b3044e12e4489367",
+          "dc14cf93254b1284b3044e12e4489367",
+          "dc14cf93254b1284b3044e12e4489367"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-8",
+      "rgba": "28eb03ffc3df30ffe722f0ff70879cffd58063ff48a6e8fff179ddffa19f59ff489d9cffb59d47ff00b611ff760555ffb01067ff4ee5ccff5ad867ff515e12ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "dad9c3368dca9ffe",
+          "dad9c3368dca9ffe",
+          "1de1402f8dca9ffe"
+        ],
+        [
+          "ffffffffffffffffdad9c3368dca9ffe",
+          "ffffffffffffffffdad9c3368dca9ffe",
+          "ffffffffffffffff1de1402f8dca9ffe"
+        ],
+        [
+          "0005ffffffffffffdad9c3368dca9ffe",
+          "0005ffffffffffffdad9c3368dca9ffe",
+          "0005ffffffffffff1de1402f8dca9ffe"
+        ],
+        [
+          "28f1685685aa4749",
+          "28f1685685aa4749",
+          "28f1685685aa4749"
+        ],
+        [
+          "28f1685685aa4749eb05c0c971db12a8",
+          "28f1685685aa4749eb05c0c971db12a8",
+          "28f1685685aa4749eb05c0c971db12a8"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-9",
+      "rgba": "bc76536c5fa709266587446ec9696173138584b822859fd91c378983629c12563e7097dea6d6ec050453fdf3543235c5b6681297162f874cacaa5bdb313549ce",
+      "mask": 119,
+      "blocks": [
+        [
+          "d119321cffc5ffff",
+          "d119321cffc5ffff",
+          "d1193324ffc5ffff"
+        ],
+        [
+          "2606db0800000000658c711ba095aaaa",
+          "2606db0800000000658c711ba095aaaa",
+          "2606db0800000000aabbd119a895aaaa"
+        ],
+        [
+          "d9264d2330499224658c711ba095aaaa",
+          "d9264d2330499224658c711ba095aaaa",
+          "d9264d2330499224aabbd119a895aaaa"
+        ],
+        [
+          "bc13689327499224",
+          "bc13689327499224",
+          "bc13689327499224"
+        ],
+        [
+          "bc13689327499224a737c4b225499224",
+          "bc13689327499224a737c4b225499224",
+          "bc13689327499224a737c4b225499224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-10",
+      "rgba": "a5c0dbfd0e078e9ebca9825a3ef1e677f3b5e4b25cc922a68b6c12931311712e65b9d8a18124920284e5eaf500ba95718704b41df310c61a932c1c7d2d041378",
+      "mask": 1911,
+      "blocks": [
+        [
+          "48533b9ef1c1ddff",
+          "48533b9ef1c1ddff",
+          "5110bcf5f1e9deff"
+        ],
+        [
+          "9f05aa09090e00009bb6084aa49c8eaa",
+          "9f05aa09090e00009bb6084aa49c8eaa",
+          "9f05aa09090e0000bcf55110a6bcaeaa"
+        ],
+        [
+          "fd02a0b3310c92249bb6084aa49c8eaa",
+          "fd02a0b3310c92249bb6084aa49c8eaa",
+          "fd02a0b3310c9224bcf55110a6bcaeaa"
+        ],
+        [
+          "f30ecb0233259324",
+          "f30ecb0233259324",
+          "f30ecb0233259324"
+        ],
+        [
+          "f30ecb0233259324e507ca32353a9224",
+          "f30ecb0233259324e507ca32353a9224",
+          "f30ecb0233259324e507ca32353a9224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-11",
+      "rgba": "b82b08580bd5c41aadf2f0c839c1ee2da3889192ef5c30e947c550c7e110ffe875cfbea73e859fe0b17962a9de5652442c91c8b28428614b32d37d9fec3c2a9b",
+      "mask": 42405,
+      "blocks": [
+        [
+          "3c9687e9cfb7ec7f",
+          "3c9687e9cfb7ec7f",
+          "9dafe5e9cfb7ec7f"
+        ],
+        [
+          "050ce0e00a0a409085d1bd95dcf3ed3b",
+          "050ce0e00a0a409085d1bd95dcf3ed3b",
+          "050ce0e00a0a409061b19dafdcfbef3b"
+        ],
+        [
+          "e94b8f12040c938485d1bd95dcf3ed3b",
+          "e94b8f12040c938485d1bd95dcf3ed3b",
+          "e94b8f12040c938461b19dafdcfbef3b"
+        ],
+        [
+          "ef754c1344499307",
+          "ef754c1344499307",
+          "ef754c1344499307"
+        ],
+        [
+          "ef754c1344499307f2100f12274a93e7",
+          "ef754c1344499307f2100f12274a93e7",
+          "ef754c1344499307f2100f12274a93e7"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-12",
+      "rgba": "c2922fff93fee1ffb994e3ff013844ff12b068ff09f038ffa8cdfafff84706ffa286a9ff6048d4ffe64581ff93dfecffa12ebcff49c498ff7cf198fffa1c80ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "cbe8565ef6156f16",
+          "2bd1765eb6154f16",
+          "41f2fb97b61f6fbe"
+        ],
+        [
+          "ffffffffffffffffcbe8565ef6156f16",
+          "ffffffffffffffff2bd1765eb6154f16",
+          "ffffffffffffffff41f2fb97b61f6fbe"
+        ],
+        [
+          "0005ffffffffffffcbe8565ef6156f16",
+          "0005ffffffffffff2bd1765eb6154f16",
+          "0005ffffffffffff41f2fb97b61f6fbe"
+        ],
+        [
+          "fa01e3920cab3817",
+          "fa01e3920cab3817",
+          "fa01e3920cab3817"
+        ],
+        [
+          "fa01e3920cab3817fe1c043fecfdf521",
+          "fa01e3920cab3817fe1c043fecfdf521",
+          "fa01e3920cab3817fe1c043fecfdf521"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-13",
+      "rgba": "2f9686527e3351f71df53acbe8f3be97b5c18ca2645033c2d33bf4ec10eddfaf79504314d06d28324dc5a4559884348877e32970d5917af26e71e4da631d6427",
+      "mask": 119,
+      "blocks": [
+        [
+          "c32e19d9cbdaffff",
+          "c32e19d9cbdaffff",
+          "a727fed1cbdaffff"
+        ],
+        [
+          "f50cba0e00000000d8d144169b8eaaaa",
+          "f50cba0e00000000d8d144169b8eaaaa",
+          "f50cba0e00000000fed1a7279b8eaaaa"
+        ],
+        [
+          "f752c1d221499224d8d144169b8eaaaa",
+          "f752c1d221499224d8d144169b8eaaaa",
+          "f752c1d221499224fed1a7279b8eaaaa"
+        ],
+        [
+          "d31d67a222499224",
+          "d31d67a222499224",
+          "d31d67a222499224"
+        ],
+        [
+          "d31d67a222499224f5330cb227499224",
+          "d31d67a222499224f5330cb227499224",
+          "d31d67a222499224f5330cb227499224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-14",
+      "rgba": "d65e7321afdaaf6823dc5b1dc88f907b468c86de9cc29a3d4eff5d4622e10dcfc4cca088f75ed571bf87356abcc51dccacb303ddca5fc8488a65ebcb88a7fffd",
+      "mask": 1911,
+      "blocks": [
+        [
+          "704c53c6fffcfdff",
+          "704c53c6fffcfdff",
+          "704c53c6fffcfdff"
+        ],
+        [
+          "62024d0478060000d4e34c37989ba2aa",
+          "62024d0478060000d4e34c37989ba2aa",
+          "62024d0478060000faf2cb269a9fa2aa"
+        ],
+        [
+          "1dde181009dc0000d4e34c37989ba2aa",
+          "1dde181009dc0000d4e34c37989ba2aa",
+          "1dde181009dc0000faf2cb269a9fa2aa"
+        ],
+        [
+          "f7235a723ec39224",
+          "f7235a723ec39224",
+          "f7235a723ec39224"
+        ],
+        [
+          "f7235a723ec392245edc48b01ec50000",
+          "f7235a723ec392245edc48b01ec50000",
+          "f7235a723ec392245edc48b01ec50000"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-15",
+      "rgba": "bf6ba29ce9bab7c8fb7a4d0fb1e7a7420588262efcade52f0fbaf5c85d7c4f8546156e6d994ab2b7b86df099e24e801a55f309dcecfee5b3f81ba4ba62eda426",
+      "mask": 42405,
+      "blocks": [
+        [
+          "ac6abff6fe3feff7",
+          "ac6abff6fe3feff7",
+          "ea5bfceffe3feff7"
+        ],
+        [
+          "090130800609b0209aee0939aae2a9a2",
+          "090130800609b0209aee0939aae2a9a2",
+          "090130800609b020fcefad48abeaa9a2"
+        ],
+        [
+          "b30f4a92678c12e49aee0939aae2a9a2",
+          "b30f4a92678c12e49aee0939aae2a9a2",
+          "b30f4a92678c12e4fcefad48abeaa9a2"
+        ],
+        [
+          "fc460b12e40913e5",
+          "fc460b12e40913e5",
+          "fc460b12e40913e5"
+        ],
+        [
+          "fc460b12e40913e515fec30062c08020",
+          "fc460b12e40913e515fec30062c08020",
+          "fc460b12e40913e515fec30062c08020"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-16",
+      "rgba": "373f71ffb97216ff17002dff6c54abff08fd12ff2bf97bff4bce81ff744dd2ff8fb168ff84df7effafe180ff651453ff090259ffc00459fffc682bffdb1ec6ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "6d804d678a951720",
+          "6d804d678a951720",
+          "2bb8e20faab5bf22"
+        ],
+        [
+          "ffffffffffffffff6d804d678a951720",
+          "ffffffffffffffff6d804d678a951720",
+          "ffffffffffffffff2bb8e20faab5bf22"
+        ],
+        [
+          "0005ffffffffffff6d804d678a951720",
+          "0005ffffffffffff6d804d678a951720",
+          "0005ffffffffffff2bb8e20faab5bf22"
+        ],
+        [
+          "fc085f9abbe49a41",
+          "fc085f9abbe49a41",
+          "fc085f9abbe49a41"
+        ],
+        [
+          "fc085f9abbe49a41fd006e0cc8939ef4",
+          "fc085f9abbe49a41fd006e0cc8939ef4",
+          "fc085f9abbe49a41fd006e0cc8939ef4"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-17",
+      "rgba": "524f1c344ae7b38ea1bf5556401a750c355b8b0c195dbd52ae76266e2e13bdd8bfd3221ee8c079ff630c82a3c4c08be95c2597683913d2cd6fbe2de1369fc18f",
+      "mask": 119,
+      "blocks": [
+        [
+          "0000364ff7ffffff",
+          "0000364ff7ffffff",
+          "0000364ff7ffffff"
+        ],
+        [
+          "8305510600000000848bf734e4c7ffff",
+          "8305510600000000848bf734e4c7ffff",
+          "8305510600000000a5ab364fe4cfffff"
+        ],
+        [
+          "8e0c06132e499224848bf734e4c7ffff",
+          "8e0c06132e499224848bf734e4c7ffff",
+          "8e0c06132e499224a5ab364fe4cfffff"
+        ],
+        [
+          "ae19b5f220499224",
+          "ae19b5f220499224",
+          "ae19b5f220499224"
+        ],
+        [
+          "ae19b5f220499224e74fc1f23b499224",
+          "ae19b5f220499224e74fc1f23b499224",
+          "ae19b5f220499224e74fc1f23b499224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-18",
+      "rgba": "581cc63e885aae89097461931961e5ff489696c673bebf686b18c74afdd7c9a593615e22c2fa13a21270907cf56fff78a658ee87369ef3be74da75b2a3f8dc7c",
+      "mask": 1911,
+      "blocks": [
+        [
+          "b14bc2c7c3fcf7ff",
+          "b14bc2c7c3fcf7ff",
+          "ac0bc2c7c3fcf7ff"
+        ],
+        [
+          "84096c04a2070000e3a77841bd9fb3aa",
+          "84096c04a2070000e3a77841bd9fb3aa",
+          "84096c04a2070000c2c7f858bd9fb3aa"
+        ],
+        [
+          "c622e7823a199324e3a77841bd9fb3aa",
+          "c622e7823a199324e3a77841bd9fb3aa",
+          "c622e7823a199324c2c7f858bd9fb3aa"
+        ],
+        [
+          "c2095d6232439224",
+          "c2095d6232439224",
+          "c2095d6232439224"
+        ],
+        [
+          "c2095d6232439224fa1871c325469324",
+          "c2095d6232439224fa1871c325469324",
+          "c2095d6232439224fa1871c325469324"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-19",
+      "rgba": "eebfac80295ee1ccbe6c56a84b572de2cbbba30936f0bb70b4b7b20647661d0a7bdbce06ba9e49ebc161a76d7ddd280fe7ad31abb6f253addb1b85c16d6533c6",
+      "mask": 42405,
+      "blocks": [
+        [
+          "867a6fd6edffff37",
+          "867a6fd6edffff37",
+          "266bf5ededffff3b"
+        ],
+        [
+          "080a70100006a0c0b6a6e47ab862a86a",
+          "080a70100006a0c0b6a6e47ab862a86a",
+          "080a70100006a0c0d97e244bb862a86a"
+        ],
+        [
+          "c6068c1226091305b6a6e47ab862a86a",
+          "c6068c1226091305b6a6e47ab862a86a",
+          "c6068c1226091305d97e244bb862a86a"
+        ],
+        [
+          "ee36c892e4cd92c5",
+          "ee36c892e4cd92c5",
+          "ee36c892e4cd92c5"
+        ],
+        [
+          "ee36c892e4cd92c5f261cb13244a1224",
+          "ee36c892e4cd92c5f261cb13244a1224",
+          "ee36c892e4cd92c5f261cb13244a1224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-20",
+      "rgba": "07f239ff967d56ffed5617ff9fb0d6ff9d271dff811234ffa96cf8ff3de5a6ff6a49c1ffd52b22ffec216aff8ca6beff037b06ff99a9bbff275434fffd74ccff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "f994447a1f053611",
+          "f99c23723f053611",
+          "7eabc103298faa39"
+        ],
+        [
+          "fffffffffffffffff994447a1f053611",
+          "fffffffffffffffff99c23723f053611",
+          "ffffffffffffffff7eabc103298faa39"
+        ],
+        [
+          "0005fffffffffffff994447a1f053611",
+          "0005fffffffffffff99c23723f053611",
+          "0005ffffffffffff7eabc103298faa39"
+        ],
+        [
+          "fd032148ce15181e",
+          "fd032148ce15181e",
+          "fd032148ce15181e"
+        ],
+        [
+          "fd032148ce15181ef212a8f7147ed6b9",
+          "fd032148ce15181ef212a8f7147ed6b9",
+          "fd032148ce15181ef212a8f7147ed6b9"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-21",
+      "rgba": "ae465f36027141023ee97e8c8fbaa26864371f57556b0ad5c04a089802868a018d4a0859b00057a52a15502ea13931e904d09b35470d5d69011b8d634190941e",
+      "mask": 119,
+      "blocks": [
+        [
+          "cd36c0b1cfdbffff",
+          "cd36c0b1cfdbffff",
+          "4f4741bacfdbffff"
+        ],
+        [
+          "0308d50900000000e4914c16dcc8ffff",
+          "0308d50900000000e4914c16dcc8ffff",
+          "0308d5090000000041ba4f47decaffff"
+        ],
+        [
+          "d502ce522c499224e4914c16dcc8ffff",
+          "d502ce522c499224e4914c16dcc8ffff",
+          "d502ce522c49922441ba4f47decaffff"
+        ],
+        [
+          "c0028ac322499224",
+          "c0028ac322499224",
+          "c0028ac322499224"
+        ],
+        [
+          "c0028ac322499224e93737123f499224",
+          "c0028ac322499224e93737123f499224",
+          "c0028ac322499224e93737123f499224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-22",
+      "rgba": "23eb93d954cec87ddba443570ba25237f311c7e314fe8ebcd2df93042d9de529f551c6aa509038eb52f826975048abfb93760cc79fbaba37e48bb900377193b9",
+      "mask": 1911,
+      "blocks": [
+        [
+          "cc3e98f1fcf1c1ff",
+          "cc3e98f1fcf1c1ff",
+          "f11798f0fcf1c9ff"
+        ],
+        [
+          "7d05bd00ea09000095facc2fada49caa",
+          "7d05bd00ea09000095facc2fada49caa",
+          "7d05bd00ea09000098f0f117adb49caa"
+        ],
+        [
+          "eb0462032503932495facc2fada49caa",
+          "eb0462032503932495facc2fada49caa",
+          "eb0462032503932498f0f117adb49caa"
+        ],
+        [
+          "f514b18228b09324",
+          "f514b18228b09324",
+          "f514b18228b09324"
+        ],
+        [
+          "f514b18228b09324fe11121328269224",
+          "f514b18228b09324fe11121328269224",
+          "f514b18228b09324fe11121328269224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-23",
+      "rgba": "fda08934adaf57d176b071dd59fc1c0a975405a005818d70e809d8e8944626e37931381d180f21f328e3583326183576d57595d9a80bbee79b6939d2331969ad",
+      "mask": 42405,
+      "blocks": [
+        [
+          "a9731680cf3fffb7",
+          "a9731680cf3fffb7",
+          "6e7577a0cfbfffb7"
+        ],
+        [
+          "030d70d00203e0a0cfc9cc1cb8a69ae2",
+          "030d70d00203e0a0cfc9cc1cb8a69ae2",
+          "030d70d00203e0a011fd110cb8a6bb6a"
+        ],
+        [
+          "e71d0f9206c91364cfc9cc1cb8a69ae2",
+          "e71d0f9206c91364cfc9cc1cb8a69ae2",
+          "e71d0f9206c9136411fd110cb8a6bb6a"
+        ],
+        [
+          "fd05489384cd93e5",
+          "fd05489384cd93e5",
+          "fd05489384cd93e5"
+        ],
+        [
+          "fd05489384cd93e5e30bcb12c60f9224",
+          "fd05489384cd93e5e30bcb12c60f9224",
+          "fd05489384cd93e5e30bcb12c60f9224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-24",
+      "rgba": "6268a0ffb4ea2cff99d49aff84f00eff09ef5cff5b073aff1f8ed6ff18bf62ffabb0b1ff14cabbff648ce4ffed395bff3845ffff3a0498ff6258c0ffbaeae5ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "ec77375923b4fab5",
+          "ec77375923b4fab5",
+          "6287323823befeb5"
+        ],
+        [
+          "ffffffffffffffffec77375923b4fab5",
+          "ffffffffffffffffec77375923b4fab5",
+          "ffffffffffffffff6287323823befeb5"
+        ],
+        [
+          "0005ffffffffffffec77375923b4fab5",
+          "0005ffffffffffffec77375923b4fab5",
+          "0005ffffffffffff6287323823befeb5"
+        ],
+        [
+          "09ed2b8901c522ad",
+          "09ed2b8901c522ad",
+          "09ed2b8901c522ad"
+        ],
+        [
+          "09ed2b8901c522adf00485805013ed18",
+          "09ed2b8901c522adf00485805013ed18",
+          "09ed2b8901c522adf00485805013ed18"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-25",
+      "rgba": "5ef0fe281039c4ce2e322c8747d17d53e9d4f3aee928897672fd956414269ec9cebdfa36e861193d46cbe5796f58a6e6326c0deb5e40f19815b8ee5a550c22f6",
+      "mask": 119,
+      "blocks": [
+        [
+          "af219ee6c3fdffff",
+          "af219ee6c3fdffff",
+          "85319ee6cbfdffff"
+        ],
+        [
+          "c2087a06000000001b974b489c8caaaa",
+          "c2087a06000000001b974b489c8caaaa",
+          "c2087a06000000009ee685319ea8aaaa"
+        ],
+        [
+          "28ce08d10d0000001b974b489c8caaaa",
+          "28ce08d10d0000001b974b489c8caaaa",
+          "28ce08d10d0000009ee685319ea8aaaa"
+        ],
+        [
+          "e910cd0334499224",
+          "e910cd0334499224",
+          "e910cd0334499224"
+        ],
+        [
+          "e910cd0334499224fd2878a220499224",
+          "e910cd0334499224fd2878a220499224",
+          "e910cd0334499224fd2878a220499224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-26",
+      "rgba": "c8b8079137210faab06246583eee294c97ab10ba7caf228086b488d3dabdb54a12d418810a8e47ed18b112395e5ea73837a12c2e5d53593ad79f14063039feec",
+      "mask": 1911,
+      "blocks": [
+        [
+          "262425d6f1eaf0ff",
+          "262425d6f1eaf0ff",
+          "0239a1c5f1d9f2ff"
+        ],
+        [
+          "a9058b0ce803000086bce5148caa95aa",
+          "a9058b0ce803000086bce5148caa95aa",
+          "a9058b0ce8030000a1c5690cacaab7aa"
+        ],
+        [
+          "ed39e5b32a45922486bce5148caa95aa",
+          "ed39e5b32a45922486bce5148caa95aa",
+          "ed39e5b32a459224a1c5690cacaab7aa"
+        ],
+        [
+          "c80ab0322ec99324",
+          "c80ab0322ec99324",
+          "c80ab0322ec99324"
+        ],
+        [
+          "c80ab0322ec9932421d4c5d016610100",
+          "c80ab0322ec9932421d4c5d016610100",
+          "c80ab0322ec9932421d4c5d016610100"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-27",
+      "rgba": "d671ec593c5c4fe4f9ad5e83bf463755472fc82e666f88f07a91d76411d104d096bea1a73ee4044b7bcdac0e86c89f85e896cc5f7bc3ccc5aea30a395a52578e",
+      "mask": 42405,
+      "blocks": [
+        [
+          "a31433addf3bfdb7",
+          "a31433addf3bfdb7",
+          "80166bf5df3bfebb"
+        ],
+        [
+          "0508e0c00a01c0809cd4a115a86aaaea",
+          "0508e0c00a01c0809cd4a115a86aaaea",
+          "0508e0c00a01c0809dd38016a86aaaea"
+        ],
+        [
+          "f00e0e13444b12859cd4a115a86aaaea",
+          "f00e0e13444b12859cd4a115a86aaaea",
+          "f00e0e13444b12859dd38016a86aaaea"
+        ],
+        [
+          "f9110a92264c93c6",
+          "f9110a92264c93c6",
+          "f9110a92264c93c6"
+        ],
+        [
+          "f9110a92264c93c6d152ce12070a1225",
+          "f9110a92264c93c6d152ce12070a1225",
+          "f9110a92264c93c6d152ce12070a1225"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-28",
+      "rgba": "f8d344ff0e5f44ffe383feff1a8e61ff31d7ccffb5d0b4ffe4e288fff0a805ffc2e3a7ff84867bff38b0aeffff7391ff2cd858ff172449ff47e710ff2bde42ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "f1dd8a04440338f7",
+          "f1dd8a04440338f7",
+          "1fe4e81246ebbe57"
+        ],
+        [
+          "fffffffffffffffff1dd8a04440338f7",
+          "fffffffffffffffff1dd8a04440338f7",
+          "ffffffffffffffff1fe4e81246ebbe57"
+        ],
+        [
+          "0005fffffffffffff1dd8a04440338f7",
+          "0005fffffffffffff1dd8a04440338f7",
+          "0005ffffffffffff1fe4e81246ebbe57"
+        ],
+        [
+          "ff0e88f209ebf1f8",
+          "ff0e88f209ebf1f8",
+          "ff0e88f209ebf1f8"
+        ],
+        [
+          "ff0e88f209ebf1f8e724722961e0aa00",
+          "ff0e88f209ebf1f8e724722961e0aa00",
+          "ff0e88f209ebf1f8e724722961e0aa00"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-29",
+      "rgba": "15a0c1d36d299b779594f484d646170659d3d29d0fc24f723d5cd2766e8d0b485ab1375d0ea6314e7743872c471340f07a92f889d72010ea44a529931f2a7684",
+      "mask": 119,
+      "blocks": [
+        [
+          "971d3d95dcfeffff",
+          "971d3d95dcfeffff",
+          "171dbe94dcfeffff"
+        ],
+        [
+          "7c087907000000007f91ce0eaba7aaaa",
+          "7c087907000000007f91ce0eaba7aaaa",
+          "7c08790700000000be940a168ba6aaaa"
+        ],
+        [
+          "72d38130000000007f91ce0eaba7aaaa",
+          "72d38130000000007f91ce0eaba7aaaa",
+          "72d3813000000000be940a168ba6aaaa"
+        ],
+        [
+          "950f19c238499224",
+          "950f19c238499224",
+          "950f19c238499224"
+        ],
+        [
+          "950f19c238499224d3290b0339499224",
+          "950f19c238499224d3290b0339499224",
+          "950f19c238499224d3290b0339499224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-30",
+      "rgba": "8c64007ad0a6c053751cc1ae151c5e8a559558c7f254a839bf3fc572de6729b828b8eb36d7b7f70f1e6f8933c835d9b556b3abf3b3ee6a35fee3083c847f04f3",
+      "mask": 1911,
+      "blocks": [
+        [
+          "ab54f770dffcffff",
+          "ab54f770dffcffff",
+          "ab54f770dffcffff"
+        ],
+        [
+          "570a3c07130300003fec6c4bb9a993aa",
+          "570a3c07130300003fec6c4bb9a993aa",
+          "570a3c0713030000bed5208ba9abb2aa"
+        ],
+        [
+          "0fc75c11118200003fec6c4bb9a993aa",
+          "0fc75c11118200003fec6c4bb9a993aa",
+          "0fc75c1111820000bed5208ba9abb2aa"
+        ],
+        [
+          "f21e54632c519224",
+          "f21e54632c519224",
+          "f21e54632c519224"
+        ],
+        [
+          "f21e54632c519224b81c55b23a009324",
+          "f21e54632c519224b81c55b23a009324",
+          "f21e54632c519224b81c55b23a009324"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-31",
+      "rgba": "6ab2d2759f57cb45077101bee9e9283ef5b382b5ccc5599c0817c982074491df4b5a54185fabdd9646c0d159fe8bb9241717be526b8ded15b508ad696605e587",
+      "mask": 42405,
+      "blocks": [
+        [
+          "1c40c65cdfb7ff3f",
+          "3421059eef37ff3f",
+          "320a2bcecf37ff3f"
+        ],
+        [
+          "070b90d0010510801a6c402398aa8b22",
+          "070b90d0010510801a6c402398aa8b22",
+          "070b90d0010510807d6c800b98ea8b22"
+        ],
+        [
+          "df158d92058993841a6c402398aa8b22",
+          "df158d92058993841a6c402398aa8b22",
+          "df158d92058993847d6c800b98ea8b22"
+        ],
+        [
+          "cc074c12248e13a6",
+          "cc074c12248e13a6",
+          "cc074c12248e13a6"
+        ],
+        [
+          "cc074c12248e13a6c5050a13c40d9225",
+          "cc074c12248e13a6c5050a13c40d9225",
+          "cc074c12248e13a6c5050a13c40d9225"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-32",
+      "rgba": "d6c907ff219a8dffbfb841ff71411fffc1eb1aff85bad3ffff7bc1ff78445effdd2596ff697ea1ffd8d958ffc2e480ff6a9fb4ff206a0fff2f2179ff252487ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "0cce6f21ccc80e5e",
+          "0cce6f21ccc80e5e",
+          "43bf3021ecec0f5f"
+        ],
+        [
+          "ffffffffffffffff0cce6f21ccc80e5e",
+          "ffffffffffffffff0cce6f21ccc80e5e",
+          "ffffffffffffffff43bf3021ecec0f5f"
+        ],
+        [
+          "0005ffffffffffff0cce6f21ccc80e5e",
+          "0005ffffffffffff0cce6f21ccc80e5e",
+          "0005ffffffffffff43bf3021ecec0f5f"
+        ],
+        [
+          "ff20cabaa2b2e624",
+          "ff20cabaa2b2e624",
+          "ff20cabaa2b2e624"
+        ],
+        [
+          "ff20cabaa2b2e624eb21e28ef5a9c026",
+          "ff20cabaa2b2e624eb21e28ef5a9c026",
+          "ff20cabaa2b2e624eb21e28ef5a9c026"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-33",
+      "rgba": "453194f31bcc3f1ef7dc2fbd213c47e9a0d99ba6dc51b81deb76eabb0438323a6141298f5c9eaba3d7073b71aa9c068343baaea1eee87d41eb6b166a19158ef1",
+      "mask": 119,
+      "blocks": [
+        [
+          "185a4cffdceeffff",
+          "185a4cffdceeffff",
+          "9241c6f6dceeffff"
+        ],
+        [
+          "2e0b2a0b0000000017f4881da782aaaa",
+          "2e0b2a0b0000000017f4881da782aaaa",
+          "2e0b2a0b00000000bceb481ea782aaaa"
+        ],
+        [
+          "f31dc8c22c49922417f4881da782aaaa",
+          "f31dc8c22c49922417f4881da782aaaa",
+          "f31dc8c22c499224bceb481ea782aaaa"
+        ],
+        [
+          "f71b0f4221499224",
+          "f71b0f4221499224",
+          "f71b0f4221499224"
+        ],
+        [
+          "f71b0f4221499224dc31118237499224",
+          "f71b0f4221499224dc31118237499224",
+          "f71b0f4221499224dc31118237499224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-34",
+      "rgba": "fb6dede7a00c390c4c7e40d06c37c827e178c786ec0c975488345ccc29c6867a8ad14de1e55dea4474bb44b5562912f17b7e2f65e66706c744afd1e007e7e6c1",
+      "mask": 1911,
+      "blocks": [
+        [
+          "086d19e3cdedccff",
+          "086d19e3cdedccff",
+          "e84b7dfbcdedccff"
+        ],
+        [
+          "1e0c580c4d0b000038ea476c9cb091aa",
+          "1e0c580c4d0b000038ea476c9cb091aa",
+          "1e0c580c4d0b00007dfbe84b9cba93aa"
+        ],
+        [
+          "e70c88422bf0922438ea476c9cb091aa",
+          "e70c88422bf0922438ea476c9cb091aa",
+          "e70c88422bf092247dfbe84b9cba93aa"
+        ],
+        [
+          "fb4c682239969324",
+          "fb4c682239969324",
+          "fb4c682239969324"
+        ],
+        [
+          "fb4c682239969324d10c0dc33ca89224",
+          "fb4c682239969324d10c0dc33ca89224",
+          "fb4c682239969324d10c0dc33ca89224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-35",
+      "rgba": "8d96ac598f82d1aaa7d19619f43dfcb29b0dbf26aa2c9ef3d875eda243e5b780d10249fd51c6001fa7a9b56629c9e42266616374c13108f5e8d38fad17f52b1d",
+      "mask": 42405,
+      "blocks": [
+        [
+          "385666c8ff3bfdf7",
+          "385666c8ff3bfdf7",
+          "364709c8ff3bfdf7"
+        ],
+        [
+          "0501e0800f06e02089d07357ff7bfc73",
+          "0501e0800f06e02089d07357ff7bfc73",
+          "0501e0800f06e02009c8a51ffef3ec7b"
+        ],
+        [
+          "fd194e12a488132489d07357ff7bfc73",
+          "fd194e12a488132489d07357ff7bfc73",
+          "fd194e12a488132409c8a51ffef3ec7b"
+        ],
+        [
+          "17d1448142418100",
+          "17d1448142418100",
+          "17d1448142418100"
+        ],
+        [
+          "17d1448142418100f5028c9207c99207",
+          "17d1448142418100f5028c9207c99207",
+          "17d1448142418100f5028c9207c99207"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-36",
+      "rgba": "3803f6ffcdb817ffcc1ee5ffa1f478ff913062ff2d47b1ff88cd1bff58ab24ffa29a2dff166fd1fffc6b76ffd4bcf0ff334f3bff430430ffb4b3e5ff5c4aa8ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "e8a51d40310eacee",
+          "68be1938318facef",
+          "a3cd3e38318eacee"
+        ],
+        [
+          "ffffffffffffffffe8a51d40310eacee",
+          "ffffffffffffffff68be1938318facef",
+          "ffffffffffffffffa3cd3e38318eacee"
+        ],
+        [
+          "0005ffffffffffffe8a51d40310eacee",
+          "0005ffffffffffff68be1938318facef",
+          "0005ffffffffffffa3cd3e38318eacee"
+        ],
+        [
+          "fc1697c8d70cf4cf",
+          "fc1697c8d70cf4cf",
+          "fc1697c8d70cf4cf"
+        ],
+        [
+          "fc1697c8d70cf4cff403d9716b6ce7cc",
+          "fc1697c8d70cf4cff403d9716b6ce7cc",
+          "fc1697c8d70cf4cff403d9716b6ce7cc"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-37",
+      "rgba": "e726bc011d685b8267444e830cb7ac9cd9abed2dc30a5a26d11f286db030a24a6afcb26b9c33af87c6a571dee0d1cc06fe5c2b8d7a0844cc9cf46fdc27898adc",
+      "mask": 119,
+      "blocks": [
+        [
+          "4b2308b1e3ffffff",
+          "4b2308b1e3ffffff",
+          "4b23296ad3ffffff"
+        ],
+        [
+          "80082306000000007bfb876196bcaaaa",
+          "80082306000000007bfb876196bcaaaa",
+          "80082306000000005dd54b2396bcaaaa"
+        ],
+        [
+          "830101622b4992247bfb876196bcaaaa",
+          "830101622b4992247bfb876196bcaaaa",
+          "830101622b4992245dd54b2396bcaaaa"
+        ],
+        [
+          "e71d480329499224",
+          "e71d480329499224",
+          "e71d480329499224"
+        ],
+        [
+          "e71d480329499224ab0a67833c499224",
+          "e71d480329499224ab0a67833c499224",
+          "e71d480329499224ab0a67833c499224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-38",
+      "rgba": "22627f3f72592c18374f4eb9ef8a08e311460b6bc91103729de23d52c07b51ce547d64e6c9799a413ecd3d9957a26d27203b60055c28abbef60b5a898af87564",
+      "mask": 1911,
+      "blocks": [
+        [
+          "4b42294ecfffdeff",
+          "4b42294ecfffdeff",
+          "893a6746cfffdeff"
+        ],
+        [
+          "140b76054e090000ada54329bf8da2aa",
+          "140b76054e090000ada54329bf8da2aa",
+          "140b76054e090000079f2112bf8da3aa"
+        ],
+        [
+          "18e642b109110100ada54329bf8da2aa",
+          "18e642b109110100ada54329bf8da2aa",
+          "18e642b109110100079f2112bf8da3aa"
+        ],
+        [
+          "c911e7132c859324",
+          "c911e7132c859324",
+          "c911e7132c859324"
+        ],
+        [
+          "c911e7132c859324e211b5e320ac9224",
+          "c911e7132c859324e211b5e320ac9224",
+          "c911e7132c859324e211b5e320ac9224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-39",
+      "rgba": "63bcbcb0f3660ee4d7160faffa7d4a54b44f0f2cbfb355d6e48d7ef268f9698505cd9c77fb849f46c10b71d41726144bd96c00ff44c6ee4906937c091938e4fc",
+      "mask": 42405,
+      "blocks": [
+        [
+          "955527d1dc3bdf3f",
+          "955527d1dc3bdf3f",
+          "d765a2d0dc3bdf3f"
+        ],
+        [
+          "0a0ad080070c40f068d1d926cffbcdf7",
+          "0a0ad080070c40f068d1d926cffbcdf7",
+          "0a0ad080070c40f0a2d0730ecffbcdf7"
+        ],
+        [
+          "49fc04816242012068d1d926cffbcdf7",
+          "49fc04816242012068d1d926cffbcdf7",
+          "49fc048162420120a2d0730ecffbcdf7"
+        ],
+        [
+          "d7050d12a58912e7",
+          "d7050d12a58912e7",
+          "d7050d12a58912e7"
+        ],
+        [
+          "d7050d12a58912e7f90b4b92054a92e5",
+          "d7050d12a58912e7f90b4b92054a92e5",
+          "d7050d12a58912e7f90b4b92054a92e5"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-40",
+      "rgba": "dffbe6ffa7b1e8ffd9bff2ffa0fd22ff934699ff95bc14ff7c407dff55d90bff6d6733ffb4b7e2ffcc62aaff77fe12ffbd9427ff32ccefffaf27e8ffe09d69ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "7aac018640664383",
+          "7aac018640664383",
+          "5ca9c1566a666b8b"
+        ],
+        [
+          "ffffffffffffffff7aac018640664383",
+          "ffffffffffffffff7aac018640664383",
+          "ffffffffffffffff5ca9c1566a666b8b"
+        ],
+        [
+          "0005ffffffffffff7aac018640664383",
+          "0005ffffffffffff7aac018640664383",
+          "0005ffffffffffff5ca9c1566a666b8b"
+        ],
+        [
+          "e0321848f69eaa0c",
+          "e0321848f69eaa0c",
+          "e0321848f69eaa0c"
+        ],
+        [
+          "e0321848f69eaa0cfe27d8f05d9ec185",
+          "e0321848f69eaa0cfe27d8f05d9ec185",
+          "e0321848f69eaa0cfe27d8f05d9ec185"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-41",
+      "rgba": "bb17706b9faf347d3229508fe49f07a52d35f3f8a1968b7d15b675c0c5e046ba0d05ecb4985e2901d0c13f0c20f11448773d745c0b3a11e55dc75c59a33324b8",
+      "mask": 119,
+      "blocks": [
+        [
+          "ea1cf930efcdffff",
+          "ea1cf930efcdffff",
+          "ae1dbe29efcdffff"
+        ],
+        [
+          "76087f0b0000000086bcf811b2b9aaaa",
+          "76087f0b0000000086bcf811b2b9aaaa",
+          "76087f0b00000000669dbe29b2a9aaaa"
+        ],
+        [
+          "f86bb9833349922486bcf811b2b9aaaa",
+          "f86bb9833349922486bcf811b2b9aaaa",
+          "f86bb98333499224669dbe29b2a9aaaa"
+        ],
+        [
+          "bb15d07325499224",
+          "bb15d07325499224",
+          "bb15d07325499224"
+        ],
+        [
+          "bb15d07325499224b617c17321499224",
+          "bb15d07325499224b617c17321499224",
+          "bb15d07325499224b617c17321499224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-42",
+      "rgba": "9d0ce3842a230a905ff4db3055a824e45fc5f61b1103d3770d61e3327a74f02e99d0bbad7f166370a4b3112f92043d4e9cfa57b58206b75425b50a46f845a3a3",
+      "mask": 1911,
+      "blocks": [
+        [
+          "2129799bf1fffdff",
+          "2129799bf1fffdff",
+          "2129779ef2fffdff"
+        ],
+        [
+          "880372037a0300005c666a5887acb4aa",
+          "880372037a0300005c666a5887acb4aa",
+          "880372037a0300009b67212986acbcaa"
+        ],
+        [
+          "ad1bd3133ee093245c666a5887acb4aa",
+          "ad1bd3133ee093245c666a5887acb4aa",
+          "ad1bd3133ee093249b67212986acbcaa"
+        ],
+        [
+          "a40d38c324189224",
+          "a40d38c324189224",
+          "a40d38c324189224"
+        ],
+        [
+          "a40d38c324189224f40339a234fa9224",
+          "a40d38c324189224f40339a234fa9224",
+          "a40d38c324189224f40339a234fa9224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-43",
+      "rgba": "a6b28463fd4ab37dc48953f3de2806857c423a73e3adcb7d257b04da033f27975aa906918ac35bccafab54fbeb0c57fb0b7379d51f8c71c0df967b46b148a96b",
+      "mask": 42405,
+      "blocks": [
+        [
+          "671308b5df3fdef3",
+          "671308b5df3fdef3",
+          "05024ac4df3fdefb"
+        ],
+        [
+          "060e7090090fb06076f50203aa62abae",
+          "060e7090090fb06076f50203aa62abae",
+          "060e7090090fb06079e50502aa62abae"
+        ],
+        [
+          "fb630992c70e122676f50203aa62abae",
+          "fb630992c70e122676f50203aa62abae",
+          "fb630992c70e122679e50502aa62abae"
+        ],
+        [
+          "e3038b1224cd9267",
+          "e3038b1224cd9267",
+          "e3038b1224cd9267"
+        ],
+        [
+          "e3038b1224cd9267b23fc812240a92e5",
+          "e3038b1224cd9267b23fc812240a92e5",
+          "e3038b1224cd9267b23fc812240a92e5"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-44",
+      "rgba": "4a8fddff0a266cff685bbeff6c8524ff7652b0ff5d5df2ff61c39fff07a82bffbdf071ff9582c2ff9d6e43ff06cabcffce82deffdf0646ffbb089dffb37effff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "76c28e0def7a6a00",
+          "7cb228356e7afb08",
+          "ffb3450dee6afa28"
+        ],
+        [
+          "ffffffffffffffff76c28e0def7a6a00",
+          "ffffffffffffffff7cb228356e7afb08",
+          "ffffffffffffffffffb3450dee6afa28"
+        ],
+        [
+          "0005ffffffffffff76c28e0def7a6a00",
+          "0005ffffffffffff7cb228356e7afb08",
+          "0005ffffffffffffffb3450dee6afa28"
+        ],
+        [
+          "df064ecb36da2248",
+          "df064ecb36da2248",
+          "df064ecb36da2248"
+        ],
+        [
+          "df064ecb36da2248f0067ce96a60c584",
+          "df064ecb36da2248f0067ce96a60c584",
+          "df064ecb36da2248f0067ce96a60c584"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-45",
+      "rgba": "4223bdc4e40bf3d3146461fecd7171a9dbff70fd1e9737300031f10217f674b9f6d0006cd8a0ec0cbeeb5805c4454d2ed489a02d60b8e5b073abd98f9129df1f",
+      "mask": 119,
+      "blocks": [
+        [
+          "99706b9fe0fdffff",
+          "9569eedfc0fdffff",
+          "3741eedfc0fdffff"
+        ],
+        [
+          "cc0f3f0000000000878ff948b598aaaa",
+          "cc0f3f00000000008bd7f720bd9caaaa",
+          "cc0f3f0000000000eedf9d01bf9caaaa"
+        ],
+        [
+          "02fe6d1001000000878ff948b598aaaa",
+          "02fe6d10010000008bd7f720bd9caaaa",
+          "02fe6d1001000000eedf9d01bf9caaaa"
+        ],
+        [
+          "14e40a1018000000",
+          "14e40a1018000000",
+          "14e40a1018000000"
+        ],
+        [
+          "14e40a10180000000b9702f108000000",
+          "14e40a10180000000b9702f108000000",
+          "14e40a10180000000b9702f108000000"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-46",
+      "rgba": "4ece46947df1e0df6a978ea8e395683cca0ffb46714de3fe9a7f74cd047c4f70e30b26af6e8aa176aeba6d7947088ed70fdad88db9a0050de824436638184feb",
+      "mask": 1911,
+      "blocks": [
+        [
+          "dc57a5b0e2ebfdff",
+          "dc57a5b0e2ebfdff",
+          "9b7f65e0e2ebfdff"
+        ],
+        [
+          "d90af40c7a07000073c0f166f5f8fcff",
+          "d90af40c7a07000073c0f166f5f8fcff",
+          "d90af40c7a07000065e09b7ff7eefcff"
+        ],
+        [
+          "fe4615132cb4932473c0f166f5f8fcff",
+          "fe4615132cb4932473c0f166f5f8fcff",
+          "fe4615132cb4932465e09b7ff7eefcff"
+        ],
+        [
+          "e34ef12333f09224",
+          "e34ef12333f09224",
+          "e34ef12333f09224"
+        ],
+        [
+          "e34ef12333f09224f10b021333e19224",
+          "e34ef12333f09224f10b021333e19224",
+          "e34ef12333f09224f10b021333e19224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-47",
+      "rgba": "3781b8a93acecc05d31ac1ce10745655ee6174463ddbe1f69e9cbd8fb95bfc5457cb9dd97385a92cbf7faeaee24cf31c423253f95fe916f4fd9b1ce572abcb54",
+      "mask": 42405,
+      "blocks": [
+        [
+          "d14ef9c0def3ecf3",
+          "d14ef9c0def3ecf3",
+          "4367d7d0defbeef3"
+        ],
+        [
+          "0a0ce0500d0ae050fdc16e378b2eabe6",
+          "0a0ce0500d0ae050fdc16e378b2eabe6",
+          "0a0ce0500d0ae050d7d043678a2eaba6"
+        ],
+        [
+          "f654cc12240a1324fdc16e378b2eabe6",
+          "f654cc12240a1324fdc16e378b2eabe6",
+          "f654cc12240a1324d7d043678a2eaba6"
+        ],
+        [
+          "d3370992448f12a7",
+          "d3370992448f12a7",
+          "d3370992448f12a7"
+        ],
+        [
+          "d3370992448f12a7e91a4d12c44a1364",
+          "d3370992448f12a7e91a4d12c44a1364",
+          "d3370992448f12a7e91a4d12c44a1364"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-48",
+      "rgba": "401d51ff56e68aff27d2d0ffc8a755ff202990ff9c82d7ffbe21e3ff125594ff254b59ffd66b4affdda6d6ff8dabf2ff7a0abfff292f92ff29e01bff29ddf7ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "f9b5ed29a96909b7",
+          "f9b5ed29a96909b7",
+          "3addea40a96909b7"
+        ],
+        [
+          "fffffffffffffffff9b5ed29a96909b7",
+          "fffffffffffffffff9b5ed29a96909b7",
+          "ffffffffffffffff3addea40a96909b7"
+        ],
+        [
+          "0005fffffffffffff9b5ed29a96909b7",
+          "0005fffffffffffff9b5ed29a96909b7",
+          "0005ffffffffffff3addea40a96909b7"
+        ],
+        [
+          "dd12f6952907c8ff",
+          "dd12f6952907c8ff",
+          "dd12f6952907c8ff"
+        ],
+        [
+          "dd12f6952907c8ffe60a8776deee9603",
+          "dd12f6952907c8ffe60a8776deee9603",
+          "dd12f6952907c8ffe60a8776deee9603"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-49",
+      "rgba": "509033dae3a3257ea81e11bf65639fc02254fa274870790ba3d6c16a5d2b07f085813fe63b2a6db51a568ab09cc687d9334e18c1c5de0608cb515a3b97b7aee0",
+      "mask": 119,
+      "blocks": [
+        [
+          "8654e2a0dcffffff",
+          "8654e2a0dcffffff",
+          "8654e2a0dcffffff"
+        ],
+        [
+          "7d0b12060000000082bb5c34c2fdffff",
+          "7d0b12060000000082bb5c34c2fdffff",
+          "7d0b12060000000004e5be22e2edffff"
+        ],
+        [
+          "da0ba0f23449922482bb5c34c2fdffff",
+          "da0ba0f23449922482bb5c34c2fdffff",
+          "da0ba0f23449922404e5be22e2edffff"
+        ],
+        [
+          "e322c6922f499224",
+          "e322c6922f499224",
+          "e322c6922f499224"
+        ],
+        [
+          "e322c6922f499224d61e5ce222499224",
+          "e322c6922f499224d61e5ce222499224",
+          "e322c6922f499224d61e5ce222499224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-50",
+      "rgba": "6c903ca4e4d7c0f4cdbbb7323e23ee5511fbb76125fe4509e2c270f48b39ca2e5adfdf183453dd52604e4552abc61ccc0d8bd4a05908ec764c67f3a48087ff6c",
+      "mask": 1911,
+      "blocks": [
+        [
+          "a77cd7f6f4efffff",
+          "a77cd7f6f4efffff",
+          "876cb7e6f4efffff"
+        ],
+        [
+          "ea03160e51050000f3dd71258385b7aa",
+          "ea03160e51050000f3dd71258385b7aa",
+          "ea03160e51050000b7e6e82783a7baaa"
+        ],
+        [
+          "f409c3d320b19324f3dd71258385b7aa",
+          "f409c3d320b19324f3dd71258385b7aa",
+          "f409c3d320b19324b7e6e82783a7baaa"
+        ],
+        [
+          "e4118592237e9324",
+          "e4118592237e9324",
+          "e4118592237e9324"
+        ],
+        [
+          "e4118592237e93244efe2b9110050000",
+          "e4118592237e93244efe2b9110050000",
+          "e4118592237e93244efe2b9110050000"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-51",
+      "rgba": "b7c000257aa6e1815ac3f337434a0ad82ccdd2615706001f1d1714d99bd687d568a4a3e963acf3bd15cc72d912545c77480db27ee4374e9e5178f88505dbe109",
+      "mask": 42405,
+      "blocks": [
+        [
+          "511fade2ffbfcef7",
+          "511fade2ffbfcef7",
+          "4e1ec9e1ffbfcef7"
+        ],
+        [
+          "020320d00e0d9010e1a95a3fdef3ff73",
+          "020320d00e0d9010e1a95a3fdef3ff73",
+          "020320d00e0d90102058db0edef3ff73"
+        ],
+        [
+          "e909cf9347089225e1a95a3fdef3ff73",
+          "e909cf9347089225e1a95a3fdef3ff73",
+          "e909cf93470892252058db0edef3ff73"
+        ],
+        [
+          "05e4c58081038000",
+          "05e4c58081038000",
+          "05e4c58081038000"
+        ],
+        [
+          "05e4c58081038000db068a92040b1207",
+          "05e4c58081038000db068a92040b1207",
+          "05e4c58081038000db068a92040b1207"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-52",
+      "rgba": "6e0557ff47b28fff4f84deffb23017ffebfb24ff35ddc3ff834370ff6b7dfeff22d17fffe7bfdfff7501a6ff1d511cff9ef586ff6f9c03ff869eaaff3592dfff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "847ada6d1c662773",
+          "657ad96d1c662771",
+          "83b1f8363ce6ad7b"
+        ],
+        [
+          "ffffffffffffffff847ada6d1c662773",
+          "ffffffffffffffff657ad96d1c662771",
+          "ffffffffffffffff83b1f8363ce6ad7b"
+        ],
+        [
+          "0005ffffffffffff847ada6d1c662773",
+          "0005ffffffffffff657ad96d1c662771",
+          "0005ffffffffffff83b1f8363ce6ad7b"
+        ],
+        [
+          "eb1dbd87b741c3f2",
+          "eb1dbd87b741c3f2",
+          "eb1dbd87b741c3f2"
+        ],
+        [
+          "eb1dbd87b741c3f2fb01190fb95a0c92",
+          "eb1dbd87b741c3f2fb01190fb95a0c92",
+          "eb1dbd87b741c3f2fb01190fb95a0c92"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-53",
+      "rgba": "f9f85f923fb3fce18dacaa9274140c5a380fca7715b01f0048a4440794b1b1e4e8d6ba7d7ff8d85953a37ef0973e212440dfc07eae0bcf902af67d9ffc293bdf",
+      "mask": 119,
+      "blocks": [
+        [
+          "3e3d4bf7e1ffffff",
+          "3e3d4bf7e1ffffff",
+          "9f45acf7e1ffffff"
+        ],
+        [
+          "d909070000000000a8af9c11aca9aaaa",
+          "d909070000000000a8af9c11aca9aaaa",
+          "d909070000000000acf79938acadaaaa"
+        ],
+        [
+          "07e10c4103000000a8af9c11aca9aaaa",
+          "07e10c4103000000a8af9c11aca9aaaa",
+          "07e10c4103000000acf79938acadaaaa"
+        ],
+        [
+          "15f9112108000000",
+          "15f9112108000000",
+          "15f9112108000000"
+        ],
+        [
+          "15f9112108000000f80fd89231499224",
+          "15f9112108000000f80fd89231499224",
+          "15f9112108000000f80fd89231499224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-54",
+      "rgba": "524102860907602133f13269601982895655af4bfa915a75c2997030b361046d1258546b23598c0dc0f6ff865cfcc7e9e1e687563aa5bcc03073372d12f2b523",
+      "mask": 1911,
+      "blocks": [
+        [
+          "0052bfbffcffdfff",
+          "0052bfbffcffdfff",
+          "0052bfbffcffdfff"
+        ],
+        [
+          "280674031608000038e7e719b5ab8daa",
+          "280674031608000038e7e719b5ab8daa",
+          "2806740316080000bfbf4c08b5ab8daa"
+        ],
+        [
+          "860df842390b922438e7e719b5ab8daa",
+          "860df842390b922438e7e719b5ab8daa",
+          "860df842390b9224bfbf4c08b5ab8daa"
+        ],
+        [
+          "fa09ce632cf99224",
+          "fa09ce632cf99224",
+          "fa09ce632cf99224"
+        ],
+        [
+          "fa09ce632cf99224f6070e6232369224",
+          "fa09ce632cf99224f6070e6232369224",
+          "fa09ce632cf99224f6070e6232369224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-55",
+      "rgba": "ee50a0736b7c3f4214275086bea1933d2c273db91e3b3dc446fcaefc1c1e31e8decf5c6a6623b53df5c458e83c51842e88bd31f2021b302f29d904861dbbdf1f",
+      "mask": 42405,
+      "blocks": [
+        [
+          "68190bf6cf33dfff",
+          "68190bf6cf33dfff",
+          "e6180bf6cf33dfff"
+        ],
+        [
+          "0708c0e0060e30200ff68a119a6688e6",
+          "0708c0e0060e30200ff68a119a6688e6",
+          "0708c0e0060e30200bf6e6009a6688e6"
+        ],
+        [
+          "e81f0d13050d92270ff68a119a6688e6",
+          "e81f0d13050d92270ff68a119a6688e6",
+          "e81f0d13050d92270bf6e6009a6688e6"
+        ],
+        [
+          "f502c893e70a92e4",
+          "f502c893e70a92e4",
+          "f502c893e70a92e4"
+        ],
+        [
+          "f502c893e70a92e4cf1b4e9227089244",
+          "f502c893e70a92e4cf1b4e9227089244",
+          "f502c893e70a92e4cf1b4e9227089244"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-56",
+      "rgba": "62e680ff5854e3ff2e2632ff6bcc25fffab564ff13522aff6ef646ffc6978fff36a5abff8db7ddffaa7e7bff546272ff2ea4beff56e2beffe80f91ff7c29f0ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "eb5e7789248aaa52",
+          "518e70481c0ce2f2",
+          "acf526319ea4ebeb"
+        ],
+        [
+          "ffffffffffffffff5690cd6669dfff07",
+          "ffffffffffffffff518e70481c0ce2f2",
+          "ffffffffffffffffacf526319ea4ebeb"
+        ],
+        [
+          "0005ffffffffffff5690cd6669dfff07",
+          "0005ffffffffffff518e70481c0ce2f2",
+          "0005ffffffffffffacf526319ea4ebeb"
+        ],
+        [
+          "fa13f68b74e77cab",
+          "fa13f68b74e77cab",
+          "fa13f68b74e77cab"
+        ],
+        [
+          "fa13f68b74e77cabf60ff035835b3be5",
+          "fa13f68b74e77cabf60ff035835b3be5",
+          "fa13f68b74e77cabf60ff035835b3be5"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-57",
+      "rgba": "0eb4dabf3f001619e641492d516eea819e33d73e23c738f8b984fefd6aed2c1a0ccea6d6cbd9e442fffe98fa5bad1e47b8a533f33e347b1c970f70899e09c96c",
+      "mask": 119,
+      "blocks": [
+        [
+          "49065f9cfed3ffff",
+          "49065f9cfed3ffff",
+          "27263fb4fed3ffff"
+        ],
+        [
+          "1b03f40f00000000be7c6169b48eaaaa",
+          "1b03f40f00000000be7c6169b48eaaaa",
+          "1b03f40f000000003fb40340b68eaaaa"
+        ],
+        [
+          "fd19cb7320499224be7c6169b48eaaaa",
+          "fd19cb7320499224be7c6169b48eaaaa",
+          "fd19cb73204992243fb40340b68eaaaa"
+        ],
+        [
+          "e60e31b22b499224",
+          "e60e31b22b499224",
+          "e60e31b22b499224"
+        ],
+        [
+          "e60e31b22b499224c7008a632c499224",
+          "e60e31b22b499224c7008a632c499224",
+          "e60e31b22b499224c7008a632c499224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-58",
+      "rgba": "205a201ff57f8fe742a6f00c73cd829486bfaab88be2fcae88260f5edf63dabedbd8d46cc4315092e689e6126ebb1e38ad66249cc3856182e007367398ea127c",
+      "mask": 1911,
+      "blocks": [
+        [
+          "7a968ad9fbf0f7ff",
+          "7a968ad9fbf0f7ff",
+          "1f8f8ac1fbf2f7ff"
+        ],
+        [
+          "e201ab06960100001dc6a361a9928caa",
+          "e201ab06960100001dc6a361a9928caa",
+          "e201ab06960100001f8f22898992acaa"
+        ],
+        [
+          "e70c47a2356592241dc6a361a9928caa",
+          "e70c47a2356592241dc6a361a9928caa",
+          "e70c47a2356592241f8f22898992acaa"
+        ],
+        [
+          "f520c153361a9224",
+          "f520c153361a9224",
+          "f520c153361a9224"
+        ],
+        [
+          "f520c153361a9224e226ee2224089324",
+          "f520c153361a9224e226ee2224089324",
+          "f520c153361a9224e226ee2224089324"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-59",
+      "rgba": "bca6d28ca050605a4dd25f26140b1541addcebf0b432c916dacdf41e4dfadca11b1b61fe151b58b7cb35c1a6a07d3e055e4d30202fcb058d7df5af5c0542a51e",
+      "mask": 42405,
+      "blocks": [
+        [
+          "8623f99cfd7fdcf3",
+          "8623f99cfd7fdcf3",
+          "41363abdfdbfdef3"
+        ],
+        [
+          "080210900f0a80205bab0605b8a28be6",
+          "080210900f0a80205bab0605b8a28be6",
+          "080210900f0a8020b7c94136bae28ba6"
+        ],
+        [
+          "fe164c92840813265bab0605b8a28be6",
+          "fe164c92840813265bab0605b8a28be6",
+          "fe164c9284081326b7c94136bae28ba6"
+        ],
+        [
+          "cb054a13a50f9227",
+          "cb054a13a50f9227",
+          "cb054a13a50f9227"
+        ],
+        [
+          "cb054a13a50f9227fa1b8c9207c913e5",
+          "cb054a13a50f9227fa1b8c9207c913e5",
+          "cb054a13a50f9227fa1b8c9207c913e5"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-60",
+      "rgba": "f4c753ff7223efff71e197ff62daa2ffd76fbfffee8bfaff8cf601fff5baa2ff036d38ff20d3c5ffe96819ff40ef60ffee56feff7cc1afffe13a18ff274d26ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "7ffba655fb927d7c",
+          "7ffba655fb927d7c",
+          "bfea6703fab2ed68"
+        ],
+        [
+          "ffffffffffffffff7ffba655fb927d7c",
+          "ffffffffffffffff7ffba655fb927d7c",
+          "ffffffffffffffffbfea6703fab2ed68"
+        ],
+        [
+          "0005ffffffffffff7ffba655fb927d7c",
+          "0005ffffffffffff7ffba655fb927d7c",
+          "0005ffffffffffffbfea6703fab2ed68"
+        ],
+        [
+          "f503682b10390cea",
+          "f503682b10390cea",
+          "f503682b10390cea"
+        ],
+        [
+          "f503682b10390ceaf6238bd46296e1fd",
+          "f503682b10390ceaf6238bd46296e1fd",
+          "f503682b10390ceaf6238bd46296e1fd"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-61",
+      "rgba": "533beb3f7133fa2b5222f8751f5adbedee60beef6f95023ac7a5026890e40b4e76426fd94d45c0906a99c29acb51369ff01ea4c5d903ef4d858af7fff44f5c50",
+      "mask": 119,
+      "blocks": [
+        [
+          "0fd81ffefffeffff",
+          "0fd81ffefffeffff",
+          "0fd81ffefffeffff"
+        ],
+        [
+          "34073e0600000000e1ac9e71d5c3ffff",
+          "34073e0600000000e1ac9e71d5c3ffff",
+          "34073e060000000020c51e51d5c3ffff"
+        ],
+        [
+          "ef2b4f833b499224e1ac9e71d5c3ffff",
+          "ef2b4f833b499224e1ac9e71d5c3ffff",
+          "ef2b4f833b49922420c51e51d5c3ffff"
+        ],
+        [
+          "52ee101015000000",
+          "52ee101015000000",
+          "52ee101015000000"
+        ],
+        [
+          "52ee101015000000a5227f5221499224",
+          "52ee101015000000a5227f5221499224",
+          "52ee101015000000a5227f5221499224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-62",
+      "rgba": "232bcccc11af042ed985b0b42fb841130c6d8e11b8bb83fdce33353918a1199901b5ac36be45374b0d87505f83930a4ee86b7ca905b5372986558359aac7e41b",
+      "mask": 1911,
+      "blocks": [
+        [
+          "792113c5dcf7ffff",
+          "792113c5dcf7ffff",
+          "7921d0b5dcf7ffff"
+        ],
+        [
+          "3c0bf10343060000edca6e0c878991aa",
+          "3c0bf10343060000edca6e0c878991aa",
+          "3c0bf10343060000a6c9b505af8bb1aa"
+        ],
+        [
+          "fd11fa123cb79324edca6e0c878991aa",
+          "fd11fa123cb79324edca6e0c878991aa",
+          "fd11fa123cb79324a6c9b505af8bb1aa"
+        ],
+        [
+          "d9013f1221519224",
+          "d9013f1221519224",
+          "d9013f1221519224"
+        ],
+        [
+          "d9013f12215192242bbb08b100110100",
+          "d9013f12215192242bbb08b100110100",
+          "d9013f12215192242bbb08b100110100"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-63",
+      "rgba": "fb5a7a0dd0f26a119049098e09da86587a1e56bf667eebda5e672fe4c5cb23cee97a96729c040b139b25f2b45f478d7b1dbb8deac40393506464502606840e9e",
+      "mask": 42405,
+      "blocks": [
+        [
+          "42749d82cf37df3f",
+          "42749d82cf37df3f",
+          "220c3d99efb7df3f"
+        ],
+        [
+          "0108d0c0070b5090bdc9427c9a6a8a6a",
+          "0108d0c0070b5090bdc9427c9a6a8a6a",
+          "0108d0c0070b50903d99220cbaea8a62"
+        ],
+        [
+          "da0d0913048d1267bdc9427c9a6a8a6a",
+          "da0d0913048d1267bdc9427c9a6a8a6a",
+          "da0d0913048d12673d99220cbaea8a62"
+        ],
+        [
+          "06fb0181a1018102",
+          "06fb0181a1018102",
+          "06fb0181a1018102"
+        ],
+        [
+          "06fb0181a101810203cbc30022840080",
+          "06fb0181a101810203cbc30022840080",
+          "06fb0181a101810203cbc30022840080"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-64",
+      "rgba": "2acef1ff8e80cefffe1d31ff579b4eff15601cffbb4eb9ffe428d1ff72f0ffff4d6023ffd1c45eff6e66fcffbfc87effd89313ff2847ceffeb74a6ff9d0c06ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "24caff458d6aba2c",
+          "24caff458d6aba2c",
+          "61987f778d6efe3e"
+        ],
+        [
+          "ffffffffffffffff24caff458d6aba2c",
+          "ffffffffffffffff24caff458d6aba2c",
+          "ffffffffffffffff61987f778d6efe3e"
+        ],
+        [
+          "0005ffffffffffff24caff458d6aba2c",
+          "0005ffffffffffff24caff458d6aba2c",
+          "0005ffffffffffff61987f778d6efe3e"
+        ],
+        [
+          "fe15279ca956a78b",
+          "fe15279ca956a78b",
+          "fe15279ca956a78b"
+        ],
+        [
+          "fe15279ca956a78bf00ce2591f554537",
+          "fe15279ca956a78bf00ce2591f554537",
+          "fe15279ca956a78bf00ce2591f554537"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-65",
+      "rgba": "d2f114ad41d64f63ed57e8b88d6e57663d8ca2777bbccbacd48c098fe1f9c59b65f8272d9103117843b033e92f589434445eb27d18e372249d328cf6fd0bbada",
+      "mask": 119,
+      "blocks": [
+        [
+          "5ab4e2d5cdd3ffff",
+          "5ab4e2d5cdd3ffff",
+          "82d7bceadccbffff"
+        ],
+        [
+          "6a0ba7080000000062a6be8bd8cfffff",
+          "6a0ba7080000000062a6be8bd8cfffff",
+          "6a0ba70800000000bcea82d78dbaaaaa"
+        ],
+        [
+          "b8630a623149922462a6be8bd8cfffff",
+          "b8630a623149922462a6be8bd8cfffff",
+          "b8630a6231499224bcea82d78dbaaaaa"
+        ],
+        [
+          "ed3d0a122b499224",
+          "ed3d0a122b499224",
+          "ed3d0a122b499224"
+        ],
+        [
+          "ed3d0a122b49922457f129300e000000",
+          "ed3d0a122b49922457f129300e000000",
+          "ed3d0a122b49922457f129300e000000"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-66",
+      "rgba": "0e85476e2f6e00dd61b9c589e4f02676894aa08ddd2e5d3f9e6df9edfb3bc43073e170d688f9b9cbd6deebcd232000857ba1945f3ac8023a32151f4c2b711014",
+      "mask": 1911,
+      "blocks": [
+        [
+          "6243fb9dd3ded6ff",
+          "6243fb9dd3ded6ff",
+          "6033fdd6e3ded6ff"
+        ],
+        [
+          "d608480ecd0c00009fce2643a5af8baa",
+          "d608480ecd0c00009fce2643a5af8baa",
+          "d608480ecd0c0000fdd66033a5ae8aaa"
+        ],
+        [
+          "ed3f56d3209292249fce2643a5af8baa",
+          "ed3f56d3209292249fce2643a5af8baa",
+          "ed3f56d320929224fdd66033a5ae8aaa"
+        ],
+        [
+          "dd0e79432c259224",
+          "dd0e79432c259224",
+          "dd0e79432c259224"
+        ],
+        [
+          "dd0e79432c259224f92ef5f238829224",
+          "dd0e79432c259224f92ef5f238829224",
+          "dd0e79432c259224f92ef5f238829224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-67",
+      "rgba": "090424e65f51a30553defa0b5437818ea0f6a9baecfc4a98cc601affc19be2098e9c523d03e9b8ac29f002548652dbb978ce4b0226104bd5d4e7925caa53df99",
+      "mask": 42405,
+      "blocks": [
+        [
+          "0a2050f7fcf7ffb3",
+          "0a2050f7fcf7ffb3",
+          "2408c9effcf7ffb3"
+        ],
+        [
+          "0e0190100405d09096b664198922baa6",
+          "0e0190100405d09096b664198922baa6",
+          "0e0190100405d090dbbc24088922ba26"
+        ],
+        [
+          "09e6010002c2808096b664198922baa6",
+          "09e6010002c2808096b664198922baa6",
+          "09e6010002c28080dbbc24088922ba26"
+        ],
+        [
+          "ec09891344cc9367",
+          "ec09891344cc9367",
+          "ec09891344cc9367"
+        ],
+        [
+          "ec09891344cc9367fc048912840c92c4",
+          "ec09891344cc9367fc048912840c92c4",
+          "ec09891344cc9367fc048912840c92c4"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-68",
+      "rgba": "15c733ffa77d99ff72eba8ffd44a1bff0ec76aff91a47aff61fb4fffb272caffe1cb55ff9acaa8ffa0a032ffc333ceff813f51ffe2e646ffb3ee92ffa13aa2ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "b3d16b67999d3f3e",
+          "b3d16b67999d3f3e",
+          "261eb9c1a8486a6a"
+        ],
+        [
+          "ffffffffffffffffb3d16b67999d3f3e",
+          "ffffffffffffffffb3d16b67999d3f3e",
+          "ffffffffffffffffb9c1261eb99d3abe"
+        ],
+        [
+          "0005ffffffffffffb3d16b67999d3f3e",
+          "0005ffffffffffffb3d16b67999d3f3e",
+          "0005ffffffffffffb9c1261eb99d3abe"
+        ],
+        [
+          "e20e591176d8446c",
+          "e20e591176d8446c",
+          "e20e591176d8446c"
+        ],
+        [
+          "e20e591176d8446cfb33ab3ec21b1321",
+          "e20e591176d8446cfb33ab3ec21b1321",
+          "e20e591176d8446cfb33ab3ec21b1321"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-69",
+      "rgba": "2686f16d50974315710a574757a783c3309b51d16cec389a2b7e55e49bbeffe3b40f9ff33b4c292921423e16420964a97e31a1f2c46255fcfa0de154eb13133b",
+      "mask": 119,
+      "blocks": [
+        [
+          "6a34476fffc4ffff",
+          "6a34476fffc4ffff",
+          "ea2b476fffc4ffff"
+        ],
+        [
+          "16049c0d00000000c556334299b2aaaa",
+          "16049c0d00000000c556334299b2aaaa",
+          "16049c0d000000004b70476fcef7ffff"
+        ],
+        [
+          "e4158da321499224c556334299b2aaaa",
+          "e4158da321499224c556334299b2aaaa",
+          "e4158da3214992244b70476fcef7ffff"
+        ],
+        [
+          "7126217224499224",
+          "7126217224499224",
+          "7126217224499224"
+        ],
+        [
+          "7126217224499224ec0a644230499224",
+          "7126217224499224ec0a644230499224",
+          "7126217224499224ec0a644230499224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-70",
+      "rgba": "d66f1a9663b7dac09d12c109b69aaa673943ee329884d6a56a3fc653a3b95d1f5026a99a465e7252b7869423c413d76e9f3603ae9bd3a622d7db70d0e0a5f4ad",
+      "mask": 1911,
+      "blocks": [
+        [
+          "b86b63d3f1f3fcff",
+          "b86b63d3f1f3fcff",
+          "bb6563d3f1f3feff"
+        ],
+        [
+          "b901a30559020000e6db3f3afcfdefff",
+          "b901a30559020000e6db3f3afcfdefff",
+          "b901a3055902000063d33d3afcfdefff"
+        ],
+        [
+          "09c00da00e9d0000e6db3f3afcfdefff",
+          "09c00da00e9d0000e6db3f3afcfdefff",
+          "09c00da00e9d000063d33d3afcfdefff"
+        ],
+        [
+          "d63930133abf9224",
+          "d63930133abf9224",
+          "d63930133abf9224"
+        ],
+        [
+          "d63930133abf9224b71244e239ef9224",
+          "d63930133abf9224b71244e239ef9224",
+          "d63930133abf9224b71244e239ef9224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-71",
+      "rgba": "ce52f6f637671ee7ec0f65f7d4181a90b949c77433492d95d9cf1a2081d33b54d51dabb81e79998fa047a3b014ec612d5daa3f5d61a6e4934595942e17d2eaf4",
+      "mask": 42405,
+      "blocks": [
+        [
+          "7a3d4fd8defbed33",
+          "7a3d4fd8defbed33",
+          "9c1e8ce8defbed33"
+        ],
+        [
+          "0e0f90500b0a90e0b2e0941eceffec7f",
+          "0e0f90500b0a90e0b2e0941eceffec7f",
+          "0e0f90500b0a90e08ce89c1ecefbee7f"
+        ],
+        [
+          "54f7418001048121b2e0941eceffec7f",
+          "54f7418001048121b2e0941eceffec7f",
+          "54f74180010481218ce89c1ecefbee7f"
+        ],
+        [
+          "ec170a92a7ca1227",
+          "ec170a92a7ca1227",
+          "ec170a92a7ca1227"
+        ],
+        [
+          "ec170a92a7ca1227d30f4e1207899305",
+          "ec170a92a7ca1227d30f4e1207899305",
+          "ec170a92a7ca1227d30f4e1207899305"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-72",
+      "rgba": "4800a1ff32a79efff61686ffb39bc0ff8d309dffd5221cff61b010ff3edbf5ff7e5866ffd308feff1c0f8effd24830ffbd9d2cff01b43ffffbb5c4ff90d8e6ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "b245cfd092066622",
+          "08a9dd5ece622a7a",
+          "03d1de46ce622a7e"
+        ],
+        [
+          "ffffffffffffffff6fd9f325867232e6",
+          "ffffffffffffffff08a9dd5ece622a7a",
+          "ffffffffffffffff03d1de46ce622a7e"
+        ],
+        [
+          "0005ffffffffffff6fd9f325867232e6",
+          "0005ffffffffffff08a9dd5ece622a7a",
+          "0005ffffffffffff03d1de46ce622a7e"
+        ],
+        [
+          "fb013e46d5d4b580",
+          "fb013e46d5d4b580",
+          "fb013e46d5d4b580"
+        ],
+        [
+          "fb013e46d5d4b580db00d9e70b4d3c09",
+          "fb013e46d5d4b580db00d9e70b4d3c09",
+          "fb013e46d5d4b580db00d9e70b4d3c09"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-73",
+      "rgba": "749b5243350e1af2e3bb34062a5ba6e71a3ca74eb2af76a396699d04c26d78175c22171736e50fcef3805be0c7a371839b954e31151b767752fad3c6d4e016b7",
+      "mask": 119,
+      "blocks": [
+        [
+          "63306eb5f3f7ffff",
+          "63306eb5f3f7ffff",
+          "63306eb5f3f7ffff"
+        ],
+        [
+          "e400a500000000008cc52d2186a1aaaa",
+          "e400a500000000008cc52d2186a1aaaa",
+          "e400a50000000000c6e5f4198eb9aaaa"
+        ],
+        [
+          "f20446e2254992248cc52d2186a1aaaa",
+          "f20446e2254992248cc52d2186a1aaaa",
+          "f20446e225499224c6e5f4198eb9aaaa"
+        ],
+        [
+          "e31a3d9231499224",
+          "e31a3d9231499224",
+          "e31a3d9231499224"
+        ],
+        [
+          "e31a3d9231499224bb0e0a6230499224",
+          "e31a3d9231499224bb0e0a6230499224",
+          "e31a3d9231499224bb0e0a6230499224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-74",
+      "rgba": "c5a834d6032a8ff2cd5f0a19ab0e1fb0d507351a01fb4fdd78ef41e7aa430fbd68af4000d6738206e73fee82f523102e8d294c766c774f46d9599b2a4c60b9e8",
+      "mask": 1911,
+      "blocks": [
+        [
+          "273739c9fac3dfff",
+          "273739c9fac3dfff",
+          "ca071de2fac3dfff"
+        ],
+        [
+          "ed01d20e000800006ef1480faeb48baa",
+          "ed01d20e000800006ef1480faeb48baa",
+          "ed01d20e000800001de2ca07aeb68baa"
+        ],
+        [
+          "f200c273210993246ef1480faeb48baa",
+          "f200c273210993246ef1480faeb48baa",
+          "f200c273210993241de2ca07aeb68baa"
+        ],
+        [
+          "e7018aa230159224",
+          "e7018aa230159224",
+          "e7018aa230159224"
+        ],
+        [
+          "e7018aa230159224fb077b1320ab9324",
+          "e7018aa230159224fb077b1320ab9324",
+          "e7018aa230159224fb077b1320ab9324"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-75",
+      "rgba": "e38ae564dfe935ed13e6c29b27a1166ef77d5cf1d2b09c920b638c524a234450fa6f7ae3c7ad3a6ba2be835cb72f637980004854044c44a888a457c5f7c3958b",
+      "mask": 42405,
+      "blocks": [
+        [
+          "d00c11edcff7fd73",
+          "d00c11edcff7fd73",
+          "680212f6eff7fd73"
+        ],
+        [
+          "060990500d05a08054e50b13b862a826",
+          "060990500d05a08054e50b13b862a826",
+          "060990500d05a08012f66802b862a826"
+        ],
+        [
+          "e3500f9326c813a654e50b13b862a826",
+          "e3500f9326c813a654e50b13b862a826",
+          "e3500f9326c813a612f66802b862a826"
+        ],
+        [
+          "fa044a12c5c89204",
+          "fa044a12c5c89204",
+          "fa044a12c5c89204"
+        ],
+        [
+          "fa044a12c5c8920423e64480024301a1",
+          "fa044a12c5c8920423e64480024301a1",
+          "fa044a12c5c8920423e64480024301a1"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-76",
+      "rgba": "306ef4fffb55aaff2f9c94ffa2b954ffc43a54ff236185fffe1b90ff543e5dff792ff0ff20c07cff52d2f0ff73e1faffe9fe2affec5af6ff519684ff6a7386ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "2eebb73c91c457f8",
+          "2fe3b63491c457f0",
+          "f2f8ef25d3ced6f3"
+        ],
+        [
+          "ffffffffffffffff2eebb73c91c457f8",
+          "ffffffffffffffff2fe3b63491c457f0",
+          "fffffffffffffffff2f8ef25d3ced6f3"
+        ],
+        [
+          "0005ffffffffffff2eebb73c91c457f8",
+          "0005ffffffffffff2fe3b63491c457f0",
+          "0005fffffffffffff2f8ef25d3ced6f3"
+        ],
+        [
+          "fe2047b8c08d2bd9",
+          "fe2047b8c08d2bd9",
+          "fe2047b8c08d2bd9"
+        ],
+        [
+          "fe2047b8c08d2bd9fe1b3577e79f04b3",
+          "fe2047b8c08d2bd9fe1b3577e79f04b3",
+          "fe2047b8c08d2bd9fe1b3577e79f04b3"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-77",
+      "rgba": "c1082ab064bc12257a5acddc8094b6f00c019ffc2aa0190eb7195bd732594de927ece0de47e2c41424268b5d051be541dfc59f8a26faa787280d47b4433a4ef8",
+      "mask": 119,
+      "blocks": [
+        [
+          "764188b8cddcffff",
+          "764188b8cddcffff",
+          "130845b8eddcffff"
+        ],
+        [
+          "2a0d1f0d000000000f79634d8484aaaa",
+          "2a0d1f0d000000000f79634d8484aaaa",
+          "2a0d1f0d00000000c2651308f2f9ffff"
+        ],
+        [
+          "fc0ebb82284992240f79634d8484aaaa",
+          "fc0ebb82284992240f79634d8484aaaa",
+          "fc0ebb8228499224c2651308f2f9ffff"
+        ],
+        [
+          "c10c289323499224",
+          "c10c289323499224",
+          "c10c289323499224"
+        ],
+        [
+          "c10c289323499224bc0141133d499224",
+          "c10c289323499224bc0141133d499224",
+          "c10c289323499224bc0141133d499224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-78",
+      "rgba": "6d83f5733db40d18a3938056f16cadb24f92028d4ceb6b7e285dbdd47a23163056a5e21bd5538bdde4539c418713fc9b85c3c6d9999a103ed703f51d249248a8",
+      "mask": 1911,
+      "blocks": [
+        [
+          "8054d47affdcf7ff",
+          "8054d47affdcf7ff",
+          "8054b1d2ffecf7ff"
+        ],
+        [
+          "1705780cd2040000b893a33da4ad80aa",
+          "1705780cd2040000b893a33da4ad80aa",
+          "1705780cd20400001e6c823da4ada8aa"
+        ],
+        [
+          "dd188d4322c19324b893a33da4ad80aa",
+          "dd188d4322c19324b893a33da4ad80aa",
+          "dd188d4322c193241e6c823da4ada8aa"
+        ],
+        [
+          "28e41321014a0000",
+          "28e41321014a0000",
+          "28e41321014a0000"
+        ],
+        [
+          "28e41321014a0000eb536653244c9224",
+          "28e41321014a0000eb536653244c9224",
+          "28e41321014a0000eb536653244c9224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-79",
+      "rgba": "36f6f53025a196d9a8f15f8d8136402cc141379e8c934aa7b20afc7a78e30672ca613c7623d7bdb153e42d939f03632a2aa1da1ab52c0c721fe7b10eec3c6968",
+      "mask": 42405,
+      "blocks": [
+        [
+          "a7672a9deff7cfff",
+          "497fe999cffbcfff",
+          "898c8ca7dff3efff"
+        ],
+        [
+          "0308a0700709706045caf047fdfbfc33",
+          "0308a0700709706045caf047fdfbfc33",
+          "0308a0700709706061b1be3ffdbbfeb3"
+        ],
+        [
+          "a730c912848c12a645caf047fdfbfc33",
+          "a730c912848c12a645caf047fdfbfc33",
+          "a730c912848c12a661b1be3ffdbbfeb3"
+        ],
+        [
+          "ec360993a6ca9305",
+          "ec360993a6ca9305",
+          "ec360993a6ca9305"
+        ],
+        [
+          "ec360993a6ca9305f62c0812468e92e4",
+          "ec360993a6ca9305f62c0812468e92e4",
+          "ec360993a6ca9305f62c0812468e92e4"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-80",
+      "rgba": "22a88aff67bfa4ff677f3aff61f692ffb450a0ff2c3743ff996c87ffe42650ff1e535effa73f8fff4970c5ff5d3e49ff6ea667ffceb7d9ff5e8efdff3f65a5ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "8971d86d67223ad7",
+          "8971d86d67223ad7",
+          "bacdc829bbe679e3"
+        ],
+        [
+          "ffffffffffffffff8971d86d67223ad7",
+          "ffffffffffffffff8971d86d67223ad7",
+          "ffffffffffffffffbacdc829bbe679e3"
+        ],
+        [
+          "0005ffffffffffff8971d86d67223ad7",
+          "0005ffffffffffff8971d86d67223ad7",
+          "0005ffffffffffffbacdc829bbe679e3"
+        ],
+        [
+          "e41e69bd10995df9",
+          "e41e69bd10995df9",
+          "e41e69bd10995df9"
+        ],
+        [
+          "e41e69bd10995df9f6265cf13bbecfd1",
+          "e41e69bd10995df9f6265cf13bbecfd1",
+          "e41e69bd10995df9f6265cf13bbecfd1"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-81",
+      "rgba": "ada18324c7b092e43c5f88d373fed33bc911fb6d54876920a5f4a1f699b87e9fdc1343ddb8302fa235124bdfcef84836b0eabf60498bf626f55510fca2c0e1e6",
+      "mask": 119,
+      "blocks": [
+        [
+          "f13a93b6c7dfffff",
+          "f13a93b6c7dfffff",
+          "f13a94a7c7dfffff"
+        ],
+        [
+          "d20c260e000000004e979990ba89aaaa",
+          "d20c260e000000004e979990ba89aaaa",
+          "d20c260e000000009fc094a7ffdcffff"
+        ],
+        [
+          "f62091d2204992244e979990ba89aaaa",
+          "f62091d2204992244e979990ba89aaaa",
+          "f62091d2204992249fc094a7ffdcffff"
+        ],
+        [
+          "3cc90d1015000000",
+          "3cc90d1015000000",
+          "3cc90d1015000000"
+        ],
+        [
+          "3cc90d1015000000f4119c1322499224",
+          "3cc90d1015000000f4119c1322499224",
+          "3cc90d1015000000f4119c1322499224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-82",
+      "rgba": "689781b32fee7f799c27a2342e496e8b70de3ddaf815271c5348c63359601202019a8bdc1670c5c5930009b418de7d65a4f37c2fea64f1fea091e2cc8ee666ac",
+      "mask": 1911,
+      "blocks": [
+        [
+          "351522a2fefed0ff",
+          "351522a2fefed0ff",
+          "981b0190fefed0ff"
+        ],
+        [
+          "7b032d03cd0b000066c8b425e7f3c5ff",
+          "7b032d03cd0b000066c8b425e7f3c5ff",
+          "7b032d03cd0b0000a5f06f37e7f3cdff"
+        ],
+        [
+          "dc1cea833c90922466c8b425e7f3c5ff",
+          "dc1cea833c90922466c8b425e7f3c5ff",
+          "dc1cea833c909224a5f06f37e7f3cdff"
+        ],
+        [
+          "f8013d5338399324",
+          "f8013d5338399324",
+          "f8013d5338399324"
+        ],
+        [
+          "f8013d533839932415ee0c10089c0100",
+          "f8013d533839932415ee0c10089c0100",
+          "f8013d533839932415ee0c10089c0100"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-83",
+      "rgba": "f2bb556ac8a0d7bbc567dd8e4b94db9fe231371fbf7ff127fa41cd7c2b3eaec2dfb9c4acbbf5ee621c189e2a86e39a3fa10eb9d659ac84eba87250994763edcb",
+      "mask": 42405,
+      "blocks": [
+        [
+          "983ad6ddef3ffd3b",
+          "983ad6ddef3ffd3b",
+          "f529d8ddef3ffd3b"
+        ],
+        [
+          "060820b00a02e0c0b5edd621a86a98ee",
+          "060820b00a02e0c0b5edd621a86a98ee",
+          "060820b00a02e0c0caedd318a86a98ea"
+        ],
+        [
+          "eb270e93444b1244b5edd621a86a98ee",
+          "eb270e93444b1244b5edd621a86a98ee",
+          "eb270e93444b1244caedd318a86a98ea"
+        ],
+        [
+          "f21c8892254a12e7",
+          "f21c8892254a12e7",
+          "f21c8892254a12e7"
+        ],
+        [
+          "f21c8892254a12e7bb184813c64812a5",
+          "f21c8892254a12e7bb184813c64812a5",
+          "f21c8892254a12e7bb184813c64812a5"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-84",
+      "rgba": "18c511ffb02f5aff78dda8ffc285bcff8d057bff40d483fff19a9aff5b381dff61780aff635d7dffdf33b7ff9ad47cff5a4726ff437a9affc4edf4ff8049a3ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "dedda54aad6fadcd",
+          "dedda54aad6fadcd",
+          "7ec7c459ad6badcd"
+        ],
+        [
+          "ffffffffffffffffdedda54aad6fadcd",
+          "ffffffffffffffffdedda54aad6fadcd",
+          "ffffffffffffffff7ec7c459ad6badcd"
+        ],
+        [
+          "0005ffffffffffffdedda54aad6fadcd",
+          "0005ffffffffffffdedda54aad6fadcd",
+          "0005ffffffffffff7ec7c459ad6badcd"
+        ],
+        [
+          "f11859c7c3b6e8ab",
+          "f11859c7c3b6e8ab",
+          "f11859c7c3b6e8ab"
+        ],
+        [
+          "f11859c7c3b6e8abed053a18cded65c2",
+          "f11859c7c3b6e8abed053a18cded65c2",
+          "f11859c7c3b6e8abed053a18cded65c2"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-85",
+      "rgba": "9bb87df826336d3c91210b609f960b85f58e4abca9dabbc0cd07c0f1c69cb84852c14347263c3f030330d378c186e70766b584dac22eb45454073934a7ea5059",
+      "mask": 119,
+      "blocks": [
+        [
+          "71aeb3e0fcd2ffff",
+          "71aeb3e0fcd2ffff",
+          "d7ae57c8fcd2ffff"
+        ],
+        [
+          "4f06bb0e0000000094d6a97096b2aaaa",
+          "4f06bb0e0000000094d6a97096b2aaaa",
+          "4f06bb0e00000000d7ae01919eb2aaaa"
+        ],
+        [
+          "f83cc8b32149922494d6a97096b2aaaa",
+          "f83cc8b32149922494d6a97096b2aaaa",
+          "f83cc8b321499224d7ae01919eb2aaaa"
+        ],
+        [
+          "26f5041116000000",
+          "26f5041116000000",
+          "26f5041116000000"
+        ],
+        [
+          "26f504111600000007da95c000000000",
+          "26f504111600000007da95c000000000",
+          "26f504111600000007da95c000000000"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-86",
+      "rgba": "ba763ddfb0311f80f6a34ccf49834b59c947e9d908a39db507171e0c37d94de0c82cd01fd44213c1391003028165d3969b8e5d78b9d1355c41e943dd915b1aa4",
+      "mask": 1911,
+      "blocks": [
+        [
+          "792ce7d2d5f2f7ff",
+          "792ce7d2d5f2f7ff",
+          "130d02d2d5f2f7ff"
+        ],
+        [
+          "8d0cbd01b200000031e382198a9c98aa",
+          "8d0cbd01b200000031e382198a9c98aa",
+          "8d0cbd01b20000005cc2c408ae9c9caa"
+        ],
+        [
+          "df0220022557922431e382198a9c98aa",
+          "df0220022557922431e382198a9c98aa",
+          "df022002255792245cc2c408ae9c9caa"
+        ],
+        [
+          "f6071ba224d29324",
+          "f6071ba224d29324",
+          "f6071ba224d29324"
+        ],
+        [
+          "f6071ba224d29324a310335224779224",
+          "f6071ba224d29324a310335224779224",
+          "f6071ba224d29324a310335224779224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-87",
+      "rgba": "4d9b871d87d0067cb088e1a6a08b148cafb32781a92f54435e7e3eb48ee5fc48c8519d6e534345079f2384ebead4b7dd83e868703c205651c3d59bc6eaa638b8",
+      "mask": 42405,
+      "blocks": [
+        [
+          "b6a227e5cfffcf7f",
+          "b6a227e5cfffcf7f",
+          "5bac27e5cfffef7f"
+        ],
+        [
+          "020a4040060e50b03eaf8b89ab269be6",
+          "020a4040060e50b03eaf8b89ab269be6",
+          "020a4040060e50b03f8f0a39ab26bbe6"
+        ],
+        [
+          "1deb0001414300a13eaf8b89ab269be6",
+          "1deb0001414300a13eaf8b89ab269be6",
+          "1deb0001414300a13f8f0a39ab26bbe6"
+        ],
+        [
+          "ea3ccf12a60a9304",
+          "ea3ccf12a60a9304",
+          "ea3ccf12a60a9304"
+        ],
+        [
+          "ea3ccf12a60a9304e5200c93074e9264",
+          "ea3ccf12a60a9304e5200c93074e9264",
+          "ea3ccf12a60a9304e5200c93074e9264"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-88",
+      "rgba": "28dee9ff2ad974ff032d6bff2f41ceffbb2364ff13bda0ff6b5e3dff59cf16ff47f21fffbacf1fff337d62ffdb0347ffe08ab3ff064195ff1bbaa6ff9a9842ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "c7c9120ef5e43b9e",
+          "aac83026f5e43dde",
+          "29d8fc2efde43b9e"
+        ],
+        [
+          "ffffffffffffffffc7c9120ef5e43b9e",
+          "ffffffffffffffffaac83026f5e43dde",
+          "ffffffffffffffff29d8fc2efde43b9e"
+        ],
+        [
+          "0005ffffffffffffc7c9120ef5e43b9e",
+          "0005ffffffffffffaac83026f5e43dde",
+          "0005ffffffffffff29d8fc2efde43b9e"
+        ],
+        [
+          "e0037faeb796817c",
+          "e0037faeb796817c",
+          "e0037faeb796817c"
+        ],
+        [
+          "e0037faeb796817cf203d2fd5510438f",
+          "e0037faeb796817cf203d2fd5510438f",
+          "e0037faeb796817cf203d2fd5510438f"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-89",
+      "rgba": "c7fe4a5ebbc2f3942544778d8429d631fccddb53e89d9b2bd32299ca173148aba7b6459eb1fabaf2d96b2671528b527d80594e4f9bec7b4a803b95f6828e7712",
+      "mask": 119,
+      "blocks": [
+        [
+          "2d491cddc7efffff",
+          "2d491cddc7efffff",
+          "2e221ebec7efffff"
+        ],
+        [
+          "9608350c0000000096e60f6190b8aaaa",
+          "9608350c0000000096e60f6190b8aaaa",
+          "9608350c000000007bfe2e229ab8aaaa"
+        ],
+        [
+          "ca2b1ee32049922496e60f6190b8aaaa",
+          "ca2b1ee32049922496e60f6190b8aaaa",
+          "ca2b1ee3204992247bfe2e229ab8aaaa"
+        ],
+        [
+          "fc255b0229499224",
+          "fc255b0229499224",
+          "fc255b0229499224"
+        ],
+        [
+          "fc255b0229499224fe22d83326499224",
+          "fc255b0229499224fe22d83326499224",
+          "fc255b0229499224fe22d83326499224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-90",
+      "rgba": "76923d767b127034b78acd029c77323c15b087c3a0d444be8f814fa8be3a0eb302366056a5faf3912d6d84e79b0f19f4326affba3b27a4374f00c599fda94754",
+      "mask": 1911,
+      "blocks": [
+        [
+          "6c4cf8b7ffc8c7ff",
+          "6c4cf8b7ffc8c7ff",
+          "702bdea7ffc8c7ff"
+        ],
+        [
+          "3700bb0a950e0000f8bfc931a7bbb1aa",
+          "3700bb0a950e0000f8bfc931a7bbb1aa",
+          "3700bb0a950e0000dea7ac01afbbb1aa"
+        ],
+        [
+          "e70274222d259224f8bfc931a7bbb1aa",
+          "e70274222d259224f8bfc931a7bbb1aa",
+          "e70274222d259224dea7ac01afbbb1aa"
+        ],
+        [
+          "b7021c722d919324",
+          "b7021c722d919324",
+          "b7021c722d919324"
+        ],
+        [
+          "b7021c722d919324fa120c3335479324",
+          "b7021c722d919324fa120c3335479324",
+          "b7021c722d919324fa120c3335479324"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-91",
+      "rgba": "4218c7f5909ca4c1c5519d76fffb7d8aa314ef3408f0bf64cb05638df6def4ef77f1d448c8dd6d00b4a97a484d42cc497a6f1f2e84039c1f377b83971f715ea8",
+      "mask": 42405,
+      "blocks": [
+        [
+          "3232fef6fc7fff3f",
+          "3232fef6fc7fff3f",
+          "8b23fef6fc7fff3f"
+        ],
+        [
+          "0e0760e0040420a0588fb268b922a8e6",
+          "0e0760e0040420a0588fb268b922a8e6",
+          "0e0760e0040420a0fef63380b92aaa66"
+        ],
+        [
+          "1ff5c18021820080588fb268b922a8e6",
+          "1ff5c18021820080588fb268b922a8e6",
+          "1ff5c18021820080fef63380b92aaa66"
+        ],
+        [
+          "f6088e9204cd12e6",
+          "f6088e9204cd12e6",
+          "f6088e9204cd12e6"
+        ],
+        [
+          "f6088e9204cd12e6f1038f1344c892a4",
+          "f6088e9204cd12e6f1038f1344c892a4",
+          "f6088e9204cd12e6f1038f1344c892a4"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-92",
+      "rgba": "ef9217ff0dbfa9ff95f36dffbfe414ffb357d6ff1e6a5eff5bbf5cff3858a1ff2f2bceff2cd1bfffb48615ffed070cff480494ff672067ff33edc4ff4abd22ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "152c43cc61225088",
+          "62d8b62ef6ff27da",
+          "41e87837b6ff27da"
+        ],
+        [
+          "ffffffffffffffff20ebb62cb47f25df",
+          "ffffffffffffffff62d8b62ef6ff27da",
+          "ffffffffffffffff41e87837b6ff27da"
+        ],
+        [
+          "0005ffffffffffff20ebb62cb47f25df",
+          "0005ffffffffffff62d8b62ef6ff27da",
+          "0005ffffffffffff41e87837b6ff27da"
+        ],
+        [
+          "ef0d08b5fbffe0de",
+          "ef0d08b5fbffe0de",
+          "ef0d08b5fbffe0de"
+        ],
+        [
+          "ef0d08b5fbffe0de04f36cb2752a01a5",
+          "ef0d08b5fbffe0de04f36cb2752a01a5",
+          "ef0d08b5fbffe0de04f36cb2752a01a5"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-93",
+      "rgba": "e35f4cfffe9dcec96cf15a4334f470d5c7dea23aaae1abf66105638acae581f674a6563110641ff75c56117dded64094abc536c5cd3872a49c2a8d0cf8e46708",
+      "mask": 119,
+      "blocks": [
+        [
+          "2978f5ddf6c7ffff",
+          "2978f5ddf6c7ffff",
+          "2c6015aff6c7ffff"
+        ],
+        [
+          "cf04e3080000000093be8a888390aaaa",
+          "cf04e3080000000093be8a888390aaaa",
+          "cf04e30800000000f4c62c608290aaaa"
+        ],
+        [
+          "3af62f800c00000093be8a888390aaaa",
+          "3af62f800c00000093be8a888390aaaa",
+          "3af62f800c000000f4c62c608290aaaa"
+        ],
+        [
+          "fe6142b226499224",
+          "fe6142b226499224",
+          "fe6142b226499224"
+        ],
+        [
+          "fe6142b22649922405f1639000000000",
+          "fe6142b22649922405f1639000000000",
+          "fe6142b22649922405f1639000000000"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-94",
+      "rgba": "2a0bfff57cbc330fb836b68bfb2416e45d378ea7a0defead189e7a8b3a446cddbda22cb4cc89881bdb0a8e8ab04e3f41f3d56080cd8d9230b56aa8128d7ac2f5",
+      "mask": 1911,
+      "blocks": [
+        [
+          "bf3847cdeceaedff",
+          "bf3847cdeceaedff",
+          "7f2805bdeceaedff"
+        ],
+        [
+          "1e08aa082b08000049a61d68b1abb8aa",
+          "1e08aa082b08000049a61d68b1abb8aa",
+          "1e08aa082b08000005bd7f28b1aba8aa"
+        ],
+        [
+          "f50f08b3310b932449a61d68b1abb8aa",
+          "f50f08b3310b932449a61d68b1abb8aa",
+          "f50f08b3310b932405bd7f28b1aba8aa"
+        ],
+        [
+          "db18a7e225129224",
+          "db18a7e225129224",
+          "db18a7e225129224"
+        ],
+        [
+          "db18a7e225129224de0ad1732c639224",
+          "db18a7e225129224de0ad1732c639224",
+          "db18a7e225129224de0ad1732c639224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-95",
+      "rgba": "34b739ec1ca46c51b421f0a4294e968be68d2dd8c6f5c25eefe63bf47c2cfd652f7f3504372665744a54fbd5da215a1605e76242c93b8ef4fd076ca1ce8e9179",
+      "mask": 42405,
+      "blocks": [
+        [
+          "a735da91dcffdff7",
+          "a735da91dcffdff7",
+          "a7351db1dcffeffb"
+        ],
+        [
+          "0e0a6060000de0707fa9c965892ea9ea",
+          "0e0a6060000de0707fa9c965892ea9ea",
+          "0e0a6060000de0701db1a735892ea9aa"
+        ],
+        [
+          "f404c892a68912a47fa9c965892ea9ea",
+          "f404c892a68912a47fa9c965892ea9ea",
+          "f404c892a68912a41db1a735892ea9aa"
+        ],
+        [
+          "ce2f8912a4c91304",
+          "ce2f8912a4c91304",
+          "ce2f8912a4c91304"
+        ],
+        [
+          "ce2f8912a4c91304f5214b12248d9387",
+          "ce2f8912a4c91304f5214b12248d9387",
+          "ce2f8912a4c91304f5214b12248d9387"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-96",
+      "rgba": "67bf82ff76ce98ff07354ffff0307eff9bb9a0ffabfebfffb2493bff67a6adffec2906ff072f53fffbde3affafff73fffab79afff12eafffcbed2eff2d015cff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "d0de8a389ab20748",
+          "d0de8a389ab20748",
+          "f7af0b28dab20748"
+        ],
+        [
+          "ffffffffffffffffd0de8a389ab20748",
+          "ffffffffffffffffd0de8a389ab20748",
+          "fffffffffffffffff7af0b28dab20748"
+        ],
+        [
+          "0005ffffffffffffd0de8a389ab20748",
+          "0005ffffffffffffd0de8a389ab20748",
+          "0005fffffffffffff7af0b28dab20748"
+        ],
+        [
+          "fb076dc0ad0806e8",
+          "fb076dc0ad0806e8",
+          "fb076dc0ad0806e8"
+        ],
+        [
+          "fb076dc0ad0806e8ff01d33f78bfb023",
+          "fb076dc0ad0806e8ff01d33f78bfb023",
+          "fb076dc0ad0806e8ff01d33f78bfb023"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-97",
+      "rgba": "6e722c7af6e66c9e459672a963f5c97907f015ca4f6dd374cc4966818e8ff32f29ce7823e147423e745766cd48a060f9725b4615e5e462179977f39c0a9d4743",
+      "mask": 119,
+      "blocks": [
+        [
+          "e5066ed4e7dcffff",
+          "e5066ed4e7dcffff",
+          "630f4ccae7dcffff"
+        ],
+        [
+          "970a7c0800000000cfcb2706b289aaaa",
+          "970a7c0800000000cfcb2706b289aaaa",
+          "970a7c08000000004cca630fba89aaaa"
+        ],
+        [
+          "ca7429833c499224cfcb2706b289aaaa",
+          "ca7429833c499224cfcb2706b289aaaa",
+          "ca7429833c4992244cca630fba89aaaa"
+        ],
+        [
+          "f60785132b499224",
+          "f60785132b499224",
+          "f60785132b499224"
+        ],
+        [
+          "f60785132b499224f049460327499224",
+          "f60785132b499224f049460327499224",
+          "f60785132b499224f049460327499224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-98",
+      "rgba": "ac2d89cc0b7264e1b5d9e0c89d4d82917208f28555f1f7e95793f432fdfbe113d9ebb19ffac62727722515df638137cb1dea06ffe5059fd4507b2410caf21bfa",
+      "mask": 1911,
+      "blocks": [
+        [
+          "06509c96daf6cdff",
+          "06509c96daf6cdff",
+          "9e572371caf2dcff"
+        ],
+        [
+          "dc0ce803290d00003aa729588fa398aa",
+          "dc0ce803290d00003aa729588fa398aa",
+          "dc0ce803290d000023719e57daf6cbff"
+        ],
+        [
+          "e9278252240c92243aa729588fa398aa",
+          "e9278252240c92243aa729588fa398aa",
+          "e9278252240c922423719e57daf6cbff"
+        ],
+        [
+          "fa0bcb523b429324",
+          "fa0bcb523b429324",
+          "fa0bcb523b429324"
+        ],
+        [
+          "fa0bcb523b429324f108af1230d09324",
+          "fa0bcb523b429324f108af1230d09324",
+          "fa0bcb523b429324f108af1230d09324"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-99",
+      "rgba": "d489bfcef270a4f4937b15821a38e8a9626307398a9fa6435c043704ea47a97c022e6667c3232a1667fd6a220fd6dd6adaa2c8247e5a14d28b2384cafe205bd9",
+      "mask": 42405,
+      "blocks": [
+        [
+          "c29257ebcdffffb3",
+          "c29257ebcdffffb3",
+          "c27a57d4cdffffb3"
+        ],
+        [
+          "0c0840700602c0d032e3062cb82ab92e",
+          "0c0840700602c0d032e3062cb82ab92e",
+          "0c0840700602c0d055e26c01a82aa92e"
+        ],
+        [
+          "d9220893a74d120432e3062cb82ab92e",
+          "d9220893a74d120432e3062cb82ab92e",
+          "d9220893a74d120455e26c01a82aa92e"
+        ],
+        [
+          "fe020a1346499306",
+          "fe020a1346499306",
+          "fe020a1346499306"
+        ],
+        [
+          "fe020a1346499306fd204d13e6091227",
+          "fe020a1346499306fd204d13e6091227",
+          "fe020a1346499306fd204d13e6091227"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-100",
+      "rgba": "083e9dffa76c5fff6dcdaaff47fb4bff91baf1ff0ee3b3ff2b161aff696863ffc253eeff0cd609ffa3b4d0ff8e894affc82e0bffc1d1e2ff07e32effa3e499ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "dc9d033cefd8c491",
+          "dc9d033cefd8c491",
+          "9bbea328abd8ce33"
+        ],
+        [
+          "ffffffffffffffffdc9d033cefd8c491",
+          "ffffffffffffffffdc9d033cefd8c491",
+          "ffffffffffffffff9bbea328abd8ce33"
+        ],
+        [
+          "0005ffffffffffffdc9d033cefd8c491",
+          "0005ffffffffffffdc9d033cefd8c491",
+          "0005ffffffffffff9bbea328abd8ce33"
+        ],
+        [
+          "c80711bd9c880644",
+          "c80711bd9c880644",
+          "c80711bd9c880644"
+        ],
+        [
+          "c80711bd9c880644fb16af30a5d67849",
+          "c80711bd9c880644fb16af30a5d67849",
+          "c80711bd9c880644fb16af30a5d67849"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-101",
+      "rgba": "2cae81b217ad18dcab0d1c32d66c2a4cd3eab5d7f7640bd06d0ff8509240ff48440bbe13d8d40b54c5cc4ff9173475c0ca648769601936a39f88c95c612ad038",
+      "mask": 119,
+      "blocks": [
+        [
+          "69252ce5f0f5ffff",
+          "69252ce5f0f5ffff",
+          "631d21f3f0f6ffff"
+        ],
+        [
+          "da03cd050000000001bad464cdd1ffff",
+          "da03cd050000000001bad464cdd1ffff",
+          "da03cd050000000021f39e68ebd2ffff"
+        ],
+        [
+          "32dc0d900800000001bad464cdd1ffff",
+          "32dc0d900800000001bad464cdd1ffff",
+          "32dc0d900800000021f39e68ebd2ffff"
+        ],
+        [
+          "f717cf2234499224",
+          "f717cf2234499224",
+          "f717cf2234499224"
+        ],
+        [
+          "f717cf2234499224ea0d5b8226499224",
+          "f717cf2234499224ea0d5b8226499224",
+          "f717cf2234499224ea0d5b8226499224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-102",
+      "rgba": "c5bba958d61a846617b904daa0694ae51a4a4cab2453b502b83546f09a3ffb858d035f3f35798f5286421391c6b2a211cba5244f5d58f2c6296f669b5121fc32",
+      "mask": 1911,
+      "blocks": [
+        [
+          "2305a791cfdedfff",
+          "2305a791cfdedfff",
+          "c01da9b1cfdeefff"
+        ],
+        [
+          "650d0a0e540900004db90a05928facaa",
+          "650d0a0e540900004db90a05928facaa",
+          "650d0a0e54090000d0d0c01d92abaeaa"
+        ],
+        [
+          "f002adb2203693244db90a05928facaa",
+          "f002adb2203693244db90a05928facaa",
+          "f002adb220369324d0d0c01d92abaeaa"
+        ],
+        [
+          "d6174292283c9324",
+          "d6174292283c9324",
+          "d6174292283c9324"
+        ],
+        [
+          "d6174292283c9324bb0338d23aa19324",
+          "d6174292283c9324bb0338d23aa19324",
+          "d6174292283c9324bb0338d23aa19324"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-103",
+      "rgba": "38045822d54c206b57e9f4e6946f3d2e7fcc5aa8d9c9cf8b9aedccc098abd6e3cce7a60746197a9e30659218bee835cc71209717b7bdaaeef6efe548ed4f4571",
+      "mask": 42405,
+      "blocks": [
+        [
+          "de5ed7cdcfb7fff7",
+          "de5ed7cdcfb7fff7",
+          "5e5f59d6cfb7fff7"
+        ],
+        [
+          "020e80d00001e07078ae89588922b8e2",
+          "020e80d00001e07078ae89588922b8e2",
+          "020e80d00001e07059d62b3889a2b8a2"
+        ],
+        [
+          "ee070f1206c913a478ae89588922b8e2",
+          "ee070f1206c913a478ae89588922b8e2",
+          "ee070f1206c913a459d62b3889a2b8a2"
+        ],
+        [
+          "ed30c913854a9205",
+          "ed30c913854a9205",
+          "ed30c913854a9205"
+        ],
+        [
+          "ed30c913854a9205e9040912654813c5",
+          "ed30c913854a9205e9040912654813c5",
+          "ed30c913854a9205e9040912654813c5"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-104",
+      "rgba": "807686ff5c2c58ff816c33ffb4b41cff53a76dff98f042ff186ca6ffc914beff7d6fe3ffd90288ffc30202ff47052bffbb4f6cffda84ecff0c5863ffbf7846ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "687358b202600506",
+          "599c8171feaa58f2",
+          "3ddc2548febb5af2"
+        ],
+        [
+          "fffffffffffffffffa8c4281feaa5cf3",
+          "ffffffffffffffff599c8171feaa58f2",
+          "ffffffffffffffff3ddc2548febb5af2"
+        ],
+        [
+          "0005fffffffffffffa8c4281feaa5cf3",
+          "0005ffffffffffff599c8171feaa58f2",
+          "0005ffffffffffff3ddc2548febb5af2"
+        ],
+        [
+          "da0c2ce545842c44",
+          "da0c2ce545842c44",
+          "da0c2ce545842c44"
+        ],
+        [
+          "da0c2ce545842c44f0027d37f44d62b6",
+          "da0c2ce545842c44f0027d37f44d62b6",
+          "da0c2ce545842c44f0027d37f44d62b6"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-105",
+      "rgba": "5df31644f658017a5727921c19566ffb20297c3bc0ca1f5824abcd68b4d930de8b92224677d59b473524ed9b247b39f62eb411dfa883f70757351afa1bfffd80",
+      "mask": 119,
+      "blocks": [
+        [
+          "00000000ffffffff",
+          "00000000ffffffff",
+          "00000000ffffffff"
+        ],
+        [
+          "740253060000000081c5f3329291aaaa",
+          "740253060000000081c5f3329291aaaa",
+          "7402530600000000c0f25925b39baaaa"
+        ],
+        [
+          "1c7a0b301600000081c5f3329291aaaa",
+          "1c7a0b301600000081c5f3329291aaaa",
+          "1c7a0b3016000000c0f25925b39baaaa"
+        ],
+        [
+          "f620869325499224",
+          "f620869325499224",
+          "f620869325499224"
+        ],
+        [
+          "f62086932549922427f3118012000000",
+          "f62086932549922427f3118012000000",
+          "f62086932549922427f3118012000000"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-106",
+      "rgba": "aaf2126f3e88e7ff796a1d9b8c85d73ba8af25c6b3c3b024a579b20c69aeea74f7a0d542ce4b66aa9566fae2b38a33174dced07f4c6c690864f50baec2ac8c73",
+      "mask": 1911,
+      "blocks": [
+        [
+          "bd6ba7a3d3fdc7ff",
+          "bd6ba7a3d3fdc7ff",
+          "5c4464a5d3fdcbff"
+        ],
+        [
+          "f7092c01a40d000024adff93c4fcdbff",
+          "f7092c01a40d000024adff93c4fcdbff",
+          "f7092c01a40d000082af3e93e4fedfff"
+        ],
+        [
+          "ff0c05b3279e922424adff93c4fcdbff",
+          "ff0c05b3279e922424adff93c4fcdbff",
+          "ff0c05b3279e922482af3e93e4fedfff"
+        ],
+        [
+          "f73e8c4332589324",
+          "f73e8c4332589324",
+          "f73e8c4332589324"
+        ],
+        [
+          "f73e8c4332589324f24be8c339cc9324",
+          "f73e8c4332589324f24be8c339cc9324",
+          "f73e8c4332589324f24be8c339cc9324"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-107",
+      "rgba": "924c1fac8d52de9e378a669d27ce07df0e9ef7b3f7f4dfdb7c2524bcf2db7dfcc7fd9113c8f53f463ec9969adcc6468137da5a72f1f6512a5a60403c76c1ad83",
+      "mask": 42405,
+      "blocks": [
+        [
+          "aa4b77d7cc77efbf",
+          "aa4b77d7cc77efbf",
+          "64929bf7ccb7efbf"
+        ],
+        [
+          "0a09d0f001092080b2dfec4b9922b8e2",
+          "0a09d0f001092080b2dfec4b9922b8e2",
+          "0a09d0f0010920809bf74c3c99a2baea"
+        ],
+        [
+          "fc130b13050993a7b2dfec4b9922b8e2",
+          "fc130b13050993a7b2dfec4b9922b8e2",
+          "fc130b13050993a79bf74c3c99a2baea"
+        ],
+        [
+          "f7374d12044b12c4",
+          "f7374d12044b12c4",
+          "f7374d12044b12c4"
+        ],
+        [
+          "f7374d12044b12c4fd4c891344c81264",
+          "f7374d12044b12c4fd4c891344c81264",
+          "f7374d12044b12c4fd4c891344c81264"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-108",
+      "rgba": "03e5d6ff07ab09ff72044cff05b139ff17e3fffff2d319ffccadc5ffe68243ff7c2fbdff7008fbff19a7ecff2f1283ffb6a6daffa67028ff5ba68dff3d2b86ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "7d0dc7b298648aa6",
+          "7d0dc7b298648aa6",
+          "83ee1f1fe921dffb"
+        ],
+        [
+          "ffffffffffffffffc2bb3b2ce931d7f3",
+          "ffffffffffffffffc2bb3b2ce931d7f3",
+          "ffffffffffffffff83ee1f1fe921dffb"
+        ],
+        [
+          "0005ffffffffffffc2bb3b2ce931d7f3",
+          "0005ffffffffffffc2bb3b2ce931d7f3",
+          "0005ffffffffffff83ee1f1fe921dffb"
+        ],
+        [
+          "f203497308ecbfd5",
+          "f203497308ecbfd5",
+          "f203497308ecbfd5"
+        ],
+        [
+          "f203497308ecbfd5e50458068dcfb2ee",
+          "f203497308ecbfd5e50458068dcfb2ee",
+          "f203497308ecbfd5e50458068dcfb2ee"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-109",
+      "rgba": "9f1373ca6a4c1802e25137d61e7efa7862cf9c125caf3300041e5ff8b282d505e67238122b58308d6df345024c692d11b41a2857d0dda3998f8c2eba6e549675",
+      "mask": 119,
+      "blocks": [
+        [
+          "8d1028eadecfffff",
+          "8d1028eadecfffff",
+          "ec0087dadecfffff"
+        ],
+        [
+          "0c0d010f0000000008914e3ec8edffff",
+          "0c0d010f00000000a879af5ec0cdffff",
+          "0c0d010f000000007366ec00af98aaaa"
+        ],
+        [
+          "f8008af22049922408914e3ec8edffff",
+          "f8008af220499224a879af5ec0cdffff",
+          "f8008af2204992247366ec00af98aaaa"
+        ],
+        [
+          "e2042bd226499224",
+          "e2042bd226499224",
+          "e2042bd226499224"
+        ],
+        [
+          "e2042bd226499224cf13b10325499224",
+          "e2042bd226499224cf13b10325499224",
+          "e2042bd226499224cf13b10325499224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-110",
+      "rgba": "71ce99279ce76ed742e4c6c2258c2a1c73024762ec93b6b227728326dffa3cce955c71ff31536a229c96739f95ebd818f5ee5a540a7601970b39c2e521e45c2d",
+      "mask": 1911,
+      "blocks": [
+        [
+          "b55750b4cbf7ddff",
+          "b55750b4cbf7ddff",
+          "184796eccbf7eeff"
+        ],
+        [
+          "d20ba6022f090000738eca5080b1afaa",
+          "d20ba6022f090000738eca5080b1afaa",
+          "d20ba6022f09000009701847dffcfaff"
+        ],
+        [
+          "ff22d1e225089324738eca5080b1afaa",
+          "ff22d1e225089324738eca5080b1afaa",
+          "ff22d1e22508932409701847dffcfaff"
+        ],
+        [
+          "ec27e553240c9324",
+          "ec27e553240c9324",
+          "ec27e553240c9324"
+        ],
+        [
+          "ec27e553240c9324e702021236f59224",
+          "ec27e553240c9324e702021236f59224",
+          "ec27e553240c9324e702021236f59224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-111",
+      "rgba": "3593d7a9752c197fe7f6b101ad7a7570089d84d009d58a7f33499c9e80ec3021ca275df1b0921faadd10f0f7ee9f0fbb7304a2293fb269f0f73b585f147a1c3d",
+      "mask": 42405,
+      "blocks": [
+        [
+          "133df4d0fcffddf3",
+          "133df4d0fcffddf3",
+          "8d459dd8feffdef3"
+        ],
+        [
+          "0a0070200e0fe040dbf04b46bb668a66",
+          "0a0070200e0fe040dbf04b46bb668a66",
+          "0a0070200e0fe0409dd8b10ebb668a66"
+        ],
+        [
+          "f7014b12e60812c4dbf04b46bb668a66",
+          "f7014b12e60812c4dbf04b46bb668a66",
+          "f7014b12e60812c49dd8b10ebb668a66"
+        ],
+        [
+          "e7090f92840a1227",
+          "e7090f92840a1227",
+          "e7090f92840a1227"
+        ],
+        [
+          "e7090f92840a1227f6100c12054f92a5",
+          "e7090f92840a1227f6100c12054f92a5",
+          "e7090f92840a1227f6100c12054f92a5"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-112",
+      "rgba": "73da3dffb371fcff1d7b76ff0b214dff6fab95ffc3a643ff3be606ffe0bde3ff97472dff358886ff3fa213ff59f518ff341a72ff374fb6ff0d755bff93c5d5ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "9aac452c731a5f1b",
+          "9aac452c731a5f1b",
+          "fcdd09097a3affbd"
+        ],
+        [
+          "ffffffffffffffff9aac452c731a5f1b",
+          "ffffffffffffffff9aac452c731a5f1b",
+          "fffffffffffffffffcdd09097a3affbd"
+        ],
+        [
+          "0005ffffffffffff9aac452c731a5f1b",
+          "0005ffffffffffff9aac452c731a5f1b",
+          "0005fffffffffffffcdd09097a3affbd"
+        ],
+        [
+          "0be02bb02a942681",
+          "0be02bb02a942681",
+          "0be02bb02a942681"
+        ],
+        [
+          "0be02bb02a942681f51a6a3362271177",
+          "0be02bb02a942681f51a6a3362271177",
+          "0be02bb02a942681f51a6a3362271177"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-113",
+      "rgba": "5c2f01a7cec113027f925c2320f75c5246572b5532cd58ebdc1fb72ec446f3aa05bc55f9a61e2fb8c3347930f9a5b845f09fb68b115688de25362d28f17da629",
+      "mask": 119,
+      "blocks": [
+        [
+          "6b368059fdf3ffff",
+          "6b368059fdf3ffff",
+          "6b368059fdf3ffff"
+        ],
+        [
+          "0a02e50300000000b2e0a345bf87aaaa",
+          "0a02e50300000000b2e0a345bf87aaaa",
+          "0a02e5030000000016d96b36bf87aaaa"
+        ],
+        [
+          "eb02cb533c499224b2e0a345bf87aaaa",
+          "eb02cb533c499224b2e0a345bf87aaaa",
+          "eb02cb533c49922416d96b36bf87aaaa"
+        ],
+        [
+          "dc3256f320499224",
+          "dc3256f320499224",
+          "dc3256f320499224"
+        ],
+        [
+          "dc3256f320499224cd1fc76224499224",
+          "dc3256f320499224cd1fc76224499224",
+          "dc3256f320499224cd1fc76224499224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-114",
+      "rgba": "063a532954641cd40d133aa0d29f94ffb11556d08949308bb5d69af80ca3b6e031ecf165e64b7b8e2cff39b887f190b9d497fb63499badfc1202fabfac13ca74",
+      "mask": 1911,
+      "blocks": [
+        [
+          "0870ac86cbd8dbff",
+          "0870ac86cbd8dbff",
+          "a710b3b6cbdaebff"
+        ],
+        [
+          "c2098c0f860b0000f76fa76195a5acaa",
+          "c2098c0f860b0000f76fa76195a5acaa",
+          "c2098c0f860b00005d37a7109dadacaa"
+        ],
+        [
+          "f82911a322ee9224f76fa76195a5acaa",
+          "f82911a322ee9224f76fa76195a5acaa",
+          "f82911a322ee92245d37a7109dadacaa"
+        ],
+        [
+          "06e61850168a0000",
+          "06e61850168a0000",
+          "06e61850168a0000"
+        ],
+        [
+          "06e61850168a0000ff1377122b329224",
+          "06e61850168a0000ff1377122b329224",
+          "06e61850168a0000ff1377122b329224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-115",
+      "rgba": "41d1c6e06cf23e64826320de9fc45833ac22e29ccff990e295ab54dd478b5aa71dd2cc0d433ff19564dac2e0b4ac10c30562701234280592991bd19a8ee75271",
+      "mask": 42405,
+      "blocks": [
+        [
+          "0039f57eedb7dff3",
+          "0039f57eedb7dff3",
+          "4131d2cfeeb7dff3"
+        ],
+        [
+          "0d0dd0a0010d9070366fe051b8e288a6",
+          "0d0dd0a0010d9070366fe051b8e288a6",
+          "0d0dd0a0010d9070d8664131b8e288a6"
+        ],
+        [
+          "e20d0812640912a6366fe051b8e288a6",
+          "e20d0812640912a6366fe051b8e288a6",
+          "e20d0812640912a6d8664131b8e288a6"
+        ],
+        [
+          "1dcf028140c00081",
+          "1dcf028140c00081",
+          "1dcf028140c00081"
+        ],
+        [
+          "1dcf028140c00081f9288a13a48a9244",
+          "1dcf028140c00081f9288a13a48a9244",
+          "1dcf028140c00081f9288a13a48a9244"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-116",
+      "rgba": "f938b6ff722dc1ffb81287ffa2fbbaff8ae219ffc74b11ff67996cffd54286ff3f3f6dffea4571ff3e1d7cffbf4a3fffe1ba68ffd6c1b2ffd7fa2fffc81511ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "adc6cd9817ecdd40",
+          "adc6cd9817ecdd40",
+          "c6d7ef40b7feddca"
+        ],
+        [
+          "ffffffffffffffffadc6cd9817ecdd40",
+          "ffffffffffffffffadc6cd9817ecdd40",
+          "ffffffffffffffffc6d7ef40b7feddca"
+        ],
+        [
+          "0005ffffffffffffadc6cd9817ecdd40",
+          "0005ffffffffffffadc6cd9817ecdd40",
+          "0005ffffffffffffc6d7ef40b7feddca"
+        ],
+        [
+          "f93ef0d859512669",
+          "f93ef0d859512669",
+          "f93ef0d859512669"
+        ],
+        [
+          "f93ef0d859512669fb127f20f377bc21",
+          "f93ef0d859512669fb127f20f377bc21",
+          "f93ef0d859512669fb127f20f377bc21"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-117",
+      "rgba": "a5d4142208a51b8bfd81d33ad3eb106146d3ff0293eb789ad2e8a7af9fdea3e91856de14fe6179187dbd0926157b355f9f33267ee0a566bebace4928b26080af",
+      "mask": 119,
+      "blocks": [
+        [
+          "841d95dff3dbffff",
+          "841d95dff3dbffff",
+          "230d34d7f3dbffff"
+        ],
+        [
+          "8203900a00000000beeda23687aeaaaa",
+          "8203900a00000000beeda23687aeaaaa",
+          "8203900a000000001afc230d87aaaaaa"
+        ],
+        [
+          "af02971321499224beeda23687aeaaaa",
+          "af02971321499224beeda23687aeaaaa",
+          "af029713214992241afc230d87aaaaaa"
+        ],
+        [
+          "08fd442016000000",
+          "08fd442016000000",
+          "08fd442016000000"
+        ],
+        [
+          "08fd44201600000081eb1dd004000000",
+          "08fd44201600000081eb1dd004000000",
+          "08fd44201600000081eb1dd004000000"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-118",
+      "rgba": "98fcca8edd09dd98def34917dc78365d74becf7bec7f443d8a21aa08f69642a4446758b0f5c7fb50cc56630c9d24e8424ae847c6ce2281bb847fdbf62a033f8e",
+      "mask": 1911,
+      "blocks": [
+        [
+          "947716b0f4fffeff",
+          "947716b0f4fffeff",
+          "d9975bd8f4fffeff"
+        ],
+        [
+          "980147005a010000f3b7f3a8849ebbaa",
+          "980147005a010000f3b7f3a8849ebbaa",
+          "980147005a0100005bd8d997d1ebefff"
+        ],
+        [
+          "b008d23327689224f3b7f3a8849ebbaa",
+          "b008d23327689224f3b7f3a8849ebbaa",
+          "b008d233276892245bd8d997d1ebefff"
+        ],
+        [
+          "f544956234c19224",
+          "f544956234c19224",
+          "f544956234c19224"
+        ],
+        [
+          "f544956234c19224fc0908b23e9d9324",
+          "f544956234c19224fc0908b23e9d9324",
+          "f544956234c19224fc0908b23e9d9324"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-119",
+      "rgba": "c6b02a86d031a5618d577ad01152e0d2f828e0a195d9d58b713ee0322be38e842359146b71c43c713f0b9c52695bb7638a124a3e549a44201cab28e12289332b",
+      "mask": 42405,
+      "blocks": [
+        [
+          "f6660aacdd33ffff",
+          "f6660aacdd33ffff",
+          "112f65c5ed3bffff"
+        ],
+        [
+          "080c808006052030b39fe831baa299ee",
+          "080c808006052030b39fe831baa299ee",
+          "080c808006052030da96c222baa2b9ee"
+        ],
+        [
+          "d0200c12868d9324b39fe831baa299ee",
+          "d0200c12868d9324b39fe831baa299ee",
+          "d0200c12868d9324da96c222baa2b9ee"
+        ],
+        [
+          "c622c89225c91327",
+          "c622c89225c91327",
+          "c622c89225c91327"
+        ],
+        [
+          "c622c89225c913270be3c58020030082",
+          "c622c89225c913270be3c58020030082",
+          "c622c89225c913270be3c58020030082"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-120",
+      "rgba": "68a375ff8bb0a6ff374fcdff2a441aff775624ff2b15adffa8156aff943c95ffb3e851ffce5a29ffc0d823ff73fb6dff8d9d4fffa77979ff55ad8cff5dfcb2ff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "4c976e695a570c2e",
+          "4c976e695a570c2e",
+          "2ab7b528daf608aa"
+        ],
+        [
+          "ffffffffffffffff4c976e695a570c2e",
+          "ffffffffffffffff4c976e695a570c2e",
+          "ffffffffffffffff2ab7b528daf608aa"
+        ],
+        [
+          "0005ffffffffffff4c976e695a570c2e",
+          "0005ffffffffffff4c976e695a570c2e",
+          "0005ffffffffffff2ab7b528daf608aa"
+        ],
+        [
+          "ce2ae5d36c82cad9",
+          "ce2ae5d36c82cad9",
+          "ce2ae5d36c82cad9"
+        ],
+        [
+          "ce2ae5d36c82cad9fc159cefe4b2c00e",
+          "ce2ae5d36c82cad9fc159cefe4b2c00e",
+          "ce2ae5d36c82cad9fc159cefe4b2c00e"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-121",
+      "rgba": "3290150167aec5926e68668d85f9da21e43cc5063c78d088df4bb378d7d60186dff634d68fbcf2af5110ee2c8b1a2215df7df3671baa9ec7367671861233937e",
+      "mask": 119,
+      "blocks": [
+        [
+          "9954e089e3f3ffff",
+          "9954e089e3f3ffff",
+          "d93b4c6bd3f3ffff"
+        ],
+        [
+          "900880070000000039dacc24bd8caaaa",
+          "900880070000000039dacc24bd8caaaa",
+          "9008800700000000f8e18334b988aaaa"
+        ],
+        [
+          "019248801400000039dacc24bd8caaaa",
+          "019248801400000039dacc24bd8caaaa",
+          "0192488014000000f8e18334b988aaaa"
+        ],
+        [
+          "e432b18320499224",
+          "e432b18320499224",
+          "e432b18320499224"
+        ],
+        [
+          "e432b18320499224ae3c43133e499224",
+          "e432b18320499224ae3c43133e499224",
+          "e432b18320499224ae3c43133e499224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-122",
+      "rgba": "52c6641d5ca6adfbf7425cd36f6a4c989fc966fa6541c9f8fda6894cb7db63a61817f977dd4518af4c7387e19c919ac03408806674cbb6a326eb6f119a2f060a",
+      "mask": 1911,
+      "blocks": [
+        [
+          "145cc7e2d3f2c7ff",
+          "145cc7e2d3f2c7ff",
+          "355d23dad3f2c7ff"
+        ],
+        [
+          "f20cff04a70d000049e4fb128e8eb1aa",
+          "f20cff04a70d000049e4fb128e8eb1aa",
+          "f20cff04a70d000023dade188e8eb1aa"
+        ],
+        [
+          "fb1d81023c9d922449e4fb128e8eb1aa",
+          "fb1d81023c9d922449e4fb128e8eb1aa",
+          "fb1d81023c9d922423dade188e8eb1aa"
+        ],
+        [
+          "fd18364223919324",
+          "fd18364223919324",
+          "fd18364223919324"
+        ],
+        [
+          "fd18364223919324c91790032b319324",
+          "fd18364223919324c91790032b319324",
+          "fd18364223919324c91790032b319324"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-123",
+      "rgba": "7824a49c3e9beb5eeb7bb0d8d63e965edcc0676cb2eb25aa4ae6e33c27e5c777b23f310a73cbe326c978e26f5d608d18132ceb1730ffd7b4bf722d519a7f746b",
+      "mask": 42405,
+      "blocks": [
+        [
+          "af7795b2ddf3fff3",
+          "af7795b2ddf3fff3",
+          "fa373479ddfbfff3"
+        ],
+        [
+          "090da0700107b0602bda9a3fee7becb7",
+          "090da0700107b0602bda9a3fee7becb7",
+          "090da0700107b06006b2fa37ee7becb7"
+        ],
+        [
+          "d80a0b92854913a52bda9a3fee7becb7",
+          "d80a0b92854913a52bda9a3fee7becb7",
+          "d80a0b92854913a506b2fa37ee7becb7"
+        ],
+        [
+          "eb270d92258b9284",
+          "eb270d92258b9284",
+          "eb270d92258b9284"
+        ],
+        [
+          "eb270d92258b9284ff244913454f13a4",
+          "eb270d92258b9284ff244913454f13a4",
+          "eb270d92258b9284ff244913454f13a4"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-124",
+      "rgba": "a31413ff5c8d6cffe06d80ffe2d0d8ff8428a2ffb04ad9ff4fa337ff05f9e1ffa964e9ff317226ff78238fff61b361ff13eb8bff9ca603ff9946a0ff6c7a6dff",
+      "mask": 65535,
+      "blocks": [
+        [
+          "657a1e76686ea3a3",
+          "657a1e76686ea3a3",
+          "a2a0db0fe86aebab"
+        ],
+        [
+          "ffffffffffffffff657a1e76686ea3a3",
+          "ffffffffffffffff657a1e76686ea3a3",
+          "ffffffffffffffffa2a0db0fe86aebab"
+        ],
+        [
+          "0005ffffffffffff657a1e76686ea3a3",
+          "0005ffffffffffff657a1e76686ea3a3",
+          "0005ffffffffffffa2a0db0fe86aebab"
+        ],
+        [
+          "e2052bc0393b9bad",
+          "e2052bc0393b9bad",
+          "e2052bc0393b9bad"
+        ],
+        [
+          "e2052bc0393b9badf9146175136e06ba",
+          "e2052bc0393b9badf9146175136e06ba",
+          "e2052bc0393b9badf9146175136e06ba"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-125",
+      "rgba": "0e56b22f9011bdd96755065edd6536a445fcca0c9c6e694373a8c7b0d98a47f2bc35e63aaadfd98b0b68c20bb8b31d8bad469d82e3fa1661f9e3b4b5e73a129f",
+      "mask": 119,
+      "blocks": [
+        [
+          "58759790f7cfffff",
+          "58759790f7cfffff",
+          "58759790f7cfffff"
+        ],
+        [
+          "d306410a0000000007897d46cbf9ffff",
+          "d306410a0000000007897d46cbf9ffff",
+          "d306410a00000000a16ad947cbf9ffff"
+        ],
+        [
+          "d90c47132b49922407897d46cbf9ffff",
+          "d90c47132b49922407897d46cbf9ffff",
+          "d90c47132b499224a16ad947cbf9ffff"
+        ],
+        [
+          "9c0e11532c499224",
+          "9c0e11532c499224",
+          "9c0e11532c499224"
+        ],
+        [
+          "9c0e11532c499224fc118e832e499224",
+          "9c0e11532c499224fc118e832e499224",
+          "9c0e11532c499224fc118e832e499224"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-126",
+      "rgba": "db4ae1a65371898518281272f8880b25fa3bc81b678699d0951bd53270b883005da9f9b85b660cf1552c04f69ec6c1e32e13e3b5a954ae4ac42dc5bcc498f9f6",
+      "mask": 1911,
+      "blocks": [
+        [
+          "82521e94f9fbc1ff",
+          "82521e94f9fbc1ff",
+          "60515e5df9fbc1ff"
+        ],
+        [
+          "8a07c203eb0e0000fba2213a988894aa",
+          "8a07c203eb0e0000fba2213a988894aa",
+          "8a07c203eb0e00005bda42199ca89eaa"
+        ],
+        [
+          "f61b6c133d039224fba2213a988894aa",
+          "f61b6c133d039224fba2213a988894aa",
+          "f61b6c133d0392245bda42199ca89eaa"
+        ],
+        [
+          "fa18720233b69324",
+          "fa18720233b69324",
+          "fa18720233b69324"
+        ],
+        [
+          "fa18720233b69324a91be6e325e09324",
+          "fa18720233b69324a91be6e325e09324",
+          "fa18720233b69324a91be6e325e09324"
+        ]
+      ]
+    },
+    {
+      "name": "xorshift-127",
+      "rgba": "e794cb27968556b76b7e9910b412171bc9243d9a69cda4ce19f4aa3af0912f3ee4cf0923f05cee8837516d977fd5ee80c1f2dca52466d2ea9ec2583cd7353700",
+      "mask": 42405,
+      "blocks": [
+        [
+          "f332746efff7cff3",
+          "f332746efff7cff3",
+          "8d3a746efff7cffb"
+        ],
+        [
+          "0201c0400209e00066ecda23ba2eb826",
+          "0201c0400209e00066ecda23ba2eb826",
+          "0201c0400209e00061e63a23ba2eb8a6"
+        ],
+        [
+          "ea004f12c5cf122466ecda23ba2eb826",
+          "ea004f12c5cf122466ecda23ba2eb826",
+          "ea004f12c5cf122461e63a23ba2eb8a6"
+        ],
+        [
+          "f024881307c89344",
+          "f024881307c89344",
+          "f024881307c89344"
+        ],
+        [
+          "f024881307c89344cf354c1384c81327",
+          "f024881307c89344cf354c1384c81327",
+          "f024881307c89344cf354c1384c81327"
+        ]
+      ]
+    }
+  ]
+}

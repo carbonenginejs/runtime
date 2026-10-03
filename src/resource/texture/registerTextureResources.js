@@ -20,6 +20,7 @@ import { CjsDdsFormat } from "../formats/dds/CjsDdsFormat.js";
 import { TriTextureRes } from "./TriTextureRes.js";
 import { Tr2ImageRes } from "./Tr2ImageRes.js";
 import { ResourceRequirement } from "#blue";
+import { CjsSchema } from "#schema";
 
 /** Stable reader identity preserves the caller's requested DDS decode sharing. */
 const DDS_BITMAP_DESCRIPTOR = { Format: CjsDdsFormat, defaults: { emit: "bitmap" } };
@@ -50,29 +51,73 @@ export const TextureResourceExtensions = Object.freeze([
  * @param {object} context The manager's prepare context.
  * @returns {Promise<HostBitmap>} The decoded bitmap.
  */
-async function ReadImageResource(bytes, context)
+async function ReadImageResource(bytes, context, compression = {})
 {
+  // Snapshot before decoding: LOAD changes affect later loads, never this one.
+  const texture = CjsSchema.cast(context.resource, TriTextureRes);
+  const request = texture ? { enabled: TriTextureRes.compressUncompressedTextures,
+    backend: compression.backend, features: Array.from(compression.features ?? []),
+    role: compression.resolveRole ? compression.resolveRole(context.path) : null } : null;
+  let bitmap;
   if (context.resource.GetExt() === "dds")
   {
     const packet = await context.resMan.ReadFormatOnce(context.resource, DDS_BITMAP_DESCRIPTOR, bytes, {
       ...context, emit: "bitmap"
     });
-    return createDdsBitmap(packet);
+    bitmap = createDdsBitmap(packet);
   }
-  const bitmap = new HostBitmap();
-  const metadata = new Metadata();
-  const path = context.path;
-  const result = await ImageIO.readImageAsync(bytes, new LoadParameters(path), bitmap, metadata);
-
-  if (!result.IsOk())
+  else
   {
-    CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "Tr2ImageRes: error reading '%S' - %s", path, result.GetErrorMessage());
-    const error = new Error(`${path || "image"}: ${result.GetErrorMessage()}`);
-    error.code = "CJS_RESOURCE_IMAGE_READ_FAILED";
-    throw error;
-  }
+    bitmap = new HostBitmap();
+    const metadata = new Metadata();
+    const path = context.path;
+    const result = await ImageIO.readImageAsync(bytes, new LoadParameters(path), bitmap, metadata);
 
-  bitmap.metadata = metadata;
+    if (!result.IsOk())
+    {
+      CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "Tr2ImageRes: error reading '%S' - %s", path, result.GetErrorMessage());
+      const error = new Error(`${path || "image"}: ${result.GetErrorMessage()}`);
+      error.code = "CJS_RESOURCE_IMAGE_READ_FAILED";
+      throw error;
+    }
+
+    bitmap.metadata = metadata;
+  }
+  if (request) bitmap = await CompressLoadedBitmap(bitmap, request, compression, context.signal);
+  return bitmap;
+}
+
+/** Optional load extension; complete output and diagnostics publish together. */
+async function CompressLoadedBitmap(bitmap, request, options, signal)
+{
+  const packet = { description: {
+    type: bitmap.GetType(), format: bitmap.GetFormat(), width: bitmap.GetWidth(),
+    height: bitmap.GetHeight(), depth: bitmap.GetDepth(), mipCount: bitmap.GetMipCount(),
+    arraySize: bitmap.GetArraySize()
+  }, data: bitmap.GetRawData(), metadata: bitmap.metadata };
+  const choice = CjsDdsFormat.selectCompression(packet, request);
+  const diagnostic = { requested: request.enabled, backend: request.backend ?? null,
+    activeFeatures: request.features, role: request.role, outcome: "skipped", reason: choice.reason,
+    originalFormat: bitmap.GetFormat(), outputFormat: bitmap.GetFormat(),
+    originalBytes: packet.data.length, outputBytes: packet.data.length, encodeTimeMs: 0 };
+  if (choice.mode !== null)
+  {
+    try
+    {
+      const encoded = await CjsDdsFormat.compressBitmapAsync(packet, choice.mode,
+        { workerFactory: options.workerFactory, workerUrl: options.workerUrl, signal });
+      bitmap = createDdsBitmap(encoded);
+      diagnostic.outcome = "compressed";
+      diagnostic.outputFormat = bitmap.GetFormat(); diagnostic.outputBytes = encoded.data.length;
+      diagnostic.encodeTimeMs = encoded.encodeTimeMs;
+    }
+    catch (error)
+    {
+      if (signal?.aborted) throw error;
+      diagnostic.reason = `worker-failed: ${error.message}`;
+    }
+  }
+  bitmap.compression = diagnostic;
   return bitmap;
 }
 
@@ -81,7 +126,8 @@ async function ReadImageResource(bytes, context)
  * Routes every image extension to a texture resource on one manager.
  *
  * @param {object} resourceManager Manager to register on.
- * @param {object} [options] `{ Handler }` to route to `Tr2ImageRes` instead.
+ * @param {object} [options] Handler and optional compression configuration:
+ * selected backend, active device features, role resolver and worker options.
  * @returns {object} The same manager, for chaining.
  */
 export function RegisterTextureResources(resourceManager, options = {})
@@ -95,7 +141,7 @@ export function RegisterTextureResources(resourceManager, options = {})
 
   for (const extension of TextureResourceExtensions)
   {
-    resourceManager.RegisterObjectLoader(extension, ReadImageResource);
+    resourceManager.RegisterObjectLoader(extension, (bytes, context) => ReadImageResource(bytes, context, options.compression));
     resourceManager.RegisterExtension(extension, Handler);
   }
 

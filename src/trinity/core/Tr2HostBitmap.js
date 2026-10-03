@@ -4,6 +4,8 @@
 import { CjsSchema, meta } from "#schema";
 import { PixelFormat, TextureType } from "#consts/render-context";
 import { HostBitmap } from "#imageio";
+import { CjsDdsFormat } from "#resource/formats/dds";
+import { createDdsBitmap } from "../../resource/texture/ddsBitmap.js";
 
 /** Describes a CPU-resident bitmap's dimensions, format, mip count, image type, and diagnostic name. */
 export class Tr2HostBitmap extends HostBitmap
@@ -106,12 +108,37 @@ export class Tr2HostBitmap extends HostBitmap
     throw new Error("Tr2HostBitmap.ChangeFormat is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method Compress (MAP_METHOD_AND_WRAP). */
+  /**
+   * Compress into the supplied texture through the shared DDS worker encoder.
+   * Source: Tr2HostBitmap.cpp:512-557. Browser workers require an async result;
+   * no source or output is changed before the complete encoding succeeds.
+   * Approved extensions preserve all source mips and replace Carbon's LGPL
+   * realtime encoders with MIT libsquish. DDS owns corrected BC2/BC5 mappings.
+   * @param {number} compressionFormat Carbon compression mode.
+   * @param {number} qualityLevel Carbon squish quality (or -1 for range fit).
+   * @param {object} output TriTextureRes receiving the completed bitmap.
+   * @param {object} [options] DDS worker options and cancellation signal.
+   * @returns {Promise<boolean>} Whether the complete bitmap was published.
+   */
   @meta.blue.method
-  @meta.notImplemented
-  Compress(...args)
+  @meta.adapted
+  async Compress(compressionFormat, qualityLevel, output, options = {})
   {
-    throw new Error("Tr2HostBitmap.Compress is not implemented in CarbonEngineJS.");
+    if (!output || !this.IsValid() || this.GetType() !== TextureType.TEX_TYPE_2D) return false;
+    try
+    {
+      const packet = await CjsDdsFormat.compressBitmapAsync({
+        description: { type: this.GetType(), format: this.GetFormat(), width: this.GetWidth(),
+          height: this.GetHeight(), depth: this.GetDepth(), mipCount: this.GetMipCount(), arraySize: this.GetArraySize() },
+        data: this.GetRawData(), metadata: this.metadata ?? { cutout: {}, metadata: [] }
+      }, compressionFormat, { ...options, quality: qualityLevel });
+      if (options.signal?.aborted) return false;
+      return output.CreateFromHostBitmap(createDdsBitmap(packet));
+    }
+    catch
+    {
+      return false;
+    }
   }
 
   /** Carbon method SetMipRawData -> PySetMipRawData (MAP_METHOD). */

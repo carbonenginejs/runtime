@@ -66,7 +66,7 @@ test("CjsDdsFormat.carbon is Carbon's handler table, built per format class", ()
   assert.deepEqual(Object.keys(table), [ "checkExtension", "readImage", "readImageAsync", "isSaveSupported", "save" ]);
   assert.equal(table.checkExtension("DDS"), true);
   assert.equal(table.checkExtension("png"), false);
-  assert.equal(table.isSaveSupported(null).code, ImageIOResult.Code.METHOD_NOT_SUPPORTED);
+  assert.equal(table.isSaveSupported(null).code, ImageIOResult.Code.SAVE_NOT_SUPPORTED);
 });
 
 test("ImageIO.readImage routes by extension and fills the caller's bitmap", () =>
@@ -257,7 +257,7 @@ for (const [ extension, Format, makeBytes, asyncOnly ] of imageCases)
     const saveBitmap = new HostBitmap();
     saveBitmap.Create(1, 1, 1, F.PIXEL_FORMAT_B8G8R8A8_UNORM);
     saveBitmap.GetRawData().set([ 160, 120, 80, 255 ]);
-    const expectedSaveCode = extension === "psd" ? ImageIOResult.Code.OK : ImageIOResult.Code.METHOD_NOT_SUPPORTED;
+    const expectedSaveCode = extension === "psd" ? ImageIOResult.Code.OK : extension === "dds" ? ImageIOResult.Code.SAVE_NOT_SUPPORTED : ImageIOResult.Code.METHOD_NOT_SUPPORTED;
     assert.equal(ImageIO.isSaveSupported(parameters.filename, saveBitmap).code, expectedSaveCode);
     assert.equal(Format.carbon.isSaveSupported(saveBitmap).code, expectedSaveCode);
     const directSave = Format.carbon.save(saveBitmap);

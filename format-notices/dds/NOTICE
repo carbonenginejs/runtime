@@ -6,9 +6,36 @@ copyright their original CarbonEngine authors.
 Fenris Creations (CCP Games) source material, tools, assets, shader behavior,
 and EVE-related data remain copyright their original holders.
 
-This package is a standalone CarbonEngineJS-facing reader for DDS texture data.
-It contains original project code only unless this notice is expanded with
-third-party attribution.
+This package reads and writes DDS texture data and includes our JavaScript
+port of libsquish 1.15 for BC1-BC5 encoding.
 CarbonEngine and Fenris Creations (CCP Games) are mentioned for
 interoperability, provenance, and future migration context only. This package is
 not affiliated with or endorsed by CCP Games.
+
+
+
+Our JavaScript port lives in `src/resource/formats/dds/core/libsquish.js`, with
+its single-colour lookup tables in `squishSingleColourLookup.js`. All ten
+Carbon compressor modes use this MIT implementation. No id Software encoder
+code is included.
+
+Source: https://sourceforge.net/projects/libsquish/files/libsquish-1.15.tgz
+
+Copyright (c) 2006 Simon Brown <si@sjbrown.co.uk>
+Copyright (c) 2007 Ignacio Castano <icastano@nvidia.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.

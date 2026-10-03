@@ -2,7 +2,7 @@
   "outRoot": "src/trinity/generated",
   "classes": {
     "written": 28,
-    "skipped": 668
+    "skipped": 669
   },
   "enums": {
     "written": 15,
@@ -2847,6 +2847,11 @@
     {
       "family": "trinityCore",
       "className": "Tr2DirectInstanceData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2DxtCompressControl",
       "reason": "hand-maintained source exists"
     },
     {

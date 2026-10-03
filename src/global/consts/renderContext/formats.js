@@ -381,6 +381,7 @@ export const PixelFormatFromCanonical = Object.freeze({
     "bgra8unorm": PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM,
     "bgra8unorm-srgb": PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM_SRGB,
     "r16float": PixelFormat.PIXEL_FORMAT_R16_FLOAT,
+    "r16unorm": PixelFormat.PIXEL_FORMAT_R16_UNORM,
     "rg16float": PixelFormat.PIXEL_FORMAT_R16G16_FLOAT,
     "rgba16float": PixelFormat.PIXEL_FORMAT_R16G16B16A16_FLOAT,
     "r32float": PixelFormat.PIXEL_FORMAT_R32_FLOAT,

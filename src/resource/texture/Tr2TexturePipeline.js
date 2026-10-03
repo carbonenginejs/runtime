@@ -51,9 +51,12 @@ export class Tr2TexturePipeline
    * @param {import("#imageio").HostBitmap} result Bitmap to fill; destroyed first.
    * @param {Map<string, import("#imageio").HostBitmap>} inputs Loaded inputs by path.
    * @param {Tr2TexturePipelineParams} params Caller size limits.
-   * @returns {boolean} Whether the pipeline succeeded.
+   * Browser compression runs in a worker, so every step is awaited before the
+   * following step can consume its bitmap.
+   * @param {object} [options] Worker construction and cancellation options.
+   * @returns {Promise<boolean>} Whether the pipeline succeeded.
    */
-  Execute(result, inputs, params = new Tr2TexturePipelineParams())
+  async Execute(result, inputs, params = new Tr2TexturePipelineParams(), options = {})
   {
     result.Destroy();
 
@@ -65,7 +68,7 @@ export class Tr2TexturePipeline
 
     for (const step of this.steps)
     {
-      if (!step.Execute(result, inputs, params)) return false;
+      if (!await step.Execute(result, inputs, params, options)) return false;
     }
 
     if (params.maxHeight || params.maxWidth)

@@ -108,6 +108,10 @@ export class Tr2PlatformInfo
     @meta.setting("webgpuTextureCompressionBCSliced3D", { applies: meta.setting.CREATE })
     static webgpuTextureCompressionBCSliced3D = true;
 
+    /** WebGPU-only preference for partial edge BC blocks on the next WebGPU device. */
+    @meta.setting("webgpuTextureCompressionUnaligned", { applies: meta.setting.CREATE })
+    static webgpuTextureCompressionUnaligned = true;
+
     // Carbon selects a backend by which shared library the launcher loads, so
     // its static caps always describe exactly one backend. Ours are probed at
     // runtime, and the caps must still describe ONE - a report claiming WebGPU's
@@ -224,9 +228,11 @@ export class Tr2PlatformInfo
         const requestedSettings = {
             webgpuMaxBufferSize: Tr2PlatformInfo.webgpuMaxBufferSize,
             webgpuTextureCompressionBC: Tr2PlatformInfo.webgpuTextureCompressionBC,
-            webgpuTextureCompressionBCSliced3D: Tr2PlatformInfo.webgpuTextureCompressionBCSliced3D
+            webgpuTextureCompressionBCSliced3D: Tr2PlatformInfo.webgpuTextureCompressionBCSliced3D,
+            webgpuTextureCompressionUnaligned: Tr2PlatformInfo.webgpuTextureCompressionUnaligned
         };
         const features = [];
+        if (requestedSettings.webgpuTextureCompressionUnaligned) features.push("texture-compression-unaligned");
         if (requestedSettings.webgpuTextureCompressionBC)
         {
             features.push("texture-compression-bc");

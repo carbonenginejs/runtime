@@ -24,6 +24,13 @@ import {
  */
 export class TriTextureRes extends CjsResource
 {
+  /** Optional DDS worker encoding for subsequent immutable sampled texture loads. */
+  @meta.setting("compressUncompressedTextures", { applies: meta.setting.LOAD })
+  static compressUncompressedTextures = false;
+
+  /** Diagnostic for the currently published bitmap's optional load compression. */
+  compression = null;
+
   format = null;
   type = null;
   averageColor = [0, 0, 0, 0];
@@ -192,7 +199,7 @@ export class TriTextureRes extends CjsResource
     }
 
     const result = new HostBitmap();
-    const executed = pipeline.Execute(result, inputs);
+    const executed = await pipeline.Execute(result, inputs);
 
     if (executed) this.SetPayload(result);
 
@@ -286,6 +293,7 @@ export class TriTextureRes extends CjsResource
 
     if (!bitmap || !bitmap.IsValid()) {
       this.loadedBitmap = null;
+      this.compression = null;
       return false;
     }
 
@@ -326,6 +334,7 @@ export class TriTextureRes extends CjsResource
 
     if (bitmap) {
       this.CreateFromHostBitmap(bitmap);
+      this.compression = bitmap.compression ?? null;
       // A loaded image caches its average colour (TriTextureRes.cpp:627-629).
       // Carbon's out-parameters stay untouched when the bitmap declines.
       const average = bitmap.GetAverageColor();

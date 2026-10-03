@@ -20,16 +20,6 @@
           "source": "trinity/trinity/Tr2SSAO.h"
         },
         {
-          "name": "Tr2DxtCompressionFormat",
-          "qualifiedName": "Tr2DxtCompressionFormat",
-          "source": "trinity/trinity/Tr2DxtCompressor.h"
-        },
-        {
-          "name": "Tr2DxtCompressionSquishQuality",
-          "qualifiedName": "Tr2DxtCompressionSquishQuality",
-          "source": "trinity/trinity/Tr2DxtCompressor.h"
-        },
-        {
           "name": "Tr2RenderReason",
           "qualifiedName": "Tr2RenderReason",
           "source": "trinity/trinity/ITr2Renderable.h"
