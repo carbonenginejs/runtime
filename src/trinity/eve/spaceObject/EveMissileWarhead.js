@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/EveMissileWarhead.cpp
 import { mat4 } from "#math/mat4";
 import { carbonPerlin1D } from "#math/noise";
+import { num } from "#math/num";
 import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
@@ -229,18 +230,29 @@ export class EveMissileWarhead extends EveTransform
   }
 
   /**
-   * Tests the final tracking segment for a hit on the target - or detonates immediately when there is no target - recording the explosion position and spawning an impact on the target when impactSize is set.
-   * @returns {number} EVT_EXPLODE when the warhead detonated this frame, otherwise EVT_NONE.
+   * Tests the final tracking segment for a hit on the target - or detonates
+   * immediately when there is no target - recording the explosion position and
+   * spawning an impact on the target when impactSize is set.
    *
-   * Adapted: Targetable output parameters are out-last. Missing: native timeout collision short-circuit and EXPLODED-before-CreateImpact ordering remain a separate repair.
+   * Carbon EveMissileWarhead.cpp:420-464. A timed-out flight (the previous
+   * frame's flight fraction reached 1) detonates without querying the target,
+   * so the explosion stays at the warhead; the target is queried only while
+   * the flight is still running. The warhead is EXPLODED before the target
+   * creates its impact. The flight fraction uses Carbon's TriClamp
+   * (TriMath.cpp:896-902) with no denominator floor: a negative estimated
+   * flying time clamps the fraction to 0 rather than timing out.
+   *
+   * Adapted: the targetable's output position is its last argument instead of
+   * its first, because JavaScript has no reference parameters.
+   * @returns {number} EVT_EXPLODE when the warhead detonated this frame, otherwise EVT_NONE.
    */
   @meta.blue.method
   @meta.adapted
   CheckImpact(deltaTime, estimatedTotalAliveTime, target)
   {
     if (this._state !== EveMissileWarhead.State.STATE_TRACKING_FINAL || this.id < 0) return EveMissileWarhead.StateChangeEvent.EVT_NONE;
-    const totalFlyingTime = Math.max((Number(estimatedTotalAliveTime) + 0.1) * this._speedModifier, Number.EPSILON);
-    const flight = clamp01((this._flyingTime - Number(deltaTime)) / totalFlyingTime);
+    const totalFlyingTime = (estimatedTotalAliveTime + 0.1) * this._speedModifier;
+    const flight = num.clamp((this._flyingTime - deltaTime) / totalFlyingTime, 0, 1);
     const positionNow = this.GetWorldPosition(EveMissileWarhead._positionNow);
     if (!target)
     {
@@ -251,19 +263,20 @@ export class EveMissileWarhead extends EveTransform
 
     vec3.subtract(EveMissileWarhead._positionLast, positionNow, this._movement);
     vec3.copy(EveMissileWarhead._targetPosition, positionNow);
-    const hit = target.GetImpactPosition(this.targetLocatorID, EveMissileWarhead._positionLast, positionNow, this._explosionDistance, EveMissileWarhead._targetPosition);
-    if (flight < 1 && !hit) return EveMissileWarhead.StateChangeEvent.EVT_NONE;
-
-    vec3.copy(this.explosionPosition, positionNow);
-    vec3.subtract(EveMissileWarhead._impactDirection, EveMissileWarhead._targetPosition, positionNow);
-    if (vec3.dot(EveMissileWarhead._impactDirection, this._movement) < 0) vec3.copy(this.explosionPosition, EveMissileWarhead._targetPosition);
-    if (this.impactSize > 0)
+    if (flight >= 1 || target.GetImpactPosition(this.targetLocatorID, EveMissileWarhead._positionLast, positionNow, this._explosionDistance, EveMissileWarhead._targetPosition))
     {
-      vec3.negate(EveMissileWarhead._impactDirection, this._movement);
-      target.CreateImpact(this.targetLocatorID, EveMissileWarhead._impactDirection, this.impactDuration, this.impactSize);
+      vec3.copy(this.explosionPosition, positionNow);
+      this._state = EveMissileWarhead.State.STATE_EXPLODED;
+      vec3.subtract(EveMissileWarhead._impactDirection, EveMissileWarhead._targetPosition, positionNow);
+      if (vec3.dot(EveMissileWarhead._impactDirection, this._movement) < 0) vec3.copy(this.explosionPosition, EveMissileWarhead._targetPosition);
+      if (this.impactSize > 0)
+      {
+        vec3.negate(EveMissileWarhead._impactDirection, this._movement);
+        target.CreateImpact(this.targetLocatorID, EveMissileWarhead._impactDirection, this.impactDuration, this.impactSize);
+      }
+      return EveMissileWarhead.StateChangeEvent.EVT_EXPLODE;
     }
-    this._state = EveMissileWarhead.State.STATE_EXPLODED;
-    return EveMissileWarhead.StateChangeEvent.EVT_EXPLODE;
+    return EveMissileWarhead.StateChangeEvent.EVT_NONE;
   }
 
   /**
