@@ -157,7 +157,7 @@ test("published metadata retains early shared enums in real consumer bundles", a
     for (const [module, enumName] of [
       ["graphics/trinityEnums", "trinity.EntityComponents.ReflectionMode"],
       ["trinity", "trinity.Tr2Lod"],
-      ["media/mediaTypes", "videoplayer.StreamType"],
+      ["media/metadata", "videoplayer.StreamType"],
       ["renderContext/presentation", "trinity.Tr2RenderContextEnum.PresentInterval"],
       ["renderContext/window", "trinity.Tr2WindowMode"],
       ["renderContext/formats", "trinity.ImageIO.PixelFormat"],

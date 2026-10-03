@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
 import { CjsFormat } from "../../src/resource/format/CjsFormat.js";
-import { StreamType } from "../../src/global/consts/media/mediaTypes.js";
+import { StreamType } from "../../src/global/consts/media/metadata.js";
 import { blueEnums, CJS_ENUM_NAME } from "../../src/global/blue/enums/CjsBlueEnumRegistry.js";
 import { StreamType as VideoStreamType } from "../../src/resource/video/enums.js";
 import { CjsMp4Format } from "../../src/resource/formats/mp4/CjsMp4Format.js";

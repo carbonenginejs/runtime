@@ -1,1 +1,1 @@
-export * from "./mediaTypes.js";
+export * from "./metadata.js";
