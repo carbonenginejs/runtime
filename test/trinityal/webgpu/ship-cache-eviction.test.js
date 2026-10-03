@@ -4,10 +4,11 @@ import { CjsBlueResMan, CjsMotherLode, CjsResource, TriGeometryRes, RegisterText
 import { CjsWebgpuDevice } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL } from "../../../npm/dist/trinityal/webgpu/internal.js";
 import { Tr2RenderContext } from "../../../npm/dist/trinity/core/index.js";
+import { Tr2Effect } from "../../../npm/dist/trinity/shader/Tr2Effect.js";
 import { RealizeTexture } from "../../../npm/dist/trinity/core/Tr2ImageIOHelpers.js";
 import { CreateLodAllocations, SharedGeometryBuffer, ReleaseSharedGeometryBuffer } from "../../../npm/dist/trinity/core/mesh/TriGeometryResAllocations.js";
-import { Tr2BufferDescriptionAL } from "../../../npm/dist/trinityal/index.js";
-import { Tr2GpuUsage, Tr2CpuUsage } from "../../../npm/dist/global/consts/renderContext/index.js";
+import { Tr2BufferDescriptionAL, Tr2ResourceSetDescriptionAL, Tr2RegisterMapAL } from "../../../npm/dist/trinityal/index.js";
+import { Tr2GpuUsage, Tr2CpuUsage, ShaderType } from "../../../npm/dist/global/consts/renderContext/index.js";
 
 // The real resource manager, texture/geometry owners and WebGPU AL run against
 // this counting GPUDevice. No browser, adapter or physical GPU is involved.
@@ -68,6 +69,12 @@ test("switching ships lets the idle owner's GPU objects expire while the current
   {
     const texture = await manager.FetchResource(`res:/${name}.dds`);
     RealizeTexture(texture, al);
+    const description = new Tr2ResourceSetDescriptionAL({ registerMap: new Tr2RegisterMapAL({
+      stage: ShaderType.PIXEL_SHADER, signature: { registers: [ { registerType: 32, registerIndex: 0 } ] }
+    }) });
+    description.SetSrv(ShaderType.PIXEL_SHADER, 0, texture.GetTexture());
+    const effect = new Tr2Effect();
+    effect.parametersForPasses = [ { passes: [ { stageInput: [], resourceSetDesc: description } ] } ];
     const geometry = new TriGeometryRes();
     geometry.Initialize(`res:/${name}.gr2`, "gr2");
     const mesh = {
@@ -89,13 +96,15 @@ test("switching ships lets the idle owner's GPU objects expire while the current
     const buffer = al.CreateBuffer(Tr2BufferDescriptionAL.FromStride(4, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.IMMUTABLE), new Uint8Array(16));
     privateResource.SetAdapterResource("webgpu", buffer);
     manager.motherLode.Insert(privateResource.GetPath(), privateResource);
-    return { texture, geometry, privateResource, buffer, allocation, mesh };
+    return { texture, geometry, privateResource, buffer, allocation, mesh, effect };
   }
   const a = await ship("first");
   const first = counts();
   now = 5;
   const b = await ship("second");
   assert.deepEqual(counts(), [first[0] + 1, first[1] + 1]);
+  a.effect.Destroy();
+  assert.equal(destroyed.length, 0, "retiring material bindings leaves the cache owner's texture until idle expiry");
   now = 11;
   manager.Update();
   assert.deepEqual(counts(), first, "physical texture and private buffer counts return to one ship");
@@ -111,12 +120,21 @@ test("switching ships lets the idle owner's GPU objects expire while the current
   assert.equal(b.allocation.IsValid(), true);
   const pool = SharedGeometryBuffer(render);
   assert.equal(pool.m_allocations.length, 3, "only second ship's vertex, index and reversed-index slices remain");
+  now = 20;
+  RealizeTexture(b.texture, al);
+  manager.motherLode.KeepAlive(b.geometry.GetPath());
+  manager.motherLode.KeepAlive(b.privateResource.GetPath());
+  manager.Update();
+  assert.equal(b.texture.IsPurged(), false, "binding the current ship's texture renews its idle lease");
+  assert.deepEqual(counts(), first, "a rendered texture does not expire while still bound");
   const beforeReuse = counts();
-  now = 12;
+  now = 21;
   const again = await ship("first");
   assert.equal(pool.GetBlocks().length, 1, "the expired geometry's space is reused");
   assert.deepEqual(counts(), [beforeReuse[0] + 1, beforeReuse[1] + 1]);
   assert.equal(again.allocation.IsValid(), true);
+  b.effect.Destroy();
+  again.effect.Destroy();
   manager.Clear();
   ReleaseSharedGeometryBuffer(render);
   assert.deepEqual(counts(), initial, "context shutdown releases the shared GPU block too");

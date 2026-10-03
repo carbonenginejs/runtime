@@ -119,10 +119,14 @@ export class TriTextureRes extends CjsResource
    * The live texture, or null while there is none - Carbon returns nullptr
    * until the load finishes and the parameter substitutes the fallback
    * (`TriTextureRes.cpp:394-405`).
+   * Adapted: obtaining the live texture renews the JS cache lease. Carbon's
+   * caller holds a reference-counted resource; our time-based cache needs this
+   * use signal, including when a runtime parameter skips repeated realization.
    *
    * @returns {object|null} A `Tr2TextureAL`.
    */
   GetTexture() {
+    this.KeepAlive();
     return this.texture && this.texture.IsValid() ? this.texture : null;
   }
 
@@ -689,7 +693,7 @@ CjsSchema.define(TriTextureRes, {
     GetMsaaQuality: [ meta.blue.method, meta.implemented ],
     HadLodRequests: [ meta.blue.method, meta.adapted ],
     GetSrvIndexInHeap: [ meta.blue.method, meta.notSupported ],
-    GetTexture: [ meta.blue.method, meta.implemented ],
+    GetTexture: [ meta.blue.method, meta.adapted ],
     SetTexture: [ meta.blue.method, meta.adapted, meta.reason("Carbon also copies the texture's dimensions onto the resource and fires m_onTextureChange; the payload already carries the dimensions here, and the binding parameter arms the resource's completion instead.") ],
     SaveAsync: [ meta.blue.method, meta.notSupported ],
     Save: [ meta.blue.method, meta.notSupported ],
