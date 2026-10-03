@@ -21,4 +21,3 @@ export * from "./CjsFormat.js";
 export * from "./CjsImageFormat.js";
 export * from "./CjsGeometryFormat.js";
 export { CjsFormatRoute, CjsFormatStore } from "#blue";
-export * from "./payloadContract.js";

@@ -74,8 +74,8 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES)
             reason: decoded ? "GIF frame RGBA decode and compositing are available." : "GIF metadata/raw input is recognized but no decodable image frame was found.",
             metadata,
             variants: [
-                { kind: "rgba", payloadType: "rgba", codec: "rgba8unorm", supported: decoded, reason: decoded ? "" : "GIF LZW frame decode is unavailable."},
-                { kind: "raw", payloadType: "raw", codec: "gif", mimeType: "image/gif", supported: true}
+                { kind: "rgba", codec: "rgba8unorm", supported: decoded, reason: decoded ? "" : "GIF LZW frame decode is unavailable."},
+                { kind: "raw", codec: "gif", mimeType: "image/gif", supported: true}
             ],
             warnings: [],
             errors: []
@@ -106,7 +106,6 @@ export function readWithValues(input, values = DEFAULT_VALUES)
     if (values.emit === OUTPUT_RAW)
     {
         return {
-            payloadType: "raw",
             sourceFormat: "gif",
             mimeType: "image/gif",
             metadata,
@@ -214,7 +213,6 @@ function inspectGif(bytes)
         }
     }
     return {
-        payloadType: "image",
         mediaTypes: [ "image" ],
         sourceFormat: "gif",
         version: ascii(bytes, 0, 6),
@@ -277,7 +275,6 @@ function decodeFrames(bytes, metadata)
 
     const data = frames[0].data;
     return {
-        payloadType: "rgba",
         sourceFormat: "gif",
         mimeType: "image/gif",
         width: metadata.width,

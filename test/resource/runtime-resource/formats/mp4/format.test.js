@@ -47,7 +47,7 @@ test("emits a GPU-free video container payload without decoding frames", () =>
     const support = CjsMp4Format.getSupport(bytes);
     const rawVariant = support.outputs.find((variant) => variant.output === "raw");
 
-    assert.equal(video.payloadType, "video");
+    assert.equal("payloadType" in video, false);
     assert.equal(video.sourceFormat, "mp4");
     assert.equal(video.container, "isobmff");
     assert.equal(video.mimeType, "video/mp4");

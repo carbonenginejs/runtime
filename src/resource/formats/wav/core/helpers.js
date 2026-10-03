@@ -54,7 +54,6 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
         throw new TypeError(`CjsAudioFormat: expected ${expectedType}, got ${metadata.sourceFormat}`);
     }
     return {
-        payloadType: "audio",
         mediaTypes: [ "audio" ],
         byteLength: bytes.byteLength,
         sourceFormat: expectedType || values.inputType || metadata.sourceFormat,
@@ -84,7 +83,6 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedT
             variants: [
                 {
                     kind: "raw",
-                    payloadType: "raw",
                     codec: metadata.audioFormat || metadata.sourceFormat,
                     mimeType,
                     supported: true,
@@ -93,7 +91,6 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedT
                     kind: "pcm",
                     codec: metadata.sampleFormat || "pcm",
                     supported: canEmitPcm,
-                    payloadType: canEmitPcm ? "pcm" : "pcm",
                     reason: canEmitPcm ? "" : "Only WAV PCM/IEEE-float data chunks can be emitted as PCM."
                 }
             ],
@@ -126,7 +123,6 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
     if (values.emit === OUTPUT_RAW)
     {
         return {
-            payloadType: "raw",
             sourceFormat: metadata.sourceFormat,
             mimeType: getAudioMimeType(metadata),
             metadata,
@@ -282,7 +278,6 @@ function readWavPcm(bytes, metadata, emit)
     const data = decodeWavSamples(bytes, metadata, end);
 
     return {
-        payloadType: emit === OUTPUT_AUDIO ? OUTPUT_AUDIO : OUTPUT_PCM,
         sourceFormat: "wav",
         audioFormat: metadata.sampleFormat,
         sampleFormat: metadata.sampleFormat,

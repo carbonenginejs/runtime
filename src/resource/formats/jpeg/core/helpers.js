@@ -71,7 +71,6 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
     }
 
     return {
-        payloadType: sourceFormat === "dds" ? "texture" : "image",
         mediaTypes: sourceFormat === "dds" ? [ "texture", "image" ] : [ "image" ],
         sourceFormat,
         byteLength: bytes.byteLength,
@@ -90,7 +89,7 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedT
         const metadata = inspectWithValues(input, values, expectedType);
         const canDecode = metadata.sourceFormat === "jpeg" && canDecodeJpeg(metadata);
         const variants = [
-            { kind: "rgba", payloadType: "rgba", codec: "rgba8unorm", supported: canDecode, reason: canDecode ? "" : jpegDecodeReason(metadata)},
+            { kind: "rgba", codec: "rgba8unorm", supported: canDecode, reason: canDecode ? "" : jpegDecodeReason(metadata)},
             rawVariant(metadata)
         ];
 
@@ -133,7 +132,6 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
     if (values.emit === OUTPUT_RAW)
     {
         return {
-            payloadType: "raw",
             sourceFormat: metadata.sourceFormat,
             mimeType: imageMimeType(metadata.sourceFormat),
             metadata,

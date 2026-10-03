@@ -4,12 +4,20 @@
 import { CjsSchema, meta } from "#schema";
 import { State } from "../../resource/video/enums.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../trinity/core/context/Tr2RenderContext.js";
-import { ClearVideoTexture, RealizeTexture } from "../../trinity/core/Tr2ImageIOHelpers.js";
+import { BitmapDimensions } from "#imageio";
+import { UpdateVideoTexture, ClearVideoTexture } from "../../trinity/core/Tr2ImageIOHelpers.js";
+import { PixelFormat, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 
 /** Carbon VideoPlayer using browser-decoded frames and ordinary texture bindings. */
 export class VideoPlayer
 {
   _bgraTexture = null;
+
+  _texture = null;
+
+  _uploadedSource = null;
+
+  _uploadedSerial = -1;
 
   /** Carbon's weak texture property; the shared playlist owns the resource. */
   get bgraTexture() { return this.GetBgraTexture(); }
@@ -139,21 +147,37 @@ export class VideoPlayer
   {
     const video = this.video, resource = this.bgraTexture;
     if (!video || !resource || video.readyState < 2 || !video.videoWidth || !video.videoHeight) return false;
-    let payload = resource.GetPayload();
-    if (payload?.payloadType !== "video" || payload.width !== video.videoWidth || payload.height !== video.videoHeight)
+    const context = this._getRenderContext();
+    if (!context || !context.IsValid()) return false;
+    let texture = resource.GetTexture();
+    if (!texture || texture !== this._texture || resource.GetWidth() !== video.videoWidth || resource.GetHeight() !== video.videoHeight)
     {
-      resource.SetPayload({ payloadType: "video", sourceFormat: "browser", durationTimescale: 1000,
-        duration: Number.isFinite(video.duration) ? Math.round(video.duration * 1000) : 0,
-        tracks: [], width: video.videoWidth, height: video.videoHeight, depth: 1, arraySize: 1, mipCount: 1,
-        frameSource: video, frameSerial: this._serial });
+      // Carbon VideoPlayer.cpp:167-179 creates/updates its bgraTexture. Browser
+      // frames go straight to the AL; no video record is published as an image.
+      texture = context.CreateTexture(BitmapDimensions.texture2D(
+        video.videoWidth, video.videoHeight, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM
+      ), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.RENDER_TARGET,
+        cpuUsage: Tr2CpuUsage.NONE });
+      if (!texture) return false;
+      resource.SetPayload(null);
+      resource.SetValues({ width: video.videoWidth, height: video.videoHeight,
+        depth: 1, arraySize: 1, cpuMip: 1, format: PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM });
+      resource._ownTexture = texture;
+      resource.SetTexture(texture);
       resource.MarkPrepared();
-      payload = resource.GetPayload();
+      this._texture = texture;
+      this._uploadedSerial = -1;
       if (this.onCreateTextures) this.onCreateTextures(this, video.videoWidth, video.videoHeight);
     }
-    payload.frameSource = video;
-    payload.frameSerial = this._serial;
-    const context = this._getRenderContext();
-    if (context && context.IsValid()) RealizeTexture(resource, context);
+    if (this._uploadedSerial !== this._serial || this._uploadedSource !== video)
+    {
+      const result = UpdateVideoTexture(texture, video, context);
+      if (result === 0)
+      {
+        this._uploadedSerial = this._serial;
+        this._uploadedSource = video;
+      }
+    }
     return true;
   }
 
@@ -316,8 +340,8 @@ export class VideoPlayer
     if (texture === this._bgraTexture) return;
     if (typeof this._sampleRequest === "number") this._host.cancelAnimationFrame(this._sampleRequest);
     this._sampleRequest = null;
-    const previous = this._bgraTexture ? this._bgraTexture.GetPayload() : null;
-    if (previous && previous.frameSource === this.video) previous.frameSource = null;
+    this._texture = null;
+    this._uploadedSource = null;
     this._bgraTexture = texture;
     this.OnModified();
   }
@@ -368,8 +392,7 @@ export class VideoPlayer
     this._sampleRequest = null;
     if (this.video)
     {
-      const payload = this.bgraTexture ? this.bgraTexture.GetPayload() : null;
-      if (payload?.frameSource === this.video) payload.frameSource = null;
+      this._uploadedSource = null;
       if (this._frameCallback !== null) this.video.cancelVideoFrameCallback(this._frameCallback);
       for (const [name, handler] of this._listeners) this.video.removeEventListener(name, handler);
       this.video.pause();

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { MediaType, PayloadType } from "#consts/media";
+import { MediaType } from "#consts/media";
 import * as formats from "../../../src/resource/formats/index.js";
 import { CjsFormat } from "../../../src/resource/format/CjsFormat.js";
 import { CjsFsd32Format } from "../../../src/resource/formats/fsd/32/index.js";
@@ -17,8 +17,8 @@ test("CjsFormat exposes the runtime-utils vocabulary objects by identity", () =>
 {
   assert.equal(CjsFormat.MediaType, MediaType, "CjsFormat.MediaType is the runtime-utils object, not a copy");
   assert.equal(CjsFormat.Type, MediaType, "CjsFormat.Type shares the same object");
-  assert.equal(CjsFormat.OutputType.AUDIO, PayloadType.AUDIO);
-  assert.equal(CjsFormat.OutputType.RAW, PayloadType.RAW);
+  assert.equal(CjsFormat.OutputType.AUDIO, "audio");
+  assert.equal(CjsFormat.OutputType.RAW, "raw");
 });
 
 test("every format is a CjsFormat with one canonical frozen contract", () =>

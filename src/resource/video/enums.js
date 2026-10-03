@@ -19,12 +19,8 @@ export const DecoderError = Object.freeze({
   DECODER_ERROR_UNSUPPORTED_CODEC: 1
 });
 
-/** `StreamType` (Metadata.h:255-260), a bitfield: audio 1, video 2, both 3. */
-export const StreamType = Object.freeze({
-  STREAM_AUDIO: 1,
-  STREAM_VIDEO: 2,
-  STREAM_AUDIO_VIDEO: 3
-});
+// The shared declaration also serves standalone format readers and Blue requests.
+export { StreamType } from "#consts/media";
 
 /** VideoController::State (VideoController.h:35-53), exposed as videoplayer.State. */
 export const State = Object.freeze({

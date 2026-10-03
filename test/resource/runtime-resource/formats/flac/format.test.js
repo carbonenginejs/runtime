@@ -45,7 +45,7 @@ test("prefers raw FLAC and reports PCM as a backend path", () =>
     const raw = CjsFlacFormat.read(bytes);
     const support = CjsFlacFormat.getSupport(bytes);
 
-    assert.equal(raw.payloadType, "raw");
+    assert.equal("payloadType" in raw, false);
     assert.equal(raw.sourceFormat, "flac");
     assert.equal(raw.mimeType, "audio/flac");
     assert.equal(raw.bytes, bytes);

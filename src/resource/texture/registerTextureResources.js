@@ -15,6 +15,7 @@
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { HostBitmap, LoadParameters, Metadata } from "#imageio";
 import { ImageIO } from "../imageio/ImageIO.js";
+import { createDdsBitmap } from "./ddsBitmap.js";
 import { CjsDdsFormat } from "../formats/dds/CjsDdsFormat.js";
 import { TriTextureRes } from "./TriTextureRes.js";
 import { Tr2ImageRes } from "./Tr2ImageRes.js";
@@ -48,6 +49,12 @@ export const TextureResourceExtensions = Object.freeze([
  */
 async function ReadImageResource(bytes, context)
 {
+  if (context.resource.GetExt() === "dds")
+  {
+    const descriptor = { Format: CjsDdsFormat, defaults: { emit: "bitmap" } };
+    const packet = await context.resMan.ReadFormatOnce(context.resource, descriptor, bytes, { emit: "bitmap" });
+    return createDdsBitmap(packet);
+  }
   const bitmap = new HostBitmap();
   const metadata = new Metadata();
   const path = context.path;
@@ -84,14 +91,6 @@ export function RegisterTextureResources(resourceManager, options = {})
 
   for (const extension of TextureResourceExtensions)
   {
-    if (extension === "dds")
-    {
-      resourceManager.RegisterExtension(extension, Handler, {
-        Format: CjsDdsFormat,
-        defaults: { emit: "bitmap" }
-      });
-      continue;
-    }
     resourceManager.RegisterObjectLoader(extension, ReadImageResource);
     resourceManager.RegisterExtension(extension, Handler);
   }

@@ -15,7 +15,7 @@ test("inspects dds dimensions and compressed support variant", () =>
     const support = CjsDdsFormat.getSupport(bytes);
 
     assert.equal(CjsDdsFormat.isDDS(bytes), true);
-    assert.equal(info.payloadType, "texture");
+    assert.equal("payloadType" in info, false);
     assert.equal(info.width, 64);
     assert.equal(info.height, 32);
     assert.equal(info.fourCc, "DXT1");
@@ -29,7 +29,7 @@ test("emits compressed dds texture payload", () =>
     const bytes = makeDdsHeader(4, 4, "DXT1", [ 1, 2, 3, 4, 5, 6, 7, 8 ]);
     const texture = CjsDdsFormat.read(bytes, { emit: "texture" });
 
-    assert.equal(texture.payloadType, "texture");
+    assert.equal("payloadType" in texture, false);
     assert.equal(texture.pixelFormat, "bc1-rgba-unorm");
     assert.equal(texture.isCompressed, true);
     assert.equal(texture.mipCount, 1);
@@ -119,7 +119,7 @@ test("decodes and asynchronously verifies a BC1 block as canonical RGBA", async 
     const support = CjsDdsFormat.getSupport(bytes);
     const verified = await CjsDdsFormat.verifySupport(bytes, { emit: "rgba" });
 
-    assert.equal(rgba.payloadType, "rgba");
+    assert.equal("payloadType" in rgba, false);
     assert.equal(rgba.strideBytes, 16);
     assert.equal(rgba.origin, "top-left");
     assert.deepEqual(Array.from(rgba.data.slice(0, 4)), [ 255, 0, 0, 255 ]);

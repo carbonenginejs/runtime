@@ -42,7 +42,7 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
     if (!isFLAC(bytes)) throw new TypeError("CjsFlacFormat: input is not a FLAC stream");
     const sourceFormat = expectedType || values.inputType || "flac";
     if (sourceFormat !== "flac") throw new TypeError(`CjsFlacFormat: expected ${sourceFormat}, got flac`);
-    return { payloadType: "audio", mediaTypes: [ "audio" ], byteLength: bytes.byteLength, ...inspectBytes(bytes) };
+    return { mediaTypes: [ "audio" ], byteLength: bytes.byteLength, ...inspectBytes(bytes) };
 }
 
 /**
@@ -65,12 +65,11 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedT
             variants: [
                 {
                     kind: "raw",
-                    payloadType: "raw",
                     codec: "flac",
                     mimeType: "audio/flac",
                     supported: true,
                 },
-                { kind: "pcm", payloadType: "pcm", codec: "pcm", supported: false, reason: "FLAC PCM decode/output is not implemented in this package." }
+                { kind: "pcm", codec: "pcm", supported: false, reason: "FLAC PCM decode/output is not implemented in this package." }
             ],
             warnings: [],
             errors: []
@@ -108,7 +107,6 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
         throw error;
     }
     return {
-        payloadType: OUTPUT_RAW,
         sourceFormat: "flac",
         mimeType: "audio/flac",
         metadata,

@@ -70,7 +70,6 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
     }
 
     return {
-        payloadType: sourceFormat === "dds" ? "texture" : "image",
         mediaTypes: sourceFormat === "dds" ? [ "texture", "image" ] : [ "image" ],
         sourceFormat,
         byteLength: bytes.byteLength,
@@ -91,7 +90,6 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedT
         const variants = [
             {
                 kind: "rgba",
-                payloadType: "rgba",
                 codec: "rgba8unorm",
                 supported: pngSupport?.supported === true,
                 reason: pngSupport?.reason || `${metadata.sourceFormat.toUpperCase()} RGBA decode is not implemented yet.`,
@@ -139,7 +137,6 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
     if (values.emit === OUTPUT_RAW)
     {
         return {
-            payloadType: "raw",
             sourceFormat: metadata.sourceFormat,
             mimeType: imageMimeType(metadata.sourceFormat),
             metadata,
@@ -263,7 +260,6 @@ async function decodePngToRgba(bytes, metadata)
     }
 
     return {
-        payloadType: OUTPUT_RGBA,
         sourceFormat: "png",
         mimeType: "image/png",
         width: metadata.width,

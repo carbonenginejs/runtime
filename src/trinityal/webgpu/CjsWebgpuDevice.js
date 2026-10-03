@@ -651,7 +651,6 @@ function mapRgba8TexturePayload(value, plan)
   const label = `${plan.name} payload`;
   assertPlainObject(value, label);
   assertKeys(value, RGBA8_TEXTURE_PAYLOAD_KEYS, label);
-  if (value.payloadType !== "rgba") fail(`${label} payloadType must be rgba`);
   if (typeof value.sourceFormat !== "string" || value.sourceFormat.trim() === "")
   {
     fail(`${label} sourceFormat must be a non-empty string`);

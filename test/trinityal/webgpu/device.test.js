@@ -328,7 +328,6 @@ function textureInputs()
 function decodedRgba8Inputs(overrides = {})
 {
   return {
-    payloadType: "rgba",
     sourceFormat: "png",
     width: 2,
     height: 2,
@@ -1680,7 +1679,6 @@ test("CjsWebgpuDevice RGBA8 realization preserves linear bytes and fails closed 
   };
   const cases = [
     [ without("sourceFormat"), /sourceFormat must be a non-empty string/i ],
-    [ decodedRgba8Inputs({ payloadType: "raw" }), /payloadType must be rgba/i ],
     [ decodedRgba8Inputs({ containerOnly: true }), /containerOnly must be false/i ],
     [ decodedRgba8Inputs({ isDecoded: false }), /isDecoded must be true/i ],
     [ decodedRgba8Inputs({ rgbaDecodeSupported: false }), /rgbaDecodeSupported must be true/i ],

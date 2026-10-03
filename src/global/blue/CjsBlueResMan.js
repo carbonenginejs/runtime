@@ -1,3 +1,4 @@
+import { StreamType } from "#consts/media";
 // Source: blue/src/BlueResMan.h
 // Source: blue/src/BlueResMan.cpp
 // Consumer interface: blue/include/IBlueResMan.h (see IBlueResMan.js).
@@ -35,6 +36,7 @@ const RESOURCE_REQUEST_OPTION_KEYS = [
   "payload",
   "emit",
   "mediaType",
+  "outputStreams",
   "format",
   "classes",
   "formatOptions"
@@ -42,6 +44,7 @@ const RESOURCE_REQUEST_OPTION_KEYS = [
 
 /** Requested-output fields pinned by a bound resource handle. */
 const RESOURCE_OUTPUT_OPTION_KEYS = [
+  "outputStreams",
   "variant",
   "emit",
   "requirement",
@@ -3328,6 +3331,8 @@ export class CjsBlueResMan
     {
       throw new TypeError("CjsBlueResMan resource variant options must be an object.");
     }
+    const streams = getRequestedStreams(options);
+    const suffix = streams ? `|streams:${streams}` : "";
     if (Object.hasOwn(options, "variant")
       && options.variant !== undefined)
     {
@@ -3342,7 +3347,7 @@ export class CjsBlueResMan
       ?? options.requirement
       ?? options.payload
       ?? ""
-    );
+    ) + suffix;
   }
 
   /**
@@ -4003,6 +4008,7 @@ function getFormatOperationKey(context, options)
   const material = [
     options.emit,
     options.mediaType,
+    options.outputStreams,
     options.classes,
     options.formatOptions
   ];
@@ -4237,7 +4243,20 @@ function filterFormatDescriptors(descriptors, options)
     candidates = candidates.filter(({ Format }) =>
       findDeclaredOutput(getFormatOutputs(Format), options.emit) !== null);
   }
-  if (options.mediaType)
+  const streams = getRequestedStreams(options);
+  if (streams)
+  {
+    candidates = candidates.filter(descriptor =>
+    {
+      const { Format } = descriptor;
+      const emit = createFormatReadOptions(descriptor, options).emit;
+      const capability = emit === undefined
+        ? Object.values(Format.outputs || {}).find(entry => entry.default)
+        : Format.outputs?.[findDeclaredOutput(getFormatOutputs(Format), emit)];
+      return (capability?.outputStreams & streams) === streams;
+    });
+  }
+  else if (options.mediaType)
   {
     candidates = candidates.filter(({ Format }) =>
       (Format.mediaTypes || []).includes(options.mediaType));
@@ -4860,6 +4879,8 @@ function createFormatReadOptions(descriptor, options)
     formatOptions.emit = findDeclaredOutput(getFormatOutputs(Format), options.emit)
       ?? options.emit;
   }
+  const streams = getRequestedStreams(options);
+  if (streams) formatOptions.outputStreams = streams;
   if (options.classes !== undefined) formatOptions.classes = options.classes;
   return formatOptions;
 }
@@ -5107,3 +5128,16 @@ function createExtensionTargetError(resource, message, cause = null)
 CjsSchema.meta.blue.inherit(IBlueResMan, IBlueEvents)(CjsBlueResMan);
 CjsSchema.decorateMethod(CjsBlueResMan, "GetResource", meta.adapted);
 CjsSchema.define(CjsBlueResMan, { className: "CjsBlueResMan", carbon: "BlueResMan" });
+
+/** Resolve a request to Carbon StreamType flags; legacy media selectors use the same mask. */
+function getRequestedStreams(options)
+{
+  const streams = options.outputStreams ?? options.formatOptions?.outputStreams
+    ?? (options.mediaType === "audio" ? StreamType.STREAM_AUDIO
+      : options.mediaType === "video" ? StreamType.STREAM_VIDEO : 0);
+  if (!Number.isInteger(streams) || streams < 0 || streams > StreamType.STREAM_AUDIO_VIDEO)
+  {
+    throw new TypeError("Resource outputStreams requires a valid StreamType mask.");
+  }
+  return streams;
+}

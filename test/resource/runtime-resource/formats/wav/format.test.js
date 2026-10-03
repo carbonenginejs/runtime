@@ -22,7 +22,7 @@ test("inspects wav metadata and emits raw payload", () =>
     assert.equal(info.bitsPerSample, 16);
     assert.equal(info.frameCount, 0);
     assert.equal(info.durationSeconds, 0);
-    assert.equal(raw.payloadType, "raw");
+    assert.equal("payloadType" in raw, false);
     assert.equal(raw.mimeType, "audio/wav");
     assert.equal(rawVariant.passthrough, true);
     assert.equal(rawVariant.decoded, false);
@@ -34,7 +34,7 @@ test("emits wav pcm payload without GPU or audio-device work", () =>
     const pcm = CjsWavFormat.read(bytes, { emit: "pcm" });
     const support = CjsWavFormat.getSupport(bytes);
 
-    assert.equal(pcm.payloadType, "pcm");
+    assert.equal("payloadType" in pcm, false);
     assert.equal(pcm.audioFormat, "pcm16");
     assert.equal(pcm.sampleFormat, "pcm16");
     assert.equal(pcm.sampleRate, 48000);

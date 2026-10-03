@@ -468,7 +468,6 @@ export class CjsDdsFormat extends CjsImageFormat
             throw error;
         }
         return {
-            payloadType: "bitmap",
             sourceFormat: "dds",
             description: {
                 type: bitmap.GetType(), format: bitmap.GetFormat(),

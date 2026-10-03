@@ -44,7 +44,7 @@ test("decodes uncompressed true-color tga to rgba", () =>
     const rgba = CjsTgaFormat.read(bytes, { emit: "rgba" });
     const support = CjsTgaFormat.getSupport(bytes);
 
-    assert.equal(rgba.payloadType, "rgba");
+    assert.equal("payloadType" in rgba, false);
     assert.equal(rgba.mimeType, "image/x-tga");
     assert.equal(rgba.width, 2);
     assert.equal(rgba.height, 1);
@@ -81,7 +81,7 @@ test("decodes indexed TGA color maps to canonical RGBA", () =>
     assert.equal(info.colorMapBytes, 6);
     assert.equal(info.imageDataOffset, 24);
     assert.equal(info.imageDataBytes, 2);
-    assert.equal(rgba.payloadType, "rgba");
+    assert.equal("payloadType" in rgba, false);
     assert.deepEqual(Array.from(rgba.data), [
         255, 0, 0, 255,
         0, 255, 0, 255

@@ -382,7 +382,6 @@ export function inspectWithValues(input, values = DEFAULT_VALUES)
         throw new TypeError("CjsBnkFormat: expected a Wwise soundbank starting with a BKHD chunk");
     }
     return {
-        payloadType: "audio",
         mediaTypes: [ "audio" ],
         byteLength: bytes.byteLength,
         source: values.source || "buffer",
@@ -444,14 +443,12 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES)
             variants: [
                 {
                     kind: "raw",
-                    payloadType: "raw",
                     codec: "wwise-soundbank",
                     mimeType: "application/octet-stream",
                     supported: true,
                 },
                 {
                     kind: OUTPUT_MEDIA,
-                    payloadType: OUTPUT_MEDIA,
                     codec: "wem",
                     supported: extractable,
                     reason: extractable ? "" : "No DIDX/DATA media entries are present."
@@ -487,14 +484,12 @@ export function readWithValues(input, values = DEFAULT_VALUES)
     if (values.emit === OUTPUT_MEDIA)
     {
         return {
-            payloadType: OUTPUT_MEDIA,
             sourceFormat: "bnk",
             metadata,
             items: extractMedia(bytes, metadata)
         };
     }
     return {
-        payloadType: "raw",
         sourceFormat: "bnk",
         mimeType: "application/octet-stream",
         metadata,

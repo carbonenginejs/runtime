@@ -14,6 +14,7 @@ export * from "./core/index.js";
 // Explicit exports resolve compatibility re-exports from higher layers without
 // creating a second implementation or an ambiguous package-root binding.
 export { CjsBlueResMan } from "./global/blue/index.js";
+export { StreamType } from "./global/consts/media/index.js";
 export { ReflectionMode, Tr2Lod } from "./global/index.js";
 export {
     Tr2EffectConstant,

@@ -44,7 +44,7 @@ export function DescribeTexturePayload(payload)
 {
   if (!payload) return null;
 
-  if (payload.payloadType === "rgba")
+  if (Number.isInteger(payload.strideBytes) && !Array.isArray(payload.subresources))
   {
     if (!(payload.data instanceof Uint8Array) || payload.pixelFormat !== "rgba8unorm") return null;
 
@@ -65,7 +65,7 @@ export function DescribeTexturePayload(payload)
     };
   }
 
-  if (payload.payloadType !== "texture") return null;
+  if (!Array.isArray(payload.subresources)) return null;
 
   const format = PixelFormatFromCanonical[payload.pixelFormat];
   const type = TYPE_OF_DIMENSION[payload.dimension];
@@ -211,16 +211,6 @@ export function CreateTextureFromBitmap(bitmap, renderContext, name = "")
  */
 export function CreateTexture(resource, renderContext)
 {
-  const payload = resource.GetPayload();
-  if (payload?.payloadType === "video" && payload.frameSource)
-  {
-    // Browser images require COPY_DST and RENDER_ATTACHMENT on WebGPU. The
-    // result stays an ordinary sampled texture, including its sRGB view.
-    return renderContext.CreateTexture(Tr2BitmapDimensions.texture2D(
-      payload.width, payload.height, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM
-    ), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.RENDER_TARGET,
-      cpuUsage: Tr2CpuUsage.NONE });
-  }
   const bitmap = resource.GetBitmap();
 
   if (bitmap) return CreateTextureFromBitmap(bitmap, renderContext, resource.GetPath() || resource.name || "TriTextureRes");
@@ -253,51 +243,54 @@ export function CreateTexture(resource, renderContext)
  */
 export function RealizeTexture(resource, renderContext)
 {
-  const payload = resource.GetPayload();
-  const video = payload?.payloadType === "video" && payload.frameSource;
   let texture = resource.GetTexture();
+  if (!texture && resource.videoController?.video)
+  {
+    // A paused playlist has no new frame callback after device loss. Its
+    // player recreates and presents the retained frame when a binding needs it.
+    resource.videoController.video.Update();
+    texture = resource.GetTexture();
+  }
   if (!texture)
   {
-    // ReleaseResources retains the frame source for device/resource recreation.
-    if (!renderContext || (!resource.IsPrepared() && !video)) return null;
+    if (!renderContext || !resource.IsPrepared()) return null;
     texture = CreateTexture(resource, renderContext);
     if (!texture) return null;
     if (resource._ownTexture) resource._ownTexture.Destroy();
     resource._ownTexture = texture;
     resource.SetTexture(texture);
-    if (video) resource.MarkPrepared();
-  }
-  if (video && (texture._videoSerial !== payload.frameSerial || texture._videoSource !== video))
-  {
-    // Once per shared decoded frame, including the initial bind. No source
-    // pixels enter JS and no material/resource-set notification is emitted.
-    const result = texture.UpdateSubresource(videoSubresource, video, 0, 0, renderContext);
-    if (result === 0)
-    {
-      texture._videoSerial = payload.frameSerial;
-      texture._videoSource = video;
-    }
   }
   return texture;
 }
 
+
 const videoSubresource = Tr2TextureSubresource.ForMipLevel(0);
 
+/**
+ * Browser adaptation of VideoPlayer's texture UpdateSubresource call.
+ * The player owns sizing, presentation timing and frame deduplication; this
+ * bridge keeps the AL's subresource type on the Trinity side of the boundary.
+ * @param {object} texture Player's realized texture.
+ * @param {object} source Browser-decoded frame source.
+ * @param {object} renderContext Upload context.
+ * @returns {number} The AL upload result.
+ */
+export function UpdateVideoTexture(texture, source, renderContext)
+{
+  return texture.UpdateSubresource(videoSubresource, source, 0, 0, renderContext);
+}
 
 /**
- * Carbon VideoPlayer::ClearTextures upload, kept on the renderer side of the resource boundary.
- * This explicit clear allocates once per request, never in the normal video frame path.
- * @param {object} resource The shared video texture resource.
- * @param {object} renderContext The upload context.
+ * Carbon VideoPlayer::ClearTextures upload on the renderer side of the boundary.
+ * @param {object} resource Shared video texture resource.
+ * @param {object} renderContext Upload context.
  */
 export function ClearVideoTexture(resource, renderContext)
 {
-  // Before the first decoded frame the shared placeholder is already black.
-  if (resource.GetPayload()?.payloadType !== "video") return;
   const texture = resource.GetTexture(), width = resource.GetWidth(), height = resource.GetHeight();
   if (texture && texture.IsValid() && width && height)
   {
-    texture.UpdateSubresource(videoSubresource, new Uint8Array(width * height * 4), // alloc: explicit donor ClearTextures request, never normal presentation.
+    texture.UpdateSubresource(videoSubresource, new Uint8Array(width * height * 4), // alloc: explicit ClearTextures request, never normal presentation.
       width * 4, width * height * 4, renderContext);
   }
 }

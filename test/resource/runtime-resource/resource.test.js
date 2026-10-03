@@ -22,11 +22,6 @@ import {
   CjsResource,
   CjsResourceProbe,
   ResourceHandlerMode,
-  ResourcePayloadType,
-  validateRgbaPayload,
-  validateTexturePayload,
-  validateAudioPayload,
-  validateVideoPayload,
   Tr2GrannyStateRes,
   Tr2LightProfileRes,
   Tr2MaterialRes,
@@ -1580,89 +1575,12 @@ test("CjsMotherLode inactivity purge preserves failed owners and continues", () 
   assert.equal(motherLode.Delete(failingKey, { cleanup: false }), true);
 });
 
-test("resource payload validators enforce canonical typed media shapes", () => {
-  const rgba = validateRgbaPayload({
-    payloadType: ResourcePayloadType.RGBA,
-    width: 2,
-    height: 1,
-    pixelFormat: "rgba8unorm",
-    data: new Uint8Array([ 255, 0, 0, 255, 0, 0, 0, 0 ]),
-    strideBytes: 8,
-    origin: "top-left",
-    colorSpace: "srgb",
-    alphaMode: "straight"
-  });
-  assert.equal(rgba.data instanceof Uint8Array, true);
-
-  const hdr = validateRgbaPayload({
-    payloadType: ResourcePayloadType.RGBA,
-    width: 1,
-    height: 1,
-    pixelFormat: "rgba32float",
-    data: new Float32Array([ 1, 0.5, 0, 1 ]),
-    strideBytes: 16,
-    origin: "top-left",
-    colorSpace: "linear",
-    alphaMode: "straight"
-  });
-  assert.equal(hdr.data instanceof Float32Array, true);
-
-  const texture = validateTexturePayload({
-    payloadType: ResourcePayloadType.TEXTURE,
-    width: 4,
-    height: 4,
-    dimension: "2d",
-    pixelFormat: "bc1-rgba-unorm",
-    isCompressed: true,
-    mipCount: 1,
-    arraySize: 1,
-    data: new Uint8Array(8),
-    subresources: [ {
-      mip: 0,
-      layer: 0,
-      offset: 0,
-      byteLength: 8,
-      rowPitch: 8,
-      slicePitch: 8,
-      width: 4,
-      height: 4
-    } ]
-  });
-  assert.equal(texture.isCompressed, true);
-
-  const audio = validateAudioPayload({
-    payloadType: ResourcePayloadType.PCM,
-    sampleRate: 48000,
-    channels: 2,
-    frameCount: 1,
-    sampleFormat: "pcm16le",
-    data: new Int16Array([ 0, 0 ]),
-    durationSeconds: 1 / 48000
-  });
-  assert.equal(audio.channels, 2);
-
-  const video = validateVideoPayload({
-    payloadType: ResourcePayloadType.VIDEO,
-    sourceFormat: "webm",
-    duration: 1000,
-    durationTimescale: 1000,
-    tracks: []
-  });
-  assert.equal(video.sourceFormat, "webm");
-});
-
-test("resource payload validators reject ambiguous image data", () => {
-  assert.throws(() => validateRgbaPayload({
-    payloadType: ResourcePayloadType.RGBA,
-    width: 1,
-    height: 1,
-    pixelFormat: "rgba8unorm",
-    data: [ 255, 255, 255, 255 ],
-    strideBytes: 4,
-    origin: "top-left",
-    colorSpace: "srgb",
-    alphaMode: "opaque"
-  }), /Uint8Array/);
+test("resource exports no obsolete payload vocabulary or validators", () => {
+  for (const name of ["ResourcePayloadType", "ResourcePayloadValues", "validateRgbaPayload",
+    "validateTexturePayload", "validateAudioPayload", "validateVideoPayload"])
+  {
+    assert.equal(name in runtimeResource, false);
+  }
 });
 
 test("a resource refuses to load bytes it was never taught to read", () =>
@@ -1783,32 +1701,16 @@ test("CjsResourceProbe.from normalizes plain reports without dropping handoff me
   assert.equal(probe.outputs[0].decoded, false);
 });
 
-test("TriTextureRes accepts a plain video payload and preserves it on invalid replacement", () => {
-  const video = {
-    payloadType: ResourcePayloadType.VIDEO,
-    sourceFormat: "webm",
-    duration: 2000,
-    durationTimescale: 1000,
-    tracks: [],
-    durationSeconds: 2,
-    width: 1920,
-    height: 1080,
-    sourceBytes: new Uint8Array([ 1, 2, 3 ])
-  };
-  const texture = new TriTextureRes().Initialize("dynamic:/video/hangar");
-
-  texture.SetPayload(video);
-
-  assert.equal(video.width, 1920);
-  assert.equal(video.durationSeconds, 2);
-  assert.equal(texture.HasPayload(), true);
-  assert.equal(texture.GetPayload(), video);
-  assert.equal(texture.GetPayload().sourceFormat, "webm");
-  assert.throws(
-    () => texture.SetPayload({ payloadType: ResourcePayloadType.VIDEO }),
-    error => error.code === "CJS_RESOURCE_PAYLOAD_INVALID"
-  );
-  assert.equal(texture.GetPayload(), video);
+test("TriTextureRes refuses video records without replacing its bitmap", () => {
+  const texture = new TriTextureRes().Initialize("dynamic:/color/0,0,0,1", "");
+  const previous = texture.GetPayload();
+  const video = { payloadType: "video", sourceFormat: "webm", duration: 2000,
+    durationTimescale: 1000, tracks: [], width: 1920, height: 1080, sourceBytes: new Uint8Array([1]) };
+  for (const payload of [video, { ...video, payloadType: undefined }])
+  {
+    assert.throws(() => texture.SetPayload(payload), error => error.code === "CJS_RESOURCE_PAYLOAD_INVALID");
+    assert.equal(texture.GetPayload(), previous);
+  }
 });
 
 test("TriTextureRes holds a HostBitmap, and TriGeometryRes a validated payload", () => {
@@ -2011,7 +1913,7 @@ test("Tr2EffectRes and Tr2ImageRes are semantic resources", () => {
   assert.equal(Tr2ImageRes.payload, "image");
   assert.equal(CjsSchema.getField(Tr2ImageRes, "pixels"), null);
   assert.throws(
-    () => image.SetPayload({ payloadType: ResourcePayloadType.RGBA, width: 2, height: 1 }),
+    () => image.SetPayload({ payloadType: "rgba", width: 2, height: 1 }),
     error => error.code === "CJS_RESOURCE_PAYLOAD_INVALID"
   );
   assert.equal(image.GetPayload(), imageBitmap);

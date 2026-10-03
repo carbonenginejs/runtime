@@ -192,7 +192,6 @@ export function inspectWithValues(input, values = DEFAULT_VALUES)
         throw new TypeError("CjsWemFormat: expected a RIFF/RIFX WAVE (wem) container");
     }
     return {
-        payloadType: "audio",
         mediaTypes: [ "audio" ],
         byteLength: bytes.byteLength,
         source: values.source || "buffer",
@@ -228,14 +227,12 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES)
             variants: [
                 {
                     kind: "raw",
-                    payloadType: "raw",
                     codec: metadata.codec || "unknown",
                     mimeType: "application/octet-stream",
                     supported: true,
                 },
                 {
                     kind: OUTPUT_OGG,
-                    payloadType: "raw",
                     codec: "vorbis",
                     mimeType: "audio/ogg",
                     supported: oggSupport.supported,
@@ -243,7 +240,6 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES)
                 },
                 {
                     kind: OUTPUT_PCM,
-                    payloadType: OUTPUT_PCM,
                     codec: "float32",
                     supported: pcmSupport.supported,
                     reason: pcmSupport.supported ? "" : pcmSupport.reason
@@ -366,7 +362,6 @@ export function readWithValues(input, values = DEFAULT_VALUES)
         }
         const ogg = convertWemToOgg(bytes, { codebooks: values.codebooks });
         return {
-            payloadType: "raw",
             sourceFormat: "wem",
             outputFormat: "ogg",
             codec: "vorbis",
@@ -385,7 +380,6 @@ export function readWithValues(input, values = DEFAULT_VALUES)
     {
         const decoded = decodeToPcm(bytes, metadata);
         return {
-            payloadType: OUTPUT_PCM,
             sourceFormat: "wem",
             outputFormat: OUTPUT_PCM,
             codec: "float32",
@@ -401,7 +395,6 @@ export function readWithValues(input, values = DEFAULT_VALUES)
     if (values.emit === OUTPUT_RAW)
     {
         return {
-            payloadType: "raw",
             sourceFormat: "wem",
             codec: metadata.codec,
             mimeType: "application/octet-stream",

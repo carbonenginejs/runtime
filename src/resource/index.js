@@ -19,7 +19,6 @@ export * from "./shader/index.js";
 export * from "./texture/index.js";
 export * from "./video/index.js";
 export * from "./format/CjsResourceProbe.js";
-export * from "./format/payloadContract.js";
 export * from "./format/CjsFormat.js";
 export { CjsEventEmitter } from "#model";
 // The manager core moved to Blue (global/blue); re-exported for consumers of

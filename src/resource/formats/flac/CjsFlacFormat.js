@@ -1,3 +1,4 @@
+import { StreamType } from "#consts/media";
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import {
@@ -108,7 +109,7 @@ export class CjsFlacFormat extends CjsFormat
     static mediaTypes = [ "audio" ];
     static outputs = CjsFormat.defineOutputs({
         flacJson: { role: "debug", probes: [ "flacJson", "raw" ] },
-        raw: { role: "debug", default: true, passthrough: true }
+        raw: { outputStreams: StreamType.STREAM_AUDIO, role: "debug", default: true, passthrough: true }
     });
     static extensions = [ ".flac" ];
 }

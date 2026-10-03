@@ -23,7 +23,6 @@
   "src/resource/audio/CjsAudioRes.js": 1,
   "src/resource/format/CjsFormat.js": 1,
   "src/resource/format/CjsResourceProbe.js": 1,
-  "src/resource/format/payloadContract.js": 1,
   "src/resource/formats/black/core/CjsBlackBinaryReader.js": 1,
   "src/resource/formats/hlsl/core/HlslEffectStateManager.js": 1,
   "src/resource/formats/hlsl/core/tr2/resources/HlslEffectRes.js": 1,

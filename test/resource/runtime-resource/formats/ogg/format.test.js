@@ -110,7 +110,7 @@ test("reads raw Ogg bytes and reports codec-specific PCM availability", () =>
     const raw = CjsOggFormat.read(bytes);
     const support = CjsOggFormat.getSupport(bytes);
 
-    assert.equal(raw.payloadType, "raw");
+    assert.equal("payloadType" in raw, false);
     assert.equal(raw.sourceFormat, "ogg");
     assert.equal(raw.mimeType, "audio/ogg");
     assert.equal(raw.bytes, bytes);
@@ -195,7 +195,7 @@ test("decodes an Ogg Vorbis fixture to PCM with the expected tone", () =>
     const pcm = CjsOggFormat.read(bytes, { emit: "pcm" });
     const support = CjsOggFormat.getSupport(bytes);
 
-    assert.equal(pcm.payloadType, "pcm");
+    assert.equal("payloadType" in pcm, false);
     assert.equal(pcm.sampleFormat, "float32");
     assert.equal(pcm.channels, 2);
     assert.equal(pcm.sampleRate, 48000);
@@ -237,7 +237,7 @@ test("audio emit mirrors pcm with an audio payload type", () =>
 {
     const bytes = readFileSync(path.join(FIXTURES, "sine-440.ogg"));
     const audio = CjsOggFormat.read(bytes, { emit: "audio" });
-    assert.equal(audio.payloadType, "audio");
+    assert.equal("payloadType" in audio, false);
 });
 
 function makeOggPage(packet, options = {})

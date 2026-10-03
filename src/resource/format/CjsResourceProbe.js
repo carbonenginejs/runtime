@@ -101,7 +101,6 @@ function normalizeCapability(input)
   return {
     ...capability,
     output: String(capability.output || ""),
-    payloadType: String(capability.payloadType || capability.output || ""),
     supported: capability.supported === true,
     verified: capability.verified === true,
     requires: Array.isArray(capability.requires) ? capability.requires.map(String) : []

@@ -48,7 +48,6 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
         throw new TypeError(`CjsVideoFormat: expected ${expectedType}, got ${metadata.sourceFormat}`);
     }
     return {
-        payloadType: "video",
         mediaTypes: [ "video" ],
         byteLength: bytes.byteLength,
         sourceFormat: expectedType || values.inputType || metadata.sourceFormat,
@@ -78,14 +77,12 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedT
             variants: [
                 {
                     kind: "raw",
-                    payloadType: "raw",
                     codec: metadata.sourceFormat,
                     mimeType,
                     supported: true,
                 },
                 {
                     kind: "container",
-                    payloadType: "video",
                     codec: metadata.sourceFormat,
                     mimeType,
                     codecs: codecs.codecs,
@@ -95,7 +92,6 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedT
                 },
                 {
                     kind: "decoded",
-                    payloadType: "video-frame",
                     codec: "frames",
                     supported: false,
                     reason: "Video decode is not implemented in this package."
@@ -130,7 +126,6 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
     if (values.emit === OUTPUT_RAW)
     {
         return {
-            payloadType: "raw",
             sourceFormat: metadata.sourceFormat,
             metadata,
             bytes
@@ -143,7 +138,6 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
         const codecs = getTrackCodecSummary(metadata);
         const mimeType = getMediaMimeType(metadata);
         return {
-            payloadType: OUTPUT_VIDEO,
             sourceFormat: "mp4",
             container: metadata.container,
             mimeType,

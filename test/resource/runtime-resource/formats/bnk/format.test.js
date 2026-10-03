@@ -182,9 +182,9 @@ test("read emits raw, media, and json payloads", () =>
     const metadata = CjsBnkFormat.read(bytes, { emit: "bnkJson" });
     const support = CjsBnkFormat.getSupport(bytes);
 
-    assert.equal(raw.payloadType, "raw");
+    assert.equal("payloadType" in raw, false);
     assert.equal(raw.bytes, bytes);
-    assert.equal(media.payloadType, "media");
+    assert.equal("payloadType" in media, false);
     assert.equal(media.items.length, 2);
     assert.equal(metadata.sourceFormat, "bnk");
     assert.equal(support.supported, true);

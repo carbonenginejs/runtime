@@ -12,8 +12,8 @@ export class CjsGraphFormat extends CjsFormat
     static extensions = [];
     static mediaTypes = ["data"];
     static outputs = CjsFormat.defineOutputs({
-        values: { default: true, decoded: true, payloadType: "json" },
-        runtime: { decoded: true, payloadType: "object" }
+        values: { default: true, decoded: true },
+        runtime: { decoded: true }
     });
     static inputs = CjsFormat.defineInputs({ runtime: { default: true }, values: {} });
 

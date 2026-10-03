@@ -496,16 +496,16 @@ export class CjsCmfFormat extends CjsGeometryFormat
     // while `writeShared` converts a shared geometry root through it first.
     // Both are lossless - CMF is the container this package writes for keeps.
     static inputs = CjsFormat.defineInputs({
-        cmf: { default: true, payloadType: "geometry", options: [ "compress" ] },
-        shared: { payloadType: "geometry", options: [ "compress" ] }
+        cmf: { default: true, options: [ "compress" ] },
+        shared: { options: [ "compress" ] }
     });
 
     static outputs = CjsFormat.defineOutputs({
         cmf: { default: true, decoded: true },
         gr2: { decoded: true },
         shared: { decoded: true },
-        json: { role: "debug", payloadType: "cmf", decoded: true },
-        cmfJson: { role: "debug", payloadType: "cmf", decoded: true },
+        json: { role: "debug", decoded: true },
+        cmfJson: { role: "debug", decoded: true },
         raw: { role: "debug", decoded: true }
     });
     static extensions = [ ".cmf" ];

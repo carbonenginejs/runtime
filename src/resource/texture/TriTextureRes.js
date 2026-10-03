@@ -3,27 +3,19 @@
 // Source: trinity/trinity/Resources/TriTextureRes_Blue.cpp
 import { CjsSchema, meta } from "#schema";
 import { HostBitmap } from "#imageio";
-import { createDdsBitmap } from "./ddsBitmap.js";
 import { TriStorageFlags, Tr2ALMemoryType } from "#consts/graphics";
 import { CjsResource } from "#blue";
 import { IsSolidColorTexturePath, RasterizeSolidColor } from "./solidColorTexture.js";
 import { ResourceRequirement } from "#blue";
 import {
-  ResourcePayloadType,
-  validateRgbaPayload,
-  validateTexturePayload,
-  validateVideoPayload
-} from "../format/payloadContract.js";
-import {
   resourceBoundaryError,
   resourceFormatRequiredError,
-  resourcePayloadError,
-  validateResourcePayload
+  resourcePayloadError
 } from "../resourceBoundary.js";
 
 /**
  * Resource record that owns Carbon-style texture identity and validated
- * texture, RGBA, or video payload facts with mirrored dimension/format
+ * HostBitmap data with mirrored dimension/format
  * metadata, while engine packages decide what those facts become on a device.
  *
  * The resource never CREATES a backend texture - it cannot reach a render
@@ -303,11 +295,11 @@ export class TriTextureRes extends CjsResource
   }
 
   /**
-   * Attach a native bitmap, DDS worker bitmap, or video payload and mirror Carbon-exposed
+   * Attach a native bitmap and mirror Carbon-exposed
    * metadata. Invalid payloads are rejected before replacing the current one.
    *
-   * Ours: a DDS format worker returns plain bitmap data; materialization here
-   * retains native bitmap identity without another decode or shared-code changes.
+   * The registered loader materializes worker results before publication.
+   * Browser video is uploaded by VideoPlayer and never enters this bitmap boundary.
    *
    * @param {object|null} payload
    * @param {object|null} options
@@ -323,9 +315,7 @@ export class TriTextureRes extends CjsResource
     }
 
     // Carbon's resource IS its bitmap (TriTextureRes.cpp:606, 960-978).
-    const bitmap = payload?.payloadType === "bitmap" && payload.sourceFormat === "dds"
-      ? createDdsBitmap(payload)
-      : CjsSchema.cast(payload, HostBitmap);
+    const bitmap = CjsSchema.cast(payload, HostBitmap);
 
     if (bitmap) {
       this.CreateFromHostBitmap(bitmap);
@@ -339,42 +329,7 @@ export class TriTextureRes extends CjsResource
       return this;
     }
 
-    // A video frame source is the one payload left: it is not an image the
-    // CPU decoded, it is a playing element the backend samples.
-    if (payload?.payloadType !== ResourcePayloadType.VIDEO) {
-      throw resourcePayloadError(
-        "TriTextureRes",
-        'Expected an ImageIO::HostBitmap, or payloadType "video".',
-        "payloadType"
-      );
-    }
-    const validator = validateVideoPayload;
-    validateResourcePayload("TriTextureRes", payload, validator);
-
-    // Browser frames replace the placeholder once. Same-size frames retain GPU
-    // storage, cached views and resource sets; dimensions require a new texture.
-    const previous = this.GetPayload();
-    if (this.loadedBitmap || previous?.width !== payload.width || previous?.height !== payload.height)
-    {
-      this.ReleaseResources();
-      this.loadedBitmap = null;
-    }
-    const values = { ...(options || {}) };
-    if (payload.pixelFormat !== undefined || payload.format !== undefined) values.format = payload.pixelFormat || payload.format;
-    if (payload.width !== undefined) values.width = payload.width;
-    if (payload.height !== undefined) values.height = payload.height;
-    if (payload.depth !== undefined) values.depth = payload.depth;
-    if (payload.arraySize !== undefined) values.arraySize = payload.arraySize;
-    else if (Array.isArray(payload.faces)) values.arraySize = payload.faces.length;
-    if (payload.mipCount !== undefined) values.cpuMip = payload.mipCount;
-    else if (payload.payloadType === ResourcePayloadType.RGBA) values.cpuMip = 1;
-    if (payload.hadLodRequests !== undefined) values.hadLodRequests = !!payload.hadLodRequests;
-    values.originalMemoryUsage = getPayloadMemoryUsage(payload);
-    values.originalResolution = Math.max(payload.width || 0, payload.height || 0, this.originalResolution || 0);
-
-    super.SetPayload(payload);
-    this.SetValues(values);
-    return this;
+    throw resourcePayloadError("TriTextureRes", "Expected an ImageIO::HostBitmap.", "payload");
   }
 
   /**
@@ -397,7 +352,7 @@ export class TriTextureRes extends CjsResource
     const { format = null, read = null, output = null, ...values } = options || {};
 
     // Already a payload: the manager read it, and there is nothing to route.
-    if (data?.payloadType !== undefined) return this.SetPayload(data, values);
+    if (CjsSchema.cast(data, HostBitmap)) return this.SetPayload(data, values);
 
     const route = this.ResolveFormat(data, format ? { format, read, output } : { output });
     if (!route) throw resourceFormatRequiredError("TriTextureRes", this.ext, output);

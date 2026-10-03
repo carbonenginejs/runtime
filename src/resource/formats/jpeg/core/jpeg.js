@@ -39,7 +39,6 @@ export function decodeJpegToRgba(bytes, metadata = {})
     const decoder = new BaselineJpegDecoder(bytes);
     const image = decoder.decode();
     return {
-        payloadType: "rgba",
         sourceFormat: "jpeg",
         mimeType: "image/jpeg",
         width: image.width,

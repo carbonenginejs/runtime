@@ -128,21 +128,18 @@ export function probeCodecSupportWithValues(input, values)
         variants: [
             {
                 kind: "raw",
-                payloadType: "raw",
                 codec: declared || "unknown",
                 mimeType: "application/octet-stream",
                 supported: true,
             },
             {
                 kind: "ogg",
-                payloadType: "raw",
                 codec: "vorbis",
                 mimeType: "audio/ogg",
                 supported: resolved === "wwise-vorbis",
             },
             {
                 kind: "pcm",
-                payloadType: "pcm",
                 codec: "float32",
                 supported: resolved === "wwise-ptadpcm" || resolved === "pcm",
             }

@@ -54,7 +54,6 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
         throw new TypeError(`CjsAudioFormat: expected ${expectedType}, got ${metadata.sourceFormat}`);
     }
     return {
-        payloadType: "audio",
         mediaTypes: [ "audio" ],
         byteLength: bytes.byteLength,
         sourceFormat: expectedType || values.inputType || metadata.sourceFormat,
@@ -75,12 +74,11 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedT
         const variants = [
             {
                 kind: "raw",
-                payloadType: "raw",
                 codec: metadata.audioFormat || metadata.sourceFormat,
                 mimeType,
                 supported: true,
             },
-            { kind: "pcm", payloadType: "pcm", codec: "pcm", supported: false, reason: "MP3 PCM decode/output is not implemented yet." }
+            { kind: "pcm", codec: "pcm", supported: false, reason: "MP3 PCM decode/output is not implemented yet." }
         ];
         return {
             format: metadata.sourceFormat,
@@ -120,7 +118,6 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
     if (values.emit === OUTPUT_RAW)
     {
         return {
-            payloadType: "raw",
             sourceFormat: metadata.sourceFormat,
             mimeType: getAudioMimeType(metadata),
             metadata,

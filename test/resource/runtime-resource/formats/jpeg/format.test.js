@@ -51,7 +51,7 @@ test("software-decodes a baseline JPEG to canonical RGBA", () =>
     const rgba = CjsJpegFormat.read(bytes, { emit: "rgba" });
     const support = CjsJpegFormat.getSupport(bytes);
 
-    assert.equal(rgba.payloadType, "rgba");
+    assert.equal("payloadType" in rgba, false);
     assert.equal(rgba.mimeType, "image/jpeg");
     assert.equal(rgba.width, 1);
     assert.equal(rgba.height, 1);

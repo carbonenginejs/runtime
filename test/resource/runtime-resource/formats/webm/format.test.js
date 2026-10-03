@@ -25,7 +25,7 @@ test("emits a GPU-free video container payload without decoding frames", () =>
     const support = CjsWebmFormat.getSupport(bytes);
     const rawVariant = support.outputs.find((variant) => variant.output === "raw");
 
-    assert.equal(video.payloadType, "video");
+    assert.equal("payloadType" in video, false);
     assert.equal(video.sourceFormat, "webm");
     assert.equal(video.container, "ebml");
     assert.equal(video.mimeType, "video/webm");

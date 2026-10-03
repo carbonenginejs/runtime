@@ -284,8 +284,8 @@ export class CjsFbxFormat extends CjsGeometryFormat
     // FBX is written THROUGH CMF: `write` takes a native CMF graph and
     // `writeShared` converts shared or GR2-shaped geometry into one first.
     static inputs = CjsFormat.defineInputs({
-        cmf: { default: true, payloadType: "geometry" },
-        shared: { payloadType: "geometry" }
+        cmf: { default: true },
+        shared: {}
     });
 
     static outputs = CjsFormat.defineOutputs({

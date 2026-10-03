@@ -72,14 +72,12 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES)
         const variants = [
             {
                 kind: "raw",
-                payloadType: "raw",
                 codec: "ogg",
                 mimeType,
                 supported: true,
             },
             {
                 kind: "pcm",
-                payloadType: "pcm",
                 codec: metadata.codec === "vorbis" ? "float32" : "pcm",
                 supported: metadata.codec === "vorbis",
                 reason: metadata.codec === "vorbis" ? "" : "Only Ogg Vorbis PCM decode is implemented."
@@ -89,7 +87,6 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES)
         {
             variants.push({
                 kind: "decoded",
-                payloadType: "video-frame",
                 codec: "frames",
                 supported: false,
                 reason: "OGG Theora frame decode is not implemented yet."
@@ -136,7 +133,6 @@ export function readWithValues(input, values = DEFAULT_VALUES)
     if (values.emit === OUTPUT_RAW)
     {
         return {
-            payloadType: "raw",
             sourceFormat: "ogg",
             mimeType: getOggMimeType(metadata),
             metadata,
@@ -163,7 +159,6 @@ export function readWithValues(input, values = DEFAULT_VALUES)
             }
         }
         return {
-            payloadType: values.emit === OUTPUT_AUDIO ? OUTPUT_AUDIO : OUTPUT_PCM,
             sourceFormat: "ogg",
             codec: "vorbis",
             audioFormat: "float32",
@@ -273,7 +268,6 @@ function inspectOgg(bytes)
     const tracks = Array.from(streams.values()).map(stream => decodeCodec(stream));
     const primary = tracks.find(track => track.mediaType !== "unknown") || tracks[0];
     return {
-        payloadType: primary?.mediaType === "video" ? "video" : primary?.mediaType === "audio" ? "audio" : "container",
         mediaTypes: tracks.map(track => track.mediaType),
         sourceFormat: "ogg",
         pageCount,

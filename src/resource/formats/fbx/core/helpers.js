@@ -236,7 +236,6 @@ export function readWithValues(input, values = DEFAULT_VALUES)
     {
         const metadata = inspectWithValues(bytes, values);
         return {
-            payloadType: "raw",
             sourceFormat: "fbx",
             metadata,
             bytes
@@ -269,7 +268,6 @@ export function inspectWithValues(input, values = DEFAULT_VALUES)
     const detected = inspectBytes(bytes);
 
     return {
-        payloadType: "geometry",
         mediaTypes: [ "geometry" ],
         sourceFormat: "fbx",
         byteLength: bytes.byteLength,
@@ -289,7 +287,6 @@ export function parseWithValues(input, values = DEFAULT_VALUES)
 {
     return {
         ...parseDocumentWithValues(input, values),
-        payloadType: OUTPUT_FBX_JSON
     };
 }
 
@@ -846,7 +843,6 @@ function parseBinaryDocument(bytes, metadata, values)
 
     const document = {
         ...metadata,
-        payloadType: OUTPUT_FBX_JSON,
         nodes,
         nodeCount,
         rootNodeCount: nodes.length,
@@ -1613,7 +1609,6 @@ function parseAsciiDocument(bytes, metadata, values)
 
     const document = {
         ...metadata,
-        payloadType: OUTPUT_FBX_JSON,
         nodes,
         nodeCount,
         rootNodeCount: nodes.length,

@@ -1,3 +1,4 @@
+import { StreamType } from "#consts/media";
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import {
@@ -184,9 +185,9 @@ export class CjsMp4Format extends CjsFormat
     static id = "CjsMp4Format";
     static mediaTypes = [ "audio", "video" ];
     static outputs = CjsFormat.defineOutputs({
-        video: {  },
+        video: { outputStreams: StreamType.STREAM_AUDIO_VIDEO, probes: [ "container" ] },
         mp4Json: { role: "debug", probes: [ "mp4Json", "raw" ] },
-        raw: { role: "debug", default: true, passthrough: true }
+        raw: { outputStreams: StreamType.STREAM_AUDIO_VIDEO, role: "debug", default: true, passthrough: true }
     });
     static extensions = [ ".mp4", ".m4v", ".m4a" ];
 }

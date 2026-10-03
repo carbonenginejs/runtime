@@ -1,3 +1,4 @@
+import { StreamType } from "#consts/media";
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import {
@@ -185,7 +186,7 @@ export class CjsMp3Format extends CjsFormat
     static mediaTypes = [ "audio" ];
     static outputs = CjsFormat.defineOutputs({
         mp3Json: { role: "debug", probes: [ "mp3Json", "raw" ] },
-        raw: { role: "debug", default: true, passthrough: true }
+        raw: { outputStreams: StreamType.STREAM_AUDIO, role: "debug", default: true, passthrough: true }
     });
     static extensions = [ ".mp3" ];
 }

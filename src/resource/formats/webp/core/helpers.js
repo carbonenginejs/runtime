@@ -77,12 +77,11 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES)
             variants: [
                 {
                     kind: "raw",
-                    payloadType: "raw",
                     codec: "webp",
                     mimeType: "image/webp",
                     supported: true,
                 },
-                { kind: "rgba", payloadType: "rgba", codec: "rgba8unorm", supported: false, reason: "WebP software RGBA decode is not implemented yet." }
+                { kind: "rgba", codec: "rgba8unorm", supported: false, reason: "WebP software RGBA decode is not implemented yet." }
             ],
             warnings: [],
             errors: []
@@ -113,7 +112,6 @@ export function readWithValues(input, values = DEFAULT_VALUES)
     if (values.emit === OUTPUT_RAW)
     {
         return {
-            payloadType: "raw",
             sourceFormat: "webp",
             mimeType: "image/webp",
             metadata,
@@ -199,7 +197,6 @@ function inspectWebP(bytes)
         offset = dataOffset + size + (size & 1);
     }
     return {
-        payloadType: "image",
         mediaTypes: [ "image" ],
         sourceFormat: "webp",
         container: "riff",

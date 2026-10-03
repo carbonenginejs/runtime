@@ -1,4 +1,4 @@
-import { MediaType, PayloadType } from "#consts/media";
+import { MediaType, StreamType } from "#consts/media";
 
 /**
  * A format's name for messages: its `static className`, inherited from the
@@ -34,9 +34,12 @@ const READ_MODE_ASYNC = "async";
  * - `requestResponseType`: how the source is acquired (default "arraybuffer");
  * - `worker`: null, or a browser-worker execution descriptor.
  *
- * An output descriptor carries `output`, `payloadType`, `role`, `readMode`,
+ * An output descriptor carries `output`, `outputStreams` (Carbon StreamType flags), `role`, `readMode`,
  * `decoded`, `passthrough`, `default`, `probes` and `requires`. It declares
  * a reader path; it never claims that path has run for a given input.
+ * outputStreams uses Carbon StreamType bits (zero for non-stream outputs);
+ * containers declare the stream kinds their representation can carry.
+ * hasVideo and hasAudio are derived checks, never separate declarations.
  *
  * Four questions stay separate: `is` (boolean routing), `inspect`
  * (structure), `getSupport` (advice, never verified) and `verifySupport`
@@ -343,7 +346,6 @@ export class CjsFormat
       if (definition.default === true) defaults++;
       inputs[input] = {
         input,
-        payloadType: definition.payloadType || input,
         writeMode,
         lossy: definition.lossy === true,
         default: definition.default === true,
@@ -385,10 +387,17 @@ export class CjsFormat
         throw new TypeError(`Format output ${output} has invalid readMode ${JSON.stringify(readMode)}.`);
       }
       if (definition.default === true) defaults++;
+      const outputStreams = definition.outputStreams ?? 0;
+      if (!Number.isInteger(outputStreams) || outputStreams < 0 || outputStreams > StreamType.STREAM_AUDIO_VIDEO)
+      {
+        throw new TypeError("Format output " + output + " requires a valid StreamType mask.");
+      }
       const probes = definition.probes ?? definition.probe ?? output;
       outputs[output] = {
         output,
-        payloadType: definition.payloadType || output,
+        outputStreams,
+        get hasVideo() { return Boolean(this.outputStreams & StreamType.STREAM_VIDEO); },
+        get hasAudio() { return Boolean(this.outputStreams & StreamType.STREAM_AUDIO); },
         role,
         readMode,
         decoded: definition.decoded === true,
@@ -490,25 +499,25 @@ export class CjsFormat
   static Type = MediaType;
   static MediaType = MediaType;
   static OutputType = Object.freeze({
-    AUDIO: PayloadType.AUDIO,
+    AUDIO: "audio",
     CMF: "cmf",
     DOCUMENT: "document",
     GR2: "gr2",
-    IMAGE: PayloadType.IMAGE,
+    IMAGE: "image",
     JSON: "json",
     MEDIA: "media",
     METADATA: "metadata",
     OGG: "ogg",
     PAYLOAD: "payload",
     PCM: "pcm",
-    RAW: PayloadType.RAW,
+    RAW: "raw",
     RGBA: "rgba",
     RUNTIME: "runtime",
-    SCHEMA: PayloadType.SCHEMA,
-    SHADER: PayloadType.SHADER,
+    SCHEMA: "schema",
+    SHADER: "shader",
     SHARED: "shared",
-    TEXTURE: PayloadType.TEXTURE,
-    VIDEO: PayloadType.VIDEO
+    TEXTURE: "texture",
+    VIDEO: "video"
   });
 
   static id = "";
@@ -612,7 +621,7 @@ function findLegacyVariant(capability, variants)
   const probes = new Set(capability.probes.map(value => value.toLowerCase()));
   const matches = variants.filter(variant =>
   {
-    for (const value of [ variant?.output, variant?.kind, variant?.payloadType ])
+    for (const value of [ variant?.output, variant?.kind ])
     {
       if (value != null && probes.has(String(value).toLowerCase())) return true;
     }
@@ -621,7 +630,6 @@ function findLegacyVariant(capability, variants)
   const output = capability.output.toLowerCase();
   return matches.find(variant => String(variant?.output || "").toLowerCase() === output)
     || matches.find(variant => String(variant?.kind || "").toLowerCase() === output)
-    || matches.find(variant => String(variant?.payloadType || "").toLowerCase() === output)
     || matches.find(variant => variant.supported === true)
     || matches[0]
     || null;

@@ -1,3 +1,4 @@
+import { createDdsBitmap } from "../../npm/dist/resource/texture/ddsBitmap.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Worker } from "node:worker_threads";
@@ -95,8 +96,8 @@ test("DDS worker preserves native BC cube and short-file output and resource bit
     const packet = await loader.ReadFormat({Format:CjsDdsFormat},bytes,{emit:"bitmap"});
     assert.deepEqual(packet,expected);
     assert.ok(bytes.byteLength > 0);
-    const texture = new TriTextureRes().SetPayload(packet);
-    const image = new Tr2ImageRes().SetPayload(packet);
+    const texture = new TriTextureRes().SetPayload(createDdsBitmap(packet));
+    const image = new Tr2ImageRes().SetPayload(createDdsBitmap(packet));
     assert.ok(CjsSchema.cast(texture.GetPayload(),HostBitmap));
     assert.ok(CjsSchema.cast(image.GetPayload(),HostBitmap));
     assert.equal(image.GetPayload().GetArraySize(),options.cube ? 6 : 1);

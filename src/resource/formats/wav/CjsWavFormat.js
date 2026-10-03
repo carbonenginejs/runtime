@@ -1,3 +1,4 @@
+import { StreamType } from "#consts/media";
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import {
@@ -189,10 +190,10 @@ export class CjsWavFormat extends CjsFormat
     static id = "CjsWavFormat";
     static mediaTypes = [ "audio" ];
     static outputs = CjsFormat.defineOutputs({
-        audio: { decoded: true, probes: [ "audio", "pcm" ] },
-        pcm: { decoded: true },
+        audio: { outputStreams: StreamType.STREAM_AUDIO, decoded: true, probes: [ "audio", "pcm" ] },
+        pcm: { outputStreams: StreamType.STREAM_AUDIO, decoded: true },
         wavJson: { role: "debug", probes: [ "wavJson", "raw" ] },
-        raw: { role: "debug", default: true, passthrough: true }
+        raw: { outputStreams: StreamType.STREAM_AUDIO, role: "debug", default: true, passthrough: true }
     });
     static extensions = [ ".wav" ];
 }

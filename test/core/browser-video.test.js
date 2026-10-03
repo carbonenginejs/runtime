@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { VideoPlayer } from "../../npm/dist/core/platform/index.js";
 import { CjsBlueResMan, RegisterVideoPlaylists, TriTextureRes } from "../../npm/dist/resource/index.js";
-import { CreateTexture, RealizeTexture } from "../../npm/dist/trinity/core/Tr2ImageIOHelpers.js";
+import { RealizeTexture } from "../../npm/dist/trinity/core/Tr2ImageIOHelpers.js";
 import { Tr2TexturedPointLight, TriTextureParameter } from "../../npm/dist/trinity/index.js";
 import { CjsWebgpuTextureAL } from "../../npm/dist/trinityal/webgpu/CjsWebgpuTextureAL.js";
 import { Tr2TextureSubresource } from "../../npm/dist/trinityal/index.js";
@@ -93,7 +93,7 @@ test("dimension changes and resource recreation upload current frame without per
   v.videoWidth=1280;v.frame(3,80);assert.notEqual(f.texture.GetTexture(),first);
   assert.equal(f.texture.GetWidth(),1280);assert.equal(f.texture.GetHeight(),360);
   assert.equal(f.counts.allocations,2);assert.equal(f.counts.destroys,1);
-  f.texture.ReleaseResources();RealizeTexture(f.texture,f.render);
+  f.texture.ReleaseResources();f.player.OnTick(0,0,null);RealizeTexture(f.texture,f.render);
   assert.equal(f.counts.allocations,3);assert.equal(f.counts.uploads,4);
   f.player.Destroy();
 });
@@ -218,7 +218,7 @@ test("Carbon player methods use media seconds, expose unknown alpha, clear and r
   f.player.OnModified();f.player.OnTick(0,0,null);assert.equal(f.counts.uploads,3);
   const other=new TriTextureRes();other.Initialize("dynamic:/color/0,0,0,1", "");
   f.player.SetBgraTexture(other);assert.equal(f.player.GetBgraTexture(),other);
-  assert.equal(f.texture.GetPayload().frameSource,null);
+  assert.equal(f.texture.GetPayload(),null);
   f.player.OnTick(0,0,null);assert.equal(other.GetWidth(),640);f.player.Destroy();
 });
 
@@ -238,14 +238,44 @@ test("colour backend failures preserve playback and retry only after texture rec
 test("video renderer bridge creates WebGL2-compatible storage and updates both retained views", () =>
 {
   const {gl,calls}=FakeWebgl2(),context=FakeRenderContext(gl),f=fixture();
-  f.player.Create(new Uint8Array([1]));f.videos[0].frame(1,0);
+  context.IsValid=()=>true;
   context.CreateTexture=(desc,options)=>{const texture=new Tr2TextureALWebgl2();assert.equal(texture.Create(desc,options,context),0);return texture;};
-  const texture=CreateTexture(f.texture,context),source=f.videos[0],region=Tr2TextureSubresource.ForMipLevel(0);
+  f.player._getRenderContext=()=>context;
+  f.player.Create(new Uint8Array([1]));f.videos[0].frame(1,0);
+  const texture=f.texture.GetTexture(),source=f.videos[0],region=Tr2TextureSubresource.ForMipLevel(0);
   assert.equal(texture.UpdateSubresource(region,source,0,0,context),0);
   const first=texture._texture,twin=texture._twin,allocations=calls.filter(c=>c[0]==="createTexture").length;
   assert.ok(twin);assert.equal(texture.UpdateSubresource(region,source,0,0,context),0);
   assert.equal(texture._texture,first);assert.equal(texture._twin,twin);
   assert.equal(calls.filter(c=>c[0]==="createTexture").length,allocations);
-  assert.equal(calls.filter(c=>c[0]==="texSubImage2D"&&c.at(-1)===source).length,4);
+  assert.equal(calls.filter(c=>c[0]==="texSubImage2D"&&c.at(-1)===source).length,6);
   texture.Destroy();f.player.Destroy();
+});
+
+
+test("player never sends video into bitmap publication and retries unavailable devices", () =>
+{
+  const f=fixture(), original=f.texture.SetPayload.bind(f.texture), values=[];
+  f.texture.SetPayload=value=>{values.push(value);return original(value);};
+  f.render.IsValid=()=>false;
+  f.player.Create(new Uint8Array([1]));f.videos[0].frame(1,0);
+  assert.equal(f.counts.allocations,0);
+  f.render.IsValid=()=>true;f.player.OnTick(0,0,null);
+  assert.deepEqual(values,[null]);assert.equal(f.counts.uploads,1);
+  assert.equal(f.texture.GetPayload(),null);assert.equal(f.texture.GetBitmap(),null);
+  f.videos[0].frame(2,40);assert.deepEqual(values,[null]);
+  assert.equal(f.counts.allocations,1);assert.equal(f.counts.uploads,2);
+  f.player.Destroy();
+});
+
+test("a paused playlist recreates its frame on bind after device loss", () =>
+{
+  const f=fixture();f.texture.videoController={video:f.player};
+  f.player.Create(new Uint8Array([1]));f.videos[0].frame(1,0);f.player.Pause();
+  const previous=f.texture.GetTexture();f.texture.ReleaseResources();
+  const replacement=RealizeTexture(f.texture,f.render);
+  assert.ok(replacement);assert.notEqual(replacement,previous);
+  assert.equal(f.counts.uploads,2);assert.equal(f.counts.allocations,2);
+  assert.equal(f.player.IsPaused(),true);assert.equal(f.texture.GetPayload(),null);
+  f.player.Destroy();
 });

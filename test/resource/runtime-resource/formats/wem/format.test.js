@@ -73,7 +73,7 @@ test("emits raw container payload and passthrough support report", () =>
     const raw = CjsWemFormat.read(bytes);
     const support = CjsWemFormat.getSupport(bytes);
 
-    assert.equal(raw.payloadType, "raw");
+    assert.equal("payloadType" in raw, false);
     assert.equal(raw.codec, "wwise-vorbis");
     assert.equal(raw.bytes, bytes);
     assert.equal(support.supported, true);
@@ -103,7 +103,7 @@ test("decodes a PTADPCM frame to the hand-computed sample vector", () =>
     });
     const pcm = CjsWemFormat.toPcm(bytes);
 
-    assert.equal(pcm.payloadType, "pcm");
+    assert.equal("payloadType" in pcm, false);
     assert.equal(pcm.sourceCodec, "wwise-ptadpcm");
     assert.equal(pcm.channels, 1);
     assert.equal(pcm.sampleCount, 8);

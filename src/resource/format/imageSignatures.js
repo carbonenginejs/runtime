@@ -194,7 +194,6 @@ export function rawVariant(metadata)
 {
     return {
         kind: "raw",
-        payloadType: "raw",
         codec: metadata.sourceFormat,
         mimeType: imageMimeType(metadata.sourceFormat),
         supported: true

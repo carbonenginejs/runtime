@@ -32,7 +32,7 @@ test("reads raw WebP bytes and rejects hidden RGBA/image emits until a decoder e
     const bytes = makeWebP("VP8L", [ 0x2f, 0, 0, 0, 0 ]);
     const raw = CjsWebpFormat.read(bytes);
 
-    assert.equal(raw.payloadType, "raw");
+    assert.equal("payloadType" in raw, false);
     assert.equal(raw.sourceFormat, "webp");
     assert.equal(raw.mimeType, "image/webp");
     assert.equal(raw.bytes, bytes);

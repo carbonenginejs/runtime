@@ -282,7 +282,7 @@ export class CjsStlFormat extends CjsGeometryFormat
     // CMF, because it carries triangles and nothing else worth preserving.
     // Lossless for what STL can represent; everything else was never in scope.
     static inputs = CjsFormat.defineInputs({
-        shared: { default: true, payloadType: "geometry", options: [ "binary", "solidName", "scale", "recalculateNormals", "weldVertices" ] }
+        shared: { default: true, options: [ "binary", "solidName", "scale", "recalculateNormals", "weldVertices" ] }
     });
 
     static outputs = CjsFormat.defineOutputs({

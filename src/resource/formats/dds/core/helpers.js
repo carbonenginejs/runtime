@@ -151,7 +151,6 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
     }
 
     return {
-        payloadType: sourceFormat === "dds" ? "texture" : "image",
         mediaTypes: sourceFormat === "dds" ? [ "texture", "image" ] : [ "image" ],
         sourceFormat,
         byteLength: bytes.byteLength,
@@ -180,21 +179,18 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedT
             ? [
                 {
                     kind: "compressed",
-                    payloadType: "texture",
                     codec: metadata.pixelFormat || metadata.textureFormat || "unknown",
                     supported: canEmitTexture && metadata.isCompressed,
                     reason: metadata.isCompressed ? textureUnsupportedReason : "DDS is not block-compressed."
                 },
                 {
                     kind: "texture",
-                    payloadType: "texture",
                     codec: metadata.pixelFormat || metadata.textureFormat || "unknown",
                     supported: canEmitTexture,
                     reason: canEmitTexture ? "" : textureUnsupportedReason
                 },
                 {
                     kind: "rgba",
-                    payloadType: "rgba",
                     codec: canEmitRgba
                         ? (isFloatPixelFormat(metadata.pixelFormat) ? "rgba32float" : "rgba8unorm")
                         : "rgba8unorm",
@@ -205,7 +201,7 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedT
                             ? `${metadata.pixelFormat} is available as a native compressed texture only; register a software decoder or alternate representation for RGBA fallback.`
                             : "DDS RGBA decode is not implemented for this pixel format.")
                 },
-                { kind: "raw", payloadType: "raw", codec: "dds", supported: true }
+                { kind: "raw", codec: "dds", supported: true }
             ]
             : [
                 { kind: "rgba", codec: "rgba8", supported: false, reason: `${metadata.sourceFormat.toUpperCase()} RGBA decode is not implemented yet.` }
@@ -251,7 +247,6 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
     if (values.emit === OUTPUT_RAW)
     {
         return {
-            payloadType: "raw",
             sourceFormat: metadata.sourceFormat,
             metadata,
             bytes
@@ -510,7 +505,6 @@ function readDdsTexture(bytes, metadata, values = DEFAULT_VALUES)
 
     const subresources = buildDdsSubresources(bytes, metadata);
     const texture = {
-        payloadType: OUTPUT_TEXTURE,
         sourceFormat: "dds",
         width: metadata.width,
         height: metadata.height,
@@ -644,7 +638,6 @@ function readDdsToRgba(bytes, metadata)
     const sliceBytes = metadata.width * metadata.height * (isFloat ? 16 : 4);
 
     return {
-        payloadType: OUTPUT_RGBA,
         sourceFormat: "dds",
         width: metadata.width,
         height: metadata.height,

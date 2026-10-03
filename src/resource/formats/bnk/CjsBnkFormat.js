@@ -1,3 +1,4 @@
+import { StreamType } from "#consts/media";
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import {
@@ -320,9 +321,9 @@ export class CjsBnkFormat extends CjsFormat
 
     static outputs = CjsFormat.defineOutputs({
 
-        raw: { default: true, passthrough: true },
+        raw: { outputStreams: StreamType.STREAM_AUDIO, default: true, passthrough: true },
 
-        media: {  },
+        media: { outputStreams: StreamType.STREAM_AUDIO },
 
         bnkJson: { role: "debug", probes: [ "bnkJson", "raw" ] }
 

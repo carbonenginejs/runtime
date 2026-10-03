@@ -1,3 +1,4 @@
+import { StreamType } from "#consts/media";
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import {
@@ -237,9 +238,9 @@ export class CjsWemFormat extends CjsFormat
     static id = "CjsWemFormat";
     static mediaTypes = [ "audio" ];
     static outputs = CjsFormat.defineOutputs({
-        raw: { default: true, passthrough: true },
-        ogg: {  },
-        pcm: { decoded: true },
+        raw: { outputStreams: StreamType.STREAM_AUDIO, default: true, passthrough: true },
+        ogg: { outputStreams: StreamType.STREAM_AUDIO },
+        pcm: { outputStreams: StreamType.STREAM_AUDIO, decoded: true },
         wemJson: { role: "debug", probes: [ "wemJson", "raw" ] }
     });
     static extensions = [ ".wem" ];

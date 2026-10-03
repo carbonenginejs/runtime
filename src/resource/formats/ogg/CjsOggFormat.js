@@ -1,3 +1,4 @@
+import { StreamType } from "#consts/media";
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import {
@@ -136,10 +137,10 @@ export class CjsOggFormat extends CjsFormat
     static id = "CjsOggFormat";
     static mediaTypes = [ "audio", "video" ];
     static outputs = CjsFormat.defineOutputs({
-        pcm: { decoded: true },
-        audio: { decoded: true, probes: [ "audio", "pcm" ] },
+        pcm: { outputStreams: StreamType.STREAM_AUDIO, decoded: true },
+        audio: { outputStreams: StreamType.STREAM_AUDIO, decoded: true, probes: [ "audio", "pcm" ] },
         oggJson: { role: "debug", probes: [ "oggJson", "raw" ] },
-        raw: { role: "debug", default: true, passthrough: true }
+        raw: { outputStreams: StreamType.STREAM_AUDIO_VIDEO, role: "debug", default: true, passthrough: true }
     });
     static extensions = [ ".ogg", ".oga", ".ogv" ];
 }

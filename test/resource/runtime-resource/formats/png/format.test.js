@@ -21,7 +21,7 @@ test("inspects png dimensions and emits raw payload", () =>
     assert.equal(info.sourceFormat, "png");
     assert.equal(info.width, 32);
     assert.equal(info.height, 16);
-    assert.equal(raw.payloadType, "raw");
+    assert.equal("payloadType" in raw, false);
     assert.equal(raw.mimeType, "image/png");
 });
 
@@ -175,7 +175,7 @@ test("readAsync decodes a non-interlaced RGBA PNG to canonical pixels", async ()
     const bytes = makePngRgba();
     const rgba = await CjsPngFormat.readAsync(bytes, { emit: "rgba" });
 
-    assert.equal(rgba.payloadType, "rgba");
+    assert.equal("payloadType" in rgba, false);
     assert.equal(rgba.mimeType, "image/png");
     assert.equal(rgba.width, 1);
     assert.equal(rgba.height, 1);

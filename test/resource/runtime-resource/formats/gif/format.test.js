@@ -16,7 +16,7 @@ test("decodes a first-frame GIF to canonical RGBA", () =>
     const support = CjsGifFormat.getSupport(bytes);
 
     assert.equal(CjsGifFormat.isGIF(bytes), true);
-    assert.equal(rgba.payloadType, "rgba");
+    assert.equal("payloadType" in rgba, false);
     assert.equal(rgba.width, 1);
     assert.equal(rgba.height, 1);
     assert.equal(rgba.mimeType, "image/gif");
@@ -31,7 +31,7 @@ test("reports raw payload and graphics metadata", () =>
     const raw = CjsGifFormat.read(bytes);
     const info = CjsGifFormat.read(bytes, { emit: "gifJson" });
 
-    assert.equal(raw.payloadType, "raw");
+    assert.equal("payloadType" in raw, false);
     assert.equal(raw.mimeType, "image/gif");
     assert.equal(raw.bytes, bytes);
     assert.equal(info.sourceFormat, "gif");
