@@ -5,13 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Carbon cloud test</title>
 <style>
-  :root { color-scheme: dark; font: 14px/1.5 system-ui, sans-serif; background: #10151e; color: #e5edf8; }
+  @font-face { font-family: "Eve Sans Neue"; src: url("/resource/ui/fonts/evesansneue-regular.otf") format("opentype"); font-weight: 400; font-display: swap; }
+  @font-face { font-family: "Eve Sans Neue"; src: url("/resource/ui/fonts/evesansneue-bold.otf") format("opentype"); font-weight: 700; font-display: swap; }
+  :root { color-scheme: dark; font: 14px/1.5 "Eve Sans Neue", system-ui, sans-serif; background: #10151e; color: #e5edf8; }
   * { box-sizing: border-box; }
   body { margin: 0; display: grid; grid-template-columns: minmax(0,1fr) 340px; height: 100vh; }
   main { position: relative; min-height: 300px; }
   canvas { width: 100%; height: 100%; display: block; touch-action: none; }
   aside { padding: 24px; overflow: auto; border-left: 1px solid #2d394a; }
-  h1 { font-size: 23px; margin: 0 0 8px; font-weight: 600; }
+  h1 { font-size: 23px; margin: 0 0 8px; font-weight: 700; }
   p { color: #a4b4c9; margin: 8px 0 22px; }
   label { display: block; margin-top: 16px; }
   select, button { color: inherit; background: #1e2b3d; border: 1px solid #40546c; border-radius: 6px; padding: 9px 12px; font: inherit; }
@@ -20,7 +22,7 @@
   button:disabled { opacity: .4; cursor: default; }
   input { accent-color: #84bfff; }
   #status { color: #b8d9ff; padding: 12px 0; border-bottom: 1px solid #2d394a; }
-  pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 11px; line-height: 1.6; color: #b2c1d4; }
+  pre { font-family: inherit; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 11px; line-height: 1.6; color: #b2c1d4; }
   .hint { position: absolute; bottom: 16px; left: 20px; padding: 6px 10px; background: #10151ed9; color: #b2c1d4; border-radius: 5px; pointer-events: none; }
   @media(max-width: 800px) { body { height: auto; grid-template-columns: 1fr; } main { height: 65vh; } aside { border-left: 0; } }
 </style>

@@ -44,6 +44,8 @@ export async function runCloudDemo(canvas, report)
     if (!response.ok) throw new Error(`${response.status}: ${path}`);
     return new Uint8Array(await response.arrayBuffer());
   } } });
+  // Bundling moves import.meta.url; the worker needs its emitted entry.
+  blue.resMan.SetWorkerLoader({ workerUrl: new URL("./resource.worker.bundle.js", import.meta.url) });
   RegisterTextureResources(blue.resMan);
   RegisterSolidColorTexture(blue.resMan);
   RegisterTextureArray(blue.resMan);
@@ -132,7 +134,9 @@ export async function runCloudDemo(canvas, report)
   driver.clearColor = [0.025, 0.035, 0.055, 1];
   await blue.resMan.Wait();
   for (const resource of GetResources(driver))
-    if (!resource.IsGood()) throw new Error("Resource is not ready: " + resource.GetPath());
+    if (!resource.IsGood())
+      throw new Error("Resource is not ready: " + resource.GetPath() +
+        (resource.error ? ": " + resource.error.message : " (" + resource.state + ")"), { cause: resource.error });
   pump = createDemoFramePump(gTriDev.device, () => {
     al.SetRenderTarget(0, target); al.SetDepthStencil(null);
     driver.Execute([target], null, blue.os.GetActualTime(), blue.os.GetCurrentFrameTime(), null, context);
