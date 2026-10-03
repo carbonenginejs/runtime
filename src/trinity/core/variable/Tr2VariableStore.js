@@ -1,7 +1,9 @@
 // Source: trinity/trinity/Tr2VariableStore.h
 // Source: trinity/trinity/Tr2VariableStore.cpp
 // Source: trinity/trinity/Tr2VariableStore_Blue.cpp
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
+import { Tr2TextureAL } from "../../../trinityal/Tr2TextureAL/Tr2TextureAL.js";
+import { Tr2TextureReference } from "../Tr2TextureReference.js";
 import { TriVariable } from "./TriVariable.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
@@ -13,7 +15,7 @@ import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
  * The native TRINITYDEV cycle assertion remains unported; callers must keep
  * the parent graph acyclic. JavaScript registrations return TriVariable
  * handles rather than Python-unwrapped values and retain the existing value
- * classifier; the native raw-AL-texture overload is not added by this pass.
+ * classifier. Raw AL values follow the native texture-reference overload.
  */
 @meta.define({
   className: "Tr2VariableStore",
@@ -109,6 +111,8 @@ export class Tr2VariableStore
    * type conflict also returns null, as Carbon does after logging.
    * Adapted: returns a TriVariable handle, retaining JavaScript value-shape
    * inference and Boolean conversion instead of Python argument extraction.
+   * The raw AL overload copies into a texture reference without broadcasting
+   * (Tr2VariableStore.cpp:219-237); explicit copying replaces C++ assignment.
    * @param {string} name Local variable name.
    * @param {*} [value] Optional script value; nullish values reserve the name.
    * @returns {TriVariable|null} Registered variable, or unsupported type/conflict.
@@ -120,6 +124,23 @@ export class Tr2VariableStore
     if (value === undefined || value === null)
     {
       return this._RegisterVariableType(name, TriVariableContentType.TRIVARIABLE_INVALID);
+    }
+    const texture = CjsSchema.cast(value, Tr2TextureAL);
+    if (texture)
+    {
+      // Carbon quirk: cpp:222 looks in GlobalStore even on a local store.
+      const variable = Tr2VariableStore.globalStore().GetVariable(name);
+      const reference = variable.GetType() === TriVariableContentType.TRIVARIABLE_TEXTURE_RES
+        ? CjsSchema.cast(variable.GetValue(), Tr2TextureReference) : null;
+      const target = reference || new Tr2TextureReference();
+      // JS assignment aliases; explicit copy construction preserves C++ value ownership.
+      const copy = new Tr2TextureAL({ copy: texture });
+      target.texture.Destroy();
+      target.texture = copy;
+      if (reference) return variable;
+      const registered = this.RegisterVariable(name, target);
+      if (!registered) target.texture.Destroy();
+      return registered;
     }
     const contentType = TriVariable.getVariableType(value);
     if (contentType === TriVariableContentType.TRIVARIABLE_INVALID)

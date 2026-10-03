@@ -605,12 +605,7 @@ export class TriDevice
       resource.PrepareResources();
     }
 
-    // Carbon's second step is Tr2Renderer::PrepareDeviceResources, a STATIC
-    // that builds the blitter and the debug line set (Tr2Renderer.cpp:1273).
-    // Ours is an instance method on a renderer this device has no handle to,
-    // which is the same "Tr2Renderer is 106/106 static in Carbon" gap recorded
-    // in the wrong-shape register. Calling it optionally would be a hedge that
-    // silently does nothing, so it is named and left undone instead.
+    Tr2Renderer.prepareDeviceResources();
     return this;
   }
 

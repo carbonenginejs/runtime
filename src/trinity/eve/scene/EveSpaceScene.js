@@ -1842,7 +1842,7 @@ export class EveSpaceScene
       }
 
       renderContext.GetEffectStateManager().ApplyStandardStates(RenderingMode.RM_OPAQUE);
-      renderer.DrawCameraSpaceScreenQuad(renderContext, this.backgroundEffect.GetShaderStateInterface(), this.backgroundEffect);
+      Tr2Renderer.drawCameraSpaceScreenQuad(renderContext, this.backgroundEffect.GetShaderStateInterface(), this.backgroundEffect);
 
       if (reason === EveSpaceScene.BackgroundRenderingReason.BACKGROUND_RENDER_REFLECTION)
       {
@@ -2066,8 +2066,7 @@ export class EveSpaceScene
    * Adapted: Carbon reads the camera off Tr2Renderer's statics, which the
    * render context holds here, and finds casters and gathers batches in
    * parallel, which runs in order here. Not ported, each a later insertion:
-   * the instanced mesh manager's shadow batches, the planets as shadow
-   * casters, and the volumetrics' shadows.
+   * the instanced mesh manager's shadow batches and planets as shadow casters.
    *
    * @param {number} renderReason A `Tr2RenderReason`.
    * @param {Tr2ShadowMap} shadowMap The scene's cascaded shadow map.
@@ -2213,6 +2212,12 @@ export class EveSpaceScene
     this.ApplyPerFrameData(renderContext);
 
     const result = shadowMap.DrawToShadowMapResult(renderContext, gpuResourcePool, depthMap, cascadedShadowDepth.Get(), this.upscalingAmount, renderer);
+    if (renderReason === Tr2RenderReason.TR2RENDERREASON_NORMAL
+      && this.componentRegistry && this.volumetricsRenderer && volumetricCount > 0)
+    {
+      this.volumetricsRenderer.RenderShadows(this.componentRegistry, result.Get(), renderContext);
+    }
+
 
     return {
       shadowMap: result ?? new GpuResourceHandle(),
@@ -2220,6 +2225,42 @@ export class EveSpaceScene
       pointLightShadowMap: new GpuResourceHandle(),
       pointLightShadowDepth: new GpuResourceHandle()
     };
+  }
+
+  /**
+   * Carbon scene fog/cloud ordering (EveSpaceScene.cpp:2437-2477).
+   * Adapted: context transforms replace the renderer's pending view statics;
+   * returned pool handles require explicit release by the caller.
+   */
+  @meta.adapted
+  RenderVolumetrics(depthMap, gpuResourcePool, renderContext)
+  {
+    if (!this.componentRegistry || !this.volumetricsRenderer || !depthMap.IsValid())
+    {
+      // Native bug: cpp:2441 reverses the ordinary (fog, clouds) tuple.
+      return [Tr2VolumetricsRenderer.getEmptyVolumetricTexture(gpuResourcePool),
+        Tr2VolumetricsRenderer.getEmptyFogTexture(gpuResourcePool)];
+    }
+    const fog = this.volumetricsRenderer.RenderFog(renderContext, gpuResourcePool,
+      depthMap.GetWidth(), depthMap.GetHeight(), this.cascadedShadowMap, null,
+      this.shadowQualitySetting, this.sunDirection, this.currentSunColor,
+      this.updateContext.GetOrigin(), this.updateContext.GetOriginShift(),
+      renderContext.GetViewTransform(), renderContext.GetReversedDepthProjectionTransform(),
+      this.viewLast, this.projectionLast);
+    try
+    {
+      const clouds = this.volumetricsRenderer.RenderVolumetrics(this.componentRegistry,
+        this.updateContext.GetFrustum(), depthMap, fog.Get(), this.sunDirection,
+        this._perFramePS.Get("VolumetricSlices"),
+        this.shadowQualitySetting === ShadowQuality.SHADOW_RAYTRACED && this._enableShadows,
+        gpuResourcePool, renderContext);
+      return [fog, clouds];
+    }
+    catch (error)
+    {
+      gpuResourcePool.Free(fog);
+      throw error;
+    }
   }
 
   /**

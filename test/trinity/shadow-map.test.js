@@ -296,7 +296,7 @@ test("DrawToShadowMapResult borrows an R8 target the size of the scene depth", (
   const renderer = new core.Tr2Renderer();
   const shadowMap = new core.Tr2ShadowMap();
 
-  renderer.PrepareDeviceResources(context);
+  core.Tr2Renderer.prepareDeviceResources(context);
   shadowMap.Setup(512, 4, false);
 
   const depthMap = poolSurface(pool, "depth", 128, 64);
@@ -320,7 +320,7 @@ test("the shadow effect does not keep the atlas or the scene depth bound", () =>
   const renderer = new core.Tr2Renderer();
   const shadowMap = new core.Tr2ShadowMap();
 
-  renderer.PrepareDeviceResources(context);
+  core.Tr2Renderer.prepareDeviceResources(context);
   shadowMap.Setup(512, 4, false);
 
   shadowMap.DrawToShadowMapResult(context, pool, poolSurface(pool, "depth", 64, 64), poolSurface(pool, "atlas", 64, 64), 1, renderer);
@@ -350,7 +350,7 @@ test("the push bracket is balanced however the resolve leaves", () =>
   const renderer = new core.Tr2Renderer();
   const shadowMap = new core.Tr2ShadowMap();
 
-  renderer.PrepareDeviceResources(context);
+  core.Tr2Renderer.prepareDeviceResources(context);
   shadowMap.Setup(512, 4, false);
 
   const before = [ context.GetStackSizeRT(), context.GetStackSizeDS() ];
@@ -414,7 +414,7 @@ test("resolving every frame does not grow the effect resource list", () =>
   const renderer = new core.Tr2Renderer();
   const shadowMap = new core.Tr2ShadowMap();
 
-  renderer.PrepareDeviceResources(context);
+  core.Tr2Renderer.prepareDeviceResources(context);
   shadowMap.Setup(512, 4, false);
 
   const counts = [];
@@ -452,7 +452,7 @@ function shadowScene(shadowQuality)
   const view = mat4.create();
   const frustum = new trinity.TriFrustum();
 
-  renderer.PrepareDeviceResources(context);
+  core.Tr2Renderer.prepareDeviceResources(context);
   projection.PerspectiveFov(Math.PI / 4, 1, 1, 100000);
   context.SetProjection(projection.GetTransform());
   context.SetViewTransform(view);

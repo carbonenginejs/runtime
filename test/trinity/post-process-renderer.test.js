@@ -53,7 +53,7 @@ test("Execute runs copy, sharpening and tonemapping for a scene without a post p
   const renderer = new Tr2Renderer();
   const postProcess = new Tr2PostProcessRenderer();
 
-  renderer.PrepareDeviceResources(context);
+  Tr2Renderer.prepareDeviceResources(context);
 
   const destination = colour(pool, "destination", PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM);
   const held = pool.GetHeldCount();
@@ -95,7 +95,7 @@ function runWith(effects, configure = () => {})
   const postProcess = new Tr2PostProcessRenderer();
   const graph = new Tr2PostProcess2();
 
-  renderer.PrepareDeviceResources(context);
+  Tr2Renderer.prepareDeviceResources(context);
   Object.assign(graph, effects);
   configure(postProcess);
 
@@ -395,7 +395,7 @@ test("TAA ping-pongs its persistent accumulators and blends toward Carbon's 0.96
   const postProcess = new Tr2PostProcessRenderer();
   const graph = new Tr2PostProcess2();
 
-  renderer.PrepareDeviceResources(context);
+  Tr2Renderer.prepareDeviceResources(context);
   graph.taa = taa;
 
   const destination = colour(pool, "destination", PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM);
@@ -432,7 +432,7 @@ test("TAA's Exposure slot stays a buffer slot when dynamic exposure arrives afte
   const postProcess = new Tr2PostProcessRenderer();
   const graph = new Tr2PostProcess2();
 
-  renderer.PrepareDeviceResources(context);
+  Tr2Renderer.prepareDeviceResources(context);
   graph.taa = new Tr2PPTaaEffect();
 
   const destination = colour(pool, "destination", PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM);

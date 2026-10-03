@@ -1,3 +1,4 @@
+import { Tr2Renderer } from "./Tr2Renderer.js";
 import { INotify } from "../../global/blue/INotify.js";
 // Source: trinity/trinity/Tr2ShadowMap.h
 //   trinity/trinity/Tr2ShadowMap.cpp
@@ -637,7 +638,7 @@ export class Tr2ShadowMap
     {
       this.cascadeEffect.SetParameter("EveSpaceSceneCascadedShadowMap", cascadedShadowDepth);
       this.cascadeEffect.SetParameter("DepthMap", depthMap);
-      renderer.DrawScreenQuad(renderContext, this.cascadeEffect);
+      Tr2Renderer.drawScreenQuad(renderContext, this.cascadeEffect);
       this.cascadeEffect.SetParameter("EveSpaceSceneCascadedShadowMap", null);
       this.cascadeEffect.SetParameter("DepthMap", null);
 

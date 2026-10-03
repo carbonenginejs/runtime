@@ -1412,7 +1412,7 @@ if (STAGE === "notonemap" || STAGE === "raw")
     esm.PushRenderTarget(dest);
     try
     {
-      renderer.DrawTexture(renderContext, source);
+      Tr2Renderer.drawTexture(renderContext, source);
     }
     finally
     {

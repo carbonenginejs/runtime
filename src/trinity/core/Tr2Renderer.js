@@ -21,7 +21,7 @@
 // context is the whole mechanism.
 //
 // The rest of the class is still instance members: the register map below, the
-// blitter, the projection and view state. That is not a second decision, it is
+// projection and view state; the blitter is process-wide again. That is not a second decision, it is
 // unfinished work, and it is recorded in the wrong-shape register in
 // `docs/projects/port-fidelity-burn-down.md`.
 //
@@ -207,23 +207,18 @@ export class Tr2Renderer
       : this.GetPerObjectVSStartRegister();
   }
 
-  /**
-   * Carbon's `s_blitter`: the blitter every screen-space draw runs through.
-   *
-   * An INSTANCE field rather than Carbon's module global, for the reason this
-   * whole class is an instance - a second library instance must not silently
-   * share the first one's blitter. Created by `PrepareDeviceResources`, and
-   * null until then, which is why every draw below guards on it exactly as
-   * Carbon's `if( s_blitter )` does.
-   */
-  #blitter = null;
+  /** Carbon process-wide s_blitter (Tr2Renderer.cpp:25). */
+  static #blitter = null;
 
-  /** Explicit final release of this renderer's instance-owned blitter. */
-  @meta.ours
-  Destroy()
+  /**
+   * Releases the fullscreen blitter from native Shutdown (cpp:354-369).
+   * Partial: debug renderers and the renderer-owned pool are still unported.
+   */
+  @meta.adapted
+  static shutdown()
   {
-    if (this.#blitter) this.#blitter.Destroy();
-    this.#blitter = null;
+    if (Tr2Renderer.#blitter) Tr2Renderer.#blitter.Destroy();
+    Tr2Renderer.#blitter = null;
   }
 
   /**
@@ -245,24 +240,14 @@ export class Tr2Renderer
   @meta.blue.method
   @meta.adapted
   @meta.reason("Carbon also allocates the quad vertex buffer and the debug line set here; only the blitter and the quad-list index buffer are ported.")
-  PrepareDeviceResources(renderContext = null)
+  static prepareDeviceResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
-    this.#blitter ??= new Tr2Blitter();
-    if (renderContext) this.#blitter.PrepareResources(renderContext);
+    Tr2Renderer.#blitter ??= new Tr2Blitter();
+    if (renderContext) Tr2Renderer.#blitter.PrepareResources(renderContext);
 
     // "just call the Get* function, it will do the alloc" (cpp:1300-1301).
     Tr2Renderer.ReserveQuadListIndexBuffer(128);
-    return this.#blitter;
-  }
-
-  /**
-   * Returns the blitter, or null before `PrepareDeviceResources` has run.
-   *
-   * @returns {Tr2Blitter|null} The renderer's blitter.
-   */
-  GetBlitter()
-  {
-    return this.#blitter;
+    return Tr2Renderer.#blitter;
   }
 
   /**
@@ -282,10 +267,10 @@ export class Tr2Renderer
    */
   @meta.blue.method
   @meta.implemented
-  DrawScreenQuad(renderContext, material)
+  static drawScreenQuad(renderContext, material)
   {
-    if (!this.#blitter) return false;
-    return this.#blitter.Draw(renderContext, material);
+    if (!Tr2Renderer.#blitter) return false;
+    return Tr2Renderer.#blitter.Draw(renderContext, material);
   }
 
   /**
@@ -305,10 +290,10 @@ export class Tr2Renderer
   @meta.blue.method
   @meta.adapted
   @meta.reason("Carbon distinguishes this from the material form by overload; JavaScript has none, so the rectangle form carries its own name.")
-  DrawScreenQuadRect(renderContext, effect, topLeft, bottomRight)
+  static drawScreenQuadRect(renderContext, effect, topLeft, bottomRight)
   {
-    if (!this.#blitter) return false;
-    return this.#blitter.Draw(renderContext, effect, null, {
+    if (!Tr2Renderer.#blitter) return false;
+    return Tr2Renderer.#blitter.Draw(renderContext, effect, null, {
       tlTexCoord: [ 0, 0 ],
       brTexCoord: [ 1, 1 ],
       tlVertexCoord: topLeft,
@@ -328,10 +313,10 @@ export class Tr2Renderer
    */
   @meta.blue.method
   @meta.implemented
-  DrawCameraSpaceScreenQuad(renderContext, shader, material)
+  static drawCameraSpaceScreenQuad(renderContext, shader, material)
   {
-    if (!this.#blitter) return false;
-    return this.#blitter.DrawInCameraSpace(renderContext, shader, material);
+    if (!Tr2Renderer.#blitter) return false;
+    return Tr2Renderer.#blitter.DrawInCameraSpace(renderContext, shader, material);
   }
 
   /**
@@ -345,10 +330,10 @@ export class Tr2Renderer
    */
   @meta.blue.method
   @meta.implemented
-  DrawFullScreenWithShader(renderContext, material)
+  static drawFullScreenWithShader(renderContext, material)
   {
-    if (!this.#blitter) return false;
-    return this.#blitter.Draw(renderContext, material);
+    if (!Tr2Renderer.#blitter) return false;
+    return Tr2Renderer.#blitter.Draw(renderContext, material);
   }
 
   /**
@@ -368,9 +353,9 @@ export class Tr2Renderer
   @meta.blue.method
   @meta.adapted
   @meta.reason("Carbon's four overloads differ only in an optional material and optional coordinates, which are defaults here.")
-  DrawTexture(renderContext, texture, options = {})
+  static drawTexture(renderContext, texture, options = {})
   {
-    if (!this.#blitter) return false;
+    if (!Tr2Renderer.#blitter) return false;
 
     const { tlTexCoord, brTexCoord } = AdjustTextureCoordsToViewport(
       renderContext,
@@ -379,8 +364,8 @@ export class Tr2Renderer
     );
 
     return options.material
-      ? this.#blitter.Draw(renderContext, options.material, texture, { tlTexCoord, brTexCoord })
-      : this.#blitter.DrawTexture(renderContext, texture, { tlTexCoord, brTexCoord }, options.filter);
+      ? Tr2Renderer.#blitter.Draw(renderContext, options.material, texture, { tlTexCoord, brTexCoord })
+      : Tr2Renderer.#blitter.DrawTexture(renderContext, texture, { tlTexCoord, brTexCoord }, options.filter);
   }
 
   // ------------------------------------------------------------------------

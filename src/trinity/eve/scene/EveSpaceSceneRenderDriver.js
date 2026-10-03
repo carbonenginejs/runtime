@@ -24,7 +24,7 @@ import { TimeAsDouble } from "#blue";
 import { vec4 } from "#math/vec4";
 import { mat4 } from "#math/mat4";
 import { PixelFormat, TextureType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
-import { Tr2ColorAttachment, Tr2DepthAttachment, Tr2SubresourceData, Tr2TextureSubresource } from "#trinityal";
+import { Tr2ColorAttachment, Tr2DepthAttachment, Tr2SubresourceData, Tr2TextureSubresource, Tr2TextureAL } from "#trinityal";
 import { Tr2Effect } from "../../shader/Tr2Effect.js";
 import { AmbientOcclusionQuality, AntiAliasingQuality, EveVisualizeMethod } from "../../generated/eve/enums.js";
 import { ShadowQuality, SSAOQuality, Tr2VolumerticQuality } from "../../generated/trinityCore/enums.js";
@@ -276,7 +276,6 @@ export class EveSpaceSceneRenderDriver
     this._opaqueMapReference.SetTexture(null);
     this.#distortionEffect.Destroy();
     this.postProcess.Destroy();
-    this.#renderer.Destroy();
     this.#gpuResourcePool.Destroy();
     this.#preparedContext = null;
   }
@@ -819,7 +818,7 @@ export class EveSpaceSceneRenderDriver
       try
       {
         esm.ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
-        this.#renderer.DrawTexture(renderContext, offscreen.color.Get());
+        Tr2Renderer.drawTexture(renderContext, offscreen.color.Get());
       }
       finally
       {
@@ -831,29 +830,50 @@ export class EveSpaceSceneRenderDriver
       Tr2VariableStore.globalStore().RegisterVariable("EveSpaceSceneOpaqueMap", this._opaqueMapReference);
     }
 
-    // THE TRANSPARENT FAMILY (EveSpaceScene.cpp:2758). Carbon runs subsurface
-    // scattering, the jittered-projection refresh and the volumetrics between
-    // the opaque copy and this (cpp:2752-2757); none of those are ported.
-    submitted = this._SubmitTransparent(map, renderContext) || submitted;
-
-    // THE DISTORTION BATCHES (EveSpaceScene.cpp:2759-2765), into the distortion
-    // map with the depth read-only, as Carbon's whole colour pass holds it.
-    if (offscreen?.distortion && map)
+    // EveSpaceScene.cpp:2754-2774: cloud composition precedes transparency;
+    // both sampled volumes stay alive through distortion and GPU particles.
+    renderContext.SetProjection(this.scene.jitteredProjection);
+    this.scene.PopulateAndApplyPerFrameData(renderContext);
+    const volumes = offscreen ? this.scene.RenderVolumetrics(offscreen.depth.Get(), this.#gpuResourcePool, renderContext) : null;
+    const store = Tr2VariableStore.globalStore();
+    if (volumes)
     {
-      renderContext.SetReadOnlyDepth(true);
-      try
+      store.RegisterVariable("EveSceneFroxelFogMap", volumes[0].Get());
+      store.RegisterVariable("EveSceneFogVolumeMap", volumes[1].Get());
+    }
+    try
+    {
+      submitted = this._SubmitTransparent(map, renderContext) || submitted;
+
+      // THE DISTORTION BATCHES (EveSpaceScene.cpp:2759-2765), into the distortion
+      // map with the depth read-only, as Carbon's whole colour pass holds it.
+      if (offscreen?.distortion && map)
       {
-        offscreen.hasDistortion = this.scene.RenderDistortionBatches(map, offscreen.distortion.Get(), offscreen.depth.Get(), renderContext);
+        renderContext.SetReadOnlyDepth(true);
+        try
+        {
+          offscreen.hasDistortion = this.scene.RenderDistortionBatches(map, offscreen.distortion.Get(), offscreen.depth.Get(), renderContext);
+        }
+        finally
+        {
+          renderContext.SetReadOnlyDepth(false);
+        }
       }
-      finally
+
+      // THE GPU PARTICLES (EveSpaceScene.cpp:2766-2771), after the transparent
+      // and distortion batches.
+      this.scene.GetGpuParticleSystem()?.Render(renderContext);
+    }
+    finally
+    {
+      if (volumes)
       {
-        renderContext.SetReadOnlyDepth(false);
+        store.RegisterVariable("EveSceneFroxelFogMap", new Tr2TextureAL());
+        store.RegisterVariable("EveSceneFogVolumeMap", new Tr2TextureAL());
+        // Native handle destruction ignores an empty return (Tr2GpuResourcePool.h:180-187).
+        for (const volume of volumes) if (volume.IsValid()) this.#gpuResourcePool.Free(volume);
       }
     }
-
-    // THE GPU PARTICLES (EveSpaceScene.cpp:2766-2771), after the transparent
-    // and distortion batches.
-    this.scene.GetGpuParticleSystem()?.Render(renderContext);
 
     // cpp:557 - the shadow globals are emptied after the main pass.
     if (offscreen?.shadows) EveSpaceScene.registerWithVariableStore(EveSpaceSceneRenderDriver.#noShadowResources, this.#gpuResourcePool);
@@ -929,6 +949,7 @@ export class EveSpaceSceneRenderDriver
         }
       }
     }
+    if (this.scene.volumetricsRenderer) this.scene.volumetricsRenderer.SetQuality(this.volumetricQuality);
   }
 
   /**
@@ -1063,7 +1084,7 @@ export class EveSpaceSceneRenderDriver
       esm.ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
       effect.SetParameter("BlitCurrent", backBufferCopy.Get());
       effect.SetParameter("TexDistortion", distortion);
-      this.#renderer.DrawFullScreenWithShader(renderContext, effect);
+      Tr2Renderer.drawFullScreenWithShader(renderContext, effect);
       effect.SetParameter("BlitCurrent", null);
       effect.SetParameter("TexDistortion", null);
     }
@@ -1097,7 +1118,7 @@ export class EveSpaceSceneRenderDriver
     if (this.#preparedContext === renderContext) return;
 
     this.#gpuResourcePool.SetRenderContext(renderContext);
-    this.#renderer.PrepareDeviceResources(renderContext);
+    Tr2Renderer.prepareDeviceResources(renderContext);
     this.#preparedContext = renderContext;
   }
 

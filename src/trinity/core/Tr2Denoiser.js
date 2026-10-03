@@ -1,3 +1,4 @@
+import { Tr2Renderer } from "./Tr2Renderer.js";
 import { INotify } from "../../global/blue/INotify.js";
 // Source: trinity/trinity/Tr2Denoiser.h
 //   trinity/trinity/Tr2Denoiser.cpp
@@ -152,13 +153,12 @@ export class Tr2Denoiser
    * @param {number} upscaling Divides the radius, so an upscaled pass blurs less.
    * @param {object} gpuResourcePool The pool the pass targets come from.
    * @param {object} renderContext The context to draw through.
-   * @param {object} renderer The renderer owning the blitter.
+   * @param {object} renderer Legacy argument; fullscreen draws use the native static renderer.
    * @param {number} [index] Array slice of the result to render into.
    * @returns {object|null} The result handle, or null.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon reaches the blitter through the static Tr2Renderer; ours is an instance, so the renderer is passed in like the pool and the context.")
   Apply(source, depth, normals, projection, upscaling, gpuResourcePool, renderContext, renderer, index = 0)
   {
     // Carbon tests the HANDLE, not the texture behind it (`cpp:61`).
@@ -206,7 +206,7 @@ export class Tr2Denoiser
       esm.SetRenderTarget(0, estimate.Get());
       renderContext.RenderPassHint(OVERWRITE_AND_KEEP, null);
       this.#estimateNoise.SetParameter("Source", sourceTexture);
-      renderer.DrawScreenQuad(renderContext, this.#estimateNoise);
+      Tr2Renderer.drawScreenQuad(renderContext, this.#estimateNoise);
       this.#estimateNoise.SetParameter("Source", null);
 
       mask = this.#Pass(gpuResourcePool, "Tr2Denoiser Denoise Mask", width, height);
@@ -214,7 +214,7 @@ export class Tr2Denoiser
       this.#denoiseEstimate.SetParameter("Source", estimate.Get());
       esm.SetRenderTarget(0, mask.Get());
       renderContext.RenderPassHint(OVERWRITE_AND_KEEP, null);
-      renderer.DrawScreenQuad(renderContext, this.#denoiseEstimate);
+      Tr2Renderer.drawScreenQuad(renderContext, this.#denoiseEstimate);
 
       // Carbon releases the estimate here, before borrowing the next target, so
       // the pool can hand the same surface back rather than grow (`cpp:118`).
@@ -227,7 +227,7 @@ export class Tr2Denoiser
       this.#denoiseHoriz.SetParameter("NoiseEstimate", mask.Get());
       esm.SetRenderTarget(0, temp.Get());
       renderContext.RenderPassHint(OVERWRITE_AND_KEEP, null);
-      renderer.DrawScreenQuad(renderContext, this.#denoiseHoriz);
+      Tr2Renderer.drawScreenQuad(renderContext, this.#denoiseHoriz);
       this.#denoiseHoriz.SetParameter("Source", null);
       this.#denoiseHoriz.SetParameter("NoiseEstimate", null);
 
@@ -240,7 +240,7 @@ export class Tr2Denoiser
       this.#denoiseVert.SetParameter("NoiseEstimate", mask.Get());
       esm.SetRenderTarget(0, result.Get(), true, index);
       renderContext.RenderPassHint(OVERWRITE_AND_KEEP, null);
-      renderer.DrawScreenQuad(renderContext, this.#denoiseVert);
+      Tr2Renderer.drawScreenQuad(renderContext, this.#denoiseVert);
       this.#denoiseVert.SetParameter("Source", null);
       this.#denoiseVert.SetParameter("NoiseEstimate", null);
 

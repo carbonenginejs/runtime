@@ -418,13 +418,13 @@ export class Tr2PostProcessRenderer
         }
         else
         {
-          renderer.DrawTexture(renderContext, output.Get());
+          Tr2Renderer.drawTexture(renderContext, output.Get());
         }
       }
       else
       {
         this.RenderTonemapping(output.Get(), postProcess, renderContext, renderer);
-        renderer.DrawTexture(renderContext, output.Get());
+        Tr2Renderer.drawTexture(renderContext, output.Get());
       }
 
       if (postProcess)
@@ -611,7 +611,7 @@ export class Tr2PostProcessRenderer
     shader.SetParameter("GrainEdge", 1 / (filmGrain.grainContrast * filmGrain.grainSize));
     shader.SetParameter("BrightnessModifier", filmGrain.brightnessModifier);
     shader.SetParameter("InputTexture", dest);
-    renderer.DrawScreenQuad(renderContext, shader);
+    Tr2Renderer.drawScreenQuad(renderContext, shader);
   }
 
   /**
@@ -624,7 +624,7 @@ export class Tr2PostProcessRenderer
   RenderSignalLoss(dest, renderContext, signalLoss, renderer)
   {
     this.signalLossEffect.SetParameter("NoiseStrength", signalLoss.strength);
-    renderer.DrawTexture(renderContext, dest, { material: this.signalLossEffect });
+    Tr2Renderer.drawTexture(renderContext, dest, { material: this.signalLossEffect });
   }
 
   /**
@@ -1007,7 +1007,7 @@ export class Tr2PostProcessRenderer
       effect.SetParameter("DepthMap", rt1.Get());
       try
       {
-        renderer.DrawScreenQuad(renderContext, effect);
+        Tr2Renderer.drawScreenQuad(renderContext, effect);
       }
       finally
       {
@@ -1534,7 +1534,7 @@ export class Tr2PostProcessRenderer
     esm.PushRenderTarget(dest);
     try
     {
-      renderer.DrawScreenQuad(renderContext, effect);
+      Tr2Renderer.drawScreenQuad(renderContext, effect);
     }
     finally
     {
@@ -1557,7 +1557,7 @@ export class Tr2PostProcessRenderer
     esm.PushRenderTarget(dest);
     try
     {
-      renderer.DrawTexture(renderContext, src);
+      Tr2Renderer.drawTexture(renderContext, src);
     }
     finally
     {

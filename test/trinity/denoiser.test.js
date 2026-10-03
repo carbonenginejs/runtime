@@ -57,7 +57,7 @@ test("an invalid source or depth returns nothing rather than borrowing four targ
   const renderer = new Tr2Renderer();
   const denoiser = new Tr2Denoiser();
 
-  renderer.PrepareDeviceResources(context);
+  Tr2Renderer.prepareDeviceResources(context);
 
   const source = surface(pool, "source");
   const depth = surface(pool, "depth").Get();
@@ -73,7 +73,7 @@ test("Apply runs four passes and returns a borrowed result", () =>
   const renderer = new Tr2Renderer();
   const denoiser = new Tr2Denoiser();
 
-  renderer.PrepareDeviceResources(context);
+  Tr2Renderer.prepareDeviceResources(context);
 
   const source = surface(pool, "source");
   const depth = surface(pool, "depth").Get();
@@ -95,7 +95,7 @@ test("the pass bracket is balanced however Apply leaves", () =>
   const renderer = new Tr2Renderer();
   const denoiser = new Tr2Denoiser();
 
-  renderer.PrepareDeviceResources(context);
+  Tr2Renderer.prepareDeviceResources(context);
 
   const before = [ context.GetStackSizeRT(), context.GetStackSizeDS() ];
   const source = surface(pool, "source");
@@ -122,7 +122,7 @@ test("Radius goes through the uint32 overload: its bits, not a float", () =>
   const radii = [];
   const original = Tr2Effect.prototype.SetParameter;
 
-  renderer.PrepareDeviceResources(context);
+  Tr2Renderer.prepareDeviceResources(context);
   Tr2Effect.prototype.SetParameter = function (name, value, ...rest)
   {
     if (name === "Radius") radii.push(value);
@@ -193,7 +193,9 @@ test("each interrupted denoiser pass releases its local handles and restores sta
     const baseline = pool.GetHeldCount();
     const stacks = [ context.GetStackSizeRT(), context.GetStackSizeDS() ];
     let draws = 0;
-    const renderer = { DrawScreenQuad() { if (++draws === failAt) throw new Error("draw interrupted"); } };
+    const renderer = Tr2Renderer;
+    const originalDraw = Tr2Renderer.drawScreenQuad;
+    Tr2Renderer.drawScreenQuad = () => { if (++draws === failAt) throw new Error("draw interrupted"); };
     try
     {
       for (let frame = 0; frame < 5; frame++)
@@ -208,6 +210,7 @@ test("each interrupted denoiser pass releases its local handles and restores sta
     }
     finally
     {
+      Tr2Renderer.drawScreenQuad = originalDraw;
       pool.Free(depth);
       pool.Destroy();
     }

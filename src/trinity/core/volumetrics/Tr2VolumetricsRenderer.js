@@ -8,18 +8,25 @@ import { Tr2VolumerticQuality } from "../../generated/trinityCore/enums.js";
 import { Tr2TextureReference } from "../Tr2TextureReference.js";
 import { AccumulatePriorityAttribute } from "../PriorityBlend.js";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
-import { blue } from "#blue";
+import { Tr2Effect } from "../../shader/Tr2Effect.js";
+import { Tr2Renderer } from "../Tr2Renderer.js";
+import { TriRenderBatchAccumulator } from "../batch/TriRenderBatch/TriRenderBatchAccumulator.js";
+import { EveComponentType } from "../../eve/EveComponentTypes.js";
+import { PixelFormat, TextureType, Tr2GpuUsage } from "#consts/render-context";
+import { RenderingMode } from "#consts/graphics";
+import { Tr2TextureAL } from "../../../trinityal/Tr2TextureAL/Tr2TextureAL.js";
+import { Tr2SubresourceData } from "../../../trinityal/Tr2HalHelperStructures/Tr2SubresourceData.js";
 
 
 const FROXEL_FOG_COMPONENT = "FroxelFogSettings";
 const FROXEL_NOISE_DEPTH = 64;
 const FOG_COLOR_SCRATCH = vec3.create();
+const EMPTY_VOLUME_TEXEL = Uint8Array.of(0, 0, 0, 0);
 
 
 /**
- * Owns portable froxel-fog blending and terminal per-frame constant writes.
- * Physical fog/volumetric textures, passes and environment-map realization
- * remain explicit engine obligations.
+ * Renders cloud slices and shadows, and blends scene fog settings.
+ * Positive-density froxel fog and its environment-map passes remain unported.
  */
 @meta.define({ className: "Tr2VolumetricsRenderer", family: "trinityCore" })
 export class Tr2VolumetricsRenderer
@@ -117,14 +124,36 @@ export class Tr2VolumetricsRenderer
 
   #sunAngle = 0;
 
+  /** Native cloud pass effects (cpp:51-66). */
+  @meta.type.objectRef("Tr2Effect")
+  volumeBlit = new Tr2Effect();
+  @meta.type.objectRef("Tr2Effect")
+  downsampleDepth = new Tr2Effect();
+  @meta.type.objectRef("Tr2Effect")
+  hBlur = new Tr2Effect();
+  @meta.type.objectRef("Tr2Effect")
+  vBlur = new Tr2Effect();
+  /** Native unsorted cloud accumulator. */
+  batches = new TriRenderBatchAccumulator();
+  /** Last dimensions requested, for the native empty-scene cache keepalive. */
+  lastRequestedWidth = 0;
+  lastRequestedHeight = 0;
+
   /** Creates Carbon's logical Mie reference and reserves its texture globals. */
   constructor()
   {
     const store = Tr2VariableStore.globalStore();
-    store.RegisterVariable("EveSceneFogVolumeMap");
-    store.RegisterVariable("VolumetricDepthMap");
-    store.RegisterVariable("EveSceneMieEnvironmentMap");
-    store.RegisterVariable("EveSceneFroxelFogMap");
+    store.RegisterVariable("EveSceneFogVolumeMap", new Tr2TextureAL());
+    store.RegisterVariable("VolumetricDepthMap", new Tr2TextureAL());
+    store.RegisterVariable("EveSceneMieEnvironmentMap", this.mieEnvironmentMap);
+    store.RegisterVariable("EveSceneFroxelFogMap", new Tr2TextureAL());
+    const path = "res:/Graphics/Effect/Managed/Space/SpecialFX/Volumetric/";
+    this.volumeBlit.SetEffectPathName(path + "VolumeBlit.fx");
+    this.downsampleDepth.SetEffectPathName(path + "DownsampleDepth.fx");
+    this.hBlur.SetOption("SOURCE_TYPE", "SOURCE_TYPE_ARRAY");
+    this.hBlur.SetEffectPathName(path + "BlurVolumetric.fx");
+    this.vBlur.SetOption("SOURCE_TYPE", "SOURCE_TYPE_TEXTURE");
+    this.vBlur.SetEffectPathName(path + "BlurVolumetric.fx");
   }
 
   /**
@@ -302,72 +331,154 @@ export class Tr2VolumetricsRenderer
   }
 
   /**
-   * Renders the froxel volume for every volumetric component in the registry.
-   *
-   * UNPORTED. Carbon's body is the bulk of a 1,150-line file and drives the
-   * froxel volume: it sizes the target from the scene depth and a scale factor,
-   * counts `ITr2VolumetricRenderable` components off the registry, then runs the
-   * compute and raymarch passes. None of that has a JS counterpart yet.
-   *
-   * It throws rather than returning nothing: a caller that silently got no
-   * volumetric texture renders a scene with no fog and looks plausible.
-   *
-   * @returns {object} Never; see above.
+   * Carbon Tr2VolumetricsRenderer.cpp:152-340: update one cloud lightmap, render
+   * four depth slices, optionally blur and composite over the saved target.
+   * Adapted: pool descriptions combine the native overload arguments, and
+   * explicit Free calls replace scope-bound pool handles. JS shader failures
+   * throw, so finally also restores native target stacks and borrowed bindings.
    */
   @meta.blue.method
-  @meta.notImplemented
-  @meta.reason("Carbon's froxel compute and raymarch passes (Tr2VolumetricsRenderer.cpp:152-493) have no JS counterpart.")
-  RenderVolumetrics()
+  @meta.adapted
+  RenderVolumetrics(registry, frustum, sceneDepth, froxelFog, sunDirection,
+    depthSlices, raytracingEnabled, gpuResourcePool, renderContext)
   {
-    throw new Error("Tr2VolumetricsRenderer.RenderVolumetrics: the froxel passes are unported.");
+    const originalWidth = sceneDepth.GetWidth(), originalHeight = sceneDepth.GetHeight();
+    const width = Math.min(originalWidth, Math.max(1, Math.floor(originalWidth * this.scaleFactor)));
+    const height = Math.min(originalHeight, Math.max(1, Math.floor(originalHeight * this.scaleFactor)));
+    const description = { type: TextureType.TEX_TYPE_2D,
+      format: PixelFormat.PIXEL_FORMAT_R16G16B16A16_FLOAT,
+      width, height, depth: 1, mipCount: 1, arraySize: 4,
+      gpuUsage: Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE };
+    const componentType = EveComponentType.VolumetricRenderable;
+    const count = registry.ComponentCount(componentType);
+    if (count === 0)
+    {
+      if (width === this.lastRequestedWidth && height === this.lastRequestedHeight)
+        gpuResourcePool.Free(gpuResourcePool.GetTempTexture("VolumetricSlices", description));
+      return Tr2VolumetricsRenderer.getEmptyVolumetricTexture(gpuResourcePool);
+    }
+    const store = Tr2VariableStore.globalStore();
+    store.RegisterVariable("EveSceneFroxelFogMap", froxelFog);
+    const sceneInformation = { quality: this.quality, depthSlices, targetWidth: width,
+      targetHeight: height, sunDirection, receiveShadows: this.receiveShadows,
+      castShadows: this.castShadows, raytracedShadows: raytracingEnabled };
+    const esm = renderContext.GetEffectStateManager();
+    const batches = this.batches;
+    batches.SetTriPoolAllocator(renderContext.GetTriPoolAllocator());
+    let volumetricDepth = null, blurScratch = null, volumeSlices = null;
+    let pushedTargets = 0, pushedDepth = false, returned = false;
+    try
+    {
+      registry.ProcessComponents(componentType, cloud => cloud.SetSceneInformation(sceneInformation));
+      registry.ProcessComponentsUntil(componentType, cloud => cloud.UpdateVolumetricLightmap(renderContext));
+      volumeSlices = gpuResourcePool.GetTempTexture("VolumetricSlices", description);
+      this.lastRequestedWidth = width;
+      this.lastRequestedHeight = height;
+      for (let slot = 0; slot < 4; slot++)
+      {
+        esm.PushRenderTarget(undefined, slot);
+        pushedTargets++;
+      }
+      esm.PushDepthStencilBuffer(null);
+      pushedDepth = true;
+      if (originalWidth === width && originalHeight === height)
+        this.volumeBlit.SetOption("CLOUD_UPSAMPLING", "CLOUD_UPSAMPLING_NONE");
+      else
+      {
+        volumetricDepth = gpuResourcePool.GetTempTexture("VolumetricDepth", {
+          ...description, arraySize: 1, format: PixelFormat.PIXEL_FORMAT_R32_FLOAT });
+        this.volumeBlit.SetOption("CLOUD_UPSAMPLING", "CLOUD_UPSAMPLING_BILINEAR");
+        esm.SetRenderTarget(0, volumetricDepth.Get());
+        esm.SetRenderTarget(1, null);
+        this.downsampleDepth.SetParameter("DepthSizes", [width, height, originalWidth, originalHeight]);
+        this.downsampleDepth.SetParameter("DepthMap", sceneDepth);
+        Tr2Renderer.drawScreenQuad(renderContext, this.downsampleDepth);
+        this.downsampleDepth.SetParameter("DepthMap", null);
+      }
+      store.RegisterVariable("VolumetricDepthMap", volumetricDepth && volumetricDepth.IsValid() ? volumetricDepth.Get() : sceneDepth);
+      for (let slot = 0; slot < 4; slot++) esm.SetRenderTarget(slot, volumeSlices.Get(), true, slot);
+      for (let slot = 0; slot < 4; slot++) renderContext.Clear({ clearColor: true, clearDepth: false, color: 0, slot });
+      const renderables = [];
+      registry.ProcessComponents(componentType, cloud => renderables.push([cloud, cloud.GetSortValue(frustum)]));
+      renderables.sort((left, right) => right[1] - left[1]);
+      for (const [cloud] of renderables) cloud.GetVolumetricBatches(frustum, batches);
+      if (batches.GetBatchCount())
+      {
+        batches.Finalize();
+        esm.ApplyStandardStates(RenderingMode.RM_ALPHA);
+        renderContext.RenderBatches(batches);
+        batches.Clear();
+      }
+      if (this.blur)
+      {
+        blurScratch = gpuResourcePool.GetTempTexture("VolumetricBlurScratch", { ...description, arraySize: 1 });
+        esm.ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
+        esm.SetRenderTarget(0, blurScratch.Get());
+        for (let slot = 1; slot < 4; slot++) esm.SetRenderTarget(slot, null);
+        this.hBlur.SetParameter("EveSceneFogVolumeMap", volumeSlices.Get());
+        this.hBlur.SetParameter("DepthSizes", [width, height, 1 / width, 0]);
+        Tr2Renderer.drawScreenQuad(renderContext, this.hBlur);
+        this.hBlur.SetParameter("EveSceneFogVolumeMap", null);
+        esm.SetRenderTarget(0, volumeSlices.Get(), true, 3);
+        this.vBlur.SetParameter("DepthSizes", [width, height, 0, 1 / height]);
+        this.vBlur.SetParameter("SourceMap", blurScratch.Get());
+        Tr2Renderer.drawScreenQuad(renderContext, this.vBlur);
+        this.vBlur.SetParameter("SourceMap", null);
+        gpuResourcePool.Free(blurScratch);
+        blurScratch = null;
+      }
+      while (pushedTargets) esm.PopRenderTarget(--pushedTargets);
+      esm.ApplyStandardStates(RenderingMode.RM_ALPHA);
+      this.volumeBlit.SetParameter("DepthSizes", [width, height, originalWidth, originalHeight]);
+      this.volumeBlit.SetParameter("EveSceneFogVolumeMap", volumeSlices.Get());
+      Tr2Renderer.drawScreenQuad(renderContext, this.volumeBlit);
+      this.volumeBlit.SetParameter("EveSceneFogVolumeMap", null);
+      esm.PopDepthStencilBuffer();
+      pushedDepth = false;
+      returned = true;
+      return volumeSlices;
+    }
+    finally
+    {
+      // JS shader failures throw; restore the native stacks and explicit handle
+      // ownership before propagating them to the caller.
+      while (pushedTargets) esm.PopRenderTarget(--pushedTargets);
+      if (pushedDepth) esm.PopDepthStencilBuffer();
+      batches.Clear();
+      this.downsampleDepth.SetParameter("DepthMap", new Tr2TextureAL());
+      this.hBlur.SetParameter("EveSceneFogVolumeMap", new Tr2TextureAL());
+      this.vBlur.SetParameter("SourceMap", new Tr2TextureAL());
+      this.volumeBlit.SetParameter("EveSceneFogVolumeMap", new Tr2TextureAL());
+      store.RegisterVariable("VolumetricDepthMap", new Tr2TextureAL());
+      if (!returned && volumeSlices) gpuResourcePool.Free(volumeSlices);
+      if (volumetricDepth) gpuResourcePool.Free(volumetricDepth);
+      if (blurScratch) gpuResourcePool.Free(blurScratch);
+      store.RegisterVariable("EveSceneFroxelFogMap", new Tr2TextureAL());
+    }
+  }
+
+  /** Native four transparent slices (cpp:125-150); options combine the pool overloads. */
+  @meta.adapted
+  static getEmptyVolumetricTexture(gpuResourcePool)
+  {
+    const initialData = Array.from({ length: 4 }, () => new Tr2SubresourceData(EMPTY_VOLUME_TEXEL, 4, 4));
+    return gpuResourcePool.GetPersistentTexture("EmptyEmptyVolumetricSlices", {
+      type: TextureType.TEX_TYPE_2D, format: PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM,
+      width: 1, height: 1, depth: 1, mipCount: 1, arraySize: 4,
+      gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, initialData
+    });
   }
 
   /**
-   * The neutral volumetric texture, used when nothing volumetric is in view.
-   *
-   * UNPORTED, AND THE BLOCKER IS THE POOL'S DESCRIPTION. Carbon borrows a 1x1
-   * black texture seeded with `Tr2SubresourceData` and described by a
-   * `Tr2BitmapDimensions` carrying a texture TYPE and a slice count - a 2D array
-   * of four slices here, a 3D texture for fog. Our pool takes only
-   * `{ width, height, format, gpuUsage }`, which can express neither, and its
-   * `initialize` callback has no way to supply initial subresource bytes.
-   *
-   * Carbon's signature is restored (static, taking the pool) so the shape is
-   * right when the pool grows a full description.
-   *
-   * @param {object} _gpuResourcePool The pool to borrow from.
-   * @returns {object} Never; see above.
+   * Carbon's disabled-fog return (cpp:511-516, 611-615).
+   * Positive-density froxel compute and temporal resources are still unported.
    */
   @meta.blue.method
   @meta.notImplemented
-  @meta.reason("Tr2GpuResourcePool's description carries no texture type or slice count, and no initial subresource data, so a 2D array of four slices cannot be asked for.")
-  static GetEmptyVolumetricTexture(_gpuResourcePool)
+  RenderFog(_renderContext, gpuResourcePool)
   {
-    throw new Error(
-      "Tr2VolumetricsRenderer.GetEmptyVolumetricTexture: needs a pool description "
-      + "carrying texture type, slice count and initial data."
-    );
-  }
-
-  /**
-   * Renders the fog volume.
-   *
-   * UNPORTED. Carbon's body is the bulk of a 1,150-line file and drives the
-   * froxel volume: it sizes the target from the scene depth and a scale factor,
-   * counts `ITr2VolumetricRenderable` components off the registry, then runs the
-   * compute and raymarch passes. None of that has a JS counterpart yet.
-   *
-   * It throws rather than returning nothing: a caller that silently got no
-   * volumetric texture renders a scene with no fog and looks plausible.
-   *
-   * @returns {object} Never; see above.
-   */
-  @meta.blue.method
-  @meta.notImplemented
-  @meta.reason("Carbon's fog passes (Tr2VolumetricsRenderer.cpp:494-554) have no JS counterpart.")
-  RenderFog()
-  {
-    throw new Error("Tr2VolumetricsRenderer.RenderFog: the fog passes are unported.");
+    if (!this.HasFog()) return Tr2VolumetricsRenderer.getEmptyFogTexture(gpuResourcePool);
+    throw new Error("Tr2VolumetricsRenderer.RenderFog: positive-density fog passes are unported.");
   }
 
   /**
@@ -391,31 +502,16 @@ export class Tr2VolumetricsRenderer
     throw new Error("Tr2VolumetricsRenderer.RenderFogIntoReflectionMap: the fog passes are unported.");
   }
 
-  /**
-   * The neutral froxel-fog texture, used when there is no fog.
-   *
-   * UNPORTED, AND THE BLOCKER IS THE POOL'S DESCRIPTION. Carbon borrows a 1x1
-   * black texture seeded with `Tr2SubresourceData` and described by a
-   * `Tr2BitmapDimensions` carrying a texture TYPE and a slice count - a 2D array
-   * of four slices here, a 3D texture for fog. Our pool takes only
-   * `{ width, height, format, gpuUsage }`, which can express neither, and its
-   * `initialize` callback has no way to supply initial subresource bytes.
-   *
-   * Carbon's signature is restored (static, taking the pool) so the shape is
-   * right when the pool grows a full description.
-   *
-   * @param {object} _gpuResourcePool The pool to borrow from.
-   * @returns {object} Never; see above.
-   */
-  @meta.blue.method
-  @meta.notImplemented
-  @meta.reason("Tr2GpuResourcePool's description carries no texture type or initial subresource data, so a 3D texture cannot be asked for.")
-  static GetEmptyFogTexture(_gpuResourcePool)
+  /** Native transparent 3D fog texel (cpp:536-553); options combine the pool overloads. */
+  @meta.adapted
+  static getEmptyFogTexture(gpuResourcePool)
   {
-    throw new Error(
-      "Tr2VolumetricsRenderer.GetEmptyFogTexture: needs a pool description "
-      + "carrying texture type and initial data."
-    );
+    return gpuResourcePool.GetPersistentTexture("EmptyFroxelFog", {
+      type: TextureType.TEX_TYPE_3D, format: PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM,
+      width: 1, height: 1, depth: 1, mipCount: 1, arraySize: 1,
+      gpuUsage: Tr2GpuUsage.SHADER_RESOURCE,
+      initialData: [new Tr2SubresourceData(EMPTY_VOLUME_TEXEL, 4, 4)]
+    });
   }
 
   /**
@@ -450,19 +546,31 @@ export class Tr2VolumetricsRenderer
   }
 
   /**
-   * Renders volumetric shadows for the registry's components.
-   *
-   * UNPORTED. Carbon's 31-line body walks the volumetric components and issues a
-   * shadow pass per one, which needs the same unported pass machinery.
-   *
-   * @returns {void} Never returns; see above.
+   * Carbon shadow batches and target stack (Tr2VolumetricsRenderer.cpp:1115-1145).
+   * Adapted: finally restores native stacks when a JavaScript shader draw throws.
    */
   @meta.blue.method
-  @meta.notImplemented
-  @meta.reason("Needs the volumetric pass machinery, which is unported.")
-  RenderShadows()
+  @meta.adapted
+  RenderShadows(registry, shadowMap, renderContext)
   {
-    throw new Error("Tr2VolumetricsRenderer.RenderShadows: the volumetric passes are unported.");
+    if (!shadowMap.IsValid() || !this.castShadows) return;
+    const batches = this.batches;
+    batches.SetTriPoolAllocator(renderContext.GetTriPoolAllocator());
+    registry.ProcessComponents(EveComponentType.VolumetricRenderable,
+      cloud => cloud.GetVolumetricShadowBatches(batches));
+    if (!batches.GetBatchCount()) return;
+    batches.Finalize();
+    const esm = renderContext.GetEffectStateManager();
+    esm.PushRenderTarget(shadowMap);
+    esm.PushDepthStencilBuffer(null);
+    esm.ApplyStandardStates(RenderingMode.RM_ALPHA);
+    try { renderContext.RenderBatches(batches, "Shadow"); }
+    finally
+    {
+      batches.Clear();
+      esm.PopRenderTarget();
+      esm.PopDepthStencilBuffer();
+    }
   }
 
   static Tr2VolumerticQuality = Tr2VolumerticQuality;

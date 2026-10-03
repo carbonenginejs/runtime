@@ -86,33 +86,30 @@ test("every screen-space draw refuses until the device resources are prepared", 
   const renderer = new Tr2Renderer();
   const context = stubContext();
 
-  assert.equal(renderer.GetBlitter(), null);
-  assert.equal(renderer.DrawScreenQuad(context, material()), false);
-  assert.equal(renderer.DrawScreenQuadRect(context, material(), [ 0, 0 ], [ 1, 1 ]), false);
-  assert.equal(renderer.DrawFullScreenWithShader(context, material()), false);
-  assert.equal(renderer.DrawTexture(context, { id: "t" }), false);
-  assert.equal(renderer.DrawCameraSpaceScreenQuad(context, null, material()), false);
+  Tr2Renderer.shutdown();
+  assert.equal(Tr2Renderer.drawScreenQuad(context, material()), false);
+  assert.equal(Tr2Renderer.drawScreenQuadRect(context, material(), [ 0, 0 ], [ 1, 1 ]), false);
+  assert.equal(Tr2Renderer.drawFullScreenWithShader(context, material()), false);
+  assert.equal(Tr2Renderer.drawTexture(context, { id: "t" }), false);
+  assert.equal(Tr2Renderer.drawCameraSpaceScreenQuad(context, null, material()), false);
 });
 
 test("preparing device resources makes the blitter, once", () =>
 {
   const renderer = new Tr2Renderer();
-  const blitter = renderer.PrepareDeviceResources();
+  const blitter = Tr2Renderer.prepareDeviceResources();
 
   assert.ok(blitter instanceof Tr2Blitter);
-  assert.equal(renderer.GetBlitter(), blitter);
   // Carbon's `if( !s_blitter )` makes it at most once (cpp:1275-1281).
-  assert.equal(renderer.PrepareDeviceResources(), blitter);
+  assert.equal(Tr2Renderer.prepareDeviceResources(), blitter);
 });
 
-test("two renderers do not share a blitter", () =>
+test("the native renderer shares one blitter until shutdown", () =>
 {
-  // The same reason the register map is per instance: a second library
-  // instance must not silently inherit the first one's device resources.
-  const first = new Tr2Renderer();
-  const second = new Tr2Renderer();
-
-  assert.notEqual(first.PrepareDeviceResources(), second.PrepareDeviceResources());
+  const first = Tr2Renderer.prepareDeviceResources();
+  assert.equal(Tr2Renderer.prepareDeviceResources(), first);
+  Tr2Renderer.shutdown();
+  assert.notEqual(Tr2Renderer.prepareDeviceResources(), first);
 });
 
 test("a prepared renderer actually reaches the blitter", () =>
@@ -120,11 +117,11 @@ test("a prepared renderer actually reaches the blitter", () =>
   const renderer = new Tr2Renderer();
   const context = stubContext();
 
-  renderer.PrepareDeviceResources(context);
+  Tr2Renderer.prepareDeviceResources(context);
 
   const drawn = material();
 
-  assert.equal(renderer.DrawScreenQuad(context, drawn), true);
+  assert.equal(Tr2Renderer.drawScreenQuad(context, drawn), true);
   // The delegate ran the shader's one pass rather than reporting success
   // without drawing.
   assert.deepEqual(drawn.log, [ "state:0:0", "data:0:0" ]);
@@ -135,7 +132,7 @@ test("a null material is refused by the renderer as it is by the blitter", () =>
   const renderer = new Tr2Renderer();
   const context = stubContext();
 
-  renderer.PrepareDeviceResources(context);
+  Tr2Renderer.prepareDeviceResources(context);
 
-  assert.equal(renderer.DrawScreenQuad(context, null), false);
+  assert.equal(Tr2Renderer.drawScreenQuad(context, null), false);
 });

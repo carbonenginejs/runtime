@@ -6,6 +6,7 @@ import { test } from "node:test";
 
 import {
   EveSpaceSceneRenderDriver,
+  GpuResourceHandle,
   Tr2ShLightingManager,
   Tr2PostProcess2,
   Tr2RenderContext,
@@ -58,6 +59,8 @@ function sceneRecording(calls)
     UpdateFogSettings() { calls.push([ "UpdateFogSettings" ]); },
     UpdateVisibility() { calls.push([ "UpdateVisibility" ]); },
     GetRenderables(out) { calls.push([ "GetRenderables" ]); return out; },
+    PopulateAndApplyPerFrameData() {},
+    RenderVolumetrics(_depth, pool) { return [new GpuResourceHandle(), new GpuResourceHandle()]; },
     PopulatePerFramePSData() { calls.push([ "PopulatePerFramePSData" ]); },
     PopulatePerFrameVSData() { calls.push([ "PopulatePerFrameVSData" ]); },
     ApplyPerFrameData() { calls.push([ "ApplyPerFrameData" ]); },

@@ -1,3 +1,5 @@
+import { Tr2RenderContextALStub, Tr2TextureAL, Tr2BitmapDimensions } from "../../npm/dist/trinityal/index.js";
+import { PixelFormat, TextureType, Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { test } from "node:test";
@@ -98,18 +100,18 @@ test("Tr2VolumetricsRenderer is maintained with Carbon defaults and scene owners
   assertArrayNear(out.Copy("FroxelPlanets", new Float32Array(4), 1), [ 0, 0, 0, -1 ], "empty planet 1");
 
   const carbonMethods = new Map([
-    [ "RenderVolumetrics", "notImplemented" ],
-    [ "GetEmptyVolumetricTexture", "notImplemented" ],
+    [ "RenderVolumetrics", "adapted" ],
+    [ "getEmptyVolumetricTexture", "adapted" ],
     [ "UpdateFogSettings", "adapted" ],
     [ "HasFog", "implemented" ],
     [ "RenderFog", "notImplemented" ],
     [ "RenderFogIntoReflectionMap", "notImplemented" ],
-    [ "GetEmptyFogTexture", "notImplemented" ],
+    [ "getEmptyFogTexture", "adapted" ],
     [ "UpdateFogEnvironmentMap", "notImplemented" ],
     [ "UpdateVariableStore", "implemented" ],
     [ "SetPlanets", "adapted" ],
     [ "SetSunAngle", "implemented" ],
-    [ "RenderShadows", "notImplemented" ],
+    [ "RenderShadows", "adapted" ],
     [ "PopulatePerFrameData", "adapted" ],
     [ "SetQuality", "implemented" ]
   ]);
@@ -257,30 +259,12 @@ test("quality presets and per-frame fog values preserve Carbon behavior", () =>
 });
 
 
-test("the unported volumetric passes refuse rather than returning nothing", () =>
+test("positive-density fog and fog reflection remain explicit gaps", () =>
 {
-  // Carbon declares all of these ON Tr2VolumetricsRenderer
-  // (Tr2VolumetricsRenderer.h:66-113) and implements them there. The port had
-  // routed each through an invented executor on the render context, which
-  // nothing implemented. The froxel and fog passes are genuinely unported, so
-  // they now say so at their own site - a silent no-result would render a scene
-  // with no fog and look plausible.
   const renderer = new core.Tr2VolumetricsRenderer();
-
-  for (const method of [
-    "RenderVolumetrics",
-    "RenderFog",
-    "RenderFogIntoReflectionMap",
-    "UpdateFogEnvironmentMap",
-    "RenderShadows"
-  ])
-  {
+  renderer.thickness = 1;
+  for (const method of ["RenderFog", "RenderFogIntoReflectionMap", "UpdateFogEnvironmentMap"])
     assert.throws(() => renderer[method](), /unported/u, method);
-  }
-
-  // Both empty-texture helpers are static and take the pool, as Carbon's are.
-  assert.throws(() => core.Tr2VolumetricsRenderer.GetEmptyVolumetricTexture({}), /pool description/u);
-  assert.throws(() => core.Tr2VolumetricsRenderer.GetEmptyFogTexture({}), /pool description/u);
 });
 
 test("UpdateVariableStore publishes the Mie map, taking no arguments", () =>
@@ -295,4 +279,119 @@ test("UpdateVariableStore publishes the Mie map, taking no arguments", () =>
   const variable = core.Tr2VariableStore.globalStore().GetVariable("EveSceneMieEnvironmentMap");
 
   assert.ok(variable, "registers under the name effects sample it by");
+});
+
+/** Stub AL with real native pool handles; fullscreen draws are recorded, not GPU-executed. */
+function volumeFixture()
+{
+  const context = new core.Tr2RenderContext();
+  const al = new Tr2RenderContextALStub();
+  al.CreateDevice({ mode: { width: 80, height: 40 } });
+  context.SetRenderContextAL(al);
+  const pool = new core.Tr2GpuResourcePool().SetRenderContext(context);
+  const depth = context.CreateTexture(new Tr2BitmapDimensions({ type: TextureType.TEX_TYPE_2D,
+    width: 80, height: 40, depth: 1, mipCount: 1, arraySize: 1,
+    format: PixelFormat.PIXEL_FORMAT_R32_FLOAT }), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.RENDER_TARGET });
+  return { context, pool, depth, close() { depth.Destroy(); pool.Destroy(); context.Destroy(); } };
+}
+
+/** Implements the native registry iteration contract over test renderables. */
+function volumeRegistry(clouds)
+{
+  return {
+    ComponentCount() { return clouds.length; },
+    ProcessComponents(_type, fn) { for (const cloud of clouds) fn(cloud); },
+    ProcessComponentsUntil(_type, fn) { for (const cloud of clouds) if (fn(cloud)) break; }
+  };
+}
+
+test("empty volumes have Carbon dimensions, persistent identity and no-fog fallback", () =>
+{
+  const f = volumeFixture();
+  try
+  {
+    const a = core.Tr2VolumetricsRenderer.getEmptyVolumetricTexture(f.pool);
+    const b = core.Tr2VolumetricsRenderer.getEmptyVolumetricTexture(f.pool);
+    const fog = new core.Tr2VolumetricsRenderer().RenderFog(f.context, f.pool);
+    assert.equal(a.Get().GetArraySize(), 4);
+    assert.equal(a.Get().GetWidth(), 1);
+    assert.equal(a.Get()._texture, b.Get()._texture);
+    assert.equal(fog.Get().GetType(), TextureType.TEX_TYPE_3D);
+    for (const h of [a, b, fog]) f.pool.Free(h);
+  }
+  finally { f.close(); }
+});
+
+test("cloud pass sorts stably, budgets one lightmap, binds four slices, blurs and composites", () =>
+{
+  const f = volumeFixture(), renderer = new core.Tr2VolumetricsRenderer();
+  const log = [], draws = [], clears = [];
+  const originalDraw = core.Tr2Renderer.drawScreenQuad;
+  core.Tr2Renderer.drawScreenQuad = (_context, effect) => { draws.push(effect); return true; };
+  const clear = f.context.Clear.bind(f.context);
+  f.context.Clear = options => { clears.push(options.slot); return clear(options); };
+  f.context.RenderBatches = accumulator => log.push(...accumulator.GetBatches().map(x => x.name));
+  const cloud = (name, sort, updates) => ({
+    SetSceneInformation(info) { assert.equal(info.targetWidth, 56); assert.equal(info.targetHeight, 28); },
+    UpdateVolumetricLightmap() { log.push("update:" + name); return updates; },
+    GetSortValue() { return sort; },
+    GetVolumetricBatches(_frustum, acc) { acc.batches.push({ name }); }
+  });
+  const registry = volumeRegistry([cloud("near", 1, true), cloud("far-a", 3, true), cloud("far-b", 3, true)]);
+  try
+  {
+    const fog = core.Tr2VolumetricsRenderer.getEmptyFogTexture(f.pool);
+    const result = renderer.RenderVolumetrics(registry, {}, f.depth, fog.Get(), [0, -1, 0], [1, 2, 3, 4], false, f.pool, f.context);
+    assert.deepEqual(log, ["update:near", "far-a", "far-b", "near"]);
+    assert.deepEqual(clears, [0, 1, 2, 3]);
+    assert.deepEqual(draws, [renderer.downsampleDepth, renderer.hBlur, renderer.vBlur, renderer.volumeBlit]);
+    assert.equal(result.Get().GetArraySize(), 4);
+    assert.equal(result.Get().GetWidth(), 56);
+    assert.equal(renderer.batches.GetBatchCount(), 0);
+    for (const name of ["EveSceneFroxelFogMap", "VolumetricDepthMap"])
+      assert.equal(core.Tr2VariableStore.globalStore().GetVariable(name).GetValue().GetTexture().IsValid(), false);
+    f.pool.Free(result); f.pool.Free(fog);
+  }
+  finally { core.Tr2Renderer.drawScreenQuad = originalDraw; f.close(); }
+});
+
+test("cloud shadows obey cast/target gates and submit Shadow technique", () =>
+{
+  const f = volumeFixture(), renderer = new core.Tr2VolumetricsRenderer();
+  const log = [];
+  const registry = volumeRegistry([{ GetVolumetricShadowBatches(acc) { log.push("gather"); acc.batches.push({}); } }]);
+  f.context.RenderBatches = (_acc, technique) => log.push(technique);
+  try
+  {
+    renderer.RenderShadows(registry, f.depth, f.context);
+    assert.deepEqual(log, []);
+    renderer.castShadows = true;
+    renderer.RenderShadows(registry, new Tr2TextureAL(), f.context);
+    assert.deepEqual(log, []);
+    renderer.RenderShadows(registry, f.depth, f.context);
+    assert.deepEqual(log, ["gather", "Shadow"]);
+    assert.equal(renderer.batches.GetBatchCount(), 0);
+  }
+  finally { f.close(); }
+});
+
+test("raw texture registration copies ownership, reuses the global reference, and does not broadcast", () =>
+{
+  const f = volumeFixture();
+  const name = "test_cloud_raw_texture";
+  const global = core.Tr2VariableStore.globalStore(), local = new core.Tr2VariableStore();
+  try
+  {
+    const variable = global.RegisterVariable(name, f.depth);
+    const reference = variable.GetValue();
+    let changes = 0;
+    const owner = {};
+    reference.OnTextureChange().RegisterListener(owner, () => changes++);
+    assert.equal(local.RegisterVariable(name, new Tr2TextureAL()), variable, "native global lookup quirk");
+    assert.equal(variable.GetValue(), reference);
+    assert.equal(reference.GetTexture().IsValid(), false);
+    assert.equal(f.depth.IsValid(), true, "registration did not take the caller's ownership");
+    assert.equal(changes, 0);
+  }
+  finally { global.UnregisterVariable(name); f.close(); }
 });
