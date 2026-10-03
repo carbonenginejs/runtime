@@ -1,3 +1,4 @@
+import { meta } from "#schema";
 import { CjsWebGLProbe } from "./CjsWebGLProbe.js";
 import { ResolveDeviceRequirements } from "./deviceLimits.js";
 import { ResolveEffectPath } from "#utils/effectPath";
@@ -84,6 +85,28 @@ const CAPABILITY_NAMES = Object.freeze(Object.fromEntries(
 export class Tr2PlatformInfo
 {
     static StaticCap = PlatformStaticCap;
+
+    /**
+     * WebGPU-only requested per-buffer ceiling, read on the next device creation.
+     * Silk's native R8 volumes need 364810240/370442240 bytes of aligned upload
+     * storage. Carbon also stages whole volume mips (MetalWorkQueue.mm:1145-1161;
+     * Tr2TextureALDx12.cpp:743-776). This is not a total GPU memory budget.
+     */
+    @meta.setting("webgpuMaxBufferSize", { applies: meta.setting.CREATE })
+    static webgpuMaxBufferSize = 512 * 1024 * 1024;
+
+    /** WebGPU-only preference for native BC DDS sampling; next WebGPU device. */
+    @meta.setting("webgpuTextureCompressionBC", { applies: meta.setting.CREATE })
+    static webgpuTextureCompressionBC = true;
+
+    /**
+     * WebGPU-only native BC3 volume preference; next WebGPU device. Consumers
+     * include EveSun's 3D DDS maps and EveChildCloud's aquapuff0.dds. Their
+     * CjsWebgpuTextureAL.Create path retains BC3 bytes and requires both BC
+     * features. R8 VTA volumes do not use either compression feature.
+     */
+    @meta.setting("webgpuTextureCompressionBCSliced3D", { applies: meta.setting.CREATE })
+    static webgpuTextureCompressionBCSliced3D = true;
 
     // Carbon selects a backend by which shared library the launcher loads, so
     // its static caps always describe exactly one backend. Ours are probed at
@@ -182,16 +205,70 @@ export class Tr2PlatformInfo
      *
      * This is the library's decision, and an engine receives the result through
      * its injectable `deviceDescriptor` option rather than deciding for itself.
+     * WebGPU requires explicit feature/limit negotiation, which Carbon has no
+     * equivalent for. The approved WebGPU settings are optional preferences;
+     * demand remains the caller's required content capabilities. Unmet content
+     * requirements are returned separately so selection can refuse that content.
+     * Requested settings are a snapshot; active values must come from GPUDevice.
+     * CREATE settings never mutate an already-created device.
      */
-    ResolveDeviceRequirements(demand = {})
+    @meta.ours
+    ResolveDeviceRequirements(demand = {}, backend = this.backend)
     {
-        return ResolveDeviceRequirements(demand, this.adapter);
+        // Selection can prefer WebGL on a machine whose detected default is
+        // WebGPU. Use the candidate's backend, never the effect-path override.
+        if (backend !== Tr2PlatformInfo.Backend.WEBGPU)
+        {
+            return { descriptor: {}, unsatisfiedLimits: [], unavailableFeatures: [] };
+        }
+        const requestedSettings = {
+            webgpuMaxBufferSize: Tr2PlatformInfo.webgpuMaxBufferSize,
+            webgpuTextureCompressionBC: Tr2PlatformInfo.webgpuTextureCompressionBC,
+            webgpuTextureCompressionBCSliced3D: Tr2PlatformInfo.webgpuTextureCompressionBCSliced3D
+        };
+        const features = [];
+        if (requestedSettings.webgpuTextureCompressionBC)
+        {
+            features.push("texture-compression-bc");
+            if (requestedSettings.webgpuTextureCompressionBCSliced3D) features.push("texture-compression-bc-sliced-3d");
+        }
+        const preferences = ResolveDeviceRequirements({
+            limits: { maxBufferSize: requestedSettings.webgpuMaxBufferSize }, features
+        }, this.adapter);
+        const required = ResolveDeviceRequirements(demand, this.adapter);
+        const limits = { ...preferences.descriptor.requiredLimits };
+        for (const [name, value] of Object.entries(required.descriptor.requiredLimits ?? {}))
+        {
+            limits[name] = Math.max(limits[name] ?? 0, value);
+        }
+        const resolved = ResolveDeviceRequirements({
+            limits,
+            features: new Set([ ...(preferences.descriptor.requiredFeatures ?? []), ...(required.descriptor.requiredFeatures ?? []) ]),
+            label: demand.label
+        }, this.adapter);
+        return {
+            ...required,
+            descriptor: resolved.descriptor,
+            requestedSettings,
+            unsupportedPreferences: {
+                limits: preferences.unsatisfiedLimits,
+                features: preferences.unavailableFeatures,
+                ...(!requestedSettings.webgpuTextureCompressionBC && requestedSettings.webgpuTextureCompressionBCSliced3D
+                    ? { dependencies: [ { feature: "texture-compression-bc-sliced-3d", requires: "webgpuTextureCompressionBC" } ] } : {})
+            }
+        };
     }
 
-    /** The GPUDeviceDescriptor alone, for a caller that wants no diagnostics. */
+    /** WebGPU must negotiate capabilities; this descriptor-only helper refuses unmet content requirements. */
+    @meta.ours
     GetDeviceDescriptor(demand = {})
     {
-        return this.ResolveDeviceRequirements(demand).descriptor;
+        const result = this.ResolveDeviceRequirements(demand);
+        if (result.unsatisfiedLimits.length || result.unavailableFeatures.length)
+        {
+            throw new Error(`Required WebGPU content capabilities unavailable: ${result.unsatisfiedLimits.map(entry => entry.name).concat(result.unavailableFeatures).join(", ")}`);
+        }
+        return result.descriptor;
     }
 
     /**

@@ -5,7 +5,7 @@ import { CjsWebgpuDevice } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL, CjsWebgpuTextureAL, CjsWebgpuUtils } from "../../../npm/dist/trinityal/webgpu/internal.js";
 import { CjsBlueResMan, RegisterTextureResources, TriTextureRes, CjsMotherLode } from "../../../npm/dist/resource/index.js";
 import { DescribeBitmap, RealizeTexture } from "../../../npm/dist/trinity/core/Tr2ImageIOHelpers.js";
-import { Tr2TextureAL, ALResult, Tr2BitmapDimensions, Tr2SubresourceData } from "../../../npm/dist/trinityal/index.js";
+import { Tr2BaseDeviceResourceAL, Tr2TextureAL, ALResult, Tr2BitmapDimensions, Tr2SubresourceData } from "../../../npm/dist/trinityal/index.js";
 import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "../../../npm/dist/global/consts/renderContext/index.js";
 
 import { HostBitmap } from "../../../npm/dist/global/imageio/index.js";
@@ -40,7 +40,8 @@ function composed()
     },
     createBuffer: descriptor => ({ kind: "buffer", descriptor, destroy() {} }),
     // WebGPU's default texture limits (the spec's supported-limits table).
-    limits: { maxTextureDimension2D: 8192, maxTextureDimension3D: 2048 },
+    limits: { maxTextureDimension2D: 8192, maxTextureDimension3D: 2048, maxBufferSize: 268435456 },
+    features: new Set([ "texture-compression-bc" ]),
     queue: { writeTexture(destination, data, layout, size) { calls.writes.push({ destination, bytes: data.byteLength, layout, size }); } },
     createShaderModule: descriptor => ({ kind: "module", descriptor }),
     pushErrorScope() {},
@@ -425,7 +426,7 @@ test("a BC 3D texture is made only on a device with texture-compression-bc-slice
 
   al.GetWebgpu().GetDevice().features = new Set([ "texture-compression-bc" ]);
   const before = calls.textures.length;
-  assert.equal(new CjsWebgpuTextureAL().Create(volume(), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, initialData: data }, al), ALResult.E_INVALIDARG);
+  assert.throws(() => new CjsWebgpuTextureAL().Create(volume(), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, initialData: data }, al), /requires texture-compression-bc-sliced-3d/);
   assert.equal(calls.textures.length, before, "nothing was created");
 
   al.GetWebgpu().GetDevice().features = new Set([ "texture-compression-bc", "texture-compression-bc-sliced-3d" ]);
@@ -515,4 +516,49 @@ test("core WebGPU widens RG8 UAV storage and preserves the other format conversi
     assert.equal(texture.GetDeviceStorageView("3d", 0).textureFormat, expected);
     texture.Destroy();
   }
+});
+
+
+test("native R8 volumes use whole-mip uploads and reject staging above the active device limit", () =>
+{
+  const { al, calls } = composed();
+  const device = al.GetWebgpu().GetDevice();
+  device.limits.maxBufferSize = 4096;
+  const bitmap = new HostBitmap();
+  bitmap.CreateVolume(19, 9, 2, 1, PixelFormat.PIXEL_FORMAT_R8_UNORM);
+  const { desc, initialData } = DescribeBitmap(bitmap);
+  assert.equal(initialData[0].m_sysMem.byteLength, 342, "one R8 byte per voxel, no RGBA expansion");
+  assert.throws(() => new CjsWebgpuTextureAL().Create(desc, { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, initialData }, al), /needs 4608 staging bytes.*4096/);
+  assert.equal(calls.writes.length, 0);
+  device.limits.maxBufferSize = 8192;
+  assert.equal(new CjsWebgpuTextureAL().Create(desc, { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, initialData }, al), ALResult.S_OK);
+  assert.equal(calls.textures.at(-1).format, "r8unorm");
+  assert.equal(calls.writes.length, 1);
+  assert.equal(calls.writes[0].bytes, 342);
+  assert.deepEqual(calls.writes[0].size, { width: 19, height: 9, depthOrArrayLayers: 2 });
+});
+
+test("BC DDS content without enabled BC support fails explicitly before texture creation", () =>
+{
+  const { al, calls } = composed();
+  al.GetWebgpu().GetDevice().features.clear();
+  assert.throws(() => new CjsWebgpuTextureAL().Create(Tr2BitmapDimensions.texture2D(8, 8, 2, PixelFormat.PIXEL_FORMAT_BC1_UNORM), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, initialData: bc1Mips() }, al), /requires texture-compression-bc/);
+  assert.equal(calls.textures.length, 0);
+});
+
+
+test("texture factory unregisters failed BC and oversized upload implementations", () =>
+{
+  const { al } = composed();
+  const device = al.GetWebgpu().GetDevice();
+  const count = Tr2BaseDeviceResourceAL.GetResourceCount();
+  device.features.clear();
+  assert.throws(() => al.CreateTexture(Tr2BitmapDimensions.texture2D(8, 8, 2, PixelFormat.PIXEL_FORMAT_BC1_UNORM), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, initialData: bc1Mips() }), /requires texture-compression-bc/);
+  assert.equal(Tr2BaseDeviceResourceAL.GetResourceCount(), count);
+  device.limits.maxBufferSize = 4096;
+  const bitmap = new HostBitmap();
+  bitmap.CreateVolume(19, 9, 2, 1, PixelFormat.PIXEL_FORMAT_R8_UNORM);
+  const { desc, initialData } = DescribeBitmap(bitmap);
+  assert.throws(() => al.CreateTexture(desc, { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, initialData }), /needs 4608 staging bytes/);
+  assert.equal(Tr2BaseDeviceResourceAL.GetResourceCount(), count);
 });

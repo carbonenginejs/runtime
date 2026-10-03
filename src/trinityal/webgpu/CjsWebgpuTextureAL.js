@@ -123,7 +123,9 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    * Creates the texture and uploads its initial data.
    * Adapted: core WebGPU lacks rg8unorm storage, so StorageFormatFor widens
    * that UAV format to rgba8unorm, retaining its 8-bit normalized precision.
-   * The Carbon description stays unchanged; no optional feature is required.
+   * The Carbon description stays unchanged; that adaptation needs no optional
+   * feature. Native BC DDS uploads require enabled BC features; unsupported
+   * content throws because this path has no decoded fallback.
    *
    * @param {object} desc A `Tr2BitmapDimensions`.
    * @param {object} options `{ gpuUsage, cpuUsage, msaa, initialData }`;
@@ -183,14 +185,15 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
 
     if (desc.GetWidth() > maxDimension || desc.GetHeight() > maxDimension) return ALResult.E_INVALIDARG;
 
-    // WebGPU takes a BC-compressed 3D texture only behind
-    // texture-compression-bc-sliced-3d; D3D11 has no such split, and the impact
-    // effects' volume maps are BC3. Made without it, the texture is invalid and
-    // so is every command buffer that binds it: the whole frame is dropped.
-    // Refused instead, so the parameter keeps its fallback.
-    if (type === TextureType.TEX_TYPE_3D && format.startsWith("bc") && !device.features.has("texture-compression-bc-sliced-3d"))
+    // Native BC DDS textures require BC sampling; BC3 sun and aquapuff cloud
+    // volumes additionally require sliced-3d. No decoded fallback is installed
+    // here, so unsupported authored content must fail rather than sample a dummy.
+    if (format.startsWith("bc"))
     {
-      return ALResult.E_INVALIDARG;
+      const feature = !device.features.has("texture-compression-bc") ? "texture-compression-bc"
+        : type === TextureType.TEX_TYPE_3D && !device.features.has("texture-compression-bc-sliced-3d")
+          ? "texture-compression-bc-sliced-3d" : null;
+      if (feature) throw new Error(`WebGPU texture requires ${feature}; enable its WebGPU setting on the next device or provide a supported texture`);
     }
     const usageFlags = webgpu.GetTextureUsage();
     const srgbFormat = requestedFormat !== format && requestedFormat.endsWith("-srgb")
@@ -246,7 +249,18 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
     if (depthShadow) this._CreateDepthShadow(device, usageFlags);
     // A substitute format's data is converted as it uploads (16-bit unorm to
     // half floats; CjsWebgpuUtils.UPLOAD_CONVERSIONS).
-    if (initialData) this._Upload(initialData, mipCount, type, al.m_utils.GetUploadConversion(desc.GetFormat()));
+    if (initialData)
+    {
+      try
+      {
+        this._Upload(initialData, mipCount, type, al.m_utils.GetUploadConversion(desc.GetFormat()));
+      }
+      catch (error)
+      {
+        this._Reset();
+        throw error;
+      }
+    }
 
     return ALResult.S_OK;
   }
@@ -316,8 +330,14 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
 
   /**
    * One `writeTexture` per subresource, Carbon's `mip + layer * mipCount`
-   * order, each through `convert` when the format needs one.
+   * order, each through `convert` when the format needs one. Carbon likewise
+   * stages a whole volume mip (MetalWorkQueue.mm:1145-1161) or all initial
+   * subresources (Tr2TextureALDx12.cpp:743-776), without slice-sized chunks.
+   * R8 VTA stays one byte per voxel. Dawn's upload rows may be padded to 256
+   * bytes; refuse a whole-mip staging footprint beyond the negotiated buffer
+   * ceiling before writeTexture can poison subsequent command submissions.
    */
+  @meta.adapted
   _Upload(initialData, mipCount, type, convert = null)
   {
     const desc = this.m_desc;
@@ -337,6 +357,12 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
         const slicePitch = subresource.m_sysMemSlicePitch || bytes.byteLength;
         const depth = type === TextureType.TEX_TYPE_3D ? Math.max(1, desc.GetMipDepth(mip)) : 1;
 
+        const stagingBytes = Math.ceil(pitch / 256) * 256 * Math.max(1, Math.floor(slicePitch / pitch)) * depth;
+        const maxBufferSize = this.m_webgpu.GetDevice().limits.maxBufferSize;
+        if (stagingBytes > maxBufferSize)
+        {
+          throw new RangeError(`WebGPU texture upload needs ${stagingBytes} staging bytes; active maxBufferSize is ${maxBufferSize}. Set webgpuMaxBufferSize before creating the next WebGPU device, subject to adapter support.`);
+        }
         queue.writeTexture(
           { texture: this.m_texture, mipLevel: mip, origin: { x: 0, y: 0, z: layer } },
           bytes,

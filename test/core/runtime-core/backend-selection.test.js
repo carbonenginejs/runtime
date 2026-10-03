@@ -144,7 +144,7 @@ test("SelectBackend hands a candidate the resolved device descriptor", async () 
             return true;
         }, {
             limits: { maxSampledTexturesPerShaderStage: 20 },
-            features: [ "texture-compression-bc", "shader-f16" ]
+            features: [ "texture-compression-bc" ]
         }) ]
     });
 
@@ -152,7 +152,8 @@ test("SelectBackend hands a candidate the resolved device descriptor", async () 
         requiredLimits: { maxSampledTexturesPerShaderStage: 20 },
         requiredFeatures: [ "texture-compression-bc" ]
     });
-    assert.deepEqual(handed.unavailableFeatures, [ "shader-f16" ]);
+    assert.deepEqual(handed.unavailableFeatures, []);
+    assert.deepEqual(handed.unsupportedPreferences.features, [ "texture-compression-bc-sliced-3d" ]);
     assert.deepEqual(selection.backend.descriptor, handed.descriptor);
 });
 
@@ -232,3 +233,21 @@ function fakeWebGL2()
         getExtension: () => null
     };
 }
+
+
+test("selection refuses unsupported required content but accepts unsupported optional preferences", async () =>
+{
+    const platform = new Tr2PlatformInfo({ backend: "webgpu", adapter: { limits: { maxBufferSize: 268435456 }, features: [] } });
+    let calls = 0;
+    const optional = await SelectBackend({ platform, candidates: [ candidate("webgpu", () => ++calls) ] });
+    assert.equal(calls, 1);
+    assert.equal(optional.backend.unsupportedPreferences.limits[0].requested, 536870912);
+    await assert.rejects(SelectBackend({ platform, candidates: [ candidate("webgpu", () => ++calls, { features: [ "texture-compression-bc" ] }) ] }), error =>
+    {
+        assert.match(error.candidates[0].error, /Required webgpu content capabilities unavailable: texture-compression-bc/);
+        return true;
+    });
+    assert.equal(calls, 1, "unsupported content never acquires a device");
+    await assert.rejects(SelectBackend({ platform, candidates: [ candidate("webgpu", () => ++calls, { limits: { maxBufferSize: 370442240 } }) ] }), /no backend/);
+    assert.equal(calls, 1);
+});

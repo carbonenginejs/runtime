@@ -234,20 +234,20 @@ function RankCandidates(candidates, preference)
 /** The device requirement a candidate is handed, resolved against the adapter. */
 function ResolveCandidateRequirement(candidate, platform)
 {
-    if (candidate.limits == null && candidate.features == null)
+    if (candidate.name !== "webgpu")
     {
         return { descriptor: null, unsatisfiedLimits: [], unavailableFeatures: [] };
     }
 
-    const info = platform instanceof Tr2PlatformInfo ? platform : null;
-    const resolved = info
-        ? info.ResolveDeviceRequirements(candidate)
-        : { descriptor: {}, unsatisfiedLimits: [], unavailableFeatures: [] };
+    const info = platform instanceof Tr2PlatformInfo ? platform : new Tr2PlatformInfo({ backend: "webgpu" });
+    const resolved = info.ResolveDeviceRequirements(candidate, candidate.name);
 
     return {
         descriptor: resolved.descriptor,
         unsatisfiedLimits: resolved.unsatisfiedLimits,
-        unavailableFeatures: resolved.unavailableFeatures
+        unavailableFeatures: resolved.unavailableFeatures,
+        requestedSettings: resolved.requestedSettings,
+        unsupportedPreferences: resolved.unsupportedPreferences
     };
 }
 
@@ -261,6 +261,11 @@ async function ProveCandidate(candidate, context)
 {
     try
     {
+        if (context.unsatisfiedLimits.length || context.unavailableFeatures.length)
+        {
+            const limits = context.unsatisfiedLimits.map(entry => `${entry.name}=${entry.requested} (supported ${entry.supported})`);
+            throw new Error(`Required ${candidate.name} content capabilities unavailable: ${limits.concat(context.unavailableFeatures).join(", ")}`);
+        }
         const value = await candidate.Prove(context);
         return value === false || value === null || value === undefined
             ? { proven: false, value: null, error: null }

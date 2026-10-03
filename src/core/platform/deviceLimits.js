@@ -92,16 +92,17 @@ export function ResolveRequiredLimits(demand = {}, adapterLimits = {})
 
         const value = Number(requested);
 
-        if (!Number.isFinite(value))
+        if (!Number.isSafeInteger(value) || value < 1)
         {
-            throw new RangeError(`runtime/core: limit "${name}" must be a finite number`);
+            throw new RangeError(`runtime/core: limit "${name}" must be a positive safe integer`);
         }
 
         if (value <= defaultValue) continue;
 
-        const supported = Number(adapterLimits?.[name]);
+        // Missing capability evidence cannot authorize an above-default limit.
+        const supported = Number(adapterLimits?.[name] ?? defaultValue);
 
-        if (Number.isFinite(supported) && value > supported)
+        if (!Number.isFinite(supported) || value > supported)
         {
             unsatisfied.push({ name, requested: value, supported, default: defaultValue });
             continue;

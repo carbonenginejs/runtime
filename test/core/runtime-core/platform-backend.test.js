@@ -229,7 +229,8 @@ test("ResolveDeviceRequirements stays empty when nothing above the default is wa
     const platform = await Tr2PlatformInfo.Detect({ adapter: fakeAdapter(), webgl: false });
     const demand = { limits: { maxTextureDimension2D: 16384 } };
 
-    assert.deepEqual(platform.GetDeviceDescriptor(demand), {});
+    assert.throws(() => platform.GetDeviceDescriptor(demand), /Required WebGPU content capabilities unavailable: maxTextureDimension2D/);
+    assert.deepEqual(platform.ResolveDeviceRequirements(demand).descriptor, { requiredFeatures: [ "texture-compression-bc" ] }, "the supported optional BC preference survives an unsupported content limit");
     assert.equal(
         platform.ResolveDeviceRequirements(demand).unsatisfiedLimits[0].supported,
         8192,
@@ -255,4 +256,48 @@ test("Tr2PlatformInfo lets configuration override the derived platform name", as
     });
     assert.equal(configured.platformName, "gles2.mali400");
     assert.equal(configured.backend, Tr2PlatformInfo.Backend.WEBGL, "a different tree is not a different backend");
+});
+
+
+test("WebGPU settings negotiate preferences and preserve unmet content requirements separately", () =>
+{
+    const adapter = { limits: { maxBufferSize: 2147483648 }, features: new Set([ "texture-compression-bc", "texture-compression-bc-sliced-3d" ]) };
+    const platform = new Tr2PlatformInfo({ backend: "webgpu", adapter });
+    const result = platform.ResolveDeviceRequirements();
+    assert.equal(result.descriptor.requiredLimits.maxBufferSize, 536870912);
+    assert.deepEqual(result.descriptor.requiredFeatures, [ "texture-compression-bc", "texture-compression-bc-sliced-3d" ]);
+    assert.equal(result.requestedSettings.webgpuMaxBufferSize, 536870912);
+    assert.deepEqual(result.unsupportedPreferences, { limits: [], features: [] });
+    assert.equal(result.requestedSettings.webgpuFloat32Filterable, undefined);
+    assert.equal(result.requestedSettings.webgpuDepthClipControl, undefined);
+
+    adapter.limits.maxBufferSize = 268435456;
+    adapter.features.clear();
+    const reduced = platform.ResolveDeviceRequirements({ features: [ "texture-compression-bc" ], limits: { maxBufferSize: 400000000 } });
+    assert.deepEqual(reduced.descriptor, {});
+    assert.equal(reduced.unsupportedPreferences.limits[0].requested, 536870912);
+    assert.deepEqual(reduced.unsupportedPreferences.features, [ "texture-compression-bc", "texture-compression-bc-sliced-3d" ]);
+    assert.equal(reduced.unsatisfiedLimits[0].requested, 400000000);
+    assert.deepEqual(reduced.unavailableFeatures, [ "texture-compression-bc" ]);
+    assert.equal(result.descriptor.requiredLimits.maxBufferSize, 536870912, "earlier device request stays a snapshot");
+});
+
+test("WebGPU preferences are ignored for WebGL and GLES even with a WebGPU adapter present", () =>
+{
+    const platform = new Tr2PlatformInfo({ backend: "webgpu", adapter: { limits: { maxBufferSize: 2147483648 }, features: [ "texture-compression-bc" ] } });
+    for (const backend of [ "webgl", "gles" ])
+    {
+        assert.deepEqual(platform.ResolveDeviceRequirements({}, backend), { descriptor: {}, unsatisfiedLimits: [], unavailableFeatures: [] });
+    }
+});
+
+test("WebGPU limit requests require valid integer sizes and known adapter support", () =>
+{
+    for (const value of [ -1, 0, 1.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1 ])
+    {
+        assert.throws(() => ResolveRequiredLimits({ maxBufferSize: value }, { maxBufferSize: 2147483648 }), /positive safe integer/);
+    }
+    const result = ResolveRequiredLimits({ maxBufferSize: 536870912 }, {});
+    assert.deepEqual(result.requiredLimits, {});
+    assert.equal(result.unsatisfied[0].supported, 268435456);
 });

@@ -2283,19 +2283,31 @@ export class CjsWebgpuRenderContextAL
 
   /**
    * Creates a texture, this backend's kind of `Tr2TextureAL`.
+   * JavaScript selects the implementation through this factory instead of a
+   * compile-time platform include. Explicit cleanup substitutes for Carbon's
+   * destructor on both failed ALResults and thrown capability/upload errors.
    *
    * @param {object} desc A `Tr2BitmapDimensions`.
    * @param {object} options `{ gpuUsage, cpuUsage, msaa, initialData }`.
    * @returns {object|null} The texture, or null when Create refused.
    */
+  @meta.ours
   CreateTexture(desc, options, implementationOnly = false)
   {
     if (implementationOnly)
     {
       const implementation = new CjsWebgpuTextureAL();
-      const result = implementation.Create(desc, options ?? {}, this);
-      if (Failed(result)) implementation.Destroy();
-      return { result, implementation };
+      try
+      {
+        const result = implementation.Create(desc, options ?? {}, this);
+        if (Failed(result)) implementation.Destroy();
+        return { result, implementation };
+      }
+      catch (error)
+      {
+        implementation.Destroy();
+        throw error;
+      }
     }
     const value = new Tr2TextureAL();
     return Failed(value.Create(desc, options ?? {}, this)) ? null : value;
