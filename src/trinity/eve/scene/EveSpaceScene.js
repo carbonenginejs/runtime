@@ -2127,11 +2127,7 @@ export class EveSpaceScene
    *
    * Carbon's Metal branch is the one taken (cpp:2255-2259, 2319-2321): with
    * no normal map, colour slot 0 is unbound for the pass rather than left on
-   * the scene colour. WebGPU also ends the hinted pass before restoring
-   * that colour when no normal map is bound: an empty depth pass otherwise
-   * leaves its DONT_CARE colour hint pending, and WebGPU clears the restored
-   * scene colour when the next operation opens a pass. Metal only explicitly
-   * ends the normal-map branch (cpp:2310-2321).
+   * the scene colour.
    *
    * Adapted. The batches come in as `batchMap`: Carbon draws its own
    * m_primaryBatches, and the gather that fills them is the driver's here.
@@ -2229,10 +2225,9 @@ export class EveSpaceScene
       }
     }
 
-    // Close even an empty depth-only pass while colour slot 0 is unbound.
-    // WebGPU implements DONT_CARE as clear; letting this hint reach the
-    // restored scene colour erases planets (notably suns without a z proxy).
-    renderContext.EndRenderPassHint();
+    // Metal supports render-pass hints, so the hinted pass ends here
+    // (cpp:2310-2314); without a normal map Carbon's Metal branch only pops.
+    if (normalMap) renderContext.EndRenderPassHint();
 
     esm.PopRenderTarget();
     esm.SetRenderTarget(1, null);

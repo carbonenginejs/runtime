@@ -277,36 +277,3 @@ test('lensflare curve owner addresses all same-name sets and leaves others alone
   flare.PlayCurveSet('sun'); flare.PlayCurveSet('sun','rise'); flare.StopCurveSet('sun'); flare.UpdateCurveSet('sun',123);
   assert.deepEqual(log,['reset','play','reset','play','rise','rise','stop','stop',[123,123],[123,123]]);
 });
-
-
-test('a sun without a depth proxy finishes its empty depth pass before restoring scene colour', async () =>
-{
-  const { StubContext, StubTarget } = await import('../support/stubContext.js');
-  const { CjsWebgpuWorkQueue } = await import('../../npm/dist/trinityal/webgpu/internal.js');
-  const scene = new EveSpaceScene();
-  scene.planets.push(new EvePlanet());
-  const context = StubContext();
-  const al = context.GetRenderContextAL();
-  const colour = StubTarget();
-  const depth = StubTarget();
-  context.GetEffectStateManager().SetRenderTarget(0, colour);
-  context.GetEffectStateManager().SetDepthStencilBuffer(depth);
-  const queue = new CjsWebgpuWorkQueue();
-  queue.BeginFrame();
-  const ended = [];
-  al.RenderPassHint = (colourHint, depthHint) => queue.RenderPassHint([colourHint], depthHint);
-  al.EndRenderPassHint = () =>
-  {
-    ended.push({ target: context.GetRenderTarget(0), events: queue.EndRenderPassHint() });
-  };
-  scene.RenderDepthPass(depth, null, null, context, 'Depth', { GetAccumulator: () => null });
-  assert.equal(queue.HasPendingRenderPassHint(), false, 'depth hint cannot reach the restored colour');
-  assert.equal(ended.length, 1);
-  assert.equal(ended[0].target, null, 'the empty pass executes with no scene colour attached');
-  const opened = ended[0].events.find(event => event.type === 'open');
-  assert.equal(opened.attachments.depth.loadOp, 'clear');
-  assert.equal(opened.attachments.depth.clearValue, 0);
-  assert.equal(context.GetRenderTarget(0).Equals(colour), true);
-  assert.equal(queue.GetPassCount(), 1, 'the clear happens even without a draw');
-  queue.EndFrame();
-});

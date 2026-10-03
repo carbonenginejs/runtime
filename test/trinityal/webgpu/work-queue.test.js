@@ -483,3 +483,86 @@ for (const pending of [ "hint", "clear" ])
     assert.equal(calls.at(-1), null, "transparent pass has no stale clear/discard hint");
   });
 }
+
+
+for (const boundary of ["close", "replace", "frame", "compute", "depth-copy"])
+{
+  test(`unused DONT_CARE attachments survive pending pass ${boundary}`, () =>
+  {
+    const queue = started();
+    const passes = [];
+    queue.SetCommandEncoder({ beginRenderPass(attachments)
+    {
+      passes.push(attachments);
+      return { end() {} };
+    }, beginComputePass: () => ({ end() {} }) }, attachments => attachments);
+    queue.RenderPassHint([new Tr2ColorAttachment()], new Tr2DepthAttachment());
+    if (boundary === "close") queue.EndRenderPassHint();
+    if (boundary === "replace") queue.RenderPassHint([keep()]);
+    if (boundary === "frame") queue.EndFrame();
+    if (boundary === "compute") queue.SetCurrentEncoder(EncoderType.COMPUTE);
+    if (boundary === "depth-copy") queue.CopyDepthShadow({ EncodeDepthShadowCopy: () => true });
+    assert.equal(passes.length, 1);
+    for (const attachment of [passes[0].colors[0], passes[0].depth])
+    {
+      assert.equal(attachment.loadOp, "load", "no implicit clear without a draw");
+      assert.equal(attachment.storeOp, "store", "no discard without a draw");
+    }
+    if (boundary !== "frame") queue.EndFrame();
+  });
+}
+
+test("an empty sun depth pass preserves restored scene colour and still clears depth before its sampled copy", () =>
+{
+  const queue = started();
+  const colour = { id: "sun-colour" };
+  const depth = { id: "scene-depth" };
+  const passes = [];
+  queue.SetCommandEncoder({ beginRenderPass(attachments)
+  {
+    passes.push({ attachments, colour: queue.GetAttachments().colors[0]?.texture });
+    return { end() {} };
+  } }, attachments => attachments);
+  queue.SetRenderAttachments(colour);
+  queue.SetDepthAttachment(depth);
+  // Carbon's RenderDepthPass without a normal map detaches colour and hints
+  // a depth clear. A sun without a z proxy submits no depth draw, then the
+  // scene restores colour without EndRenderPassHint (cpp:2310-2321).
+  queue.SetRenderAttachments(null);
+  queue.RenderPassHint([new Tr2ColorAttachment()], new Tr2DepthAttachment(Tr2LoadAction.CLEAR, Tr2StoreAction.STORE, 0));
+  queue.SetRenderAttachments(colour);
+  queue.CopyDepthShadow({ EncodeDepthShadowCopy()
+  {
+    assert.equal(passes.length, 1, "the explicit depth clear precedes its copy");
+    return true;
+  } });
+  assert.equal(passes[0].colour, colour);
+  assert.equal(passes[0].attachments.colors[0].loadOp, "load");
+  assert.equal(passes[0].attachments.colors[0].storeOp, "store");
+  assert.equal(passes[0].attachments.depth.loadOp, "clear");
+  assert.equal(passes[0].attachments.depth.clearValue, 0);
+  assert.equal(queue.HasPendingRenderPassHint(), false);
+  queue.RequireRenderPass();
+  assert.equal(passes[1].attachments, null, "following draws inherit no stale hint");
+  queue.EndFrame();
+});
+
+test("a pass opened for a draw retains DONT_CARE load and store actions", () =>
+{
+  const queue = started();
+  const passes = [];
+  queue.SetCommandEncoder({ beginRenderPass(attachments)
+  {
+    passes.push(attachments);
+    return { draw() {}, end() {} };
+  } }, attachments => attachments);
+  queue.RenderPassHint([new Tr2ColorAttachment()], new Tr2DepthAttachment());
+  queue.DrawPrimitives(3, 1, 0, 0);
+  queue.EndRenderPassHint();
+  for (const attachment of [passes[0].colors[0], passes[0].depth])
+  {
+    assert.equal(attachment.loadOp, "clear");
+    assert.equal(attachment.storeOp, "discard");
+  }
+  queue.EndFrame();
+});

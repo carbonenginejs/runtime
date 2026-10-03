@@ -159,7 +159,7 @@ export class CjsWebgpuWorkQueue
   {
     if (!this._inFrame) fail("EndFrame without BeginFrame");
 
-    if (this._pendingRenderPassHint || this._pendingClear) this._GetRenderEncoder();
+    if (this._pendingRenderPassHint || this._pendingClear) this._GetRenderEncoder(false);
 
     this._ReleaseEncoder();
     this._inFrame = false;
@@ -174,7 +174,9 @@ export class CjsWebgpuWorkQueue
    * A SECOND HINT WHILE ONE IS PENDING OPENS AND IMMEDIATELY RELEASES A RENDER
    * ENCODER (`MetalWorkQueue.mm:3282-3291`). The first hint described a pass
    * that must still happen - its load and store actions are the point even when
-   * nothing drew into it - so discarding it would lose a clear.
+   * nothing drew into it - so discarding it would lose a clear. WebGPU has
+   * no DONT_CARE load action, so an unused pass preserves those attachments
+   * instead of realizing their discard as a destructive clear.
    *
    * @param {object[]} colors `Tr2ColorAttachment`s, in slot order.
    * @param {object} [depth] A `Tr2DepthAttachment`.
@@ -185,7 +187,7 @@ export class CjsWebgpuWorkQueue
 
     if (this._pendingRenderPassHint)
     {
-      this._GetRenderEncoder();
+      this._GetRenderEncoder(false);
       this._ReleaseEncoder();
     }
 
@@ -202,7 +204,7 @@ export class CjsWebgpuWorkQueue
    */
   EndRenderPassHint()
   {
-    if (this._pendingRenderPassHint || this._pendingClear) this._GetRenderEncoder();
+    if (this._pendingRenderPassHint || this._pendingClear) this._GetRenderEncoder(false);
 
     this._ReleaseEncoder();
 
@@ -248,7 +250,7 @@ export class CjsWebgpuWorkQueue
     const hint = this._pendingRenderPassHint;
 
     this._pendingRenderPassHint = null;
-    this._GetRenderEncoder();
+    this._GetRenderEncoder(false);
     this._ReleaseEncoder();
     this._pendingRenderPassHint = hint;
   }
@@ -277,7 +279,7 @@ export class CjsWebgpuWorkQueue
     // (`MetalWorkQueue.mm:851-855`).
     if (encoderType !== EncoderType.RENDER && this._pendingRenderPassHint)
     {
-      this._GetRenderEncoder();
+      this._GetRenderEncoder(false);
       this._ReleaseEncoder();
     }
 
@@ -412,7 +414,7 @@ export class CjsWebgpuWorkQueue
   {
     if (!this._inFrame || !this._commandEncoder) return this._Drain();
 
-    if (this._pendingRenderPassHint || this._pendingClear) this._GetRenderEncoder();
+    if (this._pendingRenderPassHint || this._pendingClear) this._GetRenderEncoder(false);
     this._ReleaseEncoder();
 
     if (texture.EncodeDepthShadowCopy(this._commandEncoder)) this._events.push({ type: "copy-depth-shadow" });
@@ -964,8 +966,13 @@ export class CjsWebgpuWorkQueue
     this._GetRenderEncoder();
   }
 
-  /** Opens a render encoder, folding any pending hint into its descriptor. */
-  _GetRenderEncoder()
+  /**
+   * Opens a render encoder, folding any pending hint into its descriptor.
+   *
+   * @param {boolean} [forDraw] False when flushing a pending pass without a
+   * draw: explicit clears still execute, but DONT_CARE does not destroy data.
+   */
+  _GetRenderEncoder(forDraw = true)
   {
     this._ReleaseEncoder();
 
@@ -974,7 +981,7 @@ export class CjsWebgpuWorkQueue
     // CLEAR, everything else takes the hint's load; opening the pass consumes
     // both (`ApplyRenderPassHint`, then `ResetClearState`).
     const hint = MergeHintOverClear(this._pendingRenderPassHint, this._pendingClear);
-    const attachments = ApplyRenderPassHint(hint);
+    const attachments = ApplyRenderPassHint(hint, forDraw);
 
     this._pendingRenderPassHint = null;
     this._pendingClear = null;
@@ -1085,23 +1092,30 @@ export function MergeHintOverClear(hint, clear)
 
 /**
  * Converts color and optional depth attachment hints to WebGPU load/store
- * descriptions, or returns null for no hint.
+ * descriptions, or returns null for no hint. When an unused pending pass is
+ * closed or replaced, preserve DONT_CARE attachments: WebGPU has no undefined
+ * load action, and clearing them would erase data without a draw. Explicit
+ * CLEAR remains observable even in an empty pass.
+ *
+ * @param {object|null} hint Pending attachment actions.
+ * @param {boolean} [forDraw] Whether this pass is opened for rendering.
+ * @returns {object|null} WebGPU attachment load/store descriptions.
  */
-export function ApplyRenderPassHint(hint)
+export function ApplyRenderPassHint(hint, forDraw = true)
 {
   if (!hint) return null;
 
   return {
-    colors: hint.colors.map(Describe),
-    depth: hint.depth ? Describe(hint.depth) : null
+    colors: hint.colors.map(attachment => Describe(attachment, forDraw)),
+    depth: hint.depth ? Describe(hint.depth, forDraw) : null
   };
 }
 
-function Describe(attachment)
+function Describe(attachment, forDraw)
 {
   return {
-    loadOp: LoadOp(attachment.load),
-    storeOp: attachment.store === Tr2StoreAction.STORE ? "store" : "discard",
+    loadOp: !forDraw && attachment.load === Tr2LoadAction.DONT_CARE ? "load" : LoadOp(attachment.load),
+    storeOp: !forDraw || attachment.store === Tr2StoreAction.STORE ? "store" : "discard",
     clearValue: attachment.clearColor ?? attachment.clearValue ?? 0
   };
 }
