@@ -96,11 +96,15 @@ for (const [ className, records ] of schema)
     // Keep the exception tied to that public source identity; any other missing
     // declaration (including future public methods) remains a parity obligation.
     const implementationOnly = {
+      Tr2ReadbackAL: [ "Describe", "GetMemoryClass" ],
       Tr2ResourceSetAL: [ "Describe", "StageInput", "Destroy" ],
       Tr2BufferAL: [ "CreateStagingBuffer", "Describe", "GetDefaultState", "GetGpuResource", "GetGpuView", "GetMetalBuffer" ],
       Tr2TextureAL: [ "AssignFromSwapChainDx12", "AssignFromTexture", "Attach", "Describe", "GetMetalTexture", "GetRegionSize", "GetResourceDx11", "GetResourceDx12", "GetResourceState", "GetRtvDescriptorHandleDx12", "GetSRGBViewMetalTexture", "GetUAVMetalTexture", "SetSwapChainBufferIndexDx12" ]
     };
-    if (Object.values(record.sourceRefs ?? {}).includes(`trinity/trinityal/include/${className}.h`)
+    // The public readback value is declared inside Tr2TextureAL.h:24-43;
+    // Describe/GetMemoryClass belong only to TrinityALImpl's device resource.
+    const publicHeader = className === "Tr2ReadbackAL" ? "Tr2TextureAL" : className;
+    if (Object.values(record.sourceRefs ?? {}).includes(`trinity/trinityal/include/${publicHeader}.h`)
       && implementationOnly[className]?.includes(name)) continue;
     declared.add(name);
   }

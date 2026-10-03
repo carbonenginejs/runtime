@@ -28,3 +28,4 @@ export * from "./Tr2SwapChainALStub.js";
 export * from "./Tr2TextureALStub.js";
 export * from "./Tr2VertexLayoutALStub.js";
 export * from "./Tr2VideoAdapterInfoStub.js";
+export * from "./Tr2ReadbackALStub.js";

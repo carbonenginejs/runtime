@@ -12,10 +12,11 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2Rende
 import { Tr2PerObjectDataStandard } from "../rawData/perObjectData/Tr2PerObjectDataStandard.js";
 import { vec4 } from "#math/vec4";
 import { ITr2Renderable } from "../ITr2Renderable.js";
+import { ITr2Pickable } from "../ITr2Pickable.js";
 
 /** A drawable set of primitives with a world transform, sort value and bounding sphere. */
 @meta.define({ className: "Tr2PrimitiveSet", family: "trinityCore" })
-@meta.blue.inherit(ITr2Renderable, INotify)
+@meta.blue.inherit(ITr2Renderable, ITr2Pickable, INotify)
 @meta.blue.mapInterface(INotify)
 export class Tr2PrimitiveSet
 {
@@ -158,8 +159,7 @@ export class Tr2PrimitiveSet
 
   /**
    * The JS object is Carbon's raw-root picking identity (header:39).
-   * GetID/GetPickingBatches are exposed directly and inherited by the concrete
-   * primitive classes; the undecided ITr2Pickable declaration is not required.
+   * GetID/GetPickingBatches implement the native ITr2Pickable contract.
    */
   @meta.blue.method
   @meta.adapted
@@ -248,4 +248,4 @@ export class Tr2PrimitiveSet
 
 }
 
-meta.blue.interfaceTable({ interfaces: [Tr2PrimitiveSet, ITr2Renderable, INotify], chainTo: null })(Tr2PrimitiveSet, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [Tr2PrimitiveSet, ITr2Renderable, ITr2Pickable, INotify], chainTo: null })(Tr2PrimitiveSet, { kind: "class" });

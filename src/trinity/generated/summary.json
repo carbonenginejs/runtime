@@ -1,8 +1,8 @@
 {
   "outRoot": "src/trinity/generated",
   "classes": {
-    "written": 28,
-    "skipped": 670
+    "written": 26,
+    "skipped": 675
   },
   "enums": {
     "written": 15,
@@ -1421,6 +1421,11 @@
     },
     {
       "family": "eve/scene",
+      "className": "EvePendingPickingReadback",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
       "className": "EvePickingContext",
       "reason": "hand-maintained source exists"
     },
@@ -2761,6 +2766,16 @@
     },
     {
       "family": "trinityCore",
+      "className": "ITr2Pickable",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "ITr2PickableScene",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
       "className": "ITr2Renderable",
       "reason": "hand-maintained source exists"
     },
@@ -2986,7 +3001,17 @@
     },
     {
       "family": "trinityCore",
+      "className": "Tr2PickBuffer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
       "className": "Tr2PrimaryRenderContext",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2PrimitiveScene",
       "reason": "hand-maintained source exists"
     },
     {
@@ -5949,11 +5974,6 @@
   },
   "generatedClasses": [
     {
-      "className": "EvePendingPickingReadback",
-      "family": "eve/scene",
-      "file": "trinity/generated/eve/scene/EvePendingPickingReadback.js"
-    },
-    {
       "className": "Tr2AtlasTexture",
       "family": "trinityCore",
       "file": "trinity/generated/trinityCore/Tr2AtlasTexture.js"
@@ -5972,11 +5992,6 @@
       "className": "Tr2GpuProfiler",
       "family": "trinityCore",
       "file": "trinity/generated/trinityCore/Tr2GpuProfiler.js"
-    },
-    {
-      "className": "Tr2PrimitiveScene",
-      "family": "trinityCore",
-      "file": "trinity/generated/trinityCore/Tr2PrimitiveScene.js"
     },
     {
       "className": "Tr2PrimitiveText",
@@ -6947,6 +6962,11 @@
     },
     {
       "family": "eve/scene",
+      "className": "EvePendingPickingReadback",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
       "className": "EvePickingContext",
       "reason": "hand-maintained source exists"
     },
@@ -7853,6 +7873,11 @@
     {
       "family": "trinityCore",
       "className": "Tr2PrimaryRenderContext",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2PrimitiveScene",
       "reason": "hand-maintained source exists"
     },
     {

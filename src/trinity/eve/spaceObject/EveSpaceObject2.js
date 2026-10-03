@@ -44,6 +44,8 @@ import { Tr2GrannyAnimation, getBoneList } from "../../core/animation/Tr2GrannyA
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
 import { Tr2RingBuffer, Tr2RingBufferOffsets } from "../../core/device/Tr2RingBuffer/index.js";
 import { Tr2PerObjectData } from "../../core/rawData/perObjectData/Tr2PerObjectData.js";
+import { Tr2PerObjectDataStandard } from "../../core/rawData/perObjectData/Tr2PerObjectDataStandard.js";
+import { ITr2Pickable } from "../../core/ITr2Pickable.js";
 import { Tr2RenderBatch, TriRenderBatchAreaBlock } from "../../core/batch/TriRenderBatch/index.js";
 import { RawData } from "../../core/rawData/RawData.js";
 import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../core/view/Tr2PickType.js";
@@ -74,7 +76,7 @@ const OVERLAY_TYPE_ALL = 1;
  */
 @meta.define({ className: "EveSpaceObject2", family: "eve/spaceObject" })
 @meta.blue.inherit(IWorldPosition, ITr2BoundingBox, ITr2Renderable, IEveSpaceObject2, ITr2ShLightingReceiver, ITr2SecondaryLightSource, IEveInheritPropertiesOwner, ITriTargetable)
-@meta.blue.inherit(IInitialize, INotify, IListNotify)
+@meta.blue.inherit(IInitialize, INotify, IListNotify, ITr2Pickable)
 export class EveSpaceObject2 extends EveEntity
 {
 
@@ -2324,7 +2326,8 @@ export class EveSpaceObject2 extends EveEntity
    * blend index + boneOffsets[0] - and before any upload they are
    * INVALID_OFFSET, Carbon's no-draw state. Adapted: Carbon allocates a pooled
    * Tr2PerObjectDataWithPersistentBuffers from the accumulator; this port
-   * returns its two persistent RawData records directly.
+   * wraps its two persistent RawData records in native per-object data so each
+   * gathering owns its picking pointer independently of the persistent payloads.
    */
   @meta.blue.method
   @meta.adapted
@@ -2343,7 +2346,10 @@ export class EveSpaceObject2 extends EveEntity
     this._vsData.SetIndex("boneOffsets", 1, [ this._boneOffsets.GetPreviousFrameOffset() ]);
     this._vsData.Set("customData", this._psData.Get("customData"));
 
-    return { vs: this._vsData, ps: this._psData };
+    const data = new Tr2PerObjectDataStandard();
+    data.vs = this._vsData;
+    data.ps = this._psData;
+    return data;
   }
 
   /** Carbon forwards the shadow pass to the same per-object record. */
@@ -4774,4 +4780,4 @@ blue.enums.Create("trinity.EveSpaceObject2.LocatorType", EveSpaceObject2.Locator
 meta.blue.mapInterface(EveSpaceObject2, IInitialize, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource)(EveSpaceObject2);
 
 // EveSpaceObject2_Blue.cpp: native exposure; unported contracts: IEveShadowCaster, ITr2Pickable, ITriTargetable, IEveEffectChildrenOwner, IShaderConfigurer, ITr2GrannyAnimationOwner, IEveSpaceObjectDecalOwner, ITr2LightOwner, IEveSpaceObjectAttachmentOwner.
-meta.blue.interfaceTable({ interfaces: [EveSpaceObject2, EveEntity, IInitialize, ITr2BoundingBox, ITriTargetable, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource, ITr2ImpostorSource, ITr2CurveSetOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner], chainTo: null })(EveSpaceObject2, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveSpaceObject2, EveEntity, ITr2Pickable, IInitialize, ITr2BoundingBox, ITriTargetable, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource, ITr2ImpostorSource, ITr2CurveSetOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner], chainTo: null })(EveSpaceObject2, { kind: "class" });

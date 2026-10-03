@@ -21,7 +21,7 @@ test("EvePickingContext retains Carbon's latest result", () => {
   assert.equal(context.lastPickedX, 4);
   assert.equal(context.lastPickedY, 5);
   assert.equal(context.GetObject(), object);
-  assert.equal(context.GetArea(), 6);
+  assert.equal(context.GetExtraData1(), 6);
 });
 
 test("EveMultiEffectParameter validates Carbon parameter types and owner notifications", () => {

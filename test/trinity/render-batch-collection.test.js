@@ -36,7 +36,7 @@ function makeRenderable(counts)
       seen.podCalls++;
       seen.pool = accumulator;
       const perObjectData = new Tr2PerObjectData();
-      perObjectData.SetUserData(42);
+      perObjectData.SetPickingPointer(42n);
       seen.perObjectData = perObjectData;
       return perObjectData;
     },
@@ -84,7 +84,7 @@ test("GetPerObjectData is called once per renderable, keyed off the OPAQUE accum
   // The per-object data flows onto the committed batch.
   const [ batch ] = map.GetAccumulator(TriBatchType.TRIBATCHTYPE_OPAQUE).GetBatches();
   assert.equal(batch.objectData, renderable.seen.perObjectData);
-  assert.equal(batch.objectData.GetUserData(), 42);
+  assert.equal(batch.objectData.GetPickingPointer(), 42n);
 });
 
 test("aggregates across multiple renderables", () =>

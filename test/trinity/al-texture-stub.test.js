@@ -191,7 +191,7 @@ test("mapping needs the usage it was created with", () =>
   create(texture, colour(), { gpuUsage: Tr2GpuUsage.RENDER_TARGET }, al);
 
   const region = Tr2TextureSubresource.ForMipLevel(0);
-  const mapped = texture.MapForReading(region, true, al);
+  const mapped = texture.MapForReading(region, al);
 
   assert.equal(mapped.result, ALResult.E_INVALIDCALL);
   assert.equal(mapped.data, null);
@@ -303,7 +303,7 @@ test("a region past the mip chain is refused rather than mapped", () =>
 
   assert.equal(created, ALResult.S_OK);
 
-  const mapped = texture.MapForReading(Tr2TextureSubresource.ForMipLevel(3), true, al);
+  const mapped = texture.MapForReading(Tr2TextureSubresource.ForMipLevel(3), al);
 
   assert.equal(mapped.result, ALResult.E_INVALIDARG);
 

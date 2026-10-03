@@ -115,7 +115,7 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   }
 
   /**
-   * The average position of every triangle vertex added so far.
+   * The native average of triangle vertices transformed into world space.
    */
   @meta.implemented
   GetCenterOfMass(out = vec3.create())
@@ -128,7 +128,8 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
       vec3.add(out, out, triangle.position2);
       vec3.add(out, out, triangle.position3);
     }
-    return vec3.scale(out, out, 1 / (this.triangles.length * 3));
+    vec3.scale(out, out, 1 / (this.triangles.length * 3));
+    return vec3.transformMat4(out, out, this.worldTransform);
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources: defer while creation is disabled. */

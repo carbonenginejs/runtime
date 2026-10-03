@@ -1,0 +1,286 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { CjsInputMan } from "../../npm/dist/input/index.js";
+import { CjsTransformGizmo } from "../../npm/dist/core/gizmos/CjsTransformGizmo.js";
+import { CjsCameraControls } from "../../npm/dist/core/cameras/CjsCameraControls.js";
+import { mat4 } from "../../npm/dist/global/math/mat4.js";
+import { EveCamera, Tr2Effect, TriDevice, Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
+import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
+
+function deferred()
+{
+  let resolve;
+  const promise = new Promise(done => { resolve = done; });
+  return { promise, resolve };
+}
+
+function pointer(type, extra = {})
+{
+  return { type, pointerId: 1, button: 0, x: 100, y: 100, dx: 0, dy: 0, ...extra };
+}
+
+test("a pending handle pick serializes moves and exclusively owns the drag", async () =>
+{
+  const input = new CjsInputMan(), pick = deferred(), seen = [], camera = [];
+  input.Register({ priority: 100, cancel() {}, async handle(event)
+  {
+    seen.push(event);
+    if (event.type === "pointerdown") { await pick.promise; return CjsInputMan.Result.CAPTURE; }
+    return event.type === "pointerup" ? CjsInputMan.Result.RELEASE : CjsInputMan.Result.CONSUME;
+  } });
+  input.Register({ cancel() {}, handle(event) { camera.push(event); return CjsInputMan.Result.CAPTURE; } });
+  input.Enqueue(pointer("pointerdown"));
+  const update = input.Update();
+  input.Enqueue(pointer("pointermove", { dx: 2, x: 102 }));
+  input.Enqueue(pointer("pointermove", { dx: 3, x: 105 }));
+  input.Enqueue(pointer("pointerup", { x: 105 }));
+  assert.equal(seen.length, 1);
+  pick.resolve();
+  await update;
+  assert.deepEqual(seen.map(event => event.type), ["pointerdown", "pointermove", "pointerup"]);
+  assert.equal(seen[1].dx, 5);
+  assert.equal(seen[1].x, 105);
+  assert.equal(camera.length, 0);
+  assert.equal(input._owner, null);
+  input.Destroy();
+});
+
+test("cancellation during an awaited pick cannot claim capture or replay queued input", async () =>
+{
+  const input = new CjsInputMan(), pick = deferred(), seen = [], cancelled = [];
+  input.Register({ cancel: reason => cancelled.push(reason), async handle(event)
+  {
+    seen.push(event.type);
+    await pick.promise;
+    return CjsInputMan.Result.CAPTURE;
+  } });
+  input.Enqueue(pointer("pointerdown"));
+  const update = input.Update();
+  input.Enqueue(pointer("pointermove", { dx: 9 }));
+  input.Cancel("focus-lost");
+  pick.resolve();
+  await update;
+  assert.deepEqual(seen, ["pointerdown"]);
+  assert.deepEqual(cancelled, ["focus-lost"]);
+  assert.equal(input._owner, null);
+  input.Destroy();
+});
+
+test("a missed handle passes the same drag to the Carbon camera consumer", async t =>
+{
+  const input = new CjsInputMan(), calls = [];
+  const camera = new EveCamera();
+  t.mock.method(camera, "OrbitParent", (...args) => calls.push(["orbit", ...args]));
+  const controls = new CjsCameraControls({ camera }).Install(input);
+  input.Register({ priority: 100, cancel() {}, async handle() { return CjsInputMan.Result.PASS; } });
+  input.Enqueue(pointer("pointerdown"));
+  input.Enqueue(pointer("pointermove", { dx: 10, dy: -5 }));
+  input.Enqueue(pointer("pointerup"));
+  await input.Update();
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0][0], "orbit");
+  assert.ok(calls[0].slice(1).every(Number.isFinite));
+  assert.equal(input._owner, null);
+  controls.Destroy();
+  input.Destroy();
+});
+
+function setupGizmo(t, mode)
+{
+  const context = Tr2RenderContext_GetMainThreadRenderContext(), previous = context.GetRenderContextAL();
+  const before = new Set(TriDevice.GetResourcesRegistered()), al = new Tr2RenderContextALStub();
+  context.SetRenderContextAL(al);
+  al.CreateDevice();
+  // This suite exercises native geometry and transforms, not effect fetching.
+  t.mock.method(Tr2Effect.prototype, "SetEffectPathName", function(path) { this.effectFilePath = path; });
+  const gizmo = new CjsTransformGizmo({ mode, getView: () => ({ context }) });
+  t.after(() =>
+  {
+    gizmo.Destroy();
+    for (const resource of TriDevice.GetResourcesRegistered()) if (!before.has(resource)) resource.Destroy();
+    context.SetRenderContextAL(previous);
+  });
+  return gizmo;
+}
+
+function close(actual, expected)
+{
+  for (let i = 0; i < 16; i++) assert.ok(Math.abs(actual[i] - expected[i]) < 1e-4, `matrix element ${i}: ${actual[i]} != ${expected[i]}`);
+}
+
+test("gizmo W/E/R defaults rebind atomically and ignore modified chords and repeats", async t =>
+{
+  const gizmo = setupGizmo(t, "scaling"), input = new CjsInputMan();
+  gizmo.Install(input);
+  const press = async (code, extra = {}) =>
+  {
+    input.Enqueue({ type: "keydown", code, ...extra });
+    await input.Update();
+  };
+  await press("KeyW");
+  assert.equal(gizmo.mode, "translation");
+  await press("KeyE");
+  assert.equal(gizmo.mode, "rotation");
+  const tool = gizmo.tool;
+  await press("KeyE", { repeat: true });
+  assert.equal(gizmo.tool, tool);
+  for (const modifier of ["shift", "ctrl", "alt", "meta", "isComposing"])
+    await press("KeyR", { [modifier]: true });
+  assert.equal(gizmo.mode, "rotation");
+  await press("KeyR");
+  assert.equal(gizmo.mode, "scaling");
+  gizmo.SetKeyBindings({ translation: "KeyG", rotation: "KeyR", scaling: "KeyS" });
+  assert.throws(() => gizmo.SetKeyBindings({ translation: "KeyE" }), /distinct/);
+  assert.equal(gizmo.GetKeyBindings().translation, "KeyG");
+  await press("KeyW");
+  assert.equal(gizmo.mode, "scaling");
+  await press("KeyG");
+  assert.equal(gizmo.mode, "translation");
+  gizmo.SetKeyBindings({ rotation: null });
+  await press("KeyE");
+  assert.equal(gizmo.mode, "translation");
+  gizmo.SetKeyBindings();
+  await press("KeyE");
+  assert.equal(gizmo.mode, "rotation");
+  gizmo.Uninstall();
+  input.Destroy();
+});
+
+function host()
+{
+  const listeners = new Map(), captures = new Set();
+  return {
+    width: 800, height: 600, tagName: "CANVAS", hidden: false,
+    addEventListener(type, callback) { const list = listeners.get(type) || []; list.push(callback); listeners.set(type, list); },
+    removeEventListener(type, callback) { listeners.set(type, (listeners.get(type) || []).filter(item => item !== callback)); },
+    getBoundingClientRect: () => ({ left: 0, top: 0, width: 400, height: 300 }),
+    contains: () => false,
+    setPointerCapture: id => captures.add(id), hasPointerCapture: id => captures.has(id),
+    releasePointerCapture: id => captures.delete(id),
+    emit(type, values = {})
+    {
+      const event = { target: this, code: "", key: "", button: 0, pointerId: 1, clientX: 0, clientY: 0,
+        defaultPrevented: false, preventDefault() { this.defaultPrevented = true; }, ...values };
+      for (const callback of listeners.get(type) || []) callback(event);
+      return event;
+    }
+  };
+}
+
+test("focused host routes pan, normalized wheel, FOV and gizmo defaults without stealing browser keys", async t =>
+{
+  const gizmo = setupGizmo(t, "scaling"), window = host(), document = host(), canvas = host();
+  canvas.focus = () => { document.activeElement = canvas; };
+  document.activeElement = canvas;
+  const input = new CjsInputMan().Attach({ target: canvas, window, document });
+  const camera = new EveCamera();
+  camera.fieldOfView = Math.PI / 4;
+  camera.backClip = 10000;
+  const controls = new CjsCameraControls({ camera, getViewport: () => ({ width: 800, height: 600 }),
+    getBounds: () => ({ centre: [10, 20, 30], radius: 50 }) }).Install(input);
+  controls.Frame();
+  camera.Update(0, 4 / 3);
+  gizmo.Install(input);
+  t.after(() => { gizmo.Uninstall(); controls.Destroy(); input.Destroy(); });
+  assert.equal(window.emit("keydown", { code: "KeyW" }).defaultPrevented, true);
+  assert.equal(gizmo.mode, "scaling", "browser dispatch only queues the mode switch");
+  await input.Update(1 / 60);
+  assert.equal(gizmo.mode, "translation");
+  for (const modifier of ["ctrlKey", "metaKey", "altKey"])
+    assert.equal(window.emit("keydown", { code: "KeyR", [modifier]: true }).defaultPrevented, false);
+  await input.Update(1 / 60);
+  assert.equal(gizmo.mode, "translation");
+  const centre = [...camera.extraTranslation];
+  canvas.emit("pointerdown", { button: 1 });
+  canvas.emit("pointermove", { clientX: 20, clientY: 10 });
+  canvas.emit("pointerup", { button: 1, clientX: 20, clientY: 10 });
+  await input.Update(1 / 60);
+  assert.notDeepEqual([...camera.extraTranslation], centre);
+  const fov = camera.fieldOfView;
+  canvas.emit("wheel", { deltaY: 2, deltaMode: 1, shiftKey: true });
+  await input.Update(1 / 60);
+  assert.ok(Math.abs(camera.fieldOfView - fov - 0.032) < 1e-6);
+  camera.Update(1, 4 / 3);
+  assert.ok(Math.abs(camera.fieldOfView - fov - 0.032) < 1e-6, "native zoom curve must not overwrite manual FOV");
+  assert.equal(window.emit("keydown", { code: "Home" }).defaultPrevented, true);
+  await input.Update();
+  assert.deepEqual([...camera.extraTranslation], [10, 20, 30]);
+  document.activeElement = { tagName: "INPUT" };
+  canvas.emit("blur");
+  assert.equal(window.emit("keydown", { code: "KeyE" }).defaultPrevented, false);
+  assert.equal(canvas.emit("wheel", { deltaY: 30 }).defaultPrevented, false);
+  await input.Update(1 / 60);
+  assert.equal(gizmo.mode, "translation");
+});
+
+test("camera key-up reaches its consumer during another consumer's pointer capture", async t =>
+{
+  const input = new CjsInputMan(), camera = new EveCamera(), moves = [];
+  t.mock.method(camera, "OrbitParent", (...args) => moves.push(args));
+  const controls = new CjsCameraControls({ camera }).Install(input);
+  input.Register({ priority: 100, cancel() {}, handle: event => event.type === "pointerdown"
+    ? CjsInputMan.Result.CAPTURE : event.type === "pointerup" ? CjsInputMan.Result.RELEASE : CjsInputMan.Result.PASS });
+  input.Enqueue({ type: "keydown", code: "ArrowLeft" });
+  await input.Update(0.02);
+  assert.equal(moves.length, 1);
+  input.Enqueue(pointer("pointerdown"));
+  input.Enqueue({ type: "keyup", code: "ArrowLeft", shift: true });
+  await input.Update(0.02);
+  input.Enqueue(pointer("pointerup"));
+  await input.Update(0.02);
+  assert.equal(moves.length, 1, "released keys must not resume after pointer capture ends");
+  controls.Destroy();
+  input.Destroy();
+});
+
+for (const mode of ["translation", "rotation", "scaling"])
+{
+  test(`${mode} preserves full affine targets under rotated, nonuniform parents and cancels exactly`, async t =>
+  {
+    const gizmo = setupGizmo(t, mode);
+    const parent = mat4.fromZRotation(mat4.create(), 0.71);
+    mat4.scale(parent, parent, [2, 3, 0.7]);
+    parent[12] = 12;
+    parent[13] = -6;
+    const local = mat4.fromYRotation(mat4.create(), -0.36);
+    local[4] += 0.4;
+    local[8] += 0.2;
+    local[12] = 4;
+    local[14] = 8;
+    const initial = mat4.clone(local), initialWorld = mat4.multiply(mat4.create(), parent, local);
+    gizmo.SetTarget({ readLocal: out => mat4.copy(out, local), readParentWorld: out => mat4.copy(out, parent), writeLocal: value => mat4.copy(local, value) });
+    close(local, initial);
+    t.mock.method(gizmo.scene, "PickObject", async () => gizmo.tool.primitives[0]);
+    assert.equal(await gizmo.HandleInput(pointer("pointerdown")), CjsInputMan.Result.CAPTURE);
+    const current = mode === "scaling" ? mat4.create() : mat4.clone(gizmo.tool.localTransform);
+    const delta = mode === "translation" ? mat4.fromTranslation(mat4.create(), [7, -2, 5])
+      : mode === "rotation" ? mat4.fromZRotation(mat4.create(), 0.43)
+      : mat4.fromScaling(mat4.create(), [1.5, 0.8, 1.2]);
+    const next = mat4.multiply(mat4.create(), delta, current);
+    const worldDelta = mat4.clone(delta);
+    if (mode === "scaling")
+    {
+      mat4.multiply(worldDelta, gizmo._frame, delta);
+      mat4.multiply(worldDelta, worldDelta, mat4.invert(mat4.create(), gizmo._frame));
+    }
+    assert.equal(gizmo.tool.OnMoveCallback(current, next), true);
+    close(mat4.multiply(mat4.create(), parent, local), mat4.multiply(mat4.create(), worldDelta, initialWorld));
+    gizmo.Cancel();
+    assert.deepEqual([...local], [...initial]);
+    assert.equal(gizmo.tool.captured, false);
+  });
+}
+
+test("a cancelled gizmo pick cannot attach to a replacement target", async t =>
+{
+  const gizmo = setupGizmo(t, "translation"), pick = deferred(), local = mat4.create();
+  const target = { readLocal: out => mat4.copy(out, local), readParentWorld: out => mat4.identity(out), writeLocal: value => mat4.copy(local, value) };
+  gizmo.SetTarget(target);
+  t.mock.method(gizmo.scene, "PickObject", () => pick.promise);
+  const pending = gizmo.HandleInput(pointer("pointerdown"));
+  gizmo.SetTarget(null);
+  pick.resolve(gizmo.tool.primitives[0]);
+  assert.equal(await pending, CjsInputMan.Result.CONSUME);
+  assert.equal(gizmo._drag, null);
+  assert.equal(gizmo.tool.captured, false);
+});

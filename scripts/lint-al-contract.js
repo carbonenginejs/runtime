@@ -280,6 +280,11 @@ for (const backend of backends)
 
         for (const method of stubMethods)
         {
+            // Tr2ReadbackAL is a value facade, not a device-resource backend.
+            // Carbon include/Tr2TextureAL.h:24-43 exposes only readiness,
+            // validity and mapping; these two belong to TrinityALImpl.
+            if (backend === "Tr2ReadbackAL" && ["Describe", "GetMemoryClass"].includes(method)) continue;
+
             // `#` AND `_` ARE BOTH "NOT THE CONTRACT". The layer used `#` until
             // 2026-09-10, when the AL dropped JavaScript privates for an `_`
             // prefix - Carbon's AL facade holds one private member and its impl

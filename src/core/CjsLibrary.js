@@ -1,5 +1,8 @@
 import { blue, installBlueServices } from "../global/blue/blue.js";
 import { CjsSchema, meta } from "#schema";
+import { CjsInputMan } from "#input";
+import { CjsCameraControls } from "./cameras/CjsCameraControls.js";
+import { CjsTransformGizmo } from "./gizmos/CjsTransformGizmo.js";
 
 let activeLibrary = null;
 
@@ -12,6 +15,23 @@ let activeLibrary = null;
  */
 export class CjsLibrary
 {
+  /** Creates an inert input manager; the caller owns attachment and disposal. */
+  CreateInputManager()
+  {
+    return new CjsInputMan();
+  }
+
+  /** Creates an inert camera consumer for installation on the shared manager. */
+  CreateCameraControls(options)
+  {
+    return new CjsCameraControls(options);
+  }
+
+  /** Composes native tools and a handle scene without attaching DOM listeners. */
+  CreateTransformGizmo(options)
+  {
+    return new CjsTransformGizmo(options);
+  }
   /** In-flight initialization; concurrent calls share the first configuration. */
   _initialization = null;
 
@@ -79,7 +99,8 @@ export class CjsLibrary
 
 CjsSchema.define(CjsLibrary, {
   className: "CjsLibrary", fields: {},
-  methods: { Initialize: [meta.ours], Shutdown: [meta.ours], Fetch: [meta.ours] }
+  methods: { Initialize: [meta.ours], Shutdown: [meta.ours], Fetch: [meta.ours],
+    CreateInputManager: [meta.ours], CreateCameraControls: [meta.ours], CreateTransformGizmo: [meta.ours] }
 });
 
 export default CjsLibrary;

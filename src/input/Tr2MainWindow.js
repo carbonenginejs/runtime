@@ -11,7 +11,7 @@ import { Tr2MouseCursor } from "./Tr2MouseCursor.js";
 const CALLBACK_FIELDS = Object.freeze([
     "onKeyDown", "onKeyUp", "onChar", "onMouseDown", "onMouseUp",
     "onMouseMove", "onMouseWheel", "onClose", "onFocusChange",
-    "onWindowStateChange"
+    "onWindowStateChange", "onPointerCancel", "onCompositionStart"
 ]);
 
 // An unset callback field still holds a nominal target. Carbon spells that as a
@@ -91,11 +91,17 @@ export class Tr2MainWindow
         this.#listen(this.#window, "keypress", event => this.#invokeVoid("onChar", event.key, event));
         this.#listen(this.#window, "focus", event => this.#invokeVoid("onFocusChange", true, event));
         this.#listen(this.#window, "blur", event => this.#invokeVoid("onFocusChange", false, event));
+        this.#listen(this.#target, "blur", event => this.#invokeVoid("onFocusChange", false, event));
+        this.#listen(this.#target, "compositionstart", event => this.#invokeVoid("onCompositionStart", event));
         this.#listen(this.#window, "resize", event => this.#onResize(event));
         this.#listen(this.#window, "beforeunload", event => this.#onBeforeUnload(event));
         this.#listen(this.#target, "pointermove", event => this.#onPointerMove(event));
         this.#listen(this.#target, "pointerdown", event => this.#invokeVoid("onMouseDown", event.button, event.clientX, event.clientY, event));
         this.#listen(this.#target, "pointerup", event => this.#invokeVoid("onMouseUp", event.button, event.clientX, event.clientY, event));
+        // Browser capture can end without a mouse-up (touch cancellation, focus
+        // changes or capture reassignment). The shared router must release drags.
+        this.#listen(this.#target, "pointercancel", event => this.#invokeVoid("onPointerCancel", event));
+        this.#listen(this.#target, "lostpointercapture", event => this.#invokeVoid("onPointerCancel", event));
         this.#listen(this.#target, "wheel", event => this.#invokeVoid("onMouseWheel", event.deltaY, event));
         this.#listen(this.#document, "visibilitychange", event => this.#invokeVoid("onFocusChange", !this.IsHidden(), event));
         return this;

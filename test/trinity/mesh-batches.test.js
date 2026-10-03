@@ -49,7 +49,7 @@ test("GetBatches emits one descriptor batch per displayed, materialled area", ()
 
   const accumulator = new TriRenderBatchAccumulator();
   const perObjectData = new Tr2PerObjectData();
-  perObjectData.SetUserData(7);
+  perObjectData.SetPickingPointer(7n);
 
   mesh.GetBatches(accumulator, TriBatchType.TRIBATCHTYPE_OPAQUE, perObjectData);
 

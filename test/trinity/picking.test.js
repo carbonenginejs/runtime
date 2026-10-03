@@ -232,14 +232,19 @@ test("a picked area resolves to the hull itself", () =>
 });
 
 
-test("the pick passes that need a GPU readback stay explicit", () =>
+test("scene pick wrappers await immediate results and preserve polling result shapes", async t =>
 {
   const scene = new EveSpaceScene();
+  const object = new EveSpaceObject2();
+  t.mock.method(scene, "PerformPicking", (_listener, immediate) =>
+    immediate ? Promise.resolve([object, 7, 9]) : [object, 7, 9]);
 
-  for (const name of [ "PickObject", "PickAsyncObject", "PickObjectAndAreaID" ])
-  {
-    assert.throws(() => scene[name](), /not implemented/u, `${name} needs an engine pass`);
-  }
+  assert.equal(await scene.PickObject(), object);
+  assert.deepEqual(await scene.PickObjectAndAreaID(), [object, 7]);
+  assert.deepEqual(await scene.PickObjectAndExtraData(), [object, 7, 9]);
+  assert.equal(scene.PickAsyncObject({}), object);
+  assert.deepEqual(scene.PickAsyncObjectAndExtraData({}), [object, 7, 9]);
+  assert.equal(scene.PickAsyncObject(null), null);
 });
 
 

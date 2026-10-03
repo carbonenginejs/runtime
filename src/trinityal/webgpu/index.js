@@ -36,3 +36,4 @@ export {
   NormalizeMaterialLayout,
   PackMaterialConstants
 } from "./core/materialConstants.js";
+export * from "./Tr2ReadbackALWebgpu.js";

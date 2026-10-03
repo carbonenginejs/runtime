@@ -49,12 +49,12 @@ test('context binding and saved stack independently retain texture values',()=>{
  al.SetRenderTarget(0,value);al.PushRenderTarget(0);value.Destroy();al.SetRenderTarget(0,null);assert.ok(implementation.IsValid());
  al.PopRenderTarget(0);assert.ok(al.GetRenderTarget(0).IsValid());al.SetRenderTarget(0,null);assert.equal(implementation.IsRegistered(),false);al.Destroy();
 });
-test('empty texture operands keep native errors and map overloads agree',()=>{
+test('empty texture operands keep native errors and repeated maps agree',()=>{
  const al=context(),value=texture(al),empty=new Tr2TextureAL(),region=new Tr2TextureSubresource();
  assert.equal(value.CopySubresourceRegion(region,empty,region,al),ALResult.E_INVALIDARG);
  assert.equal(value.Resolve(empty,al),ALResult.E_INVALIDCALL);assert.equal(empty.Resolve(value,al),ALResult.E_INVALIDARG);
  const mip=Tr2TextureSubresource.ForMipLevel(0);
- const first=value.MapForReading(mip,al);value.UnmapForReading(al);const second=value.MapForReading(mip,true,al);
+ const first=value.MapForReading(mip,al);value.UnmapForReading(al);const second=value.MapForReading(mip,al);
  assert.equal(first.result,second.result);assert.equal(first.result,ALResult.S_OK);value.UnmapForReading(al);value.Destroy();al.Destroy();
 });
 

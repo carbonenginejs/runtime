@@ -1,0 +1,53 @@
+// Source: trinity/trinityal/include/Tr2TextureAL.h
+// Source: trinity/trinityal/src/Tr2TextureAL.cpp
+import { CjsSchema, meta } from "#schema";
+import { ALResult } from "../ALResult.js";
+
+/** An owned snapshot of a texture copy, independently retained until consumption. */
+export class Tr2ReadbackAL
+{
+  _readback = null;
+
+  /** Explicit ownership replaces native shared_ptr construction and copying. */
+  constructor({ implementation = null, copy = null } = {})
+  {
+    this._readback = copy ? copy._readback : implementation ? { implementation, owners: 0 } : null;
+    if (this._readback) this._readback.owners++;
+  }
+
+  /** True only once this snapshot can be mapped without waiting. */
+  IsReady(renderContext)
+  {
+    return this._readback !== null && this._readback.implementation.IsReady(renderContext);
+  }
+
+  /** An empty, released, or device-lost readback is invalid. */
+  IsValid()
+  {
+    return this._readback !== null && this._readback.implementation.IsValid();
+  }
+
+  /**
+   * Returns native out-parameters as a mapping record. WebGPU returns a Promise
+   * while pending because the browser cannot block; a ready mapping is immediate.
+   * The bytes remain owned by this readback until its last owner releases it.
+   */
+  Map(renderContext)
+  {
+    return this.IsValid() ? this._readback.implementation.Map(renderContext)
+      : { result: ALResult.E_INVALIDCALL, data: null, pitch: 0 };
+  }
+
+  /** Explicit release replaces shared_ptr destruction; other copies remain valid. */
+  Destroy()
+  {
+    const readback = this._readback;
+    this._readback = null;
+    if (readback && --readback.owners === 0) readback.implementation.Destroy();
+  }
+}
+
+CjsSchema.define(Tr2ReadbackAL, {
+  className: "Tr2ReadbackAL",
+  methods: { IsReady: [meta.implemented], IsValid: [meta.implemented], Map: [meta.adapted], Destroy: [meta.adapted] }
+});

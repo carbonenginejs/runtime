@@ -7,6 +7,8 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { Tr2LineSet } from "../line/Tr2LineSet.js";
+import { Tr2Effect } from "../../shader/Tr2Effect.js";
 
 const AXIS_COLORS = Object.freeze({
   x: vec4.fromValues(1, 0.01, 0.01, 1),
@@ -20,6 +22,182 @@ const AXIS_COLORS = Object.freeze({
 @meta.define({ className: "Tr2RotationTool", family: "trinityCore", purpose: "Extends the manipulation tool with quaternion rotation state and angular precision." })
 export class Tr2RotationTool extends Tr2ManipulationTool
 {
+  _angle = 0;
+
+  /** Native constructor creates the five rings and selects screen rotation. */
+  constructor()
+  {
+    super();
+    this.GenLineSets();
+    this.SelectAxis("w");
+  }
+
+  /** Native axis/view/arcball rotation from consecutive plane intersections. */
+  @meta.adapted
+  Move(x, y, dx, dy, viewport, view, projection)
+  {
+    const vec3_0 = vec3.alloc();
+    const vec3_1 = vec3.alloc();
+    const mat4_0 = mat4.alloc();
+    const vec3_2 = vec3.alloc();
+    const mat4_1 = mat4.alloc();
+    try
+    {
+      if (!dx && !dy) return;
+      const position = vec3.set(vec3_0, this.localTransform[12], this.localTransform[13], this.localTransform[14]);
+      const current = this.ScreenCoordinatesToRay(x, y, viewport, view, projection);
+      const normal = this.GetDesiredPlaneNormal(current.ray, view);
+      const previous = this.ScreenCoordinatesToRay(x - dx, y - dy, viewport, view, projection);
+      const start = this.RayToPlaneIntersection(previous.start, previous.ray, position, normal);
+      const end = this.RayToPlaneIntersection(current.start, current.ray, position, normal);
+      vec3.normalize(start, vec3.subtract(start, start, position));
+      vec3.normalize(end, vec3.subtract(end, end, position));
+      let dot = vec3.dot(start, end), sign = 1;
+      if (1 - dot < 1.1920928955078125e-7) return;
+      const cross = vec3.cross(vec3.zero(vec3_1), start, end);
+      const inverse = mat4.invert(mat4.identity(mat4_0), this.localTransform);
+      if (!inverse) return;
+      const transformNormal = (out, input, matrix) =>
+      {
+        const vec4_0 = vec4.alloc();
+        try
+        {
+          const value = vec4.set(vec4_0, input[0], input[1], input[2], 0);
+          vec4.transformMat4(value, value, matrix);
+          return vec3.set(out, value[0], value[1], value[2]);
+        }
+        finally
+        {
+          vec4.unalloc(vec4_0);
+        }
+      };
+      if (this.selectedAxis === "w")
+      {
+        const viewDirection = [view[2], view[6], view[10]];
+        transformNormal(this._movement, viewDirection, inverse);
+        const rdot = vec3.dot(this._movement, viewDirection), ddot = vec3.dot(cross, this._movement);
+        if (ddot < 0 && rdot > 0 || ddot > 0 && rdot < 0) sign = -1;
+      }
+      else if (this.selectedAxis === "ww")
+      {
+        const currentPoint = this.Hemisphere(x, y, viewport, view, projection);
+        const previousPoint = this.Hemisphere(x - dx, y - dy, viewport, view, projection);
+        const axis = vec3.cross(vec3.zero(vec3_2), previousPoint, currentPoint);
+        const inverseView = mat4.invert(mat4.identity(mat4_1), view);
+        if (!inverseView) return;
+        transformNormal(axis, axis, inverseView);
+        transformNormal(this._movement, axis, inverse);
+        dot = vec3.dot(currentPoint, previousPoint);
+      }
+      else
+      {
+        const index = ["x", "y", "z"].indexOf(this.selectedAxis);
+        if (index < 0) return;
+        const axis = this.GetBaseVectors()[index];
+        vec3.copy(this._movement, this.GetUnTransformedBaseVectors()[index]);
+        if (vec3.dot(cross, axis) < 0) sign = -1;
+      }
+      this._angle = Math.acos(Math.max(-1, Math.min(1, dot))) * sign * this.precision;
+      this._moved = true;
+    }
+    finally
+    {
+      vec3.unalloc(vec3_0);
+      vec3.unalloc(vec3_1);
+      mat4.unalloc(mat4_0);
+      vec3.unalloc(vec3_2);
+      mat4.unalloc(mat4_1);
+    }
+  }
+
+  /** Native rotation prepends in Carbon and therefore postmultiplies here. */
+  @meta.adapted
+  Update(context)
+  {
+    const mat4_0 = mat4.alloc();
+    const mat4_1 = mat4.alloc();
+    const mat4_2 = mat4.alloc();
+    try
+    {
+      if (this._moved)
+      {
+        const rotation = mat4.fromRotation(mat4.identity(mat4_0), this._angle, this._movement);
+        if (rotation)
+        {
+          const next = mat4.multiply(mat4.identity(mat4_1), this.localTransform, rotation);
+          if (this.OnMoveCallback(this.localTransform, next))
+          {
+            mat4.copy(this.localTransform, next);
+            mat4.getRotation(this.rotation, next);
+            vec3.zero(this._movement);
+          }
+        }
+        this._moved = false;
+      }
+      mat4.multiply(this.worldTransform, mat4.fromTranslation(mat4.identity(mat4_2), this.pivot), this.localTransform);
+      for (const primitive of this.primitives)
+      {
+        mat4.copy(primitive.localTransform, this.localTransform);
+        primitive.UpdateTransform(context);
+      }
+    }
+    finally
+    {
+      mat4.unalloc(mat4_0);
+      mat4.unalloc(mat4_1);
+      mat4.unalloc(mat4_2);
+    }
+  }
+
+  /** Native circular arcs, screen ring, arcball disk and thick picking prisms. */
+  @meta.adapted
+  GenLineSets()
+  {
+    const mat4_0 = mat4.alloc();
+    const mat4_1 = mat4.alloc();
+    const mat4_2 = mat4.alloc();
+    try
+    {
+      const sphereEffect = new Tr2Effect(), lineEffect = new Tr2Effect(), pickEffect = new Tr2Effect();
+      sphereEffect.SetEffectPathName("res:/Graphics/Effect/Managed/Utility/LinesRotationTool.fx");
+      lineEffect.SetEffectPathName("res:/Graphics/Effect/Managed/Utility/LinesNoZ.fx");
+      pickEffect.SetEffectPathName("res:/Graphics/Effect/Managed/Utility/PrimitivePicking.fx");
+      for (const name of ["ww", "w", "x", "y", "z"])
+      {
+        const line = new Tr2LineSet(), color = AXIS_COLORS[name];
+        line.name = name;
+        line.viewOriented = name === "w" || name === "ww";
+        line.scaleByDistanceToView = true;
+        line.effect = line.viewOriented ? lineEffect : sphereEffect;
+        line.pickEffect = pickEffect;
+        const radius = name === "w" ? 1.2 : 1;
+        const transform = name === "x" ? mat4.fromYRotation(mat4.identity(mat4_0), Math.PI / 2)
+          : name === "y" ? mat4.fromXRotation(mat4.identity(mat4_1), Math.PI / 2) : mat4.identity(mat4_2);
+        const points = Tr2ManipulationTool.getCirclePoints(radius, 60).map(point => vec3.transformMat4(vec3.create(), point, transform)); // alloc: vertices retained for primitive construction.
+        for (let i = 0; i < points.length; i += 2)
+        {
+          line.AddLine(points[i], color, points[i + 1], color);
+          if (name === "ww") continue;
+          const triangles = Tr2ManipulationTool.getTrianglesAroundLine(points[i], points[i + 1], 0.08);
+          for (let j = 0; j < triangles.length; j += 3) line.AddPickingTriangle(...triangles.slice(j, j + 3));
+        }
+        if (name === "ww")
+        {
+          const triangles = Tr2ManipulationTool.getCircleTriangles(1, 60);
+          for (let i = 0; i < triangles.length; i += 3) line.AddPickingTriangle(...triangles.slice(i, i + 3));
+          this.wwLine = line;
+        }
+        line.SubmitChanges();
+        this.primitives.push(line);
+      }
+    }
+    finally
+    {
+      mat4.unalloc(mat4_0);
+      mat4.unalloc(mat4_1);
+      mat4.unalloc(mat4_2);
+    }
+  }
 
   /** m_precision (float) [READWRITE] */
   @meta.blue.readwrite
@@ -32,9 +210,7 @@ export class Tr2RotationTool extends Tr2ManipulationTool
   rotation = quat.create();
 
   /** m_wwLine (Tr2LineSetPtr, Tr2RotationTool.h:33): the screen-space ring
-   *  primitive whose scale is the arcball radius. Carbon builds it in
-   *  GenLineSets, which is not ported; a host supplies it (or any
-   *  { scale } duck) before Hemisphere is useful. */
+   *  primitive whose scale is the arcball radius, built by GenLineSets. */
   @meta.blue.readwrite
   @meta.type.objectRef("Tr2LineSet")
   wwLine = null;

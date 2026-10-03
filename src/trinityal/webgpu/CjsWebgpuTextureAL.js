@@ -27,6 +27,8 @@ import { RenderContextALOf } from "../renderContextAL.js";
 import { ForgetBindingResource } from "./core/bindingIndex.js";
 
 import { CjsWebgpuVideoColorSampler } from "./CjsWebgpuVideoColorSampler.js";
+import { Tr2ReadbackALWebgpu } from "./Tr2ReadbackALWebgpu.js";
+import { IsCompressedFormat, GetBytesPerPixel } from "#consts/render-context";
 
 const NO_HEAP_INDEX = 0xffffffff;
 
@@ -596,16 +598,66 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
     return this.m_desc ? this.m_desc.GetMipSize(level) : 0;
   }
 
-  /** Reading back needs a staging buffer and an await; refused by name. */
-  MapForReading(_region, _synchronize, _renderContext)
+  /**
+   * Native texture snapshots use WebGPU staging buffers. The copy is ordered
+   * after pending draws; byte rows are padded to WebGPU's 256-byte alignment.
+   * Compressed, depth, volume, or physically substituted formats are unsupported.
+   */
+  @meta.adapted
+  CreateReadback(region, renderContext)
   {
-    return { result: ALResult.E_FAIL, data: null, pitch: 0 };
+    const al = RenderContextALOf(renderContext);
+    if (!HasFlag(this.m_cpuUsage, Tr2CpuUsage.READ) || !this.IsValid() || !al.IsValid()) return null;
+    if (!region.IsValidForBitmap(this.m_desc) || !region.IsSingleSubresource()) return null;
+    if (this.GetType() === TextureType.TEX_TYPE_3D || IsCompressedFormat(this.GetFormat())
+      || this.m_format.startsWith("depth") || this.m_format.startsWith("stencil")
+      || al.m_utils.GetGPUTextureFormat(this.GetFormat()) !== this.m_format) return null;
+    const mip = region.m_startMipLevel;
+    const box = region.HasBox() ? region.m_box : null;
+    const width = box ? box.right - box.left : this.m_desc.GetMipWidth(mip);
+    const height = box ? box.bottom - box.top : this.m_desc.GetMipHeight(mip);
+    const rowPitch = Math.ceil(width * GetBytesPerPixel(this.GetFormat()) / 256) * 256;
+    const device = this.m_webgpu.GetDevice();
+    const usage = this.m_webgpu.GetBufferUsage();
+    const buffer = device.createBuffer({ label: "Tr2ReadbackAL", size: rowPitch * height, usage: usage.MAP_READ | usage.COPY_DST });
+    try
+    {
+      al.GetWorkQueue().CopyTextureToMTLBuffer(this.m_texture, buffer, rowPitch, rowPitch * height,
+        { x: box ? box.left : 0, y: box ? box.top : 0, z: region.m_startFace },
+        { width, height, depthOrArrayLayers: 1 }, mip, false, device);
+      return new Tr2ReadbackALWebgpu(buffer, rowPitch, al);
+    }
+    catch (error)
+    {
+      al.ReleaseLater(() => buffer.destroy());
+      throw error;
+    }
   }
 
-  /** Paired with `MapForReading`, which this backend refuses. */
+  /**
+   * WebGPU cannot block on mapping. The immediate mapping awaits its own copy;
+   * the returned bytes are detached from staging storage before it is released.
+   */
+  @meta.adapted
+  async MapForReading(region, renderContext)
+  {
+    const readback = this.CreateReadback(region, renderContext);
+    if (!readback) return { result: ALResult.E_INVALIDCALL, data: null, pitch: 0 };
+    try
+    {
+      const mapped = await readback.Map(renderContext);
+      return { ...mapped, data: mapped.data ? mapped.data.slice() : null };
+    }
+    finally
+    {
+      readback.Destroy();
+    }
+  }
+
+  /** Mapping returns an owned CPU copy; no backend mapping remains to release. */
   UnmapForReading(_renderContext)
   {
-    return ALResult.E_FAIL;
+    return ALResult.S_OK;
   }
 
   /** The CPU copy a write mapping hands out; kept between maps for WRITE_OFTEN. */

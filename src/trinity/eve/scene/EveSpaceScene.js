@@ -56,6 +56,11 @@ import { TriShadowOrthoFrustum } from "./shadows/TriShadowOrthoFrustum.js";
 import { GpuResourceHandle } from "../../core/Tr2GpuResourcePool/GpuResourceHandle.js";
 import { blue } from "#blue";
 import { ExecuteMainThreadActions } from "../../core/continueOnMainThread.js";
+import { ITr2Pickable } from "../../core/ITr2Pickable.js";
+import { EvePickingContext, EvePendingPickingReadback } from "./picking/index.js";
+import { Tr2TextureAL, Tr2BitmapDimensions, Tr2TextureSubresource, Failed, ALResult } from "#trinityal";
+import { Tr2CpuUsage } from "#consts/render-context";
+import { Tr2PickType, TR2_PICK_TYPE_DEFAULT } from "../../core/view/Tr2PickType.js";
 import "./EveSpaceSceneRenderDriver.js";
 
 
@@ -816,28 +821,246 @@ export class EveSpaceScene
     this.updateTime = simTime;
   }
 
-  /** Carbon method PickObject (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /** Immediate pick, awaitable because WebGPU cannot block on readback. */
   @meta.blue.method
-  @meta.notImplemented
-  PickObject(...args)
+  @meta.adapted
+  async PickObject(x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT)
   {
-    throw new Error("EveSpaceScene.PickObject is not implemented in CarbonEngineJS.");
+    const result = await this.PickObjectAndExtraData(x, y, projection, view, viewport, pickTypes);
+    return result ? result[0] : null;
   }
 
   /** Carbon method PickAsyncObject (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
   @meta.blue.method
-  @meta.notImplemented
-  PickAsyncObject(...args)
+  @meta.implemented
+  PickAsyncObject(listener, x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT)
   {
-    throw new Error("EveSpaceScene.PickAsyncObject is not implemented in CarbonEngineJS.");
+    if (!listener) return null;
+    return this.PerformPicking(listener, false, x, y, projection, view, viewport, pickTypes)[0];
   }
 
   /** Carbon method PickObjectAndAreaID -> PyPickObjectAndAreaID (MAP_METHOD). */
   @meta.blue.method
-  @meta.notImplemented
-  PickObjectAndAreaID(...args)
+  @meta.adapted
+  async PickObjectAndAreaID(x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT)
   {
-    throw new Error("EveSpaceScene.PickObjectAndAreaID is not implemented in CarbonEngineJS.");
+    const result = await this.PickObjectAndExtraData(x, y, projection, view, viewport, pickTypes);
+    return result ? result.slice(0, 2) : null;
+  }
+
+  /** Owns a fresh listener, so an immediate call can never return an earlier hit. */
+  @meta.blue.method
+  @meta.adapted
+  async PickObjectAndExtraData(x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT)
+  {
+    const listener = new EvePickingContext();
+    try
+    {
+      const result = await this.PerformPicking(listener, true, x, y, projection, view, viewport, pickTypes);
+      return result[0] ? result : null;
+    }
+    finally
+    {
+      listener.Destroy();
+    }
+  }
+
+  /** Native polling: submit this pixel and return the latest completed result. */
+  @meta.blue.method
+  @meta.implemented
+  PickAsyncObjectAndExtraData(listener, x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT)
+  {
+    if (!listener) return null;
+    const result = this.PerformPicking(listener, false, x, y, projection, view, viewport, pickTypes);
+    return result[0] ? result : null;
+  }
+
+  _pickBuffer = new Tr2TextureAL();
+  _pickDepthBuffer = new Tr2TextureAL();
+  _pickingBatches = new TriRenderBatchAccumulator(DefaultKeyGenerator);
+
+  /**
+   * HEAD's regular-object GPU pass. Call between scene renders. Submission and
+   * state restoration finish synchronously before any WebGPU readback is awaited.
+   * Instanced, skinned, interior and debug-renderer picking remain separate ports.
+   */
+  @meta.adapted
+  PerformPicking(listener, immediate, x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT,
+    renderContext = Tr2RenderContext_GetMainThreadRenderContext())
+  {
+    if (!renderContext.IsValid()) return immediate ? Promise.resolve([null, 0, 0]) : [null, 0, 0];
+    const request = new EvePendingPickingReadback(x, y);
+    listener.readbacks.push(request);
+    const esm = renderContext.GetEffectStateManager();
+    const inverted = esm.IsDepthTestInverted();
+    const managed = esm.IsManagedRendering();
+    renderContext.PushProjection();
+    renderContext.PushViewTransform();
+    esm.PushViewport();
+    try
+    {
+      const pixel = screenToProjection(x, y, viewport);
+      this.SetupTransformsForPicking(pixel.x, pixel.y, projection, view, viewport, renderContext);
+      const visible = this.GetPickingObjectsToRender(renderContext);
+      if (!this._pickBuffer.IsValid())
+      {
+        this._pickBuffer.Create(Tr2BitmapDimensions.texture2D(1, 1, 1, PixelFormat.PIXEL_FORMAT_R32G32B32A32_UINT),
+          { gpuUsage: Tr2GpuUsage.RENDER_TARGET, cpuUsage: Tr2CpuUsage.READ_OFTEN }, renderContext);
+      }
+      if (!this._pickDepthBuffer.IsValid())
+      {
+        this._pickDepthBuffer.Create(Tr2BitmapDimensions.texture2D(1, 1, 1, PixelFormat.PIXEL_FORMAT_D24_UNORM_S8_UINT),
+          { gpuUsage: Tr2GpuUsage.DEPTH_STENCIL }, renderContext);
+      }
+      if (this._pickBuffer.IsValid() && this._pickDepthBuffer.IsValid() && !Failed(renderContext.BeginScene()))
+      {
+        try
+        {
+          esm.SetInvertedDepthTest(true);
+          esm.BeginManagedRendering();
+          esm.PushRenderTarget(this._pickBuffer);
+          esm.PushDepthStencilBuffer(this._pickDepthBuffer);
+          try
+          {
+            renderContext.Clear({ clearColor: true, clearDepth: true, color: [0, 0, 0, 0], depth: 0 });
+            esm.SetFullScreenViewport();
+            this.PopulatePerFramePSData(renderContext);
+            this.PopulatePerFrameVSData(renderContext, { renderTargetWidth: 1, renderTargetHeight: 1 });
+            this.ApplyPerFrameData(renderContext);
+            const batches = this._pickingBatches;
+            batches.SetTriPoolAllocator(renderContext.GetTriPoolAllocator());
+            for (const renderable of visible)
+            {
+              const pickable = CjsSchema.cast(renderable, ITr2Pickable);
+              if (!pickable) continue;
+              const pointer = request.RetainObject(pickable);
+              const data = renderable.GetPerObjectData(batches);
+              if (data) data.SetPickingPointer(pointer);
+              if (pickTypes !== Tr2PickType.PICK_TYPE_PICKING)
+                pickable.GetPickingBatches(batches, pickTypes & ~Tr2PickType.PICK_TYPE_PICKING, data);
+              if (pickTypes & Tr2PickType.PICK_TYPE_PICKING)
+                pickable.GetPickingBatches(batches, Tr2PickType.PICK_TYPE_PICKING, data);
+            }
+            batches.Finalize();
+            esm.ApplyStandardStates(RenderingMode.RM_PICKING);
+            renderContext.RenderBatchesForPicking(batches, "Picking");
+          }
+          finally
+          {
+            this._pickingBatches.Clear();
+            esm.PopDepthStencilBuffer();
+            esm.PopRenderTarget();
+          }
+        }
+        finally
+        {
+          renderContext.EndScene();
+        }
+        request.readback = this._pickBuffer.CreateReadback(Tr2TextureSubresource.ForMipLevel(0), renderContext);
+      }
+    }
+    catch (error)
+    {
+      listener.readbacks.splice(listener.readbacks.indexOf(request), 1);
+      request.Destroy();
+      throw error;
+    }
+    finally
+    {
+      if (!managed) esm.EndManagedRendering();
+      esm.SetInvertedDepthTest(inverted);
+      esm.PopViewport();
+      renderContext.PopViewTransform();
+      renderContext.PopProjection();
+    }
+    if (immediate) return this.#AwaitPicking(listener, renderContext);
+    while (listener.readbacks.length)
+    {
+      const pending = listener.readbacks[0];
+      if (!pending.readback.IsValid())
+      {
+        listener.readbacks.shift().Destroy();
+        continue;
+      }
+      if (!pending.readback.IsReady(renderContext)) break;
+      this.#ConsumePicking(listener, pending, pending.readback.Map(renderContext));
+    }
+    return [listener.GetObject(), listener.GetExtraData1(), listener.GetExtraData2()];
+  }
+
+  /** Wait only on the listener's own snapshots; cancellation drops the result. */
+  async #AwaitPicking(listener, renderContext)
+  {
+    while (listener.readbacks.length)
+    {
+      const pending = listener.readbacks[0];
+      const mapping = await pending.readback.Map(renderContext);
+      if (listener.readbacks[0] !== pending) continue;
+      this.#ConsumePicking(listener, pending, mapping);
+    }
+    return [listener.GetObject(), listener.GetExtraData1(), listener.GetExtraData2()];
+  }
+
+  /** Decodes before releasing the borrowed mapping and its retained objects. */
+  #ConsumePicking(listener, pending, mapping)
+  {
+    const result = mapping.result === ALResult.S_OK ? pending.DecodeResult(mapping.data) : [null, 0, 0];
+    listener.UpdateResult(pending.pickedX, pending.pickedY, ...result);
+    listener.readbacks.shift();
+    pending.Destroy();
+  }
+
+  /** Crops the current projection to one pixel; gl-matrix reverses native composition. */
+  @meta.adapted
+  SetupTransformsForPicking(fx, fy, projection, view, viewport, renderContext)
+  {
+    const mat4_0 = mat4.alloc();
+    try
+    {
+      const crop = mat4.identity(mat4_0);
+      crop[0] = viewport.width;
+      crop[5] = viewport.height;
+      crop[12] = -fx * viewport.width;
+      crop[13] = -fy * viewport.height;
+      mat4.multiply(crop, crop, projection.GetMatrixWithoutViewAdjustment());
+      renderContext.SetViewTransform(view.GetTransform());
+      renderContext.SetProjection(crop, projection.fov);
+    }
+    finally
+    {
+      mat4.unalloc(mat4_0);
+    }
+  }
+
+  /** Native one-pixel frustum visibility gather, with the previous frustum restored. */
+  @meta.adapted
+  GetPickingObjectsToRender(renderContext)
+  {
+    const visible = [];
+    const previous = this.updateContext.GetFrustum();
+    const frustum = new TriFrustum();
+    frustum.DeriveFrustum(renderContext.GetViewTransform(), renderContext.GetViewPosition(),
+      renderContext.GetProjection(), { width: 1, height: 1 });
+    this.updateContext.SetFrustum(frustum);
+    try
+    {
+      for (const object of this.objects)
+      {
+        if (!object.IsPickable()) continue;
+        object.UpdateVisibility(this.updateContext, IDENTITY);
+        object.GetRenderables(visible, null);
+      }
+    }
+    finally
+    {
+      this.updateContext.SetFrustum(previous);
+    }
+    if (this.cameraAttachmentParent)
+    {
+      this.cameraAttachmentParent.UpdateVisibility(this.updateContext, IDENTITY);
+      this.cameraAttachmentParent.GetRenderables(visible, null);
+    }
+    return visible;
   }
 
   /**

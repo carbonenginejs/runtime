@@ -1379,21 +1379,48 @@ export class Tr2RenderContext
   }
 
   /**
-   * Records a submission for picking, which Carbon separates because it reads
-   * the batch's user data as an object id rather than shading it
-   * (RenderBatchesForPicking, Tr2RenderContext.h:44).
+   * Carbon's single-pass picking walk. The uint64 identity is split into two
+   * integer variables without ever converting the full value to Number.
+   * Texture binding occurs through ApplyMaterialDataForPass in this port.
    *
    * @param {object} batches Finalized accumulator.
    * @param {string} [techniqueName] Carbon's DEFAULT_TECHNIQUE.
-   * @returns {boolean} Whether the submission was recorded.
+   * @returns {number} Number of submitted batches.
    */
-  RenderBatchesForPicking(_batches, _techniqueName = DEFAULT_TECHNIQUE)
+  @meta.adapted
+  RenderBatchesForPicking(batches, techniqueName = DEFAULT_TECHNIQUE)
   {
-    // NOT PORTED. Carbon's picking walk stamps each batch's user data into the
-    // global "objectId" variable and draws the picking technique; the 32-bit
-    // target and the readback are not here yet (docs: "Why no Carbon picker").
-    // Refuses by name rather than drawing a colour pass that returns pixels.
-    throw new Error("Tr2RenderContext.RenderBatchesForPicking is not ported.");
+    Tr2RingBuffer.prepareInstances(this);
+    const store = Tr2VariableStore.globalStore();
+    const low = store.RegisterVariable("pickingObjectLowBits", 0);
+    const high = store.RegisterVariable("pickingObjectHighBits", 0);
+    const area = store.RegisterVariable("areaId", 0);
+    const buffers = Array.from({ length: ConstantBufferSlot.CBUFFER_COUNT }, (_value, slot) => this.GetConstantBuffer(slot));
+    let currentObjectData = null;
+    let drawn = 0;
+    for (const batch of batches.GetBatches())
+    {
+      const technique = batch.shader.GetTechniqueIndex(techniqueName);
+      if (technique < 0) continue;
+      if (batch.objectData)
+      {
+        if (batch.objectData !== currentObjectData)
+        {
+          batch.objectData.SetPerObjectDataToDevice(buffers, batch.shader.GetShaderTypeMask(technique), this);
+          currentObjectData = batch.objectData;
+        }
+        const pointer = batch.objectData.GetPickingPointer();
+        if (low) low.SetValue(Number(pointer & 0xffffffffn) | 0);
+        if (high) high.SetValue(Number((pointer >> 32n) & 0xffffffffn) | 0);
+        if (area) area.SetValue(batch.pickingData | 0);
+      }
+      if (batch.shader.GetPassCount(technique) !== 1) throw new Error("Picking requires a single-pass technique.");
+      batch.shader.ApplyAllStateForPass(technique, 0, this);
+      batch.material.ApplyMaterialDataForPass(technique, 0, this);
+      this.SubmitGeometry(batch);
+      drawn++;
+    }
+    return drawn;
   }
 
   /**

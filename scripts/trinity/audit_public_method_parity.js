@@ -231,7 +231,18 @@ async function ReadJavaScriptClasses(directory, includeDropped = false)
       {
         if (member.type !== "ClassMethod" || member.kind === "constructor") continue;
         const name = GetMemberName(member);
-        if (name) methods.set(name, { hasCarbon: HasCarbonDecorator(member, "method"), isStatic: member.static === true });
+        if (!name) continue;
+        const metadata = { hasCarbon: HasCarbonDecorator(member, "method"), isStatic: member.static === true };
+        methods.set(name, metadata);
+        // A browser wrapper can keep its Blue name while declaring its C++
+        // original, just as the native-method audit already resolves aliases.
+        for (const decorator of member.decorators ?? [])
+        {
+          const call = decorator.expression;
+          if (call?.type !== "CallExpression" || !isCarbonDecorator(call, "renamed")) continue;
+          const original = call.arguments[0];
+          if (original?.type === "StringLiteral") methods.set(original.value, metadata);
+        }
       }
       const localBase = GetSuperClassName(declaration.superClass);
       const baseClass = localBase ? imports.get(localBase) ?? localBase : null;

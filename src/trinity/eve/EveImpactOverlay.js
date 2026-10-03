@@ -108,6 +108,7 @@ export class EveImpactOverlay
     return this.GetDebugForceSpawnDebris();
   }
 
+  /** Assigns the debris override through the native setter. */
   set debugForceSpawnDebris(value)
   {
     this.SetDebugForceSpawnDebris(value);
@@ -144,6 +145,7 @@ export class EveImpactOverlay
     return this.GetArmorDamageShaderEffect();
   }
 
+  /** Assigns the armour damage effect through the native setter. */
   set armorDamageShader(value)
   {
     this.SetArmorDamageShaderEffect(value);
@@ -159,6 +161,7 @@ export class EveImpactOverlay
     return this.GetArmorRepairing();
   }
 
+  /** Assigns the armour repair fader through the native setter. */
   set armorRepairing(value)
   {
     this.SetArmorRepairing(value);
@@ -174,6 +177,7 @@ export class EveImpactOverlay
     return this.GetArmorHardening();
   }
 
+  /** Assigns the armour hardening fader through the native setter. */
   set armorHardening(value)
   {
     this.SetArmorHardening(value);
@@ -189,6 +193,7 @@ export class EveImpactOverlay
     return this.GetHullRepairing();
   }
 
+  /** Assigns the hull repair fader through the native setter. */
   set hullRepairing(value)
   {
     this.SetHullRepairing(value);
@@ -205,6 +210,7 @@ export class EveImpactOverlay
     return this.GetHullDamageFlickerCurve();
   }
 
+  /** Assigns the hull damage flicker curve through the native setter. */
   set hullDamageFlickerCurve(value)
   {
     this.SetHullDamageFlickerCurve(value);
@@ -220,6 +226,7 @@ export class EveImpactOverlay
     return this.GetHullDamageFactor();
   }
 
+  /** Assigns the hull damage factor through the native setter. */
   set hullDamageFactor(value)
   {
     this.SetHullDamageFactor(value);

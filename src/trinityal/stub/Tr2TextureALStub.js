@@ -38,6 +38,7 @@ import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
+import { Tr2ReadbackALStub } from "./Tr2ReadbackALStub.js";
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
 import { Crop, Tr2MsaaDesc, Tr2TextureSubresource } from "../Tr2HalHelperStructures/index.js";
 import {
@@ -365,11 +366,10 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
    * problem - which is why it answers `E_INVALIDCALL` and not `E_FAIL`.
    *
    * @param {Tr2TextureSubresource} region The subresource to map.
-   * @param {boolean} synchronize Whether to wait for outstanding GPU work.
    * @param {object} renderContext The context to map against.
    * @returns {{result: number, data: Uint8Array|null, pitch: number}} The mapping.
    */
-  MapForReading(region, synchronize, renderContext)
+  MapForReading(region, renderContext)
   {
     if (!HasFlag(this._cpuUsage, Tr2CpuUsage.READ)) return { result: ALResult.E_INVALIDCALL, data: null, pitch: 0 };
 
@@ -380,6 +380,13 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
     if (!region.IsSingleSubresource()) return { result: ALResult.E_INVALIDARG, data: null, pitch: 0 };
 
     return this._Allocate(region);
+  }
+
+  /** Carbon CreateReadback copies the selected stub storage into an owned snapshot. */
+  CreateReadback(region, renderContext)
+  {
+    const mapped = this.MapForReading(region, renderContext);
+    return mapped.result === ALResult.S_OK ? new Tr2ReadbackALStub(mapped.data, mapped.pitch) : null;
   }
 
   /** Releases a read mapping, keeping the buffer only for an "often" usage. */

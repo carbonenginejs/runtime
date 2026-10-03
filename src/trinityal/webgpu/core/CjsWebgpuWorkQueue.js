@@ -374,6 +374,23 @@ export class CjsWebgpuWorkQueue
   }
 
   /**
+   * Carbon MetalWorkQueue::CopyTextureToMTLBuffer, with a GPUBuffer replacing
+   * MTLBuffer. The device supplies an encoder when called between frames.
+   * Waiting is owned by Tr2ReadbackALWebgpu because WebGPU cannot block.
+   */
+  CopyTextureToMTLBuffer(texture, destBuffer, bytesPerRow, bytesPerSlice, origin, size, mipLevel, waitForData, device)
+  {
+    if (waitForData) throw new Error("WebGPU texture readback must be awaited through its readback object.");
+    if (this._inFrame) this._FlushOutstandingOperations();
+    this._ReleaseEncoder();
+    const encoder = this._commandEncoder ?? device.createCommandEncoder({ label: "Tr2ReadbackAL copy" });
+    encoder.copyTextureToBuffer({ texture, mipLevel, origin },
+      { buffer: destBuffer, bytesPerRow, rowsPerImage: bytesPerSlice / bytesPerRow }, size);
+    if (!this._commandEncoder) device.queue.submit([encoder.finish()]);
+    return this._Drain();
+  }
+
+  /**
    * Fills a buffer with zeros: the fast path of Metal's
    * `MetalWorkQueue::ClearBuffer` (`MetalWorkQueue.mm:1216-1225`), a blit
    * `fillBuffer` that then releases the encoder. WebGPU's `clearBuffer` is on

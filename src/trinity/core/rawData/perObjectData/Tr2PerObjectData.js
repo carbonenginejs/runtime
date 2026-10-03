@@ -1,7 +1,7 @@
 // Source: trinity/Tr2PerObjectData.h (Tr2PerObjectData base)
 //
-// Per-object render data. Carries the object id (Carbon's m_userData, used as
-// the picking / object id) and is the value a renderable's GetPerObjectData
+// Per-object render data. Carries Carbon's uint64_t m_pickingPointer
+// and is the value a renderable's GetPerObjectData
 // returns and a batch references via SetPerObjectData.
 //
 // The upload lives here, as it does in Carbon: SetPerObjectDataToDevice calls
@@ -26,19 +26,22 @@ export class Tr2PerObjectData
   /** Starts with a zero object id. */
   constructor()
   {
-    this.userData = 0;
+    this.pickingPointer = 0n;
   }
 
-  /** Sets the object id, coerced to an unsigned 32-bit value. */
-  SetUserData(userData)
+  /** Native uint64_t, held exactly as BigInt; callers encode request-local identity. */
+  @meta.adapted
+  SetPickingPointer(pickingPointer)
   {
-    this.userData = userData >>> 0;
+    if (typeof pickingPointer !== "bigint") throw new TypeError("Picking pointers require a BigInt.");
+    this.pickingPointer = BigInt.asUintN(64, pickingPointer);
   }
 
-  /** The object id, which doubles as the picking id. */
-  GetUserData()
+  /** Returns all 64 bits without conversion through a JavaScript Number. */
+  @meta.adapted
+  GetPickingPointer()
   {
-    return this.userData;
+    return this.pickingPointer;
   }
 
   /**

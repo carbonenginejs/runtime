@@ -5,7 +5,7 @@ import { meta } from "#schema";
 
 /**
  * Holds the outstanding picking readbacks and the most recent pick result -
- * screen coordinates, hit object and hit area - for a scene.
+ * screen coordinates, hit object and both extra-data words - for a scene.
  */
 @meta.define({ className: "EvePickingContext", family: "eve/scene" })
 export class EvePickingContext
@@ -23,7 +23,10 @@ export class EvePickingContext
   lastPickedObject = null;
 
   @meta.type.uint32
-  lastPickedArea = 0;
+  lastPickedExtraData1 = 0;
+
+  @meta.type.uint32
+  lastPickedExtraData2 = 0;
 
   /**
    * Records the outcome of a resolved pick: the sampled screen coordinates, the
@@ -31,12 +34,13 @@ export class EvePickingContext
    */
   @meta.blue.method
   @meta.implemented
-  UpdateResult(x, y, object, area)
+  UpdateResult(x, y, object, extraData1, extraData2)
   {
     this.lastPickedX = Number(x) >>> 0;
     this.lastPickedY = Number(y) >>> 0;
     this.lastPickedObject = object ?? null;
-    this.lastPickedArea = Number(area) >>> 0;
+    this.lastPickedExtraData1 = extraData1 >>> 0;
+    this.lastPickedExtraData2 = extraData2 >>> 0;
   }
 
   /**
@@ -53,8 +57,25 @@ export class EvePickingContext
   /** Returns the area index from the last resolved pick. */
   @meta.blue.method
   @meta.implemented
-  GetArea()
+  GetExtraData1()
   {
-    return this.lastPickedArea;
+    return this.lastPickedExtraData1;
+  }
+
+  /** Returns the second extra-data word from the last resolved pick. */
+  @meta.blue.method
+  @meta.implemented
+  GetExtraData2()
+  {
+    return this.lastPickedExtraData2;
+  }
+
+  /** Explicit cancellation replaces destruction of Carbon's owning vector. */
+  @meta.adapted
+  Destroy()
+  {
+    for (const request of this.readbacks) request.Destroy();
+    this.readbacks.length = 0;
+    this.UpdateResult(0, 0, null, 0, 0);
   }
 }

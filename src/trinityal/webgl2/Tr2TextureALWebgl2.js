@@ -844,16 +844,15 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    *
    * dx11 copies into a staging texture and maps it (`:802-876`); WebGL2 reads
    * the pixels back with `readPixels` from a framebuffer, which waits for the
-   * GPU as dx11's `Map(READ)` does. `synchronize` is ignored, as dx11 ignores
-   * it. A compressed texture has no framebuffer attachment and is refused.
+   * GPU as dx11's `Map(READ)` does. A compressed texture has no framebuffer
+   * attachment and is refused.
    *
    * @param {Tr2TextureSubresource} region The subresource to map.
-   * @param {boolean} _synchronize Ignored, as on dx11.
    * @param {object} renderContext The context to map against.
    * @returns {{result: number, data: Uint8Array|null, pitch: number}} The mapping.
    */
   @meta.adapted
-  MapForReading(region, _synchronize, renderContext)
+  MapForReading(region, renderContext)
   {
     const fail = result => ({ result, data: null, pitch: 0 });
 

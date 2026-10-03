@@ -105,11 +105,17 @@ test("a null override falls through to an ordinary submission", () =>
   assert.deepEqual(material.applied, [ "0:0" ]);
 });
 
-test("picking is not ported and refuses by name", () =>
+test("picking submits one pass per batch and rejects a multi-pass technique", () =>
 {
-  const { context, accumulator } = contextWith(1);
+  const { context, al, accumulator } = contextWith(1);
+  const before = al.GetDrawCount();
 
-  assert.throws(() => context.RenderBatchesForPicking(accumulator), /RenderBatchesForPicking is not ported/u);
+  assert.equal(context.RenderBatchesForPicking(accumulator), 1);
+  assert.equal(al.GetDrawCount(), before + 1);
+  const shader = shaderStub(2);
+  const multiplePasses = accumulatorOf([batchOf(shader, materialStub(shader))]);
+  assert.throws(() => context.RenderBatchesForPicking(multiplePasses), /single-pass technique/u);
+  assert.equal(al.GetDrawCount(), before + 1);
 });
 
 test("no accumulator submits nothing rather than an empty draw", () =>

@@ -7,6 +7,7 @@ import { RenderContextALOf } from "../renderContextAL.js";
 import { BitmapDimensions } from "#imageio";
 import { Tr2MsaaDesc, Tr2TextureSubresource } from "../Tr2HalHelperStructures/index.js";
 import { PixelFormat } from "#consts/render-context";
+import { Tr2ReadbackAL } from "../Tr2ReadbackAL/Tr2ReadbackAL.js";
 
 const emptyDescription = new BitmapDimensions();
 const emptyMsaa = new Tr2MsaaDesc();
@@ -182,17 +183,20 @@ export class Tr2TextureAL
     return this._texture === other._texture;
   }
 
-  /** Forwards MapForReading to the implementation, preserving the empty-value result. */
+  /** Creates an independently owned snapshot, retaining native empty-value semantics. */
+  @meta.adapted
+  CreateReadback(region, renderContext)
+  {
+    return new Tr2ReadbackAL({ implementation: this._texture
+      ? this._texture.implementation.CreateReadback(region, renderContext) : null });
+  }
+
+  /** Forwards the current native mapping signature and preserves the empty-value result. */
   @meta.blue.method
   @meta.implemented
-  MapForReading(region, synchronize, renderContext)
+  MapForReading(region, renderContext)
   {
-    if (arguments.length === 2)
-    {
-      renderContext = synchronize;
-      synchronize = true;
-    }
-    return this._texture ? this._texture.implementation.MapForReading(region, synchronize, renderContext) : { result: ALResult.E_INVALIDCALL, data: null, pitch: 0 };
+    return this._texture ? this._texture.implementation.MapForReading(region, renderContext) : { result: ALResult.E_INVALIDCALL, data: null, pitch: 0 };
   }
 
   /** Forwards UnmapForReading to the implementation, preserving the empty-value result. */

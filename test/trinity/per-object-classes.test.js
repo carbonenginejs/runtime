@@ -1,4 +1,4 @@
-﻿
+
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
@@ -173,7 +173,7 @@ test("Tr2PerObjectDataStandard.alloc leases both payloads in their named shapes"
 
   assert.equal(data.vs.GetStruct(), "VS");
   assert.equal(data.ps.GetStruct(), "PS");
-  assert.equal(data.GetUserData(), 0, "Carbon's m_userData starts at zero");
+  assert.equal(data.GetPickingPointer(), 0n, "Carbon's m_pickingPointer starts at zero");
 
   // The producer writes onto the leased payload directly - there is no copy
   // step, because a RawData already is the uploadable buffer.
