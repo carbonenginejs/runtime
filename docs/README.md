@@ -91,3 +91,5 @@ core, and tools.
 - [Repository migration procedure](../migration/README.md)
 - [Machine-readable layer contract](../layers.json)
 - [Machine-readable donor manifest](../migration/sources.json)
+
+- [Legacy cloud rendering](eve-child-cloud.md): tessellation, LOD, direct batch submission and remaining gaps.
