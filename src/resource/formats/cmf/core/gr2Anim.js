@@ -15,6 +15,7 @@
  * vector tracks that do not name a morph target are not carried into CMF.
  */
 
+import { vec3, quat, mat4 } from "../../../../global/math/index.js";
 import {
     decodeCurve,
     FORMAT_DA_KEYFRAMES_32F,
@@ -107,12 +108,16 @@ export function convertGr2Skeleton(skeleton)
     }
     const worldTransforms = new Array(bones.length);
     const restTransforms = new Array(bones.length);
-    const parents = new Array(bones.length);
+    const parents = new Uint32Array(bones.length); // alloc: returned parent indices follow the skeleton size.
 
     for (let i = 0; i < bones.length; i++)
     {
         const bone = bones[i];
         const parentIndex = typeof bone.parentIndex === "number" ? bone.parentIndex : -1;
+        if (!Number.isInteger(parentIndex))
+        {
+            throw convertError(`bone ${i} (${bone.name}) has non-integer parent index ${parentIndex}`);
+        }
         if (parentIndex >= i && parentIndex !== 0xffffffff)
         {
             throw convertError(`bone ${i} (${bone.name}) has forward parent index ${parentIndex}`);
@@ -120,7 +125,11 @@ export function convertGr2Skeleton(skeleton)
         parents[i] = parentIndex < 0 || parentIndex === 0xffffffff ? 0xffffffff : parentIndex;
 
         const rest = boneRestTransform(bone);
-        restTransforms[i] = rest;
+        restTransforms[i] = {
+            position: vec3.clone(rest.position), // alloc: published geometry owns this value beyond the decode call.
+            rotation: quat.clone(rest.rotation), // alloc: published geometry owns this value beyond the decode call.
+            scale: vec3.clone(rest.scale) // alloc: published geometry owns this value beyond the decode call.
+        };
         const local = composeCmfTransform(rest.position, rest.rotation, rest.scale);
         worldTransforms[i] = parents[i] === 0xffffffff
             ? local
@@ -137,12 +146,12 @@ export function convertGr2Skeleton(skeleton)
     const invBindTransforms = worldTransforms.map((world, index) =>
     {
         const supplied = suppliedInverseBinds[index];
-        if (supplied === null || supplied === undefined) return invertMatrix4(world);
-        if (!Array.isArray(supplied) || supplied.length !== 16 || supplied.some(value => !Number.isFinite(value)))
+        if (supplied === null || supplied === undefined) return mat4.clone(invertMatrix4(world)); // alloc: published geometry owns this value beyond the decode call.
+        if ((!Array.isArray(supplied) && !ArrayBuffer.isView(supplied)) || supplied.length !== 16 || supplied.some(value => !Number.isFinite(value)))
         {
             throw convertError(`skeleton "${skeleton.name || ""}" inverse bind ${index} is not a finite matrix`);
         }
-        return supplied.slice();
+        return mat4.clone(supplied); // alloc: published geometry owns this value beyond the decode call.
     });
 
     return {
@@ -715,7 +724,7 @@ export function convertGr2SkeletonsAndAnimations(root, options = {})
     const assignmentModels = new Array(sourceMeshes.length).fill(null);
     for (let modelIndex = 0; modelIndex < models.length; modelIndex++)
     {
-        const bindings = Array.isArray(models[modelIndex]?.meshBindings)
+        const bindings = (Array.isArray(models[modelIndex]?.meshBindings) || ArrayBuffer.isView(models[modelIndex]?.meshBindings))
             ? models[modelIndex].meshBindings
             : [];
         for (let bindingIndex = 0; bindingIndex < bindings.length; bindingIndex++)

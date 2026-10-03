@@ -1,3 +1,4 @@
+import { isArrayLike } from "../../../../global/utils/is.js";
 import { CjsByteWriter } from "../../../format/CjsByteWriter.js";
 import { CjsFormatWriteError } from "../../../format/CjsFormatError.js";
 import { unpackMeshTangents } from "#math/tangent";
@@ -163,7 +164,7 @@ function validateName(value, label)
 
 function validateFiniteArray(values, expectedLength, label)
 {
-    if (!Array.isArray(values) || values.length !== expectedLength)
+    if (!isArrayLike(values) || values.length !== expectedLength)
     {
         throw writeError(`${label} must contain ${expectedLength} values`);
     }
@@ -176,7 +177,7 @@ function validateFiniteArray(values, expectedLength, label)
 function arraysEqual(a, b)
 {
     return a === b || (
-        Array.isArray(a) && Array.isArray(b) &&
+        isArrayLike(a) && isArrayLike(b) &&
         a.length === b.length &&
         a.every((value, index) => Object.is(value, b[index]) || value === b[index])
     );
@@ -239,7 +240,7 @@ function validateVertexDeclaration(mesh, meshIndex)
     const vertex = vertexData(mesh);
     for (const [ channel, values ] of Object.entries(vertex))
     {
-        if (!Array.isArray(values) || !values.length) continue;
+        if (!isArrayLike(values) || !values.length) continue;
         if (vertexChannelWidth(channel) === null)
         {
             throw writeError(`mesh ${meshIndex} vertex channel "${channel}" is not supported by FBX export`);
@@ -274,7 +275,7 @@ function validateMesh(mesh, meshIndex)
     validateLodProjection(mesh, meshIndex);
     validateVertexDeclaration(mesh, meshIndex);
     const positions = vertexData(mesh).position ?? [];
-    if (!Array.isArray(positions) || positions.length % 3)
+    if (!isArrayLike(positions) || positions.length % 3)
     {
         throw writeError(`mesh ${meshIndex} positions must be an array of vec3 values`);
     }
@@ -302,7 +303,7 @@ function validateMesh(mesh, meshIndex)
         }
         validateName(group.name, `mesh ${meshIndex} index group ${groupIndex} name`);
         const faces = group.faces ?? [];
-        if (!Array.isArray(faces) || faces.length % 3)
+        if (!isArrayLike(faces) || faces.length % 3)
         {
             throw writeError(`mesh ${meshIndex} index group ${groupIndex} must contain triangles`);
         }
@@ -328,7 +329,7 @@ function validateMesh(mesh, meshIndex)
             : /^color(?:[0-9]+)?$/u.test(channel)
                 ? [ vertexCount * 3, vertexCount * 4 ]
             : [ vertexCount * width ];
-        if (!Array.isArray(values) || !validLengths.includes(values.length))
+        if (!isArrayLike(values) || !validLengths.includes(values.length))
         {
             throw writeError(`mesh ${meshIndex} ${channel} must contain ${validLengths.join(" or ")} values`);
         }
@@ -363,7 +364,7 @@ function polygonVertexChannel(mesh, channel, width, meshIndex)
         : /^color(?:[0-9]+)?$/u.test(channel) && source.length === vertexCount * 3
             ? 3
         : width;
-    if (!Array.isArray(source) || source.length !== vertexCount * sourceWidth)
+    if (!isArrayLike(source) || source.length !== vertexCount * sourceWidth)
     {
         throw writeError(`mesh ${meshIndex} ${channel} must contain ${vertexCount} vec${sourceWidth} values`);
     }
@@ -537,7 +538,7 @@ function propertyNode(name, type, flags, values)
         string(type),
         string(""),
         string(flags),
-        ...values.map((value) => double(value))
+        ...Array.from(values, (value) => double(value))
     ]);
 }
 
@@ -570,7 +571,7 @@ function validateSkeleton(skeleton, skeletonIndex)
     const parents = skeleton.parents ?? [];
     const restTransforms = skeleton.restTransforms ?? [];
     const inverseBinds = skeleton.invBindTransforms ?? [];
-    if (!Array.isArray(bones) || !Array.isArray(parents) ||
+    if (!Array.isArray(bones) || !isArrayLike(parents) ||
         parents.length !== bones.length || restTransforms.length !== bones.length ||
         inverseBinds.length !== bones.length)
     {
@@ -935,7 +936,7 @@ function appendMorphs(mesh, meshIndex, geometryId, objects, connections, allocat
         }
         for (const [ channel, values ] of Object.entries(targetVertex))
         {
-            if (!Array.isArray(values) || !values.length) continue;
+            if (!isArrayLike(values) || !values.length) continue;
             if (![ "position", "normal", "tangent", "binormal" ].includes(channel))
             {
                 throw writeError(`mesh ${meshIndex} morph target "${name}" channel "${channel}" is not supported`);
@@ -944,7 +945,7 @@ function appendMorphs(mesh, meshIndex, geometryId, objects, connections, allocat
         const absolutePositions = targetVertex.position?.length
             ? targetVertex.position
             : base;
-        if (!Array.isArray(absolutePositions) || absolutePositions.length !== base.length)
+        if (!isArrayLike(absolutePositions) || absolutePositions.length !== base.length)
         {
             throw writeError(`mesh ${meshIndex} morph target "${name}" positions do not match the base mesh`);
         }
@@ -1902,7 +1903,7 @@ function unpackSharedVertexForFbx(source, vertexCount)
     const vertex = { ...(source ?? {}) };
     const packed = vertex.packedTangentLegacy;
 
-    if (Array.isArray(packed) && packed.length &&
+    if (isArrayLike(packed) && packed.length &&
         !(vertex.tangent?.length) && !(vertex.normal?.length) && !(vertex.binormal?.length))
     {
         vertex.tangent = packed;

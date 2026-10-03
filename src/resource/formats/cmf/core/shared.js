@@ -1,3 +1,4 @@
+import { vec3 } from "../../../../global/math/index.js";
 import { convertGr2SkeletonsAndAnimations } from "./gr2Anim.js";
 import { Usage } from "./constants.js";
 import { canonicalMorphVertex, maxMorphDisplacement } from "./utils/morph.js";
@@ -95,7 +96,7 @@ function buildMesh(mesh, options)
         audioOcclusionMesh: mesh.audioOcclusionMesh ?? {
             vertices: [],
             indices: [],
-            bounds: { min: [ 0, 0, 0 ], max: [ 0, 0, 0 ] }
+            bounds: { min: vec3.create(), max: vec3.create() } // alloc: published geometry owns this value beyond the decode call.
         },
         topology,
         skeleton: mesh.skeleton ?? null,
@@ -286,8 +287,8 @@ function boundsForArea(group, vertex, mesh)
         if (offset + 2 < positions.length) selected.push(positions[offset], positions[offset + 1], positions[offset + 2]);
     }
     if (!selected.length) return boundsFromShared(mesh);
-    const min = [ Infinity, Infinity, Infinity ];
-    const max = [ -Infinity, -Infinity, -Infinity ];
+    const min = vec3.fromValues(Infinity, Infinity, Infinity); // alloc: published geometry owns this value beyond the decode call.
+    const max = vec3.fromValues(-Infinity, -Infinity, -Infinity); // alloc: published geometry owns this value beyond the decode call.
     for (let offset = 0; offset < selected.length; offset += 3)
     {
         for (let axis = 0; axis < 3; axis++)
@@ -397,7 +398,8 @@ function normalizeSharedVertexTangents(vertex, vertexCount)
     // The source channels are the layout authority. GR2's explicit
     // `unpackTangents` conversion runs before this boundary when requested;
     // CMF construction must not silently expand an otherwise packed frame.
-    return { ...vertex, tangent: [], packedTangentLegacy: tangent.slice() };
+    // Borrow the channel just as position does; the resource owns both graphs.
+    return { ...vertex, tangent: [], packedTangentLegacy: tangent };
 }
 
 function normalizeSharedVertexSkin(vertex, vertexCount)
@@ -415,7 +417,7 @@ function normalizeSharedVertexSkin(vertex, vertexCount)
     // Carbon CMF treats BoneIndices without BoneWeights as rigid skinning.
     // Its geometry exporters synthesize (1, 0, 0, 0) before targeting formats
     // such as glTF/FBX that require explicit weights.
-    const normalized = { ...vertex, blendWeight: new Array(positionCount * 4).fill(0) };
+    const normalized = { ...vertex, blendWeight: new Float32Array(positionCount * 4) }; // alloc: returned rigid weights own data-sized storage.
     for (let i = 0; i < positionCount; i++) normalized.blendWeight[i * 4] = 1;
     return normalized;
 }

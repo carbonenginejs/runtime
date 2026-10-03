@@ -382,7 +382,7 @@ test("shares a full skeleton across Carbon per-mesh skin palettes and maps inver
     });
     assert.equal(cmf.skeletons.length, 1);
     assert.deepEqual(cmf.meshes.map(mesh => mesh.skeleton), [ 0, 0 ]);
-    assert.deepEqual(cmf.skeletons[0].invBindTransforms.map(matrix => matrix.slice(12, 15)), [
+    assert.deepEqual(cmf.skeletons[0].invBindTransforms.map(matrix => Array.from(matrix.slice(12, 15))), [
         [ 0, 0, 0 ],
         [ 10, 0, 0 ],
         [ 0, 20, 0 ]

@@ -59,8 +59,8 @@ function emit(options)
 test("bounds stay zeros without the option", () =>
 {
     const mesh = emit({});
-    assert.deepEqual(mesh.minBounds, [ 0, 0, 0 ]);
-    assert.deepEqual(mesh.maxBounds, [ 0, 0, 0 ]);
+    assert.deepEqual(Array.from(mesh.minBounds), [ 0, 0, 0 ]);
+    assert.deepEqual(Array.from(mesh.maxBounds), [ 0, 0, 0 ]);
     assert.equal("minBounds" in mesh.indices[0], false);
 });
 
@@ -69,14 +69,14 @@ test("rebuildMissingBounds computes group and mesh bounds from positions", () =>
     const mesh = emit({ rebuildMissingBounds: true });
 
     // Group 0 references vertices 0-2, group 1 references vertices 3-5.
-    assert.deepEqual(mesh.indices[0].minBounds, [ -2, 0, -3 ]);
-    assert.deepEqual(mesh.indices[0].maxBounds, [ 4, 5, 7 ]);
-    assert.deepEqual(mesh.indices[1].minBounds, [ 10, -6, 2 ]);
-    assert.deepEqual(mesh.indices[1].maxBounds, [ 12, -4, 4 ]);
+    assert.deepEqual(Array.from(mesh.indices[0].minBounds), [ -2, 0, -3 ]);
+    assert.deepEqual(Array.from(mesh.indices[0].maxBounds), [ 4, 5, 7 ]);
+    assert.deepEqual(Array.from(mesh.indices[1].minBounds), [ 10, -6, 2 ]);
+    assert.deepEqual(Array.from(mesh.indices[1].maxBounds), [ 12, -4, 4 ]);
 
     // Mesh bounds are the union of the groups.
-    assert.deepEqual(mesh.minBounds, [ -2, -6, -3 ]);
-    assert.deepEqual(mesh.maxBounds, [ 12, 5, 7 ]);
+    assert.deepEqual(Array.from(mesh.minBounds), [ -2, -6, -3 ]);
+    assert.deepEqual(Array.from(mesh.maxBounds), [ 12, 5, 7 ]);
 });
 
 test("the option is a registered format value defaulting to false", () =>

@@ -325,7 +325,7 @@ test("emitJson with options.classes hydrates registered node types", () =>
     const model = json.models[0];
     assert.ok(model instanceof Model);
     assert.equal(model.name, "TestModel");
-    assert.deepEqual(model.meshBindings, [ 0 ]);
+    assert.deepEqual(Array.from(model.meshBindings), [ 0 ]);
 
     const skeleton = model.skeleton;
     assert.ok(skeleton instanceof Skeleton);
@@ -485,7 +485,7 @@ test("CjsGr2Format static read emits explicit GR2 and CMF class targets", () =>
     assert.deepEqual(cmf.meshes[0].areas, []);
     assert.equal(cmf.meshes[0].skeleton, 0);
     assert.deepEqual(cmf.skeletons[0].bones, [ "root" ]);
-    assert.deepEqual(cmf.skeletons[0].parents, [ 0xffffffff ]);
+    assert.deepEqual(Array.from(cmf.skeletons[0].parents), [ 0xffffffff ]);
     // `Blink` is arbitrary Granny numeric metadata here: this fixture has no
     // morph target with that name, so CMF cannot label it as morph animation.
     assert.deepEqual(cmf.animations, []);

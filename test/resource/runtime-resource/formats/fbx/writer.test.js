@@ -264,14 +264,14 @@ test("routes GR2 skeletons and animations through CMF before writing FBX", () =>
         meshes: [ {
             name: "Skinned",
             vertex: {
-                position: [ 0, 0, 0, 1, 0, 0, 0, 1, 0 ],
-                blendIndice: new Array(12).fill(0),
-                blendWeight: [ 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 ]
+                position: new Float32Array([ 0, 0, 0, 1, 0, 0, 0, 1, 0 ]),
+                blendIndice: new Float32Array(12),
+                blendWeight: new Float32Array([ 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 ])
             },
-            indices: [ { name: "main", faces: [ 0, 1, 2 ] } ],
+            indices: [ { name: "main", faces: new Uint16Array([ 0, 1, 2 ]) } ],
             boneBindings: [ { name: "RootBone" } ]
         } ],
-        models: [ { name: "Rig", skeleton, meshBindings: [ 0 ] } ],
+        models: [ { name: "Rig", skeleton, meshBindings: new Int32Array([ 0 ]) } ],
         animations: [ {
             name: "Move",
             duration: 1,

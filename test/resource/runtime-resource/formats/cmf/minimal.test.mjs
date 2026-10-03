@@ -216,7 +216,8 @@ test("synthesizes rigid weights for shared BoneIndices without BoneWeights", () 
         } ]
     });
 
-    assert.deepEqual(result.meshes[0].vertex.blendWeight, [
+    assert.ok(result.meshes[0].vertex.blendWeight instanceof Float32Array);
+    assert.deepEqual(Array.from(result.meshes[0].vertex.blendWeight), [
         1, 0, 0, 0,
         1, 0, 0, 0,
         1, 0, 0, 0

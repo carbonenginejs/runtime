@@ -1,17 +1,18 @@
+import { isArrayLike } from "../../../../../global/utils/is.js";
 import { normalizeQuaternion } from "./quaternion.js";
 
 /** Invert a finite 4x4 row-major matrix with Gauss-Jordan elimination. */
 export function invertMatrix4(matrix)
 {
-    if (!Array.isArray(matrix) || matrix.length !== 16 || matrix.some((value) => !Number.isFinite(value)))
+    if (!isArrayLike(matrix) || matrix.length !== 16 || matrix.some((value) => !Number.isFinite(value)))
     {
         throw new Error("CMF matrix must contain 16 finite values");
     }
     const source = [
-        matrix.slice(0, 4),
-        matrix.slice(4, 8),
-        matrix.slice(8, 12),
-        matrix.slice(12, 16)
+        Array.from(matrix.slice(0, 4)),
+        Array.from(matrix.slice(4, 8)),
+        Array.from(matrix.slice(8, 12)),
+        Array.from(matrix.slice(12, 16))
     ];
     const inverse = [
         [ 1, 0, 0, 0 ],
@@ -56,7 +57,7 @@ export function invertMatrix4(matrix)
 /** Multiply two flat row-major 4x4 matrices. */
 export function multiplyMatrix4(a, b)
 {
-    if (!Array.isArray(a) || a.length !== 16 || !Array.isArray(b) || b.length !== 16)
+    if (!isArrayLike(a) || a.length !== 16 || !isArrayLike(b) || b.length !== 16)
     {
         throw new Error("CMF matrix multiplication requires two 4x4 matrices");
     }
@@ -77,7 +78,7 @@ export function multiplyMatrix4(a, b)
 /** Compose CMF row-vector TRS with translation in elements 12..14. */
 export function composeCmfTransform(position, rotation, scale)
 {
-    if (![ position, scale ].every(value => Array.isArray(value) && value.length === 3) ||
+    if (![ position, scale ].every(value => isArrayLike(value) && value.length === 3) ||
         [ ...position, ...scale ].some(value => !Number.isFinite(value)))
     {
         throw new Error("CMF transform position and scale must contain three finite values");
@@ -109,7 +110,7 @@ export function composeCmfTransform(position, rotation, scale)
 /** Transpose a flat 4x4 matrix. */
 export function transposeMatrix4(matrix)
 {
-    if (!Array.isArray(matrix) || matrix.length !== 16)
+    if (!isArrayLike(matrix) || matrix.length !== 16)
     {
         throw new Error("CMF matrix must contain 16 values");
     }

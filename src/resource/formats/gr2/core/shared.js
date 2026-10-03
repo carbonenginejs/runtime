@@ -9,6 +9,8 @@
  * identity value.
  */
 
+import { vec3, quat, mat3 } from "../../../../global/math/index.js";
+
 const fr = Math.fround;
 
 /**
@@ -490,13 +492,13 @@ function emitMesh(mesh, classes = {}, rebuildMissingBounds = false)
     // gr2-sourced mesh to nothing the day its visibility gate armed. The
     // old gr2_json path always regenerated from vertices; here it is an
     // option because it walks every referenced vertex once per group.
-    o.minBounds = [ 0, 0, 0 ];
-    o.maxBounds = [ 0, 0, 0 ];
+    o.minBounds = vec3.create(); // alloc: published geometry owns this value beyond the decode call.
+    o.maxBounds = vec3.create(); // alloc: published geometry owns this value beyond the decode call.
 
     o.boneBindings = (mesh.BoneBindings || []).map(bb => build(classes, "BoneBinding", {
         name: bb.BoneName ?? "",
-        minBounds: (bb.OBBMin || [ 0, 0, 0 ]).map(x => sf(fr(x))),
-        maxBounds: (bb.OBBMax || [ 0, 0, 0 ]).map(x => sf(fr(x)))
+        minBounds: vec3.clone((bb.OBBMin || [ 0, 0, 0 ]).map(x => sf(fr(x)))), // alloc: published geometry owns this value beyond the decode call.
+        maxBounds: vec3.clone((bb.OBBMax || [ 0, 0, 0 ]).map(x => sf(fr(x)))) // alloc: published geometry owns this value beyond the decode call.
     }));
 
     const
@@ -552,7 +554,7 @@ function emitMesh(mesh, classes = {}, rebuildMissingBounds = false)
                     group.maxBounds = bounds.max;
                     if (!meshBounds)
                     {
-                        meshBounds = { min: [ ...bounds.min ], max: [ ...bounds.max ] };
+                        meshBounds = { min: vec3.clone(bounds.min), max: vec3.clone(bounds.max) }; // alloc: published geometry owns this value beyond the decode call.
                     }
                     else
                     {
@@ -578,16 +580,16 @@ function emitMesh(mesh, classes = {}, rebuildMissingBounds = false)
 /**
  * Axis-aligned bounds of the positions a face list references.
  *
- * @param {number[]} positions Flat xyz position channel.
- * @param {number[]} faces Vertex indices.
- * @returns {{min: number[], max: number[]}|null} Bounds, or null without data.
+ * @param {Float32Array} positions Flat xyz position channel.
+ * @param {Uint16Array|Uint32Array} faces Vertex indices.
+ * @returns {{min: Float32Array, max: Float32Array}|null} Bounds, or null without data.
  */
 function boundsFromFaces(positions, faces, width = 3)
 {
     if (!positions || !positions.length || !faces.length) return null;
     const
-        min = [ Infinity, Infinity, Infinity ],
-        max = [ -Infinity, -Infinity, -Infinity ];
+        min = vec3.fromValues(Infinity, Infinity, Infinity), // alloc: published geometry owns this value beyond the decode call.
+        max = vec3.fromValues(-Infinity, -Infinity, -Infinity); // alloc: published geometry owns this value beyond the decode call.
     for (let i = 0; i < faces.length; i++)
     {
         const base = faces[i] * width;
@@ -671,13 +673,13 @@ function emitModel(model, fileInfo, classes = {}, skeletonCache = new WeakMap())
         const placement = model.InitialPlacement;
         o.initialPlacement = {
             flags: placement.flags,
-            position: farr(placement.position, [ 0, 0, 0 ]),
-            orientation: farr(placement.orientation, [ 0, 0, 0, 1 ]),
-            scaleShear: farr(placement.scaleShear, [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ])
+            position: vec3.clone(farr(placement.position, [ 0, 0, 0 ])), // alloc: published geometry owns this value beyond the decode call.
+            orientation: quat.clone(farr(placement.orientation, [ 0, 0, 0, 1 ])), // alloc: published geometry owns this value beyond the decode call.
+            scaleShear: mat3.clone(farr(placement.scaleShear, [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ])) // alloc: published geometry owns this value beyond the decode call.
         };
     }
     const meshes = fileInfo.Meshes || [];
-    o.meshBindings = (model.MeshBindings || []).map(mb =>
+    o.meshBindings = Int32Array.from(model.MeshBindings || [], mb =>
     {
         const idx = meshes.indexOf(mb && mb.Mesh);
         return idx;

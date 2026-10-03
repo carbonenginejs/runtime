@@ -1639,7 +1639,7 @@ test("emits cmf material areas with area-local bounds and morph flags", () =>
     assert.equal(mesh.lods[0].areas[0] instanceof LodMeshArea, true);
     assert.deepEqual(mesh.areas.map(area => ({
         name: area.name,
-        bounds: area.bounds,
+        bounds: { min: Array.from(area.bounds.min), max: Array.from(area.bounds.max) },
         bones: area.bones,
         affectedByBones: area.affectedByBones,
         affectedByMorphTargets: area.affectedByMorphTargets

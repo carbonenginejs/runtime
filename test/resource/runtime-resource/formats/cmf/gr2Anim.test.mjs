@@ -53,13 +53,13 @@ test("converts a GR2 skeleton with parents, rest pose, and inverse binds", () =>
 
     const converted = convertGr2Skeleton(skeleton);
     assert.deepEqual(converted.bones, [ "root", "child" ]);
-    assert.deepEqual(converted.parents, [ 0xffffffff, 0 ]);
-    assert.deepEqual(converted.restTransforms[1], { position: [ 0, 1, 0 ], rotation: [ 0, 0, 0, 1 ], scale: [ 1, 1, 1 ] });
+    assert.deepEqual(Array.from(converted.parents), [ 0xffffffff, 0 ]);
+    assert.deepEqual(converted.restTransforms[1], { position: new Float32Array([ 0, 1, 0 ]), rotation: new Float32Array([ 0, 0, 0, 1 ]), scale: new Float32Array([ 1, 1, 1 ]) });
 
     // child world translation = (1, 1, 0); inverse bind carries its negation
     const invBind = converted.invBindTransforms[1];
-    assert.deepEqual(invBind.slice(12, 15), [ -1, -1, 0 ]);
-    assert.deepEqual(invBind.slice(0, 3), [ 1, 0, 0 ]);
+    assert.deepEqual(Array.from(invBind.slice(12, 15)), [ -1, -1, 0 ]);
+    assert.deepEqual(Array.from(invBind.slice(0, 3)), [ 1, 0, 0 ]);
 });
 
 test("accepts Float32 scale decomposition residue but rejects material shear", () =>
@@ -76,7 +76,7 @@ test("accepts Float32 scale decomposition residue but rejects material shear", (
             ]
         } ]
     });
-    assert.deepEqual(converted.restTransforms[0].scale, [
+    assert.deepEqual(Array.from(converted.restTransforms[0].scale), [
         1.6937123537063599,
         5.271618843078613,
         -100.00003051757812
@@ -704,9 +704,17 @@ test("loadShared uses the same GR2 skeleton and animation conversion", () =>
     const graph = CjsCmfFormat.loadShared(makeGr2SharedAnimation());
 
     assert.deepEqual(graph.skeletons[0].bones, [ "root", "arm" ]);
-    assert.deepEqual(graph.skeletons[0].parents, [ 0xffffffff, 0 ]);
+    assert.deepEqual(Array.from(graph.skeletons[0].parents), [ 0xffffffff, 0 ]);
     assert.equal(graph.animations[0].name, "wave");
     assert.equal(graph.animations[0].channels[0].target, "arm");
     assert.equal(graph.animations[0].channels[0].targetType, "BonePosition");
     assert.deepEqual(floats(graph.animations[0].curves[0].values), [ 0, 2, 0, 0, 3, 0 ]);
+});
+
+test("typed parent storage rejects fractional indices before coercion", () =>
+{
+    assert.throws(() => convertGr2Skeleton({ name: "invalid", bones: [
+        { name: "root", parentIndex: -1 },
+        { name: "child", parentIndex: 0.5 }
+    ] }), /non-integer parent index/u);
 });

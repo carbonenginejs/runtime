@@ -28,7 +28,7 @@ test('100 GR2 result transfers detach sender channels and preserve the complete 
         assert.ok(mesh.vertex.normal instanceof Float32Array);
         assert.ok(mesh.vertex.texcoord0 instanceof Float32Array);
         const transfer = CjsResManWorker.collectTransferables(graph);
-        assert.equal(transfer.length, 4, 'three channel buffers and one shared topology buffer');
+        assert.equal(transfer.length, 8, 'three channels, shared topology and four bounds buffers');
         const received = structuredClone(graph, {transfer});
         assert.ok(transfer.every(buffer => buffer.byteLength === 0), 'sender relinquishes its storage');
         assert.deepEqual(source.Meshes[0].PrimaryVertexData.Vertices[1].Position, [1, 0, 0], 'reflected source remains owned');
@@ -39,7 +39,44 @@ test('100 GR2 result transfers detach sender channels and preserve the complete 
         assert.equal(cmf.vertex.position, incoming.vertex.position, 'CMF publication borrows the transferred channel');
         assert.equal(cmf.lods[0].vertex.position, incoming.vertex.position);
         assert.deepEqual(cmf.decl.map(element => element.usage), ['Position', 'Normal', 'TexCoord']);
-        assert.deepEqual(incoming.minBounds, [0, 0, 0]);
-        assert.deepEqual(incoming.maxBounds, [1, 1, 0]);
+        assert.deepEqual(Array.from(incoming.minBounds), [0, 0, 0]);
+        assert.deepEqual(Array.from(incoming.maxBounds), [1, 1, 0]);
     }
+});
+
+
+test('geometry owners publish typed metadata and share packed tangents without duplicating storage', () => {
+    const source = fixture();
+    const mesh = source.Meshes[0];
+    const vertices = mesh.PrimaryVertexData.Vertices;
+    vertices.__type.push({name: 'Tangent', type: 10, arrayWidth: 4});
+    vertices.__type.splice(vertices.__type.findIndex(item => item.name === 'Normal'), 1);
+    for (const vertex of vertices) {
+        delete vertex.Normal;
+        vertex.Tangent = [0, 0, 0, 1];
+    }
+    source.Models = [{Name: 'model', Skeleton: {Name: 'rig', Bones: [{Name: 'root', ParentIndex: -1}]},
+        InitialPlacement: {flags: 7, position: [1, 2, 3], orientation: [0, 0, 0, 1], scaleShear: [1, 0, 0, 0, 1, 0, 0, 0, 1]},
+        MeshBindings: [{Mesh: mesh}, {Mesh: {}}]}];
+    const granny = projectShared(source, 7, {rebuildMissingBounds: true});
+    assert.deepEqual(granny.models[0].meshBindings, new Int32Array([0, -1]));
+    const cmf = buildCmfFromShared(granny);
+    assert.equal(cmf.meshes[0].vertex.packedTangentLegacy, granny.meshes[0].vertex.tangent);
+    assert.ok(cmf.skeletons[0].parents instanceof Uint32Array);
+    const seen = new Set();
+    function check(value, path = '') {
+        if (!value || typeof value !== 'object' || seen.has(value)) return;
+        seen.add(value);
+        if (ArrayBuffer.isView(value)) return;
+        assert.equal(Array.isArray(value) && value.length > 0 && typeof value[0] === 'number', false,
+            'retained numeric fields have typed owners: ' + path);
+        for (const [key, item] of Object.entries(value)) check(item, path + '.' + key);
+    }
+    check(granny);
+    check(cmf);
+    const transfer = CjsResManWorker.collectTransferables({granny, cmf});
+    const received = structuredClone({granny, cmf}, {transfer});
+    assert.ok(transfer.every(buffer => buffer.byteLength === 0));
+    assert.equal(received.cmf.meshes[0].vertex.packedTangentLegacy, received.granny.meshes[0].vertex.tangent);
+    assert.deepEqual(Array.from(received.cmf.skeletons[0].invBindTransforms[0]), [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
 });

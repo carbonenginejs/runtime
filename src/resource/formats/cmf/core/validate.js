@@ -49,7 +49,7 @@ function finiteFloat(value, label, options)
 
 function finiteArray(value, count, label, options)
 {
-    if (!Array.isArray(value) || value.length !== count)
+    if ((!Array.isArray(value) && !ArrayBuffer.isView(value)) || value.length !== count)
     {
         invalid(`${label} must contain ${count} values`, options);
     }
@@ -61,7 +61,7 @@ function finiteArray(value, count, label, options)
 
 function numericArray(value, count, label, options)
 {
-    if (!Array.isArray(value) || value.length !== count)
+    if ((!Array.isArray(value) && !ArrayBuffer.isView(value)) || value.length !== count)
     {
         invalid(`${label} must contain ${count} values`, options);
     }
@@ -418,7 +418,9 @@ function validateMesh(mesh, meshIndex, graph, options)
     }
     if (boneBindings.length > UINT16_MAX) invalid(`${label} has more than 65535 bone bindings`, options);
     uniqueNames(boneBindings.map(binding => binding?.name), `${label} bone bindings`, options, false);
-    const uvDensities = array(mesh.uvDensities, `${label} uvDensities`, options);
+    const uvDensities = ArrayBuffer.isView(mesh.uvDensities) && Number.isInteger(mesh.uvDensities.length)
+        ? mesh.uvDensities
+        : array(mesh.uvDensities, `${label} uvDensities`, options);
     const uvCount = decl.reduce((count, element) =>
         element.usage === "TexCoord" ? Math.max(count, element.usageIndex + 1) : count, 0);
     if (uvDensities.length !== uvCount) invalid(`${label} uvDensities count does not match UV channel count`, options);
@@ -457,7 +459,9 @@ function validateSkeleton(skeleton, skeletonIndex, options)
     name(skeleton.name ?? "", `skeleton ${skeletonIndex} name`, options);
     const label = `skeleton ${JSON.stringify(skeleton.name ?? "")}`;
     const bones = array(skeleton.bones, `${label} bones`, options);
-    const parents = array(skeleton.parents, `${label} parents`, options);
+    const parents = ArrayBuffer.isView(skeleton.parents) && Number.isInteger(skeleton.parents.length)
+        ? skeleton.parents
+        : array(skeleton.parents, `${label} parents`, options);
     const rests = array(skeleton.restTransforms, `${label} rest transforms`, options);
     const inverseBinds = array(skeleton.invBindTransforms, `${label} inverse binds`, options);
     if (!bones.length) invalid(`${label} has no bones`, options);

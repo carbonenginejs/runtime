@@ -3,7 +3,7 @@ export function normalizeQuaternion(value, label = "quaternion")
 {
     const length = Math.hypot(value[0], value[1], value[2], value[3]);
     if (!(length > 0)) throw new Error(`${label} contains a zero quaternion`);
-    return value.slice(0, 4).map((component) =>
+    return Array.from(value).slice(0, 4).map((component) =>
     {
         const normalized = component / length;
         return normalized === 0 ? 0 : normalized;

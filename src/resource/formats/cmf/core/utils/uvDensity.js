@@ -147,7 +147,7 @@ function calculateUvDensity(position, uv, indices)
  * @param {object} vertex Shared vertex channels.
  * @param {object[]} groups Shared triangle index groups.
  * @param {object[]} declaration CMF vertex declaration.
- * @returns {number[]} One value for every TexCoord usage index through the maximum.
+ * @returns {Float32Array|number[]} One value for every TexCoord usage index through the maximum.
  */
 export function calculateUvDensities(vertex, groups, declaration)
 {
@@ -167,7 +167,7 @@ export function calculateUvDensities(vertex, groups, declaration)
         for (const index of group.faces ?? []) indices.push(index);
     }
 
-    const densities = new Array(uvSetCount).fill(0);
+    const densities = new Float32Array(uvSetCount); // alloc: returned UV density storage follows the declaration size.
     for (const element of declaration)
     {
         if (element.usage !== "TexCoord") continue;
