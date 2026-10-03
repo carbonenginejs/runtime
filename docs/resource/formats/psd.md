@@ -8,8 +8,11 @@ Summary: Read PSD merged images into Carbon ImageIO bitmaps and write uncompress
 ## Read and save through ImageIO
 
 ```js
+import { blue } from "@carbonenginejs/runtime/blue";
+import { CjsPsdFormat } from "@carbonenginejs/runtime/resource/formats/psd";
 import { ImageIO, HostBitmap, LoadParameters } from "@carbonenginejs/runtime/resource/imageio";
 
+blue.resMan.RegisterFormat(CjsPsdFormat);
 const bitmap = new HostBitmap();
 const result = ImageIO.readImage(bytes, new LoadParameters("input.psd"), bitmap);
 if (!result.IsOk()) throw new Error(result.GetErrorMessage());
@@ -19,7 +22,9 @@ if (!saved.result.IsOk()) throw new Error(saved.result.GetErrorMessage());
 // saved.bytes is a Uint8Array; the caller owns filesystem or network I/O.
 ```
 
-The PSD handler is registered between PNG and TGA. Reads accept version 1,
+Register each desired format once with the active `blue.resMan`. ImageIO resolves
+the extension through that store and calls the format's `carbon` table.
+Reads accept version 1,
 8-bit grayscale or RGB headers and raw or PackBits compression. The reader skips
 color-mode data, image resources, and layer/mask data and decodes the stored
 merged image. It does not composite layers or apply embedded color profiles.

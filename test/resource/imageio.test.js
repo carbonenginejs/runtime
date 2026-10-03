@@ -1,3 +1,11 @@
+import { CjsGifFormat } from "../../npm/dist/resource/formats/gif/index.js";
+import { CjsJpegFormat } from "../../npm/dist/resource/formats/jpeg/index.js";
+import { CjsPngFormat } from "../../npm/dist/resource/formats/png/index.js";
+import { CjsPsdFormat } from "../../npm/dist/resource/formats/psd/index.js";
+import { CjsTgaFormat } from "../../npm/dist/resource/formats/tga/index.js";
+import { CjsVtaFormat } from "../../npm/dist/resource/formats/vta/index.js";
+import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+
 import assert from "node:assert/strict";
 import test from "node:test";
 import { buildVta } from "../support/vtaFixture.js";
@@ -5,7 +13,11 @@ import { buildVta } from "../support/vtaFixture.js";
 import { ImageIO, HostBitmap, LoadParameters, ImageIOResult, Metadata } from "../../npm/dist/resource/imageio/index.js";
 import { CjsDdsFormat } from "../../npm/dist/resource/formats/dds/index.js";
 import { PixelFormat as F, TextureType } from "../../npm/dist/global/consts/renderContext/index.js";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { blue, CjsBlueResMan } from "../../npm/dist/global/blue/index.js";
+
+// The composing application registers formats once, with its resource manager.
+for (const Format of [ CjsDdsFormat, CjsGifFormat, CjsJpegFormat, CjsPngFormat, CjsPsdFormat, CjsTgaFormat, CjsVtaFormat ])
+  blue.resMan.RegisterFormat(Format);
 
 /** A legacy (non-DX10) uncompressed DDS: 32-bit masks, no mips unless mipCount > 1. */
 function legacyDds(width, height, bitCount, masks, pixels, mipCount = 1)
@@ -197,4 +209,114 @@ test("VTA static loading rejects zero frames or zero grids (VtaHandler.cpp:512-5
     const result = await ImageIO.readImageAsync(buildVta(fixture), new LoadParameters("empty.vta"), new HostBitmap());
     assert.equal(result.code, ImageIOResult.Code.INVALID_DATA);
   }
+});
+
+
+const imagePayload = { width: 1, height: 1, data: new Uint8Array([ 80, 120, 160, 255 ]) };
+const imageCases = [
+  [ "dds", CjsDdsFormat, () => legacyDds(1, 1, 32, BGRA_MASKS, [ 160, 120, 80, 255 ]), false ],
+  [ "gif", CjsGifFormat, () => Uint8Array.from([
+    71, 73, 70, 56, 57, 97, 1, 0, 1, 0, 128, 0, 0,
+    80, 120, 160, 0, 0, 0, 44, 0, 0, 0, 0, 1, 0, 1, 0, 0,
+    2, 2, 68, 1, 0, 59
+  ]), false ],
+  [ "jpg", CjsJpegFormat, () => CjsJpegFormat.write(imagePayload), false ],
+  [ "png", CjsPngFormat, () => CjsPngFormat.writeAsync(imagePayload), true ],
+  [ "psd", CjsPsdFormat, () => CjsPsdFormat.write(imagePayload), false ],
+  [ "tga", CjsTgaFormat, () => CjsTgaFormat.write(imagePayload), false ],
+  [ "vta", CjsVtaFormat, () => buildVta({
+    grids: [ { name: "density", encoding: 0, width: 1, height: 1, depth: 1 } ],
+    frames: [ [ [ 80 ] ] ], metadata: { author: "synthetic" }
+  }), true ]
+];
+
+for (const [ extension, Format, makeBytes, asyncOnly ] of imageCases)
+{
+  test(`ResMan-only ${extension} registration preserves ImageIO reads and save results`, async () =>
+  {
+    const bytes = await makeBytes();
+    const parameters = new LoadParameters(`sample.${extension.toUpperCase()}`);
+    const expected = new HostBitmap(), expectedMetadata = new Metadata();
+    const actual = new HostBitmap(), actualMetadata = new Metadata();
+    assert.equal(ImageIO.getImageHandler(extension), Format.carbon);
+    const direct = await Format.carbon.readImageAsync(bytes, parameters, expected, expectedMetadata);
+    const routed = await ImageIO.readImageAsync(bytes, parameters, actual, actualMetadata);
+    assert.equal(direct.code, ImageIOResult.Code.OK);
+    assert.equal(routed.code, direct.code);
+    assert.deepEqual([ actual.GetWidth(), actual.GetHeight(), actual.GetDepth(), actual.GetFormat() ],
+      [ expected.GetWidth(), expected.GetHeight(), expected.GetDepth(), expected.GetFormat() ]);
+    assert.deepEqual(actual.GetRawData(), expected.GetRawData());
+    assert.deepEqual(actualMetadata, expectedMetadata);
+    if (extension !== "jpg") assert.deepEqual(Array.from(actual.GetRawData()),
+      extension === "vta" ? [ 80 ] : [ 160, 120, 80, 255 ]);
+    const sync = new HostBitmap();
+    assert.equal(ImageIO.readImage(bytes, parameters, sync).code,
+      asyncOnly ? ImageIOResult.Code.METHOD_NOT_SUPPORTED : ImageIOResult.Code.OK);
+    if (!asyncOnly) assert.deepEqual(sync.GetRawData(), actual.GetRawData());
+
+    const saveBitmap = new HostBitmap();
+    saveBitmap.Create(1, 1, 1, F.PIXEL_FORMAT_B8G8R8A8_UNORM);
+    saveBitmap.GetRawData().set([ 160, 120, 80, 255 ]);
+    const expectedSaveCode = extension === "psd" ? ImageIOResult.Code.OK : ImageIOResult.Code.METHOD_NOT_SUPPORTED;
+    assert.equal(ImageIO.isSaveSupported(parameters.filename, saveBitmap).code, expectedSaveCode);
+    assert.equal(Format.carbon.isSaveSupported(saveBitmap).code, expectedSaveCode);
+    const directSave = Format.carbon.save(saveBitmap);
+    const routedSave = ImageIO.saveImage(parameters.filename, saveBitmap);
+    assert.equal(routedSave.result.code, expectedSaveCode);
+    assert.equal(routedSave.result.code, directSave.result.code);
+    assert.deepEqual(routedSave.bytes, directSave.bytes);
+    if (routedSave.result.IsOk())
+    {
+      const roundTrip = new HostBitmap();
+      assert.equal(ImageIO.readImage(routedSave.bytes, parameters, roundTrip).code, ImageIOResult.Code.OK);
+      assert.deepEqual(roundTrip.GetRawData(), saveBitmap.GetRawData());
+    }
+  });
+}
+
+test("ImageIO observes active ResMan replacement, late registration and removal without a second registration", async t =>
+{
+  const previous = blue.resMan;
+  t.after(() => { blue.resMan = previous; });
+  blue.resMan = new CjsBlueResMan();
+  const parameters = new LoadParameters("late.PSD");
+  const bytes = CjsPsdFormat.write(imagePayload);
+  const bitmap = new HostBitmap();
+  assert.equal(ImageIO.readImage(bytes, parameters, bitmap).code, ImageIOResult.Code.UNRECOGNIZED_IMAGE_TYPE);
+  assert.equal((await ImageIO.readImageAsync(bytes, parameters, bitmap)).code, ImageIOResult.Code.UNRECOGNIZED_IMAGE_TYPE);
+  assert.equal(ImageIO.isSaveSupported(parameters.filename, bitmap).code, ImageIOResult.Code.UNRECOGNIZED_IMAGE_TYPE);
+  assert.equal(ImageIO.saveImage(parameters.filename, bitmap).result.code, ImageIOResult.Code.UNRECOGNIZED_IMAGE_TYPE);
+
+  blue.resMan.RegisterFormat(CjsPsdFormat);
+  assert.equal(ImageIO.readImage(bytes, parameters, bitmap).code, ImageIOResult.Code.OK);
+  assert.equal(ImageIO.isSaveSupported(parameters.filename, bitmap).code, ImageIOResult.Code.OK);
+  assert.equal(ImageIO.saveImage(parameters.filename, bitmap).result.code, ImageIOResult.Code.OK);
+  blue.resMan.RegisterFormat(CjsPsdFormat);
+  assert.equal(blue.resMan.GetFormats("psd").length, 1);
+
+  blue.resMan.formats.delete("psd");
+  assert.equal(ImageIO.getImageHandler("psd"), null);
+  assert.equal(ImageIO.saveImage(parameters.filename, bitmap).result.code, ImageIOResult.Code.UNRECOGNIZED_IMAGE_TYPE);
+});
+
+test("ImageIO ignores non-image formats and retains first registered image handler order", t =>
+{
+  const previous = blue.resMan;
+  t.after(() => { blue.resMan = previous; });
+  blue.resMan = new CjsBlueResMan();
+  class DataFormat { static extensions = [ ".psd" ]; }
+  class FirstImage extends CjsPsdFormat {}
+  class SecondImage extends CjsPsdFormat {}
+  blue.resMan.RegisterFormat(DataFormat);
+  assert.equal(ImageIO.getImageHandler("psd"), null);
+  blue.resMan.RegisterFormat(FirstImage).RegisterFormat(SecondImage);
+  assert.equal(ImageIO.getImageHandler("psd"), FirstImage.carbon);
+  blue.resMan.RegisterFormat(FirstImage);
+  assert.equal(ImageIO.getImageHandler("psd"), SecondImage.carbon, "ResMan owns re-registration order");
+});
+
+test("ImageIO registration adaptation is recorded in schema metadata", () =>
+{
+  for (const name of [ "getImageHandler", "readImage", "readImageAsync", "isSaveSupported", "saveImage" ])
+    assert.equal(CjsSchema.getMethod(ImageIO, name).impl.status, "adapted");
 });

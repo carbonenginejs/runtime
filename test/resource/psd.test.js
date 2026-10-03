@@ -1,3 +1,4 @@
+import { blue } from "../../npm/dist/global/blue/index.js";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
@@ -5,6 +6,8 @@ import { CjsPsdFormat } from "../../npm/dist/resource/formats/psd/index.js";
 import { ImageIO, HostBitmap, LoadParameters, Metadata, ImageIOResult } from "../../npm/dist/resource/imageio/index.js";
 import { BitmapDimensions } from "../../npm/dist/global/imageio/index.js";
 import { PixelFormat as F, TextureType } from "../../npm/dist/global/consts/renderContext/index.js";
+
+blue.resMan.RegisterFormat(CjsPsdFormat);
 
 const Code = ImageIOResult.Code;
 const fixture = name => readFile(new URL(`../fixtures/psd/${name}.psd`, import.meta.url));
@@ -19,11 +22,15 @@ const cases = [
 
 for (const [ name, width, height, format, bpp, first, last ] of cases)
 {
-    test(`PSD Carbon fixture ${name}: dimensions, pixels, metadata and round trip`, async () =>
+    test(`PSD original fixture ${name}: dimensions, pixels, metadata and round trip`, async () =>
     {
         const bitmap = new HostBitmap(), metadata = new Metadata();
         metadata.cutout.width = 0.25;
-        const result = ImageIO.readImage(await fixture(name), new LoadParameters(`${name}.PSD`, 3), bitmap, metadata);
+        const bytes = await fixture(name);
+        const header = CjsPsdFormat.inspect(bytes);
+        assert.deepEqual([ header.version, header.depth, header.channelCount, header.colorMode, header.compression ],
+            [ 1, 8, name === "rgb" || name === "rgbRle" ? 3 : bpp, bpp < 3 ? 1 : 3, name === "rgbRle" ? 1 : 0 ]);
+        const result = ImageIO.readImage(bytes, new LoadParameters(`${name}.PSD`, 3), bitmap, metadata);
         assert.equal(result.code, Code.OK, "TestPsdHandler.cpp:11-30");
         assert.deepEqual([ bitmap.GetWidth(), bitmap.GetHeight(), bitmap.GetFormat(), bitmap.GetMipCount(), bitmap.GetArraySize(), bitmap.GetType() ],
             [ width, height, format, 1, 1, TextureType.TEX_TYPE_2D ]);

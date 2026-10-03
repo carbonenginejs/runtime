@@ -21,10 +21,10 @@ const SRGB_BLOCK_FORMATS = new Set([
  *
  * `Format.carbon` IS Carbon's `ImageIO::ImageFormatFunctions`
  * (imageio/include/Tr2ImageHandler.h:74-80) - `checkExtension`, `readImage`,
- * `isSaveSupported`, `save` - built per subclass from its hooks, so the ImageIO
- * registry in resource/imageio can register any image format the way Carbon's
- * `RegisterImageIOHandlers` registers its handlers. Carbon has seven handlers;
- * we have more formats, and each one gets the table by extending this class.
+ * `isSaveSupported`, `save` - built per subclass from its hooks. A composition
+ * root registers the format once with blue.resMan; ImageIO resolves its extension
+ * from that store and calls this table. Carbon compiles handlers into ImageIO;
+ * separate JS format modules use the shared ResMan registration instead.
  *
  * A subclass supplies:
  * - `static extensions` (already declared by every format) for checkExtension;

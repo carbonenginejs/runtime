@@ -1,64 +1,20 @@
 // Source: imageio/include/Tr2ImageHandler.h
 // Source: imageio/Tr2ImageHandler.cpp
-//
-// Carbon's ImageIO entry points: a registry of per-format handler tables, and
-// ReadImage / IsSaveSupported / SaveImage, which pick the handler by the
-// filename's extension. It routes and never decodes: each image format's
-// `Format.carbon` table does the work (resource/format/CjsImageFormat.js).
-//
 // A namespace of free functions becomes a class of statics, camelCase.
 import { ImageIOResult } from "#imageio";
-import { CjsDdsFormat } from "../formats/dds/CjsDdsFormat.js";
-import { CjsGifFormat } from "../formats/gif/CjsGifFormat.js";
-import { CjsJpegFormat } from "../formats/jpeg/CjsJpegFormat.js";
-import { CjsPngFormat } from "../formats/png/CjsPngFormat.js";
-import { CjsPsdFormat } from "../formats/psd/CjsPsdFormat.js";
-import { CjsTgaFormat } from "../formats/tga/CjsTgaFormat.js";
-
-import { CjsVtaFormat } from "../formats/vta/CjsVtaFormat.js";
+import { blue } from "#blue";
+import { CjsSchema, meta } from "#schema";
 
 const Code = ImageIOResult.Code;
 
-/** Registered handler tables, first match wins (GetImageHandlers). */
-const handlers = [];
-
-let registered = false;
-
-
-/** Carbon's `ImageIO` registry and entry points (imageio/Tr2ImageHandler.cpp). */
+/**
+ * Carbon's ImageIO entry points, routed through the active Blue resource manager.
+ * Adapted: Carbon compiles handlers into ImageIO; independently imported JS
+ * formats register once with ResMan and supply their own `carbon` handler table.
+ * This module owns no handler registry and imports no concrete formats.
+ */
 export class ImageIO
 {
-
-  /**
-   * Register the built-in image formats once (Tr2ImageHandler.cpp:26-42).
-   * Carbon registers Bmp, Dds, Jpeg, Png, Psd, Tga and Vta; ours register as
-   * each format gains its `carbon` table.
-   */
-  static registerImageIOHandlers()
-  {
-    if (registered) return;
-
-    registered = true;
-    // Carbon's order (Bmp, Dds, Jpeg, Png, Psd, Tga, Vta) for the ones we have, then ours.
-    ImageIO.registerImageHandler(CjsDdsFormat.carbon);
-    ImageIO.registerImageHandler(CjsJpegFormat.carbon);
-    ImageIO.registerImageHandler(CjsPngFormat.carbon);
-    ImageIO.registerImageHandler(CjsPsdFormat.carbon);
-    ImageIO.registerImageHandler(CjsTgaFormat.carbon);
-    ImageIO.registerImageHandler(CjsVtaFormat.carbon);
-    ImageIO.registerImageHandler(CjsGifFormat.carbon);
-  }
-
-  /**
-   * Register a handler table (Tr2ImageHandler.cpp:79-82).
-   *
-   * @param {{checkExtension: Function, readImage: Function, isSaveSupported: Function, save: Function}} imageHandler Handler table.
-   */
-  static registerImageHandler(imageHandler)
-  {
-    handlers.push(imageHandler);
-  }
-
   /**
    * The text after the last '.', or "" (Tr2ImageHandler.cpp:45-49).
    *
@@ -73,23 +29,31 @@ export class ImageIO
   }
 
   /**
-   * The first handler that claims an extension, or null (Tr2ImageHandler.cpp:51-63).
+   * The first registered image format for an extension, or null (Tr2ImageHandler.cpp:51-63).
+   *
+   * Adapted: Carbon compiles its handlers into ImageIO. Our formats are separate
+   * modules, registered once with ResMan; resolve its current store on every call
+   * so service replacement and later registrations need no ImageIO refresh.
    *
    * @param {string} extension Extension, without the dot.
    * @returns {object|null} Handler table.
    */
   static getImageHandler(extension)
   {
-    ImageIO.registerImageIOHandlers();
-
-    return handlers.find(handler => handler.checkExtension(extension)) ?? null;
+    for (const Format of blue.resMan.GetFormats(extension))
+    {
+      const handler = Format.carbon;
+      if (handler) return handler;
+    }
+    return null;
   }
 
   /**
    * Read an image into a bitmap, picking the handler by the filename in the
    * load parameters (Tr2ImageHandler.cpp:95-106).
    *
-   * adapted: a stream becomes the file's bytes.
+   * Adapted: bytes replace the native stream; ResMan supplies the registered
+   * format's carbon table instead of Carbon's compiled-in handler list.
    *
    * @param {Uint8Array|ArrayBuffer} bytes File bytes.
    * @param {import("#imageio").LoadParameters} loadParameters Load parameters.
@@ -109,7 +73,8 @@ export class ImageIO
   /**
    * `readImage` that also serves formats whose decoder is asynchronous (PNG and VTA).
    *
-   * Not Carbon: see CjsImageFormat.readImageAsync.
+   * Adapted: browser decoders can be asynchronous (CjsImageFormat.readImageAsync);
+   * handler lookup uses the active ResMan format registration.
    *
    * @param {Uint8Array|ArrayBuffer} bytes File bytes.
    * @param {import("#imageio").LoadParameters} loadParameters Load parameters.
@@ -129,6 +94,7 @@ export class ImageIO
   /**
    * Whether an image of these dimensions can be saved under a filename
    * (Tr2ImageHandler.cpp:117-128).
+   * Adapted: ResMan owns the format registrations, rather than a compiled-in list.
    *
    * @param {string} filename Destination file name.
    * @param {import("#imageio").BitmapDimensions} dimensions Image description.
@@ -146,7 +112,8 @@ export class ImageIO
   /**
    * Save a bitmap in the format a filename names (Tr2ImageHandler.cpp:140-151).
    *
-   * adapted: Carbon writes to a stream; this returns `{result, bytes}`.
+   * Adapted: Carbon writes to a stream; this returns `{result, bytes}` and
+   * resolves the format through ResMan instead of Carbon's compiled-in list.
    *
    * @param {string} filename Destination file name.
    * @param {import("#imageio").HostBitmap} bitmap Bitmap to save.
@@ -163,3 +130,17 @@ export class ImageIO
   }
 
 }
+
+// Apply the same @meta.adapted metadata without decorator syntax, retaining
+// direct source imports for resource modules and their consumers.
+CjsSchema.define(ImageIO, {
+  className: "ImageIO",
+  methods: {
+    getExtension: [meta.implemented],
+    getImageHandler: [meta.adapted],
+    readImage: [meta.adapted],
+    readImageAsync: [meta.adapted],
+    isSaveSupported: [meta.adapted],
+    saveImage: [meta.adapted]
+  }
+});
