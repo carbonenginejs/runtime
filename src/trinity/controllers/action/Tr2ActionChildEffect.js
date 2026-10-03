@@ -5,6 +5,7 @@ import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { blue } from "#blue";
 import { meta, CjsSchema } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
+import { Traverse } from "../../../global/blue/find.js";
 
 
 /**
@@ -78,6 +79,9 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
   /** Native m_child: attached or preexisting child until Stop. */
   _child = null;
 
+  /** Whether this action loaded the current child rather than borrowing it. */
+  _ownsChild = false;
+
   /** Counts loads; a Stop or new load makes an in-flight one stale. */
   _loadRequest = 0;
 
@@ -112,6 +116,7 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
       return;
     }
     this._child = this.FindChild(owner);
+    this._ownsChild = false;
     if (this._child || !this.addOnStart || !this.path)
     {
       return;
@@ -135,7 +140,11 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
     const request = ++this._loadRequest;
     Promise.resolve(blue.resMan.LoadObject(path)).then(object =>
     {
-      if (request !== this._loadRequest) return;
+      if (request !== this._loadRequest)
+      {
+        this._ReleaseParticleResources(object, owner);
+        return;
+      }
       const child = CjsSchema.cast(object, blue.classes.GetClassRegistration("EveSpaceObjectChild").type);
       if (child)
       {
@@ -143,9 +152,11 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
         Tr2ActionChildEffect._addChildToOwner(owner, child);
         child.StartControllers();
         this._child = child;
+        this._ownsChild = true;
       }
       else
       {
+        this._ReleaseParticleResources(object, owner);
         CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Tr2ActionChildEffect: ${path} is not an Eve child`);
       }
       if (rebind)
@@ -181,9 +192,50 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
       if (owner)
       {
         Tr2ActionChildEffect._removeChildFromOwner(owner, child);
+        if (this._ownsChild) this._ReleaseParticleResources(child, owner);
       }
     }
     this._child = null;
+    this._ownsChild = false;
+  }
+
+  /**
+   * Release the device resources of an action-owned particle graph after its
+   * removal or cancelled asynchronous load. Carbon's m_child smart pointer and
+   * child graph references release these on last-owner destruction
+   * (Tr2ActionChildEffect.cpp:137-198, Tr2ParticleSystem.cpp:89-101).
+   * Adapted: JS device registration is strong, so dropping the graph alone
+   * cannot call its particle/mesh destructors. Collect before destroying a
+   * mesh, which detaches its shared instance provider. Resources still reached
+   * from the owner survive, as do canonical geometry and texture resources.
+   */
+  @meta.ours
+  _ReleaseParticleResources(child, owner)
+  {
+    // Resolve nominal types at use time, as _loadChild does: importing the
+    // renderer-backed classes here closes the controller/device module cycle.
+    const particleType = CjsSchema.GetConstructor("Tr2ParticleSystem");
+    const meshType = CjsSchema.GetConstructor("Tr2InstancedMesh");
+    const retained = new Set();
+    Traverse(owner, model => { retained.add(model); });
+    // The retained structural owner adapter also accepts plain child arrays.
+    for (const name of [ "children", "effectChildren", "items" ])
+    {
+      if (Array.isArray(owner?.[name]))
+      {
+        for (const root of owner[name]) Traverse(root, model => { retained.add(model); });
+      }
+    }
+    const resources = [];
+    Traverse(child, model =>
+    {
+      if (!retained.has(model)
+        && ((particleType && CjsSchema.cast(model, particleType)) || (meshType && CjsSchema.cast(model, meshType))))
+      {
+        resources.push(model);
+      }
+    });
+    for (const resource of resources) resource.Destroy();
   }
 
   /**
