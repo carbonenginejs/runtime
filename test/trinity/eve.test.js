@@ -742,14 +742,14 @@ test("EveImpactOverlay constructs the CPU graph required by SOF", () =>
   assertEquals(overlay.GetArmorImpactLifeTime(), 10);
   assertVec3(overlay.GetLastDamageState(), [1, 1, 1]);
   assertEquals(overlay.GetDataTextureOffset(), -1);
-  assertEquals(overlay.GetDamageLocatorCount(), 0);
+  assertEquals(overlay.GetDamageOverlay().damageLocatorCount, 0, "Carbon keeps the count on the damage overlay and has no getter");
 
   const curve = {};
   const armorEmitter = {};
   const hullEmitter = {};
   const shader = {};
   const mesh = {};
-  assertEquals(overlay.Set(curve, armorEmitter, hullEmitter, shader, mesh, false), true);
+  assertEquals(overlay.Set(curve, armorEmitter, hullEmitter, shader, mesh, false), undefined, "Carbon Set is void (cpp:51)");
   assertEquals(overlay.hullDamageFlickerCurve, curve);
   assertEquals(overlay.armorImpactEmitter, armorEmitter);
   assertEquals(overlay.hullImpactEmitter, hullEmitter);
@@ -760,14 +760,15 @@ test("EveImpactOverlay constructs the CPU graph required by SOF", () =>
   overlay.SetSeed(-1);
   overlay.SetDamageLocatorCount(-1);
   assertEquals(overlay.seed, 0xffffffff);
-  assertEquals(overlay.GetDamageLocatorCount(), 0xffffffff);
+  assertEquals(overlay.GetDamageOverlay().damageLocatorCount, 0xffffffff);
   assertEquals(overlay.Initialize(), true);
 
-  assertEquals(overlay.ToggleEffect("shieldboost", true, 8), true);
+  assertEquals(overlay.ToggleEffect("shieldboost", true, 8), undefined, "Carbon ToggleEffect is void (cpp:513)");
   assertEquals(overlay.shieldBoosting.kickInLength, 2);
   assertEquals(overlay.shieldBoosting.fading, 0.5);
   assertEquals(overlay.shieldHardening.fading, 0);
-  assertEquals(overlay.ToggleEffect("ShieldBoost", true, 8), false);
+  overlay.ToggleEffect("ShieldBoost", true, 8);
+  assertEquals(overlay.shieldBoosting.fading, 0.5, "names are case-sensitive; ShieldBoost goes to the damage overlay");
 });
 
 test("EveLocator2 exposes Carbon name and transform helpers", () =>

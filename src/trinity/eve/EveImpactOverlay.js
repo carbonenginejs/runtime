@@ -15,6 +15,7 @@ import {
 } from "./overlays/EveDamageOverlay.js";
 import { ITr2GenericEmitterUpdateArguments } from "../particle/ITr2GenericEmitter/index.js";
 import { blue } from "#blue";
+import { TimeAsDouble } from "../../global/blue/CcpTime.js";
 
 
 const IMPACT_SHIELD_SIZE_MAX = 2000;
@@ -36,10 +37,6 @@ export class EveImpactOverlay
   @meta.type.string
   name = "";
 
-  @meta.blue.read
-  @meta.type.uint32
-  seed = 0;
-
   @meta.blue.readwrite
   @meta.type.boolean
   display = true;
@@ -48,22 +45,185 @@ export class EveImpactOverlay
   @meta.type.objectRef("EveDamageOverlay")
   damageOverlay = new EveDamageOverlay();
 
+  // EveImpactOverlay_Blue.cpp:33-48: armour/hull state lives on the damage overlay; these names are live properties over it.
+
+  /** MAP_PROPERTY_READONLY "seed" over GetSeed. */
+  @meta.property()
+  @meta.blue.read
+  @meta.type.uint32
+  @meta.implemented
+  get seed()
+  {
+    return this.GetSeed();
+  }
+
+  /** MAP_PROPERTY_READONLY "configuration" over GetImpactConfiguration. */
+  @meta.property()
   @meta.blue.read
   @meta.type.int32
   @meta.type.enum("trinity.ITriTargetable.ImpactConfiguration")
-  configuration = 0;
+  @meta.implemented
+  get configuration()
+  {
+    return this.GetImpactConfiguration();
+  }
 
+  /** MAP_PROPERTY_READONLY "impactDataNextIdx" over GetImpactDataNextIdx. */
+  @meta.property()
   @meta.blue.read
   @meta.type.int32
-  impactDataNextIdx = 1;
+  @meta.implemented
+  get impactDataNextIdx()
+  {
+    return this.GetImpactDataNextIdx();
+  }
 
+  /** MAP_PROPERTY_READONLY "armorImpactGoalCount" over GetArmorImpactGoalCount. */
+  @meta.property()
   @meta.blue.read
   @meta.type.uint64
-  armorImpactGoalCount = 0;
+  @meta.implemented
+  get armorImpactGoalCount()
+  {
+    return this.GetArmorImpactGoalCount();
+  }
 
+  /** MAP_PROPERTY_READONLY "armorImpactParentSize" over GetArmorImpactParentSize. */
+  @meta.property()
   @meta.blue.read
   @meta.type.float32
-  armorImpactParentSize = 0;
+  @meta.implemented
+  get armorImpactParentSize()
+  {
+    return this.GetArmorImpactParentSize();
+  }
+
+  /** MAP_PROPERTY "debugForceSpawnDebris" over Get/SetDebugForceSpawnDebris. */
+  @meta.property()
+  @meta.blue.readwrite
+  @meta.type.boolean
+  @meta.implemented
+  get debugForceSpawnDebris()
+  {
+    return this.GetDebugForceSpawnDebris();
+  }
+
+  set debugForceSpawnDebris(value)
+  {
+    this.SetDebugForceSpawnDebris(value);
+  }
+
+  /** MAP_PROPERTY_READONLY "renderPriority" over GetRenderPriority. */
+  @meta.property()
+  @meta.blue.read
+  @meta.type.float32
+  @meta.implemented
+  get renderPriority()
+  {
+    return this.GetRenderPriority();
+  }
+
+  /** MAP_PROPERTY_READONLY "dataTextureBlockID" over GetDataTextureBlockID. */
+  @meta.property()
+  @meta.blue.read
+  @meta.type.int32
+  @meta.implemented
+  get dataTextureBlockID()
+  {
+    return this.GetDataTextureBlockID();
+  }
+
+  /** MAP_PROPERTY_PERSISTED "armorDamageShader" over Get/SetArmorDamageShaderEffect. */
+  @meta.property()
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("Tr2Effect")
+  @meta.implemented
+  get armorDamageShader()
+  {
+    return this.GetArmorDamageShaderEffect();
+  }
+
+  set armorDamageShader(value)
+  {
+    this.SetArmorDamageShaderEffect(value);
+  }
+
+  /** MAP_PROPERTY "armorRepairing" over Get/SetArmorRepairing. */
+  @meta.property()
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2ScalarFader")
+  @meta.implemented
+  get armorRepairing()
+  {
+    return this.GetArmorRepairing();
+  }
+
+  set armorRepairing(value)
+  {
+    this.SetArmorRepairing(value);
+  }
+
+  /** MAP_PROPERTY "armorHardening" over Get/SetArmorHardening. */
+  @meta.property()
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2ScalarFader")
+  @meta.implemented
+  get armorHardening()
+  {
+    return this.GetArmorHardening();
+  }
+
+  set armorHardening(value)
+  {
+    this.SetArmorHardening(value);
+  }
+
+  /** MAP_PROPERTY "hullRepairing" over Get/SetHullRepairing. */
+  @meta.property()
+  @meta.blue.readwrite
+  @meta.type.objectRef("Tr2ScalarFader")
+  @meta.implemented
+  get hullRepairing()
+  {
+    return this.GetHullRepairing();
+  }
+
+  set hullRepairing(value)
+  {
+    this.SetHullRepairing(value);
+  }
+
+  /** MAP_PROPERTY_PERSISTED "hullDamageFlickerCurve" over Get/SetHullDamageFlickerCurve. */
+  @meta.property()
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.objectRef("TriPerlinCurve")
+  @meta.implemented
+  get hullDamageFlickerCurve()
+  {
+    return this.GetHullDamageFlickerCurve();
+  }
+
+  set hullDamageFlickerCurve(value)
+  {
+    this.SetHullDamageFlickerCurve(value);
+  }
+
+  /** MAP_PROPERTY "hullDamageFactor" over Get/SetHullDamageFactor. */
+  @meta.property()
+  @meta.blue.readwrite
+  @meta.type.float32
+  @meta.implemented
+  get hullDamageFactor()
+  {
+    return this.GetHullDamageFactor();
+  }
+
+  set hullDamageFactor(value)
+  {
+    this.SetHullDamageFactor(value);
+  }
 
   @meta.blue.readwrite
   @meta.type.float32
@@ -78,21 +238,9 @@ export class EveImpactOverlay
   shieldIsEllipsoid = true;
 
   @meta.blue.readwrite
-  @meta.type.boolean
-  debugForceSpawnDebris = false;
-
-  @meta.blue.read
-  @meta.type.float32
-  renderPriority = 0;
-
-  @meta.blue.readwrite
   @meta.blue.persist
   @meta.type.objectRef("Tr2MeshBase")
   mesh = null;
-
-  @meta.blue.read
-  @meta.type.int32
-  dataTextureBlockID = -1;
 
   @meta.blue.read
   @meta.type.uint32
@@ -112,78 +260,42 @@ export class EveImpactOverlay
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2Effect")
-  armorDamageShader = null;
-
-  @meta.blue.readwrite
-  @meta.blue.persist
   @meta.type.objectRef("Tr2GpuUniqueEmitter")
   armorImpactEmitter = null;
-
-  @meta.blue.readwrite
-  @meta.type.objectRef("Tr2ScalarFader")
-  armorRepairing = new Tr2ScalarFader();
-
-  @meta.blue.readwrite
-  @meta.type.objectRef("Tr2ScalarFader")
-  armorHardening = new Tr2ScalarFader();
-
-  @meta.blue.readwrite
-  @meta.type.objectRef("Tr2ScalarFader")
-  hullRepairing = new Tr2ScalarFader();
-
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.objectRef("TriPerlinCurve")
-  hullDamageFlickerCurve = null;
-
-  @meta.blue.readwrite
-  @meta.type.float32
-  hullDamageFactor = 0;
 
   @meta.blue.readwrite
   @meta.blue.persist
   @meta.type.objectRef("Tr2GpuUniqueEmitter")
   hullImpactEmitter = null;
 
-  // Derived at lifecycle time from the owner's "damage" locator set; not an
-  // authored value, so it never enters the values interchange.
-  _damageLocatorCount = 0;
-
   _armorImpactLifeTime = 10;
 
   _dataTextureOffset = -1;
 
-  _lastDamageState = vec3.fromValues(1, 1, 1);
-
   _shieldImpacts = new Map();
 
-  /** Post-hydration hook; the overlay needs no additional setup. */
+  /** Carbon Initialize (cpp:87-90): nothing to set up. */
   @meta.blue.method
   @meta.implemented
   Initialize()
   {
-    this._SyncLegacyDamageFieldsToOverlay();
     return true;
   }
 
   /**
-   * Assigns the overlay's authored resources in one call - the hull flicker
-   * curve, the armour and hull impact emitters, the armour damage shader and the
-   * shield impact mesh - together with the shield shape flag.
+   * Carbon Set (cpp:51-59): assigns the shield shape flag, impact emitters and shield mesh, and hands the hull
+   * flicker curve and armour damage shader to the damage overlay.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   Set(hullDamageFlickerCurve, armorDamageEmitter, hullImpactEmitter, armorDamageShader, shieldImpactMesh, shieldIsEllipsoid)
   {
-    this.shieldIsEllipsoid = !!shieldIsEllipsoid;
-    this.hullDamageFlickerCurve = hullDamageFlickerCurve ?? null;
-    this.armorImpactEmitter = armorDamageEmitter ?? null;
-    this.hullImpactEmitter = hullImpactEmitter ?? null;
-    this.armorDamageShader = armorDamageShader ?? null;
-    this.mesh = shieldImpactMesh ?? null;
-    this._SyncLegacyDamageFieldsToOverlay();
-    return true;
+    this.shieldIsEllipsoid = shieldIsEllipsoid;
+    this.armorImpactEmitter = armorDamageEmitter;
+    this.hullImpactEmitter = hullImpactEmitter;
+    this.mesh = shieldImpactMesh;
+    this.damageOverlay.SetHullDamageFlickerCurve(hullDamageFlickerCurve);
+    this.damageOverlay.SetArmorDamageShaderEffect(armorDamageShader);
   }
 
   /**
@@ -191,12 +303,10 @@ export class EveImpactOverlay
    * identical hulls.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   SetSeed(seed)
   {
-    this.seed = Number(seed) >>> 0;
-    this.damageOverlay.SetSeed(this.seed);
-    return true;
+    this.damageOverlay.SetSeed(seed);
   }
 
   /**
@@ -205,23 +315,10 @@ export class EveImpactOverlay
    * interchange.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   SetDamageLocatorCount(count)
   {
-    this._damageLocatorCount = Number(count) >>> 0;
-    this.damageOverlay.SetDamageLocatorCount(this._damageLocatorCount);
-    return true;
-  }
-
-  /**
-   * Number of damage locators the owning object exposes, as last recorded by
-   * SetDamageLocatorCount.
-   */
-  @meta.blue.method
-  @meta.adapted
-  GetDamageLocatorCount()
-  {
-    return this._damageLocatorCount;
+    this.damageOverlay.SetDamageLocatorCount(count);
   }
 
   /** Seconds an armour impact stays alive before it is retired. */
@@ -275,21 +372,28 @@ export class EveImpactOverlay
   }
 
   /**
-   * Starts a fade on the named shield, armour or hull effect; the fade runs over a quarter of the requested duration.
-   * @param {String} name - one of shieldboost, shieldhardening, armorhardening, armorrepair, hullrepair
-   * @returns {Boolean} false when the name matches no fader
+   * Carbon ToggleEffect (cpp:513-527): the two shield faders fade over a quarter of the duration; every other
+   * name goes to the damage overlay.
+   * @param {string} name Effect name.
+   * @param {boolean} on Fade in or out.
+   * @param {number} duration Seconds.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   ToggleEffect(name, on, duration)
   {
-    if (name === "shieldboost" || name === "shieldhardening")
+    if (name === "shieldboost")
     {
-      const fader = EveImpactOverlay._effectFader(this, name);
-      fader.StartFade(!!on, Number(duration) / 4);
-      return true;
+      this.shieldBoosting.StartFade(on, duration / 4);
     }
-    return this.damageOverlay.ToggleEffect(name, on, duration);
+    else if (name === "shieldhardening")
+    {
+      this.shieldHardening.StartFade(on, duration / 4);
+    }
+    else
+    {
+      this.damageOverlay.ToggleEffect(name, on, duration);
+    }
   }
 
   @meta.blue.method
@@ -301,141 +405,175 @@ export class EveImpactOverlay
   }
 
   /** Returns the next shared impact index. */
+  @meta.blue.method
+  @meta.implemented
   GetImpactDataNextIdx()
   {
     return this.damageOverlay.GetImpactDataNextIdx();
   }
 
   /** Returns the deterministic damage seed. */
+  @meta.blue.method
+  @meta.implemented
   GetSeed()
   {
     return this.damageOverlay.GetSeed();
   }
 
   /** Returns the target number of live armour impacts. */
+  @meta.blue.method
+  @meta.implemented
   GetArmorImpactGoalCount()
   {
     return this.damageOverlay.GetArmorImpactGoalCount();
   }
 
   /** Returns the parent size used to scale armour impacts. */
+  @meta.blue.method
+  @meta.implemented
   GetArmorImpactParentSize()
   {
     return this.damageOverlay.GetArmorImpactParentSize();
   }
 
   /** Returns whether debris is forced for every armour impact. */
+  @meta.blue.method
+  @meta.implemented
   GetDebugForceSpawnDebris()
   {
     return this.damageOverlay.GetDebugForceSpawnDebris();
   }
 
   /** Sets whether every armour impact requests debris. */
+  @meta.blue.method
+  @meta.implemented
   SetDebugForceSpawnDebris(value)
   {
-    this.debugForceSpawnDebris = !!value;
     this.damageOverlay.SetDebugForceSpawnDebris(value);
   }
 
   /** Returns the damage overlay render priority. */
+  @meta.blue.method
+  @meta.implemented
   GetRenderPriority()
   {
     return this.damageOverlay.GetRenderPriority();
   }
 
   /** Returns the shared data-texture block identifier. */
+  @meta.blue.method
+  @meta.implemented
   GetDataTextureBlockID()
   {
     return this.damageOverlay.GetDataTextureBlockID();
   }
 
-  /** Returns the authored hull-damage multiplier. */
+  /** Returns the hull-damage multiplier. */
+  @meta.blue.method
+  @meta.implemented
   GetHullDamageFactor()
   {
     return this.damageOverlay.GetHullDamageFactor();
   }
 
-  /** Sets the authored hull-damage multiplier. */
+  /** Sets the hull-damage multiplier. */
+  @meta.blue.method
+  @meta.implemented
   SetHullDamageFactor(value)
   {
-    this.hullDamageFactor = Number(value);
     this.damageOverlay.SetHullDamageFactor(value);
   }
 
   /** Returns the armour-damage material. */
+  @meta.blue.method
+  @meta.implemented
   GetArmorDamageShaderEffect()
   {
     return this.damageOverlay.GetArmorDamageShaderEffect();
   }
 
   /** Sets the armour-damage material. */
+  @meta.blue.method
+  @meta.implemented
   SetArmorDamageShaderEffect(value)
   {
-    this.armorDamageShader = value ?? null;
     this.damageOverlay.SetArmorDamageShaderEffect(value);
   }
 
   /** Returns the hull-damage flicker curve. */
+  @meta.blue.method
+  @meta.implemented
   GetHullDamageFlickerCurve()
   {
     return this.damageOverlay.GetHullDamageFlickerCurve();
   }
 
   /** Sets the hull-damage flicker curve. */
+  @meta.blue.method
+  @meta.implemented
   SetHullDamageFlickerCurve(value)
   {
-    this.hullDamageFlickerCurve = value ?? null;
     this.damageOverlay.SetHullDamageFlickerCurve(value);
   }
 
   /** Returns the armour-repair fader. */
+  @meta.blue.method
+  @meta.implemented
   GetArmorRepairing()
   {
     return this.damageOverlay.GetArmorRepairing();
   }
 
   /** Replaces the armour-repair fader. */
+  @meta.blue.method
+  @meta.implemented
   SetArmorRepairing(value)
   {
-    this.armorRepairing = value;
     this.damageOverlay.SetArmorRepairing(value);
   }
 
   /** Returns the armour-hardening fader. */
+  @meta.blue.method
+  @meta.implemented
   GetArmorHardening()
   {
     return this.damageOverlay.GetArmorHardening();
   }
 
   /** Replaces the armour-hardening fader. */
+  @meta.blue.method
+  @meta.implemented
   SetArmorHardening(value)
   {
-    this.armorHardening = value;
     this.damageOverlay.SetArmorHardening(value);
   }
 
   /** Returns the hull-repair fader. */
+  @meta.blue.method
+  @meta.implemented
   GetHullRepairing()
   {
     return this.damageOverlay.GetHullRepairing();
   }
 
   /** Replaces the hull-repair fader. */
+  @meta.blue.method
+  @meta.implemented
   SetHullRepairing(value)
   {
-    this.hullRepairing = value;
     this.damageOverlay.SetHullRepairing(value);
   }
 
-  /** Applies shield, armour and hull state to the damage presentation. */
+  /**
+   * Carbon SetDamageState (cpp:534-540): the shield colour fade is (1 - shield)^2 clamped to [0, 1]; the damage
+   * overlay derives the configuration.
+   */
   @meta.blue.method
   @meta.implemented
-  SetDamageState(shield, armor, hull, createArmorImpacts = false)
+  SetDamageState(shield, armor, hull, doCreateArmorImpacts)
   {
     this.shieldImpactColorFade = Math.max(0, Math.min(1, (1 - shield) ** 2));
-    this.damageOverlay.SetDamageState(shield, armor, hull, createArmorImpacts);
-    this.configuration = this.damageOverlay.GetImpactConfiguration();
-    vec3.set(this._lastDamageState, shield, armor, hull);
+    this.damageOverlay.SetDamageState(shield, armor, hull, doCreateArmorImpacts);
   }
 
   /** Removes every live shield and armour impact. */
@@ -664,7 +802,7 @@ export class EveImpactOverlay
         const rateModifier = Math.min(Math.max(
           overlay.GetRenderPriority() / IMPACT_ARMOR_PARTICLE_LOD_FACTOR, 0), 1);
         const args = new ITr2GenericEmitterUpdateArguments();
-        args.time = updateContext.GetTime();
+        args.time = TimeAsDouble(updateContext.GetTime());
         args.system = gpuParticleSystem;
         vec3.copy(args.originShift, updateContext.GetOriginShift());
         this.armorImpactEmitter.SpawnOnce(args, parentVelocityWS, scale, rateModifier);
@@ -780,38 +918,6 @@ export class EveImpactOverlay
   GetArmorDamageShader(batchType)
   {
     return this.damageOverlay.GetArmorDamageShader(batchType);
-  }
-
-  /** Copies legacy authored damage fields into the owned damage overlay. */
-  _SyncLegacyDamageFieldsToOverlay()
-  {
-    this.damageOverlay ??= new EveDamageOverlay();
-    this.damageOverlay.SetSeed(this.seed);
-    this.damageOverlay.SetDamageLocatorCount(this._damageLocatorCount);
-    this.damageOverlay.SetDebugForceSpawnDebris(this.debugForceSpawnDebris);
-    this.damageOverlay.SetHullDamageFactor(this.hullDamageFactor);
-    this.damageOverlay.SetArmorDamageShaderEffect(this.armorDamageShader);
-    this.damageOverlay.SetHullDamageFlickerCurve(this.hullDamageFlickerCurve);
-    this.damageOverlay.SetArmorRepairing(this.armorRepairing);
-    this.damageOverlay.SetArmorHardening(this.armorHardening);
-    this.damageOverlay.SetHullRepairing(this.hullRepairing);
-  }
-
-  /**
-   * Maps an effect name to the fader that drives it, or null when the name is
-   * unknown.
-   */
-  static _effectFader(overlay, name)
-  {
-    switch (name)
-    {
-      case "shieldboost": return overlay.shieldBoosting;
-      case "shieldhardening": return overlay.shieldHardening;
-      case "armorhardening": return overlay.armorHardening;
-      case "armorrepair": return overlay.armorRepairing;
-      case "hullrepair": return overlay.hullRepairing;
-      default: return null;
-    }
   }
 
   static ImpactConfiguration = ImpactConfiguration;

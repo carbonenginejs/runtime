@@ -16,7 +16,7 @@ import { EveSOF } from "../../npm/dist/sof/index.js";
 import { EveMissile, EveMissileWarhead, EveSpaceObject2, EveTransform, EveRootTransform, EveUpdateContext,
   ITr2GenericEmitter, TriFrustum, Tr2QuadRenderer, Tr2GpuSharedEmitter,
   Tr2RotationAdapter, Tr2TranslationAdapter, Tr2GpuParticleSystem, TriCurveSet, Tr2Renderer,
-  ITriTargetable, EveEffectRoot2 } from "../../npm/dist/trinity/index.js";
+  ITriTargetable, EveEffectRoot2, Tr2DataTextureManager, Tr2ScalarFader } from "../../npm/dist/trinity/index.js";
 import "../../npm/dist/audio/index.js";
 import { StubResMan } from "../support/stubResMan.js";
 
@@ -902,4 +902,61 @@ test("a multi-warhead missile composed from three real warheads explodes each wa
   }
   // Each warhead keeps its own randomized flight (speed modifier, final-target time): explosions need not share a frame.
   assert.ok(log.exploded.every(entry => entry.frame <= log.deadFrame));
+});
+
+test("real Svipul impact overlay exposes its armour/hull names as live properties over the damage overlay", {skip: targetSkip}, async t =>
+{
+  const ship = await realSvipulTarget(t), overlay = ship.impactOverlay, damage = overlay.GetDamageOverlay();
+  // EveImpactOverlay_Blue.cpp:33-48. The SOF hull authors the two persisted properties.
+  assert.equal(CjsSchema.getClassName(overlay.armorDamageShader.constructor), "Tr2Effect");
+  assert.equal(CjsSchema.getClassName(overlay.hullDamageFlickerCurve.constructor), "TriPerlinCurve");
+  assert.ok(overlay.armorDamageShader === damage.GetArmorDamageShaderEffect(), "hydration wrote through to the damage overlay");
+  assert.ok(overlay.hullDamageFlickerCurve === damage.GetHullDamageFlickerCurve(), "hydration wrote through to the damage overlay");
+  const persisted = CjsSchema.getValues(overlay, {}, { persistOnly: true });
+  assert.equal(persisted.armorDamageShader?.effectFilePath, overlay.armorDamageShader.effectFilePath, "MAP_PROPERTY_PERSISTED is exported");
+  assert.ok(persisted.hullDamageFlickerCurve, "MAP_PROPERTY_PERSISTED is exported");
+  for (const name of ["seed", "configuration", "impactDataNextIdx", "hullDamageFactor", "armorRepairing"])
+  {
+    assert.equal(Object.hasOwn(persisted, name), false, `${name} is a live, unpersisted property`);
+  }
+
+  const live = () => ({
+    seed: overlay.seed === damage.GetSeed(),
+    configuration: overlay.configuration === damage.GetImpactConfiguration(),
+    next: overlay.impactDataNextIdx === damage.GetImpactDataNextIdx(),
+    goal: overlay.armorImpactGoalCount === damage.GetArmorImpactGoalCount(),
+    parent: overlay.armorImpactParentSize === damage.GetArmorImpactParentSize(),
+    priority: overlay.renderPriority === damage.GetRenderPriority(),
+    block: overlay.dataTextureBlockID === damage.GetDataTextureBlockID()
+  });
+  const allLive = { seed: true, configuration: true, next: true, goal: true, parent: true, priority: true, block: true };
+  assert.deepEqual(live(), allLive);
+  assert.equal(overlay.impactDataNextIdx, 1);
+
+  ship.SetImpactDamageState(1, 0.4, 0.9, true);
+  assert.ok(overlay.impactDataNextIdx > 1, "armour impacts advanced the shared index");
+  assert.ok(Number(overlay.armorImpactGoalCount) > 0);
+  assert.deepEqual(live(), allLive, "read-only properties follow the damage overlay");
+
+  // The scene supplies the data-texture manager through the update context (EveImpactOverlay.cpp:107-108).
+  const context = new EveUpdateContext();
+  context.SetDataTextureManager(new Tr2DataTextureManager());
+  context.SetTime(60_000_000);
+  context.SetTime(60_333_333);
+  ship.UpdateSyncronous(context);
+  // Render priority comes from the async pass, so a first synchronous frame requests no block (priority 0).
+  assert.deepEqual(live(), allLive);
+
+  overlay.hullDamageFactor = 0.5;
+  assert.equal(damage.GetHullDamageFactor(), 0.5, "MAP_PROPERTY setters forward");
+  overlay.debugForceSpawnDebris = true;
+  assert.equal(damage.GetDebugForceSpawnDebris(), true);
+  const fader = new Tr2ScalarFader();
+  overlay.armorRepairing = fader;
+  assert.ok(damage.GetArmorRepairing() === fader);
+  assert.ok(overlay.armorRepairing === fader);
+  // EveImpactOverlay.cpp:513-527: only the two shield names use the overlay's own faders.
+  overlay.ToggleEffect("armorrepair", true, 8);
+  assert.ok(fader.fading > 0, "armorrepair reaches the damage overlay's fader");
+  assert.equal(overlay.shieldBoosting.fading, 0);
 });

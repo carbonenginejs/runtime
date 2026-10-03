@@ -3901,7 +3901,7 @@ test("SOF emits and hydrates Carbon impact overlays and preserves the HULL shiel
   assert.deepEqual(hydrated.reports, []);
   const overlay = hydrated.root.impactOverlay;
   assert.equal(overlay.GetDamageOverlay().GetHullDamageFlickerCurve().n, 4);
-  assert.equal(overlay.GetDamageLocatorCount(), 2);
+  assert.equal(overlay.GetDamageOverlay().damageLocatorCount, 2, "Carbon keeps the count on the damage overlay");
   assert.equal(overlay.HasShieldEllipsoid(), true);
   assert.equal(overlay.mesh.geometryResPath, "res:/shield.gr2");
   assert.equal(overlay.armorImpactEmitter.minSpeed, 3);
