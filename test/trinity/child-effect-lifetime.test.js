@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { blue } from "../../npm/dist/global/blue/index.js";
-import { Tr2ActionChildEffect, EveChildContainer, EveChildParticleSystem, Tr2ParticleSystem, Tr2InstancedMesh, TriDevice } from "../../npm/dist/trinity/index.js";
+import { Tr2ActionChildEffect, EveChildContainer, EveChildBehaviorSystem, EveChildParticleSystem, Tr2ParticleSystem, Tr2InstancedMesh, TriDevice } from "../../npm/dist/trinity/index.js";
 
 /** A fresh loaded child with the same particle-to-mesh ownership as an ad. */
 function particleChild(onDestroy)
@@ -69,4 +69,35 @@ test("a retained sibling keeps its shared particle provider alive", async t =>
   assert.ok(TriDevice.GetResourcesRegistered().includes(sibling.particleSystems[0]));
   sibling.particleSystems[0].Destroy();
   assert.equal(destroyed, 1);
+});
+
+test("100 recurring behavior ads release both instance buffers of both systems", async t =>
+{
+  const baseline = TriDevice.GetResourcesRegistered().length;
+  let live = 0;
+  t.mock.method(blue.resMan, "LoadObject", async () =>
+  {
+    const child = new EveChildContainer();
+    for (let i = 0; i < 2; i++)
+    {
+      const system = new EveChildBehaviorSystem();
+      system._shipInstanceBuffer = { Destroy: () => live-- };
+      system._boosterInstanceBuffer = { Destroy: () => live-- };
+      live += 2;
+      child.objects.push(system);
+    }
+    return child;
+  });
+  const owner = new EveChildContainer(), action = new Tr2ActionChildEffect();
+  const controller = { GetOwner: () => owner };
+  action.path = "res:/synthetic-behavior-ad.black";
+  for (let i = 0; i < 100; i++)
+  {
+    action.Start(controller);
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(live, 4);
+    action.Stop(controller);
+    assert.equal(live, 0);
+    assert.equal(TriDevice.GetResourcesRegistered().length, baseline);
+  }
 });
