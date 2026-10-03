@@ -56,3 +56,37 @@ test("Black custom blocks require local opt-in and retain byte storage", () =>
   assert.equal(classes.EveSOFDataDecalIndexBuffer.indexBuffer, "uint32Array");
   assert.deepEqual(classes.Tr2ActionPython.state, {type:"custom",name:"Tr2ActionPython.state"});
 });
+
+
+test("Black rejects unsupported data kinds before reading or skipping object storage", () =>
+{
+  for (const field of [{ kind: "UnsupportedType" }, { jsType: { kind: "UnsupportedType" } }])
+  {
+    for (const method of ["readValue", "skipValue"])
+    {
+      const reader = cursor([7, 8]);
+      let objectCalls = 0;
+      reader.context.ReadObject = reader.context.SkipObject = () => { objectCalls++; return {}; };
+      const remaining = reader.remaining;
+      assert.throws(() => Readers[method](reader, field), {
+        name: "TypeError", message: /Black has no .* for data type UnsupportedType/
+      });
+      assert.equal(objectCalls, 0);
+      assert.equal(reader.remaining, remaining, "unsupported types must not consume bytes");
+    }
+  }
+});
+
+test("Black retains explicit object-reference and unknown-object codecs", () =>
+{
+  for (const kind of ["objectRef", "unknown"])
+  {
+    const reader = cursor([]), expected = {};
+    let skipped = 0;
+    reader.context.ReadObject = () => expected;
+    reader.context.SkipObject = () => { skipped++; };
+    assert.equal(Readers.readValue(reader, { kind }), expected);
+    Readers.skipValue(reader, { kind });
+    assert.equal(skipped, 1);
+  }
+});

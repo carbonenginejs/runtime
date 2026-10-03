@@ -102,8 +102,10 @@ export class CjsBlackPropertyReaders
 
             case CARBON_TYPE.OBJECT_REF:
             case CARBON_TYPE.UNKNOWN:
-            default:
                 return reader.context.ReadObject(reader);
+
+            default:
+                throw new TypeError(`Black has no reader for data type ${descriptor.kind}`);
         }
     }
 
@@ -245,8 +247,10 @@ export class CjsBlackPropertyReaders
                 return;
             case CARBON_TYPE.OBJECT_REF:
             case CARBON_TYPE.UNKNOWN:
-            default:
                 reader.context.SkipObject(reader);
+                return;
+            default:
+                throw new TypeError(`Black has no skip handler for data type ${descriptor.kind}`);
         }
     }
 
