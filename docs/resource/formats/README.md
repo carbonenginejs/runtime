@@ -23,6 +23,13 @@ reports the tracks actually present. Ogg inspection exposes each track's
 mask. ResMan consumes stream routing flags before invoking format probes and
 decoders. MIME types and codec names remain format-specific strings.
 
+Granny geometry retains its complete index stream in `indexBuffer`, including
+triangles outside material groups. Each group’s `faces` is a typed view of that
+same storage, and `firstElement` preserves its authored triangle offset. CMF
+conversion and GPU upload keep these offsets; they do not concatenate groups.
+Use the format’s `ToJSON`/`toJSON` conversion when plain JSON arrays are needed.
+This representation does not change CPU geometry residency or ray-query policy.
+
 ## Import rule
 
 Concrete formats are never imported or registered by the package root. Each

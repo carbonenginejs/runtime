@@ -524,9 +524,15 @@ function vertexData(vertex, options, typeSuffix)
     };
 }
 
-function buildTopology(groups)
+function buildTopology(groups, indexBuffer = null)
 {
-    const indices = [];
+    // The container encoder consumes plain reflected arrays. This temporary
+    // writer copy is not retained by the decoded geometry resource.
+    const indices = indexBuffer ? Array.from(indexBuffer) : [];
+    if (indices.length % 3 || indices.some(index => !Number.isInteger(index) || index < 0))
+    {
+        throw new CjsFormatWriteError("GR2 writer requires a complete non-negative triangle index stream");
+    }
     const topologyGroups = [];
     let triangle = 0;
     for (let groupIndex = 0; groupIndex < groups.length; groupIndex++)
@@ -539,13 +545,15 @@ function buildTopology(groups)
         for (const index of faces)
         {
             if (!Number.isInteger(index) || index < 0) throw new CjsFormatWriteError("GR2 writer indices must be non-negative integers");
-            indices.push(index);
+            if (!indexBuffer) indices.push(index);
         }
         const triangleCount = faces.length / 3;
-        topologyGroups.push({ MaterialIndex: groupIndex, TriFirst: triangle, TriCount: triangleCount });
+        const first = indexBuffer ? groups[groupIndex].firstElement ?? triangle : triangle;
+        topologyGroups.push({ MaterialIndex: groupIndex, TriFirst: first, TriCount: triangleCount });
         triangle += triangleCount;
     }
-    const use16 = indices.every(index => index <= 0x7fff);
+    const use16 = indexBuffer instanceof Uint16Array ||
+        (!(indexBuffer instanceof Uint32Array) && indices.every(index => index <= 0x7fff));
     return {
         Groups: topologyGroups,
         Indices: use16 ? [] : indices,
@@ -564,10 +572,11 @@ function buildTopology(groups)
 function lodSources(mesh)
 {
     const lods = (mesh.lods ?? []).filter(lod => lod?.vertex && lod?.indices);
-    if (!lods.length) return [ { vertex: mesh.vertex ?? {}, indices: mesh.indices ?? [], morphTargets: mesh.morphTargets ?? [] } ];
+    if (!lods.length) return [ { vertex: mesh.vertex ?? {}, indices: mesh.indices ?? [], indexBuffer: mesh.indexBuffer, morphTargets: mesh.morphTargets ?? [] } ];
     return lods.map((lod, index) => ({
         vertex: lod.vertex,
         indices: lod.indices,
+        indexBuffer: lod.indexBuffer,
         threshold: lod.threshold,
         morphTargets: (lod.morphTargets ?? []).map((target, targetIndex) => ({
             ...(mesh.morphTargets?.[targetIndex] ?? {}),
@@ -594,7 +603,7 @@ function buildMeshes(shared, options, dynamicTypes)
             const primary = vertexData(lod.vertex ?? {}, options, `${meshIndex}_${lodIndex}`);
             dynamicTypes.push(primary.type);
             vertexDatas.push(primary.value);
-            const topology = buildTopology(lod.indices ?? []);
+            const topology = buildTopology(lod.indices ?? [], lod.indexBuffer);
             topologies.push(topology);
 
             const meshMaterials = (lod.indices ?? []).map((group, groupIndex) => ({

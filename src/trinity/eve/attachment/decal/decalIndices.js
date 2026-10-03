@@ -102,16 +102,15 @@ function PositionComponents(decl)
 }
 
 /**
- * The indices of one LOD, concatenated in group order.
- *
- * Group order is the order the packer writes them (`pack.js` packIndexBuffer),
- * so a start index computed here addresses the same buffer the device gets.
+ * The complete authored index stream when retained, otherwise concatenated
+ * groups, matching the buffer submitted by packIndexBuffer.
  *
  * @param {object} lod Decoded LOD.
- * @returns {number[]} Flat index list.
+ * @returns {ArrayLike<number>} Flat index list.
  */
 function lodIndices(lod)
 {
+    if (lod?.indexBuffer) return lod.indexBuffer;
     const flat = [];
 
     for (const group of lod?.indices ?? [])

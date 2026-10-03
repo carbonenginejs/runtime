@@ -94,7 +94,8 @@ function populate(instance, props, hydrationOptions = {})
  * @property {object[]} meshes Mesh records with deinterleaved flat numeric
  *     vertex channels (`VERTEX_CHANNELS`), `boneBindings`, `morphTargets`
  *     (sparse ones carry `vertexIndices`) and `indices` groups whose `faces`
- *     is a flat triangle-index array.
+ *     is a typed view into the complete `indexBuffer`. Group `firstElement`
+ *     retains Granny TriFirst (a triangle offset), independently of group order.
  * @property {object[]} models Model records with skeleton and mesh bindings.
  * @property {object[]} animations Animation records: `trackGroups` ->
  *     `transformTracks` -> curves.
@@ -516,22 +517,28 @@ function emitMesh(mesh, classes = {}, rebuildMissingBounds = false)
         groups = topo.Groups || [];
     o.indices = [];
     let indices = null, bpi = 0, meshBounds = null;
-    if (i32arr.length) { indices = i32arr; bpi = 4; }
-    else if (i16arr.length) { indices = i16arr.map(x => x & 0xffff); bpi = 2; }
+    if (i32arr.length) { indices = Uint32Array.from(i32arr); bpi = 4; }
+    else if (i16arr.length) { indices = Uint16Array.from(i16arr); bpi = 2; }
+    // PrimaryTopology.Indices/Indices16 is one complete topology stream.
+    // Material ranges may overlap, be out of order, or leave triangles
+    // unassigned. The normalized indexBuffer and faces views retain that
+    // topology without keeping a second bulk copy.
+    o.indexBuffer = indices;
     if (indices)
     {
         for (const g of groups)
         {
-            const
-                faces = new Array(g.TriCount * 3),
-                start = g.TriFirst * 3;
-            for (let i = 0; i < g.TriCount * 3; i++)
+            const start = g.TriFirst * 3, count = g.TriCount * 3;
+            if (!Number.isInteger(start) || !Number.isInteger(count) ||
+                start < 0 || count < 0 || start + count > indices.length)
             {
-                faces[i] = indices[start + i] >>> 0;
+                throw new Error("GR2 material group is outside the index stream");
             }
+            const faces = indices.subarray(start, start + count);
             const group = {
                 name: `area_${g.MaterialIndex}`,
                 bytesPerIndex: bpi,
+                firstElement: g.TriFirst,
                 faces
             };
             if (rebuildMissingBounds)

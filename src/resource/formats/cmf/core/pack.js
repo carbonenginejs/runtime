@@ -220,16 +220,21 @@ export function packVertexBuffer(decl, vertex)
  * Concatenate index groups into index-buffer bytes.
  *
  * @param {Array<object>} groups Index groups with `faces` arrays.
+ * @param {ArrayLike<number>|null} [indexBuffer] Complete authored index stream.
  * @returns {object} `{ bytes, stride, count }` (u16 unless any index needs u32).
  */
-export function packIndexBuffer(groups)
+export function packIndexBuffer(groups, indexBuffer = null)
 {
-    const faces = [];
-    for (const group of groups || [])
+    let faces = indexBuffer;
+    if (!faces)
     {
-        for (const index of group.faces || []) faces.push(index);
+        faces = [];
+        for (const group of groups || [])
+        {
+            for (const index of group.faces || []) faces.push(index);
+        }
     }
-    const stride = bytesPerIndex(groups);
+    const stride = bytesPerIndex(groups, indexBuffer);
     const wide = stride === 4;
     const bytes = new Uint8Array(faces.length * stride);
     const view = new DataView(bytes.buffer);
@@ -284,7 +289,7 @@ export function packGraphBuffers(graph)
             const vertexSource = lod.vertex ?? mesh.vertex ?? {};
             const indexSource = lod.indices ?? mesh.indices ?? [];
             const packedVb = packVertexBuffer(decl, vertexSource);
-            const packedIb = packIndexBuffer(indexSource);
+            const packedIb = packIndexBuffer(indexSource, lod.indexBuffer ?? (lod.indices ? null : mesh.indexBuffer));
 
             const vb = packedVb.count
                 ? { index: allocate(packedVb.bytes), offset: 0, size: packedVb.bytes.byteLength, stride: packedVb.stride }

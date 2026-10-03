@@ -166,9 +166,8 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
 
   /**
    * Decoded CPU channels replace the Granny SDK; native picking-prefix matching
-   * is preserved. The existing shared Granny projection retains material groups,
-   * not the original full index stream. This path therefore renders those
-   * projected groups; orphaned indices cannot be recovered at this layer.
+   * is preserved. The shared projection retains the complete topology stream,
+   * including triangles outside material groups, as the native SDK does.
    */
   @meta.blue.method
   @meta.adapted
@@ -341,11 +340,16 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
 
 /**
  * Binary CMF retains its full index stream independently of area ranges.
- * Shared geometry payloads expose only their projected groups; see the Granny
- * method's explicit limitation. No reader or serialization policy is changed.
+ * Granny projections retain the full typed stream with material ranges as
+ * views. Legacy group-only payloads retain their concatenated fallback.
  */
 function ReadIndices(payload, _mesh, lod)
 {
+  if (lod.indexBuffer)
+  {
+    if (lod.indexBuffer.length % 3) throw new Error("Tr2GrannyPrimitiveSet: incomplete triangle index stream");
+    return lod.indexBuffer;
+  }
   const indices = [];
   const view = lod.ib, bytes = payload.buffers?.[view?.index]?.data;
   if (bytes && view.size)

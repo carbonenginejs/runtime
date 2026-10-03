@@ -75,7 +75,8 @@ export function PackLodGeometry(mesh, lodIndex = 0)
   const groups = lod?.indices ?? mesh?.indices ?? null;
 
   const vertex = AlignStride(packVertexBuffer(decl, channels));
-  const packedIndices = groups ? packIndexBuffer(groups) : null;
+  const indexBuffer = lod?.indexBuffer ?? (lod?.indices ? null : mesh?.indexBuffer) ?? null;
+  const packedIndices = groups || indexBuffer ? packIndexBuffer(groups, indexBuffer) : null;
 
   const index = packedIndices && packedIndices.count > 0
     ? { bytes: packedIndices.bytes, format: packedIndices.stride === 4 ? "uint32" : "uint16", count: packedIndices.count }

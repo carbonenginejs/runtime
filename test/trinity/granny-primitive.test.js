@@ -166,3 +166,14 @@ test('active draws renew the manager lease and recover a purged handle before th
  r.SetPayload({meshes:[mesh('reloaded',17)]});r.MarkPrepared();
  assert.equal(p.grannyRes,r);assert.equal(batches(p).length,1);assert.equal(p._points[0],17);
 });
+
+test('Granny primitives upload the complete authored stream, including ungrouped triangles', t => {
+ const source=mesh();
+ source.indexBuffer=new Uint16Array([0,1,2,2,1,0]);
+ source.indices=[{firstElement:1,faces:source.indexBuffer.subarray(3)}];
+ const r=geometry([source]),{indices}=setup(t,()=>r),p=make();
+ assert.equal(p._primitiveCount,2);
+ assert.deepEqual([...p._triangleIndices],[0,1,2,2,1,0]);
+ assert.deepEqual([...indices.at(-2)],[0,1,2,2,1,0]);
+ assert.equal(p._lineIndices.length,12);
+});

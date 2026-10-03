@@ -100,7 +100,8 @@ function buildMesh(mesh, options)
         topology,
         skeleton: mesh.skeleton ?? null,
         vertex,
-        indices: base.indices
+        indices: base.indices,
+        indexBuffer: base.indexBuffer
     };
 }
 
@@ -136,10 +137,11 @@ function buildLod(mesh, index, options)
         stride = estimateStrideFromDecl(decl),
         vertexCount = stride === 0 ? 0 : (mesh.vertexCount ?? Math.floor(position.length / 3)),
         indices = mesh.indices ?? [],
+        indexBuffer = mesh.indexBuffer ?? null,
         topology = mesh.topology ?? "TriangleList",
         pointList = topology === "PointList",
         morphTargets = buildMorphTargets(mesh),
-        indexStride = pointList ? 0 : bytesPerIndex(indices);
+        indexStride = pointList ? 0 : bytesPerIndex(indices, indexBuffer);
 
     if (mesh.vertexCount === undefined && position.length % 3)
     {
@@ -150,9 +152,14 @@ function buildLod(mesh, index, options)
     {
         throw new Error(`CMF shared geometry topology ${JSON.stringify(topology)} is not supported`);
     }
-    if (pointList && totalIndexCount(indices))
+    if (pointList && totalIndexCount(indices, indexBuffer))
     {
         throw new Error("CMF PointList geometry cannot contain an index buffer");
+    }
+    if (indexBuffer && (indexBuffer.length % 3 ||
+        indexBuffer.some(value => !Number.isInteger(value) || value < 0 || value >= vertexCount)))
+    {
+        throw new Error("CMF index stream must contain complete triangles within the vertex range");
     }
     for (const group of indices)
     {
@@ -184,7 +191,7 @@ function buildLod(mesh, index, options)
         } : {
             index: 2,
             offset: 0,
-            size: totalIndexCount(indices) * indexStride,
+            size: totalIndexCount(indices, indexBuffer) * indexStride,
             stride: indexStride
         },
         areas: buildLodAreas(indices, topology, vertexCount),
@@ -192,7 +199,8 @@ function buildLod(mesh, index, options)
         morphTargetSet: morphTargets,
         threshold: lodThreshold(mesh, index),
         vertex,
-        indices
+        indices,
+        indexBuffer
     };
 }
 
@@ -651,6 +659,7 @@ function hydrateSharedMesh(mesh, classes)
             maxBounds: binding.bounds.max
         }, classes)),
         vertex: mesh.vertex ?? emptyVertex(),
+        indexBuffer: mesh.indexBuffer ?? mesh.lods[0]?.indexBuffer ?? null,
         indices: (mesh.indices ?? []).map((group) => hydrate("IndexGroup", {
             name: group.name,
             bytesPerIndex: group.bytesPerIndex,

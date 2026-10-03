@@ -315,7 +315,8 @@ test("emitJson with options.classes hydrates registered node types", () =>
     assert.equal(mesh.boneBindings[0].name, "root");
     assert.ok(mesh.indices[0] instanceof IndexGroup);
     assert.equal(mesh.indices[0].name, "area_0");
-    assert.deepEqual(mesh.indices[0].faces, [ 0, 1, 2 ]);
+    assert.deepEqual(Array.from(mesh.indices[0].faces), [ 0, 1, 2 ]);
+    assert.equal(mesh.indices[0].faces.buffer, mesh.indexBuffer.buffer);
     assert.ok(mesh.morphTargets[0] instanceof MorphTarget);
     assert.equal(mesh.morphTargets[0].name, "SmileShape");
     assert.equal(mesh.morphTargets[0].dataIsDeltas, true);

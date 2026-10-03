@@ -17,8 +17,9 @@ EvePerObjectVSData and EvePerObjectPSData layouts supply their exact byte shape.
 RawData performs the single upload transpose.
 
 The typed geometry route replaces Carbon's raw Granny SDK resource. Binary CMF
-retains the complete index stream. The existing shared Granny projection retains
-material-group faces but discards original index offsets and orphaned indices;
-that format-boundary limitation remains explicit in CreatePrimitiveFromGranny.
-This closure does not modify readers or serialization. The nominal ITr2Pickable
-interface is also still absent, although native picking methods are supplied.
+retains the complete index stream. The shared Granny projection now retains
+one complete typed indexBuffer, with material faces as views and authored
+triangle offsets preserved. Upload packing, primitives, decals and Granny
+writing use that full stream, including triangles outside material groups.
+This changes no CPU residency or ray-query policy. The nominal ITr2Pickable
+interface is still absent, although native picking methods are supplied.
