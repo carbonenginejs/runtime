@@ -29,6 +29,7 @@ const workerFormatUrls = {
 
 export default [
     [ "test/trinityal/webgpu/demo/demo.js", "demo.bundle.js" ],
+    [ "test/trinityal/webgpu/demo/clouds.js", "clouds.bundle.js" ],
     [ "npm/dist/global/blue/worker/CjsResManWorker.js", "resource.worker.bundle.js" ],
     [ "npm/dist/resource/formats/gr2/CjsGr2Format.js", "gr2.worker.bundle.js" ],
     [ "npm/dist/resource/formats/dds/CjsDdsFormat.js", "dds.worker.bundle.js" ]
