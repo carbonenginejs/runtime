@@ -200,11 +200,11 @@ test("real pulse FX registers lights on firing transitions and live list edits",
   assert.equal(removeChild(effect, "stretch", added, { listNotify: effect }),true);
   assert.ok(added.GetComponentRegistry()===null,"expected component registry membership");
   assert.equal(removeChild(effect, "stretch", added, { listNotify: effect }),false);
-  effect.SetValues({display:false});
+  CjsSchema.setValues(effect,{display:false});
   assert.ok(original.GetComponentRegistry()===null,"expected component registry membership");
   addChild(effect, "stretch", added, { listNotify: effect });
   assert.ok(added.GetComponentRegistry()===null,"hidden insertion stays unregistered");
-  effect.SetValues({display:true});
+  CjsSchema.setValues(effect,{display:true});
   assert.ok(added.GetComponentRegistry()===registry,"expected component registry membership");
   effect.StopFiring();
   assert.ok(original.GetComponentRegistry()===null,"expected component registry membership");
@@ -381,11 +381,11 @@ for (const role of ["source","dest","stretch","move"])
     assert.ok(replacement.GetComponentRegistry()===registry,"expected component registry membership");
     assert.ok(registry.GetComponents(EveComponentType.LightOwner).includes(replacement));
     if (role==="stretch") assert.equal(CjsSchema.getClassName(stretch._stretchModifier.constructor),"EveChildModifierStretch");
-    stretch.SetValues({display:false});
+    CjsSchema.setValues(stretch,{display:false});
     assert.ok(replacement.GetComponentRegistry()===null,"expected component registry membership");
     stretch[`${role}Object`]=original;
     assert.ok(original.GetComponentRegistry()===registry,"native live setters do not test display");
-    stretch.SetValues({display:true});
+    CjsSchema.setValues(stretch,{display:true});
     assert.ok(original.GetComponentRegistry()===registry,"expected component registry membership");
     stretch[`${role}Object`]=null;
     assert.ok(original.GetComponentRegistry()===null,"expected component registry membership");
@@ -424,9 +424,9 @@ test("controlled destination changes on real Breacher maintain its native stretc
 {
   const stretch=(await realBreacher(t)).stretch[0], destination=new EveLocalPositionCurve();
   // This curve is an explicit augmentation; the Breacher asset authors no endpoint curves.
-  stretch.SetValues({dest:destination});
+  CjsSchema.setValues(stretch,{dest:destination});
   assert.equal(stretch._stretchModifier.dest,destination);
-  stretch.SetValues({dest:null});
+  CjsSchema.setValues(stretch,{dest:null});
   assert.equal(stretch._stretchModifier,null);
   stretch.stretchObject=stretch.sourceObject;
   assert.equal(CjsSchema.getClassName(stretch._stretchModifier.constructor),"EveChildModifierStretch");

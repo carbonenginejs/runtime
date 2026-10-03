@@ -38,12 +38,12 @@ test("real turret geometry remains READ-accessible and collected but is excluded
   assert.equal(declaration.edit.read,true,"native READ accessibility is retained");
   assert.ok(set.geometryResource===resource,"initialized turret owns the requested real geometry");
   assert.ok(GetResources(set).includes(resource),"the held resource remains a dependency edge");
-  const values=set.GetValues();
+  const values=CjsSchema.getValues(set);
   assert.equal(Object.hasOwn(values,"geometryResource"),false,"unfiltered Values must not serialize the loaded handle");
   assert.equal(values.geometryResPath,geometryPath,"the authored resource path remains serializable");
   assert.ok(Object.hasOwn(values,"turretEffect"),"ordinary owned graph references remain Values data");
   const incoming=Object.defineProperty({},"geometryResource",{enumerable:true,get(){throw new Error("runtime resource input must not be read");}});
-  set.SetValues(incoming);assert.ok(set.geometryResource===resource);
+  CjsSchema.setValues(set,incoming);assert.ok(set.geometryResource===resource);
   const descriptor=Object.getOwnPropertyDescriptor(set,"geometryResource");
   Object.defineProperty(set,"geometryResource",{configurable:true,get(){throw new Error("Copier must not read the source runtime handle");}});
   let clone;
