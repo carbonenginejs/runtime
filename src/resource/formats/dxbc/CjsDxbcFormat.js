@@ -212,7 +212,6 @@ export class CjsDxbcFormat extends CjsFormat
     }
 
     static id = "CjsDxbcFormat";
-    static mediaTypes = [ "shader" ];
     static outputs = CjsFormat.defineOutputs({
         json: { default: true, decoded: true },
         raw: { role: "debug", decoded: true }

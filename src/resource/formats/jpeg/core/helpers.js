@@ -71,7 +71,6 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
     }
 
     return {
-        mediaTypes: sourceFormat === "dds" ? [ "texture", "image" ] : [ "image" ],
         sourceFormat,
         byteLength: bytes.byteLength,
         ...detected

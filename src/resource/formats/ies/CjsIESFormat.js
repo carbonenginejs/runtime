@@ -68,7 +68,6 @@ export class CjsIESFormat extends CjsFormat
 
     static id = "CjsIESFormat";
     static extensions = [ ".ies" ];
-    static mediaTypes = [ "data" ];
     static outputs = CjsFormat.defineOutputs({
         payload: { default: true, decoded: true },
         lightProfile: { decoded: true }

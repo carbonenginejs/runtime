@@ -218,7 +218,6 @@ export class CjsWebglFormat extends CjsFormat
     }
 
     static id = "CjsWebglFormat";
-    static mediaTypes = [ "shader" ];
     static outputs = CjsFormat.defineOutputs({
         json: { default: true, decoded: true }
     });

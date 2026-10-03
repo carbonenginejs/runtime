@@ -12,7 +12,6 @@ test("the FSD facade and bit-width implementations declare the data format vocab
 {
     for (const Format of [ CjsFsdFormat, CjsFsd32Format, CjsFsd64Format ])
     {
-        assert.deepEqual(Format.mediaTypes, [ "data" ]);
         assert.equal(Object.hasOwn(Format, "type"), false);
     }
 });

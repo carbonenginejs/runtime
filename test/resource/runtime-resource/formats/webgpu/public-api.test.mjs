@@ -80,7 +80,6 @@ test("reader manages values and classes", () =>
 
 test("implemented metadata advertises the package surface", () =>
 {
-    assert.deepEqual(CjsWebgpuFormat.mediaTypes, [ "shader" ]);
     assert.deepEqual(CjsWebgpuFormat.extensions, [ ".carbonwebgpu" ]);
     assert.deepEqual(Object.values(CjsWebgpuFormat.outputs).filter(entry => entry.role === "runtime").map(entry => entry.output), [ "json" ]);
     // One emit, as WebGL has. There is no debug emit and no `OUTPUT_RAW`: the

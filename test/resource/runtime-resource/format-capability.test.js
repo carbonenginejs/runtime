@@ -6,7 +6,6 @@ import { CjsFormat, CjsResourceProbe } from "../../../npm/dist/resource/index.js
 class TestFormat extends CjsFormat
 {
   static id = "test-proof";
-  static mediaTypes = Object.freeze([ "data" ]);
   static extensions = Object.freeze([ ".proof" ]);
   static outputs = CjsFormat.defineOutputs({
     payload: { default: true, decoded: true }

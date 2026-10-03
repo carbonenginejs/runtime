@@ -268,7 +268,6 @@ export function inspectWithValues(input, values = DEFAULT_VALUES)
     const detected = inspectBytes(bytes);
 
     return {
-        mediaTypes: [ "geometry" ],
         sourceFormat: "fbx",
         byteLength: bytes.byteLength,
         source: values.source || "",

@@ -233,7 +233,6 @@ export class CjsVtaFormat extends CjsFormat
 
     static id = "CjsVtaFormat";
 
-    static mediaTypes = [ "image" ];
 
     static outputs = CjsFormat.defineOutputs({
 

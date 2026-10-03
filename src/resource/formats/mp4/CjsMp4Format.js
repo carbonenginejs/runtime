@@ -183,7 +183,6 @@ export class CjsMp4Format extends CjsFormat
     }
 
     static id = "CjsMp4Format";
-    static mediaTypes = [ "audio", "video" ];
     static outputs = CjsFormat.defineOutputs({
         video: { outputStreams: StreamType.STREAM_AUDIO_VIDEO, probes: [ "container" ] },
         mp4Json: { role: "debug", probes: [ "mp4Json", "raw" ] },

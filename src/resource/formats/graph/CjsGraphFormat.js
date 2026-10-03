@@ -10,7 +10,6 @@ export class CjsGraphFormat extends CjsFormat
     static wireFormat = "cjs.graph";
     static version = 1;
     static extensions = [];
-    static mediaTypes = ["data"];
     static outputs = CjsFormat.defineOutputs({
         values: { default: true, decoded: true },
         runtime: { decoded: true }

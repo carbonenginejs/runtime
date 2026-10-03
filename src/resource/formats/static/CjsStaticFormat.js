@@ -158,7 +158,6 @@ export class CjsStaticFormat extends CjsFormat
 
   static id = "CjsStaticFormat";
   static extensions = [ ".static" ];
-  static mediaTypes = [ "data" ];
   static outputs = {};
 
   /**

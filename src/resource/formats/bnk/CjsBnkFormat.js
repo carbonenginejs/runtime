@@ -317,7 +317,6 @@ export class CjsBnkFormat extends CjsFormat
 
     static id = "CjsBnkFormat";
 
-    static mediaTypes = [ "audio" ];
 
     static outputs = CjsFormat.defineOutputs({
 

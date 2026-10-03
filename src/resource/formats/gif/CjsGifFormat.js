@@ -130,7 +130,6 @@ export class CjsGifFormat extends CjsImageFormat
     }
 
     static id = "CjsGifFormat";
-    static mediaTypes = [ "image" ];
     static outputs = CjsFormat.defineOutputs({
         image: { decoded: true, probes: [ "image", "rgba" ] },
         rgba: { decoded: true },

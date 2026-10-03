@@ -404,7 +404,6 @@ export class CjsWebgpuFormat extends CjsFormat
 
     static classKeys = CLASS_KEYS;
     static id = "CjsWebgpuFormat";
-    static mediaTypes = [ "shader" ];
     static outputs = CjsFormat.defineOutputs({
         json: { default: true, decoded: true }
     });

@@ -3,7 +3,7 @@ import test from "node:test";
 import {
     ColorSpace,
     DxgiFormat,
-    MediaType,
+    StreamType,
     PixelFormat,
     ReflectionMode,
     RenderingMode,
@@ -21,7 +21,7 @@ import { PixelFormat as RenderContextPixelFormat } from "../../../src/global/con
 
 test("exports canonical media and graphics tokens", () =>
 {
-    assert.equal(MediaType.TEXTURE, "texture");
+    assert.equal(StreamType.STREAM_AUDIO_VIDEO, 3);
     assert.equal(PixelFormat.RGBA8_UNORM, "rgba8unorm");
     assert.equal(ColorSpace.SRGB, "srgb");
     assert.equal(TextureDimension.CUBE, "cube");

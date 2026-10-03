@@ -128,7 +128,6 @@ export class CjsWebpFormat extends CjsFormat
 
     static id = "CjsWebpFormat";
 
-    static mediaTypes = [ "image" ];
 
     static outputs = CjsFormat.defineOutputs({
 

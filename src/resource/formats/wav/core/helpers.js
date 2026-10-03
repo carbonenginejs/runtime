@@ -54,7 +54,6 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
         throw new TypeError(`CjsAudioFormat: expected ${expectedType}, got ${metadata.sourceFormat}`);
     }
     return {
-        mediaTypes: [ "audio" ],
         byteLength: bytes.byteLength,
         sourceFormat: expectedType || values.inputType || metadata.sourceFormat,
         ...metadata

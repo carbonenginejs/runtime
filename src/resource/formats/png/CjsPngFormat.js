@@ -241,7 +241,6 @@ export class CjsPngFormat extends CjsImageFormat
     }
 
     static id = "CjsPngFormat";
-    static mediaTypes = [ "image" ];
     static inputs = CjsFormat.defineInputs({
         // async because the compressing path is the real one; the sync writer
         // emits stored blocks and is the fallback, not the intent.

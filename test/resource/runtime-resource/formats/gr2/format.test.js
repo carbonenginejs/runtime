@@ -74,7 +74,7 @@ test("satisfies the runtime-resource format contract", () =>
 {
     CjsFormat.validateContract(CjsGr2Format);
     assert.deepEqual([ ...CjsGr2Format.extensions ], [ ".gr2", ".gsf" ]);
-    assert.deepEqual([ ...CjsGr2Format.mediaTypes ], [ "geometry" ]);
+    assert.ok(CjsGr2Format.outputs.gr2);
     assert.equal(typeof CjsGr2Format.read, "function");
     assert.equal(typeof CjsGr2Format.readAsync, "function");
     assert.equal(typeof CjsGr2Format.inspect, "function");

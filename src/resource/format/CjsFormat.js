@@ -1,4 +1,4 @@
-import { MediaType, StreamType } from "#consts/media";
+import { StreamType } from "#consts/media";
 
 /**
  * A format's name for messages: its `static className`, inherited from the
@@ -28,7 +28,6 @@ const READ_MODE_ASYNC = "async";
  *
  * A concrete format declares these statics (checked by validateContract):
  * - `id`: stable format identity;
- * - `mediaTypes`: canonical MediaType categories;
  * - `extensions`: lowercase dotted suffixes offered for routing;
  * - `outputs`: the defineOutputs map of exact output selectors;
  * - `requestResponseType`: how the source is acquired (default "arraybuffer");
@@ -426,17 +425,6 @@ export class CjsFormat
     {
       throw new TypeError(`${FormatName(Constructor)} must declare a non-empty id.`);
     }
-    if (!Array.isArray(Constructor.mediaTypes) || Constructor.mediaTypes.length === 0)
-    {
-      throw new TypeError(`${FormatName(Constructor)} must declare non-empty mediaTypes.`);
-    }
-    for (const mediaType of Constructor.mediaTypes)
-    {
-      if (!Object.values(MediaType).includes(mediaType))
-      {
-        throw new TypeError(`${FormatName(Constructor)} media type ${JSON.stringify(mediaType)} is not canonical.`);
-      }
-    }
     if (!Array.isArray(Constructor.extensions))
     {
       throw new TypeError(`${FormatName(Constructor)} must declare extensions.`);
@@ -496,8 +484,6 @@ export class CjsFormat
     }
   }
 
-  static Type = MediaType;
-  static MediaType = MediaType;
   static OutputType = Object.freeze({
     AUDIO: "audio",
     CMF: "cmf",
@@ -521,7 +507,6 @@ export class CjsFormat
   });
 
   static id = "";
-  static mediaTypes = [];
   static extensions = [];
   static outputs = {};
   /**

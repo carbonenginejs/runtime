@@ -192,7 +192,6 @@ export function inspectWithValues(input, values = DEFAULT_VALUES)
         throw new TypeError("CjsWemFormat: expected a RIFF/RIFX WAVE (wem) container");
     }
     return {
-        mediaTypes: [ "audio" ],
         byteLength: bytes.byteLength,
         source: values.source || "buffer",
         ...inspectWEM(bytes)

@@ -7,6 +7,8 @@
     "./dist/global/blue/blue.js",
     "./dist/global/consts/graphics/trinityEnums.js",
     "./dist/global/consts/trinity.js",
+    "./dist/global/consts/media/mediaTypes.js",
+    "./dist/global/consts/media/index.js",
     "./dist/global/consts/renderContext/presentation.js",
     "./dist/global/consts/renderContext/window.js",
     "./dist/global/consts/renderContext/formats.js",

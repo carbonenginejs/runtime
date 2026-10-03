@@ -35,7 +35,6 @@ const RESOURCE_REQUEST_OPTION_KEYS = [
   "requirement",
   "payload",
   "emit",
-  "mediaType",
   "outputStreams",
   "format",
   "classes",
@@ -2694,11 +2693,11 @@ export class CjsBlueResMan
   }
 
   /**
-   * Resolve one current format registration descriptor. Output/media filters
+   * Resolve one current format registration descriptor. Output/stream filters
    * run first; optional source bytes may then run support probes to disambiguate.
    *
    * @param {string} inputType Input extension with or without a leading dot.
-   * @param {object} [options={}] Format, output, media type, and optional byte selectors.
+   * @param {object} [options={}] Format, output, stream flags, and optional byte selectors.
    * @returns {object} Selected immutable registration descriptor.
    * @throws {Error} If no candidate matches or multiple candidates remain.
    */
@@ -4007,7 +4006,6 @@ function getFormatOperationKey(context, options)
 {
   const material = [
     options.emit,
-    options.mediaType,
     options.outputStreams,
     options.classes,
     options.formatOptions
@@ -4228,7 +4226,7 @@ function mergeResourceLoaderOptions(base, overrides = {})
  * source bytes are read. Byte-dependent support probes are deferred.
  *
  * @param {readonly object[]} descriptors Registered descriptors for one extension.
- * @param {object} options Format, output, and media selection.
+ * @param {object} options Format, output, and stream selection.
  * @returns {object[]} Matching descriptors in registration order.
  */
 function filterFormatDescriptors(descriptors, options)
@@ -4255,11 +4253,6 @@ function filterFormatDescriptors(descriptors, options)
         : Format.outputs?.[findDeclaredOutput(getFormatOutputs(Format), emit)];
       return (capability?.outputStreams & streams) === streams;
     });
-  }
-  else if (options.mediaType)
-  {
-    candidates = candidates.filter(({ Format }) =>
-      (Format.mediaTypes || []).includes(options.mediaType));
   }
   return candidates;
 }
@@ -4294,10 +4287,9 @@ function resolveOrderedExtensionFormatDescriptor(descriptors, ext, options)
   {
     const { Format, defaults } = descriptor;
     if (typeof Format.is !== "function") return descriptor;
-    const report = Format.is(options.bytes, {
-      ...defaults,
-      ...(options.formatOptions || {})
-    });
+    const probeOptions = { ...defaults, ...(options.formatOptions || {}) };
+    delete probeOptions.outputStreams;
+    const report = Format.is(options.bytes, probeOptions);
     if (isPositiveFormatProbe(report)) return descriptor;
   }
 
@@ -4879,8 +4871,8 @@ function createFormatReadOptions(descriptor, options)
     formatOptions.emit = findDeclaredOutput(getFormatOutputs(Format), options.emit)
       ?? options.emit;
   }
-  const streams = getRequestedStreams(options);
-  if (streams) formatOptions.outputStreams = streams;
+  // Stream flags select a declared output; they are not decoder options.
+  delete formatOptions.outputStreams;
   if (options.classes !== undefined) formatOptions.classes = options.classes;
   return formatOptions;
 }
@@ -5129,12 +5121,10 @@ CjsSchema.meta.blue.inherit(IBlueResMan, IBlueEvents)(CjsBlueResMan);
 CjsSchema.decorateMethod(CjsBlueResMan, "GetResource", meta.adapted);
 CjsSchema.define(CjsBlueResMan, { className: "CjsBlueResMan", carbon: "BlueResMan" });
 
-/** Resolve a request to Carbon StreamType flags; legacy media selectors use the same mask. */
+/** Resolve a request to Carbon StreamType flags. */
 function getRequestedStreams(options)
 {
-  const streams = options.outputStreams ?? options.formatOptions?.outputStreams
-    ?? (options.mediaType === "audio" ? StreamType.STREAM_AUDIO
-      : options.mediaType === "video" ? StreamType.STREAM_VIDEO : 0);
+  const streams = options.outputStreams ?? options.formatOptions?.outputStreams ?? 0;
   if (!Number.isInteger(streams) || streams < 0 || streams > StreamType.STREAM_AUDIO_VIDEO)
   {
     throw new TypeError("Resource outputStreams requires a valid StreamType mask.");

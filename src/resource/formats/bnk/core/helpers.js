@@ -382,7 +382,6 @@ export function inspectWithValues(input, values = DEFAULT_VALUES)
         throw new TypeError("CjsBnkFormat: expected a Wwise soundbank starting with a BKHD chunk");
     }
     return {
-        mediaTypes: [ "audio" ],
         byteLength: bytes.byteLength,
         source: values.source || "buffer",
         ...inspectBNK(bytes)

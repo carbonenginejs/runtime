@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { StreamType } from "#consts/media";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
@@ -26,7 +27,9 @@ test("inspects a Vorbis identification stream", () =>
 
     assert.equal(CjsOggFormat.isOGG(bytes), true);
     assert.equal(info.codec, "vorbis");
-    assert.equal(info.mediaType, "audio");
+    assert.equal(info.streamType, StreamType.STREAM_AUDIO);
+    assert.equal(info.outputStreams, StreamType.STREAM_AUDIO);
+    assert.equal(info.tracks[0].streamType, StreamType.STREAM_AUDIO);
     assert.equal(info.tracks[0].channels, 2);
     assert.equal(info.tracks[0].sampleRate, 48000);
     assert.equal(info.tracks[0].durationSamples, 0);
@@ -92,7 +95,9 @@ test("inspects Theora identification dimensions and frame rate", () =>
     const track = info.tracks[0];
 
     assert.equal(track.codec, "theora");
-    assert.equal(track.mediaType, "video");
+    assert.equal(track.streamType, StreamType.STREAM_VIDEO);
+    assert.equal(info.outputStreams, StreamType.STREAM_VIDEO);
+    assert.equal(CjsOggFormat.read(makeOggPage(packet)).mimeType, "video/ogg");
     assert.equal(track.frameWidth, 1920);
     assert.equal(track.frameHeight, 1088);
     assert.equal(track.width, 1920);
@@ -307,3 +312,32 @@ function computeOggCrc(bytes)
     }
     return crc >>> 0;
 }
+
+test("Ogg uses per-track Carbon flags for mixed and unknown streams", () =>
+{
+    const unknown = makeOggPage(new Uint8Array([ 0, 1, 2 ]), { serial: 10 });
+    const opus = makeOggPage(new Uint8Array([ 0x4f, 0x70, 0x75, 0x73, 0x48, 0x65, 0x61, 0x64, 1, 2, 0, 0, 0x80, 0xbb, 0, 0, 0, 0, 0 ]), { serial: 11 });
+    const packet = new Uint8Array(46);
+    packet.set([ 0x80, 0x74, 0x68, 0x65, 0x6f, 0x72, 0x61 ]);
+    writeU32BE(packet, 22, 30);
+    writeU32BE(packet, 26, 1);
+    const theora = makeOggPage(packet, { serial: 12 });
+    for (const [pages, flags, mimeType] of [
+        [[ unknown, opus, theora ], [0, StreamType.STREAM_AUDIO, StreamType.STREAM_VIDEO], "audio/ogg"],
+        [[ unknown, theora, opus ], [0, StreamType.STREAM_VIDEO, StreamType.STREAM_AUDIO], "video/ogg"]
+    ])
+    {
+        const bytes = new Uint8Array(pages.reduce((size, page) => size + page.length, 0));
+        let offset = 0;
+        for (const page of pages) { bytes.set(page, offset); offset += page.length; }
+        const raw = CjsOggFormat.read(bytes, { emit: "raw" });
+        assert.deepEqual(raw.metadata.tracks.map(track => track.streamType), flags);
+        assert.equal(raw.metadata.streamType, flags[1]);
+        assert.equal(raw.metadata.outputStreams, StreamType.STREAM_AUDIO_VIDEO);
+        assert.equal(raw.mimeType, mimeType);
+    }
+    const raw = CjsOggFormat.read(unknown, { emit: "raw" });
+    assert.equal(raw.metadata.outputStreams, 0);
+    assert.equal(raw.metadata.tracks[0].streamType, 0);
+    assert.equal(raw.mimeType, "application/ogg");
+});

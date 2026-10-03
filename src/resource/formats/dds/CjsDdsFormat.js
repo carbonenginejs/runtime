@@ -488,7 +488,6 @@ export class CjsDdsFormat extends CjsImageFormat
     };
 
     static id = "CjsDdsFormat";
-    static mediaTypes = [ "texture", "image" ];
     static outputs = CjsFormat.defineOutputs({
         texture: { probes: [ "texture", "compressed" ] },
         image: { decoded: true, probes: [ "image", "rgba" ] },

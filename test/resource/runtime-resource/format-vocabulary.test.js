@@ -1,22 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { MediaType } from "#consts/media";
 import * as formats from "../../../src/resource/formats/index.js";
 import { CjsFormat } from "../../../src/resource/format/CjsFormat.js";
 import { CjsFsd32Format } from "../../../src/resource/formats/fsd/32/index.js";
 import { CjsFsd64Format } from "../../../src/resource/formats/fsd/64/index.js";
 
-// Vocabulary conformance: runtime-utils owns the shared media
-// vocabulary; formats declare against it. This test pins the canonical set so
-// a format (including the dependency-free standalone packages mirrored here)
-// can never drift to an unshared token.
-
-const CANONICAL_MEDIA = new Set(Object.values(MediaType));
-
-test("CjsFormat exposes the runtime-utils vocabulary objects by identity", () =>
+test("CjsFormat exposes declared output selectors", () =>
 {
-  assert.equal(CjsFormat.MediaType, MediaType, "CjsFormat.MediaType is the runtime-utils object, not a copy");
-  assert.equal(CjsFormat.Type, MediaType, "CjsFormat.Type shares the same object");
   assert.equal(CjsFormat.OutputType.AUDIO, "audio");
   assert.equal(CjsFormat.OutputType.RAW, "raw");
 });
@@ -37,11 +27,6 @@ test("every format is a CjsFormat with one canonical frozen contract", () =>
     assert.equal(Format.prototype instanceof CjsFormat, true, `${name} extends CjsFormat`);
     assert.equal(ids.has(Format.id), false, `${name}.id is unique`);
     ids.add(Format.id);
-    for (const token of Format.mediaTypes)
-    {
-      assert.ok(CANONICAL_MEDIA.has(token), `${name}.mediaTypes token "${token}" is not canonical MediaType vocabulary`);
-    }
-    assert.ok(Format.mediaTypes.length > 0, `${name} declares mediaTypes`);
     assert.equal(typeof Format.requestResponseType, "string", `${name} declares requestResponseType`);
     assert.ok(Format.requestResponseType.length > 0, `${name}.requestResponseType is non-empty`);
     for (const retired of [ "type", "inputTypes", "outputTypes", "debugOutputTypes", "implementationStatus" ])

@@ -157,6 +157,7 @@ test("published metadata retains early shared enums in real consumer bundles", a
     for (const [module, enumName] of [
       ["graphics/trinityEnums", "trinity.EntityComponents.ReflectionMode"],
       ["trinity", "trinity.Tr2Lod"],
+      ["media/mediaTypes", "videoplayer.StreamType"],
       ["renderContext/presentation", "trinity.Tr2RenderContextEnum.PresentInterval"],
       ["renderContext/window", "trinity.Tr2WindowMode"],
       ["renderContext/formats", "trinity.ImageIO.PixelFormat"],
@@ -167,7 +168,8 @@ test("published metadata retains early shared enums in real consumer bundles", a
       const file = "./dist/global/consts/" + module + ".js";
       assert.ok(manifest.sideEffects.includes(file), file);
       const publicModule = module.startsWith("graphics/") ? "graphics"
-        : module.startsWith("renderContext/") ? "render-context" : "trinity";
+        : module.startsWith("renderContext/") ? "render-context"
+          : module.startsWith("media/") ? "media" : "trinity";
       const source = `
         import "@carbonenginejs/runtime/consts/${publicModule}";
         import { blueEnums } from "enum-registry-observer";

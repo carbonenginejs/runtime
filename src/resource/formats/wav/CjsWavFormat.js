@@ -188,7 +188,6 @@ export class CjsWavFormat extends CjsFormat
     }
 
     static id = "CjsWavFormat";
-    static mediaTypes = [ "audio" ];
     static outputs = CjsFormat.defineOutputs({
         audio: { outputStreams: StreamType.STREAM_AUDIO, decoded: true, probes: [ "audio", "pcm" ] },
         pcm: { outputStreams: StreamType.STREAM_AUDIO, decoded: true },

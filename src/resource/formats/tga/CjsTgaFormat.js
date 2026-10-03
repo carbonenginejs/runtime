@@ -213,7 +213,6 @@ export class CjsTgaFormat extends CjsImageFormat
 
     static id = "CjsTgaFormat";
 
-    static mediaTypes = [ "image" ];
 
     static inputs = CjsFormat.defineInputs({
         rgba: { default: true, options: [ "compress" ] }

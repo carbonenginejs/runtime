@@ -1517,7 +1517,6 @@ test("CjsWebgpuDevice maps and publishes already-selected sampler state", async 
   const fake = fakeDevice("sampler-realization");
   const webgpu = new CjsWebgpuDevice({ device: fake.device, shaderStage: SHADER_STAGE });
   const selected = {
-    payloadType: "webgpu-sampler",
     label: "selected material sampler",
     addressModeU: "repeat",
     addressModeV: "clamp-to-edge",
@@ -1562,7 +1561,6 @@ test("CjsWebgpuDevice sampler realization fails closed without selecting policy"
   const webgpu = new CjsWebgpuDevice({ device: fake.device, shaderStage: SHADER_STAGE });
   const resource = adapterResourceSlot();
   const selected = {
-    payloadType: "webgpu-sampler",
     addressModeU: "clamp-to-edge",
     addressModeV: "clamp-to-edge",
     addressModeW: "clamp-to-edge",
@@ -1584,7 +1582,7 @@ test("CjsWebgpuDevice sampler realization fails closed without selecting policy"
   resource.payload = new Date();
   assert.throws(() => webgpu.RealizeSampler(resource, { samplerKey: "main" }), /payload must be a plain object/i);
   resource.payload = {};
-  assert.throws(() => webgpu.RealizeSampler(resource, { samplerKey: "main" }), /payloadType must be webgpu-sampler/i);
+  assert.throws(() => webgpu.RealizeSampler(resource, { samplerKey: "main" }), /payload must provide addressModeU/i);
   resource.payload = { ...selected, unknown: true };
   assert.throws(() => webgpu.RealizeSampler(resource, { samplerKey: "main" }), /payload has unsupported unknown/i);
   resource.payload = selected;

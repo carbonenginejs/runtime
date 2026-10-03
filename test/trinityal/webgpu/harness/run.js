@@ -808,7 +808,6 @@ async function CreatePhaseZeroDraw(webgpu)
             isDecoded: true
         }, "phase-0-texture", "sampled-resource:0:0");
         samplerBundle = await PublishPreparedSampler(webgpu, {
-            payloadType: "webgpu-sampler",
             label: "engine-webgpu phase-0 sampler",
             addressModeU: "clamp-to-edge",
             addressModeV: "clamp-to-edge",

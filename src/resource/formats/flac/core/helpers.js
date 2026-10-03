@@ -42,7 +42,7 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
     if (!isFLAC(bytes)) throw new TypeError("CjsFlacFormat: input is not a FLAC stream");
     const sourceFormat = expectedType || values.inputType || "flac";
     if (sourceFormat !== "flac") throw new TypeError(`CjsFlacFormat: expected ${sourceFormat}, got flac`);
-    return { mediaTypes: [ "audio" ], byteLength: bytes.byteLength, ...inspectBytes(bytes) };
+    return { byteLength: bytes.byteLength, ...inspectBytes(bytes) };
 }
 
 /**

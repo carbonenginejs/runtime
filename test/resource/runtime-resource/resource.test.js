@@ -1974,7 +1974,6 @@ test("registered formats and resource readiness share one object operation", asy
   {
     static extensions = Object.freeze([ ".one", ".two" ]);
     static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }), "json": Object.freeze({ output: "json" }) })
-    static mediaTypes = [ "data" ];
 
     static read(input)
     {
@@ -2709,7 +2708,6 @@ test("different outcomes use distinct resources while sharing source bytes", asy
   {
     static extensions = Object.freeze([ ".test" ]);
     static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }), "json": Object.freeze({ output: "json" }) })
-    static mediaTypes = [ "data" ];
 
     static read(input, options)
     {

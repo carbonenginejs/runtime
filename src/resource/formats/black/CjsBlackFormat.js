@@ -329,7 +329,6 @@ export class CjsBlackFormat extends CjsFormat
     static extensions = [CJS_BLACK_EXTENSION];
     static fourCC = CJS_BLACK_FOURCC;
     static version = CJS_BLACK_VERSION;
-    static mediaTypes = [ "data" ];
     static outputs = CjsFormat.defineOutputs({
         json: { default: true, decoded: true },
         document: { decoded: true },

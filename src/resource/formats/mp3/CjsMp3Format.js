@@ -183,7 +183,6 @@ export class CjsMp3Format extends CjsFormat
     }
 
     static id = "CjsMp3Format";
-    static mediaTypes = [ "audio" ];
     static outputs = CjsFormat.defineOutputs({
         mp3Json: { role: "debug", probes: [ "mp3Json", "raw" ] },
         raw: { outputStreams: StreamType.STREAM_AUDIO, role: "debug", default: true, passthrough: true }

@@ -236,7 +236,6 @@ export class CjsWemFormat extends CjsFormat
     }
 
     static id = "CjsWemFormat";
-    static mediaTypes = [ "audio" ];
     static outputs = CjsFormat.defineOutputs({
         raw: { outputStreams: StreamType.STREAM_AUDIO, default: true, passthrough: true },
         ogg: { outputStreams: StreamType.STREAM_AUDIO },

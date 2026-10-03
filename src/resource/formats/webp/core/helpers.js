@@ -197,7 +197,6 @@ function inspectWebP(bytes)
         offset = dataOffset + size + (size & 1);
     }
     return {
-        mediaTypes: [ "image" ],
         sourceFormat: "webp",
         container: "riff",
         riffLength,

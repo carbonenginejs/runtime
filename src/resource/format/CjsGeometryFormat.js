@@ -18,7 +18,6 @@ export class CjsGeometryFormat extends CjsFormat
   /** Registered name; `constructor.name` does not survive minification. */
   static className = "CjsGeometryFormat";
 
-  static mediaTypes = [ "geometry" ];
 
   /** Node key -> constructor; replaced, never mutated, so a copy handed out stays stable. */
   _classes = {};

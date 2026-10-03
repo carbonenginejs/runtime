@@ -1,3 +1,4 @@
+import { StreamType } from "#consts/media";
 import { toJsonWithByteSummary as toJsonValue } from "../../../format/jsonPolicies.js";
 import { asUint8Array, readU16BE, readU16LE, readU24BE, readU32BE, readU32LE } from "#utils/bytes";
 import { decodeVorbis } from "./vorbis.js";
@@ -83,7 +84,7 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES)
                 reason: metadata.codec === "vorbis" ? "" : "Only Ogg Vorbis PCM decode is implemented."
             }
         ];
-        if (metadata.mediaType === "video")
+        if (metadata.streamType & StreamType.STREAM_VIDEO)
         {
             variants.push({
                 kind: "decoded",
@@ -187,8 +188,8 @@ export { toJsonValue };
 
 function getOggMimeType(metadata)
 {
-    if (metadata.mediaType === "video") return "video/ogg";
-    if (metadata.mediaType === "audio") return "audio/ogg";
+    if (metadata.streamType & StreamType.STREAM_VIDEO) return "video/ogg";
+    if (metadata.streamType & StreamType.STREAM_AUDIO) return "audio/ogg";
     return "application/ogg";
 }
 
@@ -228,7 +229,7 @@ function inspectOgg(bytes)
             firstPacketComplete: false,
             packetOpen: false,
             codec: "",
-            mediaType: "unknown",
+            streamType: 0,
             payloadBytes: 0
         };
         const continued = !!(headerType & 0x01);
@@ -266,14 +267,14 @@ function inspectOgg(bytes)
     if (offset !== bytes.byteLength) throw new Error(`ogg: truncated trailing page at byte ${offset}`);
     if (!pageCount) throw new Error("ogg: no pages found");
     const tracks = Array.from(streams.values()).map(stream => decodeCodec(stream));
-    const primary = tracks.find(track => track.mediaType !== "unknown") || tracks[0];
+    const primary = tracks.find(track => track.streamType !== 0) || tracks[0];
     return {
-        mediaTypes: tracks.map(track => track.mediaType),
+        outputStreams: tracks.reduce((flags, track) => flags | track.streamType, 0),
         sourceFormat: "ogg",
         pageCount,
         streamCount: tracks.length,
         codec: primary?.codec || "ogg",
-        mediaType: primary?.mediaType || "unknown",
+        streamType: primary?.streamType || 0,
         tracks
     };
 }
@@ -328,7 +329,7 @@ function decodeCodec(stream)
             throw new Error(`ogg: invalid Vorbis identification header for stream ${stream.serial}`);
         }
         stream.codec = "vorbis";
-        stream.mediaType = "audio";
+        stream.streamType = StreamType.STREAM_AUDIO;
         stream.channels = packet[11] || 0;
         stream.sampleRate = readU32LE(packet, 12);
         stream.bitrateMaximum = readS32LE(packet, 16);
@@ -343,7 +344,7 @@ function decodeCodec(stream)
             throw new Error(`ogg: invalid OpusHead packet for stream ${stream.serial}`);
         }
         stream.codec = "opus";
-        stream.mediaType = "audio";
+        stream.streamType = StreamType.STREAM_AUDIO;
         stream.channels = packet[9] || 0;
         stream.preSkip = readU16LE(packet, 10);
         stream.inputSampleRate = readU32LE(packet, 12);
@@ -356,7 +357,7 @@ function decodeCodec(stream)
     {
         if (packet.length < 42) throw new Error(`ogg: truncated Theora identification header for stream ${stream.serial}`);
         stream.codec = "theora";
-        stream.mediaType = "video";
+        stream.streamType = StreamType.STREAM_VIDEO;
         stream.frameWidth = readU16BE(packet, 10) * 16;
         stream.frameHeight = readU16BE(packet, 12) * 16;
         stream.width = readU24BE(packet, 14);

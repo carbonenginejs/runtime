@@ -47,7 +47,7 @@ const SAMPLER_COMPARE_FUNCTIONS = new Set([
   "never", "less", "equal", "less-equal", "greater", "not-equal", "greater-equal", "always"
 ]);
 const SELECTED_SAMPLER_PAYLOAD_KEYS = new Set([
-  "payloadType", "label", "addressModeU", "addressModeV", "addressModeW",
+  "label", "addressModeU", "addressModeV", "addressModeW",
   "magFilter", "minFilter", "mipmapFilter", "lodMinClamp", "lodMaxClamp",
   "compare", "maxAnisotropy"
 ]);
@@ -787,10 +787,6 @@ function mapSamplerPayload(value, plan)
 {
   assertPlainObject(value, `${plan.name} payload`);
   assertKeys(value, SELECTED_SAMPLER_PAYLOAD_KEYS, `${plan.name} payload`);
-  if (value.payloadType !== "webgpu-sampler")
-  {
-    fail(`${plan.name} payload payloadType must be webgpu-sampler`);
-  }
   for (const key of SELECTED_SAMPLER_REQUIRED_KEYS)
   {
     if (!Object.hasOwn(value, key) || value[key] === undefined)
@@ -798,8 +794,7 @@ function mapSamplerPayload(value, plan)
       fail(`${plan.name} payload must provide ${key}`);
     }
   }
-  const { payloadType: _payloadType, ...descriptor } = value;
-  const normalized = normalizeSampler(descriptor);
+  const normalized = normalizeSampler(value);
   const sampler = {
     label: normalized.label,
     ...normalized.semantic

@@ -213,7 +213,6 @@ function inspectGif(bytes)
         }
     }
     return {
-        mediaTypes: [ "image" ],
         sourceFormat: "gif",
         version: ascii(bytes, 0, 6),
         width,

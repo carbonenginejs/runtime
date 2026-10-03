@@ -48,7 +48,6 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
         throw new TypeError(`CjsVideoFormat: expected ${expectedType}, got ${metadata.sourceFormat}`);
     }
     return {
-        mediaTypes: [ "video" ],
         byteLength: bytes.byteLength,
         sourceFormat: expectedType || values.inputType || metadata.sourceFormat,
         ...metadata

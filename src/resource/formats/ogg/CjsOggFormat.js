@@ -135,7 +135,6 @@ export class CjsOggFormat extends CjsFormat
     }
 
     static id = "CjsOggFormat";
-    static mediaTypes = [ "audio", "video" ];
     static outputs = CjsFormat.defineOutputs({
         pcm: { outputStreams: StreamType.STREAM_AUDIO, decoded: true },
         audio: { outputStreams: StreamType.STREAM_AUDIO, decoded: true, probes: [ "audio", "pcm" ] },

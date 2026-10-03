@@ -184,7 +184,6 @@ export class CjsWebmFormat extends CjsFormat
 
     static id = "CjsWebmFormat";
 
-    static mediaTypes = [ "video" ];
 
     static outputs = CjsFormat.defineOutputs({
 

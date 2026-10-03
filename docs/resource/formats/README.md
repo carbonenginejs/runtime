@@ -6,12 +6,22 @@ Audience: Users and integrators
 Summary: Maps every owned format subpath and how to choose a writer.
 
 Every format extends `CjsFormat` and exposes the same static surface: `id`,
-`mediaTypes`, dotted `extensions`, an `outputs` map, `requestResponseType` and
+dotted `extensions`, an `outputs` map, `requestResponseType` and
 `worker`. `getSupport()` is synchronous structural advice and always reports
 `verified: false`; `verifySupport()` runs the real `readAsync()` path for one
 exact output. The `CjsFormat` JSDoc and the module comment on
 `src/resource/formats/index.js` cover the rest, including why formats are
 decorator-free.
+
+Route by extension, then select a declared representation with `emit`. For
+audio/video requests, `outputStreams` uses Carbon's `StreamType` flags from
+`@carbonenginejs/runtime/consts/media`; output declarations use that same enum.
+`hasVideo` and `hasAudio` are derived checks over the flags. Container output
+flags describe stream kinds the representation can carry, while inspection
+reports the tracks actually present. Ogg inspection exposes each track's
+`streamType`, the primary track's `streamType`, and the combined `outputStreams`
+mask. ResMan consumes stream routing flags before invoking format probes and
+decoders. MIME types and codec names remain format-specific strings.
 
 ## Import rule
 

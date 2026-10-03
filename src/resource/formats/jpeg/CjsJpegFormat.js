@@ -237,7 +237,6 @@ export class CjsJpegFormat extends CjsImageFormat
     }
 
     static id = "CjsJpegFormat";
-    static mediaTypes = [ "image" ];
     static inputs = CjsFormat.defineInputs({
         rgba: { default: true, lossy: true, options: [ "quality", "subsampling" ] }
     });
