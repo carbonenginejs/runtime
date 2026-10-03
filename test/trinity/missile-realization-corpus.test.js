@@ -743,3 +743,163 @@ test("real Svipul is the missile's mapped ITriTargetable and keeps Carbon's last
     assert.equal(ship.GetLastDamageLocatorHit(), stored, `locator ${locator}`);
   }
 });
+
+// The 16 EveMissile templates of client build 3552227 (every one: one warhead, two shared emitters, no children).
+const templateDir = process.env.MISSILE_TEMPLATE_CORPUS_DIR;
+const templateSkip = targetSkip || (!templateDir && "set MISSILE_TEMPLATE_CORPUS_DIR to the 16 indexed *_missile.black templates");
+const templates = [
+  ["antiship_missile.black", 1805, "86cb50459a6f963b6758fd4f41c2e2791575d75f5e35c560227f9a89dc4bbb48"],
+  ["bomb_missile.black", 1771, "328367254960c99e34269c075ad6c3813b3fd0126bc9f6e0069e4737e144bdbc"],
+  ["breacherheavy_missile.black", 2049, "e43fd09dcfdc9b74b823be4609c7af5f049376593334e3bf461f6d793edaf44a"],
+  ["breacherlight_missile.black", 2049, "22f6c24ccb305bcbf59749b10e8a0aad23e4b380039cbf8bf3832132924db9f7"],
+  ["citadelcruise_missile.black", 1921, "7220e6dac4be9fb4b17d751d5724924128a9e43af088868e27b35cc7dfaa8e24"],
+  ["citadeltorpedo_missile.black", 1860, "0b6d2c2cf22b7ee2f4dc683c48f5ba99b662e05ff73bfd56efbd58ca1ced4421"],
+  ["cruise_missile.black", 1839, "17f0dd6457c5633eeda3a22ae2a0ed054772f765652aab5e0ce73809a492c310"],
+  ["festival_missile.black", 1783, "2452fca040ccb9d60567b94b41bf3cebf0f195299d0b7758617eb29ca966bc5b"],
+  ["flak_missile.black", 1801, "b2f0e96340a3a77acc529c86bf9a5e292b2887675f200c986156de06266aab5b"],
+  ["heavy_missile.black", 1844, "1da915436d3ccfe353a035683b36d7d867a91007d09bfdfebc204a51ef1361f9"],
+  ["heavyassault_missile.black", 1845, "c7c6fba8c2d3a36fb6ab7e03acba4ac1045d036c35c2fd6b64190f52f0503080"],
+  ["holiday_missile.black", 1808, "a4795eeb831000454a12c85a2935ce5a0a5eea3611428f87e9f420df83945176"],
+  ["launcher_missile.black", 1805, "8eac4da1eb654642f4552031e9e0ef4387b10200fe4cfe735ee9124d3325d804"],
+  ["light_missile.black", 1869, "c87e3a53d250ea4f2a7733de25b4d3c6e117cd5fb12083f920557ab340e5baa6"],
+  ["rocket_missile.black", 1819, "c2f5a7ddbcf91131cf62b51ec71429e4850c2648778ebbc2c625b3077e16ba81"],
+  ["torpedo_missile.black", 1840, "f46d4c6dd17c13a1e330a2974463cc25afd09e96296d933cd846a9e2afc1fb98"]
+];
+
+async function templateMissile(name)
+{
+  const [, size, hash] = templates.find(entry => entry[0] === name);
+  const bytes = await readFile(join(templateDir, name));
+  assert.equal(bytes.length, size, name);
+  assert.equal(createHash("sha256").update(bytes).digest("hex"), hash, name);
+  const missile = CjsSchema.from("EveMissile", CjsBlackFormat.readPayload(bytes).object);
+  assert.equal(missile.warheads.length, 1, `${name}: every client template authors one warhead`);
+  return missile;
+}
+
+/**
+ * Flies a missile the way a scene frame drives it (EveSpaceScene: sync, async, then visibility) at 30 Hz in
+ * Blue ticks until every warhead is DEAD. The ball is a constant curve-less adapter (no time unit involved:
+ * see .agents escalation on ball-curve clocks), so the missile keeps Start's estimate (EveMissile.cpp:137-163).
+ */
+function fly(missile, target, ballPosition, estimated, maxSeconds = 30)
+{
+  const { context } = makeView();
+  context.SetVisibilityThreshold(0.001);
+  context.SetLowDetailThreshold(0.002);
+  context.SetMediumDetailThreshold(0.003);
+  const system = new Tr2GpuParticleSystem();
+  context.SetGpuParticleSystem(system);
+  const ball = new Tr2TranslationAdapter();
+  ball.value.set(ballPosition);
+  missile.translationCurve = ball;
+  missile.target = target;
+  const log = { exploded: [], states: missile.warheads.map(() => []), emits: [], impacts: [], updates: [], frames: 0, deadFrame: -1 };
+  missile.explosionCallback = id => log.exploded.push({ id, frame: log.frames });
+  const emit = system.Emit;
+  system.Emit = function(...args) { log.emits.push(log.frames); return emit.apply(this, args); };
+  if (target)
+  {
+    const create = target.CreateImpact;
+    target.CreateImpact = function(...args) { log.impacts.push({ locator: args[0], frame: log.frames }); return create.apply(this, args); };
+  }
+  missile.Initialize();
+  missile.Start(new Float32Array(3), estimated);
+  missile.warheads.forEach((warhead, index) =>
+  {
+    warhead.id = 100 + index; // Client-assigned ids; templates author -1.
+    warhead.PrepareLaunch();
+    warhead.Launch(mat4.create());
+    // Call-through observation: a state can change in UpdateState and again in CheckImpact within one frame.
+    for (const method of ["Update", "UpdateWarhead"])
+    {
+      const original = warhead[method];
+      warhead[method] = function(...args)
+      {
+        if (this.GetState() === EveMissileWarhead.State.STATE_DEAD) log.updates.push({ method, frame: log.frames });
+        return original.apply(this, args);
+      };
+    }
+    for (const method of ["UpdateState", "CheckImpact"])
+    {
+      const original = warhead[method];
+      warhead[method] = function(...args)
+      {
+        const result = original.apply(this, args), states = log.states[index], state = this.GetState();
+        if (states.at(-1) !== state) states.push(state);
+        return result;
+      };
+    }
+  });
+  const start = 40_000_000, step = 333_333;
+  for (; log.frames < maxSeconds * 30; log.frames++)
+  {
+    context.SetTime(start + log.frames * step);
+    missile.UpdateSyncronous(context);
+    missile.UpdateAsyncronous(context);
+    missile.UpdateVisibility(context, mat4.create());
+    if (missile.warheads.every(warhead => warhead.GetState() === EveMissileWarhead.State.STATE_DEAD))
+    {
+      if (log.deadFrame < 0) log.deadFrame = log.frames;
+      else if (log.frames >= log.deadFrame + 30) break; // One more second: DEAD must stay quiet.
+    }
+  }
+  return { log, context };
+}
+
+test("all 16 real missile templates launch, track, impact and fall silent against the real Svipul", {skip: templateSkip}, async t =>
+{
+  const ship = await realSvipulTarget(t), S = EveMissileWarhead.State;
+  const ball = vec3.add(vec3.create(), ship.worldTransform.subarray(12, 15), [600, 300, -2400]);
+  const tracked = [S.STATE_DELAYED, S.STATE_LAUNCH, S.STATE_EJECTING, S.STATE_START_TRACKING, S.STATE_TRACKING_SPREAD, S.STATE_TRACKING_FINAL, S.STATE_EXPLODED, S.STATE_DEAD];
+  for (const [name] of templates)
+  {
+    const missile = await templateMissile(name), warhead = missile.warheads[0];
+    const bomb = name === "bomb_missile.black";
+    // EveMissileWarhead.cpp:357: bombs fly with no target.
+    const { log, context } = fly(missile, bomb ? null : ship, ball, 6);
+    assert.ok(log.deadFrame > 0, `${name} reached DEAD`);
+    // Start data is valid before the first frame; 6 s >= 5 s with doSpread selects the spread phase, bombs included.
+    assert.deepEqual(log.states[0], tracked.slice(1), `${name} states`);
+    assert.deepEqual(log.exploded.map(entry => entry.id), [100], `${name} explosion callback fires once with the warhead id`);
+    if (!bomb)
+    {
+      assert.equal(log.impacts.length, warhead.impactSize > 0 ? 1 : 0, `${name} CreateImpact`);
+      const locator = vec3.create();
+      ship.GetDamageLocatorPosition(warhead.GetTargetLocator(), true, locator);
+      const miss = vec3.distance(warhead.explosionPosition, locator);
+      assert.ok(miss <= warhead.maxExplosionDistance + 1, `${name} exploded ${miss.toFixed(1)} m from its locator`);
+    }
+    assert.ok(log.emits.some(frame => frame < log.exploded[0].frame), `${name} trails emitted during flight`);
+    assert.deepEqual(log.updates, [], `${name}: EveMissile.cpp:174 skips Update and UpdateWarhead for DEAD warheads`);
+    assert.equal(log.emits.filter(frame => frame > log.deadFrame).length, 0, `${name} DEAD warheads emit nothing`);
+    // Native cessation, not cleanup: the warhead stays on the missile and draws nothing (EveMissileWarhead.cpp:97-99,114-117).
+    assert.equal(missile.warheads[0], warhead);
+    assert.equal(warhead.GetState(), S.STATE_DEAD);
+    assert.equal(missile.GetRenderables().includes(warhead), false);
+    const renderer = new Tr2QuadRenderer();
+    missile.RegisterWithQuadRenderer(renderer);
+    missile.AddQuadsToQuadRenderer(context.GetFrustum(), renderer);
+    assert.equal([...renderer.GetEffectRecords().values()].reduce((sum, record) => sum + record.addedSize, 0), 0, `${name} submits no sprites when DEAD`);
+  }
+});
+
+test("a multi-warhead missile composed from three real warheads explodes each warhead once", {skip: templateSkip}, async t =>
+{
+  const ship = await realSvipulTarget(t), S = EveMissileWarhead.State;
+  // Composition: grouped launchers share one ball (EveMissile.h:16-19). No client template authors more than one warhead.
+  const missile = await templateMissile("heavy_missile.black");
+  for (const name of ["heavy_missile.black", "heavy_missile.black"]) missile.warheads.push((await templateMissile(name)).warheads[0]);
+  assert.equal(new Set(missile.warheads).size, 3);
+  const ball = vec3.add(vec3.create(), ship.worldTransform.subarray(12, 15), [-900, 200, -1800]);
+  const { log } = fly(missile, ship, ball, 6);
+  assert.deepEqual(log.exploded.map(entry => entry.id).sort(), [100, 101, 102]);
+  assert.equal(log.impacts.length, 3);
+  for (const [index, warhead] of missile.warheads.entries())
+  {
+    assert.equal(warhead.GetState(), S.STATE_DEAD);
+    assert.equal(log.states[index].at(-1), S.STATE_DEAD);
+  }
+  // Each warhead keeps its own randomized flight (speed modifier, final-target time): explosions need not share a frame.
+  assert.ok(log.exploded.every(entry => entry.frame <= log.deadFrame));
+});

@@ -116,30 +116,6 @@ test("EveMissileWarhead follows Carbon launch, state, particle, impact, and POD 
   assert.equal(sphere[3], 0.5);
 });
 
-test("constructed single-warhead missile invokes its explosion callback once", () =>
-{
-  const missile = new EveMissile();
-  const warhead = new EveMissileWarhead();
-  warhead.id = 7;
-  warhead.PrepareLaunch();
-  warhead.Launch(mat4.create());
-  missile.warheads.push(warhead);
-  const exploded = [];
-  missile.explosionCallback = id => exploded.push(id);
-  missile.Initialize();
-  missile.Start(vec3.create(), 2);
-  const context = new EveUpdateContext();
-  context.SetTime(0);
-  for (let frame = 0; frame < 6; frame++)
-  {
-    context.SetTime(((frame + 1) * 0.1) * 10_000_000);
-    missile.UpdateSyncronous(context);
-  }
-  assert.deepEqual(exploded, [7]);
-  assert.equal(warhead.GetState(), EveMissileWarhead.State.STATE_DEAD);
-  assert.equal(missile.boundingSphereRadius, 0.5);
-});
-
 test("EveMobile maps authored turret locators and drives the active count", () =>
 {
   const mobile = new EveMobile();
