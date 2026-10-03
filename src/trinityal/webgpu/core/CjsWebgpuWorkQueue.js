@@ -400,6 +400,11 @@ export class CjsWebgpuWorkQueue
    * so outside any pass. There is no Metal counterpart: Metal and D3D sample
    * depth through a view, which WebGPU cannot make.
    *
+   * Complete pending render work before the copy, like Metal's non-render
+   * encoder transition (MetalWorkQueue.mm:851-855). Otherwise an empty depth
+   * pass leaves its discard hint for the next transparent draw, discarding
+   * that draw's color; a pending clear must also precede the sampled copy.
+   *
    * @param {object} texture The depth `Tr2TextureAL` that was just unbound.
    * @returns {object[]} The transitions this required.
    */
@@ -407,6 +412,7 @@ export class CjsWebgpuWorkQueue
   {
     if (!this._inFrame || !this._commandEncoder) return this._Drain();
 
+    if (this._pendingRenderPassHint || this._pendingClear) this._GetRenderEncoder();
     this._ReleaseEncoder();
 
     if (texture.EncodeDepthShadowCopy(this._commandEncoder)) this._events.push({ type: "copy-depth-shadow" });

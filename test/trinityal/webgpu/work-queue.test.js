@@ -450,3 +450,36 @@ test("a LOAD hint keeps a pending CLEAR, taking the hint's store and clear value
   assert.equal(MergeHintOverClear(hint, null), hint);
   assert.equal(MergeHintOverClear(null, clear), clear);
 });
+
+
+for (const pending of [ "hint", "clear" ])
+{
+  test(`depth shadow copy completes a pending ${pending} before the next transparent pass`, () =>
+  {
+    const calls = [];
+    const queue = started();
+    const commandEncoder = { beginRenderPass(attachments)
+    {
+      calls.push(attachments);
+      return { end() { calls.push("end"); } };
+    } };
+    queue.SetCommandEncoder(commandEncoder, attachments => attachments);
+    const color = new Tr2ColorAttachment();
+    const depth = new Tr2DepthAttachment(Tr2LoadAction.CLEAR, Tr2StoreAction.STORE, 0);
+    if (pending === "hint") queue.RenderPassHint([ color ], depth);
+    else queue.ClearAttachment([ clear() ], depth);
+
+    queue.CopyDepthShadow({ EncodeDepthShadowCopy(encoder)
+    {
+      assert.equal(encoder, commandEncoder);
+      calls.push("copy");
+      return true;
+    } });
+    assert.equal(calls[0].depth.loadOp, "clear");
+    assert.equal(calls[0].depth.clearValue, 0);
+    assert.deepEqual(calls.slice(1), [ "end", "copy" ]);
+    assert.equal(queue.HasPendingRenderPassHint(), false);
+    queue.RequireRenderPass();
+    assert.equal(calls.at(-1), null, "transparent pass has no stale clear/discard hint");
+  });
+}
