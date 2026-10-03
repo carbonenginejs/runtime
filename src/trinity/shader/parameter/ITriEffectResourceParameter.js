@@ -28,6 +28,19 @@ export class ITriEffectResourceParameter extends ITriEffectParameter
   OnRemovedFromMaterial(_material)
   {
   }
+
+  /**
+   * Renew every cached resource this parameter holds, so the manager does not
+   * purge it while the material is in use. Called by `Tr2Effect.IsGood()` on
+   * every resource parameter, whether or not that parameter is ready yet.
+   *
+   * Ours, not Carbon's: Carbon's resources are reference counted, so holding
+   * one keeps it. Ours are evicted on an idle timer, and only use renews them.
+   * Empty by default, for parameters that hold no cached resource.
+   */
+  KeepAlive()
+  {
+  }
 }
 
 

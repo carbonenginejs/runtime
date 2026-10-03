@@ -7,17 +7,21 @@ import { Tr2SerializedMorphAnimation } from "../../npm/dist/trinity/core/mesh/Tr
 import { TriGeometryRes } from "../../npm/dist/resource/index.js";
 import { localFileSystem } from "../support/localFileSystem.js";
 
-function CreateGeometry(names, baked = names.map(() => false))
+function CreateGeometry(names, baked = names.map(() => false), { loading = false } = {})
 {
   const lod = {
     morphTargetNames: names.slice(),
     isBakedMorphTarget: baked.slice()
   };
 
-  // Real completion lifecycle is required by the mesh prepare fence.
-  return Object.assign(new TriGeometryRes().MarkPrepared(), {
+  // A real resource lifecycle: the mesh is its notify target, and the prepare
+  // fence waits on it. Already prepared unless the caller asks for one still
+  // loading, which it finishes later with MarkPrepared().
+  const resource = new TriGeometryRes();
+  if (loading) resource.MarkLoading();
+  else resource.MarkPrepared();
+  return Object.assign(resource, {
     lod,
-    IsGood() { return true; },
     GetPayload()
     {
       return { meshes: [ { lods: [ lod ] } ] };
@@ -192,21 +196,17 @@ test("a missing mesh falls back to its _lowdetail sibling when the index has one
   const { composeStubResMan } = await import("../support/stubResMan.js");
   const previousManager = blue.resMan;
   const requested = [];
-  // The authored mesh is still LOADING - it records its completion listener
-  // instead of calling back - so the stand-in has something to stand in for.
-  // A resource with no lifecycle at all counts as already complete, which is
-  // Carbon's AddNotifyTarget rule (BlueAsyncRes.cpp:274-276).
-  let finishAuthored = null;
+  // The authored mesh is still LOADING - it keeps the mesh as a notify target
+  // instead of calling back at once - so the stand-in has something to stand
+  // in for. The low-detail sibling is already prepared, so it calls back as
+  // soon as it is bound: Carbon's AddNotifyTarget rule (BlueAsyncRes.cpp:274-276).
+  let authored = null;
   const answer = path =>
   {
     requested.push(path);
-    const resource = CreateGeometry([ "Smile" ]);
-    if (path.includes("_lowdetail")) return resource;
-    let good = false;
-    resource.IsGood = () => good;
-    resource.OnCompleted = listener => { finishAuthored = (...args) => { good = true; listener(...args); }; };
-    resource.OffEvent = () => {};
-    return resource;
+    if (path.includes("_lowdetail")) return CreateGeometry([ "Smile" ]);
+    authored = CreateGeometry([ "Smile" ], undefined, { loading: true });
+    return authored;
   };
 
   composeStubResMan(answer);
@@ -218,14 +218,15 @@ test("a missing mesh falls back to its _lowdetail sibling when the index has one
 
     assert.deepEqual(requested, [ "res:/hull_lowdetail.gr2", "res:/hull.gr2" ],
       "the low-detail sibling is taken first, the authored path behind it");
-    assert.notEqual(mesh.lowResGeometry, null, "no low-detail stand-in was bound");
+    assert.ok(mesh.lowResGeometry !== null, "no low-detail stand-in was bound");
 
-    assert.equal(mesh.GetGeometryResource(), mesh.lowResGeometry);
+    assert.ok(mesh.GetGeometryResource() === mesh.lowResGeometry, "the stand-in renders while the authored mesh loads");
 
-    // The authored resource finishing retires the stand-in (cpp:192-195).
-    assert.equal(typeof finishAuthored, "function", "the mesh never subscribed to the authored load");
-    finishAuthored("completed", mesh.geometry);
-    assert.equal(mesh.lowResGeometry, null, "the stand-in outlived the authored mesh");
+    // The authored resource finishing notifies its targets, which retires the
+    // stand-in (cpp:192-195).
+    assert.ok(mesh.geometry === authored && authored.IsLoading(), "the authored load is bound and still pending");
+    authored.MarkPrepared();
+    assert.ok(mesh.lowResGeometry === null, "the stand-in outlived the authored mesh");
 
     // Negative control: when the authored file IS here, no
     // sibling is looked for at all.

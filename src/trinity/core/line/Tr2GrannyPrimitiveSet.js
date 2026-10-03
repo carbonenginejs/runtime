@@ -51,8 +51,6 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   _triangleIndexBuffer = new Tr2BufferAL();
   _lineIndexBuffer = new Tr2BufferAL();
   _destroyed = false;
-  _geometryCompleted = (_event, resource) => this.RebuildCachedData(resource);
-  _geometryReleased = (_event, resource) => this.ReleaseCachedData(resource);
 
   /** Registers native device-resource lifetime (cpp:12-22). */
   constructor()
@@ -99,20 +97,16 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
     }
     const resource = blue.resMan.GetResource(this.grannyResPath, { requirement: ResourceRequirement.GEOMETRY });
     this.grannyRes = resource;
-    if (!resource) return;
-    resource.OnEvent("completed", this._geometryCompleted, this);
-    resource.OnEvent("purged", this._geometryReleased, this);
-    resource.OnEvent("unloaded", this._geometryReleased, this);
-    if (resource.HasCompleted()) this.RebuildCachedData(resource);
+    // Carbon registers a notify target here; a resource that has already
+    // finished calls RebuildCachedData at once.
+    if (resource) resource.AddNotifyTarget(this);
   }
 
-  /** Remove only this owner's subscriptions; shared resource ownership stays with the manager. */
+  /** Remove only this owner's pending notification; shared resource ownership stays with the manager. */
   #DetachResource()
   {
     if (!this.grannyRes) return;
-    this.grannyRes.OffEvent("completed", this._geometryCompleted, this);
-    this.grannyRes.OffEvent("purged", this._geometryReleased, this);
-    this.grannyRes.OffEvent("unloaded", this._geometryReleased, this);
+    this.grannyRes.RemoveNotifyTarget(this);
   }
 
   /** Releases only the current resource's derived data (cpp:185-191). */
@@ -295,14 +289,25 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
 
   /**
    * Emits native ordinary or dedicated picking ranges (cpp:135-171).
-   * JS manager renewal before the storage guard replaces the native retained
-   * handle lifetime and allows an automatically purged resource to reload.
+   *
+   * Adapted: asking `IsGood()` before the storage guard renews the resource
+   * and revives a purged one, standing in for Carbon's retained handle. While
+   * the source is not good this set releases what it built from it and
+   * re-registers as its notify target, because the resource released the set
+   * when it last completed; the rebuild on completion replaces the data. A
+   * failed source is not re-registered, or it would call back every frame.
    */
   @meta.blue.method
   @meta.adapted
   GetBatchesImpl(accumulator, perObjectData, effect, reason)
   {
-    if (this.grannyRes) this.grannyRes.KeepAlive();
+    const resource = this.grannyRes;
+    if (resource && !resource.IsGood())
+    {
+      if (this._vertexBuffer.IsValid()) this.ReleaseCachedData(resource);
+      if (!resource.IsFailed()) resource.AddNotifyTarget(this);
+      return;
+    }
     if (!this._vertexBuffer.IsValid() || this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
     const picking = reason === Tr2PrimitiveSet.GetBatchesReason.Picking;
     const solid = this.renderSolid || picking, batch = new Tr2RenderBatch();

@@ -862,7 +862,9 @@ test("SetTransform moves shared instanced-part geometry outside the child partTa
 
 test("CollectOwnedGeometry pools areas by batch type and shares them across instances", () =>
 {
-  const geometry = { token: "geo", IsGood: () => true };
+  // A real, already-loaded geometry resource.
+  const geometry = new TriGeometryRes();
+  geometry.MarkPrepared();
   const mesh = new Tr2Mesh();
   const opaque = new Tr2MeshArea();
   opaque.index = 0;
@@ -886,7 +888,7 @@ test("CollectOwnedGeometry pools areas by batch type and shares them across inst
   const pool = [];
   container.CollectOwnedGeometry(TriBatchType.TRIBATCHTYPE_OPAQUE, mat4.create(), out, pool);
   assert.equal(out.length, 1);
-  assert.equal(out[0].geometry, geometry);
+  assert.ok(out[0].geometry === geometry, "record carries the mesh geometry");
   assert.equal(out[0].areaStart, 0);
   assert.equal(out[0].areaCount, 2);
   assertVectorClose(
@@ -945,13 +947,14 @@ test("CollectOwnedGeometry pools areas by batch type and shares them across inst
 test("damage-locator filtering raycasts every sub-area of a pooled area", () =>
 {
   const raycastAreas = [];
-  const geometry = {
-    IsPrepared: () => true,
-    IsGood: () => true,
-    PrepareRayCaster() {},
-    ResetRayCaster() {},
-    HasRayCasterPreparationFailed: () => false,
-    IsRayCasterReady: () => true,
+  // A real, already-loaded geometry resource whose raycaster is replaced, so
+  // the test controls which sub-area occludes and records which were asked.
+  class OccludingGeometryRes extends TriGeometryRes
+  {
+    PrepareRayCaster() {}
+    ResetRayCaster() {}
+    HasRayCasterPreparationFailed() { return false; }
+    IsRayCasterReady() { return true; }
     // Only sub-area 1 occludes; the pooled area is {index:0, count:2}, so the
     // pre-340250f2 GetIndex()-only raycast never saw it.
     GetIntersectionPoints(rayOrigin, _rayDirection, hit, areaIndex, _rayLength)
@@ -963,7 +966,9 @@ test("damage-locator filtering raycasts every sub-area of a pooled area", () =>
       hit.unnormalizedNormal = [ 0, -1, 0 ];
       return true;
     }
-  };
+  }
+  const geometry = new OccludingGeometryRes();
+  geometry.MarkPrepared();
   const mesh = new Tr2Mesh();
   const area = new Tr2MeshArea();
   area.index = 0;

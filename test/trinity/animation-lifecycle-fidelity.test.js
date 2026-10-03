@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { Tr2StateMachine, Tr2StateMachineState, Tr2StateMachineTransition, Tr2GrannyAnimation, Tr2TextureAnimationParameter, CjsGrannyCurves, CjsControllerExpressionProgram } from "../../npm/dist/trinity/index.js";
+import { TriGeometryRes } from "../../npm/dist/resource/index.js";
 
 test("blank transition conditions are invalid without changing other expression defaults", () =>
 {
@@ -72,14 +73,17 @@ test("owned Granny paths refresh while borrowed and explicit resources retain ow
     animation.SetGrannyResource(first);
     animation.Initialize();
     assert.equal(animation.grannyRes, first);
-    // Borrowed geometry answers its granny file through GetGrannyInfo, as a
-    // TriGeometryRes read from a .gr2 does.
-    const borrowed = { GetGrannyInfo: () => first, IsUsingCMF: () => false, OnCompleted(listener, source) { listener.call(source, "completed", this); return this; }, OffEvent() {} };
+    // Borrowed geometry is a real, loaded TriGeometryRes read from a .gr2: it
+    // answers its granny file through GetGrannyInfo. The revision marks the
+    // payload as a decoded granny graph, as the gr2 reader's is.
+    const borrowed = new TriGeometryRes();
+    borrowed.SetPayload({ ...first, grannyFileFormatRevision: 7 });
+    borrowed.MarkPrepared();
     animation.resPath = pathB;
     animation.SetSharedGeometryRes(borrowed);
     assert.equal(animation.resPath, "");
     animation.resPath = pathB;
-    assert.equal(animation.grannyRes, borrowed);
+    assert.ok(animation.grannyRes === borrowed, "borrowed geometry stays bound");
     animation.SetSharedGeometryRes(null);
     assert.equal(animation.grannyRes, null);
     assert.equal(animation.resPath, "");

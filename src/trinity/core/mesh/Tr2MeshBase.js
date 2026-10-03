@@ -463,6 +463,11 @@ export class Tr2MeshBase
 
     const effect = area.GetMaterialInterface();
     if (!effect) return null;
+    // Ours: asking renews the effect's resources and re-registers it while its
+    // resource is pending (Tr2Effect.IsGood). Carbon reaches the same skip
+    // through the batch's null shader below. One area whose effect is not good
+    // is skipped; the mesh's other areas still draw.
+    if (!effect.IsGood()) return null;
 
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(effect);

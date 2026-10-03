@@ -44,6 +44,14 @@ export class CjsResource
   _reloadAttempts = 0;
 
   /**
+   * Notify targets waiting for this resource to finish (Carbon
+   * `m_reloadNotifyTargets`), each with `RebuildCachedData(resource)` and
+   * `ReleaseCachedData(resource)`. Emptied on every completion: see
+   * {@link CjsResource#AddNotifyTarget}.
+   */
+  _notifyTargets = [];
+
+  /**
    * How many times a purged or failed resource reloads itself before giving up.
    *
    * Per class so a subclass can be more or less patient. Counted per resource
@@ -323,7 +331,97 @@ export class CjsResource
     this.EmitEvent("statechange", this, state, previous);
     // Fires again after a purge and reload, so subscribers rebuild whatever
     // they derived from the payload that was deleted.
-    if (this.HasCompleted()) this.EmitEvent("completed", this, ...details);
+    if (this.HasCompleted())
+    {
+      this.EmitEvent("completed", this, ...details);
+      this.NotifyRebuildCachedData();
+    }
+    else if (state === CjsResource.State.PURGED)
+    {
+      this.NotifyReleaseCachedData();
+    }
+    return this;
+  }
+
+  /**
+   * Register a notify target (BlueAsyncRes.cpp:261-290), to be told once, when
+   * this resource next finishes: `RebuildCachedData(this)` on `PREPARED` or
+   * `FAILED`, after which the target is no longer held.
+   *
+   * Adapted: Carbon keeps a target until its owner calls `RemoveNotifyTarget`,
+   * which every C++ owner does from its destructor. JavaScript has no
+   * destructor, so a kept target would hold its owner for as long as the
+   * resource lives - and cached resources live as long as the manager. Instead
+   * the link is released on completion, and an owner that needs to hear about a
+   * later reload asks again: it calls `IsGood()` before use, and while that is
+   * false and the resource has not failed, it re-registers.
+   *
+   * A resource that has already finished calls `RebuildCachedData` at once and
+   * stores nothing, as Carbon's immediate call does (`:274-277`). A duplicate
+   * registration is ignored rather than asserted, because owners re-register
+   * every frame while a resource is pending.
+   *
+   * @param {{RebuildCachedData: Function, ReleaseCachedData: Function}} target Notify target.
+   * @returns {CjsResource} This resource.
+   */
+  AddNotifyTarget(target)
+  {
+    if (this.HasCompleted())
+    {
+      target.RebuildCachedData(this);
+      return this;
+    }
+    if (!this._notifyTargets.includes(target)) this._notifyTargets.push(target);
+    return this;
+  }
+
+  /**
+   * Remove a notify target that is still waiting (BlueAsyncRes.cpp:292-334).
+   * Removing one that was already told, or never added, does nothing.
+   *
+   * @param {object} target Notify target previously added.
+   * @returns {CjsResource} This resource.
+   */
+  RemoveNotifyTarget(target)
+  {
+    const index = this._notifyTargets.indexOf(target);
+    if (index >= 0) this._notifyTargets.splice(index, 1);
+    return this;
+  }
+
+  /**
+   * Call `RebuildCachedData` on every waiting notify target, and release them
+   * (BlueAsyncRes.cpp:354-360). The list is replaced before any target runs, so
+   * a target that re-registers from inside its own call is kept for the next
+   * completion rather than lost.
+   *
+   * @returns {CjsResource} This resource.
+   */
+  NotifyRebuildCachedData()
+  {
+    const targets = this._notifyTargets;
+    if (!targets.length) return this;
+    this._notifyTargets = [];
+    for (const target of targets) target.RebuildCachedData(this);
+    return this;
+  }
+
+  /**
+   * Call `ReleaseCachedData` on every waiting notify target
+   * (BlueAsyncRes.cpp:362-368). They stay registered, so the reload that follows
+   * rebuilds them.
+   *
+   * Carbon releases only from `Reload()`, because it never drops a resource
+   * that is still referenced. This runtime purges on inactivity while owners
+   * may still hold the handle, so a purge releases too. Targets are released on
+   * completion and a resource is purged only after completing, so this normally
+   * finds nobody; owners learn of a purge from `IsGood()` instead.
+   *
+   * @returns {CjsResource} This resource.
+   */
+  NotifyReleaseCachedData()
+  {
+    for (const target of this._notifyTargets.slice()) target.ReleaseCachedData(this);
     return this;
   }
 
@@ -1023,6 +1121,10 @@ CjsSchema.define(CjsResource, {
     IsPrepared: [ meta.blue.method, meta.adapted ],
     IsGood: [ meta.blue.method, meta.adapted ],
     IsFailed: [ meta.blue.method, meta.adapted ],
+    AddNotifyTarget: [ meta.adapted ],
+    RemoveNotifyTarget: [ meta.implemented ],
+    NotifyRebuildCachedData: [ meta.adapted ],
+    NotifyReleaseCachedData: [ meta.adapted ],
     DestroyAdapterResources: [ meta.ours ]
   }
 });

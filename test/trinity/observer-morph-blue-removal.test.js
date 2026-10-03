@@ -7,6 +7,7 @@ import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
 import { Tr2SerializedMorphAnimation } from "../../npm/dist/trinity/core/mesh/Tr2SerializedMorphAnimation.js";
 import { Tr2Mesh } from "../../npm/dist/trinity/core/mesh/Tr2Mesh.js";
+import { TriGeometryRes } from "../../npm/dist/resource/index.js";
 import { ITriObserverLocal } from "../../npm/dist/global/blue/ITriObserverLocal.js";
 import { TriObserverLocal, SendEventToAudEmitter } from "../../npm/dist/trinity/core/variable/TriObserverLocal.js";
 import { EveChildContainer } from "../../npm/dist/trinity/eve/child/EveChildContainer.js";
@@ -67,7 +68,8 @@ test("morph record declared hydration, persistence and copy preserve values",()=
 
 test("actual mesh constructs and updates serialized morph records",()=>{
  const mesh=new Tr2Mesh(),lod={morphTargetNames:["Smile","Blink"],isBakedMorphTarget:[false,false]};
- const geometry={IsGood(){return true;},GetPayload(){return {meshes:[{lods:[lod]}]};},GetBoundingBox(_index,min,max){if(!min&&!max)return {min:[-1,-1,-1],max:[1,1,1]};min.set([-1,-1,-1]);max.set([1,1,1]);return true;}};
+ // A real, already-prepared geometry resource carrying the morph LOD.
+ const geometry=new TriGeometryRes();geometry.SetPayload({meshes:[{lods:[lod]}]});geometry.MarkPrepared();
  mesh.Initialize();mesh.SetGeometryRes(geometry);assert.ok(mesh.serializedMorphAnimations.every(value=>value.constructor===Tr2SerializedMorphAnimation));assert.deepEqual(mesh.serializedMorphAnimations.map(value=>value.name),["Smile","Blink"]);
- const smile=mesh.serializedMorphAnimations[0];assert.equal(mesh.SetMorphTargetWeight("Smile",0.5),true);assert.equal(mesh.serializedMorphAnimations[0],smile);assert.equal(smile.weight,0.5);assert.equal(mesh.GetMorphTargetWeight("Smile"),0.5);mesh.SetGeometryRes(null);
+ const smile=mesh.serializedMorphAnimations[0];assert.equal(mesh.SetMorphTargetWeight("Smile",0.5),true);assert.ok(mesh.serializedMorphAnimations[0]===smile,"the record is updated in place");assert.equal(smile.weight,0.5);assert.equal(mesh.GetMorphTargetWeight("Smile"),0.5);mesh.SetGeometryRes(null);
 });

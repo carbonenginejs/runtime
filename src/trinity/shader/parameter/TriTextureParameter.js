@@ -8,7 +8,7 @@ import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
 
 import { ResourceRequirement } from "#resource";
-import { blue } from "#blue";
+import { blue, CjsResource } from "#blue";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectTextureParameter } from "./ITriEffectTextureParameter.js";
@@ -245,32 +245,56 @@ export class TriTextureParameter extends CjsParameter
     return resourceDesc.SetSrv(stage, registerIndex, texture, colorSpace);
   }
 
-  /** Resources whose completion already re-dirties this parameter's materials. */
+  /** Resources whose texture-change event already re-dirties this parameter's materials. */
   _armed = new WeakSet();
+
+  /**
+   * Notify target that re-dirties the materials when a pending texture
+   * resource finishes. The resource releases it on completion.
+   */
+  _completionTarget = {
+    RebuildCachedData: () => this.OnTextureChanged(),
+    ReleaseCachedData: () => {}
+  };
 
   /**
    * Carbon's `m_onTextureChange` route: when the resource finishes, the
    * materials binding it rebuild their resource sets.
+   *
+   * The cast is Carbon's own `BlueCastPtr( m_resource )` to a resource
+   * (TriTextureParameter.cpp:40, :112, :237). A provider that is not a cached
+   * resource - a `Tr2TextureReference` - has no load to wait for.
+   *
+   * Only a resource that has not finished is registered. One that finished but
+   * still realizes no texture (failed, or prepared without a bitmap) would call
+   * back at once, re-dirty the material, and be asked again on the next bind:
+   * a rebuild every frame.
    */
   _ArmCompletion(resource)
   {
-    if (!resource || typeof resource.OnCompleted !== "function" || this._armed.has(resource)) return;
+    const cached = CjsSchema.cast(resource, CjsResource);
+    if (!cached) return;
 
-    this._armed.add(resource);
-    resource.OnCompleted(() => this.OnTextureChanged(), this);
+    if (!cached.HasCompleted()) cached.AddNotifyTarget(this._completionTarget);
+
+    if (this._armed.has(cached)) return;
+    this._armed.add(cached);
     // Carbon m_onTextureChange persists beyond initial load: video dimensions
     // and device recreation replace the texture without changing the resource.
-    resource.OnEvent("texturechange", () => this.OnTextureChanged(), this);
+    cached.OnEvent("texturechange", () => this.OnTextureChanged(), this);
   }
 
-  /** Releases this parameter's CjsResource completion subscription. */
+  /** Releases this parameter's pending notification and texture-change subscription. */
   _ReleaseCompletion(resource)
   {
-    if (resource && this._armed.has(resource))
+    const cached = CjsSchema.cast(resource, CjsResource);
+    if (!cached) return;
+
+    cached.RemoveNotifyTarget(this._completionTarget);
+    if (this._armed.has(cached))
     {
-      resource.OffEvent("completed", null, this);
-      resource.OffEvent("texturechange", null, this);
-      this._armed.delete(resource);
+      cached.OffEvent("texturechange", null, this);
+      this._armed.delete(cached);
     }
   }
 
@@ -472,6 +496,25 @@ export class TriTextureParameter extends CjsParameter
     {
       this._materials.splice(index, 1);
     }
+  }
+
+  /**
+   * Renew the texture resource this parameter binds, and the low-detail
+   * stand-in while one is shown (`ITriEffectResourceParameter.KeepAlive`).
+   *
+   * Ours: Carbon's reference-counted resources need no renewal. The cast is
+   * Carbon's own `BlueCastPtr( m_resource )` to a resource
+   * (TriTextureParameter.cpp:40, :112, :237): a provider need not be a cached
+   * resource - a `Tr2TextureReference` is not one - and then there is nothing
+   * to renew.
+   */
+  @meta.adapted
+  KeepAlive()
+  {
+    const resource = CjsSchema.cast(this.resource, CjsResource);
+    if (resource) resource.KeepAlive();
+    const lowRes = CjsSchema.cast(this._lowResResource, CjsResource);
+    if (lowRes) lowRes.KeepAlive();
   }
 
   /**

@@ -59,6 +59,12 @@ export class CjsTextureArrayBridge
     return this._prefix + paths.join(";");
   }
 
+  /** Re-dirties the effect's resource sets when the merged texture finishes. */
+  _completionTarget = {
+    RebuildCachedData: () => this._effect.ResourceChanged(),
+    ReleaseCachedData: () => {}
+  };
+
   /**
    * The merged texture resource. Re-resolved when a member's path changed: a
    * different string is a different cached texture, and nothing is mutated.
@@ -73,10 +79,8 @@ export class CjsTextureArrayBridge
     {
       this._path = path;
       this._resource = path ? blue.resMan.GetResource(path, { requirement: ResourceRequirement.TEXTURE }) : null;
-      if (this._resource && !this._resource.HasCompleted())
-      {
-        this._resource.OnCompleted(() => this._effect.ResourceChanged(), this);
-      }
+      // Told once when it finishes; the resource then releases the target.
+      if (this._resource && !this._resource.HasCompleted()) this._resource.AddNotifyTarget(this._completionTarget);
     }
 
     return this._resource;

@@ -19,6 +19,10 @@
 // same object on every call, because binning and sorting compare shaders by
 // identity. A test that needs a still-loading material passes its own
 // `GetShaderStateInterface: () => null`, which is kept.
+//
+// A mesh area also asks its effect `IsGood()` before building a batch, so the
+// fixture answers that too: good exactly when it has a shader. A fixture that
+// passes its own `IsGood` keeps it.
 
 /**
  * Makes an object answer the material contract a batch asks for.
@@ -45,6 +49,11 @@ export function FixtureEffect(values = {})
   {
     const shader = { fixtureShaderOf: values };
     values.GetShaderStateInterface = () => shader;
+  }
+
+  if (typeof values.IsGood !== "function")
+  {
+    values.IsGood = () => values.GetShaderStateInterface() !== null;
   }
 
   if (typeof values.CompatibleWithGdr !== "function")

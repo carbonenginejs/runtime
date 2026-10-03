@@ -1540,10 +1540,14 @@ export class CjsBlueResMan
       // its inputs first, as Carbon's .ctr texture does (TriTextureRes.cpp:238-258).
       if (resource.IsLoading())
       {
-        return new Promise((resolve, reject) => resource.OnCompleted(() => (resource.HasPayload()
-          ? resolve(this._LoadObject(path, options, build))
-          : reject(resource.error || dynamicResourceError(resource.GetPath(), "",
-            "CJS_RESMAN_DYNAMIC_RESOURCE_UNAVAILABLE", "dynamic resource finished without a payload")))));
+        // A notify target, told once when the build finishes and then released.
+        return new Promise((resolve, reject) => resource.AddNotifyTarget({
+          RebuildCachedData: () => (resource.HasPayload()
+            ? resolve(this._LoadObject(path, options, build))
+            : reject(resource.error || dynamicResourceError(resource.GetPath(), "",
+              "CJS_RESMAN_DYNAMIC_RESOURCE_UNAVAILABLE", "dynamic resource finished without a payload"))),
+          ReleaseCachedData: () => {}
+        }));
       }
 
       // A dynamic resource is built by its constructor, never read from a

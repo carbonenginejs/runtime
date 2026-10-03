@@ -48,7 +48,7 @@ function setup(t) {
     draws.push(args);return draw(...args);
   };
   const shader={GetTechniqueIndex:()=>0,GetPassCount:()=>1,GetShaderTypeMask:()=>3,ApplyAllStateForPass(){}};
-  const material={GetShaderStateInterface:()=>shader,ApplyMaterialDataForPass(){}};
+  const material={GetShaderStateInterface:()=>shader,IsGood:()=>true,ApplyMaterialDataForPass(){}};
   return {context,al,draws,material};
 }
 function circle(count=4) {const p=new EveCircle();p.numSegments=count;p.circleRadius=2;p.lineWidth=0.25;p.billboardObjects=false;return p;}
