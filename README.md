@@ -3,7 +3,7 @@
 A browser-safe JavaScript runtime for EVE Online's resources: format readers, the
 Space Object Factory, and a renderer built on EVE's own shaders.
 
-**Pre-alpha.** Published as `0.1.0-alpha.0` under the `alpha` tag. The API will
+**Pre-alpha.** Published under the `alpha` tag. The API will
 change without ceremony and most of the engine is unfinished. Two parts are worth
 using today:
 
