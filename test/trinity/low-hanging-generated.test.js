@@ -15,6 +15,7 @@ import { makePerObjectStore } from "./helpers/perObjectStore.js";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 import { EveChildBulletStorm } from "../../npm/dist/trinity/eve/child/EveChildBulletStorm.js";
 import { EveChildExplosion } from "../../npm/dist/trinity/eve/child/EveChildExplosion.js";
+import { EveUpdateContext } from "../../npm/dist/trinity/eve/EveUpdateContext.js";
 import { EveChildContainer } from "../../npm/dist/trinity/eve/child/EveChildContainer.js";
 import { EveChildInstanceContainer } from "../../npm/dist/trinity/eve/child/EveChildInstanceContainer.js";
 import { EveChildPlug } from "../../npm/dist/trinity/eve/child/EveChildPlug.js";
@@ -442,23 +443,27 @@ test("EveChildExplosion schedules local and global Carbon explosion children", (
   explosion.SetLocalExplosionTransforms([[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 5, 6, 7, 1]]);
   explosion.scaling.set([2, 4, 5]);
   explosion.SetGlobalExplosionOffset([10, 8, 5]);
-  assert.deepEqual(Array.from(explosion.globalExplosionOffset), [5, 2, 1]);
-  assert.equal(explosion.Play(), true);
+  assert.deepEqual(Array.from(explosion._globalExplosionOffset), [5, 2, 1]);
+  assert.equal(explosion.Play(), undefined, "Carbon Play is void (cpp:71)");
   assert.equal(explosion.isPlaying, true);
-  explosion.UpdateSyncronous({ GetDeltaT: () => 0.1 });
+  const context = new EveUpdateContext();
+  context.SetTime(10_000_000);
+  context.SetTime(11_000_000);
+  explosion.UpdateSyncronous(context, {});
   const spawned = explosion.objects.find(object => object.name === "local");
   assert.ok(spawned, "the local explosion was spawned");
   assert.notEqual(spawned, local, "as a copy, not the source");
-  assert.deepEqual(Array.from(spawned.translation), [5, 6, 7], "and set up at the authored position");
+  // cpp:207-209: the authored translation moves into the explosion's local frame (scaling 2, 4, 5).
+  assert.deepEqual(Array.from(spawned.translation), [2.5, 1.5, 1.4].map(Math.fround), "and set up at the rebased position");
   assert.deepEqual(Array.from(local.translation), [0, 0, 0], "leaving the source untouched");
-  assert.equal(explosion.globalExplosionInstances.length, 1);
-  assert.notEqual(explosion.globalExplosionInstances[0], global);
-  assert.equal(explosion.globalExplosionInstances[0].name, "global");
+  assert.equal(explosion._globalExplosionInstances.length, 1);
+  assert.notEqual(explosion._globalExplosionInstances[0], global);
+  assert.equal(explosion._globalExplosionInstances[0].name, "global");
   assert.ok(explosion.generatedGlobalExplosions);
   explosion.Stop();
   assert.equal(explosion.isPlaying, false);
   assert.equal(explosion.objects.length, 0);
-  assert.equal(explosion.globalExplosionInstances.length, 0);
+  assert.equal(explosion._globalExplosionInstances.length, 0);
 });
 
 test("generated child wrappers propagate Carbon controller and socket calls", async () =>
