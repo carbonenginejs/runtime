@@ -163,6 +163,28 @@ test("payload has nineteen registers, one GPU transpose and native clipped bound
   assert.equal(CjsPerObjectLayouts.Get("EveChildCloudPerObjectData").stride, 76);
 });
 
+test("nearPlaneLocal pulls the view plane through rotated nonuniform world and view transforms", t =>
+{
+  const { context, accumulator } = setup(t);
+  const cloud = new EveChildCloud();
+  const worldAngle = 0.4, viewAngle = -0.3;
+  mat4.fromRotationTranslationScale(cloud.worldTransform,
+    quat.setAxisAngle(quat.create(), [0, 1, 0], worldAngle), [5, 6, -20], [2, 3, 4]);
+  const view = mat4.create();
+  mat4.fromRotationTranslation(view,
+    quat.setAxisAngle(quat.create(), [1, 0, 0], viewAngle), [-2, 3, -7]);
+  context.SetViewTransform(view);
+
+  // Carbon cpp:367-370 pulls (0, 0, -1, -near) into local coordinates.
+  // Independently expand -viewZ - 1: worldZ = -2*sin(a)*x + 4*cos(a)*z - 20,
+  // worldY = 3*y + 6; viewZ = sin(b)*worldY + cos(b)*worldZ - 7.
+  // Keep the scale in the plane coefficients: Carbon does not normalize them.
+  const sa = Math.sin(worldAngle), ca = Math.cos(worldAngle);
+  const sb = Math.sin(viewAngle), cb = Math.cos(viewAngle);
+  const plane = cloud.GetPerObjectData(accumulator).data.Get("nearPlaneLocal");
+  near(plane, [2 * cb * sa, -3 * sb, -4 * cb * ca, 6 - 6 * sb + 20 * cb]);
+});
+
 test("LOD preserves Carbon's width-for-both-axes quirk and near-plane clipping", t =>
 {
   const { accumulator } = setup(t);

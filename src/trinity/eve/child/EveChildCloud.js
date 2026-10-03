@@ -277,7 +277,11 @@ export class EveChildCloud extends EveSpaceObjectChild
     return vec3.distance(renderContext.GetViewPosition(), vec3_0) - vec3.length(this.scaling) * this.sortingModifier;
   }
 
-  /** Submits the native transparent indexed triangle grid (cpp:254-273). */
+  /**
+   * Submits the native transparent indexed triangle grid (cpp:254-273).
+   * Carbon creates a local batch and Commit copies it (TriRenderBatch.h:333-349).
+   * The JS accumulator retains ownership, so each submission needs a fresh batch.
+   */
   @meta.blue.method
   @meta.implemented
   GetBatches(batches, batchType, perObjectData)
@@ -333,7 +337,7 @@ export class EveChildCloud extends EveSpaceObjectChild
     mat4_2[14] = -1000;
     if (!mat4.invert(mat4_1, mat4_2)) mat4.copy(mat4_1, mat4_2);
     data.SetAndTranspose("projectionInv", mat4_1);
-    getProjectedCubeBounds(vec4_1, mat4_0, mat4_2, EveChildCloud.scratch);
+    EveChildCloud.getProjectedCubeBounds(vec4_1, mat4_0, mat4_2, EveChildCloud.scratch);
     data.Set("screenSize", vec4_1);
     // Carbon bug CE-03: BOTH axes use back-buffer WIDTH (cpp:393-399).
     let size = Math.max(vec4_1[2] - vec4_1[0], vec4_1[3] - vec4_1[1]) *
@@ -429,6 +433,51 @@ export class EveChildCloud extends EveSpaceObjectChild
   {
     return true;
   }
+
+  /**
+   * Projects the clipped cube to screen bounds (EveChildCloud.cpp:69-160).
+   * Adapted: visit the 12 unique edges instead of duplicated per-face edges;
+   * repeated candidates cannot change extrema. The all-points-clipped native
+   * bug reads uninitialized points[0]; use an explicit zero-area rectangle.
+   */
+  @meta.adapted
+  static getProjectedCubeBounds(out, worldView, projection, scratch)
+  {
+    const { vec4_0 } = scratch;
+    const corners = [scratch.vec3_1, scratch.vec3_2, scratch.vec3_3, scratch.vec3_4, scratch.vec3_5, scratch.vec3_6, scratch.vec3_7, scratch.vec3_8];
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (let i = 0; i < 8; i++)
+    {
+      vec3.set(corners[i], (i & 1) ? 0.5 : -0.5, (i & 2) ? 0.5 : -0.5, (i & 4) ? 0.5 : -0.5);
+      vec3.transformMat4(corners[i], corners[i], worldView);
+    }
+    for (let i = 0; i < CUBE_EDGES.length; i += 2)
+    {
+      const a = corners[CUBE_EDGES[i]], b = corners[CUBE_EDGES[i + 1]];
+      const v0 = a[2] + 1, v1 = b[2] + 1;
+      for (let candidate = 0; candidate < 3; candidate++)
+      {
+        if (candidate === 0 && v0 <= 0) vec4.set(vec4_0, a[0], a[1], a[2], 0);
+        else if (candidate === 1 && v1 <= 0) vec4.set(vec4_0, b[0], b[1], b[2], 0);
+        else if (candidate === 2 && v0 * v1 < 0)
+        {
+          const t = v0 / (v0 - v1);
+          vec4.set(vec4_0, a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1]), a[2] + t * (b[2] - a[2]), 0);
+        }
+        else continue;
+        // Native deliberately projects w=0; the fake projection's translation is excluded.
+        vec4.transformMat4(vec4_0, vec4_0, projection);
+        const x = Math.max(-1, Math.min(1, vec4_0[0] / vec4_0[3]));
+        const y = Math.max(-1, Math.min(1, vec4_0[1] / vec4_0[3]));
+        minX = Math.min(minX, x); minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
+      }
+    }
+    // Explicit adaptation of the donor's empty-array undefined read.
+    if (minX === Infinity) minX = minY = maxX = maxY = 0;
+    vec4.set(out, minX, minY, maxX, maxY);
+  }
+
   static _vertexDefinition = new Tr2VertexDefinition();
 
   static scratch = {
@@ -446,40 +495,3 @@ meta.blue.interfaceTable({ interfaces: [EveChildCloud, ITr2Renderable, IInitiali
 // Native anonymous GetProjectedCubeBounds (cpp:69-160). Enumerating the 12
 // unique edges instead of each face's edges removes duplicate extrema only.
 const CUBE_EDGES = [0, 1, 0, 2, 0, 4, 1, 3, 1, 5, 2, 3, 2, 6, 3, 7, 4, 5, 4, 6, 5, 7, 6, 7];
-
-function getProjectedCubeBounds(out, worldView, projection, scratch)
-{
-  const { vec4_0 } = scratch;
-  const corners = [scratch.vec3_1, scratch.vec3_2, scratch.vec3_3, scratch.vec3_4, scratch.vec3_5, scratch.vec3_6, scratch.vec3_7, scratch.vec3_8];
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  for (let i = 0; i < 8; i++)
-  {
-    vec3.set(corners[i], (i & 1) ? 0.5 : -0.5, (i & 2) ? 0.5 : -0.5, (i & 4) ? 0.5 : -0.5);
-    vec3.transformMat4(corners[i], corners[i], worldView);
-  }
-  for (let i = 0; i < CUBE_EDGES.length; i += 2)
-  {
-    const a = corners[CUBE_EDGES[i]], b = corners[CUBE_EDGES[i + 1]];
-    const v0 = a[2] + 1, v1 = b[2] + 1;
-    for (let candidate = 0; candidate < 3; candidate++)
-    {
-      if (candidate === 0 && v0 <= 0) vec4.set(vec4_0, a[0], a[1], a[2], 0);
-      else if (candidate === 1 && v1 <= 0) vec4.set(vec4_0, b[0], b[1], b[2], 0);
-      else if (candidate === 2 && v0 * v1 < 0)
-      {
-        const t = v0 / (v0 - v1);
-        vec4.set(vec4_0, a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1]), a[2] + t * (b[2] - a[2]), 0);
-      }
-      else continue;
-      // Native deliberately projects w=0; the fake projection's translation is excluded.
-      vec4.transformMat4(vec4_0, vec4_0, projection);
-      const x = Math.max(-1, Math.min(1, vec4_0[0] / vec4_0[3]));
-      const y = Math.max(-1, Math.min(1, vec4_0[1] / vec4_0[3]));
-      minX = Math.min(minX, x); minY = Math.min(minY, y);
-      maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
-    }
-  }
-  // Explicit adaptation of the donor's empty-array undefined read.
-  if (minX === Infinity) minX = minY = maxX = maxY = 0;
-  vec4.set(out, minX, minY, maxX, maxY);
-}
