@@ -15,7 +15,7 @@ import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { EveSOF } from "../../npm/dist/sof/index.js";
 import { EveMissile, EveMissileWarhead, EveSpaceObject2, EveTransform, EveRootTransform, EveUpdateContext,
   ITr2GenericEmitter, TriFrustum, Tr2QuadRenderer, Tr2GpuSharedEmitter,
-  Tr2RotationAdapter, Tr2TranslationAdapter } from "../../npm/dist/trinity/index.js";
+  Tr2RotationAdapter, Tr2TranslationAdapter, Tr2GpuParticleSystem, TriCurveSet, Tr2Renderer } from "../../npm/dist/trinity/index.js";
 import "../../npm/dist/audio/index.js";
 import { StubResMan } from "../support/stubResMan.js";
 
@@ -629,4 +629,85 @@ test("real warhead in-flight miss and negative estimated flight query the target
     assert.equal(warhead.GetState(), S.STATE_TRACKING_FINAL);
     t.mock.restoreAll();
   }
+});
+
+test("real warhead shared emitters emit along its world path through EveTransform's native update arguments", {skip}, async t =>
+{
+  const missile = await realMissile(t), warhead = missile.warheads[0], S = EveMissileWarhead.State;
+  const { context } = makeView();
+  context.SetVisibilityThreshold(0.001);
+  context.SetLowDetailThreshold(0.002);
+  context.SetMediumDetailThreshold(0.003);
+  const system = new Tr2GpuParticleSystem();
+  context.SetGpuParticleSystem(system);
+  context.originShift.set([0.5, -0.25, 2]);
+  missile.Start(new Float32Array(3), 4);
+  warhead.PrepareLaunch();
+  warhead.Launch(mat4.create());
+  warhead.UpdateState(0, 4, null);
+  warhead.UpdateState(0, 4, null);
+  assert.equal(warhead.GetState(), S.STATE_EJECTING, "LAUNCH enabled the authored shared emitters");
+  const emitters = warhead.particleEmitters.slice(0, 2);
+  assert.deepEqual(emitters.map(emitter => emitter.IsEnabled()), [true, true]);
+  // Labelled observation: a real curve set added only to read the time it receives.
+  const curveSet = new TriCurveSet();
+  warhead.curveSets.push(curveSet);
+  const curveTimes = [];
+  const curveUpdate = curveSet.Update;
+  t.mock.method(curveSet, "Update", function(...args) { curveTimes.push(args[0]); return curveUpdate.apply(this, args); });
+  const received = [];
+  for (const emitter of emitters)
+  {
+    const update = emitter.Update;
+    t.mock.method(emitter, "Update", function(args)
+    {
+      received.push({ emitter: this, system: args.system, parent: Array.from(args.parentTransform), shift: Array.from(args.originShift), time: args.time, factor: args.emitCountFactor });
+      return update.call(this, args);
+    });
+  }
+  const emits = [], emit = system.Emit;
+  t.mock.method(system, "Emit", function(source, ...rest) { emits.push(Array.from(source.position)); return emit.call(this, source, ...rest); });
+  // update=false does not gate EveTransform::UpdateAsyncronous (EveTransform.cpp:108-158).
+  warhead.update = false;
+  const placement = new Float32Array([0, 2, 0, 0, -3, 0, 0, 0, 0.4, 0.6, 4, 0, 21, -13, -400, 1]); // Both frames stay in view.
+  const ticks = [30_000_000, 31_000_000];
+  const worlds = [];
+  ticks.forEach((tick, frame) =>
+  {
+    placement[12] = 21 + 100 * frame;
+    mat4.copy(missile.worldTransform, placement);
+    missile.UpdateVisibility(context, mat4.create());
+    assert.equal(warhead.GetLODLevel(), EveTransform.Tr2Lod.TR2_LOD_HIGH, "HIGH LOD advances curve sets every frame");
+    worlds.push(Array.from(warhead.worldTransform));
+    context.SetTime(tick);
+    warhead.Update(context);
+  });
+  assert.deepEqual(curveTimes, ticks.map(tick => tick / 10_000_000), "EveTransform.cpp:128 passes TimeAsDouble(time) to curve sets");
+  assert.equal(received.length, 4);
+  received.forEach((args, index) =>
+  {
+    assert.equal(args.emitter, emitters[index % 2]);
+    assert.equal(args.system, system, "EveTransform.cpp:146 passes the context's GPU particle system");
+    nearValues(args.parent, worlds[index >> 1], 1e-5);
+    nearValues(args.shift, [0.5, -0.25, 2]);
+    assert.equal(args.time, ticks[index >> 1] / 10_000_000);
+    assert.equal(args.factor, 1);
+  });
+  assert.ok(emits.length > 0, "a 100 m move over 0.1 s spawns trail particles");
+  const from = worlds[0].slice(12, 15), to = worlds[1].slice(12, 15);
+  for (const position of emits)
+  {
+    // Spawns lie on the world segment the warhead travelled (origin shift applied to the start).
+    const along = (position[0] - from[0] - 0.5) / (to[0] - from[0] - 0.5);
+    assert.ok(along >= -1e-4 && along <= 1 + 1e-4, `spawn ${position} lies on the travelled segment`);
+  }
+
+  // Carbon's only gate: hideOnLowQuality under low quality skips the whole pass.
+  warhead.hideOnLowQuality = true;
+  t.mock.method(Tr2Renderer, "IsLowQuality", () => true);
+  const before = received.length;
+  context.SetTime(32_000_000);
+  warhead.Update(context);
+  assert.equal(received.length, before);
+  assert.equal(curveTimes.length, 2);
 });

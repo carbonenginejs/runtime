@@ -18,6 +18,9 @@ import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../core/view/Tr2PickType.
 import { ITr2BoundingBox } from "#interfaces";
 import { IWorldPosition } from "../../core/IWorldPosition.js";
 import { IInitialize } from "#blue/IInitialize";
+import { TimeAsDouble } from "../../../global/blue/CcpTime.js";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
+import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmitter/index.js";
 
 // Static scratch for the singular-world patch fixup (allocation rules: hot
 // per-object path, copy-into, never allocate per call).
@@ -165,6 +168,11 @@ export class EveTransform extends Tr2Transform
    * @type {number}
    */
   _lastCurveUpdateDelta = EveLODHelper.lowUpdateRate;
+  /**
+   * The context delta seen by the last asynchronous update, in seconds.
+   * @type {number}
+   */
+  _lastDeltaTime = 0;
 
   /**
    * Adopts an authored meshLod as the node's mesh when no mesh was set, so a
@@ -219,35 +227,62 @@ export class EveTransform extends Tr2Transform
   }
 
   /**
-   * Advances the curve sets once the accumulated delta satisfies the LOD update rate, then updates the children, particle systems and particle emitters.
-   * @returns {boolean} False without doing any work when the node's update flag is off.
+   * Carbon EveTransform::UpdateAsyncronous (EveTransform.cpp:108-158). Skipped
+   * entirely for a hideOnLowQuality node under low quality; m_update is not
+   * consulted here (only Tr2Transform::Update reads it, and this class
+   * overrides that). Curve sets accrue the frame delta and advance at the LOD
+   * rate with the context's Blue ticks converted to seconds; children update;
+   * particle systems take the world transform; emitters update against the
+   * world transform and particle systems against identity, both with the
+   * context's GPU particle system and origin shift.
+   *
+   * Adapted: curve sets also receive the context's render context, which the
+   * JavaScript curves read in place of Carbon's renderer globals; the emitter
+   * and system argument records carry time in seconds, the unit every
+   * JavaScript emitter reads.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Particle updates are forwarded through backend-neutral emitter and system contracts; device particle managers are not ported yet.")
   UpdateAsyncronous(context)
   {
-    if (!this.update) return false;
-    const time = Number(context?.GetTime?.() ?? context?.currentTime ?? context?.time ?? 0);
-    const deltaTime = Number(context?.GetDeltaT?.() ?? context?.deltaTime ?? context?.deltaT ?? 0);
-    this._lastCurveUpdateDelta += deltaTime;
-    if (!this.useLodLevel || EveLODHelper.ShouldUpdate(this.lodLevel, this._lastCurveUpdateDelta))
+    if (this.hideOnLowQuality && Tr2Renderer.IsLowQuality()) return;
+
+    const time = context.GetTime();
+    this._lastDeltaTime = context.GetDeltaT();
+
+    if (this.curveSets.length)
     {
-      this._lastCurveUpdateDelta = 0;
-      for (const curveSet of this.curveSets) curveSet.Update(time, undefined, context.renderContext);
+      this._lastCurveUpdateDelta += this._lastDeltaTime;
+      if (!this.useLodLevel || EveLODHelper.ShouldUpdate(this.lodLevel, this._lastCurveUpdateDelta))
+      {
+        this._lastCurveUpdateDelta = 0;
+        for (const curveSet of this.curveSets) curveSet.Update(TimeAsDouble(time), undefined, context.renderContext);
+      }
     }
-    for (const child of this.children) child?.Update?.(context);
-    for (const system of this.particleSystems)
+
+    for (const child of this.children) child.Update(context);
+
+    for (const system of this.particleSystems) system.UpdateTransform(this.worldTransform);
+    if (this.particleEmitters.length)
     {
-      system?.UpdateTransform(this.worldTransform);
-      system?.Update(context);
+      const args = EveTransform._emitterArgs;
+      args.time = TimeAsDouble(time);
+      args.system = context.GetGpuParticleSystem();
+      mat4.copy(args.parentTransform, this.worldTransform);
+      vec3.copy(args.originShift, context.GetOriginShift());
+      args.emitCountFactor = 1;
+      for (const emitter of this.particleEmitters) emitter.Update(args);
     }
-    const originShift = context?.GetOriginShift?.() ?? context?.originShift ?? EveTransform._zero;
-    for (const emitter of this.particleEmitters)
+    if (this.particleSystems.length)
     {
-      emitter?.Update({ time, transform: this.worldTransform, originShift, context });
+      const args = EveTransform._systemArgs;
+      args.time = TimeAsDouble(time);
+      args.system = context.GetGpuParticleSystem();
+      mat4.identity(args.parentTransform);
+      vec3.copy(args.originShift, context.GetOriginShift());
+      args.emitCountFactor = 1;
+      for (const system of this.particleSystems) system.Update(args);
     }
-    return true;
   }
 
   /**
@@ -593,6 +628,17 @@ export class EveTransform extends Tr2Transform
    * @type {vec3}
    */
   static _zero = vec3.create();
+  /**
+   * Shared emitter update arguments (world transform); updates run
+   * sequentially, so one record is reused.
+   * @type {ITr2GenericEmitterUpdateArguments}
+   */
+  static _emitterArgs = new ITr2GenericEmitterUpdateArguments();
+  /**
+   * Shared particle-system update arguments (identity transform).
+   * @type {ITr2GenericEmitterUpdateArguments}
+   */
+  static _systemArgs = new ITr2GenericEmitterUpdateArguments();
   /**
    * Shared world bounding sphere scratch for visibility and projected-size queries.
    * @type {vec4}

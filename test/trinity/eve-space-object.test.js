@@ -17,6 +17,7 @@ import {
   EveRootTransform,
   EveSpaceObjectChild,
   EveSpaceObject2,
+  EveUpdateContext,
   Tr2RenderContext,
   Tr2Lod,
   TriObserverLocal
@@ -81,7 +82,9 @@ test("EveRootTransform evaluates detached curves and implements Carbon targetabl
     }
   };
 
-  assert.equal(root.UpdateSyncronous({ currentTime: 3, deltaTime: 0 }), true);
+  const context = new EveUpdateContext();
+  context.SetTime(3);
+  assert.equal(root.UpdateSyncronous(context), true);
   root.UpdateViewDependentData({
     GetFrustum()
     {
