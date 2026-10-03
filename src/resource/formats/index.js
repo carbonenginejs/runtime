@@ -35,6 +35,7 @@ export { CjsObjFormat } from "./obj/index.js";
 export { CjsOggFormat } from "./ogg/index.js";
 export { CjsPickleFormat } from "./pickle/index.js";
 export { CjsPngFormat } from "./png/index.js";
+export { CjsPsdFormat } from "./psd/index.js";
 export { CjsRedFormat } from "./red/index.js";
 export { CjsSchemaBoundFormat } from "./schemabound/index.js";
 export { CjsSqliteFormat } from "./sqlite/index.js";

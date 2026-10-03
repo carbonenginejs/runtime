@@ -120,6 +120,7 @@ directly. See [geometry interchange](geometry-interchange.md).
 | Ogg (`.ogg`) | `CjsOggFormat` | `@carbonenginejs/runtime/resource/formats/ogg` |
 | Python pickle (`.pickle`, protocol 0 data subset) | `CjsPickleFormat` | `@carbonenginejs/runtime/resource/formats/pickle` |
 | PNG (`.png`) | `CjsPngFormat` | `@carbonenginejs/runtime/resource/formats/png` |
+| [PSD merged images](psd.md) (`.psd`) | `CjsPsdFormat` | `@carbonenginejs/runtime/resource/formats/psd` |
 | Red (`.red`) | `CjsRedFormat` | `@carbonenginejs/runtime/resource/formats/red` |
 | Schema-bound containers (layout in a sibling schema) | `CjsSchemaBoundFormat` | `@carbonenginejs/runtime/resource/formats/schemabound` |
 | SQLite 3 (`.sqlite`/`.db`) | `CjsSqliteFormat` | `@carbonenginejs/runtime/resource/formats/sqlite` |

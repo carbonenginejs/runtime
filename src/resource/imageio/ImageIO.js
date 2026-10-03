@@ -12,6 +12,7 @@ import { CjsDdsFormat } from "../formats/dds/CjsDdsFormat.js";
 import { CjsGifFormat } from "../formats/gif/CjsGifFormat.js";
 import { CjsJpegFormat } from "../formats/jpeg/CjsJpegFormat.js";
 import { CjsPngFormat } from "../formats/png/CjsPngFormat.js";
+import { CjsPsdFormat } from "../formats/psd/CjsPsdFormat.js";
 import { CjsTgaFormat } from "../formats/tga/CjsTgaFormat.js";
 
 import { CjsVtaFormat } from "../formats/vta/CjsVtaFormat.js";
@@ -42,6 +43,7 @@ export class ImageIO
     ImageIO.registerImageHandler(CjsDdsFormat.carbon);
     ImageIO.registerImageHandler(CjsJpegFormat.carbon);
     ImageIO.registerImageHandler(CjsPngFormat.carbon);
+    ImageIO.registerImageHandler(CjsPsdFormat.carbon);
     ImageIO.registerImageHandler(CjsTgaFormat.carbon);
     ImageIO.registerImageHandler(CjsVtaFormat.carbon);
     ImageIO.registerImageHandler(CjsGifFormat.carbon);

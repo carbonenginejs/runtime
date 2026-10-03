@@ -110,6 +110,7 @@
     "./resource/formats/ogg": "./src/resource/formats/ogg/index.js",
     "./resource/formats/pickle": "./src/resource/formats/pickle/index.js",
     "./resource/formats/png": "./src/resource/formats/png/index.js",
+    "./resource/formats/psd": "./src/resource/formats/psd/index.js",
     "./resource/formats/red": "./src/resource/formats/red/index.js",
     "./resource/formats/red/schema": "./src/resource/formats/red/core/blackDefinitions.js",
     "./resource/formats/static": "./src/resource/formats/static/index.js",
