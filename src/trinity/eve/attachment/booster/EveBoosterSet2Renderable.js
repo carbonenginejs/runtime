@@ -336,7 +336,7 @@ export class EveBoosterSet2Renderable
    * buffer, 3 * 2 * planes indices per booster instance.
    */
   @meta.blue.method
-  @meta.implemented
+  @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE) return;
@@ -352,8 +352,11 @@ export class EveBoosterSet2Renderable
       const indexBuffer = Tr2Renderer.GetQuadListIndexBuffer();
       if (!indexBuffer.IsValid()) return;
 
+      const effect = (this.boosterHighLod || !boosterSet.effectFar) ? boosterSet.effect : boosterSet.effectFar;
+      // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
+      if (!effect || !effect.IsGood()) return;
       const batch = new Tr2RenderBatch();
-      batch.SetMaterial((this.boosterHighLod || !boosterSet.effectFar) ? boosterSet.effect : boosterSet.effectFar);
+      batch.SetMaterial(effect);
       batch.SetPerObjectData(perObjectData);
       batch.SetVertexDeclaration(boosterSet._vertexDeclHandle);
 

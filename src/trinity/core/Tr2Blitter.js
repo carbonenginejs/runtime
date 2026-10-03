@@ -360,6 +360,8 @@ export class Tr2Blitter
   Draw(renderContext, material, texture = null, placement = {})
   {
     if (!material) return false;
+    // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
+    if (!material.IsGood()) return false;
 
     return this.DrawHelper(renderContext, material.GetShaderStateInterface(), material, texture, false, placement);
   }
@@ -383,6 +385,8 @@ export class Tr2Blitter
     // Carbon's switch has no default and falls through to `return false` for an
     // unknown filter (`cpp:43-50`); a missing effect lands in the same place.
     if (!material) return false;
+    // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
+    if (!material.IsGood()) return false;
 
     return this.DrawHelper(renderContext, material.GetShaderStateInterface(), material, texture, false, placement);
   }

@@ -16,7 +16,7 @@ function setup(t) {
   const draws=[],draw=al.DrawInstanced.bind(al);
   al.DrawInstanced=(...args)=>{draws.push(args);return draw(...args);};
   const shader={GetTechniqueIndex:()=>0,GetPassCount:()=>1,GetShaderTypeMask:()=>3,ApplyAllStateForPass(){}};
-  const effect={GetShaderStateInterface:()=>shader,CompatibleWithGdr:()=>false,ApplyMaterialDataForPass(){}};
+  const effect={GetShaderStateInterface:()=>shader,IsGood:()=>true,CompatibleWithGdr:()=>false,ApplyMaterialDataForPass(){}};
   t.after(()=>{
     for(const resource of TriDevice.GetResourcesRegistered())if(!registered.has(resource)&&CjsSchema.cast(resource,INotify))resource.Destroy();
     context.PopProjection();context.PopViewTransform();context.SetRenderContextAL(prior);

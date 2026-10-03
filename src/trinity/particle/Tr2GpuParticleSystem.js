@@ -77,13 +77,15 @@ const EFFECT_SLOTS = [ "emit", "update", "render", "clear", "setDrawParameters",
 
 /**
  * Carbon CheckEffect (cpp:51-54): whether the effect is usable.
+ * Adapted: asks `IsGood()`, which also renews what the effect holds and is
+ * false while its resource is not good (Tr2Effect.IsGood).
  *
  * @param {object|null} effect A Tr2Effect.
- * @returns {boolean} Whether it has a shader state.
+ * @returns {boolean} Whether it can be used now.
  */
 function CheckEffect(effect)
 {
-  return !!effect && !!effect.GetShaderStateInterface();
+  return !!effect && effect.IsGood();
 }
 
 /** Describes the GPU particle pipeline's capacity, visible-count controls, and compute and render effect stages. */

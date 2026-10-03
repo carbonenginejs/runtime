@@ -100,14 +100,18 @@ export class Tr2PrimitiveSet
   /** Native local-space bound; CleanUp in derived sets deliberately retains it. */
   boundingSphere = vec4.create();
 
-  /** Native opaque/picking dispatch (cpp:52), despite its stale transparent comment. */
+  /**
+   * Native opaque/picking dispatch (cpp:52), despite its stale transparent comment.
+   * Adapted: the effect is asked `IsGood()` first, which renews what it holds
+   * and skips it while its resource is not good (Tr2Effect.IsGood).
+   */
   @meta.blue.method
-  @meta.implemented
+  @meta.adapted
   GetBatches(accumulator, batchType, perObjectData, _reason)
   {
-    if (batchType === TriBatchType.TRIBATCHTYPE_OPAQUE && this.effect)
+    if (batchType === TriBatchType.TRIBATCHTYPE_OPAQUE && this.effect && this.effect.IsGood())
       this.GetBatchesImpl(accumulator, perObjectData, this.effect, Tr2PrimitiveSet.GetBatchesReason.Draw);
-    else if (batchType === TriBatchType.TRIBATCHTYPE_PICKING && this.pickEffect)
+    else if (batchType === TriBatchType.TRIBATCHTYPE_PICKING && this.pickEffect && this.pickEffect.IsGood())
       this.GetBatchesImpl(accumulator, perObjectData, this.pickEffect, Tr2PrimitiveSet.GetBatchesReason.Picking);
   }
 

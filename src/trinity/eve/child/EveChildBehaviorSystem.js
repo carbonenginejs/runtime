@@ -632,6 +632,8 @@ export class EveChildBehaviorSystem extends EveChildTransform
       if (!area.GetDisplay()) continue;
       const material = area.GetMaterialInterface();
       if (!material) continue;
+      // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
+      if (!material.IsGood()) continue;
       const reversed = area.GetReversed();
       if (reversed && !lod.reversedIndicesValid) continue;
       const draw = Tr2RenderBatch.resolveDrawArguments(lod, area.GetIndex(), area.GetCount(), reversed);

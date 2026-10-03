@@ -191,7 +191,8 @@ test("portable generated render steps initialize and emit backend-neutral work",
   const effectOrder = [];
   const renderEffect = new TriStepRenderEffect();
   renderEffect.__init__(
-    { name: "effect", GetShaderStateInterface: () => { effectOrder.push("draw"); return null; } },
+    // The draw attempt is the blitter asking IsGood; it still comes after the buffer.
+    { name: "effect", IsGood: () => { effectOrder.push("draw"); return false; }, GetShaderStateInterface: () => null },
     { ApplyBuffer: () => effectOrder.push("buffer") }
   );
   renderEffect.Execute(0, 0, context);
@@ -200,7 +201,7 @@ test("portable generated render steps initialize and emit backend-neutral work",
   const compute = new TriStepRunComputeShader();
   // A material with no shader resolved: Tr2Renderer.runComputeShader binds
   // nothing and dispatches nothing, and the step still reports RS_OK.
-  compute.__init__({ name: "compute", GetShaderStateInterface: () => null }, 2, 3, 4);
+  compute.__init__({ name: "compute", IsGood: () => false, GetShaderStateInterface: () => null }, 2, 3, 4);
   assertEquals(compute.Execute(0, 0, context), TriRenderStep.RS_OK);
 
   const update = new TriStepUpdate();

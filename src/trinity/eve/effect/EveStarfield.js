@@ -201,13 +201,15 @@ export class EveStarfield
 
   /** Submits the sprite quads through the existing shared index allocation (cpp:62-95). */
   @meta.blue.method
-  @meta.implemented
+  @meta.adapted
   GetBatches(accumulator, perObjectData)
   {
     if (!this._vertexBuffer.IsValid() || !this.effect || !this.display || this.numStars <= 0) return;
     if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
     const indices = Tr2Renderer.GetQuadListIndexBuffer();
     if (!indices.IsValid()) return;
+    // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
+    if (!this.effect.IsGood()) return;
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.effect);
     batch.SetPerObjectData(perObjectData);

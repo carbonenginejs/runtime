@@ -123,3 +123,21 @@ test("pure queries on a purged resource do not revive it", () =>
   resource.IsGood();
   assert.equal(reloads, 1, "asking IsGood is using");
 });
+
+
+test("draw paths ask the effect: a primitive set skips an effect that is not good", async () =>
+{
+  const { Tr2LineSet } = await import("../../npm/dist/trinity/index.js");
+  const { TriBatchType } = await import("../../npm/dist/global/consts/graphics/index.js");
+  const set = new Tr2LineSet();
+  set.effect = new Tr2Effect();                       // no shader yet: not good
+  let drawn = 0;
+  set.GetBatchesImpl = () => { drawn += 1; };
+
+  set.GetBatches({ Commit() {} }, TriBatchType.TRIBATCHTYPE_OPAQUE, null);
+  assert.equal(drawn, 0);
+
+  set.effect.shader = new Tr2Shader();
+  set.GetBatches({ Commit() {} }, TriBatchType.TRIBATCHTYPE_OPAQUE, null);
+  assert.equal(drawn, 1);
+});

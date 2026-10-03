@@ -451,7 +451,7 @@ test("GetBatches commits the hull LOD's vertices with the decal's own indices (c
   const decal = visibleDecal();
   const shader = { id: "decalv5" };
 
-  decal.decalEffect = { GetShaderStateInterface: () => shader };
+  decal.decalEffect = { GetShaderStateInterface: () => shader, IsGood: () => true };
   decal.batchType = 1;
   decal.SetIndices([ [ 3, 4, 5, 6, 7, 8 ] ]);
 

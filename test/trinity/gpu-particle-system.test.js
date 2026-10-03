@@ -20,6 +20,7 @@ function effect(name, passes = 1)
       GetPassCount: () => passes,
       ApplyAllStateForPass: (technique, pass) => applied.push([ technique, pass ])
     }),
+    IsGood: () => true,
     ApplyMaterialDataForPass() {},
     StartUpdate() {},
     SetVariableStore(store) { this.store = store; },
@@ -284,6 +285,7 @@ test("Render draws through the render effect with additive states and an indirec
   ps._liveTime = 1;
   ps.render = new Tr2Effect();
   ps.render.GetShaderStateInterface = effect("render", 2).GetShaderStateInterface;
+  ps.render.IsGood = () => true;
   ps.render.ApplyMaterialDataForPass = () => {};
   ps.Render(context);
 

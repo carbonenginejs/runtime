@@ -713,8 +713,11 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
     if (!this._singleBoosters.length) return;
     if (!this._boostersVisible) return;
 
+    const effect = (this._boosterHighLod || !this.effectFar) ? this.effect : this.effectFar;
+    // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
+    if (!effect || !effect.IsGood()) return;
     const batch = new Tr2RenderBatch();
-    batch.SetMaterial((this._boosterHighLod || !this.effectFar) ? this.effect : this.effectFar);
+    batch.SetMaterial(effect);
     batch.SetPerObjectData(perObjectData);
     batch.SetDrawIndexedInstanced(3 * 2 * 6, this._singleBoosters.length, 0, 0, 0);
     batch.proceduralVertexBufferName = CHILD_BOOSTER_BOX_BUFFER_NAME;

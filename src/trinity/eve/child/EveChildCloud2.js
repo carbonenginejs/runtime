@@ -865,7 +865,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
       return false;
     }
     if (!this._vertexBuffer.IsValid() || this._declaration === Tr2EffectStateManager.Unknown ||
-      !this.effect || !this.effect.GetShaderStateInterface()) return false;
+      !this.effect || !this.effect.IsGood()) return false;
 
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.effect);
@@ -1179,7 +1179,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
       return false;
     }
     if (!this._vertexBuffer.IsValid() || this._declaration === Tr2EffectStateManager.Unknown ||
-      !this.reflectionEffect || !this.reflectionEffect.GetShaderStateInterface()) return false;
+      !this.reflectionEffect || !this.reflectionEffect.IsGood()) return false;
 
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.reflectionEffect);

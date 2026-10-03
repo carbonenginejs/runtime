@@ -733,6 +733,8 @@ export class Tr2CurveLineSet
   GetBatchImpl(accumulator, perObjectData, effect)
   {
     if (!effect || !this._vertexBuffer.IsValid() || this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
+    // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
+    if (!effect.IsGood()) return;
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(effect);
     batch.SetPerObjectData(perObjectData);

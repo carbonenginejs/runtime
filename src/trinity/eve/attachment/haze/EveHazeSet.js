@@ -232,12 +232,14 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * indexed as quads, never in a reflection.
    */
   @meta.blue.method
-  @meta.implemented
+  @meta.adapted
   GetBatches(accumulator, batchType, perObjectData, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE || !this._vertexBuffer || reason === Tr2RenderReason.TR2RENDERREASON_REFLECTION) return;
     if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
     if (!this.display || !this.effect) return;
+    // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
+    if (!this.effect.IsGood()) return;
 
     const indexBuffer = Tr2Renderer.GetQuadListIndexBuffer();
     if (!indexBuffer.IsValid()) return;

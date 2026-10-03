@@ -37,6 +37,7 @@ function material(passCount = 1, log = [])
     log,
     shader,
     GetShaderStateInterface: () => shader,
+    IsGood: () => true,
     ApplyMaterialDataForPass: (technique, pass) => log.push(`data:${technique}:${pass}`)
   };
 }
@@ -112,7 +113,7 @@ test("a null material is refused rather than crashing", () =>
   assert.equal(blitter.Draw(context, null), false);
 
   // A material with no shader is the same refusal, one level in.
-  assert.equal(blitter.Draw(context, { GetShaderStateInterface: () => null }), false);
+  assert.equal(blitter.Draw(context, { GetShaderStateInterface: () => null, IsGood: () => false }), false);
 });
 
 test("BlitSource is published for a textured blit and cleared afterwards", () =>

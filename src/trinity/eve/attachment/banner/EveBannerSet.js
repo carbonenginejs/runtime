@@ -260,13 +260,15 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * picking when pickable), not until the primary texture has loaded.
    */
   @meta.blue.method
-  @meta.implemented
+  @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE && batchType !== TriBatchType.TRIBATCHTYPE_PICKING) return;
     if (batchType === TriBatchType.TRIBATCHTYPE_PICKING && !this.isPickable) return;
     if (!this.display || !this._isVisible || !this.effect || !this._vertexBuffer) return;
     if (this.primaryTextureParameter && !this.primaryTextureParameter.GetResource()) return;
+    // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
+    if (!this.effect.IsGood()) return;
 
     const vertices = this._vertexBuffer;
     const indices = this._indexBuffer;

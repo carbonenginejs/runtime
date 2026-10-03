@@ -16,7 +16,7 @@ function setup(t) {
   al.CreateBuffer=(desc,data,...rest)=>{if(desc.stride===32&&data)uploads.push(new Uint8Array(data.buffer,data.byteOffset,data.byteLength).slice());return create(desc,data,...rest);};
   al.DrawIndexedInstanced=(...args)=>{draws.push(args);return draw(...args);};
   const shader={GetTechniqueIndex:()=>0,GetPassCount:()=>1,GetShaderTypeMask:()=>3,ApplyAllStateForPass(){}};
-  const effect={GetShaderStateInterface:()=>shader,CompatibleWithGdr:()=>false,ApplyMaterialDataForPass(){}};
+  const effect={GetShaderStateInterface:()=>shader,IsGood:()=>true,CompatibleWithGdr:()=>false,ApplyMaterialDataForPass(){}};
   t.after(()=>{for(const resource of TriDevice.GetResourcesRegistered())if(!before.has(resource)&&resource.constructor===EveStarfield)resource.Destroy();SharedGeometryBuffer(context).ReleaseResources();context.SetRenderContextAL(prior);});
   return {context,al,uploads,draws,effect};
 }

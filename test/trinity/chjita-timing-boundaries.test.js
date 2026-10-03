@@ -60,6 +60,7 @@ test("scene GPU-particle handoff advances gas at real elapsed seconds", t =>
   {
     system[slot] = {
       GetShaderStateInterface: () => ({}),
+      IsGood: () => true,
       StartUpdate() {},
       SetVariableStore() {},
       EndUpdate() {}

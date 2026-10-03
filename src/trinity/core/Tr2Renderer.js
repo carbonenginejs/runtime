@@ -667,13 +667,15 @@ export class Tr2Renderer
    * @returns {boolean} Whether at least one pass dispatched, and none failed.
    */
   @meta.blue.method
-  @meta.implemented
+  @meta.adapted
   static runComputeShader(effect, ...args)
   {
     const named = typeof args[0] === "string";
     const [ techniqueName, groupDimX, groupDimY, groupDimZ, renderContext ] = named ? args : [ null, ...args ];
 
     if (!effect) return false;
+    // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
+    if (!effect.IsGood()) return false;
 
     const shader = effect.GetShaderStateInterface();
 
@@ -721,10 +723,12 @@ export class Tr2Renderer
    * @returns {boolean} False when there is no effect or shader, or a dispatch failed.
    */
   @meta.blue.method
-  @meta.implemented
+  @meta.adapted
   static runComputeShaderIndirect(effect, indirectParams, offset, renderContext)
   {
     if (!effect) return false;
+    // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
+    if (!effect.IsGood()) return false;
 
     const shader = effect.GetShaderStateInterface();
 

@@ -2235,6 +2235,8 @@ export class EveSpaceObject2 extends EveEntity
     {
       const material = collector.shaderMaterial;
       if (!material) continue;
+      // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
+      if (!material.IsGood()) continue;
       for (const block of collector.areaBlockVector)
       {
         const batch = new Tr2RenderBatch();

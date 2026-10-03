@@ -260,6 +260,8 @@ export class Tr2InstancedMesh extends Tr2Mesh
       if (!area.GetDisplay()) continue;
       const material = area.GetMaterialInterface();
       if (!material) continue;
+      // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
+      if (!material.IsGood()) continue;
       const reversed = area.GetReversed() !== reverseAreas;
       if (reversed && !lod.reversedIndicesValid) continue;
       const draw = Tr2RenderBatch.resolveDrawArguments(lod, area.GetIndex(), area.GetCount(), reversed);

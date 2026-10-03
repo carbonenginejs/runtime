@@ -510,6 +510,8 @@ export class EveSpherePin
     const context = Tr2RenderContext_GetMainThreadRenderContext();
     if (!CreateLodAllocations(geometry, 0, lod, context)) return;
     const vertices = lod.vertexAllocation;
+    // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
+    if (!effect || !effect.IsGood()) return;
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(effect);
     batch.SetPerObjectData(perObjectData);

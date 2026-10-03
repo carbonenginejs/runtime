@@ -82,6 +82,8 @@ export function EmitOverlayBatches(
     const blocks = areaBlocks[overlay.GetType(batchType)];
     for (const effect of effects)
     {
+      // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
+      if (!effect.IsGood()) continue;
       for (const block of blocks)
       {
         committed = CommitOverlayBlock(
@@ -104,6 +106,8 @@ export function EmitDamageOverlayBatches(
   meshIndex,
   lod = null)
 {
+  // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
+  if (!effect.IsGood()) return false;
   let committed = false;
   for (const block of areaBlocks[EveMeshOverlayEffect.OverlayType.TYPE_ALL])
   {

@@ -46,7 +46,7 @@ function setup(t)
     draws.push(args);return draw(...args);
   };
   const shader={GetTechniqueIndex:()=>0,GetPassCount:()=>1,GetShaderTypeMask:()=>3,ApplyAllStateForPass(){}};
-  const material={GetShaderStateInterface:()=>shader,ApplyMaterialDataForPass(){}};
+  const material={GetShaderStateInterface:()=>shader,IsGood:()=>true,ApplyMaterialDataForPass(){}};
   return {context,al,draws,material,uploads};
 }
 function geometry()

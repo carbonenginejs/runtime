@@ -403,7 +403,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    * based at the allocation's first vertex.
    * @returns {Boolean} whether the batch was committed
    */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     const vb = this._vb.GetSharedResource();
@@ -414,6 +414,8 @@ export class EveStretch2 extends IEveFiringEffectElement
 
     const indexBuffer = Tr2Renderer.GetQuadListIndexBuffer();
     if (!indexBuffer.IsValid()) return false;
+    // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
+    if (!this.effect.IsGood()) return false;
 
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.effect);
