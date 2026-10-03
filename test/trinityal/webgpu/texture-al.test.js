@@ -493,3 +493,26 @@ test("TriTextureRes.SetTexture borrows caller storage across eviction", () =>
   value.Destroy();
   assert.equal(calls.destroyed, true);
 });
+
+test("core WebGPU widens RG8 UAV storage and preserves the other format conversions", () =>
+{
+  const { al, calls } = composed();
+  for (const [format, expected] of [
+    [PixelFormat.PIXEL_FORMAT_R8G8_UNORM, "rgba8unorm"],
+    [PixelFormat.PIXEL_FORMAT_R8_UNORM, "rgba16float"],
+    [PixelFormat.PIXEL_FORMAT_R8G8_SNORM, "rgba16float"],
+    [PixelFormat.PIXEL_FORMAT_R8G8_UINT, "rgba16float"],
+    [PixelFormat.PIXEL_FORMAT_R8G8_SINT, "rgba16float"]
+  ])
+  {
+    const desc = new Tr2BitmapDimensions({type: TextureType.TEX_TYPE_3D,
+      format, width: 4, height: 5, depth: 6, mipCount: 1});
+    const texture = new CjsWebgpuTextureAL();
+    assert.equal(texture.Create(desc, {gpuUsage: Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.UNORDERED_ACCESS}, al), ALResult.S_OK);
+    assert.equal(texture.GetDesc().GetFormat(), format);
+    assert.equal(texture.GetDeviceFormat(), expected);
+    assert.equal(calls.textures.at(-1).dimension, "3d");
+    assert.equal(texture.GetDeviceStorageView("3d", 0).textureFormat, expected);
+    texture.Destroy();
+  }
+});

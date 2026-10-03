@@ -1638,12 +1638,23 @@ function lowerStorageTextureStore(program, instruction, inputs, bindings)
         throw new Error(`WGSL store_uav_typed instruction ${instruction.index} requires a storage-texture UAV`);
     }
     const arrayed = binding.storageTexture.viewDimension === "2d-array";
-    const lanes = arrayed ? 3 : 2;
-    const address = operandExpression(program, instruction, 1, arrayed ? "xyz" : "xy", lanes, "uint32", inputs, bindings);
+    const volume = binding.storageTexture.viewDimension === "3d";
+    const lanes = arrayed || volume ? 3 : 2;
+    const address = operandExpression(program, instruction, 1, lanes === 3 ? "xyz" : "xy", lanes, "uint32", inputs, bindings);
     // A Carbon-named format stores its own component type (r32uint takes
     // vec4<u32>); an unnamed storage texture is rgba16float.
-    const valueType = TYPED_VIEW_FORMATS[binding.typedView]?.returnType === "uint" ? "uint32" : "float32";
-    const value = operandExpression(program, instruction, 2, "xyzw", 4, valueType, inputs, bindings);
+    // 3D storage takes its scalar class from the physical binding format.
+    // Keep the established 2D/array emission byte-identical.
+    const valueType = volume
+        ? (binding.storageTexture.format.endsWith("uint") ? "uint32"
+            : binding.storageTexture.format.endsWith("sint") ? "int32" : "float32")
+        : (TYPED_VIEW_FORMATS[binding.typedView]?.returnType === "uint" ? "uint32" : "float32");
+    const sourceValue = operandExpression(program, instruction, 2, "xyzw", 4, valueType, inputs, bindings);
+    // The bound view determines missing channels, independently of effect name
+    // or dimensionality. RG8 uses physical rgba8unorm storage on core WebGPU;
+    // writes must supply the zeros/one D3D sampling would synthesize.
+    const value = binding.typedView === "R8G8_UNORM"
+        ? TYPED_VIEW_FORMATS[binding.typedView].expand(sourceValue) : sourceValue;
     const name = `store_address${instruction.index}`;
     const symbol = binding.generatedSymbol;
     const inBounds = arrayed

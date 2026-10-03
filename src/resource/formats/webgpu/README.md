@@ -109,3 +109,31 @@ corpus rebuild after a build bump is the re-qualification gate.
 only; `backendComplete` and `runtimeComplete` stay false. Browser validation
 proves emitted WGSL is valid and runs, not that it is semantically equivalent
 to D3D; semantic choices follow the Direct3D 11 functional specification.
+
+## 3D storage writes
+
+General `store_uav_typed` lowering supports 3D storage textures. The binding
+selects the storage format and scalar type; all three unsigned coordinates are
+checked against `textureDimensions` before every write. Negative DXBC coordinates
+reinterpret as large unsigned values and fail the same check. The write therefore
+preserves D3D's out-of-range discard.
+
+A Carbon `R8G8_UNORM` view uses physical `rgba8unorm` storage because core WebGPU
+has no `rg8unorm` storage format. The translator writes `vec4(r, g, 0, 1)` and the
+AL retains the original Carbon description. This is independent of effect name;
+other storage formats retain their own bindings and values. No optional feature
+is required.
+
+The CPU regression comparison captures complete emitted WGSL records and layouts
+before a translator edit, then compares exact strings afterward:
+
+```sh
+node scripts/resource/formats/webgpu/compare-effect-translations.js capture <dx11-root> <baseline-directory>
+node scripts/resource/formats/webgpu/compare-effect-translations.js compare <dx11-root> <candidate-directory> <baseline-directory>
+```
+
+It covers every unique effect body and each complete pass, records unsupported
+passes separately, and keeps `system/crash` refused. The output directories
+contain translated game assets and must stay outside the repository. A successful
+comparison proves unchanged emission for previously translated inputs in that
+corpus; it does not establish GPU compilation or image parity.

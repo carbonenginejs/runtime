@@ -526,3 +526,18 @@ test("a storage texture binding is rebuilt from its WGSL type", () =>
     assert.deepEqual(binding.storageTexture, { access: "write-only", format: "rgba16float", viewDimension: "2d-array" });
     assert.equal(binding.buffer, undefined, "not mistaken for a storage buffer");
 });
+
+test("RG8 3D storage round-trips its Carbon view and physical WebGPU format", () =>
+{
+    const block = { bindGroups: [{ group: 0, bindings: [{
+        binding: 0, resourceKind: "storage-resource", registerSpace: 0, registerIndex: 0,
+        visibility: ["compute"], type: "texture_storage_3d<rgba8unorm, write>",
+        typedView: "R8G8_UNORM", generatedSymbol: "u0"
+    }] }] };
+    const bytes = writeBackendBlock(block);
+    const parsed = readBackendBlock(bytes);
+    const binding = parsed.bindGroups[0].bindings[0];
+    assert.equal(binding.typedView, "R8G8_UNORM");
+    assert.deepEqual(binding.storageTexture, {access: "write-only", format: "rgba8unorm", viewDimension: "3d"});
+    assert.deepEqual(writeBackendBlock(parsed), bytes);
+});

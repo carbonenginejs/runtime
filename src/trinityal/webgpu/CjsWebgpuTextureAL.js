@@ -52,7 +52,11 @@ const STORAGE_FORMATS = new Set([
 /**
  * The format a UAV texture is created in when WebGPU cannot store to the one
  * Carbon asked for. An sRGB format takes its linear sibling (same bytes; the
- * sRGB format stays a sampling view); anything else takes rgba16float, the
+ * sRGB format stays a sampling view). RG8 widens to its four-channel
+ * 8-bit equivalent: core WebGPU has no rg8unorm storage format.
+ * This changes physical storage only, preserving Carbon's description and
+ * normalized precision, without requiring optional features. Anything else
+ * takes rgba16float, the
  * substitute Carbon's own DX12 path chooses for a non-UAV-compatible target
  * (Tr2ReflectionProbe.cpp:235-236).
  *
@@ -63,7 +67,9 @@ function StorageFormatFor(format)
 {
   if (STORAGE_FORMATS.has(format)) return format;
   const linear = format.replace(/-srgb$/u, "");
-  return STORAGE_FORMATS.has(linear) ? linear : "rgba16float";
+  if (STORAGE_FORMATS.has(linear)) return linear;
+  if (linear === "rg8unorm") return "rgba8unorm";
+  return "rgba16float";
 }
 
 
@@ -115,6 +121,9 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
 
   /**
    * Creates the texture and uploads its initial data.
+   * Adapted: core WebGPU lacks rg8unorm storage, so StorageFormatFor widens
+   * that UAV format to rgba8unorm, retaining its 8-bit normalized precision.
+   * The Carbon description stays unchanged; no optional feature is required.
    *
    * @param {object} desc A `Tr2BitmapDimensions`.
    * @param {object} options `{ gpuUsage, cpuUsage, msaa, initialData }`;
@@ -123,6 +132,7 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    * @param {object} renderContext The render context, Trinity's or the AL.
    * @returns {number} An `ALResult` value.
    */
+  @meta.adapted
   Create(desc, options, renderContext)
   {
     this._Reset();

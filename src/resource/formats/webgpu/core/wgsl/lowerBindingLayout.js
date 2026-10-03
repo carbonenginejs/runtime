@@ -371,6 +371,7 @@ function uavBufferLayout(program, binding, policy)
  * must be created in it.
  */
 const STORAGE_TEXTURE_DIMENSIONS = {
+    texture3d: { type: "texture_storage_3d", viewDimension: "3d" },
     texture2d: { type: "texture_storage_2d", viewDimension: "2d" },
     texture2darray: { type: "texture_storage_2d_array", viewDimension: "2d-array" }
 };

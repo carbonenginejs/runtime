@@ -1,6 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
+import { lowerDxbcToIr } from "../../../../../src/resource/formats/webgpu/core/ir/lowerDxbcToIr.js";
+import { buildWgslBindingPlan } from "../../../../../src/resource/formats/webgpu/core/wgsl/buildWgslBindingPlan.js";
 import { buildWgsl } from "../../../../../src/resource/formats/webgpu/core/wgsl/emitWgsl.js";
 import { buildContainer, buildShex, opcodeToken, operandToken } from "../dxbc/synthetic.js";
 
@@ -32,13 +34,13 @@ function swizzle(...lanes)
     return lanes.reduce((bits, lane, index) => bits | (lane << (index * 2)), 0) << 4;
 }
 
-function storeToTextureArrayProgram()
+function storeToTextureArrayProgram(dimension = TEXTURE2DARRAY, returnType = FLOAT_X4)
 {
     const uav = operandToken(TYPE.uav, [ 0 ]);
     const tokens = [
         opcodeToken(OPCODE.dcl_global_flags, 1) | REFACTORING_ALLOWED,
-        opcodeToken(OPCODE.dcl_unordered_access_view_typed, 4) | (TEXTURE2DARRAY << 11),
-        uav, 0, FLOAT_X4,
+        opcodeToken(OPCODE.dcl_unordered_access_view_typed, 4) | (dimension << 11),
+        uav, 0, returnType,
         opcodeToken(OPCODE.dcl_input, 2),
         operandToken(TYPE.input_thread_id, []) | FOUR_COMPONENTS | (0x7 << 4),
         opcodeToken(OPCODE.dcl_thread_group, 4), 8, 8, 1,
@@ -63,4 +65,45 @@ test("an unprofiled compute program writes a storage texture at the dispatch thr
     // D3D drops an out-of-bounds typed-UAV write; the guard reproduces that.
     assert.match(wgsl, /textureDimensions\(u0\)\) && store_address\d+\.z < textureNumLayers\(u0\)/u);
     assert.match(wgsl, /textureStore\(u0, store_address\d+\.xy, store_address\d+\.z, vec4<f32>\(/u);
+});
+
+test("general 3D writes use xyz bounds and the binding's format, without effect-name policy", () =>
+{
+    // DXBC resource dimension 5 is texture3d. No semantic/effect name is supplied.
+    for (const [view, format, returnType] of [
+        [null, "rgba16float", FLOAT_X4],
+        ["R8G8_UNORM", "rgba8unorm", FLOAT_X4],
+        ["R32_FLOAT", "r32float", FLOAT_X4],
+        ["R32_UINT", "r32uint", 0x4444],
+        ["R32_SINT", "r32sint", 0x3333]
+    ])
+    {
+        const ir = lowerDxbcToIr(storeToTextureArrayProgram(5, returnType));
+        const bindingPlan = buildWgslBindingPlan([ir], view
+            ? { typedViews: { "storage-resource:0:0": view } } : {});
+        const { code } = buildWgsl(ir, { bindingPlan });
+        assert.ok(code.includes(`texture_storage_3d<${format}, write>`), format);
+        assert.match(code, /let store_address\d+: vec3<u32> = vec3<u32>\(dispatch_thread_id\.x, dispatch_thread_id\.y, dispatch_thread_id\.z\)/u);
+        assert.match(code, /if \(all\(store_address\d+ < textureDimensions\(u0\)\)\)\s+\{\s+textureStore\(u0, store_address\d+,/u);
+        assert.doesNotMatch(code, /textureNumLayers/u);
+        if (view === "R32_SINT") assert.match(code, /textureStore\(u0, store_address\d+, vec4<i32>/u);
+        if (view === "R32_UINT") assert.match(code, /textureStore\(u0, store_address\d+, vec4<u32>/u);
+        if (view === "R8G8_UNORM")
+            assert.match(code, /textureStore\(u0, store_address\d+, vec4<f32>\(\(vec4<f32>\([^;]+\)\)\.xy, 0\.0, 1\.0\)\);/u);
+        else
+            assert.doesNotMatch(code, /\)\.xy, 0\.0, 1\.0/u);
+    }
+});
+
+test("RG8 missing-channel expansion applies to 2D and array storage too", () =>
+{
+    for (const dimension of [3, TEXTURE2DARRAY])
+    {
+        const ir = lowerDxbcToIr(storeToTextureArrayProgram(dimension));
+        const bindingPlan = buildWgslBindingPlan([ir], { typedViews: { "storage-resource:0:0": "R8G8_UNORM" } });
+        const { code } = buildWgsl(ir, { bindingPlan });
+        assert.match(code, /rgba8unorm, write/u);
+        assert.match(code, /\)\.xy, 0\.0, 1\.0/u);
+        assert.match(code, /if \(all\(store_address/u);
+    }
 });

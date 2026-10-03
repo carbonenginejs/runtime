@@ -41,6 +41,16 @@ export function withoutUnboundUavs(program, semanticBindings)
  * histogram profiles among others, and those layouts stay as they are.
  */
 export const TYPED_VIEW_FORMATS = {
+    // Adapted: core WebGPU has no rg8unorm storage format. Match the AL's
+    // rgba8unorm allocation and preserve D3D's missing channels (0, 1).
+    R8G8_UNORM: {
+        returnType: CARBON_VIEW_FORMATS.R8G8_UNORM.componentClass,
+        element: "f32",
+        storageTextureFormat: "rgba8unorm",
+        renderStagesOnly: false,
+        writeOnly: true,
+        expand: (value) => `vec4<f32>((${value}).xy, 0.0, 1.0)`
+    },
     R32_FLOAT: {
         returnType: CARBON_VIEW_FORMATS.R32_FLOAT.componentClass,
         element: "f32",

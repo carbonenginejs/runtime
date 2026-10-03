@@ -58,3 +58,11 @@ test("a scalar typed-buffer load widens to four components before its swizzle", 
     // A vector element is already four components.
     assert.equal(typedBufferLoad("vec4<f32>", "t0", "i", "n"), "select(vec4<f32>(), t0[min(i, n - 1u)], i < n)");
 });
+
+test("the native two-channel lightmap view remains backend-neutral", () =>
+{
+    assert.deepEqual(typedViewsFor([
+        { kind: "uav", metadataName: "LightMapRW", registerIndex: 0 }
+    ]), { "storage-resource:0:0": "R8G8_UNORM" });
+    assert.equal(annotatedViewFormat([annotation("R8G8_UNORM")]), "R8G8_UNORM");
+});

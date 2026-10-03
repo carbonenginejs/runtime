@@ -47,12 +47,16 @@
  *   emit and update kernels count into it with atomic adds, and update's
  *   ClearCounters pass stores to it.
  *
+ * - `LightMapRW` is the volume texture allocated as `PIXEL_FORMAT_R8G8_UNORM`
+ *   with SRV and UAV usage (Eve/SpaceObject/Children/EveChildCloud2.cpp:315-327).
+ *
  * A name missing here leaves the format unknown, and each backend decides what
  * that means. A backend must also reject a declaration whose component class
  * disagrees with the format, so a different effect reusing a name cannot be
  * read with the wrong element type.
  */
 export const CARBON_TYPED_VIEWS = {
+    LightMapRW: "R8G8_UNORM",
     Exposure: "R32_FLOAT",
     ExposureBuffer: "R32_FLOAT",
     Histogram: "R32_UINT",
@@ -103,6 +107,7 @@ export function unboundUavRegistersFor(semanticBindings)
  * D3D11 returns missing channels as 0 and a missing alpha as 1.
  */
 export const CARBON_VIEW_FORMATS = {
+    R8G8_UNORM: { componentClass: "float", channels: 2, bytesPerElement: 2 },
     R32_FLOAT: { componentClass: "float", channels: 1, bytesPerElement: 4 },
     R32_UINT: { componentClass: "uint", channels: 1, bytesPerElement: 4 },
     R32_SINT: { componentClass: "sint", channels: 1, bytesPerElement: 4 },
