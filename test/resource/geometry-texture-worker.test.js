@@ -8,6 +8,7 @@ import { CjsDdsFormat } from "../../npm/dist/resource/formats/dds/index.js";
 import { RegisterGeometryResources, TriGeometryRes } from "../../npm/dist/resource/geometry/index.js";
 import { RegisterTextureResources, TriTextureRes, Tr2ImageRes } from "../../npm/dist/resource/texture/index.js";
 import { HostBitmap } from "../../npm/dist/global/imageio/index.js";
+import { TextureType } from "../../npm/dist/global/consts/renderContext/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 
 function workerLoader(t)
@@ -177,4 +178,27 @@ test("abort settles a worker request and ignores its late response without poiso
   assert.equal(loader.GetPendingCount(),0);
   adapter.onmessage = deliver;
   assert.deepEqual(await loader.ReadFormat({Format:CjsGr2Format},bytes),CjsGr2Format.read(bytes));
+});
+
+test("DDS volume header flag survives worker decoding and texture resource materialization", async t =>
+{
+  // Carbon IsVolumeTexture (Tr2DdsHandler.cpp:350-352): DDSD_DEPTH is set,
+  // while caps2 is zero, as in the shipped aquapuff0 density texture.
+  const bytes = new Uint8Array(128 + 24);
+  bytes.set(ddsBytes({ compressed: true }).subarray(0, 128));
+  const view = new DataView(bytes.buffer);
+  view.setUint32(8, 0x00801007, true);
+  view.setUint32(24, 3, true);
+  for (let i = 0; i < 24; i++) bytes[128 + i] = i + 1;
+  const { loader, messages } = workerLoader(t);
+  const manager = new CjsBlueResMan({ workerLoader: loader, source: { Read: () => bytes } });
+  RegisterTextureResources(manager);
+  const texture = await manager.FetchResource("res:/volume.dds");
+  const bitmap = texture.GetBitmap();
+  assert.equal(bitmap.GetType(), TextureType.TEX_TYPE_3D);
+  assert.deepEqual([ bitmap.GetWidth(), bitmap.GetHeight(), bitmap.GetDepth() ], [ 4, 4, 3 ]);
+  assert.equal(bitmap.GetArraySize(), 1);
+  assert.equal(bitmap.GetMipCount(), 1);
+  assert.deepEqual(bitmap.GetRawData(), bytes.subarray(128), "all three compressed slices reach the bitmap");
+  assert.equal(messages.filter(message => message.operation === "format.read").length, 1);
 });

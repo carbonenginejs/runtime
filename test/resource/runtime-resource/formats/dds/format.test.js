@@ -502,13 +502,13 @@ function makeDdsHeader(width, height, fourCc, payload = [])
     return bytes;
 }
 
-/** A legacy-FourCC DDS carrying a depth and the volume caps bit. */
+/** A legacy-FourCC DDS carrying Carbon's volume header flag and depth. */
 function makeVolumeDdsHeader(width, height, depth, fourCc, payload = [])
 {
     const bytes = makeDdsHeader(width, height, fourCc, payload);
 
+    writeU32LE(bytes, 8, 0x00801007);     // DDSD_DEPTH, with caps2 deliberately zero.
     writeU32LE(bytes, 24, depth);
-    writeU32LE(bytes, 112, 0x00200000);   // DDSCAPS2_VOLUME
 
     return bytes;
 }
@@ -677,3 +677,16 @@ test("decodes every packed luminance and alpha pixel across multiple rows", () =
     }
 });
 
+
+test("DDS volume detection follows Carbon's header flag, not caps2 or depth alone", () =>
+{
+    const bytes = makeVolumeDdsHeader(4, 4, 3, "DXT1", new Uint8Array(24));
+    assert.equal(CjsDdsFormat.inspect(bytes).isVolume, true);
+    assert.equal(CjsDdsFormat.inspect(bytes).expectedDataBytes, 24);
+    writeU32LE(bytes, 8, 0x1007);
+    writeU32LE(bytes, 112, 0x00200000);
+    const info = CjsDdsFormat.inspect(bytes);
+    assert.equal(info.isVolume, false, "Tr2DdsHandler.cpp:350-352 reads DDSD_DEPTH only");
+    assert.equal(info.dimension, "2d");
+    assert.equal(info.expectedDataBytes, 8);
+});

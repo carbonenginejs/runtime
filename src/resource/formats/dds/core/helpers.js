@@ -28,7 +28,7 @@ const DDS_ALPHAPIXELS = 0x00000001;
 const DDS_ALPHA = 0x00000002;
 const DDS_LUMINANCE = 0x00020000;
 const DDSCAPS2_CUBEMAP = 0x00000200;
-const DDSCAPS2_VOLUME = 0x00200000;
+const DDS_HEADER_FLAGS_VOLUME = 0x00800000; // DDSD_DEPTH (Tr2DdsHandler.cpp:23).
 
 const DDS_CUBE_FACE_FLAGS = [
     [ "positive-x", 0x00000400 ],
@@ -308,7 +308,9 @@ function inspectDDS(bytes)
     const aBitMask = readU32LE(bytes, pfOffset + 28);
     const caps2 = readU32LE(bytes, 112);
     const isCube = !!(caps2 & DDSCAPS2_CUBEMAP);
-    const isVolume = !!(caps2 & DDSCAPS2_VOLUME);
+    // Carbon IsVolumeTexture uses dwHeaderFlags, not dwCubemapFlags/caps2
+    // (imageio/Tr2DdsHandler.cpp:350-352). Shipped volumes can leave caps2 zero.
+    const isVolume = !!(readU32LE(bytes, 8) & DDS_HEADER_FLAGS_VOLUME);
     const cubeFaces = getDdsCubeFaces(caps2);
     const hasDx10 = fourCc === "DX10" && bytes.byteLength >= 148;
     const dxgiFormat = hasDx10 ? readU32LE(bytes, 128) : 0;
