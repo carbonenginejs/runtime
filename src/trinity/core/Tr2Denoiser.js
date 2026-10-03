@@ -141,6 +141,9 @@ export class Tr2Denoiser
    *
    * INVALID IN, EMPTY OUT. A source or depth that is not valid returns null
    * rather than borrowing four textures to produce nothing.
+   * Adapted: Apply consumes the source handle; explicit cleanup replaces the
+   * native local-handle destructors (Tr2Denoiser.cpp:59-162 and
+   * Tr2GpuResourcePool.h:GpuResourceHandle). Only the returned result escapes.
    *
    * @param {object} source The noisy texture, as a pool handle.
    * @param {object} depth The scene depth buffer.
@@ -159,7 +162,11 @@ export class Tr2Denoiser
   Apply(source, depth, normals, projection, upscaling, gpuResourcePool, renderContext, renderer, index = 0)
   {
     // Carbon tests the HANDLE, not the texture behind it (`cpp:61`).
-    if (!source.IsValid() || !depth.IsValid()) return null;
+    if (!source.IsValid() || !depth.IsValid())
+    {
+      if (source.IsValid()) gpuResourcePool.Free(source);
+      return null;
+    }
 
     const sourceTexture = source.Get();
     // Carbon is handed a default-constructed Tr2TextureAL when there are no
@@ -184,11 +191,17 @@ export class Tr2Denoiser
     esm.PushDepthStencilBuffer(null);
     esm.PushRenderTarget();
 
+    let estimate = null;
+    let mask = null;
+    let temp = null;
+    let result = null;
+    let completed = false;
+
     try
     {
       esm.ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
 
-      const estimate = this.#Pass(gpuResourcePool, "Tr2Denoiser Noise Estimate", width, height);
+      estimate = this.#Pass(gpuResourcePool, "Tr2Denoiser Noise Estimate", width, height);
 
       esm.SetRenderTarget(0, estimate.Get());
       renderContext.RenderPassHint(OVERWRITE_AND_KEEP, null);
@@ -196,7 +209,7 @@ export class Tr2Denoiser
       renderer.DrawScreenQuad(renderContext, this.#estimateNoise);
       this.#estimateNoise.SetParameter("Source", null);
 
-      const mask = this.#Pass(gpuResourcePool, "Tr2Denoiser Denoise Mask", width, height);
+      mask = this.#Pass(gpuResourcePool, "Tr2Denoiser Denoise Mask", width, height);
 
       this.#denoiseEstimate.SetParameter("Source", estimate.Get());
       esm.SetRenderTarget(0, mask.Get());
@@ -207,7 +220,7 @@ export class Tr2Denoiser
       // the pool can hand the same surface back rather than grow (`cpp:118`).
       gpuResourcePool.Free(estimate);
 
-      const temp = this.#Pass(gpuResourcePool, "Tr2Denoiser Temp", width, height);
+      temp = this.#Pass(gpuResourcePool, "Tr2Denoiser Temp", width, height);
 
       this.#SetPassParameters(this.#denoiseHoriz, vec2.fromValues(1, 0), depth, normals, projection, sourceSize, upscaling);
       this.#denoiseHoriz.SetParameter("Source", sourceTexture);
@@ -220,7 +233,7 @@ export class Tr2Denoiser
 
       gpuResourcePool.Free(source);
 
-      const result = this.#Pass(gpuResourcePool, "Tr2Denoiser Result", width, height);
+      result = this.#Pass(gpuResourcePool, "Tr2Denoiser Result", width, height);
 
       this.#SetPassParameters(this.#denoiseVert, vec2.fromValues(0, 1), depth, normals, projection, sourceSize, upscaling);
       this.#denoiseVert.SetParameter("Source", temp.Get());
@@ -240,6 +253,7 @@ export class Tr2Denoiser
       }
 
       this.#parametersDirty = false;
+      completed = true;
       return result;
     }
     finally
@@ -247,6 +261,14 @@ export class Tr2Denoiser
       // Carbon pops through ON_BLOCK_EXIT, which runs however the block leaves.
       esm.PopRenderTarget();
       esm.PopDepthStencilBuffer();
+      // Native locals release on every exit. Without these two temporary
+      // handles returning to the pool, shadow rendering leaks two R8 targets
+      // per frame, including at 4K.
+      for (const handle of [ source, estimate, mask, temp ])
+      {
+        if (handle && handle.IsValid()) gpuResourcePool.Free(handle);
+      }
+      if (!completed && result && result.IsValid()) gpuResourcePool.Free(result);
     }
   }
 

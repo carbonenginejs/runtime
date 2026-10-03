@@ -153,3 +153,75 @@ test("SetRadius and OnModified both re-arm the parameter send", () =>
   assert.equal(denoiser.radius, 9);
   assert.equal(denoiser.OnModified(), true);
 });
+
+test("repeated denoising returns all local handles to the pool", () =>
+{
+  const context = stubContext();
+  const pool = new Tr2GpuResourcePool().SetRenderContext(context);
+  const renderer = { DrawScreenQuad() {} };
+  const denoiser = new Tr2Denoiser();
+  const depth = surface(pool, "depth");
+  const baseline = pool.GetHeldCount();
+  try
+  {
+    for (let frame = 0; frame < 100; frame++)
+    {
+      const source = surface(pool, "source");
+      const result = denoiser.Apply(source, depth.Get(), null, new Array(16).fill(0), 1, pool, context, renderer);
+      assert.equal(source.IsValid(), false, "Apply consumes the input handle");
+      assert.equal(pool.GetHeldCount(), baseline + 1, "only the result escapes Apply");
+      pool.Free(result);
+      assert.equal(pool.GetHeldCount(), baseline);
+    }
+    assert.equal(pool.DebugGetAllTempTextures().length, 6, "subsequent frames reuse the same surfaces");
+  }
+  finally
+  {
+    pool.Free(depth);
+    pool.Destroy();
+  }
+});
+
+test("each interrupted denoiser pass releases its local handles and restores stacks", () =>
+{
+  for (let failAt = 1; failAt <= 4; failAt++)
+  {
+    const context = stubContext();
+    const pool = new Tr2GpuResourcePool().SetRenderContext(context);
+    const denoiser = new Tr2Denoiser();
+    const depth = surface(pool, "depth");
+    const baseline = pool.GetHeldCount();
+    const stacks = [ context.GetStackSizeRT(), context.GetStackSizeDS() ];
+    let draws = 0;
+    const renderer = { DrawScreenQuad() { if (++draws === failAt) throw new Error("draw interrupted"); } };
+    try
+    {
+      for (let frame = 0; frame < 5; frame++)
+      {
+        draws = 0;
+        const source = surface(pool, "source");
+        assert.throws(() => denoiser.Apply(source, depth.Get(), null, new Array(16).fill(0), 1, pool, context, renderer), /draw interrupted/);
+        assert.equal(source.IsValid(), false);
+        assert.equal(pool.GetHeldCount(), baseline);
+        assert.deepEqual([ context.GetStackSizeRT(), context.GetStackSizeDS() ], stacks);
+      }
+    }
+    finally
+    {
+      pool.Free(depth);
+      pool.Destroy();
+    }
+  }
+});
+
+test("invalid depth still releases the source passed by value", () =>
+{
+  const context = stubContext();
+  const pool = new Tr2GpuResourcePool().SetRenderContext(context);
+  const denoiser = new Tr2Denoiser();
+  const source = surface(pool, "source");
+  assert.equal(denoiser.Apply(source, { IsValid: () => false }, null, [], 1, pool, context, {}), null);
+  assert.equal(source.IsValid(), false);
+  assert.equal(pool.GetHeldCount(), 0);
+  pool.Destroy();
+});
