@@ -379,17 +379,27 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    * Metal's `GetMetalTexture()` / `GetSRGBViewMetalTexture()`
    * (`Tr2TextureALMetal.h:49-54`), with the dimension added because a WebGPU
    * view must name it and a cube texture is legitimately bound as a 2d-array.
+   * The optional layout sample type validates WebGPU's float32 filtering
+   * capability before a resource set can publish a view to a bind group.
+   * Carbon's R32_FLOAT shader view and authored sampler remain unchanged.
    *
    * @param {string} [viewDimension] A `GPUTextureViewDimension`.
    * @param {number} [colorSpace] A `Tr2ColorSpace`; non-zero means sRGB.
+   * @param {string} [sampleType] The consuming layout's `GPUTextureSampleType`.
    * @returns {object|null} A `GPUTextureView`, or null before Create.
    */
-  GetDeviceTextureView(viewDimension = VIEW_DIMENSION_OF_TYPE[this.m_desc?.GetType()] ?? "2d", colorSpace = 0)
+  GetDeviceTextureView(viewDimension = VIEW_DIMENSION_OF_TYPE[this.m_desc?.GetType()] ?? "2d", colorSpace = 0, sampleType)
   {
     if (!this.m_texture) return null;
 
     // A sampled depth texture is read through its float shadow.
     const source = this._depthShadow ? this._depthShadow.texture : this.m_texture;
+    const format = this._depthShadow ? "r32float" : this.m_format;
+    if (sampleType === "float" && [ "r32float", "rg32float", "rgba32float" ].includes(format)
+      && !this.m_webgpu.GetDevice().features.has("float32-filterable"))
+    {
+      throw new Error(`WebGPU filtered ${format} binding for "${this.m_name || "Tr2TextureAL"}" requires active float32-filterable. Enable webgpuFloat32Filterable before creating the next WebGPU device, subject to adapter support.`);
+    }
     const srgb = colorSpace !== 0 && this.m_srgbFormat !== null;
     const key = `${viewDimension}:${srgb ? "srgb" : "linear"}`;
     let view = this.m_views.get(key) ?? null;

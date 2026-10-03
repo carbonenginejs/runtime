@@ -4,8 +4,8 @@ import { test } from "node:test";
 
 import { CjsWebgpuDevice } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL, CjsWebgpuResourceSetAL } from "../../../npm/dist/trinityal/webgpu/internal.js";
-import { ALResult, Tr2ResourceSetDescriptionAL } from "../../../npm/dist/trinityal/index.js";
-import { ShaderType } from "../../../npm/dist/global/consts/renderContext/index.js";
+import { ALResult, Tr2ResourceSetDescriptionAL, Tr2BitmapDimensions } from "../../../npm/dist/trinityal/index.js";
+import { ShaderType, PixelFormat, Tr2GpuUsage } from "../../../npm/dist/global/consts/renderContext/index.js";
 import { writeBackendBlock } from "../../../npm/dist/resource/format/index.js";
 
 // Carbon's resource set resolves the description against the program at
@@ -23,6 +23,7 @@ function composed()
 {
   const created = { buffers: 0, textures: 0, samplers: 0 };
   const device = {
+    features: new Set(),
     createShaderModule: descriptor => ({ kind: "module", descriptor }),
     // WebGPU's default per-stage limits (the spec's supported-limits table).
     limits: { maxSampledTexturesPerShaderStage: 16, maxSamplersPerShaderStage: 16, maxStorageTexturesPerShaderStage: 4, maxStorageBuffersPerShaderStage: 8, maxUniformBuffersPerShaderStage: 12 },
@@ -87,7 +88,7 @@ test("Create resolves every non-uniform slot against the program, by the stage t
   bones.TrinityALImpl_GetObject().GetDeviceBuffer = () => ({ kind: "buffer", id: "bones" });
 
   description.SetSampler(ShaderType.PIXEL_SHADER, 2, sampler);
-  description.SetSrv(ShaderType.PIXEL_SHADER, 2, textureWith({ GetDeviceTextureView: (dimension, colorSpace) => ({ kind: "view", dimension, colorSpace }) }), 1);
+  description.SetSrv(ShaderType.PIXEL_SHADER, 2, textureWith({ GetDeviceTextureView: (dimension, colorSpace, sampleType) => ({ kind: "view", dimension, colorSpace, sampleType }) }), 1);
   description.SetSrv(ShaderType.VERTEX_SHADER, 5, bones, 0, 1);
 
   const set = new CjsWebgpuResourceSetAL();
@@ -98,7 +99,7 @@ test("Create resolves every non-uniform slot against the program, by the stage t
   const entries = set.GetEntries();
 
   assert.deepEqual([ ...entries.keys() ], [ "0:1", "0:2", "0:3" ], "the uniform slot is not the set's");
-  assert.deepEqual(entries.get("0:1"), { kind: "view", dimension: "cube", colorSpace: 1 }, "the texture's view in the layout's dimension and the bound colour space");
+  assert.deepEqual(entries.get("0:1"), { kind: "view", dimension: "cube", colorSpace: 1, sampleType: "float" }, "the view receives the layout's dimension, colour space and filtering requirement");
   assert.equal(entries.get("0:2"), sampler.GetSampler());
   assert.equal(entries.get("0:3").buffer.id, "bones");
   assert.equal(created.textures, 0, "nothing needed a dummy");
@@ -144,6 +145,24 @@ test("a program this backend did not link, or no description, is refused", () =>
   assert.equal(set.Create(null, programWith(al, BINDINGS), al), ALResult.E_INVALIDARG);
   assert.equal(al.CreateResourceSet(new Tr2ResourceSetDescriptionAL(), null), null);
   assert.equal(set.IsValid(), false);
+});
+
+test("a filtered float32 resource fails before a set or bind group can be published", () =>
+{
+  const { al } = composed();
+  const program = programWith(al, [ { ...BINDINGS[1], type: "texture_2d<f32>" } ]);
+  const description = new Tr2ResourceSetDescriptionAL({ program });
+  const texture = al.CreateTexture(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_R32_FLOAT), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.RENDER_TARGET });
+  assert.equal(texture.IsValid(), true);
+  description.SetSrv(ShaderType.PIXEL_SHADER, 2, texture);
+  const set = new CjsWebgpuResourceSetAL();
+  assert.throws(() => set.Create(description, program, al), /requires active float32-filterable/);
+  assert.equal(set.IsValid(), false);
+  assert.equal(set.GetEntries().size, 0);
+  al.GetWebgpu().GetDevice().features.add("float32-filterable");
+  assert.equal(set.Create(description, program, al), ALResult.S_OK);
+  set.Destroy();
+  texture.Destroy();
 });
 
 

@@ -153,7 +153,7 @@ test("SelectBackend hands a candidate the resolved device descriptor", async () 
         requiredFeatures: [ "texture-compression-bc" ]
     });
     assert.deepEqual(handed.unavailableFeatures, []);
-    assert.deepEqual(handed.unsupportedPreferences.features, [ "texture-compression-unaligned", "texture-compression-bc-sliced-3d" ]);
+    assert.deepEqual(handed.unsupportedPreferences.features, [ "float32-filterable", "texture-compression-unaligned", "texture-compression-bc-sliced-3d" ]);
     assert.deepEqual(selection.backend.descriptor, handed.descriptor);
 });
 

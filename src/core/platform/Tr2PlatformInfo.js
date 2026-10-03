@@ -112,6 +112,15 @@ export class Tr2PlatformInfo
     @meta.setting("webgpuTextureCompressionUnaligned", { applies: meta.setting.CREATE })
     static webgpuTextureCompressionUnaligned = true;
 
+    /**
+     * WebGPU-only preference for the next device. ShadowDepth samples Carbon's
+     * D32_FLOAT atlas through an R32_FLOAT view with LINEAR minification
+     * (Tr2ShadowMap.cpp:228-248,278-291; Tr2SamplerStateALDx11.cpp:35-39).
+     * The backend's r32float depth copy requires this optional capability.
+     */
+    @meta.setting("webgpuFloat32Filterable", { applies: meta.setting.CREATE })
+    static webgpuFloat32Filterable = true;
+
     // Carbon selects a backend by which shared library the launcher loads, so
     // its static caps always describe exactly one backend. Ours are probed at
     // runtime, and the caps must still describe ONE - a report claiming WebGPU's
@@ -229,9 +238,11 @@ export class Tr2PlatformInfo
             webgpuMaxBufferSize: Tr2PlatformInfo.webgpuMaxBufferSize,
             webgpuTextureCompressionBC: Tr2PlatformInfo.webgpuTextureCompressionBC,
             webgpuTextureCompressionBCSliced3D: Tr2PlatformInfo.webgpuTextureCompressionBCSliced3D,
-            webgpuTextureCompressionUnaligned: Tr2PlatformInfo.webgpuTextureCompressionUnaligned
+            webgpuTextureCompressionUnaligned: Tr2PlatformInfo.webgpuTextureCompressionUnaligned,
+            webgpuFloat32Filterable: Tr2PlatformInfo.webgpuFloat32Filterable
         };
         const features = [];
+        if (requestedSettings.webgpuFloat32Filterable) features.push("float32-filterable");
         if (requestedSettings.webgpuTextureCompressionUnaligned) features.push("texture-compression-unaligned");
         if (requestedSettings.webgpuTextureCompressionBC)
         {

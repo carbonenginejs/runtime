@@ -97,7 +97,7 @@ test("the registry records when a change applies, and a setting's enum", () =>
 
 test("only approved extension names are exempt from Carbon setting-name checks", () =>
 {
-  const approved = [ "webgpuMaxBufferSize", "webgpuTextureCompressionBC", "webgpuTextureCompressionBCSliced3D", "webgpuTextureCompressionUnaligned" ];
+  const approved = [ "webgpuMaxBufferSize", "webgpuTextureCompressionBC", "webgpuTextureCompressionBCSliced3D", "webgpuTextureCompressionUnaligned", "webgpuFloat32Filterable" ];
   const ours = settings.GetNames().filter(name => !settings.FindSetting(name).carbon);
   assert.deepEqual(ours.slice().sort(), [...approved, "compressUncompressedTextures"].sort());
   assert.equal(settings.FindSetting("compressUncompressedTextures").applies, meta.setting.LOAD);
@@ -130,7 +130,7 @@ test("a setting keeps the type it was registered with", () =>
 
 test("WebGPU settings write through and apply only to the next resolved device", () =>
 {
-  const names = [ "webgpuMaxBufferSize", "webgpuTextureCompressionBC", "webgpuTextureCompressionBCSliced3D", "webgpuTextureCompressionUnaligned" ];
+  const names = [ "webgpuMaxBufferSize", "webgpuTextureCompressionBC", "webgpuTextureCompressionBCSliced3D", "webgpuTextureCompressionUnaligned", "webgpuFloat32Filterable" ];
   const original = names.map(name => settings.GetValue(name));
   const platform = new Tr2PlatformInfo({ backend: "webgpu", adapter: { limits: { maxBufferSize: 2147483648 }, features: [ "texture-compression-bc", "texture-compression-bc-sliced-3d" ] } });
   const first = platform.ResolveDeviceRequirements();
@@ -150,4 +150,26 @@ test("WebGPU settings write through and apply only to the next resolved device",
   {
     names.forEach((name, index) => settings.SetValue(name, original[index]));
   }
+});
+
+test("float32 filtering is a supported optional CREATE preference, never an active-device mutation", () =>
+{
+  const name = "webgpuFloat32Filterable";
+  const original = settings.GetValue(name);
+  assert.equal(original, true);
+  const platform = new Tr2PlatformInfo({ backend: "webgpu", adapter: { limits: {}, features: [ "float32-filterable" ] } });
+  const first = platform.ResolveDeviceRequirements();
+  try
+  {
+    assert.deepEqual(first.descriptor.requiredFeatures, [ "float32-filterable" ]);
+    assert.equal(first.unsupportedPreferences.features.includes("float32-filterable"), false);
+    settings.SetValue(name, false);
+    const next = platform.ResolveDeviceRequirements();
+    assert.equal(next.requestedSettings[name], false);
+    assert.equal(next.descriptor.requiredFeatures, undefined);
+    assert.equal(next.unsupportedPreferences.features.includes("float32-filterable"), false);
+    assert.equal(first.requestedSettings[name], true);
+    assert.deepEqual(first.descriptor.requiredFeatures, [ "float32-filterable" ]);
+  }
+  finally { settings.SetValue(name, original); }
 });

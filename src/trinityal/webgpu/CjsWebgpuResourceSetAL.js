@@ -147,7 +147,7 @@ export class CjsWebgpuResourceSetAL
       const texture = slot?.type === 2 ? slot.texture : null;
       const dimension = binding.texture.viewDimension ?? "2d";
       const view = texture && texture.IsValid()
-        ? texture.TrinityALImpl_GetObject().GetDeviceTextureView(dimension, slot.colorSpace)
+        ? texture.TrinityALImpl_GetObject().GetDeviceTextureView(dimension, slot.colorSpace, binding.texture.sampleType)
         : null;
 
       return view ?? renderContext.GetDummyTexture(dimension);

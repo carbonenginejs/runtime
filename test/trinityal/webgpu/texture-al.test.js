@@ -562,3 +562,28 @@ test("texture factory unregisters failed BC and oversized upload implementations
   assert.throws(() => al.CreateTexture(desc, { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, initialData }), /needs 4608 staging bytes/);
   assert.equal(Tr2BaseDeviceResourceAL.GetResourceCount(), count);
 });
+
+test("float32 sampled views require the active filtering feature, including cached depth copies", () =>
+{
+  const { al, calls } = composed();
+  const device = al.GetWebgpu().GetDevice();
+  for (const format of [ PixelFormat.PIXEL_FORMAT_R32_FLOAT, PixelFormat.PIXEL_FORMAT_R32G32_FLOAT,
+    PixelFormat.PIXEL_FORMAT_R32G32B32A32_FLOAT, PixelFormat.PIXEL_FORMAT_D32_FLOAT ])
+  {
+    const texture = new CjsWebgpuTextureAL();
+    const gpuUsage = Tr2GpuUsage.SHADER_RESOURCE | (format === PixelFormat.PIXEL_FORMAT_D32_FLOAT ? Tr2GpuUsage.DEPTH_STENCIL : Tr2GpuUsage.RENDER_TARGET);
+    assert.equal(texture.Create(Tr2BitmapDimensions.texture2D(4, 4, 1, format), { gpuUsage }, al), ALResult.S_OK);
+    const point = texture.GetDeviceTextureView("2d", 0, "unfilterable-float");
+    const viewsBefore = calls.views.length;
+    assert.throws(() => texture.GetDeviceTextureView("2d", 0, "float"), /filtered (r32float|rg32float|rgba32float) binding.*requires active float32-filterable.*webgpuFloat32Filterable/);
+    assert.equal(calls.views.length, viewsBefore, "rejects even a previously cached view");
+    device.features.add("float32-filterable");
+    assert.equal(texture.GetDeviceTextureView("2d", 0, "float"), point);
+    device.features.delete("float32-filterable");
+    texture.Destroy();
+  }
+  const ordinary = new CjsWebgpuTextureAL();
+  ordinary.Create(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.RENDER_TARGET }, al);
+  assert.ok(ordinary.GetDeviceTextureView("2d", 0, "float"));
+  ordinary.Destroy();
+});
