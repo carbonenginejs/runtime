@@ -1,3 +1,5 @@
+import { DxbcInstructionDecoder } from "../../../../../src/resource/formats/dxbc/core/decoder.js";
+import { DxbcShaderProgram } from "../../../../../src/resource/formats/dxbc/core/DxbcShaderProgram.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -27,8 +29,8 @@ test("raw emit exposes the decoder objects", () =>
 {
     const result = CjsDxbcFormat.read(buildMinimalVertexDxbc(), { emit: "raw" });
 
-    assert.equal(result.program.constructor.name, "DxbcShaderProgram");
-    assert.equal(result.decoder.constructor.name, "DxbcInstructionDecoder");
+    assert.equal(result.program.constructor, DxbcShaderProgram);
+    assert.equal(result.decoder.constructor, DxbcInstructionDecoder);
     assert.ok(result.container.getChunk("SHEX"));
 });
 

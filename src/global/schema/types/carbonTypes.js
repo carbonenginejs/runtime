@@ -1,3 +1,4 @@
+import { getArrayBufferViewName } from "#utils/bytes";
 import { isTag } from "#utils/is";
 
 export const CARBON_META = Symbol.for("carbonenginejs.type");
@@ -592,7 +593,7 @@ export function carbonValueToJsExpression(value)
     if (ArrayBuffer.isView(value))
     {
         const values = Array.from(value, item => typeof item === "bigint" ? `${item}n` : formatJsNumber(item));
-        return `new ${value.constructor.name}([${values.join(", ")}])`;
+        return `new ${getArrayBufferViewName(value)}([${values.join(", ")}])`;
     }
     if (typeof value === "bigint") return `${value}n`;
     if (value instanceof Map) return "new Map()";

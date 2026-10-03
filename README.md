@@ -26,6 +26,27 @@ renderer does not drive them yet, so expect unlit-looking output.
 npm install @carbonenginejs/runtime
 ```
 
+## Choose an import
+
+The default entry and focused subpaths use per-file JavaScript modules. Each
+module keeps its source map, and a bundler can select the modules your app uses:
+
+```js
+import { CjsDdsFormat } from "@carbonenginejs/runtime/resource/formats/dds";
+```
+
+For the default runtime surface in one minified ESM bundle, use:
+
+```js
+import { EveSOF, blue } from "@carbonenginejs/runtime/min";
+```
+
+This entry is `dist/carbonenginejs.min.js` with its own adjacent source map.
+It has the same exports as the default package entry; optional domains retain
+their existing subpaths. Use one form for a shared runtime graph: mixing bundle
+objects with per-file objects creates separate copies of classes and registries.
+Resource workers remain separate package files, resolved relative to the bundle.
+
 ## Quick start
 
 Every format is its own subpath, so importing one pulls that format and the

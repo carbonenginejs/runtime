@@ -1,3 +1,4 @@
+import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 
@@ -17,7 +18,7 @@ test("SetParameter binds an AL buffer through a geometry buffer parameter", () =
   effect.SetParameter("Exposure", first);
 
   const parameter = effect.GetResourceByName("Exposure");
-  assert.equal(parameter.constructor.name, "Tr2GeometryBufferParameter");
+  assert.equal(getRegisteredClassName(parameter.constructor), "Tr2GeometryBufferParameter");
   const held = parameter.GetGpuBuffer();
   assert.ok(held instanceof Tr2RuntimeGpuBuffer);
   assert.notEqual(held.GetGpuBuffer(0), first);
@@ -50,7 +51,7 @@ test("SetParameter wraps an AL texture in a reused texture reference", () =>
 
   const parameter = effect.GetResourceByName("InputTexture");
   const reference = parameter.GetTextureProvider();
-  assert.equal(reference.constructor.name, "Tr2TextureReference");
+  assert.equal(getRegisteredClassName(reference.constructor), "Tr2TextureReference");
   assert.notEqual(reference.GetTexture(), first);
   assert.equal(reference.GetTexture().Equals(first), true);
 

@@ -1,3 +1,4 @@
+import { getRegisteredClassName } from "../../../npm/dist/global/compose/className.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
@@ -27,9 +28,9 @@ test("light attachments retain self-only queries without model or lifecycle beha
     assert.deepEqual([...mappedInterfaces(Type)], [Type]);
     assert.equal(CjsSchema.cast(value, Type), value);
     assert.equal(CjsSchema.cast(value, IInitialize), null);
-    assert.equal(CjsSchema.GetConstructor(Type.name), Type);
+    assert.equal(CjsSchema.GetConstructor(getRegisteredClassName(Type)), Type);
     for (const method of ["SetValues", "UpdateValues", "OnEvent", "Traverse", "GetResources", "Initialize", "OnModified", "Destroy"])
-      assert.equal(method in value, false, Type.name + "." + method);
+      assert.equal(method in value, false, getRegisteredClassName(Type) + "." + method);
   }
 });
 
@@ -71,8 +72,8 @@ test("declared parent references and lists construct and traverse typed light re
     [EveSOFDataHullSpotlightSetItem, "light", classes[1]],
   ])
   {
-    const values = { _type: Light.name, intensity: 7, translation: [2, 3, 4], lightProfilePath: "res:/typed.profile" };
-    const parent = read(Type.name, { [field]: field === "lights" ? [values] : values });
+    const values = { _type: getRegisteredClassName(Light), intensity: 7, translation: [2, 3, 4], lightProfilePath: "res:/typed.profile" };
+    const parent = read(getRegisteredClassName(Type), { [field]: field === "lights" ? [values] : values });
     const light = field === "lights" ? parent[field][0] : parent[field];
     assert.equal(light.constructor, Light);
     assert.equal(light.intensity, 7);
@@ -93,7 +94,7 @@ test("Copier preserves attached records and independent vector storage", () =>
 {
   for (const [index, Type] of classes.entries())
   {
-    const source = read(Type.name, { ...declarations[index], intensity: 9, translation: [4, 5, 6], lightProfilePath: "res:/copied.profile" });
+    const source = read(getRegisteredClassName(Type), { ...declarations[index], intensity: 9, translation: [4, 5, 6], lightProfilePath: "res:/copied.profile" });
     const copy = new Copier().CloneTo(source);
     assert.equal(copy.constructor, Type);
     assert.notEqual(copy, source);

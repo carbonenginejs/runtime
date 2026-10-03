@@ -1,6 +1,8 @@
+import { Tr2RenderTarget } from "../../core/device/Tr2RenderTarget.js";
+import { Tr2DepthStencil } from "../../core/device/Tr2DepthStencil.js";
 // Source: trinity/trinity/RenderJob/TriStepRenderTexture.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { vec2 } from "#math/vec2";
 
@@ -52,9 +54,8 @@ export class TriStepRenderTexture extends TriRenderStep
     this.texture = null;
     this.renderTarget = null;
     this.depthStencil = null;
-    const className = source?.constructor?.name ?? "";
-    if (className === "Tr2RenderTarget") this.renderTarget = source;
-    else if (className === "Tr2DepthStencil") this.depthStencil = source;
+    if (CjsSchema.cast(source, Tr2RenderTarget)) this.renderTarget = source;
+    else if (CjsSchema.cast(source, Tr2DepthStencil)) this.depthStencil = source;
     else this.texture = source;
   }
 

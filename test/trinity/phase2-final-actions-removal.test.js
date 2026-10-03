@@ -1,3 +1,4 @@
+import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -13,7 +14,7 @@ import { EveChildContainer } from "../../npm/dist/trinity/index.js";
 for (const [Type, values, extra] of [
   [Tr2ActionChildEffect, { childName: "spark", path: "res:/child.red", addOnStart: false }, []],
   [Tr2ActionPython, { module: "fixture", className: "Host" }, [ITr2Updateable, INotify, IInitialize, ICustomPersist]]
-]) test(`${Type.name} has native contracts and Blue construction without model state`, () =>
+]) test(`${getRegisteredClassName(Type)} has native contracts and Blue construction without model state`, () =>
 {
   const instance = new Type();
   assert.equal(Object.getPrototypeOf(Type.prototype), ITr2ControllerAction.prototype);
@@ -22,7 +23,7 @@ for (const [Type, values, extra] of [
   assert.equal(Type.from, undefined);
   for (const key of ["SetValues", "UpdateValues", "GetValues", "Dispose"])
     assert.equal(instance[key], undefined);
-  const created = new DictReader({ declarations: true }).CreateObject({ _type: Type.name, ...values });
+  const created = new DictReader({ declarations: true }).CreateObject({ _type: getRegisteredClassName(Type), ...values });
   const clone = new Copier().CloneTo(created);
   assert.ok(clone instanceof Type);
   const written = new DictWriter().WriteObject(clone, {}, { persistOnly: true });

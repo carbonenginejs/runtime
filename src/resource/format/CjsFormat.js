@@ -248,8 +248,8 @@ export class CjsFormat
     if (!capability)
     {
       const message = report.output
-        ? `${this.name} declares no output ${JSON.stringify(report.output)}.`
-        : `${this.name} declares no verifiable default output.`;
+        ? `${FormatName(this)} declares no output ${JSON.stringify(report.output)}.`
+        : `${FormatName(this)} declares no verifiable default output.`;
       return {
         ...report,
         supported: false,
@@ -572,8 +572,11 @@ function normalizeSupportReport(Format, rawReport, options)
     || outputs.find(entry => entry.supported)?.output
     || "";
 
+  const format = Format.id || raw.format || Format.className;
+  if (!format) throw new TypeError("Format identity requires an id or static className.");
+
   return {
-    format: Format.id || raw.format || Format.name,
+    format,
     source: raw.source || options.source || "buffer",
     recognized,
     output: capability?.output || (requested == null ? "" : String(requested)),

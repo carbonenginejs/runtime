@@ -106,12 +106,14 @@ test("content decides between formats sharing one extension", () =>
   // in registration order and the first to recognise the bytes wins.
   class First
   {
+    static className = "First";
     static read(data) { return data; }
     static extensions = Object.freeze([ ".shared" ]);
     static is(data) { return data?.[0] === 1; }
   }
   class Second
   {
+    static className = "Second";
     static read(data) { return data; }
     static extensions = Object.freeze([ ".shared" ]);
     static is(data) { return data?.[0] === 2; }
@@ -130,12 +132,14 @@ test("a probe that throws declines, and does not mask a later format", () =>
   // fail the resolve for a format that would have said yes.
   class Throws
   {
+    static className = "Throws";
     static read(data) { return data; }
     static extensions = Object.freeze([ ".shared" ]);
     static is() { throw new Error("not my file"); }
   }
   class Accepts
   {
+    static className = "Accepts";
     static read(data) { return data; }
     static extensions = Object.freeze([ ".shared" ]);
     static is() { return true; }
@@ -150,12 +154,14 @@ test("nothing recognising the bytes resolves to null rather than a guess", () =>
 {
   class Never
   {
+    static className = "Never";
     static read(data) { return data; }
     static extensions = Object.freeze([ ".shared" ]);
     static is() { return false; }
   }
   class AlsoNever
   {
+    static className = "AlsoNever";
     static read(data) { return data; }
     static extensions = Object.freeze([ ".shared" ]);
     static is() { return false; }
@@ -174,6 +180,7 @@ test("a single candidate is not probed, so it can reject its own file properly",
   let probed = false;
   class Only
   {
+    static className = "Only";
     static read(data) { return data; }
     static extensions = Object.freeze([ ".only" ]);
     static is() { probed = true; return false; }
@@ -268,6 +275,7 @@ test("the route applies its output as the reader's emit", () =>
   let seen = null;
   class Recording
   {
+    static className = "Recording";
     static extensions = Object.freeze([ ".rec" ]);
     static outputs = Object.freeze({ "alpha": Object.freeze({ output: "alpha" }), "beta": Object.freeze({ output: "beta" }) })
     static read(data, options) { seen = options; return data; }
@@ -289,6 +297,7 @@ test("an output that selects an unpinned route is applied to its reader", () =>
   let seen = null;
   class Recording
   {
+    static className = "Recording";
     static extensions = Object.freeze([ ".rec" ]);
     static outputs = Object.freeze({ "alpha": Object.freeze({ output: "alpha" }), "beta": Object.freeze({ output: "beta" }) })
     static read(data, options) { seen = options; return data; }
@@ -335,12 +344,14 @@ test("routing accepts only the boolean is contract", () =>
   // A stale report object must not become a match merely because it is truthy.
   class Declines
   {
+    static className = "Declines";
     static read(data) { return data; }
     static extensions = Object.freeze([ ".report" ]);
     static is() { return { recognized: true, supported: true }; }
   }
   class Partial
   {
+    static className = "Partial";
     static read(data) { return data; }
     static extensions = Object.freeze([ ".report" ]);
     static is() { return true; }
@@ -356,12 +367,14 @@ test("routing accepts only the boolean is contract", () =>
   // Truthy non-booleans do not count.
   class Full
   {
+    static className = "Full";
     static read(data) { return data; }
     static extensions = Object.freeze([ ".verdict" ]);
     static is() { return true; }
   }
   class Unknown
   {
+    static className = "Unknown";
     static read(data) { return data; }
     static extensions = Object.freeze([ ".verdict" ]);
     static is() { return { recognized: true }; }

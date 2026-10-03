@@ -1,3 +1,4 @@
+import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -11,11 +12,11 @@ test("nested mesh records retain flattened identities without inheriting their e
   for (const [Type, Owner] of [[ITr2InstanceDataInstanceData, ITr2InstanceData], [ITr2ImpostorSourceImpostorHash, ITr2ImpostorSource]])
   {
     assert.equal(Object.getPrototypeOf(Type.prototype), Object.prototype);
-    assert.equal(CjsSchema.GetConstructor(Type.name), Type);
+    assert.equal(CjsSchema.GetConstructor(getRegisteredClassName(Type)), Type);
     assert.deepEqual([...mappedInterfaces(Type)], []);
     assert.equal(CjsSchema.cast(new Type(), Owner), null);
     for (const method of ["SetValues", "UpdateValues", "OnEvent", "Initialize", "Traverse", "GetResources"])
-      assert.equal(method in new Type(), false, Type.name + "." + method);
+      assert.equal(method in new Type(), false, getRegisteredClassName(Type) + "." + method);
   }
 });
 

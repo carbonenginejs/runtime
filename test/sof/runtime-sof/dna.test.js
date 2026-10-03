@@ -1,3 +1,4 @@
+import { getRegisteredClassName } from "../../../npm/dist/global/compose/className.js";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { composeStubResMan } from "../../support/stubResMan.js";
 
@@ -448,7 +449,7 @@ test("EveSOF emits and hydrates Carbon swarm behavior on the EveShip2-derived ro
   const adapter = createSofHydrationAdapter();
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry, adapter });
   assert.deepEqual(hydrated.reports, []);
-  assert.equal(hydrated.root.constructor.name, "EveSwarm");
+  assert.equal(getRegisteredClassName(hydrated.root.constructor), "EveSwarm");
   assert.equal(hydrated.root.speedMultiplier, 2.5);
   assert.equal(hydrated.root.weightDeceleration, 0.75);
   assert.equal(hydrated.root.formationDistance, 125);
@@ -1293,17 +1294,17 @@ test("SOF emits and hydrates non-instanced, instanced, and shared layout placeme
   assert.equal(hydratedControlled.observers.length, 1);
   assert.equal(hydratedControlled.controllers.length, 1);
   assert.equal(hydratedControlled.animationOwner, hydratedControlled.objects[0]);
-  assert.equal(hydratedControlled.objects[0].animationUpdater.constructor.name, "Tr2GrannyAnimation");
-  assert.equal(hydratedControlled.observers[0].observer.constructor.name, "AudEmitter");
+  assert.equal(getRegisteredClassName(hydratedControlled.objects[0].animationUpdater.constructor), "Tr2GrannyAnimation");
+  assert.equal(getRegisteredClassName(hydratedControlled.observers[0].observer.constructor), "AudEmitter");
   assert.equal(hydratedControlled.observers[0].observer.eventPrefix, "layout_");
   assert.equal(hydratedShared.GetMeshCount(), 1);
   const sharedData = hydratedShared.GetMeshData(0);
   assert.equal(sharedData.instances.length, 2);
   assert.equal(sharedData.areas.length, 2);
-  assert.equal(sharedData.areas[0].effect.constructor.name, "Tr2Effect");
+  assert.equal(getRegisteredClassName(sharedData.areas[0].effect.constructor), "Tr2Effect");
   assert.equal(hydratedShared.meshes.length, 1);
-  assert.equal(hydratedShared.meshes[0].constructor.name, "EveChildInstancedMesh");
-  assert.equal(hydratedShared.meshes[0].instances[0].constructor.name, "EveChildInstancedMeshInstance");
+  assert.equal(getRegisteredClassName(hydratedShared.meshes[0].constructor), "EveChildInstancedMesh");
+  assert.equal(getRegisteredClassName(hydratedShared.meshes[0].instances[0].constructor), "EveChildInstancedMeshInstance");
   const hydratedDamage = hydrated.root.locatorSets.find(set => set.name === "damage");
   assert.equal(hydratedDamage.locators.length, 5);
   assert.deepEqual(Array.from(hydratedDamage.locators[1].scale), [3, 4, 5]);
@@ -1757,7 +1758,7 @@ test("SOF projects first-hull legacy children, faction visibility, and animation
   const adapter = createSofHydrationAdapter();
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry, adapter });
   assert.deepEqual(hydrated.reports, []);
-  assert.equal(hydrated.root.children[0].constructor.name, "EveTransform");
+  assert.equal(getRegisteredClassName(hydrated.root.children[0].constructor), "EveTransform");
   assert.equal(hydrated.root.curveSets[0].bindings[0].destinationObject, hydrated.root.modelRotationCurve);
 });
 
@@ -2375,7 +2376,7 @@ test("SOF imports complete child carbon.document fragments with remapped refs", 
     adapter: createSofHydrationAdapter(),
   });
   assert.deepEqual(hydrated.reports, []);
-  assert.equal(hydrated.root.children[0].children[0].constructor.name, "EveTransform");
+  assert.equal(getRegisteredClassName(hydrated.root.children[0].children[0].constructor), "EveTransform");
 
   const invalid = new EveSOF();
   assert.equal(invalid.dataMgr.SetData(data), true);
@@ -2681,11 +2682,11 @@ test("SOF emits first-hull audio, filtered controllers, and model curve resource
   const adapter = createSofHydrationAdapter();
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry, adapter });
   assert.deepEqual(hydrated.reports, []);
-  assert.equal(hydrated.root.observers[0].constructor.name, "TriObserverLocal");
-  assert.equal(hydrated.root.observers[0].observer.constructor.name, "AudEmitter");
+  assert.equal(getRegisteredClassName(hydrated.root.observers[0].constructor), "TriObserverLocal");
+  assert.equal(getRegisteredClassName(hydrated.root.observers[0].observer.constructor), "AudEmitter");
   assert.equal(hydrated.root.observers[0].observer.eventPrefix, "ship_");
-  assert.equal(hydrated.root.modelRotationCurve.constructor.name, "Tr2RotationAdapter");
-  assert.equal(hydrated.root.modelTranslationCurve.constructor.name, "Tr2TranslationAdapter");
+  assert.equal(getRegisteredClassName(hydrated.root.modelRotationCurve.constructor), "Tr2RotationAdapter");
+  assert.equal(getRegisteredClassName(hydrated.root.modelTranslationCurve.constructor), "Tr2TranslationAdapter");
 });
 
 test("SOF object resource resolution is explicit and synchronous", async () => {
@@ -2962,10 +2963,10 @@ test("SOF emits and hydrates Carbon sprite sets with SOF6 light metadata", {
     adapter: createSofHydrationAdapter(),
   });
   assert.deepEqual(hydrated.reports, []);
-  assert.equal(hydrated.root.attachments[0].constructor.name, "EveSpriteSet");
-  assert.equal(hydrated.root.attachments[0].lights[0].constructor.name, "EveSpriteLight");
+  assert.equal(getRegisteredClassName(hydrated.root.attachments[0].constructor), "EveSpriteSet");
+  assert.equal(getRegisteredClassName(hydrated.root.attachments[0].lights[0].constructor), "EveSpriteLight");
   assert.equal(hydrated.root.attachments[0].lights[0].index, 1);
-  assert.equal(hydrated.root.attachments[0].lights[0].lightData.constructor.name, "CjsLightData");
+  assert.equal(getRegisteredClassName(hydrated.root.attachments[0].lights[0].lightData.constructor), "CjsLightData");
   assert.equal(hydrated.root.attachments[0].lights[0].lightData.position.constructor.name, "Float32Array");
   assert.deepEqual(Array.from(hydrated.root.attachments[1].sprites[0].position), [11, 0, 0]);
 });
@@ -3105,11 +3106,11 @@ test("SOF emits and hydrates Carbon SOF6 spotlight sets with public typed lights
   const adapter = createSofHydrationAdapter();
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry, adapter });
   assert.deepEqual(hydrated.reports, []);
-  assert.equal(hydrated.root.attachments[0].constructor.name, "EveSpotlightSet");
+  assert.equal(getRegisteredClassName(hydrated.root.attachments[0].constructor), "EveSpotlightSet");
   assert.equal(hydrated.root.attachments[0].spotlightItems.length, 2);
   assert.equal(hydrated.root.attachments[0].lights.length, 1);
-  assert.equal(hydrated.root.attachments[0].lights[0].constructor.name, "EveSpotlightLight");
-  assert.equal(hydrated.root.attachments[0].lights[0].lightData.constructor.name, "CjsLightData");
+  assert.equal(getRegisteredClassName(hydrated.root.attachments[0].lights[0].constructor), "EveSpotlightLight");
+  assert.equal(getRegisteredClassName(hydrated.root.attachments[0].lights[0].lightData.constructor), "CjsLightData");
   assert.equal(hydrated.root.attachments[0].lights[0].lightData.rotation.constructor.name, "Float32Array");
 });
 
@@ -3264,10 +3265,10 @@ test("SOF emits and hydrates Carbon SOF6 plane sets with public typed blink and 
     adapter: createSofHydrationAdapter(),
   });
   assert.deepEqual(hydrated.reports, []);
-  assert.equal(hydrated.root.attachments[0].constructor.name, "EvePlaneSet");
+  assert.equal(getRegisteredClassName(hydrated.root.attachments[0].constructor), "EvePlaneSet");
   assert.deepEqual(Array.from(hydrated.root.attachments[0].planes[0].blinkData), [0.25, 0.5, 1, 1]);
-  assert.equal(hydrated.root.attachments[0].lights[0].constructor.name, "EvePlaneLight");
-  assert.equal(hydrated.root.attachments[0].lights[0].lightData.constructor.name, "CjsLightData");
+  assert.equal(getRegisteredClassName(hydrated.root.attachments[0].lights[0].constructor), "EvePlaneLight");
+  assert.equal(getRegisteredClassName(hydrated.root.attachments[0].lights[0].lightData.constructor), "CjsLightData");
   assert.equal(hydrated.root.attachments[0].lights[0].lightData.position.constructor.name, "Float32Array");
 });
 
@@ -3379,9 +3380,9 @@ test("SOF emits Carbon sprite-line sets with shared effects and per-sprite SOF6 
   const adapter = createSofHydrationAdapter();
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry, adapter });
   assert.deepEqual(hydrated.reports, []);
-  assert.equal(hydrated.root.attachments[1].constructor.name, "EveSpriteLineSet");
+  assert.equal(getRegisteredClassName(hydrated.root.attachments[1].constructor), "EveSpriteLineSet");
   assert.equal(hydrated.root.attachments[1].lights.length, 3);
-  assert.equal(hydrated.root.attachments[1].lights[0].constructor.name, "EveSpriteLight");
+  assert.equal(getRegisteredClassName(hydrated.root.attachments[1].lights[0].constructor), "EveSpriteLight");
 });
 
 test("SOF applies sprite-line visibility filtering to legacy hulls", async () => {
@@ -3511,15 +3512,15 @@ test("SOF emits and operationally hydrates Carbon haze sets with SOF6 lights", {
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry, adapter });
   assert.deepEqual(hydrated.reports, []);
   assert.ok(hydrated.root.attachments[0] instanceof TrackingEveHazeSet);
-  assert.equal(hydrated.root.attachments[0].hazes[0].constructor.name, "EveHazeSetItem");
+  assert.equal(getRegisteredClassName(hydrated.root.attachments[0].hazes[0].constructor), "EveHazeSetItem");
   assert.deepEqual(hydrated.root.attachments.map(set => set.calls), [
     ["Initialize"],
     ["Initialize"],
     ["Initialize"],
   ]);
   assert.equal(hydrated.root.attachments[0].lights.length, 1);
-  assert.equal(hydrated.root.attachments[0].lights[0].constructor.name, "EveHazeSetLight");
-  assert.equal(hydrated.root.attachments[0].lights[0].lightData.constructor.name, "CjsLightData");
+  assert.equal(getRegisteredClassName(hydrated.root.attachments[0].lights[0].constructor), "EveHazeSetLight");
+  assert.equal(getRegisteredClassName(hydrated.root.attachments[0].lights[0].lightData.constructor), "CjsLightData");
   assert.equal(hydrated.root.attachments[0].lights[0].lightData.color.constructor.name, "Float32Array");
 });
 
@@ -3624,7 +3625,7 @@ test("SOF emits and hydrates legacy banners with external texture bindings", {
   assert.equal(hydrated.root.attachments[0].banners[1].reference, 2);
   assert.equal(hydrated.root.externalParameters[0].destinationObject, hydrated.root.attachments[0].effect.resources[2]);
   assert.equal(hydrated.root.attachments[0].lights.length, 2);
-  assert.equal(hydrated.root.attachments[0].lights[0].constructor.name, "EveBannerLight");
+  assert.equal(getRegisteredClassName(hydrated.root.attachments[0].lights[0].constructor), "EveBannerLight");
 });
 
 test("SOF6 banner sets group usages numerically and preserve optional lights", {
@@ -3697,7 +3698,7 @@ test("SOF6 banner sets group usages numerically and preserve optional lights", {
   assert.equal(hydrated.root.attachments[0].banners[0].reference, 1);
   assert.equal(hydrated.root.attachments[1].banners[0].reference, 0);
   assert.equal(hydrated.root.attachments[1].lights.length, 1);
-  assert.equal(hydrated.root.attachments[1].lights[0].constructor.name, "EveBannerLight");
+  assert.equal(getRegisteredClassName(hydrated.root.attachments[1].lights[0].constructor), "EveBannerLight");
 });
 
 test("SOF emits and hydrates visible Carbon hull light types with cumulative hull offsets", {
@@ -3798,7 +3799,7 @@ test("SOF emits and hydrates visible Carbon hull light types with cumulative hul
     adapter: createSofHydrationAdapter(),
   });
   assert.deepEqual(hydrated.reports, []);
-  assert.equal(hydrated.root.lights[0].lightData.constructor.name, "CjsLightData");
+  assert.equal(getRegisteredClassName(hydrated.root.lights[0].lightData.constructor), "CjsLightData");
   assert.deepEqual(Array.from(hydrated.root.lights[0].lightData.position), [1, 2, 3]);
   assert.equal(hydrated.root.lights[1].isDynamic, true);
 });
@@ -4559,11 +4560,11 @@ test("EveSOF emits SOF6 PPT resources and Carbon sampler overrides", async () =>
     const hydrated = CjsDocumentHydrator.hydrate(document, { registry });
     assert.deepEqual(hydrated.reports, []);
     const sampler = hydrated.root.mesh.opaqueAreas[0].effect.samplerOverrides[0];
-    assert.equal(sampler.constructor.name, "Tr2SamplerOverride");
+    assert.equal(getRegisteredClassName(sampler.constructor), "Tr2SamplerOverride");
     assert.equal(sampler.addressU, 3);
     assert.equal(sampler.addressW, 1);
     assert.equal(sampler.maxAnisotropy, 4);
-    assert.equal(hydrated.root.customMasks[0].constructor.name, "EveCustomMask");
+    assert.equal(getRegisteredClassName(hydrated.root.customMasks[0].constructor), "EveCustomMask");
     assert.deepEqual(Array.from(hydrated.root.customMasks[0].targetMaterials), [1, 0, 0, 1]);
   }
 });
@@ -4709,7 +4710,7 @@ test("EveSOF emits and hydrates Carbon's extension-root placement branch", {
   const adapter = createSofHydrationAdapter();
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry, adapter });
   assert.deepEqual(hydrated.reports, []);
-  assert.equal(hydrated.root.constructor.name, "EveMobile");
+  assert.equal(getRegisteredClassName(hydrated.root.constructor), "EveMobile");
   assert.equal(hydrated.root.mesh.geometryResPath, "");
   assert.deepEqual(hydrated.root.effectChildren.map(child => child.name), [
     "Instanced Meshes",
@@ -4929,10 +4930,10 @@ test("EveSOF routes animated extension children through Solo Placement", {
   assert.equal(hydratedSolo.animationOwner, hydratedSolo.objects[0]);
   assert.equal(hydratedSolo.objects[1].name, "legacy-extension-effect");
   assert.equal(hydratedSolo.controllers.length, 1);
-  assert.equal(hydrated.root.children[0].constructor.name, "EveTransform");
+  assert.equal(getRegisteredClassName(hydrated.root.children[0].constructor), "EveTransform");
   assert.equal(hydrated.root.curveSets[0].name, "extension-animation");
-  assert.equal(hydrated.root.modelRotationCurve.constructor.name, "Tr2RotationAdapter");
-  assert.equal(hydratedSolo.observers[0].observer.constructor.name, "AudEmitter");
+  assert.equal(getRegisteredClassName(hydrated.root.modelRotationCurve.constructor), "Tr2RotationAdapter");
+  assert.equal(getRegisteredClassName(hydratedSolo.observers[0].observer.constructor), "AudEmitter");
   assert.equal(hydratedSolo.observers[0].observer.eventPrefix, "extension_");
 });
 
@@ -5283,7 +5284,7 @@ test("SOF emits and hydrates Carbon instanced attachments with public CPU instan
   const hydratedChild = hydratedQuality.objects[0];
   assert.equal(hydratedChild.mesh.instanceGeometryResPath, "", "CPU instance rows have no geometry-provider path");
   assert.equal(hydratedChild.mesh.geometryResPath, "res:/model/antenna.gr2");
-  assert.equal(hydratedChild.mesh.opaqueAreas[0].constructor.name, "Tr2MeshArea");
+  assert.equal(getRegisteredClassName(hydratedChild.mesh.opaqueAreas[0].constructor), "Tr2MeshArea");
   const hydratedRuntimeData = hydratedChild.mesh.instanceGeometryResource;
   assert.equal(hydratedChild.mesh.GetInstanceGeometryResource(), hydratedRuntimeData);
   hydratedChild.mesh.Initialize();
@@ -5464,11 +5465,11 @@ test("SOF projects, emits, and hydrates multi-hull Carbon boosters", {
   const adapter = createSofHydrationAdapter();
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry, adapter });
   assert.deepEqual(hydrated.reports, []);
-  assert.equal(hydrated.root.boosters.constructor.name, "EveBoosterSet2");
-  assert.equal(hydrated.root.boosters.effect.constructor.name, "Tr2Effect");
-  assert.equal(hydrated.root.boosters.glows.constructor.name, "EveSpriteSet");
+  assert.equal(getRegisteredClassName(hydrated.root.boosters.constructor), "EveBoosterSet2");
+  assert.equal(getRegisteredClassName(hydrated.root.boosters.effect.constructor), "Tr2Effect");
+  assert.equal(getRegisteredClassName(hydrated.root.boosters.glows.constructor), "EveSpriteSet");
   assert.equal(hydrated.root.boosters.items.length, 2);
-  assert.equal(hydrated.root.boosters.items[0].constructor.name, "EveBoosterSet2Item");
+  assert.equal(getRegisteredClassName(hydrated.root.boosters.items[0].constructor), "EveBoosterSet2Item");
   const boosterData = hydrated.root.boosters.GetBoosterData();
   assert.equal(boosterData.length, 2);
   assert.deepEqual(Array.from(boosterData[0].transform).slice(12, 15), [1, 2, 3]);
@@ -5617,13 +5618,13 @@ test("SOF carbon.document hydrates through the sibling Trinity and audio consume
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry });
 
   assert.deepEqual(hydrated.reports, []);
-  assert.equal(hydrated.root.constructor.name, "EveShip2");
-  assert.equal(hydrated.root.mesh.constructor.name, "Tr2Mesh");
-  assert.equal(hydrated.root.mesh.opaqueAreas[0].constructor.name, "Tr2MeshArea");
-  assert.equal(hydrated.root.mesh.opaqueAreas[0].effect.constructor.name, "Tr2Effect");
-  assert.equal(hydrated.root.locators[0].constructor.name, "EveLocator2");
-  assert.equal(hydrated.root.locatorSets[0].constructor.name, "EveLocatorSets");
-  assert.equal(hydrated.root.locatorSets[0].locators[0].constructor.name, "Locator");
+  assert.equal(getRegisteredClassName(hydrated.root.constructor), "EveShip2");
+  assert.equal(getRegisteredClassName(hydrated.root.mesh.constructor), "Tr2Mesh");
+  assert.equal(getRegisteredClassName(hydrated.root.mesh.opaqueAreas[0].constructor), "Tr2MeshArea");
+  assert.equal(getRegisteredClassName(hydrated.root.mesh.opaqueAreas[0].effect.constructor), "Tr2Effect");
+  assert.equal(getRegisteredClassName(hydrated.root.locators[0].constructor), "EveLocator2");
+  assert.equal(getRegisteredClassName(hydrated.root.locatorSets[0].constructor), "EveLocatorSets");
+  assert.equal(getRegisteredClassName(hydrated.root.locatorSets[0].locators[0].constructor), "Locator");
   assert.deepEqual(Array.from(hydrated.root.locatorSets[0].locators[0].position), [4, 5, 6]);
 });
 
@@ -6068,7 +6069,7 @@ test("BuildValuesFromDNA emits plain model values with parity to document hydrat
   // both.
   const RootClass = registry.GetConstructor(transported._type);
   const fromValues = CjsSchema.from(CjsSchema.getClassName(RootClass), transported, { registry });
-  const hydratedSets = fromValues.attachments.filter(item => item.constructor.name === "EveSpriteSet");
+  const hydratedSets = fromValues.attachments.filter(item => getRegisteredClassName(item.constructor) === "EveSpriteSet");
   assert.equal(hydratedSets[0].effect, hydratedSets[1].effect);
 
   const document = (await sof.BuildFromDNA("rifter:minmatar:minmatar"));

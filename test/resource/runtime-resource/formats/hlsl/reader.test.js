@@ -1,3 +1,4 @@
+import { HlslEffectRes } from "../../../../../src/resource/formats/hlsl/core/tr2/resources/HlslEffectRes.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -12,8 +13,8 @@ import { HlslEffectParameterAnnotation } from "../../../../../src/resource/forma
 
 test("standalone HLSL vocabularies match semantic reflection enum values", async () =>
 {
-    const { Tr2EffectConstant } = await import("../../../../../npm/dist/resource/shader/reflection/Tr2EffectConstant.js");
-    const { Tr2EffectParameterAnnotation } = await import("../../../../../npm/dist/resource/shader/reflection/Tr2EffectParameterAnnotation.js");
+    const { Tr2EffectConstant } = await import("../../../../../src/resource/shader/reflection/Tr2EffectConstant.js");
+    const { Tr2EffectParameterAnnotation } = await import("../../../../../src/resource/shader/reflection/Tr2EffectParameterAnnotation.js");
     assert.deepEqual(HlslEffectConstant.Type, Tr2EffectConstant.Type);
     assert.deepEqual(HlslEffectParameterAnnotation.Type, Tr2EffectParameterAnnotation.Type);
 });
@@ -58,7 +59,7 @@ test("raw emit exposes the live HlslEffectRes graph", () =>
 {
     const result = CjsHlslFormat.read(buildEffectBytes(), { emit: "raw" });
 
-    assert.equal(result.constructor.name, "HlslEffectRes");
+    assert.equal(result.constructor, HlslEffectRes);
     assert.equal(result.IsGood(), true);
     assert.equal(result.m_version, 8);
 });
@@ -153,7 +154,7 @@ test("readEffectAnalysis resolves one permutation without changing stable emits"
         ])
     });
 
-    assert.equal(analysis.effectRes.constructor.name, "HlslEffectRes");
+    assert.equal(analysis.effectRes.constructor, HlslEffectRes);
     assert.equal(analysis.shader, null);
     assert.equal(analysis.effectDescription, null);
     assert.equal(analysis.bindingManifest, null);

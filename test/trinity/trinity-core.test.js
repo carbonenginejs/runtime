@@ -1,3 +1,4 @@
+import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
 import { ITr2AudEmitter } from "../../npm/dist/audio/trinity/trinityAudioApi/ITr2AudEmitter.js";
 import { composeStubResMan } from "../support/stubResMan.js";
 
@@ -244,7 +245,7 @@ test("Carbon device graph descriptions remain canonical runtime-trinity classes"
   for (const Class of graphClasses)
   {
     new Class();
-    assertEquals(CjsSchema.GetConstructor(Class.name), Class);
+    assertEquals(CjsSchema.GetConstructor(getRegisteredClassName(Class)), Class);
   }
 });
 

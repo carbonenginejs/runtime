@@ -1,3 +1,4 @@
+import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -14,7 +15,7 @@ for (const [Type, values, extra] of [
   [Tr2ActionOverlay, { path: "res:/overlay.red", overlayName: "halo", addOnStart: false }, []]
 ])
 {
-  test(`${Type.name} uses Blue construction and copy without model state`, () =>
+  test(`${getRegisteredClassName(Type)} uses Blue construction and copy without model state`, () =>
   {
     const instance = new Type();
     assert.equal(Object.getPrototypeOf(Type.prototype), ITr2ControllerAction.prototype);
@@ -23,7 +24,7 @@ for (const [Type, values, extra] of [
     assert.equal(Type.from, undefined);
     for (const key of ["SetValues", "GetValues", "UpdateValues", "Initialize", "Dispose"])
       assert.equal(instance[key], undefined);
-    const created = new DictReader({ declarations: true }).CreateObject({ _type: Type.name, ...values });
+    const created = new DictReader({ declarations: true }).CreateObject({ _type: getRegisteredClassName(Type), ...values });
     const clone = new Copier().CloneTo(created);
     assert.ok(clone instanceof Type);
     const written = new DictWriter().WriteObject(clone, {}, { persistOnly: true });

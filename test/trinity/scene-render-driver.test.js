@@ -1,3 +1,4 @@
+import { TriRenderBatchAccumulator } from "../../npm/dist/trinity/core/batch/TriRenderBatch/TriRenderBatchAccumulator.js";
 // The frame driver. Carbon's EveSpaceScene::Render is an empty function body and
 // TriStepRenderScene calls it anyway, so that path draws nothing in Carbon
 // either; EveSpaceSceneRenderDriver is the class that actually drives a frame.
@@ -542,7 +543,7 @@ test("EndRender draws the lens flares additively with depth read-only, then stor
 
   const readOnly = context.SetReadOnlyDepth.bind(context);
   context.SetReadOnlyDepth = enable => { calls.push(`readOnly:${enable}`); return readOnly(enable); };
-  context.RenderBatches = batches => { calls.push(`render:${batches.constructor.name}`); return true; };
+  context.RenderBatches = batches => { assert.equal(batches.constructor, TriRenderBatchAccumulator); calls.push("render:TriRenderBatchAccumulator"); return true; };
   const esm = context.GetEffectStateManager();
   const apply = esm.ApplyStandardStates.bind(esm);
   esm.ApplyStandardStates = mode => { calls.push(`states:${mode}`); return apply(mode); };

@@ -38,95 +38,100 @@ const A = ITr2ControllerAction, U = ITr2Updateable, N = INotify, I = IInitialize
 // not qualify action algorithms or the custom-persistence buffer adaptation.
 const cases = [
   {
-    Type: Tr2ActionAnimateCurveSet, modelFree: true, nominal: [A, U, N], query: [Tr2ActionAnimateCurveSet, A, U, N],
+    name: "Tr2ActionAnimateCurveSet", Type: Tr2ActionAnimateCurveSet, modelFree: true, nominal: [A, U, N], query: [Tr2ActionAnimateCurveSet, A, U, N],
     own: ["Link", "Unlink", "Start", "Stop", "RebaseSimTime", "Update", "OnModified"]
   },
   {
-    Type: Tr2ActionAnimateValue, modelFree: true, nominal: [A, U, N], query: [Tr2ActionAnimateValue, A, U, N],
+    name: "Tr2ActionAnimateValue", Type: Tr2ActionAnimateValue, modelFree: true, nominal: [A, U, N], query: [Tr2ActionAnimateValue, A, U, N],
     own: ["Link", "Unlink", "Start", "Stop", "RebaseSimTime", "Update", "OnModified"]
   },
   {
-    Type: Tr2ActionBindRTPC, modelFree: true, nominal: [A, U, N], query: [Tr2ActionBindRTPC, A, U, N],
+    name: "Tr2ActionBindRTPC", Type: Tr2ActionBindRTPC, modelFree: true, nominal: [A, U, N], query: [Tr2ActionBindRTPC, A, U, N],
     own: ["Link", "Unlink", "Start", "Stop", "Update", "OnModified"]
   },
   {
-    Type: Tr2ActionCallback, modelFree: true, nominal: [A], query: [Tr2ActionCallback, A],
+    name: "Tr2ActionCallback", Type: Tr2ActionCallback, modelFree: true, nominal: [A], query: [Tr2ActionCallback, A],
     own: ["Start"]
   },
   {
-    Type: Tr2ActionChildEffect, modelFree: true, nominal: [A], query: [Tr2ActionChildEffect, A],
+    name: "Tr2ActionChildEffect", Type: Tr2ActionChildEffect, modelFree: true, nominal: [A], query: [Tr2ActionChildEffect, A],
     own: ["Link", "Start", "Stop"]
   },
   {
-    Type: Tr2ActionOverlay, modelFree: true, nominal: [A], query: [Tr2ActionOverlay, A],
+    name: "Tr2ActionOverlay", Type: Tr2ActionOverlay, modelFree: true, nominal: [A], query: [Tr2ActionOverlay, A],
     own: ["Start", "Stop"]
   },
   {
-    Type: Tr2ActionPlayCurveSet, modelFree: true, nominal: [A, U], query: [Tr2ActionPlayCurveSet, A],
+    name: "Tr2ActionPlayCurveSet", Type: Tr2ActionPlayCurveSet, modelFree: true, nominal: [A, U], query: [Tr2ActionPlayCurveSet, A],
     own: ["Start", "Stop", "RebaseSimTime", "CanTransition", "Update"]
   },
   {
-    Type: Tr2ActionPlayMeshAnimation, modelFree: true, nominal: [A, N], query: [Tr2ActionPlayMeshAnimation, A, N],
+    name: "Tr2ActionPlayMeshAnimation", Type: Tr2ActionPlayMeshAnimation, modelFree: true, nominal: [A, N], query: [Tr2ActionPlayMeshAnimation, A, N],
     own: ["Link", "Unlink", "Start", "Stop", "OnModified"]
   },
   {
-    Type: Tr2ActionPlaySound, modelFree: true, nominal: [A], query: [Tr2ActionPlaySound, A],
+    name: "Tr2ActionPlaySound", Type: Tr2ActionPlaySound, modelFree: true, nominal: [A], query: [Tr2ActionPlaySound, A],
     own: ["Start"]
   },
   {
-    Type: Tr2ActionPython, modelFree: true, nominal: [A, U, N, I, P], query: [Tr2ActionPython, A, U, N, I, P],
+    name: "Tr2ActionPython", Type: Tr2ActionPython, modelFree: true, nominal: [A, U, N, I, P], query: [Tr2ActionPython, A, U, N, I, P],
     own: ["Initialize", "OnModified", "Link", "Unlink", "Start", "Stop", "Update",
       "GetWriteBufferAndSize", "ReleaseWriteBuffer", "AllocateReadBuffer", "SetBufferAndSize"]
   },
   {
-    Type: Tr2ActionResetClipSphereCenter, modelFree: true, nominal: [A], query: [Tr2ActionResetClipSphereCenter, A],
+    name: "Tr2ActionResetClipSphereCenter", Type: Tr2ActionResetClipSphereCenter, modelFree: true, nominal: [A], query: [Tr2ActionResetClipSphereCenter, A],
     own: ["Start"]
   },
   {
-    Type: Tr2ActionSetAttenuationScaling, modelFree: true, nominal: [A], query: [Tr2ActionSetAttenuationScaling, A],
+    name: "Tr2ActionSetAttenuationScaling", Type: Tr2ActionSetAttenuationScaling, modelFree: true, nominal: [A], query: [Tr2ActionSetAttenuationScaling, A],
     own: ["Link", "Unlink", "Start"]
   },
   {
-    Type: Tr2ActionSetAudioEmitterPrefix, modelFree: true, nominal: [A], query: [Tr2ActionSetAudioEmitterPrefix, A],
+    name: "Tr2ActionSetAudioEmitterPrefix", Type: Tr2ActionSetAudioEmitterPrefix, modelFree: true, nominal: [A], query: [Tr2ActionSetAudioEmitterPrefix, A],
     own: ["Start"]
   },
   {
-    Type: Tr2ActionSetAudioSwitch, modelFree: true, nominal: [A], query: [Tr2ActionSetAudioSwitch, A],
+    name: "Tr2ActionSetAudioSwitch", Type: Tr2ActionSetAudioSwitch, modelFree: true, nominal: [A], query: [Tr2ActionSetAudioSwitch, A],
     own: ["Start"]
   },
   {
-    Type: Tr2ActionSetExternalControllerVariable, modelFree: true, nominal: [A, N], query: [Tr2ActionSetExternalControllerVariable, A, N],
+    name: "Tr2ActionSetExternalControllerVariable", Type: Tr2ActionSetExternalControllerVariable, modelFree: true, nominal: [A, N], query: [Tr2ActionSetExternalControllerVariable, A, N],
     own: ["Link", "Unlink", "Start", "OnModified"]
   },
   {
-    Type: Tr2ActionSetShaderOption, modelFree: true, nominal: [A], query: [Tr2ActionSetShaderOption, A],
+    name: "Tr2ActionSetShaderOption", Type: Tr2ActionSetShaderOption, modelFree: true, nominal: [A], query: [Tr2ActionSetShaderOption, A],
     own: ["Start"]
   },
   {
-    Type: Tr2ActionSetValue, modelFree: true, nominal: [A, N], query: [Tr2ActionSetValue, A, N],
+    name: "Tr2ActionSetValue", Type: Tr2ActionSetValue, modelFree: true, nominal: [A, N], query: [Tr2ActionSetValue, A, N],
     own: ["Link", "Unlink", "Start", "OnModified"]
   },
   {
-    Type: Tr2ActionSpawnParticles, modelFree: true, nominal: [A], query: [Tr2ActionSpawnParticles, A],
+    name: "Tr2ActionSpawnParticles", Type: Tr2ActionSpawnParticles, modelFree: true, nominal: [A], query: [Tr2ActionSpawnParticles, A],
     own: ["Start"]
   }
 ];
 
-for (const { Type, nominal, query, modelFree = false } of cases)
+const interfaceNames = new Map([
+  [A, "ITr2ControllerAction"], [U, "ITr2Updateable"], [N, "INotify"],
+  [I, "IInitialize"], [P, "ICustomPersist"], ...cases.map(({Type, name}) => [Type, name])
+]);
+
+for (const { name, Type, nominal, query, modelFree = false } of cases)
 {
-  test(`${Type.name} has its exact ordered query table and nominal native contracts`, () =>
+  test(`${name} has its exact ordered query table and nominal native contracts`, () =>
   {
     const item = new Type();
     assert.deepEqual([...mappedInterfaces(Type)], query);
-    assert.equal(CjsSchema.GetConstructor(Type.name), Type);
+    assert.equal(CjsSchema.GetConstructor(name), Type);
     assert.equal(CjsSchema.cast(item, Type), item);
     assert.equal("GetValues" in item, false);
     for (const Interface of [A, U, N, I, P])
-      assert.equal(CjsSchema.cast(item, Interface), nominal.includes(Interface) ? item : null, Interface.name);
+      assert.equal(CjsSchema.cast(item, Interface), nominal.includes(Interface) ? item : null, interfaceNames.get(Interface));
   });
 
   // Keep admission reachable independently of the table equality assertion.
-  test(`${Type.name} is admitted by the native action-interface list without replacement`, () =>
+  test(`${name} is admitted by the native action-interface list without replacement`, () =>
   {
     const item = new Type();
     const list = new BlueList(ITr2ControllerAction, { className: null, listOps: 0 });
@@ -144,14 +149,14 @@ for (const { Type, nominal, query, modelFree = false } of cases)
 
 test("each concrete action exposes its own identity independently of action-interface admission", () =>
 {
-  for (const { Type } of cases)
+  for (const { name, Type } of cases)
   {
-    const list = new BlueList(Type, { className: Type.name, listOps: 0 });
+    const list = new BlueList(Type, { className: name, listOps: 0 });
     const item = new Type();
-    assert.equal(list.Append(item), true, Type.name);
+    assert.equal(list.Append(item), true, name);
     assert.equal(list.GetAt(0), item);
     const Other = Type === Tr2ActionCallback ? Tr2ActionPlaySound : Tr2ActionCallback;
-    assert.equal(list.Append(new Other()), false, `${Type.name} must reject another action's self identity`);
+    assert.equal(list.Append(new Other()), false, `${name} must reject another action's self identity`);
     assert.equal(list.GetSize(), 1);
   }
 });
@@ -197,17 +202,17 @@ test("PlayCurveSet is nominally updateable without exposing the updateable query
 
 test("native nominal additions preserve every existing concrete contract override", () =>
 {
-  for (const { Type, nominal, own } of cases)
+  for (const { name, Type, nominal, own } of cases)
   {
     for (const method of own)
     {
       const descriptor = Object.getOwnPropertyDescriptor(Type.prototype, method);
-      assert.equal(typeof descriptor?.value, "function", `${Type.name}.${method} remains its own method`);
-      assert.notEqual(CjsSchema.getMethod(Type, method)?.impl?.status, "abstract", `${Type.name}.${method}`);
+      assert.equal(typeof descriptor?.value, "function", `${name}.${method} remains its own method`);
+      assert.notEqual(CjsSchema.getMethod(Type, method)?.impl?.status, "abstract", `${name}.${method}`);
       for (const Interface of nominal)
       {
         if (Object.hasOwn(Interface.prototype, method))
-          assert.notEqual(descriptor.value, Interface.prototype[method], `${Type.name}.${method} must not be the contract default`);
+          assert.notEqual(descriptor.value, Interface.prototype[method], `${name}.${method} must not be the contract default`);
       }
     }
   }
@@ -326,11 +331,11 @@ test("all action null-chain tables isolate a temporary native parent query mappi
 {
   const moduleURL = path => new URL(`../../npm/dist/${path}`, import.meta.url).href;
   // Serialize only the independent expectations above, never runtime metadata.
-  const expected = cases.map(({ Type, query, modelFree = false }) => ({
+  const expected = cases.map(({ name, Type, query, modelFree = false }) => ({
     modelFree,
-    name: Type.name,
-    url: moduleURL(`trinity/controllers/action/${Type.name}.js`),
-    query: query.map(Interface => Interface.name)
+    name: name,
+    url: moduleURL(`trinity/controllers/action/${name}.js`),
+    query: query.map(Interface => interfaceNames.get(Interface))
   }));
   execFileSync(process.execPath, [
     ...process.execArgv, "--input-type=module", "--eval", `

@@ -262,6 +262,7 @@ test("extension routes disambiguate resource classes sharing one requirement", (
 test("CjsBlueResMan.Register adds formats and semantic resource types", async () => {
   class TestFormat
   {
+    static className = "TestFormat";
     static extensions = Object.freeze([ ".foo", ".bar" ]);
     static outputs = Object.freeze({ "geometry": Object.freeze({ output: "geometry" }), "cmfJson": Object.freeze({ output: "cmfJson" }) })
     static read(input, options) { return { input, emit: options.emit }; }

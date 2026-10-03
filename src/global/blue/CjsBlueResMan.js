@@ -1,3 +1,4 @@
+import { requireRegisteredClassName } from "../compose/className.js";
 import { StreamType } from "#consts/media";
 // Source: blue/src/BlueResMan.h
 // Source: blue/src/BlueResMan.cpp
@@ -4082,7 +4083,7 @@ function serializeFormatCacheValue(value, seen = new WeakSet())
   if (ArrayBuffer.isView(value))
   {
     const bytes = new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
-    return `view:${identity}:${value.constructor.name}:${[ ...bytes ].join(",")}`;
+    return `view:${identity}:${[ ...bytes ].join(",")}`;
   }
   if (value instanceof ArrayBuffer)
   {
@@ -4296,7 +4297,7 @@ function resolveOrderedExtensionFormatDescriptor(descriptors, ext, options)
   const error = new Error(`No registered format supports the content for .${ext}`);
   error.code = "CJS_RESOURCE_FORMAT_UNSUPPORTED";
   error.ext = ext;
-  error.formats = candidates.map(({ Format }) => Format.name);
+  error.formats = candidates.map(({ Format }) => requireRegisteredClassName(Format));
   throw error;
 }
 
@@ -4356,7 +4357,7 @@ function createFormatOutputMissingError(ext, emit, descriptors)
   error.code = "CJS_RESOURCE_FORMAT_OUTPUT_MISSING";
   error.ext = ext;
   error.emit = emit;
-  error.formats = descriptors.map(({ Format }) => Format.name);
+  error.formats = descriptors.map(({ Format }) => requireRegisteredClassName(Format));
   return error;
 }
 
@@ -4421,7 +4422,7 @@ function resolveFormatDescriptorCandidates(descriptors, ext, options)
     const error = new Error(`Ambiguous formats registered for .${ext}`);
     error.code = "CJS_RESOURCE_FORMAT_AMBIGUOUS";
     error.ext = ext;
-    error.formats = candidates.map(({ Format }) => Format.name);
+    error.formats = candidates.map(({ Format }) => requireRegisteredClassName(Format));
     throw error;
   }
   return candidates[0];

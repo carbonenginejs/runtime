@@ -1,3 +1,4 @@
+import { requireRegisteredClassName } from "../compose/className.js";
 import { normalizeResourceExtension } from "#utils/path";
 
 /**
@@ -39,7 +40,7 @@ class CjsFormatRoute
     this.read = options.read || "read";
     this.output = options.output || null;
     this.accepts = options.accepts || null;
-    this.name = options.name || `${Format.name || "format"}.${this.read}`;
+    this.name = options.name || `${requireRegisteredClassName(Format)}.${this.read}`;
 
     if (typeof Format[this.read] !== "function")
     {

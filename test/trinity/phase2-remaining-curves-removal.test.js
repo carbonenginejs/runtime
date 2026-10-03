@@ -1,3 +1,4 @@
+import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -13,7 +14,7 @@ for (const [Type, values, query] of [
   [TriPerlinCurve, { name: "船", N: 4, offset: 2 }, [TriPerlinCurve, ITriFunction, ITriScalarFunction]],
   [Tr2DistanceTracker, { name: "距離", signedDistance: false }, [ITriFunction, INotify]],
   [Tr2BoneMatrixCurve, { name: "bone", length: 2 }, [Tr2BoneMatrixCurve, ITriFunction, IInitialize, ITriCurveLength]]
-]) test(`${Type.name} uses Blue declarations and exact native interfaces without model services`, () =>
+]) test(`${getRegisteredClassName(Type)} uses Blue declarations and exact native interfaces without model services`, () =>
 {
   const instance = new Type();
   assert.equal("GetValues" in instance, false);
@@ -21,7 +22,7 @@ for (const [Type, values, query] of [
   for (const key of ["SetValues", "GetValues", "UpdateValues", "Dispose"])
     assert.equal(instance[key], undefined);
   assert.deepEqual([...mappedInterfaces(Type)], query);
-  const created = new DictReader({ declarations: true }).CreateObject({ _type: Type.name, ...values });
+  const created = new DictReader({ declarations: true }).CreateObject({ _type: getRegisteredClassName(Type), ...values });
   const clone = new Copier().CloneTo(created);
   assert.ok(clone instanceof Type);
   const written = new DictWriter().WriteObject(clone, {}, { persistOnly: true });

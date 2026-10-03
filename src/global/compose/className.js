@@ -36,3 +36,16 @@ export function getRegisteredClassName(Constructor)
     }
     return null;
 }
+
+/**
+ * Require a stable declared name wherever a class name becomes data.
+ * @param {Function} Constructor Class to name.
+ * @returns {string} Registered or explicitly declared class name.
+ * @throws {TypeError} When the class has no stable name.
+ */
+export function requireRegisteredClassName(Constructor)
+{
+    const name = getRegisteredClassName(Constructor);
+    if (!name) throw new TypeError("Class identity requires schema registration or static className.");
+    return name;
+}

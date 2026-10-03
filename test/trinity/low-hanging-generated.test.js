@@ -1,3 +1,4 @@
+import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
 import {Tr2RenderContext_GetMainThreadRenderContext} from "../../npm/dist/trinity/core/context/Tr2RenderContext.js";
 import {Tr2RenderContextALStub} from "../../npm/dist/trinityal/index.js";
 import { EveSpaceObjectDecal } from "../../npm/dist/trinity/eve/attachment/decal/EveSpaceObjectDecal.js";
@@ -1332,7 +1333,7 @@ test("Carbon light accessors remain backed by one shared CjsLightData", () =>
   assert.equal(smartSpot.outerAngle, 40);
   // Flattened storage (2026-07-23 decision): the m_lightGroupData members are
   // real persisted fields; lightData is the LightData-shaped compat view.
-  assert.equal(smartSpot.lightData.constructor.name, "CjsLightData");
+  assert.equal(getRegisteredClassName(smartSpot.lightData.constructor), "CjsLightData");
   assert.equal(smartSpot.lightData.innerAngle, 20);
   assert.equal(Object.hasOwn(smartSpot, "innerAngle"), true);
   assert.equal(CjsSchema.getField(EveSmartLightSpotLight, "innerAngle")?.edit?.persist, true);

@@ -1,3 +1,4 @@
+import { requireRegisteredClassName } from "../../compose/className.js";
 import { Message, Operation, assertResourceSource } from "./protocol.js";
 import { CjsResManMainThreadLoader } from "./CjsResManMainThreadLoader.js";
 
@@ -396,7 +397,7 @@ function normalizeFormatWorkerDeclaration(descriptor) {
   if (!value || typeof value !== "object" || !value.module) return null;
   return {
     module: String(value.module),
-    exportName: String(value.exportName || Format?.name || "default"),
+    exportName: String(value.exportName || (Format ? requireRegisteredClassName(Format) : "default")),
     outputTypes: Array.isArray(value.outputTypes)
       ? value.outputTypes.map(String)
       : null,

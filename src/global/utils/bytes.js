@@ -158,3 +158,18 @@ export function float32ToBits(value)
     scratch.setFloat32(0, value, true);
     return scratch.getUint32(0, true);
 }
+
+/**
+ * Intrinsic storage name of an ArrayBuffer view, including subclass instances.
+ * Reads the platform typed-array slot, never a caller's constructor or name.
+ * @param {ArrayBufferView} value View to describe.
+ * @returns {string} Platform typed-array name or DataView.
+ */
+export function getArrayBufferViewName(value)
+{
+    const name = Object.getOwnPropertyDescriptor(
+        Object.getPrototypeOf(Uint8Array.prototype), Symbol.toStringTag).get.call(value);
+    if (name) return name;
+    if (ArrayBuffer.isView(value)) return "DataView";
+    throw new TypeError("Expected an ArrayBuffer view.");
+}

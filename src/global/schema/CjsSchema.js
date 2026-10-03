@@ -9,7 +9,7 @@ import {
     normalizeCarbonValue
 } from "./types/carbonTypes.js";
 import { composeAbstractDecorator } from "../compose/abstract.js";
-import { CJS_CLASS_NAME, getRegisteredClassName } from "../compose/className.js";
+import { CJS_CLASS_NAME, getRegisteredClassName, requireRegisteredClassName } from "../compose/className.js";
 import { composeNotifyDecorator } from "../compose/notify.js";
 import { carbonInheritDecorator, carbonMapInterfaceDecorator, carbonInterfaceTableDecorator, cast } from "../compose/interface.js";
 import { composeValuesDecorator, createValuesTransport, isExportableField, isWritableField } from "../compose/values.js";
@@ -1689,37 +1689,12 @@ function hiddenInheritedFieldsDecorator(fieldNames)
     };
 }
 
-const CONTEXT_FIRST_PARAMETER = /^\(?\s*_?(context|updateContext)\b/;
-
-/**
- * Whether a function's source still carries the names it was written with.
- *
- * A minifier renames parameters to one or two characters, so `(context)`
- * arrives as `(t)` and any assertion about the NAME becomes an assertion about
- * the build. There is no way to tell a minified name from a wrongly chosen one
- * by inspection, so the only sound thing is to stop asking once the names are
- * gone - which a parameter list of nothing but short identifiers says plainly.
- *
- * @param {string} parameterList Source from the opening parenthesis.
- * @returns {boolean} True when at least one parameter kept a real name.
- */
-function hasReadableParameterNames(parameterList)
-{
-    const close = parameterList.indexOf(")");
-    const declared = close === -1 ? parameterList : parameterList.slice(0, close);
-
-    return /[A-Za-z_$][\w$]{2,}/u.test(declared);
-}
-
 function assertContextFirstMethod(fn, methodName)
 {
     if (typeof fn !== "function")
     {
         return;
     }
-
-    const source = String(fn);
-    const parameterList = source.slice(source.indexOf("("));
 
     // Arity is the contract and holds in any build: a contextual method that
     // takes nothing cannot have been given a context.
@@ -1730,19 +1705,11 @@ function assertContextFirstMethod(fn, methodName)
         );
     }
 
-    // The NAME is an authoring convention, and it is only checkable while the
-    // names exist. Asserting it against a minified bundle threw on every
-    // contextual method in the shipped build and took the engine down at load
-    // - the failure is the assertion's, not the code's.
-    if (!hasReadableParameterNames(parameterList)) return;
+    // Parameter spelling is checked by lint_source_style against authored
+    // source. Runtime reflection cannot distinguish a renamed parameter from
+    // an incorrectly authored one, including minified names longer than two
+    // letters or defaults which still contain readable property names.
 
-    if (!CONTEXT_FIRST_PARAMETER.test(parameterList))
-    {
-        throw new TypeError(
-            `CjsSchema.carbon.contextual method "${String(methodName)}" must be context-first ` +
-            "(first parameter named context or updateContext)."
-        );
-    }
 }
 
 function methodDecorator(namespace, value)
@@ -3207,7 +3174,7 @@ function enrichEnumField(exported, Constructor)
         ...exported,
         enum: {
             ...exported.enum,
-            identity: `${CjsSchema.getClassName(owner) || owner.name}.${enumType}`,
+            identity: `${requireRegisteredClassName(owner)}.${enumType}`,
             members
         }
     };
@@ -3268,9 +3235,9 @@ function describeValuesInput(value)
     if (value === undefined) return "undefined";
     if (Array.isArray(value)) return "an array";
     if (typeof value !== "object") return `a ${typeof value}`;
-    // Arbitrary input: ours answers by registered name; anything unstamped is
-    // a platform or caller type, whose constructor name is all there is.
-    const name = value.constructor ? getRegisteredClassName(value.constructor) ?? value.constructor.name : null;
+    // Invalid arbitrary input is already rejected by assertValues. Describe an
+    // undeclared class generically; never infer its identity from Function.name.
+    const name = value.constructor ? getRegisteredClassName(value.constructor) : null;
     return name ? `an instance of ${name}` : "an object without Object.prototype";
 }
 

@@ -9,7 +9,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { rollup } from "rollup";
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const publishedRoot = path.join(packageRoot, "npm");
+const publishedRoot = path.join(packageRoot, process.env.CJS_MINIFIED_TEST === "1" ? ".cache/minified-test" : "npm");
 const require = createRequire(path.join(packageRoot, "package.json"));
 
 // This consumer resolver implements only this package's string exports/imports

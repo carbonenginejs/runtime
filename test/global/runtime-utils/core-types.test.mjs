@@ -1511,18 +1511,15 @@ test("records carbon.contextual tier provenance", () => {
     assert.throws(() => CjsSchema.meta.blue.contextual([]), TypeError);
     assert.throws(() => CjsSchema.meta.blue.contextual(["  "]), TypeError);
 
-    // Context-first validation: a contextual method whose first parameter is
-    // not the frame context throws at decoration time.
-    class NotContextFirst
+    // Runtime validation must accept mangled parameters even when a default
+    // expression retains a readable property name. Source lint owns spelling.
+    class MinifiedContextual
     {
-        ApplyTransform(transform, out)
-        {}
+        ApplyTransform(abc, out = { readableProperty: true }) { return abc; }
     }
-    CjsSchema.define(NotContextFirst, { className: "NotContextFirst", family: "test" });
-    assert.throws(
-        () => CjsSchema.decorateMethod(NotContextFirst, "ApplyTransform", CjsSchema.meta.blue.contextual(["camera"])),
-        /context-first/
-    );
+    CjsSchema.define(MinifiedContextual, { className: "MinifiedContextual", family: "test" });
+    assert.doesNotThrow(() => CjsSchema.decorateMethod(MinifiedContextual,
+        "ApplyTransform", CjsSchema.meta.blue.contextual(["camera"])));
 
     class ZeroArgContextual
     {
@@ -1532,8 +1529,7 @@ test("records carbon.contextual tier provenance", () => {
     CjsSchema.define(ZeroArgContextual, { className: "ZeroArgContextual", family: "test" });
     // ARITY, not naming: a method taking nothing cannot have been given a
     // context, and `fn.length` survives minification where parameter NAMES do
-    // not. The name check above is skipped once a build has renamed them, so
-    // this case must be caught by the half that always holds (5b23597c).
+    // not. Source lint, rather than runtime reflection, checks parameter names.
     assert.throws(
         () => CjsSchema.decorateMethod(ZeroArgContextual, "Tick", CjsSchema.meta.blue.contextual(["camera"])),
         /must take a context as its first parameter/

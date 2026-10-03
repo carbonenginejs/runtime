@@ -18,6 +18,8 @@ const
  */
 export class CjsError extends Error
 {
+    /** Stable error identity independent of minified constructor names. */
+    static className = "CjsError";
 
     /**
      * Creates an operational error.
@@ -41,7 +43,7 @@ export class CjsError extends Error
 
         super(normalizedMessage, errorOptions);
 
-        this.name = new.target.name;
+        this.name = new.target.className;
 
         Object.defineProperties(this, {
             code: {

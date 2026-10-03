@@ -1,3 +1,4 @@
+import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { blue } from "../../npm/dist/global/blue/index.js";
@@ -11,8 +12,8 @@ import { Tr2Sprite2dD3DVertex } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2
 import { Tr2Sprite2dPolygon } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2dPolygon.js";
 import { Tr2Sprite2dClipRect } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2dClipRect.js";
 
-for(const Class of [Tr2Sprite2dVertexBase,Tr2Sprite2dVertex,Tr2Sprite2dD3DVertex])test(Class.name+" loses inherited model helpers while retaining independent typed vertex storage",()=>{
- const a=blue.classes.CreateInstanceFromName(Class.name),b=new Class();assert.equal(a.constructor,Class);assert.equal(Object.getPrototypeOf(Tr2Sprite2dVertexBase.prototype),Object.prototype);
+for(const Class of [Tr2Sprite2dVertexBase,Tr2Sprite2dVertex,Tr2Sprite2dD3DVertex])test(getRegisteredClassName(Class)+" loses inherited model helpers while retaining independent typed vertex storage",()=>{
+ const a=blue.classes.CreateInstanceFromName(getRegisteredClassName(Class)),b=new Class();assert.equal(a.constructor,Class);assert.equal(Object.getPrototypeOf(Tr2Sprite2dVertexBase.prototype),Object.prototype);
  for(const key of ["SetValues","GetValues","Clone","OnEvent","Traverse","GetResources"])assert.equal(key in a,false);assert.equal("from" in Class,false);
  assert.deepEqual([...a.position],[0,0,0]);assert.deepEqual([...a.color],[1,1,1,1]);assert.deepEqual(a.texCoord.map(value=>[...value]),[[0,0],[0,0]]);
  for(const key of ["position","color"])assert.notEqual(a[key],b[key]);assert.notEqual(a.texCoord,b.texCoord);assert.notEqual(a.texCoord[0],a.texCoord[1]);assert.notEqual(a.texCoord[0],b.texCoord[0]);

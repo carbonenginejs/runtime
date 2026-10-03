@@ -1,3 +1,4 @@
+import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -12,8 +13,8 @@ import { Tr2UpscalingTechniqueInfo } from "../../npm/dist/trinity/core/device/Tr
 for(const [Class,fields,types,defaults]of [
  [Tr2Sprite2dTriangle,["index0","index1","index2"],["uint16","uint16","uint16"],[0,0,0]],
  [Tr2UpscalingTechniqueInfo,["technique","supportedSettings","framegeneration"],["uint32","uint32","boolean"],[0,0,false]]
-])test(Class.name+" factory exposes its record fields without model conveniences",()=>{
- const value=blue.classes.CreateInstanceFromName(Class.name);assert.equal(value.constructor,Class);assert.equal(Object.getPrototypeOf(Class.prototype),Object.prototype);
+])test(getRegisteredClassName(Class)+" factory exposes its record fields without model conveniences",()=>{
+ const value=blue.classes.CreateInstanceFromName(getRegisteredClassName(Class));assert.equal(value.constructor,Class);assert.equal(Object.getPrototypeOf(Class.prototype),Object.prototype);
  assert.deepEqual(Object.keys(value),fields);assert.deepEqual(fields.map(field=>value[field]),defaults);
  assert.deepEqual(fields.map(field=>CjsSchema.getField(Class,field).type.kind),types);
  for(const name of ["SetValues","GetValues","Clone","OnEvent","Traverse","GetResources"])assert.equal(name in value,false);

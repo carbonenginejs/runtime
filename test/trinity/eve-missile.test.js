@@ -1,3 +1,4 @@
+import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
 import test from "node:test";
 import { CjsPerObjectLayouts } from "../../src/trinity/core/rawData/CjsPerObjectLayouts.js";
 import assert from "node:assert/strict";
@@ -31,7 +32,7 @@ test("missile, transform, and mobile classes are maintained Carbon graph owners"
 {
   for (const constructor of [EveTransform, EveMissileWarhead, EveMissile, EveMobile])
   {
-    assert.equal(CjsSchema.GetConstructor(constructor.name), constructor);
+    assert.equal(CjsSchema.GetConstructor(getRegisteredClassName(constructor)), constructor);
   }
   assert.ok(CjsSchema.cast(new EveMissileWarhead(), EveTransform));
   for (const name of ["EveTransform", "EveMissileWarhead", "EveMissile", "EveMobile"])

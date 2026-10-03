@@ -1,5 +1,5 @@
 import { adler32 } from "#utils/checksum";
-import { asUint8Array } from "#utils/bytes";
+import { asUint8Array, getArrayBufferViewName } from "#utils/bytes";
 import {
     generateBiNormals,
     generateNormals,
@@ -768,7 +768,7 @@ export function toJsonValue(value)
     }
     if (ArrayBuffer.isView(value))
     {
-        return { type: value.constructor.name, length: value.length };
+        return { type: getArrayBufferViewName(value), length: value.length };
     }
     if (Array.isArray(value))
     {

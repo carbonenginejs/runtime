@@ -1,3 +1,4 @@
+import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
 import test from "node:test";
 import { ITr2AudEmitter } from "../../npm/dist/audio/trinity/trinityAudioApi/ITr2AudEmitter.js";
 import assert from "node:assert/strict";
@@ -59,7 +60,7 @@ function createGeometryDuck(bones)
 test("EveChildTurret hooks itself as the animation updater's pose modifier", () =>
 {
   const turret = new EveChildTurret();
-  assert.equal(turret.GetTarget().constructor.name, "EveTurretTarget");
+  assert.equal(getRegisteredClassName(turret.GetTarget().constructor), "EveTurretTarget");
   assert.equal(EveChildTurret.State, EveTurretSet.State);
 
   turret.InitializeAnimation();

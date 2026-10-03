@@ -42,6 +42,7 @@ test("format stream declarations reuse Carbon flags and derive both checks", () 
 });
 
 class AudioFormat extends CjsFormat {
+  static className = "AudioFormat";
   static id = "AudioFormat";
   static extensions = [".streams"];
   static outputs = CjsFormat.defineOutputs({ packet: { default: true, outputStreams: STREAM_AUDIO }, inspect: {} });
@@ -49,11 +50,13 @@ class AudioFormat extends CjsFormat {
   static read(_bytes, options) { return { format: this.id, outputStreams: options.outputStreams }; }
 }
 class VideoFormat extends AudioFormat {
+  static className = "VideoFormat";
   static id = "VideoFormat";
   static read(bytes, options) { return super.read(bytes, options); }
   static outputs = CjsFormat.defineOutputs({ packet: { default: true, outputStreams: STREAM_VIDEO } });
 }
 class BothFormat extends AudioFormat {
+  static className = "BothFormat";
   static id = "BothFormat";
   static read(bytes, options) { return super.read(bytes, options); }
   static outputs = CjsFormat.defineOutputs({ packet: { default: true, outputStreams: STREAM_AUDIO_VIDEO } });

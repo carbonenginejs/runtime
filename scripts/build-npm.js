@@ -9,7 +9,7 @@ function rewriteTargets(value)
 {
     if (typeof value === "string")
     {
-        return value.replace(/^\.\/src\//u, "./dist/");
+        return value.replace(/^\.\/src\//u, "./dist/").replace(/^\.\/npm\/dist\//u, "./dist/");
     }
     if (Array.isArray(value)) return value.map(rewriteTargets);
     if (value && typeof value === "object")

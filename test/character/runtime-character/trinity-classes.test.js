@@ -1,3 +1,4 @@
+import { getRegisteredClassName } from "../../../npm/dist/global/compose/className.js";
 import { NotifyModified } from "../../../npm/dist/global/blue/index.js";
 import "../../../npm/dist/trinity/index.js";
 import { finalizeReaderObject } from "../../../npm/dist/global/schema/hydration.js";
@@ -106,7 +107,7 @@ test("the character layer owns ITr2InteriorLight as a field-free nominal Carbon 
     existsSync(new URL("../../../src/character/trinity/interior/ITr2InteriorLight.js", import.meta.url)),
     true
   );
-  assert.equal(CjsSchema.GetConstructor("ITr2InteriorLight").name, "ITr2InteriorLight");
+  assert.equal(getRegisteredClassName(CjsSchema.GetConstructor("ITr2InteriorLight")), "ITr2InteriorLight");
   assert.equal(CjsSchema.getSchema(CjsSchema.GetConstructor("ITr2InteriorLight")).fields.length, 0);
   assert.equal(CjsSchema.getField(Tr2InteriorScene, "lights")?.type?.itemType, "ITr2InteriorLight");
 });

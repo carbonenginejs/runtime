@@ -181,7 +181,8 @@
     "./core": "./src/core/index.js",
     "./core/platform": "./src/core/platform/index.js",
     "./tools": "./src/tools/index.js",
-    "./tools/fileindex": "./src/tools/fileindex/index.js"
+    "./tools/fileindex": "./src/tools/fileindex/index.js",
+    "./min": "./npm/dist/carbonenginejs.min.js"
   },
   "imports": {
     "#global": "./src/global/index.js",
@@ -294,8 +295,8 @@
     "THIRD-PARTY-NOTICES.md"
   ],
   "scripts": {
-    "build:npm": "node scripts/build-npm.js && rollup -c",
-    "lint": "npm run lint:layers && npm run lint:source && npm run lint:optional-calls && npm run lint:instanceof && npm run lint:typed-array-alloc && npm run lint:carbon-methods && npm run lint:class-shape && npm run lint:class-file-naming && npm run lint:donor-coverage && npm run lint:enum-parity && npm run lint:struct-defaults && npm run lint:al-parity && npm run lint:al-contract && npm run lint:trinity && npm run audit:trinity:parity && npm run lint:docs",
+    "build:npm": "node scripts/build-npm.js && rollup -c && node scripts/build-min.js",
+    "lint": "npm run lint:layers && npm run lint:source && npm run lint:optional-calls && npm run lint:instanceof && npm run lint:constructor-name && npm run lint:typed-array-alloc && npm run lint:carbon-methods && npm run lint:class-shape && npm run lint:class-file-naming && npm run lint:donor-coverage && npm run lint:enum-parity && npm run lint:struct-defaults && npm run lint:al-parity && npm run lint:al-contract && npm run lint:trinity && npm run audit:trinity:parity && npm run lint:docs",
     "lint:carbon-methods": "node scripts/trinity/lint-native-method-parity.js",
     "lint:optional-calls": "node scripts/lint-optional-calls.js",
     "lint:layers": "node scripts/lint-layering.js",
@@ -328,7 +329,10 @@
     "test": "npm run check && npm run proof:sof:decorators && npm run proof:audio:decorators && npm run proof:character:decorators && node --test",
     "lint:al-contract": "node scripts/lint-al-contract.js",
     "lint:instanceof": "node scripts/lint-instanceof.js",
-    "lint:typed-array-alloc": "node scripts/lint-typed-array-alloc.js"
+    "lint:typed-array-alloc": "node scripts/lint-typed-array-alloc.js",
+    "lint:constructor-name": "node scripts/lint-constructor-name.js",
+    "test:minified": "node scripts/build-minified-mirror.js && node scripts/run-minified-suite.js",
+    "test:bundle": "node --test scripts/tests/minified-bundle.cases.mjs"
   },
   "engines": {
     "node": ">=18"
@@ -342,8 +346,10 @@
     "@babel/core": "^7.29.7",
     "@babel/parser": "^7.28.3",
     "@babel/plugin-proposal-decorators": "^7.29.7",
+    "@babel/traverse": "^7.29.8",
     "@rollup/plugin-babel": "^7.1.0",
     "@rollup/plugin-json": "^6.1.0",
+    "esbuild": "^0.28.2",
     "playwright": "^1.61.1",
     "rollup": "^4.62.2"
   },

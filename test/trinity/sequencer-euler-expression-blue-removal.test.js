@@ -1,3 +1,4 @@
+import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSchema, meta } from "../../npm/dist/global/schema/index.js";
@@ -22,8 +23,8 @@ for(const [Class,Base,table] of [
  [TriVectorSequencer,ITriVectorFunction,[ITriFunction,ITriVectorFunction]],
  [TriColorSequencer,ITriColorFunction,[ITriFunction,ITriColorFunction,ITriCurveLength]],
  [Tr2CurveEulerRotationExpression,ITriQuaternionFunction,[Tr2CurveEulerRotationExpression,ITriQuaternionFunction,ITriFunction,IInitialize]]
-])test(Class.name+" native base and exact exposure",()=>{
- const instance=blue.classes.CreateInstanceFromName(Class.name);
+])test(getRegisteredClassName(Class)+" native base and exact exposure",()=>{
+ const instance=blue.classes.CreateInstanceFromName(getRegisteredClassName(Class));
  assert.equal(instance.constructor,Class);assert.equal(Object.getPrototypeOf(Class.prototype),Base.prototype);
  assert.deepEqual([...mappedInterfaces(Class)],table);
  for(const method of ["SetValues","GetValues","OnEvent","Clone","Traverse","GetResources"])assert.equal(method in instance,false);
@@ -31,7 +32,7 @@ for(const [Class,Base,table] of [
  const list=new BlueList(ITriFunction);assert.equal(list.Append(instance),true);
 });
 
-for(const [Class,Base,math,n] of [[TriVectorSequencer,ITriVectorFunction,vec3,3],[TriColorSequencer,ITriColorFunction,vec4,4]])test(Class.name+" commits successful sampling and releases failed output lease",()=>{
+for(const [Class,Base,math,n] of [[TriVectorSequencer,ITriVectorFunction,vec3,3],[TriColorSequencer,ITriColorFunction,vec4,4]])test(getRegisteredClassName(Class)+" commits successful sampling and releases failed output lease",()=>{
  class Child extends Base{}meta.blue.interfaceTable({interfaces:[Child,Base],chainTo:null})(Child);
  const curve=new Class(),a=new Child(),b=new Child(),calls=[];curve.functions.Append(a);curve.functions.Append(b);
  a.GetValueAt=(time,out)=>{calls.push(time);out.fill(2);return out;};b.GetValueAt=(_time,out)=>{out.fill(3);return out;};
@@ -56,9 +57,9 @@ test("color length uses declared duration/length interfaces and required methods
  duration.Length=null;assert.throws(()=>curve.Length(),TypeError);
 });
 
-for(const [Class,field,Child]of [[TriVectorSequencer,"functions",Tr2CurveVector3],[TriColorSequencer,"functions",Tr2CurveColor],[Tr2CurveEulerRotationExpression,"inputs",Tr2CurveScalar]])test(Class.name+" declared hydration and copy retain typed list identity",()=>{
+for(const [Class,field,Child]of [[TriVectorSequencer,"functions",Tr2CurveVector3],[TriColorSequencer,"functions",Tr2CurveColor],[Tr2CurveEulerRotationExpression,"inputs",Tr2CurveScalar]])test(getRegisteredClassName(Class)+" declared hydration and copy retain typed list identity",()=>{
  const curve=new Class(),list=curve[field];assert.equal(list instanceof BlueList,true);assert.equal(list.Append({}),false);
- new DictReader({declarations:true}).ReadInto(curve,{[field]:[{_type:Child.name,name:"child"}]});assert.equal(curve[field],list);assert.equal(list[0].constructor,Child);
+ new DictReader({declarations:true}).ReadInto(curve,{[field]:[{_type:getRegisteredClassName(Child),name:"child"}]});assert.equal(curve[field],list);assert.equal(list[0].constructor,Child);
  const copy=new Class(),copyList=copy[field];blue.classes.CopyTo(curve,copy);assert.equal(copy[field],copyList);assert.notEqual(copyList[0],list[0]);assert.equal(copyList[0].name,"child");
  assert.equal(new DictWriter().WriteObject(curve,{}, {persistOnly:true})[field][0].name,"child");
  if(Class!==Tr2CurveEulerRotationExpression){assert.equal(CjsSchema.getField(Class,"name").type.kind,"wstring");assert.equal(CjsSchema.getField(Class,"start").type.kind,"int64");}

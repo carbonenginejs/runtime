@@ -1,3 +1,4 @@
+import { getRegisteredClassName } from "../../../npm/dist/global/compose/className.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
@@ -339,8 +340,8 @@ test("promoted shared and race constructors have one package identity", () => {
     EveSOFDataRaceDamage,
   ])
   {
-    assert.equal(packageRoot[Constructor.name], Constructor, Constructor.name);
-    assert.equal(Constructor.name in generatedQueue, false, Constructor.name);
+    assert.equal(packageRoot[getRegisteredClassName(Constructor)], Constructor, getRegisteredClassName(Constructor));
+    assert.equal(getRegisteredClassName(Constructor) in generatedQueue, false, getRegisteredClassName(Constructor));
   }
 });
 
@@ -394,8 +395,8 @@ test("SOF catalog, area, hull, and hull-area records preserve Carbon shape", () 
     EveSOFDataHullArea,
   ])
   {
-    assert.equal(packageRoot[Constructor.name], Constructor, Constructor.name);
-    assert.equal(Constructor.name in generatedQueue, false, Constructor.name);
+    assert.equal(packageRoot[getRegisteredClassName(Constructor)], Constructor, getRegisteredClassName(Constructor));
+    assert.equal(getRegisteredClassName(Constructor) in generatedQueue, false, getRegisteredClassName(Constructor));
   }
 });
 
@@ -452,8 +453,8 @@ test("SOF faction records retain Carbon color and material-usage defaults", () =
     EveSOFDataFactionVisibilityGroupSet,
   ])
   {
-    assert.equal(packageRoot[Constructor.name], Constructor, Constructor.name);
-    assert.equal(Constructor.name in generatedQueue, false, Constructor.name);
+    assert.equal(packageRoot[getRegisteredClassName(Constructor)], Constructor, getRegisteredClassName(Constructor));
+    assert.equal(getRegisteredClassName(Constructor) in generatedQueue, false, getRegisteredClassName(Constructor));
   }
 });
 
@@ -491,8 +492,8 @@ test("SOF generic records expose the seven Carbon decal usages and embedded bann
     EveSOFDataGenericDecalShader,
   ])
   {
-    assert.equal(packageRoot[Constructor.name], Constructor, Constructor.name);
-    assert.equal(Constructor.name in generatedQueue, false, Constructor.name);
+    assert.equal(packageRoot[getRegisteredClassName(Constructor)], Constructor, getRegisteredClassName(Constructor));
+    assert.equal(getRegisteredClassName(Constructor) in generatedQueue, false, getRegisteredClassName(Constructor));
   }
 });
 
@@ -592,7 +593,7 @@ test("SOF attachment records and runtime-only Carbon helpers are fully promoted"
   assert.equal(unmatched.GetMaterialIdx(), -1);
   assert.equal(unmatched.GetFullName(), "Glow");
 
-  for (const Constructor of [
+  for (const [name, Constructor] of Object.entries({
     EveSOFDataHullDecalSetItem,
     EveSOFDataHullExtensionBucket,
     EveSOFDataHullPlaneSetItem,
@@ -600,10 +601,10 @@ test("SOF attachment records and runtime-only Carbon helpers are fully promoted"
     EveSofDataMeshInstance,
     EveSOFUtilsParameterName,
     IEveSOFDataHullExtensionPlacementDistribution,
-  ])
+  }))
   {
-    assert.equal(packageRoot[Constructor.name], Constructor, Constructor.name);
-    assert.equal(Constructor.name in generatedQueue, false, Constructor.name);
+    assert.equal(packageRoot[name], Constructor, name);
+    assert.equal(name in generatedQueue, false, name);
   }
 });
 
@@ -781,7 +782,7 @@ test("SOF pattern catalogs preserve case-insensitive lookup, editing, and packag
     EveSOFDataPatternTransform,
   ])
   {
-    assert.equal(packageRoot[Constructor.name], Constructor, Constructor.name);
+    assert.equal(packageRoot[getRegisteredClassName(Constructor)], Constructor, getRegisteredClassName(Constructor));
   }
 });
 
@@ -789,14 +790,14 @@ test("SOF extension placements preserve Carbon constructed refs and inherited na
   const first = new EveSOFDataHullExtensionPlacement();
   const second = new EveSOFDataHullExtensionPlacement();
 
-  assert.equal(first.distribution.constructor.name, "EveSOFDataHullExtensionPlacementDistributionPlacement");
-  assert.equal(first.descriptor.constructor.name, "EveSOFDNADescriptor");
+  assert.equal(getRegisteredClassName(first.distribution.constructor), "EveSOFDataHullExtensionPlacementDistributionPlacement");
+  assert.equal(getRegisteredClassName(first.descriptor.constructor), "EveSOFDNADescriptor");
   assert.notEqual(first.distribution, second.distribution);
   assert.notEqual(first.descriptor, second.descriptor);
 
   const parent = new EveSOFDataHullExtensionPlacementDistributionParentMatch();
   const nextParent = new EveSOFDataHullExtensionPlacementDistributionParentMatch();
-  assert.equal(parent.parentDescriptor.constructor.name, "EveSOFDNADescriptor");
+  assert.equal(getRegisteredClassName(parent.parentDescriptor.constructor), "EveSOFDNADescriptor");
   assert.notEqual(parent.parentDescriptor, nextParent.parentDescriptor);
 
   for (const condition of [

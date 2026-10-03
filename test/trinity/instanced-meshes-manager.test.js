@@ -1,3 +1,4 @@
+import { RawData } from "../../npm/dist/trinity/core/rawData/RawData.js";
 // EveChildInstancedMeshes - the InstancedMeshProvider registration lifecycle
 // (EveChildInstancedMeshes.cpp: AddMeshesToManager cpp:472-553,
 // UnregisterFromMeshManager cpp:50-71, SetShaderOption cpp:343-359,
@@ -155,7 +156,7 @@ test("AddMeshesToManager: full registration, add-once idempotence, hasUpdated ga
   const manager = MakeManager();
   provider.AddMeshesToManager(manager);
   assert.equal(manager.calls.perObject.length, 1, "one per-object registration");
-  assert.equal(manager.calls.perObject[0].data.constructor.name, "RawData",
+  assert.equal(manager.calls.perObject[0].data.constructor, RawData,
     "per-object payload is the terminal CPU record");
   assert.equal(manager.calls.spheres.length, 1, "one sphere group per mesh");
   assert.equal(manager.calls.spheres[0].count, 2, "instance sphere count");

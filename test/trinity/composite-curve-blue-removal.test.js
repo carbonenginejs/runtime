@@ -1,3 +1,4 @@
+import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -20,7 +21,7 @@ const cases=[
 ];
 for(const [Class,components,Base,interfaces] of cases)
 {
-    const name=Class.name;
+    const name=getRegisteredClassName(Class);
     test(`${name} is a model-free native function with independent scalar storage`,()=>
     {
         const curve=blue.classes.CreateInstanceFromName(name);

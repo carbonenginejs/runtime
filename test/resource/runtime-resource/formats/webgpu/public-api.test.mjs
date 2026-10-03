@@ -1,3 +1,4 @@
+import { CarbonWebgpuContainer } from "../../../../../src/resource/formats/webgpu/core/carbonWebgpu/CarbonWebgpuContainer.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
@@ -133,7 +134,7 @@ test("the internal container resolves bodies, and the emit publishes its answer"
     const bytes = sampleBytes();
     const container = readContainer(bytes);
 
-    assert.equal(container.constructor.name, "CarbonWebgpuContainer");
+    assert.equal(container.constructor, CarbonWebgpuContainer);
     assert.equal(container.IsGood(), true);
     assert.equal(container.carbon.version, 15);
 

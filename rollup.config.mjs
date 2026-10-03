@@ -55,7 +55,7 @@ const input = Array.from(new Set([
     ...collectTargets(manifest.exports).flatMap(expandTarget),
     ...privateInputs
 ]))
-    .filter(target => target.endsWith(".js") && !unpublishedInputs.has(target));
+    .filter(target => target.startsWith("src/") && target.endsWith(".js") && !unpublishedInputs.has(target));
 
 function packageName(id)
 {

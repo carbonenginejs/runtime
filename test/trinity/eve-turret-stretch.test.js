@@ -1,3 +1,4 @@
+import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
 ﻿import test from "node:test";
 import { CjsPerObjectLayouts } from "../../src/trinity/core/rawData/CjsPerObjectLayouts.js";
 import assert from "node:assert/strict";
@@ -39,7 +40,7 @@ test("stretch and turret classes are maintained in their Carbon families", () =>
     EveTurretTarget
   ])
   {
-    assert.equal(CjsSchema.GetConstructor(constructor.name), constructor);
+    assert.equal(CjsSchema.GetConstructor(getRegisteredClassName(constructor)), constructor);
   }
 
   assert.equal(existsSync(new URL("../../src/trinity/eve/renderable/stretch/EveRemotePositionCurve.js", import.meta.url)), true);

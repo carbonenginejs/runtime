@@ -1,3 +1,4 @@
+import { getRegisteredClassName } from "../../../npm/dist/global/compose/className.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { pathToFileURL } from "node:url";
@@ -441,7 +442,7 @@ test("Black, BNK, and WEM format facades declare worker module identities", asyn
   for (const Format of [ CjsBlackFormat, CjsBnkFormat, CjsWemFormat ]) {
     assert.equal(typeof Format.worker.module, "string");
     assert.equal(Format.worker.module.startsWith("file:"), true);
-    assert.equal(Format.worker.exportName, Format.name);
+    assert.equal(Format.worker.exportName, getRegisteredClassName(Format));
   }
   assert.deepEqual(CjsBlackFormat.worker.outputTypes, [ "json", "payload" ]);
   assert.equal(CjsBlackFormat.worker.defaultOutput, "json");
