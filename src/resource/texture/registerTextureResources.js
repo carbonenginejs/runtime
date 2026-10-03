@@ -8,8 +8,8 @@
 // reason `RegisterShaderResources` does not - so this is an explicit call made
 // by whoever composes a manager.
 //
-// The read is the loader rather than the resource's own `DoLoad` because one
-// format needs it: PNG decodes through `DecompressionStream`, which is
+// The read is the loader rather than the resource's own `DoLoad` because two
+// formats need it: PNG and VTA decode through `DecompressionStream`, which is
 // asynchronous, and `SetPayload` is not. The loader therefore does what
 // Carbon's DoLoad does, and hands the resource the finished bitmap.
 import * as CcpLog from "../../global/logging/ccpLog.js";
@@ -28,7 +28,7 @@ import { ResourceRequirement } from "#blue";
  *
  * Carbon lists dds, png, sdd, tga, jpg, jpeg, bmp, ecs, ctr and vta. These are
  * the ones an image handler is registered for here; `bmp`, `ecs`, `sdd`,
- * `ctr` and `vta` join their handlers as those land.
+ * and `ctr` join their handlers as those land.
  */
 export const TextureResourceExtensions = Object.freeze([
   "dds",
@@ -36,6 +36,7 @@ export const TextureResourceExtensions = Object.freeze([
   "jpg",
   "jpeg",
   "tga",
+  "vta",
   "gif"
 ]);
 

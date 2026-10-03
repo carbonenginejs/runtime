@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { buildVta } from "../support/vtaFixture.js";
 
 import { CjsBlueResMan, RegisterTextureResources, TextureResourceExtensions, TriTextureRes, Tr2ImageRes } from "../../npm/dist/resource/index.js";
 import { HostBitmap } from "../../npm/dist/global/imageio/index.js";
@@ -38,7 +39,7 @@ function managerServing(path, bytes, options = {})
 
 test("RegisterTextureResources routes Carbon's image extensions", () =>
 {
-  assert.deepEqual([ ...TextureResourceExtensions ], [ "dds", "png", "jpg", "jpeg", "tga", "gif" ]);
+  assert.deepEqual([ ...TextureResourceExtensions ], [ "dds", "png", "jpg", "jpeg", "tga", "vta", "gif" ]);
   assert.throws(() => RegisterTextureResources({}), TypeError);
   assert.throws(() => RegisterTextureResources(new CjsBlueResMan(), { Handler: HostBitmap }), TypeError);
 });
@@ -227,4 +228,20 @@ test("a loaded texture resource handed to a runtime texture parameter is made on
   parameter.CopyToResourceSet(description, 5, 2, 0, StubContext());
   assert.notEqual(bound, null);
   assert.equal(resource.GetTexture(), bound, "made once, kept on the resource");
+});
+
+test("VTA textures load the first volume frame through the ordinary texture resource route", async () =>
+{
+  const path = "res:/cloud/density.vta";
+  const bytes = buildVta({
+    grids: [ { name: "density", encoding: 0, width: 2, height: 1, depth: 2 } ],
+    frames: [ [ [ 1, 2, 3, 4 ] ], [ [ 5, 6, 7, 8 ] ] ]
+  });
+  const resource = await managerServing(path, bytes).LoadObject(path);
+  assert.equal(resource.constructor, TriTextureRes);
+  const bitmap = resource.GetBitmap();
+  assert.equal(bitmap.constructor, HostBitmap);
+  assert.equal(bitmap.GetFormat(), PixelFormat.PIXEL_FORMAT_R8_UNORM);
+  assert.deepEqual([ resource.width, resource.height, bitmap.GetDepth() ], [ 2, 1, 2 ]);
+  assert.deepEqual(Array.from(bitmap.GetRawData()), [ 1, 2, 3, 4 ]);
 });

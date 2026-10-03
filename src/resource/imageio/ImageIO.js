@@ -14,6 +14,8 @@ import { CjsJpegFormat } from "../formats/jpeg/CjsJpegFormat.js";
 import { CjsPngFormat } from "../formats/png/CjsPngFormat.js";
 import { CjsTgaFormat } from "../formats/tga/CjsTgaFormat.js";
 
+import { CjsVtaFormat } from "../formats/vta/CjsVtaFormat.js";
+
 const Code = ImageIOResult.Code;
 
 /** Registered handler tables, first match wins (GetImageHandlers). */
@@ -41,6 +43,7 @@ export class ImageIO
     ImageIO.registerImageHandler(CjsJpegFormat.carbon);
     ImageIO.registerImageHandler(CjsPngFormat.carbon);
     ImageIO.registerImageHandler(CjsTgaFormat.carbon);
+    ImageIO.registerImageHandler(CjsVtaFormat.carbon);
     ImageIO.registerImageHandler(CjsGifFormat.carbon);
   }
 
@@ -102,7 +105,7 @@ export class ImageIO
   }
 
   /**
-   * `readImage` that also serves formats whose decoder is asynchronous (PNG).
+   * `readImage` that also serves formats whose decoder is asynchronous (PNG and VTA).
    *
    * Not Carbon: see CjsImageFormat.readImageAsync.
    *

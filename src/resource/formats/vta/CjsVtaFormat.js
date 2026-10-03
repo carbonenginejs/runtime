@@ -1,4 +1,7 @@
 import { asUint8Array } from "#utils/bytes";
+import { ImageIOResult } from "#imageio";
+import { PixelFormatFromCanonical } from "#consts/render-context";
+import { CjsImageFormat } from "../../format/CjsImageFormat.js";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import {
     DEFAULT_VALUES,
@@ -23,7 +26,7 @@ const FORMAT_NAME = "CjsVtaFormat";
 /**
  * VTA format profile - Carbon's Volume Texture Animation container.
  *
- * Extends CjsFormat in runtime's resource layer. Callers supply bytes and receive
+ * Extends CjsImageFormat in runtime's resource layer. Callers supply bytes and receive
  * raw bytes, structural debug JSON, or decoded R8 volume payloads. This class
  * owns container inspection and decoding; it performs no resource acquisition,
  * filesystem access, playback scheduling or GPU texture allocation.
@@ -43,7 +46,7 @@ const FORMAT_NAME = "CjsVtaFormat";
  * select frame zero and all grids; callers can select a grid explicitly.
  * Carbon's separate static-texture path uses grid zero and frame zero.
  */
-export class CjsVtaFormat extends CjsFormat
+export class CjsVtaFormat extends CjsImageFormat
 {
     /** Registered name; `constructor.name` does not survive minification. */
     static className = "CjsVtaFormat";
@@ -243,6 +246,46 @@ export class CjsVtaFormat extends CjsFormat
         raw: { role: "debug", default: true, passthrough: true }
 
     });
+
+    /**
+     * Browser inflation uses asynchronous DecompressionStream; use readImageAsync.
+     *
+     * @returns {ImageIOResult} Synchronous decoding is unavailable.
+     */
+    // adapted: the browser inflation API is asynchronous; format readers are decorator-free.
+    static readImageNative()
+    {
+        return new ImageIOResult(ImageIOResult.Code.METHOD_NOT_SUPPORTED, "VTA decodes asynchronously; use readImageAsync");
+    }
+
+    /**
+     * Carbon's static VTA image: grid zero, frame zero, one volume mip and metadata.
+     * Source: imageio/VtaHandler.cpp:504-530 (ReadImage), 424-437 (FrameDecoder).
+     * Browser DecompressionStream forces an asynchronous read; animation remains
+     * owned by Tr2TextureAnimation. The existing decoder supports R8 volumes.
+     *
+     * @param {Uint8Array|ArrayBuffer} input VTA bytes.
+     * @param {object} _loadParameters Carbon ignores mip selection for VTA.
+     * @param {object} bitmap Destination HostBitmap.
+     * @param {object|null} [metadata] Optional Metadata out.
+     * @returns {Promise<ImageIOResult>} Read status.
+     */
+    // adapted: the browser inflation API is asynchronous; format readers are decorator-free.
+    static async readImageNativeAsync(input, _loadParameters, bitmap, metadata = null)
+    {
+        const description = this.inspect(input);
+        if (!description.frameCount || !description.gridCount)
+            return new ImageIOResult(ImageIOResult.Code.INVALID_DATA);
+
+        const volume = await this.readAsync(input, { emit: "volume", grid: 0, frame: 0, allFrames: false });
+        const grid = volume.grids[0];
+        if (!bitmap.CreateVolume(grid.width, grid.height, grid.depth, 1, PixelFormatFromCanonical[grid.format]))
+            return new ImageIOResult(ImageIOResult.Code.OUT_OF_MEMORY);
+
+        bitmap.GetRawData().set(grid.frames[0]);
+        if (metadata) metadata.metadata = Object.entries(volume.metadata);
+        return new ImageIOResult(ImageIOResult.Code.OK);
+    }
 
     static extensions = [ ".vta" ];
 }

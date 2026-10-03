@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { buildVta } from "../support/vtaFixture.js";
 
 import { ImageIO, HostBitmap, LoadParameters, ImageIOResult, Metadata } from "../../npm/dist/resource/imageio/index.js";
 import { CjsDdsFormat } from "../../npm/dist/resource/formats/dds/index.js";
-import { PixelFormat as F } from "../../npm/dist/global/consts/renderContext/index.js";
+import { PixelFormat as F, TextureType } from "../../npm/dist/global/consts/renderContext/index.js";
 import { blue } from "../../npm/dist/global/blue/index.js";
 
 /** A legacy (non-DX10) uncompressed DDS: 32-bit masks, no mips unless mipCount > 1. */
@@ -161,4 +162,39 @@ test("PNG reads into a HostBitmap through the async path, as BGRA", async () =>
   assert.equal(r.IsOk(), true, r.GetErrorMessage());
   assert.equal(bitmap.GetFormat(), F.PIXEL_FORMAT_B8G8R8A8_UNORM);
   assert.deepEqual([ ...bitmap.GetRawData() ], [ 30, 20, 10, 40 ]);
+});
+
+test("VTA static loading selects grid zero and frame zero with volume dimensions and metadata", async () =>
+{
+  const bytes = buildVta({
+    grids: [ { name: "density", encoding: 0, width: 2, height: 1, depth: 2 },
+      { name: "temperature", encoding: 0, width: 1, height: 1, depth: 1 } ],
+    frames: [ [ [ 1, 2, 3, 4 ], [ 90 ] ], [ [ 5, 6, 7, 8 ], [ 91 ] ] ],
+    metadata: { author: "fixture" }
+  });
+  const bitmap = new HostBitmap(), metadata = new Metadata();
+  const parameters = new LoadParameters("volume.VTA", 3);
+  assert.equal(ImageIO.readImage(bytes, parameters, bitmap).code, ImageIOResult.Code.METHOD_NOT_SUPPORTED);
+  const result = await ImageIO.readImageAsync(bytes, parameters, bitmap, metadata);
+  assert.equal(result.IsOk(), true, result.GetErrorMessage());
+  assert.equal(bitmap.GetType(), TextureType.TEX_TYPE_3D);
+  assert.equal(bitmap.GetFormat(), F.PIXEL_FORMAT_R8_UNORM);
+  assert.deepEqual([ bitmap.GetWidth(), bitmap.GetHeight(), bitmap.GetDepth(), bitmap.GetMipCount() ], [ 2, 1, 2, 1 ]);
+  assert.deepEqual(Array.from(bitmap.GetRawData()), [ 1, 2, 3, 4 ]);
+  assert.deepEqual(metadata.metadata, [ [ "author", "fixture" ] ]);
+
+  const allocationFailure = { CreateVolume: () => false };
+  assert.equal((await ImageIO.readImageAsync(bytes, parameters, allocationFailure)).code, ImageIOResult.Code.OUT_OF_MEMORY);
+});
+
+test("VTA static loading rejects zero frames or zero grids (VtaHandler.cpp:512-515)", async () =>
+{
+  for (const fixture of [
+    { grids: [], frames: [ [] ] },
+    { grids: [ { name: "density", encoding: 0, width: 1, height: 1, depth: 1 } ], frames: [] }
+  ])
+  {
+    const result = await ImageIO.readImageAsync(buildVta(fixture), new LoadParameters("empty.vta"), new HostBitmap());
+    assert.equal(result.code, ImageIOResult.Code.INVALID_DATA);
+  }
 });
