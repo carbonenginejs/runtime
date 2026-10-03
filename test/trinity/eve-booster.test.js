@@ -15,6 +15,7 @@ import {
   EveTrailsSet,
   TriFrustum
 } from "../../npm/dist/trinity/index.js";
+import { TriGeometryRes } from "../../npm/dist/resource/index.js";
 
 
 const assertVecNear = (actual, expected, epsilon = 1e-6) =>
@@ -32,8 +33,10 @@ test("EveTrailsSet preserves Carbon trail records without realizing geometry", (
   const trails = new EveTrailsSet();
   const transform = mat4.fromTranslation(mat4.create(), [1, 2, 3]);
   const effect = {};
-  // The TriGeometryRes surface the set reads: its load events and mesh count.
-  const geometry = { OnCompleted() {}, OffEvent() {}, IsGood: () => false, GetMeshCount: () => 0 };
+  // A real TriGeometryRes still loading: the set joins its notify targets and
+  // realizes nothing until it completes.
+  const geometry = new TriGeometryRes();
+  geometry.MarkLoading();
   assert.equal(trails.GetFadeSpeed(), 1);
   trails.SetEffect(effect);
   trails.SetMeshResPath("res:/trail.gr2");
@@ -43,7 +46,7 @@ test("EveTrailsSet preserves Carbon trail records without realizing geometry", (
 
   assert.equal(trails.effect, effect);
   assert.equal(trails.geometryResPath, "res:/trail.gr2");
-  assert.equal(trails.geometryResource, geometry);
+  assert.ok(trails.geometryResource === geometry, "trails keep the bound geometry");
   assert.equal(trails.GetTrailData()[0].transform[12], 1);
   assert.equal(trails.GetTrailData()[0].size, 4);
   const snapshot = trails.GetTrailData();

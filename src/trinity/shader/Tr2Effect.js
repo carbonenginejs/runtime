@@ -298,7 +298,7 @@ export class Tr2Effect extends Tr2Material
   {
     if (this._destroyed) return;
     this._destroyed = true;
-    if (this.effectResource) this.effectResource.OffEvent("*", null, this);
+    if (this.effectResource) this.effectResource.RemoveNotifyTarget(this);
     for (const resource of this.resources) resource.OnRemovedFromMaterial(this);
     for (const parameter of this._ownedProviders.keys()) this._ReleaseOwnedProvider(parameter);
     this._ClearPassBindings();
@@ -313,11 +313,23 @@ export class Tr2Effect extends Tr2Material
    */
   insideStartUpdate = false;
 
-  /** Carbon method RebuildCachedData -> RebuildCachedDataInternal (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon's two RebuildCachedData overloads (Tr2Effect.cpp:823-840). With a
+   * resource it is the notify-target call: only this effect's own resource
+   * rebuilds, through the insideStartUpdate-clearing body. Without one it is the
+   * Blue method (MAP_METHOD_AND_WRAP to RebuildCachedDataInternal).
+   *
+   * @param {object} [resource] Resource that finished loading.
+   */
   @meta.blue.method
   @meta.adapted
-  RebuildCachedData()
+  RebuildCachedData(resource)
   {
+    if (resource !== undefined)
+    {
+      if (resource === this.effectResource) this.RebuildCachedDataAsync();
+      return;
+    }
     this.RebuildCachedDataInternal();
   }
 
@@ -854,18 +866,10 @@ export class Tr2Effect extends Tr2Material
    * Acquires the effect resource for the resolved path, if a manager is
    * installed and this effect has not been handed one already.
    *
-   * Carbon fetches through the process-wide manager and registers a notify
-   * target (`BeResMan->GetResource(...)` then `AddNotifyTarget(this)`,
-   * Tr2Effect.cpp:397-402). That mechanism is not ported: this runtime replaced
-   * notify targets with events, `CjsResource` is a `CjsEventEmitter`, and
-   * nothing in `src` has an `AddNotifyTarget`. The equivalent is subscribing to
-   * the resource's `completed` event through `OnCompleted`, which replays for a
-   * late subscriber - so a resource that is already prepared rebuilds
-   * immediately rather than waiting for a state change that has been and gone.
-   *
-   * The resource owns the subscription, which is what keeps Trinity out of the
-   * lifecycle; `shader.test.js` asserts exactly that by throwing from an
-   * `AddNotifyTarget` on a test resource.
+   * Carbon fetches through the process-wide manager and registers this effect
+   * as a notify target (`BeResMan->GetResource(...)` then `AddNotifyTarget(this)`,
+   * Tr2Effect.cpp:397-402); so does this. A resource that is already prepared
+   * calls RebuildCachedData at once, and every later reload calls it again.
    *
    * Does nothing when no manager is installed or the path did not resolve.
    * Both are real states - a caller composing by hand assigns `effectResource`
@@ -885,9 +889,7 @@ export class Tr2Effect extends Tr2Material
     });
 
     this.effectResource = resource;
-    // `source` is this effect, so a later Initialize can drop the subscription
-    // in one call rather than tracking listeners individually.
-    resource.OnCompleted(() => this.RebuildCachedDataAsync(), this);
+    resource.AddNotifyTarget(this);
     resource.Ready?.();
   }
 
@@ -989,10 +991,14 @@ export class Tr2Effect extends Tr2Material
 
   /**
    * Drops the resolved shader and clears every parameter's and resource's effect
-   * handles by rebuilding them against null.
+   * handles by rebuilding them against null. As a notify target
+   * (Tr2Effect.cpp:842-855) it acts only for this effect's own resource.
+   *
+   * @param {object} [resource] Resource that released its payload.
    */
-  ReleaseCachedData()
+  ReleaseCachedData(resource)
   {
+    if (resource !== undefined && resource !== this.effectResource) return;
     this.shader = null;
     for (const parameter of this.parameters)
     {

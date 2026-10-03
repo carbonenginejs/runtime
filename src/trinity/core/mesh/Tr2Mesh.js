@@ -58,13 +58,19 @@ export class Tr2Mesh extends Tr2MeshBase
   _loadFenceResource = null;
   _loadFenceReached = true;
 
-  /** Retains completion across purges and drops the one pending subscription. */
-  _loadFenceCompleted = (_event, resource) =>
-  {
-    if (resource !== this._loadFenceResource) return;
-    this._loadFenceReached = true;
-    resource.OffEvent("completed", this._loadFenceCompleted, this);
-    this._loadFenceResource = null;
+  /**
+   * One-shot notify target for the load fence: records completion, then
+   * removes itself, so a later purge and reload does not reopen the fence.
+   */
+  _loadFenceTarget = {
+    RebuildCachedData: resource =>
+    {
+      if (resource !== this._loadFenceResource) return;
+      this._loadFenceReached = true;
+      resource.RemoveNotifyTarget(this._loadFenceTarget);
+      this._loadFenceResource = null;
+    },
+    ReleaseCachedData: () => {}
   };
 
   /**
@@ -101,7 +107,7 @@ export class Tr2Mesh extends Tr2MeshBase
   @meta.adapted
   InitializeGeometryResource()
   {
-    if (this._loadFenceResource) this._loadFenceResource.OffEvent("completed", this._loadFenceCompleted, this);
+    if (this._loadFenceResource) this._loadFenceResource.RemoveNotifyTarget(this._loadFenceTarget);
     this._loadFenceResource = null;
     this._loadFenceReached = true;
     if (!this.geometryResPath)
@@ -133,7 +139,7 @@ export class Tr2Mesh extends Tr2MeshBase
     // low-detail sibling exists. Capture that request even if it is later unbound.
     this._loadFenceResource = lowRes ?? geometry;
     this._loadFenceReached = !this._loadFenceResource;
-    if (this._loadFenceResource) this._loadFenceResource.OnCompleted(this._loadFenceCompleted, this);
+    if (this._loadFenceResource) this._loadFenceResource.AddNotifyTarget(this._loadFenceTarget);
     this.SetLowResGeometryRes(lowRes);
     this.SetGeometryRes(geometry);
   }
@@ -185,37 +191,27 @@ export class Tr2Mesh extends Tr2MeshBase
 
   /**
    * Carbon SetGeometryRes (cpp:60-74): detach from the old resource, bind the
-   * new one, attach to it. Carbon's attachment is AddNotifyTarget, whose
-   * contract is that an already-prepared resource calls back immediately
-   * (BlueAsyncRes.cpp:274-276); OnCompleted has the same rule, so a resource
-   * that is already good rebuilds here rather than on a later frame.
+   * new one, attach to it with AddNotifyTarget, whose contract is that an
+   * already-prepared resource calls back immediately (BlueAsyncRes.cpp:274-276),
+   * so a resource that is already good rebuilds here rather than on a later frame.
    */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Carbon's IBlueAsyncResNotifyTarget pair becomes the resource's own completion event; a caller-supplied object with no lifecycle (tests, hand-composed graphs) is treated as already complete.")
+  @meta.implemented
   SetGeometryRes(resource)
   {
     const next = resource ?? null;
     const previous = this.geometry;
     if (previous === next) return;
 
-    if (previous && typeof previous.OffEvent === "function")
-    {
-      previous.OffEvent("completed", this._geometryCompleted, this);
-    }
+    if (previous) previous.RemoveNotifyTarget(this);
 
     this.geometry = next;
     // Direct mutation bypasses SetValues, so schedule the declared consequence
     // explicitly; maintained class code may add declared rebuild tokens.
 
 
-    if (!next) return;
-    if (typeof next.OnCompleted === "function") next.OnCompleted(this._geometryCompleted, this);
-    else this.RebuildCachedData(next);
+    if (next) next.AddNotifyTarget(this);
   }
-
-  /** Bound to this mesh so the resource can be unsubscribed by identity. */
-  _geometryCompleted = (_event, resource) => this.RebuildCachedData(resource ?? this.geometry);
 
   /**
    * Carbon RebuildCachedData (cpp:185-196): the notify target's rebuild half -
@@ -244,23 +240,24 @@ export class Tr2Mesh extends Tr2MeshBase
    * SetGeometryRes, for the stand-in shown while the authored mesh loads.
    */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Carbon's IBlueAsyncResNotifyTarget pair becomes the resource's own completion event, as in SetGeometryRes.")
+  @meta.implemented
   SetLowResGeometryRes(resource)
   {
     const next = resource ?? null;
     const previous = this.lowResGeometry;
     if (previous === next) return;
 
-    if (previous && typeof previous.OffEvent === "function")
-    {
-      previous.OffEvent("completed", this._geometryCompleted, this);
-    }
+    if (previous) previous.RemoveNotifyTarget(this);
 
     this.lowResGeometry = next;
-    if (!next) return;
-    if (typeof next.OnCompleted === "function") next.OnCompleted(this._geometryCompleted, this);
-    else this.RebuildCachedData(next);
+    if (next) next.AddNotifyTarget(this);
+  }
+
+  /** Carbon ReleaseCachedData (cpp:198-200): nothing cached to drop. */
+  @meta.blue.method
+  @meta.implemented
+  ReleaseCachedData(_resource)
+  {
   }
 
   /**

@@ -328,7 +328,7 @@ test("equal effect-path writes do not initialize or emit again", () =>
   {
     AddNotifyTarget()
     {
-      throw new Error("Trinity must not own EffectRes notification lifecycle");
+      throw new Error("a hand-assigned effect resource must not be re-registered");
     }
   }
   effect.effectResource = new TestEffectRes();

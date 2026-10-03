@@ -146,17 +146,6 @@ export class Tr2GrannyAnimation
   /** Whether grannyRes was borrowed from the mesh rather than resolved here. */
   _sharedGeometry = false;
 
-  /**
-   * The borrowed geometry finished loading or reloading (Carbon's notify
-   * target, Tr2GrannyAnimation.cpp:293): rebuild from its granny file unless
-   * the model was already built from that same file.
-   */
-  _geometryCompleted = (_event, resource) =>
-  {
-    if (resource !== this.grannyRes) return;
-    if (this._runtimeModel && this._runtimeModel.source === this._GetAnimationSource()) return;
-    this.RebuildCachedData();
-  };
 
   _morphAnimations = new Map();
 
@@ -309,14 +298,28 @@ export class Tr2GrannyAnimation
     // Carbon cpp:288-294: leave the old geometry's notify targets, join the
     // new one's, so a geometry still loading rebuilds this updater when it
     // arrives - otherwise a ship bound before its .gr2 loaded never animates.
-    if (this._sharedGeometry) this.grannyRes.OffEvent("completed", this._geometryCompleted, this);
+    if (this._sharedGeometry) this.grannyRes.RemoveNotifyTarget(this);
     this.grannyRes = resource ?? null;
     this._sharedGeometry = !!resource;
     this.resPath_ = "";
     this._resolvedPath = "";
     const initialized = this.RebuildCachedData();
-    if (resource) resource.OnCompleted(this._geometryCompleted, this);
+    if (resource) resource.AddNotifyTarget(this);
     return initialized;
+  }
+
+  /**
+   * Carbon ReleaseCachedData (Tr2GrannyAnimation.cpp:362-365) runs Cleanup.
+   * Adapted: the JS pose model is the cached data, so dropping it is the
+   * cleanup; the next RebuildCachedData builds it again.
+   *
+   * @param {object} resource Resource that released its payload.
+   */
+  @meta.blue.method
+  @meta.adapted
+  ReleaseCachedData(resource)
+  {
+    if (resource === this.grannyRes) this._runtimeModel = null;
   }
 
   /**
@@ -427,8 +430,15 @@ export class Tr2GrannyAnimation
    * cache invalidation (Tr2GrannyAnimation.cpp:1889) when the rig changes.
    */
   @meta.adapted
-  RebuildCachedData()
+  RebuildCachedData(resource)
   {
+    // Notify-target path (Tr2GrannyAnimation.cpp:513-520): only the borrowed
+    // geometry rebuilds, and not when the model is already built from it.
+    if (resource !== undefined)
+    {
+      if (resource !== this.grannyRes) return this._initialized;
+      if (this._runtimeModel && this._runtimeModel.source === this._GetAnimationSource()) return this._initialized;
+    }
     this._runtimeModel = null;
     this._boneBounds.length = 0;
     this._meshBoneIndices.length = 0;
