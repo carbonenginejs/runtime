@@ -1,4 +1,8 @@
 {
-  "recorded": "2026-09-11",
-  "problems": []
+  "recorded": "2026-10-03",
+  "problems": [
+    "src/trinityal/Tr2TextureAL/Tr2TextureAL.js Tr2TextureAL does not port Tr2TextureAL::CreateReadback.",
+    "src/trinityal/stub/Tr2TextureALStub.js Tr2TextureALStub does not port Tr2TextureAL::CreateReadback.",
+    "src/trinityal/webgl2/Tr2TextureALWebgl2.js Tr2TextureALWebgl2 does not port Tr2TextureAL::CreateReadback."
+  ]
 }
