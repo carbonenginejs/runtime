@@ -2,7 +2,7 @@
   "outRoot": "src/trinity/generated",
   "classes": {
     "written": 28,
-    "skipped": 669
+    "skipped": 670
   },
   "enums": {
     "written": 15,
@@ -2802,6 +2802,11 @@
     {
       "family": "trinityCore",
       "className": "ITriReroutable",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "ITriTargetable",
       "reason": "hand-maintained source exists"
     },
     {

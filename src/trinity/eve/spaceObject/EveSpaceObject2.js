@@ -17,6 +17,7 @@ import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { ITr2BoundingBox } from "#interfaces";
 import { IWorldPosition } from "../../core/IWorldPosition.js";
+import { ITriTargetable } from "../../core/ITriTargetable.js";
 import { ITr2SecondaryLightSource } from "../../core/lighting/ITr2SecondaryLightSource.js";
 import { ITr2ShLightingReceiver } from "../../core/lighting/ITr2ShLightingReceiver.js";
 import { EveEntity } from "../EveEntity.js";
@@ -72,7 +73,7 @@ const OVERLAY_TYPE_ALL = 1;
  * and batch submission that drive them each frame.
  */
 @meta.define({ className: "EveSpaceObject2", family: "eve/spaceObject" })
-@meta.blue.inherit(IWorldPosition, ITr2BoundingBox, ITr2Renderable, IEveSpaceObject2, ITr2ShLightingReceiver, ITr2SecondaryLightSource, IEveInheritPropertiesOwner)
+@meta.blue.inherit(IWorldPosition, ITr2BoundingBox, ITr2Renderable, IEveSpaceObject2, ITr2ShLightingReceiver, ITr2SecondaryLightSource, IEveInheritPropertiesOwner, ITriTargetable)
 @meta.blue.inherit(IInitialize, INotify, IListNotify)
 export class EveSpaceObject2 extends EveEntity
 {
@@ -3016,6 +3017,22 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /**
+   * Carbon EveSpaceObject2::SetLastDamageLocatorHit (EveSpaceObject2.cpp:3661-3671):
+   * records the hit locator for Tr2ActionResetClipSphereCenter, or -1 when
+   * out of range. The argument is unsigned in Carbon, so a negative index
+   * wraps high and is rejected. Quirk, reproduced: the test is `>`, so an
+   * index equal to the locator count is accepted.
+   * @param {number} locator Damage locator index.
+   */
+  @meta.blue.method
+  @meta.implemented
+  SetLastDamageLocatorHit(locator)
+  {
+    const index = locator >>> 0;
+    this.lastDamageLocatorHit = index > this.GetDamageLocatorCount() ? -1 : index;
+  }
+
+  /**
    * Ends the current animation on the animation updater.
    */
   @meta.blue.method
@@ -3048,6 +3065,17 @@ export class EveSpaceObject2 extends EveEntity
   GetDamageLocatorCount()
   {
     return this.GetLocatorCount(EveSpaceObject2._damageLocatorSetName);
+  }
+
+  /**
+   * Carbon EveSpaceObject2::GetLastDamageLocatorHit (EveSpaceObject2.cpp:3730-3733).
+   * @returns {number} The last hit damage locator, or -1.
+   */
+  @meta.blue.method
+  @meta.implemented
+  GetLastDamageLocatorHit()
+  {
+    return this.lastDamageLocatorHit;
   }
 
   /**
@@ -4746,4 +4774,4 @@ blue.enums.Create("trinity.EveSpaceObject2.LocatorType", EveSpaceObject2.Locator
 meta.blue.mapInterface(EveSpaceObject2, IInitialize, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource)(EveSpaceObject2);
 
 // EveSpaceObject2_Blue.cpp: native exposure; unported contracts: IEveShadowCaster, ITr2Pickable, ITriTargetable, IEveEffectChildrenOwner, IShaderConfigurer, ITr2GrannyAnimationOwner, IEveSpaceObjectDecalOwner, ITr2LightOwner, IEveSpaceObjectAttachmentOwner.
-meta.blue.interfaceTable({ interfaces: [EveSpaceObject2, EveEntity, IInitialize, ITr2BoundingBox, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource, ITr2ImpostorSource, ITr2CurveSetOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner], chainTo: null })(EveSpaceObject2, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [EveSpaceObject2, EveEntity, IInitialize, ITr2BoundingBox, ITriTargetable, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource, ITr2ImpostorSource, ITr2CurveSetOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner], chainTo: null })(EveSpaceObject2, { kind: "class" });

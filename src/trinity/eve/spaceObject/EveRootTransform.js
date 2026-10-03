@@ -10,6 +10,7 @@ import { Tr2Transform } from "../../core/Tr2Transform.js";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { ITr2BoundingBox } from "#interfaces";
 import { IWorldPosition } from "../../core/IWorldPosition.js";
+import { ITriTargetable } from "../../core/ITriTargetable.js";
 
 
 /**
@@ -17,6 +18,7 @@ import { IWorldPosition } from "../../core/IWorldPosition.js";
  * which stands in as a single targetable point for missiles and impacts.
  */
 @meta.define({ className: "EveRootTransform", family: "eve/spaceObject" })
+@meta.blue.inherit(ITriTargetable)
 export class EveRootTransform extends EveTransform
 {
 
@@ -278,6 +280,6 @@ export class EveRootTransform extends EveTransform
 // Supported native interfaces; ITriTargetable and ITr2Pickable are not declared yet.
 // EveRootTransform_Blue.cpp:11-16,60 bypasses the EveTransform exposure table.
 meta.blue.interfaceTable({
-  interfaces: [ EveRootTransform, IEveSpaceObject2, IWorldPosition, ITr2BoundingBox ],
+  interfaces: [ EveRootTransform, IEveSpaceObject2, ITriTargetable, IWorldPosition, ITr2BoundingBox ],
   chainTo: Tr2Transform
 })(EveRootTransform, { kind: "class" });

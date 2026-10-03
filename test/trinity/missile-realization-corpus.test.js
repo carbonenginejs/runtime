@@ -15,7 +15,8 @@ import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { EveSOF } from "../../npm/dist/sof/index.js";
 import { EveMissile, EveMissileWarhead, EveSpaceObject2, EveTransform, EveRootTransform, EveUpdateContext,
   ITr2GenericEmitter, TriFrustum, Tr2QuadRenderer, Tr2GpuSharedEmitter,
-  Tr2RotationAdapter, Tr2TranslationAdapter, Tr2GpuParticleSystem, TriCurveSet, Tr2Renderer } from "../../npm/dist/trinity/index.js";
+  Tr2RotationAdapter, Tr2TranslationAdapter, Tr2GpuParticleSystem, TriCurveSet, Tr2Renderer,
+  ITriTargetable, EveEffectRoot2 } from "../../npm/dist/trinity/index.js";
 import "../../npm/dist/audio/index.js";
 import { StubResMan } from "../support/stubResMan.js";
 
@@ -710,4 +711,35 @@ test("real warhead shared emitters emit along its world path through EveTransfor
   warhead.Update(context);
   assert.equal(received.length, before);
   assert.equal(curveTimes.length, 2);
+});
+
+test("real Svipul is the missile's mapped ITriTargetable and keeps Carbon's last-hit locator quirk", {skip: targetSkip}, async t =>
+{
+  const ship = await realSvipulTarget(t), missile = await realMissile(t);
+  // EveSpaceObject2_Blue.cpp:193, EveEffectRoot2_Blue.cpp:15, EveRootTransform_Blue.cpp:13 map ITriTargetable.
+  for (const Type of [ship.constructor, EveSpaceObject2, EveEffectRoot2, EveRootTransform])
+  {
+    assert.equal(mappedInterfaces(Type).has(ITriTargetable), true, CjsSchema.getClassName(Type));
+  }
+  assert.equal(mappedInterfaces(EveTransform).has(ITriTargetable), false, "plain EveTransform is not targetable");
+  const declaration = CjsSchema.getSchema(EveMissile).members.find(member => member.name === "target");
+  assert.equal(declaration.type.className, "ITriTargetable");
+  assert.equal(CjsSchema.GetConstructor(declaration.type.className), ITriTargetable, "the declared target type now resolves to a registered class");
+  missile.target = ship;
+  assert.equal(missile.target, ship);
+
+  // Carbon's ITriTargetable.h defaults reach the two owners without their own bodies.
+  for (const owner of [new EveRootTransform(), new EveEffectRoot2()])
+  {
+    assert.equal(owner.GetImpactConfiguration(), ITriTargetable.ImpactConfiguration.IMPACT_INVALID);
+    assert.equal(owner.SetLastDamageLocatorHit(3), undefined);
+  }
+
+  // EveSpaceObject2.cpp:3661-3671 on the real 42-locator hull: unsigned `>` accepts index 42.
+  assert.equal(ship.GetLastDamageLocatorHit(), -1);
+  for (const [locator, stored] of [[17, 17], [41, 41], [42, 42], [43, -1], [-1, -1], [-5, -1]])
+  {
+    ship.SetLastDamageLocatorHit(locator);
+    assert.equal(ship.GetLastDamageLocatorHit(), stored, `locator ${locator}`);
+  }
 });

@@ -1,5 +1,6 @@
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { IWorldPosition } from "../../core/IWorldPosition.js";
+import { ITriTargetable } from "../../core/ITriTargetable.js";
 import { ITr2SoundEmitterOwner } from "../ITr2SoundEmitterOwner.js";
 import { ITr2ControllerOwner } from "../../controllers/ITr2ControllerOwner.js";
 import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
@@ -34,7 +35,7 @@ import { BLUELISTEVENT } from "#consts/blue";
  * attached to a hull.
  */
 @meta.define({ className: "EveEffectRoot2", family: "eve/spaceObject" })
-@meta.blue.inherit(ITr2BoundingBox, IEveSpaceObject2, ITr2SecondaryLightSource)
+@meta.blue.inherit(ITr2BoundingBox, IEveSpaceObject2, ITr2SecondaryLightSource, ITriTargetable)
 @meta.blue.mapInterface(ITr2SecondaryLightSource)
 @meta.blue.inherit(IInitialize, INotify, IListNotify)
 export class EveEffectRoot2 extends EveEntity
@@ -1255,4 +1256,4 @@ export class EveEffectRoot2 extends EveEntity
 }
 
 // EveEffectRoot2_Blue.cpp: native exposure; unported contracts: ITriTargetable, IEveEffectChildrenOwner, IShaderConfigurer, ITr2LightOwner.
-meta.blue.interfaceTable({ interfaces: [IEveSpaceObject2, IInitialize, INotify, ITr2SecondaryLightSource, ITr2CurveSetOwner, ITr2ControllerOwner, ITr2SoundEmitterOwner, ITr2BoundingBox, IWorldPosition, EveEntity], chainTo: null })(EveEffectRoot2, { kind: "class" });
+meta.blue.interfaceTable({ interfaces: [IEveSpaceObject2, IInitialize, INotify, ITr2SecondaryLightSource, ITriTargetable, ITr2CurveSetOwner, ITr2ControllerOwner, ITr2SoundEmitterOwner, ITr2BoundingBox, IWorldPosition, EveEntity], chainTo: null })(EveEffectRoot2, { kind: "class" });
