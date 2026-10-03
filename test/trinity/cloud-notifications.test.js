@@ -44,6 +44,7 @@ test("cloud reflection edits refresh real registry membership without resetting 
   const reflection = new Tr2Effect();
   const rebuild = t.mock.method(reflection, "RebuildCachedData");
   cloud.display = true;
+  cloud.reflectionMode = EveChildCloud2.ReflectionMode.REFLECT_LOW_MEDIUM_HIGH;
   cloud.Register(registry);
   try
   {

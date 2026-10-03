@@ -2,7 +2,13 @@
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import "#consts/graphics/trinityEnums";
 import { meta } from "#schema";
-import { INotify, IsMatch } from "#blue";
+import { BlueList, IListNotify, INotify, IsMatch } from "#blue";
+import { BLUELISTEVENT } from "#consts/blue";
+import { DepthStencilFormat, ExFlag } from "#consts/render-context";
+import { ITr2DebugRenderer2 } from "#interfaces";
+import { Tr2DepthStencil } from "../../core/device/Tr2DepthStencil.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
+import { Tr2Light } from "../lights/Tr2Light.js";
 import { Tr2TextureReference } from "../../core/Tr2TextureReference.js";
 import { Tr2VariableStore } from "../../core/variable/Tr2VariableStore.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
@@ -15,7 +21,7 @@ import { Tr2PerObjectData } from "../../core/rawData/perObjectData/Tr2PerObjectD
 import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/index.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { TriFrustumOrtho } from "../../core/view/TriFrustumOrtho.js";
-import { Tr2RenderReason, Tr2VolumerticQuality } from "../../generated/trinityCore/enums.js";
+import { Tr2RenderReason, Tr2VolumerticQuality, TriVariableContentType } from "../../generated/trinityCore/enums.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import "../../core/volumetrics/Tr2VolumetricsRenderer.js";
 
@@ -111,7 +117,7 @@ function TransformNormal(out, v, m)
 
 /** A volumetric cloud entity that renders as a raymarched unit-cube volume with its own lightmap, shadow map and lighting, and can also contribute reflection batches. */
 @meta.define({ className: "EveChildCloud2", family: "eve/child" })
-@meta.blue.inherit(ITr2Renderable)
+@meta.blue.inherit(ITr2Renderable, INotify, IListNotify)
 @meta.blue.mapInterface(INotify)
 export class EveChildCloud2 extends EveSpaceObjectChild
 {
@@ -122,7 +128,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   @meta.blue.persist
   @meta.type.int32
   @meta.type.enum("trinity.EntityComponents.ReflectionMode")
-  reflectionMode = 0;
+  reflectionMode = ReflectionMode.REFLECT_NEVER;
 
   /** m_minVisibleQuality (Tr2VolumerticQuality - enum Tr2VolumerticQuality) [READWRITE, PERSIST, ENUM] */
   @meta.blue.readwrite
@@ -135,7 +141,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   @meta.blue.readwrite
   @meta.blue.persist
   @meta.type.float32
-  sortingModifier = 0;
+  sortingModifier = 1;
 
   /** m_animation (Tr2TextureAnimationPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
@@ -157,13 +163,13 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   /** m_lightmapSizeScale (float) [READ] */
   @meta.blue.read
   @meta.type.float32
-  lightmapSizeScale = 0;
+  lightmapSizeScale = 0.5;
 
   /** m_lights (PTr2LightVector) [READ, PERSIST] */
   @meta.blue.read
   @meta.blue.persist
   @meta.type.list("Tr2Light")
-  lights = [];
+  lights = new BlueList(Tr2Light);
 
   /** m_minScreenSize (float) [READWRITE, PERSIST] */
   @meta.blue.readwrite
@@ -187,7 +193,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   @meta.blue.readwrite
   @meta.blue.persist
   @meta.type.vec3
-  scaling = vec3.create();
+  scaling = vec3.fromValues(1, 1, 1);
 
   /** m_reflectionEffect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
   @meta.blue.notify
@@ -207,7 +213,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   @meta.blue.readwrite
   @meta.blue.persist
   @meta.type.uint32
-  noiseTextureSize = 0;
+  noiseTextureSize = 32;
 
   /** m_mapOffsets[0] (Vector3) [READ] */
   @meta.blue.read
@@ -228,13 +234,13 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   @meta.blue.readwrite
   @meta.blue.persist
   @meta.type.boolean
-  castShadows = false;
+  castShadows = true;
 
   /** m_receiveShadows (bool) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
   @meta.type.boolean
-  receiveShadows = false;
+  receiveShadows = true;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
   @meta.blue.readwrite
@@ -246,34 +252,28 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   @meta.blue.readwrite
   @meta.blue.persist
   @meta.type.vec3
-  detailTiling1 = vec3.create();
+  detailTiling1 = vec3.fromValues(1, 1, 1);
 
   /** m_mapTiling[2] (Vector3) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
   @meta.type.vec3
-  detailTiling2 = vec3.create();
+  detailTiling2 = vec3.fromValues(1, 1, 1);
 
   /** m_mapTiling[0] (Vector3) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
   @meta.type.vec3
-  textureTiling = vec3.create();
+  textureTiling = vec3.fromValues(1, 1, 1);
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
   @meta.type.boolean
-  display = false;
+  display = true;
 
-  // --- Runtime state (Carbon ctor cpp:72-118; not persisted). NOTE: the
-  // generated persisted defaults above are schema zero-values and DIVERGE from
-  // Carbon's ctor defaults (display/castShadows/receiveShadows true,
-  // sortingModifier 1, noiseTextureSize 32, lightmapSizeScale 0.5,
-  // reflectionMode REFLECT_NEVER, scaling (1,1,1), mapTiling all (1,1,1)).
-  // Hydrated documents overwrite them; the divergence for default-constructed
-  // objects is deliberate schema policy, recorded here rather than "fixed". ---
+  // Runtime state follows EveChildCloud2.cpp:72-118.
 
   /** m_localTransform - stamped by UpdateAsyncronous (cpp:689). */
   localTransform = mat4.create();
@@ -341,9 +341,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   /** m_shadowMapSize (cpp:101). */
   shadowMapSize = 512;
 
-  /** The global "DepthShadowMap" variable handle Carbon registers in the ctor
-   * (cpp:115) - the variable store is not ported yet in JS, so the handle is an
-   * engine-injected duck. */
+  /** Global DepthShadowMap variable registered by the native constructor. */
   depthShadowMapHandle = null;
 
   /** Native constructor-owned empty lightmap provider (EveChildCloud2.cpp:105). */
@@ -362,6 +360,62 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     super();
     this._variableStore.RegisterVariable("LightMap", this._emptyLightMap);
     this._variableStore.RegisterVariable("LightMapRW", this.lightmap);
+    // Carbon's typed-null texture overload (Tr2VariableStore.h:42) cannot be
+    // selected from JS null alone; use its RegisterVariableType implementation.
+    this.depthShadowMapHandle = Tr2VariableStore.globalStore()._RegisterVariableType(
+      "DepthShadowMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES);
+    this.depthShadowMapHandle.SetValue(null);
+    this.lights.SetNotify(this);
+  }
+
+  /** Maintains light-owner membership on native list events (cpp:124-146). */
+  @meta.implemented
+  OnListModified(event, _key, _key2, _value, list)
+  {
+    if (list !== this.lights) return;
+    const kind = event & BLUELISTEVENT.BELIST_EVENTMASK;
+    const registry = this.GetComponentRegistry();
+    if (!registry) return;
+    if (kind === BLUELISTEVENT.BELIST_UNLOADSTART ||
+      (kind === BLUELISTEVENT.BELIST_REMOVED && this.lights.length === 0))
+      registry.UnRegisterComponent(EveComponentType.LightOwner, this);
+    else if (kind === BLUELISTEVENT.BELIST_INSERTED && this.lights.length === 1)
+      registry.RegisterComponent(EveComponentType.LightOwner, this);
+  }
+
+  /** Clears the shared shadow binding (EveChildCloud2.cpp:427-433). */
+  @meta.implemented
+  ClearVariableStore()
+  {
+    if (this.depthShadowMapHandle) this.depthShadowMapHandle.Clear();
+  }
+
+  /** Adds Carbon's two debug choices (EveChildCloud2.cpp:692-696). */
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("Bounding Box");
+    options.add("Bounding Sphere");
+  }
+
+  /**
+   * Submits Carbon's box and sphere (EveChildCloud2.cpp:698-712).
+   * The supplied ITr2DebugRenderer2 must implement its geometry methods;
+   * the runtime's option-only Tr2DebugRenderer does not yet draw geometry.
+   */
+  @meta.implemented
+  RenderDebugInfo(renderer)
+  {
+    if (renderer.HasOption(this, "Bounding Box"))
+    {
+      vec3.set(CORNER_MIN_SCRATCH, -0.5, -0.5, -0.5);
+      vec3.set(CORNER_MAX_SCRATCH, 0.5, 0.5, 0.5);
+      renderer.DrawBox(this, this.worldTransform, CORNER_MIN_SCRATCH, CORNER_MAX_SCRATCH,
+        ITr2DebugRenderer2.Effect.Wireframe, 0xff00ff00);
+    }
+    if (renderer.HasOption(this, "Bounding Sphere"))
+      renderer.DrawSphere(this, this.boundingSphere.center, this.boundingSphere.radius,
+        18, ITr2DebugRenderer2.Effect.Wireframe, 0xff00ff00);
   }
 
   /** Native EveChildCloud2.cpp:182-204: refresh affected registrations and effects. */
@@ -425,7 +479,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   {
     if (this.effect)
     {
-      const hash = this.effect.GetHashValue?.() ?? this.effect;
+      const hash = this.effect.GetHashValue();
       if (this.effectHash !== hash)
       {
         this.effectHash = hash;
@@ -438,9 +492,9 @@ export class EveChildCloud2 extends EveSpaceObjectChild
 
     if (this.animation)
     {
-      if (!this.animation.UpdateOnlyWhenRendered?.() || this.renderedLastFrame)
+      if (!this.animation.UpdateOnlyWhenRendered() || this.renderedLastFrame)
       {
-        this.animation.AdvanceTime?.(updateContext?.GetDeltaT() ?? 0);
+        this.animation.AdvanceTime(updateContext?.GetDeltaT() ?? 0);
       }
     }
     this.renderedLastFrame = false;
@@ -677,7 +731,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     batch.SetMaterial(this.effect);
     batch.SetPerObjectData(this.GetPerObjectData(batches, screenSize));
     batch.SetDrawIndexedInstanced(12 * 3, 1, 0, 0, 0);
-    const committed = batches?.Commit?.(batch) === true;
+    const committed = batches?.Commit(batch) === true;
 
     this.renderedLastFrame = true;
     return committed;
@@ -785,11 +839,11 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     this.targetHeight = sceneInformation.targetHeight;
 
     const receive = !!sceneInformation.receiveShadows && !!this.receiveShadows;
-    this.effect?.SetOption?.(
+    this.effect?.SetOption(
       "CLOUD_SHADOWS",
       receive ? "CLOUD_SHADOWS_RECEIVE" : "CLOUD_SHADOWS_NONE"
     );
-    this.effect?.SetOption?.(
+    this.effect?.SetOption(
       "CLOUD_SHADOW_ALGORITHM",
       receive && sceneInformation.raytracedShadows ? "CLOUD_SHADOWS_RAYTRACED" : "CLOUD_SHADOWS_CASCADED"
     );
@@ -812,8 +866,9 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     // cpp:766-776 - the "Shadow" technique must exist. The JS shader duck
     // (Tr2Shader.GetTechniqueIndex) returns an INDEX: -1 for missing, 0..n
     // for found - 0 is a valid technique (compare < 0, never truthiness).
-    const shader = this.effect.GetShaderStateInterface?.();
-    if (shader?.GetTechniqueIndex)
+    const shader = this.effect.GetShaderStateInterface();
+    if (!shader) return false;
+    if (shader)
     {
       const technique = shader.GetTechniqueIndex("Shadow");
       if (technique === null || technique === undefined || technique < 0)
@@ -828,7 +883,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     batch.SetRenderingMode(RenderingMode.RM_ALPHA);
     batch.SetVertexDeclaration(0);
     batch.SetDrawInstanced(3, 1, 0, 0);
-    return batches?.Commit?.(batch) === true;
+    return batches?.Commit(batch) === true;
   }
 
   /** Carbon EveChildCloud2::GetVolumetricShadowInfo (cpp:787-790): pure
@@ -899,48 +954,29 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   }
 
   /**
-   * Makes this cloud's depth-stencil the render target for its shadow pass.
-   *
-   * THE GATE IS PORTED AND THE WORK IS NOT, which is why this returns false in
-   * one case and throws in the other. Carbon's contract
-   * (`EveChildCloud2.cpp:774-808`) is that `receiveShadows` decides whether
-   * there is a shadow map at all, and the scene calls `SetCloudShadowMapHandle`
-   * ONLY after a true return (`EveSpaceScene.cpp:2365-2368`) - which is what
-   * makes Carbon's unguarded `m_shadowMapDS` dereference there safe.
-   *
-   * A cloud that does not receive shadows is therefore fully correct here.
-   *
-   * WHAT IS MISSING. Carbon creates the depth-stencil, pushes it as the target,
-   * clears depth and sets the viewport. Every push, the clear and
-   * `SetReadOnlyDepth` exist here; `Tr2DepthStencil` does not. Ours is a
-   * generated shell whose `Create` throws and which declares none of
-   * `GetTexture`, `IsValid`, `GetWidth` or `GetHeight` - the four Carbon uses
-   * (`Tr2DepthStencil.h:29,40,48,54-55`).
-   *
-   * THIS USED TO RETURN TRUE HAVING DONE NOTHING. The body was
-   * `renderContext?.PrepareCloudShadowMap?.(this)` against a method no render
-   * context defines - optional-chained, so it no-opped, and the scene then
-   * published a shadow-map handle for a shadow map that was never rendered.
-   * Failing here is the point: the gap is in `Tr2DepthStencil`, and it should
-   * be visible from the one place that needs it.
-   *
-   * @returns {boolean} False when this cloud receives no shadows; otherwise
-   *   never returns.
+   * Prepares the native D32F shadow target (EveChildCloud2.cpp:774-808).
+   * Adapted: pass the explicit context to Tr2DepthStencil.Create; the AL owns
+   * the surface. The caller restores the three pushed states after rendering.
    */
   @meta.blue.method
-  @meta.notImplemented
-  @meta.reason("Needs Tr2DepthStencil, which is a generated shell: Create throws and GetTexture/IsValid/GetWidth/GetHeight are absent. The receiveShadows gate and the false return are ported.")
-  PrepareCloudShadowMap()
+  @meta.adapted
+  PrepareCloudShadowMap(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
-    if (!this.receiveShadows)
-    {
-      return false;
-    }
-
-    throw new Error(
-      "EveChildCloud2.PrepareCloudShadowMap: needs Tr2DepthStencil.Create and its "
-      + "GetTexture/IsValid/GetWidth/GetHeight accessors, which are unported."
-    );
+    if (!this.receiveShadows) return false;
+    if (!this.shadowMapDS) this.shadowMapDS = new Tr2DepthStencil();
+    if (!this.shadowMapDS.IsValid())
+      this.shadowMapDS.Create(this.shadowMapSize, this.shadowMapSize,
+        DepthStencilFormat.DSFMT_D32F, 1, 0, ExFlag.EX_NONE, renderContext);
+    const esm = renderContext.GetEffectStateManager();
+    esm.PushViewport();
+    esm.PushRenderTarget(null);
+    esm.PushDepthStencilBuffer(this.shadowMapDS.GetTexture());
+    esm.UpdateRenderTargetViewport(this.shadowMapDS.GetWidth(), this.shadowMapDS.GetHeight());
+    renderContext.Clear({ depth: true, clearDepth: 1, clearStencil: 0 });
+    renderContext.SetReadOnlyDepth(false);
+    esm.SetViewport({ width: this.shadowMapDS.GetWidth(), height: this.shadowMapDS.GetHeight(),
+      x: 0, y: 0, minZ: 0, maxZ: 1 });
+    return true;
   }
 
   /** Carbon EveChildCloud2::SetCloudShadowMapHandle (cpp:829-835): publish the
@@ -949,12 +985,11 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * m_shadowMapDS with no null guard - safe only via the
    * PrepareCloudShadowMap-first call order (see above). */
   @meta.adapted
-  @meta.reason("The variable store is not ported yet (depthShadowMapHandle is an injected duck); Carbon's unguarded m_shadowMapDS dereference is optional-chained.")
   SetCloudShadowMapHandle()
   {
-    if (this.shadowMapDS?.IsValid?.())
+    if (this.shadowMapDS.IsValid())
     {
-      this.depthShadowMapHandle?.SetValue?.(this.shadowMapDS);
+      this.depthShadowMapHandle.SetValue(this.shadowMapDS);
     }
   }
 
@@ -992,7 +1027,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     batch.SetPerObjectData(this.GetPerObjectData(batches, 10000));
     batch.SetDrawIndexedInstanced(12 * 3, 1, 0, 0, 0);
     batch.SetRenderingMode(RenderingMode.RM_ALPHA);
-    return batches?.Commit?.(batch) === true;
+    return batches?.Commit(batch) === true;
   }
 
   /** Carbon EveChildCloud2::HasTransparentBatches (cpp:909-912):
@@ -1040,7 +1075,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * Decompose (mat4.getScaling). */
   @meta.adapted
   @meta.reason("Tr2Renderer's view/projection globals relocate onto the optional renderContext duck (identity/zero fallbacks when absent - the engine repopulates at realization); rand() maps to Math.random with a zero-size guard Carbon's UB-free ctor default (32) never needed; the Tr2Light Perlin flicker inside GetLight awaits the frame-clock seam.")
-  PopulatePerObjectData(data, screenSize = 1, renderContext = null)
+  PopulatePerObjectData(data, screenSize = 1, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     const w = this.worldTransform;
     // cpp:546 - packing transpose of a single matrix.
@@ -1050,7 +1085,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     // global (identity when the context duck is absent; a singular input
     // mirrors Carbon's Inverse-returns-input).
     data.projectionInv = mat4.create();
-    const projection = renderContext?.GetReversedDepthProjectionTransform?.();
+    const projection = renderContext.GetReversedDepthProjectionTransform();
     if (projection)
     {
       if (!mat4.invert(data.projectionInv, projection))
@@ -1063,7 +1098,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     // cpp:548-549 - Inverse(world * view), COMPOSITION: operands swap.
     // Singular product: Carbon's Inverse returns the input unchanged
     // (math Matrix.cpp:12-16) - mirrored.
-    const view = renderContext?.GetViewTransform?.() ?? IDENTITY;
+    const view = renderContext.GetViewTransform();
     mat4.multiply(WV_SCRATCH, view, w);
     data.worldViewInv = mat4.create();
     if (!mat4.invert(data.worldViewInv, WV_SCRATCH))
@@ -1075,7 +1110,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     // cpp:550 - TransformCoord(viewPosition, Inverse(world)) - single matrix;
     // same singular-input mirror.
     data.viewPosition = vec3.create();
-    const viewPosition = renderContext?.GetViewPosition();
+    const viewPosition = renderContext.GetViewPosition();
     if (viewPosition)
     {
       const inverseWorld = mat4.invert(INV_SCRATCH, w) ?? w;
@@ -1145,15 +1180,15 @@ export class EveChildCloud2 extends EveSpaceObjectChild
         break;
       }
       const record = { position: vec3.create(), radius: 0, color: vec3.create(), innerRadius: 0 };
-      if (light?.GetLight?.(LIGHT_SCRATCH))
+      if (light?.GetLight(LIGHT_SCRATCH))
       {
         vec3.copy(record.position, LIGHT_SCRATCH.position);
         record.radius = LIGHT_SCRATCH.radius;
         if (record.radius > 0)
         {
-          const lightData = light.GetLightData?.();
+          const lightData = light.GetLightData();
           record.innerRadius = Math.max(Math.min((lightData?.innerRadius ?? 0) / record.radius, 1), 0);
-          const multiplier = light.GetBrightnessMultiplier?.() ?? 1;
+          const multiplier = light.GetBrightnessMultiplier() ?? 1;
           const boost = (record.innerRadius * 2 + 1) ** 3;
           record.color[0] = LIGHT_SCRATCH.color[0] * multiplier * boost;
           record.color[1] = LIGHT_SCRATCH.color[1] * multiplier * boost;

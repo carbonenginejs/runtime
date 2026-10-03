@@ -10,6 +10,9 @@ import { CjsSchema, meta } from "#schema";
  */
 export class ITr2DebugRenderer2
 {
+  /** Native nested Effect enum (blue/include/ITr2DebugRenderer2.h:129-134). */
+  static Effect = { Wireframe: 0, Solid: 1, Lit: 2 };
+
   /**
    * Tests whether an option is enabled for an owner.
    * Carbon's HasOption<T> forwards owner->GetRawRoot() to this pure IRoot query.

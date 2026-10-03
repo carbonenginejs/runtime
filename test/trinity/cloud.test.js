@@ -17,8 +17,9 @@ import {
   EveChildCloud2,
   EveUpdateContext,
   Tr2PointLight,
-  Tr2RenderReason
+  Tr2RenderReason, Tr2RenderContext
 } from "../../npm/dist/trinity/index.js";
+import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { FixtureEffect } from "../support/fixtureEffect.js";
 
 
@@ -348,10 +349,12 @@ test("SetupShadowFrustum: basis, mirrored ortho, magic z extension, world-first 
 test("GetVolumetricShadowBatches: gates and the declaration-less alpha triangle (cpp:759-785)", () =>
 {
   const cloud = new EveChildCloud2();
+  cloud.display = false;
+  cloud.castShadows = false;
   assert.equal(cloud.GetVolumetricShadowBatches(MakeAccumulator()), false, "display gate");
 
   cloud.display = true;
-  cloud.effect = FixtureEffect();
+  cloud.effect = FixtureEffect({ GetShaderStateInterface: () => ({ GetTechniqueIndex: () => 0 }) });
   assert.equal(cloud.GetVolumetricShadowBatches(MakeAccumulator()), false, "castShadows gate");
 
   cloud.castShadows = true;
@@ -403,6 +406,7 @@ test("HasTransparentBatches is unconditionally true (cpp:909-912)", () =>
 test("IsVisible: display + frustum + live lod pixel gate (cpp:837-852)", () =>
 {
   const cloud = new EveChildCloud2();
+  cloud.display = false;
   vec3.set(cloud.scaling, 1, 1, 1);
   cloud.UpdateAsyncronous(null, { localToWorldTransform: mat4.create() });
   cloud.minScreenSize = 100;
@@ -424,6 +428,7 @@ test("IsVisible: display + frustum + live lod pixel gate (cpp:837-852)", () =>
 test("GetLights: display gate, average basis scaling, duck submission (cpp:732-746)", () =>
 {
   const cloud = new EveChildCloud2();
+  cloud.display = false;
   const calls = [];
   cloud.lights.push({ AddLight: (...args) => calls.push(args) });
 
@@ -489,6 +494,7 @@ test("PopulatePerObjectData: swapped world*view product, element-read consumers,
 
   const view = mat4.lookAt(mat4.create(), [3, 5, -7], [10, 2, 4], [0, 1, 0]);
   const renderContext = {
+    GetReversedDepthProjectionTransform: () => mat4.create(),
     GetViewTransform: () => view,
     GetViewPosition: () => vec3.fromValues(3, 5, -7)
   };
@@ -540,25 +546,31 @@ test("PopulatePerObjectData: swapped world*view product, element-read consumers,
   assertClose(withLights.lights[1].radius, 0, "unused slots zeroed");
 });
 
-test("PrepareCloudShadowMap / SetCloudShadowMapHandle contract (cpp:792-835)", () =>
+test("PrepareCloudShadowMap creates and binds native D32F storage through the stub AL", () =>
 {
   const cloud = new EveChildCloud2();
-  assert.equal(cloud.PrepareCloudShadowMap(null), false, "receiveShadows gate");
-
-  // Past the gate the work is unported, and it says so rather than reporting
-  // success. This used to no-op against a renderContext method nothing defines
-  // and return true, so the scene published a handle for a shadow map that was
-  // never rendered. The blocker is Tr2DepthStencil, a generated shell.
+  cloud.receiveShadows = false;
+  assert.equal(cloud.PrepareCloudShadowMap(null), false);
   cloud.receiveShadows = true;
-  assert.throws(() => cloud.PrepareCloudShadowMap(), /Tr2DepthStencil/u);
-
-  const published = [];
-  cloud.depthShadowMapHandle = { SetValue: value => published.push(value) };
+  const al = new Tr2RenderContextALStub();
+  al.CreateDevice({ mode: { width: 64, height: 64 } });
+  al.BeginScene();
+  const context = new Tr2RenderContext();
+  context.SetRenderContextAL(al);
+  const clears = [];
+  const clear = al.Clear.bind(al);
+  al.Clear = options => { clears.push(options); return clear(options); };
+  assert.equal(cloud.PrepareCloudShadowMap(context), true);
+  assert.equal(cloud.shadowMapDS.IsValid(), true);
+  assert.equal(cloud.shadowMapDS.GetWidth(), 512);
+  assert.equal(cloud.shadowMapDS.GetHeight(), 512);
+  assert.deepEqual(clears, [{ depth: true, clearDepth: 1, clearStencil: 0 }]);
+  assert.equal(context.GetEffectStateManager().GetViewport().width, 512);
   cloud.SetCloudShadowMapHandle();
-  assert.equal(published.length, 0, "invalid DS publishes nothing");
-  cloud.shadowMapDS = { IsValid: () => true };
-  cloud.SetCloudShadowMapHandle();
-  assert.deepEqual(published, [cloud.shadowMapDS], "valid DS published to the handle");
+  assert.equal(cloud.depthShadowMapHandle.GetValue(), cloud.shadowMapDS);
+  cloud.ClearVariableStore();
+  assert.equal(cloud.depthShadowMapHandle.GetValue(), null);
+  cloud.shadowMapDS.Destroy();
 });
 
 test("Tr2Light.GetLight returns lightData position/radius and brightness-scaled rgb (Tr2Light.cpp:152-163)", () =>

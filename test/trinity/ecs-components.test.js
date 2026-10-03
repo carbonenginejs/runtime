@@ -193,7 +193,7 @@ test("EveChildCloud2 registers VolumetricRenderable unconditionally and gates Re
 {
   const registry = new EveComponentRegistry();
   const cloud = new EveChildCloud2();
-  // Defaults: display=false, reflectionEffect=null, reflectionMode=REFLECT_HIGH.
+  // Carbon defaults: display=true, reflectionEffect=null, reflectionMode=REFLECT_NEVER.
 
   cloud.Register(registry);
   assert.ok(
@@ -203,6 +203,7 @@ test("EveChildCloud2 registers VolumetricRenderable unconditionally and gates Re
   assert.equal(registry.ComponentCount(EveComponentType.ReflectionRenderable), 0, "hidden cloud without reflection effect");
 
   cloud.display = true;
+  cloud.reflectionMode = EveChildCloud2.ReflectionMode.REFLECT_HIGH;
   cloud.reflectionEffect = {};
   cloud.ReRegister();
   assert.ok(registry.GetComponents(EveComponentType.VolumetricRenderable).includes(cloud));
