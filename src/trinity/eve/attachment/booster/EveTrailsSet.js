@@ -95,22 +95,26 @@ export class EveTrailsSet
    * Carbon InitializeGeometryResource (cpp:50-72): detach from the old mesh,
    * forget its declaration, request the new one and rebuild when it has loaded.
    *
-   * The set is the resource's notify target (AddNotifyTarget), as in Carbon.
+   * Adapted: Carbon's IBlueAsyncResNotifyTarget becomes the resource's own
+   * completion event, as Tr2Mesh does.
    */
   @meta.blue.method
-  @meta.implemented
+  @meta.adapted
   InitializeGeometryResource()
   {
-    this.geometryResource?.RemoveNotifyTarget(this);
+    this.geometryResource?.OffEvent("completed", this._geometryCompleted, this);
     this.Cleanup();
 
     this.geometryResource = this.geometryResPath
       ? blue.resMan.GetResource(this.geometryResPath, { requirement: ResourceRequirement.GEOMETRY })
       : null;
 
-    this.geometryResource?.AddNotifyTarget(this);
+    this.geometryResource?.OnCompleted(this._geometryCompleted, this);
     this._revision++;
   }
+
+  /** Bound to this set so the resource can be unsubscribed by identity. */
+  _geometryCompleted = (_event, resource) => this.RebuildCachedData(resource ?? this.geometryResource);
 
   /** Carbon Cleanup (cpp:78-82): the declaration elements are no longer valid. */
   @meta.blue.method
@@ -325,10 +329,10 @@ export class EveTrailsSet
   SetGeometryResource(resource)
   {
     if (this.geometryResource === resource) return;
-    this.geometryResource?.RemoveNotifyTarget(this);
+    this.geometryResource?.OffEvent("completed", this._geometryCompleted, this);
     this.Cleanup();
     this.geometryResource = resource ?? null;
-    this.geometryResource?.AddNotifyTarget(this);
+    this.geometryResource?.OnCompleted(this._geometryCompleted, this);
     this._revision++;
   }
 

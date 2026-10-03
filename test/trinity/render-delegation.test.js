@@ -27,7 +27,6 @@ import {
   Tr2Renderer,
   TriRenderBatchAccumulator
 } from "../../npm/dist/trinity/index.js";
-import { TriGeometryRes } from "../../npm/dist/resource/index.js";
 
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 import { makePerObjectStore, makeRenderContextWithStore } from "./helpers/perObjectStore.js";
@@ -229,10 +228,12 @@ test("EveSpaceObject2 transparent areas are sorted back-to-front by world-space 
   object.mesh = new Tr2Mesh();
   object.mesh.AddArea(TRANSPARENT, areaWithEffect(nearFx, { index: 0 }));
   object.mesh.AddArea(TRANSPARENT, areaWithEffect(farFx, { index: 1 }));
-  // A real, already-prepared geometry resource whose area boxes put area 0
-  // near the viewer and area 1 far from it.
-  class SortedAreasGeometryRes extends TriGeometryRes
-  {
+  object.mesh.SetGeometryRes({
+    IsGood: () => true,
+    GetPath()
+    {
+      return "res:/geometry.gr2";
+    },
     GetAreaBoundingBox(meshIndex, areaIndex, outMin, outMax)
     {
       const z = areaIndex === 0 ? 2 : 30;
@@ -240,11 +241,7 @@ test("EveSpaceObject2 transparent areas are sorted back-to-front by world-space 
       outMax[0] = 0; outMax[1] = 0; outMax[2] = z + 1;
       return true;
     }
-  }
-  const geometry = new SortedAreasGeometryRes();
-  geometry.Initialize("res:/geometry.gr2");
-  geometry.MarkPrepared();
-  object.mesh.SetGeometryRes(geometry);
+  });
 
   const context = {
     GetViewPosition()

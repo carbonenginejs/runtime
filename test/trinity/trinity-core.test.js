@@ -18,7 +18,6 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { TriGeometryRes } from "../../npm/dist/resource/index.js";
 import { GrannyBoneOffset, Tr2DepthStencil, Tr2DirectInstanceData, Tr2ExpressionTermInfo, Tr2GpuBuffer, Tr2InstancedMesh, Tr2Mesh, Tr2MeshArea, Tr2MeshBase, Tr2PrimaryRenderContext, Tr2RenderContext, Tr2RenderTarget, Tr2RuntimeGpuBuffer, Tr2RuntimeInstanceData, Tr2SwapChain, Tr2VariableStore, Tr2VisibilityResults, TriDevice, TriObserverLocal, TriProjection, TriRect, TriSettings, TriVariable, TriView, TriViewport } from "../../npm/dist/trinity/core/index.js";
 import { Tr2PresentParameters } from "../../npm/dist/trinity/ui/index.js";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
@@ -377,10 +376,7 @@ test("SOF shield mesh construction stays a CPU object graph", () =>
   assertEquals(mesh.SetShaderOption("SHIELD", "1"), true);
   assertEquals(shader.calls, 1);
 
-  // A real geometry resource, still loading.
-  const resource = new TriGeometryRes();
-  resource.Initialize("res:/provided.gr2");
-  resource.MarkLoading();
+  const resource = { GetPath: () => "res:/provided.gr2", IsLoading: () => true, IsGood: () => false };
 
   // Carbon SetGeometryRes (cpp:60-74) only rebinds; it is PySetGeometryRes
   // (cpp:202-206) that clears the authored path first.

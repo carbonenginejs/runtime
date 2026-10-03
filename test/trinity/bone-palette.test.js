@@ -16,7 +16,6 @@ import assert from "node:assert/strict";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 
 import { EveChildMesh, Tr2GrannyAnimation, Tr2Light, getBoneList } from "../../npm/dist/trinity/index.js";
-import { TriGeometryRes } from "../../npm/dist/resource/index.js";
 import { MatrixCopyFrom3x4 } from "../../src/trinity/eve/lights/lightConversion.js";
 
 
@@ -36,16 +35,12 @@ function assertClose(actual, expected, message)
  */
 
 /**
- * Geometry a mesh lends its updater: a real TriGeometryRes read from a .gr2
- * (GetGrannyInfo answers it; Carbon m_pGrannyFile), already loaded. The
- * revision marks the payload as a decoded granny graph, as the gr2 reader's is.
+ * Geometry a mesh lends its updater: what a TriGeometryRes read from a .gr2
+ * answers (GetGrannyInfo; Carbon m_pGrannyFile), already loaded.
  */
 function geometryOf(grannyFile)
 {
-  const resource = new TriGeometryRes();
-  resource.SetPayload({ ...grannyFile, grannyFileFormatRevision: 7 });
-  resource.MarkPrepared();
-  return resource;
+  return { GetGrannyInfo: () => grannyFile, IsUsingCMF: () => false, OnCompleted(listener, source) { listener.call(source, "completed", this); return this; }, OffEvent() {} };
 }
 
 function createResource()

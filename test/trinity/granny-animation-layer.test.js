@@ -4,7 +4,6 @@ import { Tr2GrannyAnimation } from "../../npm/dist/trinity/core/animation/Tr2Gra
 import { Tr2GrannyAnimationLayer } from "../../npm/dist/trinity/core/animation/Tr2GrannyAnimationLayer.js";
 import { EveSpaceObject2 } from "../../npm/dist/trinity/eve/spaceObject/EveSpaceObject2.js";
 import { Tr2SyncToAnimation } from "../../npm/dist/trinity/index.js";
-import { TriGeometryRes } from "../../npm/dist/resource/index.js";
 
 
 const identity3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
@@ -12,16 +11,12 @@ const identity4 = [0, 0, 0, 1];
 
 
 /**
- * Geometry a mesh lends its updater: a real TriGeometryRes read from a .gr2
- * (GetGrannyInfo answers it; Carbon m_pGrannyFile), already loaded. The
- * revision marks the payload as a decoded granny graph, as the gr2 reader's is.
+ * Geometry a mesh lends its updater: what a TriGeometryRes read from a .gr2
+ * answers (GetGrannyInfo; Carbon m_pGrannyFile), already loaded.
  */
 function geometryOf(grannyFile)
 {
-  const resource = new TriGeometryRes();
-  resource.SetPayload({ ...grannyFile, grannyFileFormatRevision: 7 });
-  resource.MarkPrepared();
-  return resource;
+  return { GetGrannyInfo: () => grannyFile, IsUsingCMF: () => false, OnCompleted(listener, source) { listener.call(source, "completed", this); return this; }, OffEvent() {} };
 }
 
 
