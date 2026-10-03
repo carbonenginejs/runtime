@@ -114,9 +114,13 @@ export const CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE = "cjsCoverageDiscard";
 
 /**
  * A texture binding's sample type, ordered so the wire value is stable. The
- * first is the default and what every non-texture binding writes.
+ * first is the default. Sampler records use the same byte for their filtering
+ * type; other resource kinds write zero.
  */
 export const CARBON_BACKEND_TEXTURE_SAMPLE_TYPE = Object.freeze([ "float", "unfilterable-float" ]);
+
+/** Sampler filtering types in the kind-dependent sample-type byte. */
+export const CARBON_BACKEND_SAMPLER_BINDING_TYPE = Object.freeze([ "filtering", "non-filtering" ]);
 
 /** Shader stages, as a bit position in the visibility mask. */
 export const CARBON_BACKEND_VISIBILITY = Object.freeze([ "vertex", "fragment", "compute" ]);
@@ -180,7 +184,10 @@ function unpackVisibility(mask)
  * One texture fact is not in the WGSL type and is stored: its sample type.
  * `texture_2d<f32>` is the same declaration whether the layout says `float` or
  * `unfilterable-float`, and only the lowering, which sees the instructions,
- * knows a texture is only ever loaded.
+ * knows a texture uses only loads or immutable nearest samplers. The same
+ * kind-dependent byte preserves sampler filtering: WGSL `sampler` alone
+ * cannot distinguish filtering from non-filtering. This is the WebGPU layout
+ * requirement; Carbon already stores the authored filter state.
  *
  * @param {object} binding Decoded binding record.
  * @returns {object} The descriptor fragment, as one `{buffer|texture|sampler}` key.
@@ -191,7 +198,7 @@ function deriveBindingDescriptor(binding)
 
     if (binding.resourceKind === "sampler")
     {
-        return { sampler: { type: "filtering" } };
+        return { sampler: { type: binding.samplerBindingType } };
     }
 
     if (binding.resourceKind === "uniform-buffer")
@@ -352,11 +359,14 @@ export function writeBackendBlock(block)
             writer.u32(binding.registerIndex);
             writer.u32(binding.structureStride ?? ABSENT);
             writer.u8(binding.arrayLayerCount ?? 0);
-            const sampleType = CARBON_BACKEND_TEXTURE_SAMPLE_TYPE.indexOf(binding.texture?.sampleType ?? "float");
+            const isSampler = binding.resourceKind === "sampler";
+            const types = isSampler ? CARBON_BACKEND_SAMPLER_BINDING_TYPE : CARBON_BACKEND_TEXTURE_SAMPLE_TYPE;
+            const value = isSampler ? binding.sampler?.type ?? "filtering" : binding.texture?.sampleType ?? "float";
+            const sampleType = types.indexOf(value);
             if (sampleType < 0)
             {
-                throw new CjsFormatWriteError(`Unknown texture sample type "${binding.texture.sampleType}"`, {
-                    sampleType: binding.texture.sampleType
+                throw new CjsFormatWriteError(`Unknown ${isSampler ? "sampler binding" : "texture sample"} type "${value}"`, {
+                    sampleType: value
                 });
             }
             writer.u8(sampleType);
@@ -411,10 +421,13 @@ export function readBackendBlock(bytes, options = {})
             const registerIndex = reader.ReadUint32();
             const structureStride = reader.ReadUint32();
             const arrayLayerCount = reader.ReadUint8();
-            const textureSampleType = CARBON_BACKEND_TEXTURE_SAMPLE_TYPE[reader.ReadUint8()];
-            if (!textureSampleType)
+            const sampleType = reader.ReadUint8();
+            const textureSampleType = CARBON_BACKEND_TEXTURE_SAMPLE_TYPE[sampleType];
+            const samplerBindingType = CARBON_BACKEND_SAMPLER_BINDING_TYPE[sampleType];
+            const isSampler = resourceKind === "sampler";
+            if (!(isSampler ? samplerBindingType : textureSampleType))
             {
-                throw new CjsFormatReadError("Backend block binding has an unknown texture sample type", {
+                throw new CjsFormatReadError(`Backend block binding has an unknown ${isSampler ? "sampler binding" : "texture sample"} type`, {
                     source: options.source ?? "backend block"
                 });
             }
@@ -446,7 +459,7 @@ export function readBackendBlock(bytes, options = {})
                 ...(typedView === "" ? {} : { typedView }),
                 ...(transformId === "" ? {} : { transformId })
             };
-            bindings.push({ ...record, ...deriveBindingDescriptor({ ...record, textureSampleType }) });
+            bindings.push({ ...record, ...deriveBindingDescriptor({ ...record, textureSampleType, samplerBindingType }) });
         }
         bindGroups.push({ group, bindings });
     }

@@ -28,7 +28,7 @@ function bindingRegister(binding)
 
 function bindingSpace(binding)
 {
-    return binding.range?.registerSpace ?? 0;
+    return binding.range?.registerSpace ?? binding.registerSpace ?? 0;
 }
 
 function bindingIdentity(binding)
@@ -105,18 +105,6 @@ const TEXTURE_DIMENSIONS = {
 const UNFILTERED_TEXTURE_OPCODES = new Set([ "ld", "ld_ms", "resinfo" ]);
 
 /**
- * Whether this program only ever loads the texture at a register, never
- * samples it. Such a texture binds as `unfilterable-float`, which is what lets
- * a 32-bit float texture bind at all: WebGPU cannot filter one without the
- * optional `float32-filterable` feature. The impact effects read
- * `ImpactShieldDataMap` (RGBA32F, Tr2DataTextureManager) only with `ld`.
- * A register this program never touches stays `float`.
- *
- * @param {object} program Decoded shader program.
- * @param {number} registerIndex The texture register.
- * @returns {boolean} True when every use is a load or a size query.
- */
-/**
  * Whether any atomic instruction addresses this UAV register. WGSL applies
  * atomic builtins only to `atomic<T>` elements, so a typed buffer an atomic
  * touches must be laid out atomic, whatever its view format would otherwise
@@ -131,21 +119,68 @@ function isAtomicallyAccessed(program, registerIndex)
         && instruction.operands[0].registerIndex === registerIndex);
 }
 
-function isOnlyLoaded(program, registerIndex)
+/**
+ * Prove non-filtering from the effect's immutable sampler state, not from a
+ * float DXBC return type. Carbon preserves POINT min/mag and POINT/NONE mip
+ * filtering (Tr2SamplerStateALDx11.cpp:35-39); WebGPU needs that distinction
+ * in its binding layout to accept R32_FLOAT without float32-filterable.
+ * Dynamic or incomplete metadata stays conservative because an override may
+ * turn filtering on. The sampler descriptor itself is not changed here.
+ */
+function nonFilteringSamplers(semanticBindings)
+{
+    const result = new Set();
+    for (const binding of semanticBindings)
+    {
+        const state = binding.kind === "sampler" ? binding.carbon?.sampler : null;
+        if (state?.isDynamic !== false || state.comparison !== false
+            || state.minFilter !== 1 || state.magFilter !== 1
+            || (state.mipFilter !== 0 && state.mipFilter !== 1)) continue;
+        result.add(`sampler:${binding.registerSpace ?? 0}:${binding.registerIndex}`);
+    }
+    return result;
+}
+
+/** Resolve SM5.1 range IDs before comparing canonical space/register identities. */
+function operandBinding(program, resourceKind, operand)
+{
+    const rangeId = operand.resourceReference?.rangeId;
+    const matches = program.bindings.filter((entry) => entry.resourceKind === resourceKind
+        && (Number.isInteger(rangeId) ? entry.range?.rangeId === rangeId
+            : bindingRegister(entry) === operand.registerIndex));
+    if (matches.length !== 1) return null;
+    const binding = matches[0];
+    const absoluteIndex = operand.resourceReference?.absoluteIndex;
+    if (operand.indices?.some((index) => index.relative)
+        || (absoluteIndex !== undefined && (absoluteIndex.relative
+            || absoluteIndex.values?.length !== 1
+            || absoluteIndex.values[0] !== bindingRegister(binding)))) return null;
+    return binding;
+}
+
+/** Every executable use must be a load/query or a sample through proven nearest state. */
+function isUnfiltered(program, binding, nearest)
 {
     let used = false;
     for (const instruction of program.instructions)
     {
-        const touches = instruction.operands?.some((operand) =>
-            operand?.typeName === "resource" && operand.registerIndex === registerIndex);
-        if (!touches || instruction.isDeclaration) continue;
-        if (!UNFILTERED_TEXTURE_OPCODES.has(instruction.opcodeName)) return false;
+        if (instruction.isDeclaration) continue;
+        const resources = (instruction.operands ?? []).filter((operand) => operand?.typeName === "resource")
+            .map((operand) => operandBinding(program, "sampled-resource", operand));
+        if (resources.some((resource) => resource === null)) return false;
+        if (!resources.some((resource) => bindingIdentity(resource) === bindingIdentity(binding))) continue;
         used = true;
+        if (UNFILTERED_TEXTURE_OPCODES.has(instruction.opcodeName)) continue;
+        if (![ "sample", "sample_l", "sample_b", "sample_d", "gather4", "gather4_po" ].includes(instruction.opcodeName)) return false;
+        const operand = instruction.operands.find((entry) => entry?.typeName === "sampler");
+        if (!operand || operand.indices?.some((index) => index.relative)) return false;
+        const sampler = operandBinding(program, "sampler", operand);
+        if (!sampler || !nearest.has(bindingIdentity(sampler))) return false;
     }
     return used;
 }
 
-function textureLayout(program, binding)
+function textureLayout(program, binding, nearest)
 {
     const dimension = TEXTURE_DIMENSIONS[binding.resourceDimension];
     if (!dimension)
@@ -161,7 +196,7 @@ function textureLayout(program, binding)
         declaration: "var",
         type: dimension.type,
         texture: {
-            sampleType: isOnlyLoaded(program, bindingRegister(binding)) ? "unfilterable-float" : "float",
+            sampleType: isUnfiltered(program, binding, nearest) ? "unfilterable-float" : "float",
             viewDimension: dimension.viewDimension,
             multisampled: false
         }
@@ -271,11 +306,11 @@ function typedBufferLayout(program, binding, policy)
     throw new Error(`WGSL typed buffer resource ${binding.id} is not supported in the ${program.stage} stage without explicit bound-view format metadata`);
 }
 
-function sampledResourceLayout(program, binding, policy)
+function sampledResourceLayout(program, binding, policy, nearest)
 {
     if (binding.resourceDimension === "buffer") return typedBufferLayout(program, binding, policy);
     return binding.structureStride === null || binding.structureStride === undefined
-        ? textureLayout(program, binding)
+        ? textureLayout(program, binding, nearest)
         : structuredBufferLayout(binding);
 }
 
@@ -438,7 +473,7 @@ function storageTextureLayout(program, binding, dimension, returns, format)
     };
 }
 
-function samplerLayout(program, binding)
+function samplerLayout(program, binding, nearest)
 {
     const declaration = declarationFor(program, binding);
     const mode = declaration?.data?.samplerModeName;
@@ -449,11 +484,11 @@ function samplerLayout(program, binding)
     return {
         declaration: "var",
         type: "sampler",
-        sampler: { type: "filtering" }
+        sampler: { type: nearest.has(bindingIdentity(binding)) ? "non-filtering" : "filtering" }
     };
 }
 
-function lowerOne(program, binding, bindingIndex, policy)
+function lowerOne(program, binding, bindingIndex, policy, nearest)
 {
     const registerIndex = bindingRegister(binding);
     const registerSpace = bindingSpace(binding);
@@ -468,8 +503,8 @@ function lowerOne(program, binding, bindingIndex, policy)
     }
     let layout;
     if (binding.resourceKind === "uniform-buffer") layout = uniformLayout(program, binding);
-    else if (binding.resourceKind === "sampled-resource") layout = sampledResourceLayout(program, binding, policy);
-    else if (binding.resourceKind === "sampler") layout = samplerLayout(program, binding);
+    else if (binding.resourceKind === "sampled-resource") layout = sampledResourceLayout(program, binding, policy, nearest);
+    else if (binding.resourceKind === "sampler") layout = samplerLayout(program, binding, nearest);
     else if (binding.resourceKind === "storage-resource")
     {
         layout = uavBufferLayout(program, binding, policy);
@@ -715,13 +750,15 @@ function normalizeTypedBufferViews(value)
  * @param {object|null} [bindingPlan] Optional pass-global canonical binding plan.
  * @param {object|null} [layoutPolicy] Exact-profile-only typed-layout policy.
  * @param {object|null} [resourceTransformPlan] Validated physical-resource overlay.
+ * @param {object[]} [semanticBindings] Authored bindings for this shader stage.
  * @returns {object[]} WebGPU binding records.
  */
 export function lowerBindingLayout(
     program,
     bindingPlan = null,
     layoutPolicy = null,
-    resourceTransformPlan = null
+    resourceTransformPlan = null,
+    semanticBindings = []
 )
 {
     if (program?.format !== "CJS_SHADER_IR" || program.formatVersion !== 1)
@@ -729,6 +766,7 @@ export function lowerBindingLayout(
         throw new TypeError("WGSL binding lowering expects CJS_SHADER_IR version 1 input");
     }
     const policy = normalizeLayoutPolicy(layoutPolicy);
+    const nearest = nonFilteringSamplers(semanticBindings);
     const planned = normalizeBindingPlan(bindingPlan, program.stage);
     // A plan carries the view formats it was built with, so emitting from it
     // reads each typed buffer the way the plan declared it.
@@ -737,6 +775,9 @@ export function lowerBindingLayout(
     // already stores; the typed-view enum there has no R32_SINT.
     for (const [ identity, entry ] of planned?.bindings || [])
     {
+        // A stage-scoped plan preserves the authored sampler classification
+        // when the emitter consumes it without the original effect metadata.
+        if (entry.sampler?.type === "non-filtering") nearest.add(identity);
         if (entry.typedView) policy.typedViews.set(identity, entry.typedView);
         if (entry.type === "array<atomic<i32>>") policy.signedAtomicI32Identities.add(identity);
     }
@@ -760,7 +801,7 @@ export function lowerBindingLayout(
         identities.add(identity);
     }
     const lowered = sorted.map((binding, index) =>
-        lowerOne(program, binding, index, policy));
+        lowerOne(program, binding, index, policy, nearest));
     const symbols = new Map();
     for (const binding of lowered)
     {

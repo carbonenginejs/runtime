@@ -223,7 +223,8 @@ export function buildEffectPackage(input, options = {})
                     ...(options.bindingPolicy ?? {}),
                     ...(proof ? { effectProfileProof: proof } : {}),
                     ...(resourceTransformPlan ? { resourceTransformPlan } : {}),
-                    ...(Object.keys(typedViews).length ? { typedViews } : {})
+                    ...(Object.keys(typedViews).length ? { typedViews } : {}),
+                    semanticBindings: Object.fromEntries(entries.map((entry) => [ entry.ir.stage, entry.semanticBindings ]))
                 }
             )
         ];

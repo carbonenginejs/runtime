@@ -193,7 +193,8 @@ function translatePassUnit(pass, programForKey, source, bindingPolicy)
             ...(bindingPolicy ?? {}),
             ...(proof ? { effectProfileProof: proof } : {}),
             ...(resourceTransformPlan ? { resourceTransformPlan } : {}),
-            ...(Object.keys(typedViews).length ? { typedViews } : {})
+            ...(Object.keys(typedViews).length ? { typedViews } : {}),
+            semanticBindings: Object.fromEntries(irEntries.map((entry) => [ entry.ir.stage, entry.semanticBindings ]))
         }
     );
 

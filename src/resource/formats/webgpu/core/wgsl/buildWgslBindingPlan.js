@@ -65,6 +65,8 @@ function fingerprint(binding)
  * @param {object|null} [options.effectProfileProof] Opaque exact-effect proof.
  * @param {Object<string, string>} [options.typedViews] D3D identity to
  * bound view format for typed buffers (`typedViewsFor`).
+ * @param {Object<string, object[]>} [options.semanticBindings] Authored bindings
+ * keyed by IR stage; equal sampler register numbers in different stages are independent.
  * @returns {object} Pass-global binding plan.
  */
 export function buildWgslBindingPlan(programs, options = {})
@@ -117,7 +119,8 @@ export function buildWgslBindingPlan(programs, options = {})
             program,
             null,
             layoutPolicy,
-            resourceTransformPlan
+            resourceTransformPlan,
+            options.semanticBindings?.[program.stage] ?? []
         ))
         {
             const key = identity(binding);
