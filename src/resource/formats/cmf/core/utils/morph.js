@@ -75,7 +75,10 @@ export function canonicalMorphVertex(baseVertex, target, specs = null, explicitV
         {
             throw new Error(`CMF morph ${channel} is absent from the base vertex declaration`);
         }
-        if (!Array.isArray(source)) throw new TypeError(`CMF morph ${channel} must be an array`);
+        if ((!Array.isArray(source) && !ArrayBuffer.isView(source)) || !Number.isInteger(source.length))
+        {
+            throw new TypeError(`CMF morph ${channel} must be a numeric array`);
+        }
         const width = spec.elementCount ?? (
             source.length
                 ? channelWidth(source, sourceCount, channel)

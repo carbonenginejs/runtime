@@ -107,7 +107,7 @@ function vertexCountFor(decl, vertex)
     {
         const name = channelName(element);
         const channel = vertex[name];
-        if (!Array.isArray(channel))
+        if ((!Array.isArray(channel) && !ArrayBuffer.isView(channel)) || !Number.isInteger(channel.length))
         {
             throw packError(`missing declared vertex channel ${JSON.stringify(name)}`);
         }
@@ -202,7 +202,7 @@ export function packVertexBuffer(decl, vertex)
     for (const element of decl)
     {
         const channel = (vertex || {})[channelName(element)];
-        if (!Array.isArray(channel) || channel.length === 0) continue;
+        if (!channel.length) continue;
         const size = packedElementTypeSize(element.type);
         for (let i = 0; i < count; i++)
         {

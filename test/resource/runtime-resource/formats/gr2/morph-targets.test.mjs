@@ -69,10 +69,10 @@ test("vertex annotation sets emit compact sparse delta targets", () =>
         name: "BothEyePatchShape9",
         dataIsDeltas: true,
         vertex: {
-            position: [ 0, 0, 2, 1, 0, 0 ],
+            position: new Float32Array([ 0, 0, 2, 1, 0, 0 ]),
             blendIndice: [],
             tangent: [],
-            normal: [ 0, 0.5, 0, 0.25, 0, 0 ],
+            normal: new Float32Array([ 0, 0.5, 0, 0.25, 0, 0 ]),
             texcoord0: [],
             texcoord1: [],
             binormal: [],
@@ -110,7 +110,7 @@ test("vertex-to-annotation maps are canonicalized to sparse vertex indices", () 
     } ]);
 
     assert.deepEqual(mesh.morphTargets[0].vertexIndices, [ 0, 2 ]);
-    assert.deepEqual(mesh.morphTargets[0].vertex.position, [ 2, 0, 0, 1, 0, 0 ]);
+    assert.deepEqual(mesh.morphTargets[0].vertex.position, new Float32Array([ 2, 0, 0, 1, 0, 0 ]));
 });
 
 test("CMF morph targets canonicalize absolute values and union target channels", () =>

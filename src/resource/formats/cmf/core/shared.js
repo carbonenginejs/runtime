@@ -592,7 +592,8 @@ function buildDecl(vertex, options = {}, explicitVertexCount)
     ])
     {
         const [ name, usage, defaultCount, usageIndex = 0, type = "Float32" ] = channel;
-        if (!Array.isArray(vertex[name]) || vertex[name].length === 0)
+        // GR2 owns transferable float32 channels; CMF borrows their storage.
+        if ((!Array.isArray(vertex[name]) && !ArrayBuffer.isView(vertex[name])) || !vertex[name].length)
         {
             continue;
         }

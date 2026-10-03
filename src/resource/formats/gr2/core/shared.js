@@ -91,7 +91,7 @@ function populate(instance, props, hydrationOptions = {})
  * @typedef {object} Gr2SharedRoot
  * @property {number} grannyFileFormatRevision Granny file format revision.
  * @property {string} grannyFileSource Original source filename, or an empty string.
- * @property {object[]} meshes Mesh records with deinterleaved flat numeric
+ * @property {object[]} meshes Mesh records with deinterleaved Float32Array
  *     vertex channels (`VERTEX_CHANNELS`), `boneBindings`, `morphTargets`
  *     (sparse ones carry `vertexIndices`) and `indices` groups whose `faces`
  *     is a typed view into the complete `indexBuffer`. Group `firstElement`
@@ -140,13 +140,15 @@ function sf(v) { return Number.isFinite(v) ? v : 0; }
 /**
  * Copy and dequantize one vertex channel from reflected vertex objects.
  *
- * Missing Granny members return an empty channel.
+ * Missing Granny members return an empty channel. Present channels own their
+ * float32 storage: conversion already rounds each value to float32, and the
+ * worker can transfer this storage instead of cloning millions of JS numbers.
  *
  * @param {object[]} vertices Reflected vertex array with non-enumerable type metadata.
  * @param {string} memberName Granny vertex member name to copy.
  * @param {number} destWidth Number of components in the emitted channel.
  * @param {boolean} [preserveWidth] Retain an authored three- or four-component width.
- * @returns {number[]} Flat deinterleaved channel values.
+ * @returns {Float32Array|Array} Flat float32 storage, or an absent empty channel.
  */
 function copyChannel(vertices, memberName, destWidth, preserveWidth = false)
 {
@@ -158,7 +160,7 @@ function copyChannel(vertices, memberName, destWidth, preserveWidth = false)
         srcWidth = m.arrayWidth > 1 ? m.arrayWidth : 1,
         width = preserveWidth && (srcWidth === 3 || srcWidth === 4) ? srcWidth : destWidth,
         n = Math.min(srcWidth, width),
-        out = new Array(vertices.length * width).fill(0);
+        out = new Float32Array(vertices.length * width); // alloc: returned channel owns data-sized transferable storage.
     for (let i = 0; i < vertices.length; i++)
     {
         const

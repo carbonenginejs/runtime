@@ -16,8 +16,8 @@ test('traffic keeps four-component position and texture-coordinate channels', ()
         PrimaryTopology: { Indices: [0, 1, 0], Groups: [{ TriFirst: 0, TriCount: 1 }] }
     }] }, 7, { rebuildMissingBounds: true }).meshes[0];
     assert.equal(mesh.vertexCount, 2);
-    assert.deepEqual(mesh.vertex.position, [1, 2, 3, 99, -2, 8, 1, 42]);
-    assert.deepEqual(mesh.vertex.texcoord0, [4, 5, 6, 7, 8, 9, 10, 11]);
+    assert.deepEqual(mesh.vertex.position, new Float32Array([1, 2, 3, 99, -2, 8, 1, 42]));
+    assert.deepEqual(mesh.vertex.texcoord0, new Float32Array([4, 5, 6, 7, 8, 9, 10, 11]));
     assert.deepEqual(mesh.minBounds, [-2, 2, 1]);
     assert.deepEqual(mesh.maxBounds, [1, 8, 3]);
 });

@@ -64,6 +64,9 @@ test("GR2 actual worker matches main decode and queued existing-byte preparation
   try { await manager.PrepareResourceObjectQueued(resource, bytes); }
   finally { CjsGr2Format.read = original; }
   assert.deepEqual(resource.GetGrannyInfo(), expected);
+  assert.ok(resource.GetGrannyInfo().meshes[0].vertex.position instanceof Float32Array);
+  assert.equal(resource.GetPayload().meshes[0].vertex.position,
+    resource.GetGrannyInfo().meshes[0].vertex.position, "publication borrows the transferred vertex storage");
   assert.equal(resource.IsUsingCMF(), false);
   assert.equal(resource.GetMeshCount(), 1);
   assert.equal(reads, 0);

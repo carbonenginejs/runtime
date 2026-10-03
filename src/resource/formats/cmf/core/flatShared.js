@@ -80,7 +80,7 @@ function buildDecl(vertex)
     ])
     {
         const [ name, usage, elementCount, usageIndex = 0, type = "Float32" ] = channel;
-        if (!Array.isArray(vertex[name]) || vertex[name].length === 0) continue;
+        if ((!Array.isArray(vertex[name]) && !ArrayBuffer.isView(vertex[name])) || !vertex[name].length) continue;
         decl.push({ usage, usageIndex, type, elementCount, offset });
         offset += elementCount * elementTypeSize(type);
     }
