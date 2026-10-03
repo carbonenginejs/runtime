@@ -56,7 +56,7 @@ test("canonical quaternion records preserve storage and drive production slerp a
     const reader = new RecordingReader(curveBytes(), { schema: null, initialize: false });
     const curve = reader.CreateObject();
     assert.equal(curve.constructor, Tr2CurveQuaternion);
-    assert.equal(reader.references.get(1), curve);
+    assert.equal(reader.references.size, 0, "the builder does not retain the returned graph");
     assert.equal(curve.keys, keys);
     assert.equal(curve.currentValue, currentValue);
     assert.ok(currentValue instanceof Float32Array);

@@ -41,10 +41,7 @@ function verify(bytes)
     assert.equal(scene.ambientColor, sceneAllocation.ambientColor);
     assert.equal(effect.resources, effectAllocation.resources);
     assert.equal(effect.constParameters, effectAllocation.constParameters);
-    for (const [index, allocation] of reader.allocations.entries())
-    {
-        assert.equal(reader.references.get(index + 1), allocation.instance);
-    }
+    assert.equal(reader.references.size, 0, "the builder does not retain the returned graph");
     assert.equal(reader.reader.AtEnd(), true);
     assert.deepEqual(reader.reports, []);
     return scene;

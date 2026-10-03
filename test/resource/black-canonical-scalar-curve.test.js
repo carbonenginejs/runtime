@@ -49,7 +49,7 @@ test("canonical production scalar curve preserves mixed-width keys and evaluates
     const reader = new RecordingReader(curveBytes(), { schema: null, initialize: false });
     const curve = reader.CreateObject();
     assert.equal(curve.constructor, Tr2CurveScalar);
-    assert.equal(reader.references.get(1), curve);
+    assert.equal(reader.references.size, 0, "the builder does not retain the returned graph");
     assert.equal(curve.keys, originalKeys);
     assert.deepEqual(curve.keys, authored);
     assert.equal(curve.name, "AuthoredScalar");

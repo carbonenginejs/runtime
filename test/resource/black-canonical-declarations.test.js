@@ -152,6 +152,8 @@ test("canonical runtime bypasses accessors and values, preserves cycles, and ini
     const reader = new CjsBlackReader(bytes, { schema: null });
     const root = reader.CreateObject();
     assert.equal(root._label, "stored");
+    assert.equal(reader.references.size, 0, "cached builders release completed graph references");
+    assert.equal(reader.runtimeInstances.length, 0);
     assert.equal(root.self, root);
     assert.equal(root.shared, root.first);
     assert.deepEqual(events, ["first ready", "later constructed", "root ready"]);
@@ -159,6 +161,25 @@ test("canonical runtime bypasses accessors and values, preserves cycles, and ini
     assert.notEqual(another, root);
     assert.notEqual(another.first, root.first);
     assert.equal(another.self, another);
+});
+
+test("cached Black builders clear failed runtime graphs on every request", () =>
+{
+    class Failing
+    {
+        Initialize() { throw new Error("synthetic initialize failure"); }
+    }
+    carbonMapInterfaceDecorator([IInitialize])(Failing);
+    CjsSchema.define(Failing, { className: "BlackFailedLifetime", members: [] });
+    const fixture = new BlackFixture();
+    const bytes = fixture.Finish(fixture.Object(1, "BlackFailedLifetime"));
+    const reader = new CjsBlackReader(bytes, { schema: null });
+    for (let i = 0; i < 100; i++)
+    {
+        assert.throws(() => reader.CreateObject(), /synthetic initialize failure/);
+        assert.equal(reader.references.size, 0);
+        assert.equal(reader.runtimeInstances.length, 0);
+    }
 });
 
 test("canonical reader notifies each successful stored write and ignores unmapped Initialize", () =>

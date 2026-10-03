@@ -174,7 +174,18 @@ export class CjsBlackReader extends CjsBlueReader
         {
             throw new RangeError(`CjsBlackReader.CreateObject builds the root only; marker ${objectMarker} is not read.`);
         }
-        return this.ReadRuntime().root;
+        try
+        {
+            return this.ReadRuntime().root;
+        }
+        finally
+        {
+            // Carbon CreateObjectHelper clears m_referenceMap after the build
+            // (BlackReader.cpp:298), not just before the next one. The cached
+            // builder owns bytes, never the last caller's live object graph.
+            this.references.clear();
+            this.runtimeInstances.length = 0;
+        }
     }
 
     /** Reads payload from the current Black object-graph reader. */

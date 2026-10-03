@@ -57,7 +57,7 @@ test("canonical sampler records preserve list identity, unsigned fields and full
     const reader = new RecordingReader(samplerBytes(), { schema: null, initialize: false });
     const effect = reader.CreateObject();
     assert.equal(effect.constructor, Tr2Effect);
-    assert.equal(reader.references.get(1), effect);
+    assert.equal(reader.references.size, 0, "the builder does not retain the returned graph");
     assert.equal(effect.samplerOverrides, originalList);
     assert.equal(effect.samplerOverrides.length, 2);
     assert.deepEqual(effect.samplerOverrides[0], { name: "PatternSampler", addressU: 1, addressV: 2,

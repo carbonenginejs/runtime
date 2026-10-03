@@ -37,7 +37,7 @@ test("canonical production effect retains its option list and decodes full nativ
     const effect = reader.CreateObject();
     assert.equal(effect.constructor, Tr2Effect);
     assert.equal(effect, allocated);
-    assert.equal(reader.references.get(1), effect);
+    assert.equal(reader.references.size, 0, "the builder does not retain the returned graph");
     assert.equal(effect.options, originalOptions);
     assert.deepEqual(effect.options, [{ name: "QUALITY", value: "HIGH" }, { name: "MODE", value: "" }]);
     assert.equal(effect.effectFilePath, "res:/authored/options.fx", "next field follows the full record stride");
