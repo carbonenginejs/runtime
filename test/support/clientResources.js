@@ -49,6 +49,21 @@ async function compose()
   cache.SetServer(SERVER);
   cache.SetPrefix("/resfiles/");
   cache.AddFileIndex(await index.text());
+
+  // Effects are not in the app index; they are in the platform group
+  // `resfileindex_windows.txt` (dx11/dx12 at sm_lo/sm_hi/sm_depth). Without it
+  // only effect reads fail; everything else keeps working.
+  let effectIndexError = null;
+  try
+  {
+    const effects = await fetch(`${SERVER}/${TARGET}/${build}/app/resfileindex_windows.txt`, { signal: AbortSignal.timeout(120000) });
+    if (effects.ok) cache.AddFileIndex(await effects.text());
+    else effectIndexError = `no resfileindex_windows.txt for ${TARGET} build ${build} (${effects.status})`;
+  }
+  catch (error)
+  {
+    effectIndexError = `resfileindex_windows.txt for ${TARGET} build ${build} failed (${error.message})`;
+  }
   blue.paths.RegisterFileSystem(new BlueResFileSystemRemote(cache));
 
   return {
@@ -57,7 +72,11 @@ async function compose()
     /** The bytes of a client file; throws when the build does not ship it. */
     async Read(resPath)
     {
-      if (!cache.FileExists(resPath)) throw new Error(`${resPath} is not in ${TARGET} build ${build}`);
+      if (!cache.FileExists(resPath))
+      {
+        if (effectIndexError && /\/effect\.[^/]+\//i.test(resPath)) throw new Error(`${resPath}: ${effectIndexError}`);
+        throw new Error(`${resPath} is not in ${TARGET} build ${build}`);
+      }
       const bytes = await cache.GetStreamFromPath(resPath);
       if (!bytes) throw new Error(`${resPath} could not be downloaded from ${SERVER}`);
       return Buffer.from(bytes);

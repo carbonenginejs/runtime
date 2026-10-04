@@ -7,7 +7,6 @@ import { SharedGeometryBuffer } from "../../npm/dist/trinity/core/mesh/TriGeomet
 import { CjsWebgpuRenderContextAL } from "../../npm/dist/trinityal/webgpu/internal.js";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
 import { clientResources } from "../support/clientResources.js";
 import "../../npm/dist/sof/index.js"; // data.black hydrates EveSOFData classes.
 import test from "node:test";
@@ -435,10 +434,7 @@ test("normal hull ParentData and visible palettes share one Float4x3 upload with
   resource.MarkPurged();assert.ok(set.GetPerObjectData(accumulator)===null,"native bad-resource gate");
 });
 
-// The effect is not in the app resfileindex (effects have their own index), so this test still reads a file.
-const quadV5File=process.env.QUADV5_SM_DEPTH_FILE;
-const skipShader=skip || (!quadV5File && "set QUADV5_SM_DEPTH_FILE to quadv5.sm_depth (the effect index is not wired into clientResources yet)");
-test("real packed turret shader receives native instance IDs and final opaque/shadow draw offsets",{skip:skipShader},async t=>
+test("real packed turret shader receives native instance IDs and final opaque/shadow draw offsets",{skip},async t=>
 {
   const context=Tr2RenderContext_GetMainThreadRenderContext(),prior=context.GetRenderContextAL();
   const al=new Tr2RenderContextALStub();context.SetRenderContextAL(al);al.CreateDevice();al.BeginScene();
@@ -450,7 +446,7 @@ test("real packed turret shader receives native instance IDs and final opaque/sh
   const {set,ship,resource}=await assets(t);ship.RebuildTurretPositions();set.Initialize();
   assert.deepEqual(instanceUploads[0],Array.from({length:24},(_,i)=>i),"native cpp:296 IDs0..23");
   assert.ok(TriDevice.GetResourcesRegistered().includes(set),"native Tr2DeviceResource base registration");
-  const bytes=await readFile(quadV5File);
+  const bytes=await client.Read("res:/graphics/effect.dx11/managed/space/turret/v5/quadv5.sm_depth");
   assert.equal(createHash("md5").update(bytes).digest("hex"),"352fc276516262e229648fa98310bb17");
   const metadata=CjsHlslFormat.read(bytes,{emit:"metadata",source:"quadv5.sm_depth",permutation:[{name:"SPACE_OBJECT_CLIPPING",value:"SOC_DISABLED"},{name:"V5_DEBUG",value:"OFF"}]});
   const inputs=metadata.effect.techniques.find(item=>item.name==="Main").passes[0].stageInputs.find(item=>item?.stageName==="vertex").signature.pipelineInputs;
