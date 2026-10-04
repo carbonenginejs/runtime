@@ -100,24 +100,6 @@ function sampleOffsetArgument(instruction, viewDimension)
     return `, vec2<i32>(${offsets.u}, ${offsets.v})`;
 }
 
-/**
- * The technique Carbon picks with (EveSpaceScene.cpp:3727, ITr2PickableScene.cpp:305:
- * RenderBatchesForPicking( batches, "Picking" )). Its passes draw into the
- * R32G32B32A32_UINT pick buffer (EveSpaceScene.cpp:436).
- */
-export const PICKING_TECHNIQUE = "Picking";
-
-/**
- * Whether a pass key (`<technique>.pass<n>`) belongs to the picking technique.
- *
- * @param {string} passKey Pass key.
- * @returns {boolean} True for a picking pass.
- */
-export function isPickingPassKey(passKey)
-{
-    return String(passKey).startsWith(`${PICKING_TECHNIQUE}.pass`);
-}
-
 function scalarTypeName(type)
 {
     return ({ float32: "f32", int32: "i32", uint32: "u32", bool: "bool", bitpattern32: "u32" })[type] || null;
@@ -2204,20 +2186,6 @@ function lowerProgramBody(program, options, compute)
         .map((rows) => interfaceField(rows, "input"));
     const outputs = compute ? [] : program.signatures.output.map((entry) => interfaceField([ entry ], "output"));
     if (!compute && !outputs.length) throw new Error("WGSL fragment body slice requires output signatures");
-    // An integer render target (the pick buffer) receives the pixel shader's
-    // 32-bit output registers as raw bits on D3D11, whatever the HLSL called
-    // their type; WebGPU requires the output type to match the target. Typing a
-    // float output as u32 makes every write a bitcast, so the stored bits are
-    // D3D11's. Carbon reads them back as uint (EveSpaceScene.cpp:3774-3779).
-    if (options.integerColorTargets)
-    {
-        for (const field of outputs)
-        {
-            if (field.scalarType !== "float32") continue;
-            field.scalarType = "uint32";
-            field.type = fieldType("uint32", field.components.length);
-        }
-    }
     inputs.forEach((input) => validateInterpolation(program, input));
     const planFromBinding = options.bindingPlan?.resourceTransforms === undefined
         ? null

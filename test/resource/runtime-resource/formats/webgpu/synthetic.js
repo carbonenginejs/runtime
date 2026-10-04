@@ -297,6 +297,8 @@ export function buildEffectBytes(options = {})
  * @param {1|2} [options.passCount] Number of identical minimal passes.
  * @param {Array<1|2>} [options.bodyPassCounts] Per-permutation pass counts.
  * @param {boolean} [options.distinctBodyRanges] Store aliases at separate ranges.
+ * @param {string} [options.techniqueName] Technique name, default Main.
+ * @param {Array<{stageType: number, dxbc: Uint8Array}>} [options.stages] Explicit stages instead of the minimal vertex stage.
  * @returns {Uint8Array} Synthetic compiled effect bytes.
  */
 export function buildMinimalStagedEffectBytes(options = {})
@@ -329,9 +331,10 @@ export function buildMinimalStagedEffectBytes(options = {})
             payload: new Uint8Array(tokens.buffer.slice(0))
         } ]);
     };
-    const stages = [ { stageType: 0, dxbc: buildStageDxbc(1) } ];
+    const stages = (options.stages ?? [ { stageType: 0, dxbc: buildStageDxbc(1) } ]).map(stage => ({ ...stage }));
     const permutations = options.permutations || [];
-    const strings = [ "Main" ];
+    const techniqueName = options.techniqueName ?? "Main";
+    const strings = [ techniqueName ];
     for (const permutation of permutations)
     {
         strings.push(permutation.name || "", permutation.description || "");
@@ -340,7 +343,7 @@ export function buildMinimalStagedEffectBytes(options = {})
     const stringTable = buildStringTable(strings);
     const table = new ByteWriter();
     table.raw(stringTable.bytes);
-    const mainOffset = stringTable.offsets.get("Main");
+    const mainOffset = stringTable.offsets.get(techniqueName);
     for (const stage of stages)
     {
         stage.dxbcOffset = table.length;

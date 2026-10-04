@@ -2,6 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import CjsWebgpuFormat from "../../../../../src/resource/formats/webgpu/index.js";
+import { buildDxbcContainer, buildMinimalStagedEffectBytes, opcodeToken, versionToken } from "./synthetic.js";
+import { readContainer } from "./support/readContainer.js";
 
 function register(typeName, registerIndex, { mask = "", swizzle = "", selected = "", modifierName = "none" } = {})
 {
@@ -2882,20 +2884,51 @@ test("fragment position W is reciprocated as float before integer bit reinterpre
 });
 
 
-test("a Picking pass writes float SV_Target registers into the uint pick buffer as raw bits", async () =>
+test("a float-output Picking pass stays float in selected and all-body packaging", () =>
 {
-    // D3D11 stores a pixel shader's 32-bit output registers into the
-    // R32G32B32A32_UINT pick buffer as raw bits (EveSpaceScene.cpp:436); WebGPU
-    // requires the output type to match the target, so the output is u32 and
-    // every write is a bitcast of the same bits.
-    const shader = CjsWebgpuFormat.buildWgsl(inputlessFragmentFixture(), { integerColorTargets: true });
-
-    assert.match(shader.code, /@location\(0\) output0: vec4<u32>,/u);
-    assert.match(shader.code, /output\.output0 = bitcast<vec4<u32>>\(vec4<f32>\(bitcast<f32>\(0x3f800000u\)/u);
-    assert.doesNotMatch(shader.code, /cjsUnormTarget0|cjsCoverageDiscard/u, "the float-only epilogues skip a u32 target");
-
-    const { isPickingPassKey } = await import("../../../../../src/resource/formats/webgpu/core/wgsl/lowerFragmentProgram.js");
-    assert.equal(isPickingPassKey("Picking.pass0"), true);
-    assert.equal(isPickingPassKey("Main.pass0"), false);
-    assert.equal(isPickingPassKey("PickingOpaque.pass0"), false);
+    // The DXBC OSGN component type, not the technique name or the target that
+    // a future caller might bind, determines the translated output type.
+    for (const [componentType, wgslType] of [[3, "f32"], [1, "u32"]])
+    {
+        const signatureBytes = new Uint8Array(42), signatureView = new DataView(signatureBytes.buffer);
+        signatureView.setUint32(0, 1, true); // one output record
+        signatureView.setUint32(4, 8, true); // record starts at byte 8
+        signatureView.setUint32(8, 32, true); // semantic string offset
+        signatureView.setUint32(16, 64, true); // SV_Target
+        signatureView.setUint32(20, componentType, true);
+        signatureBytes[28] = signatureBytes[29] = 15; // xyzw
+        signatureBytes.set(new TextEncoder().encode("SV_Target\0"), 32);
+        const tokens = new Uint32Array([
+            versionToken(0, 5, 0), 12,
+            opcodeToken(106, 1) | (1 << 11), // dcl_globalFlags refactoringAllowed
+            opcodeToken(54, 8), // mov o0.xyzw, l(1, 0, 0.5, 1), or uint words
+            2 | (15 << 4) | (2 << 12) | (1 << 20), 0,
+            2 | (4 << 12),
+            ...(componentType === 3 ? [0x3f800000, 0, 0x3f000000, 0x3f800000] : [1, 0, 257, 1]),
+            opcodeToken(62, 1) // ret
+        ]);
+        const dxbc = buildDxbcContainer([
+            { fourCC: "OSGN", payload: signatureBytes },
+            { fourCC: "SHEX", payload: new Uint8Array(tokens.buffer) }
+        ]);
+        const source = buildMinimalStagedEffectBytes({
+            version: 15, techniqueName: "Picking", stages: [{ stageType: 1, dxbc }]
+        });
+        for (const mode of ["selected", "all"])
+        {
+            const result = CjsWebgpuFormat.buildEffect(source, { source: "synthetic-picking.sm_depth", mode });
+            const shader = result.wgsl.shaders.find(entry => entry.key === "Picking.pass0.pixel");
+            assert.ok(shader, `${mode} contains the Picking fragment stage`);
+            assert.ok(shader.code.includes(`@location(0) output0: vec4<${wgslType}>,`), `${mode} preserves the DXBC signature`);
+            if (componentType === 3)
+            {
+                assert.doesNotMatch(shader.code, /@location\(0\) output0: vec4<u32>/u);
+                assert.match(shader.code, /output\.output0 = vec4<f32>\(bitcast<f32>\(0x3f800000u\)/u);
+            }
+            const container = readContainer(result.bytes);
+            const packaged = container.GetBackendBodyPrograms(0).passes.flatMap(pass => pass.shaders)
+                .find(entry => entry.key === "Picking.pass0.pixel");
+            assert.equal(packaged.code, shader.code, `${mode} serializes the declared output type unchanged`);
+        }
+    }
 });
