@@ -476,8 +476,9 @@ export class EveStretch2 extends IEveFiringEffectElement
   @meta.blue.method @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
+    // The shared allocation is null until a device has run the factory (Tr2ProceduralBuffer.GetSharedResource).
     const vb = this._vb.GetSharedResource();
-    if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE || !this.effect || !vb?.IsValid())
+    if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE || !this.effect || !this.effect.GetShaderStateInterface() || !vb || !vb.IsValid())
     {
       return false;
     }
