@@ -246,29 +246,27 @@ export class TriVariable extends ITr2EffectValue
   }
 
   /**
-   * Carbon's display name for a content type, defaulting to this variable's own
-   * type.
-   * @param {number} [contentType] Native content-type value.
-   * @returns {string} Variable result.
+   * Carbon's GetTypeName() const (TriVariable.h:193): this variable's type
+   * name. The static ( t ) form is TriVariable.getTypeName.
+   * @returns {string}
    */
   @meta.blue.method
   @meta.implemented
-  GetTypeName(contentType = this.contentType)
+  GetTypeName()
   {
-    return TriVariable.getTypeName(contentType);
+    return TriVariable.getTypeName(this.contentType);
   }
 
   /**
-   * Constant-buffer byte size of a content type, defaulting to this variable's
-   * own type.
-   * @param {number} [contentType] Native content-type value.
-   * @returns {number} Variable result.
+   * Carbon's GetTypeSize() const (TriVariable.h:198): this variable's
+   * constant-buffer byte size. The static ( t ) form is TriVariable.getTypeSize.
+   * @returns {number}
    */
   @meta.blue.method
   @meta.implemented
-  GetTypeSize(contentType = this.contentType)
+  GetTypeSize()
   {
-    return TriVariable.getTypeSize(contentType);
+    return TriVariable.getTypeSize(this.contentType);
   }
 
   /**
