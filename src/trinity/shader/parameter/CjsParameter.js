@@ -80,7 +80,7 @@ export class CjsParameter extends ITriEffectParameter
       }
       else
       {
-        binding.RerouteDestination?.(destination);
+        binding.RerouteDestination(destination);
       }
     }
   }
@@ -182,18 +182,6 @@ export class CjsParameter extends ITriEffectParameter
   static findByName(values, name)
   {
     return Array.isArray(values) ? values.find(value => CjsParameter.getArrayItemName(value) === name || CjsParameter.getNamedValue(value) === name) ?? null : null;
-  }
-
-  /**
-   * Invalidates a material's resource sets and constant buffers after one of its
-   * resources changed; every call is optional-chained, so non-material owners
-   * are tolerated.
-   */
-  static markMaterialResourcesDirty(material)
-  {
-    material?.InvalidateResourceSets?.();
-    material?.ResourceChanged?.();
-    material?.MarkConstantBuffersDirty?.();
   }
 
   /**
