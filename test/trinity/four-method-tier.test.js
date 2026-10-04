@@ -12,6 +12,7 @@ import {
   EveLocatorSets,
   EveSpaceObject2,
   FollowASpline,
+  SplineTunnelGroup,
   Tr2SSAO,
   Tr2Vector2Parameter,
   TriStepFilterVisibilityResults,
@@ -191,23 +192,26 @@ test("FollowASpline registry: list events wire the callback; the registry flatte
 {
   const spline = new FollowASpline();
   const tunnels = [ { id: 1 }, { id: 2 } ];
-  const group = {
-    GetTunnels: () => tunnels,
-    SetSystemTunnelFunctionReferenceAndColor(callback, color) { this.callback = callback; this.color = color; }
-  };
+  const group = new SplineTunnelGroup();
   spline.splineTunnels.push(group);
+
+  // Carbon BlueCastPtr<SplineTunnelGroup> (cpp:44-58): a value that only looks like a group is not wired.
+  const lookalike = { SetSystemTunnelFunctionReferenceAndColor() { throw new Error("must not fire"); } };
+  spline.OnListModified(0x08, 0, 0, lookalike, spline.splineTunnels);
 
   // BELIST_INSERTED (0x08) on the watched list wires the callback.
   spline.OnListModified(0x08, 0, 0, group, spline.splineTunnels);
-  assert.equal(group.color, 0xFF5555AA);
-  assert.equal(typeof group.callback, "function");
+  assert.equal(group._debugColor, 0xFF5555AA);
+  assert.equal(typeof group._changeSystemTunnelRegistry, "function");
 
   // A different list is ignored.
-  const other = { SetSystemTunnelFunctionReferenceAndColor() { throw new Error("must not fire"); } };
+  const other = new SplineTunnelGroup();
   spline.OnListModified(0x08, 0, 0, other, []);
+  assert.equal(other._changeSystemTunnelRegistry, null);
 
+  group.tunnels = tunnels;
   spline.shouldReassignTunnelIDs = false;
-  group.callback();
+  group._changeSystemTunnelRegistry();
   assert.equal(spline.shouldReassignTunnelIDs, true, "the callback IS UpdateTunnelRegistry");
   assert.deepEqual(spline.privateTunnels, tunnels);
 });

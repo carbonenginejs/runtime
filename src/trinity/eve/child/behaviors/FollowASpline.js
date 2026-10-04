@@ -3,7 +3,9 @@ import { INotify } from "../../../../global/blue/INotify.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
+import { Formation } from "./Formation.js";
+import { SplineTunnelGroup } from "./tunnels/SplineTunnelGroup.js";
 import { vec3 } from "#math/vec3";
 import { TunnelGroupType } from "./enums.js";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -126,25 +128,34 @@ export class FollowASpline
     const kind = event & BLUELISTEVENT.BELIST_EVENTMASK;
     if (kind !== BLUELISTEVENT.BELIST_INSERTED && kind !== BLUELISTEVENT.BELIST_REMOVED && kind !== BLUELISTEVENT.BELIST_LOADFINISHED) return;
 
-    if (typeof value?.SetSystemTunnelFunctionReferenceAndColor === "function")
+    // Carbon BlueCastPtr<SplineTunnelGroup>( value ) (FollowASpline.cpp:44-58).
+    const handler = CjsSchema.cast(value, SplineTunnelGroup);
+    if (handler)
     {
-      value.SetSystemTunnelFunctionReferenceAndColor(() => this.UpdateTunnelRegistry(), 0xFF5555AA);
+      handler.SetSystemTunnelFunctionReferenceAndColor(() => this.UpdateTunnelRegistry(), 0xFF5555AA);
     }
   }
 
-  /** Per-agent scratch record count (Carbon sizeof(FollowASplineData)). */
+  /**
+   * Per-agent scratch record count (Carbon sizeof(FollowASplineData)).
+   *
+   * Adapted: Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero
+   * value means 'has scratch'.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero value means 'has scratch'.")
   GetScratchMemorySize()
   {
     return 1;
   }
 
-  /** Fresh per-agent scratch record (Carbon FollowASplineData placement init). */
+  /**
+   * Fresh per-agent scratch record (Carbon FollowASplineData placement init).
+   *
+   * Adapted: Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.")
   InitializeScratch()
   {
     return {
@@ -164,10 +175,12 @@ export class FollowASpline
    * @param {Object} system - owning EveChildBehaviorSystem
    * @param {Array} _dronesInSearchRadius - unused
    * @returns {Array} debug force pairs when group.collectForces is on
+   *
+   * Adapted: Debug force pairs are only collected when group.collectForces is set, keeping the per-agent loop
+   * allocation-free.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Debug force pairs are only collected when group.collectForces is set, keeping the per-agent loop allocation-free.")
   CalculateBehavior(agents, scratchData, _deltaTime, group, system, _dronesInSearchRadius)
   {
     if (!this.enabled)
@@ -302,11 +315,7 @@ export class FollowASpline
     this.privateTunnels.length = 0;
     for (const group of this.splineTunnels)
     {
-      const tunnels = group?.GetTunnels?.() ?? group?.tunnels;
-      if (Array.isArray(tunnels))
-      {
-        this.privateTunnels.push(...tunnels);
-      }
+      this.privateTunnels.push(...group.GetTunnels());
     }
     this.shouldReassignTunnelIDs = true;
   }
@@ -327,7 +336,7 @@ export class FollowASpline
    */
   _ReassignTunnelIDsAndAddSystemTunnels(system)
   {
-    const tunnels = system.GetTunnels?.() ?? [];
+    const tunnels = system.GetTunnels();
 
     for (const tunnel of tunnels)
     {
@@ -524,9 +533,10 @@ export class FollowASpline
    */
   _CheckForAndUpdateFormation(agents, group, scratchData, tunnel, tunnelPoint)
   {
-    const formation = group.GetBehaviorByName("Formation");
+    // Carbon dynamic_cast<Formation*>( group.GetBehaviorByName( "Formation" ) ) (FollowASpline.cpp:297-304).
+    const formation = CjsSchema.cast(group.GetBehaviorByName("Formation"), Formation);
 
-    if (formation && formation.InFormation?.())
+    if (formation && formation.InFormation())
     {
       for (let c = 0; c < agents.length; c++)
       {
