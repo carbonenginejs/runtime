@@ -181,7 +181,7 @@ test("ProcessLifetime wires groups and repairs stable tunnel IDs and empty bound
 });
 
 
-test("ProcessLifetime list callbacks detach removals and detect direct pushes", () =>
+test("ProcessLifetime list callbacks re-wire removals (Carbon quirk) and detect direct pushes", () =>
 {
   const lifetime = new ProcessLifetime();
   const first = TunnelGroup();
@@ -189,9 +189,15 @@ test("ProcessLifetime list callbacks detach removals and detect direct pushes", 
   lifetime.Initialize();
   assert.equal(typeof first._changeSystemTunnelRegistry, "function");
 
+  const wired = first._changeSystemTunnelRegistry;
   lifetime.splineTunnels.splice(0, 1);
   lifetime.OnListModified(BLUELISTEVENT.BELIST_REMOVED, 0, 0, first, lifetime.splineTunnels);
-  assert.equal(first._changeSystemTunnelRegistry, null, "a removed group is detached");
+  // Carbon quirk (ProcessLifetime.cpp:53-58): the removed group is handed the callback again.
+  assert.equal(typeof first._changeSystemTunnelRegistry, "function");
+  assert.notEqual(first._changeSystemTunnelRegistry, wired, "re-wired on removal, not left as it was");
+  lifetime._shouldReassignTunnelIDs = false;
+  first._changeSystemTunnelRegistry();
+  assert.equal(lifetime._shouldReassignTunnelIDs, true, "and calling it still rebuilds the removing behavior's registry");
 
   const second = TunnelGroup();
   lifetime.splineTunnels.push(second);

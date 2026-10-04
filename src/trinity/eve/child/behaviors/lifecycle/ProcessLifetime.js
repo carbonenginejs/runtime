@@ -119,12 +119,11 @@ export class ProcessLifetime
   }
 
   /**
-   * Carbon ProcessLifetime::OnListModified (ProcessLifetime.cpp:40-72): an inserted or loaded spline tunnel group is
-   * handed the callback that rebuilds this behavior's tunnel registry, and the registry is rebuilt.
+   * Carbon ProcessLifetime::OnListModified (ProcessLifetime.cpp:40-72): an inserted, removed or loaded spline tunnel
+   * group is handed the callback that rebuilds this behavior's tunnel registry, and the registry is rebuilt.
    *
-   * Adapted: Carbon hands a REMOVED group the same callback again (cpp:53-58), so a group taken out of the list keeps
-   * rebuilding this behavior's registry; here a removed group is detached instead. Inserted and loaded groups are
-   * re-wired as a whole list (_WireTunnelGroups) rather than one value at a time.
+   * Adapted: inserted and loaded groups are re-wired as a whole list (_WireTunnelGroups) rather than one value at a
+   * time.
    */
   @meta.blue.method
   @meta.adapted
@@ -134,10 +133,12 @@ export class ProcessLifetime
     const maskedEvent = event & BLUELISTEVENT.BELIST_EVENTMASK;
     if (maskedEvent === BLUELISTEVENT.BELIST_REMOVED)
     {
+      // Carbon quirk, reproduced (ProcessLifetime.cpp:53-58): the REMOVED group is handed the callback again, so a
+      // group taken out of the list keeps rebuilding this behavior's tunnel registry.
       const handler = CjsSchema.cast(value, SplineTunnelGroup);
       if (handler)
       {
-        handler.SetSystemTunnelFunctionReferenceAndColor(null, 0xff5555aa);
+        handler.SetSystemTunnelFunctionReferenceAndColor(() => this.UpdateTunnelRegistry(), 0xff5555aa);
       }
     }
     else if (![BLUELISTEVENT.BELIST_INSERTED, BLUELISTEVENT.BELIST_LOADFINISHED].includes(maskedEvent))
