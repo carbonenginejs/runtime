@@ -21,6 +21,10 @@ import {
   EveTurretSet,
   EveTurretTarget,
   EveUpdateContext,
+  Tr2Controller,
+  Tr2ControllerFloatVariable,
+  Tr2CurveConstant,
+  Tr2CurveScalar,
   TriCurveSet
 } from "../../npm/dist/trinity/index.js";
 import { FixtureEffect } from "../support/fixtureEffect.js";
@@ -48,6 +52,36 @@ class FixedTarget extends EveEffectRoot2
   {
     return vec3.copy(out, this.fixedPosition);
   }
+}
+
+/** A constant vector curve: Tr2CurveConstant answers the ITriVectorFunction calls. */
+function constantCurve(x, y, z, w = 0)
+{
+  const curve = new Tr2CurveConstant();
+  curve.value.set([x, y, z, w]);
+  return curve;
+}
+
+/** A real curve set whose longest curve, a two-key scalar curve, lasts `duration` seconds. */
+function timedCurveSet(name, duration)
+{
+  const set = new TriCurveSet();
+  set.name = name;
+  const curve = new Tr2CurveScalar();
+  curve.AddKey(0, 0);
+  curve.AddKey(duration, 1);
+  set.curves.push(curve);
+  return set;
+}
+
+/** A real stretch whose start and loop sets report `duration` and whose end set exists. */
+function timedStretch(duration)
+{
+  const stretch = new EveStretch2();
+  stretch.start = timedCurveSet("start", duration);
+  stretch.loop = timedCurveSet("loop", duration);
+  stretch.end = timedCurveSet("end", duration);
+  return stretch;
 }
 
 test("stretch and turret classes are maintained in their Carbon families", () =>
@@ -84,15 +118,15 @@ test("EveLocalPositionCurve implements Carbon offset and ellipsoid behavior", ()
 {
   const curve = new EveLocalPositionCurve();
   // Carbon samples parent curves through their Be::Time overloads.
-  curve.parentPositionCurve = { GetValueAt_Ticks(_time, out) { vec3.set(out, 10, 20, 30); } };
-  curve.parentRotationCurve = { GetValueAt_Ticks(_time, out) { out.set([0, 0, 0, 1]); } };
+  curve.parentPositionCurve = constantCurve(10, 20, 30);
+  curve.parentRotationCurve = constantCurve(0, 0, 0, 1);
   vec3.set(curve.positionOffset, 1, 2, 3);
   curve.SetBehavior(EveLocalPositionCurve.LocalPositionBehavior.POS_OFFSET_POSITION);
   assert.deepEqual(Array.from(curve.GetValueAt_Ticks(20_000_000, vec3.create())), [11, 22, 33]);
   // The double GetValueAt only copies m_value (Carbon cpp:316-322), which behaviours other than POS_NONE never store.
   assert.deepEqual(Array.from(curve.GetValueAt(2, vec3.create())), [0, 0, 0]);
 
-  curve.alignPositionCurve = { GetValueAt_Ticks(_time, out) { vec3.set(out, 20, 20, 30); } };
+  curve.alignPositionCurve = constantCurve(20, 20, 30);
   vec3.set(curve.boundingSize, 20, 30, 40);
   curve.offset = 5;
   curve.SetBehavior(EveLocalPositionCurve.LocalPositionBehavior.POS_NEAREST_BOUNDING_POINT);
@@ -101,44 +135,28 @@ test("EveLocalPositionCurve implements Carbon offset and ellipsoid behavior", ()
 
 test("EveFiringEffectElementContainer owns active element lifecycle", () =>
 {
-  const calls = [];
   const container = new EveFiringEffectElementContainer();
-  container.element = new class extends IEveFiringEffectElement
-  {
-    StartFiring(delay) { calls.push(["start", delay]); }
-    StopFiring() { calls.push(["stop"]); }
-    SetFiringTransform() { calls.push(["transform"]); }
-    SetDestObjectScale() {}
-    DisplayEndPoints() {}
-    Update() { calls.push(["update"]); }
-  }();
+  const element = timedStretch(2);
+  container.element = element;
 
   container.StartFiring(0.25);
-  container.UpdateSynchronous({});
-  container.UpdateAsynchronous({});
+  assert.equal(element.start.isPlaying, true);
+  assert.equal(element.start.scaledTime, -0.25);
+  container.UpdateSynchronous(new EveUpdateContext());
+  container.UpdateAsynchronous(new EveUpdateContext());
   container.StopFiring();
   assert.equal(container.GetActive(), false);
-  assert.deepEqual(calls.map(value => value[0]), ["start", "transform", "update", "stop"]);
+  assert.equal(element.start.isPlaying, false);
+  assert.equal(element.end.isPlaying, true);
 });
 
 test("EveStretch2 retains Carbon curve timing and portable render data", async () =>
 {
-  const events = [];
-  // Real curve sets; playback calls are recorded, and each reports a fixed duration in place of authored curves.
-  const curveSet = name =>
-  {
-    const set = new TriCurveSet();
-    set.name = name;
-    set.PlayFrom = value => { events.push([name, "play", value]); };
-    set.Stop = () => { events.push([name, "stop"]); };
-    set.Play = () => { events.push([name, "end"]); };
-    set.GetMaxCurveDuration = () => name === "loop" ? 3 : 2;
-    return set;
-  };
   const stretch = new EveStretch2();
-  stretch.start = curveSet("start");
-  stretch.loop = curveSet("loop");
-  stretch.end = curveSet("end");
+  // Real curve sets; the longest curve sets each duration.
+  stretch.start = timedCurveSet("start", 2);
+  stretch.loop = timedCurveSet("loop", 3);
+  stretch.end = timedCurveSet("end", 2);
   stretch.quadCount = 4;
   assert.equal(stretch.Initialize(), true);
   assert.equal(stretch.GetCurveDuration(), 3);
@@ -184,31 +202,35 @@ test("EveStretch2 retains Carbon curve timing and portable render data", async (
   assert.equal(committed[0].baseVertexLocation, vb.GetOffset() / vb.GetStride());
   assert.equal(committed[0].vertexDeclaration, stretch._vertexDeclHandle);
   stretch.StopFiring();
-  assert.ok(events.some(value => value[0] === "end" && value[1] === "end"));
+  assert.equal(stretch.end.isPlaying, true);
+  assert.equal(stretch.start.isPlaying, false);
 });
 
 test("EveStretch3 applies deferred controller firing state", () =>
 {
-  const events = [];
-  const controller = {
-    Start() { events.push("start"); },
-    SetVariable(name, value) { events.push(`${name}:${value}`); },
-    Update() {}
-  };
+  const controller = new Tr2Controller();
+  for (const name of ["FiringDelay", "IsFiring"])
+  {
+    const variable = new Tr2ControllerFloatVariable();
+    variable.name = name;
+    controller.variables.push(variable);
+  }
   const stretch = new EveStretch3();
   stretch.controllers.push(controller);
-  stretch.source = { Update_Ticks(_time, out) { vec3.set(out, 0, 0, 0); } };
-  stretch.dest = { Update_Ticks(_time, out) { vec3.set(out, 0, 0, 10); } };
+  stretch.source = constantCurve(0, 0, 0);
+  stretch.dest = constantCurve(0, 0, 10);
   stretch.StartFiring(0.75);
   const context = new EveUpdateContext();
   context.SetTime((1) * 10_000_000);
   stretch.UpdateSynchronous(context);
   assert.equal(stretch.length.value, 10);
-  assert.deepEqual(events.slice(0, 3), ["start", "FiringDelay:0.75", "IsFiring:1"]);
+  assert.equal(controller.isPlaying, true);
+  assert.equal(controller.GetVariableValue("FiringDelay"), 0.75);
+  assert.equal(controller.GetVariableValue("IsFiring"), 1);
   stretch.StopFiring();
   context.SetTime((2) * 10_000_000);
   stretch.UpdateSynchronous(context);
-  assert.equal(events.at(-1), "IsFiring:0");
+  assert.equal(controller.GetVariableValue("IsFiring"), 0);
 });
 
 test("EveTurretTarget bounds the miss queue and switches projectile destination visibility", () =>
@@ -237,17 +259,7 @@ test("EveTurretFiringFX preserves Carbon's one-frame ready-to-fire delay", () =>
   empty.Initialize();
   assert.equal(empty.GetFiringDuration(), 1000);
 
-  const events = [];
-  const stretch = {
-    GetCurveDuration() { return 2; },
-    StartFiring(delay) { events.push(["start", delay]); },
-    StopFiring() { events.push(["stop"]); },
-    SetFiringTransform() {},
-    DisplayEndPoints() {},
-    UpdateEffectAsync() {},
-    UpdateEffectSync() {},
-    GetRenderables(out) { out.push(this); }
-  };
+  const stretch = timedStretch(2);
   const firing = new EveTurretFiringFX();
   firing.stretch.push(stretch);
   firing.Initialize();
@@ -258,8 +270,9 @@ test("EveTurretFiringFX preserves Carbon's one-frame ready-to-fire delay", () =>
   assert.equal(firing.UpdateAsynchronous(context), false);
   assert.equal(firing.ReadyToFire(), true);
   assert.equal(firing.UpdateAsynchronous(context), true);
-  assert.equal(events[0][0], "start");
-  assert.equal(events[0][1], -Math.fround(0.1));
+  // StartFiring(delay) plays the start set from -delay (EveStretch2 StartFiring).
+  assert.equal(stretch.start.isPlaying, true);
+  assert.equal(stretch.start.scaledTime, Math.fround(0.1));
   const start = vec3.create();
   assert.equal(firing.GetStartPosition(start), true);
   assert.deepEqual(Array.from(start), [1, 2, 3]);
