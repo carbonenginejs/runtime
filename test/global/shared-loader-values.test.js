@@ -1,7 +1,6 @@
 import { createChild } from "../../npm/dist/global/blue/children.js";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { createHash } from "node:crypto";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { CjsBlueResMan } from "../../npm/dist/global/blue/CjsBlueResMan.js";
@@ -11,6 +10,10 @@ import { EveSOFData, EveSOFDataGeneric, EveSOFDataHullDecalSetItem } from "../..
 import { Tr2DynamicEmitter, ITr2GenericEmitter, EveThrottleable, Tr2Effect, Tr2Controller, Tr2TimelineController } from "../../npm/dist/trinity/index.js";
 import { IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
+import { clientResources } from "../support/clientResources.js";
+
+// The client's SOF data.black through BePaths; its bytes change per build, so none are pinned.
+const sofData = await clientResources();
 
 const host = JSON.parse(readFileSync(new URL("../support/crisisParticleHost.json", import.meta.url), "utf8"));
 
@@ -79,11 +82,10 @@ test("a failed dictionary operation cannot leak anchors or completion into reade
 });
 
 test("real SOF generic and decal data retain concrete nested records through the shared loader", {
-  skip: !process.env.SOF_BLACK_CORPUS_FILE && "Set SOF_BLACK_CORPUS_FILE to the indexed data.black copy."
-}, t =>
+  skip: sofData.skip ?? false
+}, async t =>
 {
-  const bytes = readFileSync(process.env.SOF_BLACK_CORPUS_FILE);
-  assert.equal(createHash("md5").update(bytes).digest("hex"), "a800b64240ea16a7efba1d1b96df3365");
+  const bytes = await sofData.Read("res:/dx9/model/spaceobjectfactory/data.black");
   const raw = CjsBlackFormat.readPayload(bytes).object;
   const catalog = CjsSchema.from("EveSOFData", { generic: raw.generic });
   assert.equal(catalog.constructor, EveSOFData);

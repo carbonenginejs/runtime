@@ -1,22 +1,22 @@
 // Optional private-data proof. No game data ships in the package or tests.
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { CjsBlackFormat } from "../../../npm/dist/resource/formats/black/index.js";
 import { EveSOF } from "../../../npm/dist/sof/index.js";
 import * as CcpLog from "../../../npm/dist/global/logging/ccpLog.js";
+import { clientResources } from "../../support/clientResources.js";
+
+// The client's SOF data.black through BePaths; its bytes change per build, so none are pinned.
+const sofData = await clientResources();
 
 const DNA = "ab1_t1:lavatiger:amarr:mesh?orange_fire_polished;black_gunmetal_metallic;black_deadstar_matt;none:pattern?lavatiger_amarr;orange_burnt_mirror;black_gunmetal_metallic:respathinsert?base";
 const MISSING = "rock_lightgray_sand";
 
 test("real Apocalypse Lavacore DNA builds with an absent authored material", {
-  skip: !process.env.SOF_BLACK_CORPUS_FILE && "set SOF_BLACK_CORPUS_FILE to the indexed data.black copy"
+  skip: sofData.skip ?? false
 }, async t =>
 {
-  const bytes = await readFile(process.env.SOF_BLACK_CORPUS_FILE);
-  assert.equal(bytes.length, 184126948);
-  assert.equal(createHash("md5").update(bytes).digest("hex"), "a800b64240ea16a7efba1d1b96df3365");
+  const bytes = await sofData.Read("res:/dx9/model/spaceobjectfactory/data.black");
   const data = CjsBlackFormat.readPayload(bytes).object;
   const files = new Map([["res:/dx9/model/spaceobjectfactory/generic.black", data.generic]]);
   for (const [kind, directory] of Object.entries({hull: "hulls", faction: "factions", race: "races", material: "materials", pattern: "patterns", layout: "layouts"}))

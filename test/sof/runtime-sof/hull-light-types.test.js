@@ -1,6 +1,4 @@
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { EveSOF, EveSOFDNA } from "../../../npm/dist/sof/index.js";
 import { EveSOFDataHullLightSetSpotLight } from "../../../npm/dist/sof/hull/EveSOFDataHullLightSetSpotLight.js";
@@ -8,6 +6,10 @@ import { CjsBlackFormat } from "../../../npm/dist/resource/formats/black/index.j
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { Tr2PointLight, Tr2TexturedPointLight, Tr2SpotLight } from "../../../npm/dist/trinity/index.js";
 import { SofDocumentBuilder } from "../../../src/sof/SofDocumentBuilder.js";
+import { clientResources } from "../../support/clientResources.js";
+
+// The client's SOF data.black through BePaths; its bytes change per build, so none are pinned.
+const sofData = await clientResources();
 
 function buildLights(rawHull)
 {
@@ -47,12 +49,10 @@ test("plain decoded hull-light identities retain point, textured point and spot 
 });
 
 test("real cl1_t1 retains its eight SPOT and eight POINT lights through projection and hydration", {
-  skip: !process.env.SOF_BLACK_CORPUS_FILE && "set SOF_BLACK_CORPUS_FILE to the indexed data.black copy"
+  skip: sofData.skip ?? false
 }, async t =>
 {
-  const bytes = await readFile(process.env.SOF_BLACK_CORPUS_FILE);
-  assert.equal(bytes.length, 184126948);
-  assert.equal(createHash("md5").update(bytes).digest("hex"), "a800b64240ea16a7efba1d1b96df3365");
+  const bytes = await sofData.Read("res:/dx9/model/spaceobjectfactory/data.black");
   const data = CjsBlackFormat.readPayload(bytes).object;
   const rawHull = data.hull.find(value => value.name === "cl1_t1");
   assert.ok(rawHull);
