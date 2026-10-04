@@ -162,44 +162,57 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
   }
 
   /**
-   * Appends a sprite and returns the stored item, accepting either a ready-made item on its own or a position plus one of two argument forms.
-   * @param {object|vec3} positionOrItem An existing sprite item, or the sprite position.
-   * @param {...*} args Either (scale, color, warpColor) for a non-blinking sprite, or (blinkRate, blinkPhase, minScale, maxScale, falloff, color, warpColor).
+   * Carbon's Add( EveSpriteSetItemPtr newItem ) (EveSpriteSet.h:80): appends a
+   * ready-made item. Adapted: returns the item, which Carbon's void does not.
+   * @param {EveSpriteSetItem} newItem
+   * @returns {EveSpriteSetItem}
    */
   @meta.blue.method
   @meta.adapted
-  Add(positionOrItem, ...args)
+  Add(newItem)
   {
-    if (positionOrItem && !ArrayBuffer.isView(positionOrItem) && !Array.isArray(positionOrItem) && args.length === 0)
-    {
-      this.sprites.push(positionOrItem);
-      return positionOrItem;
-    }
+    this.sprites.push(newItem);
+    return newItem;
+  }
 
+  /**
+   * Carbon's Add( pos, scale, color, warpColor ) (EveSpriteSet.h:79): a
+   * non-blinking sprite of one scale. Named after scale, the parameter that
+   * carries its meaning (docs 22d1237). Adapted: returns the new item.
+   * @returns {EveSpriteSetItem}
+   */
+  @meta.blue.renamed("Add")
+  @meta.adapted
+  Add_Scale(pos, scale, color, warpColor)
+  {
+    return this._AddItem(pos, 0, 0, scale, scale, 0, color, warpColor);
+  }
+
+  /**
+   * Carbon's Add( pos, blinkRate, blinkPhase, minScale, maxScale, falloff,
+   * color, warpColor ) (EveSpriteSet.h:78): a blinking sprite. Named after the
+   * blink parameters that carry its meaning. Adapted: returns the new item.
+   * @returns {EveSpriteSetItem}
+   */
+  @meta.blue.renamed("Add")
+  @meta.adapted
+  Add_Blink(pos, blinkRate, blinkPhase, minScale, maxScale, falloff, color, warpColor)
+  {
+    return this._AddItem(pos, blinkRate, blinkPhase, minScale, maxScale, falloff, color, warpColor);
+  }
+
+  /** Builds and appends one item; the shared body of Add_Scale and Add_Blink. */
+  _AddItem(pos, blinkRate, blinkPhase, minScale, maxScale, falloff, color, warpColor)
+  {
     const item = new EveSpriteSetItem();
-    vec3.copy(item.position, positionOrItem ?? vec3.create());
-    if (args.length === 3)
-    {
-      const [scale, color, warpColor] = args;
-      item.blinkRate = 0;
-      item.blinkPhase = 0;
-      item.minScale = Number(scale);
-      item.maxScale = Number(scale);
-      item.falloff = 0;
-      vec4.copy(item.color, color);
-      vec4.copy(item.warpColor, warpColor);
-    }
-    else
-    {
-      const [blinkRate = 0, blinkPhase = 0, minScale = 1, maxScale = 1, falloff = 0, color = [1, 1, 1, 1], warpColor = [1, 1, 1, 1]] = args;
-      item.blinkRate = Number(blinkRate);
-      item.blinkPhase = Number(blinkPhase);
-      item.minScale = Number(minScale);
-      item.maxScale = Number(maxScale);
-      item.falloff = Number(falloff);
-      vec4.copy(item.color, color);
-      vec4.copy(item.warpColor, warpColor);
-    }
+    vec3.copy(item.position, pos);
+    item.blinkRate = Number(blinkRate);
+    item.blinkPhase = Number(blinkPhase);
+    item.minScale = Number(minScale);
+    item.maxScale = Number(maxScale);
+    item.falloff = Number(falloff);
+    vec4.copy(item.color, color);
+    vec4.copy(item.warpColor, warpColor);
     item.boneIndex = 0;
     this.sprites.push(item);
     return item;

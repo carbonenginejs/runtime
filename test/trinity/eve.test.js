@@ -388,13 +388,13 @@ test("EveSpriteSet builds the authored SOF sprite graph without renderer buffers
 
   const existing = new EveSpriteSetItem();
   assertEquals(set.Add(existing), existing);
-  const simple = set.Add(vec3.fromValues(1, 2, 3), 4, vec4.fromValues(1, 0, 0, 1), vec4.fromValues(0, 1, 0, 1));
+  const simple = set.Add_Scale(vec3.fromValues(1, 2, 3), 4, vec4.fromValues(1, 0, 0, 1), vec4.fromValues(0, 1, 0, 1));
   assertVec3(simple.position, [1, 2, 3]);
   assertEquals(simple.minScale, 4);
   assertEquals(simple.maxScale, 4);
   assertEquals(simple.blinkRate, 0);
 
-  const full = set.Add(vec3.fromValues(4, 5, 6), 0.25, 0.5, 2, 8, 0.75, vec4.fromValues(0.1, 0.2, 0.3, 0.4), vec4.fromValues(0.5, 0.6, 0.7, 0.8));
+  const full = set.Add_Blink(vec3.fromValues(4, 5, 6), 0.25, 0.5, 2, 8, 0.75, vec4.fromValues(0.1, 0.2, 0.3, 0.4), vec4.fromValues(0.5, 0.6, 0.7, 0.8));
   assertEquals(full.blinkRate, 0.25);
   assertEquals(full.blinkPhase, 0.5);
   assertEquals(full.minScale, 2);
