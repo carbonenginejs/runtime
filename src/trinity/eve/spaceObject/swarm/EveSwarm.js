@@ -285,18 +285,20 @@ export class EveSwarm extends EveShip2
   /**
    * Carbon GetObserverTransform (EveSwarm.cpp:347-352): the world transform moved to the model centre, for audio
    * observers. Row-vector worldTransform * translation adds the offset to the translation row.
-   * @returns {mat4} a shared scratch matrix
+   *
+   * Adapted: Carbon returns the Matrix by value; it is written to the caller-owned out, which is returned.
+   * @param {mat4} out - receives the transform
+   * @returns {mat4} out
    */
   @meta.blue.method
-  @meta.implemented
-  GetObserverTransform()
+  @meta.adapted
+  GetObserverTransform(out)
   {
-    const { mat4_0 } = EveSwarm.scratch;
-    mat4.copy(mat4_0, this.worldTransform);
-    mat4_0[12] += this.modelWorldPosition[0] - this.worldPosition[0];
-    mat4_0[13] += this.modelWorldPosition[1] - this.worldPosition[1];
-    mat4_0[14] += this.modelWorldPosition[2] - this.worldPosition[2];
-    return mat4_0;
+    mat4.copy(out, this.worldTransform);
+    out[12] += this.modelWorldPosition[0] - this.worldPosition[0];
+    out[13] += this.modelWorldPosition[1] - this.worldPosition[1];
+    out[14] += this.modelWorldPosition[2] - this.worldPosition[2];
+    return out;
   }
 
   /**

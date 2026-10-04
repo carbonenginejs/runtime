@@ -218,3 +218,15 @@ test("EveSpaceObject2.UpdateModelCenterWorldPosition updates the transform, then
   swarm.UpdateModelCenterWorldPosition(position, 10000000);
   close(position, [ 0, 0, 0 ], "swarming: the squad box's centre after UpdateSwarm");
 });
+
+test("GetObserverTransform moves the world transform to the model centre (EveSwarm.cpp:347-352)", async () =>
+{
+  const { mat4 } = await import("../../npm/dist/global/math/mat4.js");
+  const swarm = swarmWith(1);
+  mat4.fromTranslation(swarm.worldTransform, [ 1, 2, 3 ]);
+  swarm.worldPosition.set([ 1, 2, 3 ]);
+  swarm.modelWorldPosition.set([ 4, 6, 8 ]);
+  const out = mat4.create();
+  assert.equal(swarm.GetObserverTransform(out), out);
+  close(out.subarray(12, 15), [ 4, 6, 8 ], "translation offset by modelWorldPosition - worldPosition");
+});

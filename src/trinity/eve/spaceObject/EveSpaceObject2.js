@@ -696,6 +696,9 @@ export class EveSpaceObject2 extends EveEntity
    */
   _isMeshVisible = false;
 
+  /** Carbon UpdateSyncronous's observerTransform local (cpp:580), held for reuse. */
+  _observerTransform = mat4.create();
+
   /**
    * Detail level selected from the combined hull and child bounds.
    * @type {number}
@@ -1592,7 +1595,7 @@ export class EveSpaceObject2 extends EveEntity
       return false;
     }
 
-    const observerTransform = this.GetObserverTransform();
+    const observerTransform = this.GetObserverTransform(this._observerTransform);
     for (const observer of this.observers)
     {
       observer?.Update(observerTransform);
@@ -2521,14 +2524,17 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /**
-   * Returns the transform placement observers are attached to - the live hull
-   * world transform.
+   * Carbon EveSpaceObject2::GetObserverTransform: the transform audio observers are placed at, the world transform.
+   *
+   * Adapted: Carbon returns the Matrix by value; it is written to the caller-owned out, which is returned.
+   * @param {mat4} out - receives the transform
+   * @returns {mat4} out
    */
   @meta.blue.method
-  @meta.implemented
-  GetObserverTransform()
+  @meta.adapted
+  GetObserverTransform(out)
   {
-    return this.worldTransform;
+    return mat4.copy(out, this.worldTransform);
   }
 
   /**

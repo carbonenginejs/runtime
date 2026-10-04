@@ -683,7 +683,9 @@ test("EveSpaceObject2 evaluates Carbon model curves into detached world transfor
   const identity = mat4.multiply(mat4.create(), object.worldTransform, object.inverseWorldTransform);
   assertVecNear(identity, mat4.create(), 1e-5);
   assert.notEqual(object.GetLocalToWorldTransform(), object.inverseWorldTransform);
-  assert.equal(object.GetObserverTransform(), object.worldTransform);
+  const observer = mat4.create();
+  assert.equal(object.GetObserverTransform(observer), observer, "written to the caller-owned out");
+  assert.deepEqual(Array.from(observer), Array.from(object.worldTransform));
 });
 
 test("EveSpaceObject2 drives observers, controller frequency, mute, and emitter lookup", () =>
