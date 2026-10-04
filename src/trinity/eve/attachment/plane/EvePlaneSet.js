@@ -458,16 +458,34 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
     this._activationStrength = Number(activationStrength) || 0;
   }
 
+  /**
+   * Carbon's GetAverageColor( const TriTextureParameterPtr& map )
+   * (EvePlaneSet.h:122, cpp:514-528): the average colour of a texture
+   * parameter's resource, white when the parameter or its resource is missing,
+   * so an absent map is a no-op in the four-way product.
+   * @param {TriTextureParameter|null} map
+   * @returns {ArrayLike<number>}
+   */
+  @meta.blue.renamed("GetAverageColor")
+  @meta.implemented
+  GetAverageColor_Map(map)
+  {
+    if (!map || !map.GetResource()) return WHITE;
+    const resource = CjsSchema.cast(map.GetResource(), TriTextureRes);
+    if (!resource) return WHITE;
+    return resource.GetAverageColor();
+  }
+
   /** Carbon EvePlaneSet::GetAverageColor (cpp:499-528): the componentwise
    * product of the four texture parameters' average colors, each defaulting
    * to white when the map or its resource is missing. */
   @meta.blue.method
   GetAverageColor(out = new Float32Array(4))
   {
-    const layer1 = EvePlaneSet._MapAverageColor(this.layerMap1Parameter);
-    const layer2 = EvePlaneSet._MapAverageColor(this.layerMap2Parameter);
-    const image = EvePlaneSet._MapAverageColor(this.imageMapParameter);
-    const mask = EvePlaneSet._MapAverageColor(this.maskMapParameter);
+    const layer1 = this.GetAverageColor_Map(this.layerMap1Parameter);
+    const layer2 = this.GetAverageColor_Map(this.layerMap2Parameter);
+    const image = this.GetAverageColor_Map(this.imageMapParameter);
+    const mask = this.GetAverageColor_Map(this.maskMapParameter);
     for (let channel = 0; channel < 4; channel++)
     {
       out[channel] = layer1[channel] * layer2[channel] * image[channel] * mask[channel];
@@ -516,20 +534,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
       record.owner = this;
       lightManager?.AddLight(record);
     }
-  }
-
-  /**
-   * The average colour of a texture parameter's resource, white when the
-   * parameter, its resource or its average colour is missing, so an absent map
-   * is a no-op in the four-way product.
-   */
-  static _MapAverageColor(parameter)
-  {
-    // Carbon: white when the map or its TriTextureRes is missing (cpp:516-527).
-    if (!parameter || !parameter.GetResource()) return WHITE;
-    const resource = CjsSchema.cast(parameter.GetResource(), TriTextureRes);
-    if (!resource) return WHITE;
-    return resource.GetAverageColor();
   }
 
   static _features = { parentBrightness: 0, parentScale: 1 };
