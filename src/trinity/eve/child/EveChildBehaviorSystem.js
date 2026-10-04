@@ -93,6 +93,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
   _perObjectData = createChildPerObjectRecords();
 
   static _inverseScratch = mat4.create();
+  static _parentTransform = mat4.create();
 
   // Carbon m_behaviorGroupLoaded/m_behaviorGroupLoadedForTunnel: one-shot
   // wiring flags for the callback pass-ins.
@@ -265,7 +266,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
     // Carbon chooses the immediate child parent first. Only a direct hull
     // parent supplies inherited per-object values as well as placement.
     const parent = params.childParent ?? params.spaceObjectParent;
-    const parentTransform = parent ? parent.GetLocalToWorldTransform() : params.localToWorldTransform;
+    const parentTransform = parent ? parent.GetLocalToWorldTransform(EveChildBehaviorSystem._parentTransform) : params.localToWorldTransform;
     if (!params.childParent && params.spaceObjectParent)
     {
       // Carbon copies the hull records only for a direct space-object parent;

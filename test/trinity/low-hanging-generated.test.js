@@ -351,10 +351,11 @@ test("EveChildBulletStorm rebuilds locator instances and transitions its clip sp
   assert.equal(storm.objectCount, 2);
   assert.deepEqual(Array.from(storm.instances[0].sourcePositionOS), [1, 2, 3]);
   assert.deepEqual(Array.from(storm.instances[0].sourceDirectionOS), [0, 1, 0]);
-  storm.targetObjects.push({
-    modelWorldPosition: [10, 20, 30],
+  // A space-object target: Carbon reads GetModelCenterWorldPosition and GetBoundingSphere.
+  storm.targetObjects.push(Object.assign(new EveSpaceObject2(), {
+    GetModelCenterWorldPosition(out) { out.set([10, 20, 30]); },
     GetBoundingSphere(out) { out.set([10, 20, 30, 5]); return true; }
-  });
+  }));
   storm.StartEffect();
   assert.equal(storm.CanChangeState(), false);
   storm.UpdateAsyncronous({ GetDeltaT: () => 1.05 });
@@ -1559,4 +1560,15 @@ test("EveChildInstanceContainer runs Carbon's instance fan-out and gates", () =>
   container.UpdateVisibility({}, parent, 2);
   assert.deepEqual(container.GetRenderables([]), []);
   assert.equal(instanceLog.filter(entry => entry[0] === "sync").length, 1);
+});
+
+// EveChildBulletStorm.cpp UpdateAsyncronous: GetLocalToWorldTransform( m_worldTransform ) on a
+// space-object parent. EveSpaceObject2's used to ignore its out argument, so the storm never moved.
+test("EveChildBulletStorm takes its space-object parent's world transform", () =>
+{
+  const storm = new EveChildBulletStorm();
+  const parent = new EveSpaceObject2();
+  parent.worldTransform[12] = 9;
+  storm.UpdateAsyncronous({ GetDeltaT: () => 0 }, { spaceObjectParent: parent });
+  assert.equal(storm.worldTransform[12], 9);
 });

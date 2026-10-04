@@ -676,7 +676,7 @@ export class EveImpactOverlay
         return closestAtAnyIndex;
       }
 
-      const parentWorldTransform = mat4.copy(mat4.create(), parent.GetLocalToWorldTransform());
+      const parentWorldTransform = parent.GetLocalToWorldTransform(mat4.create());
       const parentInverseWorldTransform = mat4.invert(mat4.create(), parentWorldTransform);
       if (!parentInverseWorldTransform)
       {
@@ -878,7 +878,7 @@ export class EveImpactOverlay
 
     if (!this.HasGeneralActivity()) return;
 
-    const parentWorldTransform = mat4.copy(mat4.create(), parent.GetLocalToWorldTransform());
+    const parentWorldTransform = parent.GetLocalToWorldTransform(mat4.create());
     const parentInverseWorldTransform = mat4.invert(mat4.create(), parentWorldTransform);
     if (!parentInverseWorldTransform)
     {

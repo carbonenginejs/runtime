@@ -381,16 +381,16 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   @meta.adapted
   UpdateAsyncronous(updateContext, params = {})
   {
-    params.spaceObjectParent?.GetLocalToWorldTransform?.(this.worldTransform);
+    if (params.spaceObjectParent) params.spaceObjectParent.GetLocalToWorldTransform(this.worldTransform);
     this.targetBlobs.length = 0;
     for (const target of this.targetObjects.slice(0, 10))
     {
-      const position = vec3.clone(target.modelWorldPosition ?? vec3.create());
-      const positionResult = target.GetModelCenterWorldPosition?.(position);
-      if (positionResult?.length >= 3) vec3.copy(position, positionResult);
+      const position = vec3.create();
+      target.GetModelCenterWorldPosition(position);
+      // Carbon reads targetSize.w whether or not GetBoundingSphere succeeded.
       const sphere = vec4.create();
-      const hasSphere = target.GetBoundingSphere?.(sphere);
-      this.targetBlobs.push(vec4.fromValues(position[0], position[1], position[2], Math.max(hasSphere === false ? 0 : sphere[3], 4050)));
+      target.GetBoundingSphere(sphere);
+      this.targetBlobs.push(vec4.fromValues(position[0], position[1], position[2], Math.max(sphere[3], 4050)));
     }
     if (this.sourceObject)
     {
@@ -399,7 +399,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
     }
     if (this._changingClipSphere)
     {
-      const deltaTime = Number(updateContext?.GetDeltaT?.() ?? updateContext?.deltaTime ?? 0);
+      const deltaTime = updateContext.GetDeltaT();
       const denominator = this.sourceRadius + this.range;
       if (denominator) this.clipSphere += this._clipSphereMultiplier * this.speed * deltaTime / denominator;
       this.clipSphere = Math.max(-1, Math.min(1, this.clipSphere));

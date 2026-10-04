@@ -1626,7 +1626,7 @@ export class EveSpaceObject2 extends EveEntity
       params.spaceObjectParent = this;
       params.ownerMaxSpeed = Number(this.maxSpeed) || 0;
       params.activationStrength = this.activationStrength;
-      mat4.copy(params.localToWorldTransform, this.GetLocalToWorldTransform());
+      this.GetLocalToWorldTransform(params.localToWorldTransform);
       // Carbon cpp:598/724 borrows the root mesh-bone palette in both phases.
       const { bones, boneCount } = getBoneList(this.animationUpdater);
       params.bones = bones;
@@ -1745,7 +1745,7 @@ export class EveSpaceObject2 extends EveEntity
       params.ownerMaxSpeed = Number(this.maxSpeed) || 0;
       params.activationStrength = this.activationStrength;
       params.controllerUpdateFrequency = frequency;
-      mat4.copy(params.localToWorldTransform, this.GetLocalToWorldTransform());
+      this.GetLocalToWorldTransform(params.localToWorldTransform);
       // Carbon cpp:598/724 borrows the root mesh-bone palette in both phases.
       const { bones, boneCount } = getBoneList(this.animationUpdater);
       params.bones = bones;
@@ -2619,14 +2619,16 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /**
-   * Returns the transform effect children are placed against - the live hull
-   * world transform, not a copy.
+   * Carbon GetLocalToWorldTransform( Matrix& ): copies the world transform effect
+   * children are placed against into out, and returns out.
+   * @param {mat4} [out]
+   * @returns {mat4} out
    */
   @meta.blue.method
   @meta.implemented
-  GetLocalToWorldTransform()
+  GetLocalToWorldTransform(out = mat4.create())
   {
-    return this.worldTransform;
+    return mat4.copy(out, this.worldTransform);
   }
 
   /**
