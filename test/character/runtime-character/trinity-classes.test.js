@@ -577,8 +577,9 @@ test("current Carbon TriMatrix source lives under src/character/trinity but stay
   assert.match(source, /Source: trinity\/trinity\/Include\/TriMatrix\.h/u);
   assert.match(source, /intentionally unexported/u);
   assert.equal(CjsSchema.GetConstructor("TriMatrix"), null);
-  assert.equal(CjsSchema.getField(Tr2InteriorPlaceable, "transform")?.type?.className, "TriMatrix");
-  assert.equal(CjsSchema.getField(Tr2SkinnedObject, "transform")?.type?.className, "TriMatrix");
+  // Carbon's PTriMatrix members hold the matrix itself as a mat4 (same byte layout).
+  assert.equal(CjsSchema.getField(Tr2InteriorPlaceable, "transform")?.type?.kind, "mat4");
+  assert.equal(CjsSchema.getField(Tr2SkinnedObject, "transform")?.type?.kind, "mat4");
 });
 
 

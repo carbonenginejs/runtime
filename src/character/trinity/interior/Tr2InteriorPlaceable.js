@@ -6,6 +6,7 @@ import { blue, IInitialize, INotify, IsMatch } from "#blue";
 import { mappedInterfaces } from "../../../global/compose/interface.js";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { WodPlaceableRes } from "../../../resource/geometry/WodPlaceableRes.js";
+import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
 
@@ -22,12 +23,20 @@ export class Tr2InteriorPlaceable
   @meta.type.path("object")
   placeableResPath = "";
 
-  /** m_transform (PTriMatrix) [READ, PERSIST, NOTIFY] */
+  /**
+   * m_transform (PTriMatrix) [READ, PERSIST, NOTIFY]: the placeable's world transform.
+   * Carbon holds a PTriMatrix (a Blue object wrapping a Matrix); the port holds the
+   * matrix itself as a mat4. TriMatrix's _11.._44 are Carbon's row-major Matrix, which
+   * has gl-matrix's byte layout, so no conversion is needed. No cached client resource
+   * persists this member (searched 2026-10-05); a loader meeting a TriMatrix object here
+   * would need to unpack it.
+   * @type {mat4}
+   */
   @meta.blue.notify
   @meta.blue.read
   @meta.blue.persist
-  @meta.type.objectRef("TriMatrix")
-  transform = null;
+  @meta.type.mat4
+  transform = mat4.create();
 
   /** m_placeableRes (WodPlaceableResPtr) [READ] */
   @meta.blue.read

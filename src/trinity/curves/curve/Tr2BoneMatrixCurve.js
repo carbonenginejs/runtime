@@ -149,6 +149,12 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    */
   _scratch = mat4.create();
 
+  /** m_cachedJoint: the resolved joint index, ~0u until resolved (cpp:28). */
+  _cachedJoint = 0xffffffff;
+
+  /** m_skeletonTag: the skeleton the cached joint belongs to, ~0u initially (cpp:29). */
+  _skeletonTag = 0xffffffff;
+
   /** Gets the native curve template's name. */
   @meta.blue.method
   @meta.implemented
@@ -203,9 +209,7 @@ export class Tr2BoneMatrixCurve extends ITriFunction
 
   /**
    * Gets matrix value at a time.
-   * Adapted: out-parameter matrices and structural bone-name lookup replace
-   * native value returns and skeleton-tag/joint caching. World transform is
-   * optional in the retained JS skinned-object adapter.
+   * Adapted: the matrix is written into out rather than returned by value.
    */
   @meta.blue.method
   @meta.adapted
@@ -217,23 +221,12 @@ export class Tr2BoneMatrixCurve extends ITriFunction
     if (this.length <= 0 || time <= 0) return mat4.copy(out, this.startValue);
     if (time > this.length && !this.cycle)
       return mat4.copy(out, this.reversed ? this.startValue : this.endValue);
-    const boneMatrix = Tr2BoneMatrixCurve._getBoneMatrix(this.skinnedObject, this._bone);
-    if (!boneMatrix)
-    {
-      return mat4.identity(out);
-    }
-    // Carbon (row-vector): (m_transform * bone) * world - m_transform first,
-    // world last (XMMatrixMultiply is row-vector A*B).
-    mat4.multiply(this._scratch, boneMatrix, this.transform);
-    const worldTransform = Tr2BoneMatrixCurve._getSkinnedObjectTransform(this.skinnedObject);
-    return worldTransform ? mat4.multiply(out, worldTransform, this._scratch) : mat4.copy(out, this._scratch);
+    return this._Interpolate(out);
   }
 
   /**
    * Gets matrix value at a time.
-   * Adapted: out-parameter matrices and structural bone-name lookup replace
-   * native value returns and skeleton-tag/joint caching. World transform is
-   * optional in the retained JS skinned-object adapter.
+   * Adapted: the matrix is written into out rather than returned by value.
    */
   @meta.blue.method
   @meta.adapted
@@ -383,15 +376,13 @@ export class Tr2BoneMatrixCurve extends ITriFunction
     }
   }
 
-  /**
-   * Sets the source bone name.
-   * Adapted: native also resets joint/skeleton caches; JS resolves by name per sample.
-   */
+  /** Carbon SetBone (Tr2BoneMatrixCurve.cpp:51-55): the bone name, and the joint caches reset. */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   SetBone(bone)
   {
     this._bone = bone;
+    this._cachedJoint = this._skeletonTag = Tr2BoneMatrixCurve.INVALID_JOINT;
   }
 
   /**
@@ -433,44 +424,44 @@ export class Tr2BoneMatrixCurve extends ITriFunction
   }
 
   /**
-   * Reads a bone's 16-component matrix through GetBoneMatrix or
-   * GetBoneTransform, returning null when the object exposes neither or returns
-   * a wrongly sized value.
+   * Carbon Interpolate (Tr2BoneMatrixCurve.cpp:123-152). It ignores both keys: without
+   * a skinned object or bone name the result is identity; otherwise the joint index is
+   * re-resolved whenever the skeleton tag changes, and the bone's transform is composed
+   * as (m_transform * bone) * skinnedObject.GetTransform() in Carbon's row-vector order,
+   * which gl-matrix writes right to left.
+   * @param {mat4} out
+   * @returns {mat4} out
    */
-  @meta.ours
-  static _getBoneMatrix(skinnedObject, bone)
+  @meta.implemented
+  _Interpolate(out)
   {
-    if (!skinnedObject || !bone)
+    const skinnedObject = this.skinnedObject;
+    if (!skinnedObject || !this._bone)
     {
-      return null;
+      return mat4.identity(out);
     }
-    if (typeof skinnedObject === "object" && "GetBoneMatrix" in skinnedObject && typeof skinnedObject.GetBoneMatrix === "function")
+    if (this._skeletonTag !== skinnedObject.GetSkeletonTag())
     {
-      const value = skinnedObject.GetBoneMatrix(bone);
-      return isArrayLike(value, 16) ? value : null;
+      this._cachedJoint = skinnedObject.GetBoneIndex(this._bone);
+      if (this._cachedJoint !== Tr2BoneMatrixCurve.INVALID_JOINT)
+      {
+        this._skeletonTag = skinnedObject.GetSkeletonTag();
+      }
     }
-    if (typeof skinnedObject === "object" && "GetBoneTransform" in skinnedObject && typeof skinnedObject.GetBoneTransform === "function")
+    const bone = skinnedObject.GetBoneTransform(this._cachedJoint);
+    if (!bone)
     {
-      const value = skinnedObject.GetBoneTransform(bone);
-      return isArrayLike(value, 16) ? value : null;
+      return mat4.identity(out);
     }
-    return null;
+    mat4.multiply(this._scratch, bone, this.transform);
+    const world = skinnedObject.GetTransform(Tr2BoneMatrixCurve._worldScratch);
+    return mat4.multiply(out, world, this._scratch);
   }
 
-  /**
-   * Reads the skinned object's own 16-component world transform, or null when it
-   * exposes none.
-   */
-  @meta.ours
-  static _getSkinnedObjectTransform(skinnedObject)
-  {
-    if (skinnedObject && typeof skinnedObject === "object" && "GetTransform" in skinnedObject && typeof skinnedObject.GetTransform === "function")
-    {
-      const value = skinnedObject.GetTransform();
-      return isArrayLike(value, 16) ? value : null;
-    }
-    return null;
-  }
+  /** Carbon's ~0u: no joint resolved / no skeleton seen. */
+  static INVALID_JOINT = 0xffffffff;
+
+  static _worldScratch = mat4.create();
 }
 
 // Native table stops here; the C++ curve template is flattened above.

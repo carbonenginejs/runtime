@@ -2,6 +2,7 @@
 import { meta } from "#schema";
 import { IsMatch, IListNotify, INotify } from "#blue";
 import { IWorldPosition } from "../../../trinity/core/IWorldPosition.js";
+import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsCharacterRigBinding } from "../../controls/CjsCharacterRigBinding.js";
@@ -92,11 +93,31 @@ export class Tr2SkinnedObject
   @meta.type.float32
   updatePeriod = 0;
 
-  /** m_transform (PTriMatrix) [READ, PERSIST] */
+  /**
+   * m_transform (PTriMatrix) [READ, PERSIST]: the object's world transform.
+   * Carbon holds a PTriMatrix (a Blue object wrapping a Matrix); the port holds the
+   * matrix itself as a mat4. TriMatrix's _11.._44 are Carbon's row-major Matrix, which
+   * has gl-matrix's byte layout, so no conversion is needed. No cached client resource
+   * persists this member (searched 2026-10-05); a loader meeting a TriMatrix object here
+   * would need to unpack it.
+   * @type {mat4}
+   */
   @meta.blue.read
   @meta.blue.persist
-  @meta.type.model("TriMatrix")
-  transform = null;
+  @meta.type.mat4
+  transform = mat4.create();
+
+  /**
+   * Carbon GetTransform (Tr2SkinnedObject.h:57-60): the world transform, copied
+   * into out.
+   * @param {mat4} out
+   * @returns {mat4} out
+   */
+  @meta.implemented
+  GetTransform(out)
+  {
+    return mat4.copy(out, this.transform);
+  }
 
   /** m_visualModel (Tr2SkinnedModelPtr) [READWRITE, PERSIST, NOTIFY] */
   @meta.blue.notify

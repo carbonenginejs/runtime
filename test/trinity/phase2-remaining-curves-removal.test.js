@@ -9,6 +9,7 @@ import { TriPerlinCurve } from "../../npm/dist/trinity/curves/curve/TriPerlinCur
 import { Tr2DistanceTracker } from "../../npm/dist/trinity/curves/curve/Tr2DistanceTracker.js";
 import { Tr2BoneMatrixCurve } from "../../npm/dist/trinity/curves/curve/Tr2BoneMatrixCurve.js";
 import { EveSpaceObject2 } from "../../npm/dist/trinity/eve/spaceObject/EveSpaceObject2.js";
+import { Tr2SkinnedObject } from "../../npm/dist/character/index.js";
 
 for (const [Type, values, query] of [
   [TriPerlinCurve, { name: "船", N: 4, offset: 2 }, [TriPerlinCurve, ITriFunction, ITriScalarFunction]],
@@ -80,7 +81,7 @@ test("Distance native notification uses frame seconds and required vector calls"
   assert.equal(CjsSchema.getField(Tr2DistanceTracker, "name").type.kind, "wstring");
 });
 
-test("Bone native time gates precede the preserved skinned-object adapter", () =>
+test("Bone native time gates precede Carbon's Interpolate on a skinned object", () =>
 {
   const curve = new Tr2BoneMatrixCurve(), out = mat4.create(), bone = mat4.create();
   let samples = 0;
@@ -89,7 +90,13 @@ test("Bone native time gates precede the preserved skinned-object adapter", () =
   curve.endValue[12] = 2;
   curve.bone = "joint";
   assert.equal(curve.GetBone(), "joint");
-  curve.skinnedObject = { GetBoneTransform(name) { assert.equal(name, "joint"); samples++; return bone; } };
+  // Carbon Interpolate (Tr2BoneMatrixCurve.cpp:123-152): the joint index comes from
+  // GetBoneIndex(name), and GetBoneTransform takes that index.
+  curve.skinnedObject = Object.assign(new Tr2SkinnedObject(), {
+    GetSkeletonTag() { return 1; },
+    GetBoneIndex(name) { assert.equal(name, "joint"); return 3; },
+    GetBoneTransform(joint) { assert.equal(joint, 3); samples++; return bone; }
+  });
   for (const time of [0, -1, -Infinity, NaN])
   {
     curve.GetValueAt(time, out);
@@ -141,4 +148,30 @@ test("child damage overlay clones plain Perlin authored values through Blue Copi
   assert.equal(clone.name, "flicker");
   assert.equal(clone.offset, 2);
   assert.equal(clone._lastUpdated, -1);
+});
+
+// Tr2BoneMatrixCurve.cpp:123-152 and Tr2SkinnedObject.h:57: the joint resolves once per
+// skeleton tag, and the result is (m_transform * bone) * the object's world transform.
+test("Bone curve caches its joint per skeleton and composes the object's world transform", () =>
+{
+  const curve = new Tr2BoneMatrixCurve(), out = mat4.create(), bone = mat4.fromTranslation(mat4.create(), [4, 0, 0]);
+  let lookups = 0, tag = 1;
+  const skinned = Object.assign(new Tr2SkinnedObject(), {
+    GetSkeletonTag() { return tag; },
+    GetBoneIndex() { lookups++; return 0; },
+    GetBoneTransform() { return bone; }
+  });
+  mat4.fromTranslation(skinned.transform, [10, 0, 0]);
+  curve.SetBone("joint");
+  curve.skinnedObject = skinned;
+  curve.GetValueAt(0.5, out);
+  curve.GetValueAt(0.5, out);
+  assert.equal(lookups, 1, "resolved once for the skeleton");
+  assert.equal(out[12], 14, "bone then world translation");
+  tag = 2;
+  curve.GetValueAt(0.5, out);
+  assert.equal(lookups, 2, "a new skeleton re-resolves");
+  curve.SetBone("other");
+  curve.GetValueAt(0.5, out);
+  assert.equal(lookups, 3, "SetBone resets the cache");
 });
