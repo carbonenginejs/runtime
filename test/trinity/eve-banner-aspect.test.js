@@ -5,7 +5,7 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { EveBannerItem, EveBannerSet, IEveSpaceObjectAttachment, TriFrustum } from "../../npm/dist/trinity/index.js";
+import { EveBannerItem, EveBannerSet, IEveSpaceObjectAttachment, Tr2Effect, TriFrustum } from "../../npm/dist/trinity/index.js";
 
 
 function assertClose(actual, expected, tolerance = 1e-5)
@@ -86,7 +86,8 @@ function MakeBannerFrustum()
 function MakeBannerSet(...banners)
 {
   const set = new EveBannerSet();
-  set.effect = {};
+  // A real effect: UpdateVisibility reports the screen size to it (cpp:151-155).
+  set.effect = new Tr2Effect();
   for (const banner of banners) set.banners.push(banner);
   set.Rebuild();
   return set;

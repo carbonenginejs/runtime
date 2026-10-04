@@ -508,42 +508,42 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
 
     box3.transformMat4(aabb, aabb, parentTransform);
 
-    const frustum = updateContext?.GetFrustum() ?? null;
-    this._isVisible = !!frustum?.IsBoxVisible(aabb);
+    const frustum = updateContext.GetFrustum();
+    this._isVisible = frustum.IsBoxVisible(aabb);
 
     let isLoddedOut = true;
     let screenSize = FLOAT_MAX;
 
-    if (frustum)
-    {
-      // Carbon BoundingSphereFromBox: the box centre with half its full
-      // diagonal. The centre is written into the sphere in place, so the radius
-      // is assigned after - never inside a sph3.set that would clear it.
-      const sphere = EveBannerSet._sphereScratch;
-      sphere[3] = box3.toPositionRadius(aabb, sph3.$position(sphere));
+    // Carbon BoundingSphereFromBox: the box centre with half its full
+    // diagonal. The centre is written into the sphere in place, so the radius
+    // is assigned after - never inside a sph3.set that would clear it.
+    const sphere = EveBannerSet._sphereScratch;
+    sphere[3] = box3.toPositionRadius(aabb, sph3.$position(sphere));
 
-      if (sph3.containsPoint(sphere, frustum.viewPos))
+    if (sph3.containsPoint(sphere, frustum.viewPos))
+    {
+      isLoddedOut = false;
+    }
+    else
+    {
+      // The point on the set sphere nearest the camera, given the largest
+      // single banner as the thing being measured.
+      const closest = vec3.subtract(EveBannerSet._closestScratch, frustum.viewPos, sph3.$position(sphere));
+      vec3.normalize(closest, closest);
+      vec3.scaleAndAdd(closest, sph3.$position(sphere), closest, sph3.radius(sphere));
+
+      const element = sph3.fromPositionRadius(EveBannerSet._elementScratch, closest, this._maxBannerRadius);
+      screenSize = frustum.GetPixelSizeAccrossEst(element);
+      if (screenSize > updateContext.GetVisibilityThreshold() * 0.5)
       {
         isLoddedOut = false;
       }
-      else
-      {
-        // The point on the set sphere nearest the camera, given the largest
-        // single banner as the thing being measured.
-        const closest = vec3.subtract(EveBannerSet._closestScratch, frustum.viewPos, sph3.$position(sphere));
-        vec3.normalize(closest, closest);
-        vec3.scaleAndAdd(closest, sph3.$position(sphere), closest, sph3.radius(sphere));
-
-        const element = sph3.fromPositionRadius(EveBannerSet._elementScratch, closest, this._maxBannerRadius);
-        screenSize = frustum.GetPixelSizeAccrossEst(element);
-        if (screenSize > (updateContext.GetVisibilityThreshold() ?? 0) * 0.5)
-        {
-          isLoddedOut = false;
-        }
-      }
     }
 
-    this.effect?.UsedWithScreenSize?.(screenSize, this._maxBannerRadius, EveBannerSet._uvDensities);
+    if (this.effect)
+    {
+      this.effect.UsedWithScreenSize(screenSize, this._maxBannerRadius, EveBannerSet._uvDensities);
+    }
 
     if (isLoddedOut)
     {
@@ -793,14 +793,14 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   }
 
   /**
-   * Sets a shader option on the banner effect, doing nothing when no effect that
-   * accepts options is attached.
+   * Carbon SetShaderOption (EveBannerSet.cpp:314-320): sets a shader option on
+   * the banner effect when one is attached.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   SetShaderOption(name, value)
   {
-    if (this.effect && typeof this.effect.SetOption === "function")
+    if (this.effect)
     {
       this.effect.SetOption(name, value);
     }
@@ -925,7 +925,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     const features = EveBannerSet._features;
     features.parentBrightness = this._activationStrength;
     features.parentScale = 1;
-    const quality = lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0;
+    const quality = lightManager.GetCurrentSpaceSceneShadowQuality();
     const record = EveBannerSet._lightRecord;
     const dataCopy = EveBannerSet._lightDataScratch;
 
@@ -938,7 +938,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
       record.lightData = light.lightData;
       record.lightProfile = light.lightProfile;
       record.owner = this;
-      lightManager?.AddLight(record);
+      lightManager.AddLight(record);
     }
   }
 

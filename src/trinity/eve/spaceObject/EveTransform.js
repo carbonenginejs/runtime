@@ -194,11 +194,13 @@ export class EveTransform extends Tr2Transform
   /**
    * Rebuilds the local matrix from rotation, translation and scaling and composes it with the parent to refresh worldTransform, keeping the previous world transform for motion vectors, then pushes the new transform to the particle systems and observers.
    * @returns {mat4} The node's live worldTransform, valid until the next update.
+   *
+   * Adapted: Renderer-owned modifier state is supplied through the update
+   * context; standard SRT and parent composition stay in Trinity.
   */
   @meta.blue.method
   @meta.blue.contextual(["camera"])
   @meta.adapted
-  @meta.reason("Renderer-owned modifier state is supplied through the update context; standard SRT and parent composition stay in Trinity.")
   UpdateViewDependentData(context, parentTransform = EveTransform._identity)
   {
     const frustum = context.GetFrustum();
@@ -291,29 +293,29 @@ export class EveTransform extends Tr2Transform
    * @returns {boolean} Whether this node itself is visible.
    */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Browser frustum and quality state are read from the explicit update context instead of renderer globals.")
+  @meta.implemented
   UpdateVisibility(context, parentTransform = EveTransform._identity)
   {
     this.lodLevel = Tr2Lod.TR2_LOD_LOW;
     this._isVisible = false;
-    if (!this.display || (this.hideOnLowQuality && (context?.lowQuality ?? context?.device?.lowQuality))) return false;
+    if (this.hideOnLowQuality && Tr2Renderer.IsLowQuality()) return false;
+    if (!this.display) return false;
 
     this.UpdateViewDependentData(context, parentTransform);
-    const frustum = context?.GetFrustum?.() ?? context?.frustum;
+    const frustum = context.GetFrustum();
     if (this.mesh)
     {
-      const valid = this.GetBoundingSphere(EveTransform._sphere);
-      const visible = !valid || this.visibilityThreshold < 0 || frustum?.IsSphereVisible(EveTransform._sphere) !== false;
-      if (visible)
+      // An invalid sphere leaves the transform invisible, as Carbon's nested ifs do.
+      if (this.GetBoundingSphere(EveTransform._sphere))
       {
-        const size = Number(frustum?.GetPixelSizeAccross?.(EveTransform._sphere) ?? Infinity);
-        this.mesh.UseWithScreenSize?.(size, EveTransform._sphere[3]);
-        const medium = Number(context?.GetMediumDetailThreshold?.() ?? context?.mediumDetailThreshold ?? 0);
-        const low = Number(context?.GetLowDetailThreshold?.() ?? context?.lowDetailThreshold ?? 0);
-        if (size >= medium) this.lodLevel = Tr2Lod.TR2_LOD_HIGH;
-        else if (size >= low) this.lodLevel = Tr2Lod.TR2_LOD_MEDIUM;
-        if (size > this.visibilityThreshold) this._isVisible = true;
+        if (frustum.IsSphereVisible(EveTransform._sphere) || this.visibilityThreshold < 0)
+        {
+          const size = frustum.GetPixelSizeAccross(EveTransform._sphere);
+          this.mesh.UseWithScreenSize(size, EveTransform._sphere[3]);
+          if (size >= context.GetMediumDetailThreshold()) this.lodLevel = Tr2Lod.TR2_LOD_HIGH;
+          else if (size >= context.GetLowDetailThreshold()) this.lodLevel = Tr2Lod.TR2_LOD_MEDIUM;
+          if (size > this.visibilityThreshold) this._isVisible = true;
+        }
       }
     }
     else
@@ -323,8 +325,8 @@ export class EveTransform extends Tr2Transform
     if (this.particleSystems.length) this.lodLevel = Tr2Lod.TR2_LOD_HIGH;
     for (const child of this.children)
     {
-      child?.UpdateVisibility(context, this.worldTransform);
-      this.lodLevel = EveLODHelper.MergeLOD(this.lodLevel, child?.GetLODLevel?.() ?? Tr2Lod.TR2_LOD_UNSPECIFIED);
+      child.UpdateVisibility(context, this.worldTransform);
+      this.lodLevel = EveLODHelper.MergeLOD(this.lodLevel, child.GetLODLevel());
     }
     return this._isVisible;
   }
@@ -347,9 +349,9 @@ export class EveTransform extends Tr2Transform
   GetRenderables_Impostors(out = [], _impostors)
   {
     if (!this.display) return out;
-    for (const system of this.particleSystems) system?.SortParticles?.();
+    for (const system of this.particleSystems) system.SortParticles();
     if (this._isVisible && this.mesh) out.push(this);
-    for (const child of this.children) child?.GetRenderables(out);
+    for (const child of this.children) child.GetRenderables(out);
     return out;
   }
 
@@ -362,10 +364,13 @@ export class EveTransform extends Tr2Transform
   /**
    * Allocates an EveBasicPerObjectData record from the accumulator and fills it with the world, previous-world and inverse-world matrices, patching the first all-zero basis of a singular world matrix with a 0.1 diagonal before inverting, as Carbon does.
    * @returns {object} The allocated record, owned by the accumulator.
+   *
+   * Adapted: Trinity allocates the catalogued record and encodes its matrix
+   * fields into the canonical stored layout; the engine owns GPU allocation,
+   * upload, and binding.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Trinity allocates the catalogued record and encodes its matrix fields into the canonical stored layout; the engine owns GPU allocation, upload, and binding.")
   GetPerObjectData(accumulator)
   {
     const data = accumulator.Alloc("EveBasicPerObjectData");
@@ -506,7 +511,7 @@ export class EveTransform extends Tr2Transform
     {
       for (const child of this.children)
       {
-        if (child?.GetBoundingSphere?.(EveTransform._childSphere, query))
+        if (child.GetBoundingSphere(EveTransform._childSphere, query))
         {
           if (valid) sph3.union(out, out, EveTransform._childSphere);
           else vec4.copy(out, EveTransform._childSphere);
@@ -561,7 +566,7 @@ export class EveTransform extends Tr2Transform
   @meta.implemented
   PlayCurveSets()
   {
-    for (const curveSet of this.curveSets) curveSet?.Play();
+    for (const curveSet of this.curveSets) curveSet.Play();
   }
 
   /**
@@ -574,10 +579,10 @@ export class EveTransform extends Tr2Transform
   {
     for (const curveSet of this.curveSets)
     {
-      if ((curveSet?.GetName() ?? curveSet?.name) !== name) continue;
+      if (curveSet.GetName() !== name) continue;
       if (rangeName)
       {
-        curveSet.PlayTimeRange?.(rangeName);
+        curveSet.PlayTimeRange(rangeName);
       }
       else
       {
@@ -592,7 +597,7 @@ export class EveTransform extends Tr2Transform
   @meta.implemented
   StopCurveSet(name)
   {
-    for (const curveSet of this.curveSets) if ((curveSet?.GetName() ?? curveSet?.name) === name) curveSet.Stop();
+    for (const curveSet of this.curveSets) if (curveSet.GetName() === name) curveSet.Stop();
   }
 
   /**
@@ -604,7 +609,7 @@ export class EveTransform extends Tr2Transform
   GetCurveSetDuration(name)
   {
     let duration = 0;
-    for (const curveSet of this.curveSets) if ((curveSet?.GetName() ?? curveSet?.name) === name) duration = Math.max(duration, Number(curveSet.GetMaxCurveDuration?.() ?? 0));
+    for (const curveSet of this.curveSets) if (curveSet.GetName() === name) duration = Math.max(duration, curveSet.GetMaxCurveDuration());
     return duration;
   }
 
@@ -617,7 +622,7 @@ export class EveTransform extends Tr2Transform
   GetRangeDuration(name, rangeName)
   {
     let duration = 0;
-    for (const curveSet of this.curveSets) if ((curveSet?.GetName() ?? curveSet?.name) === name) duration = Math.max(duration, Number(curveSet.GetRangeDuration(rangeName) ?? 0));
+    for (const curveSet of this.curveSets) if (curveSet.GetName() === name) duration = Math.max(duration, curveSet.GetRangeDuration(rangeName));
     return duration;
   }
 
