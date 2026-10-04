@@ -262,72 +262,62 @@ export class TriFrustum
   }
 
   /**
-   * Carbon's GetPixelSizeAccross overload family (cpp:234-307): the pixel
-   * coverage of a bounding sphere on screen. Dispatch: (center, radius) when
-   * the second argument is a number; packed vec4 (x, y, z, radius); a
-   * { center, radius } sphere duck (Carbon's CcpMath::Sphere overload, which
-   * delegates to GetPixelSizeAccrossEst); or an AABB duck ({ min, max },
-   * bounding-sphere'd first, 0 when missing).
-   * @param {Float32Array|Object} sphereOrCenter
-   * @param {Number} [radius]
+   * Carbon's GetPixelSizeAccross( const Vector4* sphere ) (cpp:234-237): the
+   * pixel coverage of a packed (x, y, z, radius) sphere on screen.
+   * Carbon defect CE-04, reproduced: this family's overloads disagree off-axis
+   * (the Sphere and AxisAlignedBox forms use the Est maths).
+   * @param {Float32Array} sphere
    * @returns {Number}
    */
-  GetPixelSizeAccross(sphereOrCenter, radius = undefined)
+  GetPixelSizeAccross(sphere)
   {
-    if (typeof radius === "number")
-    {
-      return this.#GetPixelSizeAccrossCenterRadius(sphereOrCenter, radius);
-    }
-
-    const value = sphereOrCenter;
-    if (typeof value?.length === "number" && value.length >= 4)
-    {
-      return this.#GetPixelSizeAccrossCenterRadius(value, value[3]);
-    }
-    if (typeof value?.radius === "number")
-    {
-      // Carbon (cpp:295-298): the Sphere overload calls GetPixelSizeAccrossEst.
-      return this.#GetPixelSizeAccrossEstCenterRadius(value.center, value.radius);
-    }
-    if (value?.length === 6)
-    {
-      // Carbon (cpp:300-307): Sphere(box) - center of the box, half-diagonal radius.
-      const boxRadius = box3.toPositionRadius(value, TriFrustum.#boxCenterScratch);
-      return this.#GetPixelSizeAccrossEstCenterRadius(TriFrustum.#boxCenterScratch, boxRadius);
-    }
-    if (value?.min && value?.max)
-    {
-      const boxRadius = box3.bounds.toPositionRadius(value.min, value.max, TriFrustum.#boxCenterScratch);
-      return this.#GetPixelSizeAccrossEstCenterRadius(TriFrustum.#boxCenterScratch, boxRadius);
-    }
-    return 0;
+    return this.GetPixelSizeAccross_CenterRadius(sphere, sphere[3]);
   }
 
   /**
-   * Carbon's GetPixelSizeAccrossEst overloads (cpp:239-242, 274-293) - cheaper
-   * distance-based estimate that properly goes to infinity as the camera
-   * enters the sphere. Same vec4 / (center, radius) dispatch as
-   * GetPixelSizeAccross.
-   * @param {Float32Array} sphereOrCenter
-   * @param {Number} [radius]
+   * Carbon's GetPixelSizeAccross( const CcpMath::Sphere& sphere ) (cpp:295-298):
+   * delegates to GetPixelSizeAccrossEst - CE-04, kept.
+   * @param {{ center: Float32Array, radius: Number }} sphere
    * @returns {Number}
    */
-  GetPixelSizeAccrossEst(sphereOrCenter, radius = undefined)
+  GetPixelSizeAccross_Sphere(sphere)
   {
-    if (typeof radius === "number")
-    {
-      return this.#GetPixelSizeAccrossEstCenterRadius(sphereOrCenter, radius);
-    }
-    return this.#GetPixelSizeAccrossEstCenterRadius(sphereOrCenter, sphereOrCenter[3]);
+    return this.GetPixelSizeAccrossEst_CenterRadius(sphere.center, sphere.radius);
   }
 
   /**
-   * Carbon TriFrustum::GetPixelSizeAccross(center, radius) (cpp:245-272).
+   * Carbon's GetPixelSizeAccross( const CcpMath::AxisAlignedBox& box )
+   * (cpp:300-307): 0 for an empty box, else the box's bounding sphere through
+   * the Sphere overload, so the Est maths - CE-04, kept.
+   * @param {Float32Array} box - box3
+   * @returns {Number}
+   */
+  GetPixelSizeAccross_AxisAlignedBox(box)
+  {
+    if (box3.isEmpty(box)) return 0;
+    const boxRadius = box3.toPositionRadius(box, TriFrustum.#boxCenterScratch);
+    return this.GetPixelSizeAccrossEst_CenterRadius(TriFrustum.#boxCenterScratch, boxRadius);
+  }
+
+  /**
+   * Carbon's GetPixelSizeAccrossEst( const Vector4* sphere ) (cpp:239-242):
+   * cheaper distance-based estimate of a packed sphere's pixel size. CE-04.
+   * @param {Float32Array} sphere
+   * @returns {Number}
+   */
+  GetPixelSizeAccrossEst(sphere)
+  {
+    return this.GetPixelSizeAccrossEst_CenterRadius(sphere, sphere[3]);
+  }
+
+  /**
+   * Carbon TriFrustum::GetPixelSizeAccross(center, radius) (cpp:245-272). CE-04:
+   * disagrees off-axis with the Est form, kept.
    * @param {Float32Array} center
    * @param {Number} radius
    * @returns {Number}
    */
-  #GetPixelSizeAccrossCenterRadius(center, radius)
+  GetPixelSizeAccross_CenterRadius(center, radius)
   {
     // Carbon: Vector3 d(center - m_viewPos); d = -d; => d = viewPos - center.
     const dx = this.viewPos[0] - center[0];
@@ -361,7 +351,7 @@ export class TriFrustum
    * @param {Number} radius
    * @returns {Number}
    */
-  #GetPixelSizeAccrossEstCenterRadius(center, radius)
+  GetPixelSizeAccrossEst_CenterRadius(center, radius)
   {
     if (radius <= 0)
     {

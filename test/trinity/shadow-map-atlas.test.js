@@ -28,11 +28,11 @@ function frustumWithSizes(sizes)
         {
             return true;
         }
-        GetPixelSizeAccross()
+        GetPixelSizeAccross_CenterRadius()
         {
             return 100; // past the cutoff-and-fade gate in AddLight
         }
-        GetPixelSizeAccrossEst(position)
+        GetPixelSizeAccrossEst_CenterRadius(position)
         {
             return sizes[position[0]] ?? 100;
         }

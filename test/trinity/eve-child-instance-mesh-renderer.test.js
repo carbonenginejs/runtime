@@ -158,7 +158,7 @@ class VisibleFrustum extends TriFrustum
     return 100;
   }
 
-  GetPixelSizeAccrossEst()
+  GetPixelSizeAccrossEst_CenterRadius()
   {
     return 100;
   }

@@ -363,7 +363,7 @@ test("TriFrustum pixel sizes: exact projection ground truth, distance ordering, 
   assert.ok(Math.abs(nearPixels / farPixels - 2) < 1e-3, "half the distance, twice the pixels");
 
   // (center, radius) overload agrees with the packed vec4 overload.
-  assert.equal(frustum.GetPixelSizeAccross(near100, radius), nearPixels);
+  assert.equal(frustum.GetPixelSizeAccross_CenterRadius(near100, radius), nearPixels);
 
   // Doubling the viewport width exactly doubles the pixel coverage.
   const wide = MakeFixture({ width: 2560 });
@@ -372,7 +372,7 @@ test("TriFrustum pixel sizes: exact projection ground truth, distance ordering, 
   // Estimate: within 1% of exact at these distances, same overload dispatch.
   const est = frustum.GetPixelSizeAccrossEst(sphereFar);
   assert.ok(Math.abs(est - farPixels) < farPixels * 0.01, `estimate ${est} tracks exact ${farPixels}`);
-  assert.equal(frustum.GetPixelSizeAccrossEst(far200, radius), est);
+  assert.equal(frustum.GetPixelSizeAccrossEst_CenterRadius(far200, radius), est);
 
   // Camera inside the sphere: float max (Carbon std::numeric_limits<float>::max()).
   const engulfing = vec4.fromValues(EYE[0], EYE[1], EYE[2], 50);
@@ -385,12 +385,12 @@ test("TriFrustum pixel sizes: exact projection ground truth, distance ordering, 
 
   // Sphere duck { center, radius } takes Carbon's Est delegation (cpp:295-298);
   // AABB duck goes through its bounding sphere.
-  assert.equal(frustum.GetPixelSizeAccross({ center: far200, radius }), est);
+  assert.equal(frustum.GetPixelSizeAccross_Sphere({ center: far200, radius }), est);
   const boxMin = [far200[0] - 6, far200[1] - 6, far200[2] - 6];
   const boxMax = [far200[0] + 6, far200[1] + 6, far200[2] + 6];
   const boxRadius = Math.hypot(12, 12, 12) / 2;
-  const boxPixels = frustum.GetPixelSizeAccross({ min: boxMin, max: boxMax });
-  const boxExpected = frustum.GetPixelSizeAccrossEst(far200, boxRadius);
+  const boxPixels = frustum.GetPixelSizeAccross_AxisAlignedBox(Float32Array.of(...boxMin, ...boxMax));
+  const boxExpected = frustum.GetPixelSizeAccrossEst_CenterRadius(far200, boxRadius);
   assert.ok(Math.abs(boxPixels - boxExpected) < boxExpected * 1e-6);
 });
 

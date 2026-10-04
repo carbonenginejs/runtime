@@ -168,7 +168,7 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
     const frustum = updateContext.GetFrustum();
     const radius = this._boundingSphere[3];
     return frustum.IsSphereVisible_CenterRadius(WORLD_POSITION, radius) &&
-      frustum.GetPixelSizeAccrossEst(WORLD_POSITION, radius) >= updateContext.GetVisibilityThreshold();
+      frustum.GetPixelSizeAccrossEst_CenterRadius(WORLD_POSITION, radius) >= updateContext.GetVisibilityThreshold();
   }
 
   /**

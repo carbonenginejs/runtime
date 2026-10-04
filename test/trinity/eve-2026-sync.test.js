@@ -394,7 +394,7 @@ test("instanced child overlays use full inverse-local clip transforms", () =>
   const context = new EveUpdateContext();
   context.frustum = {
     IsSphereVisible_CenterRadius: () => true,
-    GetPixelSizeAccrossEst: () => 100
+    GetPixelSizeAccrossEst_CenterRadius: () => 100
   };
   context.invLodFactor = 1;
   provider.UpdateVisibility(context);

@@ -435,7 +435,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
         const worldSphere = found.mesh.instanceSpheres[found.instanceIndex] ?? EMPTY_SPHERE;
         const frustum = updateContext.GetFrustum();
         info.estimatedPixelDiameter = Math.max(
-          frustum.GetPixelSizeAccrossEst(worldSphere.center, worldSphere.radius) * updateContext.GetInvLodFactor(), 0);
+          frustum.GetPixelSizeAccrossEst_CenterRadius(worldSphere.center, worldSphere.radius) * updateContext.GetInvLodFactor(), 0);
         info.isInFrustum = frustum.IsSphereVisible_CenterRadius(worldSphere.center, worldSphere.radius);
         this._partDamageLocators = FindDamageLocators(found.mesh.ownedLocatorSets);
         info.getDamageLocatorPositionOS = this._getPartDamageLocatorPositionOS;
@@ -1309,7 +1309,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
           this._lastCameraFrustum.IsSphereVisible_CenterRadius(sphere.center, sphere.radius) === false) continue;
 
         const screenSize = this._lastCameraFrustum
-          ? this._lastCameraFrustum.GetPixelSizeAccrossEst(sphere.center, sphere.radius) * this._lastInvLodFactor
+          ? this._lastCameraFrustum.GetPixelSizeAccrossEst_CenterRadius(sphere.center, sphere.radius) * this._lastInvLodFactor
           : Infinity;
         const lod = geometry.GetMeshLod_ScreenSize(mesh.meshIndex, screenSize);
 

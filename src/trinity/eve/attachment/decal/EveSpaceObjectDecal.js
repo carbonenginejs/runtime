@@ -539,7 +539,7 @@ export class EveSpaceObjectDecal
     // transformed box and HALF ITS FULL DIAGONAL (cpp:159-160).
     const center = EveSpaceObjectDecal._pointScratch;
     const radius = box3.toPositionRadius(bounds, center);
-    const pixelSize = frustum.GetPixelSizeAccrossEst(center, radius);
+    const pixelSize = frustum.GetPixelSizeAccrossEst_CenterRadius(center, radius);
     const modifiedMinScreen = this.minScreenSize * (updateContext?.GetLodFactor() ?? 1);
 
     if (pixelSize < modifiedMinScreen) return false;

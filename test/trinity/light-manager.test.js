@@ -25,7 +25,7 @@ function makeFrustum({ visible = true, pixelSize = 100 } = {})
     {
       return visible;
     }
-    GetPixelSizeAccross()
+    GetPixelSizeAccross_CenterRadius()
     {
       return pixelSize;
     }
