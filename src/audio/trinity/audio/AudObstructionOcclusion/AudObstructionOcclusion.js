@@ -49,7 +49,7 @@ export class AudObstructionOcclusion
   Update(backend)
   {
     if (!this._audioManager
-      || this._audioManager.GetState?.() !== "enabled")
+      || this._audioManager.GetState() !== "enabled")
     {
       return;
     }
@@ -65,13 +65,13 @@ export class AudObstructionOcclusion
     for (const [ emitterID, state ] of this._emitters)
     {
       let culled = false;
-      const exists = this._audioManager.WithCallbackGameObject?.(
+      const exists = this._audioManager.WithCallbackGameObject(
         emitterID,
         emitter =>
         {
-          culled = emitter.IsCulled?.() === true;
+          culled = emitter.IsCulled();
         },
-      ) === true;
+      );
 
       if (!exists)
       {
@@ -109,12 +109,12 @@ export class AudObstructionOcclusion
   {
     if (!this._enabled
       || !this._audioManager
-      || this._audioManager.GetState?.() !== "enabled"
+      || this._audioManager.GetState() !== "enabled"
       || emitterID === LISTENER_GAME_OBJ_ID
-      || this._audioManager.WithCallbackGameObject?.(
+      || !this._audioManager.WithCallbackGameObject(
         emitterID,
         () => {},
-      ) !== true)
+      ))
     {
       return false;
     }
@@ -141,8 +141,8 @@ export class AudObstructionOcclusion
   /** Maps caller-supplied blockage to Carbon's acoustics-aware targets. */
   SetEmitterLineOfSightBlockage(emitterID, blockage)
   {
-    const acousticsEnabled = this._audioManager
-      ?.GetSpatialAudioGeometryEnabled?.() === true;
+    // Carbon: m_audioManager != nullptr && m_audioManager->GetSpatialAudioGeometryEnabled() (cpp:127).
+    const acousticsEnabled = !!this._audioManager && this._audioManager.GetSpatialAudioGeometryEnabled();
 
     return this.SetObstructionOcclusion(
       emitterID,
