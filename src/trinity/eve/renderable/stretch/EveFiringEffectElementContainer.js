@@ -115,25 +115,33 @@ export class EveFiringEffectElementContainer extends EveEntity
   }
 
   /**
-   * Starts the wrapped element firing and marks the container active, which is
-   * what enables the per-frame element update.
+   * Starts the wrapped element firing with no delay and marks the container
+   * active, which is what enables the per-frame element update; without an
+   * element nothing changes (Carbon cpp:83-90).
    */
   @meta.blue.method @meta.implemented
-  StartFiring(delay = 0)
+  StartFiring()
   {
-    if (this.element) this.element.StartFiring(delay);
-    this._active = true;
+    if (this.element)
+    {
+      this.element.StartFiring(0);
+      this._active = true;
+    }
   }
 
   /**
    * Stops the wrapped element and clears the active flag, halting the per-frame
-   * element update while still pushing endpoint state.
+   * element update while still pushing endpoint state; without an element
+   * nothing changes (Carbon cpp:92-99).
    */
   @meta.blue.method @meta.implemented
   StopFiring()
   {
-    if (this.element) this.element.StopFiring();
-    this._active = false;
+    if (this.element)
+    {
+      this.element.StopFiring();
+      this._active = false;
+    }
   }
 
   /**
@@ -144,7 +152,7 @@ export class EveFiringEffectElementContainer extends EveEntity
   SetActive(active)
   {
     if (!!active === this._active) return;
-    if (active) this.StartFiring(0);
+    if (active) this.StartFiring();
     else this.StopFiring();
   }
 
