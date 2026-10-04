@@ -2306,6 +2306,7 @@ function lowerProgramBody(program, options, compute)
                     const continueInstruction = program.instructions[index];
                     if (marker === "continue")
                     {
+                        statements.push(...exitMergeAssignments(loopExit, continueInstruction.index));
                         statements.push({ kind: "continue", instructionIndex: continueInstruction.index, dxbcOffset: continueInstruction.dxbcOffset });
                         continue;
                     }
@@ -2325,7 +2326,7 @@ function lowerProgramBody(program, options, compute)
                         instructionIndex: continueInstruction.index,
                         dxbcOffset: continueInstruction.dxbcOffset,
                         condition: { code: `${condition} ${continueInstruction.testBoolean === "zero" ? "==" : "!="} 0u`, type: "bool" },
-                        statements: [ { kind: "continue" } ]
+                        statements: [ ...exitMergeAssignments(loopExit, continueInstruction.index), { kind: "continue" } ]
                     });
                     continue;
                 }
@@ -2351,11 +2352,14 @@ function lowerProgramBody(program, options, compute)
                     statements.push({ kind: "var", name: merge.id, type: merge.type,
                         expression: { code: valueReference(program, merge.entryIncoming, inputs), type: merge.type } });
                 }
-                for (const merge of plan.exitMerges || [])
+                for (const merge of [ ...(plan.exitMerges || []), ...(plan.latchMerges || []) ])
                 {
                     statements.push({ kind: "var", name: merge.id, type: merge.type,
                         expression: { code: merge.zeroCode, type: merge.type } });
                 }
+                // Break edges and continue edges are distinct instructions, so one
+                // map carries both edges' merge assignments into the body.
+                const edgeAssignments = new Map([ ...(plan.exitEdges || []), ...(plan.latchEdges || []) ]);
                 const bodyWritten = cloneWritten(rangeWritten);
                 // A non-uniform loop exit makes both the body and everything after
                 // the loop non-uniform. Fold that into the running flow flag so a
@@ -2363,11 +2367,13 @@ function lowerProgramBody(program, options, compute)
                 // derivative-uniformity opt-out (D3D11-permissive; see emitWgsl.js).
                 const loopNonUniform = loopHasNonUniformExit(program, plan.region, varying);
                 const body = lowerRange(index + 1, plan.region.endInstruction, bodyWritten, true,
-                    flowNonUniform || loopNonUniform, plan.exitEdges);
+                    flowNonUniform || loopNonUniform, edgeAssignments);
                 if (body.at(-1)?.kind === "return")
                 {
                     throw new Error(`WGSL fragment loop at ${index} terminates before latch assignments`);
                 }
+                // The fall-through edge into endloop assigns the latch phis last in the body.
+                body.push(...exitMergeAssignments(edgeAssignments, "fallthrough"));
                 if (loopNonUniform) flowNonUniform = true;
                 // Latch phi updates go in a `continuing` block so they run on both
                 // fall-through and `continue` paths (a body `continue` would skip

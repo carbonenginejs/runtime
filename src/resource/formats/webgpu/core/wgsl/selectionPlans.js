@@ -314,6 +314,7 @@ function validateUndefinedMergePaths(program, live, values, plans, stage)
     {
         for (const merge of plan.merges) mergePlans.set(merge.id, { plan, merge });
         for (const merge of plan.exitMerges || []) mergePlans.set(merge.id, { plan, merge });
+        for (const merge of plan.latchMerges || []) mergePlans.set(merge.id, { plan, merge, latch: true });
     }
     function hasUndefinedPath(valueId, constraints, visiting, use)
     {
@@ -330,7 +331,17 @@ function validateUndefinedMergePaths(program, live, values, plans, stage)
         visiting.add(traversalKey);
         const { plan, merge } = entry;
         let result = false;
-        if (plan.kind === "switch")
+        if (entry.latch)
+        {
+            // Loop-latch phis are assigned from the reaching reference on each
+            // continue edge and at the body's fall-through end.
+            result = Array.from(plan.latchEdges.values())
+                .some((assignments) => assignments
+                    .filter((assignment) => assignment.id === merge.id)
+                    .some((assignment) => hasUndefinedPath(
+                        assignment.ref.valueId, new Map(), visiting, use)));
+        }
+        else if (plan.kind === "switch")
         {
             result = merge.perClause.some((incoming) =>
                 hasUndefinedPath(incoming.valueId, constraints, visiting, use));
@@ -676,7 +687,70 @@ function buildLoopPlan(program, region, values, live, dominators, stage)
             exitEdges.set(block.endInstruction, assignments);
         }
     }
-    return { kind: "loop", region, header, preheaderBlockId, backedgeBlockId: backedgeBlock.id, merges, exitMerges, exitEdges };
+    // Latch (continue-join) merges: a body `continue` and the body's fall-through
+    // both reach the `endloop` block, so a register holding different values on
+    // those paths becomes a phi there, and that phi is what flows back to the
+    // header. Each such scalar phi becomes a `var` declared before the loop,
+    // assigned right before each `continue` and at the fall-through end of the
+    // body with the value the register holds on that edge (its reaching
+    // definition, as for break edges). The header's backedge then reads the var.
+    const latchMergeIds = backedgeBlock.startInstruction === region.endInstruction
+        ? (backedgeBlock.mergeSite?.valueIds || []).filter((id) => live.has(id) && !mergeIds.includes(id))
+        : [];
+    let latchMerges = [];
+    const latchEdges = new Map();
+    if (latchMergeIds.length)
+    {
+        const latchPredecessors = (backedgeBlock.predecessors || []).filter((edge) =>
+            program.blocks.find((block) => block.id === edge.blockId)?.reachable !== false);
+        if (!latchPredecessors.length || latchPredecessors.some((edge) => edge.kind !== "continue" && edge.kind !== "fallthrough")
+            || latchPredecessors.filter((edge) => edge.kind === "fallthrough").length > 1)
+        {
+            throw new Error(`WGSL ${stage} loop at ${region.startInstruction} has unsupported latch predecessors`);
+        }
+        const perMerge = latchMergeIds.map((id) =>
+        {
+            const value = values.get(id);
+            const type = value?.componentTypes?.[value.writeMask];
+            const wgslType = scalarTypeName(type);
+            if (!value || value.origin !== "control-flow-merge" || value.writeMask.length !== 1
+                || !wgslType || !zeroForType(type)
+                || value.incoming.some((incoming) => incoming.kind !== "predecessor"))
+            {
+                throw new Error(`WGSL ${stage} merge ${id} is not a scalar loop-latch phi`);
+            }
+            return { id, type: wgslType, zeroCode: zeroForType(type), register: value.register, component: value.writeMask };
+        });
+        latchMerges = perMerge.map((merge) => ({ id: merge.id, type: merge.type, zeroCode: merge.zeroCode }));
+        for (const edge of latchPredecessors)
+        {
+            const block = program.blocks.find((entry) => entry.id === edge.blockId);
+            const assignments = perMerge.map((merge) =>
+            {
+                // The same in-scope shapes the break edges accept: an emittable
+                // definition dominating the edge, this loop's own header phi, or
+                // another live merge some plan declares.
+                const ref = reachingRef(program, edge.blockId, merge.register, merge.component, dominators);
+                const incomingValue = ref && values.get(ref.valueId);
+                const isLoopHeaderPhi = ref && mergeIds.includes(ref.valueId);
+                const isLiveMerge = incomingValue?.origin === "control-flow-merge" && live.has(ref.valueId);
+                if (!ref || !incomingValue || latchMergeIds.includes(ref.valueId)
+                    || incomingValue.origin === "undefined-register"
+                    || (!isLoopHeaderPhi && !isLiveMerge
+                        && (incomingValue.origin === "control-flow-merge"
+                            || !definitionDominates(incomingValue, edge.blockId, block.endInstruction + 1, dominators))))
+                {
+                    throw new Error(`WGSL ${stage} merge ${merge.id} has an unsupported loop-latch input`);
+                }
+                return { id: merge.id, type: merge.type, ref: { valueId: ref.valueId, component: ref.component } };
+            });
+            // A continue edge is keyed by its continue instruction; the fall-through
+            // edge runs at the end of the body.
+            latchEdges.set(edge.kind === "continue" ? block.endInstruction : "fallthrough", assignments);
+        }
+    }
+    return { kind: "loop", region, header, preheaderBlockId, backedgeBlockId: backedgeBlock.id, merges, exitMerges, exitEdges,
+        latchMerges, latchEdges };
 }
 
 /**

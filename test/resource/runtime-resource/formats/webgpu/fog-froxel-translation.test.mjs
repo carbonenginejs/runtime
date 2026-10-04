@@ -47,3 +47,25 @@ test("FilterFroxels samples its 3D neighbours with immediate offsets: u, v and w
   }
 });
 
+test("CalculateFroxels' loop continues mid-body: the latch phi is assigned before continue and at the fall-through end", { skip }, async () =>
+{
+  const path = `${FOG}calculatefroxels.sm_depth`;
+  const all = CjsWebgpuFormat.buildEffect(await client.Read(path), { source: path, mode: "all" });
+  assert.ok(all.backendBodySet.bodies.length > 1);
+  assert.ok(all.backendBodySet.bodies.every((body) => body.status === "translated"), "every permutation body translates");
+
+  const code = (await build("calculatefroxels")).wgsl.shaders[0].code;
+  // The run of latch assignments right before the continue.
+  const run = /((?:\s*value\d+ = [^;]+;)+)\s*continue;/u.exec(code);
+  assert.ok(run, "latch assignments precede the continue");
+  const latches = Array.from(run[1].matchAll(/(value\d+) = /gu), (match) => match[1]);
+  assert.ok(latches.length > 0);
+  const continuing = /continuing\s*\{([^}]*)\}/u.exec(code)[1];
+  for (const latch of latches)
+  {
+    assert.match(code, new RegExp(String.raw`var ${latch}: \w+ = `, "u"), `${latch} is declared before the loop`);
+    const assignments = code.match(new RegExp(String.raw`\b${latch} = [^;]+;`, "gu"));
+    assert.equal(assignments.length, 2, `${latch} is assigned on the continue edge and on the fall-through edge`);
+  }
+  assert.ok(latches.some((latch) => continuing.includes(`= ${latch};`)), "the header's backedge reads a latch phi");
+});

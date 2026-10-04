@@ -1316,6 +1316,13 @@ export function lowerVertexProgram(program, options = {})
                     statements.push({ kind: "var", name: merge.id, type: merge.type,
                         expression: { code: merge.zeroCode, type: merge.type } });
                 }
+                if (plan.latchMerges?.length)
+                {
+                    // The fragment and compute lowering assigns loop-latch phis on
+                    // continue edges; the vertex lowering does not yet, and must not
+                    // emit a backedge that names an undeclared phi.
+                    throw new Error(`WGSL vertex loop at ${index} has loop-latch merges, which the vertex lowering does not support`);
+                }
                 const bodyWritten = cloneWritten(rangeWritten);
                 const body = lowerRange(index + 1, plan.region.endInstruction, bodyWritten, true, plan.exitEdges);
                 if (body.at(-1)?.kind === "return")
