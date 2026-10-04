@@ -37,6 +37,24 @@ CjsSchema.registerValuesService({
 /** Populates declared values without redispatching a class-owned SetValues override. */
 export function ReadValues(target, values = {}, options = {})
 {
+    if (options.importContext)
+    {
+        const writes = [];
+        const changed = new DictReader(options).ReadInto(target, values, null,
+            (field, didChange) => writes.push([field, didChange]));
+        const complete = () => applyValues(target, options, recordWrite =>
+        {
+            for (const [field, didChange] of writes) recordWrite(field, didChange);
+        });
+        // Shared graph edits publish their staged lists after reference resolution
+        // and initialization. Existing values notifications must see that graph.
+        if (options.importContext.hasListEdits())
+        {
+            options.importContext.deferValuesCompletion(complete);
+            return options.returnBoolean === true ? changed.size > 0 : changed;
+        }
+        return complete();
+    }
     return applyValues(target, options, recordWrite =>
         new DictReader(options).ReadInto(target, values, null, recordWrite));
 }

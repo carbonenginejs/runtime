@@ -53,6 +53,7 @@ import { mappedInterfaces } from "../compose/interface.js";
 import { finalizeReaderObject } from "../schema/hydration.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { IList } from "./IList.js";
+import { IListNotify } from "./IListNotify.js";
 
 /** Keys the reader consumes itself rather than as members (Carbon's `type`, plus the anchor keys). */
 const RESERVED_KEYS = new Set([ "_type", "_id", "_ref" ]);
@@ -102,6 +103,9 @@ export class DictReader extends IRootReaderBase
 
   /** Set entries whose deferred references must be filled before initialization. */
   _afterReferences = null;
+
+  /** Existing ordinary-array edits published after new dependencies initialize. */
+  _listEdits = [];
 
   /**
    * @param {object} [options] `importContext` to share an anchor table across
@@ -551,8 +555,9 @@ export class DictReader extends IRootReaderBase
    * `ReadIRootClass` does; a list of values is read by value.
    *
    * Mapped IList destinations use their operations and observer. Ordinary JS
-   * arrays retain the values adaptation: raw in-place population, including
-   * null entries permitted by the values contract.
+   * arrays on existing mapped IListNotify owners use live-edit unload/insert
+   * callbacks after references and new dependencies are ready. Construction
+   * retains raw population followed by Initialize. Null entries remain valid.
    *
    * @returns {boolean} Whether the list changed.
    */
@@ -568,7 +573,18 @@ export class DictReader extends IRootReaderBase
 
     if (source === null || source === undefined)
     {
-      writeDictionaryValue(instance, field, normalizeCarbonValue(source, field.type));
+      const next = normalizeCarbonValue(source, field.type);
+      const created = this._options.declarations === true ? this._created.has(instance) : this._anchors.isCreated(instance);
+      const itemType = field.type.itemType;
+      const itemClassName = typeof itemType === "string" || typeof itemType === "function" ? itemType : itemType?.className ?? null;
+      const holdsObjects = (itemClassName && CjsSchema.GetConstructor(itemClassName))
+        || (Array.isArray(current) && current.some(IsObjectItem));
+      if (holdsObjects && Array.isArray(current) && !created && mappedInterfaces(instance.constructor).has(IListNotify))
+      {
+        this._ReadLiveList(instance, field, current, [], null, next);
+        return current !== next;
+      }
+      writeDictionaryValue(instance, field, next);
       return current !== readDictionaryValue(instance, field);
     }
     if (!Array.isArray(source)) this._ThrowError("Expected a list");
@@ -579,13 +595,20 @@ export class DictReader extends IRootReaderBase
     // holds objects when its items say so: an alias, a `_type` bag, or a live
     // object, which the value path would clone into a plain one.
     const holdsObjects = (this._options.declarations === true && typeof itemClassName === "function")
-      || (itemClassName && CjsSchema.GetConstructor(itemClassName)) || source.some(IsObjectItem);
+      || (itemClassName && CjsSchema.GetConstructor(itemClassName)) || source.some(IsObjectItem)
+      || (source.length === 0 && Array.isArray(current) && current.some(IsObjectItem));
 
     if (!holdsObjects)
     {
       const next = normalizeCarbonValue(omitRuntimeValues(source, field.type), field.type);
       writeDictionaryValue(instance, field, next);
       return !IRootReaderBase.areEquivalent(current, next);
+    }
+
+    const created = this._options.declarations === true ? this._created.has(instance) : this._anchors.isCreated(instance);
+    if (Array.isArray(current) && !created && mappedInterfaces(instance.constructor).has(IListNotify))
+    {
+      return this._ReadLiveList(instance, field, current, source, itemClassName);
     }
 
     // Refilled in place, as Remove( -1 ) then Append; the old items are kept
@@ -607,6 +630,66 @@ export class DictReader extends IRootReaderBase
 
     if (!inPlace) writeDictionaryValue(instance, field, list);
     return !IRootReaderBase.areEquivalent(before, list);
+  }
+
+  /**
+   * Values editing adaptation: stage an ordinary object list before notifying
+   * its mapped owner. Native bulk loading mutes inserts and ends with
+   * LOADFINISHED; existing owners need live INSERTED callbacks to restore links.
+   * Callback failures propagate without promising rollback of domain effects.
+   */
+  _ReadLiveList(instance, field, list, source, itemClassName, replacement = list)
+  {
+    const previous = PENDING_LIST_READS.get(list);
+    if (previous) previous.cancel();
+    const staged = new Array(source.length);
+    const parent = this._contextStack.pop() ?? field.name;
+    try
+    {
+      for (let i = 0; i < source.length; i++)
+      {
+        this._contextStack.push(`${parent} [${i}]`);
+        try { staged[i] = this._ReadListItem(source[i], itemClassName, staged, i); }
+        finally { this._contextStack.pop(); }
+      }
+    }
+    finally
+    {
+      this._contextStack.push(parent);
+      this._currentSource = source;
+    }
+    let active = true;
+    const edit = {
+      cancel()
+      {
+        active = false;
+        if (PENDING_LIST_READS.get(list) === edit) PENDING_LIST_READS.delete(list);
+      },
+      finish()
+      {
+        if (!active) return;
+        try
+        {
+          if (replacement === list && list.length === staged.length && list.every((item, index) => item === staged[index])) return;
+          if (list.length) instance.OnListModified(BLUELISTEVENT.BELIST_UNLOADSTART, 0, 0, null, list);
+          if (!active) return;
+          list.length = 0;
+          for (const item of staged)
+          {
+            list.push(item);
+            if (item != null) instance.OnListModified(BLUELISTEVENT.BELIST_INSERTED, list.length, 0, item, list);
+            if (!active) return;
+          }
+          if (replacement !== list) writeDictionaryValue(instance, field, replacement);
+        }
+        finally { edit.cancel(); }
+      }
+    };
+    PENDING_LIST_READS.set(list, edit);
+    this._listEdits.push(edit);
+    if (this._options.declarations !== true) this._anchors.deferListEdit(edit);
+    return source.some(item => IsReference(item) && !this._anchors.byId.has(item._ref))
+      || !IRootReaderBase.areEquivalent(list, staged);
   }
 
   /**
@@ -888,7 +971,11 @@ export class DictReader extends IRootReaderBase
       if (this._options.declarations === true)
       {
         for (const finish of this._afterReferences) finish();
-        if (!this._doInitialize || this._options.initialize === false) return;
+        if (!this._doInitialize || this._options.initialize === false)
+        {
+          for (const edit of this._listEdits) edit.finish();
+          return;
+        }
         // Only selected stored edges and live properties actually populated by
         // this operation participate. Borrowed nodes may lead to new dependencies
         // but are never initialized. Cycles are once-only, not a readiness solver.
@@ -935,6 +1022,7 @@ export class DictReader extends IRootReaderBase
           }
         };
         for (const instance of this._created) visit(instance);
+        for (const edit of this._listEdits) edit.finish();
       }
     }
     catch (error)
@@ -944,9 +1032,11 @@ export class DictReader extends IRootReaderBase
     }
   }
 
-  /** Custom JS cleanup: cancels only this reader's deferred list writes after its operation fails. */
+  /** Cancels this reader's list loads and the shared context's staged live edits after failure. */
   _CancelPendingListReads()
   {
+    this._anchors.cancelListEdits();
+    for (const edit of this._listEdits) edit.cancel();
     if (!this._pendingListReads) return;
     for (const pending of this._pendingListReads) pending.cancel();
   }
@@ -1000,6 +1090,7 @@ export class DictReader extends IRootReaderBase
   /** `CleanupAfterCreate` (:600-605). */
   _CleanupAfterCreate()
   {
+    this._listEdits = [];
     this._contextStack.length = 0;
     this._currentSource = null;
     if (this._ownsAnchors) this._anchors = CreateAnchorTable();
@@ -1032,8 +1123,32 @@ export function CreateAnchorTable()
   const pending = [];
   const created = new Map();
   const readProperties = new Map();
+  const listEdits = [];
+  const valuesCompletions = [];
   return {
     byId,
+    isCreated(instance)
+    {
+      return created.has(instance);
+    },
+    deferListEdit(edit)
+    {
+      listEdits.push(edit);
+    },
+    hasListEdits()
+    {
+      return listEdits.length !== 0;
+    },
+    deferValuesCompletion(complete)
+    {
+      valuesCompletions.push(complete);
+    },
+    cancelListEdits()
+    {
+      for (const edit of listEdits) edit.cancel();
+      listEdits.length = 0;
+      valuesCompletions.length = 0;
+    },
     registerCreated(instance, complete)
     {
       if (!created.has(instance)) created.set(instance, complete);
@@ -1068,6 +1183,7 @@ export function CreateAnchorTable()
       pending.length = 0;
       if (unresolved.size)
       {
+        this.cancelListEdits();
         throw new IRootReaderException(`Unresolved _ref ids: ${Array.from(unresolved, id => JSON.stringify(id)).join(", ")}. Every { _ref } must match a { _id } in the same import operation.`);
       }
     },
@@ -1119,11 +1235,14 @@ export function CreateAnchorTable()
       {
         const instances = Array.from(created.keys());
         for (let i = instances.length - 1; i >= 0; i--) visit(instances[i]);
+        for (const edit of listEdits) edit.finish();
+        for (const complete of valuesCompletions) complete();
       }
       finally
       {
         created.clear();
         readProperties.clear();
+        this.cancelListEdits();
       }
     }
   };

@@ -6,6 +6,7 @@ import { IList } from "../../src/global/blue/IList.js";
 import { IListNotify } from "../../src/global/blue/IListNotify.js";
 import { DictReader, CreateAnchorTable } from "../../src/global/blue/DictReader.js";
 import { BLUELISTEVENT } from "../../src/global/consts/blue.js";
+import { ReadValues } from "../../src/global/blue/values.js";
 
 const { BELIST_UNLOADSTART, BELIST_LOADFINISHED } = BLUELISTEVENT;
 const itemName = "BlueListReaderItem";
@@ -69,6 +70,140 @@ function Events(observer)
 {
   return observer.events.map(entry => entry.event);
 }
+
+class LiveOwner extends Owner
+{
+  events = [];
+  OnListModified(event, key, key2, value, list)
+  {
+    this.events.push({ event, key, value, items: [...list] });
+  }
+}
+CjsSchema.define(LiveOwner, { className: "BlueListReaderLiveOwner" });
+meta.blue.interfaceTable({ interfaces: [ IListNotify ], chainTo: Owner })(LiveOwner);
+
+test("ordinary live lists publish resolved members progressively through the mapped owner", () =>
+{
+  const owner = new LiveOwner(), old = MakeItem(9);
+  owner.ordinary.push(old);
+  const list = owner.ordinary;
+  new DictReader().ReadInto(owner, {
+    ordinary: [ { _ref: "later" }, null, { value: 2 } ],
+    target: { _id: "later", value: 1 }
+  });
+  assert.equal(owner.ordinary, list);
+  assert.deepEqual(owner.events.map(entry => entry.event), [ BELIST_UNLOADSTART, BLUELISTEVENT.BELIST_INSERTED, BLUELISTEVENT.BELIST_INSERTED ]);
+  assert.deepEqual(owner.events[0].items, [ old ]);
+  assert.deepEqual(owner.events[1].items, [ owner.target ]);
+  assert.equal(owner.events[1].key, 1);
+  assert.deepEqual(owner.events[2].items, list);
+  assert.equal(list[1], null);
+});
+
+test("ordinary pending edits are superseded and unresolved reads never publish", () =>
+{
+  const owner = new LiveOwner(), old = MakeItem(9), context = CreateAnchorTable();
+  owner.ordinary.push(old);
+  new DictReader({ importContext: context }).ReadInto(owner, { ordinary: [ { _ref: "later" } ] });
+  new DictReader({ importContext: context }).ReadInto(owner, { ordinary: [ { value: 2 } ] });
+  context.register("later", MakeItem(1));
+  context.finalize();
+  context.initializeCreated();
+  assert.equal(owner.ordinary[0].value, 2);
+  assert.equal(owner.events.length, 2);
+  const current = owner.ordinary[0];
+  owner.events.length = 0;
+  assert.throws(() => new DictReader().ReadInto(owner, { ordinary: [ { _ref: "missing" } ] }), /Unresolved/u);
+  assert.deepEqual(owner.ordinary, [ current ]);
+  assert.deepEqual(owner.events, []);
+});
+
+test("creation and an unexposed lookalike do not receive live-edit callbacks", () =>
+{
+  const created = new DictReader().CreateObject({ _type: "BlueListReaderLiveOwner", ordinary: [ { value: 1 } ] });
+  assert.deepEqual(created.events, []);
+  const owner = new Owner();
+  owner.OnListModified = () => { assert.fail("interface exposure is required"); };
+  new DictReader().ReadInto(owner, { ordinary: [ { value: 2 } ] });
+  assert.equal(owner.ordinary[0].value, 2);
+});
+
+test("forward references replacing null report changed and nullable replacement unloads", () =>
+{
+  const owner = new LiveOwner();
+  owner.ordinary.push(null);
+  const changed = new DictReader().ReadInto(owner, {
+    ordinary: [ { _ref: "later" } ], target: { _id: "later", value: 1 }
+  });
+  assert.ok(changed.has("ordinary"));
+  assert.equal(owner.ordinary[0], owner.target);
+  const old = owner.ordinary;
+  owner.events.length = 0;
+  new DictReader().ReadInto(owner, { ordinary: null });
+  assert.equal(owner.ordinary, null);
+  assert.deepEqual(old, []);
+  assert.deepEqual(owner.events.map(entry => entry.event), [ BELIST_UNLOADSTART ]);
+  assert.deepEqual(owner.events[0].items, [ owner.target ]);
+});
+
+test("reentrant replacement supersedes an older refill during its callback", () =>
+{
+  const owner = new LiveOwner();
+  owner.ordinary.push(MakeItem(0));
+  let replaced = false;
+  owner.OnListModified = event =>
+  {
+    if (event === BELIST_UNLOADSTART && !replaced)
+    {
+      replaced = true;
+      new DictReader().ReadInto(owner, { ordinary: [ { value: 2 } ] });
+    }
+  };
+  new DictReader().ReadInto(owner, { ordinary: [ { value: 1 } ] });
+  assert.deepEqual(owner.ordinary.map(item => item.value), [ 2 ]);
+});
+
+test("shared-context values notifications observe completed live lists", () =>
+{
+  class NotifiedOwner extends LiveOwner {}
+  CjsSchema.define(NotifiedOwner, { className: "BlueListReaderNotifiedOwner", fields: {
+    ordinary: { type: { kind: "list", itemType: itemName }, edit: { persist: true, notify: true } }
+  } });
+  meta.blue.interfaceTable({ interfaces: [ IListNotify ], chainTo: LiveOwner })(NotifiedOwner);
+  const owner = new NotifiedOwner(), context = CreateAnchorTable(), seen = [];
+  owner.ordinary.push(MakeItem(0));
+  owner.OnModified = () => { seen.push(owner.ordinary.map(item => item.value)); return true; };
+  assert.equal(ReadValues(owner, { ordinary: [ { value: 2 } ] }, { importContext: context, returnBoolean: true }), true);
+  assert.deepEqual(seen, []);
+  context.finalize();
+  context.initializeCreated();
+  assert.deepEqual(seen, [[2]]);
+});
+
+test("empty interface-typed refills detach objects even without a registered item class", () =>
+{
+  class InterfaceOwner extends LiveOwner {}
+  CjsSchema.define(InterfaceOwner, { className: "BlueListReaderInterfaceOwner", fields: {
+    ordinary: { type: { kind: "list", itemType: "UnregisteredListItemInterface" }, edit: { persist: true } }
+  } });
+  meta.blue.interfaceTable({ interfaces: [ IListNotify ], chainTo: LiveOwner })(InterfaceOwner);
+  const owner = new InterfaceOwner(), child = MakeItem(1);
+  owner.ordinary.push(child);
+  const list = owner.ordinary;
+  new DictReader().ReadInto(owner, { ordinary: [] });
+  assert.equal(owner.ordinary, list);
+  assert.deepEqual(list, []);
+  assert.deepEqual(owner.events.map(entry => entry.event), [ BELIST_UNLOADSTART ]);
+});
+
+test("nullable value arrays do not receive object membership callbacks", () =>
+{
+  const owner = new LiveOwner();
+  owner.numbers = [1, 2];
+  new DictReader().ReadInto(owner, { numbers: null });
+  assert.equal(owner.numbers, null);
+  assert.deepEqual(owner.events, []);
+});
 
 test("mapped IList preserves its destination/configuration and native observer-visible load states", () =>
 {
