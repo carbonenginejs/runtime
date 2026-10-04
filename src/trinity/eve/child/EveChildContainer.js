@@ -243,9 +243,9 @@ export class EveChildContainer extends EveChildTransform
     this.RegisterChildren(this.objects);
     for (const controller of this.controllers)
     {
-      if (!controller?.IsLinked())
+      if (!controller.IsLinked())
       {
-        controller?.Link(this);
+        controller.Link(this);
       }
     }
     return true;
@@ -366,11 +366,11 @@ export class EveChildContainer extends EveChildTransform
   {
     for (const child of this.objects)
     {
-      child?.SetMute?.(this.mute);
+      child.SetMute(this.mute);
     }
     for (const observer of this.observers)
     {
-      observer?.SetMute(this.mute);
+      observer.SetMute(this.mute);
     }
   }
 
@@ -422,11 +422,11 @@ export class EveChildContainer extends EveChildTransform
     this._controllerVariables.set(key, next);
     for (const controller of this.controllers)
     {
-      controller?.SetVariable(key, next);
+      controller.SetVariable(key, next);
     }
     for (const child of this.objects)
     {
-      child?.SetControllerVariable(key, next);
+      child.SetControllerVariable(key, next);
     }
   }
 
@@ -441,11 +441,11 @@ export class EveChildContainer extends EveChildTransform
     const eventName = String(name ?? "");
     for (const controller of this.controllers)
     {
-      controller?.HandleEvent(eventName);
+      controller.HandleEvent(eventName);
     }
     for (const child of this.objects)
     {
-      child?.HandleControllerEvent(eventName);
+      child.HandleControllerEvent(eventName);
     }
   }
 
@@ -456,11 +456,11 @@ export class EveChildContainer extends EveChildTransform
   {
     for (const controller of this.controllers)
     {
-      controller?.Start();
+      controller.Start();
     }
     for (const child of this.objects)
     {
-      child?.StartControllers();
+      child.StartControllers();
     }
   }
 
@@ -474,7 +474,7 @@ export class EveChildContainer extends EveChildTransform
   {
     for (const child of this.objects)
     {
-      child?.SetProceduralContainerVariable?.(name, value);
+      child.SetProceduralContainerVariable(name, value);
     }
   }
 
@@ -489,7 +489,7 @@ export class EveChildContainer extends EveChildTransform
     const target = String(name ?? "");
     for (const child of this.objects)
     {
-      if ((child?.GetName?.() ?? child?.name ?? "") === target)
+      if (child.GetName() === target)
       {
         return child;
       }
@@ -640,7 +640,7 @@ export class EveChildContainer extends EveChildTransform
   {
     for (const child of this.objects)
     {
-      child?.SetShaderOption?.(name, value);
+      child.SetShaderOption(name, value);
     }
     for (const attachment of this.attachments)
     {
@@ -738,11 +738,11 @@ export class EveChildContainer extends EveChildTransform
 
     for (const child of this.objects)
     {
-      child?.UpdateSyncronous(updateContext, newParams);
+      child.UpdateSyncronous(updateContext, newParams);
     }
     for (const observer of this.observers)
     {
-      observer?.Update(this.worldTransform);
+      observer.Update(this.worldTransform);
     }
   }
 
@@ -791,7 +791,7 @@ export class EveChildContainer extends EveChildTransform
     const frequency = params?.controllerUpdateFrequency ?? 0.5;
     for (const controller of this.controllers)
     {
-      controller?.Update(frequency);
+      controller.Update(frequency);
     }
 
     // Carbon's DoUpdateAsyncronous overrides boneCount/bones from this
@@ -825,12 +825,7 @@ export class EveChildContainer extends EveChildTransform
     {
       if (!params.childParent)
       {
-        const velocity = params.spaceObjectParent.GetWorldVelocity?.(this._worldVelocity) ??
-          params.spaceObjectParent.worldVelocity;
-        if (velocity && velocity !== this._worldVelocity)
-        {
-          vec3.copy(this._worldVelocity, velocity);
-        }
+        params.spaceObjectParent.GetWorldVelocity(this._worldVelocity);
         vec3.copy(newParams.worldVelocity, this._worldVelocity);
       }
       else
@@ -841,14 +836,14 @@ export class EveChildContainer extends EveChildTransform
 
     for (const child of this.objects)
     {
-      child?.UpdateAsyncronous(updateContext, newParams);
+      child.UpdateAsyncronous(updateContext, newParams);
     }
 
     // Carbon (cpp:617-624): container-owned curve sets tick with the frame
     // time as BOTH realTime and simTime.
     if (this.curveSets.length)
     {
-      const time = Number(updateContext?.GetTime?.() ?? updateContext?.currentTime ?? updateContext?.time ?? 0);
+      const time = updateContext.GetTime();
       for (const curveSet of this.curveSets)
       {
         curveSet.Update_RealTimeSimTime(time, time, updateContext.renderContext);
@@ -862,7 +857,7 @@ export class EveChildContainer extends EveChildTransform
 
     for (const light of this.lights)
     {
-      light?.SetBoneMatrix?.(bones, boneCount);
+      light.SetBoneMatrix(bones, boneCount);
     }
 
     for (const attachment of this.attachments)
@@ -900,7 +895,7 @@ export class EveChildContainer extends EveChildTransform
 
     for (const child of this.objects)
     {
-      child?.UpdateVisibility(updateContext, parentTransform, parentLod);
+      child.UpdateVisibility(updateContext, parentTransform, parentLod);
     }
 
     if (this.HasRenderables())
@@ -940,7 +935,7 @@ export class EveChildContainer extends EveChildTransform
 
     for (const child of this.objects)
     {
-      child?.GetRenderables(out);
+      child.GetRenderables(out);
     }
     return out;
   }
@@ -963,7 +958,7 @@ export class EveChildContainer extends EveChildTransform
     let success = false;
     for (const child of this.objects)
     {
-      if (child?.GetBoundingSphere?.(childSphere))
+      if (child.GetBoundingSphere(childSphere))
       {
         if (success)
         {
@@ -987,11 +982,11 @@ export class EveChildContainer extends EveChildTransform
   {
     for (const child of this.objects)
     {
-      child?.RegisterWithQuadRenderer(quadRenderer);
+      child.RegisterWithQuadRenderer(quadRenderer);
     }
     for (const attachment of this.attachments)
     {
-      attachment?.RegisterWithQuadRenderer(quadRenderer);
+      attachment.RegisterWithQuadRenderer(quadRenderer);
     }
   }
 
@@ -1012,14 +1007,14 @@ export class EveChildContainer extends EveChildTransform
     }
     for (const child of this.objects)
     {
-      child?.AddQuadsToQuadRenderer(frustum, quadRenderer);
+      child.AddQuadsToQuadRenderer(frustum, quadRenderer);
     }
     if (this.attachments.length)
     {
       const { bones, boneCount } = getBoneList(this.animationOwner?.GetAnimationController());
       for (const attachment of this.attachments)
       {
-        attachment?.AddToQuadRenderer(quadRenderer, this.worldTransform, 1.0, 0.0, bones, boneCount);
+        attachment.AddToQuadRenderer(quadRenderer, this.worldTransform, 1.0, 0.0, bones, boneCount);
       }
     }
   }
@@ -1044,7 +1039,7 @@ export class EveChildContainer extends EveChildTransform
   {
     for (const child of this.objects)
     {
-      child?.ChangeLOD?.(lod);
+      child.ChangeLOD(lod);
     }
   }
 
@@ -1074,7 +1069,7 @@ export class EveChildContainer extends EveChildTransform
 
     for (const light of this.lights)
     {
-      light?.AddLight(lightManager, m, scaling);
+      light.AddLight(lightManager, m, scaling);
     }
   }
 
@@ -1215,12 +1210,14 @@ export class EveChildContainer extends EveChildTransform
 
       for (const object of this.objects)
       {
-        object?.Register(registry);
+        const entity = CjsSchema.cast(object, EveEntity);
+        if (entity) entity.Register(registry);
       }
 
       for (const attachment of this.attachments)
       {
-        attachment?.Register(registry);
+        const entity = CjsSchema.cast(attachment, EveEntity);
+        if (entity) entity.Register(registry);
       }
     }
   }
@@ -1238,12 +1235,14 @@ export class EveChildContainer extends EveChildTransform
     {
       for (const object of this.objects)
       {
-        object?.UnRegister(registry);
+        const entity = CjsSchema.cast(object, EveEntity);
+        if (entity) entity.UnRegister(registry);
       }
 
       for (const attachment of this.attachments)
       {
-        attachment?.UnRegister(registry);
+        const entity = CjsSchema.cast(attachment, EveEntity);
+        if (entity) entity.UnRegister(registry);
       }
     }
   }
@@ -1262,13 +1261,13 @@ export class EveChildContainer extends EveChildTransform
     const target = String(name ?? "");
     for (const curveSet of this.curveSets)
     {
-      if ((curveSet?.GetName() ?? curveSet?.name) !== target)
+      if (curveSet.GetName() !== target)
       {
         continue;
       }
       if (rangeName)
       {
-        curveSet.PlayTimeRange?.(rangeName);
+        curveSet.PlayTimeRange(rangeName);
       }
       else
       {
@@ -1297,7 +1296,7 @@ export class EveChildContainer extends EveChildTransform
     const target = String(name ?? "");
     for (const curveSet of this.curveSets)
     {
-      if ((curveSet?.GetName() ?? curveSet?.name) === target)
+      if (curveSet.GetName() === target)
       {
         curveSet.Stop();
       }
@@ -1345,7 +1344,7 @@ export class EveChildContainer extends EveChildTransform
     }
     for (const curveSet of this.curveSets)
     {
-      curveSet?.Play();
+      curveSet.Play();
     }
   }
 
@@ -1361,7 +1360,7 @@ export class EveChildContainer extends EveChildTransform
     }
     for (const curveSet of this.curveSets)
     {
-      curveSet?.Stop();
+      curveSet.Stop();
     }
   }
 
@@ -1380,9 +1379,9 @@ export class EveChildContainer extends EveChildTransform
     let duration = 0;
     for (const curveSet of this.curveSets)
     {
-      if ((curveSet?.GetName() ?? curveSet?.name) === target)
+      if (curveSet.GetName() === target)
       {
-        duration = Math.max(duration, Number(curveSet.GetMaxCurveDuration?.() ?? 0));
+        duration = Math.max(duration, curveSet.GetMaxCurveDuration());
       }
     }
 
@@ -1409,7 +1408,7 @@ export class EveChildContainer extends EveChildTransform
     let duration = 0;
     for (const curveSet of this.curveSets)
     {
-      if ((curveSet?.GetName() ?? curveSet?.name) === target)
+      if (curveSet.GetName() === target)
       {
         duration = Math.max(duration, Number(curveSet.GetRangeDuration(rangeName) ?? 0));
       }
@@ -1532,20 +1531,19 @@ export class EveChildContainer extends EveChildTransform
     const target = String(name ?? "");
     for (const observer of this.observers)
     {
-      if (observer?.name === target)
+      if (observer.name === target)
       {
-        return typeof observer.GetObserver === "function"
-          ? observer.GetObserver()
-          : observer.observer ?? null;
+        return observer.GetObserver();
       }
     }
 
     for (const child of this.objects)
     {
-      const emitter = child?.FindSoundEmitter?.(target);
-      if (emitter)
+      const owner = CjsSchema.cast(child, ITr2SoundEmitterOwner);
+      if (owner)
       {
-        return emitter;
+        const emitter = owner.FindSoundEmitter(target);
+        if (emitter) return emitter;
       }
     }
     return null;
