@@ -8,6 +8,7 @@ import { TriBatchType, RenderingMode } from "#consts/graphics";
 import { ALResult, Failed } from "#trinityal";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 import { screenToProjection, convertProjectionCoordToWorldPickRay } from "../view/pickRay.js";
+import { TriProjection } from "../view/TriProjection.js";
 
 /** Native picking algorithm with nested result records and virtual scene hooks. */
 export class ITr2PickableScene
@@ -109,9 +110,16 @@ export class ITr2PickableScene
       crop[5] = viewport.height;
       crop[12] = -fx * viewport.width;
       crop[13] = -fy * viewport.height;
-      mat4.multiply(crop, crop, projection.GetMatrixWithoutViewAdjustment());
+      const original = projection.GetMatrixWithoutViewAdjustment();
+      // Carbon sets the original projection before AdjustProjection, which
+      // preserves its FOV. Custom/off-center projections have no stored fov;
+      // deriving it from the cropped matrix would shrink distance-scaled tools.
+      const fieldOfView = projection.projectionType === TriProjection.ORTHO ? 1
+        : projection.projectionType === TriProjection.FOV ? projection.fov
+          : (original[5] ? 2 * Math.atan(1 / original[5]) : 0);
+      mat4.multiply(crop, crop, original);
       context.SetViewTransform(view.GetTransform());
-      context.SetProjection(crop, projection.fov);
+      context.SetProjection(crop, fieldOfView);
     }
     finally
     {

@@ -171,7 +171,7 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
       const matrix = mat4.identity(mat4_0);
       mat4.orthoZO(matrix, x - halfPixel, x + halfPixel, y - halfPixel, y + halfPixel, projection.zn, projection.zf);
       context.SetViewTransform(view.GetTransform());
-      context.SetProjection(matrix, projection.fov);
+      context.SetProjection(matrix, 1);
     }
     finally
     {
