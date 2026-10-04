@@ -25,12 +25,12 @@ test("blue.os starts filled and answers its clock before anything composes it", 
   assert.ok(blue.os instanceof CjsBlueOS);
 
   const first = blue.os.GetActualTime();
-  assert.ok(first > 0, "Blue UTC is a positive tick count");
-
-  // 2020-01-01 and 2100-01-01 in FILETIME ticks: a sanity range that catches a
-  // missing epoch offset or a seconds/ticks mix-up, both of which would land
-  // orders of magnitude outside it.
-  assert.ok(first > 132223104000000000, "after 2020");
+  // Blue ticks since the runtime epoch, 2026-01-01 UTC (CcpTime
+  // BLUE_EPOCH_UNIX_MS): positive after it, and an exact Number until 2054. A
+  // missing epoch offset (absolute FILETIME) or a seconds/ticks mix-up lands
+  // orders of magnitude outside this range.
+  assert.ok(first > 0, "after the runtime epoch");
+  assert.ok(Number.isSafeInteger(first), "an exact Number, not absolute FILETIME");
   assert.ok(first < 157754496000000000, "before 2100");
 });
 

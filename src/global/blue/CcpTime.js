@@ -23,6 +23,45 @@ const TICKS_PER_MILLISECOND = 10000;
 const MS_TO_UNIX_EPOCH = 11644473600000;
 
 /**
+ * The runtime's Blue time epoch: 2026-01-01T00:00:00Z, in Unix milliseconds.
+ *
+ * Ours (decided 2026-10-04): every Be::Time in JavaScript - blue.os, scene and
+ * driver time, curves, Destiny - counts Carbon's 100ns ticks from here, not from
+ * 1601. Absolute FILETIME (about 1.3e17 today) is past Number.MAX_SAFE_INTEGER;
+ * ticks from 2026 stay exact until mid-2054, and one fixed epoch lets pages,
+ * workers and the server exchange times without offsets. TimeIsUTC reads these
+ * values as stopwatch time, so TimeAsDouble keeps their full precision.
+ * TimeAsDateTime and TimeFromDateTime keep Carbon's absolute FILETIME: convert
+ * at that boundary with TimeToFileTime / TimeFromFileTime.
+ */
+export const BLUE_EPOCH_UNIX_MS = Date.UTC(2026, 0, 1);
+
+/**
+ * A runtime-epoch Blue time as absolute FILETIME (100ns ticks since 1601), as a
+ * BigInt, because FILETIME is past Number's exact range. Ours: see
+ * `BLUE_EPOCH_UNIX_MS`.
+ *
+ * @param {number} time Blue ticks since the runtime epoch.
+ * @returns {bigint} Absolute Blue UTC (FILETIME).
+ */
+export function TimeToFileTime(time)
+{
+  return (BigInt(BLUE_EPOCH_UNIX_MS + MS_TO_UNIX_EPOCH) * BigInt(TICKS_PER_MILLISECOND)) + BigInt(time);
+}
+
+/**
+ * Absolute FILETIME (BigInt, or a Number for a value already rounded) as a
+ * runtime-epoch Blue time. Ours: see `BLUE_EPOCH_UNIX_MS`.
+ *
+ * @param {bigint|number} fileTime Absolute Blue UTC (FILETIME).
+ * @returns {number} Blue ticks since the runtime epoch.
+ */
+export function TimeFromFileTime(fileTime)
+{
+  return Number(BigInt(fileTime) - (BigInt(BLUE_EPOCH_UNIX_MS + MS_TO_UNIX_EPOCH) * BigInt(TICKS_PER_MILLISECOND)));
+}
+
+/**
  * `TimeIsUTC` - whether this stamp is absolute Blue UTC or a stopwatch reading.
  *
  * Carbon's own reasoning, kept because the constant is otherwise unreadable:

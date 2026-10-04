@@ -238,7 +238,8 @@ test("Tr2Controller queues updateable Updates with Blue ticks (Tr2Controller.cpp
   ExecuteMainThreadActions();
   assert.equal(calls.length, 1);
   assert.equal(calls[0][1], frame);
-  assert.equal(calls[0][0] > 63072000000000000, true, "real time is Blue UTC ticks");
+  // Real time is blue.os actual time: Blue ticks on the runtime epoch, an exact Number.
+  assert.equal(Number.isSafeInteger(calls[0][0]) && calls[0][0] > 0, true, "real time is runtime-epoch Blue ticks");
 });
 
 test("the synced-range probe reads Blue's frame-latched clock, so the start frame always allows transition", () =>

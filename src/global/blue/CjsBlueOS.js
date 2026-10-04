@@ -5,9 +5,7 @@ import { BeInfo } from "./BeInfo.js";
 import { IBlueEvents } from "./IBlueEvents.js";
 import { IBlueOS } from "./IBlueOS.js";
 import { ISimTimeRebaseNotify } from "./ISimTimeRebaseNotify.js";
-
-/** 100ns ticks between the FILETIME epoch (1601-01-01) and the Unix epoch. */
-const FILETIME_EPOCH_OFFSET = 116444736000000000;
+import { BLUE_EPOCH_UNIX_MS } from "./CcpTime.js";
 
 /** 100ns ticks in a millisecond. */
 const TICKS_PER_MILLISECOND = 10000;
@@ -21,8 +19,11 @@ const TICKS_PER_MILLISECOND = 10000;
  */
 export class CjsBlueOS extends IBlueOS
 {
-  /** Wallclock at construction, in Blue UTC ticks, as the anchor for elapsed host time. */
-  _utcAnchor = 0;
+  /**
+   * The wallclock at construction, in Blue ticks on the runtime epoch
+   * (`BLUE_EPOCH_UNIX_MS`), as the anchor for elapsed host time.
+   */
+  _startTime = 0;
 
   /** The host clock at construction, in milliseconds. */
   _originMs = 0;
@@ -30,8 +31,11 @@ export class CjsBlueOS extends IBlueOS
   /** `m_pumpTicksTotal` - pump cycles since creation. */
   _pumpTicks = 0;
 
-  /** The cached actual-time sample, in Blue UTC ticks. */
-  _currentFrameTime = 0;
+  /** `mRealTime`: the frame's real time, set at construction and by each pump. */
+  _realTime = 0;
+
+  /** `mSimTime`: the frame's simulation time, set at construction and by each pump. */
+  _simTime = 0;
 
   /** Registrants of `RegisterForTicks`, each with the cookie it supplied. */
   _tickers = [];
@@ -39,14 +43,18 @@ export class CjsBlueOS extends IBlueOS
   /** Registrants of `RegisterForSimTimeRebase`. */
   _rebaseListeners = [];
 
-  /** Anchors the host clock to the current UTC wallclock. */
+  /**
+   * Anchors the host clock to the current wallclock, and starts real and
+   * simulation time there, as Carbon's constructor does (BlueOS.cpp:255-256).
+   */
   constructor()
   {
     super();
     const wallclock = Date.now();
     this._originMs = CjsBlueOS.Monotonic();
-    this._utcAnchor = FILETIME_EPOCH_OFFSET + Math.round(wallclock * TICKS_PER_MILLISECOND);
-    this._currentFrameTime = this._utcAnchor;
+    this._startTime = Math.round((wallclock - BLUE_EPOCH_UNIX_MS) * TICKS_PER_MILLISECOND);
+    this._realTime = this._startTime;
+    this._simTime = this._realTime;
   }
 
   /**
@@ -64,42 +72,53 @@ export class CjsBlueOS extends IBlueOS
   }
 
   /**
-   * Reads Blue UTC ticks from a wallclock anchor and elapsed host milliseconds.
+   * Reads the current time in Blue ticks from the wallclock anchor and elapsed
+   * host milliseconds.
    *
-   * Adapted: Carbon adds mUTCAdj to its wallclock (BlueOS.cpp:1102-1107).
-   * This service has no server-sync adjustment and anchors its host clock at
-   * construction. The performance.now path avoids later wallclock adjustments;
-   * the Date.now fallback can move backwards. Number precision limits the
-   * resolution of absolute Blue UTC ticks.
+   * Adapted, two ways:
+   * - Carbon returns absolute Blue UTC, `mUTCAdj + mWallclock`
+   *   (BlueOS.cpp:1102-1107). Ours counts the same 100ns ticks from the
+   *   runtime epoch, 2026-01-01 UTC (`BLUE_EPOCH_UNIX_MS`), because absolute
+   *   FILETIME (about 1.3e17) is past Number.MAX_SAFE_INTEGER, and one shared
+   *   epoch lets pages, workers and the server exchange times without
+   *   offsets. Differences are unchanged. Carbon's own TimeIsUTC reads values
+   *   this small as stopwatch time, so TimeAsDouble keeps full precision
+   *   (CcpTime.cpp:219-246, :271-286). UTC is `TimeToFileTime` in CcpTime.
+   * - There is no server-sync adjustment, and the host clock is anchored at
+   *   construction. The performance.now path avoids later wallclock
+   *   adjustments; the Date.now fallback can move backwards.
    *
-   * @returns {number} Blue UTC in 100ns units, subject to host clock and Number precision.
+   * @returns {number} Blue ticks since the runtime epoch.
    */
   GetActualTime()
   {
     const elapsedMs = CjsBlueOS.Monotonic() - this._originMs;
-    return this._utcAnchor + Math.round(elapsedMs * TICKS_PER_MILLISECOND);
+    return this._startTime + Math.round(elapsedMs * TICKS_PER_MILLISECOND);
   }
 
   /**
-   * Returns the actual-time sample cached at construction or the latest pump.
+   * Returns the current frame's simulation time, `mSimTime` (BlueOS.h:51),
+   * on the runtime epoch (see GetActualTime). It is set at construction and by
+   * each PumpOS, so every reader in one frame sees the same value.
    *
-   * Adapted: Carbon returns mSimTime (BlueOS.h:51). This service caches
-   * GetActualTime without simulation-clock dilation or rebasing.
-   *
-   * @returns {number} Cached Blue UTC in 100ns units.
+   * @returns {number} Blue ticks since the runtime epoch.
    */
   GetCurrentFrameTime()
   {
-    return this._currentFrameTime;
+    return this._simTime;
   }
 
   /**
    * Refreshes the frame clock and delivers a tick to a snapshot of registrants.
    *
-   * Adapted: Carbon also drives scheduler, IO, recycling and statistics work.
-   * This host-driven pump supplies the same elapsed-origin time for both callback
-   * clocks; Carbon supplies its absolute real and simulation times
-   * (BlueOS.cpp:552,2190). It increments the pump count before callbacks rather
+   * Real time is the current actual time and simulation time follows it, as
+   * Carbon's does while the sim clock is locked to the real one
+   * (BlueOS.cpp:552-556); both are on the runtime epoch (see GetActualTime) and
+   * are what OnTick receives (BlueOS.cpp:2190).
+   *
+   * Adapted: Carbon also drives scheduler, IO, recycling and statistics work,
+   * smooths the real time, and can dilate or rebase simulation time; none of
+   * that is ported. It increments the pump count before callbacks rather
    * than after them, permits nested pumping, and still calls snapshot entries
    * removed during another callback. Native pumping guards reentrancy and checks
    * current registration before each tick (BlueOS.cpp:674-679,2172-2182).
@@ -113,9 +132,11 @@ export class CjsBlueOS extends IBlueOS
   PumpOS()
   {
     this._pumpTicks++;
-    this._currentFrameTime = this.GetActualTime();
+    this._realTime = this.GetActualTime();
+    this._simTime = this._realTime;
 
-    const realTime = this.GetRealTime();
+    const realTime = this._realTime;
+    const simTime = this._simTime;
     let failure = null;
 
     // Snapshot entries remain eligible even if removed during an earlier callback.
@@ -123,7 +144,7 @@ export class CjsBlueOS extends IBlueOS
     {
       try
       {
-        cb.OnTick(realTime, realTime, cookie);
+        cb.OnTick(realTime, simTime, cookie);
       }
       catch (error)
       {
@@ -136,36 +157,37 @@ export class CjsBlueOS extends IBlueOS
   }
 
   /**
-   * Returns elapsed host time since this service was constructed.
+   * Returns the current frame's real time, `mRealTime`, on the runtime epoch:
+   * the value OnTick received as realTime. Hosts that drive a scene pass this
+   * and GetCurrentFrameTime as its real and simulation time.
    *
-   * Custom: Carbon exposes no such accessor. This elapsed-origin value is used
-   * for this service's OnTick arguments; it is not equivalent to native
-   * BeInfo.mRealTime, which contains absolute Blue UTC. Integer tick precision
-   * is limited by Number, and measurement precision depends on the host clock.
+   * Ours: Carbon exposes mRealTime to Python but declares no C++ accessor on
+   * IBlueOS.
    *
-   * @returns {number} Elapsed time in 100ns units.
+   * @returns {number} Blue ticks since the runtime epoch.
    */
   GetRealTime()
   {
-    return Math.round((CjsBlueOS.Monotonic() - this._originMs) * TICKS_PER_MILLISECOND);
+    return this._realTime;
   }
 
   /**
    * Returns a new BeInfo snapshot containing clocks and the pump count.
    *
    * Adapted: Carbon returns its live state (BlueOS.cpp:1339-1342). A retained
-   * JavaScript snapshot does not update. Only actual time, matching simulation
-   * time, construction time and pump count are populated; other fields retain
-   * BeInfo defaults. Simulation dilation and rebasing are not represented.
+   * JavaScript snapshot does not update. Only the frame's real and simulation
+   * times, construction time and pump count are populated, on the runtime
+   * epoch; other fields retain BeInfo defaults. Simulation dilation and
+   * rebasing are not represented.
    *
    * @returns {BeInfo} A new, partially populated snapshot.
    */
   GetInfo()
   {
     const info = new BeInfo();
-    info.realTime = this.GetActualTime();
-    info.simTime = info.realTime;
-    info.startTime = this._utcAnchor;
+    info.realTime = this._realTime;
+    info.simTime = this._simTime;
+    info.startTime = this._startTime;
     info.pumpTicksTotal = this._pumpTicks;
     return info;
   }

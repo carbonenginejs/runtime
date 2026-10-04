@@ -2,8 +2,8 @@
 // Source: trinity/trinity/Eve/UI/EveProjectBracket.cpp
 // Source: trinity/trinity/Eve/UI/EveProjectBracket_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; projection is portable CPU work.
-import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { meta } from "#schema";
+import { blue } from "#blue";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { Vec3TransformByViewport } from "../../core/view/TriViewport.js";
@@ -60,12 +60,12 @@ export class EveProjectBracket
   /**
    * Projects the tracked position using the active frame context.
    *
-   * Carbon ignores the curve-set time and samples a global frame clock. The
-   * JavaScript frame driver owns that clock on Tr2RenderContext.
+   * Carbon ignores the curve-set time and samples the OS frame clock,
+   * BeOS->GetCurrentFrameTime(); so does this, through blue.os.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Tr2Renderer camera state and BeOS current-frame time are supplied by the active Tr2RenderContext; BlueScriptCallback accepts a host function or a Carbon callback object; Carbon's optional global debug-text side effect is not ported yet and is omitted.")
+  @meta.reason("Tr2Renderer camera state is supplied by the active Tr2RenderContext; BlueScriptCallback accepts a host function or a Carbon callback object; Carbon's optional global debug-text side effect is not ported yet and is omitted.")
   UpdateValue(_time, renderContext)
   {
     const scratchIndex = this._scratchDepth++;
@@ -91,14 +91,10 @@ export class EveProjectBracket
 
     if (this.trackBall)
     {
-      // CARBON READS A DIFFERENT CLOCK HERE: `BeOS->GetCurrentFrameTime()`
-      // (`EveProjectBracket.cpp:72`), the OS frame time, not the animation
-      // time. `BeOS` is unported, and the animation clock is the only
-      // per-frame time this runtime has, so it stands in. The two differ
-      // whenever the animation clock is scaled or recentred - recorded rather
-      // than hidden, because a track ball sampled on the wrong clock drifts
-      // instead of failing.
-      this.trackBall.GetValueAt(Tr2Renderer.GetAnimationTime(), position);
+      // Carbon: m_trackBall->GetValueAt(&pos, BeOS->GetCurrentFrameTime())
+      // (EveProjectBracket.cpp:72) - the Be::Time overload on the OS frame's
+      // sim time, which is the scene's clock (see blue-clock epoch, CcpTime).
+      this.trackBall.GetValueAtTicks(blue.os.GetCurrentFrameTime(), position);
       vec3.scale(position, position, this.ballTrackingScaling);
     }
     else if (this.trackTransform)
