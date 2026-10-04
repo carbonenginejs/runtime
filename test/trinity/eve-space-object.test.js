@@ -1,3 +1,4 @@
+import { ITr2SoundEmitterOwner } from "../../npm/dist/trinity/eve/ITr2SoundEmitterOwner.js";
 import { ITr2CurveSetOwner } from "../../npm/dist/trinity/curves/ITr2CurveSetOwner.js";
 import test from "node:test";
 import { ITr2AudEmitter } from "../../npm/dist/audio/trinity/trinityAudioApi/ITr2AudEmitter.js";
@@ -785,12 +786,13 @@ test("EveSpaceObject2 drives observers, controller frequency, mute, and emitter 
   assert.deepEqual(calls.slice(3), [["mute"], ["unmute"]]);
 
   const nestedEmitter = {};
-  object.effectChildren.push({
+  // Carbon casts each effect child to ITr2SoundEmitterOwner.
+  object.effectChildren.push(Object.assign(new ITr2SoundEmitterOwner(), {
     FindSoundEmitter(name)
     {
       return name === "nested" ? nestedEmitter : null;
     }
-  });
+  }));
   assert.equal(object.FindSoundEmitter("nested"), nestedEmitter);
 
   object.observers.unshift({

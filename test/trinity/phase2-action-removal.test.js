@@ -11,6 +11,7 @@ import { Tr2ActionCallback } from "../../npm/dist/trinity/controllers/action/Tr2
 import { Tr2ActionSetAudioEmitterPrefix } from "../../npm/dist/trinity/controllers/action/Tr2ActionSetAudioEmitterPrefix.js";
 import { Tr2ActionSetAttenuationScaling } from "../../npm/dist/trinity/controllers/action/Tr2ActionSetAttenuationScaling.js";
 import { Tr2ActionResetClipSphereCenter } from "../../npm/dist/trinity/controllers/action/Tr2ActionResetClipSphereCenter.js";
+import { EveSpaceObject2 } from "../../npm/dist/trinity/eve/spaceObject/EveSpaceObject2.js";
 import { Tr2ActionSetShaderOption } from "../../npm/dist/trinity/controllers/action/Tr2ActionSetShaderOption.js";
 import { ITr2SoundEmitterOwner } from "../../npm/dist/trinity/eve/ITr2SoundEmitterOwner.js";
 import { ResetBehavior } from "../../npm/dist/trinity/controllers/enums.js";
@@ -139,10 +140,11 @@ test("shader option preserves its documented owner adapter during base removal",
   assert.deepEqual(calls, [["key", "value"]]);
 });
 
-test("clip reset preserves its existing owner adapter during base removal", t =>
+// Carbon Tr2ActionResetClipSphereCenter.cpp:15-49: BlueCastPtr to EveSpaceObject2, then the mode switch.
+test("clip reset acts on an EveSpaceObject2 owner through Carbon's mode switch", t =>
 {
   const action = new Tr2ActionResetClipSphereCenter();
-  const owner = {}, calls = [], positions = [{ position: [1, 2, 3] }, { position: [4, 5, 6] }];
+  const owner = new EveSpaceObject2(), calls = [], positions = [{ position: [1, 2, 3] }, { position: [4, 5, 6] }];
   owner.ResetClipSphereCenter = () => calls.push("object");
   owner.ResetClipSphereCenterToPos = value => calls.push(value);
   owner.GetLastDamageLocatorHit = () => 1;
@@ -167,4 +169,21 @@ test("clip reset preserves its existing owner adapter during base removal", t =>
   assert.deepEqual(Array.from(calls.at(-1)), positions[1].position);
   owner.GetLocatorsForSet = () => [];
   assert.doesNotThrow(() => action.Start(controller));
+  const before = calls.length;
+  action.resetBehavior = ResetBehavior.OBJECT_CENTER;
+  action.Start({ GetOwner: () => ({ ResetClipSphereCenter() { calls.push("plain"); } }) });
+  assert.equal(calls.length, before);
+});
+
+// EveSpaceObject2.cpp:4416-4425.
+test("EveSpaceObject2 clip sphere resets negate the bounds centre or copy a position", () =>
+{
+  const owner = new EveSpaceObject2();
+  owner.boundingSphereCenter.set([1, -2, 3]);
+  owner.ResetClipSphereCenter();
+  assert.deepEqual(Array.from(owner.clipSphereCenter), [-1, 2, -3]);
+  const position = new Float32Array([7, 8, 9]);
+  owner.ResetClipSphereCenterToPos(position);
+  assert.deepEqual(Array.from(owner.clipSphereCenter), [7, 8, 9]);
+  assert.notEqual(owner.clipSphereCenter, position);
 });

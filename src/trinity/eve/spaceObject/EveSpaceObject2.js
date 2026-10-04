@@ -1058,7 +1058,7 @@ export class EveSpaceObject2 extends EveEntity
     const target = String(name ?? "");
     for (const child of this.effectChildren)
     {
-      if ((child?.GetName?.() ?? child?.name ?? "") === target)
+      if (child?.GetName() === target)
       {
         return child;
       }
@@ -2100,7 +2100,7 @@ export class EveSpaceObject2 extends EveEntity
       if (!this.impactOverlay) return false;
       return this.impactOverlay.GetBatches(batches, batchType, perObjectData, this._meshScreenSize);
     }
-    if (this.mesh.display === false) return false;
+    if (!this.mesh.GetDisplay()) return false;
 
     // Returns whether any batch was committed (JS addition; Carbon returns
     // void). The O(1) accumulator count makes the delta check free.
@@ -2110,12 +2110,11 @@ export class EveSpaceObject2 extends EveEntity
     {
       for (const attachment of this.attachments)
       {
-        if (!attachment) continue;
         attachment.GetBatches(batches, batchType, perObjectData, reason);
       }
     }
 
-    this.impactOverlay?.GetBatches?.(batches, batchType, perObjectData, this._meshScreenSize);
+    if (this.impactOverlay) this.impactOverlay.GetBatches(batches, batchType, perObjectData, this._meshScreenSize);
 
     const areas = this.mesh.GetAreas(batchType);
     if (areas)
@@ -2704,7 +2703,9 @@ export class EveSpaceObject2 extends EveEntity
     }
     for (const child of this.effectChildren)
     {
-      const emitter = child?.FindSoundEmitter?.(target);
+      // Carbon dynamic_cast<ITr2SoundEmitterOwner*> (cpp:4404).
+      const owner = CjsSchema.cast(child, ITr2SoundEmitterOwner);
+      const emitter = owner ? owner.FindSoundEmitter(target) : null;
       if (emitter)
       {
         return emitter;
@@ -3209,6 +3210,29 @@ export class EveSpaceObject2 extends EveEntity
   GetLastDamageLocatorHit()
   {
     return this.lastDamageLocatorHit;
+  }
+
+  /**
+   * Carbon ResetClipSphereCenter (EveSpaceObject2.cpp:4416-4419): the clip
+   * sphere centre becomes the negated bounding sphere centre.
+   * @returns {void}
+   */
+  @meta.implemented
+  ResetClipSphereCenter()
+  {
+    vec3.negate(this.clipSphereCenter, this.GetBoundingSphereCenter(this.clipSphereCenter));
+  }
+
+  /**
+   * Carbon ResetClipSphereCenterToPos (EveSpaceObject2.cpp:4422-4425): copies
+   * `center` into the clip sphere centre.
+   * @param {vec3} center
+   * @returns {void}
+   */
+  @meta.implemented
+  ResetClipSphereCenterToPos(center)
+  {
+    vec3.copy(this.clipSphereCenter, center);
   }
 
   /**

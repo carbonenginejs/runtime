@@ -1,9 +1,8 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter_Blue.cpp
-import { isArrayLike } from "#utils/is";
-import { meta } from "#schema";
-import { vec3 } from "#math/vec3";
+import { CjsSchema, meta } from "#schema";
+import { EveSpaceObject2 } from "../../eve/spaceObject/EveSpaceObject2.js";
 import { ResetBehavior } from "../enums.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
@@ -19,7 +18,7 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 })
 export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
 {
-  /** Named locator set used by the current custom-mode adapter.
+  /** Named locator set the CUSTOM mode reads.
    * @type {string}
    */
   @meta.member("locatorSetName")
@@ -28,7 +27,7 @@ export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
   @meta.type.string
   locatorSetName = "";
 
-  /** Locator index; the existing adapter selects randomly for negative values.
+  /** Locator index the CUSTOM mode reads; negative picks one at random.
    * @type {number}
    */
   @meta.member("locatorIndex")
@@ -37,7 +36,7 @@ export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
   @meta.type.int32
   locatorIndex = -1;
 
-  /** Authored reset mode; preserves the existing ResetBehavior identity.
+  /** Authored reset mode.
    * @type {number}
    */
   @meta.member("resetBehavior")
@@ -48,98 +47,60 @@ export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
   resetBehavior = ResetBehavior.OBJECT_CENTER;
 
   /**
-   * Resets the owner clip-sphere center from object or locator data.
-   * Adapted: preserves the existing JavaScript owner adapter during base removal:
-   * method or data-field owners are accepted without Carbon's EveSpaceObject2
-   * BlueCastPtr (Tr2ActionResetClipSphereCenter.cpp:33). The bounding-center
-   * fallback copies instead of the native negation (EveSpaceObject2.cpp:4418),
-   * and unknown modes follow the custom locator path instead of native default
-   * object-center reset. Those behavior migrations require a separate owner pass.
+   * Carbon Start (Tr2ActionResetClipSphereCenter.cpp:30-49): an EveSpaceObject2
+   * owner resets its clip sphere centre to the last damage locator hit, to the
+   * authored locator, or (OBJECT_CENTER and any unknown mode) to its object
+   * centre. Any other owner is ignored.
+   * @param {ITr2ActionController} controller
+   * @returns {void}
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   Start(controller)
   {
-    const owner = ITr2ControllerAction.getOwner(controller);
-    if (this.resetBehavior === ResetBehavior.OBJECT_CENTER)
+    const owner = CjsSchema.cast(controller.GetOwner(), EveSpaceObject2);
+    if (!owner) return;
+    switch (this.resetBehavior)
     {
-      if (ITr2ControllerAction.hasFunction(owner, "ResetClipSphereCenter"))
-      {
+      case ResetBehavior.LAST_DAMAGELOCATOR_HIT:
+        this._ResetClipSphereToLocator(owner, "damage", owner.GetLastDamageLocatorHit());
+        break;
+      case ResetBehavior.CUSTOM:
+        this._ResetClipSphereToLocator(owner, this.locatorSetName, this.locatorIndex);
+        break;
+      case ResetBehavior.OBJECT_CENTER:
+      default:
         owner.ResetClipSphereCenter();
-        return;
-      }
-      const value = ITr2ControllerAction.callTarget(owner, "GetBoundingSphereCenter") ?? (ITr2ControllerAction.hasProperty(owner, "boundingSphereCenter") ? owner.boundingSphereCenter : null);
-      if (isArrayLike(value, 3) && ITr2ControllerAction.hasProperty(owner, "clipSphereCenter") && isArrayLike(owner.clipSphereCenter, 3))
+        break;
+    }
+  }
+
+  /**
+   * Carbon ResetClipSphereToLocator (Tr2ActionResetClipSphereCenter.cpp:15-28):
+   * moves the clip sphere centre to a locator of the named set; a negative
+   * index picks one at random, an index past the set does nothing.
+   *
+   * Math.random stands in for rand(). Carbon computes rand() % size on an empty
+   * set when the index is negative, a division by zero (CE-56); an empty set
+   * does nothing here.
+   * @param {EveSpaceObject2} owner
+   * @param {string} locatorSetName
+   * @param {number} locatorIndex
+   * @returns {void}
+   */
+  @meta.adapted
+  _ResetClipSphereToLocator(owner, locatorSetName, locatorIndex)
+  {
+    const locators = owner.GetLocatorsForSet(locatorSetName);
+    if (locators && (locatorIndex < 0 || locators.length > locatorIndex))
+    {
+      if (locatorIndex < 0)
       {
-        vec3.copy(owner.clipSphereCenter, value);
-        return;
+        if (!locators.length) return;
+        locatorIndex = Math.floor(Math.random() * locators.length);
       }
-      return;
+      owner.ResetClipSphereCenterToPos(locators[locatorIndex].position);
     }
-    const locatorSetName = this.resetBehavior === ResetBehavior.LAST_DAMAGELOCATOR_HIT ? "damage" : this.locatorSetName;
-    const locatorIndex = this.resetBehavior === ResetBehavior.LAST_DAMAGELOCATOR_HIT ? Tr2ActionResetClipSphereCenter._toIndex(ITr2ControllerAction.callTarget(owner, "GetLastDamageLocatorHit"), -1) : this.locatorIndex;
-    const center = Tr2ActionResetClipSphereCenter._resolveLocatorPosition(owner, locatorSetName, locatorIndex);
-    if (!center)
-    {
-      return;
-    }
-    if (ITr2ControllerAction.hasFunction(owner, "ResetClipSphereCenterToPos"))
-    {
-      owner.ResetClipSphereCenterToPos(center);
-      return;
-    }
-    if (ITr2ControllerAction.hasProperty(owner, "clipSphereCenter") && isArrayLike(owner.clipSphereCenter, 3))
-    {
-      vec3.copy(owner.clipSphereCenter, center);
-      return;
-    }
-    if (ITr2ControllerAction.hasFunction(owner, "ResetClipSphereCenter"))
-    {
-      owner.ResetClipSphereCenter(center);
-    }
-  }
-
-  /**
-   * Gets a position from a named locator set, picking a uniformly random locator
-   * when the index is negative, and accepting either a bare 3-component locator
-   * or one carrying a `position`.
-   * Custom: retained owner-shape adapter; Carbon ResetClipSphereToLocator
-   * (Tr2ActionResetClipSphereCenter.cpp:15-27) reads a native locator vector and
-   * each locator's position. This adapter also accepts locatorSets data, skips
-   * empty sets, and uses Math.random rather than the native rand() stream.
-   */
-  @meta.ours
-  static _resolveLocatorPosition(owner, setName, index)
-  {
-    const locators = ITr2ControllerAction.callTarget(owner, "GetLocatorsForSet", setName) ?? (ITr2ControllerAction.hasProperty(owner, "locatorSets") && Array.isArray(owner.locatorSets) ? owner.locatorSets.find(set => ITr2ControllerAction.hasProperty(set, "name") && set.name === setName)?.locators : null);
-    if (!Array.isArray(locators) || !locators.length)
-    {
-      return null;
-    }
-    const resolvedIndex = index < 0 ? Math.floor(Math.random() * locators.length) : index;
-    const locator = locators[resolvedIndex] ?? null;
-    if (isArrayLike(locator, 3))
-    {
-      return locator;
-    }
-    if (ITr2ControllerAction.hasProperty(locator, "position") && isArrayLike(locator.position, 3))
-    {
-      return locator.position;
-    }
-    return null;
-  }
-
-  /**
-   * Truncates a value to a 32-bit integer locator index, substituting the
-   * fallback when it is not finite.
-   * Custom: retained coercion for the JavaScript owner adapter; Carbon consumes
-   * the int returned by EveSpaceObject2::GetLastDamageLocatorHit directly.
-   */
-  @meta.ours
-  static _toIndex(value, fallback)
-  {
-    const number = Number(value);
-    return Number.isFinite(number) ? number | 0 : fallback;
   }
 
   /**
