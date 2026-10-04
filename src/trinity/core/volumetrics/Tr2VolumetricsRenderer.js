@@ -400,7 +400,7 @@ export class Tr2VolumetricsRenderer
       for (let slot = 0; slot < 4; slot++) esm.SetRenderTarget(slot, volumeSlices.Get(), true, slot);
       for (let slot = 0; slot < 4; slot++) renderContext.Clear({ clearColor: true, clearDepth: false, color: 0, slot });
       const renderables = [];
-      registry.ProcessComponents(componentType, cloud => renderables.push([cloud, cloud.GetSortValue(frustum)]));
+      registry.ProcessComponents(componentType, cloud => renderables.push([cloud, cloud.GetSortValueFrustum(frustum)]));
       renderables.sort((left, right) => right[1] - left[1]);
       for (const [cloud] of renderables) cloud.GetVolumetricBatches(frustum, batches);
       if (batches.GetBatchCount())

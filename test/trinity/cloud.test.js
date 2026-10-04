@@ -156,7 +156,7 @@ test("GetSortValue: frustum overload distance minus |scaling| * modifier (cpp:23
   vec3.set(cloud.scaling, 2, 3, 6); // |scaling| = 7
   cloud.sortingModifier = 2;
 
-  const value = cloud.GetSortValue({ viewPos: [10, 4, 3] }); // distance 5
+  const value = cloud.GetSortValueFrustum({ viewPos: [10, 4, 3] }); // distance 5
   assertClose(value, 5 - 14, "frustum sort value");
 
   const renderableValue = cloud.GetSortValue();

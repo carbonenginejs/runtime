@@ -334,7 +334,7 @@ test("cloud pass sorts stably, budgets one lightmap, binds four slices, blurs an
   const cloud = (name, sort, updates) => ({
     SetSceneInformation(info) { assert.equal(info.targetWidth, 56); assert.equal(info.targetHeight, 28); },
     UpdateVolumetricLightmap() { log.push("update:" + name); return updates; },
-    GetSortValue() { return sort; },
+    GetSortValueFrustum() { return sort; },
     GetVolumetricBatches(_frustum, acc) { acc.batches.push({ name }); }
   });
   const registry = volumeRegistry([cloud("near", 1, true), cloud("far-a", 3, true), cloud("far-b", 3, true)]);
