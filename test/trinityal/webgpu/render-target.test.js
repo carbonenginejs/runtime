@@ -273,6 +273,61 @@ test("the canvas pass supplies depth and restores it after an offscreen depth bi
   target.Destroy();
 });
 
+test("canvas colour and implicit depth clear on consecutive frames and after an offscreen pick", () =>
+{
+  const { device, target } = fakeSetup({ depthFormat: "depth24plus" });
+  target.Configure({ width: 64, height: 64 });
+  const passes = [];
+  device.queue = { submit() {} };
+  device.createCommandEncoder = () => ({
+    beginRenderPass(descriptor) { passes.push(descriptor); return { end() {} }; },
+    finish: () => "command-buffer"
+  });
+  const al = new CjsWebgpuRenderContextAL({ webgpu: target._webgpu, renderTarget: target });
+  al.CreateDevice();
+  const offscreen = al.CreateTexture(Tr2BitmapDimensions.texture2D(1, 1, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM),
+    { gpuUsage: Tr2GpuUsage.RENDER_TARGET });
+  const color = [0.14, 0.17, 0.21, 1];
+  for (let frame = 0; frame < 2; frame++)
+  {
+    al.BeginScene();
+    al.SetRenderTarget(0, target);
+    al.SetDepthStencil(null);
+    assert.equal(al.Clear({ clearColor: true, clearDepth: true, color, depth: 0 }), ALResult.S_OK);
+    al.PushRenderTarget(0);
+    al.SetRenderTarget(0, offscreen);
+    assert.equal(al.Clear({ clearDepth: true, depth: 0 }), ALResult.E_FAIL,
+      "a depthless offscreen target cannot borrow canvas depth");
+    al.PopRenderTarget(0);
+    assert.equal(al.Clear({ clearColor: true, clearDepth: true, color, depth: 0 }), ALResult.S_OK);
+    al.EndScene();
+  }
+  assert.equal(passes.length, 4);
+  for (const pass of passes)
+  {
+    assert.equal(pass.colorAttachments[0].loadOp, "clear");
+    assert.deepEqual(pass.colorAttachments[0].clearValue, color);
+    assert.equal(pass.depthStencilAttachment.depthLoadOp, "clear");
+    assert.equal(pass.depthStencilAttachment.depthClearValue, 0);
+  }
+  offscreen.Destroy();
+  al.Destroy();
+  target.Destroy();
+});
+
+test("a colour-only canvas still rejects a requested depth clear", () =>
+{
+  const { device, target } = fakeSetup();
+  target.Configure({ width: 4, height: 4 });
+  device.createCommandEncoder = () => ({ beginRenderPass: () => ({ end() {} }), finish: () => "command-buffer" });
+  const al = new CjsWebgpuRenderContextAL({ webgpu: target._webgpu, renderTarget: target });
+  al.CreateDevice();
+  al.BeginScene();
+  assert.equal(al.Clear({ clearColor: true, clearDepth: true }), ALResult.E_FAIL);
+  al.Destroy();
+  target.Destroy();
+});
+
 for (const submit of [true, false]) test(submit
   ? "the final bound resource-set share releases texture storage only after submission"
   : "abandoning a frame releases the final bound texture once without submission", () =>

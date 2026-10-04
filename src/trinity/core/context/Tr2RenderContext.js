@@ -146,6 +146,20 @@ export class Tr2RenderContext
   static TextureAddressMode = TextureAddressMode;
 
   /**
+   * Registers native picking variables before effects bind their constants
+   * (Tr2RenderContextBase constructor). Adapted: retain the pre-92483097
+   * objectId variable too, because shipped primitive shaders still use it.
+   */
+  constructor()
+  {
+    const store = Tr2VariableStore.globalStore();
+    store.RegisterVariable("pickingObjectLowBits", 0);
+    store.RegisterVariable("pickingObjectHighBits", 0);
+    store.RegisterVariable("areaId", 0);
+    this.GetObjectIdVariable();
+  }
+
+  /**
    * Installs a nominal step executor; null restores the shared
    * `CjsDirectTrinityStepExecutor`. Anything else throws a TypeError.
    *
@@ -1385,6 +1399,9 @@ export class Tr2RenderContext
    * Carbon's single-pass picking walk. The uint64 identity is split into two
    * integer variables without ever converting the full value to Number.
    * Texture binding occurs through ApplyMaterialDataForPass in this port.
+   * Adapted: also publish the low word to the pre-92483097 scalar objectId
+   * binding used by shipped primitive shaders. Their request-local index fits
+   * that word; sequenced scene identities still use both integer words.
    *
    * @param {object} batches Finalized accumulator.
    * @param {string} [techniqueName] Carbon's DEFAULT_TECHNIQUE.
@@ -1398,6 +1415,7 @@ export class Tr2RenderContext
     const low = store.RegisterVariable("pickingObjectLowBits", 0);
     const high = store.RegisterVariable("pickingObjectHighBits", 0);
     const area = store.RegisterVariable("areaId", 0);
+    const legacyObjectId = this.GetObjectIdVariable();
     const buffers = Array.from({ length: ConstantBufferSlot.CBUFFER_COUNT }, (_value, slot) => this.GetConstantBuffer(slot));
     let currentObjectData = null;
     let drawn = 0;
@@ -1413,6 +1431,7 @@ export class Tr2RenderContext
           currentObjectData = batch.objectData;
         }
         const pointer = batch.objectData.GetPickingPointer();
+        if (legacyObjectId) legacyObjectId.SetValue(Number(pointer & 0xffffffffn));
         if (low) low.SetValue(Number(pointer & 0xffffffffn) | 0);
         if (high) high.SetValue(Number((pointer >> 32n) & 0xffffffffn) | 0);
         if (area) area.SetValue(batch.pickingData | 0);
@@ -1982,8 +2001,8 @@ export class Tr2RenderContext
 
   /**
    * The global "objectId" TriVariable Carbon registers at context
-   * construction and stamps per batch during picking. Registered lazily
-   * here so contexts that never pick pay nothing.
+   * construction and stamps per batch during picking in the donor before
+   * 92483097. Retained for shipped primitive shaders using that scalar name.
    */
   GetObjectIdVariable()
   {

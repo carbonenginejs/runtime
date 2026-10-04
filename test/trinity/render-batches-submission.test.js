@@ -10,6 +10,7 @@ import { Tr2RenderBatch } from "../../npm/dist/trinity/core/index.js";
 import { Topology } from "../../npm/dist/global/consts/renderContext/index.js";
 import { RenderingMode } from "../../npm/dist/global/consts/graphics/index.js";
 import { StubContext } from "../support/stubContext.js";
+import { Tr2VariableStore } from "../../npm/dist/trinity/core/variable/Tr2VariableStore.js";
 
 function shaderStub(passCount = 1)
 {
@@ -127,4 +128,30 @@ test("no accumulator submits nothing rather than an empty draw", () =>
   assert.equal(context.RenderBatches(null), false);
   assert.equal(context.RenderBatchesWithOverride(null, materialStub(shaderStub())), false);
   assert.equal(al.GetDrawCount(), before);
+});
+
+test("picking variables exist before material binding and update each batch without losing identity words", () =>
+{
+  const store = Tr2VariableStore.globalStore();
+  // Effects retain these handles while loading, before the first pick draw.
+  const names = ["objectId", "pickingObjectLowBits", "pickingObjectHighBits", "areaId"];
+  for (const name of names) store.UnregisterLocalVariable(name);
+  const { context, accumulator } = contextWith(3);
+  const handles = names.map(name => store.FindVariable(name));
+  assert.ok(handles.every(Boolean));
+  const identities = [0n, 4n, 0xfedcba9887654321n];
+  const observed = [];
+  accumulator.GetBatches().forEach((batch, index) =>
+  {
+    batch.objectData = { GetPickingPointer: () => identities[index], SetPerObjectDataToDevice() {} };
+    batch.pickingData = index + 2;
+    batch.material = materialStub(batch.shader);
+    batch.material.ApplyMaterialDataForPass = () => observed.push(handles.map(handle => handle.GetValue()));
+  });
+  assert.equal(context.RenderBatchesForPicking(accumulator), 3);
+  assert.deepEqual(observed, [
+    [0, 0, 0, 2], [4, 4, 0, 3],
+    [0x87654321, 0x87654321 | 0, 0xfedcba98 | 0, 4]
+  ]);
+  context.Destroy();
 });

@@ -1106,11 +1106,15 @@ export class CjsWebgpuRenderContextAL
    * leaves slot 0 alone. `clearColor`/`clearDepth`/`clearStencil` are
    * CLEARFLAGS_TARGET/ZBUFFER/STENCIL; a call naming none of them clears the
    * target and depth, which is what every caller without flags meant. As in
-   * Metal, a cleared target or depth that is not bound is E_INVALIDCALL.
+   * Metal, a cleared target or depth that is not bound is a failure.
+   * Adapted: canvas passes obtain depth from the presentation target rather
+   * than a Tr2TextureAL binding. Validate that same effective attachment used
+   * by _Descriptor, and include its requested clear in the pass load actions.
    *
    * @param {object} [options] `{ color, depth, stencil, clearColor, clearDepth, clearStencil, slot }`.
    * @returns {number} An `ALResult`: whether the clear was declared.
    */
+  @meta.adapted
   Clear(options = {})
   {
     const flagged = "clearColor" in options || "clearDepth" in options || "clearStencil" in options;
@@ -1118,9 +1122,12 @@ export class CjsWebgpuRenderContextAL
     const clearDepth = flagged ? !!(options.clearDepth || options.clearStencil) : true;
     const slot = options.slot ?? 0;
     const attachments = this._workQueue.GetAttachments();
+    const hasDepth = this._IsCanvasPass()
+      ? !!this._renderTarget?.GetDepthFormat()
+      : !!attachments.depth;
 
     if (clearTarget && !attachments.colors[slot]) return ALResult.E_FAIL;
-    if (flagged && clearDepth && !attachments.depth) return ALResult.E_FAIL;
+    if (flagged && clearDepth && !hasDepth) return ALResult.E_FAIL;
 
     const colors = [];
 
@@ -1132,7 +1139,7 @@ export class CjsWebgpuRenderContextAL
         : new Tr2ColorAttachment(Tr2LoadAction.LOAD, Tr2StoreAction.STORE));
     });
 
-    const depth = attachments.depth
+    const depth = hasDepth
       ? (clearDepth
         ? new Tr2DepthAttachment(Tr2LoadAction.CLEAR, Tr2StoreAction.STORE, Number(options.depth ?? 1))
         : new Tr2DepthAttachment(Tr2LoadAction.LOAD, Tr2StoreAction.STORE))
