@@ -211,10 +211,8 @@ test("EveTurretSet fills the VS/PS pair from its turrets and parent data", t =>
   Tr2RingBuffer.GetInstance("Float4x3", 48, context);
   set.geometryResource = { IsGood: () => true, GetMeshCount: () => 1 };
   set.bottomClipHeight = 1.5;
-  set.SetTurrets([
-    { localMatrix: mat4.create(), valid: true, localPosition: [ 1, 2, 3, 1 ], localQuaternion: [ 0, 0, 0, 1 ] },
-    { localMatrix: mat4.create(), valid: false, localPosition: [ 9, 9, 9, 9 ], localQuaternion: [ 9, 9, 9, 9 ] }
-  ]);
+  set.SetLocalTransform(0, mat4.fromTranslation(mat4.create(), [ 1, 2, 3 ]));
+  set.SetLocalTransform(1, mat4.fromTranslation(mat4.create(), [ 9, 9, 9 ]));
   const parentData = new IEveSpaceObject2ParentData();
   mat4.copy(parentData.transform, parentTransform);
   parentData.shipData.set([ 5, 6, 7, 8 ]);
@@ -226,6 +224,8 @@ test("EveTurretSet fills the VS/PS pair from its turrets and parent data", t =>
   // UpdateTurretTransforms validates every turret it places, so the invalid
   // case is marked afterwards - that is the state Carbon's fill branches on.
   set.GetTurrets()[1].valid = false;
+  // Both pass UpdateVisibility's frustum test (Carbon cpp:1968); the fill skips hidden turrets (cpp:2217).
+  for (const turret of set.GetTurrets()) turret.visible = true;
 
   const { vs, ps } = set.GetPerObjectData({ Alloc: (name) => store.Allocate(name) });
 

@@ -1707,36 +1707,6 @@ export class EveTurretSet extends EveEntity
   }
 
   /**
-   * Replaces the turret records, truncated to the fixed 24-turret limit,
-   * normalizing each into the record shape and resetting visibleCount.
-   *
-   * Adapted: Carbon builds hidden SingleTurret records from geometry locators; browser hosts may provide equivalent portable records directly.
-   */
-  @meta.ours
-  SetTurrets(turrets = [])
-  {
-    this._turrets = Array.from(turrets).slice(0, EveTurretSet.MAX_TURRETS_PER_SET).map(turret => this._normalizeTurret(turret));
-    this.visibleCount = this._turrets.length;
-    return this._turrets;
-  }
-
-  /**
-   * Appends one normalized turret record and returns it, or null once the fixed
-   * 24-turret limit is reached.
-   *
-   * Adapted: Carbon builds hidden SingleTurret records from geometry locators; browser hosts may provide equivalent portable records directly.
-   */
-  @meta.ours
-  AddTurret(turret)
-  {
-    if (this._turrets.length >= EveTurretSet.MAX_TURRETS_PER_SET) return null;
-    const value = this._normalizeTurret(turret);
-    this._turrets.push(value);
-    this.visibleCount = this._turrets.length;
-    return value;
-  }
-
-  /**
    * The live turret record list; the records are mutated in place by
    * UpdateTurretTransforms, so this is not a snapshot.
    */
@@ -1759,10 +1729,7 @@ export class EveTurretSet extends EveEntity
     if (index >= EveTurretSet.MAX_TURRETS_PER_SET) return false;
     while (this._turrets.length <= index)
     {
-      const turret = this._normalizeTurret(null);
-      turret.valid = false;
-      turret.visible = false;
-      this._turrets.push(turret);
+      this._turrets.push(EveTurretSet._CreateTurretData());
       this.InitializeAnimation();
       this.PlayAnimation(this._turrets.length - 1, "", "Active");
     }
@@ -2485,31 +2452,23 @@ export class EveTurretSet extends EveEntity
   }
 
   /**
-   * Coerces a caller-supplied turret into the record shape - local and world
-   * matrices, local quaternion and position, native valid and visible flags - reusing
-   * the object in place when it already carries a local matrix, and otherwise
-   * wrapping it as the record's source. Legacy input display is consumed once
-   * into native visible; live records retain only Carbon's spelling.
+   * A new SingleTurretData record (EveTurretSet.h:323-347), invalid and hidden until SetLocalTransform places it.
+   * The CMF sequencer and pose are attached by InitializeAnimation.
+   * @returns {object} The record.
    */
-  _normalizeTurret(turret)
+  static _CreateTurretData()
   {
-    if (turret?.localMatrix?.length === 16)
-    {
-      turret.worldMatrix ??= mat4.create();
-      turret.localQuaternion ??= quat.create();
-      turret.localPosition ??= vec4.create();
-      turret.valid ??= true;
-      turret.visible ??= turret.display ?? true;
-      delete turret.display;
-      turret.sequencer ??= null;
-      turret.pose ??= null;
-      turret.worldTransforms ??= [];
-      return turret;
-    }
-    const localMatrix = mat4.create();
-    if (turret?.length === 16) mat4.copy(localMatrix, turret);
-    else if (turret?.transform?.length === 16) mat4.copy(localMatrix, turret.transform);
-    return { source: turret, localMatrix, worldMatrix: mat4.clone(localMatrix), localQuaternion: quat.create(), localPosition: vec4.create(), valid: turret !== null, visible: turret?.visible ?? turret?.display ?? true, sequencer: null, pose: null, worldTransforms: [], canFireWhenHidden: !!turret?.canFireWhenHidden };
+    return {
+      valid: false,
+      visible: false,
+      localPosition: vec4.create(),
+      localQuaternion: quat.create(),
+      localMatrix: mat4.create(),
+      worldMatrix: mat4.create(),
+      sequencer: null,
+      pose: null,
+      worldTransforms: []
+    };
   }
 
   static ImpactBehaviour = EveTurretTarget.ImpactBehaviour;

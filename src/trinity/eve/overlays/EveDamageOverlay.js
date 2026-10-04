@@ -144,17 +144,20 @@ export class EveDamageOverlay
     this._disabledDamageLocators.length = 0;
   }
 
-  /** Replaces the per-locator enabled mask. */
+  /**
+   * Replaces the per-locator enabled mask (cpp:74-87). Carbon keeps the enabled indices; this keeps their
+   * complement, the indices the filter switches off. Locators past the filter's end stay enabled.
+   * @param {Array<boolean>} enabled Per-locator flags.
+   */
   @meta.blue.method
   @meta.adapted
   SetEnabledDamageLocators(enabled)
   {
-    const filter = Array.from(enabled ?? []);
     this._disabledDamageLocators.length = 0;
-    const count = Math.min(this.damageLocatorCount, filter.length);
+    const count = Math.min(this.damageLocatorCount, enabled.length);
     for (let index = 0; index < count; index++)
     {
-      if (!filter[index]) this._disabledDamageLocators.push(index);
+      if (!enabled[index]) this._disabledDamageLocators.push(index);
     }
   }
 
@@ -173,13 +176,13 @@ export class EveDamageOverlay
   /** Sets the material used by the armour-damage pass. */
   SetArmorDamageShaderEffect(value)
   {
-    this.armorDamageShader = value ?? null;
+    this.armorDamageShader = value;
   }
 
   /** Sets the curve used to flicker hull damage. */
   SetHullDamageFlickerCurve(value)
   {
-    this.hullDamageFlickerCurve = value ?? null;
+    this.hullDamageFlickerCurve = value;
   }
 
   /** Replaces the armour-repair fader. */
@@ -203,7 +206,7 @@ export class EveDamageOverlay
   /** Shares impact indices with another damage overlay. */
   SetImpactIndexSource(value)
   {
-    this._impactIndexSource = value ?? null;
+    this._impactIndexSource = value;
   }
 
   /** Returns the deterministic damage seed. */
@@ -302,10 +305,10 @@ export class EveDamageOverlay
     return this.armorImpactLifeTime;
   }
 
-  /** Copies the last shield, armour and hull values into an output vector. */
+  /** Copies the last shield, armour and hull values into a caller-owned vector (Carbon returns it by value, cpp:209). */
   @meta.blue.method
   @meta.adapted
-  GetLastDamageState(out = vec3.create())
+  GetLastDamageState(out)
   {
     return vec3.copy(out, this._lastDamageState);
   }

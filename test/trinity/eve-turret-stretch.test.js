@@ -270,7 +270,7 @@ test("EveTurretSet exposes Carbon state values and portable firing transforms", 
 
   const set = new EveTurretSet();
   const local = mat4.fromTranslation(mat4.create(), vec3.fromValues(5, 0, 0));
-  set.SetTurrets([local]);
+  set.SetLocalTransform(0, local);
   set.UpdateTurretTransforms(mat4.fromTranslation(mat4.create(), vec3.fromValues(10, 0, 0)));
   const transform = set.GetFiringBoneWorldTransform(0);
   assert.deepEqual(Array.from(transform.subarray(12, 15)), [15, 0, 0]);

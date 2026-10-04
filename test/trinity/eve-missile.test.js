@@ -163,7 +163,7 @@ test("turret fixed POD arrays and tracking fade preserve Carbon dimensions and o
 
   const turretSet = new EveTurretSet();
   turretSet.maxTrackingTime = 2;
-  turretSet.SetTurrets([mat4.create()]);
+  turretSet.SetLocalTransform(0, mat4.create());
   turretSet.EnterStateTargeting();
   const context = new EveUpdateContext();
   context.SetTime((1) * 10_000_000);

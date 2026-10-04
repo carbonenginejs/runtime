@@ -740,7 +740,7 @@ test("EveImpactOverlay constructs the CPU graph required by SOF", () =>
   assertEquals(CjsSchema.getField(EveImpactOverlay, "configuration")?.type?.kind, "int32");
   assertEquals(CjsSchema.getField(EveImpactOverlay, "configuration")?.enum?.enumType, "trinity.ITriTargetable.ImpactConfiguration");
   assertEquals(overlay.GetArmorImpactLifeTime(), 10);
-  assertVec3(overlay.GetLastDamageState(), [1, 1, 1]);
+  assertVec3(overlay.GetLastDamageState(new Float32Array(3)), [1, 1, 1]);
   assertEquals(overlay.GetDataTextureOffset(), -1);
   assertEquals(overlay.GetDamageOverlay().damageLocatorCount, 0, "Carbon keeps the count on the damage overlay and has no getter");
 

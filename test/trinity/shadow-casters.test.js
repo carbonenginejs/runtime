@@ -75,7 +75,8 @@ test("EveTurretSet.IsCastingShadow: per-turret sphere transform, max accumulatio
   const set = new EveTurretSet();
   set.geometryResource = {};
   vec4.set(set.boundingSphere, 0, 0, 0, 1);
-  set.SetTurrets([{}, {}]);
+  set.SetLocalTransform(0, mat4.create());
+  set.SetLocalTransform(1, mat4.create());
   const [first, second] = set.GetTurrets();
   mat4.fromTranslation(first.worldMatrix, [10, 0, 0]);
   mat4.fromScaling(second.worldMatrix, [2, 2, 2]);
@@ -119,10 +120,9 @@ test("EveTurretSet.GetShadowBatches: instanced batch, ignored shadowPixelSize (c
   const committed = [];
   const batches = { Commit: batch => batch.IsValid() && (committed.push(batch), true) };
 
-  set.SetTurrets([]);
   assert.equal(set.GetShadowBatches(batches, null, 0), false, "visibleCount gate");
 
-  set.SetTurrets([{}, {}, {}]);
+  for (let index = 0; index < 3; index++) set.SetLocalTransform(index, mat4.create());
   assert.equal(set.GetShadowBatches(batches, null, 0), false, "geometry gate");
 
   set.geometryResource = geometry;set.RebuildCachedData(geometry);
@@ -144,7 +144,8 @@ test("EveTurretSet.GetBatches: opaque instanced batch and fixed sort contracts (
   const {set,geometry} = turretDrawFixture(t);
   const committed = [];
   const batches = { Commit: batch => (committed.push(batch), true) };
-  set.SetTurrets([{}, {}]);
+  set.SetLocalTransform(0, mat4.create());
+  set.SetLocalTransform(1, mat4.create());
   set.geometryResource = geometry;set.RebuildCachedData(geometry);
   set.turretEffect = FixtureEffect({ name: "turretEffect" });
   const perObjectData = { object: set };

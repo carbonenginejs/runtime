@@ -347,12 +347,12 @@ export class EveImpactOverlay
 
   /**
    * Copies the last recorded shield, armour and hull damage state.
-   * @param {Array} out - caller-owned vec3; a fresh vector is allocated when omitted
+   * @param {Array} out - caller-owned vec3
    * @returns {Array} out
    */
   @meta.blue.method
   @meta.adapted
-  GetLastDamageState(out = vec3.create())
+  GetLastDamageState(out)
   {
     return this.damageOverlay.GetLastDamageState(out);
   }

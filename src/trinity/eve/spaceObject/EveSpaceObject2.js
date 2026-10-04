@@ -2943,7 +2943,7 @@ export class EveSpaceObject2 extends EveEntity
 
     if (this.impactOverlay && this.impactOverlay.GetArmorImpactGoalCount() > 0)
     {
-      const last = this.impactOverlay.GetLastDamageState();
+      const last = this.impactOverlay.GetLastDamageState(EveSpaceObject2._lastDamageState);
       this.ClearImpactDamage();
       this.SetImpactDamageState(last[0], last[1], last[2], true);
     }
@@ -4645,6 +4645,8 @@ export class EveSpaceObject2 extends EveEntity
    * @type {Float32Array}
    */
   static _locatorPosition = vec3.create();
+
+  static _lastDamageState = vec3.create();
   /**
    * Shared vector scratch for offsets between locators and query positions.
    * @type {Float32Array}
