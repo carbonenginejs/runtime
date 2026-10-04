@@ -1120,10 +1120,10 @@ export class Tr2PostProcessAttributes
     if (!postProcess) return;
 
     const set = (name, value) => Tr2PostProcessAttributes.CopyValue(this, name, value, true);
-    const signalLoss = postProcess.GetSignalLossIfAvailable?.() ?? null;
+    const signalLoss = postProcess.GetSignalLossIfAvailable();
     if (signalLoss) set("signalLossIntensity", signalLoss.strength);
 
-    const bloom = postProcess.GetBloomIfAvailable?.() ?? null;
+    const bloom = postProcess.GetBloomIfAvailable();
     if (bloom)
     {
       set("bloomBrightness", bloom.brightness);
@@ -1140,7 +1140,7 @@ export class Tr2PostProcessAttributes
       }
     }
 
-    const filmGrain = postProcess.GetFilmGrainIfAvailable?.() ?? null;
+    const filmGrain = postProcess.GetFilmGrainIfAvailable();
     if (filmGrain)
     {
       set("filmGrainIntensity", filmGrain.intensity);
@@ -1152,17 +1152,17 @@ export class Tr2PostProcessAttributes
       set("filmGrainColorAmount", filmGrain.colorAmount);
     }
 
-    const desaturate = postProcess.GetDesaturateIfAvailable?.() ?? null;
+    const desaturate = postProcess.GetDesaturateIfAvailable();
     if (desaturate) set("saturation", Number(desaturate.intensity) - 1);
 
-    const fade = postProcess.GetFadeIfAvailable?.() ?? null;
+    const fade = postProcess.GetFadeIfAvailable();
     if (fade)
     {
       set("fadeIntensity", fade.intensity);
       set("fadeColor", fade.color);
     }
 
-    const vignette = postProcess.GetVignetteIfAvailable?.() ?? null;
+    const vignette = postProcess.GetVignetteIfAvailable();
     if (vignette)
     {
       set("vignetteIntensity", vignette.intensity);
@@ -1179,7 +1179,7 @@ export class Tr2PostProcessAttributes
       set("vignetteMaxSineFrequency", vignette.sineMaximum);
     }
 
-    const depthOfField = postProcess.GetDepthOfFieldIfAvailable?.() ?? null;
+    const depthOfField = postProcess.GetDepthOfFieldIfAvailable();
     if (depthOfField)
     {
       set("depthOfFieldScale", depthOfField.scale);
@@ -1188,14 +1188,14 @@ export class Tr2PostProcessAttributes
       set("depthOfFieldShape", depthOfField.bokehShape);
     }
 
-    const luts = postProcess.GetAvilableSortedLuts?.([]) ?? [];
+    const luts = postProcess.GetAvilableSortedLuts([]);
     if (luts.length)
     {
       set("lutIntensity", luts[0].influence);
       set("lutPath", luts[0].path);
     }
 
-    const colorCorrection = postProcess.GetColorCorrectionIfAvailable?.() ?? null;
+    const colorCorrection = postProcess.GetColorCorrectionIfAvailable();
     if (colorCorrection)
     {
       set("whiteTemperature", colorCorrection.whiteTemperature);
@@ -1589,21 +1589,8 @@ export class Tr2PostProcessAttributes
   }
 
   /**
-   * Installs an effect on a post-process through its Set<Name> method when it
-   * has one, and otherwise by writing the lower-camel-case property of the same
-   * name.
-   */
-  @meta.ours
-  static SetEffect(postProcess, name, effect)
-  {
-    const method = postProcess[`Set${name}`];
-    if (typeof method === "function") method.call(postProcess, effect);
-    else postProcess[name.charAt(0).toLowerCase() + name.slice(1)] = effect;
-  }
-
-  /**
    * Retains the JavaScript dynamic attribute/Map representation, optional
-   * observers, setter/property fallbacks and direct effect-field assignment.
+   * observers and direct effect-field assignment.
    * These established non-update adapters do not claim renderer parity.
    * Rebuilds a post-process graph from blended attribute sources: every effect slot and the LUT list are cleared first, then only the effects whose driving attribute blended to a non-zero value are recreated, so a slot left empty means nothing asked for it.
    * @param {Array} sources attribute sets ordered by priority, as Accumulate requires
@@ -1621,23 +1608,22 @@ export class Tr2PostProcessAttributes
     values.set("depthOfFieldForegroundBlurNeeded", Tr2PostProcessAttributes.Accumulate("depthOfFieldForegroundBlurNeeded", sources, true, debugObserver));
     const lutPaths = Tr2PostProcessAttributes.AccumulateLuts(sources, debugObserver);
     const value = name => values.get(name);
-    Tr2PostProcessAttributes.SetEffect(postProcess, "Bloom", null);
-    Tr2PostProcessAttributes.SetEffect(postProcess, "Desaturate", null);
-    Tr2PostProcessAttributes.SetEffect(postProcess, "Fade", null);
-    Tr2PostProcessAttributes.SetEffect(postProcess, "FilmGrain", null);
-    Tr2PostProcessAttributes.SetEffect(postProcess, "SignalLoss", null);
-    Tr2PostProcessAttributes.SetEffect(postProcess, "Vignette", null);
-    Tr2PostProcessAttributes.SetEffect(postProcess, "DepthOfField", null);
-    Tr2PostProcessAttributes.SetEffect(postProcess, "ColorCorrection", null);
-    postProcess.ClearLuts?.();
-    if (!postProcess.ClearLuts) postProcess.luts.length = 0;
+    postProcess.SetBloom(null);
+    postProcess.SetDesaturate(null);
+    postProcess.SetFade(null);
+    postProcess.SetFilmGrain(null);
+    postProcess.SetSignalLoss(null);
+    postProcess.SetVignette(null);
+    postProcess.SetDepthOfField(null);
+    postProcess.SetColorCorrection(null);
+    postProcess.ClearLuts();
 
     const signalLossIntensity = value("signalLossIntensity");
     if (signalLossIntensity > 0)
     {
       const effect = new Tr2PPSignalLossEffect();
       effect.strength = signalLossIntensity;
-      Tr2PostProcessAttributes.SetEffect(postProcess, "SignalLoss", effect);
+      postProcess.SetSignalLoss(effect);
     }
 
     const bloomBrightness = value("bloomBrightness");
@@ -1654,16 +1640,16 @@ export class Tr2PostProcessAttributes
         effect[`step${index}Size`] = value(`bloomStepSize${index}`);
         effect[`step${index}Tint`] = value(`bloomStepTint${index}`);
       }
-      Tr2PostProcessAttributes.SetEffect(postProcess, "Bloom", effect);
+      postProcess.SetBloom(effect);
     }
 
     const grimeIntensity = value("grimeIntensity");
     if (grimeIntensity > 0)
     {
-      const effect = postProcess.GetBloomIfAvailable?.() ?? postProcess.bloom ?? new Tr2PPBloomEffect();
+      const effect = postProcess.GetBloomIfAvailable() ?? new Tr2PPBloomEffect();
       effect.grimeWeight = grimeIntensity;
       effect.grimePath = value("grimePath");
-      Tr2PostProcessAttributes.SetEffect(postProcess, "Bloom", effect);
+      postProcess.SetBloom(effect);
     }
 
     const filmGrainIntensity = value("filmGrainIntensity");
@@ -1677,7 +1663,7 @@ export class Tr2PostProcessAttributes
       effect.brightnessModifier = value("filmGrainBrightnessModifier");
       effect.colored = value("filmGrainColored");
       effect.colorAmount = value("filmGrainColorAmount");
-      Tr2PostProcessAttributes.SetEffect(postProcess, "FilmGrain", effect);
+      postProcess.SetFilmGrain(effect);
     }
 
     const saturation = value("saturation");
@@ -1685,7 +1671,7 @@ export class Tr2PostProcessAttributes
     {
       const effect = new Tr2PPDesaturateEffect();
       effect.intensity = saturation + 1;
-      Tr2PostProcessAttributes.SetEffect(postProcess, "Desaturate", effect);
+      postProcess.SetDesaturate(effect);
     }
 
     const fadeIntensity = value("fadeIntensity");
@@ -1694,7 +1680,7 @@ export class Tr2PostProcessAttributes
       const effect = new Tr2PPFadeEffect();
       effect.intensity = fadeIntensity;
       effect.color = value("fadeColor");
-      Tr2PostProcessAttributes.SetEffect(postProcess, "Fade", effect);
+      postProcess.SetFade(effect);
     }
 
     const lutIntensity = value("lutIntensity");
@@ -1723,7 +1709,7 @@ export class Tr2PostProcessAttributes
       effect.sineFrequency = value("vignetteSineFrequency");
       effect.sineMinimum = value("vignetteMinSineFrequency");
       effect.sineMaximum = value("vignetteMaxSineFrequency");
-      Tr2PostProcessAttributes.SetEffect(postProcess, "Vignette", effect);
+      postProcess.SetVignette(effect);
     }
 
     const depthOfFieldScale = value("depthOfFieldScale");
@@ -1736,7 +1722,7 @@ export class Tr2PostProcessAttributes
       effect.focalLength = value("depthOfFieldFocalLength");
       effect.bokehShape = value("depthOfFieldShape");
       effect.foregroundBlurNeeded = value("depthOfFieldForegroundBlurNeeded");
-      Tr2PostProcessAttributes.SetEffect(postProcess, "DepthOfField", effect);
+      postProcess.SetDepthOfField(effect);
     }
 
     postProcess.exposureAdjustment = value("exposureAdjustment");
@@ -1751,7 +1737,7 @@ export class Tr2PostProcessAttributes
       effect.colorGamma = value("colorGamma");
       effect.colorGain = value("colorGain");
       effect.colorOffset = value("colorOffset");
-      Tr2PostProcessAttributes.SetEffect(postProcess, "ColorCorrection", effect);
+      postProcess.SetColorCorrection(effect);
     }
     return postProcess;
   }
