@@ -3,7 +3,8 @@ import { INotify } from "../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/EveCamera.h
 //   trinity/trinity/Eve/EveCamera.cpp
 //   trinity/trinity/Eve/EveCamera_Blue.cpp
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
+import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { fromYawPitchRoll, quat } from "#math/quat";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -410,7 +411,7 @@ export class EveCamera
     const top = halfHeight + halfHeight * offsetY;
     const bottom = -halfHeight + halfHeight * offsetY;
     writePerspectiveOffCenter(out, left, right, bottom, top, front, back);
-    projection?.CustomProjection?.(out);
+    if (projection) projection.CustomProjection(out);
     return out;
   }
 
@@ -579,16 +580,25 @@ export class EveCamera
     fromYawPitchRoll(this.rotationOfInterest, this._yawInt, this._pitchInt, 0);
   }
 
-  /** Carbon method Zoom (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon Zoom (EveCamera.cpp:190-214): steps, or jumps to, a zoom curve key
+   * and starts the field-of-view animation towards it. The zoom curve is
+   * BlueCastPtr'd to Tr2CurveScalar.
+   *
+   * Adapted: a key past the list fails closed where Carbon would index past it.
+   * @param {number} [key] The key to jump to; -1 steps to the next one.
+   * @returns {void}
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Uses the runtime curve's portable key list; invalid external keys fail closed instead of indexing native memory.")
   Zoom(key = -1)
   {
-    const keys = this.zoomCurve?.GetKeys?.() ?? this.zoomCurve?.keys;
-    if (!Array.isArray(keys) || keys.length < 1)
+    const curve = CjsSchema.cast(this.zoomCurve, Tr2CurveScalar);
+    const keys = curve ? curve.GetKeys() : null;
+    if (!keys || keys.length < 1)
     {
-      return false;
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", "Tried to zoom but the camera had no keys on zoomCurve");
+      return;
     }
 
     if (key !== -1)
@@ -608,10 +618,9 @@ export class EveCamera
     const selected = keys[this._zoomKey];
     if (!selected)
     {
-      return false;
+      return;
     }
     this._zoomTime = selected.time;
-    return true;
   }
 
   /**
@@ -660,15 +669,15 @@ export class EveCamera
       failed = true;
     }
 
-    const zoomKeys = this.zoomCurve?.GetKeys?.() ?? this.zoomCurve?.keys;
-    const zoomLength = Number(this.zoomCurve?.Length?.() ?? 0);
-    if (zoomLength > 0 && Array.isArray(zoomKeys))
+    // Carbon cpp:275-287: the zoom curve as a Tr2CurveScalar.
+    const zoomCurve = CjsSchema.cast(this.zoomCurve, Tr2CurveScalar);
+    if (zoomCurve && zoomCurve.Length() > 0)
     {
-      const nextKey = zoomKeys[this._zoomKey + 1];
+      const nextKey = zoomCurve.GetKeys()[this._zoomKey + 1];
       if (nextKey && this._zoomTime < nextKey.time)
       {
         this._zoomTime = Math.min(this._zoomTime + deltaTime, nextKey.time);
-        this.fieldOfView = this.zoomCurve.Update(this._zoomTime);
+        this.fieldOfView = zoomCurve.Update(this._zoomTime);
       }
     }
 
@@ -833,7 +842,7 @@ export class EveCamera
       this.viewMatrix.SetTransform(CAMERA_VIEW);
     }
 
-    this.audio2Listener?.UpdatePlacement?.(this.viewVec, this.upVec, this.pos);
+    if (this.audio2Listener) this.audio2Listener.UpdatePlacement(this.viewVec, this.upVec, this.pos);
     if (failed && !this._failedLastFrame)
     {
       this.errorHandler?.HandleEvent(null);

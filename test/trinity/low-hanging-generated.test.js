@@ -605,8 +605,10 @@ test("EveCamera restores Carbon constructor defaults and portable controls", () 
   camera.SetRotationOnOrbit(0.5, -0.25);
   assert.notDeepEqual(Array.from(camera.rotationOfInterest), [0, 0, 0, 1]);
   camera.RotateOnOrbit(1, 1);
-  assert.equal(camera.Zoom(), true);
-  assert.equal(camera.Zoom(0), true);
+  camera.Zoom();
+  assert.equal(camera._zoomKey, 1);
+  camera.Zoom(0);
+  assert.equal(camera._zoomKey, 0);
   camera.ResetStartTime();
 
   for (const name of ["Dolly", "OrbitParent", "RotateOnOrbit", "ResetStartTime", "SetOrbit", "SetRotationOnOrbit"])
