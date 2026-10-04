@@ -86,6 +86,8 @@ function sceneRecording(calls)
     ApplyPerFrameData() { calls.push([ "ApplyPerFrameData" ]); },
     // The scene-side tail of BeginRender (EveSpaceScene.cpp:1427-1436).
     BeginRender(_enableDistortion, renderContext) { this.PopulatePerFramePSData(this.GetPerFramePSData(), renderContext); this.PopulatePerFrameVSData(this.GetPerFrameVSData(), renderContext); this.ApplyPerFrameData(renderContext); },
+    // The reflection probe pass, right after BeginRender (driver cpp:491-494); no probe in these frames.
+    RenderReflectionPass() { calls.push([ "RenderReflectionPass" ]); },
     RenderBackgroundPass() { calls.push([ "RenderBackgroundPass" ]); return false; },
     StampFrameContext(values) { calls.push([ "StampFrameContext", values ]); },
     // BeginRender's jitter and EndRender's last-frame store (cpp:1329, 2866-2868),
@@ -190,6 +192,8 @@ test("the frame runs Carbon's order", () =>
     // EveSpaceScene::ApplyPerFrameData (cpp:818-828): the scene binds its own
     // blocks, the vertex one for compute too.
     "ApplyPerFrameData",
+    // The reflection pass, right after BeginRender (driver cpp:491-494).
+    "RenderReflectionPass",
     // The background pass (driver cpp:502-511): the nebula, before the depth pass.
     "RenderBackgroundPass",
     // The depth pass (driver cpp:514-521), before SSAO and the main pass.

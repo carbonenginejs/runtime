@@ -27,7 +27,7 @@ import { EveUpdateContext } from "../EveUpdateContext.js";
 import { EveEffectRoot2 } from "../spaceObject/EveEffectRoot2.js";
 import { EveCamera } from "../camera/EveCamera.js";
 import { CjsPerFrameLayouts } from "../../core/rawData/CjsPerFrameLayouts.js";
-import { PixelFormat, RenderState, ShaderType, TextureType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
+import { CullMode, PixelFormat, RenderState, ShaderType, TextureType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
 import { Tr2ColorAttachment, Tr2DepthAttachment, Tr2SubresourceData } from "#trinityal";
 import { RenderingMode, TriBatchType } from "#consts/graphics";
 import { DefaultKeyGenerator, EffectKeyGenerator, TriRenderBatchAccumulator } from "../../core/batch/TriRenderBatch/index.js";
@@ -546,6 +546,21 @@ export class EveSpaceScene
   @meta.blue.persist
   @meta.type.model("Tr2ShadowMap")
   cascadedShadowMap = null;
+
+  /** m_reflectionShadowMap (h:406): reflections' own cascaded map, made by EnableShadowsInReflections. */
+  _reflectionShadowMap = null;
+
+  /** g_lensflaresInReflections (cpp:115-116): draw lens flares into ULTRA reflections. */
+  @meta.setting("lensflaresInReflections")
+  static lensflaresInReflections = true;
+
+  /** RenderReflectionPass's per-face DepthMap provider and matrices. */
+  _reflectionFaceDepth = new Tr2TextureReference();
+  _reflectionView = mat4.create();
+  _reflectionPlanetView = mat4.create();
+  _reflectionPlanetProjection = mat4.create();
+  _reflectionProjection = mat4.create();
+  _reflectionJitter = mat4.create();
 
   /** m_updateTime (Be::Time) [READ] */
   @meta.blue.read
@@ -2297,6 +2312,233 @@ export class EveSpaceScene
     if (this.planets.length) renderContext.Clear({ clearDepth: true, depth: 0 });
     esm.EndManagedRendering();
     return hasBackgroundDistortionBatches;
+  }
+
+  /** Carbon HasReflectionProbe (cpp:4106-4109). */
+  @meta.implemented
+  HasReflectionProbe()
+  {
+    return !!this.reflectionProbe && this.reflectionProbe.IsValid();
+  }
+
+  /** Carbon EnableShadowsInReflections (cpp:4154-4168): a 512 cascaded map for reflections, or none. */
+  @meta.blue.method
+  @meta.implemented
+  EnableShadowsInReflections(enable)
+  {
+    if (enable)
+    {
+      if (!this._reflectionShadowMap)
+      {
+        this._reflectionShadowMap = new Tr2ShadowMap();
+        this._reflectionShadowMap.Setup(512, CjsPerFrameLayouts.SHADOW_FRUSTUM_COUNT, false);
+      }
+    }
+    else
+    {
+      this._reflectionShadowMap = null;
+    }
+  }
+
+  /** Carbon IsShadowsInReflectionsEnabled (cpp:4170-4173). */
+  @meta.blue.method
+  @meta.implemented
+  IsShadowsInReflectionsEnabled()
+  {
+    return this._reflectionShadowMap !== null;
+  }
+
+  /**
+   * Carbon EveSpaceScene::RenderReflectionPass (cpp:1770-2008): renders the scene
+   * into the reflection probe's cube faces. The volumetrics renderer is told it
+   * is drawing a probe; reflection intensity is lowered so reflections of
+   * reflections do not brighten; DepthMap points at each face's depth buffer;
+   * jitter is off. Each face draws the background (planets culled against a
+   * planet-scale frustum), ULTRA lens flares, then the visible dynamic objects
+   * with depth, optional reflection shadows, fog and transparency.
+   *
+   * Adapted:
+   * - `renderer` is passed in, as RenderBackgroundPassObjects and
+   *   SetupCascadedShadows take it here.
+   * - EveInstancedMeshManager is dropped (trinity/dropped), so there are no
+   *   instanced batches; raytraced shadows are unported, so the RAYTRACED quality
+   *   draws no reflection shadows (Carbon's m_rtManager is absent).
+   * - Carbon locks the saved DepthMap provider while it is swapped out; a JS
+   *   reference needs no lock.
+   *
+   * @param {Tr2GpuResourcePool} gpuResourcePool The driver's pool.
+   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @param {Tr2Renderer} renderer The renderer that draws screen quads.
+   * @returns {void}
+   */
+  @meta.blue.method
+  @meta.adapted
+  RenderReflectionPass(gpuResourcePool, renderContext, renderer)
+  {
+    if (!this.HasReflectionProbe() || !this.display) return;
+
+    const probe = this.reflectionProbe;
+    const esm = renderContext.GetEffectStateManager();
+    const volumetrics = this.volumetricsRenderer;
+    volumetrics.SetIsReflectionProbe(true);
+    try
+    {
+      const savedIntensity = this.currentReflectionIntensity;
+      if (this.currentReflectionIntensity !== 0)
+      {
+        this.currentReflectionIntensity = Math.min(0.8, 1 / (this.currentReflectionIntensity * this.currentReflectionIntensity));
+      }
+
+      // Override DepthMap with each face's depth buffer (cpp:1797-1820).
+      const depthMapVar = Tr2VariableStore.globalStore().GetVariable("DepthMap");
+      const swapDepthMap = depthMapVar.GetType() === TriVariableContentType.TRIVARIABLE_TEXTURE_RES;
+      const savedDepthMap = swapDepthMap ? depthMapVar.GetValue() : null;
+      if (swapDepthMap) depthMapVar.SetValue(this._reflectionFaceDepth);
+
+      mat4.copy(this._reflectionProjection, this.projection);
+      mat4.copy(this._reflectionJitter, this.jitterMatrix);
+      mat4.identity(this.jitterMatrix);
+      const normalFrustum = this.updateContext.GetFrustum();
+      try
+      {
+        probe.InitRenderPass(renderContext);
+        mat4.copy(this.projection, renderContext.GetProjection());
+
+        for (let face = probe.GetStartFace(); face < probe.GetEndFace(); face += 1)
+        {
+          probe.StartRenderFace(face, renderContext);
+
+          this.PopulatePerFramePSData(this._perFramePS, renderContext);
+          this.PopulatePerFrameVSData(this._perFrameVS, renderContext);
+          this.ApplyPerFrameData(renderContext);
+          this._reflectionFaceDepth.SetTexture(probe.GetDepthBuffer(face));
+
+          // Planets are culled against a planet-scale frustum (cpp:1847-1866).
+          const view = mat4.copy(this._reflectionView, renderContext.GetViewTransform());
+          renderContext.SetViewTransform(this.CreatePlanetViewMatrix(view, this._reflectionPlanetView));
+          const planetProjection = EveCamera.ModifyClipPlanes(renderContext.GetProjection(), 0.01, 1e5, this._reflectionPlanetProjection);
+          const planetFrustum = new TriFrustum();
+          planetFrustum.DeriveFrustum(renderContext.GetViewTransform(), renderContext.GetViewPosition(), planetProjection, esm.GetViewport());
+          this.updateContext.SetFrustum(planetFrustum);
+          for (const planet of this.planets) planet.UpdatePlanetVisibility(this.updateContext, this.planetScale);
+          renderContext.SetViewTransform(view);
+
+          const currentFrustum = probe.GetFrustum(face, renderContext);
+          this.updateContext.SetFrustum(currentFrustum);
+          this.RenderBackgroundPassObjects(null, null, renderContext, renderer, EveSpaceScene.BackgroundRenderingReason.BACKGROUND_RENDER_REFLECTION);
+
+          if (EveSpaceScene.lensflaresInReflections && this.lensflares.length
+            && GetReflectionSetting() === ReflectionSetting.REFLECTION_SETTING_ULTRA)
+          {
+            const visible = [];
+            for (const lensflare of this.lensflares) lensflare.GetRenderables(currentFrustum, visible);
+            if (visible.length)
+            {
+              renderContext.SetReadOnlyDepth(true);
+              this.RenderRenderables(visible, this._secondaryBatches.get(TriBatchType.TRIBATCHTYPE_ADDITIVE), TriBatchType.TRIBATCHTYPE_ADDITIVE,
+                RenderingMode.RM_ALPHA_ADDITIVE, renderContext, Tr2RenderReason.TR2RENDERREASON_REFLECTION);
+              renderContext.SetReadOnlyDepth(false);
+            }
+          }
+
+          if (this.dynamicObjectReflectionEnabled && probe.ReadyForDynamicObjectReflections())
+          {
+            this._RenderReflectionDynamicObjects(face, currentFrustum, gpuResourcePool, renderContext, renderer);
+          }
+        }
+
+        probe.EndRenderPass(renderContext);
+        this.updateContext.SetFrustum(normalFrustum);
+        this.currentReflectionIntensity = savedIntensity;
+      }
+      finally
+      {
+        if (swapDepthMap) depthMapVar.SetValue(savedDepthMap);
+        this.UpdateVariableStore();
+        mat4.copy(this.projection, this._reflectionProjection);
+        mat4.copy(this.jitterMatrix, this._reflectionJitter);
+      }
+    }
+    finally
+    {
+      volumetrics.SetIsReflectionProbe(false);
+    }
+
+    this.PopulatePerFramePSData(this._perFramePS, renderContext);
+    this.PopulatePerFrameVSData(this._perFrameVS, renderContext);
+    this.ApplyPerFrameData(renderContext);
+  }
+
+  /**
+   * The dynamic-object block of Carbon's RenderReflectionPass (cpp:1897-1992):
+   * the visible ITr2Renderables, depth first, optional reflection shadows, then
+   * opaque, fog and transparent batches with culling left as the cube needs it.
+   */
+  @meta.ours
+  _RenderReflectionDynamicObjects(face, currentFrustum, gpuResourcePool, renderContext, renderer)
+  {
+    const visibleRenderables = [];
+    for (const renderable of this.componentRegistry.GetComponents(EveComponentType.ReflectionRenderable))
+    {
+      if (renderable.IsVisible(this.updateContext)) visibleRenderables.push(renderable);
+    }
+
+    const hasFog = !!this.volumetricsRenderer && this.volumetricsRenderer.HasFog();
+    const batches = this._secondaryBatches;
+    this.ClearBatches(batches);
+    if (!hasFog && !visibleRenderables.length) return;
+
+    const esm = renderContext.GetEffectStateManager();
+    renderContext.Clear({ clearDepth: true, depth: 0 });
+    // Left-handed cube targets: leave the cull mode alone.
+    esm.BeginManagedRendering(CullMode.CULLMODE_NONE);
+
+    const transparentObjects = [];
+    this.GetAllBatchesFromRenderables(visibleRenderables, transparentObjects, false, batches, renderContext, Tr2RenderReason.TR2RENDERREASON_REFLECTION);
+    this.PrepareTransparentBatch(transparentObjects, batches, Tr2RenderReason.TR2RENDERREASON_REFLECTION);
+    this.FinalizeBatches(batches);
+
+    esm.ApplyStandardStates(RenderingMode.RM_DEPTH_ONLY);
+    renderContext.RenderBatches(batches.get(TriBatchType.TRIBATCHTYPE_OPAQUE), "Depth");
+    renderContext.RenderBatches(batches.get(TriBatchType.TRIBATCHTYPE_DEPTH), "Depth");
+
+    let shadowResources = EmptyShadowResources();
+    if (this._enableShadows && this.shadowQuality !== ShadowQuality.SHADOW_DISABLED && this._reflectionShadowMap)
+    {
+      // Raytraced shadows are unported (Carbon's m_rtManager), so only the cascaded branch can run.
+      const reallyHaveShadows = this.shadowQuality === ShadowQuality.SHADOW_RAYTRACED ? false : !!this.cascadedShadowMap;
+      if (reallyHaveShadows)
+      {
+        esm.SetInvertedCullMode(false);
+        shadowResources = this.SetupCascadedShadows(Tr2RenderReason.TR2RENDERREASON_REFLECTION, this._reflectionShadowMap, currentFrustum,
+          this.reflectionProbe.GetDepthBuffer(face), gpuResourcePool, renderContext, renderer);
+        esm.SetInvertedCullMode(true);
+      }
+    }
+    EveSpaceScene.registerWithVariableStore(shadowResources, gpuResourcePool);
+
+    renderContext.SetReadOnlyDepth(true);
+    this.RenderOpaqueBatches(batches, renderContext);
+
+    const store = Tr2VariableStore.globalStore();
+    let froxelFog = null;
+    if (this.volumetricsRenderer)
+    {
+      const viewport = esm.GetViewport();
+      froxelFog = this.volumetricsRenderer.RenderFogIntoReflectionMap(renderContext, gpuResourcePool, viewport.width, viewport.height,
+        this.sunDirection, this.currentSunColor, this.updateContext.GetOrigin(), renderContext.GetViewTransform(),
+        renderContext.GetReversedDepthProjectionTransform());
+    }
+    store.RegisterVariable_TextureAL("EveSceneFroxelFogMap", froxelFog ? froxelFog.Get() : new Tr2TextureAL());
+
+    this.RenderTransparentBatches(batches, renderContext);
+    renderContext.SetReadOnlyDepth(false);
+
+    store.RegisterVariable_TextureAL("EveSceneFroxelFogMap", new Tr2TextureAL());
+    EveSpaceScene.registerWithVariableStore(EmptyShadowResources(), gpuResourcePool);
+
+    this.ClearBatches(batches);
+    esm.EndManagedRendering();
   }
 
   /**

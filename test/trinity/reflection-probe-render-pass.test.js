@@ -95,3 +95,19 @@ test("InitRenderPass takes the camera position unless locked, squares the projec
   assert.equal(esm.GetViewport().width, probe.reflectionSize);
   esm.SetInvertedCullMode(before);
 });
+
+test("EveSpaceScene: shadows in reflections toggle Carbon's 512 map; no valid probe means no reflection pass", async () =>
+{
+  const { EveSpaceScene } = await import("../../npm/dist/trinity/index.js");
+  const scene = new EveSpaceScene();
+  assert.equal(scene.IsShadowsInReflectionsEnabled(), false, "off by default (cpp:4154-4168)");
+  scene.EnableShadowsInReflections(true);
+  assert.equal(scene.IsShadowsInReflectionsEnabled(), true);
+  scene.EnableShadowsInReflections(false);
+  assert.equal(scene.IsShadowsInReflectionsEnabled(), false);
+
+  assert.equal(scene.HasReflectionProbe(), false);
+  const intensity = scene.currentReflectionIntensity;
+  scene.RenderReflectionPass(null, StubContext(), null);
+  assert.equal(scene.currentReflectionIntensity, intensity, "an early return touches nothing");
+});

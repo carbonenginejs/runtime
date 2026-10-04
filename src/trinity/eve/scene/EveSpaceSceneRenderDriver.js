@@ -712,6 +712,9 @@ export class EveSpaceSceneRenderDriver
     // draws immediately - Carbon's shape - so the blocks must be bound here.
     this.scene.BeginRender(this.enableDistortion, renderContext);
 
+    // The reflection probe's cube faces, right after BeginRender (cpp:491-494).
+    this.scene.RenderReflectionPass(this.#gpuResourcePool, renderContext, this.#renderer);
+
     // THE BACKGROUND PASS (cpp:502-511): the nebula and the rest of the
     // background, into the scene colour before the depth pass, with the
     // velocity map in slot 1 when there is one. Background distortion is
