@@ -16,6 +16,7 @@ import {
 import { ITr2GenericEmitterUpdateArguments } from "../particle/ITr2GenericEmitter/index.js";
 import { blue } from "#blue";
 import { TimeAsDouble } from "../../global/blue/CcpTime.js";
+import { EveDamageOverlayOwnerInfo } from "./overlays/EveDamageOverlayOwnerInfo.js";
 
 
 const IMPACT_SHIELD_SIZE_MAX = 2000;
@@ -280,6 +281,14 @@ export class EveImpactOverlay
   _dataTextureOffset = -1;
 
   _shieldImpacts = new Map();
+
+  /** The owner record handed to the damage overlay each update; _ownerParent is the space object it describes. */
+  _ownerInfo = new EveDamageOverlayOwnerInfo();
+
+  _ownerParent = null;
+
+  /** Bind position, not the animated pose (Carbon EveImpactOverlay.cpp:189): seeded decals must not swim with animation. */
+  _getOwnerDamageLocatorPositionOS = (index, out) => this._ownerParent.GetDamageLocatorBindPosition(index, out);
 
   /** Carbon Initialize (cpp:87-90): nothing to set up. */
   @meta.blue.method
@@ -847,17 +856,13 @@ export class EveImpactOverlay
     this.shieldBoosting.Update(updateContext);
     this.shieldHardening.Update(updateContext);
 
-    const boundingSphere = vec4.create();
-    parent.GetBoundingSphere(boundingSphere);
-
-    this.damageOverlay.UpdateAsyncronous(updateContext, {
-      boundingSphere,
-      estimatedPixelDiameter: parent.estimatedPixelDiameter,
-      isInFrustum: parent.IsInFrustum(),
-      // Bind position, not the animated pose (Carbon EveImpactOverlay.cpp:189,
-      // commit 3d988b1d): decals seeded here must not swim with animation.
-      getDamageLocatorPositionOS: (index, out) => parent.GetDamageLocatorBindPosition(index, out)
-    }, this._shieldImpacts.size, this.HasShieldActivity());
+    const info = this._ownerInfo;
+    parent.GetBoundingSphere(info.boundingSphere);
+    info.estimatedPixelDiameter = parent.estimatedPixelDiameter;
+    info.isInFrustum = parent.IsInFrustum();
+    this._ownerParent = parent;
+    info.getDamageLocatorPositionOS = this._getOwnerDamageLocatorPositionOS;
+    this.damageOverlay.UpdateAsyncronous(updateContext, info, this._shieldImpacts.size, this.HasShieldActivity());
 
     const header = this.damageOverlay.HeaderRow();
     vec4.set(header[0],
@@ -882,7 +887,7 @@ export class EveImpactOverlay
 
     this.shieldImpactParentSize = Math.max(
       IMPACT_SHIELD_SIZE_MIN,
-      Math.min(IMPACT_SHIELD_SIZE_MAX, boundingSphere[3]));
+      Math.min(IMPACT_SHIELD_SIZE_MAX, info.boundingSphere[3]));
 
     if (!this._shieldImpacts.size) return;
 

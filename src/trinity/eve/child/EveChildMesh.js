@@ -37,6 +37,7 @@ import { Float4x3 } from "../../utilities/Float4x3.js";
 import { EveCollectAreas } from "./EveSpaceObjectChild.js";
 import { EveGetLocatorPose } from "../locator/EveLocatorSets.js";
 import { EveDamageOverlay } from "../overlays/EveDamageOverlay.js";
+import { EveDamageOverlayOwnerInfo } from "../overlays/EveDamageOverlayOwnerInfo.js";
 import {
   CollectOverlayAreaBlocks,
   EmitDamageOverlayBatches,
@@ -194,6 +195,12 @@ export class EveChildMesh extends EveChildTransform
   @meta.blue.persist
   @meta.type.objectRef("EveDamageOverlay")
   damageOverlay = null;
+
+  /** The owner record handed to damageOverlay each update (Carbon cpp:1120-1135). */
+  _damageOverlayOwnerInfo = new EveDamageOverlayOwnerInfo();
+
+  /** Bind pose, not animated: the overlay seeds decals at the stable authored position (Carbon cpp:1132-1134). */
+  _getDamageLocatorPositionOS = (index, out) => this.GetDamageLocatorBindPositionLocal(index, out);
 
   @meta.blue.notify
   @meta.blue.readwrite
@@ -1003,23 +1010,19 @@ export class EveChildMesh extends EveChildTransform
 
     if (this.damageOverlay)
     {
-      const localSphere = vec4.fromValues(0, 0, 0, -1);
-      if (bounds?.min && bounds?.max)
+      const info = EveDamageOverlayOwnerInfo.Reset(this._damageOverlayOwnerInfo);
+      if (bounds)
       {
         const cx = (bounds.min[0] + bounds.max[0]) * 0.5;
         const cy = (bounds.min[1] + bounds.max[1]) * 0.5;
         const cz = (bounds.min[2] + bounds.max[2]) * 0.5;
-        vec4.set(localSphere, cx, cy, cz,
+        vec4.set(info.boundingSphere, cx, cy, cz,
           Math.hypot(bounds.max[0] - cx, bounds.max[1] - cy, bounds.max[2] - cz));
       }
-      this.damageOverlay.UpdateAsyncronous(updateContext, {
-        boundingSphere: localSphere,
-        estimatedPixelDiameter: Math.max(this.currentScreenSize, 0),
-        isInFrustum: this._isVisible,
-        // Bind pose, not animated: the overlay seeds decals at the stable
-        // authored position (Carbon EveChildMesh.cpp:1130, commit 98ee5e08).
-        getDamageLocatorPositionOS: (index, out) => this.GetDamageLocatorBindPositionLocal(index, out)
-      }, 0, false);
+      info.estimatedPixelDiameter = Math.max(this.currentScreenSize, 0);
+      info.isInFrustum = this._isVisible;
+      info.getDamageLocatorPositionOS = this._getDamageLocatorPositionOS;
+      this.damageOverlay.UpdateAsyncronous(updateContext, info, 0, false);
     }
 
     this._hasUpdated = true;

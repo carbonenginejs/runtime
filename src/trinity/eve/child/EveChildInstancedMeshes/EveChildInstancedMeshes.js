@@ -6,6 +6,7 @@ import { IEveSpaceObjectChild } from "../IEveSpaceObjectChild.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
+import { vec4 } from "#math/vec4";
 import { meta } from "#schema";
 import { EveComponentType, ShouldReflect } from "../../EveComponentTypes.js";
 import { EveSpaceObjectChild } from "../EveSpaceObjectChild.js";
@@ -17,6 +18,7 @@ import {
   EmitOverlayBatches
 } from "../../overlays/overlayBatches.js";
 import { EveDamageOverlay } from "../../overlays/EveDamageOverlay.js";
+import { EveDamageOverlayOwnerInfo } from "../../overlays/EveDamageOverlayOwnerInfo.js";
 import { EveGetLocatorPose } from "../../locator/EveLocatorSets.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { EveChildInstancedMeshArea } from "./EveChildInstancedMeshArea.js";
@@ -109,6 +111,21 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   /** Carbon m_partDamageOverlays (h:215): one damage overlay per part tag,
    * created on first damage through CreatePartDamageOverlay. */
   _partDamageOverlays = new Map();
+
+  /** The damage locator list the current part's owner record resolves against; set per part during the async update. */
+  _partDamageLocators = null;
+
+  /** Carbon cpp:349-356: an absent list or an out-of-range index resolves nothing and leaves out untouched. */
+  _getPartDamageLocatorPositionOS = (index, out) =>
+  {
+    const locators = this._partDamageLocators;
+    if (!locators || index < 0 || index >= locators.length) return false;
+    vec3.copy(out, locators[index].position);
+    return true;
+  };
+
+  /** One owner record reused for every part; each overlay reads it during its own update only (Carbon cpp:335). */
+  static _partOwnerInfo = new EveDamageOverlayOwnerInfo();
 
   static _inverseScratch = mat4.create();
 
@@ -398,35 +415,29 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     // default owner info, which resolves no locators.
     for (const [ partTag, overlay ] of this._partDamageOverlays)
     {
-      const info = { boundingSphere: [ 0, 0, 0, -1 ], estimatedPixelDiameter: 0, isInFrustum: false };
+      const info = EveDamageOverlayOwnerInfo.Reset(EveChildInstancedMeshes._partOwnerInfo);
       const found = this._FindMeshByPartTag(partTag);
-      const geometry = found?.mesh.GetGeometryResource();
-      if (found && geometry && geometry.IsGood() !== false)
+      const geometry = found ? found.mesh.GetGeometryResource() : null;
+      if (geometry && geometry.IsGood())
       {
         const meshData = geometry.GetMeshData(found.mesh.meshIndex);
-        if (meshData?.minBounds && meshData?.maxBounds)
+        if (meshData)
         {
           const minBounds = meshData.minBounds;
           const maxBounds = meshData.maxBounds;
-          info.boundingSphere = [
+          vec4.set(info.boundingSphere,
             (minBounds[0] + maxBounds[0]) * 0.5,
             (minBounds[1] + maxBounds[1]) * 0.5,
             (minBounds[2] + maxBounds[2]) * 0.5,
-            Math.hypot(maxBounds[0] - minBounds[0], maxBounds[1] - minBounds[1], maxBounds[2] - minBounds[2]) * 0.5
-          ];
+            Math.hypot(maxBounds[0] - minBounds[0], maxBounds[1] - minBounds[1], maxBounds[2] - minBounds[2]) * 0.5);
         }
         const worldSphere = found.mesh.instanceSpheres[found.instanceIndex] ?? EMPTY_SPHERE;
         const frustum = updateContext.GetFrustum();
         info.estimatedPixelDiameter = Math.max(
           frustum.GetPixelSizeAccrossEst(worldSphere.center, worldSphere.radius) * updateContext.GetInvLodFactor(), 0);
         info.isInFrustum = frustum.IsSphereVisible(worldSphere.center, worldSphere.radius);
-        const damageLocators = FindDamageLocators(found.mesh.ownedLocatorSets);
-        info.getDamageLocatorPositionOS = (index, out) =>
-        {
-          if (!damageLocators || index < 0 || index >= damageLocators.length) return false;
-          vec3.copy(out, damageLocators[index].position);
-          return true;
-        };
+        this._partDamageLocators = FindDamageLocators(found.mesh.ownedLocatorSets);
+        info.getDamageLocatorPositionOS = this._getPartDamageLocatorPositionOS;
       }
       overlay.UpdateAsyncronous(updateContext, info, 0, false);
     }

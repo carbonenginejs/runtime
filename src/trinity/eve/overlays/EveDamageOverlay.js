@@ -117,6 +117,8 @@ export class EveDamageOverlay
   /** Global equivalent of Carbon's impact-effect setting. */
   static impactEffectEnabled = true;
 
+  static _locatorPosition = vec3.create();
+
   /** Initializes the damage-overlay state. */
   @meta.blue.method
   @meta.implemented
@@ -339,7 +341,7 @@ export class EveDamageOverlay
   /** Advances armour impacts, faders, priorities and data-texture rows. */
   @meta.blue.method
   @meta.adapted
-  UpdateAsyncronous(updateContext, ownerInfo = {}, minTexelRows = 0, hasExternalActivity = false)
+  UpdateAsyncronous(updateContext, ownerInfo, minTexelRows, hasExternalActivity)
   {
     if (this.armorImpactGoalCount < this._armorImpacts.size)
     {
@@ -376,14 +378,9 @@ export class EveDamageOverlay
 
     if (!hasExternalActivity && !this.HasGeneralActivity()) return;
 
-    const pixelDiameter = Math.max(0, Number(ownerInfo.estimatedPixelDiameter) || 0);
-    const isInFrustum = !!ownerInfo.isInFrustum;
-    this.renderPriority = this._wasVisible || isInFrustum ? pixelDiameter : 0;
-    this._wasVisible = isInFrustum;
-
-    const sphere = ownerInfo.boundingSphere;
-    const radius = Number(sphere?.radius ?? sphere?.[3] ?? -1);
-    this.armorImpactParentSize = Math.min(radius, IMPACT_ARMOR_SIZE_MAX / IMPACT_ARMOR_SIZE_FACTOR);
+    this.renderPriority = this._wasVisible || ownerInfo.isInFrustum ? ownerInfo.estimatedPixelDiameter : 0;
+    this._wasVisible = ownerInfo.isInFrustum;
+    this.armorImpactParentSize = Math.min(ownerInfo.boundingSphere[3], IMPACT_ARMOR_SIZE_MAX / IMPACT_ARMOR_SIZE_FACTOR);
 
     // Carbon EveDamageOverlay.cpp:301: an owner that cannot resolve its
     // locators (an instanced part whose mesh is not loaded) supplies none.
@@ -392,7 +389,7 @@ export class EveDamageOverlay
     for (const impact of this._armorImpacts.values())
     {
       const texel = this._texelRows[row++];
-      const position = vec3.create();
+      const position = EveDamageOverlay._locatorPosition;
       ownerInfo.getDamageLocatorPositionOS(impact.damageLocatorIndex, position);
       vec4.set(texel[2], position[0], position[1], position[2], 0);
       vec4.set(texel[3], impact.size * IMPACT_ARMOR_SIZE_FACTOR * this.armorImpactParentSize, 0, 0, 0);

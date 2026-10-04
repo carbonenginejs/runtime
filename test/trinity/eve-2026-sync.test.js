@@ -15,6 +15,7 @@ import {
   EveChildMesh,
   EveChildInstancedMeshes,
   EveDamageOverlay,
+  EveDamageOverlayOwnerInfo,
   EveEntity,
   EveEffectRoot2,
   EveImpactOverlay,
@@ -141,16 +142,16 @@ test("without a device the data texture maps nothing, so no block gets an offset
     damage.SetArmorDamageShaderEffect(shader);
     damage.SetDamageLocatorCount(1);
     damage.CreateImpact(0, 0.5);
-    damage.UpdateAsyncronous(context, {
-      boundingSphere: [ 0, 0, 0, 20 ],
-      estimatedPixelDiameter: 64,
-      isInFrustum: true,
-      getDamageLocatorPositionOS(_index, out)
-      {
-        vec3.set(out, 1, 2, 3);
-        return true;
-      }
-    });
+    const info = new EveDamageOverlayOwnerInfo();
+    info.boundingSphere[3] = 20;
+    info.estimatedPixelDiameter = 64;
+    info.isInFrustum = true;
+    info.getDamageLocatorPositionOS = (_index, out) =>
+    {
+      vec3.set(out, 1, 2, 3);
+      return true;
+    };
+    damage.UpdateAsyncronous(context, info, 0, false);
 
     damage.UpdateSyncronous(context);
     assert.equal(manager.Update(context), undefined, "Update returns void, as Carbon");
