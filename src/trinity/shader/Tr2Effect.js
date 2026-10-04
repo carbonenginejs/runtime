@@ -268,8 +268,9 @@ export class Tr2Effect extends Tr2Material
   /**
    * Carbon's two RebuildCachedData overloads (Tr2Effect.cpp:823-840). With a
    * resource it is the notify-target call: only this effect's own resource
-   * rebuilds, through the insideStartUpdate-clearing body. Without one it is the
-   * Blue method (MAP_METHOD_AND_WRAP to RebuildCachedDataInternal).
+   * rebuilds, and insideStartUpdate is cleared around it so a shader arriving
+   * during a batched Start/EndUpdate still rebuilds immediately. Without one it
+   * is the Blue method (MAP_METHOD_AND_WRAP to RebuildCachedDataInternal).
    *
    * @param {object} [resource] Resource that finished loading.
    */
@@ -277,23 +278,12 @@ export class Tr2Effect extends Tr2Material
   @meta.adapted
   RebuildCachedData(resource)
   {
-    if (resource !== undefined)
+    if (resource === undefined)
     {
-      if (resource === this.effectResource) this.RebuildCachedDataAsync();
+      this.RebuildCachedDataInternal();
       return;
     }
-    this.RebuildCachedDataInternal();
-  }
-
-  /**
-   * The resource-arrival overload: Carbon temporarily clears
-   * insideStartUpdate so a shader arriving during a batched Start/EndUpdate
-   * still rebuilds immediately.
-   */
-  @meta.blue.method
-  @meta.implemented
-  RebuildCachedDataAsync()
-  {
+    if (resource !== this.effectResource) return;
     const wasInsideStartUpdate = this.insideStartUpdate;
     this.insideStartUpdate = false;
     this.RebuildCachedDataInternal();
