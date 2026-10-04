@@ -111,6 +111,19 @@ export class TriGeometryRes extends CjsResource
         throw resourcePayloadError("TriGeometryRes", "Expected an array when provided.", field);
       }
     }
+    // Carbon fills each LOD's m_morphTargetDeformationAmounts while building it (TriGeometryRes.cpp:2134 from the CMF
+    // target's maxDisplacement; :2293 from the Granny morph vertices, which the gr2 conversion has already reduced to
+    // the same maxDisplacement). A mesh with no lods is its own LOD (GetMeshLod_LodIndex).
+    for (const mesh of payload.meshes)
+    {
+      const targets = mesh.morphTargets?.targets;
+      if (!Array.isArray(targets)) continue;
+      const amounts = targets.map(target => target.maxDisplacement);
+      for (const lod of mesh.lods?.length ? mesh.lods : [ mesh ])
+      {
+        lod.morphTargetDeformationAmounts = amounts;
+      }
+    }
     super.SetPayload(payload);
     this.SetValues(options || {});
     return this;
