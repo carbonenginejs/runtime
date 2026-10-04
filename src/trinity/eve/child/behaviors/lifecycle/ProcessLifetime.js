@@ -3,7 +3,8 @@ import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/ProcessLifetime.cpp
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { IBehavior } from "../IBehavior.js";
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
+import { SplineTunnelGroup } from "../tunnels/SplineTunnelGroup.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -117,17 +118,27 @@ export class ProcessLifetime
     return true;
   }
 
-  /** Carbon ProcessLifetime::OnListModified. */
+  /**
+   * Carbon ProcessLifetime::OnListModified (ProcessLifetime.cpp:40-72): an inserted or loaded spline tunnel group is
+   * handed the callback that rebuilds this behavior's tunnel registry, and the registry is rebuilt.
+   *
+   * Adapted: Carbon hands a REMOVED group the same callback again (cpp:53-58), so a group taken out of the list keeps
+   * rebuilding this behavior's registry; here a removed group is detached instead. Inserted and loaded groups are
+   * re-wired as a whole list (_WireTunnelGroups) rather than one value at a time.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Detaches removed groups instead of preserving Carbon's erroneous callback reattachment, and accepts portable Blue-list event arguments.")
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     if (list !== this.splineTunnels) return;
-    const maskedEvent = Number(event) & BLUELISTEVENT.BELIST_EVENTMASK;
+    const maskedEvent = event & BLUELISTEVENT.BELIST_EVENTMASK;
     if (maskedEvent === BLUELISTEVENT.BELIST_REMOVED)
     {
-      value?.SetSystemTunnelFunctionReferenceAndColor?.(null, 0xff5555aa);
+      const handler = CjsSchema.cast(value, SplineTunnelGroup);
+      if (handler)
+      {
+        handler.SetSystemTunnelFunctionReferenceAndColor(null, 0xff5555aa);
+      }
     }
     else if (![BLUELISTEVENT.BELIST_INSERTED, BLUELISTEVENT.BELIST_LOADFINISHED].includes(maskedEvent))
     {
@@ -163,19 +174,25 @@ export class ProcessLifetime
     return "ProcessLifetime";
   }
 
-  /** Per-agent scratch record count (Carbon sizeof(ProcessLifetimeData)). */
+  /**
+   * Per-agent scratch record count (Carbon sizeof(ProcessLifetimeData)).
+   *
+   * Adapted: Carbon returns a byte size; scratch here is one record per agent, so any non-zero value means it has one.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero value means 'has scratch'.")
   GetScratchMemorySize()
   {
     return 1;
   }
 
-  /** Fresh per-agent scratch record (Carbon ProcessLifetimeData placement init). */
+  /**
+   * Fresh per-agent scratch record (Carbon ProcessLifetimeData placement init).
+   *
+   * Adapted: Carbon initializes caller-provided raw memory; here the fresh record is returned.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.")
   InitializeScratch()
   {
     return new ProcessLifetimeData();
@@ -202,10 +219,12 @@ export class ProcessLifetime
    * @param {Object} system - owning EveChildBehaviorSystem
    * @param {Array} _dronesInSearchRadius - unused
    * @returns {Array} debug force pairs when group.collectForces is on
+   *
+   * Adapted: rand() is Math.random; debug force pairs are collected only while group.collectForces is set, keeping the
+   * per-agent loop allocation-free.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("rand() maps to Math.random; debug force pairs are only collected when group.collectForces is set to keep the per-agent loop allocation-free.")
   CalculateBehavior(agents, scratchData, deltaTime, group, system, _dronesInSearchRadius)
   {
     if (!this._TunnelGroupsMatchSnapshot())
@@ -245,7 +264,7 @@ export class ProcessLifetime
       if (!data.hasSpawned && this._intialSpawn)
       {
         vec3.copy(SPAWN_POSITION, group.spawnPosition);
-        const systemTunnels = system.GetSplineTunnels?.() ?? [];
+        const systemTunnels = system.GetSplineTunnels();
         if (this._FindInitialSpawnPoint(drone, data, SPAWN_POSITION, systemTunnels))
         {
           vec3.copy(group.spawnPosition, SPAWN_POSITION);
@@ -352,12 +371,7 @@ export class ProcessLifetime
     this._privateTunnels.length = 0;
     for (const tunnelGroup of this.splineTunnels)
     {
-      const tunnels = tunnelGroup?.GetTunnels?.() ?? tunnelGroup?.tunnels;
-      if (!Array.isArray(tunnels))
-      {
-        continue;
-      }
-      for (const tunnel of tunnels)
+      for (const tunnel of tunnelGroup.GetTunnels())
       {
         this._privateTunnels.push(tunnel);
       }
@@ -424,7 +438,7 @@ export class ProcessLifetime
   _ReassignTunnelIDsAndAddSystemTunnels(system)
   {
     const localTunnels = this._privateTunnels.slice();
-    const systemTunnels = Array.from(system.GetTunnels?.() ?? []);
+    const systemTunnels = system.GetTunnels();
     this._privateTunnels.length = 0;
     this._privateTunnels.push(...systemTunnels, ...localTunnels);
     for (let id = 0; id < this._privateTunnels.length; id++)
@@ -607,7 +621,7 @@ export class ProcessLifetime
     // pick a random splineTunnel
     const splineTunnel = tunnels[Math.floor(Math.random() * tunnels.length)];
 
-    const curveSets = splineTunnel?.GetCurveSets?.() ?? splineTunnel?.curveSets ?? [];
+    const curveSets = splineTunnel.GetCurveSets();
 
     // return early if there are no curves or the curves aren't loaded
     if (curveSets.length === 0)
@@ -615,7 +629,7 @@ export class ProcessLifetime
       return false;
     }
 
-    const groupType = splineTunnel.GetTunnelGroupType?.() ?? splineTunnel.tunnelGroupType;
+    const groupType = splineTunnel.GetTunnelGroupType();
     if (groupType === TunnelGroupType.ENTRANCE_TUNNELS)
     {
       // we can have more than 1 curve so pick a random curve
@@ -639,7 +653,7 @@ export class ProcessLifetime
       const stepSize = length !== 0 ? time / length : 0;
 
       // Get the next pointID
-      const breakPoints = Number(splineTunnel.GetNumBreakPoints?.() ?? splineTunnel.breakPoints ?? 0);
+      const breakPoints = splineTunnel.GetNumBreakPoints();
       const pointID = Math.floor(stepSize * breakPoints + 1) + 0.5;
 
       vec3.copy(drone.position, pos);
@@ -709,10 +723,7 @@ export class ProcessLifetime
     this._tunnelGroupSnapshot = this.splineTunnels.slice();
     for (const group of this.splineTunnels)
     {
-      group?.SetSystemTunnelFunctionReferenceAndColor?.(
-        () => this.UpdateTunnelRegistry(),
-        0xff5555aa
-      );
+      group.SetSystemTunnelFunctionReferenceAndColor(() => this.UpdateTunnelRegistry(), 0xff5555aa);
     }
   }
 

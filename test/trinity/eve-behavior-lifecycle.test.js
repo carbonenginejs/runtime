@@ -7,6 +7,9 @@ import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import {
+  BehaviorGroup,
+  DroneAgent,
+  EveChildBehaviorSystem,
   ProcessLifetime,
   ProcessLifetimeData,
   ProcessPriority,
@@ -129,35 +132,40 @@ test("tunnel list callbacks rebuild only for Carbon list events", () =>
 });
 
 
+/** A real spline tunnel group with one curve, so it builds one tunnel. */
+function TunnelGroup()
+{
+  const group = new SplineTunnelGroup();
+  group.breakPoints = 0;
+  group.curveSets.push(createLinearCurve(1));
+  group.Initialize();
+  return group;
+}
+
+/** A real behavior system whose own tunnel groups give it these system tunnels. */
+function SystemWithTunnels(...groups)
+{
+  const system = new EveChildBehaviorSystem();
+  system.splineTunnels.push(...groups);
+  system.UpdateTunnelRegistry();
+  return system;
+}
+
 test("ProcessLifetime wires groups and repairs stable tunnel IDs and empty boundaries", () =>
 {
-  const systemTunnelA = new SplineTunnel();
-  const systemTunnelB = new SplineTunnel();
-  const localTunnel = new SplineTunnel();
-  const tunnelGroup = {
-    callback: null,
-    GetTunnels: () => [localTunnel],
-    SetSystemTunnelFunctionReferenceAndColor(callback, color)
-    {
-      this.callback = callback;
-      this.color = color;
-    }
-  };
+  const tunnelGroup = TunnelGroup();
   const lifetime = new ProcessLifetime();
   lifetime.firstSpawnAtRandomPlaces = false;
   lifetime.splineTunnels.push(tunnelGroup);
   lifetime.Initialize();
-  assert.equal(typeof tunnelGroup.callback, "function");
-  assert.equal(tunnelGroup.color, 0xff5555aa);
+  // Wiring the group rebuilds its tunnels (SetSystemTunnelFunctionReferenceAndColor), so take the tunnel after it.
+  const [ localTunnel ] = tunnelGroup.GetTunnels();
+  assert.equal(typeof tunnelGroup._changeSystemTunnelRegistry, "function");
+  assert.equal(tunnelGroup._debugColor, 0xff5555aa);
 
-  lifetime.CalculateBehavior(
-    [],
-    [],
-    0,
-    {},
-    { GetTunnels: () => [systemTunnelA, systemTunnelB] },
-    []
-  );
+  const system = SystemWithTunnels(TunnelGroup(), TunnelGroup());
+  const [ systemTunnelA, systemTunnelB ] = system.GetTunnels();
+  lifetime.CalculateBehavior([], [], 0, new BehaviorGroup(), system, []);
   assert.equal(systemTunnelA.tunnelID, 0);
   assert.equal(systemTunnelB.tunnelID, 1);
   assert.equal(localTunnel.tunnelID, 2);
@@ -166,20 +174,9 @@ test("ProcessLifetime wires groups and repairs stable tunnel IDs and empty bound
   emptyLifetime.firstSpawnAtRandomPlaces = false;
   emptyLifetime.Initialize();
   const scratch = emptyLifetime.InitializeScratch();
-  const agent = {
-    lifetime: 1,
-    position: vec3.create(),
-    rotation: quat.create(),
-    acceleration: vec3.create()
-  };
-  emptyLifetime.CalculateBehavior(
-    [agent],
-    [scratch],
-    0,
-    { collectForces: false, GetBoundingSphereRadius: () => 1 },
-    { GetTunnels: () => [], GetSplineTunnels: () => [] },
-    []
-  );
+  const agent = new DroneAgent();
+  agent.lifetime = 1;
+  emptyLifetime.CalculateBehavior([ agent ], [ scratch ], 0, new BehaviorGroup(), new EveChildBehaviorSystem(), []);
   assert.equal(scratch.hasUsedEntryTunnel, true);
 });
 
@@ -187,33 +184,19 @@ test("ProcessLifetime wires groups and repairs stable tunnel IDs and empty bound
 test("ProcessLifetime list callbacks detach removals and detect direct pushes", () =>
 {
   const lifetime = new ProcessLifetime();
-  const calls = [];
-  const first = {
-    GetTunnels: () => [],
-    SetSystemTunnelFunctionReferenceAndColor(callback, color) { calls.push([this, callback, color]); }
-  };
+  const first = TunnelGroup();
   lifetime.splineTunnels.push(first);
   lifetime.Initialize();
-  assert.equal(typeof calls.at(-1)[1], "function");
+  assert.equal(typeof first._changeSystemTunnelRegistry, "function");
 
   lifetime.splineTunnels.splice(0, 1);
   lifetime.OnListModified(BLUELISTEVENT.BELIST_REMOVED, 0, 0, first, lifetime.splineTunnels);
-  assert.equal(calls.findLast(([group]) => group === first)[1], null);
+  assert.equal(first._changeSystemTunnelRegistry, null, "a removed group is detached");
 
-  const second = {
-    GetTunnels: () => [],
-    SetSystemTunnelFunctionReferenceAndColor(callback, color) { calls.push([this, callback, color]); }
-  };
+  const second = TunnelGroup();
   lifetime.splineTunnels.push(second);
-  lifetime.CalculateBehavior(
-    [],
-    [],
-    0,
-    {},
-    { GetTunnels: () => [] },
-    []
-  );
-  assert.equal(typeof calls.findLast(([group]) => group === second)[1], "function");
+  lifetime.CalculateBehavior([], [], 0, new BehaviorGroup(), new EveChildBehaviorSystem(), []);
+  assert.equal(typeof second._changeSystemTunnelRegistry, "function", "a group pushed without notify is wired on the next update");
 });
 
 
