@@ -142,7 +142,7 @@ export class EveShip2 extends EveMobile
       return;
     }
     const time = updateContext.GetTime();
-    const deltaT = updateContext?.GetDeltaT() ?? 0;
+    const deltaT = updateContext.GetDeltaT();
     this.boosters.Update(
       deltaT,
       time,
@@ -351,26 +351,31 @@ export class EveShip2 extends EveMobile
   RebuildCachedData(asyncRes)
   {
     super.RebuildCachedData(asyncRes);
-    this.RebuildTurretPositions?.();
+    this.RebuildTurretPositions();
   }
 
-  /** Carbon method RebuildBoosterSet (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon RebuildBoosterSet (EveShip2.cpp:234-258): one booster per
+   * "locator_booster" locator, then the set prepares its resources.
+   */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   RebuildBoosterSet()
   {
-    if (!this.boosters) return false;
+    if (!this.boosters) return;
     this.boosters.Clear();
     for (const locator of this.locators)
     {
-      const name = locator?.GetName?.() ?? locator?.name ?? "";
-      if (!name.startsWith("locator_booster")) continue;
-      const transform = locator.GetTransform?.() ?? locator.transform;
-      if (transform) this.boosters.Add?.(transform, [0, 1, 1, 1], true, 0, 0);
+      if (locator.GetName().startsWith("locator_booster"))
+      {
+        this.boosters.Add(locator.GetTransform(), EveShip2._boosterFunctionality, true, 0, 0);
+      }
     }
-    this.boosters.UpdateValues?.({ property: "items" });
-    return true;
+    this.boosters.PrepareResources();
   }
+
+  /** RebuildBoosterSet's Vector4 functionality( 0, 1, 1, 1 ). */
+  static _boosterFunctionality = new Float32Array([ 0, 1, 1, 1 ]);
 
   /**
    * Runs the base space-object initialization; the ship adds no setup of its
@@ -380,7 +385,8 @@ export class EveShip2 extends EveMobile
   @meta.implemented
   Initialize()
   {
-    return super.Initialize() ?? true;
+    super.Initialize();
+    return true;
   }
 
   /**
@@ -393,7 +399,7 @@ export class EveShip2 extends EveMobile
   @meta.implemented
   GetPerObjectData(accumulator = null)
   {
-    this.spaceObjectShipData[0] = this.boosters?.GetBoosterIntensity?.() ?? 0;
+    this.spaceObjectShipData[0] = this.boosters ? this.boosters.GetBoosterIntensity() : 0;
 
     const data = super.GetPerObjectData(accumulator);
     // The base fill ran during update, so the glow lane has to be restamped

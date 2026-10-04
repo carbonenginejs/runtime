@@ -9,7 +9,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
-import { EveChildEffectPropagator, EveBoosterSet2, EveLensflare, EveLocator2, EveMultiEffectParameter, EveSceneStaticParticles, EveSocketParameterString, EveTurretFiringFX, EveUiObject, Tr2MaterialParameterStore, Tr2ExternalParameter, Tr2CurveVector3, Tr2InstancedMesh, Tr2Mesh, Tr2MeshArea, Tr2RuntimeInstanceData, Tr2Sprite2dContainerBase, Tr2Sprite2dLineTrace, Tr2Sprite2dPolygon, Tr2Sprite2dTransform, Tr2Sprite2dVertex, Tr2SpriteObjectBase, TriValueBinding } from "../../npm/dist/trinity/index.js";
+import { EveChildEffectPropagator, EveBoosterSet2, EveLensflare, EveLocator2, EveLocatorSets, EveSpaceObject2, EveMultiEffectParameter, EveSceneStaticParticles, EveSocketParameterString, EveTurretFiringFX, EveUiObject, Tr2MaterialParameterStore, Tr2ExternalParameter, Tr2CurveVector3, Tr2InstancedMesh, Tr2Mesh, Tr2MeshArea, Tr2RuntimeInstanceData, Tr2Sprite2dContainerBase, Tr2Sprite2dLineTrace, Tr2Sprite2dPolygon, Tr2Sprite2dTransform, Tr2Sprite2dVertex, Tr2SpriteObjectBase, TriValueBinding } from "../../npm/dist/trinity/index.js";
 import { Tr2ParticleDirectForce } from "../../npm/dist/trinity/particle/force/Tr2ParticleDirectForce.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
@@ -580,7 +580,7 @@ test("EveShip2 rebuilds booster items from Carbon locator names", () =>
   const weapon = new EveLocator2();
   weapon.name = "locator_turret_1";
   ship.locators.push(booster, weapon);
-  assert.equal(ship.RebuildBoosterSet(), true);
+  ship.RebuildBoosterSet();
   assert.equal(ship.boosters.items.length, 1);
   assert.equal(ship.boosters.items[0].transform[12], 5);
   assert.deepEqual(Array.from(ship.boosters.items[0].functionality), [0, 1, 1, 1]);
@@ -713,21 +713,22 @@ test("EveCloudVolumeBall keeps Carbon's authored falloff default", () =>
 test("SeekTarget partitions target locators along the longest local bounds axis", () =>
 {
   const seek = new SeekTarget();
-  const positions = [[1, 1, 1], [3, 1, 1], [5, 1, 1], [7, 1, 1]];
-  seek.target = {
+  seek.locatorSetName = "fx";
+  // A real space object with real locators; only its local box is pinned, as it has no mesh to measure.
+  class BoxedObject extends EveSpaceObject2
+  {
     GetLocalBoundingBox(min, max)
     {
       min.set([0, 0, 0]);
       max.set([8, 2, 2]);
       return true;
-    },
-    GetLocatorCount: () => positions.length,
-    GetLocatorPositionFromSet(index, _worldSpace, _setName, out)
-    {
-      out.set(positions[index]);
-      return out;
     }
-  };
+  }
+  seek.target = new BoxedObject();
+  const set = new EveLocatorSets();
+  set.SetName("fx");
+  set.Append([[1, 1, 1], [3, 1, 1], [5, 1, 1], [7, 1, 1]].map(position => ({ position, direction: [0, 0, 0, 1], boneIndex: 0 })));
+  seek.target.locatorSets.push(set);
   assert.equal(seek.SplitBoundingBox(), true);
   assert.deepEqual(seek.GetLocatorBucketIndices(), [[0], [1], [2], [3]]);
 });
