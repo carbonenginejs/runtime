@@ -4,6 +4,10 @@ import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { EveSOF } from "../../npm/dist/sof/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import { CjsLightData, EveBannerLight, EveHazeSetLight, EvePlaneLight, EveSpotlightLight, EveSpriteLight } from "../../npm/dist/trinity/index.js";
+import { clientResources } from "../support/clientResources.js";
+
+// Real client files through BePaths (test/support/clientResources.js).
+const client = await clientResources();
 
 const types = { EveBannerLight, EveHazeSetLight, EvePlaneLight, EveSpotlightLight, EveSpriteLight };
 
@@ -26,15 +30,13 @@ test("attachment light factories copy typed embedded storage without inherited m
 });
 
 test("real gc3_t1 SOF attachment lights retain authored values through their factories", {
-  skip: !process.env.LIGHT_RECORD_RESOURCE_BASE && "Set LIGHT_RECORD_RESOURCE_BASE to the existing resource server's /resource/ URL."
+  skip: client.skip ?? false
 }, async t =>
 {
   const bytes = async path =>
   {
-    const name = path.replace(/^res:\/+/, "").replace(/\.red$/u, ".black");
-    const response = await fetch(new URL(name, process.env.LIGHT_RECORD_RESOURCE_BASE), { signal: AbortSignal.timeout(30000) });
-    assert.equal(response.ok, true, `${path}: HTTP ${response.status}`);
-    return new Uint8Array(await response.arrayBuffer());
+    // The client ships authored .red sources as their .black builds.
+    return client.Read(path.replace(/\.red$/u, ".black"));
   };
   const sof = (await new EveSOF().Register({
     lazyData: { source: bytes },

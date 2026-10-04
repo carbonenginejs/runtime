@@ -10,6 +10,10 @@ import { EveSOF } from "../../npm/dist/sof/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import { StubResMan } from "../support/stubResMan.js";
 import "../../npm/dist/audio/index.js";
+import { clientResources } from "../support/clientResources.js";
+
+// Real client files through BePaths (test/support/clientResources.js).
+const client = await clientResources();
 
 function setup(t)
 {
@@ -132,16 +136,14 @@ test("direct instance layouts copy authored offsets and reject nonzero streams",
 });
 
 test("real gc3_t1 SOF ship prepares direct instance providers without an abstract throw", {
-  skip: !process.env.DIRECT_INSTANCE_RESOURCE_BASE && "set DIRECT_INSTANCE_RESOURCE_BASE to a resource server's /resource/ URL"
+  skip: client.skip ?? false
 }, async t =>
 {
   setup(t);
   const bytes = async path =>
   {
-    const name = path.replace(/^res:\/+/, "").replace(/\.red$/u, ".black");
-    const response = await fetch(new URL(name, process.env.DIRECT_INSTANCE_RESOURCE_BASE), { signal: AbortSignal.timeout(30000) });
-    assert.equal(response.ok, true, `${path}: HTTP ${response.status}`);
-    return new Uint8Array(await response.arrayBuffer());
+    // The client ships authored .red sources as their .black builds.
+    return client.Read(path.replace(/\.red$/u, ".black"));
   };
   const sof = (await new EveSOF().Register({
     lazyData: { source: bytes },
