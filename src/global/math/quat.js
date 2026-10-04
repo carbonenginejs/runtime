@@ -123,7 +123,8 @@ quat.rotationArc = rotationArcImpl;
 
 /**
  * Carbon TriQuaternionArcFromForward (trinity/trinity/TriMath.cpp:341-356):
- * the closed-form rotation of +Z onto `v`. Below z 0.99999 it is
+ * the closed-form rotation of Carbon's forward, -Z, onto `v` (for `v` = -Z it
+ * is identity). Below z 0.99999 it is
  * (y, -x, 0, sqrt(1 - z)) scaled by 0.7071 / sqrt(1 - z) in xy; at or above,
  * Carbon returns (1, 0, 0, 0) - a half turn about X, not identity - ported
  * as written.

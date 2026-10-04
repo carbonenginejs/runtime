@@ -5,20 +5,20 @@ import { Tr2Lod } from "#consts/trinity";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { IEveTransform } from "../../IEveTransform.js";
 import { mat4 } from "#math/mat4";
+import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { INotify, IsMatch, TimeAsDouble } from "#blue";
 import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { TriFloat } from "../../../core/variable/TriFloat.js";
+import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
 import {
   collectRenderables,
   getCurveDuration,
   getDeltaTime,
   getTime,
-  makeEndpointTransforms,
-  makeStretchTransform,
   mergeSphere,
   translationMatrix,
   updateChildAsync,
@@ -228,81 +228,77 @@ export class EveStretch extends IEveFiringEffectElement
   }
 
   /**
-   * Computes the source, destination, stretch and move placements for the frame
-   * and hands each to its child; the stretch itself never draws, so nothing is
-   * realized on the GPU here. In transform mode (SetSourceTransform) the
-   * authored transforms are used, the source taking a fixed -90 degree X
-   * correction and parentTransform being ignored; otherwise the bases are
-   * derived from the sampled endpoints, scaled by the endpoint scales and
-   * combined with parentTransform. Latches moveCompleted and hides the move
-   * child once the progress curve reaches 1.
+   * Places the endpoint, stretch and move children for the frame (Carbon EveStretch.cpp:175-294). The direction runs from
+   * the destination back to the source. The source child points its Y axis along it, or in transform mode takes the
+   * source transform under a -90 degree X correction. The destination child points its Y axis along it at its scale. The
+   * stretch child is turned by TriQuaternionArcFromForward (which turns -Z onto the direction; the direction is first
+   * flipped to source-to-destination unless the stretch is -Z forward) and scaled in Z by the length, or in transform
+   * mode the source transform's Z is scaled by the length. The move child is turned the same way and slides from source
+   * to destination with the progress curve. Carbon quirk, kept: the move direction is flipped once more when not -Z
+   * forward, so when a stretch child was placed both flips cancel.
+   * Adapted: the child LOD merge is not ported; parentTransform is unused, as in Carbon.
    */
   @meta.blue.method @meta.adapted
-  @meta.reason("The transforms are computed in Trinity, while child rendering is not ported yet.")
-  UpdateVisibility(context, parentTransform = EveStretch._identity)
+  UpdateVisibility(context, _parentTransform = EveStretch._identity)
   {
     if (!this.display) return;
-    const sourceTransform = EveStretch._sourceMatrix;
-    const destinationTransform = EveStretch._destinationMatrix;
-    if (this._useTransforms)
+    const { vec3_0, vec3_1, vec3_2, quat_0, mat4_0 } = EveStretch.scratch;
+    vec3.normalize(vec3_0, vec3.subtract(vec3_0, this._sourcePosition, this._destinationPosition));
+    const scalingLength = this.length.value;
+
+    if (this.sourceObject && this._displaySource)
     {
-      mat4.multiply(sourceTransform, this._sourceTransform, EveStretch._sourceCorrection);
-      mat4.copy(destinationTransform, this._destinationTransform);
-      destinationTransform[0] *= this._destinationScale;
-      destinationTransform[1] *= this._destinationScale;
-      destinationTransform[2] *= this._destinationScale;
-      destinationTransform[4] *= this._destinationScale;
-      destinationTransform[5] *= this._destinationScale;
-      destinationTransform[6] *= this._destinationScale;
-      destinationTransform[8] *= this._destinationScale;
-      destinationTransform[9] *= this._destinationScale;
-      destinationTransform[10] *= this._destinationScale;
-    }
-    else
-    {
-      makeEndpointTransforms(this._sourcePosition, this._destinationPosition, sourceTransform, destinationTransform);
-      for (const index of [0, 1, 2, 4, 5, 6, 8, 9, 10])
-      {
-        sourceTransform[index] *= this._sourceScale;
-        destinationTransform[index] *= this._destinationScale;
-      }
-      if (parentTransform?.length === 16)
-      {
-        mat4.multiply(sourceTransform, parentTransform, sourceTransform);
-        mat4.multiply(destinationTransform, parentTransform, destinationTransform);
-      }
+      // Artwork is authored aligned to the y-axis rather than z, so transform mode adds a rotation.
+      if (this._useTransforms) mat4.multiply(mat4_0, this._sourceTransform, EveStretch._sourceCorrection);
+      else mat4.fromRotationTranslation(mat4_0, quat.rotationArc(quat_0, EveStretch._yAxis, vec3_0), this._sourcePosition);
+      updateChildVisibility(this.sourceObject, context, mat4_0);
     }
 
-    if (this._displaySource) updateChildVisibility(this.sourceObject, context, sourceTransform);
-    if (this._displayDestination) updateChildVisibility(this.destObject, context, destinationTransform);
+    if (this.destObject && this._displayDestination)
+    {
+      vec3.set(vec3_2, this._destinationScale, this._destinationScale, this._destinationScale);
+      mat4.fromRotationTranslationScale(mat4_0, quat.rotationArc(quat_0, EveStretch._yAxis, vec3_0), this._destinationPosition, vec3_2);
+      updateChildVisibility(this.destObject, context, mat4_0);
+    }
 
-    const stretchTransform = EveStretch._stretchMatrix;
-    if (this._useTransforms)
+    if (this.stretchObject)
     {
-      mat4.copy(stretchTransform, this._sourceTransform);
-      const stretchLength = this.length.value * (this._negativeZ ? -1 : 1);
-      stretchTransform[8] *= stretchLength;
-      stretchTransform[9] *= stretchLength;
-      stretchTransform[10] *= stretchLength;
+      if (this._useTransforms)
+      {
+        // Carbon ScalingMatrix(1, 1, length) * m_sourceTransform: the source's Z axis stretched over the length.
+        mat4.copy(mat4_0, this._sourceTransform);
+        mat4_0[8] *= scalingLength;
+        mat4_0[9] *= scalingLength;
+        mat4_0[10] *= scalingLength;
+      }
+      else
+      {
+        if (!this._negativeZ) vec3.negate(vec3_0, vec3_0);
+        vec3.set(vec3_2, 1, 1, scalingLength);
+        mat4.fromRotationTranslationScale(mat4_0, quat.arcFromForward(quat_0, vec3_0), this._sourcePosition, vec3_2);
+      }
+      updateChildVisibility(this.stretchObject, context, mat4_0);
     }
-    else
-    {
-      makeStretchTransform(this._sourcePosition, this._destinationPosition, stretchTransform, this._negativeZ);
-      if (parentTransform?.length === 16) mat4.multiply(stretchTransform, parentTransform, stretchTransform);
-    }
-    updateChildVisibility(this.stretchObject, context, stretchTransform);
 
     if (this.moveObject)
     {
-      const progression = Number(this.progressCurve?.value ?? this.progressCurve?.GetValue?.() ?? 0);
-      vec3.lerp(EveStretch._movePosition, this._sourcePosition, this._destinationPosition, progression);
-      updateChildVisibility(this.moveObject, context, translationMatrix(EveStretch._movePosition, EveStretch._moveMatrix));
-      if (progression >= 1 && !this.moveCompleted)
+      if (!this._negativeZ) vec3.negate(vec3_0, vec3_0);
+      quat.arcFromForward(quat_0, vec3_0);
+      vec3.copy(vec3_1, this._sourcePosition);
+      const progressCurve = CjsSchema.cast(this.progressCurve, Tr2CurveScalar);
+      if (this.progressCurve)
       {
-        this.moveCompleted = true;
-        this.moveObject.SetDisplay?.(false);
-        this.moveCompletion?.Play?.();
+        const progress = progressCurve ? progressCurve.GetCurrentValue() : 0;
+        if (progress >= 1 && !this.moveCompleted)
+        {
+          if (this.moveCompletion) this.moveCompletion.Play();
+          this.moveObject.SetDisplay(false);
+          this.moveCompleted = true;
+        }
+        vec3.lerp(vec3_1, this._sourcePosition, this._destinationPosition, progress);
       }
+      mat4.fromRotationTranslation(mat4_0, quat_0, vec3_1);
+      updateChildVisibility(this.moveObject, context, mat4_0);
     }
   }
 
@@ -591,13 +587,10 @@ export class EveStretch extends IEveFiringEffectElement
 
   static Tr2Lod = Tr2Lod;
   static _identity = mat4.create();
-  static _sourceMatrix = mat4.create();
-  static _destinationMatrix = mat4.create();
-  static _stretchMatrix = mat4.create();
-  static _moveMatrix = mat4.create();
-  static _movePosition = vec3.create();
   static _sphere = vec4.create();
   static _lightSource = mat4.create();
   static _lightDestination = mat4.create();
   static _sourceCorrection = mat4.fromXRotation(mat4.create(), -Math.PI * 0.5);
+  static _yAxis = vec3.fromValues(0, 1, 0);
+  static scratch = { vec3_0: vec3.create(), vec3_1: vec3.create(), vec3_2: vec3.create(), quat_0: quat.create(), mat4_0: mat4.create() };
 }
