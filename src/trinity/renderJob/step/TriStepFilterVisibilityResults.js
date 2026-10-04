@@ -94,7 +94,7 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
     if (this.inputResults && this.outputResults)
     {
       this.outputResults.Clear();
-      for (const event of this.inputResults.GetEvents?.() ?? [])
+      for (const event of this.inputResults.GetEvents())
       {
         const eventType = Number(event?.eventType ?? event?.m_eventType ?? 0) >>> 0;
         if (!(eventType & this.eventFilter)) continue;
@@ -104,7 +104,7 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
           const listed = this.objects.includes(userData);
           if (this.filterType === TriStepFilterVisibilityResults.FilterType.EXCLUDE_OBJECTS_IN_LIST ? listed : !listed) continue;
         }
-        this.outputResults.AddVisibilityEvent?.(event);
+        this.outputResults.AddVisibilityEvent(event);
       }
     }
     return TriRenderStep.Result.RS_OK;
