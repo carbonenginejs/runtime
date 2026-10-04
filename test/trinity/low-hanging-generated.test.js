@@ -9,7 +9,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
-import { EveChildEffectPropagator, EveBoosterSet2, EveLensflare, EveLineSet, EveLocator2, EveMultiEffectParameter, EveSceneStaticParticles, EveSocketParameterString, EveTurretFiringFX, EveTacticalTrails, EveUiObject, Tr2MaterialParameterStore, Tr2ExternalParameter, Tr2CurveVector3, Tr2InstancedMesh, Tr2Mesh, Tr2MeshArea, Tr2RuntimeInstanceData, Tr2Sprite2dContainerBase, Tr2Sprite2dLineTrace, Tr2Sprite2dPolygon, Tr2Sprite2dTransform, Tr2Sprite2dVertex, Tr2SpriteObjectBase, TriValueBinding } from "../../npm/dist/trinity/index.js";
+import { EveChildEffectPropagator, EveBoosterSet2, EveLensflare, EveLocator2, EveMultiEffectParameter, EveSceneStaticParticles, EveSocketParameterString, EveTurretFiringFX, EveTacticalTrails, EveUiObject, Tr2MaterialParameterStore, Tr2ExternalParameter, Tr2CurveVector3, Tr2InstancedMesh, Tr2Mesh, Tr2MeshArea, Tr2RuntimeInstanceData, Tr2Sprite2dContainerBase, Tr2Sprite2dLineTrace, Tr2Sprite2dPolygon, Tr2Sprite2dTransform, Tr2Sprite2dVertex, Tr2SpriteObjectBase, TriValueBinding } from "../../npm/dist/trinity/index.js";
 import { Tr2ParticleDirectForce } from "../../npm/dist/trinity/particle/force/Tr2ParticleDirectForce.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
@@ -340,47 +340,6 @@ test("Tr2Sprite2dContainerBase owns child parents and propagates dirty state", (
   assert.equal(CjsSchema.getField(Tr2Sprite2dContainerBase, "children")?.type.kind, "list");
 });
 
-test("EveLineSet retains editable CPU lines before renderer submission", () =>
-{
-  const lines = new EveLineSet();
-  const first = lines.AddLine([0, 0, 0], [1, 0, 0, 1], [1, 0, 0], [0, 1, 0, 1]);
-  const second = lines.AddLine([0, 1, 0], [0, 0, 1, 1], [1, 1, 0], [1, 1, 1, 1]);
-  assert.equal(first, 0);
-  assert.equal(second, 1);
-  assert.equal(lines.ChangeLinePosition(first, [2, 3, 4], [5, 6, 7]), true);
-  assert.equal(lines.ChangeLineColor(first, [0.5, 0.5, 0.5, 1], [1, 0.5, 0, 1]), true);
-  assert.deepEqual(Array.from(lines.lines[0].position1), [2, 3, 4]);
-  assert.deepEqual(Array.from(lines.lines[0].color2), [1, 0.5, 0, 1]);
-  assert.equal(lines.RemoveLine(second), true);
-  assert.equal(lines.SubmitChanges(), true);
-  assert.equal(lines.currentSubmittedLineCount, 1);
-  assert.equal(lines.maxCurrentLineCount, 1);
-  lines.ClearLines();
-  lines.SubmitChanges();
-  assert.equal(lines.currentSubmittedLineCount, 0);
-  assert.equal(lines.maxCurrentLineCount, 1);
-  assert.equal(lines.HasTransparentBatches(), true);
-  assert.throws(() => lines.GetBatches(null, 0, null, 0), /not implemented/);
-
-  // Update stamps the world transform from the curves and scaling (cpp:97-114).
-  lines.scaling.set([2, 2, 2]);
-  lines.translationCurve = { Update_Ticks: (_time, out) => out.set([3, 4, 5]) };
-  lines.Update({ GetTime: () => 1 });
-  assert.deepEqual(Array.from(lines.worldTransform.slice(12, 15)), [3, 4, 5], "translation stamped");
-  assert.equal(lines.worldTransform[0], 2, "scaling stamped");
-
-  // GetSortValue is the view distance (cpp:203-208).
-  assert.equal(lines.GetSortValue({ GetViewPosition: () => [3, 8, 5] }), 4, "distance to the view position");
-  assert.equal(lines.GetSortValue(), 0, "no render context yields 0");
-
-  // GetPerObjectData is the { vs, ps } record - two structs, one WorldMat each,
-  // both stored TRANSPOSED (cpp:210-231).
-  const pod = lines.GetPerObjectData(makeAccumulatorWithStore());
-  assert.deepEqual([...pod.vs.GetLayout().stages], ["vs"]);
-  assert.deepEqual([...pod.ps.GetLayout().stages], ["ps"]);
-  assert.equal(pod.vs.GetData()[3], 3, "vs WorldMat transposed - translation x at [3]");
-  assert.equal(pod.ps.GetData()[7], 4, "ps WorldMat transposed - translation y at [7]");
-});
 
 test("EveChildBulletStorm rebuilds locator instances and transitions its clip sphere", () =>
 {

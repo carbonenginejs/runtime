@@ -66,6 +66,33 @@ sph3.containsPoint = function(a, p)
 };
 
 /**
+ * Carbon's BoundingSphereUpdate( pos, sphere ) (trinity/Utilities/BoundingSphere.cpp:33-47): grows a sphere just
+ * enough to include a point, moving its centre halfway towards the point's excess. A point already inside, within
+ * Carbon's 1e-4 squared-distance tolerance (BoundingSphereIsInside, cpp:14-20), leaves it unchanged. Carbon starts
+ * from BoundingSphereInitialize's zero sphere, so the origin is always inside the result.
+ *
+ * @param {sph3} sphere The sphere to grow, in place.
+ * @param {vec3} pos The point to include.
+ * @returns {sph3} sphere
+ */
+sph3.boundingSphereUpdate = function(sphere, pos)
+{
+    const x = pos[0] - sphere[0],
+        y = pos[1] - sphere[1],
+        z = pos[2] - sphere[2];
+    const lengthSq = x * x + y * y + z * z;
+    if (lengthSq <= sphere[3] * sphere[3] + 1e-4) return sphere;
+
+    const deltaLen = Math.sqrt(lengthSq);
+    const shift = 0.5 * (1 - sphere[3] / deltaLen);
+    sphere[0] += shift * x;
+    sphere[1] += shift * y;
+    sphere[2] += shift * z;
+    sphere[3] = 0.5 * (sphere[3] + deltaLen);
+    return sphere;
+};
+
+/**
  * Copies a sphere
  *
  * @param {sph3} a

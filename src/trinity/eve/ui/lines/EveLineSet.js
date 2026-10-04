@@ -9,10 +9,32 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { quat } from "#math/quat";
+import { sph3 } from "#math/sph3";
+import { TriBatchType } from "#consts/graphics";
+import { Topology, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
+import { Failed } from "../../../../trinityal/ALResult.js";
+import { Tr2BufferAL } from "../../../../trinityal/Tr2BufferAL/Tr2BufferAL.js";
+import { Tr2BufferDescriptionAL } from "../../../../trinityal/Tr2BufferAL/Tr2BufferDescriptionAL.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { Tr2PerObjectDataStandard } from "../../../core/rawData/perObjectData/Tr2PerObjectDataStandard.js";
+import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
+import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
+import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
+import { TriDevice } from "../../../core/device/TriDevice.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
+import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/Tr2RenderBatch.js";
 
-/** Stores editable tactical line records before renderer submission. */
+
+/** EveLineData (EveLineSet.h:22-28): position1, color1, position2, color2, two 28-byte vertices. */
+const EVE_LINE_DATA_FLOATS = 14;
+const EVE_LINE_DATA_SIZE = EVE_LINE_DATA_FLOATS * 4;
+
+
+/**
+ * Carbon's EveLineSet: tactical-overlay lines kept as CPU records and drawn from a vertex buffer that SubmitChanges
+ * uploads. Each line is two vertices of a position and a colour, drawn as a line list, additive unless
+ * renderTransparent.
+ */
 @meta.define({ className: "EveLineSet", family: "eve/ui" })
 @meta.blue.inherit(ITr2Renderable, IEveSpaceObject2, IEveTransform)
 @meta.blue.inherit(IInitialize)
@@ -20,7 +42,7 @@ import { Tr2PerObjectDataStandard } from "../../../core/rawData/perObjectData/Tr
 export class EveLineSet
 {
 
-  /** Carbon's pending CPU line records. */
+  /** Carbon's pending CPU line records (m_lines). */
   @meta.type.list("EveLineData")
   lines = [];
 
@@ -77,11 +99,92 @@ export class EveLineSet
    * UpdateSyncronous from the curves and scaling; not persisted. */
   worldTransform = mat4.create();
 
-  /** Carbon EveLineSet::UpdateSyncronous (cpp:97-114): sample the position and
-   * rotation curves, then m_worldTransform = TransformationMatrix(scaling,
-   * rotation, translation). Carbon (s, r, t) is gl
-   * fromRotationTranslationScale (r, t, s) - equivalent matrix, different
-   * argument order (math skill rule table). */
+  /** m_boundingSphere: rebuilt by SubmitChanges from the line end points. */
+  boundingSphere = vec4.create();
+
+  /** m_vertexDeclHandle */
+  _vertexDeclHandle = Tr2EffectStateManager.Unknown;
+
+  /** m_vertexBuffer */
+  _vertexBuffer = new Tr2BufferAL();
+
+  /** The EveLineData bytes an upload copies from, grown with the line count. */
+  _staging = new Float32Array(0);
+
+  /** Registers the device-resource lifetime, as Carbon's Tr2DeviceResource base does. */
+  constructor()
+  {
+    TriDevice.RegisterResource(this);
+  }
+
+  /**
+   * Carbon Initialize (cpp:35-42): seeds the line capacity at 100 and prepares the resources. Carbon also reserves
+   * the line vector; a JavaScript array needs no reserve.
+   */
+  @meta.blue.method
+  @meta.implemented
+  Initialize()
+  {
+    this.maxCurrentLineCount = 100;
+    this.PrepareResources();
+    return true;
+  }
+
+  /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32): only while resource creation is allowed. */
+  @meta.implemented
+  PrepareResources()
+  {
+    return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
+  }
+
+  /** Carbon ReleaseResources (cpp:45-50). Adapted: the buffer is destroyed explicitly. */
+  @meta.adapted
+  ReleaseResources(_storage)
+  {
+    this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
+    this._vertexBuffer.Destroy();
+  }
+
+  /** Releases final ownership because JavaScript has no deterministic destructor. */
+  @meta.ours
+  Destroy()
+  {
+    this.ReleaseResources();
+    TriDevice.UnregisterResource(this);
+  }
+
+  /**
+   * Carbon OnPrepareResources (cpp:52-96): interns the position and colour declaration, creates a vertex buffer of
+   * maxCurrentLineCount lines on first need, and uploads the current lines.
+   *
+   * Adapted: the AL description replaces the native stride/count overload.
+   */
+  @meta.adapted
+  OnPrepareResources()
+  {
+    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+
+    if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown)
+    {
+      this._vertexDeclHandle = Tr2EffectStateManager.getVertexDeclarationHandle(EveLineSet._VertexDefinition());
+      if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return false;
+    }
+
+    if (!this._vertexBuffer.IsValid())
+    {
+      if (Failed(this._vertexBuffer.Create(Tr2BufferDescriptionAL.FromStride(EVE_LINE_DATA_SIZE, this.maxCurrentLineCount,
+        Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN), null, renderContext))) return false;
+    }
+
+    if (!this._Upload(renderContext)) return false;
+    this.currentSubmittedLineCount = this.lines.length;
+    return true;
+  }
+
+  /**
+   * Carbon UpdateSyncronous (cpp:97-114): samples the position and rotation curves, then m_worldTransform =
+   * TransformationMatrix( scaling, rotation, translation ), which is gl's fromRotationTranslationScale( r, t, s ).
+   */
   @meta.blue.method
   @meta.implemented
   UpdateSyncronous(updateContext)
@@ -97,6 +200,13 @@ export class EveLineSet
     mat4.fromRotationTranslationScale(this.worldTransform, quat_0, vec3_0, this.scaling);
   }
 
+  /** Carbon UpdateAsyncronous (cpp:117-119): nothing to do. */
+  @meta.blue.method
+  @meta.implemented
+  UpdateAsyncronous(_updateContext)
+  {
+  }
+
   /** Carbon EveLineSet::Update forwards to UpdateSyncronous (cpp:120-123). */
   @meta.blue.method
   @meta.implemented
@@ -105,10 +215,50 @@ export class EveLineSet
     this.UpdateSyncronous(updateContext);
   }
 
-  /** Carbon method AddLine (MAP_METHOD_AND_WRAP). */
+  /** Carbon UpdateViewDependentData (cpp:130-132): nothing to do. */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Stores Carbon's pending line data as renderer-neutral JavaScript records; buffer realization is not ported yet.")
+  @meta.implemented
+  UpdateViewDependentData(_frustum, _parentTransform)
+  {
+  }
+
+  /** Carbon UpdateVisibility (cpp:134-136): nothing to do; a line set is never culled. */
+  @meta.blue.method
+  @meta.implemented
+  UpdateVisibility(_updateContext, _parentTransform)
+  {
+  }
+
+  /** Carbon's GetRenderables( renderables, impostors ) (cpp:138-146): the set itself while displayed. */
+  @meta.blue.renamed("GetRenderables")
+  @meta.implemented
+  GetRenderables_Impostors(out = [], _impostors = null)
+  {
+    if (!this.display) return out;
+    out.push(this);
+    return out;
+  }
+
+  /** Carbon's GetRenderables( renderables ) (cpp:148-151): forwards with no impostor manager. */
+  @meta.blue.method
+  @meta.implemented
+  GetRenderables(out = [])
+  {
+    return this.GetRenderables_Impostors(out, null);
+  }
+
+  /** Carbon GetBoundingSphere (cpp:153-157): the sphere SubmitChanges last built; always valid. */
+  @meta.blue.method
+  @meta.implemented
+  GetBoundingSphere(out = vec4.create(), _query = 0)
+  {
+    vec4.copy(out, this.boundingSphere);
+    return true;
+  }
+
+  /** Carbon AddLine (cpp:233-244): appends a line without submitting it, and returns its index. */
+  @meta.blue.method
+  @meta.implemented
   AddLine(position1, color1, position2, color2)
   {
     this.lines.push({
@@ -120,63 +270,48 @@ export class EveLineSet
     return this.lines.length - 1;
   }
 
-  /** Carbon method ChangeLineColor (MAP_METHOD_AND_WRAP). */
+  /** Carbon ChangeLineColor (cpp:305-313): an out-of-range id is ignored. */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Mutates the renderer-neutral CPU record because GPU buffer updates belong to an engine package.")
+  @meta.implemented
   ChangeLineColor(id, color1, color2)
   {
-    const line = this.lines[id];
-    if (!line) return false;
-    vec4.copy(line.color1, color1);
-    vec4.copy(line.color2, color2);
-    return true;
+    if (id < this.lines.length)
+    {
+      const line = this.lines[id];
+      vec4.copy(line.color1, color1);
+      vec4.copy(line.color2, color2);
+    }
   }
 
-  /** Carbon method ChangeLine (MAP_METHOD_AND_WRAP). */
+  /** Carbon ChangeLine (cpp:293-303): an out-of-range id is ignored. */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Mutates the renderer-neutral CPU record because GPU buffer updates belong to an engine package.")
+  @meta.implemented
   ChangeLine(id, position1, color1, position2, color2)
   {
-    const line = this.lines[id];
-    if (!line) return false;
-    vec3.copy(line.position1, position1);
-    vec4.copy(line.color1, color1);
-    vec3.copy(line.position2, position2);
-    vec4.copy(line.color2, color2);
-    return true;
+    if (id < this.lines.length)
+    {
+      const line = this.lines[id];
+      vec3.copy(line.position1, position1);
+      vec3.copy(line.position2, position2);
+      vec4.copy(line.color1, color1);
+      vec4.copy(line.color2, color2);
+    }
   }
 
-  /** Carbon method ChangeLinePosition (MAP_METHOD_AND_WRAP). */
+  /** Carbon ChangeLinePosition (cpp:315-323): an out-of-range id is ignored. */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Mutates the renderer-neutral CPU record because GPU buffer updates belong to an engine package.")
+  @meta.implemented
   ChangeLinePosition(id, position1, position2)
   {
-    const line = this.lines[id];
-    if (!line) return false;
-    vec3.copy(line.position1, position1);
-    vec3.copy(line.position2, position2);
-    return true;
+    if (id < this.lines.length)
+    {
+      const line = this.lines[id];
+      vec3.copy(line.position1, position1);
+      vec3.copy(line.position2, position2);
+    }
   }
 
-  /**
-   * Carbon Initialize (EveLineSet.cpp:35-42): seed the line capacity at 100
-   * and bring resources up. JS arrays need no reserve, so the seed IS the
-   * capacity watermark; the PrepareResources hop is the AL half and stays
-   * with the device lane (OnPrepareResources is classified there).
-   */
-  @meta.blue.method
-  @meta.adapted
-  @meta.reason("Carbon reserves vector capacity and calls PrepareResources; JS arrays need no reserve and the device half belongs to the AL lane.")
-  Initialize()
-  {
-    this.maxCurrentLineCount = Math.max(this.maxCurrentLineCount, 100);
-    return true;
-  }
-
-  /** Carbon method ClearLines (MAP_METHOD_AND_WRAP). */
+  /** Carbon ClearLines (cpp:325-327): needs SubmitChanges to take effect. */
   @meta.blue.method
   @meta.implemented
   ClearLines()
@@ -184,25 +319,48 @@ export class EveLineSet
     this.lines.length = 0;
   }
 
-  /** Carbon method RemoveLine (MAP_METHOD_AND_WRAP). */
+  /** Carbon RemoveLine (cpp:285-291): an out-of-range id is ignored; later ids shift down. */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Returns a Boolean for JavaScript callers while preserving Carbon's indexed CPU-line removal.")
+  @meta.implemented
   RemoveLine(id)
   {
-    if (!this.lines[id]) return false;
-    this.lines.splice(id, 1);
-    return true;
+    if (id < this.lines.length) this.lines.splice(id, 1);
   }
 
-  /** Carbon method SubmitChanges (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon SubmitChanges (cpp:246-283): grows the buffer when the lines outgrow it, prepares the resources, uploads
+   * the lines, and rebuilds the bounding sphere from their end points.
+   *
+   * Adapted: Carbon grows to the line vector's capacity, which its allocator chooses; a JavaScript array has none, so
+   * the buffer grows to the line count.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Records submitted counts without creating Carbon's GPU vertex buffer; realization is not ported yet.")
   SubmitChanges()
   {
-    this.maxCurrentLineCount = Math.max(this.maxCurrentLineCount, this.lines.length);
+    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+
+    if (this.lines.length > this.maxCurrentLineCount)
+    {
+      this.maxCurrentLineCount = this.lines.length;
+      this.ReleaseResources();
+    }
+
+    // Make sure the resources are prepared.
+    this.PrepareResources();
+
+    if (!this._vertexBuffer.IsValid()) return false;
+
+    if (!this._Upload(renderContext)) return false;
     this.currentSubmittedLineCount = this.lines.length;
+
+    // Also rebuild the bounding sphere.
+    vec4.set(this.boundingSphere, 0, 0, 0, 0);
+    for (const line of this.lines)
+    {
+      sph3.boundingSphereUpdate(this.boundingSphere, line.position1);
+      sph3.boundingSphereUpdate(this.boundingSphere, line.position2);
+    }
     return true;
   }
 
@@ -214,29 +372,43 @@ export class EveLineSet
     return true;
   }
 
-  /** Carbon EveLineSet::GetBatches submits its GPU-backed line vertex buffer (cpp:166-201). */
+  /**
+   * Carbon GetBatches (cpp:166-201): transparent when renderTransparent, otherwise additive; while displayed, with a
+   * vertex buffer and a declaration, one line-list draw of the submitted lines' vertices.
+   */
   @meta.blue.method
-  @meta.notImplemented
-  GetBatches(_accumulator, _batchType, _perObjectData, _reason)
+  @meta.implemented
+  GetBatches(accumulator, batchType, perObjectData, _reason)
   {
-    throw new Error("EveLineSet.GetBatches is not implemented in CarbonEngineJS.");
+    // Only rendered as transparent or additive.
+    if (!(batchType === TriBatchType.TRIBATCHTYPE_TRANSPARENT && this.renderTransparent)
+      && !(batchType === TriBatchType.TRIBATCHTYPE_ADDITIVE && !this.renderTransparent)) return;
+    if (!this.display) return;
+    if (!this._vertexBuffer.IsValid()) return;
+    if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
+
+    const batch = new Tr2RenderBatch();
+    batch.SetMaterial(this.effect);
+    batch.SetPerObjectData(perObjectData);
+    batch.SetVertexDeclaration(this._vertexDeclHandle);
+    batch.SetStreamSource(0, this._vertexBuffer, EVE_LINE_DATA_SIZE / 2);
+    batch.SetTopology(Topology.TOP_LINES);
+    batch.SetDrawInstanced(this.currentSubmittedLineCount * 2, 1, 0, 0);
+    accumulator.Commit(batch);
   }
 
-  /** Carbon EveLineSet::GetSortValue (cpp:203-208): distance from the view
-   * position to the world translation. Carbon reads the Tr2Renderer static;
-   * the collector threads the render context instead. */
+  /**
+   * Carbon GetSortValue (cpp:203-208): the distance from the view position to the world translation.
+   *
+   * Adapted: Carbon reads Tr2Renderer's view-position static; the batch collector passes the render context, and
+   * without one the value is 0.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon reads the Tr2Renderer view-position static; the batch collector supplies the render context explicitly.")
   GetSortValue(renderContext = null)
   {
-    const viewPosition = renderContext?.GetViewPosition();
-
-    if (!viewPosition)
-    {
-      return 0;
-    }
-
+    if (renderContext === null) return 0;
+    const viewPosition = renderContext.GetViewPosition();
     const world = this.worldTransform;
     const dx = viewPosition[0] - world[12];
     const dy = viewPosition[1] - world[13];
@@ -267,6 +439,38 @@ export class EveLineSet
     return data;
   }
 
+  /** Carbon's memcpy of m_lines into the mapped buffer (cpp:79-88, 264-270), as packed EveLineData. */
+  _Upload(renderContext)
+  {
+    const count = this.lines.length;
+    if (this._staging.length < count * EVE_LINE_DATA_FLOATS)
+    {
+      this._staging = new Float32Array(count * EVE_LINE_DATA_FLOATS); // alloc: grows with the line count
+    }
+    const staging = this._staging;
+    for (let index = 0; index < count; index++)
+    {
+      const line = this.lines[index], offset = index * EVE_LINE_DATA_FLOATS;
+      staging.set(line.position1, offset);
+      staging.set(line.color1, offset + 3);
+      staging.set(line.position2, offset + 7);
+      staging.set(line.color2, offset + 10);
+    }
+    const mapping = this._vertexBuffer.MapForWriting(renderContext);
+    if (Failed(mapping.result) || !mapping.data) return false;
+    if (count) mapping.data.set(new Uint8Array(staging.buffer, 0, count * EVE_LINE_DATA_SIZE)); // alloc: byte view for the upload
+    this._vertexBuffer.UnmapForWriting(renderContext);
+    return true;
+  }
+
+  /** The line vertex: a float3 POSITION and a float4 TEXCOORD colour (cpp:58-60). */
+  static _VertexDefinition()
+  {
+    const definition = new Tr2VertexDefinition();
+    definition.Add("FLOAT32_3", "POSITION");
+    definition.Add("FLOAT32_4", "TEXCOORD");
+    return definition;
+  }
 
   static scratch = {
     vec3_0: vec3.create(),
