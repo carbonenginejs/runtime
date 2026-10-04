@@ -206,7 +206,7 @@ export class EveEffectRoot2 extends EveEntity
     for (const child of this.effectChildren) child.SetOwner(this);
     for (const controller of this.controllers)
     {
-      if (!controller?.IsLinked()) controller?.Link(this);
+      if (!controller.IsLinked()) controller.Link(this);
       EveEffectRoot2._ApplyControllerVariables(controller, this._controllerVariables, "SetVariable");
     }
     return true;
@@ -245,7 +245,7 @@ export class EveEffectRoot2 extends EveEntity
   @meta.reason("Carbon task and lock ownership is omitted; child update parameters retain the source graph contract.")
   UpdateSyncronous(updateContext = null)
   {
-    const time = EveEffectRoot2._GetContextValue(updateContext, "GetTime", "currentTime", "time");
+    const time = updateContext.GetTime();
     this.UpdateWorldTransform(time);
     mat4.fromRotationTranslationScale(this._localTransform, this.rotation, this.translation, this.scaling);
     // Carbon (row-vector): m_localTransform * m_worldTransform - local first.
@@ -253,11 +253,11 @@ export class EveEffectRoot2 extends EveEntity
     this._secondaryLightingSphereRadiusWorld = this.secondaryLightingSphereRadius *
       (this.scaling[0] + this.scaling[1] + this.scaling[2]) / 3;
 
-    for (const observer of this.observers) observer?.Update(this._lastUpdateMatrix);
+    for (const observer of this.observers) observer.Update(this._lastUpdateMatrix);
     if (this.effectChildren.length)
     {
       const params = this._CreateChildUpdateParams();
-      for (const child of this.effectChildren) child?.UpdateSyncronous(updateContext, params);
+      for (const child of this.effectChildren) child.UpdateSyncronous(updateContext, params);
     }
     return true;
   }
@@ -273,7 +273,7 @@ export class EveEffectRoot2 extends EveEntity
     {
       if (this.dynamicLOD)
       {
-        const threshold = EveEffectRoot2._GetContextValue(updateContext, "GetHighDetailThreshold", "highDetailThreshold");
+        const threshold = updateContext.GetHighDetailThreshold();
         if (threshold > 0) frequency = Math.min(1, this.estimatedSize / threshold);
       }
       else
@@ -283,13 +283,13 @@ export class EveEffectRoot2 extends EveEntity
     }
 
     this.UpdateControllers(frequency);
-    const time = EveEffectRoot2._GetContextValue(updateContext, "GetTime", "currentTime", "time");
+    const time = updateContext.GetTime();
     for (const curveSet of this.curveSets) curveSet.Update_RealTimeSimTime(time, time, updateContext.renderContext);
     if (this.effectChildren.length)
     {
       const params = this._CreateChildUpdateParams();
       params.controllerUpdateFrequency = frequency;
-      for (const child of this.effectChildren) child?.UpdateAsyncronous(updateContext, params);
+      for (const child of this.effectChildren) child.UpdateAsyncronous(updateContext, params);
     }
     return frequency;
   }
@@ -305,16 +305,16 @@ export class EveEffectRoot2 extends EveEntity
     {
       this.GetBoundingSphere(EveEffectRoot2._localSphere);
       sph3.transformMat4(EveEffectRoot2._worldSphere, EveEffectRoot2._localSphere, this._worldTransform);
-      const frustum = updateContext?.GetFrustum?.() ?? updateContext?.frustum;
-      if (frustum?.IsSphereVisible(EveEffectRoot2._worldSphere) !== false)
+      const frustum = updateContext.GetFrustum();
+      if (frustum.IsSphereVisible(EveEffectRoot2._worldSphere))
       {
-        this.estimatedSize = Number(frustum?.GetPixelSizeAccross?.(EveEffectRoot2._worldSphere) ?? this.estimatedSize) || 0;
+        this.estimatedSize = frustum.GetPixelSizeAccross(EveEffectRoot2._worldSphere);
       }
 
       const oldLod = this.lodLevel;
       this.lodLevel = Tr2Lod.TR2_LOD_LOW;
-      const medium = EveEffectRoot2._GetContextValue(updateContext, "GetMediumDetailThreshold", "mediumDetailThreshold");
-      const low = EveEffectRoot2._GetContextValue(updateContext, "GetLowDetailThreshold", "lowDetailThreshold");
+      const medium = updateContext.GetMediumDetailThreshold();
+      const low = updateContext.GetLowDetailThreshold();
       if (this.estimatedSize >= medium) this.lodLevel = Tr2Lod.TR2_LOD_HIGH;
       else if (this.estimatedSize >= low) this.lodLevel = Tr2Lod.TR2_LOD_MEDIUM;
       this._changeLOD ||= oldLod !== this.lodLevel;
@@ -322,7 +322,7 @@ export class EveEffectRoot2 extends EveEntity
 
     for (const child of this.effectChildren)
     {
-      child?.UpdateVisibility(updateContext, parentTransform, this.lodLevel);
+      child.UpdateVisibility(updateContext, parentTransform, this.lodLevel);
     }
     return true;
   }
@@ -336,9 +336,9 @@ export class EveEffectRoot2 extends EveEntity
     if (this._changeLOD)
     {
       this._changeLOD = false;
-      for (const child of this.effectChildren) child?.ChangeLOD?.(this.lodLevel);
+      for (const child of this.effectChildren) child.ChangeLOD(this.lodLevel);
     }
-    for (const child of this.effectChildren) child?.GetRenderables(out);
+    for (const child of this.effectChildren) child.GetRenderables(out);
     return out;
   }
 
@@ -347,7 +347,7 @@ export class EveEffectRoot2 extends EveEntity
   @meta.implemented
   UpdateControllers(updateFrequency)
   {
-    for (const controller of this.controllers) controller?.Update(updateFrequency);
+    for (const controller of this.controllers) controller.Update(updateFrequency);
   }
 
   /** Returns the authored local bounding sphere. */
@@ -508,7 +508,7 @@ export class EveEffectRoot2 extends EveEntity
   @meta.reason("The quad renderer is an injected engine-owned capability.")
   RegisterWithQuadRenderer(quadRenderer)
   {
-    for (const child of this.effectChildren) child?.RegisterWithQuadRenderer?.(quadRenderer);
+    for (const child of this.effectChildren) child.RegisterWithQuadRenderer(quadRenderer);
   }
 
   /** Adds visible child quads to an injected renderer. */
@@ -518,7 +518,7 @@ export class EveEffectRoot2 extends EveEntity
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     if (!this.display) return;
-    for (const child of this.effectChildren) child?.AddQuadsToQuadRenderer?.(frustum, quadRenderer);
+    for (const child of this.effectChildren) child.AddQuadsToQuadRenderer(frustum, quadRenderer);
   }
 
   /** Carbon EveEffectRoot2::RegisterComponents (cpp:496-513): LightOwner when
@@ -536,7 +536,8 @@ export class EveEffectRoot2 extends EveEntity
       }
       for (const child of this.effectChildren)
       {
-        child?.Register(registry);
+        const entity = CjsSchema.cast(child, EveEntity);
+        if (entity) entity.Register(registry);
       }
     }
   }
@@ -553,7 +554,8 @@ export class EveEffectRoot2 extends EveEntity
     {
       for (const child of this.effectChildren)
       {
-        child?.UnRegister(registry);
+        const entity = CjsSchema.cast(child, EveEntity);
+        if (entity) entity.UnRegister(registry);
       }
     }
   }
@@ -612,21 +614,24 @@ export class EveEffectRoot2 extends EveEntity
             value.SetOwner(this);
             EveEffectRoot2._ApplyControllerVariables(value, this._controllerVariables, "SetControllerVariable");
             value.StartControllers();
-            if (registry) value.Register(registry);
+            const entity = CjsSchema.cast(value, EveEntity);
+            if (registry && entity) entity.Register(registry);
           }
           break;
         case BLUELISTEVENT.BELIST_REMOVED:
           if (value)
           {
-            if (registry) value.UnRegister(registry);
+            const entity = CjsSchema.cast(value, EveEntity);
+            if (registry && entity) entity.UnRegister(registry);
             value.SetOwner(null);
           }
           break;
         case BLUELISTEVENT.BELIST_UNLOADSTART:
           for (const child of this.effectChildren)
           {
-            if (registry) child?.UnRegister(registry);
-            child?.SetOwner(null);
+            const entity = CjsSchema.cast(child, EveEntity);
+            if (registry && entity) entity.UnRegister(registry);
+            child.SetOwner(null);
           }
           break;
         default:
@@ -663,7 +668,7 @@ export class EveEffectRoot2 extends EveEntity
       Math.hypot(transform[4], transform[5], transform[6]) +
       Math.hypot(transform[8], transform[9], transform[10])
     ) / 3;
-    for (const light of this.lights) light?.AddLight(lightManager, transform, scale);
+    for (const light of this.lights) light.AddLight(lightManager, transform, scale);
   }
 
   /** Adds an authored light. */
@@ -758,7 +763,7 @@ export class EveEffectRoot2 extends EveEntity
   @meta.implemented
   Start()
   {
-    for (const curveSet of this.curveSets) curveSet?.Play();
+    for (const curveSet of this.curveSets) curveSet.Play();
     for (const child of this.effectChildren)
     {
       const owner = CjsSchema.cast(child, ITr2CurveSetOwner);
@@ -771,7 +776,7 @@ export class EveEffectRoot2 extends EveEntity
   @meta.implemented
   Stop()
   {
-    for (const curveSet of this.curveSets) curveSet?.Stop();
+    for (const curveSet of this.curveSets) curveSet.Stop();
     for (const child of this.effectChildren)
     {
       const owner = CjsSchema.cast(child, ITr2CurveSetOwner);
@@ -934,12 +939,12 @@ export class EveEffectRoot2 extends EveEntity
     const target = String(name ?? "");
     for (const curveSet of this.curveSets)
     {
-      if ((curveSet?.GetName() ?? curveSet?.name) !== target) continue;
-      if (rangeName) curveSet?.PlayTimeRange?.(rangeName);
+      if (curveSet.GetName() !== target) continue;
+      if (rangeName) curveSet.PlayTimeRange(rangeName);
       else
       {
-        curveSet?.ResetTimeRange();
-        curveSet?.Play();
+        curveSet.ResetTimeRange();
+        curveSet.Play();
       }
     }
     for (const child of this.effectChildren)
@@ -957,7 +962,7 @@ export class EveEffectRoot2 extends EveEntity
     const target = String(name ?? "");
     for (const curveSet of this.curveSets)
     {
-      if ((curveSet?.GetName() ?? curveSet?.name) === target) curveSet?.Stop();
+      if (curveSet.GetName() === target) curveSet.Stop();
     }
     for (const child of this.effectChildren)
     {
@@ -992,9 +997,9 @@ export class EveEffectRoot2 extends EveEntity
     let duration = 0;
     for (const curveSet of this.curveSets)
     {
-      if ((curveSet?.GetName() ?? curveSet?.name) === target)
+      if (curveSet.GetName() === target)
       {
-        duration = Math.max(duration, Number(curveSet?.GetMaxCurveDuration?.() ?? 0));
+        duration = Math.max(duration, curveSet.GetMaxCurveDuration());
       }
     }
     for (const child of this.effectChildren)
@@ -1014,9 +1019,9 @@ export class EveEffectRoot2 extends EveEntity
     let duration = 0;
     for (const curveSet of this.curveSets)
     {
-      if ((curveSet?.GetName() ?? curveSet?.name) === target)
+      if (curveSet.GetName() === target)
       {
-        duration = Math.max(duration, Number(curveSet?.GetRangeDuration(rangeName) ?? 0));
+        duration = Math.max(duration, curveSet.GetRangeDuration(rangeName));
       }
     }
     for (const child of this.effectChildren)
@@ -1066,8 +1071,8 @@ export class EveEffectRoot2 extends EveEntity
     const key = String(name ?? "");
     const next = Number(value);
     this._controllerVariables.set(key, next);
-    for (const controller of this.controllers) controller?.SetVariable(key, next);
-    for (const child of this.effectChildren) child?.SetControllerVariable(key, next);
+    for (const controller of this.controllers) controller.SetVariable(key, next);
+    for (const child of this.effectChildren) child.SetControllerVariable(key, next);
   }
 
   /** Propagates an event to controllers and effect children. */
@@ -1076,8 +1081,8 @@ export class EveEffectRoot2 extends EveEntity
   HandleControllerEvent(name)
   {
     const eventName = String(name ?? "");
-    for (const controller of this.controllers) controller?.HandleEvent(eventName);
-    for (const child of this.effectChildren) child?.HandleControllerEvent(eventName);
+    for (const controller of this.controllers) controller.HandleEvent(eventName);
+    for (const child of this.effectChildren) child.HandleControllerEvent(eventName);
   }
 
   /** Starts controllers on the root and its effect children. */
@@ -1085,8 +1090,8 @@ export class EveEffectRoot2 extends EveEntity
   @meta.implemented
   StartControllers()
   {
-    for (const controller of this.controllers) controller?.Start();
-    for (const child of this.effectChildren) child?.StartControllers();
+    for (const controller of this.controllers) controller.Start();
+    for (const child of this.effectChildren) child.StartControllers();
   }
 
   /** Finds a named direct effect child. */
@@ -1097,7 +1102,7 @@ export class EveEffectRoot2 extends EveEntity
     const target = String(name ?? "");
     for (const child of this.effectChildren)
     {
-      if ((child?.GetName?.() ?? child?.name ?? "") === target) return child;
+      if (child.GetName() === target) return child;
     }
     return null;
   }
@@ -1110,7 +1115,7 @@ export class EveEffectRoot2 extends EveEntity
   {
     this.effectChildren.push(child);
     EveEffectRoot2._ApplyControllerVariables(child, this._controllerVariables, "SetControllerVariable");
-    child?.StartControllers();
+    child.StartControllers();
     return child;
   }
 
@@ -1131,7 +1136,7 @@ export class EveEffectRoot2 extends EveEntity
   @meta.implemented
   SetShaderOption(name, value)
   {
-    for (const child of this.effectChildren) child?.SetShaderOption?.(name, value);
+    for (const child of this.effectChildren) child.SetShaderOption(name, value);
   }
 
   /** Finds a named observer or child-owned sound emitter. */
@@ -1142,15 +1147,19 @@ export class EveEffectRoot2 extends EveEntity
     const target = String(name ?? "");
     for (const observer of this.observers)
     {
-      if ((observer?.name ?? "") === target)
+      if (observer.name === target)
       {
-        return typeof observer.GetObserver === "function" ? observer.GetObserver() : observer.observer ?? null;
+        return observer.GetObserver();
       }
     }
     for (const child of this.effectChildren)
     {
-      const emitter = child?.FindSoundEmitter?.(target);
-      if (emitter) return emitter;
+      const owner = CjsSchema.cast(child, ITr2SoundEmitterOwner);
+      if (owner)
+      {
+        const emitter = owner.FindSoundEmitter(target);
+        if (emitter) return emitter;
+      }
     }
     return null;
   }
@@ -1171,8 +1180,8 @@ export class EveEffectRoot2 extends EveEntity
   SetMute(isMute)
   {
     this.mute = !!isMute;
-    for (const child of this.effectChildren) child?.SetMute?.(this.mute);
-    for (const observer of this.observers) observer?.SetMute(this.mute);
+    for (const child of this.effectChildren) child.SetMute(this.mute);
+    for (const observer of this.observers) observer.SetMute(this.mute);
   }
 
   /** Freezes every child at Carbon's high-detail LOD. */
@@ -1182,7 +1191,7 @@ export class EveEffectRoot2 extends EveEntity
   {
     this.lodLevel = Tr2Lod.TR2_LOD_HIGH;
     this._changeLOD = false;
-    for (const child of this.effectChildren) child?.ChangeLOD?.(this.lodLevel);
+    for (const child of this.effectChildren) child.ChangeLOD(this.lodLevel);
   }
 
   /** Propagates a procedural-container variable to every effect child. */
@@ -1190,7 +1199,7 @@ export class EveEffectRoot2 extends EveEntity
   @meta.implemented
   SetProceduralContainerVariable(name, value)
   {
-    for (const child of this.effectChildren) child?.SetProceduralContainerVariable?.(name, value);
+    for (const child of this.effectChildren) child.SetProceduralContainerVariable(name, value);
   }
 
   /**
@@ -1217,25 +1226,6 @@ export class EveEffectRoot2 extends EveEntity
     const setter = target?.[methodName];
     if (typeof setter !== "function") return;
     for (const [name, value] of variables) setter.call(target, name, value);
-  }
-
-  /**
-   * Reads a numeric value from the update context, preferring a getter method
-   * and falling back to the named properties, and yields 0 when nothing supplies
-   * it.
-   */
-  static _GetContextValue(context, methodName, ...propertyNames)
-  {
-    const method = context?.[methodName];
-    if (typeof method === "function") return Number(method.call(context)) || 0;
-    for (const propertyName of propertyNames)
-    {
-      if (context?.[propertyName] !== undefined && context?.[propertyName] !== null)
-      {
-        return Number(context[propertyName]) || 0;
-      }
-    }
-    return 0;
   }
 
   /** Carbon's neutral hull data: full activation, unit bounding radius. */

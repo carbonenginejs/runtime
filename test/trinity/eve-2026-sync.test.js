@@ -1,4 +1,5 @@
 import test from "node:test";
+import { UpdateContext } from "../support/eveUpdateContext.js";
 import assert from "node:assert/strict";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
@@ -753,7 +754,7 @@ test("Carbon bounding-box providers publish local, world, mesh, and planet bound
   vec3.set(effect.boundingSphereCenter, 1, 2, 3);
   effect.boundingSphereRadius = 2;
   vec3.set(effect.translation, 10, 0, 0);
-  effect.UpdateSyncronous({ currentTime: 0 });
+  effect.UpdateSyncronous(UpdateContext({ time: 0 }));
   assert.equal(effect.GetLocalBoundingBox(min, max), true);
   assertVectorClose(min, [ -1, 0, 1 ], "effect local minimum");
   assertVectorClose(max, [ 3, 4, 5 ], "effect local maximum");
@@ -799,7 +800,7 @@ test("Carbon bounding-box providers publish local, world, mesh, and planet bound
       vec3.set(out, 4000000, 5000000, 6000000);
     }
   };
-  planet.UpdateSyncronous({ currentTime: 0 });
+  planet.UpdateSyncronous(UpdateContext({ time: 0 }));
   assert.equal(planet.GetWorldBoundingBox(min, max), true);
   assertVectorClose(min, [ 2, 3, 4 ], "planet world minimum");
   assertVectorClose(max, [ 6, 7, 8 ], "planet world maximum");

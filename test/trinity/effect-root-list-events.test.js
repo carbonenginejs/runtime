@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { EveEffectRoot2 } from "../../npm/dist/trinity/index.js";
+import { EveEffectRoot2, EveEntity } from "../../npm/dist/trinity/index.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 
 /**
@@ -20,17 +20,18 @@ function makeController()
   };
 }
 
+// An EveEntity, because the root's registry calls are Carbon's BlueCastPtr to it.
 function makeChild()
 {
   const calls = [];
-  return {
+  return Object.assign(new EveEntity(), {
     calls,
     SetOwner(owner) { calls.push([ "SetOwner", owner ]); },
     SetControllerVariable(name, value) { calls.push([ "SetControllerVariable", name, value ]); },
     StartControllers() { calls.push([ "StartControllers" ]); },
     Register(registry) { calls.push([ "Register", registry ]); },
     UnRegister(registry) { calls.push([ "UnRegister", registry ]); }
-  };
+  });
 }
 
 test("controller inserts link and replay recorded variables; removals unlink", () =>

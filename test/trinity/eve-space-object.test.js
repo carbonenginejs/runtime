@@ -179,6 +179,10 @@ test("EveEffectRoot2 owns Carbon effect transforms, lifecycle, LOD, and target s
   };
   const child = {
     name: "visual",
+    GetName()
+    {
+      return this.name;
+    },
     SetOwner(owner)
     {
       this.owner = owner;
@@ -273,7 +277,7 @@ test("EveEffectRoot2 owns Carbon effect transforms, lifecycle, LOD, and target s
   assert.equal(child.owner, effect);
   assert.equal(calls[0][0], "link");
   assert.equal(calls[0][1], effect);
-  const context = { currentTime: 4, highDetailThreshold: 100 };
+  const context = UpdateContext({ time: 4, highDetailThreshold: 100 });
   assert.equal(effect.UpdateSyncronous(context), true);
   const sync = calls.find(call => call[0] === "child-sync");
   assert.equal(sync[1], context);
@@ -284,20 +288,11 @@ test("EveEffectRoot2 owns Carbon effect transforms, lifecycle, LOD, and target s
   assert.deepEqual(calls.find(call => call[0] === "curve-update"), ["curve-update", 4, 4]);
 
   effect.dynamicLOD = true;
-  const visibilityContext = {
+  const visibilityContext = UpdateContext({
     mediumDetailThreshold: 40,
     lowDetailThreshold: 10,
-    frustum: {
-      IsSphereVisible()
-      {
-        return true;
-      },
-      GetPixelSizeAccross()
-      {
-        return 50;
-      }
-    }
-  };
+    frustum: FixedFrustum({ pixelSize: 50 })
+  });
   assert.equal(effect.UpdateVisibility(visibilityContext), true);
   assert.equal(effect.lodLevel, Tr2Lod.TR2_LOD_HIGH);
   const renderables = effect.GetRenderables_Impostors([], null);
