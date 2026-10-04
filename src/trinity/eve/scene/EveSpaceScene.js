@@ -996,9 +996,6 @@ export class EveSpaceScene
           {
             renderContext.Clear({ clearColor: true, clearDepth: true, color: [0, 0, 0, 0], depth: 0 });
             esm.SetFullScreenViewport();
-            this.PopulatePerFramePSData(this._perFramePS, renderContext);
-            this.PopulatePerFrameVSData(this._perFrameVS, renderContext);
-            this.ApplyPerFrameData(renderContext);
             const batches = this._pickingBatches;
             batches.SetTriPoolAllocator(renderContext.GetTriPoolAllocator());
             for (const renderable of visible)
@@ -1102,6 +1099,17 @@ export class EveSpaceScene
     {
       mat4.unalloc(mat4_0);
     }
+
+    // Carbon (cpp:3829-3845): fill LOCAL per-frame records for the pick
+    // projection and bind them, leaving the scene's own records at their
+    // frame values. The pick target is not pushed yet, so the target
+    // resolution is forced to the 1x1 pick buffer's.
+    const perFramePS = RawData.create("EveSpaceScenePerFramePSData");
+    const perFrameVS = RawData.create("EveSpaceScenePerFrameVSData");
+    this.PopulatePerFramePSData(perFramePS, renderContext);
+    this.PopulatePerFrameVSData(perFrameVS, renderContext);
+    perFrameVS.Set("TargetResolution", [ 1, 1 ]);
+    this._FillAndSetPerFrameConstants(perFrameVS, perFramePS, renderContext);
   }
 
   /** Native one-pixel frustum visibility gather, with the previous frustum restored. */
@@ -2943,6 +2951,16 @@ export class EveSpaceScene
   @meta.implemented
   ApplyPerFrameData(renderContext)
   {
+    this._FillAndSetPerFrameConstants(this._perFrameVS, this._perFramePS, renderContext);
+  }
+
+  /**
+   * Fills and binds the per-frame VS and PS constant buffers from the given
+   * records: ApplyPerFrameData's body (cpp:818-828), shared with
+   * SetupTransformsForPicking's local records (cpp:3838-3845).
+   */
+  _FillAndSetPerFrameConstants(perFrameVS, perFramePS, renderContext)
+  {
     const shaderTypeMask = renderContext.GetRenderContextAL().constructor.SHADER_TYPE_MASK;
     const perFrameVsMask = (1 << ShaderType.VERTEX_SHADER) | (shaderTypeMask & (
       (1 << ShaderType.COMPUTE_SHADER)
@@ -2954,8 +2972,8 @@ export class EveSpaceScene
     this._perFrameVSBuffer ??= renderContext.CreateConstantBuffer();
     this._perFramePSBuffer ??= renderContext.CreateConstantBuffer();
 
-    const vs = this._perFrameVS.GetData();
-    const ps = this._perFramePS.GetData();
+    const vs = perFrameVS.GetData();
+    const ps = perFramePS.GetData();
 
     FillAndSetConstants(this._perFrameVSBuffer, vs, vs.byteLength, perFrameVsMask, PER_FRAME_VS, renderContext);
     FillAndSetConstants(this._perFramePSBuffer, ps, ps.byteLength, 1 << ShaderType.PIXEL_SHADER, PER_FRAME_PS, renderContext);

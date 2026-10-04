@@ -149,3 +149,19 @@ test("failed picking draws restore context state and remove the failed request",
   assert.equal(listener.readbacks.length, 0);
   listener.Destroy();
 });
+
+test("picking fills LOCAL per-frame records and leaves the scene's own at their frame values (cpp:3829-3845)", async t =>
+{
+  const h = setup(t);
+  const memberVS = h.scene.GetPerFrameVSData(), memberPS = h.scene.GetPerFramePSData();
+  const pending = h.scene.PickObject(...h.args);
+  const vsCalls = h.scene.PopulatePerFrameVSData.mock.calls, psCalls = h.scene.PopulatePerFramePSData.mock.calls;
+  assert.equal(vsCalls.length, 1);
+  assert.equal(psCalls.length, 1);
+  assert.notEqual(vsCalls[0].arguments[0], memberVS, "a local VS record, not the scene's");
+  assert.notEqual(psCalls[0].arguments[0], memberPS, "a local PS record, not the scene's");
+  assert.deepEqual([ ...vsCalls[0].arguments[0].Copy("TargetResolution", new Float32Array(2)) ], [ 1, 1 ], "1x1 pick target");
+  assert.equal(h.scene.ApplyPerFrameData.mock.calls.length, 0, "the member records are not applied for a pick");
+  h.snapshots[0]?.complete();
+  await pending;
+});
