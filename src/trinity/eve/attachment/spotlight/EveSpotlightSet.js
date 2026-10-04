@@ -360,7 +360,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
     }
 
     box3.transformMat4(aabb, aabb, parentTransform);
-    return !!updateContext?.GetFrustum()?.IsBoxVisible(aabb);
+    return updateContext.GetFrustum().IsBoxVisible(aabb);
   }
 
   /**
@@ -491,15 +491,17 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * with the SPOT conversion (cpp:549) - cos-of-degree angles and the
    * 1/tan(outerAngle) projection-plane distance, Infinity at outerAngle 0
    * exactly as Carbon ships. The spot direction comes from lightData.rotation
-   * via the conversion's swapped RotationMatrix * transform composition. */
+   * via the conversion's swapped RotationMatrix * transform composition.
+   *
+   * Adapted: Profile-index packing is by-reference per lightConversion.js conventions.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Profile-index packing is by-reference per lightConversion.js conventions.")
   GetLights(lightManager)
   {
     const features = EveSpotlightSet._features;
     features.parentScale = 1;
-    const quality = lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0;
+    const quality = lightManager.GetCurrentSpaceSceneShadowQuality();
     const record = EveSpotlightSet._lightRecord;
 
     for (const light of this.lights)
@@ -514,7 +516,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
       record.lightData = light.lightData;
       record.lightProfile = light.lightProfile;
       record.owner = this;
-      lightManager?.AddLight(record);
+      lightManager.AddLight(record);
     }
   }
 
