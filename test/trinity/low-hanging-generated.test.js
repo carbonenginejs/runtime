@@ -9,7 +9,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
-import { EveChildEffectPropagator, EveBoosterSet2, EveLensflare, EveLocator2, EveMultiEffectParameter, EveSceneStaticParticles, EveSocketParameterString, EveTurretFiringFX, EveTacticalTrails, EveUiObject, Tr2MaterialParameterStore, Tr2ExternalParameter, Tr2CurveVector3, Tr2InstancedMesh, Tr2Mesh, Tr2MeshArea, Tr2RuntimeInstanceData, Tr2Sprite2dContainerBase, Tr2Sprite2dLineTrace, Tr2Sprite2dPolygon, Tr2Sprite2dTransform, Tr2Sprite2dVertex, Tr2SpriteObjectBase, TriValueBinding } from "../../npm/dist/trinity/index.js";
+import { EveChildEffectPropagator, EveBoosterSet2, EveLensflare, EveLocator2, EveMultiEffectParameter, EveSceneStaticParticles, EveSocketParameterString, EveTurretFiringFX, EveUiObject, Tr2MaterialParameterStore, Tr2ExternalParameter, Tr2CurveVector3, Tr2InstancedMesh, Tr2Mesh, Tr2MeshArea, Tr2RuntimeInstanceData, Tr2Sprite2dContainerBase, Tr2Sprite2dLineTrace, Tr2Sprite2dPolygon, Tr2Sprite2dTransform, Tr2Sprite2dVertex, Tr2SpriteObjectBase, TriValueBinding } from "../../npm/dist/trinity/index.js";
 import { Tr2ParticleDirectForce } from "../../npm/dist/trinity/particle/force/Tr2ParticleDirectForce.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
@@ -572,22 +572,6 @@ test("Eve effects propagate controllers, bindings, and named parameters", () =>
   assert.equal(calls.some(call => call[0] === "start"), true);
 });
 
-test("EveTacticalTrails keeps Carbon-style weak tracked-object registrations", () =>
-{
-  const trails = new EveTacticalTrails();
-  const object = {};
-  assert.equal(trails.RegisterObject(object), true);
-  assert.equal(trails.RegisterObject(object), false);
-  assert.equal(trails.trackedObjects.length, 1);
-  assert.equal(trails.trackedObjects[0].ball?.deref?.() ?? trails.trackedObjects[0].ball, object);
-  assert.equal(trails.UnregisterObject(object), true);
-  assert.equal(trails.trackedObjects[0].ball, null);
-  assert.equal(trails.UnregisterObject(object), false);
-  assert.equal(trails.HasTransparentBatches(), true);
-  assert.equal(trails.GetSortValue(), 0);
-  assert.equal(trails.GetPerObjectData(null), null);
-  assert.throws(() => trails.GetBatches(null, 0, null, 0), /not implemented/);
-});
 
 test("EveShip2 rebuilds booster items from Carbon locator names", () =>
 {

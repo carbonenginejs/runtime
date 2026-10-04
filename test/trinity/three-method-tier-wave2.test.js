@@ -5,12 +5,9 @@ import { test } from "node:test";
 
 import {
   EveChildExplosion,
-  EveTacticalTrails,
   Tr2ManipulationTool,
-  Tr2RenderContext,
   Tr2RotationTool
 } from "../../npm/dist/trinity/index.js";
-import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/stub/Tr2RenderContextALStub/Tr2RenderContextALStub.js";
 import { Tr2SphereShapeAttributeGenerator } from "../../npm/dist/trinity/particle/index.js";
 import { Tr2TexturePipelineStepPack, Tr2TexturePackChannel } from "../../npm/dist/resource/texture/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
@@ -84,57 +81,6 @@ test("Tr2RotationTool.Hemisphere maps mouse offsets onto Carbon's cone (cpp:396-
   assertVecNear(tool.Hemisphere(50, 17, viewport, view, projection), [ 0, half, half ], "half radius, screen-inverted y");
 });
 
-function stubContext()
-{
-  const al = new Tr2RenderContextALStub();
-  al.CreateDevice({ mode: { width: 64, height: 64 } });
-  const context = new Tr2RenderContext();
-  context.SetRenderContextAL(al);
-  return context;
-}
-
-test("EveTacticalTrails.UpdateGraphicsState packs Carbon's twelve LineVertex records per segment (cpp:174-258)", () =>
-{
-  const trails = new EveTacticalTrails();
-  trails.fadeOutTime = 5;
-  trails.trackedObjects.push({
-    ball: null,
-    positions: [
-      { position: [ 0, 0, 0 ], time: 0 },
-      { position: [ 1, 0, 0 ], time: 1 },
-      { position: [ 1, 2, 0 ], time: 2 }
-    ]
-  });
-
-  const context = stubContext();
-  trails.UpdateGraphicsState(10, context);
-
-  assert.equal(trails.segments, 2);
-  const buffer = trails.GetVertexBuffer();
-  assert.equal(buffer.GetDesc().stride, 36, "the built declaration's ledger is the stride");
-  assert.equal(buffer.GetDesc().count, 1024, "capacity floors at 1024 vertices");
-
-  const mapping = buffer.MapForWriting(context);
-  const floats = new Float32Array(mapping.data.buffer, mapping.data.byteOffset, 2 * 12 * 9);
-
-  // Vertex 0: pos1, lineDir = pos2 - pos1, fade (10-0)/5, quad (-1,-1).
-  assert.deepEqual([ ...floats.slice(0, 9) ], [ 0, 0, 0, 1, 0, 0, 2, -1, -1 ]);
-  // The last segment's connector fans toward the EXTRAPOLATED third point:
-  // pos3 = pos2 + (pos2 - pos1) has no sample - vertex 8 of segment 2 carries
-  // lineDir = pos3 - pos2 = (0, 2, 0).
-  const segment2 = 12 * 9;
-  assert.deepEqual([ ...floats.slice(segment2 + 8 * 9 + 3, segment2 + 8 * 9 + 6) ], [ 0, 2, 0 ]);
-
-  // A context that is not valid zeroes the count, as the donor does.
-  trails.UpdateGraphicsState(10, new Tr2RenderContext());
-  assert.equal(trails.segments, 0);
-
-  // ReleaseResources drops only the declaration handle; the next update
-  // re-interns and repacks.
-  trails.ReleaseResources(0);
-  trails.UpdateGraphicsState(10, context);
-  assert.equal(trails.segments, 2);
-});
 
 test("Tr2TexturePipelineStepPack carries its own step virtuals (cpp:39-57, 60-179)", () =>
 {

@@ -2,14 +2,22 @@
 // Source: trinity/trinity/Eve/UI/EveTacticalTrails.cpp
 // Hand-maintained after promotion from generated schema intake.
 import { meta } from "#schema";
+import { TimeAsFloat } from "#blue";
+import { mat4 } from "#math/mat4";
+import { vec3 } from "#math/vec3";
+import { TriBatchType, RenderingMode } from "#consts/graphics";
+import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
-import { Tr2BufferDescriptionAL } from "../../../../trinityal/stub/Tr2BufferALStub.js";
-import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
+import { Tr2BufferAL } from "../../../../trinityal/Tr2BufferAL/Tr2BufferAL.js";
+import { Tr2BufferDescriptionAL } from "../../../../trinityal/Tr2BufferAL/Tr2BufferDescriptionAL.js";
 import { Failed } from "../../../../trinityal/ALResult.js";
+import { TriDevice } from "../../../core/device/TriDevice.js";
+import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
+import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/Tr2RenderBatch.js";
 
 
 // Carbon's anonymous-namespace LineVertex (EveTacticalTrails.cpp:15-21):
@@ -20,7 +28,7 @@ const LINE_VERTEX_FLOATS = 9;
 /** "4 triangles: one quad and two connectors" (cpp:37). */
 const SEGMENT_VERTEX_COUNT = 12;
 
-// The trail declaration, BUILT as Carbon builds it inside UpdateGraphicsState
+// The trail declaration, built as Carbon builds it inside UpdateGraphicsState
 // (cpp:189-201); the ledger lands on the 36-byte LineVertex.
 const TRAIL_VERTEX_DEFINITION = new Tr2VertexDefinition();
 TRAIL_VERTEX_DEFINITION.Add("FLOAT32_3", "POSITION");
@@ -30,62 +38,28 @@ TRAIL_VERTEX_DEFINITION.Add("FLOAT32_2", "TEXCOORD", 2);
 
 const LINE_VERTEX_BYTES = TRAIL_VERTEX_DEFINITION.nextOffset[0];
 
+
 /**
- * Carbon WriteLineVerticesToBuffer (cpp:39-64), one segment's twelve
- * vertices, transcribed row for row: the segment quad (two triangles between
- * pos1 and pos2, lineDir carrying the offset to the OTHER end), then the two
- * connector triangles that fan pos2 toward pos3.
+ * Carbon's EveTacticalTrails: fading trails behind registered objects (destiny balls), sampled each frame as control
+ * points relative to the ego ball and drawn as a strip of quads with connectors, transparent under RM_ALPHA.
  */
-function WriteLineVerticesToBuffer(pos1, time1, pos2, time2, pos3, floats, base)
-{
-  const dx = pos2[0] - pos1[0], dy = pos2[1] - pos1[1], dz = pos2[2] - pos1[2];
-  const nx = pos3[0] - pos2[0], ny = pos3[1] - pos2[1], nz = pos3[2] - pos2[2];
-
-  const write = (index, position, dirX, dirY, dirZ, time, quadX, quadY) =>
-  {
-    let at = base + index * LINE_VERTEX_FLOATS;
-    floats[at++] = position[0]; floats[at++] = position[1]; floats[at++] = position[2];
-    floats[at++] = dirX; floats[at++] = dirY; floats[at++] = dirZ;
-    floats[at++] = time;
-    floats[at++] = quadX; floats[at] = quadY;
-  };
-
-  write(0, pos1, dx, dy, dz, time1, -1, -1);
-  write(1, pos1, dx, dy, dz, time1, -1, 1);
-  write(2, pos2, -dx, -dy, -dz, time2, 1, -1);
-
-  write(3, pos1, dx, dy, dz, time1, -1, 1);
-  write(4, pos2, -dx, -dy, -dz, time2, 1, 1);
-  write(5, pos2, -dx, -dy, -dz, time2, 1, -1);
-
-  write(6, pos2, -dx, -dy, -dz, time2, 1, -1);
-  write(7, pos2, -dx, -dy, -dz, time2, 1, 0);
-  write(8, pos2, nx, ny, nz, time2, -1, -1);
-
-  write(9, pos2, -dx, -dy, -dz, time2, 1, 0);
-  write(10, pos2, -dx, -dy, -dz, time2, 1, 1);
-  write(11, pos2, nx, ny, nz, time2, -1, -1);
-}
-
-
-/** Tracks tactical trail objects without requiring a graphics device. */
 @meta.define({ className: "EveTacticalTrails", family: "eve/ui" })
 @meta.blue.inherit(ITr2Renderable, IEveSpaceObject2)
 export class EveTacticalTrails
 {
-  /** m_vertexDeclHandle - interned once, -1 (UNINITIALIZED) until it is. */
-  _vertexDeclHandle = -1;
+  /** m_vertexDeclHandle, interned on first need. */
+  _vertexDeclHandle = Tr2EffectStateManager.Unknown;
 
-  /** m_vertexBuffer - the AL vertex buffer UpdateGraphicsState fills. */
-  _vertexBuffer = null;
+  /** m_vertexBuffer, filled by UpdateGraphicsState. */
+  _vertexBuffer = new Tr2BufferAL();
 
-  /** m_egoBallPosition - the double-precision origin every trail position is
-   *  rebased against (JS numbers are doubles, so Carbon's Vector3d needs no
-   *  separate type). UpdateSyncronous samples it from egoBall; unported yet,
-   *  so it stays at the origin until set. */
-  _egoBallPosition = [ 0, 0, 0 ];
+  /** The LineVertex records an upload copies from, grown with the segment count (Carbon allocates from the pool). */
+  _staging = new Float32Array(0);
 
+  /** m_egoBallPosition (Vector3d): the double-precision origin every trail position is rebased against. */
+  _egoBallPosition = new Float64Array(3); // alloc: Carbon Vector3d; no double-precision math type
 
+  /** m_trackedObjects: { ball: WeakRef (Carbon's BlueWeakRef) or null, positions: [ { position, time } ] }. */
   @meta.type.list("EveTacticalTrailTrackedObject")
   trackedObjects = [];
 
@@ -105,107 +79,217 @@ export class EveTacticalTrails
   @meta.type.model("Tr2Effect")
   trailEffect = null;
 
-  /** m_fadeOutTime (float) [READWRITE, PERSIST] */
+  /** m_fadeOutTime (float) [READWRITE, PERSIST]: seconds for a trail to fade out. */
   @meta.blue.readwrite
   @meta.blue.persist
   @meta.type.float32
   fadeOutTime = 5;
 
-  /**
-   * Carbon ReleaseResources (EveTacticalTrails.cpp:73-76): drop the interned
-   * declaration handle. The class allocates its vertex data lazily inside
-   * UpdateGraphicsState, so this is the whole teardown.
-   */
+  /** Registers the device-resource lifetime, as Carbon's Tr2DeviceResource base does. */
+  constructor()
+  {
+    TriDevice.RegisterResource(this);
+  }
+
+  /** Carbon ReleaseResources (cpp:73-76): drops the interned declaration; the buffer is kept. */
   @meta.blue.method
   @meta.implemented
   ReleaseResources(_storage)
   {
-    this._vertexDeclHandle = -1;
+    this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
+  }
+
+  /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32): only while resource creation is allowed. */
+  @meta.implemented
+  PrepareResources()
+  {
+    return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
+  }
+
+  /** Carbon OnPrepareResources (cpp:78-81): nothing to prepare; the buffer is built on demand. */
+  @meta.implemented
+  OnPrepareResources()
+  {
+    return true;
+  }
+
+  /** Releases final ownership because JavaScript has no deterministic destructor. */
+  @meta.ours
+  Destroy()
+  {
+    this.ReleaseResources();
+    this._vertexBuffer.Destroy();
+    TriDevice.UnregisterResource(this);
   }
 
   /**
-   * Carbon UpdateGraphicsState (EveTacticalTrails.cpp:174-258): count the
-   * frame's segments, intern the line declaration on first need, pack twelve
-   * LineVertex records per segment - each tracked object's positions rebased
-   * against the ego ball (double precision; JS numbers ARE doubles), fade as
-   * (now - sample.time) / fadeOutTime, and the final segment's third point
-   * extrapolated as pos2 + (pos2 - pos1) - then write them into the AL
-   * vertex buffer, growing it to max(1024, 2x need) vertices when short. A
-   * failed map zeroes the segment count, exactly as the donor does.
-   *
-   * Carbon reaches the main-thread context through a macro; the default
-   * context stands in, overridable for a caller that owns one.
-   *
-   * @param {number} now Seconds, on the same clock as the samples' times.
-   * @param {object} [renderContext] Defaults to Tr2RenderContext_GetMainThreadRenderContext().
+   * Carbon RegisterObject (cpp:84-102): tracks a ball that will leave a trail as it moves. A null object or one
+   * already tracked is logged and ignored. The ball is held weakly, as Carbon's BlueWeakRef holds it.
    */
   @meta.blue.method
   @meta.implemented
-  UpdateGraphicsState(now, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
+  RegisterObject(object)
   {
-    this.segments = this.trackedObjects.reduce(
-      (sum, object) => sum + Math.max(object.positions?.length ?? 0, 1) - 1, 0);
+    if (!object)
+    {
+      console.error("EveTacticalTrails::RegisterObject: Object is null");
+      return;
+    }
+    const found = this.trackedObjects.some(entry => entry.ball !== null && entry.ball.deref() === object);
+    if (found)
+    {
+      console.warn("EveTacticalTrails::RegisterObject: Object already registered");
+      return;
+    }
+    this.trackedObjects.push({ ball: new WeakRef(object), positions: [] });
+  }
+
+  /** Carbon UnregisterObject (cpp:104-111): stops tracking a ball; its trail fades out first. */
+  @meta.blue.method
+  @meta.implemented
+  UnregisterObject(object)
+  {
+    const found = this.trackedObjects.find(entry => entry.ball !== null && entry.ball.deref() === object);
+    if (found) found.ball = null;
+  }
+
+  /**
+   * Carbon UpdateSyncronous (cpp:113-172). Drops control points older than fadeOutTime, keeping the one before the
+   * first live point, and forgets an unregistered or freed object once its trail has faded. Each tracked ball then
+   * adds a control point: a new one when the path bends by more than a metre from the last segment's line, turns
+   * back, or the last segment is over 10 km long; otherwise it moves the last point. Finally it samples the ego ball
+   * and rebuilds the vertices.
+   */
+  @meta.blue.method
+  @meta.implemented
+  UpdateSyncronous(updateContext)
+  {
+    const now = updateContext.GetTime();
+    // Remove expired control points.
+    for (const object of this.trackedObjects)
+    {
+      const positions = object.positions;
+      if (positions.length >= 2)
+      {
+        let it = 0;
+        while (it + 1 !== positions.length && TimeAsFloat(now - positions[it + 1].time) > this.fadeOutTime) ++it;
+        positions.splice(0, it);
+      }
+    }
+    // A ball the garbage collector freed reads as null, as a cleared BlueWeakRef does.
+    for (const object of this.trackedObjects)
+    {
+      if (object.ball !== null && object.ball.deref() === undefined) object.ball = null;
+    }
+    // Remove deleted objects once their trails have fully faded out.
+    this.trackedObjects = this.trackedObjects.filter(object => object.ball !== null || object.positions.length >= 2);
+
+    // Add new control points.
+    const { vec3d_0 } = EveTacticalTrails.scratch;
+    for (const object of this.trackedObjects)
+    {
+      if (object.ball === null) continue;
+      const position = object.ball.deref().InterpolatedPosition(now, vec3.set(vec3d_0, 0, 0, 0));
+      const positions = object.positions;
+      if (positions.length < 2)
+      {
+        positions.push({ position: Float64Array.from(position), time: now }); // alloc: a kept control point
+      }
+      else
+      {
+        const p0 = positions[positions.length - 2].position;
+        const p1 = positions[positions.length - 1].position;
+
+        const distance = EveTacticalTrails._DistanceFromPointToLine(p1, p0, position);
+        const towards = (position[0] - p1[0]) * (p0[0] - p1[0]) + (position[1] - p1[1]) * (p0[1] - p1[1])
+          + (position[2] - p1[2]) * (p0[2] - p1[2]);
+        if (distance > 1 || towards > 0 || vec3.distance(p1, p0) > 10000)
+        {
+          positions.push({ position: Float64Array.from(position), time: now }); // alloc: a kept control point
+        }
+        else
+        {
+          const last = positions[positions.length - 1];
+          vec3.copy(last.position, position);
+          last.time = now;
+        }
+      }
+    }
+
+    if (this.egoBall) this.egoBall.InterpolatedPosition(now, this._egoBallPosition);
+    else vec3.set(this._egoBallPosition, 0, 0, 0);
+
+    this.UpdateGraphicsState(now);
+  }
+
+  /**
+   * Carbon UpdateGraphicsState (cpp:174-258): counts the frame's segments, interns the line declaration on first
+   * need, and packs twelve LineVertex records per segment. Positions are rebased against the ego ball in double
+   * precision, then stored as floats; each point fades as TimeAsFloat( now - time ) / fadeOutTime, and the final
+   * segment's third point is extrapolated as pos2 + (pos2 - pos1). The records go into the vertex buffer, which grows
+   * to max(1024, 2x need) vertices when short; a failed map zeroes the segment count.
+   * @param {number} now Scene time in Blue ticks.
+   */
+  @meta.implemented
+  UpdateGraphicsState(now)
+  {
+    this.segments = this.trackedObjects.reduce((sum, object) => sum + Math.max(object.positions.length, 1) - 1, 0);
     if (this.segments === 0) return;
 
-    if (!renderContext?.IsValid())
+    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+    if (!renderContext.IsValid())
     {
       this.segments = 0;
       return;
     }
 
-    if (this._vertexDeclHandle === -1)
+    if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown)
     {
       this._vertexDeclHandle = Tr2EffectStateManager.getVertexDeclarationHandle(TRAIL_VERTEX_DEFINITION);
     }
 
-    const floats = new Float32Array(this.segments * SEGMENT_VERTEX_COUNT * LINE_VERTEX_FLOATS);
-    let base = 0;
+    const needed = this.segments * SEGMENT_VERTEX_COUNT;
+    if (this._staging.length < needed * LINE_VERTEX_FLOATS)
+    {
+      this._staging = new Float32Array(needed * LINE_VERTEX_FLOATS); // alloc: grows with the segment count
+    }
+    const floats = this._staging;
+    // vec3_0 is pos1, vec3_1 pos2 and vec3_2 posNext (cpp:220-238).
+    const { vec3_0, vec3_1, vec3_2 } = EveTacticalTrails.scratch;
     const ego = this._egoBallPosition;
-    const toWorld = sample => [
-      sample.position[0] - ego[0],
-      sample.position[1] - ego[1],
-      sample.position[2] - ego[2]
-    ];
-
+    let base = 0;
     for (const object of this.trackedObjects)
     {
-      const positions = object.positions ?? [];
+      const positions = object.positions;
       if (positions.length < 2) continue;
 
-      let pos1 = toWorld(positions[0]);
-      let time1 = (now - positions[0].time) / this.fadeOutTime;
-      let pos2 = toWorld(positions[1]);
+      vec3.subtract(vec3_0, positions[0].position, ego);
+      let time1 = TimeAsFloat(now - positions[0].time) / this.fadeOutTime;
+      vec3.subtract(vec3_1, positions[1].position, ego);
 
       for (let i = 0; i + 1 < positions.length; i++)
       {
-        const time2 = (now - positions[i + 1].time) / this.fadeOutTime;
-        const posNext = i + 2 >= positions.length
-          ? [ pos2[0] + (pos2[0] - pos1[0]), pos2[1] + (pos2[1] - pos1[1]), pos2[2] + (pos2[2] - pos1[2]) ]
-          : toWorld(positions[i + 2]);
-        WriteLineVerticesToBuffer(pos1, time1, pos2, time2, posNext, floats, base);
+        const time2 = TimeAsFloat(now - positions[i + 1].time) / this.fadeOutTime;
+        if (i + 2 >= positions.length) vec3.scaleAndAdd(vec3_2, vec3_1, vec3.subtract(vec3_2, vec3_1, vec3_0), 1);
+        else vec3.subtract(vec3_2, positions[i + 2].position, ego);
+        EveTacticalTrails._WriteLineVerticesToBuffer(vec3_0, time1, vec3_1, time2, vec3_2, floats, base);
         base += SEGMENT_VERTEX_COUNT * LINE_VERTEX_FLOATS;
-        pos1 = pos2;
-        pos2 = posNext;
+        vec3.copy(vec3_0, vec3_1);
+        vec3.copy(vec3_1, vec3_2);
         time1 = time2;
       }
     }
 
-    const needed = this.segments * SEGMENT_VERTEX_COUNT;
-    if (!this._vertexBuffer?.IsValid() || this._vertexBuffer.GetDesc().count < needed)
+    if (!this._vertexBuffer.IsValid() || this._vertexBuffer.GetDesc().count < needed)
     {
       const capacity = Math.max(1024, needed * 2);
-      this._vertexBuffer = renderContext.CreateBuffer(Tr2BufferDescriptionAL.FromStride(
-        LINE_VERTEX_BYTES,
-        capacity,
-        Tr2GpuUsage.VERTEX_BUFFER,
-        Tr2CpuUsage.WRITE_OFTEN
-      ));
+      this._vertexBuffer.Create(Tr2BufferDescriptionAL.FromStride(LINE_VERTEX_BYTES, capacity, Tr2GpuUsage.VERTEX_BUFFER,
+        Tr2CpuUsage.WRITE_OFTEN), null, renderContext);
     }
-
-    const mapping = this._vertexBuffer?.MapForWriting(renderContext);
-    if (mapping && !Failed(mapping.result) && mapping.data)
+    const mapping = this._vertexBuffer.IsValid() ? this._vertexBuffer.MapForWriting(renderContext) : null;
+    if (mapping !== null && !Failed(mapping.result) && mapping.data)
     {
-      mapping.data.set(new Uint8Array(floats.buffer, 0, needed * LINE_VERTEX_BYTES));
+      mapping.data.set(new Uint8Array(floats.buffer, 0, needed * LINE_VERTEX_BYTES)); // alloc: byte view for the upload
       this._vertexBuffer.UnmapForWriting(renderContext);
     }
     else
@@ -214,43 +298,87 @@ export class EveTacticalTrails
     }
   }
 
-  /** The trail vertex buffer UpdateGraphicsState filled, for the draw seam. */
-  GetVertexBuffer()
+  /** Carbon UpdateAsyncronous (cpp:261-263): nothing to do. */
+  @meta.blue.method
+  @meta.implemented
+  UpdateAsyncronous(_updateContext)
   {
-    return this._vertexBuffer;
   }
 
-  /** Carbon method RegisterObject (MAP_METHOD_AND_WRAP). */
+  /** Carbon UpdateVisibility (cpp:265-267): nothing to do; the trails are never culled. */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Uses WeakRef when available to model Carbon's non-owning pointer and returns success for JavaScript callers.")
-  RegisterObject(object)
+  @meta.implemented
+  UpdateVisibility(_updateContext, _parentTransform)
   {
-    if (!object) return false;
-    const found = this.trackedObjects.some(entry => entry.ball?.deref?.() === object || entry.ball === object);
-    if (found) return false;
-    this.trackedObjects.push({ ball: typeof WeakRef === "function" ? new WeakRef(object) : object, positions: [] });
-    return true;
   }
 
-  /** Carbon method UnregisterObject (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
-  @meta.adapted
-  @meta.reason("Clears the non-owning JavaScript reference and returns success for JavaScript callers.")
-  UnregisterObject(object)
+  /** Carbon's GetRenderables( renderables, impostors ) (cpp:269-272): always the trails themselves. */
+  @meta.blue.renamed("GetRenderables")
+  @meta.implemented
+  GetRenderables_Impostors(out = [], _impostors = null)
   {
-    const found = this.trackedObjects.find(entry => entry.ball?.deref?.() === object || entry.ball === object);
-    if (!found) return false;
-    found.ball = null;
-    return true;
+    out.push(this);
+    return out;
   }
 
-  /** Carbon EveTacticalTrails::GetBatches submits its GPU-backed trail vertex buffer (cpp:299-317). */
+  /** Carbon GetBoundingSphere (cpp:274-277): the trails have none. */
   @meta.blue.method
-  @meta.notImplemented
-  GetBatches(_batches, _batchType, _perObjectData, _reason)
+  @meta.implemented
+  GetBoundingSphere(_sphere, _query = 0)
   {
-    throw new Error("EveTacticalTrails.GetBatches is not implemented in CarbonEngineJS.");
+    return false;
+  }
+
+  /** Carbon UpdateModelCenterWorldPosition (cpp:279-282): the origin. */
+  @meta.blue.method
+  @meta.implemented
+  UpdateModelCenterWorldPosition(position, _time)
+  {
+    vec3.set(position, 0, 0, 0);
+  }
+
+  /** Carbon GetModelCenterWorldPosition (cpp:284-287): the origin. */
+  @meta.blue.method
+  @meta.implemented
+  GetModelCenterWorldPosition(position)
+  {
+    vec3.set(position, 0, 0, 0);
+  }
+
+  /** Carbon GetLocalBoundingBox (cpp:289-292): the trails have none. */
+  @meta.blue.method
+  @meta.implemented
+  GetLocalBoundingBox(_min, _max)
+  {
+    return false;
+  }
+
+  /** Carbon GetLocalToWorldTransform (cpp:294-297): the identity. */
+  @meta.blue.method
+  @meta.implemented
+  GetLocalToWorldTransform(transform)
+  {
+    mat4.identity(transform);
+  }
+
+  /**
+   * Carbon GetBatches (cpp:299-317): transparent only; with segments, a vertex buffer and a declaration, one draw of
+   * twelve vertices per segment under RM_ALPHA.
+   */
+  @meta.blue.method
+  @meta.implemented
+  GetBatches(batches, batchType, perObjectData, _reason)
+  {
+    if (batchType !== TriBatchType.TRIBATCHTYPE_TRANSPARENT) return;
+    if (this.segments === 0 || !this._vertexBuffer.IsValid() || this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
+    const batch = new Tr2RenderBatch();
+    batch.SetMaterial(this.trailEffect);
+    batch.SetPerObjectData(perObjectData);
+    batch.SetVertexDeclaration(this._vertexDeclHandle);
+    batch.SetStreamSource(0, this._vertexBuffer, LINE_VERTEX_BYTES);
+    batch.SetDrawInstanced(SEGMENT_VERTEX_COUNT * this.segments, 1, 0, 0);
+    batch.SetRenderingMode(RenderingMode.RM_ALPHA);
+    batches.Commit(batch);
   }
 
   /** Carbon EveTacticalTrails::HasTransparentBatches is always true (cpp:319-322). */
@@ -277,4 +405,59 @@ export class EveTacticalTrails
     return null;
   }
 
+  /** Carbon's anonymous-namespace DistanceFromPointToLine (cpp:23-35), in double precision. */
+  static _DistanceFromPointToLine(point, lineStart, lineEnd)
+  {
+    const lx = lineEnd[0] - lineStart[0], ly = lineEnd[1] - lineStart[1], lz = lineEnd[2] - lineStart[2];
+    const px = point[0] - lineStart[0], py = point[1] - lineStart[1], pz = point[2] - lineStart[2];
+    const lineLengthSquared = lx * lx + ly * ly + lz * lz;
+    if (lineLengthSquared === 0) return Math.hypot(px, py, pz);
+    const t = (px * lx + py * ly + pz * lz) / lineLengthSquared;
+    return Math.hypot(px - lx * t, py - ly * t, pz - lz * t);
+  }
+
+  /**
+   * Carbon's anonymous-namespace WriteLineVerticesToBuffer (cpp:39-64): one segment's twelve vertices, row for row.
+   * The segment quad is two triangles between pos1 and pos2, lineDir carrying the offset to the other end; the two
+   * connector triangles fan pos2 towards pos3.
+   */
+  static _WriteLineVerticesToBuffer(pos1, time1, pos2, time2, pos3, floats, base)
+  {
+    const dx = pos2[0] - pos1[0], dy = pos2[1] - pos1[1], dz = pos2[2] - pos1[2];
+    const nx = pos3[0] - pos2[0], ny = pos3[1] - pos2[1], nz = pos3[2] - pos2[2];
+    const write = EveTacticalTrails._WriteLineVertex;
+
+    write(floats, base, 0, pos1, dx, dy, dz, time1, -1, -1);
+    write(floats, base, 1, pos1, dx, dy, dz, time1, -1, 1);
+    write(floats, base, 2, pos2, -dx, -dy, -dz, time2, 1, -1);
+
+    write(floats, base, 3, pos1, dx, dy, dz, time1, -1, 1);
+    write(floats, base, 4, pos2, -dx, -dy, -dz, time2, 1, 1);
+    write(floats, base, 5, pos2, -dx, -dy, -dz, time2, 1, -1);
+
+    write(floats, base, 6, pos2, -dx, -dy, -dz, time2, 1, -1);
+    write(floats, base, 7, pos2, -dx, -dy, -dz, time2, 1, 0);
+    write(floats, base, 8, pos2, nx, ny, nz, time2, -1, -1);
+
+    write(floats, base, 9, pos2, -dx, -dy, -dz, time2, 1, 0);
+    write(floats, base, 10, pos2, -dx, -dy, -dz, time2, 1, 1);
+    write(floats, base, 11, pos2, nx, ny, nz, time2, -1, -1);
+  }
+
+  /** One LineVertex: position, lineDir, time, quad. */
+  static _WriteLineVertex(floats, base, index, position, dirX, dirY, dirZ, time, quadX, quadY)
+  {
+    let at = base + index * LINE_VERTEX_FLOATS;
+    floats[at++] = position[0]; floats[at++] = position[1]; floats[at++] = position[2];
+    floats[at++] = dirX; floats[at++] = dirY; floats[at++] = dirZ;
+    floats[at++] = time;
+    floats[at++] = quadX; floats[at] = quadY;
+  }
+
+  static scratch = {
+    vec3_0: new Float64Array(3),
+    vec3_1: new Float64Array(3),
+    vec3_2: new Float64Array(3),
+    vec3d_0: new Float64Array(3)
+  };
 }
