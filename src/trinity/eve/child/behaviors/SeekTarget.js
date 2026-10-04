@@ -194,10 +194,19 @@ export class SeekTarget
     this.repair = true;
   }
 
-  /** Carbon method SplitBoundingBox (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SplitBoundingBox (MAP_METHOD_AND_WRAP; SeekTarget.cpp:349-411): slices the target's local box
+   * along its longest axis into boxes about as long as the second-longest side, then SortLocators fills them.
+   *
+   * Adapted, stated divergences from Carbon defects (see the known-defects docket):
+   * - When the two longest sides are equal, Carbon's secondLargest stays -FLT_MAX (cpp:372 skips an equal side) and
+   *   `while( desiredLength > secondLargest )` never ends; here the second side is taken from the other two
+   *   dimensions, so a cube still splits.
+   * - Carbon counts boxes as int( largest ) / int( desiredLength ) with no last-box clamp; here the count rounds and
+   *   the last box ends at the box maximum.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Uses EveSpaceObject2's portable bounds and locator query methods, and safely handles equal or degenerate box dimensions.")
   SplitBoundingBox()
   {
     this._boundingBoxes.length = 0;
@@ -256,35 +265,58 @@ export class SeekTarget
       this._locatorBucketIndices.push([]);
     }
 
-    const locatorCount = Math.max(0, Number(this.target.GetLocatorCount?.(this.locatorSetName)) || 0);
-    const position = LOCATOR_POSITION;
-    for (let locatorIndex = 0; locatorIndex < locatorCount; locatorIndex++)
+    this.SortLocators();
+    return true;
+  }
+
+  /**
+   * Carbon SeekTarget::SortLocators (SeekTarget.cpp:413-446): every locator of the set whose raw position lies in a
+   * bucket's box (bounds inclusive) joins that bucket. Buckets are the outer loop and there is no break, so a locator
+   * on a shared face joins both neighbours (Carbon quirk, reproduced). Empty buckets are then dropped.
+   *
+   * Adapted: Carbon erases an empty bucket's index list but keeps its bounding box (cpp:432-443), so the box and
+   * bucket lists fall out of step and UpdateAgents' bucketId = id % boxes.size() can index past the buckets
+   * (undefined behaviour in C++, a throw here); the matching box is dropped too.
+   */
+  @meta.adapted
+  SortLocators()
+  {
+    const locators = this.target.GetLocatorsForSet(this.locatorSetName);
+    if (!locators)
     {
-      this.target.GetLocatorPosition(position, locatorIndex, false, this.locatorSetName);
-      const locatorPosition = position;
-      for (let bucketIndex = 0; bucketIndex < this._boundingBoxes.length; bucketIndex++)
+      return;
+    }
+
+    for (let i = 0; i < this._locatorBucketIndices.length; ++i)
+    {
+      const box = this._boundingBoxes[i];
+      for (let j = 0; j < locators.length; ++j)
       {
-        const box = this._boundingBoxes[bucketIndex];
-        if (locatorPosition[0] >= box.min[0] && locatorPosition[0] <= box.max[0]
-          && locatorPosition[1] >= box.min[1] && locatorPosition[1] <= box.max[1]
-          && locatorPosition[2] >= box.min[2] && locatorPosition[2] <= box.max[2])
+        const position = locators[j].position;
+        if (position[0] >= box.min[0] && position[0] <= box.max[0]
+          && position[1] >= box.min[1] && position[1] <= box.max[1]
+          && position[2] >= box.min[2] && position[2] <= box.max[2])
         {
-          this._locatorBucketIndices[bucketIndex].push(locatorIndex);
-          break;
+          this._locatorBucketIndices[i].push(j);
         }
       }
     }
 
-    for (let index = this._locatorBucketIndices.length - 1; index >= 0; index--)
+    // In case we have an empty bucket
+    for (let i = 0; i < this._locatorBucketIndices.length;)
     {
-      if (this._locatorBucketIndices[index].length === 0)
+      if (this._locatorBucketIndices[i].length === 0)
       {
-        this._locatorBucketIndices.splice(index, 1);
-        this._boundingBoxes.splice(index, 1);
+        this._locatorBucketIndices.splice(i, 1);
+        this._boundingBoxes.splice(i, 1);
+      }
+      else
+      {
+        ++i;
       }
     }
+
     this._sortedLocators = true;
-    return true;
   }
 
   @meta.implemented
@@ -527,4 +559,3 @@ const SPAWN_POINT = vec3.create();
 const BOUNDS_MIN = vec3.create();
 const BOUNDS_MAX = vec3.create();
 const BOUNDS_SIZE = vec3.create();
-const LOCATOR_POSITION = vec3.create();

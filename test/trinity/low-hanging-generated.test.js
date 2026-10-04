@@ -731,6 +731,18 @@ test("SeekTarget partitions target locators along the longest local bounds axis"
   seek.target.locatorSets.push(set);
   assert.equal(seek.SplitBoundingBox(), true);
   assert.deepEqual(seek.GetLocatorBucketIndices(), [[0], [1], [2], [3]]);
+
+  // Carbon quirk (SeekTarget.cpp:421-430): buckets are the outer loop with no break, so a locator on a shared face
+  // (x = 2, between the first two boxes) joins both. The locator sets merge once, so a fresh target carries all five.
+  const faced = new SeekTarget();
+  faced.locatorSetName = "fx";
+  faced.target = new BoxedObject();
+  const facedSet = new EveLocatorSets();
+  facedSet.SetName("fx");
+  facedSet.Append([[1, 1, 1], [3, 1, 1], [5, 1, 1], [7, 1, 1], [2, 1, 1]].map(position => ({ position, direction: [0, 0, 0, 1], boneIndex: 0 })));
+  faced.target.locatorSets.push(facedSet);
+  assert.equal(faced.SplitBoundingBox(), true);
+  assert.deepEqual(faced.GetLocatorBucketIndices(), [[0, 4], [1, 4], [2], [3]]);
 });
 
 test("generated Eve child renderables expose Carbon's injected vertex usages", () =>
