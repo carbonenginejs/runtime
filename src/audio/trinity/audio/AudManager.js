@@ -43,9 +43,13 @@ export class AudManager
   @meta.type.boolean
   spatialAudioEnabled = true;
 
-  /** m_settings (AudSettingsPtr) [AUTHORED] */
+  /**
+   * m_settings (AudSettingsPtr) [AUTHORED]
+   *
+   * Adapted: Carbon supplies this via UpdateSettings() outside Blue serialization; CarbonEngineJS persists it for
+   * values interchange.
+   */
   @meta.adapted
-  @meta.reason("Carbon supplies this via UpdateSettings() outside Blue serialization; CarbonEngineJS persists it for values interchange.")
   @meta.blue.persist
   @meta.type.model("AudSettings")
   settings = null;
@@ -96,10 +100,15 @@ export class AudManager
     return this._state === "uninitialized" ? 0 : this._state === "disabled" ? 1 : 2;
   }
 
-  /** Carbon method Enable: init if needed, enable, load Init.bnk + requested banks, wake everything. */
+  /**
+   * Carbon method Enable: init if needed, enable, load Init.bnk + requested banks, wake everything.
+   *
+   * Adapted: Wwise memory/stream/sound initialization is the backend's Init, while pre-enabled geometry uses optional
+   * InitSpatialAudioGeometry with Carbon's populated settings. The state machine, failure gate, bank loads, and wake
+   * pass follow audio/src/AudManager.cpp:148-180 and 848-881.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Wwise memory/stream/sound initialization is the backend's Init, while pre-enabled geometry uses optional InitSpatialAudioGeometry with Carbon's populated settings. The state machine, failure gate, bank loads, and wake pass follow audio/src/AudManager.cpp:148-180 and 848-881.")
   Enable(soundBanksToLoad = [])
   {
     if (this._state === "enabled")
@@ -110,7 +119,7 @@ export class AudManager
     if (this._state === "uninitialized")
     {
       const repository = AudGameObjResource.staticDataRepository;
-      if (!repository?.IsInitialized())
+      if (!repository || !repository.IsInitialized())
       {
         return;
       }
@@ -351,7 +360,10 @@ export class AudManager
   @meta.implemented
   LogPostEvent(emitterID, playID, eventID, name)
   {
-    this.log?.LogPostEvent?.(emitterID, playID, eventID, name);
+    if (this.log)
+    {
+      this.log.LogPostEvent(emitterID, playID, eventID, name);
+    }
   }
 
   /** Carbon method LogExecuteActionOnPlayingID. */
@@ -359,7 +371,10 @@ export class AudManager
   @meta.implemented
   LogExecuteActionOnPlayingID(emitterID, playID, action)
   {
-    this.log?.LogExecuteActionOnPlayingID?.(emitterID, playID, action);
+    if (this.log)
+    {
+      this.log.LogExecuteActionOnPlayingID(emitterID, playID, action);
+    }
   }
 
   /** Carbon method LogSetSwitch. */
@@ -367,7 +382,10 @@ export class AudManager
   @meta.implemented
   LogSetSwitch(emitterID, group, state)
   {
-    this.log?.LogSetSwitch?.(emitterID, group, state);
+    if (this.log)
+    {
+      this.log.LogSetSwitch(emitterID, group, state);
+    }
   }
 
   /** Carbon method LogSetState. */
@@ -375,7 +393,10 @@ export class AudManager
   @meta.implemented
   LogSetState(group, state)
   {
-    this.log?.LogSetState?.(group, state);
+    if (this.log)
+    {
+      this.log.LogSetState(group, state);
+    }
   }
 
   /** Carbon method LogSetRTPC. */
@@ -383,7 +404,10 @@ export class AudManager
   @meta.implemented
   LogSetRTPC(emitterID, name, value, playID = 0)
   {
-    this.log?.LogSetRTPC?.(emitterID, name, value, playID);
+    if (this.log)
+    {
+      this.log.LogSetRTPC(emitterID, name, value, playID);
+    }
   }
 
   /** Carbon method GetSpatialAudioGeometryEnabled. */
@@ -465,10 +489,14 @@ export class AudManager
     this._obstructionOcclusion.SetFadeRate(value);
   }
 
-  /** Carbon method SetSpatialAudioGeometryEnabled. */
+  /**
+   * Carbon method SetSpatialAudioGeometryEnabled.
+   *
+   * Adapted: Browser backends may expose InitSpatialAudioGeometry; the setting and geometry lifecycle remain
+   * available even though WebAudio has no native diffraction engine.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Browser backends may expose InitSpatialAudioGeometry; the setting and geometry lifecycle remain available even though WebAudio has no native diffraction engine.")
   SetSpatialAudioGeometryEnabled(enabled)
   {
     const value = Boolean(enabled);
@@ -931,7 +959,7 @@ export class AudManager
     {
       for (const gameObject of this.soundPrioritization.GetPrioritizedAudioObjects())
       {
-        gameObject.StopAll?.();
+        gameObject.StopAll();
       }
     }
   }
@@ -954,10 +982,12 @@ export class AudManager
    *
    * Carbon's deferred bank queue owns strong AudGameObjResourcePtr entries.
    * Explicit JavaScript release instead purges those entries here.
+   *
+   * Adapted: Carbon keeps deferred emitters alive through strong pointers; CarbonEngineJS explicit release must
+   * prevent a stale post after re-adoption.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon keeps deferred emitters alive through strong pointers; CarbonEngineJS explicit release must prevent a stale post after re-adoption.")
   UnregisterGameObject(gameObjID)
   {
     this.soundPrioritization.UnregisterGameObject(gameObjID);
@@ -986,10 +1016,13 @@ export class AudManager
     return this._callbackGameObjects.get(gameObjID) ?? null;
   }
 
-  /** Carbon method WithCallbackGameObject. */
+  /**
+   * Carbon method WithCallbackGameObject.
+   *
+   * Adapted: The native locked callback map is synchronous in JavaScript's single-threaded graph runtime.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The native locked callback map is synchronous in JavaScript's single-threaded graph runtime.")
   WithCallbackGameObject(gameObjID, callback)
   {
     const emitter = this._callbackGameObjects.get(gameObjID);
@@ -1001,13 +1034,18 @@ export class AudManager
     return true;
   }
 
-  /** Carbon debug method GetEventName. */
+  /**
+   * Carbon debug method GetEventName.
+   *
+   * Adapted: Carbon dereferences a missing emitter in this debug helper; the JavaScript graph returns an empty name
+   * when no emitter is registered.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon dereferences a missing emitter in this debug helper; the JavaScript graph returns an empty name when no emitter is registered.")
   GetEventName(emitterID, playingID)
   {
-    return this.GetAudioEmitter(emitterID)?.GetPlayingEvents?.().get(playingID) ?? "";
+    const emitter = this.GetAudioEmitter(emitterID);
+    return emitter ? emitter.GetPlayingEvents().get(playingID) ?? "" : "";
   }
 
   /** Carbon method GetListener: the fixed-id listener object. */
@@ -1110,7 +1148,10 @@ export class AudManager
       // equivalent post-render refresh.
       this.UpdateMonitoredParameters();
     }
-    this.log?.Flush?.();
+    if (this.log)
+    {
+      this.log.Flush();
+    }
   }
 
   /** Carbon method UpdateSettings. */
@@ -1128,9 +1169,9 @@ export class AudManager
   {
     for (const object of this.soundPrioritization.GetPrioritizedAudioObjects())
     {
-      if (object.IsCulled?.())
+      if (object.IsCulled())
       {
-        object.Wake?.();
+        object.Wake();
       }
     }
     this.soundPrioritization.DisableAudioCulling();
@@ -1146,37 +1187,52 @@ export class AudManager
     this.audioCullingEnabled = true;
   }
 
-  /** Carbon debug method GetPrioritizedEmitters: defensive current-order snapshot. */
+  /**
+   * Carbon debug method GetPrioritizedEmitters: defensive current-order snapshot.
+   *
+   * Adapted: Carbon returns SoundPrioritization's current debug list; CarbonEngineJS returns a defensive array of the
+   * same current order.
+   */
   @meta.blue.renamed("GetPrioritizedAudioEmitters")
   @meta.adapted
-  @meta.reason("Carbon returns SoundPrioritization's current debug list; CarbonEngineJS returns a defensive array of the same current order.")
   GetPrioritizedEmitters()
   {
     return this.soundPrioritization.GetPrioritizedAudioObjects();
   }
 
-  /** Carbon debug flag; renderer consumption remains optional. */
+  /**
+   * Carbon debug flag; renderer consumption remains optional.
+   *
+   * Adapted: Carbon's native debug renderer reads a global flag; CarbonEngineJS retains the flag for an injected
+   * renderer.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon's native debug renderer reads a global flag; CarbonEngineJS retains the flag for an injected renderer.")
   EnableDebugDisplayAllEmitters()
   {
     this._debugDisplayAllEmitters = true;
   }
 
-  /** Carbon debug flag; renderer consumption remains optional. */
+  /**
+   * Carbon debug flag; renderer consumption remains optional.
+   *
+   * Adapted: Carbon's native debug renderer reads a global flag; CarbonEngineJS retains the flag for an injected
+   * renderer.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon's native debug renderer reads a global flag; CarbonEngineJS retains the flag for an injected renderer.")
   DisableDebugDisplayAllEmitters()
   {
     this._debugDisplayAllEmitters = false;
   }
 
-  /** Carbon debug flag query. */
+  /**
+   * Carbon debug flag query.
+   *
+   * Adapted: The value is available to browser renderers even though the audio layer does not draw debug geometry.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The value is available to browser renderers even though the audio layer does not draw debug geometry.")
   GetDebugDisplayAllEmitters()
   {
     return this._debugDisplayAllEmitters;
