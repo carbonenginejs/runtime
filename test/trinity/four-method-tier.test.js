@@ -9,6 +9,8 @@ import {
   BackAndForth,
   EveDistributionPlacementGeneratorVolume,
   EveLineSet,
+  EveLocatorSets,
+  EveSpaceObject2,
   FollowASpline,
   Tr2SSAO,
   Tr2Vector2Parameter,
@@ -152,22 +154,33 @@ test("EveSOFDataDecalIndexBuffer speaks the ICustomPersist contract (cpp:958-978
   assert.deepEqual([ ...record.indexBuffer ], [ 7, 8 ], "release frees nothing");
 });
 
+
+/** A real EveSpaceObject2 whose "fx" locator set holds identity-rotation locators at these positions. */
+function LocatorObject(positions, Base = EveSpaceObject2)
+{
+  const object = new Base();
+  const set = new EveLocatorSets();
+  set.SetName("fx");
+  set.Append(positions.map(position => ({ position, direction: [ 0, 0, 0, 1 ], boneIndex: 0 })));
+  object.locatorSets.push(set);
+  return object;
+}
+
 test("BackAndForth locator readers null-guard their owner (cpp:356-372)", () =>
 {
   const behavior = new BackAndForth();
-  const outPosition = [ 0, 0, 0 ];
-  const outDirection = [ 0, 0, 0 ];
+  behavior.locatorSetName = "fx";
+  const outPosition = new Float32Array(3);
+  const outDirection = new Float32Array(3);
 
   behavior.GetParentLocatorPosition(0, outPosition, outDirection);
-  assert.deepEqual(outPosition, [ 0, 0, 0 ], "no parent leaves the out-vectors untouched");
+  assert.deepEqual(Array.from(outPosition), [ 0, 0, 0 ], "no parent leaves the out-vectors untouched");
 
-  behavior.parent = {
-    GetLocatorPositionFromSet(index, _world, set, out) { out[0] = 10 + index; },
-    GetLocatorRotationFromSet(index, _w, set, out) { out[1] = 20 + index; }
-  };
+  // GetLocatorPosition / GetLocatorDirection on the owner, in world space (cpp:360-361).
+  behavior.parent = LocatorObject([ [ 10, 0, 0 ], [ 11, 0, 0 ], [ 12, 0, 0 ], [ 13, 0, 0 ] ]);
   behavior.GetParentLocatorPosition(2, outPosition, outDirection);
-  assert.equal(outPosition[0], 12);
-  assert.equal(outDirection[1], 22);
+  assert.deepEqual(Array.from(outPosition), [ 12, 0, 0 ]);
+  assert.deepEqual(Array.from(outDirection), [ 0, 1, 0 ], "an identity locator points up");
 
   behavior.target = behavior.parent;
   behavior.GetTargetLocatorPosition(3, outPosition, outDirection);

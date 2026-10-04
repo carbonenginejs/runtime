@@ -3631,54 +3631,97 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /**
-   * Gets a locator position from a named set. Out-of-range or missing-set
-   * queries return the world translation in world space and (0,0,0) in
-   * object space, as Carbon does.
+   * Carbon EveSpaceObject2::GetLocatorPositionFromSet (EveSpaceObject2.cpp:2804-2809, Blue-exposed): the locator's
+   * position by value, through GetLocatorPosition.
+   * @returns {vec3} a new vector
    */
   @meta.blue.method
   @meta.implemented
-  GetLocatorPositionFromSet(index, inWorldSpace, locatorSetName, out = vec3.create())
+  GetLocatorPositionFromSet(index, inWorldSpace, locatorSetName)
   {
-    const locators = this._GetLocatorsForSet(locatorSetName);
-    if (index < 0 || !locators || index >= locators.length)
+    const out = vec3.create(); // alloc: returned by value to the Blue caller
+    this.GetLocatorPosition(out, index, inWorldSpace, locatorSetName);
+    return out;
+  }
+
+  /**
+   * Carbon EveSpaceObject2::GetLocatorPosition (EveSpaceObject2.cpp:2818-2846): a locator's position from a named
+   * set, in world or object space. An out-of-range index or missing set writes the world translation in world space
+   * and (0,0,0) in object space, and answers false.
+   * @param {vec3} out - receives the position
+   * @param {number} index
+   * @param {boolean} inWorldSpace
+   * @param {string} locatorSetName
+   * @returns {boolean} whether the locator exists
+   */
+  @meta.blue.method
+  @meta.implemented
+  GetLocatorPosition(out, index, inWorldSpace, locatorSetName)
+  {
+    const locators = index < 0 ? null : this._GetLocatorsForSet(locatorSetName);
+    if (!locators || index >= locators.length)
     {
       if (inWorldSpace)
       {
-        return vec3.set(out, this.worldTransform[12], this.worldTransform[13], this.worldTransform[14]);
+        vec3.set(out, this.worldTransform[12], this.worldTransform[13], this.worldTransform[14]);
       }
-      return vec3.set(out, 0, 0, 0);
+      else
+      {
+        vec3.set(out, 0, 0, 0);
+      }
+      return false;
     }
-    const direction = vec3.create();
-    this.GetLocatorInObjectSpace(out, direction, locators[index],
+    // _locatorDirection is Carbon's local direction, unused here.
+    this.GetLocatorInObjectSpace(out, EveSpaceObject2._locatorDirection, locators[index],
       locatorSetName === EveSpaceObject2._damageLocatorSetName ? index : -1);
     if (inWorldSpace)
     {
       vec3.transformMat4(out, out, this.worldTransform);
     }
+    return true;
+  }
+
+  /**
+   * Carbon EveSpaceObject2::GetLocatorRotationFromSet (EveSpaceObject2.cpp:2811-2816, Blue-exposed): the locator's
+   * direction by value, through GetLocatorDirection.
+   * @returns {vec3} a new vector
+   */
+  @meta.blue.method
+  @meta.implemented
+  GetLocatorRotationFromSet(index, inWorldSpace, locatorSetName)
+  {
+    const out = vec3.create(); // alloc: returned by value to the Blue caller
+    this.GetLocatorDirection(out, index, inWorldSpace, locatorSetName);
     return out;
   }
 
   /**
-   * Gets a locator direction from a named set. Out-of-range or missing-set
-   * queries return (0,1,0), as Carbon does.
+   * Carbon EveSpaceObject2::GetLocatorDirection (EveSpaceObject2.cpp:2960-2989): a locator's direction from a named
+   * set, in world or object space. An out-of-range index or missing set writes (0,1,0) and answers false.
+   * @param {vec3} out - receives the direction
+   * @param {number} index
+   * @param {boolean} inWorldSpace
+   * @param {string} locatorSetName
+   * @returns {boolean} whether the locator exists
    */
   @meta.blue.method
   @meta.implemented
-  GetLocatorRotationFromSet(index, inWorldSpace, locatorSetName, out = vec3.create())
+  GetLocatorDirection(out, index, inWorldSpace, locatorSetName)
   {
-    const locators = this._GetLocatorsForSet(locatorSetName);
-    if (index < 0 || !locators || index >= locators.length)
+    const locators = index < 0 ? null : this._GetLocatorsForSet(locatorSetName);
+    if (!locators || index >= locators.length)
     {
-      return vec3.set(out, 0, 1, 0);
+      vec3.set(out, 0, 1, 0);
+      return false;
     }
-    const position = vec3.create();
-    this.GetLocatorInObjectSpace(position, out, locators[index],
+    // _locatorPosition is Carbon's local position, unused here.
+    this.GetLocatorInObjectSpace(EveSpaceObject2._locatorPosition, out, locators[index],
       locatorSetName === EveSpaceObject2._damageLocatorSetName ? index : -1);
     if (inWorldSpace)
     {
       EveSpaceObject2._TransformNormal(out, out, this.worldTransform);
     }
-    return out;
+    return true;
   }
 
   /** The curve-set-owning children and effect children, in Carbon's visiting order (children first). */

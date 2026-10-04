@@ -367,14 +367,13 @@ export class BackAndForth
     this._ReadOwnerLocator(this.target, locatorIndex, outPosition, outDirection);
   }
 
-  /** The shared body of the pair above; the owner duck is the runtime's
-   *  locator-set surface (GetLocatorPositionFromSet/GetLocatorRotationFromSet). */
+  /** The shared body of the pair above: Carbon's GetLocatorPosition and GetLocatorDirection on the owner (cpp:360-370). */
   _ReadOwnerLocator(owner, locatorIndex, outPosition, outDirection)
   {
     if (owner)
     {
-      owner.GetLocatorPositionFromSet?.(locatorIndex, true, this.locatorSetName, outPosition);
-      owner.GetLocatorRotationFromSet?.(locatorIndex, true, this.locatorSetName, outDirection);
+      owner.GetLocatorPosition(outPosition, locatorIndex, true, this.locatorSetName);
+      owner.GetLocatorDirection(outDirection, locatorIndex, true, this.locatorSetName);
     }
   }
 

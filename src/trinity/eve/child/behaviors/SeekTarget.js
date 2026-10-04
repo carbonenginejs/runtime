@@ -260,16 +260,8 @@ export class SeekTarget
     const position = LOCATOR_POSITION;
     for (let locatorIndex = 0; locatorIndex < locatorCount; locatorIndex++)
     {
-      const locatorPosition = this.target.GetLocatorPositionFromSet?.(
-        locatorIndex,
-        false,
-        this.locatorSetName,
-        position
-      );
-      if (!locatorPosition)
-      {
-        continue;
-      }
+      this.target.GetLocatorPosition(position, locatorIndex, false, this.locatorSetName);
+      const locatorPosition = position;
       for (let bucketIndex = 0; bucketIndex < this._boundingBoxes.length; bucketIndex++)
       {
         const box = this._boundingBoxes[bucketIndex];
@@ -397,8 +389,8 @@ export class SeekTarget
           }
         }
         const locatorIndex = this._sortedLocators ? this._locatorBucketIndices[data.bucketId][data.locatorIndex] : data.locatorIndex;
-        this.target.GetLocatorPositionFromSet(locatorIndex, false, this.locatorSetName, data.position);
-        this.target.GetLocatorRotationFromSet(locatorIndex, false, this.locatorSetName, data.direction);
+        this.target.GetLocatorPosition(data.position, locatorIndex, false, this.locatorSetName);
+        this.target.GetLocatorDirection(data.direction, locatorIndex, false, this.locatorSetName);
       }
       else if (data.arrived && vec3.exactEquals(agent.target, ORIGIN))
       {
@@ -412,8 +404,8 @@ export class SeekTarget
         else if (this._parent !== null)
         {
           const locatorIndex = Math.floor(Math.random() * this._parent.GetLocatorCount(this.locatorSetName));
-          this._parent.GetLocatorPositionFromSet(locatorIndex, false, this.locatorSetName, data.position);
-          this._parent.GetLocatorRotationFromSet(locatorIndex, false, this.locatorSetName, data.direction);
+          vec3.copy(data.position, this._parent.GetLocatorPositionFromSet(locatorIndex, false, this.locatorSetName));
+          this._parent.GetLocatorDirection(data.direction, locatorIndex, false, this.locatorSetName);
         }
         data.arrived = false;
       }
@@ -516,7 +508,7 @@ export class SeekTarget
     if (this._parent !== null)
     {
       const locatorIndex = Math.floor(Math.random() * this._parent.GetLocatorCount(this.locatorSetName));
-      return this._parent.GetLocatorPositionFromSet(locatorIndex, false, this.locatorSetName, out);
+      return vec3.copy(out, this._parent.GetLocatorPositionFromSet(locatorIndex, false, this.locatorSetName));
     }
     return vec3.set(out, 0, 0, 0);
   }

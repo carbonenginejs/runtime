@@ -868,6 +868,17 @@ test("EveSpaceObject2 answers Carbon locator set queries in object and world spa
   assertVecNear(object.GetLocatorRotationFromSet(0, false, "damage"), [0, 1, 0]);
   assertVecNear(object.GetLocatorRotationFromSet(1, false, "damage"), [0, 0, 1]);
   assertVecNear(object.GetLocatorRotationFromSet(-1, true, "damage"), [0, 1, 0]);
+  // The FromSet wrappers go through Carbon's bool GetLocatorPosition / GetLocatorDirection (cpp:2804-2846, 2960-2989).
+  const locatorOut = new Float32Array(3);
+  assert.equal(object.GetLocatorPosition(locatorOut, 1, true, "damage"), true);
+  assertVecNear(locatorOut, [10, 20, 35]);
+  assert.equal(object.GetLocatorPosition(locatorOut, 9, true, "damage"), false, "missing locator");
+  // A missing locator writes the world translation.
+  assertVecNear(locatorOut, [10, 20, 30]);
+  assert.equal(object.GetLocatorDirection(locatorOut, 1, false, "damage"), true);
+  assertVecNear(locatorOut, [0, 0, 1]);
+  assert.equal(object.GetLocatorDirection(locatorOut, -1, false, "damage"), false);
+  assertVecNear(locatorOut, [0, 1, 0]);
 
   // Close locator ignores facing; index 1 sits nearest the queried point.
   assert.equal(object.GetCloseLocatorIndex([10, 20, 34], "damage"), 1);

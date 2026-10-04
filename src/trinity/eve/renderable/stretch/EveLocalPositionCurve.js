@@ -337,8 +337,7 @@ export class EveLocalPositionCurve extends ITriVectorFunction
   /**
    * POS_NEAREST_FIRING_LOCATOR (EveLocalPositionCurve.cpp:186-202): the world position of the configured locator
    * within the named locator set; out is unchanged when the parent, index or set name is missing, or the parent is
-   * not an EveSpaceObject2. Carbon calls GetLocatorPosition( &out, index, true, setName ) (cpp:193); here that body
-   * is GetLocatorPositionFromSet, which writes out.
+   * not an EveSpaceObject2.
    */
   GetNearestFiringLocator(_time, out)
   {
@@ -347,7 +346,7 @@ export class EveLocalPositionCurve extends ITriVectorFunction
       const target = CjsSchema.cast(this.parent, EveSpaceObject2);
       if (target)
       {
-        target.GetLocatorPositionFromSet(this.locatorIndex, true, this.locatorSetName, out);
+        target.GetLocatorPosition(out, this.locatorIndex, true, this.locatorSetName);
       }
     }
     return out;
