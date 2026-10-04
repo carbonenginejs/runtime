@@ -612,7 +612,7 @@ test("TriStepSetView gives view precedence and updates camera before emitting in
   const view = { GetTransform: () => viewTransform };
   const camera = {
     Update(time, aspectRatio, realTime) { cameraUpdates++; this.time = time; this.aspectRatio = aspectRatio; this.realTime = realTime; },
-    GetViewMatrix: () => ({ GetTransform: () => cameraTransform })
+    GetViewMatrix: () => cameraTransform
   };
   const setView = new TriStepSetView();
   setView.__init__(view, camera);

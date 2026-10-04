@@ -55,25 +55,15 @@ export class TriStepSetView extends TriRenderStep
   {
     if (this.view)
     {
-      renderContext.SetViewTransform(TriStepSetView.#getTransform(this.view), this.view);
+      renderContext.SetViewTransform(this.view.GetTransform(), this.view);
     }
     else if (this.camera)
     {
       const viewport = renderContext.GetViewport();
       const aspectRatio = viewport?.height ? viewport.width / viewport.height : 1;
       this.camera.Update(simTime, aspectRatio, realTime);
-      const viewMatrix = this.camera.GetViewMatrix?.() ?? this.camera.viewMatrix ?? null;
-      renderContext.SetViewTransform(TriStepSetView.#getTransform(viewMatrix), this.camera);
+      renderContext.SetViewTransform(this.camera.GetViewMatrix(), this.camera);
     }
     return TriRenderJob.StepResult.RS_OK;
-  }
-
-  /**
-   * Unwraps a transform from a GetTransform() accessor or a transform property,
-   * falling back to the value itself when it already is the matrix.
-   */
-  static #getTransform(value)
-  {
-    return value?.GetTransform?.() ?? value?.transform ?? value ?? null;
   }
 }
