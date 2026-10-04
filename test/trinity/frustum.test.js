@@ -29,6 +29,7 @@ import {
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";
+import { box3 } from "../../npm/dist/global/math/box3.js";
 
 const FLOAT_MAX = 3.4028234663852886e38;
 
@@ -306,8 +307,8 @@ test("TriFrustum.IsBoxVisible agrees with corner sampling for boxes straddling e
     // default planes.
     const min = [onPlane[0] - half, onPlane[1] - half, onPlane[2] - half];
     const max = [onPlane[0] + half, onPlane[1] + half, onPlane[2] + half];
-    assert.equal(frustum.IsBoxVisible(min, max), true, `plane ${planeIndex}: straddling box visible`);
-    assert.equal(frustum.IsBoxVisible({ min, max }), true, `plane ${planeIndex}: AABB duck overload`);
+    assert.equal(frustum.IsBoxVisible_BoundsMinMax(min, max), true, `plane ${planeIndex}: straddling box visible`);
+    assert.equal(frustum.IsBoxVisible(Float32Array.of(...min, ...max)), true, `plane ${planeIndex}: AABB overload`);
     if (planeIndex !== TriFrustum.PLANE_BACK)
     {
       const probe = [onPlane[0] + n[0] * 2, onPlane[1] + n[1] * 2, onPlane[2] + n[2] * 2];
@@ -319,7 +320,7 @@ test("TriFrustum.IsBoxVisible agrees with corner sampling for boxes straddling e
     const reach = half * (Math.abs(n[0]) + Math.abs(n[1]) + Math.abs(n[2])) + delta;
     const outMin = [min[0] - n[0] * reach, min[1] - n[1] * reach, min[2] - n[2] * reach];
     const outMax = [max[0] - n[0] * reach, max[1] - n[1] * reach, max[2] - n[2] * reach];
-    assert.equal(frustum.IsBoxVisible(outMin, outMax), false, `plane ${planeIndex}: fully-outside box invisible`);
+    assert.equal(frustum.IsBoxVisible_BoundsMinMax(outMin, outMax), false, `plane ${planeIndex}: fully-outside box invisible`);
     for (const corner of cornersOf(outMin, outMax))
     {
       assert.equal(OraclePointVisible(view, projection, corner, true), false,
@@ -327,9 +328,8 @@ test("TriFrustum.IsBoxVisible agrees with corner sampling for boxes straddling e
     }
   }
 
-  // Missing/uninitialized AABB duck is not visible (Carbon cpp:225-232).
-  assert.equal(frustum.IsBoxVisible(null), false);
-  assert.equal(frustum.IsBoxVisible({}), false);
+  // An empty AABB is not visible (Carbon cpp:225-232).
+  assert.equal(frustum.IsBoxVisible(box3.create()), false);
 });
 
 // --- TriFrustum: pixel sizes -------------------------------------------------

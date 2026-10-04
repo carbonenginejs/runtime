@@ -148,7 +148,7 @@ class VisibleFrustum extends TriFrustum
     return true;
   }
 
-  IsBoxVisible()
+  IsBoxVisible_BoundsMinMax()
   {
     return true;
   }

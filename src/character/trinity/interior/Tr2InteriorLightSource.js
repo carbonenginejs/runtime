@@ -222,7 +222,7 @@ export class Tr2InteriorLightSource
   {
     if (!this.primaryLighting) return false;
     if (outObjectToWorld) mat4.fromTranslation(outObjectToWorld, this.position);
-    return frustum.IsBoxVisible(this._boundsMin, this._boundsMax);
+    return frustum.IsBoxVisible_BoundsMinMax(this._boundsMin, this._boundsMax);
   }
 
   /** cpp:61 / cpp:81-91: the axis-aligned box at position ± radius, raw radius. */

@@ -83,7 +83,7 @@ test("IsInFrustum gates on primaryLighting and tests the position box", () =>
     const calls = [];
     const frustum = new (class extends TriFrustum
     {
-        IsBoxVisible(min, max)
+        IsBoxVisible_BoundsMinMax(min, max)
         {
             calls.push([ [ ...min ], [ ...max ] ]);
             return true;

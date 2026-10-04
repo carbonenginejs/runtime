@@ -55,7 +55,6 @@ const LOCAL_VIEW_SCRATCH = vec3.create();
 const INSTANCE_SPHERE_SCRATCH = vec4.create();
 const SHADOW_SPHERE_SCRATCH = vec4.create();
 const BOX_CORNER_SCRATCH = vec3.create();
-const BOX_QUERY_SCRATCH = { min: vec3.create(), max: vec3.create() };
 const ZERO_VEC3 = vec3.create();
 
 // Carbon's (nullptr, 0) bone result - frozen so callers cannot mutate it.
@@ -1194,10 +1193,8 @@ export class EveChildMesh extends EveChildTransform
       this.currentScreenSize *= invLodFactor;
       this.currentInstanceScreenSize *= invLodFactor;
 
-      BOX_QUERY_SCRATCH.min = this._worldBoundsMin;
-      BOX_QUERY_SCRATCH.max = this._worldBoundsMax;
       const boxVisible = this._worldBoundsValid &&
-        (frustum?.IsBoxVisible ? !!frustum.IsBoxVisible(BOX_QUERY_SCRATCH) : true);
+        (frustum?.IsBoxVisible_BoundsMinMax ? !!frustum.IsBoxVisible_BoundsMinMax(this._worldBoundsMin, this._worldBoundsMax) : true);
 
       if (boxVisible)
       {

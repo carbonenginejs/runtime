@@ -223,41 +223,30 @@ export class TriFrustum
   }
 
   /**
-   * Carbon's two IsBoxVisible overloads (cpp:187-232): (boundsMin, boundsMax),
-   * a packed core-math box3, or an AABB duck ({ min, max }; a missing or
-   * uninitialized box is not visible). Frustum-AABB test via the positive
-   * vertex; may return false positives, never false negatives.
-   * @param {Float32Array|Object} boundsMinOrBox
-   * @param {Float32Array} [boundsMax]
+   * Carbon's IsBoxVisible( const CcpMath::AxisAlignedBox& aabb ) (cpp:187): a
+   * packed box3; an empty box is not visible.
+   * @param {Float32Array} aabb - box3
    * @returns {Boolean}
    */
-  IsBoxVisible(boundsMinOrBox, boundsMax = null)
+  IsBoxVisible(aabb)
   {
-    let min = boundsMinOrBox;
-    let max = boundsMax;
-    if (!boundsMax)
+    if (box3.isEmpty(aabb))
     {
-      const box = boundsMinOrBox;
-      if (box?.length === 6)
-      {
-        if (box3.isEmpty(box))
-        {
-          return false;
-        }
-        min = box3.$min(box);
-        max = box3.$max(box);
-      }
-      else if (box?.min && box?.max)
-      {
-        min = box.min;
-        max = box.max;
-      }
-      else
-      {
-        return false;
-      }
+      return false;
     }
+    return this.IsBoxVisible_BoundsMinMax(box3.$min(aabb), box3.$max(aabb));
+  }
 
+  /**
+   * Carbon's IsBoxVisible( boundsMin, boundsMax ) (cpp:187-232), named by the
+   * parameters that replace aabb (docs 22d1237, 2b749d3). Frustum-AABB test via
+   * the positive vertex; may return false positives, never false negatives.
+   * @param {Float32Array} min - boundsMin
+   * @param {Float32Array} max - boundsMax
+   * @returns {Boolean}
+   */
+  IsBoxVisible_BoundsMinMax(min, max)
+  {
     for (let i = 0; i < TriFrustum.PLANE_COUNT; i++)
     {
       const plane = this.planes[i];
