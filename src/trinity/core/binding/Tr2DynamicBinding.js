@@ -137,12 +137,12 @@ export class Tr2DynamicBinding extends INotify
     Object.defineProperty(this, "source", {
       configurable: true,
       enumerable: true,
-      get: () => this._sourceRef?.deref?.() ?? null
+      get: () => this._sourceRef ? this._sourceRef.deref() ?? null : null
     });
     Object.defineProperty(this, "destination", {
       configurable: true,
       enumerable: true,
-      get: () => this._destinationRef?.deref?.() ?? null
+      get: () => this._destinationRef ? this._destinationRef.deref() ?? null : null
     });
   }
 
