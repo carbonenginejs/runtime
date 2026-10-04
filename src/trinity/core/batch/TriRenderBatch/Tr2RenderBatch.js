@@ -308,15 +308,25 @@ export class Tr2RenderBatch
     this.renderingMode = mode;
   }
 
-  // Carbon overloads SetPickingData(data) and SetPickingData(meshIndex, areaIndex).
+  /**
+   * Carbon's SetPickingData( pickingData ) (TriRenderBatch.cpp:169).
+   * @param {number} pickingData uint32 picking value.
+   */
+  SetPickingData(pickingData)
+  {
+    this.pickingData = pickingData >>> 0;
+  }
 
   /**
-   * Stores picking data either as a raw value or, when a second argument is
-   * given, as the mesh index shifted above the low byte of the area index.
+   * Carbon's SetPickingData( meshIndex, areaIndex ) (TriRenderBatch.cpp:174):
+   * the mesh index shifted above the low byte of the area index. Named by the
+   * parameters that replace pickingData (docs 22d1237).
+   * @param {number} meshIndex
+   * @param {number} areaIndex
    */
-  SetPickingData(a, b)
+  SetPickingDataMeshArea(meshIndex, areaIndex)
   {
-    this.pickingData = (b === undefined) ? (a >>> 0) : (((a << 8) | (b & 0xff)) >>> 0);
+    this.SetPickingData((meshIndex << 8) | (areaIndex & 0xff));
   }
 
   // A batch is valid iff it has a shader (i.e. SetMaterial was called with a

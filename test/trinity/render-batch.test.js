@@ -81,7 +81,7 @@ test("SetPickingData supports the direct and (meshIndex, areaIndex) forms", () =
   batch.SetPickingData(0x1234);
   assert.equal(batch.pickingData, 0x1234);
 
-  batch.SetPickingData(5, 0xab);
+  batch.SetPickingDataMeshArea(5, 0xab);
   assert.equal(batch.pickingData, (5 << 8) | 0xab);
 });
 

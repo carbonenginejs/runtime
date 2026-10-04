@@ -642,7 +642,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
       batch.SetMaterial(material);
       if (!batch.IsValid()) continue;
       batch.SetPerObjectData(perObjectData);
-      batch.SetPickingData(mesh.GetMeshIndex(), area.GetIndex());
+      batch.SetPickingDataMeshArea(mesh.GetMeshIndex(), area.GetIndex());
       batch.SetGeometryFromAllocations(group.GetVertexDeclarationHandle(), lod.vertexAllocation,
         reversed ? lod.reversedIndexAllocation : lod.indexAllocation);
       batch.SetStreamSource(1, this._shipInstanceBuffer, this._shipStride);
