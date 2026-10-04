@@ -67,6 +67,8 @@ function sceneRecording(calls)
     GetPerFrameVSData() { return null; },
     PopulatePerFrameVSData() { calls.push([ "PopulatePerFrameVSData" ]); },
     ApplyPerFrameData() { calls.push([ "ApplyPerFrameData" ]); },
+    // The scene-side tail of BeginRender (EveSpaceScene.cpp:1427-1436).
+    BeginRender(_enableDistortion, renderContext) { this.PopulatePerFramePSData(this.GetPerFramePSData(), renderContext); this.PopulatePerFrameVSData(this.GetPerFrameVSData(), renderContext); this.ApplyPerFrameData(renderContext); },
     RenderBackgroundPass() { calls.push([ "RenderBackgroundPass" ]); return false; },
     StampFrameContext(values) { calls.push([ "StampFrameContext", values ]); },
     // BeginRender's jitter and EndRender's last-frame store (cpp:1329, 2866-2868),

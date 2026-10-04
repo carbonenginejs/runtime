@@ -695,27 +695,11 @@ export class EveSpaceSceneRenderDriver
 
     if (offscreen) offscreen.velocity = this._GetVelocityMapIfNeeded(offscreen.size);
 
-    // "The lensflares need a special pre-render update" (cpp:1419-1422): after
-    // the gather and lights, before the per-frame fills, against this frame's
-    // frustum.
-    for (const lensflare of this.scene.lensflares ?? []) lensflare.PrepareRender(this.#frustum, renderContext);
-
-    // Carbon populates per-frame data AFTER the gather, because the blended sun
-    // colour is only current once lights have been gathered (cpp:1396-1426),
-    // and BEFORE the render job's steps draw the batches. RenderBatches draws
-    // immediately now - Carbon's shape - so the blocks must be populated AND
-    // BOUND here, between the gather and the submission.
-    //
-    // No explicit null for the fills' `frame`: a default parameter replaces only
-    // undefined, and with null both fills threw on their first field read, so
-    // every frame of a real EveSpaceScene died here.
-    this.scene.PopulatePerFramePSData?.(this.scene.GetPerFramePSData(), renderContext);
-    this.scene.PopulatePerFrameVSData?.(this.scene.GetPerFrameVSData(), renderContext);
-
-    // The scene's own apply (EveSpaceScene::ApplyPerFrameData, cpp:818-828),
-    // not the generic Tr2BindPerFrame*Data: the space scene binds its vertex
-    // block for compute as well, which dynamic exposure reads Time from.
-    this.scene.ApplyPerFrameData(renderContext);
+    // BeginRender's tail, which lives on the scene (EveSpaceScene.cpp:1427-1436):
+    // the lensflare pre-render update, then the per-frame fills and their apply,
+    // after the gather and lights and BEFORE the batches are drawn. RenderBatches
+    // draws immediately - Carbon's shape - so the blocks must be bound here.
+    this.scene.BeginRender(this.enableDistortion, renderContext);
 
     // THE BACKGROUND PASS (cpp:502-511): the nebula and the rest of the
     // background, into the scene colour before the depth pass, with the

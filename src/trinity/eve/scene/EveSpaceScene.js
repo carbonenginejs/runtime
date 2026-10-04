@@ -3077,6 +3077,34 @@ export class EveSpaceScene
   }
 
   /**
+   * Carbon's EveSpaceScene::BeginRender( enableDistortion, renderContext )
+   * (cpp:1308-1436) - PARTIAL: only its tail is here (cpp:1427-1436): the
+   * lensflares' pre-render update against this frame's frustum, then the
+   * per-frame PS and VS fills and ApplyPerFrameData. Carbon populates after the
+   * gather because the blended sun colour is only current once lights have been
+   * gathered. The earlier part of Carbon's body (display gate, SH lighting,
+   * data textures, jitter, the lighting-override blend, fog settings, managed
+   * rendering, light manager, gather, raytraced shadows, UpdateVariableStore,
+   * light gather) still runs in EveSpaceSceneRenderDriver.#RenderMainPass.
+   *
+   * @param {boolean} _enableDistortion - Carbon's gather flag; the gather is
+   *   not in this part yet
+   * @param {Object} renderContext - the frame's Tr2RenderContext
+   * @returns {void}
+   */
+  @meta.blue.method
+  @meta.adapted
+  @meta.reason("Only the tail of Carbon's BeginRender has moved here; the rest is still in the render driver.")
+  BeginRender(_enableDistortion, renderContext)
+  {
+    for (const lensflare of this.lensflares) lensflare.PrepareRender(this.updateContext.GetFrustum(), renderContext);
+
+    this.PopulatePerFramePSData(this._perFramePS, renderContext);
+    this.PopulatePerFrameVSData(this._perFrameVS, renderContext);
+    this.ApplyPerFrameData(renderContext);
+  }
+
+  /**
    * Carbon's PopulatePerFramePSData( data, renderContext ) (cpp:3084): fills
    * data with the scene's own cascaded shadow map.
    *
