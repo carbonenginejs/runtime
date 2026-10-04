@@ -907,8 +907,11 @@ test("EveSwarmRenderable copies transforms and shared ship shader data", () =>
 
   const decal = new EveSpaceObjectDecal();
   decal.name = "swarm decal";
+  decal.minScreenSize = 12;
   renderable.InitDecals([decal]);
-  assert.equal(renderable.decals[0].name, "swarm decal");
+  // Carbon CopyFrom (EveSpaceObjectDecal.cpp:388-400) copies the authored members, not the name.
+  assert.equal(renderable.decals[0].minScreenSize, 12);
+  assert.equal(renderable.decals[0].name, "");
   assert.ok(renderable.decals[0] instanceof EveSpaceObjectDecal);
   assert.notEqual(renderable.decals[0], decal);
   renderable.SetShaderOption("QUALITY", "HIGH");

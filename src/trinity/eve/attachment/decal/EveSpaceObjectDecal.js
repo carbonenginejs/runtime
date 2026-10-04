@@ -196,27 +196,25 @@ export class EveSpaceObjectDecal
   }
 
   /**
-   * Carbon CopyFrom (EveSpaceObjectDecal.cpp:388-400): copies another decal's authored description - display,
-   * placement, bone index, minimum screen size and effect - and its decal matrix; the per-LOD index buffers are not
-   * copied.
-   *
-   * Adapted: name and batchType are copied too, the decal matrix is rebuilt from the copied placement rather than
-   * copied, and m_geometryLodIndex is not copied. Returns whether the matrix rebuilt.
+   * Carbon CopyFrom (EveSpaceObjectDecal.cpp:388-400): copies exactly display, placement, bone index, geometry LOD
+   * index, the decal matrix and its inverse, effect and minimum screen size. The name, batch type and per-LOD index
+   * buffers are not copied.
+   * @param {EveSpaceObjectDecal} source
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   CopyFrom(source)
   {
-    this.name = source.name;
     this.display = source.display;
     vec3.copy(this.position, source.position);
     quat.copy(this.rotation, source.rotation);
     vec3.copy(this.scaling, source.scaling);
     this.parentBoneIndex = source.parentBoneIndex;
-    this.minScreenSize = source.minScreenSize;
+    this._geometryLodIndex = source._geometryLodIndex;
+    mat4.copy(this._decalMatrix, source._decalMatrix);
+    mat4.copy(this._inverseDecalMatrix, source._inverseDecalMatrix);
     this.decalEffect = source.decalEffect;
-    this.batchType = source.batchType;
-    return this._updateDecalMatrix();
+    this.minScreenSize = source.minScreenSize;
   }
 
   /**
@@ -231,16 +229,15 @@ export class EveSpaceObjectDecal
   }
 
   /**
-   * Carbon SetPosition (EveSpaceObjectDecal.cpp:532-535): sets the authored decal position.
-   *
-   * Adapted: the decal matrix is rebuilt at once; Carbon rebuilds it on the next Initialize or OnModified.
+   * Carbon SetPosition (EveSpaceObjectDecal.cpp:532-535): assigns the authored decal position only. The decal matrix
+   * follows at the next Initialize or OnModified, as when Carbon's SOF sets the placement and then initializes the
+   * decal.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   SetPosition(value)
   {
     vec3.copy(this.position, value);
-    return this._updateDecalMatrix();
   }
 
   /**
@@ -255,16 +252,15 @@ export class EveSpaceObjectDecal
   }
 
   /**
-   * Carbon SetRotation (EveSpaceObjectDecal.cpp:550-553): sets the authored decal rotation.
-   *
-   * Adapted: the decal matrix is rebuilt at once; Carbon rebuilds it on the next Initialize or OnModified.
+   * Carbon SetRotation (EveSpaceObjectDecal.cpp:550-553): assigns the authored decal rotation only. The decal matrix
+   * follows at the next Initialize or OnModified, as when Carbon's SOF sets the placement and then initializes the
+   * decal.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   SetRotation(value)
   {
     quat.copy(this.rotation, value);
-    return this._updateDecalMatrix();
   }
 
   /**
@@ -301,16 +297,15 @@ export class EveSpaceObjectDecal
   }
 
   /**
-   * Carbon SetScaling (EveSpaceObjectDecal.cpp:568-571): sets the authored decal scaling.
-   *
-   * Adapted: the decal matrix is rebuilt at once; Carbon rebuilds it on the next Initialize or OnModified.
+   * Carbon SetScaling (EveSpaceObjectDecal.cpp:568-571): assigns the authored decal scaling only. The decal matrix
+   * follows at the next Initialize or OnModified, as when Carbon's SOF sets the placement and then initializes the
+   * decal.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   SetScaling(value)
   {
     vec3.copy(this.scaling, value);
-    return this._updateDecalMatrix();
   }
 
   /**

@@ -370,9 +370,13 @@ test("EveSpaceObjectDecal keeps Carbon graph state and private SOF indices CPU-o
 
   const clone = new EveSpaceObjectDecal();
   clone.SetIndices([[1, 2, 3]]);
-  assertEquals(clone.CopyFrom(decal), true);
+  clone.name = "kept";
+  clone.CopyFrom(decal);
   assertEquals(clone.hasStaticIndexBuffers, true, "CopyFrom preserves the destination's private SOF indices");
   assertVec3(clone.position, [1, 2, 3]);
+  // Carbon cpp:388-400 copies the decal matrix itself, and not the name.
+  assertMat4(clone.GetDecalMatrix(), decal.GetDecalMatrix());
+  assertEquals(clone.name, "kept");
   decal.SetIndices(null);
   assertEquals(decal.hasStaticIndexBuffers, false);
 });
