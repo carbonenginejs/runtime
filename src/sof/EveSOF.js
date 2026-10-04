@@ -2171,7 +2171,12 @@ export class EveSOF
         if (animationId !== -1)
         {
           if (!emitterTargetsById.has(animationId)) emitterTargetsById.set(animationId, []);
-          emitterTargetsById.get(animationId).push(...collectDynamicEmitterRefs(document, ref, descriptor.target));
+          // Carbon keeps transform and space-object-child targets in separate typed
+          // lists and calls the matching overload for each (EveSOF.cpp:2095, :2100).
+          const emitterRefs = descriptor.target === "children"
+            ? RecursiveBindParticleEmitters_EveTransform(document, ref)
+            : RecursiveBindParticleEmitters_EveSpaceObjectChild(document, ref);
+          emitterTargetsById.get(animationId).push(...emitterRefs);
         }
       }
     }
@@ -4811,53 +4816,75 @@ function createInheritProperties(document, dna)
   return document.AddNode("EveChildInheritProperties", fields);
 }
 
-function collectDynamicEmitterRefs(document, rootRef, target)
+/** Appends a node's Tr2DynamicEmitter refs to result, once each. */
+function addDynamicEmitterRefs(document, node, seen, result)
+{
+  for (const ref of Array.isArray(node?.fields?.particleEmitters) ? node.fields.particleEmitters : [])
+  {
+    const emitter = document.GetNode(Number(ref?.$ref));
+    if (emitter?.kind === "Tr2DynamicEmitter" && !seen.has(emitter.id))
+    {
+      seen.add(emitter.id);
+      result.push({ $ref: emitter.id });
+    }
+  }
+}
+
+/**
+ * Carbon's RecursiveBindParticleEmitters( EveTransform* ) (EveSOF.cpp:1921):
+ * the dynamic emitters of a transform and its EveTransform children. Carbon
+ * binds them to the hull animation curve as it walks; the document form
+ * returns their refs for the caller to bind.
+ * @returns {Array<{ $ref: number }>}
+ */
+function RecursiveBindParticleEmitters_EveTransform(document, rootRef)
 {
   const result = [];
   const seen = new Set();
-  const addEmitters = node =>
-  {
-    for (const ref of Array.isArray(node?.fields?.particleEmitters) ? node.fields.particleEmitters : [])
-    {
-      const emitter = document.GetNode(Number(ref?.$ref));
-      if (emitter?.kind === "Tr2DynamicEmitter" && !seen.has(emitter.id))
-      {
-        seen.add(emitter.id);
-        result.push({ $ref: emitter.id });
-      }
-    }
-  };
-  const visitTransform = ref =>
+  const visit = ref =>
   {
     const node = document.GetNode(Number(ref?.$ref));
     if (!node || seen.has(`transform:${node.id}`)) return;
     seen.add(`transform:${node.id}`);
-    addEmitters(node);
+    addDynamicEmitterRefs(document, node, seen, result);
     for (const childRef of Array.isArray(node.fields?.children) ? node.fields.children : [])
     {
       const child = document.GetNode(Number(childRef?.$ref));
-      if (child?.kind === "EveTransform") visitTransform(childRef);
+      if (child?.kind === "EveTransform") visit(childRef);
     }
   };
-  const visitEffectChild = ref =>
+  visit(rootRef);
+  return result;
+}
+
+/**
+ * Carbon's RecursiveBindParticleEmitters( EveSpaceObjectChild* )
+ * (EveSOF.cpp:1950): the dynamic emitters of a particle-system child, or of the
+ * children of a child container. Returns refs as the EveTransform form does.
+ * @returns {Array<{ $ref: number }>}
+ */
+function RecursiveBindParticleEmitters_EveSpaceObjectChild(document, rootRef)
+{
+  const result = [];
+  const seen = new Set();
+  const visit = ref =>
   {
     const node = document.GetNode(Number(ref?.$ref));
     if (!node || seen.has(`effect:${node.id}`)) return;
     seen.add(`effect:${node.id}`);
     if (node.kind === "EveChildParticleSystem")
     {
-      addEmitters(node);
+      addDynamicEmitterRefs(document, node, seen, result);
     }
     else if (node.kind === "EveChildContainer")
     {
       for (const childRef of Array.isArray(node.fields?.objects) ? node.fields.objects : [])
       {
-        visitEffectChild(childRef);
+        visit(childRef);
       }
     }
   };
-  if (target === "children") visitTransform(rootRef);
-  else visitEffectChild(rootRef);
+  visit(rootRef);
   return result;
 }
 
