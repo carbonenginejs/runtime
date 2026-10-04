@@ -5,6 +5,7 @@ import { Tr2ColorSpace } from "#consts/render-context";
 import { ITr2EffectValue, ResourceFlags } from "../../shader/parameter/ITr2EffectValue.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 import { RealizeTexture } from "../Tr2ImageIOHelpers.js";
+import { float32FromBits } from "#utils/bytes";
 
 
 /**
@@ -380,7 +381,10 @@ export class TriVariable extends ITr2EffectValue
 
     if (typeof source === "number")
     {
-      destination[0] = source;
+      // An INT is memcpy'd (TriVariable.cpp:136-139): the shader reads its BITS
+      // (asuint), so the float mirror takes the integer's bit pattern, not its value.
+      // The picking pointer's low/high words (Tr2RenderContext.cpp:921-933) travel this way.
+      destination[0] = this.contentType === TriVariableContentType.TRIVARIABLE_INT ? float32FromBits(source) : source;
       return true;
     }
 
