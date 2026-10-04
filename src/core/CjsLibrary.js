@@ -3,6 +3,7 @@ import { CjsSchema, meta } from "#schema";
 import { TnyInputMan } from "#input";
 import { TnyCameraControls } from "./cameras/TnyCameraControls.js";
 import { TnyTransformGizmo } from "./gizmos/TnyTransformGizmo.js";
+import { CjsOverlay2D } from "./overlay/CjsOverlay2D.js";
 
 let activeLibrary = null;
 
@@ -31,6 +32,12 @@ export class CjsLibrary
   CreateTransformGizmo(options)
   {
     return new TnyTransformGizmo(options);
+  }
+
+  /** Creates the 2D overlay canvas over a 3D canvas; it draws on Blue ticks. */
+  CreateOverlay2D(options)
+  {
+    return new CjsOverlay2D(options);
   }
   /** In-flight initialization; concurrent calls share the first configuration. */
   _initialization = null;
@@ -100,7 +107,8 @@ export class CjsLibrary
 CjsSchema.define(CjsLibrary, {
   className: "CjsLibrary", fields: {},
   methods: { Initialize: [meta.ours], Shutdown: [meta.ours], Fetch: [meta.ours],
-    CreateInputManager: [meta.ours], CreateCameraControls: [meta.ours], CreateTransformGizmo: [meta.ours] }
+    CreateInputManager: [meta.ours], CreateCameraControls: [meta.ours], CreateTransformGizmo: [meta.ours],
+    CreateOverlay2D: [meta.ours] }
 });
 
 export default CjsLibrary;
