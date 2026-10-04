@@ -124,19 +124,26 @@ export class BackAndForth
     return "BackAndForth";
   }
 
-  /** Per-agent scratch record count (Carbon sizeof(BackAndForthData)). */
+  /**
+   * Per-agent scratch record count (Carbon sizeof(BackAndForthData)).
+   *
+   * Adapted: Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero
+   * value means 'has scratch'.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero value means 'has scratch'.")
   GetScratchMemorySize()
   {
     return 1;
   }
 
-  /** Fresh per-agent scratch record (Carbon BackAndForthData placement init). */
+  /**
+   * Fresh per-agent scratch record (Carbon BackAndForthData placement init).
+   *
+   * Adapted: Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.")
   InitializeScratch()
   {
     return {
@@ -161,10 +168,12 @@ export class BackAndForth
    * @param {Object} system - owning EveChildBehaviorSystem
    * @param {Array} _dronesInSearchRadius - unused
    * @returns {Array} empty (as Carbon)
+   *
+   * Adapted: TriRandInt maps to Math.random and Be::Time fx timestamps to Date.now seconds; the steering math is
+   * ported verbatim.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("TriRandInt maps to Math.random and Be::Time fx timestamps to Date.now seconds; the steering math is ported verbatim.")
   CalculateBehavior(agents, scratchData, deltaTime, group, system, _dronesInSearchRadius)
   {
     if (!this.enabled)
@@ -225,7 +234,7 @@ export class BackAndForth
         if (data.arrived && this.parent)
         {
           // Pick a new locator to go to
-          const count = Number(this.parent.GetLocatorCount?.(this.locatorSetName) ?? 0);
+          const count = this.parent.GetLocatorCount(this.locatorSetName);
           data.locatorIndex = Math.floor(Math.random() * Math.max(count, 1));
         }
 
@@ -237,7 +246,7 @@ export class BackAndForth
         if (data.arrived && this.target)
         {
           // Pick a new locator to go to
-          const count = Number(this.target.GetLocatorCount?.(this.locatorSetName) ?? 0);
+          const count = this.target.GetLocatorCount(this.locatorSetName);
           data.locatorIndex = Math.floor(Math.random() * Math.max(count, 1));
         }
 
@@ -339,7 +348,7 @@ export class BackAndForth
   {
     for (const set of this.locatorSet)
     {
-      if (set?.HasName?.(setName))
+      if (set.HasName(setName))
       {
         return set.GetLocators();
       }
