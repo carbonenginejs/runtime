@@ -4,6 +4,7 @@ import { meta } from "#schema";
 import { RenderingMode, TriBatchType } from "#consts/graphics";
 import { EffectKeyGenerator, TriRenderBatchAccumulator } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2VariableStore } from "../../../core/variable/Tr2VariableStore.js";
+import { TriVariableContentType } from "../../../generated/trinityCore/enums.js";
 import { EveUpdateContext } from "../../EveUpdateContext.js";
 
 /** The bits of a uint32 read as a float32: Carbon's `*reinterpret_cast<float*>( &bufferOffset )`. */
@@ -46,10 +47,9 @@ export class EveOccluder
    * The sprites' shader (lensflareoccluder) adds each covered pixel, and each
    * pixel with nothing in front, into the two counters at the slot.
    *
-   * Adapted in two places: the accumulator's pool allocator is bound per
-   * call from the render context (Carbon's constructor takes Tr2Renderer's,
-   * cpp:136-137), and the float globals are set through _RegisterFloat,
-   * because our store refuses to re-register a whole float.
+   * Adapted: the accumulator's pool allocator is bound per call from the
+   * render context (Carbon's constructor takes Tr2Renderer's, cpp:136-137).
+   * The two globals are Carbon's float overload, so their type is stated.
    *
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @param {EveUpdateContext} updateContext The scene's update context.
@@ -65,8 +65,8 @@ export class EveOccluder
     if (!this.display) return;
 
     const store = Tr2VariableStore.globalStore();
-    EveOccluder._RegisterFloat(store, "OcclusionBufferOffset", bitsAsFloat(bufferOffset));
-    EveOccluder._RegisterFloat(store, "OcclusionFogWeight", fogWeight);
+    store.RegisterVariableType("OcclusionBufferOffset", TriVariableContentType.TRIVARIABLE_FLOAT).SetValue(bitsAsFloat(bufferOffset));
+    store.RegisterVariableType("OcclusionFogWeight", TriVariableContentType.TRIVARIABLE_FLOAT).SetValue(fogWeight);
 
     renderContext.GetEffectStateManager().ApplyStandardStates(RenderingMode.RM_OPAQUE);
 
@@ -95,16 +95,6 @@ export class EveOccluder
 
     renderContext.RenderBatches(batches);
     batches.Clear();
-  }
-
-  /**
-   * GlobalStore().RegisterVariable( name, float ). A float that happens to be
-   * whole (0, 1) reads as an int to TriVariable.getVariableType and the
-   * re-registration is refused, so the existing variable takes the value.
-   */
-  static _RegisterFloat(store, name, value)
-  {
-    if (!store.RegisterVariable(name, value)) store.FindVariable(name).SetValue(value);
   }
 
   /** Carbon's stack-local `EveUpdateContext dummyContext` (cpp:166). */

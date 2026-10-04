@@ -38,6 +38,7 @@ import { BackgroundRenderingReason } from "../../generated/eve/enums.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
 import { Tr2OcclusionBuffer } from "../effect/lensflare/Tr2OcclusionBuffer.js";
 import { Tr2VariableStore } from "../../core/variable/Tr2VariableStore.js";
+import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 import { Tr2TextureReference } from "../../core/Tr2TextureReference.js";
 import { Tr2RingBuffer } from "../../core/device/Tr2RingBuffer/Tr2RingBuffer.js";
 import { ResourceRequirement } from "#resource";
@@ -1601,6 +1602,7 @@ export class EveSpaceScene
   /** Registers the bone provider before effect hydration (EveSpaceScene.cpp:257-258). */
   constructor()
   {
+    this._nebulaIntensityHandle.SetValue(1);
     for (const list of [this.backgroundObjects, this.planets, this.objects, this.uiObjects]) list.SetNotify(this);
     const bones = Tr2RingBuffer.GetInstance("Float4x3", 48, Tr2RenderContext_GetMainThreadRenderContext());
     bones.SetName("BoneTransformsBuffer");
@@ -1633,8 +1635,8 @@ export class EveSpaceScene
 
   _reflectionMaskMapHandle = Tr2VariableStore.globalStore().RegisterVariable("ReflectionMaskMap", new Tr2TextureReference());
 
-  /** m_nebulaIntensityVar: "NebulaIntensity" (cpp:202), which the background effect reads. */
-  _nebulaIntensityHandle = Tr2VariableStore.globalStore().RegisterVariable("NebulaIntensity", 1);
+  /** m_nebulaIntensityVar: the float "NebulaIntensity" (cpp:202), which the background effect reads. */
+  _nebulaIntensityHandle = Tr2VariableStore.globalStore().RegisterVariableType("NebulaIntensity", TriVariableContentType.TRIVARIABLE_FLOAT);
 
   /**
    * m_velocityMapDirty (EveSpaceScene.h:476): whether the background pass has

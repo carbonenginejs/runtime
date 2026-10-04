@@ -113,6 +113,13 @@ export class Tr2VariableStore
    * inference and Boolean conversion instead of Python argument extraction.
    * The raw AL overload copies into a texture reference without broadcasting
    * (Tr2VariableStore.cpp:219-237); explicit copying replaces C++ assignment.
+   *
+   * This ports the Python bridge (PyRegisterVariable), which picks Carbon's
+   * C++ overload from the value. JavaScript cannot express two of those
+   * choices: a whole float (`0`, `1`) registers as an int, and a colour
+   * registers as FLOAT4 (as from Python, where the colour branch is
+   * unreachable, CE-53). Callers that know the type state it instead:
+   * `RegisterVariableType(name, TRIVARIABLE_FLOAT).SetValue(value)`.
    * @param {string} name Local variable name.
    * @param {*} [value] Optional script value; nullish values reserve the name.
    * @returns {TriVariable|null} Registered variable, or unsupported type/conflict.
@@ -123,7 +130,7 @@ export class Tr2VariableStore
   {
     if (value === undefined || value === null)
     {
-      return this._RegisterVariableType(name, TriVariableContentType.TRIVARIABLE_INVALID);
+      return this.RegisterVariableType(name, TriVariableContentType.TRIVARIABLE_INVALID);
     }
     const texture = CjsSchema.cast(value, Tr2TextureAL);
     if (texture)
@@ -147,7 +154,7 @@ export class Tr2VariableStore
     {
       return null;
     }
-    const variable = this._RegisterVariableType(name, contentType);
+    const variable = this.RegisterVariableType(name, contentType);
     variable?.SetValue(typeof value === "boolean" ? Number(value) : value);
     return variable;
   }
@@ -277,21 +284,24 @@ export class Tr2VariableStore
     return [...this._variables.values()].map(variable => variable.GetName());
   }
 
-  // Carbon RegisterVariableType: reuse an existing local variable when the
-  // type matches or was only reserved; a hard type conflict returns null.
-
   /**
-   * Reuses an existing local variable when its type matches or was only reserved
-   * as INVALID, returns null on a hard type conflict, and otherwise creates the
-   * local variable.
-   * Adapted: preserves the existing conflict result without Carbon's log and
-   * development assertion; diagnostic parity remains a held gap.
+   * Registers a variable of a stated type (Tr2VariableStore.cpp, private in
+   * Carbon): reuses an existing local variable when its type matches or was
+   * only reserved as INVALID, returns null on a hard type conflict, and
+   * otherwise creates the local variable, which holds no value until SetValue.
+   *
+   * Adapted: public here. Every C++ RegisterVariable overload computes its
+   * TriVariableContentType from the static type and funnels into this method
+   * (RegisterVariableInternal, Tr2VariableStore.h:70-80); JavaScript has no
+   * static types, so callers that know the type call this and then SetValue.
+   * The conflict result keeps Carbon's null without its log and development
+   * assertion.
    * @param {string} name Local key.
    * @param {number} contentType Native TriVariableContentType.
    * @returns {TriVariable|null} Reused or created variable, or type conflict.
    */
   @meta.adapted
-  _RegisterVariableType(name, contentType)
+  RegisterVariableType(name, contentType)
   {
     const existing = this.FindLocalVariable(name);
     if (existing)

@@ -375,9 +375,9 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     super();
     this._variableStore.RegisterVariable("LightMap", this._emptyLightMap);
     this._variableStore.RegisterVariable("LightMapRW", this.lightmap);
-    // Carbon's typed-null texture overload (Tr2VariableStore.h:42) cannot be
-    // selected from JS null alone; use its RegisterVariableType implementation.
-    this.depthShadowMapHandle = Tr2VariableStore.globalStore()._RegisterVariableType(
+    // Carbon's typed-null texture overload (Tr2VariableStore.h:42): JS null
+    // carries no type, so the type is stated.
+    this.depthShadowMapHandle = Tr2VariableStore.globalStore().RegisterVariableType(
       "DepthShadowMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES);
     this.depthShadowMapHandle.SetValue(null);
     this.lights.SetNotify(this);

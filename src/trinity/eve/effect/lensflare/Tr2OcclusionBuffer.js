@@ -18,6 +18,7 @@ import { Tr2Effect } from "../../../shader/Tr2Effect.js";
 import { Tr2GpuBuffer } from "../../../core/device/Tr2GpuBuffer.js";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { Tr2VariableStore } from "../../../core/variable/Tr2VariableStore.js";
+import { TriVariableContentType } from "../../../generated/trinityCore/enums.js";
 
 /** `ELEMENT_SIZE` (EveOccluder.h:42): uint32 words per slot. */
 const ELEMENT_SIZE = 13;
@@ -102,11 +103,8 @@ export class Tr2OcclusionBuffer
 
     for (const offset of this.clear)
     {
-      // Slot 0's offset is the float 0, which the store would type as an int
-      // and refuse against the float registration; the variable is updated.
-      const store = Tr2VariableStore.globalStore();
-      const value = bitsAsFloat(offset);
-      if (!store.RegisterVariable("OcclusionBufferOffset", value)) store.FindVariable("OcclusionBufferOffset").SetValue(value);
+      // Carbon's float overload (EveOccluder.cpp:46): slot 0's offset is a whole float.
+      Tr2VariableStore.globalStore().RegisterVariableType("OcclusionBufferOffset", TriVariableContentType.TRIVARIABLE_FLOAT).SetValue(bitsAsFloat(offset));
       success = Tr2Renderer.runComputeShader(this.management, "Clear", 1, 1, 1, renderContext) && success;
     }
 

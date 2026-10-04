@@ -25,6 +25,7 @@ import { ALResult, Failed } from "../../../trinityal/ALResult.js";
 import { ConstantBufferSlot, TextureAddressMode, TextureFilter } from "#consts/render-context";
 import { RenderingMode } from "#consts/graphics";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
+import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 import { TriPoolAllocator } from "../rawData/TriPoolAllocator.js";
 import { Tr2PerObjectData } from "../rawData/perObjectData/Tr2PerObjectData.js";
 import { CjsDirectTrinityStepExecutor } from "./CjsDirectTrinityStepExecutor.js";
@@ -2008,7 +2009,9 @@ export class Tr2RenderContext
   {
     if (!this.#objectIdVariable)
     {
-      this.#objectIdVariable = Tr2VariableStore.globalStore().RegisterVariable("objectId", 0.0);
+      const variable = Tr2VariableStore.globalStore().RegisterVariableType("objectId", TriVariableContentType.TRIVARIABLE_FLOAT);
+      variable.SetValue(0);
+      this.#objectIdVariable = variable;
     }
     return this.#objectIdVariable;
   }
