@@ -51,21 +51,19 @@ const NO_BONES = Object.freeze({ bones: null, boneCount: 0 });
  */
 export function getBoneList(animationUpdater)
 {
-  if (!animationUpdater?.IsInitialized?.())
+  if (!animationUpdater || !animationUpdater.IsInitialized())
   {
     return NO_BONES;
   }
 
-  const boneCount = animationUpdater.GetMeshBoneCount?.() ?? 0;
+  const boneCount = animationUpdater.GetMeshBoneCount();
 
   if (!boneCount)
   {
     return NO_BONES;
   }
 
-  const bones = animationUpdater.GetMeshBoneMatrixList?.();
-
-  return bones ? { bones, boneCount } : NO_BONES;
+  return { bones: animationUpdater.GetMeshBoneMatrixList(), boneCount };
 }
 
 
@@ -859,10 +857,14 @@ export class Tr2GrannyAnimation
     return true;
   }
 
-  /** Carbon method AddSecondaryResPath (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method AddSecondaryResPath (MAP_METHOD_AND_WRAP).
+   *
+   * Adapted: Resource loading stays resource-layer-owned; registered decoded resources are attached synchronously
+   * when available.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Resource loading stays resource-layer-owned; registered decoded resources are attached synchronously when available.")
   AddSecondaryResPath(resPath)
   {
     const path = String(resPath ?? "");
