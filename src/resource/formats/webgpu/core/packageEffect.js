@@ -5,6 +5,7 @@ import { lowerDxbcToIr } from "./ir/lowerDxbcToIr.js";
 import { buildWgslBindingPlan } from "./wgsl/buildWgslBindingPlan.js";
 import { typedViewsFor } from "../../hlsl/core/carbonTypedViews.js";
 import { buildWgsl } from "./wgsl/emitWgsl.js";
+import { isPickingPassKey } from "./wgsl/lowerFragmentProgram.js";
 import { withoutUnboundUavs } from "./wgsl/wgslTypedViews.js";
 import { withEmulatedAddressing } from "./wgsl/emulatedAddressing.js";
 import { buildWgslSet } from "./wgsl/buildWgslSet.js";
@@ -233,6 +234,7 @@ export function buildEffectPackage(input, options = {})
         key: entry.key,
         shader: buildWgsl(entry.ir, {
             bindingPlan: plans.get(entry.passKey),
+            ...(isPickingPassKey(entry.passKey) ? { integerColorTargets: true } : {}),
             ...(resourceTransformPlans.get(entry.passKey)
                 ? { resourceTransformPlan: resourceTransformPlans.get(entry.passKey) }
                 : {}),

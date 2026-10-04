@@ -2880,3 +2880,22 @@ test("fragment position W is reciprocated as float before integer bit reinterpre
     assert.match(shader.code, /bitcast<i32>\(bitcast<u32>\(\(1\.0 \/ input\.position\.w\)\)\)/u);
     assert.doesNotMatch(shader.code, /1\.0 \/ bitcast/u);
 });
+
+
+test("a Picking pass writes float SV_Target registers into the uint pick buffer as raw bits", async () =>
+{
+    // D3D11 stores a pixel shader's 32-bit output registers into the
+    // R32G32B32A32_UINT pick buffer as raw bits (EveSpaceScene.cpp:436); WebGPU
+    // requires the output type to match the target, so the output is u32 and
+    // every write is a bitcast of the same bits.
+    const shader = CjsWebgpuFormat.buildWgsl(inputlessFragmentFixture(), { integerColorTargets: true });
+
+    assert.match(shader.code, /@location\(0\) output0: vec4<u32>,/u);
+    assert.match(shader.code, /output\.output0 = bitcast<vec4<u32>>\(vec4<f32>\(bitcast<f32>\(0x3f800000u\)/u);
+    assert.doesNotMatch(shader.code, /cjsUnormTarget0|cjsCoverageDiscard/u, "the float-only epilogues skip a u32 target");
+
+    const { isPickingPassKey } = await import("../../../../../src/resource/formats/webgpu/core/wgsl/lowerFragmentProgram.js");
+    assert.equal(isPickingPassKey("Picking.pass0"), true);
+    assert.equal(isPickingPassKey("Main.pass0"), false);
+    assert.equal(isPickingPassKey("PickingOpaque.pass0"), false);
+});

@@ -6,6 +6,7 @@ import { lowerDxbcToIr } from "./ir/lowerDxbcToIr.js";
 import { buildWgslBindingPlan } from "./wgsl/buildWgslBindingPlan.js";
 import { typedViewsFor } from "../../hlsl/core/carbonTypedViews.js";
 import { buildWgsl } from "./wgsl/emitWgsl.js";
+import { isPickingPassKey } from "./wgsl/lowerFragmentProgram.js";
 import { withoutUnboundUavs } from "./wgsl/wgslTypedViews.js";
 import { withEmulatedAddressing } from "./wgsl/emulatedAddressing.js";
 import { buildWgslSet } from "./wgsl/buildWgslSet.js";
@@ -202,6 +203,7 @@ function translatePassUnit(pass, programForKey, source, bindingPolicy)
         key: entry.key,
         shader: buildWgsl(entry.ir, {
             bindingPlan: plan,
+            ...(isPickingPassKey(pass.passKey) ? { integerColorTargets: true } : {}),
             ...(resourceTransformPlan ? { resourceTransformPlan } : {}),
             ...(entry.effectProfileProof
                 ? { effectProfileProof: entry.effectProfileProof }
