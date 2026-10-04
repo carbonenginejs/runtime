@@ -105,54 +105,6 @@ export function collectRenderables(child, out, impostors = null)
 }
 
 /**
- * Builds the pair of endpoint bases for a stretch: the source basis has its Z axis pointing at the destination, and the destination basis is the same frame with X and Z negated so it faces back down the line. A zero-length span falls back to +Z, and the up reference is the world axis least aligned with the direction.
- * @param {Array} source - caller-owned mat4, overwritten with the source basis
- * @param {Array} destination - caller-owned mat4, overwritten with the destination basis
- * @returns {Array} source
- */
-export function makeEndpointTransforms(sourcePosition, destinationPosition, source, destination)
-{
-  const direction = CjsStretchRuntime.DIRECTION;
-  const up = CjsStretchRuntime.UP;
-  const xAxis = CjsStretchRuntime.X;
-  const yAxis = CjsStretchRuntime.Y;
-  vec3.subtract(direction, destinationPosition, sourcePosition);
-
-  if (vec3.squaredLength(direction) <= Number.EPSILON) vec3.set(direction, 0, 0, 1);
-  else vec3.normalize(direction, direction);
-
-  const ax = Math.abs(direction[0]);
-  const ay = Math.abs(direction[1]);
-  const az = Math.abs(direction[2]);
-  if (ax < ay && ax < az) vec3.set(up, 1, 0, 0);
-  else if (ay < ax && ay < az) vec3.set(up, 0, 1, 0);
-  else vec3.set(up, 0, 0, 1);
-
-  vec3.normalize(xAxis, vec3.cross(xAxis, up, direction));
-  vec3.cross(yAxis, xAxis, direction);
-  writeBasis(source, xAxis, yAxis, direction, sourcePosition);
-  vec3.negate(xAxis, xAxis);
-  vec3.negate(direction, direction);
-  writeBasis(destination, xAxis, yAxis, direction, destinationPosition);
-  return source;
-}
-
-/**
- * Builds the source endpoint basis and scales its Z axis by the endpoint distance, so a child authored one unit long in Z spans the gap exactly; negativeZ makes the span run backwards for effects authored down -Z.
- * @param {Array} out - caller-owned mat4, overwritten
- * @returns {Array} out
- */
-export function makeStretchTransform(sourcePosition, destinationPosition, out, negativeZ = false)
-{
-  makeEndpointTransforms(sourcePosition, destinationPosition, out, CjsStretchRuntime.MATRIX);
-  const length = vec3.distance(sourcePosition, destinationPosition) * (negativeZ ? -1 : 1);
-  out[8] *= length;
-  out[9] *= length;
-  out[10] *= length;
-  return out;
-}
-
-/**
  * Writes a uniform-scale-plus-translation matrix.
  * @param {Array} [out] - caller-owned mat4; a fresh matrix is allocated when omitted
  * @returns {Array} out
@@ -198,21 +150,6 @@ export function mergeSphere(out, sphere)
   return out;
 }
 
-function writeBasis(out, xAxis, yAxis, zAxis, translation)
-{
-  mat4.identity(out);
-  out[0] = xAxis[0]; out[1] = xAxis[1]; out[2] = xAxis[2];
-  out[4] = yAxis[0]; out[5] = yAxis[1]; out[6] = yAxis[2];
-  out[8] = zAxis[0]; out[9] = zAxis[1]; out[10] = zAxis[2];
-  out[12] = translation[0]; out[13] = translation[1]; out[14] = translation[2];
-  return out;
-}
-
 const CjsStretchRuntime = {
-  ZERO: vec3.create(),
-  DIRECTION: vec3.create(),
-  UP: vec3.create(),
-  X: vec3.create(),
-  Y: vec3.create(),
-  MATRIX: mat4.create()
+  ZERO: vec3.create()
 };

@@ -14,7 +14,7 @@ import { EveEntity } from "../../EveEntity.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
-import { getCurveDuration, getOriginShift, getTime, makeEndpointTransforms, updateCurveSet } from "./CjsStretchRuntime.js";
+import { getCurveDuration, getOriginShift, getTime, updateCurveSet } from "./CjsStretchRuntime.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { ITr2GenericEmitterUpdateArguments } from "../../../particle/ITr2GenericEmitter/index.js";
 import { TriDevice } from "../../../core/device/TriDevice.js";
@@ -312,7 +312,7 @@ export class EveStretch2 extends IEveFiringEffectElement
       updateCurveSet(sets[index], relative, context.renderContext);
       this._effectData[0][index] = Number(sets[index]?.GetScaledTime?.() ?? sets[index]?.scaledTime ?? 0);
     }
-    makeEndpointTransforms(this._source, this._destination, this._sourceTransform, this._destinationTransform);
+    this.GetEndPointTransforms(this._sourceTransform, this._destinationTransform);
     this.sourceObserver?.Update(this._sourceTransform);
     this.destinationObserver?.Update(this._destinationTransform);
     const gpuParticleSystem = context?.GetGpuParticleSystem?.() ?? context?.gpuParticleSystem ?? null;
@@ -364,8 +364,49 @@ export class EveStretch2 extends IEveFiringEffectElement
     return this._inFrustum;
   }
 
+  /**
+   * Builds the two endpoint bases. The source basis's Z axis points from the source to the destination, X is
+   * normalize(cross(up, Z)) and Y is cross(X, Z), where up is the world axis least aligned with the direction (+Z when
+   * no axis is strictly least). The destination basis is the same frame with X and Z negated, so it faces back down
+   * the line. A zero-length span normalizes to a zero Z axis, as XMVector3Normalize does, which leaves X and Y zero too.
+   * Quirk, reproduced: when the two smallest components tie (a beam exactly along Z), up is +Z, parallel to the beam,
+   * so X and Y collapse to zero (EveStretch2.cpp:274-294).
+   * Carbon (row-vector) writes the axes as rows; gl-matrix stores them as columns at the same offsets.
+   * @param {mat4} source Receives the source basis, translated to the source.
+   * @param {mat4} destination Receives the destination basis, translated to the destination.
+   */
+  @meta.implemented
+  GetEndPointTransforms(source, destination)
+  {
+    // vec3_0 is the direction (Z), vec3_1 the up reference, vec3_2 the X axis and vec3_3 the Y axis.
+    const { vec3_0, vec3_1, vec3_2, vec3_3 } = EveStretch2.scratch;
+    vec3.subtract(vec3_0, this._destination, this._source);
+    const x = Math.abs(vec3_0[0]), y = Math.abs(vec3_0[1]), z = Math.abs(vec3_0[2]);
+    if (x < y && x < z) vec3.set(vec3_1, 1, 0, 0);
+    else if (y < x && y < z) vec3.set(vec3_1, 0, 1, 0);
+    else vec3.set(vec3_1, 0, 0, 1);
+    vec3.normalize(vec3_0, vec3_0);
+    vec3.normalize(vec3_2, vec3.cross(vec3_2, vec3_1, vec3_0));
+    vec3.cross(vec3_3, vec3_2, vec3_0);
+
+    mat4.identity(source);
+    source[0] = vec3_2[0]; source[1] = vec3_2[1]; source[2] = vec3_2[2];
+    source[4] = vec3_3[0]; source[5] = vec3_3[1]; source[6] = vec3_3[2];
+    source[8] = vec3_0[0]; source[9] = vec3_0[1]; source[10] = vec3_0[2];
+    source[12] = this._source[0]; source[13] = this._source[1]; source[14] = this._source[2];
+
+    mat4.copy(destination, source);
+    destination[8] = -vec3_0[0]; destination[9] = -vec3_0[1]; destination[10] = -vec3_0[2];
+    destination[0] = -vec3_2[0]; destination[1] = -vec3_2[1]; destination[2] = -vec3_2[2];
+    destination[12] = this._destination[0]; destination[13] = this._destination[1]; destination[14] = this._destination[2];
+  }
+
   static scratch = {
-    box3_0: box3.create()
+    box3_0: box3.create(),
+    vec3_0: vec3.create(),
+    vec3_1: vec3.create(),
+    vec3_2: vec3.create(),
+    vec3_3: vec3.create()
   };
 
   /**
