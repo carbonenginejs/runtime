@@ -598,7 +598,8 @@ export class EveChildCloud2 extends EveSpaceObjectChild
         this.lightmapHeight = 0;
         this.lightmapDepth = 0;
       }
-      const shader = this.effect.GetShaderStateInterface();
+      // Asked before reading its shader: renews the effect while the cloud updates.
+      const shader = this.effect.IsGood() ? this.effect.GetShaderStateInterface() : null;
       if (this.lightmapDirty && this.lightmapWidth === 0 && shader)
       {
         if (shader.GetResource("LightMap"))
@@ -1028,6 +1029,8 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     // cpp:766-776 - the "Shadow" technique must exist. The JS shader duck
     // (Tr2Shader.GetTechniqueIndex) returns an INDEX: -1 for missing, 0..n
     // for found - 0 is a valid technique (compare < 0, never truthiness).
+    // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
+    if (!this.effect.IsGood()) return false;
     const shader = this.effect.GetShaderStateInterface();
     if (!shader) return false;
     if (shader)

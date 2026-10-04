@@ -25,7 +25,8 @@
 // The packing below follows Carbon's PerLightData layout, packed flag word,
 // premultiply and fade band.
 
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
+import { CjsResource } from "#blue";
 import { num } from "#math/num";
 import { vec3 } from "#math/vec3";
 import { ShadowQuality } from "../../generated/trinityCore/enums.js";
@@ -1089,6 +1090,11 @@ export class Tr2LightManager
   _ProfileSlot(profile)
   {
     if (!profile) return 0;
+    // Asked where it is used, once per packed light per frame: renews the
+    // profile and packs "no profile" while it is not good, which is what a
+    // loading profile without a bitmap already packed (CjsResource.IsGood).
+    const resource = CjsSchema.cast(profile, CjsResource);
+    if (resource && !resource.IsGood()) return 0;
     if (typeof profile.GetTextureIndex === "function")
     {
       let index = profile.GetTextureIndex();

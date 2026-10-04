@@ -1490,7 +1490,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
         {
           continue;
         }
-        if (!area.effect || !area.effect.GetShaderStateInterface())
+        // Asked before registering: renews it, and a not-good effect retries later.
+        if (!area.effect || !area.effect.IsGood())
         {
           this._allRegistered = false;
           continue;

@@ -119,7 +119,8 @@ function createEffect(name)
       this[option] = value;
     },
     GetHashValue: () => name.length,
-    GetShaderStateInterface: () => ({ name })
+    GetShaderStateInterface: () => ({ name }),
+    IsGood: () => true
   };
 }
 

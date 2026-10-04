@@ -1,8 +1,8 @@
 // Source: trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter.h
 // Source: trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter.cpp
 // Source: trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter_Blue.cpp
-import { IsMatch, INotify } from "#blue";
-import { meta } from "#schema";
+import { IsMatch, INotify, CjsResource } from "#blue";
+import { CjsSchema, meta } from "#schema";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 import { ResourceFlags } from "./ITr2EffectValue.js";
@@ -153,10 +153,13 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
     if (!provider) return null;
 
     const texture = provider.GetTexture();
+    // Only a cached resource can be realized; Carbon's BlueCastPtr to a
+    // resource, as in KeepAlive below.
+    const resource = CjsSchema.cast(provider, CjsResource);
 
-    if (texture || !renderContext || typeof provider.IsPrepared !== "function") return texture;
+    if (texture || !renderContext || !resource) return texture;
 
-    return RealizeTexture(provider, renderContext);
+    return RealizeTexture(resource, renderContext);
   }
 
   /**
@@ -236,6 +239,22 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
    * Drops a material from the tracked list, so later texture swaps no longer
    * invalidate its resource sets.
    */
+  /**
+   * Renew the bound provider when it is a cached resource - the SSAO lookup
+   * table, say - so the material using it does not lose it to an idle purge
+   * (`ITriEffectResourceParameter.KeepAlive`, called by `Tr2Effect.IsGood`).
+   *
+   * Ours, like TriTextureParameter's: Carbon's resources are reference counted.
+   * The cast is to a resource as Carbon's `BlueCastPtr` does; a texture
+   * reference or render target is not one, and holds nothing to renew.
+   */
+  @meta.adapted
+  KeepAlive()
+  {
+    const resource = CjsSchema.cast(this.texture, CjsResource);
+    if (resource) resource.KeepAlive();
+  }
+
   @meta.blue.method
   @meta.implemented
   OnRemovedFromMaterial(material)

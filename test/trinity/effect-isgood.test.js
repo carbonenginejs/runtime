@@ -141,3 +141,38 @@ test("draw paths ask the effect: a primitive set skips an effect that is not goo
   set.GetBatches({ Commit() {} }, TriBatchType.TRIBATCHTYPE_OPAQUE, null);
   assert.equal(drawn, 1);
 });
+
+
+test("a runtime texture parameter renews a cached texture it binds; a texture reference holds nothing to renew", async () =>
+{
+  const { Tr2RuntimeTextureParameter, Tr2TextureReference } = await import("../../npm/dist/trinity/index.js");
+  const texture = new TriTextureRes();
+  texture.path = "res:/lut.dds";
+  texture.SetState(State.PREPARED);
+  let renewals = 0;
+  texture.SetLifecycleController({ keepAlive: () => { renewals += 1; } });
+
+  const parameter = new Tr2RuntimeTextureParameter();
+  parameter.texture = texture;
+  parameter.KeepAlive();
+  assert.equal(renewals, 1);
+
+  parameter.texture = new Tr2TextureReference();
+  parameter.KeepAlive();                        // no throw, nothing to renew
+  assert.equal(renewals, 1);
+});
+
+
+test("the light manager asks a profile IsGood where it packs it, and packs none while it loads", async () =>
+{
+  const { Tr2LightManager } = await import("../../npm/dist/trinity/index.js");
+  const { Tr2LightProfileRes } = await import("../../npm/dist/resource/index.js");
+  const manager = new Tr2LightManager();
+  const profile = new Tr2LightProfileRes();
+  profile.SetState(State.REQUESTED);
+  let renewals = 0;
+  profile.SetLifecycleController({ keepAlive: () => { renewals += 1; } });
+
+  assert.equal(manager._ProfileSlot(profile), 0, "loading: no profile");
+  assert.equal(renewals, 1, "and asking renewed it");
+});

@@ -32,9 +32,10 @@ function profileBitmap(peak = 500)
     return Tr2LightProfileRes.bitmapFromBake(bakedProfilePayload(peak));
 }
 
+/** A loaded profile: Carbon registers it with the array only once prepared (Tr2LightProfileRes.cpp:95-99). */
 function profileResource(payload = bakedProfilePayload())
 {
-    return new Tr2LightProfileRes().Initialize("res:/lights/test.ies").SetPayload(payload);
+    return new Tr2LightProfileRes().Initialize("res:/lights/test.ies").SetPayload(payload).MarkPrepared();
 }
 
 function lightWith(profile)
