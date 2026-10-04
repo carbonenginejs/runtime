@@ -58,6 +58,7 @@ import { CjsEveSpaceObjectLayout } from "./layouts/CjsEveSpaceObjectLayout.js";
 import { CjsEveTurretSetLayout } from "./layouts/CjsEveTurretSetLayout.js";
 import { CjsEveSpacePerObjectLayout } from "./layouts/CjsEveSpacePerObjectLayout.js";
 import { CjsTr2PerObjectLayout } from "./layouts/CjsTr2PerObjectLayout.js";
+import { CjsTr2VolumetricsRendererLayout } from "./layouts/CjsTr2VolumetricsRendererLayout.js";
 
 
 // Each layout class owns its donor header; the resolver wants the configuration.
@@ -80,7 +81,8 @@ const GROUPS = Object.freeze({
     EveSpaceObject: CjsEveSpaceObjectLayout.structConfig,
     EveTurretSet: CjsEveTurretSetLayout.structConfig,
     EveSpacePerObject: CjsEveSpacePerObjectLayout.structConfig,
-    Tr2PerObject: CjsTr2PerObjectLayout.structConfig
+    Tr2PerObject: CjsTr2PerObjectLayout.structConfig,
+    Tr2VolumetricsRenderer: CjsTr2VolumetricsRendererLayout.structConfig
 });
 
 

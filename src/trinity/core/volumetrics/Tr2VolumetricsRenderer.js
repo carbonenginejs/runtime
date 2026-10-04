@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Tr2VolumetricsRenderer.cpp
 // Source: trinity/trinity/Tr2VolumetricsRenderer_Blue.cpp
 import { meta } from "#schema";
+import { mat4 } from "#math/mat4";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -14,6 +15,8 @@ import { Tr2VolumetricsRendererFogViewDependentResources } from "./Tr2Volumetric
 import { Tr2Renderer } from "../Tr2Renderer.js";
 import { TriRenderBatchAccumulator } from "../batch/TriRenderBatch/TriRenderBatchAccumulator.js";
 import { EveComponentType } from "../../eve/EveComponentTypes.js";
+import { Tr2LightManager } from "../lighting/Tr2LightManager.js";
+import { CjsTr2VolumetricsRendererLayout } from "../rawData/layouts/CjsTr2VolumetricsRendererLayout.js";
 import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
@@ -26,6 +29,14 @@ import { ShadowQuality, TriVariableContentType } from "../../generated/trinityCo
 const FROXEL_FOG_COMPONENT = "FroxelFogSettings";
 const FOG_COLOR_SCRATCH = vec3.create();
 const EMPTY_VOLUME_TEXEL = Uint8Array.of(0, 0, 0, 0);
+
+/** ScalingMatrix( 0.5, -0.5, 1 ) * TranslationMatrix( 0.5, 0.5, 0 ): clip space to shadow-map UV, y flipped (cpp:1004). */
+const SHADOW_CLIP_TO_UV = mat4.fromValues(0.5, 0, 0, 0, 0, -0.5, 0, 0, 0, 0, 1, 0, 0.5, 0.5, 0, 1);
+
+/** The fog's DynamicLights staging: PerLightData copied as bytes, then written as uint32 lanes, so bit fields survive. */
+const { PER_LIGHT_DATA_LANES, MAX_FOG_DYNAMIC_LIGHTS } = CjsTr2VolumetricsRendererLayout;
+const FOG_LIGHTS = new Float32Array(MAX_FOG_DYNAMIC_LIGHTS * PER_LIGHT_DATA_LANES); // alloc: module staging for DynamicLights
+const FOG_LIGHT_BITS = new Uint32Array(FOG_LIGHTS.buffer); // alloc: uint32 view of the same staging bytes
 
 
 
@@ -655,6 +666,228 @@ export class Tr2VolumetricsRenderer
   }
 
   /**
+   * Fills the froxel fog's compute constants (cpp:808-1043): the froxel resolution and jitter; the fog's density,
+   * colour and scattering directionality; the 3D fog noise's frequency and its origin offset; and the god-ray noise.
+   *
+   * The god-ray noise is a 2D texture laid along the sun, through a double-precision matrix kept in step with the
+   * sun's direction. When the sun has turned by more than 0.001 radians, the matrix takes the smallest rotation that
+   * realigns it, then shifts so the camera's position in noise space does not jump. The uploaded matrix is relative to
+   * the origin, its translation wrapped by the noise period to keep float precision.
+   *
+   * Then the camera: the inverse view, unprojection and previous-projection parameters, and the reprojection from
+   * this frame's view space into last frame's across the origin shift. Then the sun, the planets, the cascaded
+   * shadow matrices composed into the 8x2 shadow atlas when a cascaded shadow map is given, and up to 16 volumetric
+   * dynamic lights from the light manager.
+   *
+   * Carbon (row-vector) compositions are written in gl-matrix order: `A * B` becomes `multiply(out, B, A)`, and
+   * Matrix4dMultiply( r, m0, m1 ) is m0 * m1 (TriMath.cpp:825-835). Matrices are logical; the record transposes them.
+   * The cascade matrices are kept logical by Tr2ShadowMap, where Carbon stores them transposed and transposes back.
+   *
+   * Adapted: Carbon's GetLightData( index ) returns one light's PerLightData; this copies the light's 12 words from
+   * the light manager's packed buffer, whose index is the record index.
+   * @param {RawData} data The FogPerObjectData record.
+   * @param {Tr2ShadowMap|null} cascadedShadowMap The scene's cascades, or null for no shadows.
+   */
+  @meta.adapted
+  _UpdatePerObjectData(data, view, projection, viewLast, projectionLast, origin, originShift, sunDirection, sunColor,
+    width, height, depth, jitter, cascadedShadowMap)
+  {
+    const { vec3_0, vec4_0, vec4_1, mat4_0, mat4_1, mat4_2, mat4_3, mat4d_0, mat4d_1, mat4d_2, mat4d_3, vec4d_0, vec4d_1 } =
+      Tr2VolumetricsRenderer.scratch;
+
+    const maxDistance = this.gameBackClip;
+    const maxDistanceVisibility = Math.exp(-this.thickness);
+    const baseDensity = this.thickness / maxDistance;
+    const environmentIntensity = this.environmentIntensity;
+    const fogColor = this.fogColor;
+
+    // G is negative when light scatters onwards in the direction it was going. Exactly 0 and 1 break the shader's
+    // maths, so the exposed positive value is clamped to a slightly smaller range, then negated.
+    const lightG = -Math.min(Math.max(this.lightDirectionality, 0.001), 0.999);
+
+    const inverseView = mat4.invert(mat4_0, view);
+    const inverseProjection = mat4.invert(mat4_1, projection);
+
+    data.Set("ResolutionX", width);
+    data.Set("ResolutionY", height);
+    data.Set("ResolutionZ", depth);
+
+    data.Set("Jitter", jitter);
+    data.Set("Far", maxDistance);
+
+    data.Set("Scattering", vec3.set(vec3_0, fogColor[0], fogColor[1], fogColor[2]));
+    data.Set("BaseDensity", baseDensity);
+
+    data.Set("MaxDistanceVisibility", maxDistanceVisibility);
+    data.Set("LightG", lightG);
+    data.Set("EnvironmentIntensity", environmentIntensity);
+
+    {
+      const exactFrequency = Math.pow(2, -this.fogNoiseFrequency);
+      const baseFrequency = Math.pow(2, Math.floor(-this.fogNoiseFrequency));
+      const nextFrequency = baseFrequency * 2;
+
+      let offsetX = origin[0] * baseFrequency;
+      let offsetY = origin[1] * baseFrequency;
+      let offsetZ = origin[2] * baseFrequency;
+      offsetX -= Math.floor(offsetX);
+      offsetY -= Math.floor(offsetY);
+      offsetZ -= Math.floor(offsetZ);
+
+      data.Set("FogNoiseOffset", vec3.set(vec3_0, offsetX, offsetY, offsetZ));
+      data.Set("FogNoiseFrequency", baseFrequency);
+      data.Set("FogNoiseLerp", (exactFrequency - baseFrequency) / (nextFrequency - baseFrequency));
+      data.Set("FogNoiseIntensity", this.fogNoiseIntensity);
+    }
+
+    {
+      const godRayNoiseMatrix = this._godRayNoiseMatrix;
+      const noiseDirection = vec3.normalize(vec3_0, vec3.set(vec3_0, godRayNoiseMatrix[2], godRayNoiseMatrix[6], godRayNoiseMatrix[10]));
+      // Clamped: rounding can take the dot product outside acos's domain.
+      const angle = Math.acos(Math.min(Math.max(vec3.dot(sunDirection, noiseDirection), -1), 1));
+      if (angle > 0.001)
+      {
+        const axis = vec3.normalize(vec3_0, vec3.cross(vec3_0, sunDirection, noiseDirection));
+        const rotationMatrix = mat4.fromRotation(mat4d_0, angle, axis);
+        // Carbon Matrix4dMultiply( newMatrix, rotationMatrix, m_godRayNoiseMatrix ): the rotation first.
+        const newMatrix = mat4.multiply(mat4d_1, godRayNoiseMatrix, rotationMatrix);
+
+        // Where the camera was in noise space, and where it is now; the difference cancels the rotation's motion.
+        vec4.set(vec4d_0, origin[0] + inverseView[12], origin[1] + inverseView[13], origin[2] + inverseView[14], 1);
+        const previousNoiseCoords = vec4.transformMat4(vec4d_1, vec4d_0, godRayNoiseMatrix);
+        const noiseCoords = vec4.transformMat4(vec4d_0, vec4d_0, newMatrix);
+        newMatrix[12] += previousNoiseCoords[0] - noiseCoords[0];
+        newMatrix[13] += previousNoiseCoords[1] - noiseCoords[1];
+        newMatrix[14] += previousNoiseCoords[2] - noiseCoords[2];
+
+        mat4.copy(godRayNoiseMatrix, newMatrix);
+      }
+
+      // The shader works relative to the origin, so the origin goes into the noise matrix's translation.
+      const originTranslation = mat4.identity(mat4d_2);
+      originTranslation[12] = origin[0];
+      originTranslation[13] = origin[1];
+      originTranslation[14] = origin[2];
+      // Carbon Matrix4dMultiply( relativeNoiseMatrix, originTranslation, m_godRayNoiseMatrix ).
+      const relativeNoiseMatrix = mat4.multiply(mat4d_3, godRayNoiseMatrix, originTranslation);
+
+      // Wrap the translation by the noise period, so the float matrix keeps its precision.
+      const baseFrequency = Math.pow(2, Math.floor(-this.godRayNoiseFrequency));
+      const previousFrequency = baseFrequency * 2;
+      relativeNoiseMatrix[12] %= 1 / baseFrequency;
+      relativeNoiseMatrix[13] %= 1 / baseFrequency;
+      relativeNoiseMatrix[14] %= 1 / baseFrequency;
+
+      data.SetAndTranspose("GodRayNoiseMatrix", relativeNoiseMatrix);
+
+      data.Set("GodRayNoiseFrequency", baseFrequency);
+      data.Set("GodRayNoiseLerp", (Math.pow(2, -this.godRayNoiseFrequency) - baseFrequency) / (previousFrequency - baseFrequency));
+      data.Set("GodRayNoiseIntensity", this.godRayNoiseIntensity);
+      data.Set("GodRayNoiseAnimation", this._godRayNoiseAnimation);
+    }
+
+    data.SetAndTranspose("InverseViewMatrix", inverseView);
+
+    {
+      // Flipped Y. No w divide: it cancels when x and y are divided by -z.
+      const topLeft = vec4.transformMat4(vec4_0, vec4.set(vec4_0, -1, +1, 0, 1), inverseProjection);
+      const botRight = vec4.transformMat4(vec4_1, vec4.set(vec4_1, +1, -1, 0, 1), inverseProjection);
+
+      // Both share a depth, so either z serves.
+      const invZ = 1 / -topLeft[2];
+
+      const addX = topLeft[0] * invZ;
+      const addY = topLeft[1] * invZ;
+      const mulX = botRight[0] * invZ - addX;
+      const mulY = botRight[1] * invZ - addY;
+
+      data.Set("UnprojectParams", vec4.set(vec4_0, mulX, mulY, addX, addY));
+    }
+
+    {
+      // Flipped Y; view-space z of -1 makes w 1, so no w divide.
+      const offset = vec4.transformMat4(vec4_0, vec4.set(vec4_0, +1, -1, -1, 1), projectionLast);
+      data.Set("PreviousProjectParams", vec4.set(vec4_0, offset[0] * 0.5, offset[1] * 0.5, 0.5, 0.5));
+    }
+
+    // Carbon inverseView * originShiftMatrix * viewLast.
+    const originShiftMatrix = mat4.fromTranslation(mat4_3, vec3.set(vec3_0, -originShift[0], -originShift[1], -originShift[2]));
+    const reprojectionMatrix = mat4.multiply(mat4_2, originShiftMatrix, inverseView);
+    mat4.multiply(reprojectionMatrix, viewLast, reprojectionMatrix);
+    data.SetAndTranspose("ReprojectionMatrix", reprojectionMatrix);
+
+    // Carbon Vector4( -sunDirection, 0 ) * view.
+    const tempSunDir = vec4.transformMat4(vec4_0, vec4.set(vec4_0, -sunDirection[0], -sunDirection[1], -sunDirection[2], 0), view);
+    data.Set("SunViewDirection", vec3.set(vec3_0, tempSunDir[0], tempSunDir[1], tempSunDir[2]));
+    data.Set("SunAngle", this._sunAngle);
+    data.Set("SunWorldDirection", vec3.set(vec3_0, -sunDirection[0], -sunDirection[1], -sunDirection[2]));
+
+    data.Set("SunColor", vec3.set(vec3_0, sunColor[0], sunColor[1], sunColor[2]));
+
+    data.SetIndex("planets", 0, this._planets[0]);
+    data.SetIndex("planets", 1, this._planets[1]);
+
+    if (cascadedShadowMap !== null)
+    {
+      const split = cascadedShadowMap.perSplitData;
+      for (let index = 0; index < 4; index++) data.SetIndex("ShadowMapValues", index, split.ShadowMapValues[index]);
+
+      const cellsX = 8;
+      const cellsY = 2;
+      for (let index = 0; index < CjsTr2VolumetricsRendererLayout.SHADOW_FRUSTUM_COUNT; index++)
+      {
+        // Carbon inverseView * Transpose( ShadowMatrixVal ); ours is already logical.
+        const matrix = mat4.multiply(mat4_2, split.ShadowMatrixVal[index], inverseView);
+
+        // Flip y and change the range from (-1, +1) to (0, 1).
+        mat4.multiply(matrix, SHADOW_CLIP_TO_UV, matrix);
+
+        // Carbon ScalingMatrix( 1 / cells_x, 1 / cells_y, 1 ) * TranslationMatrix( x / cells_x, y / cells_y, 0 ).
+        const x = index % cellsX;
+        const y = Math.floor(index / cellsX);
+        const cell = mat4.fromTranslation(mat4_3, vec3.set(vec3_0, x / cellsX, y / cellsY, 0));
+        mat4.scale(cell, cell, vec3.set(vec3_0, 1 / cellsX, 1 / cellsY, 1));
+        mat4.multiply(matrix, cell, matrix);
+
+        data.SetAndTransposeIndex("ShadowMatrix", index, matrix);
+      }
+      data.Set("SplitInfo", split.SplitInfo);
+    }
+
+    const lightManager = Tr2LightManager.getInstance();
+    if (lightManager)
+    {
+      const volumetricLights = lightManager.GetVolumetricLights();
+      if (volumetricLights.length > MAX_FOG_DYNAMIC_LIGHTS)
+      {
+        throw new RangeError("LightManager does not meet expectation of VolumetricsRenderer!");
+      }
+
+      const atlasSettings = lightManager.GetShadowMapAtlasSettings();
+      data.Set("NumDynamicLights", volumetricLights.length);
+      data.Set("InverseShadowMapAtlasSize", atlasSettings.actualTextureSize > 0 ? 1 / atlasSettings.actualTextureSize : 0);
+      data.Set("ShadowMapAtlasEntryMinSizeLog2", atlasSettings.entryMinSizeLog2);
+
+      // Same-type set copies bytes, so the packed bit fields arrive intact.
+      const packed = lightManager.GetLightBufferData();
+      for (let index = 0; index < volumetricLights.length; index++)
+      {
+        const lightIndex = volumetricLights[index];
+        FOG_LIGHTS.set(packed.subarray(lightIndex * PER_LIGHT_DATA_LANES, (lightIndex + 1) * PER_LIGHT_DATA_LANES), index * PER_LIGHT_DATA_LANES);
+      }
+      data.Set("DynamicLights", FOG_LIGHT_BITS);
+
+      data.Set("LightProfileTextureWidth", Tr2LightManager.getLightProfileArray().GetWidth());
+    }
+    else
+    {
+      data.Set("NumDynamicLights", 0);
+      data.Set("InverseShadowMapAtlasSize", 0);
+      data.Set("ShadowMapAtlasEntryMinSizeLog2", 0);
+    }
+  }
+
+  /**
    * Publishes the Mie environment map under the name effects sample it by.
    *
    * Carbon takes no arguments here and registers on the global store
@@ -697,6 +930,22 @@ export class Tr2VolumetricsRenderer
   }
 
   static Tr2VolumerticQuality = Tr2VolumerticQuality;
+
+  static scratch = {
+    vec3_0: vec3.create(),
+    vec4_0: vec4.create(),
+    vec4_1: vec4.create(),
+    mat4_0: mat4.create(),
+    mat4_1: mat4.create(),
+    mat4_2: mat4.create(),
+    mat4_3: mat4.create(),
+    mat4d_0: new Float64Array(16),
+    mat4d_1: new Float64Array(16),
+    mat4d_2: new Float64Array(16),
+    mat4d_3: new Float64Array(16),
+    vec4d_0: new Float64Array(4),
+    vec4d_1: new Float64Array(4)
+  };
   static FogViewDependentResources = Tr2VolumetricsRendererFogViewDependentResources;
   /** Vector3d( 0, 0, 0 ): the reflection map's origin shift (cpp:527). */
   static _zeroOrigin = new Float64Array(3); // alloc: Carbon Vector3d; no double-precision math type

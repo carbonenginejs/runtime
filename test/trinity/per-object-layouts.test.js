@@ -54,7 +54,8 @@ const SIZES = [
   [ "EveTurretSetVSData", 236, "EveTurretSet.h:47" ],
   [ "EveTurretSetPSData", 40, "EveTurretSet.h:63" ],
   [ "EveSpacePerObjectData", 164, "EveSpaceObject2.h:143 - the instanced variant" ],
-  [ "Tr2PerObjectVSData", 20, "Tr2ConstantBufferFormats.h:35" ]
+  [ "Tr2PerObjectVSData", 20, "Tr2ConstantBufferFormats.h:35" ],
+  [ "FogPerObjectData", 576, "Tr2VolumetricsRenderer.h:226-285 - 4 Matrix + ShadowMatrix[16] + DynamicLights[16] x 12" ]
 ];
 
 
