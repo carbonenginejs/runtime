@@ -2,7 +2,7 @@ import { addChild, removeChild, clearChildren } from "../../npm/dist/global/blue
 import test from "node:test";
 import { readFile, readdir } from "node:fs/promises";
 import { AudioGameObject, BackAndForthData, CjsEveThrottleableState, CjsLightData, EveBannerItem, EveBannerLight, EveBannerSet, EveBezierCurve, EveBoxVolume, EveChildAudio, EveChildFogVolume, EveChildLightingOverride, EveChildModifierSRT, EveChildTransform, EveChildUpdateParams, EveCircle, EveCustomMask, EveDistanceField, EveEllipseDefinition, EveEllipseSet, EveEllipsoidVolume, EveHazeSet, EveHazeSetLight, EveImpactOverlay, EveLODHelper, EveLineData, EveLocator2, EveLocatorSets, EvePlaneLight, EvePlaneSet, EvePlaneSetItem, EveRemotePositionCurve, EveSpaceObjectDecal, EveSphereVolume, EveSpotlightLight, EveSpotlightSet, EveSpotlightSetItem, EveSpriteLight, EveSpriteLineSet, EveSpriteLineSetItem, EveSpriteSet, EveSpriteSetItem, EveThrottleable, EveVirtualCamera, EveVirtualCameraBehaviourFloatAdd, EveVirtualCameraBehaviourFloatBase, EveVirtualCameraBehaviourFloatDamping, EveVirtualCameraBehaviourFloatNoise, EveVirtualCameraBehaviourFloatSet, EveVirtualCameraBehaviourVector3Base, EveVirtualCameraBehaviourVector3Damping, EveVirtualCameraBehaviourVector3Inertia, EveVirtualCameraBehaviourVector3MoveBetween, EveVirtualCameraBehaviourVector3MoveForward, EveVirtualCameraBehaviourVector3MoveRight, EveVirtualCameraBehaviourVector3MoveUp, EveVirtualCameraBehaviourVector3Offset, EveVirtualCameraBehaviourVector3Orbit, EveVirtualCameraBehaviourVector3Shake, EveVirtualCameraSystem, EveVirtualCameraTransitionCut, EveVirtualCameraTransitionLerp, FollowASplineData, FormationData, InertiaData, Locator, LocatorData, PlacementDataWithIdentifier, PlayFXData, ProcessLifetimeData, SeekTargetData, Tr2CurveExtrapolation, Tr2Light, Tr2Lod, Tr2PointLight, Tr2ScalarFader, Tr2SpotLight, Tr2TexturedPointLight, TriPerlinCurve } from "../../npm/dist/trinity/index.js";
-import { EveUpdateContext } from "../../npm/dist/trinity/index.js";
+import { EveUpdateContext, TriView } from "../../npm/dist/trinity/index.js";
 import { ITriVectorFunction } from "../../npm/dist/global/blue/index.js";
 import { RawData } from "../../src/trinity/core/rawData/RawData.js";
 import { box3 } from "../../npm/dist/global/math/box3.js";
@@ -1605,6 +1605,16 @@ test("EveEllipsoidVolume follows Carbon ellipsoid intensity and setup", () =>
   assertEquals(CjsSchema.getField(EveEllipsoidVolume, "shape")?.type.kind, "vec3");
 });
 
+// A real EveUpdateContext at the given tick times (1 s = 1e7 ticks); GetDeltaT derives from them.
+function DistanceContext(currentTime, lastTime, shift = [0, 0, 0])
+{
+  const context = new EveUpdateContext();
+  context.currentTime = currentTime;
+  context.lastTime = lastTime;
+  context.originShift.set(shift);
+  return context;
+}
+
 test("EveDistanceField follows Carbon static and dynamic CPU coverage", () =>
 {
   const sample = position => ({
@@ -1615,7 +1625,8 @@ test("EveDistanceField follows Carbon static and dynamic CPU coverage", () =>
   });
   const cameraTransform = mat4.fromTranslation(mat4.create(), vec3.create());
   const field = new EveDistanceField();
-  field.cameraView = { transform: cameraTransform };
+  field.cameraView = new TriView();
+  field.cameraView.transform.set(cameraTransform);
   field.minDistance = 5;
   field.maxDistance = 100;
   const dimensions = vec3.fromValues(4, 6, 8);
@@ -1629,27 +1640,28 @@ test("EveDistanceField follows Carbon static and dynamic CPU coverage", () =>
   assertEquals(staticKeys[0].time, 5);
   assertEquals(staticKeys[1].time, 100);
   field.objects = [sample(vec3.fromValues(10, 0, 0))];
-  field.Update({ currentTime: 1, lastTime: 0, originShift: vec3.create() });
+  field.Update(DistanceContext(1e7, 0));
   assertEquals(field.distance, 100);
-  field.Update({ currentTime: 2, lastTime: 1, originShift: vec3.create() });
+  field.Update(DistanceContext(2e7, 1e7));
   assertEquals(field.distance, 10);
   assertVec3(field.midpoint, [10, 0, 0]);
 
   const dynamic = new EveDistanceField();
-  dynamic.cameraView = { transform: cameraTransform };
+  dynamic.cameraView = new TriView();
+  dynamic.cameraView.transform.set(cameraTransform);
   dynamic.maxDistance = 100;
   dynamic.maxXZRatio = 1.5;
   dynamic.minYRatio = 0.2;
   dynamic.SetupDynamicDistanceField(0, 1, 1);
   dynamic.objects = [sample(vec3.fromValues(-10, 0, 0)), sample(vec3.fromValues(10, 0, 0))];
-  dynamic.Update({ currentTime: 1, lastTime: 0, deltaT: 1, originShift: vec3.create() });
+  dynamic.Update(DistanceContext(2e7, 1e7));
   assertVec3(dynamic.midpoint, [0, 0, 0]);
   assertVec3(dynamic.dimensions, [20, 4, 20 / 1.5]);
   assertEquals(dynamic.distance, 10);
-  dynamic.Update({ currentTime: 2, lastTime: 1, deltaT: 1, originShift: vec3.fromValues(1, 0, 0) });
+  dynamic.Update(DistanceContext(3e7, 2e7, [1, 0, 0]));
   assertVec3(dynamic.midpoint, [1, 0, 0]);
   CjsSchema.setValues(dynamic, { minDistance: 7, maxDistance: 80 });
-  dynamic.Update({ currentTime: 3, lastTime: 2, deltaT: 0, originShift: vec3.create() });
+  dynamic.Update(DistanceContext(3e7, 3e7));
   const dynamicKeys = dynamic.curveSet.curves[0].GetKeys();
   assertEquals(dynamicKeys[0].time, 7);
   assertEquals(dynamicKeys[1].time, 80);

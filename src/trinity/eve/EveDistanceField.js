@@ -4,6 +4,7 @@ import { IListNotify } from "../../global/blue/IListNotify.js";
 // Source: trinity/trinity/Eve/EveDistanceField.h
 // Source: trinity/trinity/Eve/EveDistanceField.cpp
 import { vec3 } from "#math/vec3";
+import { mat4 } from "#math/mat4";
 import { meta } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../curves/enums.js";
 import { Tr2CurveScalar } from "../curves/curve/Tr2CurveScalar.js";
@@ -132,8 +133,14 @@ export class EveDistanceField
   @meta.adapted
   Update(updateContext)
   {
-    const cameraPosition = EveDistanceField._getCameraPosition(this.cameraView);
-    const time = EveDistanceField._getTime(updateContext);
+    // posRef: the camera view's translation, or the origin without one (cpp:112-116).
+    const cameraPosition = vec3.set(EveDistanceField._cameraPosition, 0, 0, 0);
+    if (this.cameraView)
+    {
+      const transform = this.cameraView.GetTransform(EveDistanceField._cameraTransform);
+      vec3.set(cameraPosition, transform[12], transform[13], transform[14]);
+    }
+    const time = updateContext.GetTime();
     if (this._updateDistanceCurve)
     {
       this._updateDistanceCurveSize();
@@ -142,7 +149,7 @@ export class EveDistanceField
     {
       this.distance = this.maxDistance;
     }
-    const originShift = EveDistanceField._getOriginShift(updateContext);
+    const originShift = updateContext.GetOriginShift();
     let distanceNow = this.maxDistance;
     if (this._isDynamic)
     {
@@ -161,7 +168,7 @@ export class EveDistanceField
       distanceNow = Math.min(distanceNow, vec3.distance(this.midpoint, cameraPosition));
     }
     const fraction = distanceNow > this.distance ? this.timeAdjustmentSecondsOut : this.timeAdjustmentSecondsIn;
-    const delta = Math.min(1, EveDistanceField._getDeltaT(updateContext) / (fraction || 1));
+    const delta = Math.min(1, updateContext.GetDeltaT() / (fraction || 1));
     this.distance = Math.min(this.distance * (1 - delta) + distanceNow * delta, this.maxDistance);
     if (this.curveSet)
     {
@@ -251,14 +258,14 @@ export class EveDistanceField
   {
     // Carbon retains the resize request until the curve exists.
     if (!this._distanceCurve) return;
-    const keys = this._distanceCurve?.GetKeys?.() ?? [];
+    const keys = this._distanceCurve.GetKeys();
     if (keys.length === 2)
     {
       keys[0].time = this.minDistance;
       keys[1].time = this.maxDistance;
       this._distanceCurve.OnKeysChanged();
     }
-    this._distanceCurve?.SetTimeOffset?.(0);
+    this._distanceCurve.SetTimeOffset(0);
     this._updateDistanceCurve = false;
   }
 
@@ -342,55 +349,8 @@ export class EveDistanceField
     return object.GetValueAt_Ticks(time, out);
   }
 
-  /**
-   * Camera position from the view, falling back to the translation of its
-   * transform and then to the origin.
-   */
-  static _getCameraPosition(cameraView)
-  {
-    const direct = cameraView?.GetPosition?.();
-    if (direct?.length >= 3)
-    {
-      return vec3.clone(direct);
-    }
-    const transform = cameraView?.GetTransform?.() ?? cameraView?.transform;
-    return transform?.length >= 16 ? vec3.fromValues(transform[12], transform[13], transform[14]) : vec3.create();
-  }
-
-  /**
-   * Reads the current time from an update context, accepting the
-   * GetTime()/currentTime/time spellings.
-   */
-  static _getTime(context)
-  {
-    return Number(context?.GetTime?.() ?? context?.currentTime ?? context?.time ?? 0);
-  }
-
-  /**
-   * Reads the frame delta from an update context, deriving it from the current
-   * and last times when the context exposes no delta directly; the first frame
-   * yields zero.
-   */
-  static _getDeltaT(context)
-  {
-    const direct = context?.GetDeltaT?.() ?? context?.deltaT;
-    if (direct !== null && direct !== undefined)
-    {
-      return Number(direct) || 0;
-    }
-    const lastTime = Number(context?.lastTime ?? 0);
-    return lastTime === 0 ? 0 : Number(context?.currentTime ?? 0) - lastTime;
-  }
-
-  /**
-   * Reads the scene's floating-origin shift from an update context, or a zero
-   * vector when it has none.
-   */
-  static _getOriginShift(context)
-  {
-    const value = context?.GetOriginShift?.() ?? context?.originShift;
-    return value?.length >= 3 ? value : vec3.create();
-  }
+  static _cameraPosition = vec3.create();
+  static _cameraTransform = mat4.create();
 }
 
 // Exact native Blue exposure: only these identities participate in loading.
