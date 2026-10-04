@@ -47,12 +47,52 @@ function setup(t)
   });
   t.after(() =>
   {
-    scene._pickBuffer.Destroy();
-    scene._pickDepthBuffer.Destroy();
+    scene.Destroy();
     context.SetRenderContextAL(previous);
   });
   return { context, scene, object, snapshots, originalView, args: [120, 250, projection, view, viewport] };
 }
+
+test("scene destruction releases attachments but preserves the listener's independent snapshot", async t =>
+{
+  const h = setup(t);
+  const pending = h.scene.PickObject(...h.args);
+  assert.equal(h.scene._pickBuffer.IsValid(), true);
+  assert.equal(h.scene._pickDepthBuffer.IsValid(), true);
+  h.scene.Destroy();
+  h.scene.Destroy();
+  assert.equal(h.scene._pickBuffer.IsValid(), false);
+  assert.equal(h.scene._pickDepthBuffer.IsValid(), false);
+  assert.equal(h.scene.componentRegistry, null);
+  assert.equal(h.snapshots[0].isValid(), true, "the listener still owns the readback");
+  await assert.rejects(h.scene.PickObject(...h.args), /destroyed EveSpaceScene/);
+  h.snapshots[0].complete();
+  assert.equal(await pending, h.object);
+  assert.equal(h.snapshots[0].isValid(), false);
+});
+
+test("scene destruction releases owned frame buffers and unregisters borrowed lighting receivers once", t =>
+{
+  const h = setup(t), events = [], manager = {};
+  const releaseDataTexture = t.mock.method(h.scene.dataTextureMgr, "Release");
+  h.scene.objects.push(h.object);
+  t.mock.method(h.object, "RegisterSecondaryLightSource", value => events.push(["register", value]));
+  t.mock.method(h.object, "UnregisterSecondaryLightSource", value => events.push(["unregister", value]));
+  t.mock.method(h.object, "ClearShLighting", () => events.push(["clear"]));
+  h.scene.SetShLightingManager(manager);
+  h.scene.SetShLightingManager(manager);
+  assert.deepEqual(events, [["register", manager]]);
+  const buffers = [h.context.CreateConstantBuffer(), h.context.CreateConstantBuffer(), h.context.CreateConstantBuffer()];
+  let destroyed = 0;
+  for (const buffer of buffers) t.mock.method(buffer, "Destroy", () => { destroyed++; });
+  [h.scene._perFrameVSBuffer, h.scene._perFramePSBuffer, h.scene._shadowPerFrameVSBuffer] = buffers;
+  h.scene.Destroy(); h.scene.Destroy();
+  assert.equal(destroyed, 3);
+  assert.equal(releaseDataTexture.mock.callCount(), 1);
+  assert.deepEqual(events, [["register", manager], ["unregister", manager], ["clear"]]);
+  assert.equal(h.scene.shLightingManager, null);
+  assert.equal(h.scene.objects[0], h.object, "shared authored objects are not recursively destroyed");
+});
 
 test("immediate EVE picks await their own request and restore the view before awaiting", async t =>
 {

@@ -879,6 +879,76 @@ export class EveSpaceScene
   _pickDepthBuffer = new Tr2TextureAL();
   _pickingBatches = new TriRenderBatchAccumulator(DefaultKeyGenerator);
 
+  /** Explicit native destruction cannot be followed by another picking submission. */
+  _destroyed = false;
+
+  /**
+   * Replaces ~EveSpaceScene and destruction of its owned AL values
+   * (EveSpaceScene.cpp:309-345, EveSpaceScene.h:546-549). JavaScript has no
+   * deterministic destructor. Stop the scene's render job before calling.
+   * The scene-created data texture manager is released with its owner; shared
+   * scene objects/managers remain caller-owned. Readback snapshots are
+   * owned by their picking contexts and remain usable after the scene retires.
+   */
+  @meta.adapted
+  Destroy()
+  {
+    if (this._destroyed) return;
+    this._destroyed = true;
+    this.ClearVariableStore();
+    this.SetShLightingManager(null);
+    this._pickingBatches.Clear();
+    this.ClearBatches(this._secondaryBatches);
+    this._secondaryAdditiveBatches.Clear();
+    for (const batches of this._shadowBatches) batches.Clear();
+    this._pickBuffer.Destroy();
+    this._pickDepthBuffer.Destroy();
+    this._perFrameVSBuffer?.Destroy();
+    this._perFramePSBuffer?.Destroy();
+    this._shadowPerFrameVSBuffer?.Destroy();
+    this._perFrameVSBuffer = this._perFramePSBuffer = this._shadowPerFrameVSBuffer = null;
+    this.dataTextureMgr.Release();
+    this.ClearComponentRegistry();
+  }
+
+  /**
+   * Clears environment publications (EveSpaceScene.cpp:3018-3026). The native
+   * shared-index and baked-morph handles are not owned by this scene port.
+   */
+  @meta.adapted
+  ClearVariableStore()
+  {
+    this._envMap1Handle.Clear();
+    this._envMap2Handle.Clear();
+    this._reflectionMapHandle.Clear();
+    this._reflectionMaskMapHandle.Clear();
+  }
+
+  /** Registers/unregisters light sources and clears receiver lighting (EveSpaceScene.cpp:3373-3432). */
+  @meta.implemented
+  SetShLightingManager(manager)
+  {
+    if (this.shLightingManager === manager) return;
+    if (this.shLightingManager)
+    {
+      for (const planet of this.planets)
+        CjsSchema.cast(planet, ITr2SecondaryLightSource)?.UnregisterSecondaryLightSource(this.shLightingManager);
+      for (const object of this.objects)
+      {
+        CjsSchema.cast(object, ITr2SecondaryLightSource)?.UnregisterSecondaryLightSource(this.shLightingManager);
+        CjsSchema.cast(object, ITr2ShLightingReceiver)?.ClearShLighting();
+      }
+    }
+    this.shLightingManager = manager;
+    if (manager)
+    {
+      for (const planet of this.planets)
+        CjsSchema.cast(planet, ITr2SecondaryLightSource)?.RegisterSecondaryLightSource(manager);
+      for (const object of this.objects)
+        CjsSchema.cast(object, ITr2SecondaryLightSource)?.RegisterSecondaryLightSource(manager);
+    }
+  }
+
   /**
    * HEAD's regular-object GPU pass. Call between scene renders. Submission and
    * state restoration finish synchronously before any WebGPU readback is awaited.
@@ -888,6 +958,7 @@ export class EveSpaceScene
   PerformPicking(listener, immediate, x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT,
     renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
+    if (this._destroyed) throw new Error("Cannot pick a destroyed EveSpaceScene.");
     if (!renderContext.IsValid()) return immediate ? Promise.resolve([null, 0, 0]) : [null, 0, 0];
     const request = new EvePendingPickingReadback(x, y);
     listener.readbacks.push(request);

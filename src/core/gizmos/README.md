@@ -64,3 +64,10 @@ the viewport. The helpers release their own registrations and resources; the
 camera and target remain host-owned. The initial implementation supports
 translation, rotation, scaling and shared camera controls. Text labels, snapping,
 undo/redo, multi-selection and join validation are outside this delivery.
+
+When retiring an `EveSpaceScene`, stop its render job and call `Destroy()` to
+release its owned picking attachments, frame buffers and data texture manager. A caller-owned
+`EvePickingContext` retains its independent readback snapshots; destroy that
+context explicitly when cancelling pending selections. A completed scene
+snapshot may still resolve after scene disposal, so the host must retain its
+selection-generation check when replacing a scene.
