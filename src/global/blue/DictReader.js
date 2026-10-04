@@ -107,6 +107,9 @@ export class DictReader extends IRootReaderBase
   /** Existing ordinary-array edits published after new dependencies initialize. */
   _listEdits = [];
 
+  /** Per-call metadata-key matching plans; never retained on the edited graph. */
+  _listPatches = null;
+
   /**
    * @param {object} [options] `importContext` to share an anchor table across
    *   legacy reads; anything else is passed to a class's own `from`.
@@ -177,6 +180,11 @@ export class DictReader extends IRootReaderBase
     this._currentSource = source;
     try
     {
+      if (this._options.lists !== undefined && !["replace", "patch"].includes(this._options.lists))
+      {
+        throw new TypeError("Values lists must be 'replace' or 'patch'.");
+      }
+      if (this._options.lists === "patch") this._currentSource = source = this._PrepareListPatches(instance, source);
       if (this._options.declarations === true && !IsPlainObject(source)) this._ThrowError("Expected a dictionary");
       if (this._options.declarations === true && IsReference(source)) this._ThrowError("ReadInto requires member values, not a root _ref");
       if (typeof source._type === "string" && !CjsSchema.isInstanceOf(source._type, instance))
@@ -196,6 +204,7 @@ export class DictReader extends IRootReaderBase
     }
     finally
     {
+      this._listPatches = null;
       this._CleanupAfterCreate();
     }
   }
@@ -468,6 +477,16 @@ export class DictReader extends IRootReaderBase
     // A scalar or list is not an object (IRootReader.cpp:229).
     if (!IsPlainObject(source)) this._ThrowError("Incorrect type for member");
 
+    // Editor values patch: the enclosing matched object owns this single slot.
+    // Its declared object can receive values without a second provenance ID.
+    if (this._options.reuseObjects === true && current
+      && (source._type === undefined || CjsSchema.isInstanceOf(source._type, current)))
+    {
+      return CjsSchema.setValues(current, source, {
+        ...this._options, useClassSetter: true, returnBoolean: true, importContext: this._anchors
+      });
+    }
+
     const created = this.ReadIRootClass(field);
     writeDictionaryValue(instance, field, created);
     return true;
@@ -566,6 +585,12 @@ export class DictReader extends IRootReaderBase
     const source = this._currentSource;
     const current = readDictionaryValue(instance, field);
 
+    const patch = this._listPatches?.get(field.name);
+    if (patch) return this._ReadListPatch(instance, field, current, patch);
+    // Equality is a no-op check, not positional identity for changed items.
+    // Changed nested lists still use their ordinary values replacement contract.
+    if (this._options.reuseObjects === true && MatchesListValues(current, source)) return false;
+
     if (current && typeof current === "object" && mappedInterfaces(current.constructor).has(IList))
     {
       return this._ReadIList(current, field, source);
@@ -630,6 +655,96 @@ export class DictReader extends IRootReaderBase
 
     if (!inPlace) writeDictionaryValue(instance, field, list);
     return !IRootReaderBase.areEquivalent(before, list);
+  }
+
+  /**
+   * Editor extension: preflight all keys in explicitly selected root lists
+   * before any writes or lifecycle work. The class supplies scope separately
+   * from values. Missing keys and repeats are errors, never positional matches.
+   * @param {object} instance Existing owner.
+   * @param {object} source Desired values.
+   * @returns {object} Only the selected root lists and root type/anchor.
+   */
+  _PrepareListPatches(instance, source)
+  {
+    const keys = this._options.listPatchKeys;
+    if (!keys || this._options.declarations === true) throw new TypeError("This values operation has no list patch scope.");
+    if (!IsPlainObject(source) || IsReference(source)) throw new TypeError("List patches require a values dictionary.");
+    const selected = {};
+    if (Object.hasOwn(source, "_type")) selected._type = source._type;
+    if (Object.hasOwn(source, "_id")) selected._id = source._id;
+    this._listPatches = new Map();
+    for (const [name, key] of Object.entries(keys))
+    {
+      if (!Object.hasOwn(source, name)) continue;
+      const field = this.FindEntry(name, instance.constructor);
+      const current = field && readDictionaryValue(instance, field);
+      const itemType = field?.type?.itemType;
+      const itemClass = typeof itemType === "string" ? itemType : itemType?.className;
+      const desired = source[name];
+      if (!Array.isArray(current) || !Array.isArray(desired)) throw new TypeError(`Patch '${name}' requires arrays.`);
+      const existing = new Map(), incoming = new Set();
+      for (const item of current)
+      {
+        const id = BeObjectMetadata.Get(item, key);
+        if (typeof id !== "string" || !id.length || existing.has(id)) throw new TypeError(`Patch '${name}' has a missing or ambiguous existing ${key}.`);
+        if (!CjsSchema.isInstanceOf(itemClass, item)) throw new TypeError(`Patch '${name}' has an incompatible existing item.`);
+        existing.set(id, item);
+      }
+      for (const item of desired)
+      {
+        if (!IsPlainObject(item) || IsReference(item)) throw new TypeError(`Patch '${name}' requires item values, not references.`);
+        const id = BeObjectMetadata.Get(item, key);
+        if (typeof id !== "string" || !id.length || incoming.has(id)) throw new TypeError(`Patch '${name}' has a missing or duplicated incoming ${key}.`);
+        incoming.add(id);
+        if (item._type !== undefined && (!CjsSchema.getClassNames(CjsSchema.GetConstructor(item._type)).includes(itemClass)
+          || (existing.has(id) && !CjsSchema.isInstanceOf(item._type, existing.get(id)))))
+        {
+          throw new TypeError(`Patch '${name}' has an incompatible item type.`);
+        }
+      }
+      this._listPatches.set(field.name, { existing, desired, key });
+      selected[name] = desired;
+    }
+    return selected;
+  }
+
+  /**
+   * Updates matches through the values service and appends additions through
+   * the live list reader. Existing order and unmatched items stay intact;
+   * a partial list never grants deletion or subtree replacement authority.
+   * @param {object} instance List owner.
+   * @param {object} field List declaration.
+   * @param {Array} current Existing storage.
+   * @param {object} patch Preflighted owner-local matching plan.
+   * @returns {boolean} Whether object data changed.
+   */
+  _ReadListPatch(instance, field, current, patch)
+  {
+    let changed = false;
+    const additions = [];
+    for (const values of patch.desired)
+    {
+      const target = patch.existing.get(BeObjectMetadata.Get(values, patch.key));
+      if (!target) { additions.push(values); continue; }
+      if (CjsSchema.setValues(target, values, {
+        ...this._options, lists: "replace", listPatchKeys: undefined,
+        reuseObjects: true, useClassSetter: true, returnBoolean: true, importContext: this._anchors
+      })) changed = true;
+    }
+    if (additions.length)
+    {
+      const staged = current.slice();
+      for (const values of additions) staged.push(values);
+      const itemType = field.type.itemType;
+      const itemClassName = typeof itemType === "string" ? itemType : itemType?.className ?? null;
+      const options = this._options;
+      this._options = { ...options, lists: "replace", listPatchKeys: undefined, useClassSetter: true };
+      try { this._ReadLiveList(instance, field, current, staged, itemClassName); }
+      finally { this._options = options; }
+      changed = true;
+    }
+    return changed;
   }
 
   /**
@@ -1248,6 +1363,56 @@ export function CreateAnchorTable()
   };
 }
 
+/**
+ * Read-only equality for a supplied nested list. Positions only prove the
+ * whole list unchanged; they never identify changed objects. Anchors use the
+ * normal reader path so equality cannot discard their topology operations.
+ */
+function MatchesListValues(current, source)
+{
+  return Array.isArray(current) && Array.isArray(source) && current.length === source.length
+    && source.every((value, index) => MatchesObjectValues(current[index], value));
+}
+
+/** Compares declared incoming values without constructing or mutating live objects. */
+function MatchesObjectValues(current, source)
+{
+  if (Object.is(current, source)) return true;
+  if (Array.isArray(current) && Array.isArray(source)) return MatchesListValues(current, source);
+  if (ArrayBuffer.isView(current) || ArrayBuffer.isView(source)) return IRootReaderBase.areEquivalent(current, source);
+  if (!current || !IsPlainObject(source) || typeof current !== "object") return false;
+  if (Object.hasOwn(source, "_id") || Object.hasOwn(source, "_ref")) return false;
+  if (CjsSchema.getClassName(current.constructor))
+  {
+    if (source._type !== undefined && !CjsSchema.isInstanceOf(source._type, current)) return false;
+    const declarations = getDictionaryDeclarations(current.constructor);
+    for (const name of Object.keys(source))
+    {
+      if (name === "_type") continue;
+      if (name === BLUE_OBJECT_METADATA_KEY)
+      {
+        if (!MatchesObjectValues(BeObjectMetadata.GetMetadata(current), source[name])) return false;
+        continue;
+      }
+      const field = declarations.byName.get(name) ?? declarations.aliases.get(name);
+      if (!field) return false;
+      if (!CjsSchema.isFieldWritable(field) || field.type?.runtimeOnly === true) continue;
+      const value = readDictionaryValue(current, field);
+      const kind = field.type?.kind;
+      if (["model", "objectRef", "struct", "list", "array"].includes(kind))
+      {
+        if (!MatchesObjectValues(value, source[name])) return false;
+      }
+      else if (!MatchesObjectValues(value, normalizeCarbonValue(source[name], field.type))) return false;
+    }
+    return true;
+  }
+  if (!IsPlainObject(current)) return false;
+  const keys = Object.keys(source);
+  return keys.length === Object.keys(current).length
+    && keys.every(key => Object.hasOwn(current, key) && MatchesObjectValues(current[key], source[key]));
+}
+
 /** Whether a value is a `{ _ref }` alias. */
 function IsReference(value)
 {
@@ -1273,6 +1438,9 @@ CjsSchema.define(DictReader, { className: "DictReader", carbon: "DictReader" });
 CjsSchema.decorateMethod(DictReader, "CreateObject", meta.adapted);
 CjsSchema.decorateMethod(DictReader, "ReadInto", meta.ours);
 CjsSchema.decorateMethod(DictReader, "ReadList", meta.adapted);
+CjsSchema.decorateMethod(DictReader, "ReadIRootPtr", meta.adapted);
+CjsSchema.decorateMethod(DictReader, "_PrepareListPatches", meta.ours);
+CjsSchema.decorateMethod(DictReader, "_ReadListPatch", meta.ours);
 CjsSchema.decorateMethod(DictReader, "_ReadIList", meta.adapted);
 CjsSchema.decorateMethod(DictReader, "_Finish", meta.ours);
 CjsSchema.decorateMethod(DictReader, "_CancelPendingListReads", meta.ours);

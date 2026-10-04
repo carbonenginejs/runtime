@@ -17,7 +17,7 @@ CjsSchema.registerValuesService({
     /** Applies values through the existing custom or schema transport contract. */
     setValues(target, values = {}, options = {})
     {
-        if (target && typeof target.SetValues === "function") return target.SetValues(values, options);
+        if (options.useClassSetter !== false && target && typeof target.SetValues === "function") return target.SetValues(values, options);
         return ReadValues(target, values, options);
     },
     /** Resolves a registered values factory, preserving its class-owned normalization. */
