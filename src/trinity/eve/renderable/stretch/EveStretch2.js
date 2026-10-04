@@ -6,6 +6,7 @@ import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { box3 } from "#math/box3";
 import { TriBatchType } from "#consts/graphics";
 import { meta } from "#schema";
 import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
@@ -340,11 +341,14 @@ export class EveStretch2 extends IEveFiringEffectElement
   }
 
   /**
-   * Frustum-tests a box in the source basis that reaches boundingRadius sideways and the endpoint distance plus boundingRadius forwards, caching the result for GetRenderables; a hidden or zero-intensity stretch fails without testing, and a frustum that cannot test boxes passes.
-   * @returns {Boolean} whether the stretch is in frustum
+   * Frustum-tests the beam's box (EveStretch2.cpp:303-315): boundingRadius sideways and the endpoint distance plus
+   * boundingRadius forwards in the source basis, transformed by the source transform into its world-space bounds, so
+   * a beam stays visible while any of it is in view. A hidden or zero-intensity stretch fails without testing; the
+   * result gates GetRenderables.
+   * @param {EveUpdateContext} context Update context carrying the frustum.
+   * @returns {boolean} Whether the stretch is in the frustum.
    */
   @meta.blue.method @meta.adapted
-  @meta.reason("The browser frustum is duck-typed and receives a portable axis-aligned box descriptor.")
   UpdateVisibility(context)
   {
     if (!(this._visible && this._intensity > 0))
@@ -352,15 +356,17 @@ export class EveStretch2 extends IEveFiringEffectElement
       this._inFrustum = false;
       return false;
     }
-    const frustum = context?.GetFrustum?.() ?? context?.frustum;
-    const bounds = {
-      min: vec3.fromValues(-this.boundingRadius, -this.boundingRadius, -this.boundingRadius),
-      max: vec3.fromValues(this.boundingRadius, this.boundingRadius, vec3.distance(this._source, this._destination) + this.boundingRadius),
-      transform: this._sourceTransform
-    };
-    this._inFrustum = frustum?.IsBoxVisible ? !!frustum.IsBoxVisible(bounds) : true;
+    const { box3_0 } = EveStretch2.scratch;
+    const radius = this.boundingRadius;
+    box3.set(box3_0, -radius, -radius, -radius, radius, radius, vec3.distance(this._source, this._destination) + radius);
+    box3.transformMat4(box3_0, box3_0, this._sourceTransform);
+    this._inFrustum = context.GetFrustum().IsBoxVisible(box3_0);
     return this._inFrustum;
   }
+
+  static scratch = {
+    box3_0: box3.create()
+  };
 
   /**
    * Pushes the stretch itself when displayed, non-zero intensity and in frustum; the quad strip is built by the engine from the per-object data, not here.
