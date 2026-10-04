@@ -71,8 +71,10 @@ test("AudParameter binds to its owning object and backend RTPC/switch state rema
   system.Attach();
   try
   {
+    // AudManager calls its log directly, as Carbon's m_log (d2448f63): the fake answers every call this test makes.
     system.manager.log = {
       LogSetRTPC: (...args) => logged.push(args),
+      LogSetSwitch: () => {},
     };
     system.Enable();
     const first = system.CreateEmitter({ name: "first", position: [ 0, 0, 0 ] });
