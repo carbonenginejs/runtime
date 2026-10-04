@@ -2,8 +2,7 @@ import { removeChild, addChild } from "../../npm/dist/global/blue/children.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { clientResources } from "../support/clientResources.js";
 import test from "node:test";
 import { blue } from "../../npm/dist/global/blue/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
@@ -16,8 +15,9 @@ import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import "../../npm/dist/audio/index.js";
 import { StubResMan } from "../support/stubResMan.js";
 
-const corpus = process.env.TURRET_BLACK_CORPUS_DIR;
-const skip = !corpus && "set TURRET_BLACK_CORPUS_DIR for real Svipul/data.black and pulse turret files";
+// Real client files through BePaths (test/support/clientResources.js).
+const client = await clientResources();
+const skip = client.skip ?? false;
 const hullGeometryPath = "res:/dx9/model/ship/minmatar/destroyer/mde3/mde3_t3.gr2";
 const turretGeometryPath = "res:/dx9/model/turret/energy/pulse/l/pulse_mega_t1.gr2";
 let corpusData;
@@ -27,11 +27,10 @@ async function readCorpus()
   if (!corpusData) corpusData = (async () =>
   {
     const [black, hullBytes, turretBytes, turretGeometry] = await Promise.all([
-      readFile(join(corpus, "data.black")), readFile(join(corpus, "mde3_t3.gr2")),
-      readFile(join(corpus, "pulse_mega_t1.black")), readFile(join(corpus, "pulse_mega_t1.gr2"))
+      client.Read("res:/dx9/model/spaceobjectfactory/data.black"), client.Read("res:/dx9/model/ship/minmatar/destroyer/mde3/mde3_t3.gr2"),
+      client.Read("res:/dx9/model/turret/energy/pulse/l/pulse_mega_t1.black"), client.Read("res:/dx9/model/turret/energy/pulse/l/pulse_mega_t1.gr2")
     ]);
-    assert.equal(black.length, 184126948);
-    assert.equal(createHash("sha256").update(black).digest("hex"), "b888ce85f9040a49e2cfff6357e9e7ab89905818562562c7ec06e786b165afec");
+    // data.black changes with every client build, so its bytes are not pinned; the Svipul and turret files are.
     assert.equal(hullBytes.length, 788132);
     assert.equal(createHash("sha256").update(hullBytes).digest("hex"), "5cae1a039c579da77e1276fd084cc74bde8fea45ffd549a332c00be3b5287337");
     assert.equal(createHash("sha256").update(turretBytes).digest("hex"), "dc7be4c9cf75bd167b36f807837488ef04cab90a8c5479f86bbd7e34ae65fdd9");

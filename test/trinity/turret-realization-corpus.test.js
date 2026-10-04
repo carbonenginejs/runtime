@@ -8,7 +8,8 @@ import { CjsWebgpuRenderContextAL } from "../../npm/dist/trinityal/webgpu/intern
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { clientResources } from "../support/clientResources.js";
+import "../../npm/dist/sof/index.js"; // data.black hydrates EveSOFData classes.
 import test from "node:test";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { blue, ResourceRequirement } from "../../npm/dist/global/blue/index.js";
@@ -34,8 +35,9 @@ function hull(transform)
   mat4.copy(parentData.transform, transform);
   return parentData;
 }
-const corpus=process.env.TURRET_BLACK_CORPUS_DIR;
-const skip=!corpus && "set TURRET_BLACK_CORPUS_DIR for Apocalypse/type462 turret realization";
+// Real client files through BePaths (test/support/clientResources.js).
+const client=await clientResources();
+const skip=client.skip ?? false;
 const geometryPath="res:/dx9/model/turret/energy/pulse/l/pulse_mega_t1.gr2";
 
 test("real turret geometry remains READ-accessible and collected but is excluded from Values and copy input",{skip},async t=>
@@ -76,10 +78,11 @@ function updateContext({deltaTime=0,currentTime=10,...fields}={})
 
 async function assets(t)
 {
-  const bytes=await readFile(join(corpus,"pulse_mega_t1.gr2"));
+  const bytes=await client.Read("res:/dx9/model/turret/energy/pulse/l/pulse_mega_t1.gr2");
   assert.equal(bytes.length,95176);assert.equal(createHash("md5").update(bytes).digest("hex"),"e5884e94bf4c8bec0d7998b32c3c2ae5");
-  const hull=JSON.parse(await readFile(join(corpus,"ab1_t1.sof.json"),"utf8"));assert.equal(hull.name,"ab1_t1");
-  const turretBytes=await readFile(join(corpus,"pulse_mega_t1.black"));
+  // The Apocalypse hull from the build's SOF data (data.black), where the old ab1_t1.sof.json came from.
+  const hull=CjsBlackFormat.readPayload(await client.Read("res:/dx9/model/spaceobjectfactory/data.black")).object.hull.find(item=>item.name==="ab1_t1");assert.equal(hull.name,"ab1_t1");
+  const turretBytes=await client.Read("res:/dx9/model/turret/energy/pulse/l/pulse_mega_t1.black");
   assert.equal(createHash("sha256").update(turretBytes).digest("hex"),"dc7be4c9cf75bd167b36f807837488ef04cab90a8c5479f86bbd7e34ae65fdd9");
   const previous=blue.resMan,manager=new StubResMan(),base=manager.GetResource.bind(manager),resources=new Map(),requests=[];
   manager.GetResource=(path,options)=>{
@@ -91,7 +94,8 @@ async function assets(t)
   const resource=makeResource();resources.set(geometryPath,resource);
   const set=CjsSchema.from("EveTurretSet", CjsBlackFormat.readPayload(turretBytes).object);set.geometryResPath=geometryPath;set.lodLevel=EveTurretSet.LOD.LOD_HIGHEST;set.slotNumber=1;
   t.after(()=>{set.ReleaseResources();TriDevice.UnregisterResource(set);});
-  const ship=new EveShip2();ship.locators=hull.locatorTurrets.map(value=>CjsSchema.from("EveLocator2", value));ship.turretSets.push(set);
+  const ship=new EveShip2();// The catalog entry is an EveSOFDataHullLocator (_type); the ship locator takes its name and transform, as SOF builds it.
+  ship.locators=hull.locatorTurrets.map(value=>CjsSchema.from("EveLocator2", { name:value.name, transform:value.transform }));ship.turretSets.push(set);
   return {set,ship,resource,makeResource,resources,requests,hull};
 }
 
@@ -321,7 +325,7 @@ for(const geometryFirst of [false,true])test(`real muzzle binding handles ${geom
 {
   const {set,ship}=await assets(t);ship.RebuildTurretPositions();
   set.geometryResPath="";set.InitializeGeometryResource();assert.equal(set.geometryResource,null);
-  const bytes=await readFile(join(corpus,"pulse_mega_fx.black"));assert.equal(createHash("sha256").update(bytes).digest("hex"),"ec84e9ee2b9d9af295dff3ad7ad79551e8785027fd30a5121d4d92eaa31a1eb2");
+  const bytes=await client.Read("res:/dx9/model/turret/energy/pulse/l/pulse_mega_fx.black");assert.equal(createHash("sha256").update(bytes).digest("hex"),"ec84e9ee2b9d9af295dff3ad7ad79551e8785027fd30a5121d4d92eaa31a1eb2");
   const effect=CjsSchema.from("EveTurretFiringFX", CjsBlackFormat.readPayload(bytes).object);
   const duration=effect.firingDuration,initialize=t.mock.method(effect,"Initialize");
   const loadGeometry=()=>{set.geometryResPath=geometryPath;set.Initialize();};
@@ -351,7 +355,7 @@ for(const geometryFirst of [false,true])test(`real muzzle binding handles ${geom
 test("native missing-joint and unloaded-pose muzzle fallbacks preserve transform order and effect registry",{skip},async t=>
 {
   const {set,ship,resource}=await assets(t);ship.RebuildTurretPositions();set.Initialize();
-  const bytes=await readFile(join(corpus,"pulse_mega_fx.black")),makeEffect=()=>CjsSchema.from("EveTurretFiringFX", CjsBlackFormat.readPayload(bytes).object);
+  const bytes=await client.Read("res:/dx9/model/turret/energy/pulse/l/pulse_mega_fx.black"),makeEffect=()=>CjsSchema.from("EveTurretFiringFX", CjsBlackFormat.readPayload(bytes).object);
   const registry=new EveComponentRegistry();set.Register(registry);
   const old=makeEffect(),effect=makeEffect();set.firingEffect=old;set.firingEffect=effect;
   assert.equal(old.GetComponentRegistry(),null);assert.ok(effect.GetComponentRegistry()===registry);
@@ -377,7 +381,7 @@ test("native missing-joint and unloaded-pose muzzle fallbacks preserve transform
 test("first actual firing without an active turret initializes muzzle positions from the parent once",{skip},async t=>
 {
   const {set,ship}=await assets(t);ship.RebuildTurretPositions();set.Initialize();
-  const bytes=await readFile(join(corpus,"pulse_mega_fx.black"));
+  const bytes=await client.Read("res:/dx9/model/turret/energy/pulse/l/pulse_mega_fx.black");
   const effect=CjsSchema.from("EveTurretFiringFX", CjsBlackFormat.readPayload(bytes).object);set.SetFiringEffect(effect);
   const parent=mat4.fromTranslation(mat4.create(),[80,20,-30]);
   effect.PrepareFiring(0);set.UpdateAsyncronous(updateContext({deltaTime:.1,currentTime:1}),hull(parent));
@@ -431,7 +435,10 @@ test("normal hull ParentData and visible palettes share one Float4x3 upload with
   resource.MarkPurged();assert.ok(set.GetPerObjectData(accumulator)===null,"native bad-resource gate");
 });
 
-test("real packed turret shader receives native instance IDs and final opaque/shadow draw offsets",{skip},async t=>
+// The effect is not in the app resfileindex (effects have their own index), so this test still reads a file.
+const quadV5File=process.env.QUADV5_SM_DEPTH_FILE;
+const skipShader=skip || (!quadV5File && "set QUADV5_SM_DEPTH_FILE to quadv5.sm_depth (the effect index is not wired into clientResources yet)");
+test("real packed turret shader receives native instance IDs and final opaque/shadow draw offsets",{skip:skipShader},async t=>
 {
   const context=Tr2RenderContext_GetMainThreadRenderContext(),prior=context.GetRenderContextAL();
   const al=new Tr2RenderContextALStub();context.SetRenderContextAL(al);al.CreateDevice();al.BeginScene();
@@ -443,7 +450,7 @@ test("real packed turret shader receives native instance IDs and final opaque/sh
   const {set,ship,resource}=await assets(t);ship.RebuildTurretPositions();set.Initialize();
   assert.deepEqual(instanceUploads[0],Array.from({length:24},(_,i)=>i),"native cpp:296 IDs0..23");
   assert.ok(TriDevice.GetResourcesRegistered().includes(set),"native Tr2DeviceResource base registration");
-  const bytes=await readFile(join(corpus,"quadv5.sm_depth"));
+  const bytes=await readFile(quadV5File);
   assert.equal(createHash("md5").update(bytes).digest("hex"),"352fc276516262e229648fa98310bb17");
   const metadata=CjsHlslFormat.read(bytes,{emit:"metadata",source:"quadv5.sm_depth",permutation:[{name:"SPACE_OBJECT_CLIPPING",value:"SOC_DISABLED"},{name:"V5_DEBUG",value:"OFF"}]});
   const inputs=metadata.effect.techniques.find(item=>item.name==="Main").passes[0].stageInputs.find(item=>item?.stageName==="vertex").signature.pipelineInputs;
@@ -469,7 +476,7 @@ test("real packed turret shader receives native instance IDs and final opaque/sh
   set.turretEffect={GetShaderStateInterface:()=>shader,ApplyMaterialDataForPass(){},IsGood:()=>true};
   set.displayEffects=false;
   const coefficients=ship._psData.Get("shLightingCoefficients");for(let i=0;i<coefficients.length;i++)coefficients[i]=i+.25;
-  const renderables=ship.GetRenderables([]);assert.ok(renderables.includes(set),"EveMobile.cpp:291 forwards the turret renderable and SH span");
+  const renderables=ship.GetRenderables_Impostors([]);assert.ok(renderables.includes(set),"EveMobile.cpp:291 forwards the turret renderable and SH span");
   assert.ok(set._parentShLighting.buffer===coefficients.buffer);assert.equal(set._parentShLighting.byteOffset,coefficients.byteOffset,"RawData.Get creates views of the same borrowed coefficient span");
   Tr2RingBuffer.ResetInstances();Tr2RingBuffer.GetInstance("Float4x3",48,context);t.after(()=>Tr2RingBuffer.ResetInstances());
   const store=makePerObjectStore(),pod=set.GetPerObjectData({Alloc:name=>store.Allocate(name)});
@@ -539,7 +546,7 @@ test("native turret LOD consumes maximum view estimate, releases and reloads pos
 test("GR2 and CMF turret bounds follow donor traversal, animated world joints and optional output gates",{skip},async t=>
 {
   const {set,ship,resource,resources}=await assets(t);ship.RebuildTurretPositions();set.Initialize();
-  const bytes=await readFile(join(corpus,"pulse_mega_t1.gr2"));
+  const bytes=await client.Read("res:/dx9/model/turret/energy/pulse/l/pulse_mega_t1.gr2");
   const cmf=new TriGeometryRes();cmf.SetPayload(CjsCmfFormat.loadShared(CjsGr2Format.read(bytes,{rebuildMissingBounds:true})));cmf.MarkPrepared();
   for(const [label,geometry] of [["GR2",resource],["CMF",cmf]])
   {
@@ -597,7 +604,7 @@ test("native ambient instances copy controlled source, isolate controller state 
   for(const [turretLod,childLod] of [[EveTurretSet.LOD.LOD_INVALID,Tr2Lod.TR2_LOD_UNSPECIFIED],[EveTurretSet.LOD.LOD_EMPTY,Tr2Lod.TR2_LOD_LOW],[EveTurretSet.LOD.LOD_HIGHEST,Tr2Lod.TR2_LOD_HIGH]]){set.lodLevel=turretLod;set.UpdateVisibility({GetFrustum:()=>({IsSphereVisible:()=>false})});assert.equal(ambientLod,childLod);}
   set.ambientEffectEditingMode=false;set.OnModified("ambientEffectEditingMode");set.SetAmbientEffect(null);assert.equal(set.GetAmbientEffectOrGeneratedEffect(),null);assert.equal(source.IsInRegistry(),false);
   set.Destroy();resource.MarkPrepared();assert.equal(set.geometryResource,null);assert.equal(set.IsInRegistry(),false);assert.equal(TriDevice.GetResourcesRegistered().includes(set),false);
-  ship.turretSets.length=0;assert.equal(ship.GetRenderables([]).includes(set),false,"removed/destroyed turret is not collected");
+  ship.turretSets.length=0;assert.equal(ship.GetRenderables_Impostors([]).includes(set),false,"removed/destroyed turret is not collected");
 });
 
 test("instance container native copier, bone wrapper, reset and boundary quirk",()=>
@@ -672,7 +679,7 @@ async function pulseStateAssets(t)
   const { set, ship } = loaded;
   ship.RebuildTurretPositions();
   set.Initialize();
-  const bytes = await readFile(join(corpus, "pulse_mega_fx.black"));
+  const bytes = await client.Read("res:/dx9/model/turret/energy/pulse/l/pulse_mega_fx.black");
   assert.equal(createHash("sha256").update(bytes).digest("hex"), "ec84e9ee2b9d9af295dff3ad7ad79551e8785027fd30a5121d4d92eaa31a1eb2");
   const effect = CjsSchema.from("EveTurretFiringFX", CjsBlackFormat.readPayload(bytes).object);
   set.firingEffect = effect;

@@ -3,8 +3,6 @@ import { removeChild, addChild } from "../../npm/dist/global/blue/children.js";
 // set uses its native caller-owned SetFiringEffect API; no automatic set load.
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
 import test from "node:test";
 import { blue, CjsBlueResMan } from "../../npm/dist/global/blue/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
@@ -14,12 +12,22 @@ import "../../npm/dist/audio/index.js"; // The published FX owns AudEventCurve/A
 import { StubResMan } from "../support/stubResMan.js";
 import { Tr2QuadRenderer } from "../../npm/dist/trinity/core/Tr2QuadRenderer/Tr2QuadRenderer.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
-const corpus=process.env.TURRET_BLACK_CORPUS_DIR;
-const skip=!corpus && "set TURRET_BLACK_CORPUS_DIR for the real pulse turret proof";
+import { clientResources } from "../support/clientResources.js";
+// Real client files through BePaths (test/support/clientResources.js).
+const client=await clientResources();
+const skip=client.skip ?? false;
+const CLIENT_PATHS={
+  "pulse_mega_fx.black":"res:/dx9/model/turret/energy/pulse/l/pulse_mega_fx.black",
+  "pulse_mega_t1.black":"res:/dx9/model/turret/energy/pulse/l/pulse_mega_t1.black",
+  "pulse_mega_t1.gr2":"res:/dx9/model/turret/energy/pulse/l/pulse_mega_t1.gr2",
+  "mde3_t3.gr2":"res:/dx9/model/ship/minmatar/destroyer/mde3/mde3_t3.gr2",
+  "data.black":"res:/dx9/model/spaceobjectfactory/data.black",
+  "breacherheavy_fx.black":"res:/dx9/model/turret/launcher/breacherheavy/breacherheavy_fx.black"
+};
 const fxPath="res:/dx9/model/turret/energy/pulse/l/pulse_mega_fx.red";
 async function fixture(name,size,sha)
 {
-  const bytes=await readFile(join(corpus,name));
+  const bytes=await client.Read(CLIENT_PATHS[name]);
   assert.equal(bytes.length,size);
   assert.equal(createHash("sha256").update(bytes).digest("hex"),sha);
   return bytes;
@@ -84,7 +92,7 @@ async function realPulse(t)
 
 async function realBreacher(t)
 {
-  const bytes=await readFile(process.env.TURRET_CONTROLLER_FX_FILE);
+  const bytes=await client.Read(CLIENT_PATHS["breacherheavy_fx.black"]);
   assert.equal(bytes.length,5470);
   assert.equal(createHash("sha256").update(bytes).digest("hex"),"706005c7b2ad7026a3ce933c4578db4e11cf4461bd95c196b87eb5e4d72da282");
   useFixtureResources(t);
@@ -102,7 +110,7 @@ function quadView()
 }
 
 test("real Breacher quad reaches the CPU renderer through displayed Stretch3", {
-  skip:!process.env.TURRET_CONTROLLER_FX_FILE && "set TURRET_CONTROLLER_FX_FILE for the real Breacher quad"
+  skip
 }, async t=>
 {
   const stretch=(await realBreacher(t)).stretch[0], quad=stretch.sourceObject.objects[1];
@@ -139,7 +147,7 @@ test("real Breacher quad reaches the CPU renderer through displayed Stretch3", {
 });
 
 test("labelled four-role Breacher composition forwards quad owners in native component order", {
-  skip:!process.env.TURRET_CONTROLLER_FX_FILE && "set TURRET_CONTROLLER_FX_FILE for the real Breacher quad"
+  skip
 }, async t=>
 {
   const stretch=(await realBreacher(t)).stretch[0], roles=["source","dest","stretch","move"];
@@ -340,10 +348,9 @@ for (const [method, args] of [
   });
 }
 
-const controllerFX=process.env.TURRET_CONTROLLER_FX_FILE;
-const skipController=!controllerFX && "set TURRET_CONTROLLER_FX_FILE to the indexed breacherheavy_fx.black";
+const skipController=skip;
 
-test("real Breacher hydration keeps stored/live child declarations separate", {skip:skipController}, async t =>
+test("real Breacher hydration keeps stored/live child declarations separate", {skip}, async t =>
 {
   for (const role of ["sourceObject","destObject","stretchObject","moveObject"])
   {
@@ -366,7 +373,7 @@ test("real Breacher hydration keeps stored/live child declarations separate", {s
 
 for (const role of ["source","dest","stretch","move"])
 {
-  test(`controlled ${role} placement of real Breacher children transfers live registration`, {skip:skipController}, async t =>
+  test(`controlled ${role} placement of real Breacher children transfers live registration`, {skip}, async t =>
   {
     const effect=await realBreacher(t), donor=await realBreacher(t), stretch=effect.stretch[0];
     const original=stretch.sourceObject,replacement=donor.stretch[0].sourceObject;
@@ -395,7 +402,7 @@ for (const role of ["source","dest","stretch","move"])
   });
 }
 
-test("real Breacher controller list removal and insertion unlink and relink ownership", {skip:skipController}, async t =>
+test("real Breacher controller list removal and insertion unlink and relink ownership", {skip}, async t =>
 {
   const stretch=(await realBreacher(t)).stretch[0], controller=stretch.controllers[0];
   assert.equal(removeChild(stretch, "controllers", controller, { listNotify: stretch }),true);
@@ -406,7 +413,7 @@ test("real Breacher controller list removal and insertion unlink and relink owne
   assert.equal(controller.IsLinked(),true);
 });
 
-test("controlled dynamic binding on real Breacher roots follows native list ownership", {skip:skipController}, async t =>
+test("controlled dynamic binding on real Breacher roots follows native list ownership", {skip}, async t =>
 {
   const stretch=(await realBreacher(t)).stretch[0], binding=new Tr2DynamicBinding();
   // Breacher authors TriValueBindings inside its curve set, not a dynamic binding list.
@@ -420,7 +427,7 @@ test("controlled dynamic binding on real Breacher roots follows native list owne
   assert.equal(binding.Link(),false,"removed binding no longer resolves through the stretch owner");
 });
 
-test("controlled destination changes on real Breacher maintain its native stretch modifier", {skip:skipController}, async t =>
+test("controlled destination changes on real Breacher maintain its native stretch modifier", {skip}, async t =>
 {
   const stretch=(await realBreacher(t)).stretch[0], destination=new EveLocalPositionCurve();
   // This curve is an explicit augmentation; the Breacher asset authors no endpoint curves.
@@ -434,10 +441,10 @@ test("controlled destination changes on real Breacher maintain its native stretc
   assert.equal(stretch._stretchModifier.dest,destination);
 });
 
-test("controlled persisted stretch-child placement initializes a modifier on the real Breacher graph", {skip:skipController}, async t =>
+test("controlled persisted stretch-child placement initializes a modifier on the real Breacher graph", {skip}, async t =>
 {
   await realBreacher(t); // Validate fixture identity and install this test's inert resource manager.
-  const payload=CjsBlackFormat.readPayload(await readFile(controllerFX)).object;
+  const payload=CjsBlackFormat.readPayload(await client.Read(CLIENT_PATHS["breacherheavy_fx.black"])).object;
   // The real authored child is moved to the stretch role before hydration.
   payload.stretch[0].stretchObject=payload.stretch[0].sourceObject;
   payload.stretch[0].sourceObject=null;
@@ -466,7 +473,7 @@ function nearMatrix(actual,expected)
   assert.equal(actual.length,16);
   for(let index=0;index<16;index++) assert.ok(Math.abs(actual[index]-expected[index])<2e-5,`matrix[${index}]: ${actual[index]} != ${expected[index]}`);
 }
-test("real Breacher child receives Carbon Stretch3 orientation and exact muzzle matrices", {skip:skipController}, async t =>
+test("real Breacher child receives Carbon Stretch3 orientation and exact muzzle matrices", {skip}, async t =>
 {
   const stretch=(await realBreacher(t)).stretch[0], child=stretch.sourceObject;
   const context=new EveUpdateContext();context.SetTime((10) * 10_000_000);
@@ -493,7 +500,7 @@ test("real Breacher child receives Carbon Stretch3 orientation and exact muzzle 
   nearMatrix(transform,muzzle);
 });
 
-test("controlled real Breacher child placements preserve distinct synchronous and asynchronous transforms", {skip:skipController}, async t =>
+test("controlled real Breacher child placements preserve distinct synchronous and asynchronous transforms", {skip}, async t =>
 {
   const stretch=(await realBreacher(t)).stretch[0];
   for(const role of ["dest","stretch","move"]) stretch[`${role}Object`]=(await realBreacher(t)).stretch[0].sourceObject;
@@ -541,10 +548,10 @@ test("controlled real Breacher child placements preserve distinct synchronous an
 });
 
 test("real Breacher FX forwards variable writes and start to its authored Stretch3 controller", {
-  skip: !controllerFX && "set TURRET_CONTROLLER_FX_FILE to the indexed breacherheavy_fx.black"
+  skip: skipController
 }, async t =>
 {
-  const bytes=await readFile(controllerFX);
+  const bytes=await client.Read(CLIENT_PATHS["breacherheavy_fx.black"]);
   assert.equal(bytes.length,5470);
   assert.equal(createHash("sha256").update(bytes).digest("hex"),"706005c7b2ad7026a3ce933c4578db4e11cf4461bd95c196b87eb5e4d72da282");
   const previous=blue.resMan;blue.resMan=new StubResMan();t.after(()=>{blue.resMan=previous;});
