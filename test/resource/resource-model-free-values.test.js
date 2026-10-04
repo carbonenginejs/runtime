@@ -4,12 +4,13 @@ import { CjsSchema } from "../../src/global/schema/index.js";
 import { CjsCarbonEffectReader } from "../../src/resource/format/carbonEffect/CjsCarbonEffectReader.js";
 import { CjsCarbonEffectWriter } from "../../src/resource/format/carbonEffect/CjsCarbonEffectWriter.js";
 import { Tr2EffectLibrary, Tr2EffectRes, Tr2EffectStageInput, Tr2Shader } from "../../src/resource/shader/index.js";
-
 import { clientResources } from "../support/clientResources.js";
 
-// Real High effects from the client through BePaths. Any quad detail v5
-// variant meets the first test (shader 4 Main pixel: PatternMask1MapSampler at
-// s1, 608 constant bytes); the plain one is named.
+// Real High effects from the client through BePaths. The effect file the
+// first test was written against is unrecorded; its assertions (shader 4 Main
+// pixel: PatternMask1MapSampler at s1, 608 constant bytes) are satisfied by
+// any of the four quaddetailv5 variants (plain, skinned_, unpacked_,
+// unpackedskinned_), so the plain one is named.
 const client = await clientResources();
 const effectFile = "res:/graphics/effect.dx11/managed/space/spaceobject/v5/quad/quaddetailv5.sm_depth";
 const libraryFile = "res:/graphics/effect.dx12/managed/space/system/raytracing/rtshadows.sm_depth";
