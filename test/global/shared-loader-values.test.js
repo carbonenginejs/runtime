@@ -8,7 +8,8 @@ import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import { EveSOFData, EveSOFDataGeneric, EveSOFDataHullDecalSetItem } from "../../npm/dist/sof/index.js";
 import { Tr2DynamicEmitter, ITr2GenericEmitter, EveThrottleable, Tr2Effect, Tr2Controller, Tr2TimelineController } from "../../npm/dist/trinity/index.js";
-import { IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
+import { blue, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
+import { StubResMan } from "../support/stubResMan.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { clientResources } from "../support/clientResources.js";
 
@@ -17,8 +18,17 @@ const sofData = await clientResources();
 
 const host = JSON.parse(readFileSync(new URL("../support/crisisParticleHost.json", import.meta.url), "utf8"));
 
-test("shared schema loader resolves the real Crisis particle graph before initialization", () =>
+/** Hydrating the Crisis host acquires its instanced mesh's geometry; Carbon's manager always answers with a TriGeometryRes. */
+function WithStubResMan(t)
 {
+  const manager = blue.resMan;
+  blue.resMan = new StubResMan();
+  t.after(() => { blue.resMan = manager; });
+}
+
+test("shared schema loader resolves the real Crisis particle graph before initialization", (t) =>
+{
+  WithStubResMan(t);
   const built = CjsSchema.from(host._type, structuredClone(host));
   const emitter = built.particleEmitters[0];
   assert.equal(emitter.particleSystem, built.particleSystems[0]);
@@ -146,8 +156,9 @@ test("mapped initialization suppresses construction notifications while later ed
 });
 
 
-test("dynamic emitters and throttle owners expose only their native lifecycle identities", () =>
+test("dynamic emitters and throttle owners expose only their native lifecycle identities", (t) =>
 {
+  WithStubResMan(t);
   assert.deepEqual(mappedInterfaces(Tr2DynamicEmitter), new Set([Tr2DynamicEmitter, ITr2GenericEmitter, INotify, IInitialize]));
   assert.deepEqual(mappedInterfaces(EveThrottleable), new Set([EveThrottleable]));
   for (const Type of [Tr2Controller, Tr2TimelineController])
@@ -179,8 +190,9 @@ test("resource target hydration builds a model-free emitter from the real Crisis
     "Negative control: an unregistered class cannot be constructed by schema name");
 });
 
-test("shared child creation hydrates the real Crisis graph before publishing it", () =>
+test("shared child creation hydrates the real Crisis graph before publishing it", (t) =>
 {
+  WithStubResMan(t);
   class Owner { children = []; }
   CjsSchema.define(Owner, { className: "RealAssetChildCollectionOwner", fields: [
     { name: "children", key: "children", type: { kind: "list", itemType: host._type }, edit: { persist: true } }

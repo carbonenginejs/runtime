@@ -17,11 +17,22 @@ import { test } from "node:test";
 import { EveChildParticleSystem, Tr2DynamicEmitter, Tr2ParticleSystem } from "../../npm/dist/trinity/index.js";
 
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
+import { StubResMan } from "../support/stubResMan.js";
 
 const host = JSON.parse(readFileSync(new URL("../support/crisisParticleHost.json", import.meta.url), "utf8"));
 
-test("a referenced particle system is initialized before the emitter referencing it", () =>
+/** Hydrating the Crisis host acquires its instanced mesh's geometry; Carbon's manager always answers with a TriGeometryRes. */
+function WithStubResMan(t)
 {
+  const manager = blue.resMan;
+  blue.resMan = new StubResMan();
+  t.after(() => { blue.resMan = manager; });
+}
+
+test("a referenced particle system is initialized before the emitter referencing it", (t) =>
+{
+  WithStubResMan(t);
   const built = CjsSchema.from("EveChildParticleSystem", structuredClone(host));
   const [ emitter ] = built.particleEmitters;
 
@@ -33,6 +44,7 @@ test("a referenced particle system is initialized before the emitter referencing
 
 test("a reference cycle initializes each model once and terminates", (t) =>
 {
+  WithStubResMan(t);
   // emitter -> particleSystem and system -> emitParticleOnDeathEmitter, both
   // references: the second arrival at a model in progress is skipped, as
   // Carbon's reference map returns the object without initializing it again.
