@@ -136,3 +136,15 @@ test("child requires SortParticles before publishing a visible renderable", () =
   child._isVisible = false;
   assert.deepEqual(child.GetRenderables([]), []);
 });
+
+// Carbon Tr2ParticleSystem IsValid / IsDynamic / GetGpuStride (cpp:1339-1354, :1645-1648).
+test("Tr2ParticleSystem reports validity, dynamism and the GPU stride in bytes", () =>
+{
+  const system = new Tr2ParticleSystem();
+  assert.equal(system.IsValid(), false);
+  assert.equal(system.IsDynamic(), true);
+  system.updateSimulation = false;
+  assert.equal(system.IsDynamic(), false);
+  system._strides[0] = 7;
+  assert.equal(system.GetGpuStride(), 28);
+});

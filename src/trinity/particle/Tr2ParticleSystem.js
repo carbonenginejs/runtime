@@ -279,6 +279,32 @@ export class Tr2ParticleSystem
   {
   }
 
+  /** Carbon IsValid (Tr2ParticleSystem.cpp:1339-1342): whether the element layout was built. */
+  @meta.implemented
+  IsValid()
+  {
+    return this.isValid;
+  }
+
+  /** Carbon IsDynamic (cpp:1351-1354): a dynamic system runs its simulation, a static one does not. */
+  @meta.implemented
+  IsDynamic()
+  {
+    return this.updateSimulation;
+  }
+
+  /**
+   * Carbon GetGpuStride (cpp:1645-1648): the GPU buffer's per-particle size in
+   * bytes, its float count times four. Carbon also exposes it to Blue as the
+   * read-only property "gpuStride" (Tr2ParticleSystem_Blue.cpp:115-118).
+   * @returns {number}
+   */
+  @meta.implemented
+  GetGpuStride()
+  {
+    return this._strides[0] * 4;
+  }
+
   /** Carbon method ClearParticles (MAP_METHOD_AND_WRAP). */
   @meta.blue.method
   @meta.implemented
