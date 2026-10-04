@@ -350,7 +350,7 @@ export class EveBoosterSet2 extends EveEntity
     EveBoosterSet2._RebuildItems(this);
     for (const renderable of this.instances)
     {
-      renderable?.SetBoosterSet?.(this);
+      renderable.SetBoosterSet(this);
     }
     this._revision++;
     this.PrepareResources();
@@ -369,10 +369,14 @@ export class EveBoosterSet2 extends EveEntity
     return true;
   }
 
-  /** Carbon EveBoosterSet2::ReleaseResources (cpp:891-895). */
+  /**
+   * Carbon EveBoosterSet2::ReleaseResources (cpp:891-895).
+   *
+   * Adapted: Tr2SuballocatedBuffer has no Free, so the instance allocation is dropped rather than returned to the
+   * shared buffer.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Tr2SuballocatedBuffer has no Free, so the instance allocation is dropped rather than returned to the shared buffer.")
   ReleaseResources(_storage)
   {
     this._instanceBuffer = new Tr2SuballocatedBufferAllocation();
@@ -407,10 +411,11 @@ export class EveBoosterSet2 extends EveEntity
    * InstanceVertex per booster (h:221-228) - transform, functionality,
    * wavePhase, atlasIndex0, atlasIndex1. Carbon's Matrix and gl-matrix share
    * the byte layout, so the transform copies straight across.
+   *
+   * Adapted: Tr2SuballocatedBuffer has no Free, so the previous allocation is dropped rather than returned.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Tr2SuballocatedBuffer has no Free, so the previous allocation is dropped rather than returned.")
   RebuildInstanceData(renderContext)
   {
     this._instanceBuffer = new Tr2SuballocatedBufferAllocation();
@@ -461,10 +466,12 @@ export class EveBoosterSet2 extends EveEntity
   /**
    * Applies the changed member's native flare/trail consequence, plus the
    * persisted JS items adaptation, and advances the CPU revision.
+   *
+   * Adapted: Member names replace native addresses; persisted JS items rebuild Add-derived data and retain the
+   * existing CPU revision.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Member names replace native addresses; persisted JS items rebuild Add-derived data and retain the existing CPU revision.")
   @meta.invalidates("#revision")
   OnModified(propertyName)
   {
@@ -521,7 +528,7 @@ export class EveBoosterSet2 extends EveEntity
     }
     for (const renderable of this.instances)
     {
-      renderable?.SetBoosterSet?.(this);
+      renderable.SetBoosterSet(this);
     }
     this._revision++;
     return this.instances.length;
@@ -553,7 +560,7 @@ export class EveBoosterSet2 extends EveEntity
     {
       return false;
     }
-    this.instances[index]?.Update(
+    this.instances[index].Update(
       deltaTime,
       time,
       parentMatrix,
@@ -580,7 +587,7 @@ export class EveBoosterSet2 extends EveEntity
     let updated = false;
     for (const renderable of this.instances)
     {
-      updated = renderable?.UpdateTrails?.(deltaTime, time) || updated;
+      updated = renderable.UpdateTrails(deltaTime, time) || updated;
     }
     this.trails.Update(time);
     return updated;
@@ -702,7 +709,7 @@ export class EveBoosterSet2 extends EveEntity
       trailTransform[12] -= trailTransform[8] * 0.5;
       trailTransform[13] -= trailTransform[9] * 0.5;
       trailTransform[14] -= trailTransform[10] * 0.5;
-      owner.trails.Add?.(trailTransform, scale);
+      owner.trails.Add(trailTransform, scale);
     }
 
     EveBoosterSet2._UpdateBoundingSphere(owner, transform.subarray(12, 15));
@@ -825,10 +832,13 @@ export class EveBoosterSet2 extends EveEntity
    * set-level equivalent (each renderable answers for itself); `out` is
    * required so a caller can keep its own scratch. An empty set leaves `out`
    * empty (sph3 radius -1) rather than reporting a zero-radius sphere at the
-   * origin. */
+   * origin.
+   *
+   * Adapted: Carbon EveBoosterSet2.cpp:1115–1124 aggregates renderable spheres; JS writes the result to the caller's
+   * output array.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon EveBoosterSet2.cpp:1115–1124 aggregates renderable spheres; JS writes the result to the caller's output array.")
   GetBoundingSphere(out)
   {
     sph3.empty(out);
@@ -960,7 +970,7 @@ export class EveBoosterSet2 extends EveEntity
     }
     for (const renderable of this.instances)
     {
-      renderable?.GetRenderables(out);
+      renderable.GetRenderables(out);
     }
     return out;
   }
@@ -989,10 +999,13 @@ export class EveBoosterSet2 extends EveEntity
    * booster light position under the renderable's parent transform
    * (TransformCoord - single matrix, no composition) with radius *
    * radiusFactor and color * flicker (the 3-arg overload: innerRadius 0,
-   * FLAG_DEFAULT - manager-side). */
+   * FLAG_DEFAULT - manager-side).
+   *
+   * Adapted: The g_lightNoise table is module state filled with Math.random (Carbon fills it with rand()/RAND_MAX -
+   * random either way).
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("the g_lightNoise table is module state filled with Math.random (Carbon fills it with rand()/RAND_MAX - random either way).")
   GetLights(lightManager)
   {
     if (this.lightRadius <= 0 && this.lightWarpRadius <= 0)
@@ -1019,15 +1032,11 @@ export class EveBoosterSet2 extends EveEntity
 
     for (const renderable of this.instances)
     {
-      if (!renderable || renderable.overallIntensity <= 0)
+      if (renderable.overallIntensity <= 0)
       {
         continue;
       }
-      const transform = renderable.GetParentTransform?.();
-      if (!transform)
-      {
-        continue;
-      }
+      const transform = renderable.GetParentTransform();
       AddBoosterLights(
         lightManager, this._singleBoosters, transform,
         renderable.overallIntensity, this.warpIntensity, params, time);
