@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import CjsDxbcFormat from "../../../../../src/resource/formats/dxbc/index.js";
 import CjsWebglFormat from "../../../../../src/resource/formats/webgl/index.js";
+import { clientResources } from "../../../../support/clientResources.js";
 import {
     buildComparisonSamplePixelDxbc,
     buildMinimalGeometryDxbc,
@@ -313,18 +314,19 @@ const CLIP_Y_FLIP_LINES = [
     "gl_Position.y *= ssyf.z;"
 ];
 
+// A real compiled effect, at the testing tier, from the client through
+// clientResources; any effect with a vertex stage writing SV_Position serves.
+const REAL_EFFECT = "res:/graphics/effect.dx11/managed/space/turret/v5/quadv5.sm_depth";
+const REAL_EFFECT_NAME = "quadv5.sm_depth";
+const realEffect = await clientResources();
+
 test(
     "clipYFlip appends CCP's ssyf tail ahead of the depth fixup, and only when asked",
-    { skip: process.env.CARBON_EFFECT_CORPUS_DIR ? false : "set CARBON_EFFECT_CORPUS_DIR to run the clip Y flip guard" },
+    { skip: realEffect.skip ?? false },
     async () =>
     {
-        const { readdir, readFile } = await import("node:fs/promises");
-        const path = await import("node:path");
-        const dir = process.env.CARBON_EFFECT_CORPUS_DIR;
-
-        const names = (await readdir(dir)).filter(n => /.sm_(hi|lo|depth)$/u.test(n));
-        assert.ok(names.length, "corpus directory holds no compiled effects");
-        const bytes = new Uint8Array(await readFile(path.join(dir, names[0])));
+        const names = [REAL_EFFECT_NAME];
+        const bytes = await realEffect.Read(REAL_EFFECT);
 
         const vertexOf = (emitterOptions) =>
         {
@@ -376,18 +378,14 @@ test("an unknown depthRange is rejected rather than silently defaulted", () =>
 // The fixup is only emitted by a stage that writes SV_Position, which the
 // synthetic DXBC builders do not - they exist to exercise instruction
 // lowering. So the round trip is asserted against a real compiled effect.
-const depthCorpusDir = process.env.CARBON_EFFECT_CORPUS_DIR || "";
 
 test(
     "depthRange none emits no depth fixup, for a consumer that maps clip z itself",
-    { skip: depthCorpusDir ? false : "set CARBON_EFFECT_CORPUS_DIR to run the depth-range guard" },
+    { skip: realEffect.skip ?? false },
     async () =>
     {
-        const { readdir, readFile } = await import("node:fs/promises");
-        const nodePath = (await import("node:path")).default;
-        const names = (await readdir(depthCorpusDir)).filter(n => /.sm_(hi|lo|depth)$/u.test(n));
-        assert.ok(names.length, "corpus directory holds no compiled effects");
-        const bytes = new Uint8Array(await readFile(nodePath.join(depthCorpusDir, names[0])));
+        const names = [REAL_EFFECT_NAME];
+        const bytes = await realEffect.Read(REAL_EFFECT);
         const opts = { source: names[0], localLights: "packed-texture", emitterOptions: { depthRange: "none", clipYFlip: true } };
         const doc = CjsWebglFormat.read(CjsWebglFormat.buildEffect(bytes, opts).bytes, { source: names[0] });
         const vertex = doc.shaders.find(shader => shader.stageName === "vertex" && shader.source);
@@ -402,15 +400,11 @@ test(
 
 test(
     "the vertex depth fixup follows depthRange, defaulting to reversed",
-    { skip: depthCorpusDir ? false : "set CARBON_EFFECT_CORPUS_DIR to run the depth-range guard" },
+    { skip: realEffect.skip ?? false },
     async () =>
     {
-        const { readdir, readFile } = await import("node:fs/promises");
-        const path = await import("node:path");
-
-        const names = (await readdir(depthCorpusDir)).filter(n => /.sm_(hi|lo|depth)$/u.test(n));
-        assert.ok(names.length, "corpus directory holds no compiled effects");
-        const bytes = new Uint8Array(await readFile(path.join(depthCorpusDir, names[0])));
+        const names = [REAL_EFFECT_NAME];
+        const bytes = await realEffect.Read(REAL_EFFECT);
 
         const tailOf = (depthRange) =>
         {
