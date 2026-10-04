@@ -5,6 +5,7 @@ import "#consts/trinity";
 import { mat4 } from "#math/mat4";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { IEveTransform } from "../IEveTransform.js";
+import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { box3 } from "#math/box3";
 import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
@@ -33,7 +34,7 @@ const INVERSE_PATCH_SCRATCH = mat4.create();
  * with its own frustum and LOD visibility pass.
  */
 @meta.define({ className: "EveTransform", family: "eve/spaceObject" })
-@meta.blue.inherit(IWorldPosition, ITr2BoundingBox, IEveSpaceObject2, IEveTransform)
+@meta.blue.inherit(IWorldPosition, ITr2BoundingBox, IEveSpaceObject2, IEveTransform, ITr2CurveSetOwner)
 export class EveTransform extends Tr2Transform
 {
 

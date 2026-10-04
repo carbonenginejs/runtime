@@ -25,7 +25,7 @@ import { blue } from "#blue";
 /** A child that instantiates a source template across a list of authored or locator-driven transforms, forwarding controller and registration calls to the instances. */
 @meta.define({ className: "EveChildInstanceContainer", family: "eve/child" })
 @meta.blue.mapInterface(EveEntity)
-@meta.blue.inherit(INotify, IListNotify)
+@meta.blue.inherit(ITr2CurveSetOwner, INotify, IListNotify)
 export class EveChildInstanceContainer extends EveChildTransform
 {
 
@@ -331,6 +331,72 @@ export class EveChildInstanceContainer extends EveChildTransform
   StartControllers()
   {
     this._RunOnInstances(instance => instance.StartControllers());
+  }
+
+  /** Carbon EveChildInstanceContainer::PlayCurveSet (cpp:579-588): every curve-set-owning instance plays it. */
+  @meta.implemented
+  PlayCurveSet(name, rangeName = "")
+  {
+    this._RunOnInstances(instance => {
+      const owner = CjsSchema.cast(instance, ITr2CurveSetOwner);
+      if (owner) owner.PlayCurveSet(name, rangeName);
+    });
+  }
+
+  /** Carbon EveChildInstanceContainer::StopCurveSet (cpp:590-600). */
+  @meta.implemented
+  StopCurveSet(name)
+  {
+    this._RunOnInstances(instance => {
+      const owner = CjsSchema.cast(instance, ITr2CurveSetOwner);
+      if (owner) owner.StopCurveSet(name);
+    });
+  }
+
+  /** Carbon EveChildInstanceContainer::UpdateCurveSet (cpp:602-611); renderContext travels as EveChildContainer's does. */
+  @meta.implemented
+  UpdateCurveSet(name, time, renderContext = null)
+  {
+    this._RunOnInstances(instance => {
+      const owner = CjsSchema.cast(instance, ITr2CurveSetOwner);
+      if (owner) owner.UpdateCurveSet(name, time, renderContext);
+    });
+  }
+
+  /** Carbon EveChildInstanceContainer::GetCurveSetDuration (cpp:613-623): the source template answers. */
+  @meta.implemented
+  GetCurveSetDuration(name)
+  {
+    const owner = CjsSchema.cast(this.source, ITr2CurveSetOwner);
+    return owner ? owner.GetCurveSetDuration(name) : 0;
+  }
+
+  /** Carbon EveChildInstanceContainer::GetRangeDuration (cpp:625-635): the source template answers. */
+  @meta.implemented
+  GetRangeDuration(name, rangeName)
+  {
+    const owner = CjsSchema.cast(this.source, ITr2CurveSetOwner);
+    return owner ? owner.GetRangeDuration(name, rangeName) : 0;
+  }
+
+  /** Carbon EveChildInstanceContainer::PlayAllCurveSets (cpp:637-646): only container instances are asked. */
+  @meta.implemented
+  PlayAllCurveSets()
+  {
+    this._RunOnInstances(instance => {
+      const container = CjsSchema.cast(instance, EveChildContainer);
+      if (container) container.PlayAllCurveSets();
+    });
+  }
+
+  /** Carbon EveChildInstanceContainer::StopAllCurveSets (cpp:648-657): only container instances are asked. */
+  @meta.implemented
+  StopAllCurveSets()
+  {
+    this._RunOnInstances(instance => {
+      const container = CjsSchema.cast(instance, EveChildContainer);
+      if (container) container.StopAllCurveSets();
+    });
   }
 
   /**

@@ -15,7 +15,7 @@ import { EveChildTransform } from "./EveChildTransform.js";
 
 /** A container of child objects plugged into a socket, forwarding controller events, controller variables and component registration to what it contains. */
 @meta.define({ className: "EveChildPlug", family: "eve/child" })
-@meta.blue.inherit(IInitialize, INotify, IListNotify)
+@meta.blue.inherit(ITr2CurveSetOwner, IInitialize, INotify, IListNotify)
 export class EveChildPlug extends EveChildTransform
 {
 
@@ -204,6 +204,87 @@ export class EveChildPlug extends EveChildTransform
   StartControllers()
   {
     for (const controller of this.controllers) controller?.Start();
+  }
+
+  /** Carbon EveChildPlug::PlayAllCurveSets (cpp:272-281): forwards to the curve-set-owning objects. */
+  @meta.implemented
+  PlayAllCurveSets()
+  {
+    for (const object of this.objects)
+    {
+      const owner = CjsSchema.cast(object, ITr2CurveSetOwner);
+      if (owner) owner.PlayAllCurveSets();
+    }
+  }
+
+  /** Carbon EveChildPlug::StopAllCurveSets (cpp:283-292). */
+  @meta.implemented
+  StopAllCurveSets()
+  {
+    for (const object of this.objects)
+    {
+      const owner = CjsSchema.cast(object, ITr2CurveSetOwner);
+      if (owner) owner.StopAllCurveSets();
+    }
+  }
+
+  /** Carbon EveChildPlug::PlayCurveSet (cpp:294-303). */
+  @meta.implemented
+  PlayCurveSet(name, rangeName = "")
+  {
+    for (const object of this.objects)
+    {
+      const owner = CjsSchema.cast(object, ITr2CurveSetOwner);
+      if (owner) owner.PlayCurveSet(name, rangeName);
+    }
+  }
+
+  /** Carbon EveChildPlug::StopCurveSet (cpp:305-314). */
+  @meta.implemented
+  StopCurveSet(name)
+  {
+    for (const object of this.objects)
+    {
+      const owner = CjsSchema.cast(object, ITr2CurveSetOwner);
+      if (owner) owner.StopCurveSet(name);
+    }
+  }
+
+  /** Carbon EveChildPlug::UpdateCurveSet (cpp:316-325); renderContext travels as EveChildContainer's does. */
+  @meta.implemented
+  UpdateCurveSet(name, time, renderContext = null)
+  {
+    for (const object of this.objects)
+    {
+      const owner = CjsSchema.cast(object, ITr2CurveSetOwner);
+      if (owner) owner.UpdateCurveSet(name, time, renderContext);
+    }
+  }
+
+  /** Carbon EveChildPlug::GetCurveSetDuration (cpp:327-339): the longest over the curve-set-owning objects. */
+  @meta.implemented
+  GetCurveSetDuration(name)
+  {
+    let duration = 0;
+    for (const object of this.objects)
+    {
+      const owner = CjsSchema.cast(object, ITr2CurveSetOwner);
+      if (owner) duration = Math.max(duration, owner.GetCurveSetDuration(name));
+    }
+    return duration;
+  }
+
+  /** Carbon EveChildPlug::GetRangeDuration (cpp:341-353): the longest over the curve-set-owning objects. */
+  @meta.implemented
+  GetRangeDuration(name, rangeName)
+  {
+    let duration = 0;
+    for (const object of this.objects)
+    {
+      const owner = CjsSchema.cast(object, ITr2CurveSetOwner);
+      if (owner) duration = Math.max(duration, owner.GetRangeDuration(name, rangeName));
+    }
+    return duration;
   }
 
   /** Carbon EveChildPlug::RegisterComponents (cpp:122-135): forward-only to

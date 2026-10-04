@@ -18,7 +18,7 @@ import { EveSocketParameterString } from "../socket/EveSocketParameterString.js"
 
 /** A named attachment point on a ship that resolves and hot-reloads a plugged-in child resource, forwarding controller and registration calls to it. */
 @meta.define({ className: "EveChildSocket", family: "eve/child" })
-@meta.blue.inherit(IInitialize, INotify)
+@meta.blue.inherit(ITr2CurveSetOwner, IInitialize, INotify)
 export class EveChildSocket extends EveChildTransform
 {
 
@@ -289,6 +289,62 @@ export class EveChildSocket extends EveChildTransform
   {
     if (this._pendingPlugCalls) this._pendingPlugCalls.push(plug => plug.StartControllers());
     else this.plug?.StartControllers();
+  }
+
+  /**
+   * Carbon cpp:344-350 forwards to the plug. Adapted: queued while the plug is
+   * still loading, as SetControllerVariable is.
+   */
+  @meta.adapted
+  PlayAllCurveSets()
+  {
+    if (this._pendingPlugCalls) this._pendingPlugCalls.push(plug => plug.PlayAllCurveSets());
+    else if (this.plug) this.plug.PlayAllCurveSets();
+  }
+
+  /** Carbon cpp:352-358 forwards to the plug. Adapted: queued while loading. */
+  @meta.adapted
+  StopAllCurveSets()
+  {
+    if (this._pendingPlugCalls) this._pendingPlugCalls.push(plug => plug.StopAllCurveSets());
+    else if (this.plug) this.plug.StopAllCurveSets();
+  }
+
+  /** Carbon cpp:360-366 forwards to the plug. Adapted: queued while loading. */
+  @meta.adapted
+  PlayCurveSet(name, rangeName = "")
+  {
+    if (this._pendingPlugCalls) this._pendingPlugCalls.push(plug => plug.PlayCurveSet(name, rangeName));
+    else if (this.plug) this.plug.PlayCurveSet(name, rangeName);
+  }
+
+  /** Carbon cpp:368-374 forwards to the plug. Adapted: queued while loading. */
+  @meta.adapted
+  StopCurveSet(name)
+  {
+    if (this._pendingPlugCalls) this._pendingPlugCalls.push(plug => plug.StopCurveSet(name));
+    else if (this.plug) this.plug.StopCurveSet(name);
+  }
+
+  /** Carbon cpp:376-382 forwards a sample to the plug; while it loads there is no plug and the sample is dropped. */
+  @meta.implemented
+  UpdateCurveSet(name, time, renderContext = null)
+  {
+    if (this.plug) this.plug.UpdateCurveSet(name, time, renderContext);
+  }
+
+  /** Carbon cpp:384-391: the plug's duration, 0 without one. */
+  @meta.implemented
+  GetCurveSetDuration(name)
+  {
+    return this.plug ? this.plug.GetCurveSetDuration(name) : 0;
+  }
+
+  /** Carbon cpp:393-400: the plug's range duration, 0 without one. */
+  @meta.implemented
+  GetRangeDuration(name, rangeName)
+  {
+    return this.plug ? this.plug.GetRangeDuration(name, rangeName) : 0;
   }
 
   /** Carbon EveChildSocket::RegisterComponents (cpp:212-221): forward-only to

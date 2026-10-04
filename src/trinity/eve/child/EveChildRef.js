@@ -25,7 +25,7 @@ import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
  * child joins (registered and forwarded to) once the file has loaded.
  */
 @meta.define({ className: "EveChildRef", family: "eve/child" })
-@meta.blue.inherit(IInitialize, INotify)
+@meta.blue.inherit(ITr2CurveSetOwner, IInitialize, INotify)
 export class EveChildRef extends EveChildTransform
 {
 

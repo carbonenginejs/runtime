@@ -75,7 +75,7 @@ const OVERLAY_TYPE_ALL = 1;
  * and batch submission that drive them each frame.
  */
 @meta.define({ className: "EveSpaceObject2", family: "eve/spaceObject" })
-@meta.blue.inherit(IWorldPosition, ITr2BoundingBox, ITr2Renderable, IEveSpaceObject2, ITr2ShLightingReceiver, ITr2SecondaryLightSource, IEveInheritPropertiesOwner, ITriTargetable)
+@meta.blue.inherit(IWorldPosition, ITr2BoundingBox, ITr2Renderable, IEveSpaceObject2, ITr2ShLightingReceiver, ITr2SecondaryLightSource, IEveInheritPropertiesOwner, ITriTargetable, ITr2CurveSetOwner)
 @meta.blue.inherit(IInitialize, INotify, IListNotify, ITr2Pickable)
 export class EveSpaceObject2 extends EveEntity
 {
@@ -3533,6 +3533,87 @@ export class EveSpaceObject2 extends EveEntity
       EveSpaceObject2._TransformNormal(out, out, this.worldTransform);
     }
     return out;
+  }
+
+  /** The curve-set-owning children and effect children, in Carbon's visiting order (children first). */
+  *_CurveSetOwners()
+  {
+    for (const list of [ this.children, this.effectChildren ])
+    {
+      for (const child of list)
+      {
+        const owner = CjsSchema.cast(child, ITr2CurveSetOwner);
+        if (owner) yield owner;
+      }
+    }
+  }
+
+  /** Carbon EveSpaceObject2::UpdateCurveSet (cpp:3901-3924): samples matching own sets at an explicit time on both clocks, then the children. */
+  @meta.implemented
+  UpdateCurveSet(name, time, renderContext = null)
+  {
+    for (const curveSet of this.curveSets)
+    {
+      if (curveSet.GetName() === name) curveSet.Update(time, time, renderContext);
+    }
+    for (const owner of this._CurveSetOwners()) owner.UpdateCurveSet(name, time, renderContext);
+  }
+
+  /** Carbon EveSpaceObject2::PlayCurveSet (cpp:3930-3961): matching own sets play whole or a named range, then the children. */
+  @meta.implemented
+  PlayCurveSet(name, rangeName = "")
+  {
+    for (const curveSet of this.curveSets)
+    {
+      if (curveSet.GetName() !== name) continue;
+      if (rangeName)
+      {
+        curveSet.PlayTimeRange(rangeName);
+      }
+      else
+      {
+        curveSet.ResetTimeRange();
+        curveSet.Play();
+      }
+    }
+    for (const owner of this._CurveSetOwners()) owner.PlayCurveSet(name, rangeName);
+  }
+
+  /** Carbon EveSpaceObject2::StopCurveSet (cpp:3967-3990). */
+  @meta.implemented
+  StopCurveSet(name)
+  {
+    for (const curveSet of this.curveSets)
+    {
+      if (curveSet.GetName() === name) curveSet.Stop();
+    }
+    for (const owner of this._CurveSetOwners()) owner.StopCurveSet(name);
+  }
+
+  /** Carbon EveSpaceObject2::GetCurveSetDuration (cpp:3996-4019): the longest over matching own sets and the children. */
+  @meta.implemented
+  GetCurveSetDuration(name)
+  {
+    let duration = 0;
+    for (const curveSet of this.curveSets)
+    {
+      if (curveSet.GetName() === name) duration = Math.max(duration, curveSet.GetMaxCurveDuration());
+    }
+    for (const owner of this._CurveSetOwners()) duration = Math.max(duration, owner.GetCurveSetDuration(name));
+    return duration;
+  }
+
+  /** Carbon EveSpaceObject2::GetRangeDuration (cpp:4024-4047): the longest named range over own sets and the children. */
+  @meta.implemented
+  GetRangeDuration(name, rangeName)
+  {
+    let duration = 0;
+    for (const curveSet of this.curveSets)
+    {
+      if (curveSet.GetName() === name) duration = Math.max(duration, curveSet.GetRangeDuration(rangeName));
+    }
+    for (const owner of this._CurveSetOwners()) duration = Math.max(duration, owner.GetRangeDuration(name, rangeName));
+    return duration;
   }
 
   /**

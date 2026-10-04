@@ -35,7 +35,7 @@ import { BLUELISTEVENT } from "#consts/blue";
  * attached to a hull.
  */
 @meta.define({ className: "EveEffectRoot2", family: "eve/spaceObject" })
-@meta.blue.inherit(ITr2BoundingBox, IEveSpaceObject2, ITr2SecondaryLightSource, ITriTargetable)
+@meta.blue.inherit(ITr2BoundingBox, IEveSpaceObject2, ITr2SecondaryLightSource, ITriTargetable, ITr2CurveSetOwner)
 @meta.blue.mapInterface(ITr2SecondaryLightSource)
 @meta.blue.inherit(IInitialize, INotify, IListNotify)
 export class EveEffectRoot2 extends EveEntity
