@@ -151,7 +151,10 @@ export class EveStretch extends IEveFiringEffectElement
     if (this.stretchObject) this.stretchObject.Update(context);
     if (this.moveObject) this.moveObject.Update(context);
     if (this.destObject && this._displayDestination) this.destObject.Update(context);
-    this.audio?.Update?.(this._sourcePosition, this._destinationPosition);
+    // Carbon dynamic_cast<Tr2AudioStretchBase*>( m_audio ) (EveStretch.cpp:111-114); the audio layer registers the class.
+    const audioBase = CjsSchema.GetConstructor("Tr2AudioStretchBase");
+    const stretchAudioBase = audioBase ? CjsSchema.cast(this.audio, audioBase) : null;
+    if (stretchAudioBase) stretchAudioBase.Update(this._sourcePosition, this._destinationPosition);
     if (this.stretchAudio)
     {
       this.stretchAudio.Update(this._sourcePosition, this._destinationPosition);
@@ -332,8 +335,9 @@ export class EveStretch extends IEveFiringEffectElement
     this.moving = true;
     this.moveCompleted = false;
     if (this.moveObject) this.moveObject.SetDisplay(true);
-    if (typeof this.audio?.TriggerStretchEvent === "function") this.audio.TriggerStretchEvent();
-    else this.audio?.SendEvent?.("wise:/msg_fx_play_stretch");
+    // Carbon dynamic_cast<Tr2AudioStretchAuto*>( m_audio ) (cpp:340-343).
+    const autoAudio = EveStretch._GetAutoAudio(this.audio);
+    if (autoAudio) autoAudio.TriggerStretchEvent();
   }
 
   /** Starts the travelling child and plays the first curve set. */
@@ -445,13 +449,18 @@ export class EveStretch extends IEveFiringEffectElement
       else if (name === "play_loop") curveSet.PlayFrom(-delay);
       else if (name === "play_end") curveSet.Stop();
     }
+    // Carbon cpp:464-475: the Tr2AudioStretchAuto events, then the stretch audio starts.
+    const autoAudio = EveStretch._GetAutoAudio(this.audio);
+    if (autoAudio)
+    {
+      autoAudio.TriggerOutburstEvent();
+      autoAudio.TriggerImpactEvent();
+      autoAudio.TriggerStretchEvent();
+    }
     if (this.stretchAudio)
     {
       this.stretchAudio.Start();
     }
-    this.audio?.TriggerOutburstEvent?.();
-    this.audio?.TriggerImpactEvent?.();
-    this.audio?.TriggerStretchEvent?.();
   }
 
   /**
@@ -587,6 +596,13 @@ export class EveStretch extends IEveFiringEffectElement
 
   static Tr2Lod = Tr2Lod;
   static _identity = mat4.create();
+  /** The audio as Carbon's Tr2AudioStretchAuto, or null; the audio layer registers the class. */
+  static _GetAutoAudio(audio)
+  {
+    const autoType = CjsSchema.GetConstructor("Tr2AudioStretchAuto");
+    return autoType ? CjsSchema.cast(audio, autoType) : null;
+  }
+
   static _sphere = vec4.create();
   static _lightSource = mat4.create();
   static _lightDestination = mat4.create();
