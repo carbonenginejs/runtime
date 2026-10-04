@@ -12,7 +12,7 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
 
 import { CjsPerFrameLayouts } from "../../src/trinity/core/rawData/CjsPerFrameLayouts.js";
-import { EveSpaceScene, Tr2RenderContext, Tr2ShadowMap } from "../../npm/dist/trinity/index.js";
+import { EveSpaceScene, Tr2RenderContext, Tr2Renderer, Tr2ShadowMap } from "../../npm/dist/trinity/index.js";
 
 
 /** Field offsets hand-computed from the C++ declaration order. */
@@ -263,7 +263,7 @@ test("the sun reaches the shader normalized and NEGATED", () =>
 
   // cpp:3087 - the PIXEL block alone overwrites alpha with the roughness.
   scene.defaultDiffuseRoughness = 0.375;
-  const ps = scene.PopulatePerFramePSData(makeContext());
+  const ps = scene.PopulatePerFramePSData(scene.GetPerFramePSData(), makeContext());
   assertClose(
     ps.Copy("Sun.DiffuseColor", new Float32Array(4)),
     [ 0.25, 0.5, 0.75, 0.375 ],
@@ -307,14 +307,14 @@ test("the pixel fill reports shadow quality as a bit, and jitter as a flag", () 
 
   // cpp:3121 - Carbon stores 1 << quality, not the enum value.
   scene.shadowQualitySetting = 3;
-  let record = scene.PopulatePerFramePSData(makeContext());
+  let record = scene.PopulatePerFramePSData(scene.GetPerFramePSData(), makeContext());
   assert.equal(readUint(record, quality), 8);
 
   // cpp:3119 - jittering is on iff m_jitter is not the zero vector.
   assert.equal(readUint(record, jittering), 0, "no jitter by default");
 
   scene.jitter.set([ 0, 0, 0.5, 0 ]);
-  record = scene.PopulatePerFramePSData(makeContext());
+  record = scene.PopulatePerFramePSData(scene.GetPerFramePSData(), makeContext());
   assert.equal(readUint(record, jittering), 1, "any non-zero component counts");
 });
 
@@ -331,7 +331,7 @@ test("the pixel fill carries the scene's own lighting outputs, not its authored 
   scene.fogMax = 0.7;
   scene.perFrameDebug = 2;
 
-  const record = scene.PopulatePerFramePSData(makeContext());
+  const record = scene.PopulatePerFramePSData(scene.GetPerFramePSData(), makeContext());
 
   assertClose(record.Copy("ReflectionIntensity", new Float32Array(1)), [ 0.6 ], "reflection");
   assertClose(record.Copy("AmbientColor", new Float32Array(3)), [ 0.1, 0.2, 0.3 ], "ambient");
@@ -383,10 +383,21 @@ test("the engine-supplied frame state lands where Carbon's statics did", () =>
   assert.equal(adjustment[2], 2, "1600 / 800");
   assert.equal(adjustment[3], 2, "1200 / 600");
 
-  const ps = scene.PopulatePerFramePSData(context, frame);
+  // The pixel fill reads engine state itself, as Carbon does (no frame argument).
+  const savedGamma = EveSpaceScene.eveSpaceSceneGammaBrightness;
+  EveSpaceScene.eveSpaceSceneGammaBrightness = 1.25;
+  let ps;
+  try
+  {
+    ps = scene.PopulatePerFramePSData(scene.GetPerFramePSData(), context);
+  }
+  finally
+  {
+    EveSpaceScene.eveSpaceSceneGammaBrightness = savedGamma;
+  }
   const psLayout = CjsPerFrameLayouts.Get("EveSpaceScenePerFramePSData");
 
-  assert.equal(readUint(ps, psLayout.fields.get("FrameIndex").offset), 99);
+  assert.equal(readUint(ps, psLayout.fields.get("FrameIndex").offset), Number(Tr2Renderer.GetCurrentFrameCounter()) >>> 0);
   assertClose(ps.Copy("GammaBrightness", new Float32Array(1)), [ 1.25 ], "gamma");
   assertClose(ps.Copy("ViewportOffset", new Float32Array(2)), [ 0, 0 ], "viewport offset");
 
@@ -413,7 +424,7 @@ test("the shadow cascade block is written only when a shadow map is supplied", (
 
   // cpp:3163 - no shadow map, no cascade block. A fresh persistent record
   // begins at the catalog defaults while ShadowCameraRange disables sampling.
-  const bare = scene.PopulatePerFramePSData(context);
+  const bare = scene.PopulatePerFramePSData(scene.GetPerFramePSData(), context);
   assert.deepEqual(Array.from(bare.Copy("ShadowCameraRange", new Float32Array(2))), [ 1, 0 ]);
   assert.deepEqual(
     Array.from(bare.Copy("ShadowMapSettings", new Float32Array(4))),
@@ -433,7 +444,7 @@ test("the shadow cascade block is written only when a shadow map is supplied", (
   }
   split.SplitInfo.set([ 0.25, 0.5, 0.75, 1 ]);
 
-  const filled = scene.PopulatePerFramePSData_ShadowMap(context, {}, shadowMap);
+  const filled = scene.PopulatePerFramePSData_ShadowMap(scene.GetPerFramePSData(), shadowMap, context);
 
   assert.deepEqual(
     Array.from(filled.Copy("ShadowMapValues", new Float32Array(4), 2)),
@@ -449,14 +460,14 @@ test("the shadow cascade block is written only when a shadow map is supplied", (
 
   scene.cascadedShadowMap = shadowMap;
   split.SplitInfo.set([ 4, 3, 2, 1 ]);
-  const owned = scene.PopulatePerFramePSData(context);
+  const owned = scene.PopulatePerFramePSData(scene.GetPerFramePSData(), context);
   assert.deepEqual(
     Array.from(owned.Copy("SplitInfo", new Float32Array(4))),
     [ 4, 3, 2, 1 ],
     "the omitted argument uses the scene-owned cascaded shadow map"
   );
 
-  const disabled = scene.PopulatePerFramePSData_ShadowMap(context, {}, null);
+  const disabled = scene.PopulatePerFramePSData_ShadowMap(scene.GetPerFramePSData(), null, context);
   assert.deepEqual(
     Array.from(disabled.Copy("ShadowCameraRange", new Float32Array(2))),
     [ 1, 0 ],
@@ -479,7 +490,7 @@ test("each cascade matrix lands in its own cell of the 8x2 atlas", () =>
   const context = makeContext();
   const shadowMap = new Tr2ShadowMap();
 
-  const record = scene.PopulatePerFramePSData_ShadowMap(context, {}, shadowMap);
+  const record = scene.PopulatePerFramePSData_ShadowMap(scene.GetPerFramePSData(), shadowMap, context);
 
   const first = mat4.transpose(
     mat4.create(),
@@ -522,7 +533,7 @@ test("logical shadow matrices are composed once and transposed only at RawData",
   const shadowMap = new Tr2ShadowMap();
   mat4.copy(shadowMap.GetPerSplitData().ShadowMatrixVal[0], logicalLvp);
 
-  const record = new EveSpaceScene().PopulatePerFramePSData_ShadowMap(context, {}, shadowMap);
+  const record = (s => s.PopulatePerFramePSData_ShadowMap(s.GetPerFramePSData(), shadowMap, context))(new EveSpaceScene());
   const actualLogical = mat4.transpose(
     mat4.create(),
     record.Copy("ShadowMatrixVal", new Float32Array(16), 0)
@@ -571,7 +582,7 @@ test("Tr2ShadowMap split output reaches the packed scene record end to end", () 
     0.8,
     -1.2
   );
-  const record = new EveSpaceScene().PopulatePerFramePSData_ShadowMap(context, {}, shadowMap);
+  const record = (s => s.PopulatePerFramePSData_ShadowMap(s.GetPerFramePSData(), shadowMap, context))(new EveSpaceScene());
   const actual = mat4.transpose(
     mat4.create(),
     record.Copy("ShadowMatrixVal", new Float32Array(16), 0)
@@ -604,7 +615,7 @@ test("projection inverse is derived logically before RawData's sole transpose", 
     17, 19, 23, -1,
     29, 31, 37, 1
   );
-  const record = new EveSpaceScene().PopulatePerFramePSData(makeContext({ projection }));
+  const record = (s => s.PopulatePerFramePSData(s.GetPerFramePSData(), makeContext({ projection })))(new EveSpaceScene());
   const expectedStored = mat4.transpose(
     mat4.create(),
     // Carbon inverts the REVERSED-depth projection (cpp:3196).
@@ -623,11 +634,11 @@ test("controlled shadow-map shapes fail loudly instead of uploading fallback zer
   const scene = new EveSpaceScene();
   const context = makeContext();
   assert.throws(
-    () => scene.PopulatePerFramePSData_ShadowMap(context, {}, { GetPerSplitData: () => ({}) }),
+    () => scene.PopulatePerFramePSData_ShadowMap(scene.GetPerFramePSData(), { GetPerSplitData: () => ({}) }, context),
     /requires a Tr2ShadowMap/u
   );
   assert.throws(
-    () => scene.PopulatePerFramePSData_ShadowMap(context, {}, {}),
+    () => scene.PopulatePerFramePSData_ShadowMap(scene.GetPerFramePSData(), {}, context),
     /requires a Tr2ShadowMap/u
   );
 });
@@ -639,7 +650,7 @@ test("the scene owns one persistent record per stage, reused every frame", () =>
   const context = makeContext();
 
   const vs = scene.PopulatePerFrameVSData(context);
-  const ps = scene.PopulatePerFramePSData(context);
+  const ps = scene.PopulatePerFramePSData(scene.GetPerFramePSData(), context);
 
   assert.equal(vs, scene.GetPerFrameVSData(), "the vertex fill returns the scene's own record");
   assert.equal(ps, scene.GetPerFramePSData(), "and so does the pixel fill");
@@ -681,7 +692,7 @@ test("with no frame supplied, the fills read the engine state Carbon's statics h
   const projection = mat4.perspectiveNO(mat4.create(), Math.PI / 2, 1.5, 1, 1000);
   const context = makeContext({ projection });
 
-  const ps = scene.PopulatePerFramePSData_ShadowMap(context, undefined, null);
+  const ps = scene.PopulatePerFramePSData_ShadowMap(scene.GetPerFramePSData(), null, context);
   const vs = scene.PopulatePerFrameVSData(context);
 
   assertClose(ps.Copy("GammaBrightness", new Float32Array(1)), [ EveSpaceScene.eveSpaceSceneGammaBrightness ], "gamma is g_eveSpaceSceneGammaBrightness");

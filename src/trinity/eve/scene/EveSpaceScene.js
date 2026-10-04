@@ -150,7 +150,7 @@ function EmptyShadowResources()
 //     (cpp:1524), so every receiver's secondary-lighting coefficients are
 //     current for the frame being submitted. Skipped entirely when the scene
 //     carries no shLightingManager.
-// 10c. `scene.PopulatePerFramePSData_ShadowMap(renderContext, frame, shadowMap)` then
+// 10c. `scene.PopulatePerFramePSData_ShadowMap(data, shadowMap, renderContext)` then
 //     `scene.PopulatePerFrameVSData(renderContext, frame)` - Carbon's order at
 //     cpp:1424-1425, PS first, because the pixel fill is what resolves
 //     m_upscalingAmount that the vertex fill then reads. Runs after GatherLights
@@ -996,7 +996,7 @@ export class EveSpaceScene
           {
             renderContext.Clear({ clearColor: true, clearDepth: true, color: [0, 0, 0, 0], depth: 0 });
             esm.SetFullScreenViewport();
-            this.PopulatePerFramePSData(renderContext);
+            this.PopulatePerFramePSData(this._perFramePS, renderContext);
             this.PopulatePerFrameVSData(renderContext, { renderTargetWidth: 1, renderTargetHeight: 1 });
             this.ApplyPerFrameData(renderContext);
             const batches = this._pickingBatches;
@@ -2367,7 +2367,7 @@ export class EveSpaceScene
       if (!visible.length) return;
 
       constantsChanged = true;
-      this.PopulatePerFramePSData(context);
+      this.PopulatePerFramePSData(this._perFramePS, context);
       this.PopulatePerFrameVSData(context);
       this.CreatePlanetViewMatrix(this.viewLast, lastView);
       EveCamera.ModifyClipPlanes(this.projectionLast, 0.01, 1e5, lastProjection);
@@ -2407,7 +2407,7 @@ export class EveSpaceScene
       mat4.unalloc(view);
       if (constantsChanged)
       {
-        this.PopulatePerFramePSData(context);
+        this.PopulatePerFramePSData(this._perFramePS, context);
         this.PopulatePerFrameVSData(context);
         this.ApplyPerFrameData(context);
       }
@@ -2852,7 +2852,7 @@ export class EveSpaceScene
       renderContext.SetRenderState(RenderState.RS_DEPTH_CLIP_ENABLE, 1);
     }
 
-    this.PopulatePerFramePSData_ShadowMap(renderContext, {}, shadowMap);
+    this.PopulatePerFramePSData_ShadowMap(this._perFramePS, shadowMap, renderContext);
     this.ApplyPerFrameData(renderContext);
 
     const result = shadowMap.DrawToShadowMapResult(renderContext, gpuResourcePool, depthMap, cascadedShadowDepth.Get(), this.upscalingAmount, renderer);
@@ -2919,7 +2919,7 @@ export class EveSpaceScene
   @meta.implemented
   PopulateAndApplyPerFrameData(renderContext)
   {
-    this.PopulatePerFramePSData(renderContext);
+    this.PopulatePerFramePSData(this._perFramePS, renderContext);
     this.PopulatePerFrameVSData(renderContext);
     this.ApplyPerFrameData(renderContext);
   }
@@ -3065,24 +3065,23 @@ export class EveSpaceScene
 
   /**
    * Carbon's PopulatePerFramePSData( data, renderContext ) (cpp:3084): fills
-   * with the scene's own cascaded shadow map.
+   * data with the scene's own cascaded shadow map.
    *
+   * @param {Object} data - the per-frame PS record to fill (Carbon m_perFramePS)
    * @param {Object} renderContext - the frame's Tr2RenderContext
-   * @param {Object} [frame] - see PopulatePerFramePSData_ShadowMap
-   * @param {Object} [out] - the record to fill; defaults to the scene's own
-   * @returns {Object} the filled record
+   * @returns {Object} data
    */
   @meta.blue.method
-  @meta.adapted
-  PopulatePerFramePSData(renderContext, frame = {}, out = this._perFramePS)
+  @meta.implemented
+  PopulatePerFramePSData(data, renderContext)
   {
-    return this.PopulatePerFramePSData_ShadowMap(renderContext, frame, this.cascadedShadowMap, out);
+    return this.PopulatePerFramePSData_ShadowMap(data, this.cascadedShadowMap, renderContext);
   }
 
   /**
-   * Fills the per-frame PIXEL constants (Carbon
-   * EveSpaceScene::PopulatePerFramePSData, cpp:3075-3202). Same `frame`
-   * adaptation as the vertex fill.
+   * Carbon's PopulatePerFramePSData( data, shadowMap, renderContext )
+   * (cpp:3089-3202), named by its extra shadowMap parameter: fills the
+   * per-frame PIXEL constants.
    *
    * The cascaded-shadow block (ShadowMapValues / CascadeRanges /
    * ShadowMatrixVal / SplitInfo) is filled only when a shadow map is passed,
@@ -3091,27 +3090,18 @@ export class EveSpaceScene
    * disabled, so stale cascade bytes are not consumed until a map is supplied
    * again.
    *
-   * @param {Object} renderContext - the frame's Tr2RenderContext
-   * @param {Object} [frame] - as PopulatePerFrameVSData, plus:
-   * @param {Number} [frame.frameIndex] - Tr2Renderer::GetCurrentFrameCounter
-   * @param {Number} [frame.gammaBrightness]
-   * @param {Number} [frame.sceneMipLodBias] - the upscaler's bias, plus the
-   *   scene post-process's own; the upscaling info is engine state
-   * @param {Number} [frame.inverseShadowMapAtlasSize] - 0 with no light manager
-   * @param {Number} [frame.shadowMapAtlasEntryMinSizeLog2]
-   * Carbon's PopulatePerFramePSData( data, shadowMap, renderContext )
-   * (cpp:3089), named by its extra shadowMap parameter.
-   *
+   * @param {Object} data - the per-frame PS record to fill
    * @param {Tr2ShadowMap|null} shadowMap - null disables cascade packing
-   * @param {Object} [out] - the record to fill; defaults to the scene's own
-   * @returns {Object} the filled record
+   * @param {Object} renderContext - the frame's Tr2RenderContext
+   * @returns {Object} data
    */
   @meta.blue.renamed("PopulatePerFramePSData")
   @meta.adapted
-  @meta.reason("Tr2Renderer statics, the ESM viewport, Tr2LightManager's atlas settings and the upscaler's mip bias are engine state; the driver supplies them in `frame`.")
-  PopulatePerFramePSData_ShadowMap(renderContext, frame = {}, shadowMap, out = this._perFramePS)
+  @meta.reason("Tr2Renderer statics, the ESM viewport, Tr2LightManager's atlas settings and the upscaler's mip bias are read through _EngineFrameState.")
+  PopulatePerFramePSData_ShadowMap(data, shadowMap, renderContext)
   {
-    frame = { ...this._EngineFrameState(renderContext), ...frame };
+    const out = data;
+    const frame = this._EngineFrameState(renderContext);
     if (shadowMap !== null && !(shadowMap instanceof Tr2ShadowMap))
     {
       throw new TypeError("EveSpaceScene.PopulatePerFramePSData requires a Tr2ShadowMap or null.");

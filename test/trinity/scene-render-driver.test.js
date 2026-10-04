@@ -62,6 +62,7 @@ function sceneRecording(calls)
     GetRenderables(out) { calls.push([ "GetRenderables" ]); return out; },
     PopulateAndApplyPerFrameData() {},
     RenderVolumetrics(_depth, pool) { return [new GpuResourceHandle(), new GpuResourceHandle()]; },
+    GetPerFramePSData() { return null; },
     PopulatePerFramePSData() { calls.push([ "PopulatePerFramePSData" ]); },
     PopulatePerFrameVSData() { calls.push([ "PopulatePerFrameVSData" ]); },
     ApplyPerFrameData() { calls.push([ "ApplyPerFrameData" ]); },
