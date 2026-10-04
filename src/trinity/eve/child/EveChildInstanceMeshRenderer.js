@@ -1,4 +1,5 @@
 import { INotify } from "../../../global/blue/INotify.js";
+import { IEveShadowCaster } from "../IEveShadowCaster.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
@@ -629,5 +630,5 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
 }
 
 
-// EveChildInstanceMeshRenderer_Blue.cpp: native exposure; unported contracts: IEveShadowCaster.
-meta.blue.interfaceTable({ interfaces: [EveChildInstanceMeshRenderer, EveEntity, EveChildMesh, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IInitialize, INotify], chainTo: null })(EveChildInstanceMeshRenderer, { kind: "class" });
+// EveChildInstanceMeshRenderer_Blue.cpp: native exposure.
+meta.blue.interfaceTable({ interfaces: [EveChildInstanceMeshRenderer, EveEntity, EveChildMesh, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IInitialize, INotify, IEveShadowCaster], chainTo: null })(EveChildInstanceMeshRenderer, { kind: "class" });

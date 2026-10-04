@@ -1,4 +1,5 @@
 import { IListNotify } from "../../../global/blue/IListNotify.js";
+import { IEveShadowCaster } from "../IEveShadowCaster.js";
 import { INotify } from "../../../global/blue/INotify.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
@@ -395,5 +396,5 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   static _firstRotationQuaternion = quat.create();
 }
 
-// EveSmartLightMesh_Blue.cpp: native exposure; unported contracts: IEveSmartLightGroup, IEveShadowCaster.
-meta.blue.interfaceTable({ interfaces: [EveSmartLightMesh, EveChildInstanceMeshRenderer, ITr2Renderable, IInitialize, INotify], chainTo: null })(EveSmartLightMesh, { kind: "class" });
+// EveSmartLightMesh_Blue.cpp: native exposure; unported contracts: IEveSmartLightGroup.
+meta.blue.interfaceTable({ interfaces: [EveSmartLightMesh, EveChildInstanceMeshRenderer, ITr2Renderable, IInitialize, INotify, IEveShadowCaster], chainTo: null })(EveSmartLightMesh, { kind: "class" });

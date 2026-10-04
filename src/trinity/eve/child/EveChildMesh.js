@@ -11,7 +11,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
-import { isVector3 } from "#utils/is";
+import { IEveShadowCaster } from "../IEveShadowCaster.js";
 import { getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
 import { Tr2RingBuffer, Tr2RingBufferOffsets } from "../../core/device/Tr2RingBuffer/index.js";
@@ -67,7 +67,7 @@ const NO_BONE_TRANSFORMS = { bones: null, boneCount: 0 };
  * state.
  */
 @meta.define({ className: "EveChildMesh", family: "eve/child" })
-@meta.blue.inherit(ITr2Renderable)
+@meta.blue.inherit(ITr2Renderable, IEveShadowCaster)
 @meta.blue.inherit(IListNotify)
 @meta.blue.inherit(IInitialize, INotify, IListNotify)
 export class EveChildMesh extends EveChildTransform
@@ -1500,23 +1500,6 @@ export class EveChildMesh extends EveChildTransform
   }
 
   /**
-   * Carbon's bare IsCastingShadow, for literal ports: routes on the second
-   * argument, a Vector3 position selecting IsCastingShadow_PositionRadius and
-   * anything else the shadow-frustum form IsCastingShadow_ShadowFrustum
-   * (IEveShadowCaster.h:144-145). Engine code calls the specific names; this is
-   * an argument-inspecting router only because JavaScript cannot overload.
-   * @returns {Boolean}
-   */
-  @meta.blue.method
-  @meta.adapted
-  IsCastingShadow(cameraFrustum, second, third, fourth)
-  {
-    return isVector3(second)
-      ? this.IsCastingShadow_PositionRadius(cameraFrustum, second, third, fourth)
-      : this.IsCastingShadow_ShadowFrustum(cameraFrustum, second, third, fourth);
-  }
-
-  /**
    * Carbon's IsCastingShadow( cameraFrustum, position, radius, renderReason )
    * (cpp:341): whether the world bounding sphere overlaps the query sphere.
    * @param {Object} cameraFrustum
@@ -2058,5 +2041,5 @@ function NormalizeMorphFilter(value)
   throw new TypeError(`Unsupported EveChildMesh morph target filter "${value}"`);
 }
 
-// EveChildMesh_Blue.cpp: native exposure; unported contracts: IEveSpaceObjectDecalOwner, ITr2GrannyAnimationOwner, IEveSpaceObjectAttachmentOwner, ITr2LightOwner, ITr2Pickable, IEveShadowCaster.
-meta.blue.interfaceTable({ interfaces: [EveChildMesh, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IInitialize, INotify], chainTo: null })(EveChildMesh, { kind: "class" });
+// EveChildMesh_Blue.cpp: native exposure; unported contracts: IEveSpaceObjectDecalOwner, ITr2GrannyAnimationOwner, IEveSpaceObjectAttachmentOwner, ITr2LightOwner, ITr2Pickable.
+meta.blue.interfaceTable({ interfaces: [EveChildMesh, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IInitialize, INotify, IEveShadowCaster], chainTo: null })(EveChildMesh, { kind: "class" });

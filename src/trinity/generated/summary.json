@@ -2,7 +2,7 @@
   "outRoot": "src/trinity/generated",
   "classes": {
     "written": 26,
-    "skipped": 676
+    "skipped": 677
   },
   "enums": {
     "written": 15,
@@ -562,6 +562,11 @@
     {
       "family": "eve",
       "className": "IEveReferencePoint",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "IEveShadowCaster",
       "reason": "hand-maintained source exists"
     },
     {

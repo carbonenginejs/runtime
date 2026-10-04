@@ -1,4 +1,5 @@
 import { EveEntity } from "../../EveEntity.js";
+import { IEveShadowCaster } from "../../IEveShadowCaster.js";
 import { IEveSpaceObjectChild } from "../IEveSpaceObjectChild.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstancedMeshes.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstancedMeshes.cpp
@@ -63,7 +64,7 @@ function FindDamageLocators(sets)
  * world cull bounds.
  */
 @meta.define({ className: "EveChildInstancedMeshes", family: "eve/child" })
-@meta.blue.inherit(ITr2Renderable)
+@meta.blue.inherit(ITr2Renderable, IEveShadowCaster)
 export class EveChildInstancedMeshes extends EveSpaceObjectChild
 {
   @meta.blue.readwrite
@@ -1610,5 +1611,5 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
 
 }
 
-// EveChildInstancedMeshes_Blue.cpp: native exposure; unported contracts: IEveShadowCaster.
-meta.blue.interfaceTable({ interfaces: [EveChildInstancedMeshes, EveSpaceObjectChild, IEveSpaceObjectChild, EveEntity, ITr2Renderable], chainTo: null })(EveChildInstancedMeshes, { kind: "class" });
+// EveChildInstancedMeshes_Blue.cpp: native exposure.
+meta.blue.interfaceTable({ interfaces: [EveChildInstancedMeshes, EveSpaceObjectChild, IEveSpaceObjectChild, EveEntity, ITr2Renderable, IEveShadowCaster], chainTo: null })(EveChildInstancedMeshes, { kind: "class" });

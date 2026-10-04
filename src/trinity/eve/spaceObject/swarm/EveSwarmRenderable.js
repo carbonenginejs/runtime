@@ -1,6 +1,7 @@
 import { Copier } from "../../../../global/blue/Copier.js";
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.h
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.cpp
+import { IEveShadowCaster } from "../../IEveShadowCaster.js";
 import { meta } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
@@ -20,7 +21,7 @@ const TRANSPARENT_CENTER = vec3.create();
 
 /** Runtime implementation of Carbon's swarm renderable component. */
 @meta.define({ className: "EveSwarmRenderable", family: "eve/spaceObject/swarm" })
-@meta.blue.inherit(ITr2Renderable)
+@meta.blue.inherit(ITr2Renderable, IEveShadowCaster)
 export class EveSwarmRenderable extends EveEntity
 {
 

@@ -18,6 +18,7 @@ export * from "./IEveBallpark.js";
 export * from "./IEveFiringEffectElement.js";
 export * from "./IEveInheritPropertiesOwner.js";
 export * from "./IEveSpaceObject2.js";
+export * from "./IEveShadowCaster.js";
 export * from "./IEveTransform.js";
 export * from "./IEveReferencePoint.js";
 export * from "./PlacementDataWithIdentifier.js";

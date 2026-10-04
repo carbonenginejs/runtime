@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Eve/Turret/EveTurretSet.h
 // Source: trinity/trinity/Eve/Turret/EveTurretSet.cpp
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
+import { IEveShadowCaster } from "../../IEveShadowCaster.js";
 import { meta, CjsSchema } from "#schema";
 import { mappedInterfaces } from "../../../../global/compose/interface.js";
 import { IInitialize } from "#blue/IInitialize";
@@ -58,7 +59,7 @@ function BoundingSphereTransform(transform, sphere)
 
 /** Owns a hull's instanced turrets and drives their aiming, animation, firing, visibility, batches, shadows, and per-object data. */
 @meta.define({ className: "EveTurretSet", family: "eve/attachment/turrets" })
-@meta.blue.inherit(IInitialize, INotify, ITr2Renderable, ITr2ControllerOwner)
+@meta.blue.inherit(IInitialize, INotify, ITr2Renderable, ITr2ControllerOwner, IEveShadowCaster)
 @meta.blue.mapInterface(EveEntity, IInitialize, INotify, ITr2Renderable)
 @meta.blue.inherit(IInitialize, INotify)
 export class EveTurretSet extends EveEntity
