@@ -1,4 +1,4 @@
-import { PackMaterialConstants } from "#trinityal/webgpu/core/materialConstants";
+import { PackMaterialConstants } from "../../../../npm/dist/trinityal/webgpu/core/materialConstants.js";
 
 const BUFFER_SIZES = Object.freeze({
   perFrameVS: 736,

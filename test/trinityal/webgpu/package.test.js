@@ -8,7 +8,7 @@ import {
   CjsWebgpuSampler,
   CjsWebgpuShaderModule,
   CjsWebgpuTexture
-} from "#trinityal/webgpu";
+} from "../../../npm/dist/trinityal/webgpu/index.js";
 import { buildCopyblitDrawDescriptor } from "./harness/support/packageDraw.js";
 
 // The effect-path helpers that used to be tested here have moved to

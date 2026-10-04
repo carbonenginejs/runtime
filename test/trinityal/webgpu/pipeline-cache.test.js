@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CanonicalKey, CjsWebgpuPipelineCache, RenderPipelineKey } from "#trinityal/webgpu/core/CjsWebgpuPipelineCache";
+import { CanonicalKey, CjsWebgpuPipelineCache, RenderPipelineKey } from "../../../npm/dist/trinityal/webgpu/core/CjsWebgpuPipelineCache.js";
 
 test("CanonicalKey ignores property order but not content", () =>
 {

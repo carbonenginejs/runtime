@@ -1,4 +1,4 @@
-import { cloneJson } from "#trinityal/webgpu/core/freeze";
+import { cloneJson } from "../../../../../npm/dist/trinityal/webgpu/core/freeze.js";
 
 const REQUIRED_IDENTITIES = Object.freeze(new Map([
   [ "uniform-buffer:0:0", "buffer" ],

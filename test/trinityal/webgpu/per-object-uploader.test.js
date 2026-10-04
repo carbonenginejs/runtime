@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CjsConstantPayload } from "#interfaces";
+import { CjsConstantPayload } from "../../../npm/dist/global/interfaces/index.js";
 import {
   CollectPerObjectUploads,
   CommitPerObjectUploads,
   UploadPerObjectData
-} from "#trinityal/webgpu/core/perObjectUploader";
+} from "../../../npm/dist/trinityal/webgpu/core/perObjectUploader.js";
 
 class TestConstantPayload extends CjsConstantPayload
 {

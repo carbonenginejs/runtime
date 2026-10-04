@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsWebgpuPackage } from "#trinityal/webgpu";
-import { createBackendBodySource } from "#trinityal/webgpu/core/backendBodySource";
+import { CjsWebgpuPackage } from "../../../npm/dist/trinityal/webgpu/index.js";
+import { createBackendBodySource } from "../../../npm/dist/trinityal/webgpu/core/backendBodySource.js";
 
 const SHA_A = "a".repeat(64);
 const SHA_B = "b".repeat(64);

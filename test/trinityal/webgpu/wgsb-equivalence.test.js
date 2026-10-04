@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsWebgpuPackage } from "#trinityal/webgpu";
+import { CjsWebgpuPackage } from "../../../npm/dist/trinityal/webgpu/index.js";
 import {
   buildAllBodyPackage,
   buildSelectedPackage,

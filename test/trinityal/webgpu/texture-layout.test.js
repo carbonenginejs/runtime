@@ -8,7 +8,7 @@ import {
   MipSize,
   PlanTextureUpload,
   TEXTURE_FORMATS
-} from "#trinityal/webgpu/core/textureLayout";
+} from "../../../npm/dist/trinityal/webgpu/core/textureLayout.js";
 
 test("LevelLayout counts block rows, not pixel rows", () =>
 {

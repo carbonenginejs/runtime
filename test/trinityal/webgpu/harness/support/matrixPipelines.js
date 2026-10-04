@@ -1,4 +1,4 @@
-import { CjsWebgpuPackage } from "#trinityal/webgpu";
+import { CjsWebgpuPackage } from "../../../../../npm/dist/trinityal/webgpu/index.js";
 
 function fail(message)
 {
