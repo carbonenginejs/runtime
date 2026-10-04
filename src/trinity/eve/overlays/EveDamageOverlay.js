@@ -392,7 +392,7 @@ export class EveDamageOverlay
     for (const impact of this._armorImpacts.values())
     {
       const texel = this._texelRows[row++];
-      const position = EveDamageOverlay._locatorPosition;
+      const position = vec3.zero(EveDamageOverlay._locatorPosition);
       ownerInfo.getDamageLocatorPositionOS(impact.damageLocatorIndex, position);
       vec4.set(texel[2], position[0], position[1], position[2], 0);
       vec4.set(texel[3], impact.size * IMPACT_ARMOR_SIZE_FACTOR * this.armorImpactParentSize, 0, 0, 0);

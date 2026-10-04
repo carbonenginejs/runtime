@@ -223,7 +223,7 @@ export class EveStretch extends IEveFiringEffectElement
     const relative = this.startTime >= 0 ? time - this.startTime : time;
     for (const curveSet of this.curveSets) updateCurveSet(curveSet, relative, context.renderContext);
     // Carbon EveStretch.cpp:158-159: the progress curve takes the elapsed ticks in seconds.
-    if (this.progressCurve) this.progressCurve.UpdateValue(TimeAsDouble(relative));
+    if (this.moving && this.progressCurve) this.progressCurve.UpdateValue(TimeAsDouble(relative));
     updateCurveSet(this.moveCompletion, relative, context.renderContext);
   }
 

@@ -1,7 +1,7 @@
 // Source: trinity/trinity/TriRigidOrientation.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta } from "#schema";
-import { ITriFunction, ITriQuaternionFunction } from "#blue";
+import { ITriFunction, ITriQuaternionFunction, TimeAsDouble } from "#blue";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
@@ -63,8 +63,8 @@ export class TriRigidOrientation extends ITriQuaternionFunction
   value = quat.create();
 
   /**
-   * Stored native Be::Time origin for absolute-time sampling. The current JS
-   * sampling methods accept relative seconds and do not subtract this field.
+   * mStart - the Be::Time origin the ...Ticks methods subtract (TriRigidOrientation.cpp:55-60, 91-96); the
+   * seconds methods take time already relative to it.
    * @type {number}
    */
   @meta.blue.readwrite
@@ -163,7 +163,7 @@ export class TriRigidOrientation extends ITriQuaternionFunction
   /**
    * The orientation at a time measured from the start, written into `out`;
    * before the first key it is the retained value. Time first and output last, as the rest of the curve family;
-   * the Be::Time overload is the interface's GetValueAtTicks, since mStart is never latched (TriRigidOrientation.cpp:55-60).
+   * GetValueAtTicks is the Be::Time overload.
    */
   @meta.blue.method
   @meta.adapted
@@ -243,6 +243,47 @@ export class TriRigidOrientation extends ITriQuaternionFunction
   UpdateValue(time)
   {
     this.Update(time, this.value);
+  }
+
+  /**
+   * Carbon's GetValueAt(Be::Time): samples at the ticks since start, in seconds (cpp:55-60). JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array} out Caller-owned quaternion.
+   * @returns {Float32Array} out
+   */
+  @meta.blue.renamed("GetValueAt")
+  @meta.adapted
+  GetValueAtTicks(time, out)
+  {
+    return this.GetValueAt(TimeAsDouble(time - this.start), out);
+  }
+
+  /**
+   * Carbon's Update(Be::Time): samples the Be::Time overload into the retained value (cpp:37-43). JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array} out Caller-owned quaternion.
+   * @returns {Float32Array} out
+   */
+  @meta.blue.renamed("Update")
+  @meta.adapted
+  UpdateTicks(time, out)
+  {
+    this.GetValueAtTicks(time, this.value);
+    return quat.copy(out, this.value);
+  }
+
+  /**
+   * Carbon's Vector3 GetValueDotAt(Be::Time): the angular velocity at the ticks since start, in seconds
+   * (cpp:91-96). JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array} out Caller-owned vector.
+   * @returns {Float32Array} out
+   */
+  @meta.blue.renamed("GetValueDotAt")
+  @meta.adapted
+  GetValueDotAtTicks(time, out)
+  {
+    return this.GetValueDotAt(TimeAsDouble(time - this.start), out);
   }
 
   _currentKey = 0;

@@ -147,7 +147,7 @@ export class AudioGameObject
     this.UpdateWorldTransform(updateContext.GetTime());
     if (this.audioEmitter && !this.mute)
     {
-      this._SetEmitterPosition(this.GetWorldPosition(vec3.create()));
+      this._SetEmitterPosition(this.GetWorldPosition(AudioGameObject.scratch.vec3_0));
     }
   }
 
@@ -255,10 +255,11 @@ export class AudioGameObject
    */
   _SetEmitterPosition(position)
   {
-    const rotation = this.GetWorldRotation(quat.create());
-    const front = vec3.transformQuat(vec3.create(), AudioGameObject.FRONT, rotation);
-    const top = vec3.transformQuat(vec3.create(), AudioGameObject.TOP, rotation);
-    this.audioEmitter?.SetPosition(front, top, position);
+    const { quat_0, vec3_1, vec3_2 } = AudioGameObject.scratch;
+    this.GetWorldRotation(quat_0);
+    vec3.transformQuat(vec3_1, AudioGameObject.FRONT, quat_0);
+    vec3.transformQuat(vec3_2, AudioGameObject.TOP, quat_0);
+    this.audioEmitter.SetPosition(vec3_1, vec3_2, position);
   }
 
   static FRONT = Object.freeze([0, 1, 0]);
@@ -266,6 +267,8 @@ export class AudioGameObject
 
   static scratch = {
     vec3_0: vec3.create(),
+    vec3_1: vec3.create(),
+    vec3_2: vec3.create(),
     quat_0: quat.create()
   };
 }

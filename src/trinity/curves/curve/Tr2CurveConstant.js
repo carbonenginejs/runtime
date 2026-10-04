@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Curves/Tr2CurveConstant.h
 // Source: trinity/trinity/Curves/Tr2CurveConstant.cpp
-import { ITriScalarFunction, ITriVectorFunction, ITriQuaternionFunction, ITriColorFunction, ITriFunction } from "#blue";
+import { ITriScalarFunction, ITriVectorFunction, ITriQuaternionFunction, ITriColorFunction, ITriFunction, TimeAsDouble } from "#blue";
 import { quat } from "#math/quat";
 import { copyArrayLike } from "#utils";
 import { vec3 } from "#math/vec3";
@@ -96,6 +96,34 @@ export class Tr2CurveConstant extends ITriScalarFunction
     }
     void time;
     return Tr2CurveConstant._copyValue(out, this.value);
+  }
+
+  /**
+   * Carbon's Update(Be::Time) for every interface the constant implements: the scalar form returns the value, the
+   * vector, quaternion and color forms copy it into out (cpp:49-67, 114-131). The scalar base's one-argument tick
+   * method would drop out, so the constant declares its own. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array|number[]} [out] Caller-owned output storage for the non-scalar forms.
+   * @returns {number|Float32Array|number[]} The supplied output or scalar value.
+   */
+  @meta.blue.renamed("Update")
+  @meta.adapted
+  UpdateTicks(time, out)
+  {
+    return this.Update(TimeAsDouble(time), out);
+  }
+
+  /**
+   * Carbon's GetValueAt(Be::Time) for every interface the constant implements, as UpdateTicks. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array|number[]} [out] Caller-owned output storage for the non-scalar forms.
+   * @returns {number|Float32Array|number[]} The supplied output or scalar value.
+   */
+  @meta.blue.renamed("GetValueAt")
+  @meta.adapted
+  GetValueAtTicks(time, out)
+  {
+    return this.GetValueAt(TimeAsDouble(time), out);
   }
 
   /**

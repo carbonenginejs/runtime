@@ -1766,8 +1766,7 @@ export class EveTurretSet extends EveEntity
 
   /**
    * Recomputes each turret's world matrix as the parent transform applied to its
-   * local matrix and marks the record valid; defaults to the stored parent
-   * transform.
+   * local matrix and marks the record valid.
    */
   @meta.blue.method
   @meta.implemented
@@ -1826,7 +1825,7 @@ export class EveTurretSet extends EveEntity
     const geometry = this.geometryResource;
     if (geometry && !geometry.IsGood())
     {
-      if (this._vertexDeclHandle !== Tr2EffectStateManager.Unknown) this.ReleaseCachedData(geometry);
+      if (this._skeleton || this._turretVertexDeclElementCount) this.ReleaseCachedData(geometry);
       if (!geometry.IsFailed()) geometry.AddNotifyTarget(this);
     }
     if (this.UpdateLOD(context))

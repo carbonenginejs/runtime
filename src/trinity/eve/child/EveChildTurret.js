@@ -220,11 +220,6 @@ export class EveChildTurret extends EveChildMesh
 
   _pendingFiringEffectCalls = null;
 
-  // Carbon reads m_parentData.transform in SetupFiringState (cpp:533) - the
-  // PARENT transform, deliberately not this child's world transform; captured
-  // from the update params each async pass.
-  _parentTranslation = vec3.create();
-
   /** Enables target fading when the turret's locator changes. */
   constructor()
   {
@@ -465,8 +460,6 @@ export class EveChildTurret extends EveChildMesh
       }
     }
 
-    const parentTransform = params.localToWorldTransform;
-    vec3.set(this._parentTranslation, parentTransform[12], parentTransform[13], parentTransform[14]);
 
     const result = super.UpdateAsyncronous(updateContext, params);
 
@@ -779,6 +772,9 @@ export class EveChildTurret extends EveChildMesh
 
     const effectTotalTime = this.firingEffect ? this.firingEffect.GetFiringDuration() : 0;
     const effectPeakTime = this.firingEffect ? this.firingEffect.GetFiringPeakTime() : 0;
+    // Carbon cpp:531: m_parentData.transform, which EveChildMesh's update set to this child's world transform.
+    const parentTransform = this._parentData.transform;
+    vec3.set(FIRE_SOURCE_SCRATCH, parentTransform[12], parentTransform[13], parentTransform[14]);
 
     switch (this.state)
     {
@@ -788,14 +784,14 @@ export class EveChildTurret extends EveChildMesh
         this.PlayAnimation(this._GetFireAnimationName(), "Active", this.maxTrackingTime);
         this._target.StartFireAtLocator(
           closestLocator, this.maxTrackingTime + effectPeakTime,
-          effectTotalTime - effectPeakTime, this._parentTranslation);
+          effectTotalTime - effectPeakTime, FIRE_SOURCE_SCRATCH);
         break;
       case State.STATE_FIRING:
       case State.STATE_TARGETING:
         this.PlayAnimation(this._GetFireAnimationName(), "Active", this.maxTrackingTime);
         this._target.StartFireAtLocator(
           closestLocator, this.maxTrackingTime + effectPeakTime,
-          effectTotalTime - effectPeakTime, this._parentTranslation);
+          effectTotalTime - effectPeakTime, FIRE_SOURCE_SCRATCH);
         break;
       default:
         break;

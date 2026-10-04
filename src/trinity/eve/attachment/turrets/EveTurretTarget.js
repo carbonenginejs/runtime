@@ -62,11 +62,10 @@ export class EveTurretTarget
   }
 
   /**
-   * Accepts an object as the target only when it exposes both an impact or
-   * damage-locator surface and a world-position surface; a change to a different
+   * Accepts an object as the target only when its class maps ITriTargetable and
+   * IWorldPosition (Carbon EveTurretTarget.cpp:69-79); a change to a different
    * object seeds the position blend so tracking eases off the previous target.
-   * Null clears the target (Carbon EveTurretTarget.cpp:62-67). Returns whether
-   * the object was accepted.
+   * Null clears the target (cpp:62-67). Returns whether the object was accepted.
    */
   @meta.blue.method @meta.implemented
   SetTargetable(object)
@@ -178,13 +177,13 @@ export class EveTurretTarget
 
   /**
    * Resolves the world impact point for the current locator into out according
-   * to the impact behaviour - the damage locator, the target's centre, or the
-   * target's own shield-ellipsoid solution - falling back to the target's world
-   * position when the locator gives no usable or finite position.
+   * to the impact behaviour (cpp:192-218): the damage locator, falling back to the
+   * target's world position beyond one AU; the target's centre; or the target's
+   * shield-ellipsoid intercept, falling back to the damage locator from inside it.
    */
   @meta.blue.method @meta.adapted
   @meta.reason("Targetable output parameters use CarbonEngineJS's out-last calling convention.")
-  GetImpactPosition(source = EveTurretTarget._zero, out = vec3.create())
+  GetImpactPosition(source, out)
   {
     if (!this._targetable) return out;
     if (this.behaviour === EveTurretTarget.ImpactBehaviour.DAMAGE_LOCATOR)
@@ -197,7 +196,7 @@ export class EveTurretTarget
     {
       this._worldPositionObject.GetWorldPosition(out);
     }
-    else
+    else if (this.behaviour === EveTurretTarget.ImpactBehaviour.SHIELD_ELLIPSOID)
     {
       this._worldPositionObject.GetWorldPosition(EveTurretTarget._worldPosition);
       // Inside the shield ellipsoid there is no intercept (cpp:210-214).

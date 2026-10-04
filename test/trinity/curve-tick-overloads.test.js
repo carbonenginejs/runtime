@@ -4,6 +4,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
+import { quat } from "../../npm/dist/global/math/quat.js";
+import { ITriVectorFunction } from "../../npm/dist/global/blue/index.js";
+import { Tr2CurveQuaternion } from "../../npm/dist/trinity/curves/curve/Tr2CurveQuaternion.js";
+import { Tr2CurveConstant } from "../../npm/dist/trinity/curves/curve/Tr2CurveConstant.js";
+import { TriRigidOrientation, TriTorque } from "../../npm/dist/trinity/core/index.js";
 import { EveSpaceObject2 } from "../../npm/dist/trinity/eve/spaceObject/EveSpaceObject2.js";
 import { Tr2CurveVector3 } from "../../npm/dist/trinity/curves/curve/Tr2CurveVector3.js";
 import { Tr2TranslationAdapter } from "../../npm/dist/trinity/curves/curve/Tr2TranslationAdapter.js";
@@ -53,4 +58,63 @@ test("a translation adapter in the slot latches its start on the first tick samp
   // The seconds overload takes its argument as given, with no latch: Carbon's double path.
   const out = vec3.create();
   near(adapter.GetValueAt(2, out), [ 20, 0, 0 ], "seconds overload");
+});
+
+test("a keyed quaternion curve in a ship rotation slot is sampled at the tick time in seconds", () =>
+{
+  const ship = new EveSpaceObject2();
+  const rotation = new Tr2CurveQuaternion();
+  rotation.AddKey(0, quat.create(), Tr2CurveInterpolation.LINEAR);
+  rotation.AddKey(10, quat.setAxisAngle(quat.create(), [ 0, 1, 0 ], Math.PI / 2), Tr2CurveInterpolation.LINEAR);
+  ship.rotationCurve = rotation;
+  ship.UpdateWorldTransform(10 * TICKS_PER_SECOND);
+  const expected = quat.setAxisAngle(quat.create(), [ 0, 1, 0 ], Math.PI / 2);
+  for (let index = 0; index < 4; index++)
+  {
+    assert.ok(Math.abs(ship.worldRotation[index] - expected[index]) < 1e-4, `rotation component ${index}`);
+  }
+});
+
+test("the ball's velocity comes from its Be::Time derivative", () =>
+{
+  const ship = new EveSpaceObject2();
+  const times = [];
+  ship.translationCurve = new class extends ITriVectorFunction
+  {
+    Update(_time, out) { return vec3.zero(out); }
+    GetValueAt(_time, out) { return vec3.zero(out); }
+    GetValueDotAt(time, out) { times.push(time); return vec3.set(out, 4, 5, 6); }
+    GetValueDoubleDotAt(_time, out) { return out; }
+  }();
+  ship.UpdateWorldTransform(3 * TICKS_PER_SECOND);
+  near(ship.worldVelocity, [ 4, 5, 6 ], "velocity");
+  assert.deepEqual(times, [ 3 ], "the shared tick forward converts to seconds");
+});
+
+test("a Tr2CurveConstant in a vector slot writes its value through the tick overloads", () =>
+{
+  const ship = new EveSpaceObject2();
+  const constant = new Tr2CurveConstant();
+  constant.value.set([ 7, 8, 9, 1 ]);
+  ship.translationCurve = constant;
+  ship.UpdateWorldTransform(SCENE_START);
+  near(ship.worldPosition, [ 7, 8, 9 ], "constant position");
+  assert.equal(constant.UpdateTicks(SCENE_START), 7, "the scalar form still returns the first component");
+});
+
+test("TriRigidOrientation's tick overloads sample relative to its start", () =>
+{
+  const torque = new TriTorque();
+  torque.time = 0;
+  vec3.set(torque.omega0, 0, 2, 0);
+  const curve = new TriRigidOrientation();
+  curve.drag = 1;
+  curve.I = 1;
+  curve.states = [ torque ];
+  curve.start = SCENE_START;
+  const viaTicks = curve.GetValueAtTicks(SCENE_START + 2 * TICKS_PER_SECOND, quat.create());
+  const viaSeconds = curve.GetValueAt(2, quat.create());
+  for (let index = 0; index < 4; index++) assert.ok(Math.abs(viaTicks[index] - viaSeconds[index]) < 1e-6, `component ${index}`);
+  const rate = curve.GetValueDotAtTicks(SCENE_START + 2 * TICKS_PER_SECOND, vec3.create());
+  near(rate, curve.GetValueDotAt(2, vec3.create()), "angular velocity");
 });
