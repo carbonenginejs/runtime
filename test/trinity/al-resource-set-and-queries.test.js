@@ -137,12 +137,12 @@ test("public resource-set copies retain implementations across recreate and rese
   const old = copy.m_resourceSet.implementation;
   assert.equal(original.SetName(null), ALResult.E_INVALIDARG);
   assert.equal(original.SetName(""), ALResult.S_OK);
-  assert.equal(original.Create(description, {}, context), ALResult.S_OK);
+  assert.equal(original.Create_Program(description, {}, context), ALResult.S_OK);
   assert.notEqual(original.m_resourceSet.implementation, old);
   original.Destroy();
   assert.equal(original.SetName("x"), ALResult.E_INVALIDCALL);
   assert.equal(copy.IsValid(), true);
-  assert.equal(copy.Create(description, {}, context, true), ALResult.E_FAIL);
+  assert.equal(copy.Create_Pipeline(description, {}, context), ALResult.E_FAIL);
   assert.equal(copy.IsValid(), false);
   assert.equal(old.IsValid(), false, "failed recreation released the final owner");
   context.Destroy();

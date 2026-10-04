@@ -29,15 +29,38 @@ export class Tr2ResourceSetAL
   }
 
   /**
-   * Creates a backend-selected resource set and replaces this handle's shared
-   * ownership record.
+   * Carbon's bare Create is not supported: the program and pipeline overloads
+   * (Tr2ResourceSetAL.h:134-135) differ only in our own classes. Call
+   * Create_Program or Create_Pipeline.
    */
+  Create()
+  {
+    throw new Error("Tr2ResourceSetAL.Create is not supported; call Create_Program or Create_Pipeline.");
+  }
+
+  /**
+   * Carbon's Create( description, pipeline, renderContext ) (h:135): raytracing
+   * resource sets, which neither JS backend supports.
+   */
+  @meta.blue.renamed("Create")
   @meta.adapted
-  @meta.reason("Context allocation replaces the compile-time platform include. The final raytracing selector replaces the C++ pipeline overload; neither JS backend supports it. Shared ownership is explicitly released.")
-  Create(description, program, renderContext, raytracing = false)
+  Create_Pipeline(_description, _pipeline, _renderContext)
   {
     this.Destroy();
-    if (raytracing) return ALResult.E_FAIL;
+    return ALResult.E_FAIL;
+  }
+
+  /**
+   * Carbon's Create( description, program, renderContext ) (h:134): creates a
+   * backend-selected resource set and replaces this handle's shared ownership
+   * record.
+   */
+  @meta.blue.renamed("Create")
+  @meta.adapted
+  @meta.reason("Context allocation replaces the compile-time platform include. Shared ownership is explicitly released.")
+  Create_Program(description, program, renderContext)
+  {
+    this.Destroy();
     const { result, implementation } = renderContext.CreateResourceSet(description, program, true);
     if (Failed(result)) return result;
     this.m_resourceSet = { implementation, owners: 1 };

@@ -2353,7 +2353,7 @@ export class CjsWebgpuRenderContextAL
       return { result, implementation };
     }
     const resourceSet = new Tr2ResourceSetAL();
-    if (Failed(resourceSet.Create(description, program, this))) return null;
+    if (Failed(resourceSet.Create_Program(description, program, this))) return null;
     return resourceSet;
   }
 

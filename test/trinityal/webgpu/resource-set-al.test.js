@@ -176,11 +176,11 @@ test("context binding keeps the old implementation when its public handle is rec
   const bound = al.GetBoundState().resourceSet;
   const previous = bound.m_resourceSet.implementation;
   assert.notEqual(bound, set);
-  assert.equal(set.Create(description, program, al), ALResult.S_OK);
+  assert.equal(set.Create_Program(description, program, al), ALResult.S_OK);
   assert.notEqual(set.m_resourceSet.implementation, previous);
   assert.equal(bound.m_resourceSet.implementation, previous);
   assert.equal(bound.IsValid(), true);
-  assert.equal(set.Create(new Tr2ResourceSetDescriptionAL(), program, al), ALResult.E_INVALIDARG);
+  assert.equal(set.Create_Program(new Tr2ResourceSetDescriptionAL(), program, al), ALResult.E_INVALIDARG);
   assert.equal(set.IsValid(), false, "failed Create resets the public handle");
   assert.equal(bound.IsValid(), true, "the captured implementation survives failure too");
 });
@@ -192,7 +192,7 @@ test("WebGPU refuses unsupported heap views with the original status code", () =
   const description = new Tr2ResourceSetDescriptionAL({ program });
   const set = al.CreateResourceSet(description, program);
   assert.equal(description.SetSrvHeapView(ShaderType.PIXEL_SHADER, 2), true);
-  assert.equal(set.Create(description, program, al), ALResult.E_FAIL);
+  assert.equal(set.Create_Program(description, program, al), ALResult.E_FAIL);
   assert.equal(set.IsValid(), false);
 });
 

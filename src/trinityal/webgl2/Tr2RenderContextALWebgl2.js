@@ -501,7 +501,7 @@ export class Tr2RenderContextALWebgl2
     }
 
     const resourceSet = new Tr2ResourceSetAL();
-    return Failed(resourceSet.Create(description, program, this)) ? null : resourceSet;
+    return Failed(resourceSet.Create_Program(description, program, this)) ? null : resourceSet;
   }
 
   /**
