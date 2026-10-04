@@ -769,12 +769,24 @@ export class Tr2RenderContext
    * Binds the index buffer. Reached through `ApplyIndexBuffer`.
    *
    * @param {object} buffer A `Tr2BufferAL`.
-   * @param {number} [stride] Bytes per index.
    * @returns {number} An `ALResult`: whether the AL accepted it.
    */
-  SetIndices(buffer, stride = 0)
+  SetIndices(buffer)
   {
-    return this.#requireAL("SetIndices").SetIndices(buffer, stride);
+    return this.#requireAL("SetIndices").SetIndices(buffer);
+  }
+
+  /**
+   * Binds the index buffer with an explicit stride: Carbon's
+   * SetIndices( buffer, stride ).
+   *
+   * @param {object} buffer A `Tr2BufferAL`.
+   * @param {number} stride Bytes per index.
+   * @returns {number} An `ALResult`: whether the AL accepted it.
+   */
+  SetIndicesStride(buffer, stride)
+  {
+    return this.#requireAL("SetIndicesStride").SetIndicesStride(buffer, stride);
   }
 
   /**

@@ -1670,7 +1670,7 @@ export class Tr2EffectStateManager
       this.#currentValues.indexStride = stride;
     }
 
-    this.#renderContext.SetIndices(indices, stride);
+    this.#renderContext.SetIndicesStride(indices, stride);
 
     return true;
   }

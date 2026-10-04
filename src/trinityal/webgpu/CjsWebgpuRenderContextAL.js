@@ -1380,13 +1380,25 @@ export class CjsWebgpuRenderContextAL
   }
 
   /**
-   * Binds the index buffer.
+   * Carbon's SetIndices( buffer ) (Tr2RenderContextDx11.cpp:1508): binds the
+   * index buffer with its own description's stride.
    *
    * @param {object} buffer A `Tr2BufferAL`.
-   * @param {number} [stride] Bytes per index.
    * @returns {number} `S_OK`.
    */
-  SetIndices(buffer, stride = 0)
+  SetIndices(buffer)
+  {
+    return this.SetIndicesStride(buffer, buffer ? buffer.GetDesc().stride : 0);
+  }
+
+  /**
+   * Carbon's SetIndices( buffer, stride ): binds the index buffer.
+   *
+   * @param {object} buffer A `Tr2BufferAL`.
+   * @param {number} stride Bytes per index.
+   * @returns {number} `S_OK`.
+   */
+  SetIndicesStride(buffer, stride)
   {
     this._indexBuffer = buffer ? buffer.TrinityALImpl_GetObject() : null;
     this._indexStride = stride;

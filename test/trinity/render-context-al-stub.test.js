@@ -554,7 +554,7 @@ test("the binding family accepts what a draw needs bound", () =>
   assert.equal(al.BeginScene(), ALResult.S_OK);
   assert.equal(al.SetVertexLayout({ id: "layout" }), ALResult.S_OK);
   assert.equal(al.SetStreamSource(0, { id: "vertices" }, 0, 32), ALResult.S_OK);
-  assert.equal(al.SetIndices({ id: "indices" }, 2), ALResult.S_OK);
+  assert.equal(al.SetIndicesStride({ id: "indices" }, 2), ALResult.S_OK);
   assert.equal(al.SetShaderProgram({ id: "program" }), ALResult.S_OK);
   assert.equal(al.SetResourceSet({ id: "resources" }), ALResult.S_OK);
   assert.equal(al.SetConstants({ id: "perObject" }, ShaderType.PIXEL_SHADER, 4), ALResult.S_OK);

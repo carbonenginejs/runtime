@@ -797,14 +797,24 @@ export class Tr2RenderContextALStub
   /**
    * Binds the index buffer.
    *
-   * Carbon has a stride-less overload as well; the stride defaults here rather
-   * than duplicating the method, because both bodies are the same.
+   * Carbon's SetIndices( buffer, stride ) (Tr2RenderContextStub.cpp:83).
    *
    * @param {object} _buffer A `Tr2BufferAL`.
-   * @param {number} [_stride] Bytes per index.
+   * @param {number} _stride Bytes per index.
    * @returns {number} `S_OK`.
    */
-  SetIndices(_buffer, _stride = 0)
+  SetIndicesStride(_buffer, _stride)
+  {
+    return ALResult.S_OK;
+  }
+
+  /**
+   * Carbon's SetIndices( buffer ) (Tr2RenderContextStub.cpp:78).
+   *
+   * @param {object} _buffer A `Tr2BufferAL`.
+   * @returns {number} `S_OK`.
+   */
+  SetIndices(_buffer)
   {
     return ALResult.S_OK;
   }
