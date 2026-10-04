@@ -2,19 +2,13 @@ import { IsMatch } from "#blue";
 import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodThresholds.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.js";
+import { EveProceduralMethodThresholdParameter } from "./EveProceduralMethodThresholdParameter.js";
 
 // Carbon BELIST_LOADING (blueexposure IList.h:50): list events raised while a
 // persisted list hydrates carry this flag and must not trigger a re-sort.
 const BELIST_LOADING = 0x10;
-
-// Carbon SelectiveParameterCompare (cpp:66-72): ascending threshold order.
-function SelectiveParameterCompare(param1, param2)
-{
-  return Number(param1?.GetThreshold?.() ?? param1?.threshold ?? 0) -
-    Number(param2?.GetThreshold?.() ?? param2?.threshold ?? 0);
-}
 
 /** EveProceduralMethodThresholds (eve/child/procedural/selection) - generated from schema shapeHash 794abb42.... */
 @meta.define({ className: "EveProceduralMethodThresholds", family: "eve/child/procedural/selection" })
@@ -70,11 +64,9 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
   }
 
   /** Carbon EveProceduralMethodThresholds::OnModified (cpp:26-34): a seed
-   * change reselects. The value argument follows the repo's OnModified
-   * duck. */
+   * change reselects. */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Field matching follows the repo OnModified duck.")
+  @meta.implemented
   OnModified(value = null)
   {
     if (IsMatch(value, "seed_temp"))
@@ -88,11 +80,10 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
   /** Carbon EveProceduralMethodThresholds::OnListModified (cpp:36-42): a
    * non-loading change to the parameter list re-sorts. */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("The list argument defaults to the parameters list.")
-  OnListModified(event = 0, _key = 0, _key2 = 0, _value = null, list = null)
+  @meta.implemented
+  OnListModified(event, _key, _key2, _value, list)
   {
-    if ((list === null || list === this.parameters) && (event & BELIST_LOADING) === 0)
+    if (list === this.parameters && (event & BELIST_LOADING) === 0)
     {
       this.SortParameters();
     }
@@ -110,8 +101,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
 
     for (let index = 0; index < this.parameters.length; index++)
     {
-      const param = this.parameters[index];
-      if (this.seed_temp <= Number(param?.GetThreshold?.() ?? param?.threshold ?? 0))
+      if (this.seed_temp <= this.parameters[index].GetThreshold())
       {
         this.selectedChild = index;
         break;
@@ -136,7 +126,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
       return;
     }
 
-    this.parameters.sort(SelectiveParameterCompare);
+    this.parameters.sort(EveProceduralMethodThresholds._SelectiveParameterCompare);
   }
 
   /** Carbon EveProceduralMethodThresholds::IsSelectedChildModified
@@ -162,14 +152,14 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
     }
 
     this._selectedChildModified = false;
-    const param = this.parameters[this.selectedChild];
+    const param = CjsSchema.cast(this.parameters[this.selectedChild], EveProceduralMethodThresholdParameter);
 
     if (param)
     {
-      const child = param.GetChild?.() ?? param.child;
-      if (child && String(child.GetResPath?.() ?? child.resPath ?? "").length !== 0)
+      const child = param.GetChild();
+      if (child && child.GetResPath().length !== 0)
       {
-        param.Load?.();
+        param.Load();
         return child;
       }
     }
@@ -186,7 +176,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
     let reselect = false;
     for (const param of this.parameters)
     {
-      if (param?.IsModified?.())
+      if (param.IsModified())
       {
         reselect = true;
         param.SetModified(false);
@@ -223,6 +213,16 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
         this.SelectParameter();
       }
     }
+  }
+
+  /**
+   * Carbon SelectiveParameterCompare (cpp:66-72): ascending threshold order.
+   *
+   * Adapted: Carbon's functor is a strict less-than for std::sort; Array.sort takes the difference.
+   */
+  static _SelectiveParameterCompare(param1, param2)
+  {
+    return param1.GetThreshold() - param2.GetThreshold();
   }
 
 }
