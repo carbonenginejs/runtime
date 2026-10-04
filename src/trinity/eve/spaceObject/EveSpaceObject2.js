@@ -1776,8 +1776,7 @@ export class EveSpaceObject2 extends EveEntity
    * Updates Carbon's visibility, pixel-size, and mesh-LOD state, then forwards
    * visibility to the explicitly owned visual branches.
    *
-   * Adapted: raytracing mesh updates are not ported, and observers are told
-   * their visibility without Carbon's ITr2AudEmitter cast (the audio layer).
+   * Adapted: raytracing mesh updates are not ported.
    */
   @meta.blue.method
   @meta.adapted
@@ -1863,10 +1862,13 @@ export class EveSpaceObject2 extends EveEntity
       }
     }
 
+    const emitterType = CjsSchema.GetConstructor("ITr2AudEmitter");
     for (const observer of this.observers)
     {
-      const target = observer?.GetObserver() ?? observer?.observer;
-      target?.SetVisibility?.(this.isVisible);
+      // Carbon dynamic_cast<ITr2AudEmitter*>( observer->GetObserver() ) (cpp UpdateVisibility); the
+      // audio layer registers the interface, so it is resolved by name.
+      const emitter = emitterType ? CjsSchema.cast(observer.GetObserver(), emitterType) : null;
+      if (emitter) emitter.SetVisibility(this.isVisible);
     }
     for (const child of this.effectChildren)
     {
