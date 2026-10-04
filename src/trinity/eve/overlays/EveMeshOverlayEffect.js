@@ -120,7 +120,7 @@ export class EveMeshOverlayEffect
   {
     for (const effects of this._effectLists())
     {
-      for (const effect of effects) effect?.SetOption?.(name, value);
+      for (const effect of effects) effect.SetOption(name, value);
     }
   }
 
@@ -201,7 +201,7 @@ export class EveMeshOverlayEffect
   {
     const curveSet = this._matchingCurveSet(name);
     if (!curveSet) return;
-    if (rangeName) curveSet.PlayTimeRange?.(rangeName);
+    if (rangeName) curveSet.PlayTimeRange(rangeName);
     else
     {
       curveSet.ResetTimeRange();
@@ -228,7 +228,9 @@ export class EveMeshOverlayEffect
   @meta.implemented
   GetCurveSetDuration(name)
   {
-    return Math.max(0, Number(this._matchingCurveSet(name)?.GetMaxCurveDuration?.() ?? 0));
+    // Carbon cpp:240-254: max( 0, duration ) when the name matches.
+    const curveSet = this._matchingCurveSet(name);
+    return curveSet ? Math.max(0, curveSet.GetMaxCurveDuration()) : 0;
   }
 
   /**
@@ -239,7 +241,9 @@ export class EveMeshOverlayEffect
   @meta.implemented
   GetRangeDuration(name, rangeName)
   {
-    return Math.max(0, Number(this._matchingCurveSet(name)?.GetRangeDuration?.(rangeName) ?? 0));
+    // Carbon cpp:256-271.
+    const curveSet = this._matchingCurveSet(name);
+    return curveSet ? Math.max(0, curveSet.GetRangeDuration(rangeName)) : 0;
   }
 
   /**

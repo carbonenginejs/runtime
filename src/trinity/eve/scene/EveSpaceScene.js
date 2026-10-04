@@ -1355,22 +1355,22 @@ export class EveSpaceScene
 
     for (const object of this.objects)
     {
-      object?.UpdateVisibility(this.updateContext, IDENTITY);
+      object.UpdateVisibility(this.updateContext, IDENTITY);
     }
 
-    this.cameraAttachmentParent?.SetTransform?.(inverseView);
-    this.cameraAttachmentParent?.UpdateSyncronous(this.updateContext);
-    this.cameraAttachmentParent?.UpdateAsyncronous(this.updateContext);
-    this.cameraAttachmentParent?.UpdateVisibility(this.updateContext, IDENTITY);
+    this.cameraAttachmentParent.SetTransform(inverseView);
+    this.cameraAttachmentParent.UpdateSyncronous(this.updateContext);
+    this.cameraAttachmentParent.UpdateAsyncronous(this.updateContext);
+    this.cameraAttachmentParent.UpdateVisibility(this.updateContext, IDENTITY);
 
     for (const staticParticles of this.staticParticles)
     {
-      staticParticles?.UpdateVisibility(this.updateContext);
+      staticParticles.UpdateVisibility(this.updateContext);
     }
 
     for (const planet of this.planets)
     {
-      planet?.UpdateZOnlyVisibility?.(this.updateContext);
+      planet.UpdateZOnlyVisibility(this.updateContext);
     }
 
     // Sequential in Carbon too: "until we have proper support for multiple
@@ -1463,8 +1463,8 @@ export class EveSpaceScene
     const sources = [];
     for (const owner of this.componentRegistry?.GetComponents(EveComponentType.PostProcessOwner) ?? [])
     {
-      // Carbon pushes unguarded (cpp:358-361); JS ducks may return null.
-      const attributes = owner?.GetPostProcessAttributes?.();
+      // Carbon pushes the pointer unguarded (cpp:358-361); a null one is skipped here.
+      const attributes = owner.GetPostProcessAttributes();
       if (attributes)
       {
         sources.push(attributes);
@@ -1498,12 +1498,12 @@ export class EveSpaceScene
       // (cpp:389-406).
       if (this.postprocess)
       {
-        this._combinedPostProcess.SetDynamicExposure(this.postprocess.GetDynamicExposureIfAvailable?.() ?? null);
-        this._combinedPostProcess.SetTaa(this.postprocess.GetTaaIfAvailable?.() ?? null);
-        this._combinedPostProcess.SetTonemapping(this.postprocess.GetTonemappingIfAvailable?.() ?? null);
-        this._combinedPostProcess.SetFog(this.postprocess.GetFogIfAvailable?.() ?? null);
-        this._combinedPostProcess.SetGodRays(this.postprocess.GetGodRaysIfAvailable?.() ?? null);
-        this._combinedPostProcess.SetGenericEffect(this.postprocess.GetGenericEffectIfAvailable?.() ?? null);
+        this._combinedPostProcess.SetDynamicExposure(this.postprocess.GetDynamicExposureIfAvailable());
+        this._combinedPostProcess.SetTaa(this.postprocess.GetTaaIfAvailable());
+        this._combinedPostProcess.SetTonemapping(this.postprocess.GetTonemappingIfAvailable());
+        this._combinedPostProcess.SetFog(this.postprocess.GetFogIfAvailable());
+        this._combinedPostProcess.SetGodRays(this.postprocess.GetGodRaysIfAvailable());
+        this._combinedPostProcess.SetGenericEffect(this.postprocess.GetGenericEffectIfAvailable());
       }
       else
       {
@@ -1646,7 +1646,7 @@ export class EveSpaceScene
 
     for (const owner of this.componentRegistry?.GetComponents(EveComponentType.LightOwner) ?? [])
     {
-      owner?.GetLights?.(lightManager);
+      owner.GetLights(lightManager);
     }
 
     lightManager.ResolveLightData();

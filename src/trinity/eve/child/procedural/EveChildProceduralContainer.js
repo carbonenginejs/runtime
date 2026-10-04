@@ -132,7 +132,7 @@ export class EveChildProceduralContainer extends EveChildTransform
     {
       for (const [name, value] of this._proceduralContainerVariables)
       {
-        child.SetProceduralContainerVariable?.(name, value);
+        child.SetProceduralContainerVariable(name, value);
       }
     }
     this.selectedObject = child;
@@ -280,7 +280,7 @@ export class EveChildProceduralContainer extends EveChildTransform
   GetBoundingSphere(out = vec4.create(), _query = 0)
   {
     const childSphere = vec4.create();
-    if (this.selectedObject?.GetBoundingSphere?.(childSphere))
+    if (this.selectedObject && this.selectedObject.GetBoundingSphere(childSphere, 0))
     {
       vec4.copy(out, childSphere);
       return true;
@@ -307,7 +307,7 @@ export class EveChildProceduralContainer extends EveChildTransform
   @meta.implemented
   ChangeLOD(lod)
   {
-    this.selectedObject?.ChangeLOD?.(lod);
+    if (this.selectedObject) this.selectedObject.ChangeLOD(lod);
   }
 
   /** Carbon EveChildProceduralContainer::PlayCurveSet (cpp:187-193): the selected child, when it owns curve sets. */
@@ -382,13 +382,13 @@ export class EveChildProceduralContainer extends EveChildTransform
   }
 
   /** Carbon EveChildProceduralContainer::FindSoundEmitter (cpp:287-298): the
-   * ITr2SoundEmitterOwner dynamic_cast becomes a duck call on the selected
-   * child. */
+   * selected child through Carbon's ITr2SoundEmitterOwner dynamic_cast. */
   @meta.blue.method
   @meta.implemented
   FindSoundEmitter(name)
   {
-    return this.selectedObject?.FindSoundEmitter?.(name) ?? null;
+    const owner = CjsSchema.cast(this.selectedObject, ITr2SoundEmitterOwner);
+    return owner ? owner.FindSoundEmitter(name) : null;
   }
 
   /** Carbon EveChildProceduralContainer::AddTransformModifier
@@ -405,7 +405,7 @@ export class EveChildProceduralContainer extends EveChildTransform
   @meta.implemented
   SetShaderOption(name, value)
   {
-    this.selectedObject?.SetShaderOption?.(name, value);
+    if (this.selectedObject) this.selectedObject.SetShaderOption(name, value);
   }
 
   /** Carbon EveChildProceduralContainer::SetInheritProperties (cpp:346-356):
