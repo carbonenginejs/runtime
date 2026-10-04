@@ -1937,10 +1937,10 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Collects the hull and explicitly owned Carbon child/decal renderables. */
-  @meta.blue.method
+  @meta.blue.renamed("GetRenderables")
   @meta.adapted
   @meta.reason("Impostor submission and decal mesh caches are not ported yet; Trinity returns the backend-neutral renderable graph.")
-  GetRenderables(out = [])
+  GetRenderables_Impostors(out = [], _impostors)
   {
     if (!this.display || !this.isVisible) return out;
     if (this._allowLodSelection && this._isMeshVisible)

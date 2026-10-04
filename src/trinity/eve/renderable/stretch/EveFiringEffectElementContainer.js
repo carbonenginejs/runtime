@@ -106,9 +106,9 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Appends the wrapped element's renderables to out while the container is displayed.
    * @returns {Array} out
    */
-  @meta.blue.method @meta.adapted
+  @meta.blue.renamed("GetRenderables") @meta.adapted
   @meta.reason("Renderable collection is backend-neutral and does not build the batch yet.")
-  GetRenderables(out = [])
+  GetRenderables_Impostors(out = [], _impostors)
   {
     if (this.display && this.element) this.element.GetRenderables(out);
     return out;

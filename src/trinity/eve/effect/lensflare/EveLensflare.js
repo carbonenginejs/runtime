@@ -507,7 +507,7 @@ export class EveLensflare
   {
     if (!this.display || !this.isVisible) return renderables;
 
-    for (const flare of this.flares) flare.GetRenderables(renderables, null);
+    for (const flare of this.flares) flare.GetRenderables_Impostors(renderables, null);
     if (this.mesh) renderables.push(this);
     return renderables;
   }

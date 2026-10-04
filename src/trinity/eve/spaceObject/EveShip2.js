@@ -154,15 +154,15 @@ export class EveShip2 extends EveMobile
   }
 
   /** Carbon EveShip2::GetRenderables - base, then booster renderables. */
-  @meta.blue.method
+  @meta.blue.renamed("GetRenderables")
   @meta.implemented
-  GetRenderables(out)
+  GetRenderables_Impostors(out, _impostors)
   {
     if (!this.display)
     {
       return out;
     }
-    super.GetRenderables(out);
+    super.GetRenderables_Impostors(out, null);
     if (this.DisplayBoosters())
     {
       this.boosters.GetRenderables(out);

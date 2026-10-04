@@ -398,10 +398,18 @@ export class EveSpherePin
     this.UpdateViewDependentData(updateContext.GetFrustum(), parentTransform);
   }
 
-  /** Native collection checks display only; the optional impostor manager is unused. */
+  /** Carbon's GetRenderables( renderables ): forwards with no impostor manager. */
   @meta.blue.method
   @meta.implemented
-  GetRenderables(renderables, _impostors = null)
+  GetRenderables(renderables)
+  {
+    return this.GetRenderables_Impostors(renderables, null);
+  }
+
+  /** Native collection checks display only; the optional impostor manager is unused. */
+  @meta.blue.renamed("GetRenderables")
+  @meta.implemented
+  GetRenderables_Impostors(renderables, _impostors)
   {
     if (this.display) renderables.push(this);
   }

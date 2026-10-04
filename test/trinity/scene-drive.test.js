@@ -84,7 +84,7 @@ test("scene drive order matches Carbon GatherBatches: visibility then gather, ca
     {
       log.push({ name, method: "UpdateVisibility", updateContext, parentTransform });
     },
-    GetRenderables(out)
+    GetRenderables_Impostors(out)
     {
       log.push({ name, method: "GetRenderables" });
       out.push(name);
@@ -121,7 +121,7 @@ test("scene drive order matches Carbon GatherBatches: visibility then gather, ca
   // Decision 7: the camera parent default-constructs as a real EveEffectRoot2.
   const cameraParent = scene.cameraAttachmentParent;
   assert.ok(cameraParent instanceof EveEffectRoot2, "cameraAttachmentParent default-constructs");
-  for (const method of ["SetTransform", "UpdateSyncronous", "UpdateAsyncronous", "UpdateVisibility", "GetRenderables"])
+  for (const method of ["SetTransform", "UpdateSyncronous", "UpdateAsyncronous", "UpdateVisibility", "GetRenderables_Impostors"])
   {
     const original = cameraParent[method].bind(cameraParent);
     cameraParent[method] = (...args) =>
@@ -171,7 +171,7 @@ test("scene drive order matches Carbon GatherBatches: visibility then gather, ca
   assert.deepEqual(log.map(entry => `${entry.name}.${entry.method}`), [
     "object0.GetRenderables",
     "object1.GetRenderables",
-    "cameraParent.GetRenderables",
+    "cameraParent.GetRenderables_Impostors",
     "staticParticles.GetRenderables"
   ]);
   assert.equal(log[3].frustumArg, camera.frustum, "staticParticles gather receives the stamped frustum");
@@ -622,7 +622,7 @@ test("display=false gates every BeginRender-phase method; update=false gates Upd
     {
       calls.push("visibility");
     },
-    GetRenderables(out)
+    GetRenderables_Impostors(out)
     {
       calls.push("gather");
       out.push("stub");

@@ -1120,7 +1120,7 @@ export class EveSpaceScene
       {
         if (!object.IsPickable()) continue;
         object.UpdateVisibility(this.updateContext, IDENTITY);
-        object.GetRenderables(visible, null);
+        object.GetRenderables_Impostors(visible, null);
       }
     }
     finally
@@ -1130,7 +1130,7 @@ export class EveSpaceScene
     if (this.cameraAttachmentParent)
     {
       this.cameraAttachmentParent.UpdateVisibility(this.updateContext, IDENTITY);
-      this.cameraAttachmentParent.GetRenderables(visible, null);
+      this.cameraAttachmentParent.GetRenderables_Impostors(visible, null);
     }
     return visible;
   }
@@ -1233,8 +1233,8 @@ export class EveSpaceScene
       return out;
     }
 
-    for (const object of this.objects) object?.GetRenderables(out);
-    this.cameraAttachmentParent?.GetRenderables(out);
+    for (const object of this.objects) object?.GetRenderables_Impostors(out, null);
+    this.cameraAttachmentParent?.GetRenderables_Impostors(out, null);
     for (const staticParticles of this.staticParticles)
     {
       staticParticles?.GetRenderables(this.updateContext.GetFrustum(), out);

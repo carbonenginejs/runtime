@@ -107,7 +107,7 @@ test("EveLineContainer display and query gates delegate without duck probes", ()
       this.calls.push([ "visibility", context, parent ]);
     }
 
-    GetRenderables(renderables, impostors)
+    GetRenderables_Impostors(renderables, impostors)
     {
       this.calls.push([ "renderables", renderables, impostors ]);
     }
@@ -152,12 +152,12 @@ test("EveLineContainer display and query gates delegate without duck probes", ()
 
   container.display = false;
   container.UpdateVisibility(context, parent);
-  container.GetRenderables(renderables, impostors);
+  container.GetRenderables_Impostors(renderables, impostors);
   assert.deepEqual(lineSet.calls, []);
 
   container.display = true;
   container.UpdateVisibility(context, parent);
-  container.GetRenderables(renderables, impostors);
+  container.GetRenderables_Impostors(renderables, impostors);
   const sphere = vec4.create();
   const position = vec3.create();
   const minBounds = vec3.create();

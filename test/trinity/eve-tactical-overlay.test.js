@@ -292,7 +292,7 @@ test("EveTacticalOverlay inert IEve surface and required calls are explicit", ()
   const transform = mat4.fromScaling(mat4.create(), [ 2, 3, 4 ]);
   const renderables = [];
   overlay.UpdateAsyncronous(makeUpdateContext());
-  overlay.GetRenderables(renderables, null);
+  overlay.GetRenderables_Impostors(renderables, null);
   assert.deepEqual(renderables, []);
   assert.equal(overlay.GetBoundingSphere(out), false);
   assert.equal(overlay.GetLocalBoundingBox(out, out), false);

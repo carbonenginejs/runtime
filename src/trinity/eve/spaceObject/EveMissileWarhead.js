@@ -428,9 +428,9 @@ export class EveMissileWarhead extends EveTransform
    * EveMissileWarhead::GetRenderables never touches it, and EveSpriteSet has
    * no GetRenderables at all - attachments render through the batch path.
    */
-  @meta.blue.method
+  @meta.blue.renamed("GetRenderables")
   @meta.implemented
-  GetRenderables(out = [])
+  GetRenderables_Impostors(out = [], _impostors)
   {
     if (!this._isVisible || this.lodLevel <= EveTransform.Tr2Lod.TR2_LOD_LOW) return out;
     if (this.mesh) out.push(this);

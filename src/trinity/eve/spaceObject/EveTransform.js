@@ -329,14 +329,22 @@ export class EveTransform extends Tr2Transform
     return this._isVisible;
   }
 
+  /** Carbon's GetRenderables( renderables ): forwards with no impostor manager. */
+  @meta.blue.method
+  @meta.implemented
+  GetRenderables(out)
+  {
+    return this.GetRenderables_Impostors(out, null);
+  }
+
   /**
    * Sorts the particle systems, appends this node when it is visible and has a
    * mesh, then recurses into the children; nothing is appended while display is
    * off.
    */
-  @meta.blue.method
+  @meta.blue.renamed("GetRenderables")
   @meta.implemented
-  GetRenderables(out = [])
+  GetRenderables_Impostors(out = [], _impostors)
   {
     if (!this.display) return out;
     for (const system of this.particleSystems) system?.SortParticles?.();

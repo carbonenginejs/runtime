@@ -700,14 +700,22 @@ export class EveStretch3 extends IEveFiringEffectElement
     for (const component of this._components()) component.AddQuadsToQuadRenderer(frustum, quadRenderer);
   }
 
+  /** Carbon's GetRenderables( renderables ): forwards with no impostor manager. */
+  @meta.blue.method
+  @meta.implemented
+  GetRenderables(out)
+  {
+    return this.GetRenderables_Impostors(out, null);
+  }
+
   /**
    * Carbon GetRenderables (cpp:601-609): every child's renderables while
    * displayed. EveStretch3 has no batches of its own; its children draw.
    * @returns {Array} out
    */
-  @meta.blue.method
+  @meta.blue.renamed("GetRenderables")
   @meta.implemented
-  GetRenderables(out = [])
+  GetRenderables_Impostors(out = [], _impostors)
   {
     if (this.display) for (const component of this._components()) component.GetRenderables(out);
     return out;

@@ -295,9 +295,9 @@ export class EveTriggerVolume
   }
 
   /** The trigger volume renders nothing (cpp:168-170). */
-  @meta.blue.method
+  @meta.blue.renamed("GetRenderables")
   @meta.implemented
-  GetRenderables(_renderables, _impostors = null)
+  GetRenderables_Impostors(_renderables, _impostors)
   {
   }
 

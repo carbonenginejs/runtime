@@ -81,10 +81,18 @@ export class EveCurveLineSet extends Tr2CurveLineSet
     this.isVisible = updateContext.GetFrustum().IsSphereVisible(WORLD_SPHERE);
   }
 
-  /** Appends this renderable only when the last cull passed. */
+  /** Carbon's GetRenderables( renderables ): forwards with no impostor manager. */
   @meta.blue.method
   @meta.implemented
-  GetRenderables(renderables, _impostors = null)
+  GetRenderables(renderables)
+  {
+    return this.GetRenderables_Impostors(renderables, null);
+  }
+
+  /** Appends this renderable only when the last cull passed. */
+  @meta.blue.renamed("GetRenderables")
+  @meta.implemented
+  GetRenderables_Impostors(renderables, _impostors)
   {
     if (this.isVisible)
     {

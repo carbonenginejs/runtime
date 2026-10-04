@@ -306,19 +306,27 @@ export class EveStretch extends IEveFiringEffectElement
     }
   }
 
+  /** Carbon's GetRenderables( renderables ): forwards with no impostor manager. */
+  @meta.blue.method
+  @meta.implemented
+  GetRenderables(out)
+  {
+    return this.GetRenderables_Impostors(out, null);
+  }
+
   /**
    * Appends the displayed children's renderables to out; this package stops at collection, and runtime-engine turns the collected objects into draw batches.
    * @returns {Array} out
    */
-  @meta.blue.method @meta.adapted
+  @meta.blue.renamed("GetRenderables") @meta.adapted
   @meta.reason("Renderable collection is backend-neutral; runtime-engine turns the returned objects into draw batches.")
-  GetRenderables(out = [])
+  GetRenderables_Impostors(out = [], impostors)
   {
     if (!this.display) return out;
-    if (this._displaySource) collectRenderables(this.sourceObject, out);
-    if (this._displayDestination) collectRenderables(this.destObject, out);
-    collectRenderables(this.stretchObject, out);
-    collectRenderables(this.moveObject, out);
+    if (this._displaySource) collectRenderables(this.sourceObject, out, impostors);
+    if (this._displayDestination) collectRenderables(this.destObject, out, impostors);
+    collectRenderables(this.stretchObject, out, impostors);
+    collectRenderables(this.moveObject, out, impostors);
     return out;
   }
 

@@ -165,7 +165,9 @@ export class AudioGameObject
   }
 
   /** IEveSpaceObject2 hook; an audio object contributes no renderables. */
-  GetRenderables(_renderables, _impostors = null)
+  @meta.blue.renamed("GetRenderables")
+  @meta.noop
+  GetRenderables_Impostors(_renderables, _impostors)
   {
   }
 

@@ -93,10 +93,12 @@ export function updateChildVisibility(child, context, transform, lod = undefined
  * Appends a stretch child's renderables to out, pushing the child itself when it produces batches directly rather than delegating.
  * @returns {Array} out
  */
-export function collectRenderables(child, out)
+export function collectRenderables(child, out, impostors = null)
 {
   if (!child) return out;
-  if (typeof child.GetRenderables === "function") child.GetRenderables(out);
+  // Carbon forwards the impostor manager to IEveSpaceObject2 children (EveStretch.cpp:310-325).
+  if (typeof child.GetRenderables_Impostors === "function") child.GetRenderables_Impostors(out, impostors);
+  else if (typeof child.GetRenderables === "function") child.GetRenderables(out);
   else if (typeof child.GetBatches === "function") out.push(child);
   return out;
 }

@@ -187,12 +187,12 @@ export class EveMissile extends EveSpaceObject2
    * Adapted: returns the caller's output array; the existing collectors do not
    * represent Carbon's impostor-manager argument.
    */
-  @meta.blue.method
+  @meta.blue.renamed("GetRenderables")
   @meta.adapted
-  GetRenderables(out = [])
+  GetRenderables_Impostors(out = [], _impostors)
   {
-    super.GetRenderables(out);
-    for (const warhead of this.warheads) warhead.GetRenderables(out);
+    super.GetRenderables_Impostors(out, null);
+    for (const warhead of this.warheads) warhead.GetRenderables_Impostors(out, null);
     return out;
   }
 

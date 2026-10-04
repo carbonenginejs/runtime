@@ -298,7 +298,7 @@ test("EveEffectRoot2 owns Carbon effect transforms, lifecycle, LOD, and target s
   };
   assert.equal(effect.UpdateVisibility(visibilityContext), true);
   assert.equal(effect.lodLevel, Tr2Lod.TR2_LOD_HIGH);
-  const renderables = effect.GetRenderables([]);
+  const renderables = effect.GetRenderables_Impostors([], null);
   assert.deepEqual(renderables, ["visual"]);
   assert.deepEqual(calls.find(call => call[0] === "child-lod"), ["child-lod", Tr2Lod.TR2_LOD_HIGH]);
 
@@ -1267,7 +1267,7 @@ test("EveSpaceObject2 restores Carbon world bounds, visibility, renderables, and
   }), true);
   assert.equal(object.IsInFrustum(), true);
   assert.equal(object.lodLevel, Tr2Lod.TR2_LOD_HIGH);
-  assert.deepEqual(object.GetRenderables([]), [object, "child"]);
+  assert.deepEqual(object.GetRenderables_Impostors([], null), [object, "child"]);
   assert.deepEqual(calls.find(call => call[0] === "screen"), ["screen", 37.5, 10]);
   assert.equal(object.GetLastUsedMeshLod(), 2);
   assert.deepEqual(calls.find(call => call[0] === "lod"), ["lod", 3, 37.5]);
@@ -1578,13 +1578,13 @@ test("a mesh-less EveSpaceObject2 with an impact overlay renders its impacts (Ca
     mediumDetailThreshold: 60,
     lodFactor: 1
   }), true);
-  assert.deepEqual(object.GetRenderables([]), [object]);
+  assert.deepEqual(object.GetRenderables_Impostors([], null), [object]);
   assert.equal(object.GetBatches({}, 0, null, 0), true);
   assert.equal(calls.length, 1);
   // The screen size is computed without a mesh, so impacts pick a real LOD.
   assert.equal(calls[0][3], 75);
 
   object.impactOverlay = null;
-  assert.deepEqual(object.GetRenderables([]), []);
+  assert.deepEqual(object.GetRenderables_Impostors([], null), []);
   assert.equal(object.GetBatches({}, 0, null, 0), false);
 });
