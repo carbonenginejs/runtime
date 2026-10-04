@@ -324,14 +324,8 @@ export class Tr2GpuSharedEmitter
    */
   @meta.blue.method
   @meta.adapted
-  SpawnParticles(arguments_, position = null, velocity = null, rateModifier = 1, velocityEnd, deltaTime)
+  SpawnParticles(arguments_, position = null, velocity = null, rateModifier = 1)
   {
-    // ITr2GenericEmitter.h:75/93 uses one name for the two native overloads.
-    // JS dispatches by their unambiguous four/six-argument call shapes.
-    if (arguments.length === 6)
-    {
-      return this.SpawnParticlesSegment(arguments_, position, velocity, rateModifier, velocityEnd, deltaTime);
-    }
     this._ReadParameters();
     this._SpawnPoint(arguments_, position, velocity, rateModifier);
   }
@@ -339,10 +333,11 @@ export class Tr2GpuSharedEmitter
   /**
    * Emits along a segment (Tr2GpuSharedEmitter.cpp:165-191). The distinct name
    * also exposes Carbon's second overload explicitly for existing JS callers.
+   * Formerly SpawnParticlesSegment.
    */
   @meta.blue.renamed("SpawnParticles")
   @meta.adapted
-  SpawnParticlesSegment(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime)
+  SpawnParticles_StartEnd(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime)
   {
     this._ReadParameters();
     this._SpawnSegment(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime);

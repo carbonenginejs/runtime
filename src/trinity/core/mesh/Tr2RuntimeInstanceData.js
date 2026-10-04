@@ -590,7 +590,14 @@ export class Tr2RuntimeInstanceData
    */
   @meta.blue.method
   @meta.implemented
-  SpawnParticles(..._args)
+  SpawnParticles(_arguments, _position = null, _velocity = null, _rateModifier = 1)
+  {
+  }
+
+  /** Carbon's start/end SpawnParticles overload; also a deliberate no-op. */
+  @meta.blue.renamed("SpawnParticles")
+  @meta.implemented
+  SpawnParticles_StartEnd(_arguments, _positionStart, _positionEnd, _velocityStart, _velocityEnd, _deltaTime)
   {
   }
 

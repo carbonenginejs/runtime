@@ -514,7 +514,7 @@ export class Tr2ParticleSystem
         positionValue[2] += velocityValue[2] * deltaTime;
         if (this.emitParticleDuringLifeEmitter)
         {
-          this.emitParticleDuringLifeEmitter.SpawnParticles(updateArguments,
+          this.emitParticleDuringLifeEmitter.SpawnParticles_StartEnd(updateArguments,
             vec3_1, positionValue, vec3_2, velocityValue, deltaTime);
         }
       }

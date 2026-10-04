@@ -37,7 +37,7 @@ test("GPU emitter null-system update follows Carbon and unblocks child updates",
     emitter.Update(args);
     assert.equal(emitter._previousTime, -1);
     emitter.SpawnParticles(args);
-    emitter.SpawnParticlesSegment(args, null, null, null, null, 1);
+    emitter.SpawnParticles_StartEnd(args, null, null, null, null, 1);
     emitter.SpawnOnce(args, [0, 0, 0]);
     const child = new EveChildParticleSystem();
     child.particleEmitters.push(emitter);
@@ -140,7 +140,7 @@ test("GPU explicit point and segment overloads preserve normal transforms and or
   assert.equal(requests[0].emitter.count, 3, "point rateModifier is not frame-clamped");
   near(emitter._emitter.direction, [0, 0, 0], "point call uses an emitter copy");
   args.originShift[0] = 1;
-  emitter.SpawnParticlesSegment(args, [0, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0], 1);
+  emitter.SpawnParticles_StartEnd(args, [0, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0], 1);
   assert.equal(requests[1].emitter.count, 2);
   near(requests[1].emitter.positionPrevious, [9, 0, 0]);
   near(requests[1].emitter.velocity, [-1, 2, 0]);
@@ -255,7 +255,7 @@ test("GPU scratch copies remain isolated across scaled emitters and preserve que
   second.direction.set([0, 1, 0]);
   const firstEmitter = first._emitter, firstParams = first._params;
   mat4.fromScaling(args.parentTransform, [2, 2, 2]);
-  first.SpawnParticlesSegment(args, [0, 0, 0], [1, 0, 0], [1, 0, 0], [2, 0, 0], 1);
+  first.SpawnParticles_StartEnd(args, [0, 0, 0], [1, 0, 0], [1, 0, 0], [2, 0, 0], 1);
   const snapshot = structuredClone(requests[0]);
   second.SpawnParticles(args);
   first.SpawnOnce(args, [0, 0, 0], 3);
@@ -270,7 +270,7 @@ test("GPU scratch copies remain isolated across scaled emitters and preserve que
   near(requests[1].params.sizes, [14, 16, 18]);
   assert.notEqual(requests[0].hash, requests[1].hash);
   const failing = { ...args, system: { Emit() { throw new Error("emit failed"); } } };
-  assert.throws(() => first.SpawnParticlesSegment(failing, null, null, null, null, 1), /emit failed/);
+  assert.throws(() => first.SpawnParticles_StartEnd(failing, null, null, null, null, 1), /emit failed/);
   assert.equal(first._emitter, firstEmitter);
   assert.equal(first._params, firstParams);
   near(first._params.sizes, [1, 2, 3]);
@@ -331,8 +331,8 @@ test("GPU hot paths reuse vectors, value structs and hash bytes after initializa
     unique.Update(args);
     shared.SpawnParticles(args, position, velocity, 1);
     unique.SpawnParticles(args, position, velocity, 1);
-    shared.SpawnParticlesSegment(args, position, position, velocity, velocity, 1 / 30);
-    unique.SpawnParticlesSegment(args, position, position, velocity, velocity, 1 / 30);
+    shared.SpawnParticles_StartEnd(args, position, position, velocity, velocity, 1 / 30);
+    unique.SpawnParticles_StartEnd(args, position, position, velocity, velocity, 1 / 30);
     shared.SpawnOnce(args, velocity, 2);
     unique.SpawnOnce(args, velocity, 2);
   }

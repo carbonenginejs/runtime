@@ -47,6 +47,7 @@ import { EveSwarm } from "../../npm/dist/trinity/eve/spaceObject/swarm/EveSwarm.
 import { EveSwarmRenderable } from "../../npm/dist/trinity/eve/spaceObject/swarm/EveSwarmRenderable.js";
 import { Tr2ParticleSystem } from "../../npm/dist/trinity/particle/Tr2ParticleSystem.js";
 import { Tr2DynamicEmitter } from "../../npm/dist/trinity/particle/emitter/Tr2DynamicEmitter.js";
+import { ITr2GenericEmitterUpdateArguments } from "../../npm/dist/trinity/particle/ITr2GenericEmitter/ITr2GenericEmitterUpdateArguments.js";
 import { Tr2StaticEmitter } from "../../npm/dist/trinity/particle/emitter/Tr2StaticEmitter.js";
 import { Tr2RaytracingGeometry } from "../../npm/dist/trinity/generated/raytracing/Tr2RaytracingGeometry.js";
 import { Tr2QuadRenderer } from "../../npm/dist/trinity/core/Tr2QuadRenderer/Tr2QuadRenderer.js";
@@ -1237,7 +1238,7 @@ test("capsule particle generators interpolate authored emitter transforms", () =
   Math.random = () => 0.5;
   try
   {
-    emitter.SpawnParticles([10, 0, 0], [2, 0, 0], 1);
+    emitter.SpawnParticles(new ITr2GenericEmitterUpdateArguments(), [10, 0, 0], [2, 0, 0], 1);
   }
   finally
   {

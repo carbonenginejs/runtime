@@ -213,7 +213,7 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
       }
       for (const emitter of this.onCollisionEmitters)
       {
-        emitter.SpawnParticles(position, velocity, 1);
+        emitter.SpawnParticles(arguments_, position, velocity);
       }
     }
     return collisions;

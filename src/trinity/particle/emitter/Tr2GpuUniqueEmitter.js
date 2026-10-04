@@ -106,14 +106,8 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
    */
   @meta.blue.method
   @meta.adapted
-  SpawnParticles(arguments_, position = null, velocity = null, rateModifier = 1, velocityEnd, deltaTime)
+  SpawnParticles(arguments_, position = null, velocity = null, rateModifier = 1)
   {
-    // ITr2GenericEmitter.h:75/93 uses one name for the two native overloads.
-    // JS dispatches by their unambiguous four/six-argument call shapes.
-    if (arguments.length === 6)
-    {
-      return this.SpawnParticlesSegment(arguments_, position, velocity, rateModifier, velocityEnd, deltaTime);
-    }
     this._ReadParameters();
     const emitter = this._emitter;
     const params = this._params;
@@ -136,10 +130,11 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
   /**
    * Scales Carbon's segment overload (cpp:88-120) with separate scratch from
    * shared spawning. The renamed entry remains available to existing callers.
+   * Formerly SpawnParticlesSegment.
    */
   @meta.blue.renamed("SpawnParticles")
   @meta.adapted
-  SpawnParticlesSegment(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime)
+  SpawnParticles_StartEnd(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime)
   {
     this._ReadParameters();
     const emitter = this._emitter;

@@ -93,7 +93,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   @meta.adapted
   UpdateSimulation(dt)
   {
-    return this.SpawnParticles(null, null, Math.max(0, Number(dt) || 0));
+    return this.SpawnParticles(new ITr2GenericEmitterUpdateArguments(), null, null, Math.max(0, Number(dt) || 0));
   }
 
   /**
@@ -165,44 +165,17 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   }
 
   /**
-   * Both Carbon SpawnParticles overloads (Tr2DynamicEmitter.cpp:150-221)
-   * collapse into one nominally dispatched entry point:
-   * - (position, velocity, rateModifier) - the Tr2ParticleSystem CPU call shape;
-   * - (updateArguments, position, velocity, rateModifier) - Carbon overload 1;
-   * - (updateArguments, positionStart, positionEnd, velocityStart, velocityEnd,
-   *   deltaTime) - Carbon overload 2, which forwards the end-of-frame values to
-   *   overload 1 exactly as Tr2DynamicEmitter.cpp:213-221 does.
-   * The Carbon overloads are selected by the leading update-arguments class.
+   * Carbon's SpawnParticles( arguments, position, velocity, rateModifier )
+   * (Tr2DynamicEmitter.cpp:150).
+   * @param {ITr2GenericEmitterUpdateArguments} arguments_
+   * @param {vec3|null} [position]
+   * @param {vec3|null} [velocity]
+   * @param {number} [rateModifier]
+   * @returns {number} Particles spawned.
    */
-  @meta.adapted
-  @meta.reason("JavaScript cannot overload; Carbon's signatures are distinguished by the nominal leading update-arguments record and the argument count.")
-  SpawnParticles(a = null, b = null, c = undefined, d = undefined, e = undefined, f = undefined)
+  @meta.implemented
+  SpawnParticles(arguments_, position = null, velocity = null, rateModifier = 1)
   {
-    let position;
-    let velocity;
-    let rateModifier;
-    if (a instanceof ITr2GenericEmitterUpdateArguments)
-    {
-      // Carbon signature with the UpdateArguments record first.
-      if (f !== undefined)
-      {
-        position = Tr2DynamicEmitter.#asVector(c);
-        velocity = Tr2DynamicEmitter.#asVector(e);
-        rateModifier = f;
-      }
-      else
-      {
-        position = Tr2DynamicEmitter.#asVector(b);
-        velocity = Tr2DynamicEmitter.#asVector(c);
-        rateModifier = d ?? 1;
-      }
-    }
-    else
-    {
-      position = a ?? null;
-      velocity = b ?? null;
-      rateModifier = c ?? 1;
-    }
     if (!this.isValid || !this.particleSystem)
     {
       return 0;
@@ -245,6 +218,19 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   }
 
   /**
+   * Carbon's SpawnParticles( arguments, positionStart, positionEnd,
+   * velocityStart, velocityEnd, deltaTime ) (Tr2DynamicEmitter.cpp:213-221):
+   * forwards the end-of-frame values, passing deltaTime as the rate modifier as
+   * Carbon does.
+   */
+  @meta.blue.renamed("SpawnParticles")
+  @meta.implemented
+  SpawnParticles_StartEnd(arguments_, _positionStart, positionEnd, _velocityStart, velocityEnd, deltaTime)
+  {
+    return this.SpawnParticles(arguments_, positionEnd, velocityEnd, deltaTime);
+  }
+
+  /**
    * The running count of particles emitted since the last reset.
    */
   @meta.implemented
@@ -260,12 +246,6 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   ResetEmittedParticleCount()
   {
     this.#emittedParticles = 0;
-  }
-
-  /** Returns the value when it is an array-like vector, otherwise null. */
-  static #asVector(value)
-  {
-    return value !== null && value !== undefined && typeof value.length === "number" ? value : null;
   }
 
 }

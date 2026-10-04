@@ -148,10 +148,14 @@ export class Tr2StaticEmitter
    * it only spawns once from Update (Tr2StaticEmitter.cpp:293-308).
    */
   @meta.noop
-  /**
-   * Does nothing: a static emitter spawns only during Update, never in response to a per-particle spawn call.
-   */
-  SpawnParticles(_a, _b, _c, _d, _e, _f)
+  SpawnParticles(_arguments, _position = null, _velocity = null, _rateModifier = 1)
+  {
+  }
+
+  /** Carbon's start/end SpawnParticles overload; empty, as above. */
+  @meta.blue.renamed("SpawnParticles")
+  @meta.noop
+  SpawnParticles_StartEnd(_arguments, _positionStart, _positionEnd, _velocityStart, _velocityEnd, _deltaTime)
   {
   }
 
