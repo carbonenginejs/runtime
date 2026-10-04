@@ -96,16 +96,21 @@ export class SplineTunnelGroup
   @meta.implemented
   SetSystemTunnelFunctionReferenceAndColor(callback, color = 0xffffff00)
   {
-    this._changeSystemTunnelRegistry = typeof callback === "function" ? callback : null;
+    this._changeSystemTunnelRegistry = callback;
     this._debugColor = color >>> 0;
     this.createSplineTunnels();
   }
 
-  /** Carbon method createSplineTunnels -> CreateSplineTunnels (cpp:37-79). */
+  /**
+   * Carbon method createSplineTunnels -> CreateSplineTunnels (cpp:37-79): one tunnel per curve, sampled at
+   * breakPoints + 2 evenly spaced times, each point facing the next; then the registry callback, when one is set.
+   *
+   * Adapted: a re-entrant call (the callback reading GetTunnels) returns the tunnels being built instead of starting
+   * again, and the tunnels are returned.
+   */
   @meta.blue.method
   @meta.blue.renamed("createSplineTunnels")
   @meta.adapted
-  @meta.reason("Samples portable vector curves into CPU tunnel records and reports registry changes through an injected callback.")
   createSplineTunnels()
   {
     if (this._creatingTunnels)
@@ -119,17 +124,12 @@ export class SplineTunnelGroup
       const breakPoints = this.GetNumBreakPoints();
       for (const curve of this.curveSets)
       {
-        if (!curve?.Length || !curve?.GetValue)
-        {
-          continue;
-        }
         const duration = curve.Length();
         const step = duration / (breakPoints + 1);
         const positions = [];
         for (let index = 0; index < breakPoints + 2; index++)
         {
-          const out = vec3.create();
-          positions.push(curve.GetValue(index * step, out) ?? out);
+          positions.push(curve.GetValue(index * step, vec3.create()));
         }
 
         const tunnel = new SplineTunnel();
@@ -153,7 +153,10 @@ export class SplineTunnelGroup
     {
       this._creatingTunnels = false;
     }
-    this._changeSystemTunnelRegistry?.();
+    if (this._changeSystemTunnelRegistry)
+    {
+      this._changeSystemTunnelRegistry();
+    }
     return this.tunnels;
   }
 
@@ -171,13 +174,13 @@ export class SplineTunnelGroup
   }
 
   /**
-   * Returns the tunnel records (Carbon GetTunnels, cpp:81-84), building them
-   * lazily when curves are present - the JS load path has no Blue notify to
-   * trigger the first CreateSplineTunnels.
+   * Returns the tunnel records (Carbon GetTunnels, cpp:81-84).
+   *
+   * Adapted: builds them on first access when curves are present, since the JS load path raises no curve-set list
+   * notify to trigger the first CreateSplineTunnels.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Lazily builds the tunnels on first access because the Blue curve-set list notify does not exist in JS.")
   GetTunnels()
   {
     if (this.tunnels.length === 0 && this.curveSets.length !== 0 && !this._creatingTunnels)
