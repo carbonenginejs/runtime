@@ -533,15 +533,26 @@ export class Tr2Material
   }
 
   /**
-   * Whether GDR rendering can be used: the cached material-wide flag when called with no technique, otherwise whether every pass of that technique is compatible.
-   * @param techniqueName null returns the cached flag; an unknown name returns false
+   * Carbon's CompatibleWithGdr(): the cached material-wide flag (Tr2Material.cpp:493).
+   * @returns {boolean}
    */
-  CompatibleWithGdr(techniqueName = null)
+  @meta.implemented
+  CompatibleWithGdr()
   {
-    if (techniqueName === null)
-    {
-      return this.compatibleWithGdr;
-    }
+    return this.compatibleWithGdr;
+  }
+
+  /**
+   * Carbon's CompatibleWithGdr( techniqueName ): whether every pass of that
+   * technique is compatible; false without a shader or for an unknown name
+   * (Tr2Material.cpp:498).
+   * @param {string} techniqueName Technique name.
+   * @returns {boolean}
+   */
+  @meta.blue.renamed("CompatibleWithGdr")
+  @meta.implemented
+  CompatibleWithGdrTechniqueName(techniqueName)
+  {
     if (this.shader !== null && !(this.shader instanceof Tr2Shader))
     {
       throw new TypeError("Tr2Material.shader must be a Tr2Shader or null.");
