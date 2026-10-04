@@ -683,7 +683,7 @@ export class EveSpaceSceneRenderDriver
       {
         Tr2LightManager.deleteInstance();
       }
-      this.scene.UpdateVisibility?.(renderContext.GetInverseViewTransform?.() ?? null);
+      this.scene.UpdateVisibility(renderContext.GetInverseViewTransform());
 
       map = this._Collect(this.scene.GetRenderables([], renderContext), renderContext);
       // Carbon's allObjects is the scene list plus camera parent, not flattened
@@ -1230,7 +1230,7 @@ export class EveSpaceSceneRenderDriver
 
     for (const batchType of EveSpaceSceneRenderDriver.SubmittedBatchTypes)
     {
-      const accumulator = map?.GetAccumulator?.(batchType) ?? null;
+      const accumulator = map.GetAccumulator(batchType);
 
       // An empty accumulator is submitted anyway. Carbon does not test one, and
       // a pass that draws nothing is still a pass; skipping it here would move a
@@ -1350,9 +1350,9 @@ export class EveSpaceSceneRenderDriver
     // a target, as on the disabled path or a frame with no destination.
     const viewport = renderContext.GetViewport();
 
-    if (viewport) this._frustum.DeriveFrustum(view, renderContext.GetViewPosition() ?? null, projection, viewport);
+    if (viewport) this._frustum.DeriveFrustum(view, renderContext.GetViewPosition(), projection, viewport);
 
-    this.scene.StampFrameContext?.({ frustum: this._frustum });
+    this.scene.StampFrameContext({ frustum: this._frustum });
   }
 
   static AmbientOcclusionQuality = AmbientOcclusionQuality;
