@@ -5,7 +5,7 @@ import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroup.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroup.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -210,10 +210,14 @@ export class BehaviorGroup extends EveEntity
   @meta.type.boolean
   collectForces = false;
 
-  /** Carbon BehaviorGroup::Initialize (cpp:45-57). */
+  /**
+   * Carbon BehaviorGroup::Initialize (cpp:45-57).
+   *
+   * Adapted: the vertex declaration comes through the effect-state manager, and the agent scratch and flare storage
+   * are the group's own arrays.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Creates the declaration through the existing effect-state manager; agent scratch and flare storage remain group-owned.")
   Initialize()
   {
     this._EnsureScratchArrays();
@@ -221,18 +225,19 @@ export class BehaviorGroup extends EveEntity
 
     if (this.boosters)
     {
-      this.boosters.RebuildFlareBuffer?.(this.count);
+      this.boosters.RebuildFlareBuffer(this.count);
     }
 
     this.SetPlayFXBehavior();
     return true;
   }
 
-  /** Carbon BehaviorGroup::OnModified (cpp:59-71); the value argument follows
-   * the repo's OnModified duck (field name or field value). */
+  /**
+   * Carbon BehaviorGroup::OnModified (cpp:59-71): a mesh change refreshes the vertex declaration and a booster change
+   * re-syncs the flare count.
+   */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Blue Var matching maps to the repo's OnModified duck; a mesh change refreshes the vertex declaration and a booster change re-syncs the flare count.")
+  @meta.implemented
   OnModified(value = null)
   {
     if (IsMatch(value, "mesh"))
@@ -241,7 +246,7 @@ export class BehaviorGroup extends EveEntity
     }
     if ((IsMatch(value, "boosters")) && this.boosters !== null)
     {
-      this.boosters.RebuildFlareBuffer?.(this.actualCount);
+      this.boosters.RebuildFlareBuffer(this.actualCount);
     }
     return true;
   }
@@ -276,7 +281,7 @@ export class BehaviorGroup extends EveEntity
   @meta.implemented
   SetVertexFunctionReferance(callback)
   {
-    this._changeBufferVertexCount = typeof callback === "function" ? callback : null;
+    this._changeBufferVertexCount = callback;
   }
 
   /** Carbon BehaviorGroup::GetSize (cpp:151-154). */
@@ -412,10 +417,13 @@ export class BehaviorGroup extends EveEntity
     this._OnAgentCountChanged();
   }
 
-  /** Carbon method RemoveAgent (cpp:415-426). */
+  /**
+   * Carbon method RemoveAgent (cpp:415-426).
+   *
+   * Adapted: Math.random stands in for Carbon's TriRandInt when picking the agent to remove.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Math.random replaces Carbon's TriRandInt when selecting the removed agent.")
   RemoveAgent()
   {
     if (this._agents.length === 0)
@@ -599,18 +607,17 @@ export class BehaviorGroup extends EveEntity
   /**
    * Per-agent frustum visibility and mesh/sprite crossfade (Carbon
    * UpdateVisibility, cpp:637-677).
-   * @param {Object} updateContext - frame context (frustum ducks)
+   * @param {EveUpdateContext} updateContext - frame context
    * @param {Float32Array} worldTransform - owning system's world transform
    */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Frustum ducks take a packed vec4 sphere per repo convention; a missing frustum treats agents as visible at infinite pixel size.")
+  @meta.implemented
   UpdateVisibility(updateContext, worldTransform)
   {
     this.currentScreenSize = 0;
     let worldRadius = 1;
 
-    const frustum = updateContext?.GetFrustum?.() ?? updateContext?.frustum;
+    const frustum = updateContext.GetFrustum();
     const boundingRadius = this.boundingSphereRadius * this.scale;
     const blendModifier = this._GetBlendModifier();
 
@@ -618,9 +625,9 @@ export class BehaviorGroup extends EveEntity
     {
       vec3.transformMat4(AGENT_SPHERE, agent.position, worldTransform);
       AGENT_SPHERE[3] = boundingRadius;
-      if (frustum?.IsSphereVisible(AGENT_SPHERE) !== false)
+      if (frustum.IsSphereVisible(AGENT_SPHERE))
       {
-        const pixelSize = Number(frustum?.GetPixelSizeAccross?.(AGENT_SPHERE) ?? Infinity);
+        const pixelSize = frustum.GetPixelSizeAccross(AGENT_SPHERE);
         agent.screenSize = pixelSize;
         this.currentScreenSize = Math.max(this.currentScreenSize, pixelSize);
         worldRadius = Math.max(worldRadius, boundingRadius);
@@ -643,7 +650,7 @@ export class BehaviorGroup extends EveEntity
         agent.isVisible = false;
       }
     }
-    this.mesh?.UseWithScreenSize?.(this.currentScreenSize, worldRadius);
+    this.mesh.UseWithScreenSize(this.currentScreenSize, worldRadius);
 
     mat4.copy(this._parentTransform, worldTransform);
   }
@@ -890,26 +897,27 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::SetPlayFXBehavior (cpp:968-988): caches the PlayFX
-   * behavior and swaps its component registration. The instanceof gate is
-   * Carbon's dynamic_cast<PlayFX*> (cpp:973): the behaviors list is typed
+   * behavior and swaps its component registration. The cast is Carbon's
+   * dynamic_cast<PlayFX*> (cpp:973): the behaviors list is typed
    * IBehavior and resolved by string name, so a mis-named behavior of another
    * class must never land in the PlayFX slot. */
   @meta.blue.method
   @meta.implemented
   SetPlayFXBehavior()
   {
-    const behavior = this.GetBehaviorByName("PlayFX");
-    if (behavior instanceof PlayFX)
+    // PlayFX is an EveEntity, so Carbon's BlueCastPtr to one (cpp:977, 982) only tests for null.
+    const behavior = CjsSchema.cast(this.GetBehaviorByName("PlayFX"), PlayFX);
+    if (behavior)
     {
       const registry = this.GetComponentRegistry();
       if (registry && this._playFXBehavior)
       {
-        this._playFXBehavior.UnRegister?.(registry);
+        this._playFXBehavior.UnRegister(registry);
       }
       this._playFXBehavior = behavior;
       if (registry)
       {
-        behavior.Register?.(registry);
+        behavior.Register(registry);
       }
     }
   }
@@ -925,7 +933,7 @@ export class BehaviorGroup extends EveEntity
   @meta.implemented
   GetLights(lightManager)
   {
-    if (this.boosters && this.boosters.GetDisplay?.())
+    if (this.boosters && this.boosters.GetDisplay())
     {
       for (const [agentIndex, info] of this._lightInfo)
       {
@@ -959,7 +967,10 @@ export class BehaviorGroup extends EveEntity
     if (registry)
     {
       registry.RegisterComponent(EveComponentType.LightOwner, this);
-      this._playFXBehavior?.Register?.(registry);
+      if (this._playFXBehavior)
+      {
+        this._playFXBehavior.Register(registry);
+      }
     }
   }
 
@@ -971,7 +982,10 @@ export class BehaviorGroup extends EveEntity
     const registry = this.GetComponentRegistry();
     if (registry)
     {
-      this._playFXBehavior?.UnRegister?.(registry);
+      if (this._playFXBehavior)
+      {
+        this._playFXBehavior.UnRegister(registry);
+      }
     }
   }
 
@@ -983,12 +997,12 @@ export class BehaviorGroup extends EveEntity
   {
     if (this.boosters)
     {
-      this.boosters.RegisterWithQuadRenderer?.(quadRenderer);
+      this.boosters.RegisterWithQuadRenderer(quadRenderer);
     }
 
     if (this._playFXBehavior !== null)
     {
-      this._playFXBehavior.RegisterWithQuadRenderer?.(quadRenderer);
+      this._playFXBehavior.RegisterWithQuadRenderer(quadRenderer);
     }
   }
 
@@ -1000,14 +1014,14 @@ export class BehaviorGroup extends EveEntity
   {
     if (this.display && this.IsGroupVisible())
     {
-      if (this.boosters && this.boosters.GetDisplay?.())
+      if (this.boosters && this.boosters.GetDisplay())
       {
-        this.boosters.AddQuadsToQuadRenderer?.(frustum, quadRenderer);
+        this.boosters.AddQuadsToQuadRenderer(frustum, quadRenderer);
       }
 
       if (this._playFXBehavior !== null)
       {
-        this._playFXBehavior.AddQuadsToQuadRenderer?.(frustum, quadRenderer);
+        this._playFXBehavior.AddQuadsToQuadRenderer(frustum, quadRenderer);
       }
     }
   }
@@ -1190,7 +1204,7 @@ export class BehaviorGroup extends EveEntity
 
     if (this.boosters)
     {
-      this.boosters.RebuildFlareBuffer?.(this.actualCount);
+      this.boosters.RebuildFlareBuffer(this.actualCount);
     }
   }
 
