@@ -179,10 +179,11 @@ export class EveSpaceObjectDecal
   /**
    * Rebuilds the decal matrix and its inverse after an authored placement
    * change.
+   *
+   * Adapted: JS identifies placement members by their exposed names; dynamic geometry remains a class-owned cache.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JS identifies placement members by their exposed names; dynamic geometry remains a class-owned cache.")
   @meta.invalidates("#decalGeometry")
   OnModified(propertyName)
   {
@@ -195,25 +196,26 @@ export class EveSpaceObjectDecal
   }
 
   /**
-   * Copies another decal's authored description - name, display, placement, bone
-   * index, minimum screen size, effect and batch type - and rebuilds the decal
-   * matrix; the per-LOD index buffers are not copied. Returns false when source
-   * is missing.
+   * Carbon CopyFrom (EveSpaceObjectDecal.cpp:388-400): copies another decal's authored description - display,
+   * placement, bone index, minimum screen size and effect - and its decal matrix; the per-LOD index buffers are not
+   * copied.
+   *
+   * Adapted: name and batchType are copied too, the decal matrix is rebuilt from the copied placement rather than
+   * copied, and m_geometryLodIndex is not copied. Returns whether the matrix rebuilt.
    */
   @meta.blue.method
   @meta.adapted
   CopyFrom(source)
   {
-    if (!source) return false;
-    this.name = String(source.name ?? "");
-    this.display = !!source.display;
-    vec3.copy(this.position, source.position || EveSpaceObjectDecal._zero);
-    quat.copy(this.rotation, source.rotation || EveSpaceObjectDecal._identityRotation);
-    vec3.copy(this.scaling, source.scaling || EveSpaceObjectDecal._one);
-    this.parentBoneIndex = Number(source.parentBoneIndex) | 0;
-    this.minScreenSize = Number(source.minScreenSize) || 0;
-    this.decalEffect = source.decalEffect ?? null;
-    this.batchType = Number(source.batchType) | 0;
+    this.name = source.name;
+    this.display = source.display;
+    vec3.copy(this.position, source.position);
+    quat.copy(this.rotation, source.rotation);
+    vec3.copy(this.scaling, source.scaling);
+    this.parentBoneIndex = source.parentBoneIndex;
+    this.minScreenSize = source.minScreenSize;
+    this.decalEffect = source.decalEffect;
+    this.batchType = source.batchType;
     return this._updateDecalMatrix();
   }
 
@@ -229,14 +231,15 @@ export class EveSpaceObjectDecal
   }
 
   /**
-   * Sets the authored decal position and rebuilds the decal matrix; a missing
-   * value is taken as the origin.
+   * Carbon SetPosition (EveSpaceObjectDecal.cpp:532-535): sets the authored decal position.
+   *
+   * Adapted: the decal matrix is rebuilt at once; Carbon rebuilds it on the next Initialize or OnModified.
    */
   @meta.blue.method
   @meta.adapted
   SetPosition(value)
   {
-    vec3.copy(this.position, value || EveSpaceObjectDecal._zero);
+    vec3.copy(this.position, value);
     return this._updateDecalMatrix();
   }
 
@@ -252,14 +255,15 @@ export class EveSpaceObjectDecal
   }
 
   /**
-   * Sets the authored decal rotation and rebuilds the decal matrix; a missing
-   * value is taken as the identity rotation.
+   * Carbon SetRotation (EveSpaceObjectDecal.cpp:550-553): sets the authored decal rotation.
+   *
+   * Adapted: the decal matrix is rebuilt at once; Carbon rebuilds it on the next Initialize or OnModified.
    */
   @meta.blue.method
   @meta.adapted
   SetRotation(value)
   {
-    quat.copy(this.rotation, value || EveSpaceObjectDecal._identityRotation);
+    quat.copy(this.rotation, value);
     return this._updateDecalMatrix();
   }
 
@@ -297,14 +301,15 @@ export class EveSpaceObjectDecal
   }
 
   /**
-   * Sets the authored decal scaling and rebuilds the decal matrix; a missing
-   * value is taken as unit scale.
+   * Carbon SetScaling (EveSpaceObjectDecal.cpp:568-571): sets the authored decal scaling.
+   *
+   * Adapted: the decal matrix is rebuilt at once; Carbon rebuilds it on the next Initialize or OnModified.
    */
   @meta.blue.method
   @meta.adapted
   SetScaling(value)
   {
-    vec3.copy(this.scaling, value || EveSpaceObjectDecal._one);
+    vec3.copy(this.scaling, value);
     return this._updateDecalMatrix();
   }
 
@@ -477,8 +482,7 @@ export class EveSpaceObjectDecal
       return true;
     }
 
-    const frustum = updateContext?.GetFrustum?.() ?? updateContext?.frustum ?? null;
-    if (!frustum) return false;
+    const frustum = updateContext.GetFrustum();
 
     // Carbon (row-vector): m_parentBoneMatrix * parentData->transform - the
     // bone applies first, so the gl operands swap.
@@ -514,7 +518,7 @@ export class EveSpaceObjectDecal
         return true;
       }
 
-      if (!frustum.IsBoxVisible?.(bounds))
+      if (!frustum.IsBoxVisible(bounds))
       {
         return false;
       }
@@ -543,7 +547,7 @@ export class EveSpaceObjectDecal
     const center = EveSpaceObjectDecal._pointScratch;
     const radius = box3.toPositionRadius(bounds, center);
     const pixelSize = frustum.GetPixelSizeAccrossEst_CenterRadius(center, radius);
-    const modifiedMinScreen = this.minScreenSize * (updateContext?.GetLodFactor() ?? 1);
+    const modifiedMinScreen = this.minScreenSize * updateContext.GetLodFactor();
 
     if (pixelSize < modifiedMinScreen) return false;
 
@@ -552,10 +556,14 @@ export class EveSpaceObjectDecal
     return true;
   }
 
-  /** The visibility fade Carbon writes to displayData.y; 0 when lodded out. */
+  /**
+   * The visibility fade Carbon writes to displayData.y; 0 when lodded out.
+   *
+   * Adapted: Carbon reads the m_isVisible member directly; JavaScript exposes the private runtime value through an
+   * accessor.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon reads the m_isVisible member directly; JavaScript exposes the private runtime value through an accessor.")
   GetVisibility()
   {
     return this._isVisible;
@@ -896,12 +904,6 @@ export class EveSpaceObjectDecal
   static _offsetScratch = mat4.create();
 
   static _pointScratch = vec3.create();
-
-  static _zero = vec3.create();
-
-  static _one = vec3.fromValues(1, 1, 1);
-
-  static _identityRotation = quat.create();
 
   static TriBatchType = TriBatchType;
 
