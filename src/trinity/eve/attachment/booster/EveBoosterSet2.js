@@ -875,67 +875,76 @@ export class EveBoosterSet2 extends EveEntity
     return this._revision;
   }
 
-  /** Carbon EveBoosterSet2::UpdateVisibility (cpp:1096-1116): a display gate,
-   * then per-renderable LOD, then ONE glow test - the loop breaks on the first
-   * renderable whose glow sprite set is on screen, so `glowsVisible` is a
-   * whole-set flag, not per booster.
+  /**
+   * Carbon EveBoosterSet2::UpdateVisibility (EveBoosterSet2.cpp:988-1009): a display gate, then per-renderable LOD,
+   * then ONE glow test - the loop breaks on the first renderable whose glow sprite set is on screen, so
+   * m_glowsVisible is a whole-set flag, not per booster. Booster glows are placed by each renderable's parent
+   * transform (its locator), not a bone, so no bone palette is passed (cpp:1001).
    *
-   * The glow test is EveSpriteSet::UpdateVisibility - a transformed item-set
-   * AABB against the frustum. A foreign glow duck without that method is taken
-   * as visible rather than culled; the flare is still gated per renderable by
-   * `boostersVisible` (cpp:1264). */
+   * Adapted: returns m_glowsVisible; Carbon returns void.
+   * @returns {boolean} whether a glow is on screen
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("A glow duck lacking UpdateVisibility is treated as visible rather than culled.")
   UpdateVisibility(updateContext)
   {
     this._glowsVisible = false;
-    if (!this.display)
+    if (this.display)
     {
-      return false;
+      for (const renderable of this.instances)
+      {
+        renderable.UpdateVisibility(updateContext);
+      }
+      if (this.glows)
+      {
+        for (const renderable of this.instances)
+        {
+          if (this.glows.UpdateVisibility(updateContext, renderable.GetParentTransform(), null, 0))
+          {
+            this._glowsVisible = true;
+            break;
+          }
+        }
+      }
+    }
+    return this._glowsVisible;
+  }
+
+  /**
+   * Carbon EveBoosterSet2::RegisterWithQuadRenderer (EveBoosterSet2.cpp:1132-1138): registers the glow sprites.
+   * @param {Tr2QuadRenderer} quadRenderer
+   */
+  @meta.implemented
+  RegisterWithQuadRenderer(quadRenderer)
+  {
+    if (this.glows)
+    {
+      this.glows.RegisterWithQuadRenderer(quadRenderer);
+    }
+  }
+
+  /**
+   * Carbon EveBoosterSet2::AddToQuadRenderer (EveBoosterSet2.cpp:1147-1160): one glow per booster instance, at its
+   * own parent transform and intensity, while the glows are on screen and the instance passed flare LOD (or flare
+   * LOD is off). Carbon does not read world: each instance carries its own transform.
+   * @param {Tr2QuadRenderer} quadRenderer
+   * @param {mat4} _world - the parent's world transform
+   */
+  @meta.implemented
+  AddToQuadRenderer(quadRenderer, _world)
+  {
+    if (!this.glows || !this._glowsVisible || !this.display)
+    {
+      return;
     }
 
     for (const renderable of this.instances)
     {
-      renderable?.UpdateVisibility(updateContext);
-    }
-
-    if (this.glows)
-    {
-      for (const renderable of this.instances)
+      if (renderable.boostersVisible || !this.flareLodEnabled)
       {
-        const transform = renderable?.GetParentTransform?.();
-        if (!transform)
-        {
-          continue;
-        }
-        // cpp:1109 passes nullptr bones deliberately, and it is not a deferral:
-        // booster glows are tied to the booster LOCATORS, so each glow is placed
-        // by its renderable's parent transform (the locator placement) rather
-        // than by a bone index. There is nothing for a bone palette to resolve.
-        const visible = this.glows.UpdateVisibility
-          ? this.glows.UpdateVisibility(updateContext, transform, null, 0)
-          : true;
-        if (visible)
-        {
-          this._glowsVisible = true;
-          break;
-        }
+        this.glows.AddBoosterGlowToQuadRenderer(quadRenderer, renderable.GetParentTransform(), renderable.overallIntensity, this.warpIntensity);
       }
     }
-
-    return this._glowsVisible;
-  }
-
-  /** Whether any booster glow sprite passed the last UpdateVisibility. Carbon
-   * reads m_glowsVisible directly in AddToQuadRenderer (cpp:1257); the quad
-   * renderer is engine-side here, so the flag is exposed instead. */
-  @meta.blue.method
-  @meta.adapted
-  @meta.reason("Carbon's mutable member read becomes an accessor; the quad renderer that consumes it is not ported yet.")
-  GetGlowsVisible()
-  {
-    return this._glowsVisible;
   }
 
   /** Carbon EveBoosterSet2::GetRenderables (cpp:1130-1145): gated on display

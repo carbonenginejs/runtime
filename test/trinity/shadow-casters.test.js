@@ -17,6 +17,8 @@ import {
   EveSwarm,
   EveSwarmRenderable,
   EveTurretSet,
+  Tr2Mesh,
+  Tr2MeshArea,
   Tr2RenderReason, Tr2RenderContext_GetMainThreadRenderContext
 } from "../../npm/dist/trinity/index.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
@@ -270,73 +272,57 @@ test("EveSwarmRenderable.GetPerObjectData record + shadow forward (EveSwarm.cpp:
   assert.equal(renderable.GetPerObjectData().vs, data.vs, "same record both ways");
 });
 
-test("EveSwarmRenderable emits ordinary batches and sorts transparent areas back-to-front", () =>
+test("EveSwarmRenderable emits ordinary batches and sorts transparent areas back-to-front", t =>
 {
-  const renderable = new EveSwarmRenderable();
-  const opaque = { name: "opaque" };
-  const near = {
-    name: "near",
-    GetDisplay: () => true,
-    GetIndex: () => 0,
-    GetMaterialInterface: () => ({})
-  };
-  const far = {
-    name: "far",
-    GetDisplay: () => true,
-    GetIndex: () => 1,
-    GetMaterialInterface: () => ({})
-  };
-  const geometry = {
-    GetMeshLod_ScreenSize: () => "lod",
-    GetAreaBoundingBox(_meshIndex, areaIndex, outMin, outMax)
-    {
-      const x = areaIndex === 0 ? 1 : 10;
-      vec3.set(outMin, x, 0, 0);
-      vec3.set(outMax, x, 0, 0);
-      return true;
-    }
-  };
-  const ordinaryCalls = [];
-  renderable.mesh = {
-    GetMeshIndex: () => 0,
-    GetAreas: batchType => batchType === TriBatchType.TRIBATCHTYPE_TRANSPARENT
-      ? [ near, far ]
-      : [ opaque ],
-    GetBatches(...args)
-    {
-      ordinaryCalls.push(args);
-      return true;
-    },
-    GetGeometryResource: () => geometry,
-    CreateGeometryBatch: (_geometry, area) => ({ area })
-  };
+  const context = Tr2RenderContext_GetMainThreadRenderContext(), prior = context.GetRenderContextAL();
+  const al = new Tr2RenderContextALStub(); context.SetRenderContextAL(al); al.CreateDevice();
+  context.SetViewTransform(mat4.create());
+  t.after(() => { SharedGeometryBuffer(context).ReleaseResources(); context.SetRenderContextAL(prior); });
 
-  const perObjectData = {};
-  assert.equal(
-    renderable.GetBatches({}, TriBatchType.TRIBATCHTYPE_OPAQUE, perObjectData, 0),
-    true
-  );
-  assert.deepEqual(ordinaryCalls[0][1], [ opaque ]);
+  // One triangle; area 1's box is centred at x = 1, area 2's at x = 10, so from the origin area 2 is the far one.
+  const geometry = new TriGeometryRes();
+  geometry.SetPayload({ meshes: [ {
+    decl: [ { usage: "Position", usageIndex: 0, type: "Float32", elementCount: 3, offset: 0 } ],
+    vertex: { position: [ 0, 0, 0, 1, 0, 0, 0, 1, 0 ] },
+    indices: [ { faces: [ 0, 1, 2 ] } ],
+    areas: [
+      { firstElement: 0, elementCount: 1, bounds: { min: [ 0, 0, 0 ], max: [ 0, 0, 0 ] } },
+      { firstElement: 0, elementCount: 1, bounds: { min: [ 1, 0, 0 ], max: [ 1, 0, 0 ] } },
+      { firstElement: 0, elementCount: 1, bounds: { min: [ 10, 0, 0 ], max: [ 10, 0, 0 ] } }
+    ]
+  } ] });
+  geometry.MarkPrepared();
+
+  const area = (name, index) =>
+  {
+    const meshArea = new Tr2MeshArea();
+    meshArea.name = name;
+    meshArea.index = index;
+    meshArea.effect = FixtureEffect({ name });
+    return meshArea;
+  };
+  const mesh = new Tr2Mesh();
+  mesh.SetGeometryRes(geometry);
+  mesh.opaqueAreas.push(area("opaque", 0));
+  mesh.transparentAreas.push(area("near", 1));
+  mesh.transparentAreas.push(area("far", 2));
+
+  const renderable = new EveSwarmRenderable();
+  renderable.InitializeRenderable(null, mesh);
+  const committed = [];
+  const accumulator = { Commit: batch => (committed.push(batch.material.name), true) };
+  const perObjectData = renderable.GetPerObjectData();
+
+  assert.equal(renderable.GetBatches(accumulator, TriBatchType.TRIBATCHTYPE_OPAQUE, perObjectData, 0, context), true);
+  assert.deepEqual(committed, [ "opaque" ], "ordinary areas go straight through the mesh");
   assert.equal(renderable.HasTransparentBatches(), true);
 
-  const committed = [];
-  const accumulator = {
-    Commit(batch)
-    {
-      committed.push(batch.area.name);
-      return true;
-    }
-  };
-  const renderContext = { GetViewPosition: () => [ 0, 0, 0 ] };
-  assert.equal(
-    renderable.GetBatches(
-      accumulator, TriBatchType.TRIBATCHTYPE_TRANSPARENT, perObjectData, 0, renderContext),
-    true
-  );
+  committed.length = 0;
+  assert.equal(renderable.GetBatches(accumulator, TriBatchType.TRIBATCHTYPE_TRANSPARENT, perObjectData, 0, context), true);
   assert.deepEqual(committed, [ "far", "near" ]);
 
   renderable.worldTransform[12] = 3;
   renderable.worldTransform[13] = 4;
   renderable.worldTransform[14] = 12;
-  assert.equal(renderable.GetSortValue(renderContext), 13);
+  assert.equal(renderable.GetSortValue(context), 13);
 });

@@ -12,7 +12,10 @@ import {
   EveBoosterSet2Renderable,
   EveSpriteSet,
   EveSpriteSetItem,
+  EveShip2,
   EveTrailsSet,
+  Tr2Effect,
+  Tr2QuadRenderer,
   TriFrustum
 } from "../../npm/dist/trinity/index.js";
 import { TriGeometryRes } from "../../npm/dist/resource/index.js";
@@ -393,8 +396,7 @@ test("EveBoosterSet2.UpdateVisibility gates on display and reports glow visibili
   set.effect = {};
 
   set.display = false;
-  assert.equal(set.UpdateVisibility(context), false);
-  assert.equal(set.GetGlowsVisible(), false, "display off clears the flag before anything else");
+  assert.equal(set.UpdateVisibility(context), false, "display off clears the flag before anything else");
   assert.deepEqual(set.GetRenderables(), [], "display gates GetRenderables too");
 
   set.display = true;
@@ -413,10 +415,6 @@ test("EveBoosterSet2.UpdateVisibility gates on display and reports glow visibili
   set.glows.Rebuild();
   assert.equal(set.UpdateVisibility(context), true);
 
-  // A glow duck that cannot answer is taken as visible, not culled.
-  set.glows = { };
-  assert.equal(set.UpdateVisibility(context), true);
-
   set.effect = null;
   assert.deepEqual(set.GetRenderables(), [], "no effect, no batches");
 });
@@ -431,4 +429,52 @@ test("static trail offsets are rebuilt only while glows are attached", () =>
   boosters.SetGlow(new EveSpriteSet());
   CjsSchema.setValues(boosters, { staticTrailLength: 80 });
   assert.notDeepEqual(Array.from(boosters.trailsStaticOffsets4), before);
+});
+
+
+test("booster glows reach the quad renderer through EveShip2 (EveShip2.cpp:165-185, EveBoosterSet2.cpp:1132-1160)", () =>
+{
+  const frustum = MakeBoosterFrustum();
+  const context = { GetFrustum: () => frustum, GetLowDetailThreshold: () => 0, GetMediumDetailThreshold: () => 0 };
+  const { set, renderable } = MakeBoosterAt(-2000);
+  set.glows = new EveSpriteSet();
+  set.glows.effect = new Tr2Effect();
+  const sprite = new EveSpriteSetItem();
+  sprite.maxScale = 50;
+  set.glows.sprites.push(sprite);
+  set.glows.Rebuild();
+
+  const ship = new EveShip2();
+  ship.SetBoosters(set);
+  ship.activationStrength = 1;
+  const quads = new Tr2QuadRenderer();
+  ship.RegisterWithQuadRenderer(quads);
+  const records = [ ...quads.GetEffectRecords().values() ];
+  assert.equal(records.length, 1, "the glow sprite set registered its effect");
+  const glowQuads = () => records[0].pending.length;
+
+  assert.equal(set.UpdateVisibility(context), true);
+  assert.equal(renderable.boostersVisible, true);
+  ship.AddQuadsToQuadRenderer(frustum, quads);
+  assert.equal(glowQuads(), 1, "one glow per visible booster instance");
+
+  renderable.boostersVisible = false;
+  ship.AddQuadsToQuadRenderer(frustum, quads);
+  assert.equal(glowQuads(), 1, "flare LOD hides the glow");
+  set.flareLodEnabled = false;
+  ship.AddQuadsToQuadRenderer(frustum, quads);
+  assert.equal(glowQuads(), 2, "with flare LOD off the glow always draws");
+
+  ship.display = false;
+  ship.AddQuadsToQuadRenderer(frustum, quads);
+  ship.display = true;
+  ship.activationStrength = 0;
+  ship.AddQuadsToQuadRenderer(frustum, quads);
+  assert.equal(glowQuads(), 2, "nothing while the ship is hidden or its boosters are not displayed");
+
+  ship.activationStrength = 1;
+  set.display = false;
+  set.UpdateVisibility(context);
+  ship.AddQuadsToQuadRenderer(frustum, quads);
+  assert.equal(glowQuads(), 2, "nothing while the set is hidden");
 });

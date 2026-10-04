@@ -615,26 +615,25 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
 
   /** Forwards quad registration to the glow set (Carbon cpp:368-374). */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("EveSpriteSet's quad-renderer surface is not ported yet and not yet ported; the forward stops at that seam.")
+  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
-    this.glows?.RegisterWithQuadRenderer?.(quadRenderer);
+    if (this.glows)
+    {
+      this.glows.RegisterWithQuadRenderer(quadRenderer);
+    }
   }
 
   /** Forwards glow quads when visible and past flare LOD (Carbon cpp:383-394). */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("EveSpriteSet.AddBoosterGlowToQuadRenderer is not ported yet and not yet ported; the CPU gating is Carbon's.")
-  AddQuadsToQuadRenderer(frustum, quadRenderer)
+  @meta.implemented
+  AddQuadsToQuadRenderer(_frustum, quadRenderer)
   {
     if (!this.glows || !this._glowsVisible || !this.display) return;
     if (this._boostersVisible || !this.flareLodEnabled)
     {
-      this.glows.AddBoosterGlowToQuadRenderer?.(
-        quadRenderer, this._parentTransform, this.thrust, this.warpIntensity);
+      this.glows.AddBoosterGlowToQuadRenderer(quadRenderer, this._parentTransform, this.thrust, this.warpIntensity);
     }
-    void frustum;
   }
 
   /**

@@ -27,8 +27,7 @@ const FLT_MAX = 3.4028234663852886e38;
  * The behaviour weights are Carbon's BehaviorProperties (m_behavior.*), held flat under their Blue attribute names;
  * Carbon's SetBehavior is EveSOF's copy of the DNA's generic swarm properties onto those fields. Not ported:
  * GetDebugOptions and RenderDebugInfo (our space objects have no debug renderer; the per-vehicle force record they
- * draw is still kept), and the booster glow quads in RegisterWithQuadRenderer / AddQuadsToQuadRenderer, which
- * EveShip2 and EveBoosterSet2 do not have either.
+ * draw is still kept).
  */
 @meta.define({ className: "EveSwarm", family: "eve/spaceObject/swarm" })
 export class EveSwarm extends EveShip2
@@ -652,29 +651,30 @@ export class EveSwarm extends EveShip2
   }
 
   /**
-   * Carbon RegisterWithQuadRenderer (EveSwarm.cpp:651-661): the attachments' sprites and spotlights. Carbon does not
-   * call the base, so turret quads are not registered.
-   *
-   * Adapted: the booster glows Carbon also registers are not ported (EveBoosterSet2 has no quad path).
+   * Carbon RegisterWithQuadRenderer (EveSwarm.cpp:651-661): the attachments' sprites and spotlights, then the booster
+   * glows. Carbon does not call the base, so turret quads are not registered.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
     for (const attachment of this.attachments)
     {
       attachment.RegisterWithQuadRenderer(quadRenderer);
     }
+    if (this.boosters)
+    {
+      this.boosters.RegisterWithQuadRenderer(quadRenderer);
+    }
   }
 
   /**
    * Carbon AddQuadsToQuadRenderer (EveSwarm.cpp:669-687): every attachment once per fighter, at that fighter's
-   * transform, at full activation and booster gain.
-   *
-   * Adapted: the booster glows Carbon also adds are not ported (EveBoosterSet2 has no quad path).
+   * transform, at full activation and booster gain; then the booster glows, whose instances carry their own
+   * fighters' transforms, so the world passed is the identity.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     if (!this._isInFrustum || !this.display)
@@ -687,6 +687,10 @@ export class EveSwarm extends EveShip2
       {
         attachment.AddToQuadRenderer(quadRenderer, renderable.GetWorldTransform(), 1, 1, null, 0);
       }
+    }
+    if (this.DisplayBoosters())
+    {
+      this.boosters.AddToQuadRenderer(quadRenderer, EveSwarm._identity);
     }
   }
 
@@ -1269,6 +1273,9 @@ export class EveSwarm extends EveShip2
     }
     return vec3.scaleAndAdd(out, s.wanderTarget, out, wanderDistance);
   }
+
+  /** Carbon's IdentityMatrix(), for the booster glows. */
+  static _identity = mat4.create();
 
   static scratch = {
     vec3_0: vec3.create(),

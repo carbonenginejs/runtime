@@ -187,6 +187,34 @@ export class EveShip2 extends EveMobile
     return out;
   }
 
+  /** Carbon EveShip2::RegisterWithQuadRenderer (EveShip2.cpp:165-172): EveMobile's, then the booster glows. */
+  @meta.blue.method
+  @meta.implemented
+  RegisterWithQuadRenderer(quadRenderer)
+  {
+    super.RegisterWithQuadRenderer(quadRenderer);
+    if (this.boosters)
+    {
+      this.boosters.RegisterWithQuadRenderer(quadRenderer);
+    }
+  }
+
+  /** Carbon EveShip2::AddQuadsToQuadRenderer (EveShip2.cpp:174-185): EveMobile's, then the booster glows. */
+  @meta.blue.method
+  @meta.implemented
+  AddQuadsToQuadRenderer(frustum, quadRenderer)
+  {
+    if (!this.display)
+    {
+      return;
+    }
+    super.AddQuadsToQuadRenderer(frustum, quadRenderer);
+    if (this.DisplayBoosters())
+    {
+      this.boosters.AddToQuadRenderer(quadRenderer, this.worldTransform);
+    }
+  }
+
   /** Returns the attached booster set, or null when the ship has none. */
   @meta.blue.method
   @meta.implemented
