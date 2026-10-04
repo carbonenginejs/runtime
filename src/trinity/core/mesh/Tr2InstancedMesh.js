@@ -428,7 +428,9 @@ export class Tr2InstancedMesh extends Tr2Mesh
   @meta.adapted
   GetInstanceBounds()
   {
-    const bounds = this.GetGeometryResource()?.GetBoundingBox?.(this.meshIndex);
+    // Carbon: geometryResource && geometryResource->GetBoundingBox( m_meshIndex, ... ) (Tr2InstancedMesh.cpp:350).
+    const geometry = this.GetGeometryResource();
+    const bounds = geometry ? geometry.GetBoundingBox(this.meshIndex) : null;
     if (!bounds)
     {
       return Tr2InstancedMesh._cloneBounds(Tr2InstancedMesh._zero, Tr2InstancedMesh._zero);
@@ -489,7 +491,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
    */
   static _getGeometryRadius(resource, meshIndex)
   {
-    const bounds = resource?.GetBoundingBox?.(meshIndex);
+    const bounds = resource ? resource.GetBoundingBox(meshIndex) : null;
     if (!bounds)
     {
       return 1;
