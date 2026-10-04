@@ -25,6 +25,7 @@ export * from "./context/index.js";
 export * from "./device/index.js";
 export * from "./lighting/index.js";
 export * from "./line/index.js";
+export * from "./TriDebugResourceHelper.js";
 export * from "./mesh/index.js";
 export * from "./procedural/index.js";
 export * from "./rawData/index.js";

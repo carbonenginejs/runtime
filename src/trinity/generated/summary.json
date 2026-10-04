@@ -2,7 +2,7 @@
   "outRoot": "src/trinity/generated",
   "classes": {
     "written": 26,
-    "skipped": 677
+    "skipped": 678
   },
   "enums": {
     "written": 15,
@@ -3217,6 +3217,11 @@
     {
       "family": "trinityCore",
       "className": "TriColor",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriDebugResourceHelper",
       "reason": "hand-maintained source exists"
     },
     {

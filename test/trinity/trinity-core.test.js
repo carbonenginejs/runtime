@@ -207,7 +207,7 @@ test("TriRigidOrientation sorts and integrates Carbon torque states", () =>
   assert.deepEqual(Array.from(orientation.value), Array.from(first.rot0));
 });
 
-test("TriLineSet builds Carbon debug geometry; drawing is not ported", () =>
+test("TriLineSet builds Carbon debug geometry", () =>
 {
   const lines = new TriLineSet();
   lines.Add([0, 0, 0], 0x11223344, [1, 0, 0], 0x55667788);
@@ -223,12 +223,9 @@ test("TriLineSet builds Carbon debug geometry; drawing is not ported", () =>
   assertEquals(lines.vertices.length, 28);
   lines.AddSphere([0, 0, 0], 1, 3);
   assertEquals(lines.vertices.length, 156);
-  // Drawing a line set is NOT PORTED, and TriLineSet.Render refuses by name for
-  // a set with vertices. An empty set is declined without refusing.
-  const context = new Tr2RenderContext();
-  assert.throws(() => lines.Render(context), /TriLineSet.Render is not ported/u);
+  // Drawing is covered by test/trinity/tri-line-set.test.js.
   lines.Clear();
-  assertEquals(lines.Render(context), false);
+  assertEquals(lines.vertices.length, 0);
 });
 
 test("Carbon device graph descriptions remain canonical runtime-trinity classes", () =>

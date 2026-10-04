@@ -123,6 +123,9 @@ export class Tr2RenderContext
   // copied into - never reallocated per read (allocation rules E/F).
   #viewTransform = mat4.create();
 
+  /** Tr2Renderer's s_worldTransform (Tr2Renderer.cpp:86). */
+  _worldTransform = mat4.create();
+
   #inverseViewTransform = mat4.create();
 
   #viewPosition = vec3.create();
@@ -1772,6 +1775,30 @@ export class Tr2RenderContext
     return this.#viewTransform;
   }
 
+  /**
+   * Sets the world transform effects read through the "WorldMat" global, as
+   * Tr2Renderer::SetWorldTransform does (Tr2Renderer.cpp:553-559).
+   *
+   * Adapted: the context holds Tr2Renderer's camera state in this runtime, as
+   * SetViewTransform does.
+   * @param {mat4} transform The world matrix.
+   */
+  SetWorldTransform(transform)
+  {
+    mat4.copy(this._worldTransform, transform);
+    // Keep the variable store aware of the change.
+    Tr2RenderContext.#CameraVariables().WorldMat.SetValue(this._worldTransform);
+  }
+
+  /**
+   * The world transform (Tr2Renderer::GetWorldTransform, Tr2Renderer.cpp:573-576);
+   * a live buffer callers read and never mutate.
+   */
+  GetWorldTransform()
+  {
+    return this._worldTransform;
+  }
+
   // Inverse of the view matrix (Tr2Renderer::GetInverseViewTransform), cached on
   // the last view change. Live buffer - callers read, never mutate.
 
@@ -1897,8 +1924,8 @@ export class Tr2RenderContext
   /**
    * Carbon Tr2Renderer::Initialize's camera variables (Tr2Renderer.cpp:331-343),
    * registered once on the global store. `Time` is Tr2Renderer's own
-   * (BeginFrame); WorldMat is registered as Carbon does and stays identity,
-   * because no JS caller sets a renderer world transform.
+   * (BeginFrame); WorldMat is registered as Carbon does and follows
+   * SetWorldTransform.
    *
    * @returns {Record<string, TriVariable>} The variables by name.
    */
