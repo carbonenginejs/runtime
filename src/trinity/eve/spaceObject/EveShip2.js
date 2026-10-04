@@ -375,7 +375,7 @@ export class EveShip2 extends EveMobile
   }
 
   /** RebuildBoosterSet's Vector4 functionality( 0, 1, 1, 1 ). */
-  static _boosterFunctionality = new Float32Array([ 0, 1, 1, 1 ]);
+  static _boosterFunctionality = vec4.fromValues(0, 1, 1, 1);
 
   /**
    * Runs the base space-object initialization; the ship adds no setup of its
