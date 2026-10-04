@@ -333,7 +333,8 @@ test("null source, machine and controller retain the established JS inspection p
   transition.condition = "1";
   assert.equal(transition.CanActivate(), false);
   assert.equal(transition.GetVariableMask(), 0n);
-  assert.equal(transition.EvaluateExpression("2 + 3"), 5);
+  // Carbon refuses without a source: "controller needs to be running when evaluating expressions" (cpp:130-133).
+  assert.equal(transition.EvaluateExpression("2 + 3"), 0);
   assert.ok(Array.isArray(transition.GetExpressionTermInfo()));
   const source = State("source");
   transition.Link(source);

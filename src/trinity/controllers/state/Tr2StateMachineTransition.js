@@ -165,9 +165,11 @@ export class Tr2StateMachineTransition
     {
       return false;
     }
-    const stateMachine = this._source?.GetStateMachine() ?? null;
-    const controller = stateMachine?.GetController() ?? null;
-    const owner = controller?.GetOwner() ?? null;
+    // Carbon binds its evaluator to the state machine at Link and CanActivate reads only the evaluator, so a source
+    // without a machine, or a machine without a controller, still activates; the context here is built per call.
+    const stateMachine = this._source.GetStateMachine();
+    const controller = stateMachine ? stateMachine.GetController() : null;
+    const owner = controller ? controller.GetOwner() : null;
     const program = this.Compile();
     if (!program.IsValid())
     {
@@ -231,18 +233,19 @@ export class Tr2StateMachineTransition
     {
       return 0n;
     }
-    const stateMachine = this._source?.GetStateMachine() ?? null;
-    const controller = stateMachine?.GetController() ?? null;
-    const variableView = controller?.GetVariableView();
-    if (!Array.isArray(variableView))
+    // Carbon reads the mask from its link-time evaluator; with no controller to bind variables there is none.
+    const stateMachine = this._source ? this._source.GetStateMachine() : null;
+    const controller = stateMachine ? stateMachine.GetController() : null;
+    if (!controller)
     {
       return 0n;
     }
+    const variableView = controller.GetVariableView();
     let mask = 0n;
     for (const name of this._variableNames)
     {
-      const index = variableView.find(variable => variable && typeof variable === "object" && "name" in variable && String(variable.name) === name)?.index;
-      if (typeof index !== "number" || index < 0 || index >= 64)
+      const index = variableView.find(variable => variable.name === name)?.index;
+      if (index === undefined || index >= 64)
       {
         return 0n;
       }
@@ -285,9 +288,14 @@ export class Tr2StateMachineTransition
   @meta.adapted
   EvaluateExpression(expression)
   {
-    const stateMachine = this._source?.GetStateMachine() ?? null;
-    const controller = stateMachine?.GetController() ?? null;
-    const owner = controller?.GetOwner() ?? null;
+    // Carbon reports "controller needs to be running when evaluating expressions" without a source (cpp:130-133).
+    if (!this._source)
+    {
+      return 0;
+    }
+    const stateMachine = this._source.GetStateMachine();
+    const controller = stateMachine ? stateMachine.GetController() : null;
+    const owner = controller ? controller.GetOwner() : null;
     const program = CjsControllerExpressionProgram.Compile(expression, {
       emptyValue: 0
     });
@@ -308,8 +316,14 @@ export class Tr2StateMachineTransition
   {
     const result = [];
     CjsControllerExpressionProgram.addControllerTermInfo(result);
-    const controller = this._source?.GetStateMachine()?.GetController();
-    controller?.GetExpressionTermInfo(result);
+    // Carbon dereferences the machine and controller once a source exists (cpp:116-118); a source linked before its
+    // machine has none, so that state lists no controller variables here.
+    const stateMachine = this._source ? this._source.GetStateMachine() : null;
+    const controller = stateMachine ? stateMachine.GetController() : null;
+    if (controller)
+    {
+      controller.GetExpressionTermInfo(result);
+    }
     return result;
   }
 
