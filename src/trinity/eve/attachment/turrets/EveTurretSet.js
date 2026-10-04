@@ -1791,7 +1791,7 @@ export class EveTurretSet extends EveEntity
   @meta.adapted
   GetClosestTurret()
   {
-    return this._getClosestTurretAndLocator().turret;
+    return this._GetClosestTurretAndLocator().turret;
   }
 
   /**
@@ -1842,7 +1842,7 @@ export class EveTurretSet extends EveEntity
         this._recheckTimeLeft -= deltaTime;
         if (this._recheckTimeLeft < 0)
         {
-          const pair = this._getClosestTurretAndLocator();
+          const pair = this._GetClosestTurretAndLocator();
           if (pair.turret !== this._activeTurret || pair.locator !== this.target.GetLocator()) this.SetupFiringState();
           this._recheckTimeLeft = 2;
         }
@@ -2303,13 +2303,13 @@ export class EveTurretSet extends EveEntity
   SetupFiringState()
   {
     if (this.state === EveTurretSet.State.STATE_DEACTIVE) return false;
-    const pair = this._getClosestTurretAndLocator();
+    const pair = this._GetClosestTurretAndLocator();
     if (this.maxCyclingFirePos > 1)
     {
       this.currentCyclingFiresPos += this.cyclingFireGroupCount;
       if (this.currentCyclingFiresPos >= this.maxCyclingFirePos * this.cyclingFireGroupCount) this.currentCyclingFiresPos = 0;
     }
-    this.randomFiringDelay = this.useRandomFiringDelay ? this.GetShotTimeVariance() * Math.random() : 0;
+    this._CalcRandomDelay();
     const effectTotalTime = this.firingEffect ? this.firingEffect.GetFiringDuration() : 0;
     const effectPeakTime = this.firingEffect ? this.firingEffect.GetFiringPeakTime() : 0;
     const transform = this._parentData.transform;
@@ -2324,7 +2324,7 @@ export class EveTurretSet extends EveEntity
     if (this.state === EveTurretSet.State.STATE_IDLE || this.state === EveTurretSet.State.STATE_RELOADING ||
       this.state === EveTurretSet.State.STATE_TARGETING || this.state === EveTurretSet.State.STATE_FIRING)
     {
-      const fireName = this.currentCyclingFiresPos > 0 ? `Fire0${Math.floor(this.currentCyclingFiresPos / this.cyclingFireGroupCount)}` : "Fire";
+      const fireName = this._GetFireAnimationName();
       this._turrets.forEach((_turret, index) => this.PlayAnimation(index, index === activeTurret ? fireName : "", "Active", this.randomFiringDelay));
       if (this.state === EveTurretSet.State.STATE_TARGETING || this.state === EveTurretSet.State.STATE_FIRING)
       {
@@ -2348,13 +2348,55 @@ export class EveTurretSet extends EveEntity
   }
 
   /**
-   * Picks the turret whose world up axis best aligns with its nearest damage
-   * locator and, when chooseRandomLocator is set, re-picks the turret against a
-   * random valid locator instead; falls back to turret 0. Returns the shared
-   * pair record, valid only until the next call.
-   * Existing gap: world-up normalization differs from native ranking, and locator scratch is not seeded.
+   * Carbon GetFireAnimationName (EveTurretSet.cpp:2710-2721): "Fire", or past
+   * the first cycle position "Fire0" followed by the character '0' + the cycle
+   * index. Carbon appends a char, so an index of 10 or more gives ':' and on,
+   * not a second digit.
+   * @returns {string} The fire animation name.
    */
-  _getClosestTurretAndLocator()
+  @meta.implemented
+  _GetFireAnimationName()
+  {
+    let name = "Fire";
+    if (this.currentCyclingFiresPos > 0)
+    {
+      name += "0";
+      name += String.fromCharCode(48 + Math.trunc(this.currentCyclingFiresPos / this.cyclingFireGroupCount));
+    }
+    return name;
+  }
+
+  /**
+   * Carbon CalcRandomDelay (EveTurretSet.cpp:3226-3237): a random share of the
+   * shot time variance when useRandomFiringDelay is set, otherwise zero.
+   * Math.random stands in for TriFloatRandom01.
+   * @returns {void}
+   */
+  @meta.implemented
+  _CalcRandomDelay()
+  {
+    this.randomFiringDelay = this.useRandomFiringDelay ? this.GetShotTimeVariance() * Math.random() : 0;
+  }
+
+  /**
+   * Carbon GetClosestTurretAndLocator (EveTurretSet.cpp:3252-3324). Picks the
+   * turret whose up axis best aligns with its nearest damage locator and, when
+   * chooseRandomLocator is set, re-picks the turret against a random valid
+   * locator instead; falls back to turret 0.
+   *
+   * The up axis is TransformNormal((0,1,0), worldMatrix), the matrix's second
+   * row, unnormalised as in Carbon, so a scaled mount weighs its dot product by
+   * that scale. The locator position starts at the turret position (cpp:3270),
+   * so a target without a locator gives a zero direction.
+   *
+   * Adapted: Carbon's two reference outputs are returned as one shared pair
+   * record, valid until the next call; an empty set returns INVALID_INDEX / -1
+   * where Carbon returns false.
+   *
+   * @returns {{turret: number, locator: number}} The shared pair record.
+   */
+  @meta.adapted
+  _GetClosestTurretAndLocator()
   {
     const pair = EveTurretSet._closestPair;
     pair.turret = EveTurretSet.INVALID_INDEX;
@@ -2367,10 +2409,11 @@ export class EveTurretSet extends EveEntity
       if (!turret.valid) continue;
       const transform = turret.worldMatrix;
       vec3.set(EveTurretSet._turretPosition, transform[12], transform[13], transform[14]);
+      vec3.copy(EveTurretSet._locatorPosition, EveTurretSet._turretPosition);
       const locator = this.target.FindClosestLocator(EveTurretSet._turretPosition, EveTurretSet._locatorPosition);
       vec3.subtract(EveTurretSet._targetDirection, EveTurretSet._locatorPosition, EveTurretSet._turretPosition);
       if (vec3.squaredLength(EveTurretSet._targetDirection)) vec3.normalize(EveTurretSet._targetDirection, EveTurretSet._targetDirection);
-      vec3.normalize(EveTurretSet._turretUp, vec3.set(EveTurretSet._turretUp, transform[4], transform[5], transform[6]));
+      vec3.set(EveTurretSet._turretUp, transform[4], transform[5], transform[6]);
       const angle = vec3.dot(EveTurretSet._turretUp, EveTurretSet._targetDirection);
       if (angle > closestAngle)
       {
@@ -2396,7 +2439,7 @@ export class EveTurretSet extends EveEntity
           vec3.set(EveTurretSet._turretPosition, turretTransform[12], turretTransform[13], turretTransform[14]);
           vec3.subtract(EveTurretSet._targetDirection, EveTurretSet._locatorPosition, EveTurretSet._turretPosition);
           if (vec3.squaredLength(EveTurretSet._targetDirection)) vec3.normalize(EveTurretSet._targetDirection, EveTurretSet._targetDirection);
-          vec3.normalize(EveTurretSet._turretUp, vec3.set(EveTurretSet._turretUp, turretTransform[4], turretTransform[5], turretTransform[6]));
+          vec3.set(EveTurretSet._turretUp, turretTransform[4], turretTransform[5], turretTransform[6]);
           const angle = vec3.dot(EveTurretSet._turretUp, EveTurretSet._targetDirection);
           if (angle > closestAngle)
           {

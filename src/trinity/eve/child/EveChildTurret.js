@@ -1069,14 +1069,21 @@ export class EveChildTurret extends EveChildMesh
     return animLength;
   }
 
-  /** "Fire", or "Fire0" + cycle digit past the first cycle (Carbon cpp:804-815). */
+  /**
+   * Carbon GetFireAnimationName (EveChildTurret.cpp:804-815): "Fire", or past
+   * the first cycle position "Fire0" followed by the character '0' + the cycle
+   * index. Carbon appends a char, so an index of 10 or more gives ':' and on,
+   * not a second digit.
+   * @returns {string} The fire animation name.
+   */
+  @meta.implemented
   _GetFireAnimationName()
   {
     let name = "Fire";
     if (this.currentCyclingFiresPos > 0)
     {
       name += "0";
-      name += String(Math.trunc(this.currentCyclingFiresPos / this.cyclingFireGroupCount));
+      name += String.fromCharCode(48 + Math.trunc(this.currentCyclingFiresPos / this.cyclingFireGroupCount));
     }
     return name;
   }
