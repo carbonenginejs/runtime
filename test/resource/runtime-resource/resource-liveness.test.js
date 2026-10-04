@@ -1,5 +1,5 @@
-// The liveness contract: IsGood renews, KeepAlive revives, completed fires for
-// both outcomes and replays to late subscribers.
+// The liveness contract: IsGood renews and KeepAlive revives. How owners hear
+// that a load finished is pinned in resource-notify-targets.test.js.
 //
 // These three are what make a consumer able to ignore purging entirely. Each
 // one has a failure mode that is silent rather than loud - a resource that is
@@ -175,62 +175,14 @@ test("purging is not completion - nothing was tried and nothing concluded", () =
 });
 
 
-test("OnCompleted fires for both outcomes and lets the handler branch", () =>
+test("there is no completed event or OnCompleted: owners use one-shot notify targets", () =>
 {
-  const seen = [];
-  const good = new CjsResource();
-  const bad = new CjsResource();
-
-  // Name first, then the resource - the same arguments a dispatched listener
-  // gets, so an already-completed resource is indistinguishable from a pending
-  // one at the call site.
-  good.OnCompleted((name, res) => seen.push([ name, res.IsPrepared() ]));
-  bad.OnCompleted((name, res) => seen.push([ name, res.IsPrepared() ]));
-
-  good.MarkPrepared();
-  bad.SetError(new Error("nope"));
-
-  assert.deepEqual(seen, [ [ "completed", true ], [ "completed", false ] ]);
-});
-
-
-test("OnCompleted fires immediately when the resource already finished", () =>
-{
-  // The gap a plain emitter leaves: subscribe after PREPARED and nothing ever
-  // arrives, so callers do the work synchronously "just in case" instead.
   const resource = new CjsResource();
+  assert.equal("OnCompleted" in resource, false);
+  let heard = 0;
+  resource.OnEvent("completed", () => { heard += 1; });
   resource.MarkPrepared();
-
-  let called = 0;
-  resource.OnCompleted(() => { called += 1; });
-
-  assert.equal(called, 1, "replayed rather than dropped");
-  assert.equal(resource.GetEventListenerCount("completed"), 0, "and stored nothing");
-});
-
-
-test("a reload completes again, so derived data gets rebuilt", () =>
-{
-  // The symmetry that makes revival identical to first load for a subscriber.
-  const { resource } = createBound(State.EMPTY);
-
-  let completions = 0;
-  resource.OnCompleted(() => { completions += 1; });
-
-  resource.MarkPrepared();
-  assert.equal(completions, 1);
-
-  resource.MarkPurged();
-  resource.IsGood();              // reloads
-  resource.MarkPrepared();
-
-  assert.equal(completions, 2, "the payload changed, so subscribers hear again");
-});
-
-
-test("OnCompleted rejects a non-function rather than silently never firing", () =>
-{
-  assert.throws(() => new CjsResource().OnCompleted(null), TypeError);
+  assert.equal(heard, 0, "nothing emits it");
 });
 
 

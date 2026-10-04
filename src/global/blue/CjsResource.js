@@ -273,10 +273,10 @@ export class CjsResource
   /**
    * Return true when this resource finished trying to load, either way.
    *
-   * The pull form of the `completed` event. Carbon expresses this as a
-   * predicate because it has no events - `m_isPrepared` is set on the failure
-   * path too (`BlueAsyncRes.cpp:183`) - so `IsPrepared()` there means "finished
-   * trying" while ours keeps the narrower "succeeded".
+   * Completion is also when waiting notify targets are told. Carbon's
+   * `m_isPrepared` is set on the failure path too (`BlueAsyncRes.cpp:183`), so
+   * `IsPrepared()` there means "finished trying", while ours keeps the narrower
+   * "succeeded".
    *
    * `PURGED` is not completion: nothing was tried and nothing concluded, the
    * payload was simply taken away.
@@ -314,8 +314,8 @@ export class CjsResource
   }
 
   /**
-   * Changes state and emits the state-specific, statechange, and - on reaching
-   * a load outcome - completed events.
+   * Changes state and emits the state-specific and statechange events; on
+   * reaching a load outcome it tells the waiting notify targets.
    */
   SetState(state, ...details) {
     if (!CjsResource.isValidState(state)) {
@@ -334,11 +334,10 @@ export class CjsResource
     if (state === CjsResource.State.PREPARED) this._reloadAttempts = 0;
     this.EmitEvent(state, this, ...details);
     this.EmitEvent("statechange", this, state, previous);
-    // Fires again after a purge and reload, so subscribers rebuild whatever
-    // they derived from the payload that was deleted.
+    // Waiting notify targets hear the outcome once and are released; after a
+    // purge and reload, owners that asked IsGood() meanwhile hear it again.
     if (this.HasCompleted())
     {
-      this.EmitEvent("completed", this, ...details);
       this.NotifyRebuildCachedData();
     }
     else if (state === CjsResource.State.PURGED)
@@ -428,48 +427,6 @@ export class CjsResource
   {
     for (const target of this._notifyTargets.slice()) target.ReleaseCachedData(this);
     return this;
-  }
-
-  /**
-   * Subscribe to this resource finishing, firing immediately when it already
-   * has.
-   *
-   * The immediate call is the point. A plain emitter drops late subscribers on
-   * the floor - subscribe after `PREPARED` and nothing ever arrives - which is
-   * why callers end up doing work synchronously "just in case" instead of
-   * subscribing. ccpwgl solves this by replaying current state at registration
-   * (`Tw2Resource.onNotification`), and a subscriber satisfied that way is
-   * never stored at all, so only subscriptions genuinely still waiting
-   * accumulate.
-   *
-   * The listener runs for both outcomes and branches itself:
-   *
-   * ```js
-   * res.OnCompleted(res => { if (res.IsPrepared()) something; else somethingElse; });
-   * ```
-   *
-   * It may run more than once - a purge and reload completes again - so
-   * handlers must be written to be re-entered rather than assuming first load.
-   *
-   * @param {Function} listener Called with this resource once it has finished.
-   * @param {*} [source=null] Optional owner used for bulk removal.
-   * @returns {CjsResource} This resource.
-   */
-  OnCompleted(listener, source = null)
-  {
-    if (typeof listener !== "function")
-    {
-      throw new TypeError("CjsResource.OnCompleted requires a function.");
-    }
-    if (this.HasCompleted())
-    {
-      // The immediate path must match a dispatched call exactly, or an already-
-      // completed resource hands its listener a different argument list than a
-      // pending one does.
-      listener.call(source, "completed", this);
-      return this;
-    }
-    return this.OnEvent("completed", listener, source);
   }
 
   /** Marks this resource as requested. */

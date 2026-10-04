@@ -3613,7 +3613,7 @@ export class CjsBlueResMan
         && this.motherLode === ownership.owner
         && this._resourceOwnership.get(ownership.resource) === ownership
         && !this._invalidResourceOwnership.has(ownership.resource)
-        && ownership.owner.Lookup(ownership.key) === ownership.resource
+        && ownership.owner._LookupCanonical(ownership.key) === ownership.resource
         && !ownership.resource.IsPurged());
     }
     catch
@@ -3861,8 +3861,10 @@ export class CjsBlueResMan
     // a handle keep-alive for anything that ever did reach it.
     resource.SetLifecycleController({
       isCurrent: () => this._IsResourceOwnershipCurrent(ownership),
+      // Every IsGood() renews through here, so it skips re-normalizing the
+      // canonical key (CjsMotherLode._KeepAliveCanonical).
       keepAlive: options => this._IsResourceOwnershipCurrent(ownership)
-        ? owner.KeepAlive(key, options)
+        ? owner._KeepAliveCanonical(key, options)
         : null,
       keepPayloadAlive: options => this._IsResourceOwnershipCurrent(ownership)
         ? owner.KeepPayloadAlive(key, options)
