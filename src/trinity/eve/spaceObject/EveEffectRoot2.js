@@ -405,23 +405,32 @@ export class EveEffectRoot2 extends EveEntity
     return this._worldTransform;
   }
 
-  /** Updates and returns the model-center world position. */
+  /**
+   * Carbon EveEffectRoot2::UpdateModelCenterWorldPosition (EveEffectRoot2.cpp:399-408): updates the world transform
+   * to t, then the bounding-sphere centre through the local transform and the world transform.
+   * @param {vec3} position - receives the world-space centre
+   * @param {number} t - Blue ticks
+   * @returns {vec3} position
+   */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("CarbonEngineJS uses an out-last signature for output parameters.")
-  UpdateModelCenterWorldPosition(time, out = vec3.create())
+  @meta.implemented
+  UpdateModelCenterWorldPosition(position, t)
   {
-    this.UpdateWorldTransform(time);
+    this.UpdateWorldTransform(t);
     mat4.fromRotationTranslationScale(this._localTransform, this.rotation, this.translation, this.scaling);
     // Carbon (row-vector): currentTransform * m_worldTransform - local first.
     mat4.multiply(EveEffectRoot2._centerTransform, this._worldTransform, this._localTransform);
-    return vec3.transformMat4(out, this.boundingSphereCenter, EveEffectRoot2._centerTransform);
+    return vec3.transformMat4(position, this.boundingSphereCenter, EveEffectRoot2._centerTransform);
   }
 
-  /** Returns the last model-center world position without advancing curves. */
+  /**
+   * Carbon EveEffectRoot2::GetModelCenterWorldPosition (EveEffectRoot2.cpp:410): the last model centre, without
+   * advancing curves.
+   *
+   * Adapted: out defaults to a new vector and is returned.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("CarbonEngineJS uses an out-last signature for output parameters.")
   GetModelCenterWorldPosition(out = vec3.create())
   {
     return vec3.transformMat4(out, this.boundingSphereCenter, this._lastUpdateMatrix);

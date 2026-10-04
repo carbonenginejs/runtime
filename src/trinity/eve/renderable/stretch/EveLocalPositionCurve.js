@@ -270,12 +270,15 @@ export class EveLocalPositionCurve extends ITriVectorFunction
   }
 
   /**
-   * POS_CENTER_BOUNDING_POINT: asks the parent space object for its model centre
+   * POS_CENTER_BOUNDING_POINT (EveLocalPositionCurve.cpp:144-156): asks the parent space object for its model centre
    * at time; out is unchanged when there is no parent.
    */
   GetCenterBoundingSphere(time, out)
   {
-    this.parent?.UpdateModelCenterWorldPosition?.(time, out);
+    if (this.parent)
+    {
+      this.parent.UpdateModelCenterWorldPosition(out, time);
+    }
     return out;
   }
 
