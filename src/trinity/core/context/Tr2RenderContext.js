@@ -61,9 +61,9 @@ export class Tr2RenderContext
   @meta.setting("eveSpacePickingFramework", { values: ["objectId", "pointer"] })
   static eveSpacePickingFramework = "objectId";
 
-  #diagnostics = [];
+  _diagnostics = [];
 
-  #stepExecutor = DIRECT_STEP_EXECUTOR;
+  _stepExecutor = DIRECT_STEP_EXECUTOR;
 
 
 
@@ -86,7 +86,7 @@ export class Tr2RenderContext
    * stub backend does: real render-target and depth-stencil stacks, real sizes,
    * draws counted, nothing drawn, and `IsValid()` false until `CreateDevice`.
    */
-  #al = new Tr2RenderContextALStub();
+  _al = new Tr2RenderContextALStub();
 
   // Carbon's context OWNS its state manager as a public member
   // (`Tr2RenderContext.h:35`), and its render steps reach the Trinity-level
@@ -95,47 +95,47 @@ export class Tr2RenderContext
   // manager is bound to this context once and never rebound.
 
   /** m_esm */
-  #esm = new Tr2EffectStateManager().SetRenderContext(this);
+  _esm = new Tr2EffectStateManager().SetRenderContext(this);
 
   /** Carbon's s_blitter, per context rather than per process; see GetBlitter. */
-  #blitter = null;
+  _blitter = null;
 
-  #depthStencil = null;
+  _depthStencil = null;
 
-  #viewport = null;
+  _viewport = null;
 
-  #view = null;
+  _view = null;
 
-  #projection = null;
+  _projection = null;
 
   // Tr2Renderer::GetFieldOfView relocated beside the projection matrix. It is
   // accepted from a typed TriProjection step or derived once when raw matrix
   // state changes, not recomputed by every camera-dependent transform.
-  #fieldOfView = 0;
+  _fieldOfView = 0;
 
   /** Tr2Renderer::s_frustumRadius, cached beside its projection. */
-  #frustumRadius = 0;
+  _frustumRadius = 0;
 
   // Carbon-faithful cached view state (Tr2Renderer::SetViewTransform): the raw
   // column-major view matrix, its inverse (computed once per view change, read
   // many times per frame by camera-dependent modifiers), and the view/eye
   // position taken from the inverse-view translation row. Allocated once and
   // copied into - never reallocated per read (allocation rules E/F).
-  #viewTransform = mat4.create();
+  _viewTransform = mat4.create();
 
   /** Tr2Renderer's s_worldTransform (Tr2Renderer.cpp:86). */
   _worldTransform = mat4.create();
 
-  #inverseViewTransform = mat4.create();
+  _inverseViewTransform = mat4.create();
 
-  #viewPosition = vec3.create();
+  _viewPosition = vec3.create();
 
-  #hasViewMatrix = false;
+  _hasViewMatrix = false;
 
 
-  #projectionStack = [];
+  _projectionStack = [];
 
-  #viewTransformStack = [];
+  _viewTransformStack = [];
 
   // Carbon keeps ONE pool allocator as a Tr2Renderer static, created in
   // Initialize (Tr2Renderer.cpp:345), read through GetPoolAllocator
@@ -144,14 +144,14 @@ export class Tr2RenderContext
   // pool lives here too, per context rather than per process. Created on first
   // request: constructing a context is not a frame, and the arena retains its
   // chunks once it exists.
-  #poolAllocator = null;
+  _poolAllocator = null;
 
   // THE FRAME CLOCK IS NOT HERE. It was, as a stand-in while the tick was
   // unported; the tick landed on TriDevice (2026-09-18) and the readers moved
   // to Tr2Renderer's statics with it, which is where Carbon declares them
   // (Tr2Renderer.h:125-133).
 
-  #debugRenderer = null;
+  _debugRenderer = null;
 
   // Tr2RenderContextEnum's filter and address modes, from global/consts: one
   // identity for every layer, not a second copy on the class.
@@ -189,7 +189,7 @@ export class Tr2RenderContext
     {
       throw new TypeError("Tr2RenderContext.SetStepExecutor expects a CjsTrinityStepExecutor or null.");
     }
-    this.#stepExecutor = executor ?? DIRECT_STEP_EXECUTOR;
+    this._stepExecutor = executor ?? DIRECT_STEP_EXECUTOR;
     return this;
   }
 
@@ -200,7 +200,7 @@ export class Tr2RenderContext
    */
   BeginStep(step, realTime, simTime, job)
   {
-    return this.#stepExecutor.BeginStep(step, realTime, simTime, job, this);
+    return this._stepExecutor.BeginStep(step, realTime, simTime, job, this);
   }
 
   /**
@@ -219,7 +219,7 @@ export class Tr2RenderContext
   {
     // Null RESTORES THE STUB rather than emptying the field: Carbon cannot
     // detach a backend, so neither can this.
-    this.#al = al ?? new Tr2RenderContextALStub();
+    this._al = al ?? new Tr2RenderContextALStub();
 
     // EVERYTHING THE OLD BACKEND MADE IS THE OLD BACKEND'S. A device is
     // acquired asynchronously, so "context constructed, effects loaded, AL
@@ -227,32 +227,32 @@ export class Tr2RenderContext
     // buffers and the realized programs and layouts the state manager keeps per
     // context were all created through the stub. Left in place, WebGPU met a
     // stub buffer at a uniform slot and a stub program at the resource set.
-    for (const buffer of this.#perObjectConstantBuffers) buffer?.Destroy();
-    this.#perObjectConstantBuffers.fill(null);
-    this.#esm.ReleaseRealizedObjects();
-    this.#esm.Destroy();
+    for (const buffer of this._perObjectConstantBuffers) buffer?.Destroy();
+    this._perObjectConstantBuffers.fill(null);
+    this._esm.ReleaseRealizedObjects();
+    this._esm.Destroy();
 
-    return this.#al;
+    return this._al;
   }
 
   /** Explicit context teardown releases owned state values before its backend. */
   @meta.ours
   Destroy()
   {
-    this.#esm.Destroy();
-    this.#esm.ReleaseRealizedObjects();
-    for (const buffer of this.#perObjectConstantBuffers) if (buffer) buffer.Destroy();
-    this.#perObjectConstantBuffers.fill(null);
-    if (this.#blitter) this.#blitter.Destroy();
-    this.#blitter = null;
+    this._esm.Destroy();
+    this._esm.ReleaseRealizedObjects();
+    for (const buffer of this._perObjectConstantBuffers) if (buffer) buffer.Destroy();
+    this._perObjectConstantBuffers.fill(null);
+    if (this._blitter) this._blitter.Destroy();
+    this._blitter = null;
     ReleaseSharedGeometryBuffer(this);
-    this.#al.Destroy();
+    this._al.Destroy();
   }
 
   /** The installed backend; never null. */
   GetRenderContextAL()
   {
-    return this.#al;
+    return this._al;
   }
 
   /**
@@ -266,7 +266,7 @@ export class Tr2RenderContext
    */
   ExecuteStep(step, realTime, simTime, job)
   {
-    return this.#stepExecutor.ExecuteStep(step, realTime, simTime, job, this);
+    return this._stepExecutor.ExecuteStep(step, realTime, simTime, job, this);
   }
 
   /**
@@ -274,19 +274,19 @@ export class Tr2RenderContext
    */
   EndStep(step, realTime, simTime, job)
   {
-    return this.#stepExecutor.EndStep(step, realTime, simTime, job, this);
+    return this._stepExecutor.EndStep(step, realTime, simTime, job, this);
   }
 
   /** Opens the render-job batch scope through the installed executor. */
   BeginBatch(owner)
   {
-    return this.#stepExecutor.BeginBatch(owner, this);
+    return this._stepExecutor.BeginBatch(owner, this);
   }
 
   /** Closes the render-job batch scope through the installed executor. */
   EndBatch(owner)
   {
-    return this.#stepExecutor.EndBatch(owner, this);
+    return this._stepExecutor.EndBatch(owner, this);
   }
 
   // Carbon's context INHERITS BeginScene/EndScene from the abstraction layer
@@ -304,7 +304,7 @@ export class Tr2RenderContext
    */
   BeginScene()
   {
-    return this.#requireAL("BeginScene").BeginScene();
+    return this._requireAL("BeginScene").BeginScene();
   }
 
   /**
@@ -314,7 +314,7 @@ export class Tr2RenderContext
    */
   EndScene()
   {
-    return this.#requireAL("EndScene").EndScene();
+    return this._requireAL("EndScene").EndScene();
   }
 
   // Carbon: Tr2Renderer::GetPoolAllocator (Tr2Renderer.cpp:1083). The store
@@ -329,11 +329,11 @@ export class Tr2RenderContext
    */
   GetTriPoolAllocator()
   {
-    if (!this.#poolAllocator)
+    if (!this._poolAllocator)
     {
-      this.#poolAllocator = new TriPoolAllocator().RegisterCatalog();
+      this._poolAllocator = new TriPoolAllocator().RegisterCatalog();
     }
-    return this.#poolAllocator;
+    return this._poolAllocator;
   }
 
   /**
@@ -343,7 +343,7 @@ export class Tr2RenderContext
    */
   SetTriPoolAllocator(allocator)
   {
-    this.#poolAllocator = allocator ?? null;
+    this._poolAllocator = allocator ?? null;
     return this;
   }
 
@@ -365,7 +365,7 @@ export class Tr2RenderContext
   {
     const index = Number(slot) >>> 0;
 
-    return this.#requireAL("PushRenderTarget").PushRenderTarget(index);
+    return this._requireAL("PushRenderTarget").PushRenderTarget(index);
   }
 
   /**
@@ -379,13 +379,13 @@ export class Tr2RenderContext
    */
   PopRenderTarget(slot = 0)
   {
-    return this.#requireAL("PopRenderTarget").PopRenderTarget(slot);
+    return this._requireAL("PopRenderTarget").PopRenderTarget(slot);
   }
 
   /** Depth of one slot's render-target stack; zero for a slot never pushed to. */
   GetStackSizeRT(slot = 0)
   {
-    return this.#requireAL("GetStackSizeRT").GetStackSizeRT(slot);
+    return this._requireAL("GetStackSizeRT").GetStackSizeRT(slot);
   }
 
   /**
@@ -397,7 +397,7 @@ export class Tr2RenderContext
    */
   PushDepthStencil()
   {
-    return this.#requireAL("PushDepthStencil").PushDepthStencil();
+    return this._requireAL("PushDepthStencil").PushDepthStencil();
   }
 
   /**
@@ -407,13 +407,13 @@ export class Tr2RenderContext
    */
   PopDepthStencil()
   {
-    return this.#requireAL("PopDepthStencil").PopDepthStencil();
+    return this._requireAL("PopDepthStencil").PopDepthStencil();
   }
 
   /** Depth of the depth-stencil stack. */
   GetStackSizeDS()
   {
-    return this.#requireAL("GetStackSizeDS").GetStackSizeDS();
+    return this._requireAL("GetStackSizeDS").GetStackSizeDS();
   }
 
   /**
@@ -423,7 +423,7 @@ export class Tr2RenderContext
   {
     // THE BACKEND OWNS THE BINDING, as Carbon's do (m_boundRenderTarget), and
     // GetRenderTarget below reads it back from there.
-    return this.#requireAL("SetRenderTarget").SetRenderTarget(Number(slot) >>> 0, renderTarget, Number(slice) >>> 0);
+    return this._requireAL("SetRenderTarget").SetRenderTarget(Number(slot) >>> 0, renderTarget, Number(slice) >>> 0);
   }
 
   // THE BACKEND'S FRAME CLOCK, WHICH IS NOT TRINITY'S.
@@ -441,7 +441,7 @@ export class Tr2RenderContext
    */
   GetRecordingFrameNumber()
   {
-    return this.#al ? this.#al.GetRecordingFrameNumber() : 0;
+    return this._al ? this._al.GetRecordingFrameNumber() : 0;
   }
 
   /**
@@ -451,7 +451,7 @@ export class Tr2RenderContext
    */
   GetRenderedFrameNumber()
   {
-    return this.#al ? this.#al.GetRenderedFrameNumber() : 0;
+    return this._al ? this._al.GetRenderedFrameNumber() : 0;
   }
 
   /**
@@ -466,7 +466,7 @@ export class Tr2RenderContext
    */
   IsValid()
   {
-    return this.#al ? this.#al.IsValid() : false;
+    return this._al ? this._al.IsValid() : false;
   }
 
   /**
@@ -482,7 +482,7 @@ export class Tr2RenderContext
    */
   GetRenderTargetSize(slot = 0)
   {
-    return this.#requireAL("GetRenderTargetSize").GetRenderTargetSize(slot);
+    return this._requireAL("GetRenderTargetSize").GetRenderTargetSize(slot);
   }
 
   /**
@@ -496,21 +496,21 @@ export class Tr2RenderContext
    */
   GetRenderTarget(slot = 0)
   {
-    return this.#requireAL("GetRenderTarget").GetRenderTarget(slot);
+    return this._requireAL("GetRenderTarget").GetRenderTarget(slot);
   }
 
   /** Binds the depth-stencil surface on the backend. */
   SetDepthStencil(depthStencil)
   {
-    this.#depthStencil = depthStencil ?? null;
+    this._depthStencil = depthStencil ?? null;
 
-    return this.#requireAL("SetDepthStencil").SetDepthStencil(this.#depthStencil);
+    return this._requireAL("SetDepthStencil").SetDepthStencil(this._depthStencil);
   }
 
   /** The currently bound depth-stencil surface, or null. */
   GetDepthStencil()
   {
-    return this.#requireAL("GetDepthStencil").GetDepthStencil();
+    return this._requireAL("GetDepthStencil").GetDepthStencil();
   }
 
   /**
@@ -523,7 +523,7 @@ export class Tr2RenderContext
    */
   Clear(options)
   {
-    return this.#requireAL("Clear").Clear(options);
+    return this._requireAL("Clear").Clear(options);
   }
 
   /**
@@ -537,7 +537,7 @@ export class Tr2RenderContext
    */
   SetReadOnlyDepth(enable)
   {
-    return this.#requireAL("SetReadOnlyDepth").SetReadOnlyDepth(enable);
+    return this._requireAL("SetReadOnlyDepth").SetReadOnlyDepth(enable);
   }
 
   /**
@@ -549,7 +549,7 @@ export class Tr2RenderContext
    */
   SetCoverageDiscard(mode)
   {
-    return this.#requireAL("SetCoverageDiscard").SetCoverageDiscard(mode);
+    return this._requireAL("SetCoverageDiscard").SetCoverageDiscard(mode);
   }
 
   /**
@@ -569,7 +569,7 @@ export class Tr2RenderContext
    */
   RenderPassHint(...attachments)
   {
-    return this.#requireAL("RenderPassHint").RenderPassHint(...attachments);
+    return this._requireAL("RenderPassHint").RenderPassHint(...attachments);
   }
 
   /**
@@ -582,7 +582,7 @@ export class Tr2RenderContext
    */
   EndRenderPassHint()
   {
-    return this.#requireAL("EndRenderPassHint").EndRenderPassHint();
+    return this._requireAL("EndRenderPassHint").EndRenderPassHint();
   }
 
   /**
@@ -602,9 +602,9 @@ export class Tr2RenderContext
    */
   GetReversedDepthProjectionTransform(out = mat4.create())
   {
-    if (!this.#projection) return null;
+    if (!this._projection) return null;
 
-    mat4.copy(out, this.#projection);
+    mat4.copy(out, this._projection);
     // Carbon indexes _33 and _43 in row-major; column-major here puts them at
     // 10 and 14.
     out[10] = -out[10] - 1;
@@ -624,7 +624,7 @@ export class Tr2RenderContext
    */
   GetFrontClip()
   {
-    const projection = this.#projection;
+    const projection = this._projection;
 
     if (!projection) return 0;
 
@@ -641,7 +641,7 @@ export class Tr2RenderContext
    */
   GetBackClip()
   {
-    const projection = this.#projection;
+    const projection = this._projection;
 
     if (!projection) return 0;
 
@@ -662,12 +662,12 @@ export class Tr2RenderContext
    */
   GetCaps()
   {
-    if (!this.#al)
+    if (!this._al)
     {
       throw new Error("Tr2RenderContext has no render-context AL installed; capabilities belong to one.");
     }
 
-    return this.#al.GetCaps();
+    return this._al.GetCaps();
   }
 
   // THE GEOMETRY BINDING FAMILY, which forwards to the AL. Carbon's
@@ -683,7 +683,7 @@ export class Tr2RenderContext
    */
   SetTopology(topology)
   {
-    return this.#requireAL("SetTopology").SetTopology(topology);
+    return this._requireAL("SetTopology").SetTopology(topology);
   }
 
   /**
@@ -714,9 +714,9 @@ export class Tr2RenderContext
     // The backend's kind, not the stub's. This constructed `Tr2ConstantBufferALStub`
     // directly, so per-object constants landed in a CPU shadow on every
     // backend - the same hard-wiring `Tr2RingBuffer` had, fixed the same way.
-    this.#perObjectConstantBuffers[slot] ??= this.CreateConstantBuffer();
+    this._perObjectConstantBuffers[slot] ??= this.CreateConstantBuffer();
 
-    return this.#perObjectConstantBuffers[slot];
+    return this._perObjectConstantBuffers[slot];
   }
 
   /**
@@ -733,7 +733,7 @@ export class Tr2RenderContext
     );
   }
 
-  #perObjectConstantBuffers = new Array(ConstantBufferSlot.CBUFFER_COUNT).fill(null);
+  _perObjectConstantBuffers = new Array(ConstantBufferSlot.CBUFFER_COUNT).fill(null);
 
   /**
    * Binds a realized resource set for following draws.
@@ -747,7 +747,7 @@ export class Tr2RenderContext
    */
   SetResourceSet(resourceSet)
   {
-    return this.#requireAL("SetResourceSet").SetResourceSet(resourceSet);
+    return this._requireAL("SetResourceSet").SetResourceSet(resourceSet);
   }
 
   /**
@@ -761,7 +761,7 @@ export class Tr2RenderContext
    */
   SetConstants(buffer, constantType, registerIndex, maxRegisterCount = 0)
   {
-    return this.#requireAL("SetConstants").SetConstants(buffer, constantType, registerIndex, maxRegisterCount);
+    return this._requireAL("SetConstants").SetConstants(buffer, constantType, registerIndex, maxRegisterCount);
   }
 
   /**
@@ -776,7 +776,7 @@ export class Tr2RenderContext
    */
   SetStreamSource(stream, buffer, offset, stride)
   {
-    return this.#requireAL("SetStreamSource").SetStreamSource(stream, buffer, offset, stride);
+    return this._requireAL("SetStreamSource").SetStreamSource(stream, buffer, offset, stride);
   }
 
   /**
@@ -787,7 +787,7 @@ export class Tr2RenderContext
    */
   SetIndices(buffer)
   {
-    return this.#requireAL("SetIndices").SetIndices(buffer);
+    return this._requireAL("SetIndices").SetIndices(buffer);
   }
 
   /**
@@ -800,7 +800,7 @@ export class Tr2RenderContext
    */
   SetIndices_Stride(buffer, stride)
   {
-    return this.#requireAL("SetIndices_Stride").SetIndices_Stride(buffer, stride);
+    return this._requireAL("SetIndices_Stride").SetIndices_Stride(buffer, stride);
   }
 
   /**
@@ -818,7 +818,7 @@ export class Tr2RenderContext
    */
   CreateBuffer(description, initialData = null)
   {
-    return this.#requireAL("CreateBuffer").CreateBuffer(description, initialData);
+    return this._requireAL("CreateBuffer").CreateBuffer(description, initialData);
   }
 
   /**
@@ -836,7 +836,7 @@ export class Tr2RenderContext
    */
   CreateConstantBuffer(size = 0, usage = undefined, initialData = null)
   {
-    return this.#requireAL("CreateConstantBuffer").CreateConstantBuffer(size, usage, initialData);
+    return this._requireAL("CreateConstantBuffer").CreateConstantBuffer(size, usage, initialData);
   }
 
   /**
@@ -847,7 +847,7 @@ export class Tr2RenderContext
    */
   CreateFence()
   {
-    return this.#requireAL("CreateFence").CreateFence();
+    return this._requireAL("CreateFence").CreateFence();
   }
 
   /**
@@ -864,7 +864,7 @@ export class Tr2RenderContext
    */
   CreateSamplerState(description)
   {
-    return this.#requireAL("CreateSamplerState").CreateSamplerState(description);
+    return this._requireAL("CreateSamplerState").CreateSamplerState(description);
   }
 
   /**
@@ -883,7 +883,7 @@ export class Tr2RenderContext
   @meta.reason("Forwards JS platform selection and its internal allocation mode to the installed abstraction-layer context.")
   CreateResourceSet(description, program, implementationOnly = false)
   {
-    return this.#requireAL("CreateResourceSet").CreateResourceSet(description, program, implementationOnly);
+    return this._requireAL("CreateResourceSet").CreateResourceSet(description, program, implementationOnly);
   }
 
   /**
@@ -899,7 +899,7 @@ export class Tr2RenderContext
    */
   CreateTexture(desc, options)
   {
-    return this.#requireAL("CreateTexture").CreateTexture(desc, options);
+    return this._requireAL("CreateTexture").CreateTexture(desc, options);
   }
 
   /**
@@ -916,7 +916,7 @@ export class Tr2RenderContext
    */
   CreateVertexLayout(definition)
   {
-    return this.#requireAL("CreateVertexLayout").CreateVertexLayout(definition);
+    return this._requireAL("CreateVertexLayout").CreateVertexLayout(definition);
   }
 
   /**
@@ -930,7 +930,7 @@ export class Tr2RenderContext
    */
   CreateShader(stageType, bytecode, signature, shaderPath = "")
   {
-    return this.#requireAL("CreateShader").CreateShader(stageType, bytecode, signature, shaderPath);
+    return this._requireAL("CreateShader").CreateShader(stageType, bytecode, signature, shaderPath);
   }
 
   /**
@@ -941,7 +941,7 @@ export class Tr2RenderContext
    */
   CreateShaderProgram(shaders)
   {
-    return this.#requireAL("CreateShaderProgram").CreateShaderProgram(shaders);
+    return this._requireAL("CreateShaderProgram").CreateShaderProgram(shaders);
   }
 
   /**
@@ -958,7 +958,7 @@ export class Tr2RenderContext
    */
   SetShaderProgram(shaderProgram)
   {
-    return this.#requireAL("SetShaderProgram").SetShaderProgram(shaderProgram);
+    return this._requireAL("SetShaderProgram").SetShaderProgram(shaderProgram);
   }
 
   /**
@@ -980,9 +980,9 @@ export class Tr2RenderContext
    */
   GetBlitter()
   {
-    this.#blitter ??= new Tr2Blitter();
+    this._blitter ??= new Tr2Blitter();
 
-    return this.#blitter;
+    return this._blitter;
   }
 
   // Carbon's four immediate draws (Tr2RenderContext.h). Trinity calls these
@@ -1001,7 +1001,7 @@ export class Tr2RenderContext
    */
   DrawPrimitive(startVertex, primitiveCount)
   {
-    return this.#requireAL("DrawPrimitive").DrawPrimitive(startVertex, primitiveCount);
+    return this._requireAL("DrawPrimitive").DrawPrimitive(startVertex, primitiveCount);
   }
 
   /**
@@ -1015,7 +1015,7 @@ export class Tr2RenderContext
    */
   DrawIndexedPrimitive(numVertices, startIndex, primitiveCount, minimumIndex = 0)
   {
-    return this.#requireAL("DrawIndexedPrimitive").DrawIndexedPrimitive(numVertices, startIndex, primitiveCount, minimumIndex);
+    return this._requireAL("DrawIndexedPrimitive").DrawIndexedPrimitive(numVertices, startIndex, primitiveCount, minimumIndex);
   }
 
   /**
@@ -1028,7 +1028,7 @@ export class Tr2RenderContext
    */
   DrawPrimitiveUP(primitiveCount, vertexStreamZeroData, vertexStreamZeroStride)
   {
-    return this.#requireAL("DrawPrimitiveUP").DrawPrimitiveUP(primitiveCount, vertexStreamZeroData, vertexStreamZeroStride);
+    return this._requireAL("DrawPrimitiveUP").DrawPrimitiveUP(primitiveCount, vertexStreamZeroData, vertexStreamZeroStride);
   }
 
   /**
@@ -1044,7 +1044,7 @@ export class Tr2RenderContext
    */
   DrawIndexedPrimitiveUP(numVertices, primitiveCount, indexData, vertexStreamZeroData, vertexStreamZeroStride)
   {
-    return this.#requireAL("DrawIndexedPrimitiveUP")
+    return this._requireAL("DrawIndexedPrimitiveUP")
       .DrawIndexedPrimitiveUP(numVertices, primitiveCount, indexData, vertexStreamZeroData, vertexStreamZeroStride);
   }
 
@@ -1056,7 +1056,7 @@ export class Tr2RenderContext
    */
   SetVertexLayout(layout)
   {
-    return this.#requireAL("SetVertexLayout").SetVertexLayout(layout);
+    return this._requireAL("SetVertexLayout").SetVertexLayout(layout);
   }
 
   /**
@@ -1077,7 +1077,7 @@ export class Tr2RenderContext
     startInstanceLocation
   )
   {
-    return this.#requireAL("DrawIndexedInstanced").DrawIndexedInstanced(
+    return this._requireAL("DrawIndexedInstanced").DrawIndexedInstanced(
       indexCountPerInstance,
       instanceCount,
       startIndexLocation,
@@ -1097,7 +1097,7 @@ export class Tr2RenderContext
    */
   DrawInstanced(vertexCountPerInstance, instanceCount, startVertexLocation, startInstanceLocation)
   {
-    return this.#requireAL("DrawInstanced").DrawInstanced(
+    return this._requireAL("DrawInstanced").DrawInstanced(
       vertexCountPerInstance,
       instanceCount,
       startVertexLocation,
@@ -1117,7 +1117,7 @@ export class Tr2RenderContext
    */
   DrawInstancedIndirect(params, offset = 0)
   {
-    return this.#requireAL("DrawInstancedIndirect").DrawInstancedIndirect(params, offset);
+    return this._requireAL("DrawInstancedIndirect").DrawInstancedIndirect(params, offset);
   }
 
   /**
@@ -1130,14 +1130,14 @@ export class Tr2RenderContext
    */
   DrawIndexedInstancedIndirect(params, offset = 0)
   {
-    return this.#requireAL("DrawIndexedInstancedIndirect").DrawIndexedInstancedIndirect(params, offset);
+    return this._requireAL("DrawIndexedInstancedIndirect").DrawIndexedInstancedIndirect(params, offset);
   }
 
   /**
    * Carbon `Tr2Renderer::GetFrustumPlane` (`Tr2Renderer.cpp:525-528`): one of
    * the six frustum planes UpdateViewProjectionTransform derives. Carbon keeps
    * them as Tr2Renderer statics; here the render context holds Tr2Renderer's
-   * camera state (see #UpdateViewProjectionTransform), so the plane is read
+   * camera state (see _UpdateViewProjectionTransform), so the plane is read
    * from the same registered variable.
    *
    * @param {number} index The plane, 0 to 5.
@@ -1146,7 +1146,7 @@ export class Tr2RenderContext
    */
   GetFrustumPlane(index, out)
   {
-    return Tr2RenderContext.#CameraVariables()[FRUSTUM_PLANES[index]].GetValue(out);
+    return Tr2RenderContext._CameraVariables()[FRUSTUM_PLANES[index]].GetValue(out);
   }
 
   /**
@@ -1158,17 +1158,17 @@ export class Tr2RenderContext
   // There is no "no backend" case to guard - the field defaults to the stub and
   // a null assignment restores it. What remains worth checking is whether the
   // installed backend implements the verb: without this, a backend that has not
-  // yet ported one fails as "this.#al.Foo is not a function" from inside a
+  // yet ported one fails as "this._al.Foo is not a function" from inside a
   // pass-through, which reads like a typo in Trinity rather than a gap in the
   // backend.
-  #requireAL(verb)
+  _requireAL(verb)
   {
-    if (typeof this.#al[verb] !== "function")
+    if (typeof this._al[verb] !== "function")
     {
-      throw new Error(`${CjsSchema.getClassName(this.#al.constructor)} does not implement ${verb}.`);
+      throw new Error(`${CjsSchema.getClassName(this._al.constructor)} does not implement ${verb}.`);
     }
 
-    return this.#al;
+    return this._al;
   }
 
   /**
@@ -1178,7 +1178,7 @@ export class Tr2RenderContext
    */
   GetEffectStateManager()
   {
-    return this.#esm;
+    return this._esm;
   }
 
   /**
@@ -1246,14 +1246,14 @@ export class Tr2RenderContext
     if (batch.geometrySource && !batch.vertexStreams[0] && !RealizeBatchGeometry(batch, this)) return false;
 
     this.SetTopology(batch.topology);
-    this.#esm.ApplyVertexDeclaration(batch.vertexDeclaration);
+    this._esm.ApplyVertexDeclaration(batch.vertexDeclaration);
 
-    if (batch.vertexStreams[0]) this.#esm.ApplyStreamSource(0, batch.vertexStreams[0], 0, batch.stride[0]);
-    if (batch.vertexStreams[1]) this.#esm.ApplyStreamSource(1, batch.vertexStreams[1], 0, batch.stride[1]);
+    if (batch.vertexStreams[0]) this._esm.ApplyStreamSource(0, batch.vertexStreams[0], 0, batch.stride[0]);
+    if (batch.vertexStreams[1]) this._esm.ApplyStreamSource(1, batch.vertexStreams[1], 0, batch.stride[1]);
 
     if (batch.indexBuffer)
     {
-      this.#esm.ApplyIndexBuffer(batch.indexBuffer, batch.indexStride);
+      this._esm.ApplyIndexBuffer(batch.indexBuffer, batch.indexStride);
 
       return !Failed(this.DrawIndexedInstanced(
         batch.indexCountPerInstance,
@@ -1322,7 +1322,7 @@ export class Tr2RenderContext
       // rather than applying a mode called any.
       if (batch.renderingMode !== RenderingMode.RM_ANY)
       {
-        this.#esm.ApplyStandardStates(batch.renderingMode);
+        this._esm.ApplyStandardStates(batch.renderingMode);
       }
 
       const shader = shaderOf(batch);
@@ -1545,7 +1545,7 @@ export class Tr2RenderContext
    */
   ClearUav(buffer, value, clearWithFloat = false)
   {
-    return this.#requireAL("ClearUav").ClearUav(buffer, value, clearWithFloat);
+    return this._requireAL("ClearUav").ClearUav(buffer, value, clearWithFloat);
   }
 
   /**
@@ -1556,7 +1556,7 @@ export class Tr2RenderContext
    */
   RunComputeShader(groupDimX, groupDimY, groupDimZ)
   {
-    return this.#requireAL("RunComputeShader").RunComputeShader(groupDimX, groupDimY, groupDimZ);
+    return this._requireAL("RunComputeShader").RunComputeShader(groupDimX, groupDimY, groupDimZ);
   }
 
   /**
@@ -1566,7 +1566,7 @@ export class Tr2RenderContext
    */
   RunComputeShaderIndirect(indirectParams, offset)
   {
-    return this.#requireAL("RunComputeShaderIndirect").RunComputeShaderIndirect(indirectParams, offset);
+    return this._requireAL("RunComputeShaderIndirect").RunComputeShaderIndirect(indirectParams, offset);
   }
 
   /** Records the upscaler context the following work belongs to. */
@@ -1582,7 +1582,7 @@ export class Tr2RenderContext
    */
   SetDebugRenderer(renderer)
   {
-    this.#debugRenderer = renderer ?? null;
+    this._debugRenderer = renderer ?? null;
     return true;
   }
 
@@ -1597,7 +1597,7 @@ export class Tr2RenderContext
    */
   GetDebugRenderer()
   {
-    return this.#debugRenderer;
+    return this._debugRenderer;
   }
 
   /**
@@ -1618,7 +1618,7 @@ export class Tr2RenderContext
    */
   Present()
   {
-    return this.#requireAL("Present").Present();
+    return this._requireAL("Present").Present();
   }
 
   /**
@@ -1629,9 +1629,9 @@ export class Tr2RenderContext
    */
   SetViewport(viewport)
   {
-    this.#viewport = viewport ?? null;
+    this._viewport = viewport ?? null;
 
-    return this.#requireAL("SetViewport").SetViewport(viewport);
+    return this._requireAL("SetViewport").SetViewport(viewport);
   }
 
   /**
@@ -1641,12 +1641,12 @@ export class Tr2RenderContext
   {
     // The backend knows the bound target's extent, so "full screen" resolves
     // here and now.
-    const size = this.#requireAL("GetRenderTargetSize").GetRenderTargetSize(0);
+    const size = this._requireAL("GetRenderTargetSize").GetRenderTargetSize(0);
 
     if (Failed(size.result)) return false;
 
-    this.#esm.UpdateRenderTargetViewport(size.width, size.height);
-    this.#esm.SetupViewport();
+    this._esm.UpdateRenderTargetViewport(size.width, size.height);
+    this._esm.SetupViewport();
 
     return true;
   }
@@ -1657,7 +1657,7 @@ export class Tr2RenderContext
    */
   GetViewport()
   {
-    return this.#requireAL("GetViewport").GetViewport();
+    return this._requireAL("GetViewport").GetViewport();
   }
 
   // The viewport save stack is the effect state manager's, not this context's
@@ -1671,8 +1671,8 @@ export class Tr2RenderContext
    */
   SetView(view, camera = null, simTime = 0)
   {
-    this.#view = { view: view ?? null, camera: camera ?? null, simTime };
-    this.#ApplyViewMatrix(view);
+    this._view = { view: view ?? null, camera: camera ?? null, simTime };
+    this._ApplyViewMatrix(view);
     return true;
   }
 
@@ -1682,8 +1682,8 @@ export class Tr2RenderContext
    */
   SetViewTransform(transform, source = null)
   {
-    this.#view = { transform: transform ?? null, source: source ?? null };
-    this.#ApplyViewMatrix(transform);
+    this._view = { transform: transform ?? null, source: source ?? null };
+    this._ApplyViewMatrix(transform);
     return true;
   }
 
@@ -1697,35 +1697,35 @@ export class Tr2RenderContext
    * derives the eye position from the inverse-view translation; anything that is
    * not a 16-element matrix is ignored and leaves the cache untouched.
    */
-  #ApplyViewMatrix(matrix)
+  _ApplyViewMatrix(matrix)
   {
     if (!matrix || matrix.length !== 16)
     {
       return;
     }
 
-    mat4.copy(this.#viewTransform, matrix);
+    mat4.copy(this._viewTransform, matrix);
 
-    if (!mat4.invert(this.#inverseViewTransform, this.#viewTransform))
+    if (!mat4.invert(this._inverseViewTransform, this._viewTransform))
     {
-      mat4.identity(this.#inverseViewTransform);
+      mat4.identity(this._inverseViewTransform);
     }
 
     vec3.set(
-      this.#viewPosition,
-      this.#inverseViewTransform[12],
-      this.#inverseViewTransform[13],
-      this.#inverseViewTransform[14]
+      this._viewPosition,
+      this._inverseViewTransform[12],
+      this._inverseViewTransform[13],
+      this._inverseViewTransform[14]
     );
-    this.#hasViewMatrix = true;
+    this._hasViewMatrix = true;
 
     // Carbon Tr2Renderer::SetViewTransform (cpp:566-576) keeps the global
     // variable store aware of the view: effects bind ViewMat / ViewInvMat by
     // name.
-    const variables = Tr2RenderContext.#CameraVariables();
-    variables.ViewMat.SetValue(this.#viewTransform);
-    variables.ViewInvMat.SetValue(this.#inverseViewTransform);
-    this.#UpdateViewProjectionTransform();
+    const variables = Tr2RenderContext._CameraVariables();
+    variables.ViewMat.SetValue(this._viewTransform);
+    variables.ViewInvMat.SetValue(this._inverseViewTransform);
+    this._UpdateViewProjectionTransform();
   }
 
   /**
@@ -1735,12 +1735,12 @@ export class Tr2RenderContext
    * layout, so `_13` is index 2, `_43` index 14, and `view * proj` is
    * gl-matrix `multiply(proj, view)`.
    */
-  #UpdateViewProjectionTransform()
+  _UpdateViewProjectionTransform()
   {
-    if (!this.#projection) return;
+    if (!this._projection) return;
 
-    const variables = Tr2RenderContext.#CameraVariables();
-    const m = mat4.multiply(Tr2RenderContext.#viewProjectionScratch, this.#projection, this.#viewTransform);
+    const variables = Tr2RenderContext._CameraVariables();
+    const m = mat4.multiply(Tr2RenderContext._viewProjectionScratch, this._projection, this._viewTransform);
     const column = (c, sign = 0) => sign === 0
       ? [ m[c], m[4 + c], m[8 + c], m[12 + c] ]
       : [ m[3] + sign * m[c], m[7] + sign * m[4 + c], m[11] + sign * m[8 + c], m[15] + sign * m[12 + c] ];
@@ -1760,7 +1760,7 @@ export class Tr2RenderContext
    */
   GetView()
   {
-    return this.#view ? { ...this.#view } : null;
+    return this._view ? { ...this._view } : null;
   }
 
   // Raw column-major view matrix (Tr2Renderer::GetViewTransform). Live buffer -
@@ -1772,7 +1772,7 @@ export class Tr2RenderContext
    */
   GetViewTransform()
   {
-    return this.#viewTransform;
+    return this._viewTransform;
   }
 
   /**
@@ -1787,7 +1787,7 @@ export class Tr2RenderContext
   {
     mat4.copy(this._worldTransform, transform);
     // Keep the variable store aware of the change.
-    Tr2RenderContext.#CameraVariables().WorldMat.SetValue(this._worldTransform);
+    Tr2RenderContext._CameraVariables().WorldMat.SetValue(this._worldTransform);
   }
 
   /**
@@ -1808,7 +1808,7 @@ export class Tr2RenderContext
    */
   GetInverseViewTransform()
   {
-    return this.#inverseViewTransform;
+    return this._inverseViewTransform;
   }
 
   // World-space view/eye position (Tr2Renderer::GetViewPosition): the
@@ -1820,7 +1820,7 @@ export class Tr2RenderContext
    */
   GetViewPosition()
   {
-    return this.#viewPosition;
+    return this._viewPosition;
   }
 
   // Whether a view matrix has been set (camera-dependent modifiers fall back to
@@ -1832,7 +1832,7 @@ export class Tr2RenderContext
    */
   HasViewMatrix()
   {
-    return this.#hasViewMatrix;
+    return this._hasViewMatrix;
   }
 
   // Save/restore stack for the cached view transform (Carbon Push/PopViewTransform).
@@ -1846,10 +1846,10 @@ export class Tr2RenderContext
    */
   PushViewTransform()
   {
-    this.#viewTransformStack.push({
-      view: this.#view,
-      hasViewMatrix: this.#hasViewMatrix,
-      transform: this.#hasViewMatrix ? mat4.copy(mat4.create(), this.#viewTransform) : null
+    this._viewTransformStack.push({
+      view: this._view,
+      hasViewMatrix: this._hasViewMatrix,
+      transform: this._hasViewMatrix ? mat4.copy(mat4.create(), this._viewTransform) : null
     });
     return true;
   }
@@ -1861,20 +1861,20 @@ export class Tr2RenderContext
    */
   PopViewTransform()
   {
-    if (!this.#viewTransformStack.length) return false;
+    if (!this._viewTransformStack.length) return false;
 
-    const saved = this.#viewTransformStack.pop();
-    this.#view = saved.view;
+    const saved = this._viewTransformStack.pop();
+    this._view = saved.view;
     if (saved.transform)
     {
-      this.#ApplyViewMatrix(saved.transform);
+      this._ApplyViewMatrix(saved.transform);
     }
     else
     {
-      mat4.identity(this.#viewTransform);
-      mat4.identity(this.#inverseViewTransform);
-      vec3.set(this.#viewPosition, 0, 0, 0);
-      this.#hasViewMatrix = false;
+      mat4.identity(this._viewTransform);
+      mat4.identity(this._inverseViewTransform);
+      vec3.set(this._viewPosition, 0, 0, 0);
+      this._hasViewMatrix = false;
     }
     return true;
   }
@@ -1882,7 +1882,7 @@ export class Tr2RenderContext
   /** Depth of the view-transform save/restore stack. */
   GetStackSizeViewTransform()
   {
-    return this.#viewTransformStack.length;
+    return this._viewTransformStack.length;
   }
 
   /**
@@ -1896,9 +1896,9 @@ export class Tr2RenderContext
     {
       throw new TypeError("Tr2RenderContext.SetProjection requires a 16-element matrix");
     }
-    if (!this.#projection) this.#projection = mat4.create();
-    mat4.copy(this.#projection, projection);
-    this.#fieldOfView = fieldOfView === undefined
+    if (!this._projection) this._projection = mat4.create();
+    mat4.copy(this._projection, projection);
+    this._fieldOfView = fieldOfView === undefined
       ? (projection[5] ? 2 * Math.atan(1 / projection[5]) : 0)
       : Number(fieldOfView);
 
@@ -1906,18 +1906,18 @@ export class Tr2RenderContext
     // TriVariable store is aware of the projection transform" - ProjectionMat
     // and its inverse by name, then the view-projection. Effects such as the
     // god rays read ProjectionMat from the store; unregistered, it bound zeros.
-    const variables = Tr2RenderContext.#CameraVariables();
-    const inverse = mat4.invert(Tr2RenderContext.#inverseProjectionScratch, this.#projection) ?? mat4.identity(Tr2RenderContext.#inverseProjectionScratch);
+    const variables = Tr2RenderContext._CameraVariables();
+    const inverse = mat4.invert(Tr2RenderContext._inverseProjectionScratch, this._projection) ?? mat4.identity(Tr2RenderContext._inverseProjectionScratch);
     // Tr2Renderer.cpp:198-201 inverse-projects the (1,1,1,1) corner.
     const w = inverse[3] + inverse[7] + inverse[11] + inverse[15];
-    this.#frustumRadius = Math.hypot(
+    this._frustumRadius = Math.hypot(
       (inverse[0] + inverse[4] + inverse[8] + inverse[12]) / w,
       (inverse[1] + inverse[5] + inverse[9] + inverse[13]) / w,
       (inverse[2] + inverse[6] + inverse[10] + inverse[14]) / w
     );
-    variables.ProjectionMat.SetValue(this.#projection);
+    variables.ProjectionMat.SetValue(this._projection);
     variables.ProjectionInvMat.SetValue(inverse);
-    this.#UpdateViewProjectionTransform();
+    this._UpdateViewProjectionTransform();
     return true;
   }
 
@@ -1929,15 +1929,15 @@ export class Tr2RenderContext
    *
    * @returns {Record<string, TriVariable>} The variables by name.
    */
-  static #CameraVariables()
+  static _CameraVariables()
   {
-    if (!Tr2RenderContext.#cameraVariables)
+    if (!Tr2RenderContext._cameraVariables)
     {
       const store = Tr2VariableStore.globalStore();
       const matrix = name => store.RegisterVariableInternal(name, TriVariableContentType.TRIVARIABLE_FLOAT4X4, mat4.create());
       const plane = name => store.RegisterVariableInternal(name, TriVariableContentType.TRIVARIABLE_FLOAT4, [ 0, 0, 1, 0 ]);
 
-      Tr2RenderContext.#cameraVariables = {
+      Tr2RenderContext._cameraVariables = {
         WorldMat: matrix("WorldMat"),
         ViewMat: matrix("ViewMat"),
         ViewInvMat: matrix("ViewInvMat"),
@@ -1952,14 +1952,14 @@ export class Tr2RenderContext
         FrustumPlane5: plane("FrustumPlane5")
       };
     }
-    return Tr2RenderContext.#cameraVariables;
+    return Tr2RenderContext._cameraVariables;
   }
 
-  static #cameraVariables = null;
+  static _cameraVariables = null;
 
-  static #viewProjectionScratch = mat4.create();
+  static _viewProjectionScratch = mat4.create();
 
-  static #inverseProjectionScratch = mat4.create();
+  static _inverseProjectionScratch = mat4.create();
 
   /**
    * Sets a single render state, as `TriStepSetRenderState` does
@@ -1972,7 +1972,7 @@ export class Tr2RenderContext
    */
   SetRenderState(state, value)
   {
-    return this.#requireAL("SetRenderState").SetRenderState(Number(state) >>> 0, Number(value) >>> 0);
+    return this._requireAL("SetRenderState").SetRenderState(Number(state) >>> 0, Number(value) >>> 0);
   }
 
   /**
@@ -1991,13 +1991,13 @@ export class Tr2RenderContext
    */
   SetRenderStates(setup, overrides = null)
   {
-    return this.#requireAL("SetRenderStates").SetRenderStates(setup, overrides);
+    return this._requireAL("SetRenderStates").SetRenderStates(setup, overrides);
   }
 
   /** Applies the standard state block for a rendering mode, through the state manager. */
   ApplyStandardStates(renderingMode)
   {
-    return this.#esm.ApplyStandardStates(Number(renderingMode) >>> 0);
+    return this._esm.ApplyStandardStates(Number(renderingMode) >>> 0);
   }
 
   /**
@@ -2014,7 +2014,7 @@ export class Tr2RenderContext
    */
   SetWireframeRendering(enabled)
   {
-    return this.#esm.SetWireframeRendering(!!enabled);
+    return this._esm.SetWireframeRendering(!!enabled);
   }
 
   /**
@@ -2023,7 +2023,7 @@ export class Tr2RenderContext
    */
   GetProjection()
   {
-    return this.#projection;
+    return this._projection;
   }
 
   /**
@@ -2032,7 +2032,7 @@ export class Tr2RenderContext
    */
   GetFieldOfView()
   {
-    return this.#fieldOfView;
+    return this._fieldOfView;
   }
 
   /** Carbon's inverse-projected corner radius, relocated with context camera state. */
@@ -2040,7 +2040,7 @@ export class Tr2RenderContext
   @meta.adapted
   GetFrustumRadius()
   {
-    return this.#frustumRadius;
+    return this._frustumRadius;
   }
 
   // Save/restore stack for the current projection (Carbon Push/PopProjection).
@@ -2048,10 +2048,10 @@ export class Tr2RenderContext
   /** Saves the current projection on its own save/restore stack. */
   PushProjection()
   {
-    this.#projectionStack.push({
-      projection: this.#projection ? mat4.clone(this.#projection) : null,
-      fieldOfView: this.#fieldOfView,
-      frustumRadius: this.#frustumRadius
+    this._projectionStack.push({
+      projection: this._projection ? mat4.clone(this._projection) : null,
+      fieldOfView: this._fieldOfView,
+      frustumRadius: this._frustumRadius
     });
     return true;
   }
@@ -2061,26 +2061,26 @@ export class Tr2RenderContext
    */
   PopProjection()
   {
-    if (!this.#projectionStack.length) return false;
-    const saved = this.#projectionStack.pop();
+    if (!this._projectionStack.length) return false;
+    const saved = this._projectionStack.pop();
     if (saved.projection)
     {
-      if (!this.#projection) this.#projection = mat4.create();
-      mat4.copy(this.#projection, saved.projection);
+      if (!this._projection) this._projection = mat4.create();
+      mat4.copy(this._projection, saved.projection);
     }
     else
     {
-      this.#projection = null;
+      this._projection = null;
     }
-    this.#fieldOfView = saved.fieldOfView;
-    this.#frustumRadius = saved.frustumRadius;
+    this._fieldOfView = saved.fieldOfView;
+    this._frustumRadius = saved.frustumRadius;
     return true;
   }
 
   /** Depth of the projection save/restore stack. */
   GetStackSizeProjection()
   {
-    return this.#projectionStack.length;
+    return this._projectionStack.length;
   }
 
   /**
@@ -2088,19 +2088,19 @@ export class Tr2RenderContext
    */
   AddDiagnostic(diagnostic)
   {
-    this.#diagnostics.push(diagnostic);
+    this._diagnostics.push(diagnostic);
   }
 
   /** A copy of the diagnostics recorded since the last ClearDiagnostics. */
   GetDiagnostics()
   {
-    return this.#diagnostics.slice();
+    return this._diagnostics.slice();
   }
 
   /** Drops all recorded diagnostics. */
   ClearDiagnostics()
   {
-    this.#diagnostics.length = 0;
+    this._diagnostics.length = 0;
   }
 
   /**
@@ -2124,16 +2124,16 @@ export class Tr2RenderContext
    */
   GetObjectIdVariable()
   {
-    if (!this.#objectIdVariable)
+    if (!this._objectIdVariable)
     {
       const variable = Tr2VariableStore.globalStore().RegisterVariableType("objectId", TriVariableContentType.TRIVARIABLE_FLOAT);
       variable.SetValue(0);
-      this.#objectIdVariable = variable;
+      this._objectIdVariable = variable;
     }
-    return this.#objectIdVariable;
+    return this._objectIdVariable;
   }
 
-  #objectIdVariable = null;
+  _objectIdVariable = null;
 
   /**
    * True when any batch's shader implements the technique with at least one
