@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Tr2VolumetricsRenderer.cpp
 // Source: trinity/trinity/Tr2VolumetricsRenderer_Blue.cpp
 import { meta } from "#schema";
+import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { Tr2VolumerticQuality } from "../../generated/trinityCore/enums.js";
@@ -9,25 +10,29 @@ import { Tr2TextureReference } from "../Tr2TextureReference.js";
 import { AccumulatePriorityAttribute } from "../PriorityBlend.js";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 import { Tr2Effect } from "../../shader/Tr2Effect.js";
+import { Tr2VolumetricsRendererFogViewDependentResources } from "./Tr2VolumetricsRendererFogViewDependentResources.js";
 import { Tr2Renderer } from "../Tr2Renderer.js";
 import { TriRenderBatchAccumulator } from "../batch/TriRenderBatch/TriRenderBatchAccumulator.js";
 import { EveComponentType } from "../../eve/EveComponentTypes.js";
-import { PixelFormat, TextureType, Tr2GpuUsage } from "#consts/render-context";
+import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
+import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
 import { RenderingMode } from "#consts/graphics";
 import { Tr2TextureAL } from "../../../trinityal/Tr2TextureAL/Tr2TextureAL.js";
 import { Tr2SubresourceData } from "../../../trinityal/Tr2HalHelperStructures/Tr2SubresourceData.js";
-import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
+import { ShadowQuality, TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
 
 const FROXEL_FOG_COMPONENT = "FroxelFogSettings";
-const FROXEL_NOISE_DEPTH = 64;
 const FOG_COLOR_SCRATCH = vec3.create();
 const EMPTY_VOLUME_TEXEL = Uint8Array.of(0, 0, 0, 0);
 
 
+
+
 /**
- * Renders cloud slices and shadows, and blends scene fog settings.
- * Positive-density froxel fog and its environment-map passes remain unported.
+ * Renders cloud slices and shadows, blends scene fog settings and keeps the fog's Mie environment map. The froxel fog
+ * passes themselves wait on WGSL translation of their compute effects (see _RenderFog_Resources).
  */
 @meta.define({ className: "Tr2VolumetricsRenderer", family: "trinityCore" })
 export class Tr2VolumetricsRenderer
@@ -105,6 +110,11 @@ export class Tr2VolumetricsRenderer
   @meta.type.float32
   environmentIntensity = 0;
 
+  /** The blended reflection intensity (m_froxelFogSettings.reflectionIntensity, Blue read-only). */
+  @meta.blue.read
+  @meta.type.float32
+  reflectionIntensity = 1;
+
   @meta.blue.readwrite
   @meta.type.boolean
   castShadows = false;
@@ -117,13 +127,33 @@ export class Tr2VolumetricsRenderer
   @meta.type.float32
   scaleFactor = 0.7;
 
-  #godRayNoiseAnimation = 0;
+  _godRayNoiseAnimation = 0;
 
-  #fogNoiseMovement = new Float64Array(3);
+  _fogNoiseMovement = new Float64Array(3); // alloc: Carbon Vector3d; no double-precision math type
 
-  #planets = [ vec4.fromValues(0, 0, 0, -1), vec4.fromValues(0, 0, 0, -1) ];
+  _planets = [ vec4.fromValues(0, 0, 0, -1), vec4.fromValues(0, 0, 0, -1) ];
 
-  #sunAngle = 0;
+  _sunAngle = 0;
+
+  /** m_fogResources / m_fogReflectionResources (cpp:51-52): the scene view's froxels filter temporally. */
+  _fogResources = new Tr2VolumetricsRendererFogViewDependentResources(true);
+  _fogReflectionResources = new Tr2VolumetricsRendererFogViewDependentResources(false);
+
+  /** m_froxel3DNoise (cpp:80-98): 64³ signed random noise, created in the constructor. */
+  _froxel3DNoise = new Tr2TextureReference();
+
+  /** m_godRayNoiseMatrix (cpp:100-102): a double-precision matrix kept aligned with the sun. */
+  _godRayNoiseMatrix = new Float64Array([ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ]); // alloc: Carbon double[16]; no double-precision math type
+
+  /** m_updateMieEnvironmentMap and the environment map's update state (cpp:104-122). */
+  _updateMieEnvironmentMap = new Tr2Effect();
+  _environmentJitter = vec2.create();
+  _environmentRandom = 0;
+  _previousEnvironmentG = 0;
+  _environmentBlendCounter = 0;
+
+  /** m_isReflectionProbe (h:112-115): scales the fog by reflectionIntensity while a probe renders. */
+  _isReflectionProbe = false;
 
   /** Native cloud pass effects (cpp:51-66). */
   @meta.type.objectRef("Tr2Effect")
@@ -140,7 +170,13 @@ export class Tr2VolumetricsRenderer
   lastRequestedWidth = 0;
   lastRequestedHeight = 0;
 
-  /** Creates Carbon's logical Mie reference and reserves its texture globals. */
+  /**
+   * Reserves the fog and volume texture globals, sets the cloud and fog effect paths, and creates the 64³ froxel
+   * noise texture on the main-thread render context (cpp:47-123).
+   *
+   * Adapted: Carbon fills the noise with TriRandInt( -127, +128 ), its own LCG (TriMath.cpp:998-1004); the browser
+   * has no such generator, so Math.random draws the same [-127, 127] range, as the behaviors' TriRandInt ports do.
+   */
   constructor()
   {
     const store = Tr2VariableStore.globalStore();
@@ -155,6 +191,19 @@ export class Tr2VolumetricsRenderer
     this.hBlur.SetEffectPathName(path + "BlurVolumetric.fx");
     this.vBlur.SetOption("SOURCE_TYPE", "SOURCE_TYPE_TEXTURE");
     this.vBlur.SetEffectPathName(path + "BlurVolumetric.fx");
+
+    const noiseResolution = 64;
+    const noiseData = new Int8Array(noiseResolution * noiseResolution * noiseResolution); // alloc: one-time noise upload
+    for (let index = 0; index < noiseData.length; index++) noiseData[index] = Math.floor(Math.random() * 255) - 127;
+    this._froxel3DNoise.GetTexture().Create(new Tr2BitmapDimensions({
+      type: TextureType.TEX_TYPE_3D, format: PixelFormat.PIXEL_FORMAT_R8_SNORM,
+      width: noiseResolution, height: noiseResolution, depth: noiseResolution, mipCount: 1, arraySize: 1
+    }), {
+      gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, cpuUsage: Tr2CpuUsage.NONE,
+      initialData: [ new Tr2SubresourceData(new Uint8Array(noiseData.buffer), noiseResolution, noiseResolution * noiseResolution) ] // alloc: byte view of the one-time noise upload
+    }, Tr2RenderContext_GetMainThreadRenderContext());
+
+    this._updateMieEnvironmentMap.SetEffectPathName("res:/Graphics/Effect/Managed/Space/SpecialFX/Volumetric/Fog/UpdateMieEnvironmentMap.fx");
   }
 
   /**
@@ -164,11 +213,13 @@ export class Tr2VolumetricsRenderer
    * registry validated each as an `ITr2FroxelFogSettings` when it was added),
    * sorts the records by descending priority and blends each attribute through
    * `AccumulatePriorityAttribute`. With `logBlending`, thickness is blended in
-   * log space and converted back.
+   * log space and converted back (cpp:341-395).
+   *
+   * Adapted: each attribute is selected by an accessor function where Carbon's
+   * FROXEL_ACCUMULATE macro passes a member pointer.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The Eve component registry is supplied directly; Carbon's realized 64-deep noise texture becomes its fixed animation-depth constant while physical noise storage is not ported yet.")
   UpdateFogSettings(registry, updateContext)
   {
     const settings = Array.from(registry.GetComponents(FROXEL_FOG_COMPONENT), component =>
@@ -194,6 +245,7 @@ export class Tr2VolumetricsRenderer
     this.fogNoiseIntensity = AccumulatePriorityAttribute(settings, value => value.fogNoiseIntensity);
     this.fogNoiseFrequency = AccumulatePriorityAttribute(settings, value => value.fogNoiseFrequency);
     AccumulatePriorityAttribute(settings, value => value.fogNoiseMovementSpeed, this.fogNoiseMovementSpeed);
+    this.reflectionIntensity = AccumulatePriorityAttribute(settings, value => value.reflectionIntensity);
 
     if (this.logBlending)
     {
@@ -202,11 +254,11 @@ export class Tr2VolumetricsRenderer
     }
 
     const delta = updateContext.GetDeltaT();
-    this.#godRayNoiseAnimation += this.godRayNoiseAnimationSpeed * (delta / FROXEL_NOISE_DEPTH);
-    this.#godRayNoiseAnimation -= Math.floor(this.#godRayNoiseAnimation);
+    this._godRayNoiseAnimation += this.godRayNoiseAnimationSpeed * (delta / this._froxel3DNoise.GetDepth());
+    this._godRayNoiseAnimation -= Math.floor(this._godRayNoiseAnimation);
     for (let lane = 0; lane < 3; lane++)
     {
-      this.#fogNoiseMovement[lane] += this.fogNoiseMovementSpeed[lane] * delta;
+      this._fogNoiseMovement[lane] += this.fogNoiseMovementSpeed[lane] * delta;
     }
   }
 
@@ -218,10 +270,16 @@ export class Tr2VolumetricsRenderer
     return this.thickness > 0;
   }
 
-  /** Writes the inline FroxelPerFrameData fields into canonical RawData. */
+  /**
+   * Writes the FroxelPerFrameData fields (cpp:1044-1069). A reflection probe's fog is scaled by the blended
+   * reflectionIntensity, clamped to 0..1; every other view's by 1.
+   *
+   * Adapted: Carbon fills an inline constant struct; this writes the same fields through the per-frame RawData layout.
+   * @param {RawData} out The per-frame record.
+   * @returns {RawData} out
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon writes an inline constant struct; Trinity writes the same terminal scalar/vector bytes through the canonical RawData layout.")
   PopulatePerFrameData(out)
   {
     FOG_COLOR_SCRATCH[0] = this.fogColor[0];
@@ -234,9 +292,21 @@ export class Tr2VolumetricsRenderer
     out.Set("FroxelMaxDistanceVisibility", Math.exp(-this.thickness));
     out.Set("FroxelEnvironmentIntensity", this.environmentIntensity);
     out.Set("FroxelEnvironmentG", -Math.min(Math.max(this.environmentDirectionality, 0.001), 0.999));
-    out.SetIndex("FroxelPlanets", 0, this.#planets[0]);
-    out.SetIndex("FroxelPlanets", 1, this.#planets[1]);
+    out.Set("FroxelFogMultiplier", this._isReflectionProbe ? Math.min(Math.max(this.reflectionIntensity, 0), 1) : 1);
+    out.SetIndex("FroxelPlanets", 0, this._planets[0]);
+    out.SetIndex("FroxelPlanets", 1, this._planets[1]);
     return out;
+  }
+
+  /**
+   * Marks whether the fog is being rendered for a reflection probe (h:112-115); PopulatePerFrameData then scales it
+   * by the blended reflectionIntensity.
+   * @param {boolean} isReflectionProbe Whether a reflection probe is rendering.
+   */
+  @meta.implemented
+  SetIsReflectionProbe(isReflectionProbe)
+  {
+    this._isReflectionProbe = isReflectionProbe;
   }
 
   /** Applies Carbon's four quality presets. */
@@ -270,18 +340,22 @@ export class Tr2VolumetricsRenderer
     }
   }
 
-  /** Copies the two planet spheres used by the fog shader. */
+  /**
+   * Copies the two planet spheres used by the fog shader (cpp:1099-1106).
+   *
+   * Adapted: Carbon asserts a two-sphere span and copies it whole; this throws a RangeError for any other count and
+   * copies the two vec4 records.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon asserts a two-sphere span and memcpy-copies it; JavaScript throws RangeError and copies the two vec4 records.")
   SetPlanets(planets)
   {
     if (!planets || planets.length !== 2)
     {
       throw new RangeError("Tr2VolumetricsRenderer.SetPlanets requires exactly two spheres.");
     }
-    vec4.copy(this.#planets[0], planets[0]);
-    vec4.copy(this.#planets[1], planets[1]);
+    vec4.copy(this._planets[0], planets[0]);
+    vec4.copy(this._planets[1], planets[1]);
   }
 
   /** Stores the sun angle consumed by later fog constant production. */
@@ -289,46 +363,7 @@ export class Tr2VolumetricsRenderer
   @meta.implemented
   SetSunAngle(angle)
   {
-    this.#sunAngle = angle;
-  }
-
-  /** Returns the wrapped 0..1 god-ray noise phase and the upload is not ported yet. */
-  @meta.ours
-  @meta.reason("Engines need Carbon's private CPU-produced phase without owning or recomputing its update policy.")
-  GetGodRayNoiseAnimation()
-  {
-    return this.#godRayNoiseAnimation;
-  }
-
-  /** Copies Carbon's accumulated double-precision fog-noise movement. */
-  @meta.ours
-  @meta.reason("Engines consume the CPU-produced movement but do not advance it independently.")
-  GetFogNoiseMovement(out)
-  {
-    out[0] = this.#fogNoiseMovement[0];
-    out[1] = this.#fogNoiseMovement[1];
-    out[2] = this.#fogNoiseMovement[2];
-    return out;
-  }
-
-  /** Returns the scene-produced sun angle used by fog realization. */
-  @meta.ours
-  @meta.reason("Carbon stores this as private renderer state; the split needs an explicit read boundary.")
-  GetSunAngle()
-  {
-    return this.#sunAngle;
-  }
-
-  /** Copies one of the two scene-selected planet spheres. */
-  @meta.ours
-  @meta.reason("Carbon's physical fog pass reads private planet state; the engine executor receives it through this checked copy boundary.")
-  GetPlanet(index, out)
-  {
-    if (index !== 0 && index !== 1)
-    {
-      throw new RangeError("Tr2VolumetricsRenderer.GetPlanet index must be 0 or 1.");
-    }
-    return vec4.copy(out, this.#planets[index]);
+    this._sunAngle = angle;
   }
 
   /**
@@ -471,36 +506,38 @@ export class Tr2VolumetricsRenderer
   }
 
   /**
-   * Carbon's disabled-fog return (cpp:511-516, 611-615).
-   * Positive-density froxel compute and temporal resources are still unported.
+   * Renders the scene view's froxel fog into a 3D froxel texture and composites it over the current target, returning
+   * the froxels; with the fog off it returns the empty fog texture (cpp:491-514). The scene view's resources filter
+   * temporally.
+   * @returns {object} The froxel texture, or the empty fog texture.
    */
   @meta.blue.method
-  @meta.notImplemented
-  RenderFog(_renderContext, gpuResourcePool)
+  @meta.implemented
+  RenderFog(renderContext, gpuResourcePool, width, height, cascadedShadowMap, raytracingGeometry, shadowQuality,
+    sunDirection, sunColor, origin, originShift, view, projection, viewLast, projectionLast)
   {
-    if (!this.HasFog()) return Tr2VolumetricsRenderer.getEmptyFogTexture(gpuResourcePool);
-    throw new Error("Tr2VolumetricsRenderer.RenderFog: positive-density fog passes are unported.");
+    const fog = this._RenderFog_Resources(this._fogResources, renderContext, gpuResourcePool, width, height,
+      cascadedShadowMap, raytracingGeometry, shadowQuality, sunDirection, sunColor, origin, originShift, view, projection,
+      viewLast, projectionLast);
+    if (!fog) return Tr2VolumetricsRenderer.getEmptyFogTexture(gpuResourcePool);
+    return fog;
   }
 
   /**
-   * Renders the fog volume into a reflection map.
-   *
-   * UNPORTED. Carbon's body is the bulk of a 1,150-line file and drives the
-   * froxel volume: it sizes the target from the scene depth and a scale factor,
-   * counts `ITr2VolumetricRenderable` components off the registry, then runs the
-   * compute and raymarch passes. None of that has a JS counterpart yet.
-   *
-   * It throws rather than returning nothing: a caller that silently got no
-   * volumetric texture renders a scene with no fog and looks plausible.
-   *
-   * @returns {object} Never; see above.
+   * Renders the fog into a reflection map (cpp:516-533): the same froxel passes with the reflection resources, which
+   * do not filter temporally, no shadows, no origin shift, and this frame's view and projection standing in for last
+   * frame's. With the fog off it returns the empty fog texture.
+   * @returns {object} The froxel texture, or the empty fog texture.
    */
   @meta.blue.method
-  @meta.notImplemented
-  @meta.reason("Carbon's reflection-map fog pass (Tr2VolumetricsRenderer.cpp:519-554) has no JS counterpart.")
-  RenderFogIntoReflectionMap()
+  @meta.implemented
+  RenderFogIntoReflectionMap(renderContext, gpuResourcePool, width, height, sunDirection, sunColor, origin, view, projection)
   {
-    throw new Error("Tr2VolumetricsRenderer.RenderFogIntoReflectionMap: the fog passes are unported.");
+    const fog = this._RenderFog_Resources(this._fogReflectionResources, renderContext, gpuResourcePool, width, height,
+      null, null, ShadowQuality.SHADOW_DISABLED, sunDirection, sunColor, origin, Tr2VolumetricsRenderer._zeroOrigin, view,
+      projection, view, projection);
+    if (!fog) return Tr2VolumetricsRenderer.getEmptyFogTexture(gpuResourcePool);
+    return fog;
   }
 
   /** Native transparent 3D fog texel (cpp:536-553); options combine the pool overloads. */
@@ -516,20 +553,105 @@ export class Tr2VolumetricsRenderer
   }
 
   /**
-   * Rebuilds the Mie environment map.
+   * Carbon's private RenderFog worker (h:171-187, cpp:552-806), named by the view resources it takes first: sizes the
+   * froxel volume from the quality preset, then calculates, temporally filters and raymarches the froxels and applies
+   * them to the scene. With the fog off it returns nothing, Carbon's empty texture, and its callers substitute the
+   * empty fog texture.
    *
-   * UNPORTED. Carbon's 86-line body renders each cube face through the fog
-   * effect (`Tr2VolumetricsRenderer.cpp`), which needs the same unported pass
-   * machinery as the fog methods above.
-   *
-   * @returns {void} Never returns; see above.
+   * NOT IMPLEMENTED with the fog on: three of its four compute effects do not translate to WGSL yet.
+   * CalculateFroxels fails on a control-flow merge without a selection plan, FilterFroxels on offset samples of a 3D
+   * texture, and RaymarchFroxels on loads from a 3D texture. It throws rather than drawing no fog, which would look
+   * plausible.
+   * @param {Tr2VolumetricsRendererFogViewDependentResources} resources The view's froxel effects and temporal state.
+   * @returns {object|null} The froxel texture; null where Carbon returns an empty texture.
+   */
+  @meta.notImplemented
+  _RenderFog_Resources(resources, renderContext, gpuResourcePool, originalWidth, originalHeight, cascadedShadowMap,
+    raytracingGeometry, shadowQuality, sunDirection, sunColor, origin, originShift, view, projection, viewLast,
+    projectionLast)
+  {
+    const froxelsEnabled = this.thickness > 0;
+    if (!froxelsEnabled) return null;
+    throw new Error("Tr2VolumetricsRenderer.RenderFog: the froxel compute effects do not translate to WGSL yet.");
+  }
+
+  /**
+   * Rebuilds the Mie environment map the froxel fog lights itself with (cpp:403-489). With environment lighting on
+   * (fog on and environmentIntensity above 0) the map is a 128² RGBA32F cube, which one compute dispatch of
+   * UpdateMieEnvironmentMap blends towards the environment each frame, with golden-ratio jitter and a blend weight
+   * that settles as the directionality holds steady. Otherwise it is a black 1² cube. A size change recreates the map
+   * and restarts the blend.
+   * @param {object} renderContext The frame's Tr2RenderContext.
    */
   @meta.blue.method
-  @meta.notImplemented
-  @meta.reason("Needs the fog pass machinery, which is unported.")
-  UpdateFogEnvironmentMap()
+  @meta.implemented
+  UpdateFogEnvironmentMap(renderContext)
   {
-    throw new Error("Tr2VolumetricsRenderer.UpdateFogEnvironmentMap: the fog passes are unported.");
+    const froxelsEnabled = this.thickness > 0;
+    const environmentLightingEnabled = froxelsEnabled && this.environmentIntensity > 0;
+    const environmentMapResolution = environmentLightingEnabled ? 128 : 1;
+
+    const mieEnvironmentMap = this.mieEnvironmentMap.GetTexture();
+    if (!mieEnvironmentMap.IsValid() || this.mieEnvironmentMap.GetWidth() !== environmentMapResolution)
+    {
+      const mainThreadRenderContext = Tr2RenderContext_GetMainThreadRenderContext();
+      // Restart the blend from zero the next time environment lighting is enabled.
+      this._environmentBlendCounter = 0;
+      if (environmentLightingEnabled)
+      {
+        // Full 32-bit precision: the map is blended into with a low weight.
+        mieEnvironmentMap.Create(new Tr2BitmapDimensions({
+          type: TextureType.TEX_TYPE_CUBE, format: PixelFormat.PIXEL_FORMAT_R32G32B32A32_FLOAT,
+          width: environmentMapResolution, height: environmentMapResolution, depth: 1, mipCount: 1, arraySize: 6
+        }), { gpuUsage: Tr2GpuUsage.UNORDERED_ACCESS | Tr2GpuUsage.SHADER_RESOURCE }, mainThreadRenderContext);
+      }
+      else
+      {
+        const initialData = Array.from({ length: 6 }, () => new Tr2SubresourceData(EMPTY_VOLUME_TEXEL, 4, 4));
+        mieEnvironmentMap.Create(new Tr2BitmapDimensions({
+          type: TextureType.TEX_TYPE_CUBE, format: PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM,
+          width: 1, height: 1, depth: 1, mipCount: 1, arraySize: 6
+        }), { gpuUsage: Tr2GpuUsage.UNORDERED_ACCESS | Tr2GpuUsage.SHADER_RESOURCE, initialData }, mainThreadRenderContext);
+      }
+      if (!mieEnvironmentMap.IsValid())
+      {
+        console.error(`Tr2VolumetricsRenderer failed to create environment cubemap with size ${environmentMapResolution}x`);
+        return;
+      }
+      this.mieEnvironmentMap.OnTextureChange().Broadcast();
+    }
+
+    if (environmentLightingEnabled)
+    {
+      const g = 1.61803398874989484820;
+      const g2 = 1.32471795724474602596;
+
+      const jitter = this._environmentJitter;
+      jitter[0] += 1 / (g2 * g2);
+      jitter[1] += 1 / g2;
+      jitter[0] -= Math.floor(jitter[0]);
+      jitter[1] -= Math.floor(jitter[1]);
+
+      this._environmentRandom += g;
+      this._environmentRandom -= Math.floor(this._environmentRandom);
+
+      const environmentG = -Math.min(Math.max(this.environmentDirectionality, 0.001), 0.999);
+
+      this._environmentBlendCounter++;
+      const delta = Math.abs(this._previousEnvironmentG - environmentG);
+      this._environmentBlendCounter = Math.min(this._environmentBlendCounter, 1 / delta);
+      const blendWeight = Math.max(1 / this._environmentBlendCounter, 0.005);
+      this._previousEnvironmentG = environmentG;
+
+      const effect = this._updateMieEnvironmentMap;
+      effect.SetParameter_UInt32("Resolution", environmentMapResolution);
+      effect.SetParameter_Vector2("Jitter", jitter);
+      effect.SetParameter("EnvironmentG", environmentG);
+      effect.SetParameter("BlendWeight", blendWeight);
+      effect.SetParameter("Random", this._environmentRandom);
+      effect.SetParameter_TextureProvider("PrecomputedMieEnvironmentMap", this.mieEnvironmentMap);
+      Tr2Renderer.runComputeShader(effect, environmentMapResolution / 8, environmentMapResolution / 8, 6, renderContext);
+    }
   }
 
   /**
@@ -575,4 +697,7 @@ export class Tr2VolumetricsRenderer
   }
 
   static Tr2VolumerticQuality = Tr2VolumerticQuality;
+  static FogViewDependentResources = Tr2VolumetricsRendererFogViewDependentResources;
+  /** Vector3d( 0, 0, 0 ): the reflection map's origin shift (cpp:527). */
+  static _zeroOrigin = new Float64Array(3); // alloc: Carbon Vector3d; no double-precision math type
 }

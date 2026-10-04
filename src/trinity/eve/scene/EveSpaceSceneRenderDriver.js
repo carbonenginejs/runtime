@@ -667,7 +667,11 @@ export class EveSpaceSceneRenderDriver
       this.scene.Jitter(renderContext);
       renderContext.SetProjection(this.scene.jitteredProjection);
       this.scene.BlendLightingOverrides();
+      // Carbon's volumetrics block (EveSpaceScene.cpp:1374-1379): the fog settings, the scene's variable store, then
+      // the fog's Mie environment map.
       this.scene.UpdateFogSettings();
+      this.scene.UpdateVariableStore();
+      this.scene.volumetricsRenderer.UpdateFogEnvironmentMap(renderContext);
 
       // The light manager exists only while dynamic lighting is on
       // (EveSpaceScene.cpp:1378-1388), and publishes its buffers before the gather.

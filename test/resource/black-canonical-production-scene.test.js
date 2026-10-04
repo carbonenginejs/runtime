@@ -54,8 +54,9 @@ function forbidInitialization(context)
         context.mock.method(Constructor.prototype, "Initialize", function ()
         {
             // Carbon's volumetrics constructor loads these internal effects
-            // (Tr2VolumetricsRenderer.cpp:51-66), independent of Black hydration.
-            if (Constructor === Tr2Effect && ["VolumeBlit", "DownsampleDepth", "BlurVolumetric"]
+            // (Tr2VolumetricsRenderer.cpp:21-45, 51-66, 119-120), independent of Black hydration.
+            if (Constructor === Tr2Effect && ["VolumeBlit", "DownsampleDepth", "BlurVolumetric", "Fog/CalculateFroxels",
+                "Fog/RtCalculateFroxels", "Fog/FilterFroxels", "Fog/RaymarchFroxels", "Fog/ApplyFroxels", "Fog/UpdateMieEnvironmentMap"]
                 .some(name => this.effectFilePath === `res:/Graphics/Effect/Managed/Space/SpecialFX/Volumetric/${name}.fx`)) return;
             assert.fail("Structural Black qualification must not initialize production objects");
         });

@@ -13,6 +13,7 @@ import {
   Tr2RenderContext,
   Tr2SSAO,
   Tr2VariableStore,
+  Tr2VolumetricsRenderer,
   TriProjection,
   TriView
 } from "../../npm/dist/trinity/index.js";
@@ -50,10 +51,24 @@ function recordingContext()
 const OPAQUE = TriBatchType.TRIBATCHTYPE_OPAQUE;
 const DECAL = TriBatchType.TRIBATCHTYPE_DECAL;
 
+/** A real volumetrics renderer whose fog environment-map update is recorded, then runs. */
+function volumetricsRecording(calls)
+{
+  const renderer = new Tr2VolumetricsRenderer();
+  const update = renderer.UpdateFogEnvironmentMap;
+  renderer.UpdateFogEnvironmentMap = function (renderContext)
+  {
+    calls.push([ "UpdateFogEnvironmentMap" ]);
+    return update.call(this, renderContext);
+  };
+  return renderer;
+}
+
 /** Records the order the driver calls the scene's CPU steps in. */
 function sceneRecording(calls)
 {
   return {
+    volumetricsRenderer: volumetricsRecording(calls),
     calls,
     // m_display defaults true in Carbon (EveSpaceScene.cpp:177).
     display: true,
@@ -159,7 +174,10 @@ test("the frame runs Carbon's order", () =>
     // BeginRender jitters first (EveSpaceScene.cpp:1329), then blends lighting (:1360).
     "Jitter",
     "BlendLightingOverrides",
+    // The volumetrics block (cpp:1374-1379): fog settings, variable store, then the fog environment map.
     "UpdateFogSettings",
+    "UpdateVariableStore",
+    "UpdateFogEnvironmentMap",
     "UpdateVisibility",
     "GetRenderables",
     "Collect",
@@ -649,7 +667,8 @@ test("SH directional/source refresh precedes textures, and receivers follow batc
     assert.ok(names.indexOf("SHSun")<names.indexOf("SHSources"));
     assert.ok(names.indexOf("SHSources")<names.indexOf("DataTextures"));
     assert.ok(names.indexOf("Collect")<names.indexOf("SHReceivers"));
-    assert.ok(names.indexOf("SHReceivers")<names.indexOf("UpdateVariableStore"));
+    // The after-gather publish (cpp:1390-1397); the volumetrics block publishes once earlier too (cpp:1377).
+    assert.ok(names.indexOf("SHReceivers")<names.lastIndexOf("UpdateVariableStore"));
     assert.deepEqual(calls.find(([name])=>name==="SHReceivers")[1],[object,cameraParent]);
   }
 });
@@ -762,7 +781,7 @@ test("an undisplayed scene skips the whole of BeginRender's driver half, as Carb
   driver.Execute([ StubTarget() ], null, 1, 2, null, StubContext());
 
   const names = calls.map(([ name ]) => name);
-  for (const step of [ "Jitter", "BlendLightingOverrides", "UpdateFogSettings", "UpdateVisibility", "GetRenderables", "UpdateVariableStore" ])
+  for (const step of [ "Jitter", "BlendLightingOverrides", "UpdateFogSettings", "UpdateFogEnvironmentMap", "UpdateVisibility", "GetRenderables", "UpdateVariableStore" ])
   {
     assert.ok(!names.includes(step), `${step} does not run for an undisplayed scene`);
   }

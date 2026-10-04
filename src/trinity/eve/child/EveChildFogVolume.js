@@ -44,6 +44,7 @@ function createFroxelFogSettings()
     fogNoiseIntensity: createAttribute(0),
     fogNoiseFrequency: createAttribute(0),
     fogNoiseMovementSpeed: createAttribute(vec3.create()),
+    reflectionIntensity: createAttribute(1),
     logThickness: createAttribute(0)
   };
 }
@@ -179,6 +180,15 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
   @meta.type.boolean
   fogNoiseFrequencyEnabled = false;
 
+  /** A colour multiplier for the fog's reflections; 1 is the realistic default (EveChildFogVolume.cpp:30). */
+  @meta.blue.persist
+  @meta.type.float32
+  reflectionIntensity = 1;
+
+  @meta.blue.persist
+  @meta.type.boolean
+  reflectionIntensityEnabled = false;
+
   /**
    * Recomputes the local bounding sphere as the union of the child volumes'
    * spheres, skipping volumes with a missing centre or a non-finite/negative
@@ -290,7 +300,6 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * @returns {Float32Array} out
    */
   @meta.adapted
-  @meta.reason("Carbon's EveChildFogVolume body leaves the out matrix untouched; JavaScript's nominal child consumers require the current world transform and already consume that corrected contract.")
   GetLocalToWorldTransform(out = mat4.create())
   {
     return mat4.copy(out, this.worldTransform);
@@ -369,6 +378,8 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
     out.fogNoiseIntensity.enabled = this.fogNoiseIntensityEnabled;
     out.fogNoiseFrequency.value = this.fogNoiseFrequency;
     out.fogNoiseFrequency.enabled = this.fogNoiseFrequencyEnabled;
+    out.reflectionIntensity.value = this.reflectionIntensity;
+    out.reflectionIntensity.enabled = this.reflectionIntensityEnabled;
     return out;
   }
 

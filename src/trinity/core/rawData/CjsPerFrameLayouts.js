@@ -250,7 +250,7 @@ export const EveSpaceScenePerFrame = Object.freeze({
             CascadeRanges: { type: Types.VECTOR4, count: 16, default: ZERO4 },
 
             // Tr2VolumetricsRenderer::FroxelPerFrameData, laid out inline
-            // (Tr2VolumetricsRenderer.h:119-135). The renderer fills it.
+            // (Tr2VolumetricsRenderer.h:126-142). The renderer fills it.
             FroxelFogColor: { type: Types.VECTOR3 },
             FroxelBackgroundVisibility: { type: Types.FLOAT },
             FroxelBaseDensity: { type: Types.FLOAT },
@@ -258,7 +258,7 @@ export const EveSpaceScenePerFrame = Object.freeze({
             FroxelMaxDistanceVisibility: { type: Types.FLOAT },
             FroxelEnvironmentIntensity: { type: Types.FLOAT },
             FroxelEnvironmentG: { type: Types.FLOAT },
-            FroxelPad0: { type: Types.FLOAT },
+            FroxelFogMultiplier: { type: Types.FLOAT },
             FroxelPad1: { type: Types.FLOAT },
             FroxelPad2: { type: Types.FLOAT },
 

@@ -104,10 +104,12 @@ test("Tr2VolumetricsRenderer is maintained with Carbon defaults and scene owners
     [ "getEmptyVolumetricTexture", "adapted" ],
     [ "UpdateFogSettings", "adapted" ],
     [ "HasFog", "implemented" ],
-    [ "RenderFog", "notImplemented" ],
-    [ "RenderFogIntoReflectionMap", "notImplemented" ],
+    [ "RenderFog", "implemented" ],
+    [ "RenderFogIntoReflectionMap", "implemented" ],
+    [ "_RenderFog_Resources", "notImplemented" ],
     [ "getEmptyFogTexture", "adapted" ],
-    [ "UpdateFogEnvironmentMap", "notImplemented" ],
+    [ "UpdateFogEnvironmentMap", "implemented" ],
+    [ "SetIsReflectionProbe", "implemented" ],
     [ "UpdateVariableStore", "implemented" ],
     [ "SetPlanets", "adapted" ],
     [ "SetSunAngle", "implemented" ],
@@ -185,6 +187,8 @@ test("fog attributes blend independently across exact priority bands", () =>
 
 test("fog animation state advances once in Trinity and is copied to engines", () =>
 {
+  // Carbon creates the 64³ noise on the main-thread render context as the renderer is constructed (cpp:80-98).
+  core.Tr2RenderContext_GetMainThreadRenderContext().GetRenderContextAL().CreateDevice({ mode: { width: 64, height: 64 } });
   const scene = new eve.EveSpaceScene();
   const fog = addFog(scene, {
     priority: 3,
@@ -199,19 +203,26 @@ test("fog animation state advances once in Trinity and is copied to engines", ()
   fog.godRayNoiseAnimationSpeedEnabled = true;
 
   const renderer = scene.volumetricsRenderer;
-  renderer.UpdateFogSettings(scene.componentRegistry, { GetDeltaT: () => 1 });
-  assert.equal(renderer.GetGodRayNoiseAnimation(), 0.5);
-  assertArrayNear(renderer.GetFogNoiseMovement(new Float64Array(3)), [ 1, 2, 3 ], "first movement");
+  // One-second frames on a real update context; the animation advances by speed / noise depth (cpp:390, 64 deep).
+  const context = new trinity.EveUpdateContext();
+  context.SetTime(10_000_000);
+  context.SetTime(20_000_000);
+  assert.equal(renderer._froxel3DNoise.GetDepth(), 64, "the noise texture is 64 deep");
+  renderer.UpdateFogSettings(scene.componentRegistry, context);
+  assert.equal(renderer._godRayNoiseAnimation, 0.5);
+  assertArrayNear(renderer._fogNoiseMovement, [ 1, 2, 3 ], "first movement");
 
   fog.godRayNoiseAnimationSpeed = -80;
-  renderer.UpdateFogSettings(scene.componentRegistry, { GetDeltaT: () => 1 });
-  assert.equal(renderer.GetGodRayNoiseAnimation(), 0.25, "negative phase wraps into 0..1");
-  assertArrayNear(renderer.GetFogNoiseMovement(new Float64Array(3)), [ 2, 4, 6 ], "second movement");
+  context.SetTime(30_000_000);
+  renderer.UpdateFogSettings(scene.componentRegistry, context);
+  assert.equal(renderer._godRayNoiseAnimation, 0.25, "negative phase wraps into 0..1");
+  assertArrayNear(renderer._fogNoiseMovement, [ 2, 4, 6 ], "second movement");
 
   renderer.SetSunAngle(0.75);
-  assert.equal(renderer.GetSunAngle(), 0.75);
-  assertArrayNear(renderer.GetPlanet(0, vec4.create()), [ 0, 0, 0, -1 ], "copied planet");
-  assert.throws(() => renderer.GetPlanet(2, vec4.create()), /0 or 1/u);
+  assert.equal(renderer._sunAngle, 0.75);
+  renderer.SetPlanets([ vec4.fromValues(1, 2, 3, 4), vec4.fromValues(5, 6, 7, 8) ]);
+  assertArrayNear(renderer._planets[1], [ 5, 6, 7, 8 ], "copied planet");
+  assert.throws(() => renderer.SetPlanets([ vec4.create() ]), /exactly two/u);
 });
 
 
@@ -259,12 +270,70 @@ test("quality presets and per-frame fog values preserve Carbon behavior", () =>
 });
 
 
-test("positive-density fog and fog reflection remain explicit gaps", () =>
+test("with the fog off both fog entry points return the empty fog texture; with it on the froxel passes still throw", () =>
+{
+  const { context, pool } = volumeFixture();
+  const renderer = new core.Tr2VolumetricsRenderer();
+  const identity = mat4.create(), origin = new Float64Array(3), sun = [ 0, 0, -1 ], sunColor = [ 1, 1, 1, 1 ];
+  // Each call hands out a new pool handle; both resolve to the one persistent "EmptyFroxelFog" texture (cpp:535-550).
+  const empty = core.Tr2VolumetricsRenderer.getEmptyFogTexture(pool).Get().GetDesc();
+  const fog = renderer.RenderFog(context, pool, 80, 40, null, null, 0, sun, sunColor, origin, origin, identity, identity,
+    identity, identity);
+  assert.equal(fog.Get().GetDesc(), empty, "RenderFog");
+  const reflection = renderer.RenderFogIntoReflectionMap(context, pool, 80, 40, sun, sunColor, origin, identity, identity);
+  assert.equal(reflection.Get().GetDesc(), empty, "RenderFogIntoReflectionMap");
+  assert.equal(empty.GetType(), TextureType.TEX_TYPE_3D);
+  renderer.thickness = 1;
+  assert.throws(() => renderer.RenderFog(context, pool, 80, 40, null, null, 0, sun, sunColor, origin, origin, identity,
+    identity, identity, identity), /do not translate to WGSL/u);
+  assert.throws(() => renderer.RenderFogIntoReflectionMap(context, pool, 80, 40, sun, sunColor, origin, identity, identity),
+    /do not translate to WGSL/u);
+});
+
+test("the Mie environment map is a black 1² cube without environment lighting and a 128² RGBA32F cube with it", () =>
+{
+  const { context } = volumeFixture();
+  core.Tr2RenderContext_GetMainThreadRenderContext().GetRenderContextAL().CreateDevice({ mode: { width: 64, height: 64 } });
+  const renderer = new core.Tr2VolumetricsRenderer();
+  let changes = 0;
+  const listener = {};
+  renderer.mieEnvironmentMap.OnTextureChange().Register(listener, () => changes++);
+
+  renderer.UpdateFogEnvironmentMap(context);
+  assert.equal(renderer.mieEnvironmentMap.GetWidth(), 1);
+  assert.equal(renderer.mieEnvironmentMap.GetType(), TextureType.TEX_TYPE_CUBE);
+  assert.equal(changes, 1, "creation broadcasts the texture change");
+  renderer.UpdateFogEnvironmentMap(context);
+  assert.equal(changes, 1, "an unchanged size keeps the map");
+
+  // Environment lighting needs the fog on as well as an environment intensity (cpp:405-406).
+  renderer.environmentIntensity = 1;
+  renderer.UpdateFogEnvironmentMap(context);
+  assert.equal(renderer.mieEnvironmentMap.GetWidth(), 1, "no fog, no environment lighting");
+  renderer.thickness = 1;
+  renderer.environmentDirectionality = 0.5;
+  renderer.UpdateFogEnvironmentMap(context);
+  assert.equal(renderer.mieEnvironmentMap.GetWidth(), 128);
+  assert.equal(renderer.mieEnvironmentMap.GetFormat(), PixelFormat.PIXEL_FORMAT_R32G32B32A32_FLOAT);
+  assert.equal(changes, 2);
+  // The blend restarts at the resize, then counts this frame: weight 1 / 1, with G clamped to -0.5.
+  assert.equal(renderer._environmentBlendCounter, 1);
+  assert.equal(renderer._previousEnvironmentG, -0.5);
+});
+
+test("a reflection probe's fog is scaled by the blended reflection intensity, clamped to 0..1", () =>
 {
   const renderer = new core.Tr2VolumetricsRenderer();
-  renderer.thickness = 1;
-  for (const method of ["RenderFog", "RenderFogIntoReflectionMap", "UpdateFogEnvironmentMap"])
-    assert.throws(() => renderer[method](), /unported/u, method);
+  const out = new eve.EveSpaceScene().GetPerFramePSData();
+  renderer.reflectionIntensity = 1.5;
+  renderer.PopulatePerFrameData(out);
+  assert.equal(out.Get("FroxelFogMultiplier")[0], 1, "a scene view is never scaled");
+  renderer.SetIsReflectionProbe(true);
+  renderer.PopulatePerFrameData(out);
+  assert.equal(out.Get("FroxelFogMultiplier")[0], 1, "clamped to 1");
+  renderer.reflectionIntensity = 0.25;
+  renderer.PopulatePerFrameData(out);
+  assert.equal(out.Get("FroxelFogMultiplier")[0], 0.25);
 });
 
 test("UpdateVariableStore publishes the Mie map, taking no arguments", () =>
