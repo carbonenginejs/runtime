@@ -86,6 +86,10 @@ const SCREEN_QUAD_VERTICES = 4;
 /** The global-store variable the blit shaders sample by name. */
 const BLIT_SOURCE = "BlitSource";
 
+/** Carbon's DrawHelper default corners (Tr2Blitter.h:58-61). */
+const TL_DEFAULT = [ 0, 0 ];
+const BR_DEFAULT = [ 1, 1 ];
+
 
 /**
  * Draws a fullscreen or sub-rectangle quad with a given material.
@@ -256,19 +260,22 @@ export class Tr2Blitter
   /**
    * Draws a screen quad with a material, optionally over a texture.
    *
-   * Carbon's `DrawHelper` (`Tr2Blitter.cpp:100-159`). The eight `Draw`
-   * overloads are this one method; `Draw` and `DrawInCameraSpace` below are the
-   * two callers Carbon distinguishes.
+   * Carbon's `DrawHelper` (`Tr2Blitter.cpp:100-159`), which every Draw_*
+   * overload and DrawInCameraSpace call.
    *
    * @param {object} renderContext The context to draw through.
    * @param {object} shader The material's `Tr2Shader`.
    * @param {object} material The material to draw with.
    * @param {object|null} texture A texture to publish as `BlitSource`.
    * @param {boolean} isCameraSpace Whether to unproject the corners.
-   * @param {object} placement `{ tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord }`.
+   * @param {ArrayLike<number>} [tlTexCoord]
+   * @param {ArrayLike<number>} [brTexCoord]
+   * @param {ArrayLike<number>} [tlVertexCoord]
+   * @param {ArrayLike<number>} [brVertexCoord]
    * @returns {boolean} Whether the quad was drawn.
    */
-  DrawHelper(renderContext, shader, material, texture, isCameraSpace, placement = {})
+  DrawHelper(renderContext, shader, material, texture, isCameraSpace,
+    tlTexCoord = TL_DEFAULT, brTexCoord = BR_DEFAULT, tlVertexCoord = TL_DEFAULT, brVertexCoord = BR_DEFAULT)
   {
     // Carbon asserts on a null material and then returns false anyway, because
     // "final build should not crash even if we get here with a null effect"
@@ -276,13 +283,6 @@ export class Tr2Blitter
     if (!material || !shader) return false;
 
     if (!this.PrepareResources(renderContext)) return false;
-
-    const {
-      tlTexCoord = [ 0, 0 ],
-      brTexCoord = [ 1, 1 ],
-      tlVertexCoord = [ 0, 0 ],
-      brVertexCoord = [ 1, 1 ]
-    } = placement;
 
     if (isCameraSpace)
     {
@@ -347,49 +347,90 @@ export class Tr2Blitter
   }
 
   /**
-   * Draws a screen quad with a material.
-   *
-   * Carbon's `Draw` overloads collapse here: pass a texture to blit it, omit it
-   * to run a fullscreen shader, and give a placement to draw a sub-rectangle.
-   *
-   * @param {object} renderContext The context to draw through.
-   * @param {object} material The material to draw with.
-   * @param {object|null} [texture] A texture to publish as `BlitSource`.
-   * @param {object} [placement] Texture and vertex corners.
-   * @returns {boolean} Whether the quad was drawn.
+   * Carbon's bare Draw is not supported: telling a material from a texture
+   * would need a type check on our own classes. Call the specific overload:
+   * Draw_Texture, Draw_TextureVertexCoords, Draw_EffectTexture,
+   * Draw_EffectTextureTexCoords, Draw_EffectTextureVertexCoords, Draw_Effect,
+   * Draw_EffectTexCoords or Draw_EffectVertexCoords. In these names TexCoords
+   * is tlTexCoord/brTexCoord and VertexCoords is tlVertexCoord/brVertexCoord;
+   * the VertexCoords forms always carry their tex coords too.
    */
-  Draw(renderContext, material, texture = null, placement = {})
+  Draw()
   {
-    if (!material) return false;
-    // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
-    if (!material.IsGood()) return false;
-
-    return this.DrawHelper(renderContext, material.GetShaderStateInterface(), material, texture, false, placement);
+    throw new Error("Tr2Blitter.Draw is not supported; call Draw_Texture, Draw_TextureVertexCoords, Draw_EffectTexture, Draw_EffectTextureTexCoords, Draw_EffectTextureVertexCoords, Draw_Effect, Draw_EffectTexCoords or Draw_EffectVertexCoords.");
   }
 
   /**
-   * Blits a texture with the built-in blit material.
+   * Carbon's Draw( renderContext, texture, tl, br, filter ) (cpp:42-52): blits
+   * a texture with the built-in point or linear blit effect, which are two
+   * different effects rather than a sampler setting.
    *
-   * Carbon `Draw( renderContext, texture, tl, br, filter )` (`cpp:41-51`).
-   * Point and linear are two different effects, not a sampler setting.
-   *
-   * @param {object} renderContext The context to draw through.
-   * @param {object} texture The texture to blit.
-   * @param {object} [placement] Texture and vertex corners.
-   * @param {number} [filter] A `Filtering` value.
    * @returns {boolean} Whether the quad was drawn.
    */
-  DrawTexture(renderContext, texture, placement = {}, filter = Filtering.FILTER_POINT)
+  Draw_Texture(renderContext, texture, tlTexCoord = TL_DEFAULT, brTexCoord = BR_DEFAULT, filter = Filtering.FILTER_POINT)
   {
-    const material = filter === Filtering.FILTER_LINEAR ? this.#blitFilteredEffect : this.#blitEffect;
-
     // Carbon's switch has no default and falls through to `return false` for an
-    // unknown filter (`cpp:43-50`); a missing effect lands in the same place.
+    // unknown filter (`cpp:43-50`).
+    let material = null;
+    if (filter === Filtering.FILTER_POINT) material = this.#blitEffect;
+    else if (filter === Filtering.FILTER_LINEAR) material = this.#blitFilteredEffect;
+    return this.#DrawMaterial(renderContext, material, texture, tlTexCoord, brTexCoord);
+  }
+
+  /** Carbon's Draw( renderContext, texture, tl, br, tlV, brV ) (cpp:54): the point blit effect. */
+  Draw_TextureVertexCoords(renderContext, texture, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord)
+  {
+    return this.#DrawMaterial(renderContext, this.#blitEffect, texture, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord);
+  }
+
+  /** Carbon's Draw( renderContext, effect, texture ) (cpp:59). */
+  Draw_EffectTexture(renderContext, effect, texture)
+  {
+    return this.#DrawMaterial(renderContext, effect, texture);
+  }
+
+  /** Carbon's Draw( renderContext, effect, texture, tl, br ) (cpp:64). */
+  Draw_EffectTextureTexCoords(renderContext, effect, texture, tlTexCoord, brTexCoord)
+  {
+    return this.#DrawMaterial(renderContext, effect, texture, tlTexCoord, brTexCoord);
+  }
+
+  /** Carbon's Draw( renderContext, effect, texture, tl, br, tlV, brV ) (cpp:69). */
+  Draw_EffectTextureVertexCoords(renderContext, effect, texture, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord)
+  {
+    return this.#DrawMaterial(renderContext, effect, texture, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord);
+  }
+
+  /** Carbon's Draw( renderContext, material ) (cpp:82): a fullscreen shader. */
+  Draw_Effect(renderContext, effect)
+  {
+    return this.#DrawMaterial(renderContext, effect, null);
+  }
+
+  /** Carbon's Draw( renderContext, effect, tl, br ) (cpp:89). */
+  Draw_EffectTexCoords(renderContext, effect, tlTexCoord, brTexCoord)
+  {
+    return this.#DrawMaterial(renderContext, effect, null, tlTexCoord, brTexCoord);
+  }
+
+  /** Carbon's Draw( renderContext, effect, tl, br, tlV, brV ) (cpp:36-39). */
+  Draw_EffectVertexCoords(renderContext, effect, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord)
+  {
+    return this.#DrawMaterial(renderContext, effect, null, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord);
+  }
+
+  /**
+   * The Draw_* overloads' shared call into DrawHelper with the material's own
+   * shader. Adapted: a null material, or one whose resource is not good, is not
+   * drawn; asking renews what the effect holds.
+   */
+  #DrawMaterial(renderContext, material, texture, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord)
+  {
     if (!material) return false;
-    // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
     if (!material.IsGood()) return false;
 
-    return this.DrawHelper(renderContext, material.GetShaderStateInterface(), material, texture, false, placement);
+    return this.DrawHelper(renderContext, material.GetShaderStateInterface(), material, texture, false,
+      tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord);
   }
 
   /**

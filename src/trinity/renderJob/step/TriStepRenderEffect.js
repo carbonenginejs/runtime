@@ -62,7 +62,7 @@ export class TriStepRenderEffect extends TriRenderStep
 
     const adjusted = AdjustTextureCoordsToViewport(renderContext, this.tlTexCoord, this.brTexCoord);
 
-    renderContext.GetBlitter().Draw(renderContext, this.effect, null, adjusted);
+    renderContext.GetBlitter().Draw_EffectTexCoords(renderContext, this.effect, adjusted.tlTexCoord, adjusted.brTexCoord);
 
     return TriRenderStep.Result.RS_OK;
   }

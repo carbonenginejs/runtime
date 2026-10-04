@@ -103,10 +103,7 @@ export class TriStepRenderTexture extends TriRenderStep
 
     vec2.set(this.textureSize, width, height);
 
-    const drawn = renderContext.GetBlitter().DrawTexture(renderContext, source, {
-      tlTexCoord: this.tlTexCoord,
-      brTexCoord: this.brTexCoord
-    });
+    const drawn = renderContext.GetBlitter().Draw_Texture(renderContext, source, this.tlTexCoord, this.brTexCoord);
 
     return this.ClearIfFail(drawn, renderContext);
   }

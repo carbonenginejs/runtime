@@ -271,7 +271,7 @@ export class Tr2Renderer
   static drawScreenQuad(renderContext, material)
   {
     if (!Tr2Renderer.#blitter) return false;
-    return Tr2Renderer.#blitter.Draw(renderContext, material);
+    return Tr2Renderer.#blitter.Draw_Effect(renderContext, material);
   }
 
   /**
@@ -294,12 +294,7 @@ export class Tr2Renderer
   static drawScreenQuadRect(renderContext, effect, topLeft, bottomRight)
   {
     if (!Tr2Renderer.#blitter) return false;
-    return Tr2Renderer.#blitter.Draw(renderContext, effect, null, {
-      tlTexCoord: [ 0, 0 ],
-      brTexCoord: [ 1, 1 ],
-      tlVertexCoord: topLeft,
-      brVertexCoord: bottomRight
-    });
+    return Tr2Renderer.#blitter.Draw_EffectVertexCoords(renderContext, effect, [ 0, 0 ], [ 1, 1 ], topLeft, bottomRight);
   }
 
   /**
@@ -334,7 +329,7 @@ export class Tr2Renderer
   static drawFullScreenWithShader(renderContext, material)
   {
     if (!Tr2Renderer.#blitter) return false;
-    return Tr2Renderer.#blitter.Draw(renderContext, material);
+    return Tr2Renderer.#blitter.Draw_Effect(renderContext, material);
   }
 
   /**
@@ -365,8 +360,8 @@ export class Tr2Renderer
     );
 
     return options.material
-      ? Tr2Renderer.#blitter.Draw(renderContext, options.material, texture, { tlTexCoord, brTexCoord })
-      : Tr2Renderer.#blitter.DrawTexture(renderContext, texture, { tlTexCoord, brTexCoord }, options.filter);
+      ? Tr2Renderer.#blitter.Draw_EffectTextureTexCoords(renderContext, options.material, texture, tlTexCoord, brTexCoord)
+      : Tr2Renderer.#blitter.Draw_Texture(renderContext, texture, tlTexCoord, brTexCoord, options.filter);
   }
 
   // ------------------------------------------------------------------------
