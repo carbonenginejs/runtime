@@ -16,6 +16,7 @@
 // 0 / false and fixed vectors to a zero vector.
 import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
+import { TriFrustum } from "../core/view/TriFrustum.js";
 import { TimeAsFloat } from "../../global/blue/CcpTime.js";
 
 /** Carries per-frame Eve timing, LOD, origin-rebasing, visibility, and runtime-composition state shared across scene updates. */
@@ -75,9 +76,10 @@ export class EveUpdateContext
   @meta.type.objectRef("Tr2ParallelTaskGroup")
   taskGroup = null;
 
-  /** m_frustum (TriFrustum) - swappable per-frame reference, null until stamped. */
+  /** m_frustum (TriFrustum) - Carbon holds one by value (EveUpdateContext.h:216), so a
+   * context always has a frustum; SetFrustum swaps in the per-frame one by reference. */
   @meta.type.objectRef("TriFrustum")
-  frustum = null;
+  frustum = new TriFrustum();
 
   /** m_origin (Vector3d) - double-precision world origin for camera-relative
    * rebasing. Carbon initializes it to UNINITIALIZED_ORIGIN (Infinity sentinel)
@@ -412,18 +414,18 @@ export class EveUpdateContext
    * Carbon EveUpdateContext::SetFrustum (h:182-185) - the driver stamps a
    * ready TriFrustum per frame (spec decision 4); held by reference, not
    * copied.
-   * @param {Object|null} frustum - TriFrustum
+   * @param {TriFrustum} frustum
    */
   @meta.blue.method
   @meta.implemented
   SetFrustum(frustum)
   {
-    this.frustum = frustum ?? null;
+    this.frustum = frustum;
   }
 
   /**
    * Carbon EveUpdateContext::GetFrustum (h:187-190).
-   * @returns {Object|null}
+   * @returns {TriFrustum}
    */
   @meta.blue.method
   @meta.implemented

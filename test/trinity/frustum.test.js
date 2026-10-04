@@ -698,8 +698,6 @@ test("EveUpdateContext getter/setter surface and the invLodFactor invariant", ()
   const frustum = new TriFrustum();
   context.SetFrustum(frustum);
   assert.equal(context.GetFrustum(), frustum);
-  context.SetFrustum(null);
-  assert.equal(context.GetFrustum(), null);
 
   assert.equal(context.GetBallpark(), null);
   const taskGroup = {};

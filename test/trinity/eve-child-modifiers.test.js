@@ -228,7 +228,8 @@ test("EveUpdateContext has value-typed defaults with only reference fields null"
   assert.equal(context.gpuParticleSystem, null);
   assert.equal(context.ballpark, null);
   assert.equal(context.taskGroup, null);
-  assert.equal(context.frustum, null);
+  // Carbon holds m_frustum by value (EveUpdateContext.h:216): never null.
+  assert.equal(context.frustum.constructor.name, "TriFrustum");
   assert.equal(context.renderContext, null);
   assert.equal(context.device, null);
 
