@@ -6,6 +6,7 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
+import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 
 /** Carbon PARTICLE_CLUSTER_MIN_SIZE (EveSceneStaticParticles.cpp:14, a
  * file-scope const - NOT in the header): the pixel-size floor, scaled by the
@@ -126,25 +127,23 @@ export class EveSceneStaticParticles
    * float32 per component only when it enters the matrix, Carbon's
    * float(offset.x) casts), and stamps the world-space sphere center. */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Tr2Renderer::IsLowQuality relocates onto the update-context duck (lowQuality, default false).")
+  @meta.implemented
   Update(updateContext)
   {
-    if ((updateContext?.lowQuality ?? updateContext?.device?.lowQuality) === true ||
-      this.clusters.length === 0 || !this.mesh)
+    if (Tr2Renderer.IsLowQuality() || this.clusters.length === 0 || !this.mesh)
     {
       return;
     }
 
     mat4.copy(this.lastWorldMatrix, this.worldMatrix);
-    const origin = updateContext?.GetOrigin();
+    const origin = updateContext.GetOrigin();
     // Double-precision subtraction (Carbon Vector3d, cpp:100), narrowed per
     // component at the matrix boundary (cpp:102).
     vec3.set(
       OFFSET_SCRATCH,
-      Math.fround(this.centerOfClusters[0] - (origin?.[0] ?? 0)),
-      Math.fround(this.centerOfClusters[1] - (origin?.[1] ?? 0)),
-      Math.fround(this.centerOfClusters[2] - (origin?.[2] ?? 0))
+      Math.fround(this.centerOfClusters[0] - origin[0]),
+      Math.fround(this.centerOfClusters[1] - origin[1]),
+      Math.fround(this.centerOfClusters[2] - origin[2])
     );
     mat4.fromTranslation(this.worldMatrix, OFFSET_SCRATCH);
     vec3.transformMat4(this.center, this.boundingSphere, this.worldMatrix);
@@ -160,29 +159,22 @@ export class EveSceneStaticParticles
    * PARTICLE_CLUSTER_MIN_SIZE * lodFactor. estimatedSize is stamped even
    * when invisible - GetBatches consumes it as the LOD size (cpp:139). */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Tr2Renderer::IsLowQuality relocates onto the update-context duck (lowQuality, default false).")
+  @meta.implemented
   UpdateVisibility(updateContext)
   {
     this.visible = false;
-    if ((updateContext?.lowQuality ?? updateContext?.device?.lowQuality) === true ||
-      this.clusters.length === 0 || !this.mesh)
+    if (Tr2Renderer.IsLowQuality() || this.clusters.length === 0 || !this.mesh)
     {
       return;
     }
-    const frustum = updateContext?.GetFrustum();
-    if (!frustum)
-    {
-      return;
-    }
+    const frustum = updateContext.GetFrustum();
     this.estimatedSize = frustum.GetPixelSizeAccross(this.boundingSphere);
 
-    const estimatedSizeWithinBounds =
-      this.estimatedSize > PARTICLE_CLUSTER_MIN_SIZE * (updateContext?.GetLodFactor() ?? 1);
-    const viewPos = frustum.viewPos ?? frustum.m_viewPos;
-    const dx = this.center[0] - (viewPos?.[0] ?? 0);
-    const dy = this.center[1] - (viewPos?.[1] ?? 0);
-    const dz = this.center[2] - (viewPos?.[2] ?? 0);
+    const estimatedSizeWithinBounds = this.estimatedSize > PARTICLE_CLUSTER_MIN_SIZE * updateContext.GetLodFactor();
+    const viewPos = frustum.viewPos;
+    const dx = this.center[0] - viewPos[0];
+    const dy = this.center[1] - viewPos[1];
+    const dz = this.center[2] - viewPos[2];
     const inBoundingSphere =
       dx * dx + dy * dy + dz * dz <= this.boundingSphere[3] * this.boundingSphere[3];
 
@@ -196,13 +188,8 @@ export class EveSceneStaticParticles
   @meta.implemented
   IsVisible(updateContext)
   {
-    const frustum = updateContext?.GetFrustum();
-    if (!frustum)
-    {
-      return false;
-    }
     vec4.set(SPHERE_SCRATCH, this.center[0], this.center[1], this.center[2], this.boundingSphere[3]);
-    return frustum.IsSphereVisible(SPHERE_SCRATCH) === true;
+    return updateContext.GetFrustum().IsSphereVisible(SPHERE_SCRATCH);
   }
 
   /** Carbon EveSceneStaticParticles::GetRenderables (cpp:129-135): pushes the
@@ -221,14 +208,12 @@ export class EveSceneStaticParticles
 
   /** Carbon EveSceneStaticParticles::GetBatches (cpp:137-140): the mesh's
    * areas of the requested type with the stamped estimatedSize as the LOD
-   * screen size (resolving it against the real target is not ported yet). */
+   * screen size. */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("The estimatedSize LOD select is engine-resolved at realization; the delegation structure is ported.")
+  @meta.implemented
   GetBatches(batches, batchType, perObjectData, _reason)
   {
-    const areas = this.mesh?.GetAreas(batchType) ?? batchType;
-    return this.mesh?.GetBatches?.(batches, areas, perObjectData, this.estimatedSize) === true;
+    this.mesh.GetBatches(batches, this.mesh.GetAreas(batchType), perObjectData, this.estimatedSize);
   }
 
   /** Carbon EveSceneStaticParticles::GetShadowBatches (cpp:142-145): the
@@ -242,13 +227,15 @@ export class EveSceneStaticParticles
 
   /** Carbon EveSceneStaticParticles::GetPerObjectData (cpp:147-158): the
    * world/lastWorld pair (HLSL packing transposes of single matrices - no
-   * composition). */
+   * composition).
+   *
+   * Adapted: the accumulator allocates the catalogued record by name, and
+   * SetAndTranspose writes the stored layout. */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Trinity allocates the catalogued record and encodes world/lastWorld into the canonical stored layout. Both fields are CPU-filled; binding the packed payload is not ported yet.")
   GetPerObjectData(accumulator)
   {
-    const data = accumulator?.Alloc?.("EveSceneStaticParticlesPerObjectData");
+    const data = accumulator.Alloc("EveSceneStaticParticlesPerObjectData");
     if (!data)
     {
       return null;

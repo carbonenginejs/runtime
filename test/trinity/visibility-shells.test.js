@@ -12,6 +12,7 @@ import {
   EvePlanet,
   EveSceneStaticParticles,
   Tr2Lod,
+  Tr2Renderer,
   TriRenderBatchAccumulator
 } from "../../npm/dist/trinity/index.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
@@ -105,7 +106,7 @@ test("EveSceneStaticParticles.Update: camera-relative world matrix from the doub
   assertClose(particles.worldMatrix[12], 1, "gated Update leaves the matrix");
 });
 
-test("EveSceneStaticParticles.UpdateVisibility: local-sphere pixel size, inside-sphere bypass, strict > gate (cpp:107-123)", () =>
+test("EveSceneStaticParticles.UpdateVisibility: local-sphere pixel size, inside-sphere bypass, strict > gate (cpp:107-123)", t =>
 {
   const particles = new EveSceneStaticParticles();
   particles.clusters.push({});
@@ -114,8 +115,7 @@ test("EveSceneStaticParticles.UpdateVisibility: local-sphere pixel size, inside-
   vec3.set(particles.center, 5000, 0, 0);
 
   const seenSpheres = [];
-  const MakeContext = ({ pixelSize, lodFactor = 1, viewPos = [0, 0, 0], sphereVisible = true, lowQuality = false }) => ({
-    lowQuality,
+  const MakeContext = ({ pixelSize, lodFactor = 1, viewPos = [0, 0, 0], sphereVisible = true }) => ({
     GetLodFactor: () => lodFactor,
     GetFrustum: () => ({
       viewPos,
@@ -139,8 +139,9 @@ test("EveSceneStaticParticles.UpdateVisibility: local-sphere pixel size, inside-
   particles.UpdateVisibility(MakeContext({ pixelSize: 1, viewPos: [4950, 0, 0], sphereVisible: false }));
   assert.equal(particles.visible, true, "inside-sphere bypass");
 
-  // Low quality drops the system the same frame and skips the estimator.
-  particles.UpdateVisibility(MakeContext({ pixelSize: 999, lowQuality: true }));
+  // Tr2Renderer::IsLowQuality drops the system the same frame and skips the estimator (cpp:112).
+  t.mock.method(Tr2Renderer, "IsLowQuality", () => true);
+  particles.UpdateVisibility(MakeContext({ pixelSize: 999 }));
   assert.equal(particles.visible, false, "low-quality drop");
 });
 
@@ -168,7 +169,8 @@ test("EveSceneStaticParticles renderable surface: batches, shadow no-op, per-obj
     GetAreas: () => null,
     GetBatches: (...args) => (calls.push(args), true)
   };
-  assert.equal(particles.GetBatches({}, 0, null, 0), true, "delegates to the mesh");
+  particles.GetBatches({}, 0, null, 0);
+  assert.equal(calls.length, 1, "delegates to the mesh");
   assertClose(calls[0][3], 123, "estimatedSize is the LOD screen size (cpp:139)");
 
   assert.equal(particles.GetShadowBatches({}, null, 1), false, "never casts shadows (cpp:142-145)");
