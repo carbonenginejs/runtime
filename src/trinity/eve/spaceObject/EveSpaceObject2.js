@@ -1,4 +1,5 @@
 import { IsMatch } from "#blue";
+import { FLOAT_MAX } from "../../core/view/TriFrustum.js";
 import { IEveShadowCaster } from "../IEveShadowCaster.js";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { ITr2ControllerOwner } from "../../controllers/ITr2ControllerOwner.js";
@@ -1774,10 +1775,12 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Updates Carbon's visibility, pixel-size, and mesh-LOD state, then forwards
    * visibility to the explicitly owned visual branches.
+   *
+   * Adapted: raytracing mesh updates are not ported, and observers are told
+   * their visibility without Carbon's ITr2AudEmitter cast (the audio layer).
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Native impostor, raytracing, and audio-emitter realization are not ported yet; graph visibility and LOD state are preserved.")
   UpdateVisibility(updateContext = null, _parentTransform = EveSpaceObject2._identityTransform)
   {
     this.isVisible = false;
@@ -1805,7 +1808,7 @@ export class EveSpaceObject2 extends EveEntity
         this.modelWorldPosition,
         this._boundingSphereWorldRadius
       );
-      if (frustum?.IsSphereVisible(EveSpaceObject2._worldSphere) !== false)
+      if (frustum.IsSphereVisible(EveSpaceObject2._worldSphere))
       {
         this.EstimatePixelDiameter(frustum);
         this._isMeshVisible = true;
@@ -1830,14 +1833,14 @@ export class EveSpaceObject2 extends EveEntity
     {
       for (const child of this.children)
       {
-        child?.UpdateVisibility(updateContext, this.worldTransform);
+        child.UpdateVisibility(updateContext, this.worldTransform);
       }
     }
 
     if (this.GetBoundingSphere(EveSpaceObject2._worldSphere, 1))
     {
-      this._isInFrustum = frustum?.IsSphereVisible(EveSpaceObject2._worldSphere) !== false;
-      this.estimatedPixelDiameterWithChildren = EveSpaceObject2._GetPixelSize(frustum, EveSpaceObject2._worldSphere);
+      this._isInFrustum = frustum.IsSphereVisible(EveSpaceObject2._worldSphere);
+      this.estimatedPixelDiameterWithChildren = frustum.GetPixelSizeAccrossEst(EveSpaceObject2._worldSphere);
       if (this._isInFrustum && this.estimatedPixelDiameterWithChildren >= visibilityThreshold)
       {
         this.isVisible = true;
@@ -1867,7 +1870,7 @@ export class EveSpaceObject2 extends EveEntity
     }
     for (const child of this.effectChildren)
     {
-      child?.UpdateVisibility(updateContext, this.worldTransform, this._lodLevelWithChildren);
+      child.UpdateVisibility(updateContext, this.worldTransform, this._lodLevelWithChildren);
     }
 
     // Carbon cpp:1694-1706: the decals take one ParentData built for the pass,
@@ -1889,9 +1892,9 @@ export class EveSpaceObject2 extends EveEntity
       this.modelWorldPosition,
       this._boundingSphereWorldRadius
     );
-    this._meshScreenSize = EveSpaceObject2._GetEstimatedPixelSize(frustum, EveSpaceObject2._worldSphere) * lodFactor;
-    if (!this._allowLodSelection) this._meshScreenSize = Infinity;
-    if (this.mesh && this._boundingSphereWorldRadius > 0)
+    this._meshScreenSize = frustum.GetPixelSizeAccrossEst(EveSpaceObject2._worldSphere) * lodFactor;
+    if (!this._allowLodSelection) this._meshScreenSize = FLOAT_MAX;
+    if (this.mesh)
     {
       this.mesh.UseWithScreenSize(this._meshScreenSize, this._boundingSphereWorldRadius);
     }
@@ -2694,11 +2697,9 @@ export class EveSpaceObject2 extends EveEntity
     const target = String(name ?? "");
     for (const observer of this.observers)
     {
-      if (observer?.name === target)
+      if (observer.name === target)
       {
-        return typeof observer.GetObserver === "function"
-          ? observer.GetObserver()
-          : observer.observer ?? null;
+        return observer.GetObserver();
       }
     }
     for (const child of this.effectChildren)
@@ -4126,22 +4127,33 @@ export class EveSpaceObject2 extends EveEntity
     return true;
   }
 
-  /** Updates Carbon's geometry-derived on-screen pixel diameter. */
+  /**
+   * Carbon EstimatePixelDiameter (EveSpaceObject2.cpp:3871-3886): the mesh's
+   * local box as a world sphere through the exact pixel query; a meshless
+   * object sizes its bounding sphere through the estimated one.
+   */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("TriFrustum is supplied structurally by the active engine; both exact and estimated browser frustum methods are supported.")
+  @meta.implemented
   EstimatePixelDiameter(frustum)
   {
-    if (this.mesh?.GetBoundingBox(EveSpaceObject2._boundsMin, EveSpaceObject2._boundsMax))
+    if (!this.mesh)
+    {
+      // Meshless objects (modular ships) have no local box; size by the bounding sphere.
+      EveSpaceObject2._SetSphere(EveSpaceObject2._worldSphere, this.modelWorldPosition, this._boundingSphereWorldRadius);
+      this.estimatedPixelDiameter = frustum.GetPixelSizeAccrossEst(EveSpaceObject2._worldSphere);
+      return this.estimatedPixelDiameter;
+    }
+    if (this.mesh.GetBoundingBox(EveSpaceObject2._boundsMin, EveSpaceObject2._boundsMax))
     {
       vec3.copy(this._localAabbMin, EveSpaceObject2._boundsMin);
       vec3.copy(this._localAabbMax, EveSpaceObject2._boundsMax);
     }
     sph3.fromBounds(EveSpaceObject2._localSphere, this._localAabbMin, this._localAabbMax);
     sph3.transformMat4(EveSpaceObject2._worldSphere, EveSpaceObject2._localSphere, this.worldTransform);
-    this.estimatedPixelDiameter = EveSpaceObject2._GetPixelSize(frustum, EveSpaceObject2._worldSphere);
+    this.estimatedPixelDiameter = frustum.GetPixelSizeAccross(EveSpaceObject2._worldSphere);
     return this.estimatedPixelDiameter;
   }
+
 
   /** Carbon EveSpaceObject2::GetWorldVelocity (cpp:3014-3017): the ball's velocity. */
   @meta.blue.method
@@ -4771,27 +4783,6 @@ export class EveSpaceObject2 extends EveEntity
     {
       setter.call(target, name, value);
     }
-  }
-
-  /**
-   * Returns a world sphere's on-screen diameter in pixels from the frustum's
-   * exact query, or 0 when the frustum does not expose it.
-   */
-  static _GetPixelSize(frustum, sphere)
-  {
-    const method = frustum?.GetPixelSizeAccross;
-    return Number(typeof method === "function" ? method.call(frustum, sphere) : 0) || 0;
-  }
-
-  /**
-   * Returns a world sphere's on-screen diameter in pixels, preferring the
-   * frustum's cheaper estimated query and falling back to the exact one, or 0
-   * when the frustum exposes neither.
-   */
-  static _GetEstimatedPixelSize(frustum, sphere)
-  {
-    const method = frustum?.GetPixelSizeAccrossEst ?? frustum?.GetPixelSizeAccross;
-    return Number(typeof method === "function" ? method.call(frustum, sphere) : 0) || 0;
   }
 
   /** Writes a center and radius into a caller-owned sph3. */
