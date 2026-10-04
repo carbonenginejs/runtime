@@ -227,6 +227,7 @@ export class Tr2ManipulationTool
   {
     const mat4_0 = mat4.alloc();
     const mat4_1 = mat4.alloc();
+    const vec4_0 = vec4.alloc();
     try
     {
       const inverseProjection = mat4.invert(mat4.identity(mat4_0), projection);
@@ -236,16 +237,23 @@ export class Tr2ManipulationTool
       const end = vec3.clone(start); // alloc: direction belongs to the returned ray record.
       end[2] = 0.5;
       vec3.transformMat4(start, start, inverseProjection);
-      vec3.transformMat4(start, start, inverseView);
       vec3.transformMat4(end, end, inverseProjection);
-      vec3.transformMat4(end, end, inverseView);
+      // Carbon subtracts in view space, then TransformNormal excludes the
+      // camera translation. Subtracting float32 world positions loses mouse
+      // deltas when the camera is far from the origin.
+      vec3.subtract(end, end, start);
+      const direction = vec4.set(vec4_0, end[0], end[1], end[2], 0);
+      vec4.transformMat4(direction, direction, inverseView);
+      vec3.copy(end, direction);
+      vec3.transformMat4(start, start, inverseView);
       // Native calls XMVector3Normalize without retaining its return value.
-      return { start, ray: vec3.subtract(end, end, start) };
+      return { start, ray: end };
     }
     finally
     {
       mat4.unalloc(mat4_0);
       mat4.unalloc(mat4_1);
+      vec4.unalloc(vec4_0);
     }
   }
 
