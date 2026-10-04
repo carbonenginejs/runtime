@@ -13,9 +13,9 @@ import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
  * stores form an acyclic graph whose root is the global store: new stores
  * parent to it by default, and lookups walk the parent chain.
  * The native TRINITYDEV cycle assertion remains unported; callers must keep
- * the parent graph acyclic. JavaScript registrations return TriVariable
- * handles rather than Python-unwrapped values and retain the existing value
- * classifier. Raw AL values follow the native texture-reference overload.
+ * the parent graph acyclic. Registration states its type
+ * (RegisterVariableInternal / RegisterVariableType); raw AL textures go
+ * through RegisterVariableTextureAL, the native texture-reference overload.
  */
 @meta.define({
   className: "Tr2VariableStore",
@@ -103,60 +103,75 @@ export class Tr2VariableStore
   }
 
   /**
-   * Registers a variable. Without a value (or with null, the script
-   * bridge's None) the name is reserved with the INVALID type. Otherwise
-   * the content type is derived the way the script bridge does and the
-   * value stored. An unsupported value shape registers nothing and returns
-   * null, matching the Python bridge falling through every extractor; a
-   * type conflict also returns null, as Carbon does after logging.
-   * Adapted: returns a TriVariable handle, retaining JavaScript value-shape
-   * inference and Boolean conversion instead of Python argument extraction.
-   * The raw AL overload copies into a texture reference without broadcasting
-   * (Tr2VariableStore.cpp:219-237); explicit copying replaces C++ assignment.
+   * Registers a variable of a stated type and sets its value: Carbon's
+   * RegisterVariableInternal (Tr2VariableStore.h:70-80), which every C++
+   * RegisterVariable overload except the raw-texture one calls. The type is
+   * the template parameter there, deduced from the C++ argument; JavaScript
+   * has no static types, so the caller states it. Returns null on a type
+   * conflict without setting the value, as Carbon does.
    *
-   * This ports the Python bridge (PyRegisterVariable), which picks Carbon's
-   * C++ overload from the value. JavaScript cannot express two of those
-   * choices: a whole float (`0`, `1`) registers as an int, and a colour
-   * registers as FLOAT4 (as from Python, where the colour branch is
-   * unreachable, CE-53). Callers that know the type state it instead:
-   * `RegisterVariableType(name, TRIVARIABLE_FLOAT).SetValue(value)`.
+   * Adapted: the template parameter is an explicit TriVariableContentType
+   * argument, and the method is public. Carbon's RegisterVariable(name, value)
+   * overloads, and the Python bridge that picks one from the value, are not
+   * ported: JavaScript cannot tell a whole float from an int, or a colour
+   * from a Vector4 (CE-53). Reserve a name with
+   * RegisterVariableType(name, TRIVARIABLE_INVALID).
    * @param {string} name Local variable name.
-   * @param {*} [value] Optional script value; nullish values reserve the name.
-   * @returns {TriVariable|null} Registered variable, or unsupported type/conflict.
+   * @param {number} contentType TriVariableContentType of the value.
+   * @param {*} value Value to store.
+   * @returns {TriVariable|null} Registered variable, or null on a type conflict.
+   */
+  @meta.adapted
+  RegisterVariableInternal(name, contentType, value)
+  {
+    const variable = this.RegisterVariableType(name, contentType);
+    if (variable) variable.SetValue(value);
+    return variable;
+  }
+
+  /**
+   * Carbon's RegisterVariable( name, const Tr2TextureAL& )
+   * (Tr2VariableStore.cpp:219-237): wraps the texture in a texture reference,
+   * reusing the one already registered under the name, and registers that.
+   * Carbon quirk, reproduced: the existing variable is looked up in
+   * GlobalStore even on a local store (cpp:222).
+   * Adapted: explicit copy construction replaces C++ value assignment, which
+   * JavaScript assignment would alias.
+   * @param {string} name Local variable name.
+   * @param {Tr2TextureAL} texture Texture to publish.
+   * @returns {TriVariable|null} Registered variable, or null on a type conflict.
+   */
+  @meta.blue.renamed("RegisterVariable")
+  @meta.adapted
+  RegisterVariableTextureAL(name, texture)
+  {
+    const variable = Tr2VariableStore.globalStore().GetVariable(name);
+    const reference = variable.GetType() === TriVariableContentType.TRIVARIABLE_TEXTURE_RES
+      ? CjsSchema.cast(variable.GetValue(), Tr2TextureReference) : null;
+    const target = reference || new Tr2TextureReference();
+    const copy = new Tr2TextureAL({ copy: texture });
+    target.texture.Destroy();
+    target.texture = copy;
+    if (reference) return variable;
+    const registered = this.RegisterVariableInternal(name, TriVariableContentType.TRIVARIABLE_TEXTURE_RES, target);
+    if (!registered) target.texture.Destroy();
+    return registered;
+  }
+
+  /**
+   * Carbon's Python RegisterVariable( name, value ) (Tr2VariableStore_Blue.cpp:95-150),
+   * which picks a C++ overload from the value's Python type.
+   * Not supported: a JavaScript value cannot say its own type - a whole float
+   * reads as an int, and a colour as a Vector4 (CE-53). Callers state it:
+   * RegisterVariableInternal(name, type, value), RegisterVariableType(name,
+   * type) to reserve a name, or RegisterVariableTextureAL for a raw texture.
+   * @throws {TypeError} Always.
    */
   @meta.blue.method
-  @meta.adapted
-  RegisterVariable(name, value = undefined)
+  @meta.notSupported
+  RegisterVariable()
   {
-    if (value === undefined || value === null)
-    {
-      return this.RegisterVariableType(name, TriVariableContentType.TRIVARIABLE_INVALID);
-    }
-    const texture = CjsSchema.cast(value, Tr2TextureAL);
-    if (texture)
-    {
-      // Carbon quirk: cpp:222 looks in GlobalStore even on a local store.
-      const variable = Tr2VariableStore.globalStore().GetVariable(name);
-      const reference = variable.GetType() === TriVariableContentType.TRIVARIABLE_TEXTURE_RES
-        ? CjsSchema.cast(variable.GetValue(), Tr2TextureReference) : null;
-      const target = reference || new Tr2TextureReference();
-      // JS assignment aliases; explicit copy construction preserves C++ value ownership.
-      const copy = new Tr2TextureAL({ copy: texture });
-      target.texture.Destroy();
-      target.texture = copy;
-      if (reference) return variable;
-      const registered = this.RegisterVariable(name, target);
-      if (!registered) target.texture.Destroy();
-      return registered;
-    }
-    const contentType = TriVariable.getVariableType(value);
-    if (contentType === TriVariableContentType.TRIVARIABLE_INVALID)
-    {
-      return null;
-    }
-    const variable = this.RegisterVariableType(name, contentType);
-    variable?.SetValue(typeof value === "boolean" ? Number(value) : value);
-    return variable;
+    throw new TypeError("Tr2VariableStore.RegisterVariable cannot infer a type in JavaScript; call RegisterVariableInternal(name, type, value).");
   }
 
   /**
@@ -290,10 +305,9 @@ export class Tr2VariableStore
    * only reserved as INVALID, returns null on a hard type conflict, and
    * otherwise creates the local variable, which holds no value until SetValue.
    *
-   * Adapted: public here. Every C++ RegisterVariable overload computes its
-   * TriVariableContentType from the static type and funnels into this method
-   * (RegisterVariableInternal, Tr2VariableStore.h:70-80); JavaScript has no
-   * static types, so callers that know the type call this and then SetValue.
+   * Adapted: public here, so a name can be reserved (TRIVARIABLE_INVALID) or
+   * typed before it has a value; RegisterVariableInternal registers and sets
+   * in one call.
    * The conflict result keeps Carbon's null without its log and development
    * assertion.
    * @param {string} name Local key.

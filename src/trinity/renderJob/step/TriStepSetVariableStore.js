@@ -3,6 +3,8 @@
 import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { Tr2VariableStore } from "../../core/variable/Tr2VariableStore.js";
+import { TriVariable } from "../../core/variable/TriVariable.js";
+import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
 /** A render step that writes one named value into the variable store shaders read. */
 @meta.define({ className: "TriStepSetVariableStore", family: "renderJob" })
@@ -69,7 +71,14 @@ export class TriStepSetVariableStore extends TriRenderStep
   @meta.adapted
   Execute(_realTime, _simTime, _renderContext)
   {
-    if (this.variableName && this.value !== null) Tr2VariableStore.globalStore().RegisterVariable(this.variableName, this.value);
+    if (this.variableName && this.value !== null)
+    {
+      // Carbon keeps the type its Python bridge chose (TriStepSetVariableStore_Blue.cpp:66-110);
+      // this step stores only the value, so the type is read from it.
+      const contentType = TriVariable.getVariableType(this.value);
+      if (contentType !== TriVariableContentType.TRIVARIABLE_INVALID)
+        Tr2VariableStore.globalStore().RegisterVariableInternal(this.variableName, contentType, this.value);
+    }
     return TriRenderStep.Result.RS_OK;
   }
 

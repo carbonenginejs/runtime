@@ -43,6 +43,7 @@ import { Tr2SuballocatedBufferAllocation } from "./device/Tr2SuballocatedBuffer/
 import { SharedGeometryBuffer } from "./mesh/TriGeometryResAllocations.js";
 import { TR2SHADERMODEL } from "#consts/graphics";
 import { ShaderType } from "#consts/render-context";
+import { TriVariableContentType } from "../generated/trinityCore/enums.js";
 
 
 /** perFrameVS, owned by the scene. */
@@ -769,7 +770,7 @@ export class Tr2Renderer
   {
     if (!Tr2Renderer.#renderTimeVar)
     {
-      Tr2Renderer.#renderTimeVar = Tr2VariableStore.globalStore().RegisterVariable("Time", [ 0, 0, 0, 0 ]);
+      Tr2Renderer.#renderTimeVar = Tr2VariableStore.globalStore().RegisterVariableInternal("Time", TriVariableContentType.TRIVARIABLE_FLOAT4, [ 0, 0, 0, 0 ]);
     }
     return Tr2Renderer.#renderTimeVar;
   }

@@ -12,6 +12,7 @@ import { Tr2Denoiser } from "./Tr2Denoiser.js";
 import { Tr2VariableStore } from "./variable/Tr2VariableStore.js";
 import { TriFrustumOrtho } from "./view/TriFrustumOrtho.js";
 import { blue, EnumRegistrationType } from "#blue";
+import { TriVariableContentType } from "../generated/trinityCore/enums.js";
 
 const SHADOW_FRUSTUM_COUNT = 16;
 const SHADOW_MAP_WIDTH = 8;
@@ -269,8 +270,8 @@ export class Tr2ShadowMap
   constructor()
   {
     const store = Tr2VariableStore.globalStore();
-    store.RegisterVariable("EveSpaceSceneShadowMap");
-    store.RegisterVariable("EveSpaceSceneCascadedShadowMap");
+    store.RegisterVariableType("EveSpaceSceneShadowMap", TriVariableContentType.TRIVARIABLE_INVALID);
+    store.RegisterVariableType("EveSpaceSceneCascadedShadowMap", TriVariableContentType.TRIVARIABLE_INVALID);
   }
 
   /** Applies the atlas element size/count and the one-way denoiser disable. */

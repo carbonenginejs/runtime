@@ -12,6 +12,7 @@ import { vec4 } from "#math/vec4";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2VariableStore } from "../../core/variable/Tr2VariableStore.js";
 import { Tr2VertexDefinition } from "../../core/vertex/Tr2VertexDefinition/index.js";
+import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
 
 const effectIdentities = new WeakMap();
@@ -419,9 +420,9 @@ export class EveTacticalOverlay
       this.rangeMultiplier,
       this.sourceRadius
     );
-    this._variableStore.RegisterVariable("PlanePosition", this.worldPosition);
-    this._variableStore.RegisterVariable("Fadeout", this._ranges);
-    this._variableStore.RegisterVariable("RootVelocity", this._rootVelocity);
+    this._variableStore.RegisterVariableInternal("PlanePosition", TriVariableContentType.TRIVARIABLE_FLOAT3, this.worldPosition);
+    this._variableStore.RegisterVariableInternal("Fadeout", TriVariableContentType.TRIVARIABLE_FLOAT4, this._ranges);
+    this._variableStore.RegisterVariableInternal("RootVelocity", TriVariableContentType.TRIVARIABLE_FLOAT3, this._rootVelocity);
   }
 
   /** Attaches the local variable store to one nullable effect. */

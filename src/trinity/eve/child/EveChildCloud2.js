@@ -373,8 +373,8 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   constructor()
   {
     super();
-    this._variableStore.RegisterVariable("LightMap", this._emptyLightMap);
-    this._variableStore.RegisterVariable("LightMapRW", this.lightmap);
+    this._variableStore.RegisterVariableInternal("LightMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this._emptyLightMap);
+    this._variableStore.RegisterVariableInternal("LightMapRW", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this.lightmap);
     // Carbon's typed-null texture overload (Tr2VariableStore.h:42): JS null
     // carries no type, so the type is stated.
     this.depthShadowMapHandle = Tr2VariableStore.globalStore().RegisterVariableType(
@@ -626,7 +626,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
         else
         {
           this.CreateEmptyLightMap();
-          this._variableStore.RegisterVariable("LightMap", this._emptyLightMap);
+          this._variableStore.RegisterVariableInternal("LightMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this._emptyLightMap);
           this.lightmap.GetTexture().Destroy();
           this.lightmap.OnTextureChange().Broadcast();
           this.lightmapDirty = false;
@@ -915,7 +915,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
         texture.SetName("EveChildCloud2 Lightmap");
         this.lightmap.OnTextureChange().Broadcast();
         this.lightmapDirtyOffset = 0;
-        this._variableStore.RegisterVariable("LightMap", this._emptyLightMap);
+        this._variableStore.RegisterVariableInternal("LightMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this._emptyLightMap);
       }
       const record = this._lightmapPerObjectData;
       this.PopulatePerObjectData(record.data, 1, renderContext);
@@ -938,7 +938,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
         {
           this.lightmapDirty = false;
           this.lightmapDirtyOffset = 0;
-          this._variableStore.RegisterVariable("LightMap", this.lightmap);
+          this._variableStore.RegisterVariableInternal("LightMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this.lightmap);
           this._emptyLightMap.GetTexture().Destroy();
           this._emptyLightMap.OnTextureChange().Broadcast();
         }

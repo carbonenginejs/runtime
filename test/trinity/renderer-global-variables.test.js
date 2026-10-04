@@ -7,6 +7,7 @@ import { test } from "node:test";
 
 import { Tr2RenderContext, Tr2VariableStore } from "../../npm/dist/trinity/core/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
+import { TriVariableContentType } from "../../npm/dist/trinity/generated/trinityCore/enums.js";
 
 const value = name => Array.from(Tr2VariableStore.globalStore().FindVariable(name).GetValue());
 
@@ -43,7 +44,7 @@ test("a matrix variable is transposed into the effect constants, as Carbon's Cop
 {
   // TriVariable.cpp:127-133: "column_major for shaders". A copied-straight
   // matrix reaches the shader flipped.
-  const variable = Tr2VariableStore.globalStore().RegisterVariable("TransposeProbe", mat4.fromValues(
+  const variable = Tr2VariableStore.globalStore().RegisterVariableInternal("TransposeProbe", TriVariableContentType.TRIVARIABLE_FLOAT4X4, mat4.fromValues(
     1, 2, 3, 4,
     5, 6, 7, 8,
     9, 10, 11, 12,
@@ -55,7 +56,7 @@ test("a matrix variable is transposed into the effect constants, as Carbon's Cop
   assert.deepEqual(Array.from(out), [ 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15, 4, 8, 12, 16 ]);
 
   // A vector is copied as-is.
-  const vector = Tr2VariableStore.globalStore().RegisterVariable("VectorProbe", [ 1, 2, 3, 4 ]);
+  const vector = Tr2VariableStore.globalStore().RegisterVariableInternal("VectorProbe", TriVariableContentType.TRIVARIABLE_FLOAT4, [ 1, 2, 3, 4 ]);
   const four = new Float32Array(4);
   vector.CopyValueToEffect(null, four, 16);
   assert.deepEqual(Array.from(four), [ 1, 2, 3, 4 ]);

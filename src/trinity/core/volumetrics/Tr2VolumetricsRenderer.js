@@ -16,6 +16,7 @@ import { PixelFormat, TextureType, Tr2GpuUsage } from "#consts/render-context";
 import { RenderingMode } from "#consts/graphics";
 import { Tr2TextureAL } from "../../../trinityal/Tr2TextureAL/Tr2TextureAL.js";
 import { Tr2SubresourceData } from "../../../trinityal/Tr2HalHelperStructures/Tr2SubresourceData.js";
+import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
 
 const FROXEL_FOG_COMPONENT = "FroxelFogSettings";
@@ -143,10 +144,10 @@ export class Tr2VolumetricsRenderer
   constructor()
   {
     const store = Tr2VariableStore.globalStore();
-    store.RegisterVariable("EveSceneFogVolumeMap", new Tr2TextureAL());
-    store.RegisterVariable("VolumetricDepthMap", new Tr2TextureAL());
-    store.RegisterVariable("EveSceneMieEnvironmentMap", this.mieEnvironmentMap);
-    store.RegisterVariable("EveSceneFroxelFogMap", new Tr2TextureAL());
+    store.RegisterVariableTextureAL("EveSceneFogVolumeMap", new Tr2TextureAL());
+    store.RegisterVariableTextureAL("VolumetricDepthMap", new Tr2TextureAL());
+    store.RegisterVariableInternal("EveSceneMieEnvironmentMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this.mieEnvironmentMap);
+    store.RegisterVariableTextureAL("EveSceneFroxelFogMap", new Tr2TextureAL());
     const path = "res:/Graphics/Effect/Managed/Space/SpecialFX/Volumetric/";
     this.volumeBlit.SetEffectPathName(path + "VolumeBlit.fx");
     this.downsampleDepth.SetEffectPathName(path + "DownsampleDepth.fx");
@@ -358,7 +359,7 @@ export class Tr2VolumetricsRenderer
       return Tr2VolumetricsRenderer.getEmptyVolumetricTexture(gpuResourcePool);
     }
     const store = Tr2VariableStore.globalStore();
-    store.RegisterVariable("EveSceneFroxelFogMap", froxelFog);
+    store.RegisterVariableTextureAL("EveSceneFroxelFogMap", froxelFog);
     const sceneInformation = { quality: this.quality, depthSlices, targetWidth: width,
       targetHeight: height, sunDirection, receiveShadows: this.receiveShadows,
       castShadows: this.castShadows, raytracedShadows: raytracingEnabled };
@@ -395,7 +396,7 @@ export class Tr2VolumetricsRenderer
         Tr2Renderer.drawScreenQuad(renderContext, this.downsampleDepth);
         this.downsampleDepth.SetParameter("DepthMap", null);
       }
-      store.RegisterVariable("VolumetricDepthMap", volumetricDepth && volumetricDepth.IsValid() ? volumetricDepth.Get() : sceneDepth);
+      store.RegisterVariableTextureAL("VolumetricDepthMap", volumetricDepth && volumetricDepth.IsValid() ? volumetricDepth.Get() : sceneDepth);
       for (let slot = 0; slot < 4; slot++) esm.SetRenderTarget(slot, volumeSlices.Get(), true, slot);
       for (let slot = 0; slot < 4; slot++) renderContext.Clear({ clearColor: true, clearDepth: false, color: 0, slot });
       const renderables = [];
@@ -449,11 +450,11 @@ export class Tr2VolumetricsRenderer
       this.hBlur.SetParameter("EveSceneFogVolumeMap", new Tr2TextureAL());
       this.vBlur.SetParameter("SourceMap", new Tr2TextureAL());
       this.volumeBlit.SetParameter("EveSceneFogVolumeMap", new Tr2TextureAL());
-      store.RegisterVariable("VolumetricDepthMap", new Tr2TextureAL());
+      store.RegisterVariableTextureAL("VolumetricDepthMap", new Tr2TextureAL());
       if (!returned && volumeSlices) gpuResourcePool.Free(volumeSlices);
       if (volumetricDepth) gpuResourcePool.Free(volumetricDepth);
       if (blurScratch) gpuResourcePool.Free(blurScratch);
-      store.RegisterVariable("EveSceneFroxelFogMap", new Tr2TextureAL());
+      store.RegisterVariableTextureAL("EveSceneFroxelFogMap", new Tr2TextureAL());
     }
   }
 
@@ -542,7 +543,7 @@ export class Tr2VolumetricsRenderer
   @meta.implemented
   UpdateVariableStore()
   {
-    Tr2VariableStore.globalStore().RegisterVariable("EveSceneMieEnvironmentMap", this.mieEnvironmentMap);
+    Tr2VariableStore.globalStore().RegisterVariableInternal("EveSceneMieEnvironmentMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this.mieEnvironmentMap);
   }
 
   /**

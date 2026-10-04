@@ -37,6 +37,7 @@ import { Tr2Renderer } from "../Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 import { Succeeded } from "#trinityal";
+import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
 // Tr2LightManager.cpp:30-48 - copied verbatim; the buffer sizes are the ABI
 // the AL uploads against.
@@ -748,8 +749,8 @@ export class Tr2LightManager
   {
     this._effectPath = String(effectPath ?? "");
     const store = Tr2VariableStore.globalStore();
-    this._lightBufferVariable = store.RegisterVariable(Tr2LightManager.LIGHT_BUFFER_NAME, this._lightBuffer);
-    this._indexBufferVariable = store.RegisterVariable(Tr2LightManager.LIGHT_INDEX_BUFFER_NAME, this._indexBuffer);
+    this._lightBufferVariable = store.RegisterVariableInternal(Tr2LightManager.LIGHT_BUFFER_NAME, TriVariableContentType.TRIVARIABLE_GPUBUFFER, this._lightBuffer);
+    this._indexBufferVariable = store.RegisterVariableInternal(Tr2LightManager.LIGHT_INDEX_BUFFER_NAME, TriVariableContentType.TRIVARIABLE_GPUBUFFER, this._indexBuffer);
     TriDevice.RegisterResource(this);
     this.PrepareResources();
     return this;
@@ -791,8 +792,8 @@ export class Tr2LightManager
     Tr2LightManager._instance = null;
     TriDevice.UnregisterResource(instance);
     const store = Tr2VariableStore.globalStore();
-    store.RegisterVariable(Tr2LightManager.LIGHT_BUFFER_NAME, new Tr2GpuStructuredBuffer());
-    store.RegisterVariable(Tr2LightManager.LIGHT_INDEX_BUFFER_NAME, new Tr2GpuStructuredBuffer());
+    store.RegisterVariableInternal(Tr2LightManager.LIGHT_BUFFER_NAME, TriVariableContentType.TRIVARIABLE_GPUBUFFER, new Tr2GpuStructuredBuffer());
+    store.RegisterVariableInternal(Tr2LightManager.LIGHT_INDEX_BUFFER_NAME, TriVariableContentType.TRIVARIABLE_GPUBUFFER, new Tr2GpuStructuredBuffer());
   }
 
   static _instance = null;

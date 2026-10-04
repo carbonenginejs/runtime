@@ -1602,11 +1602,10 @@ export class EveSpaceScene
   /** Registers the bone provider before effect hydration (EveSpaceScene.cpp:257-258). */
   constructor()
   {
-    this._nebulaIntensityHandle.SetValue(1);
     for (const list of [this.backgroundObjects, this.planets, this.objects, this.uiObjects]) list.SetNotify(this);
     const bones = Tr2RingBuffer.GetInstance("Float4x3", 48, Tr2RenderContext_GetMainThreadRenderContext());
     bones.SetName("BoneTransformsBuffer");
-    Tr2VariableStore.globalStore().RegisterVariable("BoneTransforms", bones);
+    Tr2VariableStore.globalStore().RegisterVariableInternal("BoneTransforms", TriVariableContentType.TRIVARIABLE_GPUBUFFER, bones);
   }
 
   // THE SCENE'S GLOBAL TEXTURES (EveSpaceScene.cpp:252-261). Carbon registers
@@ -1617,26 +1616,26 @@ export class EveSpaceScene
   // construction.
 
   /** m_envMapHandle: "EveSpaceSceneEnvMap", the reflection (probe or nebula). */
-  _envMapHandle = Tr2VariableStore.globalStore().RegisterVariable("EveSpaceSceneEnvMap", new Tr2TextureReference());
+  _envMapHandle = Tr2VariableStore.globalStore().RegisterVariableInternal("EveSpaceSceneEnvMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, new Tr2TextureReference());
 
   /** m_staticEnvMapHandle: "EveSpaceSceneStaticEnvMap", the nebula itself. */
-  _staticEnvMapHandle = Tr2VariableStore.globalStore().RegisterVariable("EveSpaceSceneStaticEnvMap", new Tr2TextureReference());
+  _staticEnvMapHandle = Tr2VariableStore.globalStore().RegisterVariableInternal("EveSpaceSceneStaticEnvMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, new Tr2TextureReference());
 
   /** "SSAOMap", registered empty (cpp:256); the driver fills it when SSAO runs. */
-  _ssaoMapHandle = Tr2VariableStore.globalStore().RegisterVariable("SSAOMap", new Tr2TextureReference());
+  _ssaoMapHandle = Tr2VariableStore.globalStore().RegisterVariableInternal("SSAOMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, new Tr2TextureReference());
 
   /** m_envMap1Var / m_envMap2Var: "EnvMap1" and "EnvMap2" (cpp:188-189). */
-  _envMap1Handle = Tr2VariableStore.globalStore().RegisterVariable("EnvMap1", new Tr2TextureReference());
+  _envMap1Handle = Tr2VariableStore.globalStore().RegisterVariableInternal("EnvMap1", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, new Tr2TextureReference());
 
-  _envMap2Handle = Tr2VariableStore.globalStore().RegisterVariable("EnvMap2", new Tr2TextureReference());
+  _envMap2Handle = Tr2VariableStore.globalStore().RegisterVariableInternal("EnvMap2", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, new Tr2TextureReference());
 
   /** m_reflectionMapVar / m_reflectionMaskMapVar: the same two maps under "ReflectionMap" and "ReflectionMaskMap" (cpp:190-191). */
-  _reflectionMapHandle = Tr2VariableStore.globalStore().RegisterVariable("ReflectionMap", new Tr2TextureReference());
+  _reflectionMapHandle = Tr2VariableStore.globalStore().RegisterVariableInternal("ReflectionMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, new Tr2TextureReference());
 
-  _reflectionMaskMapHandle = Tr2VariableStore.globalStore().RegisterVariable("ReflectionMaskMap", new Tr2TextureReference());
+  _reflectionMaskMapHandle = Tr2VariableStore.globalStore().RegisterVariableInternal("ReflectionMaskMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, new Tr2TextureReference());
 
   /** m_nebulaIntensityVar: the float "NebulaIntensity" (cpp:202), which the background effect reads. */
-  _nebulaIntensityHandle = Tr2VariableStore.globalStore().RegisterVariableType("NebulaIntensity", TriVariableContentType.TRIVARIABLE_FLOAT);
+  _nebulaIntensityHandle = Tr2VariableStore.globalStore().RegisterVariableInternal("NebulaIntensity", TriVariableContentType.TRIVARIABLE_FLOAT, 1);
 
   /**
    * m_velocityMapDirty (EveSpaceScene.h:476): whether the background pass has
@@ -1679,7 +1678,7 @@ export class EveSpaceScene
     const publish = (name, texture) =>
     {
       references[name].SetTexture(texture);
-      store.RegisterVariable(name, references[name]);
+      store.RegisterVariableInternal(name, TriVariableContentType.TRIVARIABLE_TEXTURE_RES, references[name]);
     };
 
     const emptyShadow = (name, format, publication) =>

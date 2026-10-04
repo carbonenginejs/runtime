@@ -22,6 +22,7 @@ import { Tr2TextureAL } from "../../../trinityal/Tr2TextureAL/index.js";
 import { Tr2TextureSubresource } from "../../../trinityal/Tr2HalHelperStructures/Tr2TextureSubresource.js";
 import { ImpostorAtlas } from "./ImpostorAtlas.js";
 import { Impostor } from "./Impostor.js";
+import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
 const emptyTexture = new Tr2TextureAL();
 const vec4_0 = vec4.create(), vec4_1 = vec4.create();
@@ -115,8 +116,8 @@ export class Tr2ImpostorManager
     this.effect = new Tr2Effect();
     this._ownedEffects.add(this.effect);
     const store = Tr2VariableStore.globalStore();
-    store.RegisterVariable("ImposterAtlasMap", this.atlas);
-    store.RegisterVariable("ImposterItemSize", this._itemSize);
+    store.RegisterVariableInternal("ImposterAtlasMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this.atlas);
+    store.RegisterVariableInternal("ImposterItemSize", TriVariableContentType.TRIVARIABLE_FLOAT4, this._itemSize);
     this.effect.SetEffectPathName("res:/graphics/effect/managed/space/system/impostor.fx");
     this._effectKey = Symbol("Tr2ImpostorManager");
     this._quadRenderer = Tr2QuadRenderer.Instance();
@@ -302,9 +303,9 @@ export class Tr2ImpostorManager
       for (let i = 0; i < count; i++) this._renderQueue.push(all[i][0]);
     }
     const store = Tr2VariableStore.globalStore();
-    store.RegisterVariable("ImposterAtlasMap", this.atlas);
+    store.RegisterVariableInternal("ImposterAtlasMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this.atlas);
     vec4.set(this._itemSize, this.itemWidth / this.width, this.itemHeight / this.height, 0, 0);
-    store.RegisterVariable("ImposterItemSize", this._itemSize);
+    store.RegisterVariableInternal("ImposterItemSize", TriVariableContentType.TRIVARIABLE_FLOAT4, this._itemSize);
   }
 
   /** Returns the current native capture queue length. */

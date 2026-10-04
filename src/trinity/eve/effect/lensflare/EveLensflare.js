@@ -14,6 +14,7 @@ import { vec4 } from "#math/vec4";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { Tr2VariableStore } from "../../../core/variable/Tr2VariableStore.js";
 import { Tr2OcclusionBuffer } from "./Tr2OcclusionBuffer.js";
+import { TriVariableContentType } from "../../../generated/trinityCore/enums.js";
 
 /** Scratch for PrepareRender's negated vectors. */
 const prepareScratch = vec3.create();
@@ -268,14 +269,14 @@ export class EveLensflare
   backgroundOcclusionOffset = null;
 
   /** m_directionVar: the global "LensflareFxDirectionScale" (cpp:72). */
-  _directionVar = Tr2VariableStore.globalStore().RegisterVariable("LensflareFxDirectionScale", [ 0, 0, 0, 1 ]);
+  _directionVar = Tr2VariableStore.globalStore().RegisterVariableInternal("LensflareFxDirectionScale", TriVariableContentType.TRIVARIABLE_FLOAT4, [ 0, 0, 0, 1 ]);
 
   /**
    * m_occScaleVar: the global "LensflareFxOccScale" (cpp:73), (1, 0, 0, 0)
    * until the first Update. x and y carry the foreground and background slot
    * bases as float BITS; the god rays read FlareOcclusionBuffer at y.
    */
-  _occScaleVar = Tr2VariableStore.globalStore().RegisterVariable("LensflareFxOccScale", [ 1, 0, 0, 0 ]);
+  _occScaleVar = Tr2VariableStore.globalStore().RegisterVariableInternal("LensflareFxOccScale", TriVariableContentType.TRIVARIABLE_FLOAT4, [ 1, 0, 0, 0 ]);
 
   /** m_transform (EveLensflare.h:102; ctor identity, cpp:74) - stamped by
    * PrepareRender, forwarded to the flare children as their parent. */

@@ -7,20 +7,20 @@ import { Tr2VariableStore } from "../../npm/dist/trinity/core/index.js";
 import { TriVariableContentType } from "../../npm/dist/trinity/generated/trinityCore/enums.js";
 import { EveSpaceScene } from "../../npm/dist/trinity/eve/index.js";
 
-const { TRIVARIABLE_FLOAT, TRIVARIABLE_INT, TRIVARIABLE_FLOAT4, TRIVARIABLE_COLOR } = TriVariableContentType;
+const { TRIVARIABLE_FLOAT, TRIVARIABLE_INT, TRIVARIABLE_COLOR } = TriVariableContentType;
 
 
 test("a stated type survives values that inference would misread", () =>
 {
   const store = new Tr2VariableStore();
 
-  // Inference reads a whole float as an int and any four numbers as FLOAT4.
-  assert.equal(store.RegisterVariable("inferredWhole", 1).GetType(), TRIVARIABLE_INT);
-  assert.equal(store.RegisterVariable("inferredColour", [ 1, 0, 0, 1 ]).GetType(), TRIVARIABLE_FLOAT4);
+  // A whole float stays a float, and a colour a colour; value inference read
+  // them as INT and FLOAT4 (CE-53), and is not ported.
+  assert.throws(() => store.RegisterVariable("whole", 1), TypeError);
 
-  const whole = store.RegisterVariableType("whole", TRIVARIABLE_FLOAT);
-  whole.SetValue(1);
+  const whole = store.RegisterVariableInternal("whole", TRIVARIABLE_FLOAT, 1);
   assert.equal(whole.GetType(), TRIVARIABLE_FLOAT);
+  assert.equal(store.RegisterVariableInternal("whole", TRIVARIABLE_INT, 2), null, "conflict leaves the value");
   assert.equal(whole.GetValue(), 1);
 
   const colour = store.RegisterVariableType("colour", TRIVARIABLE_COLOR);

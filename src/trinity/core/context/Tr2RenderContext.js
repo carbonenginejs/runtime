@@ -154,9 +154,9 @@ export class Tr2RenderContext
   constructor()
   {
     const store = Tr2VariableStore.globalStore();
-    store.RegisterVariable("pickingObjectLowBits", 0);
-    store.RegisterVariable("pickingObjectHighBits", 0);
-    store.RegisterVariable("areaId", 0);
+    store.RegisterVariableInternal("pickingObjectLowBits", TriVariableContentType.TRIVARIABLE_INT, 0);
+    store.RegisterVariableInternal("pickingObjectHighBits", TriVariableContentType.TRIVARIABLE_INT, 0);
+    store.RegisterVariableInternal("areaId", TriVariableContentType.TRIVARIABLE_INT, 0);
     this.GetObjectIdVariable();
   }
 
@@ -1413,9 +1413,9 @@ export class Tr2RenderContext
   {
     Tr2RingBuffer.prepareInstances(this);
     const store = Tr2VariableStore.globalStore();
-    const low = store.RegisterVariable("pickingObjectLowBits", 0);
-    const high = store.RegisterVariable("pickingObjectHighBits", 0);
-    const area = store.RegisterVariable("areaId", 0);
+    const low = store.RegisterVariableInternal("pickingObjectLowBits", TriVariableContentType.TRIVARIABLE_INT, 0);
+    const high = store.RegisterVariableInternal("pickingObjectHighBits", TriVariableContentType.TRIVARIABLE_INT, 0);
+    const area = store.RegisterVariableInternal("areaId", TriVariableContentType.TRIVARIABLE_INT, 0);
     const legacyObjectId = this.GetObjectIdVariable();
     const buffers = Array.from({ length: ConstantBufferSlot.CBUFFER_COUNT }, (_value, slot) => this.GetConstantBuffer(slot));
     let currentObjectData = null;
@@ -1817,8 +1817,8 @@ export class Tr2RenderContext
     if (!Tr2RenderContext.#cameraVariables)
     {
       const store = Tr2VariableStore.globalStore();
-      const matrix = name => store.RegisterVariable(name, mat4.create());
-      const plane = name => store.RegisterVariable(name, [ 0, 0, 1, 0 ]);
+      const matrix = name => store.RegisterVariableInternal(name, TriVariableContentType.TRIVARIABLE_FLOAT4X4, mat4.create());
+      const plane = name => store.RegisterVariableInternal(name, TriVariableContentType.TRIVARIABLE_FLOAT4, [ 0, 0, 1, 0 ]);
 
       Tr2RenderContext.#cameraVariables = {
         WorldMat: matrix("WorldMat"),

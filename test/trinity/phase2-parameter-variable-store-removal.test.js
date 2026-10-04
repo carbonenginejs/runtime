@@ -7,6 +7,7 @@ import { Tr2MaterialParameterStore, Tr2VariableStore, TriVariable } from "../../
 import { TriVariableParameter } from "../../npm/dist/trinity/shader/parameter/TriVariableParameter.js";
 import { Tr2Effect } from "../../npm/dist/trinity/shader/Tr2Effect.js";
 import { Tr2MaterialArea } from "../../npm/dist/resource/shader/Tr2MaterialArea.js";
+import { TriVariableContentType } from "../../npm/dist/trinity/generated/trinityCore/enums.js";
 
 const settle = () => new Promise(resolve => setImmediate(resolve));
 
@@ -148,7 +149,7 @@ test("variable store exposes native parent property without persisting runtime b
   assert.equal(store.GetParentVariableStore(), parent);
   root.parentStore = store;
   assert.equal(root.parentStore, null);
-  store.RegisterVariable("local", 1);
+  store.RegisterVariableInternal("local", TriVariableContentType.TRIVARIABLE_INT, 1);
   const copy = new Copier().CopyTo(store);
   assert.equal(copy.parentStore, root);
   assert.deepEqual(copy.GetLocalNames(), []);
@@ -160,12 +161,12 @@ test("variable reservations preserve identity conflicts lookup and invalidation"
 {
   const parent = new Tr2VariableStore(), store = new Tr2VariableStore();
   parent.parentStore = null; store.parentStore = parent;
-  const inherited = parent.RegisterVariable("shared", 2.5);
+  const inherited = parent.RegisterVariableInternal("shared", TriVariableContentType.TRIVARIABLE_FLOAT, 2.5);
   assert.equal(store.FindVariable("shared"), inherited);
   const reserved = store.GetLocalVariable("shared");
   assert.equal(store.FindVariable("shared"), reserved);
-  assert.equal(store.RegisterVariable("shared", [1, 2]), reserved);
-  assert.equal(store.RegisterVariable("shared", 3), null);
+  assert.equal(store.RegisterVariableInternal("shared", TriVariableContentType.TRIVARIABLE_FLOAT2, [1, 2]), reserved);
+  assert.equal(store.RegisterVariableInternal("shared", TriVariableContentType.TRIVARIABLE_INT, 3), null);
   assert.deepEqual(Array.from(reserved.GetValue()), [1, 2]);
   assert.equal(store.UnregisterLocalVariable("shared"), true);
   assert.equal(reserved.GetType(), TriVariable.ContentType.TRIVARIABLE_INVALID);
@@ -177,7 +178,7 @@ test("variable reservations preserve identity conflicts lookup and invalidation"
 
 test("real variable parameter and effect retain selected store lookup and value identity", () =>
 {
-  const store = new Tr2VariableStore(), variable = store.RegisterVariable("speed", 1.5);
+  const store = new Tr2VariableStore(), variable = store.RegisterVariableInternal("speed", TriVariableContentType.TRIVARIABLE_FLOAT, 1.5);
   const parameter = new TriVariableParameter();
   parameter.variableName = "speed";
   assert.equal(parameter.Initialize(store), true);
@@ -185,7 +186,7 @@ test("real variable parameter and effect retain selected store lookup and value 
   const output = new Float32Array(1);
   parameter.CopyValueToEffect(0, output, 4, null);
   assert.equal(output[0], 1.5);
-  assert.equal(store.RegisterVariable("speed", 2.5), variable);
+  assert.equal(store.RegisterVariableInternal("speed", TriVariableContentType.TRIVARIABLE_FLOAT, 2.5), variable);
   parameter.CopyValueToEffect(0, output, 4, null);
   assert.equal(output[0], 2.5);
   const effect = new Tr2Effect();

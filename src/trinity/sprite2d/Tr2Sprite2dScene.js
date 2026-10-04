@@ -14,6 +14,7 @@ import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
+import { TriVariableContentType } from "../generated/trinityCore/enums.js";
 import "./Tr2SpriteObjectBase.js";
 
 /**
@@ -187,7 +188,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
   _dotVectorValue = vec4.fromValues(0, 0, 0, 1);
 
   /** Native nullable global shader-variable handle, using the existing store adapter. @type {TriVariable|null} */
-  _dotVectorVar = Tr2VariableStore.globalStore().RegisterVariable("g_DotVector", this._dotVectorValue);
+  _dotVectorVar = Tr2VariableStore.globalStore().RegisterVariableInternal("g_DotVector", TriVariableContentType.TRIVARIABLE_FLOAT4, this._dotVectorValue);
 
   /** Native camera-direction quaternion tweak, shared read-only by updates. @type {number[]} */
   static _viewTweak = [0.332621, 0.332621, 0, 0.882455];

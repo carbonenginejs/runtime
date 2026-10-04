@@ -30,6 +30,7 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2
 import { Tr2VariableStore } from "../core/variable/Tr2VariableStore.js";
 import { Tr2EffectStateManager } from "../shader/Tr2EffectStateManager.js";
 import { MAX_TURBULENCE_LENGTH, Tr2GpuParticleSystemEmitterParamsGpu } from "./Tr2GpuParticleSystemEmitterParamsGpu.js";
+import { TriVariableContentType } from "../generated/trinityCore/enums.js";
 
 /** Carbon DEFAULT_MAX_PARTICLES (cpp:19). */
 const DEFAULT_MAX_PARTICLES = 1024 * 1024;
@@ -351,13 +352,13 @@ export class Tr2GpuParticleSystem
   RegisterVariables()
   {
     const store = this._variableStore;
-    store.RegisterVariable("ParticleBuffer", this._particleData);
-    store.RegisterVariable("DeadBuffer", this._deadList);
-    store.RegisterVariable("VisibleBuffer", this._visibleList);
-    store.RegisterVariable("DrawParameters", this._drawParameters);
-    store.RegisterVariable("SortParameters", this._sortParameters);
-    store.RegisterVariable("Emitters", this._emitterParamsBuffer);
-    store.RegisterVariable("ParticleCounters", this._counters);
+    store.RegisterVariableInternal("ParticleBuffer", TriVariableContentType.TRIVARIABLE_GPUBUFFER, this._particleData);
+    store.RegisterVariableInternal("DeadBuffer", TriVariableContentType.TRIVARIABLE_GPUBUFFER, this._deadList);
+    store.RegisterVariableInternal("VisibleBuffer", TriVariableContentType.TRIVARIABLE_GPUBUFFER, this._visibleList);
+    store.RegisterVariableInternal("DrawParameters", TriVariableContentType.TRIVARIABLE_GPUBUFFER, this._drawParameters);
+    store.RegisterVariableInternal("SortParameters", TriVariableContentType.TRIVARIABLE_GPUBUFFER, this._sortParameters);
+    store.RegisterVariableInternal("Emitters", TriVariableContentType.TRIVARIABLE_GPUBUFFER, this._emitterParamsBuffer);
+    store.RegisterVariableInternal("ParticleCounters", TriVariableContentType.TRIVARIABLE_GPUBUFFER, this._counters);
   }
 
   /**

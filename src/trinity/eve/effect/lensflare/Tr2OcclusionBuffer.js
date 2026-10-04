@@ -60,7 +60,7 @@ export class Tr2OcclusionBuffer
     this.management = new Tr2Effect();
     this.management.SetEffectPathName(OCCLUDER_MANAGEMENT_EFFECT_PATH);
     this.buffer = new Tr2GpuBuffer();
-    Tr2VariableStore.globalStore().RegisterVariable("FlareOcclusionBuffer", this.buffer);
+    Tr2VariableStore.globalStore().RegisterVariableInternal("FlareOcclusionBuffer", TriVariableContentType.TRIVARIABLE_GPUBUFFER, this.buffer);
   }
 
   /**

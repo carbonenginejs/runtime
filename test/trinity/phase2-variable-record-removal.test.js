@@ -6,6 +6,7 @@ import { Copier, DictReader, IInitialize } from "../../npm/dist/global/blue/inde
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
 import { Tr2ExpressionTermInfo, TriFloat, TriVariable, Tr2VariableStore } from "../../npm/dist/trinity/index.js";
 import { ITr2EffectValue, ResourceFlags } from "../../npm/dist/trinity/shader/index.js";
+import { TriVariableContentType } from "../../npm/dist/trinity/generated/trinityCore/enums.js";
 
 test("variable records remove model behavior and retain exact native base/query distinctions", () =>
 {
@@ -97,7 +98,7 @@ test("float reader and Copier keep scalar storage independent", () =>
 test("real variable store retains model-free local value behavior and native value size", () =>
 {
   const store = new Tr2VariableStore();
-  const variable = store.RegisterVariable("phase2LocalFloat", 2.5);
+  const variable = store.RegisterVariableInternal("phase2LocalFloat", TriVariableContentType.TRIVARIABLE_FLOAT, 2.5);
   assert.equal(CjsSchema.cast(variable, TriVariable), variable);
   assert.equal(variable.GetValue(), 2.5);
   assert.equal(variable.GetType(), TriVariable.ContentType.TRIVARIABLE_FLOAT);

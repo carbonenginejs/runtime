@@ -382,12 +382,12 @@ test("raw texture registration copies ownership, reuses the global reference, an
   const global = core.Tr2VariableStore.globalStore(), local = new core.Tr2VariableStore();
   try
   {
-    const variable = global.RegisterVariable(name, f.depth);
+    const variable = global.RegisterVariableTextureAL(name, f.depth);
     const reference = variable.GetValue();
     let changes = 0;
     const owner = {};
     reference.OnTextureChange().RegisterListener(owner, () => changes++);
-    assert.equal(local.RegisterVariable(name, new Tr2TextureAL()), variable, "native global lookup quirk");
+    assert.equal(local.RegisterVariableTextureAL(name, new Tr2TextureAL()), variable, "native global lookup quirk");
     assert.equal(variable.GetValue(), reference);
     assert.equal(reference.GetTexture().IsValid(), false);
     assert.equal(f.depth.IsValid(), true, "registration did not take the caller's ownership");

@@ -5,6 +5,7 @@ import {
   Tr2RenderContext_GetMainThreadRenderContext, Tr2VariableStore
 } from "../../npm/dist/trinity/index.js";
 import { Tr2BaseDeviceResourceAL, Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
+import { TriVariableContentType } from "../../npm/dist/trinity/generated/trinityCore/enums.js";
 
 /** Starts without device storage, as a scene loaded before device creation does. */
 function reset()
@@ -66,7 +67,7 @@ test("old-order negative control misses only BoneTransforms and later registrati
   const ring = store.FindVariable("BoneTransforms").GetValue();
   store.UnregisterVariable("BoneTransforms");
   const mappings = mappedResources();
-  store.RegisterVariable("BoneTransforms", ring);
+  store.RegisterVariableInternal("BoneTransforms", TriVariableContentType.TRIVARIABLE_GPUBUFFER, ring);
   assert.deepEqual(mappings.map(v => v.sourceName), ["EveSpaceSceneEnvMap", "SSAOMap"],
     "Tr2Effect.cpp:1481-1488 stores only resources resolved at mapping time");
   assert.equal(mappedResources().length, 3, "effects completed after registration bind normally");

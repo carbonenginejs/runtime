@@ -36,6 +36,7 @@ import { TriTorque } from "../../npm/dist/trinity/core/animation/TriTorque.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/core/context/Tr2RenderContext.js";
 import { TriLineSet } from "../../npm/dist/trinity/core/line/TriLineSet.js";
+import { TriVariableContentType } from "../../npm/dist/trinity/generated/trinityCore/enums.js";
 
 
 const { TermType } = Tr2ExpressionTermInfo;
@@ -934,38 +935,35 @@ test("Tr2VariableStore forms a global-rooted graph with Carbon lookup rules", ()
   const store = new Tr2VariableStore();
   assertEquals(store.GetParentVariableStore(), globalStore);
 
-  // Registration derives the script-bridge content type and stores values.
-  const speed = store.RegisterVariable("vsTestSpeed", 0.5);
+  // Registration takes the stated content type and stores the value.
+  const speed = store.RegisterVariableInternal("vsTestSpeed", TriVariableContentType.TRIVARIABLE_FLOAT, 0.5);
   assertEquals(speed instanceof TriVariable, true);
   assertEquals(speed.GetType(), TriVariable.ContentType.TRIVARIABLE_FLOAT);
   assertEquals(speed.GetValue(), 0.5);
-  assertEquals(store.RegisterVariable("vsTestCount", 3).GetType(), TriVariable.ContentType.TRIVARIABLE_INT);
-  assertEquals(store.RegisterVariable("vsTestColor", [1, 0, 0, 1]).GetType(), TriVariable.ContentType.TRIVARIABLE_FLOAT4);
-  assertEquals(store.RegisterVariable("vsTestMatrix", mat4.create()).GetType(), TriVariable.ContentType.TRIVARIABLE_FLOAT4X4);
-  // Booleans register as INT, the way the Python bridge coerces them.
-  const flag = store.RegisterVariable("vsTestFlag", true);
-  assertEquals(flag.GetType(), TriVariable.ContentType.TRIVARIABLE_INT);
-  assertEquals(flag.GetValue(), 1);
-  // An unsupported value shape registers nothing and never clobbers an
-  // existing variable; null reserves like the bridge's None.
-  assertEquals(store.RegisterVariable("vsTestSpeed", { bogus: true }), null);
-  assertEquals(store.FindLocalVariable("vsTestSpeed").GetValue(), 0.5);
-  assertEquals(store.FindLocalVariable("vsTestNone"), null);
-  assertEquals(store.RegisterVariable("vsTestNone", null).GetType(), TriVariable.ContentType.TRIVARIABLE_INVALID);
+  assertEquals(store.RegisterVariableInternal("vsTestCount", TriVariableContentType.TRIVARIABLE_INT, 3).GetType(), TriVariable.ContentType.TRIVARIABLE_INT);
+  assertEquals(store.RegisterVariableInternal("vsTestColor", TriVariableContentType.TRIVARIABLE_COLOR, [1, 0, 0, 1]).GetType(), TriVariable.ContentType.TRIVARIABLE_COLOR);
+  assertEquals(store.RegisterVariableInternal("vsTestMatrix", TriVariableContentType.TRIVARIABLE_FLOAT4X4, mat4.create()).GetType(), TriVariable.ContentType.TRIVARIABLE_FLOAT4X4);
+  let refused = false;
+  try { store.RegisterVariable("vsTestBridge", 1); }
+  catch (error) { refused = error instanceof TypeError; }
+  assertEquals(refused, true, "the value-inferring bridge is not supported");
+  assertEquals(store.FindLocalVariable("vsTestBridge"), null);
 
   // Same-name same-type registration reuses the variable; a reserved
-  // variable adopts the incoming type; a hard conflict returns null.
-  assertEquals(store.RegisterVariable("vsTestSpeed", 0.75), speed);
+  // variable adopts the incoming type; a hard conflict returns null and
+  // leaves the value alone.
+  assertEquals(store.RegisterVariableInternal("vsTestSpeed", TriVariableContentType.TRIVARIABLE_FLOAT, 0.75), speed);
   assertEquals(speed.GetValue(), 0.75);
-  const reserved = store.RegisterVariable("vsTestReserved");
+  const reserved = store.RegisterVariableType("vsTestReserved", TriVariableContentType.TRIVARIABLE_INVALID);
   assertEquals(reserved.GetType(), TriVariable.ContentType.TRIVARIABLE_INVALID);
-  assertEquals(store.RegisterVariable("vsTestReserved", [1, 2]), reserved);
+  assertEquals(store.RegisterVariableInternal("vsTestReserved", TriVariableContentType.TRIVARIABLE_FLOAT2, [1, 2]), reserved);
   assertEquals(reserved.GetType(), TriVariable.ContentType.TRIVARIABLE_FLOAT2);
-  assertEquals(store.RegisterVariable("vsTestSpeed", [1, 2, 3]), null);
+  assertEquals(store.RegisterVariableInternal("vsTestSpeed", TriVariableContentType.TRIVARIABLE_FLOAT3, [1, 2, 3]), null);
+  assertEquals(speed.GetValue(), 0.75);
 
   // Find walks the parent chain without creating; Get reserves on miss in
   // the queried store.
-  globalStore.RegisterVariable("vsTestGlobal", 7.5);
+  globalStore.RegisterVariableInternal("vsTestGlobal", TriVariableContentType.TRIVARIABLE_FLOAT, 7.5);
   assertEquals(store.FindVariable("vsTestGlobal"), globalStore.FindLocalVariable("vsTestGlobal"));
   assertEquals(store.FindLocalVariable("vsTestGlobal"), null);
   assertEquals(store.FindVariable("vsTestMissing"), null);

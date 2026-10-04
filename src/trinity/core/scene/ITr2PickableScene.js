@@ -9,6 +9,7 @@ import { ALResult, Failed } from "#trinityal";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 import { screenToProjection, convertProjectionCoordToWorldPickRay } from "../view/pickRay.js";
 import { TriProjection } from "../view/TriProjection.js";
+import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
 /** Native picking algorithm with nested result records and virtual scene hooks. */
 export class ITr2PickableScene
@@ -149,7 +150,7 @@ export class ITr2PickableScene
   @meta.adapted
   RenderPicking(opaque, picking, pass, context)
   {
-    Tr2VariableStore.globalStore().RegisterVariable("PickingComponents", [pass & 1 ? 1 : 0, pass & 2 ? 1 : 0, pass & 4 ? 1 : 0, pass & 8 ? 1 : 0]);
+    Tr2VariableStore.globalStore().RegisterVariableInternal("PickingComponents", TriVariableContentType.TRIVARIABLE_FLOAT4, [pass & 1 ? 1 : 0, pass & 2 ? 1 : 0, pass & 4 ? 1 : 0, pass & 8 ? 1 : 0]);
     const target = this.GetPickBuffer();
     if (!target.BeginRendering(1, context)) return false;
     try

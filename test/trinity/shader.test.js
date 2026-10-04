@@ -26,6 +26,7 @@ import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";
 import { Tr2ColorSpace } from "../../npm/dist/global/consts/renderContext/index.js";
 import { Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
 import { TriTextureRes } from "../../npm/dist/resource/index.js";
+import { TriVariableContentType } from "../../npm/dist/trinity/generated/trinityCore/enums.js";
 
 
 function assert(condition, message = "assertion failed")
@@ -516,7 +517,7 @@ test("promoted variable, transform, and shader buffer classes expose graph behav
 {
   const previousStore = Tr2VariableStore.globalStore();
   const globalStore = Tr2VariableStore.setGlobalStore(new Tr2VariableStore());
-  globalStore.RegisterVariable("EnvMapTransform", {
+  globalStore.RegisterVariableInternal("EnvMapTransform", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, {
     GetTexture()
     {
       return null;
@@ -530,7 +531,7 @@ test("promoted variable, transform, and shader buffer classes expose graph behav
   variable.name = "Env";
   variable.variableName = "EnvMapTransform";
   const explicitStore = new Tr2VariableStore();
-  explicitStore.RegisterVariable("EnvMapTransform", {
+  explicitStore.RegisterVariableInternal("EnvMapTransform", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, {
     GetVariable()
     {
       throw new Error("a stored value must not be re-searched as a store");

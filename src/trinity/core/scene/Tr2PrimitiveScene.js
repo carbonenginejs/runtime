@@ -17,6 +17,7 @@ import { TriDevice } from "../device/TriDevice.js";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 import { TriProjection } from "../view/TriProjection.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
+import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
 /** Native primitive scene and tool handles. Text rendering is a separate port. */
 @meta.define({ className: "Tr2PrimitiveScene", family: "trinityCore" })
@@ -287,7 +288,7 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
   {
     const esm = context.GetEffectStateManager(), inverted = esm.IsDepthTestInverted();
     esm.SetInvertedDepthTest(true);
-    Tr2VariableStore.globalStore().RegisterVariable("PickingComponents", [pass & 1 ? 1 : 0, pass & 2 ? 1 : 0, pass & 4 ? 1 : 0, pass & 8 ? 1 : 0]);
+    Tr2VariableStore.globalStore().RegisterVariableInternal("PickingComponents", TriVariableContentType.TRIVARIABLE_FLOAT4, [pass & 1 ? 1 : 0, pass & 2 ? 1 : 0, pass & 4 ? 1 : 0, pass & 8 ? 1 : 0]);
     try
     {
       if (!this._pickBuffer.BeginRendering(0, context)) return false;

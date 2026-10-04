@@ -47,6 +47,7 @@ import "../../core/volumetrics/Tr2VolumetricsRenderer.js";
 // A cycle with EveSpaceScene.js; each side reads the other only inside methods.
 import { EveSpaceScene } from "./EveSpaceScene.js";
 import { blue } from "#blue";
+import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 import "../../postProcess/effect/Tr2PPEffect.js";
 import "#consts/renderContext/formats";
 
@@ -462,7 +463,7 @@ export class EveSpaceSceneRenderDriver
       if (offscreen)
       {
         this.#depthMapReference.SetTexture(offscreen.depth.Get());
-        Tr2VariableStore.globalStore().RegisterVariable("DepthMap", this.#depthMapReference);
+        Tr2VariableStore.globalStore().RegisterVariableInternal("DepthMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this.#depthMapReference);
       }
 
       // The shadow globals start empty, with the white fallbacks: the shadow
@@ -565,7 +566,7 @@ export class EveSpaceSceneRenderDriver
     {
       if (handle) this.#gpuResourcePool.Free(handle);
     }
-    Tr2VariableStore.globalStore().RegisterVariable("SSAOMap", this.#ssaoMapReference);
+    Tr2VariableStore.globalStore().RegisterVariableInternal("SSAOMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this.#ssaoMapReference);
   }
 
   /**
@@ -740,7 +741,7 @@ export class EveSpaceSceneRenderDriver
     }
 
     this.#normalMapReference.SetTexture(offscreen?.normal?.Get() ?? null);
-    Tr2VariableStore.globalStore().RegisterVariable("SpaceSceneNormalMap", this.#normalMapReference);
+    Tr2VariableStore.globalStore().RegisterVariableInternal("SpaceSceneNormalMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this.#normalMapReference);
 
     // Carbon gates the main pass on the scene's display flag AND this switch
     // (cpp:527).
@@ -827,7 +828,7 @@ export class EveSpaceSceneRenderDriver
       }
 
       this._opaqueMapReference.SetTexture(opaque);
-      Tr2VariableStore.globalStore().RegisterVariable("EveSpaceSceneOpaqueMap", this._opaqueMapReference);
+      Tr2VariableStore.globalStore().RegisterVariableInternal("EveSpaceSceneOpaqueMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this._opaqueMapReference);
     }
 
     // EveSpaceScene.cpp:2754-2774: cloud composition precedes transparency;
@@ -838,8 +839,8 @@ export class EveSpaceSceneRenderDriver
     const store = Tr2VariableStore.globalStore();
     if (volumes)
     {
-      store.RegisterVariable("EveSceneFroxelFogMap", volumes[0].Get());
-      store.RegisterVariable("EveSceneFogVolumeMap", volumes[1].Get());
+      store.RegisterVariableTextureAL("EveSceneFroxelFogMap", volumes[0].Get());
+      store.RegisterVariableTextureAL("EveSceneFogVolumeMap", volumes[1].Get());
     }
     try
     {
@@ -868,8 +869,8 @@ export class EveSpaceSceneRenderDriver
     {
       if (volumes)
       {
-        store.RegisterVariable("EveSceneFroxelFogMap", new Tr2TextureAL());
-        store.RegisterVariable("EveSceneFogVolumeMap", new Tr2TextureAL());
+        store.RegisterVariableTextureAL("EveSceneFroxelFogMap", new Tr2TextureAL());
+        store.RegisterVariableTextureAL("EveSceneFogVolumeMap", new Tr2TextureAL());
         // Native handle destruction ignores an empty return (Tr2GpuResourcePool.h:180-187).
         for (const volume of volumes) if (volume.IsValid()) this.#gpuResourcePool.Free(volume);
       }
@@ -1183,7 +1184,7 @@ export class EveSpaceSceneRenderDriver
     // Carbon clears this global before post-processing (cpp:604). Leaving
     // the provider populated retains the opaque copy after AA is disabled.
     this._opaqueMapReference.SetTexture(null);
-    Tr2VariableStore.globalStore().RegisterVariable("EveSpaceSceneOpaqueMap", this._opaqueMapReference);
+    Tr2VariableStore.globalStore().RegisterVariableInternal("EveSpaceSceneOpaqueMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this._opaqueMapReference);
 
     this.postProcess.Execute(target, offscreen.color, offscreen.depth, offscreen.velocity, offscreen.opaque, this.scene, null, this.#gpuResourcePool, renderContext, this.#renderer);
   }

@@ -40,6 +40,7 @@ import { Tr2Effect } from "../shader/Tr2Effect.js";
 import { Tr2TextureReference } from "./Tr2TextureReference.js";
 import { BLIT_EFFECT_PATH, BLIT_FILTERED_EFFECT_PATH } from "#consts/effectPaths";
 import { SCREEN_QUAD_FLOATS, SCREEN_VERTEX_BYTES, SetupScreenQuad, SetupScreenQuadInCameraSpace } from "./Tr2RenderUtils.js";
+import { TriVariableContentType } from "../generated/trinityCore/enums.js";
 
 
 
@@ -131,7 +132,7 @@ export class Tr2Blitter
     // anything is published. A JS null has no type and registered an INVALID
     // variable whose binding was skipped, so every blit sampled nothing. The
     // empty reference is the typed null: same type, no texture.
-    Tr2VariableStore.globalStore().RegisterVariable(BLIT_SOURCE, this.#textureReference);
+    Tr2VariableStore.globalStore().RegisterVariableInternal(BLIT_SOURCE, TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this.#textureReference);
 
     this.#blitEffect = new Tr2Effect();
     this.#blitEffect.SetEffectPathName(BLIT_EFFECT_PATH);
