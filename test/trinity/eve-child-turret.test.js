@@ -84,6 +84,17 @@ class FixedTarget extends EveEffectRoot2
   }
 }
 
+/** Wraps a real method: records the call, then runs the real one. */
+function spy(instance, name, record)
+{
+  const real = instance[name].bind(instance);
+  instance[name] = (...args) =>
+  {
+    record(...args);
+    return real(...args);
+  };
+}
+
 test("EveChildTurret hooks itself as the animation updater's pose modifier", () =>
 {
   const turret = new EveChildTurret();
@@ -166,10 +177,10 @@ test("EveChildTurret state machine drives animations, fades and the fire cycle",
   const firingTarget = new FixedTarget(1, 0, 0);
   firingTarget.GetClosestDamageLocatorIndex = () => 3;
   assert.equal(turret.GetTarget().SetTargetable(firingTarget), true);
-  turret.GetTarget().StartFireAtLocator = (locator, delay, length, source) =>
+  spy(turret.GetTarget(), "StartFireAtLocator", (locator, delay, length, source) =>
   {
     started.push([ locator, delay, length, Array.from(source) ]);
-  };
+  });
   turret.EnterStateFiring();
   assert.equal(turret.state, State.STATE_FIRING);
   assert.equal(updater.calls.some(call => call[0] === "play" && call[1] === "Fire"), true);
@@ -179,7 +190,7 @@ test("EveChildTurret state machine drives animations, fades and the fire cycle",
   // Deactivating from firing falls through targeting: fire stops, pack plays.
   const stops = [];
   turret.firingEffect = null;
-  turret.GetTarget().StopFireAtLocator = () => stops.push("stopped");
+  spy(turret.GetTarget(), "StopFireAtLocator", () => stops.push("stopped"));
   updater.calls.length = 0;
   turret.EnterStateDeactive();
   assert.equal(turret.state, State.STATE_DEACTIVE);
@@ -199,8 +210,8 @@ test("EveChildTurret cycles muzzles and names the fire animations accordingly", 
   turret.maxCyclingFirePos = 3;
   turret.cyclingFireGroupCount = 1;
   turret.state = State.STATE_TARGETING;
-  turret.GetTarget().FindClosestLocator = () => 0;
-  turret.GetTarget().StartFireAtLocator = () => {};
+  spy(turret.GetTarget(), "FindClosestLocator", () => {});
+  spy(turret.GetTarget(), "StartFireAtLocator", () => {});
 
   const fireNames = () => updater.calls.filter(call => call[0] === "play" && call[1].startsWith("Fire")).map(call => call[1]);
   turret.SetupFiringState();

@@ -10,6 +10,8 @@ function pendingManager(t)
   t.after(()=>{blue.resMan=previous;});
   return requests;
 }
+/** Wraps a real method: records the call, then runs the real one. */
+function spy(instance,name,record){const real=instance[name].bind(instance);instance[name]=(...args)=>{record(...args);return real(...args);};}
 const settle=()=>new Promise(resolve=>setImmediate(resolve));
 
 test("child turret typed load installs through the current registry and preserves deferred call order", async t =>
@@ -19,8 +21,8 @@ test("child turret typed load installs through the current registry and preserve
   assert.equal(turret.Initialize(),true);
   turret.Register(registry);
   const calls=[], effect=new EveTurretFiringFX();
-  effect.SetControllerVariable=(name,value)=>calls.push([name,value]);
-  effect.StartControllers=()=>calls.push(["start"]);
+  spy(effect,"SetControllerVariable",(name,value)=>calls.push([name,value]));
+  spy(effect,"StartControllers",()=>calls.push(["start"]));
   turret.SetControllerVariable("Strength",0.25);
   turret.StartControllers();
   turret.SetControllerVariable("Strength",0.75);
@@ -101,9 +103,12 @@ test("firing transitions wait for loaded effect timing and later idle cancels fi
   const requests=pendingManager(t), turret=new EveChildTurret();
   turret.firingEffectResPath="res:/effect.red"; turret.Initialize();
   const calls=[], effect=new EveTurretFiringFX();
+  // Replaced, not wrapped: the real one reaches PlayAnimation, which calls
+  // Tr2GrannyAnimation.FindAnimationDurationByName (Carbon Tr2GrannyAnimation.h:150),
+  // not yet ported.
   turret.SetupFiringState=()=>{calls.push(["setup",turret.GetFiringEffect()]);return true;};
-  effect.PrepareFiring=()=>calls.push(["fire"]);
-  effect.StopFiring=()=>calls.push(["stop"]);
+  spy(effect,"PrepareFiring",()=>calls.push(["fire"]));
+  spy(effect,"StopFiring",()=>calls.push(["stop"]));
   turret.EnterStateFiring(); turret.EnterStateIdle();
   assert.deepEqual(calls,[]);
   requests[0].resolve(effect); await settle();
