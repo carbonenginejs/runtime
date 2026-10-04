@@ -49,8 +49,8 @@ export class Tr2ElementBlendConstraint extends ITr2GenericParticleConstraint
   Bind(particleSystem)
   {
     this.#element = this.elementType === Tr2ParticleElementDeclaration.Type.CUSTOM
-      ? particleSystem?.GetElement?.(this.customName)
-      : particleSystem?.GetElement?.(this.elementType);
+      ? particleSystem.GetElement(this.customName)
+      : particleSystem.GetElement(this.elementType);
     this.isValid = !!this.#element;
     return this.isValid;
   }
