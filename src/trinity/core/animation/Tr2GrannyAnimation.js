@@ -1466,6 +1466,24 @@ export class Tr2GrannyAnimation
     return value;
   }
 
+  /**
+   * Carbon FindAnimationDurationByName (Tr2GrannyAnimation.cpp:252-276): the named
+   * animation's duration, searching the primary then the secondary resources; 0 when
+   * there is no such animation. EveChildTurret.PlayAnimation reads it for every action.
+   *
+   * Adapted: Carbon branches on IsUsingCMF between FindCMFAnimationByName and
+   * FindGrannyAnimationByName; _findAnimation serves both through CjsGrannyCurves.
+   *
+   * @param {string} name The animation name.
+   * @returns {number} Its duration in seconds, or 0.
+   */
+  @meta.adapted
+  FindAnimationDurationByName(name)
+  {
+    const animation = this._findAnimation(name);
+    return animation ? CjsGrannyCurves.getAnimationDuration(animation) : 0;
+  }
+
   /** Finds a named animation across primary and secondary resources. */
   _findAnimation(name)
   {

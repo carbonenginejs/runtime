@@ -103,10 +103,10 @@ test("firing transitions wait for loaded effect timing and later idle cancels fi
   const requests=pendingManager(t), turret=new EveChildTurret();
   turret.firingEffectResPath="res:/effect.red"; turret.Initialize();
   const calls=[], effect=new EveTurretFiringFX();
-  // Replaced, not wrapped: the real one reaches PlayAnimation, which calls
-  // Tr2GrannyAnimation.FindAnimationDurationByName (Carbon Tr2GrannyAnimation.h:150),
-  // not yet ported.
-  turret.SetupFiringState=()=>{calls.push(["setup",turret.GetFiringEffect()]);return true;};
+  // Wrapped: records the call, then runs the real SetupFiringState (PlayAnimation and
+  // Tr2GrannyAnimation.FindAnimationDurationByName included).
+  const setup=turret.SetupFiringState.bind(turret);
+  turret.SetupFiringState=()=>{calls.push(["setup",turret.GetFiringEffect()]);return setup();};
   spy(effect,"PrepareFiring",()=>calls.push(["fire"]));
   spy(effect,"StopFiring",()=>calls.push(["stop"]));
   turret.EnterStateFiring(); turret.EnterStateIdle();
