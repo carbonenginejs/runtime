@@ -272,7 +272,7 @@ export class AudGameObjResource
    */
   @meta.blue.renamed("Initialize")
   @meta.adapted
-  InitializeWithParameters(name, prefix, position)
+  Initialize_WithParameters(name, prefix, position)
   {
     this.name = name;
     this.eventPrefix = prefix;

@@ -149,7 +149,7 @@ export class TriFrustum
    */
   IsSphereVisible(sphere, cullBackPlane = false)
   {
-    return this.IsSphereVisibleCenterRadius(sphere, sphere[3], cullBackPlane);
+    return this.IsSphereVisible_CenterRadius(sphere, sphere[3], cullBackPlane);
   }
 
   /**
@@ -163,7 +163,7 @@ export class TriFrustum
    * @param {Boolean} [cullBackPlane]
    * @returns {Boolean}
    */
-  IsSphereVisibleCenterRadius(center, radius, cullBackPlane = false)
+  IsSphereVisible_CenterRadius(center, radius, cullBackPlane = false)
   {
     const sphereOrCenter = center;
     const cullBack = cullBackPlane;
@@ -219,7 +219,7 @@ export class TriFrustum
    */
   IsPointVisible(point)
   {
-    return this.IsSphereVisibleCenterRadius(point, 0);
+    return this.IsSphereVisible_CenterRadius(point, 0);
   }
 
   /**

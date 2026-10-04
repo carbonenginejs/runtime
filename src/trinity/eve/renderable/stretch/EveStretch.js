@@ -133,9 +133,9 @@ export class EveStretch extends IEveFiringEffectElement
     if (!this.update) return true;
     // Carbon EveStretch.cpp:57-75: source and destination update through their Be::Time overloads.
     const time = context.GetTime();
-    if (this.source) this.source.UpdateTicks(time, this._sourcePosition);
+    if (this.source) this.source.Update_Ticks(time, this._sourcePosition);
     else if (this._useTransforms) mat4.getTranslation(this._sourcePosition, this._sourceTransform);
-    if (this.dest) this.dest.UpdateTicks(time, this._destinationPosition);
+    if (this.dest) this.dest.Update_Ticks(time, this._destinationPosition);
     return true;
   }
 

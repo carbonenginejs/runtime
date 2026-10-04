@@ -784,9 +784,9 @@ export class Tr2RenderContext
    * @param {number} stride Bytes per index.
    * @returns {number} An `ALResult`: whether the AL accepted it.
    */
-  SetIndicesStride(buffer, stride)
+  SetIndices_Stride(buffer, stride)
   {
-    return this.#requireAL("SetIndicesStride").SetIndicesStride(buffer, stride);
+    return this.#requireAL("SetIndices_Stride").SetIndices_Stride(buffer, stride);
   }
 
   /**

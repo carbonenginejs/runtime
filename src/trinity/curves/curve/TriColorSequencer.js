@@ -153,9 +153,9 @@ export class TriColorSequencer extends ITriColorFunction
    */
   @meta.blue.renamed("Update")
   @meta.adapted
-  UpdateTicks(time, out)
+  Update_Ticks(time, out)
   {
-    this.GetValueAtTicks(time, out);
+    this.GetValueAt_Ticks(time, out);
     vec4.copy(this.value, out);
     return out;
   }
@@ -169,14 +169,14 @@ export class TriColorSequencer extends ITriColorFunction
    */
   @meta.blue.renamed("GetValueAt")
   @meta.adapted
-  GetValueAtTicks(time, out)
+  GetValueAt_Ticks(time, out)
   {
     if (this.operator === TRIOPERATOR.TRIOP_MULTIPLY)
     {
       vec4.set(out, 1, 1, 1, 1);
       for (const curve of this.functions)
       {
-        curve.GetValueAtTicks(time, this._childValue);
+        curve.GetValueAt_Ticks(time, this._childValue);
         vec4.multiply(out, out, this._childValue);
       }
       return out;
@@ -184,7 +184,7 @@ export class TriColorSequencer extends ITriColorFunction
     vec4.set(out, 0, 0, 0, 0);
     for (const curve of this.functions)
     {
-      curve.GetValueAtTicks(time, this._childValue);
+      curve.GetValueAt_Ticks(time, this._childValue);
       vec4.add(out, out, this._childValue);
     }
     return out;

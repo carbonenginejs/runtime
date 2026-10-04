@@ -391,7 +391,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
   @meta.implemented
   GetInputValue(index)
   {
-    return this.GetInputValueTime(index, this._currentTime);
+    return this.GetInputValue_Time(index, this._currentTime);
   }
 
   /**
@@ -402,7 +402,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    */
   @meta.blue.renamed("GetInputValue")
   @meta.adapted
-  GetInputValueTime(index, time)
+  GetInputValue_Time(index, time)
   {
     const input = this.inputs[index | 0];
     return input ? input.GetValueAt(time) : 0;

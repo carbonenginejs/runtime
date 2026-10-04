@@ -1217,9 +1217,9 @@ export class Tr2Effect extends Tr2Material
   /**
    * Carbon's SetParameter( name, float ) (Tr2Effect.cpp): sets the named
    * Tr2FloatParameter, appending one when the name has none. Each of Carbon's
-   * other overloads is its own method below (SetParameterUInt32,
-   * SetParameterVector2/3/4, SetParameterMatrix, SetParameterGpuBuffer,
-   * SetParameterTextureProvider, SetParameterTextureAL, SetParameterBufferAL),
+   * other overloads is its own method below (SetParameter_UInt32,
+   * SetParameter_Vector2/3/4, SetParameter_Matrix, SetParameter_GpuBuffer,
+   * SetParameter_TextureProvider, SetParameter_TextureAL, SetParameter_BufferAL),
    * because JavaScript has no static types to choose between them.
    * @param {string} name Parameter name.
    * @param {number} value Float value.
@@ -1242,7 +1242,7 @@ export class Tr2Effect extends Tr2Material
    */
   @meta.blue.renamed("SetParameter")
   @meta.implemented
-  SetParameterUInt32(name, value)
+  SetParameter_UInt32(name, value)
   {
     this.#SetValueParameter(name, Tr2FloatParameter, float32FromBits(value));
   }
@@ -1257,9 +1257,9 @@ export class Tr2Effect extends Tr2Material
    */
   @meta.blue.renamed("SetParameter")
   @meta.implemented
-  SetParameterVector2(name, value)
+  SetParameter_Vector2(name, value)
   {
-    this.SetParameterVector4(name, vec4.set(VECTOR4_PAD, value[0], value[1], 0, 0));
+    this.SetParameter_Vector4(name, vec4.set(VECTOR4_PAD, value[0], value[1], 0, 0));
   }
 
   /**
@@ -1271,9 +1271,9 @@ export class Tr2Effect extends Tr2Material
    */
   @meta.blue.renamed("SetParameter")
   @meta.implemented
-  SetParameterVector3(name, value)
+  SetParameter_Vector3(name, value)
   {
-    this.SetParameterVector4(name, vec4.set(VECTOR4_PAD, value[0], value[1], value[2], 0));
+    this.SetParameter_Vector4(name, vec4.set(VECTOR4_PAD, value[0], value[1], value[2], 0));
   }
 
   /**
@@ -1285,7 +1285,7 @@ export class Tr2Effect extends Tr2Material
    */
   @meta.blue.renamed("SetParameter")
   @meta.implemented
-  SetParameterVector4(name, value)
+  SetParameter_Vector4(name, value)
   {
     this.#SetValueParameter(name, Tr2Vector4Parameter, value);
   }
@@ -1299,7 +1299,7 @@ export class Tr2Effect extends Tr2Material
    */
   @meta.blue.renamed("SetParameter")
   @meta.implemented
-  SetParameterMatrix(name, value)
+  SetParameter_Matrix(name, value)
   {
     this.#SetValueParameter(name, Tr2Matrix4Parameter, value);
   }
@@ -1314,7 +1314,7 @@ export class Tr2Effect extends Tr2Material
    */
   @meta.blue.renamed("SetParameter")
   @meta.implemented
-  SetParameterGpuBuffer(name, buffer)
+  SetParameter_GpuBuffer(name, buffer)
   {
     const parameterName = String(name ?? "");
     const parameter = CjsSchema.cast(this.GetResourceByName(parameterName), Tr2GeometryBufferParameter);
@@ -1339,7 +1339,7 @@ export class Tr2Effect extends Tr2Material
    */
   @meta.blue.renamed("SetParameter")
   @meta.adapted
-  SetParameterTextureProvider(name, texture, uavMipLevel = 0)
+  SetParameter_TextureProvider(name, texture, uavMipLevel = 0)
   {
     this.#SetTextureParameter(String(name ?? ""), texture, uavMipLevel);
   }
@@ -1356,7 +1356,7 @@ export class Tr2Effect extends Tr2Material
    */
   @meta.blue.renamed("SetParameter")
   @meta.adapted
-  SetParameterTextureAL(name, texture, uavMipLevel = 0)
+  SetParameter_TextureAL(name, texture, uavMipLevel = 0)
   {
     this.#SetTextureALParameter(String(name ?? ""), texture, uavMipLevel);
   }
@@ -1371,7 +1371,7 @@ export class Tr2Effect extends Tr2Material
    */
   @meta.blue.renamed("SetParameter")
   @meta.adapted
-  SetParameterBufferAL(name, buffer)
+  SetParameter_BufferAL(name, buffer)
   {
     this.#SetBufferParameter(String(name ?? ""), buffer);
   }

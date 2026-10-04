@@ -839,8 +839,8 @@ export class EveSpaceSceneRenderDriver
     const store = Tr2VariableStore.globalStore();
     if (volumes)
     {
-      store.RegisterVariableTextureAL("EveSceneFroxelFogMap", volumes[0].Get());
-      store.RegisterVariableTextureAL("EveSceneFogVolumeMap", volumes[1].Get());
+      store.RegisterVariable_TextureAL("EveSceneFroxelFogMap", volumes[0].Get());
+      store.RegisterVariable_TextureAL("EveSceneFogVolumeMap", volumes[1].Get());
     }
     try
     {
@@ -869,8 +869,8 @@ export class EveSpaceSceneRenderDriver
     {
       if (volumes)
       {
-        store.RegisterVariableTextureAL("EveSceneFroxelFogMap", new Tr2TextureAL());
-        store.RegisterVariableTextureAL("EveSceneFogVolumeMap", new Tr2TextureAL());
+        store.RegisterVariable_TextureAL("EveSceneFroxelFogMap", new Tr2TextureAL());
+        store.RegisterVariable_TextureAL("EveSceneFogVolumeMap", new Tr2TextureAL());
         // Native handle destruction ignores an empty return (Tr2GpuResourcePool.h:180-187).
         for (const volume of volumes) if (volume.IsValid()) this.#gpuResourcePool.Free(volume);
       }
@@ -1083,11 +1083,11 @@ export class EveSpaceSceneRenderDriver
       const esm = renderContext.GetEffectStateManager();
       this.#BeginRenderPass(esm, [ destination ], null);
       esm.ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
-      effect.SetParameterTextureAL("BlitCurrent", backBufferCopy.Get());
-      effect.SetParameterTextureAL("TexDistortion", distortion);
+      effect.SetParameter_TextureAL("BlitCurrent", backBufferCopy.Get());
+      effect.SetParameter_TextureAL("TexDistortion", distortion);
       Tr2Renderer.drawFullScreenWithShader(renderContext, effect);
-      effect.SetParameterTextureAL("BlitCurrent", null);
-      effect.SetParameterTextureAL("TexDistortion", null);
+      effect.SetParameter_TextureAL("BlitCurrent", null);
+      effect.SetParameter_TextureAL("TexDistortion", null);
     }
     finally
     {

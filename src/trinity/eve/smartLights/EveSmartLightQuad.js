@@ -241,7 +241,7 @@ export class EveSmartLightQuad extends EveChildTransform
   @meta.blue.renamed("UpdateSyncronous")
   @meta.adapted
   @meta.reason("Carbon re-registers through the Tr2QuadRenderer singleton; the relocated renderer arrives via the threaded update context when present.")
-  UpdateSyncronousDistribution(updateContext, params, _distribution)
+  UpdateSyncronous_Distribution(updateContext, params, _distribution)
   {
     this._activationStrength = params?.activationStrength ?? 1;
 
@@ -279,7 +279,7 @@ export class EveSmartLightQuad extends EveChildTransform
    */
   @meta.blue.renamed("UpdateAsyncronous")
   @meta.implemented
-  UpdateAsyncronousDistribution(_updateContext, params, _distribution)
+  UpdateAsyncronous_Distribution(_updateContext, params, _distribution)
   {
     let localToWorld = params?.localToWorldTransform ?? EveSmartLightQuad._identity;
 

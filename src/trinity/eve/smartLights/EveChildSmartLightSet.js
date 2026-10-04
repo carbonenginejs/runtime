@@ -107,7 +107,7 @@ export class EveChildSmartLightSet extends EveChildTransform
 
     for (const group of this.lightGroups)
     {
-      group.UpdateSyncronousDistribution(updateContext, params, this.distribution);
+      group.UpdateSyncronous_Distribution(updateContext, params, this.distribution);
     }
   }
 
@@ -123,7 +123,7 @@ export class EveChildSmartLightSet extends EveChildTransform
 
     for (const group of this.lightGroups)
     {
-      group.UpdateAsyncronousDistribution(updateContext, params, this.distribution);
+      group.UpdateAsyncronous_Distribution(updateContext, params, this.distribution);
     }
   }
 

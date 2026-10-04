@@ -324,7 +324,7 @@ export class Tr2RenderBatch
    * @param {number} meshIndex
    * @param {number} areaIndex
    */
-  SetPickingDataMeshArea(meshIndex, areaIndex)
+  SetPickingData_MeshArea(meshIndex, areaIndex)
   {
     this.SetPickingData((meshIndex << 8) | (areaIndex & 0xff));
   }

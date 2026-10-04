@@ -300,7 +300,7 @@ export class EveLensflare
 
     if (this.translationCurve)
     {
-      this.translationCurve.UpdateTicks(simTime, this.position);
+      this.translationCurve.Update_Ticks(simTime, this.position);
       const distanceToCenter = vec3.length(this.position) / 0.1495978707e12;
       this.sunSize = 1.5 / Math.log(distanceToCenter + 2.71);
     }

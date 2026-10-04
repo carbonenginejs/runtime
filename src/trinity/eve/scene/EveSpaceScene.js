@@ -814,7 +814,7 @@ export class EveSpaceScene
     // (Carbon: m_sunData.DirWorld = -Normalize(sunDirection)).
     if (this.sunBall)
     {
-      this.sunBall.UpdateTicks(simTime, sunDirectionScratch);
+      this.sunBall.Update_Ticks(simTime, sunDirectionScratch);
       vec3.normalize(sunDirectionScratch, sunDirectionScratch);
       vec3.negate(this.sunDirection, sunDirectionScratch);
     }
@@ -2581,7 +2581,7 @@ export class EveSpaceScene
     const visible = [];
     try
     {
-      if (this.sunBall) this.sunBall.GetValueAtTicks(this.updateContext.GetTime(), sun);
+      if (this.sunBall) this.sunBall.GetValueAt_Ticks(this.updateContext.GetTime(), sun);
       for (const planet of this.planets)
       {
         const size = planet.GetEstimatedPixelDiameter();
@@ -2590,7 +2590,7 @@ export class EveSpaceScene
         if (curve !== null && curve === this.sunBall) continue;
         if (curve && this.sunBall)
         {
-          curve.GetValueAtTicks(this.updateContext.GetTime(), position);
+          curve.GetValueAt_Ticks(this.updateContext.GetTime(), position);
           if ((position[0] - sun[0]) * -sun[0] + (position[1] - sun[1]) * -sun[1] + (position[2] - sun[2]) * -sun[2] < 0) continue;
         }
         planet.GetWorldPosition(position);
@@ -2784,7 +2784,7 @@ export class EveSpaceScene
       {
         const radius = [ 0 ];
 
-        if (caster.IsCastingShadowShadowFrustum(cameraFrustums[frustumIndex], shadowFrustums[frustumIndex], renderReason, radius))
+        if (caster.IsCastingShadow_ShadowFrustum(cameraFrustums[frustumIndex], shadowFrustums[frustumIndex], renderReason, radius))
         {
           shadowCasterInfo.push({ radius: radius[0], caster, perObjectData: null });
         }

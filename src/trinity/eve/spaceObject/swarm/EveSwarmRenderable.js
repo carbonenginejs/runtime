@@ -283,7 +283,7 @@ export class EveSwarmRenderable extends EveEntity
   @meta.blue.renamed("IsCastingShadow")
   @meta.adapted
   @meta.reason("The length-1 out array replaces the float& out-param; the shadow math is ported, including exactly which paths write the out value.")
-  IsCastingShadowShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
+  IsCastingShadow_ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
   {
     if (!this.owner)
     {

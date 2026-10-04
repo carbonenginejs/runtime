@@ -48,7 +48,7 @@ export class EveChildAudio extends EveChildTransform
     if (!Emitter) return false;
     this.audioEmitter = new Emitter();
     const position = mat4.getTranslation(vec3.create(), this.worldTransform);
-    this.audioEmitter.InitializeWithParameters(this.name || "audio_object", "", position);
+    this.audioEmitter.Initialize_WithParameters(this.name || "audio_object", "", position);
     return true;
   }
 

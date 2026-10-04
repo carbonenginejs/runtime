@@ -1312,8 +1312,8 @@ export class EveSpaceObject2 extends EveEntity
 
     if (this.translationCurve)
     {
-      this.translationCurve.UpdateTicks(time, this.worldPosition);
-      this.translationCurve.GetValueDotAtTicks(time, this.worldVelocity);
+      this.translationCurve.Update_Ticks(time, this.worldPosition);
+      this.translationCurve.GetValueDotAt_Ticks(time, this.worldVelocity);
     }
     else
     {
@@ -1321,12 +1321,12 @@ export class EveSpaceObject2 extends EveEntity
       vec3.zero(this.worldVelocity);
     }
 
-    if (this.rotationCurve) this.rotationCurve.UpdateTicks(time, this.worldRotation);
+    if (this.rotationCurve) this.rotationCurve.Update_Ticks(time, this.worldRotation);
     else quat.identity(this.worldRotation);
     if (this.modelRotationCurve)
     {
       const { _modelRotation, _rotation } = EveSpaceObject2;
-      this.modelRotationCurve.UpdateTicks(time, _modelRotation);
+      this.modelRotationCurve.Update_Ticks(time, _modelRotation);
       // Carbon (row-vector): rotation = modelRotation * m_worldRotation - model first.
       quat.multiply(_rotation, this.worldRotation, _modelRotation);
       mat4.fromQuat(this.worldTransform, _rotation);
@@ -1348,7 +1348,7 @@ export class EveSpaceObject2 extends EveEntity
     if (this.modelTranslationCurve)
     {
       const modelTranslation = EveSpaceObject2._modelTranslation;
-      this.modelTranslationCurve.UpdateTicks(time, modelTranslation);
+      this.modelTranslationCurve.Update_Ticks(time, modelTranslation);
       vec3.transformMat4(modelTranslation, modelTranslation, this.worldTransform);
       this.worldTransform[12] = this.worldPosition[0] + modelTranslation[0];
       this.worldTransform[13] = this.worldPosition[1] + modelTranslation[1];
@@ -2402,7 +2402,7 @@ export class EveSpaceObject2 extends EveEntity
   @meta.blue.renamed("IsCastingShadow")
   @meta.adapted
   @meta.reason("The optional length-one array replaces Carbon's float& sizeInShadow out-parameter.")
-  IsCastingShadowShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
+  IsCastingShadow_ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
   {
     if (!this.display || this._boundingSphereWorldRadius <= 0)
     {
@@ -4373,13 +4373,13 @@ export class EveSpaceObject2 extends EveEntity
     if (this.modelTranslationCurve)
     {
       const translation = vec3.zero(EveSpaceObject2._modelTranslation);
-      this.modelTranslationCurve.GetValueAtTicks(0, translation);
+      this.modelTranslationCurve.GetValueAt_Ticks(0, translation);
       vec3.add(position, position, translation);
     }
     if (this.modelRotationCurve)
     {
       const modelRotation = quat.identity(EveSpaceObject2._modelRotation);
-      this.modelRotationCurve.GetValueAtTicks(0, modelRotation);
+      this.modelRotationCurve.GetValueAt_Ticks(0, modelRotation);
       vec3.transformQuat(position, position, modelRotation);
       quat.multiply(rotation, modelRotation, rotation);
     }

@@ -94,7 +94,7 @@ export class EveProjectBracket
       // Carbon: m_trackBall->GetValueAt(&pos, BeOS->GetCurrentFrameTime())
       // (EveProjectBracket.cpp:72) - the Be::Time overload on the OS frame's
       // sim time, which is the scene's clock (see blue-clock epoch, CcpTime).
-      this.trackBall.GetValueAtTicks(blue.os.GetCurrentFrameTime(), position);
+      this.trackBall.GetValueAt_Ticks(blue.os.GetCurrentFrameTime(), position);
       vec3.scale(position, position, this.ballTrackingScaling);
     }
     else if (this.trackTransform)

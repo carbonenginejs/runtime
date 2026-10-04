@@ -93,7 +93,7 @@ export class EveShip2 extends EveMobile
     {
       if (this.translationCurve)
       {
-        this.translationCurve.GetValueDoubleDotAtTicks(time, this._acceleration);
+        this.translationCurve.GetValueDoubleDotAt_Ticks(time, this._acceleration);
       }
       else
       {

@@ -181,7 +181,7 @@ export class Tr2Denoiser
     const height = sourceTexture.GetHeight();
     const sourceSize = vec4.fromValues(width, height, 1 / width, 1 / height);
 
-    this.#denoiseEstimate.SetParameterVector4("SourceDimensions", sourceSize);
+    this.#denoiseEstimate.SetParameter_Vector4("SourceDimensions", sourceSize);
 
     const esm = renderContext.GetEffectStateManager();
 
@@ -204,13 +204,13 @@ export class Tr2Denoiser
 
       esm.SetRenderTarget(0, estimate.Get());
       renderContext.RenderPassHint(OVERWRITE_AND_KEEP, null);
-      this.#estimateNoise.SetParameterTextureAL("Source", sourceTexture);
+      this.#estimateNoise.SetParameter_TextureAL("Source", sourceTexture);
       Tr2Renderer.drawScreenQuad(renderContext, this.#estimateNoise);
-      this.#estimateNoise.SetParameterTextureAL("Source", null);
+      this.#estimateNoise.SetParameter_TextureAL("Source", null);
 
       mask = this.#Pass(gpuResourcePool, "Tr2Denoiser Denoise Mask", width, height);
 
-      this.#denoiseEstimate.SetParameterTextureAL("Source", estimate.Get());
+      this.#denoiseEstimate.SetParameter_TextureAL("Source", estimate.Get());
       esm.SetRenderTarget(0, mask.Get());
       renderContext.RenderPassHint(OVERWRITE_AND_KEEP, null);
       Tr2Renderer.drawScreenQuad(renderContext, this.#denoiseEstimate);
@@ -222,33 +222,33 @@ export class Tr2Denoiser
       temp = this.#Pass(gpuResourcePool, "Tr2Denoiser Temp", width, height);
 
       this.#SetPassParameters(this.#denoiseHoriz, vec2.fromValues(1, 0), depth, normals, projection, sourceSize, upscaling);
-      this.#denoiseHoriz.SetParameterTextureAL("Source", sourceTexture);
-      this.#denoiseHoriz.SetParameterTextureAL("NoiseEstimate", mask.Get());
+      this.#denoiseHoriz.SetParameter_TextureAL("Source", sourceTexture);
+      this.#denoiseHoriz.SetParameter_TextureAL("NoiseEstimate", mask.Get());
       esm.SetRenderTarget(0, temp.Get());
       renderContext.RenderPassHint(OVERWRITE_AND_KEEP, null);
       Tr2Renderer.drawScreenQuad(renderContext, this.#denoiseHoriz);
-      this.#denoiseHoriz.SetParameterTextureAL("Source", null);
-      this.#denoiseHoriz.SetParameterTextureAL("NoiseEstimate", null);
+      this.#denoiseHoriz.SetParameter_TextureAL("Source", null);
+      this.#denoiseHoriz.SetParameter_TextureAL("NoiseEstimate", null);
 
       gpuResourcePool.Free(source);
 
       result = this.#Pass(gpuResourcePool, "Tr2Denoiser Result", width, height);
 
       this.#SetPassParameters(this.#denoiseVert, vec2.fromValues(0, 1), depth, normals, projection, sourceSize, upscaling);
-      this.#denoiseVert.SetParameterTextureAL("Source", temp.Get());
-      this.#denoiseVert.SetParameterTextureAL("NoiseEstimate", mask.Get());
+      this.#denoiseVert.SetParameter_TextureAL("Source", temp.Get());
+      this.#denoiseVert.SetParameter_TextureAL("NoiseEstimate", mask.Get());
       esm.SetRenderTarget(0, result.Get(), true, index);
       renderContext.RenderPassHint(OVERWRITE_AND_KEEP, null);
       Tr2Renderer.drawScreenQuad(renderContext, this.#denoiseVert);
-      this.#denoiseVert.SetParameterTextureAL("Source", null);
-      this.#denoiseVert.SetParameterTextureAL("NoiseEstimate", null);
+      this.#denoiseVert.SetParameter_TextureAL("Source", null);
+      this.#denoiseVert.SetParameter_TextureAL("NoiseEstimate", null);
 
       // Both blur effects hold the depth and normal buffers until here, so a
       // later pass cannot inherit them (`cpp:155-158`).
       for (const effect of [ this.#denoiseHoriz, this.#denoiseVert ])
       {
-        effect.SetParameterTextureAL("DepthBuffer", null);
-        effect.SetParameterTextureAL("NormalBuffer", null);
+        effect.SetParameter_TextureAL("DepthBuffer", null);
+        effect.SetParameter_TextureAL("NormalBuffer", null);
       }
 
       this.#parametersDirty = false;
@@ -329,7 +329,7 @@ export class Tr2Denoiser
       effect.SetParameter("NormalWeight", this.normalWeight);
       effect.SetParameter("PlaneWeight", this.planeWeight);
       effect.SetParameter("PassThrough", this.bypass ? 1 : 0);
-      effect.SetParameterVector2("Axis", vec2.scale(vec2.create(), direction, this.stepSize));
+      effect.SetParameter_Vector2("Axis", vec2.scale(vec2.create(), direction, this.stepSize));
     }
 
     // Carbon's `max(uint32_t(radius / upscaling + 0.5f), 2u)`: round to nearest,
@@ -338,16 +338,16 @@ export class Tr2Denoiser
     // and Denoise1D loops from -Radius to +Radius on those bits read as an int.
     // Passed as the float 5.0 it read 1084227584: two billion iterations per
     // pixel, which hung the GPU.
-    effect.SetParameterUInt32("Radius", Math.max(Math.trunc(this.radius / upscaling + 0.5), 2));
+    effect.SetParameter_UInt32("Radius", Math.max(Math.trunc(this.radius / upscaling + 0.5), 2));
 
-    effect.SetParameterMatrix("ProjectionInv", projection);
+    effect.SetParameter_Matrix("ProjectionInv", projection);
     // Carbon's Vector2( projection._43, projection._33 ); column-major puts
     // those at 14 and 10.
-    effect.SetParameterVector2("ClipInfo", vec2.fromValues(projection[14], projection[10]));
+    effect.SetParameter_Vector2("ClipInfo", vec2.fromValues(projection[14], projection[10]));
 
-    effect.SetParameterTextureAL("DepthBuffer", depth);
-    effect.SetParameterTextureAL("NormalBuffer", normals);
-    effect.SetParameterVector4("SourceDimensions", sourceSize);
+    effect.SetParameter_TextureAL("DepthBuffer", depth);
+    effect.SetParameter_TextureAL("NormalBuffer", normals);
+    effect.SetParameter_Vector4("SourceDimensions", sourceSize);
   }
 
 

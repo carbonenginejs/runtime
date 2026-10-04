@@ -16,11 +16,11 @@ test("an empty Tr2TextureAL declares the texture slot that a later texture reuse
   // The value-sniffing method sent this null to a provider slot, then appended a
   // second slot when the texture arrived.
   const effect = new Tr2Effect();
-  effect.SetParameterTextureAL("DepthMap", null);
+  effect.SetParameter_TextureAL("DepthMap", null);
   const slot = effect.GetResourceByName("DepthMap");
   assert.equal(className(slot.GetTextureProvider()), "Tr2TextureReference");
 
-  effect.SetParameterTextureAL("DepthMap", StubTarget());
+  effect.SetParameter_TextureAL("DepthMap", StubTarget());
   assert.equal(effect.resources.filter(resource => resource.name === "DepthMap").length, 1);
   assert.equal(effect.GetResourceByName("DepthMap"), slot);
 });
@@ -29,7 +29,7 @@ test("an empty Tr2TextureAL declares the texture slot that a later texture reuse
 test("an empty Tr2BufferAL declares a buffer slot, not a texture slot (Tr2PostProcessRenderer.cpp:1200-1217)", () =>
 {
   const effect = new Tr2Effect();
-  effect.SetParameterBufferAL("Histogram", null);
+  effect.SetParameter_BufferAL("Histogram", null);
   assert.equal(className(effect.GetResourceByName("Histogram")), "Tr2GeometryBufferParameter");
 });
 
@@ -41,7 +41,7 @@ test("a whole float is a float, and uint32 stores its bits", () =>
   assert.equal(className(effect.FindParameterByName("Strength")), "Tr2FloatParameter");
   assert.equal(effect.FindParameterByName("Strength").value, 1);
 
-  effect.SetParameterUInt32("FrameIndex", 1);
+  effect.SetParameter_UInt32("FrameIndex", 1);
   const bits = new Float32Array([ effect.FindParameterByName("FrameIndex").value ]);
   assert.equal(new Uint32Array(bits.buffer)[0], 1);
 });
@@ -50,8 +50,8 @@ test("a whole float is a float, and uint32 stores its bits", () =>
 test("Vector2 and Vector3 pad into a Vector4 parameter, as Carbon's overloads do", () =>
 {
   const effect = new Tr2Effect();
-  effect.SetParameterVector2("Size", [ 5, 6 ]);
-  effect.SetParameterVector3("Direction", [ 7, 8, 9 ]);
+  effect.SetParameter_Vector2("Size", [ 5, 6 ]);
+  effect.SetParameter_Vector3("Direction", [ 7, 8, 9 ]);
   assert.equal(className(effect.FindParameterByName("Size")), "Tr2Vector4Parameter");
   assert.deepEqual(Array.from(effect.FindParameterByName("Size").value), [ 5, 6, 0, 0 ]);
   assert.deepEqual(Array.from(effect.FindParameterByName("Direction").value), [ 7, 8, 9, 0 ]);
@@ -66,8 +66,8 @@ test("Vector2 and Vector3 pad into a Vector4 parameter, as Carbon's overloads do
 test("the Vector4 and matrix overloads set their own parameter classes", () =>
 {
   const effect = new Tr2Effect();
-  effect.SetParameterVector4("Color", [ 1, 2, 3, 4 ]);
-  effect.SetParameterMatrix("World", new Float32Array(16));
+  effect.SetParameter_Vector4("Color", [ 1, 2, 3, 4 ]);
+  effect.SetParameter_Matrix("World", new Float32Array(16));
   assert.equal(className(effect.FindParameterByName("Color")), "Tr2Vector4Parameter");
   assert.equal(className(effect.FindParameterByName("World")), "Tr2Matrix4Parameter");
 });

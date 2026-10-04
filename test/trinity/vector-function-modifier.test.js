@@ -12,10 +12,10 @@ function source()
 {
   return {
     calls: [],
-    UpdateTicks(time, out) { this.calls.push([ "UpdateTicks", time ]); vec3.set(out, 1, 2, 3); },
-    GetValueAtTicks(time, out) { this.calls.push([ "GetValueAtTicks", time ]); vec3.set(out, 1, 2, 3); },
-    GetValueDotAtTicks(_time, out) { vec3.set(out, 10, 0, 0); },
-    GetValueDoubleDotAtTicks(_time, out) { vec3.set(out, 0, 100, 0); },
+    Update_Ticks(time, out) { this.calls.push([ "Update_Ticks", time ]); vec3.set(out, 1, 2, 3); },
+    GetValueAt_Ticks(time, out) { this.calls.push([ "GetValueAt_Ticks", time ]); vec3.set(out, 1, 2, 3); },
+    GetValueDotAt_Ticks(_time, out) { vec3.set(out, 10, 0, 0); },
+    GetValueDoubleDotAt_Ticks(_time, out) { vec3.set(out, 0, 100, 0); },
     InterpolatedPosition(_time, out) { this.calls.push([ "InterpolatedPosition" ]); vec3.set(out, 7, 7, 7); }
   };
 }
@@ -33,7 +33,7 @@ test("the offset is applied before the scale, so the scale multiplies it too", (
   vec3.set(value.offsetPosition, 5, 0, 0);
 
   const out = vec3.create();
-  value.UpdateTicks(0, out);
+  value.Update_Ticks(0, out);
 
   // (1 + 5) * 2 = 12. Scaling first would give 1*2 + 5 = 7.
   assert.deepEqual(Array.from(out), [ 12, 4, 6 ]);
@@ -45,11 +45,11 @@ test("derivatives are scaled but never offset", () =>
   vec3.set(value.offsetPosition, 100, 100, 100);
 
   const velocity = vec3.create();
-  value.GetValueDotAtTicks(0, velocity);
+  value.GetValueDotAt_Ticks(0, velocity);
   assert.deepEqual(Array.from(velocity), [ 30, 0, 0 ], "a constant offset has no rate of change");
 
   const acceleration = vec3.create();
-  value.GetValueDoubleDotAtTicks(0, acceleration);
+  value.GetValueDoubleDotAt_Ticks(0, acceleration);
   assert.deepEqual(Array.from(acceleration), [ 0, 300, 0 ]);
 });
 
@@ -59,21 +59,21 @@ test("system coordinates read the interpolated position instead of the normal pa
   const value = modifier({ clientBall: ball, useSystemCoordinates: true });
 
   const out = vec3.create();
-  value.UpdateTicks(42, out);
+  value.Update_Ticks(42, out);
 
   assert.deepEqual(ball.calls, [ [ "InterpolatedPosition" ] ], "the Update path is not taken");
   assert.deepEqual(Array.from(out), [ 7, 7, 7 ]);
 });
 
-test("UpdateTicks and GetValueAtTicks call their matching source accessor (Carbon Be::Time overloads)", () =>
+test("Update_Ticks and GetValueAt_Ticks call their matching source accessor (Carbon Be::Time overloads)", () =>
 {
   const ball = source();
   const value = modifier({ clientBall: ball });
 
-  value.UpdateTicks(1, vec3.create());
-  value.GetValueAtTicks(2, vec3.create());
+  value.Update_Ticks(1, vec3.create());
+  value.GetValueAt_Ticks(2, vec3.create());
 
-  assert.deepEqual(ball.calls, [ [ "UpdateTicks", 1 ], [ "GetValueAtTicks", 2 ] ]);
+  assert.deepEqual(ball.calls, [ [ "Update_Ticks", 1 ], [ "GetValueAt_Ticks", 2 ] ]);
 });
 
 test("a view-space offset rotates with the view but does not pick up the eye position", () =>
@@ -111,7 +111,7 @@ test("a modifier with no source still applies its own offset and scale", () =>
   vec3.set(value.offsetPosition, 1, 1, 1);
 
   const out = vec3.fromValues(0, 0, 0);
-  value.UpdateTicks(0, out);
+  value.Update_Ticks(0, out);
 
   assert.deepEqual(Array.from(out), [ 2, 2, 2 ]);
 });

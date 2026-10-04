@@ -133,8 +133,8 @@ test("the authoring half builds items with Carbon's automatic per-stream offsets
   // Find (h:169-172): first by usage, optionally by index; numeric usage
   // codes resolve through Carbon's UsageCode ordering.
   assert.equal(definition.Find("TEXCOORD").usageIndex, 5);
-  assert.equal(definition.FindUsageIndex("TEXCOORD", 1).type, "FLOAT16_2");
-  assert.equal(definition.FindUsageIndex(Usage.COLOR, 1).offset, 28);
+  assert.equal(definition.Find_UsageIndex("TEXCOORD", 1).type, "FLOAT16_2");
+  assert.equal(definition.Find_UsageIndex(Usage.COLOR, 1).offset, 28);
   assert.equal(definition.Find("NORMAL"), null);
 
   // The byte arithmetic (h:183-205), from the type NAME.

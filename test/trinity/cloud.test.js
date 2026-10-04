@@ -156,7 +156,7 @@ test("GetSortValue: frustum overload distance minus |scaling| * modifier (cpp:23
   vec3.set(cloud.scaling, 2, 3, 6); // |scaling| = 7
   cloud.sortingModifier = 2;
 
-  const value = cloud.GetSortValueFrustum({ viewPos: [10, 4, 3] }); // distance 5
+  const value = cloud.GetSortValue_Frustum({ viewPos: [10, 4, 3] }); // distance 5
   assertClose(value, 5 - 14, "frustum sort value");
 
   const renderableValue = cloud.GetSortValue();
@@ -167,7 +167,7 @@ test("GetVolumetricBatches: gate order, one batch, renderedLastFrame stamp (cpp:
 {
   const cloud = new EveChildCloud2();
   const frustum = {
-    IsSphereVisibleCenterRadius: () => true,
+    IsSphereVisible_CenterRadius: () => true,
     GetPixelSizeAccross: () => 250
   };
 
@@ -433,7 +433,7 @@ test("IsVisible: display + frustum + live lod pixel gate (cpp:837-852)", () =>
 
   const MakeContext = (pixelSize, lodFactor) => ({
     GetFrustum: () => ({
-      IsSphereVisibleCenterRadius: () => true,
+      IsSphereVisible_CenterRadius: () => true,
       GetPixelSizeAccross: () => pixelSize
     }),
     GetLodFactor: () => lodFactor
@@ -605,7 +605,7 @@ test("cube lifetime preserves Carbon release gates and binds native geometry", (
   const cloud = new EveChildCloud2();
   cloud.UpdateAsyncronous(null, { localToWorldTransform: mat4.create() });
   cloud.effect = FixtureEffect();
-  const frustum = { IsSphereVisibleCenterRadius: () => true, GetPixelSizeAccross: () => 10000 };
+  const frustum = { IsSphereVisible_CenterRadius: () => true, GetPixelSizeAccross: () => 10000 };
   const accumulator = MakeAccumulator();
   assert.equal(cloud.GetVolumetricBatches(frustum, accumulator), true);
   const batch = accumulator.committed[0];

@@ -873,10 +873,10 @@ test("EveRemotePositionCurve caches Carbon remote sweep values", () =>
   curve.sweepTime = 4;
   const out = vec3.create();
   // Carbon's Be::Time Update sweeps; the start latches at 10 s and the start curve samples in seconds.
-  curve.UpdateTicks(100_000_000, out);
+  curve.Update_Ticks(100_000_000, out);
   assertVec3(out, [11, 22, 33]);
   assertVec3(curve.value, [11, 22, 33]);
-  curve.UpdateTicks(130_000_000, out);
+  curve.Update_Ticks(130_000_000, out);
   assertVec3(out, [16, 30, 44]);
   assertVec3(curve.value, [16, 30, 44]);
   const cached = vec3.create();
@@ -890,7 +890,7 @@ test("EveRemotePositionCurve preserves Carbon no-start and derivative behavior",
   curve.value[1] = 8;
   curve.value[2] = 7;
   const out = vec3.fromValues(1, 1, 1);
-  curve.UpdateTicks(30_000_000, out);
+  curve.Update_Ticks(30_000_000, out);
   assertVec3(out, [0, 0, 0]);
   assertVec3(curve.value, [9, 8, 7]);
   curve.GetValueDotAt(3, out);
@@ -1604,7 +1604,7 @@ test("EveEllipsoidVolume follows Carbon ellipsoid intensity and setup", () =>
 test("EveDistanceField follows Carbon static and dynamic CPU coverage", () =>
 {
   const sample = position => ({
-    GetValueAtTicks(_time, out)
+    GetValueAt_Ticks(_time, out)
     {
       return vec3.copy(out, position);
     }

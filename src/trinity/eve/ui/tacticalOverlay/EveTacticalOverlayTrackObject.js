@@ -51,8 +51,8 @@ export class EveTacticalOverlayTrackObject
   {
     if (!this.translationCurve) return;
     const time = updateContext.GetTime();
-    this.translationCurve.GetValueDotAtTicks(time, this._velocity);
-    this.translationCurve.GetValueAtTicks(time, this.position);
+    this.translationCurve.GetValueDotAt_Ticks(time, this._velocity);
+    this.translationCurve.GetValueAt_Ticks(time, this.position);
   }
 
   /** Copies the velocity sampled by the last UpdatePosition into out. */

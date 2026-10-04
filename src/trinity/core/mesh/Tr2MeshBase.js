@@ -515,7 +515,7 @@ export class Tr2MeshBase
     }
 
     batch.SetPerObjectData(perObjectData ?? null);
-    batch.SetPickingDataMeshArea(this.meshIndex, area.GetIndex());
+    batch.SetPickingData_MeshArea(this.meshIndex, area.GetIndex());
     return batch;
   }
 

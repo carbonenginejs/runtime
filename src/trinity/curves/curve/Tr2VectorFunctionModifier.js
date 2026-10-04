@@ -101,7 +101,7 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
 
   /**
    * Carbon's Update(double) is deprecated: it asserts in debug builds and returns the output untouched
-   * (Tr2VectorFunctionModifier.cpp). UpdateTicks is the working overload.
+   * (Tr2VectorFunctionModifier.cpp). Update_Ticks is the working overload.
    * @param {number} _time Unused seconds.
    * @param {Float32Array} inOut Destination, returned unchanged.
    * @returns {Float32Array} The destination.
@@ -115,7 +115,7 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
 
   /**
    * Carbon's GetValueAt(double) is deprecated: it asserts in debug builds and returns the output untouched
-   * (Tr2VectorFunctionModifier.cpp). GetValueAtTicks is the working overload.
+   * (Tr2VectorFunctionModifier.cpp). GetValueAt_Ticks is the working overload.
    * @param {number} _time Unused seconds.
    * @param {Float32Array} inOut Destination, returned unchanged.
    * @returns {Float32Array} The destination.
@@ -129,7 +129,7 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
 
   /**
    * Carbon's GetValueDotAt(double) is deprecated: it asserts in debug builds and returns the output untouched
-   * (Tr2VectorFunctionModifier.cpp). GetValueDotAtTicks is the working overload.
+   * (Tr2VectorFunctionModifier.cpp). GetValueDotAt_Ticks is the working overload.
    * @param {number} _time Unused seconds.
    * @param {Float32Array} inOut Destination, returned unchanged.
    * @returns {Float32Array} The destination.
@@ -143,7 +143,7 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
 
   /**
    * Carbon's GetValueDoubleDotAt(double) is deprecated: it asserts in debug builds and returns the output untouched
-   * (Tr2VectorFunctionModifier.cpp). GetValueDoubleDotAtTicks is the working overload.
+   * (Tr2VectorFunctionModifier.cpp). GetValueDoubleDotAt_Ticks is the working overload.
    * @param {number} _time Unused seconds.
    * @param {Float32Array} inOut Destination, returned unchanged.
    * @returns {Float32Array} The destination.
@@ -165,12 +165,12 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    */
   @meta.blue.renamed("Update")
   @meta.adapted
-  UpdateTicks(time, inOut, renderContext = null)
+  Update_Ticks(time, inOut, renderContext = null)
   {
     if (this.clientBall)
     {
       if (this.useSystemCoordinates) this.clientBall.InterpolatedPosition(time, inOut);
-      else this.clientBall.UpdateTicks(time, inOut);
+      else this.clientBall.Update_Ticks(time, inOut);
     }
     return this.GetTransformedPosition(inOut, renderContext);
   }
@@ -185,12 +185,12 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    */
   @meta.blue.renamed("GetValueAt")
   @meta.adapted
-  GetValueAtTicks(time, inOut, renderContext = null)
+  GetValueAt_Ticks(time, inOut, renderContext = null)
   {
     if (this.clientBall)
     {
       if (this.useSystemCoordinates) this.clientBall.InterpolatedPosition(time, inOut);
-      else this.clientBall.GetValueAtTicks(time, inOut);
+      else this.clientBall.GetValueAt_Ticks(time, inOut);
     }
     return this.GetTransformedPosition(inOut, renderContext);
   }
@@ -203,11 +203,11 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    */
   @meta.blue.renamed("GetValueDotAt")
   @meta.adapted
-  GetValueDotAtTicks(time, inOut)
+  GetValueDotAt_Ticks(time, inOut)
   {
     if (this.clientBall)
     {
-      this.clientBall.GetValueDotAtTicks(time, inOut);
+      this.clientBall.GetValueDotAt_Ticks(time, inOut);
       vec3.scale(inOut, inOut, this.scaleModifier);
     }
     return inOut;
@@ -222,11 +222,11 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    */
   @meta.blue.renamed("GetValueDoubleDotAt")
   @meta.adapted
-  GetValueDoubleDotAtTicks(time, inOut)
+  GetValueDoubleDotAt_Ticks(time, inOut)
   {
     if (this.clientBall)
     {
-      this.clientBall.GetValueDoubleDotAtTicks(time, inOut);
+      this.clientBall.GetValueDoubleDotAt_Ticks(time, inOut);
       vec3.scale(inOut, inOut, this.scaleModifier);
     }
     return inOut;

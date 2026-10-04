@@ -44,7 +44,7 @@ export class ITriColorFunction extends ITriFunction
    * @param {Float32Array} out Caller-owned value storage.
    * @returns {Float32Array} The Update result.
    */
-  UpdateTicks(time, out)
+  Update_Ticks(time, out)
   {
     return this.Update(TimeAsDouble(time), out);
   }
@@ -58,7 +58,7 @@ export class ITriColorFunction extends ITriFunction
    * @param {Float32Array} out Caller-owned value storage.
    * @returns {Float32Array} The GetValueAt result.
    */
-  GetValueAtTicks(time, out)
+  GetValueAt_Ticks(time, out)
   {
     return this.GetValueAt(TimeAsDouble(time), out);
   }
@@ -68,8 +68,8 @@ for (const method of [ "Update", "GetValueAt" ])
 {
   CjsSchema.decorateMethod(ITriColorFunction, method, meta.requires, meta.abstract);
 }
-CjsSchema.decorateMethod(ITriColorFunction, "UpdateTicks", meta.blue.renamed("Update"), meta.adapted);
-CjsSchema.decorateMethod(ITriColorFunction, "GetValueAtTicks", meta.blue.renamed("GetValueAt"), meta.adapted);
+CjsSchema.decorateMethod(ITriColorFunction, "Update_Ticks", meta.blue.renamed("Update"), meta.adapted);
+CjsSchema.decorateMethod(ITriColorFunction, "GetValueAt_Ticks", meta.blue.renamed("GetValueAt"), meta.adapted);
 CjsSchema.define(ITriColorFunction, {
   className: "ITriColorFunction", carbon: "ITriColorFunction", family: "blue", fields: {}
 });

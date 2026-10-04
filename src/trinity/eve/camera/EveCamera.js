@@ -644,7 +644,7 @@ export class EveCamera
     this._time = now;
 
     const parentPosition = vec3.zero(CAMERA_PARENT_POSITION);
-    if (this.parent) this.parent.GetValueAtTicks(simTime, parentPosition);
+    if (this.parent) this.parent.GetValueAt_Ticks(simTime, parentPosition);
     if (this.useExtraTranslation)
     {
       vec3.add(parentPosition, parentPosition, this.extraTranslation);
@@ -748,7 +748,7 @@ export class EveCamera
 
     if (this._trackInterest && this.interest)
     {
-      this.interest.GetValueAtTicks(simTime, CAMERA_TRACK_POSITION);
+      this.interest.GetValueAt_Ticks(simTime, CAMERA_TRACK_POSITION);
       vec3.subtract(CAMERA_TRACK_POSITION, CAMERA_TRACK_POSITION, CAMERA_POSITION);
       vec3.set(
         CAMERA_TRACK_LOCAL,

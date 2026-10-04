@@ -33,7 +33,7 @@ const geometry = al =>
   al.SetShaderProgram({ id: "program" });
   al.SetVertexLayout({ id: "layout" });
   al.SetStreamSource(0, deviceBuffer("vertices"), 0, 32);
-  al.SetIndicesStride(deviceBuffer("indices"), 2);
+  al.SetIndices_Stride(deviceBuffer("indices"), 2);
 };
 
 test("the batch-to-draw sequence records one pass and one draw", () =>
@@ -64,7 +64,7 @@ test("an indexed draw with nothing to index is refused", () =>
   assert.ok(Failed(al.DrawIndexedInstanced(36, 1)), "no index buffer");
   assert.deepEqual(al.DrainTransitions(), [], "and nothing was recorded");
 
-  al.SetIndicesStride(deviceBuffer("indices"), 2);
+  al.SetIndices_Stride(deviceBuffer("indices"), 2);
 
   assert.equal(al.DrawIndexedInstanced(36, 1), ALResult.S_OK);
 });
@@ -375,7 +375,7 @@ test("the frame ends synchronously: end the pass, finish, submit", () =>
   al.CreateDevice();
   al.BeginScene();
   al.SetShaderProgram({ id: "program" });
-  al.SetIndicesStride(deviceBuffer("indices"), 2);
+  al.SetIndices_Stride(deviceBuffer("indices"), 2);
 
   // A stand-in program cannot resolve a pipeline, so the draw is refused with
   // a reason - but Metal opens the encoder BEFORE it asks whether it can draw
@@ -517,7 +517,7 @@ test("debug markers pop on the encoder that pushed them", () =>
   assert.equal(frameEncoder.GetRenderPass(), null);
 
   al.SetShaderProgram({ id: "program" });
-  al.SetIndicesStride(deviceBuffer("indices"), 2);
+  al.SetIndices_Stride(deviceBuffer("indices"), 2);
   al.DrawIndexedInstanced(3, 1, 0, 0, 0);
 
   // Now a pass is open, so markers reach it.
@@ -831,7 +831,7 @@ test("a texture target's pass attaches the texture and the bound depth stencil",
   al.SetRenderTarget(0, colour);
   al.SetDepthStencil(depth);
   al.Clear({ color: [ 0, 0, 0, 1 ], depth: 1 });
-  al.SetIndicesStride(deviceBuffer("indices"), 2);
+  al.SetIndices_Stride(deviceBuffer("indices"), 2);
   al.DrawIndexedInstanced(3, 1, 0, 0, 0);
 
   // Until 2026-09-26 every pass was the canvas's, whatever was bound, so the
@@ -878,7 +878,7 @@ test("an unbound slot between bound ones is a null attachment and a null target"
 
   assert.deepEqual(al.GetPsoDescription().colorFormats, [ "rgba8unorm", null, "r32float" ]);
 
-  al.SetIndicesStride(deviceBuffer("indices"), 2);
+  al.SetIndices_Stride(deviceBuffer("indices"), 2);
   al.DrawIndexedInstanced(3, 1, 0, 0, 0);
 
   // Unhinted: every attachment loads and stores.
@@ -892,7 +892,7 @@ test("the canvas pass is unchanged, and rebinding it after a texture pass return
   const { al, passes } = composedWithPasses();
 
   al.SetRenderTarget(0, boundTexture("customBackBuffer", "rgba16float"));
-  al.SetIndicesStride(deviceBuffer("indices"), 2);
+  al.SetIndices_Stride(deviceBuffer("indices"), 2);
   al.DrawIndexedInstanced(3, 1, 0, 0, 0);
 
   // The post chain's final blit: the canvas, no depth stencil.
@@ -914,7 +914,7 @@ test("a packed clear colour is Carbon's ARGB word", () =>
 
   al.SetRenderTarget(0, boundTexture("target", "rgba8unorm"));
   al.RenderPassHint(new Tr2ColorAttachment(Tr2LoadAction.CLEAR, Tr2StoreAction.STORE, 0x80ff0000), null);
-  al.SetIndicesStride(deviceBuffer("indices"), 2);
+  al.SetIndices_Stride(deviceBuffer("indices"), 2);
   al.DrawIndexedInstanced(3, 1, 0, 0, 0);
 
   const clear = passes[0].colorAttachments[0].clearValue;
@@ -957,7 +957,7 @@ test("ClearUav zeroes a buffer with clearBuffer, outside any pass, and refuses w
   al.CreateDevice();
   al.BeginScene();
   al.SetShaderProgram({ id: "program" });
-  al.SetIndicesStride(deviceBuffer("indices"), 2);
+  al.SetIndices_Stride(deviceBuffer("indices"), 2);
   al.DrawIndexedInstanced(3, 1, 0, 0, 0);
 
   // Tr2PostProcessRenderer's histogram clears (cpp:1210-1215): uint zeros.
@@ -991,7 +991,7 @@ test("unbinding a sampled depth stencil refreshes its float shadow after its pas
   // process pushes a null depth stencil (Tr2PostProcessRenderer.cpp:676).
   al.SetRenderTarget(0, boundTexture("customBackBuffer", "rgba16float"));
   al.SetDepthStencil(depth);
-  al.SetIndicesStride(deviceBuffer("indices"), 2);
+  al.SetIndices_Stride(deviceBuffer("indices"), 2);
   al.DrawIndexedInstanced(3, 1, 0, 0, 0);
   al.SetDepthStencil(null);
 
@@ -1021,7 +1021,7 @@ test("turning read-only depth on refreshes the bound depth's float shadow", () =
   // drawn, and SSAO reads the depth with it still bound, read-only.
   al.SetRenderTarget(0, boundTexture("normalMap", "rgb10a2unorm"));
   al.SetDepthStencil(depth);
-  al.SetIndicesStride(deviceBuffer("indices"), 2);
+  al.SetIndices_Stride(deviceBuffer("indices"), 2);
   al.DrawIndexedInstanced(3, 1, 0, 0, 0);
   al.SetReadOnlyDepth(true);
 
@@ -1051,7 +1051,7 @@ test("Clear honours Carbon's flags and clears one colour slot", () =>
 
   // CLEARFLAGS_TARGET at slot 1 only (EveSpaceScene.cpp:2057 clears velocity to 0).
   assert.equal(al.Clear({ clearColor: true, color: 0, slot: 1 }), ALResult.S_OK);
-  al.SetIndicesStride(deviceBuffer("indices"), 2);
+  al.SetIndices_Stride(deviceBuffer("indices"), 2);
   al.DrawIndexedInstanced(3, 1, 0, 0, 0);
 
   const [ colour, velocity ] = passes[0].colorAttachments;

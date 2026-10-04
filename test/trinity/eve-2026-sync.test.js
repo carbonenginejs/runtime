@@ -393,7 +393,7 @@ test("instanced child overlays use full inverse-local clip transforms", () =>
 
   const context = new EveUpdateContext();
   context.frustum = {
-    IsSphereVisibleCenterRadius: () => true,
+    IsSphereVisible_CenterRadius: () => true,
     GetPixelSizeAccrossEst: () => 100
   };
   context.invLodFactor = 1;
@@ -794,7 +794,7 @@ test("Carbon bounding-box providers publish local, world, mesh, and planet bound
   assert.equal(CjsSchema.cast(planet, ITr2BoundingBox) !== null, true);
   planet.radius = 2000000;
   planet.translationCurve = {
-    UpdateTicks(_time, out)
+    Update_Ticks(_time, out)
     {
       vec3.set(out, 4000000, 5000000, 6000000);
     }

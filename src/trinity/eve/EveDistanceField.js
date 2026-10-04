@@ -339,7 +339,7 @@ export class EveDistanceField
    */
   static _sampleObject(object, time, out)
   {
-    return object.GetValueAtTicks(time, out);
+    return object.GetValueAt_Ticks(time, out);
   }
 
   /**

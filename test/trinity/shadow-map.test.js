@@ -480,7 +480,7 @@ test("EveSpaceScene.RenderShadows draws each cascade's casters with the Shadow t
   // A caster in two cascades. Batches are what a real object would commit;
   // here the count stands in for them.
   const caster = shadowCaster({
-    IsCastingShadowShadowFrustum: (camera, shadowFrustum, reason, radius) =>
+    IsCastingShadow_ShadowFrustum: (camera, shadowFrustum, reason, radius) =>
     {
       calls.push("IsCastingShadow");
       radius[0] = 20;
@@ -528,7 +528,7 @@ test("EveSpaceScene.RenderShadows draws nothing without a cascaded map, at DISAB
 
     prepare(scene);
     scene.componentRegistry.RegisterComponent("ShadowCaster", shadowCaster({
-      IsCastingShadowShadowFrustum: () => { asked = true; return true; },
+      IsCastingShadow_ShadowFrustum: () => { asked = true; return true; },
       GetShadowPerObjectData: () => null,
       GetShadowBatches: () => {}
     }));

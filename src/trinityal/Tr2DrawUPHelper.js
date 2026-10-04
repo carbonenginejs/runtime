@@ -206,7 +206,7 @@ export class Tr2DrawUPHelper
 
     if (Failed(indices)) return indices;
 
-    const indexed = renderContext.SetIndicesStride(ring[indexSlot], bytesPerIndex);
+    const indexed = renderContext.SetIndices_Stride(ring[indexSlot], bytesPerIndex);
 
     if (Failed(indexed)) return indexed;
 

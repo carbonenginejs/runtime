@@ -81,7 +81,7 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
 
   /**
    * Updates the cache and copies the quaternion into the output buffer.
-   * JavaScript retains the native double-time path with seconds first and output last; UpdateTicks is the Be::Time overload.
+   * JavaScript retains the native double-time path with seconds first and output last; Update_Ticks is the Be::Time overload.
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -204,7 +204,7 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    */
   @meta.blue.renamed("GetLocalTime")
   @meta.adapted
-  GetLocalTimeTicks(time)
+  GetLocalTime_Ticks(time)
   {
     return TimeAsDouble(time - this._start + this._offset) / this._timeScale;
   }
@@ -218,12 +218,12 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    */
   @meta.blue.renamed("Update")
   @meta.adapted
-  UpdateTicks(time, out)
+  Update_Ticks(time, out)
   {
     if (this._start === 0) this._start = time;
     if (this.curve)
     {
-      this.curve.Update(this.GetLocalTimeTicks(time), this.currentValue);
+      this.curve.Update(this.GetLocalTime_Ticks(time), this.currentValue);
     }
     else
     {
@@ -241,12 +241,12 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    */
   @meta.blue.renamed("GetValueAt")
   @meta.adapted
-  GetValueAtTicks(time, out)
+  GetValueAt_Ticks(time, out)
   {
     if (this._start === 0) this._start = time;
     if (this.curve)
     {
-      return this.curve.GetValueAt(this.GetLocalTimeTicks(time), out);
+      return this.curve.GetValueAt(this.GetLocalTime_Ticks(time), out);
     }
     return quat.copy(out, this.value);
   }

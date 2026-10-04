@@ -460,7 +460,7 @@ export const DEFAULT_FUNCTIONS = {
   fractal: (ctx, x, alpha, beta, n) =>
     (carbonPerlin1D(ToNumber(x) + GetRandomConstant(ctx), ToNumber(alpha), ToNumber(beta), Math.trunc(ToNumber(n) + 0.5)) + 1) / 2,
   input: (ctx, index) => GetInputValue(ctx, index),
-  inputAt: (ctx, index, time) => GetInputValueTime(ctx, index, time),
+  inputAt: (ctx, index, time) => GetInputValue_Time(ctx, index, time),
   StateTime: ctx => ctx.stateMachine?.GetStateTime ? ctx.stateMachine.GetStateTime() : ToNumber(ctx.stateTime),
   CurveSetTime: (ctx, name) => GetCurveSetTime(ctx, name),
   AnimationTime: (ctx, name) => CallContextFunction(ctx, "AnimationTime", name),
@@ -518,14 +518,14 @@ export function GetInputValue(context, index)
 
 /**
  * Carbon's InputAt( curve, index, time ): reads an indexed input at time
- * through its source's GetInputValue( index, time ) (GetInputValueTime here).
+ * through its source's GetInputValue( index, time ) (GetInputValue_Time here).
  */
-export function GetInputValueTime(context, index, time)
+export function GetInputValue_Time(context, index, time)
 {
   const source = context.curve ?? context.self ?? context.expression ?? context;
-  if (HasFunction(source, "GetInputValueTime"))
+  if (HasFunction(source, "GetInputValue_Time"))
   {
-    return ToNumber(source.GetInputValueTime(RoundInputIndex(index), time));
+    return ToNumber(source.GetInputValue_Time(RoundInputIndex(index), time));
   }
   return ReadInputDirect(context, source, index, time);
 }

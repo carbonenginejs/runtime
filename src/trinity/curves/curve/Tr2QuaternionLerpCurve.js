@@ -138,9 +138,9 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    */
   @meta.blue.renamed("Update")
   @meta.adapted
-  UpdateTicks(time, out)
+  Update_Ticks(time, out)
   {
-    this.GetValueAtTicks(time, this.value);
+    this.GetValueAt_Ticks(time, this.value);
     return quat.copy(out, this.value);
   }
 
@@ -154,15 +154,15 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    */
   @meta.blue.renamed("GetValueAt")
   @meta.adapted
-  GetValueAtTicks(time, out)
+  GetValueAt_Ticks(time, out)
   {
     if (!this.startCurve || !this.endCurve || this.length <= 0)
     {
       return out;
     }
     const ratio = num.clamp(Math.fround(TimeAsDouble(time) - this.start) / this.length, 0, 1);
-    const start = this.startCurve.GetValueAtTicks(time, this._startValue);
-    const end = this.endCurve.GetValueAtTicks(time, this._endValue);
+    const start = this.startCurve.GetValueAt_Ticks(time, this._startValue);
+    const end = this.endCurve.GetValueAt_Ticks(time, this._endValue);
     return quat.slerp(out, start, end, ratio);
   }
 

@@ -252,7 +252,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    */
   @meta.blue.renamed("GetValueDotAt")
   @meta.noop
-  GetValueDotAtTicks(_time, out)
+  GetValueDotAt_Ticks(_time, out)
   {
     return out;
   }
@@ -265,7 +265,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    */
   @meta.blue.renamed("GetValueDoubleDotAt")
   @meta.noop
-  GetValueDoubleDotAtTicks(_time, out)
+  GetValueDoubleDotAt_Ticks(_time, out)
   {
     return out;
   }
@@ -389,7 +389,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   @meta.implemented
   GetInputValue(index)
   {
-    return this.GetInputValueTime(index, this._currentTime);
+    return this.GetInputValue_Time(index, this._currentTime);
   }
 
   /**
@@ -400,7 +400,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    */
   @meta.blue.renamed("GetInputValue")
   @meta.implemented
-  GetInputValueTime(index, time)
+  GetInputValue_Time(index, time)
   {
     index |= 0;
     if (index < 0 || index >= this.inputs.length)

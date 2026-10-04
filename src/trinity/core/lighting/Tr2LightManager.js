@@ -1053,7 +1053,7 @@ export class Tr2LightManager
   _CullAndDim(position, radius)
   {
     if (!this._frustum) return 1;
-    if (!this._frustum.IsSphereVisibleCenterRadius(position, radius)) return 0;
+    if (!this._frustum.IsSphereVisible_CenterRadius(position, radius)) return 0;
     const size = this._frustum.GetPixelSizeAccross(position, radius);
     if (!(size > this._adjustedCutoff)) return 0;
     // Contract §"Colour carries the radius": the fade band sits ABOVE the

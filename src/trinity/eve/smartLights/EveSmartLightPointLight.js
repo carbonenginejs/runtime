@@ -141,7 +141,7 @@ export class EveSmartLightPointLight extends EveEntity
   /** IEveSmartLightGroup default: point-light groups have no async work. */
   @meta.blue.renamed("UpdateAsyncronous")
   @meta.noop
-  UpdateAsyncronousDistribution(_updateContext, _params, _distribution)
+  UpdateAsyncronous_Distribution(_updateContext, _params, _distribution)
   {
   }
 
@@ -321,7 +321,7 @@ export class EveSmartLightPointLight extends EveEntity
    */
   @meta.blue.renamed("UpdateSyncronous")
   @meta.implemented
-  UpdateSyncronousDistribution(updateContext, params, distribution)
+  UpdateSyncronous_Distribution(updateContext, params, distribution)
   {
     this._activationStrength = params?.activationStrength ?? 1;
     mat4.copy(this._worldTransform, params?.localToWorldTransform ?? EveSmartLightPointLight._identity);

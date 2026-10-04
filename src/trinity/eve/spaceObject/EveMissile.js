@@ -108,7 +108,7 @@ export class EveMissile extends EveSpaceObject2
     if (this.rotationCurve)
     {
       quat.identity(EveMissile._ballRotation);
-      this.rotationCurve.UpdateTicks(time, EveMissile._ballRotation);
+      this.rotationCurve.Update_Ticks(time, EveMissile._ballRotation);
       quat.invert(EveMissile._ballRotation, EveMissile._ballRotation);
       mat4.fromQuat(EveMissile._inverseBallRotation, EveMissile._ballRotation);
     }
@@ -117,8 +117,8 @@ export class EveMissile extends EveSpaceObject2
     vec3.set(EveMissile._missileVelocity, 0, 0, 0);
     if (this.translationCurve && this.target)
     {
-      this.translationCurve.GetValueAtTicks(time, EveMissile._missilePosition);
-      this.translationCurve.GetValueDotAtTicks(time, EveMissile._missileVelocity);
+      this.translationCurve.GetValueAt_Ticks(time, EveMissile._missilePosition);
+      this.translationCurve.GetValueDotAt_Ticks(time, EveMissile._missileVelocity);
       this.target.GetDamageLocatorPosition(-1, true, EveMissile._targetPosition);
       const speed = vec3.length(EveMissile._missileVelocity);
       if (speed > 0)

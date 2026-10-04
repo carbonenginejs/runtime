@@ -169,7 +169,7 @@ test("EveVirtualCameraSystem.SetMainCamera: hard cut, and the transition wiring 
     Play() { calls.push([ "play" ]); },
     GetCamera() { return second; }
   };
-  system.SetMainCameraTransition(second, transition);
+  system.SetMainCamera_Transition(second, transition);
   assert.equal(system.GetMainCamera(), second);
   assert.equal(system.transition, transition);
   assert.deepEqual(calls, [ [ "source", first ], [ "target", second ], [ "play" ] ]);

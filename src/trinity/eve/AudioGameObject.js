@@ -80,7 +80,7 @@ export class AudioGameObject
     this.audioEmitter = new Emitter();
     this.UpdateWorldTransform(0);
     const position = this.GetWorldPosition(vec3.create());
-    this.audioEmitter.InitializeWithParameters(this.name || "audio_object", "", position);
+    this.audioEmitter.Initialize_WithParameters(this.name || "audio_object", "", position);
     this._SetEmitterPosition(position);
     return true;
   }
@@ -229,9 +229,9 @@ export class AudioGameObject
   {
     const { vec3_0, quat_0 } = AudioGameObject.scratch;
     // Carbon samples each ball curve through its Be::Time overload, or keeps the authored value (cpp:150-170).
-    if (this.translationCurve) this.translationCurve.UpdateTicks(time, vec3_0);
+    if (this.translationCurve) this.translationCurve.Update_Ticks(time, vec3_0);
     else vec3.copy(vec3_0, this.translation);
-    if (this.rotationCurve) this.rotationCurve.UpdateTicks(time, quat_0);
+    if (this.rotationCurve) this.rotationCurve.Update_Ticks(time, quat_0);
     else quat.copy(quat_0, this.rotation);
     mat4.fromRotationTranslation(this._worldTransform, quat_0, vec3_0);
     return this._worldTransform;

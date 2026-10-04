@@ -139,7 +139,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    */
   @meta.blue.renamed("Update")
   @meta.adapted
-  UpdateTicks(time, out)
+  Update_Ticks(time, out)
   {
     this.Evaluate(this.currentValue, this.GetWrappedTime(time));
     return quat.copy(out, this.currentValue);
@@ -153,7 +153,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    */
   @meta.blue.renamed("GetValueAt")
   @meta.adapted
-  GetValueAtTicks(time, out)
+  GetValueAt_Ticks(time, out)
   {
     return this.Evaluate(out, this.GetWrappedTime(time));
   }

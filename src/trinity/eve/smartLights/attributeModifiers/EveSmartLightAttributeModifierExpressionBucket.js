@@ -69,7 +69,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   @meta.implemented
   GetInputValue(index)
   {
-    return this.GetInputValueTime(index, this._arguments.time);
+    return this.GetInputValue_Time(index, this._arguments.time);
   }
 
   /**
@@ -80,7 +80,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    */
   @meta.blue.renamed("GetInputValue")
   @meta.implemented
-  GetInputValueTime(index, time)
+  GetInputValue_Time(index, time)
   {
     const i = index | 0;
     if (i < 0 || i >= this.expressionInputs.length)

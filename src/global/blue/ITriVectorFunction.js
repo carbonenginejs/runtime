@@ -80,7 +80,7 @@ export class ITriVectorFunction extends ITriFunction
    * @param {Float32Array} out Caller-owned value storage.
    * @returns {Float32Array} The Update result.
    */
-  UpdateTicks(time, out)
+  Update_Ticks(time, out)
   {
     return this.Update(TimeAsDouble(time), out);
   }
@@ -94,7 +94,7 @@ export class ITriVectorFunction extends ITriFunction
    * @param {Float32Array} out Caller-owned value storage.
    * @returns {Float32Array} The GetValueAt result.
    */
-  GetValueAtTicks(time, out)
+  GetValueAt_Ticks(time, out)
   {
     return this.GetValueAt(TimeAsDouble(time), out);
   }
@@ -108,7 +108,7 @@ export class ITriVectorFunction extends ITriFunction
    * @param {Float32Array} out Caller-owned value storage.
    * @returns {Float32Array} The GetValueDotAt result.
    */
-  GetValueDotAtTicks(time, out)
+  GetValueDotAt_Ticks(time, out)
   {
     return this.GetValueDotAt(TimeAsDouble(time), out);
   }
@@ -122,7 +122,7 @@ export class ITriVectorFunction extends ITriFunction
    * @param {Float32Array} out Caller-owned value storage.
    * @returns {Float32Array} The GetValueDoubleDotAt result.
    */
-  GetValueDoubleDotAtTicks(time, out)
+  GetValueDoubleDotAt_Ticks(time, out)
   {
     return this.GetValueDoubleDotAt(TimeAsDouble(time), out);
   }
@@ -132,10 +132,10 @@ for (const method of [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleD
 {
   CjsSchema.decorateMethod(ITriVectorFunction, method, meta.requires, meta.abstract);
 }
-CjsSchema.decorateMethod(ITriVectorFunction, "UpdateTicks", meta.blue.renamed("Update"), meta.adapted);
-CjsSchema.decorateMethod(ITriVectorFunction, "GetValueAtTicks", meta.blue.renamed("GetValueAt"), meta.adapted);
-CjsSchema.decorateMethod(ITriVectorFunction, "GetValueDotAtTicks", meta.blue.renamed("GetValueDotAt"), meta.adapted);
-CjsSchema.decorateMethod(ITriVectorFunction, "GetValueDoubleDotAtTicks", meta.blue.renamed("GetValueDoubleDotAt"), meta.adapted);
+CjsSchema.decorateMethod(ITriVectorFunction, "Update_Ticks", meta.blue.renamed("Update"), meta.adapted);
+CjsSchema.decorateMethod(ITriVectorFunction, "GetValueAt_Ticks", meta.blue.renamed("GetValueAt"), meta.adapted);
+CjsSchema.decorateMethod(ITriVectorFunction, "GetValueDotAt_Ticks", meta.blue.renamed("GetValueDotAt"), meta.adapted);
+CjsSchema.decorateMethod(ITriVectorFunction, "GetValueDoubleDotAt_Ticks", meta.blue.renamed("GetValueDoubleDotAt"), meta.adapted);
 CjsSchema.define(ITriVectorFunction, {
   className: "ITriVectorFunction", carbon: "ITriVectorFunction", family: "blue", fields: {}
 });

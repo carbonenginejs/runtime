@@ -69,7 +69,7 @@ export class ITriQuaternionFunction extends ITriFunction
    * @param {Float32Array} out Caller-owned value storage.
    * @returns {Float32Array} The Update result.
    */
-  UpdateTicks(time, out)
+  Update_Ticks(time, out)
   {
     return this.Update(TimeAsDouble(time), out);
   }
@@ -83,7 +83,7 @@ export class ITriQuaternionFunction extends ITriFunction
    * @param {Float32Array} out Caller-owned value storage.
    * @returns {Float32Array} The GetValueAt result.
    */
-  GetValueAtTicks(time, out)
+  GetValueAt_Ticks(time, out)
   {
     return this.GetValueAt(TimeAsDouble(time), out);
   }
@@ -97,7 +97,7 @@ export class ITriQuaternionFunction extends ITriFunction
    * @param {Float32Array} out Caller-owned value storage.
    * @returns {Float32Array} The GetValueDotAt result.
    */
-  GetValueDotAtTicks(time, out)
+  GetValueDotAt_Ticks(time, out)
   {
     return this.GetValueDotAt(TimeAsDouble(time), out);
   }
@@ -111,7 +111,7 @@ export class ITriQuaternionFunction extends ITriFunction
    * @param {Float32Array} out Caller-owned value storage.
    * @returns {Float32Array} The GetValueDoubleDotAt result.
    */
-  GetValueDoubleDotAtTicks(time, out)
+  GetValueDoubleDotAt_Ticks(time, out)
   {
     return this.GetValueDoubleDotAt(TimeAsDouble(time), out);
   }
@@ -121,10 +121,10 @@ for (const method of [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleD
 {
   CjsSchema.decorateMethod(ITriQuaternionFunction, method, meta.requires, meta.abstract);
 }
-CjsSchema.decorateMethod(ITriQuaternionFunction, "UpdateTicks", meta.blue.renamed("Update"), meta.adapted);
-CjsSchema.decorateMethod(ITriQuaternionFunction, "GetValueAtTicks", meta.blue.renamed("GetValueAt"), meta.adapted);
-CjsSchema.decorateMethod(ITriQuaternionFunction, "GetValueDotAtTicks", meta.blue.renamed("GetValueDotAt"), meta.adapted);
-CjsSchema.decorateMethod(ITriQuaternionFunction, "GetValueDoubleDotAtTicks", meta.blue.renamed("GetValueDoubleDotAt"), meta.adapted);
+CjsSchema.decorateMethod(ITriQuaternionFunction, "Update_Ticks", meta.blue.renamed("Update"), meta.adapted);
+CjsSchema.decorateMethod(ITriQuaternionFunction, "GetValueAt_Ticks", meta.blue.renamed("GetValueAt"), meta.adapted);
+CjsSchema.decorateMethod(ITriQuaternionFunction, "GetValueDotAt_Ticks", meta.blue.renamed("GetValueDotAt"), meta.adapted);
+CjsSchema.decorateMethod(ITriQuaternionFunction, "GetValueDoubleDotAt_Ticks", meta.blue.renamed("GetValueDoubleDotAt"), meta.adapted);
 CjsSchema.define(ITriQuaternionFunction, {
   className: "ITriQuaternionFunction", carbon: "ITriQuaternionFunction", family: "blue", fields: {}
 });

@@ -123,7 +123,7 @@ export class EveVirtualCameraSystem
   {
     if (camera && camera !== this.GetMainCamera())
     {
-      this.SetMainCameraTransition(camera, new EveVirtualCameraTransitionCut());
+      this.SetMainCamera_Transition(camera, new EveVirtualCameraTransitionCut());
     }
   }
 
@@ -139,7 +139,7 @@ export class EveVirtualCameraSystem
     {
       const transition = new EveVirtualCameraTransitionLerp();
       transition.SetTransitionTime(transitionTime);
-      this.SetMainCameraTransition(camera, transition);
+      this.SetMainCamera_Transition(camera, transition);
     }
   }
 
@@ -207,7 +207,7 @@ export class EveVirtualCameraSystem
    */
   @meta.blue.renamed("SetMainCamera")
   @meta.implemented
-  SetMainCameraTransition(camera, transition)
+  SetMainCamera_Transition(camera, transition)
   {
     const current = this.GetMainCamera();
     this.SetMainCamera(camera);

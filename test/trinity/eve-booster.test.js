@@ -169,14 +169,14 @@ test("EveBoosterSet2Renderable follows Carbon intensity damping and owner update
     [0, 0, 0, 1],
     0
   ), true);
-  assert.ok(Math.abs(boosters.GetBoosterIntensityIndex(0) - 0.084) < 1e-6);
+  assert.ok(Math.abs(boosters.GetBoosterIntensity_Index(0) - 0.084) < 1e-6);
   assert.ok(Math.abs(boosters.GetBoosterIntensity() - 0.042) < 1e-6);
   assert.equal(boosters.Update(1, 0, mat4.create(), 0, [0, 0, 0], [0, 0, 0, 1], 2), false);
 
   boosters.alwaysOn = true;
   boosters.alwaysOnIntensity = 1.25;
   boosters.Update(1, 0, mat4.create(), 0, [0, 0, 0], [0, 0, 0, 1], 1);
-  assert.equal(boosters.GetBoosterIntensityIndex(1), 1.25);
+  assert.equal(boosters.GetBoosterIntensity_Index(1), 1.25);
   assert.equal(boosters.Initialize(), true);
   assert.doesNotThrow(() => JSON.stringify(CjsSchema.getValues(boosters, {})));
 });

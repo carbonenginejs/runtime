@@ -91,8 +91,8 @@ export class EveLineSet
     quat.identity(quat_0);
     const time = updateContext.GetTime();
 
-    if (this.translationCurve) this.translationCurve.UpdateTicks(time, vec3_0);
-    if (this.rotationCurve) this.rotationCurve.UpdateTicks(time, quat_0);
+    if (this.translationCurve) this.translationCurve.Update_Ticks(time, vec3_0);
+    if (this.rotationCurve) this.rotationCurve.Update_Ticks(time, quat_0);
 
     mat4.fromRotationTranslationScale(this.worldTransform, quat_0, vec3_0, this.scaling);
   }

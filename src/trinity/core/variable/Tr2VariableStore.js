@@ -15,7 +15,7 @@ import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
  * The native TRINITYDEV cycle assertion remains unported; callers must keep
  * the parent graph acyclic. Registration states its type
  * (RegisterVariableInternal / RegisterVariableType); raw AL textures go
- * through RegisterVariableTextureAL, the native texture-reference overload.
+ * through RegisterVariable_TextureAL, the native texture-reference overload.
  */
 @meta.define({
   className: "Tr2VariableStore",
@@ -143,7 +143,7 @@ export class Tr2VariableStore
    */
   @meta.blue.renamed("RegisterVariable")
   @meta.adapted
-  RegisterVariableTextureAL(name, texture)
+  RegisterVariable_TextureAL(name, texture)
   {
     const variable = Tr2VariableStore.globalStore().GetVariable(name);
     const reference = variable.GetType() === TriVariableContentType.TRIVARIABLE_TEXTURE_RES
@@ -164,7 +164,7 @@ export class Tr2VariableStore
    * Not supported: a JavaScript value cannot say its own type - a whole float
    * reads as an int, and a colour as a Vector4 (CE-53). Callers state it:
    * RegisterVariableInternal(name, type, value), RegisterVariableType(name,
-   * type) to reserve a name, or RegisterVariableTextureAL for a raw texture.
+   * type) to reserve a name, or RegisterVariable_TextureAL for a raw texture.
    * @throws {TypeError} Always.
    */
   @meta.blue.method

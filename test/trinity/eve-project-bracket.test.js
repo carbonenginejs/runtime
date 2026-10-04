@@ -76,7 +76,7 @@ test("EveProjectBracket samples the priority track ball on the OS frame clock (E
   bracket.integerCoordinates = false;
   bracket.ballTrackingScaling = 2;
   bracket.trackBall = {
-    GetValueAtTicks(time, out)
+    GetValueAt_Ticks(time, out)
     {
       calls.push([ time, out ]);
       vec3.set(out, 0.25, 0.5, -1);

@@ -100,8 +100,8 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
   }
 
   /**
-   * Dispatches both native SpawnParticles overloads (cpp:55-120) by arity,
-   * since JavaScript cannot overload; scaling uses reusable value copies.
+   * Carbon's point SpawnParticles overload (cpp:55-120); the start/end
+   * overload is SpawnParticles_StartEnd. Scaling uses reusable value copies.
    * As in Carbon, spawning does not update the attractor's world position.
    */
   @meta.blue.method

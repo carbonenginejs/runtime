@@ -551,7 +551,7 @@ export class Tr2Material
    */
   @meta.blue.renamed("CompatibleWithGdr")
   @meta.implemented
-  CompatibleWithGdrTechniqueName(techniqueName)
+  CompatibleWithGdr_TechniqueName(techniqueName)
   {
     if (this.shader !== null && !(this.shader instanceof Tr2Shader))
     {

@@ -103,7 +103,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
 
   /**
    * Updates the cache and copies the vector into the output buffer.
-   * JavaScript retains the native double-time path with seconds first and output last; UpdateTicks is the Be::Time overload.
+   * JavaScript retains the native double-time path with seconds first and output last; Update_Ticks is the Be::Time overload.
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -173,14 +173,14 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    */
   @meta.blue.renamed("GetValueDotAt")
   @meta.adapted
-  GetValueDotAtTicks(time, out)
+  GetValueDotAt_Ticks(time, out)
   {
     if (this._start === 0) this._start = time;
     if (!this.curve)
     {
       return vec3.zero(out);
     }
-    const localTime = this.GetLocalTimeTicks(time);
+    const localTime = this.GetLocalTime_Ticks(time);
     this.curve.GetValueAt(localTime, this._dotValue0);
     this.curve.GetValueAt(localTime - 0.1, this._dotValue1);
     vec3.subtract(out, this._dotValue1, this._dotValue0);
@@ -272,7 +272,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    */
   @meta.blue.renamed("GetLocalTime")
   @meta.adapted
-  GetLocalTimeTicks(time)
+  GetLocalTime_Ticks(time)
   {
     return TimeAsDouble(time - this._start + this._offset) / this._timeScale;
   }
@@ -286,12 +286,12 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    */
   @meta.blue.renamed("Update")
   @meta.adapted
-  UpdateTicks(time, out)
+  Update_Ticks(time, out)
   {
     if (this._start === 0) this._start = time;
     if (this.curve)
     {
-      this.curve.Update(this.GetLocalTimeTicks(time), this.currentValue);
+      this.curve.Update(this.GetLocalTime_Ticks(time), this.currentValue);
     }
     else
     {
@@ -310,12 +310,12 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    */
   @meta.blue.renamed("GetValueAt")
   @meta.adapted
-  GetValueAtTicks(time, out)
+  GetValueAt_Ticks(time, out)
   {
     if (this._start === 0) this._start = time;
     if (this.curve)
     {
-      return this.curve.GetValueAt(this.GetLocalTimeTicks(time), out);
+      return this.curve.GetValueAt(this.GetLocalTime_Ticks(time), out);
     }
     return vec3.copy(out, this.value);
   }

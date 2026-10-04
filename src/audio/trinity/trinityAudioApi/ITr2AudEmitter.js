@@ -12,7 +12,7 @@
 // Signature notes against the header:
 // - Carbon splits std::string (name) from std::wstring (prefix, event, RTPC
 //   and switch names); JavaScript has one string type.
-// - Carbon's `Initialize(name, prefix, position)` is InitializeWithParameters
+// - Carbon's `Initialize(name, prefix, position)` is Initialize_WithParameters
 //   here: JavaScript has no overloads, and the no-argument `Initialize` is
 //   IInitialize's, which readers call. It returns nothing, as in Carbon.
 // - `SendEvent` returns the playing id (Carbon's unsigned int), 0 when
@@ -22,7 +22,7 @@ import { CjsSchema, meta } from "#schema";
 
 
 const EMITTER_METHODS = [
-  "InitializeWithParameters", "SetPosition", "SetName", "SetPrefix", "SendEvent", "SetSwitch",
+  "Initialize_WithParameters", "SetPosition", "SetName", "SetPrefix", "SendEvent", "SetSwitch",
   "SetRTPC", "SetAttenuationScalingFactor", "GetName", "SetVisibility", "Mute",
   "Unmute", "ForceCullingStateChange", "ReleaseForcedCullingState"
 ];
@@ -40,9 +40,9 @@ export class ITr2AudEmitter
    * @param {string} _prefix The event-name prefix.
    * @param {Float32Array} _position Initial world position.
    */
-  InitializeWithParameters(_name, _prefix, _position)
+  Initialize_WithParameters(_name, _prefix, _position)
   {
-    throw new Error("ITr2AudEmitter.InitializeWithParameters must be implemented by an audio emitter.");
+    throw new Error("ITr2AudEmitter.Initialize_WithParameters must be implemented by an audio emitter.");
   }
 
   /**
@@ -172,5 +172,5 @@ export class ITr2AudEmitter
 
 
 for (const name of EMITTER_METHODS) CjsSchema.decorateMethod(ITr2AudEmitter, name, meta.abstract);
-CjsSchema.decorateMethod(ITr2AudEmitter, "InitializeWithParameters", meta.blue.renamed("Initialize"));
+CjsSchema.decorateMethod(ITr2AudEmitter, "Initialize_WithParameters", meta.blue.renamed("Initialize"));
 CjsSchema.define(ITr2AudEmitter, { className: "ITr2AudEmitter", family: "trinityAudioApi" });

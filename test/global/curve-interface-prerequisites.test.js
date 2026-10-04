@@ -24,27 +24,27 @@ const contracts = [
   },
   {
     name: "ITriScalarFunction", Contract: ITriScalarFunction, direct: DirectScalar, base: ITriFunction,
-    own: [ "Update", "GetValueAt", "ScaleTime", "UpdateTicks", "GetValueAtTicks" ], abstract: [ "Update", "GetValueAt", "ScaleTime" ],
-    ticks: [ "UpdateTicks", "GetValueAtTicks" ]
+    own: [ "Update", "GetValueAt", "ScaleTime", "Update_Ticks", "GetValueAt_Ticks" ], abstract: [ "Update", "GetValueAt", "ScaleTime" ],
+    ticks: [ "Update_Ticks", "GetValueAt_Ticks" ]
   },
   {
     name: "ITriVectorFunction", Contract: ITriVectorFunction, direct: DirectVector, base: ITriFunction,
     own: [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleDotAt", "InterpolatedPosition",
-      "UpdateTicks", "GetValueAtTicks", "GetValueDotAtTicks", "GetValueDoubleDotAtTicks" ],
+      "Update_Ticks", "GetValueAt_Ticks", "GetValueDotAt_Ticks", "GetValueDoubleDotAt_Ticks" ],
     abstract: [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleDotAt", "InterpolatedPosition" ],
-    ticks: [ "UpdateTicks", "GetValueAtTicks", "GetValueDotAtTicks", "GetValueDoubleDotAtTicks" ]
+    ticks: [ "Update_Ticks", "GetValueAt_Ticks", "GetValueDotAt_Ticks", "GetValueDoubleDotAt_Ticks" ]
   },
   {
     name: "ITriQuaternionFunction", Contract: ITriQuaternionFunction, direct: DirectQuaternion, base: ITriFunction,
     own: [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleDotAt",
-      "UpdateTicks", "GetValueAtTicks", "GetValueDotAtTicks", "GetValueDoubleDotAtTicks" ],
+      "Update_Ticks", "GetValueAt_Ticks", "GetValueDotAt_Ticks", "GetValueDoubleDotAt_Ticks" ],
     abstract: [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleDotAt" ],
-    ticks: [ "UpdateTicks", "GetValueAtTicks", "GetValueDotAtTicks", "GetValueDoubleDotAtTicks" ]
+    ticks: [ "Update_Ticks", "GetValueAt_Ticks", "GetValueDotAt_Ticks", "GetValueDoubleDotAt_Ticks" ]
   },
   {
     name: "ITriColorFunction", Contract: ITriColorFunction, direct: DirectColor, base: ITriFunction,
-    own: [ "Update", "GetValueAt", "UpdateTicks", "GetValueAtTicks" ], abstract: [ "Update", "GetValueAt" ],
-    ticks: [ "UpdateTicks", "GetValueAtTicks" ]
+    own: [ "Update", "GetValueAt", "Update_Ticks", "GetValueAt_Ticks" ], abstract: [ "Update", "GetValueAt" ],
+    ticks: [ "Update_Ticks", "GetValueAt_Ticks" ]
   },
   {
     name: "ITriCurveLength", Contract: ITriCurveLength, direct: DirectLength,

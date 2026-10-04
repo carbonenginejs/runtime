@@ -58,7 +58,7 @@ export class EveRemotePositionCurve extends ITriVectorFunction
 
   /**
    * Carbon's inline UpdateValue (EveRemotePositionCurve.h:20-24) calls the double Update, which is a no-op; the sweep
-   * advances only through UpdateTicks.
+   * advances only through Update_Ticks.
    * @param {number} time Seconds.
    */
   @meta.blue.method
@@ -69,7 +69,7 @@ export class EveRemotePositionCurve extends ITriVectorFunction
   }
 
   /**
-   * Carbon's Update(double) is a no-op returning its input (EveRemotePositionCurve.cpp:75-78); UpdateTicks advances
+   * Carbon's Update(double) is a no-op returning its input (EveRemotePositionCurve.cpp:75-78); Update_Ticks advances
    * the sweep.
    * @param {number} _time Unused seconds.
    * @param {Float32Array} out Caller-owned vec3, returned unchanged.
@@ -93,7 +93,7 @@ export class EveRemotePositionCurve extends ITriVectorFunction
    */
   @meta.blue.renamed("Update")
   @meta.adapted
-  UpdateTicks(time, out)
+  Update_Ticks(time, out)
   {
     if (!this.startPositionCurve)
     {
@@ -117,7 +117,7 @@ export class EveRemotePositionCurve extends ITriVectorFunction
       }
     }
     vec3.lerp(this._currentOffsetDir, this.offsetDir1, this.offsetDir2, s);
-    this.startPositionCurve.GetValueAtTicks(time, this._startPosition);
+    this.startPositionCurve.GetValueAt_Ticks(time, this._startPosition);
     vec3.add(this.value, this._startPosition, this._currentOffsetDir);
     return vec3.copy(out, this.value);
   }

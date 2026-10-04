@@ -83,19 +83,19 @@ test("EveLocalPositionCurve implements Carbon offset and ellipsoid behavior", ()
 {
   const curve = new EveLocalPositionCurve();
   // Carbon samples parent curves through their Be::Time overloads.
-  curve.parentPositionCurve = { GetValueAtTicks(_time, out) { vec3.set(out, 10, 20, 30); } };
-  curve.parentRotationCurve = { GetValueAtTicks(_time, out) { out.set([0, 0, 0, 1]); } };
+  curve.parentPositionCurve = { GetValueAt_Ticks(_time, out) { vec3.set(out, 10, 20, 30); } };
+  curve.parentRotationCurve = { GetValueAt_Ticks(_time, out) { out.set([0, 0, 0, 1]); } };
   vec3.set(curve.positionOffset, 1, 2, 3);
   curve.SetBehavior(EveLocalPositionCurve.LocalPositionBehavior.POS_OFFSET_POSITION);
-  assert.deepEqual(Array.from(curve.GetValueAtTicks(20_000_000, vec3.create())), [11, 22, 33]);
+  assert.deepEqual(Array.from(curve.GetValueAt_Ticks(20_000_000, vec3.create())), [11, 22, 33]);
   // The double GetValueAt only copies m_value (Carbon cpp:316-322), which behaviours other than POS_NONE never store.
   assert.deepEqual(Array.from(curve.GetValueAt(2, vec3.create())), [0, 0, 0]);
 
-  curve.alignPositionCurve = { GetValueAtTicks(_time, out) { vec3.set(out, 20, 20, 30); } };
+  curve.alignPositionCurve = { GetValueAt_Ticks(_time, out) { vec3.set(out, 20, 20, 30); } };
   vec3.set(curve.boundingSize, 20, 30, 40);
   curve.offset = 5;
   curve.SetBehavior(EveLocalPositionCurve.LocalPositionBehavior.POS_NEAREST_BOUNDING_POINT);
-  assert.deepEqual(Array.from(curve.GetValueAtTicks(20_000_000, vec3.create())), [35, 20, 30]);
+  assert.deepEqual(Array.from(curve.GetValueAt_Ticks(20_000_000, vec3.create())), [35, 20, 30]);
 });
 
 test("EveFiringEffectElementContainer owns active element lifecycle", () =>
@@ -191,8 +191,8 @@ test("EveStretch3 applies deferred controller firing state", () =>
   };
   const stretch = new EveStretch3();
   stretch.controllers.push(controller);
-  stretch.source = { UpdateTicks(_time, out) { vec3.set(out, 0, 0, 0); } };
-  stretch.dest = { UpdateTicks(_time, out) { vec3.set(out, 0, 0, 10); } };
+  stretch.source = { Update_Ticks(_time, out) { vec3.set(out, 0, 0, 0); } };
+  stretch.dest = { Update_Ticks(_time, out) { vec3.set(out, 0, 0, 10); } };
   stretch.StartFiring(0.75);
   const context = new EveUpdateContext();
   context.SetTime((1) * 10_000_000);

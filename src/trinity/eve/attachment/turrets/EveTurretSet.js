@@ -2115,7 +2115,7 @@ export class EveTurretSet extends EveEntity
    */
   @meta.blue.renamed("IsCastingShadow")
   @meta.adapted
-  IsCastingShadowShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
+  IsCastingShadow_ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
   {
     if (!this.display || !this.geometryResource)
     {

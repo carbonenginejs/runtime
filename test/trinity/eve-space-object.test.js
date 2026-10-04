@@ -68,15 +68,15 @@ test("EveRootTransform evaluates detached curves and implements Carbon targetabl
 {
   const root = new EveRootTransform();
   root.boundingSphereRadius = 4;
-  root.translationCurve = { GetValueDotAtTicks(_time, out) { return out; },
-    UpdateTicks(time, out)
+  root.translationCurve = { GetValueDotAt_Ticks(_time, out) { return out; },
+    Update_Ticks(time, out)
     {
       assert.equal(time, 3);
       out.set([10, 20, 30]);
     }
   };
   root.modelTranslationCurve = {
-    UpdateTicks(time, out)
+    Update_Ticks(time, out)
     {
       assert.equal(time, 3);
       out.set([1, 0, 0]);
@@ -256,8 +256,8 @@ test("EveEffectRoot2 owns Carbon effect transforms, lifecycle, LOD, and target s
       calls.push(["observer", Array.from(transform.slice(12, 15))]);
     }
   });
-  effect.translationCurve = { GetValueDotAtTicks(_time, out) { return out; },
-    UpdateTicks(time, out)
+  effect.translationCurve = { GetValueDotAt_Ticks(_time, out) { return out; },
+    Update_Ticks(time, out)
     {
       assert.equal(time, 4);
       out.set([10, 0, 0]);
@@ -621,18 +621,18 @@ test("EveSpaceObject2 evaluates Carbon model curves into detached world transfor
   const object = new EveSpaceObject2();
   const halfSqrt = Math.SQRT1_2;
   const translationCurve = {
-    UpdateTicks(time, out)
+    Update_Ticks(time, out)
     {
       assert.equal(time, 5);
       out[0] = 10;
       out[1] = 20;
       out[2] = 30;
     },
-    GetValueAtTicks()
+    GetValueAt_Ticks()
     {
       assert.fail("a void-returning Update must not fall through to GetValueAt");
     },
-    GetValueDotAtTicks(time, out)
+    GetValueDotAt_Ticks(time, out)
     {
       assert.equal(time, 5);
       out[0] = 1;
@@ -641,7 +641,7 @@ test("EveSpaceObject2 evaluates Carbon model curves into detached world transfor
     }
   };
   const rotationCurve = {
-    UpdateTicks(_time, out)
+    Update_Ticks(_time, out)
     {
       out[0] = 0;
       out[1] = 0;
@@ -650,7 +650,7 @@ test("EveSpaceObject2 evaluates Carbon model curves into detached world transfor
     }
   };
   const modelRotationCurve = {
-    UpdateTicks(_time, out)
+    Update_Ticks(_time, out)
     {
       out[0] = 0;
       out[1] = 0;
@@ -659,7 +659,7 @@ test("EveSpaceObject2 evaluates Carbon model curves into detached world transfor
     }
   };
   const modelTranslationCurve = {
-    UpdateTicks(_time, out)
+    Update_Ticks(_time, out)
     {
       out[0] = 1;
       out[1] = 0;
@@ -711,8 +711,8 @@ test("EveSpaceObject2 drives observers, controller frequency, mute, and emitter 
   observer.SetPosition([1, 2, 3]);
   observer.SetObserver(emitter);
   object.AddObserver(observer);
-  object.translationCurve = { GetValueDotAtTicks(_time, out) { return out; },
-    UpdateTicks(_time, out)
+  object.translationCurve = { GetValueDotAt_Ticks(_time, out) { return out; },
+    Update_Ticks(_time, out)
     {
       out[0] = 10;
       out[1] = 20;
@@ -1201,8 +1201,8 @@ test("EveSpaceObject2 restores Carbon world bounds, visibility, renderables, and
     }
   };
   object.modelScale = 2;
-  object.translationCurve = { GetValueDotAtTicks(_time, out) { return out; },
-    UpdateTicks(_time, out)
+  object.translationCurve = { GetValueDotAt_Ticks(_time, out) { return out; },
+    Update_Ticks(_time, out)
     {
       out.set([10, 0, 0]);
     }
@@ -1414,13 +1414,13 @@ test("EveSpaceObject2 transforms locator records and freezes high detail meshes"
   // Model transform: translation adds, then rotation spins position and
   // pre-multiplies the record rotation (sampled at the time origin).
   object.modelTranslationCurve = {
-    GetValueAtTicks(_time, out)
+    GetValueAt_Ticks(_time, out)
     {
       out.set([0, 0, 3]);
     }
   };
   object.modelRotationCurve = {
-    GetValueAtTicks(_time, out)
+    GetValueAt_Ticks(_time, out)
     {
       // 90 degrees around +Y: +Z maps onto +X.
       out.set([0, 0.7071067811865476, 0, 0.7071067811865476]);

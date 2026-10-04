@@ -229,11 +229,11 @@ export class EveSmartLightColorShareGroup extends EveEntity
    */
   @meta.blue.renamed("UpdateSyncronous")
   @meta.implemented
-  UpdateSyncronousDistribution(updateContext, params, distribution)
+  UpdateSyncronous_Distribution(updateContext, params, distribution)
   {
     for (const group of this.lightGroups)
     {
-      group.UpdateSyncronousDistribution(updateContext, params, distribution);
+      group.UpdateSyncronous_Distribution(updateContext, params, distribution);
     }
 
     for (const attributeModifier of this.attributeModifiers)
@@ -250,7 +250,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
    */
   @meta.blue.renamed("UpdateAsyncronous")
   @meta.implemented
-  UpdateAsyncronousDistribution(updateContext, params, distribution)
+  UpdateAsyncronous_Distribution(updateContext, params, distribution)
   {
     const statics = EveSmartLightColorShareGroup;
     const groupColor = this.GetGroupColor();
@@ -273,7 +273,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
     for (const group of this.lightGroups)
     {
       group.SetColor(sharedColor);
-      group.UpdateAsyncronousDistribution(updateContext, params, distribution);
+      group.UpdateAsyncronous_Distribution(updateContext, params, distribution);
     }
   }
 

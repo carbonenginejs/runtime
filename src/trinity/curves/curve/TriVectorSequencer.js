@@ -135,9 +135,9 @@ export class TriVectorSequencer extends ITriVectorFunction
    */
   @meta.blue.renamed("Update")
   @meta.adapted
-  UpdateTicks(time, out)
+  Update_Ticks(time, out)
   {
-    this.GetValueAtTicks(time, out);
+    this.GetValueAt_Ticks(time, out);
     vec3.copy(this.value, out);
     return out;
   }
@@ -151,7 +151,7 @@ export class TriVectorSequencer extends ITriVectorFunction
    */
   @meta.blue.renamed("GetValueAt")
   @meta.adapted
-  GetValueAtTicks(time, out)
+  GetValueAt_Ticks(time, out)
   {
     if (this.operator === TRIOPERATOR.TRIOP_MULTIPLY) return this.GetValueAtMult(time, out, true);
     if (this.operator === TRIOPERATOR.TRIOP_ADD) return this.GetValueAtAdd(time, out, true);
@@ -174,7 +174,7 @@ export class TriVectorSequencer extends ITriVectorFunction
     vec3.set(out, 1, 1, 1);
     for (const curve of this.functions)
     {
-      if (ticks) curve.GetValueAtTicks(time, this._childValue);
+      if (ticks) curve.GetValueAt_Ticks(time, this._childValue);
       else curve.GetValueAt(time, this._childValue);
       vec3.multiply(out, out, this._childValue);
     }
@@ -196,7 +196,7 @@ export class TriVectorSequencer extends ITriVectorFunction
     vec3.zero(out);
     for (const curve of this.functions)
     {
-      if (ticks) curve.GetValueAtTicks(time, this._childValue);
+      if (ticks) curve.GetValueAt_Ticks(time, this._childValue);
       else curve.GetValueAt(time, this._childValue);
       vec3.add(out, out, this._childValue);
     }
@@ -222,7 +222,7 @@ export class TriVectorSequencer extends ITriVectorFunction
     const multiplier = 1 / this.functions.length;
     for (const curve of this.functions)
     {
-      if (ticks) curve.GetValueAtTicks(time, this._childValue);
+      if (ticks) curve.GetValueAt_Ticks(time, this._childValue);
       else curve.GetValueAt(time, this._childValue);
       vec3.scaleAndAdd(out, out, this._childValue, multiplier);
     }
@@ -277,12 +277,12 @@ export class TriVectorSequencer extends ITriVectorFunction
    */
   @meta.blue.renamed("GetValueDotAt")
   @meta.adapted
-  GetValueDotAtTicks(time, out)
+  GetValueDotAt_Ticks(time, out)
   {
     vec3.zero(out);
     for (const curve of this.functions)
     {
-      curve.GetValueDotAtTicks(time, this._childValue);
+      curve.GetValueDotAt_Ticks(time, this._childValue);
       vec3.add(out, out, this._childValue);
     }
     return out;
@@ -296,12 +296,12 @@ export class TriVectorSequencer extends ITriVectorFunction
    */
   @meta.blue.renamed("GetValueDoubleDotAt")
   @meta.adapted
-  GetValueDoubleDotAtTicks(time, out)
+  GetValueDoubleDotAt_Ticks(time, out)
   {
     vec3.zero(out);
     for (const curve of this.functions)
     {
-      curve.GetValueDoubleDotAtTicks(time, this._childValue);
+      curve.GetValueDoubleDotAt_Ticks(time, this._childValue);
       vec3.add(out, out, this._childValue);
     }
     return out;

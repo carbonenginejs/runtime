@@ -803,7 +803,7 @@ export class Tr2RenderContextALStub
    * @param {number} _stride Bytes per index.
    * @returns {number} `S_OK`.
    */
-  SetIndicesStride(_buffer, _stride)
+  SetIndices_Stride(_buffer, _stride)
   {
     return ALResult.S_OK;
   }

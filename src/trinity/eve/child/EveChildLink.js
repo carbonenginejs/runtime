@@ -76,7 +76,7 @@ export class EveChildLink extends EveChildMesh
     }
     const targetPosition = EveChildLink._targetPosition;
     vec3.set(targetPosition, 0, 0, 0);
-    this.target.GetValueAtTicks(updateContext.GetTime(), targetPosition);
+    this.target.GetValueAt_Ticks(updateContext.GetTime(), targetPosition);
     if (!params?.spaceObjectParent)
     {
       // EveChildLink.cpp:57-60: without a source parent there is no direction.
@@ -236,7 +236,7 @@ export class EveChildLink extends EveChildMesh
   /** Links never cast shadows (EveChildLink.cpp:180-183). */
   @meta.blue.renamed("IsCastingShadow")
   @meta.implemented
-  IsCastingShadowShadowFrustum(_cameraFrustum, _shadowFrustum, _renderReason, _sizeInShadow)
+  IsCastingShadow_ShadowFrustum(_cameraFrustum, _shadowFrustum, _renderReason, _sizeInShadow)
   {
     return false;
   }

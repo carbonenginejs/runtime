@@ -449,7 +449,7 @@ export class EveDamageOverlay
   {
     if (EveDamageOverlay.impactEffectEnabled && this.hullDamageFactor > 0 && this.hullDamageFlickerCurve)
     {
-      const value = Math.max(0.3, Math.min(1, this.hullDamageFlickerCurve.UpdateTicks(updateContext.GetTime())));
+      const value = Math.max(0.3, Math.min(1, this.hullDamageFlickerCurve.Update_Ticks(updateContext.GetTime())));
       return value / Math.exp(this.hullDamageFactor);
     }
     return 1;

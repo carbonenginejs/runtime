@@ -136,8 +136,8 @@ export class EveTacticalOverlay
     if (this.translationCurve)
     {
       const time = updateContext.GetTime();
-      this.translationCurve.GetValueAtTicks(time, this.worldPosition);
-      this.translationCurve.GetValueDotAtTicks(time, this._rootVelocity);
+      this.translationCurve.GetValueAt_Ticks(time, this.worldPosition);
+      this.translationCurve.GetValueDotAt_Ticks(time, this._rootVelocity);
     }
     for (const trackObject of this.trackObjects)
     {

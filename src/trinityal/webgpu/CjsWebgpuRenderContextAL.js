@@ -1388,7 +1388,7 @@ export class CjsWebgpuRenderContextAL
    */
   SetIndices(buffer)
   {
-    return this.SetIndicesStride(buffer, buffer ? buffer.GetDesc().stride : 0);
+    return this.SetIndices_Stride(buffer, buffer ? buffer.GetDesc().stride : 0);
   }
 
   /**
@@ -1398,7 +1398,7 @@ export class CjsWebgpuRenderContextAL
    * @param {number} stride Bytes per index.
    * @returns {number} `S_OK`.
    */
-  SetIndicesStride(buffer, stride)
+  SetIndices_Stride(buffer, stride)
   {
     this._indexBuffer = buffer ? buffer.TrinityALImpl_GetObject() : null;
     this._indexStride = stride;

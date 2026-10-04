@@ -11,6 +11,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
+import { isVector3 } from "#utils/is";
 import { getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
 import { Tr2RingBuffer, Tr2RingBufferOffsets } from "../../core/device/Tr2RingBuffer/index.js";
@@ -1502,6 +1503,23 @@ export class EveChildMesh extends EveChildTransform
   }
 
   /**
+   * Carbon's bare IsCastingShadow, for literal ports: routes on the second
+   * argument, a Vector3 position selecting IsCastingShadow_PositionRadius and
+   * anything else the shadow-frustum form IsCastingShadow_ShadowFrustum
+   * (IEveShadowCaster.h:144-145). Engine code calls the specific names; this is
+   * an argument-inspecting router only because JavaScript cannot overload.
+   * @returns {Boolean}
+   */
+  @meta.blue.method
+  @meta.adapted
+  IsCastingShadow(cameraFrustum, second, third, fourth)
+  {
+    return isVector3(second)
+      ? this.IsCastingShadow_PositionRadius(cameraFrustum, second, third, fourth)
+      : this.IsCastingShadow_ShadowFrustum(cameraFrustum, second, third, fourth);
+  }
+
+  /**
    * Carbon's IsCastingShadow( cameraFrustum, position, radius, renderReason )
    * (cpp:341): whether the world bounding sphere overlaps the query sphere.
    * @param {Object} cameraFrustum
@@ -1512,7 +1530,7 @@ export class EveChildMesh extends EveChildTransform
    */
   @meta.blue.renamed("IsCastingShadow")
   @meta.implemented
-  IsCastingShadowPositionRadius(cameraFrustum, position, radius, renderReason)
+  IsCastingShadow_PositionRadius(cameraFrustum, position, radius, renderReason)
   {
     if (!this.display || !this.castShadow || !this._hasUpdated)
     {
@@ -1548,7 +1566,7 @@ export class EveChildMesh extends EveChildTransform
    */
   @meta.blue.renamed("IsCastingShadow")
   @meta.adapted
-  IsCastingShadowShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeOut = null)
+  IsCastingShadow_ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeOut = null)
   {
     if (!this.display || !this.castShadow || !this._hasUpdated)
     {

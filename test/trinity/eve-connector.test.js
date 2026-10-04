@@ -73,14 +73,14 @@ test("EveConnector samples nullable vector functions with the JavaScript time-fi
   const connector = new eve.EveConnector();
   const calls = [];
   connector.sourceObject = {
-    GetValueAtTicks(time, out)
+    GetValueAt_Ticks(time, out)
     {
       calls.push([ "source", time, out ]);
       vec3.set(out, 1, 2, 3);
     }
   };
   connector.destObject = {
-    GetValueAtTicks(time, out)
+    GetValueAt_Ticks(time, out)
     {
       calls.push([ "destination", time, out ]);
       vec3.set(out, 4, 5, 6);

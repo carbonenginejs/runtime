@@ -317,10 +317,9 @@ export class Tr2GpuSharedEmitter
   }
 
   /**
-   * Dispatches Carbon's point/segment overloads (cpp:149-191). JavaScript
-   * cannot overload methods, so six arguments select SpawnParticlesSegment
-   * while the ordinary four-argument call retains point emission.
-   * A reusable value copy preserves the continuous emitter's direction history.
+   * Carbon's point SpawnParticles overload (cpp:149-162); the start/end
+   * overload is SpawnParticles_StartEnd. A reusable value copy preserves the
+   * continuous emitter's direction history.
    */
   @meta.blue.method
   @meta.adapted

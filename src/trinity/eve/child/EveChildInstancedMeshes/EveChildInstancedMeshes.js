@@ -435,7 +435,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
         const frustum = updateContext.GetFrustum();
         info.estimatedPixelDiameter = Math.max(
           frustum.GetPixelSizeAccrossEst(worldSphere.center, worldSphere.radius) * updateContext.GetInvLodFactor(), 0);
-        info.isInFrustum = frustum.IsSphereVisibleCenterRadius(worldSphere.center, worldSphere.radius);
+        info.isInFrustum = frustum.IsSphereVisible_CenterRadius(worldSphere.center, worldSphere.radius);
         this._partDamageLocators = FindDamageLocators(found.mesh.ownedLocatorSets);
         info.getDamageLocatorPositionOS = this._getPartDamageLocatorPositionOS;
       }
@@ -1305,7 +1305,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
         const sphere = mesh.instanceSpheres[index];
         if (!sphere) continue;
         if (this._lastCameraFrustum &&
-          this._lastCameraFrustum.IsSphereVisibleCenterRadius(sphere.center, sphere.radius) === false) continue;
+          this._lastCameraFrustum.IsSphereVisible_CenterRadius(sphere.center, sphere.radius) === false) continue;
 
         const screenSize = this._lastCameraFrustum
           ? this._lastCameraFrustum.GetPixelSizeAccrossEst(sphere.center, sphere.radius) * this._lastInvLodFactor
@@ -1521,7 +1521,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * satisfies the "ShadowCaster" duck contract. */
   @meta.blue.renamed("IsCastingShadow")
   @meta.implemented
-  IsCastingShadowShadowFrustum(..._args)
+  IsCastingShadow_ShadowFrustum(..._args)
   {
     return false;
   }

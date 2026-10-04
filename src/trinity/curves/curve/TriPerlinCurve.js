@@ -95,7 +95,7 @@ export class TriPerlinCurve extends ITriScalarFunction
 
   /**
    * Updates and returns the cached value, skipping the noise evaluation when the
-   * time is unchanged since the last call. This is the native double-seconds overload; UpdateTicks is the Be::Time one.
+   * time is unchanged since the last call. This is the native double-seconds overload; Update_Ticks is the Be::Time one.
    */
   @meta.blue.method
   @meta.implemented
@@ -113,7 +113,7 @@ export class TriPerlinCurve extends ITriScalarFunction
    * Samples the noise at a time and maps it to [offset, offset + scale]; the
    * per-instance random phase is replaced by a fixed offset when
    * expressionCurveFakeRandom is set, so editor previews are deterministic.
-   * Adapted: JavaScript Number seconds follows the native double overload; GetValueAtTicks is the Be::Time overload
+   * Adapted: JavaScript Number seconds follows the native double overload; GetValueAt_Ticks is the Be::Time overload
    * with its first-call origin. Existing
    * noise arithmetic retains JS precision rather than native float rounding.
    */
@@ -143,13 +143,13 @@ export class TriPerlinCurve extends ITriScalarFunction
    */
   @meta.blue.renamed("Update")
   @meta.adapted
-  UpdateTicks(time)
+  Update_Ticks(time)
   {
     const seconds = TimeAsDouble(time);
     if (this._lastUpdated !== seconds)
     {
       this._lastUpdated = seconds;
-      this.value = this.GetValueAtTicks(time);
+      this.value = this.GetValueAt_Ticks(time);
     }
     return this.value;
   }
@@ -162,7 +162,7 @@ export class TriPerlinCurve extends ITriScalarFunction
    */
   @meta.blue.renamed("GetValueAt")
   @meta.adapted
-  GetValueAtTicks(time)
+  GetValueAt_Ticks(time)
   {
     if (this._start === 0) this._start = TimeAsDouble(time);
     return this.GetValueAt(TimeAsDouble(time) - this._start);
