@@ -790,27 +790,35 @@ export class EveBoosterSet2 extends EveEntity
   }
 
   /**
-   * The intensity of one renderable instance, or the mean across every instance
-   * when no index is given; zero when the set has no instances.
+   * Carbon's GetBoosterIntensity(): the mean intensity across every renderable
+   * instance; zero when the set has none (EveBoosterSet2.cpp:1048).
+   * @returns {number}
    */
   @meta.blue.method
-  @meta.adapted
-  GetBoosterIntensity(index = null)
+  @meta.implemented
+  GetBoosterIntensity()
   {
-    if (index !== null && index !== undefined)
-    {
-      return this.instances[Number(index) >>> 0]?.GetIntensity?.() ?? 0;
-    }
-    if (!this.instances.length)
-    {
-      return 0;
-    }
     let intensity = 0;
+    const oneOverCount = 1 / this.instances.length;
     for (const renderable of this.instances)
     {
-      intensity += renderable?.GetIntensity?.() ?? 0;
+      intensity += renderable.GetIntensity() * oneOverCount;
     }
-    return intensity / this.instances.length;
+    return intensity;
+  }
+
+  /**
+   * Carbon's GetBoosterIntensity( int index ): one renderable instance's
+   * intensity, zero when the index is out of range (EveBoosterSet2.cpp:1067).
+   * @param {number} index Renderable instance index.
+   * @returns {number}
+   */
+  @meta.blue.renamed("GetBoosterIntensity")
+  @meta.implemented
+  GetBoosterIntensityIndex(index)
+  {
+    const renderable = this.instances[index >>> 0];
+    return renderable ? renderable.GetIntensity() : 0;
   }
 
   /** The union of every renderable's world bounding sphere. Carbon has no
