@@ -203,6 +203,8 @@ test("curve methods expose source-backed Carbon metadata", () =>
   {
     assertCarbonMethod(ctor, methodName, status);
   }
+  // Carbon-private, so not Blue methods.
+  for (const method of ["_InvertLinearColor", "_InvertLinearValue"]) assertEquals(CjsSchema.getMethod(Tr2CurveColorMixer, method)?.impl?.status, "implemented");
   assertCarbonMethod(Tr2CurveEulerRotationExpression, "GetExpression", "implemented");
   assertCarbonMethod(Tr2CurveEulerRotationExpression, "SetExpression", "adapted");
   for (const method of ["Compile", "GetContext"]) assertEquals(CjsSchema.getMethod(Tr2CurveEulerRotationExpression, method)?.impl?.status, "custom");
@@ -1240,7 +1242,8 @@ test("Tr2CurveColorMixer blends, saturates, brightens, and converts color", () =
   assertAlmostEquals(curve.currentValue[0], intensity * 2);
   curve.UpdateValue(10);
   assertAlmostEquals(curve.convertedLinearValue[0], num.linearFromSRGB(intensity * 2));
-  assertAlmostEquals(curve.convertedLinearValue[3], 1);
+  // InvertLinearColor copies alpha (Tr2CurveColorMixer.cpp:78).
+  assertAlmostEquals(curve.convertedLinearValue[3], intensity * 2);
   assertEquals(CjsSchema.getField(Tr2CurveColorMixer, "color1")?.type.kind, "color");
   assertEquals(CjsSchema.getField(Tr2CurveColorMixer, "convertedLinearValue")?.type.kind, "color");
 });

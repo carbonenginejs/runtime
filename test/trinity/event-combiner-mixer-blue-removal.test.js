@@ -119,12 +119,31 @@ test("combiner dictionary and Copier retain owned lists and persisted child topo
     assert.equal(CjsSchema.getField(Tr2CurveCombiner,"curves").type.kind,"list");
 });
 
-test("mixer Update refreshes only mixed cache while UpdateValue converts RGB without changing alpha",()=>{
+// InvertLinearColor copies the mixed alpha (Tr2CurveColorMixer.cpp:78).
+test("mixer Update refreshes only mixed cache while UpdateValue converts RGB and copies alpha",()=>{
     const mixer=new Tr2CurveColorMixer();mixer.color1.set([1,0,0,0.5]);mixer.color2.set([0,0,1,1]);mixer.lerpValue=0.5;
     const mixed=mixer.currentValue,converted=mixer.convertedLinearValue;converted.set([9,8,7,0.25]);
     const out=new Float32Array(4);assert.equal(mixer.Update(3,out),out);assert.equal(mixer.currentValue,mixed);assert.deepEqual([...mixed],[0.5,0,0.5,0.75]);
     assert.deepEqual([...converted],[9,8,7,0.25]);mixer.UpdateValue(3);assert.equal(mixer.convertedLinearValue,converted);
-    assert.ok(Math.abs(converted[0]-0.21404114)<1e-6);assert.equal(converted[1],0);assert.ok(Math.abs(converted[2]-0.21404114)<1e-6);assert.equal(converted[3],0.25);
+    assert.ok(Math.abs(converted[0]-0.21404114)<1e-6);assert.equal(converted[1],0);assert.ok(Math.abs(converted[2]-0.21404114)<1e-6);assert.equal(converted[3],0.75);
+});
+
+// alphaOverride (Tr2CurveColorMixer.cpp:40-43): -1 disables; otherwise clamped to [0, 1].
+test("mixer alphaOverride replaces the mixed alpha, clamped",()=>{
+    const mixer=new Tr2CurveColorMixer();mixer.color1.set([1,1,1,0.5]);mixer.color2.set([1,1,1,0.5]);
+    assert.equal(mixer.alphaOverride,-1);assert.equal(mixer.GetValue(0,new Float32Array(4))[3],0.5);
+    mixer.alphaOverride=0.25;assert.equal(mixer.GetValue(0,new Float32Array(4))[3],0.25);
+    mixer.alphaOverride=3;assert.equal(mixer.GetValue(0,new Float32Array(4))[3],1);
+    mixer.alphaOverride=-0.5;assert.equal(mixer.GetValue(0,new Float32Array(4))[3],0);
+});
+
+// _InvertLinearValue, Carbon-private InvertLinearValue (Tr2CurveColorMixer.cpp:81-89): x/12.92 below 0.04045, else ((x+0.055)/1.055)^2.4.
+test("mixer _InvertLinearValue matches Carbon's piecewise decode",()=>{
+    const mixer=new Tr2CurveColorMixer();
+    for(const x of [0,0.01,0.04,0.04045,0.2,0.5,1]){
+        const carbon=x<0.04045?x/12.92:Math.pow((x+0.055)/1.055,2.4);
+        assert.ok(Math.abs(mixer._InvertLinearValue(x)-carbon)<1e-9,String(x));
+    }
 });
 
 test("actual curve set advances event, combiner and mixer through required UpdateValue",()=>{

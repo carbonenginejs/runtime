@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveColorMixer.h
 // Source: trinity/trinity/Curves/Tr2CurveColorMixer.cpp
 import { color } from "#math/color";
+import { num } from "#math/num";
 import { vec4 } from "#math/vec4";
 import { ITriFunction, ITriColorFunction, ITriCurveLength } from "#blue";
 import { meta } from "#schema";
@@ -73,6 +74,16 @@ export class Tr2CurveColorMixer extends ITriColorFunction
   brightness = 1;
 
   /**
+   * Alpha written over the mixed colour, clamped to [0, 1]; -1 disables the
+   * override (native float m_alphaOverride).
+   * @type {number}
+   */
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.float32
+  alphaOverride = -1;
+
+  /**
    * Mixed RGBA color cached by the last Update or UpdateValue call (native Color m_currentValue).
    * @type {Float32Array}
    */
@@ -81,7 +92,7 @@ export class Tr2CurveColorMixer extends ITriColorFunction
   currentValue = color.createLinear();
 
   /**
-   * RGB cache converted from currentValue's sRGB components by UpdateValue; its alpha is retained (native Color).
+   * currentValue converted from sRGB to linear by UpdateValue, alpha copied unchanged (native Color m_convertedLinearValue).
    * @type {Float32Array}
    */
   @meta.blue.read
@@ -95,7 +106,7 @@ export class Tr2CurveColorMixer extends ITriColorFunction
   _grayscale = vec4.create();
 
   /**
-   * Updates both native color caches; RGB conversion preserves converted alpha.
+   * Updates both native color caches.
    * @param {number} time Time in seconds.
    * @returns {void}
    */
@@ -104,7 +115,36 @@ export class Tr2CurveColorMixer extends ITriColorFunction
   UpdateValue(time)
   {
     this.GetValueAt(time, this.currentValue);
-    color.linearFromSRGB(this.convertedLinearValue, this.currentValue);
+    this._InvertLinearColor(this.currentValue, this.convertedLinearValue);
+  }
+
+  /**
+   * Converts `input`'s RGB from sRGB to linear into `out` and copies alpha
+   * (Carbon cpp:72-79). Carbon's header comment calls this linear to sRGB; the
+   * body is the sRGB-to-linear decode.
+   * @param {Float32Array} input Source colour.
+   * @param {Float32Array} out Destination colour; may be `input`.
+   * @returns {void}
+   */
+  @meta.implemented
+  _InvertLinearColor(input, out)
+  {
+    out[0] = this._InvertLinearValue(input[0]);
+    out[2] = this._InvertLinearValue(input[2]);
+    out[1] = this._InvertLinearValue(input[1]);
+    out[3] = input[3];
+  }
+
+  /**
+   * One sRGB channel to linear (Carbon cpp:81-89). num.linearFromSRGB is the
+   * same piecewise curve, with the divisions folded into constants.
+   * @param {number} x sRGB channel value.
+   * @returns {number} Linear channel value.
+   */
+  @meta.implemented
+  _InvertLinearValue(x)
+  {
+    return num.linearFromSRGB(x);
   }
 
   /**
@@ -144,7 +184,12 @@ export class Tr2CurveColorMixer extends ITriColorFunction
       this._grayscale[3] = intensity;
       vec4.lerp(out, this._grayscale, out, Math.max(0, this.saturation));
     }
-    return vec4.scale(out, out, this.brightness);
+    vec4.scale(out, out, this.brightness);
+    if (this.alphaOverride !== -1)
+    {
+      out[3] = Math.min(1, Math.max(0, this.alphaOverride));
+    }
+    return out;
   }
 
   /**
