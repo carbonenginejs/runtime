@@ -4,12 +4,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
-import { EveStretch, EveUpdateContext, Tr2CurveScalar } from "../../npm/dist/trinity/index.js";
+import { EveStretch, EveTransform, EveUpdateContext, Tr2CurveScalar } from "../../npm/dist/trinity/index.js";
 
-/** A child that records the transform it is placed with. */
+/** A real EveTransform child that records the transform it is placed with. */
 function recorder()
 {
-  return { placed: null, UpdateVisibility(_context, transform) { this.placed = Array.from(transform); }, SetDisplay() {} };
+  const child = new EveTransform();
+  child.placed = null;
+  child.UpdateVisibility = (_context, transform) => { child.placed = Array.from(transform); return true; };
+  return child;
 }
 
 function near(actual, expected, message)

@@ -20,7 +20,8 @@ import {
   EveTurretFiringFX,
   EveTurretSet,
   EveTurretTarget,
-  EveUpdateContext
+  EveUpdateContext,
+  TriCurveSet
 } from "../../npm/dist/trinity/index.js";
 import { FixtureEffect } from "../support/fixtureEffect.js";
 
@@ -123,14 +124,17 @@ test("EveFiringEffectElementContainer owns active element lifecycle", () =>
 test("EveStretch2 retains Carbon curve timing and portable render data", async () =>
 {
   const events = [];
-  const curveSet = name => ({
-    PlayFrom(value) { events.push([name, "play", value]); },
-    Stop() { events.push([name, "stop"]); },
-    Play() { events.push([name, "end"]); },
-    Update(value) { this.scaledTime = value; },
-    GetScaledTime() { return this.scaledTime ?? 0; },
-    GetMaxCurveDuration() { return name === "loop" ? 3 : 2; }
-  });
+  // Real curve sets; playback calls are recorded, and each reports a fixed duration in place of authored curves.
+  const curveSet = name =>
+  {
+    const set = new TriCurveSet();
+    set.name = name;
+    set.PlayFrom = value => { events.push([name, "play", value]); };
+    set.Stop = () => { events.push([name, "stop"]); };
+    set.Play = () => { events.push([name, "end"]); };
+    set.GetMaxCurveDuration = () => name === "loop" ? 3 : 2;
+    return set;
+  };
   const stretch = new EveStretch2();
   stretch.start = curveSet("start");
   stretch.loop = curveSet("loop");

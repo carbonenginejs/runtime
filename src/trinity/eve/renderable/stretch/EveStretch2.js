@@ -14,7 +14,6 @@ import { EveEntity } from "../../EveEntity.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
-import { getCurveDuration } from "./CjsStretchRuntime.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { ITr2GenericEmitterUpdateArguments } from "../../../particle/ITr2GenericEmitter/index.js";
 import { TriDevice } from "../../../core/device/TriDevice.js";
@@ -207,7 +206,10 @@ export class EveStretch2 extends IEveFiringEffectElement
   @meta.blue.method @meta.implemented
   GetCurveDuration()
   {
-    return Math.max(getCurveDuration(this.start), getCurveDuration(this.loop));
+    let duration = 0;
+    if (this.start) duration = Math.max(duration, this.start.GetMaxCurveDuration());
+    if (this.loop) duration = Math.max(duration, this.loop.GetMaxCurveDuration());
+    return duration;
   }
 
   /**

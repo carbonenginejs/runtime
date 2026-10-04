@@ -14,18 +14,7 @@ import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { TriFloat } from "../../../core/variable/TriFloat.js";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
-import {
-  collectRenderables,
-  getCurveDuration,
-  getDeltaTime,
-  getTime,
-  mergeSphere,
-  translationMatrix,
-  updateChildAsync,
-  updateChildSync,
-  updateChildVisibility,
-  updateCurveSet
-} from "./CjsStretchRuntime.js";
+import { mergeSphere, translationMatrix } from "./CjsStretchRuntime.js";
 
 
 /**
@@ -157,10 +146,10 @@ export class EveStretch extends IEveFiringEffectElement
     if (!this.update) return true;
     this.UpdateCurves(context);
     this.length.value = vec3.distance(this._sourcePosition, this._destinationPosition);
-    if (this._displaySource) updateChildAsync(this.sourceObject, context);
-    if (this._displayDestination) updateChildAsync(this.destObject, context);
-    updateChildAsync(this.stretchObject, context);
-    updateChildAsync(this.moveObject, context);
+    if (this.sourceObject && this._displaySource) this.sourceObject.Update(context);
+    if (this.stretchObject) this.stretchObject.Update(context);
+    if (this.moveObject) this.moveObject.Update(context);
+    if (this.destObject && this._displayDestination) this.destObject.Update(context);
     this.audio?.Update?.(this._sourcePosition, this._destinationPosition);
     if (this.stretchAudio)
     {
@@ -218,13 +207,13 @@ export class EveStretch extends IEveFiringEffectElement
   @meta.reason("Curve LOD is renderer policy in Carbon; the runtime Trinity layer retains the authored gate and updates graph curves without device globals.")
   UpdateCurves(context)
   {
-    const time = getTime(context);
+    const time = context.GetTime();
     if (this.startTime < 0 && this.moving) this.startTime = time;
     const relative = this.startTime >= 0 ? time - this.startTime : time;
-    for (const curveSet of this.curveSets) updateCurveSet(curveSet, relative, context.renderContext);
+    for (const curveSet of this.curveSets) curveSet.Update(TimeAsDouble(relative), context.renderContext);
     // Carbon EveStretch.cpp:158-159: the progress curve takes the elapsed ticks in seconds.
     if (this.moving && this.progressCurve) this.progressCurve.UpdateValue(TimeAsDouble(relative));
-    updateCurveSet(this.moveCompletion, relative, context.renderContext);
+    if (this.moveCompletion) this.moveCompletion.Update(TimeAsDouble(relative), context.renderContext);
   }
 
   /**
@@ -251,14 +240,14 @@ export class EveStretch extends IEveFiringEffectElement
       // Artwork is authored aligned to the y-axis rather than z, so transform mode adds a rotation.
       if (this._useTransforms) mat4.multiply(mat4_0, this._sourceTransform, EveStretch._sourceCorrection);
       else mat4.fromRotationTranslation(mat4_0, quat.rotationArc(quat_0, EveStretch._yAxis, vec3_0), this._sourcePosition);
-      updateChildVisibility(this.sourceObject, context, mat4_0);
+      this.sourceObject.UpdateVisibility(context, mat4_0);
     }
 
     if (this.destObject && this._displayDestination)
     {
       vec3.set(vec3_2, this._destinationScale, this._destinationScale, this._destinationScale);
       mat4.fromRotationTranslationScale(mat4_0, quat.rotationArc(quat_0, EveStretch._yAxis, vec3_0), this._destinationPosition, vec3_2);
-      updateChildVisibility(this.destObject, context, mat4_0);
+      this.destObject.UpdateVisibility(context, mat4_0);
     }
 
     if (this.stretchObject)
@@ -277,7 +266,7 @@ export class EveStretch extends IEveFiringEffectElement
         vec3.set(vec3_2, 1, 1, scalingLength);
         mat4.fromRotationTranslationScale(mat4_0, quat.arcFromForward(quat_0, vec3_0), this._sourcePosition, vec3_2);
       }
-      updateChildVisibility(this.stretchObject, context, mat4_0);
+      this.stretchObject.UpdateVisibility(context, mat4_0);
     }
 
     if (this.moveObject)
@@ -298,7 +287,7 @@ export class EveStretch extends IEveFiringEffectElement
         vec3.lerp(vec3_1, this._sourcePosition, this._destinationPosition, progress);
       }
       mat4.fromRotationTranslation(mat4_0, quat_0, vec3_1);
-      updateChildVisibility(this.moveObject, context, mat4_0);
+      this.moveObject.UpdateVisibility(context, mat4_0);
     }
   }
 
@@ -319,10 +308,10 @@ export class EveStretch extends IEveFiringEffectElement
   GetRenderables_Impostors(out = [], impostors)
   {
     if (!this.display) return out;
-    if (this._displaySource) collectRenderables(this.sourceObject, out, impostors);
-    if (this._displayDestination) collectRenderables(this.destObject, out, impostors);
-    collectRenderables(this.stretchObject, out, impostors);
-    collectRenderables(this.moveObject, out, impostors);
+    if (this.sourceObject && this._displaySource) this.sourceObject.GetRenderables_Impostors(out, impostors);
+    if (this.destObject && this._displayDestination) this.destObject.GetRenderables_Impostors(out, impostors);
+    if (this.stretchObject) this.stretchObject.GetRenderables_Impostors(out, impostors);
+    if (this.moveObject) this.moveObject.GetRenderables_Impostors(out, impostors);
     return out;
   }
 
@@ -337,7 +326,7 @@ export class EveStretch extends IEveFiringEffectElement
     this.startTime = -1;
     this.moving = true;
     this.moveCompleted = false;
-    this.moveObject?.SetDisplay?.(true);
+    if (this.moveObject) this.moveObject.SetDisplay(true);
     if (typeof this.audio?.TriggerStretchEvent === "function") this.audio.TriggerStretchEvent();
     else this.audio?.SendEvent?.("wise:/msg_fx_play_stretch");
   }
@@ -347,7 +336,7 @@ export class EveStretch extends IEveFiringEffectElement
   Start()
   {
     this.StartMoving();
-    this.curveSets[0]?.Play?.();
+    if (this.curveSets.length) this.curveSets[0].Play();
   }
 
   /**
@@ -427,8 +416,7 @@ export class EveStretch extends IEveFiringEffectElement
     let duration = 0;
     for (const curveSet of this.curveSets)
     {
-      const timeScale = Number(curveSet?.GetTimeScale?.() ?? curveSet?.timeScale ?? 1) || 1;
-      duration = Math.max(duration, getCurveDuration(curveSet) / timeScale);
+      duration = Math.max(duration, curveSet.GetMaxCurveDuration() / curveSet.GetTimeScale());
     }
     return duration;
   }
@@ -442,13 +430,14 @@ export class EveStretch extends IEveFiringEffectElement
   {
     for (const curveSet of this.curveSets)
     {
-      const name = curveSet?.GetName() ?? curveSet?.name;
+      if (!curveSet) continue;
+      const name = curveSet.GetName();
       if (name === "play_start")
       {
-        curveSet.PlayFrom?.(-delay);
+        curveSet.PlayFrom(-delay);
         this.StartMoving();
       }
-      else if (name === "play_loop") curveSet.PlayFrom?.(-delay);
+      else if (name === "play_loop") curveSet.PlayFrom(-delay);
       else if (name === "play_end") curveSet.Stop();
     }
     if (this.stretchAudio)
@@ -469,7 +458,8 @@ export class EveStretch extends IEveFiringEffectElement
   {
     for (const curveSet of this.curveSets)
     {
-      const name = curveSet?.GetName() ?? curveSet?.name;
+      if (!curveSet) continue;
+      const name = curveSet.GetName();
       if (name === "play_start")
       {
         curveSet.Stop();
@@ -549,7 +539,7 @@ export class EveStretch extends IEveFiringEffectElement
     vec4.set(out, 0, 0, 0, 0);
     for (const child of [this.sourceObject, this.destObject, this.stretchObject])
     {
-      if (typeof child?.GetBoundingSphere === "function" && child.GetBoundingSphere(EveStretch._sphere) !== false)
+      if (child && child.GetBoundingSphere(EveStretch._sphere))
       {
         mergeSphere(out, EveStretch._sphere);
       }
@@ -569,8 +559,8 @@ export class EveStretch extends IEveFiringEffectElement
     if (!this.display) return;
     const source = translationMatrix(this._sourcePosition, EveStretch._lightSource, this._sourceScale);
     const destination = translationMatrix(this._destinationPosition, EveStretch._lightDestination, this._destinationScale);
-    if (this._displaySource) for (const light of this.sourceLights) light?.AddLight(lightManager, source, this._sourceScale);
-    if (this._displayDestination) for (const light of this.destLights) light?.AddLight(lightManager, destination, this._destinationScale);
+    if (this._displaySource) for (const light of this.sourceLights) light.AddLight(lightManager, source, this._sourceScale);
+    if (this._displayDestination) for (const light of this.destLights) light.AddLight(lightManager, destination, this._destinationScale);
   }
 
   /** Carbon EveStretch::RegisterComponents (cpp:606-613): LightOwner leaf
