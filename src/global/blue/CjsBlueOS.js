@@ -44,6 +44,19 @@ export class CjsBlueOS extends IBlueOS
   _rebaseListeners = [];
 
   /**
+   * `mFrameClock` (BlueOS.h:56), Blue's READWRITE `frameClock` attribute
+   * (BlueOS_Blue.cpp:280, "Clock that ticks on frame basis"): an optional
+   * object the host installs to filter the frame's real time. Its
+   * `Sample()` returns a sequence whose first entry is the time, in Blue
+   * ticks on the runtime epoch. Null samples the actual time.
+   *
+   * Carbon's game client installs a Python clock here; that algorithm is not
+   * in Carbon's source, so none ships with the runtime.
+   * @type {?{ Sample(): ArrayLike<number> }}
+   */
+  frameClock = null;
+
+  /**
    * Anchors the host clock to the current wallclock, and starts real and
    * simulation time there, as Carbon's constructor does (BlueOS.cpp:255-256).
    */
@@ -109,16 +122,33 @@ export class CjsBlueOS extends IBlueOS
   }
 
   /**
+   * Carbon's GetSmoothedTime (BlueOS.cpp:1109-1138): the installed frame
+   * clock's sample, or the actual time when none is installed.
+   *
+   * Adapted: Carbon falls back to the actual time when the Python call fails;
+   * a JavaScript frame clock that throws propagates.
+   *
+   * @returns {number} Blue ticks since the runtime epoch.
+   */
+  GetSmoothedTime()
+  {
+    if (!this.frameClock) return this.GetActualTime();
+    return this.frameClock.Sample()[0];
+  }
+
+  /**
    * Refreshes the frame clock and delivers a tick to a snapshot of registrants.
    *
-   * Real time is the current actual time and simulation time follows it, as
-   * Carbon's does while the sim clock is locked to the real one
-   * (BlueOS.cpp:552-556); both are on the runtime epoch (see GetActualTime) and
-   * are what OnTick receives (BlueOS.cpp:2190).
+   * Real time is the smoothed time (BlueOS.cpp:512, 552) and simulation time
+   * follows it, as Carbon's does while the sim clock is locked to the real one
+   * (:554-556); both are on the runtime epoch (see GetActualTime) and are what
+   * OnTick receives (BlueOS.cpp:2190).
    *
    * Adapted: Carbon also drives scheduler, IO, recycling and statistics work,
-   * smooths the real time, and can dilate or rebase simulation time; none of
-   * that is ported. It increments the pump count before callbacks rather
+   * and can dilate or rebase simulation time; none of that is ported. Carbon's
+   * clamp of a negative smoothed delta (:537-543) is not ported because only
+   * the statistics and sim-time dilation read that delta; the real time takes
+   * the unclamped sample (:552) here as there. It increments the pump count before callbacks rather
    * than after them, permits nested pumping, and still calls snapshot entries
    * removed during another callback. Native pumping guards reentrancy and checks
    * current registration before each tick (BlueOS.cpp:674-679,2172-2182).
@@ -132,7 +162,7 @@ export class CjsBlueOS extends IBlueOS
   PumpOS()
   {
     this._pumpTicks++;
-    this._realTime = this.GetActualTime();
+    this._realTime = this.GetSmoothedTime();
     this._simTime = this._realTime;
 
     const realTime = this._realTime;

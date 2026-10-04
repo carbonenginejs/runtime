@@ -65,3 +65,19 @@ test("TimeToFileTime / TimeFromFileTime convert exactly at the UTC boundary", ()
   assert.equal(TimeFromFileTime(134116992000012345n), 12345);
   assert.equal(TimeFromFileTime(TimeToFileTime(-987654321)), -987654321, "times before 2026 are negative");
 });
+
+
+test("an installed frameClock sets the frame's real and sim time (BlueOS.cpp:512, 552, 1109)", () =>
+{
+  const os = new CjsBlueOS();
+  assert.equal(os.frameClock, null);
+  os.frameClock = { Sample: () => [ 4242, 0 ] };
+  os.PumpOS();
+  assert.equal(os.GetRealTime(), 4242, "real time is the smoothed sample");
+  assert.equal(os.GetCurrentFrameTime(), 4242, "sim time follows real time while locked");
+
+  os.frameClock = null;
+  const before = os.GetActualTime();
+  os.PumpOS();
+  assert.ok(os.GetRealTime() >= before, "without a frame clock, the actual time");
+});

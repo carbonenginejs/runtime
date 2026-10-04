@@ -19,20 +19,13 @@
 // here until this existed.
 //
 // TIME IS `Be::Time`: a signed 64-bit count of 100-nanosecond ticks, "Same as
-// Win32 FILETIME" (`blueexposure/include/BlueTypes.h:29`), so the epoch is
-// 1601. TWO BASES, and confusing them is a four-century error:
-//
-// - `OnTick`'s `realTime` and `simTime` are SINCE THE CLIENT STARTED, per the
-//   header's comments on those parameters;
-// - `GetActualTime` and `GetCurrentFrameTime` are absolute Blue UTC.
-//
-// A JavaScript number holds a since-startup tick count exactly for about nine
-// years. It CANNOT hold absolute Blue UTC exactly: 2026 is around 1.33e17
-// ticks against a safe integer limit of 9.01e15, so absolute readings carry
-// roughly 1.6-microsecond granularity rather than 100 nanoseconds. That is a
-// platform fact, it is stated rather than worked around, and it matters to
-// nothing that currently reads these - but it would matter to a caller
-// differencing two absolute readings taken microseconds apart.
+// Win32 FILETIME" (`blueexposure/include/BlueTypes.h:29`), so Carbon's epoch is
+// 1601. Absolute FILETIME (about 1.3e17 in 2026) is past Number's exact range,
+// so every Be::Time in this runtime counts the same ticks from 2026-01-01 UTC
+// instead (`BLUE_EPOCH_UNIX_MS` in CcpTime): `GetActualTime`,
+// `GetCurrentFrameTime` and `OnTick`'s `realTime` / `simTime` all share that
+// one zero, exact to 100 nanoseconds until 2054, and `TimeToFileTime` converts
+// to Carbon's absolute value where UTC is needed.
 //
 // The error, startup-argument and process-control half of this interface is
 // declared and refused. It is a genuine operating-system service, it has no
@@ -91,13 +84,13 @@ export class IBlueOS
   /** `GetInfo` - the BeInfo record: real and simulation time, dilation, fps, pump counters. */
   GetInfo() {}
 
-  /** `GetActualTime` - the wallclock, adjusted for server sync, in Blue UTC ticks. */
+  /** `GetActualTime` - the wallclock, adjusted for server sync, in Blue ticks on the runtime epoch. */
   GetActualTime() {}
 
   /** `IsPackaged` - whether the client is running from a package. */
   IsPackaged() {}
 
-  /** `GetCurrentFrameTime` - the cached smoothed time for this frame, in Blue UTC ticks. */
+  /** `GetCurrentFrameTime` - the cached smoothed time for this frame, in Blue ticks on the runtime epoch. */
   GetCurrentFrameTime() {}
 
   /** `RunStackless` - whether the stackless scheduler is in use. */
