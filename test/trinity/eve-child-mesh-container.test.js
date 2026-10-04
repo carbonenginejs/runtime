@@ -27,6 +27,7 @@ import {
   Locator
 } from "../../npm/dist/trinity/index.js";
 import { EveChildLineSet } from "../../npm/dist/trinity/eve/child/EveChildLineSet.js";
+import { Tr2Mesh } from "../../npm/dist/trinity/core/mesh/Tr2Mesh.js";
 
 
 test("generated Eve children inherit maintained local-transform rebuilding", () =>
@@ -457,15 +458,17 @@ test("EveChildMesh passes Carbon's LOD screen size and mirrored-winding flag", (
 {
   const child = new EveChildMesh();
   const seen = [];
-  child.mesh = {
-    GetBounds: () => null,
-    GetAreas: () => [],
+  // A real Tr2Mesh recording the batch request; everything else is the real class.
+  child.mesh = new (class extends Tr2Mesh
+  {
+    GetBounds() { return null; }
+    GetAreas() { return []; }
     GetBatches(_batches, _areas, _perObjectData, screenSize, reverseWinding)
     {
       seen.push({ screenSize, reverseWinding });
       return true;
     }
-  };
+  })();
 
   child.currentScreenSize = 40;
   child.currentInstanceScreenSize = 12;

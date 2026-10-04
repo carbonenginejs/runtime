@@ -17,6 +17,7 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/
 import { Tr2RingBuffer, Tr2RingBufferOffsets } from "../../core/device/Tr2RingBuffer/index.js";
 import { vec4 } from "#math/vec4";
 import { CjsSchema, meta } from "#schema";
+import { Tr2InstancedMesh } from "../../core/mesh/Tr2InstancedMesh.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { IsMatch, IListNotify } from "#blue";
 import { EveEntity } from "../EveEntity.js";
@@ -51,7 +52,6 @@ const LOCAL_VIEW_SCRATCH = vec3.create();
 const INSTANCE_SPHERE_SCRATCH = vec4.create();
 const SHADOW_SPHERE_SCRATCH = vec4.create();
 const BOX_CORNER_SCRATCH = vec3.create();
-const ZERO_VEC3 = vec3.create();
 
 // Carbon's (nullptr, 0) bone result - frozen so callers cannot mutate it.
 const NO_BONE_TRANSFORMS = { bones: null, boneCount: 0 };
@@ -685,10 +685,10 @@ export class EveChildMesh extends EveChildTransform
   @meta.implemented
   SetShaderOption(name, value)
   {
-    this.mesh?.SetShaderOption?.(name, value);
+    this.mesh?.SetShaderOption(name, value);
     for (const decal of this.decals)
     {
-      decal?.SetShaderOption?.(name, value);
+      decal?.SetShaderOption(name, value);
     }
     for (const attachment of this.attachments)
     {
@@ -706,7 +706,7 @@ export class EveChildMesh extends EveChildTransform
   @meta.adapted
   GetMorphTargetNames()
   {
-    return this.mesh?.GetMorphTargetNames?.() ?? [];
+    return this.mesh?.GetMorphTargetNames() ?? [];
   }
 
   /**
@@ -717,7 +717,7 @@ export class EveChildMesh extends EveChildTransform
   @meta.adapted
   SetMorphTargetWeight(name, weight)
   {
-    this.mesh?.SetMorphTargetWeight?.(name, weight);
+    this.mesh?.SetMorphTargetWeight(name, weight);
   }
 
   /**
@@ -729,7 +729,7 @@ export class EveChildMesh extends EveChildTransform
   @meta.adapted
   GetMorphTargetWeight(name)
   {
-    return this.mesh?.GetMorphTargetWeight?.(name) ?? 0;
+    return this.mesh?.GetMorphTargetWeight(name) ?? 0;
   }
 
   /**
@@ -744,7 +744,7 @@ export class EveChildMesh extends EveChildTransform
   @meta.adapted
   UpdateMorphAnimationBuffer()
   {
-    const names = this.mesh?.GetMorphTargetNames?.();
+    const names = this.mesh?.GetMorphTargetNames();
 
     this._morphAnimationOffsets = {
       runtimeEvaluatedOffset: 0,
@@ -760,22 +760,22 @@ export class EveChildMesh extends EveChildTransform
       return 0;
     }
 
-    const manual = this.mesh?.GetMorphAnimations?.();
+    const manual = this.mesh?.GetMorphAnimations();
     const records = names.map((name, index) => ({
       index,
       weight: ReadMorphWeight(
-        ReadNamedMorph(manual, name) ?? this.mesh?.GetMorphTargetWeight?.(name) ?? 0,
+        ReadNamedMorph(manual, name) ?? this.mesh?.GetMorphTargetWeight(name) ?? 0,
         name,
         "mesh"
       ),
-      baked: !!(this.mesh?.IsBakedMorph?.(index)
-        ?? this.mesh?.GetBakedMorphTarget?.(name)
+      baked: !!(this.mesh?.IsBakedMorph(index)
+        ?? this.mesh?.GetBakedMorphTarget(name)
         ?? false)
     }));
 
-    if (this.animationUpdater?.IsInitialized?.())
+    if (this.animationUpdater?.IsInitialized())
     {
-      const animated = this.animationUpdater.GetMorphAnimations?.();
+      const animated = this.animationUpdater.GetMorphAnimations();
 
       for (const record of records)
       {
@@ -1137,16 +1137,15 @@ export class EveChildMesh extends EveChildTransform
       return false;
     }
 
-    const frustum = updateContext?.GetFrustum?.() ?? updateContext?.frustum;
-    const invLodFactor = Number(updateContext?.GetInvLodFactor?.() ?? updateContext?.invLodFactor) || 1;
+    const frustum = updateContext.GetFrustum();
+    const invLodFactor = updateContext.GetInvLodFactor();
 
     if (this.mesh)
     {
-      this.currentScreenSize = Number(frustum?.GetPixelSizeAccross?.(this._worldBoundingSphere) ?? Infinity) || 0;
+      this.currentScreenSize = frustum.GetPixelSizeAccross(this._worldBoundingSphere);
 
-      // Cached Tr2InstancedMesh downcast in Carbon (m_instancedMesh); the JS
-      // port duck-types the instanced surface instead.
-      const instanced = typeof this.mesh.GetInstanceBoundsClosestToPoint === "function";
+      // Carbon's cached Tr2InstancedMesh downcast (m_instancedMesh, cpp:206).
+      const instanced = CjsSchema.cast(this.mesh, Tr2InstancedMesh) !== null;
       let instanceBounds = null;
 
       if (instanced)
@@ -1158,7 +1157,7 @@ export class EveChildMesh extends EveChildTransform
         {
           mat4.identity(INVERSE_WORLD_SCRATCH);
         }
-        const viewPos = frustum?.viewPos ?? ZERO_VEC3;
+        const viewPos = frustum.viewPos;
         vec3.transformMat4(LOCAL_VIEW_SCRATCH, viewPos, INVERSE_WORLD_SCRATCH);
         instanceBounds = this.mesh.GetInstanceBoundsClosestToPoint(LOCAL_VIEW_SCRATCH);
       }
@@ -1175,15 +1174,15 @@ export class EveChildMesh extends EveChildTransform
           instanceBounds.radius
         );
         sph3.transformMat4(INSTANCE_SPHERE_SCRATCH, INSTANCE_SPHERE_SCRATCH, this.worldTransform);
-        this.currentInstanceScreenSize = Number(frustum?.GetPixelSizeAccross?.(INSTANCE_SPHERE_SCRATCH) ?? Infinity) || 0;
-        this.mesh.UseWithScreenSize?.(this.currentInstanceScreenSize, INSTANCE_SPHERE_SCRATCH[3]);
+        this.currentInstanceScreenSize = frustum.GetPixelSizeAccross(INSTANCE_SPHERE_SCRATCH);
+        this.mesh.UseWithScreenSize(this.currentInstanceScreenSize, INSTANCE_SPHERE_SCRATCH[3]);
       }
       else
       {
         // Carbon uses std::numeric_limits<float>::max(); Infinity keeps the
         // instance gate permanently open the same way.
         this.currentInstanceScreenSize = Infinity;
-        this.mesh.UseWithScreenSize?.(this.currentScreenSize, this._worldBoundingSphere[3]);
+        this.mesh.UseWithScreenSize(this.currentScreenSize, this._worldBoundingSphere[3]);
       }
 
       this.currentScreenSize *= invLodFactor;
@@ -1241,7 +1240,7 @@ export class EveChildMesh extends EveChildTransform
       return out;
     }
 
-    const instanced = typeof this.mesh?.GetInstanceBoundsClosestToPoint === "function";
+    const instanced = CjsSchema.cast(this.mesh, Tr2InstancedMesh) !== null;
 
     if (instanced)
     {
@@ -1252,7 +1251,7 @@ export class EveChildMesh extends EveChildTransform
         {
           for (const decal of this.decals)
           {
-            decal?.GetInstancedRenderables?.(out, null, this.mesh, this.currentInstanceScreenSize);
+            decal?.GetInstancedRenderables(out, null, this.mesh, this.currentInstanceScreenSize);
           }
         }
       }
@@ -1316,12 +1315,11 @@ export class EveChildMesh extends EveChildTransform
   {
     if (this._worldBoundingSphere[3] > 0)
     {
-      const frustum = updateContext?.GetFrustum?.() ?? updateContext?.frustum;
+      const frustum = updateContext.GetFrustum();
       if (frustum?.IsSphereVisible(this._worldBoundingSphere) !== false)
       {
-        const method = frustum?.GetPixelSizeAccrossEst ?? frustum?.GetPixelSizeAccross;
-        const size = Number(typeof method === "function" ? method.call(frustum, this._worldBoundingSphere) : 0) || 0;
-        const threshold = Number(updateContext?.GetVisibilityThreshold?.() ?? updateContext?.visibilityThreshold) || 0;
+        const size = frustum.GetPixelSizeAccrossEst(this._worldBoundingSphere);
+        const threshold = updateContext.GetVisibilityThreshold();
         return size >= threshold;
       }
     }
@@ -1572,10 +1570,10 @@ export class EveChildMesh extends EveChildTransform
     }
 
     let sizeInShadow = 0;
-    if (shadowFrustum?.IsVisible?.(cameraFrustum, this._worldBoundingSphere))
+    if (shadowFrustum.IsVisible(cameraFrustum, this._worldBoundingSphere))
     {
       let sphere = this._worldBoundingSphere;
-      if (typeof this.mesh?.GetInstanceBoundsClosestToPoint === "function")
+      if (CjsSchema.cast(this.mesh, Tr2InstancedMesh) !== null)
       {
         // Carbon: TransformCoord(shadowFrustum.GetEyePos(), Inverse(
         // m_worldTransform)) - single-matrix point transform (no composition).
@@ -1583,7 +1581,7 @@ export class EveChildMesh extends EveChildTransform
         {
           mat4.identity(INVERSE_WORLD_SCRATCH);
         }
-        const eyePos = shadowFrustum?.GetEyePos?.() ?? ZERO_VEC3;
+        const eyePos = shadowFrustum.GetEyePos();
         vec3.transformMat4(LOCAL_VIEW_SCRATCH, eyePos, INVERSE_WORLD_SCRATCH);
         const instanceBounds = this.mesh.GetInstanceBoundsClosestToPoint(LOCAL_VIEW_SCRATCH);
         if (instanceBounds)
@@ -1601,7 +1599,7 @@ export class EveChildMesh extends EveChildTransform
           sphere = INSTANCE_SPHERE_SCRATCH;
         }
       }
-      sizeInShadow = Number(shadowFrustum?.GetSizeInShadow?.(sphere)) || 0;
+      sizeInShadow = shadowFrustum.GetSizeInShadow(sphere);
     }
 
     if (sizeOut)
@@ -1696,7 +1694,7 @@ export class EveChildMesh extends EveChildTransform
     for (const light of this.lights)
     {
       light?.AddLight(lightManager, this.worldTransform, 1, bones, boneCount);
-      light?.SetBrightnessMultiplier?.(this._activationStrength);
+      light?.SetBrightnessMultiplier(this._activationStrength);
     }
   }
 
@@ -1924,7 +1922,7 @@ export class EveChildMesh extends EveChildTransform
 
         if (areas)
         {
-          this.mesh.GetBatches?.(batches, areas, perObjectData);
+          this.mesh.GetBatches(batches, areas, perObjectData);
         }
       }
     }

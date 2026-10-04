@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
-import { EveSpaceObject2, EveUpdateContext, Tr2Lod } from "../../npm/dist/trinity/index.js";
+import { EveSpaceObject2, EveUpdateContext, Tr2Lod, Tr2Mesh, TriFrustum } from "../../npm/dist/trinity/index.js";
 import { EveChildMesh } from "../../npm/dist/trinity/eve/child/EveChildMesh.js";
 
 // Carbon's decal data flow is an UPDATE PASS, not a values transport: the owner
@@ -41,18 +41,25 @@ function visibleHull()
   return object;
 }
 
-const visibleContext = {
-  frustum: {
-    IsSphereVisible: () => true,
-    IsBoxVisible: () => true,
-    GetPixelSizeAccross: () => 80,
-    GetPixelSizeAccrossEst: () => 75
-  },
-  visibilityThreshold: 1,
-  lowDetailThreshold: 20,
-  mediumDetailThreshold: 60,
-  lodFactor: 1
-};
+/** A real update context whose real frustum answers visible (or not) at fixed pixel sizes. */
+function updateContext(visible = true)
+{
+  const frustum = new (class extends TriFrustum
+  {
+    IsSphereVisible() { return visible; }
+    IsBoxVisible() { return visible; }
+    GetPixelSizeAccross() { return 80; }
+    GetPixelSizeAccrossEst() { return 75; }
+  })();
+  const context = new EveUpdateContext();
+  context.SetFrustum(frustum);
+  context.SetVisibilityThreshold(1);
+  context.SetLowDetailThreshold(20);
+  context.SetMediumDetailThreshold(60);
+  context.SetLodFactor(1);
+  return context;
+}
+const visibleContext = updateContext();
 
 test("a visible hull hands its decals one ParentData built for the pass", () =>
 {
@@ -80,7 +87,7 @@ test("a hull whose mesh is not visible runs no decal pass", () =>
   const decal = decalSpy();
   object.decals.push(decal);
 
-  object.UpdateVisibility({ ...visibleContext, frustum: { ...visibleContext.frustum, IsSphereVisible: () => false } });
+  object.UpdateVisibility(updateContext(false));
   assert.equal(decal.seen.length, 0);
 });
 
@@ -90,12 +97,12 @@ test("a child mesh hands its decals its own ParentData, placed by the child", ()
   parent.spaceObjectShipData.set([ 0.5, 0.6, 0.7, 0.8 ]);
 
   const child = new EveChildMesh();
-  child.mesh = {
-    GetBounds: () => ({ min: [ -1, -1, -1 ], max: [ 1, 1, 1 ] }),
-    GetAreas: () => [],
-    GetGeometryResource: () => null,
-    UseWithScreenSize() {}
-  };
+  // A real Tr2Mesh with unit bounds and no geometry; everything else is the real class.
+  child.mesh = new (class extends Tr2Mesh
+  {
+    GetBounds() { return { min: [ -1, -1, -1 ], max: [ 1, 1, 1 ] }; }
+    GetAreas() { return []; }
+  })();
   const decal = decalSpy();
   child.decals.push(decal);
 
