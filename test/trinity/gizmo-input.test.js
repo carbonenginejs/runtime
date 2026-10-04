@@ -85,6 +85,39 @@ test("a missed handle passes the same drag to the Carbon camera consumer", async
   input.Destroy();
 });
 
+test("with the real camera and gizmo composed, a drag on an object orbits and a click selects it", async t =>
+{
+  const input = new TnyInputMan(), orbits = [], selected = [];
+  const camera = new EveCamera();
+  t.mock.method(camera, "OrbitParent", (...args) => orbits.push(args));
+  const controls = new TnyCameraControls({ camera }).Install(input);
+  const gizmo = setupGizmo(t, "off");
+  gizmo.pickObject = async () => ({ name: "ship" });
+  gizmo.onSelect = object => selected.push(object);
+  gizmo.Install(input);
+
+  // A drag that starts on the object: the camera captures once it moves past the slop.
+  input.Enqueue(pointer("pointerdown"));
+  input.Enqueue(pointer("pointermove", { dx: 3, dy: 0 }));
+  input.Enqueue(pointer("pointermove", { dx: 10, dy: -5 }));
+  input.Enqueue(pointer("pointerup"));
+  await input.Update();
+  assert.equal(orbits.length, 1, "orbited once the drag passed the slop");
+  assert.equal(selected.length, 0, "a drag does not select");
+  assert.equal(input._owner, null);
+
+  // A click: no capture, so the release reaches the gizmo, which selects.
+  input.Enqueue(pointer("pointerdown"));
+  input.Enqueue(pointer("pointerup"));
+  await input.Update();
+  assert.equal(selected.length, 1, "a click selects");
+  assert.equal(orbits.length, 1, "a click does not orbit");
+
+  gizmo.Uninstall();
+  controls.Destroy();
+  input.Destroy();
+});
+
 function setupGizmo(t, mode)
 {
   const context = Tr2RenderContext_GetMainThreadRenderContext(), previous = context.GetRenderContextAL();

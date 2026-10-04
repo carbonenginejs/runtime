@@ -20,6 +20,15 @@ export class TnyCameraControls
   _input = null;
   _consumer = null;
   _gesture = null;
+
+  /** Whether the current gesture has moved far enough to capture the pointer. */
+  _gestureCaptured = false;
+
+  /** Pointer travel, in backing pixels, since the gesture's press. */
+  _gestureTravel = 0;
+
+  /** How far a press may travel and still be a click (TnyTransformGizmo.CLICK_SLOP uses the same 4). */
+  static CLICK_SLOP = 4;
   _held = new Map();
   _keyBindings = null;
   _projection = mat4.create();
@@ -117,18 +126,39 @@ export class TnyCameraControls
         this._gesture = "pan";
       else if (event.button === this.preferences.orbitButton) this._gesture = "orbit";
       else return result.PASS;
-      return result.CAPTURE;
+      // Not captured yet: a press that never moves is a click, and the release
+      // must reach the other consumers (the gizmo selects on it). The gesture
+      // captures once the pointer travels further than CLICK_SLOP.
+      this._gestureCaptured = false;
+      this._gestureTravel = 0;
+      return result.HANDLED;
     }
     if (event.type === "pointermove" && this._gesture)
     {
+      let starting = false;
+      if (!this._gestureCaptured)
+      {
+        // No button held: the press ended under another consumer's capture.
+        if (event.buttons === 0)
+        {
+          this._gesture = null;
+          return result.PASS;
+        }
+        this._gestureTravel += Math.abs(event.dx ?? 0) + Math.abs(event.dy ?? 0);
+        if (this._gestureTravel <= TnyCameraControls.CLICK_SLOP) return result.HANDLED;
+        this._gestureCaptured = true;
+        starting = true;
+      }
       if (this._gesture === "pan") this.Pan(event.dx, event.dy);
       else this.Orbit(event.dx, event.dy);
-      return result.CONSUME;
+      return starting ? result.CAPTURE : result.CONSUME;
     }
     if (event.type === "pointerup" && this._gesture)
     {
+      const captured = this._gestureCaptured;
       this._gesture = null;
-      return result.RELEASE;
+      this._gestureCaptured = false;
+      return captured ? result.RELEASE : result.PASS;
     }
     if (event.type === "wheel")
     {
@@ -291,6 +321,7 @@ export class TnyCameraControls
   Cancel()
   {
     this._gesture = null;
+    this._gestureCaptured = false;
     this._held.clear();
     this.camera.SetOrbit(this.camera.yaw, this.camera.pitch);
   }
