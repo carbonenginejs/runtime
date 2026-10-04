@@ -5,6 +5,7 @@ import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; quad instance policy is portable CPU work.
 import { mat4 } from "#math/mat4";
+import { num } from "#math/num";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
@@ -52,12 +53,6 @@ function getEffectKey(effect)
 }
 
 
-function triLinearize(min, max, value)
-{
-  return Math.min(Math.max((value - min) / (max - min), 0), 1);
-}
-
-
 function getSubdivisionCount(pixelSize, low, medium, high, updateContext)
 {
   if (pixelSize < updateContext.GetVisibilityThreshold()) return 0;
@@ -87,7 +82,7 @@ function getSubdivisionCount(pixelSize, low, medium, high, updateContext)
     lowStep = updateContext.GetMediumDetailThreshold();
     highStep = updateContext.GetHighDetailThreshold();
   }
-  return Math.floor(lowCount + (highCount - lowCount) * triLinearize(lowStep, highStep, pixelSize));
+  return Math.floor(lowCount + (highCount - lowCount) * num.triLinearize(lowStep, highStep, pixelSize));
 }
 
 
