@@ -123,7 +123,7 @@ export class EveVirtualCameraSystem
   {
     if (camera && camera !== this.GetMainCamera())
     {
-      this.SetMainCamera(camera, new EveVirtualCameraTransitionCut());
+      this.SetMainCameraTransition(camera, new EveVirtualCameraTransitionCut());
     }
   }
 
@@ -139,7 +139,7 @@ export class EveVirtualCameraSystem
     {
       const transition = new EveVirtualCameraTransitionLerp();
       transition.SetTransitionTime(transitionTime);
-      this.SetMainCamera(camera, transition);
+      this.SetMainCameraTransition(camera, transition);
     }
   }
 
@@ -185,29 +185,38 @@ export class EveVirtualCameraSystem
   }
 
   /**
-   * Carbon SetMainCamera, both overloads as one method with an optional
-   * transition (EveVirtualCameraSystem.cpp:87-92 and :94-105): drop any
-   * running transition, make the camera the main one and register it; with a
-   * transition, wire it from the previous main camera to the new one and
-   * play it. Carbon's 2-arg form assigns m_transition even when the supplied
-   * transition is null, which collapses to the same end state as the 1-arg
-   * form here.
+   * Carbon's SetMainCamera( camera ) (EveVirtualCameraSystem.cpp:87): drops any
+   * running transition, makes the camera the main one and registers it.
+   * @param {EveVirtualCamera} camera
    */
   @meta.blue.method
   @meta.implemented
-  SetMainCamera(camera, transition = null)
+  SetMainCamera(camera)
   {
-    const current = this.GetMainCamera();
     this.transition = null;
     this.mainCamera = camera;
     this.AddCamera(camera);
+  }
 
+  /**
+   * Carbon's SetMainCamera( camera, transition ) (EveVirtualCameraSystem.cpp:94):
+   * switches the main camera, then wires the transition from the previous main
+   * camera to the new one and plays it.
+   * @param {EveVirtualCamera} camera
+   * @param {EveVirtualCameraTransitionBase} transition
+   */
+  @meta.blue.renamed("SetMainCamera")
+  @meta.implemented
+  SetMainCameraTransition(camera, transition)
+  {
+    const current = this.GetMainCamera();
+    this.SetMainCamera(camera);
     if (transition)
     {
       transition.SetSource(current);
       transition.SetTarget(this.GetMainCamera());
       transition.Play();
-      this.transition = transition;
     }
+    this.transition = transition;
   }
 }
