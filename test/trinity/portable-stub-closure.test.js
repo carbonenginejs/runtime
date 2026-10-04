@@ -45,11 +45,11 @@ test("EveSpaceObject2 evaluates its realized world sphere for shadows", () =>
     IsVisible: () => true,
     GetSizeInShadow: () => 20
   };
-  assert.equal(object.IsCastingShadow({}, shadowFrustum, 0, sizes), true);
+  assert.equal(object.IsCastingShadowShadowFrustum({}, shadowFrustum, 0, sizes), true);
   assert.equal(sizes[0], 20);
 
   object.display = false;
-  assert.equal(object.IsCastingShadow({}, shadowFrustum, 0, sizes), false);
+  assert.equal(object.IsCastingShadowShadowFrustum({}, shadowFrustum, 0, sizes), false);
 });
 
 

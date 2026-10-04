@@ -174,10 +174,10 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
    * Carbon's shadow-frustum overload. The optional final one-element array is
    * the JavaScript form of float& sizeInShadow.
    */
-  @meta.blue.method
+  @meta.blue.renamed("IsCastingShadow")
   @meta.adapted
   @meta.reason("The float& sizeInShadow output is an optional one-element array; all culling and >5-pixel policy are ported.")
-  IsCastingShadow(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
+  IsCastingShadowShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
   {
     if (!this.display || !this.castShadow)
     {

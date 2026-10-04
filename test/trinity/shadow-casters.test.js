@@ -58,12 +58,12 @@ test("EveTurretSet.IsCastingShadow: early-outs never write the out-param (cpp:20
   const stale = [99];
 
   // display true by default but no geometry resource.
-  assert.equal(set.IsCastingShadow({}, MakeShadowFrustum(), 0, stale), false, "geometry gate");
+  assert.equal(set.IsCastingShadowShadowFrustum({}, MakeShadowFrustum(), 0, stale), false, "geometry gate");
   assert.equal(stale[0], 99, "geometry early-out leaves the stale value");
 
   set.geometryResource = {};
   assert.equal(
-    set.IsCastingShadow({}, MakeShadowFrustum(), Tr2RenderReason.TR2RENDERREASON_REFLECTION, stale),
+    set.IsCastingShadowShadowFrustum({}, MakeShadowFrustum(), Tr2RenderReason.TR2RENDERREASON_REFLECTION, stale),
     false,
     "reflection gate"
   );
@@ -86,7 +86,7 @@ test("EveTurretSet.IsCastingShadow: per-turret sphere transform, max accumulatio
 
   const frustum = MakeShadowFrustum();
   const sizeOut = [99];
-  assert.equal(set.IsCastingShadow({}, frustum, 0, sizeOut), true, "casting");
+  assert.equal(set.IsCastingShadowShadowFrustum({}, frustum, 0, sizeOut), true, "casting");
   assert.equal(frustum.seen.length, 2, "invisible turrets still tested");
   // First sphere: center (10,0,0) radius 1; second: radius scaled by the max
   // basis length 2 (BoundingSphereTransform cpp:74-80).
@@ -99,7 +99,7 @@ test("EveTurretSet.IsCastingShadow: per-turret sphere transform, max accumulatio
   // (cpp:2042), the out-param IS written 0 (cpp:2034) and the result is false.
   vec4.set(set.boundingSphere, 0, 0, 0, 0);
   const zeroOut = [99];
-  assert.equal(set.IsCastingShadow({}, MakeShadowFrustum(), 0, zeroOut), false, "below threshold");
+  assert.equal(set.IsCastingShadowShadowFrustum({}, MakeShadowFrustum(), 0, zeroOut), false, "below threshold");
   assert.equal(zeroOut[0], 0, "sizeInShadow reset past the early-outs");
 });
 
@@ -197,7 +197,7 @@ test("EveSwarmRenderable.IsCastingShadow: squad radius centered at the fighter, 
 {
   const renderable = new EveSwarmRenderable();
   const stale = [99];
-  assert.equal(renderable.IsCastingShadow({}, MakeShadowFrustum(), 0, stale), false, "owner gate");
+  assert.equal(renderable.IsCastingShadowShadowFrustum({}, MakeShadowFrustum(), 0, stale), false, "owner gate");
   assert.equal(stale[0], 99, "owner early-out leaves the stale value");
 
   renderable.owner = {
@@ -208,7 +208,7 @@ test("EveSwarmRenderable.IsCastingShadow: squad radius centered at the fighter, 
     }
   };
   assert.equal(
-    renderable.IsCastingShadow({}, MakeShadowFrustum(), Tr2RenderReason.TR2RENDERREASON_REFLECTION, stale),
+    renderable.IsCastingShadowShadowFrustum({}, MakeShadowFrustum(), Tr2RenderReason.TR2RENDERREASON_REFLECTION, stale),
     false,
     "reflection gate"
   );
@@ -222,7 +222,7 @@ test("EveSwarmRenderable.IsCastingShadow: squad radius centered at the fighter, 
   // in favor of the fighter's world translation (cpp:257).
   const frustum = MakeShadowFrustum(() => 16);
   const sizeOut = [0];
-  assert.equal(renderable.IsCastingShadow({}, frustum, 0, sizeOut), true, "casting above 15");
+  assert.equal(renderable.IsCastingShadowShadowFrustum({}, frustum, 0, sizeOut), true, "casting above 15");
   assertClose(frustum.seen[0][0], 100, "fighter-centered x");
   assertClose(frustum.seen[0][3], 50, "squad-wide radius kept");
   assertClose(sizeOut[0], 16, "size written");
@@ -231,7 +231,7 @@ test("EveSwarmRenderable.IsCastingShadow: squad radius centered at the fighter, 
   // the volumetric/spot call sites re-check > 5 on the raw value themselves.
   const smaller = MakeShadowFrustum(() => 14);
   const smallOut = [0];
-  assert.equal(renderable.IsCastingShadow({}, smaller, 0, smallOut), false, "5 < size <= 15 is cascade-only false");
+  assert.equal(renderable.IsCastingShadowShadowFrustum({}, smaller, 0, smallOut), false, "5 < size <= 15 is cascade-only false");
   assertClose(smallOut[0], 14, "raw size still written for the caller re-check");
 });
 

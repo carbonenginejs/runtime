@@ -1502,61 +1502,67 @@ export class EveChildMesh extends EveChildTransform
   }
 
   /**
-   * Carbon's two IsCastingShadow overloads, dispatched on the second argument:
-   * a position vector (length >= 3) selects the sphere-overlap overload
-   * (cpp:338-364); anything else is the shadow-frustum overload (cpp:295-336),
-   * whose Carbon out-param float& sizeInShadow becomes the optional trailing
-   * length-1 array (out-params last).
+   * Carbon's IsCastingShadow( cameraFrustum, position, radius, renderReason )
+   * (cpp:341): whether the world bounding sphere overlaps the query sphere.
    * @param {Object} cameraFrustum
-   * @param {Object|Float32Array} shadowFrustumOrPosition
-   * @param {Number} renderReasonOrRadius
-   * @param {Array|Number} sizeInShadowOutOrRenderReason
+   * @param {vec3} position
+   * @param {Number} radius
+   * @param {Number} renderReason
    * @returns {Boolean}
    */
-  @meta.blue.method
-  @meta.adapted
-  @meta.reason("Overload dispatch by argument shape and a length-1 out array replace C++ overloading and the float& out-param; the shadow math is ported.")
-  IsCastingShadow(cameraFrustum, shadowFrustumOrPosition, renderReasonOrRadius, sizeInShadowOutOrRenderReason = null)
+  @meta.blue.renamed("IsCastingShadow")
+  @meta.implemented
+  IsCastingShadowPositionRadius(cameraFrustum, position, radius, renderReason)
   {
     if (!this.display || !this.castShadow || !this._hasUpdated)
     {
       return false;
     }
+    if (renderReason === Tr2RenderReason.TR2RENDERREASON_REFLECTION &&
+      !ShouldReflect(this.reflectionMode))
+    {
+      return false;
+    }
+    // Carbon (cpp:338-364): squared distance between the world sphere and
+    // the query sphere against their combined radius.
+    if (!this.GetBoundingSphere(SHADOW_SPHERE_SCRATCH))
+    {
+      return false;
+    }
+    const dx = SHADOW_SPHERE_SCRATCH[0] - position[0];
+    const dy = SHADOW_SPHERE_SCRATCH[1] - position[1];
+    const dz = SHADOW_SPHERE_SCRATCH[2] - position[2];
+    const combined = radius + SHADOW_SPHERE_SCRATCH[3];
+    return dx * dx + dy * dy + dz * dz - combined * combined < 0;
+  }
 
-    const positionOverload = typeof shadowFrustumOrPosition?.length === "number" &&
-      shadowFrustumOrPosition.length >= 3;
-    const renderReason = positionOverload
-      ? Number(sizeInShadowOutOrRenderReason ?? Tr2RenderReason.TR2RENDERREASON_NORMAL)
-      : Number(renderReasonOrRadius ?? Tr2RenderReason.TR2RENDERREASON_NORMAL);
-
+  /**
+   * Carbon's IsCastingShadow( cameraFrustum, shadowFrustum, renderReason,
+   * sizeInShadow ) (cpp:298). Carbon's float& sizeInShadow out-param becomes
+   * the optional trailing length-1 array.
+   * @param {Object} cameraFrustum
+   * @param {Object} shadowFrustum
+   * @param {Number} renderReason
+   * @param {Array|null} sizeOut
+   * @returns {Boolean}
+   */
+  @meta.blue.renamed("IsCastingShadow")
+  @meta.adapted
+  IsCastingShadowShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeOut = null)
+  {
+    if (!this.display || !this.castShadow || !this._hasUpdated)
+    {
+      return false;
+    }
     if (renderReason === Tr2RenderReason.TR2RENDERREASON_REFLECTION &&
       !ShouldReflect(this.reflectionMode))
     {
       return false;
     }
 
-    if (positionOverload)
-    {
-      // Carbon (cpp:338-364): squared distance between the world sphere and
-      // the query sphere against their combined radius.
-      if (!this.GetBoundingSphere(SHADOW_SPHERE_SCRATCH))
-      {
-        return false;
-      }
-      const position = shadowFrustumOrPosition;
-      const radius = Number(renderReasonOrRadius) || 0;
-      const dx = SHADOW_SPHERE_SCRATCH[0] - position[0];
-      const dy = SHADOW_SPHERE_SCRATCH[1] - position[1];
-      const dz = SHADOW_SPHERE_SCRATCH[2] - position[2];
-      const combined = radius + SHADOW_SPHERE_SCRATCH[3];
-      return dx * dx + dy * dy + dz * dz - combined * combined < 0;
-    }
-
     // Carbon (cpp:295-336): shadow-frustum visibility, then the size in the
     // shadow map from the instance sphere nearest the shadow eye (falling back
     // to the whole world sphere).
-    const shadowFrustum = shadowFrustumOrPosition;
-    const sizeOut = sizeInShadowOutOrRenderReason;
     if (sizeOut)
     {
       sizeOut[0] = 0;

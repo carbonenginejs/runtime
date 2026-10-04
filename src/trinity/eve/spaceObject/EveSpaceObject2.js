@@ -2399,10 +2399,10 @@ export class EveSpaceObject2 extends EveEntity
    * against the supplied shadow frustum. Carbon's float& result is represented
    * by an optional length-one array.
    */
-  @meta.blue.method
+  @meta.blue.renamed("IsCastingShadow")
   @meta.adapted
   @meta.reason("The optional length-one array replaces Carbon's float& sizeInShadow out-parameter.")
-  IsCastingShadow(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
+  IsCastingShadowShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
   {
     if (!this.display || this._boundingSphereWorldRadius <= 0)
     {

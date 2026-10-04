@@ -234,9 +234,9 @@ export class EveChildLink extends EveChildMesh
   }
 
   /** Links never cast shadows (EveChildLink.cpp:180-183). */
-  @meta.blue.method
+  @meta.blue.renamed("IsCastingShadow")
   @meta.implemented
-  IsCastingShadow(_cameraFrustum, _shadowFrustum, _renderReason, _sizeInShadow)
+  IsCastingShadowShadowFrustum(_cameraFrustum, _shadowFrustum, _renderReason, _sizeInShadow)
   {
     return false;
   }

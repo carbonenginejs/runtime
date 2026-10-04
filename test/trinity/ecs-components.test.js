@@ -89,13 +89,13 @@ test("RegisterComponent throws fail-closed when the entity misses the interface 
   );
   assert.throws(
     () => registry.RegisterComponent(EveComponentType.ShadowCaster, new EveEntity()),
-    /ShadowCaster.*IsCastingShadow/
+    /ShadowCaster.*IsCastingShadowShadowFrustum/
   );
   assert.equal(registry.ComponentCount(EveComponentType.LightOwner), 0, "failed registration adds nothing");
 
   // Partial surface still fails (ShadowCaster needs all three pure virtuals).
   const partial = new EveEntity();
-  partial.IsCastingShadow = () => false;
+  partial.IsCastingShadowShadowFrustum = () => false;
   assert.throws(
     () => registry.RegisterComponent(EveComponentType.ShadowCaster, partial),
     /GetShadowBatches/

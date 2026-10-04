@@ -80,7 +80,7 @@ export const EveComponentRequiredMethods = {
   FroxelFogSettings: ["GetFroxelFogSettings"],
 
   /** Eve/IEveShadowCaster.h:143-149 pure virtuals. */
-  ShadowCaster: ["IsCastingShadow", "GetShadowBatches", "GetShadowPerObjectData"],
+  ShadowCaster: ["IsCastingShadowShadowFrustum", "GetShadowBatches", "GetShadowPerObjectData"],
 
   /** EveChildLightingOverride.h:31. */
   EveLightingOverride: ["GetOverrides"]

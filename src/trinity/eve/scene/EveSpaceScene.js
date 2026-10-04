@@ -2784,7 +2784,7 @@ export class EveSpaceScene
       {
         const radius = [ 0 ];
 
-        if (caster.IsCastingShadow(cameraFrustums[frustumIndex], shadowFrustums[frustumIndex], renderReason, radius))
+        if (caster.IsCastingShadowShadowFrustum(cameraFrustums[frustumIndex], shadowFrustums[frustumIndex], renderReason, radius))
         {
           shadowCasterInfo.push({ radius: radius[0], caster, perObjectData: null });
         }

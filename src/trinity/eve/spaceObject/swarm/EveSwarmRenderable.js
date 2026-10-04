@@ -280,9 +280,10 @@ export class EveSwarmRenderable extends EveEntity
    * casts volumetric/spot shadows (whose call sites ignore the return and
    * re-check > 5 themselves) but not cascades. Carbon's float& out-param
    * becomes the optional trailing length-1 array. */
+  @meta.blue.renamed("IsCastingShadow")
   @meta.adapted
   @meta.reason("The length-1 out array replaces the float& out-param; the shadow math is ported, including exactly which paths write the out value.")
-  IsCastingShadow(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
+  IsCastingShadowShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
   {
     if (!this.owner)
     {
