@@ -191,16 +191,17 @@ export class Tr2Renderer
   /**
    * The per-object register for one shader stage.
    *
-   * Carbon's overload pair collapses to a default: the pixel stage has its own
-   * register and every other stage shares the vertex one
-   * (`Tr2Renderer.h:65-81`).
+   * Carbon's template<ShaderType> form and its runtime overload are one
+   * method here: the template parameter becomes this explicit argument. The
+   * pixel stage has its own register and every other stage shares the vertex
+   * one (`Tr2Renderer.h:65-81`).
    *
-   * @param {number} [shaderType] A Carbon `ShaderType` value.
+   * @param {number} shaderType A Carbon `ShaderType` value.
    * @returns {number} A constant-buffer register.
    */
   @meta.blue.method
   @meta.adapted
-  GetPerObjectStartRegister(shaderType = 0)
+  GetPerObjectStartRegister(shaderType)
   {
     return shaderType === Tr2Renderer.PIXEL_SHADER
       ? this.GetPerObjectPSStartRegister()

@@ -56,7 +56,6 @@ test("the per-object register depends on the stage, and only the pixel one diffe
   assert.equal(renderer.GetPerObjectStartRegister(Tr2Renderer.PIXEL_SHADER), 4);
   assert.equal(renderer.GetPerObjectStartRegister(0), 3, "vertex");
   assert.equal(renderer.GetPerObjectStartRegister(3), 3, "geometry shares the vertex register");
-  assert.equal(renderer.GetPerObjectStartRegister(), 3, "and so does the default");
 });
 
 test("two renderers do not share a register map", () =>

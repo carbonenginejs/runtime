@@ -1480,6 +1480,10 @@ export class CjsBlueResMan
    * `sourceRevision` selects read-cache provenance but does not replace a
    * resident payload by itself—use one-shot `reload: true` for replacement.
    *
+   * Carbon's const char* and const wchar_t* overloads (BlueResMan.h:82) differ
+   * only in string encoding, which JavaScript strings do not have, so both are
+   * this one method.
+   *
    * @param {string} path Carbon-style source resource path.
    * @param {object} [options={}] Identity, source, format, loader, and queue options.
    * @returns {Promise<*>} In-flight, resident, or reconstructed object outcome.
