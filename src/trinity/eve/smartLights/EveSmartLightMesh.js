@@ -336,7 +336,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
       const effect = area.GetMaterialInterface();
       if (effect instanceof Tr2Effect)
       {
-        effect.SetParameter(this.shaderParamColorName, meshColor);
+        effect.SetParameterVector4(this.shaderParamColorName, meshColor);
       }
     }
 

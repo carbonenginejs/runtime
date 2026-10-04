@@ -1083,11 +1083,11 @@ export class EveSpaceSceneRenderDriver
       const esm = renderContext.GetEffectStateManager();
       this.#BeginRenderPass(esm, [ destination ], null);
       esm.ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
-      effect.SetParameter("BlitCurrent", backBufferCopy.Get());
-      effect.SetParameter("TexDistortion", distortion);
+      effect.SetParameterTextureAL("BlitCurrent", backBufferCopy.Get());
+      effect.SetParameterTextureAL("TexDistortion", distortion);
       Tr2Renderer.drawFullScreenWithShader(renderContext, effect);
-      effect.SetParameter("BlitCurrent", null);
-      effect.SetParameter("TexDistortion", null);
+      effect.SetParameterTextureAL("BlitCurrent", null);
+      effect.SetParameterTextureAL("TexDistortion", null);
     }
     finally
     {

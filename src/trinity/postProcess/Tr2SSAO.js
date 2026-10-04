@@ -290,19 +290,19 @@ export class Tr2SSAO
       cortao.SetOption("SAMPLE_COUNT", SAMPLE_COUNTS[this.quality]);
       cortao.SetOption("BENT_NORMAL", bentNormal);
 
-      cortao.SetParameter("NormalBuffer", normalBuffer);
-      cortao.SetParameter("DepthBuffer", depthBuffer);
+      cortao.SetParameterTextureAL("NormalBuffer", normalBuffer);
+      cortao.SetParameterTextureAL("DepthBuffer", depthBuffer);
 
       // Every mip slot is set, "to ensure no warnings produced by unset
       // resources" (Tr2SSAO.cpp:659-665); past the last mip they repeat it.
       for (let i = 0; i < 8; i++)
       {
-        cortao.SetParameter(`PackedOutputBuffer${i}`, packed, Math.min(i, packed.GetMipCount() - 1));
+        cortao.SetParameterTextureAL(`PackedOutputBuffer${i}`, packed, Math.min(i, packed.GetMipCount() - 1));
       }
 
-      cortao.SetParameter("PackedBuffer", packed);
-      cortao.SetParameter("LookupTable", this._cortaoLookupTable);
-      cortao.SetParameter("OutputBuffer", output);
+      cortao.SetParameterTextureAL("PackedBuffer", packed);
+      cortao.SetParameterTextureProvider("LookupTable", this._cortaoLookupTable);
+      cortao.SetParameterTextureAL("OutputBuffer", output);
 
       Tr2Renderer.runComputeShader(cortao, "Pack", DispatchSize(PACK_WORK_GROUP_SIZE, width), DispatchSize(PACK_WORK_GROUP_SIZE, height), 1, renderContext);
       Tr2Renderer.runComputeShader(cortao, "MainPass", DispatchSize(MAIN_PASS_WORK_GROUP_SIZE, width), DispatchSize(MAIN_PASS_WORK_GROUP_SIZE, height), 1, renderContext);
@@ -316,17 +316,17 @@ export class Tr2SSAO
 
         try
         {
-          blur.SetParameter("PackedDataBuffer", packed);
+          blur.SetParameterTextureAL("PackedDataBuffer", packed);
           blur.SetOption("BENT_NORMAL", bentNormal);
 
           blur.SetOption("MODE", temporal ? "MODE_TEMPORAL" : "MODE_PASS1");
-          blur.SetParameter("SSAOInputBuffer", output);
-          blur.SetParameter("SSAOOutputBuffer", blurBuffer.Get());
+          blur.SetParameterTextureAL("SSAOInputBuffer", output);
+          blur.SetParameterTextureAL("SSAOOutputBuffer", blurBuffer.Get());
           Tr2Renderer.runComputeShader(blur, "Blur", groupsX, groupsY, 1, renderContext);
 
           blur.SetOption("MODE", temporal ? "MODE_TEMPORAL" : "MODE_PASS2");
-          blur.SetParameter("SSAOInputBuffer", blurBuffer.Get());
-          blur.SetParameter("SSAOOutputBuffer", output);
+          blur.SetParameterTextureAL("SSAOInputBuffer", blurBuffer.Get());
+          blur.SetParameterTextureAL("SSAOOutputBuffer", output);
           Tr2Renderer.runComputeShader(blur, "Blur", groupsX, groupsY, 1, renderContext);
         }
         finally

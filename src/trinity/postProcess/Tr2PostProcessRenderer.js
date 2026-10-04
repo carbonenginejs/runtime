@@ -40,7 +40,6 @@ import { FillAndSetConstants } from "../core/Tr2RenderUtils.js";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { float32FromBits } from "#utils/bytes";
 import "./effect/Tr2PPEffect.js";
 
 /** `RENDER_TARGET` in Carbon's anonymous namespace (cpp:150). */
@@ -383,10 +382,10 @@ export class Tr2PostProcessRenderer
 
       // TEMP_PARAM (cpp:771-774): set now, reset to empty when Execute ends.
       exposure = this.GetExposureBuffer(gpuResourcePool);
-      this.tonemappingEffect.SetParameter("BlitCurrent", bloomTexture.Get());
-      this.tonemappingEffect.SetParameter("BlitOriginal", upscaledSource.Get());
-      this.tonemappingEffect.SetParameter("Exposure", exposure.Get());
-      this.tonemappingEffect.SetParameter("Histogram", histogramBuffer?.Get() ?? null);
+      this.tonemappingEffect.SetParameterTextureAL("BlitCurrent", bloomTexture.Get());
+      this.tonemappingEffect.SetParameterTextureAL("BlitOriginal", upscaledSource.Get());
+      this.tonemappingEffect.SetParameterBufferAL("Exposure", exposure.Get());
+      this.tonemappingEffect.SetParameterBufferAL("Histogram", histogramBuffer?.Get() ?? null);
 
       const filmGrain = postProcess ? postProcess.GetFilmGrainIfAvailable(this.quality) : null;
 
@@ -437,10 +436,10 @@ export class Tr2PostProcessRenderer
     }
     finally
     {
-      this.tonemappingEffect.SetParameter("BlitCurrent", null);
-      this.tonemappingEffect.SetParameter("BlitOriginal", null);
-      this.tonemappingEffect.SetParameter("Exposure", null);
-      this.tonemappingEffect.SetParameter("Histogram", null);
+      this.tonemappingEffect.SetParameterTextureAL("BlitCurrent", null);
+      this.tonemappingEffect.SetParameterTextureAL("BlitOriginal", null);
+      this.tonemappingEffect.SetParameterBufferAL("Exposure", null);
+      this.tonemappingEffect.SetParameterBufferAL("Histogram", null);
 
       for (const handle of [ output, nonMsaaSource, upscaledSource, bloomTexture, exposure, histogramBuffer, sourceBuffer, depthMap, velocity, opaqueColor ])
       {
@@ -496,10 +495,10 @@ export class Tr2PostProcessRenderer
     const casIntensity = 0;
     const { const0, const1 } = Tr2PostProcessRenderer.casSetup(casIntensity, renderWidth, renderHeight, renderWidth, renderHeight);
 
-    this._fidelityFxCasShader.SetParameter("const0", const0);
-    this._fidelityFxCasShader.SetParameter("const1", const1);
-    this._fidelityFxCasShader.SetParameter("InputTexture", texture);
-    this._fidelityFxCasShader.SetParameter("OutputTexture", output.Get());
+    this._fidelityFxCasShader.SetParameterVector4("const0", const0);
+    this._fidelityFxCasShader.SetParameterVector4("const1", const1);
+    this._fidelityFxCasShader.SetParameterTextureAL("InputTexture", texture);
+    this._fidelityFxCasShader.SetParameterTextureAL("OutputTexture", output.Get());
 
     try
     {
@@ -510,8 +509,8 @@ export class Tr2PostProcessRenderer
     }
     finally
     {
-      this._fidelityFxCasShader.SetParameter("InputTexture", null);
-      this._fidelityFxCasShader.SetParameter("OutputTexture", null);
+      this._fidelityFxCasShader.SetParameterTextureAL("InputTexture", null);
+      this._fidelityFxCasShader.SetParameterTextureAL("OutputTexture", null);
     }
 
     return output;
@@ -581,14 +580,14 @@ export class Tr2PostProcessRenderer
     if (!effect) return;
 
     renderContext.GetEffectStateManager().ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
-    effect.SetParameter("Blit", src);
+    effect.SetParameterTextureAL("Blit", src);
     try
     {
       Tr2PostProcessRenderer.drawInto(dest, Tr2LoadAction.DONT_CARE, effect, renderContext, renderer);
     }
     finally
     {
-      effect.SetParameter("Blit", null);
+      effect.SetParameterTextureAL("Blit", null);
     }
   }
 
@@ -610,7 +609,7 @@ export class Tr2PostProcessRenderer
     shader.SetParameter("GrainThreshold", 1 - filmGrain.grainDensity);
     shader.SetParameter("GrainEdge", 1 / (filmGrain.grainContrast * filmGrain.grainSize));
     shader.SetParameter("BrightnessModifier", filmGrain.brightnessModifier);
-    shader.SetParameter("InputTexture", dest);
+    shader.SetParameterTextureAL("InputTexture", dest);
     Tr2Renderer.drawScreenQuad(renderContext, shader);
   }
 
@@ -723,7 +722,7 @@ export class Tr2PostProcessRenderer
       horizontal.SetEffectPathName(PostProcessEffectPaths.Blur);
       vertical.StartUpdate();
       vertical.SetEffectPathName(PostProcessEffectPaths.Blur);
-      vertical.SetParameter("Direction", vec2.fromValues(0, 1));
+      vertical.SetParameterVector2("Direction", vec2.fromValues(0, 1));
 
       const blurTypeOption = BlurContext.getBlurTypeOptionValue(blurContext.type);
       horizontal.SetOption("BLUR_TYPE", blurTypeOption);
@@ -749,27 +748,27 @@ export class Tr2PostProcessRenderer
     const source = src.Get();
 
     const rt2 = this._Temp(gpuResourcePool, "Blur Temp 1", { width: source.GetWidth(), height: source.GetHeight() }, source.GetFormat(), RENDER_TARGET);
-    horizontal.SetParameter("BlitCurrent", source);
+    horizontal.SetParameterTextureAL("BlitCurrent", source);
     try
     {
       Tr2PostProcessRenderer.drawInto(rt2.Get(), Tr2LoadAction.DONT_CARE, horizontal, renderContext, renderer);
     }
     finally
     {
-      horizontal.SetParameter("BlitCurrent", null);
+      horizontal.SetParameterTextureAL("BlitCurrent", null);
       Tr2PostProcessRenderer._release(gpuResourcePool, src);
     }
 
     const second = rt2.Get();
     const rt1 = this._Temp(gpuResourcePool, "Blur Temp 2", { width: second.GetWidth(), height: second.GetHeight() }, second.GetFormat(), RENDER_TARGET);
-    vertical.SetParameter("BlitCurrent", second);
+    vertical.SetParameterTextureAL("BlitCurrent", second);
     try
     {
       Tr2PostProcessRenderer.drawInto(rt1.Get(), Tr2LoadAction.DONT_CARE, vertical, renderContext, renderer);
     }
     finally
     {
-      vertical.SetParameter("BlitCurrent", null);
+      vertical.SetParameterTextureAL("BlitCurrent", null);
       Tr2PostProcessRenderer._release(gpuResourcePool, rt2);
     }
 
@@ -820,16 +819,16 @@ export class Tr2PostProcessRenderer
 
       const rt1 = this._Temp(gpuResourcePool, "Bloom", Tr2PostProcessRenderer.scaledSize(destination, 0.5), destination.GetFormat(), RENDER_TARGET);
       const exposure = this.GetExposureBuffer(gpuResourcePool);
-      highPass.SetParameter("BlitCurrent", destination);
-      highPass.SetParameter("Exposure", exposure.Get());
+      highPass.SetParameterTextureAL("BlitCurrent", destination);
+      highPass.SetParameterBufferAL("Exposure", exposure.Get());
       try
       {
         Tr2PostProcessRenderer.drawInto(rt1.Get(), Tr2LoadAction.DONT_CARE, highPass, renderContext, renderer);
       }
       finally
       {
-        highPass.SetParameter("BlitCurrent", null);
-        highPass.SetParameter("Exposure", null);
+        highPass.SetParameterTextureAL("BlitCurrent", null);
+        highPass.SetParameterBufferAL("Exposure", null);
         release(exposure);
       }
 
@@ -883,8 +882,8 @@ export class Tr2PostProcessRenderer
         // DownsampleData: Vector2 invSourceSize + two floats of padding (h:139-144).
         const downsampleInfo = new Float32Array([ 1 / lastRt.GetWidth(), 1 / lastRt.GetHeight(), 0, 0 ]);
 
-        effect.SetParameter("BlitCurrent", lastRt);
-        effect.SetParameter("Exposure", exposure.Get());
+        effect.SetParameterTextureAL("BlitCurrent", lastRt);
+        effect.SetParameterBufferAL("Exposure", exposure.Get());
         try
         {
           FillAndSetConstants(this._BloomConstantBuffer(renderContext), downsampleInfo, downsampleInfo.byteLength, pixelShaderMask, perObjectRegister, renderContext);
@@ -892,8 +891,8 @@ export class Tr2PostProcessRenderer
         }
         finally
         {
-          effect.SetParameter("BlitCurrent", null);
-          effect.SetParameter("Exposure", null);
+          effect.SetParameterTextureAL("BlitCurrent", null);
+          effect.SetParameterBufferAL("Exposure", null);
           release(exposure);
         }
 
@@ -914,7 +913,7 @@ export class Tr2PostProcessRenderer
         const radiusInPixels = Math.max(currentMip.GetWidth(), currentMip.GetHeight()) * bloom.sizeScale * stepSize(i) * 0.01;
         const invTexelSizeX = 1 / currentMip.GetWidth();
 
-        this._upsamplerHorizontal.SetParameter("BlitCurrent", currentMip);
+        this._upsamplerHorizontal.SetParameterTextureAL("BlitCurrent", currentMip);
         const gaussianOutput = GaussianData.calculateGaussianPassParameters(radiusInPixels, directionalWeight[0], invTexelSizeX, Tr2PostProcessRenderer._gaussianWhite, Tr2PostProcessRenderer._gaussianHorizontal, Tr2PostProcessRenderer._gaussianScratch);
         GaussianData.pack(gaussianOutput, gaussianBytes);
         FillAndSetConstants(this._BloomConstantBuffer(renderContext), gaussianBytes, gaussianBytes.byteLength, pixelShaderMask, perObjectRegister, renderContext);
@@ -932,8 +931,8 @@ export class Tr2PostProcessRenderer
         const invTexelSizeY = 1 / currentMip.GetHeight();
 
         // The horizontally blurred mip, plus the coarser result below it.
-        this._upsamplerVertical.SetParameter("BlitCurrent", currentUpsampled);
-        this._upsamplerVertical.SetParameter("LastMip", lastRt);
+        this._upsamplerVertical.SetParameterTextureAL("BlitCurrent", currentUpsampled);
+        this._upsamplerVertical.SetParameterTextureAL("LastMip", lastRt);
 
         const tint = vec4.scale(Tr2PostProcessRenderer._gaussianTint4, stepTint(i), tintScale);
         const gaussianTint = vec3.set(Tr2PostProcessRenderer._gaussianTint3, tint[0], tint[1], tint[2]);
@@ -956,9 +955,9 @@ export class Tr2PostProcessRenderer
     }
     finally
     {
-      this._upsamplerHorizontal.SetParameter("BlitCurrent", null);
-      this._upsamplerVertical.SetParameter("BlitCurrent", null);
-      this._upsamplerVertical.SetParameter("LastMip", null);
+      this._upsamplerHorizontal.SetParameterTextureAL("BlitCurrent", null);
+      this._upsamplerVertical.SetParameterTextureAL("BlitCurrent", null);
+      this._upsamplerVertical.SetParameterTextureAL("LastMip", null);
 
       for (const handle of [ ...downsampleTexture, ...upsampleTexture, black ])
       {
@@ -1000,18 +999,18 @@ export class Tr2PostProcessRenderer
       renderContext.Clear({ clearColor: true, color: 0 });
 
       const color = godrays.godRayColor;
-      effect.SetParameter("Color", [ color[0], color[1], color[2], color[3] ]);
-      effect.SetParameter("Intensity", [ godrays.intensity, 0, 1, 1 ]);
-      effect.SetParameter("grFactors", godrays.grFactors);
+      effect.SetParameterVector4("Color", [ color[0], color[1], color[2], color[3] ]);
+      effect.SetParameterVector4("Intensity", [ godrays.intensity, 0, 1, 1 ]);
+      effect.SetParameterVector4("grFactors", godrays.grFactors);
       effect.SetResourceTexture2D("NoiseTexMap", godrays.noiseTexturePath);
-      effect.SetParameter("DepthMap", rt1.Get());
+      effect.SetParameterTextureAL("DepthMap", rt1.Get());
       try
       {
         Tr2Renderer.drawScreenQuad(renderContext, effect);
       }
       finally
       {
-        effect.SetParameter("DepthMap", null);
+        effect.SetParameterTextureAL("DepthMap", null);
         esm.PopRenderTarget();
       }
 
@@ -1047,14 +1046,14 @@ export class Tr2PostProcessRenderer
       Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE
     );
 
-    effect.SetParameter("DepthMap", depth);
+    effect.SetParameterTextureAL("DepthMap", depth);
     try
     {
       Tr2PostProcessRenderer.drawInto(destination.Get(), Tr2LoadAction.DONT_CARE, effect, renderContext, renderer);
     }
     finally
     {
-      effect.SetParameter("DepthMap", null);
+      effect.SetParameterTextureAL("DepthMap", null);
     }
 
     return destination;
@@ -1097,12 +1096,12 @@ export class Tr2PostProcessRenderer
     const measure = this.dynamicExposureMeasureExposureShader;
 
     create.SetParameter("ScreenTilesX", tilesX);
-    create.SetParameter("BlitOriginal", source);
-    create.SetParameter("LocalHistograms", localHistograms.Get());
+    create.SetParameterTextureAL("BlitOriginal", source);
+    create.SetParameterBufferAL("LocalHistograms", localHistograms.Get());
     merge.SetParameter("ScreenTilesX", tilesX);
     merge.SetParameter("ScreenTilesY", tilesY);
-    merge.SetParameter("LocalHistograms", localHistograms.Get());
-    merge.SetParameter("Histogram", histogram.Get());
+    merge.SetParameterBufferAL("LocalHistograms", localHistograms.Get());
+    merge.SetParameterBufferAL("Histogram", histogram.Get());
 
     try
     {
@@ -1130,18 +1129,18 @@ export class Tr2PostProcessRenderer
       measure.SetParameter("DecreaseSpeed", dynamicExposure.decreaseSpeed);
       measure.SetParameter("MinExposure", dynamicExposure.minExposure);
       measure.SetParameter("MaxExposure", dynamicExposure.maxExposure);
-      measure.SetParameter("Histogram", histogram.Get());
-      measure.SetParameter("Exposure", exposure.Get());
+      measure.SetParameterBufferAL("Histogram", histogram.Get());
+      measure.SetParameterBufferAL("Exposure", exposure.Get());
       Tr2Renderer.runComputeShader(measure, 1, 1, 1, renderContext);
     }
     finally
     {
-      create.SetParameter("BlitOriginal", null);
-      create.SetParameter("LocalHistograms", null);
-      merge.SetParameter("LocalHistograms", null);
-      merge.SetParameter("Histogram", null);
-      measure.SetParameter("Histogram", null);
-      measure.SetParameter("Exposure", null);
+      create.SetParameterTextureAL("BlitOriginal", null);
+      create.SetParameterBufferAL("LocalHistograms", null);
+      merge.SetParameterBufferAL("LocalHistograms", null);
+      merge.SetParameterBufferAL("Histogram", null);
+      measure.SetParameterBufferAL("Histogram", null);
+      measure.SetParameterBufferAL("Exposure", null);
       Tr2PostProcessRenderer._release(gpuResourcePool, localHistograms);
       Tr2PostProcessRenderer._release(gpuResourcePool, exposure);
     }
@@ -1182,16 +1181,16 @@ export class Tr2PostProcessRenderer
     const rt1 = this._Temp(gpuResourcePool, "Fog Color", Tr2PostProcessRenderer.scaledSize(dest, 0.5), dest.GetFormat(), RENDER_TARGET);
     const color = fog.color;
 
-    colorEffect.SetParameter("BlitCurrent", dest);
-    colorEffect.SetParameter("Params", [ fog.nebulaInfluence, fog.nebulaBlur, fog.originalBrightenOnly, fog.colorInfluence ]);
-    colorEffect.SetParameter("Color", [ color[0], color[1], color[2], color[3] ]);
+    colorEffect.SetParameterTextureAL("BlitCurrent", dest);
+    colorEffect.SetParameterVector4("Params", [ fog.nebulaInfluence, fog.nebulaBlur, fog.originalBrightenOnly, fog.colorInfluence ]);
+    colorEffect.SetParameterVector4("Color", [ color[0], color[1], color[2], color[3] ]);
     try
     {
       Tr2PostProcessRenderer.drawInto(rt1.Get(), Tr2LoadAction.DONT_CARE, colorEffect, renderContext, renderer);
     }
     finally
     {
-      colorEffect.SetParameter("BlitCurrent", null);
+      colorEffect.SetParameterTextureAL("BlitCurrent", null);
     }
 
     // Blur; Blur takes rt1 over (cpp:1420 moves it).
@@ -1201,23 +1200,23 @@ export class Tr2PostProcessRenderer
     const composite = this.fogCompositeEffect;
     const { areaSize, areaScale, areaCenter } = fog;
 
-    composite.SetParameter("FogParameters", [ fog.totalAmount, fog.totalPower, fog.backgroundOcclusion, fog.intensity ]);
-    composite.SetParameter("BrightnessAdjustment", [ fog.brightnessThreshold0, fog.brightnessThreshold1, fog.brightnessAdjustmentAmount, 0 ]);
-    composite.SetParameter("BlendFunction0", [ fog.blendDistance0, fog.blendBias0, fog.blendAmount0, fog.blendPower0 ]);
-    composite.SetParameter("BlendFunction1", [ fog.blendDistance1, fog.blendBias1, fog.blendAmount1, fog.blendPower1 ]);
-    composite.SetParameter("BlendFunction2", [ fog.blendDistance2, fog.blendBias2, fog.blendAmount2, fog.blendPower2 ]);
-    composite.SetParameter("AreaSize", [ areaSize[0], areaSize[1], areaSize[2], areaScale[0] ]);
-    composite.SetParameter("AreaCenter", [ areaCenter[0], areaCenter[1], areaCenter[2], areaScale[1] ]);
-    composite.SetParameter("BlitCurrent", blurred.Get());
-    composite.SetParameter("BlitOriginal", source);
+    composite.SetParameterVector4("FogParameters", [ fog.totalAmount, fog.totalPower, fog.backgroundOcclusion, fog.intensity ]);
+    composite.SetParameterVector4("BrightnessAdjustment", [ fog.brightnessThreshold0, fog.brightnessThreshold1, fog.brightnessAdjustmentAmount, 0 ]);
+    composite.SetParameterVector4("BlendFunction0", [ fog.blendDistance0, fog.blendBias0, fog.blendAmount0, fog.blendPower0 ]);
+    composite.SetParameterVector4("BlendFunction1", [ fog.blendDistance1, fog.blendBias1, fog.blendAmount1, fog.blendPower1 ]);
+    composite.SetParameterVector4("BlendFunction2", [ fog.blendDistance2, fog.blendBias2, fog.blendAmount2, fog.blendPower2 ]);
+    composite.SetParameterVector4("AreaSize", [ areaSize[0], areaSize[1], areaSize[2], areaScale[0] ]);
+    composite.SetParameterVector4("AreaCenter", [ areaCenter[0], areaCenter[1], areaCenter[2], areaScale[1] ]);
+    composite.SetParameterTextureAL("BlitCurrent", blurred.Get());
+    composite.SetParameterTextureAL("BlitOriginal", source);
     try
     {
       Tr2PostProcessRenderer.drawInto(dest, Tr2LoadAction.DONT_CARE, composite, renderContext, renderer);
     }
     finally
     {
-      composite.SetParameter("BlitCurrent", null);
-      composite.SetParameter("BlitOriginal", null);
+      composite.SetParameterTextureAL("BlitCurrent", null);
+      composite.SetParameterTextureAL("BlitOriginal", null);
       Tr2PostProcessRenderer._release(gpuResourcePool, blurred);
     }
   }
@@ -1307,7 +1306,7 @@ export class Tr2PostProcessRenderer
     }
 
     // frame_count is a uint32_t, and that overload stores its bits (Tr2Effect.cpp:2103-2120).
-    effect.SetParameter("FrameIndex", float32FromBits(frameCount));
+    effect.SetParameterUInt32("FrameIndex", frameCount);
     effect.SetParameter("EarlyOutThreshold", taa.earlyOutThreshold);
     effect.SetOption("QUALITY", Tr2PostProcessRenderer.getTaaQualityShaderOptionValue(taa.quality));
     effect.SetOption("DEBUG", Tr2PostProcessRenderer.getTaaDebugShaderOptionValue(taa.debug));
@@ -1318,20 +1317,20 @@ export class Tr2PostProcessRenderer
     // The buffer overload's Tr2BufferAL{} as JS can say it; see the note above.
     const setExposure = (target, buffer) =>
     {
-      if (buffer || target.GetResourceByName("Exposure")) target.SetParameter("Exposure", buffer);
+      if (buffer || target.GetResourceByName("Exposure")) target.SetParameterBufferAL("Exposure", buffer);
     };
 
     try
     {
-      effect.SetParameter("CurrentFrame", dest);
-      effect.SetParameter("CurrentFrameOpaque", opaqueColor);
-      effect.SetParameter("AccumulationBuffer", input.Get());
-      effect.SetParameter("CooldownMap", cooldownBuffer.Get());
-      effect.SetParameter("VelocityMap", velocity);
+      effect.SetParameterTextureAL("CurrentFrame", dest);
+      effect.SetParameterTextureAL("CurrentFrameOpaque", opaqueColor);
+      effect.SetParameterTextureAL("AccumulationBuffer", input.Get());
+      effect.SetParameterTextureAL("CooldownMap", cooldownBuffer.Get());
+      effect.SetParameterTextureAL("VelocityMap", velocity);
       setExposure(effect, exposure?.Get() ?? null);
       Tr2PostProcessRenderer.drawInto(output.Get(), Tr2LoadAction.DONT_CARE, effect, renderContext, renderer);
 
-      copy.SetParameter("AccumulationBuffer", output.Get());
+      copy.SetParameterTextureAL("AccumulationBuffer", output.Get());
       setExposure(copy, exposure?.Get() ?? null);
       Tr2PostProcessRenderer.drawInto(dest, Tr2LoadAction.DONT_CARE, copy, renderContext, renderer);
     }
@@ -1339,10 +1338,10 @@ export class Tr2PostProcessRenderer
     {
       for (const name of [ "CurrentFrame", "CurrentFrameOpaque", "AccumulationBuffer", "CooldownMap", "VelocityMap" ])
       {
-        effect.SetParameter(name, null);
+        effect.SetParameterTextureAL(name, null);
       }
       setExposure(effect, null);
-      copy.SetParameter("AccumulationBuffer", null);
+      copy.SetParameterTextureAL("AccumulationBuffer", null);
       setExposure(copy, null);
 
       for (const handle of [ accumulationBuffer0, accumulationBuffer1, cooldownBuffer, exposure ]) release(handle);
@@ -1378,7 +1377,7 @@ export class Tr2PostProcessRenderer
     let coc = null;
     let blur = null;
 
-    cocShader.SetParameter("FocalInfo", [ depthOfField.focalDistance, depthOfField.focalLength, depthOfField.scale, 0 ]);
+    cocShader.SetParameterVector4("FocalInfo", [ depthOfField.focalDistance, depthOfField.focalLength, depthOfField.scale, 0 ]);
     cocShader.SetOption("COC_OUTPUT_CHANNEL_COUNT", depthOfField.foregroundBlurNeeded ? "COC_OUTPUT_CHANNEL_COUNT_2" : "COC_OUTPUT_CHANNEL_COUNT_1");
 
     try
@@ -1428,17 +1427,17 @@ export class Tr2PostProcessRenderer
         const bokeh = this._depthOfFieldBokehTAAShader;
 
         bokeh.SetOption("BOKEH_SHAPE", shape);
-        bokeh.SetParameter("BlitCurrent", dest);
-        bokeh.SetParameter("CoCMap", coc.Get());
-        bokeh.SetParameter("BokehInfo", [ adjustedScale, angle, samplesPerPixel, 0 ]);
+        bokeh.SetParameterTextureAL("BlitCurrent", dest);
+        bokeh.SetParameterTextureAL("CoCMap", coc.Get());
+        bokeh.SetParameterVector4("BokehInfo", [ adjustedScale, angle, samplesPerPixel, 0 ]);
         try
         {
           Tr2PostProcessRenderer.drawInto(blur.Get(), Tr2LoadAction.DONT_CARE, bokeh, renderContext, renderer);
         }
         finally
         {
-          bokeh.SetParameter("BlitCurrent", null);
-          bokeh.SetParameter("CoCMap", null);
+          bokeh.SetParameterTextureAL("BlitCurrent", null);
+          bokeh.SetParameterTextureAL("CoCMap", null);
         }
 
         // Copy back.
@@ -1448,9 +1447,9 @@ export class Tr2PostProcessRenderer
       {
         const blend = this.depthOfFieldBokehBlurShader;
 
-        blend.SetParameter("BlitCurrent", dest);
-        blend.SetParameter("CoCMap", coc.Get());
-        blend.SetParameter("BokehInfo", [ adjustedScale, 0, 0, 0 ]);
+        blend.SetParameterTextureAL("BlitCurrent", dest);
+        blend.SetParameterTextureAL("CoCMap", coc.Get());
+        blend.SetParameterVector4("BokehInfo", [ adjustedScale, 0, 0, 0 ]);
         blend.SetOption("BOKEH_SHAPE", shape);
         try
         {
@@ -1458,15 +1457,15 @@ export class Tr2PostProcessRenderer
         }
         finally
         {
-          blend.SetParameter("BlitCurrent", null);
-          blend.SetParameter("CoCMap", null);
+          blend.SetParameterTextureAL("BlitCurrent", null);
+          blend.SetParameterTextureAL("CoCMap", null);
         }
 
         const fill = this.depthOfFieldBokehFillShader;
 
-        fill.SetParameter("BlitCurrent", blur.Get());
-        fill.SetParameter("CoCMap", coc.Get());
-        fill.SetParameter("BokehInfo", [ adjustedScale, 0, 0, 0 ]);
+        fill.SetParameterTextureAL("BlitCurrent", blur.Get());
+        fill.SetParameterTextureAL("CoCMap", coc.Get());
+        fill.SetParameterVector4("BokehInfo", [ adjustedScale, 0, 0, 0 ]);
         fill.SetOption("BOKEH_SHAPE", shape);
         try
         {
@@ -1474,8 +1473,8 @@ export class Tr2PostProcessRenderer
         }
         finally
         {
-          fill.SetParameter("BlitCurrent", null);
-          fill.SetParameter("CoCMap", null);
+          fill.SetParameterTextureAL("BlitCurrent", null);
+          fill.SetParameterTextureAL("CoCMap", null);
         }
       }
     }
@@ -1680,8 +1679,8 @@ export class Tr2PostProcessRenderer
     effect.SetParameter("ColorSaturation", colorCorrection.colorSaturation);
     effect.SetParameter("ColorContrast", colorCorrection.colorContrast);
     effect.SetParameter("ColorGamma", colorCorrection.colorGamma);
-    effect.SetParameter("ColorGain", colorCorrection.colorGain);
-    effect.SetParameter("ColorOffset", colorCorrection.colorOffset);
+    effect.SetParameterVector3("ColorGain", colorCorrection.colorGain);
+    effect.SetParameterVector3("ColorOffset", colorCorrection.colorOffset);
   }
 
   /** Tonemapping::ApplyBloom (cpp:323-348). */
@@ -1729,12 +1728,12 @@ export class Tr2PostProcessRenderer
     }
     effect.SetResourceTexture2D("VignetteShape", vignette.shapePath);
     effect.SetResourceTexture2D("VignetteDetail", vignette.detailPath);
-    effect.SetParameter("VignetteDetailSize", [ vignette.detail1Size[0], vignette.detail1Size[1], vignette.detail2Size[0], vignette.detail2Size[1] ]);
-    effect.SetParameter("VignetteDetailScroll", [ vignette.detail1Scroll[0], vignette.detail1Scroll[1], vignette.detail2Scroll[0], vignette.detail2Scroll[1] ]);
-    effect.SetParameter("VignetteColor", [ vignette.color[0], vignette.color[1], vignette.color[2], vignette.color[3] ]);
-    effect.SetParameter("VignetteIntensity", [ vignette.intensity, vignette.opacity ]);
+    effect.SetParameterVector4("VignetteDetailSize", [ vignette.detail1Size[0], vignette.detail1Size[1], vignette.detail2Size[0], vignette.detail2Size[1] ]);
+    effect.SetParameterVector4("VignetteDetailScroll", [ vignette.detail1Scroll[0], vignette.detail1Scroll[1], vignette.detail2Scroll[0], vignette.detail2Scroll[1] ]);
+    effect.SetParameterVector4("VignetteColor", [ vignette.color[0], vignette.color[1], vignette.color[2], vignette.color[3] ]);
+    effect.SetParameterVector2("VignetteIntensity", [ vignette.intensity, vignette.opacity ]);
     effect.SetParameter("VignetteSineFrequency", vignette.sineFrequency);
-    effect.SetParameter("VignetteSineRange", [ vignette.sineMinimum, vignette.sineMaximum ]);
+    effect.SetParameterVector2("VignetteSineRange", [ vignette.sineMinimum, vignette.sineMaximum ]);
     effect.SetOption("VIGNETTE_TOGGLE", "VIGNETTE_ENABLED");
   }
 
@@ -1758,7 +1757,7 @@ export class Tr2PostProcessRenderer
       effect.SetParameter("FadeAmount", 0);
       return;
     }
-    effect.SetParameter("FadeColor", [ fade.color[0], fade.color[1], fade.color[2], fade.color[3] ]);
+    effect.SetParameterVector4("FadeColor", [ fade.color[0], fade.color[1], fade.color[2], fade.color[3] ]);
     effect.SetParameter("FadeAmount", fade.intensity);
   }
 
@@ -1814,8 +1813,8 @@ export class Tr2PostProcessRenderer
     const input = transposeRowMajor(multiplyRowMajor(multiplyRowMajor(acesInputMat, blueCorrection), scale));
     const output = transposeRowMajor(multiplyRowMajor(blueCorrectionInv, acesOutputMat));
 
-    effect.SetParameter("AcesInputMat", Float32Array.from(input));
-    effect.SetParameter("AcesOutputMat", Float32Array.from(output));
+    effect.SetParameterMatrix("AcesInputMat", Float32Array.from(input));
+    effect.SetParameterMatrix("AcesOutputMat", Float32Array.from(output));
   }
 
   /** Tonemapping::ApplyAgxTonemappingMethod (cpp:487-490). */

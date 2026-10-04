@@ -563,7 +563,7 @@ test("smart mesh uses the real effect Vector4 facade and preserves Carbon wrong-
   const wrong = new Tr2FloatParameter();
   wrong.name = "OtherColor";
   effect.parameters.push(wrong);
-  effect.SetParameter("OtherColor", [0.5, 0.6, 0.7, 0.8]);
+  effect.SetParameterVector4("OtherColor", [0.5, 0.6, 0.7, 0.8]);
   assert.equal(effect.parameters[0] instanceof Tr2Vector4Parameter, true);
   assert.equal(effect.parameters.includes(wrong), true);
   assert.equal(effect.parameters.at(-1) instanceof Tr2Vector4Parameter, true);

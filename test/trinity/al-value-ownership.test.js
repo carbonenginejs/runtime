@@ -22,19 +22,19 @@ test('shared description inputs and recreation cannot corrupt a surviving buffer
 test('owned providers and effects release only their own value shares',()=>{
  const al=context(),value=texture(al),implementation=value.TrinityALImpl_GetObject(),reference=new Tr2TextureReference();
  reference.SetTexture(value);reference.SetTexture(reference.GetTexture());
- const effect=new Tr2Effect();effect.SetParameter('ColorMap',value);value.Destroy();
+ const effect=new Tr2Effect();effect.SetParameterTextureAL('ColorMap',value);value.Destroy();
  assert.ok(reference.GetTexture().IsValid());assert.ok(implementation.IsValid());
  effect.ClearAllResources();assert.ok(implementation.IsValid());reference.SetTexture(null);
  assert.equal(implementation.IsRegistered(),false);effect.Destroy();al.Destroy();
 });
 test('effect final teardown preserves a caller-owned provider',()=>{
  const al=context(),value=texture(al),reference=new Tr2TextureReference(),effect=new Tr2Effect();
- reference.SetTexture(value);value.Destroy();effect.SetParameter('ColorMap',reference);effect.Destroy();
+ reference.SetTexture(value);value.Destroy();effect.SetParameterTextureProvider('ColorMap',reference);effect.Destroy();
  assert.ok(reference.GetTexture().IsValid());reference.SetTexture(null);al.Destroy();
 });
 test('runtime buffer parameter survives caller reset and is released with its effect',()=>{
  const al=context(),buffer=al.CreateBuffer(bufferDesc()),implementation=buffer.TrinityALImpl_GetObject(),effect=new Tr2Effect();
- effect.SetParameter('Data',buffer);buffer.Destroy();assert.ok(implementation.IsValid());
+ effect.SetParameterBufferAL('Data',buffer);buffer.Destroy();assert.ok(implementation.IsValid());
  effect.Destroy();assert.equal(implementation.IsValid(),false);assert.equal(implementation.IsRegistered(),false);al.Destroy();
 });
 test('pool handles and escaped values survive explicit pool destruction',()=>{
@@ -120,8 +120,8 @@ test('device final teardown releases the occlusion singleton without creating a 
 test('effect replacement and resource removal release internally minted provider shares',()=>{
  const al=context(),first=texture(al),second=texture(al),effect=new Tr2Effect();
  const firstBackend=first.TrinityALImpl_GetObject(),secondBackend=second.TrinityALImpl_GetObject();
- effect.SetParameter('ColorMap',first);first.Destroy();
- effect.SetParameter('ColorMap',second);second.Destroy();
+ effect.SetParameterTextureAL('ColorMap',first);first.Destroy();
+ effect.SetParameterTextureAL('ColorMap',second);second.Destroy();
  assert.equal(firstBackend.IsRegistered(),false);assert.equal(secondBackend.IsRegistered(),true);
  effect.ClearAllResources();assert.equal(secondBackend.IsRegistered(),false);
  effect.Destroy();effect.Destroy();al.Destroy();

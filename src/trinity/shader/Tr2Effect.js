@@ -37,6 +37,7 @@ import { CjsParameter } from "./parameter/CjsParameter.js";
 import { CjsTextureArrayBridge } from "./parameter/CjsTextureArrayBridge.js";
 import { ResourceFlags } from "./parameter/ITr2EffectValue.js";
 import { Tr2VariableStore } from "../core/variable/Tr2VariableStore.js";
+import { float32FromBits } from "#utils/bytes";
 
 // The authored scalar API retains its legacy signed address/filter coercion;
 // the record declarations and native Black structure use unsigned slots.
@@ -63,58 +64,6 @@ function requireShader(shader)
 }
 
 /** Whether a value is a texture rather than a number or vector. */
-/**
- * Whether a value is an AL buffer: Carbon's `Tr2BufferAL` overload
- * (`Tr2Effect.h:102`), chosen here by the class's declared Carbon identity since
- * JavaScript has no static overloads. Every backend's buffer declares it.
- */
-function IsBufferAL(value)
-{
-  return typeof value === "object"
-    && value !== null
-    && CjsSchema.getSchema(value.constructor)?.carbon === "Tr2BufferAL";
-}
-
-/** Whether a value is an AL texture: Carbon's `Tr2TextureAL` overload (`Tr2Effect.h:101`). */
-function IsTextureAL(value)
-{
-  return typeof value === "object"
-    && value !== null
-    && CjsSchema.getSchema(value.constructor)?.carbon === "Tr2TextureAL";
-}
-
-function IsTextureLike(value)
-{
-  return typeof value === "object"
-    && value !== null
-    && typeof value.length !== "number"
-    && (typeof value.IsValid === "function" || typeof value.GetTexture === "function");
-}
-
-/**
- * Carbon's overload set, resolved by value (`Tr2Effect.h:93-100`).
- *
- * Each width has its own parameter class, matching Carbon's overload per type.
- */
-function ParameterClassFor(value)
-{
-  if (typeof value === "number") return Tr2FloatParameter;
-  if (typeof value?.length !== "number") return null;
-
-  if (value.length === 2) return Tr2Vector2Parameter;
-  if (value.length === 3) return Tr2Vector3Parameter;
-  if (value.length === 4) return Tr2Vector4Parameter;
-  if (value.length === 16) return Tr2Matrix4Parameter;
-  return null;
-}
-
-/** A readable kind for the refusal message. */
-function describe(value)
-{
-  if (value === undefined) return "undefined";
-  if (typeof value?.length === "number") return `a ${value.length}-component value`;
-  return typeof value;
-}
 
 /** Owns the mutable effect facade: shader path and options, authored parameters and resources, sampler overrides, variable-store resolution, and rebuild state. */
 @meta.define({ className: "Tr2Effect", family: "shader" })
@@ -1263,75 +1212,194 @@ export class Tr2Effect extends Tr2Material
   }
 
   /**
-   * Sets one named dynamic parameter. Carbon exposes this singular facade and
-   * smart-light meshes use it while stamping their resolved group color.
+   * Carbon's SetParameter( name, float ) (Tr2Effect.cpp): sets the named
+   * Tr2FloatParameter, appending one when the name has none. Each of Carbon's
+   * other overloads is its own method below (SetParameterUInt32,
+   * SetParameterVector2/3/4, SetParameterMatrix, SetParameterGpuBuffer,
+   * SetParameterTextureProvider, SetParameterTextureAL, SetParameterBufferAL),
+   * because JavaScript has no static types to choose between them.
+   * @param {string} name Parameter name.
+   * @param {number} value Float value.
+   * @returns {void}
    */
   @meta.blue.method
+  @meta.implemented
+  SetParameter(name, value)
+  {
+    this.#SetValueParameter(name, Tr2FloatParameter, value);
+  }
+
+  /**
+   * Carbon's SetParameter( name, uint32_t ): stores the integer's bits as the
+   * float parameter's value (reinterpret_cast, Tr2Effect.cpp), which shaders
+   * read back with asuint.
+   * @param {string} name Parameter name.
+   * @param {number} value Unsigned 32-bit integer.
+   * @returns {void}
+   */
+  @meta.blue.renamed("SetParameter")
+  @meta.implemented
+  SetParameterUInt32(name, value)
+  {
+    this.#SetValueParameter(name, Tr2FloatParameter, float32FromBits(value));
+  }
+
+  /**
+   * Carbon's SetParameter( name, const Vector2& ).
+   * Adapted: Carbon pads to Vector4( x, y, 0, 0 ) and sets a Tr2Vector4Parameter;
+   * this keeps a Tr2Vector2Parameter, because our vector parameters write all
+   * their components rather than clamping to the destination size as Carbon's
+   * CopyValueToEffect does, so a padded Vector4 could overwrite a neighbouring
+   * constant.
+   * @param {string} name Parameter name.
+   * @param {ArrayLike<number>} value Two components.
+   * @returns {void}
+   */
+  @meta.blue.renamed("SetParameter")
   @meta.adapted
-  @meta.reason("JS explicitly rebuilds the cached CPU effect data after Carbon's Vector4 parameter reuse-or-append policy because plain array mutation has no Blue list notification.")
-  SetParameter(name, value, uavMipLevel = 0)
+  SetParameterVector2(name, value)
+  {
+    this.#SetValueParameter(name, Tr2Vector2Parameter, value);
+  }
+
+  /**
+   * Carbon's SetParameter( name, const Vector3& ).
+   * Adapted: Carbon pads to Vector4( value, 0 ); kept as a Tr2Vector3Parameter
+   * for the reason given on SetParameterVector2.
+   * @param {string} name Parameter name.
+   * @param {ArrayLike<number>} value Three components.
+   * @returns {void}
+   */
+  @meta.blue.renamed("SetParameter")
+  @meta.adapted
+  SetParameterVector3(name, value)
+  {
+    this.#SetValueParameter(name, Tr2Vector3Parameter, value);
+  }
+
+  /**
+   * Carbon's SetParameter( name, const Vector4& ): sets the named
+   * Tr2Vector4Parameter, appending one when the name has none.
+   * @param {string} name Parameter name.
+   * @param {ArrayLike<number>} value Four components.
+   * @returns {void}
+   */
+  @meta.blue.renamed("SetParameter")
+  @meta.implemented
+  SetParameterVector4(name, value)
+  {
+    this.#SetValueParameter(name, Tr2Vector4Parameter, value);
+  }
+
+  /**
+   * Carbon's SetParameter( name, const Matrix& ): sets the named
+   * Tr2Matrix4Parameter, appending one when the name has none.
+   * @param {string} name Parameter name.
+   * @param {ArrayLike<number>} value Sixteen components.
+   * @returns {void}
+   */
+  @meta.blue.renamed("SetParameter")
+  @meta.implemented
+  SetParameterMatrix(name, value)
+  {
+    this.#SetValueParameter(name, Tr2Matrix4Parameter, value);
+  }
+
+  /**
+   * Carbon's SetParameter( name, ITr2GpuBuffer* ) (Tr2Effect.cpp): sets the
+   * buffer on the named Tr2GeometryBufferParameter, adding one when the name
+   * has none. Unlike the Tr2BufferAL overload, the buffer is held directly.
+   * @param {string} name Parameter name.
+   * @param {?Object} buffer GPU buffer provider, or null to clear.
+   * @returns {void}
+   */
+  @meta.blue.renamed("SetParameter")
+  @meta.implemented
+  SetParameterGpuBuffer(name, buffer)
   {
     const parameterName = String(name ?? "");
-
-    // Carbon resets a slot with a default-constructed value of the SAME type
-    // (TEMP_PARAM in Tr2PostProcessRenderer.cpp:132-150). Null is that value
-    // for both overloads, so it clears a buffer slot when one holds the name.
-    if (IsBufferAL(value) || (value === null && CjsSchema.cast(this.GetResourceByName(parameterName), Tr2GeometryBufferParameter)))
+    const parameter = CjsSchema.cast(this.GetResourceByName(parameterName), Tr2GeometryBufferParameter);
+    if (parameter)
     {
-      return this.#SetBufferParameter(parameterName, value);
-    }
-
-    // A RAW AL TEXTURE IS WRAPPED (Tr2Effect.cpp:2191-2226): the slot holds a
-    // Tr2TextureReference, reused while it exists, never the texture itself,
-    // because the slot reads through a provider's GetTexture(). Null clears
-    // that reference when the slot already holds one - TEMP_PARAM's reset.
-    if (IsTextureAL(value) || (value === null && this.#HeldTextureReference(parameterName)))
-    {
-      return this.#SetTextureALParameter(parameterName, value, uavMipLevel);
-    }
-
-    // A TEXTURE IS NOT A PARAMETER HERE, it is a resource, so Carbon's texture
-    // overload (`Tr2Effect.h:94`) routes to the runtime texture slot instead.
-    // Null clears it, which is what Carbon's `Tr2TextureAL{}` does.
-    if (value === null || IsTextureLike(value))
-    {
-      return this.#SetTextureParameter(parameterName, value, uavMipLevel);
-    }
-
-    const Parameter = ParameterClassFor(value);
-
-    if (!Parameter)
-    {
-      throw new TypeError(
-        `Tr2Effect.SetParameter: no Carbon overload takes ${describe(value)} for "${parameterName}"`
-      );
-    }
-
-    const existing = CjsParameter.findByName(this.parameters, parameterName);
-    let parameter = existing instanceof Parameter ? existing : null;
-
-    if (!parameter)
-    {
-      // A same-name parameter of the WRONG TYPE is left in place and a new one
-      // appended. That looks like a bug and is Carbon's behaviour - pinned by
-      // `smart mesh uses the real effect Vector4 facade and preserves Carbon
-      // wrong-type append`. Removing the old one is a silent behaviour change
-      // for anything still holding a reference to it.
-      parameter = new Parameter();
-      parameter.name = parameterName;
-      parameter.SetValue(value);
-      this.parameters.push(parameter);
-      // Carbon rebuilds when the parameter list changes - the append raises
-      // BELIST_INSERTED into Tr2Effect::OnListModified (Tr2Effect.cpp), which
-      // calls RebuildCachedDataInternal - and never for a value. An existing
-      // parameter's SetValue writes through to its bound destination, so a
-      // per-frame SetParameter (the tonemapping constants) rebuilt the
-      // effect's cached data every frame for nothing.
-      this.RebuildCachedDataInternal();
+      parameter.SetGpuBuffer(buffer);
       return;
     }
+    const created = new Tr2GeometryBufferParameter();
+    created.name = parameterName;
+    created.SetGpuBuffer(buffer);
+    this.AddResource(created);
+  }
 
+  /**
+   * Carbon's SetParameter( name, ITr2TextureProvider*, uavMipLevel = 0 ): a
+   * named runtime texture slot fed by a live texture provider.
+   * @param {string} name Parameter name.
+   * @param {?Object} texture Texture provider, or null to clear.
+   * @param {number} [uavMipLevel=0] UAV mip level.
+   * @returns {void}
+   */
+  @meta.blue.renamed("SetParameter")
+  @meta.adapted
+  SetParameterTextureProvider(name, texture, uavMipLevel = 0)
+  {
+    this.#SetTextureParameter(String(name ?? ""), texture, uavMipLevel);
+  }
+
+  /**
+   * Carbon's SetParameter( name, const Tr2TextureAL&, uavMipLevel = 0 )
+   * (Tr2Effect.cpp:2191-2226): the slot holds a Tr2TextureReference, reused
+   * while it exists, never the texture itself. Null is Carbon's empty
+   * Tr2TextureAL{}, which TEMP_PARAM resets a slot with.
+   * @param {string} name Parameter name.
+   * @param {?Tr2TextureAL} texture Texture, or null for an empty one.
+   * @param {number} [uavMipLevel=0] UAV mip level.
+   * @returns {void}
+   */
+  @meta.blue.renamed("SetParameter")
+  @meta.adapted
+  SetParameterTextureAL(name, texture, uavMipLevel = 0)
+  {
+    this.#SetTextureALParameter(String(name ?? ""), texture, uavMipLevel);
+  }
+
+  /**
+   * Carbon's SetParameter( name, const Tr2BufferAL& ) (Tr2Effect.cpp:2228-2255):
+   * a named geometry buffer parameter holding a runtime GPU buffer. Null is
+   * Carbon's empty Tr2BufferAL{}.
+   * @param {string} name Parameter name.
+   * @param {?Tr2BufferAL} buffer Buffer, or null for an empty one.
+   * @returns {void}
+   */
+  @meta.blue.renamed("SetParameter")
+  @meta.adapted
+  SetParameterBufferAL(name, buffer)
+  {
+    this.#SetBufferParameter(String(name ?? ""), buffer);
+  }
+
+  /**
+   * The value overloads' shared body: set the named parameter of this class,
+   * or append one. A same-name parameter of a different class is left in
+   * place and a new one appended, which is Carbon's behaviour (pinned by
+   * `smart mesh uses the real effect Vector4 facade and preserves Carbon
+   * wrong-type append`). Appending rebuilds the cached data, as Carbon's
+   * BELIST_INSERTED does through OnListModified; a value change does not,
+   * since an existing parameter writes through to its bound destination.
+   */
+  #SetValueParameter(name, Parameter, value)
+  {
+    const parameterName = String(name ?? "");
+    const existing = CjsParameter.findByName(this.parameters, parameterName);
+    if (existing instanceof Parameter)
+    {
+      existing.SetValue(value);
+      return;
+    }
+    const parameter = new Parameter();
+    parameter.name = parameterName;
     parameter.SetValue(value);
+    this.parameters.push(parameter);
+    this.RebuildCachedDataInternal();
   }
 
   /**
@@ -1368,14 +1436,6 @@ export class Tr2Effect extends Tr2Material
     created.SetGpuBuffer(runtimeBuffer);
     this.AddResource(created);
     this._ownedProviders.set(created, { provider: runtimeBuffer, kind: "buffer" });
-  }
-
-  /** The Tr2TextureReference a runtime texture slot holds, or null. */
-  #HeldTextureReference(parameterName)
-  {
-    const parameter = CjsSchema.cast(this.GetResourceByName(parameterName), Tr2RuntimeTextureParameter);
-
-    return parameter ? CjsSchema.cast(parameter.GetTextureProvider(), Tr2TextureReference) : null;
   }
 
   /** Carbon's Tr2TextureAL overload (`Tr2Effect.cpp:2191-2226`). */
@@ -1432,10 +1492,8 @@ export class Tr2Effect extends Tr2Material
       return;
     }
 
-    // A null texture still CREATES the slot, which is Carbon's else branch
-    // (cpp:2093-2099) and is load-bearing: Tr2ShadowMap's constructor declares
-    // its two texture slots by setting them to an empty texture (cpp:41-42).
-    // Skipping that would leave the effect without slots it expects to have.
+    // A null texture still creates the slot, which is Carbon's else branch
+    // (cpp:2093-2099).
     const parameter = new Tr2RuntimeTextureParameter();
 
     parameter.Create(parameterName, texture, uavMipLevel);

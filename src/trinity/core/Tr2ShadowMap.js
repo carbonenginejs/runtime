@@ -73,8 +73,8 @@ function createShadowEffect()
   // runtime slot are different classes, so declaring the res-path kind here left
   // SetParameter unable to find a runtime slot to update - it added a new one on
   // every call, and a per-frame resolve grew the resource list without bound.
-  effect.SetParameter("EveSpaceSceneCascadedShadowMap", null);
-  effect.SetParameter("DepthMap", null);
+  effect.SetParameterTextureAL("EveSpaceSceneCascadedShadowMap", null);
+  effect.SetParameterTextureAL("DepthMap", null);
   return effect;
 }
 
@@ -637,11 +637,11 @@ export class Tr2ShadowMap
 
     try
     {
-      this.cascadeEffect.SetParameter("EveSpaceSceneCascadedShadowMap", cascadedShadowDepth);
-      this.cascadeEffect.SetParameter("DepthMap", depthMap);
+      this.cascadeEffect.SetParameterTextureAL("EveSpaceSceneCascadedShadowMap", cascadedShadowDepth);
+      this.cascadeEffect.SetParameterTextureAL("DepthMap", depthMap);
       Tr2Renderer.drawScreenQuad(renderContext, this.cascadeEffect);
-      this.cascadeEffect.SetParameter("EveSpaceSceneCascadedShadowMap", null);
-      this.cascadeEffect.SetParameter("DepthMap", null);
+      this.cascadeEffect.SetParameterTextureAL("EveSpaceSceneCascadedShadowMap", null);
+      this.cascadeEffect.SetParameterTextureAL("DepthMap", null);
 
       // Carbon gates on all three (`cpp:296`). Setup() nulls the denoiser when
       // it is disabled, so the useDenoiser flag and a present denoiser are not
