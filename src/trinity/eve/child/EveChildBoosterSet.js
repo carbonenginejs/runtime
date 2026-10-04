@@ -246,10 +246,13 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
 
   _hasUpdated = false;
 
-  /** Replays authored items through Add (Carbon SOF calls Add directly). */
+  /**
+   * Replays authored items through Add (Carbon SOF calls Add directly).
+   *
+   * Adapted: Carbon persists no items; document-delivered placements replay through Add here.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon persists no items; document-delivered placements replay through Add here.")
   Initialize()
   {
     if (this.items.length && !this._singleBoosters.length)
@@ -335,10 +338,12 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * (Float4x3 COLUMN-stride transform + intensity + wavePhase + atlas
    * indices), uploads them when a ring buffer is installed, and caches the
    * parent transform and its largest-axis scale.
+   *
+   * Adapted: Ring-buffer AdvanceFrame/UploadTransforms are the AL backend's; the CPU packs the rows and the offset
+   * stays INVALID (Carbon's own no-draw state) until a ring buffer is installed.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Ring-buffer AdvanceFrame/UploadTransforms are the AL backend's; the CPU packs the rows and the offset stays INVALID (Carbon's own no-draw state) until a ring buffer is installed.")
   UpdateAsyncronous(_updateContext = null, params = null)
   {
     // Carbon cpp:103; the offsets cursor owns its methods - nullability is
@@ -565,17 +570,13 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
     if (this.display)
     {
       this.GetBoundingSphere(SPHERE_SCRATCH);
-      const frustum = typeof updateContext?.GetFrustum === "function"
-        ? updateContext.GetFrustum()
-        : updateContext?.frustum;
-      if (!frustum) return this._isVisible;
+      const frustum = updateContext.GetFrustum();
 
+      // LOD for boosters: use the bounding sphere
       const boosterLod = 2 * frustum.GetPixelSizeAccross(SPHERE_SCRATCH);
-      const mediumThreshold = Number(updateContext.GetMediumDetailThreshold?.() ?? updateContext.mediumDetailThreshold ?? 0);
-      const lowThreshold = Number(updateContext.GetLowDetailThreshold?.() ?? updateContext.lowDetailThreshold ?? 0);
-      this._boosterHighLod = boosterLod > mediumThreshold * 1.5;
-      this._boostersVisible = boosterLod > lowThreshold;
-      this._isVisible = !!frustum.IsSphereVisible(SPHERE_SCRATCH);
+      this._boosterHighLod = boosterLod > updateContext.GetMediumDetailThreshold() * 1.5;
+      this._boostersVisible = boosterLod > updateContext.GetLowDetailThreshold();
+      this._isVisible = frustum.IsSphereVisible(SPHERE_SCRATCH);
 
       if (this.glows && this.glows.UpdateVisibility(updateContext, this._parentTransform, null, 0))
       {
@@ -700,10 +701,12 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * gated on display, a VALID ring offset, and a non-empty set; the LOD
    * chooses effect vs effectFar. 36 indices per instance over the shared
    * child-booster box.
+   *
+   * Adapted: The procedural box vertex buffer, quad-list index buffer and vertex declaration are not ported yets; the
+   * batch carries the material, per-object data, draw arguments and the shared buffer name.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The procedural box vertex buffer, quad-list index buffer and vertex declaration are not ported yets; the batch carries the material, per-object data, draw arguments and the shared buffer name.")
   GetBatches(batches, batchType, perObjectData = null)
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE) return;
@@ -727,10 +730,12 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * Fills the child-booster per-object records (Carbon cpp:533-557): the
    * LOGICAL parent transform through SetAndTranspose, the max booster size,
    * the ring frame offset, and the warp intensity.
+   *
+   * Adapted: Carbon's struct fill becomes the registered EveChildBoosterSet RawData layouts; the instanceOffset lane
+   * carries the AL ring offset when one is installed.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon's struct fill becomes the registered EveChildBoosterSet RawData layouts; the instanceOffset lane carries the AL ring offset when one is installed.")
   GetPerObjectData(accumulator = null)
   {
     if (typeof accumulator?.Alloc !== "function") return null;
