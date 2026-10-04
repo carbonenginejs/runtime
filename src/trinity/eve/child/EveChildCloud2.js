@@ -749,7 +749,8 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     {
       return false;
     }
-    const screenSize = frustum.GetPixelSizeAccross(sphere);
+    // Carbon passes the CcpMath::Sphere (EveChildCloud2.cpp:238, :828): the Sphere overload, CE-04 Est maths.
+    const screenSize = frustum.GetPixelSizeAccross_Sphere(sphere);
     if (screenSize < this.minScreenSize * (updateContext?.GetLodFactor() ?? 1))
     {
       return false;
@@ -856,9 +857,8 @@ export class EveChildCloud2 extends EveSpaceObjectChild
       return false;
     }
 
-    // Sphere duck routes to the Est estimator, matching Carbon's Sphere
-    // overload (cpp:256; TriFrustum cpp:295-298).
-    const screenSize = frustum.GetPixelSizeAccross(sphere);
+    // Carbon passes the CcpMath::Sphere (EveChildCloud2.cpp:238, :828): the Sphere overload, CE-04 Est maths.
+    const screenSize = frustum.GetPixelSizeAccross_Sphere(sphere);
     if (screenSize < this.adjustedMinScreenSize)
     {
       return false;
