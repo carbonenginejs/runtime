@@ -257,7 +257,7 @@ export class EveTransform extends Tr2Transform
       if (!this.useLodLevel || EveLODHelper.ShouldUpdate(this.lodLevel, this._lastCurveUpdateDelta))
       {
         this._lastCurveUpdateDelta = 0;
-        for (const curveSet of this.curveSets) curveSet.Update(TimeAsDouble(time), undefined, context.renderContext);
+        for (const curveSet of this.curveSets) curveSet.Update(TimeAsDouble(time), context.renderContext);
       }
     }
 

@@ -179,7 +179,7 @@ export class EvePlanet extends EveEffectRoot2
     quat.normalize(quat_0, quat_0);
     mat4.fromRotationTranslationScale(this._worldTransform, quat_0, vec3_0, this.scaling);
     this.UpdateEffectChildren(updateContext, this._worldTransform, renderScale);
-    for (const curveSet of this.curveSets) curveSet.Update(time, time, updateContext.renderContext);
+    for (const curveSet of this.curveSets) curveSet.Update_RealTimeSimTime(time, time, updateContext.renderContext);
     this.UpdateControllers(0.5);
     for (const observer of this.observers) observer.Update(this._worldTransform);
   }

@@ -1545,7 +1545,7 @@ test("EveLensflare.Update ports Carbon's position, sun size, and fan-out", () =>
   };
   const curveSetCalls = [];
   const controllerCalls = [];
-  lensflare.curveSets.push({ Update(realTime, simTime) { curveSetCalls.push([realTime, simTime]); } });
+  lensflare.curveSets.push({ Update_RealTimeSimTime(realTime, simTime) { curveSetCalls.push([realTime, simTime]); } });
   lensflare.controllers.push({ Update(frequency) { controllerCalls.push(frequency); } });
   lensflare.Update(7, 3);
   assert.equal(curveArgs.length, 1);

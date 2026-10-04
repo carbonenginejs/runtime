@@ -110,7 +110,7 @@ export class EveLensflare
   @meta.implemented
   UpdateCurveSet(name, time)
   {
-    for (const curveSet of this.curveSets) if (curveSet.GetName() === name) curveSet.Update(time, time);
+    for (const curveSet of this.curveSets) if (curveSet.GetName() === name) curveSet.Update_RealTimeSimTime(time, time);
   }
 
   /** Longest duration among matching curve sets (cpp:455-466). */
@@ -318,7 +318,7 @@ export class EveLensflare
 
     for (const curveSet of this.curveSets)
     {
-      curveSet.Update(realTime, simTime);
+      curveSet.Update_RealTimeSimTime(realTime, simTime);
     }
     for (const controller of this.controllers)
     {

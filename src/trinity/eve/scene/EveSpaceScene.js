@@ -782,7 +782,7 @@ export class EveSpaceScene
 
     for (const curveSet of this.curveSets)
     {
-      curveSet.Update(realTime, simTime, context.renderContext);
+      curveSet.Update_RealTimeSimTime(realTime, simTime, context.renderContext);
     }
 
     for (const object of this.objects)

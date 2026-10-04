@@ -270,7 +270,7 @@ test('lensflare curve owner addresses all same-name sets and leaves others alone
   const flare = new EveLensflare();
   const log = [];
   const set = (name,duration) => ({GetName:()=>name,GetMaxCurveDuration:()=>duration,GetRangeDuration:()=>duration/2,
-    ResetTimeRange:()=>log.push('reset'),Play:()=>log.push('play'),PlayTimeRange:r=>log.push(r),Stop:()=>log.push('stop'),Update:(a,b)=>log.push([a,b])});
+    ResetTimeRange:()=>log.push('reset'),Play:()=>log.push('play'),PlayTimeRange:r=>log.push(r),Stop:()=>log.push('stop'),Update_RealTimeSimTime:(a,b)=>log.push([a,b])});
   flare.curveSets.push(set('sun',2),set('sun',4),set('other',100));
   assert.equal(flare.GetCurveSetDuration('sun'),4);
   assert.equal(flare.GetRangeDuration('sun','rise'),2);

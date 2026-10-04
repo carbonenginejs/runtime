@@ -205,9 +205,9 @@ test("TriCurveSet consumes the real model-free driver during its normal update",
         const curves = new TriCurveSet();
         curves.driver = driver;
         curves.isPlaying = true;
-        curves.UpdateAt(3);
+        curves.Update(3);
         assert.equal(curves.scaledTime, 13);
-        curves.UpdateAt(4);
+        curves.Update(4);
         assert.equal(curves.scaledTime, 14);
     });
 });

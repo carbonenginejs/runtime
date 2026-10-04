@@ -69,13 +69,13 @@ test("Tr2Transform updates curve sets directly and preserves parent-local histor
   const renderContext = makeRenderContext();
   const calls = [];
   transform.curveSets.push({
-    Update(time, simTime, context)
+    Update(time, context)
     {
-      calls.push([ time, simTime, context ]);
+      calls.push([ time, context ]);
     }
   });
   transform.Update(3, renderContext);
-  assert.deepEqual(calls, [[ 3, undefined, renderContext ]]);
+  assert.deepEqual(calls, [[ 3, renderContext ]]);
   transform.update = false;
   transform.Update(4, renderContext);
   assert.equal(calls.length, 1);

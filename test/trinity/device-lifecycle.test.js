@@ -219,11 +219,11 @@ test("Update advances playing curve sets and drops the finished ones", () =>
   const updated = [];
 
   const playing = {
-    Update: (realTime, simTime) => updated.push([ "playing", realTime, simTime ]),
+    Update_RealTimeSimTime: (realTime, simTime) => updated.push([ "playing", realTime, simTime ]),
     IsPlaying: () => true
   };
   const finished = {
-    Update: () => updated.push([ "finished" ]),
+    Update_RealTimeSimTime: () => updated.push([ "finished" ]),
     IsPlaying: () => false
   };
 

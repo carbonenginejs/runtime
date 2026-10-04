@@ -115,19 +115,18 @@ export class TriCurveSet extends IInitialize
   _callback = new CjsScriptCallback();
 
   /**
-   * Updates playback using source seconds or Carbon's real/sim tick overload.
-   * Converts only the selected two-clock timestamp (TriCurveSet.cpp:51-64).
-   * @param {number} time Source seconds, or real-time Blue 100ns ticks with simTime.
-   * @param {number} [simTime] Simulation time in Blue 100ns ticks.
+   * Carbon's Update( Be::Time realTime, Be::Time simTime ) (TriCurveSet.cpp:51-64):
+   * converts the clock selected by useRealTime to seconds and updates at it.
+   * @param {number} realTime Real-time Blue 100ns ticks.
+   * @param {number} simTime Simulation time in Blue 100ns ticks.
    * @param {object|null} [renderContext=null] Rendering context forwarded to curves.
    * @returns {void}
    */
-  @meta.blue.method
+  @meta.blue.renamed("Update")
   @meta.implemented
-  Update(time, simTime, renderContext = null)
+  Update_RealTimeSimTime(realTime, simTime, renderContext = null)
   {
-    const selectedTime = simTime === undefined ? time : TimeAsDouble(this.useRealTime ? time : simTime);
-    this.UpdateAt(selectedTime, renderContext);
+    this.Update(TimeAsDouble(this.useRealTime ? realTime : simTime), renderContext);
   }
 
   /**
@@ -149,14 +148,15 @@ export class TriCurveSet extends IInitialize
   }
 
   /**
-   * Updates playback at the supplied source time.
-   * Custom: implements the scalar Update overload separately so JavaScript can expose both call shapes.
+   * Carbon's Update( double time ): updates playback at the supplied source
+   * time (formerly the invented name UpdateAt).
    * @param {number} time Source seconds before optional driver conversion.
    * @param {object|null} [renderContext=null] Active rendering context.
    * @returns {void}
    */
-  @meta.ours
-  UpdateAt(time, renderContext = null)
+  @meta.blue.method
+  @meta.implemented
+  Update(time, renderContext = null)
   {
     if (this.driver)
     {

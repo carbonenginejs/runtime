@@ -142,7 +142,7 @@ test("EveEffectRoot2 owns Carbon effect transforms, lifecycle, LOD, and target s
   };
   const curveSet = {
     name: "impact",
-    Update(realTime, simTime)
+    Update_RealTimeSimTime(realTime, simTime)
     {
       calls.push(["curve-update", realTime, simTime]);
     },

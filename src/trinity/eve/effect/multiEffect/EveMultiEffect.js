@@ -253,7 +253,7 @@ export class EveMultiEffect
   {
     for (const curveSet of this.curveSets)
     {
-      if (EveMultiEffect._GetName(curveSet) === name) curveSet.Update(time, time, renderContext);
+      if (EveMultiEffect._GetName(curveSet) === name) curveSet.Update_RealTimeSimTime(time, time, renderContext);
     }
   }
 
@@ -304,7 +304,7 @@ export class EveMultiEffect
   UpdateSyncronous(updateContext)
   {
     const time = Number(updateContext?.GetTime?.() ?? updateContext?.currentTime ?? updateContext?.time ?? 0);
-    for (const curveSet of this.curveSets) curveSet.Update(time, time, updateContext.renderContext);
+    for (const curveSet of this.curveSets) curveSet.Update_RealTimeSimTime(time, time, updateContext.renderContext);
     for (const controller of this.controllers) controller?.Update(0.5);
     for (const binding of this.bindings) binding?.Update(time);
   }

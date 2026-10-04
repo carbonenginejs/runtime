@@ -567,7 +567,7 @@ export class EveStretch3 extends IEveFiringEffectElement
     const time = context.GetTime();
     if (this.startTime === 0) this.startTime = time;
     const relative = time - this.startTime;
-    for (const curveSet of this.curveSets) curveSet.Update(relative, relative, context.renderContext);
+    for (const curveSet of this.curveSets) curveSet.Update_RealTimeSimTime(relative, relative, context.renderContext);
 
     const params = this._makeParams();
     vec3.subtract(EveStretch3._moveDirection, this.sourcePosition, this.destinationPosition);
@@ -974,7 +974,7 @@ export class EveStretch3 extends IEveFiringEffectElement
     {
       if (curveSet.GetName() === name)
       {
-        curveSet.Update(time, time, renderContext);
+        curveSet.Update_RealTimeSimTime(time, time, renderContext);
       }
     }
     for (const component of this._components())

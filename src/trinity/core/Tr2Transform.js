@@ -144,7 +144,7 @@ export class Tr2Transform
     const seconds = Number(time);
     for (const curveSet of this.curveSets)
     {
-      curveSet.Update(seconds, undefined, renderContext);
+      curveSet.Update(seconds, renderContext);
     }
   }
 

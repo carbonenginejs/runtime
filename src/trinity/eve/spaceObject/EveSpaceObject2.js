@@ -1729,7 +1729,7 @@ export class EveSpaceObject2 extends EveEntity
     {
       for (const curveSet of this.curveSets)
       {
-        curveSet.Update(time, time, updateContext.renderContext);
+        curveSet.Update_RealTimeSimTime(time, time, updateContext.renderContext);
       }
     }
 
@@ -3555,7 +3555,7 @@ export class EveSpaceObject2 extends EveEntity
   {
     for (const curveSet of this.curveSets)
     {
-      if (curveSet.GetName() === name) curveSet.Update(time, time, renderContext);
+      if (curveSet.GetName() === name) curveSet.Update_RealTimeSimTime(time, time, renderContext);
     }
     for (const owner of this._CurveSetOwners()) owner.UpdateCurveSet(name, time, renderContext);
   }

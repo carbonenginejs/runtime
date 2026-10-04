@@ -340,7 +340,7 @@ test("EveMultiEffect owns dynamic graphs, preserves map precedence, and updates 
     name: "Duplicate",
     GetName() { return this.name; },
     GetRawRoot() { return { id: "curve" }; },
-    Update(realTime, simTime) { calls.push(["curve", realTime, simTime]); },
+    Update_RealTimeSimTime(realTime, simTime) { calls.push(["curve", realTime, simTime]); },
     GetMaxCurveDuration() { return 2; },
     GetRangeDuration() { return 3; }
   };

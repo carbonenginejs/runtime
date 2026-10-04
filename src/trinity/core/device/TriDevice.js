@@ -856,7 +856,7 @@ export class TriDevice
   {
     for (const curveSet of [ ...this.curveSets ])
     {
-      curveSet.Update(realTime, simTime);
+      curveSet.Update_RealTimeSimTime(realTime, simTime);
     }
 
     this.curveSets = this.curveSets.filter(curveSet => curveSet.IsPlaying());

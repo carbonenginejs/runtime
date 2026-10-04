@@ -67,10 +67,10 @@ test("Python binding notification and real curve-set admission preserve attribut
   set.AddBinding(binding);
   assert.equal(set.bindings[0], binding);
   set.Play();
-  set.UpdateAt(0);
+  set.Update(0);
   assert.equal(destination.value, 7);
   source.value = 11;
-  set.UpdateAt(1);
+  set.Update(1);
   assert.equal(destination.value, 11);
   binding.sourceAttribute = "missing";
   binding.OnModified("sourceAttribute");

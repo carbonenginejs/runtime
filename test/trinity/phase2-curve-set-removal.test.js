@@ -122,7 +122,7 @@ test("play requires Reset and applies every curve before bindings with the exact
   set.AddCurve(curve);
   set.AddBinding(binding);
   set.PlayFrom(3);
-  set.Update(40, undefined, context);
+  set.Update(40, context);
   assert.deepEqual(calls, ["reset", "curve", "binding"]);
   curve.Reset = undefined;
   assert.throws(() => set.Play(), { name: "TypeError", message: /Reset/ });

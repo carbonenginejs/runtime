@@ -249,7 +249,7 @@ export class EveMeshOverlayEffect
   Update(realTime, simTime, renderContext = null)
   {
     if (!this.update || !this.curveSet) return;
-    this.curveSet.Update(realTime, simTime, renderContext);
+    this.curveSet.Update_RealTimeSimTime(realTime, simTime, renderContext);
     for (const controller of this.controllers) controller?.Update(0.5);
   }
 

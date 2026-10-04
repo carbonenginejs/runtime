@@ -81,11 +81,11 @@ test("zero-width looping ranges preserve Carbon's NaN quirk", () =>
   const curve = new TriCurveSet();
   curve.SetTimeRange(2, 2, true);
   curve.PlayFrom(3);
-  curve.UpdateAt(0);
+  curve.Update(0);
   assert.ok(Number.isNaN(curve.scaledTime));
   curve.SetTimeRange(2, 2, false);
   curve.PlayFrom(3);
-  curve.UpdateAt(0);
+  curve.Update(0);
   assert.equal(curve.scaledTime, 2);
 });
 

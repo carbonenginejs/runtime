@@ -273,7 +273,7 @@ test("EveChildSpherePin aliases its Blue colors and fills the Carbon per-object 
 
   const curveUpdates = [];
   pin.curveSets.push({
-    Update: (from, to) => curveUpdates.push([from, to]),
+    Update_RealTimeSimTime: (from, to) => curveUpdates.push([from, to]),
   });
   const world = mat4.fromRotationTranslationScale(
     mat4.create(),

@@ -1,5 +1,6 @@
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
+import { TimeAsDouble } from "#blue";
 
 
 /**
@@ -32,13 +33,13 @@ export function getOriginShift(context)
 }
 
 /**
- * Advances a curve set to an absolute time, using UpdateDelta for objects that
- * predate the two-argument Update.
+ * Advances a curve set to a Blue tick time through its seconds overload, as
+ * Carbon's EveStretch2 does: Update( TimeAsDouble( time ) ) (EveStretch2.cpp:228-238).
  */
 export function updateCurveSet(curveSet, time, renderContext = null)
 {
   if (!curveSet) return;
-  curveSet.Update(time, time, renderContext);
+  curveSet.Update(TimeAsDouble(time), renderContext);
 }
 
 /**

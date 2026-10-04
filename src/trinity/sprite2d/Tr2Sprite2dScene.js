@@ -231,7 +231,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
     {
       vec3.unalloc(direction);
     }
-    for (const curveSet of this.curveSets) curveSet.Update(realTime, simTime);
+    for (const curveSet of this.curveSets) curveSet.Update_RealTimeSimTime(realTime, simTime);
     if (this.clearFinishedCurveSets) this.RemoveFinishedCurveSets();
   }
 
