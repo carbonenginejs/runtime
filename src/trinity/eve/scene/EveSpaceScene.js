@@ -3097,6 +3097,8 @@ export class EveSpaceScene
   @meta.reason("Only the tail of Carbon's BeginRender has moved here; the rest is still in the render driver.")
   BeginRender(_enableDistortion, renderContext)
   {
+    if (!this.display) return;
+
     for (const lensflare of this.lensflares) lensflare.PrepareRender(this.updateContext.GetFrustum(), renderContext);
 
     this.PopulatePerFramePSData(this._perFramePS, renderContext);

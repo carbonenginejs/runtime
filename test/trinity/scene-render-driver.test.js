@@ -55,6 +55,8 @@ function sceneRecording(calls)
 {
   return {
     calls,
+    // m_display defaults true in Carbon (EveSpaceScene.cpp:177).
+    display: true,
     Update(realTime, simTime) { calls.push([ "Update", realTime, simTime ]); },
     BlendLightingOverrides() { calls.push([ "BlendLightingOverrides" ]); },
     UpdateFogSettings() { calls.push([ "UpdateFogSettings" ]); },
@@ -747,4 +749,21 @@ test("an interrupted transparent pass releases the published opaque-map share", 
     target.Destroy();
     context.Destroy();
   }
+});
+
+test("an undisplayed scene skips the whole of BeginRender's driver half, as Carbon returns early (cpp:1306-1310)", () =>
+{
+  const calls = [];
+  const driver = driverOver(calls);
+  driver.scene.display = false;
+
+  driver.Execute([ StubTarget() ], null, 1, 2, null, StubContext());
+
+  const names = calls.map(([ name ]) => name);
+  for (const step of [ "Jitter", "BlendLightingOverrides", "UpdateFogSettings", "UpdateVisibility", "GetRenderables", "UpdateVariableStore" ])
+  {
+    assert.ok(!names.includes(step), `${step} does not run for an undisplayed scene`);
+  }
+  // The scene update itself still runs (Carbon's Execute updates before BeginRender).
+  assert.ok(names.includes("Update"));
 });

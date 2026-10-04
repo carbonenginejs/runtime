@@ -645,53 +645,60 @@ export class EveSpaceSceneRenderDriver
   #RenderMainPass(renderContext, offscreen)
   {
     // BeginRender's CPU half, in the order EveSpaceScene's own contract gives.
-    // Carbon refreshes directional and source SH data before publishing textures
-    // (EveSpaceScene.cpp:1319-1327). This is the CPU sun direction, not the
-    // oppositely signed GPU Sun.DirWorld; Carbon supplies unit white here.
-    if (this.scene.display && this.scene.shLightingManager)
+    // Carbon returns from the whole of BeginRender for an undisplayed scene
+    // (EveSpaceScene.cpp:1306-1310); the scene-side tail checks it again.
+    let map = null;
+    let lightManager = null;
+    if (this.scene.display)
     {
-      this.scene.shLightingManager.UpdateWithDirectionalLight(this.scene.sunDirection, [1, 1, 1]);
+      // Carbon refreshes directional and source SH data before publishing textures
+      // (EveSpaceScene.cpp:1319-1327). This is the CPU sun direction, not the
+      // oppositely signed GPU Sun.DirWorld; Carbon supplies unit white here.
+      if (this.scene.shLightingManager)
+      {
+        this.scene.shLightingManager.UpdateWithDirectionalLight(this.scene.sunDirection, [1, 1, 1]);
+      }
+      // The impact data texture follows the SH refresh.
+      if (this.scene.dataTextureMgr) this.scene.dataTextureMgr.SetVariables();
+
+
+      // BeginRender jitters the camera's projection and draws with the result
+      // (EveSpaceScene.cpp:1329-1331).
+      this.scene.Jitter(renderContext);
+      renderContext.SetProjection(this.scene.jitteredProjection);
+      this.scene.BlendLightingOverrides();
+      this.scene.UpdateFogSettings();
+
+      // The light manager exists only while dynamic lighting is on
+      // (EveSpaceScene.cpp:1378-1388), and publishes its buffers before the gather.
+      if (EveSpaceScene.eveSpaceSceneDynamicLighting)
+      {
+        Tr2LightManager.getOrCreateInstance(COMPUTE_LIGHT_LISTS_EFFECT_PATH).SetVariableStore();
+      }
+      else
+      {
+        Tr2LightManager.deleteInstance();
+      }
+      this.scene.UpdateVisibility?.(renderContext.GetInverseViewTransform?.() ?? null);
+
+      map = this.#Collect(this.scene.GetRenderables?.([]) ?? [], renderContext);
+      // Carbon's allObjects is the scene list plus camera parent, not flattened
+      // renderables or planets. Dispatch after FinalizeBatches (cpp:1470-1527).
+      if (this.scene.shLightingManager)
+      {
+        this.scene.UpdateShLighting([...this.scene.objects, this.scene.cameraAttachmentParent]);
+      }
+
+      // After the gather, the scene's global textures - the nebula and the
+      // reflection - go through the variable store (UpdateVariableStore,
+      // EveSpaceScene.cpp:1390-1397).
+      this.scene.UpdateVariableStore();
+
+      // The dynamic lights, after the gather (EveSpaceScene.cpp:1398-1416).
+      lightManager = Tr2LightManager.getInstance();
+
+      if (lightManager) this.scene.GatherLights(lightManager);
     }
-    // The impact data texture follows the SH refresh.
-    if (this.scene.dataTextureMgr) this.scene.dataTextureMgr.SetVariables();
-
-
-    // BeginRender jitters the camera's projection and draws with the result
-    // (EveSpaceScene.cpp:1329-1331).
-    this.scene.Jitter(renderContext);
-    renderContext.SetProjection(this.scene.jitteredProjection);
-    this.scene.BlendLightingOverrides();
-    this.scene.UpdateFogSettings();
-
-    // The light manager exists only while dynamic lighting is on
-    // (EveSpaceScene.cpp:1378-1388), and publishes its buffers before the gather.
-    if (EveSpaceScene.eveSpaceSceneDynamicLighting)
-    {
-      Tr2LightManager.getOrCreateInstance(COMPUTE_LIGHT_LISTS_EFFECT_PATH).SetVariableStore();
-    }
-    else
-    {
-      Tr2LightManager.deleteInstance();
-    }
-    this.scene.UpdateVisibility?.(renderContext.GetInverseViewTransform?.() ?? null);
-
-    const map = this.#Collect(this.scene.GetRenderables?.([]) ?? [], renderContext);
-    // Carbon's allObjects is the scene list plus camera parent, not flattened
-    // renderables or planets. Dispatch after FinalizeBatches (cpp:1470-1527).
-    if (this.scene.display && this.scene.shLightingManager)
-    {
-      this.scene.UpdateShLighting([...this.scene.objects, this.scene.cameraAttachmentParent]);
-    }
-
-    // After the gather, the scene's global textures - the nebula and the
-    // reflection - go through the variable store (UpdateVariableStore,
-    // EveSpaceScene.cpp:1390-1397).
-    this.scene.UpdateVariableStore();
-
-    // The dynamic lights, after the gather (EveSpaceScene.cpp:1398-1416).
-    const lightManager = Tr2LightManager.getInstance();
-
-    if (lightManager) this.scene.GatherLights(lightManager);
 
     if (offscreen) offscreen.velocity = this._GetVelocityMapIfNeeded(offscreen.size);
 
