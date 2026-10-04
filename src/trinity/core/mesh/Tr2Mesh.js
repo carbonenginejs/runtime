@@ -16,8 +16,6 @@ import { Tr2SerializedMorphAnimation } from "./Tr2SerializedMorphAnimation.js";
 @meta.blue.inherit(IInitialize, INotify)
 export class Tr2Mesh extends Tr2MeshBase
 {
-  _bakedMorphTargets = [];
-
   _morphAnimations = new Map();
 
   @meta.blue.notify
@@ -325,7 +323,6 @@ export class Tr2Mesh extends Tr2MeshBase
     if (!this.GetGeometryResource())
     {
       this._morphAnimations.clear();
-      this._bakedMorphTargets = [];
       return 0;
     }
 
@@ -355,14 +352,7 @@ export class Tr2Mesh extends Tr2MeshBase
       });
     }
 
-    const previousBaked = new Map([ ...this._morphAnimations ]
-      .map(([ name, value ]) => [ name, this._bakedMorphTargets[value.index] ?? false ]));
-    const resourceBaked = GetMorphLod(this.GetGeometryResource(), this.meshIndex)?.isBakedMorphTarget;
-
     this._morphAnimations.clear();
-    this._bakedMorphTargets = names.map((name, index) => Array.isArray(resourceBaked)
-      ? !!resourceBaked[index]
-      : previousBaked.get(name) ?? false);
 
     names.forEach((name, index) =>
     {
@@ -379,41 +369,31 @@ export class Tr2Mesh extends Tr2MeshBase
     return names.length;
   }
 
-  /** Returns detached LOD-0 morph target names from the prepared geometry resource. */
+  /**
+   * Carbon GetMorphTargetNames (Tr2Mesh.cpp:225-242): LOD 0's morph target names, as the geometry resource stored
+   * them at load (less the exporter's "Shape" suffix).
+   *
+   * Adapted: an empty list stands for Carbon's nullptr when there is no geometry or LOD.
+   * @returns {string[]} the live list
+   */
   @meta.blue.method
   @meta.adapted
   GetMorphTargetNames()
   {
-    const resource = this.GetGeometryResource();
-    const mesh = GetMeshRecord(resource, this.meshIndex);
-    const lod = GetMorphLod(resource, this.meshIndex);
-
-    if (Array.isArray(lod?.morphTargetNames))
-    {
-      return lod.morphTargetNames.map(String);
-    }
-
-    const targets = mesh?.morphTargets?.targets;
-    if (Array.isArray(targets))
-    {
-      return targets.map(value => String(value?.name ?? ""));
-    }
-
-    if (Array.isArray(lod?.morphTargets))
-    {
-      return lod.morphTargets.map(value => String(value?.name ?? ""));
-    }
-
-    return [];
+    const lod = this._GetMorphLod();
+    return lod ? lod.morphTargetNames : [];
   }
 
-  /** Returns whether one indexed morph target is currently marked as baked. */
+  /**
+   * Carbon IsBakedMorph (Tr2Mesh.cpp:244-259): LOD 0's baked flag for one morph target.
+   * @param {number} index
+   * @returns {boolean}
+   */
   @meta.implemented
   IsBakedMorph(index)
   {
-    return Number.isInteger(index) && index >= 0 && index < this._bakedMorphTargets.length
-      ? this._bakedMorphTargets[index]
-      : false;
+    const lod = this._GetMorphLod();
+    return lod ? lod.isBakedMorphTarget[index] : false;
   }
 
   /** Sets one exact named morph target weight without clamping. */
@@ -448,44 +428,64 @@ export class Tr2Mesh extends Tr2MeshBase
     return this._morphAnimations.get(String(name ?? ""))?.weight ?? 0;
   }
 
-  /** Sets the baked flag for one exact named morph target. */
+  /**
+   * Carbon SetBakedMorphTarget (Tr2Mesh.cpp:291-312): sets LOD 0's baked flag for the target with this exact name.
+   * The flag lives on the shared geometry, so every mesh drawing that LOD sees it.
+   * @param {string} name
+   * @param {boolean} isBaked
+   */
   @meta.blue.method
-  @meta.adapted
-  SetBakedMorphTarget(name, value)
+  @meta.implemented
+  SetBakedMorphTarget(name, isBaked)
   {
-    const animation = this._morphAnimations.get(String(name ?? ""));
-
-    if (!animation)
+    const lod = this._GetMorphLod();
+    if (!lod)
     {
-      return false;
+      return;
     }
 
-    const baked = !!value;
-    this._bakedMorphTargets[animation.index] = baked;
-
-    const states = GetMorphLod(this.GetGeometryResource(), this.meshIndex)?.isBakedMorphTarget;
-    if (Array.isArray(states) && animation.index < states.length)
+    const index = lod.morphTargetNames.indexOf(name);
+    if (index !== -1)
     {
-      states[animation.index] = baked;
+      lod.isBakedMorphTarget[index] = isBaked;
     }
-
-    return true;
   }
 
-  /** Returns the baked flag for one exact named morph target. */
+  /**
+   * Carbon GetBakedMorphTarget (Tr2Mesh.cpp:314-335): LOD 0's baked flag for the target with this exact name.
+   * @param {string} name
+   * @returns {boolean}
+   */
   @meta.blue.method
   @meta.implemented
   GetBakedMorphTarget(name)
   {
-    const animation = this._morphAnimations.get(String(name ?? ""));
-    return animation ? this._bakedMorphTargets[animation.index] : false;
+    const lod = this._GetMorphLod();
+    if (!lod)
+    {
+      return false;
+    }
+
+    const index = lod.morphTargetNames.indexOf(name);
+    return index !== -1 ? lod.isBakedMorphTarget[index] : false;
   }
 
-  /** Returns detached baked flags in morph-target index order. */
-  @meta.adapted
+  /**
+   * Carbon GetAllBakedMorphTargetStates (Tr2Mesh.cpp:337-352): LOD 0's baked flags.
+   * @returns {boolean[]|null} the live list, or null without geometry or LOD
+   */
+  @meta.implemented
   GetAllBakedMorphTargetStates()
   {
-    return this._bakedMorphTargets.slice();
+    const lod = this._GetMorphLod();
+    return lod ? lod.isBakedMorphTarget : null;
+  }
+
+  /** LOD 0 of this mesh, which Carbon's morph accessors read (GetMeshLod( GetMeshIndex(), 0 ), the lodIndex overload). */
+  _GetMorphLod()
+  {
+    const geometry = this.GetGeometryResource();
+    return geometry ? geometry.GetMeshLod_LodIndex(this.meshIndex, 0) : null;
   }
 
   /** Returns detached indexed morph state in exact target-name order. */
@@ -494,20 +494,6 @@ export class Tr2Mesh extends Tr2MeshBase
   {
     return new Map([ ...this._morphAnimations ].map(([ name, value ]) => [ name, { ...value } ]));
   }
-}
-
-function GetMeshRecord(resource, meshIndex)
-{
-  const payload = resource?.GetPayload?.() ?? resource;
-  return payload?.meshes?.[meshIndex] ?? null;
-}
-
-function GetMorphLod(resource, meshIndex)
-{
-  // Carbon passes an int 0: the lodIndex overload (Tr2Mesh.cpp:234).
-  return resource?.GetMeshLod_LodIndex?.(meshIndex, 0)
-    ?? GetMeshRecord(resource, meshIndex)?.lods?.[0]
-    ?? null;
 }
 
 meta.blue.interfaceTable({ interfaces: [Tr2Mesh, IInitialize, INotify], chainTo: Tr2MeshBase })(Tr2Mesh, { kind: "class" });

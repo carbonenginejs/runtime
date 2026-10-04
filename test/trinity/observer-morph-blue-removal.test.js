@@ -67,9 +67,9 @@ test("morph record declared hydration, persistence and copy preserve values",()=
 });
 
 test("actual mesh constructs and updates serialized morph records",()=>{
- const mesh=new Tr2Mesh(),lod={morphTargetNames:["Smile","Blink"],isBakedMorphTarget:[false,false]};
- // A real, already-prepared geometry resource carrying the morph LOD.
- const geometry=new TriGeometryRes();geometry.SetPayload({meshes:[{lods:[lod]}]});geometry.MarkPrepared();
+ const mesh=new Tr2Mesh();
+ // A real, already-prepared geometry resource; its load stores the target names less "Shape" on the LOD.
+ const geometry=new TriGeometryRes();geometry.SetPayload({meshes:[{lods:[{}],morphTargets:{targets:[{name:"SmileShape",maxDisplacement:0},{name:"Blink",maxDisplacement:0}]}}]});geometry.MarkPrepared();
  mesh.Initialize();mesh.SetGeometryRes(geometry);assert.ok(mesh.serializedMorphAnimations.every(value=>value.constructor===Tr2SerializedMorphAnimation));assert.deepEqual(mesh.serializedMorphAnimations.map(value=>value.name),["Smile","Blink"]);
  const smile=mesh.serializedMorphAnimations[0];assert.equal(mesh.SetMorphTargetWeight("Smile",0.5),true);assert.ok(mesh.serializedMorphAnimations[0]===smile,"the record is updated in place");assert.equal(smile.weight,0.5);assert.equal(mesh.GetMorphTargetWeight("Smile"),0.5);mesh.SetGeometryRes(null);
 });

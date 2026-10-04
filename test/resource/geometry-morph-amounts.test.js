@@ -47,7 +47,7 @@ test("every LOD carries one deformation amount per morph target, Carbon's larges
   const plain = meshes.findIndex(other => !other.morphTargets?.targets?.length);
   if (plain >= 0)
   {
-    assert.equal(geometry.GetMeshLod_LodIndex(plain, 0).morphTargetDeformationAmounts, undefined, "a mesh without morphs gets none");
+    assert.deepEqual(geometry.GetMeshLod_LodIndex(plain, 0).morphTargetDeformationAmounts, [], "a mesh without morphs gets empty tables, as Carbon's empty vectors");
   }
 });
 
@@ -72,4 +72,63 @@ test("Tr2MeshBase.GetBounds grows by the loaded morph amounts (Tr2MeshBase.cpp:2
     assert.ok(Math.abs(rest.min[axis] - grown.min[axis] - 2 * amount) < 1e-5, `min ${axis}`);
     assert.ok(Math.abs(grown.max[axis] - rest.max[axis] - 2 * amount) < 1e-5, `max ${axis}`);
   }
+});
+
+// The face-only head names its 35 morph targets with the exporter's "Shape" suffix (LeftEyeMissingShape).
+const FACE = "res:/graphics/character/female/paperdoll/head/head_faceonly/head_generic.gr2";
+
+async function FaceGeometry()
+{
+  const geometry = new TriGeometryRes();
+  geometry.SetPayload(geometry.ReadGrannyFile(await client.Read(FACE)));
+  geometry.MarkPrepared();
+  const meshIndex = geometry.GetPayload().meshes.findIndex(mesh => (mesh.morphTargets?.targets ?? []).some(target => target.name.endsWith("Shape")));
+  return { geometry, meshIndex };
+}
+
+test("every LOD stores the target names less \"Shape\" and a cleared baked flag (TriGeometryRes.cpp:2113-2124, 2268-2282)", { skip }, async () =>
+{
+  const { geometry, meshIndex } = await FaceGeometry();
+  assert.ok(meshIndex >= 0, "the face-only head has Shape-suffixed morph targets");
+  const targets = geometry.GetPayload().meshes[meshIndex].morphTargets.targets;
+  const lod = geometry.GetMeshLod_LodIndex(meshIndex, 0);
+  assert.equal(lod.morphTargetNames.length, targets.length);
+  targets.forEach((target, index) =>
+  {
+    assert.ok(target.name.endsWith("Shape"));
+    assert.equal(lod.morphTargetNames[index], target.name.slice(0, -5));
+  });
+  assert.deepEqual(lod.isBakedMorphTarget, targets.map(() => false));
+  assert.equal(TriGeometryRes.stripShapeSuffix("Shape"), "Shape", "a name no longer than the suffix keeps it");
+});
+
+test("Tr2Mesh reads the stored names, and its baked flags live on the shared LOD (Tr2Mesh.cpp:225-352)", { skip }, async () =>
+{
+  const { geometry, meshIndex } = await FaceGeometry();
+  const meshOn = () =>
+  {
+    const mesh = new Tr2Mesh();
+    mesh.SetGeometryRes(geometry);
+    mesh.meshIndex = meshIndex;
+    return mesh;
+  };
+  const first = meshOn(), second = meshOn();
+  const names = first.GetMorphTargetNames();
+  assert.ok(names.includes("LeftEyeMissing") && !names.includes("LeftEyeMissingShape"));
+  const index = names.indexOf("LeftEyeMissing");
+
+  first.InitializeMorphTargets();
+  assert.equal(first.GetMorphAnimations().get("LeftEyeMissing").index, index, "morph animations are keyed by the stored names");
+
+  first.SetBakedMorphTarget("LeftEyeMissing", true);
+  assert.equal(second.GetBakedMorphTarget("LeftEyeMissing"), true, "the flag is the geometry's, seen by every mesh");
+  assert.equal(second.IsBakedMorph(index), true);
+  assert.equal(second.GetAllBakedMorphTargetStates()[index], true);
+  first.SetBakedMorphTarget("LeftEyeMissingShape", false);
+  assert.equal(second.GetBakedMorphTarget("LeftEyeMissing"), true, "the raw suffixed name matches nothing");
+  assert.equal(second.GetBakedMorphTarget("LeftEyeMissingShape"), false);
+
+  const empty = new Tr2Mesh();
+  assert.deepEqual(empty.GetMorphTargetNames(), []);
+  assert.equal(empty.GetAllBakedMorphTargetStates(), null);
 });

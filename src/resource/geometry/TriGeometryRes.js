@@ -111,17 +111,19 @@ export class TriGeometryRes extends CjsResource
         throw resourcePayloadError("TriGeometryRes", "Expected an array when provided.", field);
       }
     }
-    // Carbon fills each LOD's m_morphTargetDeformationAmounts while building it (TriGeometryRes.cpp:2134 from the CMF
-    // target's maxDisplacement; :2293 from the Granny morph vertices, which the gr2 conversion has already reduced to
-    // the same maxDisplacement). A mesh with no lods is its own LOD (GetMeshLod_LodIndex).
+    // Carbon fills each LOD's morph tables while building it (TriGeometryRes.cpp:2110-2134 for CMF, :2260-2293 for
+    // Granny): the target names, less the exporter's "Shape" suffix; a cleared baked flag per target; and the
+    // deformation amount, the CMF target's maxDisplacement or, for Granny, the largest morph-to-base distance, which
+    // the gr2 conversion has already reduced to the same maxDisplacement. A mesh without morphs gets empty tables; one
+    // with no lods is its own LOD (GetMeshLod_LodIndex).
     for (const mesh of payload.meshes)
     {
-      const targets = mesh.morphTargets?.targets;
-      if (!Array.isArray(targets)) continue;
-      const amounts = targets.map(target => target.maxDisplacement);
+      const targets = mesh.morphTargets?.targets ?? [];
       for (const lod of mesh.lods?.length ? mesh.lods : [ mesh ])
       {
-        lod.morphTargetDeformationAmounts = amounts;
+        lod.morphTargetNames = targets.map(target => TriGeometryRes.stripShapeSuffix(target.name));
+        lod.isBakedMorphTarget = targets.map(() => false);
+        lod.morphTargetDeformationAmounts = targets.map(target => target.maxDisplacement);
       }
     }
     super.SetPayload(payload);
@@ -969,6 +971,17 @@ export class TriGeometryRes extends CjsResource
   static getMeshAreas(mesh)
   {
     return mesh?.areas || mesh?.lods?.[0]?.areas || null;
+  }
+
+  /**
+   * A morph target's name less the exporter's "Shape" suffix, as Carbon stores it (TriGeometryRes.cpp:2113-2120 and
+   * 2268-2275): only a name longer than the suffix loses it.
+   * @param {string} name
+   * @returns {string}
+   */
+  static stripShapeSuffix(name)
+  {
+    return name.length > 5 && name.endsWith("Shape") ? name.slice(0, -5) : name;
   }
 
   /**

@@ -27,8 +27,8 @@ const payload = () => ({
       { name: "finger", bounds: { min: [ -1, -1, -1 ], max: [ 1, 1, 1 ] } }
     ],
     bounds: { min: [ 0, 0, 0 ], max: [ 1, 1, 0 ] },
-    // Carbon fills this at load (TriGeometryRes.cpp:2134, 2293); our decoders do not yet, so the test supplies it.
-    morphTargetDeformationAmounts: [ 0.5 ]
+    // One morph target: the load fills the LOD's deformation amount from its maxDisplacement (TriGeometryRes.cpp:2134).
+    morphTargets: { targets: [ { name: "BlinkShape", maxDisplacement: 0.5 } ] }
   } ]
 });
 
