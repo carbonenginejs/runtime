@@ -685,7 +685,7 @@ export class EveSpaceSceneRenderDriver
       }
       this.scene.UpdateVisibility?.(renderContext.GetInverseViewTransform?.() ?? null);
 
-      map = this.#Collect(this.scene.GetRenderables?.([]) ?? [], renderContext);
+      map = this.#Collect(this.scene.GetRenderables([], renderContext), renderContext);
       // Carbon's allObjects is the scene list plus camera parent, not flattened
       // renderables or planets. Dispatch after FinalizeBatches (cpp:1470-1527).
       if (this.scene.shLightingManager)

@@ -1393,15 +1393,36 @@ export class EveSpaceScene
    * The impostor-manager argument (cpp:1478-1502) is dropped - engine-owned.
    * Gather order matters downstream: the opaque accumulator receives batches
    * in gather order before Finalize sorts. */
-  GetRenderables(out = [])
+  GetRenderables(out = [], renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     if (!this.display)
     {
       return out;
     }
 
-    for (const object of this.objects) object?.GetRenderables_Impostors(out, null);
-    this.cameraAttachmentParent?.GetRenderables_Impostors(out, null);
+    // Carbon GatherBatches (cpp:1487-1511): with an impostor manager, and the
+    // reflection probe (if any) holding data, size the atlas items from the
+    // low-detail threshold and collect impostors while gathering.
+    let impostors = null;
+    if (this.impostorManager && (!this.reflectionProbe || this.reflectionProbe.HasData()))
+    {
+      let size = 2;
+      const threshold = Math.trunc(EveSpaceScene.eveSpaceSceneLowDetailThreshold) >>> 1;
+      while (size * 2 < threshold) size *= 2;
+      this.impostorManager.SetItemSize(size, size);
+      this.impostorManager.BeginUpdate();
+      impostors = this.impostorManager;
+    }
+
+    for (const object of this.objects) object?.GetRenderables_Impostors(out, this.impostorManager);
+    this.cameraAttachmentParent?.GetRenderables_Impostors(out, this.impostorManager);
+
+    if (impostors)
+    {
+      impostors.EndUpdate();
+      this.UpdateImpostors(renderContext);
+    }
+
     for (const staticParticles of this.staticParticles)
     {
       staticParticles?.GetRenderables(this.updateContext.GetFrustum(), out);
@@ -2313,6 +2334,125 @@ export class EveSpaceScene
     esm.EndManagedRendering();
     return hasBackgroundDistortionBatches;
   }
+
+  /**
+   * Carbon EveSpaceScene::UpdateImpostors (cpp:1578-1684): renders each queued
+   * impostor into its atlas tile. DepthMap points at the atlas item's depth
+   * buffer; each object is captured from ten bounding radii out along the line
+   * from the camera, with a perspective that just fits its sphere, then its
+   * opaque, transparent and additive batches are drawn.
+   *
+   * Adapted: the batches go through the scene's secondary accumulators (the
+   * driver owns the primary gather here), cleared after each object; Carbon
+   * locks the saved DepthMap provider while it is swapped out, which a JS
+   * reference does not need.
+   *
+   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @returns {void}
+   */
+  @meta.adapted
+  UpdateImpostors(renderContext)
+  {
+    const manager = this.impostorManager;
+    if (!manager || manager.GetRenderQueueLength() === 0) return;
+
+    const esm = renderContext.GetEffectStateManager();
+    renderContext.PushViewTransform();
+    renderContext.PushProjection();
+    esm.PushViewport();
+    try
+    {
+      manager.BeginUpdateAtlas(renderContext);
+      try
+      {
+        const depthMapVar = Tr2VariableStore.globalStore().GetVariable("DepthMap");
+        const swapDepthMap = depthMapVar.GetType() === TriVariableContentType.TRIVARIABLE_TEXTURE_RES;
+        const savedDepthMap = swapDepthMap ? depthMapVar.GetValue() : null;
+        if (swapDepthMap) depthMapVar.SetValue(manager.GetItemDepthStencil());
+        try
+        {
+          this.UpdateVariableStore();
+          this._CaptureImpostors(manager, renderContext);
+        }
+        finally
+        {
+          if (swapDepthMap) depthMapVar.SetValue(savedDepthMap);
+          this.UpdateVariableStore();
+        }
+      }
+      finally
+      {
+        manager.EndUpdateAtlas(renderContext);
+      }
+    }
+    finally
+    {
+      esm.PopViewport();
+      renderContext.PopProjection();
+      renderContext.PopViewTransform();
+    }
+  }
+
+  /** The per-impostor loop of Carbon UpdateImpostors (cpp:1636-1683). */
+  @meta.ours
+  _CaptureImpostors(manager, renderContext)
+  {
+    const esm = renderContext.GetEffectStateManager();
+    const scratch = EveSpaceScene._impostorScratch;
+    const inverseView = renderContext.GetInverseViewTransform();
+    const eye = vec3.set(scratch.eye, inverseView[12], inverseView[13], inverseView[14]);
+    const up = vec3.set(scratch.up, inverseView[4], inverseView[5], inverseView[6]);
+    const batches = this._secondaryBatches;
+    const fakeViewport = { x: 0, y: 0, width: 128, height: 128 };
+
+    for (let index = 0; index < manager.GetRenderQueueLength(); index++)
+    {
+      const object = manager.BeginImpostorUpdate(index, renderContext);
+      const sphere = vec4.set(scratch.sphere, 0, 0, 0, 1);
+      object.GetImpostorBoundingSphere(sphere);
+      const radius = sphere[3];
+      const position = vec3.set(scratch.position, sphere[0], sphere[1], sphere[2]);
+      const viewDir = vec3.normalize(scratch.viewDir, vec3.subtract(scratch.viewDir, eye, position));
+      const distance = radius * 10;
+      const eyePosition = vec3.scaleAndAdd(scratch.eyePosition, position, viewDir, distance);
+
+      // XMMatrixLookToLH( eyePosition, viewDir, up ) is lookAtD3D toward eyePosition + viewDir.
+      mat4.lookAtD3D(scratch.view, eyePosition, vec3.add(scratch.target, eyePosition, viewDir), up);
+      mat4.perspectiveRHD3D(scratch.projection, radius * 2, radius * 2, distance - radius, distance + radius);
+      renderContext.SetViewTransform(scratch.view);
+      renderContext.SetProjection(scratch.projection);
+
+      const frustum = new TriFrustum();
+      frustum.DeriveFrustum(renderContext.GetViewTransform(), renderContext.GetViewPosition(), renderContext.GetProjection(), fakeViewport);
+
+      this.PopulatePerFramePSData(this._perFramePS, renderContext);
+      this.PopulatePerFrameVSData(this._perFrameVS, renderContext);
+      const fogFactors = Array.from(this._perFrameVS.Get("FogFactors"));
+      fogFactors[2] = 0;
+      this._perFrameVS.Set("FogFactors", fogFactors);
+      this.ApplyPerFrameData(renderContext);
+
+      object.GetImpostorBatches(frustum, batches);
+      this.FinalizeBatches(batches);
+
+      esm.ApplyStandardStates(RenderingMode.RM_OPAQUE);
+      renderContext.RenderBatches(batches.get(TriBatchType.TRIBATCHTYPE_OPAQUE));
+      renderContext.SetReadOnlyDepth(true);
+      esm.ApplyStandardStates(RenderingMode.RM_ALPHA);
+      renderContext.RenderBatches(batches.get(TriBatchType.TRIBATCHTYPE_TRANSPARENT));
+      esm.ApplyStandardStates(RenderingMode.RM_ALPHA_ADDITIVE);
+      renderContext.RenderBatches(batches.get(TriBatchType.TRIBATCHTYPE_ADDITIVE));
+      renderContext.SetReadOnlyDepth(false);
+
+      this.ClearBatches(batches);
+      manager.EndImpostorUpdate(index, renderContext);
+    }
+  }
+
+  static _impostorScratch = {
+    eye: vec3.create(), up: vec3.create(), sphere: vec4.create(), position: vec3.create(), viewDir: vec3.create(),
+    eyePosition: vec3.create(), target: vec3.create(), view: mat4.create(), projection: mat4.create()
+  };
 
   /** Carbon HasReflectionProbe (cpp:4106-4109). */
   @meta.implemented

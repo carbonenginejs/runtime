@@ -1851,7 +1851,13 @@ export class EveSpaceObject2 extends EveEntity
 
       if (this.estimatedPixelDiameterWithChildren > mediumThreshold) this._lodLevelWithChildren = Tr2Lod.TR2_LOD_HIGH;
       else if (this.estimatedPixelDiameterWithChildren > lowThreshold) this._lodLevelWithChildren = Tr2Lod.TR2_LOD_MEDIUM;
-      else this._lodLevelWithChildren = Tr2Lod.TR2_LOD_LOW;
+      else if (this.estimatedPixelDiameterWithChildren > lowThreshold * 0.5) this._lodLevelWithChildren = Tr2Lod.TR2_LOD_LOW;
+      else
+      {
+        // The smallest objects become impostors when LOD selection allows it (cpp:1676-1683).
+        this._lodLevelWithChildren = Tr2Lod.TR2_LOD_LOW;
+        this._impostorMode = this._allowLodSelection;
+      }
     }
 
     for (const observer of this.observers)
@@ -1936,20 +1942,93 @@ export class EveSpaceObject2 extends EveEntity
     }
   }
 
-  /** Collects the hull and explicitly owned Carbon child/decal renderables. */
+  /**
+   * Carbon EveSpaceObject2::GetRenderables (cpp:1821-1851): an object in impostor
+   * mode hands itself to the impostor manager with its view-space forward and up
+   * (the impostor's hash) instead of pushing its renderables; it falls back to
+   * its renderables when the manager declines.
+   *
+   * Adapted: returns `out`; the decal mesh cache is not ported.
+   *
+   * @param {ITr2Renderable[]} [out] The frame's renderables.
+   * @param {Tr2ImpostorManager|null} impostors The scene's impostor manager, if any.
+   * @returns {ITr2Renderable[]} out
+   */
   @meta.blue.renamed("GetRenderables")
   @meta.adapted
-  @meta.reason("Impostor submission and decal mesh caches are not ported yet; Trinity returns the backend-neutral renderable graph.")
-  GetRenderables_Impostors(out = [], _impostors)
+  GetRenderables_Impostors(out = [], impostors)
   {
+    this._impostorMode = this._impostorMode && impostors !== null;
     if (!this.display || !this.isVisible) return out;
-    if (this._allowLodSelection && this._isMeshVisible)
+    if (this._allowLodSelection && this._isMeshVisible && this.mesh)
     {
-      this.mesh?.GetBoundingBox?.(this._localAabbMin, this._localAabbMax);
+      this.mesh.GetBoundingBox(this._localAabbMin, this._localAabbMax);
     }
-    this.PushRenderables(out);
+    if (this._impostorMode && impostors !== null)
+    {
+      const view = Tr2RenderContext_GetMainThreadRenderContext().GetViewTransform();
+      const hash = EveSpaceObject2._impostorHash;
+      const vec3_0 = EveSpaceObject2._impostorScratch;
+      EveSpaceObject2._TransformNormal(vec3_0, EveSpaceObject2._impostorForward, this.worldTransform);
+      vec3.normalize(hash.viewDir, EveSpaceObject2._TransformNormal(hash.viewDir, vec3_0, view));
+      EveSpaceObject2._TransformNormal(vec3_0, EveSpaceObject2._impostorUp, this.worldTransform);
+      vec3.normalize(hash.upDir, EveSpaceObject2._TransformNormal(hash.upDir, vec3_0, view));
+      this._impostorMode = impostors.Add(this, hash);
+    }
+    if (!this._impostorMode) this.PushRenderables(out);
     return out;
   }
+
+  /**
+   * ITr2ImpostorSource (cpp:4231-4252): every batch the object's renderables make,
+   * opaque, decal, transparent and additive, for the impostor capture.
+   * @param {TriFrustum} _frustum The capture frustum (unused, as in Carbon).
+   * @param {Map<number, object>} batches Accumulators by TriBatchType.
+   */
+  @meta.implemented
+  GetImpostorBatches(_frustum, batches)
+  {
+    const renderables = [];
+    this.PushRenderables(renderables);
+    for (const renderable of renderables)
+    {
+      const objectData = renderable.GetPerObjectData(batches.get(TriBatchType.TRIBATCHTYPE_OPAQUE));
+      for (const type of EveSpaceObject2._impostorBatchTypes) renderable.GetBatches(batches.get(type), type, objectData);
+    }
+  }
+
+  /** ITr2ImpostorSource (cpp:4254-4259): how far the view has turned since the impostor was captured. */
+  @meta.implemented
+  GetRenderPriority(oldHash, newHash)
+  {
+    const dotView = vec3.dot(oldHash.viewDir, newHash.viewDir);
+    const dotUp = vec3.dot(oldHash.upDir, newHash.upDir);
+    return Math.max(1 - dotView, 1 - dotUp);
+  }
+
+  /** ITr2ImpostorSource (cpp:4261-4264): the object's bounding sphere. */
+  @meta.implemented
+  GetImpostorBoundingSphere(sphere)
+  {
+    return this.GetBoundingSphere(sphere);
+  }
+
+  /** ITr2ImpostorSource (cpp:4266-4274): the bounding sphere moved to last frame's world position. */
+  @meta.implemented
+  GetLastImpostorBoundingSphere(sphere)
+  {
+    this.GetImpostorBoundingSphere(sphere);
+    sphere[0] += this.lastWorldTransform[12] - this.worldTransform[12];
+    sphere[1] += this.lastWorldTransform[13] - this.worldTransform[13];
+    sphere[2] += this.lastWorldTransform[14] - this.worldTransform[14];
+  }
+
+  static _impostorHash = { viewDir: vec3.create(), upDir: vec3.create() };
+  static _impostorScratch = vec3.create();
+  static _impostorForward = vec3.fromValues(0, 0, 1);
+  static _impostorUp = vec3.fromValues(0, 1, 0);
+  static _impostorBatchTypes = [ TriBatchType.TRIBATCHTYPE_OPAQUE, TriBatchType.TRIBATCHTYPE_DECAL,
+    TriBatchType.TRIBATCHTYPE_TRANSPARENT, TriBatchType.TRIBATCHTYPE_ADDITIVE ];
 
   /**
    * Carbon EveSpaceObject2::PushRenderables (cpp:1530-1551): the hull itself while its mesh is visible and loaded,

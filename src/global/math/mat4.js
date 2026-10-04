@@ -677,6 +677,30 @@ mat4.lookAtD3D = function (out, eye, center, up)
 };
 
 /**
+ * DirectXMath XMMatrixPerspectiveRH(ViewWidth, ViewHeight, NearZ, FarZ), element
+ * for element in its row-major layout (which gl-matrix's storage shares): a
+ * right-handed perspective over a view-plane width and height at the near plane,
+ * depth mapped to 0..1.
+ *
+ * @param {mat4} out Receives the matrix.
+ * @param {number} width ViewWidth.
+ * @param {number} height ViewHeight.
+ * @param {number} near NearZ.
+ * @param {number} far FarZ.
+ * @returns {mat4} out
+ */
+mat4.perspectiveRHD3D = function (out, width, height, near, far)
+{
+    const twoNear = near + near;
+    const range = far / (near - far);
+    out[0] = twoNear / width; out[1] = 0; out[2] = 0; out[3] = 0;
+    out[4] = 0; out[5] = twoNear / height; out[6] = 0; out[7] = 0;
+    out[8] = 0; out[9] = 0; out[10] = range; out[11] = -1;
+    out[12] = 0; out[13] = 0; out[14] = range * near; out[15] = 0;
+    return out;
+};
+
+/**
  * Carbon's LookAtMatrix (math/include/Matrix_inline.h:671-702), element for
  * element in Carbon's row-vector layout: right and forward are negated, and a
  * degenerate axis normalizes to zero rather than falling back as lookAtD3D and
@@ -1299,6 +1323,7 @@ export const {
     orthoD3D,
     lookAtD3D,
     lookAtCarbon,
+    perspectiveRHD3D,
     setLookRotation,
     maxScaleOnAxis,
     perspectiveGL,
