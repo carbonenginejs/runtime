@@ -72,7 +72,7 @@ export class TriStepRenderLineGraph extends TriRenderStep
       let maxValue = 0;
       for (const graph of this.lineGraphs)
       {
-        const value = graph?.GetMaxValue?.() ?? Math.max(0, ...(graph?.GetStatsHistory?.() ?? []));
+        const value = graph.GetMaxValue();
         if (value > maxValue) maxValue = value;
       }
       if (!maxValue) maxValue = 1;
