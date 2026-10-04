@@ -9,6 +9,8 @@ import { EveChildTurret } from "../../npm/dist/trinity/eve/child/EveChildTurret.
 import { EveTurretAiming } from "../../npm/dist/trinity/eve/attachment/turrets/EveTurretAiming.js";
 import { EveTurretSet } from "../../npm/dist/trinity/eve/attachment/turrets/EveTurretSet.js";
 import { EveEffectRoot2 } from "../../npm/dist/trinity/eve/spaceObject/EveEffectRoot2.js";
+import { EveUpdateContext } from "../../npm/dist/trinity/eve/EveUpdateContext.js";
+import { EveChildUpdateParams } from "../../npm/dist/trinity/eve/EveChildUpdateParams.js";
 import { Tr2GrannyAnimation } from "../../npm/dist/trinity/core/animation/Tr2GrannyAnimation.js";
 
 const { State } = EveChildTurret;
@@ -219,10 +221,15 @@ test("EveChildTurret tracking fades, muzzle transforms and movement audio", () =
 
   // Fade-in ramps the influence and clamps at maxTrackingTime.
   turret.EnterStateTargeting();
-  turret.UpdateAsyncronous({ deltaTime: 0.001 }, null);
-  turret.UpdateAsyncronous({ deltaTime: 0.5 }, null);
+  // One context whose clock advances by each step; EveUpdateContext derives GetDeltaT from consecutive times.
+  const context = new EveUpdateContext(), params = new EveChildUpdateParams();
+  let ticks = 10 * 10_000_000;
+  context.SetTime(ticks);
+  const step = seconds => { ticks += Math.round(seconds * 10_000_000); context.SetTime(ticks); return context; };
+  turret.UpdateAsyncronous(step(0.001), params);
+  turret.UpdateAsyncronous(step(0.5), params);
   assert.ok(turret.trackingInfluence > 0.49 && turret.trackingInfluence <= 0.8);
-  turret.UpdateAsyncronous({ deltaTime: 2 }, null);
+  turret.UpdateAsyncronous(step(2), params);
   assert.equal(turret.trackingInfluence, 0.8);
 
   // The firing bone transform lifts the bone through this world transform.

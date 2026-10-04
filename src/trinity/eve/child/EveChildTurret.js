@@ -15,6 +15,7 @@ import { EveTurretAiming } from "../attachment/turrets/EveTurretAiming.js";
 import { EveTurretFiringFX } from "../attachment/turrets/EveTurretFiringFX.js";
 import { EveTurretSet } from "../attachment/turrets/EveTurretSet.js";
 import { EveTurretTarget } from "../attachment/turrets/EveTurretTarget.js";
+import { TriGeometryResSkeletonData } from "../../../resource/geometry/TriGeometryResSkeletonData.js";
 
 // Carbon file-scope constants (EveChildTurret.cpp:12-16).
 const INVALID_BONE_INDEX = 0xffffffff;
@@ -25,19 +26,6 @@ const FIRE_SOURCE_SCRATCH = vec3.create();
 const FIRE_POSITION_SCRATCH = vec3.create();
 const TARGET_OS_SCRATCH = vec3.create();
 const INVERSE_WORLD_SCRATCH = mat4.create();
-
-/** Carbon TriGeometryResSkeletonData::FindJoint (TriGeometryRes.cpp:1841-1853): exact name match, 0xffffffff on miss. */
-function FindJoint(skeletonData, name)
-{
-  const bones = skeletonData?.bones ?? [];
-  for (let index = 0; index < bones.length; index++)
-  {
-    const bone = bones[index];
-    const boneName = typeof bone === "string" ? bone : String(bone?.name ?? bone?.Name ?? "");
-    if (boneName === name) return index;
-  }
-  return INVALID_BONE_INDEX;
-}
 
 
 /**
@@ -335,7 +323,7 @@ export class EveChildTurret extends EveChildMesh
   {
     const request = ++this._firingEffectRequest;
     const path = this.firingEffectResPath;
-    this._pendingFiringEffectCalls ??= [];
+    if (!this._pendingFiringEffectCalls) this._pendingFiringEffectCalls = [];
     let object = null;
     try
     {
@@ -385,7 +373,7 @@ export class EveChildTurret extends EveChildMesh
   @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
-    const deltaT = Number(updateContext?.GetDeltaT?.() ?? updateContext?.deltaTime ?? 0) || 0;
+    const deltaT = updateContext.GetDeltaT();
 
     if (this.firingEffect)
     {
@@ -440,7 +428,7 @@ export class EveChildTurret extends EveChildMesh
   @meta.implemented
   UpdateAsyncronous(updateContext, params)
   {
-    const deltaT = Number(updateContext?.GetDeltaT?.() ?? updateContext?.deltaTime ?? 0) || 0;
+    const deltaT = updateContext.GetDeltaT();
 
     if (this._trackingInfluenceDelta !== 0)
     {
@@ -477,12 +465,8 @@ export class EveChildTurret extends EveChildMesh
       }
     }
 
-    const parentTransform = params?.localToWorldTransform;
-    if (parentTransform && parentTransform.length === 16)
-    {
-      vec3.set(this._parentTranslation,
-        parentTransform[12], parentTransform[13], parentTransform[14]);
-    }
+    const parentTransform = params.localToWorldTransform;
+    vec3.set(this._parentTranslation, parentTransform[12], parentTransform[13], parentTransform[14]);
 
     const result = super.UpdateAsyncronous(updateContext, params);
 
@@ -576,7 +560,7 @@ export class EveChildTurret extends EveChildMesh
       {
         for (let bone = 0; bone < EveTurretAiming.SystemBones.SYSBONE_MAX; bone++)
         {
-          this._systemBoneID[bone] = FindJoint(skeletonData, EveTurretAiming.getSystemBoneName(bone));
+          this._systemBoneID[bone] = TriGeometryResSkeletonData.prototype.FindJoint.call(skeletonData, EveTurretAiming.getSystemBoneName(bone));
         }
         this.InitializeFiringEffect();
       }
@@ -944,7 +928,7 @@ export class EveChildTurret extends EveChildMesh
         for (let muzzle = 0; muzzle < boneCount; muzzle++)
         {
           const boneName = `${this.firingEffect.GetFiringBoneName()}${String(muzzle + 1).padStart(2, "0")}`;
-          this.firingEffect.SetMuzzleBoneID(muzzle, FindJoint(skeletonData, boneName));
+          this.firingEffect.SetMuzzleBoneID(muzzle, TriGeometryResSkeletonData.prototype.FindJoint.call(skeletonData, boneName));
         }
       }
     }
@@ -1123,7 +1107,7 @@ export class EveChildTurret extends EveChildMesh
     this._pendingFiringEffectCalls = null;
     const registry = this.GetComponentRegistry();
     if (this.firingEffect) this.firingEffect.UnRegister(registry);
-    this.firingEffect = firingEffect ?? null;
+    this.firingEffect = firingEffect;
     if (this.firingEffect) this.firingEffect.Register(registry);
     this.InitializeFiringEffect();
     if (pending) for (const call of pending) call();
