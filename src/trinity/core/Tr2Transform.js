@@ -70,59 +70,6 @@ function setViewBasis(out, inverseView, scale)
   return out;
 }
 
-function normalizeOrZero(out, x, y, z)
-{
-  const length = Math.hypot(x, y, z);
-  if (length)
-  {
-    const inverseLength = 1 / length;
-    out[0] = x * inverseLength;
-    out[1] = y * inverseLength;
-    out[2] = z * inverseLength;
-  }
-  else
-  {
-    out[0] = 0;
-    out[1] = 0;
-    out[2] = 0;
-  }
-  return out;
-}
-
-// Carbon's LookAtMatrix deliberately normalizes degenerate axes to zero.
-// gl-matrix returns identity when eye and target coincide, so using mat4.lookAt
-// here would change the authored LOOK_AT_CAMERA edge case.
-function carbonLookAt(out, eye, target, up, forward, right, realUp)
-{
-  normalizeOrZero(
-    forward,
-    target[0] - eye[0],
-    target[1] - eye[1],
-    target[2] - eye[2]
-  );
-  vec3.cross(right, up, forward);
-  vec3.cross(realUp, forward, right);
-  normalizeOrZero(right, right[0], right[1], right[2]);
-  normalizeOrZero(realUp, realUp[0], realUp[1], realUp[2]);
-
-  out[0] = -right[0];
-  out[4] = -right[1];
-  out[8] = -right[2];
-  out[12] = vec3.dot(right, eye);
-  out[1] = realUp[0];
-  out[5] = realUp[1];
-  out[9] = realUp[2];
-  out[13] = -vec3.dot(realUp, eye);
-  out[2] = -forward[0];
-  out[6] = -forward[1];
-  out[10] = -forward[2];
-  out[14] = vec3.dot(forward, eye);
-  out[3] = 0;
-  out[7] = 0;
-  out[11] = 0;
-  out[15] = 1;
-  return out;
-}
 
 /** Common transform, curve, mesh, sorting, and camera-modifier behavior. */
 @meta.define({ className: "Tr2Transform", family: "trinityCore" })
@@ -442,15 +389,7 @@ export class Tr2Transform
       this.worldTransform[13],
       this.worldTransform[14]
     );
-    carbonLookAt(
-      scratch.lookAt,
-      renderContext.GetViewPosition(),
-      scratch.position,
-      Tr2Transform.#worldUp,
-      scratch.lookForward,
-      scratch.lookRight,
-      scratch.lookUp
-    );
+    mat4.lookAtCarbon(scratch.lookAt, renderContext.GetViewPosition(), scratch.position, Tr2Transform.#worldUp);
     mat4.transpose(scratch.lookAt, scratch.lookAt);
     vec3.set(
       scratch.scale,
@@ -568,9 +507,6 @@ export class Tr2Transform
     direction: vec3.create(),
     finalScale: vec3.create(),
     forward: vec3.create(),
-    lookForward: vec3.create(),
-    lookRight: vec3.create(),
-    lookUp: vec3.create(),
     normalizedDirection: vec3.create(),
     position: vec3.create(),
     right: vec3.create(),

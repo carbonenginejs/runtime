@@ -677,6 +677,64 @@ mat4.lookAtD3D = function (out, eye, center, up)
 };
 
 /**
+ * Carbon's LookAtMatrix (math/include/Matrix_inline.h:671-702), element for
+ * element in Carbon's row-vector layout: right and forward are negated, and a
+ * degenerate axis normalizes to zero rather than falling back as lookAtD3D and
+ * gl's lookAt do. Use it wherever Carbon calls LookAtMatrix.
+ *
+ * @param {mat4} out Receives the matrix.
+ * @param {vec3} eye Carbon's peye.
+ * @param {vec3} at Carbon's pat.
+ * @param {vec3} up Carbon's pup.
+ * @returns {mat4} out
+ */
+mat4.lookAtCarbon = function (out, eye, at, up)
+{
+    const forward = pool.allocF32(3);
+    const right = pool.allocF32(3);
+    const realUp = pool.allocF32(3);
+
+    normalizeOrZeroVec3(forward, at[0] - eye[0], at[1] - eye[1], at[2] - eye[2]);
+    crossVec3(right, up, forward);
+    crossVec3(realUp, forward, right);
+    normalizeOrZeroVec3(right, right[0], right[1], right[2]);
+    normalizeOrZeroVec3(realUp, realUp[0], realUp[1], realUp[2]);
+
+    out[0] = -right[0];  out[1] = realUp[0];  out[2] = -forward[0];  out[3] = 0;
+    out[4] = -right[1];  out[5] = realUp[1];  out[6] = -forward[1];  out[7] = 0;
+    out[8] = -right[2];  out[9] = realUp[2];  out[10] = -forward[2]; out[11] = 0;
+    out[12] = dotVec3(right, eye);
+    out[13] = -dotVec3(realUp, eye);
+    out[14] = dotVec3(forward, eye);
+    out[15] = 1;
+
+    pool.freeType(forward);
+    pool.freeType(right);
+    pool.freeType(realUp);
+    return out;
+};
+
+/** Carbon's Normalize over three components: a zero vector stays zero. */
+function normalizeOrZeroVec3(out, x, y, z)
+{
+    const length = Math.hypot(x, y, z);
+    if (length)
+    {
+        const inverseLength = 1 / length;
+        out[0] = x * inverseLength;
+        out[1] = y * inverseLength;
+        out[2] = z * inverseLength;
+    }
+    else
+    {
+        out[0] = 0;
+        out[1] = 0;
+        out[2] = 0;
+    }
+    return out;
+}
+
+/**
  * Builds a rotation-only look-at basis
  * OpenGL / RH convention
  * −Z is forward
@@ -1240,6 +1298,7 @@ export const {
     fromMat3,
     orthoD3D,
     lookAtD3D,
+    lookAtCarbon,
     setLookRotation,
     maxScaleOnAxis,
     perspectiveGL,
