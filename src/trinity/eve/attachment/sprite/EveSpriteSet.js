@@ -501,7 +501,7 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
     }
 
     box3.transformMat4(aabb, aabb, parentTransform);
-    return !!updateContext?.GetFrustum()?.IsBoxVisible(aabb);
+    return updateContext.GetFrustum().IsBoxVisible(aabb);
   }
 
   /**
@@ -546,17 +546,19 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * conversion (cpp:464-466). No gates - registration covers presence. The
    * profile rides the record by reference (Carbon: GetTextureIndex() with NO
    * +1, unlike Tr2Light::AddLight - the asymmetry is moot by-reference but
-   * recorded). */
+   * recorded).
+   *
+   * Adapted: Profile-index packing is by-reference per lightConversion.js.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("profile-index packing is by-reference per lightConversion.js.")
   GetLights(lightManager)
   {
     const features = EveSpriteSet._features;
     features.parentBrightness = this._activationStrength;
     features.parentScale = 1;
     const time = Tr2Renderer.GetAnimationTime();
-    const quality = lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0;
+    const quality = lightManager.GetCurrentSpaceSceneShadowQuality();
     const record = EveSpriteSet._lightRecord;
 
     for (const light of this.lights)
@@ -569,7 +571,7 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
       record.lightData = light.lightData;
       record.lightProfile = light.lightProfile;
       record.owner = this;
-      lightManager?.AddLight(record);
+      lightManager.AddLight(record);
     }
   }
 
