@@ -355,10 +355,12 @@ export class EveChildMesh extends EveChildTransform
     return true;
   }
 
-  /** Carbon owner-list consequences (EveChildMesh.cpp:103–194). */
+  /**
+   * Carbon owner-list consequences (EveChildMesh.cpp:103–194).
+   * Adapted: JS arrays use the shared list mutation entry points; component interface IDs use the existing EveComponentType map.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JS arrays use the shared list mutation entry points; component interface IDs use the existing EveComponentType map.")
   OnListModified(event, key, key2, value, list)
   {
     const kind = event & BLUELISTEVENT.BELIST_EVENTMASK;
@@ -1063,10 +1065,10 @@ export class EveChildMesh extends EveChildTransform
    *
    * Carbon also assigns `accumulatedTransforms` and never reads it; that dead
    * local is not reproduced.
+   * Adapted: Tr2AnimationMeshBinding remains unported; Carbon's identity rest-pose fallback is used when neither live palette source is available.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Tr2AnimationMeshBinding remains unported; Carbon's identity rest-pose fallback is used when neither live palette source is available.")
   GetBoneTransforms()
   {
     const updater = this.animationUpdater;
@@ -1121,10 +1123,10 @@ export class EveChildMesh extends EveChildTransform
    * Resolves this child's visibility for the frame from its world bounding
    * sphere, the parent LOD, and the authored screen-size thresholds, recording
    * the mesh and per-instance screen sizes the batch path then draws at.
+   * Adapted: Bone-fed decal bounds still await the decal seam and the raytracing refresh is not ported yet; the LOD/screen-size math and the bone-fed attachment pass are ported.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Bone-fed decal bounds still await the decal seam and the raytracing refresh is not ported yet; the LOD/screen-size math and the bone-fed attachment pass are ported.")
   UpdateVisibility(updateContext, _parentTransform = null, parentLod = Tr2Lod.TR2_LOD_HIGH)
   {
     this._isVisible = false;
@@ -1229,10 +1231,10 @@ export class EveChildMesh extends EveChildTransform
    * only while the per-instance gate passed; decals ride along through their
    * duck-typed renderable collectors (mesh cache is not ported yet, passed null
    * as in EveSpaceObject2.GetRenderables).
+   * Adapted: The decal mesh cache is not ported yet (null placeholder); collection structure is ported.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The decal mesh cache is not ported yet (null placeholder); collection structure is ported.")
   GetRenderables(out = [])
   {
     if (!this._isVisible)
@@ -1309,8 +1311,7 @@ export class EveChildMesh extends EveChildTransform
   /** Carbon EveChildMesh::IsVisible (cpp:639-650): sphere-in-frustum plus the
    * estimated pixel size against the context visibility threshold. */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Frustum and threshold arrive via the duck-typed update context instead of renderer state.")
+  @meta.implemented
   IsVisible(updateContext)
   {
     if (this._worldBoundingSphere[3] > 0)
@@ -1439,10 +1440,11 @@ export class EveChildMesh extends EveChildTransform
   }
 
   /** Carbon EveChildMesh::GetSortValue (cpp:787-792): view distance scaled by
-   * sortValueScale plus sortValueOffset. */
+   * sortValueScale plus sortValueOffset.
+   * Adapted: Carbon reads the Tr2Renderer view-position global; the relocated camera state arrives via the threaded render context.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon reads the Tr2Renderer view-position global; the relocated camera state arrives via the threaded render context.")
   GetSortValue(renderContext = null)
   {
     const viewPosition = renderContext?.GetViewPosition();
@@ -1710,10 +1712,10 @@ export class EveChildMesh extends EveChildTransform
    * Carbon OnModified (EveChildMesh.cpp:197-216): three independent tests, not
    * a chain - a mesh change satisfies the first two, and the third only runs
    * for a child that owns locator sets.
+   * Adapted: JS identifies Carbon's changed member address by its exposed property name; the instanced-mesh cast is performed where that interface is used.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JS identifies Carbon's changed member address by its exposed property name; the instanced-mesh cast is performed where that interface is used.")
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "reflectionMode") || IsMatch(propertyName, "display")
