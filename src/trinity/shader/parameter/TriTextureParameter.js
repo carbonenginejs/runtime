@@ -8,6 +8,7 @@ import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
 
 import { ResourceRequirement } from "#resource";
+import { Tr2EffectResource, Tr2EffectParameterAnnotation } from "#resource/shader";
 import { blue, CjsResource } from "#blue";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { CjsParameter } from "./CjsParameter.js";
@@ -79,6 +80,19 @@ export class TriTextureParameter extends CjsParameter
   uvDensityScale3 = 0;
 
   _cachedEffect = null;
+
+  /**
+   * m_resourceType: what the bound effect declares for this name - 2D, 3D, cube
+   * and so on - set by RebuildEffectHandles (TriTextureParameter.cpp:327-349).
+   * TEXTURE_TYPELESS until an effect declares it (cpp:13).
+   */
+  _resourceType = Tr2EffectResource.Type.TEXTURE_TYPELESS;
+
+  /**
+   * m_bindlessColorSpace: the colour space a bindless handle declares through
+   * its Tr2sRGB annotation (cpp:356-362). Linear by default (cpp:17).
+   */
+  _bindlessColorSpace = Tr2ColorSpace.COLOR_SPACE_LINEAR;
 
   _lowResResource = null;
 
@@ -456,17 +470,57 @@ export class TriTextureParameter extends CjsParameter
   }
 
   /**
-   * Caches the shader and records whether it exposes a resource or constant of
-   * this name; no GPU binding is created.
+   * Carbon RebuildEffectHandles (TriTextureParameter.cpp:315-364): cache the
+   * shader, and record whether it uses this name and what it declares there.
+   * A reflected resource gives its type. A constant is a bindless handle: a 2D
+   * texture unless its BindlessHandleType annotation names another type, in
+   * the colour space its Tr2sRGB annotation gives.
+   *
+   * Adapted: no GPU binding is cached. Carbon's CacheTexture picks the texture
+   * or `Tr2Renderer::GetFallbackTexture(m_resourceType)` here (cpp:367-381);
+   * ours realizes the texture at bind, and an empty binding takes the backend's
+   * dummy of the declared view dimension. Carbon asserts in debug builds when a
+   * bindless constant has no BindlessHandleType (cpp:351); release keeps 2D,
+   * and so does this.
    */
   @meta.blue.method
   @meta.adapted
   RebuildEffectHandles(effectRes)
   {
     this._cachedEffect = effectRes;
-    const used = !!this.name && (CjsParameter.hasEffectResource(effectRes, this.name) || CjsParameter.hasEffectConstant(effectRes, this.name));
-    this.usedByCurrentEffect = used;
-    this.usedByCurrentTechnique = used;
+    this.usedByCurrentEffect = false;
+    this.usedByCurrentTechnique = false;
+    if (!this.name || !effectRes) return;
+
+    const resource = CjsParameter.getEffectResource(effectRes, this.name);
+    if (resource)
+    {
+      this._resourceType = resource.type;
+      this.usedByCurrentEffect = true;
+    }
+    else if (CjsParameter.hasEffectConstant(effectRes, this.name))
+    {
+      this.usedByCurrentEffect = true;
+      this._resourceType = Tr2EffectResource.Type.TEXTURE_2D;
+      this._bindlessColorSpace = Tr2ColorSpace.COLOR_SPACE_LINEAR;
+
+      const annotations = CjsParameter.getEffectAnnotations(effectRes, this.name);
+      if (annotations)
+      {
+        for (const annotation of annotations)
+        {
+          if (annotation.name === "BindlessHandleType" && annotation.type === Tr2EffectParameterAnnotation.Type.INT)
+          {
+            this._resourceType = annotation.intValue;
+          }
+          else if (annotation.name === "Tr2sRGB" && annotation.type === Tr2EffectParameterAnnotation.Type.BOOL)
+          {
+            this._bindlessColorSpace = annotation.boolValue ? Tr2ColorSpace.COLOR_SPACE_SRGB : Tr2ColorSpace.COLOR_SPACE_LINEAR;
+          }
+        }
+      }
+    }
+    this.usedByCurrentTechnique = this.usedByCurrentEffect;
   }
 
   /**
