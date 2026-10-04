@@ -255,6 +255,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
     if (resource) resource.KeepAlive();
   }
 
+  /** Stops tracking a material so later texture changes no longer invalidate its resource sets. */
   @meta.blue.method
   @meta.implemented
   OnRemovedFromMaterial(material)

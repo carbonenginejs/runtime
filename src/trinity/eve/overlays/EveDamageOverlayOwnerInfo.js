@@ -7,6 +7,7 @@
 import { vec4 } from "#math/vec4";
 
 
+/** Supplies owner bounds, visibility and damage-locator access to a damage overlay. */
 export class EveDamageOverlayOwnerInfo
 {
 
