@@ -347,7 +347,7 @@ for (const submit of [true, false]) test(submit
   storage.destroy = () => { events.push("destroy"); destroy(); };
   const map = new Tr2RegisterMapAL({ stage: 1, signature: { registers: [{ registerType: 36, registerIndex: 0 }] } });
   const description = new Tr2ResourceSetDescriptionAL({ registers: map });
-  description.SetSrv(1, 0, value);
+  description.SetSrv_TextureAL(1, 0, value);
   const program = { IsValid: () => true, GetRegisterMap: () => map,
     GetBindings: () => [{ group: 0, binding: 0, registerIndex: 0, visibility: 2, texture: { viewDimension: "2d" } }] };
   const set = al.CreateResourceSet(description, program);

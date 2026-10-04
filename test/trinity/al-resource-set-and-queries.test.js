@@ -55,21 +55,21 @@ test("descriptions allocate from maps and retain inactive fields and qualifiers"
 {
   const desc = new Tr2ResourceSetDescriptionAL({ registers: mapFor() });
   const { texture, buffer } = resources(t), sampler = {};
-  assert.equal(new Tr2ResourceSetDescriptionAL().SetSrv(1, 3, texture), false);
-  assert.equal(desc.SetSrv(1, 31, texture), false);
-  assert.equal(desc.SetSrv(99, 3, texture), false);
-  assert.equal(desc.SetSrv(1, -1, texture), false);
-  assert.equal(desc.SetSrv(1, 3, texture), true);
-  assert.equal(desc.SetSrv(1, 3, texture), false);
-  assert.equal(desc.SetSrv(1, 3, texture, 1), true);
+  assert.equal(new Tr2ResourceSetDescriptionAL().SetSrv_TextureAL(1, 3, texture), false);
+  assert.equal(desc.SetSrv_TextureAL(1, 31, texture), false);
+  assert.equal(desc.SetSrv_TextureAL(99, 3, texture), false);
+  assert.equal(desc.SetSrv_TextureAL(1, -1, texture), false);
+  assert.equal(desc.SetSrv_TextureAL(1, 3, texture), true);
+  assert.equal(desc.SetSrv_TextureAL(1, 3, texture), false);
+  assert.equal(desc.SetSrv_TextureAL(1, 3, texture, 1), true);
   const hash = desc.ComputeHash();
-  assert.equal(desc.SetSrv(1, 3, texture, 0), true);
+  assert.equal(desc.SetSrv_TextureAL(1, 3, texture, 0), true);
   assert.equal(desc.ComputeHash(), hash, "Carbon quirk: qualifiers are absent from the hash");
-  assert.equal(desc.SetSrv(1, 3, buffer, 0, 1), true);
+  assert.equal(desc.SetSrv_BufferAL(1, 3, buffer), true);
   assert.notEqual(desc.m_srv[0].texture, texture);
   assert.equal(desc.m_srv[0].texture.Equals(texture), true, "inactive texture is retained");
-  assert.equal(desc.SetUav(1, 4, texture, 7), true);
-  assert.equal(desc.SetUav(1, 4, buffer, 0, 1), true);
+  assert.equal(desc.SetUav_TextureAL(1, 4, texture, 7), true);
+  assert.equal(desc.SetUav_BufferAL(1, 4, buffer), true);
   assert.equal(desc.m_uav[0].colorSpace, 7, "union qualifier survives the buffer overload");
   assert.equal(desc.SetSampler(1, 2, sampler), true);
   desc.ClearResources();
@@ -84,7 +84,7 @@ test("copy and move preserve Carbon's array-identity equality quirk", t =>
 {
   const first = new Tr2ResourceSetDescriptionAL({ registers: mapFor() });
   const { texture: resource } = resources(t);
-  first.SetSrv(1, 3, resource);
+  first.SetSrv_TextureAL(1, 3, resource);
   const copy = new Tr2ResourceSetDescriptionAL({ copy: first });
   assert.equal(copy.Equals(first), false);
   assert.notEqual(copy.m_srv[0].texture, resource);
@@ -247,7 +247,7 @@ test("stub program maps remain empty while signature-built descriptions have res
   assert.equal(program.GetRegisterMap().srvCount, 0, "Carbon stub quirk");
   const desc = new Tr2ResourceSetDescriptionAL({ registers: new Tr2RegisterMapAL({ shaders: [shader] }) });
   assert.equal(desc.m_registerMap.srvCount, 1);
-  assert.equal(desc.SetSrv(ShaderType.PIXEL_SHADER, 3, resources(t).texture), true);
+  assert.equal(desc.SetSrv_TextureAL(ShaderType.PIXEL_SHADER, 3, resources(t).texture), true);
   desc.ClearResources();
   shader.Destroy();
   program.Destroy();
@@ -257,9 +257,9 @@ test("stub program maps remain empty while signature-built descriptions have res
 test("explicit invalid buffer, texture and sampler bindings retain distinct hash identities", () =>
 {
   const desc = new Tr2ResourceSetDescriptionAL({ registers: mapFor() });
-  desc.SetSrv(1, 3, null, 0, 1);
+  desc.SetSrv_BufferAL(1, 3, null);
   const bufferHash = desc.ComputeHash();
-  desc.SetSrv(1, 3, null);
+  desc.SetSrv_TextureAL(1, 3, null);
   const textureHash = desc.ComputeHash();
   desc.ClearResources();
   desc.SetSampler(1, 2, null);

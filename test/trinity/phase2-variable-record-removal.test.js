@@ -132,7 +132,7 @@ test("variable resource adapter preserves binding while its discovery gap remain
   const variable = new TriVariable(), texture = {}, provider = { isResource: true, GetTexture: () => texture };
   variable.contentType = TriVariable.ContentType.TRIVARIABLE_TEXTURE_RES;
   variable.SetValue(provider);
-  const calls = [], resourceDesc = { SetSrv: (...args) => { calls.push(args); return true; } };
+  const calls = [], resourceDesc = { SetSrv_TextureAL: (...args) => { calls.push(args); return true; } };
   assert.equal(variable.CopyToResourceSet(resourceDesc, 1, 2, 0), true);
   assert.equal(calls[0][2], texture);
   assert.deepEqual(GetResources(variable), [], "held mixed-slot discovery gap; no false conditional descriptor");

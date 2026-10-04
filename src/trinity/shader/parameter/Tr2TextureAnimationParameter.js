@@ -109,7 +109,7 @@ export class Tr2TextureAnimationParameter extends CjsParameter
       ? Tr2ColorSpace.COLOR_SPACE_SRGB
       : Tr2ColorSpace.COLOR_SPACE_LINEAR;
 
-    return resourceDesc.SetSrv(stage, registerIndex, this.GetTexture(), colorSpace);
+    return resourceDesc.SetSrv_TextureAL(stage, registerIndex, this.GetTexture(), colorSpace);
   }
 
   /**

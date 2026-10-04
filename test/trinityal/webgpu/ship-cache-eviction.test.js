@@ -72,7 +72,7 @@ test("switching ships lets the idle owner's GPU objects expire while the current
     const description = new Tr2ResourceSetDescriptionAL({ registerMap: new Tr2RegisterMapAL({
       stage: ShaderType.PIXEL_SHADER, signature: { registers: [ { registerType: 32, registerIndex: 0 } ] }
     }) });
-    description.SetSrv(ShaderType.PIXEL_SHADER, 0, texture.GetTexture());
+    description.SetSrv_TextureAL(ShaderType.PIXEL_SHADER, 0, texture.GetTexture());
     const effect = new Tr2Effect();
     effect.parametersForPasses = [ { passes: [ { stageInput: [], resourceSetDesc: description } ] } ];
     const geometry = new TriGeometryRes();

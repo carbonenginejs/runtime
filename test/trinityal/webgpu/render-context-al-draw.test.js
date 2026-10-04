@@ -455,7 +455,7 @@ test("a program that declares bind groups draws with the bound constant buffer a
   const description = new Tr2ResourceSetDescriptionAL({ program });
 
   description.SetSampler(ShaderType.PIXEL_SHADER, 3, sampler);
-  description.SetSrv(ShaderType.PIXEL_SHADER, 3, deviceTexture("diffuse", al));
+  description.SetSrv_TextureAL(ShaderType.PIXEL_SHADER, 3, deviceTexture("diffuse", al));
 
   const set = al.CreateResourceSet(description, program);
 
@@ -702,7 +702,7 @@ test("a draw fills the emulated-addressing modes buffer from the bound sampler s
   const description = new Tr2ResourceSetDescriptionAL({ program });
 
   description.SetSampler(ShaderType.PIXEL_SHADER, 3, decal);
-  description.SetSrv(ShaderType.PIXEL_SHADER, 3, deviceTexture("decal", al));
+  description.SetSrv_TextureAL(ShaderType.PIXEL_SHADER, 3, deviceTexture("decal", al));
 
   const set = al.CreateResourceSet(description, program);
 

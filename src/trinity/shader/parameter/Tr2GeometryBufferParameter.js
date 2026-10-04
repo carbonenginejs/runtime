@@ -137,7 +137,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
 
     if (!buffer) return false;
 
-    return resourceDesc.SetSrv(stage, registerIndex, buffer, 0, 1);
+    return resourceDesc.SetSrv_BufferAL(stage, registerIndex, buffer);
   }
 
   /**
@@ -155,7 +155,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
   @meta.implemented
   ApplyUav(resourceDesc, stage, registerIndex)
   {
-    return resourceDesc.SetUav(stage, registerIndex, this.gpuBuffer?.GetGpuBuffer(this.meshIndex) ?? null, 0, 1);
+    return resourceDesc.SetUav_BufferAL(stage, registerIndex, this.gpuBuffer?.GetGpuBuffer(this.meshIndex) ?? null);
   }
 
   /**

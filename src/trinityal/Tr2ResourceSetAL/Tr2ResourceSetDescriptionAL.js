@@ -57,60 +57,122 @@ export class Tr2ResourceSetDescriptionAL
     }
   }
 
-  /** resourceType selects the C++ buffer (1) or texture (2) overload. */
+  /**
+   * Carbon's SetSrv( stage, registerIndex, const Tr2BufferAL& buffer )
+   * (Tr2ResourceSetAL.h:57).
+   * @returns {boolean} Whether the record changed.
+   */
+  @meta.blue.renamed("SetSrv")
   @meta.adapted
-  @meta.reason("JS lacks static overload selection; final resourceType selects buffer versus texture. Out-of-bounds indexes return false instead of native undefined memory access.")
-  SetSrv(stage, registerIndex, resource, colorSpace = 0, resourceType = 2)
+  @meta.reason("Out-of-bounds JS indexes return false instead of native undefined memory access.")
+  SetSrv_BufferAL(stage, registerIndex, buffer)
   {
-    const index = this.m_registerMap.srvs[stage]?.[registerIndex];
-    if (this.m_registerMap.srvCount === 0 || index === undefined || index >= this.m_registerMap.srvCount) return false;
-    const current = this.m_srv[index];
-    if (resourceType === 1)
-    {
-      if (current.type === 1 && sameValue(current.buffer, resource)) return false;
-      current.type = 1;
-      const next = resource ? new Tr2BufferAL({ copy: resource }) : null;
-      if (current.buffer) current.buffer.Destroy();
-      current.buffer = next;
-    }
-    else
-    {
-      if (current.type === 2 && sameValue(current.texture, resource) && current.colorSpace === colorSpace) return false;
-      current.type = 2;
-      const next = resource ? new Tr2TextureAL({ copy: resource }) : null;
-      if (current.texture) current.texture.Destroy();
-      current.texture = next;
-      current.colorSpace = colorSpace;
-    }
+    const current = this._SrvRecord(stage, registerIndex);
+    if (!current) return false;
+    if (current.type === 1 && sameValue(current.buffer, buffer)) return false;
+    current.type = 1;
+    const next = buffer ? new Tr2BufferAL({ copy: buffer }) : null;
+    if (current.buffer) current.buffer.Destroy();
+    current.buffer = next;
     return true;
   }
 
-  /** colorSpace also stores Carbon's union member mip. */
+  /**
+   * Carbon's SetSrv( stage, registerIndex, const Tr2TextureAL& texture, colorSpace = COLOR_SPACE_LINEAR )
+   * (Tr2ResourceSetAL.h:58).
+   * @returns {boolean} Whether the record changed.
+   */
+  @meta.blue.renamed("SetSrv")
   @meta.adapted
-  @meta.reason("JS lacks static overload selection and unions: final resourceType selects buffer versus texture; colorSpace stores the shared mip/colour-space word. Out-of-bounds indexes return false.")
-  SetUav(stage, registerIndex, resource, mip = 0, resourceType = 2)
+  @meta.reason("Out-of-bounds JS indexes return false instead of native undefined memory access.")
+  SetSrv_TextureAL(stage, registerIndex, texture, colorSpace = 0)
+  {
+    const current = this._SrvRecord(stage, registerIndex);
+    if (!current) return false;
+    if (current.type === 2 && sameValue(current.texture, texture) && current.colorSpace === colorSpace) return false;
+    current.type = 2;
+    const next = texture ? new Tr2TextureAL({ copy: texture }) : null;
+    if (current.texture) current.texture.Destroy();
+    current.texture = next;
+    current.colorSpace = colorSpace;
+    return true;
+  }
+
+  /**
+   * Carbon's bare SetSrv is not supported: its buffer and texture overloads
+   * differ only in our own classes. Call SetSrv_BufferAL or SetSrv_TextureAL.
+   */
+  @meta.notSupported
+  SetSrv()
+  {
+    throw new Error("Tr2ResourceSetDescriptionAL.SetSrv is not supported; call SetSrv_BufferAL or SetSrv_TextureAL.");
+  }
+
+  /** The Srv record mapped to a stage register, or null out of range. */
+  _SrvRecord(stage, registerIndex)
+  {
+    const index = this.m_registerMap.srvs[stage]?.[registerIndex];
+    if (this.m_registerMap.srvCount === 0 || index === undefined || index >= this.m_registerMap.srvCount) return null;
+    return this.m_srv[index];
+  }
+
+  /**
+   * Carbon's SetUav( stage, registerIndex, const Tr2BufferAL& buffer )
+   * (Tr2ResourceSetAL.h:59).
+   * @returns {boolean} Whether the record changed.
+   */
+  @meta.blue.renamed("SetUav")
+  @meta.adapted
+  @meta.reason("Out-of-bounds JS indexes return false instead of native undefined memory access.")
+  SetUav_BufferAL(stage, registerIndex, buffer)
+  {
+    const current = this._UavRecord(stage, registerIndex);
+    if (!current) return false;
+    if (current.type === 1 && sameValue(current.buffer, buffer)) return false;
+    current.type = 1;
+    const next = buffer ? new Tr2BufferAL({ copy: buffer }) : null;
+    if (current.buffer) current.buffer.Destroy();
+    current.buffer = next;
+    return true;
+  }
+
+  /**
+   * Carbon's SetUav( stage, registerIndex, const Tr2TextureAL& texture, mip = 0 )
+   * (Tr2ResourceSetAL.h:60). colorSpace stores Carbon's union member mip.
+   * @returns {boolean} Whether the record changed.
+   */
+  @meta.blue.renamed("SetUav")
+  @meta.adapted
+  @meta.reason("Out-of-bounds JS indexes return false instead of native undefined memory access. JS has no unions: colorSpace stores the shared mip/colour-space word.")
+  SetUav_TextureAL(stage, registerIndex, texture, mip = 0)
+  {
+    const current = this._UavRecord(stage, registerIndex);
+    if (!current) return false;
+    if (current.type === 2 && sameValue(current.texture, texture) && current.colorSpace === mip) return false;
+    current.type = 2;
+    const next = texture ? new Tr2TextureAL({ copy: texture }) : null;
+    if (current.texture) current.texture.Destroy();
+    current.texture = next;
+    current.colorSpace = mip;
+    return true;
+  }
+
+  /**
+   * Carbon's bare SetUav is not supported: its buffer and texture overloads
+   * differ only in our own classes. Call SetUav_BufferAL or SetUav_TextureAL.
+   */
+  @meta.notSupported
+  SetUav()
+  {
+    throw new Error("Tr2ResourceSetDescriptionAL.SetUav is not supported; call SetUav_BufferAL or SetUav_TextureAL.");
+  }
+
+  /** The Uav record mapped to a stage register, or null out of range. */
+  _UavRecord(stage, registerIndex)
   {
     const index = this.m_registerMap.uavs[stage]?.[registerIndex];
-    if (this.m_registerMap.uavCount === 0 || index === undefined || index >= this.m_registerMap.uavCount) return false;
-    const current = this.m_uav[index];
-    if (resourceType === 1)
-    {
-      if (current.type === 1 && sameValue(current.buffer, resource)) return false;
-      current.type = 1;
-      const next = resource ? new Tr2BufferAL({ copy: resource }) : null;
-      if (current.buffer) current.buffer.Destroy();
-      current.buffer = next;
-    }
-    else
-    {
-      if (current.type === 2 && sameValue(current.texture, resource) && current.colorSpace === mip) return false;
-      current.type = 2;
-      const next = resource ? new Tr2TextureAL({ copy: resource }) : null;
-      if (current.texture) current.texture.Destroy();
-      current.texture = next;
-      current.colorSpace = mip;
-    }
-    return true;
+    if (this.m_registerMap.uavCount === 0 || index === undefined || index >= this.m_registerMap.uavCount) return null;
+    return this.m_uav[index];
   }
 
   /** Assigns the mapped sampler and reports whether its type or identity changed. */

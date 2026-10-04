@@ -223,7 +223,7 @@ test("a loaded texture resource handed to a runtime texture parameter is made on
   const parameter = new Tr2RuntimeTextureParameter();
   parameter.Create("LookupTable", resource);
   let bound;
-  const description = { SetSrv: (_stage, _register, texture) => { bound = texture; return true; } };
+  const description = { SetSrv_TextureAL: (_stage, _register, texture) => { bound = texture; return true; } };
 
   // No context: nothing to make it through, so the placeholder.
   parameter.CopyToResourceSet(description, 5, 2, 0);
