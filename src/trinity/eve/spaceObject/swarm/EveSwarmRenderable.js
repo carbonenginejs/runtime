@@ -322,18 +322,19 @@ export class EveSwarmRenderable extends EveEntity
    * mesh's OPAQUE areas only, per displayed area via CreateGeometryBatch -
    * exactly Tr2MeshBase.GetBatches restricted to OPAQUE (no per-area
    * IsCastingShadows filter; area display double-checked in Carbon). QUIRK:
-   * unlike the turret, shadowPixelSize IS consumed here - it drives the LOD
-   * select (cpp:282), which is engine-resolved at realization. Returns
-   * whether any batch was committed (JS addition; Carbon returns void). */
+   * unlike the turret, shadowPixelSize IS consumed here: it selects the LOD
+   * (GetMeshLod( meshIx, shadowPixelSize ), cpp:282), passed as the mesh's
+   * batch screen size. Returns whether any batch was committed (JS addition;
+   * Carbon returns void). */
   @meta.adapted
-  @meta.reason("Geometry IsGood/GetMeshLod realization (cpp:276-286) and the shadowPixelSize LOD select are engine-resolved; the delegation structure is ported (EveChildMesh precedent).")
-  GetShadowBatches(batches, perObjectData, _shadowPixelSize)
+  @meta.reason("Geometry IsGood/GetMeshLod realization (cpp:276-286) is engine-resolved; the delegation structure is ported (EveChildMesh precedent).")
+  GetShadowBatches(batches, perObjectData, shadowPixelSize)
   {
     if (!this.mesh || this.mesh.display === false)
     {
       return false;
     }
-    return this.mesh.GetBatches(batches, TriBatchType.TRIBATCHTYPE_OPAQUE, perObjectData) === true;
+    return this.mesh.GetBatches(batches, TriBatchType.TRIBATCHTYPE_OPAQUE, perObjectData, shadowPixelSize) === true;
   }
 
   /**
