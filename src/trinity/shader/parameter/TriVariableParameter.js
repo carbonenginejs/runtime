@@ -78,17 +78,24 @@ export class TriVariableParameter extends CjsParameter
       this.variable = null;
       return true;
     }
-    this.variable = this.variableStore?.GetVariable?.(this.variableName) ?? this.variableStore?.getVariable?.(this.variableName) ?? this.variableStore?.[this.variableName] ?? this.variable;
+    // Carbon: m_variable = GlobalStore().GetVariable( name ) (TriVariableParameter.cpp:49), which never misses - an unknown
+    // name is reserved. Without a store the previous binding is kept.
+    if (this.variableStore)
+    {
+      this.variable = this.variableStore.GetVariable(this.variableName);
+    }
     return true;
   }
 
   /**
    * Consumes the two dirty flags: `variable` re-resolves the store binding,
    * `effectHandles` re-resolves usage against the cached shader.
+   *
+   * Adapted: JS identifies the changed member by its exposed property name; variable-store and effect binding
+   * adaptations remain on their owning methods.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JS identifies the changed member by its exposed property name; variable-store and effect binding adaptations remain on their owning methods.")
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "name"))
@@ -135,7 +142,10 @@ export class TriVariableParameter extends CjsParameter
   @meta.adapted
   CopyValueToEffect(inputType, dest, size, renderContext)
   {
-    this.variable?.CopyValueToEffect?.(inputType, dest, size, renderContext);
+    if (this.variable)
+    {
+      this.variable.CopyValueToEffect(inputType, dest, size, renderContext);
+    }
   }
 
   /**
@@ -183,7 +193,7 @@ export class TriVariableParameter extends CjsParameter
   @meta.implemented
   GetVariableType()
   {
-    return this.variable?.GetType?.() ?? this.variable?.type ?? "invalid";
+    return this.variable ? this.variable.GetType() : "invalid";
   }
 
 }
