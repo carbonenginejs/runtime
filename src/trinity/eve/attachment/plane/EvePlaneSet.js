@@ -57,10 +57,13 @@ const PLANE_VERTEX_SIZE = 108;
 @meta.blue.inherit(IInitialize, INotify)
 export class EvePlaneSet extends IEveSpaceObjectAttachment
 {
-  /** Carbon EvePlaneSet.cpp:116: only the pick buffer change rebuilds. */
+  /**
+   * Carbon EvePlaneSet.cpp:116: only the pick buffer change rebuilds.
+   *
+   * Adapted: JS identifies Carbon's changed member address by its exposed property name.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JS identifies Carbon's changed member address by its exposed property name.")
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "pickBufferID")) this.Rebuild();
@@ -313,7 +316,7 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
     }
 
     box3.transformMat4(aabb, aabb, parentTransform);
-    return !!updateContext?.GetFrustum()?.IsBoxVisible(aabb);
+    return updateContext.GetFrustum().IsBoxVisible(aabb);
   }
 
   /**
@@ -347,14 +350,13 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   }
 
   /**
-   * Sets a shader option on the plane effect, doing nothing when no effect that
-   * accepts options is attached.
+   * Sets a shader option on the plane effect, doing nothing when no effect is attached.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   SetShaderOption(name, value)
   {
-    if (this.effect && typeof this.effect.SetOption === "function")
+    if (this.effect)
     {
       this.effect.SetOption(name, value);
     }
@@ -499,10 +501,12 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * (cpp:555-557 `auto light` + lightDataCopy) so the stored items are never
    * mutated - a scratch copy carries: color = authored * averageColor
    * componentwise, then Saturate (extrapolating above 1), then brightness *=
-   * Fade(fadeType, ...) (cpp:558-564); point conversion on the bone matrix. */
+   * Fade(fadeType, ...) (cpp:558-564); point conversion on the bone matrix.
+   *
+   * Adapted: Light-profile packing follows the adapted light-manager surface.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Light-profile packing follows the adapted light-manager surface.")
   GetLights(lightManager)
   {
     const features = EvePlaneSet._features;
@@ -514,7 +518,7 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
       this.GetAverageColor(averageColor);
     }
     const time = Tr2Renderer.GetAnimationTime();
-    const quality = lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0;
+    const quality = lightManager.GetCurrentSpaceSceneShadowQuality();
     const record = EvePlaneSet._lightRecord;
     const dataCopy = EvePlaneSet._lightDataScratch;
 
@@ -532,7 +536,7 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
       record.lightData = light.lightData;
       record.lightProfile = light.lightProfile;
       record.owner = this;
-      lightManager?.AddLight(record);
+      lightManager.AddLight(record);
     }
   }
 
