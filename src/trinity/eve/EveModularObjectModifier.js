@@ -41,14 +41,14 @@ export class EveModularObjectModifier
     this._object = object;
     this._sof = sof;
     this._objectLoader = objectLoader;
-    this._data = object.effectChildren.find(child => child instanceof EveChildPartData) ?? null;
+    this._data = object.effectChildren.find(child => CjsSchema.cast(child, EveChildPartData) !== null) ?? null;
     if (!this._data)
     {
       this._data = new EveChildPartData();
       object.AddToEffectChildrenList(this._data);
     }
     this._instancedMeshes = object.effectChildren.find(
-      child => child instanceof EveChildInstancedMeshes) ?? null;
+      child => CjsSchema.cast(child, EveChildInstancedMeshes) !== null) ?? null;
     return this;
   }
 
@@ -84,9 +84,9 @@ export class EveModularObjectModifier
     // Runtime SOF composes through GetValues/SetValues and may replace the
     // whole child list. Reacquire graph-owned records before mutating them.
     this._data = this._object.effectChildren.find(
-      child => child instanceof EveChildPartData) ?? null;
+      child => CjsSchema.cast(child, EveChildPartData) !== null) ?? null;
     this._instancedMeshes = this._object.effectChildren.find(
-      child => child instanceof EveChildInstancedMeshes) ?? null;
+      child => CjsSchema.cast(child, EveChildInstancedMeshes) !== null) ?? null;
 
     const part = new EveChildPartDataPartData();
     part.partId = id;
@@ -234,7 +234,7 @@ export class EveModularObjectModifier
       // OUTSIDE the partTag gate (Carbon EveModularObjectModifier.cpp:200-203,
       // PLAT-11963): the shared instanced child carries many parts' instances
       // under its own aggregate tag; the per-part filter lives in the method.
-      if (child instanceof EveChildInstancedMeshes)
+      if (CjsSchema.cast(child, EveChildInstancedMeshes))
       {
         child.SetInstanceTransformByPartTag(part.partId, position, rotation, scale);
       }

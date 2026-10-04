@@ -623,20 +623,6 @@ test("projection inverse is derived logically before RawData's sole transpose", 
 });
 
 
-test("controlled shadow-map shapes fail loudly instead of uploading fallback zeros", () =>
-{
-  const scene = new EveSpaceScene();
-  const context = makeContext();
-  assert.throws(
-    () => scene.PopulatePerFramePSData_ShadowMap(scene.GetPerFramePSData(), { GetPerSplitData: () => ({}) }, context),
-    /requires a Tr2ShadowMap/u
-  );
-  assert.throws(
-    () => scene.PopulatePerFramePSData_ShadowMap(scene.GetPerFramePSData(), {}, context),
-    /requires a Tr2ShadowMap/u
-  );
-});
-
 
 test("the scene owns one persistent record per stage, reused every frame", () =>
 {

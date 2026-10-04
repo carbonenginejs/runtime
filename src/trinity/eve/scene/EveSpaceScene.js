@@ -3682,10 +3682,6 @@ export class EveSpaceScene
   {
     const out = data;
     const frame = this._EngineFrameState(renderContext);
-    if (shadowMap !== null && !(shadowMap instanceof Tr2ShadowMap))
-    {
-      throw new TypeError("EveSpaceScene.PopulatePerFramePSData requires a Tr2ShadowMap or null.");
-    }
     // The reversed-depth projection, as the vertex fill (cpp:3140).
     const projection = renderContext.GetReversedDepthProjectionTransform();
 

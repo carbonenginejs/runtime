@@ -2,7 +2,7 @@ import { INotify } from "../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/EveMultiEffectParameter.h
 // Source: trinity/trinity/Eve/EveMultiEffectParameter.cpp
 // Source: trinity/trinity/Eve/EveMultiEffectParameter_Blue.cpp
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { EveEffectRoot2 } from "../../spaceObject/EveEffectRoot2.js";
 import { EveSpaceObject2 } from "../../spaceObject/EveSpaceObject2.js";
 import { ParameterType } from "../../../generated/eve/enums.js";
@@ -43,20 +43,20 @@ export class EveMultiEffectParameter
 
   /**
    * Whether the bound object matches the declared parameter type; TYPE_ANYTHING
-   * accepts any non-null object, and an unrecognised type accepts none.
+   * accepts any non-null object, and an unrecognised type accepts none
+   * (Carbon's BlueCastPtr to the concrete class).
    */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Carbon BlueCast checks map to JavaScript instanceof checks against the maintained runtime classes.")
+  @meta.implemented
   IsValid()
   {
     if (!this.object) return false;
     switch (this.type)
     {
       case EveMultiEffectParameter.ParameterType.TYPE_EVESPACEOBJECT:
-        return this.object instanceof EveSpaceObject2;
+        return CjsSchema.cast(this.object, EveSpaceObject2) !== null;
       case EveMultiEffectParameter.ParameterType.TYPE_EVEEFFECTROOT:
-        return this.object instanceof EveEffectRoot2;
+        return CjsSchema.cast(this.object, EveEffectRoot2) !== null;
       case EveMultiEffectParameter.ParameterType.TYPE_ANYTHING:
         return true;
       default:
