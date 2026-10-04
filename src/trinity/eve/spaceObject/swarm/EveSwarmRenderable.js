@@ -196,7 +196,7 @@ export class EveSwarmRenderable extends EveEntity
     const viewPosition = renderContext.GetViewPosition();
     const geometry = this.mesh.GetGeometryResource();
     const meshIndex = this.mesh.meshIndex ?? 0;
-    const lod = geometry ? geometry.GetMeshLod(meshIndex, Number.MAX_VALUE) : null;
+    const lod = geometry ? geometry.GetMeshLod_ScreenSize(meshIndex, Number.MAX_VALUE) : null;
     const sorted = [];
 
     for (const area of areas)

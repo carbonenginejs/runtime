@@ -187,7 +187,7 @@ export function RealizeBatchGeometry(batch, renderContext)
 
   if (!source || !source.geometry) return false;
 
-  const lod = source.lod ?? source.geometry.GetMeshLodByIndex(source.meshIndex, 0);
+  const lod = source.lod ?? source.geometry.GetMeshLod_LodIndex(source.meshIndex, 0);
 
   if (!CreateLodAllocations(source.geometry, source.meshIndex, lod, renderContext)) return false;
 

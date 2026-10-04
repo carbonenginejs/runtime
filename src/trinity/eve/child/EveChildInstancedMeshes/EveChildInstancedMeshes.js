@@ -1311,7 +1311,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
         const screenSize = this._lastCameraFrustum
           ? this._lastCameraFrustum.GetPixelSizeAccrossEst(sphere.center, sphere.radius) * this._lastInvLodFactor
           : Infinity;
-        const lod = geometry.GetMeshLod(mesh.meshIndex, screenSize);
+        const lod = geometry.GetMeshLod_ScreenSize(mesh.meshIndex, screenSize);
 
         // Carbon cpp:1404-1413: the part's damage pass comes first, under
         // its own and the inherited overlays.

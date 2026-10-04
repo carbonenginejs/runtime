@@ -476,7 +476,7 @@ test("real packed turret shader receives native instance IDs and final opaque/sh
   for(let i=0;i<7;i++)assert.deepEqual(Array.from(pod.ps.GetIndex("shLightingCoefficients",i)),Array.from(coefficients.subarray(i*4,i*4+4)));
   const committed=[],accumulator={Commit(batch){if(!batch.IsValid())return false;committed.push(batch);return true;}};
   assert.equal(set.GetBatches(accumulator,TriBatchType.TRIBATCHTYPE_OPAQUE,pod),true);
-  const lod=resource.GetMeshLodByIndex(0,0),batch=committed[0];
+  const lod=resource.GetMeshLod_LodIndex(0,0),batch=committed[0];
   const expected=[5760,2,lod.indexAllocation.GetStartIndex(),lod.vertexAllocation.GetOffset()/lod.vertexAllocation.GetStride(),set._instanceBuffer.GetOffset()/4];
   assert.ok(expected[2]>0&&expected[3]>0&&expected[4]>0,"all shared offsets are nonzero");
   assert.equal(batch.geometrySource,null);context.RenderBatches({GetBatches:()=>[batch]});assert.deepEqual(draws.at(-1),expected);
@@ -484,7 +484,7 @@ test("real packed turret shader receives native instance IDs and final opaque/sh
   assert.equal(set.GetBatches(accumulator,TriBatchType.TRIBATCHTYPE_ADDITIVE,pod),false);
   set.display=false;assert.equal(set.GetBatches(accumulator,TriBatchType.TRIBATCHTYPE_OPAQUE,pod),false);assert.equal(set.GetShadowBatches(accumulator,pod,100),false);set.GetRenderables([]);assert.equal(set._parentShLighting,null);set.display=true;
   set.visibleCount=0;assert.equal(set.GetShadowBatches(accumulator,pod,100),false);set.visibleCount=2;
-  const saved=resource.GetMeshLodByIndex;resource.GetMeshLodByIndex=()=>null;assert.equal(set.GetShadowBatches(accumulator,pod,100),false);resource.GetMeshLodByIndex=saved;
+  const saved=resource.GetMeshLod_LodIndex;resource.GetMeshLod_LodIndex=()=>null;assert.equal(set.GetShadowBatches(accumulator,pod,100),false);resource.GetMeshLod_LodIndex=saved;
   set.ReleaseResources();assert.equal(set._instanceBuffer.IsValid(),false);assert.equal(set.GetShadowBatches(accumulator,pod,100),false);
   const firstCount=instanceUploads.length;const allocating=shared.Allocate;shared.Allocate=()=>null;
   assert.equal(set.PrepareResources(),true,"native OnPrepareResources returns true after void InitializeInstanceBuffer");assert.equal(set._instanceBuffer.IsValid(),false);assert.equal(set.GetShadowBatches(accumulator,pod,100),false);shared.Allocate=allocating;

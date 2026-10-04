@@ -298,7 +298,7 @@ export class EveTrailsSet
     if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
     if (!this.geometryResource.GetMeshCount()) return;
 
-    const lod = this.geometryResource.GetMeshLodByIndex(0, 0);
+    const lod = this.geometryResource.GetMeshLod_LodIndex(0, 0);
     if (!lod) return;
     if (!lod.allocationsValid && !CreateLodAllocations(this.geometryResource, 0, lod, Tr2RenderContext_GetMainThreadRenderContext())) return;
 

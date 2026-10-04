@@ -420,7 +420,7 @@ export class EveChildLineSet extends EveChildTransform
       if (geometry.IsGood())
       {
         const index = this.mesh.GetMeshIndex();
-        if (!CreateLodAllocations(geometry, index, geometry.GetMeshLodByIndex(index, 0), Tr2RenderContext_GetMainThreadRenderContext())) return;
+        if (!CreateLodAllocations(geometry, index, geometry.GetMeshLod_LodIndex(index, 0), Tr2RenderContext_GetMainThreadRenderContext())) return;
         const meshData = geometry.GetMeshData(index);
         if (meshData.vertexDeclarationHandle !== this._cachedSVD)
         {
@@ -458,7 +458,7 @@ export class EveChildLineSet extends EveChildTransform
     const geometry = this.mesh.GetGeometryResource();
     if (!geometry || !geometry.IsGood()) return;
     const context = Tr2RenderContext_GetMainThreadRenderContext();
-    const lod = geometry.GetMeshLodByIndex(0, 0);
+    const lod = geometry.GetMeshLod_LodIndex(0, 0);
     if (!lod || !CreateLodAllocations(geometry, 0, lod, context)) return;
     for (const area of this.mesh.GetAreas(batchType))
     {

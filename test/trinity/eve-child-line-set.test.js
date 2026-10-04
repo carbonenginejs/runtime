@@ -158,7 +158,7 @@ test('native instance aliases and mesh-zero LOD survive real indexed draw submis
   assert.deepEqual(aliases.map(x=>[x.usage,x.usageIndex,x.offset,x.stream,x.instanceStepRate]),[8,9,10,11,12,13].map((n,i)=>[5,n,(i%3)*16,1,1]));
   assert.deepEqual(base,snapshot);assert.equal(definition.nextOffset[0],12);assert.equal(definition.nextOffset[1],48);
   const batches=collect(c);assert.equal(batches.length,1);const b=batches[0];
-  assert.equal(b.geometrySource.meshIndex,0);assert.equal(b.geometrySource.lod,g.GetMeshLodByIndex(0,0));assert.equal(b.instanceCount,4);
+  assert.equal(b.geometrySource.meshIndex,0);assert.equal(b.geometrySource.lod,g.GetMeshLod_LodIndex(0,0));assert.equal(b.instanceCount,4);
   assert.equal(b.vertexStreams[1],c._vertexBuffer);assert.equal(b.stride[1],48);
   context.RenderBatches({GetBatches:()=>batches});assert.equal(draws.length,1);assert.equal(draws[0][0],3);assert.equal(draws[0][1],4);
   assert.equal(b.vertexStreams[1],c._vertexBuffer,'submission preserves the instance stream');

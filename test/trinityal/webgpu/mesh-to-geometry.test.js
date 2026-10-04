@@ -42,7 +42,7 @@ const LOD = {
 /** A geometry resource of the shape Tr2MeshBase asks for. */
 const GEOMETRY = {
   GetMeshVertexElements: () => DECL,
-  GetMeshLod: () => LOD
+  GetMeshLod_ScreenSize: () => LOD
 };
 
 /** The shader's declared vertex inputs, in Carbon usage codes. */

@@ -504,7 +504,8 @@ function GetMeshRecord(resource, meshIndex)
 
 function GetMorphLod(resource, meshIndex)
 {
-  return resource?.GetMeshLod?.(meshIndex, 0)
+  // Carbon passes an int 0: the lodIndex overload (Tr2Mesh.cpp:234).
+  return resource?.GetMeshLod_LodIndex?.(meshIndex, 0)
     ?? GetMeshRecord(resource, meshIndex)?.lods?.[0]
     ?? null;
 }

@@ -624,7 +624,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
     if (!group.display || !mesh) return;
     const geometry = mesh.GetGeometryResource();
     if (!geometry || !geometry.IsGood()) return;
-    const lod = geometry.GetMeshLod(mesh.GetMeshIndex(), 0);
+    const lod = geometry.GetMeshLod_LodIndex(mesh.GetMeshIndex(), 0);
     if (!lod || !CreateLodAllocations(geometry, mesh.GetMeshIndex(), lod, Tr2RenderContext_GetMainThreadRenderContext())) return;
     group.CreateVertexDeclaration();
     for (const area of mesh.GetAreas(batchType))

@@ -151,14 +151,14 @@ export class Tr2RaytracingMesh
   @meta.adapted
   GetCurrentLodData()
   {
-    return this.geometry.GetMeshLodByIndex(this.meshIndex, this.lodIndex);
+    return this.geometry.GetMeshLod_LodIndex(this.meshIndex, this.lodIndex);
   }
 
   /** Selects LOD zero through the JS explicit-index overload (cpp:290-293). */
   @meta.adapted
   GetHighestLodData()
   {
-    return this.geometry.GetMeshLodByIndex(this.meshIndex, 0);
+    return this.geometry.GetMeshLod_LodIndex(this.meshIndex, 0);
   }
 
   /** Returns the transform allocation offset (cpp:295-298). */

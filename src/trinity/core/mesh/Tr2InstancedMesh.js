@@ -241,14 +241,14 @@ export class Tr2InstancedMesh extends Tr2Mesh
     if (!provider || !provider.IsInstanceDataReady()) return false;
     const instanceGeometry = CjsSchema.cast(provider, TriGeometryRes);
     if (instanceGeometry && !CreateLodAllocations(instanceGeometry, this.instanceMeshIndex,
-      instanceGeometry.GetMeshLod(this.instanceMeshIndex, screenSize), Tr2RenderContext_GetMainThreadRenderContext())) return false;
+      instanceGeometry.GetMeshLod_ScreenSize(this.instanceMeshIndex, screenSize), Tr2RenderContext_GetMainThreadRenderContext())) return false;
     if (this._vertexDeclaration === Tr2EffectStateManager.Unknown ||
       this._instanceDeclaration !== provider.GetInstanceBufferVertexDeclaration(this.instanceMeshIndex))
     {
       this.CreateVertexDeclaration();
       if (this._vertexDeclaration === Tr2EffectStateManager.Unknown) return false;
     }
-    const lod = geometry.GetMeshLod(this.meshIndex, screenSize);
+    const lod = geometry.GetMeshLod_ScreenSize(this.meshIndex, screenSize);
     if (!lod || !CreateLodAllocations(geometry, this.meshIndex, lod, Tr2RenderContext_GetMainThreadRenderContext())) return false;
     const instanceData = provider.GetInstanceData(this.instanceMeshIndex, screenSize);
     if (instanceData.count === 0) return false;
@@ -298,7 +298,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
     const instanceGeometry = CjsSchema.cast(provider, TriGeometryRes);
     if (instanceGeometry && provider.GetInstanceBufferVertexDeclaration(this.instanceMeshIndex) === Tr2EffectStateManager.Unknown &&
       !CreateLodAllocations(instanceGeometry, this.instanceMeshIndex,
-        instanceGeometry.GetMeshLod(this.instanceMeshIndex), Tr2RenderContext_GetMainThreadRenderContext())) return;
+        instanceGeometry.GetMeshLod_ScreenSize(this.instanceMeshIndex, Infinity), Tr2RenderContext_GetMainThreadRenderContext())) return;
     const handle = provider.GetInstanceBufferVertexDeclaration(this.instanceMeshIndex);
     this._instanceDeclaration = handle;
     if (handle === Tr2EffectStateManager.Unknown) return;

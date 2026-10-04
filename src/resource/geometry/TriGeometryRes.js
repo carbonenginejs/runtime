@@ -348,7 +348,7 @@ export class TriGeometryRes extends CjsResource
 
   // Carbon TriGeometryRes.cpp:268-279. Carbon overloads this on float
   // screenSize versus int lodIndex; JavaScript cannot, so the index form is
-  // GetMeshLodByIndex. Carbon indexes m_lods with the result unguarded, so a
+  // GetMeshLod_LodIndex. Carbon indexes m_lods with the result unguarded, so a
   // mesh with an EMPTY lod list reads out of bounds there; this port returns
   // null (a known Carbon defect).
 
@@ -360,9 +360,19 @@ export class TriGeometryRes extends CjsResource
    * @param {number} screenSize
    * @returns {object|null}
    */
-  GetMeshLod(meshIndex = 0, screenSize = Infinity)
+  GetMeshLod_ScreenSize(meshIndex, screenSize)
   {
-    return this.GetMeshLodByIndex(meshIndex, this.GetLodIndexForScreenSize(meshIndex, screenSize));
+    return this.GetMeshLod_LodIndex(meshIndex, this.GetLodIndexForScreenSize(meshIndex, screenSize));
+  }
+
+  /**
+   * Carbon's bare GetMeshLod is not supported: its float screenSize and int
+   * lodIndex overloads (TriGeometryRes.h:282-283) are both JavaScript numbers.
+   * Call GetMeshLod_ScreenSize or GetMeshLod_LodIndex.
+   */
+  GetMeshLod()
+  {
+    throw new Error("TriGeometryRes.GetMeshLod is not supported; call GetMeshLod_ScreenSize or GetMeshLod_LodIndex.");
   }
 
   /**
@@ -373,7 +383,7 @@ export class TriGeometryRes extends CjsResource
    * @param {number} lodIndex
    * @returns {object|null}
    */
-  GetMeshLodByIndex(meshIndex = 0, lodIndex = 0)
+  GetMeshLod_LodIndex(meshIndex, lodIndex)
   {
     const mesh = this.GetPayload()?.meshes?.[meshIndex];
 
@@ -785,7 +795,7 @@ export class TriGeometryRes extends CjsResource
   GetInstanceData(bufferIndex = 0, screenSize = Infinity)
   {
     const mesh = this.GetMeshData(bufferIndex);
-    const lod = mesh ? this.GetMeshLod(bufferIndex, screenSize) : null;
+    const lod = mesh ? this.GetMeshLod_ScreenSize(bufferIndex, screenSize) : null;
     const allocation = lod?.vertexAllocation;
     if (!allocation) return { buffer: null, offset: 0, stride: 0, count: 0 };
     return { buffer: allocation.GetBuffer(), offset: allocation.GetOffset(),
@@ -1438,8 +1448,9 @@ CjsSchema.define(TriGeometryRes, {
     GetSkeletonData: [ meta.blue.method, meta.adapted ],
     GetMeshAreaCount: [ meta.blue.method, meta.adapted ],
     GetLodIndexForScreenSize: [ meta.blue.method, meta.adapted ],
-    GetMeshLod: [ meta.blue.method, meta.adapted ],
-    GetMeshLodByIndex: [ meta.blue.method, meta.adapted ],
+    GetMeshLod: [ meta.blue.method, meta.notSupported ],
+    GetMeshLod_ScreenSize: [ meta.blue.renamed("GetMeshLod"), meta.adapted ],
+    GetMeshLod_LodIndex: [ meta.blue.renamed("GetMeshLod"), meta.adapted ],
     GetMeshName: [ meta.blue.method, meta.adapted ],
     GetMeshAreaName: [ meta.blue.method, meta.adapted ],
     GetAreaBoundingBox: [ meta.blue.method, meta.adapted ],

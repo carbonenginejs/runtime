@@ -278,7 +278,7 @@ test("model integer-zero overload selects LOD index zero even when screen-size-z
   data.lods = [fine, coarse];
   const item = new Tr2Mesh(), area = new Tr2MeshArea(), model = new Tr2Model();
   item.SetGeometryRes(resource); area.SetMaterial(material); item.opaqueAreas.push(area); model.AddMesh(item);
-  assert.equal(resource.GetMeshLod(0, 0), coarse);
+  assert.equal(resource.GetMeshLod_ScreenSize(0, 0), coarse);
   const batches = []; model.GetBatches({ Commit(batch) { batches.push(batch); return true; } }, TriBatchType.TRIBATCHTYPE_OPAQUE, mat4.create(), null);
   assert.equal(batches.length, 1); assert.equal(batches[0].geometrySource.lod === fine, true, "native int overload must choose the fine LOD");
   context.RenderBatches({ GetBatches: () => batches }); assert.equal(draws[0][0], 6);

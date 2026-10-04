@@ -95,7 +95,7 @@ test("a LOD's allocations are made once, with a reversed index copy, and the bat
 
   geometry.SetPayload(meshPayload());
 
-  const lod = geometry.GetMeshLodByIndex(0, 0);
+  const lod = geometry.GetMeshLod_LodIndex(0, 0);
 
   assert.ok(lod, "a single-LOD mesh is its own LOD");
   assert.equal(lod.allocationsValid, undefined);
@@ -154,7 +154,7 @@ test("SubmitGeometry realizes a descriptor batch through the submitting context 
 
   const batch = new Tr2RenderBatch();
 
-  batch.SetGeometrySource(geometry, 0, 0, 1, false, geometry.GetMeshLodByIndex(0, 0));
+  batch.SetGeometrySource(geometry, 0, 0, 1, false, geometry.GetMeshLod_LodIndex(0, 0));
   batch.topology = 4;
 
   al.BeginScene();

@@ -47,7 +47,7 @@ test("real cf2_t2a survives payload expiry and retained handles reload after rel
     assert.ok(draws.slice(before).every(args => args[0] > 0 && args[1] === 1));
   }
   drawHull();
-  const originalLod = geometry.GetMeshLodByIndex(0, 0), originalAllocation = originalLod.vertexAllocation;
+  const originalLod = geometry.GetMeshLod_LodIndex(0, 0), originalAllocation = originalLod.vertexAllocation;
   time = 10;
   const sweep = manager.PurgeInactive({time, maxIdleMilliseconds: 100, payloadMaxIdleMilliseconds: 5});
   assert.equal(sweep.payloadsReleased, 0, "TriGeometryRes.cpp:496-509 has no prepared-but-empty geometry tier");

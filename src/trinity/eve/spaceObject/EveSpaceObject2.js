@@ -2062,7 +2062,7 @@ export class EveSpaceObject2 extends EveEntity
     // returns early when there is none. This port keeps collecting so a
     // GPU-free graph still produces batches; the LOD only supplies draw
     // arguments.
-    const lod = geometry?.GetMeshLod?.(meshIndex, this._meshScreenSize) ?? null;
+    const lod = geometry?.GetMeshLod_ScreenSize?.(meshIndex, this._meshScreenSize) ?? null;
 
     const sorted = [];
     for (const area of areas)
@@ -2271,7 +2271,7 @@ export class EveSpaceObject2 extends EveEntity
     if (!geometry || !geometry.IsGood()) return false;
 
     const meshIndex = mesh.GetMeshIndex();
-    const lod = geometry.GetMeshLod(meshIndex, this._meshScreenSize);
+    const lod = geometry.GetMeshLod_ScreenSize(meshIndex, this._meshScreenSize);
     if (!lod) return false;
 
     let committed = false;

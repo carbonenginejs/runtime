@@ -804,7 +804,7 @@ export class EveSpaceObjectDecal
     if (!decalLod || !decalLod.primitiveCount) return;
 
     // Carbon GetMeshLod( 0, int ) is the index overload.
-    const lod = this._baseGeometryResource.GetMeshLodByIndex(0, this._geometryLodIndex);
+    const lod = this._baseGeometryResource.GetMeshLod_LodIndex(0, this._geometryLodIndex);
     if (!lod.allocationsValid) return;
     // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
     if (!this.decalEffect || !this.decalEffect.IsGood()) return;

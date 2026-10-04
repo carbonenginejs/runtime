@@ -2080,7 +2080,7 @@ export class EveTurretSet extends EveEntity
     if (batchType !== TriBatchType.TRIBATCHTYPE_OPAQUE || !this.display || !this.visibleCount || !this._instanceBuffer.IsValid()) return false;
     const geometry = this.geometryResource;
     if (!geometry || !geometry.IsGood()) return false;
-    const lod = geometry.GetMeshLodByIndex(0, 0);
+    const lod = geometry.GetMeshLod_LodIndex(0, 0);
     if (!lod || !CreateLodAllocations(geometry, 0, lod, Tr2RenderContext_GetMainThreadRenderContext())) return false;
     // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
     if (!this.turretEffect || !this.turretEffect.IsGood()) return false;
@@ -2161,7 +2161,7 @@ export class EveTurretSet extends EveEntity
     if (!this.display || !this.visibleCount || !this._instanceBuffer.IsValid()) return false;
     const geometry = this.geometryResource;
     if (!geometry || !geometry.IsGood()) return false;
-    const lod = geometry.GetMeshLodByIndex(0, 0);
+    const lod = geometry.GetMeshLod_LodIndex(0, 0);
     if (!lod || !CreateLodAllocations(geometry, 0, lod, Tr2RenderContext_GetMainThreadRenderContext())) return false;
     // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
     if (!this.turretEffect || !this.turretEffect.IsGood()) return false;

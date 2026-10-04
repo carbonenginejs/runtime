@@ -1396,7 +1396,7 @@ export class EveChildMesh extends EveChildTransform
     }
 
     const meshIndex = this.mesh.GetMeshIndex();
-    const lod = geometry.GetMeshLod(
+    const lod = geometry.GetMeshLod_ScreenSize(
       meshIndex, Math.min(this.currentInstanceScreenSize, this.currentScreenSize));
     let committed = false;
 

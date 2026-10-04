@@ -326,7 +326,7 @@ export class Tr2MeshBase
     const geometry = this.GetGeometryResource() ?? null;
     if (!geometry) return false;
 
-    const lod = geometry.GetMeshLod?.(this.meshIndex, screenSize) ?? null;
+    const lod = geometry.GetMeshLod_ScreenSize?.(this.meshIndex, screenSize) ?? null;
     if (!lod) return false;
 
     // Carbon reads m_uvDensities off the resolved LOD; a resource that exposes
@@ -433,7 +433,7 @@ export class Tr2MeshBase
     // screen size (Tr2MeshBase.cpp:381) and passes it to every area. A resource
     // that cannot select a LOD yet yields null, and the batch then carries its
     // geometry-source descriptor with no draw arguments.
-    const lod = geometry?.GetMeshLod?.(this.meshIndex, screenSize) ?? null;
+    const lod = geometry?.GetMeshLod_ScreenSize?.(this.meshIndex, screenSize) ?? null;
 
     for (const area of areaList)
     {

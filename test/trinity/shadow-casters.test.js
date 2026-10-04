@@ -287,7 +287,7 @@ test("EveSwarmRenderable emits ordinary batches and sorts transparent areas back
     GetMaterialInterface: () => ({})
   };
   const geometry = {
-    GetMeshLod: () => "lod",
+    GetMeshLod_ScreenSize: () => "lod",
     GetAreaBoundingBox(_meshIndex, areaIndex, outMin, outMax)
     {
       const x = areaIndex === 0 ? 1 : 10;
