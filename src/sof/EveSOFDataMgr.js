@@ -5,6 +5,7 @@ import { ccpHashFnv1 } from "#utils";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDataMgr.cpp
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDataMgr_Blue.cpp
 import { CjsSchema, meta } from "#schema";
+import { BeObjectMetadata } from "#blue";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { EveSOFDataFactionColorSet } from "./faction/EveSOFDataFactionColorSet.js";
@@ -372,6 +373,41 @@ export class EveSOFDataMgr
   UpdateHull(name, value)
   {
     return updateNamed(this._hullData, name, value, projectHull);
+  }
+
+  /**
+   * Prepares provenance for an explicitly requested editor hull's decals.
+   * Ours: Carbon has editor origin metadata but no stable authored-decal ID.
+   * The existing projection retains authored decalSets; stamp those records,
+   * then refresh only their prepared collection when IDs were missing. This
+   * supports late editor opt-in without index joins or a source reflection map.
+   * Requires Web Crypto randomUUID when an authored item first needs an ID.
+   * @internal Only supported for a resolved, ordinary single-hull root.
+   * @param {object} hull Prepared hull retaining its authored decalSets.
+   * @returns {boolean} Whether an authored collection is available.
+   */
+  @meta.ours
+  EnsureHullDecalOrigins(hull)
+  {
+    if (!Array.isArray(hull.decalSets)) return false;
+    let refresh = false;
+    for (const set of hull.decalSets)
+    {
+      if (!set) continue;
+      for (const item of set.items ?? [])
+      {
+        if (!item || BeObjectMetadata.Get(item, "sof_source_id", "")) continue;
+        BeObjectMetadata.Set(item, "sof_source_id", globalThis.crypto.randomUUID());
+        refresh = true;
+      }
+    }
+    if (!refresh)
+    {
+      refresh = (hull.hullDecalSets ?? []).some(set =>
+        set.items.some(item => !BeObjectMetadata.Get(item, "sof_source_id", "")));
+    }
+    if (refresh) hull.hullDecalSets = projectHullDecalSets(hull.decalSets);
+    return true;
   }
 
   /**
@@ -1186,7 +1222,7 @@ function projectHullDecalSets(values)
 
 function projectHullDecalSetItem(value)
 {
-  return {
+  const result = {
     usage: Number(value.usage ?? 0),
     position: copyArray(value.position, [0, 0, 0]),
     rotation: copyArray(value.rotation, [0, 0, 0, 1]),
@@ -1205,6 +1241,11 @@ function projectHullDecalSetItem(value)
         indexBuffers: projectDecalIndexBuffers(item.indexBuffers)
       }))
   };
+  // Metadata is nonenumerable, so the projection must carry this designated
+  // source key explicitly. Never allocate IDs during ordinary data loading.
+  const sourceId = BeObjectMetadata.Get(value, "sof_source_id", "");
+  if (sourceId) BeObjectMetadata.Set(result, "sof_source_id", sourceId);
+  return result;
 }
 
 function projectDecalIndexBuffers(values)

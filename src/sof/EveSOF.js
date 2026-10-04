@@ -21,7 +21,7 @@ import { EveSOFDataArea } from "./shared/EveSOFDataArea.js";
 import { EveSOFDataInstancedMesh } from "./shared/EveSOFDataInstancedMesh.js";
 import { EveSOFUtilsParameterName } from "./shared/EveSOFUtilsParameterName.js";
 import { CjsCarbonDocument } from "#model/document";
-import { blue } from "#blue";
+import { blue, BeObjectMetadata } from "#blue";
 import { EveSOFDNA } from "./EveSOFDNA.js";
 import { EveSOFDataMgr } from "./EveSOFDataMgr.js";
 import { CjsSofLibraryBuilder } from "./CjsSofLibraryBuilder.js";
@@ -1457,7 +1457,12 @@ export class EveSOF
       return document.ToJSON();
     }
     this.SetupCustomMask(document, rootFields, dna);
-    this.SetupDecalSets(document, rootFields, dna);
+    // Editor provenance is currently bounded to ordinary single-hull roots.
+    // Variant snapshots deliberately clear decals; layouts and modular children
+    // need their own placement identity proof before joining this scope.
+    const decalOrigins = this.editorMode && dna.GetMultiHullCount() === 1
+      && dna.customHullData.length === 0 && this.dataMgr.EnsureHullDecalOrigins(hull);
+    this.SetupDecalSets(document, rootFields, dna, decalOrigins);
     this.SetupLocators(document, rootFields, dna);
     this.SetupLocatorSets(document, rootFields, dna, [identityMatrix()]);
     this.SetupAttachments(document, rootFields, dna);
@@ -1923,7 +1928,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  SetupDecalSets(document, rootFields, dna)
+  SetupDecalSets(document, rootFields, dna, stampOrigins = false)
   {
     const hullOffset = [0, 0, 0];
     const combinedGeometryPath = dna.GetHullGeometryResPath().toLowerCase();
@@ -2009,7 +2014,7 @@ export class EveSOF
           const position = arrayValue(item.position, [0, 0, 0]);
           addOffset(position, hullOffset);
           const indexBuffers = selectDecalIndexBuffers(item, dna.GetMultiHullCount(), combinedGeometryPath);
-          rootFields.decals.push(document.AddNode("EveSpaceObjectDecal", {
+          const decalFields = {
             position,
             rotation: arrayValue(item.rotation, [0, 0, 0, 1]),
             scaling: arrayValue(item.scaling, [1, 1, 1]),
@@ -2017,7 +2022,18 @@ export class EveSOF
             minScreenSize: 10,
             decalEffect: effect,
             staticIndexBuffers: indexBuffers
-          }));
+          };
+          if (this.editorMode && stampOrigins)
+          {
+            // Native SOF uses these origin key spellings only in editor mode.
+            // Per-decal source identity is our extension, not a Carbon member.
+            decalFields.__bluemetadata__ = {
+              SofDna: dna.GetDnaString(),
+              SofParentHullName: dna.GetHullNames()[hullIndex],
+              sof_source_id: BeObjectMetadata.Get(item, "sof_source_id")
+            };
+          }
+          rootFields.decals.push(document.AddNode("EveSpaceObjectDecal", decalFields));
         }
       }
       addOffset(hullOffset, dna.GetHullNextSubsystemOffset(hullIndex));
