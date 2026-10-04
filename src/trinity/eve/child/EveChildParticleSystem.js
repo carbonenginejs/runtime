@@ -1,3 +1,4 @@
+import { IsMatch } from "#blue";
 import { INotify } from "../../../global/blue/INotify.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
@@ -274,11 +275,13 @@ export class EveChildParticleSystem extends EveChildTransform
    * m_display change (EveChildParticleSystem.cpp:71-78).
    */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Carbon re-registers on m_reflectionMode/m_display Var edits; JS forwards every OnModified to the EveEntity ReRegister lifecycle.")
-  OnModified(_value)
+  @meta.implemented
+  OnModified(value)
   {
-    this.ReRegister?.();
+    if (IsMatch(value, "reflectionMode") || IsMatch(value, "display"))
+    {
+      this.ReRegister();
+    }
     return true;
   }
 
@@ -316,17 +319,15 @@ export class EveChildParticleSystem extends EveChildTransform
    * (EveChildParticleSystem.cpp:100-121).
    */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Frustum and LOD factor are read from the explicit update context; a missing frustum is treated as visible.")
+  @meta.implemented
   UpdateVisibility(updateContext, _parentTransform, _parentLod)
   {
-    const frustum = updateContext?.GetFrustum?.() ?? updateContext?.frustum;
-    this._isVisible = this.display && this._hasUpdated && frustum?.IsSphereVisible(this._boundingSphere) !== false;
+    const frustum = updateContext.GetFrustum();
+    this._isVisible = this.display && this._hasUpdated && frustum.IsSphereVisible(this._boundingSphere);
     if (this._isVisible)
     {
-      this.currentScreenSize = Number(frustum?.GetPixelSizeAccrossEst?.(this._lodSphere) ?? Infinity);
-      const lodFactor = Number(updateContext?.GetLodFactor?.() ?? updateContext?.lodFactor) || 1;
-      this._isVisible = this._isVisible && this.currentScreenSize >= this.minScreenSize * lodFactor;
+      this.currentScreenSize = frustum.GetPixelSizeAccrossEst(this._lodSphere);
+      this._isVisible = this._isVisible && this.currentScreenSize >= this.minScreenSize * updateContext.GetLodFactor();
     }
     else
     {
@@ -336,7 +337,7 @@ export class EveChildParticleSystem extends EveChildTransform
     {
       for (const system of this.particleSystems)
       {
-        system?.UpdateViewDependentData?.(frustum, this.worldTransform);
+        system.UpdateViewDependentData(frustum, this.worldTransform);
       }
     }
   }
@@ -346,14 +347,12 @@ export class EveChildParticleSystem extends EveChildTransform
    * (EveChildParticleSystem.cpp:123-127).
    */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Frustum and LOD factor are read from the explicit update context; a missing frustum is treated as visible.")
+  @meta.implemented
   IsVisible(updateContext)
   {
-    const frustum = updateContext?.GetFrustum?.() ?? updateContext?.frustum;
-    const lodFactor = Number(updateContext?.GetLodFactor?.() ?? updateContext?.lodFactor) || 1;
-    return frustum?.IsSphereVisible(this._boundingSphere) !== false &&
-      Number(frustum?.GetPixelSizeAccrossEst?.(this._lodSphere) ?? Infinity) >= this.minScreenSize * lodFactor;
+    const frustum = updateContext.GetFrustum();
+    return frustum.IsSphereVisible(this._boundingSphere) &&
+      frustum.GetPixelSizeAccrossEst(this._lodSphere) >= this.minScreenSize * updateContext.GetLodFactor();
   }
 
   /**
@@ -494,7 +493,7 @@ export class EveChildParticleSystem extends EveChildTransform
     }
     applyTransformModifiers(this, updateContext, params?.boneCount ?? 0, params?.bones ?? null);
 
-    if (this.mesh?.GetBoundingBox?.(EveChildParticleSystem._boundsMin, EveChildParticleSystem._boundsMax))
+    if (this.mesh && this.mesh.GetBoundingBox(EveChildParticleSystem._boundsMin, EveChildParticleSystem._boundsMax))
     {
       sph3.fromBounds(EveChildParticleSystem._localSphere, EveChildParticleSystem._boundsMin, EveChildParticleSystem._boundsMax);
       sph3.transformMat4(this._boundingSphere, EveChildParticleSystem._localSphere, this.worldTransform);
@@ -515,9 +514,9 @@ export class EveChildParticleSystem extends EveChildTransform
       system.UpdateTransform(this.worldTransform);
     }
 
-    const time = TimeAsDouble(Number(updateContext?.GetTime?.() ?? updateContext?.currentTime ?? 0));
-    const gpuParticleSystem = updateContext?.GetGpuParticleSystem?.() ?? updateContext?.gpuParticleSystem ?? null;
-    const originShift = updateContext?.GetOriginShift?.() ?? updateContext?.originShift ?? EveChildParticleSystem._zero;
+    const time = TimeAsDouble(updateContext.GetTime());
+    const gpuParticleSystem = updateContext.GetGpuParticleSystem();
+    const originShift = updateContext.GetOriginShift();
 
     if (this.particleEmitters.length)
     {
@@ -531,10 +530,8 @@ export class EveChildParticleSystem extends EveChildTransform
         // Carbon derives a scratch frustum from the Tr2Renderer view globals
         // here (EveChildParticleSystem.cpp:246-254); the relocated camera
         // state is the context frustum.
-        const frustum = updateContext?.GetFrustum?.() ?? updateContext?.frustum;
-        const size = Number(frustum?.GetPixelSizeAccrossEst?.(this._lodSphere) ?? Infinity);
-        const lodFactor = Number(updateContext?.GetLodFactor?.() ?? updateContext?.lodFactor) || 1;
-        if (size < this.minScreenSize * lodFactor)
+        const frustum = updateContext.GetFrustum();
+        if (frustum.GetPixelSizeAccrossEst(this._lodSphere) < this.minScreenSize * updateContext.GetLodFactor())
         {
           emitCountFactor = 0;
         }
@@ -665,12 +662,6 @@ export class EveChildParticleSystem extends EveChildTransform
    * @type {vec4}
    */
   static _localSphere = vec4.create();
-
-  /**
-   * Zero origin-shift fallback when the update context supplies none.
-   * @type {vec3}
-   */
-  static _zero = vec3.create();
 
   /**
    * Shared identity matrix retained by the particle-child helper.
