@@ -745,7 +745,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
       return false;
     }
     const sphere = this.boundingSphere;
-    if (!this.display || !frustum.IsSphereVisible(sphere.center, sphere.radius))
+    if (!this.display || !frustum.IsSphereVisibleCenterRadius(sphere.center, sphere.radius))
     {
       return false;
     }
@@ -850,7 +850,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     }
     const sphere = this.boundingSphere;
     const isVisible = this.display && this.hasUpdated &&
-      frustum?.IsSphereVisible(sphere.center, sphere.radius) === true;
+      frustum?.IsSphereVisibleCenterRadius(sphere.center, sphere.radius) === true;
     if (!isVisible)
     {
       return false;

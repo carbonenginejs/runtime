@@ -21,7 +21,7 @@ function makeFrustum({ visible = true, pixelSize = 100 } = {})
 {
   return new (class extends TriFrustum
   {
-    IsSphereVisible()
+    IsSphereVisibleCenterRadius()
     {
       return visible;
     }

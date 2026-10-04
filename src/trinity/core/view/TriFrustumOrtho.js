@@ -45,18 +45,28 @@ export class TriFrustumOrtho
   }
 
   /**
-   * Carbon's two IsSphereVisibleAndInsideNearPlane overloads (cpp:20-61),
-   * dispatched on the second argument like TriFrustum.IsSphereVisible: sphere
-   * fully beyond the far bound (z - radius > boundsMax.z) is rejected, then a
-   * squared-distance sphere-vs-AABB test in view space.
-   * @param {Float32Array} sphereOrCenter - packed (x, y, z, radius) or center
-   * @param {Number} [radius]
+   * Carbon's IsSphereVisibleAndInsideNearPlane( const Vector4* sphere ) (cpp:20):
+   * the packed (x, y, z, radius) form.
+   * @param {Float32Array} sphere - packed (x, y, z, radius)
    * @returns {Boolean}
    */
-  IsSphereVisibleAndInsideNearPlane(sphereOrCenter, radius = undefined)
+  IsSphereVisibleAndInsideNearPlane(sphere)
   {
-    const r = typeof radius === "number" ? radius : sphereOrCenter[3];
-    const center = vec3.transformMat4(CENTER_SCRATCH, sphereOrCenter, this.view);
+    return this.IsSphereVisibleAndInsideNearPlaneCenterRadius(sphere, sphere[3]);
+  }
+
+  /**
+   * Carbon's IsSphereVisibleAndInsideNearPlane( center, radius ) (cpp:20-61):
+   * a sphere fully beyond the far bound (z - radius > boundsMax.z) is rejected,
+   * then a squared-distance sphere-vs-AABB test in view space.
+   * @param {Float32Array} worldCenter
+   * @param {Number} radius
+   * @returns {Boolean}
+   */
+  IsSphereVisibleAndInsideNearPlaneCenterRadius(worldCenter, radius)
+  {
+    const r = radius;
+    const center = vec3.transformMat4(CENTER_SCRATCH, worldCenter, this.view);
 
     if (center[2] - r > this.boundsMax[2])
     {

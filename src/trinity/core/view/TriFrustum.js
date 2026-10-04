@@ -141,31 +141,32 @@ export class TriFrustum
   }
 
   /**
-   * Carbon's two IsSphereVisible overloads (cpp:121-148), dispatched on the
-   * second argument: a number selects the (center, radius) overload, anything
-   * else treats the first argument as a packed vec4 sphere with the second as
-   * cullBackPlane. Returns true if any part of the sphere is inside the
-   * frustum. Carbon deliberately skips the back plane unless cullBackPlane
-   * ("For some reason the old code ignored the back plane").
-   * @param {Float32Array} sphereOrCenter - packed (x, y, z, radius) or center
-   * @param {Number|Boolean} [radiusOrCullBackPlane]
+   * Carbon's IsSphereVisible( const Vector4* sphere, cullBackPlane ) (cpp:121):
+   * the packed (x, y, z, radius) form.
+   * @param {Float32Array} sphere - packed (x, y, z, radius)
    * @param {Boolean} [cullBackPlane]
    * @returns {Boolean}
    */
-  IsSphereVisible(sphereOrCenter, radiusOrCullBackPlane = false, cullBackPlane = false)
+  IsSphereVisible(sphere, cullBackPlane = false)
   {
-    let radius;
-    let cullBack;
-    if (typeof radiusOrCullBackPlane === "number")
-    {
-      radius = radiusOrCullBackPlane;
-      cullBack = !!cullBackPlane;
-    }
-    else
-    {
-      radius = sphereOrCenter[3];
-      cullBack = !!radiusOrCullBackPlane;
-    }
+    return this.IsSphereVisibleCenterRadius(sphere, sphere[3], cullBackPlane);
+  }
+
+  /**
+   * Carbon's IsSphereVisible( center, radius, cullBackPlane ) (cpp:121-148),
+   * named by the parameters that replace sphere (docs 22d1237). Returns true if
+   * any part of the sphere is inside the frustum. Carbon deliberately skips the
+   * back plane unless cullBackPlane ("For some reason the old code ignored the
+   * back plane").
+   * @param {Float32Array} center
+   * @param {Number} radius
+   * @param {Boolean} [cullBackPlane]
+   * @returns {Boolean}
+   */
+  IsSphereVisibleCenterRadius(center, radius, cullBackPlane = false)
+  {
+    const sphereOrCenter = center;
+    const cullBack = cullBackPlane;
 
     if (TriFrustum.frustumCullingDisabled)
     {
@@ -218,7 +219,7 @@ export class TriFrustum
    */
   IsPointVisible(point)
   {
-    return this.IsSphereVisible(point, 0);
+    return this.IsSphereVisibleCenterRadius(point, 0);
   }
 
   /**

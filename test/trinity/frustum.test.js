@@ -265,8 +265,8 @@ test("TriFrustum.IsSphereVisible agrees with the sampling oracle for spheres str
   assert.equal(frustum.IsSphereVisible(beyondFarSphere), true, "back plane ignored by default (Carbon parity)");
   assert.equal(frustum.IsSphereVisible(beyondFarSphere, true), false, "cullBackPlane=true rejects beyond-far spheres");
   // (center, radius, cullBackPlane) overload agrees with the packed overload.
-  assert.equal(frustum.IsSphereVisible(beyondFar, radius, true), false);
-  assert.equal(frustum.IsSphereVisible(beyondFar, radius), true);
+  assert.equal(frustum.IsSphereVisibleCenterRadius(beyondFar, radius, true), false);
+  assert.equal(frustum.IsSphereVisibleCenterRadius(beyondFar, radius), true);
 });
 
 // --- TriFrustum: boxes straddling every plane -------------------------------
@@ -518,7 +518,7 @@ test("TriFrustumOrtho sphere tests agree with a view-space AABB sampling oracle"
 
   // Deep interior sphere.
   const inside = SunViewPoint(view, 5, 2, 100);
-  assert.equal(ortho.IsSphereVisibleAndInsideNearPlane(inside, 3), true);
+  assert.equal(ortho.IsSphereVisibleAndInsideNearPlaneCenterRadius(inside, 3), true);
   assert.equal(ortho.IsSphereVisibleIgnoreFarPlane(inside, 3), true);
   assert.equal(ortho.SphereTestIgnoreFarPlane({ center: inside, radius: 3 }), TriFrustumTestResult.Inside);
   assert.equal(sampleVisible(inside, 3, true), true);
@@ -526,7 +526,7 @@ test("TriFrustumOrtho sphere tests agree with a view-space AABB sampling oracle"
   // Beyond the far bound: rejected by the near-plane variant, accepted when
   // the far plane is ignored (the shadow-caster behind-the-view case).
   const beyondFar = SunViewPoint(view, 5, 2, 350);
-  assert.equal(ortho.IsSphereVisibleAndInsideNearPlane(beyondFar, 10), false);
+  assert.equal(ortho.IsSphereVisibleAndInsideNearPlaneCenterRadius(beyondFar, 10), false);
   assert.equal(ortho.IsSphereVisibleIgnoreFarPlane(beyondFar, 10), true);
   assert.equal(ortho.SphereTestIgnoreFarPlane({ center: beyondFar, radius: 10 }), TriFrustumTestResult.Inside);
   assert.equal(sampleVisible(beyondFar, 10, false), false);
@@ -534,21 +534,21 @@ test("TriFrustumOrtho sphere tests agree with a view-space AABB sampling oracle"
 
   // Before the near bound (z < min.z) by more than the radius: outside both.
   const beforeNear = SunViewPoint(view, 5, 2, 2);
-  assert.equal(ortho.IsSphereVisibleAndInsideNearPlane(beforeNear, 1), false);
+  assert.equal(ortho.IsSphereVisibleAndInsideNearPlaneCenterRadius(beforeNear, 1), false);
   assert.equal(ortho.IsSphereVisibleIgnoreFarPlane(beforeNear, 1), false);
   assert.equal(ortho.SphereTestIgnoreFarPlane({ center: beforeNear, radius: 1 }), TriFrustumTestResult.Outside);
   assert.equal(sampleVisible(beforeNear, 0.9, true), false);
 
   // Straddling the near bound: visible, classified Intersect.
   const straddleNear = SunViewPoint(view, 5, 2, 4.5);
-  assert.equal(ortho.IsSphereVisibleAndInsideNearPlane(straddleNear, 1), true);
+  assert.equal(ortho.IsSphereVisibleAndInsideNearPlaneCenterRadius(straddleNear, 1), true);
   assert.equal(ortho.IsSphereVisibleIgnoreFarPlane(straddleNear, 1), true);
   assert.equal(ortho.SphereTestIgnoreFarPlane({ center: straddleNear, radius: 1 }), TriFrustumTestResult.Intersect);
   assert.equal(sampleVisible(straddleNear, 1, true), true);
 
   // Outside +x beyond the radius (corner distance in x alone).
   const outsideX = SunViewPoint(view, boundsMax[0] + 5, 2, 100);
-  assert.equal(ortho.IsSphereVisibleAndInsideNearPlane(outsideX, 3), false);
+  assert.equal(ortho.IsSphereVisibleAndInsideNearPlaneCenterRadius(outsideX, 3), false);
   assert.equal(ortho.IsSphereVisibleIgnoreFarPlane(outsideX, 3), false);
   assert.equal(sampleVisible(outsideX, 3, true), false);
   // ...but a radius covering the gap straddles back in.
