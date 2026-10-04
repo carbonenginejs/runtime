@@ -4196,9 +4196,15 @@ export class EveSpaceObject2 extends EveEntity
       {
         return 0;
       }
-      return updater.GetSkeletonBoneIndices?.().length ?? 0;
+      return updater.GetSkeletonBoneIndices().length;
     }
-    return updater.GetMeshBindingBoneCount?.() ?? 0;
+    // Granny: GrannyGetMeshBindingBoneCount( m_meshBinding ) is the updater's m_meshBoneCount
+    // (Tr2GrannyAnimation.cpp:774), which GetMeshBoneCount returns.
+    if (!updater.HasMeshBinding())
+    {
+      return 0;
+    }
+    return updater.GetMeshBoneCount();
   }
 
   /**

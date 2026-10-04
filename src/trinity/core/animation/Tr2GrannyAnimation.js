@@ -1246,6 +1246,19 @@ export class Tr2GrannyAnimation
     return palette;
   }
 
+  /**
+   * Carbon GetSkeletonBoneIndices (Tr2GrannyAnimation.cpp:431-436): the CMF mesh's
+   * skeleton bone indices.
+   * Adapted: one list serves Carbon's m_skeletonBoneIndices (CMF) and the Granny
+   * binding-to-bone indices, as the palette builders fill it.
+   * @returns {number[]} The bound bone indices.
+   */
+  @meta.adapted
+  GetSkeletonBoneIndices()
+  {
+    return this._meshBoneIndices;
+  }
+
   @meta.implemented
   /** Returns the number of mesh bones in the current palette. */
   GetMeshBoneCount()
