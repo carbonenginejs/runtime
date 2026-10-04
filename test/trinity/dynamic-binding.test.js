@@ -8,17 +8,21 @@ import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import {
   EveChildContainer,
   EveMultiEffect,
+  EveMultiEffectParameter,
   EveStretch3,
   EveUpdateContext,
+  Tr2Controller,
   Tr2ControllerExpression,
   Tr2DynamicBinding,
   Tr2ExternalParameter,
   Tr2FloatParameter,
   Tr2PyValueBinding,
   Tr2Vector3Parameter,
+  TriCurveSet,
   TriTextureParameter,
   TriValueBinding
 } from "../../npm/dist/trinity/index.js";
+import { UpdateContext } from "../support/eveUpdateContext.js";
 
 
 function closeArray(actual, expected, epsilon = 1e-6)
@@ -321,67 +325,68 @@ test("Tr2ExternalParameter binds a path-typed member, as SOF's banner parameters
 test("EveMultiEffect owns dynamic graphs, preserves map precedence, and updates in Carbon order", () =>
 {
   const calls = [];
-  const ownerParameter = {
-    name: "Owner",
-    object: { id: "parameter-owner" },
-    GetName() { return this.name; },
-    GetParameterObject() { return this.object; },
-    SetOwner(owner) { calls.push(["parameter-owner", owner]); }
+  // Records a real instance's method calls and still runs the method.
+  const record = (target, method, tag, keep = args => args) =>
+  {
+    const original = target[method].bind(target);
+    target[method] = (...args) => { calls.push([ tag, ...keep(args) ]); return original(...args); };
   };
-  const duplicateParameter = {
-    name: "Duplicate",
-    object: { id: "parameter" },
-    GetName() { return this.name; },
-    GetParameterObject() { return this.object; },
-    SetParameterObject(object) { this.object = object; },
-    SetOwner(_owner) {}
-  };
-  const curveSet = {
-    name: "Duplicate",
-    GetName() { return this.name; },
-    GetRawRoot() { return { id: "curve" }; },
-    Update_RealTimeSimTime(realTime, simTime) { calls.push(["curve", realTime, simTime]); },
-    GetMaxCurveDuration() { return 2; },
-    GetRangeDuration() { return 3; }
-  };
-  const binding = {
-    SetOwner(owner) { calls.push(["binding-owner", owner]); },
-    Link() { calls.push(["link"]); },
-    Update(time) { calls.push(["binding-update", time]); }
-  };
-  const controller = {
-    Link(owner) { calls.push(["controller-link", owner]); },
-    Unlink() { calls.push(["controller-unlink"]); },
-    Update(delta) { calls.push(["controller-update", delta]); }
-  };
+
+  const ownerParameter = new EveMultiEffectParameter();
+  ownerParameter.name = "Owner";
+  ownerParameter.SetParameterObject({ id: "parameter-owner" });
+  record(ownerParameter, "SetOwner", "parameter-owner");
+  const duplicateParameter = new EveMultiEffectParameter();
+  duplicateParameter.name = "Duplicate";
+  duplicateParameter.SetParameterObject({ id: "parameter" });
+  const curveSet = new TriCurveSet();
+  curveSet.name = "Duplicate";
+  record(curveSet, "Update_RealTimeSimTime", "curve", args => args.slice(0, 2));
+  const binding = new Tr2DynamicBinding();
+  record(binding, "SetOwner", "binding-owner");
+  record(binding, "Link", "link", () => []);
+  record(binding, "Update", "binding-update");
+  const controller = new Tr2Controller();
+  record(controller, "Link", "controller-link");
+  record(controller, "Unlink", "controller-unlink");
+  record(controller, "Update", "controller-update");
+
   const effect = new EveMultiEffect();
   effect.parameters.push(ownerParameter, duplicateParameter);
   effect.curveSets.push(curveSet);
   effect.bindings.push(binding);
   effect.controllers.push(controller);
   assert.equal(effect.Initialize(), true);
+  assert.deepEqual(calls.filter(([ tag ]) => tag.endsWith("owner")), [ [ "parameter-owner", effect ], [ "binding-owner", effect ] ]);
 
+  // EveMultiEffect.cpp:31-47: curve sets after parameters, Owner last; a curve set is its own raw root.
   const parameterMap = effect.GetParameterMap();
   assert.equal(parameterMap.Owner, effect);
-  assert.equal(parameterMap.Duplicate.id, "curve");
+  assert.equal(parameterMap.Duplicate, curveSet);
+  // GetBindingRoots: Owner first, so a parameter slot named Owner wins.
   const bindingRoots = effect.GetBindingRoots({});
   assert.equal(bindingRoots.Owner.id, "parameter-owner");
   assert.equal(bindingRoots.Duplicate.id, "parameter");
 
   calls.length = 0;
-  effect.UpdateSyncronous({ currentTime: 7 });
+  effect.UpdateSyncronous(UpdateContext({ time: 7 }));
   assert.deepEqual(calls, [
-    ["curve", 7, 7],
-    ["controller-update", 0.5],
-    ["binding-update", 7]
+    [ "curve", 7, 7 ],
+    [ "controller-update", 0.5 ],
+    [ "binding-update", 7 ]
   ]);
-  assert.equal(effect.GetCurveSetDuration("Duplicate"), 2);
-  assert.equal(effect.GetRangeDuration("Duplicate", "range"), 3);
+  assert.equal(effect.GetCurveSetDuration("Duplicate"), curveSet.GetMaxCurveDuration());
+  assert.equal(effect.GetRangeDuration("Duplicate", "range"), curveSet.GetRangeDuration("range"));
 
+  calls.length = 0;
   effect.OnListModified(BLUELISTEVENT.BELIST_REMOVED, 0, 0, binding, effect.bindings);
   effect.OnListModified(BLUELISTEVENT.BELIST_INSERTED, 0, 0, binding, effect.bindings);
+  assert.deepEqual(calls.filter(([ tag ]) => tag === "binding-owner"), [ [ "binding-owner", null ], [ "binding-owner", effect ] ]);
+  calls.length = 0;
+  effect.OnListModified(BLUELISTEVENT.BELIST_INSERTED, 0, 0, curveSet, effect.bindings);
+  assert.equal(calls.some(([ tag ]) => tag === "binding-owner"), false, "a value that is not a Tr2DynamicBinding fails Carbon's BlueCastPtr");
   effect.OnListModified(BLUELISTEVENT.BELIST_UNLOADSTART, 0, 0, null, effect.controllers);
-  assert.ok(calls.some(entry => entry[0] === "controller-unlink"));
+  assert.ok(calls.some(([ tag ]) => tag === "controller-unlink"));
   assert.equal(effect.GetBoundingSphere(new Float32Array(4)), false);
   assert.equal(effect.GetLocalBoundingBox(new Float32Array(3), new Float32Array(3)), false);
 });

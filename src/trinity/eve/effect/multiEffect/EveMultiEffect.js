@@ -2,7 +2,10 @@ import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/EveMultiEffect.h
 // Source: trinity/trinity/Eve/EveMultiEffect.cpp
 // Source: trinity/trinity/Eve/EveMultiEffect_Blue.cpp
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
+import { EveMultiEffectParameter } from "./EveMultiEffectParameter.js";
+import { Tr2DynamicBinding } from "../../../core/binding/Tr2DynamicBinding.js";
+import { ITr2Controller } from "../../../controllers/ITr2Controller/ITr2Controller.js";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { BLUELISTEVENT } from "#consts/blue";
 
@@ -57,86 +60,90 @@ export class EveMultiEffect
   /**
    * Builds the prototype-free name map that dynamic bindings resolve against:
    * each parameter slot's bound object and each curve set's root under their own
-   * names, plus Owner for the effect itself.
+   * names, plus Owner for the effect itself (EveMultiEffect.cpp:31-47).
+   *
+   * Adapted: Carbon's unordered_map is a prototype-free object, and a curve set is its own raw root.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Builds Carbon's unordered root map as a prototype-free JavaScript object.")
   GetParameterMap()
   {
     const out = Object.create(null);
     for (const parameter of this.parameters)
     {
-      out[EveMultiEffect._GetName(parameter)] = parameter?.GetParameterObject?.() ?? parameter?.object ?? null;
+      out[parameter.GetName()] = parameter.GetParameterObject();
     }
     for (const curveSet of this.curveSets)
     {
-      out[EveMultiEffect._GetName(curveSet)] = curveSet?.GetRawRoot?.() ?? curveSet;
+      out[curveSet.GetName()] = curveSet;
     }
     out.Owner = this;
     return out;
   }
 
-  /** Carbon method Rebind (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * Carbon method Rebind (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS; EveMultiEffect.cpp:49-67): links and primes every
+   * binding, then links the controllers to this effect unless only the bindings were asked for.
+   */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Links portable owner objects directly instead of using Carbon parent locks and raw roots.")
+  @meta.implemented
   Rebind(onlyUpdateBindings = false)
   {
     for (const binding of this.bindings)
     {
-      binding?.Link();
-      binding?.Update(0);
+      binding.Link();
+      binding.Update(0);
     }
     if (!onlyUpdateBindings)
     {
-      for (const controller of this.controllers) controller?.Link(this);
+      for (const controller of this.controllers) controller.Link(this);
     }
   }
 
   /**
-   * Post-hydration hook; takes ownership of the parameter slots and dynamic
-   * bindings, then links the bindings and controllers.
+   * Carbon Initialize (EveMultiEffect.cpp:69-82): takes ownership of the parameter slots and dynamic bindings, then
+   * links the bindings and controllers.
    */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Assigns portable owner references before linking because JavaScript arrays do not provide Carbon IList parent locks.")
+  @meta.implemented
   Initialize()
   {
-    for (const parameter of this.parameters) parameter?.SetOwner(this);
-    for (const binding of this.bindings) binding?.SetOwner(this);
+    for (const parameter of this.parameters) parameter.SetOwner(this);
+    for (const binding of this.bindings) binding.SetOwner(this);
     this.Rebind();
     return true;
   }
 
   /**
-   * Applies Carbon's IList ownership callbacks for the parameters, bindings and
-   * controllers lists - assigning or clearing owners, linking or unlinking
-   * controllers, unlinking all of them on unload - and rebinds afterwards.
+   * Carbon OnListModified (EveMultiEffect.cpp:84-154): the IList ownership callbacks for the parameters, bindings and
+   * controllers lists - assigning or clearing owners, linking or unlinking controllers, unlinking all of them on
+   * unload - then a rebind. Each value is cast to its list's type, as Carbon's BlueCastPtr does.
    */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Reproduces Carbon IList ownership and controller callbacks through explicit portable list-event arguments.")
+  @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     const maskedEvent = event & BLUELISTEVENT.BELIST_EVENTMASK;
     if (list === this.parameters)
     {
-      if (maskedEvent === BLUELISTEVENT.BELIST_INSERTED) value?.SetOwner(this);
-      else if (maskedEvent === BLUELISTEVENT.BELIST_REMOVED) value?.SetOwner(null);
+      const parameter = CjsSchema.cast(value, EveMultiEffectParameter);
+      if (parameter && maskedEvent === BLUELISTEVENT.BELIST_INSERTED) parameter.SetOwner(this);
+      else if (parameter && maskedEvent === BLUELISTEVENT.BELIST_REMOVED) parameter.SetOwner(null);
     }
     else if (list === this.bindings)
     {
-      if (maskedEvent === BLUELISTEVENT.BELIST_INSERTED) value?.SetOwner(this);
-      else if (maskedEvent === BLUELISTEVENT.BELIST_REMOVED) value?.SetOwner(null);
+      const binding = CjsSchema.cast(value, Tr2DynamicBinding);
+      if (binding && maskedEvent === BLUELISTEVENT.BELIST_INSERTED) binding.SetOwner(this);
+      else if (binding && maskedEvent === BLUELISTEVENT.BELIST_REMOVED) binding.SetOwner(null);
     }
     else if (list === this.controllers && (event & BLUELISTEVENT.BELIST_LOADING) === 0)
     {
-      if (maskedEvent === BLUELISTEVENT.BELIST_INSERTED) value?.Link(this);
-      else if (maskedEvent === BLUELISTEVENT.BELIST_REMOVED) value?.Unlink();
+      const controller = CjsSchema.cast(value, ITr2Controller);
+      if (controller && maskedEvent === BLUELISTEVENT.BELIST_INSERTED) controller.Link(this);
+      else if (controller && maskedEvent === BLUELISTEVENT.BELIST_REMOVED) controller.Unlink();
       else if (maskedEvent === BLUELISTEVENT.BELIST_UNLOADSTART)
       {
-        for (const controller of this.controllers) controller?.Unlink();
+        for (const each of this.controllers) each.Unlink();
       }
     }
     this.Rebind();
@@ -147,7 +154,7 @@ export class EveMultiEffect
   @meta.implemented
   HandleControllerEvent(name)
   {
-    for (const controller of this.controllers) controller?.HandleEvent(name);
+    for (const controller of this.controllers) controller.HandleEvent(name);
   }
 
   /** Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP). */
@@ -155,22 +162,24 @@ export class EveMultiEffect
   @meta.implemented
   SetControllerVariable(name, value)
   {
-    for (const controller of this.controllers) controller?.SetVariable(name, value);
+    for (const controller of this.controllers) controller.SetVariable(name, value);
   }
 
-  /** Carbon method SetParameter (MAP_METHOD_AND_WRAP). */
+  /** Carbon method SetParameter (MAP_METHOD_AND_WRAP; EveMultiEffect.cpp:156-169): binds the first slot of that name. */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Accepts portable parameter objects and duck-typed setter methods in place of Carbon's Blue interface cast.")
+  @meta.implemented
   SetParameter(parameterName, object)
   {
-    const name = String(parameterName);
-    const parameter = this.parameters.find(item => (item?.GetName?.() ?? item?.name) === name);
-    if (!parameter) return false;
-    if (parameter.SetParameterObject) parameter.SetParameterObject(object);
-    else parameter.object = object;
-    this.Rebind();
-    return true;
+    for (const parameter of this.parameters)
+    {
+      if (parameter.GetName() === parameterName)
+      {
+        parameter.SetParameterObject(object);
+        this.Rebind();
+        return true;
+      }
+    }
+    return false;
   }
 
   /** Carbon method StartControllers (MAP_METHOD_AND_WRAP). */
@@ -178,7 +187,7 @@ export class EveMultiEffect
   @meta.implemented
   StartControllers()
   {
-    for (const controller of this.controllers) controller?.Start();
+    for (const controller of this.controllers) controller.Start();
   }
 
   /** First parameter slot with the given name, or null. */
@@ -186,28 +195,24 @@ export class EveMultiEffect
   @meta.implemented
   GetParameterByName(parameterName)
   {
-    const name = String(parameterName);
-    return this.parameters.find(parameter => EveMultiEffect._GetName(parameter) === name) ?? null;
+    return this.parameters.find(parameter => parameter.GetName() === parameterName) ?? null;
   }
 
   /**
    * Fills out with Owner followed by each parameter slot's bound object, so a slot named Owner overrides the effect itself.
    * @param {Object|Map} [out] - caller-owned map, mutated in place
    * @returns {Object|Map} out
+   *
+   * Adapted: Carbon's unordered_map is a JavaScript object or Map, filled Owner first so a slot named Owner wins.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Mutates a JavaScript object or Map while preserving Carbon's base-Owner-then-parameter precedence.")
   GetBindingRoots(out = {})
   {
     EveMultiEffect._SetMapValue(out, "Owner", this);
     for (const parameter of this.parameters)
     {
-      EveMultiEffect._SetMapValue(
-        out,
-        EveMultiEffect._GetName(parameter),
-        parameter?.GetParameterObject?.() ?? parameter?.object ?? null
-      );
+      EveMultiEffect._SetMapValue(out, parameter.GetName(), parameter.GetParameterObject());
     }
     return out;
   }
@@ -222,12 +227,12 @@ export class EveMultiEffect
   {
     for (const curveSet of this.curveSets)
     {
-      if (EveMultiEffect._GetName(curveSet) !== name) continue;
-      if (rangeName) curveSet?.PlayTimeRange?.(rangeName);
+      if (curveSet.GetName() !== name) continue;
+      if (rangeName) curveSet.PlayTimeRange(rangeName);
       else
       {
-        curveSet?.ResetTimeRange();
-        curveSet?.Play();
+        curveSet.ResetTimeRange();
+        curveSet.Play();
       }
     }
   }
@@ -239,7 +244,7 @@ export class EveMultiEffect
   {
     for (const curveSet of this.curveSets)
     {
-      if (EveMultiEffect._GetName(curveSet) === name) curveSet?.Stop();
+      if (curveSet.GetName() === name) curveSet.Stop();
     }
   }
 
@@ -253,7 +258,7 @@ export class EveMultiEffect
   {
     for (const curveSet of this.curveSets)
     {
-      if (EveMultiEffect._GetName(curveSet) === name) curveSet.Update_RealTimeSimTime(time, time, renderContext);
+      if (curveSet.GetName() === name) curveSet.Update_RealTimeSimTime(time, time, renderContext);
     }
   }
 
@@ -268,9 +273,9 @@ export class EveMultiEffect
     let duration = 0;
     for (const curveSet of this.curveSets)
     {
-      if (EveMultiEffect._GetName(curveSet) === name)
+      if (curveSet.GetName() === name)
       {
-        duration = Math.max(duration, Number(curveSet?.GetMaxCurveDuration?.() ?? 0));
+        duration = Math.max(duration, curveSet.GetMaxCurveDuration());
       }
     }
     return duration;
@@ -287,9 +292,9 @@ export class EveMultiEffect
     let duration = 0;
     for (const curveSet of this.curveSets)
     {
-      if (EveMultiEffect._GetName(curveSet) === name)
+      if (curveSet.GetName() === name)
       {
-        duration = Math.max(duration, Number(curveSet?.GetRangeDuration(rangeName) ?? 0));
+        duration = Math.max(duration, curveSet.GetRangeDuration(rangeName));
       }
     }
     return duration;
@@ -303,10 +308,10 @@ export class EveMultiEffect
   @meta.implemented
   UpdateSyncronous(updateContext)
   {
-    const time = Number(updateContext?.GetTime?.() ?? updateContext?.currentTime ?? updateContext?.time ?? 0);
+    const time = updateContext.GetTime();
     for (const curveSet of this.curveSets) curveSet.Update_RealTimeSimTime(time, time, updateContext.renderContext);
-    for (const controller of this.controllers) controller?.Update(0.5);
-    for (const binding of this.bindings) binding?.Update(time);
+    for (const controller of this.controllers) controller.Update(0.5);
+    for (const binding of this.bindings) binding.Update(time);
   }
 
   /**
@@ -410,15 +415,6 @@ export class EveMultiEffect
   @meta.noop
   AddQuadsToQuadRenderer(_frustum, _quadRenderer)
   {
-  }
-
-  /**
-   * Name of a parameter slot or curve set as a string, from GetName() or a name
-   * field, empty when it has neither.
-   */
-  static _GetName(value)
-  {
-    return String(value?.GetName?.() ?? value?.name ?? "");
   }
 
   /**
