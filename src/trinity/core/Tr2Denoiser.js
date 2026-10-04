@@ -136,8 +136,8 @@ export class Tr2Denoiser
   /**
    * Runs the four passes and returns the denoised result.
    *
-   * Carbon `Apply` (`cpp:59-162`). The one-argument overload is the `index = 0`
-   * default here (`cpp:54-57`).
+   * Carbon's Apply without an index (`cpp:54-57`): forwards slice 0 to
+   * Apply_Index, which holds the passes (`cpp:59-162`).
    *
    * INVALID IN, EMPTY OUT. A source or depth that is not valid returns null
    * rather than borrowing four textures to produce nothing.
@@ -153,12 +153,26 @@ export class Tr2Denoiser
    * @param {object} gpuResourcePool The pool the pass targets come from.
    * @param {object} renderContext The context to draw through.
    * @param {object} renderer Legacy argument; fullscreen draws use the native static renderer.
-   * @param {number} [index] Array slice of the result to render into.
    * @returns {object|null} The result handle, or null.
    */
   @meta.blue.method
   @meta.adapted
-  Apply(source, depth, normals, projection, upscaling, gpuResourcePool, renderContext, renderer, index = 0)
+  Apply(source, depth, normals, projection, upscaling, gpuResourcePool, renderContext, renderer)
+  {
+    return this.Apply_Index(source, depth, normals, projection, 0, upscaling, gpuResourcePool, renderContext, renderer);
+  }
+
+  /**
+   * Carbon's Apply( src, depth, normals, projection, index, upscaling, pool,
+   * renderContext ) (cpp:59-162), named by its inserted index parameter: renders
+   * into array slice index of the result. Same adaptations as Apply.
+   *
+   * @param {number} index Array slice of the result to render into.
+   * @returns {object|null} The result handle, or null.
+   */
+  @meta.blue.renamed("Apply")
+  @meta.adapted
+  Apply_Index(source, depth, normals, projection, index, upscaling, gpuResourcePool, renderContext, renderer)
   {
     // Carbon tests the HANDLE, not the texture behind it (`cpp:61`).
     if (!source.IsValid() || !depth.IsValid())
