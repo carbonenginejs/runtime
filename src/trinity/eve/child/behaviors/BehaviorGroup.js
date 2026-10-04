@@ -313,7 +313,7 @@ export class BehaviorGroup extends EveEntity
     const target = String(name ?? "");
     for (const behavior of this.behaviors)
     {
-      if (target === (behavior?.GetBehaviorName?.() ?? "unnamed"))
+      if (target === behavior.GetBehaviorName())
       {
         return behavior;
       }
@@ -331,7 +331,7 @@ export class BehaviorGroup extends EveEntity
     {
       for (let index = 0; index < this.behaviors.length; index++)
       {
-        if ((this.behaviors[index]?.GetProcessPriority?.() ?? ProcessPriority.LEAST_PRIORITY) === priority)
+        if (this.behaviors[index].GetProcessPriority() === priority)
         {
           this._sortedBehaviorIndexes.push(index);
         }
@@ -523,7 +523,7 @@ export class BehaviorGroup extends EveEntity
         for (let i = 0; i < this.behaviors.length; i++)
         {
           const index = this._sortedBehaviorIndexes[i];
-          this.behaviors[index]?.CalculateBehavior?.(this._agents, this._scratchData[index], deltaTime, this, system, EMPTY_SEARCH_TREE);
+          this.behaviors[index].CalculateBehavior(this._agents, this._scratchData[index], deltaTime, this, system, EMPTY_SEARCH_TREE);
         }
         return;
       }
@@ -538,7 +538,7 @@ export class BehaviorGroup extends EveEntity
     const boundingRadius = this.boundingSphereRadius * this.scale;
     for (const behavior of this.behaviors)
     {
-      const searchRadius = behavior?.GetBehaviorSearchRadius?.() ?? -1;
+      const searchRadius = behavior.GetBehaviorSearchRadius();
       ranges.push(searchRadius === -1 ? -1 : searchRadius + boundingRadius);
     }
 
@@ -551,13 +551,10 @@ export class BehaviorGroup extends EveEntity
       for (let i = 0; i < this.behaviors.length; i++)
       {
         const index = this._sortedBehaviorIndexes[i];
-        const forces = this.behaviors[index]?.CalculateBehavior?.(this._agents, this._scratchData[index], deltaTime, this, system, dronesInRange[index] ?? EMPTY_SEARCH_TREE);
-        if (Array.isArray(forces))
+        const forces = this.behaviors[index].CalculateBehavior(this._agents, this._scratchData[index], deltaTime, this, system, dronesInRange[index] ?? EMPTY_SEARCH_TREE);
+        for (const force of forces)
         {
-          for (const force of forces)
-          {
-            this._forces.push(force);
-          }
+          this._forces.push(force);
         }
       }
     }
@@ -566,7 +563,7 @@ export class BehaviorGroup extends EveEntity
       for (let i = 0; i < this.behaviors.length; i++)
       {
         const index = this._sortedBehaviorIndexes[i];
-        this.behaviors[index]?.CalculateBehavior?.(this._agents, this._scratchData[index], deltaTime, this, system, dronesInRange[index] ?? EMPTY_SEARCH_TREE);
+        this.behaviors[index].CalculateBehavior(this._agents, this._scratchData[index], deltaTime, this, system, dronesInRange[index] ?? EMPTY_SEARCH_TREE);
       }
     }
 
@@ -1062,7 +1059,7 @@ export class BehaviorGroup extends EveEntity
     for (let i = 0; i < this.behaviors.length; i++)
     {
       const behavior = this.behaviors[i];
-      if ((behavior?.GetScratchMemorySize?.() ?? 0) > 0)
+      if (behavior.GetScratchMemorySize() > 0)
       {
         let records = this._scratchData[i];
         if (!records)
@@ -1089,7 +1086,7 @@ export class BehaviorGroup extends EveEntity
     for (let i = 0; i < this.behaviors.length; i++)
     {
       const behavior = this.behaviors[i];
-      if ((behavior?.GetScratchMemorySize?.() ?? 0) > 0)
+      if (behavior.GetScratchMemorySize() > 0)
       {
         let records = this._scratchData[i];
         if (!records)

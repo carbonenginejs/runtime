@@ -1,3 +1,4 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/IBehavior.h:11-27
 // Shared behavior enums declared by Carbon's IBehavior contracts.
 import { blue, EnumRegistrationType } from "#blue";
 

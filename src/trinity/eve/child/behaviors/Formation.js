@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/Formation.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/Formation.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
+import { IBehavior } from "./IBehavior.js";
 import { meta } from "#schema";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -29,6 +30,7 @@ function ClampLength(value, maxLength)
 
 /** A steering behaviour that detects when a drone group's motion has converged, organises the agents into a rotating slot grid, and pulls each agent toward its assigned slot. */
 @meta.define({ className: "Formation", family: "eve/child/behaviors" })
+@meta.blue.inherit(IBehavior)
 export class Formation
 {
 

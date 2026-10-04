@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/InclusionVolume.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/InclusionVolume.cpp
+import { IBehavior } from "./IBehavior.js";
 import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { ProcessPriority } from "./enums.js";
@@ -15,6 +16,7 @@ const NO_FORCES = [];
  * drift into the falloff shell; agents fully inside feel no force.
  */
 @meta.define({ className: "InclusionVolume", family: "eve/child/behaviors" })
+@meta.blue.inherit(IBehavior)
 export class InclusionVolume
 {
 

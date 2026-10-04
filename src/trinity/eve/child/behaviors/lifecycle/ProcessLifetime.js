@@ -2,6 +2,7 @@ import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/ProcessLifetime.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/ProcessLifetime.cpp
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
+import { IBehavior } from "../IBehavior.js";
 import { meta } from "#schema";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -26,6 +27,7 @@ const SPAWN_POSITION = vec3.create();
 @meta.define({ className: "ProcessLifetime", family: "eve" })
 @meta.blue.inherit(IInitialize)
 @meta.blue.mapInterface(IInitialize)
+@meta.blue.inherit(IBehavior)
 export class ProcessLifetime
 {
   static ProcessPriority = ProcessPriority;

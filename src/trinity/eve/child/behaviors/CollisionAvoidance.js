@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/CollisionAvoidance.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/CollisionAvoidance.cpp
+import { IBehavior } from "./IBehavior.js";
 import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { ProcessPriority } from "./enums.js";
@@ -13,6 +14,7 @@ const NO_FORCES = [];
  * volume they intersect, weighted by the volume's intensity at the agent.
  */
 @meta.define({ className: "CollisionAvoidance", family: "eve/child/behaviors" })
+@meta.blue.inherit(IBehavior)
 export class CollisionAvoidance
 {
 

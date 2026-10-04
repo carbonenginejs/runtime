@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
+import { IBehavior } from "./IBehavior.js";
 import { meta } from "#schema";
 import { blue } from "#blue";
 import { LocatorType } from "./enums.js";
@@ -19,6 +20,7 @@ const NO_FORCES = [];
 
 /** A steering behaviour that shuttles each drone between seek and deliver locators, slowing on approach, snapping its facing, and triggering effects on arrival. */
 @meta.define({ className: "BackAndForth", family: "eve/child/behaviors" })
+@meta.blue.inherit(IBehavior)
 export class BackAndForth
 {
 

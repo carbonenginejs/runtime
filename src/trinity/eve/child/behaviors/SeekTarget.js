@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SeekTarget.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SeekTarget.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
+import { IBehavior } from "./IBehavior.js";
 import { meta } from "#schema";
 import { blue } from "#blue";
 import { CjsScriptCallback } from "#blue/CjsScriptCallback";
@@ -13,6 +14,7 @@ const UP_AXIS = vec3.fromValues(0, 1, 0);
 
 /** A steering behaviour that assigns drones to repair locators on a target ship, splitting the target's bounding box into buckets so damage-seeking agents distribute evenly across it. */
 @meta.define({ className: "SeekTarget", family: "eve/child/behaviors" })
+@meta.blue.inherit(IBehavior)
 export class SeekTarget
 {
 

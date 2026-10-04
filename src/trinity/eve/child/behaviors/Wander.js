@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/Wander.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/Wander.cpp
+import { IBehavior } from "./IBehavior.js";
 import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { carbonPerlin1D } from "#math/noise";
@@ -15,6 +16,7 @@ const NO_FORCES = [];
  * agent's lifetime and id, so each drone drifts on its own path.
  */
 @meta.define({ className: "Wander", family: "eve/child/behaviors" })
+@meta.blue.inherit(IBehavior)
 export class Wander
 {
 

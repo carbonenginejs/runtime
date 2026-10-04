@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/Inertia.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/Inertia.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
+import { IBehavior } from "./IBehavior.js";
 import { meta } from "#schema";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -25,6 +26,7 @@ function ClampLength(value, maxLength)
 
 /** A steering behaviour that smooths each agent's acceleration by rotating it toward the previous frame's direction at a limited angular speed and blending its magnitude toward the desired value. */
 @meta.define({ className: "Inertia", family: "eve/child/behaviors" })
+@meta.blue.inherit(IBehavior)
 export class Inertia
 {
 

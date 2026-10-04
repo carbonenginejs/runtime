@@ -2,7 +2,7 @@
   "outRoot": "src/trinity/generated",
   "classes": {
     "written": 26,
-    "skipped": 675
+    "skipped": 676
   },
   "enums": {
     "written": 15,
@@ -532,6 +532,11 @@
     {
       "family": "eve",
       "className": "EveUpdateContext",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "IBehavior",
       "reason": "hand-maintained source exists"
     },
     {

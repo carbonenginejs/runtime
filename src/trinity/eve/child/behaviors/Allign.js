@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/Allign.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/Allign.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
+import { IBehavior } from "./IBehavior.js";
 import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 
@@ -11,6 +12,7 @@ const NO_FORCES = [];
 
 /** A steering behaviour that pulls each drone's acceleration toward the average acceleration direction of its nearby neighbours, recomputing the pull force on a throttled schedule and reusing it between refreshes. */
 @meta.define({ className: "Allign", family: "eve/child/behaviors" })
+@meta.blue.inherit(IBehavior)
 export class Allign
 {
 

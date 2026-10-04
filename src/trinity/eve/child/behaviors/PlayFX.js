@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/PlayFX.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/PlayFX.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
+import { IBehavior } from "./IBehavior.js";
 import { meta } from "#schema";
 import { blue } from "#blue";
 import { EveEntity } from "../../EveEntity.js";
@@ -14,6 +15,7 @@ const NO_FORCES = [];
 
 /** A steering-group behaviour that clones, aims, and starts or stops a firing effect on each drone as it arrives at and departs from its target. */
 @meta.define({ className: "PlayFX", family: "eve/child/behaviors" })
+@meta.blue.inherit(IBehavior)
 export class PlayFX extends EveEntity
 {
 

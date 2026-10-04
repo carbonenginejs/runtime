@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/DroneAvoidance.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/DroneAvoidance.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
+import { IBehavior } from "./IBehavior.js";
 import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 
@@ -12,6 +13,7 @@ const NO_FORCES = [];
 
 /** A steering behaviour that pushes each drone away from its nearby neighbours, blended with its current velocity direction, to keep agents from clustering or overlapping. */
 @meta.define({ className: "DroneAvoidance", family: "eve/child/behaviors" })
+@meta.blue.inherit(IBehavior)
 export class DroneAvoidance
 {
 
