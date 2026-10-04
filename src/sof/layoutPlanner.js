@@ -259,7 +259,7 @@ function processPlacement(placement, path, layout, layoutPlan, dna, offsets, man
   }
 
   const extensionDna = new EveSOFDNA();
-  extensionDna.Setup(layout.name, placement.descriptor, dna, dna.dataMgr);
+  extensionDna.Setup_Descriptor(layout.name, placement.descriptor, dna, dna.dataMgr);
   if (placement.isInstanced) extensionDna.DisableAnimation();
   if (!extensionDna.IsValid())
   {

@@ -4606,20 +4606,35 @@ export class EveSOF
     return this.dataMgr.GetPatternData(name);
   }
 
-  /** Acquires selected layouts before returning their normalized projections. */
+  /** Acquires one layout before returning its normalized projection; the async
+   * form of EveSOFDataMgr.GetLayoutData. */
   @meta.ours
-  async GetLayoutData(names, options = {})
+  async GetLayoutData(name, options = {})
   {
-    names = Array.isArray(names)
-      ? names.map(name => String(name).trim().toLowerCase())
-      : String(names).trim().toLowerCase();
+    name = String(name).trim().toLowerCase();
+    await this._FetchLayouts([ name ], options);
+    return this.dataMgr.GetLayoutData(name);
+  }
+
+  /** Acquires selected layouts before returning their normalized projections,
+   * in request order with duplicates kept; the async form of
+   * EveSOFDataMgr.GetLayoutData_Vector. */
+  @meta.ours
+  async GetLayoutData_Vector(names, options = {})
+  {
+    names = names.map(name => String(name).trim().toLowerCase());
+    await this._FetchLayouts(names, options);
+    return this.dataMgr.GetLayoutData_Vector(names);
+  }
+
+  /** Initializes and, with a library builder, fetches the named layouts. */
+  async _FetchLayouts(names, options)
+  {
     await this.InitializeAsync(options);
-    const selected = Array.isArray(names) ? names : [names];
     if (this._sofLibraryBuilder)
     {
-      await Promise.all(selected.map(name => this._sofLibraryBuilder.FetchLayout(name, options.catalog ?? {})));
+      await Promise.all(names.map(name => this._sofLibraryBuilder.FetchLayout(name, options.catalog ?? {})));
     }
-    return this.dataMgr.GetLayoutData(names);
   }
 
   /**

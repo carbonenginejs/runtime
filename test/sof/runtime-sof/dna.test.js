@@ -153,7 +153,7 @@ test("EveSOFDataMgr indexes every top-level SOF catalog", () => {
   assert.equal(manager.HasMaterialData("rust"), true);
   assert.equal(manager.HasPatternData("stripes"), true);
   assert.deepEqual(
-    manager.GetLayoutData(["cargo", "missing", "antennae", "cargo"]).map(value => value.name),
+    manager.GetLayoutData_Vector(["cargo", "missing", "antennae", "cargo"]).map(value => value.name),
     ["cargo", "antennae", "cargo"],
   );
   assert.deepEqual(manager.GetGenericData().materialPrefixes, ["Mtl1", "Mtl2"]);
@@ -4072,7 +4072,7 @@ test("EveSOFDNA descriptor setup inherits parent selections deterministically", 
   parent.Setup("rifter:minmatar:minmatar:material?rust;none:layout?cargo", manager);
 
   const child = new EveSOFDNA();
-  child.Setup("antennae", {
+  child.Setup_Descriptor("antennae", {
     hull: "rifter2",
     faction: "",
     race: "",

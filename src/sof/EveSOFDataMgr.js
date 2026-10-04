@@ -227,22 +227,32 @@ export class EveSOFDataMgr
     return this._layoutData.has(String(name));
   }
 
-  /** Returns one layout, or filters an ordered list of layout names. */
+  /** Carbon's GetLayoutData( name ) (EveSOFDataMgr.cpp:321): one layout, or null. */
   @meta.blue.method
   @meta.implemented
-  GetLayoutData(nameOrNames)
+  GetLayoutData(name)
   {
-    if (Array.isArray(nameOrNames))
+    return this._layoutData.get(String(name)) ?? null;
+  }
+
+  /**
+   * Carbon's GetLayoutData( std::vector<std::string>& names )
+   * (EveSOFDataMgr.cpp:335): the named layouts in request order, skipping
+   * missing names and keeping duplicates.
+   * @param {string[]} names
+   * @returns {object[]}
+   */
+  @meta.blue.renamed("GetLayoutData")
+  @meta.implemented
+  GetLayoutData_Vector(names)
+  {
+    const result = [];
+    for (const name of names)
     {
-      const result = [];
-      for (const name of nameOrNames)
-      {
-        const layout = this.GetLayoutData(name);
-        if (layout) result.push(layout);
-      }
-      return result;
+      const layout = this.GetLayoutData(name);
+      if (layout) result.push(layout);
     }
-    return this._layoutData.get(String(nameOrNames)) ?? null;
+    return result;
   }
 
   /**
