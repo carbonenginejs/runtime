@@ -141,6 +141,9 @@ export class EveSpaceObjectDecal
    * whether one is attached. */
   _instanceData = null;
 
+  /** m_instanceScreenSize (cpp:45) - the instanced mesh's screen size, set by GetInstancedRenderables. */
+  _instanceScreenSize = -1;
+
   /** m_vertexDeclarationOverride (h:211) - UNINITIALIZED_DECLARATION until
    * GetInstancedRenderables (cpp:227-234, not ported) stamps the instanced
    * mesh's declaration. */
@@ -710,6 +713,27 @@ export class EveSpaceObjectDecal
   }
 
   /**
+   * Carbon EveSpaceObjectDecal::GetInstancedRenderables (cpp:227-234): the decal over an
+   * instanced mesh. Gathers as GetRenderables does against the instanced mesh's geometry,
+   * then keeps its instance data, vertex declaration and bounds for the instanced
+   * visibility and batch paths.
+   * @param {Array} out Renderables collected.
+   * @param {object} meshCache Carbon's DecalMeshCache, passed through.
+   * @param {Tr2InstancedMesh} instancedMesh The instanced mesh the decal sits on.
+   * @param {number} [instanceScreenSize] The instanced mesh's screen size.
+   */
+  @meta.blue.method
+  @meta.implemented
+  GetInstancedRenderables(out, meshCache, instancedMesh, instanceScreenSize = Number.MAX_VALUE)
+  {
+    this.GetRenderables(out, meshCache, instancedMesh.GetGeometryResource(), instanceScreenSize);
+    this._instanceScreenSize = instanceScreenSize;
+    this._instanceData = instancedMesh.GetInstanceGeometryResource();
+    this._vertexDeclarationOverride = instancedMesh.GetVertexDeclaration();
+    instancedMesh.GetBoundingBox(this._minBounds, this._maxBounds);
+  }
+
+  /**
    * Builds the decal's index list for the hull it is attached to.
    *
    * The static lists win when present, exactly as Carbon orders it: every decal
@@ -777,8 +801,8 @@ export class EveSpaceObjectDecal
    * m_vertexDeclarationHandle on the mesh, so the handle is computed from the
    * mesh's elements exactly as Tr2MeshBase.CreateGeometryBatch computes it for
    * the hull (Tr2MeshBase.js:474-488), which bins the hull and decal batches
-   * together as Carbon's shared handle does. The instanced branch is ported but
-   * unreachable until GetInstancedRenderables is: nothing assigns #instanceData.
+   * together as Carbon's shared handle does. The instanced branch runs for decals
+   * gathered through GetInstancedRenderables.
    *
    * @param {object} batches The accumulator batches are committed to.
    * @param {number} batchType The batch type being collected.
