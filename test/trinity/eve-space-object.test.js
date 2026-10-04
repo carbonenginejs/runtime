@@ -4,6 +4,7 @@ import { ITr2AudEmitter } from "../../npm/dist/audio/trinity/trinityAudioApi/ITr
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
+import { UpdateContext, FixedFrustum } from "../support/eveUpdateContext.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { blue } from "../../npm/dist/global/blue/index.js";
@@ -757,7 +758,7 @@ test("EveSpaceObject2 drives observers, controller frequency, mute, and emitter 
     }
   }));
 
-  const synchronousContext = { currentTime: 4 };
+  const synchronousContext = UpdateContext({ time: 4 });
   assert.equal(object.UpdateSyncronous(synchronousContext), true);
   assert.deepEqual(calls[0], ["placement", [0, 0, 1], [0, 1, 0], [11, 22, 33]]);
   assert.equal(childUpdates[0][0], "synchronous");
@@ -768,7 +769,7 @@ test("EveSpaceObject2 drives observers, controller frequency, mute, and emitter 
   assert.notEqual(childUpdates[0][2].localToWorldTransform, object.worldTransform);
 
   object.isVisible = true;
-  const asynchronousContext = { highDetailThreshold: 100 };
+  const asynchronousContext = UpdateContext({ highDetailThreshold: 100 });
   assert.equal(object.UpdateAsyncronous(asynchronousContext), 0.5);
   object.isVisible = false;
   assert.equal(object.UpdateAsyncronous(asynchronousContext), 0);
@@ -1245,28 +1246,15 @@ test("EveSpaceObject2 restores Carbon world bounds, visibility, renderables, and
   assert.equal(object.GetBoundingSphere(sphere, 1), true);
   assert.ok(sphere[3] > 10);
 
-  const frustum = {
-    IsSphereVisible()
-    {
-      return true;
-    },
-    GetPixelSizeAccross()
-    {
-      return 80;
-    },
-    GetPixelSizeAccrossEst()
-    {
-      return 75;
-    }
-  };
+  const frustum = FixedFrustum();
   assert.equal(object.EstimatePixelDiameter(frustum), 80);
-  assert.equal(object.UpdateVisibility({
+  assert.equal(object.UpdateVisibility(UpdateContext({
     frustum,
     visibilityThreshold: 1,
     lowDetailThreshold: 20,
     mediumDetailThreshold: 60,
     lodFactor: 0.5
-  }), true);
+  })), true);
   assert.equal(object.IsInFrustum(), true);
   assert.equal(object.lodLevel, Tr2Lod.TR2_LOD_HIGH);
   assert.deepEqual(object.GetRenderables_Impostors([], null), [object, "child"]);
@@ -1568,18 +1556,14 @@ test("a mesh-less EveSpaceObject2 with an impact overlay renders its impacts (Ca
   };
   object.impactOverlay = impactOverlay;
 
-  const frustum = {
-    IsSphereVisible() { return true; },
-    GetPixelSizeAccross() { return 80; },
-    GetPixelSizeAccrossEst() { return 75; }
-  };
-  assert.equal(object.UpdateVisibility({
+  const frustum = FixedFrustum();
+  assert.equal(object.UpdateVisibility(UpdateContext({
     frustum,
     visibilityThreshold: 1,
     lowDetailThreshold: 20,
     mediumDetailThreshold: 60,
     lodFactor: 1
-  }), true);
+  })), true);
   assert.deepEqual(object.GetRenderables_Impostors([], null), [object]);
   assert.equal(object.GetBatches({}, 0, null, 0), true);
   assert.equal(calls.length, 1);

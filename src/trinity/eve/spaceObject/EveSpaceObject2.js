@@ -1454,14 +1454,14 @@ export class EveSpaceObject2 extends EveEntity
 
     coefficients.fill(0);
 
-    const lowThreshold = EveSpaceObject2._GetContextValue(updateContext, "GetLowDetailThreshold", "lowDetailThreshold");
+    const lowThreshold = updateContext.GetLowDetailThreshold();
 
     if (!(this.estimatedPixelDiameterWithChildren > lowThreshold))
     {
       return false;
     }
 
-    const mediumThreshold = EveSpaceObject2._GetContextValue(updateContext, "GetMediumDetailThreshold", "mediumDetailThreshold");
+    const mediumThreshold = updateContext.GetMediumDetailThreshold();
     const intensityFadeRadius = (mediumThreshold - lowThreshold) * 0.25;
     const intensity = Math.min(Math.max((this.estimatedPixelDiameterWithChildren - lowThreshold) / intensityFadeRadius, 0), 1);
 
@@ -1588,7 +1588,7 @@ export class EveSpaceObject2 extends EveEntity
   @meta.adapted
   UpdateSyncronous(updateContext = null)
   {
-    const time = EveSpaceObject2._GetContextValue(updateContext, "GetTime", "currentTime", "time");
+    const time = updateContext.GetTime();
     this.UpdateWorldTransform(time);
     if (!this.update)
     {
@@ -1603,7 +1603,7 @@ export class EveSpaceObject2 extends EveEntity
 
     // Carbon cpp:560-566: PrePhysicsAnimation reads Tr2Renderer's animation
     // clock; this port's updater steps by the frame's delta instead.
-    this.animationUpdater.Update(EveSpaceObject2._GetContextValue(updateContext, "GetDeltaT"));
+    this.animationUpdater.Update(updateContext.GetDeltaT());
 
     // LOD-gated curve/overlay stamp (Carbon EveSpaceObject2::UpdateSyncronous:
     // ShouldUpdate(m_lodLevelWithChildren, time - m_lastCurveUpdateTime) -
@@ -1663,7 +1663,7 @@ export class EveSpaceObject2 extends EveEntity
       return 0;
     }
 
-    const threshold = EveSpaceObject2._GetContextValue(updateContext, "GetHighDetailThreshold", "highDetailThreshold");
+    const threshold = updateContext.GetHighDetailThreshold();
     const frequency = this.isVisible && threshold > 0
       ? Math.min(1, this.estimatedPixelDiameter / threshold)
       : 0;
@@ -1723,7 +1723,7 @@ export class EveSpaceObject2 extends EveEntity
     // stamped, receiving the context time as BOTH realTime and simTime
     // (Carbon EveSpaceObject2::UpdateAsyncronous: if (m_lastCurveUpdateTime ==
     // time) (*it)->Update(time, time)).
-    const time = EveSpaceObject2._GetContextValue(updateContext, "GetTime", "currentTime", "time");
+    const time = updateContext.GetTime();
     if (this._lastCurveUpdateTime === time)
     {
       for (const curveSet of this.curveSets)
@@ -1792,11 +1792,11 @@ export class EveSpaceObject2 extends EveEntity
     this._lodLevelWithChildren = Tr2Lod.TR2_LOD_LOW;
     this._impostorMode = false;
 
-    const frustum = updateContext?.GetFrustum?.() ?? updateContext?.frustum;
-    const lowThreshold = EveSpaceObject2._GetContextValue(updateContext, "GetLowDetailThreshold", "lowDetailThreshold");
-    const mediumThreshold = EveSpaceObject2._GetContextValue(updateContext, "GetMediumDetailThreshold", "mediumDetailThreshold");
-    const visibilityThreshold = EveSpaceObject2._GetContextValue(updateContext, "GetVisibilityThreshold", "visibilityThreshold");
-    const lodFactor = EveSpaceObject2._GetContextValue(updateContext, "GetLodFactor", "lodFactor") || 1;
+    const frustum = updateContext.GetFrustum();
+    const lowThreshold = updateContext.GetLowDetailThreshold();
+    const mediumThreshold = updateContext.GetMediumDetailThreshold();
+    const visibilityThreshold = updateContext.GetVisibilityThreshold();
+    const lodFactor = updateContext.GetLodFactor();
 
     if (this.boundingSphereRadius > 0 && this._boundingSphereWorldRadius > 0)
     {
@@ -1893,7 +1893,7 @@ export class EveSpaceObject2 extends EveEntity
     if (!this._allowLodSelection) this._meshScreenSize = Infinity;
     if (this.mesh && this._boundingSphereWorldRadius > 0)
     {
-      this.mesh.UseWithScreenSize?.(this._meshScreenSize, this._boundingSphereWorldRadius);
+      this.mesh.UseWithScreenSize(this._meshScreenSize, this._boundingSphereWorldRadius);
     }
     return this.isVisible;
   }
@@ -2038,7 +2038,7 @@ export class EveSpaceObject2 extends EveEntity
   @meta.implemented
   PushRenderables(out)
   {
-    if (this.mesh && this._isMeshVisible && this.mesh.IsLoading?.() !== true)
+    if (this.mesh && this._isMeshVisible && this.mesh.IsLoading() !== true)
     {
       out.push(this);
     }
@@ -2104,7 +2104,7 @@ export class EveSpaceObject2 extends EveEntity
 
     // Returns whether any batch was committed (JS addition; Carbon returns
     // void). The O(1) accumulator count makes the delta check free.
-    const committedBefore = batches.GetBatchCount?.() ?? 0;
+    const committedBefore = batches.GetBatchCount();
 
     if (this.activationStrength !== 0)
     {
@@ -2136,7 +2136,7 @@ export class EveSpaceObject2 extends EveEntity
     // add overlay effect batches (Carbon calls this for every batch type)
     this.GetBatchesFromOverlayVector(batches, perObjectData, batchType, this.mesh);
 
-    return (batches.GetBatchCount?.() ?? 0) > committedBefore;
+    return batches.GetBatchCount() > committedBefore;
   }
 
   // Carbon GetSortedBatchesFromMeshAreaVector (EveSpaceObject2.cpp:57-121):
@@ -2162,15 +2162,15 @@ export class EveSpaceObject2 extends EveEntity
     // returns early when there is none. This port keeps collecting so a
     // GPU-free graph still produces batches; the LOD only supplies draw
     // arguments.
-    const lod = geometry?.GetMeshLod_ScreenSize?.(meshIndex, this._meshScreenSize) ?? null;
+    const lod = geometry?.GetMeshLod_ScreenSize(meshIndex, this._meshScreenSize) ?? null;
 
     const sorted = [];
     for (const area of areas)
     {
-      if (!area || area.GetDisplay?.() === false) continue;
+      if (!area || area.GetDisplay() === false) continue;
 
       vec3.set(TRANSPARENT_CENTER, 0, 0, 0);
-      if (geometry?.GetAreaBoundingBox?.(meshIndex, area.GetIndex(), TRANSPARENT_AABB_MIN, TRANSPARENT_AABB_MAX))
+      if (geometry?.GetAreaBoundingBox(meshIndex, area.GetIndex(), TRANSPARENT_AABB_MIN, TRANSPARENT_AABB_MAX))
       {
         vec3.add(TRANSPARENT_CENTER, TRANSPARENT_AABB_MIN, TRANSPARENT_AABB_MAX);
         vec3.scale(TRANSPARENT_CENTER, TRANSPARENT_CENTER, 0.5);
@@ -2188,7 +2188,7 @@ export class EveSpaceObject2 extends EveEntity
     for (const entry of sorted)
     {
       const area = entry.area;
-      if (!area.GetMaterialInterface?.()) continue;
+      if (!area.GetMaterialInterface()) continue;
       const batch = this.mesh.CreateGeometryBatch(geometry, area, perObjectData, false, lod);
       if (batch) batches.Commit(batch);
     }
@@ -2289,7 +2289,7 @@ export class EveSpaceObject2 extends EveEntity
 
         if (areas)
         {
-          this.mesh.GetBatches?.(batches, areas, perObjectData);
+          this.mesh.GetBatches(batches, areas, perObjectData);
         }
       }
     }
@@ -2394,7 +2394,7 @@ export class EveSpaceObject2 extends EveEntity
 
     for (const overlay of this.overlayEffects)
     {
-      if (overlay?.HasTransparentArea?.()) return true;
+      if (overlay?.HasTransparentArea()) return true;
     }
     return false;
   }
@@ -2482,7 +2482,7 @@ export class EveSpaceObject2 extends EveEntity
     for (const light of this.lights)
     {
       light?.AddLight(lightManager, this.worldTransform, 1, bones, boneCount);
-      light?.SetBrightnessMultiplier?.(this.activationStrength);
+      light?.SetBrightnessMultiplier(this.activationStrength);
     }
   }
 
@@ -2724,7 +2724,7 @@ export class EveSpaceObject2 extends EveEntity
     this.mute = !!mute;
     for (const child of this.effectChildren)
     {
-      child?.SetMute?.(this.mute);
+      child?.SetMute(this.mute);
     }
     for (const observer of this.observers)
     {
@@ -2755,7 +2755,7 @@ export class EveSpaceObject2 extends EveEntity
   {
     const min = vec3.fromValues(Infinity, Infinity, Infinity);
     const max = vec3.fromValues(-Infinity, -Infinity, -Infinity);
-    if (this.dynamicBoundingSphereEnabled && this.mesh?.GetGeometryResource()?.IsUsingCMF?.())
+    if (this.dynamicBoundingSphereEnabled && this.mesh?.GetGeometryResource()?.IsUsingCMF())
     {
       const { min: localMin, max: localMax } = this.GetLocalBoundingBox();
       const corner = vec3.create();
@@ -2784,7 +2784,7 @@ export class EveSpaceObject2 extends EveEntity
   @meta.adapted
   CalculateSkinnedBoundingSphere(out = vec4.create())
   {
-    if (this.dynamicBoundingSphereEnabled && this.mesh?.GetGeometryResource()?.IsUsingCMF?.())
+    if (this.dynamicBoundingSphereEnabled && this.mesh?.GetGeometryResource()?.IsUsingCMF())
     {
       const center = this.GetBoundingSphereCenter();
       return vec4.set(out, center[0], center[1], center[2], this.GetBoundingSphereRadius());
@@ -3105,7 +3105,7 @@ export class EveSpaceObject2 extends EveEntity
   @meta.implemented
   ClearAnimations()
   {
-    this.animationUpdater?.ClearAnimations?.();
+    this.animationUpdater?.ClearAnimations();
   }
 
   /**
@@ -3172,7 +3172,7 @@ export class EveSpaceObject2 extends EveEntity
   @meta.implemented
   EndAnimation()
   {
-    this.animationUpdater?.EndAnimation?.();
+    this.animationUpdater?.EndAnimation();
   }
 
   /**
@@ -3186,7 +3186,7 @@ export class EveSpaceObject2 extends EveEntity
     this._allowLodSelection = false;
     for (const decal of this.decals)
     {
-      decal?.SetHighDetailDecalState?.(true);
+      decal?.SetHighDetailDecalState(true);
     }
   }
 
@@ -3802,7 +3802,7 @@ export class EveSpaceObject2 extends EveEntity
    */
   _PlayAnimation(animName, replace, loopCount, delay, speed, clearWhenDone)
   {
-    this.animationUpdater?.PlayAnimation?.(String(animName ?? ""), replace, loopCount, delay, speed, clearWhenDone);
+    this.animationUpdater?.PlayAnimation(String(animName ?? ""), replace, loopCount, delay, speed, clearWhenDone);
   }
 
   /**
@@ -3819,13 +3819,13 @@ export class EveSpaceObject2 extends EveEntity
       return false;
     }
     const geometryRes = mesh.GetGeometryResource();
-    if (!geometryRes || !geometryRes.IsGood?.())
+    if (!geometryRes || !geometryRes.IsGood())
     {
       return false;
     }
-    geometryRes.RecalculateBoundingSphere?.();
+    geometryRes.RecalculateBoundingSphere();
     const sphere = vec4.create();
-    geometryRes.GetBoundingSphere(mesh.GetMeshIndex?.() ?? 0, sphere);
+    geometryRes.GetBoundingSphere(mesh.GetMeshIndex(), sphere);
     vec3.set(this.boundingSphereCenter, sphere[0], sphere[1], sphere[2]);
     this.boundingSphereRadius = sphere[3];
     return true;
@@ -3869,7 +3869,7 @@ export class EveSpaceObject2 extends EveEntity
     const geometryResource = this.mesh?.GetGeometryResource();
     if (!geometryResource) return -1;
     if (!this._allowLodSelection) return 0;
-    return geometryResource.GetLodIndexForScreenSize?.(this.mesh?.GetMeshIndex?.() ?? 0, this._meshScreenSize) ?? 0;
+    return geometryResource.GetLodIndexForScreenSize(this.mesh?.GetMeshIndex() ?? 0, this._meshScreenSize);
   }
 
   /**
@@ -4108,7 +4108,7 @@ export class EveSpaceObject2 extends EveEntity
   @meta.reason("TriFrustum is supplied structurally by the active engine; both exact and estimated browser frustum methods are supported.")
   EstimatePixelDiameter(frustum)
   {
-    if (this.mesh?.GetBoundingBox?.(EveSpaceObject2._boundsMin, EveSpaceObject2._boundsMax))
+    if (this.mesh?.GetBoundingBox(EveSpaceObject2._boundsMin, EveSpaceObject2._boundsMax))
     {
       vec3.copy(this._localAabbMin, EveSpaceObject2._boundsMin);
       vec3.copy(this._localAabbMax, EveSpaceObject2._boundsMax);
@@ -4190,9 +4190,9 @@ export class EveSpaceObject2 extends EveEntity
     {
       return 0;
     }
-    if (updater.IsUsingCMF?.())
+    if (updater.IsUsingCMF())
     {
-      if (!updater.HasMeshBinding?.())
+      if (!updater.HasMeshBinding())
       {
         return 0;
       }
@@ -4374,7 +4374,7 @@ export class EveSpaceObject2 extends EveEntity
   {
     for (const child of this.effectChildren)
     {
-      child?.SetProceduralContainerVariable?.(name, value);
+      child?.SetProceduralContainerVariable(name, value);
     }
   }
 
@@ -4467,7 +4467,7 @@ export class EveSpaceObject2 extends EveEntity
   _TransformLocator(position, rotation, boneIndex)
   {
     const updater = this.animationUpdater;
-    if (boneIndex <= 0 || !updater?.IsInitialized?.())
+    if (boneIndex <= 0 || !updater?.IsInitialized())
     {
       return;
     }
@@ -4715,7 +4715,7 @@ export class EveSpaceObject2 extends EveEntity
    */
   static _GetBoneMatrix(updater, boneIndex)
   {
-    const bones = updater.GetMeshBoneMatrixList?.();
+    const bones = updater.GetMeshBoneMatrixList();
 
     if (!bones || boneIndex < 0 || (boneIndex + 1) * 12 > bones.length)
     {
@@ -4741,28 +4741,6 @@ export class EveSpaceObject2 extends EveEntity
     {
       setter.call(target, name, value);
     }
-  }
-
-  /**
-   * Reads a numeric value from the update context, preferring a getter method
-   * and falling back to the named properties, and yields 0 when nothing supplies
-   * it.
-   */
-  static _GetContextValue(context, methodName, ...propertyNames)
-  {
-    const method = context?.[methodName];
-    if (typeof method === "function")
-    {
-      return Number(method.call(context)) || 0;
-    }
-    for (const propertyName of propertyNames)
-    {
-      if (context?.[propertyName] !== undefined && context?.[propertyName] !== null)
-      {
-        return Number(context[propertyName]) || 0;
-      }
-    }
-    return 0;
   }
 
   /**
