@@ -166,7 +166,9 @@ const MATH_STORAGE = Object.fromEntries(
     Object.entries(TYPED_ARRAY_FOR_SCALAR)
         .map(([ scalar, name ]) => [ scalar, {
             Ctor: TYPED_ARRAY_CTORS[name],
-            round: num[scalar],
+            // Compare the value the destination actually stores, including
+            // float32 rounding, so an identical decimal edit is a no-op.
+            round: scalar === "float32" ? value => Math.fround(num.float32(value)) : num[scalar],
             tag: `[object ${name}]`
         } ])
         .filter(([ , storage ]) => storage.Ctor && storage.round));

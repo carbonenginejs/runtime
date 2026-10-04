@@ -10,6 +10,20 @@ const meanings = {
   rotation: ["quaternion", 4], scale: ["vector3", 3], mixed: ["vector4", 4]
 };
 
+test("math values compare at the declared storage precision before reporting a change", () =>
+{
+  const single = { kind: "vector3", scalar: "float32", length: 3 };
+  const double = { kind: "vector3", scalar: "float64", length: 3 };
+  const values = [0.1, 0.2, 0.3];
+  const target = normalizeCarbonValue(values, single);
+  assert.equal(coerceCarbonMathInto(target, values, single), false);
+  assert.equal(coerceCarbonMathInto(target, [0.1 + 1e-10, 0.2, 0.3], single), false);
+  assert.equal(coerceCarbonMathInto(target, [0.5, 0.2, 0.3], single), true);
+  assert.equal(coerceCarbonMathInto(target, [0.5, 0.2, 0.3], single), false);
+  const precise = normalizeCarbonValue(values, double);
+  assert.equal(coerceCarbonMathInto(precise, [0.1 + 1e-10, 0.2, 0.3], double), true);
+});
+
 test("meaning decorators resolve ordinary data kinds and preserve declared defaults", () =>
 {
   class Record {}
