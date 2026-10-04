@@ -481,13 +481,9 @@ export class EveVirtualCamera
   {
     for (const behaviour of behaviours)
     {
-      if ((behaviour?.IsActive?.() ?? behaviour?.active !== false) && typeof behaviour?.Update === "function")
+      if (behaviour.IsActive())
       {
-        const offset = behaviour.Update(camera, value, deltaTime, localTime, anchorCenter, anchorRadius, anchorForward);
-        if (offset)
-        {
-          vec3.add(value, value, offset);
-        }
+        vec3.add(value, value, behaviour.Update(camera, value, deltaTime, localTime, anchorCenter, anchorRadius, anchorForward));
       }
     }
   }
@@ -500,9 +496,9 @@ export class EveVirtualCamera
   {
     for (const behaviour of behaviours)
     {
-      if ((behaviour?.IsActive?.() ?? behaviour?.active !== false) && typeof behaviour?.Update === "function")
+      if (behaviour.IsActive())
       {
-        value += Number(behaviour.Update(camera, value, deltaTime, localTime, anchorCenter, anchorRadius, anchorForward)) || 0;
+        value += behaviour.Update(camera, value, deltaTime, localTime, anchorCenter, anchorRadius, anchorForward);
       }
     }
     return value;
@@ -526,25 +522,31 @@ export class EveVirtualCamera
       camera[`${prefix}AnchorRadius`] = 1000;
       return;
     }
+    // GetCenterOfAnchors: the mean model centre, summed in double precision.
+    // vec3_0: one anchor's model centre; vec4_0: its bounding sphere.
+    const { vec3_0, vec4_0 } = EveVirtualCamera.scratch;
+    let x = 0, y = 0, z = 0;
     for (const anchor of anchors)
     {
-      const value = vec3.create();
-      const result = anchor?.GetModelCenterWorldPosition?.(value);
-      vec3.add(center, center, result?.length >= 3 ? result : value);
+      anchor.GetModelCenterWorldPosition(vec3_0);
+      x += vec3_0[0];
+      y += vec3_0[1];
+      z += vec3_0[2];
     }
-    vec3.scale(center, center, 1 / anchors.length);
+    vec3.set(center, x / anchors.length, y / anchors.length, z / anchors.length);
     vec3.set(forward, 0, 0, 1);
+    // GetAnchorsBoundingSphereRadius: only anchors with a valid sphere count; none gives 1000.
     let radius = 0;
     for (const anchor of anchors)
     {
-      const sphere = vec4.create();
-      const result = anchor?.GetBoundingSphere?.(sphere);
-      const centerValue = vec3.create();
-      const centerResult = anchor?.GetModelCenterWorldPosition?.(centerValue);
-      const anchorCenter = centerResult?.length >= 3 ? centerResult : centerValue;
-      const sphereRadius = result?.radius ?? result?.[3] ?? sphere[3] ?? 0;
-      radius = Math.max(radius, vec3.distance(anchorCenter, center) + sphereRadius);
+      if (anchor.GetBoundingSphere(vec4_0))
+      {
+        anchor.GetModelCenterWorldPosition(vec3_0);
+        radius = Math.max(radius, vec3.distance(vec3_0, center) + vec4_0[3]);
+      }
     }
-    camera[`${prefix}AnchorRadius`] = radius || 1000;
+    camera[`${prefix}AnchorRadius`] = radius === 0 ? 1000 : radius;
   }
+
+  static scratch = { vec3_0: vec3.create(), vec4_0: vec4.create() };
 }
