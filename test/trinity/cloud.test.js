@@ -17,7 +17,7 @@ import {
   EveChildCloud2,
   EveUpdateContext,
   Tr2PointLight,
-  Tr2RenderReason, Tr2RenderContext, TriDevice, TriPoolAllocator, RawData,
+  Tr2RenderReason, Tr2RenderContext, TriDevice, TriFrustum, TriPoolAllocator, RawData,
   Tr2RenderContext_GetMainThreadRenderContext, TriRenderBatchAccumulator,
   TriTextureParameter, Tr2TextureReference, Tr2EffectStateManager
 } from "../../npm/dist/trinity/index.js";
@@ -25,6 +25,7 @@ import { BitmapDimensions } from "../../npm/dist/global/imageio/index.js";
 import { PixelFormat, TextureType, Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { FixtureEffect } from "../support/fixtureEffect.js";
+import { UpdateContext } from "../support/eveUpdateContext.js";
 
 
 beforeEach(t =>
@@ -91,7 +92,7 @@ test("UpdateAsyncronous composes world = local * parent with the operand swap (c
   mat4.translate(parent, parent, [5, 6, 7]);
   mat4.rotateY(parent, parent, Math.PI / 2);
 
-  cloud.UpdateAsyncronous(null, { localToWorldTransform: parent });
+  cloud.UpdateAsyncronous(UpdateContext(), { localToWorldTransform: parent });
 
   // Local translation (1,0,0) rotated to (0,0,-1), then offset: (5,6,6).
   // The wrong operand order would land at (6, 6, 7) territory instead.
@@ -109,7 +110,7 @@ test("UpdateAsyncronous bounding sphere is Carbon's cheap two-corner form (math 
   vec3.set(cloud.scaling, 1, 1, 1);
   const parent = mat4.fromYRotation(mat4.create(), Math.PI / 4);
 
-  cloud.UpdateAsyncronous(null, { localToWorldTransform: parent });
+  cloud.UpdateAsyncronous(UpdateContext(), { localToWorldTransform: parent });
 
   // Two-corner form: radius = |R(max) - R(min)| / 2 = sqrt(3)/2, NOT the
   // 8-corner AABB sphere (~1.118) a "corrected" implementation would produce.
@@ -124,7 +125,7 @@ test("UpdateAsyncronous map-offset scroll preserves the .z-by-tiling.y Carbon bu
   vec3.set(cloud.textureTiling, 2, 3, 4);
   vec3.set(cloud.translation, 0.25, 0.35, 0.45);
 
-  cloud.UpdateAsyncronous(null, { localToWorldTransform: mat4.create() });
+  cloud.UpdateAsyncronous(UpdateContext(), { localToWorldTransform: mat4.create() });
 
   // shift = world movement (0.25, 0.35, 0.45) in local space (identity basis).
   // x scrolls by tiling.x (0.25*2 % 1), y by tiling.y (0.35*3 % 1) and z ALSO
@@ -180,7 +181,7 @@ test("GetVolumetricBatches: gate order, one batch, renderedLastFrame stamp (cpp:
   assert.equal(cloud.GetVolumetricBatches(frustum, MakeAccumulator()), false, "display/hasUpdated-gated");
   cloud.display = true;
   vec3.set(cloud.scaling, 1, 1, 1);
-  cloud.UpdateAsyncronous(null, { localToWorldTransform: mat4.create() });
+  cloud.UpdateAsyncronous(UpdateContext(), { localToWorldTransform: mat4.create() });
 
   // Screen-size gate (cpp:256-260).
   cloud.adjustedMinScreenSize = 1000;
@@ -204,7 +205,7 @@ test("GetVolumetricBatches: gate order, one batch, renderedLastFrame stamp (cpp:
 
   // Singular transform gate (cpp:262-265) - zero-scale world.
   vec3.set(cloud.scaling, 0, 0, 0);
-  cloud.UpdateAsyncronous(null, { localToWorldTransform: mat4.create() });
+  cloud.UpdateAsyncronous(UpdateContext(), { localToWorldTransform: mat4.create() });
   assert.equal(cloud.GetVolumetricBatches(frustum, MakeAccumulator()), false, "singular-transform-gated");
 });
 
@@ -212,7 +213,7 @@ test("UpdateVolumetricLightmap: budget contract and slice arithmetic (cpp:319-38
 {
   const cloud = new EveChildCloud2();
   vec3.set(cloud.scaling, 1, 1, 1);
-  cloud.UpdateAsyncronous(null, { localToWorldTransform: mat4.create() });
+  cloud.UpdateAsyncronous(UpdateContext(), { localToWorldTransform: mat4.create() });
   // Starts as a still-loading effect: no shader resolved yet.
   cloud.effect = FixtureEffect({ GetShaderStateInterface: () => null });
   cloud.lightmapSizeScale = 0.25;
@@ -260,7 +261,7 @@ test("SetSceneInformation: scale map, dirty asymmetry, sun threshold quirk, effe
   const cloud = new EveChildCloud2();
   vec3.set(cloud.scaling, 1, 1, 1);
   const parent = mat4.fromYRotation(mat4.create(), Math.PI / 2);
-  cloud.UpdateAsyncronous(null, { localToWorldTransform: parent });
+  cloud.UpdateAsyncronous(UpdateContext(), { localToWorldTransform: parent });
 
   const options = [];
   cloud.effect = { SetOption: (name, value) => options.push([name, value]) };
@@ -339,7 +340,7 @@ test("SetupShadowFrustum: basis, mirrored ortho, magic z extension, world-first 
 {
   const cloud = new EveChildCloud2();
   vec3.set(cloud.scaling, 1, 1, 1);
-  cloud.UpdateAsyncronous(null, { localToWorldTransform: mat4.create() });
+  cloud.UpdateAsyncronous(UpdateContext(), { localToWorldTransform: mat4.create() });
 
   const shadowInfo = {};
   cloud.GetVolumetricShadowInfo(shadowInfo, [0, 0, 1]);
@@ -359,7 +360,7 @@ test("SetupShadowFrustum: basis, mirrored ortho, magic z extension, world-first 
   // view negates x, so the light-space bounds must land at [-100.5, -99.5] -
   // the swapped-operand mistake would land at [99.5, 100.5].
   const parent = mat4.fromTranslation(mat4.create(), [100, 0, 0]);
-  cloud.UpdateAsyncronous(null, { localToWorldTransform: parent });
+  cloud.UpdateAsyncronous(UpdateContext(), { localToWorldTransform: parent });
   const movedInfo = {};
   cloud.GetVolumetricShadowInfo(movedInfo, [0, 0, 1]);
   assertClose(movedInfo.shadowFrustum.boundsMin[0], -100.5, "world applied before lightView");
@@ -391,7 +392,7 @@ test("GetBatches: reflection-transparent only, screenSize 10000, no renderedLast
 {
   const cloud = new EveChildCloud2();
   vec3.set(cloud.scaling, 1, 1, 1);
-  cloud.UpdateAsyncronous(null, { localToWorldTransform: mat4.create() });
+  cloud.UpdateAsyncronous(UpdateContext(), { localToWorldTransform: mat4.create() });
   cloud.reflectionEffect = FixtureEffect({ name: "reflection" });
   cloud.renderedLastFrame = false;
 
@@ -428,15 +429,17 @@ test("IsVisible: display + frustum + live lod pixel gate (cpp:837-852)", () =>
   const cloud = new EveChildCloud2();
   cloud.display = false;
   vec3.set(cloud.scaling, 1, 1, 1);
-  cloud.UpdateAsyncronous(null, { localToWorldTransform: mat4.create() });
+  cloud.UpdateAsyncronous(UpdateContext(), { localToWorldTransform: mat4.create() });
   cloud.minScreenSize = 100;
 
-  const MakeContext = (pixelSize, lodFactor) => ({
-    GetFrustum: () => ({
-      IsSphereVisible_CenterRadius: () => true,
-      GetPixelSizeAccross_Sphere: () => pixelSize
-    }),
-    GetLodFactor: () => lodFactor
+  // A real TriFrustum answering the two overloads IsVisible reads, in a real context.
+  const MakeContext = (pixelSize, lodFactor) => UpdateContext({
+    frustum: new (class extends TriFrustum
+    {
+      IsSphereVisible_CenterRadius() { return true; }
+      GetPixelSizeAccross_Sphere() { return pixelSize; }
+    })(),
+    lodFactor
   });
 
   assert.equal(cloud.IsVisible(MakeContext(250, 2)), false, "display gate");
@@ -457,7 +460,7 @@ test("GetLights: display gate, average basis scaling, duck submission (cpp:732-7
 
   cloud.display = true;
   vec3.set(cloud.scaling, 2, 3, 4);
-  cloud.UpdateAsyncronous(null, { localToWorldTransform: mat4.create() });
+  cloud.UpdateAsyncronous(UpdateContext(), { localToWorldTransform: mat4.create() });
   const manager = {};
   cloud.GetLights(manager);
   assert.equal(calls.length, 1, "one submission per light");
@@ -474,15 +477,15 @@ test("UpdateSyncronous: effect-hash invalidation and the renderedLastFrame anima
   cloud.lightmapDirty = false;
   cloud.lightmapWidth = 64;
 
-  cloud.UpdateSyncronous(null, {});
+  cloud.UpdateSyncronous(UpdateContext(), {});
   assert.equal(cloud.lightmapDirty, true, "first hash observation invalidates");
   assert.equal(cloud.lightmapWidth, 0, "dimensions zeroed (cpp:630-632)");
 
   cloud.lightmapDirty = false;
-  cloud.UpdateSyncronous(null, {});
+  cloud.UpdateSyncronous(UpdateContext(), {});
   assert.equal(cloud.lightmapDirty, false, "stable hash leaves the lightmap alone");
   hash = 2;
-  cloud.UpdateSyncronous(null, {});
+  cloud.UpdateSyncronous(UpdateContext(), {});
   assert.equal(cloud.lightmapDirty, true, "hash change invalidates");
 
   // Animation advances while renderedLastFrame is set, then the flag clears.
@@ -491,11 +494,14 @@ test("UpdateSyncronous: effect-hash invalidation and the renderedLastFrame anima
     UpdateOnlyWhenRendered: () => true,
     AdvanceTime: dt => advances.push(dt)
   };
+  // Two times 0.25 s (2,500,000 ticks) apart give a real context a 0.25 s delta.
+  const quarterSecond = UpdateContext({ time: 10000000 });
+  quarterSecond.SetTime(12500000);
   cloud.renderedLastFrame = true;
-  cloud.UpdateSyncronous({ GetDeltaT: () => 0.25 }, {});
+  cloud.UpdateSyncronous(quarterSecond, {});
   assert.deepEqual(advances, [0.25], "advanced while rendered");
   assert.equal(cloud.renderedLastFrame, false, "flag cleared (cpp:684)");
-  cloud.UpdateSyncronous({ GetDeltaT: () => 0.25 }, {});
+  cloud.UpdateSyncronous(quarterSecond, {});
   assert.deepEqual(advances, [0.25], "not advanced while unrendered");
 });
 
@@ -506,7 +512,7 @@ test("PopulatePerObjectData: swapped world*view product, element-read consumers,
   const parent = mat4.create();
   mat4.translate(parent, parent, [10, 20, 30]);
   mat4.rotateY(parent, parent, 0.6);
-  cloud.UpdateAsyncronous(null, { localToWorldTransform: parent });
+  cloud.UpdateAsyncronous(UpdateContext(), { localToWorldTransform: parent });
   cloud.depthSlices[0] = 7;
   cloud.depthSlices[1] = 11;
   cloud.minScreenSize = 50;
@@ -603,7 +609,7 @@ test("Tr2Light.GetLight returns lightData position/radius and brightness-scaled 
 test("cube lifetime preserves Carbon release gates and binds native geometry", () =>
 {
   const cloud = new EveChildCloud2();
-  cloud.UpdateAsyncronous(null, { localToWorldTransform: mat4.create() });
+  cloud.UpdateAsyncronous(UpdateContext(), { localToWorldTransform: mat4.create() });
   cloud.effect = FixtureEffect();
   const frustum = { IsSphereVisible_CenterRadius: () => true, GetPixelSizeAccross_Sphere: () => 10000 };
   const accumulator = MakeAccumulator();
@@ -635,10 +641,10 @@ test("DensityMap supplies native 3D dimensions; missing LightMap selects the gra
     GetShaderStateInterface: () => ({ GetResource: () => hasLightMap ? {} : null }),
     IsGood: () => true,
     GetResourceByName: name => { assert.equal(name, "DensityMap"); return parameter; } };
-  cloud.UpdateSyncronous(null);
+  cloud.UpdateSyncronous(UpdateContext());
   assert.deepEqual([cloud.lightmapWidth, cloud.lightmapHeight, cloud.lightmapDepth], [64, 32, 16]);
   hasLightMap = false;
-  cloud.UpdateSyncronous(null);
+  cloud.UpdateSyncronous(UpdateContext());
   const fallback = cloud._emptyLightMap.GetTexture();
   assert.deepEqual([fallback.GetWidth(), fallback.GetHeight(), fallback.GetDepth()], [1, 1, 1]);
   assert.equal(fallback.GetDesc().GetFormat(), PixelFormat.PIXEL_FORMAT_R8G8_UNORM);

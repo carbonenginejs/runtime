@@ -638,7 +638,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     {
       if (!this.animation.UpdateOnlyWhenRendered() || this.renderedLastFrame)
       {
-        this.animation.AdvanceTime(updateContext?.GetDeltaT() ?? 0);
+        this.animation.AdvanceTime(updateContext.GetDeltaT());
       }
     }
     this.renderedLastFrame = false;
@@ -681,10 +681,10 @@ export class EveChildCloud2 extends EveSpaceObjectChild
 
     // shift = -originShift + (new - previous world translation), then rotated
     // into local space with TransformNormal(shift, Inverse(world)) (cpp:697-698).
-    const originShift = updateContext?.GetOriginShift();
-    SHIFT_SCRATCH[0] = (originShift ? -originShift[0] : 0) + w[12] - prevX;
-    SHIFT_SCRATCH[1] = (originShift ? -originShift[1] : 0) + w[13] - prevY;
-    SHIFT_SCRATCH[2] = (originShift ? -originShift[2] : 0) + w[14] - prevZ;
+    const originShift = updateContext.GetOriginShift();
+    SHIFT_SCRATCH[0] = -originShift[0] + w[12] - prevX;
+    SHIFT_SCRATCH[1] = -originShift[1] + w[13] - prevY;
+    SHIFT_SCRATCH[2] = -originShift[2] + w[14] - prevZ;
     // Carbon's one-arg Inverse returns the INPUT unchanged on a singular
     // matrix (math Matrix.cpp:12-16) and the scroll still runs - mirrored.
     const inverse = mat4.invert(INV_SCRATCH, w) ?? w;
@@ -701,7 +701,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
       offset[2] = (offset[2] + SHIFT_SCRATCH[2] * tiling[1]) % 1;
     }
 
-    this.adjustedMinScreenSize = this.minScreenSize * (updateContext?.GetLodFactor() ?? 1);
+    this.adjustedMinScreenSize = this.minScreenSize * updateContext.GetLodFactor();
     this.hasUpdated = true;
   }
 
@@ -739,11 +739,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   @meta.implemented
   IsVisible(updateContext)
   {
-    const frustum = updateContext?.GetFrustum();
-    if (!frustum)
-    {
-      return false;
-    }
+    const frustum = updateContext.GetFrustum();
     const sphere = this.boundingSphere;
     if (!this.display || !frustum.IsSphereVisible_CenterRadius(sphere.center, sphere.radius))
     {
@@ -751,7 +747,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     }
     // Carbon passes the CcpMath::Sphere (EveChildCloud2.cpp:238, :828): the Sphere overload, CE-04 Est maths.
     const screenSize = frustum.GetPixelSizeAccross_Sphere(sphere);
-    if (screenSize < this.minScreenSize * (updateContext?.GetLodFactor() ?? 1))
+    if (screenSize < this.minScreenSize * updateContext.GetLodFactor())
     {
       return false;
     }
@@ -806,7 +802,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     ) / 3;
     for (const light of this.lights)
     {
-      light?.AddLight(lightManager, m, scaling);
+      light.AddLight(lightManager, m, scaling);
     }
   }
 
@@ -851,7 +847,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     }
     const sphere = this.boundingSphere;
     const isVisible = this.display && this.hasUpdated &&
-      frustum?.IsSphereVisible_CenterRadius(sphere.center, sphere.radius) === true;
+      frustum.IsSphereVisible_CenterRadius(sphere.center, sphere.radius);
     if (!isVisible)
     {
       return false;
@@ -875,7 +871,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     batch.SetPerObjectData(this.GetPerObjectData_ScreenSize(batches, screenSize));
     batch.SetGeometry(this._declaration, this._vertexBuffer, 12, this._indexBuffer, this._indexBuffer.GetDesc().stride);
     batch.SetDrawIndexedInstanced(12 * 3, 1, 0, 0, 0);
-    const committed = batches?.Commit(batch) === true;
+    const committed = batches.Commit(batch);
 
     this.renderedLastFrame = true;
     return committed;
@@ -961,8 +957,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * cos(5/180) - QUIRK verbatim: Carbon omits the degree conversion, so the
    * threshold is ~1.59 degrees, not 5 (cpp:408); stamps target dims; flips
    * the two cloud-shadow effect options (cpp:417-423). */
-  @meta.adapted
-  @meta.reason("Carbon dereferences m_effect with no null guard (cpp:417); the JS option writes are optional-chained. Everything else is verbatim, including the missing degree conversion in the sun-motion threshold.")
+  @meta.implemented
   SetSceneInformation(sceneInformation)
   {
     let lightmapSizeScale;
@@ -986,7 +981,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
 
     for (let i = 0; i < 4; ++i)
     {
-      this.depthSlices[i] = sceneInformation.depthSlices?.[i] ?? 0;
+      this.depthSlices[i] = sceneInformation.depthSlices[i];
     }
 
     // Carbon's one-arg Inverse returns the INPUT unchanged on a singular
@@ -1004,11 +999,11 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     this.targetHeight = sceneInformation.targetHeight;
 
     const receive = !!sceneInformation.receiveShadows && !!this.receiveShadows;
-    this.effect?.SetOption(
+    this.effect.SetOption(
       "CLOUD_SHADOWS",
       receive ? "CLOUD_SHADOWS_RECEIVE" : "CLOUD_SHADOWS_NONE"
     );
-    this.effect?.SetOption(
+    this.effect.SetOption(
       "CLOUD_SHADOW_ALGORITHM",
       receive && sceneInformation.raytracedShadows ? "CLOUD_SHADOWS_RAYTRACED" : "CLOUD_SHADOWS_CASCADED"
     );
@@ -1019,9 +1014,12 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * (cpp:766-776); emits ONE alpha, declaration-less (NULL_DECLARATION,
    * cpp:782), non-indexed single-triangle batch with screenSize-1 per-object
    * data (cpp:778-784). Does NOT stamp renderedLastFrame. Returns whether the
-   * batch was committed (JS addition). */
+   * batch was committed (JS addition).
+   *
+   * Adapted: The 'Shadow' technique gate applies only when a shader-state interface is present, and the batch is
+   * dropped otherwise; NULL_DECLARATION maps to declaration 0.
+   */
   @meta.adapted
-  @meta.reason("The 'Shadow' technique gate applies only when a shader-state interface is present, and the batch is dropped otherwise; NULL_DECLARATION maps to declaration 0.")
   GetVolumetricShadowBatches(batches)
   {
     if (!this.display || !this.effect || !this.castShadows)
@@ -1035,13 +1033,9 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     if (!this.effect.IsGood()) return false;
     const shader = this.effect.GetShaderStateInterface();
     if (!shader) return false;
-    if (shader)
+    if (shader.GetTechniqueIndex("Shadow") < 0)
     {
-      const technique = shader.GetTechniqueIndex("Shadow");
-      if (technique === null || technique === undefined || technique < 0)
-      {
-        return false;
-      }
+      return false;
     }
 
     const batch = new Tr2RenderBatch();
@@ -1050,7 +1044,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     batch.SetRenderingMode(RenderingMode.RM_ALPHA);
     batch.SetVertexDeclaration(0);
     batch.SetDrawInstanced(3, 1, 0, 0);
-    return batches?.Commit(batch) === true;
+    return batches.Commit(batch);
   }
 
   /** Carbon EveChildCloud2::GetVolumetricShadowInfo (cpp:787-790): pure
@@ -1192,7 +1186,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     batch.SetGeometry(this._declaration, this._vertexBuffer, 12, this._indexBuffer, this._indexBuffer.GetDesc().stride);
     batch.SetDrawIndexedInstanced(12 * 3, 1, 0, 0, 0);
     batch.SetRenderingMode(RenderingMode.RM_ALPHA);
-    return batches?.Commit(batch) === true;
+    return batches.Commit(batch);
   }
 
   /** Carbon EveChildCloud2::HasTransparentBatches (cpp:909-912):
