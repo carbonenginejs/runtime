@@ -1,4 +1,4 @@
-import { IsMatch } from "#blue";
+import { IsMatch, TimeAsDouble } from "#blue";
 import { INotify } from "../../../../global/blue/INotify.js";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch2.h
@@ -14,7 +14,7 @@ import { EveEntity } from "../../EveEntity.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
-import { getCurveDuration, getOriginShift, getTime, updateCurveSet } from "./CjsStretchRuntime.js";
+import { getCurveDuration } from "./CjsStretchRuntime.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { ITr2GenericEmitterUpdateArguments } from "../../../particle/ITr2GenericEmitter/index.js";
 import { TriDevice } from "../../../core/device/TriDevice.js";
@@ -212,10 +212,12 @@ export class EveStretch2 extends IEveFiringEffectElement
 
   /**
    * Begins a shot: reseeds the per-shot random value carried in the effect data, plays the start and loop sets from -delay and stops the end set.
+   *
+   * Adapted: Carbon seeds with rand() / RAND_MAX (EveStretch2.cpp:137-152); the browser has no C runtime generator, so
+   * the per-shot shader seed comes from Math.random.
    * @param {Number} [delay] - seconds the curve sets wait before reaching time zero
    */
   @meta.blue.method @meta.adapted
-  @meta.reason("Carbon uses rand(); the browser uses Math.random for the per-shot shader seed.")
   StartFiring(delay = 0)
   {
     this._effectData[0][3] = Math.random();
@@ -258,22 +260,27 @@ export class EveStretch2 extends IEveFiringEffectElement
 
   /**
    * Shows or hides the stretch, gating visibility, renderable collection and
-   * light contribution.
+   * light contribution; a change re-registers its components (EveStretch2.cpp:187-195).
    */
   @meta.blue.method @meta.implemented
   SetDisplay(display)
   {
+    const previous = this._visible;
     this._visible = !!display;
+    if (this._visible !== previous) this.ReRegister();
   }
 
   /**
-   * Sets the intensity uploaded in per-object data, clamped to zero at the
-   * bottom; a zero intensity also suppresses visibility, renderables and lights.
+   * Sets the intensity uploaded in per-object data. Crossing zero in either
+   * direction re-registers its components (EveStretch2.cpp:197-206); a zero
+   * intensity also suppresses visibility, renderables and lights.
    */
   @meta.blue.method @meta.implemented
   SetIntensity(intensity)
   {
-    this._intensity = Math.max(0, Number(intensity));
+    const previous = this._intensity;
+    this._intensity = Number(intensity);
+    if ((previous === 0 && this._intensity > 0) || (previous > 0 && this._intensity === 0)) this.ReRegister();
   }
 
   /**
@@ -297,26 +304,40 @@ export class EveStretch2 extends IEveFiringEffectElement
    * Advances the start, loop and end curve sets on time measured from the first
    * update, records each set's scaled time into the effect data that
    * GetPerObjectData uploads, rebuilds the two endpoint bases, and drives the
-   * end observers and GPU emitters from them.
+   * end observers and GPU emitters from them (EveStretch2.cpp:218-269).
+   *
+   * Adapted: the emitters receive the JavaScript mirror of Carbon's ITr2GenericEmitter::UpdateArguments, one reused
+   * object per end, rather than a stack-constructed structure; and the curve sets also receive the context's render
+   * context, which TriCurveSet forwards to its curves.
    */
   @meta.blue.method @meta.adapted
-  @meta.reason("Generic emitters receive the nominal JavaScript mirror of Carbon's UpdateArguments structure.")
   Update(context)
   {
-    const time = getTime(context);
+    const time = context.GetTime();
     if (this._startTime === 0) this._startTime = time;
-    const relative = time - this._startTime;
-    const sets = [this.start, this.loop, this.end];
-    for (let index = 0; index < sets.length; index++)
+    const relative = TimeAsDouble(time - this._startTime);
+    const effectData = this._effectData[0];
+    effectData[0] = effectData[1] = effectData[2] = 0;
+    if (this.start)
     {
-      updateCurveSet(sets[index], relative, context.renderContext);
-      this._effectData[0][index] = Number(sets[index]?.GetScaledTime?.() ?? sets[index]?.scaledTime ?? 0);
+      this.start.Update(relative, context.renderContext);
+      effectData[0] = this.start.GetScaledTime();
+    }
+    if (this.loop)
+    {
+      this.loop.Update(relative, context.renderContext);
+      effectData[1] = this.loop.GetScaledTime();
+    }
+    if (this.end)
+    {
+      this.end.Update(relative, context.renderContext);
+      effectData[2] = this.end.GetScaledTime();
     }
     this.GetEndPointTransforms(this._sourceTransform, this._destinationTransform);
     this.sourceObserver?.Update(this._sourceTransform);
     this.destinationObserver?.Update(this._destinationTransform);
-    const gpuParticleSystem = context?.GetGpuParticleSystem?.() ?? context?.gpuParticleSystem ?? null;
-    const originShift = getOriginShift(context);
+    const gpuParticleSystem = context.GetGpuParticleSystem();
+    const originShift = context.GetOriginShift();
     if (this.sourceEmitter)
     {
       const argumentsValue = EveStretch2._sourceEmitterArguments;
@@ -410,11 +431,11 @@ export class EveStretch2 extends IEveFiringEffectElement
   };
 
   /**
-   * Pushes the stretch itself when displayed, non-zero intensity and in frustum; the quad strip is built by the engine from the per-object data, not here.
+   * Pushes the stretch itself when displayed, at non-zero intensity and in the frustum (EveStretch2.cpp:318-324);
+   * its batch comes from GetBatches.
    * @returns {Array} out
    */
-  @meta.blue.method @meta.adapted
-  @meta.reason("The class is collected as a renderable; GPU batch realization is not ported yet.")
+  @meta.blue.method @meta.implemented
   GetRenderables(out = [])
   {
     if (this._visible && this._intensity > 0 && this._inFrustum) out.push(this);
@@ -491,13 +512,12 @@ export class EveStretch2 extends IEveFiringEffectElement
   /**
    * Offers the source and destination point lights at their endpoint bases, the
    * destination scaled by its current scale; nothing is offered while hidden or
-   * at zero intensity.
+   * at exactly zero intensity (EveStretch2.cpp:400-418).
    */
-  @meta.blue.method @meta.adapted
-  @meta.reason("Light objects are forwarded without registering against Carbon's native light manager component registry.")
+  @meta.blue.method @meta.implemented
   GetLights(lightManager)
   {
-    if (!(this._visible && this._intensity > 0)) return;
+    if (!this._visible || this._intensity === 0) return;
     this.sourceLight?.AddLight(lightManager, this._sourceTransform, 1);
     this.destinationLight?.AddLight(lightManager, this._destinationTransform, this._currentDestinationScale);
   }

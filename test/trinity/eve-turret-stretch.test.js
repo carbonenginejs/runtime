@@ -140,7 +140,9 @@ test("EveStretch2 retains Carbon curve timing and portable render data", async (
   assert.equal(stretch.GetCurveDuration(), 3);
   stretch.SetFiringTransform(vec3.fromValues(1, 2, 3), vec3.fromValues(1, 2, 13));
   stretch.StartFiring(0.5);
-  stretch.Update({ currentTime: 2, originShift: vec3.create() });
+  const context = new EveUpdateContext();
+  context.SetTime(2);
+  stretch.Update(context);
 
   // Transient RawData payload (cpp:327-337): the m_source..m_effectData member
   // run as 4 vec4s, same bytes bound to VS and PS (cpp:23-39).
