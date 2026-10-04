@@ -39,11 +39,7 @@ import { EveCollectAreas } from "./EveSpaceObjectChild.js";
 import { EveGetLocatorPose } from "../locator/EveLocatorSets.js";
 import { EveDamageOverlay } from "../overlays/EveDamageOverlay.js";
 import { EveDamageOverlayOwnerInfo } from "../overlays/EveDamageOverlayOwnerInfo.js";
-import {
-  CollectOverlayAreaBlocks,
-  EmitDamageOverlayBatches,
-  EmitOverlayBatches
-} from "../overlays/overlayBatches.js";
+import { EveMeshOverlayEffect } from "../overlays/EveMeshOverlayEffect.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import "./EveChildContainer.js";
 
@@ -1375,6 +1371,14 @@ export class EveChildMesh extends EveChildTransform
     return committed;
   }
 
+  /** Carbon EveChildMesh::RebuildOverlayAreaBlocks (cpp:699-703): caches the mesh's two overlay block lists. */
+  @meta.implemented
+  RebuildOverlayAreaBlocks()
+  {
+    EveMeshOverlayEffect.collectOverlayAreaBlocks(this.mesh, this._overlayAreaBlocks);
+    this._overlayAreaBlocksBuilt = true;
+  }
+
   /** Emits damage, child-owned, then inherited parent overlays over this mesh. */
   @meta.blue.method
   @meta.adapted
@@ -1389,11 +1393,7 @@ export class EveChildMesh extends EveChildTransform
     const geometry = this.mesh.GetGeometryResource();
     if (!geometry || geometry.IsGood() === false) return false;
 
-    if (!this._overlayAreaBlocksBuilt)
-    {
-      CollectOverlayAreaBlocks(this.mesh, this._overlayAreaBlocks);
-      this._overlayAreaBlocksBuilt = true;
-    }
+    if (!this._overlayAreaBlocksBuilt) this.RebuildOverlayAreaBlocks();
 
     const meshIndex = this.mesh.GetMeshIndex();
     const lod = geometry.GetMeshLod_ScreenSize(
@@ -1402,18 +1402,18 @@ export class EveChildMesh extends EveChildTransform
 
     if (damageEffect)
     {
-      committed = EmitDamageOverlayBatches(
+      committed = EveMeshOverlayEffect.emitDamageOverlayBatches(
         batches, perObjectData, damageEffect, this._overlayAreaBlocks, geometry, meshIndex, lod) || committed;
     }
     if (this.overlayEffects.length)
     {
-      committed = EmitOverlayBatches(
+      committed = EveMeshOverlayEffect.emitOverlayBatches(
         batches, perObjectData, batchType, this.overlayEffects,
         this._overlayAreaBlocks, geometry, meshIndex, lod) || committed;
     }
     if (parentOverlays?.length)
     {
-      committed = EmitOverlayBatches(
+      committed = EveMeshOverlayEffect.emitOverlayBatches(
         batches, perObjectData, batchType, parentOverlays,
         this._overlayAreaBlocks, geometry, meshIndex, lod) || committed;
     }

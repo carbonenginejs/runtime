@@ -38,7 +38,7 @@ import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
 import { ImpactConfiguration } from "../../generated/include/enums.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
 import { EveDamageOverlay } from "../overlays/EveDamageOverlay.js";
-import { EmitDamageOverlayBatches, EmitOverlayBatches } from "../overlays/overlayBatches.js";
+import { EveMeshOverlayEffect } from "../overlays/EveMeshOverlayEffect.js";
 import { ReflectionMode, TriBatchType } from "#consts/graphics";
 import { MatrixCopyFrom3x4 } from "../lights/lightConversion.js";
 import { Tr2GrannyAnimation, getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
@@ -2257,7 +2257,7 @@ export class EveSpaceObject2 extends EveEntity
   /** Carbon GetBatchesFromOverlayVector (EveSpaceObject2.cpp:1236-1265): the
    * impact overlay's armor-damage shader draws over the TYPE_ALL blocks at
    * maximum priority, then each overlay effect draws over its overlay-type
-   * blocks, through the shared EmitDamageOverlayBatches/EmitOverlayBatches.
+   * blocks, through EveMeshOverlayEffect.emitDamageOverlayBatches/emitOverlayBatches.
    * The cached blocks are rebuilt lazily (see RebuildCachedData). */
   @meta.blue.method
   @meta.adapted
@@ -2277,11 +2277,11 @@ export class EveSpaceObject2 extends EveEntity
     let committed = false;
     if (impactEffect)
     {
-      committed = EmitDamageOverlayBatches(
+      committed = EveMeshOverlayEffect.emitDamageOverlayBatches(
         batches, perObjectData, impactEffect, this._overlayMeshAreaBlocks, geometry, meshIndex, lod) || committed;
     }
 
-    committed = EmitOverlayBatches(
+    committed = EveMeshOverlayEffect.emitOverlayBatches(
       batches, perObjectData, batchType, this.overlayEffects,
       this._overlayMeshAreaBlocks, geometry, meshIndex, lod) || committed;
     return committed;

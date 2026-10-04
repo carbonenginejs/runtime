@@ -13,11 +13,9 @@ import { EveComponentType, ShouldReflect } from "../../EveComponentTypes.js";
 import { EveSpaceObjectChild } from "../EveSpaceObjectChild.js";
 import { RawData } from "../../../core/rawData/RawData.js";
 import { Tr2RenderReason } from "../../../generated/trinityCore/enums.js";
-import {
-  CollectInstancedOverlayAreaBlocks,
-  EmitDamageOverlayBatches,
-  EmitOverlayBatches
-} from "../../overlays/overlayBatches.js";
+import { EveMeshOverlayEffect } from "../../overlays/EveMeshOverlayEffect.js";
+import { TriRenderBatchAreaBlock } from "../../../core/batch/TriRenderBatch/index.js";
+import { TriBatchType } from "#consts/graphics";
 import { EveDamageOverlay } from "../../overlays/EveDamageOverlay.js";
 import { EveDamageOverlayOwnerInfo } from "../../overlays/EveDamageOverlayOwnerInfo.js";
 import { EveGetLocatorPose } from "../../locator/EveLocatorSets.js";
@@ -1295,7 +1293,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
       if (!geometry || geometry.IsGood() === false) continue;
       if (!mesh.overlayAreaBlocksBuilt)
       {
-        CollectInstancedOverlayAreaBlocks(mesh, mesh.overlayAreaBlocks);
+        EveChildInstancedMeshes.rebuildOverlayAreaBlocks(mesh);
         mesh.overlayAreaBlocksBuilt = true;
       }
 
@@ -1320,20 +1318,20 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
           const damageShader = this._FindPartDamageOverlay(mesh.partTags[index])?.GetArmorDamageShader(batchType);
           if (damageShader)
           {
-            committed = EmitDamageOverlayBatches(
+            committed = EveMeshOverlayEffect.emitDamageOverlayBatches(
               batches, pod.framePod, damageShader,
               mesh.overlayAreaBlocks, geometry, mesh.meshIndex, lod) || committed;
           }
         }
         if (mesh.ownOverlayEffects.length)
         {
-          committed = EmitOverlayBatches(
+          committed = EveMeshOverlayEffect.emitOverlayBatches(
             batches, pod.framePod, batchType, mesh.ownOverlayEffects,
             mesh.overlayAreaBlocks, geometry, mesh.meshIndex, lod) || committed;
         }
         if (inherited?.length)
         {
-          committed = EmitOverlayBatches(
+          committed = EveMeshOverlayEffect.emitOverlayBatches(
             batches, pod.framePod, batchType, inherited,
             mesh.overlayAreaBlocks, geometry, mesh.meshIndex, lod) || committed;
         }
@@ -1548,6 +1546,35 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * Resolves a mesh index against the list, throwing RangeError rather than
    * returning undefined so every public accessor fails loudly.
    */
+  /**
+   * Carbon's static EveChildInstancedMeshes::RebuildOverlayAreaBlocks( Mesh& ) (cpp:1264-1286):
+   * rebuilds the mesh's own two cached overlay block lists from its authored area descriptors.
+   */
+  static rebuildOverlayAreaBlocks(mesh)
+  {
+    const out = mesh.overlayAreaBlocks;
+    for (const blocks of out) blocks.length = 0;
+
+    for (const area of mesh.areas)
+    {
+      if (area.batchType === TriBatchType.TRIBATCHTYPE_OPAQUE ||
+        area.batchType === TriBatchType.TRIBATCHTYPE_TRANSPARENT ||
+        area.batchType === TriBatchType.TRIBATCHTYPE_DECAL)
+      {
+        out[EveMeshOverlayEffect.OverlayType.TYPE_ALL].push(
+          new TriRenderBatchAreaBlock(area.areaIndex, area.areaCount));
+      }
+
+      if (area.batchType === TriBatchType.TRIBATCHTYPE_OPAQUE)
+      {
+        out[EveMeshOverlayEffect.OverlayType.TYPE_OPAQUEONLY].push(
+          new TriRenderBatchAreaBlock(area.areaIndex, area.areaCount));
+      }
+    }
+
+    for (const blocks of out) TriRenderBatchAreaBlock.Optimize(blocks);
+  }
+
   static _GetMesh(meshes, meshId)
   {
     const index = Number(meshId) >>> 0;
