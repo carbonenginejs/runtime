@@ -444,7 +444,7 @@ test("EveChildInstancedMeshes follows Carbon child update semantics", () =>
   const parentTransform = mat4.fromTranslation(mat4.create(), [4, 5, 6]);
   child.UpdateSyncronous(updateContext, { localToWorldTransform: parentTransform });
   parentTransform[12] = 100;
-  assert.deepEqual(Array.from(child.GetLocalToWorldTransform().slice(12, 15)), [4, 5, 6]);
+  assert.deepEqual(Array.from(child.GetLocalToWorldTransform(mat4.create()).slice(12, 15)), [4, 5, 6]);
   assert.equal(child.hasUpdated, false);
   child.UpdateAsyncronous(updateContext, {});
   assert.equal(child.hasUpdated, true);

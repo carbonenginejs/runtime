@@ -288,18 +288,16 @@ export class EveChildProceduralContainer extends EveChildTransform
     return false;
   }
 
-  /** Carbon EveChildProceduralContainer::GetLocalToWorldTransform
-   * (cpp:181-184); the optional out follows the EveChildContainer copy-out
-   * shape. */
+  /**
+   * Carbon GetLocalToWorldTransform( Matrix& ) (EveChildProceduralContainer.cpp:181-184): copies the world transform into out, and returns out.
+   * @param {mat4} out - receives the transform
+   * @returns {mat4} out
+   */
   @meta.blue.method
   @meta.implemented
-  GetLocalToWorldTransform(out = null)
+  GetLocalToWorldTransform(out)
   {
-    if (out)
-    {
-      return mat4.copy(out, this.worldTransform);
-    }
-    return this.worldTransform;
+    return mat4.copy(out, this.worldTransform);
   }
 
   /** Carbon EveChildProceduralContainer::ChangeLOD (cpp:186-192). */

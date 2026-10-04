@@ -726,7 +726,7 @@ test("EveChildCloud participates in the owned child contract", () =>
   const sphere = vec4.create();
   assert.equal(cloud.GetBoundingSphere(sphere), true);
   assertVectorClose(sphere, cloud.boundingSphere, "cloud bounding-sphere copy");
-  const cloudWorld = cloud.GetLocalToWorldTransform();
+  const cloudWorld = cloud.GetLocalToWorldTransform(mat4.create());
   assertVectorClose(
     [ cloudWorld[12], cloudWorld[13], cloudWorld[14] ],
     [ 11, 2, 3 ],

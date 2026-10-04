@@ -233,7 +233,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
     }
   }
 
-  /** Carbon's implementation is empty (EveChildPostProcessVolume.cpp:160-162). */
+  /** Carbon's implementation is empty (EveChildPostProcessVolume.cpp:143-145): the argument is left as it was. */
   @meta.blue.method
   @meta.noop
   GetLocalToWorldTransform(_out = null)

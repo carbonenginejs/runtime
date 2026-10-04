@@ -575,17 +575,16 @@ export class EveChildMesh extends EveChildTransform
     this.minScreenSize = Number(minScreenSize);
   }
 
-  /** Carbon EveChildMesh::GetLocalToWorldTransform (cpp:1047-1050); the
-   * optional out follows the EveChildInstancedMeshes copy-out shape. */
+  /**
+   * Carbon GetLocalToWorldTransform( Matrix& ) (EveChildMesh.cpp:1047-1050): copies the world transform into out, and returns out.
+   * @param {mat4} out - receives the transform
+   * @returns {mat4} out
+   */
   @meta.blue.method
   @meta.implemented
-  GetLocalToWorldTransform(out = null)
+  GetLocalToWorldTransform(out)
   {
-    if (out)
-    {
-      return mat4.copy(out, this.worldTransform);
-    }
-    return this.worldTransform;
+    return mat4.copy(out, this.worldTransform);
   }
 
   /**

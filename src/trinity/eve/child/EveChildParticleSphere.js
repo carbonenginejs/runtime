@@ -256,11 +256,15 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
     this._hasUpdated = true;
   }
 
-  /** Carbon EveChildParticleSphere::GetLocalToWorldTransform (cpp:130-133). Adapted: without an out it returns the live matrix, as EveChildParticleSystem does. */
-  @meta.adapted
-  GetLocalToWorldTransform(out = null)
+  /**
+   * Carbon GetLocalToWorldTransform( Matrix& ) (EveChildParticleSphere.cpp:130-133): copies the world transform into out, and returns out.
+   * @param {mat4} out - receives the transform
+   * @returns {mat4} out
+   */
+  @meta.implemented
+  GetLocalToWorldTransform(out)
   {
-    return out ? mat4.copy(out, this._worldTransform) : this._worldTransform;
+    return mat4.copy(out, this._worldTransform);
   }
 
   /** Carbon EveChildParticleSphere::Setup (cpp:136-138) is empty. */

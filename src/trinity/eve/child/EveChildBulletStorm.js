@@ -273,11 +273,15 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
     return true;
   }
 
-  /** Carbon EveChildBulletStorm::GetLocalToWorldTransform (cpp:295-298). Adapted: without an out it returns the live matrix. */
-  @meta.adapted
-  GetLocalToWorldTransform(out = null)
+  /**
+   * Carbon GetLocalToWorldTransform( Matrix& ) (EveChildBulletStorm.cpp:295-298): copies the world transform into out, and returns out.
+   * @param {mat4} out - receives the transform
+   * @returns {mat4} out
+   */
+  @meta.implemented
+  GetLocalToWorldTransform(out)
   {
-    return out ? mat4.copy(out, this.worldTransform) : this.worldTransform;
+    return mat4.copy(out, this.worldTransform);
   }
 
   /** Carbon method StartEffect (MAP_METHOD_AND_WRAP). */

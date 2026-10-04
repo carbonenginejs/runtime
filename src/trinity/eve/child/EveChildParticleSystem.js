@@ -567,17 +567,16 @@ export class EveChildParticleSystem extends EveChildTransform
     this._hasUpdated = true;
   }
 
-  /** Returns the local-to-world matrix (EveChildParticleSystem.cpp:286-289). */
+  /**
+   * Carbon GetLocalToWorldTransform( Matrix& ) (EveChildParticleSystem.cpp:286-289): copies the world transform into out, and returns out.
+   * @param {mat4} out - receives the transform
+   * @returns {mat4} out
+   */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("CarbonEngineJS uses an out-last signature and returns the matrix when no output is supplied.")
-  GetLocalToWorldTransform(out = null)
+  @meta.implemented
+  GetLocalToWorldTransform(out)
   {
-    if (out)
-    {
-      return mat4.copy(out, this.worldTransform);
-    }
-    return this.worldTransform;
+    return mat4.copy(out, this.worldTransform);
   }
 
   /**

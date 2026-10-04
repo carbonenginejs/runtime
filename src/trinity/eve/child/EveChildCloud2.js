@@ -718,16 +718,15 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     return true;
   }
 
-  /** Carbon EveChildCloud2::GetLocalToWorldTransform (cpp:232-235); the
-   * optional out follows the EveChildContainer copy-out shape. */
+  /**
+   * Carbon GetLocalToWorldTransform( Matrix& ) (EveChildCloud2.cpp:232-235): copies the world transform into out, and returns out.
+   * @param {mat4} out - receives the transform
+   * @returns {mat4} out
+   */
   @meta.implemented
-  GetLocalToWorldTransform(out = null)
+  GetLocalToWorldTransform(out)
   {
-    if (out)
-    {
-      return mat4.copy(out, this.worldTransform);
-    }
-    return this.worldTransform;
+    return mat4.copy(out, this.worldTransform);
   }
 
   /** Carbon EveChildCloud2::IsVisible (cpp:837-852): display + one-arg

@@ -576,19 +576,15 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   }
 
   /**
-   * Returns the child's world transform as stamped by the last sync update.
-   * @param {Float32Array} [out] - caller-owned; when given, receives a copy and is returned instead of the live matrix
-   * @returns {Float32Array} out when supplied, otherwise the live internal matrix
+   * Carbon GetLocalToWorldTransform( Matrix& ) (EveChildInstancedMeshes.cpp:415-418): copies the world transform into out, and returns out.
+   * @param {mat4} out - receives the transform
+   * @returns {mat4} out
    */
   @meta.blue.method
   @meta.implemented
-  GetLocalToWorldTransform(out = null)
+  GetLocalToWorldTransform(out)
   {
-    if (out)
-    {
-      return mat4.copy(out, this.worldTransform);
-    }
-    return this.worldTransform;
+    return mat4.copy(out, this.worldTransform);
   }
 
   /**

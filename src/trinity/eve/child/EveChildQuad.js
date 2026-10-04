@@ -341,20 +341,16 @@ export class EveChildQuad extends EveChildTransform
     }
   }
 
-  /** Returns the local-to-world matrix (EveChildQuad.cpp:198-201).
-   *
-   * Adapted: CarbonEngineJS uses an out-last signature and returns the matrix
-   * when no output is supplied.
+  /**
+   * Carbon GetLocalToWorldTransform( Matrix& ) (EveChildQuad.cpp:198-201): copies the world transform into out, and returns out.
+   * @param {mat4} out - receives the transform
+   * @returns {mat4} out
    */
   @meta.blue.method
-  @meta.adapted
-  GetLocalToWorldTransform(out = null)
+  @meta.implemented
+  GetLocalToWorldTransform(out)
   {
-    if (out)
-    {
-      return mat4.copy(out, this.worldTransform);
-    }
-    return this.worldTransform;
+    return mat4.copy(out, this.worldTransform);
   }
 
   /** Carbon declares ChangeLOD inline empty (EveChildQuad.h:40). */

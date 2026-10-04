@@ -902,7 +902,7 @@ export class EveChildContainer extends EveChildTransform
     {
       // cpp:398-409 - the container has no updater of its own; the palette
       // comes from whichever object owns the animation.
-      const { bones, boneCount } = getBoneList(this.animationOwner?.GetAnimationController?.());
+      const { bones, boneCount } = getBoneList(this.animationOwner ? this.animationOwner.GetAnimationController() : null);
 
       for (const attachment of this.attachments)
       {
@@ -1011,7 +1011,7 @@ export class EveChildContainer extends EveChildTransform
     }
     if (this.attachments.length)
     {
-      const { bones, boneCount } = getBoneList(this.animationOwner?.GetAnimationController());
+      const { bones, boneCount } = getBoneList(this.animationOwner ? this.animationOwner.GetAnimationController() : null);
       for (const attachment of this.attachments)
       {
         attachment.AddToQuadRenderer(quadRenderer, this.worldTransform, 1.0, 0.0, bones, boneCount);
@@ -1019,17 +1019,16 @@ export class EveChildContainer extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildContainer::GetLocalToWorldTransform (cpp:644-647); the
-   * optional out follows the EveChildInstancedMeshes copy-out shape. */
+  /**
+   * Carbon GetLocalToWorldTransform( Matrix& ) (EveChildContainer.cpp:644-647): copies the world transform into out, and returns out.
+   * @param {mat4} out - receives the transform
+   * @returns {mat4} out
+   */
   @meta.blue.method
   @meta.implemented
-  GetLocalToWorldTransform(out = null)
+  GetLocalToWorldTransform(out)
   {
-    if (out)
-    {
-      return mat4.copy(out, this.worldTransform);
-    }
-    return this.worldTransform;
+    return mat4.copy(out, this.worldTransform);
   }
 
   /** Carbon EveChildContainer::ChangeLOD (cpp:649-655): fan-out only. */

@@ -257,17 +257,16 @@ export class EveChildSmartLightSet extends EveChildTransform
     return renderables;
   }
 
-  /** Returns the local-to-world matrix (EveChildSmartLightSet.cpp:162-165). */
+  /**
+   * Carbon GetLocalToWorldTransform( Matrix& ) (EveChildSmartLightSet.cpp:162-165): copies the world transform into out, and returns out.
+   * @param {mat4} out - receives the transform
+   * @returns {mat4} out
+   */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("CarbonEngineJS uses an out-last signature and returns the matrix when no output is supplied.")
-  GetLocalToWorldTransform(out = null)
+  @meta.implemented
+  GetLocalToWorldTransform(out)
   {
-    if (out)
-    {
-      return mat4.copy(out, this.worldTransform);
-    }
-    return this.worldTransform;
+    return mat4.copy(out, this.worldTransform);
   }
 
   /** Fans a controller variable to the distribution and light groups (EveChildSmartLightSet.cpp:167-178). */

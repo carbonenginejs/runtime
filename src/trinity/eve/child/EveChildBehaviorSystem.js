@@ -372,7 +372,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
     return true;
   }
 
-  /** Carbon's body is empty (cpp:678-680). */
+  /** Carbon's body is empty (EveChildBehaviorSystem.cpp:664-666): the argument is left as it was. */
   @meta.blue.method
   @meta.noop
   GetLocalToWorldTransform(_transform = null)

@@ -124,11 +124,11 @@ export class EveChildLink extends EveChildMesh
     vec3.set(shieldEllipsoidCenter, 0, 0, 0);
     if (params?.childParent)
     {
-      EveChildLink._CopyLocalToWorld(this.worldTransform, params.childParent);
+      params.childParent.GetLocalToWorldTransform(this.worldTransform);
     }
     else if (params?.spaceObjectParent)
     {
-      EveChildLink._CopyLocalToWorld(this.worldTransform, params.spaceObjectParent);
+      params.spaceObjectParent.GetLocalToWorldTransform(this.worldTransform);
       // Carbon queries the EveSpaceObject2 interface for GetShapeEllipsoid
       // (EveChildLink.cpp:96-101); other parents keep the zero center.
       const spaceObject = CjsSchema.cast(params.spaceObjectParent, EveSpaceObject2);
@@ -243,34 +243,16 @@ export class EveChildLink extends EveChildMesh
     return false;
   }
 
-  /** Returns the local-to-world matrix (EveChildLink.cpp:189-192).
-   *
-   * Adapted: CarbonEngineJS uses an out-last signature and returns the matrix
-   * when no output is supplied.
+  /**
+   * Carbon GetLocalToWorldTransform( Matrix& ) (EveChildLink.cpp:189-192): copies the world transform into out, and returns out.
+   * @param {mat4} out - receives the transform
+   * @returns {mat4} out
    */
   @meta.blue.method
-  @meta.adapted
-  GetLocalToWorldTransform(out = null)
+  @meta.implemented
+  GetLocalToWorldTransform(out)
   {
-    if (out)
-    {
-      return mat4.copy(out, this.worldTransform);
-    }
-    return this.worldTransform;
-  }
-
-  /**
-   * Copies a parent's local-to-world matrix into out, tolerating both the
-   * out-parameter and the return-the-matrix JS signatures.
-   */
-  static _CopyLocalToWorld(out, parent)
-  {
-    const source = parent.GetLocalToWorldTransform?.(out);
-    if (source && source !== out && source.length === 16)
-    {
-      mat4.copy(out, source);
-    }
-    return out;
+    return mat4.copy(out, this.worldTransform);
   }
 
   static _meshDirection = vec3.fromValues(0, 1, 0);
