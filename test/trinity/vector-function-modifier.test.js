@@ -6,16 +6,16 @@ import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { Tr2VectorFunctionModifier } from "../../npm/dist/trinity/curves/index.js";
 import { Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
 
-// A position source: Carbon calls it the client ball. Each accessor writes a
+// A position source: Carbon calls it the client ball, sampled through its Be::Time overloads. Each accessor writes a
 // distinct value so the test can tell which one the modifier called.
 function source()
 {
   return {
     calls: [],
-    Update(time, out) { this.calls.push([ "Update", time ]); vec3.set(out, 1, 2, 3); },
-    GetValueAt(time, out) { this.calls.push([ "GetValueAt", time ]); vec3.set(out, 1, 2, 3); },
-    GetValueDotAt(_time, out) { vec3.set(out, 10, 0, 0); },
-    GetValueDoubleDotAt(_time, out) { vec3.set(out, 0, 100, 0); },
+    UpdateTicks(time, out) { this.calls.push([ "UpdateTicks", time ]); vec3.set(out, 1, 2, 3); },
+    GetValueAtTicks(time, out) { this.calls.push([ "GetValueAtTicks", time ]); vec3.set(out, 1, 2, 3); },
+    GetValueDotAtTicks(_time, out) { vec3.set(out, 10, 0, 0); },
+    GetValueDoubleDotAtTicks(_time, out) { vec3.set(out, 0, 100, 0); },
     InterpolatedPosition(_time, out) { this.calls.push([ "InterpolatedPosition" ]); vec3.set(out, 7, 7, 7); }
   };
 }
@@ -33,7 +33,7 @@ test("the offset is applied before the scale, so the scale multiplies it too", (
   vec3.set(value.offsetPosition, 5, 0, 0);
 
   const out = vec3.create();
-  value.Update(0, out);
+  value.UpdateTicks(0, out);
 
   // (1 + 5) * 2 = 12. Scaling first would give 1*2 + 5 = 7.
   assert.deepEqual(Array.from(out), [ 12, 4, 6 ]);
@@ -45,11 +45,11 @@ test("derivatives are scaled but never offset", () =>
   vec3.set(value.offsetPosition, 100, 100, 100);
 
   const velocity = vec3.create();
-  value.GetValueDotAt(0, velocity);
+  value.GetValueDotAtTicks(0, velocity);
   assert.deepEqual(Array.from(velocity), [ 30, 0, 0 ], "a constant offset has no rate of change");
 
   const acceleration = vec3.create();
-  value.GetValueDoubleDotAt(0, acceleration);
+  value.GetValueDoubleDotAtTicks(0, acceleration);
   assert.deepEqual(Array.from(acceleration), [ 0, 300, 0 ]);
 });
 
@@ -59,21 +59,21 @@ test("system coordinates read the interpolated position instead of the normal pa
   const value = modifier({ clientBall: ball, useSystemCoordinates: true });
 
   const out = vec3.create();
-  value.Update(42, out);
+  value.UpdateTicks(42, out);
 
   assert.deepEqual(ball.calls, [ [ "InterpolatedPosition" ] ], "the Update path is not taken");
   assert.deepEqual(Array.from(out), [ 7, 7, 7 ]);
 });
 
-test("Update and GetValueAt call their matching source accessor", () =>
+test("UpdateTicks and GetValueAtTicks call their matching source accessor (Carbon Be::Time overloads)", () =>
 {
   const ball = source();
   const value = modifier({ clientBall: ball });
 
-  value.Update(1, vec3.create());
-  value.GetValueAt(2, vec3.create());
+  value.UpdateTicks(1, vec3.create());
+  value.GetValueAtTicks(2, vec3.create());
 
-  assert.deepEqual(ball.calls, [ [ "Update", 1 ], [ "GetValueAt", 2 ] ]);
+  assert.deepEqual(ball.calls, [ [ "UpdateTicks", 1 ], [ "GetValueAtTicks", 2 ] ]);
 });
 
 test("a view-space offset rotates with the view but does not pick up the eye position", () =>
@@ -111,7 +111,7 @@ test("a modifier with no source still applies its own offset and scale", () =>
   vec3.set(value.offsetPosition, 1, 1, 1);
 
   const out = vec3.fromValues(0, 0, 0);
-  value.Update(0, out);
+  value.UpdateTicks(0, out);
 
   assert.deepEqual(Array.from(out), [ 2, 2, 2 ]);
 });

@@ -1,4 +1,4 @@
-import { IsMatch } from "#blue";
+import { IsMatch, TimeAsDouble } from "#blue";
 import { INotify } from "../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/EveCamera.h
 //   trinity/trinity/Eve/EveCamera.cpp
@@ -33,34 +33,6 @@ function isFiniteVector(value)
   return Number.isFinite(value[0]) && Number.isFinite(value[1]) && Number.isFinite(value[2]);
 }
 
-function sampleVector(curve, time, out)
-{
-  if (!curve)
-  {
-    return vec3.zero(out);
-  }
-
-  let result;
-  if (typeof curve.GetValueAt === "function") result = curve.GetValueAt(time, out);
-  else if (typeof curve.Update === "function") result = curve.Update(time, out);
-  else if (typeof curve.UpdateValue === "function") result = curve.UpdateValue(time, out);
-  else result = curve.value;
-
-  if (result && result !== out && result.length >= 3)
-  {
-    vec3.copy(out, result);
-  }
-  return out;
-}
-
-function sampleScalar(curve, time)
-{
-  if (!curve) return 0;
-  if (typeof curve.Update === "function") return Number(curve.Update(time));
-  if (typeof curve.GetValueAt === "function") return Number(curve.GetValueAt(time));
-  if (typeof curve.GetValue === "function") return Number(curve.GetValue(time));
-  return Number(curve.value ?? 0);
-}
 
 function quaternionToYawPitchRoll(out, value)
 {
@@ -659,20 +631,20 @@ export class EveCamera
       return false;
     }
 
-    const simTime = Number(time) || 0;
-    const now = Number(realTime) || 0;
+    const simTime = time;
+    const now = realTime;
     let failed = false;
     if (this._startTime === 0)
     {
       this._startTime = simTime;
     }
 
-    const deltaTime = now - this._time;
+    // Carbon cpp:243-250: the frame delta is real-time ticks in float seconds; the parent samples its Be::Time overload.
+    const deltaTime = Math.fround(TimeAsDouble(now - this._time));
     this._time = now;
 
-    const parentPosition = CAMERA_PARENT_POSITION;
-    if (this.parent) sampleVector(this.parent, simTime, parentPosition);
-    else vec3.zero(parentPosition);
+    const parentPosition = vec3.zero(CAMERA_PARENT_POSITION);
+    if (this.parent) this.parent.GetValueAtTicks(simTime, parentPosition);
     if (this.useExtraTranslation)
     {
       vec3.add(parentPosition, parentPosition, this.extraTranslation);
@@ -696,7 +668,7 @@ export class EveCamera
       if (nextKey && this._zoomTime < nextKey.time)
       {
         this._zoomTime = Math.min(this._zoomTime + deltaTime, nextKey.time);
-        this.fieldOfView = sampleScalar(this.zoomCurve, this._zoomTime);
+        this.fieldOfView = this.zoomCurve.Update(this._zoomTime);
       }
     }
 
@@ -728,7 +700,8 @@ export class EveCamera
 
     if (this.noiseCurve)
     {
-      this.noise = sampleScalar(this.noiseCurve, simTime - this._startTime) > 0;
+      // Carbon cpp:325-347: the noise curves take the ticks since start in seconds.
+      this.noise = this.noiseCurve.Update(TimeAsDouble(simTime - this._startTime)) > 0;
     }
     else
     {
@@ -739,12 +712,12 @@ export class EveCamera
     {
       if (this.noiseScaleCurve)
       {
-        const nextNoiseScale = sampleScalar(this.noiseScaleCurve, simTime - this._startTime);
+        const nextNoiseScale = this.noiseScaleCurve.Update(TimeAsDouble(simTime - this._startTime));
         if (Number.isFinite(nextNoiseScale)) this.noiseScale = nextNoiseScale;
       }
       if (this.noiseDampCurve)
       {
-        const nextNoiseDamp = sampleScalar(this.noiseDampCurve, simTime - this._startTime);
+        const nextNoiseDamp = this.noiseDampCurve.Update(TimeAsDouble(simTime - this._startTime));
         if (Number.isFinite(nextNoiseDamp)) this.noiseDamp = nextNoiseDamp;
       }
 
@@ -775,7 +748,7 @@ export class EveCamera
 
     if (this._trackInterest && this.interest)
     {
-      sampleVector(this.interest, simTime, CAMERA_TRACK_POSITION);
+      this.interest.GetValueAtTicks(simTime, CAMERA_TRACK_POSITION);
       vec3.subtract(CAMERA_TRACK_POSITION, CAMERA_TRACK_POSITION, CAMERA_POSITION);
       vec3.set(
         CAMERA_TRACK_LOCAL,

@@ -156,10 +156,10 @@ export class EveTriggerVolume
    */
   _UpdateWorldTransform(time)
   {
-    EveTriggerVolume._UpdateCurve(
-      this.translationCurve, time, CURVE_TRANSLATION_SCRATCH, EveTriggerVolume._zeroTranslation);
-    EveTriggerVolume._UpdateCurve(
-      this.rotationCurve, time, CURVE_ROTATION_SCRATCH, EveTriggerVolume._identityRotation);
+    if (this.translationCurve) this.translationCurve.UpdateTicks(time, CURVE_TRANSLATION_SCRATCH);
+    else vec3.copy(CURVE_TRANSLATION_SCRATCH, EveTriggerVolume._zeroTranslation);
+    if (this.rotationCurve) this.rotationCurve.UpdateTicks(time, CURVE_ROTATION_SCRATCH);
+    else quat.copy(CURVE_ROTATION_SCRATCH, EveTriggerVolume._identityRotation);
     mat4.fromRotationTranslation(
       this._worldTransform, CURVE_ROTATION_SCRATCH, CURVE_TRANSLATION_SCRATCH);
   }
@@ -238,8 +238,7 @@ export class EveTriggerVolume
     let inside = false;
     if (this.trackedPositionCurve && this.volumes.length)
     {
-      EveTriggerVolume._UpdateCurve(
-        this.trackedPositionCurve, time, TRACKED_POSITION_SCRATCH, EveTriggerVolume._zeroTranslation);
+      this.trackedPositionCurve.UpdateTicks(time, TRACKED_POSITION_SCRATCH);
 
       if (!mat4.invert(INVERSE_WORLD_SCRATCH, this._worldTransform))
       {
@@ -275,7 +274,7 @@ export class EveTriggerVolume
   @meta.implemented
   UpdateSyncronous(updateContext = null)
   {
-    const time = EveTriggerVolume._GetTime(updateContext);
+    const time = updateContext.GetTime();
     this._UpdateWorldTransform(time);
     this._RebuildBoundingSphere();
     this._UpdateTriggerState(time);
@@ -407,32 +406,6 @@ export class EveTriggerVolume
     if (aRadius < bRadius) return false;
     const difference = aRadius - bRadius;
     return vec3.squaredDistance(bCenter, aCenter) <= difference * difference;
-  }
-
-  /** Evaluates a curve at a time into out, falling back when no curve is wired. */
-  static _UpdateCurve(curve, time, out, fallback)
-  {
-    if (!curve)
-    {
-      for (let index = 0; index < out.length; index++) out[index] = fallback[index];
-      return out;
-    }
-    let result;
-    if (typeof curve.Update === "function") result = curve.Update(time, out);
-    else if (typeof curve.GetValueAt === "function") result = curve.GetValueAt(time, out);
-    if ((Array.isArray(result) || ArrayBuffer.isView(result)) && result !== out)
-    {
-      for (let index = 0; index < out.length; index++) out[index] = result[index];
-    }
-    return out;
-  }
-
-  /** Reads the frame time from the duck-typed update context. */
-  static _GetTime(updateContext)
-  {
-    if (!updateContext) return 0;
-    if (typeof updateContext.GetTime === "function") return Number(updateContext.GetTime()) || 0;
-    return Number(updateContext.currentTime ?? updateContext.time ?? 0) || 0;
   }
 
   static _zeroTranslation = [ 0, 0, 0 ];

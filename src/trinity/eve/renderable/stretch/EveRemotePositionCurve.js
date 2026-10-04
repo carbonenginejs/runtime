@@ -3,6 +3,7 @@
 import { num } from "#math/num";
 import { vec3 } from "#math/vec3";
 import { meta } from "#schema";
+import { ITriVectorFunction, TimeAsDouble } from "#blue";
 
 
 /**
@@ -13,7 +14,7 @@ import { meta } from "#schema";
   className: "EveRemotePositionCurve",
   family: "eve/renderable/stretch"
 })
-export class EveRemotePositionCurve
+export class EveRemotePositionCurve extends ITriVectorFunction
 {
   @meta.blue.readwrite
   @meta.blue.persist
@@ -56,26 +57,43 @@ export class EveRemotePositionCurve
   _currentOffsetDir = vec3.create();
 
   /**
-   * Time-only entry point; evaluates the curve for its effect on value and
-   * discards the returned vector.
+   * Carbon's inline UpdateValue (EveRemotePositionCurve.h:20-24) calls the double Update, which is a no-op; the sweep
+   * advances only through UpdateTicks.
+   * @param {number} time Seconds.
    */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Carbon's output-first Be::Time overload is represented by the org-standard time-first JavaScript curve convention.")
+  @meta.implemented
   UpdateValue(time)
   {
     this.Update(time, this._startPosition);
   }
 
   /**
-   * Advances the sweep and writes the start-curve position plus the interpolated offset into both value and out. The start time latches on the first call, the sweep stays at its first direction until delayTime has passed, and with cycle set it wraps every sweepTime instead of holding at the second direction.
-   * @param {Array} out - caller-owned vec3; zeroed when there is no start-position curve
-   * @returns {Array} out
+   * Carbon's Update(double) is a no-op returning its input (EveRemotePositionCurve.cpp:75-78); UpdateTicks advances
+   * the sweep.
+   * @param {number} _time Unused seconds.
+   * @param {Float32Array} out Caller-owned vec3, returned unchanged.
+   * @returns {Float32Array} out
    */
   @meta.blue.method
+  @meta.implemented
+  Update(_time, out)
+  {
+    return out;
+  }
+
+  /**
+   * Carbon's Update(Be::Time) (cpp:28-69): advances the sweep and writes the start-curve position plus the
+   * interpolated offset into both value and out. The start time latches on the first call, the sweep stays at its
+   * first direction until delayTime has passed, and with cycle set it wraps every sweepTime instead of holding at the
+   * second direction. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array} out Caller-owned vec3; zeroed when there is no start-position curve.
+   * @returns {Float32Array} out
+   */
+  @meta.blue.renamed("Update")
   @meta.adapted
-  @meta.reason("Carbon's output-first Be::Time overload is represented by the org-standard time-first JavaScript curve convention.")
-  Update(time, out)
+  UpdateTicks(time, out)
   {
     if (!this.startPositionCurve)
     {
@@ -85,7 +103,7 @@ export class EveRemotePositionCurve
     {
       this._startTime = time;
     }
-    const timeSinceStart = time - this._startTime;
+    const timeSinceStart = Math.fround(TimeAsDouble(time - this._startTime));
     let s = 0;
     if (timeSinceStart > this.delayTime)
     {
@@ -99,7 +117,7 @@ export class EveRemotePositionCurve
       }
     }
     vec3.lerp(this._currentOffsetDir, this.offsetDir1, this.offsetDir2, s);
-    this.startPositionCurve.GetValueAt(time, this._startPosition);
+    this.startPositionCurve.GetValueAtTicks(time, this._startPosition);
     vec3.add(this.value, this._startPosition, this._currentOffsetDir);
     return vec3.copy(out, this.value);
   }

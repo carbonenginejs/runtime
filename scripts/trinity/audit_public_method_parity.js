@@ -241,7 +241,11 @@ async function ReadJavaScriptClasses(directory, includeDropped = false)
           const call = decorator.expression;
           if (call?.type !== "CallExpression" || !isCarbonDecorator(call, "renamed")) continue;
           const original = call.arguments[0];
-          if (original?.type === "StringLiteral") methods.set(original.value, metadata);
+          if (original?.type !== "StringLiteral") continue;
+          // A twin JS splits off by name (a Be::Time ...Ticks overload) must not erase the exposure of the
+          // exact-name method it sits beside.
+          const existing = methods.get(original.value);
+          methods.set(original.value, existing ? { ...existing, hasCarbon: existing.hasCarbon || metadata.hasCarbon } : metadata);
         }
       }
       const localBase = GetSuperClassName(declaration.superClass);

@@ -4,7 +4,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { meta } from "#schema";
 import { LocalPositionBehavior } from "../../../generated/eve/renderable/stretch/enums.js";
-import { blue } from "#blue";
+import { blue, ITriVectorFunction } from "#blue";
 
 
 /**
@@ -13,7 +13,7 @@ import { blue } from "#blue";
  * offset - selected by an authored behaviour.
  */
 @meta.define({ className: "EveLocalPositionCurve", family: "eve/renderable/stretch" })
-export class EveLocalPositionCurve
+export class EveLocalPositionCurve extends ITriVectorFunction
 {
   @meta.blue.readwrite
   @meta.blue.persist
@@ -65,13 +65,27 @@ export class EveLocalPositionCurve
   }
 
   /**
-   * Evaluates the selected behaviour at time.
-   * @param {Array} [out] - caller-owned vec3; defaults to the curve's own value field, so callers that pass nothing update it in place. Under POS_NONE the incoming out is stored as the curve's value and returned unchanged.
-   * @returns {Array} out
+   * Carbon's Update(double) is a no-op returning its input (EveLocalPositionCurve.cpp:302-305); UpdateTicks is the
+   * overload that evaluates behaviours.
+   * @param {number} _time Unused seconds.
+   * @param {Float32Array} out Caller-owned vec3, returned unchanged.
+   * @returns {Float32Array} out
    */
-  @meta.blue.method @meta.adapted
-  @meta.reason("Carbon overloads Be::Time and double; JavaScript has one numeric time domain and follows the org out-last convention.")
-  Update(time, out = this.value)
+  @meta.blue.method @meta.implemented
+  Update(_time, out)
+  {
+    return out;
+  }
+
+  /**
+   * Carbon's Update(Be::Time) (cpp:269-300): evaluates the selected behaviour. Under POS_NONE the incoming out is
+   * stored as the curve's value and returned unchanged. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array} out Caller-owned vec3.
+   * @returns {Float32Array} out
+   */
+  @meta.blue.renamed("Update") @meta.adapted
+  UpdateTicks(time, out)
   {
     switch (this.behavior)
     {
@@ -98,16 +112,29 @@ export class EveLocalPositionCurve
   }
 
   /**
-   * Seeds out with the last stored value and re-evaluates the behaviour at time, unlike the pure accessors on the simpler curves.
-   * @param {Array} [out] - caller-owned vec3; a fresh vector is allocated when omitted
-   * @returns {Array} out
+   * Carbon's GetValueAt(double) (cpp:316-322): copies the last stored value without re-evaluating.
+   * @param {number} _time Unused seconds.
+   * @param {Float32Array} out Caller-owned vec3.
+   * @returns {Float32Array} out
    */
-  @meta.blue.method @meta.adapted
-  @meta.reason("JavaScript uses CarbonEngineJS's standard time-first, out-last curve convention.")
-  GetValueAt(time, out = vec3.create())
+  @meta.blue.method @meta.implemented
+  GetValueAt(_time, out)
+  {
+    return vec3.copy(out, this.value);
+  }
+
+  /**
+   * Carbon's GetValueAt(Be::Time) (cpp:307-314): seeds out with the last stored value and re-evaluates the behaviour.
+   * JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array} out Caller-owned vec3.
+   * @returns {Float32Array} out
+   */
+  @meta.blue.renamed("GetValueAt") @meta.adapted
+  GetValueAtTicks(time, out)
   {
     vec3.copy(out, this.value);
-    return this.Update(time, out);
+    return this.UpdateTicks(time, out);
   }
 
   /**
@@ -130,7 +157,7 @@ export class EveLocalPositionCurve
    * returned untouched.
    */
   @meta.blue.method @meta.implemented
-  GetValueDotAt(_time, out = vec3.create())
+  GetValueDotAt(_time, out)
   {
     return out;
   }
@@ -140,19 +167,19 @@ export class EveLocalPositionCurve
    * returned untouched.
    */
   @meta.blue.method @meta.implemented
-  GetValueDoubleDotAt(_time, out = vec3.create())
+  GetValueDoubleDotAt(_time, out)
   {
     return out;
   }
 
   /**
    * Widens the last computed value into a double-precision three-element buffer for the camera-relative path; it does not re-evaluate the behaviour.
-   * @param {Float64Array} [out] - caller-owned; a fresh buffer is allocated when omitted
+   * @param {Float64Array} out - caller-owned
    * @returns {Float64Array} out
    */
   @meta.blue.method @meta.adapted
   @meta.reason("Vector3d is represented by any three-element numeric output buffer in JavaScript.")
-  InterpolatedPosition(_time, out = new Float64Array(3))
+  InterpolatedPosition(_time, out)
   {
     out[0] = this.value[0];
     out[1] = this.value[1];
@@ -170,12 +197,12 @@ export class EveLocalPositionCurve
     vec3.copy(out, this.positionOffset);
     if (this.parentRotationCurve)
     {
-      sampleQuaternion(this.parentRotationCurve, time, EveLocalPositionCurve._rotation);
+      this.parentRotationCurve.GetValueAtTicks(time, EveLocalPositionCurve._rotation);
       vec3.transformQuat(out, out, EveLocalPositionCurve._rotation);
     }
     if (this.parentPositionCurve)
     {
-      sampleVector(this.parentPositionCurve, time, EveLocalPositionCurve._parentPosition);
+      this.parentPositionCurve.GetValueAtTicks(time, EveLocalPositionCurve._parentPosition);
       vec3.add(out, out, EveLocalPositionCurve._parentPosition);
     }
     return out;
@@ -189,8 +216,8 @@ export class EveLocalPositionCurve
    */
   CalculateOffsetPlaneRotation(time, out)
   {
-    sampleVector(this.parentPositionCurve, time, EveLocalPositionCurve._parentPosition);
-    if (this.alignPositionCurve) sampleVector(this.alignPositionCurve, time, out);
+    if (this.parentPositionCurve) this.parentPositionCurve.GetValueAtTicks(time, EveLocalPositionCurve._parentPosition);
+    if (this.alignPositionCurve) this.alignPositionCurve.GetValueAtTicks(time, out);
     else vec3.copy(out, this.positionOffset);
 
     const length = vec3.distance(out, EveLocalPositionCurve._parentPosition);
@@ -216,16 +243,16 @@ export class EveLocalPositionCurve
   {
     if (!(this.parentPositionCurve && this.alignPositionCurve && this.parentRotationCurve))
     {
-      if (this.parentPositionCurve) sampleVector(this.parentPositionCurve, time, out);
+      if (this.parentPositionCurve) this.parentPositionCurve.GetValueAtTicks(time, out);
       return out;
     }
 
     const parentPosition = EveLocalPositionCurve._parentPosition;
     const alignedPosition = EveLocalPositionCurve._alignedPosition;
     const direction = EveLocalPositionCurve._direction;
-    sampleVector(this.parentPositionCurve, time, parentPosition);
-    sampleVector(this.alignPositionCurve, time, alignedPosition);
-    sampleQuaternion(this.parentRotationCurve, time, EveLocalPositionCurve._rotation);
+    this.parentPositionCurve.GetValueAtTicks(time, parentPosition);
+    this.alignPositionCurve.GetValueAtTicks(time, alignedPosition);
+    this.parentRotationCurve.GetValueAtTicks(time, EveLocalPositionCurve._rotation);
     vec3.normalize(direction, vec3.subtract(direction, alignedPosition, parentPosition));
 
     quat.normalize(EveLocalPositionCurve._rotation, EveLocalPositionCurve._rotation);
@@ -262,7 +289,7 @@ export class EveLocalPositionCurve
     if (!(this.alignPositionCurve && this.parent)) return out;
     if (this.damageLocatorIndex === -1)
     {
-      sampleVector(this.alignPositionCurve, time, EveLocalPositionCurve._parentPosition);
+      this.alignPositionCurve.GetValueAtTicks(time, EveLocalPositionCurve._parentPosition);
       this.damageLocatorIndex = Number(this.parent.GetGoodDamageLocatorIndex?.(EveLocalPositionCurve._parentPosition) ?? -1) | 0;
     }
     this.parent.GetDamageLocatorPosition?.(this.damageLocatorIndex, true, out);
@@ -277,7 +304,7 @@ export class EveLocalPositionCurve
   GetDamageLocatorImpact(time, out)
   {
     if (!(this.alignPositionCurve && this.parent)) return out;
-    sampleVector(this.alignPositionCurve, time, EveLocalPositionCurve._parentPosition);
+    this.alignPositionCurve.GetValueAtTicks(time, EveLocalPositionCurve._parentPosition);
     if (this.damageLocatorIndex === -1)
     {
       this.damageLocatorIndex = Number(this.parent.GetGoodDamageLocatorIndex?.(EveLocalPositionCurve._parentPosition) ?? -1) | 0;
@@ -324,21 +351,4 @@ export class EveLocalPositionCurve
   static _direction = vec3.create();
   static _localDirection = vec3.create();
   static _rotation = quat.create();
-}
-
-function sampleVector(curve, time, out)
-{
-  if (!curve) return out;
-  if (curve.GetValueAt) curve.GetValueAt(time, out);
-  else if (curve.Update) curve.Update(time, out);
-  else if (curve.value?.length >= 3) vec3.copy(out, curve.value);
-  return out;
-}
-
-function sampleQuaternion(curve, time, out)
-{
-  if (curve.GetValueAt) curve.GetValueAt(time, out);
-  else if (curve.Update) curve.Update(time, out);
-  else if (curve.value?.length >= 4) quat.copy(out, curve.value);
-  return out;
 }

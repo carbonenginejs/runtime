@@ -85,14 +85,14 @@ test("empty and before-key sampling preserve outputs while zero drag keeps nativ
   const curve = new TriRigidOrientation();
   const out = new Float32Array(4), velocity = new Float32Array(3);
   assert.equal(curve.Seek(0), -1);
-  assert.equal(curve.GetValueAt(out, 0), out);
+  assert.equal(curve.GetValueAt(0, out), out);
   assert.deepEqual(Array.from(out), [0, 0, 0, 1]);
   const key = new TriTorque();
   key.time = 5;
   curve.states.push(key);
-  curve.GetValueDotAt(velocity, 4);
+  curve.GetValueDotAt(4, velocity);
   assert.deepEqual(Array.from(velocity), [0, 0, 0]);
   curve.drag = 0;
-  curve.GetValueDotAt(velocity, 6);
+  curve.GetValueDotAt(6, velocity);
   assert.ok(Array.from(velocity).every(Number.isNaN));
 });

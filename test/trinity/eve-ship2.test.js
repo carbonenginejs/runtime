@@ -19,10 +19,10 @@ test("EveShip2 derives speed and drives boosters from the position curve", () =>
     UpdateTrails(deltaT, time) { boosterCalls.push(["UpdateTrails", deltaT, time]); },
     GetBoosterIntensity() { return 0.75; }
   };
-  ship.translationCurve = {
-    GetValueAt(_time, out) { out[0] = 0; out[1] = 0; out[2] = 0; return out; },
-    GetValueDotAt(_time, out) { out[0] = 3; out[1] = 4; out[2] = 0; return out; },
-    GetValueDoubleDotAt(_time, out) { out[0] = 9; out[1] = 0; out[2] = 0; return out; }
+  ship.translationCurve = { UpdateTicks(time, out) { return this.GetValueAtTicks(time, out); },
+    GetValueAtTicks(_time, out) { out[0] = 0; out[1] = 0; out[2] = 0; return out; },
+    GetValueDotAtTicks(_time, out) { out[0] = 3; out[1] = 4; out[2] = 0; return out; },
+    GetValueDoubleDotAtTicks(_time, out) { out[0] = 9; out[1] = 0; out[2] = 0; return out; }
   };
 
   const context = new EveUpdateContext();

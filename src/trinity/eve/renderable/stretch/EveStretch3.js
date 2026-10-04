@@ -518,8 +518,8 @@ export class EveStretch3 extends IEveFiringEffectElement
     const time = context.GetTime();
     for (const binding of this.dynamicBindings) binding.Update(time);
     for (const controller of this.controllers) controller.Update(0.5);
-    if (this.source) this.source.Update(time, this.sourcePosition);
-    if (this.dest) this.dest.Update(time, this.destinationPosition);
+    if (this.source) this.source.UpdateTicks(time, this.sourcePosition);
+    if (this.dest) this.dest.UpdateTicks(time, this.destinationPosition);
     this.length.value = vec3.distance(this.sourcePosition, this.destinationPosition);
 
     const params = this._makeParams();

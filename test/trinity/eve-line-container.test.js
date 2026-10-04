@@ -52,14 +52,14 @@ test("EveLineContainer rebuilds one real line set in exact connector order", () 
 
   const point = new eve.EveConnector();
   point.sourceObject = {
-    GetValueAt(time, out)
+    GetValueAtTicks(time, out)
     {
       calls.push([ "point-source", time ]);
       vec3.set(out, 0, 0, 0);
     }
   };
   point.destObject = {
-    GetValueAt(time, out)
+    GetValueAtTicks(time, out)
     {
       calls.push([ "point-destination", time ]);
       vec3.set(out, 2, 0, 0);

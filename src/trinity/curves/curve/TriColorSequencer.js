@@ -146,6 +146,51 @@ export class TriColorSequencer extends ITriColorFunction
   }
 
   /**
+   * Carbon's Update(Be::Time) (TriSequencer.cpp:303-310): samples the tick overload and caches it. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array} out Destination color.
+   * @returns {Float32Array} The destination.
+   */
+  @meta.blue.renamed("Update")
+  @meta.adapted
+  UpdateTicks(time, out)
+  {
+    this.GetValueAtTicks(time, out);
+    vec4.copy(this.value, out);
+    return out;
+  }
+
+  /**
+   * Carbon's GetValueAt(Be::Time) (cpp:321-352): children sample through their Be::Time overloads, and the ADD arm
+   * seeds zero where the double overload seeds one - Carbon's own asymmetry, kept. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array} out Destination color.
+   * @returns {Float32Array} The destination.
+   */
+  @meta.blue.renamed("GetValueAt")
+  @meta.adapted
+  GetValueAtTicks(time, out)
+  {
+    if (this.operator === TRIOPERATOR.TRIOP_MULTIPLY)
+    {
+      vec4.set(out, 1, 1, 1, 1);
+      for (const curve of this.functions)
+      {
+        curve.GetValueAtTicks(time, this._childValue);
+        vec4.multiply(out, out, this._childValue);
+      }
+      return out;
+    }
+    vec4.set(out, 0, 0, 0, 0);
+    for (const curve of this.functions)
+    {
+      curve.GetValueAtTicks(time, this._childValue);
+      vec4.add(out, out, this._childValue);
+    }
+    return out;
+  }
+
+  /**
    * Gets the longest duration exposed by a child function.
    * JavaScript queries exact native ITriDuration before ITriCurveLength; an advertised method is required.
    * @returns {number} Greatest child duration.

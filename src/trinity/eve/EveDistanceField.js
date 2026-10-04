@@ -331,13 +331,15 @@ export class EveDistanceField
   }
 
   /**
-   * Evaluates a tracked vector curve at time into out, leaving out unchanged
-   * when the curve yields nothing usable.
+   * Samples a tracked vector function through its Be::Time overload (EveDistanceField.cpp:52-72, 138).
+   * @param {ITriVectorFunction} object Tracked function.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array} out Caller-owned position.
+   * @returns {Float32Array} out
    */
   static _sampleObject(object, time, out)
   {
-    const result = object?.GetValueAt?.(time, out);
-    return result?.length >= 3 ? vec3.copy(out, result) : out;
+    return object.GetValueAtTicks(time, out);
   }
 
   /**

@@ -238,8 +238,8 @@ test("UpdateVisibility + GetRenderables cull real EveSpaceObject2s through a rea
       }
     };
     object.SetBoundingSphereInformation(new Float32Array([0, 0, 0, 10]));
-    object.translationCurve = {
-      Update(_time, out)
+    object.translationCurve = { GetValueDotAtTicks(_time, out) { return out; },
+      UpdateTicks(_time, out)
       {
         out.set(position);
       }

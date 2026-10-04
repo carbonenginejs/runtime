@@ -144,8 +144,7 @@ export class AudioGameObject
    */
   UpdateSyncronous(updateContext = null)
   {
-    const time = updateContext?.GetTime?.() ?? updateContext?.time ?? 0;
-    this.UpdateWorldTransform(time);
+    this.UpdateWorldTransform(updateContext.GetTime());
     if (this.audioEmitter && !this.mute)
     {
       this._SetEmitterPosition(this.GetWorldPosition(vec3.create()));
@@ -228,11 +227,13 @@ export class AudioGameObject
    */
   UpdateWorldTransform(time)
   {
-    const translation = vec3.clone(this.translation);
-    const rotation = quat.clone(this.rotation);
-    this.translationCurve?.Update(time, translation);
-    this.rotationCurve?.Update(time, rotation);
-    mat4.fromRotationTranslation(this._worldTransform, rotation, translation);
+    const { vec3_0, quat_0 } = AudioGameObject.scratch;
+    // Carbon samples each ball curve through its Be::Time overload, or keeps the authored value (cpp:150-170).
+    if (this.translationCurve) this.translationCurve.UpdateTicks(time, vec3_0);
+    else vec3.copy(vec3_0, this.translation);
+    if (this.rotationCurve) this.rotationCurve.UpdateTicks(time, quat_0);
+    else quat.copy(quat_0, this.rotation);
+    mat4.fromRotationTranslation(this._worldTransform, quat_0, vec3_0);
     return this._worldTransform;
   }
 
@@ -262,4 +263,9 @@ export class AudioGameObject
 
   static FRONT = Object.freeze([0, 1, 0]);
   static TOP = Object.freeze([0, 0, 1]);
+
+  static scratch = {
+    vec3_0: vec3.create(),
+    quat_0: quat.create()
+  };
 }

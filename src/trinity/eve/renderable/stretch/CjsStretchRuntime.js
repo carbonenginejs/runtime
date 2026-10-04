@@ -32,21 +32,6 @@ export function getOriginShift(context)
 }
 
 /**
- * Samples a vector curve at time through whichever of Update/UpdateValue/GetValueAt the hydrated object exposes, falling back to its stored value field.
- * @param {Array} out - caller-owned vec3; returned unchanged when the curve is null or exposes none of those entry points
- * @returns {Array} out
- */
-export function sampleVector(curve, time, out)
-{
-  if (!curve) return out;
-  if (typeof curve.Update === "function") curve.Update(time, out);
-  else if (typeof curve.UpdateValue === "function") curve.UpdateValue(time, out);
-  else if (typeof curve.GetValueAt === "function") curve.GetValueAt(time, out);
-  else if (curve.value?.length >= 3) vec3.copy(out, curve.value);
-  return out;
-}
-
-/**
  * Advances a curve set to an absolute time, using UpdateDelta for objects that
  * predate the two-argument Update.
  */

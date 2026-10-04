@@ -24,21 +24,27 @@ const contracts = [
   },
   {
     name: "ITriScalarFunction", Contract: ITriScalarFunction, direct: DirectScalar, base: ITriFunction,
-    own: [ "Update", "GetValueAt", "ScaleTime" ], abstract: [ "Update", "GetValueAt", "ScaleTime" ]
+    own: [ "Update", "GetValueAt", "ScaleTime", "UpdateTicks", "GetValueAtTicks" ], abstract: [ "Update", "GetValueAt", "ScaleTime" ],
+    ticks: [ "UpdateTicks", "GetValueAtTicks" ]
   },
   {
     name: "ITriVectorFunction", Contract: ITriVectorFunction, direct: DirectVector, base: ITriFunction,
-    own: [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleDotAt", "InterpolatedPosition" ],
-    abstract: [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleDotAt", "InterpolatedPosition" ]
+    own: [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleDotAt", "InterpolatedPosition",
+      "UpdateTicks", "GetValueAtTicks", "GetValueDotAtTicks", "GetValueDoubleDotAtTicks" ],
+    abstract: [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleDotAt", "InterpolatedPosition" ],
+    ticks: [ "UpdateTicks", "GetValueAtTicks", "GetValueDotAtTicks", "GetValueDoubleDotAtTicks" ]
   },
   {
     name: "ITriQuaternionFunction", Contract: ITriQuaternionFunction, direct: DirectQuaternion, base: ITriFunction,
-    own: [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleDotAt" ],
-    abstract: [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleDotAt" ]
+    own: [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleDotAt",
+      "UpdateTicks", "GetValueAtTicks", "GetValueDotAtTicks", "GetValueDoubleDotAtTicks" ],
+    abstract: [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleDotAt" ],
+    ticks: [ "UpdateTicks", "GetValueAtTicks", "GetValueDotAtTicks", "GetValueDoubleDotAtTicks" ]
   },
   {
     name: "ITriColorFunction", Contract: ITriColorFunction, direct: DirectColor, base: ITriFunction,
-    own: [ "Update", "GetValueAt" ], abstract: [ "Update", "GetValueAt" ]
+    own: [ "Update", "GetValueAt", "UpdateTicks", "GetValueAtTicks" ], abstract: [ "Update", "GetValueAt" ],
+    ticks: [ "UpdateTicks", "GetValueAtTicks" ]
   },
   {
     name: "ITriCurveLength", Contract: ITriCurveLength, direct: DirectLength,
@@ -55,7 +61,7 @@ const contracts = [
   }
 ];
 
-for (const { name, Contract, direct, base, own, abstract } of contracts)
+for (const { name, Contract, direct, base, own, abstract, ticks = [] } of contracts)
 {
   const required = base ? [ "UpdateValue", ...abstract ] : abstract;
   const hasReset = Contract === ITriFunction || base === ITriFunction;
@@ -76,6 +82,11 @@ for (const { name, Contract, direct, base, own, abstract } of contracts)
       assert.equal(CjsSchema.getMethod(Contract, method).impl.status, "abstract", `${name}.${method}`);
     }
     if (hasReset) assert.equal(CjsSchema.getMethod(Contract, "Reset").impl.status, "noop");
+    // Carbon's Be::Time overloads: one shared TimeAsDouble forward per interface, overridden where Carbon differs.
+    for (const method of ticks)
+    {
+      assert.equal(CjsSchema.getMethod(Contract, method).impl.status, "adapted", `${name}.${method}`);
+    }
   });
 
   test(`${name} preserves required operations and the native Reset default when inherited or composed`, () =>

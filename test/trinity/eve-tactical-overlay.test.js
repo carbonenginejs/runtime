@@ -118,12 +118,12 @@ test("EveTacticalOverlay owns one initialized variable store and direct update o
 
   const calls = [];
   overlay.translationCurve = {
-    GetValueAt(time, out)
+    GetValueAtTicks(time, out)
     {
       calls.push([ "root-position", time ]);
       vec3.set(out, 0, 0, 0);
     },
-    GetValueDotAt(time, out)
+    GetValueDotAtTicks(time, out)
     {
       calls.push([ "root-velocity", time ]);
       vec3.set(out, 1, 2, 3);
@@ -131,12 +131,12 @@ test("EveTacticalOverlay owns one initialized variable store and direct update o
   };
   const track = new eve.EveTacticalOverlayTrackObject();
   track.translationCurve = {
-    GetValueDotAt(time, out)
+    GetValueDotAtTicks(time, out)
     {
       calls.push([ "track-velocity", time ]);
       vec3.set(out, 6, 7, 8);
     },
-    GetValueAt(time, out)
+    GetValueAtTicks(time, out)
     {
       calls.push([ "track-position", time ]);
       vec3.set(out, 0, 4, 3);
@@ -173,13 +173,13 @@ test("EveTacticalOverlay owns one initialized variable store and direct update o
 
   const directTrack = new eve.EveTacticalOverlayTrackObject();
   directTrack.translationCurve = {
-    GetValueDotAt() {},
-    GetValueAt() {}
+    GetValueDotAtTicks() {},
+    GetValueAtTicks() {}
   };
   assert.throws(() => directTrack.UpdatePosition({}), /GetTime/u);
-  directTrack.translationCurve = { GetValueAt() {} };
+  directTrack.translationCurve = { GetValueAtTicks() {} };
   assert.throws(() => directTrack.UpdatePosition(makeUpdateContext()), /GetValueDotAt/u);
-  directTrack.translationCurve = { GetValueDotAt() {} };
+  directTrack.translationCurve = { GetValueDotAtTicks() {} };
   assert.throws(() => directTrack.UpdatePosition(makeUpdateContext()), /GetValueAt/u);
 });
 
@@ -196,8 +196,8 @@ test("EveTacticalOverlay emits exact anchor, connector and velocity instance rec
   overlay.interestRange = 1;
   overlay.minRadiusForRange = 1;
   overlay.translationCurve = {
-    GetValueAt(_time, out) { vec3.set(out, 0, 0, 0); },
-    GetValueDotAt(_time, out) { vec3.set(out, 1, 2, 3); }
+    GetValueAtTicks(_time, out) { vec3.set(out, 0, 0, 0); },
+    GetValueDotAtTicks(_time, out) { vec3.set(out, 1, 2, 3); }
   };
 
   const track = new eve.EveTacticalOverlayTrackObject();
@@ -205,8 +205,8 @@ test("EveTacticalOverlay emits exact anchor, connector and velocity instance rec
   track.isAggressive = true;
   track.showVelocity = true;
   track.translationCurve = {
-    GetValueDotAt(_time, out) { vec3.set(out, 6, 7, 8); },
-    GetValueAt(_time, out) { vec3.set(out, 0, 4, 3); }
+    GetValueDotAtTicks(_time, out) { vec3.set(out, 6, 7, 8); },
+    GetValueAtTicks(_time, out) { vec3.set(out, 0, 4, 3); }
   };
   overlay.trackObjects.push(track);
   overlay.interestObject = track;

@@ -1299,39 +1299,42 @@ export class EveSpaceObject2 extends EveEntity
   @meta.adapted
   UpdateWorldTransform(time)
   {
-    const nextTime = Number(time) || 0;
-    if (this._lastUpdateTransformTime === nextTime)
+    if (this._lastUpdateTransformTime === time)
     {
       return false;
     }
-    this._lastUpdateTransformTime = nextTime;
+    this._lastUpdateTransformTime = time;
     mat4.copy(this.lastWorldTransform, this.worldTransform);
     // Carbon cpp:2675-2676: the OUTGOING transform becomes worldTransformLast,
     // stored transposed in both records, before the new one is built.
     this._vsData.SetAndTranspose("worldTransformLast", this.lastWorldTransform);
     this._psData.SetAndTranspose("worldTransformLast", this.lastWorldTransform);
 
-    EveSpaceObject2._UpdateCurve(this.translationCurve, nextTime, this.worldPosition, EveSpaceObject2._zero);
-    if (this.translationCurve?.GetValueDotAt)
+    if (this.translationCurve)
     {
-      this.translationCurve.GetValueDotAt(nextTime, this.worldVelocity);
+      this.translationCurve.UpdateTicks(time, this.worldPosition);
+      this.translationCurve.GetValueDotAtTicks(time, this.worldVelocity);
     }
     else
     {
-      vec3.set(this.worldVelocity, 0, 0, 0);
+      vec3.zero(this.worldPosition);
+      vec3.zero(this.worldVelocity);
     }
 
-    EveSpaceObject2._UpdateCurve(this.rotationCurve, nextTime, this.worldRotation, EveSpaceObject2._identityRotation);
-    const rotation = quat.clone(this.worldRotation);
+    if (this.rotationCurve) this.rotationCurve.UpdateTicks(time, this.worldRotation);
+    else quat.identity(this.worldRotation);
     if (this.modelRotationCurve)
     {
-      const modelRotation = quat.create();
-      EveSpaceObject2._UpdateCurve(this.modelRotationCurve, nextTime, modelRotation, EveSpaceObject2._identityRotation);
+      const { _modelRotation, _rotation } = EveSpaceObject2;
+      this.modelRotationCurve.UpdateTicks(time, _modelRotation);
       // Carbon (row-vector): rotation = modelRotation * m_worldRotation - model first.
-      quat.multiply(rotation, rotation, modelRotation);
+      quat.multiply(_rotation, this.worldRotation, _modelRotation);
+      mat4.fromQuat(this.worldTransform, _rotation);
     }
-
-    mat4.fromQuat(this.worldTransform, rotation);
+    else
+    {
+      mat4.fromQuat(this.worldTransform, this.worldRotation);
+    }
     if (this.modelScale !== 1)
     {
       // Carbon (row-vector): m_worldTransform * scaleMatrix - scale LAST
@@ -1344,8 +1347,8 @@ export class EveSpaceObject2 extends EveEntity
 
     if (this.modelTranslationCurve)
     {
-      const modelTranslation = vec3.create();
-      EveSpaceObject2._UpdateCurve(this.modelTranslationCurve, nextTime, modelTranslation, EveSpaceObject2._zero);
+      const modelTranslation = EveSpaceObject2._modelTranslation;
+      this.modelTranslationCurve.UpdateTicks(time, modelTranslation);
       vec3.transformMat4(modelTranslation, modelTranslation, this.worldTransform);
       this.worldTransform[12] = this.worldPosition[0] + modelTranslation[0];
       this.worldTransform[13] = this.worldPosition[1] + modelTranslation[1];
@@ -4281,22 +4284,21 @@ export class EveSpaceObject2 extends EveEntity
   // rotation rotates the position and pre-multiplies.
 
   /**
-   * Applies the model translation and rotation curves sampled at time 0 to a
-   * locator position and rotation, matching Carbon's Blue locator surface, which
-   * reads the curves without advancing playback.
+   * Applies the model translation and rotation curves to a locator position and rotation, sampled through their
+   * Be::Time overloads at Be::Time() zero without advancing playback (EveSpaceObject2_Blue.cpp:48-63).
    */
   _ApplyModelTransform(position, rotation)
   {
     if (this.modelTranslationCurve)
     {
-      const translation = vec3.create();
-      this.modelTranslationCurve.GetValueAt?.(0, translation);
+      const translation = vec3.zero(EveSpaceObject2._modelTranslation);
+      this.modelTranslationCurve.GetValueAtTicks(0, translation);
       vec3.add(position, position, translation);
     }
     if (this.modelRotationCurve)
     {
-      const modelRotation = quat.create();
-      this.modelRotationCurve.GetValueAt?.(0, modelRotation);
+      const modelRotation = quat.identity(EveSpaceObject2._modelRotation);
+      this.modelRotationCurve.GetValueAtTicks(0, modelRotation);
       vec3.transformQuat(position, position, modelRotation);
       quat.multiply(rotation, modelRotation, rotation);
     }
@@ -4540,41 +4542,6 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /**
-   * Samples a curve into out through whichever of Update or GetValueAt it
-   * exposes, writing the fallback when there is no curve and copying back curves
-   * that return a new array instead of filling out.
-   */
-  static _UpdateCurve(curve, time, out, fallback)
-  {
-    if (!curve)
-    {
-      for (let index = 0; index < out.length; index++)
-      {
-        out[index] = fallback[index];
-      }
-      return out;
-    }
-
-    let result;
-    if (typeof curve.Update === "function")
-    {
-      result = curve.Update(time, out);
-    }
-    else if (typeof curve.GetValueAt === "function")
-    {
-      result = curve.GetValueAt(time, out);
-    }
-    if ((Array.isArray(result) || ArrayBuffer.isView(result)) && result !== out)
-    {
-      for (let index = 0; index < out.length; index++)
-      {
-        out[index] = result[index];
-      }
-    }
-    return out;
-  }
-
-  /**
    * Reads a numeric value from the update context, preferring a getter method
    * and falling back to the named properties, and yields 0 when nothing supplies
    * it.
@@ -4647,6 +4614,12 @@ export class EveSpaceObject2 extends EveEntity
   static _locatorPosition = vec3.create();
 
   static _lastDamageState = vec3.create();
+
+  static _modelRotation = quat.create();
+
+  static _rotation = quat.create();
+
+  static _modelTranslation = vec3.create();
   /**
    * Shared vector scratch for offsets between locators and query positions.
    * @type {Float32Array}

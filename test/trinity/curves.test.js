@@ -206,7 +206,7 @@ test("curve methods expose source-backed Carbon metadata", () =>
   assertCarbonMethod(Tr2CurveEulerRotationExpression, "GetExpression", "implemented");
   assertCarbonMethod(Tr2CurveEulerRotationExpression, "SetExpression", "adapted");
   for (const method of ["Compile", "GetContext"]) assertEquals(CjsSchema.getMethod(Tr2CurveEulerRotationExpression, method)?.impl?.status, "custom");
-  const jsOnlyMethods = [[TriEventCurve, "FireKey"], [TriCurveSet, "UpdateAt"], [TriCurveSet, "IsUsingSimTimeRebase"], [TriCurveSet, "ApplyTimeRange"], [TriCurveSet, "CallStopCallback"], [TriCurveSet, "DestroyStopCallback"], [Tr2TranslationAdapter, "GetStartAwareLocalTime"], [Tr2RotationAdapter, "GetStartAwareLocalTime"], [Tr2ObjectFollowCurveKey, "GetRotation"], [Tr2ObjectFollowCurveKey, "GetWorldPosition"], [Tr2ObjectFollowCurveKey, "TransformByRotation"], [Tr2CurveScalar, "GetScaledTime"], [Tr2CurveScalar, "FindSegment"], [Tr2CurveScalar, "rasterize"], [Tr2CurveRandomAxisRotation, "Evaluate"], [Tr2CurveQuaternion, "GetName"], [Tr2CurveQuaternion, "SetName"], [Tr2CurveQuaternion, "FindSegment"], [Tr2CurveQuaternion, "Evaluate"]];
+  const jsOnlyMethods = [[TriEventCurve, "FireKey"], [TriCurveSet, "UpdateAt"], [TriCurveSet, "IsUsingSimTimeRebase"], [TriCurveSet, "ApplyTimeRange"], [TriCurveSet, "CallStopCallback"], [TriCurveSet, "DestroyStopCallback"], [Tr2ObjectFollowCurveKey, "GetRotation"], [Tr2ObjectFollowCurveKey, "GetWorldPosition"], [Tr2ObjectFollowCurveKey, "TransformByRotation"], [Tr2CurveScalar, "GetScaledTime"], [Tr2CurveScalar, "FindSegment"], [Tr2CurveScalar, "rasterize"], [Tr2CurveRandomAxisRotation, "Evaluate"], [Tr2CurveQuaternion, "GetName"], [Tr2CurveQuaternion, "SetName"], [Tr2CurveQuaternion, "FindSegment"], [Tr2CurveQuaternion, "Evaluate"]];
   for (const [ctor, methodName] of jsOnlyMethods)
   {
     assertEquals(CjsSchema.getMethod(ctor, methodName)?.carbon?.method, undefined);
@@ -1154,8 +1154,10 @@ test("Tr2RotationAdapter forwards curves and falls back to value", () =>
   adapter.Update(2, out);
   assertAlmostEquals(out[2], Math.SQRT1_2);
   assertAlmostEquals(adapter.currentValue[3], Math.SQRT1_2);
-  assertAlmostEquals(adapter.GetStartAwareLocalTime(10), 0);
-  assertAlmostEquals(adapter.GetStartAwareLocalTime(12), 1);
+  // Be::Time overload: the first tick sample latches the start; local time is (ticks - start + offset) / scale.
+  adapter.GetValueAtTicks(100_000_000, out);
+  assertAlmostEquals(adapter.GetLocalTimeTicks(100_000_000), 0);
+  assertAlmostEquals(adapter.GetLocalTimeTicks(120_000_000), 1);
   adapter.GetValueDotAt(2, out);
   assertAlmostEquals(out[3], 1);
   assertEquals(CjsSchema.getField(Tr2RotationAdapter, "curve")?.type.kind, "objectRef");
@@ -1182,8 +1184,10 @@ test("Tr2TranslationAdapter forwards curves, rotates updates, and derives", () =
   assertAlmostEquals(out[0], 5);
   adapter.GetValueDotAt(1, out);
   assertAlmostEquals(out[0], -10);
-  assertAlmostEquals(adapter.GetStartAwareLocalTime(10), 0);
-  assertAlmostEquals(adapter.GetStartAwareLocalTime(12), 2);
+  // Be::Time overload: the first tick sample latches the start; local time is (ticks - start + offset) / scale.
+  adapter.GetValueAtTicks(100_000_000, out);
+  assertAlmostEquals(adapter.GetLocalTimeTicks(100_000_000), 0);
+  assertAlmostEquals(adapter.GetLocalTimeTicks(120_000_000), 2);
   adapter.GetValueDoubleDotAt(1, out);
   assertAlmostEquals(out[0], 0);
   assertEquals(CjsSchema.getField(Tr2TranslationAdapter, "rotationOffset")?.type.kind, "quat");

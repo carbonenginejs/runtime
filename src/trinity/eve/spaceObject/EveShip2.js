@@ -79,7 +79,7 @@ export class EveShip2 extends EveMobile
       return;
     }
     super.UpdateSyncronous(updateContext);
-    const time = updateContext?.GetTime() ?? 0;
+    const time = updateContext.GetTime();
     if (this.translationCurve)
     {
       if (!this.speed)
@@ -91,9 +91,9 @@ export class EveShip2 extends EveMobile
     this.UpdateShipSpeedForAudio();
     if (this.boosters)
     {
-      if (this.translationCurve?.GetValueDoubleDotAt)
+      if (this.translationCurve)
       {
-        this.translationCurve.GetValueDoubleDotAt(time, this._acceleration);
+        this.translationCurve.GetValueDoubleDotAtTicks(time, this._acceleration);
       }
       else
       {
@@ -124,7 +124,7 @@ export class EveShip2 extends EveMobile
     {
       return;
     }
-    const time = updateContext?.GetTime() ?? 0;
+    const time = updateContext.GetTime();
     const deltaT = updateContext?.GetDeltaT() ?? 0;
     this.boosters.Update(
       deltaT,

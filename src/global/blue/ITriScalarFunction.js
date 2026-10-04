@@ -1,6 +1,7 @@
 // Source: blue/include/ITriFunction.h:36-63
 import { CjsSchema, meta } from "#schema";
 import { ITriFunction } from "./ITriFunction.js";
+import { TimeAsDouble } from "./CcpTime.js";
 
 
 /**
@@ -39,12 +40,40 @@ export class ITriScalarFunction extends ITriFunction
   ScaleTime(_s)
   {
   }
+
+  /**
+   * Carbon's Update(Be::Time) overload. The shared body converts the ticks with TimeAsDouble and calls the
+   * seconds overload, as Carbon's curves do; a class whose Be::Time body differs overrides it.
+   * JavaScript cannot overload on argument type: Be::Time and double are both Numbers here
+   * (blue/include/ITriFunction.h:65-124), so Carbon's Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @returns {number} The Update result.
+   */
+  UpdateTicks(time)
+  {
+    return this.Update(TimeAsDouble(time));
+  }
+
+  /**
+   * Carbon's GetValueAt(Be::Time) overload. The shared body converts the ticks with TimeAsDouble and calls the
+   * seconds overload, as Carbon's curves do; a class whose Be::Time body differs overrides it.
+   * JavaScript cannot overload on argument type: Be::Time and double are both Numbers here
+   * (blue/include/ITriFunction.h:65-124), so Carbon's Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @returns {number} The GetValueAt result.
+   */
+  GetValueAtTicks(time)
+  {
+    return this.GetValueAt(TimeAsDouble(time));
+  }
 }
 
 for (const method of [ "Update", "GetValueAt", "ScaleTime" ])
 {
   CjsSchema.decorateMethod(ITriScalarFunction, method, meta.requires, meta.abstract);
 }
+CjsSchema.decorateMethod(ITriScalarFunction, "UpdateTicks", meta.blue.renamed("Update"), meta.adapted);
+CjsSchema.decorateMethod(ITriScalarFunction, "GetValueAtTicks", meta.blue.renamed("GetValueAt"), meta.adapted);
 CjsSchema.define(ITriScalarFunction, {
   className: "ITriScalarFunction", carbon: "ITriScalarFunction", family: "blue", fields: {}
 });

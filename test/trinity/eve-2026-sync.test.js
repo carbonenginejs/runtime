@@ -794,7 +794,7 @@ test("Carbon bounding-box providers publish local, world, mesh, and planet bound
   assert.equal(CjsSchema.cast(planet, ITr2BoundingBox) !== null, true);
   planet.radius = 2000000;
   planet.translationCurve = {
-    Update(_time, out)
+    UpdateTicks(_time, out)
     {
       vec3.set(out, 4000000, 5000000, 6000000);
     }

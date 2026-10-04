@@ -122,27 +122,60 @@ export class TriVectorSequencer extends ITriVectorFunction
   @meta.adapted
   GetValueAt(time, out)
   {
-    if (this.operator === TRIOPERATOR.TRIOP_MULTIPLY) return this.GetValueAtMult(time, out);
-    if (this.operator === TRIOPERATOR.TRIOP_ADD) return this.GetValueAtAdd(time, out);
-    return this.GetValueAtAverage(time, out);
+    if (this.operator === TRIOPERATOR.TRIOP_MULTIPLY) return this.GetValueAtMult(time, out, false);
+    if (this.operator === TRIOPERATOR.TRIOP_ADD) return this.GetValueAtAdd(time, out, false);
+    return this.GetValueAtAverage(time, out, false);
+  }
+
+  /**
+   * Carbon's Update(Be::Time) (TriSequencer.cpp:45-52): samples the tick overload and caches it. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array} out Destination value.
+   * @returns {Float32Array} The destination.
+   */
+  @meta.blue.renamed("Update")
+  @meta.adapted
+  UpdateTicks(time, out)
+  {
+    this.GetValueAtTicks(time, out);
+    vec3.copy(this.value, out);
+    return out;
+  }
+
+  /**
+   * Carbon's GetValueAt(Be::Time) (cpp:63-73): the same dispatch, sampling children through their Be::Time
+   * overloads. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array} out Destination value.
+   * @returns {Float32Array} The destination.
+   */
+  @meta.blue.renamed("GetValueAt")
+  @meta.adapted
+  GetValueAtTicks(time, out)
+  {
+    if (this.operator === TRIOPERATOR.TRIOP_MULTIPLY) return this.GetValueAtMult(time, out, true);
+    if (this.operator === TRIOPERATOR.TRIOP_ADD) return this.GetValueAtAdd(time, out, true);
+    return this.GetValueAtAverage(time, out, true);
   }
 
   /**
    * Carbon GetValueAtMult (cpp:75-89/:132-146): seed (1,1,1), multiply
    * component-wise - the donor writes the three axes out by hand.
-   * JavaScript retains seconds-first/output-last calls and existing sampling math.
-   * @param {number} time Time in seconds.
+   * One body serves both donor overloads; ticks selects the children's Be::Time overload.
+   * @param {number} time Seconds, or Blue ticks when ticks is set.
+   * @param {boolean} ticks Whether time is Blue ticks.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
   @meta.blue.method
   @meta.adapted
-  GetValueAtMult(time, out)
+  GetValueAtMult(time, out, ticks)
   {
     vec3.set(out, 1, 1, 1);
     for (const curve of this.functions)
     {
-      curve.GetValueAt(time, this._childValue);
+      if (ticks) curve.GetValueAtTicks(time, this._childValue);
+      else curve.GetValueAt(time, this._childValue);
       vec3.multiply(out, out, this._childValue);
     }
     return out;
@@ -150,19 +183,21 @@ export class TriVectorSequencer extends ITriVectorFunction
 
   /**
    * Carbon GetValueAtAdd (cpp:106-120/:148-160): seed zero, accumulate.
-   * JavaScript retains seconds-first/output-last calls and existing sampling math.
-   * @param {number} time Time in seconds.
+   * One body serves both donor overloads; ticks selects the children's Be::Time overload.
+   * @param {number} time Seconds, or Blue ticks when ticks is set.
+   * @param {boolean} ticks Whether time is Blue ticks.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
   @meta.blue.method
   @meta.adapted
-  GetValueAtAdd(time, out)
+  GetValueAtAdd(time, out, ticks)
   {
     vec3.zero(out);
     for (const curve of this.functions)
     {
-      curve.GetValueAt(time, this._childValue);
+      if (ticks) curve.GetValueAtTicks(time, this._childValue);
+      else curve.GetValueAt(time, this._childValue);
       vec3.add(out, out, this._childValue);
     }
     return out;
@@ -173,20 +208,22 @@ export class TriVectorSequencer extends ITriVectorFunction
    * computed BEFORE the size check and applied per sample. On an empty list
    * the infinite multiplier is never used and the zero seed comes back -
    * transcribed, not guarded.
-   * JavaScript retains seconds-first/output-last calls and existing sampling math.
-   * @param {number} time Time in seconds.
+   * One body serves both donor overloads; ticks selects the children's Be::Time overload.
+   * @param {number} time Seconds, or Blue ticks when ticks is set.
+   * @param {boolean} ticks Whether time is Blue ticks.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
   @meta.blue.method
   @meta.adapted
-  GetValueAtAverage(time, out)
+  GetValueAtAverage(time, out, ticks)
   {
     vec3.zero(out);
     const multiplier = 1 / this.functions.length;
     for (const curve of this.functions)
     {
-      curve.GetValueAt(time, this._childValue);
+      if (ticks) curve.GetValueAtTicks(time, this._childValue);
+      else curve.GetValueAt(time, this._childValue);
       vec3.scaleAndAdd(out, out, this._childValue, multiplier);
     }
     return out;
@@ -227,6 +264,44 @@ export class TriVectorSequencer extends ITriVectorFunction
     for (const curve of this.functions)
     {
       curve.GetValueDoubleDotAt(time, this._childValue);
+      vec3.add(out, out, this._childValue);
+    }
+    return out;
+  }
+
+  /**
+   * Carbon's GetValueDotAt(Be::Time) (cpp:178-191): sums the children's Be::Time velocities. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array} out Destination value.
+   * @returns {Float32Array} The destination.
+   */
+  @meta.blue.renamed("GetValueDotAt")
+  @meta.adapted
+  GetValueDotAtTicks(time, out)
+  {
+    vec3.zero(out);
+    for (const curve of this.functions)
+    {
+      curve.GetValueDotAtTicks(time, this._childValue);
+      vec3.add(out, out, this._childValue);
+    }
+    return out;
+  }
+
+  /**
+   * Carbon's GetValueDoubleDotAt(Be::Time) (cpp:211-224): sums the children's Be::Time accelerations. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array} out Destination value.
+   * @returns {Float32Array} The destination.
+   */
+  @meta.blue.renamed("GetValueDoubleDotAt")
+  @meta.adapted
+  GetValueDoubleDotAtTicks(time, out)
+  {
+    vec3.zero(out);
+    for (const curve of this.functions)
+    {
+      curve.GetValueDoubleDotAtTicks(time, this._childValue);
       vec3.add(out, out, this._childValue);
     }
     return out;

@@ -100,71 +100,136 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
   }
 
   /**
-   * Reads the child update or system position, then applies offset and scale.
-   * JavaScript places time before output, followed by an optional renderer context; native implements the tick overload and rejects its double overload. No overload discrimination is added here.
-   * @param {number} time Time forwarded unchanged to the child.
-   * @param {Float32Array} inOut Destination position.
-   * @param {Tr2RenderContext|null} renderContext Optional renderer context.
+   * Carbon's Update(double) is deprecated: it asserts in debug builds and returns the output untouched
+   * (Tr2VectorFunctionModifier.cpp). UpdateTicks is the working overload.
+   * @param {number} _time Unused seconds.
+   * @param {Float32Array} inOut Destination, returned unchanged.
    * @returns {Float32Array} The destination.
    */
   @meta.blue.method
-  @meta.adapted
-  Update(time, inOut, renderContext = null)
+  @meta.implemented
+  Update(_time, inOut)
   {
-    this._ReadSource(time, inOut, "Update");
+    return inOut;
+  }
+
+  /**
+   * Carbon's GetValueAt(double) is deprecated: it asserts in debug builds and returns the output untouched
+   * (Tr2VectorFunctionModifier.cpp). GetValueAtTicks is the working overload.
+   * @param {number} _time Unused seconds.
+   * @param {Float32Array} inOut Destination, returned unchanged.
+   * @returns {Float32Array} The destination.
+   */
+  @meta.blue.method
+  @meta.implemented
+  GetValueAt(_time, inOut)
+  {
+    return inOut;
+  }
+
+  /**
+   * Carbon's GetValueDotAt(double) is deprecated: it asserts in debug builds and returns the output untouched
+   * (Tr2VectorFunctionModifier.cpp). GetValueDotAtTicks is the working overload.
+   * @param {number} _time Unused seconds.
+   * @param {Float32Array} inOut Destination, returned unchanged.
+   * @returns {Float32Array} The destination.
+   */
+  @meta.blue.method
+  @meta.implemented
+  GetValueDotAt(_time, inOut)
+  {
+    return inOut;
+  }
+
+  /**
+   * Carbon's GetValueDoubleDotAt(double) is deprecated: it asserts in debug builds and returns the output untouched
+   * (Tr2VectorFunctionModifier.cpp). GetValueDoubleDotAtTicks is the working overload.
+   * @param {number} _time Unused seconds.
+   * @param {Float32Array} inOut Destination, returned unchanged.
+   * @returns {Float32Array} The destination.
+   */
+  @meta.blue.method
+  @meta.implemented
+  GetValueDoubleDotAt(_time, inOut)
+  {
+    return inOut;
+  }
+
+  /**
+   * Carbon's Update(Be::Time): the ball's tick update, or its interpolated system position, then offset and scale
+   * (cpp:35-52). The renderer context is a JavaScript addition for the view-space offset. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array} inOut Destination position.
+   * @param {Tr2RenderContext|null} renderContext Renderer context for the view-space offset.
+   * @returns {Float32Array} The destination.
+   */
+  @meta.blue.renamed("Update")
+  @meta.adapted
+  UpdateTicks(time, inOut, renderContext = null)
+  {
+    if (this.clientBall)
+    {
+      if (this.useSystemCoordinates) this.clientBall.InterpolatedPosition(time, inOut);
+      else this.clientBall.UpdateTicks(time, inOut);
+    }
     return this.GetTransformedPosition(inOut, renderContext);
   }
 
   /**
-   * Samples the child or system position, then applies offset and scale.
-   * JavaScript keeps time first and explicit renderer context; native double overload rejection is not implemented.
-   * @param {number} time Time forwarded unchanged.
+   * Carbon's GetValueAt(Be::Time): the ball's tick sample, or its interpolated system position, then offset and
+   * scale (cpp:60-76). JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} inOut Destination position.
-   * @param {Tr2RenderContext|null} renderContext Optional renderer context.
+   * @param {Tr2RenderContext|null} renderContext Renderer context for the view-space offset.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @meta.blue.renamed("GetValueAt")
   @meta.adapted
-  GetValueAt(time, inOut, renderContext = null)
+  GetValueAtTicks(time, inOut, renderContext = null)
   {
-    this._ReadSource(time, inOut, "GetValueAt");
+    if (this.clientBall)
+    {
+      if (this.useSystemCoordinates) this.clientBall.InterpolatedPosition(time, inOut);
+      else this.clientBall.GetValueAtTicks(time, inOut);
+    }
     return this.GetTransformedPosition(inOut, renderContext);
   }
 
   /**
-   * Samples the child velocity and scales the output without adding an offset.
-   * JavaScript uses time-first/output-last calls. Existing null-child output scaling differs from native and remains outside this removal.
-   * @param {number} time Time forwarded unchanged.
+   * Carbon's GetValueDotAt(Be::Time): the ball's velocity scaled, only when a ball is attached (cpp:85-93). JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} inOut Destination velocity.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @meta.blue.renamed("GetValueDotAt")
   @meta.adapted
-  GetValueDotAt(time, inOut)
+  GetValueDotAtTicks(time, inOut)
   {
     if (this.clientBall)
     {
-      this.clientBall.GetValueDotAt(time, inOut);
+      this.clientBall.GetValueDotAtTicks(time, inOut);
+      vec3.scale(inOut, inOut, this.scaleModifier);
     }
-    return vec3.scale(inOut, inOut, this.scaleModifier);
+    return inOut;
   }
 
   /**
-   * Samples the child acceleration and scales the output without an offset.
-   * JavaScript uses time-first/output-last calls. Existing null-child output scaling differs from native and remains outside this removal.
-   * @param {number} time Time forwarded unchanged.
+   * Carbon's GetValueDoubleDotAt(Be::Time): the ball's acceleration scaled, only when a ball is attached
+   * (cpp:101-109). JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} inOut Destination acceleration.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @meta.blue.renamed("GetValueDoubleDotAt")
   @meta.adapted
-  GetValueDoubleDotAt(time, inOut)
+  GetValueDoubleDotAtTicks(time, inOut)
   {
     if (this.clientBall)
     {
-      this.clientBall.GetValueDoubleDotAt(time, inOut);
+      this.clientBall.GetValueDoubleDotAtTicks(time, inOut);
+      vec3.scale(inOut, inOut, this.scaleModifier);
     }
-    return vec3.scale(inOut, inOut, this.scaleModifier);
+    return inOut;
   }
 
   /**
@@ -202,28 +267,6 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
   // potential precision loss; JavaScript numbers are already double, so the
   // narrowing happens only when the value reaches a Float32Array.
 
-  /**
-   * Dispatches the shared source branch extracted from native Update and GetValueAt.
-   * JavaScript helper writes directly into the caller buffer; native checked double-to-float overflow assertions remain unported.
-   * @param {number} time Time forwarded unchanged.
-   * @param {Float32Array} inOut Destination position.
-   * @param {string} method Required child method name.
-   * @returns {Float32Array} The destination.
-   */
-  @meta.ours
-  _ReadSource(time, inOut, method)
-  {
-    if (!this.clientBall) return inOut;
-
-    if (this.useSystemCoordinates)
-    {
-      this.clientBall.InterpolatedPosition(time, inOut);
-      return inOut;
-    }
-
-    this.clientBall[method](time, inOut);
-    return inOut;
-  }
 
 }
 

@@ -74,14 +74,9 @@ export class EveChildLink extends EveChildMesh
     {
       return;
     }
-    const time = Number(updateContext?.GetTime?.() ?? updateContext?.currentTime ?? 0);
     const targetPosition = EveChildLink._targetPosition;
     vec3.set(targetPosition, 0, 0, 0);
-    const targetResult = this.target.GetValueAt?.(time, targetPosition);
-    if (targetResult && targetResult !== targetPosition && targetResult.length >= 3)
-    {
-      vec3.copy(targetPosition, targetResult);
-    }
+    this.target.GetValueAtTicks(updateContext.GetTime(), targetPosition);
     if (!params?.spaceObjectParent)
     {
       // EveChildLink.cpp:57-60: without a source parent there is no direction.

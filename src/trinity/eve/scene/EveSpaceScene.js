@@ -813,7 +813,7 @@ export class EveSpaceScene
     // (Carbon: m_sunData.DirWorld = -Normalize(sunDirection)).
     if (this.sunBall)
     {
-      this.sunBall.Update(simTime, sunDirectionScratch);
+      this.sunBall.UpdateTicks(simTime, sunDirectionScratch);
       vec3.normalize(sunDirectionScratch, sunDirectionScratch);
       vec3.negate(this.sunDirection, sunDirectionScratch);
     }
@@ -2580,7 +2580,7 @@ export class EveSpaceScene
     const visible = [];
     try
     {
-      if (this.sunBall) this.sunBall.GetValueAt(this.updateContext.GetTime(), sun);
+      if (this.sunBall) this.sunBall.GetValueAtTicks(this.updateContext.GetTime(), sun);
       for (const planet of this.planets)
       {
         const size = planet.GetEstimatedPixelDiameter();
@@ -2589,7 +2589,7 @@ export class EveSpaceScene
         if (curve !== null && curve === this.sunBall) continue;
         if (curve && this.sunBall)
         {
-          curve.GetValueAt(this.updateContext.GetTime(), position);
+          curve.GetValueAtTicks(this.updateContext.GetTime(), position);
           if ((position[0] - sun[0]) * -sun[0] + (position[1] - sun[1]) * -sun[1] + (position[2] - sun[2]) * -sun[2] < 0) continue;
         }
         planet.GetWorldPosition(position);

@@ -373,17 +373,22 @@ export class EveEffectRoot2 extends EveEntity
     return this.boundingSphereRadius;
   }
 
-  /** Evaluates the ball/model curves into the detached root transform. */
+  /**
+   * Evaluates the ball/model curves into the detached root transform through their Be::Time overloads
+   * (EveEffectRoot2.cpp:358-397).
+   * @param {number} time Scene time in Blue 100ns ticks.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Curve outputs use CarbonEngineJS's time-first, output-second convention.")
   UpdateWorldTransform(time)
   {
-    EveEffectRoot2._UpdateCurve(this.translationCurve, time, EveEffectRoot2._translation, EveEffectRoot2._zero);
-    EveEffectRoot2._UpdateCurve(this.rotationCurve, time, EveEffectRoot2._rotation, EveEffectRoot2._identityRotation);
+    if (this.translationCurve) this.translationCurve.UpdateTicks(time, EveEffectRoot2._translation);
+    else vec3.copy(EveEffectRoot2._translation, EveEffectRoot2._zero);
+    if (this.rotationCurve) this.rotationCurve.UpdateTicks(time, EveEffectRoot2._rotation);
+    else quat.copy(EveEffectRoot2._rotation, EveEffectRoot2._identityRotation);
     if (this.modelRotationCurve)
     {
-      EveEffectRoot2._UpdateCurve(this.modelRotationCurve, time, EveEffectRoot2._modelRotation, EveEffectRoot2._identityRotation);
+      this.modelRotationCurve.UpdateTicks(time, EveEffectRoot2._modelRotation);
       // Carbon (row-vector): rotation = modelRotation * rotation - model first.
       quat.multiply(EveEffectRoot2._rotation, EveEffectRoot2._rotation, EveEffectRoot2._modelRotation);
     }
@@ -391,7 +396,7 @@ export class EveEffectRoot2 extends EveEntity
     mat4.fromRotationTranslation(this._worldTransform, EveEffectRoot2._rotation, EveEffectRoot2._translation);
     if (this.modelTranslationCurve)
     {
-      EveEffectRoot2._UpdateCurve(this.modelTranslationCurve, time, EveEffectRoot2._modelTranslation, EveEffectRoot2._zero);
+      this.modelTranslationCurve.UpdateTicks(time, EveEffectRoot2._modelTranslation);
       vec3.transformMat4(EveEffectRoot2._modelTranslation, EveEffectRoot2._modelTranslation, this._worldTransform);
       this._worldTransform[12] = EveEffectRoot2._modelTranslation[0];
       this._worldTransform[13] = EveEffectRoot2._modelTranslation[1];
@@ -1208,28 +1213,6 @@ export class EveEffectRoot2 extends EveEntity
       }
     }
     return 0;
-  }
-
-  /**
-   * Samples a curve into out through whichever of Update or GetValueAt it
-   * exposes, writing the fallback when there is no curve and copying back curves
-   * that return a new array instead of filling out.
-   */
-  static _UpdateCurve(curve, time, out, fallback)
-  {
-    if (!curve)
-    {
-      for (let index = 0; index < out.length; index++) out[index] = fallback[index];
-      return out;
-    }
-    let result;
-    if (typeof curve.Update === "function") result = curve.Update(time, out);
-    else if (typeof curve.GetValueAt === "function") result = curve.GetValueAt(time, out);
-    if ((Array.isArray(result) || ArrayBuffer.isView(result)) && result !== out)
-    {
-      for (let index = 0; index < out.length; index++) out[index] = result[index];
-    }
-    return out;
   }
 
   /** Carbon's neutral hull data: full activation, unit bounding radius. */

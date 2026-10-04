@@ -4,6 +4,7 @@ import { num } from "#math/num";
 import { quat } from "#math/quat";
 import { ITriFunction, ITriQuaternionFunction, ITriCurveLength } from "#blue";
 import { meta } from "#schema";
+import { TimeAsDouble } from "#blue";
 
 
 /**
@@ -125,6 +126,43 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
     const ratio = num.clamp((time - this.start) / this.length, 0, 1);
     const start = this.startCurve.GetValueAt(time, this._startValue);
     const end = this.endCurve.GetValueAt(time, this._endValue);
+    return quat.slerp(out, start, end, ratio);
+  }
+
+  /**
+   * Carbon's Update(Be::Time): samples through the Be::Time GetValueAt into the cache (Tr2QuaternionLerpCurve.cpp:21-28).
+   * JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array} out Destination value.
+   * @returns {Float32Array} The destination.
+   */
+  @meta.blue.renamed("Update")
+  @meta.adapted
+  UpdateTicks(time, out)
+  {
+    this.GetValueAtTicks(time, this.value);
+    return quat.copy(out, this.value);
+  }
+
+  /**
+   * Carbon's GetValueAt(Be::Time): the blend ratio comes from the tick time and both children sample through
+   * their Be::Time overloads (cpp:41-59). start stays in seconds here, so the delta is taken in seconds.
+   * JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array} out Destination value.
+   * @returns {Float32Array} The destination.
+   */
+  @meta.blue.renamed("GetValueAt")
+  @meta.adapted
+  GetValueAtTicks(time, out)
+  {
+    if (!this.startCurve || !this.endCurve || this.length <= 0)
+    {
+      return out;
+    }
+    const ratio = num.clamp(Math.fround(TimeAsDouble(time) - this.start) / this.length, 0, 1);
+    const start = this.startCurve.GetValueAtTicks(time, this._startValue);
+    const end = this.endCurve.GetValueAtTicks(time, this._endValue);
     return quat.slerp(out, start, end, ratio);
   }
 

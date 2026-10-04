@@ -244,6 +244,33 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   }
 
   /**
+   * Carbon's ITriVectorFunction GetValueDotAt(Be::Time); the class extends ITriColorFunction, so the vector-only
+   * tick overloads are declared here. Like the double overload, it leaves out untouched.
+   * @param {number} _time Unused Blue ticks.
+   * @param {Float32Array} out Destination value.
+   * @returns {Float32Array} out
+   */
+  @meta.blue.renamed("GetValueDotAt")
+  @meta.noop
+  GetValueDotAtTicks(_time, out)
+  {
+    return out;
+  }
+
+  /**
+   * Carbon's ITriVectorFunction GetValueDoubleDotAt(Be::Time); leaves out untouched, like the double overload.
+   * @param {number} _time Unused Blue ticks.
+   * @param {Float32Array} out Destination value.
+   * @returns {Float32Array} out
+   */
+  @meta.blue.renamed("GetValueDoubleDotAt")
+  @meta.noop
+  GetValueDoubleDotAtTicks(_time, out)
+  {
+    return out;
+  }
+
+  /**
    * Expression curves do not have segment interpolation state.
    */
   @meta.blue.method

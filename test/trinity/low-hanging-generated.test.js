@@ -363,7 +363,7 @@ test("EveLineSet retains editable CPU lines before renderer submission", () =>
 
   // Update stamps the world transform from the curves and scaling (cpp:97-114).
   lines.scaling.set([2, 2, 2]);
-  lines.translationCurve = { Update: (_time, out) => out.set([3, 4, 5]) };
+  lines.translationCurve = { UpdateTicks: (_time, out) => out.set([3, 4, 5]) };
   lines.Update({ GetTime: () => 1 });
   assert.deepEqual(Array.from(lines.worldTransform.slice(12, 15)), [3, 4, 5], "translation stamped");
   assert.equal(lines.worldTransform[0], 2, "scaling stamped");
@@ -1524,7 +1524,7 @@ test("EveLensflare.Update ports Carbon's position, sun size, and fan-out", () =>
 
   // update === false: nothing moves.
   lensflare.update = false;
-  lensflare.translationCurve = { Update() { throw new Error("must not run"); } };
+  lensflare.translationCurve = { UpdateTicks() { throw new Error("must not run"); } };
   lensflare.Update(1, 2);
 
   // No curve: sunSize is 1 (cpp:161), not the constructed 0.
@@ -1536,7 +1536,7 @@ test("EveLensflare.Update ports Carbon's position, sun size, and fan-out", () =>
   // Curve at exactly 1 AU: 1.5 / ln(1 + 2.71), and the call is out-LAST.
   const curveArgs = [];
   lensflare.translationCurve = {
-    Update(time, out)
+    UpdateTicks(time, out)
     {
       curveArgs.push([time, out]);
       out.set([0.1495978707e12, 0, 0]);

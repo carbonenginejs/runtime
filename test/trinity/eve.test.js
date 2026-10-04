@@ -3,6 +3,7 @@ import test from "node:test";
 import { readFile, readdir } from "node:fs/promises";
 import { AudioGameObject, BackAndForthData, CjsEveThrottleableState, CjsLightData, EveBannerItem, EveBannerLight, EveBannerSet, EveBezierCurve, EveBoxVolume, EveChildAudio, EveChildFogVolume, EveChildLightingOverride, EveChildModifierSRT, EveChildTransform, EveChildUpdateParams, EveCircle, EveCustomMask, EveDistanceField, EveEllipseDefinition, EveEllipseSet, EveEllipsoidVolume, EveHazeSet, EveHazeSetLight, EveImpactOverlay, EveLODHelper, EveLineData, EveLocator2, EveLocatorSets, EvePlaneLight, EvePlaneSet, EvePlaneSetItem, EveRemotePositionCurve, EveSpaceObjectDecal, EveSphereVolume, EveSpotlightLight, EveSpotlightSet, EveSpotlightSetItem, EveSpriteLight, EveSpriteLineSet, EveSpriteLineSetItem, EveSpriteSet, EveSpriteSetItem, EveThrottleable, EveVirtualCamera, EveVirtualCameraBehaviourFloatAdd, EveVirtualCameraBehaviourFloatBase, EveVirtualCameraBehaviourFloatDamping, EveVirtualCameraBehaviourFloatNoise, EveVirtualCameraBehaviourFloatSet, EveVirtualCameraBehaviourVector3Base, EveVirtualCameraBehaviourVector3Damping, EveVirtualCameraBehaviourVector3Inertia, EveVirtualCameraBehaviourVector3MoveBetween, EveVirtualCameraBehaviourVector3MoveForward, EveVirtualCameraBehaviourVector3MoveRight, EveVirtualCameraBehaviourVector3MoveUp, EveVirtualCameraBehaviourVector3Offset, EveVirtualCameraBehaviourVector3Orbit, EveVirtualCameraBehaviourVector3Shake, EveVirtualCameraSystem, EveVirtualCameraTransitionCut, EveVirtualCameraTransitionLerp, FollowASplineData, FormationData, InertiaData, Locator, LocatorData, PlacementDataWithIdentifier, PlayFXData, ProcessLifetimeData, SeekTargetData, Tr2CurveExtrapolation, Tr2Light, Tr2Lod, Tr2PointLight, Tr2ScalarFader, Tr2SpotLight, Tr2TexturedPointLight, TriPerlinCurve } from "../../npm/dist/trinity/index.js";
 import { EveUpdateContext } from "../../npm/dist/trinity/index.js";
+import { ITriVectorFunction } from "../../npm/dist/global/blue/index.js";
 import { RawData } from "../../src/trinity/core/rawData/RawData.js";
 import { box3 } from "../../npm/dist/global/math/box3.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
@@ -114,7 +115,7 @@ test("scene audio wrappers delegate through an optional runtime-audio emitter", 
   assertEquals(object.GetAudioEmitter(), emitter);
   object.SetEmitterName("beacon");
   assertEquals(object.PlayAudioEvent("play_beacon"), 42);
-  object.UpdateSyncronous({ time: 0 });
+  object.UpdateSyncronous({ GetTime: () => 0 });
   object.mute = true;
   object.OnModified("mute");
   assert(calls.includes("name:beacon"));
@@ -871,10 +872,11 @@ test("EveRemotePositionCurve caches Carbon remote sweep values", () =>
   curve.delayTime = 1;
   curve.sweepTime = 4;
   const out = vec3.create();
-  curve.Update(10, out);
+  // Carbon's Be::Time Update sweeps; the start latches at 10 s and the start curve samples in seconds.
+  curve.UpdateTicks(100_000_000, out);
   assertVec3(out, [11, 22, 33]);
   assertVec3(curve.value, [11, 22, 33]);
-  curve.Update(13, out);
+  curve.UpdateTicks(130_000_000, out);
   assertVec3(out, [16, 30, 44]);
   assertVec3(curve.value, [16, 30, 44]);
   const cached = vec3.create();
@@ -888,7 +890,7 @@ test("EveRemotePositionCurve preserves Carbon no-start and derivative behavior",
   curve.value[1] = 8;
   curve.value[2] = 7;
   const out = vec3.fromValues(1, 1, 1);
-  curve.Update(3, out);
+  curve.UpdateTicks(30_000_000, out);
   assertVec3(out, [0, 0, 0]);
   assertVec3(curve.value, [9, 8, 7]);
   curve.GetValueDotAt(3, out);
@@ -897,6 +899,9 @@ test("EveRemotePositionCurve preserves Carbon no-start and derivative behavior",
   out[1] = 5;
   out[2] = 6;
   curve.GetValueDoubleDotAt(3, out);
+  assertVec3(out, [4, 5, 6]);
+  // The double Update is Carbon's no-op.
+  curve.Update(3, out);
   assertVec3(out, [4, 5, 6]);
 });
 test("EveLODHelper follows Carbon update and merge thresholds", () =>
@@ -1599,7 +1604,7 @@ test("EveEllipsoidVolume follows Carbon ellipsoid intensity and setup", () =>
 test("EveDistanceField follows Carbon static and dynamic CPU coverage", () =>
 {
   const sample = position => ({
-    GetValueAt(_time, out)
+    GetValueAtTicks(_time, out)
     {
       return vec3.copy(out, position);
     }
@@ -1670,26 +1675,31 @@ test("promoted Eve graph files do not import backend APIs", async () =>
     assert(!/(WebGPU|WebGL|GPUDevice|GPUTexture|GPUBuffer|navigator\.gpu)/.test(source), `${file} should remain runtime graph code, not engine backend code`);
   }
 });
+/** A vector function of seconds; its ...Ticks overloads are ITriVectorFunction's shared TimeAsDouble forward. */
 function makeVectorFunction(getValueAt)
 {
-  return {
+  return new class extends ITriVectorFunction
+  {
     Update(time, out)
     {
       return getValueAt(time, out);
-    },
+    }
+
     GetValueAt(time, out)
     {
       return getValueAt(time, out);
-    },
+    }
+
     GetValueDotAt(_time, out)
     {
       return vec3.zero(out);
-    },
+    }
+
     GetValueDoubleDotAt(_time, out)
     {
       return vec3.zero(out);
     }
-  };
+  }();
 }
 function makeLocator(position, direction, scale, boneIndex)
 {

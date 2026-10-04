@@ -47,8 +47,7 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
 
     mat4.decomposeCarbon(transform, sourceRotation, sourceTranslation, sourceScale);
     vec3.copy(end, this._destPosition);
-    const now = context?.GetTime?.() ?? context?.currentTime ?? context?.time ?? 0;
-    this.dest?.GetValueAt?.(now, end);
+    if (this.dest) this.dest.GetValueAtTicks(context.GetTime(), end);
 
     vec3.set(diff, end[0] - transform[12], end[1] - transform[13], end[2] - transform[14]);
     const length = vec3.length(diff);

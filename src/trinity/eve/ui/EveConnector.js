@@ -160,11 +160,11 @@ export class EveConnector
     const time = context.GetTime();
     if (this.sourceObject)
     {
-      this.sourceObject.GetValueAt(time, this.sourcePosition);
+      this.sourceObject.GetValueAtTicks(time, this.sourcePosition);
     }
     if (this.destObject)
     {
-      this.destObject.GetValueAt(time, this.destPosition);
+      this.destObject.GetValueAtTicks(time, this.destPosition);
     }
   }
 

@@ -5,6 +5,7 @@ import { random } from "#math/random";
 import { fromYawPitchRoll, quat } from "#math/quat";
 import { ITriQuaternionFunction, ITriFunction, IInitialize } from "#blue";
 import { meta } from "#schema";
+import { TimeAsDouble } from "#blue";
 
 
 /**
@@ -127,6 +128,46 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
   GetValueAt(time, out)
   {
     return this.Evaluate(out, time);
+  }
+
+  /**
+   * Carbon's Update(Be::Time): the tick time wraps by the period in integer ticks before converting
+   * (Tr2CurveRandomAxisRotation.cpp:31-37). JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array|number[]} out Caller-owned quaternion.
+   * @returns {Float32Array|number[]} The same output buffer.
+   */
+  @meta.blue.renamed("Update")
+  @meta.adapted
+  UpdateTicks(time, out)
+  {
+    this.Evaluate(this.currentValue, this.GetWrappedTime(time));
+    return quat.copy(out, this.currentValue);
+  }
+
+  /**
+   * Carbon's GetValueAt(Be::Time): samples at the tick time wrapped by the period (cpp:47-52). JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array|number[]} out Caller-owned quaternion.
+   * @returns {Float32Array|number[]} The same output buffer.
+   */
+  @meta.blue.renamed("GetValueAt")
+  @meta.adapted
+  GetValueAtTicks(time, out)
+  {
+    return this.Evaluate(out, this.GetWrappedTime(time));
+  }
+
+  /**
+   * `TimeAsDouble(time % TimeFromDouble(abs(m_period)))`, the expression both Be::Time overloads share.
+   * A zero period divides by zero in Carbon; here it yields NaN.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @returns {number} Wrapped seconds.
+   */
+  @meta.ours
+  GetWrappedTime(time)
+  {
+    return TimeAsDouble(time % Math.trunc(Math.abs(this.period) * 10_000_000));
   }
 
   /**

@@ -34,7 +34,7 @@ function visibleHull()
     IsLoading: () => false,
     UseWithScreenSize() {}
   };
-  object.translationCurve = { Update(_time, out) { out.set([ 10, 20, 30 ]); } };
+  object.translationCurve = { GetValueDotAtTicks(_time, out) { return out; }, UpdateTicks(_time, out) { out.set([ 10, 20, 30 ]); } };
   object.SetBoundingSphereInformation(new Float32Array([ 0, 0, 0, 5 ]));
   object.UpdateWorldTransform(1);
   object.UpdateWorldBounds();

@@ -230,7 +230,7 @@ test("TriVectorSequencer combiners follow Carbon's dispatch, including the else-
 
   // Empty list: the infinite multiplier is never used; zeros come back.
   sequencer.functions.Clear();
-  assert.deepEqual([ ...sequencer.GetValueAtAverage(0, out) ], [ 0, 0, 0 ]);
+  assert.deepEqual([ ...sequencer.GetValueAtAverage(0, out, false) ], [ 0, 0, 0 ]);
 });
 
 test("EveLineSet.Initialize seeds Carbon's 100-line capacity watermark (cpp:35-42)", () =>

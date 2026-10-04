@@ -35,7 +35,7 @@ test("EveTriggerVolume fires edge-triggered callbacks with exclusion subtraction
 
   const tracked = vec3.fromValues(100, 0, 0);
   trigger.trackedPositionCurve = {
-    Update(_time, out)
+    UpdateTicks(_time, out)
     {
       vec3.copy(out, tracked);
     }
@@ -46,15 +46,15 @@ test("EveTriggerVolume fires edge-triggered callbacks with exclusion subtraction
   assert.equal(trigger.Initialize(), true);
 
   // Outside: no transition, intensity 0.
-  trigger.UpdateSyncronous({ currentTime: 0 });
+  trigger.UpdateSyncronous({ GetTime: () => 0 });
   assert.deepEqual(calls, []);
   assert.equal(trigger.intensity, 0);
   assert.equal(trigger.IsInside(), false);
 
   // Enter: one callback with the trigger name, not one per frame.
   vec3.set(tracked, 0, 0, 0);
-  trigger.UpdateSyncronous({ currentTime: 1 });
-  trigger.UpdateSyncronous({ currentTime: 2 });
+  trigger.UpdateSyncronous({ GetTime: () => 1 });
+  trigger.UpdateSyncronous({ GetTime: () => 2 });
   assert.deepEqual(calls, [ [ "docking-perimeter", true ] ]);
   assert.equal(trigger.intensity, 1);
   assert.equal(trigger.IsInside(), true);
@@ -62,13 +62,13 @@ test("EveTriggerVolume fires edge-triggered callbacks with exclusion subtraction
   // The exclusion volume subtracts its intensity: inside its solid core the
   // net intensity floors at 0 and the trigger reports an exit.
   vec3.set(tracked, 8, 0, 0);
-  trigger.UpdateSyncronous({ currentTime: 3 });
+  trigger.UpdateSyncronous({ GetTime: () => 3 });
   assert.deepEqual(calls, [ [ "docking-perimeter", true ], [ "docking-perimeter", false ] ]);
   assert.equal(trigger.intensity, 0);
 
   // Leaving entirely from an already-outside state fires nothing further.
   vec3.set(tracked, 100, 0, 0);
-  trigger.UpdateSyncronous({ currentTime: 4 });
+  trigger.UpdateSyncronous({ GetTime: () => 4 });
   assert.equal(calls.length, 2);
 
   // A throwing callback must not break the update loop.
@@ -77,7 +77,7 @@ test("EveTriggerVolume fires edge-triggered callbacks with exclusion subtraction
     throw new Error("script error");
   });
   vec3.set(tracked, 0, 0, 0);
-  assert.doesNotThrow(() => trigger.UpdateSyncronous({ currentTime: 5 }));
+  assert.doesNotThrow(() => trigger.UpdateSyncronous({ GetTime: () => 5 }));
   assert.equal(trigger.GetLastCallbackError()?.message, "script error");
 });
 
@@ -89,14 +89,14 @@ test("EveTriggerVolume transforms, merges bounding spheres, and floors pickable 
   trigger.volumes.push(sphereVolume([ -20, 0, 0 ], 10));
   trigger.volumes.push(sphereVolume([ 20, 0, 0 ], 10));
   trigger.translationCurve = {
-    Update(_time, out)
+    UpdateTicks(_time, out)
     {
       vec3.set(out, 0, 100, 0);
     }
   };
   const halfSqrt = Math.SQRT1_2;
   trigger.rotationCurve = {
-    Update(_time, out)
+    UpdateTicks(_time, out)
     {
       // 90 degrees about +Z
       out[0] = 0; out[1] = 0; out[2] = halfSqrt; out[3] = halfSqrt;

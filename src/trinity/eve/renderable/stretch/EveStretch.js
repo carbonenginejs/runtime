@@ -8,7 +8,7 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { meta } from "#schema";
-import { INotify, IsMatch } from "#blue";
+import { INotify, IsMatch, TimeAsDouble } from "#blue";
 import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { TriFloat } from "../../../core/variable/TriFloat.js";
@@ -20,7 +20,6 @@ import {
   makeEndpointTransforms,
   makeStretchTransform,
   mergeSphere,
-  sampleVector,
   translationMatrix,
   updateChildAsync,
   updateChildSync,
@@ -132,10 +131,11 @@ export class EveStretch extends IEveFiringEffectElement
   UpdateSynchronous(context)
   {
     if (!this.update) return true;
-    const time = getTime(context);
-    if (this.source) sampleVector(this.source, time, this._sourcePosition);
+    // Carbon EveStretch.cpp:57-75: source and destination update through their Be::Time overloads.
+    const time = context.GetTime();
+    if (this.source) this.source.UpdateTicks(time, this._sourcePosition);
     else if (this._useTransforms) mat4.getTranslation(this._sourcePosition, this._sourceTransform);
-    if (this.dest) sampleVector(this.dest, time, this._destinationPosition);
+    if (this.dest) this.dest.UpdateTicks(time, this._destinationPosition);
     return true;
   }
 
@@ -222,11 +222,8 @@ export class EveStretch extends IEveFiringEffectElement
     if (this.startTime < 0 && this.moving) this.startTime = time;
     const relative = this.startTime >= 0 ? time - this.startTime : time;
     for (const curveSet of this.curveSets) updateCurveSet(curveSet, relative, context.renderContext);
-    if (this.progressCurve)
-    {
-      if (typeof this.progressCurve.UpdateValue === "function") this.progressCurve.UpdateValue(relative);
-      else this.progressCurve.Update?.(relative);
-    }
+    // Carbon EveStretch.cpp:158-159: the progress curve takes the elapsed ticks in seconds.
+    if (this.progressCurve) this.progressCurve.UpdateValue(TimeAsDouble(relative));
     updateCurveSet(this.moveCompletion, relative, context.renderContext);
   }
 

@@ -60,12 +60,14 @@ export class EveRootTransform extends EveTransform
   @meta.reason("Curve outputs use CarbonEngineJS's time-first, output-second convention.")
   UpdateSyncronous(updateContext = null)
   {
-    const time = EveRootTransform._GetContextValue(updateContext, "GetTime", "currentTime", "time");
-    EveRootTransform._UpdateCurve(this.translationCurve, time, EveRootTransform._translation, EveRootTransform._zero);
-    EveRootTransform._UpdateCurve(this.rotationCurve, time, EveRootTransform._rotation, EveRootTransform._identityRotation);
+    const time = updateContext.GetTime();
+    if (this.translationCurve) this.translationCurve.UpdateTicks(time, EveRootTransform._translation);
+    else vec3.copy(EveRootTransform._translation, EveRootTransform._zero);
+    if (this.rotationCurve) this.rotationCurve.UpdateTicks(time, EveRootTransform._rotation);
+    else quat.copy(EveRootTransform._rotation, EveRootTransform._identityRotation);
     if (this.modelRotationCurve)
     {
-      EveRootTransform._UpdateCurve(this.modelRotationCurve, time, EveRootTransform._modelRotation, EveRootTransform._identityRotation);
+      this.modelRotationCurve.UpdateTicks(time, EveRootTransform._modelRotation);
       // Carbon (row-vector): rotation = modelRotation * rotation - model first.
       quat.multiply(EveRootTransform._rotation, EveRootTransform._rotation, EveRootTransform._modelRotation);
     }
@@ -73,7 +75,7 @@ export class EveRootTransform extends EveTransform
     mat4.fromRotationTranslation(this._lastUpdateMatrix, EveRootTransform._rotation, EveRootTransform._translation);
     if (this.modelTranslationCurve)
     {
-      EveRootTransform._UpdateCurve(this.modelTranslationCurve, time, EveRootTransform._modelTranslation, EveRootTransform._zero);
+      this.modelTranslationCurve.UpdateTicks(time, EveRootTransform._modelTranslation);
       vec3.transformMat4(EveRootTransform._modelTranslation, EveRootTransform._modelTranslation, this._lastUpdateMatrix);
       this._lastUpdateMatrix[12] = EveRootTransform._modelTranslation[0];
       this._lastUpdateMatrix[13] = EveRootTransform._modelTranslation[1];
@@ -223,47 +225,6 @@ export class EveRootTransform extends EveTransform
   GetBoundingSphereRadius()
   {
     return this.boundingSphereRadius;
-  }
-
-  /**
-   * Reads a numeric value from the update context, preferring a getter method
-   * and falling back to the named properties, and yields 0 when nothing supplies
-   * it.
-   */
-  static _GetContextValue(context, methodName, ...propertyNames)
-  {
-    const method = context?.[methodName];
-    if (typeof method === "function") return Number(method.call(context)) || 0;
-    for (const propertyName of propertyNames)
-    {
-      if (context?.[propertyName] !== undefined && context?.[propertyName] !== null)
-      {
-        return Number(context[propertyName]) || 0;
-      }
-    }
-    return 0;
-  }
-
-  /**
-   * Samples a curve into out through whichever of Update or GetValueAt it
-   * exposes, writing the fallback when there is no curve and copying back curves
-   * that return a new array instead of filling out.
-   */
-  static _UpdateCurve(curve, time, out, fallback)
-  {
-    if (!curve)
-    {
-      for (let index = 0; index < out.length; index++) out[index] = fallback[index];
-      return out;
-    }
-    let result;
-    if (typeof curve.Update === "function") result = curve.Update(time, out);
-    else if (typeof curve.GetValueAt === "function") result = curve.GetValueAt(time, out);
-    if ((Array.isArray(result) || ArrayBuffer.isView(result)) && result !== out)
-    {
-      for (let index = 0; index < out.length; index++) out[index] = result[index];
-    }
-    return out;
   }
 
   static _zero = vec3.create();

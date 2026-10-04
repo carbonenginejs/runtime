@@ -56,7 +56,7 @@ test("EveCamera update reproduces Carbon orbit, view-basis slots, and listeners"
   const camera = new EveCamera();
   const parentPosition = vec3.fromValues(3, 4, 5);
   camera.parent = {
-    GetValueAt(_time, out)
+    GetValueAtTicks(_time, out)
     {
       return vec3.copy(out, parentPosition);
     }
@@ -159,7 +159,8 @@ test("EveCamera notifications preserve active spring targets", () =>
   camera.OrbitParent(1, 0);
 
   CjsSchema.setValues(camera, { rotationAroundParent: quat.fromYawPitchRoll(quat.create(), 0.2, 0, 0) }, { skipEvents: true });
-  camera.Update(1, 1, 1);
+  // One second of scene ticks: Carbon takes the frame delta as TimeAsDouble(realTime - m_time) (EveCamera.cpp:243).
+  camera.Update(10_000_000, 1, 10_000_000);
 
   assert.ok(Math.abs(camera.yaw - 0.06875) < 1e-5);
 });

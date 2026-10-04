@@ -4,6 +4,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { ITriVectorFunction } from "#blue";
 import { meta } from "#schema";
+import { TimeAsDouble } from "#blue";
 
 
 /**
@@ -55,15 +56,13 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
   currentValue = vec3.create();
 
   /**
-   * Start timestamp in JavaScript seconds for GetStartAwareLocalTime; zero is its unset/reset
-   * sentinel. Native stores ticks; ordinary sampling ignores this field.
+   * m_start - Blue ticks of the first tick-overload sample; zero is unset (latched by the ...Ticks methods, cleared by ResetStart).
    * @type {number}
    */
   _start = 0;
 
   /**
-   * Random time offset in JavaScript seconds used by GetStartAwareLocalTime. Native stores ticks;
-   * ordinary sampling ignores this field.
+   * m_offset - Blue ticks added to the latched local time by the ...Ticks methods; set by RandomizeStart.
    * @type {number}
    */
   _offset = 0;
@@ -104,7 +103,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
 
   /**
    * Updates the cache and copies the vector into the output buffer.
-   * JavaScript retains the native double-time path with seconds first and output last; the separate tick overload is not dispatched.
+   * JavaScript retains the native double-time path with seconds first and output last; UpdateTicks is the Be::Time overload.
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -166,6 +165,29 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
   }
 
   /**
+   * Carbon's GetValueDotAt(Be::Time): latches the start, then the backward difference at local time (cpp:102-117).
+   * JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array} out Destination derivative.
+   * @returns {Float32Array} The destination.
+   */
+  @meta.blue.renamed("GetValueDotAt")
+  @meta.adapted
+  GetValueDotAtTicks(time, out)
+  {
+    if (this._start === 0) this._start = time;
+    if (!this.curve)
+    {
+      return vec3.zero(out);
+    }
+    const localTime = this.GetLocalTimeTicks(time);
+    this.curve.GetValueAt(localTime, this._dotValue0);
+    this.curve.GetValueAt(localTime - 0.1, this._dotValue1);
+    vec3.subtract(out, this._dotValue1, this._dotValue0);
+    return vec3.scale(out, out, 10);
+  }
+
+  /**
    * Writes the native zero second derivative.
    * JavaScript combines native overloads as time-first/output-last calls.
    * @param {number} _time Unused time.
@@ -195,7 +217,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
 
   /**
    * Chooses a random local offset within the supplied radius.
-   * JavaScript retains Math.random and numeric seconds rather than native rand/modulo tick arithmetic.
+   * JavaScript draws uniformly with Math.random rather than native rand()/modulo tick arithmetic; the offset is stored in ticks.
    * @param {number} range Radius in seconds; zero or omission selects 60.
    * @returns {void}
    */
@@ -204,7 +226,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
   RandomizeStart(range = 60)
   {
     const radius = range || 60;
-    this._offset = (Math.random() * 2 - 1) * radius;
+    this._offset = Math.round((Math.random() * 2 - 1) * radius * 10_000_000);
   }
 
   /**
@@ -243,19 +265,59 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
   }
 
   /**
-   * Retains the separate JavaScript start-aware numeric-seconds helper.
-   * The native overload takes Be::Time ticks; this helper uses seconds and initializes start locally. Update and sampling keep the double-time path.
-   * @param {number} time Time in seconds.
-   * @returns {number} Start-aware scaled seconds.
+   * Carbon's GetLocalTime(Be::Time): ticks since the latched start plus the offset, in scaled seconds (Tr2TranslationAdapter.cpp:186-189).
+   * JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @returns {number} Local time in seconds.
    */
-  @meta.ours
-  GetStartAwareLocalTime(time)
+  @meta.blue.renamed("GetLocalTime")
+  @meta.adapted
+  GetLocalTimeTicks(time)
   {
-    if (this._start === 0)
+    return TimeAsDouble(time - this._start + this._offset) / this._timeScale;
+  }
+
+  /**
+   * Carbon's Update(Be::Time): latches the start on first use, then updates from local time and applies the rotation offset.
+   * JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array} out Destination value.
+   * @returns {Float32Array} The destination.
+   */
+  @meta.blue.renamed("Update")
+  @meta.adapted
+  UpdateTicks(time, out)
+  {
+    if (this._start === 0) this._start = time;
+    if (this.curve)
     {
-      this._start = time;
+      this.curve.Update(this.GetLocalTimeTicks(time), this.currentValue);
     }
-    return (time - this._start + this._offset) / this._timeScale;
+    else
+    {
+      vec3.copy(this.currentValue, this.value);
+    }
+    vec3.transformQuat(this.currentValue, this.currentValue, this.rotationOffset);
+    return vec3.copy(out, this.currentValue);
+  }
+
+  /**
+   * Carbon's GetValueAt(Be::Time): latches the start on first use and samples the child at local time.
+   * JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array} out Destination value.
+   * @returns {Float32Array} The destination.
+   */
+  @meta.blue.renamed("GetValueAt")
+  @meta.adapted
+  GetValueAtTicks(time, out)
+  {
+    if (this._start === 0) this._start = time;
+    if (this.curve)
+    {
+      return this.curve.GetValueAt(this.GetLocalTimeTicks(time), out);
+    }
+    return vec3.copy(out, this.value);
   }
 }
 

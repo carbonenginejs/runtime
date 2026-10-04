@@ -201,7 +201,7 @@ test("EveSpaceScene.Update tracks the origin and the sun direction", () =>
 
   scene.ballpark = new TestBallpark();
   scene.sunBall = {
-    Update(_time, out)
+    UpdateTicks(_time, out)
     {
       out[0] = 0;
       out[1] = 0;

@@ -8,6 +8,7 @@ import { IEveTransform } from "../../IEveTransform.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { quat } from "#math/quat";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { Tr2PerObjectDataStandard } from "../../../core/rawData/perObjectData/Tr2PerObjectDataStandard.js";
 
@@ -85,14 +86,15 @@ export class EveLineSet
   @meta.implemented
   UpdateSyncronous(updateContext)
   {
-    const rotation = vec4.fromValues(0, 0, 0, 1);
-    const translation = vec3.create();
-    const time = updateContext?.GetTime?.() ?? updateContext?.currentTime ?? 0;
+    const { vec3_0, quat_0 } = EveLineSet.scratch;
+    vec3.zero(vec3_0);
+    quat.identity(quat_0);
+    const time = updateContext.GetTime();
 
-    this.translationCurve?.Update(time, translation);
-    this.rotationCurve?.Update(time, rotation);
+    if (this.translationCurve) this.translationCurve.UpdateTicks(time, vec3_0);
+    if (this.rotationCurve) this.rotationCurve.UpdateTicks(time, quat_0);
 
-    mat4.fromRotationTranslationScale(this.worldTransform, rotation, translation, this.scaling);
+    mat4.fromRotationTranslationScale(this.worldTransform, quat_0, vec3_0, this.scaling);
   }
 
   /** Carbon EveLineSet::Update forwards to UpdateSyncronous (cpp:120-123). */
@@ -265,4 +267,9 @@ export class EveLineSet
     return data;
   }
 
+
+  static scratch = {
+    vec3_0: vec3.create(),
+    quat_0: quat.create()
+  };
 }

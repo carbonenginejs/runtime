@@ -86,6 +86,44 @@ export class Tr2CurveCombiner extends ITriVectorFunction
   }
 
   /**
+   * Carbon's Update(Be::Time): every child updates through its own Be::Time overload, and the sum is cached
+   * (Tr2CurveCombiner.cpp:45-58). JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array} out Destination value.
+   * @returns {Float32Array} The destination.
+   */
+  @meta.blue.renamed("Update")
+  @meta.adapted
+  UpdateTicks(time, out)
+  {
+    const sum = vec3.alloc();
+    try
+    {
+      vec3.zero(sum);
+      const childValue = vec3.alloc();
+      try
+      {
+        for (const curve of this.curves)
+        {
+          vec3.zero(childValue);
+          curve.UpdateTicks(time, childValue);
+          vec3.add(sum, sum, childValue);
+        }
+        vec3.copy(this.currentValue, sum);
+      }
+      finally
+      {
+        vec3.unalloc(childValue);
+      }
+    }
+    finally
+    {
+      vec3.unalloc(sum);
+    }
+    return vec3.copy(out, this.currentValue);
+  }
+
+  /**
    * Returns the longest child exposing the exact native curve-length interface.
    * JavaScript mapped constructor identities implement native BlueCastPtr; an exposed Length method is required.
    * @returns {number} Duration in seconds.

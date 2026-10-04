@@ -1,6 +1,7 @@
 // Source: blue/include/ITriFunction.h:65-124
 import { CjsSchema, meta } from "#schema";
 import { ITriFunction } from "./ITriFunction.js";
+import { TimeAsDouble } from "./CcpTime.js";
 
 
 /**
@@ -69,12 +70,72 @@ export class ITriVectorFunction extends ITriFunction
   InterpolatedPosition(_out, _time)
   {
   }
+
+  /**
+   * Carbon's Update(Be::Time) overload. The shared body converts the ticks with TimeAsDouble and calls the
+   * seconds overload, as Carbon's curves do; a class whose Be::Time body differs overrides it.
+   * JavaScript cannot overload on argument type: Be::Time and double are both Numbers here
+   * (blue/include/ITriFunction.h:65-124), so Carbon's Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array} out Caller-owned value storage.
+   * @returns {Float32Array} The Update result.
+   */
+  UpdateTicks(time, out)
+  {
+    return this.Update(TimeAsDouble(time), out);
+  }
+
+  /**
+   * Carbon's GetValueAt(Be::Time) overload. The shared body converts the ticks with TimeAsDouble and calls the
+   * seconds overload, as Carbon's curves do; a class whose Be::Time body differs overrides it.
+   * JavaScript cannot overload on argument type: Be::Time and double are both Numbers here
+   * (blue/include/ITriFunction.h:65-124), so Carbon's Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array} out Caller-owned value storage.
+   * @returns {Float32Array} The GetValueAt result.
+   */
+  GetValueAtTicks(time, out)
+  {
+    return this.GetValueAt(TimeAsDouble(time), out);
+  }
+
+  /**
+   * Carbon's GetValueDotAt(Be::Time) overload. The shared body converts the ticks with TimeAsDouble and calls the
+   * seconds overload, as Carbon's curves do; a class whose Be::Time body differs overrides it.
+   * JavaScript cannot overload on argument type: Be::Time and double are both Numbers here
+   * (blue/include/ITriFunction.h:65-124), so Carbon's Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array} out Caller-owned value storage.
+   * @returns {Float32Array} The GetValueDotAt result.
+   */
+  GetValueDotAtTicks(time, out)
+  {
+    return this.GetValueDotAt(TimeAsDouble(time), out);
+  }
+
+  /**
+   * Carbon's GetValueDoubleDotAt(Be::Time) overload. The shared body converts the ticks with TimeAsDouble and calls the
+   * seconds overload, as Carbon's curves do; a class whose Be::Time body differs overrides it.
+   * JavaScript cannot overload on argument type: Be::Time and double are both Numbers here
+   * (blue/include/ITriFunction.h:65-124), so Carbon's Be::Time overload has its own name.
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array} out Caller-owned value storage.
+   * @returns {Float32Array} The GetValueDoubleDotAt result.
+   */
+  GetValueDoubleDotAtTicks(time, out)
+  {
+    return this.GetValueDoubleDotAt(TimeAsDouble(time), out);
+  }
 }
 
 for (const method of [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleDotAt", "InterpolatedPosition" ])
 {
   CjsSchema.decorateMethod(ITriVectorFunction, method, meta.requires, meta.abstract);
 }
+CjsSchema.decorateMethod(ITriVectorFunction, "UpdateTicks", meta.blue.renamed("Update"), meta.adapted);
+CjsSchema.decorateMethod(ITriVectorFunction, "GetValueAtTicks", meta.blue.renamed("GetValueAt"), meta.adapted);
+CjsSchema.decorateMethod(ITriVectorFunction, "GetValueDotAtTicks", meta.blue.renamed("GetValueDotAt"), meta.adapted);
+CjsSchema.decorateMethod(ITriVectorFunction, "GetValueDoubleDotAtTicks", meta.blue.renamed("GetValueDoubleDotAt"), meta.adapted);
 CjsSchema.define(ITriVectorFunction, {
   className: "ITriVectorFunction", carbon: "ITriVectorFunction", family: "blue", fields: {}
 });

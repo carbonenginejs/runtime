@@ -30,9 +30,9 @@ test("before the first key the retained value is reported", () =>
   const value = orientation([ key({ time: 5 }) ]);
   quat.copy(value.value, held);
 
-  assert.deepEqual(Array.from(value.GetValueAt(quat.create(), 1)), Array.from(held));
-  assert.deepEqual(Array.from(value.GetValueAt(quat.create(), -3)), Array.from(held));
-  assert.deepEqual(Array.from(value.GetValueDotAt(vec3.create(), 1)), [ 0, 0, 0 ]);
+  assert.deepEqual(Array.from(value.GetValueAt(1, quat.create())), Array.from(held));
+  assert.deepEqual(Array.from(value.GetValueAt(-3, quat.create())), Array.from(held));
+  assert.deepEqual(Array.from(value.GetValueDotAt(1, vec3.create())), [ 0, 0, 0 ]);
 });
 
 test("at a key exactly, the orientation is that key's own", () =>
@@ -40,7 +40,7 @@ test("at a key exactly, the orientation is that key's own", () =>
   const start = quat.setAxisAngle(quat.create(), [ 1, 0, 0 ], 0.5);
   const value = orientation([ key({ time: 0, rot0: start, omega0: [ 0, 2, 0 ] }) ]);
 
-  const out = value.GetValueAt(quat.create(), 0);
+  const out = value.GetValueAt(0, quat.create());
 
   for (let index = 0; index < 4; index++)
   {
@@ -53,8 +53,8 @@ test("angular velocity decays toward the torque's terminal rate", () =>
   // Terminal rate is torque / drag = 4 / 2 = 2, approached from 0.
   const value = orientation([ key({ omega0: [ 0, 0, 0 ], torque: [ 4, 0, 0 ] }) ], { drag: 2, inertia: 1 });
 
-  const early = value.GetValueDotAt(vec3.create(), 0.1)[0];
-  const late = value.GetValueDotAt(vec3.create(), 10)[0];
+  const early = value.GetValueDotAt(0.1, vec3.create())[0];
+  const late = value.GetValueDotAt(10, vec3.create())[0];
 
   assert.ok(early > 0 && early < 2, `early rate ${early} should be climbing`);
   assert.ok(Math.abs(late - 2) < 1e-6, `late rate ${late} should reach terminal 2`);
@@ -64,8 +64,8 @@ test("with no torque the angular velocity decays to nothing", () =>
 {
   const value = orientation([ key({ omega0: [ 3, 0, 0 ] }) ], { drag: 2, inertia: 1 });
 
-  assert.ok(Math.abs(value.GetValueDotAt(vec3.create(), 0)[0] - 3) < 1e-9);
-  assert.ok(value.GetValueDotAt(vec3.create(), 20)[0] < 1e-6, "drag brings it to rest");
+  assert.ok(Math.abs(value.GetValueDotAt(0, vec3.create())[0] - 3) < 1e-9);
+  assert.ok(value.GetValueDotAt(20, vec3.create())[0] < 1e-6, "drag brings it to rest");
 });
 
 test("the accumulated rotation composes AFTER the key's orientation, not before", () =>
@@ -76,7 +76,7 @@ test("the accumulated rotation composes AFTER the key's orientation, not before"
   const start = quat.setAxisAngle(quat.create(), [ 1, 0, 0 ], Math.PI / 2);
   const value = orientation([ key({ rot0: start, omega0: [ 0, 1, 0 ] }) ], { drag: 1e-4, inertia: 1 });
 
-  const sampled = value.GetValueAt(quat.create(), 1);
+  const sampled = value.GetValueAt(1, quat.create());
 
   // Build the expected result explicitly in the same convention: the spin is
   // applied after the start orientation.
@@ -113,7 +113,7 @@ test("Update retains what it sampled", () =>
 {
   const value = orientation([ key({ omega0: [ 0, 0, 1 ] }) ], { drag: 1e-4 });
 
-  const out = value.Update(quat.create(), 1);
+  const out = value.Update(1, quat.create());
 
   assert.deepEqual(Array.from(value.value), Array.from(out), "the sample is retained as the value");
   assert.notDeepEqual(Array.from(out), [ 0, 0, 0, 1 ], "and it actually rotated");

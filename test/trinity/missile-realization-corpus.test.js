@@ -353,10 +353,10 @@ test("real missile invokes its rotation adapter Update owner and publishes its c
   // Precompute inherited placement at the same time so base sync will not resample.
   missile.UpdateWorldTransform(3);
   rotation.currentValue.set([0, 0, 0, 1]);
-  const update = t.mock.method(rotation, "Update");
+  const update = t.mock.method(rotation, "UpdateTicks");
   missile.UpdateSyncronous(context);
   nearValues(rotation.currentValue, [0, 0, Math.SQRT1_2, Math.SQRT1_2]);
-  assert.equal(update.mock.callCount(), 1, "the missile's own update owner must call Update, not GetValueAt");
+  assert.equal(update.mock.callCount(), 1, "the missile's own update owner must call Update(Be::Time), not GetValueAt");
   assert.equal(update.mock.calls[0].arguments[0], 3);
 });
 
