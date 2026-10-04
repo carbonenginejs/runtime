@@ -4,6 +4,7 @@
 import { meta } from "#schema";
 import { IInitialize } from "#blue/IInitialize";
 import { vec3 } from "#math/vec3";
+import { vec4 } from "#math/vec4";
 import { Tr2StandardIlluminant } from "../../generated/trinityCore/enums.js";
 import { blue } from "#blue";
 
@@ -88,7 +89,7 @@ export class Tr2KelvinColor extends IInitialize
    * constants and float32 vec3 intermediates; native double arithmetic differs.
    */
   @meta.ours
-  static fromKelvin(temperature, tint, whitePoint, out = vec3.create())
+  static triColorFromKelvin(temperature, tint, whitePoint, out = vec3.create())
   {
     const T = Number(temperature);
 
@@ -143,16 +144,45 @@ export class Tr2KelvinColor extends IInitialize
     return vec3.set(out, red / brightest, green / brightest, blue / brightest);
   }
 
-  /**
-   * This record's authored colour as linear RGB. Existing JavaScript adapter
-   * exposes RGB in an optional output buffer instead of native AsRGB RGBA.
-   */
-  @meta.blue.method
-  @meta.adapted
-  GetColor(out = vec3.create())
+  /** Carbon GetTemperature (Tr2KelvinColor.h:53-56). */
+  @meta.implemented
+  GetTemperature()
   {
-    return Tr2KelvinColor.fromKelvin(this.temperature, this.tint, this.whiteBalance, out);
+    return this.temperature;
   }
+
+  /** Carbon GetTint (Tr2KelvinColor.h:58-61). */
+  @meta.implemented
+  GetTint()
+  {
+    return this.tint;
+  }
+
+  /** Carbon GetWhiteBalance (Tr2KelvinColor.h:63-66). */
+  @meta.implemented
+  GetWhiteBalance()
+  {
+    return this.whiteBalance;
+  }
+
+  /**
+   * Carbon AsRGB (Tr2KelvinColor.h:69-77): the temperature as an opaque RGBA
+   * colour, TriColorFromKelvin's RGB with alpha 1.
+   *
+   * Adapted: written into `out` rather than returned by value, and stored as
+   * float32 where Carbon converts its Vector3d at the end.
+   *
+   * @param {vec4} [out] Receives the colour.
+   * @returns {vec4} out
+   */
+  @meta.adapted
+  AsRGB(out = vec4.create())
+  {
+    const rgb = Tr2KelvinColor.triColorFromKelvin(this.temperature, this.tint, this.whiteBalance, Tr2KelvinColor._rgbScratch);
+    return vec4.set(out, rgb[0], rgb[1], rgb[2], 1);
+  }
+
+  static _rgbScratch = vec3.create();
 
   /** Carbon's standard-illuminant chromaticity table, indexed by the enum. */
   static _CHROMATICITY = Object.freeze([

@@ -95,10 +95,10 @@ test("Kelvin authored member order roundtrips while existing RGB adapters are re
   const value = new DictReader({declarations:true}).CreateObject({_type:"Tr2KelvinColor",temperature:5000,tint:0.25,whiteBalance:3});
   const copy = new Copier().CloneTo(value), written = new DictWriter().WriteObject(copy, {}, {persistOnly:true});
   assert.deepEqual([written.temperature,written.tint,written.whiteBalance], [5000,0.25,3]);
-  const out = vec3.create();
-  assert.equal(copy.GetColor(out), out);
-  assert.deepEqual(Array.from(out), Array.from(value.GetColor()));
+  const out = new Float32Array(4);
+  assert.equal(copy.AsRGB(out), out);
+  assert.deepEqual(Array.from(out), Array.from(value.AsRGB()));
   copy.temperature = NaN;
-  assert.deepEqual(Array.from(copy.GetColor()), [0,0,0]);
-  assert.equal(CjsSchema.getMethod(Tr2KelvinColor, "GetColor").impl.status, "adapted");
+  assert.deepEqual(Array.from(copy.AsRGB()), [0,0,0,1]);
+  assert.equal(CjsSchema.getMethod(Tr2KelvinColor, "AsRGB").impl.status, "adapted");
 });

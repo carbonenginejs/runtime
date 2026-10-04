@@ -16,6 +16,9 @@ import { mat4 } from "#math/mat4";
 @meta.blue.inherit(IInitialize, INotify, ITr2InteriorLight)
 export class Tr2InteriorLightSource
 {
+  /** PopulateLightData's AsRGB result. */
+  static _kelvinScratch = vec4.create();
+
 
   /** m_coneDirection (Vector3) [READWRITE, PERSIST, NOTIFY] */
   @meta.blue.notify
@@ -163,7 +166,9 @@ export class Tr2InteriorLightSource
     {
       // Carbon eagerly CreateInstance()s the kelvin record (cpp:42); here
       // hydration supplies it, and a null falls through to the rgb field.
-      this.kelvinColor.GetColor(lightData.color);
+      // Carbon cpp:107-108: Color k = AsRGB(); color = Vector3( k.r, k.g, k.b ).
+      const k = this.kelvinColor.AsRGB(Tr2InteriorLightSource._kelvinScratch);
+      vec3.set(lightData.color, k[0], k[1], k[2]);
     }
     else
     {

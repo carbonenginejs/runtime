@@ -67,7 +67,7 @@ test("kelvin colour wins when enabled, linearized like the rgb path", () =>
     CjsSchema.setValues(source, { useKelvinColor: true });
     source.kelvinColor = kelvin;
 
-    const expected = kelvin.GetColor();
+    const expected = Array.from(kelvin.AsRGB()).slice(0, 3);
     const data = new Tr2InteriorPerObjectLightData();
     source.PopulateLightData(data);
     assert.ok(Math.abs(data.color[0] - Math.pow(expected[0], 2.2)) < 1e-6);
