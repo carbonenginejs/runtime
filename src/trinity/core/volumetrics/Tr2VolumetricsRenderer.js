@@ -12,12 +12,14 @@ import { AccumulatePriorityAttribute } from "../PriorityBlend.js";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 import { Tr2Effect } from "../../shader/Tr2Effect.js";
 import { Tr2VolumetricsRendererFogViewDependentResources } from "./Tr2VolumetricsRendererFogViewDependentResources.js";
-import { Tr2Renderer } from "../Tr2Renderer.js";
+import { PER_OBJECT_VS, Tr2Renderer } from "../Tr2Renderer.js";
 import { TriRenderBatchAccumulator } from "../batch/TriRenderBatch/TriRenderBatchAccumulator.js";
 import { EveComponentType } from "../../eve/EveComponentTypes.js";
 import { Tr2LightManager } from "../lighting/Tr2LightManager.js";
 import { CjsTr2VolumetricsRendererLayout } from "../rawData/layouts/CjsTr2VolumetricsRendererLayout.js";
-import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
+import { PixelFormat, ShaderType, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
+import { Failed, Tr2ConstantUsageAL } from "#trinityal";
+import { RawData } from "../rawData/RawData.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
 import { RenderingMode } from "#consts/graphics";
@@ -165,6 +167,10 @@ export class Tr2VolumetricsRenderer
 
   /** m_isReflectionProbe (h:112-115): scales the fog by reflectionIntensity while a probe renders. */
   _isReflectionProbe = false;
+
+  /** m_fogConstantBuffer (cpp:658-661), created on first use, and the record its bytes are filled from. */
+  _fogConstantBuffer = null;
+  _fogPerObjectData = RawData.create("FogPerObjectData");
 
   /** Native cloud pass effects (cpp:51-66). */
   @meta.type.objectRef("Tr2Effect")
@@ -564,26 +570,191 @@ export class Tr2VolumetricsRenderer
   }
 
   /**
-   * Carbon's private RenderFog worker (h:171-187, cpp:552-806), named by the view resources it takes first: sizes the
-   * froxel volume from the quality preset, then calculates, temporally filters and raymarches the froxels and applies
-   * them to the scene. With the fog off it returns nothing, Carbon's empty texture, and its callers substitute the
-   * empty fog texture.
+   * Carbon's private RenderFog worker (h:171-187, cpp:552-806), named by the view resources it takes first.
    *
-   * NOT IMPLEMENTED with the fog on: three of its four compute effects do not translate to WGSL yet.
-   * CalculateFroxels fails on a control-flow merge without a selection plan, FilterFroxels on offset samples of a 3D
-   * texture, and RaymarchFroxels on loads from a 3D texture. It throws rather than drawing no fog, which would look
-   * plausible.
+   * Sizes the froxel volume from the quality preset: a sixth to a sixteenth of the view, at 64 to 128 depth layers.
+   * With the fog off it returns nothing, Carbon's empty texture, and its callers substitute the empty fog texture.
+   * Otherwise it:
+   * - picks the shadow source: raytraced, the cascades, or none;
+   * - advances a temporal view's golden-ratio jitter;
+   * - uploads the fog constants (_UpdatePerObjectData) to the compute stage's per-object register (PER_OBJECT_VS, the
+   *   value of Carbon's static GetPerObjectVSStartRegister);
+   * - calculates the froxels into an R11G11B10 3D volume;
+   * - for a temporal view, filters them against last frame's, ping-ponging two persistent volumes cleared to
+   *   (0, 0, 0, 1);
+   * - raymarches them front to back;
+   * - applies them over the scene with one alpha-blended screen quad.
+   *
+   * Adapted:
+   * - **Raytraced shadows.** The raytraced-shadow branch needs DispatchRays, which no JavaScript backend provides;
+   *   no scene passes raytracing geometry to it, and choosing that branch throws.
+   * - **Constants.** They are filled into a FogPerObjectData record and copied into the locked buffer as bytes, so
+   *   the bit-field light words arrive intact.
+   * - **Pool handles.** They are released explicitly; the froxel handle is returned to the caller, who releases it.
+   * - **GPU regions.** Carbon's GPU regions are not ported.
    * @param {Tr2VolumetricsRendererFogViewDependentResources} resources The view's froxel effects and temporal state.
-   * @returns {object|null} The froxel texture; null where Carbon returns an empty texture.
+   * @returns {GpuResourceHandle|null} The froxel texture; null where Carbon returns an empty texture.
    */
-  @meta.notImplemented
+  @meta.adapted
   _RenderFog_Resources(resources, renderContext, gpuResourcePool, originalWidth, originalHeight, cascadedShadowMap,
     raytracingGeometry, shadowQuality, sunDirection, sunColor, origin, originShift, view, projection, viewLast,
     projectionLast)
   {
+    let width = 1;
+    let height = 1;
+    let depth = 1;
+
     const froxelsEnabled = this.thickness > 0;
+    if (froxelsEnabled)
+    {
+      let scale;
+      let numLayers;
+      switch (this.quality)
+      {
+        case Tr2VolumerticQuality.Ultra:
+          scale = 1 / 6;
+          numLayers = 128;
+          break;
+        case Tr2VolumerticQuality.High:
+          scale = 1 / 8;
+          numLayers = 128;
+          break;
+        case Tr2VolumerticQuality.Medium:
+          scale = 1 / 12;
+          numLayers = 96;
+          break;
+        case Tr2VolumerticQuality.Low:
+        default:
+          scale = 1 / 16;
+          numLayers = 64;
+          break;
+      }
+      width = Math.max(4, Math.floor(originalWidth * Math.fround(scale)));
+      height = Math.max(4, Math.floor(originalHeight * Math.fround(scale)));
+      depth = Math.max(1, numLayers);
+    }
+
+    const temporalFog = resources.useTemporalFroxels;
+
     if (!froxelsEnabled) return null;
-    throw new Error("Tr2VolumetricsRenderer.RenderFog: the froxel compute effects do not translate to WGSL yet.");
+
+    let shadowType;
+    if (raytracingGeometry !== null && raytracingGeometry.HasGeometry() && shadowQuality === ShadowQuality.SHADOW_RAYTRACED
+      && resources.rtCalculateFroxels && resources.rtCalculateFroxels.GetShaderStateInterface())
+    {
+      shadowType = Tr2VolumetricsRenderer._shadowType.SHADOWS_RAYTRACED;
+    }
+    else if (cascadedShadowMap !== null && (shadowQuality === ShadowQuality.SHADOW_LOW || shadowQuality === ShadowQuality.SHADOW_HIGH))
+    {
+      shadowType = Tr2VolumetricsRenderer._shadowType.SHADOWS_CASCADED;
+    }
+    else
+    {
+      shadowType = Tr2VolumetricsRenderer._shadowType.SHADOWS_DISABLED;
+    }
+
+    if (temporalFog)
+    {
+      // The per-frame jitter offset.
+      const g = 1.61803398874989484820;
+      const g2 = 1.32471795724474602596;
+      const jitter = resources.froxelJitter;
+      jitter[0] += 1 / (g2 * g2);
+      jitter[1] += 1 / g2;
+      jitter[2] += 1 / g;
+      jitter[0] -= Math.floor(jitter[0]);
+      jitter[1] -= Math.floor(jitter[1]);
+      jitter[2] -= Math.floor(jitter[2]);
+    }
+
+    if (!this._fogConstantBuffer || !this._fogConstantBuffer.IsValid())
+    {
+      this._fogConstantBuffer = renderContext.CreateConstantBuffer();
+      if (Failed(this._fogConstantBuffer.Create(this._fogPerObjectData.GetData().byteLength, Tr2ConstantUsageAL.REUSABLE, null, renderContext))) return null;
+    }
+
+    const data = this._fogPerObjectData;
+    this._UpdatePerObjectData(data, view, projection, viewLast, projectionLast, origin, originShift, sunDirection, sunColor,
+      width, height, depth, resources.froxelJitter,
+      shadowType === Tr2VolumetricsRenderer._shadowType.SHADOWS_CASCADED ? cascadedShadowMap : null);
+    const locked = this._fogConstantBuffer.Lock(renderContext);
+    if (Failed(locked.result) || !locked.data) return null;
+    const bytes = data.GetData();
+    locked.data.set(new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength)); // alloc: byte view of the record for the upload
+    if (Failed(this._fogConstantBuffer.Unlock(renderContext))) return null;
+    if (Failed(renderContext.SetConstants(this._fogConstantBuffer, ShaderType.COMPUTE_SHADER, PER_OBJECT_VS))) return null;
+
+    const dimensions = {
+      type: TextureType.TEX_TYPE_3D, format: PixelFormat.PIXEL_FORMAT_R11G11B10_FLOAT,
+      width, height, depth, mipCount: 1, arraySize: 1,
+      gpuUsage: Tr2GpuUsage.UNORDERED_ACCESS | Tr2GpuUsage.SHADER_RESOURCE
+    };
+    const fogFroxels = gpuResourcePool.GetTempTexture("FogFroxels", dimensions);
+
+    const workgroupSize = 4;
+    const wgX = Math.floor((width + workgroupSize - 1) / workgroupSize);
+    const wgY = Math.floor((height + workgroupSize - 1) / workgroupSize);
+    const wgZ = Math.floor((depth + workgroupSize - 1) / workgroupSize);
+
+    let temporalFroxels0 = null;
+    let temporalFroxels1 = null;
+    try
+    {
+      if (shadowType === Tr2VolumetricsRenderer._shadowType.SHADOWS_RAYTRACED)
+      {
+        throw new Error("Tr2VolumetricsRenderer.RenderFog: raytraced froxel shadows need DispatchRays, which no JavaScript backend provides.");
+      }
+      else
+      {
+        // Otherwise, just a plain compute shader.
+        const calculateFroxels = resources.calculateFroxels;
+        calculateFroxels.SetOption("SHADOWS", shadowType === Tr2VolumetricsRenderer._shadowType.SHADOWS_CASCADED ? "SHADOWS_ENABLED" : "SHADOWS_DISABLED");
+        calculateFroxels.SetOption("GOD_RAY_NOISE", this.godRayNoiseIntensity > 0 ? "GOD_RAY_NOISE_ENABLED" : "GOD_RAY_NOISE_DISABLED");
+        calculateFroxels.SetOption("FOG_NOISE", this.fogNoiseIntensity > 0 ? "FOG_NOISE_ENABLED" : "FOG_NOISE_DISABLED");
+        calculateFroxels.SetParameter_TextureProvider("Noise3DTexture", this._froxel3DNoise);
+        calculateFroxels.SetParameter_TextureAL("RtFroxelOutputTexture", fogFroxels.Get());
+        Tr2Renderer.runComputeShader(calculateFroxels, wgX, wgY, wgZ, renderContext);
+      }
+
+      if (temporalFog)
+      {
+        const clear = texture => { renderContext.ClearUav(texture, Tr2VolumetricsRenderer._temporalClearValue, true); };
+        temporalFroxels0 = gpuResourcePool.GetPersistentTexture("TemporalFroxelFog0", dimensions, clear);
+        temporalFroxels1 = gpuResourcePool.GetPersistentTexture("TemporalFroxelFog1", dimensions, clear);
+
+        const temporalInput = resources.currentTemporalFroxels ? temporalFroxels0 : temporalFroxels1;
+        const temporalOutput = resources.currentTemporalFroxels ? temporalFroxels1 : temporalFroxels0;
+        resources.currentTemporalFroxels = !resources.currentTemporalFroxels;
+
+        resources.filterFroxels.SetParameter_TextureAL("InputTexture", fogFroxels.Get());
+        resources.filterFroxels.SetParameter_TextureAL("PreviousTexture", temporalInput.Get());
+        resources.filterFroxels.SetParameter_TextureAL("OutputTexture", temporalOutput.Get());
+        Tr2Renderer.runComputeShader(resources.filterFroxels, wgX, wgY, wgZ, renderContext);
+
+        resources.raymarchFroxels.SetParameter_TextureAL("InputTexture", temporalOutput.Get());
+      }
+
+      resources.raymarchFroxels.SetParameter_TextureAL("OutputTexture", fogFroxels.Get());
+      // An 8x4 workgroup is faster here.
+      Tr2Renderer.runComputeShader(resources.raymarchFroxels, Math.floor((width + 7) / 8), Math.floor((height + 3) / 4), 1, renderContext);
+
+      renderContext.GetEffectStateManager().ApplyStandardStates(RenderingMode.RM_ALPHA);
+      resources.applyFroxels.SetOption("ENVIRONMENT_LIGHTING", this.environmentIntensity > 0 ? "ENVIRONMENT_LIGHTING_ENABLED" : "ENVIRONMENT_LIGHTING_DISABLED");
+      resources.applyFroxels.SetParameter_TextureAL("EveSceneFroxelFogMap", fogFroxels.Get());
+      Tr2Renderer.drawScreenQuad(renderContext, resources.applyFroxels);
+      resources.applyFroxels.SetParameter_TextureAL("EveSceneFroxelFogMap", new Tr2TextureAL());
+    }
+    catch (error)
+    {
+      gpuResourcePool.Free(fogFroxels);
+      throw error;
+    }
+    finally
+    {
+      if (temporalFroxels0) gpuResourcePool.Free(temporalFroxels0);
+      if (temporalFroxels1) gpuResourcePool.Free(temporalFroxels1);
+    }
+    return fogFroxels;
   }
 
   /**
@@ -748,7 +919,7 @@ export class Tr2VolumetricsRenderer
       if (angle > 0.001)
       {
         const axis = vec3.normalize(vec3_0, vec3.cross(vec3_0, sunDirection, noiseDirection));
-        const rotationMatrix = mat4.fromRotation(mat4d_0, angle, axis);
+        const rotationMatrix = Tr2VolumetricsRenderer._RotationMatrix(mat4d_0, axis, angle);
         // Carbon Matrix4dMultiply( newMatrix, rotationMatrix, m_godRayNoiseMatrix ): the rotation first.
         const newMatrix = mat4.multiply(mat4d_1, godRayNoiseMatrix, rotationMatrix);
 
@@ -947,6 +1118,48 @@ export class Tr2VolumetricsRenderer
     vec4d_1: new Float64Array(4)
   };
   static FogViewDependentResources = Tr2VolumetricsRendererFogViewDependentResources;
+  /**
+   * Carbon's RotationMatrix( axis, angle ) (math/include/Matrix_inline.h:388-413), whose bytes match gl-matrix's
+   * fromRotation for a usable axis. Unlike fromRotation, which returns null for a zero axis, Carbon normalizes it to
+   * zero and still builds a matrix: diag( cos( angle ) ). The god-ray realignment reaches that case when the sun turns
+   * exactly opposite the noise direction (angle pi), and the resulting point reflection maps the noise onto the sun.
+   * @param {Float64Array} out The matrix to write.
+   * @param {vec3} axis The rotation axis.
+   * @param {number} angle The angle in radians.
+   * @returns {Float64Array} out
+   */
+  static _RotationMatrix(out, axis, angle)
+  {
+    const length = Math.hypot(axis[0], axis[1], axis[2]);
+    const x = length > 0 ? axis[0] / length : 0;
+    const y = length > 0 ? axis[1] / length : 0;
+    const z = length > 0 ? axis[2] / length : 0;
+    const sinAngle = Math.sin(angle), cosAngle = Math.cos(angle), t = 1 - cosAngle;
+    out[0] = t * x * x + cosAngle;
+    out[1] = t * y * x + sinAngle * z;
+    out[2] = t * z * x - sinAngle * y;
+    out[3] = 0;
+    out[4] = t * x * y - sinAngle * z;
+    out[5] = t * y * y + cosAngle;
+    out[6] = t * z * y + sinAngle * x;
+    out[7] = 0;
+    out[8] = t * x * z + sinAngle * y;
+    out[9] = t * y * z - sinAngle * x;
+    out[10] = t * z * z + cosAngle;
+    out[11] = 0;
+    out[12] = 0;
+    out[13] = 0;
+    out[14] = 0;
+    out[15] = 1;
+    return out;
+  }
+
+  /** The worker's shadow source (cpp:618-623). */
+  static _shadowType = Object.freeze({ SHADOWS_DISABLED: 0, SHADOWS_CASCADED: 1, SHADOWS_RAYTRACED: 2 });
+
+  /** The temporal volumes' initial value (cpp:692, 701). */
+  static _temporalClearValue = Object.freeze([ 0, 0, 0, 1 ]);
+
   /** Vector3d( 0, 0, 0 ): the reflection map's origin shift (cpp:527). */
   static _zeroOrigin = new Float64Array(3); // alloc: Carbon Vector3d; no double-precision math type
 }

@@ -106,7 +106,7 @@ test("Tr2VolumetricsRenderer is maintained with Carbon defaults and scene owners
     [ "HasFog", "implemented" ],
     [ "RenderFog", "implemented" ],
     [ "RenderFogIntoReflectionMap", "implemented" ],
-    [ "_RenderFog_Resources", "notImplemented" ],
+    [ "_RenderFog_Resources", "adapted" ],
     [ "getEmptyFogTexture", "adapted" ],
     [ "UpdateFogEnvironmentMap", "implemented" ],
     [ "SetIsReflectionProbe", "implemented" ],
@@ -270,7 +270,7 @@ test("quality presets and per-frame fog values preserve Carbon behavior", () =>
 });
 
 
-test("with the fog off both fog entry points return the empty fog texture; with it on the froxel passes still throw", () =>
+test("with the fog off both fog entry points return the empty fog texture", () =>
 {
   const { context, pool } = volumeFixture();
   const renderer = new core.Tr2VolumetricsRenderer();
@@ -283,11 +283,45 @@ test("with the fog off both fog entry points return the empty fog texture; with 
   const reflection = renderer.RenderFogIntoReflectionMap(context, pool, 80, 40, sun, sunColor, origin, identity, identity);
   assert.equal(reflection.Get().GetDesc(), empty, "RenderFogIntoReflectionMap");
   assert.equal(empty.GetType(), TextureType.TEX_TYPE_3D);
+});
+
+test("with the fog on, the scene view renders a quality-sized froxel volume and ping-pongs its temporal volumes", () =>
+{
+  const { context, pool } = volumeFixture();
+  const renderer = new core.Tr2VolumetricsRenderer();
+  const identity = mat4.create(), origin = new Float64Array(3), sun = [ 0, 0, -1 ], sunColor = [ 1, 1, 1, 1 ];
   renderer.thickness = 1;
-  assert.throws(() => renderer.RenderFog(context, pool, 80, 40, null, null, 0, sun, sunColor, origin, origin, identity,
-    identity, identity, identity), /do not translate to WGSL/u);
-  assert.throws(() => renderer.RenderFogIntoReflectionMap(context, pool, 80, 40, sun, sunColor, origin, identity, identity),
-    /do not translate to WGSL/u);
+  const resources = renderer._fogResources;
+
+  const fog = renderer.RenderFog(context, pool, 80, 40, null, null, 0, sun, sunColor, origin, origin, identity, identity,
+    identity, identity);
+  // High quality (cpp:590-593): an eighth of the view, at least 4 wide and high, 128 layers deep.
+  const froxels = fog.Get().GetDesc();
+  assert.equal(froxels.GetType(), TextureType.TEX_TYPE_3D);
+  assert.deepEqual([ froxels.GetWidth(), froxels.GetHeight(), froxels.GetDepth() ], [ 10, 5, 128 ]);
+  assert.ok(renderer._fogConstantBuffer.IsValid(), "the fog constants have a buffer");
+  pool.Free(fog);
+
+  // A temporal view swaps its input and output volumes and advances its jitter each frame (cpp:629-640, 704-706).
+  assert.equal(resources.currentTemporalFroxels, true);
+  const jitter = Array.from(resources.froxelJitter);
+  assert.ok(jitter.every((lane) => lane > 0 && lane < 1), "the jitter has advanced");
+  pool.Free(renderer.RenderFog(context, pool, 80, 40, null, null, 0, sun, sunColor, origin, origin, identity, identity,
+    identity, identity));
+  assert.equal(resources.currentTemporalFroxels, false);
+
+  // The reflection map's set is not temporal: no swap, no jitter.
+  const reflection = renderer._fogReflectionResources;
+  pool.Free(renderer.RenderFogIntoReflectionMap(context, pool, 80, 40, sun, sunColor, origin, identity, identity));
+  assert.equal(reflection.currentTemporalFroxels, false);
+  assert.deepEqual(Array.from(reflection.froxelJitter), [ 0, 0, 0 ]);
+
+  renderer.quality = core.Tr2VolumetricsRenderer.Tr2VolumerticQuality.Low;
+  const low = renderer.RenderFog(context, pool, 80, 40, null, null, 0, sun, sunColor, origin, origin, identity, identity,
+    identity, identity);
+  const lowFroxels = low.Get().GetDesc();
+  assert.deepEqual([ lowFroxels.GetWidth(), lowFroxels.GetHeight(), lowFroxels.GetDepth() ], [ 5, 4, 64 ], "Low: a sixteenth, 64 layers");
+  pool.Free(low);
 });
 
 test("the Mie environment map is a black 1² cube without environment lighting and a 128² RGBA32F cube with it", () =>

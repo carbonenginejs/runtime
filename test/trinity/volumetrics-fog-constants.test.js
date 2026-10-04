@@ -156,3 +156,14 @@ test("without a light manager the light counts are zero", () =>
   assert.equal(word("ResolutionX"), 40);
   assert.equal(word("ResolutionZ"), 64);
 });
+
+test("a sun exactly opposite the noise realigns it as Carbon's RotationMatrix does with a zero axis: diag(cos pi)", () =>
+{
+  const renderer = new Tr2VolumetricsRenderer();
+  // The noise starts along +Z; the sun along -Z has no rotation axis (cross product zero).
+  update(renderer, { sunDirection: vec3.fromValues(0, 0, -1) });
+  const matrix = renderer._godRayNoiseMatrix;
+  near([ matrix[2], matrix[6], matrix[10] ], [ 0, 0, -1 ], "the noise follows the sun");
+  near([ matrix[0], matrix[5] ], [ -1, -1 ], "a point reflection, not a rotation");
+  assert.ok(matrix.every(Number.isFinite), "no NaN from a null rotation");
+});
