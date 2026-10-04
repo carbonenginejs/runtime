@@ -563,6 +563,8 @@ test("EndRender draws the lens flares additively with depth read-only, then stor
   scene.EndRender(context);
 
   assert.deepEqual(calls, [
+    // EndRender's managed span opens under RM_OPAQUE first (cpp:2819-2820).
+    `states:${RenderingMode.RM_OPAQUE}`,
     "readOnly:true",
     "perObject",
     `batches:${TriBatchType.TRIBATCHTYPE_ADDITIVE}`,
@@ -575,7 +577,7 @@ test("EndRender draws the lens flares additively with depth read-only, then stor
   calls.length = 0;
   scene.lensflares.length = 0;
   scene.EndRender(context);
-  assert.deepEqual(calls, []);
+  assert.deepEqual(calls, [ `states:${RenderingMode.RM_OPAQUE}` ]);
   assert.deepEqual(Array.from(scene.viewLast), Array.from(identity));
 });
 
@@ -766,4 +768,21 @@ test("an undisplayed scene skips the whole of BeginRender's driver half, as Carb
   }
   // The scene update itself still runs (Carbon's Execute updates before BeginRender).
   assert.ok(names.includes("Update"));
+});
+
+test("the main pass runs inside its own managed-rendering span (EveSpaceScene.cpp:2713, :2789)", () =>
+{
+  const calls = [];
+  const driver = driverOver(calls);
+  const context = StubContext();
+  const esm = context.GetEffectStateManager();
+  const begin = esm.BeginManagedRendering.bind(esm), end = esm.EndManagedRendering.bind(esm);
+  const spans = [];
+  esm.BeginManagedRendering = (...args) => { spans.push("begin"); return begin(...args); };
+  esm.EndManagedRendering = (...args) => { spans.push("end"); return end(...args); };
+
+  driver.Execute([ StubTarget() ], null, 1, 2, null, context);
+
+  assert.ok(spans.includes("begin") && spans.includes("end"), "the main pass opens and closes a span");
+  assert.equal(esm.IsManagedRendering(), false, "the main pass's span is closed when the frame ends");
 });

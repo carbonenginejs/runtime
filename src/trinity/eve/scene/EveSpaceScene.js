@@ -1945,6 +1945,11 @@ export class EveSpaceScene
 
     Tr2QuadRenderer.Instance().DoneRendering(renderContext);
 
+    // Carbon begins a span here with no End in EndRender (cpp:2819-2820); the
+    // next frame's BeginRender begins the next one.
+    renderContext.GetEffectStateManager().BeginManagedRendering();
+    renderContext.GetEffectStateManager().ApplyStandardStates(RenderingMode.RM_OPAQUE);
+
     if (this.lensflares.length)
     {
       const visible = [];
@@ -3098,6 +3103,12 @@ export class EveSpaceScene
   BeginRender(_enableDistortion, renderContext)
   {
     if (!this.display) return;
+
+    // Carbon opens BeginRender's managed-rendering span here (cpp:1381-1382);
+    // RenderBackgroundPass closes it (cpp:2083).
+    const esm = renderContext.GetEffectStateManager();
+    esm.BeginManagedRendering();
+    esm.ApplyStandardStates(RenderingMode.RM_OPAQUE);
 
     for (const lensflare of this.lensflares) lensflare.PrepareRender(this.updateContext.GetFrustum(), renderContext);
 

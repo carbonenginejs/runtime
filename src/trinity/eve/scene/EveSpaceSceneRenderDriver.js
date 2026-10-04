@@ -764,107 +764,119 @@ export class EveSpaceSceneRenderDriver
     const esm = renderContext.GetEffectStateManager();
     let submitted;
 
-    // THE VELOCITY SCOPE (EveSpaceScene.cpp:2715-2735): the velocity map is
-    // colour slot 1 for the opaque family, cleared by the pass hint to (0, 0)
-    // unless the background pass already wrote it this frame
-    // (m_velocityMapDirty), in which case it loads; slot 0 and depth load and
-    // store. Carbon's extra ClearRenderTargetIfNoBatches (cpp:2721-2724) is
-    // for platforms that drop the hint's clear when nothing is drawn; ours
-    // always honours the hint, so it is not ported. Shaders that do not write
-    // SV_Target1 leave it alone (the AL masks the target off).
-    //
-    // Without velocity Carbon hints the colour LOAD/STORE and the depth
-    // LOAD/DONT_CARE (cpp:2733); that hint is not ported, because this frame's
-    // post process still reads the depth the pass would discard.
-    if (velocity)
-    {
-      esm.PushRenderTarget_TextureAL(velocity, 1);
-      try
-      {
-        renderContext.RenderPassHint(
-          new Tr2ColorAttachment(Tr2LoadAction.LOAD, Tr2StoreAction.STORE),
-          new Tr2ColorAttachment(this.scene._velocityMapDirty ? Tr2LoadAction.LOAD : Tr2LoadAction.CLEAR, Tr2StoreAction.STORE, 0),
-          new Tr2DepthAttachment(Tr2LoadAction.LOAD, Tr2StoreAction.STORE)
-        );
-        submitted = this.#Submit(map, renderContext);
-        this.scene._velocityMapDirty = true;
-      }
-      finally
-      {
-        esm.PopRenderTarget(1);
-      }
-    }
-    else
-    {
-      submitted = this.#Submit(map, renderContext);
-    }
-
-    // THE OPAQUE COLOUR COPY (EveSpaceScene.cpp:2738-2750): the scene colour
-    // after the opaque family, which TAA reads as CurrentFrameOpaque and
-    // transparent shaders read as the global EveSpaceSceneOpaqueMap.
-    if (opaque)
-    {
-      renderContext.RenderPassHint(new Tr2ColorAttachment(Tr2LoadAction.DONT_CARE, Tr2StoreAction.STORE), null);
-      esm.PushDepthStencilBuffer_TextureAL(null);
-      esm.PushRenderTarget_TextureAL(opaque);
-      try
-      {
-        esm.ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
-        Tr2Renderer.drawTexture(renderContext, offscreen.color.Get());
-      }
-      finally
-      {
-        esm.PopRenderTarget();
-        esm.PopDepthStencilBuffer();
-      }
-
-      this._opaqueMapReference.SetTexture(opaque);
-      Tr2VariableStore.globalStore().RegisterVariableInternal("EveSpaceSceneOpaqueMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this._opaqueMapReference);
-    }
-
-    // EveSpaceScene.cpp:2754-2774: cloud composition precedes transparency;
-    // both sampled volumes stay alive through distortion and GPU particles.
-    renderContext.SetProjection(this.scene.jitteredProjection);
-    this.scene.PopulateAndApplyPerFrameData(renderContext);
-    const volumes = offscreen ? this.scene.RenderVolumetrics(offscreen.depth.Get(), this.#gpuResourcePool, renderContext) : null;
-    const store = Tr2VariableStore.globalStore();
-    if (volumes)
-    {
-      store.RegisterVariable_TextureAL("EveSceneFroxelFogMap", volumes[0].Get());
-      store.RegisterVariable_TextureAL("EveSceneFogVolumeMap", volumes[1].Get());
-    }
+    // EveSpaceScene::RenderMainPass's managed-rendering span (cpp:2713, :2789),
+    // around the whole main pass as Carbon's is.
+    esm.BeginManagedRendering();
     try
     {
-      submitted = this._SubmitTransparent(map, renderContext) || submitted;
 
-      // THE DISTORTION BATCHES (EveSpaceScene.cpp:2759-2765), into the distortion
-      // map with the depth read-only, as Carbon's whole colour pass holds it.
-      if (offscreen?.distortion && map)
+      // THE VELOCITY SCOPE (EveSpaceScene.cpp:2715-2735): the velocity map is
+      // colour slot 1 for the opaque family, cleared by the pass hint to (0, 0)
+      // unless the background pass already wrote it this frame
+      // (m_velocityMapDirty), in which case it loads; slot 0 and depth load and
+      // store. Carbon's extra ClearRenderTargetIfNoBatches (cpp:2721-2724) is
+      // for platforms that drop the hint's clear when nothing is drawn; ours
+      // always honours the hint, so it is not ported. Shaders that do not write
+      // SV_Target1 leave it alone (the AL masks the target off).
+      //
+      // Without velocity Carbon hints the colour LOAD/STORE and the depth
+      // LOAD/DONT_CARE (cpp:2733); that hint is not ported, because this frame's
+      // post process still reads the depth the pass would discard.
+      if (velocity)
       {
-        renderContext.SetReadOnlyDepth(true);
+        esm.PushRenderTarget_TextureAL(velocity, 1);
         try
         {
-          offscreen.hasDistortion = this.scene.RenderDistortionBatches(map, offscreen.distortion.Get(), offscreen.depth.Get(), renderContext);
+          renderContext.RenderPassHint(
+            new Tr2ColorAttachment(Tr2LoadAction.LOAD, Tr2StoreAction.STORE),
+            new Tr2ColorAttachment(this.scene._velocityMapDirty ? Tr2LoadAction.LOAD : Tr2LoadAction.CLEAR, Tr2StoreAction.STORE, 0),
+            new Tr2DepthAttachment(Tr2LoadAction.LOAD, Tr2StoreAction.STORE)
+          );
+          submitted = this.#Submit(map, renderContext);
+          this.scene._velocityMapDirty = true;
         }
         finally
         {
-          renderContext.SetReadOnlyDepth(false);
+          esm.PopRenderTarget(1);
+        }
+      }
+      else
+      {
+        submitted = this.#Submit(map, renderContext);
+      }
+
+      // THE OPAQUE COLOUR COPY (EveSpaceScene.cpp:2738-2750): the scene colour
+      // after the opaque family, which TAA reads as CurrentFrameOpaque and
+      // transparent shaders read as the global EveSpaceSceneOpaqueMap.
+      if (opaque)
+      {
+        renderContext.RenderPassHint(new Tr2ColorAttachment(Tr2LoadAction.DONT_CARE, Tr2StoreAction.STORE), null);
+        esm.PushDepthStencilBuffer_TextureAL(null);
+        esm.PushRenderTarget_TextureAL(opaque);
+        try
+        {
+          esm.ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
+          Tr2Renderer.drawTexture(renderContext, offscreen.color.Get());
+        }
+        finally
+        {
+          esm.PopRenderTarget();
+          esm.PopDepthStencilBuffer();
+        }
+
+        this._opaqueMapReference.SetTexture(opaque);
+        Tr2VariableStore.globalStore().RegisterVariableInternal("EveSpaceSceneOpaqueMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this._opaqueMapReference);
+      }
+
+      // EveSpaceScene.cpp:2754-2774: cloud composition precedes transparency;
+      // both sampled volumes stay alive through distortion and GPU particles.
+      renderContext.SetProjection(this.scene.jitteredProjection);
+      this.scene.PopulateAndApplyPerFrameData(renderContext);
+      const volumes = offscreen ? this.scene.RenderVolumetrics(offscreen.depth.Get(), this.#gpuResourcePool, renderContext) : null;
+      const store = Tr2VariableStore.globalStore();
+      if (volumes)
+      {
+        store.RegisterVariable_TextureAL("EveSceneFroxelFogMap", volumes[0].Get());
+        store.RegisterVariable_TextureAL("EveSceneFogVolumeMap", volumes[1].Get());
+      }
+      try
+      {
+        submitted = this._SubmitTransparent(map, renderContext) || submitted;
+
+        // THE DISTORTION BATCHES (EveSpaceScene.cpp:2759-2765), into the distortion
+        // map with the depth read-only, as Carbon's whole colour pass holds it.
+        if (offscreen?.distortion && map)
+        {
+          renderContext.SetReadOnlyDepth(true);
+          try
+          {
+            offscreen.hasDistortion = this.scene.RenderDistortionBatches(map, offscreen.distortion.Get(), offscreen.depth.Get(), renderContext);
+          }
+          finally
+          {
+            renderContext.SetReadOnlyDepth(false);
+          }
+        }
+
+        // THE GPU PARTICLES (EveSpaceScene.cpp:2766-2771), after the transparent
+        // and distortion batches.
+        this.scene.GetGpuParticleSystem()?.Render(renderContext);
+      }
+      finally
+      {
+        if (volumes)
+        {
+          store.RegisterVariable_TextureAL("EveSceneFroxelFogMap", new Tr2TextureAL());
+          store.RegisterVariable_TextureAL("EveSceneFogVolumeMap", new Tr2TextureAL());
+          // Native handle destruction ignores an empty return (Tr2GpuResourcePool.h:180-187).
+          for (const volume of volumes) if (volume.IsValid()) this.#gpuResourcePool.Free(volume);
         }
       }
 
-      // THE GPU PARTICLES (EveSpaceScene.cpp:2766-2771), after the transparent
-      // and distortion batches.
-      this.scene.GetGpuParticleSystem()?.Render(renderContext);
     }
     finally
     {
-      if (volumes)
-      {
-        store.RegisterVariable_TextureAL("EveSceneFroxelFogMap", new Tr2TextureAL());
-        store.RegisterVariable_TextureAL("EveSceneFogVolumeMap", new Tr2TextureAL());
-        // Native handle destruction ignores an empty return (Tr2GpuResourcePool.h:180-187).
-        for (const volume of volumes) if (volume.IsValid()) this.#gpuResourcePool.Free(volume);
-      }
+      esm.EndManagedRendering();
     }
 
     // cpp:557 - the shadow globals are emptied after the main pass.
