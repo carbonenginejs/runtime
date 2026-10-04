@@ -21,7 +21,12 @@ import { INotify } from "../../global/blue/INotify.js";
 import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { ExFlag, PixelFormat, ShaderType, TextureType, Tr2GpuUsage } from "#consts/render-context";
+import { mat4 } from "#math/mat4";
+import { Tr2TextureSubresource } from "#trinityal";
+import { Tr2ColorAttachment } from "../../trinityal/Tr2RenderPassAL/Tr2ColorAttachment.js";
+import { Tr2DepthAttachment } from "../../trinityal/Tr2RenderPassAL/Tr2DepthAttachment.js";
+import { TriFrustum } from "./view/TriFrustum.js";
+import { ExFlag, PixelFormat, ShaderType, TextureType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
 import { Tr2RenderTarget } from "./device/Tr2RenderTarget.js";
 import { Tr2Renderer } from "./Tr2Renderer.js";
@@ -126,6 +131,16 @@ export class Tr2ReflectionProbe
 
   /** m_renderTargets: the six face targets the scene renders into. */
   _renderTargets = Array.from({ length: 6 }, () => new Tr2RenderTarget());
+
+  /** m_prevCullInversion (h:87): the cull inversion InitRenderPass replaces. */
+  _prevCullInversion = false;
+
+  /** InitRenderPass's square projection. */
+  _faceProjection = mat4.create();
+
+  /** StartRenderFace's view and look-at target. */
+  _faceView = mat4.create();
+  _faceTarget = vec3.create();
 
   /** m_stencilMaps: their depth buffers, Tr2TextureAL each. */
   _stencilMaps = new Array(6).fill(null);
@@ -424,38 +439,124 @@ export class Tr2ReflectionProbe
   }
 
   /**
-   * Carbon `InitRenderPass` (`cpp:99-138`). Not ported: rendering the scene
-   * into the six faces needs the scene's reflection pass.
+   * Carbon `InitRenderPass` (`cpp:99-140`): takes the camera position unless
+   * locked, saves the viewport, view, projection, target and depth buffer, sets
+   * the intermediate-size viewport and a square projection that keeps the
+   * current near/far terms, and inverts culling (the cube target is
+   * left-handed). Without render-pass hints the faces are cleared here.
    */
   @meta.blue.method
-  @meta.notImplemented
-  InitRenderPass(_renderContext)
+  @meta.implemented
+  InitRenderPass(renderContext)
   {
-    throw new Error("Tr2ReflectionProbe.InitRenderPass is not ported yet; it needs the scene's reflection pass.");
+    if (!this.lockPosition) vec3.copy(this.position, renderContext.GetViewPosition());
+
+    const esm = renderContext.GetEffectStateManager();
+    esm.PushViewport();
+    renderContext.PushViewTransform();
+    renderContext.PushProjection();
+    esm.PushRenderTarget_Current();
+    esm.PushDepthStencilBuffer_Current();
+
+    esm.SetViewport({ x: 0, y: 0, width: this.reflectionSize, height: this.reflectionSize, minZ: 0, maxZ: 1 });
+
+    // Carbon m[2][2], m[2][3], m[3][2], m[3][3]: the same offsets in gl-matrix's layout.
+    const current = renderContext.GetProjection();
+    const projection = mat4.identity(this._faceProjection);
+    projection[10] = current[10];
+    projection[11] = -1;
+    projection[14] = current[14];
+    projection[15] = 0;
+    renderContext.SetProjection(projection);
+
+    this._prevCullInversion = esm.IsCullModeInverted();
+    esm.SetInvertedCullMode(true);
+
+    // Carbon compiles this clear out where render-pass hints exist (cpp:128-139).
+    if (!renderContext.GetCaps().SUPPORTS_RENDER_PASS_HINTS)
+    {
+      for (let face = this.GetStartFace(); face < this.GetEndFace(); face += 1)
+      {
+        renderContext.SetRenderTarget(0, this._renderTargets[face].GetRenderTarget());
+        esm.SetDepthStencilBuffer(this._stencilMaps[face]);
+        renderContext.Clear({ clearColor: true, clearDepth: true, color: [ 0, 0, 0, 0 ], depth: 0 });
+      }
+    }
   }
 
-  /** Carbon `StartRenderFace` (`cpp:145-176`). Not ported; see InitRenderPass. */
+  /**
+   * Carbon `StartRenderFace` (`cpp:147-175`): binds the face's target and depth
+   * buffer and looks from the probe along the face's axis. The X axis is
+   * mirrored for the left-handed cube: Carbon's `LookAtMatrix(...) * xInverter`
+   * (row-vector) is `xInverter` applied after the look-at, so in gl order the
+   * inverter is the left operand.
+   */
   @meta.blue.method
-  @meta.notImplemented
-  StartRenderFace(_face, _renderContext)
+  @meta.implemented
+  StartRenderFace(face, renderContext)
   {
-    throw new Error("Tr2ReflectionProbe.StartRenderFace is not ported yet; it needs the scene's reflection pass.");
+    renderContext.RenderPassHint(
+      new Tr2ColorAttachment(Tr2LoadAction.CLEAR, Tr2StoreAction.STORE, 0),
+      new Tr2DepthAttachment(Tr2LoadAction.CLEAR, Tr2StoreAction.DONT_CARE, 0));
+
+    const esm = renderContext.GetEffectStateManager();
+    esm.SetRenderTarget(0, this._renderTargets[face].GetRenderTarget());
+    esm.SetDepthStencilBuffer(this._stencilMaps[face]);
+
+    const up = Tr2ReflectionProbe._faceDirections[face * 2];
+    const at = vec3.add(this._faceTarget, this.position, Tr2ReflectionProbe._faceDirections[face * 2 + 1]);
+    const view = mat4.lookAtCarbon(this._faceView, this.position, at, up);
+    mat4.multiply(view, Tr2ReflectionProbe._xInverter, view);
+    renderContext.SetViewTransform(view);
   }
 
-  /** Carbon `EndRenderPass` (`cpp:178-204`). Not ported; see InitRenderPass. */
+  /**
+   * Carbon `EndRenderPass` (`cpp:177-204`): copies the rendered faces into the
+   * cube, restores culling and the saved state, filters, and advances the face
+   * when only one side renders per frame.
+   */
   @meta.blue.method
-  @meta.notImplemented
-  EndRenderPass(_renderContext)
+  @meta.implemented
+  EndRenderPass(renderContext)
   {
-    throw new Error("Tr2ReflectionProbe.EndRenderPass is not ported yet; it needs the scene's reflection pass.");
+    const cube = this.unfilteredTexture.GetRenderTarget();
+    for (let face = this.GetStartFace(); face < this.GetEndFace(); face += 1)
+    {
+      cube.CopySubresourceRegion(Tr2TextureSubresource.ForFace(face, 0), this._renderTargets[face].GetRenderTarget(),
+        Tr2TextureSubresource.ForFace(0, 0), renderContext);
+    }
+
+    const esm = renderContext.GetEffectStateManager();
+    esm.SetInvertedCullMode(this._prevCullInversion);
+
+    esm.PopDepthStencilBuffer();
+    esm.PopRenderTarget();
+    renderContext.PopProjection();
+    renderContext.PopViewTransform();
+    esm.PopViewport();
+
+    this.Filter(renderContext);
+    this._hasData = true;
+    this._onePassDone = true;
+
+    if (this.renderFrequency !== Tr2ReflectionProbe.ReflectionProbeRenderFrequency.ALL_SIDES_PER_FRAME)
+    {
+      this.currentFrame = (this.currentFrame + 1) % 6;
+    }
   }
 
-  /** Carbon `GetFrustum` (`cpp:73-78`). Not ported; see InitRenderPass. */
+  /**
+   * Carbon `GetFrustum` (`cpp:73-78`): the frustum of the current view and
+   * projection from the probe position, over the current viewport.
+   */
   @meta.blue.method
-  @meta.notImplemented
-  GetFrustum(_face, _renderContext)
+  @meta.implemented
+  GetFrustum(_face, renderContext)
   {
-    throw new Error("Tr2ReflectionProbe.GetFrustum is not ported yet; it needs the scene's reflection pass.");
+    const frustum = new TriFrustum();
+    frustum.DeriveFrustum(renderContext.GetViewTransform(), this.position, renderContext.GetProjection(),
+      renderContext.GetEffectStateManager().GetViewport());
+    return frustum;
   }
 
   /** Carbon `GetDepthBuffer` (`h:59`): face `face`'s depth buffer. */
@@ -465,6 +566,19 @@ export class Tr2ReflectionProbe
   {
     return this._stencilMaps[face];
   }
+
+  /** Carbon's faceDirections (cpp:154-167): up then look direction for +X, -X, +Y, -Y, +Z, -Z. */
+  static _faceDirections = [
+    vec3.fromValues(0, 1, 0), vec3.fromValues(1, 0, 0),
+    vec3.fromValues(0, 1, 0), vec3.fromValues(-1, 0, 0),
+    vec3.fromValues(0, 0, -1), vec3.fromValues(0, 1, 0),
+    vec3.fromValues(0, 0, 1), vec3.fromValues(0, -1, 0),
+    vec3.fromValues(0, 1, 0), vec3.fromValues(0, 0, 1),
+    vec3.fromValues(0, 1, 0), vec3.fromValues(0, 0, -1)
+  ];
+
+  /** Carbon's xInverter (cpp:169-171): mirrors X for the left-handed cube. */
+  static _xInverter = mat4.fromValues(-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
 
   static ReflectionProbeRenderFrequency = {
     ONE_SIDE_PER_FRAME: 0,
