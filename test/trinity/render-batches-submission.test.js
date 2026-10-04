@@ -11,6 +11,8 @@ import { Topology } from "../../npm/dist/global/consts/renderContext/index.js";
 import { RenderingMode } from "../../npm/dist/global/consts/graphics/index.js";
 import { StubContext } from "../support/stubContext.js";
 import { Tr2VariableStore } from "../../npm/dist/trinity/core/variable/Tr2VariableStore.js";
+import { Tr2RenderContext } from "../../npm/dist/trinity/core/context/Tr2RenderContext.js";
+import { TriVariableContentType } from "../../npm/dist/trinity/generated/trinityCore/enums.js";
 
 function shaderStub(passCount = 1)
 {
@@ -130,8 +132,11 @@ test("no accumulator submits nothing rather than an empty draw", () =>
   assert.equal(al.GetDrawCount(), before);
 });
 
-test("picking variables exist before material binding and update each batch without losing identity words", () =>
+test("pointer picking variables exist before material binding and retain both identity words", t =>
 {
+  const previous = Tr2RenderContext.eveSpacePickingFramework;
+  Tr2RenderContext.eveSpacePickingFramework = "pointer";
+  t.after(() => { Tr2RenderContext.eveSpacePickingFramework = previous; });
   const store = Tr2VariableStore.globalStore();
   // Effects retain these handles while loading, before the first pick draw.
   const names = ["objectId", "pickingObjectLowBits", "pickingObjectHighBits", "areaId"];
@@ -150,8 +155,42 @@ test("picking variables exist before material binding and update each batch with
   });
   assert.equal(context.RenderBatchesForPicking(accumulator), 3);
   assert.deepEqual(observed, [
-    [0, 0, 0, 2], [4, 4, 0, 3],
-    [0x87654321, 0x87654321 | 0, 0xfedcba98 | 0, 4]
+    [0, 0, 0, 2], [0, 4, 0, 3],
+    [0, 0x87654321 | 0, 0xfedcba98 | 0, 4]
   ]);
   context.Destroy();
+});
+
+test("switching picking frameworks retains areaId's handle and copies FLOAT or INT bits as required", t =>
+{
+  const previous = Tr2RenderContext.eveSpacePickingFramework;
+  t.after(() => { Tr2RenderContext.eveSpacePickingFramework = previous; });
+  Tr2RenderContext.eveSpacePickingFramework = "objectId";
+  const { context, accumulator } = contextWith(1);
+  t.after(() => context.Destroy());
+  const store = Tr2VariableStore.globalStore(), area = store.FindVariable("areaId");
+  const batch = accumulator.GetBatches()[0];
+  batch.objectData = { GetUserData: () => 513, GetPickingPointer: () => 0x1234567887654321n, SetPerObjectDataToDevice() {} };
+  batch.pickingData = 257;
+  const copy = new Float32Array(1), bits = new Uint32Array(copy.buffer);
+  for (const framework of ["objectId", "pointer", "objectId"])
+  {
+    Tr2RenderContext.eveSpacePickingFramework = framework;
+    assert.equal(context.RenderBatchesForPicking(accumulator), 1);
+    assert.equal(store.FindVariable("areaId"), area, "bound effects retain the same variable");
+    area.CopyValueToEffect(null, copy, 4);
+    if (framework === "objectId")
+    {
+      assert.equal(area.GetType(), TriVariableContentType.TRIVARIABLE_FLOAT);
+      assert.equal(copy[0], 257, "a shipped float shader receives the numeric area, not a denormal");
+      assert.equal(store.FindVariable("objectId").GetValue(), 513);
+    }
+    else
+    {
+      assert.equal(area.GetType(), TriVariableContentType.TRIVARIABLE_INT);
+      assert.equal(bits[0], 257, "a native uint shader receives integer bits");
+      assert.equal(store.FindVariable("pickingObjectLowBits").GetValue(), 0x87654321 | 0);
+      assert.equal(store.FindVariable("pickingObjectHighBits").GetValue(), 0x12345678);
+    }
+  }
 });

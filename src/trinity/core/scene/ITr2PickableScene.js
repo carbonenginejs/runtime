@@ -136,7 +136,7 @@ export class ITr2PickableScene
     {
       const data = objects[i].GetPerObjectData(opaque);
       if (!data) continue;
-      data.SetPickingPointer(BigInt(i));
+      data.SetUserData(i);
       const count = opaque.GetBatchCount();
       objects[i].GetBatches(opaque, TriBatchType.TRIBATCHTYPE_OPAQUE, data);
       if (opaque.GetBatchCount() === count) objects[i].GetBatches(opaque, TriBatchType.TRIBATCHTYPE_OPAQUE_PREPASS, data);
@@ -156,8 +156,8 @@ export class ITr2PickableScene
     try
     {
       context.ApplyStandardStates(RenderingMode.RM_PICKING);
-      if (opaque.GetBatchCount()) context.RenderBatchesForPicking(opaque, "Picking");
-      if (picking && this.RenderPickingAreasForComponents(pass)) context.RenderBatchesForPicking(picking, "Main");
+      if (opaque.GetBatchCount()) context.RenderBatchesForPicking_ObjectId(opaque, "Picking");
+      if (picking && this.RenderPickingAreasForComponents(pass)) context.RenderBatchesForPicking_ObjectId(picking, "Main");
       return true;
     }
     finally

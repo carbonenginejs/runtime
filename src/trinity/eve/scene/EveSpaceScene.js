@@ -35,7 +35,7 @@ import { FillAndSetConstants } from "../../core/Tr2RenderUtils.js";
 import { PER_FRAME_PS, PER_FRAME_VS, Tr2Renderer } from "../../core/Tr2Renderer.js";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { BackgroundRenderingReason } from "../../generated/eve/enums.js";
-import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
+import { Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
 import { Tr2OcclusionBuffer } from "../effect/lensflare/Tr2OcclusionBuffer.js";
 import { Tr2VariableStore } from "../../core/variable/Tr2VariableStore.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
@@ -393,6 +393,12 @@ export class EveSpaceScene
   @meta.blue.readwrite
   @meta.type.objectRef("Tr2DebugRenderer")
   debugRenderer = null;
+
+  /**
+   * Pre-92483097 m_instancedMeshManager. Its production implementation remains
+   * unported; null limits legacy picking to ordinary collision-set objects.
+   */
+  instancedMeshManager = null;
 
   /** m_objects (PIEveSpaceObject2Vector) [READ, PERSIST] */
   @meta.blue.read
@@ -951,12 +957,136 @@ export class EveSpaceScene
   }
 
   /**
-   * HEAD's regular-object GPU pass. Call between scene renders. Submission and
+   * Our wrapper selecting one Carbon picking revision. Each request retains
+   * its framework so changing the setting cannot reinterpret queued results.
+   */
+  @meta.ours
+  PerformPicking(listener, immediate, x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT,
+    renderContext = Tr2RenderContext_GetMainThreadRenderContext())
+  {
+    switch (Tr2RenderContext.eveSpacePickingFramework)
+    {
+      case "objectId": return this.PerformPicking_ObjectId(listener, immediate, x, y, projection, view, viewport, pickTypes, renderContext);
+      case "pointer": return this.PerformPicking_Pointer(listener, immediate, x, y, projection, view, viewport, pickTypes, renderContext);
+      default: throw new TypeError("Unknown eveSpacePickingFramework; expected objectId or pointer.");
+    }
+  }
+
+  /**
+   * Pre-92483097 EveSpaceScene.cpp:3578-3771: retained collision-set indices,
+   * request-owned BGRA8 main target and independent float debug target.
+   * Browser readback readiness replaces native frame-number synchronization.
+   * The instancing manager remains an unported dependency; when supplied it
+   * owns native batch collection and immediate traceback. The debug renderer's
+   * Pick entry is an explicit unported obligation, not silently skipped.
+   */
+  @meta.adapted
+  PerformPicking_ObjectId(listener, immediate, x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT,
+    renderContext = Tr2RenderContext_GetMainThreadRenderContext())
+  {
+    if (this._destroyed) throw new Error("Cannot pick a destroyed EveSpaceScene.");
+    if (!renderContext.IsValid()) return immediate ? Promise.resolve([null, 0, 0]) : [null, 0, 0];
+    const request = new EvePendingPickingReadback(x, y, "objectId");
+    listener.readbacks.push(request);
+    const esm = renderContext.GetEffectStateManager();
+    const inverted = esm.IsDepthTestInverted(), managed = esm.IsManagedRendering();
+    renderContext.PushProjection();
+    renderContext.PushViewTransform();
+    esm.PushViewport();
+    try
+    {
+      const pixel = screenToProjection(x, y, viewport);
+      this.SetupTransformsForPicking(pixel.x, pixel.y, projection, view, viewport, renderContext);
+      if (this.debugRenderer) this.debugRenderer.Pick(request, immediate, renderContext);
+      const visible = this.GetPickingObjectsToRender(renderContext);
+      for (const renderable of visible)
+      {
+        const pickable = CjsSchema.cast(renderable, ITr2Pickable);
+        if (pickable) request.collisionSet.push([pickable, renderable]);
+      }
+      const batches = this._pickingBatches;
+      batches.SetTriPoolAllocator(renderContext.GetTriPoolAllocator());
+      if (this.instancedMeshManager)
+      {
+        const lists = [];
+        if (pickTypes & Tr2PickType.PICK_TYPE_OPAQUE) lists.push([TriBatchType.TRIBATCHTYPE_OPAQUE, batches]);
+        if (pickTypes & Tr2PickType.PICK_TYPE_TRANSPARENT)
+        {
+          lists.push([TriBatchType.TRIBATCHTYPE_TRANSPARENT, batches]);
+          lists.push([TriBatchType.TRIBATCHTYPE_ADDITIVE, batches]);
+        }
+        if (lists.length) this.instancedMeshManager.GetPickingBatches(request, this.updateContext.GetFrustum(),
+          this.CreatePickingFrustum(renderContext), this.updateContext.GetInvLodFactor(), request.collisionSet.length, lists);
+      }
+      if ((request.collisionSet.length || batches.GetBatchCount()) && !Failed(renderContext.BeginScene()))
+      {
+        try
+        {
+          esm.SetInvertedDepthTest(true);
+          esm.BeginManagedRendering();
+          const buffer = request.mainPickBuffer;
+          buffer.PrepareResources(renderContext);
+          if (buffer.BeginRendering(0, renderContext))
+          {
+            try
+            {
+              for (let index = 0; index < request.collisionSet.length; index++)
+              {
+                const [pickable, renderable] = request.collisionSet[index];
+                const data = renderable.GetPerObjectData(batches);
+                if (data) data.SetUserData(index);
+                if (pickTypes !== Tr2PickType.PICK_TYPE_PICKING)
+                  pickable.GetPickingBatches(batches, pickTypes & ~Tr2PickType.PICK_TYPE_PICKING, data);
+                if (pickTypes & Tr2PickType.PICK_TYPE_PICKING)
+                  pickable.GetPickingBatches(batches, Tr2PickType.PICK_TYPE_PICKING, data);
+              }
+              batches.Finalize();
+              esm.ApplyStandardStates(RenderingMode.RM_PICKING);
+              renderContext.RenderBatchesForPicking_ObjectId(batches, "Picking");
+            }
+            finally { buffer.EndRendering(renderContext); }
+            batches.Clear();
+            request.MapMain(immediate, renderContext);
+          }
+        }
+        finally { renderContext.EndScene(); }
+      }
+    }
+    catch (error)
+    {
+      listener.readbacks.splice(listener.readbacks.indexOf(request), 1);
+      request.Destroy();
+      throw error;
+    }
+    finally
+    {
+      this._pickingBatches.Clear();
+      if (!managed) esm.EndManagedRendering();
+      esm.SetInvertedDepthTest(inverted);
+      esm.PopViewport();
+      renderContext.PopViewTransform();
+      renderContext.PopProjection();
+    }
+    return immediate ? this._AwaitPicking(listener, renderContext) : this._PollPicking(listener, renderContext);
+  }
+
+  /** Native one-pixel picking frustum for the retained legacy instancing seam. */
+  @meta.adapted
+  CreatePickingFrustum(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
+  {
+    const frustum = new TriFrustum();
+    frustum.DeriveFrustum(renderContext.GetViewTransform(), renderContext.GetViewPosition(),
+      renderContext.GetProjection(), { width: 1, height: 1 });
+    return frustum;
+  }
+
+  /**
+   * Carbon 92483097's regular-object GPU pass. Call between scene renders. Submission and
    * state restoration finish synchronously before any WebGPU readback is awaited.
    * Instanced, skinned, interior and debug-renderer picking remain separate ports.
    */
   @meta.adapted
-  PerformPicking(listener, immediate, x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT,
+  PerformPicking_Pointer(listener, immediate, x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT,
     renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     if (this._destroyed) throw new Error("Cannot pick a destroyed EveSpaceScene.");
@@ -1012,7 +1142,7 @@ export class EveSpaceScene
             }
             batches.Finalize();
             esm.ApplyStandardStates(RenderingMode.RM_PICKING);
-            renderContext.RenderBatchesForPicking(batches, "Picking");
+            renderContext.RenderBatchesForPicking_Pointer(batches, "Picking");
           }
           finally
           {
@@ -1042,38 +1172,52 @@ export class EveSpaceScene
       renderContext.PopViewTransform();
       renderContext.PopProjection();
     }
-    if (immediate) return this.#AwaitPicking(listener, renderContext);
+    return immediate ? this._AwaitPicking(listener, renderContext) : this._PollPicking(listener, renderContext);
+  }
+
+  /** Polls request-owned snapshots using their recorded framework, including mixed queues. */
+  @meta.ours
+  _PollPicking(listener, renderContext)
+  {
     while (listener.readbacks.length)
     {
       const pending = listener.readbacks[0];
-      if (!pending.readback.IsValid())
+      if (pending.framework === "pointer" && !pending.readback.IsValid())
       {
         listener.readbacks.shift().Destroy();
         continue;
       }
-      if (!pending.readback.IsReady(renderContext)) break;
-      this.#ConsumePicking(listener, pending, pending.readback.Map(renderContext));
+      if (pending.readback.IsValid() && !pending.readback.IsReady(renderContext)) break;
+      if (pending.debugReadback.IsValid() && !pending.debugReadback.IsReady(renderContext)) break;
+      this._ConsumePicking(listener, pending, pending.readback.Map(renderContext), pending.debugReadback.Map(renderContext), false);
     }
     return [listener.GetObject(), listener.GetExtraData1(), listener.GetExtraData2()];
   }
 
   /** Wait only on the listener's own snapshots; cancellation drops the result. */
-  async #AwaitPicking(listener, renderContext)
+  @meta.ours
+  async _AwaitPicking(listener, renderContext)
   {
     while (listener.readbacks.length)
     {
       const pending = listener.readbacks[0];
       const mapping = await pending.readback.Map(renderContext);
+      const debug = await pending.debugReadback.Map(renderContext);
       if (listener.readbacks[0] !== pending) continue;
-      this.#ConsumePicking(listener, pending, mapping);
+      this._ConsumePicking(listener, pending, mapping, debug, true);
     }
     return [listener.GetObject(), listener.GetExtraData1(), listener.GetExtraData2()];
   }
 
   /** Decodes before releasing the borrowed mapping and its retained objects. */
-  #ConsumePicking(listener, pending, mapping)
+  @meta.ours
+  _ConsumePicking(listener, pending, mapping, debug, immediate)
   {
-    const result = mapping.result === ALResult.S_OK ? pending.DecodeResult(mapping.data) : [null, 0, 0];
+    const mainData = mapping.result === ALResult.S_OK ? mapping.data : null;
+    const debugData = debug.result === ALResult.S_OK ? debug.data : null;
+    const result = pending.framework === "objectId"
+      ? pending.DecodeResult_ObjectId(mainData, debugData, immediate, this.instancedMeshManager)
+      : mainData ? pending.DecodeResult(mainData) : [null, 0, 0];
     listener.UpdateResult(pending.pickedX, pending.pickedY, ...result);
     listener.readbacks.shift();
     pending.Destroy();

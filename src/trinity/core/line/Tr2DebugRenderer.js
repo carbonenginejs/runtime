@@ -146,6 +146,13 @@ export class Tr2DebugRenderer
     return this.selectedObjects.has(object);
   }
 
+  /** Legacy EVE debug picking geometry/readback submission is not ported. */
+  @meta.notImplemented
+  Pick(_readback, _immediate, _renderContext)
+  {
+    throw new Error("Tr2DebugRenderer.Pick is not implemented.");
+  }
+
   /**
    * Normalises an option list or bitmask into a set.
    */

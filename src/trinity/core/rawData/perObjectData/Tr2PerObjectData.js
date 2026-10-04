@@ -27,6 +27,21 @@ export class Tr2PerObjectData
   constructor()
   {
     this.pickingPointer = 0n;
+    this.userData = 0;
+  }
+
+  /** Pre-92483097 Tr2PerObjectData.h: the uint32 collision-set index. */
+  @meta.implemented
+  SetUserData(value)
+  {
+    this.userData = value >>> 0;
+  }
+
+  /** Returns the pre-92483097 collision-set index without pointer interpretation. */
+  @meta.implemented
+  GetUserData()
+  {
+    return this.userData;
   }
 
   /** Native uint64_t, held exactly as BigInt; callers encode request-local identity. */

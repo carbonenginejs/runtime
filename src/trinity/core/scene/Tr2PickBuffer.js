@@ -97,13 +97,19 @@ export class Tr2PickBuffer
   /** WebGPU's mapping is awaitable; callers submit before reaching this method. */
   async MapForReading(context)
   {
-    const readback = this._pickTarget.CreateReadback(Tr2TextureSubresource.ForMipLevel(0), context);
+    const readback = this.CreateReadback(context);
     try
     {
       const mapped = await readback.Map(context);
       return { ...mapped, data: mapped.data ? mapped.data.slice() : null };
     }
     finally { readback.Destroy(); }
+  }
+
+  /** JS submission snapshot for polling without starting an awaited map. */
+  CreateReadback(context)
+  {
+    return this._pickTarget.CreateReadback(Tr2TextureSubresource.ForMipLevel(0), context);
   }
 
   /** Completes the native borrowed-map lifetime. */
@@ -125,6 +131,6 @@ CjsSchema.define(Tr2PickBuffer, {
     SetSize: [meta.implemented], GetSize: [meta.implemented], GetDescription: [meta.adapted], SetClearColor: [meta.implemented],
     ReleaseResources: [meta.adapted], PrepareResources: [meta.adapted], OnPrepareResources: [meta.adapted],
     BeginRendering: [meta.adapted], EndRendering: [meta.implemented], MapForReading: [meta.adapted],
-    UnmapForReading: [meta.implemented], Destroy: [meta.adapted]
+    UnmapForReading: [meta.implemented], Destroy: [meta.adapted], CreateReadback: [meta.ours]
   }
 });

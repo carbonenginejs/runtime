@@ -51,6 +51,16 @@ const FRUSTUM_PLANES = [ "FrustumPlane0", "FrustumPlane1", "FrustumPlane2", "Fru
 @meta.define({ className: "Tr2RenderContext", family: "trinityCore" })
 export class Tr2RenderContext
 {
+  /**
+   * Our selection between Carbon's pre-92483097 objectId picking and its
+   * pointer-word successor. Shipped effects use objectId, so it is the default.
+   * Pointer picking requires shaders authored with native uint outputs; selecting
+   * it with shipped float-output effects produces an expected pipeline mismatch.
+   * The setting registry records this non-Carbon name with carbon: false.
+   */
+  @meta.setting("eveSpacePickingFramework", { values: ["objectId", "pointer"] })
+  static eveSpacePickingFramework = "objectId";
+
   #diagnostics = [];
 
   #stepExecutor = DIRECT_STEP_EXECUTOR;
@@ -156,7 +166,8 @@ export class Tr2RenderContext
     const store = Tr2VariableStore.globalStore();
     store.RegisterVariableInternal("pickingObjectLowBits", TriVariableContentType.TRIVARIABLE_INT, 0);
     store.RegisterVariableInternal("pickingObjectHighBits", TriVariableContentType.TRIVARIABLE_INT, 0);
-    store.RegisterVariableInternal("areaId", TriVariableContentType.TRIVARIABLE_INT, 0);
+    this._GetPickingAreaVariable(Tr2RenderContext.eveSpacePickingFramework === "objectId"
+      ? TriVariableContentType.TRIVARIABLE_FLOAT : TriVariableContentType.TRIVARIABLE_INT);
     this.GetObjectIdVariable();
   }
 
@@ -1409,26 +1420,94 @@ export class Tr2RenderContext
   }
 
   /**
-   * Carbon's single-pass picking walk. The uint64 identity is split into two
+   * Our dispatcher between the two native single-pass picking frameworks.
+   * @param {object} batches Finalized accumulator.
+   * @param {string} [techniqueName] Carbon's DEFAULT_TECHNIQUE.
+   * @returns {number} Number of submitted batches.
+   */
+  @meta.ours
+  RenderBatchesForPicking(batches, techniqueName = DEFAULT_TECHNIQUE)
+  {
+    switch (Tr2RenderContext.eveSpacePickingFramework)
+    {
+      case "objectId": return this.RenderBatchesForPicking_ObjectId(batches, techniqueName);
+      case "pointer": return this.RenderBatchesForPicking_Pointer(batches, techniqueName);
+      default: throw new TypeError("Unknown eveSpacePickingFramework; expected objectId or pointer.");
+    }
+  }
+
+  /**
+   * Keeps the one global area's binding identity while selecting its native
+   * type for this draw. Invalidate permits re-registration without replacing
+   * the TriVariable held by existing effect handles. JS can run both native
+   * revisions in one process, unlike Carbon's compile-time choice.
+   * @param {number} contentType FLOAT for objectId, INT for pointer words.
+   * @returns {TriVariable} The existing or newly registered area variable.
+   */
+  @meta.ours
+  _GetPickingAreaVariable(contentType)
+  {
+    const store = Tr2VariableStore.globalStore();
+    const current = store.FindLocalVariable("areaId");
+    if (current && current.GetType() !== contentType) current.Invalidate();
+    return store.RegisterVariableInternal("areaId", contentType, 0);
+  }
+
+  /**
+   * Pre-92483097 Tr2RenderContext.cpp:887-946: request-local object and area
+   * indices are FLOAT globals. Material application owns texture binding here.
+   * @param {object} batches Finalized accumulator.
+   * @param {string} [techniqueName] Carbon's DEFAULT_TECHNIQUE.
+   * @returns {number} Number of submitted batches.
+   */
+  @meta.adapted
+  RenderBatchesForPicking_ObjectId(batches, techniqueName = DEFAULT_TECHNIQUE)
+  {
+    Tr2RingBuffer.prepareInstances(this);
+    const objectId = this.GetObjectIdVariable();
+    const area = this._GetPickingAreaVariable(TriVariableContentType.TRIVARIABLE_FLOAT);
+    const buffers = Array.from({ length: ConstantBufferSlot.CBUFFER_COUNT }, (_value, slot) => this.GetConstantBuffer(slot));
+    let currentObjectData = null, drawn = 0;
+    for (const batch of batches.GetBatches())
+    {
+      const technique = batch.shader.GetTechniqueIndex(techniqueName);
+      if (technique < 0) continue;
+      if (batch.objectData)
+      {
+        if (batch.objectData !== currentObjectData)
+        {
+          batch.objectData.SetPerObjectDataToDevice(buffers, batch.shader.GetShaderTypeMask(technique), this);
+          currentObjectData = batch.objectData;
+        }
+        objectId.SetValue(batch.objectData.GetUserData());
+        area.SetValue(batch.pickingData >>> 0);
+      }
+      if (batch.shader.GetPassCount(technique) !== 1) throw new Error("Picking requires a single-pass technique.");
+      batch.shader.ApplyAllStateForPass(technique, 0, this);
+      batch.material.ApplyMaterialDataForPass(technique, 0, this);
+      this.SubmitGeometry(batch);
+      drawn++;
+    }
+    return drawn;
+  }
+
+  /**
+   * Carbon 92483097's single-pass picking walk. The uint64 identity is split into two
    * integer variables without ever converting the full value to Number.
    * Texture binding occurs through ApplyMaterialDataForPass in this port.
-   * Adapted: also publish the low word to the pre-92483097 scalar objectId
-   * binding used by shipped primitive shaders. Their request-local index fits
-   * that word; sequenced scene identities still use both integer words.
    *
    * @param {object} batches Finalized accumulator.
    * @param {string} [techniqueName] Carbon's DEFAULT_TECHNIQUE.
    * @returns {number} Number of submitted batches.
    */
   @meta.adapted
-  RenderBatchesForPicking(batches, techniqueName = DEFAULT_TECHNIQUE)
+  RenderBatchesForPicking_Pointer(batches, techniqueName = DEFAULT_TECHNIQUE)
   {
     Tr2RingBuffer.prepareInstances(this);
     const store = Tr2VariableStore.globalStore();
     const low = store.RegisterVariableInternal("pickingObjectLowBits", TriVariableContentType.TRIVARIABLE_INT, 0);
     const high = store.RegisterVariableInternal("pickingObjectHighBits", TriVariableContentType.TRIVARIABLE_INT, 0);
-    const area = store.RegisterVariableInternal("areaId", TriVariableContentType.TRIVARIABLE_INT, 0);
-    const legacyObjectId = this.GetObjectIdVariable();
+    const area = this._GetPickingAreaVariable(TriVariableContentType.TRIVARIABLE_INT);
     const buffers = Array.from({ length: ConstantBufferSlot.CBUFFER_COUNT }, (_value, slot) => this.GetConstantBuffer(slot));
     let currentObjectData = null;
     let drawn = 0;
@@ -1444,7 +1523,6 @@ export class Tr2RenderContext
           currentObjectData = batch.objectData;
         }
         const pointer = batch.objectData.GetPickingPointer();
-        if (legacyObjectId) legacyObjectId.SetValue(Number(pointer & 0xffffffffn));
         if (low) low.SetValue(Number(pointer & 0xffffffffn) | 0);
         if (high) high.SetValue(Number((pointer >> 32n) & 0xffffffffn) | 0);
         if (area) area.SetValue(batch.pickingData | 0);
