@@ -34,3 +34,16 @@ test("RaymarchFroxels without a temporal input reads back its own output UAV, wh
   await assert.rejects(build("raymarchfroxels", [ { name: "INPUT_SOURCE", value: "INPUT_SOURCE_OUTPUT_TEXTURE" } ]),
     /ld_uav_typed instruction \d+ requires a read-write/u);
 });
+
+test("FilterFroxels samples its 3D neighbours with immediate offsets: u, v and w become a vec3<i32> offset", { skip }, async () =>
+{
+  const result = await build("filterfroxels");
+  assert.equal(result.qualification.packageValid, true);
+  const code = result.wgsl.shaders[0].code;
+  // The six face neighbours, the z pair included, which a 2D offset would drop.
+  for (const offset of [ "-1, 0, 0", "1, 0, 0", "0, -1, 0", "0, 1, 0", "0, 0, -1", "0, 0, 1" ])
+  {
+    assert.ok(code.includes(`, vec3<i32>(${offset}));`), `offset (${offset})`);
+  }
+});
+

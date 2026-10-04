@@ -85,9 +85,9 @@ function sampleOffsetArgument(instruction, viewDimension)
     {
         throw new Error(`WGSL fragment instruction ${instruction.index} has duplicate sample_controls extensions`);
     }
-    if (viewDimension !== "2d")
+    if (viewDimension !== "2d" && viewDimension !== "2d-array" && viewDimension !== "3d")
     {
-        throw new Error(`WGSL fragment instruction ${instruction.index} immediate sample offsets support only 2d textures`);
+        throw new Error(`WGSL fragment instruction ${instruction.index} immediate sample offsets support only 2d, 2d-array and 3d textures`);
     }
     const offsets = controls[0].sampleOffsets;
     if (![ offsets?.u, offsets?.v, offsets?.w ].every((value) =>
@@ -95,8 +95,10 @@ function sampleOffsetArgument(instruction, viewDimension)
     {
         throw new Error(`WGSL fragment instruction ${instruction.index} has invalid immediate sample offsets`);
     }
-    // D3D ignores the w offset for Texture2D. WGSL takes the same signed,
-    // texel-space u/v constants as the final sampling argument.
+    // WGSL takes the same signed, texel-space constants as the final sampling
+    // argument: u, v, w for a Texture3D; D3D ignores w for 2D and 2D arrays,
+    // whose array index is a coordinate, not an offset.
+    if (viewDimension === "3d") return `, vec3<i32>(${offsets.u}, ${offsets.v}, ${offsets.w})`;
     return `, vec2<i32>(${offsets.u}, ${offsets.v})`;
 }
 

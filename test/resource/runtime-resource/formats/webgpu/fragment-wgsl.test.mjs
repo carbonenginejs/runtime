@@ -1701,7 +1701,7 @@ test("fragment lowering samples a cube texture with a three-component coordinate
     } ];
     assert.throws(
         () => CjsWebgpuFormat.buildWgsl(program, { source: "synthetic-cube-offset" }),
-        /immediate sample offsets support only 2d textures/u
+        /immediate sample offsets support only 2d, 2d-array and 3d textures/u
     );
 });
 
@@ -1754,10 +1754,9 @@ test("fragment lowering samples a 2d-array texture with a split coordinate and a
         typeName: "sample_controls",
         sampleOffsets: { u: 1, v: 0, w: 0 }
     } ];
-    assert.throws(
-        () => CjsWebgpuFormat.buildWgsl(program, { source: "synthetic-2d-array-offset" }),
-        /immediate sample offsets support only 2d textures/u
-    );
+    // D3D ignores w for a 2D array, whose index is a coordinate: the u/v offset follows the array index.
+    const offsetShader = CjsWebgpuFormat.buildWgsl(program, { source: "synthetic-2d-array-offset" });
+    assert.match(offsetShader.code, /textureSample\([^;]*, vec2<i32>\(1, 0\)\)/u);
 });
 
 test("fragment sample_d keeps three spatial gradients for 3d textures", () =>
