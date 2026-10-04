@@ -235,7 +235,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
     }
 
     box3.transformMat4(aabb, aabb, parentTransform);
-    return !!updateContext?.GetFrustum()?.IsBoxVisible(aabb);
+    return updateContext.GetFrustum().IsBoxVisible(aabb);
   }
 
   /** Sets the drawing effect and the skinned flag in one call. */
@@ -259,14 +259,13 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   }
 
   /**
-   * Sets a shader option on the sprite line effect, doing nothing when no effect
-   * that accepts options is attached.
+   * Sets a shader option on the sprite line effect, doing nothing when no effect is attached.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   SetShaderOption(name, value)
   {
-    if (this.effect && typeof this.effect.SetOption === "function")
+    if (this.effect)
     {
       this.effect.SetOption(name, value);
     }
@@ -330,17 +329,19 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   /** Carbon EveSpriteLineSet::GetLights (cpp:358-373): byte-identical to
    * EveSpriteSet's (shared EveSpriteLight items) - point conversion on the
    * bone matrix, Blink scales radius + innerRadius after conversion, no
-   * gates. */
+   * gates.
+   *
+   * Adapted: Profile-index packing is by-reference per lightConversion.js.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("profile-index packing is by-reference per lightConversion.js.")
   GetLights(lightManager)
   {
     const features = EveSpriteLineSet._features;
     features.parentBrightness = this._activationStrength;
     features.parentScale = 1;
     const time = Tr2Renderer.GetAnimationTime();
-    const quality = lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0;
+    const quality = lightManager.GetCurrentSpaceSceneShadowQuality();
     const record = EveSpriteLineSet._lightRecord;
 
     for (const light of this.lights)
@@ -353,7 +354,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
       record.lightData = light.lightData;
       record.lightProfile = light.lightProfile;
       record.owner = this;
-      lightManager?.AddLight(record);
+      lightManager.AddLight(record);
     }
   }
 
