@@ -69,15 +69,32 @@ export class Tr2VertexDefinition
   }
 
   /**
-   * Carbon Find (h:169-172): the first item with the usage, and optionally
-   * the usage index; null when absent.
+   * Carbon Find( usage ) (h:171): the first item with the usage; null when absent.
    */
-  Find(usage, usageIndex = null)
+  Find(usage)
   {
     const code = usageCodeOf(usage);
     for (const item of this.items)
     {
-      if (item.usage === code && (usageIndex === null || item.usageIndex === usageIndex))
+      if (item.usage === code)
+      {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Carbon Find( usage, usageIndex ) (h:174), split from Find by its extra
+   * parameter: the first item with the usage and
+   * usage index; null when absent.
+   */
+  FindUsageIndex(usage, usageIndex)
+  {
+    const code = usageCodeOf(usage);
+    for (const item of this.items)
+    {
+      if (item.usage === code && item.usageIndex === usageIndex)
       {
         return item;
       }
