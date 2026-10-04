@@ -289,6 +289,18 @@ export class Tr2ParticleSystem
     vec3.set(this.aabbMax, 0, 0, 0);
   }
 
+  /**
+   * Carbon Tr2ParticleSystem::ApplyConstraint (Tr2ParticleSystem.h:127-132): hands the element buffers, their strides
+   * and the live count to a caller's constraint, then marks the buffers for upload.
+   * @param {Function} constraint - (buffers, strides, count) => void
+   */
+  @meta.implemented
+  ApplyConstraint(constraint)
+  {
+    constraint(this._buffers, this._strides, this.aliveCount);
+    this._bufferDirty = true;
+  }
+
   /** Carbon method RebindConstraints (MAP_METHOD_AND_WRAP). */
   @meta.blue.method
   @meta.adapted

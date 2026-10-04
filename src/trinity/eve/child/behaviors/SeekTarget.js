@@ -1,8 +1,15 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SeekTarget.h
+// Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SeekTarget.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta } from "#schema";
+import { blue } from "#blue";
+import { CjsScriptCallback } from "#blue/CjsScriptCallback";
 import { vec3 } from "#math/vec3";
+import { quat } from "#math/quat";
 import { EveLocatorSets } from "../../locator/EveLocatorSets.js";
+
+const Z_AXIS = vec3.fromValues(0, 0, 1);
+const UP_AXIS = vec3.fromValues(0, 1, 0);
 
 /** A steering behaviour that assigns drones to repair locators on a target ship, splitting the target's bounding box into buckets so damage-seeking agents distribute evenly across it. */
 @meta.define({ className: "SeekTarget", family: "eve/child/behaviors" })
@@ -20,6 +27,20 @@ export class SeekTarget
   _locatorBucketIndices = [];
 
   _sortedLocators = false;
+
+  /** m_repairTimePassed */
+  _repairTimePassed = 0;
+
+  /** m_startTimer */
+  _startTimer = false;
+
+  /** m_parent: the group's space object, taken on the first update. */
+  _parent = null;
+
+  /** CalculateBehavior's (position + offset, force) pairs, rewritten each update (Carbon m_returnForces). */
+  _returnForces = [];
+
+  _forcePool = [];
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
   @meta.blue.notify
@@ -185,13 +206,13 @@ export class SeekTarget
       return false;
     }
 
-    const min = vec3.create();
-    const max = vec3.create();
+    const min = BOUNDS_MIN;
+    const max = BOUNDS_MAX;
     if (!this.target.GetLocalBoundingBox(min, max))
     {
       return false;
     }
-    const dimensions = vec3.subtract(vec3.create(), max, min);
+    const dimensions = vec3.subtract(BOUNDS_SIZE, max, min);
     let maxIndex = 0;
     for (let index = 1; index < 3; index++)
     {
@@ -234,7 +255,7 @@ export class SeekTarget
     }
 
     const locatorCount = Math.max(0, Number(this.target.GetLocatorCount?.(this.locatorSetName)) || 0);
-    const position = vec3.create();
+    const position = LOCATOR_POSITION;
     for (let locatorIndex = 0; locatorIndex < locatorCount; locatorIndex++)
     {
       const locatorPosition = this.target.GetLocatorPositionFromSet?.(
@@ -281,4 +302,235 @@ export class SeekTarget
     return this._locatorBucketIndices.map(bucket => [...bucket]);
   }
 
+  /** Carbon SeekTarget::GetProcessPriority (cpp:37-40). */
+  @meta.implemented
+  GetProcessPriority()
+  {
+    return this.behaviorPriority;
+  }
+
+  /**
+   * Carbon SeekTarget::GetScratchMemorySize (cpp:43-46). Adapted: scratch is one plain record per agent, so any
+   * non-zero answer means "has scratch", as for the other behaviors.
+   */
+  @meta.adapted
+  GetScratchMemorySize()
+  {
+    return 1;
+  }
+
+  /** Carbon SeekTarget::InitializeScratch (cpp:48-51) and SeekTargetData's defaults (SeekTarget.h:13-34). Adapted: returns the record. */
+  @meta.adapted
+  InitializeScratch()
+  {
+    return {
+      bucketId: -1,
+      locatorIndex: -1,
+      timePassed: 0,
+      position: vec3.create(),
+      direction: vec3.create(),
+      arrived: true,
+      hasSpawned: false
+    };
+  }
+
+  /**
+   * Carbon SeekTarget::CalculateBehavior (cpp:53-277): each drone picks a locator - on the repair target when repairing,
+   * else from this behavior's own locator set or the group's space object - and steers to a point off it, slowing
+   * inside slowDownRadius, facing it and starting its effect, and marking arrival inside arrivedRadius.
+   * Carbon quirks kept as written: timePassed is raised to at least secondsToTurn, so the ramp is always at full
+   * weight; the force applies behaviorWeight on top of that.
+   * Adapted: Math.random stands in for TriRandInt; returns the (position + offset, force) debug pairs Carbon returns.
+   */
+  @meta.adapted
+  CalculateBehavior(agents, scratchData, deltaTime, group, _system, _dronesInSearchRadius)
+  {
+    const forces = this._returnForces;
+    forces.length = 0;
+    let pooled = 0;
+    if (this._parent === null) this._parent = group.GetParent();
+    if (this.behaviorWeight <= 0 || !this.enabled) return forces;
+
+    if (this.exit && this._counter >= 1)
+    {
+      this._doneRepairing = true;
+      this.exit = false;
+      this._counter = 0;
+    }
+
+    const repairing = this.repair === true && this.target !== null;
+    for (let index = 0; index < agents.length; index++)
+    {
+      const agent = agents[index], data = scratchData[index];
+
+      if (!data.hasSpawned && this.firstSpawnAtRandomPlaces)
+      {
+        const spawnPosition = this._FindSpawnPoint(SPAWN_POINT);
+        vec3.copy(group.spawnPosition, spawnPosition);
+        vec3.copy(agent.position, spawnPosition);
+        data.hasSpawned = true;
+      }
+
+      if (this.totalRepairTime !== -1 && this._repairTimePassed >= this.totalRepairTime)
+      {
+        this.SetExit(true);
+        this.repair = false;
+        this._repairTimePassed = 0;
+      }
+
+      if (this._doneRepairing) data.arrived = true;
+
+      if (this.repair === true && this.target !== null)
+      {
+        if (vec3.exactEquals(agent.target, ORIGIN) || data.locatorIndex === -1)
+        {
+          if (this._sortedLocators)
+          {
+            data.bucketId = agent.id % this._boundingBoxes.length;
+            data.locatorIndex = Math.floor(Math.random() * this._locatorBucketIndices[data.bucketId].length);
+          }
+          else
+          {
+            data.locatorIndex = Math.floor(Math.random() * this.target.GetLocatorCount(this.locatorSetName));
+          }
+        }
+        const locatorIndex = this._sortedLocators ? this._locatorBucketIndices[data.bucketId][data.locatorIndex] : data.locatorIndex;
+        this.target.GetLocatorPositionFromSet(locatorIndex, false, this.locatorSetName, data.position);
+        this.target.GetLocatorRotationFromSet(locatorIndex, false, this.locatorSetName, data.direction);
+      }
+      else if (data.arrived && vec3.exactEquals(agent.target, ORIGIN))
+      {
+        const seekLocators = this._GetLocatorsForSet(this.locatorSetName);
+        if (seekLocators !== null && seekLocators.length > 0)
+        {
+          const locator = seekLocators[Math.floor(Math.random() * seekLocators.length)];
+          vec3.copy(data.position, locator.position);
+          vec3.transformQuat(data.direction, UP_AXIS, locator.direction);
+        }
+        else if (this._parent !== null)
+        {
+          const locatorIndex = Math.floor(Math.random() * this._parent.GetLocatorCount(this.locatorSetName));
+          this._parent.GetLocatorPositionFromSet(locatorIndex, false, this.locatorSetName, data.position);
+          this._parent.GetLocatorRotationFromSet(locatorIndex, false, this.locatorSetName, data.direction);
+        }
+        data.arrived = false;
+      }
+
+      vec3.copy(agent.target, data.position);
+
+      // A zero direction would put the target point on the locator itself and defeat the slow-down radius.
+      if (vec3.exactEquals(data.direction, ORIGIN)) vec3.set(data.direction, 0, 1, 0);
+
+      const fakePoint = vec3.normalize(FAKE_POINT, data.direction);
+      if (repairing)
+      {
+        this.target.GetShapeEllipsoid(ELLIPSOID_CENTER, ELLIPSOID_RADII);
+        vec3.multiply(fakePoint, fakePoint, vec3.scale(ELLIPSOID_RADII, ELLIPSOID_RADII, 1.2));
+      }
+      else
+      {
+        vec3.scale(fakePoint, fakePoint, this.distFromOrigin);
+      }
+      vec3.add(fakePoint, fakePoint, agent.target);
+
+      const desiredVelocity = vec3.subtract(DESIRED_VELOCITY, fakePoint, agent.position);
+      const distance = vec3.length(desiredVelocity);
+      vec3.normalize(desiredVelocity, desiredVelocity);
+
+      if (distance < this.slowDownRadius)
+      {
+        vec3.scale(desiredVelocity, desiredVelocity, distance / this.slowDownRadius);
+
+        if (!this._droneArrived && this.onFirstDroneArrivedCallback)
+        {
+          CjsScriptCallback.from(this.onFirstDroneArrivedCallback).CallVoid();
+          this._droneArrived = true;
+          this._doneRepairing = false;
+          if (this.repair) this._startTimer = true;
+        }
+
+        const inverseDirection = vec3.normalize(INVERSE_DIRECTION, vec3.subtract(INVERSE_DIRECTION, data.position, agent.position));
+        quat.rotationArc(agent.rotation, Z_AXIS, inverseDirection);
+        data.timePassed = 0;
+
+        if (!agent.playFX)
+        {
+          agent.fxStartTime = blue.os.GetActualTime();
+          agent.playFX = true;
+        }
+
+        if (distance < this.arrivedRadius) data.arrived = true;
+      }
+      else
+      {
+        data.timePassed = Math.max(data.timePassed + deltaTime, this.secondsToTurn);
+        const value = this.behaviorWeight * (Math.max(data.timePassed, this.secondsToTurn) / this.secondsToTurn);
+        vec3.scale(desiredVelocity, desiredVelocity, value);
+      }
+
+      if (this.exit)
+      {
+        agent.playFX = false;
+        this.repair = false;
+        data.locatorIndex = -1;
+        this._droneArrived = false;
+        this._counter++;
+        this._startTimer = false;
+      }
+
+      const offset = this._PooledForce(pooled++);
+      const force = this._PooledForce(pooled++);
+      vec3.subtract(force, vec3.scale(FORCE_SCRATCH, desiredVelocity, this.behaviorWeight), agent.velocity);
+      vec3.add(agent.acceleration, agent.acceleration, vec3.subtract(FORCE_SCRATCH, desiredVelocity, agent.velocity));
+      forces.push(vec3.scaleAndAdd(offset, agent.position, force, group.GetBoundingSphereRadius()), force);
+    }
+
+    this._doneRepairing = false;
+    if (this._startTimer) this._repairTimePassed += deltaTime;
+    return forces;
+  }
+
+  /** One reusable vector of the returned force pairs, grown as the agent count does. */
+  _PooledForce(index)
+  {
+    while (this._forcePool.length <= index) this._forcePool.push(vec3.create());
+    return this._forcePool[index];
+  }
+
+  /** Carbon SeekTarget::GetLocatorsForSet (cpp:283-290): this behavior's own set when its name matches. */
+  _GetLocatorsForSet(setName)
+  {
+    return this.locatorSet !== null && this.locatorSet.HasName(setName) ? this.locatorSet.GetLocators() : null;
+  }
+
+  /** Carbon SeekTarget::FindSpawnPoint (cpp:337-355): a random locator from the own set, else from the group's space object. */
+  _FindSpawnPoint(out)
+  {
+    const seekLocators = this._GetLocatorsForSet(this.locatorSetName);
+    if (seekLocators !== null && seekLocators.length > 0)
+    {
+      return vec3.copy(out, seekLocators[Math.floor(Math.random() * seekLocators.length)].position);
+    }
+    if (this._parent !== null)
+    {
+      const locatorIndex = Math.floor(Math.random() * this._parent.GetLocatorCount(this.locatorSetName));
+      return this._parent.GetLocatorPositionFromSet(locatorIndex, false, this.locatorSetName, out);
+    }
+    return vec3.set(out, 0, 0, 0);
+  }
+
 }
+
+// Module scratch for the per-agent loop (behavior updates run sequentially).
+const ORIGIN = vec3.create();
+const FAKE_POINT = vec3.create();
+const DESIRED_VELOCITY = vec3.create();
+const INVERSE_DIRECTION = vec3.create();
+const FORCE_SCRATCH = vec3.create();
+const ELLIPSOID_CENTER = vec3.create();
+const ELLIPSOID_RADII = vec3.create();
+const SPAWN_POINT = vec3.create();
+const BOUNDS_MIN = vec3.create();
+const BOUNDS_MAX = vec3.create();
+const BOUNDS_SIZE = vec3.create();
+const LOCATOR_POSITION = vec3.create();

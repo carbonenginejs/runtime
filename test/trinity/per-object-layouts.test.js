@@ -47,6 +47,7 @@ const SIZES = [
   [ "EveChildBoosterSetVSData", 20, "EveChildBoosterSet.h:39-49 - Matrix + 3 float + uint32" ],
   [ "EveChildBoosterSetPSData", 4, "EveChildBoosterSet.h:50-56" ],
   [ "EveChildBulletStormPerObjectData", 60, "EveChildBulletStorm.h:20 - Vector4[10]" ],
+  [ "EveChildParticleSpherePerObjectData", 32, "EveChildParticleSphere.cpp:19-41 - two Matrix" ],
   [ "EveStretch2PerObjectData", 16, "EveStretch2.h:105-109" ],
   [ "EveSpaceObjectVSData", 116, "EveSpaceObject2.h:99" ],
   [ "EveSpaceObjectPSData", 116, "EveSpaceObject2.h:122" ],
