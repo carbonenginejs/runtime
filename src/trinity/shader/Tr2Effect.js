@@ -158,10 +158,10 @@ export class Tr2Effect extends Tr2Material
   effectResource = null;
 
   /** JS acquisition ownership, separate from a resource assigned by the caller. */
-  #acquiredEffectResource = null;
+  _acquiredEffectResource = null;
 
   /** Resolved path used for the internally acquired resource. */
-  #acquiredEffectPath = "";
+  _acquiredEffectPath = "";
 
   /**
    * m_actualEffectFilePath (std::string) [READ]
@@ -257,10 +257,10 @@ export class Tr2Effect extends Tr2Material
     if (this._destroyed) return;
     this._destroyed = true;
     if (this.effectResource) this.effectResource.RemoveNotifyTarget(this);
-    if (this.#acquiredEffectResource && this.#acquiredEffectResource !== this.effectResource)
-      this.#acquiredEffectResource.RemoveNotifyTarget(this);
-    this.#acquiredEffectResource = null;
-    this.#acquiredEffectPath = "";
+    if (this._acquiredEffectResource && this._acquiredEffectResource !== this.effectResource)
+      this._acquiredEffectResource.RemoveNotifyTarget(this);
+    this._acquiredEffectResource = null;
+    this._acquiredEffectPath = "";
     for (const resource of this.resources) resource.OnRemovedFromMaterial(this);
     for (const parameter of this._ownedProviders.keys()) this._ReleaseOwnedProvider(parameter);
     this._ClearPassBindings();
@@ -831,15 +831,15 @@ export class Tr2Effect extends Tr2Material
   @meta.adapted
   #AcquireEffectResource()
   {
-    const acquired = this.#acquiredEffectResource;
-    if (acquired && (acquired !== this.effectResource || this.#acquiredEffectPath !== this.actualEffectFilePath))
+    const acquired = this._acquiredEffectResource;
+    if (acquired && (acquired !== this.effectResource || this._acquiredEffectPath !== this.actualEffectFilePath))
     {
       this.ReleaseCachedData();
       this._ClearPassBindings();
       acquired.RemoveNotifyTarget(this);
       if (this.effectResource === acquired) this.effectResource = null;
-      this.#acquiredEffectResource = null;
-      this.#acquiredEffectPath = "";
+      this._acquiredEffectResource = null;
+      this._acquiredEffectPath = "";
     }
     if (!this.actualEffectFilePath) return;
     // A caller that assigned a resource by hand owns it; do not replace it.
@@ -850,8 +850,8 @@ export class Tr2Effect extends Tr2Material
     });
 
     this.effectResource = resource;
-    this.#acquiredEffectResource = resource;
-    this.#acquiredEffectPath = this.actualEffectFilePath;
+    this._acquiredEffectResource = resource;
+    this._acquiredEffectPath = this.actualEffectFilePath;
     resource.AddNotifyTarget(this);
     resource.Ready?.();
   }
@@ -1012,8 +1012,10 @@ export class Tr2Effect extends Tr2Material
   }
 
   /**
-   * Sets the authored effect path through values transport. Equal writes skip
-   * initialization; the return value reports whether the path changed.
+   * Sets the authored effect path through values transport. Carbon's
+   * SetEffectPathName and OnModified always call Initialize, even for an equal
+   * path (Tr2Effect.cpp:415, :876). Our values-layer no-op rule skips equal
+   * writes and initialization; the return value reports whether the path changed.
    */
   SetEffectPathName(path)
   {
