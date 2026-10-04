@@ -10,7 +10,6 @@ import { vec3 } from "#math/vec3";
 import { translationMatrix } from "../../renderable/stretch/CjsStretchRuntime.js";
 import { ImpactConfiguration } from "../../../generated/include/enums.js";
 import { ITr2ControllerOwner } from "../../../controllers/ITr2ControllerOwner.js";
-import { mappedInterfaces } from "../../../../global/compose/interface.js";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { INotify } from "../../../../global/blue/INotify.js";
 import { IListNotify } from "../../../../global/blue/IListNotify.js";
@@ -395,12 +394,14 @@ export class EveTurretFiringFX extends EveEntity
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     if (!this.isFiring || list !== this.stretch || (event & BLUELISTEVENT.BELIST_LOADING)) return;
-    if (!value || !mappedInterfaces(value.constructor).has(EveEntity)) return;
+    // Carbon BlueCastPtr<EveEntity>( value ) (cpp:216, 226).
+    const entity = CjsSchema.cast(value, EveEntity);
+    if (!entity) return;
     const registry = this.GetComponentRegistry();
     if (!registry) return;
     const operation = event & BLUELISTEVENT.BELIST_EVENTMASK;
-    if (operation === BLUELISTEVENT.BELIST_INSERTED && this.display) value.Register(registry);
-    else if (operation === BLUELISTEVENT.BELIST_REMOVED) value.UnRegister(registry);
+    if (operation === BLUELISTEVENT.BELIST_INSERTED && this.display) entity.Register(registry);
+    else if (operation === BLUELISTEVENT.BELIST_REMOVED) entity.UnRegister(registry);
   }
 
   /**
@@ -472,9 +473,10 @@ export class EveTurretFiringFX extends EveEntity
     }
     if (this.destinationObserver)
     {
-      const emitter = this.destinationObserver.GetObserver();
+      // Carbon BlueCastPtr<ITr2AudEmitter> (cpp:178); the audio contract is absent when the audio layer is not loaded.
       const contract = CjsSchema.GetConstructor("ITr2AudEmitter");
-      if (emitter && contract && mappedInterfaces(emitter.constructor).has(contract))
+      const emitter = contract ? CjsSchema.cast(this.destinationObserver.GetObserver(), contract) : null;
+      if (emitter)
       {
         emitter.SetAttenuationScalingFactor(radius);
       }
@@ -908,9 +910,10 @@ export class EveTurretFiringFX extends EveEntity
   {
     for (const stretch of this.stretch)
     {
-      if (stretch && mappedInterfaces(stretch.constructor).has(ITr2ControllerOwner))
+      const owner = CjsSchema.cast(stretch, ITr2ControllerOwner);
+      if (owner)
       {
-        stretch.SetControllerVariable(name, value);
+        owner.SetControllerVariable(name, value);
       }
     }
   }
@@ -922,9 +925,10 @@ export class EveTurretFiringFX extends EveEntity
   {
     for (const stretch of this.stretch)
     {
-      if (stretch && mappedInterfaces(stretch.constructor).has(ITr2ControllerOwner))
+      const owner = CjsSchema.cast(stretch, ITr2ControllerOwner);
+      if (owner)
       {
-        stretch.HandleControllerEvent(name);
+        owner.HandleControllerEvent(name);
       }
     }
   }
@@ -936,9 +940,10 @@ export class EveTurretFiringFX extends EveEntity
   {
     for (const stretch of this.stretch)
     {
-      if (stretch && mappedInterfaces(stretch.constructor).has(ITr2ControllerOwner))
+      const owner = CjsSchema.cast(stretch, ITr2ControllerOwner);
+      if (owner)
       {
-        stretch.StartControllers();
+        owner.StartControllers();
       }
     }
   }
@@ -954,7 +959,8 @@ export class EveTurretFiringFX extends EveEntity
     {
       for (const element of this.stretch)
       {
-        if (element && mappedInterfaces(element.constructor).has(EveEntity)) element.Register(registry);
+        const entity = CjsSchema.cast(element, EveEntity);
+        if (entity) entity.Register(registry);
       }
     }
   }
@@ -970,7 +976,8 @@ export class EveTurretFiringFX extends EveEntity
     {
       for (const element of this.stretch)
       {
-        if (element && mappedInterfaces(element.constructor).has(EveEntity)) element.UnRegister(registry);
+        const entity = CjsSchema.cast(element, EveEntity);
+        if (entity) entity.UnRegister(registry);
       }
     }
   }
