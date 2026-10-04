@@ -47,7 +47,7 @@ import { Tr2RingBuffer, Tr2RingBufferOffsets } from "../../core/device/Tr2RingBu
 import { Tr2PerObjectData } from "../../core/rawData/perObjectData/Tr2PerObjectData.js";
 import { Tr2PerObjectDataStandard } from "../../core/rawData/perObjectData/Tr2PerObjectDataStandard.js";
 import { ITr2Pickable } from "../../core/ITr2Pickable.js";
-import { Tr2RenderBatch, TriRenderBatchAreaBlock } from "../../core/batch/TriRenderBatch/index.js";
+import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/index.js";
 import { RawData } from "../../core/rawData/RawData.js";
 import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../core/view/Tr2PickType.js";
 import { IEveSpaceObject2ParentData } from "./IEveSpaceObject2ParentData.js";
@@ -64,10 +64,6 @@ import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 const TRANSPARENT_AABB_MIN = vec3.create();
 const TRANSPARENT_AABB_MAX = vec3.create();
 const TRANSPARENT_CENTER = vec3.create();
-
-// Carbon EveMeshOverlayEffect::OverlayType (EveMeshOverlayEffect.h:35-41).
-const OVERLAY_TYPE_OPAQUEONLY = 0;
-const OVERLAY_TYPE_ALL = 1;
 
 /**
  * The hull of an EVE space object - its mesh, locators, locator sets, decals,
@@ -2098,25 +2094,17 @@ export class EveSpaceObject2 extends EveEntity
    * (Carbon RebuildCachedData, EveSpaceObject2.cpp:2077-2097, triggered there by
    * the geometry-resource load callback). TYPE_ALL = shadow-casting OPAQUE +
    * TRANSPARENT + DECAL areas; TYPE_OPAQUEONLY = shadow-casting OPAQUE; the
-   * shadow list groups OPAQUE areas by shared material. All coalesced. */
+   * shadow list groups OPAQUE areas by shared material. All coalesced.
+   * Carbon (cpp:2408-2419) calls CollectOverlayAreaBlocks from the geometry-resource
+   * notify callback; here it rebuilds lazily on first batch use from the mesh areas alone. */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon rebuilds from the geometry-resource notify callback; the GPU-free port rebuilds lazily on first batch use from the mesh areas alone.")
   RebuildCachedData()
   {
     this.ReleaseCachedData();
     if (!this.mesh) return;
 
-    const all = this._overlayMeshAreaBlocks[OVERLAY_TYPE_ALL];
-    this.mesh.CollectAreaBlocks(all, TriBatchType.TRIBATCHTYPE_OPAQUE);
-    this.mesh.CollectAreaBlocks(all, TriBatchType.TRIBATCHTYPE_TRANSPARENT);
-    this.mesh.CollectAreaBlocks(all, TriBatchType.TRIBATCHTYPE_DECAL);
-    this.mesh.CollectAreaBlocks(
-      this._overlayMeshAreaBlocks[OVERLAY_TYPE_OPAQUEONLY], TriBatchType.TRIBATCHTYPE_OPAQUE);
-    for (const blocks of this._overlayMeshAreaBlocks)
-    {
-      TriRenderBatchAreaBlock.Optimize(blocks);
-    }
+    EveMeshOverlayEffect.collectOverlayAreaBlocks(this.mesh, this._overlayMeshAreaBlocks);
 
     this.mesh.CollectAreaBlocksWithSharedMaterials(
       this._shadowMeshOpaqueAreas, TriBatchType.TRIBATCHTYPE_OPAQUE);
