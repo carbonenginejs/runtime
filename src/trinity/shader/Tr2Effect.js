@@ -65,6 +65,9 @@ function requireShader(shader)
 
 /** Whether a value is a texture rather than a number or vector. */
 
+/** Padding scratch for the Vector2/Vector3 overloads; Tr2Vector4Parameter copies it. */
+const VECTOR4_PAD = vec4.create();
+
 /** Owns the mutable effect facade: shader path and options, authored parameters and resources, sampler overrides, variable-store resolution, and rebuild state. */
 @meta.define({ className: "Tr2Effect", family: "shader" })
 @meta.blue.inherit(IInitialize, INotify, IListNotify)
@@ -1245,36 +1248,32 @@ export class Tr2Effect extends Tr2Material
   }
 
   /**
-   * Carbon's SetParameter( name, const Vector2& ).
-   * Adapted: Carbon pads to Vector4( x, y, 0, 0 ) and sets a Tr2Vector4Parameter;
-   * this keeps a Tr2Vector2Parameter, because our vector parameters write all
-   * their components rather than clamping to the destination size as Carbon's
-   * CopyValueToEffect does, so a padded Vector4 could overwrite a neighbouring
-   * constant.
+   * Carbon's SetParameter( name, const Vector2& ): pads to Vector4( x, y, 0, 0 )
+   * and sets the Vector4 parameter (Tr2Effect.cpp). The constant slot receives
+   * only as many components as it declares.
    * @param {string} name Parameter name.
    * @param {ArrayLike<number>} value Two components.
    * @returns {void}
    */
   @meta.blue.renamed("SetParameter")
-  @meta.adapted
+  @meta.implemented
   SetParameterVector2(name, value)
   {
-    this.#SetValueParameter(name, Tr2Vector2Parameter, value);
+    this.SetParameterVector4(name, vec4.set(VECTOR4_PAD, value[0], value[1], 0, 0));
   }
 
   /**
-   * Carbon's SetParameter( name, const Vector3& ).
-   * Adapted: Carbon pads to Vector4( value, 0 ); kept as a Tr2Vector3Parameter
-   * for the reason given on SetParameterVector2.
+   * Carbon's SetParameter( name, const Vector3& ): pads to Vector4( value, 0 )
+   * and sets the Vector4 parameter (Tr2Effect.cpp).
    * @param {string} name Parameter name.
    * @param {ArrayLike<number>} value Three components.
    * @returns {void}
    */
   @meta.blue.renamed("SetParameter")
-  @meta.adapted
+  @meta.implemented
   SetParameterVector3(name, value)
   {
-    this.#SetValueParameter(name, Tr2Vector3Parameter, value);
+    this.SetParameterVector4(name, vec4.set(VECTOR4_PAD, value[0], value[1], value[2], 0));
   }
 
   /**

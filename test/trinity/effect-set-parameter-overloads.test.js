@@ -47,7 +47,23 @@ test("a whole float is a float, and uint32 stores its bits", () =>
 });
 
 
-test("the vector and matrix overloads keep their own parameter classes", () =>
+test("Vector2 and Vector3 pad into a Vector4 parameter, as Carbon's overloads do", () =>
+{
+  const effect = new Tr2Effect();
+  effect.SetParameterVector2("Size", [ 5, 6 ]);
+  effect.SetParameterVector3("Direction", [ 7, 8, 9 ]);
+  assert.equal(className(effect.FindParameterByName("Size")), "Tr2Vector4Parameter");
+  assert.deepEqual(Array.from(effect.FindParameterByName("Size").value), [ 5, 6, 0, 0 ]);
+  assert.deepEqual(Array.from(effect.FindParameterByName("Direction").value), [ 7, 8, 9, 0 ]);
+
+  // A float2 slot receives only its two components.
+  const out = new Float32Array(2);
+  effect.FindParameterByName("Size").CopyValueToEffect(0, out, 8);
+  assert.deepEqual(Array.from(out), [ 5, 6 ]);
+});
+
+
+test("the Vector4 and matrix overloads set their own parameter classes", () =>
 {
   const effect = new Tr2Effect();
   effect.SetParameterVector4("Color", [ 1, 2, 3, 4 ]);
