@@ -60,8 +60,14 @@ export class TriVariable extends ITr2EffectValue
   }
 
   /**
-   * Assigns the value payload. The content type stays as registered; Carbon
-   * fixes it at registration time and SetValue only stores.
+   * Stores the value. The content type stays as registered; Carbon fixes it at
+   * registration time and SetValue only stores.
+   *
+   * A vector or matrix is COPIED into this variable's own storage, as Carbon's
+   * `*(T*)m_value = value` copies into `m_value` (TriVariable.h:148, :176): a
+   * caller that later reuses its array does not change the variable. Scalars
+   * are stored as they are; texture and buffer providers are held by
+   * reference, as Carbon holds their smart pointers.
    * Adapted: Preserves the single JavaScript payload slot instead of the native typed union and returns success to existing callers.
    * @param {*} value Portable value payload.
    * @returns {boolean} Variable result.
@@ -70,14 +76,29 @@ export class TriVariable extends ITr2EffectValue
   @meta.adapted
   SetValue(value)
   {
-    this.value = value;
+    const length = TriVariable._componentCounts[this.contentType];
+    if (!length || !value || typeof value.length !== "number")
+    {
+      this.value = value;
+      return true;
+    }
+
+    let storage = this.value;
+    if (!(storage instanceof Float32Array) || storage.length !== length)
+    {
+      storage = this.value = new Float32Array(length); // alloc: the variable's own storage, Carbon's m_value
+    }
+    const count = Math.min(length, value.length);
+    for (let index = 0; index < count; index++) storage[index] = value[index];
     return true;
   }
 
   /**
-   * Reads the payload; when out is array-like and so is the payload, the
-   * overlapping components are copied into out and out is returned, otherwise
-   * the stored payload itself is returned and is not a copy.
+   * Reads the value. A vector or matrix is COPIED into `out`, as Carbon's
+   * `value = *(T*)m_value` copies into the caller's variable (TriVariable.h:129);
+   * without an `out` a new array of the type's size is returned, as the
+   * Tr2Vector*Parameter GetValue(out = vecN.create()) methods do. The stored
+   * array itself is never handed out. Scalars and providers return as stored.
    * Adapted: Adapts native typed output arguments to an optional array output or a direct JavaScript value return.
    * @param {ArrayLike|undefined} [out] Optional destination for array components.
    * @returns {*} Variable result.
@@ -87,16 +108,16 @@ export class TriVariable extends ITr2EffectValue
   GetValue(out = undefined)
   {
     const value = this.value;
-    if (out && value && typeof value.length === "number" && typeof out.length === "number")
+    if (!value || typeof value.length !== "number") return value;
+    if (!out)
     {
-      const count = Math.min(out.length, value.length);
-      for (let index = 0; index < count; index++)
-      {
-        out[index] = value[index];
-      }
-      return out;
+      const length = TriVariable._componentCounts[this.contentType];
+      if (!length) return value;
+      out = new Float32Array(length); // alloc: returned copy when the caller supplies no out
     }
-    return value;
+    const count = Math.min(out.length, value.length);
+    for (let index = 0; index < count; index++) out[index] = value[index];
+    return out;
   }
 
   /**
@@ -354,7 +375,8 @@ export class TriVariable extends ITr2EffectValue
   {
     if (!destination || typeof destination.length !== "number") return false;
 
-    const source = this.GetValue();
+    // Reads the storage directly, as Carbon's CopyValueToEffect reads m_value.
+    const source = this.value;
 
     if (typeof source === "number")
     {
@@ -440,6 +462,15 @@ export class TriVariable extends ITr2EffectValue
     4 * 4,
     8
   ];
+
+  /** Float components of the vector and matrix content types, which are stored by copy. */
+  static _componentCounts = {
+    [TriVariableContentType.TRIVARIABLE_FLOAT2]: 2,
+    [TriVariableContentType.TRIVARIABLE_FLOAT3]: 3,
+    [TriVariableContentType.TRIVARIABLE_FLOAT4]: 4,
+    [TriVariableContentType.TRIVARIABLE_COLOR]: 4,
+    [TriVariableContentType.TRIVARIABLE_FLOAT4X4]: 16
+  };
 
   /** Native content-type table exposed through the existing JavaScript adapter. */
   static ContentType = TriVariableContentType;
