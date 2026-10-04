@@ -112,16 +112,18 @@ test("Apocalypse/type462 geometry ownership caches mesh0 and exact native bone I
   const bounds=[1,2,3,200];set.boundingSphere.set(bounds);set.Initialize();assert.deepEqual(Array.from(set.boundingSphere),bounds);
 });
 
-test("late old completion cannot replace current cache; notifications survive reload once and LOD clears geometry",{skip},async t=>
+test("late old completion cannot replace current cache; an update after a purge re-registers once and LOD clears geometry",{skip},async t=>
 {
   const {set,ship,makeResource,resources}=await assets(t);ship.RebuildTurretPositions();
   const old=makeResource(false),next=makeResource(false);resources.set(geometryPath,old);
   set.Initialize();const second="res:/controlled-replacement.gr2";resources.set(second,next);set.geometryResPath=second;set.OnModified("geometryResPath");
-  old.MarkPrepared();assert.ok(set.geometryResource===next,"replacement handle remains current");assert.equal(set._skeleton,null,"stale completion must not rebuild");
+  old.MarkPrepared();assert.ok(set.geometryResource===next,"replacement handle remains current");assert.ok(set._skeleton===null,"stale completion must not rebuild");
   next.MarkPrepared();assert.ok(set._skeleton===next.GetSkeletonData(0),"current resource owns cached skeleton");
   let rebuilds=0;const rebuild=set.RebuildCachedData.bind(set);set.RebuildCachedData=value=>{rebuilds++;return rebuild(value);};
   set.Initialize();set.Initialize();const before=rebuilds;
-  next.MarkPurged();assert.equal(set._skeleton,null);next.MarkPrepared();assert.equal(rebuilds,before+1,"one persistent subscription after repeated initialization");
+  next.MarkPurged();const frame=()=>set.UpdateSyncronous(updateContext({GetVisibilityThreshold:()=>1}));
+  frame();assert.ok(set._skeleton===null,"the update after a purge releases the cache and asks again");frame();
+  next.MarkPrepared();assert.equal(rebuilds,before+1,"repeated re-registration while pending rebuilds once");
   const matrices=set.GetTurrets().map(item=>Array.from(item.localMatrix));set.lodLevel=EveTurretSet.LOD.LOD_EMPTY;set.InitializeGeometryResource();
   assert.equal(set.geometryResource,null);assert.equal(set._turretVertexDeclElementCount,0);assert.ok(Array.from(set._systemBoneID).every(value=>value===0xffffffff));
   assert.deepEqual(set.GetTurrets().map(item=>Array.from(item.localMatrix)),matrices,"resource cleanup preserves mount placement");
@@ -168,7 +170,8 @@ test("real paired mounts own independent sampled poses and native play-idle cloc
   const idle=a.sequencer.GetAnimationLayer(null).queue[0];
   const overshoot=Math.fround(.2)+Math.fround(.3)-.25;
   assert.equal(idle.name,"Active");assert.ok(Math.abs(idle.elapsed-overshoot)<1e-9,"CMF first eligible scheduler preserves float32 delta overshoot");
-  resource.MarkPurged();assert.equal(a.sequencer,null);assert.equal(a.pose,null);assert.deepEqual(a.worldTransforms,[]);
+  resource.MarkPurged();set.UpdateSyncronous(updateContext({GetVisibilityThreshold:()=>1}));
+  assert.ok(a.sequencer===null,"the update after a purge drops the sequencer");assert.ok(a.pose===null,"and the pose");assert.equal(a.worldTransforms.length,0);
 });
 
 test("pending native requests replay without delay and late mounts initialize immediately",{skip},async t=>
@@ -358,7 +361,7 @@ test("native missing-joint and unloaded-pose muzzle fallbacks preserve transform
   set.useLowLodFiringTransform=true;set.lowLodFiringEffectTranslation.set([2,3,7]);set.lowLodFiringEffectScale.set([2,1,3]);set.lowLodFiringEffectRotation.set([0,Math.sin(.2),0,Math.cos(.2)]);
   const low=mat4.fromRotationTranslationScale(mat4.create(),set.lowLodFiringEffectRotation,set.lowLodFiringEffectTranslation,set.lowLodFiringEffectScale);
   assertScalars(set.GetFiringBoneWorldTransform(0),carbonProduct(low,turret.worldMatrix),"native lowLOD * turretWorld");
-  effect.boneName="Pos_Fire";set.InitializeFiringEffect();resource.MarkPurged();assert.equal(turret.pose,null);
+  effect.boneName="Pos_Fire";set.InitializeFiringEffect();resource.MarkPurged();set.UpdateSyncronous(updateContext({GetVisibilityThreshold:()=>1}));assert.ok(turret.pose===null,"the update after a purge releases the pose");
   assertScalars(set.GetFiringBoneWorldTransform(0),carbonProduct(low,turret.worldMatrix),"unloaded pose uses lowLOD even with retained valid joint ID");
   set.useLowLodFiringTransform=false;set.sysBonePitchMin=0;set.target.position.set([800,900,500]);
   const direct=set.GetFiringBoneWorldTransform(0),direction=Array.from(set.target.position).map((v,i)=>v-turret.worldMatrix[12+i]);const length=Math.hypot(...direction);
@@ -425,7 +428,7 @@ test("normal hull ParentData and visible palettes share one Float4x3 upload with
   assert.deepEqual(uploads[2].data,Array.from({length:9},()=>[1,0,0,0,0,1,0,0,0,0,1,0]).flat(),"visible invalid record has native identity skin data");
   set.GetTurrets().length=0;ship.UpdateTurretsAsyncronous(updateContext({deltaTime:0}));assert.equal(set._boneOffsets.GetCurrentFrameOffset(),0xffffffff);assert.equal(set._boneOffsets.GetPreviousFrameOffset(),29);
   set.display=false;set.UpdateVisibility(view);assert.equal(set.visibleCount,0);
-  resource.MarkPurged();assert.equal(set.GetPerObjectData(accumulator),null,"native bad-resource gate");
+  resource.MarkPurged();assert.ok(set.GetPerObjectData(accumulator)===null,"native bad-resource gate");
 });
 
 test("real packed turret shader receives native instance IDs and final opaque/shadow draw offsets",{skip},async t=>
@@ -463,7 +466,7 @@ test("real packed turret shader receives native instance IDs and final opaque/sh
   // Only pass execution is stubbed: geometry, metadata, declaration conversion,
   // allocations, batch submission and final AL draw are the real Node path.
   const shader={GetTechniqueIndex:name=>{currentInputs=metadata.effect.techniques.find(item=>item.name===name).passes[0].stageInputs.find(item=>item?.stageName==="vertex").signature.pipelineInputs;return 0;},GetPassCount:()=>1,GetShaderTypeMask:()=>3,ApplyAllStateForPass(){}};
-  set.turretEffect={GetShaderStateInterface:()=>shader,ApplyMaterialDataForPass(){}};
+  set.turretEffect={GetShaderStateInterface:()=>shader,ApplyMaterialDataForPass(){},IsGood:()=>true};
   set.displayEffects=false;
   const coefficients=ship._psData.Get("shLightingCoefficients");for(let i=0;i<coefficients.length;i++)coefficients[i]=i+.25;
   const renderables=ship.GetRenderables([]);assert.ok(renderables.includes(set),"EveMobile.cpp:291 forwards the turret renderable and SH span");
@@ -559,7 +562,7 @@ test("GR2 and CMF turret bounds follow donor traversal, animated world joints an
     let captured;set.UpdateVisibility({GetFrustum:()=>({IsSphereVisible:value=>{captured??=Array.from(value);return true;},GetPixelSizeAccross:()=>40})});
     const expectedCenter=Array.from({length:3},(_,i)=>sphere[0]*turret.worldMatrix[i]+sphere[1]*turret.worldMatrix[i+4]+sphere[2]*turret.worldMatrix[i+8]+turret.worldMatrix[i+12]);
     assertScalars(captured.slice(0,3),expectedCenter,"dynamic sphere transformed by mount for culling");
-    geometry.MarkPurged();sphere.fill(17);assert.equal(set.GetDynamicBounds(turret,sphere),false);assert.deepEqual(Array.from(sphere),[17,17,17,17]);
+    geometry.MarkPurged();set.UpdateSyncronous(updateContext({GetVisibilityThreshold:()=>1}));sphere.fill(17);assert.equal(set.GetDynamicBounds(turret,sphere),false);assert.deepEqual(Array.from(sphere),[17,17,17,17]);
     geometry.MarkPrepared();assert.ok(set._boneBounds.length);set.UpdateAsyncronous(updateContext({deltaTime:0}),set._parentData);assert.equal(set.GetDynamicBounds(turret,sphere),true);
     set.useDynamicBounds=false;set.OnModified("useDynamicBounds");assert.equal(set._boneBounds.length,0);min.fill(8);assert.equal(set.GetLocalBoundingBox(min,max),false);assert.deepEqual(Array.from(min),[8,8,8]);
   }

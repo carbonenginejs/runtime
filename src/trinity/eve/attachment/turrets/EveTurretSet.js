@@ -491,18 +491,6 @@ export class EveTurretSet extends EveEntity
   /** Retained CPU packing storage, grown only when mount/binding capacity grows. */
   _boneTransforms = null;
 
-  /** Stable resource callbacks preserve native notify ownership across reloads. */
-  _geometryCompleted = (_event, resource) => {
-    if (resource !== this.geometryResource) return;
-    if (resource.IsPrepared()) this.RebuildCachedData(resource);
-    else this.ReleaseCachedData(resource);
-  };
-
-  /** A released payload invalidates derived state but retains mount placement. */
-  _geometryReleased = (_event, resource) => {
-    if (resource === this.geometryResource) this.ReleaseCachedData(resource);
-  };
-
   /** Default bones per turret when no skeleton mapping is present (cpp:2334). */
   static DEFAULT_BONES_PER_TURRET = 3;
 
@@ -552,12 +540,7 @@ export class EveTurretSet extends EveEntity
     this.UnRegister(this.GetComponentRegistry());
     if (this.firingEffect) this.firingEffect.CleanUp();
     const resource = this.geometryResource;
-    if (resource)
-    {
-      resource.OffEvent("completed", this._geometryCompleted, this);
-      resource.OffEvent("purged", this._geometryReleased, this);
-      resource.OffEvent("unloaded", this._geometryReleased, this);
-    }
+    if (resource) resource.RemoveNotifyTarget(this);
     this.geometryResource = null;
     this.Cleanup();
     this.ReleaseResources();
@@ -1172,33 +1155,22 @@ export class EveTurretSet extends EveEntity
   }
 
   /**
-   * Reloads the native LOD-selected geometry (EveTurretSet.cpp:252-290).
-   * JS resource completion/purge events replace Blue notify targets; the
-   * subscription stays installed after an immediate prepared callback so a
-   * later same-handle reload rebuilds the cache too.
+   * Reloads the native LOD-selected geometry (EveTurretSet.cpp:252-290) and registers as its notify target;
+   * a resource that has already finished calls RebuildCachedData at once.
    */
   @meta.blue.method
   @meta.adapted
   InitializeGeometryResource()
   {
     const previous = this.geometryResource;
-    if (previous)
-    {
-      previous.OffEvent("completed", this._geometryCompleted, this);
-      previous.OffEvent("purged", this._geometryReleased, this);
-      previous.OffEvent("unloaded", this._geometryReleased, this);
-    }
+    if (previous) previous.RemoveNotifyTarget(this);
     this.geometryResource = null;
     this.Cleanup();
     if (this.lodLevel !== EveTurretSet.LOD.LOD_DISABLED && this.lodLevel !== EveTurretSet.LOD.LOD_HIGHEST) return;
     if (!this.geometryResPath) return;
     const resource = blue.resMan.GetResource(this.geometryResPath, { requirement: ResourceRequirement.GEOMETRY });
     this.geometryResource = resource;
-    if (!resource) return;
-    resource.OnEvent("completed", this._geometryCompleted, this);
-    resource.OnEvent("purged", this._geometryReleased, this);
-    resource.OnEvent("unloaded", this._geometryReleased, this);
-    if (resource.HasCompleted()) this._geometryCompleted("completed", resource);
+    if (resource) resource.AddNotifyTarget(this);
   }
 
   /** Replaces and redistributes the authored ambient effect (cpp:3554). */
@@ -1882,6 +1854,14 @@ export class EveTurretSet extends EveEntity
   UpdateSyncronous(context, _parentMatrix)
   {
     if (!this._turrets.length) return;
+    // The resource releases its notify targets when it completes. While a purged or pending geometry reloads,
+    // the derived cache is dropped and the set asks to be told again; a failed one is left alone.
+    const geometry = this.geometryResource;
+    if (geometry && !geometry.IsGood())
+    {
+      if (this._vertexDeclHandle !== Tr2EffectStateManager.Unknown) this.ReleaseCachedData(geometry);
+      if (!geometry.IsFailed()) geometry.AddNotifyTarget(this);
+    }
     if (this.UpdateLOD(context))
     {
       this.InitializeGeometryResource();
@@ -2135,6 +2115,8 @@ export class EveTurretSet extends EveEntity
     if (!geometry || !geometry.IsGood()) return false;
     const lod = geometry.GetMeshLodByIndex(0, 0);
     if (!lod || !CreateLodAllocations(geometry, 0, lod, Tr2RenderContext_GetMainThreadRenderContext())) return false;
+    // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
+    if (!this.turretEffect || !this.turretEffect.IsGood()) return false;
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.turretEffect);
     batch.SetGeometryFromAllocations2(this._vertexDeclHandle, lod.vertexAllocation, this._instanceBuffer, lod.indexAllocation);
@@ -2214,6 +2196,8 @@ export class EveTurretSet extends EveEntity
     if (!geometry || !geometry.IsGood()) return false;
     const lod = geometry.GetMeshLodByIndex(0, 0);
     if (!lod || !CreateLodAllocations(geometry, 0, lod, Tr2RenderContext_GetMainThreadRenderContext())) return false;
+    // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
+    if (!this.turretEffect || !this.turretEffect.IsGood()) return false;
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.turretEffect);
     batch.SetGeometryFromAllocations2(this._vertexDeclHandle, lod.vertexAllocation, this._instanceBuffer, lod.indexAllocation);
