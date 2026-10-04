@@ -2,7 +2,10 @@
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveLocalPositionCurve.cpp
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
+import { mat4 } from "#math/mat4";
+import { ITriTargetable } from "../../../core/ITriTargetable.js";
+import { EveSpaceObject2 } from "../../spaceObject/EveSpaceObject2.js";
 import { LocalPositionBehavior } from "../../../generated/eve/renderable/stretch/enums.js";
 import { blue, ITriVectorFunction } from "#blue";
 
@@ -145,9 +148,11 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * behaviour (and could latch damage-locator state) where the donor call
    * evaluates nothing. Ported as the no-op Carbon's overload resolution
    * actually produces.
+   *
+   * Adapted: Carbon's call resolves to its no-op double Update overload; forwarding to the collapsed dispatching
+   * Update would be more active than the donor.
    */
   @meta.blue.method @meta.adapted
-  @meta.reason("Resolves to Carbon's no-op double Update overload; forwarding to the collapsed dispatching Update would be MORE active than the donor.")
   UpdateValue(_time)
   {
   }
@@ -176,9 +181,10 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * Widens the last computed value into a double-precision three-element buffer for the camera-relative path; it does not re-evaluate the behaviour.
    * @param {Float64Array} out - caller-owned
    * @returns {Float64Array} out
+   *
+   * Adapted: Carbon's Vector3d is any three-element numeric output buffer here.
    */
   @meta.blue.method @meta.adapted
-  @meta.reason("Vector3d is represented by any three-element numeric output buffer in JavaScript.")
   InterpolatedPosition(_time, out)
   {
     out[0] = this.value[0];
@@ -283,69 +289,84 @@ export class EveLocalPositionCurve extends ITriVectorFunction
   }
 
   /**
-   * POS_TARGET_DMG_LOCATOR: on the first call picks the parent damage locator
-   * nearest the aligned point and latches it, then reports that locator's
-   * position on every call.
+   * POS_TARGET_DMG_LOCATOR (EveLocalPositionCurve.cpp:158-184): on the first call picks the parent damage locator
+   * nearest the aligned point and latches it, then reports that locator's position on every call. A parent that is
+   * not an ITriTargetable leaves out unchanged (Carbon logs an error).
    */
   GetDamageLocator(time, out)
   {
     if (!(this.alignPositionCurve && this.parent)) return out;
+    const target = CjsSchema.cast(this.parent, ITriTargetable);
+    if (!target) return out;
     if (this.damageLocatorIndex === -1)
     {
       this.alignPositionCurve.GetValueAt_Ticks(time, EveLocalPositionCurve._parentPosition);
-      this.damageLocatorIndex = Number(this.parent.GetGoodDamageLocatorIndex?.(EveLocalPositionCurve._parentPosition) ?? -1) | 0;
+      this.damageLocatorIndex = target.GetGoodDamageLocatorIndex(EveLocalPositionCurve._parentPosition);
     }
-    this.parent.GetDamageLocatorPosition?.(this.damageLocatorIndex, true, out);
+    target.GetDamageLocatorPosition(this.damageLocatorIndex, true, out);
     return out;
   }
 
   /**
-   * POS_TARGET_DMG_LOCATOR_IMPACT: as GetDamageLocator, but also creates an
-   * impact on the parent at that locator the first time, then updates it each
-   * call with the direction from the locator back towards the aligned point.
+   * POS_TARGET_DMG_LOCATOR_IMPACT (EveLocalPositionCurve.cpp:204-248): as GetDamageLocator, but also creates an
+   * impact on the parent at that locator the first time, then updates it each call with the direction from the
+   * locator back towards the aligned point.
    */
   GetDamageLocatorImpact(time, out)
   {
     if (!(this.alignPositionCurve && this.parent)) return out;
+    const target = CjsSchema.cast(this.parent, ITriTargetable);
+    if (!target) return out;
     this.alignPositionCurve.GetValueAt_Ticks(time, EveLocalPositionCurve._parentPosition);
     if (this.damageLocatorIndex === -1)
     {
-      this.damageLocatorIndex = Number(this.parent.GetGoodDamageLocatorIndex?.(EveLocalPositionCurve._parentPosition) ?? -1) | 0;
+      this.damageLocatorIndex = target.GetGoodDamageLocatorIndex(EveLocalPositionCurve._parentPosition);
     }
-    this.parent.GetDamageLocatorPosition?.(this.damageLocatorIndex, true, out);
+    target.GetDamageLocatorPosition(this.damageLocatorIndex, true, out);
     vec3.subtract(EveLocalPositionCurve._direction, EveLocalPositionCurve._parentPosition, out);
     if (this._impactEffectIndex === -1)
     {
-      this._impactEffectIndex = Number(this.parent.CreateImpact?.(this.damageLocatorIndex, EveLocalPositionCurve._direction, 2, this.impactSize) ?? -1) | 0;
+      // Carbon quirk, reproduced (EveLocalPositionCurve.cpp:236): the impact is created at size 1, not impactSize;
+      // m_impactSize is exposed and persisted but never read.
+      this._impactEffectIndex = target.CreateImpact(this.damageLocatorIndex, EveLocalPositionCurve._direction, 2, 1);
     }
-    this.parent.UpdateImpact?.(out, EveLocalPositionCurve._direction, this._impactEffectIndex);
+    target.UpdateImpact(out, EveLocalPositionCurve._direction, this._impactEffectIndex);
     return out;
   }
 
   /**
-   * POS_NEAREST_FIRING_LOCATOR: the world position of the configured locator
-   * within the named locator set; out is unchanged when the parent, index or set
-   * name is missing.
+   * POS_NEAREST_FIRING_LOCATOR (EveLocalPositionCurve.cpp:186-202): the world position of the configured locator
+   * within the named locator set; out is unchanged when the parent, index or set name is missing, or the parent is
+   * not an EveSpaceObject2. Carbon's set-scoped GetLocatorPosition overload is GetLocatorPositionFromSet here.
    */
   GetNearestFiringLocator(_time, out)
   {
     if (this.parent && this.locatorIndex !== -1 && this.locatorSetName)
     {
-      this.parent.GetLocatorPosition?.(this.locatorIndex, true, this.locatorSetName, out);
+      const target = CjsSchema.cast(this.parent, EveSpaceObject2);
+      if (target)
+      {
+        target.GetLocatorPositionFromSet(this.locatorIndex, true, this.locatorSetName, out);
+      }
     }
     return out;
   }
 
   /**
-   * POS_ACTIVE_TURRET: the translation of the turret set's firing bone for the
-   * configured muzzle; out is unchanged when the turret set has no such bone.
+   * POS_ACTIVE_TURRET (EveLocalPositionCurve.cpp:250-262): the translation of the turret set's firing bone for the
+   * configured muzzle; out is unchanged without a turret set.
    */
   GetFiringTurretPosition(_time, out)
   {
-    const transform = this.turretSetObject?.GetFiringBoneWorldTransform?.(this.muzzleIndex);
-    if (transform?.length === 16) vec3.set(out, transform[12], transform[13], transform[14]);
+    if (this.turretSetObject)
+    {
+      const transform = this.turretSetObject.GetFiringBoneWorldTransform(this.muzzleIndex, EveLocalPositionCurve._turretTransform);
+      vec3.set(out, transform[12], transform[13], transform[14]);
+    }
     return out;
   }
+
+  static _turretTransform = mat4.create();
 
   static LocalPositionBehavior = LocalPositionBehavior;
 
