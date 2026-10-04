@@ -178,8 +178,13 @@ test("off destroys handles, rolls back a drag and keeps object selection active"
   assert.equal(input._owner, null);
   t.mock.method(gizmo.scene, "PickObject", () => assert.fail("off must not pick handles"));
   gizmo.pickObject = async () => selected;
-  gizmo.onSelect = object => { assert.equal(object, selected); gizmo.SetTarget(target); };
-  assert.equal(await gizmo.HandleInput(pointer("pointerdown")), TnyInputMan.Result.CONSUME);
+  let selections = 0;
+  gizmo.onSelect = object => { assert.equal(object, selected); selections++; gizmo.SetTarget(target); };
+  // A click selects on release, and both halves still reach the camera.
+  assert.equal(await gizmo.HandleInput(pointer("pointerdown")), TnyInputMan.Result.PASS);
+  assert.equal(selections, 0, "nothing is selected on the press");
+  assert.equal(await gizmo.HandleInput(pointer("pointerup")), TnyInputMan.Result.PASS);
+  assert.equal(selections, 1, "the click selected on release");
   assert.equal(gizmo.scene.manipulator, null);
   gizmo.Sync();
   gizmo.SetMode("rotation");
@@ -187,6 +192,24 @@ test("off destroys handles, rolls back a drag and keeps object selection active"
   gizmo.SetMode("off");
   gizmo.Uninstall();
   input.Destroy();
+});
+
+test("a drag that starts on an object orbits instead of selecting it", async t =>
+{
+  const gizmo = setupGizmo(t, "off");
+  let selections = 0;
+  gizmo.pickObject = async () => ({});
+  gizmo.onSelect = () => selections++;
+  assert.equal(await gizmo.HandleInput(pointer("pointerdown")), TnyInputMan.Result.PASS);
+  assert.equal(await gizmo.HandleInput(pointer("pointermove", { dx: 6, dy: 2 })), TnyInputMan.Result.PASS);
+  assert.equal(await gizmo.HandleInput(pointer("pointerup")), TnyInputMan.Result.PASS);
+  assert.equal(selections, 0, "moved further than CLICK_SLOP: a drag, not a click");
+
+  // Within the slop it is still a click.
+  await gizmo.HandleInput(pointer("pointerdown"));
+  await gizmo.HandleInput(pointer("pointermove", { dx: 2, dy: 1 }));
+  await gizmo.HandleInput(pointer("pointerup"));
+  assert.equal(selections, 1);
 });
 
 test("switching off invalidates an outstanding handle pick", async t =>

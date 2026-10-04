@@ -18,6 +18,9 @@ export class TnyTransformGizmo
   _input = null;
   _consumer = null;
   _drag = null;
+
+  /** A left press that may become a click-select: where it started and how far it has moved. */
+  _press = null;
   _generation = 0;
   _frame = mat4.create();
   _keyBindings = null;
@@ -197,16 +200,28 @@ export class TnyTransformGizmo
         this.tool.captured = true;
         return result.CAPTURE;
       }
-      if (this.pickObject)
+      // Not a handle: the press belongs to the camera. Selection waits for the
+      // release, so a drag that starts on an object still orbits (as CCP's
+      // editors do: click selects, drag moves the camera).
+      this._press = { x: event.x, y: event.y, moved: 0 };
+      return result.PASS;
+    }
+    if (event.type === "pointermove" && this._press && !this._drag)
+    {
+      this._press.moved += Math.abs(event.dx ?? 0) + Math.abs(event.dy ?? 0);
+      return result.PASS;
+    }
+    if (event.type === "pointerup" && this._press && !this._drag)
+    {
+      const press = this._press;
+      this._press = null;
+      if (press.moved <= TnyTransformGizmo.CLICK_SLOP && this.pickObject)
       {
-        const object = await this.pickObject(event.x, event.y, view);
-        if (generation !== this._generation) return result.CONSUME;
-        if (object && this.onSelect)
-        {
-          this.onSelect(object);
-          return result.CONSUME;
-        }
+        const generation = this._generation;
+        const object = await this.pickObject(press.x, press.y, this.getView());
+        if (generation === this._generation && object && this.onSelect) this.onSelect(object);
       }
+      // The camera still needs the release to end its drag.
       return result.PASS;
     }
     if (event.type === "pointermove" && this._drag)
@@ -235,10 +250,14 @@ export class TnyTransformGizmo
     return Object.keys(this._keyBindings).find(mode => this._keyBindings[mode] === event.code) ?? null;
   }
 
+  /** How far, in backing pixels, a press may travel and still count as a click. */
+  static CLICK_SLOP = 4;
+
   /** Restores the exact initial local matrix and invalidates outstanding handle picks. */
   Cancel()
   {
     this._generation++;
+    this._press = null;
     const drag = this._drag;
     this._drag = null;
     if (drag) drag.target.writeLocal(drag.initial);
