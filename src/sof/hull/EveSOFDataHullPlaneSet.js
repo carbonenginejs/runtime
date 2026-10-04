@@ -25,19 +25,19 @@ export class EveSOFDataHullPlaneSet
   /** m_layer1MapResPath (std::string) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriTextureRes")
   layer1MapResPath = "";
 
   /** m_layer2MapResPath (std::string) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriTextureRes")
   layer2MapResPath = "";
 
   /** m_maskMapResPath (std::string) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriTextureRes")
   maskMapResPath = "";
 
   /** m_skinned (bool) [READWRITE, PERSIST] */

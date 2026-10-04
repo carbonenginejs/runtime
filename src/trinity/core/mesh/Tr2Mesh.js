@@ -23,7 +23,7 @@ export class Tr2Mesh extends Tr2MeshBase
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriGeometryRes")
   geometryResPath = "";
 
   @meta.blue.persistOnly

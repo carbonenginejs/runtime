@@ -51,7 +51,7 @@ export class Tr2TextureAnimation
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path(".vta")
   resPath = "";
 
   @meta.blue.readwrite

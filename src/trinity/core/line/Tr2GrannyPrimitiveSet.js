@@ -26,7 +26,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriGeometryRes")
   grannyResPath = "";
 
   /** Native solid-versus-wire draw switch. */

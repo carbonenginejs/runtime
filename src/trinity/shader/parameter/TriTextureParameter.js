@@ -32,7 +32,7 @@ export class TriTextureParameter extends CjsParameter
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriTextureRes")
   resourcePath = "";
 
   @meta.blue.readwrite

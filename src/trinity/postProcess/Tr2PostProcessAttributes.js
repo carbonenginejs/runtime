@@ -402,7 +402,7 @@ export class Tr2PostProcessAttributes
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriTextureRes")
   grimePath = "";
 
   /**
@@ -636,7 +636,7 @@ export class Tr2PostProcessAttributes
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriTextureRes")
   lutPath = "";
 
   /**
@@ -780,7 +780,7 @@ export class Tr2PostProcessAttributes
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriTextureRes")
   vignetteShapePath = "";
 
   /**
@@ -798,7 +798,7 @@ export class Tr2PostProcessAttributes
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriTextureRes")
   vignetteDetailPath = "";
 
   /**

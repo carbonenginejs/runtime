@@ -148,14 +148,14 @@ export class EveSpherePin
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("Tr2EffectRes")
   pinEffectResPath = "";
 
   /** m_geomResPath (std::string) [READWRITE, NOTIFY, PERSIST] */
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriGeometryRes")
   geometryResPath = "";
 
   /** m_pinRotation (float) [READWRITE, NOTIFY, PERSIST] */

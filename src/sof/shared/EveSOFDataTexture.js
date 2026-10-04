@@ -14,7 +14,7 @@ export class EveSOFDataTexture
   /** m_resFilePath (std::string) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriTextureRes")
   resFilePath = "";
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */

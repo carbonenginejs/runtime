@@ -150,7 +150,7 @@ export class EveSOFDataBooster
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriTextureRes")
   shapeAtlasResPath = "";
 
   /**
@@ -159,7 +159,7 @@ export class EveSOFDataBooster
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriTextureRes")
   gradient0ResPath = "";
 
   /**
@@ -168,7 +168,7 @@ export class EveSOFDataBooster
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriTextureRes")
   gradient1ResPath = "";
 
   /**

@@ -16,7 +16,7 @@ import { EveChildInstancedMeshInstance } from "./EveChildInstancedMeshInstance.j
 export class EveChildInstancedMesh
 {
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriGeometryRes")
   geometryPath = "";
 
   @meta.blue.persist

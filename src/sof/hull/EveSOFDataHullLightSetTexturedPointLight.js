@@ -16,7 +16,7 @@ export class EveSOFDataHullLightSetTexturedPointLight extends EveSOFDataHullLigh
   /** m_data.texturePath (std::wstring) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriTextureRes")
   texturePath = "";
 
 }

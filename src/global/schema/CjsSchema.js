@@ -720,7 +720,23 @@ export class CjsSchema
         /** Declares a live resource edge that values, persistence and copying must omit. */
         resource: className => fieldDecorator("type", { kind: "objectRef", className, runtimeOnly: true }),
         weakRef: className => fieldDecorator("type", { kind: "weakRef", className }),
-        path: fieldDecorator("type", { kind: "path" }),
+        /**
+         * A path, and what it may name. `path()` accepts any file. Entries
+         * narrow it, and a path is accepted when any one entry accepts it:
+         * - a registered class name, e.g. `"TriTextureRes"`: a path the resource
+         *   manager turns into that class, in any format registered for it;
+         * - `"object"`: a graph `LoadObject` builds (`.black`, `.red`);
+         * - a file type, e.g. `".vta"`: a file of that type, read as a raw
+         *   stream (Tr2TextureAnimation's volume animations).
+         *
+         * Ours: Carbon's Blue types have no path kind. The entries are for tools
+         * such as the editor, which offer only files a field can use; the
+         * runtime does not enforce them.
+         *
+         * Bare `@meta.type.path` (or `path: meta.type.path` in a define table)
+         * still means any file: see `pathDecorator`.
+         */
+        path: pathDecorator(),
         quat: fieldDecorator("type", { kind: "quat" }),
         rawStruct: className => fieldDecorator("type", { kind: "rawStruct", className }),
         set: itemType => fieldDecorator("type", { kind: "set", itemType }),
@@ -2998,6 +3014,53 @@ function normalizeEnumSchema(values, definition)
     if (definition.chooser !== undefined) result.chooser = definition.chooser;
 
     return result;
+}
+
+/**
+ * `meta.type.path`: a factory that is also usable bare.
+ *
+ * Called with entries - `path("TriTextureRes")`, `path([ ... ])` or
+ * `path()` - it returns the field decorator. Used bare, the runtime applies
+ * it as the decorator itself, with (value, context) or (target, fieldName):
+ * two arguments, where an entry list is one, so the two are told apart by
+ * arity, not by guessing at a value's shape. A define table reads the same
+ * "any file" metadata from the function.
+ *
+ * @returns {Function} The path decorator factory.
+ */
+function pathDecorator()
+{
+    const any = fieldDecorator("type", { kind: "path", accepts: [] });
+    const path = (...args) => (args.length >= 2
+        ? any(...args)
+        : fieldDecorator("type", { kind: "path", accepts: normalizePathAccepts(args[0]) }));
+    return describeDecorator(path, "type", { kind: "path", accepts: [] });
+}
+
+/**
+ * Validate `meta.type.path` entries when the class is defined, so a typo
+ * fails loudly instead of quietly accepting nothing. Class names are checked
+ * for shape here; whether each names a registered class is checked by test,
+ * because classes register in import order.
+ *
+ * @param {string|string[]|undefined} accepts Entries as written.
+ * @returns {string[]} A new list; empty means any file.
+ */
+function normalizePathAccepts(accepts)
+{
+    if (accepts === undefined) return [];
+    const entries = Array.isArray(accepts) ? accepts : [ accepts ];
+    const out = [];
+    for (const entry of entries)
+    {
+        if (typeof entry !== "string"
+            || !(entry === "object" || /^\.[a-z0-9]+$/.test(entry) || /^[A-Z][A-Za-z0-9_]*$/.test(entry)))
+        {
+            throw new TypeError(`meta.type.path accepts a class name, "object" or a ".ext" file type, not ${JSON.stringify(entry)}.`);
+        }
+        if (!out.includes(entry)) out.push(entry);
+    }
+    return out;
 }
 
 function normalizeEnumDefinition(values)

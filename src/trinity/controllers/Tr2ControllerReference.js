@@ -24,7 +24,7 @@ export class Tr2ControllerReference extends ITr2Controller
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("object")
   path = "";
 
   /** Runtime loaded controller, exposed read-only and not persisted. */

@@ -28,13 +28,13 @@ export class EveSOFDataHullSpotlightSet
   /** m_coneTextureResPath (std::string) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriTextureRes")
   coneTextureResPath = "";
 
   /** m_glowTextureResPath (std::string) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriTextureRes")
   glowTextureResPath = "";
 
   /** m_visibilityGroup (BlueSharedString) [READWRITE, PERSIST] */

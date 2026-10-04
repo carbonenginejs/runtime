@@ -148,7 +148,7 @@ export class Tr2FactionLight extends Tr2Light
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("Tr2LightProfileRes")
   lightProfilePath = "";
 
   /** m_lightProfile (Tr2LightProfileResPtr) [READ] */

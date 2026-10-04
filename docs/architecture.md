@@ -309,6 +309,23 @@ preserves authored defaults, Blue exposure and native string storage. Black
 routes path declarations through its shared configured path handler; without a
 handler the authored string is retained. Resource resolution and failed-read
 repair policy remain the resource manager's responsibility.
+
+A path declaration can also say what the path may name, so that tools offer
+only files the field can use. The type descriptor is
+`{ kind: "path", accepts: [...] }`; a path is accepted when any one entry
+accepts it:
+
+- `@meta.type.path()`, or bare `@meta.type.path`: any file (`accepts: []`).
+- A registered class name, for example `@meta.type.path("TriTextureRes")`: a path
+  the resource manager turns into that class, in any format registered for it.
+  A tool can ask the resource manager which extensions those are.
+- `"object"`: a graph `LoadObject` builds (`.black`, `.red`).
+- A file type, for example `@meta.type.path(".vta")`: a file of that type,
+  read as a raw stream, as `Tr2TextureAnimation` reads volume animations.
+
+Several entries are written as a list, for example
+`@meta.type.path([ "TriGeometryRes", "object" ])`. Entries are validated when
+the class is defined. The runtime does not enforce them on assignment.
 ## Declared types and Black binary blocks
 
 Decorator namespaces follow ownership: meta.blue is Carbon exposure, meta.ui is

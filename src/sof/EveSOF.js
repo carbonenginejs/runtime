@@ -305,7 +305,7 @@ export class EveSOF
    * @type {string}
    */
   @meta.blue.readwrite
-  @meta.type.path
+  @meta.type.path("TriGeometryRes")
   volumetricTrailPath = "";
 
   // Carbon initializes each light's startTime from the current frame time,

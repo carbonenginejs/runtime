@@ -223,7 +223,7 @@ export class EveSOFDataHull
   /** m_geometryResFilePath (std::string) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriGeometryRes")
   geometryResFilePath = "";
 
   /** m_spotlightSets (PEveSOFDataHullSpotlightSetVector) [READ, PERSIST] */

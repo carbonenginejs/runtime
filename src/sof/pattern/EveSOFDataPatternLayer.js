@@ -55,7 +55,7 @@ export class EveSOFDataPatternLayer
   /** m_textureResFilePath (std::string) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriTextureRes")
   textureResFilePath = "";
 
   /** m_isTargetMtl1 (bool) [READWRITE, PERSIST] */

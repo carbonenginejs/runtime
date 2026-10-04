@@ -26,7 +26,7 @@ export class Tr2SkinnedModel extends Tr2Model
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriGeometryRes")
   geometryResPath = "";
 
   /** m_geometryRes (TriGeometryResPtr) [READ] */

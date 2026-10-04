@@ -70,7 +70,7 @@ export class EveChildRef extends EveChildTransform
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("object")
   resPath = "";
 
   /** m_child (IEveSpaceObjectChildPtr) [READ] */

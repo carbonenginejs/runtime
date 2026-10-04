@@ -49,7 +49,7 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
   /** Native m_path: std::string with file-path editor/transport semantics. */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("object")
   path = "";
 
   /** Native m_childName. */

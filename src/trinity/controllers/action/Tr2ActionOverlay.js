@@ -21,7 +21,7 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("object")
   path = "";
 
   /**

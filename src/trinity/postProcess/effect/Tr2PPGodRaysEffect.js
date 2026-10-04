@@ -24,7 +24,7 @@ export class Tr2PPGodRaysEffect extends Tr2PPEffect
   /** m_noiseTexturePath (BlueSharedString) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriTextureRes")
   noiseTexturePath = "res:/Texture/Global/noise.dds";
 
   /**

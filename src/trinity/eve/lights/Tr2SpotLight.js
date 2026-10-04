@@ -32,7 +32,7 @@ export class Tr2SpotLight extends Tr2Light
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("Tr2LightProfileRes")
   lightProfilePath = "";
 
   @meta.blue.read
