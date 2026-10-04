@@ -199,21 +199,25 @@ export class EveStretch extends IEveFiringEffectElement
   }
 
   /**
-   * Advances the curve sets, the progress curve and the move-completion set on
-   * time measured from startTime, which is latched on the first frame after
-   * StartMoving.
+   * Carbon EveStretch::UpdateCurves (EveStretch.cpp:138-171), in its order: the
+   * progress curve takes the time since startTime (latched on the first frame
+   * after StartMoving), then the move-completion set and the curve sets take the
+   * ABSOLUTE scene time, all in seconds.
+   *
+   * Adapted: Carbon's curve-LOD gate (`m_useCurveLod` with
+   * EveLODHelper::ShouldUpdate on m_lodLevel) is not applied. lodLevel is set by
+   * UpdateVisibility's child LOD merge, which is not ported, so the gate would
+   * read the default level and update the curves once a second.
    */
   @meta.blue.method @meta.adapted
-  @meta.reason("Curve LOD is renderer policy in Carbon; the runtime Trinity layer retains the authored gate and updates graph curves without device globals.")
   UpdateCurves(context)
   {
     const time = context.GetTime();
-    if (this.startTime < 0 && this.moving) this.startTime = time;
-    const relative = this.startTime >= 0 ? time - this.startTime : time;
-    for (const curveSet of this.curveSets) curveSet.Update(TimeAsDouble(relative), context.renderContext);
-    // Carbon EveStretch.cpp:158-159: the progress curve takes the elapsed ticks in seconds.
-    if (this.moving && this.progressCurve) this.progressCurve.UpdateValue(TimeAsDouble(relative));
-    if (this.moveCompletion) this.moveCompletion.Update(TimeAsDouble(relative), context.renderContext);
+    if (!this.update) return;
+    if (this.moving && this.startTime === -1) this.startTime = time;
+    if (this.moving && this.progressCurve) this.progressCurve.UpdateValue(TimeAsDouble(time - this.startTime));
+    if (this.moveCompletion) this.moveCompletion.Update(TimeAsDouble(time), context.renderContext);
+    for (const curveSet of this.curveSets) curveSet.Update(TimeAsDouble(time), context.renderContext);
   }
 
   /**
