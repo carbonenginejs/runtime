@@ -143,8 +143,10 @@ export class TnyInputMan
     }
     const sx = size.width / bounds.width, sy = size.height / bounds.height;
     const previous = this._lastPointer;
-    const dx = type !== "pointerdown" && previous?.id === event.pointerId ? event.clientX - previous.x : 0;
-    const dy = type !== "pointerdown" && previous?.id === event.pointerId ? event.clientY - previous.y : 0;
+    // A wheel event has no pointerId, so with no previous pointer `undefined === undefined` must not count as a match.
+    const continuing = type !== "pointerdown" && previous !== null && previous.id === event.pointerId;
+    const dx = continuing ? event.clientX - previous.x : 0;
+    const dy = continuing ? event.clientY - previous.y : 0;
     if (type !== "wheel") this._lastPointer = { id: event.pointerId, x: event.clientX, y: event.clientY };
     const wheel = (event.deltaY || 0) * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? bounds.height : 1);
     this.Enqueue({ type, pointerId: event.pointerId, button: event.button, buttons: event.buttons,
