@@ -887,6 +887,71 @@ export class Tr2ParticleSystem
   }
 
   /**
+   * Carbon GetElementStream (Tr2ParticleSystem.cpp:440-451): the semantic element's stream - the first particle's
+   * value in its buffer - and that buffer's per-particle stride, or null and 0 with false when the declaration has
+   * no such element.
+   *
+   * Adapted: Carbon's `float*& element, unsigned& stride` outputs become `out.element`, a typed-array view starting
+   * at the element's offset (the same view idiom UpdateSimulation uses for native particle pointers), and
+   * `out.stride`, counted in floats as Carbon's m_vertexSizes are.
+   * @param {number} type Tr2ParticleElementDeclaration.Type semantic index.
+   * @param {{ element: Float32Array|null, stride: number }} out
+   * @returns {boolean} Whether the element exists.
+   */
+  @meta.adapted
+  GetElementStream(type, out)
+  {
+    const element = this._semanticElements[type];
+    if (!element)
+    {
+      out.element = null;
+      out.stride = 0;
+      return false;
+    }
+    out.element = this._buffers[element.bufferIndex].subarray(element.startOffset);
+    out.stride = this._strides[element.bufferIndex];
+    return true;
+  }
+
+  /**
+   * Carbon InsertParticle (Tr2ParticleSystem.cpp:1293-1316): when the system is not full, points `particle[i]` at
+   * the new particle's slot in each buffer, counts it alive, raises the peak and marks the buffers dirty.
+   *
+   * Adapted: each `particle[i]` is a typed-array view starting at the slot in place of Carbon's float pointer, and
+   * null for a buffer the declaration does not use (Carbon's null buffer plus offset). Carbon acquires the
+   * insertion mutex here and holds it until DoneInsertingParticle; SetThreadSafeFlag never creates one in JS.
+   * Unlike BeginSpawnParticle, this does not reject an invalid system - Carbon does not check.
+   * @param {Array<Float32Array|null>} particle Filled with one view per Tr2ParticleElementData buffer.
+   * @returns {boolean} true if inserted; false if the system is full.
+   */
+  @meta.adapted
+  InsertParticle(particle)
+  {
+    if (this.aliveCount < this.maxParticleCount)
+    {
+      for (let index = 0; index < this._buffers.length; index++)
+      {
+        const buffer = this._buffers[index];
+        particle[index] = buffer ? buffer.subarray(this.aliveCount * this._strides[index]) : null;
+      }
+      this.aliveCount++;
+      this.peakAliveCount = Math.max(this.peakAliveCount, this.aliveCount);
+      this._bufferDirty = true;
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Carbon DoneInsertingParticle (Tr2ParticleSystem.cpp:1323-1329) releases the insertion mutex taken by
+   * InsertParticle. JS never creates that mutex (see SetThreadSafeFlag), so there is nothing to release.
+   */
+  @meta.noop
+  DoneInsertingParticle()
+  {
+  }
+
+  /**
    * Reserves a slot for a new particle, returning null when the system is invalid or already full.
    * Adapted from InsertParticle (Tr2ParticleSystem.cpp:1293): JS splits slot
    * reservation and element writes, retaining the existing BeginSpawnParticle
