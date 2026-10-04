@@ -74,6 +74,20 @@ function timedCurveSet(name, duration)
   return set;
 }
 
+/** Wraps the named methods of a real instance: records the call, then runs the real method. */
+function spy(instance, names, calls, label = name => name)
+{
+  for (const name of names)
+  {
+    const real = instance[name].bind(instance);
+    instance[name] = (...args) =>
+    {
+      calls.push(label(name, args));
+      return real(...args);
+    };
+  }
+}
+
 /** A real stretch whose start and loop sets report `duration` and whose end set exists. */
 function timedStretch(duration)
 {
@@ -138,13 +152,19 @@ test("EveFiringEffectElementContainer owns active element lifecycle", () =>
   const container = new EveFiringEffectElementContainer();
   const element = timedStretch(2);
   container.element = element;
+  const calls = [];
+  spy(element, ["StartFiring", "StopFiring", "SetFiringTransform", "SetDestObjectScale", "DisplayEndPoints", "Update"], calls);
 
-  container.StartFiring(0.25);
+  // Carbon's container starts its element with no delay (EveFiringEffectElementContainer.cpp:83-90).
+  container.StartFiring();
   assert.equal(element.start.isPlaying, true);
-  assert.equal(element.start.scaledTime, -0.25);
+  assert.ok(element.start.scaledTime === 0);
   container.UpdateSynchronous(new EveUpdateContext());
   container.UpdateAsynchronous(new EveUpdateContext());
   container.StopFiring();
+  // UpdateSyncronous pushes transform, scale and end points, then updates the
+  // active element (cpp:20-39); UpdateAsyncronous does nothing (cpp:41-43).
+  assert.deepEqual(calls, ["StartFiring", "SetFiringTransform", "SetDestObjectScale", "DisplayEndPoints", "Update", "StopFiring"]);
   assert.equal(container.GetActive(), false);
   assert.equal(element.start.isPlaying, false);
   assert.equal(element.end.isPlaying, true);
@@ -215,6 +235,8 @@ test("EveStretch3 applies deferred controller firing state", () =>
     variable.name = name;
     controller.variables.push(variable);
   }
+  const calls = [];
+  spy(controller, ["Start", "SetVariable"], calls, (name, args) => name === "Start" ? "start" : `${args[0]}:${args[1]}`);
   const stretch = new EveStretch3();
   stretch.controllers.push(controller);
   stretch.source = constantCurve(0, 0, 0);
@@ -227,10 +249,14 @@ test("EveStretch3 applies deferred controller firing state", () =>
   assert.equal(controller.isPlaying, true);
   assert.equal(controller.GetVariableValue("FiringDelay"), 0.75);
   assert.equal(controller.GetVariableValue("IsFiring"), 1);
+  // Carbon starts the controllers, then sets FiringDelay and IsFiring (EveStretch3.cpp:388-394).
+  assert.deepEqual(calls, ["start", "FiringDelay:0.75", "IsFiring:1"]);
   stretch.StopFiring();
   context.SetTime((2) * 10_000_000);
   stretch.UpdateSynchronous(context);
   assert.equal(controller.GetVariableValue("IsFiring"), 0);
+  // Stopping only clears IsFiring (cpp:395-399).
+  assert.deepEqual(calls.slice(3), ["IsFiring:0"]);
 });
 
 test("EveTurretTarget bounds the miss queue and switches projectile destination visibility", () =>
