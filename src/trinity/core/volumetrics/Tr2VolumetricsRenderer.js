@@ -377,10 +377,10 @@ export class Tr2VolumetricsRenderer
       this.lastRequestedHeight = height;
       for (let slot = 0; slot < 4; slot++)
       {
-        esm.PushRenderTarget(undefined, slot);
+        esm.PushRenderTarget_Current(slot);
         pushedTargets++;
       }
-      esm.PushDepthStencilBuffer(null);
+      esm.PushDepthStencilBuffer_TextureAL(null);
       pushedDepth = true;
       if (originalWidth === width && originalHeight === height)
         this.volumeBlit.SetOption("CLOUD_UPSAMPLING", "CLOUD_UPSAMPLING_NONE");
@@ -562,8 +562,8 @@ export class Tr2VolumetricsRenderer
     if (!batches.GetBatchCount()) return;
     batches.Finalize();
     const esm = renderContext.GetEffectStateManager();
-    esm.PushRenderTarget(shadowMap);
-    esm.PushDepthStencilBuffer(null);
+    esm.PushRenderTarget_TextureAL(shadowMap);
+    esm.PushDepthStencilBuffer_TextureAL(null);
     esm.ApplyStandardStates(RenderingMode.RM_ALPHA);
     try { renderContext.RenderBatches(batches, "Shadow"); }
     finally

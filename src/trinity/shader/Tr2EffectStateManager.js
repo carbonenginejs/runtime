@@ -842,29 +842,47 @@ export class Tr2EffectStateManager
   }
 
   /**
-   * Saves the target bound to a slot, and binds a new one if given.
+   * Carbon's PushRenderTarget( slot ) (cpp:1043): saves the target bound to a
+   * slot and binds nothing, so it can be safely changed later.
    *
-   * Carbon's two overloads (cpp:1043-1052): the slot-only form saves and binds
-   * nothing, the two-argument form saves and then sets.
-   *
-   * @param {object|null} [renderTarget] The target to bind after saving.
    * @param {number} [slot] Target slot.
    * @returns {boolean} True.
    */
-  PushRenderTarget(renderTarget = undefined, slot = 0)
+  PushRenderTarget_Current(slot = 0)
   {
     this.#renderContext.PushRenderTarget(slot);
-
-    // UNDEFINED IS "SAVE ONLY"; NULL IS "SAVE AND UNBIND". Carbon draws that
-    // distinction with its two overloads plus a default-constructed
-    // Tr2TextureAL, which is a real argument that binds an EMPTY texture and so
-    // clears the slot (`Tr2ShadowMap.cpp:238`, commented "empty texture").
-    // Testing `!= null` instead made the unbind unreachable: a shadow pass asking
-    // for it silently kept the scene's colour target bound for the whole pass.
-    // PushDepthStencilBuffer below already uses this sentinel.
-    if (renderTarget !== undefined) this.SetRenderTarget(slot, renderTarget);
-
     return true;
+  }
+
+  /**
+   * Carbon's PushRenderTarget( rt, slot ) (cpp:1048): saves the slot's target,
+   * then binds rt. null is Carbon's default-constructed Tr2TextureAL, a real
+   * argument that binds an EMPTY texture and so clears the slot
+   * (`Tr2ShadowMap.cpp:238`, commented "empty texture").
+   *
+   * @param {object|null} renderTarget The target to bind after saving.
+   * @param {number} [slot] Target slot.
+   * @returns {boolean} True.
+   */
+  PushRenderTarget_TextureAL(renderTarget, slot = 0)
+  {
+    this.#renderContext.PushRenderTarget(slot);
+    this.SetRenderTarget(slot, renderTarget);
+    return true;
+  }
+
+  /**
+   * Carbon's bare PushRenderTarget, for literal ports: undefined or a number
+   * as the first argument is the slot-only overload, anything else (null
+   * included) is the texture overload. Engine code calls the specific names.
+   *
+   * @returns {boolean} True.
+   */
+  PushRenderTarget(first = undefined, slot = 0)
+  {
+    return first === undefined || typeof first === "number"
+      ? this.PushRenderTarget_Current(first ?? 0)
+      : this.PushRenderTarget_TextureAL(first, slot);
   }
 
   /**
@@ -894,23 +912,44 @@ export class Tr2EffectStateManager
   }
 
   /**
-   * Saves the bound depth-stencil, and binds another if one is given.
+   * Carbon's PushDepthStencilBuffer() (h:149): saves the bound depth-stencil
+   * and binds nothing (`TriStepPushDepthStencil.cpp:44`).
    *
-   * Carbon has three overloads and the difference between two of them matters:
-   * no argument saves and binds nothing, while an explicitly EMPTY texture
-   * saves and then unbinds (`TriStepPushDepthStencil.cpp:44,48`). Passing
-   * `undefined` is the first; passing `null` is the second.
+   * @returns {boolean} True.
+   */
+  PushDepthStencilBuffer_Current()
+  {
+    this.#renderContext.PushDepthStencil();
+    return true;
+  }
+
+  /**
+   * Carbon's PushDepthStencilBuffer( ds ) (h:150): saves the bound
+   * depth-stencil, then binds ds; null, an explicitly EMPTY texture, unbinds
+   * (`TriStepPushDepthStencil.cpp:48`).
    *
-   * @param {object|null} [depthStencil] The surface to bind after saving.
+   * @param {object|null} depthStencil The surface to bind after saving.
+   * @returns {boolean} True.
+   */
+  PushDepthStencilBuffer_TextureAL(depthStencil)
+  {
+    this.#renderContext.PushDepthStencil();
+    this.SetDepthStencilBuffer(depthStencil);
+    return true;
+  }
+
+  /**
+   * Carbon's bare PushDepthStencilBuffer, for literal ports: undefined is the
+   * save-only overload, anything else (null included) the texture overload.
+   * Engine code calls the specific names.
+   *
    * @returns {boolean} True.
    */
   PushDepthStencilBuffer(depthStencil = undefined)
   {
-    this.#renderContext.PushDepthStencil();
-
-    if (depthStencil !== undefined) this.SetDepthStencilBuffer(depthStencil);
-
-    return true;
+    return depthStencil === undefined
+      ? this.PushDepthStencilBuffer_Current()
+      : this.PushDepthStencilBuffer_TextureAL(depthStencil);
   }
 
   /**

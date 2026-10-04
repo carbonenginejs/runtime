@@ -170,7 +170,7 @@ test("a context driven by the stub keeps real state and records no intents", () 
   context.Clear({ clearColor: true, color: [ 0, 0, 0, 1 ] });
   const offscreen = renderTarget(32, 32);
 
-  context.GetEffectStateManager().PushRenderTarget(offscreen, 0);
+  context.GetEffectStateManager().PushRenderTarget_TextureAL(offscreen, 0);
 
   assert.equal(al.GetRenderTarget(0).Equals(offscreen), true, "a pushed target is BOUND, not just saved");
 
@@ -319,7 +319,7 @@ test("pushing a target BINDS it, and popping restores the one beneath", () =>
   const offscreen = StubTarget(256, 256);
 
   context.GetEffectStateManager().SetRenderTarget(0, main);
-  context.GetEffectStateManager().PushRenderTarget(offscreen, 0);
+  context.GetEffectStateManager().PushRenderTarget_TextureAL(offscreen, 0);
 
   assert.equal(context.GetRenderTarget(0).Equals(offscreen), true);
   assert.equal(context.GetStackSizeRT(), 1);
@@ -340,7 +340,7 @@ test("pushing with no target saves the bound one and changes nothing", () =>
   const main = StubTarget();
 
   context.GetEffectStateManager().SetRenderTarget(0, main);
-  context.GetEffectStateManager().PushRenderTarget(undefined, 0);
+  context.GetEffectStateManager().PushRenderTarget_Current(0);
 
   assert.equal(context.GetRenderTarget(0).Equals(main), true);
   assert.equal(context.GetStackSizeRT(), 1);
@@ -357,7 +357,7 @@ test("the depth stencil pushes and pops the same way", () =>
   const shadow = StubTarget();
 
   context.GetEffectStateManager().SetDepthStencilBuffer(main);
-  context.GetEffectStateManager().PushDepthStencilBuffer(shadow);
+  context.GetEffectStateManager().PushDepthStencilBuffer_TextureAL(shadow);
 
   assert.equal(context.GetDepthStencil().Equals(shadow), true);
 
@@ -411,8 +411,8 @@ test("stack depth is reported by the backend when one is installed", () =>
   al.CreateDevice();
   context.SetRenderContextAL(al);
 
-  context.GetEffectStateManager().PushRenderTarget(null, 0);
-  context.GetEffectStateManager().PushDepthStencilBuffer(null);
+  context.GetEffectStateManager().PushRenderTarget_TextureAL(null, 0);
+  context.GetEffectStateManager().PushDepthStencilBuffer_TextureAL(null);
 
   assert.equal(context.GetStackSizeRT(0), 1);
   assert.equal(context.GetStackSizeDS(), 1);
@@ -455,7 +455,7 @@ test("binding a target to slot zero resets the viewport to its size", () =>
 
   assert.deepEqual(context.GetViewport(), { x: 0, y: 0, width: 512, height: 512, minZ: 0, maxZ: 1 });
 
-  context.GetEffectStateManager().PushRenderTarget(renderTarget(2048, 2048), 0);
+  context.GetEffectStateManager().PushRenderTarget_TextureAL(renderTarget(2048, 2048), 0);
 
   assert.equal(context.GetViewport().width, 2048, "the offscreen pass gets its own viewport");
 
@@ -651,7 +651,7 @@ test("an explicitly empty render target clears the slot, which is what a shadow 
   const main = StubTarget();
 
   context.GetEffectStateManager().SetRenderTarget(0, main);
-  context.GetEffectStateManager().PushRenderTarget(null, 0);
+  context.GetEffectStateManager().PushRenderTarget_TextureAL(null, 0);
 
   assert.equal(context.GetRenderTarget(0), null);
   assert.equal(context.GetStackSizeRT(), 1);

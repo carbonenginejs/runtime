@@ -41,8 +41,8 @@ export class TriStepPushRenderTarget extends TriRenderStep
     // which is a third thing - the one Tr2ShadowMap actually wants.
     const esm = renderContext.GetEffectStateManager();
 
-    if (this.renderTarget) esm.PushRenderTarget(this.renderTarget, this.slot);
-    else esm.PushRenderTarget(undefined, this.slot);
+    if (this.renderTarget) esm.PushRenderTarget_TextureAL(this.renderTarget, this.slot);
+    else esm.PushRenderTarget_Current(this.slot);
     return TriRenderJob.StepResult.RS_OK;
   }
 }

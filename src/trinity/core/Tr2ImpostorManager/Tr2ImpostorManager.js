@@ -336,15 +336,15 @@ export class Tr2ImpostorManager
     const esm = renderContext.GetEffectStateManager();
     if (this._atlasDirty)
     {
-      esm.PushDepthStencilBuffer(null);
-      esm.PushRenderTarget(this.atlas.GetRenderTarget());
+      esm.PushDepthStencilBuffer_TextureAL(null);
+      esm.PushRenderTarget_TextureAL(this.atlas.GetRenderTarget());
       renderContext.Clear({ clearColor: true, color: 0, clearDepth: false, clearStencil: false });
       esm.PopRenderTarget();
       esm.PopDepthStencilBuffer();
       this._atlasDirty = false;
     }
-    esm.PushRenderTarget(this._itemRt.GetRenderTarget());
-    esm.PushDepthStencilBuffer(this._ds.GetDepthStencil());
+    esm.PushRenderTarget_TextureAL(this._itemRt.GetRenderTarget());
+    esm.PushDepthStencilBuffer_TextureAL(this._ds.GetDepthStencil());
     renderContext.Clear({ clearColor: true, color: 0, clearDepth: true, depth: 0, clearStencil: false });
   }
 

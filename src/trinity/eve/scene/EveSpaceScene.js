@@ -990,8 +990,8 @@ export class EveSpaceScene
         {
           esm.SetInvertedDepthTest(true);
           esm.BeginManagedRendering();
-          esm.PushRenderTarget(this._pickBuffer);
-          esm.PushDepthStencilBuffer(this._pickDepthBuffer);
+          esm.PushRenderTarget_TextureAL(this._pickBuffer);
+          esm.PushDepthStencilBuffer_TextureAL(this._pickDepthBuffer);
           try
           {
             renderContext.Clear({ clearColor: true, clearDepth: true, color: [0, 0, 0, 0], depth: 0 });
@@ -2112,7 +2112,7 @@ export class EveSpaceScene
     const esm = renderContext.GetEffectStateManager();
     if (velocityMap)
     {
-      esm.PushRenderTarget(velocityMap, 1);
+      esm.PushRenderTarget_TextureAL(velocityMap, 1);
       try
       {
         renderContext.RenderPassHint(
@@ -2385,7 +2385,7 @@ export class EveSpaceScene
       this.RenderOpaqueBatches(this._secondaryBatches, context);
       const oldDepth = context.GetRenderContextAL().GetReadOnlyDepth();
       context.SetReadOnlyDepth(true);
-      esm.PushRenderTarget(null, 1);
+      esm.PushRenderTarget_TextureAL(null, 1);
       try
       {
         this.RenderTransparentBatches(this._secondaryBatches, context);
@@ -2463,7 +2463,7 @@ export class EveSpaceScene
 
     esm.BeginManagedRendering();
     esm.SetRenderTarget(1, customStencil);
-    esm.PushRenderTarget();
+    esm.PushRenderTarget_Current();
 
     if (normalMap)
     {
@@ -2631,8 +2631,8 @@ export class EveSpaceScene
     if (!accumulator?.GetBatchCount()) return false;
 
     const esm = renderContext.GetEffectStateManager();
-    esm.PushRenderTarget(distortionMap);
-    esm.PushDepthStencilBuffer();
+    esm.PushRenderTarget_TextureAL(distortionMap);
+    esm.PushDepthStencilBuffer_Current();
     try
     {
       if (depthMap) esm.SetDepthStencilBuffer(depthMap);

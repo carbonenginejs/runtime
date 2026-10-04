@@ -438,9 +438,9 @@ export class EveSpaceSceneRenderDriver
     // projection. Carbon's post passes (fog, depth of field, god rays) read
     // the depth buffer under that convention.
     esm.SetInvertedDepthTest(true);
-    esm.PushRenderTarget(undefined, 0);
-    esm.PushRenderTarget(undefined, 1);
-    esm.PushDepthStencilBuffer();
+    esm.PushRenderTarget_Current(0);
+    esm.PushRenderTarget_Current(1);
+    esm.PushDepthStencilBuffer_Current();
 
     try
     {
@@ -787,7 +787,7 @@ export class EveSpaceSceneRenderDriver
     // post process still reads the depth the pass would discard.
     if (velocity)
     {
-      esm.PushRenderTarget(velocity, 1);
+      esm.PushRenderTarget_TextureAL(velocity, 1);
       try
       {
         renderContext.RenderPassHint(
@@ -814,8 +814,8 @@ export class EveSpaceSceneRenderDriver
     if (opaque)
     {
       renderContext.RenderPassHint(new Tr2ColorAttachment(Tr2LoadAction.DONT_CARE, Tr2StoreAction.STORE), null);
-      esm.PushDepthStencilBuffer(null);
-      esm.PushRenderTarget(opaque);
+      esm.PushDepthStencilBuffer_TextureAL(null);
+      esm.PushRenderTarget_TextureAL(opaque);
       try
       {
         esm.ApplyStandardStates(RenderingMode.RM_FULLSCREEN);

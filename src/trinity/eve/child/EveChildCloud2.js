@@ -1136,8 +1136,8 @@ export class EveChildCloud2 extends EveSpaceObjectChild
         DepthStencilFormat.DSFMT_D32F, 1, 0, ExFlag.EX_NONE, renderContext);
     const esm = renderContext.GetEffectStateManager();
     esm.PushViewport();
-    esm.PushRenderTarget(null);
-    esm.PushDepthStencilBuffer(this.shadowMapDS.GetTexture());
+    esm.PushRenderTarget_TextureAL(null);
+    esm.PushDepthStencilBuffer_TextureAL(this.shadowMapDS.GetTexture());
     esm.UpdateRenderTargetViewport(this.shadowMapDS.GetWidth(), this.shadowMapDS.GetHeight());
     renderContext.Clear({ depth: true, clearDepth: 1, clearStencil: 0 });
     renderContext.SetReadOnlyDepth(false);

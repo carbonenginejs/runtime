@@ -270,8 +270,8 @@ export class Tr2PostProcessRenderer
     const destinationFormat = Tr2PostProcessRenderer.destinationFormatOf(destination, al);
 
     esm.ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
-    esm.PushRenderTarget();
-    esm.PushDepthStencilBuffer(null);
+    esm.PushRenderTarget_Current();
+    esm.PushDepthStencilBuffer_TextureAL(null);
 
     const upscalingInfo = al.GetUpscalingInfo(upscalingContext ? upscalingContext.GetID() : INVALID_UPSCALING_CONTEXT_ID);
     const upscalingEnabled = upscalingInfo.technique !== UpscalingTechnique.NONE;
@@ -994,7 +994,7 @@ export class Tr2PostProcessRenderer
 
     try
     {
-      esm.PushRenderTarget(rt2.Get());
+      esm.PushRenderTarget_TextureAL(rt2.Get());
       // The clear is needed because the god-ray vertex shader can opt out of rendering (cpp:1157).
       renderContext.Clear({ clearColor: true, color: 0 });
 
@@ -1530,7 +1530,7 @@ export class Tr2PostProcessRenderer
     const esm = renderContext.GetEffectStateManager();
 
     renderContext.RenderPassHint(new Tr2ColorAttachment(loadAction, Tr2StoreAction.STORE), null);
-    esm.PushRenderTarget(dest);
+    esm.PushRenderTarget_TextureAL(dest);
     try
     {
       Tr2Renderer.drawScreenQuad(renderContext, effect);
@@ -1553,7 +1553,7 @@ export class Tr2PostProcessRenderer
     const esm = renderContext.GetEffectStateManager();
 
     renderContext.RenderPassHint(new Tr2ColorAttachment(loadAction, Tr2StoreAction.STORE), null);
-    esm.PushRenderTarget(dest);
+    esm.PushRenderTarget_TextureAL(dest);
     try
     {
       Tr2Renderer.drawTexture(renderContext, src);

@@ -218,9 +218,9 @@ test("shadow rendering sets its own device state, as Carbon's does", () =>
   const esm = {
     PushViewport() { calls.push("PushViewport"); },
     PopViewport() { calls.push("PopViewport"); },
-    PushRenderTarget() { calls.push("PushRenderTarget"); },
+    PushRenderTarget_TextureAL() { calls.push("PushRenderTarget_TextureAL"); },
     PopRenderTarget() { calls.push("PopRenderTarget"); },
-    PushDepthStencilBuffer(value) { calls.push([ "PushDepthStencilBuffer", value ]); },
+    PushDepthStencilBuffer_TextureAL(value) { calls.push([ "PushDepthStencilBuffer_TextureAL", value ]); },
     PopDepthStencilBuffer() { calls.push("PopDepthStencilBuffer"); },
     UpdateRenderTargetViewport(w, h) { calls.push([ "UpdateRenderTargetViewport", w, h ]); },
     SetViewport(viewport) { calls.push([ "SetViewport", viewport ]); }
@@ -246,7 +246,7 @@ test("shadow rendering sets its own device state, as Carbon's does", () =>
   assert.equal(borrowed[0][0], "cascadedShadowDepth");
   assert.deepEqual(
     calls.map(call => (Array.isArray(call) ? call[0] : call)),
-    [ "PushViewport", "PushRenderTarget", "PushDepthStencilBuffer", "UpdateRenderTargetViewport", "Clear", "SetReadOnlyDepth" ]
+    [ "PushViewport", "PushRenderTarget_TextureAL", "PushDepthStencilBuffer_TextureAL", "UpdateRenderTargetViewport", "Clear", "SetReadOnlyDepth" ]
   );
   assert.deepEqual(calls[3], [ "UpdateRenderTargetViewport", 4096, 2048 ]);
   // The texture is bound, not the pool handle: Carbon's handle converts to its

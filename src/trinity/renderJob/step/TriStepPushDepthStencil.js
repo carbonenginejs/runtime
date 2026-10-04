@@ -34,15 +34,26 @@ export class TriStepPushDepthStencil extends TriRenderStep
   }
 
   /**
-   * Pushes the depth-stencil, signalling push-current mode by passing undefined;
-   * an explicit false from the render context is RS_FAILED. Every push needs a
-   * matching pop in the same job or the job's stack guard unwinds it.
+   * Pushes the depth-stencil in Carbon's order (TriStepPushDepthStencil.cpp:35-48):
+   * the authored surface first, else the current one when pushCurrent, else an
+   * empty texture. A false from the texture push is RS_FAILED. Every push needs
+   * a matching pop in the same job or the job's stack guard unwinds it.
    */
   @meta.blue.method
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
-    const accepted = renderContext.GetEffectStateManager().PushDepthStencilBuffer(this.pushCurrent ? undefined : this.depthStencil);
-    return accepted === false ? TriRenderJob.StepResult.RS_FAILED : TriRenderJob.StepResult.RS_OK;
+    const esm = renderContext.GetEffectStateManager();
+    if (this.depthStencil)
+    {
+      return esm.PushDepthStencilBuffer_TextureAL(this.depthStencil) ? TriRenderJob.StepResult.RS_OK : TriRenderJob.StepResult.RS_FAILED;
+    }
+    if (this.pushCurrent)
+    {
+      esm.PushDepthStencilBuffer_Current();
+      return TriRenderJob.StepResult.RS_OK;
+    }
+    esm.PushDepthStencilBuffer_TextureAL(null);
+    return TriRenderJob.StepResult.RS_OK;
   }
 }

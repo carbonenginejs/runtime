@@ -532,8 +532,8 @@ export class Tr2ShadowMap
     // save the slot and leave the scene's colour target bound underneath the
     // whole shadow pass, which is what this line used to do.
     esm.PushViewport();
-    esm.PushRenderTarget(null);
-    esm.PushDepthStencilBuffer(cascadedShadowDepth.Get());
+    esm.PushRenderTarget_TextureAL(null);
+    esm.PushDepthStencilBuffer_TextureAL(cascadedShadowDepth.Get());
     esm.UpdateRenderTargetViewport(cascadedShadowDepth.Get().GetWidth(), cascadedShadowDepth.Get().GetHeight());
 
     // Carbon wants a clean depth buffer for this pass and says so.
@@ -632,8 +632,8 @@ export class Tr2ShadowMap
 
     const esm = renderContext.GetEffectStateManager();
 
-    esm.PushRenderTarget(shadowMapResult.Get());
-    esm.PushDepthStencilBuffer(null);
+    esm.PushRenderTarget_TextureAL(shadowMapResult.Get());
+    esm.PushDepthStencilBuffer_TextureAL(null);
 
     try
     {

@@ -187,8 +187,8 @@ export class Tr2Denoiser
 
     // Null is Carbon's default-constructed texture: bind EMPTY, do not merely
     // save. A depth buffer left bound would depth-test a fullscreen blur.
-    esm.PushDepthStencilBuffer(null);
-    esm.PushRenderTarget();
+    esm.PushDepthStencilBuffer_TextureAL(null);
+    esm.PushRenderTarget_Current();
 
     let estimate = null;
     let mask = null;

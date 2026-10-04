@@ -9,8 +9,8 @@ import { RenderingMode, TriBatchType } from "../../npm/dist/global/consts/graphi
 function recordingContext(calls)
 {
   const esm = {
-    PushRenderTarget: target => calls.push([ "PushRenderTarget", target ]),
-    PushDepthStencilBuffer: () => calls.push([ "PushDepthStencilBuffer" ]),
+    PushRenderTarget_TextureAL: target => calls.push([ "PushRenderTarget_TextureAL", target ]),
+    PushDepthStencilBuffer_Current: () => calls.push([ "PushDepthStencilBuffer_Current" ]),
     SetDepthStencilBuffer: depth => calls.push([ "SetDepthStencilBuffer", depth ]),
     ApplyStandardStates: mode => calls.push([ "ApplyStandardStates", mode ]),
     PopDepthStencilBuffer: () => calls.push([ "PopDepthStencilBuffer" ]),
@@ -33,8 +33,8 @@ test("distortion batches draw additively into a map cleared to Carbon's 0x007f7f
 
   assert.equal(scene.RenderDistortionBatches(batches, "distortionMap", "depthMap", recordingContext(calls)), true);
   assert.deepEqual(calls, [
-    [ "PushRenderTarget", "distortionMap" ],
-    [ "PushDepthStencilBuffer" ],
+    [ "PushRenderTarget_TextureAL", "distortionMap" ],
+    [ "PushDepthStencilBuffer_Current" ],
     [ "SetDepthStencilBuffer", "depthMap" ],
     [ "Clear", true, [ 0x7f / 255, 0x7f / 255, 0, 0 ] ],
     [ "ApplyPerFrameData" ],
