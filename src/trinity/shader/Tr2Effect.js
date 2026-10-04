@@ -157,6 +157,12 @@ export class Tr2Effect extends Tr2Material
   @meta.type.objectRef("Tr2EffectRes")
   effectResource = null;
 
+  /** JS acquisition ownership, separate from a resource assigned by the caller. */
+  #acquiredEffectResource = null;
+
+  /** Resolved path used for the internally acquired resource. */
+  #acquiredEffectPath = "";
+
   /**
    * m_actualEffectFilePath (std::string) [READ]
    * Resolved shader path after applying the effect-path defaults.
@@ -251,6 +257,10 @@ export class Tr2Effect extends Tr2Material
     if (this._destroyed) return;
     this._destroyed = true;
     if (this.effectResource) this.effectResource.RemoveNotifyTarget(this);
+    if (this.#acquiredEffectResource && this.#acquiredEffectResource !== this.effectResource)
+      this.#acquiredEffectResource.RemoveNotifyTarget(this);
+    this.#acquiredEffectResource = null;
+    this.#acquiredEffectPath = "";
     for (const resource of this.resources) resource.OnRemovedFromMaterial(this);
     for (const parameter of this._ownedProviders.keys()) this._ReleaseOwnedProvider(parameter);
     this._ClearPassBindings();
@@ -805,23 +815,32 @@ export class Tr2Effect extends Tr2Material
   }
 
   /**
-   * Acquires the effect resource for the resolved path, if a manager is
-   * installed and this effect has not been handed one already.
+   * Acquires the resolved path and releases a prior acquisition when it changes
+   * (Tr2Effect.cpp:374-409). JS keeps explicit acquisition ownership because
+   * callers may supply a resource directly; those resources are not replaced.
    *
    * Carbon fetches through the process-wide manager and registers this effect
    * as a notify target (`BeResMan->GetResource(...)` then `AddNotifyTarget(this)`,
    * Tr2Effect.cpp:397-402); so does this. A resource that is already prepared
    * calls RebuildCachedData at once, and every later reload calls it again.
    *
-   * Does nothing when no manager is installed or the path did not resolve.
-   * Both are real states - a caller composing by hand assigns `effectResource`
-   * itself, and an unresolved path means no backend is committed - and neither
-   * is an error worth throwing during hydration.
+   * An unresolved path releases the prior internal acquisition without fetching.
    *
    * @returns {void}
    */
+  @meta.adapted
   #AcquireEffectResource()
   {
+    const acquired = this.#acquiredEffectResource;
+    if (acquired && (acquired !== this.effectResource || this.#acquiredEffectPath !== this.actualEffectFilePath))
+    {
+      this.ReleaseCachedData();
+      this._ClearPassBindings();
+      acquired.RemoveNotifyTarget(this);
+      if (this.effectResource === acquired) this.effectResource = null;
+      this.#acquiredEffectResource = null;
+      this.#acquiredEffectPath = "";
+    }
     if (!this.actualEffectFilePath) return;
     // A caller that assigned a resource by hand owns it; do not replace it.
     if (this.effectResource !== null) return;
@@ -831,6 +850,8 @@ export class Tr2Effect extends Tr2Material
     });
 
     this.effectResource = resource;
+    this.#acquiredEffectResource = resource;
+    this.#acquiredEffectPath = this.actualEffectFilePath;
     resource.AddNotifyTarget(this);
     resource.Ready?.();
   }
@@ -991,8 +1012,8 @@ export class Tr2Effect extends Tr2Material
   }
 
   /**
-   * Sets the authored effect path through values transport. Equal writes still
-   * initialize; the return value reports whether the path changed.
+   * Sets the authored effect path through values transport. Equal writes skip
+   * initialization; the return value reports whether the path changed.
    */
   SetEffectPathName(path)
   {
