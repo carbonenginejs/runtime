@@ -171,16 +171,14 @@ export class EveChildBehaviorSystem extends EveChildTransform
     return true;
   }
 
-  /** Carbon EveChildBehaviorSystem::OnModified (cpp:79-86); the value
-   * argument follows the repo's OnModified duck (field name or field value). */
+  /** Carbon EveChildBehaviorSystem::OnModified (cpp:79-86): a display change re-registers the components. */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Component-registry re-registration is limited to an optional duck-typed call, matching the repo's registry seam.")
+  @meta.implemented
   OnModified(value = null)
   {
     if (IsMatch(value, "display"))
     {
-      this.ReRegister?.();
+      this.ReRegister();
     }
     return true;
   }
@@ -197,8 +195,8 @@ export class EveChildBehaviorSystem extends EveChildTransform
   {
     for (const group of this.behaviorGroups)
     {
-      group?.SetVertexFunctionReferance?.(() => this.ChangeBufferInstanceCount());
-      group?.InitializeGeometryResource?.();
+      group.SetVertexFunctionReferance(() => this.ChangeBufferInstanceCount());
+      group.InitializeGeometryResource();
     }
     this._behaviorGroupLoaded = true;
   }
@@ -213,7 +211,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
   {
     for (const group of this.splineTunnels)
     {
-      group?.SetSystemTunnelFunctionReferenceAndColor?.(() => this.UpdateTunnelRegistry(), 0xffffff00);
+      group.SetSystemTunnelFunctionReferenceAndColor(() => this.UpdateTunnelRegistry(), 0xffffff00);
     }
     this._behaviorGroupLoadedForTunnel = true;
   }
@@ -242,16 +240,15 @@ export class EveChildBehaviorSystem extends EveChildTransform
 
     for (const group of this.behaviorGroups)
     {
-      group?.CreateVertexDeclaration?.();
+      group.CreateVertexDeclaration();
     }
 
     for (const group of this.behaviorGroups)
     {
-      group?.UpdateSyncronous(updateContext, params);
+      group.UpdateSyncronous(updateContext, params);
     }
 
-    const deltaTime = Number(updateContext?.GetDeltaT?.() ?? updateContext?.deltaT ?? 0) || 0;
-    this._UpdateAgents(deltaTime);
+    this._UpdateAgents(updateContext.GetDeltaT());
   }
 
   /**
@@ -314,7 +311,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
 
     for (const group of this.behaviorGroups)
     {
-      group?.UpdateAsyncronous(updateContext);
+      group.UpdateAsyncronous(updateContext);
     }
 
     this._hasUpdated = true;
@@ -333,7 +330,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
 
     for (const group of this.behaviorGroups)
     {
-      group?.UpdateVisibility(updateContext, this.worldTransform);
+      group.UpdateVisibility(updateContext, this.worldTransform);
     }
   }
 
@@ -361,7 +358,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
 
     for (const group of this.behaviorGroups)
     {
-      group?.GetRenderables(renderables);
+      group.GetRenderables(renderables);
     }
     return renderables;
   }
@@ -396,10 +393,15 @@ export class EveChildBehaviorSystem extends EveChildTransform
     return super.Setup(scale, rotation, translation, lowestLodVisible);
   }
 
-  /** Carbon EveChildBehaviorSystem::RegisterComponents (cpp:686-700). */
+  /**
+   * Carbon EveChildBehaviorSystem::RegisterComponents (cpp:686-700): each behavior group registers while displayed.
+   * Every group is an EveEntity, so Carbon's BlueCastPtr to one always succeeds.
+   *
+   * Adapted: Carbon multiple-inherits EveEntity per concrete child; here it is the child root's base, so the class
+   * inherits GetComponentRegistry. Without a registry nothing registers.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon multiple-inherits EveEntity per concrete child; the JS port hoists it to the child root instead, so this class INHERITS GetComponentRegistry rather than probing for it.")
   RegisterComponents()
   {
     if (!this.display)
@@ -407,31 +409,34 @@ export class EveChildBehaviorSystem extends EveChildTransform
       return;
     }
 
-    const registry = this.GetComponentRegistry() ?? null;
+    const registry = this.GetComponentRegistry();
     if (!registry)
     {
       return;
     }
     for (const group of this.behaviorGroups)
     {
-      group?.Register(registry);
+      group.Register(registry);
     }
   }
 
-  /** Carbon EveChildBehaviorSystem::UnRegisterComponents (cpp:702-711). */
+  /**
+   * Carbon EveChildBehaviorSystem::UnRegisterComponents (cpp:702-711).
+   *
+   * Adapted: as RegisterComponents, the registry comes from the inherited EveEntity base.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon multiple-inherits EveEntity; the JS class reaches the registry through the optional GetComponentRegistry duck.")
   UnRegisterComponents()
   {
-    const registry = this.GetComponentRegistry?.() ?? null;
+    const registry = this.GetComponentRegistry();
     if (!registry)
     {
       return;
     }
     for (const group of this.behaviorGroups)
     {
-      group?.UnRegister(registry);
+      group.UnRegister(registry);
     }
   }
 
@@ -442,7 +447,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
   {
     for (const group of this.behaviorGroups)
     {
-      group?.RegisterWithQuadRenderer?.(quadRenderer);
+      group.RegisterWithQuadRenderer(quadRenderer);
     }
   }
 
@@ -458,7 +463,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
 
     for (const group of this.behaviorGroups)
     {
-      group?.AddQuadsToQuadRenderer?.(frustum, quadRenderer);
+      group.AddQuadsToQuadRenderer(frustum, quadRenderer);
     }
   }
 
@@ -512,22 +517,19 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * Flattens every tunnel group's tunnels into the system registry with
    * sequential IDs, then resets the behavior groups (Carbon
    * UpdateTunnelRegistry, cpp:508-527).
+   *
+   * Adapted: Carbon copies each SplineTunnel by value into m_tunnels; here the tunnel records are shared, so the
+   * reassigned IDs stay visible to their groups.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon copies each SplineTunnel by value into m_tunnels; the JS port shares the tunnel records so the reassigned IDs stay visible to their groups.")
   UpdateTunnelRegistry()
   {
     this._tunnels.length = 0;
     let id = 0;
     for (const group of this.splineTunnels)
     {
-      const tunnels = group?.GetTunnels?.() ?? group?.tunnels;
-      if (!Array.isArray(tunnels))
-      {
-        continue;
-      }
-      for (const tunnel of tunnels)
+      for (const tunnel of group.GetTunnels())
       {
         tunnel.tunnelID = id;
         id++;
@@ -537,7 +539,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
 
     for (const group of this.behaviorGroups)
     {
-      group?.InitializeGeometryResource?.();
+      group.InitializeGeometryResource();
     }
   }
 
@@ -557,7 +559,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
     let size = 0;
     for (const group of this.behaviorGroups)
     {
-      size += Number(group?.GetSize?.() ?? 0);
+      size += group.GetSize();
     }
     return size;
   }
@@ -577,10 +579,10 @@ export class EveChildBehaviorSystem extends EveChildTransform
   {
     for (const group of this.behaviorGroups)
     {
-      const mesh = group?.GetMesh?.() ?? group?.mesh;
+      const mesh = group.GetMesh();
       if (this.display && mesh)
       {
-        if ((mesh.GetAreas(TriBatchType.TRIBATCHTYPE_TRANSPARENT)?.length ?? 0) > 0)
+        if (mesh.GetAreas(TriBatchType.TRIBATCHTYPE_TRANSPARENT).length !== 0)
         {
           return true;
         }
@@ -677,10 +679,13 @@ export class EveChildBehaviorSystem extends EveChildTransform
     return { vs: this._perObjectData.vs, ps: this._perObjectData.ps };
   }
 
-  /** Carbon method GetVertexElementAddedThroughCode (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method GetVertexElementAddedThroughCode (MAP_METHOD_AND_WRAP).
+   *
+   * Adapted: returns Carbon's numeric Tr2VertexDefinition usage/index pairs rather than a renderer declaration.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Returns Carbon's numeric Tr2VertexDefinition usage/index pairs without owning a renderer declaration.")
   GetVertexElementAddedThroughCode()
   {
     return [[5, 8], [5, 9], [5, 10], [5, 11], [5, 12], [5, 13]];
@@ -694,7 +699,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
   {
     for (const group of this.behaviorGroups)
     {
-      group?.UpdateAgents?.(dt, this);
+      group.UpdateAgents(dt, this);
     }
   }
 
