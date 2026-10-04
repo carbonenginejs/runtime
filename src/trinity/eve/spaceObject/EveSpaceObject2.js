@@ -1944,6 +1944,18 @@ export class EveSpaceObject2 extends EveEntity
     {
       this.mesh?.GetBoundingBox?.(this._localAabbMin, this._localAabbMax);
     }
+    this.PushRenderables(out);
+    return out;
+  }
+
+  /**
+   * Carbon EveSpaceObject2::PushRenderables (cpp:1530-1551): the hull itself while its mesh is visible and loaded,
+   * then the children and decals. Virtual in Carbon: EveSwarm replaces it with its per-fighter renderables.
+   * @param {ITr2Renderable[]} out - the frame's renderable list
+   */
+  @meta.implemented
+  PushRenderables(out)
+  {
     if (this.mesh && this._isMeshVisible && this.mesh.IsLoading?.() !== true)
     {
       out.push(this);
@@ -1954,6 +1966,17 @@ export class EveSpaceObject2 extends EveEntity
       // EveSpaceObject2.cpp:1545-1548).
       out.push(this);
     }
+    this.PushChildrenAndDecalRenderables(out);
+  }
+
+  /**
+   * Carbon EveSpaceObject2::PushChildrenAndDecalRenderables (cpp:1553-1586): displayed and always-on children, then
+   * the decals against the hull mesh's geometry.
+   * @param {ITr2Renderable[]} out - the frame's renderable list
+   */
+  @meta.implemented
+  PushChildrenAndDecalRenderables(out)
+  {
     if (this.DisplayChildren())
     {
       for (const child of this.children) child?.GetRenderables(out);
@@ -1976,7 +1999,6 @@ export class EveSpaceObject2 extends EveEntity
         }
       }
     }
-    return out;
   }
 
   /** Carbon ITr2Renderable contract (EveSpaceObject2.cpp:1097-1140): activated
@@ -2518,6 +2540,31 @@ export class EveSpaceObject2 extends EveEntity
   GetLocalToWorldTransform()
   {
     return this.worldTransform;
+  }
+
+  /**
+   * Carbon EveSpaceObject2::UpdateModelCenterWorldPosition (cpp:2992-3007): brings the world transform up to t
+   * first, since a camera is looking at this object, then the model centre in world space, from the skinned
+   * dynamic sphere while the animation is initialised.
+   * @param {vec3} position - receives the world-space model centre
+   * @param {number} t - the time to update to, in Blue ticks
+   */
+  @meta.implemented
+  UpdateModelCenterWorldPosition(position, t)
+  {
+    this.UpdateWorldTransform(t);
+
+    const updater = this.animationUpdater;
+    if (this.dynamicBoundingSphereEnabled && updater && updater.IsInitialized())
+    {
+      // _localSphere is Carbon's local boundingSphere.
+      updater.GetDynamicBounds(EveSpaceObject2._localSphere, this._localAabbMin, this._localAabbMax);
+      vec3.transformMat4(position, EveSpaceObject2._localSphere, this.worldTransform);
+    }
+    else
+    {
+      vec3.transformMat4(position, this.boundingSphereCenter, this.worldTransform);
+    }
   }
 
   /** Carbon's non-updating model-center query. */

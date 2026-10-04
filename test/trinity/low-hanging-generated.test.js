@@ -826,6 +826,8 @@ test("EveSwarm maintains Carbon's portable CPU swarmer graph", () =>
 {
   const swarm = new EveSwarm();
   swarm.worldPosition.set([5, 6, 7]);
+  // Carbon constructs m_count = 1 with no vehicles; Initialize zeroes it before SetCount (EveSwarm.cpp:883-891).
+  swarm.count = 0;
   swarm.SetCount(3);
   assert.equal(swarm.count, 3);
   assert.equal(swarm.vehicles.length, 3);
@@ -840,7 +842,8 @@ test("EveSwarm maintains Carbon's portable CPU swarmer graph", () =>
   assert.equal(swarm.count, 2);
   assert.equal(swarm.vehicles.length, 2);
   assert.equal(swarm.renderables.length, 2);
-  assert.ok(swarm.PickFiringOrigin() >= 0 && swarm.firingIndex < swarm.count);
+  swarm.PickFiringOrigin();
+  assert.ok(swarm.firingIndex >= 0 && swarm.firingIndex < swarm.count);
 
   swarm.EnableSwarming(true);
   assert.equal(swarm.swarmingEnabled, true);
@@ -852,7 +855,7 @@ test("EveSwarm maintains Carbon's portable CPU swarmer graph", () =>
   assert.deepEqual(Array.from(swarm.squadBoundsMin), [0, 0, 0]);
   assert.deepEqual(Array.from(swarm.squadBoundsMax), [0, 0, 0]);
 
-  swarm.SetCount(-2);
+  swarm.SetCount(0);
   assert.equal(swarm.count, 0);
   assert.equal(swarm.vehicles.length, 0);
   for (const name of ["AddSwarmer", "RemoveSwarmer", "PickFiringOrigin", "EnableSwarming", "SetCount"])

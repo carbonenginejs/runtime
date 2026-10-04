@@ -1,4 +1,3 @@
-import { Copier } from "../../../../global/blue/Copier.js";
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.h
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.cpp
 import { IEveShadowCaster } from "../../IEveShadowCaster.js";
@@ -12,14 +11,11 @@ import { TriBatchType } from "#consts/graphics";
 import { createChildPerObjectRecords, stampChildTransforms } from "../../perObjectData/childPerObjectRecords.js";
 import { Tr2RenderReason } from "../../../generated/trinityCore/enums.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
+import { Tr2PickType } from "../../../core/view/Tr2PickType.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
+import { EveSpaceObjectDecal } from "../../attachment/decal/EveSpaceObjectDecal.js";
 
-// Packed (x, y, z, radius) cull-sphere scratch for IsCastingShadow.
-const SPHERE_SCRATCH = vec4.create();
-const TRANSPARENT_AABB_MIN = vec3.create();
-const TRANSPARENT_AABB_MAX = vec3.create();
-const TRANSPARENT_CENTER = vec3.create();
-
-/** Runtime implementation of Carbon's swarm renderable component. */
+/** Carbon's EveSwarmRenderable (EveSwarm.h:20-95): one fighter of an EveSwarm, drawing the squad's shared mesh at its own world transform. */
 @meta.define({ className: "EveSwarmRenderable", family: "eve/spaceObject/swarm" })
 @meta.blue.inherit(ITr2Renderable, IEveShadowCaster)
 export class EveSwarmRenderable extends EveEntity
@@ -56,15 +52,16 @@ export class EveSwarmRenderable extends EveEntity
   _lastWorldTransform = mat4.create();
 
   /**
-   * Binds this fighter to the swarm that owns it and the mesh it draws with.
-   * @param {Object} owner - the owning swarm; also this renderable's pick ID
-   * @param {Object} mesh - the shared fighter mesh
+   * Carbon InitializeRenderable (EveSwarm.cpp:109-113): binds this fighter to the swarm that owns it and the mesh it
+   * draws with; RemoveSwarmer passes null for both.
+   * @param {EveSwarm|null} owner - the owning swarm; also this renderable's pick ID
+   * @param {Tr2MeshBase|null} mesh - the shared fighter mesh
    */
-  @meta.adapted
+  @meta.implemented
   InitializeRenderable(owner, mesh)
   {
-    this.owner = owner ?? null;
-    this.mesh = mesh ?? null;
+    this.mesh = mesh;
+    this.owner = owner;
   }
 
   /**
@@ -133,14 +130,86 @@ export class EveSwarmRenderable extends EveEntity
   }
 
   /**
-   * Takes this fighter's own copies of the squad's authored decals, so a decal
-   * animating on one ship does not move on the rest.
-   * @param {Array} decals - authored decals; each is cloned when it can be
+   * Carbon InitDecals (EveSwarm.cpp:154-164): appends this fighter's own copy of each of the squad's decals, so a
+   * decal animating on one ship does not move on the rest.
+   * @param {EveSpaceObjectDecal[]} decals - the owner's authored decals
    */
-  @meta.adapted
+  @meta.implemented
   InitDecals(decals)
   {
-    this.decals = decals.map(decal => new Copier().CloneTo(decal));
+    for (const source of decals)
+    {
+      const decal = new EveSpaceObjectDecal();
+      decal.CopyFrom(source);
+      this.decals.push(decal);
+    }
+  }
+
+  /**
+   * Carbon PushDecals (EveSwarm.cpp:166-180): this fighter's decal renderables against the shared mesh's geometry.
+   * @param {ITr2Renderable[]} renderables - the frame's renderable list
+   * @param {number} screensize - the owner's mesh screen size
+   */
+  @meta.implemented
+  PushDecals(renderables, screensize)
+  {
+    const geometryRes = this.mesh.GetGeometryResource();
+    if (geometryRes)
+    {
+      for (const decal of this.decals)
+      {
+        decal.GetRenderables(renderables, null, geometryRes, screensize);
+      }
+    }
+  }
+
+  /**
+   * Carbon UpdateDecalVisibility (EveSwarm.cpp:182-202): this fighter's decals are placed at its own transform, with
+   * the owner's bone palette when its animation is initialised.
+   * @param {EveUpdateContext} updateContext - the frame's update context
+   * @param {IEveSpaceObject2ParentData} pd - the owner's parent data; its transform is overwritten
+   * @param {Tr2GrannyAnimation|null} animationUpdater - the owner's animation
+   */
+  @meta.implemented
+  UpdateDecalVisibility(updateContext, pd, animationUpdater)
+  {
+    const geometryRes = this.mesh.GetGeometryResource();
+    if (geometryRes)
+    {
+      mat4.copy(pd.transform, this.worldTransform);
+      for (const decal of this.decals)
+      {
+        if (animationUpdater && animationUpdater.GetMeshBoneCount() && animationUpdater.IsInitialized())
+        {
+          decal.SetBoneMatrix(animationUpdater.GetMeshBoneMatrixList(), animationUpdater.GetMeshBoneCount());
+        }
+        decal.UpdateVisibility(updateContext, pd);
+      }
+    }
+  }
+
+  /**
+   * Carbon GetPickingBatches (EveSwarm.cpp:215-230): the mesh's picking, opaque, or transparent and additive areas.
+   * @param {ITriRenderBatchAccumulator} batches - the accumulator
+   * @param {number} pickTypes - Tr2PickType bits
+   * @param {Tr2PerObjectData} perObjectData - this fighter's per-object data
+   */
+  @meta.implemented
+  GetPickingBatches(batches, pickTypes, perObjectData)
+  {
+    if ((pickTypes & Tr2PickType.PICK_TYPE_PICKING) !== 0)
+    {
+      this.GetBatches(batches, TriBatchType.TRIBATCHTYPE_PICKING, perObjectData);
+    }
+    if ((pickTypes & Tr2PickType.PICK_TYPE_OPAQUE) !== 0)
+    {
+      this.GetBatches(batches, TriBatchType.TRIBATCHTYPE_OPAQUE, perObjectData);
+    }
+    if ((pickTypes & Tr2PickType.PICK_TYPE_TRANSPARENT) !== 0)
+    {
+      this.GetBatches(batches, TriBatchType.TRIBATCHTYPE_TRANSPARENT, perObjectData);
+      this.GetBatches(batches, TriBatchType.TRIBATCHTYPE_ADDITIVE, perObjectData);
+    }
   }
 
   /**
@@ -171,11 +240,14 @@ export class EveSwarmRenderable extends EveEntity
    * Carbon EveSwarmRenderable::GetBatches (EveSwarm.cpp:35-52): emits ordinary
    * mesh areas directly and transparent areas back-to-front by their
    * world-space bounding-box centres.
+   *
+   * Adapted: the transparent sort is written out here rather than through Carbon's
+   * GetSortedBatchesFromMeshAreaVector, and the view position comes from the render context, which defaults to the
+   * main-thread context Carbon's Tr2Renderer::GetViewPosition reads. Returns whether a batch was committed.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The render context supplies Carbon's renderer-global view position; GPU-free mesh batches retain geometry source descriptors and the upload is not ported yet.")
-  GetBatches(batches, batchType, perObjectData, _reason, renderContext = null)
+  GetBatches(batches, batchType, perObjectData, _reason, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     if (!this.mesh)
     {
@@ -183,38 +255,34 @@ export class EveSwarmRenderable extends EveEntity
     }
 
     const areas = this.mesh.GetAreas(batchType);
-    if (!areas)
-    {
-      return false;
-    }
-
     if (batchType !== TriBatchType.TRIBATCHTYPE_TRANSPARENT)
     {
       return this.mesh.GetBatches(batches, areas, perObjectData);
     }
 
+    // vec3_0 is the area centre, vec3_1 and vec3_2 its box.
+    const { vec3_0, vec3_1, vec3_2 } = EveSwarmRenderable.scratch;
     const viewPosition = renderContext.GetViewPosition();
     const geometry = this.mesh.GetGeometryResource();
-    const meshIndex = this.mesh.meshIndex ?? 0;
+    const meshIndex = this.mesh.GetMeshIndex();
     const lod = geometry ? geometry.GetMeshLod_ScreenSize(meshIndex, Number.MAX_VALUE) : null;
     const sorted = [];
 
     for (const area of areas)
     {
-      if (!area || area.GetDisplay() === false)
+      if (!area.GetDisplay())
       {
         continue;
       }
 
-      vec3.set(TRANSPARENT_CENTER, 0, 0, 0);
-      if (geometry && geometry.GetAreaBoundingBox(
-        meshIndex, area.GetIndex(), TRANSPARENT_AABB_MIN, TRANSPARENT_AABB_MAX))
+      vec3.set(vec3_0, 0, 0, 0);
+      if (geometry && geometry.GetAreaBoundingBox(meshIndex, area.GetIndex(), vec3_1, vec3_2))
       {
-        vec3.add(TRANSPARENT_CENTER, TRANSPARENT_AABB_MIN, TRANSPARENT_AABB_MAX);
-        vec3.scale(TRANSPARENT_CENTER, TRANSPARENT_CENTER, 0.5);
+        vec3.add(vec3_0, vec3_1, vec3_2);
+        vec3.scale(vec3_0, vec3_0, 0.5);
       }
-      vec3.transformMat4(TRANSPARENT_CENTER, TRANSPARENT_CENTER, this.worldTransform);
-      sorted.push({ area, distance: vec3.squaredDistance(viewPosition, TRANSPARENT_CENTER) });
+      vec3.transformMat4(vec3_0, vec3_0, this.worldTransform);
+      sorted.push({ area, distance: vec3.squaredDistance(viewPosition, vec3_0) });
     }
 
     sorted.sort((a, b) => b.distance - a.distance);
@@ -244,11 +312,15 @@ export class EveSwarmRenderable extends EveEntity
       && this.mesh.GetAreas(TriBatchType.TRIBATCHTYPE_TRANSPARENT).length !== 0;
   }
 
-  /** Distance from the active view position to this fighter's translation. */
+  /**
+   * Carbon GetSortValue (EveSwarm.cpp:54-59): distance from the view position to this fighter's translation.
+   *
+   * Adapted: the view position comes from the render context, which defaults to the main-thread context Carbon's
+   * Tr2Renderer::GetViewPosition reads.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The render context replaces Carbon's Tr2Renderer global view-position accessor.")
-  GetSortValue(renderContext)
+  GetSortValue(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     const viewPosition = renderContext.GetViewPosition();
     return Math.hypot(
@@ -258,10 +330,13 @@ export class EveSwarmRenderable extends EveEntity
     );
   }
 
-  /** Carbon EveSwarmRenderable::RegisterComponents (EveSwarm.cpp:306-313):
-   * unconditional ShadowCaster leaf self-registration. */
+  /**
+   * Carbon EveSwarmRenderable::RegisterComponents (EveSwarm.cpp:306-313): unconditional ShadowCaster leaf
+   * self-registration.
+   *
+   * Adapted: Carbon's RegisterComponent<IEveShadowCaster> template becomes the registry's explicit component type.
+   */
   @meta.adapted
-  @meta.reason("Carbon's RegisterComponent<IEveShadowCaster> template is expressed as the registry's explicit component-name signature.")
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -279,37 +354,40 @@ export class EveSwarmRenderable extends EveEntity
    * world translation (cpp:257 - squad radius centered on the fighter);
    * threshold is > 15 (the turret uses 5) - so a swarm with 5 < size <= 15
    * casts volumetric/spot shadows (whose call sites ignore the return and
-   * re-check > 5 themselves) but not cascades. Carbon's float& out-param
-   * becomes the optional trailing length-1 array. */
+   * re-check > 5 themselves) but not cascades.
+   *
+   * Adapted: Carbon's float& out-param becomes the optional trailing length-1 array; which paths write it is kept.
+   */
   @meta.blue.renamed("IsCastingShadow")
   @meta.adapted
-  @meta.reason("The length-1 out array replaces the float& out-param; the shadow math is ported, including exactly which paths write the out value.")
   IsCastingShadow_ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
   {
     if (!this.owner)
     {
       return false;
     }
-    if (Number(renderReason ?? Tr2RenderReason.TR2RENDERREASON_NORMAL) === Tr2RenderReason.TR2RENDERREASON_REFLECTION)
+    if (renderReason === Tr2RenderReason.TR2RENDERREASON_REFLECTION)
     {
       return false;
     }
-    if (this.owner.GetBoundingSphere(SPHERE_SCRATCH) !== true)
+    // vec4_0 is the cull sphere (x, y, z, radius).
+    const { vec4_0 } = EveSwarmRenderable.scratch;
+    if (!this.owner.GetBoundingSphere(vec4_0))
     {
       return false;
     }
-    SPHERE_SCRATCH[0] = this.worldTransform[12];
-    SPHERE_SCRATCH[1] = this.worldTransform[13];
-    SPHERE_SCRATCH[2] = this.worldTransform[14];
+    vec4_0[0] = this.worldTransform[12];
+    vec4_0[1] = this.worldTransform[13];
+    vec4_0[2] = this.worldTransform[14];
 
     let sizeInShadow = 0;
     if (sizeInShadowOut)
     {
       sizeInShadowOut[0] = 0;
     }
-    if (shadowFrustum.IsVisible(cameraFrustum, SPHERE_SCRATCH))
+    if (shadowFrustum.IsVisible(cameraFrustum, vec4_0))
     {
-      sizeInShadow = shadowFrustum.GetSizeInShadow(SPHERE_SCRATCH);
+      sizeInShadow = shadowFrustum.GetSizeInShadow(vec4_0);
       if (sizeInShadowOut)
       {
         sizeInShadowOut[0] = sizeInShadow;
@@ -324,10 +402,12 @@ export class EveSwarmRenderable extends EveEntity
    * IsCastingShadows filter; area display double-checked in Carbon). QUIRK:
    * unlike the turret, shadowPixelSize IS consumed here: it selects the LOD
    * (GetMeshLod( meshIx, shadowPixelSize ), cpp:282), passed as the mesh's
-   * batch screen size. Returns whether any batch was committed (JS addition;
-   * Carbon returns void). */
+   * batch screen size.
+   *
+   * Adapted: the geometry IsGood and GetMeshLod steps (cpp:276-286) run inside Tr2MeshBase.GetBatches rather than
+   * here, as for EveChildMesh. Returns whether any batch was committed; Carbon returns void.
+   */
   @meta.adapted
-  @meta.reason("Geometry IsGood/GetMeshLod realization (cpp:276-286) is engine-resolved; the delegation structure is ported (EveChildMesh precedent).")
   GetShadowBatches(batches, perObjectData, shadowPixelSize)
   {
     if (!this.mesh || this.mesh.display === false)
@@ -355,5 +435,12 @@ export class EveSwarmRenderable extends EveEntity
   {
     return this.GetPerObjectData(accumulator);
   }
+
+  static scratch = {
+    vec3_0: vec3.create(),
+    vec3_1: vec3.create(),
+    vec3_2: vec3.create(),
+    vec4_0: vec4.create()
+  };
 
 }

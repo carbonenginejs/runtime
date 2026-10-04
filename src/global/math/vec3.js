@@ -841,6 +841,25 @@ vec3.applyQuaternion = function (out, a, q)
     return out;
 };
 
+/**
+ * Carbon ClampLength (math/include/Vector3_inline.h:201-208): a unchanged while its length is at most maxLength,
+ * otherwise a rescaled to maxLength.
+ *
+ * @param {vec3} out
+ * @param {vec3} a
+ * @param {number} maxLength
+ * @returns {vec3} out
+ */
+vec3.clampLength = function (out, a, maxLength)
+{
+    const length = vec3.length(a);
+    if (length <= maxLength)
+    {
+        return vec3.copy(out, a);
+    }
+    return vec3.scale(out, a, maxLength / length);
+};
+
 
 export { vec3 };
 

@@ -50,6 +50,19 @@ num.clamp = function (a, min, max)
 };
 
 /**
+ * Carbon TriLinearize (trinity/TriMath.cpp:951-954): where v lies between min and max, clamped to [0, 1].
+ *
+ * @param {number} min
+ * @param {number} max
+ * @param {number} v
+ * @returns {number}
+ */
+num.triLinearize = function (min, max, v)
+{
+    return num.clamp((v - min) / (max - min), 0, 1);
+};
+
+/**
  * Returns how many decimal places a number has
  *
  * @param {number} a

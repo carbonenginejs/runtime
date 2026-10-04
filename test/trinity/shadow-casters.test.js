@@ -298,7 +298,7 @@ test("EveSwarmRenderable emits ordinary batches and sorts transparent areas back
   };
   const ordinaryCalls = [];
   renderable.mesh = {
-    meshIndex: 0,
+    GetMeshIndex: () => 0,
     GetAreas: batchType => batchType === TriBatchType.TRIBATCHTYPE_TRANSPARENT
       ? [ near, far ]
       : [ opaque ],
