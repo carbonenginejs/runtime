@@ -805,6 +805,9 @@ export class CjsBlueResMan
    * @throws {AggregateError} If cache or inactivity housekeeping cannot clean one or more resources.
    */
   Update(options = {}) {
+    // One clock read per tick: every plain KeepAlive() until the next update
+    // renews with this time (CjsResource.KeepAlive).
+    CjsResource.activityTime = this.motherLode.GetActivityTime();
     const loaded = this.PumpBackgroundQueue(options.background || {});
     const prepared = this.PumpMainThreadQueue(options.prepare || options);
     const cacheOptions = options.cache === true || options.cache === undefined

@@ -526,6 +526,40 @@ export class CjsMotherLode
   }
 
   /**
+   * The registry clock's current time, which the manager stamps once per tick
+   * for resources to renew with (`CjsResource.activityTime`).
+   *
+   * @returns {number} Milliseconds on this registry's clock.
+   */
+  GetActivityTime()
+  {
+    return this._now();
+  }
+
+  /**
+   * Fold renewals that resources stamped on themselves into their records,
+   * exactly as `KeepAlive` would have applied them at the time: the record's
+   * last-used time advances and the entry is promoted out of the byte cache.
+   * Runs before anything decides on activity - the inactivity sweep and an
+   * over-budget cache trim - so those see every renewal. Frame counts are not
+   * advanced: the manager configures time limits only.
+   *
+   * Ours: see `CjsResource.KeepAlive`.
+   */
+  _SettleRenewals()
+  {
+    for (const record of this._entries.values())
+    {
+      const resource = record.resource;
+      const renewed = resource ? resource._lastUsedTime : undefined;
+      if (typeof renewed !== "number" || !(renewed > record.lastUsedTime)) continue;
+      record.lastUsedTime = renewed;
+      record.cached = false;
+      record.cacheSequence = 0;
+    }
+  }
+
+  /**
    * `KeepAlive` for a key this registry produced, without normalizing it again.
    *
    * Ours: the manager's per-resource lifecycle controller renews through this
@@ -545,7 +579,7 @@ export class CjsMotherLode
     if (!record) return this.KeepAlive(key, options);
     record.cached = false;
     record.cacheSequence = 0;
-    this._TouchRecord(record, options || EMPTY_ACTIVITY);
+    this._TouchRecord(record, options ?? EMPTY_ACTIVITY);
     return record.resource;
   }
 
@@ -647,6 +681,7 @@ export class CjsMotherLode
    */
   PurgeInactive(options = {})
   {
+    this._SettleRenewals();
     const policy = normalizePurgeOptions(options, this._activityFrame, this._now);
     this._activityFrame = Math.max(this._activityFrame, policy.frame);
 
@@ -763,6 +798,7 @@ export class CjsMotherLode
 
     if (beforeBytes > this._cacheSize)
     {
+      this._SettleRenewals();
       const candidates = [ ...this._entries.values() ]
         .filter(record => record.cacheable
           && record.cached

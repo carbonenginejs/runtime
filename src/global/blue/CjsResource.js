@@ -44,6 +44,14 @@ export class CjsResource
   _reloadAttempts = 0;
 
   /**
+   * The manager tick time at which this handle was last renewed by a plain
+   * `KeepAlive()` (milliseconds, on the manager's MotherLode clock). The
+   * MotherLode folds it into its record when it next sweeps; see
+   * {@link CjsResource#KeepAlive}.
+   */
+  _lastUsedTime = 0;
+
+  /**
    * Notify targets waiting for this resource to finish (Carbon
    * `m_reloadNotifyTargets`), each with `RebuildCachedData(resource)` and
    * `ReleaseCachedData(resource)`. Emptied on every completion: see
@@ -59,6 +67,12 @@ export class CjsResource
    * not the lifetime total.
    */
   static maxReloadAttempts = 3;
+
+  /**
+   * The current manager tick's time, stamped once per `CjsBlueResMan.Update`
+   * (milliseconds, MotherLode clock). Zero until the manager first ticks.
+   */
+  static activityTime = 0;
 
   /**
    * Logical source path assigned by Initialize and returned by GetPath.
@@ -754,14 +768,24 @@ export class CjsResource
    *
    * `IsGood()` calls this, so most callers never invoke it directly.
    *
-   * @param {CjsResourceActivityOptions} [options={}] Optional deterministic activity values.
+   * A plain call, once the manager has ticked, is one field write: the tick's
+   * time goes into `_lastUsedTime`, and the MotherLode folds it into its record
+   * when it next sweeps (`CjsMotherLode._SettleRenewals`). Every draw path asks
+   * `IsGood()` each frame, and renewing through the manager cost about 100-170
+   * ns a call against about 0.5 ns for the stamp (measured 2026-10-04). This is
+   * the July 2026 plan: activity tracked on the resource, ccpwgl's
+   * `activeFrame`, in milliseconds. A call with explicit options, or before
+   * the first tick, renews through the manager as before.
+   *
+   * @param {CjsResourceActivityOptions} [options] Optional deterministic activity values.
    * @returns {CjsResource} This resource, whether bound or detached.
    * @throws {TypeError} If the bound manager rejects invalid activity values.
    */
-  KeepAlive(options = {})
+  KeepAlive(options = undefined)
   {
-    this.__lifecycleController?.keepAlive(options);
-    if (this.IsPurged()) this.Reload(options);
+    if (options === undefined && CjsResource.activityTime > 0) this._lastUsedTime = CjsResource.activityTime;
+    else this.__lifecycleController?.keepAlive(options ?? {});
+    if (this.IsPurged()) this.Reload(options ?? {});
     return this;
   }
 
