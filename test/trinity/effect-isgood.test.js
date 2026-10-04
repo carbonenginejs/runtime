@@ -176,3 +176,29 @@ test("the light manager asks a profile IsGood where it packs it, and packs none 
   assert.equal(manager._ProfileSlot(profile), 0, "loading: no profile");
   assert.equal(renewals, 1, "and asking renewed it");
 });
+
+
+test("the scene renews the environment maps it publishes, once a frame", async () =>
+{
+  const { EveSpaceScene, Tr2TextureReference } = await import("../../npm/dist/trinity/index.js");
+  const scene = new EveSpaceScene();
+  const envMap = new TriTextureRes();
+  envMap.path = "res:/env/cube.dds";
+  envMap.SetState(State.PREPARED);
+  let renewals = 0;
+  envMap.SetLifecycleController({ keepAlive: () => { renewals += 1; } });
+  scene.envMap1 = envMap;
+  scene.envMap2 = new Tr2TextureReference();      // not a cached resource: nothing to renew
+
+  try
+  {
+    scene.UpdateVariableStore();
+    assert.equal(renewals, 1);
+    scene.UpdateVariableStore();
+    assert.equal(renewals, 2);
+  }
+  finally
+  {
+    scene.Destroy();
+  }
+});

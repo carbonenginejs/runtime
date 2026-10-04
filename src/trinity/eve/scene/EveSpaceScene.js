@@ -7,7 +7,7 @@
 // EveSpaceScene::Update and the scene-owned EveUpdateContext member (Carbon
 // m_updateContext - protected, so absent from the Blue schema scan).
 import { CjsSchema, meta } from "#schema";
-import { IsMatch, BlueList, IInitialize, INotify, IListNotify } from "#blue";
+import { IsMatch, BlueList, IInitialize, INotify, IListNotify, CjsResource } from "#blue";
 import { ITr2Scene } from "../../core/ITr2Scene.js";
 import { ITr2Updateable } from "../../core/ITr2Updateable.js";
 import { EvePlanet } from "../spaceObject/planet/EvePlanet.js";
@@ -193,42 +193,42 @@ export class EveSpaceScene
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriTextureRes")
   envMap1ResPath = "";
 
   /** m_envMap2ResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriTextureRes")
   envMap2ResPath = "";
 
   /** m_envMap3ResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriTextureRes")
   envMap3ResPath = "";
 
   /** m_lowQualityNebulaResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriTextureRes")
   lowQualityNebulaResPath = "";
 
   /** m_lowQualityNebulaMixResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriTextureRes")
   lowQualityNebulaMixResPath = "";
 
   /** m_envMapResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path
+  @meta.type.path("TriTextureRes")
   envMapResPath = "";
 
   /** m_fogColor (Color) [READWRITE, PERSIST] */
@@ -1805,6 +1805,15 @@ export class EveSpaceScene
   @meta.adapted
   UpdateVariableStore()
   {
+    // Ours: every ship samples these through the global store, and nothing
+    // else holding them renews them, so the scene that publishes them does,
+    // once a frame (CjsResource.KeepAlive). A provider that is not a cached
+    // resource holds nothing to renew.
+    for (const provider of [ this.envMap1, this.envMap2, this.envMap3, this._staticEnvMapTextureRes, this._envMapTextureRes ])
+    {
+      const resource = CjsSchema.cast(provider, CjsResource);
+      if (resource) resource.KeepAlive();
+    }
     this._envMap1Handle.SetValue(this.envMap1);
     this._envMap2Handle.SetValue(this.envMap2);
     this._reflectionMapHandle.SetValue(this.envMap1);
