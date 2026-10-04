@@ -875,12 +875,14 @@ export class Tr2RenderContext
    * member call on a default-constructed set (`Tr2Material.cpp:234`); the
    * context makes it here for the reason `CreateBuffer` is here.
    *
+   * Ours: forwards the JS platform selection and its internal allocation mode (implementationOnly) to the installed
+   * abstraction-layer context.
+   *
    * @param {object} description A `Tr2ResourceSetDescriptionAL`.
    * @param {object} program A `Tr2ShaderProgramAL`.
    * @returns {object|null} A `Tr2ResourceSetAL`, or null when Create refused.
    */
   @meta.ours
-  @meta.reason("Forwards JS platform selection and its internal allocation mode to the installed abstraction-layer context.")
   CreateResourceSet(description, program, implementationOnly = false)
   {
     return this._requireAL("CreateResourceSet").CreateResourceSet(description, program, implementationOnly);
