@@ -360,16 +360,6 @@
     "ThreadProcAnimated",
     "Update"
   ],
-  "EveConnector": [
-    "AddCircle",
-    "AddCurvedLine",
-    "AddEllipse",
-    "AddOrbit",
-    "AddSpheredSegment",
-    "AddStraightLine",
-    "AnimateSegment",
-    "CalculateSideAndFront"
-  ],
   "EveDistanceField": [
     "CalculateFieldCoverageAndDistance",
     "CreateCurveSet",
