@@ -524,10 +524,10 @@ export class Tr2MeshBase
   @meta.implemented
   UseWithScreenSize(screenSize, worldRadius)
   {
-    const geometry = this.GetGeometryResource() ?? null;
+    const geometry = this.GetGeometryResource();
     if (!geometry) return false;
 
-    const lod = geometry.GetMeshLod_ScreenSize?.(this.meshIndex, screenSize) ?? null;
+    const lod = geometry.GetMeshLod_ScreenSize(this.meshIndex, screenSize);
     if (!lod) return false;
 
     // Carbon reads m_uvDensities off the resolved LOD; a resource that exposes
@@ -538,8 +538,9 @@ export class Tr2MeshBase
 
     for (const area of this.GetAllAreas())
     {
-      const material = area?.GetMaterialInterface?.();
-      if (!material?.UsedWithScreenSize) continue;
+      // Carbon: area && area->GetMaterialInterface() (Tr2MeshBase.cpp:590), then UsedWithScreenSize on the material.
+      const material = area ? area.GetMaterialInterface() : null;
+      if (!material) continue;
 
       material.UsedWithScreenSize(screenSize, worldRadius, uvDensities);
       reported = true;
@@ -616,10 +617,11 @@ export class Tr2MeshBase
    * a TriBatchType or an already-resolved area list, so a scene collector or a
    * transform can drive the mesh directly; returns whether any batch was
    * committed (a JS addition, Carbon returns void).
+   *
+   * Adapted: Emits descriptor batches; resolving geometry buffers and final draw args at dispatch is not ported yet.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Emits descriptor batches; resolving geometry buffers and final draw args at dispatch is not ported yet.")
   GetBatches(accumulator, areas, perObjectData, screenSize = Infinity, reverseWinding = false)
   {
     if (this.display === false) return false;
@@ -634,7 +636,7 @@ export class Tr2MeshBase
     // screen size (Tr2MeshBase.cpp:381) and passes it to every area. A resource
     // that cannot select a LOD yet yields null, and the batch then carries its
     // geometry-source descriptor with no draw arguments.
-    const lod = geometry?.GetMeshLod_ScreenSize?.(this.meshIndex, screenSize) ?? null;
+    const lod = geometry ? geometry.GetMeshLod_ScreenSize(this.meshIndex, screenSize) : null;
 
     for (const area of areaList)
     {
@@ -654,10 +656,12 @@ export class Tr2MeshBase
    * material and shader key and recording geometry plus area range as a source
    * descriptor; returns null for a hidden or material-less area, where Carbon
    * returns an invalid batch.
+   *
+   * Adapted: Emits a geometry source descriptor; creating the Tr2BufferAL allocations Carbon makes here is not ported
+   * yet.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Emits a geometry source descriptor; creating the Tr2BufferAL allocations Carbon makes here is not ported yet.")
   CreateGeometryBatch(geometry, area, perObjectData, reverseWinding = false, lod = null)
   {
     if (!area || area.GetDisplay() === false) return null;
@@ -685,7 +689,7 @@ export class Tr2MeshBase
     // Carbon binds lod->m_mesh->m_vertexDeclarationHandle onto the batch
     // (Tr2MeshBase.cpp:371). The handle is what binning and sorting compare, so
     // leaving it zero makes every mesh look like one declaration.
-    const elements = geometry?.GetMeshVertexElements?.(this.meshIndex);
+    const elements = geometry ? geometry.GetMeshVertexElements(this.meshIndex) : null;
 
     // The geometry layer hands back the PRODUCER's vocabulary - a CMF decl names
     // its usages - and a shader input carries Carbon's numeric UsageCode. The
@@ -753,10 +757,11 @@ export class Tr2MeshBase
    * Appends blocks grouped by shared area material for the shadow path, skipping
    * non-shadow-casting OPAQUE and DECAL areas, and faithfully reproduces
    * Carbon's asymmetry by not clamping negative index or count.
+   *
+   * Adapted: Material grouping uses reference identity in place of Carbon's effect hash values.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Material grouping uses reference identity in place of Carbon's effect hash values.")
   CollectAreaBlocksWithSharedMaterials(collectors, areaType)
   {
     const areas = this.GetAreas(areaType);

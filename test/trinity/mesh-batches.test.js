@@ -125,7 +125,7 @@ function pooledGeometry({ reversedIndicesValid = true } = {})
     vertexAllocation: { offset: 2048, stride: 32 }
   };
 
-  return { lod, GetMeshLod_ScreenSize: () => lod };
+  return { lod, GetMeshLod_ScreenSize: () => lod, GetMeshVertexElements: () => null };
 }
 
 test("CreateGeometryBatch fills Carbon's draw arguments from a realized LOD", () =>
@@ -197,7 +197,7 @@ test("an unrealized mesh keeps zero bases, which is correct for a non-pooling en
     vertexAllocation: null
   };
 
-  const batch = mesh.CreateGeometryBatch({ GetMeshLod_ScreenSize: () => lod }, area({ id: "fx" }), null, false, lod);
+  const batch = mesh.CreateGeometryBatch({ GetMeshLod_ScreenSize: () => lod, GetMeshVertexElements: () => null }, area({ id: "fx" }), null, false, lod);
 
   assert.equal(batch.indexCountPerInstance, 30, "geometry data alone completes the count");
   assert.equal(batch.startIndexLocation, 0);
@@ -219,7 +219,8 @@ test("GetBatches resolves the LOD once from the caller's screen size", () =>
     {
       requested.push([ meshIndex, screenSize ]);
       return geometry.lod;
-    }
+    },
+    GetMeshVertexElements: () => null
   });
 
   const accumulator = new TriRenderBatchAccumulator();
