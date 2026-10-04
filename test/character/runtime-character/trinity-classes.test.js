@@ -1,5 +1,8 @@
 import { getRegisteredClassName } from "../../../npm/dist/global/compose/className.js";
-import { NotifyModified } from "../../../npm/dist/global/blue/index.js";
+import { blue, NotifyModified } from "../../../npm/dist/global/blue/index.js";
+import { TriGeometryRes } from "../../../npm/dist/resource/index.js";
+import { Tr2Mesh } from "../../../npm/dist/trinity/index.js";
+import { StubResMan } from "../../support/stubResMan.js";
 import "../../../npm/dist/trinity/index.js";
 import { finalizeReaderObject } from "../../../npm/dist/global/schema/hydration.js";
 import test from "node:test";
@@ -22,6 +25,30 @@ import {
   Tr2SkinnedObjectLod,
   WodBakingScene
 } from "../../../npm/dist/character/index.js";
+
+const NO_PARENT = 0xffffffff;
+
+/** A prepared geometry resource whose payload holds these skeletons and one mesh binding the first skeleton's bones. */
+function SkeletonGeometry(skeletons)
+{
+  const geometry = new TriGeometryRes();
+  geometry.SetPayload({
+    skeletons,
+    meshes: [ { areas: [], boneBindings: (skeletons[0]?.bones ?? []).map(name => ({ name, bounds: { min: [ 0, 0, 0 ], max: [ 0, 0, 0 ] } })) } ]
+  });
+  geometry.MarkPrepared();
+  return geometry;
+}
+
+/** A real Tr2Mesh on geometry whose BindToRig calls are recorded and still run. */
+function RecordingMesh(geometry, calls)
+{
+  const mesh = new Tr2Mesh();
+  mesh.SetGeometryRes(geometry);
+  const bind = mesh.BindToRig.bind(mesh);
+  mesh.BindToRig = (...args) => { calls.push(args); return bind(...args); };
+  return mesh;
+}
 
 class FakeLodProxy
 {
@@ -268,26 +295,24 @@ test("Tr2IntSkinnedObject delegates LOD as one whole-model identity", () =>
 test("Tr2SkinnedModel selects exact resource skeletons and resets bindings", () =>
 {
   const skeletons = [
-    { name: "Other", joints: [] },
-    { name: "Hero", joints: [ { name: "Root" } ] }
+    { name: "Other", bones: [ "Root" ], parents: Uint32Array.of(NO_PARENT) },
+    { name: "Hero", bones: [ "Root" ], parents: Uint32Array.of(NO_PARENT) }
   ];
-  const geometryRes = {
-    GetSkeletonCount: () => skeletons.length,
-    GetSkeletonData: index => skeletons[index] ?? null
-  };
+  const geometryRes = SkeletonGeometry(skeletons);
   const model = new Tr2SkinnedModel();
 
+  // What Initialize's acquisition sets; the resource then notifies RebuildCachedData.
   model.geometryRes = geometryRes;
   model.skeletonName = "Hero";
-  NotifyModified(model, "skeletonName");
+  model.RebuildCachedData(geometryRes);
   assert.equal(model.GetSkeleton(), skeletons[1]);
 
   model.skeletonName = "hero";
-  NotifyModified(model, "skeletonName");
+  model.RebuildCachedData(geometryRes);
   assert.equal(model.GetSkeleton(), null, "native skeleton selection is case-sensitive");
 
   model.skeletonName = "Other";
-  NotifyModified(model, "skeletonName");
+  model.RebuildCachedData(geometryRes);
   assert.equal(model.GetSkeleton(), skeletons[0]);
   model.ReleaseCachedData(geometryRes);
   assert.equal(model.GetSkeleton(), null);
@@ -296,13 +321,7 @@ test("Tr2SkinnedModel selects exact resource skeletons and resets bindings", () 
 
   const bindCalls = [];
   const boneNames = [ "Root" ];
-  model.meshes = [ {
-    BindToRig(...args)
-    {
-      bindCalls.push(args);
-      return true;
-    }
-  } ];
+  model.meshes.push(RecordingMesh(geometryRes, bindCalls));
   model.BindToRig(boneNames, 1, false);
   model.BindToRig(boneNames, 1, false);
   assert.equal(bindCalls.length, 1);
@@ -316,8 +335,8 @@ test("Tr2SkinnedModel selects exact resource skeletons and resets bindings", () 
   model.ResetBindings = () => { resets++; };
   model.ResetAnimationBindings();
   assert.equal(resets, 1);
-  assert.equal(CjsSchema.getMethod(Tr2SkinnedModel, "GetSkeleton")?.impl?.status, "adapted");
-  assert.equal(CjsSchema.getMethod(Tr2SkinnedModel, "BindToRig")?.impl?.status, "adapted");
+  assert.equal(CjsSchema.getMethod(Tr2SkinnedModel, "GetSkeleton")?.impl?.status, "implemented");
+  assert.equal(CjsSchema.getMethod(Tr2SkinnedModel, "BindToRig")?.impl?.status, "implemented");
   assert.equal(CjsSchema.getMethod(Tr2SkinnedModel, "ResetBindings")?.impl?.status, "implemented");
   assert.equal(CjsSchema.getMethod(Tr2SkinnedModel, "ResetAnimationBindings")?.impl?.status, "implemented");
 });
@@ -353,27 +372,17 @@ test("Tr2SkinnedObject rebuilds immediate CPU rig mappings and skinning palettes
 
   const skeleton = {
     name: "Hero",
-    joints: [
-      { name: "Root", inverseWorldTransform: identity },
-      { name: "Head", inverseWorldTransform: identity }
-    ]
+    bones: [ "Root", "Head" ],
+    parents: Uint32Array.of(NO_PARENT, 0),
+    invBindTransforms: [ identity, identity ]
   };
-  const geometryRes = {
-    GetSkeletonCount: () => 1,
-    GetSkeletonData: () => skeleton
-  };
+  const geometryRes = SkeletonGeometry([ skeleton ]);
   const model = new Tr2SkinnedModel();
   const meshBinds = [];
   model.geometryRes = geometryRes;
   model.skeletonName = "Hero";
-  model.meshes = [ {
-    BindToRig(...args)
-    {
-      meshBinds.push(args);
-      return true;
-    }
-  } ];
-  NotifyModified(model, "skeletonName");
+  model.meshes.push(RecordingMesh(geometryRes, meshBinds));
+  model.RebuildCachedData(geometryRes);
 
   const object = new Tr2SkinnedObject();
   const animationBoneNames = [ "Root", "Head" ];
@@ -425,17 +434,11 @@ test("whole-model LOD swaps rebuild valid rig mappings but ignore missing skelet
     0, 0, 1, 0,
     0, 0, 0, 1
   ]);
-  const skeleton = {
-    name: "Hero",
-    joints: [ { name: "Root", inverseWorldTransform: identity } ]
-  };
+  const skeleton = { name: "Hero", bones: [ "Root" ], parents: Uint32Array.of(NO_PARENT), invBindTransforms: [ identity ] };
   const model = new Tr2SkinnedModel();
-  model.geometryRes = {
-    GetSkeletonCount: () => 1,
-    GetSkeletonData: () => skeleton
-  };
+  model.geometryRes = SkeletonGeometry([ skeleton ]);
   model.skeletonName = "Hero";
-  NotifyModified(model, "skeletonName");
+  model.RebuildCachedData(model.geometryRes);
 
   const object = new Tr2SkinnedObject();
   object.highDetailModel = new FakeLodProxy("high", { model });
@@ -599,8 +602,11 @@ test("batched model and LOD proxy replacements share native helper storage", () 
 });
 
 
-test("real character model subtree survives plain skinned owner hydration and LOD initialization", () =>
+test("real character model subtree survives plain skinned owner hydration and LOD initialization", (t) =>
 {
+  const manager = blue.resMan;
+  blue.resMan = new StubResMan();
+  t.after(() => { blue.resMan = manager; });
   const modelValues = JSON.parse(readFileSync(new URL("../../support/skinnedModelAsset.json", import.meta.url), "utf8")).object;
   const owner = CjsSchema.from("Tr2IntSkinnedObject", { visualModel: modelValues });
   assert.ok(owner.visualModel instanceof Tr2SkinnedModel);

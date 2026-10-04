@@ -1,26 +1,40 @@
-import { IsMatch, IInitialize, INotify } from "#blue";
 // Source: trinity/trinity/Tr2SkinnedModel.h
+// Source: trinity/trinity/Tr2SkinnedModel.cpp
+import { blue, IsMatch, IInitialize, INotify, ResourceRequirement } from "#blue";
 import { meta } from "#schema";
 import { Tr2Model } from "./Tr2Model.js";
 import { vec3 } from "#math/vec3";
 import { BLUELISTEVENT } from "#consts/blue";
 
+/** Carbon NO_SKELETON (Tr2SkinnedModel.cpp:10). */
+const NO_SKELETON = 0xffffffff;
+
+/** Carbon BoundingBoxInitialize's FLT_MAX (Utilities/BoundingBox.cpp:118-127). */
+const FLT_MAX = 3.4028234663852886e38;
+
 /**
- * Skinned character model selecting a named skeleton from supplied geometry
- * and coordinating mesh-to-rig bindings.
+ * Carbon's Tr2SkinnedModel (Tr2SkinnedModel.h:20-108): a model whose meshes are skinned to a named skeleton in its
+ * geometry resource, and bound to an animation rig's bone list.
+ *
+ * Not ported: GetBatches and GetBatchesForArea (cpp:32-139), which need Carbon's Tr2PerObjectDataSkinned and
+ * Tr2PerAreaDataSkinned (see the character README); until then Tr2Model's batches are used.
  */
 @meta.define({ className: "Tr2SkinnedModel", family: "trinityCore" })
 @meta.blue.inherit(IInitialize, INotify)
 export class Tr2SkinnedModel extends Tr2Model
 {
 
-  _areAllMeshesBound = false;
-
+  /** m_pBoneList: the bone list the meshes were last bound to. */
   _boneList = null;
 
-  _skeletonIndex = -1;
+  /** m_numBones */
+  _numBones = 0;
 
-  _skeletonResource = null;
+  /** m_areAllMeshesBound */
+  _areAllMeshesBound = false;
+
+  /** m_skeletonIx: the index of skeletonName in the geometry resource, or NO_SKELETON. */
+  _skeletonIx = NO_SKELETON;
 
   /** m_geometryResPath (std::string) [READWRITE, NOTIFY, PERSIST] */
   @meta.blue.notify
@@ -47,155 +61,160 @@ export class Tr2SkinnedModel extends Tr2Model
   @meta.type.vec3
   skinScale = vec3.fromValues(1, 1, 1);
 
-  /** Carbon INotify hook: refreshes the selected skeleton from an already supplied resource. */
+  /** Carbon OnModified (Tr2SkinnedModel.cpp:226-238): a new geometry path or skeleton name re-initialises. */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
+  @meta.implemented
   OnModified(propertyName)
   {
-    if (IsMatch(propertyName, "geometryResPath") || IsMatch(propertyName, "skeletonName")) this.Initialize();
+    if (IsMatch(propertyName, "geometryResPath"))
+    {
+      this.Initialize();
+    }
+    else if (IsMatch(propertyName, "skeletonName"))
+    {
+      this.Initialize();
+    }
     return true;
   }
 
   /**
-   * Resets binding state and selects a skeleton from the supplied geometry
-   * resource.
+   * Carbon Initialize (Tr2SkinnedModel.cpp:202-223): resets the skeleton and bindings, then acquires the geometry
+   * resource and becomes its notify target, so RebuildCachedData selects the skeleton once it is prepared (at once
+   * when it already is).
+   * @returns {boolean} true
    */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Character resource acquisition remains host-owned. Resets native skeleton/binding state and resolves against the supplied geometry; native resource subscription/acquisition is not implemented here.")
+  @meta.implemented
   @meta.invalidates("_areAllMeshesBound")
   Initialize()
   {
-    this._skeletonIndex = -1;
+    this._skeletonIx = NO_SKELETON;
     this._areAllMeshesBound = false;
-    this.RebuildCachedData(this.geometryRes);
+
+    if (!this.geometryResPath)
+    {
+      return true;
+    }
+
+    if (this.geometryRes)
+    {
+      this.geometryRes.RemoveNotifyTarget(this);
+      this.geometryRes = null;
+    }
+    this.geometryRes = blue.resMan.GetResource(this.geometryResPath, { requirement: ResourceRequirement.GEOMETRY });
+    if (this.geometryRes)
+    {
+      this.geometryRes.AddNotifyTarget(this);
+    }
     return true;
   }
 
-  /** Invalidates mesh binding completion when a mesh is inserted. */
+  /** Carbon OnListModified (Tr2SkinnedModel.cpp:276-283): an inserted mesh triggers rebinding. */
   @meta.blue.method
   @meta.implemented
   @meta.invalidates("_areAllMeshesBound")
   OnListModified(event)
   {
-    if (event === BLUELISTEVENT.BELIST_INSERTED) this._areAllMeshesBound = false;
+    if (event === BLUELISTEVENT.BELIST_INSERTED)
+    {
+      // Trigger rebinding of meshes
+      this._areAllMeshesBound = false;
+    }
   }
 
-  /** Carbon resource-notify hook: clears the selected skeleton index. */
+  /** Carbon ReleaseCachedData (Tr2SkinnedModel.cpp:240-243): forgets the selected skeleton. */
   @meta.blue.method
   @meta.implemented
   ReleaseCachedData(_resource = null)
   {
-    this._skeletonIndex = -1;
+    this._skeletonIx = NO_SKELETON;
   }
 
-  /** Carbon resource-notify hook: selects the exact named skeleton. */
+  /**
+   * Carbon RebuildCachedData (Tr2SkinnedModel.cpp:245-262): selects the first skeleton named skeletonName.
+   * @param {TriGeometryRes|null} [_resource] - the notifying resource; the model reads its own geometryRes
+   */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Consumes the structural TriGeometryRes skeleton-query surface supplied by an outer resource adapter.")
-  RebuildCachedData(resource = this.geometryRes)
+  @meta.implemented
+  RebuildCachedData(_resource = null)
   {
-    this._skeletonIndex = -1;
-    this._skeletonResource = resource ?? null;
-
-    if (!resource
-      || typeof resource.GetSkeletonCount !== "function"
-      || typeof resource.GetSkeletonData !== "function")
+    this._skeletonIx = NO_SKELETON;
+    if (this.geometryRes)
     {
-      return;
-    }
-
-    const count = Number(resource.GetSkeletonCount());
-
-    if (!Number.isInteger(count) || count < 0)
-    {
-      throw new TypeError("Tr2SkinnedModel geometry resource returned an invalid skeleton count");
-    }
-
-    for (let index = 0; index < count; index++)
-    {
-      const skeleton = resource.GetSkeletonData(index);
-      const name = skeleton?.name ?? skeleton?.m_name;
-
-      if (name === this.skeletonName)
+      const n = this.geometryRes.GetSkeletonCount();
+      for (let i = 0; i < n; ++i)
       {
-        this._skeletonIndex = index;
-        break;
+        const skel = this.geometryRes.GetSkeletonData(i);
+        if (skel.name === this.skeletonName)
+        {
+          this._skeletonIx = i;
+          break;
+        }
       }
     }
   }
 
-  /** Carbon native method GetSkeleton. */
+  /**
+   * Carbon GetSkeleton (Tr2SkinnedModel.cpp:264-272).
+   * @returns {object|null} the selected payload skeleton, or null when none is selected
+   */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Returns the selected structural geometry-resource skeleton object rather than a native pointer.")
+  @meta.implemented
   GetSkeleton()
   {
-    if (this._skeletonIndex < 0
-      || !this._skeletonResource
-      || typeof this._skeletonResource.GetSkeletonData !== "function")
+    if (this._skeletonIx === NO_SKELETON)
     {
       return null;
     }
 
-    return this._skeletonResource.GetSkeletonData(this._skeletonIndex) ?? null;
+    return this.geometryRes.GetSkeletonData(this._skeletonIx);
   }
 
-  /** Carbon native method BindToRig. */
+  /**
+   * Carbon BindToRig (Tr2SkinnedModel.cpp:159-195): binds every mesh to boneList against the selected skeleton,
+   * once per bone list unless forced or a mesh was not yet bound.
+   * @param {string[]|null} boneList - the animation rig's bone names; null clears the binding
+   * @param {number} numBones
+   * @param {boolean} forceRebind
+   */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Uses JavaScript bone-name arrays and structural mesh BindToRig methods instead of native string pointers and mesh objects.")
-  BindToRig(boneList, numBones = boneList?.length ?? 0, forceRebind = false)
+  @meta.implemented
+  BindToRig(boneList, numBones, forceRebind)
   {
     if (!forceRebind && boneList === this._boneList && this._areAllMeshesBound)
     {
       return;
     }
 
-    const skeleton = this.GetSkeleton();
-
-    if (!skeleton)
+    if (this._skeletonIx === NO_SKELETON)
     {
       return;
     }
 
-    if (boneList === null || boneList === undefined)
+    if (!boneList)
     {
       this._boneList = null;
       this._areAllMeshesBound = false;
       return;
     }
 
-    if (!Array.isArray(boneList))
-    {
-      throw new TypeError("Tr2SkinnedModel.BindToRig requires a bone-name array or null");
-    }
+    const skel = this.geometryRes.GetSkeletonData(this._skeletonIx);
 
-    const count = Number(numBones);
-
-    if (!Number.isInteger(count) || count < 0 || count > boneList.length)
-    {
-      throw new TypeError("Tr2SkinnedModel.BindToRig received an invalid bone count");
-    }
-
-    const rebind = forceRebind || !this._areAllMeshesBound;
+    forceRebind ||= !this._areAllMeshesBound; // if a reset was requested, make sure every mesh honors that
     this._areAllMeshesBound = true;
-
     for (const mesh of this.meshes)
     {
-      if (!mesh
-        || typeof mesh.BindToRig !== "function"
-        || mesh.BindToRig(boneList, count, skeleton, rebind) === false)
+      if (!mesh.BindToRig(boneList, numBones, skel, forceRebind))
       {
         this._areAllMeshesBound = false;
       }
     }
 
     this._boneList = boneList;
+    this._numBones = numBones;
   }
 
-  /** Carbon native method ResetBindings. */
+  /** Carbon ResetBindings (Tr2SkinnedModel.cpp:197-200). */
   @meta.blue.method
   @meta.implemented
   ResetBindings()
@@ -209,6 +228,58 @@ export class Tr2SkinnedModel extends Tr2Model
   ResetAnimationBindings()
   {
     this.ResetBindings();
+  }
+
+  /** Carbon SetGeometryResPath (Tr2SkinnedModel.h:72-75): sets the path without re-initialising. */
+  @meta.implemented
+  SetGeometryResPath(path)
+  {
+    this.geometryResPath = path;
+  }
+
+  /** Carbon GetGeometryResPath (Tr2SkinnedModel.h:76-79). */
+  @meta.implemented
+  GetGeometryResPath()
+  {
+    return this.geometryResPath;
+  }
+
+  /** Carbon SetSkeletonName (Tr2SkinnedModel.h:80-83): sets the name without re-initialising. */
+  @meta.implemented
+  SetSkeletonName(name)
+  {
+    this.skeletonName = name;
+  }
+
+  /**
+   * Carbon GetDynamicBoundingBox (Tr2SkinnedModel.cpp:285-299): the union of every mesh's skinned bounds under the
+   * bone transforms.
+   * @param {mat4[]} boneTransforms - the animation's bone transforms
+   * @param {vec3} minBounds - receives the minimum
+   * @param {vec3} maxBounds - receives the maximum
+   * @returns {boolean} false when the model has no meshes
+   */
+  @meta.implemented
+  GetDynamicBoundingBox(boneTransforms, minBounds, maxBounds)
+  {
+    if (!this.meshes.length)
+    {
+      return false;
+    }
+
+    vec3.set(minBounds, FLT_MAX, FLT_MAX, FLT_MAX);
+    vec3.set(maxBounds, -FLT_MAX, -FLT_MAX, -FLT_MAX);
+
+    for (const mesh of this.meshes)
+    {
+      const aabb = mesh.GetBounds(boneTransforms);
+      if (aabb)
+      {
+        vec3.min(minBounds, minBounds, aabb.min);
+        vec3.max(maxBounds, maxBounds, aabb.max);
+      }
+    }
+    return true;
   }
 
 }

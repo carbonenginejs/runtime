@@ -6,6 +6,7 @@ import { BLUELISTEVENT } from "#consts/blue";
 import { BlueList, IListNotify } from "#blue";
 import { vec3 } from "#math/vec3";
 import { CjsSchema, meta } from "#schema";
+import { TriGeometryRes } from "#resource/geometry";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2RenderBatch, TriRenderBatchAreaBlock, TriRenderBatchAreaBlocksWithSharedMaterial } from "../batch/TriRenderBatch/index.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
@@ -34,6 +35,21 @@ export class Tr2MeshBase
   @meta.blue.persist
   @meta.type.int32
   meshIndex = 0;
+
+  /** m_jointMappingAnimRig: for each of the mesh's joint bindings, its bone index in the bound rig. */
+  _jointMappingAnimRig = null;
+
+  /** m_pBoneList: the bone list the mesh was last bound to. */
+  _boneList = null;
+
+  /** m_renderRig: the skeleton the mesh was last bound against. */
+  _renderRig = null;
+
+  /** m_numBones */
+  _numBones = 0;
+
+  /** m_forcedRebind */
+  _forcedRebind = false;
 
   @meta.blue.read
   @meta.blue.persist
@@ -145,20 +161,147 @@ export class Tr2MeshBase
   }
 
   /**
-   * Returns the geometry bounds after applying Carbon's material-driven local
-   * scale, displacement, and vertex-rotation expansion.
+   * Carbon Tr2MeshBase::FindJoint (Tr2MeshBase.cpp:120-133): the index of name in the first numBones of boneList.
+   * @param {string[]|null} boneList
+   * @param {number} numBones
+   * @param {string|null} name
+   * @returns {number} the index, or 0xffffffff when absent
+   */
+  @meta.implemented
+  FindJoint(boneList, numBones, name)
+  {
+    if (boneList && name)
+    {
+      for (let ix = 0; ix < numBones; ++ix)
+      {
+        if (name === boneList[ix])
+        {
+          return ix;
+        }
+      }
+    }
+    return 0xffffffff;
+  }
+
+  /**
+   * Carbon Tr2MeshBase::BindToRig (Tr2MeshBase.cpp:135-216): maps each of the mesh's joint bindings to its bone in
+   * boneList; a joint the rig lacks falls back through its render-rig parents until one is found. Every area then
+   * shares the mapping and its joint count.
+   *
+   * Adapted: renderRig is the decoded payload skeleton, { name, bones: [names], parents }, so Carbon's
+   * renderRig->FindJoint and m_joints[i].m_parentJoint / m_name read bones.indexOf, parents[i] and bones[i]; the mesh's
+   * m_jointBindings are the payload mesh's boneBindings. Carbon's CCP_LOGWARN on an unknown joint is not reproduced.
+   * @param {string[]} boneList - the animation rig's bone names
+   * @param {number} numBones
+   * @param {object} renderRig - the geometry resource's skeleton
+   * @param {boolean} [forceRebind]
+   * @returns {boolean} false while the geometry is not prepared
+   */
+  @meta.adapted
+  BindToRig(boneList, numBones, renderRig, forceRebind = false)
+  {
+    forceRebind ||= this._forcedRebind;
+    this._forcedRebind = false;
+
+    const geometry = this.GetGeometryResource();
+    if (!geometry || !geometry.IsPrepared())
+    {
+      return false;
+    }
+
+    if (this._boneList === boneList && this._renderRig === renderRig && this._numBones === numBones && !forceRebind)
+    {
+      return true;
+    }
+
+    const meshData = geometry.GetMeshData(this.meshIndex);
+    if (!meshData)
+    {
+      // resource is prepared but mesh doesn't exist, this can happen for ragdoll dummy boxshapes.
+      // don't trigger continuous rebindings, return true.
+      return true;
+    }
+
+    const bindings = meshData.boneBindings;
+    const n = bindings.length;
+    this._jointMappingAnimRig = new Uint32Array(n); // alloc: the binding table the areas share until the next bind
+
+    for (let j = 0; j < n; ++j)
+    {
+      let name = bindings[j].name;
+
+      this._jointMappingAnimRig[j] = this.FindJoint(boneList, numBones, name);
+
+      while (this._jointMappingAnimRig[j] === 0xffffffff)
+      {
+        const renderIndex = renderRig.bones.indexOf(name);
+        if (renderIndex === -1)
+        {
+          break;
+        }
+        const parentIndex = renderRig.parents[renderIndex];
+        if (parentIndex === 0xffffffff)
+        {
+          break;
+        }
+        const parentName = renderRig.bones[parentIndex];
+        this._jointMappingAnimRig[j] = this.FindJoint(boneList, numBones, parentName);
+        name = parentName;
+      }
+    }
+
+    for (const property of Tr2MeshBase._areaProperties)
+    {
+      for (const area of this[property])
+      {
+        area.SetJointMappingAnimRig(this._jointMappingAnimRig);
+        area.SetJointCount(n);
+      }
+    }
+
+    // set this so we only do this once!
+    this._boneList = boneList;
+    this._renderRig = renderRig;
+    this._numBones = numBones;
+
+    return true;
+  }
+
+  /**
+   * Carbon Tr2MeshBase::GetBounds (Tr2MeshBase.cpp:218-282). With bone transforms, the box around every joint
+   * binding's oriented box under its bone, grown by the weighted morph-target deformation; a mesh bound to a rig
+   * (BindToRig) uses its own binding table in place of meshBindingIndices and boneCount ("for old character stuff").
+   * Otherwise, and when no binding applies, the geometry's box. Both then take Carbon's AdjustBounds: the
+   * material-driven local scale, displacement and vertex-rotation expansion.
+   *
+   * Adapted: Carbon returns its cached box; here the box is read from the geometry, and null when there is none.
+   * Bone transforms are mat4s whose memory matches Carbon's row-vector Matrix, so rows 0-2 are elements 0-2, 4-6
+   * and 8-10 and the translation is 12-14. The payload's boneBindings carry the joint OBB as bounds or
+   * minBounds/maxBounds. Morph growth reads the LOD's morphTargetDeformationAmounts, which Carbon fills at load
+   * (TriGeometryRes.cpp:2134, 2293) and our decoders do not yet produce.
+   * @param {mat4[]|null} [boneTransforms]
+   * @param {ArrayLike<number>|null} [meshBindingIndices] - each binding's index into boneTransforms
+   * @param {number} [boneCount]
+   * @param {{ index: number, weight: number }[]|null} [morphTargets]
+   * @param {number} [morphTargetsCount]
+   * @returns {{ min: vec3, max: vec3 }|null}
    */
   @meta.blue.method
   @meta.adapted
-  GetBounds()
+  GetBounds(boneTransforms = null, meshBindingIndices = null, boneCount = 0, morphTargets = null, morphTargetsCount = 0)
   {
     const geometry = this.GetGeometryResource();
     if (!geometry) return null;
-    const source = geometry.GetBoundingBox(this.meshIndex);
-    if (!source) return null;
 
-    const min = vec3.clone(source.min ?? source.minBounds);
-    const max = vec3.clone(source.max ?? source.maxBounds);
+    const min = vec3.create();
+    const max = vec3.create();
+    if (!(boneTransforms && this._GetSkinnedBounds(geometry, boneTransforms, meshBindingIndices, boneCount, morphTargets, morphTargetsCount, min, max)))
+    {
+      const source = geometry.GetBoundingBox(this.meshIndex);
+      if (!source) return null;
+      vec3.copy(min, source.min ?? source.minBounds);
+      vec3.copy(max, source.max ?? source.maxBounds);
+    }
     const scale = this.maxVertexScale;
 
     for (let index = 0; index < 3; index++)
@@ -181,6 +324,64 @@ export class Tr2MeshBase
     }
 
     return { min, max };
+  }
+
+  /**
+   * The bone branch of Carbon's GetBounds (Tr2MeshBase.cpp:220-276), written into min and max.
+   * @returns {boolean} false when the mesh has no binding data or no bones, so the caller falls back to the box
+   */
+  _GetSkinnedBounds(geometry, boneTransforms, meshBindingIndices, boneCount, morphTargets, morphTargetsCount, min, max)
+  {
+    const meshData = geometry.GetMeshData(this.meshIndex);
+
+    if (this._jointMappingAnimRig && this._jointMappingAnimRig.length)
+    {
+      // for old character stuff
+      boneCount = this._jointMappingAnimRig.length;
+      meshBindingIndices = this._jointMappingAnimRig;
+    }
+
+    if (!meshData || boneCount <= 0)
+    {
+      return false;
+    }
+
+    vec3.set(min, Infinity, Infinity, Infinity);
+    vec3.set(max, -Infinity, -Infinity, -Infinity);
+    for (let i = 0; i < boneCount; ++i)
+    {
+      const joint = TriGeometryRes.getBounds(meshData.boneBindings[i]);
+      const m = boneTransforms[meshBindingIndices[i]];
+      for (let axis = 0; axis < 3; ++axis)
+      {
+        // Row r of Carbon's Matrix is elements 4r..4r+2; the translation is 12..14.
+        let low = m[12 + axis];
+        let high = m[12 + axis];
+        for (let row = 0; row < 3; ++row)
+        {
+          const fromMin = m[4 * row + axis] * joint.min[row];
+          const fromMax = m[4 * row + axis] * joint.max[row];
+          low += Math.min(fromMin, fromMax);
+          high += Math.max(fromMin, fromMax);
+        }
+        min[axis] = Math.min(min[axis], low);
+        max[axis] = Math.max(max[axis], high);
+      }
+    }
+
+    let morphDeformation = 0;
+    if (morphTargetsCount)
+    {
+      const lod = geometry.GetMeshLod_LodIndex(this.meshIndex, 0);
+      for (let i = 0; i < morphTargetsCount; i++)
+      {
+        const morph = morphTargets[i];
+        morphDeformation += lod.morphTargetDeformationAmounts[morph.index] * morph.weight;
+      }
+    }
+    min[0] -= morphDeformation; min[1] -= morphDeformation; min[2] -= morphDeformation;
+    max[0] += morphDeformation; max[1] += morphDeformation; max[2] += morphDeformation;
+    return true;
   }
 
   /** Writes the adjusted mesh bounds into caller-owned minimum and maximum vectors. */
