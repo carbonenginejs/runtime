@@ -2086,7 +2086,7 @@ export class EveTurretSet extends EveEntity
     if (!this.turretEffect || !this.turretEffect.IsGood()) return false;
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.turretEffect);
-    batch.SetGeometryFromAllocations2(this._vertexDeclHandle, lod.vertexAllocation, this._instanceBuffer, lod.indexAllocation);
+    batch.SetGeometry_AllocationSecondStream(this._vertexDeclHandle, lod.vertexAllocation, this._instanceBuffer, lod.indexAllocation);
     batch.SetPerObjectData(perObjectData);
     batch.SetDrawIndexedInstanced(TriGeometryRes.getLodPrimitiveCount(lod) * 3, this.visibleCount,
       lod.indexAllocation.GetStartIndex(), lod.vertexAllocation.GetOffset() / lod.vertexAllocation.GetStride(),
@@ -2167,7 +2167,7 @@ export class EveTurretSet extends EveEntity
     if (!this.turretEffect || !this.turretEffect.IsGood()) return false;
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.turretEffect);
-    batch.SetGeometryFromAllocations2(this._vertexDeclHandle, lod.vertexAllocation, this._instanceBuffer, lod.indexAllocation);
+    batch.SetGeometry_AllocationSecondStream(this._vertexDeclHandle, lod.vertexAllocation, this._instanceBuffer, lod.indexAllocation);
     batch.SetPerObjectData(perObjectData);
     batch.SetDrawIndexedInstanced(TriGeometryRes.getLodPrimitiveCount(lod) * 3, this.visibleCount,
       lod.indexAllocation.GetStartIndex(), lod.vertexAllocation.GetOffset() / lod.vertexAllocation.GetStride(),

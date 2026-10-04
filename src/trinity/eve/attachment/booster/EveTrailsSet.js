@@ -307,7 +307,7 @@ export class EveTrailsSet
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.effect);
     batch.SetPerObjectData(perObjectData);
-    batch.SetGeometryFromAllocations2(this._vertexDeclHandle, vertices, instances, lod.indexAllocation);
+    batch.SetGeometry_AllocationSecondStream(this._vertexDeclHandle, vertices, instances, lod.indexAllocation);
     batch.SetDrawIndexedInstanced(
       TriGeometryRes.getPrimitiveCount(lod, 0, lod.areas?.length ?? 0) * 3,
       this._trailData.length,

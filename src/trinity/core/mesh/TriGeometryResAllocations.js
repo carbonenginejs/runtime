@@ -191,7 +191,7 @@ export function RealizeBatchGeometry(batch, renderContext)
 
   if (!CreateLodAllocations(source.geometry, source.meshIndex, lod, renderContext)) return false;
 
-  batch.SetGeometryFromAllocations(batch.vertexDeclaration, lod.vertexAllocation, lod.indexAllocation);
+  batch.SetGeometry_Allocation(batch.vertexDeclaration, lod.vertexAllocation, lod.indexAllocation);
 
   const draw = Tr2RenderBatch.resolveDrawArguments(lod, source.areaIndex, source.count, source.reversed);
 

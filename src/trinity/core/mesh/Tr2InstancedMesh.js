@@ -269,7 +269,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
       const batch = new Tr2RenderBatch();
       batch.SetMaterial(material);
       batch.SetPerObjectData(data);
-      batch.SetGeometryFromAllocations(this._vertexDeclaration, lod.vertexAllocation, lod.indexAllocation);
+      batch.SetGeometry_Allocation(this._vertexDeclaration, lod.vertexAllocation, lod.indexAllocation);
       batch.SetStreamSource(1, instanceData.buffer, instanceData.stride);
       batch.SetDrawIndexedInstanced(draw.indexCountPerInstance, instanceData.count,
         draw.startIndexLocation, draw.baseVertexLocation, instanceData.offset / instanceData.stride);

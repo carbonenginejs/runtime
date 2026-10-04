@@ -39,7 +39,7 @@ export function OrderOf(ref)
 
 // THE ALLOCATION TYPE IS A PORT GAP, AND THESE TWO HELPERS ARE WHERE IT SHOWS.
 //
-// Carbon's `SetGeometryFromAllocations` takes a `Tr2SuballocatedBuffer::Allocation`
+// Carbon's `SetGeometry_Allocation` takes a `Tr2SuballocatedBuffer::Allocation`
 // (`Tr2SuballocatedBuffer.h:23-66`) and simply calls `GetBuffer()`, `GetOffset()`,
 // `GetStride()` and `GetStartIndex()` on it - no probing, because the type is the
 // argument. We have no such class: it needs `Tr2VirtualAllocator`, which in
@@ -174,13 +174,14 @@ export class Tr2RenderBatch
     this.indexStride = indexStride >>> 0;
   }
 
-  // Carbon overload taking suballocated-buffer allocations (the mesh path).
-
   /**
-   * Binds geometry from suballocated buffer allocations, taking each
-   * allocation's buffer and stride (Carbon's mesh path).
+   * Carbon's SetGeometry( vertexDecl, Allocation& vb, Allocation& ib )
+   * (TriRenderBatch.h:69): binds suballocated buffer allocations, taking each
+   * allocation's buffer and stride (Carbon's mesh path). Named after the
+   * allocation parameters that replace vb/stride/ib (docs 22d1237); formerly
+   * SetGeometryFromAllocations.
    */
-  SetGeometryFromAllocations(vertexDeclaration, vertexAllocation, indexAllocation)
+  SetGeometry_Allocation(vertexDeclaration, vertexAllocation, indexAllocation)
   {
     this.SetGeometry(
       vertexDeclaration,
@@ -191,15 +192,14 @@ export class Tr2RenderBatch
     );
   }
 
-  // Carbon two-stream allocation overload.
-
   /**
-   * Binds a two-stream allocation set; the second allocation becomes vertex
-   * stream 1.
+   * Carbon's SetGeometry( vertexDecl, vb1, vb2, ib ) (h:70): the second
+   * allocation becomes vertex stream 1. Named for what it adds to
+   * SetGeometry_Allocation; formerly SetGeometryFromAllocations2.
    */
-  SetGeometryFromAllocations2(vertexDeclaration, vertexAllocation1, vertexAllocation2, indexAllocation)
+  SetGeometry_AllocationSecondStream(vertexDeclaration, vertexAllocation1, vertexAllocation2, indexAllocation)
   {
-    this.SetGeometryFromAllocations(vertexDeclaration, vertexAllocation1, indexAllocation);
+    this.SetGeometry_Allocation(vertexDeclaration, vertexAllocation1, indexAllocation);
     this.vertexStreams[1] = AllocationBuffer(vertexAllocation2);
     this.stride[1] = AllocationStride(vertexAllocation2);
   }
@@ -211,6 +211,8 @@ export class Tr2RenderBatch
    * GPU-free geometry binding: records the geometry resource plus the mesh and
    * area range for the engine to resolve into realized buffers and draw
    * arguments at dispatch.
+   * Ours: Carbon has no counterpart (it binds realized buffers through
+   * SetGeometry); this lets a batch be built before its geometry is on the GPU.
    */
   SetGeometrySource(geometry, meshIndex, areaIndex, count, reversed, lod = null)
   {

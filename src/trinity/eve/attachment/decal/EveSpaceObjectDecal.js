@@ -817,7 +817,7 @@ export class EveSpaceObjectDecal
       ? this._vertexDeclarationOverride
       : Tr2EffectStateManager.getVertexDeclarationHandle(CarbonVertexElements(this._baseGeometryResource.GetMeshVertexElements(0)));
 
-    batch.SetGeometryFromAllocations(declaration, lod.vertexAllocation, decalGeometry.indexBuffer);
+    batch.SetGeometry_Allocation(declaration, lod.vertexAllocation, decalGeometry.indexBuffer);
     batch.SetPerObjectData(perObjectData);
 
     const indexCount = decalLod.primitiveCount * 3;
