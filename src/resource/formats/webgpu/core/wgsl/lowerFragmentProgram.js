@@ -1275,9 +1275,23 @@ function expressionFor(program, instruction, write, inputs, bindings, context = 
             const inBounds = `${address}.z < ${mipCount} && all(${address}.xy < ${dimensions})`;
             loaded = `select(vec4<f32>(), textureLoad(${symbol}, ${safeCoordinates}, ${safeLevel}), ${inBounds})`;
         }
+        else if (textureBinding.texture?.viewDimension === "3d")
+        {
+            // D3D11 ld on a Texture3D: the address is (x, y, z, mip), and an
+            // out-of-bounds texel or mip reads 0, as for 2D. The clamped load is
+            // formed first, then selected to 0.
+            const address = source(1, 4);
+            const symbol = textureBinding.generatedSymbol;
+            const mipCount = `textureNumLevels(${symbol})`;
+            const safeLevel = `min(${address}.w, ${mipCount} - 1u)`;
+            const dimensions = `textureDimensions(${symbol}, ${safeLevel})`;
+            const safeCoordinates = `min(${address}.xyz, ${dimensions} - vec3<u32>(1u))`;
+            const inBounds = `${address}.w < ${mipCount} && all(${address}.xyz < ${dimensions})`;
+            loaded = `select(vec4<f32>(), textureLoad(${symbol}, ${safeCoordinates}, ${safeLevel}), ${inBounds})`;
+        }
         else
         {
-            throw new Error(`WGSL fragment load instruction ${instruction.index} resource shape is not supported; only 2d textures and typed buffers are supported`);
+            throw new Error(`WGSL fragment load instruction ${instruction.index} resource shape is not supported; only 2d and 3d textures and typed buffers are supported`);
         }
         const components = rawSelectedComponents(resource, mask, count);
         return count === 4 && components.join("") === "xyzw" ? loaded : `${loaded}.${components.join("")}`;
