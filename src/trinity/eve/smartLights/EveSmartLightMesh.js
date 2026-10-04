@@ -159,19 +159,25 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   }
 
   /**
-   * The two-argument EveChildMesh overload is a deliberate no-op. With the
-   * third argument, the owning EveChildSmartLightSet supplies the distribution.
+   * Carbon's EveChildMesh overload UpdateSyncronous( context, params ): an
+   * empty override (EveSmartLightMesh.h:23); the owning EveChildSmartLightSet
+   * drives this mesh through UpdateSyncronousDistribution instead.
    */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("JavaScript dispatches Carbon's two UpdateSyncronous overloads by argument count; the smart-light set owns the distribution.")
-  UpdateSyncronous(updateContext, params, distribution)
+  @meta.noop
+  UpdateSyncronous(_updateContext, _params)
   {
-    if (arguments.length < 3)
-    {
-      return;
-    }
+  }
 
+  /**
+   * Carbon's IEveSmartLightGroup overload UpdateSyncronous( context, params,
+   * distribution ) (EveSmartLightMesh.cpp:21); the owning EveChildSmartLightSet
+   * supplies the distribution.
+   */
+  @meta.blue.renamed("UpdateSyncronous")
+  @meta.implemented
+  UpdateSyncronousDistribution(updateContext, params, distribution)
+  {
     EveChildMesh.prototype.UpdateSyncronous.call(this, updateContext, params);
     if (!distribution || !this.display)
     {
@@ -251,16 +257,21 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
     }
   }
 
-  /** Carbon's two-argument overload is a no-op; the three-argument one updates the mesh base. */
+  /** Carbon's EveChildMesh overload UpdateAsyncronous( context, params ): an empty override (EveSmartLightMesh.h:24). */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("JavaScript dispatches Carbon's two UpdateAsyncronous overloads by argument count.")
-  UpdateAsyncronous(updateContext, params, _distribution)
+  @meta.noop
+  UpdateAsyncronous(_updateContext, _params)
   {
-    if (arguments.length < 3)
-    {
-      return;
-    }
+  }
+
+  /**
+   * Carbon's IEveSmartLightGroup overload UpdateAsyncronous( context, params,
+   * distribution ) (EveSmartLightMesh.cpp:139): updates the instance-mesh base.
+   */
+  @meta.blue.renamed("UpdateAsyncronous")
+  @meta.implemented
+  UpdateAsyncronousDistribution(updateContext, params, _distribution)
+  {
     return super.UpdateAsyncronous(updateContext, params);
   }
 

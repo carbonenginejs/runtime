@@ -365,7 +365,7 @@ test("smart-light modifiers receive a nominal detached placement and RGB-only co
     [1.5, 0.75, 2.25]
   );
   const frame = createFrame(worldTransform);
-  smart.UpdateAsyncronous(frame.updateContext, frame.params, distribution);
+  smart.UpdateAsyncronousDistribution(frame.updateContext, frame.params, distribution);
 
   let received = null;
   const modifier = {
@@ -378,7 +378,7 @@ test("smart-light modifiers receive a nominal detached placement and RGB-only co
     }
   };
   smart.attributeModifiers.push(modifier);
-  smart.UpdateSyncronous(frame.updateContext, frame.params, distribution);
+  smart.UpdateSyncronousDistribution(frame.updateContext, frame.params, distribution);
 
   assert.ok(received.value instanceof PlacementDataWithIdentifier);
   assert.notEqual(received.value, placement);
@@ -392,7 +392,7 @@ test("smart-light modifiers receive a nominal detached placement and RGB-only co
 
   const inherited = new TestDistribution([]);
   smart.distribution = inherited;
-  smart.UpdateAsyncronous(frame.updateContext, frame.params, distribution);
+  smart.UpdateAsyncronousDistribution(frame.updateContext, frame.params, distribution);
   assert.equal(inherited.asyncCount, 1);
 });
 

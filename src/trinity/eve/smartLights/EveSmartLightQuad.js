@@ -238,10 +238,10 @@ export class EveSmartLightQuad extends EveChildTransform
    * and updates the attribute modifiers with full strength
    * (EveSmartLightQuad.cpp:73-98).
    */
-  @meta.blue.method
+  @meta.blue.renamed("UpdateSyncronous")
   @meta.adapted
   @meta.reason("Carbon re-registers through the Tr2QuadRenderer singleton; the relocated renderer arrives via the threaded update context when present.")
-  UpdateSyncronous(updateContext, params, _distribution)
+  UpdateSyncronousDistribution(updateContext, params, _distribution)
   {
     this._activationStrength = params?.activationStrength ?? 1;
 
@@ -277,9 +277,9 @@ export class EveSmartLightQuad extends EveChildTransform
    * matrix (EveSmartLightQuad.cpp:100-114); the child parent wins over the
    * space object parent.
    */
-  @meta.blue.method
+  @meta.blue.renamed("UpdateAsyncronous")
   @meta.implemented
-  UpdateAsyncronous(_updateContext, params, _distribution)
+  UpdateAsyncronousDistribution(_updateContext, params, _distribution)
   {
     let localToWorld = params?.localToWorldTransform ?? EveSmartLightQuad._identity;
 
