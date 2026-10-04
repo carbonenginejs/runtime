@@ -433,7 +433,7 @@ test("the shadow cascade block is written only when a shadow map is supplied", (
   }
   split.SplitInfo.set([ 0.25, 0.5, 0.75, 1 ]);
 
-  const filled = scene.PopulatePerFramePSData(context, {}, shadowMap);
+  const filled = scene.PopulatePerFramePSData_ShadowMap(context, {}, shadowMap);
 
   assert.deepEqual(
     Array.from(filled.Copy("ShadowMapValues", new Float32Array(4), 2)),
@@ -456,7 +456,7 @@ test("the shadow cascade block is written only when a shadow map is supplied", (
     "the omitted argument uses the scene-owned cascaded shadow map"
   );
 
-  const disabled = scene.PopulatePerFramePSData(context, {}, null);
+  const disabled = scene.PopulatePerFramePSData_ShadowMap(context, {}, null);
   assert.deepEqual(
     Array.from(disabled.Copy("ShadowCameraRange", new Float32Array(2))),
     [ 1, 0 ],
@@ -479,7 +479,7 @@ test("each cascade matrix lands in its own cell of the 8x2 atlas", () =>
   const context = makeContext();
   const shadowMap = new Tr2ShadowMap();
 
-  const record = scene.PopulatePerFramePSData(context, {}, shadowMap);
+  const record = scene.PopulatePerFramePSData_ShadowMap(context, {}, shadowMap);
 
   const first = mat4.transpose(
     mat4.create(),
@@ -522,7 +522,7 @@ test("logical shadow matrices are composed once and transposed only at RawData",
   const shadowMap = new Tr2ShadowMap();
   mat4.copy(shadowMap.GetPerSplitData().ShadowMatrixVal[0], logicalLvp);
 
-  const record = new EveSpaceScene().PopulatePerFramePSData(context, {}, shadowMap);
+  const record = new EveSpaceScene().PopulatePerFramePSData_ShadowMap(context, {}, shadowMap);
   const actualLogical = mat4.transpose(
     mat4.create(),
     record.Copy("ShadowMatrixVal", new Float32Array(16), 0)
@@ -571,7 +571,7 @@ test("Tr2ShadowMap split output reaches the packed scene record end to end", () 
     0.8,
     -1.2
   );
-  const record = new EveSpaceScene().PopulatePerFramePSData(context, {}, shadowMap);
+  const record = new EveSpaceScene().PopulatePerFramePSData_ShadowMap(context, {}, shadowMap);
   const actual = mat4.transpose(
     mat4.create(),
     record.Copy("ShadowMatrixVal", new Float32Array(16), 0)
@@ -623,11 +623,11 @@ test("controlled shadow-map shapes fail loudly instead of uploading fallback zer
   const scene = new EveSpaceScene();
   const context = makeContext();
   assert.throws(
-    () => scene.PopulatePerFramePSData(context, {}, { GetPerSplitData: () => ({}) }),
+    () => scene.PopulatePerFramePSData_ShadowMap(context, {}, { GetPerSplitData: () => ({}) }),
     /requires a Tr2ShadowMap/u
   );
   assert.throws(
-    () => scene.PopulatePerFramePSData(context, {}, {}),
+    () => scene.PopulatePerFramePSData_ShadowMap(context, {}, {}),
     /requires a Tr2ShadowMap/u
   );
 });
@@ -681,7 +681,7 @@ test("with no frame supplied, the fills read the engine state Carbon's statics h
   const projection = mat4.perspectiveNO(mat4.create(), Math.PI / 2, 1.5, 1, 1000);
   const context = makeContext({ projection });
 
-  const ps = scene.PopulatePerFramePSData(context, undefined, null);
+  const ps = scene.PopulatePerFramePSData_ShadowMap(context, undefined, null);
   const vs = scene.PopulatePerFrameVSData(context);
 
   assertClose(ps.Copy("GammaBrightness", new Float32Array(1)), [ EveSpaceScene.eveSpaceSceneGammaBrightness ], "gamma is g_eveSpaceSceneGammaBrightness");

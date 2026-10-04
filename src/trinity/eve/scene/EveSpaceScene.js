@@ -150,7 +150,7 @@ function EmptyShadowResources()
 //     (cpp:1524), so every receiver's secondary-lighting coefficients are
 //     current for the frame being submitted. Skipped entirely when the scene
 //     carries no shLightingManager.
-// 10c. `scene.PopulatePerFramePSData(renderContext, frame, shadowMap)` then
+// 10c. `scene.PopulatePerFramePSData_ShadowMap(renderContext, frame, shadowMap)` then
 //     `scene.PopulatePerFrameVSData(renderContext, frame)` - Carbon's order at
 //     cpp:1424-1425, PS first, because the pixel fill is what resolves
 //     m_upscalingAmount that the vertex fill then reads. Runs after GatherLights
@@ -2852,7 +2852,7 @@ export class EveSpaceScene
       renderContext.SetRenderState(RenderState.RS_DEPTH_CLIP_ENABLE, 1);
     }
 
-    this.PopulatePerFramePSData(renderContext, {}, shadowMap);
+    this.PopulatePerFramePSData_ShadowMap(renderContext, {}, shadowMap);
     this.ApplyPerFrameData(renderContext);
 
     const result = shadowMap.DrawToShadowMapResult(renderContext, gpuResourcePool, depthMap, cascadedShadowDepth.Get(), this.upscalingAmount, renderer);
@@ -3064,6 +3064,22 @@ export class EveSpaceScene
   }
 
   /**
+   * Carbon's PopulatePerFramePSData( data, renderContext ) (cpp:3084): fills
+   * with the scene's own cascaded shadow map.
+   *
+   * @param {Object} renderContext - the frame's Tr2RenderContext
+   * @param {Object} [frame] - see PopulatePerFramePSData_ShadowMap
+   * @param {Object} [out] - the record to fill; defaults to the scene's own
+   * @returns {Object} the filled record
+   */
+  @meta.blue.method
+  @meta.adapted
+  PopulatePerFramePSData(renderContext, frame = {}, out = this._perFramePS)
+  {
+    return this.PopulatePerFramePSData_ShadowMap(renderContext, frame, this.cascadedShadowMap, out);
+  }
+
+  /**
    * Fills the per-frame PIXEL constants (Carbon
    * EveSpaceScene::PopulatePerFramePSData, cpp:3075-3202). Same `frame`
    * adaptation as the vertex fill.
@@ -3083,15 +3099,17 @@ export class EveSpaceScene
    *   scene post-process's own; the upscaling info is engine state
    * @param {Number} [frame.inverseShadowMapAtlasSize] - 0 with no light manager
    * @param {Number} [frame.shadowMapAtlasEntryMinSizeLog2]
-   * @param {Tr2ShadowMap|null} [shadowMap=this.cascadedShadowMap] - the owned
-   *   cascaded shadow map; explicit null disables cascade packing
+   * Carbon's PopulatePerFramePSData( data, shadowMap, renderContext )
+   * (cpp:3089), named by its extra shadowMap parameter.
+   *
+   * @param {Tr2ShadowMap|null} shadowMap - null disables cascade packing
    * @param {Object} [out] - the record to fill; defaults to the scene's own
    * @returns {Object} the filled record
    */
-  @meta.blue.method
+  @meta.blue.renamed("PopulatePerFramePSData")
   @meta.adapted
   @meta.reason("Tr2Renderer statics, the ESM viewport, Tr2LightManager's atlas settings and the upscaler's mip bias are engine state; the driver supplies them in `frame`.")
-  PopulatePerFramePSData(renderContext, frame = {}, shadowMap = this.cascadedShadowMap, out = this._perFramePS)
+  PopulatePerFramePSData_ShadowMap(renderContext, frame = {}, shadowMap, out = this._perFramePS)
   {
     frame = { ...this._EngineFrameState(renderContext), ...frame };
     if (shadowMap !== null && !(shadowMap instanceof Tr2ShadowMap))
