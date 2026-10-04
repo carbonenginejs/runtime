@@ -286,6 +286,28 @@ export class Tr2Material
   }
 
   /**
+   * One parameter's copy into the constant mirror, shared by UpdateConstants'
+   * two loops.
+   *
+   * The register index is a BYTE OFFSET into the mirror, and the count a byte
+   * size. Carbon indexes the raw pointer with both and memcpys FLOAT bytes into
+   * it; the parameters here write components with `dest[i] =`, so they must be
+   * handed a FLOAT view of those bytes. Handed the byte mirror itself, each
+   * float landed as one truncated byte over the container default - every
+   * dynamic parameter on every effect ran at its default (film grain:
+   * intensity 0.05 and modifier +3 for 0.0008 and -3).
+   */
+  static _CopyParameter(parameter, shaderType, mirror, renderContext)
+  {
+    parameter.sourceValue?.CopyValueToEffect(
+      shaderType,
+      new Float32Array(mirror.buffer, mirror.byteOffset + parameter.registerIndex, parameter.registerCount >> 2),
+      parameter.registerCount,
+      renderContext
+    );
+  }
+
+  /**
    * Refills one stage's CPU constant mirror from its parameters.
    *
    * Carbon `Tr2Material::UpdateConstants`. The three-way condition is Carbon's:
@@ -309,21 +331,16 @@ export class Tr2Material
 
     if (!mirror) return false;
 
-    for (const parameter of [ ...input.shaderParameters, ...input.shaderParametersWithNotification ])
+    // Two loops, as Carbon's (cpp:326-337), rather than spreading both lists
+    // into a new array on every apply of every material.
+    for (const parameter of input.shaderParameters)
     {
-      // The register index is a BYTE OFFSET into the mirror, and the count a
-      // byte size. Carbon indexes the raw pointer with both and memcpys FLOAT
-      // bytes into it; the parameters here write components with `dest[i] =`,
-      // so they must be handed a FLOAT view of those bytes. Handed the byte
-      // mirror itself, each float landed as one truncated byte over the
-      // container default - every dynamic parameter on every effect ran at its
-      // default (film grain: intensity 0.05 and modifier +3 for 0.0008 and -3).
-      parameter.sourceValue?.CopyValueToEffect(
-        shaderType,
-        new Float32Array(mirror.buffer, mirror.byteOffset + parameter.registerIndex, parameter.registerCount >> 2),
-        parameter.registerCount,
-        renderContext
-      );
+      Tr2Material._CopyParameter(parameter, shaderType, mirror, renderContext);
+    }
+
+    for (const parameter of input.shaderParametersWithNotification)
+    {
+      Tr2Material._CopyParameter(parameter, shaderType, mirror, renderContext);
     }
 
     // Carbon (`cpp:341-346`): lock, copy the mirror, unlock. The upload itself
