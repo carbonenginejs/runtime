@@ -460,7 +460,7 @@ export const DEFAULT_FUNCTIONS = {
   fractal: (ctx, x, alpha, beta, n) =>
     (carbonPerlin1D(ToNumber(x) + GetRandomConstant(ctx), ToNumber(alpha), ToNumber(beta), Math.trunc(ToNumber(n) + 0.5)) + 1) / 2,
   input: (ctx, index) => GetInputValue(ctx, index),
-  inputAt: (ctx, index, time) => GetInputValue(ctx, index, time),
+  inputAt: (ctx, index, time) => GetInputValueTime(ctx, index, time),
   StateTime: ctx => ctx.stateMachine?.GetStateTime ? ctx.stateMachine.GetStateTime() : ToNumber(ctx.stateTime),
   CurveSetTime: (ctx, name) => GetCurveSetTime(ctx, name),
   AnimationTime: (ctx, name) => CallContextFunction(ctx, "AnimationTime", name),
@@ -503,16 +503,36 @@ export function GetRandomConstant(context)
 }
 
 /**
- * Reads an indexed input through its source adapter, time sampler, or current
- * value.
+ * Carbon's Input( curve, index ): reads an indexed input at the current time
+ * through its source's GetInputValue( index ), time sampler, or current value.
  */
-export function GetInputValue(context, index, time)
+export function GetInputValue(context, index)
 {
   const source = context.curve ?? context.self ?? context.expression ?? context;
   if (HasFunction(source, "GetInputValue"))
   {
-    return ToNumber(source.GetInputValue(RoundInputIndex(index), time));
+    return ToNumber(source.GetInputValue(RoundInputIndex(index)));
   }
+  return ReadInputDirect(context, source, index, undefined);
+}
+
+/**
+ * Carbon's InputAt( curve, index, time ): reads an indexed input at time
+ * through its source's GetInputValue( index, time ) (GetInputValueTime here).
+ */
+export function GetInputValueTime(context, index, time)
+{
+  const source = context.curve ?? context.self ?? context.expression ?? context;
+  if (HasFunction(source, "GetInputValueTime"))
+  {
+    return ToNumber(source.GetInputValueTime(RoundInputIndex(index), time));
+  }
+  return ReadInputDirect(context, source, index, time);
+}
+
+/** Samples an input from a source that exposes only its inputs list. */
+function ReadInputDirect(context, source, index, time)
+{
   const inputs = HasProperty(source, "inputs") ? source.inputs : context.inputs;
   const input = Array.isArray(inputs) ? inputs[RoundInputIndex(index)] : null;
   if (!input)

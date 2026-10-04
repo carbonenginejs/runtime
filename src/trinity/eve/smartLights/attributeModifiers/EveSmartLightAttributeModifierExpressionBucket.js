@@ -59,10 +59,28 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
     return true;
   }
 
-  /** Gets the n-th input curve value at the given (default: current) time (cpp:105-121). */
+  /**
+   * Carbon's GetInputValue( index ): the n-th input sampled at the current
+   * context time; zero for an out-of-range index.
+   * @param {number} index Input index.
+   * @returns {number}
+   */
   @meta.blue.method
   @meta.implemented
-  GetInputValue(index, time = this._arguments.time)
+  GetInputValue(index)
+  {
+    return this.GetInputValueTime(index, this._arguments.time);
+  }
+
+  /**
+   * Carbon's GetInputValue( index, time ): the n-th input sampled at time.
+   * @param {number} index Input index.
+   * @param {number} time Sample time.
+   * @returns {number}
+   */
+  @meta.blue.renamed("GetInputValue")
+  @meta.implemented
+  GetInputValueTime(index, time)
   {
     const i = index | 0;
     if (i < 0 || i >= this.expressionInputs.length)

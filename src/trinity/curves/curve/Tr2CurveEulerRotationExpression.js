@@ -382,16 +382,27 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
   }
 
   /**
-   * Backs the expression `input`/`inputAt` functions by sampling the n-th input
-   * curve, defaulting to the time of the most recent GetContext call and
-   * returning 0 when no such input exists. JavaScript coerces the index to int32.
+   * Carbon's GetInputValue( index ): the n-th input sampled at the current
+   * context time; zero for an out-of-range index.
    * @param {number} index Input index.
-   * @param {number} [time] Sample time, defaulting to the scaled context time.
-   * @returns {number} Sample or zero.
+   * @returns {number}
    */
   @meta.blue.method
+  @meta.implemented
+  GetInputValue(index)
+  {
+    return this.GetInputValueTime(index, this._currentTime);
+  }
+
+  /**
+   * Carbon's GetInputValue( index, time ): the n-th input sampled at time.
+   * @param {number} index Input index.
+   * @param {number} time Sample time.
+   * @returns {number}
+   */
+  @meta.blue.renamed("GetInputValue")
   @meta.adapted
-  GetInputValue(index, time = this._currentTime)
+  GetInputValueTime(index, time)
   {
     const input = this.inputs[index | 0];
     return input ? input.GetValueAt(time) : 0;

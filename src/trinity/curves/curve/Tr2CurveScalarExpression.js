@@ -239,11 +239,27 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   }
 
   /**
-   * Gets an input curve value at the current or supplied time.
+   * Carbon's GetInputValue( index ): the n-th input sampled at the current
+   * context time; zero for an out-of-range index.
+   * @param {number} index Input index.
+   * @returns {number}
    */
   @meta.blue.method
   @meta.implemented
-  GetInputValue(index, time = this._currentTime)
+  GetInputValue(index)
+  {
+    return this.GetInputValueTime(index, this._currentTime);
+  }
+
+  /**
+   * Carbon's GetInputValue( index, time ): the n-th input sampled at time.
+   * @param {number} index Input index.
+   * @param {number} time Sample time.
+   * @returns {number}
+   */
+  @meta.blue.renamed("GetInputValue")
+  @meta.implemented
+  GetInputValueTime(index, time)
   {
     index |= 0;
     if (index < 0 || index >= this.inputs.length)

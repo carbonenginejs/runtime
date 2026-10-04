@@ -380,14 +380,27 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   }
 
   /**
-   * Backs the expression `input`/`inputAt` functions by sampling the n-th input
-   * curve, defaulting to the time of the most recent GetContext call and
-   * returning 0 only for an out-of-range index. In-range inputs must implement
-   * the owned scalar-function contract.
+   * Carbon's GetInputValue( index ): the n-th input sampled at the current
+   * context time; zero for an out-of-range index.
+   * @param {number} index Input index.
+   * @returns {number}
    */
   @meta.blue.method
   @meta.implemented
-  GetInputValue(index, time = this._currentTime)
+  GetInputValue(index)
+  {
+    return this.GetInputValueTime(index, this._currentTime);
+  }
+
+  /**
+   * Carbon's GetInputValue( index, time ): the n-th input sampled at time.
+   * @param {number} index Input index.
+   * @param {number} time Sample time.
+   * @returns {number}
+   */
+  @meta.blue.renamed("GetInputValue")
+  @meta.implemented
+  GetInputValueTime(index, time)
   {
     index |= 0;
     if (index < 0 || index >= this.inputs.length)

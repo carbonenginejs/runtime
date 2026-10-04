@@ -92,7 +92,7 @@ test("Euler SOF lazy compilation and typed scalar input times remain available",
  const curve=new Tr2CurveEulerRotationExpression(),adapter=createSofHydrationAdapter();adapter.applyValues(curve,{expressionYaw:"time"});adapter.finalize(curve,{kind:"Tr2CurveEulerRotationExpression"});assert.equal(curve._programs[0],null);
  curve.timeScale=2;const out=quat.create();curve.GetValueAt(2,out);assert.ok(curve._programs[0]);assert.deepEqual([...out],[...fromYawPitchRoll(quat.create(),1,0,0)]);
  class Scalar extends ITriScalarFunction{GetValueAt(time){return time+3;}}meta.blue.interfaceTable({interfaces:[Scalar,ITriScalarFunction],chainTo:null})(Scalar);
- const input=new Scalar();curve.inputs.Append(input);assert.equal(curve.GetInputValue(0),4);assert.equal(curve.GetInputValue(0,5),8);assert.equal(curve.GetInputValue(8),0);
+ const input=new Scalar();curve.inputs.Append(input);assert.equal(curve.GetInputValue(0),4);assert.equal(curve.GetInputValueTime(0,5),8);assert.equal(curve.GetInputValue(8),0);
  input.GetValueAt=null;assert.throws(()=>curve.GetInputValue(0),TypeError);
 });
 

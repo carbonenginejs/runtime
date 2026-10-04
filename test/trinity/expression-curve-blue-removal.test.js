@@ -159,11 +159,11 @@ test("input functions reject out-of-range indices then call the required owned m
 {
   for(const curve of [new Scalar(),new Vector()])
   {
-    assert.equal(curve.GetInputValue(-1,2),0);assert.equal(curve.GetInputValue(0,2),0);
+    assert.equal(curve.GetInputValueTime(-1,2),0);assert.equal(curve.GetInputValueTime(0,2),0);
     curve.inputs=[null];
-    assert.throws(()=>curve.GetInputValue(0,2),TypeError);
+    assert.throws(()=>curve.GetInputValueTime(0,2),TypeError);
     const input=new Scalar();input.expression="time + 2";curve.inputs=[input];
-    assert.equal(curve.GetInputValue(0,3),5);
+    assert.equal(curve.GetInputValueTime(0,3),5);
   }
 });
 
