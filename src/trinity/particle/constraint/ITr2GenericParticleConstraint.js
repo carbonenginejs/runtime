@@ -18,7 +18,7 @@ export class ITr2GenericParticleConstraint
   /** Applies the constraint to one particle-system update. */
   @meta.blue.method
   @meta.abstract
-  ApplyConstraint(_buffers, _strides, _count, _dt)
+  ApplyConstraint(_arguments, _buffers, _strides, _count, _dt)
   {
     throw new Error("ITr2GenericParticleConstraint.ApplyConstraint must be implemented by a concrete constraint.");
   }

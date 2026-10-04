@@ -165,7 +165,7 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
    * Pushes particles that crossed the plane back to its surface, reflects their velocity with elasticity, friction and noise, and fires the generators and on-collision emitters.
    */
   @meta.adapted
-  ApplyConstraint(_buffers, _strides, count)
+  ApplyConstraint(arguments_, _buffers, _strides, count, _dt)
   {
     if (!this.isValid)
     {

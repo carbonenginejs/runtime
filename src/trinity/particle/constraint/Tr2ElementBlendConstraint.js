@@ -59,7 +59,7 @@ export class Tr2ElementBlendConstraint extends ITr2GenericParticleConstraint
    * Rescales and offsets every alive particle's bound element by the configured factor and value.
    */
   @meta.implemented
-  ApplyConstraint(buffers, strides, count)
+  ApplyConstraint(_arguments, buffers, strides, count, _dt)
   {
     if (!this.isValid || !this.#element)
     {

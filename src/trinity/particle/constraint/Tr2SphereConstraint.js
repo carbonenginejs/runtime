@@ -146,7 +146,7 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
    */
   @meta.adapted
   @meta.reason("Runs single-threaded against the CPU element views; Carbon's particle RNG is replaced by Math.random.")
-  ApplyConstraint(_buffers, _strides, count, dt = 0)
+  ApplyConstraint(arguments_, _buffers, _strides, count, dt)
   {
     if (!this.isValid)
     {

@@ -534,7 +534,7 @@ export class Tr2ParticleSystem
     {
       for (const constraint of this.constraints)
       {
-        constraint.ApplyConstraint(this._buffers, this._strides, this.aliveCount, deltaTime);
+        constraint.ApplyConstraint(updateArguments, this._buffers, this._strides, this.aliveCount, deltaTime);
       }
     }
     if (this.updateSimulation && this.constraints.length)
