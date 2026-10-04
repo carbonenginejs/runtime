@@ -131,11 +131,11 @@ test("MapForReading reads the device buffer back, whole or ranged", () =>
     assert.deepEqual(Array.from(whole.data), [ 0, 1, 2, 3, 4, 5, 6, 7 ]);
     buffer.UnmapForReading(context);
 
-    const ranged = buffer.MapForReading(context, 2, 3);
+    const ranged = buffer.MapForReading_OffsetSize(context, 2, 3);
     assert.deepEqual(Array.from(ranged.data), [ 2, 3, 4 ]);
     buffer.UnmapForReading(context);
 
-    assert.equal(buffer.MapForReading(context, 6, 4).result, ALResult.E_INVALIDARG, "past the end");
+    assert.equal(buffer.MapForReading_OffsetSize(context, 6, 4).result, ALResult.E_INVALIDARG, "past the end");
 });
 
 test("reading a buffer without READ is refused", () =>

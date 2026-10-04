@@ -391,16 +391,34 @@ export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
    * Validation follows Metal: a buffer without CPU READ is E_INVALIDCALL, an
    * empty or out-of-range span E_INVALIDARG.
    *
-   * @param {number} [offset] Byte offset.
-   * @param {number} [size] Byte count; the rest of the buffer when omitted.
+   * This is Carbon's whole-buffer MapForReading( data, renderContext ).
+   *
    * @returns {{result: number, data: Uint8Array|null}} The bytes, or null.
    */
-  MapForReading(_renderContext, offset = 0, size = 0)
+  MapForReading(_renderContext)
+  {
+    return this._MapForReading(0, this._desc ? this._desc.GetSizeInBytes() : 0);
+  }
+
+  /**
+   * Carbon's MapForReading( data, offset, size, renderContext ): a byte range,
+   * one frame late as MapForReading; an empty span is E_INVALIDARG.
+   *
+   * @param {number} offset Byte offset.
+   * @param {number} size Byte count.
+   * @returns {{result: number, data: Uint8Array|null}} The bytes, or null.
+   */
+  MapForReading_OffsetSize(_renderContext, offset, size)
+  {
+    return this._MapForReading(offset, size);
+  }
+
+  /** Both overloads' body over an explicit byte span. */
+  _MapForReading(offset, span)
   {
     if (!this._handle || !this._desc) return { result: ALResult.E_INVALIDCALL, data: null };
 
     const total = this._desc.GetSizeInBytes();
-    const span = size || (total - offset);
     if (span <= 0 || offset < 0 || offset + span > total) return { result: ALResult.E_INVALIDARG, data: null };
     if (!HasFlag(this._desc.cpuUsage, Tr2CpuUsage.READ)) return { result: ALResult.E_INVALIDCALL, data: null };
 

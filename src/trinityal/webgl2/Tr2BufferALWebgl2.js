@@ -321,6 +321,34 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
   }
 
   /**
+   * Carbon's MapForReading( data, renderContext ): maps the whole buffer.
+   *
+   * @param {object} renderContext The context to map against.
+   * @returns {{result: number, data: Uint8Array|null}} The mapping.
+   */
+  @meta.adapted
+  MapForReading(renderContext)
+  {
+    return this._MapForReading(renderContext, false, 0, 0);
+  }
+
+  /**
+   * Carbon's MapForReading( data, offset, size, renderContext ): maps a byte
+   * range; an empty or out-of-range span is E_INVALIDARG.
+   *
+   * @param {object} renderContext The context to map against.
+   * @param {number} offset Byte offset of the range.
+   * @param {number} size Bytes in the range.
+   * @returns {{result: number, data: Uint8Array|null}} The mapping.
+   */
+  @meta.blue.renamed("MapForReading")
+  @meta.adapted
+  MapForReading_OffsetSize(renderContext, offset, size)
+  {
+    return this._MapForReading(renderContext, true, offset, size);
+  }
+
+  /**
    * Maps the whole buffer, or a range of it, for reading.
    *
    * dx11 copies into a staging buffer and maps that; the WebGL2 equivalent is
@@ -335,14 +363,13 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    * @param {number} [size] Bytes in the range; the whole buffer when omitted.
    * @returns {{result: number, data: Uint8Array|null}} The mapping.
    */
-  @meta.adapted
-  MapForReading(renderContext, offset = 0, size = 0)
+  /** Both overloads' body; ranged selects Carbon's offset/size form. */
+  _MapForReading(renderContext, ranged, offset, size)
   {
     const al = RenderContextALOf(renderContext);
     if (!al || !al.IsValid() || !this.IsValid()) return { result: ALResult.E_INVALIDCALL, data: null };
 
     const total = this._desc.stride * this._desc.count;
-    const ranged = size !== 0 || offset !== 0;
 
     if (ranged && (size === 0 || offset + size > total)) return { result: ALResult.E_INVALIDARG, data: null };
 

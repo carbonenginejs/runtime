@@ -136,6 +136,31 @@ export class Tr2BufferALStub extends Tr2DeviceResourceAL
   }
 
   /**
+   * Carbon's MapForReading( data, renderContext ): maps the whole buffer.
+   *
+   * @param {object} renderContext The context to map against.
+   * @returns {{result: number, data: Uint8Array|null}} The mapping.
+   */
+  MapForReading(renderContext)
+  {
+    return this._MapForReading(renderContext, false, 0, 0);
+  }
+
+  /**
+   * Carbon's MapForReading( data, offset, size, renderContext ): maps a byte
+   * range; an empty or out-of-range span is E_INVALIDARG.
+   *
+   * @param {object} renderContext The context to map against.
+   * @param {number} offset Byte offset of the range.
+   * @param {number} size Bytes in the range.
+   * @returns {{result: number, data: Uint8Array|null}} The mapping.
+   */
+  MapForReading_OffsetSize(renderContext, offset, size)
+  {
+    return this._MapForReading(renderContext, true, offset, size);
+  }
+
+  /**
    * Maps the whole buffer, or a range of it, for reading.
    *
    * @param {object} renderContext The context to map against.
@@ -143,11 +168,11 @@ export class Tr2BufferALStub extends Tr2DeviceResourceAL
    * @param {number} [size] Bytes in the range; the whole buffer when omitted.
    * @returns {{result: number, data: Uint8Array|null}} The mapping.
    */
-  MapForReading(renderContext, offset = 0, size = 0)
+  /** Both overloads' body; ranged selects Carbon's offset/size form. */
+  _MapForReading(renderContext, ranged, offset, size)
   {
     if (!renderContext.IsValid() || !this.IsValid()) return { result: ALResult.E_INVALIDCALL, data: null };
 
-    const ranged = size !== 0 || offset !== 0;
 
     if (ranged && (size === 0 || offset + size > this._desc.GetSizeInBytes()))
     {
