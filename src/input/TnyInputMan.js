@@ -2,7 +2,7 @@ import { CjsSchema, meta } from "#schema";
 import { Tr2MainWindow } from "./Tr2MainWindow.js";
 
 /** Approved browser extension: queued shared camera/tool routing over Tr2MainWindow. */
-export class CjsInputMan
+export class TnyInputMan
 {
   static Result = Object.freeze({ PASS: 0, HANDLED: 1, CONSUME: 2, CAPTURE: 3, RELEASE: 4 });
   _consumers = [];
@@ -203,13 +203,13 @@ export class CjsInputMan
         try { result = await consumer.handle(event); }
         catch (error) { this.Cancel("input-error"); throw error; }
         if (generation !== this._generation || !this._consumers.includes(consumer)) break;
-        if (result === CjsInputMan.Result.CAPTURE) this._owner = consumer;
-        if (result === CjsInputMan.Result.RELEASE || event.type === "pointerup") this._owner = null;
-        if (result >= CjsInputMan.Result.CONSUME || pointerEvent && this._owner) break;
+        if (result === TnyInputMan.Result.CAPTURE) this._owner = consumer;
+        if (result === TnyInputMan.Result.RELEASE || event.type === "pointerup") this._owner = null;
+        if (result >= TnyInputMan.Result.CONSUME || pointerEvent && this._owner) break;
       }
     }
   }
 }
 
-CjsSchema.define(CjsInputMan, { className: "CjsInputMan",
+CjsSchema.define(TnyInputMan, { className: "TnyInputMan",
   methods: Object.fromEntries(["Attach", "Detach", "Register", "Unregister", "Enqueue", "Update", "Cancel", "Destroy"].map(name => [name, [meta.ours]])) });

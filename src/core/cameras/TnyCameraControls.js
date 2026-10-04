@@ -1,6 +1,6 @@
 import { CjsSchema, meta } from "#schema";
 import { mat4 } from "#math/mat4";
-import { CjsInputMan } from "#input";
+import { TnyInputMan } from "#input";
 import { EveCamera } from "../../trinity/eve/camera/EveCamera.js";
 
 const DEFAULT_KEYS = {
@@ -15,7 +15,7 @@ const MOTION = {
 };
 
 /** Shared viewport interaction policy around Carbon's EveCamera motion and projection. */
-export class CjsCameraControls
+export class TnyCameraControls
 {
   _input = null;
   _consumer = null;
@@ -92,7 +92,7 @@ export class CjsCameraControls
   /** Applies queued pointer gestures or records focused held-key actions. */
   HandleInput(event)
   {
-    const result = CjsInputMan.Result;
+    const result = TnyInputMan.Result;
     if (event.type === "keyup" && this._held.delete(event.code)) return result.CONSUME;
     const action = this.#KeyAction(event);
     if (action)
@@ -329,7 +329,7 @@ export class CjsCameraControls
   }
 }
 
-CjsSchema.define(CjsCameraControls, { className: "CjsCameraControls",
+CjsSchema.define(TnyCameraControls, { className: "TnyCameraControls",
   methods: Object.fromEntries(["Install", "Uninstall", "SetKeyBindings", "GetKeyBindings", "HandleInput", "Update",
     "Orbit", "Pan", "Dolly", "SetFieldOfView", "AdjustFieldOfView", "GetPose", "SetPose", "Frame", "Resize", "Reset",
     "TargetChanged", "Subscribe", "Cancel", "Destroy"].map(name => [name, [meta.ours]])) });

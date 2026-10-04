@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
-import { CjsTransformGizmo } from "../../npm/dist/core/gizmos/CjsTransformGizmo.js";
+import { TnyTransformGizmo } from "../../npm/dist/core/gizmos/TnyTransformGizmo.js";
 import { Tr2ManipulationTool, Tr2Effect, TriDevice, TriProjection, TriView,
   Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
@@ -43,7 +43,7 @@ function setup(t, mode, axis, behind = false)
   context.SetViewTransform(view.GetTransform());
   const local = mat4.fromTranslation(mat4.create(), [300000, 200000, 0]);
   mat4.scale(local, local, [100, 100, 100]);
-  const gizmo = new CjsTransformGizmo({ mode, getView: () => ({ context, projection, view, viewport }) });
+  const gizmo = new TnyTransformGizmo({ mode, getView: () => ({ context, projection, view, viewport }) });
   gizmo.SetTarget({ readLocal: out => mat4.copy(out, local), writeLocal: value => mat4.copy(local, value),
     readParentWorld: out => mat4.identity(out) });
   gizmo.tool.Update(context);

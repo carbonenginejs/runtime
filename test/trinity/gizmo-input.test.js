@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsInputMan } from "../../npm/dist/input/index.js";
-import { CjsTransformGizmo } from "../../npm/dist/core/gizmos/CjsTransformGizmo.js";
-import { CjsCameraControls } from "../../npm/dist/core/cameras/CjsCameraControls.js";
+import { TnyInputMan } from "../../npm/dist/input/index.js";
+import { TnyTransformGizmo } from "../../npm/dist/core/gizmos/TnyTransformGizmo.js";
+import { TnyCameraControls } from "../../npm/dist/core/cameras/TnyCameraControls.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { EveCamera, Tr2Effect, TriDevice, Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
@@ -21,14 +21,14 @@ function pointer(type, extra = {})
 
 test("a pending handle pick serializes moves and exclusively owns the drag", async () =>
 {
-  const input = new CjsInputMan(), pick = deferred(), seen = [], camera = [];
+  const input = new TnyInputMan(), pick = deferred(), seen = [], camera = [];
   input.Register({ priority: 100, cancel() {}, async handle(event)
   {
     seen.push(event);
-    if (event.type === "pointerdown") { await pick.promise; return CjsInputMan.Result.CAPTURE; }
-    return event.type === "pointerup" ? CjsInputMan.Result.RELEASE : CjsInputMan.Result.CONSUME;
+    if (event.type === "pointerdown") { await pick.promise; return TnyInputMan.Result.CAPTURE; }
+    return event.type === "pointerup" ? TnyInputMan.Result.RELEASE : TnyInputMan.Result.CONSUME;
   } });
-  input.Register({ cancel() {}, handle(event) { camera.push(event); return CjsInputMan.Result.CAPTURE; } });
+  input.Register({ cancel() {}, handle(event) { camera.push(event); return TnyInputMan.Result.CAPTURE; } });
   input.Enqueue(pointer("pointerdown"));
   const update = input.Update();
   input.Enqueue(pointer("pointermove", { dx: 2, x: 102 }));
@@ -47,12 +47,12 @@ test("a pending handle pick serializes moves and exclusively owns the drag", asy
 
 test("cancellation during an awaited pick cannot claim capture or replay queued input", async () =>
 {
-  const input = new CjsInputMan(), pick = deferred(), seen = [], cancelled = [];
+  const input = new TnyInputMan(), pick = deferred(), seen = [], cancelled = [];
   input.Register({ cancel: reason => cancelled.push(reason), async handle(event)
   {
     seen.push(event.type);
     await pick.promise;
-    return CjsInputMan.Result.CAPTURE;
+    return TnyInputMan.Result.CAPTURE;
   } });
   input.Enqueue(pointer("pointerdown"));
   const update = input.Update();
@@ -68,11 +68,11 @@ test("cancellation during an awaited pick cannot claim capture or replay queued 
 
 test("a missed handle passes the same drag to the Carbon camera consumer", async t =>
 {
-  const input = new CjsInputMan(), calls = [];
+  const input = new TnyInputMan(), calls = [];
   const camera = new EveCamera();
   t.mock.method(camera, "OrbitParent", (...args) => calls.push(["orbit", ...args]));
-  const controls = new CjsCameraControls({ camera }).Install(input);
-  input.Register({ priority: 100, cancel() {}, async handle() { return CjsInputMan.Result.PASS; } });
+  const controls = new TnyCameraControls({ camera }).Install(input);
+  input.Register({ priority: 100, cancel() {}, async handle() { return TnyInputMan.Result.PASS; } });
   input.Enqueue(pointer("pointerdown"));
   input.Enqueue(pointer("pointermove", { dx: 10, dy: -5 }));
   input.Enqueue(pointer("pointerup"));
@@ -93,7 +93,7 @@ function setupGizmo(t, mode)
   al.CreateDevice();
   // This suite exercises native geometry and transforms, not effect fetching.
   t.mock.method(Tr2Effect.prototype, "SetEffectPathName", function(path) { this.effectFilePath = path; });
-  const gizmo = new CjsTransformGizmo({ mode, getView: () => ({ context }) });
+  const gizmo = new TnyTransformGizmo({ mode, getView: () => ({ context }) });
   t.after(() =>
   {
     gizmo.Destroy();
@@ -110,7 +110,7 @@ function close(actual, expected)
 
 test("gizmo W/E/R defaults rebind atomically and ignore modified chords and repeats", async t =>
 {
-  const gizmo = setupGizmo(t, "scaling"), input = new CjsInputMan();
+  const gizmo = setupGizmo(t, "scaling"), input = new TnyInputMan();
   gizmo.Install(input);
   const press = async (code, extra = {}) =>
   {
@@ -172,11 +172,11 @@ test("focused host routes pan, normalized wheel, FOV and gizmo defaults without 
   const gizmo = setupGizmo(t, "scaling"), window = host(), document = host(), canvas = host();
   canvas.focus = () => { document.activeElement = canvas; };
   document.activeElement = canvas;
-  const input = new CjsInputMan().Attach({ target: canvas, window, document });
+  const input = new TnyInputMan().Attach({ target: canvas, window, document });
   const camera = new EveCamera();
   camera.fieldOfView = Math.PI / 4;
   camera.backClip = 10000;
-  const controls = new CjsCameraControls({ camera, getViewport: () => ({ width: 800, height: 600 }),
+  const controls = new TnyCameraControls({ camera, getViewport: () => ({ width: 800, height: 600 }),
     getBounds: () => ({ centre: [10, 20, 30], radius: 50 }) }).Install(input);
   controls.Frame();
   camera.Update(0, 4 / 3);
@@ -215,11 +215,11 @@ test("focused host routes pan, normalized wheel, FOV and gizmo defaults without 
 
 test("camera key-up reaches its consumer during another consumer's pointer capture", async t =>
 {
-  const input = new CjsInputMan(), camera = new EveCamera(), moves = [];
+  const input = new TnyInputMan(), camera = new EveCamera(), moves = [];
   t.mock.method(camera, "OrbitParent", (...args) => moves.push(args));
-  const controls = new CjsCameraControls({ camera }).Install(input);
+  const controls = new TnyCameraControls({ camera }).Install(input);
   input.Register({ priority: 100, cancel() {}, handle: event => event.type === "pointerdown"
-    ? CjsInputMan.Result.CAPTURE : event.type === "pointerup" ? CjsInputMan.Result.RELEASE : CjsInputMan.Result.PASS });
+    ? TnyInputMan.Result.CAPTURE : event.type === "pointerup" ? TnyInputMan.Result.RELEASE : TnyInputMan.Result.PASS });
   input.Enqueue({ type: "keydown", code: "ArrowLeft" });
   await input.Update(0.02);
   assert.equal(moves.length, 1);
@@ -251,7 +251,7 @@ for (const mode of ["translation", "rotation", "scaling"])
     gizmo.SetTarget({ readLocal: out => mat4.copy(out, local), readParentWorld: out => mat4.copy(out, parent), writeLocal: value => mat4.copy(local, value) });
     close(local, initial);
     t.mock.method(gizmo.scene, "PickObject", async () => gizmo.tool.primitives[0]);
-    assert.equal(await gizmo.HandleInput(pointer("pointerdown")), CjsInputMan.Result.CAPTURE);
+    assert.equal(await gizmo.HandleInput(pointer("pointerdown")), TnyInputMan.Result.CAPTURE);
     const current = mode === "scaling" ? mat4.create() : mat4.clone(gizmo.tool.localTransform);
     const delta = mode === "translation" ? mat4.fromTranslation(mat4.create(), [7, -2, 5])
       : mode === "rotation" ? mat4.fromZRotation(mat4.create(), 0.43)
@@ -280,7 +280,7 @@ test("a cancelled gizmo pick cannot attach to a replacement target", async t =>
   const pending = gizmo.HandleInput(pointer("pointerdown"));
   gizmo.SetTarget(null);
   pick.resolve(gizmo.tool.primitives[0]);
-  assert.equal(await pending, CjsInputMan.Result.CONSUME);
+  assert.equal(await pending, TnyInputMan.Result.CONSUME);
   assert.equal(gizmo._drag, null);
   assert.equal(gizmo.tool.captured, false);
 });

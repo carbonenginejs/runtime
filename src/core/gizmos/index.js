@@ -1,1 +1,1 @@
-export * from "./CjsTransformGizmo.js";
+export * from "./TnyTransformGizmo.js";

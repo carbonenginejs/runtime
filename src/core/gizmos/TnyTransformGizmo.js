@@ -1,7 +1,7 @@
 import { CjsSchema, meta } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { CjsInputMan } from "#input";
+import { TnyInputMan } from "#input";
 import { Tr2PrimitiveScene } from "../../trinity/core/scene/Tr2PrimitiveScene.js";
 import { Tr2TranslationTool } from "../../trinity/core/tool/Tr2TranslationTool.js";
 import { Tr2RotationTool } from "../../trinity/core/tool/Tr2RotationTool.js";
@@ -11,7 +11,7 @@ const TOOL_TYPES = { translation: Tr2TranslationTool, rotation: Tr2RotationTool,
 const DEFAULT_KEY_BINDINGS = { translation: "KeyW", rotation: "KeyE", scaling: "KeyR" };
 
 /** Thin composition of Carbon tools, GPU handle picking and explicit matrix targets. */
-export class CjsTransformGizmo
+export class TnyTransformGizmo
 {
   scene = new Tr2PrimitiveScene();
   target = null;
@@ -169,7 +169,7 @@ export class CjsTransformGizmo
   /** Queued input, with request cancellation checked after every GPU await. */
   async HandleInput(event)
   {
-    const result = CjsInputMan.Result;
+    const result = TnyInputMan.Result;
     const keyMode = this.#KeyMode(event);
     if (keyMode)
     {
@@ -308,5 +308,5 @@ export class CjsTransformGizmo
   }
 }
 
-CjsSchema.define(CjsTransformGizmo, { className: "CjsTransformGizmo",
+CjsSchema.define(TnyTransformGizmo, { className: "TnyTransformGizmo",
   methods: Object.fromEntries(["SetKeyBindings", "GetKeyBindings", "SetMode", "SetTarget", "Install", "Uninstall", "Sync", "Render", "HandleInput", "Cancel", "Destroy"].map(name => [name, [meta.ours]])) });

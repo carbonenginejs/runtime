@@ -1,1 +1,1 @@
-export * from "./CjsCameraControls.js";
+export * from "./TnyCameraControls.js";
