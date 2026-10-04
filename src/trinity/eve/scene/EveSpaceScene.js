@@ -3616,7 +3616,7 @@ export class EveSpaceScene
    * gathered. The earlier part of Carbon's body (display gate, SH lighting,
    * data textures, jitter, the lighting-override blend, fog settings, managed
    * rendering, light manager, gather, raytraced shadows, UpdateVariableStore,
-   * light gather) still runs in EveSpaceSceneRenderDriver.#RenderMainPass.
+   * light gather) still runs in EveSpaceSceneRenderDriver._RenderMainPass.
    *
    * @param {boolean} _enableDistortion - Carbon's gather flag; the gather is
    *   not in this part yet

@@ -231,35 +231,35 @@ export class EveSpaceSceneRenderDriver
   }
 
   /** The frustum this driver derives each frame; Carbon keeps one per driver. */
-  #frustum = new TriFrustum();
+  _frustum = new TriFrustum();
 
   /** Collects renderables into batches; composed, so the caller owns its producers. */
-  #batchManager = null;
+  _batchManager = null;
 
   /** m_gpuResourcePool: the scene's colour and depth, and every post-process target. */
-  #gpuResourcePool = new Tr2GpuResourcePool();
+  _gpuResourcePool = new Tr2GpuResourcePool();
 
   /** Carbon's Tr2Renderer is static; ours is an instance, prepared per context. */
-  #renderer = new Tr2Renderer();
+  _renderer = new Tr2Renderer();
 
   /**
    * m_distortionEffect: the full-screen pass that warps the scene colour by the
    * distortion map, pointed at its path in the constructor (cpp:148-149).
    */
-  #distortionEffect = EveSpaceSceneRenderDriver.#CreateDistortionEffect();
+  _distortionEffect = EveSpaceSceneRenderDriver._CreateDistortionEffect();
 
   /**
    * Creates the scene distortion effect and assigns its authored postprocess
    * effect path.
    */
-  static #CreateDistortionEffect()
+  static _CreateDistortionEffect()
   {
     const effect = new Tr2Effect();
     effect.SetEffectPathName("res:/graphics/effect/managed/space/postprocess/distortion.fx");
     return effect;
   }
 
-  #preparedContext = null;
+  _preparedContext = null;
 
   /** Explicit final retirement; Execute cannot restart an owner after teardown. */
   _destroyed = false;
@@ -271,24 +271,24 @@ export class EveSpaceSceneRenderDriver
     if (this._destroyed) return;
     this._destroyed = true;
     this.enableRendering = false;
-    this.#depthMapReference.SetTexture(null);
-    this.#ssaoMapReference.SetTexture(null);
-    this.#normalMapReference.SetTexture(null);
+    this._depthMapReference.SetTexture(null);
+    this._ssaoMapReference.SetTexture(null);
+    this._normalMapReference.SetTexture(null);
     this._opaqueMapReference.SetTexture(null);
-    this.#distortionEffect.Destroy();
+    this._distortionEffect.Destroy();
     this.postProcess.Destroy();
-    this.#gpuResourcePool.Destroy();
-    this.#preparedContext = null;
+    this._gpuResourcePool.Destroy();
+    this._preparedContext = null;
   }
 
   /** The provider "DepthMap" is registered with; it holds this frame's scene depth. */
-  #depthMapReference = new Tr2TextureReference();
+  _depthMapReference = new Tr2TextureReference();
 
   /** The provider "SSAOMap" is registered with: the SSAO, the empty SSAO, or nothing. */
-  #ssaoMapReference = new Tr2TextureReference();
+  _ssaoMapReference = new Tr2TextureReference();
 
   /** The provider "SpaceSceneNormalMap" is registered with: the depth pass's normals. */
-  #normalMapReference = new Tr2TextureReference();
+  _normalMapReference = new Tr2TextureReference();
 
   /** The provider "EveSpaceSceneOpaqueMap" is registered with: the opaque colour copy. */
   _opaqueMapReference = new Tr2TextureReference();
@@ -314,7 +314,7 @@ export class EveSpaceSceneRenderDriver
   ]);
 
   /** The standard states Carbon applies before each accumulator (EveSpaceScene.cpp:1139-1142). */
-  static #standardStatesFor = Object.freeze({
+  static _standardStatesFor = Object.freeze({
     [TriBatchType.TRIBATCHTYPE_OPAQUE]: RenderingMode.RM_OPAQUE,
     [TriBatchType.TRIBATCHTYPE_DECAL]: RenderingMode.RM_DECAL
   });
@@ -332,20 +332,20 @@ export class EveSpaceSceneRenderDriver
    */
   SetBatchManager(batchManager)
   {
-    this.#batchManager = batchManager ?? null;
+    this._batchManager = batchManager ?? null;
     return this;
   }
 
   /** @returns {CjsBatchManager|null} The composed batch manager. */
   GetBatchManager()
   {
-    return this.#batchManager;
+    return this._batchManager;
   }
 
   /** @returns {TriFrustum} The frustum derived by the last Execute. */
   GetFrustum()
   {
-    return this.#frustum;
+    return this._frustum;
   }
 
   /**
@@ -396,7 +396,7 @@ export class EveSpaceSceneRenderDriver
     // no clear, no camera update.
     if (!this.enableRendering)
     {
-      this.#SetCameraToRenderer(renderContext);
+      this._SetCameraToRenderer(renderContext);
       this.scene.Update(realTime, simTime);
       this.UpdateGpuParticleSystem(renderContext);
       return false;
@@ -412,18 +412,18 @@ export class EveSpaceSceneRenderDriver
 
     this._PropagateSettings();
 
-    this.#PrepareContext(renderContext);
+    this._PrepareContext(renderContext);
 
     // cpp:444 - the white "EmptySSAO" until an SSAO pass replaces it. None is
     // ported, so it is what the main pass samples, as when Carbon's SSAO is
     // off (RenderSSAO, cpp:360-381).
-    this.#RegisterSSAOMap(EveSpaceSceneRenderDriver.getEmptySSAO(this.#gpuResourcePool));
+    this._RegisterSSAOMap(EveSpaceSceneRenderDriver.getEmptySSAO(this._gpuResourcePool));
 
     // THE SCENE RENDERS INTO ITS OWN COLOUR AND DEPTH (cpp:461, 471), and the
     // post process draws the result into the destination (cpp:602-609).
     // Carbon always has a destination; a null one - which tests use - keeps
     // drawing into whatever is bound, with no post process.
-    const offscreen = target ? this.#BeginOffscreen(target, renderContext) : null;
+    const offscreen = target ? this._BeginOffscreen(target, renderContext) : null;
 
     // Carbon's pool handles are RAII locals (cpp:461, 471) and release on any
     // exit; the post process owns them once it is called (cpp:608).
@@ -444,14 +444,14 @@ export class EveSpaceSceneRenderDriver
 
     try
     {
-      if (offscreen) this.#BeginRenderPass(esm, [ offscreen.color.Get() ], offscreen.depth.Get());
+      if (offscreen) this._BeginRenderPass(esm, [ offscreen.color.Get() ], offscreen.depth.Get());
 
       renderContext.Clear({ color: this.clearColor, depth: 0 });
 
       // AFTER the scene target is bound (cpp:473-476), because the projection
       // and frustum read the bound viewport; BEFORE the update, so the scene's
       // own update reads this frame's view (cpp:476 -> 479).
-      this.#SetCameraToRenderer(renderContext);
+      this._SetCameraToRenderer(renderContext);
 
       this.scene.Update(realTime, simTime);
       this.UpdateGpuParticleSystem(renderContext);
@@ -462,20 +462,20 @@ export class EveSpaceSceneRenderDriver
       // this driver's reference, as the blitter publishes BlitSource.
       if (offscreen)
       {
-        this.#depthMapReference.SetTexture(offscreen.depth.Get());
-        Tr2VariableStore.globalStore().RegisterVariableInternal("DepthMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this.#depthMapReference);
+        this._depthMapReference.SetTexture(offscreen.depth.Get());
+        Tr2VariableStore.globalStore().RegisterVariableInternal("DepthMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this._depthMapReference);
       }
 
       // The shadow globals start empty, with the white fallbacks: the shadow
       // pass fills them for the main pass only (cpp:550, 557).
-      EveSpaceScene.registerWithVariableStore(EveSpaceSceneRenderDriver.#noShadowResources, this.#gpuResourcePool);
+      EveSpaceScene.registerWithVariableStore(EveSpaceSceneRenderDriver._noShadowResources, this._gpuResourcePool);
 
       // THE DISTORTION MAP (cpp:551-562): borrowed before the main pass, which
       // draws the DISTORTION batches into it, then applied to the scene colour
       // when the setting is on and anything was drawn.
       if (offscreen) offscreen.distortion = this._GetDistortionMapIfNeeded(offscreen.size);
 
-      const submitted = this.#RenderMainPass(renderContext, offscreen);
+      const submitted = this._RenderMainPass(renderContext, offscreen);
 
       if (offscreen?.distortion && this.enableDistortion && offscreen.hasDistortion)
       {
@@ -483,7 +483,7 @@ export class EveSpaceSceneRenderDriver
       }
 
       // cpp:565 - SSAOMap is emptied after the main pass.
-      this.#RegisterSSAOMap(null);
+      this._RegisterSSAOMap(null);
 
       // LENS-FLARE OCCLUSION (cpp:587-592), after the main pass on the scene
       // target with read-only depth: each lensflare's queries, then the
@@ -491,7 +491,7 @@ export class EveSpaceSceneRenderDriver
       // read through FlareOcclusionBuffer.
       if (offscreen)
       {
-        this.#BeginRenderPass(esm, [ offscreen.color.Get() ], offscreen.depth.Get());
+        this._BeginRenderPass(esm, [ offscreen.color.Get() ], offscreen.depth.Get());
         renderContext.SetReadOnlyDepth(true);
         this.scene.RunLensflareOcclusionQueries(offscreen.depth.Get(), renderContext);
         renderContext.SetReadOnlyDepth(false);
@@ -505,7 +505,7 @@ export class EveSpaceSceneRenderDriver
       if (offscreen)
       {
         handedOff = true;
-        this.#PostProcess(target, offscreen, renderContext);
+        this._PostProcess(target, offscreen, renderContext);
       }
 
       return submitted;
@@ -519,8 +519,8 @@ export class EveSpaceSceneRenderDriver
 
       // Carbon restores the empty SSAO and empties DepthMap at the frame's end
       // (cpp:625-626); the pool reclaims the depth texture after this.
-      this.#RegisterSSAOMap(EveSpaceSceneRenderDriver.getEmptySSAO(this.#gpuResourcePool));
-      this.#depthMapReference.SetTexture(null);
+      this._RegisterSSAOMap(EveSpaceSceneRenderDriver.getEmptySSAO(this._gpuResourcePool));
+      this._depthMapReference.SetTexture(null);
 
       // An interrupted scene pass must also drop the opaque-map share.
       if (this._opaqueMapReference.GetTexture()) this._opaqueMapReference.SetTexture(null);
@@ -529,24 +529,24 @@ export class EveSpaceSceneRenderDriver
       // to the post process.
       if (offscreen?.normal)
       {
-        this.#gpuResourcePool.Free(offscreen.normal);
+        this._gpuResourcePool.Free(offscreen.normal);
         offscreen.normal = null;
       }
 
       // So is the distortion map (cpp:499, 552).
       if (offscreen?.distortion)
       {
-        this.#gpuResourcePool.Free(offscreen.distortion);
+        this._gpuResourcePool.Free(offscreen.distortion);
         offscreen.distortion = null;
       }
 
       // So are the shadow resources (cpp:526).
       for (const handle of Object.values(offscreen?.shadows ?? {}))
       {
-        if (handle.IsValid()) this.#gpuResourcePool.Free(handle);
+        if (handle.IsValid()) this._gpuResourcePool.Free(handle);
       }
 
-      if (offscreen && !handedOff) this.#EndOffscreen(offscreen);
+      if (offscreen && !handedOff) this._EndOffscreen(offscreen);
     }
   }
 
@@ -556,17 +556,17 @@ export class EveSpaceSceneRenderDriver
    * Tr2TextureAL{}. A pool handle is released once its texture is taken, as
    * Carbon's temporary does at the end of the statement.
    */
-  #RegisterSSAOMap(handle)
+  _RegisterSSAOMap(handle)
   {
     try
     {
-      this.#ssaoMapReference.SetTexture(handle ? handle.Get() : null);
+      this._ssaoMapReference.SetTexture(handle ? handle.Get() : null);
     }
     finally
     {
-      if (handle) this.#gpuResourcePool.Free(handle);
+      if (handle) this._gpuResourcePool.Free(handle);
     }
-    Tr2VariableStore.globalStore().RegisterVariableInternal("SSAOMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this.#ssaoMapReference);
+    Tr2VariableStore.globalStore().RegisterVariableInternal("SSAOMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this._ssaoMapReference);
   }
 
   /**
@@ -593,7 +593,7 @@ export class EveSpaceSceneRenderDriver
   }
 
   /** EveSpaceScene::ShadowResources with every texture empty: no shadow pass is ported. */
-  static #noShadowResources = {
+  static _noShadowResources = {
     shadowMap: new GpuResourceHandle(),
     cascadedShadowDepth: new GpuResourceHandle(),
     pointLightShadowMap: new GpuResourceHandle(),
@@ -615,7 +615,7 @@ export class EveSpaceSceneRenderDriver
    * @param {object|null} depthAttachment The depth stencil.
    * @returns {void}
    */
-  #BeginRenderPass(esm, colorAttachments, depthAttachment)
+  _BeginRenderPass(esm, colorAttachments, depthAttachment)
   {
     let index = 0;
     for (const colorAttachment of colorAttachments) esm.SetRenderTarget(index++, colorAttachment);
@@ -642,7 +642,7 @@ export class EveSpaceSceneRenderDriver
    * @param {object|null} offscreen The scene's borrowed targets, if any.
    * @returns {boolean} Whether anything was submitted.
    */
-  #RenderMainPass(renderContext, offscreen)
+  _RenderMainPass(renderContext, offscreen)
   {
     // BeginRender's CPU half, in the order EveSpaceScene's own contract gives.
     // Carbon returns from the whole of BeginRender for an undisplayed scene
@@ -685,7 +685,7 @@ export class EveSpaceSceneRenderDriver
       }
       this.scene.UpdateVisibility?.(renderContext.GetInverseViewTransform?.() ?? null);
 
-      map = this.#Collect(this.scene.GetRenderables([], renderContext), renderContext);
+      map = this._Collect(this.scene.GetRenderables([], renderContext), renderContext);
       // Carbon's allObjects is the scene list plus camera parent, not flattened
       // renderables or planets. Dispatch after FinalizeBatches (cpp:1470-1527).
       if (this.scene.shLightingManager)
@@ -713,7 +713,7 @@ export class EveSpaceSceneRenderDriver
     this.scene.BeginRender(this.enableDistortion, renderContext);
 
     // The reflection probe's cube faces, right after BeginRender (cpp:491-494).
-    this.scene.RenderReflectionPass(this.#gpuResourcePool, renderContext, this.#renderer);
+    this.scene.RenderReflectionPass(this._gpuResourcePool, renderContext, this._renderer);
 
     // THE BACKGROUND PASS (cpp:502-511): the nebula and the rest of the
     // background, into the scene colour before the depth pass, with the
@@ -721,7 +721,7 @@ export class EveSpaceSceneRenderDriver
     // applied at once, and the depth buffer rebound.
     if (offscreen)
     {
-      const hasBackgroundDistortionBatches = this.scene.RenderBackgroundPass(offscreen.depth.Get(), offscreen.distortion?.Get() ?? null, offscreen.velocity?.Get() ?? null, renderContext, this.#renderer);
+      const hasBackgroundDistortionBatches = this.scene.RenderBackgroundPass(offscreen.depth.Get(), offscreen.distortion?.Get() ?? null, offscreen.velocity?.Get() ?? null, renderContext, this._renderer);
       if (this.enableDistortion && hasBackgroundDistortionBatches && offscreen.distortion)
       {
         this._ApplyDistortion(offscreen.color.Get(), offscreen.distortion.Get(), renderContext);
@@ -738,8 +738,8 @@ export class EveSpaceSceneRenderDriver
       this.scene.RenderDepthPass(offscreen.depth.Get(), offscreen.normal?.Get() ?? null, null, renderContext, this.depthPassTechnique, map);
     }
 
-    this.#normalMapReference.SetTexture(offscreen?.normal?.Get() ?? null);
-    Tr2VariableStore.globalStore().RegisterVariableInternal("SpaceSceneNormalMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this.#normalMapReference);
+    this._normalMapReference.SetTexture(offscreen?.normal?.Get() ?? null);
+    Tr2VariableStore.globalStore().RegisterVariableInternal("SpaceSceneNormalMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this._normalMapReference);
 
     // Carbon gates the main pass on the scene's display flag AND this switch
     // (cpp:527).
@@ -747,11 +747,11 @@ export class EveSpaceSceneRenderDriver
 
     // SHADOWS (cpp:529-532), after the depth pass: the cascaded shadow map and
     // its screen-space factor, held until the frame ends.
-    if (offscreen) offscreen.shadows = this.scene.RenderShadows(offscreen.depth.Get(), offscreen.normal?.Get() ?? null, this.#gpuResourcePool, renderContext, this.#renderer);
+    if (offscreen) offscreen.shadows = this.scene.RenderShadows(offscreen.depth.Get(), offscreen.normal?.Get() ?? null, this._gpuResourcePool, renderContext, this._renderer);
 
     // SSAO (cpp:534-537), after the shadows and before the main pass samples
     // SSAOMap.
-    if (offscreen) this.#RegisterSSAOMap(this._RenderSSAO(offscreen.depth.Get(), offscreen.normal?.Get() ?? null, renderContext));
+    if (offscreen) this._RegisterSSAOMap(this._RenderSSAO(offscreen.depth.Get(), offscreen.normal?.Get() ?? null, renderContext));
 
     // The light lists, against this frame's depth read-only (cpp:539-546).
     if (offscreen && lightManager)
@@ -764,7 +764,7 @@ export class EveSpaceSceneRenderDriver
     if (offscreen) offscreen.opaque = this._GetOpaqueColorMapIfNeeded(offscreen.size);
 
     // cpp:550 - the shadow pass's textures as globals, for the main pass.
-    if (offscreen?.shadows) EveSpaceScene.registerWithVariableStore(offscreen.shadows, this.#gpuResourcePool);
+    if (offscreen?.shadows) EveSpaceScene.registerWithVariableStore(offscreen.shadows, this._gpuResourcePool);
 
     const velocity = offscreen?.velocity?.Get() ?? null;
     const opaque = offscreen?.opaque?.Get() ?? null;
@@ -799,7 +799,7 @@ export class EveSpaceSceneRenderDriver
             new Tr2ColorAttachment(this.scene._velocityMapDirty ? Tr2LoadAction.LOAD : Tr2LoadAction.CLEAR, Tr2StoreAction.STORE, 0),
             new Tr2DepthAttachment(Tr2LoadAction.LOAD, Tr2StoreAction.STORE)
           );
-          submitted = this.#Submit(map, renderContext);
+          submitted = this._Submit(map, renderContext);
           this.scene._velocityMapDirty = true;
         }
         finally
@@ -809,7 +809,7 @@ export class EveSpaceSceneRenderDriver
       }
       else
       {
-        submitted = this.#Submit(map, renderContext);
+        submitted = this._Submit(map, renderContext);
       }
 
       // THE OPAQUE COLOUR COPY (EveSpaceScene.cpp:2738-2750): the scene colour
@@ -839,7 +839,7 @@ export class EveSpaceSceneRenderDriver
       // both sampled volumes stay alive through distortion and GPU particles.
       renderContext.SetProjection(this.scene.jitteredProjection);
       this.scene.PopulateAndApplyPerFrameData(renderContext);
-      const volumes = offscreen ? this.scene.RenderVolumetrics(offscreen.depth.Get(), this.#gpuResourcePool, renderContext) : null;
+      const volumes = offscreen ? this.scene.RenderVolumetrics(offscreen.depth.Get(), this._gpuResourcePool, renderContext) : null;
       const store = Tr2VariableStore.globalStore();
       if (volumes)
       {
@@ -876,7 +876,7 @@ export class EveSpaceSceneRenderDriver
           store.RegisterVariable_TextureAL("EveSceneFroxelFogMap", new Tr2TextureAL());
           store.RegisterVariable_TextureAL("EveSceneFogVolumeMap", new Tr2TextureAL());
           // Native handle destruction ignores an empty return (Tr2GpuResourcePool.h:180-187).
-          for (const volume of volumes) if (volume.IsValid()) this.#gpuResourcePool.Free(volume);
+          for (const volume of volumes) if (volume.IsValid()) this._gpuResourcePool.Free(volume);
         }
       }
 
@@ -887,7 +887,7 @@ export class EveSpaceSceneRenderDriver
     }
 
     // cpp:557 - the shadow globals are emptied after the main pass.
-    if (offscreen?.shadows) EveSpaceScene.registerWithVariableStore(EveSpaceSceneRenderDriver.#noShadowResources, this.#gpuResourcePool);
+    if (offscreen?.shadows) EveSpaceScene.registerWithVariableStore(EveSpaceSceneRenderDriver._noShadowResources, this._gpuResourcePool);
 
     return submitted;
   }
@@ -987,11 +987,11 @@ export class EveSpaceSceneRenderDriver
       const scenePostProcess = this.scene.postprocess;
       const temporal = scenePostProcess !== null && scenePostProcess.GetTaaIfAvailable() !== null;
 
-      ssao = this.SSAO.Filter(depthMap, normalMap, this.#gpuResourcePool, renderContext, temporal);
+      ssao = this.SSAO.Filter(depthMap, normalMap, this._gpuResourcePool, renderContext, temporal);
       renderContext.SetReadOnlyDepth(false);
     }
 
-    return ssao.IsValid() ? ssao : EveSpaceSceneRenderDriver.getEmptySSAO(this.#gpuResourcePool);
+    return ssao.IsValid() ? ssao : EveSpaceSceneRenderDriver.getEmptySSAO(this._gpuResourcePool);
   }
 
   /**
@@ -1012,7 +1012,7 @@ export class EveSpaceSceneRenderDriver
 
     if (!wanted && !this.forceNormalMap) return null;
 
-    return this.#TempTexture("normalMap", size, PixelFormat.PIXEL_FORMAT_R10G10B10A2_UNORM);
+    return this._TempTexture("normalMap", size, PixelFormat.PIXEL_FORMAT_R10G10B10A2_UNORM);
   }
 
   /**
@@ -1029,7 +1029,7 @@ export class EveSpaceSceneRenderDriver
   {
     if (this.antiAliasingQuality === AntiAliasingQuality.Disabled && !this.forceVelocityMap) return null;
 
-    return this.#TempTexture("velocityMap", size, PixelFormat.PIXEL_FORMAT_R16G16_FLOAT);
+    return this._TempTexture("velocityMap", size, PixelFormat.PIXEL_FORMAT_R16G16_FLOAT);
   }
 
   /**
@@ -1046,7 +1046,7 @@ export class EveSpaceSceneRenderDriver
   {
     if (this.antiAliasingQuality < AntiAliasingQuality.Medium && !this.forceOpaqueBuffer) return null;
 
-    return this.#TempTexture("opaqueBackBuffer", size, this.internalPixelFormat);
+    return this._TempTexture("opaqueBackBuffer", size, this.internalPixelFormat);
   }
 
   /**
@@ -1060,7 +1060,7 @@ export class EveSpaceSceneRenderDriver
   {
     if (!this.enableDistortion) return null;
 
-    return this.#TempTexture("distortionMap", size, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM);
+    return this._TempTexture("distortionMap", size, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM);
   }
 
   /**
@@ -1075,8 +1075,8 @@ export class EveSpaceSceneRenderDriver
    */
   _ApplyDistortion(destination, distortion, renderContext)
   {
-    const effect = this.#distortionEffect;
-    const backBufferCopy = this.#gpuResourcePool.GetTempTexture("backBufferCopy", {
+    const effect = this._distortionEffect;
+    const backBufferCopy = this._gpuResourcePool.GetTempTexture("backBufferCopy", {
       type: TextureType.TEX_TYPE_2D,
       width: destination.GetWidth(),
       height: destination.GetHeight(),
@@ -1091,7 +1091,7 @@ export class EveSpaceSceneRenderDriver
       backBufferCopy.Get().CopySubresourceRegion(new Tr2TextureSubresource(), destination, new Tr2TextureSubresource(), renderContext);
 
       const esm = renderContext.GetEffectStateManager();
-      this.#BeginRenderPass(esm, [ destination ], null);
+      this._BeginRenderPass(esm, [ destination ], null);
       esm.ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
       effect.SetParameter_TextureAL("BlitCurrent", backBufferCopy.Get());
       effect.SetParameter_TextureAL("TexDistortion", distortion);
@@ -1101,14 +1101,14 @@ export class EveSpaceSceneRenderDriver
     }
     finally
     {
-      this.#gpuResourcePool.Free(backBufferCopy);
+      this._gpuResourcePool.Free(backBufferCopy);
     }
   }
 
   /** A render-target pool texture of the scene's size. */
-  #TempTexture(name, size, format, gpuUsage = Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE)
+  _TempTexture(name, size, format, gpuUsage = Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE)
   {
-    return this.#gpuResourcePool.GetTempTexture(name, {
+    return this._gpuResourcePool.GetTempTexture(name, {
       type: TextureType.TEX_TYPE_2D,
       width: size.width,
       height: size.height,
@@ -1124,24 +1124,24 @@ export class EveSpaceSceneRenderDriver
    * per context. Carbon's pool and renderer are device resources, ready before
    * any frame; ours are handed the context here instead.
    */
-  #PrepareContext(renderContext)
+  _PrepareContext(renderContext)
   {
-    if (this.#preparedContext === renderContext) return;
+    if (this._preparedContext === renderContext) return;
 
-    this.#gpuResourcePool.SetRenderContext(renderContext);
+    this._gpuResourcePool.SetRenderContext(renderContext);
     Tr2Renderer.prepareDeviceResources(renderContext);
-    this.#preparedContext = renderContext;
+    this._preparedContext = renderContext;
   }
 
   /**
    * Borrows the scene's colour and depth (cpp:461, 471): the internal pixel
    * format at the destination's size, and a 32-bit float depth.
    */
-  #BeginOffscreen(target, renderContext)
+  _BeginOffscreen(target, renderContext)
   {
-    const pool = this.#gpuResourcePool;
+    const pool = this._gpuResourcePool;
 
-    this.#PrepareContext(renderContext);
+    this._PrepareContext(renderContext);
 
     const size = { width: target.GetWidth(), height: target.GetHeight() };
     const texture = (name, format, gpuUsage) => pool.GetTempTexture(name, {
@@ -1158,7 +1158,7 @@ export class EveSpaceSceneRenderDriver
       size,
       color: texture("customBackBuffer", this.internalPixelFormat, Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE),
       depth: texture("depthBuffer", PixelFormat.PIXEL_FORMAT_D32_FLOAT, Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE),
-      // Borrowed by the main pass when TAA needs them (#RenderMainPass).
+      // Borrowed by the main pass when TAA needs them (_RenderMainPass).
       velocity: null,
       opaque: null,
       // Borrowed for the depth pass when AO needs it; the driver's to free.
@@ -1172,11 +1172,11 @@ export class EveSpaceSceneRenderDriver
   }
 
   /** Returns the scene's targets when the frame ends without a post process. */
-  #EndOffscreen(offscreen)
+  _EndOffscreen(offscreen)
   {
     for (const handle of [ offscreen.color, offscreen.depth, offscreen.velocity, offscreen.opaque ])
     {
-      if (handle) this.#gpuResourcePool.Free(handle);
+      if (handle) this._gpuResourcePool.Free(handle);
     }
   }
 
@@ -1184,7 +1184,7 @@ export class EveSpaceSceneRenderDriver
    * Binds the destination and runs the post process into it (cpp:602-609).
    * Execute owns and frees both handles, as Carbon moves them into it.
    */
-  #PostProcess(target, offscreen, renderContext)
+  _PostProcess(target, offscreen, renderContext)
   {
     const esm = renderContext.GetEffectStateManager();
 
@@ -1196,7 +1196,7 @@ export class EveSpaceSceneRenderDriver
     this._opaqueMapReference.SetTexture(null);
     Tr2VariableStore.globalStore().RegisterVariableInternal("EveSpaceSceneOpaqueMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this._opaqueMapReference);
 
-    this.postProcess.Execute(target, offscreen.color, offscreen.depth, offscreen.velocity, offscreen.opaque, this.scene, null, this.#gpuResourcePool, renderContext, this.#renderer);
+    this.postProcess.Execute(target, offscreen.color, offscreen.depth, offscreen.velocity, offscreen.opaque, this.scene, null, this._gpuResourcePool, renderContext, this._renderer);
   }
 
   /**
@@ -1206,23 +1206,23 @@ export class EveSpaceSceneRenderDriver
    * @param {object} renderContext Recording render context.
    * @returns {object|null} The batch map, or null without a manager.
    */
-  #Collect(renderables, renderContext)
+  _Collect(renderables, renderContext)
   {
-    if (!this.#batchManager) return null;
+    if (!this._batchManager) return null;
 
-    this.#batchManager.Collect(renderables, undefined, renderContext);
+    this._batchManager.Collect(renderables, undefined, renderContext);
 
-    return this.#batchManager.GetBatchMap();
+    return this._batchManager.GetBatchMap();
   }
 
   /**
    * Submits one frame's collected batches.
    *
-   * @param {object|null} map The batch map `#Collect` produced.
+   * @param {object|null} map The batch map `_Collect` produced.
    * @param {object} renderContext Recording render context.
    * @returns {boolean} Whether anything was submitted.
    */
-  #Submit(map, renderContext)
+  _Submit(map, renderContext)
   {
     if (!map) return false;
 
@@ -1241,7 +1241,7 @@ export class EveSpaceSceneRenderDriver
       // (EveSpaceScene.cpp:1139-1142): a batch whose own mode is RM_ANY would
       // otherwise inherit whatever was last applied - after one frame, the
       // post process's RM_FULLSCREEN.
-      renderContext.GetEffectStateManager().ApplyStandardStates(EveSpaceSceneRenderDriver.#standardStatesFor[batchType]);
+      renderContext.GetEffectStateManager().ApplyStandardStates(EveSpaceSceneRenderDriver._standardStatesFor[batchType]);
       submitted = renderContext.RenderBatches(accumulator) || submitted;
     }
 
@@ -1256,9 +1256,9 @@ export class EveSpaceSceneRenderDriver
    * (cpp:2710, 2771); ours makes the transparent family read-only, so these
    * test against the scene depth without writing it.
    *
-   * Distortion (cpp:2759-2762) follows, in #RenderMainPass.
+   * Distortion (cpp:2759-2762) follows, in _RenderMainPass.
    *
-   * @param {object|null} map The batch map `#Collect` produced.
+   * @param {object|null} map The batch map `_Collect` produced.
    * @param {object} renderContext Recording render context.
    * @returns {boolean} Whether anything was submitted.
    */
@@ -1329,7 +1329,7 @@ export class EveSpaceSceneRenderDriver
    * @param {object} renderContext Recording render context.
    * @returns {void}
    */
-  #SetCameraToRenderer(renderContext)
+  _SetCameraToRenderer(renderContext)
   {
     // Carbon (cpp:384-391): the camera's TriProjection and TriView when there
     // is a camera, else this driver's own pair - Validate guarantees one.
@@ -1350,9 +1350,9 @@ export class EveSpaceSceneRenderDriver
     // a target, as on the disabled path or a frame with no destination.
     const viewport = renderContext.GetViewport();
 
-    if (viewport) this.#frustum.DeriveFrustum(view, renderContext.GetViewPosition() ?? null, projection, viewport);
+    if (viewport) this._frustum.DeriveFrustum(view, renderContext.GetViewPosition() ?? null, projection, viewport);
 
-    this.scene.StampFrameContext?.({ frustum: this.#frustum });
+    this.scene.StampFrameContext?.({ frustum: this._frustum });
   }
 
   static AmbientOcclusionQuality = AmbientOcclusionQuality;
