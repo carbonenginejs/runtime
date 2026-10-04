@@ -2,7 +2,8 @@ import { IsMatch } from "#blue";
 import { INotify } from "../../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodAttributeMap.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
+import { EveProceduralMethodAttributeMapParameter } from "./EveProceduralMethodAttributeMapParameter.js";
 import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.js";
 
 /** EveProceduralMethodAttributeMap (eve/child/procedural/selection) - generated from schema shapeHash 691cb5f9.... */
@@ -44,10 +45,12 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
 
   /** Carbon EveProceduralMethodAttributeMap::OnModified (cpp:19-27): a seed
    * change reselects. The value argument follows the repo's OnModified duck
-   * (field name or field value). */
+   * (field name or field value).
+   *
+   * Adapted: Field matching follows the repo OnModified duck.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Field matching follows the repo OnModified duck.")
   OnModified(value = null)
   {
     if (IsMatch(value, "seed_temp"))
@@ -70,7 +73,7 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
     for (let index = 0; index < this.parameters.length; index++)
     {
       const param = this.parameters[index];
-      if ((param?.GetName?.() ?? param?.name ?? "") === this.seed_temp)
+      if (param.GetName() === this.seed_temp)
       {
         this.selectedChild = index;
         break;
@@ -106,14 +109,14 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
     }
 
     this._selectedChildModified = false;
-    const param = this.parameters[this.selectedChild];
+    const param = CjsSchema.cast(this.parameters[this.selectedChild], EveProceduralMethodAttributeMapParameter);
 
     if (param)
     {
-      const child = param.GetChild?.() ?? param.child;
-      if (child && String(child.GetResPath?.() ?? child.resPath ?? "").length !== 0)
+      const child = param.GetChild();
+      if (child && child.GetResPath().length !== 0)
       {
-        param.Load?.();
+        param.Load();
         return child;
       }
     }
@@ -130,7 +133,7 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
     let reselect = false;
     for (const param of this.parameters)
     {
-      if (param?.IsModified?.())
+      if (param.IsModified())
       {
         reselect = true;
         param.SetModified(false);

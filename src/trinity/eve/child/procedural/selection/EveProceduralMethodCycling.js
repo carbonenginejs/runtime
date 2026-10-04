@@ -1,7 +1,8 @@
 import { INotify } from "../../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodCycling.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
+import { EveProceduralMethodCyclingParameter } from "./EveProceduralMethodCyclingParameter.js";
 import { blue, TimeAsDouble } from "#blue";
 import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.js";
 
@@ -53,10 +54,13 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
 
   /** Carbon method restart -> SelectParameter (MAP_METHOD_AND_WRAP,
    * cpp:36-60): randomized order picks any OTHER index (the shifted draw);
-   * otherwise a plain cycle. Math.random replaces Carbon's unseeded rand(). */
+   * otherwise a plain cycle. Math.random replaces Carbon's unseeded rand().
+   *
+   * Adapted: An optional timestamp provides Carbon's current-frame clock
+   * deterministically in browser tests.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("An optional timestamp provides Carbon's current-frame clock deterministically in browser tests.")
   restart(timestamp = TimeAsDouble(blue.os.GetCurrentFrameTime()))
   {
     const count = this.parameters.length;
@@ -94,10 +98,14 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
   }
 
   /** Carbon EveProceduralMethodCycling::OnListModified (cpp:28-34): a
-   * non-loading change to the parameter list reselects. */
+   * non-loading change to the parameter list reselects.
+   *
+   * Adapted: The list argument defaults to the parameters list; the reselect
+   * uses restart's default wall clock (no frame context reaches list
+   * notifies).
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The list argument defaults to the parameters list; the reselect uses restart's default wall clock (no frame context reaches list notifies).")
   OnListModified(event = 0, _key = 0, _key2 = 0, _value = null, list = null)
   {
     if ((list === null || list === this.parameters) && (event & BELIST_LOADING) === 0)
@@ -129,14 +137,14 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
     }
 
     this._selectedChildModified = false;
-    const param = this.parameters[this.selectedChild];
+    const param = CjsSchema.cast(this.parameters[this.selectedChild], EveProceduralMethodCyclingParameter);
 
     if (param)
     {
-      const child = param.GetChild?.() ?? param.child;
-      if (child && String(child.GetResPath?.() ?? child.resPath ?? "").length !== 0)
+      const child = param.GetChild();
+      if (child && child.GetResPath().length !== 0)
       {
-        param.Load?.();
+        param.Load();
         return child;
       }
     }
@@ -160,11 +168,11 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
       return;
     }
 
-    const param = this.parameters[this.selectedChild];
+    const param = CjsSchema.cast(this.parameters[this.selectedChild], EveProceduralMethodCyclingParameter);
     if (param)
     {
       const elapsed = now - this._startTime;
-      if (elapsed >= Number(param.GetDuration?.() ?? param.playDuration ?? 0))
+      if (elapsed >= param.GetDuration())
       {
         this.restart(now);
       }

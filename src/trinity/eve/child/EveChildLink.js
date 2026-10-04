@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLink.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
+import { EveSpaceObject2 } from "../spaceObject/EveSpaceObject2.js";
 import { EveChildMesh } from "./EveChildMesh.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -62,10 +63,13 @@ export class EveChildLink extends EveChildMesh
   /**
    * Resolves the link direction and distance from the parent's model center to
    * the target function (EveChildLink.cpp:40-68).
+   *
+   * Adapted: EveChildMesh::UpdateSyncronous (animation/audio bookkeeping,
+   * EveChildMesh.cpp:1002) is not yet ported on the JS base, so only the link
+   * targeting runs; collaborators are duck-typed.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("EveChildMesh::UpdateSyncronous (animation/audio bookkeeping, EveChildMesh.cpp:1002) is not yet ported on the JS base, so only the link targeting runs; collaborators are duck-typed.")
   UpdateSyncronous(updateContext, params)
   {
     // Carbon first calls EveChildMesh::UpdateSyncronous (EveChildLink.cpp:42);
@@ -84,11 +88,7 @@ export class EveChildLink extends EveChildMesh
     }
     const sourcePosition = EveChildLink._sourcePosition;
     vec3.set(sourcePosition, 0, 0, 0);
-    const sourceResult = params.spaceObjectParent.GetModelCenterWorldPosition?.(sourcePosition);
-    if (sourceResult && sourceResult !== sourcePosition && sourceResult.length >= 3)
-    {
-      vec3.copy(sourcePosition, sourceResult);
-    }
+    params.spaceObjectParent.GetModelCenterWorldPosition(sourcePosition);
     vec3.subtract(this.currentDirection, targetPosition, sourcePosition);
     this.currentDistance = vec3.length(this.currentDirection);
     vec3.normalize(this.currentDirection, this.currentDirection);
@@ -99,21 +99,23 @@ export class EveChildLink extends EveChildMesh
    * placement matrices and the per-object VS record
    * (EveChildLink.cpp:74-152). Replaces (does not call) the EveChildMesh
    * async update, as Carbon does.
+   *
+   * Adapted: Per-object GPU buffer invalidation (cpp:143-144) is not ported
+   * yet; the vs/ps records are the backend-neutral value classes.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Per-object GPU buffer invalidation (cpp:143-144) is not ported yet; parents and curves are duck-typed and the vs/ps records are the backend-neutral value classes.")
   UpdateAsyncronous(_updateContext, params)
   {
     // Update the special link curves with last frame's strength, then copy
     // the bound values (EveChildLink.cpp:76-85).
     for (const curve of this.linkStrengthCurves)
     {
-      curve?.UpdateValue?.(this.linkStrength);
+      curve.UpdateValue(this.linkStrength);
     }
     for (const binding of this.linkStrengthBindings)
     {
-      binding?.CopyValue?.();
+      binding.CopyValue();
     }
 
     // Parent world matrix and the parent's shield ellipsoid offset
@@ -128,9 +130,9 @@ export class EveChildLink extends EveChildMesh
     {
       EveChildLink._CopyLocalToWorld(this.worldTransform, params.spaceObjectParent);
       // Carbon queries the EveSpaceObject2 interface for GetShapeEllipsoid
-      // (EveChildLink.cpp:96-101); parents without the duck-typed accessor
-      // keep the zero center.
-      params.spaceObjectParent.GetShapeEllipsoid?.(shieldEllipsoidCenter, EveChildLink._shieldEllipsoidRadii);
+      // (EveChildLink.cpp:96-101); other parents keep the zero center.
+      const spaceObject = CjsSchema.cast(params.spaceObjectParent, EveSpaceObject2);
+      if (spaceObject) spaceObject.GetShapeEllipsoid(shieldEllipsoidCenter, EveChildLink._shieldEllipsoidRadii);
     }
     else
     {
@@ -188,7 +190,7 @@ export class EveChildLink extends EveChildMesh
     const records = this.GetPerObjectRecords();
     records.vs.Invalidate();
     records.ps.Invalidate();
-    params.spaceObjectParent?.GetPerObjectStructs?.(records.vs, records.ps);
+    if (params.spaceObjectParent) params.spaceObjectParent.GetPerObjectStructs(records.vs, records.ps);
     records.vs.SetAndTranspose("worldTransform", finalWorld);
     records.vs.SetAndTranspose("worldTransformLast", linkRotation);
   }
@@ -241,10 +243,13 @@ export class EveChildLink extends EveChildMesh
     return false;
   }
 
-  /** Returns the local-to-world matrix (EveChildLink.cpp:189-192). */
+  /** Returns the local-to-world matrix (EveChildLink.cpp:189-192).
+   *
+   * Adapted: CarbonEngineJS uses an out-last signature and returns the matrix
+   * when no output is supplied.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("CarbonEngineJS uses an out-last signature and returns the matrix when no output is supplied.")
   GetLocalToWorldTransform(out = null)
   {
     if (out)

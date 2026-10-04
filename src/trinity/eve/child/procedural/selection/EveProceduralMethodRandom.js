@@ -2,7 +2,8 @@ import { IsMatch } from "#blue";
 import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodRandom.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
+import { EveProceduralMethodRandomParameter } from "./EveProceduralMethodRandomParameter.js";
 import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.js";
 import { createMinStdRandom } from "../../../CjsDistributionRandom.js";
 
@@ -73,10 +74,12 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
   }
 
   /** Carbon EveProceduralMethodRandom::OnModified (cpp:27-35): a seed change
-   * reselects. The value argument follows the repo's OnModified duck. */
+   * reselects. The value argument follows the repo's OnModified duck.
+   *
+   * Adapted: Field matching follows the repo OnModified duck.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Field matching follows the repo OnModified duck.")
   OnModified(value = null)
   {
     if (IsMatch(value, "seed_temp"))
@@ -88,10 +91,12 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
   }
 
   /** Carbon EveProceduralMethodRandom::OnListModified (cpp:37-43): a
-   * non-loading change to the parameter list regenerates the weight map. */
+   * non-loading change to the parameter list regenerates the weight map.
+   *
+   * Adapted: The list argument defaults to the parameters list.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The list argument defaults to the parameters list.")
   OnListModified(event = 0, _key = 0, _key2 = 0, _value = null, list = null)
   {
     if ((list === null || list === this.parameters) && (event & BELIST_LOADING) === 0)
@@ -110,7 +115,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
     this.totalWeight = 0;
     for (const param of this.parameters)
     {
-      this.totalWeight += Number(param?.GetWeighting?.() ?? param?.weighting ?? 0) | 0;
+      this.totalWeight += param.GetWeighting();
       this._parameterMapping.push(this.totalWeight);
     }
   }
@@ -119,10 +124,14 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
    * seed the generator from m_seed, draw an integer inside the total weight,
    * and pick the first cumulative threshold above it. Carbon uses
    * srand((int)m_seed) + rand() % totalWeight; the port draws from the repo's
-   * seeded minstd generator so a given seed stays deterministic. */
+   * seeded minstd generator so a given seed stays deterministic.
+   *
+   * Adapted: createMinStdRandom replaces the C runtime srand/rand pair -
+   * deterministic per seed like Carbon, though the exact integer sequence
+   * differs.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("createMinStdRandom replaces the C runtime srand/rand pair - deterministic per seed like Carbon, though the exact integer sequence differs.")
   SelectARandomParameter()
   {
     if (this._parameterMapping.length === 0 || this.totalWeight <= 0)
@@ -172,14 +181,14 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
     }
 
     this._selectedChildModified = false;
-    const param = this.parameters[this.selectedChild];
+    const param = CjsSchema.cast(this.parameters[this.selectedChild], EveProceduralMethodRandomParameter);
 
     if (param)
     {
-      const child = param.GetChild?.() ?? param.child;
-      if (child && String(child.GetResPath?.() ?? child.resPath ?? "").length !== 0)
+      const child = param.GetChild();
+      if (child && child.GetResPath().length !== 0)
       {
-        param.Load?.();
+        param.Load();
         return child;
       }
     }
@@ -196,7 +205,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
     let regenerateParameterMap = false;
     for (const param of this.parameters)
     {
-      if (param?.IsModified?.())
+      if (param.IsModified())
       {
         regenerateParameterMap = true;
         param.SetModified(false);
