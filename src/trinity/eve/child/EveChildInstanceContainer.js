@@ -274,6 +274,26 @@ export class EveChildInstanceContainer extends EveChildTransform
     this.instances.length = 0;
   }
 
+  /**
+   * Carbon PopFront (EveChildInstanceContainer.cpp:346-360): removes the oldest
+   * instance, unregistering it first when this container is in a registry.
+   * @returns {void}
+   */
+  @meta.implemented
+  PopFront()
+  {
+    if (this.instances.length)
+    {
+      const front = CjsSchema.cast(this.instances[0], EveEntity);
+      if (front && this.IsInRegistry())
+      {
+        front.UnRegister(this.GetComponentRegistry());
+      }
+      this.UnregisterChild(this.instances[0]);
+      this.instances.splice(0, 1);
+    }
+  }
+
   /** Selects whether an empty container exposes its source (cpp:333). */
   @meta.blue.method
   @meta.implemented

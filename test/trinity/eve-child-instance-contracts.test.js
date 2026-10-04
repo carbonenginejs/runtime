@@ -74,3 +74,15 @@ test("shader options reach each real instance in order without changing the sour
   ]);
   assert.equal(sourceCalls.mock.callCount(), 0);
 });
+
+// Carbon EveChildInstanceContainer::PopFront (cpp:346-360): drops the oldest instance; empty is a no-op.
+test("PopFront removes the oldest instance and leaves an empty list alone", () =>
+{
+  const container = new EveChildInstanceContainer();
+  container.PopFront();
+  assert.equal(container.instances.length, 0);
+  const first = new EveChildContainer(), second = new EveChildContainer();
+  container.instances.push(first, second);
+  container.PopFront();
+  assert.deepEqual(container.instances, [ second ]);
+});

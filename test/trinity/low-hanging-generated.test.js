@@ -133,11 +133,8 @@ test("EveChildEffectPropagator.Stop resets playback and clears effect instances"
   assert.equal(propagator.playTime, 0);
   assert.equal(clearCalls, 1);
   assert.equal(propagator.effect.instances.length, 0);
-
-  propagator.effect = { instances: [{}, {}] };
-  propagator.Stop();
-  assert.equal(propagator.effect.instances.length, 0);
-  assert.equal(CjsSchema.getMethod(EveChildEffectPropagator, "Stop")?.impl?.status, "adapted");
+  // Carbon calls m_effect->ClearInstanceList() directly (cpp:126-129).
+  assert.equal(CjsSchema.getMethod(EveChildEffectPropagator, "Stop")?.impl?.status, "implemented");
 });
 
 test("Tr2MaterialParameterStore resolves local overrides before parent values", () =>

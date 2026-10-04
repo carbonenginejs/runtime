@@ -2,7 +2,8 @@ import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
+import { EveSpaceObject2 } from "../spaceObject/EveSpaceObject2.js";
 import { EveChildContainer } from "./EveChildContainer.js";
 import { EveEntity } from "../EveEntity.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
@@ -257,8 +258,7 @@ export class EveChildEffectPropagator extends EveChildContainer
 
   /** Carbon EveChildEffectPropagator::Stop (cpp:119-129). */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("The staged instance container does not yet expose Carbon's native ClearInstanceList helper, so plain hydrated instance lists are cleared directly as a fallback.")
+  @meta.implemented
   Stop()
   {
     this.isPlaying = false;
@@ -268,24 +268,16 @@ export class EveChildEffectPropagator extends EveChildContainer
 
     if (this.effect)
     {
-      if (typeof this.effect.ClearInstanceList === "function")
-      {
-        this.effect.ClearInstanceList();
-      }
-      else if (Array.isArray(this.effect.instances))
-      {
-        this.effect.instances.length = 0;
-      }
+      this.effect.ClearInstanceList();
     }
   }
 
   /** Carbon EveChildEffectPropagator::Initialize (cpp:131-138). */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("DisableEditMode is duck-typed - the staged instance container has not ported its edit-mode surface yet.")
+  @meta.implemented
   Initialize()
   {
-    this.effect?.DisableEditMode?.(true);
+    if (this.effect) this.effect.DisableEditMode(true);
     return super.Initialize();
   }
 
@@ -294,13 +286,12 @@ export class EveChildEffectPropagator extends EveChildContainer
    * the playTime re-anchor on frequency changes. The value argument follows
    * the repo's OnModified duck (field name or field value). */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Field matching follows the repo OnModified duck and DisableEditMode is duck-typed on the staged instance container.")
+  @meta.implemented
   OnModified(value = null)
   {
     if (IsMatch(value, "effect"))
     {
-      this.effect?.DisableEditMode?.(true);
+      if (this.effect) this.effect.DisableEditMode(true);
     }
 
     if (IsMatch(value, "completeness"))
@@ -334,8 +325,7 @@ export class EveChildEffectPropagator extends EveChildContainer
    * swallowed; the list is distance-sorted so the scan stops at the first
    * locator still outside. */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("CreateInstance is duck-typed - the staged instance container has not ported its instance-spawning surface yet.")
+  @meta.implemented
   ManageTriggers()
   {
     if (!this.triggerSphereRadiusCurve)
@@ -357,7 +347,7 @@ export class EveChildEffectPropagator extends EveChildContainer
       const record = records[index];
       if (record.sqrDistToSphereCenter < currentRadSqr)
       {
-        this.effect.CreateInstance?.(record.scale, record.rotation, record.position);
+        this.effect.CreateInstance(record.scale, record.rotation, record.position);
         this._currentTriggerIndex++;
       }
       else
@@ -378,8 +368,7 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @param {EveChildUpdateParams} params
    */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("CreateInstance on the staged instance container is duck-typed; the trigger bookkeeping is ported.")
+  @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
     if (this.trigger)
@@ -400,7 +389,7 @@ export class EveChildEffectPropagator extends EveChildContainer
       }
     }
 
-    this.effect?.UpdateSyncronous(updateContext, params);
+    if (this.effect) this.effect.UpdateSyncronous(updateContext, params);
 
     if (!this.isPlaying)
     {
@@ -423,12 +412,12 @@ export class EveChildEffectPropagator extends EveChildContainer
         }
         break;
       case EveChildEffectPropagator.TriggerType.INSTANT_PERMANENT:
-        this.playTime += Number(updateContext?.GetDeltaT?.() ?? updateContext?.deltaT ?? 0);
+        this.playTime += updateContext.GetDeltaT();
         if (this._currentTriggerIndex === 0)
         {
           for (const record of this._processedTransforms)
           {
-            this.effect?.CreateInstance?.(record.scale, record.rotation, record.position);
+            this.effect.CreateInstance(record.scale, record.rotation, record.position);
           }
           this._currentTriggerIndex++;
         }
@@ -446,7 +435,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   @meta.implemented
   UpdateTriggerCurve(updateContext)
   {
-    const dt = Number(updateContext?.GetDeltaT?.() ?? updateContext?.deltaT ?? 0);
+    const dt = updateContext.GetDeltaT();
     this.playTime += dt;
 
     if (this.effect)
@@ -460,7 +449,7 @@ export class EveChildEffectPropagator extends EveChildContainer
       return;
     }
 
-    if (this.playTime > Number(this.triggerSphereRadiusCurve.Length?.() ?? 0))
+    if (this.playTime > this.triggerSphereRadiusCurve.Length())
     {
       if (this.skipCleanup)
       {
@@ -491,11 +480,10 @@ export class EveChildEffectPropagator extends EveChildContainer
    * plus paced deletion of expired instances (PopFront) until the loop
    * drains. */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("CreateInstance/PopFront on the staged instance container are duck-typed; the interval bookkeeping is ported.")
+  @meta.implemented
   UpdateTriggerInterval(updateContext)
   {
-    const dt = Number(updateContext?.GetDeltaT?.() ?? updateContext?.deltaT ?? 0);
+    const dt = updateContext.GetDeltaT();
     this.playTime += dt;
 
     if (this._processedTransforms.length === 0)
@@ -523,14 +511,14 @@ export class EveChildEffectPropagator extends EveChildContainer
       this._lastTriggered.push(locatorIndex);
 
       const record = this._processedTransforms[locatorIndex];
-      this.effect?.CreateInstance?.(record.scale, record.rotation, record.position);
+      this.effect.CreateInstance(record.scale, record.rotation, record.position);
       this._currentTriggerIndex++;
     }
 
     if (this.durationPerEffect !== -1 &&
       this.playTime > (this._numDeleted / this.frequency) + this.durationPerEffect)
     {
-      this.effect?.PopFront?.();
+      this.effect.PopFront();
       this._numDeleted++;
 
       if (this._numDeleted === this._currentTriggerIndex)
@@ -546,10 +534,12 @@ export class EveChildEffectPropagator extends EveChildContainer
   /** Carbon EveChildEffectPropagator::GetSmartRandomLocatorIndex
    * (cpp:319-351): rejection-sample a locator index not in the recent-trigger
    * history, with Carbon's early exit when the history covers the set or the
-   * spawn rate saturates 75% of the locators. */
+   * spawn rate saturates 75% of the locators.
+   *
+   * Adapted: Math.random replaces Carbon's unseeded TriRand.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Math.random replaces Carbon's unseeded TriRandInt, matching the BehaviorGroup/EveSpaceObject2 precedent.")
   GetSmartRandomLocatorIndex()
   {
     let locatorIndex = -1;
@@ -601,7 +591,7 @@ export class EveChildEffectPropagator extends EveChildContainer
       return this.worldTransform;
     }
 
-    this.effect?.UpdateAsyncronous(updateContext, params);
+    if (this.effect) this.effect.UpdateAsyncronous(updateContext, params);
 
     return super.UpdateAsyncronous(updateContext, params);
   }
@@ -612,7 +602,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform = null, parentLod = Tr2Lod.TR2_LOD_HIGH)
   {
-    this.effect?.UpdateVisibility(updateContext, parentTransform, parentLod);
+    if (this.effect) this.effect.UpdateVisibility(updateContext, parentTransform, parentLod);
   }
 
   /** Carbon EveChildEffectPropagator::GetRenderables (cpp:397-408): nothing
@@ -627,7 +617,7 @@ export class EveChildEffectPropagator extends EveChildContainer
       return out;
     }
 
-    this.effect?.GetRenderables(out);
+    if (this.effect) this.effect.GetRenderables(out);
     return out;
   }
 
@@ -641,7 +631,7 @@ export class EveChildEffectPropagator extends EveChildContainer
     {
       return;
     }
-    this.effect?.AddQuadsToQuadRenderer(frustum, quadRenderer);
+    if (this.effect) this.effect.AddQuadsToQuadRenderer(frustum, quadRenderer);
   }
 
   /** Carbon EveChildEffectPropagator::RegisterWithQuadRenderer (cpp:383-389). */
@@ -649,15 +639,17 @@ export class EveChildEffectPropagator extends EveChildContainer
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
-    this.effect?.RegisterWithQuadRenderer(quadRenderer);
+    if (this.effect) this.effect.RegisterWithQuadRenderer(quadRenderer);
   }
 
   /** Carbon EveChildEffectPropagator::ProcessLocalLocators (cpp:410-438):
    * sample the owned locator set through the completeness gate; the trigger
-   * sphere scalar becomes twice the farthest locator distance. */
+   * sphere scalar becomes twice the farthest locator distance.
+   *
+   * Adapted: Math.random replaces Carbon's unseeded TriRand.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Math.random replaces Carbon's unseeded TriRand, matching the EveSpaceObject2 precedent.")
   ProcessLocalLocators()
   {
     if (!this.localLocators)
@@ -665,7 +657,7 @@ export class EveChildEffectPropagator extends EveChildContainer
       return;
     }
 
-    const locators = this.localLocators.GetLocators?.() ?? this.localLocators.locators ?? [];
+    const locators = this.localLocators.GetLocators();
 
     this.triggerSphereScalarMulti = 0;
     for (const locator of locators)
@@ -693,10 +685,12 @@ export class EveChildEffectPropagator extends EveChildContainer
 
   /** Carbon EveChildEffectPropagator::ProcessRefLocators (cpp:440-478): pull
    * the named locator set (default "damage") from the space-object parent and
-   * scale the trigger sphere by the parent's bounding-sphere radius. */
+   * scale the trigger sphere by the parent's bounding-sphere radius.
+   *
+   * Adapted: Math.random replaces Carbon's unseeded TriRand.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Math.random replaces Carbon's unseeded TriRand and the EveSpaceObject2 BlueCast becomes a duck check on the locator/bounds surface.")
   ProcessRefLocators(parent)
   {
     if (this.locatorSetName === "")
@@ -706,11 +700,12 @@ export class EveChildEffectPropagator extends EveChildContainer
 
     let locators = null;
 
-    if (typeof parent?.GetLocatorsForSet === "function" && typeof parent?.GetBoundingSphere === "function")
+    const spaceObject = CjsSchema.cast(parent, EveSpaceObject2);
+    if (spaceObject)
     {
-      locators = parent.GetLocatorsForSet(this.locatorSetName);
+      locators = spaceObject.GetLocatorsForSet(this.locatorSetName);
       vec4.set(BOUNDS_SCRATCH, 0, 0, 0, 0);
-      parent.GetBoundingSphere(BOUNDS_SCRATCH);
+      spaceObject.GetBoundingSphere(BOUNDS_SCRATCH);
       this.triggerSphereScalarMulti = BOUNDS_SCRATCH[3];
     }
     else
@@ -741,10 +736,12 @@ export class EveChildEffectPropagator extends EveChildContainer
   /** Carbon EveChildEffectPropagator::ProcessRandomSpreadLocators
    * (cpp:480-506): uniform points on the unit sphere pushed out by a
    * closeness-biased distance inside [minRangeThreshold, range]; the packed
-   * direction quaternion comes from TriQuaternionDirVector. */
+   * direction quaternion comes from TriQuaternionDirVector.
+   *
+   * Adapted: Math.random replaces Carbon's unseeded TriRand.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Math.random replaces Carbon's unseeded TriRand, matching the EveSpaceObject2 precedent.")
   ProcessRandomSpreadLocators()
   {
     const count = Number(this.numTriggers);
@@ -816,10 +813,12 @@ export class EveChildEffectPropagator extends EveChildContainer
   }
 
   /** Carbon EveChildEffectPropagator::RecalculateLocatorSizes (cpp:542-549):
-   * re-randomize the per-locator scale for a delayed replay. */
+   * re-randomize the per-locator scale for a delayed replay.
+   *
+   * Adapted: Math.random replaces Carbon's unseeded TriRand.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Math.random replaces Carbon's unseeded TriRand, matching the EveSpaceObject2 precedent.")
   RecalculateLocatorSizes()
   {
     for (const record of this._processedTransforms)
@@ -876,7 +875,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   @meta.implemented
   SetControllerVariable(name, value)
   {
-    this.effect?.SetControllerVariable(String(name ?? ""), Number(value));
+    if (this.effect) this.effect.SetControllerVariable(String(name ?? ""), Number(value));
   }
 
   /** Carbon EveChildEffectPropagator::RegisterComponents (cpp:45-51). */
