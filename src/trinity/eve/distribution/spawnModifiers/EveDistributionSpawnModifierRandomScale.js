@@ -2,6 +2,7 @@ import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawnModifiers/EveDistributionSpawnModifierRandomScale.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta } from "#schema";
+import { blue } from "#blue";
 import { IEveDistributionSpawnModifier } from "./IEveDistributionSpawnModifier.js";
 import { vec3 } from "#math/vec3";
 import { createMinStdRandom, getDistributionSeed } from "../../CjsDistributionRandom.js";
@@ -13,7 +14,8 @@ import { createMinStdRandom, getDistributionSeed } from "../../CjsDistributionRa
 export class EveDistributionSpawnModifierRandomScale extends IEveDistributionSpawnModifier
 {
 
-  _timeSeed = Date.now() >>> 0;
+  /** `m_timeSeed`: uint32_t( BeOS->GetCurrentFrameTime() ) (EveDistributionSpawnModifierRandomScale.cpp). */
+  _timeSeed = blue.os.GetCurrentFrameTime() >>> 0;
 
   /** m_minScale (Vector3) [READWRITE, PERSIST] */
   @meta.blue.readwrite
@@ -53,7 +55,7 @@ export class EveDistributionSpawnModifierRandomScale extends IEveDistributionSpa
   @meta.adapted
   Initialize()
   {
-    this._timeSeed = Date.now() >>> 0;
+    this._timeSeed = blue.os.GetCurrentFrameTime() >>> 0;
     return true;
   }
 

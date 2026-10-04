@@ -3,7 +3,7 @@
 import { vec3 } from "#math/vec3";
 import { meta } from "#schema";
 import { ImpactConfiguration } from "../../../generated/include/enums.js";
-import { blue } from "#blue";
+import { blue, TimeAsDouble } from "#blue";
 import { mappedInterfaces } from "../../../../global/compose/interface.js";
 import { ITriTargetable } from "../../../core/ITriTargetable.js";
 import { IWorldPosition } from "../../../core/IWorldPosition.js";
@@ -366,11 +366,11 @@ export class EveTurretTarget
   /**
    * Queues a hit/miss result for a future shot and stamps the shot time; the queue keeps at most four entries, dropping the oldest.
    * @param {boolean} missed Whether that shot will miss.
-   * @param {number} [timestamp] Shot time in seconds; defaults to wall-clock time, and may be supplied for determinism.
+   * Carbon stamps TimeAsDouble( BeOS->GetActualTime() ) (EveTurretTarget.cpp:407).
+   * @param {number} [timestamp] Shot time in seconds; defaults to Carbon's stamp, and may be supplied for determinism.
    */
   @meta.blue.method @meta.adapted
-  @meta.reason("An optional timestamp supports deterministic tests; otherwise browser wall-clock seconds replace BeOS actual time.")
-  SetShotMissed(missed, timestamp = Date.now() / 1000)
+  SetShotMissed(missed, timestamp = TimeAsDouble(blue.os.GetActualTime()))
   {
     this._missQueue.push(!!missed);
     this._lastShotTime = Number(timestamp);

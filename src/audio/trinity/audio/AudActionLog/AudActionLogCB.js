@@ -3,17 +3,13 @@
 // AudActionRecord*.json schema documents.
 
 import { meta } from "#schema";
+import { blue } from "#blue";
 import { IAudActionLog } from "./IAudActionLog.js";
 import { AudActionRecordPostEvent } from "./AudActionRecordPostEvent.js";
 import { AudActionRecordExecuteActionOnPlayingID } from "./AudActionRecordExecuteActionOnPlayingID.js";
 import { AudActionRecordSetSwitch } from "./AudActionRecordSetSwitch.js";
 import { AudActionRecordSetState } from "./AudActionRecordSetState.js";
 import { AudActionRecordSetRTPC } from "./AudActionRecordSetRTPC.js";
-
-function Now()
-{
-  return globalThis.performance?.now() ?? Date.now();
-}
 
 /**
  * Queues Carbon-shaped audio action records and flushes them to a registered
@@ -53,9 +49,8 @@ export class AudActionLogCB extends IAudActionLog
   /**
    * Queues one event-post record.
    *
-   * Adapted: The realm-local queue uses performance.now() milliseconds, falling
-   * back to Date.now(), instead of Carbon's BeOS->GetActualTime() timestamp
-   * (audio/src/AudActionLog.cpp:88-116). The JavaScript queue has no native mutex.
+   * Records are stamped with BeOS->GetActualTime() (audio/src/AudActionLog.cpp:88-116).
+   * Adapted: the JavaScript queue has no native mutex.
    *
    * @param {number} emitterID Emitter identifier.
    * @param {number} playID Playing identifier.
@@ -67,15 +62,14 @@ export class AudActionLogCB extends IAudActionLog
   @meta.adapted
   LogPostEvent(emitterID, playID, eventID, name)
   {
-    this._queue.push(new AudActionRecordPostEvent(Now(), emitterID, playID, eventID, name));
+    this._queue.push(new AudActionRecordPostEvent(blue.os.GetActualTime(), emitterID, playID, eventID, name));
   }
 
   /**
    * Queues one action on a playing event.
    *
-   * Adapted: The realm-local queue uses performance.now() milliseconds, falling
-   * back to Date.now(), instead of Carbon's BeOS->GetActualTime() timestamp
-   * (audio/src/AudActionLog.cpp:88-116). The JavaScript queue has no native mutex.
+   * Records are stamped with BeOS->GetActualTime() (audio/src/AudActionLog.cpp:88-116).
+   * Adapted: the JavaScript queue has no native mutex.
    *
    * @param {number} emitterID Emitter identifier.
    * @param {number} playID Playing identifier.
@@ -86,15 +80,14 @@ export class AudActionLogCB extends IAudActionLog
   @meta.adapted
   LogExecuteActionOnPlayingID(emitterID, playID, action)
   {
-    this._queue.push(new AudActionRecordExecuteActionOnPlayingID(Now(), emitterID, playID, action));
+    this._queue.push(new AudActionRecordExecuteActionOnPlayingID(blue.os.GetActualTime(), emitterID, playID, action));
   }
 
   /**
    * Queues one emitter switch change.
    *
-   * Adapted: The realm-local queue uses performance.now() milliseconds, falling
-   * back to Date.now(), instead of Carbon's BeOS->GetActualTime() timestamp
-   * (audio/src/AudActionLog.cpp:88-116). The JavaScript queue has no native mutex.
+   * Records are stamped with BeOS->GetActualTime() (audio/src/AudActionLog.cpp:88-116).
+   * Adapted: the JavaScript queue has no native mutex.
    *
    * @param {number} emitterID Emitter identifier.
    * @param {string} group Switch group.
@@ -105,15 +98,14 @@ export class AudActionLogCB extends IAudActionLog
   @meta.adapted
   LogSetSwitch(emitterID, group, state)
   {
-    this._queue.push(new AudActionRecordSetSwitch(Now(), emitterID, group, state));
+    this._queue.push(new AudActionRecordSetSwitch(blue.os.GetActualTime(), emitterID, group, state));
   }
 
   /**
    * Queues one global state change.
    *
-   * Adapted: The realm-local queue uses performance.now() milliseconds, falling
-   * back to Date.now(), instead of Carbon's BeOS->GetActualTime() timestamp
-   * (audio/src/AudActionLog.cpp:88-116). The JavaScript queue has no native mutex.
+   * Records are stamped with BeOS->GetActualTime() (audio/src/AudActionLog.cpp:88-116).
+   * Adapted: the JavaScript queue has no native mutex.
    *
    * @param {string} group State group.
    * @param {string} state Selected state.
@@ -123,15 +115,14 @@ export class AudActionLogCB extends IAudActionLog
   @meta.adapted
   LogSetState(group, state)
   {
-    this._queue.push(new AudActionRecordSetState(Now(), group, state));
+    this._queue.push(new AudActionRecordSetState(blue.os.GetActualTime(), group, state));
   }
 
   /**
    * Queues one real-time parameter change.
    *
-   * Adapted: The realm-local queue uses performance.now() milliseconds, falling
-   * back to Date.now(), instead of Carbon's BeOS->GetActualTime() timestamp
-   * (audio/src/AudActionLog.cpp:88-116). The JavaScript queue has no native mutex.
+   * Records are stamped with BeOS->GetActualTime() (audio/src/AudActionLog.cpp:88-116).
+   * Adapted: the JavaScript queue has no native mutex.
    *
    * @param {number} emitterID Emitter identifier.
    * @param {string} name Parameter name.
@@ -143,7 +134,7 @@ export class AudActionLogCB extends IAudActionLog
   @meta.adapted
   LogSetRTPC(emitterID, name, value, playID = 0)
   {
-    this._queue.push(new AudActionRecordSetRTPC(Now(), emitterID, name, value, playID));
+    this._queue.push(new AudActionRecordSetRTPC(blue.os.GetActualTime(), emitterID, name, value, playID));
   }
 
   /**

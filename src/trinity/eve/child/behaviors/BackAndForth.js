@@ -2,6 +2,7 @@
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta } from "#schema";
+import { blue } from "#blue";
 import { LocatorType } from "./enums.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -281,7 +282,7 @@ export class BackAndForth
         // Start playing fx when slowing down
         if (!agent.playFX && this.fxBehavior !== null)
         {
-          agent.fxStartTime = Date.now() / 1000;
+          agent.fxStartTime = blue.os.GetActualTime(); // BackAndForth.cpp:172
           agent.playFX = true;
         }
 

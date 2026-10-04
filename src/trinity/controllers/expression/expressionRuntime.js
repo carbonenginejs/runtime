@@ -8,7 +8,7 @@
 import { CjsControllerExpressionCompileError } from "./CjsControllerExpressionCompileError.js";
 import { CjsControllerExpressionEvaluateError } from "./CjsControllerExpressionEvaluateError.js";
 import { CjsSchema } from "#schema";
-import { blue } from "#blue";
+import { blue, BLUE_EPOCH_UNIX_MS, TimeAsDouble } from "#blue";
 import { vec3 } from "#math/vec3";
 import { carbonPerlin1D } from "#math/noise";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
@@ -693,8 +693,9 @@ export function DaysSinceServerTime(context, year, month, day)
 }
 
 /**
- * Converts supplied server time into a Date, falling back to the current local
- * clock.
+ * Converts supplied server time into a Date, falling back to the frame time,
+ * BeOS->GetCurrentFrameTime(), as Carbon's GetServerTimeParts does
+ * (Tr2ControllerExpression.cpp:241-255).
  */
 export function GetServerDate(context)
 {
@@ -707,12 +708,12 @@ export function GetServerDate(context)
   {
     return new Date(NormalizeServerTimeMilliseconds(value));
   }
-  return new Date();
+  return new Date(GetFrameTimeUnixMilliseconds());
 }
 
 /**
- * Converts supplied server time into epoch seconds, falling back to the current
- * local clock.
+ * Converts supplied server time into epoch seconds, falling back to the frame
+ * time (see GetServerDate).
  */
 export function GetServerTimeSeconds(context)
 {
@@ -725,7 +726,13 @@ export function GetServerTimeSeconds(context)
   {
     return NormalizeServerTimeMilliseconds(value) / 1000;
   }
-  return Date.now() / 1000;
+  return GetFrameTimeUnixMilliseconds() / 1000;
+}
+
+/** The OS frame time, on the runtime Blue epoch, as Unix milliseconds. */
+function GetFrameTimeUnixMilliseconds()
+{
+  return BLUE_EPOCH_UNIX_MS + TimeAsDouble(blue.os.GetCurrentFrameTime()) * 1000;
 }
 
 /**

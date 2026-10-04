@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume_Blue.cpp
 // Hand-maintained after promotion from generated intake.
 import { CjsSchema, meta } from "#schema";
-import { BlueList, IInitialize, INotify, IListNotify } from "#blue";
+import { BlueList, CjsBlueOS, IInitialize, INotify, IListNotify } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { PixelFormat } from "#consts/render-context";
 import { num } from "#math/num";
@@ -268,12 +268,12 @@ export class EveCloudEditableVolume
   {
     this._timer = null;
     if (!this._thread) return;
-    const deadline = performance.now() + 4;
+    const deadline = CjsBlueOS.Monotonic() + 4;
     do
     {
       if (this._thread.next().done) return;
     }
-    while (performance.now() < deadline);
+    while (CjsBlueOS.Monotonic() < deadline);
     this._timer = setTimeout(() => this._RunRasterization(), 0);
   }
 

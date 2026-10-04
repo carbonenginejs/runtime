@@ -2,6 +2,7 @@ import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawnModifiers/EveDistributionSpawnModifierLifeTimeOffset.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta } from "#schema";
+import { blue } from "#blue";
 import { IEveDistributionSpawnModifier } from "./IEveDistributionSpawnModifier.js";
 import { createMinStdRandom, getDistributionSeed } from "../../CjsDistributionRandom.js";
 
@@ -12,7 +13,8 @@ import { createMinStdRandom, getDistributionSeed } from "../../CjsDistributionRa
 export class EveDistributionSpawnModifierLifeTimeOffset extends IEveDistributionSpawnModifier
 {
 
-  _timeSeed = Date.now() >>> 0;
+  /** `m_timeSeed`: uint32_t( BeOS->GetCurrentFrameTime() ) (EveDistributionSpawnModifierLifeTimeOffset.cpp). */
+  _timeSeed = blue.os.GetCurrentFrameTime() >>> 0;
 
   _currentCascadingOffset = 0;
 
@@ -54,7 +56,7 @@ export class EveDistributionSpawnModifierLifeTimeOffset extends IEveDistribution
   @meta.adapted
   Initialize()
   {
-    this._timeSeed = Date.now() >>> 0;
+    this._timeSeed = blue.os.GetCurrentFrameTime() >>> 0;
     return true;
   }
 

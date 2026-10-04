@@ -2,6 +2,7 @@
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/PlayFX.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta } from "#schema";
+import { blue } from "#blue";
 import { EveEntity } from "../../EveEntity.js";
 import { vec3 } from "#math/vec3";
 
@@ -117,7 +118,6 @@ export class PlayFX extends EveEntity
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon's Be::Time 100ns clock maps to Date.now seconds against agent.fxStartTime.")
   CalculateBehavior(agents, scratchData, _deltaTime, group, system, _dronesInSearchRadius)
   {
     if (this.behaviorWeight <= 0 || !this.enabled)
@@ -203,8 +203,10 @@ export class PlayFX extends EveEntity
         vec3.transformMat4(AGENT_TARGET_WS, agent.target, worldTransform);
         firingEffect.SetFiringTransform(OFFSET_EFFECT_WS, AGENT_TARGET_WS);
 
-        const elapsed = Date.now() / 1000 - agent.fxStartTime;
-        if (elapsed > this.sec)
+        // PlayFX.cpp:125-128: Be::Time ticks against m_sec seconds.
+        const diff = blue.os.GetActualTime() - agent.fxStartTime;
+        const duration = this.sec * 10000000;
+        if (diff > duration)
         {
           firingEffect.StopFiring();
           data.effectPlaying = false;

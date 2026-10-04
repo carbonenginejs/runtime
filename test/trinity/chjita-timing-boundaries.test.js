@@ -4,11 +4,15 @@ import {
   EveProceduralMethodCycling, EveProceduralMethodCyclingParameter,
   EveSpaceScene, EveSpaceSceneRenderDriver, EveUpdateContext, Tr2GpuParticleSystem
 } from "../../npm/dist/trinity/index.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
 
-test("cycling ads keep authored seconds when the scene supplies Blue ticks", () =>
+test("cycling ads keep authored seconds on the Blue-tick frame clock", t =>
 {
-  // Native SelectionMethods/EveProceduralMethodCycling.cpp:57,101 converts
-  // authored offset and elapsed time. Chjita's cycling ads author 12 seconds.
+  // Native SelectionMethods/EveProceduralMethodCycling.cpp:57,100-101 reads
+  // BeOS->GetCurrentFrameTime() and converts authored offset and elapsed time.
+  // Chjita's cycling ads author 12 seconds.
+  let frame = 0;
+  t.mock.method(blue.os, "GetCurrentFrameTime", () => frame);
   const cycling = new EveProceduralMethodCycling();
   for (let i = 0; i < 2; i++)
   {
@@ -19,7 +23,7 @@ test("cycling ads keep authored seconds when the scene supplies Blue ticks", () 
   const context = new EveUpdateContext();
   const update = seconds =>
   {
-    context.SetTime(Math.round(seconds * 10_000_000));
+    frame = Math.round(seconds * 10_000_000);
     cycling.UpdateAsyncronous(context, null);
   };
   update(100);
@@ -34,7 +38,6 @@ test("cycling ads keep authored seconds when the scene supplies Blue ticks", () 
   assert.equal(cycling.selectedChild, 1, "a repeated timestamp cannot cycle again");
   update(124);
   assert.equal(cycling.selectedChild, 0);
-  assert.equal(context.GetTime(), 1_240_000_000, "scene time stays in ticks");
 
   // Existing JS restart(timestamp) takes seconds, including startTimeOffset.
   cycling.startTimeOffset = 1;

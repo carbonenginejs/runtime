@@ -6,6 +6,7 @@ import { assertNonNegativeInteger, assertNonNegativeNumber } from "#utils/valida
 // Source: blue/src/MotherLode.h
 // Source: blue/src/MotherLode.cpp
 import { normalizeResourcePath } from "#utils/path";
+import { CjsBlueOS } from "./CjsBlueOS.js";
 
 const DEFAULT_CACHE_SIZE = 32 * 1024 * 1024;
 const MAX_SAFE_INTEGER_BIGINT = BigInt(Number.MAX_SAFE_INTEGER);
@@ -1569,9 +1570,10 @@ function getKeyPath(key)
   return separator === -1 ? key : key.slice(0, separator);
 }
 
+/** Purge timers are ours (MotherLode.cpp has none); they read blue's host milliseconds. */
 function defaultNow()
 {
-  return Date.now();
+  return CjsBlueOS.Monotonic();
 }
 
 CjsSchema.decorateMethod(CjsMotherLode, "PurgeInactive", meta.ours);

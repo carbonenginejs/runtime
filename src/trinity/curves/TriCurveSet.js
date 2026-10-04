@@ -517,16 +517,19 @@ export class TriCurveSet extends IInitialize
   }
 
   /**
-   * Updates using wall-clock seconds.
-   * Adapted: the existing JavaScript wrapper accepts explicit seconds and defaults to the host wall clock. Native TriCurveSet.cpp:320-322 instead casts the raw frame tick value to double; that wrapper discrepancy is retained in this pass.
-   * @param {number} [time] Source time in seconds.
+   * Updates with the current frame time, as Carbon does: Update( double(
+   * BeOS->GetCurrentFrameTime() ) ) (TriCurveSet.cpp:320-322).
+   *
+   * Carbon quirk (CE-51), reproduced: the raw Be::Time tick count is cast to double and
+   * passed to the seconds overload, so the set is sampled 10^7 times too far
+   * along.
    * @returns {void}
    */
   @meta.blue.method
-  @meta.adapted
-  UpdateWithCurrentTime(time = Date.now() / 1000)
+  @meta.implemented
+  UpdateWithCurrentTime()
   {
-    this.Update(time);
+    this.Update(blue.os.GetCurrentFrameTime());
   }
 
   /**

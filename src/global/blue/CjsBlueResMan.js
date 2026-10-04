@@ -5,6 +5,7 @@ import { StreamType } from "#consts/media";
 // Consumer interface: blue/include/IBlueResMan.h (see IBlueResMan.js).
 import { assertNonNegativeInteger, assertNonNegativeNumber, assertPositiveInteger } from "#utils/validation";
 import { CjsMotherLode, getMotherLodeKey } from "./CjsMotherLode.js";
+import { CjsBlueOS } from "./CjsBlueOS.js";
 import { CjsSchema, meta } from "#schema";
 import { IBlueResMan } from "./IBlueResMan.js";
 import { IBlueEvents } from "./IBlueEvents.js";
@@ -5111,13 +5112,14 @@ function normalizeResolvedUrl(value)
 }
 
 /**
- * Return the wall-clock timestamp used by default automatic purge cadence.
+ * Return the timestamp used by default automatic purge cadence: blue's host
+ * clock, which does not follow wallclock adjustments.
  *
- * @returns {number} Milliseconds since the Unix epoch.
+ * @returns {number} Host milliseconds.
  */
 function defaultAutoPurgeNow()
 {
-  return Date.now();
+  return CjsBlueOS.Monotonic();
 }
 
 function defaultQueueScheduler(callback)

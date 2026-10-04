@@ -1,6 +1,7 @@
 // CarbonEngineJS original (no Carbon counterpart). Normalizes the optional
 // host-owned frame context while keeping browser audio scheduling on the
 // AudioContext clock.
+import { CjsBlueOS } from "#blue";
 
 /**
  * Creates per-frame host timing for the audio composition.
@@ -146,5 +147,5 @@ function ReadContextNumber(source, method, properties)
 
 function DefaultNowSeconds()
 {
-    return (globalThis.performance?.now() ?? Date.now()) / 1000;
+    return CjsBlueOS.Monotonic() / 1000;
 }

@@ -1,3 +1,5 @@
+import { CjsBlueOS } from "./CjsBlueOS.js";
+
 export const CjsResManQueue = Object.freeze({
   MAIN: "main",
   BACKGROUND: "background",
@@ -308,6 +310,7 @@ function normalizeLimit(value) {
   return value;
 }
 
+/** BeTimer's role (BlueResMan.cpp:446): blue's host milliseconds. */
 function defaultNow() {
-  return globalThis.performance?.now?.() ?? Date.now();
+  return CjsBlueOS.Monotonic();
 }

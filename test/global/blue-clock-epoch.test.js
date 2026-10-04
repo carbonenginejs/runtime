@@ -1,6 +1,6 @@
 // The runtime's Blue clock epoch: Carbon's 100ns ticks counted from
 // 2026-01-01T00:00:00Z, so every Be::Time is an exact Number and every process
-// shares one zero (private docs internal/decisions/blue-clock-epoch.md).
+// shares one zero.
 import assert from "node:assert/strict";
 import test from "node:test";
 
