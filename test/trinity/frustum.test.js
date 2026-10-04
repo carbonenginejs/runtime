@@ -729,19 +729,19 @@ test("EveLODHelper.MergeLOD works end-to-end through a real context and derived 
   // Thresholds bracketed around the measured size drive the LOD choice.
   context.SetMediumDetailThreshold(pixels * 0.9);
   context.SetLowDetailThreshold(pixels * 0.5);
-  assert.equal(EveLODHelper.MergeLOD(Tr2Lod.TR2_LOD_UNSPECIFIED, sphere, context), Tr2Lod.TR2_LOD_HIGH);
+  assert.equal(EveLODHelper.MergeLOD_SphereUpdateContext(Tr2Lod.TR2_LOD_UNSPECIFIED, sphere, context), Tr2Lod.TR2_LOD_HIGH);
 
   context.SetMediumDetailThreshold(pixels * 1.1);
-  assert.equal(EveLODHelper.MergeLOD(Tr2Lod.TR2_LOD_UNSPECIFIED, sphere, context), Tr2Lod.TR2_LOD_MEDIUM);
+  assert.equal(EveLODHelper.MergeLOD_SphereUpdateContext(Tr2Lod.TR2_LOD_UNSPECIFIED, sphere, context), Tr2Lod.TR2_LOD_MEDIUM);
 
   context.SetLowDetailThreshold(pixels * 1.1);
-  assert.equal(EveLODHelper.MergeLOD(Tr2Lod.TR2_LOD_UNSPECIFIED, sphere, context), Tr2Lod.TR2_LOD_LOW);
+  assert.equal(EveLODHelper.MergeLOD_SphereUpdateContext(Tr2Lod.TR2_LOD_UNSPECIFIED, sphere, context), Tr2Lod.TR2_LOD_LOW);
 
   // Merge keeps the higher of the two LODs.
-  assert.equal(EveLODHelper.MergeLOD(Tr2Lod.TR2_LOD_ULTRA, sphere, context), Tr2Lod.TR2_LOD_ULTRA);
+  assert.equal(EveLODHelper.MergeLOD_SphereUpdateContext(Tr2Lod.TR2_LOD_ULTRA, sphere, context), Tr2Lod.TR2_LOD_ULTRA);
 
   // Outside the frustum: unspecified.
   const behind = vec3.scaleAndAdd(vec3.create(), EYE, forward, -50);
   const behindSphere = vec4.fromValues(behind[0], behind[1], behind[2], 1);
-  assert.equal(EveLODHelper.MergeLOD(Tr2Lod.TR2_LOD_HIGH, behindSphere, context), Tr2Lod.TR2_LOD_UNSPECIFIED);
+  assert.equal(EveLODHelper.MergeLOD_SphereUpdateContext(Tr2Lod.TR2_LOD_HIGH, behindSphere, context), Tr2Lod.TR2_LOD_UNSPECIFIED);
 });

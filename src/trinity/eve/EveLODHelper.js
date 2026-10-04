@@ -32,38 +32,50 @@ export class EveLODHelper
   }
 
   /**
-   * Combines two detail levels, keeping the higher and treating unspecified as no opinion. Given an update context the second argument is instead a bounding sphere: an invisible sphere yields unspecified, and a visible one is classified by its on-screen pixel size against the context's low and medium detail thresholds before being merged.
-   * @param {Number|Array} lodOrSphere - a Tr2Lod level, or a packed (x, y, z, radius) sphere when updateContext is given
+   * Carbon's MergeLOD( lod0, lod1 ) (EveLODHelper.h:62): the higher of two
+   * detail levels, treating unspecified as no opinion.
+   * @param {Number} lod0
+   * @param {Number} lod1
+   * @returns {Number}
    */
-  static MergeLOD(lod0, lodOrSphere, updateContext = null)
+  static MergeLOD(lod0, lod1)
   {
-    if (updateContext)
-    {
-      const frustum = updateContext.GetFrustum();
-      if (!frustum.IsSphereVisible(lodOrSphere))
-      {
-        return Tr2Lod.TR2_LOD_UNSPECIFIED;
-      }
-
-      const estimatedSize = frustum.GetPixelSizeAccross(lodOrSphere);
-      let lod1 = Tr2Lod.TR2_LOD_LOW;
-      if (estimatedSize >= updateContext.GetMediumDetailThreshold())
-      {
-        lod1 = Tr2Lod.TR2_LOD_HIGH;
-      }
-      else if (estimatedSize >= updateContext.GetLowDetailThreshold())
-      {
-        lod1 = Tr2Lod.TR2_LOD_MEDIUM;
-      }
-      return EveLODHelper.MergeLOD(lod0, lod1);
-    }
-
-    const lod1 = lodOrSphere;
     if (lod0 === Tr2Lod.TR2_LOD_UNSPECIFIED || lod1 === Tr2Lod.TR2_LOD_UNSPECIFIED)
     {
       return lod0 === Tr2Lod.TR2_LOD_UNSPECIFIED ? lod1 : lod0;
     }
 
     return lod0 > lod1 ? lod0 : lod1;
+  }
+
+  /**
+   * Carbon's MergeLOD( lod0, sphere, updateContext ) (EveLODHelper.cpp:12),
+   * named by the parameters that replace lod1: an invisible sphere yields
+   * unspecified, and a visible one is classified by its on-screen pixel size
+   * against the context's low and medium detail thresholds, then merged.
+   * @param {Number} lod0
+   * @param {Float32Array} sphere - packed (x, y, z, radius)
+   * @param {EveUpdateContext} updateContext
+   * @returns {Number}
+   */
+  static MergeLOD_SphereUpdateContext(lod0, sphere, updateContext)
+  {
+    const frustum = updateContext.GetFrustum();
+    if (!frustum.IsSphereVisible(sphere))
+    {
+      return Tr2Lod.TR2_LOD_UNSPECIFIED;
+    }
+
+    const estimatedSize = frustum.GetPixelSizeAccross(sphere);
+    let lod1 = Tr2Lod.TR2_LOD_LOW;
+    if (estimatedSize >= updateContext.GetMediumDetailThreshold())
+    {
+      lod1 = Tr2Lod.TR2_LOD_HIGH;
+    }
+    else if (estimatedSize >= updateContext.GetLowDetailThreshold())
+    {
+      lod1 = Tr2Lod.TR2_LOD_MEDIUM;
+    }
+    return EveLODHelper.MergeLOD(lod0, lod1);
   }
 }

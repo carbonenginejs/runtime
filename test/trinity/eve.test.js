@@ -925,12 +925,12 @@ test("EveLODHelper follows Carbon update and merge thresholds", () =>
     GetLowDetailThreshold: () => 10,
     GetMediumDetailThreshold: () => 20
   };
-  assertEquals(EveLODHelper.MergeLOD(Tr2Lod.TR2_LOD_LOW, sphere, context), Tr2Lod.TR2_LOD_MEDIUM);
+  assertEquals(EveLODHelper.MergeLOD_SphereUpdateContext(Tr2Lod.TR2_LOD_LOW, sphere, context), Tr2Lod.TR2_LOD_MEDIUM);
   context.GetFrustum = () => ({
     IsSphereVisible: () => false,
     GetPixelSizeAccross: () => 100
   });
-  assertEquals(EveLODHelper.MergeLOD(Tr2Lod.TR2_LOD_HIGH, sphere, context), Tr2Lod.TR2_LOD_UNSPECIFIED);
+  assertEquals(EveLODHelper.MergeLOD_SphereUpdateContext(Tr2Lod.TR2_LOD_HIGH, sphere, context), Tr2Lod.TR2_LOD_UNSPECIFIED);
 });
 
 test("virtual camera float behaviours follow Carbon update semantics", () =>
