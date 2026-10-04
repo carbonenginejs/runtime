@@ -14,7 +14,8 @@ import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { TriFloat } from "../../../core/variable/TriFloat.js";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
-import { mergeSphere, translationMatrix } from "./CjsStretchRuntime.js";
+import { translationMatrix } from "./CjsStretchRuntime.js";
+import { sph3 } from "#math/sph3";
 
 
 /**
@@ -532,23 +533,28 @@ export class EveStretch extends IEveFiringEffectElement
   }
 
   /**
-   * Merges the bounding spheres of the source, destination and stretch children; the travelling child is not included.
-   * @param {Array} out - caller-owned packed (x, y, z, radius), overwritten
+   * Carbon GetBoundingSphere (EveStretch.cpp:363-394): the union of the
+   * destination, source and stretch children's spheres, in that order; the
+   * travelling child is not included.
+   * @param {vec4} out - packed (x, y, z, radius), written when any child contributes
+   * @param {number} [query] - BoundingSphereQuery forwarded to the children
    * @returns {Boolean} whether any child contributed a sphere
    */
-  @meta.blue.method @meta.adapted
-  @meta.reason("Bounds are merged from graph children without Carbon's native BoundingSphere helper.")
-  GetBoundingSphere(out = vec4.create())
+  @meta.blue.method @meta.implemented
+  GetBoundingSphere(out = vec4.create(), query = 0)
   {
-    vec4.set(out, 0, 0, 0, 0);
-    for (const child of [this.sourceObject, this.destObject, this.stretchObject])
+    let valid = false;
+    for (const child of [this.destObject, this.sourceObject, this.stretchObject])
     {
-      if (child && child.GetBoundingSphere(EveStretch._sphere))
+      if (child && child.GetBoundingSphere(EveStretch._sphere, query))
       {
-        mergeSphere(out, EveStretch._sphere);
+        // BoundingSphereSetOrUpdate: the first sphere is copied, later ones grow it.
+        if (valid) sph3.union(out, out, EveStretch._sphere);
+        else vec4.copy(out, EveStretch._sphere);
+        valid = true;
       }
     }
-    return out[3] > 0;
+    return valid;
   }
 
   /**

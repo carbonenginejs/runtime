@@ -7,6 +7,7 @@ import { mat4 } from "#math/mat4";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { sph3 } from "#math/sph3";
 import { quat } from "#math/quat";
 import { Tr2Lod } from "../../EveLODHelper.js";
 import { CjsSchema, meta } from "#schema";
@@ -26,8 +27,7 @@ import { EveChildModifierStretch } from "../../child/modifiers/EveChildModifierS
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { INotify } from "../../../../global/blue/INotify.js";
 import { IListNotify } from "../../../../global/blue/IListNotify.js";
-import { mappedInterfaces } from "../../../../global/compose/interface.js";
-import { mergeSphere, translationMatrix } from "./CjsStretchRuntime.js";
+import { translationMatrix } from "./CjsStretchRuntime.js";
 
 
 /**
@@ -360,7 +360,7 @@ export class EveStretch3 extends IEveFiringEffectElement
     const maskedEvent = event & BLUELISTEVENT.BELIST_EVENTMASK;
     if (list === this.controllers)
     {
-      const controller = value && mappedInterfaces(value.constructor).has(ITr2Controller) ? value : null;
+      const controller = CjsSchema.cast(value, ITr2Controller);
       if (maskedEvent === BLUELISTEVENT.BELIST_INSERTED && controller) controller.Link(this);
       else if (maskedEvent === BLUELISTEVENT.BELIST_REMOVED && controller) controller.Unlink();
       else if (maskedEvent === BLUELISTEVENT.BELIST_UNLOADSTART)
@@ -370,7 +370,7 @@ export class EveStretch3 extends IEveFiringEffectElement
     }
     else if (list === this.dynamicBindings)
     {
-      const binding = value && mappedInterfaces(value.constructor).has(Tr2DynamicBinding) ? value : null;
+      const binding = CjsSchema.cast(value, Tr2DynamicBinding);
       if (!binding) return;
       if (maskedEvent === BLUELISTEVENT.BELIST_INSERTED)
       {
@@ -417,9 +417,11 @@ export class EveStretch3 extends IEveFiringEffectElement
   {
     const registry = this.GetComponentRegistry();
     const previous = this._sourceObject;
-    if (previous && mappedInterfaces(previous.constructor).has(EveEntity)) previous.UnRegister(registry);
+    const previousEntity = CjsSchema.cast(previous, EveEntity);
+    if (previousEntity) previousEntity.UnRegister(registry);
     this._sourceObject = value;
-    if (value && mappedInterfaces(value.constructor).has(EveEntity)) value.Register(registry);
+    const entity = CjsSchema.cast(value, EveEntity);
+    if (entity) entity.Register(registry);
   }
 
   /** Returns the dest child. */
@@ -437,9 +439,11 @@ export class EveStretch3 extends IEveFiringEffectElement
   {
     const registry = this.GetComponentRegistry();
     const previous = this._destObject;
-    if (previous && mappedInterfaces(previous.constructor).has(EveEntity)) previous.UnRegister(registry);
+    const previousEntity = CjsSchema.cast(previous, EveEntity);
+    if (previousEntity) previousEntity.UnRegister(registry);
     this._destObject = value;
-    if (value && mappedInterfaces(value.constructor).has(EveEntity)) value.Register(registry);
+    const entity = CjsSchema.cast(value, EveEntity);
+    if (entity) entity.Register(registry);
   }
 
   /** Returns the stretch child. */
@@ -457,7 +461,8 @@ export class EveStretch3 extends IEveFiringEffectElement
   {
     const registry = this.GetComponentRegistry();
     const previous = this._stretchObject;
-    if (previous && mappedInterfaces(previous.constructor).has(EveEntity)) previous.UnRegister(registry);
+    const previousEntity = CjsSchema.cast(previous, EveEntity);
+    if (previousEntity) previousEntity.UnRegister(registry);
     this._stretchObject = value;
     if (value)
     {
@@ -465,7 +470,8 @@ export class EveStretch3 extends IEveFiringEffectElement
       if (this.dest) this._stretchModifier.SetDest(this.dest);
     }
     else this._stretchModifier = null;
-    if (value && mappedInterfaces(value.constructor).has(EveEntity)) value.Register(registry);
+    const entity = CjsSchema.cast(value, EveEntity);
+    if (entity) entity.Register(registry);
   }
 
   /** Returns the move child. */
@@ -483,9 +489,11 @@ export class EveStretch3 extends IEveFiringEffectElement
   {
     const registry = this.GetComponentRegistry();
     const previous = this._moveObject;
-    if (previous && mappedInterfaces(previous.constructor).has(EveEntity)) previous.UnRegister(registry);
+    const previousEntity = CjsSchema.cast(previous, EveEntity);
+    if (previousEntity) previousEntity.UnRegister(registry);
     this._moveObject = value;
-    if (value && mappedInterfaces(value.constructor).has(EveEntity)) value.Register(registry);
+    const entity = CjsSchema.cast(value, EveEntity);
+    if (entity) entity.Register(registry);
   }
 
   /**
@@ -688,7 +696,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   RegisterWithQuadRenderer(quadRenderer)
   {
     if (!this.display) return;
-    for (const component of this._components()) component.RegisterWithQuadRenderer(quadRenderer);
+    this._RunOnComponents((component) => component.RegisterWithQuadRenderer(quadRenderer));
   }
 
   /** Submits displayed components in source, destination, stretch, then move order. */
@@ -697,7 +705,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     if (!this.display) return;
-    for (const component of this._components()) component.AddQuadsToQuadRenderer(frustum, quadRenderer);
+    this._RunOnComponents((component) => component.AddQuadsToQuadRenderer(frustum, quadRenderer));
   }
 
   /** Carbon's GetRenderables( renderables ): forwards with no impostor manager. */
@@ -717,7 +725,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   @meta.implemented
   GetRenderables_Impostors(out = [], _impostors)
   {
-    if (this.display) for (const component of this._components()) component.GetRenderables(out);
+    if (this.display) this._RunOnComponents((component) => component.GetRenderables(out));
     return out;
   }
 
@@ -742,15 +750,16 @@ export class EveStretch3 extends IEveFiringEffectElement
    */
   @meta.blue.method
   @meta.adapted
-  GetBoundingSphere(out = vec4.create())
+  GetBoundingSphere(out = vec4.create(), query = 0)
   {
-    vec4.set(out, 0, 0, 0, 0);
     let valid = false;
-    for (const component of this._components())
+    for (const component of [this._destObject, this._sourceObject, this._stretchObject, this._moveObject])
     {
-      if (component.GetBoundingSphere(EveStretch3._sphere))
+      if (component && component.GetBoundingSphere(EveStretch3._sphere, query))
       {
-        mergeSphere(out, EveStretch3._sphere);
+        // BoundingSphereSetOrUpdate: the first sphere is copied, later ones grow it.
+        if (valid) sph3.union(out, out, EveStretch3._sphere);
+        else vec4.copy(out, EveStretch3._sphere);
         valid = true;
       }
     }
@@ -895,7 +904,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   @meta.implemented
   SetControllerVariable(name, value)
   {
-    for (const component of this._components()) component.SetControllerVariable(name, value);
+    this._RunOnComponents((component) => component.SetControllerVariable(name, value));
     for (const controller of this.controllers) controller.SetVariable(name, value);
   }
 
@@ -907,7 +916,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   @meta.implemented
   HandleControllerEvent(name)
   {
-    for (const component of this._components()) component.HandleControllerEvent(name);
+    this._RunOnComponents((component) => component.HandleControllerEvent(name));
     for (const controller of this.controllers) controller.HandleEvent(name);
   }
 
@@ -916,7 +925,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   @meta.implemented
   StartControllers()
   {
-    for (const component of this._components()) component.StartControllers();
+    this._RunOnComponents((component) => component.StartControllers());
     for (const controller of this.controllers) controller.Start();
   }
 
@@ -936,11 +945,11 @@ export class EveStretch3 extends IEveFiringEffectElement
       if (rangeName) curveSet.PlayTimeRange(rangeName);
       else { curveSet.ResetTimeRange(); curveSet.Play(); }
     }
-    for (const component of this._components())
+    this._RunOnComponents((component) =>
     {
       const owner = CjsSchema.cast(component, ITr2CurveSetOwner);
       if (owner) owner.PlayCurveSet(name, rangeName);
-    }
+    });
   }
 
   /**
@@ -953,11 +962,11 @@ export class EveStretch3 extends IEveFiringEffectElement
   {
     if (!this.display) return;
     for (const curveSet of this.curveSets) if (curveSet.GetName() === name) curveSet.Stop();
-    for (const component of this._components())
+    this._RunOnComponents((component) =>
     {
       const owner = CjsSchema.cast(component, ITr2CurveSetOwner);
       if (owner) owner.StopCurveSet(name);
-    }
+    });
   }
 
   /**
@@ -977,11 +986,11 @@ export class EveStretch3 extends IEveFiringEffectElement
         curveSet.Update_RealTimeSimTime(time, time, renderContext);
       }
     }
-    for (const component of this._components())
+    this._RunOnComponents((component) =>
     {
       const owner = CjsSchema.cast(component, ITr2CurveSetOwner);
       if (owner) owner.UpdateCurveSet(name, time, renderContext);
-    }
+    });
   }
 
   /**
@@ -995,12 +1004,12 @@ export class EveStretch3 extends IEveFiringEffectElement
     if (!this.display) return 0;
     let duration = 0;
     for (const curveSet of this.curveSets) if (curveSet.GetName() === name) duration = Math.max(duration, curveSet.GetMaxCurveDuration());
-    for (const component of this._components())
+    const componentMax = this._RunOnComponentsGetMax((component) =>
     {
       const owner = CjsSchema.cast(component, ITr2CurveSetOwner);
-      if (owner) duration = Math.max(duration, owner.GetCurveSetDuration(name));
-    }
-    return duration;
+      return owner ? owner.GetCurveSetDuration(name) : 0;
+    });
+    return Math.max(duration, componentMax);
   }
 
   /**
@@ -1014,12 +1023,12 @@ export class EveStretch3 extends IEveFiringEffectElement
     if (!this.display) return 0;
     let duration = 0;
     for (const curveSet of this.curveSets) if (curveSet.GetName() === name) duration = Math.max(duration, curveSet.GetRangeDuration(rangeName));
-    for (const component of this._components())
+    const componentMax = this._RunOnComponentsGetMax((component) =>
     {
       const owner = CjsSchema.cast(component, ITr2CurveSetOwner);
-      if (owner) duration = Math.max(duration, owner.GetRangeDuration(name, rangeName));
-    }
-    return duration;
+      return owner ? owner.GetRangeDuration(name, rangeName) : 0;
+    });
+    return Math.max(duration, componentMax);
   }
 
   /**
@@ -1049,10 +1058,11 @@ export class EveStretch3 extends IEveFiringEffectElement
     const registry = this.GetComponentRegistry();
     if (registry && this.display)
     {
-      for (const component of this._components())
+      this._RunOnComponents((component) =>
       {
-        if (mappedInterfaces(component.constructor).has(EveEntity)) component.Register(registry);
-      }
+        const entity = CjsSchema.cast(component, EveEntity);
+        if (entity) entity.Register(registry);
+      });
     }
   }
 
@@ -1064,20 +1074,45 @@ export class EveStretch3 extends IEveFiringEffectElement
     const registry = this.GetComponentRegistry();
     if (registry)
     {
-      for (const component of this._components())
+      this._RunOnComponents((component) =>
       {
-        if (mappedInterfaces(component.constructor).has(EveEntity)) component.UnRegister(registry);
-      }
+        const entity = CjsSchema.cast(component, EveEntity);
+        if (entity) entity.UnRegister(registry);
+      });
     }
   }
 
   /**
-   * The non-null children in Carbon's RunOnComponents order: source,
-   * destination, stretch, then the travelling child.
+   * Carbon RunOnComponents (EveStretch3.cpp:126-147): calls `func` on each
+   * non-null child in source, destination, stretch, then move order.
+   * @param {function(*): void} func
+   * @returns {void}
    */
-  _components()
+  @meta.implemented
+  _RunOnComponents(func)
   {
-    return [this.sourceObject, this.destObject, this.stretchObject, this.moveObject].filter(Boolean);
+    if (this._sourceObject) func(this._sourceObject);
+    if (this._destObject) func(this._destObject);
+    if (this._stretchObject) func(this._stretchObject);
+    if (this._moveObject) func(this._moveObject);
+  }
+
+  /**
+   * Carbon RunOnComponentsGetMax (EveStretch3.cpp:149-172): the largest value
+   * `func` returns over the non-null children, in RunOnComponents order; -1
+   * when there are none.
+   * @param {function(*): number} func
+   * @returns {number}
+   */
+  @meta.implemented
+  _RunOnComponentsGetMax(func)
+  {
+    let result = -1;
+    if (this._sourceObject) result = Math.max(result, func(this._sourceObject));
+    if (this._destObject) result = Math.max(result, func(this._destObject));
+    if (this._stretchObject) result = Math.max(result, func(this._stretchObject));
+    if (this._moveObject) result = Math.max(result, func(this._moveObject));
+    return result;
   }
 
   /**
