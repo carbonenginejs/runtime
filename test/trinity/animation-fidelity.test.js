@@ -1,3 +1,4 @@
+import { ITr2CurveSetOwner } from "../../npm/dist/trinity/curves/ITr2CurveSetOwner.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -119,7 +120,7 @@ test("range playback uses one frame clock and truncates negative iterations", t 
   const start = 133000000000000000;
   let ticks = start;
   t.mock.method(blue.os, "GetCurrentFrameTime", () => ticks);
-  const owner = { PlayCurveSet() {}, GetRangeDuration: () => 2 };
+  const owner = Object.setPrototypeOf({ PlayCurveSet() {}, GetRangeDuration: () => 2 }, ITr2CurveSetOwner.prototype);
   const controller = { GetOwner: () => owner, GetTime: () => 999, RegisterUpdateable() {} };
   const action = new Tr2ActionPlayCurveSet();
   action.syncToRange = true;

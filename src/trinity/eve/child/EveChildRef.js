@@ -312,7 +312,8 @@ export class EveChildRef extends EveChildTransform
   @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
-    if (typeof this.child?.PlayCurveSet === "function") this.child.PlayCurveSet(name, rangeName);
+    const owner = CjsSchema.cast(this.child, ITr2CurveSetOwner);
+    if (owner) owner.PlayCurveSet(name, rangeName);
   }
 
   /** Carbon EveChildRef::StopCurveSet (cpp:224-230). */
@@ -320,7 +321,8 @@ export class EveChildRef extends EveChildTransform
   @meta.implemented
   StopCurveSet(name)
   {
-    if (typeof this.child?.StopCurveSet === "function") this.child.StopCurveSet(name);
+    const owner = CjsSchema.cast(this.child, ITr2CurveSetOwner);
+    if (owner) owner.StopCurveSet(name);
   }
 
   /** Carbon EveChildRef::UpdateCurveSet (cpp:232-238). */
@@ -328,7 +330,8 @@ export class EveChildRef extends EveChildTransform
   @meta.implemented
   UpdateCurveSet(name, time)
   {
-    if (typeof this.child?.UpdateCurveSet === "function") this.child.UpdateCurveSet(name, time);
+    const owner = CjsSchema.cast(this.child, ITr2CurveSetOwner);
+    if (owner) owner.UpdateCurveSet(name, time);
   }
 
   /**
@@ -340,7 +343,8 @@ export class EveChildRef extends EveChildTransform
   @meta.implemented
   GetCurveSetDuration(name)
   {
-    if (typeof this.child?.GetCurveSetDuration === "function") this.child.GetCurveSetDuration(name);
+    const owner = CjsSchema.cast(this.child, ITr2CurveSetOwner);
+    if (owner) owner.GetCurveSetDuration(name);
     return 0;
   }
 
@@ -349,7 +353,8 @@ export class EveChildRef extends EveChildTransform
   @meta.implemented
   GetRangeDuration(name, rangeName)
   {
-    if (typeof this.child?.GetRangeDuration === "function") this.child.GetRangeDuration(name, rangeName);
+    const owner = CjsSchema.cast(this.child, ITr2CurveSetOwner);
+    if (owner) owner.GetRangeDuration(name, rangeName);
     return 0;
   }
 
@@ -358,7 +363,8 @@ export class EveChildRef extends EveChildTransform
   @meta.implemented
   PlayAllCurveSets()
   {
-    if (typeof this.child?.PlayAllCurveSets === "function") this.child.PlayAllCurveSets();
+    const owner = CjsSchema.cast(this.child, ITr2CurveSetOwner);
+    if (owner) owner.PlayAllCurveSets();
   }
 
   /** Carbon EveChildRef::SetShaderOption (cpp:266-272). */

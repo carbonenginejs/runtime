@@ -1,3 +1,4 @@
+import { ITr2CurveSetOwner } from "../../npm/dist/trinity/curves/ITr2CurveSetOwner.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -63,6 +64,7 @@ test("PlayCurveSet unregisters before stopping and retains frame-clock transitio
     GetRangeDuration(name, range) { calls.push(["duration", name, range]); return 2; },
     StopCurveSet(name) { assert.equal(updates.size, 0); calls.push(["stop", name]); }
   };
+  Object.setPrototypeOf(owner, ITr2CurveSetOwner.prototype);
   const controller = {
     GetOwner: () => owner,
     RegisterUpdateable(item) { updates.add(item); },

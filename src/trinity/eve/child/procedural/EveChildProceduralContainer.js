@@ -310,14 +310,13 @@ export class EveChildProceduralContainer extends EveChildTransform
     this.selectedObject?.ChangeLOD?.(lod);
   }
 
-  /** Carbon EveChildProceduralContainer::PlayCurveSet (cpp:194-200): the
-   * ITr2CurveSetOwner dynamic_cast becomes a duck call on the selected
-   * child. */
+  /** Carbon EveChildProceduralContainer::PlayCurveSet (cpp:187-193): the selected child, when it owns curve sets. */
   @meta.blue.method
   @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
-    this.selectedObject?.PlayCurveSet?.(name, rangeName);
+    const owner = CjsSchema.cast(this.selectedObject, ITr2CurveSetOwner);
+    if (owner) owner.PlayCurveSet(name, rangeName);
   }
 
   /** Carbon EveChildProceduralContainer::StopCurveSet (cpp:218-224). */
@@ -325,7 +324,8 @@ export class EveChildProceduralContainer extends EveChildTransform
   @meta.implemented
   StopCurveSet(name)
   {
-    this.selectedObject?.StopCurveSet?.(name);
+    const owner = CjsSchema.cast(this.selectedObject, ITr2CurveSetOwner);
+    if (owner) owner.StopCurveSet(name);
   }
 
   /** Carbon EveChildProceduralContainer::UpdateCurveSet (cpp:226-232). */
@@ -333,7 +333,8 @@ export class EveChildProceduralContainer extends EveChildTransform
   @meta.implemented
   UpdateCurveSet(name, time, renderContext = null)
   {
-    if (this.selectedObject) this.selectedObject.UpdateCurveSet(name, time, renderContext);
+    const owner = CjsSchema.cast(this.selectedObject, ITr2CurveSetOwner);
+    if (owner) owner.UpdateCurveSet(name, time, renderContext);
   }
 
   /** Carbon EveChildProceduralContainer::GetCurveSetDuration (cpp:234-244). */
@@ -341,7 +342,8 @@ export class EveChildProceduralContainer extends EveChildTransform
   @meta.implemented
   GetCurveSetDuration(name)
   {
-    return Math.max(0, Number(this.selectedObject?.GetCurveSetDuration?.(name) ?? 0));
+    const owner = CjsSchema.cast(this.selectedObject, ITr2CurveSetOwner);
+    return owner ? Math.max(0, owner.GetCurveSetDuration(name)) : 0;
   }
 
   /** Carbon EveChildProceduralContainer::GetRangeDuration (cpp:246-256). */
@@ -349,7 +351,8 @@ export class EveChildProceduralContainer extends EveChildTransform
   @meta.implemented
   GetRangeDuration(name, rangeName)
   {
-    return Math.max(0, Number(this.selectedObject?.GetRangeDuration?.(name, rangeName) ?? 0));
+    const owner = CjsSchema.cast(this.selectedObject, ITr2CurveSetOwner);
+    return owner ? Math.max(0, owner.GetRangeDuration(name, rangeName)) : 0;
   }
 
   /** Carbon EveChildProceduralContainer::PlayAllCurveSets (cpp:202-208). */
@@ -357,7 +360,8 @@ export class EveChildProceduralContainer extends EveChildTransform
   @meta.implemented
   PlayAllCurveSets()
   {
-    this.selectedObject?.PlayAllCurveSets?.();
+    const owner = CjsSchema.cast(this.selectedObject, ITr2CurveSetOwner);
+    if (owner) owner.PlayAllCurveSets();
   }
 
   /** Carbon EveChildProceduralContainer::StopAllCurveSets (cpp:210-216). */
@@ -365,7 +369,8 @@ export class EveChildProceduralContainer extends EveChildTransform
   @meta.implemented
   StopAllCurveSets()
   {
-    this.selectedObject?.StopAllCurveSets?.();
+    const owner = CjsSchema.cast(this.selectedObject, ITr2CurveSetOwner);
+    if (owner) owner.StopAllCurveSets();
   }
 
   /** Carbon EveChildProceduralContainer::Setup (cpp:258-261). */

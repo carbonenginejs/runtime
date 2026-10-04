@@ -18,7 +18,7 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { ITr2BoundingBox } from "#interfaces";
 import { ITr2SecondaryLightSource } from "../../core/lighting/ITr2SecondaryLightSource.js";
 import { EveEntity } from "../EveEntity.js";
@@ -752,8 +752,8 @@ export class EveEffectRoot2 extends EveEntity
     for (const curveSet of this.curveSets) curveSet?.Play();
     for (const child of this.effectChildren)
     {
-      if (child?.PlayAllCurveSets) child.PlayAllCurveSets();
-      else child?.PlayCurveSets?.();
+      const owner = CjsSchema.cast(child, ITr2CurveSetOwner);
+      if (owner) owner.PlayAllCurveSets();
     }
   }
 
@@ -765,8 +765,8 @@ export class EveEffectRoot2 extends EveEntity
     for (const curveSet of this.curveSets) curveSet?.Stop();
     for (const child of this.effectChildren)
     {
-      if (child?.StopAllCurveSets) child.StopAllCurveSets();
-      else child?.StopCurveSets?.();
+      const owner = CjsSchema.cast(child, ITr2CurveSetOwner);
+      if (owner) owner.StopAllCurveSets();
     }
   }
 
@@ -933,7 +933,11 @@ export class EveEffectRoot2 extends EveEntity
         curveSet?.Play();
       }
     }
-    for (const child of this.effectChildren) child?.PlayCurveSet?.(target, rangeName);
+    for (const child of this.effectChildren)
+    {
+      const owner = CjsSchema.cast(child, ITr2CurveSetOwner);
+      if (owner) owner.PlayCurveSet(target, rangeName);
+    }
   }
 
   /** Stops matching root and child curve sets. */
@@ -946,7 +950,11 @@ export class EveEffectRoot2 extends EveEntity
     {
       if ((curveSet?.GetName() ?? curveSet?.name) === target) curveSet?.Stop();
     }
-    for (const child of this.effectChildren) child?.StopCurveSet?.(target);
+    for (const child of this.effectChildren)
+    {
+      const owner = CjsSchema.cast(child, ITr2CurveSetOwner);
+      if (owner) owner.StopCurveSet(target);
+    }
   }
 
   /** Samples matching root and child curve sets at an explicit time. */
@@ -959,7 +967,11 @@ export class EveEffectRoot2 extends EveEntity
     {
       if (curveSet.GetName() === target) curveSet.Update(time, time, renderContext);
     }
-    for (const child of this.effectChildren) child?.UpdateCurveSet?.(target, time, renderContext);
+    for (const child of this.effectChildren)
+    {
+      const owner = CjsSchema.cast(child, ITr2CurveSetOwner);
+      if (owner) owner.UpdateCurveSet(target, time, renderContext);
+    }
   }
 
   /** Returns the maximum duration of matching root and child curve sets. */
@@ -978,7 +990,8 @@ export class EveEffectRoot2 extends EveEntity
     }
     for (const child of this.effectChildren)
     {
-      duration = Math.max(duration, Number(child?.GetCurveSetDuration?.(target) ?? 0));
+      const owner = CjsSchema.cast(child, ITr2CurveSetOwner);
+      if (owner) duration = Math.max(duration, owner.GetCurveSetDuration(target));
     }
     return duration;
   }
@@ -999,7 +1012,8 @@ export class EveEffectRoot2 extends EveEntity
     }
     for (const child of this.effectChildren)
     {
-      duration = Math.max(duration, Number(child?.GetRangeDuration?.(target, rangeName) ?? 0));
+      const owner = CjsSchema.cast(child, ITr2CurveSetOwner);
+      if (owner) duration = Math.max(duration, owner.GetRangeDuration(target, rangeName));
     }
     return duration;
   }

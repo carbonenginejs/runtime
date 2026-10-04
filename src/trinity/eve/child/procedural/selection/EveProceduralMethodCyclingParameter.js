@@ -132,8 +132,8 @@ export class EveProceduralMethodCyclingParameter
     {
       if (this.restartRequired)
       {
-        this.child?.StartControllers();
-        this.child?.PlayAllCurveSets?.();
+        this.child.StartControllers();
+        this.child.PlayAllCurveSets();
       }
       return;
     }

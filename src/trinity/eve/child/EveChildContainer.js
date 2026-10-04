@@ -1249,7 +1249,7 @@ export class EveChildContainer extends EveChildTransform
   }
 
   /** Carbon EveChildContainer::PlayCurveSet (cpp:682-712): named own sets play
-   * (or play a named range); children recurse via the curve-set-owner duck. */
+   * (or play a named range); curve-set-owning children are asked too. */
   @meta.blue.method
   @meta.implemented
   PlayCurveSet(name, rangeName = "")
@@ -1279,7 +1279,8 @@ export class EveChildContainer extends EveChildTransform
 
     for (const child of this.objects)
     {
-      child?.PlayCurveSet?.(target, rangeName);
+      const owner = CjsSchema.cast(child, ITr2CurveSetOwner);
+      if (owner) owner.PlayCurveSet(target, rangeName);
     }
   }
 
@@ -1304,7 +1305,8 @@ export class EveChildContainer extends EveChildTransform
 
     for (const child of this.objects)
     {
-      child?.StopCurveSet?.(target);
+      const owner = CjsSchema.cast(child, ITr2CurveSetOwner);
+      if (owner) owner.StopCurveSet(target);
     }
   }
 
@@ -1325,7 +1327,8 @@ export class EveChildContainer extends EveChildTransform
 
     for (const child of this.objects)
     {
-      child?.UpdateCurveSet?.(target, time, renderContext);
+      const owner = CjsSchema.cast(child, ITr2CurveSetOwner);
+      if (owner) owner.UpdateCurveSet(target, time, renderContext);
     }
   }
 
@@ -1337,7 +1340,8 @@ export class EveChildContainer extends EveChildTransform
   {
     for (const child of this.objects)
     {
-      child?.PlayAllCurveSets?.();
+      const owner = CjsSchema.cast(child, ITr2CurveSetOwner);
+      if (owner) owner.PlayAllCurveSets();
     }
     for (const curveSet of this.curveSets)
     {
@@ -1352,7 +1356,8 @@ export class EveChildContainer extends EveChildTransform
   {
     for (const child of this.objects)
     {
-      child?.StopAllCurveSets?.();
+      const owner = CjsSchema.cast(child, ITr2CurveSetOwner);
+      if (owner) owner.StopAllCurveSets();
     }
     for (const curveSet of this.curveSets)
     {
@@ -1383,7 +1388,8 @@ export class EveChildContainer extends EveChildTransform
 
     for (const child of this.objects)
     {
-      duration = Math.max(duration, Number(child?.GetCurveSetDuration?.(target) ?? 0));
+      const owner = CjsSchema.cast(child, ITr2CurveSetOwner);
+      if (owner) duration = Math.max(duration, owner.GetCurveSetDuration(target));
     }
     return duration;
   }
@@ -1411,7 +1417,8 @@ export class EveChildContainer extends EveChildTransform
 
     for (const child of this.objects)
     {
-      duration = Math.max(duration, Number(child?.GetRangeDuration?.(target, rangeName) ?? 0));
+      const owner = CjsSchema.cast(child, ITr2CurveSetOwner);
+      if (owner) duration = Math.max(duration, owner.GetRangeDuration(target, rangeName));
     }
     return duration;
   }

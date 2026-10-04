@@ -1,3 +1,4 @@
+import { ITr2CurveSetOwner } from "../../npm/dist/trinity/curves/ITr2CurveSetOwner.js";
 import test from "node:test";
 import { ITr2AudEmitter } from "../../npm/dist/audio/trinity/trinityAudioApi/ITr2AudEmitter.js";
 import assert from "node:assert/strict";
@@ -247,6 +248,7 @@ test("EveEffectRoot2 owns Carbon effect transforms, lifecycle, LOD, and target s
   };
   effect.controllers.push(controller);
   effect.curveSets.push(curveSet);
+  Object.setPrototypeOf(child, ITr2CurveSetOwner.prototype);
   effect.effectChildren.push(child);
   effect.observers.push({
     Update(transform)
