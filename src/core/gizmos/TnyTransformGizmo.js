@@ -8,7 +8,7 @@ import { Tr2RotationTool } from "../../trinity/core/tool/Tr2RotationTool.js";
 import { Tr2ScalingTool } from "../../trinity/core/tool/Tr2ScalingTool.js";
 
 const TOOL_TYPES = { translation: Tr2TranslationTool, rotation: Tr2RotationTool, scaling: Tr2ScalingTool };
-const DEFAULT_KEY_BINDINGS = { translation: "KeyW", rotation: "KeyE", scaling: "KeyR" };
+const DEFAULT_KEY_BINDINGS = { off: "KeyQ", translation: "KeyW", rotation: "KeyE", scaling: "KeyR" };
 
 /** Thin composition of Carbon tools, GPU handle picking and explicit matrix targets. */
 export class TnyTransformGizmo
@@ -36,7 +36,7 @@ export class TnyTransformGizmo
   }
 
   /**
-   * Applies KeyboardEvent.code overrides to W/E/R defaults. Null unbinds a
+   * Applies KeyboardEvent.code overrides to Q/W/E/R defaults. Null unbinds a
    * mode; an empty record restores defaults. Escape remains cancellation.
    * Duplicate or invalid bindings leave the previous mapping unchanged.
    */
@@ -45,7 +45,7 @@ export class TnyTransformGizmo
     const next = { ...DEFAULT_KEY_BINDINGS, ...bindings }, used = new Set();
     for (const [mode, code] of Object.entries(next))
     {
-      if (!Object.hasOwn(TOOL_TYPES, mode)) throw new TypeError("Unknown gizmo binding mode.");
+      if (!Object.hasOwn(DEFAULT_KEY_BINDINGS, mode)) throw new TypeError("Unknown gizmo binding mode.");
       if (code === null) continue;
       if (typeof code !== "string" || !code.trim() || code === "Escape") throw new TypeError("Gizmo bindings require a key code other than Escape, or null.");
       if (used.has(code)) throw new RangeError("Gizmo mode bindings must be distinct.");
@@ -65,12 +65,12 @@ export class TnyTransformGizmo
   SetMode(mode)
   {
     const Type = TOOL_TYPES[mode];
-    if (!Type) throw new TypeError("Unknown transform mode.");
+    if (!Type && mode !== "off") throw new TypeError("Unknown transform mode.");
     this.Cancel();
     if (this.tool) this.tool.Destroy();
     this.mode = mode;
-    this.tool = new Type();
-    this.tool.SetMoveCallback((current, next) => this.#Apply(current, next));
+    this.tool = Type ? new Type() : null;
+    if (this.tool) this.tool.SetMoveCallback((current, next) => this.#Apply(current, next));
     this.scene.manipulator = this.target ? this.tool : null;
     this.Sync();
     return this;
@@ -125,7 +125,7 @@ export class TnyTransformGizmo
     const vec3_2 = vec3.alloc();
     try
     {
-      if (!this.target || this._drag) return;
+      if (!this.tool || !this.target || this._drag) return;
       const local = mat4.identity(mat4_0), parent = mat4.identity(mat4_1);
       this.target.readLocal(local);
       this.target.readParentWorld(parent);
@@ -186,7 +186,7 @@ export class TnyTransformGizmo
       const generation = this._generation;
       const view = this.getView();
       this.Sync();
-      const handle = this.target ? await this.scene.PickObject(event.x, event.y, view.projection, view.view, view.viewport) : null;
+      const handle = this.target && this.tool ? await this.scene.PickObject(event.x, event.y, view.projection, view.view, view.viewport) : null;
       if (generation !== this._generation) return result.CONSUME;
       if (handle && this.tool.primitives.includes(handle))
       {
@@ -255,7 +255,8 @@ export class TnyTransformGizmo
   Destroy()
   {
     this.Uninstall();
-    this.tool.Destroy();
+    if (this.tool) this.tool.Destroy();
+    this.tool = null;
     this.scene.Destroy();
     this.target = null;
   }

@@ -108,7 +108,7 @@ function close(actual, expected)
   for (let i = 0; i < 16; i++) assert.ok(Math.abs(actual[i] - expected[i]) < 1e-4, `matrix element ${i}: ${actual[i]} != ${expected[i]}`);
 }
 
-test("gizmo W/E/R defaults rebind atomically and ignore modified chords and repeats", async t =>
+test("gizmo Q/W/E/R defaults rebind atomically and ignore modified chords and repeats", async t =>
 {
   const gizmo = setupGizmo(t, "scaling"), input = new TnyInputMan();
   gizmo.Install(input);
@@ -129,6 +129,17 @@ test("gizmo W/E/R defaults rebind atomically and ignore modified chords and repe
   assert.equal(gizmo.mode, "rotation");
   await press("KeyR");
   assert.equal(gizmo.mode, "scaling");
+  await press("KeyQ");
+  assert.equal(gizmo.mode, "off");
+  assert.equal(gizmo.tool, null);
+  assert.equal(gizmo.GetKeyBindings().off, "KeyQ");
+  gizmo.SetKeyBindings({ off: "KeyX" });
+  await press("KeyW");
+  await press("KeyQ");
+  assert.equal(gizmo.mode, "translation");
+  await press("KeyX");
+  assert.equal(gizmo.mode, "off");
+  await press("KeyR");
   gizmo.SetKeyBindings({ translation: "KeyG", rotation: "KeyR", scaling: "KeyS" });
   assert.throws(() => gizmo.SetKeyBindings({ translation: "KeyE" }), /distinct/);
   assert.equal(gizmo.GetKeyBindings().translation, "KeyG");
@@ -144,6 +155,53 @@ test("gizmo W/E/R defaults rebind atomically and ignore modified chords and repe
   assert.equal(gizmo.mode, "rotation");
   gizmo.Uninstall();
   input.Destroy();
+});
+
+test("off destroys handles, rolls back a drag and keeps object selection active", async t =>
+{
+  const gizmo = setupGizmo(t, "translation"), input = new TnyInputMan();
+  const local = mat4.create(), initial = mat4.clone(local), selected = {};
+  const target = { readLocal: out => mat4.copy(out, local), writeLocal: value => mat4.copy(local, value),
+    readParentWorld: out => mat4.identity(out) };
+  gizmo.SetTarget(target).Install(input);
+  t.mock.method(gizmo.scene, "PickObject", async () => gizmo.tool.primitives[0]);
+  const tool = gizmo.tool, destroy = t.mock.method(tool, "Destroy");
+  input.Enqueue(pointer("pointerdown"));
+  await input.Update();
+  local[12] = 400;
+  input.Enqueue({ type: "keydown", code: "KeyQ" });
+  await input.Update();
+  assert.deepEqual(local, initial);
+  assert.equal(destroy.mock.callCount(), 1);
+  assert.equal(gizmo.scene.manipulator, null);
+  assert.equal(gizmo.tool, null);
+  assert.equal(input._owner, null);
+  t.mock.method(gizmo.scene, "PickObject", () => assert.fail("off must not pick handles"));
+  gizmo.pickObject = async () => selected;
+  gizmo.onSelect = object => { assert.equal(object, selected); gizmo.SetTarget(target); };
+  assert.equal(await gizmo.HandleInput(pointer("pointerdown")), TnyInputMan.Result.CONSUME);
+  assert.equal(gizmo.scene.manipulator, null);
+  gizmo.Sync();
+  gizmo.SetMode("rotation");
+  assert.equal(gizmo.scene.manipulator, gizmo.tool);
+  gizmo.SetMode("off");
+  gizmo.Uninstall();
+  input.Destroy();
+});
+
+test("switching off invalidates an outstanding handle pick", async t =>
+{
+  const gizmo = setupGizmo(t, "translation"), pick = deferred(), local = mat4.create();
+  gizmo.SetTarget({ readLocal: out => mat4.copy(out, local), writeLocal: value => mat4.copy(local, value),
+    readParentWorld: out => mat4.identity(out) });
+  const handle = gizmo.tool.primitives[0];
+  t.mock.method(gizmo.scene, "PickObject", () => pick.promise);
+  const pending = gizmo.HandleInput(pointer("pointerdown"));
+  gizmo.SetMode("off");
+  pick.resolve(handle);
+  assert.equal(await pending, TnyInputMan.Result.CONSUME);
+  assert.equal(gizmo._drag, null);
+  assert.equal(gizmo.scene.manipulator, null);
 });
 
 function host()
