@@ -1,19 +1,24 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { CjsSchema } from "../../src/global/schema/index.js";
 import { CjsCarbonEffectReader } from "../../src/resource/format/carbonEffect/CjsCarbonEffectReader.js";
 import { CjsCarbonEffectWriter } from "../../src/resource/format/carbonEffect/CjsCarbonEffectWriter.js";
 import { Tr2EffectLibrary, Tr2EffectRes, Tr2EffectStageInput, Tr2Shader } from "../../src/resource/shader/index.js";
 
-const effectFile = process.env.CJS_MODEL_FREE_EFFECT_FILE;
-const libraryFile = process.env.CJS_MODEL_FREE_LIBRARY_EFFECT_FILE;
+import { clientResources } from "../support/clientResources.js";
+
+// Real High effects from the client through BePaths. Any quad detail v5
+// variant meets the first test (shader 4 Main pixel: PatternMask1MapSampler at
+// s1, 608 constant bytes); the plain one is named.
+const client = await clientResources();
+const effectFile = "res:/graphics/effect.dx11/managed/space/spaceobject/v5/quad/quaddetailv5.sm_depth";
+const libraryFile = "res:/graphics/effect.dx12/managed/space/system/raytracing/rtshadows.sm_depth";
 
 test("a real High effect preserves every body through model-free schema values", {
-  skip: !effectFile && "Set CJS_MODEL_FREE_EFFECT_FILE to a cached High .sm_depth container."
-}, () =>
+  skip: client.skip ?? false
+}, async () =>
 {
-  const bytes = new Uint8Array(readFileSync(effectFile));
+  const bytes = new Uint8Array(await client.Read(effectFile));
   const reader = new CjsCarbonEffectReader(bytes);
   const resource = new Tr2EffectRes().DoLoad(bytes);
   const writer = new CjsCarbonEffectWriter({
@@ -92,10 +97,10 @@ test("a real High effect preserves every body through model-free schema values",
 });
 
 test("a real High raytracing library retains its program bytes through schema values", {
-  skip: !libraryFile && "Set CJS_MODEL_FREE_LIBRARY_EFFECT_FILE to the cached High rtshadows.sm_depth container."
-}, () =>
+  skip: client.skip ?? false
+}, async () =>
 {
-  const bytes = new Uint8Array(readFileSync(libraryFile));
+  const bytes = new Uint8Array(await client.Read(libraryFile));
   const reader = new CjsCarbonEffectReader(bytes);
   assert.equal(reader.records.length, 1);
   assert.equal(reader.permutations.length, 0);
