@@ -64,6 +64,7 @@ function sceneRecording(calls)
     RenderVolumetrics(_depth, pool) { return [new GpuResourceHandle(), new GpuResourceHandle()]; },
     GetPerFramePSData() { return null; },
     PopulatePerFramePSData() { calls.push([ "PopulatePerFramePSData" ]); },
+    GetPerFrameVSData() { return null; },
     PopulatePerFrameVSData() { calls.push([ "PopulatePerFrameVSData" ]); },
     ApplyPerFrameData() { calls.push([ "ApplyPerFrameData" ]); },
     RenderBackgroundPass() { calls.push([ "RenderBackgroundPass" ]); return false; },

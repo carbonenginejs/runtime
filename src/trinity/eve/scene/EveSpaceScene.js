@@ -151,7 +151,7 @@ function EmptyShadowResources()
 //     current for the frame being submitted. Skipped entirely when the scene
 //     carries no shLightingManager.
 // 10c. `scene.PopulatePerFramePSData_ShadowMap(data, shadowMap, renderContext)` then
-//     `scene.PopulatePerFrameVSData(renderContext, frame)` - Carbon's order at
+//     `scene.PopulatePerFrameVSData(data, renderContext)` - Carbon's order at
 //     cpp:1424-1425, PS first, because the pixel fill is what resolves
 //     m_upscalingAmount that the vertex fill then reads. Runs after GatherLights
 //     so the blended sun colour is current. The engine binds the two records at
@@ -997,7 +997,7 @@ export class EveSpaceScene
             renderContext.Clear({ clearColor: true, clearDepth: true, color: [0, 0, 0, 0], depth: 0 });
             esm.SetFullScreenViewport();
             this.PopulatePerFramePSData(this._perFramePS, renderContext);
-            this.PopulatePerFrameVSData(renderContext, { renderTargetWidth: 1, renderTargetHeight: 1 });
+            this.PopulatePerFrameVSData(this._perFrameVS, renderContext);
             this.ApplyPerFrameData(renderContext);
             const batches = this._pickingBatches;
             batches.SetTriPoolAllocator(renderContext.GetTriPoolAllocator());
@@ -2368,7 +2368,7 @@ export class EveSpaceScene
 
       constantsChanged = true;
       this.PopulatePerFramePSData(this._perFramePS, context);
-      this.PopulatePerFrameVSData(context);
+      this.PopulatePerFrameVSData(this._perFrameVS, context);
       this.CreatePlanetViewMatrix(this.viewLast, lastView);
       EveCamera.ModifyClipPlanes(this.projectionLast, 0.01, 1e5, lastProjection);
       mat4.multiply(lastProjection, this.jitterMatrix, lastProjection);
@@ -2408,7 +2408,7 @@ export class EveSpaceScene
       if (constantsChanged)
       {
         this.PopulatePerFramePSData(this._perFramePS, context);
-        this.PopulatePerFrameVSData(context);
+        this.PopulatePerFrameVSData(this._perFrameVS, context);
         this.ApplyPerFrameData(context);
       }
     }
@@ -2920,7 +2920,7 @@ export class EveSpaceScene
   PopulateAndApplyPerFrameData(renderContext)
   {
     this.PopulatePerFramePSData(this._perFramePS, renderContext);
-    this.PopulatePerFrameVSData(renderContext);
+    this.PopulatePerFrameVSData(this._perFrameVS, renderContext);
     this.ApplyPerFrameData(renderContext);
   }
 
@@ -2965,36 +2965,31 @@ export class EveSpaceScene
    * Fills the per-frame VERTEX constants (Carbon
    * EveSpaceScene::PopulatePerFrameVSData, cpp:3015-3068).
    *
-   * Adapted in one respect, the same way StampFrameContext is: Carbon reads
-   * the camera off `Tr2Renderer` statics and the render-target/viewport sizes
-   * off `renderContext.m_esm`, neither of which exists GPU-free here. The
-   * driver passes them in `frame` instead. Everything the scene itself owns -
-   * sun, fog, env-map rotation, the previous frame's view/projection - is read
-   * from the scene, as Carbon does.
+   * Carbon reads the camera off `Tr2Renderer` statics and the render-target /
+   * viewport sizes off `renderContext.m_esm`; here those are read through
+   * _EngineFrameState from the render context. Everything the scene itself
+   * owns - sun, fog, env-map rotation, the previous frame's view/projection -
+   * is read from the scene, as Carbon does.
    *
    * Matrices are stored TRANSPOSED because the shaders are column_major, with
    * one deliberate exception Carbon calls out at cpp:3023: the value wanted for
    * `ViewInverseTransposeMat` is already a transpose, so transposing it again
    * cancels and the inverse view goes in as-is.
    *
+   * Carbon's PopulatePerFrameVSData( data, renderContext ) (cpp:3029).
+   *
+   * @param {Object} data - the per-frame VS record to fill (Carbon m_perFrameVS,
+   *   or a local one as the shadow pass uses, cpp:760-769)
    * @param {Object} renderContext - the frame's Tr2RenderContext
-   * @param {Object} [frame] - the engine-supplied state Carbon reads statically
-   * @param {Number} [frame.renderTargetWidth]
-   * @param {Number} [frame.renderTargetHeight]
-   * @param {Number} [frame.aspectRatio]
-   * @param {Number} [frame.animationTime] - Tr2Renderer::GetAnimationTime
-   * @param {Object|null} [frame.deviceViewport] - {width, height}
-   * @param {Object|null} [frame.projectionTransform] - the NON reversed-depth
-   *   projection, which Carbon uses only to recover the field of view
-   * @param {Object} [out] - the record to fill; defaults to the scene's own
-   * @returns {Object} the filled record
+   * @returns {Object} data
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Tr2Renderer view statics and the ESM's render-target/viewport sizes are engine state; the driver supplies them in `frame`.")
-  PopulatePerFrameVSData(renderContext, frame = {}, out = this._perFrameVS)
+  @meta.reason("Tr2Renderer view statics and the ESM's render-target/viewport sizes are read through _EngineFrameState.")
+  PopulatePerFrameVSData(data, renderContext)
   {
-    frame = { ...this._EngineFrameState(renderContext), ...frame };
+    const out = data;
+    const frame = this._EngineFrameState(renderContext);
     const view = renderContext.GetViewTransform();
     // Carbon's frame is reverse-Z: the shaders get the REVERSED-depth
     // projection (cpp:3022), matching the inverted depth test and the clear to

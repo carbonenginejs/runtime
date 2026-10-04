@@ -218,7 +218,7 @@ test("the vertex fill stores the camera transposed, and the inverse view as-is",
   const projection = mat4.perspectiveNO(mat4.create(), Math.PI / 3, 1.5, 1, 1000);
   const context = makeContext({ view, projection });
 
-  const record = scene.PopulatePerFrameVSData(context);
+  const record = scene.PopulatePerFrameVSData(scene.GetPerFrameVSData(), context);
 
   assert.deepEqual(
     Array.from(record.Copy("ViewMat", new Float32Array(16))),
@@ -253,7 +253,7 @@ test("the sun reaches the shader normalized and NEGATED", () =>
   scene.sunDirection.set([ 0, 0, -5 ]);
   scene.currentSunColor.set([ 0.25, 0.5, 0.75, 0.9 ]);
 
-  const vs = scene.PopulatePerFrameVSData(makeContext());
+  const vs = scene.PopulatePerFrameVSData(scene.GetPerFrameVSData(), makeContext());
   assertClose(vs.Copy("Sun.DirWorld", new Float32Array(3)), [ 0, 0, 1 ], "direction to the light");
   assertClose(
     vs.Copy("Sun.DiffuseColor", new Float32Array(4)),
@@ -280,7 +280,7 @@ test("the fog factors are the reciprocal band, guarded against a zero range", ()
   scene.fogEnd = 500;
   scene.fogMax = 0.8;
 
-  const record = scene.PopulatePerFrameVSData(makeContext());
+  const record = scene.PopulatePerFrameVSData(scene.GetPerFrameVSData(), makeContext());
   const factors = Array.from(record.Copy("FogFactors", new Float32Array(3)));
 
   assert.ok(Math.abs(factors[0] - 500 / 400) < 1e-6, "fogEnd / range");
@@ -289,7 +289,7 @@ test("the fog factors are the reciprocal band, guarded against a zero range", ()
 
   // cpp:3050 - a zero-width band clamps to 1e-5 rather than dividing by zero.
   scene.fogEnd = 100;
-  const guarded = scene.PopulatePerFrameVSData(makeContext());
+  const guarded = scene.PopulatePerFrameVSData(scene.GetPerFrameVSData(), makeContext());
   const clamped = Array.from(guarded.Copy("FogFactors", new Float32Array(3)));
 
   assert.ok(Number.isFinite(clamped[0]), "no division by zero");
@@ -357,20 +357,14 @@ test("the engine-supplied frame state lands where Carbon's statics did", () =>
     viewport: { x: 0, y: 0, width: 800, height: 600 }
   });
 
-  const frame = {
-    renderTargetWidth: 1600,
-    renderTargetHeight: 1200,
-    aspectRatio: 1.5,
-    animationTime: 12.5,
-    frameIndex: 99,
-    gammaBrightness: 1.25,
-    deviceViewport: { width: 1600, height: 1200 },
-    projectionTransform: projection
-  };
+  // The fills read engine state themselves, as Carbon does: a 1600x1200 render
+  // target on the ESM over the 800x600 logical viewport.
+  context.GetEffectStateManager().UpdateRenderTargetViewport(1600, 1200);
+  context.SetViewport({ x: 0, y: 0, width: 800, height: 600 });
 
-  const vs = scene.PopulatePerFrameVSData(context, frame);
+  const vs = scene.PopulatePerFrameVSData(scene.GetPerFrameVSData(), context);
   assertClose(vs.Copy("TargetResolution", new Float32Array(2)), [ 1600, 1200 ], "target");
-  assertClose(vs.Copy("Time", new Float32Array(1)), [ 12.5 ], "animation time");
+  assertClose(vs.Copy("Time", new Float32Array(1)), [ Tr2Renderer.GetAnimationTime() ], "animation time");
 
   // FovXY: y is the recovered vertical FOV, x is that times the aspect ratio.
   const fov = Array.from(vs.Copy("FovXY", new Float32Array(2)));
@@ -649,12 +643,12 @@ test("the scene owns one persistent record per stage, reused every frame", () =>
   const scene = new EveSpaceScene();
   const context = makeContext();
 
-  const vs = scene.PopulatePerFrameVSData(context);
+  const vs = scene.PopulatePerFrameVSData(scene.GetPerFrameVSData(), context);
   const ps = scene.PopulatePerFramePSData(scene.GetPerFramePSData(), context);
 
   assert.equal(vs, scene.GetPerFrameVSData(), "the vertex fill returns the scene's own record");
   assert.equal(ps, scene.GetPerFramePSData(), "and so does the pixel fill");
-  assert.equal(scene.PopulatePerFrameVSData(context), vs, "the same record next frame");
+  assert.equal(scene.PopulatePerFrameVSData(scene.GetPerFrameVSData(), context), vs, "the same record next frame");
   assert.notEqual(vs.GetData().buffer, ps.GetData().buffer, "the two do not share a buffer");
 
   assert.equal(vs.GetData().length, 184, "46 registers");
@@ -662,7 +656,7 @@ test("the scene owns one persistent record per stage, reused every frame", () =>
 
   // A caller may supply its own record - Carbon's shadow pass fills a local
   // PerFrameVSData rather than the member (cpp:760-769).
-  const scratch = scene.PopulatePerFrameVSData(context, {}, scene.GetPerFrameVSData());
+  const scratch = scene.PopulatePerFrameVSData(scene.GetPerFrameVSData(), context);
   assert.equal(scratch, vs);
 });
 
@@ -674,7 +668,7 @@ test("the env-map rotation reaches the shader as a transposed rotation matrix", 
 
   quat.copy(scene.envMapRotation, rotation);
 
-  const record = scene.PopulatePerFrameVSData(makeContext());
+  const record = scene.PopulatePerFrameVSData(scene.GetPerFrameVSData(), makeContext());
   const expected = mat4.transpose(mat4.create(), mat4.fromQuat(mat4.create(), rotation));
 
   assert.deepEqual(
@@ -693,7 +687,7 @@ test("with no frame supplied, the fills read the engine state Carbon's statics h
   const context = makeContext({ projection });
 
   const ps = scene.PopulatePerFramePSData_ShadowMap(scene.GetPerFramePSData(), null, context);
-  const vs = scene.PopulatePerFrameVSData(context);
+  const vs = scene.PopulatePerFrameVSData(scene.GetPerFrameVSData(), context);
 
   assertClose(ps.Copy("GammaBrightness", new Float32Array(1)), [ EveSpaceScene.eveSpaceSceneGammaBrightness ], "gamma is g_eveSpaceSceneGammaBrightness");
 

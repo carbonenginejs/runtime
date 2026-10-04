@@ -710,7 +710,7 @@ export class EveSpaceSceneRenderDriver
     // undefined, and with null both fills threw on their first field read, so
     // every frame of a real EveSpaceScene died here.
     this.scene.PopulatePerFramePSData?.(this.scene.GetPerFramePSData(), renderContext);
-    this.scene.PopulatePerFrameVSData?.(renderContext);
+    this.scene.PopulatePerFrameVSData?.(this.scene.GetPerFrameVSData(), renderContext);
 
     // The scene's own apply (EveSpaceScene::ApplyPerFrameData, cpp:818-828),
     // not the generic Tr2BindPerFrame*Data: the space scene binds its vertex
