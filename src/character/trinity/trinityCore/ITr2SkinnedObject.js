@@ -1,12 +1,40 @@
-// Source: trinity/trinity/ITr2SkinnedObject.h
+// Source: trinity/trinity/ITr2SkinnedObject.h:7-13
+import { CjsSchema, meta } from "#schema";
 
-/**
- * Carbon's type-only skinned-object transform contract.
- *
- * @typedef {object} ITr2SkinnedObject
- * @property {() => ArrayLike<number>} GetScaling
- * @property {() => ArrayLike<number>} GetRotation
- * @property {() => ArrayLike<number>} GetPosition
- */
+/** Carbon skinned-object transform interface; IRoot has no JavaScript base. */
+export class ITr2SkinnedObject
+{
+  /**
+   * Returns the object's scaling vector.
+   * @returns {ArrayLike<number>} Three-component scaling supplied by the object.
+   */
+  @meta.abstract
+  GetScaling()
+  {
+    throw new Error("ITr2SkinnedObject.GetScaling must be implemented by a skinned object.");
+  }
 
-export {};
+  /**
+   * Returns the object's rotation quaternion.
+   * @returns {ArrayLike<number>} Four-component rotation supplied by the object.
+   */
+  @meta.abstract
+  GetRotation()
+  {
+    throw new Error("ITr2SkinnedObject.GetRotation must be implemented by a skinned object.");
+  }
+
+  /**
+   * Returns the object's position vector.
+   * @returns {ArrayLike<number>} Three-component position supplied by the object.
+   */
+  @meta.abstract
+  GetPosition()
+  {
+    throw new Error("ITr2SkinnedObject.GetPosition must be implemented by a skinned object.");
+  }
+}
+
+CjsSchema.define(ITr2SkinnedObject, {
+  className: "ITr2SkinnedObject", carbon: "ITr2SkinnedObject", family: "trinityCore", fields: {}
+});

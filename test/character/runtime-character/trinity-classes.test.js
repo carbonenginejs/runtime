@@ -11,6 +11,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import {
   ITr2AnimationUpdater,
+  ITr2SkinnedObject,
   Tr2InteriorPlaceable,
   Tr2InteriorLightSet,
   Tr2InteriorLightSource,
@@ -168,13 +169,15 @@ test("the character layer exports the nominal animation-updater contract", () =>
   }
 });
 
-test("the character layer retains the skinned-object type declaration", () =>
+test("the character layer exports the nominal skinned-object transform contract", () =>
 {
-  assert.equal(
-    existsSync(new URL("../../../src/character/trinity/trinityCore/ITr2SkinnedObject.js", import.meta.url)),
-    true
-  );
-  assert.equal(CjsSchema.GetConstructor("ITr2SkinnedObject"), null);
+  assert.equal(CjsSchema.GetConstructor("ITr2SkinnedObject"), ITr2SkinnedObject);
+  const object = new ITr2SkinnedObject();
+  for (const method of [ "GetScaling", "GetRotation", "GetPosition" ])
+  {
+    assert.equal(CjsSchema.getMethod(ITr2SkinnedObject, method).impl.status, "abstract");
+    assert.throws(() => object[method](), /must be implemented by a skinned object/);
+  }
 });
 
 test("character interior classes retain their source-backed inheritance and scalar bounds", () =>
