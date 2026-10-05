@@ -1,3 +1,6 @@
+// Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h
+// Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2.cpp
+// Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2_Blue.cpp
 import { IsMatch } from "#blue";
 import { FLOAT_MAX } from "../../core/view/TriFrustum.js";
 import { IEveShadowCaster } from "../IEveShadowCaster.js";
@@ -6,9 +9,6 @@ import { ITr2ControllerOwner } from "../../controllers/ITr2ControllerOwner.js";
 import { ITr2SoundEmitterOwner } from "../ITr2SoundEmitterOwner.js";
 import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { ITr2ImpostorSource } from "../../core/mesh/ITr2ImpostorSource/ITr2ImpostorSource.js";
-// Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h
-// Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2.cpp
-// Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2_Blue.cpp
 import "#consts/graphics/trinityEnums";
 import "#consts/trinity";
 import { CjsSchema, meta } from "#schema";
@@ -2314,14 +2314,18 @@ export class EveSpaceObject2 extends EveEntity
     return this;
   }
 
-  /** Carbon GetShadowBatches (EveSpaceObject2.cpp:1143-1184): one batch per
+  /**
+   * Carbon GetShadowBatches (EveSpaceObject2.cpp:1143-1184): one batch per
    * cached shared-material OPAQUE area block, using the area's own material.
    * Carbon bakes LOD draw args at this point; doing the same is not ported, so
    * they travel as a geometry source descriptor and shadowPixelSize goes unused
-   * until LOD selection is ported. */
+   * until LOD selection is ported.
+   *
+   * Adapted: LOD draw args are left as a geometry source descriptor and primitive-count
+   * gating is not ported yet; Carbon bakes both here.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("LOD draw args are left as a geometry source descriptor and primitive-count gating is not ported yet; Carbon bakes both here.")
   GetShadowBatches(batches, perObjectData, _shadowPixelSize)
   {
     if (!this.mesh || this.mesh.display === false) return false;
@@ -2387,10 +2391,11 @@ export class EveSpaceObject2 extends EveEntity
    * Reports whether the hull mesh has transparent areas or any overlay effect
    * does, which tells the renderer to route this object through the sorted
    * transparent pass.
+   *
+   * Adapted: Portable mesh area access replaces Carbon's native mesh-area vectors.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Portable mesh area access replaces Carbon's native mesh-area vectors.")
   HasTransparentBatches()
   {
     if (!this.mesh) return false;
@@ -2406,10 +2411,12 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Returns the distance from the render context's view position to the hull
    * world translation, used to order transparent renderables back-to-front.
+   *
+   * Adapted: Carbon reads the Tr2Renderer view-position global; the relocated camera state
+   * arrives via the threaded render context.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon reads the Tr2Renderer view-position global; the relocated camera state arrives via the threaded render context.")
   GetSortValue(renderContext = null)
   {
     const viewPosition = renderContext?.GetViewPosition();
@@ -2495,10 +2502,12 @@ export class EveSpaceObject2 extends EveEntity
    * display, world-sphere and reflection gates, then tests the realized sphere
    * against the supplied shadow frustum. Carbon's float& result is represented
    * by an optional length-one array.
+   *
+   * Adapted: The optional length-one array replaces Carbon's float& sizeInShadow
+   * out-parameter.
    */
   @meta.blue.renamed("IsCastingShadow")
   @meta.adapted
-  @meta.reason("The optional length-one array replaces Carbon's float& sizeInShadow out-parameter.")
   IsCastingShadow_ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
   {
     if (!this.display || this._boundingSphereWorldRadius <= 0)
@@ -3370,10 +3379,14 @@ export class EveSpaceObject2 extends EveEntity
     return targetableCall ? true : out;
   }
 
-  /** Internal ITriTargetable locator query, using the org-standard out-last convention. */
+  /**
+   * Internal ITriTargetable locator query, using the org-standard out-last convention.
+   *
+   * Adapted: CarbonEngineJS keeps output parameters last and returns a validity flag for
+   * targetable callers.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("CarbonEngineJS keeps output parameters last and returns a validity flag for targetable callers.")
   GetDamageLocatorPosition(index, inWorldSpace, out = vec3.create())
   {
     const locators = this._GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
@@ -3415,10 +3428,14 @@ export class EveSpaceObject2 extends EveEntity
     return this._GetClosestLocatorIndex(position, EveSpaceObject2._damageLocatorSetName);
   }
 
-  /** Ports Carbon's randomized distance/direction fit for impact variation. */
+  /**
+   * Ports Carbon's randomized distance/direction fit for impact variation.
+   *
+   * Adapted: TriRand is represented by Math.random; all locator scoring remains
+   * source-faithful.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("TriRand is represented by Math.random; all locator scoring remains source-faithful.")
   GetGoodDamageLocatorIndex(position)
   {
     const locators = this._GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
@@ -3540,10 +3557,14 @@ export class EveSpaceObject2 extends EveEntity
       && this.GetImpactConfiguration() === ImpactConfiguration.IMPACT_SHIELD;
   }
 
-  /** Resolves a shield-ray or damage-locator collision point. */
+  /**
+   * Resolves a shield-ray or damage-locator collision point.
+   *
+   * Adapted: CarbonEngineJS uses an out-last signature; the ellipsoid intersection is
+   * otherwise source-faithful CPU math.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("CarbonEngineJS uses an out-last signature; the ellipsoid intersection is otherwise source-faithful CPU math.")
   GetImpactPosition(locator, posPrev, posNow, epsilon, out = vec3.create())
   {
     if (!this.HasImpactConfigurationShield())
@@ -3903,10 +3924,14 @@ export class EveSpaceObject2 extends EveEntity
     return true;
   }
 
-  /** Sets Carbon's authored local bounding sphere from a sph3-compatible value. */
+  /**
+   * Sets Carbon's authored local bounding sphere from a sph3-compatible value.
+   *
+   * Adapted: Carbon's CcpMath::Sphere is represented by core-math sph3; object-shaped
+   * center/radius input is accepted at adapter boundaries.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon's CcpMath::Sphere is represented by core-math sph3; object-shaped center/radius input is accepted at adapter boundaries.")
   SetBoundingSphereInformation(sphere)
   {
     if (sphere?.center)
@@ -3932,10 +3957,14 @@ export class EveSpaceObject2 extends EveEntity
     return Object.fromEntries(this._controllerVariables);
   }
 
-  /** Gets Carbon's most recently selected geometry LOD. */
+  /**
+   * Gets Carbon's most recently selected geometry LOD.
+   *
+   * Adapted: Geometry resources without multi-LOD support expose their sole browser LOD as
+   * index zero.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Geometry resources without multi-LOD support expose their sole browser LOD as index zero.")
   GetLastUsedMeshLod()
   {
     const geometryResource = this.mesh?.GetGeometryResource();

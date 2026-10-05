@@ -1,9 +1,9 @@
+// Source: trinity/trinity/Eve/SpaceObject/EveShip2.h
+// Source: trinity/trinity/Eve/SpaceObject/EveShip2.cpp
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
-// Source: trinity/trinity/Eve/SpaceObject/EveShip2.h
-// Source: trinity/trinity/Eve/SpaceObject/EveShip2.cpp
 // Hand-maintained after promotion from generated schema intake.
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -325,10 +325,12 @@ export class EveShip2 extends EveMobile
   /**
    * Carbon EveShip2::UpdateShipSpeedForAudio - normalizes speed/maxSpeed
    * into the bound audio parameter (EveShip2.cpp:360-380).
+   *
+   * Adapted: Blue FindEntry member binding becomes a duck-typed value holder; the runtime
+   * audio layer owns the emitter side.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Blue FindEntry member binding becomes a duck-typed value holder; the runtime audio layer owns the emitter side.")
   UpdateShipSpeedForAudio()
   {
     if (this.maxSpeed === 0 || !this.boosters)

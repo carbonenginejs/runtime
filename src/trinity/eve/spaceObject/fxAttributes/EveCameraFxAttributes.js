@@ -53,11 +53,13 @@ export class EveCameraFxAttributes extends IEveFxAttribute
   /**
    * Collects Carbon's camera-relative attributes for the current child update.
    * Renderer-global camera state is supplied by EveUpdateContext in Trinity.
+   *
+   * Adapted: Carbon reads Tr2Renderer camera globals; the runtime Trinity layer supplies the
+   * equivalent state through updateContext.renderContext.
    */
   @meta.blue.method
   @meta.blue.contextual(["camera"])
   @meta.adapted
-  @meta.reason("Carbon reads Tr2Renderer camera globals; the runtime Trinity layer supplies the equivalent state through updateContext.renderContext.")
   UpdateAsyncronous(updateContext, params)
   {
     const renderContext = updateContext?.renderContext;

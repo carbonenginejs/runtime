@@ -1,7 +1,7 @@
-
-import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/EveMobile.h
 // Source: trinity/trinity/Eve/SpaceObject/EveMobile.cpp
+
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { mat4 } from "#math/mat4";
 import { vec4 } from "#math/vec4";
 import { IEveSpaceObject2ParentData } from "./IEveSpaceObject2ParentData.js";

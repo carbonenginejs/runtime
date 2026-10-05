@@ -1,10 +1,10 @@
+// Source: trinity/trinity/Eve/EvePlanet.h
+// Source: trinity/trinity/Eve/EvePlanet.cpp
 import { ITr2BoundingBox } from "../../../../global/interfaces/ITr2BoundingBox.js";
 import { IWorldPosition } from "../../../core/IWorldPosition.js";
 import { ITr2SoundEmitterOwner } from "../../ITr2SoundEmitterOwner.js";
 import { ITr2CurveSetOwner } from "../../../curves/ITr2CurveSetOwner.js";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
-// Source: trinity/trinity/Eve/EvePlanet.h
-// Source: trinity/trinity/Eve/EvePlanet.cpp
 // Hand-maintained after promotion from generated schema intake.
 import { meta } from "#schema";
 import { EveEffectRoot2 } from "../EveEffectRoot2.js";

@@ -1,7 +1,7 @@
-
-import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/EveMissile.h
 // Source: trinity/trinity/Eve/SpaceObject/EveMissile.cpp
+
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";

@@ -1,3 +1,6 @@
+// Source: trinity/trinity/Eve/EveEffectRoot2.h
+// Source: trinity/trinity/Eve/EveEffectRoot2.cpp
+// Source: trinity/trinity/Eve/EveEffectRoot2_Blue.cpp
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { IWorldPosition } from "../../core/IWorldPosition.js";
 import { ITriTargetable } from "../../core/ITriTargetable.js";
@@ -6,9 +9,6 @@ import { ITr2ControllerOwner } from "../../controllers/ITr2ControllerOwner.js";
 import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { INotify } from "../../../global/blue/INotify.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
-// Source: trinity/trinity/Eve/EveEffectRoot2.h
-// Source: trinity/trinity/Eve/EveEffectRoot2.cpp
-// Source: trinity/trinity/Eve/EveEffectRoot2_Blue.cpp
 import "#consts/trinity";
 import { addChild, removeChild, clearChildren } from "../../../global/blue/children.js";
 import { mat4 } from "#math/mat4";
@@ -155,9 +155,13 @@ export class EveEffectRoot2 extends EveEntity
   @meta.type.float32
   secondaryLightingSphereRadius = 0.5;
 
-  /** m_boundingSphere.xyz, exposed by Carbon's MAPFLOATARRAYSIZE Blue mapping. */
+  /**
+   * m_boundingSphere.xyz, exposed by Carbon's MAPFLOATARRAYSIZE Blue mapping.
+   *
+   * Adapted: The schema scanner omits MAPFLOATARRAYSIZE; Carbon exposes the three persisted
+   * center components separately from radius.
+   */
   @meta.adapted
-  @meta.reason("The schema scanner omits MAPFLOATARRAYSIZE; Carbon exposes the three persisted center components separately from radius.")
   @meta.blue.readwrite
   @meta.blue.persist
   @meta.type.vec3
@@ -197,10 +201,13 @@ export class EveEffectRoot2 extends EveEntity
   /** The translation view registered with the SH lighting manager (_GetWorldTranslation). */
   _worldTranslation = null;
 
-  /** Assigns child owners and links authored controllers after hydration (EveEffectRoot2.cpp:59-72). */
+  /**
+   * Assigns child owners and links authored controllers after hydration (EveEffectRoot2.cpp:59-72).
+   *
+   * Adapted: Blue root locking is represented by the hydrated JavaScript object identity.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Blue root locking is represented by the hydrated JavaScript object identity.")
   Initialize()
   {
     for (const child of this.effectChildren) child.SetOwner(this);
@@ -217,10 +224,12 @@ export class EveEffectRoot2 extends EveEntity
    * Carbon's list notifies its owner and OnListModified's INSERTED arm does
    * them (EveEffectRoot2.cpp:94-102), which is what the managed child
    * mutation reproduces.
+   *
+   * Adapted: A JavaScript array has no notify slot, so the owner drives the notification
+   * through the shared child service rather than the list driving it.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("A JavaScript array has no notify slot, so the owner drives the notification through the shared child service rather than the list driving it.")
   AddController(controller)
   {
     addChild(this, "controllers", controller, { listNotify: this });
@@ -230,19 +239,25 @@ export class EveEffectRoot2 extends EveEntity
   /**
    * Removes a controller. The unlink is OnListModified's REMOVED arm
    * (EveEffectRoot2.cpp:104-109), not this method's business.
+   *
+   * Adapted: A JavaScript array has no notify slot, so the owner drives the notification
+   * through the shared child service rather than the list driving it.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("A JavaScript array has no notify slot, so the owner drives the notification through the shared child service rather than the list driving it.")
   RemoveController(controller)
   {
     return removeChild(this, "controllers", controller, { listNotify: this });
   }
 
-  /** Evaluates root curves and updates children that require synchronous placement. */
+  /**
+   * Evaluates root curves and updates children that require synchronous placement.
+   *
+   * Adapted: Carbon task and lock ownership is omitted; child update parameters retain the
+   * source graph contract.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon task and lock ownership is omitted; child update parameters retain the source graph contract.")
   UpdateSyncronous(updateContext = null)
   {
     const time = updateContext.GetTime();
@@ -262,10 +277,14 @@ export class EveEffectRoot2 extends EveEntity
     return true;
   }
 
-  /** Advances controllers, root curve sets, and effect children. */
+  /**
+   * Advances controllers, root curve sets, and effect children.
+   *
+   * Adapted: Controller and child work is forwarded synchronously through the GPU-free graph
+   * instead of Carbon task groups.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Controller and child work is forwarded synchronously through the GPU-free graph instead of Carbon task groups.")
   UpdateAsyncronous(updateContext = null)
   {
     let frequency = 0;
@@ -294,10 +313,14 @@ export class EveEffectRoot2 extends EveEntity
     return frequency;
   }
 
-  /** Updates dynamic LOD and forwards visibility to the effect children. */
+  /**
+   * Updates dynamic LOD and forwards visibility to the effect children.
+   *
+   * Adapted: Frustum and threshold state is supplied by the explicit update context rather
+   * than renderer globals.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Frustum and threshold state is supplied by the explicit update context rather than renderer globals.")
   UpdateVisibility(updateContext = null, parentTransform = EveEffectRoot2._identity)
   {
     if (!this.display) return false;
@@ -458,10 +481,13 @@ export class EveEffectRoot2 extends EveEntity
     return true;
   }
 
-  /** Returns the last composed local-to-world transform. */
+  /**
+   * Returns the last composed local-to-world transform.
+   *
+   * Adapted: CarbonEngineJS returns the caller-owned output matrix.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("CarbonEngineJS returns the caller-owned output matrix.")
   GetLocalToWorldTransform(out = mat4.create())
   {
     return mat4.copy(out, this._lastUpdateMatrix);
@@ -489,32 +515,42 @@ export class EveEffectRoot2 extends EveEntity
     return this.boundingSphereRadius > 0;
   }
 
-  /** Protected-equivalent read of Carbon's m_worldTransform
+  /**
+   * Protected-equivalent read of Carbon's m_worldTransform
    * (EveEffectRoot2.h:219, protected) - the detached root transform
    * UpdateWorldTransform evaluates, WITHOUT the local SRT composition that
    * GetLocalToWorldTransform's #lastUpdateMatrix carries. EvePlanet reads the
-   * member directly for the z-only depth-prepass drive (EvePlanet.cpp:137). */
+   * member directly for the z-only depth-prepass drive (EvePlanet.cpp:137).
+   *
+   * Adapted: Copies the stored world transform into the caller's output matrix where Carbon
+   * accesses its protected member directly.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon's protected member access becomes a copying accessor; JS has no protected fields and the live buffer stays private.")
   GetWorldTransform(out = mat4.create())
   {
     return mat4.copy(out, this._worldTransform);
   }
 
-  /** Registers every child with an injected quad renderer. */
+  /**
+   * Registers every child with an injected quad renderer.
+   *
+   * Adapted: The quad renderer is an injected engine-owned capability.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The quad renderer is an injected engine-owned capability.")
   RegisterWithQuadRenderer(quadRenderer)
   {
     for (const child of this.effectChildren) child.RegisterWithQuadRenderer(quadRenderer);
   }
 
-  /** Adds visible child quads to an injected renderer. */
+  /**
+   * Adds visible child quads to an injected renderer.
+   *
+   * Adapted: The quad renderer is an injected engine-owned capability.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The quad renderer is an injected engine-owned capability.")
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     if (!this.display) return;
@@ -655,10 +691,13 @@ export class EveEffectRoot2 extends EveEntity
     }
   }
 
-  /** Adds authored lights using the effect's composed placement and average scale. */
+  /**
+   * Adds authored lights using the effect's composed placement and average scale.
+   *
+   * Adapted: The light manager is an injected engine-owned capability.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The light manager is an injected engine-owned capability.")
   GetLights(lightManager)
   {
     if (!this.display) return;
@@ -792,30 +831,41 @@ export class EveEffectRoot2 extends EveEntity
     return 0;
   }
 
-  /** Returns the detached root translation as the sole target point. */
+  /**
+   * Returns the detached root translation as the sole target point.
+   *
+   * Adapted: CarbonEngineJS uses output parameters last and returns the targetable validity
+   * flag.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("CarbonEngineJS uses output parameters last and returns the targetable validity flag.")
   GetDamageLocatorPosition(_index, _inWorldSpace, out = vec3.create())
   {
     vec3.set(out, this._worldTransform[12], this._worldTransform[13], this._worldTransform[14]);
     return true;
   }
 
-  /** Returns Carbon's constant +Y target direction. */
+  /**
+   * Returns Carbon's constant +Y target direction.
+   *
+   * Adapted: CarbonEngineJS uses output parameters last and returns the targetable validity
+   * flag.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("CarbonEngineJS uses output parameters last and returns the targetable validity flag.")
   GetDamageLocatorDirection(_index, _inWorldSpace, out = vec3.create())
   {
     vec3.set(out, 0, 1, 0);
     return true;
   }
 
-  /** Tests whether a projectile has reached the root target point. */
+  /**
+   * Tests whether a projectile has reached the root target point.
+   *
+   * Adapted: CarbonEngineJS uses an out-last signature for output parameters.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("CarbonEngineJS uses an out-last signature for output parameters.")
   GetImpactPosition(locator, _posPrev, posNow, epsilon, out = vec3.create())
   {
     this.GetDamageLocatorPosition(locator, true, out);
@@ -870,19 +920,25 @@ export class EveEffectRoot2 extends EveEntity
     return false;
   }
 
-  /** Returns the detached root world position. */
+  /**
+   * Returns the detached root world position.
+   *
+   * Adapted: CarbonEngineJS returns the caller-owned output vector.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("CarbonEngineJS returns the caller-owned output vector.")
   GetWorldPosition(out)
   {
     return vec3.set(out, this._worldTransform[12], this._worldTransform[13], this._worldTransform[14]);
   }
 
-  /** Returns the authored local rotation composed with the detached root rotation. */
+  /**
+   * Returns the authored local rotation composed with the detached root rotation.
+   *
+   * Adapted: CarbonEngineJS returns the caller-owned output quaternion.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("CarbonEngineJS returns the caller-owned output quaternion.")
   GetWorldRotation(out = quat.create())
   {
     mat4.getRotation(EveEffectRoot2._worldRotation, this._worldTransform);
@@ -1107,10 +1163,14 @@ export class EveEffectRoot2 extends EveEntity
     return null;
   }
 
-  /** Adds and initializes an effect child through Carbon's list-notify behavior. */
+  /**
+   * Adds and initializes an effect child through Carbon's list-notify behavior.
+   *
+   * Adapted: Plain JavaScript arrays have no Blue IList notifications, so insertion behavior
+   * is explicit.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Plain JavaScript arrays have no Blue IList notifications, so insertion behavior is explicit.")
   AddToEffectChildrenList(child)
   {
     this.effectChildren.push(child);
@@ -1119,10 +1179,14 @@ export class EveEffectRoot2 extends EveEntity
     return child;
   }
 
-  /** Removes an effect child. */
+  /**
+   * Removes an effect child.
+   *
+   * Adapted: Plain JavaScript arrays have no Blue IList notifications, so removal behavior
+   * is explicit.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Plain JavaScript arrays have no Blue IList notifications, so removal behavior is explicit.")
   RemoveFromEffectChildrenList(child)
   {
     const index = this.effectChildren.indexOf(child);
@@ -1173,10 +1237,13 @@ export class EveEffectRoot2 extends EveEntity
     return observer;
   }
 
-  /** Applies the mute state to effect children and placement observers. */
+  /**
+   * Applies the mute state to effect children and placement observers.
+   *
+   * Adapted: The explicit setter replaces Carbon's Blue field-notify callback.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The explicit setter replaces Carbon's Blue field-notify callback.")
   SetMute(isMute)
   {
     this.mute = !!isMute;

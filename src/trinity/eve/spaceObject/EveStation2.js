@@ -1,7 +1,7 @@
+// Source: trinity/trinity/Eve/SpaceObject/EveStation2.h
 import { meta } from "#schema";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
-// Source: trinity/trinity/Eve/SpaceObject/EveStation2.h
 
 import { EveSpaceObject2 } from "./EveSpaceObject2.js";
 

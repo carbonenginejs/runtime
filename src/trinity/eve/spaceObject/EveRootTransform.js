@@ -54,10 +54,13 @@ export class EveRootTransform extends EveTransform
 
   _lastUpdateMatrix = mat4.create();
 
-  /** Evaluates the detached ball/model curves, then advances inherited content. */
+  /**
+   * Evaluates the detached ball/model curves, then advances inherited content.
+   *
+   * Adapted: Curve outputs use CarbonEngineJS's time-first, output-second convention.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Curve outputs use CarbonEngineJS's time-first, output-second convention.")
   UpdateSyncronous(updateContext = null)
   {
     const time = updateContext.GetTime();
@@ -119,30 +122,41 @@ export class EveRootTransform extends EveTransform
     return 0;
   }
 
-  /** Returns the current root translation as the sole target point. */
+  /**
+   * Returns the current root translation as the sole target point.
+   *
+   * Adapted: CarbonEngineJS uses output parameters last and returns the targetable validity
+   * flag.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("CarbonEngineJS uses output parameters last and returns the targetable validity flag.")
   GetDamageLocatorPosition(_index, _inWorldSpace, out = vec3.create())
   {
     vec3.set(out, this.worldTransform[12], this.worldTransform[13], this.worldTransform[14]);
     return true;
   }
 
-  /** Returns Carbon's constant +Y target direction. */
+  /**
+   * Returns Carbon's constant +Y target direction.
+   *
+   * Adapted: CarbonEngineJS uses output parameters last and returns the targetable validity
+   * flag.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("CarbonEngineJS uses output parameters last and returns the targetable validity flag.")
   GetDamageLocatorDirection(_index, _inWorldSpace, out = vec3.create())
   {
     vec3.set(out, 0, 1, 0);
     return true;
   }
 
-  /** Tests whether a projectile has reached the root target point. */
+  /**
+   * Tests whether a projectile has reached the root target point.
+   *
+   * Adapted: CarbonEngineJS uses an out-last signature for output parameters.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("CarbonEngineJS uses an out-last signature for output parameters.")
   GetImpactPosition(locator, _posPrev, posNow, epsilon, out = vec3.create())
   {
     this.GetDamageLocatorPosition(locator, true, out);
