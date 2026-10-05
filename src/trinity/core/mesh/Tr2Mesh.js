@@ -44,12 +44,12 @@ export class Tr2Mesh extends Tr2MeshBase
   lowResGeometry = null;
 
   /**
-   * True while the bound geometry resource is still loading; false when no
-   * resource is bound.
+   * Reads the mesh load fence through its native property target.
+   * Source: trinity/trinity/Tr2Mesh_Blue.cpp:71-74; Tr2Mesh.cpp:222-225
    */
   get isLoading()
   {
-    return this.geometry?.IsLoading?.() ?? false;
+    return this.IsLoading();
   }
 
   /** Selected request tracked in place of the native queue-wide prepare fence. */
@@ -301,14 +301,16 @@ export class Tr2Mesh extends Tr2MeshBase
   }
 
   /**
-   * The bound resource's own path when one is bound, otherwise the authored
-   * path.
+   * Reads the selected geometry resource path, including the low-detail stand-in.
+   * Source: trinity/trinity/Tr2MeshBase.cpp:425-434
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   GetGeometryResPath()
   {
-    return this.geometry?.GetPath() ?? this.geometryResPath;
+    const resource = this.GetGeometryResource();
+    if (!resource) return "";
+    return resource.GetPath();
   }
 
   /** The fixed number of mesh-area lists a mesh carries (14). */

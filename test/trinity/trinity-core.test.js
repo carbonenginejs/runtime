@@ -390,7 +390,7 @@ test("SOF shield mesh construction stays a CPU object graph", () =>
   assertEquals(mesh.geometry, resource);
   assertEquals(mesh.geometryResPath, "");
   assertEquals(mesh.GetGeometryResPath(), "res:/provided.gr2");
-  assertEquals(mesh.isLoading, true);
+  assertEquals(mesh.isLoading, false, "Tr2Mesh_Blue.cpp:71-74 reads the mesh fence, not geometry load state");
 });
 
 test("mesh bounds adjustment is corrected source-backed graph data", () =>
