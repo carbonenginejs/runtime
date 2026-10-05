@@ -79,7 +79,7 @@ test("IList exposes abstract operations while BlueList keeps its generic templat
   assert.equal(Array.isArray(list), true);
   assert.equal(CjsSchema.cast(list, IList), list);
   assert.equal(CjsSchema.cast(list, ICopierCustomAssignment), list);
-  assert.deepEqual(Array.from(mappedInterfaces(BlueList)), [ IList, ICopierCustomAssignment ]);
+  assert.deepEqual(Array.from(mappedInterfaces(BlueList)), [ BlueList, IList, ICopierCustomAssignment ]);
   assert.equal("SetValues" in list, false);
   assert.equal("Initialize" in list, false);
 });

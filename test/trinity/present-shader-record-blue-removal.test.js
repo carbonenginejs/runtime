@@ -12,9 +12,9 @@ import { Tr2PresentParameters } from "../../npm/dist/trinity/ui/Tr2PresentParame
 import { Tr2PresentParametersAL, Tr2DisplayModeInfo } from "../../npm/dist/trinityal/index.js";
 import { TriDevice } from "../../npm/dist/trinity/core/device/TriDevice.js";
 
-test("presentation record inherits native AL storage with concrete UI defaults and no query entries",()=>{
+test("presentation record inherits native AL storage with concrete UI defaults and only its own query entry",()=>{
  const value=blue.classes.CreateInstanceFromName("Tr2PresentParameters"),other=new Tr2PresentParameters();
- assert.equal(Object.getPrototypeOf(Tr2PresentParameters.prototype),Tr2PresentParametersAL.prototype);assert.equal(value.mode.constructor,Tr2DisplayModeInfo);assert.notEqual(value.mode,other.mode);assert.deepEqual([...mappedInterfaces(Tr2PresentParameters)],[]);
+ assert.equal(Object.getPrototypeOf(Tr2PresentParameters.prototype),Tr2PresentParametersAL.prototype);assert.equal(value.mode.constructor,Tr2DisplayModeInfo);assert.notEqual(value.mode,other.mode);assert.deepEqual([...mappedInterfaces(Tr2PresentParameters)],[Tr2PresentParameters]);
  assert.deepEqual([value.backBufferWidth,value.backBufferHeight,value.backBufferCount,value.msaaType,value.msaaQuality,value.swapEffect,value.outputWindow,value.windowed,value.software,value.presentInterval],[0,0,0,0,0,0,0,false,false,1]);
  assert.equal(new Tr2PresentParametersAL().presentInterval,0);assert.equal(value.variableRefreshRateSupported,false);
  const software=CjsSchema.getField(Tr2PresentParameters,"software");assert.equal(software.enum.identity,"trinity.TriDevice.DeviceType");assert.equal(software.enum.members,blue.enums.GetEnum(software.enum.identity));assert.equal(software.enum.members,TriDevice.DeviceType);

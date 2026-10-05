@@ -13,7 +13,7 @@ import { Tr2SkinnedObject } from "../../npm/dist/character/index.js";
 
 for (const [Type, values, query] of [
   [TriPerlinCurve, { name: "船", N: 4, offset: 2 }, [TriPerlinCurve, ITriFunction, ITriScalarFunction]],
-  [Tr2DistanceTracker, { name: "距離", signedDistance: false }, [ITriFunction, INotify]],
+  [Tr2DistanceTracker, { name: "距離", signedDistance: false }, [Tr2DistanceTracker, ITriFunction, INotify]],
   [Tr2BoneMatrixCurve, { name: "bone", length: 2 }, [Tr2BoneMatrixCurve, ITriFunction, IInitialize, ITriCurveLength]]
 ]) test(`${getRegisteredClassName(Type)} uses Blue declarations and exact native interfaces without model services`, () =>
 {

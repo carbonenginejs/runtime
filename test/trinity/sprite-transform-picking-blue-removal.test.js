@@ -60,11 +60,11 @@ test("actual sprite PickPoint consumes the preserved nine-slice mask and strict 
  assert.equal(owner.PickPoint(4.5,4.5,renderer),owner);assert.equal(owner.PickPoint(0.9,0.9,renderer),null);mask.threshold=1;assert.equal(owner.PickPoint(4.5,4.5,renderer),null);
 });
 
-test("Transform retains its native base, ordered notifications and exact empty local exposure",()=>{
+test("Transform retains its native base, ordered notifications and only itself in its local exposure",()=>{
  assert.equal(Object.getPrototypeOf(Tr2Sprite2dTransform.prototype),Tr2Sprite2dContainerBase.prototype);
  const table=Object.getOwnPropertyDescriptor(Tr2Sprite2dTransform,Symbol.for("carbonenginejs.carbon.mappedInterfaces"))?.value;
- assert.ok(table);assert.deepEqual([...table.interfaces],[]);assert.equal(table.chainTo,Tr2Sprite2dContainerBase);
- assert.deepEqual([...mappedInterfaces(Tr2Sprite2dTransform)],[...mappedInterfaces(Tr2Sprite2dContainerBase)]);
+ assert.ok(table);assert.deepEqual([...table.interfaces],[Tr2Sprite2dTransform]);assert.equal(table.chainTo,Tr2Sprite2dContainerBase);
+ assert.deepEqual([...mappedInterfaces(Tr2Sprite2dTransform)],[Tr2Sprite2dTransform,...mappedInterfaces(Tr2Sprite2dContainerBase)]);
  const names=["rotationCenter","rotation","scalingCenter","scalingRotation","scale"];
  const own=CjsSchema.getSchema(Tr2Sprite2dTransform).fields.filter(f=>names.includes(f.name));assert.deepEqual(own.map(f=>f.name),names);
  for(const field of own){assert.equal(field.edit.notify,true);assert.equal(field.edit.write,true);assert.notEqual(field.edit.persist,true);}

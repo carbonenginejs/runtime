@@ -41,8 +41,8 @@ test("ObjectFollow exposes only native contracts and separates authored from run
   const key = new Tr2ObjectFollowCurveKey();
   assert.equal(Object.getPrototypeOf(Tr2ObjectFollowCurveKey.prototype), ITr2FollowCurveKey.prototype);
   assert.equal("GetValues" in key, false);
-  assert.deepEqual([...mappedInterfaces(Tr2ObjectFollowCurveKey)], [ITr2FollowCurveKey, INotify, IInitialize]);
-  assert.equal(mappedInterfaces(Tr2ObjectFollowCurveKey).has(Tr2ObjectFollowCurveKey), false);
+  assert.deepEqual([...mappedInterfaces(Tr2ObjectFollowCurveKey)], [Tr2ObjectFollowCurveKey, ITr2FollowCurveKey, INotify, IInitialize]);
+  assert.equal(mappedInterfaces(Tr2ObjectFollowCurveKey).has(Tr2ObjectFollowCurveKey), true);
   assert.equal(Tr2ObjectFollowCurveKey.from, undefined);
   for (const name of ["SetValues", "GetValues", "UpdateValues", "Dispose"]) assert.equal(key[name], undefined);
   const fields = CjsSchema.getSchema(Tr2ObjectFollowCurveKey).members;

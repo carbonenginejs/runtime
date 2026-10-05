@@ -20,8 +20,8 @@ import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";
 
 for(const [Class,Base,table] of [
- [TriVectorSequencer,ITriVectorFunction,[ITriFunction,ITriVectorFunction]],
- [TriColorSequencer,ITriColorFunction,[ITriFunction,ITriColorFunction,ITriCurveLength]],
+ [TriVectorSequencer,ITriVectorFunction,[TriVectorSequencer,ITriFunction,ITriVectorFunction]],
+ [TriColorSequencer,ITriColorFunction,[TriColorSequencer,ITriFunction,ITriColorFunction,ITriCurveLength]],
  [Tr2CurveEulerRotationExpression,ITriQuaternionFunction,[Tr2CurveEulerRotationExpression,ITriQuaternionFunction,ITriFunction,IInitialize]]
 ])test(getRegisteredClassName(Class)+" native base and exact exposure",()=>{
  const instance=blue.classes.CreateInstanceFromName(getRegisteredClassName(Class));

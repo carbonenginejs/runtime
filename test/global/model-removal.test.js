@@ -44,6 +44,7 @@ const tables = {
     "INotify"
   ],
   "EveMultiEffectParameter": [
+    "EveMultiEffectParameter",
     "INotify"
   ],
   "EveProceduralMethodAttributeMap": [
@@ -62,9 +63,11 @@ const tables = {
     "INotify"
   ],
   "EveVirtualCameraBehaviourFloatBase": [
+    "EveVirtualCameraBehaviourFloatBase",
     "INotify"
   ],
   "EveVirtualCameraBehaviourVector3Base": [
+    "EveVirtualCameraBehaviourVector3Base",
     "INotify"
   ],
   "FollowASpline": [

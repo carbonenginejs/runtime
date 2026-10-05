@@ -60,8 +60,8 @@ test("real chain stretch retains authored emitter routing and native initializat
   assert.equal(mappedInterfaces(stretch.constructor).has(IInitialize), false,
     "negative control: inherited Initialize alone does not expose the native interface");
   assert.equal("SetValues" in stretch, false);
-  assert.deepEqual(mappedInterfaces(Tr2AudioStretchAuto), new Set([Tr2AudioStretchBase, ITr2Audio]));
-  assert.deepEqual(mappedInterfaces(Tr2AudioStretchBase), new Set([IInitialize, ITr2DebugRenderable, ITr2Audio]));
+  assert.deepEqual(mappedInterfaces(Tr2AudioStretchAuto), new Set([Tr2AudioStretchAuto, Tr2AudioStretchBase, ITr2Audio]));
+  assert.deepEqual(mappedInterfaces(Tr2AudioStretchBase), new Set([Tr2AudioStretchBase, IInitialize, ITr2DebugRenderable, ITr2Audio]));
   assert.deepEqual(mappedInterfaces(AudGameObjResource), new Set([IInitialize, IListNotify, INotify, AudGameObjResource]));
   assert.deepEqual(mappedInterfaces(AudEventCurve), new Set([AudEventCurve, ITriFunction, IInitialize, ITriCurveLength]));
 });

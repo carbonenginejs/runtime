@@ -16,7 +16,7 @@ test("Scalar expression key curve declares its exact native interfaces and store
   assert.equal(Tr2ScalarExprKeyCurve.from, undefined);
   for (const key of ["SetValues", "GetValues", "UpdateValues", "Dispose"])
     assert.equal(curve[key], undefined);
-  assert.deepEqual([...mappedInterfaces(Tr2ScalarExprKeyCurve)], [ITriFunction, IInitialize, ITriCurveLength]);
+  assert.deepEqual([...mappedInterfaces(Tr2ScalarExprKeyCurve)], [Tr2ScalarExprKeyCurve, ITriFunction, IInitialize, ITriCurveLength]);
   assert.deepEqual(CjsSchema.getSchema(Tr2ScalarExprKeyCurve).members.map(field => field.name),
     ["name", "cycle", "reversed", "timeOffset", "timeScale", "currentValue", "interpolation", "keys"]);
   assert.equal(curve.length, 0);

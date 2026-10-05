@@ -8,7 +8,7 @@ import { TriViewport, Vec3TransformByViewport } from "../../npm/dist/trinity/cor
 import { TriStepSetViewport } from "../../npm/dist/trinity/renderJob/step/TriStepSetViewport.js";
 
 for (const [Type, className, values, query] of [
-  [TriRect, "TriRect", {left: -10, top: 20, right: 60, bottom: 90}, []],
+  [TriRect, "TriRect", {left: -10, top: 20, right: 60, bottom: 90}, [TriRect]],
   [TriViewport, "TriViewport", {x: -10, y: 20, width: 640, height: 480, minZ: 0.25, maxZ: 0.75}, [TriViewport]]
 ]) test(`${Type.name} uses declared storage and supported queries without model services`, () =>
 {
@@ -47,7 +47,7 @@ test("rectangle exposed optional-argument adapters preserve untouched edges", ()
   assert.equal(rect.bottom, 90);
   rect.__init__();
   assert.deepEqual([rect.left, rect.top, rect.right, rect.bottom], [0, 0, 0, 0]);
-  assert.equal(mappedInterfaces(TriRect).has(TriRect), false);
+  assert.equal(mappedInterfaces(TriRect).has(TriRect), true);
 });
 
 test("viewport adapters retain defaults, signed window coordinates and unguarded division", () =>

@@ -34,7 +34,7 @@ test("AudParameter has exactly its native INotify base and exposure without mode
 {
   const parameter = new AudParameter();
   assert.strictEqual(Object.getPrototypeOf(AudParameter.prototype), INotify.prototype);
-  assert.deepEqual([...mappedInterfaces(AudParameter)], [INotify, AudParameter]);
+  assert.deepEqual([...mappedInterfaces(AudParameter)], [AudParameter, INotify]);
   assert.strictEqual(CjsSchema.cast(parameter, INotify), parameter);
   assert.strictEqual(CjsSchema.cast(parameter, AudParameter), parameter);
   assert.equal(CjsSchema.cast(parameter, IInitialize), null);

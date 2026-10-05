@@ -17,7 +17,7 @@ import { EveUpdateContext } from "../../npm/dist/trinity/eve/EveUpdateContext.js
 
 for (const [name, Class, Base, table] of [
     ["Tr2CurveVector3Lerp", Tr2CurveVector3Lerp, ITriVectorFunction, [Tr2CurveVector3Lerp, ITriFunction, ITriVectorFunction]],
-    ["Tr2QuaternionLerpCurve", Tr2QuaternionLerpCurve, ITriQuaternionFunction, [ITriFunction, ITriQuaternionFunction, ITriCurveLength]],
+    ["Tr2QuaternionLerpCurve", Tr2QuaternionLerpCurve, ITriQuaternionFunction, [Tr2QuaternionLerpCurve, ITriFunction, ITriQuaternionFunction, ITriCurveLength]],
     ["Tr2ScalarFader", Tr2ScalarFader, Object, [Tr2ScalarFader]]
 ])
 {

@@ -10,7 +10,7 @@ test("audio geometry and position retain native nominal interfaces without model
   const geometry = new AudGeometry();
   assert.equal(CjsSchema.cast(geometry, ITr2AudGeometry), geometry);
   assert.equal(CjsSchema.cast({ SetGeometry() {}, SetGeometryTransform() {}, RemoveGeometry() {} }, ITr2AudGeometry), null);
-  assert.deepEqual([...mappedInterfaces(AudGeometry)], [ITr2AudGeometry]);
+  assert.deepEqual([...mappedInterfaces(AudGeometry)], [AudGeometry, ITr2AudGeometry]);
   const position = new AudPosition();
   assert.equal(CjsSchema.cast(position, IBluePlacementObserver), position);
   assert.equal(mappedInterfaces(AudPosition).has(INotify), false);

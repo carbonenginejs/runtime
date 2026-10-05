@@ -15,7 +15,7 @@ import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 
 test("local observer has its native base, exact query and live mute declaration",()=>{
- const observer=new TriObserverLocal();assert.equal(Object.getPrototypeOf(TriObserverLocal.prototype),ITriObserverLocal.prototype);assert.deepEqual([...mappedInterfaces(TriObserverLocal)],[ITriObserverLocal]);
+ const observer=new TriObserverLocal();assert.equal(Object.getPrototypeOf(TriObserverLocal.prototype),ITriObserverLocal.prototype);assert.deepEqual([...mappedInterfaces(TriObserverLocal)],[TriObserverLocal,ITriObserverLocal]);
  const schema=CjsSchema.getSchema(TriObserverLocal);assert.deepEqual(schema.members.map(field=>field.name),["name","position","front","observer"]);assert.deepEqual(schema.properties.map(field=>field.name),["mute"]);assert.equal(schema.properties[0].role,"property");
  for(const method of ["SetValues","GetValues","Clone","OnEvent","Traverse","GetResources"])assert.equal(method in observer,false);
  const list=new BlueList(ITriObserverLocal);assert.equal(list.Append(observer),true);assert.equal(list.Append({GetObserver(){},SetObserver(){}}),false);

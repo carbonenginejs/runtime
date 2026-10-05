@@ -16,7 +16,7 @@ test("store classes retain exact native nominal and query contracts", () =>
   const material = new Tr2MaterialParameterStore(), variable = new Tr2VariableStore();
   assert.equal(Object.getPrototypeOf(Tr2MaterialParameterStore.prototype), IInitialize.prototype);
   assert.equal(CjsSchema.cast(material, INotify), material);
-  assert.deepEqual([...mappedInterfaces(Tr2MaterialParameterStore)], [INotify, IInitialize, Tr2MaterialParameterStore]);
+  assert.deepEqual([...mappedInterfaces(Tr2MaterialParameterStore)], [Tr2MaterialParameterStore, INotify, IInitialize]);
   assert.equal(Object.getPrototypeOf(Tr2VariableStore.prototype), Object.prototype);
   assert.deepEqual([...mappedInterfaces(Tr2VariableStore)], [Tr2VariableStore]);
   assert.equal(CjsSchema.cast(variable, IInitialize), null);

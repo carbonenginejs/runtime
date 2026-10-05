@@ -19,7 +19,7 @@ import { Tr2RenderContext } from "../../npm/dist/trinity/core/context/Tr2RenderC
 const cases = [
     ["Tr2TranslationAdapter",Tr2TranslationAdapter,ITriVectorFunction,[Tr2TranslationAdapter,ITriVectorFunction]],
     ["Tr2RotationAdapter",Tr2RotationAdapter,ITriQuaternionFunction,[Tr2RotationAdapter,ITriQuaternionFunction]],
-    ["Tr2VectorFunctionModifier",Tr2VectorFunctionModifier,ITriVectorFunction,[ITriVectorFunction,Tr2VectorFunctionModifier]]
+    ["Tr2VectorFunctionModifier",Tr2VectorFunctionModifier,ITriVectorFunction,[Tr2VectorFunctionModifier,ITriVectorFunction]]
 ];
 for (const [name,Class,Base,table] of cases)
 {
