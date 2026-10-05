@@ -27,7 +27,7 @@ export { ICjsAudioGlobalReaders } from "./ICjsAudioGlobalReaders.js";
 export { ICjsSfxControls } from "./ICjsSfxControls.js";
 export { CjsAudioMan } from "./CjsAudioMan.js";
 export { CjsAudioSystem } from "./CjsAudioSystem.js";
-export { createAudioUpdateContext } from "./CjsAudioUpdateContext.js";
+export { CjsAudioUpdateContext } from "./CjsAudioUpdateContext.js";
 export { CjsJukebox } from "./CjsJukebox.js";
 export { CjsMusicEngine, wwiseIdFromName } from "./CjsMusicEngine.js";
 export { CjsSfxEngine } from "./CjsSfxEngine.js";

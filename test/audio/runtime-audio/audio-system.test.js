@@ -8,7 +8,7 @@ import {
   AudioCurveSetDriver,
   CjsAudioSystem,
   CjsSfxEngine,
-  createAudioUpdateContext,
+  CjsAudioUpdateContext,
 } from "../../../npm/dist/audio/index.js";
 import { CjsBusGraphRuntime } from "../../../src/audio/internal/CjsBusGraphRuntime.js";
 import { CjsSharedBusMixer } from "../../../src/audio/internal/CjsSharedBusMixer.js";
@@ -2218,7 +2218,7 @@ test("CjsAudioSystem forwards explicit Meter and voice-limit policies", () =>
 
 test("audio update context normalizes host timing without owning playback time", () =>
 {
-  const context = createAudioUpdateContext();
+  const context = CjsAudioUpdateContext.createAudioUpdateContext();
 
   context.Update({
     GetTime: () => 12,
@@ -2247,7 +2247,7 @@ test("audio update context normalizes host timing without owning playback time",
 test("audio update context supplies a standalone monotonic frame context", () =>
 {
   const ticks = [ 2, 2.125 ];
-  const context = createAudioUpdateContext({
+  const context = CjsAudioUpdateContext.createAudioUpdateContext({
     now: () => ticks.shift(),
   });
 

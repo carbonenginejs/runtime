@@ -17,7 +17,7 @@ import { CjsWebAudioSoundEngine } from "./CjsWebAudioSoundEngine.js";
 import { CjsMusicEngine } from "./CjsMusicEngine.js";
 import { ICjsMusicEngine } from "./ICjsMusicEngine.js";
 import { CjsAudioBackendGlobalReaders } from "./internal/CjsAudioBackendGlobalReaders.js";
-import { createAudioUpdateContext } from "./CjsAudioUpdateContext.js";
+import { CjsAudioUpdateContext } from "./CjsAudioUpdateContext.js";
 import { CjsBusDuckingController } from "./internal/CjsBusDuckingController.js";
 import { CjsBusGraphRuntime } from "./internal/CjsBusGraphRuntime.js";
 import { CjsSharedBusMixer } from "./internal/CjsSharedBusMixer.js";
@@ -81,7 +81,7 @@ export class CjsAudioSystem
 
     musicEngine = null;
 
-    updateContext = createAudioUpdateContext();
+    updateContext = CjsAudioUpdateContext.createAudioUpdateContext();
 
     _attached = false;
 

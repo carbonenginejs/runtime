@@ -112,9 +112,6 @@
     ]
   },
   "missingClass": {
-    "src/audio/CjsAudioUpdateContext.js": [
-      "CjsAudioUpdateContext"
-    ],
     "src/global/blue/CcpTime.js": [
       "CcpTime"
     ],
