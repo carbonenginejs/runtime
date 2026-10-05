@@ -51,8 +51,8 @@ test("header selection is exact and claims no extension", () =>
 {
     assert.deepEqual(Format.extensions, []);
     const bytes = Format.write(new Node(), options);
-    assert.equal(Format.is(bytes), true);
-    assert.equal(Format.is(new TextEncoder().encode('{"format":"cjs.graph","version":1}')), false);
+    assert.equal(Format.is(null, bytes), true);
+    assert.equal(Format.is(null, new TextEncoder().encode('{"format":"cjs.graph","version":1}')), false);
     assert.throws(() => Format.read(bytes.subarray(0, bytes.length - 1)), /length/u);
     const wrongVersion = bytes.slice(); new DataView(wrongVersion.buffer).setUint32(4, 2, true);
     assert.throws(() => Format.read(wrongVersion), /version/u);

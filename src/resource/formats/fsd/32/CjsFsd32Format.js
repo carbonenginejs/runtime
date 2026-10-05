@@ -16,11 +16,12 @@ export class CjsFsd32Format extends CjsFormat
 
     /**
      * Test whether the caller explicitly selected the legacy FSD layout.
+     * @param {string|null} _filename Resource path; this format ignores it.
      * @param {*} _input Unused candidate input.
      * @param {object} [options] Caller format profile.
      * @returns {boolean} True when legacy FSD was explicitly selected.
      */
-    static is(_input, options = {})
+    static is(_filename, _input, options = {})
     {
         return options.bitWidth === 32
             || options.variant === VARIANT
@@ -35,7 +36,7 @@ export class CjsFsd32Format extends CjsFormat
      */
     static probeSupport(input, options = {})
     {
-        const identified = this.is(input, options);
+        const identified = this.is(null, input, options);
 
         return {
             format: VARIANT,

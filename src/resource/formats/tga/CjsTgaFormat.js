@@ -27,6 +27,26 @@ export class CjsTgaFormat extends CjsImageFormat
     static className = "CjsTgaFormat";
 
     /**
+     * Fast sniff: TGA has no magic bytes, so it needs its extension on the filename,
+     * plus, when bytes are given, a plausible header. With no bytes it is Carbon's
+     * extension check alone. Never throws.
+     *
+     * @param {string|null} filename Resource path, or null.
+     * @param {*} bytes Candidate bytes, or null.
+     * @param {object|null} [_options] Probe options; unused.
+     * @returns {boolean} Whether this is a TGA.
+     */
+    static is(filename, bytes, _options = null)
+    {
+        if (!this.filenameMatches(filename)) return false;
+        if (bytes === null || bytes === undefined) return true;
+
+        const view = CjsImageFormat.sniffBytes(bytes);
+
+        return view !== null && isTGA(view);
+    }
+
+    /**
      * Carbon IsSaveSupported (Tr2TgaHandler.cpp:672-674): a 2D image with one array element.
 
      * Carbon bug, kept by design here: its per-format check, IsSaveSupported(PixelFormat)

@@ -36,10 +36,11 @@ export class CjsFsd64Format extends CjsFormat
 
     /**
      * Test whether bytes contain a valid modern cFSD envelope.
+     * @param {string|null} _filename Resource path; this format ignores it.
      * @param {ArrayBuffer|ArrayBufferView} input Candidate bytes.
      * @returns {boolean} True when the envelope is valid.
      */
-    static is(input)
+    static is(_filename, input)
     {
         try
         {

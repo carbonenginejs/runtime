@@ -320,9 +320,9 @@ test("the schema is required, and is what this format reports on", () => {
   );
 
   // These bytes carry no signature at all, so the answer is about the schema.
-  assert.equal(CjsSchemaBoundFormat.is({ type: "list", itemTypes: { size: 4, type: "int" } }), true);
-  assert.equal(CjsSchemaBoundFormat.is({ type: "int", size: 4 }), false);
-  assert.equal(CjsSchemaBoundFormat.is(null), false);
+  assert.equal(CjsSchemaBoundFormat.is(null, { type: "list", itemTypes: { size: 4, type: "int" } }), true);
+  assert.equal(CjsSchemaBoundFormat.is(null, { type: "int", size: 4 }), false);
+  assert.equal(CjsSchemaBoundFormat.is(null, null), false);
 
   const probe = CjsSchemaBoundFormat.getSupport({ type: "dict" });
 

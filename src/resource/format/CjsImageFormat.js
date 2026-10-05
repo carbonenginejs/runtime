@@ -1,4 +1,5 @@
 import { CjsFormat } from "./CjsFormat.js";
+import { asUint8Array } from "#utils/bytes";
 import { BitmapDimensions, Cutout, HostBitmap, ImageIOResult, LoadParameters } from "#imageio";
 import { IsCompressedFormat, PixelFormat, PixelFormatFromCanonical } from "#consts/render-context";
 import { canDecodeDdsBlockFormat, decodeDdsSlice } from "../formats/dds/core/helpers.js";
@@ -160,6 +161,41 @@ export class CjsImageFormat extends CjsFormat
     }
 
     return this._carbon;
+  }
+
+  /**
+   * The bytes of a sniff candidate, or null when the input is not binary. Never
+   * throws: `is` must answer false on garbage rather than fail.
+   *
+   * @param {*} bytes Candidate input.
+   * @returns {Uint8Array|null} A view, or null.
+   */
+  static sniffBytes(bytes)
+  {
+    try
+    {
+      return asUint8Array(bytes, "Image input");
+    }
+    catch
+    {
+      return null;
+    }
+  }
+
+  /**
+   * Whether a filename ends in one of this format's extensions: Carbon's
+   * CheckExtension on the text after the last '.' (Tr2ImageHandler.cpp:45-49).
+   *
+   * @param {string|null} filename Resource path, or null.
+   * @returns {boolean} False for a missing filename.
+   */
+  static filenameMatches(filename)
+  {
+    if (typeof filename !== "string") return false;
+
+    const dot = filename.lastIndexOf(".");
+
+    return dot >= 0 && this.checkExtension(filename.slice(dot + 1));
   }
 
   /**

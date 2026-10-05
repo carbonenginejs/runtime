@@ -39,10 +39,11 @@ export class CjsSqliteFormat extends CjsFormat {
   /**
    * Reports whether bytes are a SQLite container, by signature.
    *
+   * @param {string|null} _filename Resource path; this format ignores it.
    * @param {Uint8Array|ArrayBuffer} input Candidate bytes.
    * @returns {boolean} True when the header signature matches.
    */
-  static is(input) {
+  static is(_filename, input) {
     try {
       ReadHeader(Normalize(input));
 
@@ -65,7 +66,7 @@ export class CjsSqliteFormat extends CjsFormat {
    * @returns {object} Resource probe.
    */
   static probeSupport(input, options = null) {
-    const recognized = this.is(input);
+    const recognized = this.is(null, input);
     return {
       format: this.id,
       source: options?.source || "buffer",

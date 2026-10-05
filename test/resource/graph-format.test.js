@@ -41,9 +41,9 @@ test("text graph preserves cycles, sharing, weak targets and integer enum storag
 test("text requires its explicit header and version, with no extension claims", () =>
 {
     assert.deepEqual(Format.extensions, []);
-    assert.equal(Format.is('{"hello":1}'), false);
+    assert.equal(Format.is(null, '{"hello":1}'), false);
     const bytes = Format.write(new Node(), options);
-    assert.equal(Format.is(bytes), true);
+    assert.equal(Format.is(null, bytes), true);
     assert.equal(Format.inspect(bytes).format.id, "CjsGraphFormat");
     const envelope = text(bytes);
     envelope.version = 2;

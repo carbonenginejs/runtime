@@ -82,10 +82,10 @@ test("satisfies the runtime-resource format contract", () =>
 
 test("is answers from the 16-byte Granny magic", () =>
 {
-    assert.equal(CjsGr2Format.is(createMinimalGr2()), true);
-    assert.equal(CjsGr2Format.is(new Uint8Array(64)), false);
-    assert.equal(CjsGr2Format.is(new Uint8Array(4)), false);
-    assert.equal(CjsGr2Format.is(null), false);
+    assert.equal(CjsGr2Format.is(null, createMinimalGr2()), true);
+    assert.equal(CjsGr2Format.is(null, new Uint8Array(64)), false);
+    assert.equal(CjsGr2Format.is(null, new Uint8Array(4)), false);
+    assert.equal(CjsGr2Format.is(null, null), false);
 });
 
 test("reads browser byte inputs without a Buffer global", () =>

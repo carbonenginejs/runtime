@@ -25,7 +25,7 @@ export class CjsFsdFormat extends CjsFormat
      */
     static inspect(input, options = {})
     {
-        if (CjsFsd32Format.is(input, options))
+        if (CjsFsd32Format.is(null, input, options))
         {
             return CjsFsd32Format.inspect(input, options);
         }
@@ -41,7 +41,7 @@ export class CjsFsdFormat extends CjsFormat
      */
     static probeSupport(input, options = {})
     {
-        if (CjsFsd32Format.is(input, options))
+        if (CjsFsd32Format.is(null, input, options))
         {
             return CjsFsd32Format.probeSupport(input, options);
         }
@@ -57,12 +57,12 @@ export class CjsFsdFormat extends CjsFormat
      */
     static read(input, options = {})
     {
-        if (CjsFsd32Format.is(input, options))
+        if (CjsFsd32Format.is(null, input, options))
         {
             return CjsFsd32Format.read(input, options);
         }
 
-        if (CjsFsd64Format.is(input))
+        if (CjsFsd64Format.is(null, input))
         {
             return CjsFsd64Format.read(input, options);
         }

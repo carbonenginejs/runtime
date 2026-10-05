@@ -13,7 +13,9 @@ test("inspects tga dimensions and emits raw payload", () =>
     const bytes = makeTgaHeader(8, 4);
     const raw = CjsTgaFormat.read(bytes);
 
-    assert.equal(CjsTgaFormat.is(bytes), true);
+    assert.equal(CjsTgaFormat.is("sample.tga", bytes), true);
+    // TGA has no magic bytes: without its extension it is never claimed.
+    assert.equal(CjsTgaFormat.is(null, bytes), false);
     assert.equal(raw.sourceFormat, "tga");
     assert.equal(raw.mimeType, "image/x-tga");
     assert.equal(raw.metadata.width, 8);

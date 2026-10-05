@@ -2379,9 +2379,9 @@ export class CjsBlueResMan
         ? resolveOrderedExtensionFormatDescriptor(
           route.formats,
           resource.GetExt(),
-          { ...options, bytes }
+          { ...options, bytes, filename: resource.GetPath() }
         )
-        : this.ResolveFormatDescriptor(resource.GetExt(), { ...options, bytes }),
+        : this.ResolveFormatDescriptor(resource.GetExt(), { ...options, bytes, filename: resource.GetPath() }),
       route
     };
   }
@@ -4456,7 +4456,7 @@ function resolveOrderedExtensionFormatDescriptor(descriptors, ext, options)
     if (typeof Format.is !== "function") return descriptor;
     const probeOptions = { ...defaults, ...(options.formatOptions || {}) };
     delete probeOptions.outputStreams;
-    const report = Format.is(options.bytes, probeOptions);
+    const report = Format.is(options.filename ?? null, options.bytes, probeOptions);
     if (isPositiveFormatProbe(report)) return descriptor;
   }
 
@@ -4567,7 +4567,7 @@ function resolveFormatDescriptorCandidates(descriptors, ext, options)
       const { Format, defaults } = descriptor;
       const isFormat = Format.is;
       if (typeof isFormat !== "function") return false;
-      const report = isFormat.call(Format, options.bytes, {
+      const report = isFormat.call(Format, options.filename ?? null, options.bytes, {
         ...defaults,
         ...(options.formatOptions || {})
       });

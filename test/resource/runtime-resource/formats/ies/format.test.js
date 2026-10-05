@@ -55,7 +55,7 @@ test("exposes the shared format contract and validates inspection", async () =>
     assert.deepEqual(await CjsIESFormat.readAsync(bytes()), expected);
     const { candelaValues, ...metadata } = expected;
     assert.deepEqual(format.Inspect(bytes()), metadata);
-    assert.equal(CjsIESFormat.is(bytes()), true);
+    assert.equal(CjsIESFormat.is(null, bytes()), true);
     assert.equal(CjsIESFormat.getSupport(bytes()).verified, false);
     const support = await CjsIESFormat.verifySupport(bytes());
     assert.equal(support.supported, true);
@@ -101,7 +101,7 @@ test("rejects unsupported options and identifies malformed input as unsupported"
 {
     for (const options of [null, [], { mipmaps: true }, { emit: "texture" }])
         assert.throws(() => CjsIESFormat.read(bytes(), options), TypeError);
-    assert.equal(CjsIESFormat.is(bytes(numbers.slice(0, -1))), false);
+    assert.equal(CjsIESFormat.is(null, bytes(numbers.slice(0, -1))), false);
     const support = await CjsIESFormat.verifySupport(bytes(numbers.slice(0, -1)));
     assert.equal(support.supported, false);
     assert.equal(support.verified, true);

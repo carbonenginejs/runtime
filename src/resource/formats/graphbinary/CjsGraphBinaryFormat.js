@@ -66,7 +66,7 @@ export class CjsGraphBinaryFormat extends CjsFormat
     }
 
     /** Select by header; no filename extension participates. */
-    static is(input)
+    static is(_filename, input)
     {
         try { CjsGraphBinaryFormat.inspect(input); return true; }
         catch { return false; }

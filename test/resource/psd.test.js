@@ -91,7 +91,7 @@ test("PSD header rejection and output mutation follow DoReadHeader and ReadImage
     const offset = CjsPsdFormat.inspect(bytes).imageDataOffset;
     new DataView(bytes.buffer).setUint16(offset - 2, 2);
     assert.equal(CjsPsdFormat.readImageNative(bytes, null, new HostBitmap()).code, Code.HEADER_NOT_SUPPORTED);
-    assert.equal(CjsPsdFormat.is(bytes), true, "Routing is independent of compression support");
+    assert.equal(CjsPsdFormat.is(null, bytes), true, "Routing is independent of compression support");
     assert.equal(CjsPsdFormat.readImageNative(original, null, { Create: () => false }).code, Code.ERROR_CREATING_BITMAP);
 });
 
@@ -151,5 +151,5 @@ test("PSD standalone facade uses existing outputs and normalized RGBA writes", a
     assert.deepEqual(Array.from(gray.data.slice(-4)), [ 4, 4, 4, 209 ]);
     assert.equal((await CjsPsdFormat.verifySupport(bytes, { emit: "rgba" })).supported, true);
     assert.throws(() => CjsPsdFormat.read(bytes, { emit: "psdJson" }), /unknown emit/);
-    assert.equal(CjsPsdFormat.is(new Uint8Array(4)), false);
+    assert.equal(CjsPsdFormat.is(null, new Uint8Array(4)), false);
 });

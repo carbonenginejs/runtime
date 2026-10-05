@@ -79,7 +79,7 @@ export class CjsPsdFormat extends CjsImageFormat
     }
 
     /** Identify the PSD signature independently of decoder limitations. */
-    static is(input)
+    static is(_filename, input)
     {
         try
         {

@@ -36,7 +36,7 @@ test("writes a PNG the reader reads back exactly", async () =>
         [ "deflated", await CjsPngFormat.writeAsync(source) ],
     ])
     {
-        assert.equal(CjsPngFormat.is(bytes), true, `${name} should be a PNG`);
+        assert.equal(CjsPngFormat.is(null, bytes), true, `${name} should be a PNG`);
 
         const decoded = await CjsPngFormat.readAsync(bytes, { emit: "rgba" });
 

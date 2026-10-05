@@ -144,8 +144,19 @@ export class CjsFormat
     throw error;
   }
 
-  /** Cheap synchronous identification used only for route selection. */
-  static is(input, options = null)
+  /**
+   * Cheap synchronous identification used only for route selection.
+   *
+   * The filename is the resource's path when the caller has one, and null
+   * otherwise. This base answer ignores it; a format whose identity depends on
+   * its extension (TGA has no magic bytes) overrides `is` and reads it.
+   *
+   * @param {string|null} _filename Resource path, or null.
+   * @param {*} input Candidate input.
+   * @param {object|null} [options] Probe options.
+   * @returns {boolean} Whether this format claims the input.
+   */
+  static is(_filename, input, options = null)
   {
     try
     {

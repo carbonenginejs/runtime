@@ -30,6 +30,24 @@ export class CjsPngFormat extends CjsImageFormat
     static className = "CjsPngFormat";
 
     /**
+     * Fast sniff: a PNG has magic bytes, so the bytes decide, even against a contrary
+     * extension. With no bytes it is Carbon's extension check on the filename. Never throws.
+     *
+     * @param {string|null} filename Resource path, or null.
+     * @param {*} bytes Candidate bytes, or null.
+     * @param {object|null} [_options] Probe options; unused.
+     * @returns {boolean} Whether this is a PNG.
+     */
+    static is(filename, bytes, _options = null)
+    {
+        if (bytes === null || bytes === undefined) return this.filenameMatches(filename);
+
+        const view = CjsImageFormat.sniffBytes(bytes);
+
+        return view !== null && isPNG(view);
+    }
+
+    /**
      * Carbon IsSaveSupported (Tr2PngHandler.cpp:511-533): a 1D or 2D image with one array element.
      *
      * Adapted: converts where Carbon refuses. Any pixel format `convertImage`

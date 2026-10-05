@@ -14,7 +14,7 @@ test("inspects dds dimensions and compressed support variant", () =>
     const info = CjsDdsFormat.inspect(bytes);
     const support = CjsDdsFormat.getSupport(bytes);
 
-    assert.equal(CjsDdsFormat.is(bytes), true);
+    assert.equal(CjsDdsFormat.is(null, bytes), true);
     assert.equal("payloadType" in info, false);
     assert.equal(info.width, 64);
     assert.equal(info.height, 32);

@@ -73,9 +73,9 @@ test("jsonl inspection counts records without parsing them all", () =>
 
 test("jsonl routes by content through the base identification predicate", () =>
 {
-    assert.equal(CjsJsonlFormat.is(SAMPLE), true);
-    assert.equal(CjsJsonlFormat.is("plain text\nlines"), false);
-    assert.equal(CjsJsonlFormat.is(""), false);
+    assert.equal(CjsJsonlFormat.is(null, SAMPLE), true);
+    assert.equal(CjsJsonlFormat.is(null, "plain text\nlines"), false);
+    assert.equal(CjsJsonlFormat.is(null, ""), false);
 });
 
 test("jsonl serializes an iterable back to one record per line", () =>

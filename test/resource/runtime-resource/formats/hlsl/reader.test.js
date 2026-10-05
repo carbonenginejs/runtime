@@ -516,10 +516,10 @@ test("toJSON converts typed arrays and nested structures", () =>
 
 test("is accepts a well-formed header and rejects garbage or truncated data", () =>
 {
-    assert.equal(CjsHlslFormat.is(buildEffectBytes()), true);
-    assert.equal(CjsHlslFormat.is(new Uint8Array([ 1, 2, 3, 4, 5 ])), false);
-    assert.equal(CjsHlslFormat.is(new Uint8Array(0)), false);
-    assert.equal(CjsHlslFormat.is(buildEffectBytes({ version: 99 })), false);
+    assert.equal(CjsHlslFormat.is(null, buildEffectBytes()), true);
+    assert.equal(CjsHlslFormat.is(null, new Uint8Array([ 1, 2, 3, 4, 5 ])), false);
+    assert.equal(CjsHlslFormat.is(null, new Uint8Array(0)), false);
+    assert.equal(CjsHlslFormat.is(null, buildEffectBytes({ version: 99 })), false);
 });
 
 test("out-of-range version is rejected with a read error", () =>

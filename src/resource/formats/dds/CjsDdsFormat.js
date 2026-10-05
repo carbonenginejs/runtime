@@ -130,6 +130,24 @@ export class CjsDdsFormat extends CjsImageFormat
     /** Registered name; `constructor.name` does not survive minification. */
     static className = "CjsDdsFormat";
 
+    /**
+     * Fast sniff: a DDS has magic bytes, so the bytes decide, even against a contrary
+     * extension. With no bytes it is Carbon's extension check on the filename. Never throws.
+     *
+     * @param {string|null} filename Resource path, or null.
+     * @param {*} bytes Candidate bytes, or null.
+     * @param {object|null} [_options] Probe options; unused.
+     * @returns {boolean} Whether this is a DDS.
+     */
+    static is(filename, bytes, _options = null)
+    {
+        if (bytes === null || bytes === undefined) return this.filenameMatches(filename);
+
+        const view = CjsImageFormat.sniffBytes(bytes);
+
+        return view !== null && isDDS(view);
+    }
+
     _values = DEFAULT_VALUES;
 
     /**

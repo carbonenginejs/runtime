@@ -46,7 +46,7 @@ export class CjsSchemaBoundFormat extends CjsFormat {
    * @param {object|Uint8Array|ArrayBuffer|string} schema Schema document or its bytes.
    * @returns {boolean} True when the schema has a root this reader understands.
    */
-  static is(input, options = null) {
+  static is(_filename, input, options = null) {
     try {
       return ROOT_TYPES.has(this.schema(options?.schema ?? input).type);
     } catch {
@@ -62,7 +62,7 @@ export class CjsSchemaBoundFormat extends CjsFormat {
    * @returns {object} Resource probe.
    */
   static probeSupport(input, options = null) {
-    const usable = this.is(input, options);
+    const usable = this.is(null, input, options);
     return {
       format: this.id,
       source: options?.source || "buffer",

@@ -17,8 +17,8 @@ test("inspects jpeg marker and exposes raw fallback", () =>
     const support = CjsJpegFormat.getSupport(bytes);
     const rawVariant = support.outputs.find((variant) => variant.output === "raw");
 
-    assert.equal(CjsJpegFormat.is(bytes), true);
-    assert.equal(CjsJpegFormat.is(bytes), true);
+    assert.equal(CjsJpegFormat.is(null, bytes), true);
+    assert.equal(CjsJpegFormat.is(null, bytes), true);
     assert.equal(info.sourceFormat, "jpeg");
     assert.equal(support.preferredOutput, "raw");
     assert.equal(rawVariant.supported, true);

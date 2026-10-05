@@ -56,7 +56,7 @@ export class CjsGraphFormat extends CjsFormat
     }
 
     /** Header selection claims no extension and accepts only this supported file grammar. */
-    static is(input)
+    static is(_filename, input)
     {
         try { CjsGraphFormat.inspect(input); return true; }
         catch { return false; }
