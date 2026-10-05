@@ -48,7 +48,7 @@ test("every recorded source name agrees with its field name", () =>
     // Non-vacuity is asserted at the end, by `checked`. This count is here for
     // the opposite failure: a reader dropped from the barrel stops being checked
     // without anything else noticing.
-    assert.equal(readerClasses.length, 58);
+    assert.equal(readerClasses.length, 60);
 
     for (const Reader of readerClasses)
     {
