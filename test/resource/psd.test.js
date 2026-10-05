@@ -7,6 +7,7 @@ import { ImageIO, HostBitmap, LoadParameters, Metadata, ImageIOResult } from "..
 import { BitmapDimensions } from "../../npm/dist/global/imageio/index.js";
 import { PixelFormat as F, TextureType } from "../../npm/dist/global/consts/renderContext/index.js";
 
+ImageIO.registerImageHandler(CjsPsdFormat);
 blue.resMan.RegisterFormat(CjsPsdFormat);
 
 const Code = ImageIOResult.Code;

@@ -15,9 +15,13 @@ import { CjsDdsFormat } from "../../npm/dist/resource/formats/dds/index.js";
 import { PixelFormat as F, TextureType } from "../../npm/dist/global/consts/renderContext/index.js";
 import { blue, CjsBlueResMan } from "../../npm/dist/global/blue/index.js";
 
-// The composing application registers formats once, with its resource manager.
+// The composing application registers formats once with each table that maps an
+// extension: ImageIO for the codec, its resource manager for the resource class.
 for (const Format of [ CjsDdsFormat, CjsGifFormat, CjsJpegFormat, CjsPngFormat, CjsPsdFormat, CjsTgaFormat, CjsVtaFormat ])
+{
+  ImageIO.registerImageHandler(Format);
   blue.resMan.RegisterFormat(Format);
+}
 
 /** A legacy (non-DX10) uncompressed DDS: 32-bit masks, no mips unless mipCount > 1. */
 function legacyDds(width, height, bitCount, masks, pixels, mipCount = 1)
@@ -232,7 +236,7 @@ const imageCases = [
 
 for (const [ extension, Format, makeBytes, asyncOnly ] of imageCases)
 {
-  test(`ResMan-only ${extension} registration preserves ImageIO reads and save results`, async () =>
+  test(`registered ${extension} reads and saves the same through ImageIO as through the format`, async () =>
   {
     const bytes = await makeBytes();
     const parameters = new LoadParameters(`sample.${extension.toUpperCase()}`);
@@ -278,49 +282,59 @@ for (const [ extension, Format, makeBytes, asyncOnly ] of imageCases)
   });
 }
 
-test("ImageIO observes active ResMan replacement, late registration and removal without a second registration", async t =>
+test("ImageIO serves only formats registered with it, says so when none is, and ignores ResMan", async t =>
 {
+  // A format under an extension of its own, so the shared table is not disturbed.
+  class LateImage extends CjsPsdFormat { static extensions = [ ".late" ]; }
   const previous = blue.resMan;
   t.after(() => { blue.resMan = previous; });
   blue.resMan = new CjsBlueResMan();
-  const parameters = new LoadParameters("late.PSD");
+  const parameters = new LoadParameters("x/picture.LATE");
   const bytes = CjsPsdFormat.write(imagePayload);
   const bitmap = new HostBitmap();
-  assert.equal(ImageIO.readImage(bytes, parameters, bitmap).code, ImageIOResult.Code.UNRECOGNIZED_IMAGE_TYPE);
+
+  // Registering with ResMan alone does not reach ImageIO: the two tables are separate.
+  blue.resMan.RegisterFormat(LateImage);
+  const missing = ImageIO.readImage(bytes, parameters, bitmap);
+  assert.equal(missing.code, ImageIOResult.Code.UNRECOGNIZED_IMAGE_TYPE);
+  assert.match(missing.GetErrorMessage(), /no image handler is registered for "\.LATE"/u, "an unregistered codec says so");
   assert.equal((await ImageIO.readImageAsync(bytes, parameters, bitmap)).code, ImageIOResult.Code.UNRECOGNIZED_IMAGE_TYPE);
   assert.equal(ImageIO.isSaveSupported(parameters.filename, bitmap).code, ImageIOResult.Code.UNRECOGNIZED_IMAGE_TYPE);
   assert.equal(ImageIO.saveImage(parameters.filename, bitmap).result.code, ImageIOResult.Code.UNRECOGNIZED_IMAGE_TYPE);
 
-  blue.resMan.RegisterFormat(CjsPsdFormat);
+  ImageIO.registerImageHandler(LateImage);
   assert.equal(ImageIO.readImage(bytes, parameters, bitmap).code, ImageIOResult.Code.OK);
   assert.equal(ImageIO.isSaveSupported(parameters.filename, bitmap).code, ImageIOResult.Code.OK);
   assert.equal(ImageIO.saveImage(parameters.filename, bitmap).result.code, ImageIOResult.Code.OK);
-  blue.resMan.RegisterFormat(CjsPsdFormat);
-  assert.equal(blue.resMan.GetFormats("psd").length, 1);
 
-  blue.resMan.formats.delete("psd");
-  assert.equal(ImageIO.getImageHandler("psd"), null);
-  assert.equal(ImageIO.saveImage(parameters.filename, bitmap).result.code, ImageIOResult.Code.UNRECOGNIZED_IMAGE_TYPE);
-});
+  // Registering twice keeps one entry, as each Carbon handler's s_registered guard does.
+  const before = ImageIO._imageHandlers.length;
+  ImageIO.registerImageHandler(LateImage);
+  assert.equal(ImageIO._imageHandlers.length, before);
 
-test("ImageIO ignores non-image formats and retains first registered image handler order", t =>
-{
-  const previous = blue.resMan;
-  t.after(() => { blue.resMan = previous; });
+  // Replacing the active ResMan changes nothing for ImageIO.
   blue.resMan = new CjsBlueResMan();
-  class DataFormat { static extensions = [ ".psd" ]; }
-  class FirstImage extends CjsPsdFormat {}
-  class SecondImage extends CjsPsdFormat {}
-  blue.resMan.RegisterFormat(DataFormat);
-  assert.equal(ImageIO.getImageHandler("psd"), null);
-  blue.resMan.RegisterFormat(FirstImage).RegisterFormat(SecondImage);
-  assert.equal(ImageIO.getImageHandler("psd"), FirstImage.carbon);
-  blue.resMan.RegisterFormat(FirstImage);
-  assert.equal(ImageIO.getImageHandler("psd"), SecondImage.carbon, "ResMan owns re-registration order");
+  assert.equal(ImageIO.getImageHandler("late"), LateImage.carbon);
 });
 
-test("ImageIO registration adaptation is recorded in schema metadata", () =>
+test("ImageIO refuses non-image formats and keeps Carbon's first-registered lookup order", () =>
 {
-  for (const name of [ "getImageHandler", "readImage", "readImageAsync", "isSaveSupported", "saveImage" ])
+  class DataFormat { static extensions = [ ".order" ]; }
+  class FirstImage extends CjsPsdFormat { static extensions = [ ".order" ]; }
+  class SecondImage extends CjsPsdFormat { static extensions = [ ".order" ]; }
+  assert.throws(() => ImageIO.registerImageHandler(DataFormat), /requires an image format class/u);
+  assert.equal(ImageIO.getImageHandler("order"), null);
+  ImageIO.registerImageHandler(FirstImage);
+  ImageIO.registerImageHandler(SecondImage);
+  // The first registered handler whose checkExtension accepts it (Tr2ImageHandler.cpp:51-63).
+  assert.equal(ImageIO.getImageHandler("order"), FirstImage.carbon);
+  ImageIO.registerImageHandler(FirstImage);
+  assert.equal(ImageIO.getImageHandler("order"), FirstImage.carbon, "re-registering does not reorder");
+});
+
+test("ImageIO's adaptations and its faithful lookup are recorded in schema metadata", () =>
+{
+  for (const name of [ "registerImageHandler", "readImage", "readImageAsync", "isSaveSupported", "saveImage" ])
     assert.equal(CjsSchema.getMethod(ImageIO, name).impl.status, "adapted");
+  assert.equal(CjsSchema.getMethod(ImageIO, "getImageHandler").impl.status, "implemented");
 });

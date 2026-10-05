@@ -2,19 +2,50 @@
 // Source: imageio/Tr2ImageHandler.cpp
 // A namespace of free functions becomes a class of statics, camelCase.
 import { ImageIOResult } from "#imageio";
-import { blue } from "#blue";
 import { CjsSchema, meta } from "#schema";
 
 const Code = ImageIOResult.Code;
 
 /**
- * Carbon's ImageIO entry points, routed through the active Blue resource manager.
- * Adapted: Carbon compiles handlers into ImageIO; independently imported JS
- * formats register once with ResMan and supply their own `carbon` handler table.
- * This module owns no handler registry and imports no concrete formats.
+ * Carbon's ImageIO entry points, over a handler table the caller fills.
+ *
+ * Adapted: Carbon registers every handler it compiled (RegisterImageIOHandlers,
+ * Tr2ImageHandler.cpp:26-42). Ours registers only what the orchestrator hands
+ * it through `registerImageHandler`, so a page imports only the codecs it uses.
+ * ImageIO imports no format, and neither Blue nor ResMan: a tool or converter
+ * that only decodes registers formats here alone. See /docs
+ * architecture/format-ownership.md § "Start-up: probe, decide, register, then load".
  */
 export class ImageIO
 {
+  /**
+   * Registered image formats, in registration order: Carbon's handler vector
+   * (GetImageHandlers, Tr2ImageHandler.cpp:20-24).
+   *
+   * @type {Function[]}
+   */
+  static _imageHandlers = [];
+
+  /**
+   * Registers an image format (Tr2ImageHandler.cpp:75-78).
+   *
+   * Adapted: Carbon appends the handler's function table; ours appends the format
+   * class, whose statics are that table. Registering a format twice keeps one
+   * entry, as each Carbon handler's own `s_registered` guard does
+   * (e.g. Tr2PngHandler.cpp:435-444).
+   *
+   * @param {Function} Format A CjsImageFormat subclass.
+   * @returns {void}
+   */
+  static registerImageHandler(Format)
+  {
+    if (typeof Format !== "function" || typeof Format.checkExtension !== "function")
+    {
+      throw new TypeError("ImageIO.registerImageHandler requires an image format class.");
+    }
+    if (!ImageIO._imageHandlers.includes(Format)) ImageIO._imageHandlers.push(Format);
+  }
+
   /**
    * The text after the last '.', or "" (Tr2ImageHandler.cpp:45-49).
    *
@@ -29,31 +60,41 @@ export class ImageIO
   }
 
   /**
-   * The first registered image format for an extension, or null (Tr2ImageHandler.cpp:51-63).
-   *
-   * Adapted: Carbon compiles its handlers into ImageIO. Our formats are separate
-   * modules, registered once with ResMan; resolve its current store on every call
-   * so service replacement and later registrations need no ImageIO refresh.
+   * The first registered format whose checkExtension accepts the extension, or
+   * null (Tr2ImageHandler.cpp:51-63).
    *
    * @param {string} extension Extension, without the dot.
    * @returns {object|null} Handler table.
    */
   static getImageHandler(extension)
   {
-    for (const Format of blue.resMan.GetFormats(extension))
+    for (const Format of ImageIO._imageHandlers)
     {
-      const handler = Format.carbon;
-      if (handler) return handler;
+      if (Format.checkExtension(extension)) return Format.carbon;
     }
     return null;
+  }
+
+  /**
+   * Carbon's UNRECOGNIZED_IMAGE_TYPE for a lookup that found nothing, saying why:
+   * no handler is registered for the extension. Carbon compiles every handler
+   * in, so for it the only cause is an unknown type; ours registers explicitly,
+   * and an unregistered codec must not read as a damaged file.
+   *
+   * @param {string} filename The file name looked up.
+   * @returns {ImageIOResult} The failure.
+   */
+  static _noHandler(filename)
+  {
+    return new ImageIOResult(Code.UNRECOGNIZED_IMAGE_TYPE,
+      `no image handler is registered for ".${ImageIO.getExtension(filename)}" (${filename})`);
   }
 
   /**
    * Read an image into a bitmap, picking the handler by the filename in the
    * load parameters (Tr2ImageHandler.cpp:95-106).
    *
-   * Adapted: bytes replace the native stream; ResMan supplies the registered
-   * format's carbon table instead of Carbon's compiled-in handler list.
+   * Adapted: bytes replace the native stream.
    *
    * @param {Uint8Array|ArrayBuffer} bytes File bytes.
    * @param {import("#imageio").LoadParameters} loadParameters Load parameters.
@@ -65,7 +106,7 @@ export class ImageIO
   {
     const handler = ImageIO.getImageHandler(ImageIO.getExtension(loadParameters.filename));
 
-    if (!handler) return new ImageIOResult(Code.UNRECOGNIZED_IMAGE_TYPE);
+    if (!handler) return ImageIO._noHandler(loadParameters.filename);
 
     return handler.readImage(bytes, loadParameters, bitmap, metadata);
   }
@@ -73,8 +114,7 @@ export class ImageIO
   /**
    * `readImage` that also serves formats whose decoder is asynchronous (PNG and VTA).
    *
-   * Adapted: browser decoders can be asynchronous (CjsImageFormat.readImageAsync);
-   * handler lookup uses the active ResMan format registration.
+   * Adapted: browser decoders can be asynchronous (CjsImageFormat.readImageAsync).
    *
    * @param {Uint8Array|ArrayBuffer} bytes File bytes.
    * @param {import("#imageio").LoadParameters} loadParameters Load parameters.
@@ -86,7 +126,7 @@ export class ImageIO
   {
     const handler = ImageIO.getImageHandler(ImageIO.getExtension(loadParameters.filename));
 
-    if (!handler) return new ImageIOResult(Code.UNRECOGNIZED_IMAGE_TYPE);
+    if (!handler) return ImageIO._noHandler(loadParameters.filename);
 
     return handler.readImageAsync(bytes, loadParameters, bitmap, metadata);
   }
@@ -94,7 +134,6 @@ export class ImageIO
   /**
    * Whether an image of these dimensions can be saved under a filename
    * (Tr2ImageHandler.cpp:117-128).
-   * Adapted: ResMan owns the format registrations, rather than a compiled-in list.
    *
    * @param {string} filename Destination file name.
    * @param {import("#imageio").BitmapDimensions} dimensions Image description.
@@ -104,7 +143,7 @@ export class ImageIO
   {
     const handler = ImageIO.getImageHandler(ImageIO.getExtension(filename));
 
-    if (!handler) return new ImageIOResult(Code.UNRECOGNIZED_IMAGE_TYPE);
+    if (!handler) return ImageIO._noHandler(filename);
 
     return handler.isSaveSupported(dimensions);
   }
@@ -112,8 +151,7 @@ export class ImageIO
   /**
    * Save a bitmap in the format a filename names (Tr2ImageHandler.cpp:140-151).
    *
-   * Adapted: Carbon writes to a stream; this returns `{result, bytes}` and
-   * resolves the format through ResMan instead of Carbon's compiled-in list.
+   * Adapted: Carbon writes to a stream; this returns `{result, bytes}`.
    *
    * @param {string} filename Destination file name.
    * @param {import("#imageio").HostBitmap} bitmap Bitmap to save.
@@ -124,7 +162,7 @@ export class ImageIO
   {
     const handler = ImageIO.getImageHandler(ImageIO.getExtension(filename));
 
-    if (!handler) return { result: new ImageIOResult(Code.UNRECOGNIZED_IMAGE_TYPE), bytes: null };
+    if (!handler) return { result: ImageIO._noHandler(filename), bytes: null };
 
     return handler.save(bitmap, metadata);
   }
@@ -136,8 +174,9 @@ export class ImageIO
 CjsSchema.define(ImageIO, {
   className: "ImageIO",
   methods: {
+    registerImageHandler: [meta.adapted],
     getExtension: [meta.implemented],
-    getImageHandler: [meta.adapted],
+    getImageHandler: [meta.implemented],
     readImage: [meta.adapted],
     readImageAsync: [meta.adapted],
     isSaveSupported: [meta.adapted],

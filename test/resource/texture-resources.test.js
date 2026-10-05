@@ -1,5 +1,6 @@
 import { blue } from "../../npm/dist/global/blue/index.js";
 import { CjsVtaFormat } from "../../npm/dist/resource/formats/vta/index.js";
+import { ImageIO } from "../../npm/dist/resource/imageio/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { buildVta } from "../support/vtaFixture.js";
@@ -8,6 +9,7 @@ import { CjsBlueResMan, RegisterTextureResources, TextureResourceExtensions, Tri
 import { HostBitmap } from "../../npm/dist/global/imageio/index.js";
 import { PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js";
 
+ImageIO.registerImageHandler(CjsVtaFormat);
 blue.resMan.RegisterFormat(CjsVtaFormat);
 
 /** A 2x1 BGRA DDS, the legacy (non-DX10) header Carbon's reader accepts. */
