@@ -212,10 +212,12 @@ export class Tr2ProjectBoundingBoxBracket
   /**
    * Updates the projection using the active render context threaded by
    * TriCurveSet. Carbon reads the same state from Tr2Renderer globals.
+   *
+   * Adapted: Tr2Renderer view, projection and viewport globals are supplied by the active
+   * Tr2RenderContext.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Tr2Renderer view, projection and viewport globals are supplied by the active Tr2RenderContext.")
   UpdateValue(_time, renderContext)
   {
     if (!renderContext)
