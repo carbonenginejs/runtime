@@ -9,6 +9,7 @@ import { ITr2Updateable } from "../../npm/dist/trinity/core/ITr2Updateable.js";
 import { ExecuteMainThreadActions } from "../../npm/dist/trinity/core/continueOnMainThread.js";
 import { Tr2ActionChildEffect } from "../../npm/dist/trinity/controllers/action/Tr2ActionChildEffect.js";
 import { Tr2ActionPython } from "../../npm/dist/trinity/controllers/action/Tr2ActionPython.js";
+import { Tr2Controller } from "../../npm/dist/trinity/controllers/Tr2Controller.js";
 import { EveChildContainer } from "../../npm/dist/trinity/index.js";
 
 for (const [Type, values, extra] of [
@@ -111,7 +112,7 @@ test("Python retains queued host capture across notification and requires contro
   }));
   t.mock.method(blue.os, "GetActualTime", () => 10000000);
   t.mock.method(blue.os, "GetCurrentFrameTime", () => 20000000);
-  const controller = { GetOwner: () => null, RegisterUpdateable: x => updates.add(x), UnRegisterUpdateable: x => updates.delete(x) };
+  const controller = Object.assign(new Tr2Controller(), { GetOwner: () => null, RegisterUpdateable: x => updates.add(x), UnRegisterUpdateable: x => updates.delete(x) });
   const action = new Tr2ActionPython();
   action.module = "m";
   action.className = "old";
@@ -127,14 +128,14 @@ test("Python retains queued host capture across notification and requires contro
   ExecuteMainThreadActions();
   assert.equal(updates.size, 0);
   action.Unlink();
-  assert.throws(() => action.Start({ GetOwner: () => null }), TypeError);
-  assert.throws(() => action.Stop({ GetOwner: () => null }), TypeError);
+  assert.throws(() => action.Start(Object.assign(new Tr2Controller(), { RegisterUpdateable: undefined })), TypeError);
+  assert.throws(() => action.Stop(Object.assign(new Tr2Controller(), { UnRegisterUpdateable: undefined })), TypeError);
 });
 
 test("Python preserves optional host hooks and visible factory or queued host failures", t =>
 {
   HostFactory(t, () => ({}));
-  const action = new Tr2ActionPython(), controller = { GetOwner: () => null, UnRegisterUpdateable() {} };
+  const action = new Tr2ActionPython(), controller = new Tr2Controller();
   action.module = "m";
   action.className = "c";
   action.Link(controller);

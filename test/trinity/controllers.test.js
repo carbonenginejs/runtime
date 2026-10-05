@@ -1637,7 +1637,7 @@ test("Tr2ActionPython delegates lifecycle to a JS host bridge", () =>
   const owner = {
     name: "owner"
   };
-  const controller = {
+  const controller = Object.assign(new Tr2Controller(), {
     GetOwner()
     {
       return owner;
@@ -1656,7 +1656,7 @@ test("Tr2ActionPython delegates lifecycle to a JS host bridge", () =>
       }
       events.push("unregister");
     }
-  };
+  });
   Tr2ActionPython.clearFactory();
   Tr2ActionPython.registerFactory((moduleName, className) =>
   {

@@ -15,6 +15,7 @@ import { ContinueOnMainThread } from "../../core/continueOnMainThread.js";
  * Adapted: a registered JavaScript factory replaces Python import/instantiation.
  * Optional host hooks remain a caller-supplied extension, not engine methods.
  * Host/factory errors propagate; no Python exception reporting is reproduced.
+ * Owner getter results pass directly to hooks (Tr2ActionPython.cpp:79-141).
  * Queued callbacks retain their selected JS instance, unlike native callbacks
  * that capture self and consult its current callback table when the queue drains.
  * State remains the existing persisted Uint8Array plus explicit buffer adapter;
@@ -212,7 +213,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
   {
     this._controller = controller;
     const instance = this._ensureInstance();
-    instance?.OnLink?.(controller.GetOwner() ?? null, controller);
+    instance?.OnLink?.(controller.GetOwner(), controller);
   }
 
   /**
@@ -254,7 +255,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
     }
     if (instance?.OnStart)
     {
-      const owner = controller.GetOwner() ?? null;
+      const owner = controller.GetOwner();
       ContinueOnMainThread(() =>
       {
         instance.OnStart(owner, controller);
@@ -286,7 +287,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
     {
       return;
     }
-    const owner = controller.GetOwner() ?? null;
+    const owner = controller.GetOwner();
     ContinueOnMainThread(() =>
     {
       instance.OnStop(owner, controller);
@@ -312,7 +313,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
     {
       return;
     }
-    const owner = controller.GetOwner() ?? null;
+    const owner = controller.GetOwner();
     const realDt = TimeAsFloat(realTime - this._prevRealTime);
     const simDt = TimeAsFloat(simTime - this._prevSimTime);
     ContinueOnMainThread(() =>
