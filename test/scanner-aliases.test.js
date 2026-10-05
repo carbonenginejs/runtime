@@ -154,6 +154,37 @@ test("native-method CLI rejects unrelated, computed and nonliteral declaration c
   for (const name of nativeMethods) assert.ok(probe.stderr.includes(name), probe.stderr);
 });
 
+function unusedFixture(definition)
+{
+  return {
+    "src/trinity/ScannerUnusedProbe.js": `
+export class ScannerUnusedProbe
+{
+  Kept() {}
+}
+CjsSchema.define(ScannerUnusedProbe, ${definition});
+`,
+    ".scanner-schema/ScannerUnusedProbe.json": JSON.stringify({
+      blueClass: "ScannerUnusedProbe", nativeMethods: [ { cppName: "Kept" }, { cppName: "Dropped" } ]
+    }),
+    "scripts/native-method-baseline.json": "{}"
+  };
+}
+
+test("native-method CLI flags a missing Carbon method unless define lists it as unused", () =>
+{
+  const flagged = runScanner("scripts/trinity/lint-native-method-parity.js",
+    unusedFixture(`{ className: "ScannerUnusedProbe", unused: [ "Other" ] }`));
+  expectStatus(flagged, 1);
+  assert.match(flagged.stdout, /1 ported classes checked, 1 with gaps, 1 missing methods/);
+  assert.ok(flagged.stderr.includes("Dropped"), flagged.stderr);
+
+  const credited = runScanner("scripts/trinity/lint-native-method-parity.js",
+    unusedFixture(`{ className: "ScannerUnusedProbe", unused: [ "Dropped" ] }`));
+  expectStatus(credited, 0);
+  assert.match(credited.stdout, /1 ported classes checked, 0 with gaps, 0 missing methods/);
+});
+
 function contextualFixture(decorators, parameters)
 {
   return { "src/trinity/ScannerProbe.js": `export class ScannerProbe
