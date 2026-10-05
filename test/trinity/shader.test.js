@@ -631,12 +631,12 @@ test("shader Tr2RuntimeTextureParameter stays graph-only", () =>
   assertEquals(parameter.GetTextureProvider(), texture);
   assertEquals(parameter.uavMipLevel, 3);
   const invalidations = [];
-  const material = {
+  const material = Object.assign(new Tr2Material(), {
     InvalidateResourceSets()
     {
       invalidations.push("invalidate");
     }
-  };
+  });
   parameter.OnAddedToMaterial(material);
   parameter.SetTextureProvider({
     label: "replacement"

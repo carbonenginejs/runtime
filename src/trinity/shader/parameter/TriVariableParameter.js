@@ -149,7 +149,8 @@ export class TriVariableParameter extends CjsParameter
   }
 
   /**
-   * Delegates to the bound variable, so the store owns the binding.
+   * Delegates to the bound variable, so the store owns the binding
+   * (TriVariableParameter.cpp:58-69). A present variable's result is returned directly.
    *
    * Carbon's `TriVariableParameter` forwards to `TriVariable::CopyToResourceSet`
    * (`TriVariable.cpp:25-67`) for the same reason `CopyValueToEffect` above
@@ -167,11 +168,13 @@ export class TriVariableParameter extends CjsParameter
   @meta.adapted
   CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0, renderContext = null)
   {
-    return this.variable?.CopyToResourceSet(resourceDesc, stage, registerIndex, flags, renderContext) ?? false;
+    return this.variable ? this.variable.CopyToResourceSet(resourceDesc, stage, registerIndex, flags, renderContext) : false;
   }
 
   /**
-   * Delegates the unordered-access binding to the bound variable.
+   * Delegates the unordered-access binding to the bound variable, or writes an
+   * empty texture binding when absent (TriVariableParameter.cpp:72-83).
+   * Adapted: null represents the native empty Tr2TextureAL in JS AL records.
    *
    * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
    * @param {number} stage A `ShaderType`.
@@ -182,7 +185,9 @@ export class TriVariableParameter extends CjsParameter
   @meta.adapted
   ApplyUav(resourceDesc, stage, registerIndex)
   {
-    return this.variable?.ApplyUav(resourceDesc, stage, registerIndex) ?? false;
+    return this.variable
+      ? this.variable.ApplyUav(resourceDesc, stage, registerIndex)
+      : resourceDesc.SetUav_TextureAL(stage, registerIndex, null);
   }
 
   /**

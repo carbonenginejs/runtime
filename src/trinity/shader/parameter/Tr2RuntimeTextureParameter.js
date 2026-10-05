@@ -269,12 +269,12 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
     }
   }
 
-  /** Invalidates the resource sets of every attached material. */
+  /** Invalidates every attached material directly (Tr2RuntimeTextureParameter.cpp:17-27). */
   #invalidateResourceSets()
   {
     for (const material of this.#materials)
     {
-      material?.InvalidateResourceSets?.();
+      material.InvalidateResourceSets();
     }
   }
 }

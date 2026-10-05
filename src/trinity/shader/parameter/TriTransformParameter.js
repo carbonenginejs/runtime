@@ -112,10 +112,10 @@ export class TriTransformParameter extends CjsParameter
     transform[12] += rotationCenter[0] + this.translation[0];
     transform[13] += rotationCenter[1] + this.translation[1];
     transform[14] += rotationCenter[2] + this.translation[2];
-    const base = context?.inverseViewTransform ?? context?.GetInverseViewTransform?.() ?? null;
-    if (base && this.transformBase !== 0)
+    if (this.transformBase !== 0)
     {
-      const baseTransform = mat4.clone(base);
+      // TriTransformParameter.cpp:36-45 requires the inverse view only for non-fixed bases.
+      const baseTransform = mat4.clone(context.GetInverseViewTransform());
       baseTransform[12] = 0;
       baseTransform[13] = 0;
       baseTransform[14] = 0;
