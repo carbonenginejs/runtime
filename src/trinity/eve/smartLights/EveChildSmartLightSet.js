@@ -1,10 +1,10 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveChildSmartLightSet.h
 import { IsMatch } from "#blue";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { INotify } from "../../../global/blue/INotify.js";
 import { ITr2DebugRenderable } from "../../../global/interfaces/ITr2DebugRenderable.js";
 import { IEveSpaceObjectChild } from "../child/IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "../child/EveSpaceObjectChild.js";
-// Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveChildSmartLightSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta } from "#schema";
 import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
@@ -48,21 +48,21 @@ export class EveChildSmartLightSet extends EveChildTransform
   /** m_inheritProperties (EveChildInheritPropertiesPtr) - lazily created, never persisted (EveChildSmartLightSet.h:72). */
   _inheritProperties = null;
 
-  @meta.blue.method
-  @meta.implemented
   /**
    * The smart light set's name.
    */
+  @meta.blue.method
+  @meta.implemented
   GetName()
   {
     return this.name;
   }
 
-  @meta.blue.method
-  @meta.implemented
   /**
    * Sets the smart light set's name, coercing the value to a string.
    */
+  @meta.blue.method
+  @meta.implemented
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -144,10 +144,12 @@ export class EveChildSmartLightSet extends EveChildTransform
   /**
    * display/distribution edits re-register the entity components
    * (EveChildSmartLightSet.cpp:112-119).
+   *
+   * Adapted: JS dispatches the native hook using the exposed member name; existing
+   * class-owned rendering/resource adaptations remain unchanged.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "display") || IsMatch(propertyName, "distribution")) this.ReRegister();

@@ -34,10 +34,13 @@ export class EveSmartLightAttributeModifierNoise extends IEveSmartLightGroupAttr
    * Advances the crossfade state machine and captures the frame time for the
    * per-placement noise sample
    * (EveSmartLightAttributeModifierNoise.cpp:14-17).
+   *
+   * Adapted: Carbon samples BeOS->GetCurrentFrameTime() inside ProcessAttributeModifier; the
+   * frame time is captured from the update context here because ProcessAttributeModifier
+   * carries no context.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon samples BeOS->GetCurrentFrameTime() inside ProcessAttributeModifier; the frame time is captured from the update context here because ProcessAttributeModifier carries no context.")
   UpdateSyncronous(updateContext, _params, activationMultiplier)
   {
     this._frameTime = Number(updateContext.GetTime());

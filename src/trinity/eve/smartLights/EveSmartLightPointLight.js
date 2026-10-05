@@ -1,9 +1,9 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightPointLight.h
 import { ReadValues } from "../../../global/blue/values.js";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { INotify } from "../../../global/blue/INotify.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { EveSmartLightBaseGroup } from "./EveSmartLightBaseGroup.js";
-// Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightPointLight.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta } from "#schema";
 import { ResourceRequirement } from "#resource";
@@ -198,10 +198,14 @@ export class EveSmartLightPointLight extends EveEntity
     );
   }
 
-  /** Faction-aware group color (Carbon base EveSmartLightBaseGroup.cpp:43-53). */
+  /**
+   * Faction-aware group color (Carbon base EveSmartLightBaseGroup.cpp:43-53).
+   *
+   * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
+   * base-group surface through the shared resolveGroupColor helper.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the base-group surface through the shared resolveGroupColor helper.")
   GetGroupColor()
   {
     return resolveGroupColor(
@@ -213,10 +217,14 @@ export class EveSmartLightPointLight extends EveEntity
     );
   }
 
-  /** Overwrites the custom color (Carbon base EveSmartLightBaseGroup.cpp:55-58). */
+  /**
+   * Overwrites the custom color (Carbon base EveSmartLightBaseGroup.cpp:55-58).
+   *
+   * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
+   * base-group surface.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the base-group surface.")
   SetColor(color)
   {
     vec4.copy(this.customColor, color);
@@ -225,10 +233,12 @@ export class EveSmartLightPointLight extends EveEntity
   /**
    * Stores the inherited faction color set and fans it out to the attribute
    * modifiers (Carbon base EveSmartLightBaseGroup.cpp:30-41).
+   *
+   * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
+   * base-group surface.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the base-group surface.")
   SetInheritProperties(colorSet)
   {
     if (colorSet)
@@ -242,10 +252,14 @@ export class EveSmartLightPointLight extends EveEntity
     }
   }
 
-  /** Fans a controller variable out to the attribute modifiers (Carbon base EveSmartLightBaseGroup.cpp:60-66). */
+  /**
+   * Fans a controller variable out to the attribute modifiers (Carbon base EveSmartLightBaseGroup.cpp:60-66).
+   *
+   * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
+   * base-group surface.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the base-group surface.")
   SetControllerVariable(name, value)
   {
     for (const attributeModifier of this.attributeModifiers)
@@ -257,10 +271,12 @@ export class EveSmartLightPointLight extends EveEntity
   /**
    * Newly inserted attribute modifiers inherit the parent color set (Carbon
    * base EveSmartLightBaseGroup.cpp:16-28).
+   *
+   * Adapted: The secondary base's list handling lives on this class and receives the Blue
+   * list event, inserted value and owning array explicitly.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon's EveSmartLightBaseGroup secondary base is flattened; CjsModel still forwards its exact BELIST event and inserted value.")
   OnListModified(event, _key, _key2, value, list)
   {
     if (
@@ -305,10 +321,12 @@ export class EveSmartLightPointLight extends EveEntity
   /**
    * A lightProfilePath edit re-resolves the profile
    * (EveSmartLightPointLight.cpp:29-41).
+   *
+   * Adapted: JS dispatches the native hook using the exposed member name; existing
+   * class-owned rendering/resource adaptations remain unchanged.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "lightProfilePath")) this._ResolveLightProfile();
@@ -334,10 +352,15 @@ export class EveSmartLightPointLight extends EveEntity
     this._distribution = distribution ?? null;
   }
 
-  /** Registers this entity as a light owner (EveSmartLightPointLight.cpp:56-63). */
+  /**
+   * Registers this entity as a light owner (EveSmartLightPointLight.cpp:56-63).
+   *
+   * Adapted: Carbon's RegisterComponent<ITr2LightOwner> template is expressed as the
+   * registry's explicit component-name signature (verbatim "LightOwner",
+   * Lights/ITr2LightOwner.h:18).
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon's RegisterComponent<ITr2LightOwner> template is expressed as the registry's explicit component-name signature (verbatim \"LightOwner\", Lights/ITr2LightOwner.h:18).")
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
@@ -356,10 +379,12 @@ export class EveSmartLightPointLight extends EveEntity
    * (GetTextureIndex() + 1 << 4) are renderer/resource-adapter concerns.
    * The record is scratch - the manager must copy, as Carbon's
    * Tr2LightManager::AddLight copies PerLightData by value.
+   *
+   * Adapted: Physical per-light packing (half floats, profile-index flag bits) moves to the
+   * renderer backend; Trinity submits the typed CPU record per placement.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Physical per-light packing (half floats, profile-index flag bits) moves to the renderer backend; Trinity submits the typed CPU record per placement.")
   GetLights(lightManager)
   {
     if (!this.display || !this._distribution)

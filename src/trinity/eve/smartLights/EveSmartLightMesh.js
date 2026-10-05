@@ -1,9 +1,9 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightMesh.h
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { IEveShadowCaster } from "../IEveShadowCaster.js";
 import { INotify } from "../../../global/blue/INotify.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
-// Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightMesh.h
 //   trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightMesh.cpp
 //   trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightMesh_Blue.cpp
 import { color } from "#math/color";
@@ -90,10 +90,14 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   /** Carbon m_lastAreaColor = (0,0,0,1). */
   _lastAreaColor = color.createLinear();
 
-  /** Faction-aware group color from the flattened secondary base. */
+  /**
+   * Faction-aware group color from the flattened secondary base.
+   *
+   * Adapted: Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base through
+   * its shared resolver.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base through its shared resolver.")
   GetGroupColor()
   {
     return resolveGroupColor(
@@ -105,19 +109,25 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
     );
   }
 
-  /** Overwrites the authored custom color. */
+  /**
+   * Overwrites the authored custom color.
+   *
+   * Adapted: Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base surface.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base surface.")
   SetColor(color)
   {
     vec4.copy(this.customColor, color);
   }
 
-  /** Stores the inherited faction colors and updates every modifier directly. */
+  /**
+   * Stores the inherited faction colors and updates every modifier directly.
+   *
+   * Adapted: Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base surface.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base surface.")
   SetInheritProperties(colorSet)
   {
     if (colorSet)
@@ -130,10 +140,13 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
     }
   }
 
-  /** Fans a controller variable out to every modifier. */
+  /**
+   * Fans a controller variable out to every modifier.
+   *
+   * Adapted: Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base surface.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base surface.")
   SetControllerVariable(name, value)
   {
     for (const attributeModifier of this.attributeModifiers)
@@ -142,10 +155,14 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
     }
   }
 
-  /** Newly inserted modifiers receive the current inherited color set. */
+  /**
+   * Newly inserted modifiers receive the current inherited color set.
+   *
+   * Adapted: Receives the Blue list event, inserted value and owning array explicitly; only
+   * an inserted modifier inherits the current colour set.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("CjsModel emits Carbon-compatible BELIST codes; only an inserted modifier inherits the current color set.")
   OnListModified(event, _key, _key2, value, list)
   {
     if (
@@ -300,10 +317,14 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
     return this._lastEntityCount;
   }
 
-  /** Keeps SmartLightMesh's separate refresh latch armed as well. */
+  /**
+   * Keeps SmartLightMesh's separate refresh latch armed as well.
+   *
+   * Adapted: The inherited Carbon method is exposed on this derived Blue class; JS also arms
+   * the derived distribution path's explicit deferred-work latch.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The inherited Carbon method is exposed on this derived Blue class; JS also arms the derived distribution path's explicit deferred-work latch.")
   RefreshStaticGeometry()
   {
     super.RefreshStaticGeometry();
@@ -313,10 +334,12 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   /**
    * Applies a resolved group color to every Tr2Effect area, preserving Carbon's
    * path/display/resource/mesh-index guards and exact last-color cache.
+   *
+   * Adapted: TriGeometryRes exposes mesh validity through its maintained count contract
+   * instead of Carbon's native GetMeshData pointer.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("TriGeometryRes exposes mesh validity through its maintained count contract instead of Carbon's native GetMeshData pointer.")
   SetMeshColorParameter(meshColor)
   {
     if (!this.shaderParamColorName || !this.display || vec4.exactEquals(this._lastAreaColor, meshColor))

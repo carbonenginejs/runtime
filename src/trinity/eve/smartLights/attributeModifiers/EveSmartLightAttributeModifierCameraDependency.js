@@ -120,10 +120,13 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
    * (EveSmartLightAttributeModifierCameraDependency.cpp:31-34). The relocated
    * camera state (Tr2Renderer::GetViewPosition/GetViewLookAt) is captured from
    * the update context for use in ProcessAttributeModifier.
+   *
+   * Adapted: Carbon reads Tr2Renderer view statics; the relocated camera state is captured
+   * from the update context's render context here because ProcessAttributeModifier carries
+   * no context.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon reads Tr2Renderer view statics; the relocated camera state is captured from the update context's render context here because ProcessAttributeModifier carries no context.")
   UpdateSyncronous(updateContext, _params, activationMultiplier)
   {
     this._renderContext = updateContext?.renderContext ?? null;

@@ -1,6 +1,6 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightBaseAttributeModifier.h
 import { IsMatch } from "#blue";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
-// Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightBaseAttributeModifier.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta } from "#schema";
 import { LifeTimeFormulas } from "./enums.js";
@@ -122,10 +122,12 @@ export class EveSmartLightBaseAttributeModifier
   /**
    * Reacts to an `active` edit by restarting the crossfade from the current
    * (unmapped) position (EveSmartLightBaseAttributeModifier.cpp:35-48).
+   *
+   * Adapted: JS dispatches the native hook using the exposed member name; existing
+   * class-owned rendering/resource adaptations remain unchanged.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "active"))

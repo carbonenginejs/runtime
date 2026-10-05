@@ -1,5 +1,5 @@
-import { IListNotify } from "../../../global/blue/IListNotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightBaseGroup.h
+import { IListNotify } from "../../../global/blue/IListNotify.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta } from "#schema";
 import { color } from "#math/color";

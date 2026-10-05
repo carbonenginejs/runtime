@@ -1,8 +1,8 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightColorShareGroup.h
 import { IsMatch } from "#blue";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { INotify } from "../../../global/blue/INotify.js";
 import { EveSmartLightBaseGroup } from "./EveSmartLightBaseGroup.js";
-// Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightColorShareGroup.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta } from "#schema";
 import { EveEntity } from "../EveEntity.js";
@@ -72,10 +72,14 @@ export class EveSmartLightColorShareGroup extends EveEntity
 
   /** Last `display` value the settle hook applied (JS-only change detection). */
 
-  /** Faction-aware group color (Carbon base EveSmartLightBaseGroup.cpp:43-53). */
+  /**
+   * Faction-aware group color (Carbon base EveSmartLightBaseGroup.cpp:43-53).
+   *
+   * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
+   * base-group surface through the shared resolveGroupColor helper.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the base-group surface through the shared resolveGroupColor helper.")
   GetGroupColor()
   {
     return resolveGroupColor(
@@ -87,19 +91,27 @@ export class EveSmartLightColorShareGroup extends EveEntity
     );
   }
 
-  /** Overwrites the custom color (Carbon base EveSmartLightBaseGroup.cpp:55-58). */
+  /**
+   * Overwrites the custom color (Carbon base EveSmartLightBaseGroup.cpp:55-58).
+   *
+   * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
+   * base-group surface.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the base-group surface.")
   SetColor(color)
   {
     vec4.copy(this.customColor, color);
   }
 
-  /** display edits re-register the shared groups (EveSmartLightColorShareGroup.cpp:17-24). */
+  /**
+   * display edits re-register the shared groups (EveSmartLightColorShareGroup.cpp:17-24).
+   *
+   * Adapted: JS dispatches the native hook using the exposed member name; existing
+   * class-owned rendering/resource adaptations remain unchanged.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "display")) this.ReRegister();

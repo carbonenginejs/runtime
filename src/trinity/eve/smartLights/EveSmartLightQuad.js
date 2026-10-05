@@ -1,9 +1,9 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightQuad.h
 import { IsMatch } from "#blue";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { INotify } from "../../../global/blue/INotify.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { EveSmartLightBaseGroup } from "./EveSmartLightBaseGroup.js";
-// Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightQuad.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta } from "#schema";
 import { EveChildTransform } from "../child/EveChildTransform.js";
@@ -112,10 +112,14 @@ export class EveSmartLightQuad extends EveChildTransform
 
   /** Last softQuad value the settle hook applied (JS-only change detection). */
 
-  /** Faction-aware group color (Carbon base EveSmartLightBaseGroup.cpp:43-53). */
+  /**
+   * Faction-aware group color (Carbon base EveSmartLightBaseGroup.cpp:43-53).
+   *
+   * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
+   * base-group surface through the shared resolveGroupColor helper.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the base-group surface through the shared resolveGroupColor helper.")
   GetGroupColor()
   {
     return resolveGroupColor(
@@ -127,10 +131,14 @@ export class EveSmartLightQuad extends EveChildTransform
     );
   }
 
-  /** Overwrites the custom color (Carbon base EveSmartLightBaseGroup.cpp:55-58). */
+  /**
+   * Overwrites the custom color (Carbon base EveSmartLightBaseGroup.cpp:55-58).
+   *
+   * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
+   * base-group surface.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the base-group surface.")
   SetColor(color)
   {
     vec4.copy(this.customColor, color);
@@ -139,10 +147,12 @@ export class EveSmartLightQuad extends EveChildTransform
   /**
    * Stores the inherited faction color set and fans it out to the attribute
    * modifiers (Carbon base EveSmartLightBaseGroup.cpp:30-41).
+   *
+   * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
+   * base-group surface.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the base-group surface.")
   SetInheritProperties(colorSet)
   {
     if (colorSet)
@@ -156,10 +166,14 @@ export class EveSmartLightQuad extends EveChildTransform
     }
   }
 
-  /** Fans a controller variable out to the attribute modifiers (Carbon base EveSmartLightBaseGroup.cpp:60-66). */
+  /**
+   * Fans a controller variable out to the attribute modifiers (Carbon base EveSmartLightBaseGroup.cpp:60-66).
+   *
+   * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
+   * base-group surface.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the base-group surface.")
   SetControllerVariable(name, value)
   {
     for (const attributeModifier of this.attributeModifiers)
@@ -171,10 +185,12 @@ export class EveSmartLightQuad extends EveChildTransform
   /**
    * Newly inserted attribute modifiers inherit the parent color set (Carbon
    * base EveSmartLightBaseGroup.cpp:16-28).
+   *
+   * Adapted: The secondary base's list handling lives on this class and receives the Blue
+   * list event, inserted value and owning array explicitly.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon's EveSmartLightBaseGroup secondary base is flattened; CjsModel still forwards its exact BELIST event and inserted value.")
   OnListModified(event, _key, _key2, value, list)
   {
     if (
@@ -188,10 +204,14 @@ export class EveSmartLightQuad extends EveChildTransform
     }
   }
 
-  /** softQuad edits swap the flare-quad effect path (EveSmartLightQuad.cpp:36-54). */
+  /**
+   * softQuad edits swap the flare-quad effect path (EveSmartLightQuad.cpp:36-54).
+   *
+   * Adapted: JS dispatches the native hook using the exposed member name; existing
+   * class-owned rendering/resource adaptations remain unchanged.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "softQuad")) this._ApplyEffectPath();
@@ -202,10 +222,12 @@ export class EveSmartLightQuad extends EveChildTransform
    * Creates the default flare-quad effect when none was authored (Carbon
    * constructor, EveSmartLightQuad.cpp:10-34) and caches the effect key
    * (EveSmartLightQuad.cpp:56-65).
+   *
+   * Adapted: Caches the effect key here; registration with the supplied quad renderer occurs
+   * through RegisterWithQuadRenderer.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Tr2QuadRenderer::Instance() is not ported yet; Initialize caches the effect key and defers effect registration to RegisterWithQuadRenderer.")
   Initialize()
   {
     if (!this.effect)
@@ -217,10 +239,14 @@ export class EveSmartLightQuad extends EveChildTransform
     return true;
   }
 
-  /** Registers the effect bucket with a quad renderer (EveSmartLightQuad.cpp:68-71). */
+  /**
+   * Registers the effect bucket with a quad renderer (EveSmartLightQuad.cpp:68-71).
+   *
+   * Adapted: Uses the supplied quad renderer rather than Carbon's singleton, with
+   * EveChildQuad's shared vertex definition.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Submission through Tr2QuadRenderer is not ported yet; Trinity forwards the required Carbon registration contract directly using EveChildQuad's shared definition.")
   RegisterWithQuadRenderer(quadRenderer)
   {
     quadRenderer.RegisterEffect(
@@ -237,10 +263,12 @@ export class EveSmartLightQuad extends EveChildTransform
    * Captures the activation strength, refreshes the effect key in edit mode,
    * and updates the attribute modifiers with full strength
    * (EveSmartLightQuad.cpp:73-98).
+   *
+   * Adapted: Carbon re-registers through the Tr2QuadRenderer singleton; the relocated
+   * renderer arrives via the threaded update context when present.
    */
   @meta.blue.renamed("UpdateSyncronous")
   @meta.adapted
-  @meta.reason("Carbon re-registers through the Tr2QuadRenderer singleton; the relocated renderer arrives via the threaded update context when present.")
   UpdateSyncronous_Distribution(updateContext, params, _distribution)
   {
     this._activationStrength = params?.activationStrength ?? 1;
@@ -303,10 +331,12 @@ export class EveSmartLightQuad extends EveChildTransform
    * D3D-row-major / GL-column-major byte layout is the column-stride pattern
    * (m[0],m[4],m[8],m[12]) etc. The mixed float32/float16 record is packed
    * into terminal bytes here before the quad renderer copies it.
+   *
+   * Adapted: Packs each logical instance into the JavaScript byte buffer and submits it
+   * through the supplied quad renderer.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Submission through Tr2QuadRenderer is not ported yet; Trinity builds and packs Carbon's logical record before direct submission.")
   AddQuadsToQuadRenderer(placements, size, frustum, quadRenderer)
   {
     if (!this.display || !this.effect)

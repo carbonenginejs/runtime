@@ -1,5 +1,5 @@
-import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierExpressionBucket.h
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import * as CcpLog from "../../../../global/logging/ccpLog.js";
 import { meta } from "#schema";
@@ -45,10 +45,12 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   /**
    * Compiles the authored expression after load
    * (EveSmartLightAttributeModifierExpressionBucket.cpp:93-103).
+   *
+   * Adapted: CcpParser is replaced by the shared CjsControllerExpressionProgram VM, matching
+   * the Tr2CurveScalarExpression consumer pattern.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("CcpParser is replaced by the shared CjsControllerExpressionProgram VM, matching the Tr2CurveScalarExpression consumer pattern.")
   Initialize()
   {
     super.Initialize();
@@ -141,10 +143,12 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   /**
    * Expression terms exposed for tooling
    * (EveSmartLightAttributeModifierExpressionBucket.cpp:166-184).
+   *
+   * Adapted: Returns the term list in the CjsControllerExpressionProgram term-info shape
+   * instead of Tr2ExpressionTermInfo instances.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Returns the term list in the CjsControllerExpressionProgram term-info shape instead of Tr2ExpressionTermInfo instances.")
   GetExpressionTermInfo()
   {
     return [
@@ -168,10 +172,12 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   /**
    * Evaluates an arbitrary expression against the current argument bindings
    * (EveSmartLightAttributeModifierExpressionBucket.cpp:186-213).
+   *
+   * Adapted: Returns the numeric value directly (0 when the expression does not compile)
+   * instead of Carbon's BlueStdResult out-parameter pair.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Returns the numeric value directly (0 when the expression does not compile) instead of Carbon's BlueStdResult out-parameter pair.")
   EvaluateExpression(expression)
   {
     const program = CjsControllerExpressionProgram.Compile(String(expression ?? ""), { emptyValue: 0 });
