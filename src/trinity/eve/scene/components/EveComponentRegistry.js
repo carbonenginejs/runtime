@@ -127,9 +127,11 @@ export class EveComponentRegistry
    * on demand, and throws if the entity is missing any method the component
    * interface requires - the fail-closed stand-in for Carbon's compile-time
    * RegisterComponent<T> constraint.
+   *
+   * Adapted: JavaScript passes Carbon's compile-time component name explicitly because it
+   * has no C++ template specialization.
    */
   @meta.adapted
-  @meta.reason("JavaScript passes Carbon's compile-time component name explicitly because it has no C++ template specialization.")
   RegisterComponent(componentName, entity)
   {
     if (componentName === EveComponentType.ReflectionRenderable)
@@ -173,9 +175,11 @@ export class EveComponentRegistry
   /**
    * Removes an entity from the named component's collection, returning false
    * when no such collection exists.
+   *
+   * Adapted: JavaScript passes Carbon's compile-time component name explicitly because it
+   * has no C++ template specialization.
    */
   @meta.adapted
-  @meta.reason("JavaScript passes Carbon's compile-time component name explicitly because it has no C++ template specialization.")
   UnRegisterComponent(componentName, entity)
   {
     const collection = this.GetComponentCollection(componentName);
@@ -305,10 +309,13 @@ export class EveComponentRegistry
     entity.RemoveComponentState(collection.GetBit());
   }
 
-  /** Carbon method GetComponentInfo (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method GetComponentInfo (MAP_METHOD_AND_WRAP).
+   *
+   * Adapted: Returns Carbon's vector of name/count pairs as JavaScript tuple arrays.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Returns Carbon's vector of name/count pairs as JavaScript tuple arrays.")
   GetComponentInfo()
   {
     return this.#componentCollections.map(collection => [collection.name, collection.Size()]);

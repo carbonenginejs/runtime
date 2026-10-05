@@ -1603,35 +1603,31 @@ export class EveSpaceScene
    * Runs Carbon's portable froxel-fog blend against the scene-owned registry
    * and update context. The frame driver calls this immediately after lighting
    * overrides and before visibility/gather.
+   *
+   * Adapted: Carbon performs this inside BeginRender; CarbonEngineJS exposes the scene-owned
+   * CPU phase because the engine driver owns the surrounding frame order.
    */
   @meta.ours
-  @meta.reason("Carbon performs this inside BeginRender; CarbonEngineJS exposes the scene-owned CPU phase because the engine driver owns the surrounding frame order.")
   UpdateFogSettings()
   {
     this.volumetricsRenderer.UpdateFogSettings(this.componentRegistry, this.updateContext);
   }
 
   /**
-   * Drives the injected light manager through Carbon's dynamic-light gather
-   * (EveSpaceScene::BeginRender, EveSpaceScene.cpp:1396-1416, AFTER
-   * GatherBatches cpp:1387): shadow quality, clear (runs even with zero owners
-   * - stale lights must drop), frustum, LOD cutoff, then every registered
-   * LightOwner's GetLights (Carbon Tr2ParallelFor chunk-20 cpp:1405-1413; JS
-   * sequential in collection order), then ResolveLightData. No JS
-   * Tr2LightManager class exists - the manager is a duck and every manager
-   * call is optional-chained so a partial duck still gets the owner loop.
-   * Carbon runs the block only when a manager instance exists (dynamic
-   * lighting on) - a null manager is a no-op. The recording frame number
-   * Carbon passes to SetShadowQuality and the renderContext it passes to Clear
-   * are engine recording state - the JS Clear receives the frame's
-   * renderContext for ducks that want it.
-   * @param {Object|null} lightManager
+   * Gathers dynamic lights through the supplied manager, clearing previous lights
+   * even when the registry contains no light owners.
+   * Carbon BeginRender (EveSpaceScene.cpp:1406-1427).
+   *
+   * Adapted: Takes a manager explicitly and visits owners sequentially. A null
+   * manager or hidden scene skips gathering. The update context supplies the
+   * recording frame, render context, frustum and LOD factor.
+   *
+   * @param {Tr2LightManager|null} lightManager Manager receiving the lights.
+   * @returns {void}
    */
   GatherLights(lightManager)
   {
-    // Kept for the PS fill's shadow-atlas settings: Carbon reads them from the
-    // Tr2LightManager singleton (cpp:3126-3137), which is not ported; the
-    // manager this scene last gathered with is the same one.
+    // Retain the manager for the per-frame pixel shader shadow-atlas settings.
     this._lightManager = lightManager ?? null;
 
     if (!lightManager || !this.display)
@@ -1662,12 +1658,14 @@ export class EveSpaceScene
    * FinalizeBatches), and over a parallel range; the JS pass is sequential
    * because the receivers write only their own records and share no state.
    *
+   * Adapted: Carbon's Tr2ParallelFor becomes a sequential pass; the receivers touch only
+   * their own per-object records.
+   *
    * @param {Array} objects - scene objects and the camera attachment parent
    * @returns {Number} how many receivers were updated
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon's Tr2ParallelFor becomes a sequential pass; the receivers touch only their own per-object records.")
   UpdateShLighting(objects = [])
   {
     if (!this.shLightingManager)
@@ -1747,10 +1745,14 @@ export class EveSpaceScene
     throw new Error("EveSpaceScene.RenderDebugInfo requires the debug renderer BeginRender/EndRender and global flush port.");
   }
 
-  /** Updates only the notified scene property (EveSpaceScene.cpp:3268-3353). */
+  /**
+   * Updates only the notified scene property (EveSpaceScene.cpp:3268-3353).
+   *
+   * Adapted: Exposed member names replace native addresses; null releases references and
+   * resource requirements replace interface IIDs.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Exposed member names replace native addresses; null releases references and resource requirements replace interface IIDs.")
   OnModified(property, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     if (IsMatch(property, "reflectionProbe") || IsMatch(property, "envMapResPath"))
@@ -3527,6 +3529,9 @@ export class EveSpaceScene
    *
    * Carbon's PopulatePerFrameVSData( data, renderContext ) (cpp:3029).
    *
+   * Adapted: Tr2Renderer view statics and the ESM's render-target/viewport sizes are read
+   * through _EngineFrameState.
+   *
    * @param {Object} data - the per-frame VS record to fill (Carbon m_perFrameVS,
    *   or a local one as the shadow pass uses, cpp:760-769)
    * @param {Object} renderContext - the frame's Tr2RenderContext
@@ -3534,7 +3539,6 @@ export class EveSpaceScene
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Tr2Renderer view statics and the ESM's render-target/viewport sizes are read through _EngineFrameState.")
   PopulatePerFrameVSData(data, renderContext)
   {
     const out = data;
@@ -3618,6 +3622,9 @@ export class EveSpaceScene
    * rendering, light manager, gather, raytraced shadows, UpdateVariableStore,
    * light gather) still runs in EveSpaceSceneRenderDriver._RenderMainPass.
    *
+   * Adapted: Only the tail of Carbon's BeginRender has moved here; the rest is still in the
+   * render driver.
+   *
    * @param {boolean} _enableDistortion - Carbon's gather flag; the gather is
    *   not in this part yet
    * @param {Object} renderContext - the frame's Tr2RenderContext
@@ -3625,7 +3632,6 @@ export class EveSpaceScene
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Only the tail of Carbon's BeginRender has moved here; the rest is still in the render driver.")
   BeginRender(_enableDistortion, renderContext)
   {
     if (!this.display) return;
@@ -3670,6 +3676,9 @@ export class EveSpaceScene
    * disabled, so stale cascade bytes are not consumed until a map is supplied
    * again.
    *
+   * Adapted: Tr2Renderer statics, the ESM viewport, Tr2LightManager's atlas settings and the
+   * upscaler's mip bias are read through _EngineFrameState.
+   *
    * @param {Object} data - the per-frame PS record to fill
    * @param {Tr2ShadowMap|null} shadowMap - null disables cascade packing
    * @param {Object} renderContext - the frame's Tr2RenderContext
@@ -3677,7 +3686,6 @@ export class EveSpaceScene
    */
   @meta.blue.renamed("PopulatePerFramePSData")
   @meta.adapted
-  @meta.reason("Tr2Renderer statics, the ESM viewport, Tr2LightManager's atlas settings and the upscaler's mip bias are read through _EngineFrameState.")
   PopulatePerFramePSData_ShadowMap(data, shadowMap, renderContext)
   {
     const out = data;
@@ -3921,15 +3929,16 @@ export class EveSpaceScene
     }
   }
 
-  /** Carbon method ReregisterEntities (MAP_METHOD_AND_WRAP, cpp:4064-4089).
-   * Guarded no-op after ClearComponentRegistry has nulled the registry
-   * (destroy-only path; Carbon would never call this afterwards). */
-  //
-  // Adapted: Carbon's list-insert handler registers every inserted object with
-  // the quad renderer (OnListModified, cpp:3455-3470). An object pushed onto
-  // the plain array raises no insert event, so this method, where such late
-  // objects join, registers their quad effects too. RegisterEffect ignores a
-  // key it already has, so registering again is harmless.
+  /**
+   * Re-registers the scene entities and their quad effects with the live registry.
+   * Carbon ReregisterEntities (EveSpaceScene.cpp:4112-4137).
+   *
+   * Adapted: Does nothing after the registry has been cleared. Plain-array insertion
+   * has no Blue list event, so late objects also register their quad effects here;
+   * Carbon performs that registration in OnListModified (cpp:3471-3475).
+   *
+   * @returns {void}
+   */
   @meta.blue.method
   @meta.adapted
   ReregisterEntities()
