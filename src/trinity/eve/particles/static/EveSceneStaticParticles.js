@@ -1,7 +1,9 @@
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/Renderable/EveSceneStaticParticles.h
 //   trinity/trinity/Eve/Renderable/EveSceneStaticParticles.cpp
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
+import * as CcpLog from "../../../../global/logging/ccpLog.js";
+import { Tr2RuntimeInstanceData } from "../../../core/mesh/Tr2RuntimeInstanceData.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -314,20 +316,27 @@ export class EveSceneStaticParticles
     });
   }
 
-  /** Carbon method Rebuild (MAP_METHOD_AND_WRAP). */
+  /**
+   * Rebuilds particle instance rows and publishes their bounds.
+   * Source: trinity/trinity/Eve/Renderable/EveSceneStaticParticles.cpp:225-327
+   *
+   * Adapted: CPU rows use SetElementLayout/SetData in place of native buffer
+   * writes. The existing local PRNG, boolean return and empty-cluster cleanup
+   * remain unresolved parity differences from Carbon's global randomness,
+   * void return and unguarded empty-cluster calculation.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Builds Carbon's CPU instance rows and bounds; a deterministic local PRNG replaces Carbon's process-global C rand state, and boolean success plus safe empty-cluster cleanup replace Carbon's void native buffer path.")
   Rebuild()
   {
-    const instanceData = this.mesh?.GetInstanceGeometryResource?.();
-    if (!instanceData?.SetElementLayout || !instanceData?.SetData)
+    const instanceData = this._GetInstanceDataObject();
+    if (!instanceData)
     {
       return false;
     }
     if (this.clusters.length === 0)
     {
-      instanceData.DestroyData?.();
+      instanceData.DestroyData();
       this.centerOfClusters.fill(0);
       this.boundingSphere.fill(0);
       return true;
@@ -401,34 +410,59 @@ export class EveSceneStaticParticles
       { usage: "TEXCOORD", usageIndex: 1, type: "FLOAT32_4", name: "color" }
     ]);
     instanceData.SetData(rows);
-    instanceData.UpdateBoundingBox?.();
-    instanceData.UpdateData?.();
+    instanceData.UpdateBoundingBox();
+    instanceData.UpdateData();
 
-    const bounds = instanceData.GetBoundingBox?.();
-    if (bounds?.min && bounds?.max)
+    const bounds = instanceData.GetBoundingBox();
+    this.mesh.SetBoundingBox(bounds.min, bounds.max);
+    for (let axis = 0; axis < 3; axis++)
     {
-      this.mesh.SetBoundingBox?.(bounds.min, bounds.max);
-      for (let axis = 0; axis < 3; axis++)
-      {
-        this.boundingSphere[axis] = (bounds.min[axis] + bounds.max[axis]) * 0.5;
-      }
-      this.boundingSphere[3] = Math.hypot(
-        bounds.max[0] - bounds.min[0],
-        bounds.max[1] - bounds.min[1],
-        bounds.max[2] - bounds.min[2]
-      ) * 0.5;
+      this.boundingSphere[axis] = (bounds.min[axis] + bounds.max[axis]) * 0.5;
     }
+    this.boundingSphere[3] = Math.hypot(
+      bounds.max[0] - bounds.min[0],
+      bounds.max[1] - bounds.min[1],
+      bounds.max[2] - bounds.min[2]
+    ) * 0.5;
     return true;
   }
 
-  /** Carbon method ClearClusters (MAP_METHOD_AND_WRAP). */
+  /**
+   * Clears clusters and destroys data only on the runtime instance-data class.
+   * Source: trinity/trinity/Eve/Renderable/EveSceneStaticParticles.cpp:64-74
+   */
   @meta.blue.method
-  @meta.adapted
-  @meta.reason("Carbon QueryInterface<Tr2RuntimeInstanceData> becomes the portable instance-resource duck exposed by the mesh.")
+  @meta.implemented
   ClearClusters()
   {
     this.clusters.length = 0;
-    this.mesh?.GetInstanceGeometryResource?.()?.DestroyData?.();
+    const instanceData = this._GetInstanceDataObject();
+    if (!instanceData) return;
+    instanceData.DestroyData();
+  }
+
+  /**
+   * Gets the mesh's concrete runtime instance data, or null on a failed cast.
+   * Source: trinity/trinity/Eve/Renderable/EveSceneStaticParticles.cpp:200-218
+   *
+   * Adapted: CjsSchema.cast represents QueryInterface and the logging channel
+   * is explicit because JavaScript modules have no native module-name linker symbol.
+   * @private
+   * @returns {Tr2RuntimeInstanceData|null} The accepted instance-data receiver.
+   */
+  @meta.blue.renamed("GetInstanceDataObject")
+  @meta.adapted
+  _GetInstanceDataObject()
+  {
+    if (!this.mesh) return null;
+    const instanceData = this.mesh.GetInstanceGeometryResource();
+    const data = CjsSchema.cast(instanceData, Tr2RuntimeInstanceData);
+    if (!data)
+    {
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "EveSceneStaticParticles: instance data is not of correct type!");
+      return null;
+    }
+    return data;
   }
 
 }
