@@ -43,6 +43,8 @@ export * from "./ITr2TextureProvider.js";
 export * from "./IWorldPosition.js";
 
 export * from "./ITr2Scene.js";
+export * from "./ITr2MultiPassScene.js";
+export * from "./ITr2VisualizationModeRenderer.js";
 export * from "./ITriTargetable.js";
 export * from "./Tr2HostBitmap.js";
 export * from "./Tr2ImpostorManager/index.js";

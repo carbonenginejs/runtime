@@ -2,7 +2,7 @@
   "outRoot": "src/trinity/generated",
   "classes": {
     "written": 26,
-    "skipped": 678
+    "skipped": 680
   },
   "enums": {
     "written": 15,
@@ -2776,6 +2776,11 @@
     },
     {
       "family": "trinityCore",
+      "className": "ITr2MultiPassScene",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
       "className": "ITr2Pickable",
       "reason": "hand-maintained source exists"
     },
@@ -2817,6 +2822,11 @@
     {
       "family": "trinityCore",
       "className": "ITr2ValueBinding",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "ITr2VisualizationModeRenderer",
       "reason": "hand-maintained source exists"
     },
     {
