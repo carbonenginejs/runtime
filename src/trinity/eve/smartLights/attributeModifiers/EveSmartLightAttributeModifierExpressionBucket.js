@@ -3,6 +3,8 @@ import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import * as CcpLog from "../../../../global/logging/ccpLog.js";
 import { meta } from "#schema";
+import { EveSmartLightBaseAttributeModifier } from "./EveSmartLightBaseAttributeModifier.js";
+import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
 import { EveSmartLightAttributeModifierBucket } from "./EveSmartLightAttributeModifierBucket.js";
 import { CjsControllerExpressionProgram } from "../../../controllers/expression/CjsControllerExpressionProgram.js";
 import { vec3 } from "#math/vec3";
@@ -10,8 +12,7 @@ import { vec3 } from "#math/vec3";
 /** EveSmartLightAttributeModifierExpressionBucket (eve/smartLights/attributeModifiers) - generated from schema shapeHash 02cc58c3.... */
 @meta.define({ className: "EveSmartLightAttributeModifierExpressionBucket", family: "eve/smartLights/attributeModifiers" })
 @meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize)
-@meta.blue.chainTo(EveSmartLightAttributeModifierBucket)
+@meta.blue.interface(EveSmartLightAttributeModifierBucket, IEveSmartLightGroupAttributeModifier, EveSmartLightBaseAttributeModifier, IInitialize)
 export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLightAttributeModifierBucket
 {
 

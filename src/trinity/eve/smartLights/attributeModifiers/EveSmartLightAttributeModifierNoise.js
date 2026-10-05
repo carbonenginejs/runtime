@@ -1,11 +1,14 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierNoise.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta } from "#schema";
+import { EveSmartLightBaseAttributeModifier } from "./EveSmartLightBaseAttributeModifier.js";
 import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
 import { carbonPerlin1D } from "#math/noise";
 
 /** EveSmartLightAttributeModifierNoise (eve/smartLights/attributeModifiers) - generated from schema shapeHash 60b52eeb.... */
 @meta.define({ className: "EveSmartLightAttributeModifierNoise", family: "eve/smartLights/attributeModifiers" })
+@meta.blue.interface(IEveSmartLightGroupAttributeModifier)
+@meta.blue.chainTo(EveSmartLightBaseAttributeModifier)
 export class EveSmartLightAttributeModifierNoise extends IEveSmartLightGroupAttributeModifier
 {
 

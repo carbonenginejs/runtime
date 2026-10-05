@@ -1,12 +1,15 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierColor.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta } from "#schema";
+import { EveSmartLightBaseAttributeModifier } from "./EveSmartLightBaseAttributeModifier.js";
 import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
 import { color } from "#math/color";
 import { resolveFactionColor } from "../../resolveFactionColor.js";
 
 /** EveSmartLightAttributeModifierColor (eve/smartLights/attributeModifiers) - generated from schema shapeHash 1d22dfd5.... */
 @meta.define({ className: "EveSmartLightAttributeModifierColor", family: "eve/smartLights/attributeModifiers" })
+@meta.blue.interface(IEveSmartLightGroupAttributeModifier)
+@meta.blue.chainTo(EveSmartLightBaseAttributeModifier)
 export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttributeModifier
 {
 
