@@ -19,12 +19,14 @@ import { normalizeResourcePath } from "#utils/path";
 // hand and gets the same answer, and this module imports nothing but path
 // normalization, so the cycle with Tr2PlatformInfo cannot form.
 //
-// It lives in global/utils rather than in core because Carbon substitutes in
-// `Tr2Effect`, and Trinity may not import core. Moving the pure transform down
-// does not move the policy: the VALUES it substitutes - platform name and
-// quality tier - are still configuration, still owned by core's
-// `Tr2PlatformInfo`, and still passed in. An engine is handed a resolved path
-// and is never asked which one it wants.
+// It lives in global/utils, not on Tr2Effect where Carbon substitutes,
+// because effect shorthand has to become a real file path OUTSIDE Trinity too:
+// the tools, the resource layer and the host all resolve the same paths. This
+// module is the one place that keeps that mapping, so every caller gets the
+// same answer. The VALUES it substitutes - platform name and quality tier -
+// are still configuration, still owned by core's `Tr2PlatformInfo`, and still
+// passed in. An engine is handed a resolved path and is never asked which one
+// it wants.
 
 
 /**
