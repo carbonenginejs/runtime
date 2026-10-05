@@ -127,9 +127,6 @@
     "src/trinity/core/mesh/TriGeometryResAllocations.js": [
       "TriGeometryResAllocations"
     ],
-    "src/trinity/core/rawData/Tr2ConstantBufferFormats.js": [
-      "Tr2ConstantBufferFormats"
-    ],
     "src/trinity/core/Tr2ImageIOHelpers.js": [
       "Tr2ImageIOHelpers"
     ],

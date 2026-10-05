@@ -33,59 +33,64 @@ import { PER_FRAME_PS, PER_FRAME_VS } from "../Tr2Renderer.js";
 const perFrameBuffers = new WeakMap();
 
 
-/**
- * Carbon's `Tr2BindPerFrameVSData`.
- *
- * @param {object} data The scene's per-frame vertex `RawData`.
- * @param {object} renderContext The `Tr2RenderContext` to bind on.
- * @returns {boolean} Whether the block was bound.
- */
-export function BindPerFrameVSData(data, renderContext)
+/** Static per-frame binding helpers from Carbon's constant-buffer formats. */
+export class Tr2ConstantBufferFormats
 {
-  return BindPerFrame(data, renderContext, ShaderType.VERTEX_SHADER, PER_FRAME_VS);
-}
+  /**
+   * Carbon's `Tr2BindPerFrameVSData`.
+   *
+   * @param {object} data The scene's per-frame vertex `RawData`.
+   * @param {object} renderContext The `Tr2RenderContext` to bind on.
+   * @returns {boolean} Whether the block was bound.
+   */
+  static tr2BindPerFrameVSData(data, renderContext)
+  {
+    return Tr2ConstantBufferFormats._bindPerFrame(data, renderContext, ShaderType.VERTEX_SHADER, PER_FRAME_VS);
+  }
 
 
-/**
- * Carbon's `Tr2BindPerFramePSData`.
- *
- * @param {object} data The scene's per-frame pixel `RawData`.
- * @param {object} renderContext The `Tr2RenderContext` to bind on.
- * @returns {boolean} Whether the block was bound.
- */
-export function BindPerFramePSData(data, renderContext)
-{
-  return BindPerFrame(data, renderContext, ShaderType.PIXEL_SHADER, PER_FRAME_PS);
-}
+  /**
+   * Carbon's `Tr2BindPerFramePSData`.
+   *
+   * @param {object} data The scene's per-frame pixel `RawData`.
+   * @param {object} renderContext The `Tr2RenderContext` to bind on.
+   * @returns {boolean} Whether the block was bound.
+   */
+  static tr2BindPerFramePSData(data, renderContext)
+  {
+    return Tr2ConstantBufferFormats._bindPerFrame(data, renderContext, ShaderType.PIXEL_SHADER, PER_FRAME_PS);
+  }
 
 
-function BindPerFrame(data, renderContext, stage, register)
-{
-  const bytes = data && typeof data.GetData === "function" ? data.GetData() : null;
+  /** Uploads and binds one per-frame stage using its context-owned buffer. */
+  static _bindPerFrame(data, renderContext, stage, register)
+  {
+    const bytes = data && typeof data.GetData === "function" ? data.GetData() : null;
 
-  if (!bytes || !bytes.byteLength) return false;
+    if (!bytes || !bytes.byteLength) return false;
 
-  const buffer = PerFrameBuffer(renderContext, stage);
+    const buffer = Tr2ConstantBufferFormats._perFrameBuffer(renderContext, stage);
 
-  if (!buffer) return false;
+    if (!buffer) return false;
 
-  return FillAndSetConstants(buffer, bytes, bytes.byteLength, 1 << stage, register, renderContext);
-}
+    return FillAndSetConstants(buffer, bytes, bytes.byteLength, 1 << stage, register, renderContext);
+  }
 
 
-/**
- * The per-frame constant buffer for one stage, made once per context.
- *
- * @param {object} renderContext The `Tr2RenderContext` to create through.
- * @param {number} stage A `ShaderType`; only the two per-frame stages are used.
- * @returns {object|null} A `Tr2ConstantBufferAL`, or null when none can be made.
- */
-function PerFrameBuffer(renderContext, stage)
-{
-  const held = perFrameBuffers.get(renderContext) ?? {};
+  /**
+   * The per-frame constant buffer for one stage, made once per context.
+   *
+   * @param {object} renderContext The `Tr2RenderContext` to create through.
+   * @param {number} stage A `ShaderType`; only the two per-frame stages are used.
+   * @returns {object|null} A `Tr2ConstantBufferAL`, or null when none can be made.
+   */
+  static _perFrameBuffer(renderContext, stage)
+  {
+    const held = perFrameBuffers.get(renderContext) ?? {};
 
-  held[stage] ??= renderContext.CreateConstantBuffer();
-  perFrameBuffers.set(renderContext, held);
+    held[stage] ??= renderContext.CreateConstantBuffer();
+    perFrameBuffers.set(renderContext, held);
 
-  return held[stage] ?? null;
+    return held[stage] ?? null;
+  }
 }
