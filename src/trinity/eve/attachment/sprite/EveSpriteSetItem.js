@@ -66,12 +66,16 @@ export class EveSpriteSetItem
   @meta.type.int32
   boneIndex = 0;
 
-  /** Carbon EveSpriteSetItem::GetBounds (cpp:35-38): Sphere(position, maxScale)
+  /**
+   * Carbon EveSpriteSetItem::GetBounds (cpp:35-38): Sphere(position, maxScale)
    * - the sprite at its largest blink scale. `out` is required; the item-set
-   * bounds builder supplies its own scratch. */
+   * bounds builder supplies its own scratch.
+   *
+   * Adapted: Carbon returns Sphere by value; JavaScript follows the runtime sphere
+   * out-parameter convention.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon returns Sphere by value; JavaScript follows the runtime sphere out-parameter convention.")
   GetBounds(out)
   {
     return box3.fromPositionRadius(out, this.position, this.maxScale);

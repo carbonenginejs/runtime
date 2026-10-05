@@ -1,6 +1,6 @@
-import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveTrailsSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveTrailsSet.cpp
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { mat4 } from "#math/mat4";
 import { IsMatch, blue } from "#blue";
 import { ResourceRequirement } from "#resource";

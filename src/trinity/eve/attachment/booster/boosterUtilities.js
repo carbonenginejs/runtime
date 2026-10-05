@@ -182,7 +182,7 @@ export function GenerateBoosterLightPhase()
  * scale by the set intensity, and flicker per item. Carbon reads the
  * animation clock from the renderer global; callers thread it explicitly.
  *
- * @param {Object} lightManager - duck with AddPointLight(position, radius, color)
+ * @param {Tr2LightManager} lightManager - manager receiving the point light
  * @param {Iterable} items - records with lightPhase, lightPosition, lightRadius
  * @param {Float32Array} transform - lifts item light positions to world
  * @param {Number} intensity - the set's overall intensity

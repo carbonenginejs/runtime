@@ -54,13 +54,17 @@ export class EveBannerItem
   @meta.type.int32
   reference = 0;
 
-  /** Carbon builds this inline in EveBannerSet::Rebuild (cpp:417-419): the
+  /**
+   * Carbon builds this inline in EveBannerSet::Rebuild (cpp:417-419): the
    * authored box is HALF-OPEN in z - (-0.5, -0.5, -0.5) to (0.5, 0.5, 0) - so a
    * banner bounds its own face and the depth behind it, not in front. Carbon
-   * (row-vector) composes TransformationMatrix(scaling, rotation, position). */
+   * (row-vector) composes TransformationMatrix(scaling, rotation, position).
+   *
+   * Adapted: Carbon inlines the per-banner box inside the set rebuild; the port moves it
+   * onto the item so the shared item-set builder can read it.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon inlines the per-banner box inside the set rebuild; the port moves it onto the item so the shared item-set builder can read it.")
   GetBounds(out)
   {
     const transform = mat4.fromRotationTranslationScale(
@@ -72,11 +76,15 @@ export class EveBannerItem
     return box3.transformMat4(out, EveBannerItem._bounds, transform);
   }
 
-  /** Carbon reads the item member directly (cpp:424); the item-set builder
-   * needs the accessor every other set item already has. */
+  /**
+   * Carbon reads the item member directly (cpp:424); the item-set builder
+   * needs the accessor every other set item already has.
+   *
+   * Adapted: Accessor for the shared item-set bounds builder; Carbon reads jt->bone
+   * directly.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Accessor for the shared item-set bounds builder; Carbon reads jt->bone directly.")
   GetBoneIndex()
   {
     return this.bone;

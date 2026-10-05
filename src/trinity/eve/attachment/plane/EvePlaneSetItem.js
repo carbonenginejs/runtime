@@ -81,10 +81,12 @@ export class EvePlaneSetItem
   /**
    * Fills the caller-owned out box with the plane's unit box transformed by its
    * rotation, position and scaling.
+   *
+   * Adapted: Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied
+   * box3.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied box3.")
   GetBounds(out)
   {
     // Carbon TransformationMatrix(scaling, rotation, position).

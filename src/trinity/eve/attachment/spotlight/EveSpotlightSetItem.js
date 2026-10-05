@@ -58,10 +58,12 @@ export class EveSpotlightSetItem
   /**
    * Fills the caller-owned out box with the spotlight's unit box transformed by
    * its authored placement matrix.
+   *
+   * Adapted: Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied
+   * box3.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied box3.")
   GetBounds(out)
   {
     return box3.transformMat4(out, EveSpotlightSetItem._bounds, this.transform);

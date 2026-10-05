@@ -1,7 +1,7 @@
-import { EveEntity } from "../../EveEntity.js";
-import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveBannerSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveBannerSet.cpp
+import { EveEntity } from "../../EveEntity.js";
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { sph3 } from "#math/sph3";
@@ -463,19 +463,27 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     return GetItemSetAabb(out, this._staticBounds, this._boneBounds, bones, boneCount);
   }
 
-  /** The largest single banner half-diagonal, as measured by the last Rebuild. */
+  /**
+   * The largest single banner half-diagonal, as measured by the last Rebuild.
+   *
+   * Adapted: Carbon reads the m_maxBannerRadius member directly; JavaScript exposes it
+   * through an accessor.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon reads the m_maxBannerRadius member directly; JavaScript exposes it through an accessor.")
   GetMaxBannerRadius()
   {
     return this._maxBannerRadius;
   }
 
-  /** The result of the last UpdateVisibility (Carbon m_isVisible). */
+  /**
+   * The result of the last UpdateVisibility (Carbon m_isVisible).
+   *
+   * Adapted: Carbon reads the m_isVisible member directly; JavaScript exposes it through an
+   * accessor.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon reads the m_isVisible member directly; JavaScript exposes it through an accessor.")
   GetVisibility()
   {
     return this._isVisible;
@@ -749,9 +757,14 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     this.Rebuild();
   }
 
-  /** Refreshes derived banner bounds after supported list mutations. */
+  /**
+   * Refreshes derived banner bounds after supported list mutations.
+   *
+   * Adapted: JS represents the native structure list as an array; child mutations forward to
+   * its native owner callback. Unload arrives before array clearing, so it clears the
+   * derived bounds directly.
+   */
   @meta.ours
-  @meta.reason("JS represents the native structure list as an array; child mutations forward to its native owner callback. Unload arrives before array clearing, so it clears the derived bounds directly.")
   OnListModified(event, _key, _key2, _value, list)
   {
     if (list !== this.banners) return;
@@ -872,10 +885,18 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     this._activationStrength = Number(activationStrength) || 0;
   }
 
-  /** Carbon EveBannerSet::GetAverageColor (cpp:441-455): the PRIMARY texture
-   * parameter's average color, (0,0,0,0) when the map or resource is
-   * missing (contrast EvePlaneSet's white default and four-map product). */
+  /**
+   * Reads the primary texture's average colour, or transparent black when its
+   * parameter or texture resource is absent or has the wrong concrete type.
+   * Carbon GetAverageColor (EveBannerSet.cpp:441-455).
+   *
+   * Adapted: Writes and returns the caller's colour vector instead of a Color value.
+   *
+   * @param {vec4} [out] Destination colour.
+   * @returns {vec4} The destination colour.
+   */
   @meta.blue.method
+  @meta.adapted
   GetAverageColor(out = new Float32Array(4))
   {
     const parameter = this.primaryTextureParameter;
@@ -898,17 +919,21 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     return out;
   }
 
-  /** Carbon EveBannerSet::GetLights (cpp:466-491): the ONLY packed set with
+  /**
+   * Carbon EveBannerSet::GetLights (cpp:466-491): the ONLY packed set with
    * a display gate in GetLights (its registration is unconditional,
    * cpp:457-464); an averageColor with zero alpha submits NOTHING (texture
    * not loaded yet, cpp:474-477); the loop iterates BY VALUE (`auto light`,
    * cpp:482) - the authored color is REPLACED entirely by
    * Saturate(averageColor, saturation) on a scratch copy (cpp:484 -
    * contrast EvePlaneSet's multiply); no blink/fade; point conversion on
-   * the bone matrix. */
+   * the bone matrix.
+   *
+   * Adapted: The light manager receives a JavaScript light record carrying the profile
+   * reference; average colour is read through the texture resource contract.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The texture average color and profile packing follow the adapted ducks above.")
   GetLights(lightManager)
   {
     if (!this.display || this.lights.length === 0)

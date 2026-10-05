@@ -1,8 +1,8 @@
-import { IsMatch } from "#blue";
-import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveSpaceObjectDecal.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveSpaceObjectDecal.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveSpaceObjectDecal_Blue.cpp
+import { IsMatch } from "#blue";
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";

@@ -1,7 +1,7 @@
-import { IsMatch } from "#blue";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveBoosterSet2.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveBoosterSet2.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveBoosterSet2_Blue.cpp
+import { IsMatch } from "#blue";
 import { mat4 } from "#math/mat4";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { sph3 } from "#math/sph3";

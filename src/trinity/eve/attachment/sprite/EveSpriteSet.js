@@ -1,7 +1,7 @@
+// Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSet.h
+// Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSet.cpp
 import { EveEntity } from "../../EveEntity.js";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
-﻿// Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSet.h
-// Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSet.cpp
 import { box3 } from "#math/box3";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { mat4 } from "#math/mat4";

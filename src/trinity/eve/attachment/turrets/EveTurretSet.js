@@ -1,6 +1,6 @@
-
 // Source: trinity/trinity/Eve/Turret/EveTurretSet.h
 // Source: trinity/trinity/Eve/Turret/EveTurretSet.cpp
+
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { IEveShadowCaster } from "../../IEveShadowCaster.js";
 import { meta, CjsSchema } from "#schema";

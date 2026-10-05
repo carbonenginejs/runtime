@@ -513,13 +513,17 @@ export class EveBoosterSet2Renderable
     return out;
   }
 
-  /** Protected-equivalent read of Carbon's m_parentTransform
+  /**
+   * Protected-equivalent read of Carbon's m_parentTransform
    * (EveBoosterSet2.h:132) - the owning set's GetLights transforms each
    * booster light position by it (cpp:1305/1314). Returns the live buffer;
-   * read-only by convention. */
+   * read-only by convention.
+   *
+   * Adapted: Exposes the stored parent transform through an accessor where Carbon reads the
+   * member directly.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon's direct member access becomes an accessor; JS has no protected fields.")
   GetParentTransform()
   {
     return this._parentTransform;

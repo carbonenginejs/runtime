@@ -1,9 +1,9 @@
+// Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EvePlaneSet.h
+// Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EvePlaneSet.cpp
 import { IsMatch } from "#blue";
 import { EveEntity } from "../../EveEntity.js";
 import { INotify } from "../../../../global/blue/INotify.js";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
-// Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EvePlaneSet.h
-// Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EvePlaneSet.cpp
 import { box3 } from "#math/box3";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { mat4 } from "#math/mat4";
@@ -478,10 +478,18 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
     return resource.GetAverageColor();
   }
 
-  /** Carbon EvePlaneSet::GetAverageColor (cpp:499-528): the componentwise
-   * product of the four texture parameters' average colors, each defaulting
-   * to white when the map or its resource is missing. */
+  /**
+   * Multiplies the two layer, image and mask textures' average colours componentwise.
+   * Each missing texture contributes white through GetAverageColor_Map.
+   * Carbon GetAverageColor (EvePlaneSet.cpp:499-528).
+   *
+   * Adapted: Writes and returns the caller's colour vector instead of a Color value.
+   *
+   * @param {vec4} [out] Destination colour.
+   * @returns {vec4} The destination colour.
+   */
   @meta.blue.method
+  @meta.adapted
   GetAverageColor(out = new Float32Array(4))
   {
     const layer1 = this.GetAverageColor_Map(this.layerMap1Parameter);

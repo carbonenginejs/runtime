@@ -3,9 +3,8 @@
 //
 // The packed-set blink/fade intensity helpers. Carbon reads the global
 // Tr2Renderer::GetAnimationTime() inside each helper; the JS port takes the
-// animation time as the FIRST argument instead (the light manager duck is the
-// engine-owned clock source at the GetLights call sites) - the only
-// adaptation; every formula is verbatim.
+// animation time as the first argument instead. Callers supply their frame time;
+// the blink and fade formulas preserve Carbon's arithmetic.
 import { blue } from "#blue";
 
 /** Carbon FadeType (EveSpaceObjectAttachmentUtils.h:7-14). */
