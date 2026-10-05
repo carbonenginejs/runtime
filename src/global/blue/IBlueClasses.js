@@ -32,8 +32,8 @@ export class IBlueClasses
   /** `CreateInstanceFromName` - a new instance of the class registered under this name, or null. */
   CreateInstanceFromName(_className) {}
 
-  /** `QueryThisInterface` - cast an object to an interface it implements. */
-  QueryThisInterface(_self, _riid) {}
+  /** `QueryThisInterface` - the object when its exposure table maps the interface, otherwise null. */
+  QueryThisInterface(_self, _riid, _options) {}
 
   /** `FindVariable` - the exposed member entry for a name on a class type. */
   FindVariable(_name, _type) {}

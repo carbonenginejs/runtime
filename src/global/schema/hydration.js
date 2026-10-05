@@ -8,7 +8,7 @@
  */
 
 import { CjsSchema } from "./CjsSchema.js";
-import { mappedInterfaces } from "../compose/interface.js";
+import { hasOwnInterfaceTable, mappedInterfaces } from "../compose/interface.js";
 import { normalizeCarbonTypeDescriptor, typedArrayConstructor } from "./types/carbonTypes.js";
 
 /**
@@ -134,6 +134,8 @@ function readerInterfaces(Constructor)
     for (const Interface of mappedInterfaces(Constructor))
     {
         const name = CjsSchema.getClassName(Interface);
+        // The self and chained-to entries carry their own tables; see Copier._mapsInterface.
+        if (!name && hasOwnInterfaceTable(Interface)) continue;
         if (!name) throw new TypeError("Reader interface mappings require a declared class identity.");
         if (name === "IInitialize") initialize = true;
         if (name === "INotify") notify = true;

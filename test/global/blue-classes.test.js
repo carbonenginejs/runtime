@@ -365,3 +365,43 @@ test("registration uses explicit names without inspecting Function.name and pres
     registry.UnregisterClasses([ { name: "StableIdentity" } ]);
   }
 });
+
+
+test("QueryThisInterface walks the exposure table and chain, logging a miss unless silent", (t) =>
+{
+  const { meta } = CjsSchema;
+  class IThing {}
+  CjsSchema.define(IThing, { className: "IThing" });
+  class Parent {}
+  CjsSchema.define(Parent, { className: "QtiParent" });
+  meta.blue.interface(IThing)(Parent);
+  class Child extends Parent {}
+  CjsSchema.define(Child, { className: "QtiChild" });
+  meta.blue.interface()(Child);
+  meta.blue.chainTo(Parent)(Child);
+  class Unrelated {}
+  CjsSchema.define(Unrelated, { className: "QtiUnrelated" });
+
+  const errors = [];
+  const sink = (_channel, _type, _userData, message) => errors.push(message);
+  CcpLog.UnregisterLogEcho(CcpLog.LogToDebugger);
+  CcpLog.RegisterLogEcho(sink, CcpLog.LogType.LOGTYPE_ERR);
+  t.after(() =>
+  {
+    CcpLog.UnregisterLogEcho(sink);
+    CcpLog.RegisterLogEcho(CcpLog.LogToDebugger);
+  });
+
+  const classes = new CjsBlueClasses();
+  const child = new Child();
+  assert.equal(classes.QueryThisInterface(child, Child), child);
+  assert.equal(classes.QueryThisInterface(child, Parent), child);
+  assert.equal(classes.QueryThisInterface(child, IThing), child);
+  assert.deepEqual(errors, []);
+
+  assert.equal(classes.QueryThisInterface(child, Unrelated, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT), null);
+  assert.deepEqual(errors, []);
+  assert.equal(classes.QueryThisInterface(child, Unrelated), null);
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /Interface QtiUnrelated not found on class QtiChild/);
+});

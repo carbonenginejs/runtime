@@ -31,6 +31,8 @@ import { registerClass, unregisterClass, getClassRegistration } from "./classes/
 import { CjsSchema, meta } from "#schema";
 import { IBlueClasses } from "./IBlueClasses.js";
 import { Copier } from "./Copier.js";
+import { mappedInterfaces } from "../compose/interface.js";
+import * as CcpLog from "../logging/ccpLog.js";
 
 
 /** `CjsBlueClasses` - the class registry `blue.classes` holds, per blueexposure/BlueClasses.cpp. */
@@ -40,6 +42,12 @@ export class CjsBlueClasses extends IBlueClasses
   /** Carbon's `Be::ClassRegistration::Flags` (BlueTypes.h:415-418). */
   static Flags = {
     DISABLE_PYTHON_CONSTRUCTION: 1
+  };
+
+  /** Carbon's `BLUEQIOPT` (BlueTypes.h:468-472). */
+  static BLUEQIOPT = {
+    BEQI_NONE: 0x0,
+    BEQI_SILENT: 0x1
   };
 
   /**
@@ -137,11 +145,32 @@ export class CjsBlueClasses extends IBlueClasses
   }
 
   /**
-   * Throws because querying an object's native interface is not implemented.
+   * The object when its exposure table maps the interface, otherwise null
+   * (BlueClasses.cpp:376-415). The table is the class's own entries followed by
+   * each `chainTo` parent's, which is the order Carbon walks `mParentClassInfo`.
+   * A miss is logged unless `BEQI_SILENT` is set.
    *
-   * Adapted: No consumer yet; ported when one needs it.
+   * Adapted: Carbon writes the offset-adjusted pointer through ppv and returns bool;
+   * JavaScript has no offsets, so it returns the same object or null. The class
+   * type is read from the object rather than passed, and the log names the class
+   * without Carbon's module prefix, which JavaScript classes do not carry.
+   *
+   * @param {object} self The object to query.
+   * @param {Function} riid The interface or class to ask for.
+   * @param {number} [options] `BLUEQIOPT` flags.
+   * @returns {object|null} `self`, or null.
    */
-  QueryThisInterface() { throw new Error("CjsBlueClasses.QueryThisInterface is not implemented"); }
+  QueryThisInterface(self, riid, options = CjsBlueClasses.BLUEQIOPT.BEQI_NONE)
+  {
+    if (mappedInterfaces(self.constructor).has(riid)) return self;
+
+    if ((options & CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === 0)
+    {
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("blue"), "Interface %s not found on class %s",
+        CjsSchema.getClassName(riid), CjsSchema.getClassName(self.constructor));
+    }
+    return null;
+  }
 
   /**
    * Throws because native variable lookup is not implemented.
@@ -254,7 +283,7 @@ CjsSchema.define(CjsBlueClasses, {
     FindClsid: [ meta.blue.method, meta.adapted ],
     CreateInstance: [ meta.blue.method, meta.adapted ],
     CreateInstanceFromName: [ meta.blue.method, meta.adapted ],
-    QueryThisInterface: [ meta.blue.method, meta.notImplemented ],
+    QueryThisInterface: [ meta.blue.method, meta.adapted ],
     FindVariable: [ meta.blue.method, meta.notImplemented ],
     UpdateObjectCount: [ meta.blue.method, meta.notImplemented ],
     CopyTo: [ meta.blue.method, meta.adapted ],
