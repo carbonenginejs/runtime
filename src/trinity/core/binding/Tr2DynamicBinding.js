@@ -1,7 +1,8 @@
 // Source: trinity/trinity/Tr2DynamicBinding.h
 // Source: trinity/trinity/Tr2DynamicBinding.cpp
 // Source: trinity/trinity/Tr2DynamicBinding_Blue.cpp
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
+import { IList } from "#blue/IList";
 import { INotify } from "#blue/INotify";
 import { ISimTimeRebaseNotify } from "#blue/ISimTimeRebaseNotify";
 import { TriValueBinding } from "./TriValueBinding.js";
@@ -319,9 +320,10 @@ export class Tr2DynamicBinding extends INotify
   }
 
   /**
-   * Selects an element of an array or of a GetSize/GetAt list, either by index
+   * Selects an element of a native IList or portable array, either by index
    * (negative counts from the end) or by matching an element's name.
-   * Custom: implements the existing portable value, path or endpoint adapter.
+   * Source: trinity/trinity/Tr2DynamicBinding.cpp:81-120
+   * Custom: JavaScript arrays and named properties adapt native list and Blue member storage.
    * @param {*} value Incoming value.
    * @param {number|string} selector Index or element name.
    * @returns {object|null} Binding result.
@@ -329,13 +331,14 @@ export class Tr2DynamicBinding extends INotify
   @meta.ours
   static _getListElement(value, selector)
   {
-    const length = Array.isArray(value) ? value.length : Number(value?.GetSize?.());
-    if (!Number.isInteger(length) || length < 0) return null;
-    const at = index => Array.isArray(value) ? value[index] : value.GetAt?.(index);
+    const list = CjsSchema.cast(value, IList);
+    if (!list && !Array.isArray(value)) return null;
+    const length = list ? list.GetSize() : value.length;
+    const at = index => list ? list.GetAt(index) : value[index];
     if (typeof selector === "number")
     {
       const index = selector < 0 ? selector + length : selector;
-      return index >= 0 && index < length ? at(index) ?? null : null;
+      return index >= 0 && index < length ? at(index) : null;
     }
     for (let index = 0; index < length; index++)
     {

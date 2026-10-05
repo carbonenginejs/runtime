@@ -5,7 +5,7 @@ import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { Copier, DictReader, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
 import { Traverse } from "../../npm/dist/global/blue/find.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
-import { Tr2BindingVector3, Tr2PyValueBinding, Tr2ExternalParameter } from "../../npm/dist/trinity/index.js";
+import { Tr2BindingVector3, Tr2PyValueBinding, Tr2ExternalParameter, Tr2DynamicBinding } from "../../npm/dist/trinity/index.js";
 import { TriCurveSet, ITr2ValueBinding } from "../../npm/dist/trinity/curves/index.js";
 
 test("binding records expose exact native nominal bases and query order", () =>
@@ -143,20 +143,15 @@ test("external setters retain eager invalidation and portable normalization", ()
   assert.equal(external.IsValid(), false);
 });
 
-test("external notifications preserve the existing portable destination adapter", () =>
+test("external notifications invoke native INotify even for unchanged assignments", () =>
 {
-  for (const method of ["UpdateValues", "OnValueChanged", "OnModified"])
-  {
-    const calls = [], target = { value: 1, [method]: (...args) => calls.push(args) };
-    const external = new Tr2ExternalParameter();
-    external.SetDestinationObject(target);
-    external.SetDestinationAttribute("value");
-    external.SetValue(1);
-    external.SetValue(6);
-    assert.equal(target.value, 6);
-    assert.equal(calls.length, 2);
-    if (method === "UpdateValues") assert.deepEqual(calls[1], [{ property: "value", source: external }]);
-    else if (method === "OnValueChanged") assert.deepEqual(calls[1], ["value", 6, external]);
-    else assert.deepEqual(calls[1], ["value"]);
-  }
+  const calls = [], target = new Tr2DynamicBinding();
+  target.OnModified = name => calls.push(name);
+  const external = new Tr2ExternalParameter();
+  external.SetDestinationObject(target);
+  external.SetDestinationAttribute("scale");
+  external.SetValue(1);
+  external.SetValue(6);
+  assert.equal(target.scale, 6);
+  assert.deepEqual(calls, ["scale", "scale"]);
 });

@@ -139,8 +139,10 @@ test("retained reroutable destination must implement required unregister", () =>
 {
   const binding = new TriValueBinding();
   binding.SetSource("value", { value: 3 });
-  binding.SetDestination("value", { value: 0, RegisterBinding() {}, GetDestination() { return { dest: { value: 0 }, size: 4 }; } });
+  const destination = new Tr2FloatParameter();
+  binding.SetDestination("value", destination);
   binding.Initialize();
+  destination.UnregisterBinding = undefined;
   assert.throws(() => binding.Initialize(), TypeError);
 });
 

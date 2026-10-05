@@ -107,7 +107,7 @@ export class Tr2ExternalParameter extends IInitialize
     {
       this.destinationObject[this._destinationName] = converted.value;
     }
-    Tr2ExternalParameter._notify(this.destinationObject, this._destinationName, this);
+    Tr2ExternalParameter._notify(this.destinationObject, this._destinationName);
     return true;
   }
 
@@ -451,20 +451,18 @@ export class Tr2ExternalParameter extends IInitialize
   }
 
   /**
-   * Notifies the destination of the changed field through UpdateValues,
-   * OnValueChanged or OnModified, whichever it implements.
-   * Custom: preserves the existing JavaScript destination-notification adapter.
+   * Notifies a destination that implements the native INotify contract.
+   * Source: trinity/trinity/Tr2ExternalParameter.cpp:107,161-164
+   * Custom: the JavaScript member name represents Carbon's destination member pointer.
    * @param {object} object Destination owner.
    * @param {string} name Changed member name.
-   * @param {Tr2ExternalParameter} source Source parameter.
-   * @returns {void}
+   * @returns {void} No return value.
    */
   @meta.ours
-  static _notify(object, name, source)
+  static _notify(object, name)
   {
-    if (typeof object.UpdateValues === "function") object.UpdateValues({ property: name, source });
-    else if (typeof object.OnValueChanged === "function") object.OnValueChanged(name, object[name], source);
-    else object.OnModified?.(name);
+    const notify = CjsSchema.cast(object, INotify);
+    if (notify) notify.OnModified(name);
   }
 
 }

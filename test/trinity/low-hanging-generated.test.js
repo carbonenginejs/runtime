@@ -9,7 +9,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
-import { EveChildEffectPropagator, EveBoosterSet2, EveLensflare, EveLocator2, EveLocatorSets, EveSpaceObject2, EveMultiEffectParameter, EveSceneStaticParticles, EveSocketParameterString, EveTurretFiringFX, EveUiObject, Tr2MaterialParameterStore, Tr2ExternalParameter, Tr2CurveVector3, Tr2InstancedMesh, Tr2Mesh, Tr2MeshArea, Tr2RuntimeInstanceData, Tr2Sprite2dContainerBase, Tr2Sprite2dLineTrace, Tr2Sprite2dPolygon, Tr2Sprite2dTransform, Tr2Sprite2dVertex, Tr2SpriteObjectBase, TriValueBinding } from "../../npm/dist/trinity/index.js";
+import { EveChildEffectPropagator, EveBoosterSet2, EveLensflare, EveLocator2, EveLocatorSets, EveSpaceObject2, EveMultiEffectParameter, EveSceneStaticParticles, EveSocketParameterString, EveTurretFiringFX, EveUiObject, Tr2MaterialParameterStore, Tr2ExternalParameter, Tr2DynamicBinding, Tr2Vector3Parameter, Tr2CurveVector3, Tr2InstancedMesh, Tr2Mesh, Tr2MeshArea, Tr2RuntimeInstanceData, Tr2Sprite2dContainerBase, Tr2Sprite2dLineTrace, Tr2Sprite2dPolygon, Tr2Sprite2dTransform, Tr2Sprite2dVertex, Tr2SpriteObjectBase, TriValueBinding } from "../../npm/dist/trinity/index.js";
 import { Tr2ParticleDirectForce } from "../../npm/dist/trinity/particle/force/Tr2ParticleDirectForce.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
@@ -157,11 +157,11 @@ test("Tr2MaterialParameterStore resolves local overrides before parent values", 
 test("external parameters and value bindings copy Carbon graph values", () =>
 {
   const notifications = [];
-  const target = {
+  const target = Object.assign(new Tr2DynamicBinding(), {
     color: new Float32Array([1, 2, 3, 4]),
     label: "old",
     OnModified: value => notifications.push(value)
-  };
+  });
   const external = new Tr2ExternalParameter();
   external.SetName("green");
   external.SetDestinationObject(target);
@@ -173,7 +173,8 @@ test("external parameters and value bindings copy Carbon graph values", () =>
   assert.equal(notifications.length, 1);
 
   const source = { value: new Float32Array([2, 3, 4]) };
-  const destination = { value: new Float32Array(3), OnModified: value => notifications.push(value) };
+  const destination = new Tr2Vector3Parameter();
+  destination.value = new Float32Array(3);
   const binding = new TriValueBinding();
   binding.SetSource("value", source);
   binding.SetDestination("value", destination);

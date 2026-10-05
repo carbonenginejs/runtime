@@ -3,6 +3,7 @@
 // Source: trinity/trinity/TriValueBinding_Blue.cpp
 import { CjsSchema, meta } from "#schema";
 import { INotify } from "#blue/INotify";
+import { ITriReroutable } from "../ITriReroutable.js";
 import { ITr2ValueBinding } from "../../curves/ITr2ValueBinding.js";
 import { vec4 } from "#math/vec4";
 
@@ -184,6 +185,8 @@ export class TriValueBinding extends INotify
    * copyValueCallable short-circuits the whole plan, and an ITriReroutable
    * destination is registered with and its rerouted buffer cached when it is
    * large enough for the plan.
+   * Source: trinity/trinity/TriValueBinding.cpp:406-432
+   * Adapted: GetDestination returns the native pointer and size as a JavaScript record.
    * Adapted: Resolves Blue field metadata through JavaScript properties and supports the portable runtime's numeric, vector, boolean, and callback value families.
    * @returns {void} No return value.
    */
@@ -233,23 +236,20 @@ export class TriValueBinding extends INotify
     this._sourceOffset = source.offset;
     this._destinationOffset = destination.offset;
     this._copyPlan = copyPlan;
-    this._notifyDestination = destinationField ? destinationField.edit?.notify === true : true;
+    this._notifyDestination = destinationField?.edit?.notify === true;
     this._isValid = true;
 
-    if (
-      typeof destinationObject.RegisterBinding === "function" &&
-      typeof destinationObject.GetDestination === "function"
-    )
+    const reroutable = CjsSchema.cast(destinationObject, ITriReroutable);
+    if (reroutable)
     {
-      destinationObject.RegisterBinding(this);
+      reroutable.RegisterBinding(this);
       this._reroutableDestination = this.isWeak && typeof WeakRef === "function"
         ? new WeakRef(destinationObject)
         : destinationObject;
-      const rerouted = destinationObject.GetDestination();
-      const destinationSize = Number(rerouted?.size ?? Number.POSITIVE_INFINITY);
-      if (destinationSize >= copyPlan.requiredBytes)
+      const { dest, size } = reroutable.GetDestination();
+      if (size >= copyPlan.requiredBytes)
       {
-        this._reroutedDestination = rerouted?.dest ?? rerouted;
+        this._reroutedDestination = dest;
       }
     }
   }
@@ -258,7 +258,8 @@ export class TriValueBinding extends INotify
    * Runs the callback or the planned copy once, writing through the rerouted
    * buffer when one is installed and notifying the destination when its field
    * declares notify; returns whether any value actually changed.
-   * Adapted: Copies portable JavaScript values and uses the existing JavaScript destination-notification adapter instead of invoking Carbon's native typed copy-function table.
+   * Source: trinity/trinity/TriValueBinding.cpp:44-64
+   * Adapted: Copies portable JavaScript values instead of invoking Carbon's native typed copy-function table; scalar reroute records synchronize the exposed value property.
    * @returns {boolean} Binding result.
    */
   @meta.blue.method
@@ -290,11 +291,12 @@ export class TriValueBinding extends INotify
       this.scale,
       this.offset
     );
+    const reroutable = this._GetReroutableDestination();
     if (
       changed &&
       this._reroutedDestination !== null &&
-      typeof destinationObject.IsRerouted === "function" &&
-      !destinationObject.IsRerouted() &&
+      reroutable &&
+      !reroutable.IsRerouted() &&
       this._reroutedDestination !== logicalDestination &&
       this._reroutedDestination &&
       typeof this._reroutedDestination === "object" &&
@@ -305,7 +307,7 @@ export class TriValueBinding extends INotify
     }
     if (changed && this._notifyDestination)
     {
-      TriValueBinding._notify(destinationObject, this._destination.name, this);
+      TriValueBinding._notify(destinationObject, this._destination.name);
     }
     return changed;
   }
@@ -957,20 +959,18 @@ export class TriValueBinding extends INotify
   }
 
   /**
-   * Notifies the destination of the changed field through UpdateValues,
-   * OnValueChanged or OnModified, whichever it implements.
-   * Custom: implements the existing portable value, path or endpoint adapter.
+   * Notifies a destination that implements the native INotify contract.
+   * Source: trinity/trinity/TriValueBinding.cpp:53-55,406-409
+   * Custom: the JavaScript member name represents Carbon's destination member pointer.
    * @param {object} object Destination owner.
    * @param {string} name Member or root name.
-   * @param {*} source Source value or endpoint.
    * @returns {void} No return value.
    */
   @meta.ours
-  static _notify(object, name, source)
+  static _notify(object, name)
   {
-    if (typeof object.UpdateValues === "function") object.UpdateValues({ property: name, source });
-    else if (typeof object.OnValueChanged === "function") object.OnValueChanged(name, object[name], source);
-    else object.OnModified?.(name);
+    const notify = CjsSchema.cast(object, INotify);
+    if (notify) notify.OnModified(name);
   }
 
   /**
