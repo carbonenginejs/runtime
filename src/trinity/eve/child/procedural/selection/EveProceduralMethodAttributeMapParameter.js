@@ -101,7 +101,7 @@ export class EveProceduralMethodAttributeMapParameter
   @meta.implemented
   Load()
   {
-    this.child?.Reload?.(true);
+    this.child?.Reload(true);
   }
 
 }

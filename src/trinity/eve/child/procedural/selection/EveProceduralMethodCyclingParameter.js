@@ -144,7 +144,7 @@ export class EveProceduralMethodCyclingParameter
 
     if (this.child)
     {
-      this.child.Reload?.(true);
+      this.child.Reload(true);
       this._hasLoaded = true;
     }
   }
