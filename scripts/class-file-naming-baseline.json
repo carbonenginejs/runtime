@@ -4,9 +4,6 @@
       "CjsWwiseSourceEffectRtpcLane",
       "CjsWwiseFilteredControl"
     ],
-    "src/audio/internal/wwiseRoomVerb.js": [
-      "WwiseRoomVerbReader"
-    ],
     "src/resource/format/CjsFormatError.js": [
       "CjsFormatReadError",
       "CjsFormatRangeError",

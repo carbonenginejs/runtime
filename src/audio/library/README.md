@@ -259,7 +259,7 @@ effect has one of these `type` values:
 | `tremolo` | Depth from 0 to 100 percent. Frequency as in `flanger`. `waveform` is `sine`, `square` or `triangle`. `phaseMode` is `left-right`, `front-rear`, `circular` or `random`. Phase offset from -180 to 180 and spread from 0 to 180. `smoothingPercent` and `pwmPercent`. `outputGainDb` from -24 to 24. Boolean `processCenter` and `processLfe`. `rtpcCurves` is optional. `triangle` needs smoothing 0, offset 0, `left-right` and spread 0. `square` accepts only the default shape or smoothing 9, PWM 15, `circular` and spread 180, always with offset 0. |
 | `guitar-distortion` | `preEqBands` and `postEqBands` with up to 3 bands each, like EQ bands. `distortionType` is `overdrive` or `heavy`. Drive, tone and rectification from 0 to 100 percent. `outputGainDb` from -24 to 24. `wetDryMixPercent` exactly 100. `driveRtpcCurve` is optional. |
 | `matrix-reverb` | `reverbTimeSeconds` from 0.1 to 10. `hfRatio` from 0.5 to 10. `numberOfDelays` is 4, 8, 12 or 16. Dry and wet level from float32(-96.3) to 0. `preDelaySeconds` from 0 to 1. `processLfe: true` and `delayLengthsMode: "default"`. |
-| `roomverb` | Validated by `normalizeWwiseRoomVerbEffect()` in `../internal/wwiseRoomVerb.js`. |
+| `roomverb` | Validated by `normalizeWwiseRoomVerbEffect()` in `../internal/WwiseRoomVerbReader.js`. |
 | `meter` | `attack`, `release` and `hold` from 0 to 10. `minimum` from float32(-96.3) to 0. `maximum` from float32(-96.3) to 12, and not below `minimum`. `mode` is `peak` or `rms`. `scope` is `global` or `game-object`. Boolean `infiniteHold` and `applyDownstreamVolume`. `gameParameterId` is an unsigned 32-bit integer. |
 
 The validator accepts these curve forms. Every curve has non-empty points

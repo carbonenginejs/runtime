@@ -9,7 +9,7 @@ import {
     parseStaticWwiseRoomVerbBytes,
     prepareWwiseRoomVerbApproximation,
     WWISE_ROOMVERB_PLUGIN_ID,
-} from "./wwiseRoomVerb.js";
+} from "./WwiseRoomVerbReader.js";
 import { createWwiseSourceEffectRtpcLane } from "./sourceEffectRtpc.js";
 
 export {
