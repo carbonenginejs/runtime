@@ -3,9 +3,8 @@
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { meta } from "#schema";
 import { UnlinkReason } from "../enums.js";
-import { IsMatch, blue, BlueList, IListNotify, ISimTimeRebaseNotify, INotify, CcpTime } from "#blue";
+import { IsMatch, blue, BlueList, IListNotify, ISimTimeRebaseNotify, INotify, CcpTime, CjsBlueClasses } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
-import { mappedInterfaces } from "../../../global/compose/interface.js";
 import { Tr2StateMachineState } from "./Tr2StateMachineState.js";
 
 
@@ -99,7 +98,7 @@ export class Tr2StateMachine
     {
       return;
     }
-    const state = value && mappedInterfaces(value.constructor).has(Tr2StateMachineState) ? value : null;
+    const state = value && blue.classes.QueryThisInterface(value, Tr2StateMachineState, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
     switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
       case BLUELISTEVENT.BELIST_INSERTED:

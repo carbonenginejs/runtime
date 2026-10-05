@@ -2,8 +2,7 @@
 // Source: trinity/trinity/Tr2MaterialParameterStore.cpp
 // Source: trinity/trinity/Tr2MaterialParameterStore_Blue.cpp
 import { meta } from "#schema";
-import { IsMatch, blue, IInitialize, INotify } from "#blue";
-import { mappedInterfaces } from "../../global/compose/interface.js";
+import { IsMatch, blue, IInitialize, INotify, CjsBlueClasses } from "#blue";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 
 /** Local shader parameter overrides with an optional resource-loaded parent store. */
@@ -111,7 +110,7 @@ export class Tr2MaterialParameterStore extends IInitialize
       return null;
     }
     if (request !== this._loadRequest || path !== this.parentPath) return null;
-    const parent = object && mappedInterfaces(object.constructor).has(Tr2MaterialParameterStore) ? object : null;
+    const parent = object && blue.classes.QueryThisInterface(object, Tr2MaterialParameterStore, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
     if (!parent)
     {
       CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Resource ${path} is not a Tr2MaterialParameterStore.`);

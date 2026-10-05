@@ -50,6 +50,8 @@ import { BLUE_OBJECT_METADATA_KEY } from "./IBlueObjectMetadata.js";
 import { getDictionaryDeclarations, readDictionaryValue, writeDictionaryValue } from "./dictionaryDeclarations.js";
 import { getClassRegistration } from "./classes/registry.js";
 import { mappedInterfaces } from "../compose/interface.js";
+import { blue } from "./blue.js";
+import { CjsBlueClasses } from "./CjsBlueClasses.js";
 import { finalizeReaderObject } from "../schema/hydration.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { IList } from "./IList.js";
@@ -591,7 +593,7 @@ export class DictReader extends IRootReaderBase
     // Changed nested lists still use their ordinary values replacement contract.
     if (this._options.reuseObjects === true && MatchesListValues(current, source)) return false;
 
-    if (current && typeof current === "object" && mappedInterfaces(current.constructor).has(IList))
+    if (current && typeof current === "object" && blue.classes.QueryThisInterface(current, IList, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
     {
       return this._ReadIList(current, field, source);
     }
@@ -604,7 +606,7 @@ export class DictReader extends IRootReaderBase
       const itemClassName = typeof itemType === "string" || typeof itemType === "function" ? itemType : itemType?.className ?? null;
       const holdsObjects = (itemClassName && CjsSchema.GetConstructor(itemClassName))
         || (Array.isArray(current) && current.some(IsObjectItem));
-      if (holdsObjects && Array.isArray(current) && !created && mappedInterfaces(instance.constructor).has(IListNotify))
+      if (holdsObjects && Array.isArray(current) && !created && blue.classes.QueryThisInterface(instance, IListNotify, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
       {
         this._ReadLiveList(instance, field, current, [], null, next);
         return current !== next;
@@ -631,7 +633,7 @@ export class DictReader extends IRootReaderBase
     }
 
     const created = this._options.declarations === true ? this._created.has(instance) : this._anchors.isCreated(instance);
-    if (Array.isArray(current) && !created && mappedInterfaces(instance.constructor).has(IListNotify))
+    if (Array.isArray(current) && !created && blue.classes.QueryThisInterface(instance, IListNotify, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
     {
       return this._ReadLiveList(instance, field, current, source, itemClassName);
     }
@@ -1114,7 +1116,7 @@ export class DictReader extends IRootReaderBase
         const visitValue = value =>
         {
           if (!value || typeof value !== "object" || ArrayBuffer.isView(value)) return;
-          if (mappedInterfaces(value.constructor).has(IList))
+          if (blue.classes.QueryThisInterface(value, IList, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
           {
             if (containers.has(value)) return;
             containers.add(value);
@@ -1323,7 +1325,7 @@ export function CreateAnchorTable()
       const visitValue = value =>
       {
         if (!value || typeof value !== "object" || ArrayBuffer.isView(value)) return;
-        if (mappedInterfaces(value.constructor).has(IList))
+        if (blue.classes.QueryThisInterface(value, IList, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
         {
           if (containers.has(value)) return;
           containers.add(value);

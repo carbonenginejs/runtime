@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/Turret/EveTurretFiringFX.h
 // Source: trinity/trinity/Eve/Turret/EveTurretFiringFX.cpp
 // Source: trinity/trinity/Eve/Turret/EveTurretFiringFX_Blue.cpp
-import { IsMatch } from "#blue";
+import { IsMatch, CjsBlueClasses } from "#blue";
 
 import { CjsSchema, meta } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
@@ -10,7 +10,6 @@ import { vec3 } from "#math/vec3";
 import { CjsStretchRuntime } from "../../renderable/stretch/CjsStretchRuntime.js";
 import { ImpactConfiguration } from "../../../generated/include/enums.js";
 import { ITr2ControllerOwner } from "../../../controllers/ITr2ControllerOwner.js";
-import { mappedInterfaces } from "../../../../global/compose/interface.js";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { INotify } from "../../../../global/blue/INotify.js";
 import { IListNotify } from "../../../../global/blue/IListNotify.js";
@@ -395,7 +394,7 @@ export class EveTurretFiringFX extends EveEntity
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     if (!this.isFiring || list !== this.stretch || (event & BLUELISTEVENT.BELIST_LOADING)) return;
-    if (!value || !mappedInterfaces(value.constructor).has(EveEntity)) return;
+    if (!value || blue.classes.QueryThisInterface(value, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null) return;
     const registry = this.GetComponentRegistry();
     if (!registry) return;
     const operation = event & BLUELISTEVENT.BELIST_EVENTMASK;
@@ -474,7 +473,7 @@ export class EveTurretFiringFX extends EveEntity
     {
       const emitter = this.destinationObserver.GetObserver();
       const contract = CjsSchema.GetConstructor("ITr2AudEmitter");
-      if (emitter && contract && mappedInterfaces(emitter.constructor).has(contract))
+      if (emitter && contract && blue.classes.QueryThisInterface(emitter, contract, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
       {
         emitter.SetAttenuationScalingFactor(radius);
       }
@@ -908,7 +907,7 @@ export class EveTurretFiringFX extends EveEntity
   {
     for (const stretch of this.stretch)
     {
-      if (stretch && mappedInterfaces(stretch.constructor).has(ITr2ControllerOwner))
+      if (stretch && blue.classes.QueryThisInterface(stretch, ITr2ControllerOwner, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
       {
         stretch.SetControllerVariable(name, value);
       }
@@ -922,7 +921,7 @@ export class EveTurretFiringFX extends EveEntity
   {
     for (const stretch of this.stretch)
     {
-      if (stretch && mappedInterfaces(stretch.constructor).has(ITr2ControllerOwner))
+      if (stretch && blue.classes.QueryThisInterface(stretch, ITr2ControllerOwner, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
       {
         stretch.HandleControllerEvent(name);
       }
@@ -936,7 +935,7 @@ export class EveTurretFiringFX extends EveEntity
   {
     for (const stretch of this.stretch)
     {
-      if (stretch && mappedInterfaces(stretch.constructor).has(ITr2ControllerOwner))
+      if (stretch && blue.classes.QueryThisInterface(stretch, ITr2ControllerOwner, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
       {
         stretch.StartControllers();
       }
@@ -954,7 +953,7 @@ export class EveTurretFiringFX extends EveEntity
     {
       for (const element of this.stretch)
       {
-        if (element && mappedInterfaces(element.constructor).has(EveEntity)) element.Register(registry);
+        if (element && blue.classes.QueryThisInterface(element, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) element.Register(registry);
       }
     }
   }
@@ -970,7 +969,7 @@ export class EveTurretFiringFX extends EveEntity
     {
       for (const element of this.stretch)
       {
-        if (element && mappedInterfaces(element.constructor).has(EveEntity)) element.UnRegister(registry);
+        if (element && blue.classes.QueryThisInterface(element, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) element.UnRegister(registry);
       }
     }
   }

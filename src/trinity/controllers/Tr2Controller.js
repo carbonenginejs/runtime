@@ -4,12 +4,11 @@
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { meta } from "#schema";
 import { UnlinkReason } from "./enums.js";
-import { blue, BlueList, IListNotify, CcpTime } from "#blue";
+import { blue, BlueList, IListNotify, CcpTime, CjsBlueClasses } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ContinueOnMainThread } from "../core/continueOnMainThread.js";
 import { EveThrottleable } from "../eve/EveThrottleable.js";
 import { ITr2ActionController, ITr2Controller } from "./ITr2Controller/index.js";
-import { mappedInterfaces } from "../../global/compose/interface.js";
 import { Tr2StateMachine } from "./state/Tr2StateMachine.js";
 import { Tr2ControllerFloatVariable } from "./expression/Tr2ControllerFloatVariable.js";
 import { Tr2ControllerEventHandler } from "./Tr2ControllerEventHandler.js";
@@ -677,7 +676,7 @@ export class Tr2Controller extends EveThrottleable
   @meta.ours
   _OnStateMachineListModified(event, value)
   {
-    const stateMachine = value && mappedInterfaces(value.constructor).has(Tr2StateMachine) ? value : null;
+    const stateMachine = value && blue.classes.QueryThisInterface(value, Tr2StateMachine, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
     switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
       case BLUELISTEVENT.BELIST_INSERTED:
@@ -713,7 +712,7 @@ export class Tr2Controller extends EveThrottleable
   @meta.ours
   _OnEventHandlerListModified(event, value)
   {
-    const handler = value && mappedInterfaces(value.constructor).has(Tr2ControllerEventHandler) ? value : null;
+    const handler = value && blue.classes.QueryThisInterface(value, Tr2ControllerEventHandler, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
     switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
       case BLUELISTEVENT.BELIST_INSERTED:

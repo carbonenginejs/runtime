@@ -3,8 +3,7 @@
 // Source: trinity/trinity/Curves/Tr2FollowCurveKey_Blue.cpp:45-64
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { IsMatch, INotify, IInitialize } from "#blue";
-import { mappedInterfaces } from "../../../global/compose/interface.js";
+import { IsMatch, INotify, IInitialize, blue, CjsBlueClasses } from "#blue";
 import { IWorldPosition } from "../../core/IWorldPosition.js";
 import { EveSpaceObject2 } from "../../eve/spaceObject/EveSpaceObject2.js";
 import { ITr2FollowCurveKey } from "../ITr2FollowCurveKey.js";
@@ -217,7 +216,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
     {
       return null;
     }
-    if (mappedInterfaces(object.constructor).has(EveSpaceObject2))
+    if (blue.classes.QueryThisInterface(object, EveSpaceObject2, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
     {
       const locators = object.GetLocatorsForSet(this.offsetLocatorName);
       if (locators && locators.length > 0)
@@ -246,7 +245,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
         break;
       case RotationSetting.MODEL_ROTATION:
         {
-          if (this.object && mappedInterfaces(this.object.constructor).has(IWorldPosition))
+          if (this.object && blue.classes.QueryThisInterface(this.object, IWorldPosition, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
           {
             return quat.normalize(this._rotation, this.object.GetWorldRotation());
           }
@@ -264,7 +263,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
   @meta.ours
   GetWorldPosition(out)
   {
-    return this.object && mappedInterfaces(this.object.constructor).has(IWorldPosition)
+    return this.object && blue.classes.QueryThisInterface(this.object, IWorldPosition, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null
       ? this.object.GetWorldPosition(out) : null;
   }
 

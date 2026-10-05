@@ -1,10 +1,9 @@
 // Source: trinity/trinity/Controllers/Tr2ControllerReference.h
 // Source: trinity/trinity/Controllers/Tr2ControllerReference.cpp
 // Source: trinity/trinity/Controllers/Tr2ControllerReference_Blue.cpp
-import { IsMatch, blue, INotify, IInitialize } from "#blue";
+import { IsMatch, blue, INotify, IInitialize, CjsBlueClasses } from "#blue";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { meta } from "#schema";
-import { mappedInterfaces } from "../../global/compose/interface.js";
 import { UnlinkReason } from "./enums.js";
 import { ITr2Controller } from "./ITr2Controller/index.js";
 
@@ -245,7 +244,7 @@ export class Tr2ControllerReference extends ITr2Controller
     }
     if (request !== this._loadRequest || path !== this.path) return null;
     // Native LoadObject<ITr2Controller> requires the exposed interface identity.
-    const controller = object && mappedInterfaces(object.constructor).has(ITr2Controller) ? object : null;
+    const controller = object && blue.classes.QueryThisInterface(object, ITr2Controller, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
     if (!controller)
     {
       CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Resource ${path} is not an ITr2Controller.`);

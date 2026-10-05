@@ -7,7 +7,7 @@ import { vec4 } from "#math/vec4";
 import { IEveSpaceObject2ParentData } from "./IEveSpaceObject2ParentData.js";
 import { vec3 } from "#math/vec3";
 import { meta } from "#schema";
-import { mappedInterfaces } from "../../../global/compose/interface.js";
+import { blue, CjsBlueClasses } from "#blue";
 import { IListNotify } from "#blue/IListNotify";
 import { BLUELISTEVENT } from "#consts/blue";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
@@ -85,7 +85,7 @@ export class EveMobile extends EveSpaceObject2
     const action = event & BLUELISTEVENT.BELIST_EVENTMASK;
     if (action === BLUELISTEVENT.BELIST_INSERTED || action === BLUELISTEVENT.BELIST_REMOVED)
     {
-      if (list !== this.turretSets || !value || !mappedInterfaces(value.constructor).has(EveTurretSet)) return;
+      if (list !== this.turretSets || !value || blue.classes.QueryThisInterface(value, EveTurretSet, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null) return;
       this.RebuildTurretPositions();
       if (action === BLUELISTEVENT.BELIST_INSERTED)
       {
@@ -97,7 +97,7 @@ export class EveMobile extends EveSpaceObject2
     {
       for (const entity of list)
       {
-        if (entity && mappedInterfaces(entity.constructor).has(EveEntity)) entity.UnRegister(this.GetComponentRegistry());
+        if (entity && blue.classes.QueryThisInterface(entity, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) entity.UnRegister(this.GetComponentRegistry());
       }
     }
   }

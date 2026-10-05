@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch3.h
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch3.cpp
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch3_Blue.cpp
-import { IsMatch } from "#blue";
+import { IsMatch, blue, CjsBlueClasses } from "#blue";
 
 import { mat4 } from "#math/mat4";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
@@ -27,7 +27,6 @@ import { EveChildModifierStretch } from "../../child/modifiers/EveChildModifierS
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { INotify } from "../../../../global/blue/INotify.js";
 import { IListNotify } from "../../../../global/blue/IListNotify.js";
-import { mappedInterfaces } from "../../../../global/compose/interface.js";
 import { CjsStretchRuntime } from "./CjsStretchRuntime.js";
 
 
@@ -374,7 +373,7 @@ export class EveStretch3 extends IEveFiringEffectElement
     const maskedEvent = event & BLUELISTEVENT.BELIST_EVENTMASK;
     if (list === this.controllers)
     {
-      const controller = value && mappedInterfaces(value.constructor).has(ITr2Controller) ? value : null;
+      const controller = value && blue.classes.QueryThisInterface(value, ITr2Controller, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
       if (maskedEvent === BLUELISTEVENT.BELIST_INSERTED && controller) controller.Link(this);
       else if (maskedEvent === BLUELISTEVENT.BELIST_REMOVED && controller) controller.Unlink();
       else if (maskedEvent === BLUELISTEVENT.BELIST_UNLOADSTART)
@@ -384,7 +383,7 @@ export class EveStretch3 extends IEveFiringEffectElement
     }
     else if (list === this.dynamicBindings)
     {
-      const binding = value && mappedInterfaces(value.constructor).has(Tr2DynamicBinding) ? value : null;
+      const binding = value && blue.classes.QueryThisInterface(value, Tr2DynamicBinding, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
       if (!binding) return;
       if (maskedEvent === BLUELISTEVENT.BELIST_INSERTED)
       {
@@ -431,10 +430,10 @@ export class EveStretch3 extends IEveFiringEffectElement
   {
     const registry = this.GetComponentRegistry();
     const previous = this._sourceObject;
-    const previousEntity = previous && mappedInterfaces(previous.constructor).has(EveEntity) ? previous : null;
+    const previousEntity = previous && blue.classes.QueryThisInterface(previous, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
     if (previousEntity) previousEntity.UnRegister(registry);
     this._sourceObject = value;
-    const entity = value && mappedInterfaces(value.constructor).has(EveEntity) ? value : null;
+    const entity = value && blue.classes.QueryThisInterface(value, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
     if (entity) entity.Register(registry);
   }
 
@@ -453,10 +452,10 @@ export class EveStretch3 extends IEveFiringEffectElement
   {
     const registry = this.GetComponentRegistry();
     const previous = this._destObject;
-    const previousEntity = previous && mappedInterfaces(previous.constructor).has(EveEntity) ? previous : null;
+    const previousEntity = previous && blue.classes.QueryThisInterface(previous, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
     if (previousEntity) previousEntity.UnRegister(registry);
     this._destObject = value;
-    const entity = value && mappedInterfaces(value.constructor).has(EveEntity) ? value : null;
+    const entity = value && blue.classes.QueryThisInterface(value, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
     if (entity) entity.Register(registry);
   }
 
@@ -475,7 +474,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   {
     const registry = this.GetComponentRegistry();
     const previous = this._stretchObject;
-    const previousEntity = previous && mappedInterfaces(previous.constructor).has(EveEntity) ? previous : null;
+    const previousEntity = previous && blue.classes.QueryThisInterface(previous, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
     if (previousEntity) previousEntity.UnRegister(registry);
     this._stretchObject = value;
     if (value)
@@ -484,7 +483,7 @@ export class EveStretch3 extends IEveFiringEffectElement
       if (this.dest) this._stretchModifier.SetDest(this.dest);
     }
     else this._stretchModifier = null;
-    const entity = value && mappedInterfaces(value.constructor).has(EveEntity) ? value : null;
+    const entity = value && blue.classes.QueryThisInterface(value, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
     if (entity) entity.Register(registry);
   }
 
@@ -503,10 +502,10 @@ export class EveStretch3 extends IEveFiringEffectElement
   {
     const registry = this.GetComponentRegistry();
     const previous = this._moveObject;
-    const previousEntity = previous && mappedInterfaces(previous.constructor).has(EveEntity) ? previous : null;
+    const previousEntity = previous && blue.classes.QueryThisInterface(previous, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
     if (previousEntity) previousEntity.UnRegister(registry);
     this._moveObject = value;
-    const entity = value && mappedInterfaces(value.constructor).has(EveEntity) ? value : null;
+    const entity = value && blue.classes.QueryThisInterface(value, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
     if (entity) entity.Register(registry);
   }
 
@@ -1074,7 +1073,7 @@ export class EveStretch3 extends IEveFiringEffectElement
     {
       this._RunOnComponents((component) =>
       {
-        const entity = component && mappedInterfaces(component.constructor).has(EveEntity) ? component : null;
+        const entity = component && blue.classes.QueryThisInterface(component, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
         if (entity) entity.Register(registry);
       });
     }
@@ -1090,7 +1089,7 @@ export class EveStretch3 extends IEveFiringEffectElement
     {
       this._RunOnComponents((component) =>
       {
-        const entity = component && mappedInterfaces(component.constructor).has(EveEntity) ? component : null;
+        const entity = component && blue.classes.QueryThisInterface(component, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
         if (entity) entity.UnRegister(registry);
       });
     }

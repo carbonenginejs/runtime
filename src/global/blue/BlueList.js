@@ -1,7 +1,8 @@
 // Source: blueexposure/include/BlueListUtil.h:172-347,459-476,506-781
 import { CjsSchema, meta } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
-import { mappedInterfaces } from "../compose/interface.js";
+import { blue } from "./blue.js";
+import { CjsBlueClasses } from "./CjsBlueClasses.js";
 import { IList } from "./IList.js";
 import { IListNotify } from "./IListNotify.js";
 import { ICopierCustomAssignment } from "./ICopierCustomAssignment.js";
@@ -292,7 +293,7 @@ export class BlueList extends Array
 /** Native QI admission, represented by the exact constructor identity in the exposure table. */
 function AcceptsItem(list, value)
 {
-  return value !== null && typeof value === "object" && mappedInterfaces(value.constructor).has(list._itemType);
+  return value !== null && typeof value === "object" && blue.classes.QueryThisInterface(value, list._itemType, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null;
 }
 
 /** JavaScript rejects keys that cannot represent a valid native item position. */

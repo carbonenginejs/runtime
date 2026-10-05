@@ -2,8 +2,7 @@
 // Source: trinity/trinity/Interior/Tr2InteriorPlaceable.cpp
 // Source: trinity/trinity/Interior/Tr2InteriorPlaceable_Blue.cpp
 import { meta } from "#schema";
-import { blue, IInitialize, INotify, IsMatch } from "#blue";
-import { mappedInterfaces } from "../../../global/compose/interface.js";
+import { blue, IInitialize, INotify, IsMatch, CjsBlueClasses } from "#blue";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { WodPlaceableRes } from "../../../resource/geometry/WodPlaceableRes.js";
 import { mat4 } from "#math/mat4";
@@ -116,7 +115,7 @@ export class Tr2InteriorPlaceable
       {
         ++this._loadRequest;
         const copy = blue.classes.CloneTo(this.placeableRes);
-        this.placeableRes = copy && mappedInterfaces(copy.constructor).has(WodPlaceableRes) ? copy : null;
+        this.placeableRes = copy && blue.classes.QueryThisInterface(copy, WodPlaceableRes);
       }
       else
       {
@@ -155,7 +154,7 @@ export class Tr2InteriorPlaceable
       return null;
     }
     if (request !== this._loadRequest || path !== this.placeableResPath) return null;
-    if (!object || !mappedInterfaces(object.constructor).has(WodPlaceableRes))
+    if (!object || blue.classes.QueryThisInterface(object, WodPlaceableRes, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null)
     {
       CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Resource ${path} is not a WodPlaceableRes.`);
       return null;
