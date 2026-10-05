@@ -10,6 +10,7 @@ import { EveChildTransform } from "../child/EveChildTransform.js";
 import { EveChildQuad } from "../../eve/child/EveChildQuad.js";
 import { resolveGroupColor } from "../../eve/smartLights/EveSmartLightBaseGroup.js";
 import { Tr2Effect } from "../../shader/Tr2Effect.js";
+import { Tr2QuadRenderer } from "../../core/Tr2QuadRenderer/index.js";
 import { color } from "#math/color";
 import { quat } from "#math/quat";
 import { mat4 } from "#math/mat4";
@@ -264,28 +265,25 @@ export class EveSmartLightQuad extends EveChildTransform
    * and updates the attribute modifiers with full strength
    * (EveSmartLightQuad.cpp:73-98).
    *
-   * Adapted: Carbon re-registers through the Tr2QuadRenderer singleton; the relocated
-   * renderer arrives via the threaded update context when present.
+   * Carbon re-registers through the shared Tr2QuadRenderer singleton when the
+   * effect key changes in edit mode (cpp:77-90). EveUpdateContext has no
+   * GetQuadRenderer contract.
    */
   @meta.blue.renamed("UpdateSyncronous")
-  @meta.adapted
+  @meta.implemented
   UpdateSyncronous_Distribution(updateContext, params, _distribution)
   {
-    this._activationStrength = params?.activationStrength ?? 1;
+    this._activationStrength = params.activationStrength;
 
     if (this.editMode)
     {
       if (this.effect)
       {
-        const key = Number(this.effect.GetHashValue()) >>> 0;
+        const key = this.effect.GetHashValue();
         if (key !== this._effectKey)
         {
           this._effectKey = key;
-          const quadRenderer = updateContext?.GetQuadRenderer?.() ?? updateContext?.quadRenderer;
-          if (quadRenderer)
-          {
-            this.RegisterWithQuadRenderer(quadRenderer);
-          }
+          this.RegisterWithQuadRenderer(Tr2QuadRenderer.Instance());
         }
       }
       else

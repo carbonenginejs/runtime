@@ -123,13 +123,14 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
    *
    * Adapted: Carbon reads Tr2Renderer view statics; the relocated camera state is captured
    * from the update context's render context here because ProcessAttributeModifier carries
-   * no context.
+   * no context. The captured context and its view getters are required whenever
+   * camera state is consumed (native cpp:52-72,95-104).
    */
   @meta.blue.method
   @meta.adapted
   UpdateSyncronous(updateContext, _params, activationMultiplier)
   {
-    this._renderContext = updateContext?.renderContext ?? null;
+    this._renderContext = updateContext.renderContext;
     this.UpdateActivationStrength(activationMultiplier, updateContext.GetDeltaT());
   }
 
@@ -160,7 +161,7 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
    */
   _GetActivationValue(objectPosition, entityDirection)
   {
-    const camPos = this._renderContext?.GetViewPosition() ?? EveSmartLightAttributeModifierCameraDependency._zero;
+    const camPos = this._renderContext.GetViewPosition();
     const vec2obj = EveSmartLightAttributeModifierCameraDependency._vec2obj;
     if (this.overwritePosition)
     {
@@ -206,11 +207,7 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
     {
       return 1;
     }
-    const view = this._renderContext?.GetViewTransform?.();
-    if (!view)
-    {
-      return 1;
-    }
+    const view = this._renderContext.GetViewTransform();
     const scratch = EveSmartLightAttributeModifierCameraDependency._normalized;
     vec3.normalize(scratch, vec2obj);
     let lookAtAmplitude = -(view[2] * scratch[0] + view[6] * scratch[1] + view[10] * scratch[2]);
@@ -258,7 +255,6 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
     return placementAmplitude;
   }
 
-  static _zero = vec3.create();
 
   static _vec2obj = vec3.create();
 
