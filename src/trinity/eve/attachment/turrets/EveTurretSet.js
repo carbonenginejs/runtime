@@ -2113,7 +2113,7 @@ export class EveTurretSet extends EveEntity
    * becomes the optional trailing length-1 array (out-params last).
    * Adapted: The length-1 out array replaces the float& out-param; the shadow math is ported, including exactly which paths write the out value.
    */
-  @meta.blue.renamed("IsCastingShadow")
+  @meta.renamed("IsCastingShadow")
   @meta.adapted
   IsCastingShadow_ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
   {

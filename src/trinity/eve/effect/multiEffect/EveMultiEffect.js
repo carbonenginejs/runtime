@@ -335,7 +335,7 @@ export class EveMultiEffect
    * IEveSpaceObject2 hook; the effect contributes no renderables - it animates
    * objects that are collected by their own owners.
    */
-  @meta.blue.renamed("GetRenderables")
+  @meta.renamed("GetRenderables")
   @meta.noop
   GetRenderables_Impostors(_renderables, _impostors)
   {

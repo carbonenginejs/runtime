@@ -16,8 +16,8 @@
 //
 // JS method resolution credits the full chain: own methods, base classes,
 // and declared contract methods. Composed interfaces contribute their bodies
-// alongside the primary prototype chain. @meta.blue.renamed("X") counts as X, and
-// so does carbon.renamed("X") given at define time - in a
+// alongside the primary prototype chain. @meta.renamed("X") counts as X, and
+// so does meta.renamed("X") given at define time - in a
 // `CjsSchema.define(Class, { methods: { Name: [ ... ] } })` map or a
 // `CjsSchema.decorateMethod(Class, "Name", ...)` call - which is the only form
 // src/global/blue may use (no decorator syntax there). Both forms are read from
@@ -304,7 +304,7 @@ async function ReadJavaScriptClasses(directory)
 }
 
 /**
- * Carbon originals from define-time `carbon.renamed("X")`, keyed by the class
+ * Carbon originals from define-time `meta.renamed("X")`, keyed by the class
  * binding the call names: `CjsSchema.define(Class, { methods: { Name: [...] } })`
  * and `CjsSchema.decorateMethod(Class, "Name", ...)` at module top level.
  */

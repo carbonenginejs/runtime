@@ -68,8 +68,8 @@ for (const method of [ "Update", "GetValueAt" ])
 {
   CjsSchema.decorateMethod(ITriColorFunction, method, meta.requires, meta.abstract);
 }
-CjsSchema.decorateMethod(ITriColorFunction, "Update_Ticks", meta.blue.renamed("Update"), meta.adapted);
-CjsSchema.decorateMethod(ITriColorFunction, "GetValueAt_Ticks", meta.blue.renamed("GetValueAt"), meta.adapted);
+CjsSchema.decorateMethod(ITriColorFunction, "Update_Ticks", meta.renamed("Update"), meta.adapted);
+CjsSchema.decorateMethod(ITriColorFunction, "GetValueAt_Ticks", meta.renamed("GetValueAt"), meta.adapted);
 CjsSchema.define(ITriColorFunction, {
   className: "ITriColorFunction", carbon: "ITriColorFunction", family: "blue", fields: {}
 });

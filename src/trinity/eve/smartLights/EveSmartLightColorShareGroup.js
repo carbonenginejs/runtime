@@ -241,7 +241,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * Updates the shared groups, then the group's own attribute modifiers with
    * full strength (EveSmartLightColorShareGroup.cpp:140-151).
    */
-  @meta.blue.renamed("UpdateSyncronous")
+  @meta.renamed("UpdateSyncronous")
   @meta.implemented
   UpdateSyncronous_Distribution(updateContext, params, distribution)
   {
@@ -262,7 +262,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * child group before their asynchronous update
    * (EveSmartLightColorShareGroup.cpp:153-168).
    */
-  @meta.blue.renamed("UpdateAsyncronous")
+  @meta.renamed("UpdateAsyncronous")
   @meta.implemented
   UpdateAsyncronous_Distribution(updateContext, params, distribution)
   {

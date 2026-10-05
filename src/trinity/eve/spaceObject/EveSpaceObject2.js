@@ -1960,7 +1960,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {Tr2ImpostorManager|null} impostors The scene's impostor manager, if any.
    * @returns {ITr2Renderable[]} out
    */
-  @meta.blue.renamed("GetRenderables")
+  @meta.renamed("GetRenderables")
   @meta.adapted
   GetRenderables_Impostors(out = [], impostors)
   {
@@ -2507,7 +2507,7 @@ export class EveSpaceObject2 extends EveEntity
    * Adapted: The optional length-one array replaces Carbon's float& sizeInShadow
    * out-parameter.
    */
-  @meta.blue.renamed("IsCastingShadow")
+  @meta.renamed("IsCastingShadow")
   @meta.adapted
   IsCastingShadow_ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
   {

@@ -127,7 +127,7 @@ export class EveFiringEffectElementContainer extends EveEntity
    *
    * @returns {Array} out
    */
-  @meta.blue.renamed("GetRenderables")
+  @meta.renamed("GetRenderables")
   @meta.adapted
   GetRenderables_Impostors(out = [], _impostors)
   {

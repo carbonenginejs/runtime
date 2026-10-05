@@ -734,7 +734,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * displayed. EveStretch3 has no batches of its own; its children draw.
    * @returns {Array} out
    */
-  @meta.blue.renamed("GetRenderables")
+  @meta.renamed("GetRenderables")
   @meta.implemented
   GetRenderables_Impostors(out = [], _impostors)
   {

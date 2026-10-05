@@ -132,10 +132,10 @@ for (const method of [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleD
 {
   CjsSchema.decorateMethod(ITriVectorFunction, method, meta.requires, meta.abstract);
 }
-CjsSchema.decorateMethod(ITriVectorFunction, "Update_Ticks", meta.blue.renamed("Update"), meta.adapted);
-CjsSchema.decorateMethod(ITriVectorFunction, "GetValueAt_Ticks", meta.blue.renamed("GetValueAt"), meta.adapted);
-CjsSchema.decorateMethod(ITriVectorFunction, "GetValueDotAt_Ticks", meta.blue.renamed("GetValueDotAt"), meta.adapted);
-CjsSchema.decorateMethod(ITriVectorFunction, "GetValueDoubleDotAt_Ticks", meta.blue.renamed("GetValueDoubleDotAt"), meta.adapted);
+CjsSchema.decorateMethod(ITriVectorFunction, "Update_Ticks", meta.renamed("Update"), meta.adapted);
+CjsSchema.decorateMethod(ITriVectorFunction, "GetValueAt_Ticks", meta.renamed("GetValueAt"), meta.adapted);
+CjsSchema.decorateMethod(ITriVectorFunction, "GetValueDotAt_Ticks", meta.renamed("GetValueDotAt"), meta.adapted);
+CjsSchema.decorateMethod(ITriVectorFunction, "GetValueDoubleDotAt_Ticks", meta.renamed("GetValueDoubleDotAt"), meta.adapted);
 CjsSchema.define(ITriVectorFunction, {
   className: "ITriVectorFunction", carbon: "ITriVectorFunction", family: "blue", fields: {}
 });

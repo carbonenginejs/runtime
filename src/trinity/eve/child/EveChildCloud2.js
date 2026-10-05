@@ -818,7 +818,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * distance minus |authored local scaling| * sortingModifier, consumed by the
    * volumetric renderer's DESCENDING stable sort (farthest first,
    * Tr2VolumetricsRenderer.cpp:276-287). */
-  @meta.blue.renamed("GetSortValue")
+  @meta.renamed("GetSortValue")
   @meta.implemented
   GetSortValue_Frustum(frustum)
   {
@@ -1208,7 +1208,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
 
   /** Carbon's GetPerObjectData( accumulator, screenSize ): allocates and fills the
    * concrete cloud struct (cpp:516). */
-  @meta.blue.renamed("GetPerObjectData")
+  @meta.renamed("GetPerObjectData")
   @meta.implemented
   GetPerObjectData_ScreenSize(accumulator, screenSize)
   {

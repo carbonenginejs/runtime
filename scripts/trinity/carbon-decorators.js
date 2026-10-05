@@ -14,6 +14,15 @@ export function isCarbonDecorator(expression, name)
     || expression.property.name !== name) return false;
 
   const owner = expression.object;
+  // `renamed` is `meta.renamed` (or `CjsSchema.meta.renamed`), not a carbon/blue member.
+  if (name === "renamed")
+  {
+    if (owner?.type === "Identifier") return owner.name === "meta";
+    return owner?.type === "MemberExpression"
+      && owner.computed === false
+      && owner.property?.type === "Identifier"
+      && owner.property.name === "meta";
+  }
   if (owner?.type === "Identifier") return owner.name === "carbon";
   return owner?.type === "MemberExpression"
     && owner.computed === false

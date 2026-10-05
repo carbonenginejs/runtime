@@ -166,7 +166,7 @@ export class Tr2StaticEmitter
   }
 
   /** Carbon's start/end SpawnParticles overload; empty, as above. */
-  @meta.blue.renamed("SpawnParticles")
+  @meta.renamed("SpawnParticles")
   @meta.noop
   SpawnParticles_StartEnd(_arguments, _positionStart, _positionEnd, _velocityStart, _velocityEnd, _deltaTime)
   {

@@ -462,7 +462,7 @@ export class EveSceneStaticParticles
    * @private
    * @returns {Tr2RuntimeInstanceData|null} The accepted instance-data receiver.
    */
-  @meta.blue.renamed("GetInstanceDataObject")
+  @meta.renamed("GetInstanceDataObject")
   @meta.adapted
   _GetInstanceDataObject()
   {

@@ -415,7 +415,7 @@ export class Tr2StateMachineState
    * @returns {Tr2StateMachineState|null} First active destination, or null.
    */
   @meta.blue.method
-  @meta.blue.renamed("GetNextState")
+  @meta.renamed("GetNextState")
   @meta.adapted
   _getNextState()
   {

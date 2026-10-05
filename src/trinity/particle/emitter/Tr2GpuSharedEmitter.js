@@ -335,7 +335,7 @@ export class Tr2GpuSharedEmitter
    * also exposes Carbon's second overload explicitly for existing JS callers.
    * Formerly SpawnParticlesSegment.
    */
-  @meta.blue.renamed("SpawnParticles")
+  @meta.renamed("SpawnParticles")
   @meta.adapted
   SpawnParticles_StartEnd(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime)
   {
@@ -385,7 +385,7 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Carbon's protected SpawnParticles overload, with a distinct JS name. */
-  @meta.blue.renamed("SpawnParticles")
+  @meta.renamed("SpawnParticles")
   @meta.adapted
   _SpawnParticles(emitter, arguments_, positionStart, positionEnd, velocityStart, velocityEnd, carryOverCount, deltaTime)
   {

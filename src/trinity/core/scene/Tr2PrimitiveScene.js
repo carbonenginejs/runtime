@@ -55,7 +55,7 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
   /** Immediate object picking becomes awaitable on browser backends. */
   @meta.blue.method
   @meta.adapted
-  @meta.blue.renamed("PickObjectOnly")
+  @meta.renamed("PickObjectOnly")
   async PickObject(x, y, projection, view, viewport, _flags = 0)
   {
     const result = { components: 1, object: null };

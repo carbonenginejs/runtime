@@ -1258,7 +1258,7 @@ export class Tr2Effect extends Tr2Material
    * @param {number} value Unsigned 32-bit integer.
    * @returns {void}
    */
-  @meta.blue.renamed("SetParameter")
+  @meta.renamed("SetParameter")
   @meta.implemented
   SetParameter_UInt32(name, value)
   {
@@ -1273,7 +1273,7 @@ export class Tr2Effect extends Tr2Material
    * @param {ArrayLike<number>} value Two components.
    * @returns {void}
    */
-  @meta.blue.renamed("SetParameter")
+  @meta.renamed("SetParameter")
   @meta.implemented
   SetParameter_Vector2(name, value)
   {
@@ -1287,7 +1287,7 @@ export class Tr2Effect extends Tr2Material
    * @param {ArrayLike<number>} value Three components.
    * @returns {void}
    */
-  @meta.blue.renamed("SetParameter")
+  @meta.renamed("SetParameter")
   @meta.implemented
   SetParameter_Vector3(name, value)
   {
@@ -1301,7 +1301,7 @@ export class Tr2Effect extends Tr2Material
    * @param {ArrayLike<number>} value Four components.
    * @returns {void}
    */
-  @meta.blue.renamed("SetParameter")
+  @meta.renamed("SetParameter")
   @meta.implemented
   SetParameter_Vector4(name, value)
   {
@@ -1315,7 +1315,7 @@ export class Tr2Effect extends Tr2Material
    * @param {ArrayLike<number>} value Sixteen components.
    * @returns {void}
    */
-  @meta.blue.renamed("SetParameter")
+  @meta.renamed("SetParameter")
   @meta.implemented
   SetParameter_Matrix(name, value)
   {
@@ -1330,7 +1330,7 @@ export class Tr2Effect extends Tr2Material
    * @param {?Object} buffer GPU buffer provider, or null to clear.
    * @returns {void}
    */
-  @meta.blue.renamed("SetParameter")
+  @meta.renamed("SetParameter")
   @meta.implemented
   SetParameter_GpuBuffer(name, buffer)
   {
@@ -1355,7 +1355,7 @@ export class Tr2Effect extends Tr2Material
    * @param {number} [uavMipLevel=0] UAV mip level.
    * @returns {void}
    */
-  @meta.blue.renamed("SetParameter")
+  @meta.renamed("SetParameter")
   @meta.adapted
   SetParameter_TextureProvider(name, texture, uavMipLevel = 0)
   {
@@ -1372,7 +1372,7 @@ export class Tr2Effect extends Tr2Material
    * @param {number} [uavMipLevel=0] UAV mip level.
    * @returns {void}
    */
-  @meta.blue.renamed("SetParameter")
+  @meta.renamed("SetParameter")
   @meta.adapted
   SetParameter_TextureAL(name, texture, uavMipLevel = 0)
   {
@@ -1387,7 +1387,7 @@ export class Tr2Effect extends Tr2Material
    * @param {?Tr2BufferAL} buffer Buffer, or null for an empty one.
    * @returns {void}
    */
-  @meta.blue.renamed("SetParameter")
+  @meta.renamed("SetParameter")
   @meta.adapted
   SetParameter_BufferAL(name, buffer)
   {

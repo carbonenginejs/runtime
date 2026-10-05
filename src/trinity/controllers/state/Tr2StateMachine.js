@@ -343,7 +343,7 @@ export class Tr2StateMachine
    * @returns {void}
    */
   @meta.blue.method
-  @meta.blue.renamed("FollowTransitions")
+  @meta.renamed("FollowTransitions")
   @meta.adapted
   _followTransitions(dirtyVariables)
   {

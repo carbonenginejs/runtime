@@ -208,7 +208,7 @@ export class EveVirtualCameraSystem
    * @param {EveVirtualCamera} camera
    * @param {EveVirtualCameraTransitionBase} transition
    */
-  @meta.blue.renamed("SetMainCamera")
+  @meta.renamed("SetMainCamera")
   @meta.implemented
   SetMainCamera_Transition(camera, transition)
   {

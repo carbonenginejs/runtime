@@ -917,6 +917,22 @@ export class CjsSchema
         return decorators;
     }
 
+    /**
+     * `@meta.renamed("Original")`: a method ported under another name. Records
+     * the Carbon original in the method's `carbon` metadata, as before.
+     */
+    static #renamed = originalName => {
+        if (typeof originalName !== "string" || !originalName.trim())
+        {
+            throw new TypeError("meta.renamed requires a non-empty original method name.");
+        }
+        return methodDecorator("carbon", {
+            method: true,
+            renamed: true,
+            originalName: originalName.trim()
+        });
+    };
+
     static #carbon = {
         // Carbon's base list and Carbon's exposure table: two different facts,
         // two decorators, both factual and so both here rather than in
@@ -929,17 +945,6 @@ export class CjsSchema
         interface: (...Interfaces) => carbonInterfaceDecorator(Interfaces),
         chainTo: Parent => carbonChainToDecorator(Parent),
         method: methodDecorator("carbon", { method: true }),
-        renamed: originalName => {
-            if (typeof originalName !== "string" || !originalName.trim())
-            {
-                throw new TypeError("CjsSchema.carbon.renamed requires a non-empty original method name.");
-            }
-            return methodDecorator("carbon", {
-                method: true,
-                renamed: true,
-                originalName: originalName.trim()
-            });
-        },
         /**
          * Marks a method that takes, as its first argument, the context standing
          * in for Carbon renderer or process globals; the decorator throws when the
@@ -1000,6 +1005,7 @@ export class CjsSchema
         type: Object.fromEntries(Object.entries(this.#type).filter(([name]) => !["define", "hideInherited"].includes(name))),
         ...Object.fromEntries(Object.entries(this.#impl).filter(([name]) => name !== "custom")),
         ours: this.#impl.custom,
+        renamed: this.#renamed,
         ...this.#lifecycle,
         events: this.#compose.notify,
         requires: this.#compose.abstract,

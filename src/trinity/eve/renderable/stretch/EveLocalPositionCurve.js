@@ -114,7 +114,7 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * @param {Float32Array} out Caller-owned vec3.
    * @returns {Float32Array} out
    */
-  @meta.blue.renamed("Update")
+  @meta.renamed("Update")
   @meta.adapted
   Update_Ticks(time, out)
   {
@@ -162,7 +162,7 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * @param {Float32Array} out Caller-owned vec3.
    * @returns {Float32Array} out
    */
-  @meta.blue.renamed("GetValueAt")
+  @meta.renamed("GetValueAt")
   @meta.adapted
   GetValueAt_Ticks(time, out)
   {

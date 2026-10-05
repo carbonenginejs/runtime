@@ -118,7 +118,7 @@ export class EveSOFDNA
    * @param {EveSOFDNA|null} parent
    * @param {EveSOFDataMgr} dataMgr
    */
-  @meta.blue.renamed("Setup")
+  @meta.renamed("Setup")
   @meta.implemented
   Setup_Descriptor(layoutName, descriptor, parent, dataMgr)
   {

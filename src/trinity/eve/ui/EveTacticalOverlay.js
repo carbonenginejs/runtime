@@ -316,7 +316,7 @@ export class EveTacticalOverlay
   }
 
   /** Carbon's tactical overlay has no ordinary renderable children. */
-  @meta.blue.renamed("GetRenderables")
+  @meta.renamed("GetRenderables")
   @meta.noop
   GetRenderables_Impostors(_renderables, _impostors)
   {

@@ -820,7 +820,7 @@ export class EveBoosterSet2 extends EveEntity
    * @param {number} index Renderable instance index.
    * @returns {number}
    */
-  @meta.blue.renamed("GetBoosterIntensity")
+  @meta.renamed("GetBoosterIntensity")
   @meta.implemented
   GetBoosterIntensity_Index(index)
   {

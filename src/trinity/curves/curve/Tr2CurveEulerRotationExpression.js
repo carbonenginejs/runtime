@@ -401,7 +401,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @param {number} time Sample time.
    * @returns {number}
    */
-  @meta.blue.renamed("GetInputValue")
+  @meta.renamed("GetInputValue")
   @meta.adapted
   GetInputValue_Time(index, time)
   {

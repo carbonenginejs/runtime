@@ -567,7 +567,7 @@ export class Tr2Material
    * @param {string} techniqueName Technique name.
    * @returns {boolean}
    */
-  @meta.blue.renamed("CompatibleWithGdr")
+  @meta.renamed("CompatibleWithGdr")
   @meta.implemented
   CompatibleWithGdr_TechniqueName(techniqueName)
   {

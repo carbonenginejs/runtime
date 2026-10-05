@@ -110,7 +110,7 @@ export class SplineTunnelGroup
    * again, and the tunnels are returned.
    */
   @meta.blue.method
-  @meta.blue.renamed("createSplineTunnels")
+  @meta.renamed("createSplineTunnels")
   @meta.adapted
   createSplineTunnels()
   {

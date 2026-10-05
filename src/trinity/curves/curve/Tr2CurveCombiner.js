@@ -92,7 +92,7 @@ export class Tr2CurveCombiner extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.renamed("Update")
+  @meta.renamed("Update")
   @meta.adapted
   Update_Ticks(time, out)
   {

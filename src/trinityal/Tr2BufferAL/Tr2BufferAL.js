@@ -82,7 +82,7 @@ export class Tr2BufferAL
   }
 
   /** Forwards Carbon's offset/size MapForReading to the implementation. */
-  @meta.blue.renamed("MapForReading")
+  @meta.renamed("MapForReading")
   @meta.implemented
   MapForReading_OffsetSize(renderContext, offset, size)
   {

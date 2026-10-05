@@ -258,7 +258,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * @param {number} time Sample time.
    * @returns {number}
    */
-  @meta.blue.renamed("GetInputValue")
+  @meta.renamed("GetInputValue")
   @meta.implemented
   GetInputValue_Time(index, time)
   {

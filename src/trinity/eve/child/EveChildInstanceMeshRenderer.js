@@ -183,7 +183,7 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
    * Adapted: The float& sizeInShadow output is an optional one-element array; all culling
    * and >5-pixel policy are ported.
    */
-  @meta.blue.renamed("IsCastingShadow")
+  @meta.renamed("IsCastingShadow")
   @meta.adapted
   IsCastingShadow_ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
   {

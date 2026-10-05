@@ -252,7 +252,7 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * @param {Float32Array} out Caller-owned quaternion.
    * @returns {Float32Array} out
    */
-  @meta.blue.renamed("GetValueAt")
+  @meta.renamed("GetValueAt")
   @meta.adapted
   GetValueAt_Ticks(time, out)
   {
@@ -265,7 +265,7 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * @param {Float32Array} out Caller-owned quaternion.
    * @returns {Float32Array} out
    */
-  @meta.blue.renamed("Update")
+  @meta.renamed("Update")
   @meta.adapted
   Update_Ticks(time, out)
   {
@@ -280,7 +280,7 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * @param {Float32Array} out Caller-owned vector.
    * @returns {Float32Array} out
    */
-  @meta.blue.renamed("GetValueDotAt")
+  @meta.renamed("GetValueDotAt")
   @meta.adapted
   GetValueDotAt_Ticks(time, out)
   {

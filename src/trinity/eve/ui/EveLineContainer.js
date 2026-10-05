@@ -82,7 +82,7 @@ export class EveLineContainer
   }
 
   /** Collects the concrete line set only while this container is displayed. */
-  @meta.blue.renamed("GetRenderables")
+  @meta.renamed("GetRenderables")
   @meta.implemented
   GetRenderables_Impostors(renderables, impostors)
   {

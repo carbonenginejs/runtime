@@ -527,7 +527,7 @@ CjsSchema.define(RemoteFileCache, {
     SetCacheFolder: [ meta.blue.method, meta.implemented ],
     SetServer: [ meta.blue.method, meta.implemented ],
     SetPrefix: [ meta.blue.method, meta.implemented ],
-    GetStreamFromPath: [ meta.blue.renamed("GetStreamFromPathW"), meta.adapted ],
+    GetStreamFromPath: [ meta.renamed("GetStreamFromPathW"), meta.adapted ],
     FileExists: [ meta.blue.method, meta.implemented ],
     IsCachedLocally: [ meta.blue.method, meta.adapted ],
     GetLocallyCachedName: [ meta.blue.method, meta.implemented ],

@@ -91,7 +91,7 @@ export class EveRemotePositionCurve extends ITriVectorFunction
    * @param {Float32Array} out Caller-owned vec3; zeroed when there is no start-position curve.
    * @returns {Float32Array} out
    */
-  @meta.blue.renamed("Update")
+  @meta.renamed("Update")
   @meta.adapted
   Update_Ticks(time, out)
   {

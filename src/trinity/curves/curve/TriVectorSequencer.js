@@ -134,7 +134,7 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.renamed("Update")
+  @meta.renamed("Update")
   @meta.adapted
   Update_Ticks(time, out)
   {
@@ -150,7 +150,7 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.renamed("GetValueAt")
+  @meta.renamed("GetValueAt")
   @meta.adapted
   GetValueAt_Ticks(time, out)
   {
@@ -276,7 +276,7 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.renamed("GetValueDotAt")
+  @meta.renamed("GetValueDotAt")
   @meta.adapted
   GetValueDotAt_Ticks(time, out)
   {
@@ -295,7 +295,7 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.renamed("GetValueDoubleDotAt")
+  @meta.renamed("GetValueDoubleDotAt")
   @meta.adapted
   GetValueDoubleDotAt_Ticks(time, out)
   {

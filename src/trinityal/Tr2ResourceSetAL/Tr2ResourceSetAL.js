@@ -42,7 +42,7 @@ export class Tr2ResourceSetAL
    * Carbon's Create( description, pipeline, renderContext ) (h:135): raytracing
    * resource sets, which neither JS backend supports.
    */
-  @meta.blue.renamed("Create")
+  @meta.renamed("Create")
   @meta.adapted
   Create_Pipeline(_description, _pipeline, _renderContext)
   {
@@ -58,7 +58,7 @@ export class Tr2ResourceSetAL
    * Adapted: Context allocation replaces the compile-time platform include. Shared ownership
    * is explicitly released.
    */
-  @meta.blue.renamed("Create")
+  @meta.renamed("Create")
   @meta.adapted
   Create_Program(description, program, renderContext)
   {

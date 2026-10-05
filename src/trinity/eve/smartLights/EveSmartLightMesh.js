@@ -193,7 +193,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * distribution ) (EveSmartLightMesh.cpp:21); the owning EveChildSmartLightSet
    * supplies the distribution.
    */
-  @meta.blue.renamed("UpdateSyncronous")
+  @meta.renamed("UpdateSyncronous")
   @meta.implemented
   UpdateSyncronous_Distribution(updateContext, params, distribution)
   {
@@ -287,7 +287,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * Carbon's IEveSmartLightGroup overload UpdateAsyncronous( context, params,
    * distribution ) (EveSmartLightMesh.cpp:139): updates the instance-mesh base.
    */
-  @meta.blue.renamed("UpdateAsyncronous")
+  @meta.renamed("UpdateAsyncronous")
   @meta.implemented
   UpdateAsyncronous_Distribution(updateContext, params, _distribution)
   {

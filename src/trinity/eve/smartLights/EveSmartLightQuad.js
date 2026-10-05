@@ -271,7 +271,7 @@ export class EveSmartLightQuad extends EveChildTransform
    * effect key changes in edit mode (cpp:77-90). EveUpdateContext has no
    * GetQuadRenderer contract.
    */
-  @meta.blue.renamed("UpdateSyncronous")
+  @meta.renamed("UpdateSyncronous")
   @meta.implemented
   UpdateSyncronous_Distribution(updateContext, params, _distribution)
   {
@@ -305,7 +305,7 @@ export class EveSmartLightQuad extends EveChildTransform
    * matrix (EveSmartLightQuad.cpp:100-114); the child parent wins over the
    * space object parent.
    */
-  @meta.blue.renamed("UpdateAsyncronous")
+  @meta.renamed("UpdateAsyncronous")
   @meta.implemented
   UpdateAsyncronous_Distribution(_updateContext, params, _distribution)
   {

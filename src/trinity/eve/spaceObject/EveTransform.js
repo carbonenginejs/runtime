@@ -346,7 +346,7 @@ export class EveTransform extends Tr2Transform
    * mesh, then recurses into the children; nothing is appended while display is
    * off.
    */
-  @meta.blue.renamed("GetRenderables")
+  @meta.renamed("GetRenderables")
   @meta.implemented
   GetRenderables_Impostors(out = [], _impostors)
   {

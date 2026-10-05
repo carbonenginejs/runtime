@@ -271,7 +271,7 @@ export class AudGameObjResource
    * @param {string} prefix Event prefix.
    * @param {ArrayLike<number>} position World position.
    */
-  @meta.blue.renamed("Initialize")
+  @meta.renamed("Initialize")
   @meta.adapted
   Initialize_WithParameters(name, prefix, position)
   {

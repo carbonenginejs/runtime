@@ -171,7 +171,7 @@ export class Tr2Denoiser
    * @param {number} index Array slice of the result to render into.
    * @returns {object|null} The result handle, or null.
    */
-  @meta.blue.renamed("Apply")
+  @meta.renamed("Apply")
   @meta.adapted
   Apply_Index(source, depth, normals, projection, index, upscaling, gpuResourcePool, renderContext, renderer)
   {

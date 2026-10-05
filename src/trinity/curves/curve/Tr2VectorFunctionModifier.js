@@ -164,7 +164,7 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Tr2RenderContext|null} renderContext Renderer context for the view-space offset.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.renamed("Update")
+  @meta.renamed("Update")
   @meta.adapted
   Update_Ticks(time, inOut, renderContext = null)
   {
@@ -184,7 +184,7 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Tr2RenderContext|null} renderContext Renderer context for the view-space offset.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.renamed("GetValueAt")
+  @meta.renamed("GetValueAt")
   @meta.adapted
   GetValueAt_Ticks(time, inOut, renderContext = null)
   {
@@ -202,7 +202,7 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Float32Array} inOut Destination velocity.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.renamed("GetValueDotAt")
+  @meta.renamed("GetValueDotAt")
   @meta.adapted
   GetValueDotAt_Ticks(time, inOut)
   {
@@ -221,7 +221,7 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Float32Array} inOut Destination acceleration.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.renamed("GetValueDoubleDotAt")
+  @meta.renamed("GetValueDoubleDotAt")
   @meta.adapted
   GetValueDoubleDotAt_Ticks(time, inOut)
   {

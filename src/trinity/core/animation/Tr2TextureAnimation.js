@@ -397,7 +397,7 @@ export class Tr2TextureAnimation
    * @param {object} request Captured load request.
    * @returns {Promise<void>} Completion of the first decode.
    */
-  @meta.blue.renamed("ReadFile")
+  @meta.renamed("ReadFile")
   @meta.adapted
   static async readFile(request)
   {
@@ -413,7 +413,7 @@ export class Tr2TextureAnimation
    * @param {object} request Captured load request.
    * @returns {Promise<void>} Decode completion.
    */
-  @meta.blue.renamed("DecodeFirstFrame")
+  @meta.renamed("DecodeFirstFrame")
   @meta.adapted
   static async decodeFirstFrame(request)
   {
@@ -427,7 +427,7 @@ export class Tr2TextureAnimation
    * @param {object} request Captured load request.
    * @returns {Promise<void>} Decode completion.
    */
-  @meta.blue.renamed("DecodeNextFrame")
+  @meta.renamed("DecodeNextFrame")
   @meta.adapted
   static async decodeNextFrame(request)
   {
@@ -451,7 +451,7 @@ export class Tr2TextureAnimation
    * @param {object} request Captured load request.
    * @returns {Promise<void>} Decode completion.
    */
-  @meta.blue.renamed("RestartAndDecodeFrame")
+  @meta.renamed("RestartAndDecodeFrame")
   @meta.adapted
   static async restartAndDecodeFrame(request)
   {

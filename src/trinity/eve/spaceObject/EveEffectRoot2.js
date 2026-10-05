@@ -351,7 +351,7 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Collects child renderables after applying a pending LOD change. */
-  @meta.blue.renamed("GetRenderables")
+  @meta.renamed("GetRenderables")
   @meta.implemented
   GetRenderables_Impostors(out = [], _impostors)
   {

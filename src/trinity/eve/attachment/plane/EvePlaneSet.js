@@ -469,7 +469,7 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * @param {TriTextureParameter|null} map
    * @returns {ArrayLike<number>}
    */
-  @meta.blue.renamed("GetAverageColor")
+  @meta.renamed("GetAverageColor")
   @meta.implemented
   GetAverageColor_Map(map)
   {

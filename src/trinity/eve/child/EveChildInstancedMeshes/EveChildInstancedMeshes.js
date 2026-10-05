@@ -1539,7 +1539,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   /** Carbon EveChildInstancedMeshes::IsCastingShadow (cpp:73-76) always
    * returns false (instanced shadows cull per instance group); presence
    * satisfies the "ShadowCaster" duck contract. */
-  @meta.blue.renamed("IsCastingShadow")
+  @meta.renamed("IsCastingShadow")
   @meta.implemented
   IsCastingShadow_ShadowFrustum(..._args)
   {

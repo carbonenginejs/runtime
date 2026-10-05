@@ -347,7 +347,7 @@ export class EveStretch extends IEveFiringEffectElement
    *
    * @returns {Array} out
    */
-  @meta.blue.renamed("GetRenderables")
+  @meta.renamed("GetRenderables")
   @meta.adapted
   GetRenderables_Impostors(out = [], impostors)
   {

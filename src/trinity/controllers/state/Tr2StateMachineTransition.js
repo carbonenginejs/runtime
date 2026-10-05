@@ -384,7 +384,7 @@ export class Tr2StateMachineTransition
    * @returns {void}
    */
   @meta.blue.method
-  @meta.blue.renamed("UpdateDestination")
+  @meta.renamed("UpdateDestination")
   @meta.adapted
   _updateDestination()
   {

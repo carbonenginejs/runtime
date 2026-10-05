@@ -66,7 +66,7 @@ export class Tr2ResourceSetDescriptionAL
    *
    * @returns {boolean} Whether the record changed.
    */
-  @meta.blue.renamed("SetSrv")
+  @meta.renamed("SetSrv")
   @meta.adapted
   SetSrv_BufferAL(stage, registerIndex, buffer)
   {
@@ -89,7 +89,7 @@ export class Tr2ResourceSetDescriptionAL
    *
    * @returns {boolean} Whether the record changed.
    */
-  @meta.blue.renamed("SetSrv")
+  @meta.renamed("SetSrv")
   @meta.adapted
   SetSrv_TextureAL(stage, registerIndex, texture, colorSpace = 0)
   {
@@ -131,7 +131,7 @@ export class Tr2ResourceSetDescriptionAL
    *
    * @returns {boolean} Whether the record changed.
    */
-  @meta.blue.renamed("SetUav")
+  @meta.renamed("SetUav")
   @meta.adapted
   SetUav_BufferAL(stage, registerIndex, buffer)
   {
@@ -154,7 +154,7 @@ export class Tr2ResourceSetDescriptionAL
    *
    * @returns {boolean} Whether the record changed.
    */
-  @meta.blue.renamed("SetUav")
+  @meta.renamed("SetUav")
   @meta.adapted
   SetUav_TextureAL(stage, registerIndex, texture, mip = 0)
   {

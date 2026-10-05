@@ -92,7 +92,7 @@ export class EveCurveLineSet extends Tr2CurveLineSet
   }
 
   /** Appends this renderable only when the last cull passed. */
-  @meta.blue.renamed("GetRenderables")
+  @meta.renamed("GetRenderables")
   @meta.implemented
   GetRenderables_Impostors(renderables, _impostors)
   {

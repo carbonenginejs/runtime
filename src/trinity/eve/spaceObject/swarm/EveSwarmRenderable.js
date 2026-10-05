@@ -358,7 +358,7 @@ export class EveSwarmRenderable extends EveEntity
    *
    * Adapted: Carbon's float& out-param becomes the optional trailing length-1 array; which paths write it is kept.
    */
-  @meta.blue.renamed("IsCastingShadow")
+  @meta.renamed("IsCastingShadow")
   @meta.adapted
   IsCastingShadow_ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
   {

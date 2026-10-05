@@ -347,7 +347,7 @@ export class EveMobile extends EveSpaceObject2
    * nothing is appended while display is off. Adapted: the existing base
    * accepts one output array; native impostor output remains unported.
    */
-  @meta.blue.renamed("GetRenderables")
+  @meta.renamed("GetRenderables")
   @meta.adapted
   GetRenderables_Impostors(out = [], _impostors)
   {

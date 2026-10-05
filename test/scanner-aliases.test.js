@@ -129,9 +129,9 @@ test("native-method CLI credits legacy and canonical inheritance and every renam
   {
     const probe = runScanner("scripts/trinity/lint-native-method-parity.js", nativeFixture({
       inherit: `${carbon}.inherit(Owner)`,
-      renamed: `${carbon}.renamed("FromDecorator")`,
-      definition: `${carbon}.renamed("FromDefinition")`,
-      imperative: `${carbon}.renamed("FromImperative")`
+      renamed: `meta.renamed("FromDecorator")`,
+      definition: `meta.renamed("FromDefinition")`,
+      imperative: `meta.renamed("FromImperative")`
     }));
     expectStatus(probe, 0);
     assert.match(probe.stdout, /1 ported classes checked, 0 with gaps, 0 missing methods/);

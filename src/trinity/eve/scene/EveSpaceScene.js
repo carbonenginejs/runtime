@@ -3681,7 +3681,7 @@ export class EveSpaceScene
    * @param {Object} renderContext - the frame's Tr2RenderContext
    * @returns {Object} data
    */
-  @meta.blue.renamed("PopulatePerFramePSData")
+  @meta.renamed("PopulatePerFramePSData")
   @meta.adapted
   PopulatePerFramePSData_ShadowMap(data, shadowMap, renderContext)
   {

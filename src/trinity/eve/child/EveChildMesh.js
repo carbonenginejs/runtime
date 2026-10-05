@@ -1515,7 +1515,7 @@ export class EveChildMesh extends EveChildTransform
    * @param {Number} renderReason
    * @returns {Boolean}
    */
-  @meta.blue.renamed("IsCastingShadow")
+  @meta.renamed("IsCastingShadow")
   @meta.implemented
   IsCastingShadow_PositionRadius(cameraFrustum, position, radius, renderReason)
   {
@@ -1551,7 +1551,7 @@ export class EveChildMesh extends EveChildTransform
    * @param {Array|null} sizeOut
    * @returns {Boolean}
    */
-  @meta.blue.renamed("IsCastingShadow")
+  @meta.renamed("IsCastingShadow")
   @meta.adapted
   IsCastingShadow_ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeOut = null)
   {

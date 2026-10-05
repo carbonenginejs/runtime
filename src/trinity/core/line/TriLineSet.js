@@ -264,7 +264,7 @@ export class TriLineSet
   }
 
   /** Carbon RenderFromScript (cpp:440-444), Blue's Render: renders on the main-thread render context. */
-  @meta.blue.renamed("Render")
+  @meta.renamed("Render")
   @meta.implemented
   RenderFromScript()
   {

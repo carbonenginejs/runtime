@@ -69,11 +69,11 @@ for (const method of [
 }
 
 // Carbon declares only the wide-character forms; a JS string covers both.
-CjsSchema.decorateMethod(IBluePaths, "SetSearchPath", meta.blue.renamed("SetSearchPathW"));
-CjsSchema.decorateMethod(IBluePaths, "GetSearchPath", meta.blue.renamed("GetSearchPathW"));
-CjsSchema.decorateMethod(IBluePaths, "ResolvePath", meta.blue.renamed("ResolvePathW"));
-CjsSchema.decorateMethod(IBluePaths, "ResolvePathForWriting", meta.blue.renamed("ResolvePathForWritingW"));
-CjsSchema.decorateMethod(IBluePaths, "ResolvePathToRoot", meta.blue.renamed("ResolvePathToRootW"));
-CjsSchema.decorateMethod(IBluePaths, "GetStreamFromPath", meta.blue.renamed("GetStreamFromPathW"));
+CjsSchema.decorateMethod(IBluePaths, "SetSearchPath", meta.renamed("SetSearchPathW"));
+CjsSchema.decorateMethod(IBluePaths, "GetSearchPath", meta.renamed("GetSearchPathW"));
+CjsSchema.decorateMethod(IBluePaths, "ResolvePath", meta.renamed("ResolvePathW"));
+CjsSchema.decorateMethod(IBluePaths, "ResolvePathForWriting", meta.renamed("ResolvePathForWritingW"));
+CjsSchema.decorateMethod(IBluePaths, "ResolvePathToRoot", meta.renamed("ResolvePathToRootW"));
+CjsSchema.decorateMethod(IBluePaths, "GetStreamFromPath", meta.renamed("GetStreamFromPathW"));
 
 CjsSchema.define(IBluePaths, { className: "IBluePaths", carbon: "IBluePaths", family: "blue", fields: {} });

@@ -141,7 +141,7 @@ export class TriPerlinCurve extends ITriScalarFunction
    * @param {number} time Scene time in Blue 100ns ticks.
    * @returns {number} The cached value.
    */
-  @meta.blue.renamed("Update")
+  @meta.renamed("Update")
   @meta.adapted
   Update_Ticks(time)
   {
@@ -160,7 +160,7 @@ export class TriPerlinCurve extends ITriScalarFunction
    * @param {number} time Scene time in Blue 100ns ticks.
    * @returns {number} The sampled value.
    */
-  @meta.blue.renamed("GetValueAt")
+  @meta.renamed("GetValueAt")
   @meta.adapted
   GetValueAt_Ticks(time)
   {

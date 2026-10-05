@@ -742,7 +742,7 @@ test("records renamed Carbon method provenance", () => {
     CjsSchema.decorateMethod(
         RenamedMethodNode,
         "ReEvaluate",
-        CjsSchema.meta.blue.renamed("UpdateValues"),
+        CjsSchema.meta.renamed("UpdateValues"),
         CjsSchema.meta.adapted
     );
 

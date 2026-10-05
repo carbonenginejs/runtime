@@ -234,7 +234,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    * forwards the end-of-frame values, passing deltaTime as the rate modifier as
    * Carbon does.
    */
-  @meta.blue.renamed("SpawnParticles")
+  @meta.renamed("SpawnParticles")
   @meta.implemented
   SpawnParticles_StartEnd(arguments_, _positionStart, positionEnd, _velocityStart, velocityEnd, deltaTime)
   {

@@ -93,7 +93,7 @@ export class AudManager
   }
 
   /** Carbon method GetStateValue: Carbon's scripting int (0/1/2). */
-  @meta.blue.renamed("GetState")
+  @meta.renamed("GetState")
   @meta.implemented
   GetStateValue()
   {
@@ -1193,7 +1193,7 @@ export class AudManager
    * Adapted: Carbon returns SoundPrioritization's current debug list; CarbonEngineJS returns a defensive array of the
    * same current order.
    */
-  @meta.blue.renamed("GetPrioritizedAudioEmitters")
+  @meta.renamed("GetPrioritizedAudioEmitters")
   @meta.adapted
   GetPrioritizedEmitters()
   {

@@ -230,7 +230,7 @@ export class EveLineSet
   }
 
   /** Carbon's GetRenderables( renderables, impostors ) (cpp:138-146): the set itself while displayed. */
-  @meta.blue.renamed("GetRenderables")
+  @meta.renamed("GetRenderables")
   @meta.implemented
   GetRenderables_Impostors(out = [], _impostors = null)
   {

@@ -84,8 +84,8 @@ export class IEveShadowCaster
 
 
 CjsSchema.decorateMethod(IEveShadowCaster, "IsCastingShadow", meta.blue.method, meta.adapted);
-CjsSchema.decorateMethod(IEveShadowCaster, "IsCastingShadow_ShadowFrustum", meta.blue.renamed("IsCastingShadow"), meta.abstract);
-CjsSchema.decorateMethod(IEveShadowCaster, "IsCastingShadow_PositionRadius", meta.blue.renamed("IsCastingShadow"), meta.implemented);
+CjsSchema.decorateMethod(IEveShadowCaster, "IsCastingShadow_ShadowFrustum", meta.renamed("IsCastingShadow"), meta.abstract);
+CjsSchema.decorateMethod(IEveShadowCaster, "IsCastingShadow_PositionRadius", meta.renamed("IsCastingShadow"), meta.implemented);
 CjsSchema.decorateMethod(IEveShadowCaster, "GetShadowBatches", meta.abstract);
 CjsSchema.decorateMethod(IEveShadowCaster, "GetShadowPerObjectData", meta.abstract);
 for (const name of [ "PushRtGeometry", "MarkRtDirty", "IsShadowCastingDirty" ]) CjsSchema.decorateMethod(IEveShadowCaster, name, meta.implemented);

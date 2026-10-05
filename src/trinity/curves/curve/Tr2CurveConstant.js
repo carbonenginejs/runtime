@@ -107,7 +107,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {Float32Array|number[]} [out] Caller-owned output storage for the non-scalar forms.
    * @returns {number|Float32Array|number[]} The supplied output or scalar value.
    */
-  @meta.blue.renamed("Update")
+  @meta.renamed("Update")
   @meta.adapted
   Update_Ticks(time, out)
   {
@@ -120,7 +120,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {Float32Array|number[]} [out] Caller-owned output storage for the non-scalar forms.
    * @returns {number|Float32Array|number[]} The supplied output or scalar value.
    */
-  @meta.blue.renamed("GetValueAt")
+  @meta.renamed("GetValueAt")
   @meta.adapted
   GetValueAt_Ticks(time, out)
   {

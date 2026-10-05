@@ -121,10 +121,10 @@ for (const method of [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleD
 {
   CjsSchema.decorateMethod(ITriQuaternionFunction, method, meta.requires, meta.abstract);
 }
-CjsSchema.decorateMethod(ITriQuaternionFunction, "Update_Ticks", meta.blue.renamed("Update"), meta.adapted);
-CjsSchema.decorateMethod(ITriQuaternionFunction, "GetValueAt_Ticks", meta.blue.renamed("GetValueAt"), meta.adapted);
-CjsSchema.decorateMethod(ITriQuaternionFunction, "GetValueDotAt_Ticks", meta.blue.renamed("GetValueDotAt"), meta.adapted);
-CjsSchema.decorateMethod(ITriQuaternionFunction, "GetValueDoubleDotAt_Ticks", meta.blue.renamed("GetValueDoubleDotAt"), meta.adapted);
+CjsSchema.decorateMethod(ITriQuaternionFunction, "Update_Ticks", meta.renamed("Update"), meta.adapted);
+CjsSchema.decorateMethod(ITriQuaternionFunction, "GetValueAt_Ticks", meta.renamed("GetValueAt"), meta.adapted);
+CjsSchema.decorateMethod(ITriQuaternionFunction, "GetValueDotAt_Ticks", meta.renamed("GetValueDotAt"), meta.adapted);
+CjsSchema.decorateMethod(ITriQuaternionFunction, "GetValueDoubleDotAt_Ticks", meta.renamed("GetValueDoubleDotAt"), meta.adapted);
 CjsSchema.define(ITriQuaternionFunction, {
   className: "ITriQuaternionFunction", carbon: "ITriQuaternionFunction", family: "blue", fields: {}
 });

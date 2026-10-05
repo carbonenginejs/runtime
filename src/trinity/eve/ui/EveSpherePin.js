@@ -408,7 +408,7 @@ export class EveSpherePin
   }
 
   /** Native collection checks display only; the optional impostor manager is unused. */
-  @meta.blue.renamed("GetRenderables")
+  @meta.renamed("GetRenderables")
   @meta.implemented
   GetRenderables_Impostors(renderables, _impostors)
   {

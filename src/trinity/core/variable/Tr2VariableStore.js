@@ -141,7 +141,7 @@ export class Tr2VariableStore
    * @param {Tr2TextureAL} texture Texture to publish.
    * @returns {TriVariable|null} Registered variable, or null on a type conflict.
    */
-  @meta.blue.renamed("RegisterVariable")
+  @meta.renamed("RegisterVariable")
   @meta.adapted
   RegisterVariable_TextureAL(name, texture)
   {

@@ -254,6 +254,6 @@ CjsSchema.define(CjsBluePaths, {
     FileExists: [ meta.blue.method, meta.implemented ],
     FileExistsLocally: [ meta.blue.method, meta.implemented ],
     FileNeedsDownload: [ meta.blue.method, meta.implemented ],
-    GetStreamFromPath: [ meta.blue.renamed("GetStreamFromPathW"), meta.adapted ]
+    GetStreamFromPath: [ meta.renamed("GetStreamFromPathW"), meta.adapted ]
   }
 });

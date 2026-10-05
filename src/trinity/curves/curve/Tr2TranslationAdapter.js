@@ -171,7 +171,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {Float32Array} out Destination derivative.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.renamed("GetValueDotAt")
+  @meta.renamed("GetValueDotAt")
   @meta.adapted
   GetValueDotAt_Ticks(time, out)
   {
@@ -270,7 +270,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {number} time Scene time in Blue 100ns ticks.
    * @returns {number} Local time in seconds.
    */
-  @meta.blue.renamed("GetLocalTime")
+  @meta.renamed("GetLocalTime")
   @meta.adapted
   GetLocalTime_Ticks(time)
   {
@@ -284,7 +284,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.renamed("Update")
+  @meta.renamed("Update")
   @meta.adapted
   Update_Ticks(time, out)
   {
@@ -308,7 +308,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.renamed("GetValueAt")
+  @meta.renamed("GetValueAt")
   @meta.adapted
   GetValueAt_Ticks(time, out)
   {
