@@ -18,7 +18,7 @@ import { CjsMusicEngine } from "./CjsMusicEngine.js";
 import { ICjsMusicEngine } from "./ICjsMusicEngine.js";
 import { CjsAudioBackendGlobalReaders } from "./internal/CjsAudioBackendGlobalReaders.js";
 import { createAudioUpdateContext } from "./CjsAudioUpdateContext.js";
-import { CjsBusDuckingController } from "./internal/busDucking.js";
+import { CjsBusDuckingController } from "./internal/CjsBusDuckingController.js";
 import { CjsBusGraphRuntime } from "./internal/CjsBusGraphRuntime.js";
 import { CjsSharedBusMixer } from "./internal/CjsSharedBusMixer.js";
 import {

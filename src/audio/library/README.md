@@ -15,7 +15,7 @@ realization reads:
 This README lists what the validators accept. It does not describe how the
 builder chooses values or how the backend plays them. Some catalogs are
 validated by helpers in `../internal/`: `indexBusDuckingCatalog()`
-(`busDucking.js`), `indexBusEffectCatalog()` and
+(`CjsBusDuckingController.js`), `indexBusEffectCatalog()` and
 `normalizeStaticSourceEffectChain()` (`busEffects.js`), and
 `normalizeBusGraphCatalog()` (`busGraph.js`). They are listed here because
 they define parts of this document.

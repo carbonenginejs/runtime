@@ -4,7 +4,7 @@ import test from "node:test";
 import {
     CjsBusDuckingController,
     indexBusDuckingCatalog,
-} from "../../../src/audio/internal/busDucking.js";
+} from "../../../src/audio/internal/CjsBusDuckingController.js";
 
 function Catalog(sources)
 {

@@ -20,7 +20,7 @@ import {
 import { CjsAudioMediaProvider } from "./CjsAudioMediaProvider.js";
 import { CjsSharedBusMixer } from "../../../npm/dist/audio/internal/CjsSharedBusMixer.js";
 import { CjsBusGraphRuntime } from "../../../npm/dist/audio/internal/CjsBusGraphRuntime.js";
-import { CjsBusDuckingController } from "../../../npm/dist/audio/internal/busDucking.js";
+import { CjsBusDuckingController } from "../../../npm/dist/audio/internal/CjsBusDuckingController.js";
 
 // One acoustic scale everywhere: world units -> panner units.
 const ACOUSTIC_SCALE = 1 / 150;

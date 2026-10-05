@@ -14,7 +14,7 @@ both use them.
 | `busFilter.js` | Schedules one additive State LPF or HPF over a complete route leg. |
 | `busDuckGain.js` | Schedules one route leg's Bus-Volume duck gain. |
 | `busRtpc.js`, `busState.js` | Index and evaluate the Bus RTPC and Immediate State catalogs. |
-| `busDucking.js` | `CjsBusDuckingController`: auto-duck activity and envelopes. |
+| `CjsBusDuckingController.js` | `CjsBusDuckingController`: auto-duck activity and envelopes. |
 
 ## Lifetime
 

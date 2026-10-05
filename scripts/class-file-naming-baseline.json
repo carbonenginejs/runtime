@@ -1,8 +1,5 @@
 {
   "misnamed": {
-    "src/audio/internal/busDucking.js": [
-      "CjsBusDuckingController"
-    ],
     "src/audio/internal/sourceEffectRtpc.js": [
       "CjsWwiseSourceEffectRtpcLane",
       "CjsWwiseFilteredControl"

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsMusicEngine, wwiseIdFromName } from "../../../npm/dist/audio/index.js";
-import { CjsBusDuckingController } from "../../../src/audio/internal/busDucking.js";
+import { CjsBusDuckingController } from "../../../src/audio/internal/CjsBusDuckingController.js";
 import { CjsBusGraphRuntime } from "../../../src/audio/internal/CjsBusGraphRuntime.js";
 import { CjsSharedBusMixer } from "../../../src/audio/internal/CjsSharedBusMixer.js";
 import { GlobalReadersWith } from "../../support/audioStub.js";

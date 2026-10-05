@@ -4,7 +4,7 @@ import {
     ValidateStateTransitions,
     validateSfxGraph,
 } from "./sfxGraph.js";
-import { indexBusDuckingCatalog } from "../internal/busDucking.js";
+import { indexBusDuckingCatalog } from "../internal/CjsBusDuckingController.js";
 import { indexBusEffectCatalog } from "../internal/busEffects.js";
 import {
     assertBusGraphRouteProjection,
