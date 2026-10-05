@@ -332,10 +332,6 @@ test("shader reflection classes register canonical runtime-resource metadata", (
     CjsSchema.getMethod(Tr2Shader, "GetTechniqueIndex")?.impl?.status,
     "adapted"
   );
-  assert.match(
-    CjsSchema.getMethod(Tr2Shader, "GetTechniqueIndex")?.impl?.reason ?? "",
-    /output index/
-  );
 });
 
 test("stage input sizes its constant buffer from every constant, not from the defaults", () =>

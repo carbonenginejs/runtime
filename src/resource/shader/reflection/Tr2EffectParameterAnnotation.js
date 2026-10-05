@@ -19,7 +19,13 @@ export class Tr2EffectParameterAnnotation
   /** boolValue (bool) */
   boolValue = false;
 
-  /** Exact serialized BOOL, INT, or FLOAT payload bits. */
+  /**
+   * Exact serialized BOOL, INT, or FLOAT payload bits.
+   *
+   * Adapted: Carbon reads numeric annotations into typed values; the portable source
+   * contract retains the exact uint32 payload so NaN, negative zero, and integer bit
+   * patterns round-trip losslessly.
+   */
   rawValue = 0;
 
   /** intValue (int) */
@@ -129,7 +135,7 @@ CjsSchema.define(Tr2EffectParameterAnnotation, {
     name: meta.type.string,
     type: [ meta.type.int32, meta.type.enum("Type") ],
     boolValue: meta.type.boolean,
-    rawValue: [ meta.adapted, meta.reason("Carbon reads numeric annotations into typed values; the portable source contract retains the exact uint32 payload so NaN, negative zero, and integer bit patterns round-trip losslessly."), meta.type.uint32 ],
+    rawValue: [ meta.adapted, meta.type.uint32 ],
     intValue: meta.type.int32,
     floatValue: meta.type.float32,
     stringValue: meta.type.string

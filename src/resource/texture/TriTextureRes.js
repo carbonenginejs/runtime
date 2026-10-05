@@ -67,6 +67,11 @@ export class TriTextureRes extends CjsResource
    * trinity's GradientTextureConstructor instead: a gradient needs Tr2CurveScalar,
    * which this layer may not import.
    *
+   * Adapted: Carbon rasterizes a procedural path into a half-float HostBitmap and creates
+   * the GPU texture inside Initialize; this resource cannot reach a render context, so it
+   * publishes the half-float-quantized colour as an rgba32float payload. Trinity
+   * rasterizes gradient_1d paths through GradientTextureConstructor.
+   *
    * @param {string} path Resource path.
    * @param {string|null} [ext] Extension override.
    * @param {string} [requirement] Semantic requirement.
@@ -140,6 +145,10 @@ export class TriTextureRes extends CjsResource
   /**
    * Borrows a texture (`TriTextureRes.cpp:1159-1195`); its owner retains its lifetime.
    *
+   * Adapted: Carbon also copies the texture's dimensions onto the resource and fires
+   * m_onTextureChange; the payload already carries the dimensions here, and the binding
+   * parameter arms the resource's completion instead.
+   *
    * @param {object|null} texture A `Tr2TextureAL`, or null to drop it.
    * @returns {TriTextureRes} This resource.
    */
@@ -171,6 +180,10 @@ export class TriTextureRes extends CjsResource
    * (`m_isGood = true` after the branch, `:337`), so the texture is simply
    * absent and the parameter binds its fallback. Reproduced: the resource is
    * prepared either way, with no bitmap when the pipeline failed.
+   *
+   * Adapted: Carbon's .ctr branch reads the pipeline from a file through the global BeResMan
+   * and waits on a fence; no shipped build has a .ctr, so the pipeline is handed in, the
+   * manager passed, and the fence is a promise.
    *
    * @param {import("./Tr2TexturePipeline.js").Tr2TexturePipeline} pipeline The recipe.
    * @param {object} resourceManager The `CjsBlueResMan` that loads its inputs.
@@ -211,6 +224,9 @@ export class TriTextureRes extends CjsResource
    * Adopt the cutout an image declared (Carbon reads ImageIO::Metadata's
    * cutout in DoPrepare and stores it as m_cutoutX/Y/Width/Height).
    *
+   * Adapted: Carbon reads the cutout from ImageIO::Metadata inside DoPrepare; the read
+   * happens in the loader here, so the resource is told.
+   *
    * @param {{x: number, y: number, width: number, height: number}} cutout The rectangle.
    * @returns {TriTextureRes} This resource.
    */
@@ -230,6 +246,9 @@ export class TriTextureRes extends CjsResource
    * Carbon's `m_loadedBitmap` (`TriTextureRes.cpp:606`): the CPU-side image
    * the texture is made from, kept so the texture can be remade - for a device
    * reset, a LOD change or a save.
+   *
+   * Adapted: Carbon keeps m_loadedBitmap private and uploads it inside CreateFromHostBitmap;
+   * the upload happens at bind time here, so the bitmap has to be readable.
    *
    * @returns {import("#imageio").HostBitmap|null} The bitmap.
    */
@@ -284,6 +303,10 @@ export class TriTextureRes extends CjsResource
    * reach a render context (layers.json), so the texture is made on first bind
    * instead - `Tr2ImageIOHelpers.RealizeTexture` - and this only adopts the
    * bitmap and drops any texture made from the previous one.
+   *
+   * Adapted: Carbon creates the texture here on the main thread's render context; the
+   * resource layer may not reach one, so this adopts the bitmap and the texture is made on
+   * first bind (Tr2ImageIOHelpers.RealizeTexture).
    *
    * @param {import("#imageio").HostBitmap|null} bitmap The decoded bitmap.
    * @returns {boolean} Whether the bitmap was adopted.
@@ -696,14 +719,14 @@ CjsSchema.define(TriTextureRes, {
   },
   methods: {
     SetPayload: [ meta.ours ],
-    Initialize: [ meta.blue.method, meta.adapted, meta.reason("Carbon rasterizes a procedural path into a half-float HostBitmap and creates the GPU texture inside Initialize; this resource cannot reach a render context, so it publishes the half-float-quantized colour as an rgba32float payload. The gradient_1d branch is not ported.") ],
+    Initialize: [ meta.blue.method, meta.adapted ],
     GetMipCount: [ meta.blue.method, meta.adapted ],
     GetMsaaType: [ meta.blue.method, meta.implemented ],
     GetMsaaQuality: [ meta.blue.method, meta.implemented ],
     HadLodRequests: [ meta.blue.method, meta.adapted ],
     GetSrvIndexInHeap: [ meta.blue.method, meta.notSupported ],
     GetTexture: [ meta.blue.method, meta.adapted ],
-    SetTexture: [ meta.blue.method, meta.adapted, meta.reason("Carbon also copies the texture's dimensions onto the resource and fires m_onTextureChange; the payload already carries the dimensions here, and the binding parameter arms the resource's completion instead.") ],
+    SetTexture: [ meta.blue.method, meta.adapted ],
     SaveAsync: [ meta.blue.method, meta.notSupported ],
     Save: [ meta.blue.method, meta.notSupported ],
     IsSaving: [ meta.blue.method, meta.noop ],
@@ -713,10 +736,10 @@ CjsSchema.define(TriTextureRes, {
     CreateEmptyTexture: [ meta.blue.method, meta.notSupported ],
     SetFromRenderTarget: [ meta.blue.method, meta.notSupported ],
     CreateAndCopyFromRenderTarget: [ meta.blue.method, meta.notSupported ],
-    CreateFromHostBitmap: [ meta.blue.method, meta.adapted, meta.reason("Carbon creates the texture here on the main thread's render context; the resource layer may not reach one, so this adopts the bitmap and the texture is made on first bind (Tr2ImageIOHelpers.RealizeTexture).") ],
-    LoadPipeline: [ meta.adapted, meta.reason("Carbon's .ctr branch reads the pipeline from a file through the global BeResMan and waits on a fence; no shipped build has a .ctr, so the pipeline is handed in, the manager passed, and the fence is a promise.") ],
-    SetCutout: [ meta.ours, meta.reason("Carbon reads the cutout from ImageIO::Metadata inside DoPrepare; the read happens in the loader here, so the resource is told.") ],
-    GetBitmap: [ meta.ours, meta.reason("Carbon keeps m_loadedBitmap private and uploads it inside CreateFromHostBitmap; the upload happens at bind time here, so the bitmap has to be readable.") ],
+    CreateFromHostBitmap: [ meta.blue.method, meta.adapted ],
+    LoadPipeline: [ meta.adapted ],
+    SetCutout: [ meta.ours ],
+    GetBitmap: [ meta.ours ],
     IsValid: [ meta.blue.method, meta.implemented ],
     GetWidth: [ meta.blue.method, meta.adapted ],
     GetHeight: [ meta.blue.method, meta.adapted ],

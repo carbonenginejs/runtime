@@ -858,9 +858,9 @@ export class CjsSchema
 
     // impl decorators apply to methods AND fields: a promoted/diverging field
     // (e.g. a Carbon-hidden authored value exposed for values interchange) is
-    // an implementation decision, so it carries impl.adapted/impl.custom +
-    // impl.reason just like a diverging method. carbon.* stays factual
-    // provenance and remains method-only.
+    // an implementation decision, so it carries an implementation status.
+    // Adaptation rationale belongs in the member's JSDoc; native exposure
+    // metadata remains separate.
     static #impl = {
         abstract: memberDecorator("impl", { abstract: true, status: "abstract" }),
         adapted: memberDecorator("impl", { adapted: true, status: "adapted" }),
@@ -872,8 +872,7 @@ export class CjsSchema
         // Audit-only: names the state members invalidated by this field/method.
         // The owning class retains all dirty-state, rebuild and timing behavior.
         invalidates: (...members) => memberDecorator("impl", { invalidates: members }),
-        note: text => memberDecorator("impl", { note: String(text) }),
-        reason: text => memberDecorator("impl", { reason: String(text) })
+        note: text => memberDecorator("impl", { note: String(text) })
     };
 
     /**
@@ -913,9 +912,6 @@ export class CjsSchema
         const decorator = status ? CjsSchema.#impl[status] : null;
         const decorators = [ typeof decorator === "function" ? decorator : CjsSchema.#impl.abstract ];
 
-        // A reason the interface wrote belongs to the member wherever it lands;
-        // a consumer left holding the marking without it could not be reviewed.
-        if (declared?.reason) decorators.push(CjsSchema.#impl.reason(declared.reason));
         if (declared?.note) decorators.push(CjsSchema.#impl.note(declared.note));
 
         return decorators;

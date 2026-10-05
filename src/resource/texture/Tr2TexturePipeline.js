@@ -48,6 +48,9 @@ export class Tr2TexturePipeline
    * leaves the following steps working on an empty bitmap (Carbon imageio
    * issue 19).
    *
+   * Adapted: Carbon ignores each step's result and runs the next one regardless; ours stops
+   * on the first failure (issue 19).
+   *
    * @param {import("#imageio").HostBitmap} result Bitmap to fill; destroyed first.
    * @param {Map<string, import("#imageio").HostBitmap>} inputs Loaded inputs by path.
    * @param {Tr2TexturePipelineParams} params Caller size limits.
@@ -82,8 +85,8 @@ export class Tr2TexturePipeline
   /**
    * Carbon GetResourceDependencies (cpp:15-22): every path the steps need.
    *
-   * adapted: Carbon fills a caller-owned set; this returns the paths sorted,
-   * which the resource layer wants for a stable load order.
+   * Adapted: Carbon fills a caller-owned set; ours returns the paths sorted, for a stable
+   * load order.
    *
    * @returns {string[]} Resource dependency paths.
    */
@@ -103,7 +106,7 @@ CjsSchema.define(Tr2TexturePipeline, {
     steps: [ meta.blue.persist, meta.type.list("ITr2TexturePipelineStep") ]
   },
   methods: {
-    Execute: [ meta.blue.method, meta.adapted, meta.reason("Carbon ignores each step's result and runs the next one regardless; ours stops on the first failure (issue 19).") ],
-    GetResourceDependencies: [ meta.blue.method, meta.adapted, meta.reason("Carbon fills a caller-owned set; ours returns the paths sorted, for a stable load order.") ]
+    Execute: [ meta.blue.method, meta.adapted ],
+    GetResourceDependencies: [ meta.blue.method, meta.adapted ]
   }
 });

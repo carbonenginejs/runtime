@@ -17,13 +17,24 @@ export class Tr2SamplerSetup
   /** name (const char*) */
   name = "";
 
-  /** Whether the source sampler carried a name rather than authored null. */
+  /**
+   * Whether the source sampler carried a name rather than authored null.
+   *
+   * Adapted: The schema string field cannot distinguish an authored null sampler name from
+   * an empty name; portable reflection must retain that distinction for static sampler
+   * records.
+   */
   hasName = false;
 
   /** sampler (Tr2SamplerStateAL) */
   sampler = null;
 
-  /** Whether the sampler occupies a dynamic register rather than static signature state. */
+  /**
+   * Whether the sampler occupies a dynamic register rather than static signature state.
+   *
+   * Adapted: The portable effect contract distinguishes dynamic and static sampler
+   * declarations before an engine creates sampler state.
+   */
   isDynamic = false;
 
   /**
@@ -141,8 +152,8 @@ CjsSchema.define(Tr2SamplerSetup, {
   family: "shader",
   fields: {
     name: meta.type.string,
-    hasName: [ meta.adapted, meta.reason("The schema string field cannot distinguish an authored null sampler name from an empty name; portable reflection must retain that distinction for static sampler records."), meta.type.boolean ],
+    hasName: [ meta.adapted, meta.type.boolean ],
     sampler: meta.type.rawStruct("Tr2SamplerStateAL"),
-    isDynamic: [ meta.adapted, meta.reason("The portable effect contract distinguishes dynamic and static sampler declarations before an engine creates sampler state."), meta.type.boolean ]
+    isDynamic: [ meta.adapted, meta.type.boolean ]
   }
 });

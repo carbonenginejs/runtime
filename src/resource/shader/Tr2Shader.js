@@ -21,6 +21,9 @@ export class Tr2Shader
   /**
    * Index of the named technique; 0 for Carbon's empty-string any-technique
    * sentinel and -1 when the shader has no techniques or the name is unknown.
+   *
+   * Adapted: Carbon returns success through a bool plus output index; CarbonEngineJS returns
+   * the index directly or -1 while preserving exact name lookup.
    */
   GetTechniqueIndex(name = "Main")
   {
@@ -36,7 +39,12 @@ export class Tr2Shader
     return techniques.findIndex(technique => technique?.name === name);
   }
 
-  /** Number of passes in a technique; 0 for an unknown index. */
+  /**
+   * Number of passes in a technique; 0 for an unknown index.
+   *
+   * Adapted: Carbon assumes an already-validated technique index; CarbonEngineJS safely
+   * returns zero for an unavailable index.
+   */
   GetPassCount(techniqueIndex = 0)
   {
     return this.effect?.techniques?.[techniqueIndex]?.passes?.length ?? 0;
@@ -106,7 +114,12 @@ export class Tr2Shader
     return this.effect;
   }
 
-  /** The technique's bitmask of shader stages, or 0 for an unknown index. */
+  /**
+   * The technique's bitmask of shader stages, or 0 for an unknown index.
+   *
+   * Adapted: Carbon assumes an already-validated technique index; CarbonEngineJS safely
+   * returns zero for an unavailable index.
+   */
   GetShaderTypeMask(techniqueIndex = 0)
   {
     return Number(
@@ -157,6 +170,10 @@ export class Tr2Shader
    * Retains 0 while the stage handles are still 0xffffffff, which is the case
    * until shader registration assigns them; that is a missing table, not a
    * consequence of the graph being device-free.
+   *
+   * Adapted: Carbon packs renderer handles assigned while reading; here registration happens
+   * at prepare, so the sort key stays zero until the shader-registration tables assign stage
+   * handles. The difference is timing and table ownership, not device-freeness.
    */
   ProcessEffect()
   {
@@ -375,9 +392,6 @@ export class Tr2Shader
 // verbatim as values, so the registered metadata is identical to the decorated
 // form. Field order is key order, and it drives GetValues() export order.
 // Statics belong in `methods`: the prototype is what carries instance fields.
-const UNVALIDATED_TECHNIQUE_INDEX = meta.reason(
-  "Carbon assumes an already-validated technique index; CarbonEngineJS safely returns zero for an unavailable index."
-);
 
 CjsSchema.define(Tr2Shader, {
   className: "Tr2Shader",
@@ -388,16 +402,16 @@ CjsSchema.define(Tr2Shader, {
     hasVertexBufferAccessInRtShadow: meta.type.boolean
   },
   methods: {
-    GetTechniqueIndex: [ meta.blue.method, meta.adapted, meta.reason("Carbon returns success through a bool plus output index; CarbonEngineJS returns the index directly or -1 while preserving exact name lookup.") ],
-    GetPassCount: [ meta.blue.method, meta.adapted, UNVALIDATED_TECHNIQUE_INDEX ],
+    GetTechniqueIndex: [ meta.blue.method, meta.adapted ],
+    GetPassCount: [ meta.blue.method, meta.adapted ],
     GetConstant: [ meta.blue.method, meta.implemented ],
     GetResource: [ meta.blue.method, meta.implemented ],
     GetParameterAnnotations: [ meta.blue.method, meta.implemented ],
     GetSortValue: [ meta.blue.method, meta.implemented ],
     GetEffectDescription: [ meta.blue.method, meta.implemented ],
     GetEffect: [ meta.blue.method, meta.implemented ],
-    GetShaderTypeMask: [ meta.blue.method, meta.adapted, UNVALIDATED_TECHNIQUE_INDEX ],
-    ProcessEffect: [ meta.blue.method, meta.adapted, meta.reason("Carbon packs renderer handles assigned while reading; here registration happens at prepare, so the sort key stays zero until the shader-registration tables assign stage handles. The difference is timing and table ownership, not device-freeness.") ],
+    GetShaderTypeMask: [ meta.blue.method, meta.adapted ],
+    ProcessEffect: [ meta.blue.method, meta.adapted ],
     HasVertexBufferAccessInRtShadow: [ meta.blue.method, meta.implemented ]
   }
 });

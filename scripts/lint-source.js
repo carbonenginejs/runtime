@@ -44,6 +44,27 @@ function checkFormatBoundary(relativeFile, source, problems)
     }
 }
 
+/** Reject the retired rationale decorator; explanations belong in JSDoc. */
+function rejectReasonDecorator()
+{
+    return {
+        visitor: {
+            MemberExpression(member)
+            {
+                const { object, property, computed } = member.node;
+                if (computed || property.name !== "reason") return;
+                const namespace = object.type === "Identifier" ? object.name
+                    : object.type === "MemberExpression" && object.object.name === "CjsSchema"
+                        ? object.property.name : null;
+                if (namespace === "meta" || namespace === "impl")
+                {
+                    throw member.buildCodeFrameError("reason decorators are retired; put adaptation rationale in JSDoc");
+                }
+            }
+        }
+    };
+}
+
 const problems = [];
 for (const file of await sourceFiles(sourceRoot))
 {
@@ -85,7 +106,8 @@ for (const file of await sourceFiles(sourceRoot))
             code: false,
             ast: false,
             plugins: [
-                [ "@babel/plugin-proposal-decorators", { version: "2023-11" } ]
+                [ "@babel/plugin-proposal-decorators", { version: "2023-11" } ],
+                rejectReasonDecorator
             ]
         });
     }

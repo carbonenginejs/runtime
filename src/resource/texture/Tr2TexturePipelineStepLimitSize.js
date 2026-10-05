@@ -52,6 +52,9 @@ export class Tr2TexturePipelineStepLimitSize
    * generated first, the count is `GetTrueMipCount() - mip`, and the copy runs
    * to `mip + mipCount` (Carbon imageio issue 1).
    *
+   * Adapted: Carbon's LimitSize returns an all-zero texture for single-mip input and leaves
+   * the last level zeroed for a full chain (issue 1); fixed here.
+   *
    * @param {import("#imageio").HostBitmap} bitmap Bitmap to shrink in place.
    * @param {number} maxWidth Width limit, 0 for none.
    * @param {number} maxHeight Height limit, 0 for none.
@@ -124,6 +127,6 @@ CjsSchema.define(Tr2TexturePipelineStepLimitSize, {
   methods: {
     GetResourceDependencies: [ meta.blue.method, meta.implemented ],
     Execute: [ meta.blue.method, meta.implemented ],
-    limitSize: [ meta.blue.method, meta.adapted, meta.reason("Carbon's LimitSize returns an all-zero texture for single-mip input and leaves the last level zeroed for a full chain (issue 1); fixed here.") ]
+    limitSize: [ meta.blue.method, meta.adapted ]
   }
 });

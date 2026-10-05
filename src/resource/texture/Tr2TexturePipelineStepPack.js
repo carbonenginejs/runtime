@@ -60,6 +60,9 @@ export class Tr2TexturePipelineStepPack
    * every pixel after the first is shifted. Here R8 is tested as declared and
    * the destination advances by its own pixel size.
    *
+   * Adapted: Carbon's R8 case tests a format its own guard rejects (a heap overflow) and its
+   * BGRX case shifts every pixel after the first; both fixed (issue 2).
+   *
    * @param {import("#imageio").HostBitmap} bitmap The pipeline's bitmap.
    * @param {Map<string, import("#imageio").HostBitmap>} inputs Loaded inputs by path.
    * @returns {boolean} Whether the step succeeded.
@@ -213,6 +216,9 @@ export class Tr2TexturePipelineStepPack
    * so a BGRX output leaves its X byte alone instead of shifting every pixel
    * after the first (issue 2).
    *
+   * Adapted: The destination advances by the output's bytes per pixel, so a BGRX output is
+   * not shifted (issue 2).
+   *
    * @param {import("#imageio").HostBitmap} bitmap Destination bitmap.
    * @param {object[]} channels Four sources: data, offset, pixelStride, rowStride.
    * @param {number} channelCount How many of them to write per pixel.
@@ -259,8 +265,8 @@ CjsSchema.define(Tr2TexturePipelineStepPack, {
   },
   methods: {
     GetResourceDependencies: meta.implemented,
-    Execute: [ meta.blue.method, meta.adapted, meta.reason("Carbon's R8 case tests a format its own guard rejects (a heap overflow) and its BGRX case shifts every pixel after the first; both fixed (issue 2).") ],
+    Execute: [ meta.blue.method, meta.adapted ],
     swapRedBlue: [ meta.blue.method, meta.implemented ],
-    pack: [ meta.blue.method, meta.adapted, meta.reason("The destination advances by the output's bytes per pixel, so a BGRX output is not shifted (issue 2).") ]
+    pack: [ meta.blue.method, meta.adapted ]
   }
 });

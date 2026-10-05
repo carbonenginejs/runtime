@@ -705,8 +705,7 @@ test("registers Carbon method provenance and implementation metadata", () => {
         MethodNode,
         "Reset",
         CjsSchema.meta.blue.method,
-        CjsSchema.meta.notImplemented,
-        CjsSchema.meta.reason("schema generated stub")
+        CjsSchema.meta.notImplemented
     );
     CjsSchema.decorateMethod(
         MethodNode,
@@ -720,7 +719,7 @@ test("registers Carbon method provenance and implementation metadata", () => {
     assert.equal(reset.carbon.method, true);
     assert.equal(reset.impl.status, "notImplemented");
     assert.equal(reset.impl.notImplemented, true);
-    assert.equal(reset.impl.reason, "schema generated stub");
+    assert.equal(Object.hasOwn(CjsSchema.meta, "reason"), false, "reason decorators are retired");
 
     const gpuOnly = CjsSchema.getMethod(MethodNode, "GpuOnly");
     assert.equal(gpuOnly.carbon.method, true);
@@ -1536,7 +1535,7 @@ test("records carbon.contextual tier provenance", () => {
     );
 });
 
-test("marks CarbonEngineJS-original methods with impl.custom + a reason", () => {
+test("marks CarbonEngineJS-original methods with implementation status", () => {
     class CustomMethodNode
     {
         FoldModifiers()
@@ -1547,8 +1546,7 @@ test("marks CarbonEngineJS-original methods with impl.custom + a reason", () => 
     CjsSchema.decorateMethod(
         CustomMethodNode,
         "FoldModifiers",
-        CjsSchema.meta.ours,
-        CjsSchema.meta.reason("JS-only zero-alloc fold; Carbon inlines this loop")
+        CjsSchema.meta.ours
     );
 
     const method = CjsSchema.getMethod(CustomMethodNode, "FoldModifiers");
@@ -1556,7 +1554,6 @@ test("marks CarbonEngineJS-original methods with impl.custom + a reason", () => 
     assert.equal(method.carbon, undefined);
     assert.equal(method.impl.custom, true);
     assert.equal(method.impl.status, "custom");
-    assert.equal(method.impl.reason, "JS-only zero-alloc fold; Carbon inlines this loop");
 });
 
 

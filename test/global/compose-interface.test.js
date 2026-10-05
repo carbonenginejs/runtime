@@ -323,7 +323,6 @@ test("an installed member keeps what the interface declared about it", () =>
   CjsSchema.decorateMethod(IThing, "Noopy", CjsSchema.meta.noop);
   CjsSchema.decorateMethod(IThing, "Pure", CjsSchema.meta.abstract);
   CjsSchema.decorateMethod(IThing, "Reasoned", CjsSchema.meta.adapted);
-  CjsSchema.decorateMethod(IThing, "Reasoned", CjsSchema.meta.reason("the donor defaults it"));
 
   class Impl {}
   CjsSchema.meta.blue.inherit(IThing)(Impl, { kind: "class" });
@@ -331,8 +330,6 @@ test("an installed member keeps what the interface declared about it", () =>
   assert.equal(CjsSchema.getMethod(Impl, "Noopy").impl.status, "noop");
   assert.equal(CjsSchema.getMethod(Impl, "Pure").impl.status, "abstract");
   assert.equal(CjsSchema.getMethod(Impl, "Reasoned").impl.status, "adapted");
-  assert.equal(CjsSchema.getMethod(Impl, "Reasoned").impl.reason, "the donor defaults it",
-    "a reason the interface wrote travels with the marking, or the consumer cannot be reviewed");
 
   // Only the fallback, for a member the interface said nothing about.
   assert.equal(CjsSchema.getMethod(Impl, "Undeclared").impl.status, "abstract");

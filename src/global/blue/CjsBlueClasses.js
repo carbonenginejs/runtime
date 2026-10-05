@@ -45,6 +45,9 @@ export class CjsBlueClasses extends IBlueClasses
   /**
    * Register every entry of a table (BlueClasses.cpp:296-302).
    *
+   * Adapted: Carbon walks a null-terminated array; JavaScript takes any iterable of
+   * registrations.
+   *
    * @param {Array<{name: string, type: Function, createFn?: Function, flags?: number}>} table Registrations.
    */
   RegisterClasses(table)
@@ -72,6 +75,9 @@ export class CjsBlueClasses extends IBlueClasses
    * A copy of the shared registration, or null (BlueClasses.cpp:331-336).
    * Changing this returned record does not mutate the registered entry.
    *
+   * Adapted: A class id is the class name: there are no GUIDs to carry, and Carbon already
+   * forbids name clashes between modules.
+   *
    * @param {string} clsid Class id, which is the class name.
    * @returns {{name: string, type: Function, createFn: Function, flags: number}|null} Registration.
    */
@@ -83,6 +89,9 @@ export class CjsBlueClasses extends IBlueClasses
   /**
    * The class id registered under a name, or null (BlueClasses.cpp:355-364).
    *
+   * Adapted: Carbon's out-parameter overload and its module argument collapse: the id is the
+   * name, and Carbon ignores the module.
+   *
    * @param {string} name Class name.
    * @returns {string|null} Class id.
    */
@@ -93,6 +102,9 @@ export class CjsBlueClasses extends IBlueClasses
 
   /**
    * A new instance of the class with this id, or null (BlueClasses.cpp:429-445).
+   *
+   * Adapted: Carbon returns bool and writes the instance through ppv after a QueryInterface
+   * for riid; JavaScript returns the instance or null, with no interface id to query.
    *
    * @param {string} clsid Class id, which is the class name.
    * @returns {object|null} New instance.
@@ -106,6 +118,9 @@ export class CjsBlueClasses extends IBlueClasses
 
   /**
    * A new instance of the class registered under a name, or null (BlueClasses.cpp:448-464).
+   *
+   * Adapted: Carbon returns bool and writes the instance through ppv after a QueryInterface
+   * for riid; JavaScript returns the instance or null, with no interface id to query.
    *
    * @param {string} className Class name.
    * @returns {object|null} New instance.
@@ -121,13 +136,25 @@ export class CjsBlueClasses extends IBlueClasses
     registerClass(registration);
   }
 
-  /** Throws because querying an object's native interface is not implemented. */
+  /**
+   * Throws because querying an object's native interface is not implemented.
+   *
+   * Adapted: No consumer yet; ported when one needs it.
+   */
   QueryThisInterface() { throw new Error("CjsBlueClasses.QueryThisInterface is not implemented"); }
 
-  /** Throws because native variable lookup is not implemented. */
+  /**
+   * Throws because native variable lookup is not implemented.
+   *
+   * Adapted: No consumer yet; ported when one needs it.
+   */
   FindVariable() { throw new Error("CjsBlueClasses.FindVariable is not implemented"); }
 
-  /** Throws because native object-count accounting is not implemented. */
+  /**
+   * Throws because native object-count accounting is not implemented.
+   *
+   * Adapted: No consumer yet; ported when one needs it.
+   */
   UpdateObjectCount() { throw new Error("CjsBlueClasses.UpdateObjectCount is not implemented"); }
 
   /**
@@ -170,33 +197,50 @@ export class CjsBlueClasses extends IBlueClasses
   /**
    * Throws because processing the native pending-deletion queue is not
    * implemented.
+   *
+   * Adapted: No consumer yet; ported when one needs it.
    */
   ProcessPendingDeletes() { throw new Error("CjsBlueClasses.ProcessPendingDeletes is not implemented"); }
 
-  /** Throws because draining all native pending deletions is not implemented. */
+  /**
+   * Throws because draining all native pending deletions is not implemented.
+   *
+   * Adapted: No consumer yet; ported when one needs it.
+   */
   ProcessAllPendingDeletes() { throw new Error("CjsBlueClasses.ProcessAllPendingDeletes is not implemented"); }
 
   /**
    * Throws because changing native deferred-deletion enablement is not
    * implemented.
+   *
+   * Adapted: No consumer yet; ported when one needs it.
    */
   SetPendingDeletesEnabled() { throw new Error("CjsBlueClasses.SetPendingDeletesEnabled is not implemented"); }
 
   /**
    * Throws because querying native deferred-deletion enablement is not
    * implemented.
+   *
+   * Adapted: No consumer yet; ported when one needs it.
    */
   IsPendingDeletesEnabled() { throw new Error("CjsBlueClasses.IsPendingDeletesEnabled is not implemented"); }
 
-  /** Throws because registering a native thunk is not implemented. */
+  /**
+   * Throws because registering a native thunk is not implemented.
+   *
+   * Adapted: No consumer yet; ported when one needs it.
+   */
   RegisterThunker() { throw new Error("CjsBlueClasses.RegisterThunker is not implemented"); }
 
-  /** Throws because native runtime type-information lookup is not implemented. */
+  /**
+   * Throws because native runtime type-information lookup is not implemented.
+   *
+   * Adapted: No consumer yet; ported when one needs it.
+   */
   GetRtti() { throw new Error("CjsBlueClasses.GetRtti is not implemented"); }
 
 }
 
-const NOT_YET = meta.reason("No consumer yet; ported when one needs it.");
 
 CjsSchema.define(CjsBlueClasses, {
   className: "CjsBlueClasses",
@@ -204,22 +248,22 @@ CjsSchema.define(CjsBlueClasses, {
   family: "blue",
   fields: {},
   methods: {
-    RegisterClasses: [ meta.blue.method, meta.adapted, meta.reason("Carbon walks a null-terminated array; JavaScript takes any iterable of registrations.") ],
+    RegisterClasses: [ meta.blue.method, meta.adapted ],
     UnregisterClasses: [ meta.blue.method, meta.implemented ],
-    GetClassRegistration: [ meta.blue.method, meta.adapted, meta.reason("A class id is the class name: there are no GUIDs to carry, and Carbon already forbids name clashes between modules.") ],
-    FindClsid: [ meta.blue.method, meta.adapted, meta.reason("Carbon's out-parameter overload and its module argument collapse: the id is the name, and Carbon ignores the module.") ],
-    CreateInstance: [ meta.blue.method, meta.adapted, meta.reason("Carbon returns bool and writes the instance through ppv after a QueryInterface for riid; JavaScript returns the instance or null, with no interface id to query.") ],
-    CreateInstanceFromName: [ meta.blue.method, meta.adapted, meta.reason("Carbon returns bool and writes the instance through ppv after a QueryInterface for riid; JavaScript returns the instance or null, with no interface id to query.") ],
-    QueryThisInterface: [ meta.blue.method, meta.notImplemented, NOT_YET ],
-    FindVariable: [ meta.blue.method, meta.notImplemented, NOT_YET ],
-    UpdateObjectCount: [ meta.blue.method, meta.notImplemented, NOT_YET ],
+    GetClassRegistration: [ meta.blue.method, meta.adapted ],
+    FindClsid: [ meta.blue.method, meta.adapted ],
+    CreateInstance: [ meta.blue.method, meta.adapted ],
+    CreateInstanceFromName: [ meta.blue.method, meta.adapted ],
+    QueryThisInterface: [ meta.blue.method, meta.notImplemented ],
+    FindVariable: [ meta.blue.method, meta.notImplemented ],
+    UpdateObjectCount: [ meta.blue.method, meta.notImplemented ],
     CopyTo: [ meta.blue.method, meta.adapted ],
     CloneTo: [ meta.blue.method, meta.adapted ],
-    ProcessPendingDeletes: [ meta.blue.method, meta.notImplemented, NOT_YET ],
-    ProcessAllPendingDeletes: [ meta.blue.method, meta.notImplemented, NOT_YET ],
-    SetPendingDeletesEnabled: [ meta.blue.method, meta.notImplemented, NOT_YET ],
-    IsPendingDeletesEnabled: [ meta.blue.method, meta.notImplemented, NOT_YET ],
-    RegisterThunker: [ meta.blue.method, meta.notImplemented, NOT_YET ],
-    GetRtti: [ meta.blue.method, meta.notImplemented, NOT_YET ]
+    ProcessPendingDeletes: [ meta.blue.method, meta.notImplemented ],
+    ProcessAllPendingDeletes: [ meta.blue.method, meta.notImplemented ],
+    SetPendingDeletesEnabled: [ meta.blue.method, meta.notImplemented ],
+    IsPendingDeletesEnabled: [ meta.blue.method, meta.notImplemented ],
+    RegisterThunker: [ meta.blue.method, meta.notImplemented ],
+    GetRtti: [ meta.blue.method, meta.notImplemented ]
   }
 });

@@ -51,10 +51,24 @@ export class Tr2EffectLibrary
   /** globalResourceSetDesc (Tr2ResourceSetDescriptionAL) */
   globalResourceSetDesc = null;
 
-  /** Exact source library program metadata and owned bytes. */
+  /**
+   * Exact source library program metadata and owned bytes.
+   *
+   * Adapted: Carbon interns the library bytecode while reading
+   * (Tr2EffectStateManager::RegisterShaderLibrary, .h:115) and keeps only libraryHandle.
+   * Ours interns at the Trinity boundary instead, because the resource layer may not import
+   * Trinity, so the bytes are retained until then; see
+   * Tr2EffectStateManager.registerShaderHandles.
+   */
   sourceProgram = null;
 
-  /** Portable export records retained before backend library registration. */
+  /**
+   * Portable export records retained before backend library registration.
+   *
+   * Adapted: Carbon resolves these exports into the interned library handle while reading;
+   * the declarative export list is what survives until interning happens at the Trinity
+   * boundary.
+   */
   exports = [];
 
   /**
@@ -198,7 +212,7 @@ CjsSchema.define(Tr2EffectLibrary, {
     globalInput: meta.type.rawStruct("Tr2EffectStageInput"),
     localInput: meta.type.rawStruct("Tr2EffectStageInput"),
     globalResourceSetDesc: meta.type.rawStruct("Tr2ResourceSetDescriptionAL"),
-    sourceProgram: [ meta.adapted, meta.reason("Carbon interns the library bytecode while reading (Tr2EffectStateManager::RegisterShaderLibrary, .h:115) and keeps only libraryHandle. Ours interns at the Trinity boundary instead, because the resource layer may not import Trinity, so the bytes are retained until then; see Tr2EffectStateManager.registerShaderHandles."), meta.type.rawStruct("CjsEffectSourceProgram") ],
-    exports: [ meta.adapted, meta.reason("Carbon resolves these exports into the interned library handle while reading; the declarative export list is what survives until interning happens at the Trinity boundary."), meta.type.rawStruct("CjsEffectLibraryExports") ]
+    sourceProgram: [ meta.adapted, meta.type.rawStruct("CjsEffectSourceProgram") ],
+    exports: [ meta.adapted, meta.type.rawStruct("CjsEffectLibraryExports") ]
   }
 });

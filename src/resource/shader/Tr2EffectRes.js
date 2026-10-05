@@ -154,6 +154,10 @@ export class Tr2EffectRes extends CjsResource
    * - an unmatched or invalid value selects the axis's `defaultOption`, which
    *   is often not 0.
    *
+   * Adapted: Carbon interns the selected body's handles during the read
+   * (Tr2EffectDescription.cpp:587-666); ours are interned later at the Trinity boundary, so
+   * this returns the hydrated shader graph rather than an already-stamped one.
+   *
    * @param {Array<object>|Map<string,string>} options Local name/value choices.
    * @param {number|null} count Number of local entries to consider.
    * @returns {Tr2Shader|null} Selected device-free shader reflection.
@@ -237,6 +241,9 @@ export class Tr2EffectRes extends CjsResource
    *
    * Returns null for an index at or beyond the variant count, or when no
    * reader is retained. It never clamps and never falls back to index 0.
+   *
+   * Adapted: Carbon selects compiled bodies through GetShader; CarbonEngineJS exposes exact
+   * package-index hydration for deterministic package consumers and tests.
    *
    * @param {number} index Exact non-negative permutation index.
    * @returns {Tr2Shader|null} The shader, or null when the index is past the end.
@@ -356,6 +363,9 @@ export class Tr2EffectRes extends CjsResource
   /**
    * Return a small JSON-friendly permutation description.
    *
+   * Adapted: Carbon exposes a Python tuple through Blue; CarbonEngineJS returns a
+   * JSON-friendly plain axis description.
+   *
    * @returns {Array<*>}
    */
   GetPermutationDescription()
@@ -377,6 +387,10 @@ export class Tr2EffectRes extends CjsResource
 
   /**
    * Drop hydrated shader graphs while retaining the validated CPU payload.
+   *
+   * Adapted: Clears the hydrated shader graphs only. Carbon also does SetGood(false),
+   * SetPrepared(false), CancelPendingLoad() and NotifyReleaseCachedData(), and takes a
+   * TriStorage mask; not ported yet, Tr2EffectRes.cpp:328-341.
    */
   ReleaseResources()
   {
@@ -551,10 +565,10 @@ CjsSchema.define(Tr2EffectRes, {
   className: "Tr2EffectRes",
   family: "resources",
   methods: {
-    GetShader: [ meta.blue.method, meta.adapted, meta.reason("Carbon interns the selected body's handles during the read (Tr2EffectDescription.cpp:587-666); ours are interned later at the Trinity boundary, so this returns the hydrated shader graph rather than an already-stamped one.") ],
-    GetShaderByIndex: [ meta.ours, meta.reason("Carbon selects compiled bodies through GetShader; CarbonEngineJS exposes exact package-index hydration for deterministic package consumers and tests.") ],
+    GetShader: [ meta.blue.method, meta.adapted ],
+    GetShaderByIndex: [ meta.ours ],
     SetPermutationTranslator: [ meta.ours ],
-    GetPermutationDescription: [ meta.blue.method, meta.adapted, meta.reason("Carbon exposes a Python tuple through Blue; CarbonEngineJS returns a JSON-friendly plain axis description.") ],
-    ReleaseResources: [ meta.blue.method, meta.adapted, meta.reason("Clears the hydrated shader graphs only. Carbon also does SetGood(false), SetPrepared(false), CancelPendingLoad() and NotifyReleaseCachedData(), and takes a TriStorage mask; not ported yet, Tr2EffectRes.cpp:328-341.") ]
+    GetPermutationDescription: [ meta.blue.method, meta.adapted ],
+    ReleaseResources: [ meta.blue.method, meta.adapted ]
   }
 });
