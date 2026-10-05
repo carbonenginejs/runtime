@@ -90,12 +90,15 @@ export class EveKDdroneManagementTree
   /**
    * Builds the k-d tree over the agents and sizes the per-behavior search
    * result block (Carbon EveKDdroneManagementTree::CreateTree, cpp:18-42).
+   *
+   * Adapted: Carbon copies the root AgentRef by value into m_tree; the JS port keeps a
+   * reference into agentRefs (same fields, shared identity).
+   *
    * @param {Array} agents - DroneAgent records
    * @param {Number} numberOfBehaviors
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon copies the root AgentRef by value into m_tree; the JS port keeps a reference into agentRefs (same fields, shared identity).")
   CreateTree(agents, numberOfBehaviors)
   {
     if (!agents || agents.length === 0)

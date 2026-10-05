@@ -72,6 +72,11 @@ export class InclusionVolume
    * Pulls each agent back toward the inclusion volumes when it drifts into
    * their falloff shell; fully-inside agents feel no force (Carbon
    * CalculateBehavior, cpp:26-69).
+   *
+   * Adapted: Carbon pushes a debug force pair for every agent unconditionally; the JS port
+   * collects them only when group.collectForces is set to keep the per-agent loop
+   * allocation-free.
+   *
    * @param {Array} agents - DroneAgent records
    * @param {Array|null} _scratchData - unused (no scratch)
    * @param {Number} _deltaTime
@@ -82,7 +87,6 @@ export class InclusionVolume
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon pushes a debug force pair for every agent unconditionally; the JS port collects them only when group.collectForces is set to keep the per-agent loop allocation-free.")
   CalculateBehavior(agents, _scratchData, _deltaTime, group, _system, _dronesInSearchRadius)
   {
     if (!this.enabled)

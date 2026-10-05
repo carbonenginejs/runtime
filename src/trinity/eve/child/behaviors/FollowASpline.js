@@ -1,5 +1,5 @@
-import { INotify } from "../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline.h
+import { INotify } from "../../../../global/blue/INotify.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";

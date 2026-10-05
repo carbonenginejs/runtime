@@ -1,8 +1,8 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroup.h
 import { IsMatch } from "#blue";
 import { IListNotify } from "../../../../global/blue/IListNotify.js";
 import { INotify } from "../../../../global/blue/INotify.js";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
-// Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroup.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroup.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { CjsSchema, meta } from "#schema";
@@ -923,7 +923,7 @@ export class BehaviorGroup extends EveEntity
   }
 
   /**
-   * Registers the booster light records with the duck-typed light manager
+   * Registers the booster light records with the light manager
    * (Carbon GetLights, cpp:990-1001). The #lightInfo map is populated by the
    * booster instance-buffer fill, which is a GPU seam - until that path runs
    * the map stays empty and no lights register.

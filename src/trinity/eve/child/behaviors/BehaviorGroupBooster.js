@@ -1,6 +1,6 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroupBooster.h
 import { IsMatch, INotify, blue, TimeAsDouble } from "#blue";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
-// Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroupBooster.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroupBooster.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta } from "#schema";
@@ -224,10 +224,12 @@ export class BehaviorGroupBooster
    * Creates the hardcoded booster and flare effects when absent (Carbon
    * InitializeEffects, cpp:149-166). The scene registers their flare buckets
    * through RegisterWithQuadRenderer.
+   *
+   * Adapted: Flare registration is performed by the existing scene-owned quad renderer
+   * rather than a native singleton.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Flare registration is performed by the existing scene-owned quad renderer rather than a native singleton.")
   InitializeEffects()
   {
     if (this.boosterEffect === null)
@@ -386,9 +388,13 @@ export class BehaviorGroupBooster
   }
 
   /**
-   * Registers one booster point light with the duck-typed light manager
+   * Registers one booster point light with the light manager
    * (Carbon AddLight, cpp:435-445). Carbon ignores the parentTransform
    * parameter; the JS port keeps the signature.
+   *
+   * Adapted: Converts the Blue frame clock to seconds for the noise phase and submits the
+   * light through the supplied manager's AddPointLight method.
+   *
    * @param {Object} lightManager
    * @param {Float32Array} position - light position (xyz read)
    * @param {Number} radiusModifier
@@ -397,7 +403,6 @@ export class BehaviorGroupBooster
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon's Blue frame clock converts once to seconds for the noise phase; the light registers through the duck-typed manager (AddPointLight), never a GPU structure.")
   AddLight(lightManager, position, radiusModifier, agentIndex, _parentTransform)
   {
     vec4.copy(LIGHT_COLOR, this.lightColor);

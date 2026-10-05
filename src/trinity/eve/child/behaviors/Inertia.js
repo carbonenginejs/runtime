@@ -71,19 +71,27 @@ export class Inertia
     return this.behaviorPriority;
   }
 
-  /** Per-agent scratch record count (Carbon sizeof(InertiaData)). */
+  /**
+   * Per-agent scratch record count (Carbon sizeof(InertiaData)).
+   *
+   * Adapted: Carbon returns a byte size; the JS port models scratch as one plain record per
+   * agent, so any non-zero value means 'has scratch'.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero value means 'has scratch'.")
   GetScratchMemorySize()
   {
     return 1;
   }
 
-  /** Fresh per-agent scratch record (Carbon InertiaData placement init). */
+  /**
+   * Fresh per-agent scratch record (Carbon InertiaData placement init).
+   *
+   * Adapted: Carbon initializes caller-provided raw memory; the JS port returns the fresh
+   * record instead.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.")
   InitializeScratch()
   {
     return {
@@ -96,6 +104,11 @@ export class Inertia
    * Turns the accumulated acceleration toward last frame's direction at a
    * limited angular speed and blends its magnitude by the agent's remaining
    * headroom (Carbon CalculateBehavior, cpp:35-82).
+   *
+   * Adapted: Carbon pushes the adjusted acceleration into the debug vector unconditionally;
+   * the JS port collects it only when group.collectForces is set to keep the per-agent loop
+   * allocation-free.
+   *
    * @param {Array} agents - DroneAgent records
    * @param {Array} scratchData - per-agent InertiaData records
    * @param {Number} deltaTime
@@ -106,7 +119,6 @@ export class Inertia
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon pushes the adjusted acceleration into the debug vector unconditionally; the JS port collects it only when group.collectForces is set to keep the per-agent loop allocation-free.")
   CalculateBehavior(agents, scratchData, deltaTime, group, _system, _dronesInSearchRadius)
   {
     if (!this.enabled)

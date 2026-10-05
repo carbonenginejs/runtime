@@ -67,6 +67,10 @@ export class DroneAvoidance
    * Pushes each agent away from close neighbours, blended with its current
    * velocity direction, on refresh frames; replays the cached forces in
    * between (Carbon CalculateBehavior, cpp:27-130).
+   *
+   * Adapted: Debug force pairs are only collected when group.collectForces is set, keeping
+   * the per-agent loop allocation-free.
+   *
    * @param {Array} agents - DroneAgent records
    * @param {Array|null} _scratchData - unused (no scratch)
    * @param {Number} _deltaTime
@@ -77,7 +81,6 @@ export class DroneAvoidance
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Debug force pairs are only collected when group.collectForces is set, keeping the per-agent loop allocation-free.")
   CalculateBehavior(agents, _scratchData, _deltaTime, group, _system, dronesInSearchRadius)
   {
     if (!this.enabled)

@@ -76,19 +76,27 @@ export class PlayFX extends EveEntity
     return "PlayFX";
   }
 
-  /** Per-agent scratch record count (Carbon sizeof(PlayFXData)). */
+  /**
+   * Per-agent scratch record count (Carbon sizeof(PlayFXData)).
+   *
+   * Adapted: Carbon returns a byte size; the JS port models scratch as one plain record per
+   * agent, so any non-zero value means 'has scratch'.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero value means 'has scratch'.")
   GetScratchMemorySize()
   {
     return 1;
   }
 
-  /** Fresh per-agent scratch record (Carbon PlayFXData placement init). */
+  /**
+   * Fresh per-agent scratch record (Carbon PlayFXData placement init).
+   *
+   * Adapted: Carbon initializes caller-provided raw memory; the JS port returns the fresh
+   * record instead.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.")
   InitializeScratch()
   {
     return {

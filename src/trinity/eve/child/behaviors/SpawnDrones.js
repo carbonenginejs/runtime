@@ -85,11 +85,13 @@ export class SpawnDrones
    * Regenerates the group as a jittered grid of agents around the group's
    * spawn position (Carbon UpdateGrid, cpp:26-85). Grid spawn points are
    * allocated here - a regeneration event, not the per-frame path.
+   *
+   * Adapted: TriRand maps to Math.random; the spawn-point grid walk is ported verbatim.
+   *
    * @param {Object} group - owning BehaviorGroup
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("TriRand maps to Math.random; the spawn-point grid walk is ported verbatim.")
   UpdateGrid(group)
   {
     // for behaviors to work we always have to add one decoy drone; delete it
@@ -154,6 +156,10 @@ export class SpawnDrones
    * Spawn scheduling: one-shot grid spawns, one-shot count spawns, and timed
    * respawns at ProcessLifetime entrance points (Carbon CalculateBehavior,
    * cpp:87-146).
+   *
+   * Adapted: rand() maps to Math.random when picking the timed entrance point; the spawn
+   * scheduling is ported verbatim.
+   *
    * @param {Array} _agents - DroneAgent records (unused)
    * @param {Array|null} _scratchData - unused (no scratch)
    * @param {Number} deltaTime
@@ -164,7 +170,6 @@ export class SpawnDrones
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("rand() maps to Math.random when picking the timed entrance point; the spawn scheduling is ported verbatim.")
   CalculateBehavior(_agents, _scratchData, deltaTime, group, _system, _dronesInSearchRadius)
   {
     if (!this.enabled)

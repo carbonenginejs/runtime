@@ -1,5 +1,5 @@
-import { INotify } from "../../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SplineTunnelGroup.h
+import { INotify } from "../../../../../global/blue/INotify.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/SplineTunnelGroup.cpp
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta } from "#schema";

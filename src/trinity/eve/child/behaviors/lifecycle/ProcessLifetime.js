@@ -1,5 +1,5 @@
-import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/ProcessLifetime.h
+import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/ProcessLifetime.cpp
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { IBehavior } from "../IBehavior.js";

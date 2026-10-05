@@ -319,10 +319,10 @@ export class SeekTarget
     this._sortedLocators = true;
   }
 
-  @meta.implemented
   /**
    * A shallow copy of the locator index buckets produced by splitting the target's bounding box, one array per slice.
    */
+  @meta.implemented
   GetLocatorBucketIndices()
   {
     return this._locatorBucketIndices.map(bucket => [...bucket]);
