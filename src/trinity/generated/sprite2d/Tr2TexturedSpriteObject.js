@@ -5,6 +5,7 @@ import { Tr2SpriteObject } from "./Tr2SpriteObject.js";
 
 /** Adds primary and secondary texture bindings to the shared 2D sprite render state. */
 @meta.define({ className: "Tr2TexturedSpriteObject", family: "sprite2d", purpose: "Adds primary and secondary texture bindings to the shared 2D sprite render state." })
+@meta.blue.chainTo(Tr2SpriteObject)
 export class Tr2TexturedSpriteObject extends Tr2SpriteObject
 {
 

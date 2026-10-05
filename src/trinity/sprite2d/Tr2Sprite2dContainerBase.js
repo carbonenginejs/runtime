@@ -3,6 +3,8 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dContainer_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; portable child ownership is maintained here.
 import { meta } from "#schema";
+import { IListNotify } from "#blue";
+import { ITr2SpriteObject } from "./ITr2SpriteObject.js";
 import { Tr2SpriteObjectBase } from "./Tr2SpriteObjectBase.js";
 
 const BELIST_UNLOADSTART = 0x07;
@@ -11,6 +13,8 @@ const BELIST_REMOVED = 0x09;
 
 /** Shared Sprite2D container state and child-parent propagation. */
 @meta.define({ className: "Tr2Sprite2dContainerBase", family: "sprite2d" })
+@meta.blue.interface(ITr2SpriteObject, IListNotify)
+@meta.blue.chainTo(Tr2SpriteObjectBase)
 export class Tr2Sprite2dContainerBase extends Tr2SpriteObjectBase
 {
 

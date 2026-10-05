@@ -12,6 +12,7 @@ import { vec4 } from "#math/vec4";
 
 /** Stores editable Sprite2D polygon vertices and triangles and validates wrapped append input. */
 @meta.define({ className: "Tr2Sprite2dPolygon", family: "sprite2d" })
+@meta.blue.chainTo(Tr2TexturedSpriteObject)
 export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
 {
 

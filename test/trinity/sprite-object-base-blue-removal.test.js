@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { blue, INotify, BlueList, Traverse } from "../../npm/dist/global/blue/index.js";
+import { blue, INotify, IListNotify, BlueList, Traverse } from "../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
@@ -15,6 +15,25 @@ import { Tr2Sprite2dContainer } from "../../npm/dist/trinity/generated/sprite2d/
 
 const descendants=[Tr2SpriteObjectBase,Tr2Sprite2dContainerBase,Tr2Sprite2dTransform,Tr2Sprite2dRenderJob,Tr2SpriteObject,Tr2Sprite2dContainer];
 
+// Each class's exposure table as Carbon resolves it: its own entry, its MAP_INTERFACE lines, then its
+// EXPOSURE_CHAINTO parent's table.
+//   Tr2SpriteObjectBase      [ITr2SpriteObject, INotify] END             (Tr2SpriteObject_Blue.cpp:61-139)
+//   Tr2SpriteObject          CHAINTO(Tr2SpriteObjectBase)                (Tr2SpriteObject_Blue.cpp:144-234)
+//   Tr2Sprite2dContainerBase [ITr2SpriteObject, IListNotify] CHAINTO(Tr2SpriteObjectBase) (Tr2Sprite2dContainer_Blue.cpp:11-35)
+//   Tr2Sprite2dContainer     CHAINTO(Tr2Sprite2dContainerBase)           (Tr2Sprite2dContainer_Blue.cpp:40-90)
+//   Tr2Sprite2dTransform     CHAINTO(Tr2Sprite2dContainerBase)           (Tr2Sprite2dTransform_Blue.cpp:13-52)
+//   Tr2Sprite2dRenderJob     [ITr2SpriteObject] CHAINTO(Tr2SpriteObjectBase) (Tr2Sprite2dRenderJob_Blue.cpp:10-19)
+const BASE_TABLE=[Tr2SpriteObjectBase,ITr2SpriteObject,INotify];
+const CONTAINER_BASE_TABLE=[Tr2Sprite2dContainerBase,ITr2SpriteObject,IListNotify,Tr2SpriteObjectBase,INotify];
+const CARBON_TABLES=new Map([
+ [Tr2SpriteObjectBase,BASE_TABLE],
+ [Tr2SpriteObject,[Tr2SpriteObject,...BASE_TABLE]],
+ [Tr2Sprite2dContainerBase,CONTAINER_BASE_TABLE],
+ [Tr2Sprite2dContainer,[Tr2Sprite2dContainer,...CONTAINER_BASE_TABLE]],
+ [Tr2Sprite2dTransform,[Tr2Sprite2dTransform,...CONTAINER_BASE_TABLE]],
+ [Tr2Sprite2dRenderJob,[Tr2Sprite2dRenderJob,ITr2SpriteObject,Tr2SpriteObjectBase,INotify]],
+]);
+
 test("native six-verb sprite interface stays abstract and model-free",()=>{
  assert.equal(Object.getPrototypeOf(ITr2SpriteObject.prototype),Object.prototype);
  assert.deepEqual(Object.getOwnPropertyNames(ITr2SpriteObject.prototype).filter(n=>n!=="constructor"),["GatherSprites","PickPoint","SetParent","SetDirty","SetChildDirty","IsAuxMouseover"]);
@@ -25,7 +44,7 @@ test("native six-verb sprite interface stays abstract and model-free",()=>{
 
 test("base and real descendants lose inherited model machinery while retaining exact native contracts",()=>{
  assert.equal(Object.getPrototypeOf(Tr2SpriteObjectBase.prototype),ITr2SpriteObject.prototype);
- for(const Class of descendants){const value=new Class();for(const name of ["SetValues","GetValues","Clone","Traverse","GetResources","OnEvent","Destroy"])assert.equal(name in value,false,Class.name+"."+name);assert.equal("from" in Class,false);assert.deepEqual([...mappedInterfaces(Class)],[...(Class===Tr2Sprite2dTransform?[Tr2Sprite2dTransform]:[]),Tr2SpriteObjectBase,ITr2SpriteObject,INotify],Class.name);assert.equal(CjsSchema.cast(value,ITr2SpriteObject),value);assert.equal(CjsSchema.cast(value,INotify),value);}
+ for(const Class of descendants){const value=new Class();for(const name of ["SetValues","GetValues","Clone","Traverse","GetResources","OnEvent","Destroy"])assert.equal(name in value,false,Class.name+"."+name);assert.equal("from" in Class,false);assert.deepEqual([...mappedInterfaces(Class)],CARBON_TABLES.get(Class),Class.name);assert.equal(CjsSchema.cast(value,ITr2SpriteObject),value);assert.equal(CjsSchema.cast(value,INotify),value);}
  const list=new BlueList(ITr2SpriteObject);assert.equal(list.Append(new Tr2Sprite2dRenderJob()),true);assert.equal(list.Append({SetDirty(){},GatherSprites(){}}),false);
 });
 

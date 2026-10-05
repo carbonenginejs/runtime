@@ -5,6 +5,7 @@ import { Tr2TexturedSpriteObject } from "./Tr2TexturedSpriteObject.js";
 
 /** Defines a textured frame with corner sizing, corner scaling, center-fill, and offset controls. */
 @meta.define({ className: "Tr2Sprite2dFrame", family: "sprite2d", purpose: "Defines a textured frame with corner sizing, corner scaling, center-fill, and offset controls." })
+@meta.blue.chainTo(Tr2TexturedSpriteObject)
 export class Tr2Sprite2dFrame extends Tr2TexturedSpriteObject
 {
 

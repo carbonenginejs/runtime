@@ -5,6 +5,7 @@ import { Tr2TexturedSpriteObject } from "./Tr2TexturedSpriteObject.js";
 
 /** Defines a vertically stretchable textured sprite with independent edge heights, center fill, opacity, and saturation. */
 @meta.define({ className: "Tr2Sprite2dStretchVertical", family: "sprite2d", purpose: "Defines a vertically stretchable textured sprite with independent edge heights, center fill, opacity, and saturation." })
+@meta.blue.chainTo(Tr2TexturedSpriteObject)
 export class Tr2Sprite2dStretchVertical extends Tr2TexturedSpriteObject
 {
 

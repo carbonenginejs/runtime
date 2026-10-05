@@ -5,6 +5,7 @@ import { Tr2Sprite2dContainerBase } from "../../sprite2d/Tr2Sprite2dContainerBas
 
 /** Defines a pickable 2D sprite container with clipping, depth range, coordinate mode, and optional content caching. */
 @meta.define({ className: "Tr2Sprite2dContainer", family: "sprite2d", purpose: "Defines a pickable 2D sprite container with clipping, depth range, coordinate mode, and optional content caching." })
+@meta.blue.chainTo(Tr2Sprite2dContainerBase)
 export class Tr2Sprite2dContainer extends Tr2Sprite2dContainerBase
 {
 

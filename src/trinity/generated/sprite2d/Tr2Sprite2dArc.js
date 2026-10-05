@@ -6,6 +6,7 @@ import { vec4 } from "#math/vec4";
 
 /** Defines a filled or outlined 2D arc with angular span, radius, colors, widths, and primary and secondary textures. */
 @meta.define({ className: "Tr2Sprite2dArc", family: "sprite2d", purpose: "Defines a filled or outlined 2D arc with angular span, radius, colors, widths, and primary and secondary textures." })
+@meta.blue.chainTo(Tr2SpriteObject)
 export class Tr2Sprite2dArc extends Tr2SpriteObject
 {
 

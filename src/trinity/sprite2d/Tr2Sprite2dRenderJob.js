@@ -4,11 +4,14 @@
 // Promoted to hand-maintained source 2026-08-22; all portable behavior is implemented here.
 import { vec2 } from "#math/vec2";
 import { meta } from "#schema";
+import { ITr2SpriteObject } from "./ITr2SpriteObject.js";
 import { Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
 import { Tr2SpriteObjectBase } from "./Tr2SpriteObjectBase.js";
 
 /** A Sprite2D leaf that executes an authored render job. */
 @meta.define({ className: "Tr2Sprite2dRenderJob", family: "sprite2d" })
+@meta.blue.interface(ITr2SpriteObject)
+@meta.blue.chainTo(Tr2SpriteObjectBase)
 export class Tr2Sprite2dRenderJob extends Tr2SpriteObjectBase
 {
 

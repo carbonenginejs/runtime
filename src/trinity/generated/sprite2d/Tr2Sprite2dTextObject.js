@@ -6,6 +6,7 @@ import { Tr2SpriteObjectEffect } from "./enums.js";
 
 /** Defines a 2D text sprite's measured extent, primary texture, picking radius, shadow-effect mode, and tooltip flag. */
 @meta.define({ className: "Tr2Sprite2dTextObject", family: "sprite2d", purpose: "Defines a 2D text sprite's measured extent, primary texture, picking radius, shadow-effect mode, and tooltip flag." })
+@meta.blue.chainTo(Tr2SpriteObject)
 export class Tr2Sprite2dTextObject extends Tr2SpriteObject
 {
 

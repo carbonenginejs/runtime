@@ -7,6 +7,7 @@ import { Tr2SpriteObjectBlendMode, Tr2SpriteObjectEffect } from "./enums.js";
 
 /** Defines a sprite container layer with blend and effect state plus optional background clearing. */
 @meta.define({ className: "Tr2Sprite2dLayer", family: "sprite2d", purpose: "Defines a sprite container layer with blend and effect state plus optional background clearing." })
+@meta.blue.chainTo(Tr2Sprite2dContainer)
 export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
 {
 

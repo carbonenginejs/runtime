@@ -7,6 +7,7 @@ import { vec4 } from "#math/vec4";
 
 /** Defines a textured 2D line segment with endpoint positions, colors, widths, and texture offsets. */
 @meta.define({ className: "Tr2Sprite2dLine", family: "sprite2d", purpose: "Defines a textured 2D line segment with endpoint positions, colors, widths, and texture offsets." })
+@meta.blue.chainTo(Tr2TexturedSpriteObject)
 export class Tr2Sprite2dLine extends Tr2TexturedSpriteObject
 {
 

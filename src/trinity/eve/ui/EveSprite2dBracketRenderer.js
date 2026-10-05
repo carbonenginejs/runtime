@@ -11,6 +11,7 @@ import { Tr2SpriteObject } from "../../generated/sprite2d/Tr2SpriteObject.js";
  * Sprite2D scene.
  */
 @meta.define({ className: "EveSprite2dBracketRenderer", family: "eve/ui" })
+@meta.blue.chainTo(Tr2SpriteObject)
 export class EveSprite2dBracketRenderer extends Tr2SpriteObject
 {
 

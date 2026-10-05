@@ -9,6 +9,7 @@ import { vec4 } from "#math/vec4";
 
 /** Stores editable Sprite2D line-strip vertices and validates wrapped append input. */
 @meta.define({ className: "Tr2Sprite2dLineTrace", family: "sprite2d" })
+@meta.blue.chainTo(Tr2TexturedSpriteObject)
 export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
 {
 

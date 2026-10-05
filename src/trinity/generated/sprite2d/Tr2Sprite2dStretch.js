@@ -6,6 +6,7 @@ import { Tr2StretchScaleBehavior } from "./enums.js";
 
 /** Defines a horizontally stretchable textured sprite with independent edge widths, center fill, offset, opacity, and DPI scaling. */
 @meta.define({ className: "Tr2Sprite2dStretch", family: "sprite2d", purpose: "Defines a horizontally stretchable textured sprite with independent edge widths, center fill, offset, opacity, and DPI scaling." })
+@meta.blue.chainTo(Tr2TexturedSpriteObject)
 export class Tr2Sprite2dStretch extends Tr2TexturedSpriteObject
 {
 

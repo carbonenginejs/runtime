@@ -9,6 +9,7 @@ import { Tr2SpriteObjectBlendMode, Tr2SpriteObjectEffect, Tr2SpriteTarget } from
 
 /** Provides shared color, depth, blending, effect, glow, outline, shadow, and render-target state for drawable 2D sprites. */
 @meta.define({ className: "Tr2SpriteObject", family: "sprite2d", purpose: "Provides shared color, depth, blending, effect, glow, outline, shadow, and render-target state for drawable 2D sprites." })
+@meta.blue.chainTo(Tr2SpriteObjectBase)
 export class Tr2SpriteObject extends Tr2SpriteObjectBase
 {
 
