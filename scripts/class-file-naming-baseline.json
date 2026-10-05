@@ -99,9 +99,6 @@
     "src/resource/formats/hlsl/core/tr2/HlslRenderContextEnum.js": [
       "HlslRenderContextEnum"
     ],
-    "src/resource/generated/resources/GrannyDeprecationLevel.js": [
-      "GrannyDeprecationLevel"
-    ],
     "src/trinity/core/mesh/TriGeometryResAllocations.js": [
       "TriGeometryResAllocations"
     ],
