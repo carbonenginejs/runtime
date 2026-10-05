@@ -280,10 +280,14 @@ export class SpatialAudioSettings
     this._enableDiffractionOnBoundaryEdges = Boolean(value);
   }
 
-  /** Carbon method PopulateInitSettings, mapped to a plain Wwise-shaped object. */
+  /**
+   * Carbon method PopulateInitSettings, mapped to a plain Wwise-shaped object.
+   *
+   * Adapted: AkSpatialAudioInitSettings is represented by a caller-owned plain JavaScript
+   * object.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("AkSpatialAudioInitSettings is represented by a caller-owned plain JavaScript object.")
   PopulateInitSettings(out = {})
   {
     out.fMovementThreshold = this._movementThreshold;

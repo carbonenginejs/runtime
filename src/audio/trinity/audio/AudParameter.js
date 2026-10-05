@@ -1,7 +1,7 @@
-import { IsMatch } from "#blue";
 // Source: audio/src/AudParameter.h
 // Source: audio/src/AudParameter.cpp
 // Source: audio/src/AudParameter_Blue.cpp
+import { IsMatch } from "#blue";
 import { meta } from "#schema";
 import { INotify } from "#blue/INotify";
 import { AudGameObjResource } from "./AudGameObjResource.js";

@@ -188,10 +188,12 @@ export class AudEventCurve
    * CompareKeys time sort (cpp:96-99), which is SortKeys here. Public so an
    * externally tweaked key list can restore the invariant, which is what
    * the declaration was evidently for.
+   *
+   * Adapted: Declared but never defined in Carbon; the body is the shared key sort every
+   * mutating call site runs.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Declared but never defined in Carbon; the body is the shared key sort every mutating call site runs.")
   Sort()
   {
     SortKeys(this.keys);
@@ -231,10 +233,15 @@ export class AudEventCurve
     this.CreateAudioEmitter();
   }
 
-  /** Carbon method CreateAudioEmitter: reuse or attach an AudEmitter placement observer. */
+  /**
+   * Carbon method CreateAudioEmitter: reuse or attach an AudEmitter placement observer.
+   *
+   * Adapted: This preserves the donor's structural placement-observer seam until the
+   * combined runtime has a nominal multi-interface representation for the cross-layer Carbon
+   * contract.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("This preserves the donor's structural placement-observer seam until the combined runtime has a nominal multi-interface representation for the cross-layer Carbon contract.")
   CreateAudioEmitter()
   {
     if (!this.sourceTriObserver)

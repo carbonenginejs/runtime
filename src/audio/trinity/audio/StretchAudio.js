@@ -1,5 +1,5 @@
-import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: audio/src/Components/StretchAudio.h + StretchAudio.cpp
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/StretchAudio.json.
 import { meta } from "#schema";

@@ -1,4 +1,4 @@
-﻿// Source: audio/src/AudStaticDataRepository.h + AudStaticDataRepository.cpp
+// Source: audio/src/AudStaticDataRepository.h + AudStaticDataRepository.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { meta } from "#schema";
 

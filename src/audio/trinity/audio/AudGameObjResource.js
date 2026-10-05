@@ -1,6 +1,6 @@
+// Source: audio/src/AudGameObjResource.h + AudGameObjResource.cpp
 import { blue, CjsBlueOS, IsMatch } from "#blue";
 import { CjsWwiseSoundEngineStub } from "../../../global/audio/CjsWwiseSoundEngineStub.js";
-// Source: audio/src/AudGameObjResource.h + AudGameObjResource.cpp
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/AudGameObjResource.json.
 //
@@ -694,10 +694,14 @@ export class AudGameObjResource
     vec3.normalize(outTop, outTop);
   }
 
-  /** Carbon method SetPlacementFromParent: stores the parent pose, resolves authored rotation, then applies it. */
+  /**
+   * Carbon method SetPlacementFromParent: stores the parent pose, resolves authored rotation, then applies it.
+   *
+   * Adapted: The RH->LH conversion and Wwise SetPosition happen in the backend seam; the
+   * headless graph stores the position.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The RH->LH conversion and Wwise SetPosition happen in the backend seam; the headless graph stores the position.")
   SetPlacementFromParent(front, top, positionValue)
   {
     vec3.copy(this._parentFront, front);
@@ -706,10 +710,14 @@ export class AudGameObjResource
     return this.ApplyEffectivePlacement(orientation.front, orientation.top, positionValue);
   }
 
-  /** Carbon method ApplyEffectivePlacement: corrects, stores, exposes, and pushes the effective pose. */
+  /**
+   * Carbon method ApplyEffectivePlacement: corrects, stores, exposes, and pushes the effective pose.
+   *
+   * Adapted: The RH->LH conversion and Wwise call remain in the backend seam; the runtime
+   * owns the effective orientation buffers.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The RH->LH conversion and Wwise call remain in the backend seam; the runtime owns the effective orientation buffers.")
   ApplyEffectivePlacement(front, top, positionValue)
   {
     AudGameObjResource.Orthonormalize(
@@ -742,10 +750,14 @@ export class AudGameObjResource
       || this.rotation[3] !== 1;
   }
 
-  /** Carbon method GetEffectiveOrientation: resolves parent axes through authored rotation into owned buffers. */
+  /**
+   * Carbon method GetEffectiveOrientation: resolves parent axes through authored rotation into owned buffers.
+   *
+   * Adapted: Carbon returns a value struct; CarbonEngineJS returns a stable object backed by
+   * owned buffers to avoid placement-path allocations.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon returns a value struct; CarbonEngineJS returns a stable object backed by owned buffers to avoid placement-path allocations.")
   GetEffectiveOrientation()
   {
     if (!this.HasAuthoredRotation() || quat.squaredLength(this.rotation) <= 0)
@@ -808,10 +820,14 @@ export class AudGameObjResource
     return this.eventName;
   }
 
-  /** Carbon method ApplyEventStopRelationships: purge queued/playing events this event stops. */
+  /**
+   * Carbon method ApplyEventStopRelationships: purge queued/playing events this event stops.
+   *
+   * Adapted: Carbon relies on Wwise to execute the posted Stop action; the portable backend
+   * executes an installed authored program or falls back to the equivalent metadata stop.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon relies on Wwise to execute the posted Stop action; the portable backend executes an installed authored program or falls back to the equivalent metadata stop.")
   ApplyEventStopRelationships(stoppingEventName)
   {
     const repository = AudGameObjResource.staticDataRepository;
@@ -944,10 +960,15 @@ export class AudGameObjResource
     this.playingVitalSound = isVital;
   }
 
-  /** Carbon method CalculateCullingWeight: refresh in-range/one-shot state and store the weight. */
+  /**
+   * Carbon method CalculateCullingWeight: refresh in-range/one-shot state and store the weight.
+   *
+   * Adapted: Carbon reads complete authored radii and manager property delegates.
+   * CarbonEngineJS reads the manager's SoundPrioritization directly and treats a nonpositive
+   * radius as unknown/unbounded so optional metadata cannot make an event inaudible.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon reads complete authored radii and manager property delegates. CarbonEngineJS reads the manager's SoundPrioritization directly and treats a nonpositive radius as unknown/unbounded so optional metadata cannot make an event inaudible.")
   CalculateCullingWeight(now = NowMs())
   {
     const prioritization = AudGameObjResource.manager?.soundPrioritization;
@@ -1050,17 +1071,25 @@ export class AudGameObjResource
     return this._switchValues;
   }
 
-  /** Queued events replayed on Wake (introspection/test surface). */
+  /**
+   * Queued events replayed on Wake (introspection/test surface).
+   *
+   * Adapted: CarbonEngineJS-only accessor over private wake-queue state; Carbon exposes no
+   * equivalent read.
+   */
   @meta.ours
-  @meta.reason("CarbonEngineJS-only accessor over private wake-queue state; Carbon exposes no equivalent read.")
   GetEventsOnWake()
   {
     return [...this._eventsOnWake];
   }
 
-  /** The pending culled one-shot event name, "" when none. */
+  /**
+   * The pending culled one-shot event name, "" when none.
+   *
+   * Adapted: CarbonEngineJS-only accessor over private one-shot state; Carbon exposes no
+   * equivalent read.
+   */
   @meta.ours
-  @meta.reason("CarbonEngineJS-only accessor over private one-shot state; Carbon exposes no equivalent read.")
   GetWaitingOneShot()
   {
     return this._waitingOneShotName;
@@ -1079,9 +1108,13 @@ export class AudGameObjResource
     return IsUsableWorldPosition(this.position);
   }
 
-  /** Values settle hook: refresh notified event-name and rotation consequences. */
+  /**
+   * Values settle hook: refresh notified event-name and rotation consequences.
+   *
+   * Adapted: JS identifies Carbon's member address by its exposed name; playback remains on
+   * the injected audio backend.
+   */
   @meta.adapted
-  @meta.reason("JS identifies Carbon's member address by its exposed name; playback remains on the injected audio backend.")
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "rotation"))
@@ -1096,10 +1129,14 @@ export class AudGameObjResource
     return true;
   }
 
-  /** Binds only a newly inserted, non-loading parameter to this object. */
+  /**
+   * Binds only a newly inserted, non-loading parameter to this object.
+   *
+   * Adapted: Carbon friendship assigning AudParameter::m_ID uses the class-owned
+   * SetGameObjectID seam.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon friendship assigning AudParameter::m_ID uses the class-owned SetGameObjectID seam.")
   OnListModified(event, _key, _key2, value, list = this.parameters)
   {
     if (!(event & BLUELISTEVENT.BELIST_LOADING) && list === this.parameters

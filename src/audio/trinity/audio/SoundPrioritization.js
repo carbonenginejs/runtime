@@ -326,10 +326,14 @@ export class SoundPrioritization
     this._settings.usedEmitterWeight = value;
   }
 
-  /** Carbon method GetPrioritizedAudioObjects: defensive current-order snapshot. */
+  /**
+   * Carbon method GetPrioritizedAudioObjects: defensive current-order snapshot.
+   *
+   * Adapted: Carbon returns a const vector reference; CarbonEngineJS returns a defensive
+   * array.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon returns a const vector reference; CarbonEngineJS returns a defensive array.")
   GetPrioritizedAudioObjects()
   {
     return this._gameObjects.slice();

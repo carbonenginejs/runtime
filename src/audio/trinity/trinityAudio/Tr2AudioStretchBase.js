@@ -66,10 +66,14 @@ export class Tr2AudioStretchBase
     return true;
   }
 
-  /** Carbon method Update: position endpoints and project the listener onto the beam. */
+  /**
+   * Carbon method Update: position endpoints and project the listener onto the beam.
+   *
+   * Adapted: Carbon reads Tr2Renderer's view position; the device-free audio graph uses the
+   * registered audio listener position.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon reads Tr2Renderer's view position; the device-free audio graph uses the registered audio listener position.")
   Update(sourcePosition, destPosition)
   {
     StretchAudio.GetStretchOrientation(sourcePosition, destPosition, this._front, this._top);

@@ -114,10 +114,14 @@ export class AudGeometry extends ITr2AudGeometry
     geometrySets.clear();
   }
 
-  /** Carbon ITr2AudGeometry method SetGeometry. */
+  /**
+   * Carbon ITr2AudGeometry method SetGeometry.
+   *
+   * Adapted: Wwise geometry calls route through optional SetGeometry/SetGeometryInstance
+   * backend methods using plain browser-safe parameter objects.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Wwise geometry calls route through optional SetGeometry/SetGeometryInstance backend methods using plain browser-safe parameter objects.")
   SetGeometry(geometrySetId, instanceId, geometryData, worldTransform)
   {
     const manager = AudGameObjResource.manager;
@@ -154,10 +158,14 @@ export class AudGeometry extends ITr2AudGeometry
     geometryInstances.set(instanceId, { geometrySetId, params: instanceParams });
   }
 
-  /** Carbon ITr2AudGeometry method SetGeometryTransform. */
+  /**
+   * Carbon ITr2AudGeometry method SetGeometryTransform.
+   *
+   * Adapted: The Wwise transform call routes through an optional browser backend with a
+   * plain parameter object.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The Wwise transform call routes through an optional browser backend with a plain parameter object.")
   SetGeometryTransform(geometrySetId, instanceId, worldTransform)
   {
     const manager = AudGameObjResource.manager;
@@ -175,10 +183,14 @@ export class AudGeometry extends ITr2AudGeometry
     }
   }
 
-  /** Carbon ITr2AudGeometry method RemoveGeometry. */
+  /**
+   * Carbon ITr2AudGeometry method RemoveGeometry.
+   *
+   * Adapted: Wwise geometry removal routes through optional browser backend methods while
+   * retaining Carbon's set reference counts.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Wwise geometry removal routes through optional browser backend methods while retaining Carbon's set reference counts.")
   RemoveGeometry(geometrySetId, instanceId)
   {
     const set = geometrySets.get(geometrySetId);
