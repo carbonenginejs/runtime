@@ -15,6 +15,7 @@ import { carbonInheritDecorator, carbonInterfaceDecorator, carbonChainToDecorato
 import { composeValuesDecorator, createValuesTransport, isExportableField, isWritableField } from "../compose/values.js";
 import { blueEnums, CjsBlueEnumRegistry, CJS_ENUM_NAME } from "../blue/enums/CjsBlueEnumRegistry.js";
 import { TriSettingNames } from "../consts/trinity.js";
+import { CjsUnusedMethodError } from "../utils/errors/CjsUnusedMethodError.js";
 import { registerClass, unregisterClass, getRegisteredConstructor, getClassRegistrationRevision, ClassRegistrarNullFactory } from "../blue/classes/registry.js";
 
 
@@ -2023,6 +2024,7 @@ function defineClassMetadata(Constructor, definition)
     if (definition.modelledOn) schema.modelledOn = definition.modelledOn;
     if (definition.aliases) schema.aliases = [...definition.aliases];
     if (Object.hasOwn(definition, "abstract")) schema.abstract = definition.abstract;
+    if (definition.unused) installUnusedMethods(Constructor, definition, schema);
 
     for (const field of definition.fields || [])
     {
@@ -2531,6 +2533,11 @@ function buildClassInfo(Constructor, namespaces)
         result.aliases = [ ...schema.aliases ];
     }
 
+    if (schema?.unused?.length)
+    {
+        result.unused = [ ...schema.unused ];
+    }
+
     if (typeof schema?.abstract === "boolean") result.abstract = schema.abstract;
 
     if (methods.length) result.methods = methods;
@@ -2645,6 +2652,7 @@ function getOrCreateClassSchema(Constructor)
             carbon: null,
             modelledOn: null,
             aliases: null,
+            unused: null,
             fields: [],
             fieldsByName: new Map(),
             declarations: [],
@@ -2868,12 +2876,63 @@ function normalizeClassDefinition(Constructor, definition)
     ].filter(alias => typeof alias === "string" && alias.trim()).map(alias => alias.trim())
         .filter(alias => alias !== result.className);
     result.aliases = aliases.length ? [...new Set(aliases)] : null;
+    result.unused = normalizeUnused(result.unused);
     result.fields = normalizeManualMembers(result.fields, "fields");
     result.members = normalizeCanonicalDeclarations(result.members, "member");
     result.properties = normalizeCanonicalDeclarations(result.properties, "property");
     result.methods = normalizeManualMembers(result.methods, "methods");
     delete result.alias;
     return result;
+}
+
+/**
+ * `define({ unused })`: Carbon method names the class deliberately does not use.
+ *
+ * @param {*} unused The declared list.
+ * @returns {string[]|null} Trimmed, de-duplicated names, or null.
+ */
+function normalizeUnused(unused)
+{
+    if (unused === undefined || unused === null) return null;
+    if (!Array.isArray(unused)) throw new TypeError("CjsSchema.define unused must be an array of Carbon method names.");
+    const names = [];
+    for (const name of unused)
+    {
+        if (typeof name !== "string" || !name.trim())
+            throw new TypeError("CjsSchema.define unused entries must be non-empty Carbon method names.");
+        if (names.includes(name.trim())) throw new TypeError(`CjsSchema.define unused lists "${name.trim()}" twice.`);
+        names.push(name.trim());
+    }
+    return names.length ? names : null;
+}
+
+/**
+ * Installs a thrower for each `unused` name. An unused method is not exposed
+ * and has no method metadata, so a name the class also declares or defines is
+ * a contradiction and is refused.
+ *
+ * @param {Function} Constructor The class being defined.
+ * @param {object} definition The normalized definition.
+ * @param {object} schema The class schema.
+ */
+function installUnusedMethods(Constructor, definition, schema)
+{
+    const declared = new Set([
+        ...(definition.methods || []).map(method => method.name),
+        ...(definition.fields || []).map(field => field.name)
+    ]);
+    const className = definition.className || schema.className || "<undeclared>";
+    for (const name of definition.unused)
+    {
+        if (declared.has(name) || Object.hasOwn(Constructor.prototype, name))
+            throw new TypeError(`CjsSchema.define lists ${className}.${name} as unused, but the class also declares it.`);
+        Object.defineProperty(Constructor.prototype, name, {
+            value: function unusedCarbonMethod() { throw new CjsUnusedMethodError(className, name); },
+            writable: true,
+            configurable: true
+        });
+    }
+    schema.unused = [ ...definition.unused ];
 }
 
 /**

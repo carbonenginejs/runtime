@@ -304,7 +304,8 @@ async function ReadJavaScriptClasses(directory)
 }
 
 /**
- * Carbon originals from define-time `meta.renamed("X")`, keyed by the class
+ * Carbon originals from define-time `meta.renamed("X")`, and the Carbon names a
+ * class lists in `define({ unused: [...] })` (deliberately not used), keyed by the class
  * binding the call names: `CjsSchema.define(Class, { methods: { Name: [...] } })`
  * and `CjsSchema.decorateMethod(Class, "Name", ...)` at module top level.
  */
@@ -336,6 +337,11 @@ function DefineTimeRenamed(body)
     {
       const definition = call.arguments[1];
       if (definition?.type !== "ObjectExpression") continue;
+      const unused = definition.properties.find(property => MemberName(property) === "unused");
+      for (const element of unused?.value?.type === "ArrayExpression" ? unused.value.elements : [])
+      {
+        if (element?.type === "StringLiteral") add(target.name, element.value);
+      }
       const methods = definition.properties.find(property => MemberName(property) === "methods");
       if (methods?.value?.type !== "ObjectExpression") continue;
       for (const method of methods.value.properties)

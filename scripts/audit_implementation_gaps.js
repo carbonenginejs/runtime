@@ -26,6 +26,8 @@ const METHOD_TYPES = new Set([
 const files = await GetJavaScriptFiles(sourceRoot);
 const methods = [];
 const properties = [];
+// Carbon methods a class lists in define({ unused }): deliberate, not gaps.
+const unused = [];
 
 for (const file of files)
 {
@@ -46,6 +48,17 @@ for (const file of files)
 
   for (const node of ast.program.body)
   {
+    const call = node.type === "ExpressionStatement" ? node.expression : null;
+    if (call?.type === "CallExpression" && call.callee?.type === "MemberExpression"
+      && call.callee.object?.name === "CjsSchema" && call.callee.property?.name === "define"
+      && call.arguments[0]?.type === "Identifier" && call.arguments[1]?.type === "ObjectExpression")
+    {
+      const list = call.arguments[1].properties.find(property => property.key?.name === "unused" || property.key?.value === "unused");
+      for (const element of list?.value?.type === "ArrayExpression" ? list.value.elements : [])
+      {
+        if (element?.type === "StringLiteral") unused.push(CreateRecord(relativeFile, call.arguments[0].name, element.value, element.loc.start.line));
+      }
+    }
     if (node.type !== "ExportNamedDeclaration" || node.declaration?.type !== "ClassDeclaration") continue;
     const declaration = node.declaration;
     const className = declaration.id?.name ?? "<anonymous>";
@@ -70,10 +83,12 @@ const result = {
   includeDropped,
   summary: {
     methods: Summarize(methods),
-    properties: Summarize(properties)
+    properties: Summarize(properties),
+    unused: Summarize(unused)
   },
   methods,
-  properties
+  properties,
+  unused
 };
 
 if (emitJson)
@@ -259,10 +274,12 @@ function PrintMarkdown(audit)
   console.log();
   console.log(`- Explicit \`@meta.notImplemented\` methods: ${methodSummary.count} across ${methodSummary.classes} classes.`);
   console.log(`- Explicit \`@meta.type.unknown\` properties: ${propertySummary.count} across ${propertySummary.classes} classes.`);
+  console.log(`- Deliberately unused Carbon methods (\`define({ unused })\`, not gaps): ${audit.summary.unused.count} across ${audit.summary.unused.classes} classes.`);
   console.log(`- Includes \`src/**/dropped\`: ${audit.includeDropped ? "yes" : "no"}.`);
   console.log();
   PrintSection("Methods", audit.methods);
   PrintSection("Properties", audit.properties);
+  PrintSection("Unused (deliberate)", audit.unused);
 }
 
 /** @param {string} title @param {object[]} records */

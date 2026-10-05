@@ -65,7 +65,8 @@ for (const entry of promoted)
     seen.add(methodName);
     const actualMethod = findCarbonMethod(actualMethods, methodName, method.static === true);
     // Native obligations require a body; only Blue-mapped methods require exposure.
-    if (actualMethod && (method.native === true || actualMethod.hasCarbon)) continue;
+    // A Carbon method the class lists in define({ unused }) is deliberately absent.
+    if (actualMethod && (method.native === true || actualMethod.hasCarbon || actualMethod.unused)) continue;
 
     const record = {
       family: entry.family,
@@ -258,6 +259,21 @@ async function ReadJavaScriptClasses(directory, includeDropped = false)
       const record = { className, baseClass, inherits, methods, file: relativeFile };
       const existing = records.get(className);
       if (!existing || existing.file.startsWith("src/trinity/generated/")) records.set(className, record);
+    }
+    for (const statement of ast.program.body)
+    {
+      const call = statement.type === "ExpressionStatement" ? statement.expression : null;
+      if (call?.type !== "CallExpression" || call.callee?.type !== "MemberExpression"
+        || call.callee.object?.name !== "CjsSchema" || call.callee.property?.name !== "define") continue;
+      const record = records.get(call.arguments[0]?.name);
+      const definition = call.arguments[1];
+      if (record?.file !== relativeFile || definition?.type !== "ObjectExpression") continue;
+      const unused = definition.properties.find(property => property.key?.name === "unused");
+      for (const element of unused?.value?.type === "ArrayExpression" ? unused.value.elements : [])
+      {
+        if (element?.type === "StringLiteral" && !record.methods.has(element.value))
+          record.methods.set(element.value, { hasCarbon: false, isStatic: false, unused: true });
+      }
     }
   }
   return records;

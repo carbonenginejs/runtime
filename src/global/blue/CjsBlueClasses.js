@@ -173,20 +173,6 @@ export class CjsBlueClasses extends IBlueClasses
   }
 
   /**
-   * Throws because native variable lookup is not implemented.
-   *
-   * Adapted: No consumer yet; ported when one needs it.
-   */
-  FindVariable() { throw new Error("CjsBlueClasses.FindVariable is not implemented"); }
-
-  /**
-   * Throws because native object-count accounting is not implemented.
-   *
-   * Adapted: No consumer yet; ported when one needs it.
-   */
-  UpdateObjectCount() { throw new Error("CjsBlueClasses.UpdateObjectCount is not implemented"); }
-
-  /**
    * Copies `source` into `dest`, or into a new instance of its class when
    * `dest` is null, through a fresh Copier (BlueClasses.cpp:498-510).
    *
@@ -223,51 +209,6 @@ export class CjsBlueClasses extends IBlueClasses
     return new Copier().CloneTo(source, dest);
   }
 
-  /**
-   * Throws because processing the native pending-deletion queue is not
-   * implemented.
-   *
-   * Adapted: No consumer yet; ported when one needs it.
-   */
-  ProcessPendingDeletes() { throw new Error("CjsBlueClasses.ProcessPendingDeletes is not implemented"); }
-
-  /**
-   * Throws because draining all native pending deletions is not implemented.
-   *
-   * Adapted: No consumer yet; ported when one needs it.
-   */
-  ProcessAllPendingDeletes() { throw new Error("CjsBlueClasses.ProcessAllPendingDeletes is not implemented"); }
-
-  /**
-   * Throws because changing native deferred-deletion enablement is not
-   * implemented.
-   *
-   * Adapted: No consumer yet; ported when one needs it.
-   */
-  SetPendingDeletesEnabled() { throw new Error("CjsBlueClasses.SetPendingDeletesEnabled is not implemented"); }
-
-  /**
-   * Throws because querying native deferred-deletion enablement is not
-   * implemented.
-   *
-   * Adapted: No consumer yet; ported when one needs it.
-   */
-  IsPendingDeletesEnabled() { throw new Error("CjsBlueClasses.IsPendingDeletesEnabled is not implemented"); }
-
-  /**
-   * Throws because registering a native thunk is not implemented.
-   *
-   * Adapted: No consumer yet; ported when one needs it.
-   */
-  RegisterThunker() { throw new Error("CjsBlueClasses.RegisterThunker is not implemented"); }
-
-  /**
-   * Throws because native runtime type-information lookup is not implemented.
-   *
-   * Adapted: No consumer yet; ported when one needs it.
-   */
-  GetRtti() { throw new Error("CjsBlueClasses.GetRtti is not implemented"); }
-
 }
 
 
@@ -275,6 +216,14 @@ CjsSchema.define(CjsBlueClasses, {
   className: "CjsBlueClasses",
   carbon: "BlueClasses",
   family: "blue",
+  // Carbon's object-count, deferred-deletion, script-thunk and RTTI services:
+  // JavaScript's garbage collector and reflection stand in for them.
+  unused: [
+    "FindVariable", "UpdateObjectCount",
+    "ProcessPendingDeletes", "ProcessAllPendingDeletes",
+    "SetPendingDeletesEnabled", "IsPendingDeletesEnabled",
+    "RegisterThunker", "GetRtti"
+  ],
   fields: {},
   methods: {
     RegisterClasses: [ meta.blue.method, meta.adapted ],
@@ -284,15 +233,7 @@ CjsSchema.define(CjsBlueClasses, {
     CreateInstance: [ meta.blue.method, meta.adapted ],
     CreateInstanceFromName: [ meta.blue.method, meta.adapted ],
     QueryThisInterface: [ meta.blue.method, meta.adapted ],
-    FindVariable: [ meta.blue.method, meta.notImplemented ],
-    UpdateObjectCount: [ meta.blue.method, meta.notImplemented ],
     CopyTo: [ meta.blue.method, meta.adapted ],
-    CloneTo: [ meta.blue.method, meta.adapted ],
-    ProcessPendingDeletes: [ meta.blue.method, meta.notImplemented ],
-    ProcessAllPendingDeletes: [ meta.blue.method, meta.notImplemented ],
-    SetPendingDeletesEnabled: [ meta.blue.method, meta.notImplemented ],
-    IsPendingDeletesEnabled: [ meta.blue.method, meta.notImplemented ],
-    RegisterThunker: [ meta.blue.method, meta.notImplemented ],
-    GetRtti: [ meta.blue.method, meta.notImplemented ]
+    CloneTo: [ meta.blue.method, meta.adapted ]
   }
 });
