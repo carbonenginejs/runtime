@@ -1,5 +1,5 @@
-import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/Renderable/EveSceneStaticParticles.h
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
 //   trinity/trinity/Eve/Renderable/EveSceneStaticParticles.cpp
 import { CjsSchema, meta } from "#schema";
 import * as CcpLog from "../../../../global/logging/ccpLog.js";
@@ -301,10 +301,14 @@ export class EveSceneStaticParticles
     );
   }
 
-  /** Carbon method AddCluster (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method AddCluster (MAP_METHOD_AND_WRAP).
+   *
+   * Adapted: Carbon's native ClusterData/Vector3d value is represented by a plain record
+   * with a Float64Array position.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon's native ClusterData/Vector3d value is represented by a plain record with a Float64Array position.")
   AddCluster(position, radius, color1, color2, randomSeed)
   {
     this.clusters.push({
