@@ -72,7 +72,7 @@ export class Tr2ControllerEventHandler extends IListNotify
     {
       return;
     }
-    const action = value && blue.classes.QueryThisInterface(value, ITr2ControllerAction, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
+    const action = value ? blue.classes.QueryThisInterface(value, ITr2ControllerAction, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
       case BLUELISTEVENT.BELIST_INSERTED:

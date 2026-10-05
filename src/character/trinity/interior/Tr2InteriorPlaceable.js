@@ -115,7 +115,7 @@ export class Tr2InteriorPlaceable
       {
         ++this._loadRequest;
         const copy = blue.classes.CloneTo(this.placeableRes);
-        this.placeableRes = copy && blue.classes.QueryThisInterface(copy, WodPlaceableRes);
+        this.placeableRes = copy ? blue.classes.QueryThisInterface(copy, WodPlaceableRes) : null;
       }
       else
       {

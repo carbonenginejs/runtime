@@ -676,7 +676,7 @@ export class Tr2Controller extends EveThrottleable
   @meta.ours
   _OnStateMachineListModified(event, value)
   {
-    const stateMachine = value && blue.classes.QueryThisInterface(value, Tr2StateMachine, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
+    const stateMachine = value ? blue.classes.QueryThisInterface(value, Tr2StateMachine, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
       case BLUELISTEVENT.BELIST_INSERTED:
@@ -712,7 +712,7 @@ export class Tr2Controller extends EveThrottleable
   @meta.ours
   _OnEventHandlerListModified(event, value)
   {
-    const handler = value && blue.classes.QueryThisInterface(value, Tr2ControllerEventHandler, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
+    const handler = value ? blue.classes.QueryThisInterface(value, Tr2ControllerEventHandler, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
       case BLUELISTEVENT.BELIST_INSERTED:
