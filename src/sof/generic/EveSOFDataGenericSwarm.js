@@ -10,6 +10,7 @@ import { meta } from "#schema";
  * Native behavior members retain the existing flat authored-field representation.
  */
 @meta.define({ className: "EveSOFDataGenericSwarm", family: "eve" })
+@meta.blue.interface()
 export class EveSOFDataGenericSwarm
 {
 
@@ -147,7 +148,3 @@ export class EveSOFDataGenericSwarm
 
 }
 
-meta.blue.interfaceTable({
-  interfaces: [ EveSOFDataGenericSwarm ],
-  chainTo: null
-})(EveSOFDataGenericSwarm);

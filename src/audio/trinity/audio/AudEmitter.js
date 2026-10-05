@@ -10,7 +10,8 @@ import { ITr2AudEmitter } from "../trinityAudioApi/ITr2AudEmitter.js";
 /** Represents the concrete content-facing audio emitter (ITr2AudEmitter) with authored placement and attenuation controls. */
 @meta.define({ className: "AudEmitter", family: "audio" })
 @meta.blue.inherit(ITr2AudEmitter)
-@meta.blue.mapInterface(ITr2AudEmitter)
+@meta.blue.interface(ITr2AudEmitter)
+@meta.blue.chainTo(AudGameObjResource)
 export class AudEmitter extends AudGameObjResource
 {
 

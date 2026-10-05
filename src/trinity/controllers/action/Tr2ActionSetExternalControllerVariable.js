@@ -16,6 +16,7 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
   family: "controllers"
 })
 @meta.blue.inherit(INotify)
+@meta.blue.interface(ITr2ControllerAction, INotify)
 export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
 {
   /**
@@ -254,7 +255,3 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionSetExternalControllerVariable_Blue.cpp:13-15,27).
-meta.blue.interfaceTable({
-  interfaces: [Tr2ActionSetExternalControllerVariable, ITr2ControllerAction, INotify],
-  chainTo: null
-})(Tr2ActionSetExternalControllerVariable);

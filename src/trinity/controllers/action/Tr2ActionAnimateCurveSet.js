@@ -17,6 +17,7 @@ import { ITr2Updateable } from "../../core/ITr2Updateable.js";
   family: "controllers"
 })
 @meta.blue.inherit(ITr2Updateable, INotify)
+@meta.blue.interface(ITr2ControllerAction, ITr2Updateable, INotify)
 export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
 {
   /** m_value: expression text, recompiled by Link and its NOTIFY callback. */
@@ -234,7 +235,3 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionAnimateCurveSet_Blue.cpp:13-16,36).
-meta.blue.interfaceTable({
-  interfaces: [Tr2ActionAnimateCurveSet, ITr2ControllerAction, ITr2Updateable, INotify],
-  chainTo: null
-})(Tr2ActionAnimateCurveSet);

@@ -17,6 +17,8 @@ import { EveChildPartDataPartData } from "./EveChildPartDataPartData.js";
  * survive a model values round trip.
  */
 @meta.define({ className: "EveChildPartData", family: "eve/child" })
+@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild)
+@meta.blue.chainTo(EveSpaceObjectChild)
 export class EveChildPartData extends EveSpaceObjectChild
 {
   @meta.blue.persist
@@ -49,4 +51,3 @@ export class EveChildPartData extends EveSpaceObjectChild
 }
 
 // EveChildPartData_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveSpaceObjectChild, IEveSpaceObjectChild], chainTo: EveSpaceObjectChild })(EveChildPartData, { kind: "class" });

@@ -20,6 +20,7 @@ import { Tr2StateMachineState } from "./Tr2StateMachineState.js";
   family: "controllers"
 })
 @meta.blue.inherit(IListNotify, ISimTimeRebaseNotify, INotify)
+@meta.blue.interface(IListNotify, INotify)
 export class Tr2StateMachine
 {
   /**
@@ -384,7 +385,3 @@ export class Tr2StateMachine
 }
 
 // Native exposure ends at this concrete table (Tr2StateMachine_Blue.cpp).
-meta.blue.interfaceTable({
-  interfaces: [Tr2StateMachine, IListNotify, INotify],
-  chainTo: null
-})(Tr2StateMachine);

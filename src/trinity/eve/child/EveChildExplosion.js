@@ -16,6 +16,7 @@ import { Tr2SphereShapeAttributeGenerator } from "../../particle/attribute/Tr2Sp
 
 /** A container child that sequences and spawns local and global explosion instances over time from authored transforms and delays. */
 @meta.define({ className: "EveChildExplosion", family: "eve/child" })
+@meta.blue.interface(EveChildContainer, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild)
 export class EveChildExplosion extends EveChildContainer
 {
 
@@ -556,7 +557,3 @@ export class EveChildExplosion extends EveChildContainer
 }
 
 // EveChildExplosion_Blue.cpp ends this concrete interface table without chaining its base.
-meta.blue.interfaceTable({
-  interfaces: [ EveChildExplosion, EveChildContainer, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild ],
-  chainTo: null
-})(EveChildExplosion, { kind: "class" });

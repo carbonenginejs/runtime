@@ -22,6 +22,7 @@ const SPHERICAL_LINEAR = 4;
   family: "curves"
 })
 @meta.blue.inherit(IInitialize, ITriCurveLength)
+@meta.blue.interface(ITriFunction, IInitialize, ITriCurveLength)
 export class Tr2BoneMatrixCurve extends ITriFunction
 {
   /**
@@ -465,7 +466,3 @@ export class Tr2BoneMatrixCurve extends ITriFunction
 }
 
 // Native table stops here; the C++ curve template is flattened above.
-meta.blue.interfaceTable({
-  interfaces: [Tr2BoneMatrixCurve, ITriFunction, IInitialize, ITriCurveLength],
-  chainTo: null
-})(Tr2BoneMatrixCurve);

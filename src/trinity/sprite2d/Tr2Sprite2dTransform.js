@@ -12,6 +12,7 @@ import { vec2 } from "#math/vec2";
  * inherited methods do not provide the native transform-aware renderer behavior.
  */
 @meta.define({ className: "Tr2Sprite2dTransform", family: "sprite2d" })
+@meta.blue.chainTo(Tr2Sprite2dContainerBase)
 export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
 {
 
@@ -114,4 +115,3 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
 }
 
 // Native exposure adds no local interface and chains to its actual base.
-meta.blue.interfaceTable({ interfaces: [], chainTo: Tr2Sprite2dContainerBase })(Tr2Sprite2dTransform);

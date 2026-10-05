@@ -38,6 +38,7 @@ import { BLUELISTEVENT } from "#consts/blue";
   "distribution"
 ])
 @meta.blue.inherit(IInitialize, INotify, IListNotify)
+@meta.blue.interface(EveChildInstanceMeshRenderer, ITr2Renderable, IInitialize, INotify, IEveShadowCaster)
 export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
 {
   @meta.blue.readwrite
@@ -420,4 +421,3 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
 }
 
 // EveSmartLightMesh_Blue.cpp: native exposure; unported contracts: IEveSmartLightGroup.
-meta.blue.interfaceTable({ interfaces: [EveSmartLightMesh, EveChildInstanceMeshRenderer, ITr2Renderable, IInitialize, INotify, IEveShadowCaster], chainTo: null })(EveSmartLightMesh, { kind: "class" });

@@ -318,4 +318,4 @@ CjsSchema.define(Tr2HostBitmap, {
     { name: "name", key: "_name", type: { kind: "string" }, edit: { read: true, write: true, persist: true } }
   ]
 });
-meta.blue.interfaceTable({ interfaces: [Tr2HostBitmap], chainTo: null })(Tr2HostBitmap, { kind: "class" });
+meta.blue.interface()(Tr2HostBitmap);

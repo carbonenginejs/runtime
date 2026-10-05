@@ -16,6 +16,7 @@ import { CjsVectorParameter } from "./CjsVectorParameter.js";
   family: "shader"
 })
 @meta.blue.inherit(ITriReroutable)
+@meta.blue.interface(ITriEffectParameter, ITriReroutable)
 export class Tr2Matrix4Parameter extends CjsVectorParameter
 {
   @meta.blue.readwrite
@@ -203,4 +204,3 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
 }
 
 // Exact identities from Tr2Matrix4Parameter_Blue.cpp; no exposure chain.
-meta.blue.interfaceTable({ interfaces: [ITriEffectParameter, Tr2Matrix4Parameter, ITriReroutable], chainTo: null })(Tr2Matrix4Parameter, { kind: "class" });

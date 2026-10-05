@@ -172,7 +172,4 @@ export class Tr2ControllerEventHandler extends IListNotify
 }
 
 // Native exposure ends at this concrete table (Tr2ControllerEventHandler_Blue.cpp).
-meta.blue.interfaceTable({
-  interfaces: [Tr2ControllerEventHandler, IListNotify],
-  chainTo: null
-})(Tr2ControllerEventHandler);
+meta.blue.interface(IListNotify)(Tr2ControllerEventHandler);

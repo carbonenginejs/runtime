@@ -106,7 +106,7 @@ function sampleCmfChannel(out, curves, channel, time)
 /** Tr2GrannyAnimation (trinityCore) - promoted from generated; shapeHash 056bad2a. */
 @meta.define({ className: "Tr2GrannyAnimation", family: "trinityCore" })
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.interface(IInitialize)
 export class Tr2GrannyAnimation
 {
 

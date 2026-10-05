@@ -11,7 +11,8 @@ import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.j
 /** Samples a volume into oriented distribution placements and requests regeneration when the volume or sampling settings change. */
 @meta.define({ className: "EveDistributionPlacementGeneratorVolume", family: "eve/distribution/placement" })
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.interface(IInitialize)
+@meta.blue.chainTo(IEveDistributionPlacementGenerators)
 export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPlacementGenerators
 {
 

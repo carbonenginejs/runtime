@@ -26,6 +26,7 @@ import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
  */
 @meta.define({ className: "EveChildRef", family: "eve/child" })
 @meta.blue.inherit(ITr2CurveSetOwner, IInitialize, INotify)
+@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, ITr2SoundEmitterOwner, EveEntity)
 export class EveChildRef extends EveChildTransform
 {
 
@@ -448,4 +449,3 @@ export class EveChildRef extends EveChildTransform
 }
 
 // EveChildRef_Blue.cpp: native exposure; unported contracts: IEveEffectChildrenOwner, IShaderConfigurer.
-meta.blue.interfaceTable({ interfaces: [EveChildRef, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, ITr2SoundEmitterOwner, EveEntity], chainTo: null })(EveChildRef, { kind: "class" });

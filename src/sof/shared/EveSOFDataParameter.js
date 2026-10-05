@@ -17,6 +17,7 @@ import { vec4 } from "#math/vec4";
  * construction; the empty destructor needs no resource or update lifecycle.
  */
 @meta.define({ className: "EveSOFDataParameter", family: "eve" })
+@meta.blue.interface()
 export class EveSOFDataParameter
 {
 
@@ -101,7 +102,3 @@ export class EveSOFDataParameter
 
 }
 
-meta.blue.interfaceTable({
-  interfaces: [ EveSOFDataParameter ],
-  chainTo: null
-})(EveSOFDataParameter);

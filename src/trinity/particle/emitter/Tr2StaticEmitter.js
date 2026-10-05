@@ -9,7 +9,7 @@ import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 @meta.define({ className: "Tr2StaticEmitter", family: "particle" })
 @meta.blue.inherit(ITr2GenericEmitter)
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.interface(IInitialize)
 export class Tr2StaticEmitter
 {
 

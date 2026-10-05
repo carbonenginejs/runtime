@@ -9,6 +9,7 @@ import { EveSOFDataParameter } from "./EveSOFDataParameter.js";
 
 /** Boolean shader parameter: broadcasts 1/0 to all four components. */
 @meta.define({ className: "EveSOFDataParameterBool", family: "eve" })
+@meta.blue.interface(EveSOFDataParameter)
 export class EveSOFDataParameterBool extends EveSOFDataParameter
 {
   /**
@@ -33,7 +34,3 @@ export class EveSOFDataParameterBool extends EveSOFDataParameter
   }
 }
 
-meta.blue.interfaceTable({
-  interfaces: [ EveSOFDataParameterBool, EveSOFDataParameter ],
-  chainTo: null
-})(EveSOFDataParameterBool);

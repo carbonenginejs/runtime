@@ -13,6 +13,7 @@ import { IEveLineSetPath } from "./IEveLineSetPath.js";
 /** Groups line-path children beneath a shared transform with naming and visibility state. */
 @meta.define({ className: "EveLineChildContainer", family: "eve/child/lineSetPaths", purpose: "Groups line-path children beneath an EveChildTransform with shared naming and visibility state." })
 @meta.blue.inherit(INotify, IListNotify)
+@meta.blue.interface(IEveLineSetPath, INotify, IListNotify)
 export class EveLineChildContainer extends IEveLineSetPath
 {
 
@@ -266,4 +267,3 @@ export class EveLineChildContainer extends IEveLineSetPath
 }
 
 // EveLineChildContainer_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveLineChildContainer, IEveLineSetPath, INotify, IListNotify], chainTo: null })(EveLineChildContainer, { kind: "class" });

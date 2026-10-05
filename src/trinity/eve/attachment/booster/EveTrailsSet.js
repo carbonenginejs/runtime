@@ -25,7 +25,7 @@ const INSTANCE_VERTEX_SIZE = 16;
  */
 @meta.define({ className: "EveTrailsSet", family: "eve/attachment/boosters" })
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.interface(IInitialize)
 export class EveTrailsSet
 {
 

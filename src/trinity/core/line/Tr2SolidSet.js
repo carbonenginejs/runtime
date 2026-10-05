@@ -20,7 +20,8 @@ import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 /** A set of coloured triangles with a running centre of mass, submitted as one buffer. */
 @meta.define({ className: "Tr2SolidSet", family: "trinityCore" })
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.interface(IInitialize)
+@meta.blue.chainTo(Tr2PrimitiveSet)
 export class Tr2SolidSet extends Tr2PrimitiveSet
 {
 

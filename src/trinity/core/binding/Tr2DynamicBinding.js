@@ -15,6 +15,7 @@ import { TriValueBinding } from "./TriValueBinding.js";
  */
 @meta.define({ className: "Tr2DynamicBinding", family: "trinityCore" })
 @meta.blue.inherit(ISimTimeRebaseNotify)
+@meta.blue.interface(INotify)
 export class Tr2DynamicBinding extends INotify
 {
   /** Native name member. */
@@ -425,4 +426,3 @@ export class Tr2DynamicBinding extends INotify
 }
 
 // Tr2DynamicBinding_Blue.cpp: concrete self and notify, without an exposure chain.
-meta.blue.interfaceTable({ interfaces: [Tr2DynamicBinding, INotify], chainTo: null })(Tr2DynamicBinding, { kind: "class" });

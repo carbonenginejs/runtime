@@ -10,6 +10,7 @@ import { blue } from "#blue";
 
 /** Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite. */
 @meta.define({ className: "Tr2Sprite2dPickingMask", family: "sprite2d", purpose: "Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite." })
+@meta.blue.interface()
 export class Tr2Sprite2dPickingMask
 {
 
@@ -191,4 +192,3 @@ export class Tr2Sprite2dPickingMask
 }
 
 // Native IRoot exposure maps only the concrete mask interface.
-meta.blue.interfaceTable({ interfaces: [Tr2Sprite2dPickingMask], chainTo: null })(Tr2Sprite2dPickingMask);

@@ -15,6 +15,8 @@ import { TriFloat } from "../../core/variable/TriFloat.js";
 /** A ship space object: booster drive, speed state, and ship shader data. */
 @meta.define({ className: "EveShip2", family: "eve/spaceObject" })
 @meta.blue.inherit(IListNotify, IInitialize)
+@meta.blue.interface(IEveSpaceObject2, ITr2Renderable, IListNotify)
+@meta.blue.chainTo(EveMobile)
 export class EveShip2 extends EveMobile
 {
 
@@ -422,4 +424,3 @@ export class EveShip2 extends EveMobile
 }
 
 // EveShip2_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveShip2, IEveSpaceObject2, ITr2Renderable, IListNotify], chainTo: EveMobile })(EveShip2, { kind: "class" });

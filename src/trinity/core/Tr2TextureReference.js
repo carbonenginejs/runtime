@@ -15,6 +15,7 @@ import { Tr2TextureAL } from "../../trinityal/Tr2TextureAL/index.js";
  * and observed for replacement.
  */
 @meta.define({ className: "Tr2TextureReference", family: "trinityCore" })
+@meta.blue.interface(ITr2TextureProvider)
 export class Tr2TextureReference extends ITr2TextureProvider
 {
 
@@ -240,4 +241,3 @@ export class Tr2TextureReference extends ITr2TextureProvider
 
 }
 
-meta.blue.interfaceTable({ interfaces: [Tr2TextureReference, ITr2TextureProvider], chainTo: null })(Tr2TextureReference);

@@ -10,6 +10,7 @@ import { ErrSOFAreaTypeNotFound } from "./ErrSOFAreaTypeNotFound.js";
  * no additional initialization or update lifecycle.
  */
 @meta.define({ className: "EveSOFDataArea", family: "eve" })
+@meta.blue.interface()
 export class EveSOFDataArea
 {
 
@@ -218,7 +219,3 @@ blue.enums.Create("trinity.EveSOFDataArea.AreaType", EveSOFDataArea.AreaType, {
   ]
 });
 
-meta.blue.interfaceTable({
-  interfaces: [ EveSOFDataArea ],
-  chainTo: null
-})(EveSOFDataArea);

@@ -8,6 +8,7 @@ import { AudGameObjResource } from "./AudGameObjResource.js";
 
 /** Binds a real-time parameter value to its owning audio game object. */
 @meta.define({ className: "AudParameter", family: "audio" })
+@meta.blue.interface(INotify)
 export class AudParameter extends INotify
 {
   /** m_name: std::wstring, READWRITE without persistence. */
@@ -63,7 +64,3 @@ export class AudParameter extends INotify
 }
 
 // Native maps these identities explicitly and has no exposure parent.
-meta.blue.interfaceTable({
-  interfaces: [ INotify, AudParameter ],
-  chainTo: null
-})(AudParameter, { kind: "class" });

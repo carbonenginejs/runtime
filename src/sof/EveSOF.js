@@ -272,6 +272,7 @@ const SOF_INSTANCE_LAYOUT = [
  * Carbon-first SOF builder whose sole supported public output is a GPU-free model-values graph.
  */
 @meta.define({ className: "EveSOF", family: "eve" })
+@meta.blue.interface()
 export class EveSOF
 {
 
@@ -6138,4 +6139,3 @@ async function ResolveSofDependency(load, path, role, results, resultKey = path)
 
 
 // Native service exposure has no lifecycle interfaces or exposure parent.
-meta.blue.interfaceTable({ interfaces: [ EveSOF ], chainTo: null })(EveSOF, { kind: "class" });

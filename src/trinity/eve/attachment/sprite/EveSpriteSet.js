@@ -50,6 +50,7 @@ function colorByte(value)
  */
 @meta.define({ className: "EveSpriteSet", family: "eve/attachment/sprites" })
 @meta.blue.inherit(IInitialize)
+@meta.blue.interface(IInitialize, IEveSpaceObjectAttachment, EveEntity)
 export class EveSpriteSet extends IEveSpaceObjectAttachment
 {
 
@@ -584,4 +585,3 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
 }
 
 // EveSpriteSet_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
-meta.blue.interfaceTable({ interfaces: [EveSpriteSet, IInitialize, IEveSpaceObjectAttachment, EveEntity], chainTo: null })(EveSpriteSet, { kind: "class" });

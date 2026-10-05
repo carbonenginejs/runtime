@@ -17,6 +17,7 @@ const DEBUG_END = vec3.create();
 /** SplineTunnelGroup (eve/child/behaviors) - generated from schema shapeHash da595535.... */
 @meta.define({ className: "SplineTunnelGroup", family: "eve" })
 @meta.blue.inherit(INotify)
+@meta.blue.interface(INotify)
 export class SplineTunnelGroup
 {
   static TunnelGroupType = TunnelGroupType;
@@ -288,4 +289,3 @@ export class SplineTunnelGroup
 }
 
 // Exact native Blue exposure: only these identities participate in loading.
-meta.blue.interfaceTable({ interfaces: [SplineTunnelGroup, INotify], chainTo: null })(SplineTunnelGroup, { kind: "class" });

@@ -24,6 +24,7 @@ import {
  */
 @meta.define({ className: "Tr2Light", family: "eve/lights" })
 @meta.blue.inherit(IInitialize, INotify)
+@meta.blue.interface()
 export class Tr2Light
 {
   static LightDataFields = [];
@@ -372,4 +373,3 @@ blue.enums.Create("trinity.Tr2Light.LIGHT_TYPE", Tr2Light.LightType, {
   source: "trinity/trinity/Lights/Tr2Light.h", family: "eve/lights", line: 71
 });
 
-meta.blue.interfaceTable({ interfaces: [Tr2Light], chainTo: null })(Tr2Light, { kind: "class" });

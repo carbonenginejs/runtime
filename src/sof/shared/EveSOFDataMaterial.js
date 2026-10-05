@@ -8,6 +8,7 @@ import { meta } from "#schema";
  * no additional initialization or update lifecycle.
  */
 @meta.define({ className: "EveSOFDataMaterial", family: "eve" })
+@meta.blue.interface()
 export class EveSOFDataMaterial
 {
 
@@ -48,7 +49,3 @@ export class EveSOFDataMaterial
 
 }
 
-meta.blue.interfaceTable({
-  interfaces: [ EveSOFDataMaterial ],
-  chainTo: null
-})(EveSOFDataMaterial);

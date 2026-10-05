@@ -181,6 +181,7 @@ function EmptyShadowResources()
 /** Owns and updates an Eve space scene's entities, component registry, lighting, fog, post-process state, culling, and per-frame shader data. */
 @meta.define({ className: "EveSpaceScene", family: "eve/scene" })
 @meta.blue.inherit(ITr2Scene, ITr2Updateable, IInitialize, INotify, IListNotify)
+@meta.blue.interface(ITr2Scene, ITr2Updateable, IInitialize, INotify)
 export class EveSpaceScene
 {
 
@@ -4110,4 +4111,3 @@ new TriSettingsRegistrar("eveReflectionSetting", {
   set eveReflectionSetting(value) { EntityComponents.setReflectionSetting(value); }
 }, "eveReflectionSetting", { enum: ReflectionSetting, carbon: true });
 
-meta.blue.interfaceTable({ interfaces: [EveSpaceScene, ITr2Scene, ITr2Updateable, IInitialize, INotify], chainTo: null })(EveSpaceScene, { kind: "class" });

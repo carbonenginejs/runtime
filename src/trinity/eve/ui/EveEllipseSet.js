@@ -21,6 +21,7 @@ import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 @meta.blue.inherit(ITr2Renderable)
 @meta.blue.inherit(IListNotify)
 @meta.blue.inherit(IListNotify, INotify)
+@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IListNotify, INotify)
 export class EveEllipseSet extends EveChildTransform
 {
 
@@ -222,4 +223,3 @@ export class EveEllipseSet extends EveChildTransform
 }
 
 // EveEllipseSet_Blue.cpp: native exposure; unported contracts: ITr2Pickable.
-meta.blue.interfaceTable({ interfaces: [EveEllipseSet, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IListNotify, INotify], chainTo: null })(EveEllipseSet, { kind: "class" });

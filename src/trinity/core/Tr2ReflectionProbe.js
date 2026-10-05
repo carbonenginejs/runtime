@@ -51,6 +51,7 @@ const COPY_MIP_EFFECT = "res:/graphics/effect/managed/space/System/Reflection/Co
 /** Filters a cube into the prefiltered HDR reflection cube Eve's scene binds as its environment map. */
 @meta.define({ className: "Tr2ReflectionProbe", family: "trinityCore", purpose: "Filters a cube into the prefiltered HDR reflection cube Eve's scene binds as its environment map." })
 @meta.blue.inherit(INotify)
+@meta.blue.interface(INotify)
 export class Tr2ReflectionProbe
 {
 
@@ -599,4 +600,3 @@ blue.enums.Create("trinity.Tr2ReflectionProbe.ReflectionProbeRenderFrequency", T
 });
 
 // Exact native Blue exposure: only these identities participate in loading.
-meta.blue.interfaceTable({ interfaces: [Tr2ReflectionProbe, INotify], chainTo: null })(Tr2ReflectionProbe, { kind: "class" });

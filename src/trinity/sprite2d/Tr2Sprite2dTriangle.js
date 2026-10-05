@@ -4,6 +4,7 @@ import { meta } from "#schema";
 
 /** Stores the three uint16 vertex indices of one Sprite2D polygon triangle. */
 @meta.define({ className: "Tr2Sprite2dTriangle", family: "sprite2d" })
+@meta.blue.interface()
 export class Tr2Sprite2dTriangle
 {
 
@@ -28,4 +29,3 @@ export class Tr2Sprite2dTriangle
 }
 
 // Native IRoot record exposes only its concrete triangle interface.
-meta.blue.interfaceTable({ interfaces: [Tr2Sprite2dTriangle], chainTo: null })(Tr2Sprite2dTriangle);

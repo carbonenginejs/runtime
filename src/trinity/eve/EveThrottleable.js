@@ -48,4 +48,4 @@ export class EveThrottleable
   }
 }
 
-meta.blue.interfaceTable({ interfaces: [EveThrottleable], chainTo: null })(EveThrottleable, { kind: "class" });
+meta.blue.interface()(EveThrottleable);

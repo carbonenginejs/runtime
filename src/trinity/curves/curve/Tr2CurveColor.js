@@ -21,6 +21,7 @@ const CLAMP_MIN = vec4.create();
   family: "curves"
 })
 @meta.blue.inherit(ITriCurveLength)
+@meta.blue.interface(ITriColorFunction, ITriFunction, ITriCurveLength)
 export class Tr2CurveColor extends ITriColorFunction
 {
   /**
@@ -224,7 +225,3 @@ export class Tr2CurveColor extends ITriColorFunction
 }
 
 // Native exposure ends at this concrete table (Tr2CurveColor_Blue.cpp).
-meta.blue.interfaceTable({
-  interfaces: [Tr2CurveColor, ITriColorFunction, ITriFunction, ITriCurveLength],
-  chainTo: null
-})(Tr2CurveColor);

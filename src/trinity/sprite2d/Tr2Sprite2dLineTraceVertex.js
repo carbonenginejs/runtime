@@ -6,6 +6,7 @@ import { vec4 } from "#math/vec4";
 
 /** Stores one editable Sprite2D line-trace point's position, color, and optional name. */
 @meta.define({ className: "Tr2Sprite2dLineTraceVertex", family: "sprite2d" })
+@meta.blue.interface()
 export class Tr2Sprite2dLineTraceVertex
 {
 
@@ -30,4 +31,3 @@ export class Tr2Sprite2dLineTraceVertex
 }
 
 // Native IRoot record exposes only its concrete interface.
-meta.blue.interfaceTable({ interfaces: [Tr2Sprite2dLineTraceVertex], chainTo: null })(Tr2Sprite2dLineTraceVertex);

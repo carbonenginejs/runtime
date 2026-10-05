@@ -54,8 +54,8 @@ const STRETCH_VERTEX_DECL = [ { usage: Tr2VertexUsageCode.POSITION, usageIndex: 
  */
 @meta.define({ className: "EveStretch2", family: "eve/renderable/stretch" })
 @meta.blue.inherit(ITr2Renderable)
-@meta.blue.mapInterface(EveEntity)
 @meta.blue.inherit(IInitialize, INotify)
+@meta.blue.interface(ITr2Renderable, IEveFiringEffectElement, IInitialize, INotify, EveEntity)
 export class EveStretch2 extends IEveFiringEffectElement
 {
   static MAX_QUAD_COUNT = 128;
@@ -626,4 +626,3 @@ export class EveStretch2 extends IEveFiringEffectElement
 }
 
 // EveStretch2_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
-meta.blue.interfaceTable({ interfaces: [EveStretch2, ITr2Renderable, IEveFiringEffectElement, IInitialize, INotify, EveEntity], chainTo: null })(EveStretch2, { kind: "class" });

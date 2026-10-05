@@ -14,7 +14,8 @@ const BELIST_LOADING = 0x10;
 /** EveProceduralMethodRandom (eve/child/procedural/selection) - generated from schema shapeHash 9e2d2332.... */
 @meta.define({ className: "EveProceduralMethodRandom", family: "eve/child/procedural/selection" })
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.interface(IInitialize)
+@meta.blue.chainTo(IEveProceduralSelectionMethod)
 export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
 {
 

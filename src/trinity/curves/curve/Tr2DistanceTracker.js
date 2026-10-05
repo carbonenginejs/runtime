@@ -16,6 +16,7 @@ import { meta } from "#schema";
   family: "curves"
 })
 @meta.blue.inherit(INotify)
+@meta.blue.interface(ITriFunction, INotify)
 export class Tr2DistanceTracker extends ITriFunction
 {
   /**
@@ -167,7 +168,3 @@ export class Tr2DistanceTracker extends ITriFunction
 }
 
 // Native exposure is deprecated in Jessica and maps no concrete self identity.
-meta.blue.interfaceTable({
-  interfaces: [ITriFunction, INotify],
-  chainTo: null
-})(Tr2DistanceTracker);

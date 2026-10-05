@@ -14,6 +14,7 @@ import { AudGameObjResource } from "./AudGameObjResource.js";
  */
 @meta.define({ className: "AudioCurveSetDriver", family: "audio" })
 @meta.blue.inherit(IInitialize)
+@meta.blue.interface(ICurveSetDriver, IInitialize)
 export class AudioCurveSetDriver extends ICurveSetDriver
 {
   /** m_name: authored display name, stored as std::wstring. */
@@ -192,7 +193,3 @@ export class AudioCurveSetDriver extends ICurveSetDriver
 }
 
 // EXPOSURE_BEGIN adds concrete self; EXPOSURE_END has no exposure parent.
-meta.blue.interfaceTable({
-  interfaces: [ AudioCurveSetDriver, ICurveSetDriver, IInitialize ],
-  chainTo: null
-})(AudioCurveSetDriver, { kind: "class" });

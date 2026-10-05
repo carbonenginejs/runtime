@@ -31,7 +31,8 @@ const INSTANCE_STRIDE = 40;
 @meta.define({ className: "EveChildBulletStorm", family: "eve/child" })
 @meta.blue.inherit(ITr2Renderable)
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(INotify)
+@meta.blue.interface(INotify)
+@meta.blue.chainTo(EveSpaceObjectChild)
 export class EveChildBulletStorm extends EveSpaceObjectChild
 {
 

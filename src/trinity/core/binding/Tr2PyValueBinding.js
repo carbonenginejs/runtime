@@ -8,6 +8,7 @@ import { ITr2ValueBinding } from "../../curves/ITr2ValueBinding.js";
 /** Copies named JavaScript attributes through the portable Python-value adapter. */
 @meta.define({ className: "Tr2PyValueBinding", family: "trinityCore" })
 @meta.blue.inherit(ITr2ValueBinding)
+@meta.blue.interface(ITr2ValueBinding, INotify)
 export class Tr2PyValueBinding extends INotify
 {
 
@@ -102,4 +103,3 @@ export class Tr2PyValueBinding extends INotify
 }
 
 // Carbon's own query table has no exposure chain.
-meta.blue.interfaceTable({ interfaces: [Tr2PyValueBinding, ITr2ValueBinding, INotify], chainTo: null })(Tr2PyValueBinding, { kind: "class" });

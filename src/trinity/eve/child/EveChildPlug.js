@@ -16,6 +16,7 @@ import { EveChildTransform } from "./EveChildTransform.js";
 /** A container of child objects plugged into a socket, forwarding controller events, controller variables and component registration to what it contains. */
 @meta.define({ className: "EveChildPlug", family: "eve/child" })
 @meta.blue.inherit(ITr2CurveSetOwner, IInitialize, INotify, IListNotify)
+@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, ITr2SoundEmitterOwner, EveEntity)
 export class EveChildPlug extends EveChildTransform
 {
 
@@ -328,4 +329,3 @@ export class EveChildPlug extends EveChildTransform
 }
 
 // EveChildPlug_Blue.cpp: native exposure; unported contracts: IEveEffectChildrenOwner, IShaderConfigurer.
-meta.blue.interfaceTable({ interfaces: [EveChildPlug, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, ITr2SoundEmitterOwner, EveEntity], chainTo: null })(EveChildPlug, { kind: "class" });

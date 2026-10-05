@@ -112,7 +112,4 @@ export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionResetClipSphereCenter_Blue.cpp:21-22,26).
-meta.blue.interfaceTable({
-  interfaces: [Tr2ActionResetClipSphereCenter, ITr2ControllerAction],
-  chainTo: null
-})(Tr2ActionResetClipSphereCenter);
+meta.blue.interface(ITr2ControllerAction)(Tr2ActionResetClipSphereCenter);

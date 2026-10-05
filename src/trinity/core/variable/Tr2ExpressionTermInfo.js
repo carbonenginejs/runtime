@@ -135,4 +135,4 @@ blue.enums.Create("trinity.Tr2ExpressionTermInfo.TermType", TermType, {
 });
 
 // Native IRoot record: concrete query identity with no exposure chain.
-meta.blue.interfaceTable({ interfaces: [Tr2ExpressionTermInfo], chainTo: null })(Tr2ExpressionTermInfo, { kind: "class" });
+meta.blue.interface()(Tr2ExpressionTermInfo);

@@ -57,6 +57,7 @@ const SPHERE_SCRATCH = vec4.create();
 @meta.define({ className: "EveChildBoosterSet", family: "eve/child" })
 @meta.blue.inherit(ITr2Renderable)
 @meta.blue.inherit(INotify, IInitialize)
+@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, INotify, IInitialize, EveEntity, ITr2Renderable, ITr2ControllerOwner)
 export class EveChildBoosterSet extends EveSpaceObjectChild
 {
 
@@ -758,4 +759,3 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
 
 
 // EveChildBoosterSet_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
-meta.blue.interfaceTable({ interfaces: [EveChildBoosterSet, EveSpaceObjectChild, IEveSpaceObjectChild, INotify, IInitialize, EveEntity, ITr2Renderable, ITr2ControllerOwner], chainTo: null })(EveChildBoosterSet, { kind: "class" });

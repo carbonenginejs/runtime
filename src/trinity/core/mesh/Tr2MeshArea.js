@@ -9,6 +9,7 @@ import { meta } from "#schema";
  * effect, shadow, depth and LOD state that decide how the range is batched.
  */
 @meta.define({ className: "Tr2MeshArea", family: "trinityCore" })
+@meta.blue.interface()
 export class Tr2MeshArea
 {
   // m_ownerMeshes (std::vector<Tr2MeshBase*>)
@@ -391,4 +392,3 @@ export class Tr2MeshArea
   }
 }
 
-meta.blue.interfaceTable({ interfaces: [Tr2MeshArea], chainTo: null })(Tr2MeshArea, { kind: "class" });

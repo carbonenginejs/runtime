@@ -9,6 +9,7 @@ import { EveSOFDataParameter } from "./EveSOFDataParameter.js";
 
 /** Integer shader parameter: broadcasts the value to all four components. */
 @meta.define({ className: "EveSOFDataParameterInt", family: "eve" })
+@meta.blue.interface(EveSOFDataParameter)
 export class EveSOFDataParameterInt extends EveSOFDataParameter
 {
   /**
@@ -30,7 +31,3 @@ export class EveSOFDataParameterInt extends EveSOFDataParameter
   }
 }
 
-meta.blue.interfaceTable({
-  interfaces: [ EveSOFDataParameterInt, EveSOFDataParameter ],
-  chainTo: null
-})(EveSOFDataParameterInt);

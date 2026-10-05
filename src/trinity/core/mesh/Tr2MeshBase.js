@@ -19,6 +19,7 @@ import { CarbonVertexElements } from "../vertex/vertexUsage.js";
  */
 @meta.define({ className: "Tr2MeshBase", family: "trinityCore" })
 @meta.blue.inherit(IListNotify)
+@meta.blue.interface()
 export class Tr2MeshBase
 {
   @meta.blue.readwrite
@@ -811,4 +812,3 @@ export class Tr2MeshBase
   ]);
 }
 
-meta.blue.interfaceTable({ interfaces: [], chainTo: null })(Tr2MeshBase, { kind: "class" });

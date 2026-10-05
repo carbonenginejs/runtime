@@ -13,6 +13,7 @@ import { vec3 } from "#math/vec3";
  * GetTransform remains a JavaScript convenience; native stores these fields only.
  */
 @meta.define({ className: "EveSOFDataTransform", family: "eve" })
+@meta.blue.interface()
 export class EveSOFDataTransform
 {
   /**
@@ -69,7 +70,3 @@ export class EveSOFDataTransform
 
 }
 
-meta.blue.interfaceTable({
-  interfaces: [ EveSOFDataTransform ],
-  chainTo: null
-})(EveSOFDataTransform);

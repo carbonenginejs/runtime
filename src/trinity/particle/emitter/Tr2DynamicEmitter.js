@@ -9,6 +9,7 @@ import { ITr2GenericEmitterUpdateArguments, ITr2GenericEmitter } from "../ITr2Ge
 @meta.define({ className: "Tr2DynamicEmitter", family: "particle" })
 @meta.blue.inherit(IInitialize)
 @meta.blue.inherit(INotify)
+@meta.blue.interface(ITr2GenericEmitter, INotify, IInitialize)
 export class Tr2DynamicEmitter extends ITr2GenericEmitter
 {
 
@@ -261,4 +262,3 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
 }
 
 // Tr2DynamicEmitter_Blue.cpp maps these identities without a base chain.
-meta.blue.interfaceTable({ interfaces: [Tr2DynamicEmitter, ITr2GenericEmitter, INotify, IInitialize], chainTo: null })(Tr2DynamicEmitter, { kind: "class" });

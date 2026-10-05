@@ -19,6 +19,7 @@ import { Tr2CurveInterpolation } from "../enums.js";
   family: "curves"
 })
 @meta.blue.inherit(INotify)
+@meta.blue.interface(IInitialize, INotify)
 export class Tr2ScalarExprKey extends IInitialize
 {
   /** Key time in seconds. */
@@ -297,4 +298,3 @@ const SCALAR_EXPR_KEY_PURE_FUNCTIONS = ["perlin_simple", "perlin"];
 
 
 // Native own query table; no inherited exposure chain.
-meta.blue.interfaceTable({ interfaces: [ Tr2ScalarExprKey, IInitialize, INotify ], chainTo: null })(Tr2ScalarExprKey);

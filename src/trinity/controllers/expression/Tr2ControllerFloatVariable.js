@@ -27,6 +27,7 @@ import { Type } from "../enums.js";
   family: "controllers"
 })
 @meta.blue.inherit(INotify)
+@meta.blue.interface(IInitialize, INotify)
 export class Tr2ControllerFloatVariable extends IInitialize
 {
   /** Authored variable name. */
@@ -249,7 +250,3 @@ export class Tr2ControllerFloatVariable extends IInitialize
 }
 
 // Native exposure ends at this concrete table (Tr2ControllerFloatVariable_Blue.cpp).
-meta.blue.interfaceTable({
-  interfaces: [Tr2ControllerFloatVariable, IInitialize, INotify],
-  chainTo: null
-})(Tr2ControllerFloatVariable);

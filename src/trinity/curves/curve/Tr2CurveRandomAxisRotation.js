@@ -18,6 +18,7 @@ import { CcpTime } from "#blue";
   family: "curves"
 })
 @meta.blue.inherit(IInitialize)
+@meta.blue.interface(ITriFunction, ITriQuaternionFunction)
 export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
 {
   /** Authored narrow-string name. */
@@ -347,7 +348,3 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
 }
 
 // Native exposure ends at this concrete table; no inherited query-chain fallback.
-meta.blue.interfaceTable({
-  interfaces: [ Tr2CurveRandomAxisRotation, ITriFunction, ITriQuaternionFunction ],
-  chainTo: null
-})(Tr2CurveRandomAxisRotation);

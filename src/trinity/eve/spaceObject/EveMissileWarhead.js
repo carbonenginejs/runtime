@@ -22,6 +22,8 @@ import { State, StateChangeEvent } from "../../generated/eve/spaceObject/enums.j
  * test against the target.
  */
 @meta.define({ className: "EveMissileWarhead", family: "eve/spaceObject" })
+@meta.blue.interface(EveTransform)
+@meta.blue.chainTo(EveTransform)
 export class EveMissileWarhead extends EveTransform
 {
   @meta.blue.readwrite
@@ -612,7 +614,3 @@ function transformNormal(out, vector, matrix)
 }
 
 // Native concrete exposure chains EveTransform.
-meta.blue.interfaceTable({
-  interfaces: [ EveMissileWarhead, EveTransform ],
-  chainTo: EveTransform
-})(EveMissileWarhead, { kind: "class" });

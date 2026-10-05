@@ -19,6 +19,7 @@ import { EveSocketParameterString } from "../socket/EveSocketParameterString.js"
 /** A named attachment point on a ship that resolves and hot-reloads a plugged-in child resource, forwarding controller and registration calls to it. */
 @meta.define({ className: "EveChildSocket", family: "eve/child" })
 @meta.blue.inherit(ITr2CurveSetOwner, IInitialize, INotify)
+@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, ITr2SoundEmitterOwner, EveEntity)
 export class EveChildSocket extends EveChildTransform
 {
 
@@ -374,4 +375,3 @@ export class EveChildSocket extends EveChildTransform
 }
 
 // EveChildSocket_Blue.cpp: native exposure; unported contracts: IEveEffectChildrenOwner, IShaderConfigurer.
-meta.blue.interfaceTable({ interfaces: [EveChildSocket, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, ITr2SoundEmitterOwner, EveEntity], chainTo: null })(EveChildSocket, { kind: "class" });

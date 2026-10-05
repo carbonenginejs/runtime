@@ -36,6 +36,7 @@ const POINT_SIGNS = [
  * Float32Array intermediates retain the existing JS precision behavior.
  */
 @meta.define({ className: "Obb", family: "utilities" })
+@meta.blue.interface()
 export class Obb
 {
 
@@ -233,4 +234,3 @@ export class Obb
 
 }
 
-meta.blue.interfaceTable({ interfaces: [], chainTo: null })(Obb);

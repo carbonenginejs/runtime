@@ -20,6 +20,7 @@ import { IsMatch, blue, EnumRegistrationType } from "#blue";
  * bounds or bounds expanded by the per-instance size.
  */
 @meta.define({ className: "Tr2InstancedMesh", family: "trinityCore" })
+@meta.blue.chainTo(Tr2Mesh)
 export class Tr2InstancedMesh extends Tr2Mesh
 {
   /** Carbon m_vertexDeclaration: combined mesh and instance elements. */
@@ -526,4 +527,3 @@ blue.enums.Create("trinity.Tr2InstancedMesh.BoundsMethod", Tr2InstancedMesh.Boun
   ]
 });
 
-meta.blue.interfaceTable({ interfaces: [Tr2InstancedMesh], chainTo: Tr2Mesh })(Tr2InstancedMesh, { kind: "class" });

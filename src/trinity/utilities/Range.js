@@ -250,4 +250,4 @@ export class Range
   }
 }
 
-meta.blue.interfaceTable({ interfaces: [Range], chainTo: null })(Range);
+meta.blue.interface()(Range);

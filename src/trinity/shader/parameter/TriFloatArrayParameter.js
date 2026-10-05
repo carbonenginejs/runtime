@@ -13,6 +13,7 @@ import { CjsParameter } from "./CjsParameter.js";
   family: "shader"
 })
 @meta.blue.inherit(INotify, IInitialize)
+@meta.blue.interface(ITriEffectParameter, INotify, IInitialize)
 export class TriFloatArrayParameter extends CjsParameter
 {
   @meta.blue.notify
@@ -129,4 +130,3 @@ export class TriFloatArrayParameter extends CjsParameter
 }
 
 // Exact identities from TriFloatArrayParameter_Blue.cpp; no exposure chain.
-meta.blue.interfaceTable({ interfaces: [ITriEffectParameter, TriFloatArrayParameter, INotify, IInitialize], chainTo: null })(TriFloatArrayParameter, { kind: "class" });

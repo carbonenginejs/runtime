@@ -60,6 +60,7 @@ function SortByCircleDist(lhs, rhs)
 /** EveChildEffectPropagator (eve/child) - generated from schema shapeHash 0f2a96e8.... */
 @meta.define({ className: "EveChildEffectPropagator", family: "eve/child" })
 @meta.blue.inherit(INotify, IInitialize)
+@meta.blue.interface(EveChildContainer, EveSpaceObjectChild, IEveSpaceObjectChild, INotify, EveEntity)
 export class EveChildEffectPropagator extends EveChildContainer
 {
 
@@ -908,7 +909,3 @@ export class EveChildEffectPropagator extends EveChildContainer
 
 
 // EveChildEffectPropagator_Blue.cpp ends this concrete interface table without chaining its base.
-meta.blue.interfaceTable({
-  interfaces: [ EveChildEffectPropagator, EveChildContainer, EveSpaceObjectChild, IEveSpaceObjectChild, INotify, EveEntity ],
-  chainTo: null
-})(EveChildEffectPropagator, { kind: "class" });

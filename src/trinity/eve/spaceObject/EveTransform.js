@@ -35,6 +35,8 @@ const INVERSE_PATCH_SCRATCH = mat4.create();
  */
 @meta.define({ className: "EveTransform", family: "eve/spaceObject" })
 @meta.blue.inherit(IWorldPosition, ITr2BoundingBox, IEveSpaceObject2, IEveTransform, ITr2CurveSetOwner)
+@meta.blue.interface(IEveTransform, IEveSpaceObject2, IWorldPosition, IInitialize, ITr2BoundingBox)
+@meta.blue.chainTo(Tr2Transform)
 export class EveTransform extends Tr2Transform
 {
 
@@ -687,7 +689,3 @@ export class EveTransform extends Tr2Transform
 
 // Supported native interfaces; ITr2Pickable has no runtime declaration yet.
 // EveTransform_Blue.cpp:13-19,88 chains Tr2Transform explicitly.
-meta.blue.interfaceTable({
-  interfaces: [ EveTransform, IEveTransform, IEveSpaceObject2, IWorldPosition, IInitialize, ITr2BoundingBox ],
-  chainTo: Tr2Transform
-})(EveTransform, { kind: "class" });

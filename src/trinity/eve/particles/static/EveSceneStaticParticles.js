@@ -46,7 +46,7 @@ function randomGauss(random, deviation)
 @meta.define({ className: "EveSceneStaticParticles", family: "eve/scene" })
 @meta.blue.inherit(ITr2Renderable)
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.interface(IInitialize)
 export class EveSceneStaticParticles
 {
 

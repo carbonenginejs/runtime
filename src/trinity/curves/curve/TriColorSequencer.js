@@ -17,6 +17,7 @@ import "#consts/graphics/trinityEnums";
  */
 @meta.define({ className: "TriColorSequencer", family: "curves" })
 @meta.blue.inherit(ITriCurveLength)
+@meta.blue.interface(ITriFunction, ITriColorFunction, ITriCurveLength)
 export class TriColorSequencer extends ITriColorFunction
 {
   /**
@@ -219,4 +220,3 @@ export class TriColorSequencer extends ITriColorFunction
 }
 
 // Native query table deliberately omits the concrete class.
-meta.blue.interfaceTable({ interfaces: [ITriFunction, ITriColorFunction, ITriCurveLength], chainTo: null })(TriColorSequencer);

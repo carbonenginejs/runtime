@@ -65,6 +65,7 @@ import "./Tr2SpriteObjectBase.js";
   ]
 })
 @meta.blue.inherit(INotify)
+@meta.blue.interface(ITr2Scene, ITr2Updateable, INotify)
 export class Tr2Sprite2dScene extends ITr2Scene
 {
   /** Native wide-string scene label. @type {string} */
@@ -292,4 +293,3 @@ export class Tr2Sprite2dScene extends ITr2Scene
   }
 }
 
-meta.blue.interfaceTable({ interfaces: [Tr2Sprite2dScene, ITr2Scene, ITr2Updateable, INotify], chainTo: null })(Tr2Sprite2dScene);

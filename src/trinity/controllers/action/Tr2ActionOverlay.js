@@ -353,7 +353,4 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionOverlay_Blue.cpp:12-13,37).
-meta.blue.interfaceTable({
-  interfaces: [Tr2ActionOverlay, ITr2ControllerAction],
-  chainTo: null
-})(Tr2ActionOverlay);
+meta.blue.interface(ITr2ControllerAction)(Tr2ActionOverlay);

@@ -14,6 +14,7 @@ import "#consts/graphics/trinityEnums";
  * uses local temporaries. Numeric tick overloads remain unimplemented.
  */
 @meta.define({ className: "TriVectorSequencer", family: "curves" })
+@meta.blue.interface(ITriFunction, ITriVectorFunction)
 export class TriVectorSequencer extends ITriVectorFunction
 {
   /**
@@ -330,4 +331,3 @@ export class TriVectorSequencer extends ITriVectorFunction
 }
 
 // Native query table deliberately omits the concrete class.
-meta.blue.interfaceTable({ interfaces: [ITriFunction, ITriVectorFunction], chainTo: null })(TriVectorSequencer);

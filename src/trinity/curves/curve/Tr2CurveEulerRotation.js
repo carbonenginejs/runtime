@@ -17,6 +17,7 @@ import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
   family: "curves"
 })
 @meta.blue.inherit(ITriCurveLength)
+@meta.blue.interface(ITriQuaternionFunction, ITriFunction, ITriCurveLength)
 export class Tr2CurveEulerRotation extends ITriQuaternionFunction
 {
   /** Authored narrow-string name. */
@@ -193,7 +194,3 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
 }
 
 // Native exposure ends at this concrete table; no inherited query-chain fallback.
-meta.blue.interfaceTable({
-  interfaces: [ Tr2CurveEulerRotation, ITriQuaternionFunction, ITriFunction, ITriCurveLength ],
-  chainTo: null
-})(Tr2CurveEulerRotation);

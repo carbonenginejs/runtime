@@ -66,6 +66,7 @@ const NO_BONE_TRANSFORMS = { bones: null, boneCount: 0 };
 @meta.blue.inherit(ITr2Renderable, IEveShadowCaster)
 @meta.blue.inherit(IListNotify)
 @meta.blue.inherit(IInitialize, INotify, IListNotify)
+@meta.blue.interface(EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IInitialize, INotify, IEveShadowCaster)
 export class EveChildMesh extends EveChildTransform
 {
   _isMorphsBaked = false;
@@ -2048,4 +2049,3 @@ function NormalizeMorphFilter(value)
 }
 
 // EveChildMesh_Blue.cpp: native exposure; unported contracts: IEveSpaceObjectDecalOwner, ITr2GrannyAnimationOwner, IEveSpaceObjectAttachmentOwner, ITr2LightOwner, ITr2Pickable.
-meta.blue.interfaceTable({ interfaces: [EveChildMesh, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IInitialize, INotify, IEveShadowCaster], chainTo: null })(EveChildMesh, { kind: "class" });

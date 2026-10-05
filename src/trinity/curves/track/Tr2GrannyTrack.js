@@ -16,7 +16,7 @@ import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
   family: "curves"
 })
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.interface(IInitialize)
 export class Tr2GrannyTrack
 {
   @meta.blue.notify

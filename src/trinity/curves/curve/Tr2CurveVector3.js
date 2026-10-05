@@ -17,6 +17,7 @@ import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
   family: "curves"
 })
 @meta.blue.inherit(ITriCurveLength)
+@meta.blue.interface(ITriFunction, ITriVectorFunction, ITriCurveLength)
 export class Tr2CurveVector3 extends ITriVectorFunction
 {
   /**
@@ -218,7 +219,3 @@ export class Tr2CurveVector3 extends ITriVectorFunction
 }
 
 // Native exposure ends at this concrete table (Tr2CurveVector3_Blue.cpp).
-meta.blue.interfaceTable({
-  interfaces: [Tr2CurveVector3, ITriFunction, ITriVectorFunction, ITriCurveLength],
-  chainTo: null
-})(Tr2CurveVector3);

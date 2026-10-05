@@ -11,6 +11,7 @@ const DIRECTION_SCRATCH = vec4.create();
 
 /** Wraps a position source, offsetting and scaling what it reports, optionally in view space. */
 @meta.define({ className: "Tr2VectorFunctionModifier", family: "curves" })
+@meta.blue.interface(ITriVectorFunction)
 export class Tr2VectorFunctionModifier extends ITriVectorFunction
 {
 
@@ -271,7 +272,3 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
 }
 
 // Exact native exposure table; ITriFunction is intentionally not mapped.
-meta.blue.interfaceTable({
-  interfaces: [ITriVectorFunction, Tr2VectorFunctionModifier],
-  chainTo: null
-})(Tr2VectorFunctionModifier);

@@ -19,6 +19,7 @@ import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
   family: "controllers"
 })
 @meta.blue.inherit(INotify)
+@meta.blue.interface(ITr2ControllerAction, INotify)
 export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
 {
   /**
@@ -406,7 +407,3 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionPlayMeshAnimation_Blue.cpp:33-35,80).
-meta.blue.interfaceTable({
-  interfaces: [Tr2ActionPlayMeshAnimation, ITr2ControllerAction, INotify],
-  chainTo: null
-})(Tr2ActionPlayMeshAnimation);

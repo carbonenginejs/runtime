@@ -23,6 +23,7 @@ import { mappedInterfaces } from "../../global/compose/interface.js";
   family: "curves"
 })
 @meta.blue.inherit(ITr2Updateable, ISimTimeRebaseNotify)
+@meta.blue.interface(IInitialize, ITr2Updateable)
 export class TriCurveSet extends IInitialize
 {
   /** Authored curve-set name. */
@@ -690,7 +691,3 @@ export class TriCurveSet extends IInitialize
 }
 
 // Native exposure omits nominal ISimTimeRebaseNotify and has no parent chain.
-meta.blue.interfaceTable({
-  interfaces: [TriCurveSet, IInitialize, ITr2Updateable],
-  chainTo: null
-})(TriCurveSet, { kind: "class" });

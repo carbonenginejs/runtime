@@ -22,6 +22,8 @@ import { EveMissileWarhead } from "./EveMissileWarhead.js";
  */
 @meta.define({ className: "EveMissile", family: "eve/spaceObject" })
 @meta.blue.inherit(IInitialize)
+@meta.blue.interface(IEveSpaceObject2, ITr2Renderable)
+@meta.blue.chainTo(EveSpaceObject2)
 export class EveMissile extends EveSpaceObject2
 {
   @meta.blue.read
@@ -260,7 +262,3 @@ export class EveMissile extends EveSpaceObject2
 }
 
 // Native concrete exposure chains EveSpaceObject2.
-meta.blue.interfaceTable({
-  interfaces: [ EveMissile, IEveSpaceObject2, ITr2Renderable ],
-  chainTo: EveSpaceObject2
-})(EveMissile, { kind: "class" });

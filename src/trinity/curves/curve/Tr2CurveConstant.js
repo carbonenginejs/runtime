@@ -24,6 +24,7 @@ import { meta } from "#schema";
   ]
 })
 @meta.blue.inherit(ITriVectorFunction, ITriQuaternionFunction, ITriColorFunction)
+@meta.blue.interface(ITriScalarFunction, ITriVectorFunction, ITriQuaternionFunction, ITriColorFunction, ITriFunction)
 export class Tr2CurveConstant extends ITriScalarFunction
 {
   /**
@@ -213,7 +214,3 @@ export class Tr2CurveConstant extends ITriScalarFunction
 }
 
 // Native exposure ends at this concrete table (Tr2CurveConstant_Blue.cpp).
-meta.blue.interfaceTable({
-  interfaces: [Tr2CurveConstant, ITriScalarFunction, ITriVectorFunction, ITriQuaternionFunction, ITriColorFunction, ITriFunction],
-  chainTo: null
-})(Tr2CurveConstant);

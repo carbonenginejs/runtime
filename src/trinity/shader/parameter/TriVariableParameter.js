@@ -10,6 +10,7 @@ import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 /** Forwards a named variable-store entry into a named effect constant or resource. */
 @meta.define({ className: "TriVariableParameter", family: "shader" })
 @meta.blue.inherit(INotify, IInitialize)
+@meta.blue.interface(ITriEffectParameter, INotify, IInitialize)
 export class TriVariableParameter extends CjsParameter
 {
 
@@ -204,4 +205,3 @@ export class TriVariableParameter extends CjsParameter
 }
 
 // Exact identities from TriVariableParameter_Blue.cpp; no exposure chain.
-meta.blue.interfaceTable({ interfaces: [ITriEffectParameter, INotify, IInitialize], chainTo: null })(TriVariableParameter, { kind: "class" });

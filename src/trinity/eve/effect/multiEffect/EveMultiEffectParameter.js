@@ -14,6 +14,7 @@ import { IsMatch, blue } from "#blue";
  */
 @meta.define({ className: "EveMultiEffectParameter", family: "eve/effect" })
 @meta.blue.inherit(INotify)
+@meta.blue.interface(INotify)
 export class EveMultiEffectParameter
 {
   @meta.blue.readwrite
@@ -112,4 +113,3 @@ export class EveMultiEffectParameter
 
 
 // Exact native Blue exposure: only these identities participate in loading.
-meta.blue.interfaceTable({ interfaces: [INotify], chainTo: null })(EveMultiEffectParameter, { kind: "class" });

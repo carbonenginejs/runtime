@@ -139,6 +139,7 @@ function writeOrthoOffCenter(out, left, right, bottom, top, near, far)
 /** Cascaded-shadow split producer. Its GPU operations are not ported yet. */
 @meta.define({ className: "Tr2ShadowMap", family: "trinityCore" })
 @meta.blue.inherit(INotify)
+@meta.blue.interface(INotify)
 export class Tr2ShadowMap
 {
   @meta.blue.notify
@@ -817,4 +818,3 @@ blue.enums.Create("trinity.Tr2ShadowMap.ShadowSplitMode", Tr2ShadowMap.ShadowSpl
 });
 
 // Exact native Blue exposure: only these identities participate in loading.
-meta.blue.interfaceTable({ interfaces: [Tr2ShadowMap, INotify], chainTo: null })(Tr2ShadowMap, { kind: "class" });

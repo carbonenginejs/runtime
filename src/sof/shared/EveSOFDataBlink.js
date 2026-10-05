@@ -3,6 +3,7 @@ import { meta } from "#schema";
 
 /** Empty native IRoot blink settings record; self exposure is in EveSOFData_Blue2.cpp:137-142. */
 @meta.define({ className: "EveSOFDataBlink", family: "eve" })
+@meta.blue.interface()
 export class EveSOFDataBlink
 {
 
@@ -17,4 +18,3 @@ export class EveSOFDataBlink
 
 }
 
-meta.blue.interfaceTable({ interfaces: [EveSOFDataBlink], chainTo: null })(EveSOFDataBlink);

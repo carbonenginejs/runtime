@@ -30,6 +30,7 @@ const BUILD_CLASSES = Object.freeze([
 
 /** Resolves a SOF DNA string against an EveSOFDataMgr. */
 @meta.define({ className: "EveSOFDNA", family: "eve" })
+@meta.blue.interface()
 export class EveSOFDNA
 {
 
@@ -1706,4 +1707,3 @@ function findAreaMaterialParameter(dataMgr, colors, areaMaterials, areaType, inf
 }
 
 // Native service exposure has no lifecycle interfaces or exposure parent.
-meta.blue.interfaceTable({ interfaces: [ EveSOFDNA ], chainTo: null })(EveSOFDNA, { kind: "class" });

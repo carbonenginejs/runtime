@@ -18,6 +18,7 @@ import { ITr2Updateable } from "../../core/ITr2Updateable.js";
   family: "controllers"
 })
 @meta.blue.inherit(ITr2Updateable)
+@meta.blue.interface(ITr2ControllerAction)
 export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
 {
   /**
@@ -141,7 +142,3 @@ export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionPlayCurveSet_Blue.cpp:12-13,18).
-meta.blue.interfaceTable({
-  interfaces: [Tr2ActionPlayCurveSet, ITr2ControllerAction],
-  chainTo: null
-})(Tr2ActionPlayCurveSet);

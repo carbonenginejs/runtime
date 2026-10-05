@@ -8,6 +8,7 @@ import { meta } from "#schema";
  * assigned for each component type.
  */
 @meta.define({ className: "EveEntity", family: "eve" })
+@meta.blue.interface()
 export class EveEntity
 {
 
@@ -162,4 +163,3 @@ export class EveEntity
 }
 
 // EveEntity_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveEntity], chainTo: null })(EveEntity, { kind: "class" });

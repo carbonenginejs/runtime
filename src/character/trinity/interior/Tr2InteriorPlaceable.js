@@ -13,6 +13,7 @@ import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
 /** Interior placeable with typed resource loading and native uniqueness notifications. */
 @meta.define({ className: "Tr2InteriorPlaceable", family: "interior" })
 @meta.blue.inherit(ITr2Renderable, IInitialize, INotify)
+@meta.blue.interface(ITr2Renderable, IInitialize, INotify)
 export class Tr2InteriorPlaceable
 {
 
@@ -235,4 +236,3 @@ export class Tr2InteriorPlaceable
 
 }
 
-meta.blue.interfaceTable({ interfaces: [Tr2InteriorPlaceable, ITr2Renderable, IInitialize, INotify], chainTo: null })(Tr2InteriorPlaceable);

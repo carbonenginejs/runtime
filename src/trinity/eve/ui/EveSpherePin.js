@@ -33,6 +33,7 @@ const treeMap = new WeakMap();
 /** A UI sphere pin: authored SRT placement plus the pin constant record. */
 @meta.define({ className: "EveSpherePin", family: "eve/ui" })
 @meta.blue.inherit(IInitialize, ITr2Renderable, IEveSpaceObject2, IEveTransform, INotify)
+@meta.blue.interface(IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2, INotify)
 export class EveSpherePin
 {
 
@@ -606,4 +607,3 @@ export class EveSpherePin
 
 // EveSpherePin_Blue.cpp: native mapped contracts; picking uses the existing
 // batch-mask API because this port has no ITr2Pickable contract class yet.
-meta.blue.interfaceTable({ interfaces: [IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2, INotify], chainTo: null })(EveSpherePin, { kind: "class" });

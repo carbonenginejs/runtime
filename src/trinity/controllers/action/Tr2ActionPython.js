@@ -26,6 +26,7 @@ import { ContinueOnMainThread } from "../../core/continueOnMainThread.js";
   family: "controllers"
 })
 @meta.blue.inherit(ITr2Updateable, INotify, IInitialize, ICustomPersist)
+@meta.blue.interface(ITr2ControllerAction, ITr2Updateable, INotify, IInitialize, ICustomPersist)
 export class Tr2ActionPython extends ITr2ControllerAction
 {
   static _factory = null;
@@ -422,7 +423,3 @@ export class Tr2ActionPython extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionPython_Blue.cpp:12-17,24).
-meta.blue.interfaceTable({
-  interfaces: [Tr2ActionPython, ITr2ControllerAction, ITr2Updateable, INotify, IInitialize, ICustomPersist],
-  chainTo: null
-})(Tr2ActionPython);

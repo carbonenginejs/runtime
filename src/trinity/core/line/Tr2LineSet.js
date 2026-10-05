@@ -20,7 +20,8 @@ import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 /** A set of coloured lines with an accompanying picking-triangle list, submitted as one buffer. */
 @meta.define({ className: "Tr2LineSet", family: "trinityCore" })
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.interface(IInitialize)
+@meta.blue.chainTo(Tr2PrimitiveSet)
 export class Tr2LineSet extends Tr2PrimitiveSet
 {
 

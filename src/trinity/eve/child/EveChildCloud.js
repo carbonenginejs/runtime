@@ -53,6 +53,7 @@ function updateBoundingSphere(cloud)
 @meta.define({ className: "EveChildCloud", family: "eve/child", purpose: "Describes a transformable volumetric cloud child, including its effect, editable volume, tessellation, LOD, and bounds state." })
 @meta.blue.inherit(ITr2Renderable)
 @meta.blue.inherit(IInitialize, INotify)
+@meta.blue.interface(ITr2Renderable, IInitialize, INotify, EveSpaceObjectChild, IEveSpaceObjectChild)
 export class EveChildCloud extends EveSpaceObjectChild
 {
   @meta.blue.readwrite
@@ -492,7 +493,6 @@ export class EveChildCloud extends EveSpaceObjectChild
 }
 
 // EveChildCloud_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveChildCloud, ITr2Renderable, IInitialize, INotify, EveSpaceObjectChild, IEveSpaceObjectChild], chainTo: null })(EveChildCloud, { kind: "class" });
 
 // Native anonymous GetProjectedCubeBounds (cpp:69-160). Enumerating the 12
 // unique edges instead of each face's edges removes duplicate extrema only.

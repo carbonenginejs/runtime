@@ -8,6 +8,7 @@ import { ErrSOFLogoSetTypeNotFound } from "./ErrSOFLogoSetTypeNotFound.js";
 
 /** Provides enum-based primary, secondary, tertiary, and marking-logo lookup plus logo-set composition. */
 @meta.define({ className: "EveSOFDataLogoSet", family: "eve" })
+@meta.blue.interface()
 export class EveSOFDataLogoSet
 {
 
@@ -136,4 +137,3 @@ blue.enums.Create("trinity.EveSOFDataLogoSet.LogoType", EveSOFDataLogoSet.LogoTy
 });
 
 // Native IRoot-only data exposes its own identity, with no lifecycle/update contract.
-meta.blue.interfaceTable({ interfaces: [EveSOFDataLogoSet], chainTo: null })(EveSOFDataLogoSet);

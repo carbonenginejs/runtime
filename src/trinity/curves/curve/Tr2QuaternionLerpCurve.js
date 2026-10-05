@@ -17,6 +17,7 @@ import { CcpTime } from "#blue";
   family: "curves"
 })
 @meta.blue.inherit(ITriCurveLength)
+@meta.blue.interface(ITriFunction, ITriQuaternionFunction, ITriCurveLength)
 export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
 {
   /**
@@ -205,7 +206,3 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
 }
 
 // Exact native exposure table; no inherited or implicit entries.
-meta.blue.interfaceTable({
-  interfaces: [ITriFunction, ITriQuaternionFunction, ITriCurveLength],
-  chainTo: null
-})(Tr2QuaternionLerpCurve);

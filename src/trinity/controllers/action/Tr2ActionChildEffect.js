@@ -413,7 +413,4 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionChildEffect_Blue.cpp:12-13,26).
-meta.blue.interfaceTable({
-  interfaces: [Tr2ActionChildEffect, ITr2ControllerAction],
-  chainTo: null
-})(Tr2ActionChildEffect);
+meta.blue.interface(ITr2ControllerAction)(Tr2ActionChildEffect);

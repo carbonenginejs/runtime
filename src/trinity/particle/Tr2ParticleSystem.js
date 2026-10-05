@@ -23,7 +23,7 @@ import { ITr2GenericEmitterUpdateArguments } from "./ITr2GenericEmitter/index.js
 @meta.blue.inherit(ITr2InstanceData)
 @meta.blue.inherit(IInitialize)
 @meta.blue.inherit(ISimTimeRebaseNotify)
-@meta.blue.mapInterface(IInitialize, INotify)
+@meta.blue.interface(IInitialize, INotify)
 export class Tr2ParticleSystem
 {
 

@@ -20,6 +20,7 @@ import { RealizeTexture } from "../../core/Tr2ImageIOHelpers.js";
 })
 @meta.blue.inherit(ITriEffectResourceParameter)
 @meta.blue.inherit(INotify)
+@meta.blue.interface(ITriEffectResourceParameter, INotify)
 export class Tr2RuntimeTextureParameter extends CjsParameter
 {
   @meta.blue.notify
@@ -280,4 +281,3 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
 }
 
 // Exact identities from Tr2RuntimeTextureParameter_Blue.cpp; no exposure chain.
-meta.blue.interfaceTable({ interfaces: [Tr2RuntimeTextureParameter, ITriEffectResourceParameter, INotify], chainTo: null })(Tr2RuntimeTextureParameter, { kind: "class" });

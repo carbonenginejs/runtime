@@ -253,7 +253,4 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
 }
 
 // Exact native exposure table; ITriFunction is intentionally not mapped.
-meta.blue.interfaceTable({
-  interfaces: [Tr2RotationAdapter, ITriQuaternionFunction],
-  chainTo: null
-})(Tr2RotationAdapter);
+meta.blue.interface(ITriQuaternionFunction)(Tr2RotationAdapter);

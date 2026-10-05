@@ -13,7 +13,8 @@ import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDecl
 /** A collision constraint that keeps particles on one side of a plane, reflecting velocity with elasticity, friction and noise, and triggering generators and emitters on contact. */
 @meta.define({ className: "Tr2PlaneConstraint", family: "particle" })
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.interface(IInitialize)
+@meta.blue.chainTo(ITr2GenericParticleConstraint)
 export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
 {
 

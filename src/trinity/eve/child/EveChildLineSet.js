@@ -31,6 +31,7 @@ import { CalculateBoundingSphereForLineSetPaths } from "./lineSetPaths/IEveLineS
 /** A child that renders a set of curved and sphere-projected line paths, as object geometry, as dedicated line rendering, or both. */
 @meta.define({ className: "EveChildLineSet", family: "eve/child" })
 @meta.blue.inherit(ITr2Renderable, IInitialize, INotify)
+@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize, INotify, ITr2Renderable)
 export class EveChildLineSet extends EveChildTransform
 {
 
@@ -645,4 +646,3 @@ blue.enums.Create("trinity.EveChildLineSet.lineSetType", EveChildLineSet.lineSet
   ]
 });
 
-meta.blue.interfaceTable({ interfaces: [EveChildLineSet, EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize, INotify, ITr2Renderable], chainTo: null })(EveChildLineSet, { kind: "class" });

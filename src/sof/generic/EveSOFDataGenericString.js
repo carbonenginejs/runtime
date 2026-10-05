@@ -8,6 +8,7 @@ import { meta } from "#schema";
  * are empty; no initialization, update or resource lifecycle is required.
  */
 @meta.define({ className: "EveSOFDataGenericString", family: "eve" })
+@meta.blue.interface()
 export class EveSOFDataGenericString
 {
 
@@ -19,7 +20,3 @@ export class EveSOFDataGenericString
 
 }
 
-meta.blue.interfaceTable({
-  interfaces: [ EveSOFDataGenericString ],
-  chainTo: null
-})(EveSOFDataGenericString);

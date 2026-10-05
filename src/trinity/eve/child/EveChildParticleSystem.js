@@ -26,6 +26,7 @@ import { CcpTime } from "../../../global/blue/CcpTime.js";
 @meta.define({ className: "EveChildParticleSystem", family: "eve/child" })
 @meta.blue.inherit(ITr2Renderable)
 @meta.blue.inherit(IInitialize, INotify)
+@meta.blue.interface(EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IInitialize, INotify)
 export class EveChildParticleSystem extends EveChildTransform
 {
 
@@ -700,4 +701,3 @@ export class EveChildParticleSystem extends EveChildTransform
 }
 
 // EveChildParticleSystem_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveChildParticleSystem, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IInitialize, INotify], chainTo: null })(EveChildParticleSystem, { kind: "class" });

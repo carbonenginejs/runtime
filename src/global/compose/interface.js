@@ -359,6 +359,97 @@ function ResolveInterfaceTable(Constructor, visiting = null, replacement = null)
 
 
 /**
+ * Whether a class declares its own exposure table (`interface`/`chainTo`), as
+ * every exposed class does, rather than being a listed interface.
+ *
+ * @param {Function} Constructor The class to ask about.
+ * @returns {boolean} True when the class carries its own table.
+ */
+export function hasOwnInterfaceTable(Constructor)
+{
+    return typeof Constructor === "function" && Object.hasOwn(Constructor, MAPPED);
+}
+
+
+/**
+ * The class's own exposure table, created on first use with the class itself as
+ * its first entry - `EXPOSURE_BEGIN` pushes the class's own IID before any
+ * `MAP_INTERFACE` line runs (BlueExposureMacrosPython.h:39-42).
+ *
+ * @param {Function} Constructor The class being declared.
+ * @param {string} decoratorName For the error message.
+ * @returns {{interfaces: Set<Function>, chainTo: Function|null}} The own table.
+ */
+function OwnInterfaceTable(Constructor, decoratorName)
+{
+    if (typeof Constructor !== "function" || !Constructor.prototype)
+        throw new TypeError(`carbon.${decoratorName} requires a class constructor.`);
+    if (Object.hasOwn(Constructor, MAPPED))
+    {
+        const existing = Constructor[MAPPED];
+        if (existing instanceof Set) throw new TypeError(`carbon.${decoratorName} cannot be combined with mapInterface on the same class.`);
+        return existing;
+    }
+    const table = { interfaces: new Set([ Constructor ]), chainTo: null };
+    Object.defineProperty(Constructor, MAPPED, { value: table, configurable: true });
+    return table;
+}
+
+
+/**
+ * The `@meta.blue.interface(X, Y, ...)` class decorator: Carbon's
+ * `MAP_INTERFACE` lines (BlueExposureMacros.h:171-175). The class itself is
+ * always the first entry, as `EXPOSURE_BEGIN` adds it, so it is never listed.
+ * Without `chainTo` the table ends here, as `EXPOSURE_END()` does. Called with
+ * no interfaces it declares a table holding only the class itself.
+ *
+ * @param {Function[]} Interfaces The mapped interfaces, in `_Blue.cpp` order.
+ * @returns {Function} A Stage-3 or imperative class decorator.
+ */
+export function carbonInterfaceDecorator(Interfaces)
+{
+    const mapped = Array.isArray(Interfaces) ? Interfaces : [ Interfaces ];
+    for (const Interface of mapped)
+    {
+        if (typeof Interface !== "function" || !Interface.prototype)
+            throw new TypeError("carbon.interface requires interface classes.");
+    }
+    return function (value, context)
+    {
+        if (context && typeof context === "object" && context.kind !== "class")
+            throw new TypeError("carbon.interface only supports classes.");
+        const table = OwnInterfaceTable(value, "interface");
+        for (const Interface of mapped) table.interfaces.add(Interface);
+    };
+}
+
+
+/**
+ * The `@meta.blue.chainTo(Parent)` class decorator: Carbon's
+ * `EXPOSURE_CHAINTO( Parent )` (BlueExposureMacros.h:136-138). After the
+ * class's own entries, QueryInterface continues into `Parent`'s table
+ * (BlueClasses.cpp:388-400). The chain is declared, not taken from `extends`.
+ *
+ * @param {Function} Parent The class whose table follows this one.
+ * @returns {Function} A Stage-3 or imperative class decorator.
+ */
+export function carbonChainToDecorator(Parent)
+{
+    if (typeof Parent !== "function" || !Parent.prototype)
+        throw new TypeError("carbon.chainTo requires a class constructor.");
+    return function (value, context)
+    {
+        if (context && typeof context === "object" && context.kind !== "class")
+            throw new TypeError("carbon.chainTo only supports classes.");
+        const table = OwnInterfaceTable(value, "chainTo");
+        if (table.chainTo) throw new TypeError("carbon.chainTo may be declared once per class.");
+        ResolveInterfaceTable(value, new Set(), { Constructor: value, table: { interfaces: table.interfaces, chainTo: Parent } });
+        table.chainTo = Parent;
+    };
+}
+
+
+/**
  * Declares a complete Blue interface table and its explicit exposure parent.
  * `chainTo: null` represents EXPOSURE_END; a constructor represents
  * EXPOSURE_CHAINTO (BlueExposureMacros.h:132-138). QueryInterface visits that

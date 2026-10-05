@@ -27,6 +27,7 @@ import { RealizeTexture } from "../../core/Tr2ImageIOHelpers.js";
 })
 @meta.blue.inherit(ITriEffectTextureParameter)
 @meta.blue.inherit(IInitialize, INotify, ICopierCustomAssignment)
+@meta.blue.interface(ITriEffectParameter, ITriEffectResourceParameter, ITriEffectTextureParameter, IInitialize, INotify, ICopierCustomAssignment)
 export class TriTextureParameter extends CjsParameter
 {
 
@@ -608,4 +609,3 @@ export class TriTextureParameter extends CjsParameter
 }
 
 // Exact identities from TriTextureParameter_Blue.cpp; no exposure chain.
-meta.blue.interfaceTable({ interfaces: [ITriEffectParameter, ITriEffectResourceParameter, ITriEffectTextureParameter, IInitialize, INotify, ICopierCustomAssignment], chainTo: null })(TriTextureParameter, { kind: "class" });

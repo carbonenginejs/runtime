@@ -17,7 +17,7 @@ import { ITr2Pickable } from "../ITr2Pickable.js";
 /** A drawable set of primitives with a world transform, sort value and bounding sphere. */
 @meta.define({ className: "Tr2PrimitiveSet", family: "trinityCore" })
 @meta.blue.inherit(ITr2Renderable, ITr2Pickable, INotify)
-@meta.blue.mapInterface(INotify)
+@meta.blue.interface(ITr2Renderable, ITr2Pickable, INotify)
 export class Tr2PrimitiveSet
 {
 
@@ -252,4 +252,3 @@ export class Tr2PrimitiveSet
 
 }
 
-meta.blue.interfaceTable({ interfaces: [Tr2PrimitiveSet, ITr2Renderable, ITr2Pickable, INotify], chainTo: null })(Tr2PrimitiveSet, { kind: "class" });

@@ -25,7 +25,8 @@ import { sph3 } from "#math/sph3";
  */
 @meta.define({ className: "EveStretch", family: "eve/renderable/stretch" })
 @meta.blue.inherit(IEveSpaceObject2, IEveTransform)
-@meta.blue.mapInterface(INotify)
+@meta.blue.interface(INotify)
+@meta.blue.chainTo(IEveFiringEffectElement)
 export class EveStretch extends IEveFiringEffectElement
 {
 

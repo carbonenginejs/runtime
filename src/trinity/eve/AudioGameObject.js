@@ -18,7 +18,7 @@ import { CjsSchema, meta } from "#schema";
 @meta.define({ className: "AudioGameObject", family: "eve" })
 @meta.blue.inherit(IEveSpaceObject2)
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.interface(IInitialize)
 export class AudioGameObject
 {
   _worldTransform = mat4.create();

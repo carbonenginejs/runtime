@@ -18,7 +18,8 @@ import { vec4 } from "#math/vec4";
 
 /** A celestial effect root with scaled surface rendering and an ordinary-world depth proxy. */
 @meta.define({ className: "EvePlanet", family: "eve/spaceObject" })
-@meta.blue.mapInterface(ITr2SecondaryLightSource)
+@meta.blue.interface(IEveSpaceObject2, ITr2SecondaryLightSource, ITr2CurveSetOwner, ITr2SoundEmitterOwner, IWorldPosition, ITr2BoundingBox)
+@meta.blue.chainTo(EveEffectRoot2)
 export class EvePlanet extends EveEffectRoot2
 {
   /**
@@ -354,4 +355,3 @@ export class EvePlanet extends EveEffectRoot2
 }
 
 // EvePlanet_Blue.cpp: native exposure; unported contracts: IEveEffectChildrenOwner, IShaderConfigurer.
-meta.blue.interfaceTable({ interfaces: [EvePlanet, IEveSpaceObject2, ITr2SecondaryLightSource, ITr2CurveSetOwner, ITr2SoundEmitterOwner, IWorldPosition, ITr2BoundingBox], chainTo: EveEffectRoot2 })(EvePlanet, { kind: "class" });

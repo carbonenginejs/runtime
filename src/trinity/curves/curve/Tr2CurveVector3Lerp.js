@@ -219,7 +219,4 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
 }
 
 // Exact native exposure table; no inherited or implicit entries.
-meta.blue.interfaceTable({
-  interfaces: [Tr2CurveVector3Lerp, ITriFunction, ITriVectorFunction],
-  chainTo: null
-})(Tr2CurveVector3Lerp);
+meta.blue.interface(ITriFunction, ITriVectorFunction)(Tr2CurveVector3Lerp);

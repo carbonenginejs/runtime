@@ -10,7 +10,8 @@ import { CjsDistributionRandom } from "../../CjsDistributionRandom.js";
 /** Adds a seeded random local translation offset to each spawned placement. */
 @meta.define({ className: "EveDistributionSpawnModifierRandomOffset", family: "eve/distribution/spawnModifiers" })
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.interface(IInitialize)
+@meta.blue.chainTo(IEveDistributionSpawnModifier)
 export class EveDistributionSpawnModifierRandomOffset extends IEveDistributionSpawnModifier
 {
 

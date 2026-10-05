@@ -8,7 +8,7 @@ import { EveChildRef } from "../../../../eve/child/EveChildRef.js";
 /** EveProceduralMethodRandomParameter (eve/child/procedural/selection) - generated from schema shapeHash 8b32e583.... */
 @meta.define({ className: "EveProceduralMethodRandomParameter", family: "eve/child/procedural/selection" })
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.interface(IInitialize)
 export class EveProceduralMethodRandomParameter
 {
 

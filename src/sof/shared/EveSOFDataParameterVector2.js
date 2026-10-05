@@ -10,6 +10,7 @@ import { EveSOFDataParameter } from "./EveSOFDataParameter.js";
 
 /** Two-component shader parameter: zero-pads z and w. */
 @meta.define({ className: "EveSOFDataParameterVector2", family: "eve" })
+@meta.blue.interface(EveSOFDataParameter)
 export class EveSOFDataParameterVector2 extends EveSOFDataParameter
 {
   /**
@@ -30,7 +31,3 @@ export class EveSOFDataParameterVector2 extends EveSOFDataParameter
   }
 }
 
-meta.blue.interfaceTable({
-  interfaces: [ EveSOFDataParameterVector2, EveSOFDataParameter ],
-  chainTo: null
-})(EveSOFDataParameterVector2);

@@ -87,4 +87,4 @@ export class TriRect
 }
 
 // Native maps IPythonMethods only; that host-specific bridge is unavailable.
-meta.blue.interfaceTable({ interfaces: [], chainTo: null })(TriRect);
+meta.blue.interface()(TriRect);

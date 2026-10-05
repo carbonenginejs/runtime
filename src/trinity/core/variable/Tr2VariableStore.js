@@ -430,4 +430,4 @@ export class Tr2VariableStore
   }
 }
 
-meta.blue.interfaceTable({ interfaces: [Tr2VariableStore], chainTo: null })(Tr2VariableStore);
+meta.blue.interface()(Tr2VariableStore);

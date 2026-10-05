@@ -11,6 +11,7 @@ import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 @meta.define({ className: "Tr2GeometryBufferParameter", family: "shader" })
 @meta.blue.inherit(ITriEffectResourceParameter)
 @meta.blue.inherit(IInitialize, INotify)
+@meta.blue.interface(ITriEffectParameter, ITriEffectResourceParameter, IInitialize, INotify)
 export class Tr2GeometryBufferParameter extends CjsParameter
 {
 
@@ -197,4 +198,3 @@ export class Tr2GeometryBufferParameter extends CjsParameter
 }
 
 // Exact identities from Tr2GeometryBufferParameter_Blue.cpp; no exposure chain.
-meta.blue.interfaceTable({ interfaces: [ITriEffectParameter, ITriEffectResourceParameter, IInitialize, INotify], chainTo: null })(Tr2GeometryBufferParameter, { kind: "class" });

@@ -19,6 +19,8 @@ import { UnlinkReason } from "../enums.js";
   family: "controllers"
 })
 @meta.blue.inherit(ITr2ActionController)
+@meta.blue.interface(ITr2Controller, ITr2ActionController)
+@meta.blue.chainTo(EveThrottleable)
 export class Tr2TimelineController extends EveThrottleable
 {
   @meta.blue.persistOnly
@@ -880,4 +882,3 @@ export class Tr2TimelineController extends EveThrottleable
 }
 
 // Tr2TimelineController_Blue.cpp exposes no initialization or list-notify contract.
-meta.blue.interfaceTable({ interfaces: [Tr2TimelineController, ITr2Controller, ITr2ActionController], chainTo: EveThrottleable })(Tr2TimelineController, { kind: "class" });

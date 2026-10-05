@@ -8,6 +8,7 @@ import { meta } from "#schema";
  * is required, and the native destructor is empty.
  */
 @meta.define({ className: "EveSOFDataVisibilityGroup", family: "eve" })
+@meta.blue.interface()
 export class EveSOFDataVisibilityGroup
 {
 
@@ -25,7 +26,3 @@ export class EveSOFDataVisibilityGroup
 
 }
 
-meta.blue.interfaceTable({
-  interfaces: [ EveSOFDataVisibilityGroup ],
-  chainTo: null
-})(EveSOFDataVisibilityGroup);

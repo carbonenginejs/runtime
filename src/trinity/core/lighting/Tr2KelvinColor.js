@@ -15,6 +15,7 @@ import { blue } from "#blue";
  * here. Initialization and the native self/IInitialize query are supported.
  */
 @meta.define({ className: "Tr2KelvinColor", family: "trinityCore" })
+@meta.blue.interface(IInitialize)
 export class Tr2KelvinColor extends IInitialize
 {
 
@@ -197,4 +198,3 @@ export class Tr2KelvinColor extends IInitialize
 }
 
 
-meta.blue.interfaceTable({ interfaces: [ Tr2KelvinColor, IInitialize ], chainTo: null })(Tr2KelvinColor);

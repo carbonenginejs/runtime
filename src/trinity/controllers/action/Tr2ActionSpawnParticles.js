@@ -65,7 +65,4 @@ export class Tr2ActionSpawnParticles extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionSpawnParticles_Blue.cpp:12-13,17).
-meta.blue.interfaceTable({
-  interfaces: [Tr2ActionSpawnParticles, ITr2ControllerAction],
-  chainTo: null
-})(Tr2ActionSpawnParticles);
+meta.blue.interface(ITr2ControllerAction)(Tr2ActionSpawnParticles);

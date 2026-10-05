@@ -20,6 +20,7 @@ import { TriCurveSet } from "../curves/TriCurveSet.js";
   family: "eve"
 })
 @meta.blue.inherit(INotify)
+@meta.blue.interface(IListNotify, INotify)
 export class EveDistanceField
 {
   @meta.blue.read
@@ -355,4 +356,3 @@ export class EveDistanceField
 }
 
 // Exact native Blue exposure: only these identities participate in loading.
-meta.blue.interfaceTable({ interfaces: [EveDistanceField, IListNotify, INotify], chainTo: null })(EveDistanceField, { kind: "class" });

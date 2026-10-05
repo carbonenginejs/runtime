@@ -10,6 +10,7 @@ import { ITr2SoundEmitterOwner } from "../../eve/ITr2SoundEmitterOwner.js";
  * when it starts, changing which bank events later sounds resolve to.
  */
 @meta.define({ className: "Tr2ActionSetAudioEmitterPrefix", family: "controllers" })
+@meta.blue.interface(ITr2ControllerAction)
 export class Tr2ActionSetAudioEmitterPrefix extends ITr2ControllerAction
 {
   /** m_emitterName: narrow emitter lookup name. */
@@ -52,7 +53,3 @@ export class Tr2ActionSetAudioEmitterPrefix extends ITr2ControllerAction
 }
 
 // Native exposure ends here (Tr2ActionSetAudioEmitterPrefix_Blue.cpp:13-23).
-meta.blue.interfaceTable({
-  interfaces: [Tr2ActionSetAudioEmitterPrefix, ITr2ControllerAction],
-  chainTo: null
-})(Tr2ActionSetAudioEmitterPrefix);

@@ -89,6 +89,7 @@ const INSTANCE_SPHERE = vec4.create();
   "sofLocatorIndex"
 ])
 @meta.blue.inherit(IInitialize, INotify)
+@meta.blue.interface(EveEntity, EveChildMesh, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IInitialize, INotify, IEveShadowCaster)
 export class EveChildInstanceMeshRenderer extends EveChildMesh
 {
   @meta.blue.readwrite
@@ -656,4 +657,3 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
 
 
 // EveChildInstanceMeshRenderer_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveChildInstanceMeshRenderer, EveEntity, EveChildMesh, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IInitialize, INotify, IEveShadowCaster], chainTo: null })(EveChildInstanceMeshRenderer, { kind: "class" });

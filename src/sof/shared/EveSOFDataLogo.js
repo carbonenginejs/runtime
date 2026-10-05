@@ -5,6 +5,7 @@ import { EveSOFDataTexture } from "./EveSOFDataTexture.js";
 
 /** Stores a logo texture set and supports assignment and composition with another logo value. */
 @meta.define({ className: "EveSOFDataLogo", family: "eve" })
+@meta.blue.interface()
 export class EveSOFDataLogo
 {
 
@@ -58,4 +59,3 @@ export class EveSOFDataLogo
 }
 
 // Native IRoot-only data exposes its own identity, with no lifecycle/update contract.
-meta.blue.interfaceTable({ interfaces: [EveSOFDataLogo], chainTo: null })(EveSOFDataLogo);

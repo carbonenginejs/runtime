@@ -24,8 +24,8 @@ import { blue } from "#blue";
 
 /** A child that instantiates a source template across a list of authored or locator-driven transforms, forwarding controller and registration calls to the instances. */
 @meta.define({ className: "EveChildInstanceContainer", family: "eve/child" })
-@meta.blue.mapInterface(EveEntity)
 @meta.blue.inherit(ITr2CurveSetOwner, INotify, IListNotify)
+@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, INotify, ITr2ControllerOwner, IListNotify, EveEntity)
 export class EveChildInstanceContainer extends EveChildTransform
 {
 
@@ -619,4 +619,3 @@ export class EveChildInstanceContainer extends EveChildTransform
 }
 
 // EveChildInstanceContainer_Blue.cpp: native exposure; unported contracts: IEveEffectChildrenOwner, IShaderConfigurer.
-meta.blue.interfaceTable({ interfaces: [EveChildInstanceContainer, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, INotify, ITr2ControllerOwner, IListNotify, EveEntity], chainTo: null })(EveChildInstanceContainer, { kind: "class" });

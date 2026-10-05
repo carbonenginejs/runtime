@@ -29,6 +29,8 @@ import { Tr2ControllerEventHandler } from "./Tr2ControllerEventHandler.js";
   family: "controllers"
 })
 @meta.blue.inherit(ITr2ActionController, IListNotify)
+@meta.blue.interface(ITr2Controller, ITr2ActionController, IListNotify)
+@meta.blue.chainTo(EveThrottleable)
 export class Tr2Controller extends EveThrottleable
 {
   @meta.blue.read
@@ -751,7 +753,3 @@ export class Tr2Controller extends EveThrottleable
 }
 
 // Tr2Controller_Blue.cpp:15-19,65 maps this table and chains EveThrottleable.
-meta.blue.interfaceTable({
-  interfaces: [Tr2Controller, ITr2Controller, ITr2ActionController, IListNotify],
-  chainTo: EveThrottleable
-})(Tr2Controller, { kind: "class" });

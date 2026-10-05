@@ -152,7 +152,4 @@ export class Tr2ScalarFader
 }
 
 // Exact native exposure table; no inherited or implicit entries.
-meta.blue.interfaceTable({
-  interfaces: [Tr2ScalarFader],
-  chainTo: null
-})(Tr2ScalarFader);
+meta.blue.interface()(Tr2ScalarFader);

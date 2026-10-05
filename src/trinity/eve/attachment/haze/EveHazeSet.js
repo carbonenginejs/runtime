@@ -43,6 +43,7 @@ const BOX_INDICES = [ [ 0, 1, 2, 3 ], [ 7, 6, 5, 4 ], [ 0, 4, 5, 1 ], [ 3, 2, 6,
  */
 @meta.define({ className: "EveHazeSet", family: "eve/attachment/haze" })
 @meta.blue.inherit(IInitialize)
+@meta.blue.interface(IInitialize, IEveSpaceObjectAttachment, EveEntity)
 export class EveHazeSet extends IEveSpaceObjectAttachment
 {
 
@@ -409,4 +410,3 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
 }
 
 // EveHazeSet_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
-meta.blue.interfaceTable({ interfaces: [EveHazeSet, IInitialize, IEveSpaceObjectAttachment, EveEntity], chainTo: null })(EveHazeSet, { kind: "class" });

@@ -17,6 +17,7 @@ import { Tr2CurveQuaternionKey } from "../key/Tr2CurveQuaternionKey.js";
   family: "curves"
 })
 @meta.blue.inherit(ITriCurveLength)
+@meta.blue.interface(ITriQuaternionFunction, ITriFunction, ITriCurveLength)
 export class Tr2CurveQuaternion extends ITriQuaternionFunction
 {
   /**
@@ -420,7 +421,3 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
 }
 
 // Native exposure ends at this concrete table (Tr2CurveQuaternion_Blue.cpp).
-meta.blue.interfaceTable({
-  interfaces: [Tr2CurveQuaternion, ITriQuaternionFunction, ITriFunction, ITriCurveLength],
-  chainTo: null
-})(Tr2CurveQuaternion);

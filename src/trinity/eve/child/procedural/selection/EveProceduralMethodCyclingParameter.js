@@ -8,7 +8,7 @@ import { EveChildRef } from "../../../../eve/child/EveChildRef.js";
 /** EveProceduralMethodCyclingParameter (eve/child/procedural/selection) - generated from schema shapeHash 90bcbbe1.... */
 @meta.define({ className: "EveProceduralMethodCyclingParameter", family: "eve/child/procedural/selection" })
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.interface(IInitialize)
 export class EveProceduralMethodCyclingParameter
 {
 

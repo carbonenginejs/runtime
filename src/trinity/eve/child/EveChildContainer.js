@@ -52,8 +52,8 @@ const ZERO_VEC3 = vec3.create();
  */
 @meta.define({ className: "EveChildContainer", family: "eve/child" })
 @meta.blue.inherit(ITr2Renderable, ITr2CurveSetOwner, IInitialize, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner)
-@meta.blue.mapInterface(EveEntity, IInitialize, ITr2CurveSetOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner)
 @meta.blue.inherit(IInitialize, IListNotify, INotify)
+@meta.blue.interface(EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, IListNotify, INotify, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner, ITr2Renderable)
 export class EveChildContainer extends EveChildTransform
 {
   @meta.blue.notify
@@ -1664,4 +1664,3 @@ blue.enums.Create("trinity.EveChildContainer.DisplayQualityModifier", EveChildCo
 
 
 // EveChildContainer_Blue.cpp: native exposure; unported contracts: ITr2LightOwner, IEveEffectChildrenOwner, IShaderConfigurer, IEveSpaceObjectAttachmentOwner.
-meta.blue.interfaceTable({ interfaces: [EveChildContainer, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, IListNotify, INotify, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner, ITr2Renderable], chainTo: null })(EveChildContainer, { kind: "class" });

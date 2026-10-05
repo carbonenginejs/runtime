@@ -38,7 +38,7 @@ const EVE_LINE_DATA_SIZE = EVE_LINE_DATA_FLOATS * 4;
 @meta.define({ className: "EveLineSet", family: "eve/ui" })
 @meta.blue.inherit(ITr2Renderable, IEveSpaceObject2, IEveTransform)
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.interface(IInitialize)
 export class EveLineSet
 {
 

@@ -23,8 +23,9 @@ import { EveSpaceObject2 } from "./EveSpaceObject2.js";
  * are active.
  */
 @meta.define({ className: "EveMobile", family: "eve/spaceObject" })
-@meta.blue.mapInterface(IEveSpaceObject2, ITr2Renderable, IListNotify)
 @meta.blue.inherit(IListNotify, IInitialize)
+@meta.blue.interface(IEveSpaceObject2, ITr2Renderable, IListNotify)
+@meta.blue.chainTo(EveSpaceObject2)
 export class EveMobile extends EveSpaceObject2
 {
   @meta.blue.notify
@@ -502,7 +503,5 @@ export class EveMobile extends EveSpaceObject2
 }
 
 // Native exposure maps the concrete class explicitly.
-meta.blue.mapInterface(EveMobile)(EveMobile, { kind: "class" });
 
 // EveMobile_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveMobile, IEveSpaceObject2, ITr2Renderable, IListNotify], chainTo: EveSpaceObject2 })(EveMobile, { kind: "class" });

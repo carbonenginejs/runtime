@@ -12,7 +12,8 @@ import { DistributionEntityLifeTimeEvent } from "./attributeModifiers/enums.js";
 /** Manages an authored placement pool and updates its live entities through placement generators, spawners, and lifetime modifiers. */
 @meta.define({ className: "EveBaseDistributionMethod", family: "eve/distribution" })
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.interface(IInitialize)
+@meta.blue.chainTo(IEveDistributionMethod)
 export class EveBaseDistributionMethod extends IEveDistributionMethod
 {
 

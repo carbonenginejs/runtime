@@ -20,6 +20,8 @@ import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 /** Granny/CMF debug geometry rendered as colored triangle edges, solids, or picking triangles. */
 @meta.define({ className: "Tr2GrannyPrimitiveSet", family: "trinityCore" })
 @meta.blue.inherit(IInitialize)
+@meta.blue.interface(IInitialize)
+@meta.blue.chainTo(Tr2PrimitiveSet)
 export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
 {
   /** Native resource path (Blue READWRITE | PERSIST | NOTIFY). */
@@ -395,4 +397,3 @@ function ReadNormal(out, offset, vertex, index, count, granny)
   }
 }
 
-meta.blue.interfaceTable({ interfaces: [Tr2GrannyPrimitiveSet, IInitialize], chainTo: Tr2PrimitiveSet })(Tr2GrannyPrimitiveSet, { kind: "class" });

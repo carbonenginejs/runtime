@@ -14,6 +14,7 @@ import "#consts/graphics/trinityEnums";
 /** Fires authored audio events as playback time crosses ordered event keys on a timeline curve. */
 @meta.define({ className: "AudEventCurve", family: "audio" })
 @meta.blue.inherit(IInitialize, ITriFunction, ITriCurveLength)
+@meta.blue.interface(ITriFunction, IInitialize, ITriCurveLength)
 export class AudEventCurve
 {
 
@@ -345,4 +346,3 @@ function InRange(keys, ix)
   return Number.isInteger(ix) && ix >= 0 && ix < keys.length;
 }
 
-meta.blue.interfaceTable({ interfaces: [AudEventCurve, ITriFunction, IInitialize, ITriCurveLength], chainTo: null })(AudEventCurve, { kind: "class" });

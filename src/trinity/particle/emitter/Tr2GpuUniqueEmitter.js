@@ -21,6 +21,7 @@ const SCALED_PARAMS = Tr2GpuSharedEmitter._createParams();
  * per-instance attractor on top of the shared emitter parameters.
  */
 @meta.define({ className: "Tr2GpuUniqueEmitter", family: "particle" })
+@meta.blue.chainTo(Tr2GpuSharedEmitter)
 export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
 {
   @meta.blue.readwrite
@@ -180,4 +181,3 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
   static _nextID = 0;
 }
 
-meta.blue.interfaceTable({ interfaces: [Tr2GpuUniqueEmitter], chainTo: Tr2GpuSharedEmitter })(Tr2GpuUniqueEmitter, { kind: "class" });

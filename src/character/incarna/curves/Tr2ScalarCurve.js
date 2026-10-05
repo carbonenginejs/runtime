@@ -17,7 +17,7 @@ import { Tr2ScalarKey } from "./Tr2ScalarKey.js";
 // This explicit contract preserves the legacy asset behavior; it is not a
 // declaration from the current Carbon curve exposure table.
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.interface(IInitialize)
 export class Tr2ScalarCurve
 {
 

@@ -22,6 +22,7 @@ import { CjsControllerExpressionProgram } from "../../controllers/expression/Cjs
   family: "curves"
 })
 @meta.blue.inherit(IInitialize)
+@meta.blue.interface(ITriFunction, ITriScalarFunction, IInitialize)
 export class Tr2CurveScalarExpression extends ITriScalarFunction
 {
   /** Authored narrow-string name. */
@@ -328,7 +329,3 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   }
 }
 
-meta.blue.interfaceTable({
-  interfaces: [ Tr2CurveScalarExpression, ITriFunction, ITriScalarFunction, IInitialize ],
-  chainTo: null
-})(Tr2CurveScalarExpression);

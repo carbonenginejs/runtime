@@ -23,6 +23,8 @@ import { packQuadInstanceData, QUAD_INSTANCE_SIZE } from "../child/packQuadInsta
 /** A smart-light group member that places faction-colour-aware flare quads at each distribution placement and submits them to the quad renderer. */
 @meta.define({ className: "EveSmartLightQuad", family: "eve/smartLights" })
 @meta.blue.inherit(IInitialize, INotify, IListNotify)
+@meta.blue.interface(EveSmartLightBaseGroup, IInitialize, INotify, IListNotify)
+@meta.blue.chainTo(EveSmartLightBaseGroup)
 export class EveSmartLightQuad extends EveChildTransform
 {
 
@@ -467,4 +469,3 @@ export class EveSmartLightQuad extends EveChildTransform
 }
 
 // EveSmartLightQuad_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveSmartLightQuad, EveSmartLightBaseGroup, IInitialize, INotify, IListNotify], chainTo: EveSmartLightBaseGroup })(EveSmartLightQuad, { kind: "class" });

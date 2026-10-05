@@ -9,6 +9,7 @@ import { vec3 } from "#math/vec3";
  * placement-observer updates.
  */
 @meta.define({ className: "AudPosition", family: "audio" })
+@meta.blue.interface(IBluePlacementObserver)
 export class AudPosition extends IBluePlacementObserver
 {
 
@@ -57,4 +58,3 @@ export class AudPosition extends IBluePlacementObserver
 }
 
 // Exact native exposure identities; no inherited lifecycle policy.
-meta.blue.interfaceTable({ interfaces: [ AudPosition, IBluePlacementObserver ], chainTo: null })(AudPosition, { kind: "class" });

@@ -12,6 +12,7 @@ import { vec3 } from "#math/vec3";
  */
 @meta.define({ className: "EveEllipseDefinition", family: "eve/ui" })
 @meta.blue.inherit(INotify)
+@meta.blue.interface(INotify)
 export class EveEllipseDefinition
 {
   _dirtyFlag = null;
@@ -71,4 +72,3 @@ export class EveEllipseDefinition
 }
 
 // Exact native Blue exposure: only these identities participate in loading.
-meta.blue.interfaceTable({ interfaces: [EveEllipseDefinition, INotify], chainTo: null })(EveEllipseDefinition, { kind: "class" });

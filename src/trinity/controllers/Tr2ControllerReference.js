@@ -18,6 +18,7 @@ import { ITr2Controller } from "./ITr2Controller/index.js";
   family: "controllers"
 })
 @meta.blue.inherit(INotify, IInitialize)
+@meta.blue.interface(IInitialize, INotify, ITr2Controller)
 export class Tr2ControllerReference extends ITr2Controller
 {
   /** Authored controller resource path; notifications reload the reference. */
@@ -263,4 +264,3 @@ export class Tr2ControllerReference extends ITr2Controller
 }
 
 // Native EXPOSURE_END: no primary-base table chain.
-meta.blue.interfaceTable({ interfaces: [Tr2ControllerReference, IInitialize, INotify, ITr2Controller], chainTo: null })(Tr2ControllerReference, { kind: "class" });

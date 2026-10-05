@@ -25,6 +25,7 @@ import { EveSpriteSet } from "./EveSpriteSet.js";
  */
 @meta.define({ className: "EveSpriteLineSet", family: "eve/attachment/sprites" })
 @meta.blue.inherit(IInitialize)
+@meta.blue.interface(IInitialize, IEveSpaceObjectAttachment, EveEntity)
 export class EveSpriteLineSet extends IEveSpaceObjectAttachment
 {
 
@@ -367,4 +368,3 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
 }
 
 // EveSpriteLineSet_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
-meta.blue.interfaceTable({ interfaces: [EveSpriteLineSet, IInitialize, IEveSpaceObjectAttachment, EveEntity], chainTo: null })(EveSpriteLineSet, { kind: "class" });

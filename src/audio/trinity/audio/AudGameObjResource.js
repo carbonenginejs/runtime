@@ -70,6 +70,7 @@ function NowMs()
  */
 @meta.define({ className: "AudGameObjResource", family: "audio", abstract: true })
 @meta.blue.inherit(IInitialize, IListNotify, INotify)
+@meta.blue.interface(IInitialize, IListNotify, INotify)
 export class AudGameObjResource
 {
 
@@ -1188,4 +1189,3 @@ export function PrepareEvent(prefix, event, bypassPrefix)
   return prefix && !bypassPrefix ? `${prefix}${trimmed}` : trimmed;
 }
 
-meta.blue.interfaceTable({ interfaces: [IInitialize, IListNotify, INotify, AudGameObjResource], chainTo: null })(AudGameObjResource, { kind: "class" });

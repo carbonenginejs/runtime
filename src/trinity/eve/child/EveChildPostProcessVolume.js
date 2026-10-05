@@ -15,6 +15,7 @@ import { EveComponentType } from "../EntityComponents.js";
 /** A child that unions a set of inclusion and exclusion volumes into a bounding sphere and drives a post-process effect's intensity from the camera's position relative to them. */
 @meta.define({ className: "EveChildPostProcessVolume", family: "eve/child" })
 @meta.blue.inherit(IInitialize)
+@meta.blue.interface(EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize)
 export class EveChildPostProcessVolume extends EveChildTransform
 {
 
@@ -343,4 +344,3 @@ export class EveChildPostProcessVolume extends EveChildTransform
 }
 
 // EveChildPostProcessVolume_Blue.cpp: native exposure; unported contracts: ITr2PostProcessOwner.
-meta.blue.interfaceTable({ interfaces: [EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize], chainTo: null })(EveChildPostProcessVolume, { kind: "class" });

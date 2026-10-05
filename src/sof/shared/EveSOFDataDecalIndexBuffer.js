@@ -11,6 +11,7 @@ import { ICustomPersist } from "#blue";
  * Empty native constructor/destructor require no additional lifecycle.
  */
 @meta.define({ className: "EveSOFDataDecalIndexBuffer", family: "eve" })
+@meta.blue.interface(ICustomPersist)
 export class EveSOFDataDecalIndexBuffer extends ICustomPersist
 {
 
@@ -125,7 +126,3 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
 
 }
 
-meta.blue.interfaceTable({
-  interfaces: [ EveSOFDataDecalIndexBuffer, ICustomPersist ],
-  chainTo: null
-})(EveSOFDataDecalIndexBuffer);

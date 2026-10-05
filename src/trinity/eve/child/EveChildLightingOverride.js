@@ -24,6 +24,7 @@ import "../../postProcess/Tr2PostProcessAttributes.js";
 @meta.define({ className: "EveChildLightingOverride", family: "eve/child" })
 @meta.blue.inherit(IEveLightingOverride)
 @meta.blue.inherit(IInitialize)
+@meta.blue.interface(EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, IEveLightingOverride, IInitialize, ITr2DebugRenderable)
 export class EveChildLightingOverride extends EveChildTransform
 {
   _overrideIntensity = 0;
@@ -282,4 +283,3 @@ export class EveChildLightingOverride extends EveChildTransform
 }
 
 // EveChildLightingOverride_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, IEveLightingOverride, IInitialize, ITr2DebugRenderable], chainTo: null })(EveChildLightingOverride, { kind: "class" });

@@ -18,6 +18,7 @@ import { BLUELISTEVENT } from "#consts/blue";
 @meta.define({ className: "EveChildSmartLightSet", family: "eve/smartLights" })
 @meta.blue.inherit(IEveInheritPropertiesOwner)
 @meta.blue.inherit(INotify, IListNotify)
+@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2DebugRenderable, INotify, IListNotify, IEveInheritPropertiesOwner, EveEntity)
 export class EveChildSmartLightSet extends EveChildTransform
 {
 
@@ -370,4 +371,3 @@ export class EveChildSmartLightSet extends EveChildTransform
 }
 
 // EveChildSmartLightSet_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveChildSmartLightSet, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2DebugRenderable, INotify, IListNotify, IEveInheritPropertiesOwner, EveEntity], chainTo: null })(EveChildSmartLightSet, { kind: "class" });

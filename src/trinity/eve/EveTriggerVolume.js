@@ -32,7 +32,7 @@ const SPHERE_RADIUS_EPSILON = 1e-4;
 @meta.define({ className: "EveTriggerVolume", family: "eve" })
 @meta.blue.inherit(IEveSpaceObject2)
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.interface(IInitialize)
 export class EveTriggerVolume
 {
 

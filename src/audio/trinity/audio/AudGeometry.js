@@ -95,6 +95,7 @@ function MakeGeometryParams(geometryData, manager)
  * geometry lifecycle values to an optional browser backend.
  */
 @meta.define({ className: "AudGeometry", family: "audio" })
+@meta.blue.interface(ITr2AudGeometry)
 export class AudGeometry extends ITr2AudGeometry
 {
 
@@ -212,4 +213,3 @@ export class AudGeometry extends ITr2AudGeometry
 }
 
 // Exact native exposure identities; no inherited lifecycle policy.
-meta.blue.interfaceTable({ interfaces: [ ITr2AudGeometry ], chainTo: null })(AudGeometry, { kind: "class" });

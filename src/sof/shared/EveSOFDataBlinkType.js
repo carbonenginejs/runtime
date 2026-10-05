@@ -10,6 +10,7 @@ import { blue, EnumRegistrationType } from "#blue";
  * TYPE_CYCLE (four); the existing safe JavaScript Cycle=null slot is retained.
  */
 @meta.define({ className: "EveSOFDataBlinkType", family: "eve" })
+@meta.blue.interface()
 export class EveSOFDataBlinkType
 {
 
@@ -107,4 +108,3 @@ blue.enums.Create("trinity.EveSOFDataBlinkType.BlinkType", EveSOFDataBlinkType.B
   ]
 });
 
-meta.blue.interfaceTable({ interfaces: [EveSOFDataBlinkType], chainTo: null })(EveSOFDataBlinkType);

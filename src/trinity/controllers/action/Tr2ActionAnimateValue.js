@@ -20,6 +20,7 @@ import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
   family: "controllers"
 })
 @meta.blue.inherit(ITr2Updateable, INotify)
+@meta.blue.interface(ITr2ControllerAction, ITr2Updateable, INotify)
 export class Tr2ActionAnimateValue extends ITr2ControllerAction
 {
   /** Flattened adapter storage for m_destination.m_path. */
@@ -395,7 +396,3 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionAnimateValue_Blue.cpp:13-16,51).
-meta.blue.interfaceTable({
-  interfaces: [Tr2ActionAnimateValue, ITr2ControllerAction, ITr2Updateable, INotify],
-  chainTo: null
-})(Tr2ActionAnimateValue);

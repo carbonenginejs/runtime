@@ -19,6 +19,8 @@ import { ITriTargetable } from "../../core/ITriTargetable.js";
  */
 @meta.define({ className: "EveRootTransform", family: "eve/spaceObject" })
 @meta.blue.inherit(ITriTargetable)
+@meta.blue.interface(IEveSpaceObject2, ITriTargetable, IWorldPosition, ITr2BoundingBox)
+@meta.blue.chainTo(Tr2Transform)
 export class EveRootTransform extends EveTransform
 {
 
@@ -254,7 +256,3 @@ export class EveRootTransform extends EveTransform
 
 // Supported native interfaces; ITriTargetable and ITr2Pickable are not declared yet.
 // EveRootTransform_Blue.cpp:11-16,60 bypasses the EveTransform exposure table.
-meta.blue.interfaceTable({
-  interfaces: [ EveRootTransform, IEveSpaceObject2, ITriTargetable, IWorldPosition, ITr2BoundingBox ],
-  chainTo: Tr2Transform
-})(EveRootTransform, { kind: "class" });

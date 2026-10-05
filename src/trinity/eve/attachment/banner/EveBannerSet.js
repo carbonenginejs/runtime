@@ -62,6 +62,7 @@ import {
  */
 @meta.define({ className: "EveBannerSet", family: "eve/attachment/banners" })
 @meta.blue.inherit(IInitialize)
+@meta.blue.interface(IInitialize, IEveSpaceObjectAttachment, EveEntity)
 export class EveBannerSet extends IEveSpaceObjectAttachment
 {
 
@@ -1111,4 +1112,3 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
 }
 
 // EveBannerSet_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
-meta.blue.interfaceTable({ interfaces: [EveBannerSet, IInitialize, IEveSpaceObjectAttachment, EveEntity], chainTo: null })(EveBannerSet, { kind: "class" });

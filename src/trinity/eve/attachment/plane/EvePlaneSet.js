@@ -55,6 +55,7 @@ const PLANE_VERTEX_SIZE = 108;
  */
 @meta.define({ className: "EvePlaneSet", family: "eve/attachment/planes" })
 @meta.blue.inherit(IInitialize, INotify)
+@meta.blue.interface(IInitialize, INotify, IEveSpaceObjectAttachment, EveEntity)
 export class EvePlaneSet extends IEveSpaceObjectAttachment
 {
   /**
@@ -570,4 +571,3 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
 }
 
 // EvePlaneSet_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
-meta.blue.interfaceTable({ interfaces: [EvePlaneSet, IInitialize, INotify, IEveSpaceObjectAttachment, EveEntity], chainTo: null })(EvePlaneSet, { kind: "class" });

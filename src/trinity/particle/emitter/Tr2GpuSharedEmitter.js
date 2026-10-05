@@ -17,6 +17,7 @@ import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
  */
 @meta.define({ className: "Tr2GpuSharedEmitter", family: "particle" })
 @meta.blue.inherit(ITr2GenericEmitter, IInitialize, INotify)
+@meta.blue.interface(IInitialize, INotify, ITr2GenericEmitter)
 export class Tr2GpuSharedEmitter
 {
   @meta.blue.readwrite
@@ -710,4 +711,3 @@ const SPAWN_VELOCITY_END = vec3.create();
 const HASH_BYTES = new Uint8Array(132);
 const HASH_DATA = new DataView(HASH_BYTES.buffer);
 
-meta.blue.interfaceTable({ interfaces: [Tr2GpuSharedEmitter, IInitialize, INotify, ITr2GenericEmitter], chainTo: null })(Tr2GpuSharedEmitter, { kind: "class" });

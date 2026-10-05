@@ -6,6 +6,7 @@ import { vec3 } from "#math/vec3";
 
 /** Authored placeable geometry, animations, fade distances and cached bounds. */
 @meta.define({ className: "WodPlaceableRes", family: "wod" })
+@meta.blue.interface()
 export class WodPlaceableRes
 {
   /** Native visual model. */
@@ -124,4 +125,3 @@ export class WodPlaceableRes
   }
 }
 
-meta.blue.interfaceTable({ interfaces: [WodPlaceableRes], chainTo: null })(WodPlaceableRes);

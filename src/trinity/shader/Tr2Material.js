@@ -41,6 +41,7 @@ function SamplerDescriptionFromOverride(override)
 
 /** Owns a resolved shader's per-technique pass and library bindings, resource invalidation, texture LOD forwarding, and draw-sort state. */
 @meta.define({ className: "Tr2Material", family: "shader" })
+@meta.blue.interface()
 export class Tr2Material
 {
 
@@ -584,4 +585,3 @@ export class Tr2Material
 
 }
 
-meta.blue.interfaceTable({ interfaces: [Tr2Material], chainTo: null })(Tr2Material, { kind: "class" });

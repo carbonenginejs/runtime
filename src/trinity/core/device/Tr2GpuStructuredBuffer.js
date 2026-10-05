@@ -9,7 +9,7 @@ import { ALResult, Tr2BufferDescriptionAL } from "#trinityal";
 
 /** Describes the element count, stride, and creation flags of a GPU structured buffer. */
 @meta.define({ className: "Tr2GpuStructuredBuffer", family: "trinityCore", purpose: "Describes the element count, stride, and creation flags of a GPU structured buffer." })
-@meta.blue.mapInterface(INotify, IInitialize)
+@meta.blue.interface(INotify, IInitialize)
 export class Tr2GpuStructuredBuffer
 {
 

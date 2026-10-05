@@ -34,4 +34,4 @@ export class Tr2MatrixKey
 }
 
 // Native own query table; no inherited exposure chain.
-meta.blue.interfaceTable({ interfaces: [ Tr2MatrixKey ], chainTo: null })(Tr2MatrixKey);
+meta.blue.interface()(Tr2MatrixKey);

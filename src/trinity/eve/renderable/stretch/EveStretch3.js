@@ -39,10 +39,8 @@ import { CjsStretchRuntime } from "./CjsStretchRuntime.js";
 @meta.define({ className: "EveStretch3", family: "eve/renderable/stretch" })
 @meta.blue.inherit(ITr2DynamicBindingOwner, IEveSpaceObject2, ITr2ControllerOwner,
   INotify, IListNotify, IInitialize, ITr2CurveSetOwner, ITr2SoundEmitterOwner)
-@meta.blue.mapInterface(INotify, IListNotify, IInitialize, IEveSpaceObject2,
-  IEveFiringEffectElement, ITr2ControllerOwner, ITr2CurveSetOwner,
-  ITr2DynamicBindingOwner, ITr2SoundEmitterOwner, EveEntity)
 @meta.blue.inherit(INotify, IListNotify, IInitialize)
+@meta.blue.interface(INotify, IListNotify, IInitialize, IEveSpaceObject2, IEveFiringEffectElement, ITr2ControllerOwner, ITr2CurveSetOwner, ITr2DynamicBindingOwner, ITr2SoundEmitterOwner, EveEntity)
 export class EveStretch3 extends IEveFiringEffectElement
 {
   @meta.blue.read
@@ -1167,7 +1165,5 @@ export class EveStretch3 extends IEveFiringEffectElement
 }
 
 // Native exposure includes the concrete class itself; JS has no implicit self mapping.
-meta.blue.mapInterface(EveStretch3)(EveStretch3);
 
 // EveStretch3_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveStretch3, INotify, IListNotify, IInitialize, IEveSpaceObject2, IEveFiringEffectElement, ITr2ControllerOwner, ITr2CurveSetOwner, ITr2DynamicBindingOwner, ITr2SoundEmitterOwner, EveEntity], chainTo: null })(EveStretch3, { kind: "class" });

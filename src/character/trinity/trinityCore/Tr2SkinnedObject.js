@@ -24,6 +24,7 @@ import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
   }
 })
 @meta.blue.inherit(ITr2Renderable, IWorldPosition, IListNotify, INotify)
+@meta.blue.interface(ITr2Renderable, IWorldPosition, IListNotify)
 export class Tr2SkinnedObject
 {
 
@@ -604,4 +605,3 @@ function NamesEqual(left, right)
   return left.length === right.length && left.every((value, index) => value === right[index]);
 }
 
-meta.blue.interfaceTable({ interfaces: [Tr2SkinnedObject, ITr2Renderable, IWorldPosition, IListNotify], chainTo: null })(Tr2SkinnedObject, { kind: "class" });

@@ -4,6 +4,7 @@ import { meta } from "#schema";
 
 /** Persistent-only native morph target name and weight record owned by a mesh. */
 @meta.define({ className: "Tr2SerializedMorphAnimation", family: "trinityCore" })
+@meta.blue.interface()
 export class Tr2SerializedMorphAnimation
 {
 
@@ -27,4 +28,3 @@ export class Tr2SerializedMorphAnimation
 
 }
 
-meta.blue.interfaceTable({ interfaces: [Tr2SerializedMorphAnimation], chainTo: null })(Tr2SerializedMorphAnimation);

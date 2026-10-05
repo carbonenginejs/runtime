@@ -21,6 +21,8 @@ const FLT_MAX = 3.4028234663852886e38;
  */
 @meta.define({ className: "Tr2SkinnedModel", family: "trinityCore" })
 @meta.blue.inherit(IInitialize, INotify)
+@meta.blue.interface(IInitialize, INotify)
+@meta.blue.chainTo(Tr2Model)
 export class Tr2SkinnedModel extends Tr2Model
 {
 
@@ -284,4 +286,3 @@ export class Tr2SkinnedModel extends Tr2Model
 
 }
 
-meta.blue.interfaceTable({ interfaces: [Tr2SkinnedModel, IInitialize, INotify], chainTo: Tr2Model })(Tr2SkinnedModel, { kind: "class" });

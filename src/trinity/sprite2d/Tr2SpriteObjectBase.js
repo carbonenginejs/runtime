@@ -17,6 +17,7 @@ import { blue, INotify } from "#blue";
  */
 @meta.define({ className: "Tr2SpriteObjectBase", family: "sprite2d", abstract: true })
 @meta.blue.inherit(INotify)
+@meta.blue.interface(ITr2SpriteObject, INotify)
 export class Tr2SpriteObjectBase extends ITr2SpriteObject
 {
 
@@ -329,4 +330,3 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
 
 
 // Native exposure maps both contracts, without concrete self or parent chaining.
-meta.blue.interfaceTable({ interfaces: [ITr2SpriteObject, INotify], chainTo: null })(Tr2SpriteObjectBase);

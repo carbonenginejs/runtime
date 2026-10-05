@@ -18,6 +18,7 @@ import { EveChildTransform } from "./EveChildTransform.js";
  */
 @meta.define({ className: "EveChildAudio", family: "eve/child" })
 @meta.blue.inherit(IInitialize, INotify)
+@meta.blue.interface(IEveSpaceObjectChild, EveSpaceObjectChild, IInitialize, INotify)
 export class EveChildAudio extends EveChildTransform
 {
   @meta.blue.notify
@@ -179,4 +180,3 @@ export class EveChildAudio extends EveChildTransform
 }
 
 // EveChildAudio_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveChildAudio, IEveSpaceObjectChild, EveSpaceObjectChild, IInitialize, INotify], chainTo: null })(EveChildAudio, { kind: "class" });

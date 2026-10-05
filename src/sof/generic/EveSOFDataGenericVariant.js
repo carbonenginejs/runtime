@@ -9,6 +9,7 @@ import { meta } from "#schema";
  * The hull area is an authored object reference, not a held resource.
  */
 @meta.define({ className: "EveSOFDataGenericVariant", family: "eve" })
+@meta.blue.interface()
 export class EveSOFDataGenericVariant
 {
 
@@ -32,7 +33,3 @@ export class EveSOFDataGenericVariant
 
 }
 
-meta.blue.interfaceTable({
-  interfaces: [ EveSOFDataGenericVariant ],
-  chainTo: null
-})(EveSOFDataGenericVariant);

@@ -18,6 +18,7 @@ import { Tr2PointLight } from "./Tr2PointLight.js";
  * resource to the point-light attribute set and updating dynamically.
  */
 @meta.define({ className: "Tr2TexturedPointLight", family: "eve/lights" })
+@meta.blue.interface(Tr2Light, IInitialize, INotify)
 export class Tr2TexturedPointLight extends Tr2PointLight
 {
   static LightDataFields = [
@@ -113,4 +114,3 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   }
 }
 
-meta.blue.interfaceTable({ interfaces: [Tr2TexturedPointLight, Tr2Light, IInitialize, INotify], chainTo: null })(Tr2TexturedPointLight, { kind: "class" });

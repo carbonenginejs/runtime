@@ -17,7 +17,7 @@ import { BLUELISTEVENT } from "#consts/blue";
 @meta.define({ className: "EveMultiEffect", family: "eve/effect" })
 @meta.blue.inherit(IEveSpaceObject2)
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.interface(IInitialize)
 export class EveMultiEffect
 {
 

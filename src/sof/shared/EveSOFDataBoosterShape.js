@@ -5,6 +5,7 @@ import { vec4 } from "#math/vec4";
 
 /** Combines the noise, frequency, speed, and color parameters that define a booster shape. */
 @meta.define({ className: "EveSOFDataBoosterShape", family: "eve" })
+@meta.blue.interface()
 export class EveSOFDataBoosterShape
 {
 
@@ -145,4 +146,3 @@ function selectValue(base, overrides, name)
 }
 
 // Native IRoot-only data: self query, no initialization or update contract.
-meta.blue.interfaceTable({ interfaces: [EveSOFDataBoosterShape], chainTo: null })(EveSOFDataBoosterShape);

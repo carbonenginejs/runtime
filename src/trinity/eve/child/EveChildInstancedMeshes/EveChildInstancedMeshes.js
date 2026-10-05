@@ -63,6 +63,7 @@ function FindDamageLocators(sets)
  */
 @meta.define({ className: "EveChildInstancedMeshes", family: "eve/child" })
 @meta.blue.inherit(ITr2Renderable, IEveShadowCaster)
+@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, EveEntity, ITr2Renderable, IEveShadowCaster)
 export class EveChildInstancedMeshes extends EveSpaceObjectChild
 {
   @meta.blue.readwrite
@@ -1667,4 +1668,3 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
 }
 
 // EveChildInstancedMeshes_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveChildInstancedMeshes, EveSpaceObjectChild, IEveSpaceObjectChild, EveEntity, ITr2Renderable, IEveShadowCaster], chainTo: null })(EveChildInstancedMeshes, { kind: "class" });

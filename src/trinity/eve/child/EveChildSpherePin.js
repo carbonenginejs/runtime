@@ -11,6 +11,7 @@ import { vec4 } from "#math/vec4";
  * per-object shader data.
  */
 @meta.define({ className: "EveChildSpherePin", family: "eve/child" })
+@meta.blue.chainTo(EveChildMesh)
 export class EveChildSpherePin extends EveChildMesh
 {
 
@@ -144,4 +145,3 @@ export class EveChildSpherePin extends EveChildMesh
 
 
 // EveChildSpherePin_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveChildSpherePin], chainTo: EveChildMesh })(EveChildSpherePin, { kind: "class" });

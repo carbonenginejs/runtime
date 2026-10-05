@@ -9,6 +9,7 @@ import * as CcpLog from "../../global/logging/ccpLog.js";
 /** Local shader parameter overrides with an optional resource-loaded parent store. */
 @meta.define({ className: "Tr2MaterialParameterStore", family: "trinityCore" })
 @meta.blue.inherit(INotify)
+@meta.blue.interface(INotify, IInitialize)
 export class Tr2MaterialParameterStore extends IInitialize
 {
   /**
@@ -143,4 +144,3 @@ export class Tr2MaterialParameterStore extends IInitialize
   }
 }
 
-meta.blue.interfaceTable({ interfaces: [INotify, IInitialize, Tr2MaterialParameterStore], chainTo: null })(Tr2MaterialParameterStore);

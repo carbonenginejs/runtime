@@ -481,4 +481,4 @@ export class TriVariable extends ITr2EffectValue
 }
 
 // Native nonexposed table has only concrete/IRoot identity; ITr2EffectValue is nominal only.
-meta.blue.interfaceTable({ interfaces: [TriVariable], chainTo: null })(TriVariable, { kind: "class" });
+meta.blue.interface()(TriVariable);

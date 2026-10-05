@@ -38,6 +38,7 @@ const INVERSE_WORLD_SCRATCH = mat4.create();
  */
 @meta.define({ className: "EveChildTurret", family: "eve/child" })
 @meta.blue.inherit(IInitialize, INotify)
+@meta.blue.chainTo(EveChildMesh)
 export class EveChildTurret extends EveChildMesh
 {
 
@@ -1251,4 +1252,3 @@ export class EveChildTurret extends EveChildMesh
 }
 
 // EveChildTurret_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveChildTurret], chainTo: EveChildMesh })(EveChildTurret, { kind: "class" });

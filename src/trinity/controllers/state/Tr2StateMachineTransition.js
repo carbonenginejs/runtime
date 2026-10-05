@@ -16,6 +16,7 @@ import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpre
   family: "controllers"
 })
 @meta.blue.inherit(INotify)
+@meta.blue.interface(INotify)
 export class Tr2StateMachineTransition
 {
   /**
@@ -414,7 +415,3 @@ export class Tr2StateMachineTransition
 }
 
 // Native exposure ends at this concrete table (Tr2StateMachineTransition_Blue.cpp).
-meta.blue.interfaceTable({
-  interfaces: [Tr2StateMachineTransition, INotify],
-  chainTo: null
-})(Tr2StateMachineTransition);

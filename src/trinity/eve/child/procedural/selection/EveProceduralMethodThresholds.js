@@ -13,7 +13,8 @@ const BELIST_LOADING = 0x10;
 /** EveProceduralMethodThresholds (eve/child/procedural/selection) - generated from schema shapeHash 794abb42.... */
 @meta.define({ className: "EveProceduralMethodThresholds", family: "eve/child/procedural/selection" })
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.interface(IInitialize)
+@meta.blue.chainTo(IEveProceduralSelectionMethod)
 export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
 {
 

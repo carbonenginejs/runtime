@@ -10,6 +10,7 @@ import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.j
 /** Builds distribution placements from a named locator set resolved on the parent space object. */
 @meta.define({ className: "EveDistributionPlacementGeneratorParentLocators", family: "eve/distribution/placement" })
 @meta.blue.inherit(INotify)
+@meta.blue.interface(IEveDistributionPlacementGenerators, INotify)
 export class EveDistributionPlacementGeneratorParentLocators extends IEveDistributionPlacementGenerators
 {
 
@@ -137,4 +138,3 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
 }
 
 // Exact native Blue exposure: only these identities participate in loading.
-meta.blue.interfaceTable({ interfaces: [EveDistributionPlacementGeneratorParentLocators, IEveDistributionPlacementGenerators, INotify], chainTo: null })(EveDistributionPlacementGeneratorParentLocators, { kind: "class" });

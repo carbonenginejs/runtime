@@ -45,6 +45,7 @@ function ClampLength(value, maxLength)
 /** Owns a group of drone agents, running its priority-ordered behaviours each frame to integrate their acceleration, velocity, orientation and position, and managing their count, visibility, lighting and rendering. */
 @meta.define({ className: "BehaviorGroup", family: "eve/child/behaviors" })
 @meta.blue.inherit(IInitialize, INotify, IListNotify)
+@meta.blue.interface(IInitialize, INotify, IListNotify, EveEntity)
 export class BehaviorGroup extends EveEntity
 {
 
@@ -1211,4 +1212,3 @@ export class BehaviorGroup extends EveEntity
 }
 
 // BehaviorGroup_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
-meta.blue.interfaceTable({ interfaces: [BehaviorGroup, IInitialize, INotify, IListNotify, EveEntity], chainTo: null })(BehaviorGroup, { kind: "class" });

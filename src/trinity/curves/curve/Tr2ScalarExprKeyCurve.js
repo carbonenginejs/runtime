@@ -18,6 +18,7 @@ import { Tr2ScalarExprKey } from "../key/Tr2ScalarExprKey.js";
   family: "curves"
 })
 @meta.blue.inherit(IInitialize, ITriCurveLength)
+@meta.blue.interface(ITriFunction, IInitialize, ITriCurveLength)
 export class Tr2ScalarExprKeyCurve extends ITriFunction
 {
   /**
@@ -544,7 +545,3 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
 }
 
 // Native exposure maps the three contracts without the concrete class.
-meta.blue.interfaceTable({
-  interfaces: [ITriFunction, IInitialize, ITriCurveLength],
-  chainTo: null
-})(Tr2ScalarExprKeyCurve);

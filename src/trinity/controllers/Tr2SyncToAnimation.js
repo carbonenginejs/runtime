@@ -15,6 +15,7 @@ import { ITr2StateMachineStateFinalizer } from "./state/ITr2StateMachineStateFin
   family: "controllers"
 })
 @meta.blue.inherit(ITr2StateMachineStateFinalizer)
+@meta.blue.interface(ITr2StateMachineStateFinalizer)
 export class Tr2SyncToAnimation
 {
   /**
@@ -58,7 +59,3 @@ export class Tr2SyncToAnimation
 }
 
 // Native exposure ends at this concrete table (Tr2SyncToAnimation_Blue.cpp).
-meta.blue.interfaceTable({
-  interfaces: [Tr2SyncToAnimation, ITr2StateMachineStateFinalizer],
-  chainTo: null
-})(Tr2SyncToAnimation);

@@ -18,6 +18,7 @@ import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
   family: "eve/virtualCamera/behaviour"
 })
 @meta.blue.inherit(INotify)
+@meta.blue.interface(INotify)
 export class EveVirtualCameraBehaviourVector3Base
 {
   @meta.blue.readwrite
@@ -122,4 +123,3 @@ export class EveVirtualCameraBehaviourVector3Base
 }
 
 // Exact native Blue exposure: only these identities participate in loading.
-meta.blue.interfaceTable({ interfaces: [INotify], chainTo: null })(EveVirtualCameraBehaviourVector3Base, { kind: "class" });

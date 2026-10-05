@@ -24,6 +24,7 @@ import { blue } from "#blue";
  * volumes are blended together.
  */
 @meta.define({ className: "Tr2PostProcessAttributes", family: "postProcess" })
+@meta.blue.interface()
 export class Tr2PostProcessAttributes
 {
 
@@ -1759,4 +1760,3 @@ export class Tr2PostProcessAttributes
 // Carbon's chooser lists the priorities highest first and omits PRIORITY_COUNT.
 
 
-meta.blue.interfaceTable({ interfaces: [ Tr2PostProcessAttributes ], chainTo: null })(Tr2PostProcessAttributes);

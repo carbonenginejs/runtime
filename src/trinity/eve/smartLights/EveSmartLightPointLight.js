@@ -26,6 +26,8 @@ import { BLUELISTEVENT } from "#consts/blue";
 /** A smart-light group member that places faction-colour-aware point or spot lights at each distribution placement and submits them to the light manager. */
 @meta.define({ className: "EveSmartLightPointLight", family: "eve/smartLights" })
 @meta.blue.inherit(IInitialize, INotify, IListNotify)
+@meta.blue.interface(EveSmartLightBaseGroup, IInitialize, INotify, IListNotify, EveEntity)
+@meta.blue.chainTo(EveSmartLightBaseGroup)
 export class EveSmartLightPointLight extends EveEntity
 {
   /** m_lightGroupData.flags (uint16_t) [READWRITE, PERSIST] */
@@ -525,4 +527,3 @@ export class EveSmartLightPointLight extends EveEntity
 }
 
 // EveSmartLightPointLight_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveSmartLightPointLight, EveSmartLightBaseGroup, IInitialize, INotify, IListNotify, EveEntity], chainTo: EveSmartLightBaseGroup })(EveSmartLightPointLight, { kind: "class" });

@@ -69,7 +69,4 @@ export class Tr2ActionSetAudioSwitch extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionSetAudioSwitch_Blue.cpp:14-15,25).
-meta.blue.interfaceTable({
-  interfaces: [Tr2ActionSetAudioSwitch, ITr2ControllerAction],
-  chainTo: null
-})(Tr2ActionSetAudioSwitch);
+meta.blue.interface(ITr2ControllerAction)(Tr2ActionSetAudioSwitch);

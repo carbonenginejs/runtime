@@ -8,6 +8,7 @@ import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.
  * construction; the empty destructor needs no resource or update lifecycle.
  */
 @meta.define({ className: "EveSOFDataAreaMaterial", family: "eve" })
+@meta.blue.interface()
 export class EveSOFDataAreaMaterial
 {
   /**
@@ -130,7 +131,3 @@ function selectValue(base, overrides, name)
     return value !== null && value !== undefined && value !== "" ? value : base[name];
 }
 
-meta.blue.interfaceTable({
-  interfaces: [ EveSOFDataAreaMaterial ],
-  chainTo: null
-})(EveSOFDataAreaMaterial);

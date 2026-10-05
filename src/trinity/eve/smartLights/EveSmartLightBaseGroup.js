@@ -29,6 +29,7 @@ export function resolveGroupColor(customColor, useFactionColor, factionColor, pa
 /** The shared faction-colour resolution and attribute-modifier surface flattened into every smart-light group implementation. */
 @meta.define({ className: "EveSmartLightBaseGroup", family: "eve/smartLights" })
 @meta.blue.inherit(IListNotify)
+@meta.blue.interface(IListNotify)
 export class EveSmartLightBaseGroup
 {
 
@@ -180,4 +181,3 @@ export class EveSmartLightBaseGroup
 }
 
 // EveSmartLightBaseGroup_Blue.cpp: native exposure; unported contracts: IEveSmartLightGroup.
-meta.blue.interfaceTable({ interfaces: [EveSmartLightBaseGroup, IListNotify], chainTo: null })(EveSmartLightBaseGroup, { kind: "class" });

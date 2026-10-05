@@ -9,6 +9,7 @@ import { CreateLodAllocations } from "../../../trinity/core/mesh/TriGeometryResA
 
 /** Named character model record grouping its Trinity mesh objects. */
 @meta.define({ className: "Tr2Model", family: "trinityCore" })
+@meta.blue.interface()
 export class Tr2Model
 {
 
@@ -188,4 +189,3 @@ export class Tr2Model
 
 }
 
-meta.blue.interfaceTable({ interfaces: [Tr2Model], chainTo: null })(Tr2Model, { kind: "class" });

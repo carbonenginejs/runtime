@@ -5,6 +5,7 @@ import { vec3 } from "#math/vec3";
 
 /** A shared vector value used by bindings, including space-object position deltas. */
 @meta.define({ className: "Tr2BindingVector3", family: "trinityCore" })
+@meta.blue.interface()
 export class Tr2BindingVector3
 {
 
@@ -17,4 +18,3 @@ export class Tr2BindingVector3
 }
 
 // Carbon's own query table has no exposure chain.
-meta.blue.interfaceTable({ interfaces: [Tr2BindingVector3], chainTo: null })(Tr2BindingVector3, { kind: "class" });

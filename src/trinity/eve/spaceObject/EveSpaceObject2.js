@@ -75,6 +75,7 @@ const TRANSPARENT_CENTER = vec3.create();
 @meta.define({ className: "EveSpaceObject2", family: "eve/spaceObject" })
 @meta.blue.inherit(IWorldPosition, ITr2BoundingBox, ITr2Renderable, IEveSpaceObject2, ITr2ShLightingReceiver, ITr2SecondaryLightSource, IEveInheritPropertiesOwner, ITriTargetable, ITr2CurveSetOwner, IEveShadowCaster)
 @meta.blue.inherit(IInitialize, INotify, IListNotify, ITr2Pickable)
+@meta.blue.interface(EveEntity, IEveShadowCaster, IInitialize, ITr2Pickable, ITr2BoundingBox, ITriTargetable, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource, ITr2ImpostorSource, ITr2CurveSetOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner)
 export class EveSpaceObject2 extends EveEntity
 {
 
@@ -5032,7 +5033,5 @@ blue.enums.Create("trinity.EveSpaceObject2.LocatorType", EveSpaceObject2.Locator
 
 
 // Supported native mappings; the concrete self slot enables locator queries.
-meta.blue.mapInterface(EveSpaceObject2, IInitialize, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource)(EveSpaceObject2);
 
 // EveSpaceObject2_Blue.cpp: native exposure; unported contracts: ITr2Pickable, ITriTargetable, IEveEffectChildrenOwner, IShaderConfigurer, ITr2GrannyAnimationOwner, IEveSpaceObjectDecalOwner, ITr2LightOwner, IEveSpaceObjectAttachmentOwner.
-meta.blue.interfaceTable({ interfaces: [EveSpaceObject2, EveEntity, IEveShadowCaster, IInitialize, ITr2Pickable, ITr2BoundingBox, ITriTargetable, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource, ITr2ImpostorSource, ITr2CurveSetOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner], chainTo: null })(EveSpaceObject2, { kind: "class" });

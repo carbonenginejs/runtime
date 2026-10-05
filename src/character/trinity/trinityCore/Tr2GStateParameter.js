@@ -4,6 +4,7 @@ import { IInitialize } from "#blue/IInitialize";
 
 /** Named, node-scoped scalar value for a character GState animation. */
 @meta.define({ className: "Tr2GStateParameter", family: "trinityCore" })
+@meta.blue.interface(IInitialize)
 export class Tr2GStateParameter extends IInitialize
 {
 
@@ -86,4 +87,3 @@ export class Tr2GStateParameter extends IInitialize
 
 }
 
-meta.blue.interfaceTable({ interfaces: [ Tr2GStateParameter, IInitialize ], chainTo: null })(Tr2GStateParameter, { kind: "class" });

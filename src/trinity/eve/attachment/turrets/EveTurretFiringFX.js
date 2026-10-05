@@ -21,8 +21,8 @@ import { EveUpdateContext } from "../../EveUpdateContext.js";
 /** Coordinates a turret set's multi-muzzle firing effects, delays, stretch endpoints, observers, and impact timing. */
 @meta.define({ className: "EveTurretFiringFX", family: "eve/attachment/turrets" })
 @meta.blue.inherit(IInitialize, INotify, IListNotify, ITr2ControllerOwner)
-@meta.blue.mapInterface(IInitialize, INotify, IListNotify, ITr2ControllerOwner, EveEntity)
 @meta.blue.inherit(IInitialize, INotify, IListNotify)
+@meta.blue.interface(IInitialize, INotify, IListNotify, ITr2ControllerOwner, EveEntity)
 export class EveTurretFiringFX extends EveEntity
 {
 
@@ -1077,7 +1077,5 @@ export class EveTurretFiringFX extends EveEntity
 }
 
 // Native exposure includes the concrete class itself; JS has no implicit self mapping.
-meta.blue.mapInterface(EveTurretFiringFX)(EveTurretFiringFX);
 
 // EveTurretFiringFX_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveTurretFiringFX, IInitialize, INotify, IListNotify, ITr2ControllerOwner, EveEntity], chainTo: null })(EveTurretFiringFX, { kind: "class" });

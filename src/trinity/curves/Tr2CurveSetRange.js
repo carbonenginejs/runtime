@@ -40,4 +40,4 @@ export class Tr2CurveSetRange
 }
 
 // EXPOSURE_END: this plain IRoot record exposes only its concrete identity.
-meta.blue.interfaceTable({ interfaces: [Tr2CurveSetRange], chainTo: null })(Tr2CurveSetRange, { kind: "class" });
+meta.blue.interface()(Tr2CurveSetRange);

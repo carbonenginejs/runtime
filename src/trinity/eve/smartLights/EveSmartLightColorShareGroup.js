@@ -16,6 +16,8 @@ import { BLUELISTEVENT } from "#consts/blue";
 /** A smart-light group that computes one shared faction-aware colour, applies it to its child light groups, and fans out their per-frame updates. */
 @meta.define({ className: "EveSmartLightColorShareGroup", family: "eve/smartLights" })
 @meta.blue.inherit(INotify, IListNotify)
+@meta.blue.interface(EveSmartLightBaseGroup, INotify, IListNotify, EveEntity)
+@meta.blue.chainTo(EveSmartLightBaseGroup)
 export class EveSmartLightColorShareGroup extends EveEntity
 {
 
@@ -380,4 +382,3 @@ export class EveSmartLightColorShareGroup extends EveEntity
 }
 
 // EveSmartLightColorShareGroup_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveSmartLightColorShareGroup, EveSmartLightBaseGroup, INotify, IListNotify, EveEntity], chainTo: EveSmartLightBaseGroup })(EveSmartLightColorShareGroup, { kind: "class" });

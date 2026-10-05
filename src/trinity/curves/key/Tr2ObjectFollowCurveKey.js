@@ -25,6 +25,7 @@ import { Tr2FollowCurveKeyInterpolation, RotationSetting } from "../enums.js";
   family: "curves"
 })
 @meta.blue.inherit(INotify, IInitialize)
+@meta.blue.interface(ITr2FollowCurveKey, INotify, IInitialize)
 export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
 {
   /** Authored key name. */
@@ -291,7 +292,3 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
 
 }
 
-meta.blue.interfaceTable({
-  interfaces: [ ITr2FollowCurveKey, INotify, IInitialize ],
-  chainTo: null
-})(Tr2ObjectFollowCurveKey);

@@ -68,6 +68,7 @@ function effectAt(path)
 /** Carries depth, normal, and plane weights together with radius, step size, and bypass state for spatial denoising. */
 @meta.define({ className: "Tr2Denoiser", family: "trinityCore", purpose: "Carries depth, normal, and plane weights together with radius, step size, and bypass state for spatial denoising." })
 @meta.blue.inherit(INotify)
+@meta.blue.interface(INotify)
 export class Tr2Denoiser
 {
 
@@ -368,4 +369,3 @@ export class Tr2Denoiser
 }
 
 // Exact native Blue exposure: only these identities participate in loading.
-meta.blue.interfaceTable({ interfaces: [Tr2Denoiser, INotify], chainTo: null })(Tr2Denoiser, { kind: "class" });

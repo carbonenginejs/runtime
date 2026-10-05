@@ -208,7 +208,4 @@ export class TriPerlinCurve extends ITriScalarFunction
 }
 
 // Source: TriSequencer_Blue.cpp:110-112,178. No ancestor exposure chain.
-meta.blue.interfaceTable({
-  interfaces: [TriPerlinCurve, ITriFunction, ITriScalarFunction],
-  chainTo: null
-})(TriPerlinCurve);
+meta.blue.interface(ITriFunction, ITriScalarFunction)(TriPerlinCurve);

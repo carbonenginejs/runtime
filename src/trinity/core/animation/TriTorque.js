@@ -6,6 +6,7 @@ import { vec3 } from "#math/vec3";
 
 /** Native IRoot torque key; TriRigidOrientation_Blue.cpp maps no query interfaces. */
 @meta.define({ className: "TriTorque", family: "trinityCore" })
+@meta.blue.interface()
 export class TriTorque
 {
 
@@ -51,4 +52,3 @@ export class TriTorque
 
 }
 
-meta.blue.interfaceTable({ interfaces: [], chainTo: null })(TriTorque);

@@ -10,6 +10,7 @@ import { vec4 } from "#math/vec4";
  * is required, and the native destructor is empty.
  */
 @meta.define({ className: "EveSOFDataGenericHullDamage", family: "eve" })
+@meta.blue.interface()
 export class EveSOFDataGenericHullDamage
 {
 
@@ -111,7 +112,3 @@ export class EveSOFDataGenericHullDamage
 
 }
 
-meta.blue.interfaceTable({
-  interfaces: [ EveSOFDataGenericHullDamage ],
-  chainTo: null
-})(EveSOFDataGenericHullDamage);

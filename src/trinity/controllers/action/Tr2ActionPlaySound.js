@@ -108,7 +108,4 @@ export class Tr2ActionPlaySound extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionPlaySound_Blue.cpp:13-14,25).
-meta.blue.interfaceTable({
-  interfaces: [Tr2ActionPlaySound, ITr2ControllerAction],
-  chainTo: null
-})(Tr2ActionPlaySound);
+meta.blue.interface(ITr2ControllerAction)(Tr2ActionPlaySound);

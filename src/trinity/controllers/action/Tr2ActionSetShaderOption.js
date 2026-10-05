@@ -52,7 +52,4 @@ export class Tr2ActionSetShaderOption extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionSetShaderOption_Blue.cpp:14-15,18).
-meta.blue.interfaceTable({
-  interfaces: [Tr2ActionSetShaderOption, ITr2ControllerAction],
-  chainTo: null
-})(Tr2ActionSetShaderOption);
+meta.blue.interface(ITr2ControllerAction)(Tr2ActionSetShaderOption);

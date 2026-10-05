@@ -7,6 +7,7 @@ import { Tr2AudioStretchBase } from "./Tr2AudioStretchBase.js";
 
 /** Adds authored impact, outburst, and stretch event triggers to a three-emitter audio stretch. */
 @meta.define({ className: "Tr2AudioStretchAuto", family: "trinityAudio" })
+@meta.blue.interface(Tr2AudioStretchBase, ITr2Audio)
 export class Tr2AudioStretchAuto extends Tr2AudioStretchBase
 {
 
@@ -54,4 +55,3 @@ export class Tr2AudioStretchAuto extends Tr2AudioStretchBase
 
 }
 
-meta.blue.interfaceTable({ interfaces: [Tr2AudioStretchBase, ITr2Audio], chainTo: null })(Tr2AudioStretchAuto, { kind: "class" });

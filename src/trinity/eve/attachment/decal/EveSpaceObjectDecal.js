@@ -31,7 +31,7 @@ import "#consts/graphics/trinityEnums";
 @meta.define({ className: "EveSpaceObjectDecal", family: "eve/attachment/decal" })
 @meta.blue.inherit(ITr2Renderable)
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.interface(IInitialize)
 export class EveSpaceObjectDecal
 {
   /**

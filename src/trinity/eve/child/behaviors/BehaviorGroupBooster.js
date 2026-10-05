@@ -32,7 +32,7 @@ const HALO_ROTATION = quat.fromValues(0, 1, 0, 0);
 /** A drone-group component that builds and drives the group's shared booster and ambient or halo flare effects and contributes their point light to the scene. */
 @meta.define({ className: "BehaviorGroupBooster", family: "eve/child/behaviors" })
 @meta.blue.inherit(IInitialize, INotify)
-@meta.blue.mapInterface(IInitialize, INotify)
+@meta.blue.interface(IInitialize, INotify)
 export class BehaviorGroupBooster
 {
 

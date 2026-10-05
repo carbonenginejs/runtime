@@ -105,6 +105,7 @@ function sphericalToCartesian(value, center)
 /** A line set that draws curved and sphere-projected lines by tessellating them into straight segments. */
 @meta.define({ className: "Tr2CurveLineSet", family: "trinityCore" })
 @meta.blue.inherit(ITr2Renderable, INotify)
+@meta.blue.interface(ITr2Renderable, INotify)
 export class Tr2CurveLineSet
 {
 
@@ -918,4 +919,3 @@ export class Tr2CurveLineSet
 }
 
 // ITr2Pickable is not yet a registered JS contract; keep its existing methods.
-meta.blue.interfaceTable({ interfaces: [ITr2Renderable, INotify], chainTo: null })(Tr2CurveLineSet, { kind: "class" });

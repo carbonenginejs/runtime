@@ -10,6 +10,7 @@ import { TRITRANSFORMBASE } from "#consts/graphics";
 
 /** Composes authored translation, rotation, scale, and transform-base state into the matrix uploaded to a shader constant. */
 @meta.define({ className: "TriTransformParameter", family: "shader" })
+@meta.blue.interface(ITriEffectParameter)
 export class TriTransformParameter extends CjsParameter
 {
 
@@ -137,4 +138,3 @@ export class TriTransformParameter extends CjsParameter
 }
 
 // Exact identities from TriTransformParameter_Blue.cpp; no exposure chain.
-meta.blue.interfaceTable({ interfaces: [ITriEffectParameter], chainTo: null })(TriTransformParameter, { kind: "class" });

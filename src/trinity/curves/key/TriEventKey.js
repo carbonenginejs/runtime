@@ -38,4 +38,4 @@ export class TriEventKey
 }
 
 // Native own query table; no inherited exposure chain.
-meta.blue.interfaceTable({ interfaces: [ TriEventKey ], chainTo: null })(TriEventKey);
+meta.blue.interface()(TriEventKey);

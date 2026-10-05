@@ -14,6 +14,8 @@ import { Tr2SerializedMorphAnimation } from "./Tr2SerializedMorphAnimation.js";
  */
 @meta.define({ className: "Tr2Mesh", family: "trinityCore" })
 @meta.blue.inherit(IInitialize, INotify)
+@meta.blue.interface(IInitialize, INotify)
+@meta.blue.chainTo(Tr2MeshBase)
 export class Tr2Mesh extends Tr2MeshBase
 {
   _morphAnimations = new Map();
@@ -501,4 +503,3 @@ export class Tr2Mesh extends Tr2MeshBase
   }
 }
 
-meta.blue.interfaceTable({ interfaces: [Tr2Mesh, IInitialize, INotify], chainTo: Tr2MeshBase })(Tr2Mesh, { kind: "class" });

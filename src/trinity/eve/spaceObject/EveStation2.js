@@ -12,10 +12,11 @@ import { EveSpaceObject2 } from "./EveSpaceObject2.js";
  * activationStrength. Both stay with the per-object-data/render adapters.
  */
 @meta.define({ className: "EveStation2", family: "eve/spaceObject" })
+@meta.blue.interface(IEveSpaceObject2, ITr2Renderable)
+@meta.blue.chainTo(EveSpaceObject2)
 export class EveStation2 extends EveSpaceObject2
 {
 
 }
 
 // EveStation2_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveStation2, IEveSpaceObject2, ITr2Renderable], chainTo: EveSpaceObject2 })(EveStation2, { kind: "class" });

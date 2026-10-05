@@ -15,6 +15,7 @@ import { hasFactionColor, resolveFactionColor } from "../resolveFactionColor.js"
 /** A light whose colour is derived from a faction palette entry blended by a saturation factor, in addition to its own authored light attributes. */
 @meta.define({ className: "Tr2FactionLight", family: "eve/lights" })
 @meta.blue.inherit(IEveInheritPropertiesOwner)
+@meta.blue.interface(IEveInheritPropertiesOwner, Tr2Light, IInitialize, INotify)
 export class Tr2FactionLight extends Tr2Light
 {
 
@@ -234,4 +235,3 @@ export class Tr2FactionLight extends Tr2Light
 
 }
 
-meta.blue.interfaceTable({ interfaces: [Tr2FactionLight, IEveInheritPropertiesOwner, Tr2Light, IInitialize, INotify], chainTo: null })(Tr2FactionLight, { kind: "class" });

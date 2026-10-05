@@ -10,6 +10,7 @@ import { ReflectionMode } from "#consts/graphics";
  * is required, and the native destructor is empty.
  */
 @meta.define({ className: "EveSOFDataGenericHullCategory", family: "eve" })
+@meta.blue.interface()
 export class EveSOFDataGenericHullCategory
 {
   /** Existing JavaScript alias for the native reflection-mode chooser. */
@@ -31,7 +32,3 @@ export class EveSOFDataGenericHullCategory
 
 }
 
-meta.blue.interfaceTable({
-  interfaces: [ EveSOFDataGenericHullCategory ],
-  chainTo: null
-})(EveSOFDataGenericHullCategory);

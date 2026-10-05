@@ -27,6 +27,7 @@ const NO_FORCES = [];
 @meta.define({ className: "FollowASpline", family: "eve/child/behaviors" })
 @meta.blue.inherit(INotify)
 @meta.blue.inherit(IBehavior)
+@meta.blue.interface(INotify)
 export class FollowASpline
 {
 
@@ -572,4 +573,3 @@ export class FollowASpline
 }
 
 // Exact native Blue exposure: only these identities participate in loading.
-meta.blue.interfaceTable({ interfaces: [FollowASpline, INotify], chainTo: null })(FollowASpline, { kind: "class" });

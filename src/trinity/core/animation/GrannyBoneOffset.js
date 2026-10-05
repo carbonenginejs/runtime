@@ -13,6 +13,7 @@ import { meta } from "#schema";
  * keyed by bone name until bound into the rig's joint order.
  */
 @meta.define({ className: "GrannyBoneOffset", family: "trinityCore" })
+@meta.blue.interface(IInitialize)
 export class GrannyBoneOffset extends IInitialize
 {
   /** Runtime name-to-offset storage; not exposed or persisted. */
@@ -162,4 +163,3 @@ export class GrannyBoneOffset extends IInitialize
   }
 }
 
-meta.blue.interfaceTable({ interfaces: [ GrannyBoneOffset, IInitialize ], chainTo: null })(GrannyBoneOffset);

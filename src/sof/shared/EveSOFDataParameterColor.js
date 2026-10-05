@@ -9,6 +9,7 @@ import { EveSOFDataParameter } from "./EveSOFDataParameter.js";
 
 /** Color shader parameter: passes the four components through unchanged. */
 @meta.define({ className: "EveSOFDataParameterColor", family: "eve" })
+@meta.blue.interface(EveSOFDataParameter)
 export class EveSOFDataParameterColor extends EveSOFDataParameter
 {
   /**
@@ -29,7 +30,3 @@ export class EveSOFDataParameterColor extends EveSOFDataParameter
   }
 }
 
-meta.blue.interfaceTable({
-  interfaces: [ EveSOFDataParameterColor, EveSOFDataParameter ],
-  chainTo: null
-})(EveSOFDataParameterColor);

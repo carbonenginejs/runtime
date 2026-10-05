@@ -17,6 +17,7 @@ import { meta } from "#schema";
   family: "curves"
 })
 @meta.blue.inherit(ITriCurveLength)
+@meta.blue.interface(ITriColorFunction, ITriFunction, ITriCurveLength)
 export class Tr2CurveColorMixer extends ITriColorFunction
 {
   /**
@@ -218,4 +219,3 @@ export class Tr2CurveColorMixer extends ITriColorFunction
 }
 
 // Exact native exposure table, with no inherited exposure chain.
-meta.blue.interfaceTable({ interfaces: [Tr2CurveColorMixer, ITriColorFunction, ITriFunction, ITriCurveLength], chainTo: null })(Tr2CurveColorMixer);

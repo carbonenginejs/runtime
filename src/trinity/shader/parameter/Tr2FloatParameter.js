@@ -14,6 +14,7 @@ import { CjsParameter } from "./CjsParameter.js";
 @meta.define({className: "Tr2FloatParameter", family: "shader"})
 @meta.blue.inherit(ITriReroutable)
 @meta.blue.inherit(IInitialize)
+@meta.blue.interface(ITriEffectParameter, ITriReroutable, IInitialize)
 export class Tr2FloatParameter extends CjsParameter
 {
   @meta.blue.readwrite
@@ -197,4 +198,3 @@ export class Tr2FloatParameter extends CjsParameter
 }
 
 // Exact identities from Tr2FloatParameter_Blue.cpp; no exposure chain.
-meta.blue.interfaceTable({ interfaces: [ITriEffectParameter, ITriReroutable, IInitialize], chainTo: null })(Tr2FloatParameter, { kind: "class" });

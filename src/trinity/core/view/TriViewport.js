@@ -89,4 +89,4 @@ export function Vec3TransformByViewport(vec, viewport)
   return vec;
 }
 
-meta.blue.interfaceTable({ interfaces: [ TriViewport ], chainTo: null })(TriViewport);
+meta.blue.interface()(TriViewport);

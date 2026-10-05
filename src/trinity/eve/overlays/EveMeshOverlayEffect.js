@@ -16,7 +16,7 @@ import { CarbonVertexElements } from "../../core/vertex/vertexUsage.js";
  */
 @meta.define({ className: "EveMeshOverlayEffect", family: "eve/overlays" })
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.interface(IInitialize)
 export class EveMeshOverlayEffect
 {
   @meta.blue.readwrite

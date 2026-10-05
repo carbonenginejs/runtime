@@ -27,8 +27,8 @@ const SPAWN_POSITION = vec3.create();
 /** ProcessLifetime (eve/child/behaviors) - generated from schema shapeHash 1fd3ebfa.... */
 @meta.define({ className: "ProcessLifetime", family: "eve" })
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
 @meta.blue.inherit(IBehavior)
+@meta.blue.interface(IInitialize)
 export class ProcessLifetime
 {
   static ProcessPriority = ProcessPriority;

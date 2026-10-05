@@ -18,6 +18,7 @@ import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/index.js";
 /** Defines a procedurally seeded starfield with distance, flashing, effect, and star-count controls. */
 @meta.define({ className: "EveStarfield", family: "eve/effect", purpose: "Defines a procedurally seeded starfield with distance, flashing, effect, and star-count controls." })
 @meta.blue.inherit(IInitialize, INotify)
+@meta.blue.interface(IInitialize, INotify)
 export class EveStarfield
 {
 
@@ -272,4 +273,3 @@ function GenerateVertices(stars)
   return bytes;
 }
 
-meta.blue.interfaceTable({ interfaces: [EveStarfield, IInitialize, INotify], chainTo: null })(EveStarfield, { kind: "class" });

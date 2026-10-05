@@ -22,6 +22,7 @@ import { Tr2Lod } from "../../EveLODHelper.js";
 @meta.define({ className: "EveChildProceduralContainer", family: "eve/child/procedural" })
 @meta.blue.inherit(ITr2CurveSetOwner, IEveInheritPropertiesOwner)
 @meta.blue.inherit(IInitialize, IListNotify, INotify)
+@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, IListNotify, ITr2SoundEmitterOwner, IEveInheritPropertiesOwner, EveEntity)
 export class EveChildProceduralContainer extends EveChildTransform
 {
 
@@ -488,4 +489,3 @@ export class EveChildProceduralContainer extends EveChildTransform
 }
 
 // EveChildProceduralContainer_Blue.cpp: native exposure; unported contracts: IShaderConfigurer.
-meta.blue.interfaceTable({ interfaces: [EveChildProceduralContainer, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, IListNotify, ITr2SoundEmitterOwner, IEveInheritPropertiesOwner, EveEntity], chainTo: null })(EveChildProceduralContainer, { kind: "class" });

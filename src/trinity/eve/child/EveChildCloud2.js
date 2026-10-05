@@ -129,7 +129,8 @@ function TransformNormal(out, v, m)
 /** A volumetric cloud entity that renders as a raymarched unit-cube volume with its own lightmap, shadow map and lighting, and can also contribute reflection batches. */
 @meta.define({ className: "EveChildCloud2", family: "eve/child" })
 @meta.blue.inherit(ITr2Renderable, INotify, IListNotify, IInitialize)
-@meta.blue.mapInterface(INotify)
+@meta.blue.interface(INotify)
+@meta.blue.chainTo(EveSpaceObjectChild)
 export class EveChildCloud2 extends EveSpaceObjectChild
 {
 

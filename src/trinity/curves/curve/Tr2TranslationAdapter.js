@@ -322,7 +322,4 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
 }
 
 // Exact native exposure table; ITriFunction is intentionally not mapped.
-meta.blue.interfaceTable({
-  interfaces: [Tr2TranslationAdapter, ITriVectorFunction],
-  chainTo: null
-})(Tr2TranslationAdapter);
+meta.blue.interface(ITriVectorFunction)(Tr2TranslationAdapter);

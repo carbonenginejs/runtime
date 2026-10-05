@@ -11,6 +11,7 @@ import { Tr2PresentParametersAL } from "../../trinityal/Tr2PresentParametersAL.j
  * Its exposure table advertises no concrete or secondary query interfaces.
  */
 @meta.define({ className: "Tr2PresentParameters", family: "ui" })
+@meta.blue.interface()
 export class Tr2PresentParameters extends Tr2PresentParametersAL
 {
   /** Reads mode.width. @returns {number} Back-buffer pixel width. */
@@ -91,4 +92,3 @@ export class Tr2PresentParameters extends Tr2PresentParametersAL
   presentInterval = PresentInterval.PRESENT_INTERVAL_ONE;
 }
 
-meta.blue.interfaceTable({ interfaces: [], chainTo: null })(Tr2PresentParameters);

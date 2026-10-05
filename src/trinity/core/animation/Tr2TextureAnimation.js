@@ -14,7 +14,7 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2Rende
 /** Advances a multi-channel texture flipbook, tracking frame and restart state per channel. */
 @meta.define({ className: "Tr2TextureAnimation", family: "trinityCore" })
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.interface(IInitialize)
 export class Tr2TextureAnimation
 {
   _channels = new Map();

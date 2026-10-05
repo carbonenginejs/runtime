@@ -16,6 +16,7 @@ import { vec4 } from "#math/vec4";
   className: "TriValueBinding", family: "trinityCore"
 })
 @meta.blue.inherit(ITr2ValueBinding)
+@meta.blue.interface(ITr2ValueBinding, INotify)
 export class TriValueBinding extends INotify
 {
   /** m_name (std::string) [READWRITE, PERSIST] */
@@ -999,4 +1000,3 @@ export class TriValueBinding extends INotify
 }
 
 // TriValueBinding_Blue.cpp: concrete self, binding, notify; EXPOSURE_END.
-meta.blue.interfaceTable({ interfaces: [TriValueBinding, ITr2ValueBinding, INotify], chainTo: null })(TriValueBinding, { kind: "class" });

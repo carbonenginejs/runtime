@@ -19,6 +19,7 @@ import { Tr2FollowCurveKeyInterpolation } from "../enums.js";
   family: "curves"
 })
 @meta.blue.inherit(IListNotify)
+@meta.blue.interface(ITriVectorFunction, ITriFunction)
 export class Tr2FollowCurve extends ITriVectorFunction
 {
   /**
@@ -265,7 +266,3 @@ export class Tr2FollowCurve extends ITriVectorFunction
 }
 
 // IListNotify is native C++ inheritance, deliberately absent from its QI table.
-meta.blue.interfaceTable({
-  interfaces: [ITriVectorFunction, ITriFunction],
-  chainTo: null
-})(Tr2FollowCurve);

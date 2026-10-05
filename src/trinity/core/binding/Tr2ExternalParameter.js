@@ -12,6 +12,7 @@ import { TriValueBinding } from "./TriValueBinding.js";
  */
 @meta.define({ className: "Tr2ExternalParameter", family: "trinityCore" })
 @meta.blue.inherit(INotify)
+@meta.blue.interface(IInitialize, INotify)
 export class Tr2ExternalParameter extends IInitialize
 {
 
@@ -468,4 +469,3 @@ export class Tr2ExternalParameter extends IInitialize
 }
 
 // Carbon's own query table has no exposure chain.
-meta.blue.interfaceTable({ interfaces: [Tr2ExternalParameter, IInitialize, INotify], chainTo: null })(Tr2ExternalParameter, { kind: "class" });

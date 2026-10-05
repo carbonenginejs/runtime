@@ -36,8 +36,8 @@ import { BLUELISTEVENT } from "#consts/blue";
  */
 @meta.define({ className: "EveEffectRoot2", family: "eve/spaceObject" })
 @meta.blue.inherit(ITr2BoundingBox, IEveSpaceObject2, ITr2SecondaryLightSource, ITriTargetable, ITr2CurveSetOwner)
-@meta.blue.mapInterface(ITr2SecondaryLightSource)
 @meta.blue.inherit(IInitialize, INotify, IListNotify)
+@meta.blue.interface(IEveSpaceObject2, IInitialize, INotify, ITr2SecondaryLightSource, ITriTargetable, ITr2CurveSetOwner, ITr2ControllerOwner, ITr2SoundEmitterOwner, ITr2BoundingBox, IWorldPosition, EveEntity)
 export class EveEffectRoot2 extends EveEntity
 {
 
@@ -1325,4 +1325,3 @@ export class EveEffectRoot2 extends EveEntity
 }
 
 // EveEffectRoot2_Blue.cpp: native exposure; unported contracts: ITriTargetable, IEveEffectChildrenOwner, IShaderConfigurer, ITr2LightOwner.
-meta.blue.interfaceTable({ interfaces: [IEveSpaceObject2, IInitialize, INotify, ITr2SecondaryLightSource, ITriTargetable, ITr2CurveSetOwner, ITr2ControllerOwner, ITr2SoundEmitterOwner, ITr2BoundingBox, IWorldPosition, EveEntity], chainTo: null })(EveEffectRoot2, { kind: "class" });

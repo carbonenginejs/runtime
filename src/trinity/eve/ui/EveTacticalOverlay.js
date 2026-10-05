@@ -90,7 +90,7 @@ function getSubdivisionCount(pixelSize, low, medium, high, updateContext)
 @meta.define({ className: "EveTacticalOverlay", family: "eve/ui" })
 @meta.blue.inherit(IEveSpaceObject2)
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.interface(IInitialize)
 export class EveTacticalOverlay
 {
   /** Initializes the effect-local variable-store records. */

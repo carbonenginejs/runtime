@@ -11,6 +11,7 @@ import { vec4 } from "#math/vec4";
  * Shader and geometry paths are authored strings, not held resources.
  */
 @meta.define({ className: "EveSOFDataGenericDamage", family: "eve" })
+@meta.blue.interface()
 export class EveSOFDataGenericDamage
 {
 
@@ -154,7 +155,3 @@ export class EveSOFDataGenericDamage
 
 }
 
-meta.blue.interfaceTable({
-  interfaces: [ EveSOFDataGenericDamage ],
-  chainTo: null
-})(EveSOFDataGenericDamage);

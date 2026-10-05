@@ -39,7 +39,4 @@ export class Tr2ActionCallback extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionCallback_Blue.cpp:12-13,20).
-meta.blue.interfaceTable({
-  interfaces: [Tr2ActionCallback, ITr2ControllerAction],
-  chainTo: null
-})(Tr2ActionCallback);
+meta.blue.interface(ITr2ControllerAction)(Tr2ActionCallback);

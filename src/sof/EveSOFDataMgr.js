@@ -29,6 +29,7 @@ const LOGO_KEYS = Object.freeze(["Primary", "Secondary", "Tertiary", "Marking_01
  * plain JavaScript records here; they are not persisted fields on the manager.
  */
 @meta.define({ className: "EveSOFDataMgr", family: "eve" })
+@meta.blue.interface()
 export class EveSOFDataMgr
 {
 
@@ -2113,4 +2114,3 @@ function identityMatrix()
 
 
 // Native service exposure has no lifecycle interfaces or exposure parent.
-meta.blue.interfaceTable({ interfaces: [ EveSOFDataMgr ], chainTo: null })(EveSOFDataMgr, { kind: "class" });

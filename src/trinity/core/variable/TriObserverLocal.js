@@ -14,6 +14,7 @@ import { CjsSchema, meta } from "#schema";
  * migration does not provide debug-rendering parity.
  */
 @meta.define({ className: "TriObserverLocal", family: "trinityCore" })
+@meta.blue.interface(ITriObserverLocal)
 export class TriObserverLocal extends ITriObserverLocal
 {
   /**
@@ -254,4 +255,3 @@ export function SendEventToAudEmitter(observer, audioEvent)
   if (emitter) emitter.SendEvent(audioEvent);
 }
 
-meta.blue.interfaceTable({ interfaces: [ITriObserverLocal], chainTo: null })(TriObserverLocal);

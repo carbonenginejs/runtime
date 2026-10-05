@@ -9,6 +9,7 @@ import { meta } from "#schema";
  * Existing JavaScript configuration helpers remain custom conveniences.
  */
 @meta.define({ className: "EveSOFDataGenericShader", family: "eve" })
+@meta.blue.interface()
 export class EveSOFDataGenericShader
 {
 
@@ -189,7 +190,3 @@ export class EveSOFDataGenericShader
 
 }
 
-meta.blue.interfaceTable({
-  interfaces: [ EveSOFDataGenericShader ],
-  chainTo: null
-})(EveSOFDataGenericShader);

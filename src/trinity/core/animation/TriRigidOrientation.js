@@ -19,6 +19,7 @@ import { vec3 } from "#math/vec3";
  * Float32Array intermediates and module scratch retain the JS numeric path.
  */
 @meta.define({ className: "TriRigidOrientation", family: "trinityCore" })
+@meta.blue.interface(ITriFunction, ITriQuaternionFunction)
 export class TriRigidOrientation extends ITriQuaternionFunction
 {
 
@@ -293,4 +294,3 @@ export class TriRigidOrientation extends ITriQuaternionFunction
 const ANGLE_SCRATCH = vec3.create();
 const CONVERTER_SCRATCH = quat.create();
 
-meta.blue.interfaceTable({ interfaces: [ITriFunction, ITriQuaternionFunction], chainTo: null })(TriRigidOrientation);

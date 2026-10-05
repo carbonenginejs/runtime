@@ -8,6 +8,7 @@ import { meta } from "#schema";
  * string, not a held resource; empty constructor/destructor need no lifecycle.
  */
 @meta.define({ className: "EveSOFDataTexture", family: "eve" })
+@meta.blue.interface()
 export class EveSOFDataTexture
 {
 
@@ -70,7 +71,3 @@ export class EveSOFDataTexture
 
 }
 
-meta.blue.interfaceTable({
-  interfaces: [ EveSOFDataTexture ],
-  chainTo: null
-})(EveSOFDataTexture);

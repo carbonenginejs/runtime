@@ -20,6 +20,7 @@ import { Tr2VertexDefinition } from "../../core/vertex/Tr2VertexDefinition/index
 @meta.define({ className: "EveChildQuad", family: "eve/child" })
 @meta.blue.inherit(ITr2Renderable)
 @meta.blue.inherit(IInitialize)
+@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize)
 export class EveChildQuad extends EveChildTransform
 {
 
@@ -408,4 +409,3 @@ export class EveChildQuad extends EveChildTransform
 }
 
 // EveChildQuad_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveChildQuad, EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize], chainTo: null })(EveChildQuad, { kind: "class" });

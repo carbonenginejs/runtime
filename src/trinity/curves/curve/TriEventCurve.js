@@ -17,6 +17,7 @@ import "#consts/graphics/trinityEnums";
   family: "curves"
 })
 @meta.blue.inherit(IInitialize, ITriCurveLength)
+@meta.blue.interface(ITriFunction, IInitialize, ITriCurveLength)
 export class TriEventCurve extends ITriFunction
 {
   /**
@@ -463,4 +464,3 @@ export class TriEventCurve extends ITriFunction
 }
 
 // Exact native exposure table, with no inherited exposure chain.
-meta.blue.interfaceTable({ interfaces: [TriEventCurve, ITriFunction, IInitialize, ITriCurveLength], chainTo: null })(TriEventCurve);

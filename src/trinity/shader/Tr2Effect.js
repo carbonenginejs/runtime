@@ -71,6 +71,7 @@ const VECTOR4_PAD = vec4.create();
 /** Owns the mutable effect facade: shader path and options, authored parameters and resources, sampler overrides, variable-store resolution, and rebuild state. */
 @meta.define({ className: "Tr2Effect", family: "shader" })
 @meta.blue.inherit(IInitialize, INotify, IListNotify)
+@meta.blue.interface(Tr2Material, INotify, IInitialize, IListNotify)
 export class Tr2Effect extends Tr2Material
 {
   /** Subscribes the two native pointer lists (Tr2Effect.cpp:255-256). */
@@ -2275,4 +2276,3 @@ export class Tr2Effect extends Tr2Material
 
 }
 
-meta.blue.interfaceTable({ interfaces: [Tr2Effect, Tr2Material, INotify, IInitialize, IListNotify], chainTo: null })(Tr2Effect, { kind: "class" });

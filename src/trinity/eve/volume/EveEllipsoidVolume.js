@@ -17,6 +17,7 @@ import { meta } from "#schema";
   family: "eve/volume"
 })
 @meta.blue.inherit(INotify)
+@meta.blue.interface(IEveVolume, INotify)
 export class EveEllipsoidVolume extends IEveVolume
 {
   @meta.blue.readwrite
@@ -265,4 +266,3 @@ export class EveEllipsoidVolume extends IEveVolume
 }
 
 // Exact native Blue exposure: only these identities participate in loading.
-meta.blue.interfaceTable({ interfaces: [EveEllipsoidVolume, IEveVolume, INotify], chainTo: null })(EveEllipsoidVolume, { kind: "class" });

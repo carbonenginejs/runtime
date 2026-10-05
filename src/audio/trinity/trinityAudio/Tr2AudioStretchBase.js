@@ -12,6 +12,7 @@ import { StretchAudio } from "../audio/StretchAudio.js";
 /** Creates and updates the three Carbon emitters used by a Trinity audio stretch. */
 @meta.define({ className: "Tr2AudioStretchBase", family: "trinityAudio" })
 @meta.blue.inherit(IInitialize, ITr2DebugRenderable, ITr2Audio)
+@meta.blue.interface(IInitialize, ITr2DebugRenderable, ITr2Audio)
 export class Tr2AudioStretchBase
 {
 
@@ -154,4 +155,3 @@ export class Tr2AudioStretchBase
 
 }
 
-meta.blue.interfaceTable({ interfaces: [IInitialize, ITr2DebugRenderable, ITr2Audio], chainTo: null })(Tr2AudioStretchBase, { kind: "class" });

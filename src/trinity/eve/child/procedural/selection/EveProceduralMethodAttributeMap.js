@@ -9,6 +9,7 @@ import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.j
 /** EveProceduralMethodAttributeMap (eve/child/procedural/selection) - generated from schema shapeHash 691cb5f9.... */
 @meta.define({ className: "EveProceduralMethodAttributeMap", family: "eve/child/procedural/selection" })
 @meta.blue.inherit(INotify)
+@meta.blue.interface(IEveProceduralSelectionMethod, INotify)
 export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMethod
 {
 
@@ -156,4 +157,3 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
 }
 
 // Exact native Blue exposure: only these identities participate in loading.
-meta.blue.interfaceTable({ interfaces: [EveProceduralMethodAttributeMap, IEveProceduralSelectionMethod, INotify], chainTo: null })(EveProceduralMethodAttributeMap, { kind: "class" });

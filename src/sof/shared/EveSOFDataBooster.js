@@ -6,6 +6,7 @@ import { EveSOFDataBoosterShape } from "./EveSOFDataBoosterShape.js";
 
 /** Combines normal and warp booster colors, scales, shapes, textures, and light settings. */
 @meta.define({ className: "EveSOFDataBooster", family: "eve" })
+@meta.blue.interface()
 export class EveSOFDataBooster
 {
 
@@ -342,4 +343,3 @@ function selectValue(base, overrides, name)
 }
 
 // Native IRoot-only data: self query, no initialization or update contract.
-meta.blue.interfaceTable({ interfaces: [EveSOFDataBooster], chainTo: null })(EveSOFDataBooster);

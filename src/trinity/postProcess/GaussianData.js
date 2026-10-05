@@ -25,6 +25,7 @@ const TRI_PI = Math.PI;
  * construction adapter; native fills the aggregate in its calculator function.
  */
 @meta.define({ className: "GaussianData", family: "postProcess" })
+@meta.blue.interface()
 export class GaussianData
 {
 
@@ -187,4 +188,3 @@ export class GaussianData
 
 }
 
-meta.blue.interfaceTable({ interfaces: [], chainTo: null })(GaussianData);

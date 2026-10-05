@@ -15,6 +15,7 @@ import { CjsControllerExpressionProgram } from "../../controllers/expression/Cjs
   family: "curves"
 })
 @meta.blue.inherit(IInitialize)
+@meta.blue.interface(ITriQuaternionFunction, ITriFunction, IInitialize)
 export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
 {
   /**
@@ -516,4 +517,3 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
 }
 
 // Exact native exposure table; no inherited exposure chain.
-meta.blue.interfaceTable({ interfaces: [Tr2CurveEulerRotationExpression, ITriQuaternionFunction, ITriFunction, IInitialize], chainTo: null })(Tr2CurveEulerRotationExpression);

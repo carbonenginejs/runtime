@@ -18,7 +18,8 @@ import { meta } from "#schema";
   family: "eve/volume"
 })
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.interface(IInitialize)
+@meta.blue.chainTo(IEveVolume)
 export class EveBoxVolume extends IEveVolume
 {
   @meta.blue.notify

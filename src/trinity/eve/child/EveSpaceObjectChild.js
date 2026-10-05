@@ -42,6 +42,7 @@ export function EveCollectAreas(type, mesh, areaPool)
  * plain records; no nominal class declarations exist for those three structs.
  */
 @meta.define({ className: "EveSpaceObjectChild", family: "eve/child" })
+@meta.blue.interface()
 export class EveSpaceObjectChild extends IEveSpaceObjectChild
 {
   @meta.blue.readwrite
@@ -321,4 +322,3 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
 }
 
 // EveSpaceObjectChild_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveSpaceObjectChild], chainTo: null })(EveSpaceObjectChild, { kind: "class" });

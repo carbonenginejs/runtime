@@ -14,6 +14,7 @@ import { mat4 } from "#math/mat4";
  */
 @meta.define({ className: "Tr2InteriorLightSource", family: "interior" })
 @meta.blue.inherit(IInitialize, INotify, ITr2InteriorLight)
+@meta.blue.interface(IInitialize, INotify, ITr2InteriorLight)
 export class Tr2InteriorLightSource
 {
   /** PopulateLightData's AsRGB result. */
@@ -243,4 +244,3 @@ export class Tr2InteriorLightSource
 
 }
 
-meta.blue.interfaceTable({ interfaces: [Tr2InteriorLightSource, IInitialize, INotify, ITr2InteriorLight], chainTo: null })(Tr2InteriorLightSource, { kind: "class" });

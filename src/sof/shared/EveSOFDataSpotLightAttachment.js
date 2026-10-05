@@ -5,6 +5,7 @@ import { vec3 } from "#math/vec3";
 
 /** Defines spotlight placement, intensity, saturation, cone angles, scales, noise, and profile data for an attachment. */
 @meta.define({ className: "EveSOFDataSpotLightAttachment", family: "eve" })
+@meta.blue.interface()
 export class EveSOFDataSpotLightAttachment
 {
 
@@ -121,4 +122,3 @@ export class EveSOFDataSpotLightAttachment
 }
 
 // Native IRoot record: concrete query identity with no exposure chain.
-meta.blue.interfaceTable({ interfaces: [EveSOFDataSpotLightAttachment], chainTo: null })(EveSOFDataSpotLightAttachment, { kind: "class" });

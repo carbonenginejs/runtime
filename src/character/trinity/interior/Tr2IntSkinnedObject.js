@@ -9,6 +9,8 @@ import { Tr2SkinnedObject } from "../trinityCore/Tr2SkinnedObject.js";
  */
 @meta.define({ className: "Tr2IntSkinnedObject", family: "interior" })
 @meta.blue.inherit(IInitialize, INotify)
+@meta.blue.interface(IInitialize, INotify)
+@meta.blue.chainTo(Tr2SkinnedObject)
 export class Tr2IntSkinnedObject extends Tr2SkinnedObject
 {
 
@@ -67,4 +69,3 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
 }
 
 // Interior rendering, picking and placement contracts remain outside the maintained CPU LOD port.
-meta.blue.interfaceTable({ interfaces: [Tr2IntSkinnedObject, IInitialize, INotify], chainTo: Tr2SkinnedObject })(Tr2IntSkinnedObject, { kind: "class" });

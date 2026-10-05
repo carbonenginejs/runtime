@@ -13,6 +13,7 @@ import { mat4 } from "#math/mat4";
  * the existing dictionary array declaration does not enforce that width.
  */
 @meta.define({ className: "Float4x3", family: "utilities" })
+@meta.blue.interface()
 export class Float4x3
 {
 
@@ -96,4 +97,3 @@ export class Float4x3
 
 }
 
-meta.blue.interfaceTable({ interfaces: [], chainTo: null })(Float4x3);

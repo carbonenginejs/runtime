@@ -19,6 +19,7 @@ import { CjsVectorParameter } from "./CjsVectorParameter.js";
 })
 @meta.blue.inherit(ITriReroutable)
 @meta.blue.inherit(IInitialize)
+@meta.blue.interface(ITriEffectParameter, ITriReroutable, IInitialize)
 export class Tr2Vector2Parameter extends CjsVectorParameter
 {
   @meta.blue.readwrite
@@ -366,4 +367,3 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
 }
 
 // Exact identities from Tr2Vector2Parameter_Blue.cpp; no exposure chain.
-meta.blue.interfaceTable({ interfaces: [ITriEffectParameter, Tr2Vector2Parameter, ITriReroutable, IInitialize], chainTo: null })(Tr2Vector2Parameter, { kind: "class" });

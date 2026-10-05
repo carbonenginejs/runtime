@@ -10,6 +10,7 @@ import { ITr2SoundEmitterOwner } from "../../eve/ITr2SoundEmitterOwner.js";
  * factor on start, optionally multiplied by a named controller variable.
  */
 @meta.define({ className: "Tr2ActionSetAttenuationScaling", family: "controllers" })
+@meta.blue.interface(ITr2ControllerAction)
 export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
 {
   /** m_emitterName: narrow emitter lookup name. */
@@ -107,7 +108,3 @@ export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
 }
 
 // Native exposure ends here (Tr2ActionSetAttenuationScaling_Blue.cpp:12-45).
-meta.blue.interfaceTable({
-  interfaces: [Tr2ActionSetAttenuationScaling, ITr2ControllerAction],
-  chainTo: null
-})(Tr2ActionSetAttenuationScaling);

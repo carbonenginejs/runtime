@@ -8,6 +8,7 @@ import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 /** Gates a nested set of distribution spawners from a named controller variable. */
 @meta.define({ className: "EveDistributionSpawnerControllerTrigger", family: "eve/distribution/spawners" })
 @meta.blue.inherit(INotify)
+@meta.blue.interface(IEveDistributionSpawner, INotify)
 export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpawner
 {
 
@@ -132,4 +133,3 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
 }
 
 // Exact native Blue exposure: only these identities participate in loading.
-meta.blue.interfaceTable({ interfaces: [EveDistributionSpawnerControllerTrigger, IEveDistributionSpawner, INotify], chainTo: null })(EveDistributionSpawnerControllerTrigger, { kind: "class" });

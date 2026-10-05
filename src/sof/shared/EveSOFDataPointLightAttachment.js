@@ -6,6 +6,7 @@ import { vec3 } from "#math/vec3";
 
 /** Defines point-light placement, rotation, intensity, saturation, scale, noise, and profile data for an attachment. */
 @meta.define({ className: "EveSOFDataPointLightAttachment", family: "eve" })
+@meta.blue.interface()
 export class EveSOFDataPointLightAttachment
 {
 
@@ -112,4 +113,3 @@ export class EveSOFDataPointLightAttachment
 }
 
 // Native IRoot record: concrete query identity with no exposure chain.
-meta.blue.interfaceTable({ interfaces: [EveSOFDataPointLightAttachment], chainTo: null })(EveSOFDataPointLightAttachment, { kind: "class" });

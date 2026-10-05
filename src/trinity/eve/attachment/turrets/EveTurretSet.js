@@ -60,8 +60,8 @@ function BoundingSphereTransform(transform, sphere)
 /** Owns a hull's instanced turrets and drives their aiming, animation, firing, visibility, batches, shadows, and per-object data. */
 @meta.define({ className: "EveTurretSet", family: "eve/attachment/turrets" })
 @meta.blue.inherit(IInitialize, INotify, ITr2Renderable, ITr2ControllerOwner, IEveShadowCaster)
-@meta.blue.mapInterface(EveEntity, IInitialize, INotify, ITr2Renderable)
 @meta.blue.inherit(IInitialize, INotify)
+@meta.blue.interface(EveEntity, IInitialize, INotify, ITr2Renderable)
 export class EveTurretSet extends EveEntity
 {
 
@@ -2590,7 +2590,5 @@ blue.enums.Create("trinity.EveTurretSet.State", EveTurretSet.State, {
 });
 
 // Native Blue explicitly maps its concrete identity.
-meta.blue.mapInterface(EveTurretSet)(EveTurretSet, { kind: "class" });
 
 // EveTurretSet_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveTurretSet, EveEntity, IInitialize, INotify, ITr2Renderable], chainTo: null })(EveTurretSet, { kind: "class" });

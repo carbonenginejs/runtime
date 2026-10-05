@@ -8,6 +8,7 @@ import { EveSmartLightPointLight } from "./EveSmartLightPointLight.js";
 
 /** A spot-light specialization with persisted cone angles. */
 @meta.define({ className: "EveSmartLightSpotLight", family: "eve/smartLights" })
+@meta.blue.chainTo(EveSmartLightPointLight)
 export class EveSmartLightSpotLight extends EveSmartLightPointLight
 {
 
@@ -43,4 +44,3 @@ export class EveSmartLightSpotLight extends EveSmartLightPointLight
 }
 
 // EveSmartLightSpotLight_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveSmartLightSpotLight], chainTo: EveSmartLightPointLight })(EveSmartLightSpotLight, { kind: "class" });

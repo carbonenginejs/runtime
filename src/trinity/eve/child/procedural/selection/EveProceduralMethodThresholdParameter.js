@@ -8,7 +8,7 @@ import { EveChildRef } from "../../../../eve/child/EveChildRef.js";
 /** EveProceduralMethodThresholdParameter (eve/child/procedural/selection) - generated from schema shapeHash e31926d9.... */
 @meta.define({ className: "EveProceduralMethodThresholdParameter", family: "eve/child/procedural/selection" })
 @meta.blue.inherit(IInitialize)
-@meta.blue.mapInterface(IInitialize)
+@meta.blue.interface(IInitialize)
 export class EveProceduralMethodThresholdParameter
 {
 

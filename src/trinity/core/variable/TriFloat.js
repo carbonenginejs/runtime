@@ -9,6 +9,7 @@ import { meta } from "#schema";
  * curve-set binding can hold the scalar without retaining the stretch.
  */
 @meta.define({ className: "TriFloat", family: "trinityCore" })
+@meta.blue.interface()
 export class TriFloat
 {
 
@@ -21,4 +22,3 @@ export class TriFloat
 }
 
 // Native IRoot record: concrete query identity with no exposure chain.
-meta.blue.interfaceTable({ interfaces: [TriFloat], chainTo: null })(TriFloat, { kind: "class" });

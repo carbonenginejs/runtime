@@ -13,6 +13,7 @@ const BELIST_LOADING = 0x10;
 /** EveProceduralMethodCycling (eve/child/procedural/selection) - generated from schema shapeHash 2014815d.... */
 @meta.define({ className: "EveProceduralMethodCycling", family: "eve/child/procedural/selection" })
 @meta.blue.inherit(INotify)
+@meta.blue.interface(IEveProceduralSelectionMethod, INotify)
 export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
 {
 
@@ -190,4 +191,3 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
 }
 
 // Exact native Blue exposure: only these identities participate in loading.
-meta.blue.interfaceTable({ interfaces: [EveProceduralMethodCycling, IEveProceduralSelectionMethod, INotify], chainTo: null })(EveProceduralMethodCycling, { kind: "class" });

@@ -16,6 +16,7 @@ import { Tr2Light } from "./Tr2Light.js";
  * attribute set.
  */
 @meta.define({ className: "Tr2SpotLight", family: "eve/lights" })
+@meta.blue.interface(Tr2Light, IInitialize, INotify)
 export class Tr2SpotLight extends Tr2Light
 {
   static LightDataFields = [
@@ -141,4 +142,3 @@ export class Tr2SpotLight extends Tr2Light
 
 }
 
-meta.blue.interfaceTable({ interfaces: [Tr2SpotLight, Tr2Light, IInitialize, INotify], chainTo: null })(Tr2SpotLight, { kind: "class" });

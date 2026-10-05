@@ -11,7 +11,7 @@ import "#consts/renderContext/formats";
 
 /** Tr2GpuBuffer (trinityCore) - generated from schema shapeHash 7a225a45.... */
 @meta.define({ className: "Tr2GpuBuffer", family: "trinityCore" })
-@meta.blue.mapInterface(INotify, IInitialize)
+@meta.blue.interface(INotify, IInitialize)
 export class Tr2GpuBuffer
 {
 

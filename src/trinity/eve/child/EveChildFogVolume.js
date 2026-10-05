@@ -57,6 +57,7 @@ function createFroxelFogSettings()
  */
 @meta.define({ className: "EveChildFogVolume", family: "eve/child" })
 @meta.blue.inherit(IInitialize)
+@meta.blue.interface(ITr2FroxelFogSettings, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize)
 export class EveChildFogVolume extends ITr2FroxelFogSettings
 {
   _fogIntensity = 0;
@@ -428,4 +429,3 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
 }
 
 // EveChildFogVolume_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [ITr2FroxelFogSettings, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize], chainTo: null })(EveChildFogVolume, { kind: "class" });

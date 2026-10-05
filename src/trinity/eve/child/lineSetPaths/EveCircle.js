@@ -22,6 +22,7 @@ import { IEveLineSetPath } from "./IEveLineSetPath.js";
   family: "eve/child/lineSetPaths"
 })
 @meta.blue.inherit(INotify, IInitialize)
+@meta.blue.interface(IEveLineSetPath, INotify)
 export class EveCircle extends IEveLineSetPath
 {
   @meta.blue.readwrite
@@ -436,4 +437,3 @@ export class EveCircle extends IEveLineSetPath
 }
 
 // EveCircle_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveCircle, IEveLineSetPath, INotify], chainTo: null })(EveCircle, { kind: "class" });

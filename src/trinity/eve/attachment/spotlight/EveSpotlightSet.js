@@ -55,6 +55,7 @@ const SPRITE_QUAD_COUNT = 2;
  */
 @meta.define({ className: "EveSpotlightSet", family: "eve/attachment/spotlights" })
 @meta.blue.inherit(IInitialize)
+@meta.blue.interface(IInitialize, IEveSpaceObjectAttachment, EveEntity)
 export class EveSpotlightSet extends IEveSpaceObjectAttachment
 {
 
@@ -529,4 +530,3 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
 }
 
 // EveSpotlightSet_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
-meta.blue.interfaceTable({ interfaces: [EveSpotlightSet, IInitialize, IEveSpaceObjectAttachment, EveEntity], chainTo: null })(EveSpotlightSet, { kind: "class" });

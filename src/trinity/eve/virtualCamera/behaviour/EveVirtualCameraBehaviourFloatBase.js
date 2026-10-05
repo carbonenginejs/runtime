@@ -14,6 +14,7 @@ import { meta } from "#schema";
   family: "eve/virtualCamera/behaviour"
 })
 @meta.blue.inherit(INotify)
+@meta.blue.interface(INotify)
 export class EveVirtualCameraBehaviourFloatBase
 {
   @meta.blue.readwrite
@@ -71,4 +72,3 @@ export class EveVirtualCameraBehaviourFloatBase
 }
 
 // Exact native Blue exposure: only these identities participate in loading.
-meta.blue.interfaceTable({ interfaces: [INotify], chainTo: null })(EveVirtualCameraBehaviourFloatBase, { kind: "class" });

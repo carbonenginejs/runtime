@@ -11,6 +11,7 @@ import { ResourceFlags } from "./ITr2EffectValue.js";
 @meta.define({ className: "Tr2TextureAnimationParameter", family: "shader" })
 @meta.blue.inherit(ITriEffectResourceParameter)
 @meta.blue.inherit(INotify)
+@meta.blue.interface(ITriEffectResourceParameter, INotify)
 export class Tr2TextureAnimationParameter extends CjsParameter
 {
 
@@ -163,4 +164,3 @@ export class Tr2TextureAnimationParameter extends CjsParameter
 }
 
 // Exact identities from Tr2TextureAnimationParameter_Blue.cpp; no exposure chain.
-meta.blue.interfaceTable({ interfaces: [Tr2TextureAnimationParameter, ITriEffectResourceParameter, INotify], chainTo: null })(Tr2TextureAnimationParameter, { kind: "class" });

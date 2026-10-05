@@ -39,7 +39,7 @@ import * as CcpLog from "../logging/ccpLog.js";
 import { CjsSchema, meta } from "#schema";
 import { cloneCarbonValue, coerceCarbonMathInto, coerceCarbonTypedArrayInto } from "../schema/types/index.js";
 import { ICopier } from "./ICopier.js";
-import { mappedInterfaces } from "../compose/interface.js";
+import { hasOwnInterfaceTable, mappedInterfaces } from "../compose/interface.js";
 
 const { OverrideResult } = ICopier;
 
@@ -321,6 +321,11 @@ export class Copier extends ICopier
     for (const Interface of mappedInterfaces(Constructor))
     {
       const identity = CjsSchema.getClassName(Interface);
+      // A table always holds its own class (EXPOSURE_BEGIN), and a chain holds the
+      // classes it chains to. Those carry their own tables and may be unregistered
+      // templates such as BlueList; they cannot match an interface name, so only an
+      // unnamed LISTED interface is an error.
+      if (!identity && hasOwnInterfaceTable(Interface)) continue;
       if (!identity) throw new TypeError("Copier interface mappings require a declared class identity.");
       if (identity === name) return true;
     }

@@ -112,6 +112,7 @@ const CAMERA_YAW_PITCH_ROLL = new Float64Array(3);
 /** Carbon's orbit camera and its CPU-side view/projection state. */
 @meta.define({ className: "EveCamera", family: "eve" })
 @meta.blue.inherit(INotify)
+@meta.blue.interface(INotify)
 export class EveCamera
 {
 
@@ -946,4 +947,3 @@ export class EveCamera
 }
 
 // Exact native Blue exposure: only these identities participate in loading.
-meta.blue.interfaceTable({ interfaces: [EveCamera, INotify], chainTo: null })(EveCamera, { kind: "class" });

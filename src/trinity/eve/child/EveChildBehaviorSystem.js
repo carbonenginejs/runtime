@@ -34,6 +34,7 @@ import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 @meta.define({ className: "EveChildBehaviorSystem", family: "eve/child" })
 @meta.blue.inherit(ITr2Renderable)
 @meta.blue.inherit(INotify, IInitialize, IListNotify)
+@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, INotify, EveEntity)
 export class EveChildBehaviorSystem extends EveChildTransform
 {
 
@@ -742,4 +743,3 @@ export class EveChildBehaviorSystem extends EveChildTransform
 }
 
 // EveChildBehaviorSystem_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveChildBehaviorSystem, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, INotify, EveEntity], chainTo: null })(EveChildBehaviorSystem, { kind: "class" });

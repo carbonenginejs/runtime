@@ -10,6 +10,7 @@ import { vec4 } from "#math/vec4";
 /** Runtime model for one editable cloud-volume ball. */
 @meta.define({ className: "EveCloudVolumeBall", family: "eve/child" })
 @meta.blue.inherit(INotify)
+@meta.blue.interface(INotify)
 export class EveCloudVolumeBall
 {
 
@@ -62,4 +63,3 @@ export class EveCloudVolumeBall
   }
 }
 
-meta.blue.interfaceTable({ interfaces: [EveCloudVolumeBall, INotify], chainTo: null })(EveCloudVolumeBall, { kind: "class" });

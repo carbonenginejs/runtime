@@ -23,6 +23,7 @@ import { IEveLineSetPath } from "./IEveLineSetPath.js";
   family: "eve/child/lineSetPaths"
 })
 @meta.blue.inherit(INotify, IInitialize)
+@meta.blue.interface(IEveLineSetPath, INotify)
 export class EveBezierCurve extends IEveLineSetPath
 {
   @meta.blue.readwrite
@@ -474,4 +475,3 @@ export class EveBezierCurve extends IEveLineSetPath
 }
 
 // EveBezierCurve_Blue.cpp: native exposure.
-meta.blue.interfaceTable({ interfaces: [EveBezierCurve, IEveLineSetPath, INotify], chainTo: null })(EveBezierCurve, { kind: "class" });

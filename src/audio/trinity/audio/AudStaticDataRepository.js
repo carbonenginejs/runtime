@@ -13,6 +13,7 @@ const INVALID_UNIQUE_ID = 0;
  * runtime (no persisted fields) from a plain audio metadata object.
  */
 @meta.define({ className: "AudStaticDataRepository", family: "audio" })
+@meta.blue.interface()
 export class AudStaticDataRepository
 {
 
@@ -267,4 +268,3 @@ function ToStringArray(value)
 }
 
 // Exact native exposure identities; no inherited lifecycle policy.
-meta.blue.interfaceTable({ interfaces: [ AudStaticDataRepository ], chainTo: null })(AudStaticDataRepository, { kind: "class" });
