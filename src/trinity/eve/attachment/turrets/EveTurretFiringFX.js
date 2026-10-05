@@ -7,7 +7,7 @@ import { CjsSchema, meta } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { translationMatrix } from "../../renderable/stretch/CjsStretchRuntime.js";
+import { CjsStretchRuntime } from "../../renderable/stretch/CjsStretchRuntime.js";
 import { ImpactConfiguration } from "../../../generated/include/enums.js";
 import { ITr2ControllerOwner } from "../../../controllers/ITr2ControllerOwner.js";
 import { mappedInterfaces } from "../../../../global/compose/interface.js";
@@ -709,7 +709,7 @@ export class EveTurretFiringFX extends EveEntity
     const time = context.GetTime();
     if (curveSet) curveSet.Update_RealTimeSimTime(time, time, context.renderContext);
     if (this.sourceObserver) this.sourceObserver.Update(this._perMuzzleData[0].muzzleTransform);
-    if (this.destinationObserver) this.destinationObserver.Update(translationMatrix(this.endPosition, EveTurretFiringFX._destinationTransform));
+    if (this.destinationObserver) this.destinationObserver.Update(CjsStretchRuntime.translationMatrix(this.endPosition, EveTurretFiringFX._destinationTransform));
     return justFired;
   }
 

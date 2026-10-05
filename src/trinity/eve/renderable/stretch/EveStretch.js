@@ -14,7 +14,7 @@ import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { TriFloat } from "../../../core/variable/TriFloat.js";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
-import { translationMatrix } from "./CjsStretchRuntime.js";
+import { CjsStretchRuntime } from "./CjsStretchRuntime.js";
 import { sph3 } from "#math/sph3";
 
 
@@ -418,7 +418,7 @@ export class EveStretch extends IEveFiringEffectElement
   SetDestinationPosition(value)
   {
     vec3.copy(this._destinationPosition, value);
-    translationMatrix(value, this._destinationTransform);
+    CjsStretchRuntime.translationMatrix(value, this._destinationTransform);
   }
 
   /**
@@ -631,8 +631,8 @@ export class EveStretch extends IEveFiringEffectElement
   GetLights(lightManager)
   {
     if (!this.display) return;
-    const source = translationMatrix(this._sourcePosition, EveStretch._lightSource, this._sourceScale);
-    const destination = translationMatrix(this._destinationPosition, EveStretch._lightDestination, this._destinationScale);
+    const source = CjsStretchRuntime.translationMatrix(this._sourcePosition, EveStretch._lightSource, this._sourceScale);
+    const destination = CjsStretchRuntime.translationMatrix(this._destinationPosition, EveStretch._lightDestination, this._destinationScale);
     if (this._displaySource) for (const light of this.sourceLights) light.AddLight(lightManager, source, this._sourceScale);
     if (this._displayDestination) for (const light of this.destLights) light.AddLight(lightManager, destination, this._destinationScale);
   }

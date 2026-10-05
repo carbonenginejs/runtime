@@ -163,9 +163,6 @@
     "src/trinity/eve/EveComponentTypes.js": [
       "EveComponentTypes"
     ],
-    "src/trinity/eve/renderable/stretch/CjsStretchRuntime.js": [
-      "CjsStretchRuntime"
-    ],
     "src/trinityal/ALResult.js": [
       "ALResult"
     ]

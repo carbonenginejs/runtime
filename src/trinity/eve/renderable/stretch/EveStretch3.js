@@ -28,7 +28,7 @@ import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { INotify } from "../../../../global/blue/INotify.js";
 import { IListNotify } from "../../../../global/blue/IListNotify.js";
 import { mappedInterfaces } from "../../../../global/compose/interface.js";
-import { translationMatrix } from "./CjsStretchRuntime.js";
+import { CjsStretchRuntime } from "./CjsStretchRuntime.js";
 
 
 /**
@@ -554,13 +554,13 @@ export class EveStretch3 extends IEveFiringEffectElement
     {
       vec3.subtract(EveStretch3._movePosition, this.sourcePosition, this.destinationPosition);
       vec3.scale(EveStretch3._movePosition, EveStretch3._movePosition, this.moveProgression.value);
-      translationMatrix(EveStretch3._movePosition, params.localToWorldTransform);
+      CjsStretchRuntime.translationMatrix(EveStretch3._movePosition, params.localToWorldTransform);
       this.moveObject.UpdateSyncronous(context, params);
     }
     if (this.destObject)
     {
       params.spaceObjectParent = this._destinationSpaceObject ?? this;
-      translationMatrix(this.destinationPosition, params.localToWorldTransform);
+      CjsStretchRuntime.translationMatrix(this.destinationPosition, params.localToWorldTransform);
       this.destObject.UpdateSyncronous(context, params);
     }
     return true;
@@ -604,7 +604,7 @@ export class EveStretch3 extends IEveFiringEffectElement
     }
     if (this.stretchObject)
     {
-      translationMatrix(this.sourcePosition, EveStretch3._sourceTransform);
+      CjsStretchRuntime.translationMatrix(this.sourcePosition, EveStretch3._sourceTransform);
       if (this._stretchModifier)
       {
         this._stretchModifier.SetDestPosition(this.destinationPosition);
@@ -693,8 +693,8 @@ export class EveStretch3 extends IEveFiringEffectElement
   {
     if (!this.display) return;
     const high = Tr2Lod.TR2_LOD_HIGH;
-    if (this.sourceObject) this.sourceObject.UpdateVisibility(context, translationMatrix(this.sourcePosition, EveStretch3._sourceVisibility), high);
-    if (this.destObject) this.destObject.UpdateVisibility(context, translationMatrix(this.destinationPosition, EveStretch3._destinationVisibility), high);
+    if (this.sourceObject) this.sourceObject.UpdateVisibility(context, CjsStretchRuntime.translationMatrix(this.sourcePosition, EveStretch3._sourceVisibility), high);
+    if (this.destObject) this.destObject.UpdateVisibility(context, CjsStretchRuntime.translationMatrix(this.destinationPosition, EveStretch3._destinationVisibility), high);
     if (this.stretchObject) this.stretchObject.UpdateVisibility(context, parentTransform, high);
     vec3.lerp(EveStretch3._movePosition, this.sourcePosition, this.destinationPosition, this.moveProgression.value);
     vec3.subtract(EveStretch3._moveDirection, this.sourcePosition, this.destinationPosition);
@@ -851,7 +851,7 @@ export class EveStretch3 extends IEveFiringEffectElement
     {
       this._isMuzzleEffect = false;
       vec3.copy(this.sourcePosition, source);
-      translationMatrix(source, this._sourceMatrix);
+      CjsStretchRuntime.translationMatrix(source, this._sourceMatrix);
     }
     vec3.copy(this.destinationPosition, destination);
   }
