@@ -27,13 +27,15 @@ export class Tr2ResourceSetALStub extends Tr2DeviceResourceAL
   /**
    * Creates the resource set against a shader program.
    *
+   * Adapted: The native stub unconditionally succeeds; JS additionally retains description
+   * and program for headless inspection.
+   *
    * @param {Tr2ResourceSetDescriptionAL} description What to bind.
    * @param {object} program A `Tr2ShaderProgramAL`.
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult`.
    */
   @meta.adapted
-  @meta.reason("The native stub unconditionally succeeds; JS additionally retains description and program for headless inspection.")
   Create(description, program, _renderContext)
   {
     if (this._description) this._description.ClearResources();

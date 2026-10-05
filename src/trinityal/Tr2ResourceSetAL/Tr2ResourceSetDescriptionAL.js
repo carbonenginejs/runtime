@@ -60,11 +60,14 @@ export class Tr2ResourceSetDescriptionAL
   /**
    * Carbon's SetSrv( stage, registerIndex, const Tr2BufferAL& buffer )
    * (Tr2ResourceSetAL.h:57).
+   *
+   * Adapted: Out-of-bounds JS indexes return false instead of native undefined memory
+   * access.
+   *
    * @returns {boolean} Whether the record changed.
    */
   @meta.blue.renamed("SetSrv")
   @meta.adapted
-  @meta.reason("Out-of-bounds JS indexes return false instead of native undefined memory access.")
   SetSrv_BufferAL(stage, registerIndex, buffer)
   {
     const current = this._SrvRecord(stage, registerIndex);
@@ -80,11 +83,14 @@ export class Tr2ResourceSetDescriptionAL
   /**
    * Carbon's SetSrv( stage, registerIndex, const Tr2TextureAL& texture, colorSpace = COLOR_SPACE_LINEAR )
    * (Tr2ResourceSetAL.h:58).
+   *
+   * Adapted: Out-of-bounds JS indexes return false instead of native undefined memory
+   * access.
+   *
    * @returns {boolean} Whether the record changed.
    */
   @meta.blue.renamed("SetSrv")
   @meta.adapted
-  @meta.reason("Out-of-bounds JS indexes return false instead of native undefined memory access.")
   SetSrv_TextureAL(stage, registerIndex, texture, colorSpace = 0)
   {
     const current = this._SrvRecord(stage, registerIndex);
@@ -119,11 +125,14 @@ export class Tr2ResourceSetDescriptionAL
   /**
    * Carbon's SetUav( stage, registerIndex, const Tr2BufferAL& buffer )
    * (Tr2ResourceSetAL.h:59).
+   *
+   * Adapted: Out-of-bounds JS indexes return false instead of native undefined memory
+   * access.
+   *
    * @returns {boolean} Whether the record changed.
    */
   @meta.blue.renamed("SetUav")
   @meta.adapted
-  @meta.reason("Out-of-bounds JS indexes return false instead of native undefined memory access.")
   SetUav_BufferAL(stage, registerIndex, buffer)
   {
     const current = this._UavRecord(stage, registerIndex);
@@ -139,11 +148,14 @@ export class Tr2ResourceSetDescriptionAL
   /**
    * Carbon's SetUav( stage, registerIndex, const Tr2TextureAL& texture, mip = 0 )
    * (Tr2ResourceSetAL.h:60). colorSpace stores Carbon's union member mip.
+   *
+   * Adapted: Out-of-bounds JS indexes return false instead of native undefined memory
+   * access. JS has no unions: colorSpace stores the shared mip/colour-space word.
+   *
    * @returns {boolean} Whether the record changed.
    */
   @meta.blue.renamed("SetUav")
   @meta.adapted
-  @meta.reason("Out-of-bounds JS indexes return false instead of native undefined memory access. JS has no unions: colorSpace stores the shared mip/colour-space word.")
   SetUav_TextureAL(stage, registerIndex, texture, mip = 0)
   {
     const current = this._UavRecord(stage, registerIndex);
@@ -175,9 +187,13 @@ export class Tr2ResourceSetDescriptionAL
     return this.m_uav[index];
   }
 
-  /** Assigns the mapped sampler and reports whether its type or identity changed. */
+  /**
+   * Assigns the mapped sampler and reports whether its type or identity changed.
+   *
+   * Adapted: Out-of-bounds JS indexes return false instead of native undefined memory
+   * access.
+   */
   @meta.adapted
-  @meta.reason("Out-of-bounds JS indexes return false instead of native undefined memory access.")
   SetSampler(stage, registerIndex, sampler)
   {
     const index = this.m_registerMap.samplers[stage]?.[registerIndex];
@@ -189,9 +205,13 @@ export class Tr2ResourceSetDescriptionAL
     return true;
   }
 
-  /** Marks the mapped shader resource as a descriptor-heap view. */
+  /**
+   * Marks the mapped shader resource as a descriptor-heap view.
+   *
+   * Adapted: Out-of-bounds JS indexes return false instead of native undefined memory
+   * access.
+   */
   @meta.adapted
-  @meta.reason("Out-of-bounds JS indexes return false instead of native undefined memory access.")
   SetSrvHeapView(stage, registerIndex)
   {
     const index = this.m_registerMap.srvs[stage]?.[registerIndex];
@@ -201,9 +221,13 @@ export class Tr2ResourceSetDescriptionAL
     return true;
   }
 
-  /** Marks the mapped unordered-access resource as a descriptor-heap view. */
+  /**
+   * Marks the mapped unordered-access resource as a descriptor-heap view.
+   *
+   * Adapted: Out-of-bounds JS indexes return false instead of native undefined memory
+   * access.
+   */
   @meta.adapted
-  @meta.reason("Out-of-bounds JS indexes return false instead of native undefined memory access.")
   SetUavHeapView(stage, registerIndex)
   {
     const index = this.m_registerMap.uavs[stage]?.[registerIndex];
@@ -213,9 +237,13 @@ export class Tr2ResourceSetDescriptionAL
     return true;
   }
 
-  /** Marks the mapped sampler as a descriptor-heap view. */
+  /**
+   * Marks the mapped sampler as a descriptor-heap view.
+   *
+   * Adapted: Out-of-bounds JS indexes return false instead of native undefined memory
+   * access.
+   */
   @meta.adapted
-  @meta.reason("Out-of-bounds JS indexes return false instead of native undefined memory access.")
   SetSamplerHeapView(stage, registerIndex)
   {
     const index = this.m_registerMap.samplers[stage]?.[registerIndex];
@@ -228,9 +256,11 @@ export class Tr2ResourceSetDescriptionAL
   /**
    * Compares the identities of the three owning arrays, preserving Carbon's
    * equality quirk.
+   *
+   * Adapted: JavaScript spells the native equality operator as a method; array identities
+   * preserve unique_ptr comparison.
    */
   @meta.adapted
-  @meta.reason("JavaScript spells the native equality operator as a method; array identities preserve unique_ptr comparison.")
   Equals(other)
   {
     // Carbon quirk: allocation identity, not contents (cpp:434-437; CE-24).
@@ -240,9 +270,11 @@ export class Tr2ResourceSetDescriptionAL
   /**
    * Clears resource types and handles while retaining the map, qualifiers and
    * samplers.
+   *
+   * Adapted: Moved-from descriptions have null storage with unchanged counts. JS treats that
+   * storage as empty instead of dereferencing a native null pointer.
    */
   @meta.adapted
-  @meta.reason("Moved-from descriptions have null storage with unchanged counts. JS treats that storage as empty instead of dereferencing a native null pointer.")
   ClearResources()
   {
     for (const records of [ this.m_srv, this.m_uav ])
@@ -261,9 +293,13 @@ export class Tr2ResourceSetDescriptionAL
   /**
    * Hashes dense resource identities and heap-view enums with Carbon's ordering
    * and omissions.
+   *
+   * Adapted: JavaScript has no implementation pointer bytes; stable backend identities use
+   * process-local 32-bit IDs. Distinct invalid backend identities are retained; moved-from
+   * storage is treated as empty. Traversal, zero seed, signed-byte FNV and donor omissions
+   * are preserved.
    */
   @meta.adapted
-  @meta.reason("JavaScript has no implementation pointer bytes; stable backend identities use process-local 32-bit IDs. Distinct invalid backend identities are retained; moved-from storage is treated as empty. Traversal, zero seed, signed-byte FNV and donor omissions are preserved.")
   ComputeHash()
   {
     let hash = 0;

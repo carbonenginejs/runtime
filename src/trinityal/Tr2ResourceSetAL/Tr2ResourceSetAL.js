@@ -54,10 +54,12 @@ export class Tr2ResourceSetAL
    * Carbon's Create( description, program, renderContext ) (h:134): creates a
    * backend-selected resource set and replaces this handle's shared ownership
    * record.
+   *
+   * Adapted: Context allocation replaces the compile-time platform include. Shared ownership
+   * is explicitly released.
    */
   @meta.blue.renamed("Create")
   @meta.adapted
-  @meta.reason("Context allocation replaces the compile-time platform include. Shared ownership is explicitly released.")
   Create_Program(description, program, renderContext)
   {
     this.Destroy();
@@ -87,9 +89,13 @@ export class Tr2ResourceSetAL
     return this.m_resourceSet.implementation.SetName(name);
   }
 
-  /** Resets this handle while allowing other owners to retain its implementation. */
+  /**
+   * Resets this handle while allowing other owners to retain its implementation.
+   *
+   * Adapted: JavaScript has no scope destructor. Existing effect teardown resets this handle
+   * explicitly; shared copies retain the backend until their final explicit reset.
+   */
   @meta.adapted
-  @meta.reason("JavaScript has no scope destructor. Existing effect teardown resets this handle explicitly; shared copies retain the backend until their final explicit reset.")
   Destroy()
   {
     const owned = this.m_resourceSet;

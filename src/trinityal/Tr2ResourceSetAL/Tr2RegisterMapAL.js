@@ -56,9 +56,12 @@ export class Tr2RegisterMapAL
     }
   }
 
-  /** Carbon's operator==; a struct method uses lower camel case. */
+  /**
+   * Carbon's operator==; a struct method uses lower camel case.
+   *
+   * Adapted: JavaScript spells the C++ equality operator as a method.
+   */
   @meta.adapted
-  @meta.reason("JavaScript spells the C++ equality operator as a method.")
   equals(other)
   {
     for (const [ count, slots ] of [ [ "srvCount", "srvs" ], [ "uavCount", "uavs" ], [ "samplerCount", "samplers" ] ])
