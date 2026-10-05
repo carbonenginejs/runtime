@@ -307,12 +307,15 @@ export class Tr2RenderContextALStub
   /**
    * Creates a resource set for a program.
    *
+   * Adapted: JavaScript chooses the AL implementation through this context factory instead
+   * of a compile-time platform include. The private allocation branch preserves the native
+   * Create result.
+   *
    * @param {object} description A `Tr2ResourceSetDescriptionAL`.
    * @param {object} program The shader program the bindings belong to.
    * @returns {object|null} The set, or null when it could not be created.
    */
   @meta.ours
-  @meta.reason("JavaScript chooses the AL implementation through this context factory instead of a compile-time platform include. The private allocation branch preserves the native Create result.")
   CreateResourceSet(description, program, implementationOnly = false)
   {
     // JS platform selection for the public facade; the allocation branch
