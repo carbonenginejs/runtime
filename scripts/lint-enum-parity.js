@@ -19,6 +19,7 @@
 //   node scripts/lint-enum-parity.js            check against the baseline
 //   node scripts/lint-enum-parity.js --write    re-record the baseline
 //   node scripts/lint-enum-parity.js <Name>     look one enum up in both trees
+import { parse } from "@babel/parser";
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -69,6 +70,58 @@ function jsVocabularies(source)
 }
 
 /**
+ * Definition-site registry metadata belongs only to its exported vocabulary.
+ * Inspect top-level calls and the canonical import so a nearby enum, unrelated
+ * Create method, nested shadow binding or string cannot acquire its donor.
+ */
+function registeredSources(source, file)
+{
+    const ast = parse(source, { sourceType: "module", plugins: [ [ "decorators", { version: "2023-11" } ] ] });
+    const registry = path.join(root, "src/global/blue/enums/CjsBlueEnumRegistry.js");
+    const imports = new Set();
+    const declarations = new Set();
+    const found = new Map();
+    for (const node of ast.program.body)
+    {
+        if (node.type === "ImportDeclaration")
+        {
+            const target = node.source.value;
+            if (target !== "#blue/enums/CjsBlueEnumRegistry" && target !== "#blue/enums/CjsBlueEnumRegistry.js"
+                && !(target.startsWith(".") && path.resolve(path.dirname(file), target) === registry)) continue;
+            for (const specifier of node.specifiers)
+            {
+                if (specifier.type === "ImportSpecifier" && specifier.imported.name === "blueEnums") imports.add(specifier.local.name);
+            }
+        }
+        if (node.type === "ExportNamedDeclaration" && node.declaration?.type === "VariableDeclaration")
+        {
+            for (const declaration of node.declaration.declarations)
+            {
+                if (declaration.id.type === "Identifier") declarations.add(declaration.id.name);
+            }
+        }
+    }
+    for (const node of ast.program.body)
+    {
+        const call = node.type === "ExpressionStatement" ? node.expression : null;
+        if (call?.type !== "CallExpression" || call.callee.type !== "MemberExpression" || call.callee.computed
+            || call.callee.object.type !== "Identifier" || !imports.has(call.callee.object.name)
+            || call.callee.property.name !== "Create") continue;
+        const [ name, vocabulary, metadata ] = call.arguments;
+        if (name?.type !== "StringLiteral" || vocabulary?.type !== "Identifier" || !declarations.has(vocabulary.name)
+            || metadata?.type !== "ObjectExpression") continue;
+        // Spreads and computed keys can replace source at runtime. Only an
+        // unambiguous literal property supplies statically provable authority.
+        if (metadata.properties.some(property => property.type !== "ObjectProperty" || property.computed)) continue;
+        const sources = metadata.properties.filter(property => (property.key.name ?? property.key.value) === "source");
+        if (sources.length !== 1 || sources[0].value.type !== "StringLiteral") continue;
+        if (!found.has(vocabulary.name)) found.set(vocabulary.name, new Set());
+        found.get(vocabulary.name).add(sources[0].value.value.replaceAll("\\", "/"));
+    }
+    return found;
+}
+
+/**
  * Match a Carbon member to ours, tolerating the prefix conventions in the tree.
  *
  * Tolerated so the VALUE still gets checked - a renamed member would otherwise
@@ -100,11 +153,12 @@ else
         const relative = path.relative(root, file).replaceAll("\\", "/");
         const source = await readFile(file, "utf8");
         const head = jsProvenance(source);
+        const registrations = registeredSources(source, file);
 
         for (const [ name, members ] of jsVocabularies(source))
         {
             if (!vocabularies.has(name)) vocabularies.set(name, []);
-            vocabularies.get(name).push({ file: relative, members, head });
+            vocabularies.get(name).push({ file: relative, members, head, sources: registrations.get(name) });
         }
     }
 
@@ -151,11 +205,12 @@ else
                     ...(declared.owner && declared.name === "Type" ? vocabularies.get(declared.owner) ?? [] : [])
                 ];
                 // Attribution, not name collision. A vocabulary counts as this enum's
-                // port only if its file cites the donor header, or - for a nested
+                // port only if its file or its own registry metadata cites the donor
+                // header, or - for a nested
                 // enum, now that one class per file is the rule - is named after the
                 // owner. Carbon declares Status, Type, Result and Usage inside many
                 // unrelated classes, so a bare name proves nothing.
-                const cited = named.filter(candidate => candidate.head.includes(path.posix.basename(header)));
+                const cited = named.filter(candidate => candidate.head.includes(path.posix.basename(header)) || candidate.sources?.has(header));
                 const owned = declared.owner
                     ? named.filter(candidate => path.basename(candidate.file, ".js") === declared.owner)
                     : [];
