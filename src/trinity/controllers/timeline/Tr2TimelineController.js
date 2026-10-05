@@ -436,6 +436,8 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Rebases action sim time.
+   * Source: trinity/trinity/Controllers/Tr2TimelineController.cpp:366-375
+   * Adapted: JavaScript numeric timestamps represent native Be::Time values.
    */
   @meta.blue.method
   @meta.adapted
@@ -445,7 +447,7 @@ export class Tr2TimelineController extends EveThrottleable
     this._lastUpdateTime += diff;
     for (const action of this.actions)
     {
-      action.RebaseSimTime?.(diff);
+      action.RebaseSimTime(diff);
     }
   }
 
