@@ -10,7 +10,6 @@ import { box3 } from "#math/box3";
  * transport only: no native query, read or persistence flags are invented.
  */
 @meta.define({ className: "Tr2MaterialBoundsAdjustment", family: "utilities" })
-@meta.blue.interface()
 export class Tr2MaterialBoundsAdjustment
 {
 
