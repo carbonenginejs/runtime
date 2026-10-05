@@ -1,6 +1,6 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodRandomParameter.h
 import { IsMatch } from "#blue";
 import { IInitialize } from "../../../../../global/blue/IInitialize.js";
-// Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodRandomParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta } from "#schema";
 import { EveChildRef } from "../../../../eve/child/EveChildRef.js";
@@ -47,13 +47,17 @@ export class EveProceduralMethodRandomParameter
     return true;
   }
 
-  /** Carbon EveProceduralMethodRandomParameter::OnModified (cpp:35-52): a
+  /**
+   * Carbon EveProceduralMethodRandomParameter::OnModified (cpp:35-52): a
    * weighting change clamps to >= 1 and flags the parameter modified; a child
    * assignment blocks its auto-load. The value argument follows the repo's
-   * OnModified duck. */
+   * OnModified duck.
+   *
+   * Adapted: The Be::Var notification identity is represented by either the field name or
+   * assigned value.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The Be::Var notification identity is represented by either the field name or assigned value.")
   OnModified(value = null)
   {
     if (IsMatch(value, "weighting"))

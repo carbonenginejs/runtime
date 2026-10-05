@@ -1,3 +1,4 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/EveChildProceduralContainer.h
 import { INotify } from "../../../../global/blue/INotify.js";
 import { EveEntity } from "../../EveEntity.js";
 import { ITr2SoundEmitterOwner } from "../../ITr2SoundEmitterOwner.js";
@@ -6,7 +7,6 @@ import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { ITr2CurveSetOwner } from "../../../curves/ITr2CurveSetOwner.js";
 import { IEveSpaceObjectChild } from "../IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "../EveSpaceObjectChild.js";
-// Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/EveChildProceduralContainer.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { CjsSchema, meta } from "#schema";
 import { quat } from "#math/quat";
@@ -82,12 +82,16 @@ export class EveChildProceduralContainer extends EveChildTransform
     return true;
   }
 
-  /** Carbon EveChildProceduralContainer::OnModified (cpp:313-320): a display
+  /**
+   * Carbon EveChildProceduralContainer::OnModified (cpp:313-320): a display
    * change re-registers with the scene component registry (engine-owned,
-   * omitted). */
+   * omitted).
+   *
+   * Adapted: The native ReRegister call on display changes is not implemented in this
+   * method; it currently reports success without re-registering.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("ReRegister on display changes is not ported yet (component registry unported); the notify contract is preserved.")
   OnModified(_value = null)
   {
     return true;
@@ -117,14 +121,18 @@ export class EveChildProceduralContainer extends EveChildTransform
     this.name = String(name ?? "");
   }
 
-  /** Carbon EveChildProceduralContainer::ConfigureSelectedObject
+  /**
+   * Carbon EveChildProceduralContainer::ConfigureSelectedObject
    * (cpp:136-156): pull the newly selected child from the selection method,
    * replay the stored procedural variables into it, then swap it in. Carbon
    * also re-registers the entity with the scene component registry
-   * (engine-owned, omitted). */
+   * (engine-owned, omitted).
+   *
+   * Adapted: Entity Register/UnRegister against the component registry is not ported yet;
+   * the variable replay and swap are ported.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Entity Register/UnRegister against the component registry is not ported yet; the variable replay and swap are ported.")
   ConfigureSelectedObject()
   {
     const child = this.selectionMethod ? this.selectionMethod.GetSelectedChild() : null;

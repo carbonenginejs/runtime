@@ -1,6 +1,6 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodAttributeMapParameter.h
 import { IsMatch } from "#blue";
 import { IInitialize } from "../../../../../global/blue/IInitialize.js";
-// Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodAttributeMapParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta } from "#schema";
 import { EveChildRef } from "../../../../eve/child/EveChildRef.js";
@@ -40,12 +40,16 @@ export class EveProceduralMethodAttributeMapParameter
     return true;
   }
 
-  /** Carbon EveProceduralMethodAttributeMapParameter::OnModified (cpp:24-35):
+  /**
+   * Carbon EveProceduralMethodAttributeMapParameter::OnModified (cpp:24-35):
    * a child assignment blocks its auto-load until the map selects it. The
-   * value argument follows the repo's OnModified duck. */
+   * value argument follows the repo's OnModified duck.
+   *
+   * Adapted: The Be::Var notification identity is represented by either the field name or
+   * assigned value.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The Be::Var notification identity is represented by either the field name or assigned value.")
   OnModified(value = null)
   {
     if (IsMatch(value, "child"))
