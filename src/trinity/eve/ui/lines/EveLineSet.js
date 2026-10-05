@@ -1,6 +1,6 @@
-import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/UI/EveLineSet.h
 // Source: trinity/trinity/Eve/UI/EveLineSet.cpp
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Hand-maintained after promotion from generated schema intake.
 import { meta } from "#schema";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";

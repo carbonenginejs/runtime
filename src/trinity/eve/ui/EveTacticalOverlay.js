@@ -1,8 +1,8 @@
-import { IsMatch } from "#blue";
-import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay.h
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay.cpp
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay_Blue.cpp
+import { IsMatch } from "#blue";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Promoted to hand-maintained source 2026-08-22; quad instance policy is portable CPU work.
 import { mat4 } from "#math/mat4";
 import { num } from "#math/num";
@@ -110,10 +110,14 @@ export class EveTacticalOverlay
     return true;
   }
 
-  /** Reattaches only effect references that changed since the prior settle. */
+  /**
+   * Reattaches only effect references that changed since the prior settle.
+   *
+   * Adapted: JS dispatches the native hook using the exposed member name; existing
+   * class-owned rendering/resource adaptations remain unchanged.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "anchorEffect")) this._SetVariableStore(this.anchorEffect);
@@ -122,10 +126,14 @@ export class EveTacticalOverlay
     return true;
   }
 
-  /** Samples the root and every owned track object, then refreshes effect variables. */
+  /**
+   * Samples the root and every owned track object, then refreshes effect variables.
+   *
+   * Adapted: Carbon vector-function output pointers use the runtime's established
+   * time-first, out-last JavaScript contract.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon vector-function output pointers use the runtime's established time-first, out-last JavaScript contract.")
   UpdateSyncronous(updateContext)
   {
     if (this.translationCurve)
@@ -148,10 +156,14 @@ export class EveTacticalOverlay
   {
   }
 
-  /** Rebuilds the flat CPU instance records for this frame. */
+  /**
+   * Rebuilds the flat CPU instance records for this frame.
+   *
+   * Adapted: Carbon's typed vertex vectors are represented by flat Float32Array-compatible
+   * number buffers consumed by Tr2QuadRenderer.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon's typed vertex vectors are represented by flat Float32Array-compatible number buffers consumed by Tr2QuadRenderer.")
   UpdateVisibility(updateContext, _parentTransform)
   {
     this._anchorBuffer.length = 0;
@@ -350,10 +362,14 @@ export class EveTacticalOverlay
     mat4.identity(out);
   }
 
-  /** Registers the three exact instance layouts with the shared quad renderer. */
+  /**
+   * Registers the three exact instance layouts with the shared quad renderer.
+   *
+   * Adapted: Carbon combines an effect content hash with its native pointer; JavaScript
+   * combines it with a stable WeakMap identity.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon combines an effect content hash with its native pointer; JavaScript combines it with a stable WeakMap identity.")
   RegisterWithQuadRenderer(quadRenderer)
   {
     if (this.connectorEffect)

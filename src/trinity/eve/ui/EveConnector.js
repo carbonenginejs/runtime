@@ -151,10 +151,14 @@ export class EveConnector
   /** Carbon's animation normalization length. */
   _lineLength = 1;
 
-  /** Samples any authored endpoint functions at the active update time. */
+  /**
+   * Samples any authored endpoint functions at the active update time.
+   *
+   * Adapted: JavaScript vector functions use GetValueAt(time, out); Carbon's pointer-first
+   * spelling is a native calling convention.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JavaScript vector functions use GetValueAt(time, out); Carbon's pointer-first spelling is a native calling convention.")
   Update(context)
   {
     const time = context.GetTime();

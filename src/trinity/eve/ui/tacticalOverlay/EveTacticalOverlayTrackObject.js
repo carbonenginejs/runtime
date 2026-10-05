@@ -43,10 +43,12 @@ export class EveTacticalOverlayTrackObject
    * Samples the translation curve at the update context's time, storing the
    * position and the curve derivative as the tracked velocity; does nothing when
    * no curve is assigned.
+   *
+   * Adapted: Carbon vector functions use output pointers; runtime curves use the established
+   * time-first, out-last calling convention.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon vector functions use output pointers; runtime curves use the established time-first, out-last calling convention.")
   UpdatePosition(updateContext)
   {
     if (!this.translationCurve) return;
@@ -55,19 +57,27 @@ export class EveTacticalOverlayTrackObject
     this.translationCurve.GetValueAt_Ticks(time, this.position);
   }
 
-  /** Copies the velocity sampled by the last UpdatePosition into out. */
+  /**
+   * Copies the velocity sampled by the last UpdatePosition into out.
+   *
+   * Adapted: Carbon returns Vector3 by value; JavaScript follows the runtime vector
+   * out-parameter convention.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon returns Vector3 by value; JavaScript follows the runtime vector out-parameter convention.")
   GetVelocity(out = vec3.create())
   {
     return vec3.copy(out, this._velocity);
   }
 
-  /** Copies the tracked position into out. */
+  /**
+   * Copies the tracked position into out.
+   *
+   * Adapted: Carbon returns Vector3 by value; JavaScript follows the runtime vector
+   * out-parameter convention.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon returns Vector3 by value; JavaScript follows the runtime vector out-parameter convention.")
   GetPosition(out = vec3.create())
   {
     return vec3.copy(out, this.position);

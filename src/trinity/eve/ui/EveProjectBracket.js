@@ -62,10 +62,13 @@ export class EveProjectBracket
    *
    * Carbon ignores the curve-set time and samples the OS frame clock,
    * BeOS->GetCurrentFrameTime(); so does this, through blue.os.
+   *
+   * Adapted: Tr2Renderer camera state is supplied by the active Tr2RenderContext;
+   * BlueScriptCallback accepts a host function or a Carbon callback object; Carbon's
+   * optional global debug-text side effect is not ported yet and is omitted.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Tr2Renderer camera state is supplied by the active Tr2RenderContext; BlueScriptCallback accepts a host function or a Carbon callback object; Carbon's optional global debug-text side effect is not ported yet and is omitted.")
   UpdateValue(_time, renderContext)
   {
     const scratchIndex = this._scratchDepth++;
@@ -215,10 +218,13 @@ export class EveProjectBracket
     }
   }
 
-  /** Applies one visibility transition to both owned bracket representations. */
+  /**
+   * Applies one visibility transition to both owned bracket representations.
+   *
+   * Adapted: BlueScriptCallback accepts a host function or a Carbon callback object.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("BlueScriptCallback accepts a host function or a Carbon callback object.")
   SetBracketDisplayState(state)
   {
     const next = Boolean(state);

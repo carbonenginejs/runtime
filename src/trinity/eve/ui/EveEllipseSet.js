@@ -1,7 +1,7 @@
+// Source: trinity/trinity/Eve/UI/EveEllipseSet.h
 import { INotify } from "../../../global/blue/INotify.js";
 import { IEveSpaceObjectChild } from "../child/IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "../child/EveSpaceObjectChild.js";
-// Source: trinity/trinity/Eve/UI/EveEllipseSet.h
 //   trinity/trinity/Eve/UI/EveEllipseSet.cpp
 import { vec3 } from "#math/vec3";
 import { CjsSchema, meta } from "#schema";
@@ -80,15 +80,21 @@ export class EveEllipseSet extends EveChildTransform
   effect = null;
 
   /**
-   * Appends an ellipse to the set, binds its dirty callback and marks the ribbon geometry for rebuild.
-   * @param {vec3} center Centre in the set's local space
-   * @param {Number} semiMajor
-   * @param {Number} semiMinor
-   * @param {vec3} planeNormal Normal of the plane the ellipse lies in
-   * @param {Number} rotationDegrees In-plane rotation, in degrees
-   * @returns {Boolean} Always true
+   * Appends an ellipse, binds its dirty callback and marks ribbon geometry for rebuild.
+   * Carbon AddEllipse (EveEllipseSet.cpp:112-128).
+   *
+   * Adapted: A JavaScript callback replaces the native dirty-flag pointer. Construction
+   * uses new rather than the Blue factory's boolean failure result.
+   *
+   * @param {vec3} center Centre in local space.
+   * @param {number} semiMajor Semi-major axis length.
+   * @param {number} semiMinor Semi-minor axis length.
+   * @param {vec3} planeNormal Ellipse plane normal.
+   * @param {number} rotationDegrees In-plane rotation in degrees.
+   * @returns {boolean} True after insertion.
    */
   @meta.blue.method
+  @meta.adapted
   AddEllipse(center, semiMajor, semiMinor, planeNormal, rotationDegrees)
   {
     const ellipse = new EveEllipseDefinition();
@@ -104,11 +110,16 @@ export class EveEllipseSet extends EveChildTransform
   }
 
   /**
-   * Rebinds every persisted ellipse's dirty callback after hydration; unlike
-   * Carbon it does not create the default effect, since resource lookup is left
-   * to the engine layer.
+   * Rebinds the persisted ellipse definitions' dirty callbacks after hydration.
+   * Carbon py__init__ (EveEllipseSet.cpp:189-198).
+   *
+   * Adapted: Rebinds JavaScript callbacks; the donor's configured default-effect
+   * creation is not implemented here. An assigned effect is retained.
+   *
+   * @returns {void}
    */
   @meta.blue.method
+  @meta.adapted
   __init__()
   {
     // Carbon creates the configured default effect here. Resource lookup is
@@ -121,11 +132,16 @@ export class EveEllipseSet extends EveChildTransform
   }
 
   /**
-   * Removes every ellipse, unbinding their dirty callbacks first so discarded
-   * definitions can no longer invalidate this set, and marks the geometry for
-   * rebuild.
+   * Unbinds ellipse dirty callbacks, empties the set and invalidates its geometry.
+   * Carbon ClearEllipses (EveEllipseSet.cpp:102-110).
+   *
+   * Adapted: JavaScript callbacks replace the native dirty-flag pointer; the current
+   * implementation additionally tolerates null entries or missing SetDirtyFlag methods.
+   *
+   * @returns {void}
    */
   @meta.blue.method
+  @meta.adapted
   ClearEllipses()
   {
     for (const ellipse of this.ellipses)
@@ -146,10 +162,14 @@ export class EveEllipseSet extends EveChildTransform
     return true;
   }
 
-  /** Binds or releases definition callbacks after a list mutation. */
+  /**
+   * Binds or releases definition callbacks after a list mutation.
+   *
+   * Adapted: JavaScript represents the owner's dirty-flag pointer with a callback; list
+   * event ordering follows Carbon.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JavaScript represents the owner's dirty-flag pointer with a callback; list event ordering follows Carbon.")
   @meta.invalidates("#geometryDirty")
   OnListModified(event, _key, _key2, value, list)
   {

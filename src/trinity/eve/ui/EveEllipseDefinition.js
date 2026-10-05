@@ -1,6 +1,6 @@
+// Source: trinity/trinity/Eve/UI/EveEllipseDefinition.h
 import { meta } from "#schema";
 import { INotify } from "../../../global/blue/INotify.js";
-// Source: trinity/trinity/Eve/UI/EveEllipseDefinition.h
 //   trinity/trinity/Eve/UI/EveEllipseDefinition.cpp
 import { vec3 } from "#math/vec3";
 
