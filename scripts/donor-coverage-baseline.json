@@ -64,7 +64,6 @@
   "trinity/trinity/Eve/Turret/EveTurretSet.h#EveTurretSetVSData": "No exact live class declaration for struct EveTurretSetVSData (trinity/trinity/Eve/Turret/EveTurretSet.h:46); review missing port or explicit JS equivalent.",
   "trinity/trinity/ITr2Renderable.h#ITr2RenderableEntry": "No exact live class declaration for struct ITr2RenderableEntry (trinity/trinity/ITr2Renderable.h:60); review missing port or explicit JS equivalent.",
   "trinity/trinity/ITr2SkinnedObject.h#ITr2SkinnedObject": "No exact live class declaration for interface ITr2SkinnedObject (trinity/trinity/ITr2SkinnedObject.h:7); review missing port or explicit JS equivalent.",
-  "trinity/trinity/Include/ITr2AnimationUpdater.h#ITr2AnimationUpdater": "No exact live class declaration for interface ITr2AnimationUpdater (trinity/trinity/Include/ITr2AnimationUpdater.h:7); review missing port or explicit JS equivalent.",
   "trinity/trinity/Include/ITr2Interior.h#ITr2Interior": "No exact live class declaration for interface ITr2Interior (trinity/trinity/Include/ITr2Interior.h:33); review missing port or explicit JS equivalent.",
   "trinity/trinity/Include/ITr2Interior.h#ITr2InteriorDynamic": "No exact live class declaration for interface ITr2InteriorDynamic (trinity/trinity/Include/ITr2Interior.h:44); review missing port or explicit JS equivalent.",
   "trinity/trinity/Include/Tr2Curve.h#Tr2Curve": "No exact live class declaration for class Tr2Curve (trinity/trinity/Include/Tr2Curve.h:113); review missing port or explicit JS equivalent.",

@@ -115,9 +115,6 @@
     "src/audio/CjsAudioUpdateContext.js": [
       "CjsAudioUpdateContext"
     ],
-    "src/character/trinity/trinityCore/ITr2AnimationUpdater.js": [
-      "ITr2AnimationUpdater"
-    ],
     "src/character/trinity/trinityCore/ITr2SkinnedObject.js": [
       "ITr2SkinnedObject"
     ],

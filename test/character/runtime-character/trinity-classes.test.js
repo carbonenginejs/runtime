@@ -10,6 +10,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import {
+  ITr2AnimationUpdater,
   Tr2InteriorPlaceable,
   Tr2InteriorLightSet,
   Tr2InteriorLightSource,
@@ -156,17 +157,23 @@ test("the character layer owns the WOD baking scene contract without engine real
   assert.match(source, /trinity\/trinity\/Wod\/WodBakingScene\.cpp/);
 });
 
-test("the character layer owns skinned-object interfaces as type-only Carbon contracts", () =>
+test("the character layer exports the nominal animation-updater contract", () =>
 {
-  assert.equal(
-    existsSync(new URL("../../../src/character/trinity/trinityCore/ITr2AnimationUpdater.js", import.meta.url)),
-    true
-  );
+  assert.equal(CjsSchema.GetConstructor("ITr2AnimationUpdater"), ITr2AnimationUpdater);
+  const updater = new ITr2AnimationUpdater();
+  for (const method of [ "PrePhysicsAnimation", "PostPhysicsAnimation", "GetAnimationTransforms", "GetAnimationBoneList" ])
+  {
+    assert.equal(CjsSchema.getMethod(ITr2AnimationUpdater, method).impl.status, "abstract");
+    assert.throws(() => updater[method](), /must be implemented by a pose provider/);
+  }
+});
+
+test("the character layer retains the skinned-object type declaration", () =>
+{
   assert.equal(
     existsSync(new URL("../../../src/character/trinity/trinityCore/ITr2SkinnedObject.js", import.meta.url)),
     true
   );
-  assert.equal(CjsSchema.GetConstructor("ITr2AnimationUpdater"), null);
   assert.equal(CjsSchema.GetConstructor("ITr2SkinnedObject"), null);
 });
 

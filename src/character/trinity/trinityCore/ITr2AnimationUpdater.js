@@ -1,17 +1,56 @@
-// Source: trinity/trinity/Include/ITr2AnimationUpdater.h
+// Source: trinity/trinity/Include/ITr2AnimationUpdater.h:7-15
+import { CjsSchema, meta } from "#schema";
 
-/**
- * Carbon's animation pose-provider contract.
- *
- * This is a type-only `BLUE_INTERFACE`, not a constructible Blue model.
- * CarbonEngineJS adapters expose bone names and transforms as arrays rather
- * than a pointer plus an output-count reference.
- *
- * @typedef {object} ITr2AnimationUpdater
- * @property {(time: number, modelTransform: ArrayLike<number>) => void} PrePhysicsAnimation
- * @property {(time: number, modelTransform: ArrayLike<number>) => void} PostPhysicsAnimation
- * @property {() => Array<ArrayLike<number>>} GetAnimationTransforms
- * @property {() => Array<string>} GetAnimationBoneList
- */
+/** Carbon animation pose-provider interface; IRoot has no JavaScript base. */
+export class ITr2AnimationUpdater
+{
+  /**
+   * Updates the pose before physics at the supplied time and model transform.
+   * @param {number} _time Animation time.
+   * @param {ArrayLike<number>} _modelTransform Model-to-world transform.
+   * @returns {void}
+   */
+  @meta.abstract
+  PrePhysicsAnimation(_time, _modelTransform)
+  {
+    throw new Error("ITr2AnimationUpdater.PrePhysicsAnimation must be implemented by a pose provider.");
+  }
 
-export {};
+  /**
+   * Updates the pose after physics at the supplied time and model transform.
+   * @param {number} _time Animation time.
+   * @param {ArrayLike<number>} _modelTransform Model-to-world transform.
+   * @returns {void}
+   */
+  @meta.abstract
+  PostPhysicsAnimation(_time, _modelTransform)
+  {
+    throw new Error("ITr2AnimationUpdater.PostPhysicsAnimation must be implemented by a pose provider.");
+  }
+
+  /**
+   * Returns the animation's bone transforms.
+   * Adapted: JavaScript providers return an array instead of Carbon's matrix pointer.
+   * @returns {Array<ArrayLike<number>>} Bone transforms supplied by the provider.
+   */
+  @meta.abstract
+  GetAnimationTransforms()
+  {
+    throw new Error("ITr2AnimationUpdater.GetAnimationTransforms must be implemented by a pose provider.");
+  }
+
+  /**
+   * Returns the names corresponding to the animation's bone transforms.
+   * Adapted: the returned array carries its count instead of Carbon's output reference.
+   * @returns {Array<string>} Bone names supplied by the provider.
+   */
+  @meta.abstract
+  GetAnimationBoneList()
+  {
+    throw new Error("ITr2AnimationUpdater.GetAnimationBoneList must be implemented by a pose provider.");
+  }
+}
+
+CjsSchema.define(ITr2AnimationUpdater, {
+  className: "ITr2AnimationUpdater", carbon: "ITr2AnimationUpdater", family: "trinityCore", fields: {}
+});
