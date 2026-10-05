@@ -2,7 +2,7 @@
 import { mat4 } from "#math/mat4";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 import { meta } from "#schema";
-import { Billboard2D } from "./EveChildModifierTransformCommon.js";
+import { EveChildModifierTransformCommon } from "./EveChildModifierTransformCommon.js";
 
 
 /**
@@ -36,6 +36,6 @@ export class EveChildModifierBillboard2D extends IEveChildTransformModifier
       return mat4.copy(out, transform);
     }
 
-    return Billboard2D(context, transform, out);
+    return EveChildModifierTransformCommon.billboard2D(context, transform, out);
   }
 }

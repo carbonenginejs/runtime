@@ -133,9 +133,6 @@
     "src/trinity/core/Tr2RenderUtils.js": [
       "Tr2RenderUtils"
     ],
-    "src/trinity/eve/child/modifiers/EveChildModifierTransformCommon.js": [
-      "EveChildModifierTransformCommon"
-    ],
     "src/trinity/eve/EveComponentTypes.js": [
       "EveComponentTypes"
     ],

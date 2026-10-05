@@ -5,7 +5,7 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { meta } from "#schema";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
-import { Billboard2D, DistanceBase } from "./EveChildModifierTransformCommon.js";
+import { EveChildModifierTransformCommon } from "./EveChildModifierTransformCommon.js";
 
 /**
  * Transform modifier that turns a child to face the camera, either as a fixed
@@ -64,8 +64,8 @@ export class EveChildModifierBillboard3D extends IEveChildTransformModifier
       return out;
     }
 
-    Billboard2D(context, transform, out);
-    DistanceBase(context, out, alignMat, d);
+    EveChildModifierTransformCommon.billboard2D(context, transform, out);
+    EveChildModifierTransformCommon.distanceBase(context, out, alignMat, d);
     // Carbon (row-vector): alignMat * billboard - align first.
     mat4.multiply(out, out, alignMat);
     return out;

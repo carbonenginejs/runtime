@@ -3,7 +3,7 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 import { meta } from "#schema";
-import { DistanceBase } from "./EveChildModifierTransformCommon.js";
+import { EveChildModifierTransformCommon } from "./EveChildModifierTransformCommon.js";
 
 
 /**
@@ -54,7 +54,7 @@ export class EveChildModifierHaloInverted extends IEveChildTransformModifier
     const { alignMat, d, forward, scaleVec, scalingTransform } = this.constructor.scratch;
 
     // distCenter is computed by DistanceBase and left unused here, as in Carbon.
-    DistanceBase(context, transform, alignMat, d);
+    EveChildModifierTransformCommon.distanceBase(context, transform, alignMat, d);
 
     vec3.set(forward, transform[8], transform[9], transform[10]);
     vec3.normalize(forward, forward);

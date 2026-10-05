@@ -3,7 +3,7 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 import { meta } from "#schema";
-import { DistanceBase } from "./EveChildModifierTransformCommon.js";
+import { EveChildModifierTransformCommon } from "./EveChildModifierTransformCommon.js";
 
 
 /**
@@ -53,7 +53,7 @@ export class EveChildModifierBooster extends IEveChildTransformModifier
 
     const { alignMat, d, scaleVec, transVec, scalingTransform, translationTransform } = this.constructor.scratch;
 
-    const distCenter = DistanceBase(context, transform, alignMat, d);
+    const distCenter = EveChildModifierTransformCommon.distanceBase(context, transform, alignMat, d);
 
     const radius = 0.5;
     const B = Math.sqrt(distCenter * distCenter - radius * radius);
