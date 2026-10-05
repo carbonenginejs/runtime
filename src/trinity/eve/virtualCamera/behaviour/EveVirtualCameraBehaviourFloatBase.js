@@ -1,7 +1,7 @@
-import { IsMatch } from "#blue";
-import { INotify } from "../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
+import { IsMatch } from "#blue";
+import { INotify } from "../../../../global/blue/INotify.js";
 import { meta } from "#schema";
 
 
@@ -49,10 +49,12 @@ export class EveVirtualCameraBehaviourFloatBase
   /**
    * Re-applies the current name after a field change, which propagates it to any
    * owned curves through the subclass SetName override.
+   *
+   * Adapted: JS dispatches the native hook using the exposed member name; existing
+   * class-owned rendering/resource adaptations remain unchanged.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "name")) this.SetName(this.name);
