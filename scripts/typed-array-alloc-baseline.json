@@ -7,7 +7,7 @@
     "src/audio/internal/busEffects.js": 6,
     "src/audio/internal/busFader.js": 1,
     "src/audio/internal/busFilter.js": 1,
-    "src/audio/internal/sourceEffectRtpc.js": 1,
+    "src/audio/internal/CjsWwiseSourceEffectRtpcLane.js": 1,
     "src/audio/internal/WwiseRoomVerbReader.js": 1,
     "src/audio/library-builder/CjsAudioLibraryBuilder.js": 3,
     "src/audio/library-builder/resourceSource.js": 2,

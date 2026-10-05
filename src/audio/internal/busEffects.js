@@ -10,7 +10,7 @@ import {
     prepareWwiseRoomVerbApproximation,
     WWISE_ROOMVERB_PLUGIN_ID,
 } from "./WwiseRoomVerbReader.js";
-import { createWwiseSourceEffectRtpcLane } from "./sourceEffectRtpc.js";
+import { createWwiseSourceEffectRtpcLane } from "./CjsWwiseSourceEffectRtpcLane.js";
 
 export {
     normalizeWwiseRoomVerbMode,

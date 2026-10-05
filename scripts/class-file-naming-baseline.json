@@ -1,9 +1,5 @@
 {
   "misnamed": {
-    "src/audio/internal/sourceEffectRtpc.js": [
-      "CjsWwiseSourceEffectRtpcLane",
-      "CjsWwiseFilteredControl"
-    ],
     "src/resource/format/CjsFormatError.js": [
       "CjsFormatReadError",
       "CjsFormatRangeError",
@@ -69,10 +65,6 @@
     "src/audio/CjsSfxEngine.js": [
       "CjsSfxEngineSelectionTransactionLedger",
       "CjsSfxEngine"
-    ],
-    "src/audio/internal/sourceEffectRtpc.js": [
-      "CjsWwiseSourceEffectRtpcLane",
-      "CjsWwiseFilteredControl"
     ],
     "src/audio/library-builder/CjsAudioLibraryBuilder.js": [
       "CjsAudioLibraryBuilder",
