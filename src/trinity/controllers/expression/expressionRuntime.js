@@ -13,6 +13,8 @@ import { vec3 } from "#math/vec3";
 import { carbonPerlin1D } from "#math/noise";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { TR2SHADERMODEL } from "#consts/graphics";
+import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
+import { ITr2ControllerOwner } from "../ITr2ControllerOwner.js";
 
 /**
  * Carbon's BlueCastPtr on a controller's owner, the class asked of Blue by its
@@ -378,10 +380,11 @@ export function ResolveIdentifier(name, context = {})
       return NormalizeValue(context.variables[name]);
     }
   }
-  const value = context.controller?.GetVariableValue?.(name, undefined);
+  // ITr2Controller.h:73: every action controller exposes this optional-valued getter.
+  const value = context.controller?.GetFloatVariableByName(name);
   if (value !== undefined)
   {
-    return NormalizeValue(value);
+    return value;
   }
   if (Object.prototype.hasOwnProperty.call(context, name))
   {
@@ -461,7 +464,8 @@ export const DEFAULT_FUNCTIONS = {
     (carbonPerlin1D(ToNumber(x) + GetRandomConstant(ctx), ToNumber(alpha), ToNumber(beta), Math.trunc(ToNumber(n) + 0.5)) + 1) / 2,
   input: (ctx, index) => GetInputValue(ctx, index),
   inputAt: (ctx, index, time) => GetInputValue_Time(ctx, index, time),
-  StateTime: ctx => ctx.stateMachine?.GetStateTime ? ctx.stateMachine.GetStateTime() : ToNumber(ctx.stateTime),
+  // Tr2ControllerExpression.cpp:31-34; action contexts separately supply elapsed stateTime.
+  StateTime: ctx => ctx.stateMachine ? ctx.stateMachine.GetStateRunTime() : ToNumber(ctx.stateTime),
   CurveSetTime: (ctx, name) => GetCurveSetTime(ctx, name),
   AnimationTime: (ctx, name) => CallContextFunction(ctx, "AnimationTime", name),
   IsAnimationPlaying: (ctx, name) => CallContextFunction(ctx, "IsAnimationPlaying", name),
@@ -491,67 +495,35 @@ export const DEFAULT_FUNCTIONS = {
 export function GetRandomConstant(context)
 {
   const source = context.curve ?? context.self ?? context.expression;
-  if (HasFunction(source, "GetRandomConstant"))
-  {
-    return ToNumber(source.GetRandomConstant());
-  }
-  if (HasProperty(source, "randomConstant"))
-  {
-    return ToNumber(source.randomConstant);
-  }
-  return 0;
+  // Tr2CurveScalarExpression.cpp:19-33 requires the supplied curve method.
+  // A standalone evaluator context without a curve retains its zero offset.
+  return source ? source.GetRandomConstant() : 0;
 }
 
-/**
- * Carbon's Input( curve, index ): reads an indexed input at the current time
- * through its source's GetInputValue( index ), time sampler, or current value.
- */
+/** Reads the supplied curve's required input method (Tr2CurveScalarExpression.cpp:59-68). */
 export function GetInputValue(context, index)
 {
-  const source = context.curve ?? context.self ?? context.expression ?? context;
-  if (HasFunction(source, "GetInputValue"))
-  {
-    return ToNumber(source.GetInputValue(RoundInputIndex(index)));
-  }
-  return ReadInputDirect(context, source, index, undefined);
+  const source = context.curve ?? context.self ?? context.expression;
+  return source ? source.GetInputValue(RoundInputIndex(index)) : ReadInputDirect(context, index, context.time);
+}
+
+/** Reads a curve input at the requested time (Tr2CurveScalarExpression.cpp:65-68). */
+export function GetInputValue_Time(context, index, time)
+{
+  const source = context.curve ?? context.self ?? context.expression;
+  return source ? source.GetInputValue_Time(RoundInputIndex(index), time) : ReadInputDirect(context, index, time);
 }
 
 /**
- * Carbon's InputAt( curve, index, time ): reads an indexed input at time
- * through its source's GetInputValue( index, time ) (GetInputValue_Time here).
+ * Samples explicit standalone-evaluator inputs with Carbon's bounds check and
+ * required scalar-function method (Tr2CurveScalarExpression.cpp:204-222).
  */
-export function GetInputValue_Time(context, index, time)
+function ReadInputDirect(context, index, time)
 {
-  const source = context.curve ?? context.self ?? context.expression ?? context;
-  if (HasFunction(source, "GetInputValue_Time"))
-  {
-    return ToNumber(source.GetInputValue_Time(RoundInputIndex(index), time));
-  }
-  return ReadInputDirect(context, source, index, time);
-}
-
-/** Samples an input from a source that exposes only its inputs list. */
-function ReadInputDirect(context, source, index, time)
-{
-  const inputs = HasProperty(source, "inputs") ? source.inputs : context.inputs;
-  const input = Array.isArray(inputs) ? inputs[RoundInputIndex(index)] : null;
-  if (!input)
-  {
-    return 0;
-  }
-  if (time !== undefined && HasFunction(input, "GetValueAt"))
-  {
-    return ToNumber(input.GetValueAt(ToNumber(time)));
-  }
-  if (HasFunction(input, "GetValueAt"))
-  {
-    return ToNumber(input.GetValueAt(ToNumber(context.time)));
-  }
-  if (HasProperty(input, "currentValue"))
-  {
-    return ToNumber(input.currentValue);
-  }
-  return ToNumber(input);
+  const inputs = context.inputs;
+  const inputIndex = RoundInputIndex(index);
+  if (!Array.isArray(inputs) || inputIndex < 0 || inputIndex >= inputs.length) return 0;
+  return inputs[inputIndex].GetValueAt(ToNumber(time));
 }
 
 /** Converts an input index by adding one half and truncating toward zero. */
@@ -561,30 +533,29 @@ export function RoundInputIndex(index)
 }
 
 /**
- * Queries an owner's named range or curve-set duration before trying a context
- * callback.
+ * Casts the owner to Carbon's curve-set contract, then queries its duration.
+ * Source: trinity/trinity/Controllers/Tr2ControllerExpression.cpp:36-54
+ * Adapted: an explicit evaluator callback remains available when the cast fails.
  */
 export function GetCurveSetTime(context, name)
 {
-  const owner = context.owner;
+  const owner = CjsSchema.cast(context.owner, ITr2CurveSetOwner);
   if (owner)
   {
-    if (HasFunction(owner, "GetRangeDuration") && typeof name === "string" && name.includes("/"))
+    if (typeof name === "string" && name.includes("/"))
     {
       const parts = name.split("/");
-      return ToNumber(owner.GetRangeDuration(parts[0], parts.slice(1).join("/")));
+      return owner.GetRangeDuration(parts[0], parts.slice(1).join("/"));
     }
-    if (HasFunction(owner, "GetCurveSetDuration"))
-    {
-      return ToNumber(owner.GetCurveSetDuration(name));
-    }
+    return owner.GetCurveSetDuration(name);
   }
   return CallContextFunction(context, "CurveSetTime", name);
 }
 
 /**
- * Reads an external variable from the context map or owner, applying the
- * supplied fallback.
+ * Reads an explicit context map or the native controller-owner contract.
+ * Source: trinity/trinity/Controllers/Tr2ControllerExpression.cpp:56-71
+ * Adapted: value-or-null replaces the native bool plus output parameter.
  */
 export function GetExternalControllerVariable(context, name, fallback)
 {
@@ -592,10 +563,11 @@ export function GetExternalControllerVariable(context, name, fallback)
   {
     return ToNumber(context.externalControllerVariables[String(name)]);
   }
-  if (HasFunction(context.owner, "GetControllerValueByName"))
+  const owner = CjsSchema.cast(context.owner, ITr2ControllerOwner);
+  if (owner)
   {
-    const value = context.owner.GetControllerValueByName(name);
-    return value === undefined || value === null ? ToNumber(fallback) : ToNumber(value);
+    const value = owner.GetControllerValueByName(name);
+    return value === undefined || value === null ? ToNumber(fallback) : value;
   }
   return ToNumber(fallback);
 }
@@ -757,7 +729,8 @@ function GetFrameTimeUnixMilliseconds()
 
 /**
  * Finds a Date or numeric timestamp in the context, its callback table, or its
- * owner.
+ * owner. These are caller-supplied evaluator extensions; Carbon reads frame time
+ * directly (Tr2ControllerExpression.cpp:241-255).
  */
 export function GetServerTimeValue(context)
 {
@@ -816,8 +789,11 @@ export function CallContextFunction(context, name, arg, fallback = 0)
 }
 
 /**
- * Tries the context callback table before the owner and returns null when
- * neither supplies the function.
+ * Tries explicit evaluator callbacks on the context table or its owner.
+ * These extension hooks are not native receiver methods. Carbon
+ * Tr2ControllerExpression.cpp:74-137,204-213 implements the animation, radius,
+ * kill-counter and booster terms separately; those full ports remain outside
+ * this callback adapter. Returns null when neither supplies the function.
  */
 export function TryCallContextFunction(context, name, arg)
 {

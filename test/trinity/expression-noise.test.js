@@ -6,7 +6,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { CjsControllerExpressionProgram } from "../../npm/dist/trinity/index.js";
+import { CjsControllerExpressionProgram, Tr2CurveScalarExpression } from "../../npm/dist/trinity/index.js";
 import { carbonPerlin1D } from "../../npm/dist/global/math/noise.js";
 
 const evaluate = (source, context = {}) => CjsControllerExpressionProgram.Compile(source).Evaluate(context);
@@ -17,7 +17,7 @@ test("noise(x) is Carbon's (PerlinNoise1D(x + randomConstant, 1, 1, 1) + 1) / 2"
   {
     assert.ok(Math.abs(evaluate(`noise(${x})`) - (carbonPerlin1D(x, 1, 1, 1) + 1) / 2) < 1e-6, `noise(${x})`);
   }
-  const curve = { randomConstant: 3.7 };
+  const curve = Object.assign(new Tr2CurveScalarExpression(), { randomConstant: 3.7 });
   assert.ok(Math.abs(evaluate("noise(1.2)", { curve }) - (carbonPerlin1D(1.2 + 3.7, 1, 1, 1) + 1) / 2) < 1e-6, "offset by the random constant");
 });
 
