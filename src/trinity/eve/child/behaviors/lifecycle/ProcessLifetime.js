@@ -599,6 +599,9 @@ export class ProcessLifetime
 
   /**
    * Places the very first spawn at a random time along a random entrance tunnel's curve, ageing the agent by the fraction of the tunnel it skipped and setting the spline point it resumes from (Carbon FindInitialSpawnPoint, cpp:329-388). Prefers this behavior's own tunnel groups and falls back to the system-wide ones.
+   * Adapted: Math.random selects native rand-based indices; the vector call fills a
+   * JavaScript output buffer and returns it. Native zero-length division is preserved;
+   * JavaScript NaN storage does not emulate C++ undefined float-to-int conversion.
    * @param {Float32Array} pos - caller-owned; receives the chosen spawn position
    * @returns {Boolean} false when no entrance tunnel with loaded curves is available
    */
@@ -635,23 +638,17 @@ export class ProcessLifetime
     {
       // we can have more than 1 curve so pick a random curve
       const curve = curveSets[Math.floor(Math.random() * curveSets.length)];
-      if (!curve?.Length || !curve?.GetValue)
-      {
-        return false;
-      }
 
       // get random time
-      const length = Math.trunc(Number(curve.Length()) || 0);
+      const length = Math.trunc(curve.Length());
       const time = Math.floor(Math.random() * (length + 1));
 
       // get value at time
-      const value = curve.GetValue(time, pos);
-      if (value && value !== pos)
-      {
-        vec3.copy(pos, value);
-      }
+      vec3.copy(pos, curve.GetValue(time, pos));
 
-      const stepSize = length !== 0 ? time / length : 0;
+      // Carbon quirk (ProcessLifetime.cpp:376-384): zero length divides 0 by 0.
+      // JS retains NaN for tunnelPoint; the native NaN-to-int conversion is undefined.
+      const stepSize = time / length;
 
       // Get the next pointID
       const breakPoints = splineTunnel.GetNumBreakPoints();
