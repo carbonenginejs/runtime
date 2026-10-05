@@ -1,8 +1,9 @@
 {
   "src/audio/CjsAudioSystem.js": 3,
-  "src/audio/CjsMusicEngine.js": 9,
   "src/audio/CjsWebAudioSoundEngine.js": 4,
   "src/audio/internal/CjsAudioBackendSfxVoice.js": 1,
+  "src/audio/internal/CjsMusicEngineScheduledClip.js": 7,
+  "src/audio/internal/CjsMusicEngineScheduledSegment.js": 2,
   "src/character/webgl2/CjsCharacterWebgl2EffectRouter.js": 4,
   "src/global/blue/CjsBlueResMan.js": 3,
   "src/global/blue/CjsMotherLode.js": 5,

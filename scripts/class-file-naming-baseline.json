@@ -53,12 +53,6 @@
     ]
   },
   "multipleClasses": {
-    "src/audio/CjsMusicEngine.js": [
-      "CjsMusicEngineScheduledClip",
-      "CjsMusicEngineScheduledSegment",
-      "MusicInstance",
-      "CjsMusicEngine"
-    ],
     "src/audio/library-builder/CjsAudioLibraryBuilder.js": [
       "CjsAudioLibraryBuilder",
       "CjsAudioLibraryBuilderBankInspectionSession",

@@ -1,7 +1,8 @@
 {
   "allocations": {
     "src/audio/CjsAudioMan.js": 3,
-    "src/audio/CjsMusicEngine.js": 3,
+    "src/audio/CjsMusicEngine.js": 2,
+    "src/audio/internal/CjsMusicEngineFade.js": 1,
     "src/audio/CjsWebAudioSoundEngine.js": 10,
     "src/audio/internal/busDuckGain.js": 1,
     "src/audio/internal/busEffects.js": 6,
