@@ -135,8 +135,8 @@ export class EveEllipseSet extends EveChildTransform
    * Unbinds ellipse dirty callbacks, empties the set and invalidates its geometry.
    * Carbon ClearEllipses (EveEllipseSet.cpp:102-110).
    *
-   * Adapted: JavaScript callbacks replace the native dirty-flag pointer; the current
-   * implementation additionally tolerates null entries or missing SetDirtyFlag methods.
+   * Adapted: JavaScript callbacks replace the native dirty-flag pointer. Every
+   * owned definition must provide SetDirtyFlag, as in Carbon.
    *
    * @returns {void}
    */
@@ -146,7 +146,7 @@ export class EveEllipseSet extends EveChildTransform
   {
     for (const ellipse of this.ellipses)
     {
-      ellipse?.SetDirtyFlag?.(null);
+      ellipse.SetDirtyFlag(null);
     }
     this.ellipses.length = 0;
     this._MarkGeometryDirty();
