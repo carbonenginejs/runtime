@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { CjsSchema } from "../../src/global/schema/CjsSchema.js";
-import { carbonMapInterfaceDecorator } from "../../src/global/compose/interface.js";
+import { carbonInterfaceDecorator } from "../../src/global/compose/interface.js";
 import { IInitialize } from "../../src/global/blue/IInitialize.js";
 import { INotify } from "../../src/global/blue/INotify.js";
 import { CjsBlackReader } from "../../src/resource/formats/black/core/CjsBlackReader.js";
@@ -134,8 +134,8 @@ test("canonical runtime bypasses accessors and values, preserves cycles, and ini
         SetValues() { throw new Error("values transport must not run"); }
         Initialize() { assert.equal(this.first.ready, true); events.push("root ready"); }
     }
-    carbonMapInterfaceDecorator([IInitialize])(First);
-    carbonMapInterfaceDecorator([IInitialize])(Root);
+    carbonInterfaceDecorator([IInitialize])(First);
+    carbonInterfaceDecorator([IInitialize])(Root);
     CjsSchema.define(First, { className: "BlackCanonicalFirst", members: [] });
     CjsSchema.define(Later, { className: "BlackCanonicalLater", members: [] });
     CjsSchema.define(Root, {
@@ -169,7 +169,7 @@ test("cached Black builders clear failed runtime graphs on every request", () =>
     {
         Initialize() { throw new Error("synthetic initialize failure"); }
     }
-    carbonMapInterfaceDecorator([IInitialize])(Failing);
+    carbonInterfaceDecorator([IInitialize])(Failing);
     CjsSchema.define(Failing, { className: "BlackFailedLifetime", members: [] });
     const fixture = new BlackFixture();
     const bytes = fixture.Finish(fixture.Object(1, "BlackFailedLifetime"));
@@ -192,7 +192,7 @@ test("canonical reader notifies each successful stored write and ignores unmappe
         Initialize() { throw new Error("unmapped Initialize must not run"); }
         OnModified(name) { notifications.push([name, this._value, this.quiet]); return false; }
     }
-    carbonMapInterfaceDecorator([INotify])(Notified);
+    carbonInterfaceDecorator([INotify])(Notified);
     CjsSchema.define(Notified, { className: "BlackCanonicalNotified", members: [
         member("value", "uint32", { key: "_value", edit: { persist: true, notify: true } }), member("quiet", "uint32")
     ] });
@@ -213,7 +213,7 @@ test("canonical embedded decoding populates existing storage before its initiali
         Initialize() { assert.equal(this, original); assert.equal(this.value, 12); }
     }
     class Owner { embedded = (original = new Embedded()); }
-    carbonMapInterfaceDecorator([IInitialize])(Embedded);
+    carbonInterfaceDecorator([IInitialize])(Embedded);
     CjsSchema.define(Embedded, { className: "BlackCanonicalEmbedded", members: [member("value", "uint32")] });
     CjsSchema.define(Owner, { className: "BlackCanonicalEmbeddedOwner", members: [member("embedded", "struct")] });
     const fixture = new BlackFixture();
@@ -229,7 +229,7 @@ test("an explicit adapter retains its whole-graph contract with canonical declar
     const events = [];
     class Child { Initialize() { throw new Error("custom adapter owns finalization"); } }
     class Parent {}
-    carbonMapInterfaceDecorator([IInitialize])(Child);
+    carbonInterfaceDecorator([IInitialize])(Child);
     CjsSchema.define(Child, { className: "BlackCanonicalAdapterChild", members: [member("value", "uint32")] });
     CjsSchema.define(Parent, { className: "BlackCanonicalAdapterParent", members: [member("child", "objectRef")] });
     const fixture = new BlackFixture();

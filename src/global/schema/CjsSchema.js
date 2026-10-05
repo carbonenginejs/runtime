@@ -11,7 +11,7 @@ import {
 import { composeAbstractDecorator } from "../compose/abstract.js";
 import { CJS_CLASS_NAME, getRegisteredClassName, requireRegisteredClassName } from "../compose/className.js";
 import { composeNotifyDecorator } from "../compose/notify.js";
-import { carbonInheritDecorator, carbonMapInterfaceDecorator, carbonInterfaceTableDecorator, carbonInterfaceDecorator, carbonChainToDecorator, cast } from "../compose/interface.js";
+import { carbonInheritDecorator, carbonInterfaceDecorator, carbonChainToDecorator, cast } from "../compose/interface.js";
 import { composeValuesDecorator, createValuesTransport, isExportableField, isWritableField } from "../compose/values.js";
 import { blueEnums, CjsBlueEnumRegistry, CJS_ENUM_NAME } from "../blue/enums/CjsBlueEnumRegistry.js";
 import { TriSettingNames } from "../consts/trinity.js";
@@ -926,8 +926,6 @@ export class CjsSchema
             Bases,
             (Constructor, name, Contract) => CjsSchema.decorateMethod(
                 Constructor, name, ...CjsSchema._inheritedImplDecorators(Contract, name))),
-        mapInterface: (...Interfaces) => carbonMapInterfaceDecorator(Interfaces),
-        interfaceTable: definition => carbonInterfaceTableDecorator(definition),
         interface: (...Interfaces) => carbonInterfaceDecorator(Interfaces),
         chainTo: Parent => carbonChainToDecorator(Parent),
         method: methodDecorator("carbon", { method: true }),

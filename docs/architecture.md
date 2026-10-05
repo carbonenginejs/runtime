@@ -91,20 +91,26 @@ installation transaction and its failure behavior.
 
 Native base composition and Blue interface exposure are separate declarations.
 `meta.blue.inherit` supplies the base relationships used by dynamic casts.
-`meta.blue.interfaceTable({ interfaces, chainTo })` describes a concrete
-class's complete interface table: `chainTo: null` ends exposure, while a class
-constructor chains only that class's table. Listing a concrete class in
-`interfaces` adds its identity; it does not traverse that class's table.
+Two decorators describe a class's interface table, following Carbon's exposure
+macros:
 
-The declaration can be a class decorator or be applied to the constructor after
-its definition. It replaces earlier interface mappings on that class. Later
-`meta.blue.mapInterface` calls add local entries without changing the explicit
-chain. Classes not migrated to an explicit table retain the legacy mapping
-behavior.
+- `meta.blue.interface(A, B)` is `MAP_INTERFACE`. The class itself is always the
+  first entry, as `EXPOSURE_BEGIN` adds it, so it is never listed.
+- `meta.blue.chainTo(Parent)` is `EXPOSURE_CHAINTO`: after the class's own
+  entries, the table continues into `Parent`'s table. Without it, the table
+  ends, as `EXPOSURE_END` does.
 
-Copier and declared readers use the resolved table to select initialization or
-member notifications. Declaring a table does not initialize objects, change
-JavaScript inheritance, or change stored-member and property inheritance.
+Listing a concrete class as an interface adds its identity; it does not
+traverse that class's table. A class with no table of its own answers with its
+nearest JavaScript ancestor's. Either decorator can be applied to the
+constructor after its definition instead.
+
+`blue.classes.QueryThisInterface(object, X, options)` answers the exposure
+question: the object when its table maps `X`, otherwise null. A miss is logged
+unless `CjsBlueClasses.BLUEQIOPT.BEQI_SILENT` is passed. Copier and declared
+readers use the same table to choose between initialization and member
+notifications. Declaring a table does not initialize objects, change JavaScript
+inheritance, or change stored-member and property inheritance.
 
 ## Values editing notifications
 

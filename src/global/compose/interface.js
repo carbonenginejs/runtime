@@ -255,7 +255,7 @@ export function cast(value, Contract)
  * the first base declaring a member is the one that supplies it, exactly as
  * C++ resolves an unqualified name against the base list left to right.
  *
- * INHERITING IS NOT MAPPING, and `@carbon.mapInterface` below is the other
+ * INHERITING IS NOT MAPPING, and `@meta.blue.interface` below is the other
  * half. This one is Carbon's base list: it decides which members a class has
  * and what `dynamic_cast` accepts. Mapping is the separate `_Blue.cpp`
  * exposure that `BlueCastPtr` reads, and it decides real behaviour - see that
@@ -298,15 +298,16 @@ export function carbonInheritDecorator(Contracts, onInstalled = null)
  * The classes `_Blue.cpp` maps for a given class, held on the CONSTRUCTOR.
  *
  * Separate from the composed-base record above because the two answer
- * different questions - see `carbonMapInterfaceDecorator`.
+ * different questions - see `carbonInterfaceDecorator`.
  */
 const MAPPED = Symbol.for("carbonenginejs.carbon.mappedInterfaces");
 
 
 /**
- * Every interface the class exposes. Legacy mappings include their copied JS
- * inheritance. An explicit interfaceTable follows only its declared chainTo;
- * listing a concrete class as an interface never traverses that class's table.
+ * Every interface the class exposes: its own entries, then each `chainTo`
+ * parent's, the order `BlueClasses::QueryThisInterface` walks them. A class with
+ * no own table answers with its nearest JS ancestor's. Listing a concrete class
+ * as an interface never traverses that class's table.
  *
  * @param {Function} Constructor The class to ask about.
  * @returns {Set<Function>} Empty when nothing is mapped. Do not mutate.
@@ -343,10 +344,9 @@ function ResolveInterfaceTable(Constructor, visiting = null, replacement = null)
     }
     else table = Constructor[MAPPED];
 
-    // Preserve the original Set and its inheritance semantics for legacy users.
-    if (!table || table instanceof Set) return table || new Set();
+    if (!table) return new Set();
     visiting ??= new Set();
-    if (visiting.has(table)) throw new TypeError("carbon.interfaceTable exposure chain contains a cycle.");
+    if (visiting.has(table)) throw new TypeError("carbon.chainTo exposure chain contains a cycle.");
     visiting.add(table);
     const result = new Set(table.interfaces);
     if (table.chainTo)
@@ -384,12 +384,7 @@ function OwnInterfaceTable(Constructor, decoratorName)
 {
     if (typeof Constructor !== "function" || !Constructor.prototype)
         throw new TypeError(`carbon.${decoratorName} requires a class constructor.`);
-    if (Object.hasOwn(Constructor, MAPPED))
-    {
-        const existing = Constructor[MAPPED];
-        if (existing instanceof Set) throw new TypeError(`carbon.${decoratorName} cannot be combined with mapInterface on the same class.`);
-        return existing;
-    }
+    if (Object.hasOwn(Constructor, MAPPED)) return Constructor[MAPPED];
     const table = { interfaces: new Set([ Constructor ]), chainTo: null };
     Object.defineProperty(Constructor, MAPPED, { value: table, configurable: true });
     return table;
@@ -402,6 +397,28 @@ function OwnInterfaceTable(Constructor, decoratorName)
  * always the first entry, as `EXPOSURE_BEGIN` adds it, so it is never listed.
  * Without `chainTo` the table ends here, as `EXPOSURE_END()` does. Called with
  * no interfaces it declares a table holding only the class itself.
+ *
+ * WHY THIS IS NOT THE SAME FACT AS THE BASE LIST, with the case that settles
+ * it. `MAP_INTERFACE` pushes an `InterfaceEntry` of IID and offset onto
+ * `s_interfaces` (`BlueExposureMacros.h:171-175`) - a QueryInterface table -
+ * and `BlueCastPtr` reads that table. It is NOT script-only; `blue/src` uses
+ * it throughout. The black-file reader branches on it:
+ *
+ *     IInitializePtr init( BlueCastPtr( instance ) );
+ *     if( !init ) { notify = BlueCastPtr( instance ); }
+ *                                       // BlackReader.cpp:410-421
+ *
+ * A class that MAPS `IInitialize` is hydrated by reading every member and
+ * then calling `Initialize()` once, with NO per-property notification. One
+ * that does not map it gets `OnModified` per property instead. Inheriting
+ * `IInitialize` does not put it in that table, so a class can implement
+ * `Initialize` and still take the notify branch - which is why method
+ * presence is the wrong test and this record is the right one.
+ *
+ * IT DESCRIBES AND DOES NOT INSTALL. Nothing is added to the prototype, and
+ * `cast` deliberately does not read it: `cast` ports `dynamic_cast`, which
+ * answers to the base list. Exposure is asked through
+ * `blue.classes.QueryThisInterface`, so the two casts can never be confused.
  *
  * @param {Function[]} Interfaces The mapped interfaces, in `_Blue.cpp` order.
  * @returns {Function} A Stage-3 or imperative class decorator.
@@ -448,135 +465,3 @@ export function carbonChainToDecorator(Parent)
     };
 }
 
-
-/**
- * Declares a complete Blue interface table and its explicit exposure parent.
- * `chainTo: null` represents EXPOSURE_END; a constructor represents
- * EXPOSURE_CHAINTO (BlueExposureMacros.h:132-138). QueryInterface visits that
- * parent table, not the tables of classes listed in MAP_INTERFACE
- * (BlueClasses.cpp:388-400). Own entries precede the parent's entries.
- *
- * This atomic declaration replaces earlier mappings on the same class. Later
- * mapInterface additions extend only its own entries, preserving the boundary.
- * Classes without an explicit table retain legacy JS-inherited mappings. No
- * prototype methods, composed bases, stored members or method metadata change.
- * Implicit native IRoot/self entries are not added; list supported identities
- * explicitly, using imperative application when the list includes the class.
- *
- * Usage: `meta.blue.interfaceTable({ interfaces: [INotify], chainTo: null })`
- * decorates a class, or the returned decorator can be called with its constructor.
- *
- * @param {{interfaces: Function[], chainTo: Function|null}} definition Complete interface mapping.
- * @returns {Function} A Stage-3 or imperative class decorator.
- */
-export function carbonInterfaceTableDecorator(definition)
-{
-    if (!definition || typeof definition !== "object" || Array.isArray(definition)
-        || (Object.getPrototypeOf(definition) !== Object.prototype && Object.getPrototypeOf(definition) !== null))
-    {
-        throw new TypeError("carbon.interfaceTable requires a plain descriptor.");
-    }
-    if (!Object.hasOwn(definition, "interfaces") || !Array.isArray(definition.interfaces)
-        || !Object.hasOwn(definition, "chainTo")
-        || Object.keys(definition).some(key => key !== "interfaces" && key !== "chainTo"))
-    {
-        throw new TypeError("carbon.interfaceTable requires only interfaces and chainTo.");
-    }
-    const interfaces = new Set(definition.interfaces);
-    for (const Interface of interfaces)
-    {
-        if (typeof Interface !== "function" || !Interface.prototype)
-            throw new TypeError("carbon.interfaceTable interfaces must be class constructors.");
-    }
-    const { chainTo } = definition;
-    if (chainTo !== null && (typeof chainTo !== "function" || !chainTo.prototype))
-        throw new TypeError("carbon.interfaceTable chainTo must be null or a class constructor.");
-
-    return function (value, context)
-    {
-        if (context && typeof context === "object" && context.kind !== "class")
-            throw new TypeError("carbon.interfaceTable only supports classes.");
-        if (typeof value !== "function" || !value.prototype)
-            throw new TypeError("carbon.interfaceTable requires a class constructor.");
-
-        const table = { interfaces: new Set(interfaces), chainTo };
-        ResolveInterfaceTable(value, new Set(), { Constructor: value, table });
-        Object.defineProperty(value, MAPPED, { value: table, configurable: true });
-    };
-}
-
-
-/**
- * The `@carbon.mapInterface(X, Y, ...)` class decorator: Carbon's
- * `MAP_INTERFACE` entries, from the class's `EXPOSURE_BEGIN` block.
- *
- * WHY THIS IS NOT THE SAME FACT AS THE BASE LIST, with the case that settles
- * it. `MAP_INTERFACE` pushes an `InterfaceEntry` of IID and offset onto
- * `s_interfaces` (`BlueExposureMacros.h:171-175`) - a QueryInterface table -
- * and `BlueCastPtr` reads that table. It is NOT script-only; `blue/src` uses
- * it throughout. The black-file reader branches on it:
- *
- *     IInitializePtr init( BlueCastPtr( instance ) );
- *     if( !init ) { notify = BlueCastPtr( instance ); }
- *                                       // BlackReader.cpp:410-421
- *
- * A class that MAPS `IInitialize` is hydrated by reading every member and
- * then calling `Initialize()` once, with NO per-property notification. One
- * that does not map it gets `OnModified` per property instead. Inheriting
- * `IInitialize` does not put it in that table, so a class can implement
- * `Initialize` and still take the notify branch - which is why method
- * presence is the wrong test and this record is the right one.
- *
- * IT DESCRIBES AND DOES NOT INSTALL. Nothing is added to the prototype, and
- * `cast` deliberately does not read it: `cast` ports `dynamic_cast`, which
- * answers to the base list. A consumer wanting Carbon's exposure semantics
- * asks `mappedInterfaces` explicitly, so the two casts can never be confused
- * for one another.
- *
- * After an explicit interfaceTable declaration, additions stay in that class's
- * own table. Otherwise this retains its legacy copy-of-inherited-mappings rule.
- *
- * @param {...Function} Interfaces The mapped interfaces, as `_Blue.cpp` lists
- *   them.
- * @returns {Function} A stage-3 class decorator.
- */
-export function carbonMapInterfaceDecorator(Interfaces)
-{
-    const mapped = Array.isArray(Interfaces) ? Interfaces : [ Interfaces ];
-
-    if (!mapped.length)
-    {
-        throw new TypeError("carbon.mapInterface requires at least one interface class.");
-    }
-
-    for (const Interface of mapped)
-    {
-        if (typeof Interface !== "function" || !Interface.prototype)
-        {
-            throw new TypeError("carbon.mapInterface requires an interface class.");
-        }
-    }
-
-    return function (value, context)
-    {
-        if (context && typeof context === "object" && context.kind !== "class")
-        {
-            throw new TypeError("carbon.mapInterface only supports classes.");
-        }
-
-        // Copied before adding, for the reason the composed record is: a
-        // subclass declaring its own mapping must never reach back into its
-        // parent's.
-        const current = value[MAPPED];
-        if (Object.hasOwn(value, MAPPED) && current && !(current instanceof Set))
-        {
-            for (const Interface of mapped) current.interfaces.add(Interface);
-            return;
-        }
-        const inherited = mappedInterfaces(value);
-        const own = new Set(inherited ?? []);
-        for (const Interface of mapped) own.add(Interface);
-
-        Object.defineProperty(value, MAPPED, { value: own, configurable: true });
-    };
-}
