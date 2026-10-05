@@ -164,6 +164,55 @@ test("priority blending rebuilds a device-free post-process graph", () =>
   assertEquals(debug.lutPath.value.length, 2);
 });
 
+for (const method of ["BeginAttribute", "Influence", "EndAttribute"])
+{
+  test(`post-process accumulation requires observer ${method}`, () =>
+  {
+    const source = new Tr2PostProcessAttributes();
+    source.Reset();
+    source.intensity = 1;
+    source.bloomBrightnessEnabled = true;
+    source.bloomBrightness = 2;
+    source.lutPathEnabled = true;
+    source.lutPath = "lut-contract";
+    const operations = [
+      observer => Tr2PostProcessAttributes.Accumulate("bloomBrightness", [source], false, observer),
+      observer => Tr2PostProcessAttributes.AccumulateLuts([source], observer),
+      observer => Tr2PostProcessAttributes.MergeInto(new Tr2PostProcess2(), [source], observer)
+    ];
+    for (const operation of operations)
+    {
+      const observer = Tr2PostProcessAttributes.CreateDebugObserver();
+      observer[method] = undefined;
+      nodeAssert.throws(() => operation(observer), TypeError,
+        "PriorityBlend.h:293-295,330-332,344-346 guards the observer, never its methods");
+    }
+  });
+}
+
+test("post-process accumulation preserves null observers and real observer results", () =>
+{
+  const source = new Tr2PostProcessAttributes();
+  source.Reset();
+  source.intensity = 1;
+  source.bloomBrightnessEnabled = true;
+  source.bloomBrightness = 2;
+  source.lutPathEnabled = true;
+  source.lutPath = "lut-contract";
+  const observer = Tr2PostProcessAttributes.CreateDebugObserver();
+  const value = Tr2PostProcessAttributes.Accumulate("bloomBrightness", [source], false, observer);
+  const luts = Tr2PostProcessAttributes.AccumulateLuts([source], observer);
+  nodeAssert.equal(observer.GetDict().bloomBrightness.value, value);
+  nodeAssert.deepEqual(observer.GetDict().lutPath.value, luts);
+  for (const absent of [null, undefined])
+  {
+    nodeAssert.equal(Tr2PostProcessAttributes.Accumulate("bloomBrightness", [source], false, absent), value);
+    nodeAssert.deepEqual(Tr2PostProcessAttributes.AccumulateLuts([source], absent), luts);
+    nodeAssert.doesNotThrow(() => Tr2PostProcessAttributes.MergeInto(new Tr2PostProcess2(), [source], absent),
+      "Tr2PostProcessAttributes.h:26 permits a null debug observer");
+  }
+});
+
 test("FromPostProcess follows Carbon's sorted-LUT and extraction quirks", () =>
 {
   const graph = new Tr2PostProcess2();

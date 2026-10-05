@@ -1445,31 +1445,37 @@ export class Tr2PostProcessAttributes
   /**
    * Opens the debug record for one attribute; a null observer makes this a
    * no-op, which is the normal non-debug path.
+   * Source: trinity/trinity/PriorityBlend.h:293-295
+   * Custom: this JavaScript helper dispatches the native template observer call.
    */
   @meta.ours
   static BeginDebug(observer, name)
   {
-    observer?.BeginAttribute?.(name);
+    observer?.BeginAttribute(name);
   }
 
   /**
    * Records that one source contributed to the open attribute at the given
    * weight.
+   * Source: trinity/trinity/PriorityBlend.h:330-332
+   * Custom: this JavaScript helper dispatches the native template observer call.
    */
   @meta.ours
   static DebugInfluence(observer, source, weight)
   {
-    observer?.Influence?.(source, weight);
+    observer?.Influence(source, weight);
   }
 
   /**
    * Closes the open attribute's debug record with the value the accumulation
    * produced.
+   * Source: trinity/trinity/PriorityBlend.h:257-260,344-346
+   * Custom: this JavaScript helper passes values without native Python wrapping.
    */
   @meta.ours
   static EndDebug(observer, value)
   {
-    observer?.EndAttribute?.(value);
+    observer?.EndAttribute(value);
   }
 
   /**
