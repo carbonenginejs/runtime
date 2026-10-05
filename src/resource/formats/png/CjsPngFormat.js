@@ -222,23 +222,6 @@ export class CjsPngFormat extends CjsImageFormat
         return toJsonValue(value);
     }
 
-    /**
-     * Test whether bytes look like a PNG file.
-     *
-     * @param {Uint8Array|ArrayBuffer|DataView} input Candidate PNG bytes.
-     * @returns {boolean} True when the PNG signature is present.
-     */
-    static isPNG(input)
-    {
-        try
-        {
-            return isPNG(asUint8Array(input, "Image input"));
-        }
-        catch
-        {
-            return false;
-        }
-    }
 
     static id = "CjsPngFormat";
     static inputs = CjsFormat.defineInputs({
@@ -286,5 +269,7 @@ export class CjsPngFormat extends CjsImageFormat
 
     static extensions = [ ".png" ];
 }
+
+CjsImageFormat.registerSignature("png", isPNG);
 
 export default CjsPngFormat;

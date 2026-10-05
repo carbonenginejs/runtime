@@ -17,7 +17,7 @@ test("inspects png dimensions and emits raw payload", () =>
     const info = CjsPngFormat.inspect(bytes);
     const raw = CjsPngFormat.read(bytes);
 
-    assert.equal(CjsPngFormat.isPNG(bytes), true);
+    assert.equal(CjsPngFormat.is(bytes), true);
     assert.equal(info.sourceFormat, "png");
     assert.equal(info.width, 32);
     assert.equal(info.height, 16);

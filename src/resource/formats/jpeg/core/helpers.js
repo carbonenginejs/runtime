@@ -1,9 +1,6 @@
 import { toJsonWithByteSummary as toJsonValue } from "../../../format/jsonPolicies.js";
-import { capitalizeFormatId, foreignImageRecord, identifyImageBytes, imageMimeType, isJPEG, rawVariant } from "../../../format/imageSignatures.js";
+import { CjsImageFormat } from "../../../format/CjsImageFormat.js";
 
-// The container sniffer is shared; re-exported because the format class
-// imports it from this module.
-export { isJPEG };
 import { asUint8Array, readU16BE, readU16LE, readU32BE, readU32LE } from "#utils/bytes";
 export const OUTPUT_IMAGE = "image";
 export const OUTPUT_TEXTURE = "texture";
@@ -12,6 +9,17 @@ export const OUTPUT_RAW = "raw";
 export const OUTPUT_JSON = "json";
 
 import { canDecodeJpeg, decodeJpegToRgba } from "./jpeg.js";
+
+/**
+ * True when `bytes` opens with the JPEG start-of-image marker.
+ *
+ * @param {Uint8Array} bytes Candidate bytes.
+ * @returns {boolean} Whether the marker matches.
+ */
+export function isJPEG(bytes)
+{
+    return bytes.byteLength >= 4 && bytes[0] === 0xff && bytes[1] === 0xd8;
+}
 
 export const DEFAULT_VALUES = {
     emit: OUTPUT_RAW,
@@ -65,9 +73,9 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
     const detected = inspectBytes(bytes);
     const sourceFormat = expectedType || values.inputType || detected.sourceFormat;
 
-    if (expectedType && detected.sourceFormat && detected.sourceFormat !== expectedType)
+    if (expectedType && detected.sourceFormat !== expectedType)
     {
-        throw new TypeError(`CjsFormat${capitalizeFormatId(expectedType)}: expected ${expectedType}, got ${detected.sourceFormat}`);
+        throw new TypeError(`CjsFormat${CjsImageFormat.capitalizeFormatId(expectedType)}: expected ${expectedType}, got ${detected.sourceFormat || "unrecognised bytes"}`);
     }
 
     return {
@@ -89,7 +97,7 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedT
         const canDecode = metadata.sourceFormat === "jpeg" && canDecodeJpeg(metadata);
         const variants = [
             { kind: "rgba", codec: "rgba8unorm", supported: canDecode, reason: canDecode ? "" : jpegDecodeReason(metadata)},
-            rawVariant(metadata)
+            CjsImageFormat.rawVariant(metadata)
         ];
 
         return {
@@ -132,7 +140,7 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
     {
         return {
             sourceFormat: metadata.sourceFormat,
-            mimeType: imageMimeType(metadata.sourceFormat),
+            mimeType: CjsImageFormat.imageMimeType(metadata.sourceFormat),
             metadata,
             bytes
         };
@@ -173,8 +181,7 @@ export { toJsonValue };
  */
 export function inspectBytes(bytes)
 {
-    const sourceFormat = identifyImageBytes(bytes);
-    return sourceFormat === "jpeg" ? inspectJPEG(bytes) : foreignImageRecord(sourceFormat);
+    return isJPEG(bytes) ? inspectJPEG(bytes) : CjsImageFormat.foreignImageRecord(CjsImageFormat.identifyImageBytes(bytes));
 }
 
 

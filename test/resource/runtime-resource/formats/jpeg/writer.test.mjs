@@ -48,7 +48,7 @@ test("writes a baseline JPEG a decoder can read back", () =>
     const source = payload(32, 32, (x, y) => [ x * 8, y * 8, 128 ]);
     const bytes = CjsJpegFormat.write(source, { quality: 0.95 });
 
-    assert.equal(CjsJpegFormat.isJPEG(bytes), true);
+    assert.equal(CjsJpegFormat.is(bytes), true);
     assert.equal(bytes[0], 0xff);
     assert.equal(bytes[1], 0xd8);
     assert.equal(bytes.at(-2), 0xff);

@@ -9,7 +9,6 @@ import {
     OUTPUT_RGBA,
     inspectWithValues,
     isJPEG,
-    isJPG,
     probeSupportWithValues,
     normalizeValues,
     readWithValues,
@@ -200,41 +199,7 @@ export class CjsJpegFormat extends CjsImageFormat
         return toJsonValue(value);
     }
 
-    /**
-     * Test whether bytes look like a JPEG file.
-     *
-     * @param {Uint8Array|ArrayBuffer|DataView} input Candidate JPEG bytes.
-     * @returns {boolean} True when a JPEG SOI marker is present.
-     */
-    static isJPEG(input)
-    {
-        try
-        {
-            return isJPEG(asUint8Array(input, "Image input"));
-        }
-        catch
-        {
-            return false;
-        }
-    }
 
-    /**
-     * Test whether bytes look like a JPG/JPEG file.
-     *
-     * @param {Uint8Array|ArrayBuffer|DataView} input Candidate JPG bytes.
-     * @returns {boolean} True when a JPEG SOI marker is present.
-     */
-    static isJPG(input)
-    {
-        try
-        {
-            return isJPG(asUint8Array(input, "Image input"));
-        }
-        catch
-        {
-            return false;
-        }
-    }
 
     static id = "CjsJpegFormat";
     static inputs = CjsFormat.defineInputs({
@@ -264,5 +229,7 @@ export class CjsJpegFormat extends CjsImageFormat
 
     static extensions = [ ".jpg", ".jpeg" ];
 }
+
+CjsImageFormat.registerSignature("jpeg", isJPEG);
 
 export default CjsJpegFormat;

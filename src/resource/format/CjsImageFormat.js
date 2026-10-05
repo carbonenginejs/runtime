@@ -38,8 +38,105 @@ const SRGB_BLOCK_FORMATS = new Set([
  * to a block format is the next step here, so every image format inherits it
  * from this one place.
  */
+/** Media type per identified image container. */
+const IMAGE_MIME_TYPES = Object.freeze({
+    png: "image/png",
+    jpeg: "image/jpeg",
+    jpg: "image/jpeg",
+    tga: "image/x-tga",
+    dds: "image/vnd-ms.dds"
+});
+
 export class CjsImageFormat extends CjsFormat
 {
+  /**
+   * Signature tests the image formats register when they load: each format owns
+   * its own, and this list only lets a reader name a FOREIGN container in its
+   * mismatch error. Heuristic tests (TGA has no magic) run last.
+   */
+  static _signatures = [];
+
+  /**
+   * Registers an image format's signature test.
+   *
+   * @param {string} id Format id, e.g. `"png"`.
+   * @param {function(Uint8Array): boolean} test The format's own signature test.
+   * @param {{heuristic?: boolean}} [options] Heuristic tests are tried last.
+   * @returns {void}
+   */
+  static registerSignature(id, test, { heuristic = false } = {})
+  {
+    const list = CjsImageFormat._signatures.filter(entry => entry.id !== id);
+    list.push({ id, test, heuristic });
+    CjsImageFormat._signatures = list.sort((a, b) => Number(a.heuristic) - Number(b.heuristic));
+  }
+
+  /**
+   * Names the registered image container `bytes` holds.
+   *
+   * @param {Uint8Array} bytes Candidate bytes.
+   * @returns {string} The format id, or `""` when no registered format claims it.
+   */
+  static identifyImageBytes(bytes)
+  {
+    for (const { id, test } of CjsImageFormat._signatures)
+    {
+      if (test(bytes)) return id;
+    }
+    return "";
+  }
+
+  /**
+   * The minimal inspection record for a container this reader does not own:
+   * enough for the caller to name it in the mismatch error.
+   *
+   * @param {string} sourceFormat Identified container name, or `""`.
+   * @returns {{sourceFormat: string, width: number, height: number}} The record.
+   */
+  static foreignImageRecord(sourceFormat)
+  {
+    return { sourceFormat, width: 0, height: 0 };
+  }
+
+  /**
+   * Media type for an identified container.
+   *
+   * @param {string} sourceFormat Identified container name.
+   * @returns {string} Media type, or the generic binary type when unknown.
+   */
+  static imageMimeType(sourceFormat)
+  {
+    return IMAGE_MIME_TYPES[sourceFormat] || "application/octet-stream";
+  }
+
+  /**
+   * The `raw` support variant every image reader offers: handing back the
+   * undecoded bytes always works.
+   *
+   * @param {object} metadata Inspection record carrying `sourceFormat`.
+   * @returns {object} The raw variant descriptor.
+   */
+  static rawVariant(metadata)
+  {
+    return {
+      kind: "raw",
+      codec: metadata.sourceFormat,
+      mimeType: CjsImageFormat.imageMimeType(metadata.sourceFormat),
+      supported: true
+    };
+  }
+
+  /**
+   * Capitalizes a format id for an error message, defaulting to `"Image"`.
+   *
+   * @param {string} value Format id.
+   * @returns {string} Capitalized name.
+   */
+  static capitalizeFormatId(value)
+  {
+    return value ? value[0].toUpperCase() + value.slice(1) : "Image";
+  }
+
   /** Registered name; `constructor.name` does not survive minification. */
   static className = "CjsImageFormat";
 

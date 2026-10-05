@@ -1,12 +1,26 @@
 import { toJsonWithByteSummary as toJsonValue } from "../../../format/jsonPolicies.js";
-import { capitalizeFormatId, foreignImageRecord, identifyImageBytes, isDDS } from "../../../format/imageSignatures.js";
+import { CjsImageFormat } from "../../../format/CjsImageFormat.js";
 
-// The container sniffer is shared; re-exported because the format class
-// imports it from this module.
-export { isDDS };
 import { asUint8Array, readU16BE, readU16LE, readU32BE, readU32LE } from "#utils/bytes";
 import { decodeBc6h } from "./bc6h.js";
 import { decodeBc7 } from "./bc7.js";
+
+/**
+ * True when `bytes` opens with the DDS magic AND a well-formed header size.
+ *
+ * The size check is what separates this from a bare magic test: `DDS ` followed
+ * by anything is not a DDS file, and accepting it sends a caller into a header
+ * parse that cannot succeed.
+ *
+ * @param {Uint8Array} bytes Candidate bytes.
+ * @returns {boolean} Whether the container is DDS.
+ */
+export function isDDS(bytes)
+{
+    return bytes.byteLength >= DDS_HEADER_SIZE + 4 &&
+        bytes[0] === 0x44 && bytes[1] === 0x44 && bytes[2] === 0x53 && bytes[3] === 0x20 &&
+        readU32LE(bytes, 4) === DDS_HEADER_SIZE;
+}
 
 export const OUTPUT_IMAGE = "image";
 export const OUTPUT_TEXTURE = "texture";
@@ -146,9 +160,9 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
     const detected = inspectBytes(bytes);
     const sourceFormat = expectedType || values.inputType || detected.sourceFormat;
 
-    if (expectedType && detected.sourceFormat && detected.sourceFormat !== expectedType)
+    if (expectedType && detected.sourceFormat !== expectedType)
     {
-        throw new TypeError(`CjsFormat${capitalizeFormatId(expectedType)}: expected ${expectedType}, got ${detected.sourceFormat}`);
+        throw new TypeError(`CjsFormat${CjsImageFormat.capitalizeFormatId(expectedType)}: expected ${expectedType}, got ${detected.sourceFormat || "unrecognised bytes"}`);
     }
 
     return {
@@ -285,8 +299,7 @@ export { toJsonValue };
  */
 export function inspectBytes(bytes)
 {
-    const sourceFormat = identifyImageBytes(bytes);
-    return sourceFormat === "dds" ? inspectDDS(bytes) : foreignImageRecord(sourceFormat);
+    return isDDS(bytes) ? inspectDDS(bytes) : CjsImageFormat.foreignImageRecord(CjsImageFormat.identifyImageBytes(bytes));
 }
 
 

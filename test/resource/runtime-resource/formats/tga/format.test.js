@@ -13,7 +13,7 @@ test("inspects tga dimensions and emits raw payload", () =>
     const bytes = makeTgaHeader(8, 4);
     const raw = CjsTgaFormat.read(bytes);
 
-    assert.equal(CjsTgaFormat.isTGA(bytes), true);
+    assert.equal(CjsTgaFormat.is(bytes), true);
     assert.equal(raw.sourceFormat, "tga");
     assert.equal(raw.mimeType, "image/x-tga");
     assert.equal(raw.metadata.width, 8);

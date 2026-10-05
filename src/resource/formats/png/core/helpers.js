@@ -1,11 +1,40 @@
 import { toJsonWithByteSummary as toJsonValue } from "../../../format/jsonPolicies.js";
-import { capitalizeFormatId, foreignImageRecord, identifyImageBytes, imageMimeType, isPNG, pngChannels, rawVariant } from "../../../format/imageSignatures.js";
+import { CjsImageFormat } from "../../../format/CjsImageFormat.js";
 
-// The container sniffer is shared; re-exported because the format class
-// imports it from this module.
-export { isPNG };
 import { asUint8Array, readU16BE, readU16LE, readU32BE, readU32LE } from "#utils/bytes";
 import { decompressBytes } from "#utils/compression";
+
+/**
+ * True when `bytes` opens with the eight-byte PNG signature.
+ *
+ * The length floor is 24, not 8: the signature alone is not a PNG, and every
+ * caller goes straight on to read the IHDR that must follow it.
+ *
+ * @param {Uint8Array} bytes Candidate bytes.
+ * @returns {boolean} Whether the signature matches.
+ */
+export function isPNG(bytes)
+{
+    return bytes.byteLength >= 24 &&
+        bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47 &&
+        bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a;
+}
+
+/**
+ * Channel count for a PNG colour type.
+ *
+ * @param {number} colorType PNG IHDR colour type.
+ * @returns {number} Channels per pixel, or 0 when the colour type is invalid.
+ */
+export function pngChannels(colorType)
+{
+    if (colorType === 0) return 1;
+    if (colorType === 2) return 3;
+    if (colorType === 3) return 1;
+    if (colorType === 4) return 2;
+    if (colorType === 6) return 4;
+    return 0;
+}
 export const OUTPUT_IMAGE = "image";
 export const OUTPUT_TEXTURE = "texture";
 export const OUTPUT_RGBA = "rgba";
@@ -64,9 +93,9 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
     const detected = inspectBytes(bytes);
     const sourceFormat = expectedType || values.inputType || detected.sourceFormat;
 
-    if (expectedType && detected.sourceFormat && detected.sourceFormat !== expectedType)
+    if (expectedType && detected.sourceFormat !== expectedType)
     {
-        throw new TypeError(`CjsFormat${capitalizeFormatId(expectedType)}: expected ${expectedType}, got ${detected.sourceFormat}`);
+        throw new TypeError(`CjsFormat${CjsImageFormat.capitalizeFormatId(expectedType)}: expected ${expectedType}, got ${detected.sourceFormat || "unrecognised bytes"}`);
     }
 
     return {
@@ -94,7 +123,7 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedT
                 reason: pngSupport?.reason || `${metadata.sourceFormat.toUpperCase()} RGBA decode is not implemented yet.`,
                 meta: { async: true }
             },
-            rawVariant(metadata)
+            CjsImageFormat.rawVariant(metadata)
         ];
 
         return {
@@ -137,7 +166,7 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
     {
         return {
             sourceFormat: metadata.sourceFormat,
-            mimeType: imageMimeType(metadata.sourceFormat),
+            mimeType: CjsImageFormat.imageMimeType(metadata.sourceFormat),
             metadata,
             bytes
         };
@@ -187,8 +216,7 @@ export { toJsonValue };
  */
 export function inspectBytes(bytes)
 {
-    const sourceFormat = identifyImageBytes(bytes);
-    return sourceFormat === "png" ? inspectPNG(bytes) : foreignImageRecord(sourceFormat);
+    return isPNG(bytes) ? inspectPNG(bytes) : CjsImageFormat.foreignImageRecord(CjsImageFormat.identifyImageBytes(bytes));
 }
 
 

@@ -275,23 +275,6 @@ export class CjsDdsFormat extends CjsImageFormat
         return toJsonValue(value);
     }
 
-    /**
-     * Test whether bytes look like a DDS file.
-     *
-     * @param {Uint8Array|ArrayBuffer|DataView} input Candidate DDS bytes.
-     * @returns {boolean} True when the DDS header is present and sized correctly.
-     */
-    static isDDS(input)
-    {
-        try
-        {
-            return isDDS(asUint8Array(input, "Image input"));
-        }
-        catch
-        {
-            return false;
-        }
-    }
 
     /**
      * Fill a HostBitmap from DDS bytes: Carbon's `Dds::ReadImage`
@@ -577,5 +560,7 @@ export class CjsDdsFormat extends CjsImageFormat
     });
     static extensions = [ ".dds" ];
 }
+
+CjsImageFormat.registerSignature("dds", isDDS);
 
 export default CjsDdsFormat;

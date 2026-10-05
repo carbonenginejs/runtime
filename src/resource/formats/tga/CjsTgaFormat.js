@@ -193,23 +193,6 @@ export class CjsTgaFormat extends CjsImageFormat
         return toJsonValue(value);
     }
 
-    /**
-     * Test whether bytes look like a TGA file.
-     *
-     * @param {Uint8Array|ArrayBuffer|DataView} input Candidate TGA bytes.
-     * @returns {boolean} True when the TGA header looks valid.
-     */
-    static isTGA(input)
-    {
-        try
-        {
-            return isTGA(asUint8Array(input, "Image input"));
-        }
-        catch
-        {
-            return false;
-        }
-    }
 
     static id = "CjsTgaFormat";
 
@@ -247,5 +230,7 @@ export class CjsTgaFormat extends CjsImageFormat
 
     static extensions = [ ".tga" ];
 }
+
+CjsImageFormat.registerSignature("tga", isTGA, { heuristic: true });
 
 export default CjsTgaFormat;

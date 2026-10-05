@@ -1,10 +1,33 @@
 import { toJsonWithByteSummary as toJsonValue } from "../../../format/jsonPolicies.js";
-import { capitalizeFormatId, foreignImageRecord, identifyImageBytes, imageMimeType, isTGA, rawVariant } from "../../../format/imageSignatures.js";
+import { CjsImageFormat } from "../../../format/CjsImageFormat.js";
 
-// The container sniffer is shared; re-exported because the format class
-// imports it from this module.
-export { isTGA };
 import { asUint8Array, readU16BE, readU16LE, readU32BE, readU32LE } from "#utils/bytes";
+
+/**
+ * True when `bytes` plausibly opens a TGA.
+ *
+ * TGA has no magic number, so this is a heuristic over the 18-byte header:
+ * a known image type, non-zero extent, and a supported pixel depth (8, 15, 16,
+ * 24 or 32 bits). It is registered as a heuristic, so identification tries it
+ * after every format that can prove itself.
+ *
+ * @param {Uint8Array} bytes Candidate bytes.
+ * @returns {boolean} Whether the header is a plausible TGA.
+ */
+export function isTGA(bytes)
+{
+    if (bytes.byteLength < 18) return false;
+
+    const
+        imageType = bytes[2],
+        width = readU16LE(bytes, 12),
+        height = readU16LE(bytes, 14),
+        bpp = bytes[16];
+
+    return width > 0 && height > 0 &&
+        [ 1, 2, 3, 9, 10, 11 ].includes(imageType) &&
+        [ 8, 15, 16, 24, 32 ].includes(bpp);
+}
 export const OUTPUT_IMAGE = "image";
 export const OUTPUT_TEXTURE = "texture";
 export const OUTPUT_RGBA = "rgba";
@@ -63,9 +86,9 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
     const detected = inspectBytes(bytes);
     const sourceFormat = expectedType || values.inputType || detected.sourceFormat;
 
-    if (expectedType && detected.sourceFormat && detected.sourceFormat !== expectedType)
+    if (expectedType && detected.sourceFormat !== expectedType)
     {
-        throw new TypeError(`CjsFormat${capitalizeFormatId(expectedType)}: expected ${expectedType}, got ${detected.sourceFormat}`);
+        throw new TypeError(`CjsFormat${CjsImageFormat.capitalizeFormatId(expectedType)}: expected ${expectedType}, got ${detected.sourceFormat || "unrecognised bytes"}`);
     }
 
     return {
@@ -95,13 +118,13 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedT
                     supported: canDecodeTga,
                     reason: canDecodeTga ? "" : "Only supported true-color, grayscale, and indexed TGA images are decoded to RGBA.",
                 },
-                rawVariant(metadata, canDecodeTga)
+                CjsImageFormat.rawVariant(metadata, canDecodeTga)
             ];
         }
         else
         {
             variants = [
-                rawVariant(metadata, false),
+                CjsImageFormat.rawVariant(metadata, false),
                 { kind: "rgba", codec: "rgba8unorm", supported: false, reason: `${metadata.sourceFormat.toUpperCase()} RGBA decode is not implemented yet.`}
             ];
         }
@@ -146,7 +169,7 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
     {
         return {
             sourceFormat: metadata.sourceFormat,
-            mimeType: imageMimeType(metadata.sourceFormat),
+            mimeType: CjsImageFormat.imageMimeType(metadata.sourceFormat),
             metadata,
             bytes
         };
@@ -179,8 +202,7 @@ export { toJsonValue };
  */
 export function inspectBytes(bytes)
 {
-    const sourceFormat = identifyImageBytes(bytes);
-    return sourceFormat === "tga" ? inspectTGA(bytes) : foreignImageRecord(sourceFormat);
+    return isTGA(bytes) ? inspectTGA(bytes) : CjsImageFormat.foreignImageRecord(CjsImageFormat.identifyImageBytes(bytes));
 }
 
 
