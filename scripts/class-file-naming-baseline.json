@@ -6,9 +6,6 @@
     "src/audio/internal/busGraphMixer.js": [
       "CjsSharedBusMixer"
     ],
-    "src/audio/internal/busGraphRuntime.js": [
-      "CjsBusGraphRuntime"
-    ],
     "src/audio/internal/sourceEffectRtpc.js": [
       "CjsWwiseSourceEffectRtpcLane",
       "CjsWwiseFilteredControl"

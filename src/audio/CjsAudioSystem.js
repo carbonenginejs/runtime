@@ -19,7 +19,7 @@ import { ICjsMusicEngine } from "./ICjsMusicEngine.js";
 import { CjsAudioBackendGlobalReaders } from "./internal/CjsAudioBackendGlobalReaders.js";
 import { createAudioUpdateContext } from "./CjsAudioUpdateContext.js";
 import { CjsBusDuckingController } from "./internal/busDucking.js";
-import { CjsBusGraphRuntime } from "./internal/busGraphRuntime.js";
+import { CjsBusGraphRuntime } from "./internal/CjsBusGraphRuntime.js";
 import { CjsSharedBusMixer } from "./internal/busGraphMixer.js";
 import {
     normalizeWwiseDynamicsMode,
