@@ -53,15 +53,6 @@
     ]
   },
   "multipleClasses": {
-    "src/audio/library-builder/CjsAudioLibraryBuilder.js": [
-      "CjsAudioLibraryBuilder",
-      "CjsAudioLibraryBuilderBankInspectionSession",
-      "CjsAudioLibraryBuilderWwiseNodeBaseAncestry",
-      "CjsAudioLibraryBuilderSfxNodeLoweringSession",
-      "CjsAudioLibraryBuilderSfxEventLoweringSession",
-      "CjsAudioLibraryBuilderBusGraphConstructionSession",
-      "CjsAudioLibraryBuilderSfxNameCatalogAccumulator"
-    ],
     "src/global/blue/CjsFormatStore.js": [
       "CjsFormatRoute",
       "CjsFormatStore"

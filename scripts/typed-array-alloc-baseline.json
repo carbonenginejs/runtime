@@ -10,7 +10,7 @@
     "src/audio/internal/busFilter.js": 1,
     "src/audio/internal/CjsWwiseSourceEffectRtpcLane.js": 1,
     "src/audio/internal/WwiseRoomVerbReader.js": 1,
-    "src/audio/library-builder/CjsAudioLibraryBuilder.js": 3,
+    "src/audio/library-builder/CjsAudioLibraryBuilderUtils.js": 3,
     "src/audio/library-builder/resourceSource.js": 2,
     "src/audio/trinity/trinityAudio/Tr2AudioStretchBase.js": 2,
     "src/character/controls/CjsCharacterRigBinding.js": 7,
