@@ -11,7 +11,7 @@ import { ITr2ControllerOwner } from "../../../controllers/ITr2ControllerOwner.js
 import { EveChildInstanceContainer } from "../../child/EveChildInstanceContainer.js";
 import { Tr2Lod } from "../../EveLODHelper.js";
 import { EveEntity } from "../../EveEntity.js";
-import { EveComponentType } from "../../EveComponentTypes.js";
+import { EveComponentType } from "../../EntityComponents.js";
 import { IEveSpaceObject2ParentData } from "../../spaceObject/IEveSpaceObject2ParentData.js";
 import { EveTurretFiringFX } from "./EveTurretFiringFX.js";
 import { EveTurretAiming } from "./EveTurretAiming.js";

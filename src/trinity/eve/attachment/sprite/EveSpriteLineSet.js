@@ -8,7 +8,7 @@ import { mat4 } from "#math/mat4";
 import { meta } from "#schema";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveSpriteLight } from "./EveSpriteLight.js";
-import { EveComponentType } from "../../EveComponentTypes.js";
+import { EveComponentType } from "../../EntityComponents.js";
 import { EveSpaceObjectAttachmentUtils } from "../EveSpaceObjectAttachmentUtils.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
 import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";

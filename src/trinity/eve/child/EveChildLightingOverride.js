@@ -10,7 +10,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { meta } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
-import { EveComponentType } from "../EveComponentTypes.js";
+import { EveComponentType } from "../EntityComponents.js";
 import { Priority } from "../../generated/postProcess/enums.js";
 import { IEveLightingOverride } from "./IEveLightingOverride.js";
 import "../../postProcess/Tr2PostProcessAttributes.js";

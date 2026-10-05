@@ -4,7 +4,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { EveSpaceScene, Tr2PostProcessRenderer, Tr2Renderer, TriFrustum } from "../../npm/dist/trinity/index.js";
-import { GetReflectionSetting } from "../../npm/dist/trinity/eve/EveComponentTypes.js";
+import { EntityComponents } from "../../npm/dist/trinity/eve/EntityComponents.js";
 import { meta } from "../../npm/dist/global/schema/index.js";
 
 // Import the platform owner so its three explicitly approved settings register.
@@ -45,9 +45,9 @@ test("SetValue writes through to the engine's value", () =>
   assert.equal(settings.GetValue("eveSpaceSceneDynamicLighting"), true, "reads see the engine's value");
   EveSpaceScene.eveSpaceSceneDynamicLighting = false;
 
-  const reflection = GetReflectionSetting();
+  const reflection = EntityComponents.getReflectionSetting();
   settings.SetValue("eveReflectionSetting", 0);
-  assert.equal(GetReflectionSetting(), 0, "a module variable is reached through its accessors");
+  assert.equal(EntityComponents.getReflectionSetting(), 0, "a module variable is reached through its accessors");
   settings.SetValue("eveReflectionSetting", reflection);
 });
 
@@ -92,7 +92,7 @@ test("the registry records when a change applies, and a setting's enum", () =>
 {
   assert.equal(settings.FindSetting("eveSpaceSceneDynamicLighting").applies, meta.setting.ALWAYS);
   assert.equal(settings.FindSetting("newBloom").applies, meta.setting.CREATE, "copied at construction (cpp:525)");
-  assert.equal(settings.FindSetting("eveReflectionSetting").enum.REFLECTION_SETTING_HIGH, GetReflectionSetting());
+  assert.equal(settings.FindSetting("eveReflectionSetting").enum.REFLECTION_SETTING_HIGH, EntityComponents.getReflectionSetting());
 });
 
 test("only approved extension names are exempt from Carbon setting-name checks", () =>

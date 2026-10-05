@@ -24,7 +24,7 @@ import { EveEntity } from "../EveEntity.js";
 import { ReflectionMode, TriBatchType } from "#consts/graphics";
 import { EveChildTransform, applyTransformModifiers } from "./EveChildTransform.js";
 import { Origin } from "../../generated/eve/child/enums.js";
-import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
+import { EveComponentType, EntityComponents } from "../EntityComponents.js";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { Tr2Lod } from "../EveLODHelper.js";
 import { Tr2PerObjectData } from "../../core/rawData/perObjectData/Tr2PerObjectData.js";
@@ -1523,7 +1523,7 @@ export class EveChildMesh extends EveChildTransform
       return false;
     }
     if (renderReason === Tr2RenderReason.TR2RENDERREASON_REFLECTION &&
-      !ShouldReflect(this.reflectionMode))
+      !EntityComponents.shouldReflect(this.reflectionMode))
     {
       return false;
     }
@@ -1559,7 +1559,7 @@ export class EveChildMesh extends EveChildTransform
       return false;
     }
     if (renderReason === Tr2RenderReason.TR2RENDERREASON_REFLECTION &&
-      !ShouldReflect(this.reflectionMode))
+      !EntityComponents.shouldReflect(this.reflectionMode))
     {
       return false;
     }
@@ -1645,7 +1645,7 @@ export class EveChildMesh extends EveChildTransform
 
       if (this.mesh !== null)
       {
-        if (ShouldReflect(this.reflectionMode))
+        if (EntityComponents.shouldReflect(this.reflectionMode))
         {
           registry.RegisterComponent(EveComponentType.ReflectionRenderable, this);
         }

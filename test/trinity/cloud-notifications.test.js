@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { EveChildCloud2, Tr2Effect, EveComponentRegistry, Tr2TextureReference } from "../../npm/dist/trinity/index.js";
-import { EveComponentType } from "../../npm/dist/trinity/eve/EveComponentTypes.js";
+import { EveComponentType } from "../../npm/dist/trinity/eve/EntityComponents.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { INotify, NotifyModified } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";

@@ -1,20 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {
-  EveChildCloud2,
-  EveChildContainer,
-  EveChildMesh,
-  EveComponentRegistry,
-  EveComponentRequiredMethods,
-  EveComponentType,
-  EveEntity,
-  EveSpaceObject2,
-  GetReflectionSetting,
-  ReflectionMode,
-  ReflectionSetting,
-  SetReflectionSetting,
-  ShouldReflect
-} from "../../npm/dist/trinity/index.js";
+import { EveChildCloud2, EveChildContainer, EveChildMesh, EveComponentRegistry, EveComponentRequiredMethods, EveComponentType, EveEntity, EveSpaceObject2, ReflectionMode, ReflectionSetting, EntityComponents } from "../../npm/dist/trinity/index.js";
 
 
 test("EveComponentType carries the nine Carbon component-name strings verbatim", () =>
@@ -42,9 +28,9 @@ test("EveComponentType carries the nine Carbon component-name strings verbatim",
 
 test("reflection setting defaults to HIGH (Carbon's REFLECT_NEVER==3 init quirk, EveSpaceScene.cpp:112)", () =>
 {
-  assert.equal(GetReflectionSetting(), ReflectionSetting.REFLECTION_SETTING_HIGH);
+  assert.equal(EntityComponents.getReflectionSetting(), ReflectionSetting.REFLECTION_SETTING_HIGH);
   // Carbon's shipped behavior: HIGH-mode entities reflect out of the box.
-  assert.equal(ShouldReflect(ReflectionMode.REFLECT_HIGH), true);
+  assert.equal(EntityComponents.shouldReflect(ReflectionMode.REFLECT_HIGH), true);
 });
 
 test("ShouldReflect matches EveEntity.cpp:13-33 for every mode at every setting", () =>
@@ -63,18 +49,18 @@ test("ShouldReflect matches EveEntity.cpp:13-33 for every mode at every setting"
   {
     for (const [setting, high, mediumAndHigh, lowMediumHigh, never] of expected)
     {
-      SetReflectionSetting(setting);
-      assert.equal(ShouldReflect(M.REFLECT_HIGH), high, `REFLECT_HIGH at setting ${setting}`);
-      assert.equal(ShouldReflect(M.REFLECT_MEDIUM_AND_HIGH), mediumAndHigh, `REFLECT_MEDIUM_AND_HIGH at setting ${setting}`);
-      assert.equal(ShouldReflect(M.REFLECT_LOW_MEDIUM_HIGH), lowMediumHigh, `REFLECT_LOW_MEDIUM_HIGH at setting ${setting}`);
-      assert.equal(ShouldReflect(M.REFLECT_NEVER), never, `REFLECT_NEVER at setting ${setting}`);
+      EntityComponents.setReflectionSetting(setting);
+      assert.equal(EntityComponents.shouldReflect(M.REFLECT_HIGH), high, `REFLECT_HIGH at setting ${setting}`);
+      assert.equal(EntityComponents.shouldReflect(M.REFLECT_MEDIUM_AND_HIGH), mediumAndHigh, `REFLECT_MEDIUM_AND_HIGH at setting ${setting}`);
+      assert.equal(EntityComponents.shouldReflect(M.REFLECT_LOW_MEDIUM_HIGH), lowMediumHigh, `REFLECT_LOW_MEDIUM_HIGH at setting ${setting}`);
+      assert.equal(EntityComponents.shouldReflect(M.REFLECT_NEVER), never, `REFLECT_NEVER at setting ${setting}`);
       // Unknown modes fall through to Carbon's default: false.
-      assert.equal(ShouldReflect(42), false, `unknown mode at setting ${setting}`);
+      assert.equal(EntityComponents.shouldReflect(42), false, `unknown mode at setting ${setting}`);
     }
   }
   finally
   {
-    SetReflectionSetting(ReflectionSetting.REFLECTION_SETTING_HIGH);
+    EntityComponents.setReflectionSetting(ReflectionSetting.REFLECTION_SETTING_HIGH);
   }
 });
 
@@ -214,13 +200,13 @@ test("EveChildCloud2 registers VolumetricRenderable unconditionally and gates Re
 
   try
   {
-    SetReflectionSetting(ReflectionSetting.REFLECTION_SETTING_OFF);
+    EntityComponents.setReflectionSetting(ReflectionSetting.REFLECTION_SETTING_OFF);
     cloud.ReRegister();
     assert.ok(registry.GetComponents(EveComponentType.VolumetricRenderable).includes(cloud));
     assert.equal(registry.ComponentCount(EveComponentType.ReflectionRenderable), 0, "OFF setting disables reflection");
   }
   finally
   {
-    SetReflectionSetting(ReflectionSetting.REFLECTION_SETTING_HIGH);
+    EntityComponents.setReflectionSetting(ReflectionSetting.REFLECTION_SETTING_HIGH);
   }
 });

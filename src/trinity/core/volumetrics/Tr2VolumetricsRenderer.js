@@ -14,7 +14,7 @@ import { Tr2Effect } from "../../shader/Tr2Effect.js";
 import { Tr2VolumetricsRendererFogViewDependentResources } from "./Tr2VolumetricsRendererFogViewDependentResources.js";
 import { PER_OBJECT_VS, Tr2Renderer } from "../Tr2Renderer.js";
 import { TriRenderBatchAccumulator } from "../batch/TriRenderBatch/TriRenderBatchAccumulator.js";
-import { EveComponentType } from "../../eve/EveComponentTypes.js";
+import { EveComponentType } from "../../eve/EntityComponents.js";
 import { Tr2LightManager } from "../lighting/Tr2LightManager.js";
 import { CjsTr2VolumetricsRendererLayout } from "../rawData/layouts/CjsTr2VolumetricsRendererLayout.js";
 import { PixelFormat, ShaderType, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";

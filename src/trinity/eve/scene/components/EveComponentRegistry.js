@@ -3,7 +3,7 @@
 // Hand-maintained after promotion from generated schema intake.
 import { CjsSchema, meta } from "#schema";
 import { EveComponentCollection } from "./EveComponentCollection.js";
-import { EveComponentRequiredMethods, EveComponentType } from "../../EveComponentTypes.js";
+import { EveComponentRequiredMethods, EveComponentType } from "../../EntityComponents.js";
 import { ITr2FroxelFogSettings } from "../../child/ITr2FroxelFogSettings.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 

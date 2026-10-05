@@ -16,7 +16,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { Tr2Light } from "../lights/Tr2Light.js";
-import { EveComponentType } from "../EveComponentTypes.js";
+import { EveComponentType } from "../EntityComponents.js";
 import {
   createCjsLightDataView,
   setCjsLightDataOwnerValues

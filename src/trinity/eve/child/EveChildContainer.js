@@ -22,7 +22,7 @@ import { CjsSchema, meta } from "#schema";
 import { EveChildTransform, applyTransformModifiers } from "./EveChildTransform.js";
 import { EveChildInheritProperties } from "./EveChildInheritProperties.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
-import { EveComponentType } from "../EveComponentTypes.js";
+import { EveComponentType } from "../EntityComponents.js";
 import { Origin } from "../../generated/eve/child/enums.js";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { TR2SHADERMODEL } from "#consts/graphics";

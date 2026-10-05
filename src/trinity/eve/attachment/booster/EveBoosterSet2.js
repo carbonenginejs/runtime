@@ -13,7 +13,7 @@ import { INotify } from "#blue/INotify";
 import { EveEntity } from "../../EveEntity.js";
 import { EveBoosterSet2Item } from "./EveBoosterSet2Item.js";
 import { EveBoosterSet2Renderable } from "./EveBoosterSet2Renderable.js";
-import { EveComponentType } from "../../EveComponentTypes.js";
+import { EveComponentType } from "../../EntityComponents.js";
 import { TriStorageFlags } from "#consts/graphics";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
 import { TriDevice } from "../../../core/device/TriDevice.js";

@@ -4,7 +4,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { EveShip2, EveSpaceScene } from "../../npm/dist/trinity/index.js";
-import { EveComponentType } from "../../npm/dist/trinity/eve/EveComponentTypes.js";
+import { EveComponentType } from "../../npm/dist/trinity/eve/EntityComponents.js";
 import { StubContext } from "../support/stubContext.js";
 
 test("Initialize registers the scene's objects, so their light owners are gathered", () =>

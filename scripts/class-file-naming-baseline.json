@@ -130,9 +130,6 @@
     "src/trinity/core/Tr2ImageIOHelpers.js": [
       "Tr2ImageIOHelpers"
     ],
-    "src/trinity/eve/EveComponentTypes.js": [
-      "EveComponentTypes"
-    ],
     "src/trinityal/ALResult.js": [
       "ALResult"
     ]

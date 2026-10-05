@@ -17,7 +17,7 @@ import { PlayFX } from "./PlayFX.js";
 import { CarbonVertexElements } from "../../../core/vertex/vertexUsage.js";
 import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
-import { EveComponentType } from "../../EveComponentTypes.js";
+import { EveComponentType } from "../../EntityComponents.js";
 
 // Module scratch for the per-agent integration and visibility loops (child
 // updates run sequentially; non-reentrant by design).

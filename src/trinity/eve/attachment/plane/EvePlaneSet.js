@@ -11,7 +11,7 @@ import { CjsSchema, meta } from "#schema";
 import { TriTextureRes } from "#resource";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EvePlaneLight } from "./EvePlaneLight.js";
-import { EveComponentType } from "../../EveComponentTypes.js";
+import { EveComponentType } from "../../EntityComponents.js";
 import { EveSpaceObjectAttachmentUtils } from "../EveSpaceObjectAttachmentUtils.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
 import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";

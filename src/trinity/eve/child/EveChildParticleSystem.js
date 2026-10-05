@@ -16,7 +16,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { ReflectionMode, TriBatchType } from "#consts/graphics";
 import { Tr2Lod } from "../EveLODHelper.js";
-import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
+import { EveComponentType, EntityComponents } from "../EntityComponents.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmitter/index.js";
@@ -639,7 +639,7 @@ export class EveChildParticleSystem extends EveChildTransform
     const registry = this.GetComponentRegistry();
     if (registry && this.display)
     {
-      if (ShouldReflect(this.reflectionMode) && this.display)
+      if (EntityComponents.shouldReflect(this.reflectionMode) && this.display)
       {
         registry.RegisterComponent(EveComponentType.ReflectionRenderable, this);
       }

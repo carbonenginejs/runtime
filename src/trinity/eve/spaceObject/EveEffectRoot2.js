@@ -25,7 +25,7 @@ import { EveEntity } from "../EveEntity.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
 import { RawData } from "../../core/rawData/RawData.js";
-import { EveComponentType } from "../EveComponentTypes.js";
+import { EveComponentType } from "../EntityComponents.js";
 import { BLUELISTEVENT } from "#consts/blue";
 
 

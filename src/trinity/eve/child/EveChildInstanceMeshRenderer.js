@@ -15,7 +15,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsSchema, meta } from "#schema";
 import { EveChildMesh } from "./EveChildMesh.js";
-import { ShouldReflect } from "../EveComponentTypes.js";
+import { EntityComponents } from "../EntityComponents.js";
 import { Tr2InstancedMesh } from "../../core/mesh/Tr2InstancedMesh.js";
 import { Tr2RuntimeInstanceData } from "../../core/mesh/Tr2RuntimeInstanceData.js";
 import { RotationalConstraints } from "../../generated/eve/child/enums.js";
@@ -190,7 +190,7 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
     {
       return false;
     }
-    if (renderReason === Tr2RenderReason.TR2RENDERREASON_REFLECTION && !ShouldReflect(this.reflectionMode))
+    if (renderReason === Tr2RenderReason.TR2RENDERREASON_REFLECTION && !EntityComponents.shouldReflect(this.reflectionMode))
     {
       return false;
     }

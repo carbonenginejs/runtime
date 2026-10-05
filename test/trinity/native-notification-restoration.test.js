@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Tr2LineSet, Tr2BoundingLineSet, Tr2GpuBuffer, Tr2GpuStructuredBuffer, EveChildBulletStorm, EveStretch, EveComponentRegistry } from "../../npm/dist/trinity/index.js";
-import { EveComponentType } from "../../npm/dist/trinity/eve/EveComponentTypes.js";
+import { EveComponentType } from "../../npm/dist/trinity/eve/EntityComponents.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/core/context/Tr2RenderContext.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js";

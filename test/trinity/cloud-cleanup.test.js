@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { EveChildCloud2, EveComponentRegistry, Tr2PointLight } from "../../npm/dist/trinity/index.js";
-import { EveComponentType } from "../../npm/dist/trinity/eve/EveComponentTypes.js";
+import { EveComponentType } from "../../npm/dist/trinity/eve/EntityComponents.js";
 import { ITr2DebugRenderer2 } from "../../npm/dist/global/interfaces/index.js";
 
 test("Cloud2 constructor matches native authored defaults (cpp:72-118)", () =>

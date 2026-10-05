@@ -9,7 +9,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { meta } from "#schema";
-import { EveComponentType, ShouldReflect } from "../../EveComponentTypes.js";
+import { EveComponentType, EntityComponents } from "../../EntityComponents.js";
 import { EveSpaceObjectChild } from "../EveSpaceObjectChild.js";
 import { RawData } from "../../../core/rawData/RawData.js";
 import { Tr2RenderReason } from "../../../generated/trinityCore/enums.js";
@@ -336,7 +336,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
       }
 
       // cpp:251 - refreshed every pass (set OR cleared).
-      mesh.flags = ShouldReflect(mesh.reflectionMode)
+      mesh.flags = EntityComponents.shouldReflect(mesh.reflectionMode)
         ? (mesh.flags | INSTANCE_FLAG_RENDER_IN_REFLECTION) >>> 0
         : (mesh.flags & ~INSTANCE_FLAG_RENDER_IN_REFLECTION) >>> 0;
 
@@ -1298,7 +1298,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
       const hasDamageOverlays = this._MeshHasDamageOverlays(mesh);
       if ((!inherited?.length && !mesh.ownOverlayEffects.length && !hasDamageOverlays) ||
         !mesh.display || !mesh.overlayPods) continue;
-      if (reason === Tr2RenderReason.TR2RENDERREASON_REFLECTION && !ShouldReflect(mesh.reflectionMode)) continue;
+      if (reason === Tr2RenderReason.TR2RENDERREASON_REFLECTION && !EntityComponents.shouldReflect(mesh.reflectionMode)) continue;
 
       const geometry = mesh.GetGeometryResource();
       if (!geometry || geometry.IsGood() === false) continue;

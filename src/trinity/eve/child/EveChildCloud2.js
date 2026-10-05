@@ -16,7 +16,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { ReflectionMode, RenderingMode, TriBatchType, TriStorageFlags } from "#consts/graphics";
-import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
+import { EveComponentType, EntityComponents } from "../EntityComponents.js";
 import { EveChildCloud2PerObjectData } from "../../core/rawData/perObjectData/EveChildCloud2PerObjectData.js";
 import { RawData } from "../../core/rawData/RawData.js";
 import { BitmapDimensions } from "#imageio";
@@ -569,7 +569,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
         registry.RegisterComponent(EveComponentType.LightOwner, this);
       }
       registry.RegisterComponent(EveComponentType.VolumetricRenderable, this);
-      if (ShouldReflect(this.reflectionMode) && this.display && this.reflectionEffect)
+      if (EntityComponents.shouldReflect(this.reflectionMode) && this.display && this.reflectionEffect)
       {
         registry.RegisterComponent(EveComponentType.ReflectionRenderable, this);
       }

@@ -11,7 +11,7 @@ import { meta } from "#schema";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveSpriteLight } from "./EveSpriteLight.js";
 import { EveSpriteSetItem } from "./EveSpriteSetItem.js";
-import { EveComponentType } from "../../EveComponentTypes.js";
+import { EveComponentType } from "../../EntityComponents.js";
 import { EveSpaceObjectAttachmentUtils } from "../EveSpaceObjectAttachmentUtils.js";
 import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";

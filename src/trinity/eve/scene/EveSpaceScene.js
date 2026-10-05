@@ -21,7 +21,7 @@ import { EveComponentRegistry } from "./components/EveComponentRegistry.js";
 import { Tr2PostProcess2 } from "../../postProcess/Tr2PostProcess2.js";
 import { Tr2PostProcessAttributes } from "../../postProcess/Tr2PostProcessAttributes.js";
 import { Tr2DataTextureManager } from "../../shader/Tr2DataTextureManager.js";
-import { EveComponentType, GetReflectionSetting, ReflectionSetting, SetReflectionSetting } from "../EveComponentTypes.js";
+import { EveComponentType, ReflectionSetting, EntityComponents } from "../EntityComponents.js";
 import { TriSettingsRegistrar } from "../../core/TriSettingsRegistrar.js";
 import { EveUpdateContext } from "../EveUpdateContext.js";
 import { EveEffectRoot2 } from "../spaceObject/EveEffectRoot2.js";
@@ -2566,7 +2566,7 @@ export class EveSpaceScene
           this.RenderBackgroundPassObjects(null, null, renderContext, renderer, EveSpaceScene.BackgroundRenderingReason.BACKGROUND_RENDER_REFLECTION);
 
           if (EveSpaceScene.lensflaresInReflections && this.lensflares.length
-            && GetReflectionSetting() === ReflectionSetting.REFLECTION_SETTING_ULTRA)
+            && EntityComponents.getReflectionSetting() === ReflectionSetting.REFLECTION_SETTING_ULTRA)
           {
             const visible = [];
             for (const lensflare of this.lensflares) lensflare.GetRenderables(currentFrustum, visible);
@@ -4103,11 +4103,11 @@ export class EveSpaceScene
 
 
 // TRI_REGISTER_SETTING( "eveReflectionSetting", g_eveReflectionMode )
-// (cpp:112-113). The value is EveComponentTypes' module variable, not a class
+// (cpp:112-113). The value is EntityComponents' module variable, not a class
 // static, so it is registered here through its accessors.
 new TriSettingsRegistrar("eveReflectionSetting", {
-  get eveReflectionSetting() { return GetReflectionSetting(); },
-  set eveReflectionSetting(value) { SetReflectionSetting(value); }
+  get eveReflectionSetting() { return EntityComponents.getReflectionSetting(); },
+  set eveReflectionSetting(value) { EntityComponents.setReflectionSetting(value); }
 }, "eveReflectionSetting", { enum: ReflectionSetting, carbon: true });
 
 meta.blue.interfaceTable({ interfaces: [EveSpaceScene, ITr2Scene, ITr2Updateable, IInitialize, INotify], chainTo: null })(EveSpaceScene, { kind: "class" });

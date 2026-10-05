@@ -11,7 +11,7 @@ import { TriBatchType } from "#consts/graphics";
 import { meta } from "#schema";
 import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 import { EveEntity } from "../../EveEntity.js";
-import { EveComponentType } from "../../EveComponentTypes.js";
+import { EveComponentType } from "../../EntityComponents.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";

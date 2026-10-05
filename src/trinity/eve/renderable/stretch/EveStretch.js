@@ -11,7 +11,7 @@ import { vec4 } from "#math/vec4";
 import { CjsSchema, meta } from "#schema";
 import { INotify, IsMatch, TimeAsDouble } from "#blue";
 import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
-import { EveComponentType } from "../../EveComponentTypes.js";
+import { EveComponentType } from "../../EntityComponents.js";
 import { TriFloat } from "../../../core/variable/TriFloat.js";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
 import { CjsStretchRuntime } from "./CjsStretchRuntime.js";

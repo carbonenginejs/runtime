@@ -3,7 +3,7 @@
 import { IEveShadowCaster } from "../../IEveShadowCaster.js";
 import { meta } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
-import { EveComponentType } from "../../EveComponentTypes.js";
+import { EveComponentType } from "../../EntityComponents.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";

@@ -13,7 +13,7 @@ import { TriTextureRes } from "#resource";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveBannerItem } from "./EveBannerItem.js";
 import { EveBannerLight } from "./EveBannerLight.js";
-import { EveComponentType } from "../../EveComponentTypes.js";
+import { EveComponentType } from "../../EntityComponents.js";
 import { EveSpaceObjectAttachmentUtils } from "../EveSpaceObjectAttachmentUtils.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
 import { FLOAT_MAX } from "../../../core/view/TriFrustum.js";

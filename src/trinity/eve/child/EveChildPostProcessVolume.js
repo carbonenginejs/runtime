@@ -10,7 +10,7 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { Tr2PostProcessAttributes } from "../../postProcess/Tr2PostProcessAttributes.js";
-import { EveComponentType } from "../EveComponentTypes.js";
+import { EveComponentType } from "../EntityComponents.js";
 
 /** A child that unions a set of inclusion and exclusion volumes into a bounding sphere and drives a post-process effect's intensity from the camera's position relative to them. */
 @meta.define({ className: "EveChildPostProcessVolume", family: "eve/child" })

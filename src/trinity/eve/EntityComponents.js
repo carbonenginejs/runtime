@@ -94,52 +94,62 @@ export const EveComponentRequiredMethods = {
 // defaulting to REFLECTION_SETTING_HIGH directly.
 let eveReflectionSetting = ReflectionSetting.REFLECTION_SETTING_HIGH;
 
-/**
- * Reads the module-level reflection setting (Carbon g_eveReflectionMode).
- * @returns {Number} a ReflectionSetting value
- */
-export function GetReflectionSetting()
+/** Reflection helpers matching Carbon's EntityComponents namespace. */
+export class EntityComponents
 {
-  return eveReflectionSetting;
-}
+  /** Alias of the shared per-entity reflection enum. */
+  static ReflectionMode = ReflectionMode;
 
-/**
- * Stamps the module-level reflection setting (Carbon TRI_REGISTER_SETTING
- * "eveReflectionSetting", EveSpaceScene.cpp:113).
- * @param {Number} setting - a ReflectionSetting value
- */
-export function SetReflectionSetting(setting)
-{
-  eveReflectionSetting = setting;
-}
+  /** Alias of the shared reflection quality enum. */
+  static ReflectionSetting = ReflectionSetting;
 
-/**
- * Carbon EntityComponents::ShouldReflect (EveEntity.cpp:13-33): whether an
- * entity with the given per-entity ReflectionMode registers as
- * "ReflectionRenderable" under the current global ReflectionSetting.
- * @param {Number} mode - a ReflectionMode value
- * @returns {Boolean}
- */
-export function ShouldReflect(mode)
-{
-  if (eveReflectionSetting === ReflectionSetting.REFLECTION_SETTING_OFF)
+  /**
+   * Reads the module-level reflection setting (Carbon g_eveReflectionMode).
+   * @returns {Number} a ReflectionSetting value
+   */
+  static getReflectionSetting()
   {
-    return false;
+    return eveReflectionSetting;
   }
 
-  switch (mode)
+  /**
+   * Stamps the module-level reflection setting (Carbon TRI_REGISTER_SETTING
+   * "eveReflectionSetting", EveSpaceScene.cpp:113).
+   * @param {Number} setting - a ReflectionSetting value
+   */
+  static setReflectionSetting(setting)
   {
-    case ReflectionMode.REFLECT_NEVER:
+    eveReflectionSetting = setting;
+  }
+
+  /**
+   * Carbon EntityComponents::ShouldReflect (EveEntity.cpp:13-33): whether an
+   * entity with the given per-entity ReflectionMode registers as
+   * "ReflectionRenderable" under the current global ReflectionSetting.
+   * @param {Number} mode - a ReflectionMode value
+   * @returns {Boolean}
+   */
+  static shouldReflect(mode)
+  {
+    if (eveReflectionSetting === ReflectionSetting.REFLECTION_SETTING_OFF)
+    {
       return false;
-    case ReflectionMode.REFLECT_LOW_MEDIUM_HIGH:
-      return true;
-    case ReflectionMode.REFLECT_MEDIUM_AND_HIGH:
-      // Carbon: "we have either medium, high or highest settings".
-      return eveReflectionSetting !== ReflectionSetting.REFLECTION_SETTING_LOW;
-    case ReflectionMode.REFLECT_HIGH:
-      return eveReflectionSetting === ReflectionSetting.REFLECTION_SETTING_HIGH ||
-        eveReflectionSetting === ReflectionSetting.REFLECTION_SETTING_ULTRA;
-    default:
-      return false;
+    }
+
+    switch (mode)
+    {
+      case ReflectionMode.REFLECT_NEVER:
+        return false;
+      case ReflectionMode.REFLECT_LOW_MEDIUM_HIGH:
+        return true;
+      case ReflectionMode.REFLECT_MEDIUM_AND_HIGH:
+        // Carbon: "we have either medium, high or highest settings".
+        return eveReflectionSetting !== ReflectionSetting.REFLECTION_SETTING_LOW;
+      case ReflectionMode.REFLECT_HIGH:
+        return eveReflectionSetting === ReflectionSetting.REFLECTION_SETTING_HIGH ||
+          eveReflectionSetting === ReflectionSetting.REFLECTION_SETTING_ULTRA;
+      default:
+        return false;
+    }
   }
 }

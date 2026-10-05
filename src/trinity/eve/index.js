@@ -3,7 +3,7 @@ export * from "./ITr2DynamicBindingOwner.js";
 export * from "./BackAndForthData.js";
 export * from "./CjsEveThrottleableState.js";
 export * from "./EveChildUpdateParams.js";
-export * from "./EveComponentTypes.js";
+export * from "./EntityComponents.js";
 export * from "./EveCustomMask.js";
 export * from "./EveImpactOverlay.js";
 export * from "./EveModularObjectModifier.js";

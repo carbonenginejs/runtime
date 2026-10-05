@@ -35,7 +35,7 @@ import { vec4 } from "#math/vec4";
 import { addChild, removeChild, clearChildren } from "../../../global/blue/children.js";
 import { ccpHashFnv1 } from "#utils";
 import { BLUELISTEVENT } from "#consts/blue";
-import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
+import { EveComponentType, EntityComponents } from "../EntityComponents.js";
 import { ImpactConfiguration } from "../../generated/include/enums.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
 import { EveDamageOverlay } from "../overlays/EveDamageOverlay.js";
@@ -2515,7 +2515,7 @@ export class EveSpaceObject2 extends EveEntity
       return false;
     }
     if (renderReason === Tr2RenderReason.TR2RENDERREASON_REFLECTION &&
-      !ShouldReflect(this.reflectionMode))
+      !EntityComponents.shouldReflect(this.reflectionMode))
     {
       return false;
     }
@@ -2558,7 +2558,7 @@ export class EveSpaceObject2 extends EveEntity
         registry.RegisterComponent(EveComponentType.LightOwner, this);
       }
 
-      if (ShouldReflect(this.reflectionMode))
+      if (EntityComponents.shouldReflect(this.reflectionMode))
       {
         registry.RegisterComponent(EveComponentType.ReflectionRenderable, this);
       }
