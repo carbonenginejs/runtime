@@ -1,7 +1,7 @@
-import { INotify } from "../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/Volume/EveEllipsoidVolume.h
 // Source: trinity/trinity/Eve/Volume/EveEllipsoidVolume.cpp
 // Source: trinity/trinity/Eve/Volume/EveEllipsoidVolume_Blue.cpp
+import { INotify } from "../../../global/blue/INotify.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { IEveVolume } from "./IEveVolume.js";
@@ -214,10 +214,13 @@ export class EveEllipsoidVolume extends IEveVolume
    * callback fan-out lives INSIDE Setup, opposite to the box's, whose
    * OnModified fires them. Carbon also caches the rotation matrix pair and
    * the bounding sphere; this port derives those on demand.
+   *
+   * Adapted: Carbon caches the rotation matrix pair and bounding sphere; this port derives
+   * them on demand, so Setup refreshes the clamps and cached inverse rotation. The callback
+   * fan-out matches Carbon's placement inside Setup.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon caches the rotation matrix pair and bounding sphere; this port derives them on demand, so Setup refreshes the clamps and cached inverse rotation. The callback fan-out matches Carbon's placement inside Setup.")
   Setup()
   {
     for (let i = 0; i < 3; i++)

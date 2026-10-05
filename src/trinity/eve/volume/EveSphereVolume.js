@@ -1,8 +1,8 @@
-import { IsMatch } from "#blue";
-import { INotify } from "../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/Volume/EveSphereVolume.h
 // Source: trinity/trinity/Eve/Volume/EveSphereVolume.cpp
 // Source: trinity/trinity/Eve/Volume/EveSphereVolume_Blue.cpp
+import { IsMatch } from "#blue";
+import { INotify } from "../../../global/blue/INotify.js";
 import { vec3 } from "#math/vec3";
 import { IEveVolume } from "./IEveVolume.js";
 import { meta } from "#schema";
@@ -151,10 +151,12 @@ export class EveSphereVolume extends IEveVolume
   /**
    * Clamps the radii so the outer radius stays non-negative and never smaller
    * than the inner one, then notifies every registered listener.
+   *
+   * Adapted: JS identifies the changed radius member by its exposed property name; callbacks
+   * remain class-owned.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JS identifies the changed radius member by its exposed property name; callbacks remain class-owned.")
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "innerRadius") && this.innerRadius > this.radius)

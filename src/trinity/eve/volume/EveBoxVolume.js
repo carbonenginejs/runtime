@@ -1,8 +1,8 @@
-import { IsMatch } from "#blue";
-import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/Volume/EveBoxVolume.h
 // Source: trinity/trinity/Eve/Volume/EveBoxVolume.cpp
 // Source: trinity/trinity/Eve/Volume/EveBoxVolume_Blue.cpp
+import { IsMatch } from "#blue";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { IEveVolume } from "./IEveVolume.js";
@@ -225,10 +225,12 @@ export class EveBoxVolume extends IEveVolume
   /**
    * Re-clamps the scalings and the cached inverse rotation after an authored
    * change, then notifies every registered listener.
+   *
+   * Adapted: JS dispatches the native hook using the exposed member name; existing
+   * class-owned rendering/resource adaptations remain unchanged.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
     if (["position", "scaling", "rotation", "innerScaling"].some(name => IsMatch(propertyName, name))) this.Setup();
@@ -254,10 +256,13 @@ export class EveBoxVolume extends IEveVolume
    * the inverse rotation the intensity test reads. Box's Setup does NOT
    * fire change callbacks - OnModified does (cpp:194-215), unlike the
    * ellipsoid, whose Setup fires them itself.
+   *
+   * Adapted: Carbon caches boxTransform/innerBoxTransform/inverses and the bounding sphere;
+   * this port derives them on demand, so Setup refreshes the clamps and the cached inverse
+   * rotation.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon caches boxTransform/innerBoxTransform/inverses and the bounding sphere; this port derives them on demand, so Setup refreshes the clamps and the cached inverse rotation.")
   Setup()
   {
     for (let i = 0; i < 3; i++)
