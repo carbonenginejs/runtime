@@ -70,10 +70,6 @@
       "CjsSfxEngineSelectionTransactionLedger",
       "CjsSfxEngine"
     ],
-    "src/audio/internal/CjsAudioBackendSfxProgramSlot.js": [
-      "CjsAudioBackendSfxProgramSlot",
-      "CjsAudioBackendSfxProgramBatch"
-    ],
     "src/audio/internal/sourceEffectRtpc.js": [
       "CjsWwiseSourceEffectRtpcLane",
       "CjsWwiseFilteredControl"
