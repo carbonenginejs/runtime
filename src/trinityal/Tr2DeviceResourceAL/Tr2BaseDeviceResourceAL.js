@@ -92,10 +92,12 @@ export class Tr2BaseDeviceResourceAL
    * (`Tr2PipelineStatsQueryALStub.cpp:65-68`) - so an unoverridden description
    * is faithful rather than lazy, and that one override is faithful too.
    *
+   * Adapted: The empty concrete stub descriptions share this inherited implementation
+   * instead of repeating it on each backend class.
+   *
    * @param {object} _description Accumulator, keyed by name.
    */
   @meta.adapted
-  @meta.reason("The empty concrete stub descriptions share this inherited implementation instead of repeating it on each backend class.")
   Describe(_description)
   {
   }
@@ -105,9 +107,11 @@ export class Tr2BaseDeviceResourceAL
    *
    * Unregistering here rather than in a finaliser is what makes the release
    * path deterministic; see the head comment.
+   *
+   * Adapted: JavaScript has no deterministic destructor; the existing registry unregisters
+   * at explicit Destroy. Recreating that object does not re-register it.
    */
   @meta.adapted
-  @meta.reason("JavaScript has no deterministic destructor; the existing registry unregisters at explicit Destroy. Recreating that object does not re-register it.")
   Destroy()
   {
     if (!this._registered) return;
