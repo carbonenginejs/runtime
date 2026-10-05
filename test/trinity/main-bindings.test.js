@@ -79,8 +79,10 @@ test("Tr2Effect extraction fails closed on missing, duplicate, and unsupported c
     () => extractTr2EffectConstantValues(new Tr2Effect(), [reflected("Missing")]),
     error => error.code === "CJS_TRINITY_EFFECT_CONSTANT_MISSING"
   );
+  const unsupported = new Tr2Effect();
+  unsupported.constParameters = [Object.assign(new Tr2ConstantEffectParameter(), { name: "Texture", value: "res:/texture.dds" })];
   assert.throws(
-    () => extractTr2EffectConstantValues({ parameters: [{ name: "Texture", value: "res:/texture.dds" }] }, [reflected("Texture")]),
+    () => extractTr2EffectConstantValues(unsupported, [reflected("Texture")]),
     error => error.code === "CJS_TRINITY_EFFECT_CONSTANT_UNSUPPORTED"
   );
   assert.throws(
@@ -91,15 +93,11 @@ test("Tr2Effect extraction fails closed on missing, duplicate, and unsupported c
 
 test("Tr2Effect extraction preserves reflected names as own data properties", () =>
 {
-  const effect = {
-    parameters: [{
-      name: "__proto__",
-      CopyValueToEffect(_type, out)
-      {
-        out[0] = 42;
-      }
-    }]
-  };
+  const effect = new Tr2Effect();
+  const parameter = new Tr2Vector4Parameter();
+  parameter.name = "__proto__";
+  parameter.SetValue([42, 0, 0, 0]);
+  effect.parameters = [parameter];
   const values = extractTr2EffectConstantValues(effect, [reflected("__proto__", 1)]);
 
   assert.equal(Object.hasOwn(values, "__proto__"), true);

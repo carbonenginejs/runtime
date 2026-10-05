@@ -5,12 +5,11 @@ function fail(message, code = "CJS_TRINITY_EFFECT_CONSTANT_INVALID")
   throw error;
 }
 
-function parameterName(parameter)
+/** Native dynamic parameters expose GetParameterName (Tr2Effect.cpp:1091,1559);
+ * authored Tr2ConstantEffectParameter records instead store name (Tr2Effect.h:41-45). */
+function parameterName(parameter, collectionName)
 {
-  return parameter?.GetParameterName?.()
-    ?? parameter?.getParameterName?.()
-    ?? parameter?.name
-    ?? "";
+  return collectionName === "parameters" ? parameter.GetParameterName() : parameter.name;
 }
 
 function indexParameters(effect)
@@ -26,7 +25,7 @@ function indexParameters(effect)
     if (!Array.isArray(values)) fail(`effect.${collectionName} must be an array`);
     for (const parameter of values)
     {
-      const name = parameterName(parameter);
+      const name = parameterName(parameter, collectionName);
       if (!name) continue;
       if (typeof name !== "string") fail(`effect.${collectionName} contains a non-string parameter name`);
       if (result.has(name))
@@ -74,7 +73,8 @@ function copyParameterValue(entry, constant)
 {
   const { parameter, collectionName } = entry;
   let values;
-  if (collectionName === "parameters" && typeof parameter?.CopyValueToEffect === "function")
+  // Tr2Material.cpp:325-337 consumes the required dynamic constant writer.
+  if (collectionName === "parameters")
   {
     const out = new Float32Array(constant.dimension);
     out.fill(Number.NaN);
@@ -83,10 +83,7 @@ function copyParameterValue(entry, constant)
   }
   else
   {
-    const value = collectionName === "parameters" && typeof parameter?.GetValue === "function"
-      ? parameter.GetValue()
-      : parameter?.value ?? parameter?.data;
-    values = normalizeValue(value, constant.dimension, constant.name, collectionName === "constParameters");
+    values = normalizeValue(parameter.value, constant.dimension, constant.name, true);
   }
 
   for (let index = 0; index < values.length; index++)
