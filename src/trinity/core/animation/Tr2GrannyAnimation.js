@@ -10,7 +10,8 @@ import { mat3 } from "#math/mat3";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
+import { CjsResource } from "#blue";
 import { CjsGrannyCurves } from "../../curves/track/CjsGrannyCurves.js";
 import { CjsCmfFormat } from "#resource/formats/cmf";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
@@ -1554,10 +1555,16 @@ export class Tr2GrannyAnimation
       .map(([, layer ]) => layer);
   }
 
-  /** Unwraps a resource wrapper to its decoded Granny source object. */
+  /**
+   * Unwraps a runtime resource or an already-decoded Granny source object.
+   * Source: trinity/trinity/Tr2GrannyAnimation.cpp:367-389
+   * Custom: decoded payloads represent native Granny file-info pointers; resource
+   * identity selects the required GetPayload method without probing its presence.
+   */
   _getSource(resource)
   {
-    let value = resource?.GetPayload?.() ?? resource;
+    const wrapper = CjsSchema.cast(resource, CjsResource);
+    let value = wrapper ? wrapper.GetPayload() : resource;
     const seen = new Set();
     while (value && typeof value === "object" && !seen.has(value))
     {

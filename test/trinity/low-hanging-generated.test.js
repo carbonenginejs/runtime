@@ -49,6 +49,7 @@ import { Tr2ParticleSystem } from "../../npm/dist/trinity/particle/Tr2ParticleSy
 import { Tr2DynamicEmitter } from "../../npm/dist/trinity/particle/emitter/Tr2DynamicEmitter.js";
 import { ITr2GenericEmitterUpdateArguments } from "../../npm/dist/trinity/particle/ITr2GenericEmitter/ITr2GenericEmitterUpdateArguments.js";
 import { Tr2StaticEmitter } from "../../npm/dist/trinity/particle/emitter/Tr2StaticEmitter.js";
+import { TriGrannyRes } from "../../npm/dist/resource/geometry/granny/TriGrannyRes.js";
 import { Tr2RaytracingGeometry } from "../../npm/dist/trinity/generated/raytracing/Tr2RaytracingGeometry.js";
 import { Tr2QuadRenderer } from "../../npm/dist/trinity/core/Tr2QuadRenderer/Tr2QuadRenderer.js";
 import { BehaviorGroup } from "../../npm/dist/trinity/eve/child/behaviors/BehaviorGroup.js";
@@ -1044,11 +1045,12 @@ test("CPU particle declarations, emitters, simulation, and bounds follow Carbon 
 
   const staticEmitter = new Tr2StaticEmitter();
   staticEmitter.particleSystem = system;
-  staticEmitter.geometryResource = {
+  staticEmitter.geometryResource = new TriGrannyRes();
+  staticEmitter.geometryResource.SetPayload({
     meshes: [{
       particles: [{ lifetime: [0, 10], position: [3, 4, 5], velocity: [0, 0, 0] }]
     }]
-  };
+  });
   assert.equal(staticEmitter.ForceSpawn(), 1);
   assert.equal(system.aliveCount, 1);
   assert.deepEqual(Array.from(system.GetParticleElement(0, Tr2ParticleElementDeclaration.Type.POSITION)), [3, 4, 5]);

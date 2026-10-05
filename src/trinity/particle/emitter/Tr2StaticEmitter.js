@@ -1,8 +1,8 @@
 // Source: trinity/trinity/Particle/Tr2StaticEmitter.h
-import { IsMatch } from "#blue";
+import { CjsResource, IsMatch } from "#blue";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 
 /** A one-shot particle emitter that spawns particles from a geometry resource's baked emission points on first update. */
@@ -65,7 +65,9 @@ export class Tr2StaticEmitter
    * Carbon method ForceSpawn -> DoSpawn (MAP_METHOD_AND_WRAP).
    *
    * Adapted: Accepts decoded particle rows or a host geometry SpawnParticles adapter; native
-   * CMF/Granny vertex-buffer mapping remains resource-owned.
+   * CMF/Granny vertex-buffer mapping remains resource-owned. Runtime resource
+   * identity selects the required GetPayload method; decoded records remain direct inputs.
+   * Source: trinity/trinity/Particle/Tr2StaticEmitter.cpp:191-270
    */
   @meta.blue.method
   @meta.adapted
@@ -82,7 +84,8 @@ export class Tr2StaticEmitter
       this.hasSpawnedParticles = result !== false;
       return result;
     }
-    const source = this.geometryResource.GetPayload?.() ?? this.geometryResource;
+    const resource = CjsSchema.cast(this.geometryResource, CjsResource);
+    const source = resource ? resource.GetPayload() : this.geometryResource;
     const meshes = source?.meshes ?? source?.Meshes ?? [];
     const mesh = meshes[this.meshIndex] ?? null;
     const particles = mesh?.particles ?? mesh?.Particles ?? source?.particles ?? source?.Particles;
