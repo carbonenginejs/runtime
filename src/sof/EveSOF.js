@@ -25,7 +25,7 @@ import { blue, BeObjectMetadata } from "#blue";
 import { EveSOFDNA } from "./EveSOFDNA.js";
 import { EveSOFDataMgr } from "./EveSOFDataMgr.js";
 import { CjsSofLibraryBuilder } from "./CjsSofLibraryBuilder.js";
-import { planSofLayouts } from "./layoutPlanner.js";
+import { planSofLayouts } from "./SofLayoutRandom.js";
 import { SofDocumentBuilder } from "./SofDocumentBuilder.js";
 import { IsModelValuesReference, IsModelValuesRoot, VALUES_LITERAL_DOLLAR_REF, remapImportedValue } from "./sofDocumentValues.js";
 

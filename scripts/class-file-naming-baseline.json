@@ -50,9 +50,6 @@
       "WemBitstreamError",
       "BitReader",
       "OggPageWriter"
-    ],
-    "src/sof/layoutPlanner.js": [
-      "SofLayoutRandom"
     ]
   },
   "multipleClasses": {

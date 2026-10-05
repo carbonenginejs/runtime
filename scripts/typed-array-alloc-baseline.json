@@ -124,7 +124,7 @@
     "src/sof/EveSOFDataMgr.js": 4,
     "src/sof/hull/EveSOFDataHullBanner.js": 10,
     "src/sof/hull/EveSOFDataHullBannerSetItem.js": 3,
-    "src/sof/layoutPlanner.js": 7,
+    "src/sof/SofLayoutRandom.js": 7,
     "src/sof/shared/EveSOFDataDecalIndexBuffer.js": 5,
     "src/sof/shared/EveSOFDataParameter.js": 1,
     "src/sof/shared/EveSOFDataParameterBool.js": 1,
