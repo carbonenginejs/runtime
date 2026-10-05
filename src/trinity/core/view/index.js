@@ -5,4 +5,4 @@ export * from "./TriView.js";
 export * from "./TriViewport.js";
 export * from "./TriRect.js";
 export * from "./pickRay.js";
-export * from "./Tr2PickType.js";
+export * from "#consts/graphics/tr2PickType";

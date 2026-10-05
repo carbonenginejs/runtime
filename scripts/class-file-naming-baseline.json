@@ -142,9 +142,6 @@
     "src/trinity/core/Tr2RenderUtils.js": [
       "Tr2RenderUtils"
     ],
-    "src/trinity/core/view/Tr2PickType.js": [
-      "Tr2PickType"
-    ],
     "src/trinity/eve/attachment/EveSpaceObjectAttachmentUtils.js": [
       "EveSpaceObjectAttachmentUtils"
     ],

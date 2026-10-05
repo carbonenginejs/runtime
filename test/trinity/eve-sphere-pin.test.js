@@ -7,7 +7,7 @@ import {TriBatchType} from '../../npm/dist/global/consts/graphics/index.js';
 import {TriGeometryRes} from '../../npm/dist/resource/index.js';
 import {EveSpherePin,EveSpherePinIndexTree,TriDevice,Tr2RenderContext_GetMainThreadRenderContext} from '../../npm/dist/trinity/index.js';
 import {Tr2RenderContextALStub,ALResult} from '../../npm/dist/trinityal/index.js';
-import {Tr2PickType} from '../../npm/dist/trinity/core/view/Tr2PickType.js';
+import {Tr2PickType} from '../../npm/dist/global/consts/graphics/tr2PickType.js';
 import {SharedGeometryBuffer} from '../../npm/dist/trinity/core/mesh/TriGeometryResAllocations.js';
 import {RawData} from '../../npm/dist/trinity/core/rawData/RawData.js';
 import {StubResMan} from '../support/stubResMan.js';

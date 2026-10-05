@@ -50,7 +50,7 @@ import { Tr2PerObjectDataStandard } from "../../core/rawData/perObjectData/Tr2Pe
 import { ITr2Pickable } from "../../core/ITr2Pickable.js";
 import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/index.js";
 import { RawData } from "../../core/rawData/RawData.js";
-import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../core/view/Tr2PickType.js";
+import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "#consts/graphics/tr2PickType";
 import { IEveSpaceObject2ParentData } from "./IEveSpaceObject2ParentData.js";
 import { EveCustomMask } from "../EveCustomMask.js";
 import { EveCollectAreas } from "../child/EveSpaceObjectChild.js";

@@ -7,7 +7,7 @@ import { INotify, IsMatch } from "#blue";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { TriBatchType } from "#consts/graphics";
-import { Tr2PickType } from "../view/Tr2PickType.js";
+import { Tr2PickType } from "#consts/graphics/tr2PickType";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { Tr2PerObjectDataStandard } from "../rawData/perObjectData/Tr2PerObjectDataStandard.js";
 import { vec4 } from "#math/vec4";

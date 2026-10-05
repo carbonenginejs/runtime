@@ -18,7 +18,7 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/conte
 import { SharedGeometryBuffer } from "../../../core/mesh/TriGeometryResAllocations.js";
 import { CarbonVertexElements } from "../../../core/vertex/vertexUsage.js";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
-import { Tr2PickType } from "../../../core/view/Tr2PickType.js";
+import { Tr2PickType } from "#consts/graphics/tr2PickType";
 import { BuildDecalGeometry, BuildStaticDecalGeometry, FindCachedDecalGeometry } from "./decalIndices.js";
 import "#consts/graphics/trinityEnums";
 

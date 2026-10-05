@@ -8,7 +8,7 @@ import {Tr2LineSet,Tr2SolidSet,Tr2GrannyPrimitiveSet,Tr2PrimitiveSet,TriDevice,T
 import {Tr2RenderContextALStub,Tr2BufferAL,ALResult} from "../../npm/dist/trinityal/index.js";
 import {TriBatchType} from "../../npm/dist/global/consts/graphics/index.js";
 import {Topology} from "../../npm/dist/global/consts/renderContext/index.js";
-import {Tr2PickType} from "../../npm/dist/trinity/core/view/Tr2PickType.js";
+import {Tr2PickType} from "../../npm/dist/global/consts/graphics/tr2PickType.js";
 
 const red=[1,0,0,1],green=[0,1,0,1],blue=[0,0,1,1];
 function setup(t){

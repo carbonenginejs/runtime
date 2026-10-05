@@ -15,7 +15,7 @@ import { meta } from "#schema";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2Transform } from "../../core/Tr2Transform.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
-import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../core/view/Tr2PickType.js";
+import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "#consts/graphics/tr2PickType";
 import { ITr2BoundingBox } from "#interfaces";
 import { IWorldPosition } from "../../core/IWorldPosition.js";
 import { IInitialize } from "#blue/IInitialize";

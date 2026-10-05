@@ -61,7 +61,7 @@ import { ITr2Pickable } from "../../core/ITr2Pickable.js";
 import { EvePickingContext, EvePendingPickingReadback } from "./picking/index.js";
 import { Tr2TextureAL, Tr2BitmapDimensions, Tr2TextureSubresource, Failed, ALResult } from "#trinityal";
 import { Tr2CpuUsage } from "#consts/render-context";
-import { Tr2PickType, TR2_PICK_TYPE_DEFAULT } from "../../core/view/Tr2PickType.js";
+import { Tr2PickType, TR2_PICK_TYPE_DEFAULT } from "#consts/graphics/tr2PickType";
 import "./EveSpaceSceneRenderDriver.js";
 
 

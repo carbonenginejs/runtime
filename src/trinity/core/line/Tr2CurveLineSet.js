@@ -18,7 +18,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { TriBatchType } from "#consts/graphics";
-import { Tr2PickType, TR2_PICK_TYPE_DEFAULT } from "../view/Tr2PickType.js";
+import { Tr2PickType, TR2_PICK_TYPE_DEFAULT } from "#consts/graphics/tr2PickType";
 import { ITr2Renderable } from "../ITr2Renderable.js";
 
 

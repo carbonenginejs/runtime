@@ -14,7 +14,7 @@ import { TimeAsDouble } from "../../../global/blue/CcpTime.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2Lod } from "../EveLODHelper.js";
-import { Tr2PickType, TR2_PICK_TYPE_DEFAULT } from "../../core/view/Tr2PickType.js";
+import { Tr2PickType, TR2_PICK_TYPE_DEFAULT } from "#consts/graphics/tr2PickType";
 import { Tr2Effect } from "../../shader/Tr2Effect.js";
 import { TriDevice } from "../../core/device/TriDevice.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";

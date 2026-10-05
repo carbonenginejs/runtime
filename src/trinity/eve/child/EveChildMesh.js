@@ -29,7 +29,7 @@ import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { Tr2Lod } from "../EveLODHelper.js";
 import { Tr2PerObjectData } from "../../core/rawData/perObjectData/Tr2PerObjectData.js";
 import { IEveSpaceObject2ParentData } from "../spaceObject/IEveSpaceObject2ParentData.js";
-import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../core/view/Tr2PickType.js";
+import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "#consts/graphics/tr2PickType";
 import {
   createChildPerObjectRecords,
   inheritParentPerObjectData,

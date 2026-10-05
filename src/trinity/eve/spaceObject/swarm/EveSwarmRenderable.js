@@ -11,7 +11,7 @@ import { TriBatchType } from "#consts/graphics";
 import { createChildPerObjectRecords, stampChildTransforms } from "../../perObjectData/childPerObjectRecords.js";
 import { Tr2RenderReason } from "../../../generated/trinityCore/enums.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
-import { Tr2PickType } from "../../../core/view/Tr2PickType.js";
+import { Tr2PickType } from "#consts/graphics/tr2PickType";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
 import { EveSpaceObjectDecal } from "../../attachment/decal/EveSpaceObjectDecal.js";
 
