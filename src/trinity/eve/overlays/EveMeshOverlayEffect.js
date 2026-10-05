@@ -1,7 +1,7 @@
-import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveMeshOverlayEffect.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveMeshOverlayEffect.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveMeshOverlayEffect_Blue.cpp
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { TriBatchType } from "#consts/graphics";
 import { meta } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -70,10 +70,12 @@ export class EveMeshOverlayEffect
   /**
    * Returns the effect list for a batch type, or null when the overlay is hidden
    * or the batch type has no list of its own.
+   *
+   * Adapted: Carbon reports success through a bool out-parameter; JavaScript returns null
+   * for unsupported or hidden batches.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon reports success through a bool out-parameter; JavaScript returns null for unsupported or hidden batches.")
   GetEffects(batchType)
   {
     if (!this.display) return null;
@@ -127,10 +129,11 @@ export class EveMeshOverlayEffect
   /**
    * Links each controller that is not already linked to this overlay so it can
    * resolve the overlay's variables; always succeeds.
+   *
+   * Adapted: Blue root locking is represented by the hydrated JavaScript object identity.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Blue root locking is represented by the hydrated JavaScript object identity.")
   Initialize()
   {
     for (const controller of this.controllers)
@@ -144,10 +147,12 @@ export class EveMeshOverlayEffect
    * Applies a Blue list notification for the controller list: links inserted
    * controllers, unlinks removed ones and unlinks all of them on unload start;
    * loading events and notifications for any other list are ignored.
+   *
+   * Adapted: Plain JavaScript arrays do not raise Blue IList notifications; callers forward
+   * the equivalent event explicitly.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Plain JavaScript arrays do not raise Blue IList notifications; callers forward the equivalent event explicitly.")
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = this.controllers)
   {
     if (list !== this.controllers || (event & BLUELISTEVENT.BELIST_LOADING) !== 0) return;
