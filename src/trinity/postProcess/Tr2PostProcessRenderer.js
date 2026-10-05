@@ -1,6 +1,6 @@
-// Carbon source: trinity/trinity/PostProcess/Tr2PostProcessRenderer.h
-// Carbon source: trinity/trinity/PostProcess/Tr2PostProcessRenderer.cpp
-// Carbon source: trinity/trinity/PostProcess/Tr2PostProcessRenderer_Blue.cpp
+// Source: trinity/trinity/PostProcess/Tr2PostProcessRenderer.h
+// Source: trinity/trinity/PostProcess/Tr2PostProcessRenderer.cpp
+// Source: trinity/trinity/PostProcess/Tr2PostProcessRenderer_Blue.cpp
 //
 // The post-process chain Carbon runs between the scene and the back buffer.
 // Carbon's anonymous-namespace helpers (DrawInto, TEMP_PARAM,

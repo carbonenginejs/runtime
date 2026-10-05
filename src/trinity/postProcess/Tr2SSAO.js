@@ -1,6 +1,6 @@
-// Carbon source: trinity/trinity/Tr2SSAO.h
-// Carbon source: trinity/trinity/Tr2SSAO.cpp
-// Carbon source: trinity/trinity/Tr2SSAO_Blue.cpp
+// Source: trinity/trinity/Tr2SSAO.h
+// Source: trinity/trinity/Tr2SSAO.cpp
+// Source: trinity/trinity/Tr2SSAO_Blue.cpp
 import { meta } from "#schema";
 import { mat4 } from "#math/mat4";
 import { PixelFormat, ShaderType, TextureType, Tr2GpuUsage } from "#consts/render-context";
