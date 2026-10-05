@@ -73,7 +73,9 @@ export class AudUIPlayer extends AudEmitter
    * Adapted: Carbon retains one callback event name and reads the current callback
    * at dispatch (audio/src/AudUIPlayer.cpp:33-48,100-133). JavaScript captures the
    * callback and posted name for each playing ID, so overlapping requests and
-   * callback replacement do not change earlier registrations. A missing callback
+   * callback replacement do not change earlier registrations. The posted name is
+   * read directly from PostEvent's playing-event record; an authored-name fallback
+   * would conceal a missing record and lose the event prefix. A missing callback
    * returns zero without Carbon's error log.
    *
    * The native prefix quirk prepares the name twice (AudUIPlayer.cpp:37-40 and
@@ -97,7 +99,7 @@ export class AudUIPlayer extends AudEmitter
     {
       this._callbackEvents.set(playingID, {
         callback,
-        eventName: this.GetPlayingEvents().get(playingID) ?? String(name ?? "")
+        eventName: this.GetPlayingEvents().get(playingID)
       });
     }
     return playingID;
