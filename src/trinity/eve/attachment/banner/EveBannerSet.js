@@ -14,7 +14,7 @@ import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveBannerItem } from "./EveBannerItem.js";
 import { EveBannerLight } from "./EveBannerLight.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
-import { Saturate } from "../EveSpaceObjectAttachmentUtils.js";
+import { EveSpaceObjectAttachmentUtils } from "../EveSpaceObjectAttachmentUtils.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
 import { FLOAT_MAX } from "../../../core/view/TriFrustum.js";
 import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
@@ -651,7 +651,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
         }
         else
         {
-          Saturate(color, light.lightData.color, light.saturation);
+          EveSpaceObjectAttachmentUtils.saturate(color, light.lightData.color, light.saturation);
         }
 
         color[3] = 0.5;
@@ -963,7 +963,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     for (const light of this.lights)
     {
       CopyLightData(dataCopy, light.lightData);
-      Saturate(dataCopy.color, averageColor, light.saturation);
+      EveSpaceObjectAttachmentUtils.saturate(dataCopy.color, averageColor, light.saturation);
       AsPerPointLightData(record, dataCopy, light.boneMatrix, features, quality);
       record.lightType = Tr2Light.POINT_LIGHT;
       record.lightData = light.lightData;

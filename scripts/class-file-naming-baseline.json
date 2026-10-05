@@ -136,9 +136,6 @@
     "src/trinity/core/Tr2RenderUtils.js": [
       "Tr2RenderUtils"
     ],
-    "src/trinity/eve/attachment/EveSpaceObjectAttachmentUtils.js": [
-      "EveSpaceObjectAttachmentUtils"
-    ],
     "src/trinity/eve/child/modifiers/EveChildModifierTransformCommon.js": [
       "EveChildModifierTransformCommon"
     ],

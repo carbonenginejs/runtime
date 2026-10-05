@@ -15,7 +15,7 @@ import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import {
   AsPerPointLightData,
   AsPerSpotLightData,
-  Blink,
+  EveSpaceObjectAttachmentUtils,
   CreateLightRecord,
   EveBannerSet,
   EveBoosterSet2,
@@ -25,10 +25,8 @@ import {
   EveSpotlightSet,
   Tr2LightManager,
   EveSpriteSet,
-  Fade,
   FadeType,
   MatrixCopyFrom3x4,
-  Saturate,
   ShadowQuality,
   Tr2PointLight
 } from "../../npm/dist/trinity/index.js";
@@ -210,34 +208,34 @@ test("Tr2Light.AddLight: flag validity, UNDEFINED inertness, bone*transform swap
 
 test("Blink/Fade quirks: zero rate, tiny-rate peak, phase asymmetry (EveSpaceObjectAttachmentUtils.cpp:9-75)", () =>
 {
-  assertClose(Blink(123, 0, 0.5, 3, 9), 3, "zero rate returns minScale");
+  assertClose(EveSpaceObjectAttachmentUtils.blink(123, 0, 0.5, 3, 9), 3, "zero rate returns minScale");
   // rate 1: peak = 0.05; f = 0.025 -> ramp 0.5 -> lerp(2, 10) midpoint = 6.
-  assertClose(Blink(0.025, 1, 0, 2, 10), 6, "ramp-up midpoint");
+  assertClose(EveSpaceObjectAttachmentUtils.blink(0.025, 1, 0, 2, 10), 6, "ramp-up midpoint");
   // f past 4*peak: 0 -> minScale.
-  assertClose(Blink(0.5, 1, 0, 2, 10), 2, "off after the flash window");
+  assertClose(EveSpaceObjectAttachmentUtils.blink(0.5, 1, 0, 2, 10), 2, "off after the flash window");
   // Tiny rate: peak = 0.05*0.001 < 0.0001 -> peak becomes 1 (one full ramp).
-  assertClose(Blink(500, 0.001, 0, 0, 1), 0.5, "tiny-rate degenerate full-cycle ramp");
+  assertClose(EveSpaceObjectAttachmentUtils.blink(500, 0.001, 0, 0, 1), 0.5, "tiny-rate degenerate full-cycle ramp");
 
   // FadeIn adds phase BEFORE the rate multiply; Blink adds it after.
-  assertClose(Fade(1, FadeType.FT_FADEIN, 0.25, 1), 0.5, "FadeIn((t+phase)*rate)");
-  assertClose(Fade(0, FadeType.FT_NONE, 5, 5), 1, "FT_NONE full intensity");
-  assertClose(Fade(0, FadeType.FT_FADEOUT, 0.25, 1), 1 - 0.25, "FadeOut complement");
+  assertClose(EveSpaceObjectAttachmentUtils.fade(1, FadeType.FT_FADEIN, 0.25, 1), 0.5, "EveSpaceObjectAttachmentUtils.fadeIn((t+phase)*rate)");
+  assertClose(EveSpaceObjectAttachmentUtils.fade(0, FadeType.FT_NONE, 5, 5), 1, "FT_NONE full intensity");
+  assertClose(EveSpaceObjectAttachmentUtils.fade(0, FadeType.FT_FADEOUT, 0.25, 1), 1 - 0.25, "FadeOut complement");
 });
 
 test("Saturate: passthrough, extrapolation above 1, low-side clamp (Color_inline.h:161-172)", () =>
 {
   const out = new Float32Array(4);
-  Saturate(out, [0.2, 0.4, 0.8, 0.5], 1);
+  EveSpaceObjectAttachmentUtils.saturate(out, [0.2, 0.4, 0.8, 0.5], 1);
   assertVecClose(out, [0.2, 0.4, 0.8, 0.5], "saturation 1 passthrough");
 
   const gray = 0.2 * 0.299 + 0.4 * 0.587 + 0.8 * 0.114;
-  Saturate(out, [0.2, 0.4, 0.8, 0.5], 0);
+  EveSpaceObjectAttachmentUtils.saturate(out, [0.2, 0.4, 0.8, 0.5], 0);
   assertVecClose(out, [gray, gray, gray, 0.5], "saturation 0 is the luma gray");
 
-  Saturate(out, [0.2, 0.4, 0.8, 0.5], 2);
+  EveSpaceObjectAttachmentUtils.saturate(out, [0.2, 0.4, 0.8, 0.5], 2);
   assertClose(out[0], gray + (0.2 - gray) * 2, "saturation above 1 extrapolates");
 
-  Saturate(out, [0.2, 0.4, 0.8, 0.5], -5);
+  EveSpaceObjectAttachmentUtils.saturate(out, [0.2, 0.4, 0.8, 0.5], -5);
   assertVecClose(out, [gray, gray, gray, 0.5], "negative clamps to the gray");
 });
 

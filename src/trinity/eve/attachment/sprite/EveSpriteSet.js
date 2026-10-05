@@ -12,7 +12,7 @@ import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveSpriteLight } from "./EveSpriteLight.js";
 import { EveSpriteSetItem } from "./EveSpriteSetItem.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
-import { Blink } from "../EveSpaceObjectAttachmentUtils.js";
+import { EveSpaceObjectAttachmentUtils } from "../EveSpaceObjectAttachmentUtils.js";
 import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
 import { AsPerPointLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
@@ -564,7 +564,7 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
     for (const light of this.lights)
     {
       AsPerPointLightData(record, light.lightData, light.boneMatrix, features, quality);
-      const blinkScale = Blink(time, light.blinkRate, light.blinkPhase, light.minScale, light.maxScale);
+      const blinkScale = EveSpaceObjectAttachmentUtils.blink(time, light.blinkRate, light.blinkPhase, light.minScale, light.maxScale);
       record.radius *= blinkScale;
       record.innerRadius *= blinkScale;
       record.lightType = Tr2Light.POINT_LIGHT;
