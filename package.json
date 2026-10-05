@@ -327,7 +327,7 @@
     "demo:webgpu": "npm run build:npm && npm run build:webgpu:demo && node scripts/trinityal/webgpu/run-webgpu-demo.js",
     "test:webgpu": "npm run build:npm && npm run build:webgpu:harness && node scripts/trinityal/webgpu/run-webgpu-harness.js",
     "test:webgpu:required": "npm run build:npm && npm run build:webgpu:harness && node scripts/trinityal/webgpu/run-webgpu-harness.js --required",
-    "test": "npm run check && npm run proof:sof:decorators && npm run proof:audio:decorators && npm run proof:character:decorators && node --test",
+    "test": "npm run check && npm run proof:sof:decorators && npm run proof:audio:decorators && npm run proof:character:decorators && node --test \"**/*.test.js\" \"**/*.test.mjs\"",
     "lint:al-contract": "node scripts/lint-al-contract.js",
     "lint:instanceof": "node scripts/lint-instanceof.js",
     "lint:typed-array-alloc": "node scripts/lint-typed-array-alloc.js",
