@@ -8,7 +8,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { Tr2VolumerticQuality } from "../../generated/trinityCore/enums.js";
 import { Tr2TextureReference } from "../Tr2TextureReference.js";
-import { AccumulatePriorityAttribute } from "../PriorityBlend.js";
+import { PriorityBlend } from "../PriorityBlend.js";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 import { Tr2Effect } from "../../shader/Tr2Effect.js";
 import { Tr2VolumetricsRendererFogViewDependentResources } from "./Tr2VolumetricsRendererFogViewDependentResources.js";
@@ -229,7 +229,7 @@ export class Tr2VolumetricsRenderer
    * Calls `GetFroxelFogSettings` directly on every registered component (the
    * registry validated each as an `ITr2FroxelFogSettings` when it was added),
    * sorts the records by descending priority and blends each attribute through
-   * `AccumulatePriorityAttribute`. With `logBlending`, thickness is blended in
+   * `PriorityBlend.accumulate`. With `logBlending`, thickness is blended in
    * log space and converted back (cpp:341-395).
    *
    * Adapted: each attribute is selected by an accessor function where Carbon's
@@ -250,23 +250,23 @@ export class Tr2VolumetricsRenderer
     }
     settings.sort((a, b) => b.priority - a.priority);
 
-    this.thickness = AccumulatePriorityAttribute(settings, value => value.thickness);
-    this.lightDirectionality = AccumulatePriorityAttribute(settings, value => value.lightDirectionality);
-    this.environmentIntensity = AccumulatePriorityAttribute(settings, value => value.environmentIntensity);
-    this.environmentDirectionality = AccumulatePriorityAttribute(settings, value => value.environmentDirectionality);
-    AccumulatePriorityAttribute(settings, value => value.fogColor, this.fogColor);
-    this.backgroundVisibility = AccumulatePriorityAttribute(settings, value => value.backgroundVisibility);
-    this.godRayNoiseIntensity = AccumulatePriorityAttribute(settings, value => value.godRayNoiseIntensity);
-    this.godRayNoiseFrequency = AccumulatePriorityAttribute(settings, value => value.godRayNoiseFrequency);
-    this.godRayNoiseAnimationSpeed = AccumulatePriorityAttribute(settings, value => value.godRayNoiseAnimationSpeed);
-    this.fogNoiseIntensity = AccumulatePriorityAttribute(settings, value => value.fogNoiseIntensity);
-    this.fogNoiseFrequency = AccumulatePriorityAttribute(settings, value => value.fogNoiseFrequency);
-    AccumulatePriorityAttribute(settings, value => value.fogNoiseMovementSpeed, this.fogNoiseMovementSpeed);
-    this.reflectionIntensity = AccumulatePriorityAttribute(settings, value => value.reflectionIntensity);
+    this.thickness = PriorityBlend.accumulate(settings, value => value.thickness);
+    this.lightDirectionality = PriorityBlend.accumulate(settings, value => value.lightDirectionality);
+    this.environmentIntensity = PriorityBlend.accumulate(settings, value => value.environmentIntensity);
+    this.environmentDirectionality = PriorityBlend.accumulate(settings, value => value.environmentDirectionality);
+    PriorityBlend.accumulate(settings, value => value.fogColor, this.fogColor);
+    this.backgroundVisibility = PriorityBlend.accumulate(settings, value => value.backgroundVisibility);
+    this.godRayNoiseIntensity = PriorityBlend.accumulate(settings, value => value.godRayNoiseIntensity);
+    this.godRayNoiseFrequency = PriorityBlend.accumulate(settings, value => value.godRayNoiseFrequency);
+    this.godRayNoiseAnimationSpeed = PriorityBlend.accumulate(settings, value => value.godRayNoiseAnimationSpeed);
+    this.fogNoiseIntensity = PriorityBlend.accumulate(settings, value => value.fogNoiseIntensity);
+    this.fogNoiseFrequency = PriorityBlend.accumulate(settings, value => value.fogNoiseFrequency);
+    PriorityBlend.accumulate(settings, value => value.fogNoiseMovementSpeed, this.fogNoiseMovementSpeed);
+    this.reflectionIntensity = PriorityBlend.accumulate(settings, value => value.reflectionIntensity);
 
     if (this.logBlending)
     {
-      const logThickness = AccumulatePriorityAttribute(settings, value => value.logThickness);
+      const logThickness = PriorityBlend.accumulate(settings, value => value.logThickness);
       this.thickness = Math.expm1(logThickness) / smoothness;
     }
 

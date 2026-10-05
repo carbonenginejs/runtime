@@ -130,9 +130,6 @@
     "src/trinity/core/mesh/TriGeometryResAllocations.js": [
       "TriGeometryResAllocations"
     ],
-    "src/trinity/core/PriorityBlend.js": [
-      "PriorityBlend"
-    ],
     "src/trinity/core/rawData/Tr2ConstantBufferFormats.js": [
       "Tr2ConstantBufferFormats"
     ],

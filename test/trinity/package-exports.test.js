@@ -53,7 +53,7 @@ test("published package resolves root, family, and deep generated exports", () =
         packageRoot.EveSmartLightMesh !== eveFamily.EveSmartLightMesh ||
         "EveSmartLightMesh" in eve ||
         "ITr2FroxelFogSettings" in generatedCore ||
-        packageRoot.AccumulatePriorityAttribute !== core.AccumulatePriorityAttribute ||
+        packageRoot.PriorityBlend.accumulate !== core.PriorityBlend.accumulate ||
         packageRoot.Tr2SSAO !== postProcess.Tr2SSAO || "Tr2SSAO" in generatedCore ||
         packageRoot.Tr2PostProcessRenderer !== postProcess.Tr2PostProcessRenderer ||
         "Tr2PostProcessRenderer" in generatedPostProcess)

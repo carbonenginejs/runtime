@@ -121,7 +121,7 @@ test("Tr2VolumetricsRenderer is maintained with Carbon defaults and scene owners
   {
     assert.equal(CjsSchema.getMethod(core.Tr2VolumetricsRenderer, method)?.impl?.status, status, method);
   }
-  assert.equal(trinity.AccumulatePriorityAttribute, core.AccumulatePriorityAttribute);
+  assert.equal(trinity.PriorityBlend.accumulate, core.PriorityBlend.accumulate);
 });
 
 
@@ -170,7 +170,7 @@ test("fog attributes blend independently across exact priority bands", () =>
   assert.ok(Math.abs(renderer.thickness - Math.expm1(expectedLog) / 4) <= 1e-5);
   assert.throws(() => renderer.UpdateFogSettings({}, scene.updateContext), /GetComponents/u);
 
-  const oversubscribed = core.AccumulatePriorityAttribute([
+  const oversubscribed = core.PriorityBlend.accumulate([
     { priority: 3, intensity: 2, value: { enabled: true, value: 10 } },
     { priority: 2, intensity: 1, value: { enabled: true, value: 100 } }
   ], source => source.value);
