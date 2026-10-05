@@ -5,7 +5,7 @@ import { meta } from "#schema";
 import { blue } from "#blue";
 import { IEveDistributionSpawnModifier } from "./IEveDistributionSpawnModifier.js";
 import { vec3 } from "#math/vec3";
-import { createMinStdRandom, getDistributionSeed } from "../../CjsDistributionRandom.js";
+import { CjsDistributionRandom } from "../../CjsDistributionRandom.js";
 
 /** Applies or replaces each spawned placement's scale with seeded random per-axis or uniform values. */
 @meta.define({ className: "EveDistributionSpawnModifierRandomScale", family: "eve/distribution/spawnModifiers" })
@@ -68,8 +68,8 @@ export class EveDistributionSpawnModifierRandomScale extends IEveDistributionSpa
   @meta.adapted
   ProcessSpawnModifier(placement, _numPlacements)
   {
-    const seed = getDistributionSeed(placement.uniqueID, this._timeSeed, this.consistentRandom);
-    const random = createMinStdRandom(seed);
+    const seed = CjsDistributionRandom.getDistributionSeed(placement.uniqueID, this._timeSeed, this.consistentRandom);
+    const random = CjsDistributionRandom.createMinStdRandom(seed);
     const scale = vec3.create();
 
     if (this.uniformScale)

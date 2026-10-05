@@ -5,7 +5,7 @@ import { meta } from "#schema";
 import { blue } from "#blue";
 import { IEveDistributionSpawnModifier } from "./IEveDistributionSpawnModifier.js";
 import { vec3 } from "#math/vec3";
-import { createMinStdRandom, getDistributionSeed } from "../../CjsDistributionRandom.js";
+import { CjsDistributionRandom } from "../../CjsDistributionRandom.js";
 
 /** Adds a seeded random local translation offset to each spawned placement. */
 @meta.define({ className: "EveDistributionSpawnModifierRandomOffset", family: "eve/distribution/spawnModifiers" })
@@ -62,8 +62,8 @@ export class EveDistributionSpawnModifierRandomOffset extends IEveDistributionSp
   @meta.adapted
   ProcessSpawnModifier(placement, _numPlacements)
   {
-    const seed = getDistributionSeed(placement.uniqueID, this._timeSeed, this.consistentRandom);
-    const random = createMinStdRandom(seed);
+    const seed = CjsDistributionRandom.getDistributionSeed(placement.uniqueID, this._timeSeed, this.consistentRandom);
+    const random = CjsDistributionRandom.createMinStdRandom(seed);
     const offset = vec3.create();
 
     if (this.uniformOffset)

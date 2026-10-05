@@ -6,7 +6,7 @@ import { blue } from "#blue";
 import { IEveDistributionSpawnModifier } from "./IEveDistributionSpawnModifier.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { createMinStdRandom, getDistributionSeed, setYawPitchRoll } from "../../CjsDistributionRandom.js";
+import { CjsDistributionRandom } from "../../CjsDistributionRandom.js";
 
 /** Applies or replaces each spawned placement's orientation with a seeded random yaw, pitch, and roll. */
 @meta.define({ className: "EveDistributionSpawnModifierRandomRotation", family: "eve/distribution/spawnModifiers" })
@@ -63,15 +63,15 @@ export class EveDistributionSpawnModifierRandomRotation extends IEveDistribution
   @meta.adapted
   ProcessSpawnModifier(placement, _numPlacements)
   {
-    const seed = getDistributionSeed(placement.uniqueID, this._timeSeed, this.consistentRandom);
-    const random = createMinStdRandom(seed);
+    const seed = CjsDistributionRandom.getDistributionSeed(placement.uniqueID, this._timeSeed, this.consistentRandom);
+    const random = CjsDistributionRandom.createMinStdRandom(seed);
     const euler = vec3.create();
     for (let axis = 0; axis < 3; axis++)
     {
       euler[axis] = this.minRotation[axis] + (this.maxRotation[axis] - this.minRotation[axis]) * random();
     }
 
-    const rotation = setYawPitchRoll(quat.create(), euler[0], euler[1], euler[2]);
+    const rotation = CjsDistributionRandom.setYawPitchRoll(quat.create(), euler[0], euler[1], euler[2]);
     if (this.overrideRotation)
     {
       placement.initialRotation.set(rotation);

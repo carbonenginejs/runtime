@@ -157,9 +157,6 @@
     "src/trinity/eve/child/modifiers/EveChildModifierTransformCommon.js": [
       "EveChildModifierTransformCommon"
     ],
-    "src/trinity/eve/CjsDistributionRandom.js": [
-      "CjsDistributionRandom"
-    ],
     "src/trinity/eve/EveComponentTypes.js": [
       "EveComponentTypes"
     ],

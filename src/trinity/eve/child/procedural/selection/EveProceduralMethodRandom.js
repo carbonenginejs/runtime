@@ -5,7 +5,7 @@ import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 import { CjsSchema, meta } from "#schema";
 import { EveProceduralMethodRandomParameter } from "./EveProceduralMethodRandomParameter.js";
 import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.js";
-import { createMinStdRandom } from "../../../CjsDistributionRandom.js";
+import { CjsDistributionRandom } from "../../../CjsDistributionRandom.js";
 
 // Carbon BELIST_LOADING (blueexposure IList.h:50): list events raised while a
 // persisted list hydrates carry this flag and must not regenerate the map.
@@ -140,7 +140,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
     }
 
     const currentChild = this.selectedChild;
-    const random = createMinStdRandom(Math.trunc(this.seed_temp));
+    const random = CjsDistributionRandom.createMinStdRandom(Math.trunc(this.seed_temp));
     const rnd = Math.min(Math.floor(random() * this.totalWeight), this.totalWeight - 1);
 
     this.selectedChild = -1;

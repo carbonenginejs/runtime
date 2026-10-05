@@ -4,7 +4,7 @@ import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { meta } from "#schema";
 import { blue } from "#blue";
 import { IEveDistributionSpawnModifier } from "./IEveDistributionSpawnModifier.js";
-import { createMinStdRandom, getDistributionSeed } from "../../CjsDistributionRandom.js";
+import { CjsDistributionRandom } from "../../CjsDistributionRandom.js";
 
 /** Offsets each spawned placement's initial lifetime with random, normalized, or cascading timing. */
 @meta.define({ className: "EveDistributionSpawnModifierLifeTimeOffset", family: "eve/distribution/spawnModifiers" })
@@ -79,8 +79,8 @@ export class EveDistributionSpawnModifierLifeTimeOffset extends IEveDistribution
       return;
     }
 
-    const seed = getDistributionSeed(placement.uniqueID, this._timeSeed, this.consistentRandom);
-    const random = createMinStdRandom(seed);
+    const seed = CjsDistributionRandom.getDistributionSeed(placement.uniqueID, this._timeSeed, this.consistentRandom);
+    const random = CjsDistributionRandom.createMinStdRandom(seed);
     const randomOffset = this.minOffset + (this.maxOffset - this.minOffset) * random()
       + this.cascadingLifetimeOffset * placement.initialPlacementID;
     this._currentCascadingOffset += this.cascadingLifetimeOffset;
