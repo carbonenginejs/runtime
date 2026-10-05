@@ -560,10 +560,14 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     return this._isVisible;
   }
 
-  /** Carbon EveBannerSet::GetDebugOptions (cpp:219-224). */
+  /**
+   * Carbon EveBannerSet::GetDebugOptions (cpp:219-224).
+   *
+   * Adapted: Adds option strings through the supplied collection's add or insert method; the
+   * debug adapter retains its capability checks.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Tr2DebugRendererOptions is an engine-owned set; a Set (add) or an insert duck is accepted.")
   GetDebugOptions(options = new Set())
   {
     for (const option of EveBannerSet.DebugOptions)
@@ -587,10 +591,12 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * "Banner Sets Lights" draws each light twice, inner then outer radius, with
    * the saturated authored color - or the texture average color when a primary
    * texture parameter is attached, exactly as GetLights decides it.
+   *
+   * Adapted: The supplied debug renderer receives owner/index arguments and numeric effect
+   * ordinals; optional debug-method checks remain in this adapter.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("ITr2DebugRenderer2 and Tr2DebugObjectReference are not ported yet; the reference collapses to (owner, index) arguments and the Effect enum to its ordinal.")
   RenderDebugInfo(renderer, parentTransform, bones = null, boneCount = 0)
   {
     if (!renderer) return false;

@@ -263,10 +263,14 @@ export class EveSceneStaticParticles
     return 0;
   }
 
-  /** Adds Carbon's sole debug option to a Set-like option bag. */
+  /**
+   * Adds Carbon's sole debug option to a Set-like option bag.
+   *
+   * Adapted: Adds option strings through the supplied collection's add or insert method; the
+   * debug adapter retains its capability checks.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Tr2DebugRendererOptions is represented by an injected Set-like option bag.")
   GetDebugOptions(options = new Set())
   {
     if (options?.add)
@@ -280,10 +284,14 @@ export class EveSceneStaticParticles
     return options;
   }
 
-  /** Draws the transformed cluster bounds through the injected debug renderer. */
+  /**
+   * Draws the transformed cluster bounds through the injected debug renderer.
+   *
+   * Adapted: ITr2DebugRenderer2 is an injected engine-owned capability; its
+   * Effect::Wireframe value is retained as 0.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("ITr2DebugRenderer2 is an injected engine-owned capability; its Effect::Wireframe value is retained as 0.")
   RenderDebugInfo(renderer)
   {
     if (!renderer?.HasOption?.(this, "Bounding Sphere"))

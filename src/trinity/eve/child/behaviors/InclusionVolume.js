@@ -139,10 +139,14 @@ export class InclusionVolume
     return returnForces;
   }
 
-  /** Adds Carbon's inclusion-volume debug option. */
+  /**
+   * Adds Carbon's inclusion-volume debug option.
+   *
+   * Adapted: Adds option strings through the supplied collection's add or insert method; the
+   * debug adapter retains its capability checks.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Tr2DebugRendererOptions is represented by an injected Set-like option bag.")
   GetDebugOptions(options = new Set())
   {
     if (options?.add)
@@ -156,10 +160,13 @@ export class InclusionVolume
     return options;
   }
 
-  /** Delegates inclusion-volume debug geometry when its option is enabled. */
+  /**
+   * Delegates inclusion-volume debug geometry when its option is enabled.
+   *
+   * Adapted: ITr2DebugRenderer2 is an injected engine-owned capability.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("ITr2DebugRenderer2 is an injected engine-owned capability.")
   RenderDebugInfo(renderer, _agents, parentWorldLocation)
   {
     if (!renderer?.HasOption?.(this, "InclusionVolumes"))

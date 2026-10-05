@@ -1088,10 +1088,14 @@ export class EveEffectRoot2 extends EveEntity
     return duration;
   }
 
-  /** Collects the Carbon debug-option names and child options. */
+  /**
+   * Collects the Carbon debug-option names and child options.
+   *
+   * Adapted: Collects names through the supplied collection's add method and forwards to
+   * available child and observer debug hooks.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The debug renderer/options collection is an injected engine-owned capability.")
   GetDebugOptions(options = new Set())
   {
     options.add?.("Bounding Sphere");
@@ -1101,10 +1105,13 @@ export class EveEffectRoot2 extends EveEntity
     return options;
   }
 
-  /** Forwards root debug geometry to an injected debug renderer. */
+  /**
+   * Forwards root debug geometry to an injected debug renderer.
+   *
+   * Adapted: The debug renderer is an injected engine-owned capability.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The debug renderer is an injected engine-owned capability.")
   RenderDebugInfo(renderer)
   {
     if (renderer?.HasOption?.(this, "Bounding Sphere"))

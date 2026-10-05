@@ -236,10 +236,12 @@ export class SplineTunnelGroup
   /**
    * Registers this group's "SplineTunnels" debug option in the caller's option
    * bag (Set-like add or insert) and returns that bag.
+   *
+   * Adapted: Adds option strings through the supplied collection's add or insert method; the
+   * debug adapter retains its capability checks.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Tr2DebugRendererOptions is represented by an injected Set-like option bag.")
   GetDebugOptions(options = new Set())
   {
     if (options?.add) options.add("SplineTunnels");
@@ -249,12 +251,15 @@ export class SplineTunnelGroup
 
   /**
    * Draws every tunnel's shape: pull and point-of-no-return spheres at its first spline point, a marker sphere at its last, and a cylWidth cylinder along each point's direction vector.
+   *
+   * Adapted: Emits Carbon's tunnel primitives through an injected
+   * ITr2DebugRenderer2-compatible capability.
+   *
    * @param {Object} renderer - injected debug renderer capability
    * @param {Float32Array} [parentWorldLocation] - places the tunnel geometry in world space
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Emits Carbon's tunnel primitives through an injected ITr2DebugRenderer2-compatible capability.")
   RenderDebugInfo(renderer, parentWorldLocation = mat4.create())
   {
     for (const tunnel of this.tunnels)

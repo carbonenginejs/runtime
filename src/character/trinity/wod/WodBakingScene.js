@@ -68,10 +68,12 @@ export class WodBakingScene
 
   /**
    * Engine-owned diagnostic visualization hook.
+   *
+   * Adapted: Carbon leaves this hook empty; the JavaScript hook throws its explicit
+   * unimplemented error instead.
    */
   @meta.blue.method
   @meta.notImplemented
-  @meta.reason("Carbon leaves this hook empty, and any useful visualization would belong with the engine render-target implementation.")
   RenderDebugInfo()
   {
     throw new Error("WodBakingScene.RenderDebugInfo is engine-owned and not implemented in CarbonEngineJS.");

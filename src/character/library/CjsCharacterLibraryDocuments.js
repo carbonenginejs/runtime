@@ -50,9 +50,13 @@ export class CjsCharacterLibraryDocuments
         return this._documentRevisions.get(name) ?? 0;
     }
 
-    /** Advances the revision of the document list that was mutated. */
+    /**
+     * Advances the revision of the document list that was mutated.
+     *
+     * Adapted: JS character library lookup indexes must observe same-length list replacements,
+     * including deferred edits.
+     */
     @meta.ours
-    @meta.reason("JS character library lookup indexes must observe same-length list replacements, including deferred edits.")
     @meta.invalidates("_documentRevisions")
     OnListModified(_event, _key, _key2, _value, list)
     {

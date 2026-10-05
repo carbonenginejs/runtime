@@ -303,10 +303,13 @@ export class EveChildSmartLightSet extends EveChildTransform
     }
   }
 
-  /** Advertises the smartLightSets debug option (EveChildSmartLightSet.cpp:210-213). */
+  /**
+   * Advertises the smartLightSets debug option (EveChildSmartLightSet.cpp:210-213).
+   *
+   * Adapted: The caller supplies a JavaScript Set for native debug-option strings.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("A JavaScript Set represents Carbon's Tr2DebugRendererOptions string set.")
   GetDebugOptions(options)
   {
     options.add("smartLightSets");

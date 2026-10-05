@@ -2335,12 +2335,16 @@ export class CjsWebgpuRenderContextAL
   /**
    * Creates a resource set, this backend's kind of `Tr2ResourceSetAL`.
    *
+   *
+   * Adapted: JavaScript chooses the AL implementation through this context factory instead
+   * of a compile-time platform include. The private allocation branch preserves the native
+   * Create result.
+   *
    * @param {object} description A `Tr2ResourceSetDescriptionAL`.
    * @param {object} program The `CjsWebgpuShaderProgramAL` it binds against.
    * @returns {object|null} The set, or null when Create refused.
    */
   @meta.ours
-  @meta.reason("JavaScript chooses the AL implementation through this context factory instead of a compile-time platform include. The private allocation branch preserves the native Create result.")
   CreateResourceSet(description, program, implementationOnly = false)
   {
     // JS platform selection for the public facade; the allocation branch
@@ -2473,11 +2477,14 @@ export class CjsWebgpuRenderContextAL
   /**
    * Binds a prepared set of textures, samplers and buffers.
    *
+   *
+   * Adapted: A copied public wrapper retains the shared ownership record while this context
+   * binds the WebGPU implementation.
+   *
    * @param {object} resourceSet A `Tr2ResourceSetAL`.
    * @returns {number} `S_OK`.
    */
   @meta.adapted
-  @meta.reason("A copied public wrapper retains the shared ownership record while this context binds the WebGPU implementation.")
   SetResourceSet(resourceSet)
   {
     const next = resourceSet ? new Tr2ResourceSetAL({ copy: resourceSet }) : null;

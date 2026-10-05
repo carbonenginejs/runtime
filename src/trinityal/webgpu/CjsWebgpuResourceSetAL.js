@@ -80,13 +80,17 @@ export class CjsWebgpuResourceSetAL
   /**
    * Resolves the description against the program.
    *
+   *
+   * Adapted: WebGPU resolves native dense records into bind-group entries, validates the
+   * program map and fills missing resources with dummies. Descriptor heap views have no
+   * WebGPU representation and return E_FAIL.
+   *
    * @param {object} description A `Tr2ResourceSetDescriptionAL`.
    * @param {object} program The `CjsWebgpuShaderProgramAL` this set binds against.
    * @param {object} renderContext The WebGPU render context AL.
    * @returns {number} An `ALResult` value.
    */
   @meta.adapted
-  @meta.reason("WebGPU resolves native dense records into bind-group entries, validates the program map and fills missing resources with dummies. Descriptor heap views have no WebGPU representation and return E_FAIL.")
   Create(description, program, renderContext)
   {
     this.Destroy();
@@ -127,9 +131,13 @@ export class CjsWebgpuResourceSetAL
     return ALResult.S_OK;
   }
 
-  /** One slot's resource, or the dummy Metal would put there. */
+  /**
+   * One slot's resource, or the dummy Metal would put there.
+   *
+   * Adapted: Resolves dense native records to WebGPU views and buffers; a pending resource
+   * or empty slot uses the context dummy, following Metal.
+   */
   @meta.adapted
-  @meta.reason("Resolves dense native records to WebGPU views and buffers; a pending resource or empty slot uses the context dummy, following Metal.")
   _Resolve(description, binding, renderContext, storage)
   {
     if (binding.sampler)

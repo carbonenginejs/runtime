@@ -541,10 +541,14 @@ export class Tr2Effect extends Tr2Material
    * allocated, through `Tr2MaterialStageInput`'s own `AllocateConstants` /
    * `GetSharedConstantBuffer`. The rest is unported.
    *
+   *
+   * Adapted: Device-free JS reflection supplies stage signatures in authored order; pass
+   * descriptions allocate their map here and sampler states are seeded by the applying
+   * context.
+   *
    * @returns {void}
    */
   @meta.adapted
-  @meta.reason("Device-free JS reflection supplies stage signatures in authored order; pass descriptions allocate their map here and sampler states are seeded by the applying context.")
   #BuildParametersForPasses()
   {
     this._ClearPassBindings();

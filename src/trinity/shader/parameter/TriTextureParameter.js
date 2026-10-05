@@ -411,10 +411,12 @@ export class TriTextureParameter extends CjsParameter
   /**
    * Carbon drops texture subscriptions and resources on every notification,
    * then reinitializes and rebuilds effect handles.
+   *
+   * Adapted: Carbon's OnTextureChange listeners are CjsResource completion subscriptions
+   * here.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon's OnTextureChange listeners are CjsResource completion subscriptions here.")
   OnModified(_propertyName)
   {
     this._ReleaseCompletion(this.resource);

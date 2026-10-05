@@ -116,7 +116,7 @@ test("TimeFromDateTime inverts TimeAsDateTime", () =>
 
 // core/CcpTime.cpp:174-177. The donor rejects anything timegm puts before the
 // Unix epoch, even though the Blue epoch reaches back to 1601. Reproduced
-// rather than corrected - see the @impl.reason.
+// rather than corrected - see the method's JSDoc.
 test("TimeFromDateTime refuses dates before 1970, as the donor does", () =>
 {
   const dt = new CcpDateTime();
