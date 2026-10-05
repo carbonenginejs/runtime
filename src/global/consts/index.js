@@ -16,6 +16,7 @@ export * from "./audio/index.js";
 export * from "./shader/index.js";
 export * from "./d3d/index.js";
 export * from "./blue.js";
+export * from "./resourceRequirement.js";
 export * from "./resourceHandlerMode.js";
 export * from "./trinity.js";
 export * from "./effectPaths.js";

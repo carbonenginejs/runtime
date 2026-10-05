@@ -69,7 +69,7 @@ export * from "./CjsBluePaths.js";
 // live in Blue, and so does ours. Formats and concrete resources stay in
 // resource and register with it.
 export * from "../consts/resourceHandlerMode.js";
-export * from "./ResourceRequirement.js";
+export * from "../consts/resourceRequirement.js";
 export * from "./CjsFormatStore.js";
 export * from "./CjsResource.js";
 export * from "./CjsLoadingObject.js";

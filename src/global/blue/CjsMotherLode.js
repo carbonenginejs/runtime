@@ -1,5 +1,5 @@
 import { CjsSchema, meta } from "#schema";
-import { ResourceRequirement } from "./ResourceRequirement.js";
+import { ResourceRequirement } from "../consts/resourceRequirement.js";
 import { assertNonNegativeInteger, assertNonNegativeNumber } from "#utils/validation";
 
 // Source: blue/include/IMotherLode.h
