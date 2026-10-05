@@ -8,7 +8,7 @@ both use them.
 | --- | --- |
 | `busGraph.js` | Validates the `busGraph` catalog and checks consumer route projections. |
 | `CjsBusGraphRuntime.js` | Holds stable route handles for one library generation. It creates no nodes. |
-| `busGraphMixer.js` | `CjsSharedBusMixer`: qualifies routes and owns the shared Bus nodes. |
+| `CjsSharedBusMixer.js` | `CjsSharedBusMixer`: qualifies routes and owns the shared Bus nodes. |
 | `busEffects.js` | Decodes effect parameter blocks and builds the Web Audio effect stages. |
 | `busFader.js` | Schedules one physical Bus post-effect fader. |
 | `busFilter.js` | Schedules one additive State LPF or HPF over a complete route leg. |

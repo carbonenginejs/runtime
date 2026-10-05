@@ -18,7 +18,7 @@ import {
     CjsMusicEngine,
 } from "../../../npm/dist/audio/index.js";
 import { CjsAudioMediaProvider } from "./CjsAudioMediaProvider.js";
-import { CjsSharedBusMixer } from "../../../npm/dist/audio/internal/busGraphMixer.js";
+import { CjsSharedBusMixer } from "../../../npm/dist/audio/internal/CjsSharedBusMixer.js";
 import { CjsBusGraphRuntime } from "../../../npm/dist/audio/internal/CjsBusGraphRuntime.js";
 import { CjsBusDuckingController } from "../../../npm/dist/audio/internal/busDucking.js";
 

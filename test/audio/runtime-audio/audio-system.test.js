@@ -11,7 +11,7 @@ import {
   createAudioUpdateContext,
 } from "../../../npm/dist/audio/index.js";
 import { CjsBusGraphRuntime } from "../../../src/audio/internal/CjsBusGraphRuntime.js";
-import { CjsSharedBusMixer } from "../../../src/audio/internal/busGraphMixer.js";
+import { CjsSharedBusMixer } from "../../../src/audio/internal/CjsSharedBusMixer.js";
 import { CjsBusDuckingController } from "../../../src/audio/internal/busDucking.js";
 import { wwiseFilterPercentToHz } from "../../../src/audio/internal/wwiseFilter.js";
 import { FakeDynamicsCompressor, FakeAnalyser } from "../../support/webAudioNodes.js";

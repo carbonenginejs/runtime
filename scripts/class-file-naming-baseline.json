@@ -3,9 +3,6 @@
     "src/audio/internal/busDucking.js": [
       "CjsBusDuckingController"
     ],
-    "src/audio/internal/busGraphMixer.js": [
-      "CjsSharedBusMixer"
-    ],
     "src/audio/internal/sourceEffectRtpc.js": [
       "CjsWwiseSourceEffectRtpcLane",
       "CjsWwiseFilteredControl"
