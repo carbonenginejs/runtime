@@ -37,6 +37,7 @@ import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { ITr2SoundEmitterOwner } from "../ITr2SoundEmitterOwner.js";
 import { ITr2ControllerOwner } from "../../controllers/ITr2ControllerOwner.js";
+import { ITr2ActionController } from "../../controllers/ITr2Controller/ITr2ActionController.js";
 import { IsMatch, blue, EnumRegistrationType } from "#blue";
 
 // Module scratch (read-only zero vector; container recursion forbids mutable
@@ -1424,7 +1425,7 @@ export class EveChildContainer extends EveChildTransform
     return duration;
   }
 
-  /** Carbon EveChildContainer::GetRangeDuration (cpp:815-840): maximum named
+  /** Carbon EveChildContainer::GetRangeDuration (cpp:809-834): maximum named
    * range duration over matching own and child sets. */
   @meta.blue.method
   @meta.implemented
@@ -1441,7 +1442,7 @@ export class EveChildContainer extends EveChildTransform
     {
       if (curveSet.GetName() === target)
       {
-        duration = Math.max(duration, Number(curveSet.GetRangeDuration(rangeName) ?? 0));
+        duration = Math.max(duration, curveSet.GetRangeDuration(rangeName));
       }
     }
 
@@ -1454,9 +1455,10 @@ export class EveChildContainer extends EveChildTransform
   }
 
   /**
-   * Carbon EveChildContainer::GetControllerValueByName (cpp:1083-1098):
+   * Carbon EveChildContainer::GetControllerValueByName (cpp:1077-1092):
    * Carbon returns bool with a float& out; the JS port returns the value or
-   * null when no controller exposes the named float variable.
+   * null when no action controller exposes the named float variable. The native
+   * ITr2ActionController cast filters controllers before the required getter call.
    *
    * Adapted: The bool + float& out-param pair collapses to value-or-null in JS.
    */
@@ -1465,12 +1467,14 @@ export class EveChildContainer extends EveChildTransform
   GetControllerValueByName(name)
   {
     const key = String(name ?? "");
-    for (const controller of this.controllers)
+    for (const candidate of this.controllers)
     {
-      const value = controller?.GetFloatVariableByName?.(key);
+      const controller = CjsSchema.cast(candidate, ITr2ActionController);
+      if (!controller) continue;
+      const value = controller.GetFloatVariableByName(key);
       if (value !== undefined && value !== null)
       {
-        return Number(value);
+        return value;
       }
     }
     return null;

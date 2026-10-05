@@ -128,7 +128,11 @@ test("scene audio wrappers delegate through an optional runtime-audio emitter", 
   assertEquals(CjsSchema.getDefaults(EveChildAudio).name, "EveChildAudio");
   child.audioEmitter = emitter;
   child.SetEmitterName("child");
-  child.UpdateSyncronous(null, { localToWorldTransform: mat4.fromTranslation(mat4.create(), [4, 5, 6]) });
+  const parent = new EveChildAudio();
+  mat4.fromTranslation(parent.worldTransform, [4, 5, 6]);
+  const params = new EveChildUpdateParams();
+  params.childParent = parent;
+  child.UpdateSyncronous(null, params);
   assert(calls.includes("name:child"));
   assert(calls.includes("position:4,5,6"));
   assertEquals(child.GetBoundingSphere(vec4.create()), false);

@@ -93,13 +93,14 @@ export class EveChildSpherePin extends EveChildMesh
   @meta.type.float32
   pinAlphaThreshold = 0;
 
-  /** Carbon updates the mesh first, then advances every attached curve set. */
+  /** Carbon EveChildSpherePin.cpp:30-38 updates the mesh first, then reads the
+   * required context clock and advances every attached curve set. */
   @meta.blue.method
   @meta.implemented
   UpdateAsyncronous(updateContext, params)
   {
     super.UpdateAsyncronous(updateContext, params);
-    const time = updateContext?.GetTime?.() ?? updateContext?.currentTime ?? 0;
+    const time = updateContext.GetTime();
     for (const curveSet of this.curveSets)
     {
       curveSet.Update_RealTimeSimTime(time, time, updateContext.renderContext);

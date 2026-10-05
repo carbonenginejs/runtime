@@ -103,15 +103,16 @@ export class EveChildAudio extends EveChildTransform
   }
 
   /**
-   * Rebuilds the world transform from the parent - preferring the parent's own
-   * live localToWorld over the params copy - and, while unmuted, pushes the
-   * emitter its position plus front and top orientation vectors derived from
-   * that transform's rotation.
+   * Rebuilds the world transform from the parent's output buffer, or identity
+   * when both parent references are absent (EveChildAudio.cpp:81-107). The child
+   * parent takes precedence. While unmuted, updates the emitter's position and
+   * orientation from that transform; the parent's return value is unused.
    */
   UpdateSyncronous(_updateContext, params = {})
   {
     const parent = params.childParent ?? params.spaceObjectParent ?? null;
-    const parentTransform = parent?.GetLocalToWorldTransform?.(mat4.create()) ?? params.localToWorldTransform ?? mat4.create();
+    const parentTransform = mat4.create();
+    if (parent) parent.GetLocalToWorldTransform(parentTransform);
     this.UpdateTransform(parentTransform);
     if (this.audioEmitter && !this.mute)
     {
