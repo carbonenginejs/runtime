@@ -1,12 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
-import {
-  SCREEN_QUAD_FLOATS,
-  SCREEN_VERTEX_FLOATS,
-  SetupScreenQuad,
-  SetupScreenQuadInCameraSpace
-} from "../../npm/dist/trinity/core/Tr2RenderUtils.js";
+import { SCREEN_QUAD_FLOATS, SCREEN_VERTEX_FLOATS, Tr2RenderUtils } from "../../npm/dist/trinity/core/Tr2RenderUtils.js";
 
 
 /**
@@ -29,7 +24,7 @@ function rows(quad)
 test("SetupScreenQuad maps [0,1] placement into clip space with y flipped", () =>
 {
   const context = new Tr2RenderContext();
-  const quad = SetupScreenQuad(new Float32Array(SCREEN_QUAD_FLOATS), context, [ 0, 0 ], [ 1, 1 ]);
+  const quad = Tr2RenderUtils.setupScreenQuad(new Float32Array(SCREEN_QUAD_FLOATS), context, [ 0, 0 ], [ 1, 1 ]);
 
   // Full-screen placement is the whole clip volume, and y inverts because the
   // vertex coordinates arrive y-down (cpp:19-20).
@@ -49,14 +44,14 @@ test("SetupScreenQuad flips the interior edge with the cull mode", () =>
   const context = new Tr2RenderContext();
   const esm = context.GetEffectStateManager();
 
-  const normal = rows(SetupScreenQuad(new Float32Array(SCREEN_QUAD_FLOATS), context, [ 0, 0 ], [ 1, 1 ]));
+  const normal = rows(Tr2RenderUtils.setupScreenQuad(new Float32Array(SCREEN_QUAD_FLOATS), context, [ 0, 0 ], [ 1, 1 ]));
 
   // Negative control: with the cull mode inverted the two interior vertices
   // must swap, and nothing else may move. A quad that ignored the flag would
   // read identically here and silently wind one of the two triangles backwards.
   esm.SetInvertedCullMode(true);
   assert.equal(esm.IsCullModeInverted(), true);
-  const inverted = rows(SetupScreenQuad(new Float32Array(SCREEN_QUAD_FLOATS), context, [ 0, 0 ], [ 1, 1 ]));
+  const inverted = rows(Tr2RenderUtils.setupScreenQuad(new Float32Array(SCREEN_QUAD_FLOATS), context, [ 0, 0 ], [ 1, 1 ]));
 
   assert.notDeepEqual(normal, inverted);
   assert.deepEqual(inverted[0], normal[0]);
@@ -68,7 +63,7 @@ test("SetupScreenQuad flips the interior edge with the cull mode", () =>
 test("SetupScreenQuad honours a sub-rectangle placement and its texture window", () =>
 {
   const context = new Tr2RenderContext();
-  const quad = SetupScreenQuad(new Float32Array(SCREEN_QUAD_FLOATS), context, [ 0.25, 0.25 ], [ 0.75, 0.75 ], [ 0, 0 ], [ 0.5, 0.5 ]);
+  const quad = Tr2RenderUtils.setupScreenQuad(new Float32Array(SCREEN_QUAD_FLOATS), context, [ 0.25, 0.25 ], [ 0.75, 0.75 ], [ 0, 0 ], [ 0.5, 0.5 ]);
   const emitted = rows(quad);
 
   // Top-left stays at the clip-space corner, bottom-right lands at the centre.
@@ -84,7 +79,7 @@ test("SetupScreenQuadInCameraSpace reports null rather than guessing a projectio
   // set by the time a blit runs; we take it from the context, which can be
   // empty. Refusing beats unprojecting through an identity nobody chose.
   assert.equal(context.GetProjection(), null);
-  assert.equal(SetupScreenQuadInCameraSpace(new Float32Array(SCREEN_QUAD_FLOATS), context), null);
+  assert.equal(Tr2RenderUtils.setupScreenQuadInCameraSpace(new Float32Array(SCREEN_QUAD_FLOATS), context), null);
 });
 
 test("SetupScreenQuadInCameraSpace shares one depth across all four corners", () =>
@@ -97,7 +92,7 @@ test("SetupScreenQuadInCameraSpace shares one depth across all four corners", ()
     0, 0, 0, 1
   ]);
 
-  const quad = SetupScreenQuadInCameraSpace(new Float32Array(SCREEN_QUAD_FLOATS), context);
+  const quad = Tr2RenderUtils.setupScreenQuadInCameraSpace(new Float32Array(SCREEN_QUAD_FLOATS), context);
   assert.notEqual(quad, null);
 
   // Carbon writes tl.z into every vertex, the last one included (cpp:97), so

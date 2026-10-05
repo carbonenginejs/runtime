@@ -34,7 +34,7 @@ import * as CcpLog from "../../global/logging/ccpLog.js";
 import { meta } from "#schema";
 import { Tr2Blitter } from "./Tr2Blitter.js";
 import { TriSettingsRegistrar } from "./TriSettingsRegistrar.js";
-import { AdjustTextureCoordsToViewport } from "./Tr2RenderUtils.js";
+import { Tr2RenderUtils } from "./Tr2RenderUtils.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "./context/Tr2RenderContext.js";
 import { Tr2VariableStore } from "./variable/Tr2VariableStore.js";
 import { gTriDev } from "./device/gTriDev.js";
@@ -344,7 +344,7 @@ export class Tr2Renderer
   {
     if (!Tr2Renderer.#blitter) return false;
 
-    const { tlTexCoord, brTexCoord } = AdjustTextureCoordsToViewport(
+    const { tlTexCoord, brTexCoord } = Tr2RenderUtils.adjustTextureCoordsToViewport(
       renderContext,
       options.tlTexCoord ?? [ 0, 0 ],
       options.brTexCoord ?? [ 1, 1 ]

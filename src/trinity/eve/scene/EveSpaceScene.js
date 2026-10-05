@@ -31,7 +31,7 @@ import { CullMode, PixelFormat, RenderState, ShaderType, TextureType, Tr2GpuUsag
 import { Tr2ColorAttachment, Tr2DepthAttachment, Tr2SubresourceData } from "#trinityal";
 import { RenderingMode, TriBatchType } from "#consts/graphics";
 import { DefaultKeyGenerator, EffectKeyGenerator, TriRenderBatchAccumulator } from "../../core/batch/TriRenderBatch/index.js";
-import { FillAndSetConstants } from "../../core/Tr2RenderUtils.js";
+import { Tr2RenderUtils } from "../../core/Tr2RenderUtils.js";
 import { PER_FRAME_PS, PER_FRAME_VS, Tr2Renderer } from "../../core/Tr2Renderer.js";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { BackgroundRenderingReason } from "../../generated/eve/enums.js";
@@ -3364,7 +3364,7 @@ export class EveSpaceScene
 
         const data = this._shadowPerFrameVS.GetData();
 
-        FillAndSetConstants(this._shadowPerFrameVSBuffer, data, data.byteLength, perFrameVsMask, PER_FRAME_VS, renderContext);
+        Tr2RenderUtils.fillAndSetConstants(this._shadowPerFrameVSBuffer, data, data.byteLength, perFrameVsMask, PER_FRAME_VS, renderContext);
 
         // The atlas is a forward-depth surface cleared to 1 (PrepareShadowRendering).
         esm.SetInvertedDepthTest(false);
@@ -3504,8 +3504,8 @@ export class EveSpaceScene
     const vs = perFrameVS.GetData();
     const ps = perFramePS.GetData();
 
-    FillAndSetConstants(this._perFrameVSBuffer, vs, vs.byteLength, perFrameVsMask, PER_FRAME_VS, renderContext);
-    FillAndSetConstants(this._perFramePSBuffer, ps, ps.byteLength, 1 << ShaderType.PIXEL_SHADER, PER_FRAME_PS, renderContext);
+    Tr2RenderUtils.fillAndSetConstants(this._perFrameVSBuffer, vs, vs.byteLength, perFrameVsMask, PER_FRAME_VS, renderContext);
+    Tr2RenderUtils.fillAndSetConstants(this._perFramePSBuffer, ps, ps.byteLength, 1 << ShaderType.PIXEL_SHADER, PER_FRAME_PS, renderContext);
   }
 
   /**

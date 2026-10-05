@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud2.cpp:26-67
 // Native anonymous EveChildCloudPerObjectData is qualified with its Cloud2 owner
 // to distinguish it from the separate legacy cloud's anonymous class.
-import { FillAndSetConstants } from "../../Tr2RenderUtils.js";
+import { Tr2RenderUtils } from "../../Tr2RenderUtils.js";
 import { PER_OBJECT_VS, PER_OBJECT_PS } from "../../Tr2Renderer.js";
 import { meta } from "#schema";
 import { Tr2PerObjectData } from "./Tr2PerObjectData.js";
@@ -34,9 +34,9 @@ export class EveChildCloud2PerObjectData extends Tr2PerObjectData
     const bytes = this.data.GetData();
     let uploaded = 0;
     if (mask & family)
-      uploaded += Number(FillAndSetConstants(buffers[0], bytes, bytes.byteLength, family, PER_OBJECT_VS, context));
+      uploaded += Number(Tr2RenderUtils.fillAndSetConstants(buffers[0], bytes, bytes.byteLength, family, PER_OBJECT_VS, context));
     if (mask & 2)
-      uploaded += Number(FillAndSetConstants(buffers[1], bytes, bytes.byteLength, 2, PER_OBJECT_PS, context));
+      uploaded += Number(Tr2RenderUtils.fillAndSetConstants(buffers[1], bytes, bytes.byteLength, 2, PER_OBJECT_PS, context));
     return uploaded;
   }
 

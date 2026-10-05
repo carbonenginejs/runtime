@@ -36,7 +36,7 @@ import { Tr2PPTaaEffect } from "./effect/Tr2PPTaaEffect.js";
 import { BlurContext } from "./BlurContext.js";
 import { GaussianData } from "./GaussianData.js";
 import { Tr2PPBloomEffect } from "./effect/Tr2PPBloomEffect.js";
-import { FillAndSetConstants } from "../core/Tr2RenderUtils.js";
+import { Tr2RenderUtils } from "../core/Tr2RenderUtils.js";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -886,7 +886,7 @@ export class Tr2PostProcessRenderer
         effect.SetParameter_BufferAL("Exposure", exposure.Get());
         try
         {
-          FillAndSetConstants(this._BloomConstantBuffer(renderContext), downsampleInfo, downsampleInfo.byteLength, pixelShaderMask, perObjectRegister, renderContext);
+          Tr2RenderUtils.fillAndSetConstants(this._BloomConstantBuffer(renderContext), downsampleInfo, downsampleInfo.byteLength, pixelShaderMask, perObjectRegister, renderContext);
           Tr2PostProcessRenderer.drawInto(rt, Tr2LoadAction.DONT_CARE, effect, renderContext, renderer);
         }
         finally
@@ -916,7 +916,7 @@ export class Tr2PostProcessRenderer
         this._upsamplerHorizontal.SetParameter_TextureAL("BlitCurrent", currentMip);
         const gaussianOutput = GaussianData.calculateGaussianPassParameters(radiusInPixels, directionalWeight[0], invTexelSizeX, Tr2PostProcessRenderer._gaussianWhite, Tr2PostProcessRenderer._gaussianHorizontal, Tr2PostProcessRenderer._gaussianScratch);
         GaussianData.pack(gaussianOutput, gaussianBytes);
-        FillAndSetConstants(this._BloomConstantBuffer(renderContext), gaussianBytes, gaussianBytes.byteLength, pixelShaderMask, perObjectRegister, renderContext);
+        Tr2RenderUtils.fillAndSetConstants(this._BloomConstantBuffer(renderContext), gaussianBytes, gaussianBytes.byteLength, pixelShaderMask, perObjectRegister, renderContext);
         Tr2PostProcessRenderer.drawInto(currentUpsampled, Tr2LoadAction.DONT_CARE, this._upsamplerHorizontal, renderContext, renderer);
       }
 
@@ -938,7 +938,7 @@ export class Tr2PostProcessRenderer
         const gaussianTint = vec3.set(Tr2PostProcessRenderer._gaussianTint3, tint[0], tint[1], tint[2]);
         const gaussianOutput = GaussianData.calculateGaussianPassParameters(radiusInPixels, directionalWeight[1], invTexelSizeY, gaussianTint, Tr2PostProcessRenderer._gaussianVertical, Tr2PostProcessRenderer._gaussianScratch);
         GaussianData.pack(gaussianOutput, gaussianBytes);
-        FillAndSetConstants(this._BloomConstantBuffer(renderContext), gaussianBytes, gaussianBytes.byteLength, pixelShaderMask, perObjectRegister, renderContext);
+        Tr2RenderUtils.fillAndSetConstants(this._BloomConstantBuffer(renderContext), gaussianBytes, gaussianBytes.byteLength, pixelShaderMask, perObjectRegister, renderContext);
 
         // Into the downsample texture, which is not read again (cpp:1100).
         Tr2PostProcessRenderer.drawInto(currentMip, Tr2LoadAction.DONT_CARE, this._upsamplerVertical, renderContext, renderer);

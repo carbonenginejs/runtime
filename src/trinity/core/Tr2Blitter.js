@@ -39,7 +39,7 @@ import { Tr2VariableStore } from "./variable/Tr2VariableStore.js";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
 import { Tr2TextureReference } from "./Tr2TextureReference.js";
 import { BLIT_EFFECT_PATH, BLIT_FILTERED_EFFECT_PATH } from "#consts/effectPaths";
-import { SCREEN_QUAD_FLOATS, SCREEN_VERTEX_BYTES, SetupScreenQuad, SetupScreenQuadInCameraSpace } from "./Tr2RenderUtils.js";
+import { SCREEN_QUAD_FLOATS, SCREEN_VERTEX_BYTES, Tr2RenderUtils } from "./Tr2RenderUtils.js";
 import { TriVariableContentType } from "../generated/trinityCore/enums.js";
 
 
@@ -288,11 +288,11 @@ export class Tr2Blitter
     {
       // Carbon asserts the vertex coordinates are the full quad here
       // (`cpp:126-127`), because the camera-space builder ignores them.
-      if (!SetupScreenQuadInCameraSpace(this.#quad, renderContext)) return false;
+      if (!Tr2RenderUtils.setupScreenQuadInCameraSpace(this.#quad, renderContext)) return false;
     }
     else
     {
-      SetupScreenQuad(this.#quad, renderContext, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord);
+      Tr2RenderUtils.setupScreenQuad(this.#quad, renderContext, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord);
     }
 
     const mapped = this.#vertexBuffer.MapForWriting(renderContext);

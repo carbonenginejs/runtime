@@ -11,7 +11,7 @@ import { RenderingMode, TriBatchType } from "#consts/graphics";
 import { TriRenderBatchAccumulator } from "../batch/TriRenderBatch/index.js";
 import { TriPoolAllocator } from "../rawData/TriPoolAllocator.js";
 import { RawData } from "../rawData/RawData.js";
-import { FillAndSetConstants } from "../Tr2RenderUtils.js";
+import { Tr2RenderUtils } from "../Tr2RenderUtils.js";
 import { PER_FRAME_VS } from "../Tr2Renderer.js";
 import { TriDevice } from "../device/TriDevice.js";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
@@ -197,7 +197,7 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
       data.SetAndTranspose("ViewProjectionMat", combined);
       this._vertexConstants ??= context.CreateConstantBuffer();
       const bytes = data.GetData();
-      FillAndSetConstants(this._vertexConstants, bytes, bytes.byteLength, 1 << ShaderType.VERTEX_SHADER, PER_FRAME_VS, context);
+      Tr2RenderUtils.fillAndSetConstants(this._vertexConstants, bytes, bytes.byteLength, 1 << ShaderType.VERTEX_SHADER, PER_FRAME_VS, context);
     }
     finally
     {

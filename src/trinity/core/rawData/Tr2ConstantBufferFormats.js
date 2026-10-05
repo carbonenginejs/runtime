@@ -25,7 +25,7 @@
 // difference from Carbon's statics: a buffer is of the backend's kind, and two
 // contexts on different backends must not share one.
 import { ShaderType } from "#consts/render-context";
-import { FillAndSetConstants } from "../Tr2RenderUtils.js";
+import { Tr2RenderUtils } from "../Tr2RenderUtils.js";
 import { PER_FRAME_PS, PER_FRAME_VS } from "../Tr2Renderer.js";
 
 
@@ -73,7 +73,7 @@ export class Tr2ConstantBufferFormats
 
     if (!buffer) return false;
 
-    return FillAndSetConstants(buffer, bytes, bytes.byteLength, 1 << stage, register, renderContext);
+    return Tr2RenderUtils.fillAndSetConstants(buffer, bytes, bytes.byteLength, 1 << stage, register, renderContext);
   }
 
 

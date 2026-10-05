@@ -25,7 +25,7 @@ import { Tr2GpuBuffer } from "../core/device/Tr2GpuBuffer.js";
 import { Tr2GpuStructuredBuffer } from "../core/device/Tr2GpuStructuredBuffer.js";
 import { TriDevice } from "../core/device/TriDevice.js";
 import { Tr2Renderer, PER_OBJECT_VS } from "../core/Tr2Renderer.js";
-import { FillAndSetConstants } from "../core/Tr2RenderUtils.js";
+import { Tr2RenderUtils } from "../core/Tr2RenderUtils.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
 import { Tr2VariableStore } from "../core/variable/Tr2VariableStore.js";
 import { Tr2EffectStateManager } from "../shader/Tr2EffectStateManager.js";
@@ -620,7 +620,7 @@ export class Tr2GpuParticleSystem
 
     words4_0[0] = this._particleData.GetCount();
     this._updateCB ??= renderContext.CreateConstantBuffer();
-    FillAndSetConstants(this._updateCB, words4_0, 16, COMPUTE_MASK, PER_OBJECT_VS, renderContext);
+    Tr2RenderUtils.fillAndSetConstants(this._updateCB, words4_0, 16, COMPUTE_MASK, PER_OBJECT_VS, renderContext);
     return Tr2Renderer.runComputeShader(this.clear, 1, 1, 1, renderContext);
   }
 
@@ -661,7 +661,7 @@ export class Tr2GpuParticleSystem
     }
 
     this._updateCB ??= renderContext.CreateConstantBuffer();
-    FillAndSetConstants(this._updateCB, data, UPDATE_CB_SIZE, COMPUTE_MASK, PER_OBJECT_VS, renderContext);
+    Tr2RenderUtils.fillAndSetConstants(this._updateCB, data, UPDATE_CB_SIZE, COMPUTE_MASK, PER_OBJECT_VS, renderContext);
     Tr2Renderer.runComputeShader(this.update, "ClearCounters", 1, 1, 1, renderContext);
     Tr2Renderer.runComputeShader(this.update, groupX, groupY, groupZ, renderContext);
   }
@@ -797,7 +797,7 @@ export class Tr2GpuParticleSystem
       }
 
       this._emitCB ??= renderContext.CreateConstantBuffer();
-      FillAndSetConstants(this._emitCB, data, EMITTER_CB_PREFIX_SIZE + count * EMITTER_GPU_SIZE, COMPUTE_MASK, PER_OBJECT_VS, renderContext);
+      Tr2RenderUtils.fillAndSetConstants(this._emitCB, data, EMITTER_CB_PREFIX_SIZE + count * EMITTER_GPU_SIZE, COMPUTE_MASK, PER_OBJECT_VS, renderContext);
       Tr2Renderer.runComputeShader(this.emit, count, 1, 1, renderContext);
     }
   }
@@ -879,7 +879,7 @@ export class Tr2GpuParticleSystem
       words4_0[3] = 0;
 
       this._sortCB ??= renderContext.CreateConstantBuffer();
-      FillAndSetConstants(this._sortCB, words4_0, 16, COMPUTE_MASK, PER_OBJECT_VS, renderContext);
+      Tr2RenderUtils.fillAndSetConstants(this._sortCB, words4_0, 16, COMPUTE_MASK, PER_OBJECT_VS, renderContext);
       Tr2Renderer.runComputeShader(this.sortStep, numThreadGroups, 1, 1, renderContext);
     }
     Tr2Renderer.runComputeShader(this.sortInner, numThreadGroups, 1, 1, renderContext);

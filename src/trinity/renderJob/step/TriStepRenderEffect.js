@@ -3,7 +3,7 @@
 import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { vec2 } from "#math/vec2";
-import { AdjustTextureCoordsToViewport } from "../../core/Tr2RenderUtils.js";
+import { Tr2RenderUtils } from "../../core/Tr2RenderUtils.js";
 
 /** A render step that draws a full-screen effect with an optional shader buffer. */
 @meta.define({ className: "TriStepRenderEffect", family: "renderJob" })
@@ -60,7 +60,7 @@ export class TriStepRenderEffect extends TriRenderStep
 
     if (this.shaderBuffer) this.shaderBuffer.ApplyBuffer(renderContext);
 
-    const adjusted = AdjustTextureCoordsToViewport(renderContext, this.tlTexCoord, this.brTexCoord);
+    const adjusted = Tr2RenderUtils.adjustTextureCoordsToViewport(renderContext, this.tlTexCoord, this.brTexCoord);
 
     renderContext.GetBlitter().Draw_EffectTexCoords(renderContext, this.effect, adjusted.tlTexCoord, adjusted.brTexCoord);
 

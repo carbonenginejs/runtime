@@ -14,7 +14,7 @@
 import { CjsConstantPayload } from "#interfaces";
 import { CjsSchema, meta } from "#schema";
 import { ShaderType } from "#consts/render-context";
-import { FillAndSetConstants, SetConstants } from "../../Tr2RenderUtils.js";
+import { Tr2RenderUtils } from "../../Tr2RenderUtils.js";
 import { PER_OBJECT_PS, PER_OBJECT_VS } from "../../Tr2Renderer.js";
 
 /**
@@ -230,7 +230,7 @@ export class Tr2PerObjectData
 
       if (!buffer) continue;
 
-      const bound = FillAndSetConstants(
+      const bound = Tr2RenderUtils.fillAndSetConstants(
         buffer,
         record.data,
         record.data.byteLength,
@@ -241,7 +241,7 @@ export class Tr2PerObjectData
 
       if (bound)
       {
-        if (vertexMask && pixelMask) SetConstants(buffer, pixelMask, PER_OBJECT_PS, renderContext);
+        if (vertexMask && pixelMask) Tr2RenderUtils.setConstants(buffer, pixelMask, PER_OBJECT_PS, renderContext);
         uploaded += 1;
       }
     }
