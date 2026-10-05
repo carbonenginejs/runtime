@@ -1,5 +1,23 @@
-// Ports of Carbon's blueexposure layer: facilities Blue provides to every
-// subsystem rather than to one.
+// Ports of Carbon's two Blue libraries, which live side by side here because
+// every subsystem uses both:
+//
+//   - blueexposure (blueexposure/): the class-exposure and object-model layer.
+//     CjsBlueClasses / IBlueClasses, Copier / ICopier /
+//     ICopierCustomAssignment, BlueList, ICustomPersist, IInitialize, IList,
+//     IListNotify and INotify.
+//   - blue (blue/): the runtime services. The OS and clock interfaces
+//     (IBlueOS, CjsBlueOS, BeInfo, IBlueEvents, ICatchupTicks, IVariableTicker,
+//     ISimTimeRebaseNotify), paths, the resource manager and file systems
+//     (IBlueResMan, CjsBlueResMan, CjsMotherLode, IBlueResFileSystem,
+//     BlueResFileSystemRemote, RemoteFileCache), object metadata, placement
+//     observers, the ITri* curve/function interfaces, ICurveSetDriver, and the
+//     red/black readers and writers (IRootReader*, IRootWriter, DictReader,
+//     YamlWriter).
+//
+// CcpTime and CcpDateTime port core/include/CcpTime.h. Files with no Carbon
+// header of the same name (CjsResource, CjsScriptCallback, CjsResManWorkQueue,
+// CjsFormatStore, CjsLoadingObject, the lowercase helper modules) state their
+// donor, or that they have none, in their own headers.
 //
 // NO DECORATOR SYNTAX IN THIS FOLDER. package.json maps BOTH `#blue` and the
 // public `./blue` export to this file in `src`, not to the build, so
