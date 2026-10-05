@@ -1,7 +1,7 @@
+// Source: trinity/trinity/TriDevice.h
 import { Tr2OcclusionBuffer } from "../../eve/effect/lensflare/Tr2OcclusionBuffer.js";
 import { DestroyGlobalGpuResourcePool, Tr2GpuResourcePool } from "../Tr2GpuResourcePool/Tr2GpuResourcePool.js";
 import { EveSpaceScene } from "../../eve/scene/EveSpaceScene.js";
-// Source: trinity/trinity/TriDevice.h
 // Hand-maintained from Carbon source. Unimplemented backend methods here are
 // unported Carbon behaviour, not a boundary: Carbon holds its handles on this
 // class and calls the AL from it.
@@ -356,6 +356,12 @@ export class TriDevice
    * so a stall does not jump every animation forward, and the clock recentres
    * hourly.
    *
+   * Adapted: Carbon's OnTick also sets a crash key and schedules the next event; those two
+   * operations are not ported. The clock, Update, HandleRenderTick, main-thread action drain
+   * and resource-pool sweep are. The cookie is accepted so the signature matches
+   * IBlueEvents, and ignored because Carbon's body ignores it too - it exists for
+   * registrants that register more than once.
+   *
    * @param {number} realTime Time since the client started, in 100ns ticks.
    * @param {number} simTime The same, slowed under load to manage it.
    * @param {*} [_cookie] The cookie this device registered with; unread.
@@ -363,7 +369,6 @@ export class TriDevice
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon's OnTick also sets a crash key and schedules the next event; those two operations are not ported. The clock, Update, HandleRenderTick, main-thread action drain and resource-pool sweep are. The cookie is accepted so the signature matches IBlueEvents, and ignored because Carbon's body ignores it too - it exists for registrants that register more than once.")
   OnTick(realTime = 0, simTime = 0, _cookie = null)
   {
     this.frameCounter++;
@@ -574,12 +579,17 @@ export class TriDevice
    * Releases every registered resource's device storage
    * (`TriDevice.cpp:492-520`), which Carbon must do before resetting a device.
    *
+   * Adapted: Carbon guards against a resource unregistering itself mid-iteration with an
+   * s_resourcesToBeRemoved set and an s_iteratingForRelease flag; iterating over a copy of
+   * the registry answers the same problem without two statics to keep in step. Carbon also
+   * logs a warning for a null entry, which this registry cannot hold because
+   * RegisterResource refuses it at the door.
+   *
    * @param {number} [storage] A `TriStorage` mask.
    * @returns {TriDevice} This device.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon guards against a resource unregistering itself mid-iteration with an s_resourcesToBeRemoved set and an s_iteratingForRelease flag; iterating over a copy of the registry answers the same problem without two statics to keep in step. Carbon also logs a warning for a null entry, which this registry cannot hold because RegisterResource refuses it at the door.")
   ReleaseDeviceResources(storage = TriStorageFlags.TRISTORAGE_ALL)
   {
     for (const resource of [ ...TriDevice.#resourcesRegistered ])
@@ -593,11 +603,13 @@ export class TriDevice
    * Rebuilds every registered resource after a device comes up
    * (`TriDevice.cpp:1038-1059`).
    *
+   * Adapted: Carbon's third step is RebuildDeviceResourcesInPython, which has no
+   * counterpart: there is no Python here and no second resource registry to rebuild.
+   *
    * @returns {TriDevice} This device.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon's third step is RebuildDeviceResourcesInPython, which has no counterpart: there is no Python here and no second resource registry to rebuild.")
   PrepareDeviceResources()
   {
     for (const resource of [ ...TriDevice.#resourcesRegistered ])
@@ -644,11 +656,15 @@ export class TriDevice
    * Fills in the default viewport once a device exists
    * (`TriDevice.cpp:315-338`).
    *
+   * Adapted: Carbon also reads the adapter display mode into mDisplayMode when there is an
+   * output window or the device is not software. That enumeration has no browser counterpart
+   * - see CreateSimpleDevice - so the viewport half is ported and the display-mode half is
+   * not.
+   *
    * @returns {boolean} False when there is no device to describe.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon also reads the adapter display mode into mDisplayMode when there is an output window or the device is not software. That enumeration has no browser counterpart - see CreateSimpleDevice - so the viewport half is ported and the display-mode half is not.")
   InitD3DDevice()
   {
     if (!this.DeviceExists()) return false;
@@ -796,10 +812,12 @@ export class TriDevice
   /**
    * The present parameters this device holds, or null.
    *
+   * Adapted: Carbon's mPresentParam is a member its own methods read directly; a private
+   * field needs an accessor for a host to see what the device was created with.
+   *
    * @returns {object|null} A `Tr2PresentParametersAL`.
    */
   @meta.ours
-  @meta.reason("Carbon's mPresentParam is a member its own methods read directly; a private field needs an accessor for a host to see what the device was created with.")
   GetPresentParameters()
   {
     return this.#presentParam;
@@ -808,10 +826,12 @@ export class TriDevice
   /**
    * The output window this device presents to, or null.
    *
+   * Adapted: Carbon's mHwnd is a member its own methods read directly; same reason as
+   * GetPresentParameters.
+   *
    * @returns {*} The window, a canvas here.
    */
   @meta.ours
-  @meta.reason("Carbon's mHwnd is a member its own methods read directly; same reason as GetPresentParameters.")
   GetOutputWindow()
   {
     return this.#hwnd;
@@ -821,13 +841,15 @@ export class TriDevice
    * Registers a callback to run after the update, before the frame
    * (`TriDevice.cpp:1189-1192`).
    *
+   * Adapted: Carbon delegates to an IBlueCallbackMan, which carries flags and a comparison
+   * function neither of which has a caller here; this is the list itself.
+   *
    * @param {Function} callback The callback.
    * @param {*} [context] Passed back to it.
    * @returns {TriDevice} This device.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon delegates to an IBlueCallbackMan, which carries flags and a comparison function neither of which has a caller here; this is the list itself.")
   AddPostUpdateCallback(callback, context = null)
   {
     if (typeof callback === "function") this.#postUpdateCallbacks.push({ callback, context });
@@ -845,13 +867,17 @@ export class TriDevice
    * ITERATED OVER A COPY, as Carbon does and for the reason Carbon gives: a
    * curve set finishing can add curve sets to this list.
    *
+   * Adapted: Carbon opens with TriSrand( simTime ), seeding its global random stream so a
+   * frame is reproducible from its simulation time; the math layer's random is not a
+   * seedable global, so there is nothing to seed. The BlueList refcount dance around Remove
+   * has no counterpart either, because a JS array holds no references to release.
+   *
    * @param {number} realTime Time since the client started, in 100ns ticks.
    * @param {number} simTime The same, for simulation.
    * @returns {TriDevice} This device.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon opens with TriSrand( simTime ), seeding its global random stream so a frame is reproducible from its simulation time; the math layer's random is not a seedable global, so there is nothing to seed. The BlueList refcount dance around Remove has no counterpart either, because a JS array holds no references to release.")
   Update(realTime, simTime)
   {
     for (const curveSet of [ ...this.curveSets ])
@@ -956,11 +982,13 @@ export class TriDevice
    * `BeginFrame`/`EndFrame`. Both are named here so the gap is visible at the
    * site that needs them, rather than being discovered as a silent omission.
    *
+   * Adapted: Tr2SyncToGpu is unported and Tr2GpuProfiler is a fields-only shell, so their
+   * two calls are absent from the body. Everything else is Carbon's order verbatim.
+   *
    * @returns {boolean} True, as Carbon's does.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Tr2SyncToGpu is unported and Tr2GpuProfiler is a fields-only shell, so their two calls are absent from the body. Everything else is Carbon's order verbatim.")
   Render()
   {
     this.Throttle();
@@ -991,11 +1019,16 @@ export class TriDevice
    * Sleeps the frame when the window is out of focus, hidden, or the machine
    * is thermally throttled (`TriDevice.cpp:1227-1260`).
    *
+   * Adapted: Carbon throttles by blocking the render thread with CcpThreadSleep and by
+   * shrinking the TBB thread pool. A browser has neither: blocking the main thread is what a
+   * frame budget is trying to avoid, and requestAnimationFrame already stops delivering
+   * frames to a hidden document, which is the case this exists for. Kept as a call site so
+   * the frame body is Carbon's order and a host that CAN throttle has somewhere to do it.
+   *
    * @returns {void}
    */
   @meta.blue.method
   @meta.notSupported
-  @meta.reason("Carbon throttles by blocking the render thread with CcpThreadSleep and by shrinking the TBB thread pool. A browser has neither: blocking the main thread is what a frame budget is trying to avoid, and requestAnimationFrame already stops delivering frames to a hidden document, which is the case this exists for. Kept as a call site so the frame body is Carbon's order and a host that CAN throttle has somewhere to do it.")
   Throttle()
   {
   }
@@ -1017,10 +1050,12 @@ export class TriDevice
   /**
    * The render jobs installed on this device, or null.
    *
+   * Adapted: Carbon's m_renderJobs is a member the frame body reads directly; a private
+   * field needs an accessor for anyone else to see what is installed.
+   *
    * @returns {object|null} The installed `Tr2RenderJobs`.
    */
   @meta.ours
-  @meta.reason("Carbon's m_renderJobs is a member the frame body reads directly; a private field needs an accessor for anyone else to see what is installed.")
   GetRenderJobs()
   {
     return this.#renderJobs;
@@ -1048,11 +1083,16 @@ export class TriDevice
   /**
    * Whether the adapter supports a variable refresh rate (G-Sync, FreeSync).
    *
+   * Adapted: Carbon asks the adapter through DXGI. A browser is never told whether the
+   * display has a variable refresh rate - requestAnimationFrame reports no such thing - so
+   * the only truthful answer is no. Constant rather than a refusal because
+   * CreateSimpleDevice records it in the present parameters on every creation, and a device
+   * that cannot be created is worse than one that reports a capability it does not have.
+   *
    * @returns {boolean} False.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon asks the adapter through DXGI. A browser is never told whether the display has a variable refresh rate - requestAnimationFrame reports no such thing - so the only truthful answer is no. Constant rather than a refusal because CreateSimpleDevice records it in the present parameters on every creation, and a device that cannot be created is worse than one that reports a capability it does not have.")
   IsVariableRefreshRateSupported()
   {
     return false;
@@ -1086,11 +1126,17 @@ export class TriDevice
    * Refreshes the list of upscaling techniques this adapter offers
    * (`TriDevice.cpp:1330` and the DX12 backends).
    *
+   * Adapted: Carbon enumerates DLSS, FSR and XeSS through vendor SDKs. No backend here
+   * offers any of them, so the list is empty - which is the truthful answer, not a stub.
+   * SetUpscaling still REFUSES, because that is the verb where a caller asks for upscaling
+   * and would otherwise be silently given none. CreateSimpleDevice calls this on every
+   * creation, so a refusal here would break device creation to report a capability nobody
+   * asked for.
+   *
    * @returns {TriDevice} This device.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon enumerates DLSS, FSR and XeSS through vendor SDKs. No backend here offers any of them, so the list is empty - which is the truthful answer, not a stub. SetUpscaling still REFUSES, because that is the verb where a caller asks for upscaling and would otherwise be silently given none. CreateSimpleDevice calls this on every creation, so a refusal here would break device creation to report a capability nobody asked for.")
   UpdateAvailableUpscalingTechniques()
   {
     this.supportedUpscalingTechniques = [];

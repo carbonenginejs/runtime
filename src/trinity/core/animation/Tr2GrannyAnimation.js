@@ -1,6 +1,6 @@
-import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Tr2GrannyAnimation.h
 // Source: trinity/trinity/Tr2GrannyAnimation.cpp
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 //
 // Hand-maintained (promoted from src/trinity/generated/trinityCore; the generator skips
 // it while this file exists). Promoted to give GetMeshBoneMatrixList Carbon's
@@ -1261,15 +1261,15 @@ export class Tr2GrannyAnimation
     return this._meshBoneIndices;
   }
 
-  @meta.implemented
   /** Returns the number of mesh bones in the current palette. */
+  @meta.implemented
   GetMeshBoneCount()
   {
     return this._meshBoneIndices.length;
   }
 
-  @meta.adapted
   /** Copies a named bone's world transform into an output matrix. */
+  @meta.adapted
   GetBoneWorldTransform(boneName, out = mat4.create())
   {
     const index = this._runtimeModel?.boneByName.get(String(boneName ?? ""));
@@ -1281,8 +1281,8 @@ export class Tr2GrannyAnimation
     return out;
   }
 
-  @meta.adapted
   /** Copies an indexed bone's world transform into an output matrix. */
+  @meta.adapted
   GetBoneTransform(index, out = mat4.create())
   {
     const bone = this._runtimeModel?.bones[Number(index)];
@@ -1294,8 +1294,8 @@ export class Tr2GrannyAnimation
     return out;
   }
 
-  @meta.adapted
   /** Resolves a bone name or index to its current world matrix. */
+  @meta.adapted
   GetBoneMatrix(bone)
   {
     if (typeof bone === "number")
@@ -1305,15 +1305,15 @@ export class Tr2GrannyAnimation
     return this.GetBoneWorldTransform(bone);
   }
 
-  @meta.implemented
   /** Returns the current world transforms for every animation bone. */
+  @meta.implemented
   GetAnimationTransforms()
   {
     return this._runtimeModel?.bones.map(bone => bone.worldTransform) ?? [];
   }
 
-  @meta.implemented
   /** Returns the ordered names of the current animation bones. */
+  @meta.implemented
   GetAnimationBoneList()
   {
     return this._runtimeModel?.bones.map(bone => bone.name) ?? [];

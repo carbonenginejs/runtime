@@ -96,11 +96,13 @@ export class Tr2ProceduralBuffer
    * reference is never null; `Tr2SuballocatedBuffer.Allocate` returns the
    * allocation instead, so this is null until a device has run the factory.
    *
+   * Adapted: Carbon's factory fills an out-parameter allocation that is never null; ours
+   * returns the allocation, so there is none before a device has run the factory.
+   *
    * @returns {object|null} A `Tr2SuballocatedBufferAllocation`, or null.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon's factory fills an out-parameter allocation that is never null; ours returns the allocation, so there is none before a device has run the factory.")
   GetSharedResource()
   {
     return this._resource.resource;

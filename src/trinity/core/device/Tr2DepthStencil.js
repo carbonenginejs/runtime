@@ -94,6 +94,10 @@ export class Tr2DepthStencil
    * Carbon's `else Destroy()`. Without it a caller could read a stale width off
    * an object whose texture never came back.
    *
+   * Adapted: Carbon returns an HRESULT and reaches the main-thread render context through a
+   * global; this returns a boolean and takes the context, which is the same reason
+   * Tr2Blitter does.
+   *
    * @param {number} width Surface width in pixels.
    * @param {number} height Surface height in pixels.
    * @param {number} format A `DepthStencilFormat` value.
@@ -105,7 +109,6 @@ export class Tr2DepthStencil
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon returns an HRESULT and reaches the main-thread render context through a global; this returns a boolean and takes the context, which is the same reason Tr2Blitter does.")
   Create(width, height, format, msaaType = 1, msaaQuality = 0, flags = ExFlag.EX_NONE, renderContext = null)
   {
     let gpuUsage = Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE;
@@ -163,11 +166,13 @@ export class Tr2DepthStencil
    * surface needs it whether or not it can also be sampled, and would otherwise
    * be told a perfectly good depth buffer does not exist.
    *
+   * Adapted: Carbon exposes the member directly through a conversion operator; JavaScript
+   * has none, so the raw surface is reached by name.
+   *
    * @returns {object|null} The `Tr2TextureAL`, or null before Create.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon exposes the member directly through a conversion operator; JavaScript has none, so the raw surface is reached by name.")
   GetDepthStencil()
   {
     return this.#depthStencil;
@@ -176,12 +181,14 @@ export class Tr2DepthStencil
   /**
    * Registers a texture-change listener (Carbon's `OnTextureChange` event).
    *
+   * Adapted: Carbon returns its event object for the caller to attach to; this takes the
+   * listener and returns the unsubscribe, matching Tr2TextureArray.
+   *
    * @param {Function} listener Called with this surface after each change.
    * @returns {Function} Unsubscribe.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon returns its event object for the caller to attach to; this takes the listener and returns the unsubscribe, matching Tr2TextureArray.")
   OnTextureChange(listener)
   {
     this.#listeners.push(listener);

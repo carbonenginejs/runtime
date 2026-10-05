@@ -6,10 +6,14 @@ import { meta } from "#schema";
 /** Carbon's EffectKeyGenerator batch sorting policy. */
 export class EffectKeyGenerator
 {
-  /** Orders shader identities, then vertex declarations. */
+  /**
+   * Orders shader identities, then vertex declarations.
+   *
+   * Adapted: JavaScript has no pointer ordering; the existing per-reference ordinal keeps
+   * equal shader identities contiguous.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JavaScript has no pointer ordering; the existing per-reference ordinal keeps equal shader identities contiguous.")
   static Less(batch1, batch2)
   {
     const shaderOrder = OrderOf(batch1.shader) - OrderOf(batch2.shader);

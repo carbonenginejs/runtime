@@ -77,10 +77,14 @@ function setViewBasis(out, inverseView, scale)
 export class Tr2Transform
 {
 
-  /** Advances authored curve sets while update is enabled. */
+  /**
+   * Advances authored curve sets while update is enabled.
+   *
+   * Adapted: The active render context is threaded to context-dependent curve functions
+   * instead of read from a process-global renderer.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The active render context is threaded to context-dependent curve functions instead of read from a process-global renderer.")
   Update(time, renderContext = null)
   {
     if (!this.update)
@@ -99,11 +103,13 @@ export class Tr2Transform
    * Rebuilds local/world transforms and applies Carbon's camera modifiers.
    * The render-context argument is the JavaScript replacement for
    * Carbon's Tr2Renderer globals; camera-dependent modes fail when it is absent.
-  */
+   *
+   * Adapted: Carbon renderer globals are supplied explicitly as the active render context;
+   * matrix products reverse for gl-matrix semantics.
+   */
   @meta.blue.method
   @meta.blue.contextual(["camera"])
   @meta.adapted
-  @meta.reason("Carbon renderer globals are supplied explicitly as the active render context; matrix products reverse for gl-matrix semantics.")
   UpdateViewDependentData(context, parentTransform = Tr2Transform.#identity)
   {
     const scratch = Tr2Transform.#scratch;
@@ -220,10 +226,14 @@ export class Tr2Transform
     );
   }
 
-  /** Delegates the requested area vector to the authored mesh. */
+  /**
+   * Delegates the requested area vector to the authored mesh.
+   *
+   * Adapted: Returns whether JavaScript mesh delegation committed a batch; Carbon's void
+   * method exposes no result.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Returns whether JavaScript mesh delegation committed a batch; Carbon's void method exposes no result.")
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (this.display && this.mesh)
@@ -237,11 +247,14 @@ export class Tr2Transform
     return false;
   }
 
-  /** Returns camera distance times the authored sort multiplier. */
+  /**
+   * Returns camera distance times the authored sort multiplier.
+   *
+   * Adapted: The active render context replaces Carbon's Tr2Renderer view-position global.
+   */
   @meta.blue.method
   @meta.blue.contextual(["camera"])
   @meta.adapted
-  @meta.reason("The active render context replaces Carbon's Tr2Renderer view-position global.")
   GetSortValue(context)
   {
     const viewPosition = context.GetViewPosition();

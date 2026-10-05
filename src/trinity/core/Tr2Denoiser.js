@@ -1,6 +1,6 @@
+// Source: trinity/trinity/Tr2Denoiser.h
 import { Tr2Renderer } from "./Tr2Renderer.js";
 import { INotify } from "../../global/blue/INotify.js";
-// Source: trinity/trinity/Tr2Denoiser.h
 //   trinity/trinity/Tr2Denoiser.cpp
 //
 // A separable spatial denoiser, run over a noisy single-channel buffer - in

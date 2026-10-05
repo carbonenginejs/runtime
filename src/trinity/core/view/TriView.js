@@ -27,10 +27,12 @@ export class TriView
   /**
    * Copies the view matrix into out (a fresh matrix when omitted) and returns
    * it, since JS cannot safely hand out Carbon's const matrix reference.
+   *
+   * Adapted: Copies the transform into the caller's output matrix instead of returning
+   * Carbon's const Matrix reference.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Returns a detached matrix copy because JavaScript cannot expose Carbon's const Matrix reference safely.")
   GetTransform(out = mat4.create())
   {
     return mat4.copy(out, this.transform);

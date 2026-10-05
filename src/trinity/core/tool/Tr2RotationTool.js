@@ -328,10 +328,14 @@ export class Tr2RotationTool extends Tr2ManipulationTool
     return vec3.normalize(out, vec3.set(out, px, py, z));
   }
 
-  /** Returns all authored rotation primitives in their stored order. */
+  /**
+   * Returns all authored rotation primitives in their stored order.
+   *
+   * Adapted: JavaScript returns a fresh array instead of Carbon's reused private
+   * visible-object vector.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JavaScript returns a fresh array instead of Carbon's reused private visible-object vector.")
   GetPrimitivesToRender()
   {
     return Array.from(this.primitives);

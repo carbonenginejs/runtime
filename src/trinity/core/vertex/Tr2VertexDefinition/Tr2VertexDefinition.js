@@ -1,4 +1,4 @@
-﻿// Source: trinity/trinityal/Tr2VertexDefinition.h:14-207 (the definition and its items)
+// Source: trinity/trinityal/Tr2VertexDefinition.h:14-207 (the definition and its items)
 //   trinity/trinityal/Tr2VertexDefinition.cpp:25-42 (item and definition equality)
 //
 // This class is the definition and NOTHING ELSE: items, the per-stream offset

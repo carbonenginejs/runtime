@@ -91,6 +91,11 @@ export class Tr2PerObjectDataStandard extends Tr2PerObjectDataPSBuffer
    * The upload itself is the shared static, so this class adds the virtual and
    * the identity without a second copy of the mechanism.
    *
+   * Adapted: Carbon binds the pixel payload without consulting the technique mask,
+   * distinguished from the gated form only by C++ overload resolution on an argument type.
+   * Our layouts declare the stages they serve, so the gate is per declaration and more
+   * precise than Carbon's hardcoded halves.
+   *
    * @param {object[]} buffers A `Tr2ConstantBufferAL` per `ShaderType`.
    * @param {number} constantTypeMask A bit per `ShaderType`.
    * @param {object} renderContext The context to upload and bind against.
@@ -98,7 +103,6 @@ export class Tr2PerObjectDataStandard extends Tr2PerObjectDataPSBuffer
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon binds the pixel payload without consulting the technique mask, distinguished from the gated form only by C++ overload resolution on an argument type. Our layouts declare the stages they serve, so the gate is per declaration and more precise than Carbon's hardcoded halves.")
   SetPerObjectDataToDevice(buffers, constantTypeMask, renderContext)
   {
     return Tr2PerObjectData.setPerObjectDataToDevice(this, buffers, constantTypeMask, renderContext);
@@ -111,10 +115,12 @@ export class Tr2PerObjectDataStandard extends Tr2PerObjectDataPSBuffer
    * (`Tr2PerObjectData.cpp:69-73`). That class has no JS counterpart and nothing
    * on this path draws indirectly, and Carbon's base asserts rather than
    * defaulting (`:34-37`), so an accidental call must not look successful.
+   *
+   * Adapted: Tr2IndirectDrawBufferWriter is unported and nothing on this path draws
+   * indirectly.
    */
   @meta.blue.method
   @meta.notImplemented
-  @meta.reason("Tr2IndirectDrawBufferWriter is unported and nothing on this path draws indirectly.")
   ApplyConstantBuffers()
   {
     throw new Error("Tr2PerObjectDataStandard.ApplyConstantBuffers: indirect draw is unported.");

@@ -1,6 +1,6 @@
-import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Tr2TextureAnimation.h
 // Source: trinity/trinity/Tr2TextureAnimation.cpp
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { meta } from "#schema";
 import { blue } from "#blue";

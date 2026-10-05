@@ -60,6 +60,11 @@ export class EveDecalPerObjectData extends Tr2PerObjectData
    * Carbon binds without consulting the technique's shader mask; we gate on it.
    * The reason is the family's, stated once in README.md and docketed as CE-19.
    *
+   * Adapted: Carbon binds this payload without consulting the technique mask, a form
+   * distinguished from the gated one only by C++ overload resolution on an argument type.
+   * Our layouts declare the stages they serve, so the gate is per declaration; see the
+   * family README and CE-19.
+   *
    * @param {object[]} buffers A `Tr2ConstantBufferAL` per `ShaderType`.
    * @param {number} constantTypeMask A bit per `ShaderType`.
    * @param {object} renderContext The context to upload and bind against.
@@ -67,7 +72,6 @@ export class EveDecalPerObjectData extends Tr2PerObjectData
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon binds this payload without consulting the technique mask, a form distinguished from the gated one only by C++ overload resolution on an argument type. Our layouts declare the stages they serve, so the gate is per declaration; see the family README and CE-19.")
   SetPerObjectDataToDevice(buffers, constantTypeMask, renderContext)
   {
     return Tr2PerObjectData.setPerObjectDataToDevice(this, buffers, constantTypeMask, renderContext);

@@ -146,8 +146,16 @@ export class TriSettings
     return TriSettings._ReprValue(setting.owner[setting.key]);
   }
 
-  /** Python repr hook, delegating to GetReprString. */
+  /**
+   * Returns the settings representation through the Blue-exposed repr hook.
+   * Carbon PyRepr (TriSettings_Blue.cpp:46-53; exposed as __repr__ at 141-143).
+   *
+   * Adapted: Returns a JavaScript string directly instead of converting it to a Python object.
+   *
+   * @returns {string} The settings representation.
+   */
   @meta.blue.method
+  @meta.adapted
   __repr__()
   {
     return this.GetReprString();

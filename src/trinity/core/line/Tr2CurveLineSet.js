@@ -764,11 +764,15 @@ export class Tr2CurveLineSet
     this.pickEffect = effect;
   }
 
-  /** Distance from the transformed local bound to the active view. */
+  /**
+   * Distance from the transformed local bound to the active view.
+   *
+   * Adapted: Carbon reads the renderer-global view position; the collector supplies its
+   * active render context explicitly.
+   */
   @meta.blue.method
   @meta.blue.contextual(["camera"])
   @meta.adapted
-  @meta.reason("Carbon reads the renderer-global view position; the collector supplies its active render context explicitly.")
   GetSortValue(context)
   {
     const { vec3_11 } = Tr2CurveLineSet.scratch;

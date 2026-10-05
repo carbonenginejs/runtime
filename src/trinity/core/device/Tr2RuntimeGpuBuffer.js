@@ -1,6 +1,6 @@
-import { Tr2BufferAL } from "../../../trinityal/Tr2BufferAL/index.js";
 // Source: trinity/trinity/Tr2RuntimeGpuBuffer.h
 // Source: trinity/trinity/Tr2RuntimeGpuBuffer.cpp
+import { Tr2BufferAL } from "../../../trinityal/Tr2BufferAL/index.js";
 // Hand-maintained from Carbon source; the AL buffer is backend-private state.
 import { meta } from "#schema";
 

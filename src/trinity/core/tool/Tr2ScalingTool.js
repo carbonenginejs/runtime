@@ -248,10 +248,14 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
     this.UpdateLines();
   }
 
-  /** Returns the full tool, or the captured axis, guide and centre primitives. */
+  /**
+   * Returns the full tool, or the captured axis, guide and centre primitives.
+   *
+   * Adapted: JavaScript returns a fresh array instead of Carbon's reused private
+   * visible-object vector.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JavaScript returns a fresh array instead of Carbon's reused private visible-object vector.")
   GetPrimitivesToRender()
   {
     if (!this.captured || this.selectedAxis === "w")

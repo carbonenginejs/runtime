@@ -154,10 +154,11 @@ export class Tr2Mesh extends Tr2MeshBase
    * Carbon OnModified (cpp:38-58): three arms, dispatched on which member
    * changed - the path refetches, clearing the defer flag starts the load a
    * deferred mesh skipped, and the mesh index rebuilds the morph targets.
+   *
+   * Adapted: JS identifies Carbon's changed member address by its exposed property name.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JS identifies Carbon's changed member address by its exposed property name.")
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "geometryResPath"))
@@ -215,10 +216,12 @@ export class Tr2Mesh extends Tr2MeshBase
    * Carbon RebuildCachedData (cpp:185-196): the notify target's rebuild half -
    * re-cache the bounds and the morph targets when the resource that finished
    * is one of ours, and drop the low-detail stand-in once the real one arrives.
+   *
+   * Adapted: Bounds are computed on demand by Tr2MeshBase.GetBounds rather than cached, so
+   * Carbon's CacheBounds call has nothing to refresh.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Bounds are computed on demand by Tr2MeshBase.GetBounds rather than cached, so Carbon's CacheBounds call has nothing to refresh.")
   RebuildCachedData(resource)
   {
     // Two ifs, not an else: a low-detail resource finishing rebuilds the

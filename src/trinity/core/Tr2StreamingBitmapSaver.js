@@ -70,6 +70,9 @@ export class Tr2StreamingBitmapSaver
    * returns the count written - a string path with no sink behind it fails
    * exactly as Carbon's failed stream open does.
    *
+   * Adapted: Carbon opens a Blue ResFile stream from a path; the runtime has no file layer,
+   * so the caller supplies the write sink.
+   *
    * @param {{Write(bytes: Uint8Array): number}} output The write sink.
    * @param {number} width
    * @param {number} height
@@ -78,7 +81,6 @@ export class Tr2StreamingBitmapSaver
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon opens a Blue ResFile stream from a path; the runtime has no file layer, so the caller supplies the write sink.")
   StartSaving(output, width, height, pixelFormat)
   {
     if (this.IsSaving())

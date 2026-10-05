@@ -167,10 +167,14 @@ export class Tr2TranslationTool extends Tr2ManipulationTool
   @meta.type.vec3
   translation = vec3.create();
 
-  /** Returns the full tool, or the captured axis and centre primitive. */
+  /**
+   * Returns the full tool, or the captured axis and centre primitive.
+   *
+   * Adapted: JavaScript returns a fresh array instead of Carbon's reused private
+   * visible-object vector.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JavaScript returns a fresh array instead of Carbon's reused private visible-object vector.")
   GetPrimitivesToRender()
   {
     if (!this.captured)

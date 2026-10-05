@@ -1,6 +1,6 @@
-import { Tr2TextureAL } from "../../../trinityal/Tr2TextureAL/index.js";
 // Source: trinity/trinity/Tr2RenderTarget.h
 // Source: trinity/trinity/Tr2RenderTarget.cpp
+import { Tr2TextureAL } from "../../../trinityal/Tr2TextureAL/index.js";
 //
 // "A class to hang on to platform specific pointers needed for a renderTarget"
 // - Carbon's description. It owns one Tr2TextureAL (or references an attached

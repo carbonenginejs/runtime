@@ -1,6 +1,6 @@
+// Source: trinity/trinity/Tr2ShadowMap.h
 import { Tr2Renderer } from "./Tr2Renderer.js";
 import { INotify } from "../../global/blue/INotify.js";
-// Source: trinity/trinity/Tr2ShadowMap.h
 //   trinity/trinity/Tr2ShadowMap.cpp
 import { meta } from "#schema";
 import { mat4 } from "#math/mat4";
@@ -274,10 +274,14 @@ export class Tr2ShadowMap
     store.RegisterVariableType("EveSpaceSceneCascadedShadowMap", TriVariableContentType.TRIVARIABLE_INVALID);
   }
 
-  /** Applies the atlas element size/count and the one-way denoiser disable. */
+  /**
+   * Applies the atlas element size/count and the one-way denoiser disable.
+   *
+   * Adapted: The fixed PerSplitData arrays make split counts above Carbon's 16-slot capacity
+   * fail immediately instead of corrupting adjacent native memory.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The fixed PerSplitData arrays make split counts above Carbon's 16-slot capacity fail immediately instead of corrupting adjacent native memory.")
   Setup(elementSize, elementCount, useDenoiser)
   {
     const nextSize = elementSize >>> 0;
@@ -299,10 +303,14 @@ export class Tr2ShadowMap
     }
   }
 
-  /** Applies Carbon's notification consequences from the current owned state. */
+  /**
+   * Applies Carbon's notification consequences from the current owned state.
+   *
+   * Adapted: Property notifications expose settled values rather than Be::Var identity, so
+   * the two notify-backed settings are compared against their cached state.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("CjsModel notifications expose settled state rather than Be::Var identity, so this compares the two notify-backed values against their cached state.")
   OnModified()
   {
     if (this.debugColorSplit !== this.#lastDebugColorSplit)
@@ -329,17 +337,21 @@ export class Tr2ShadowMap
     return true;
   }
 
+  /** Changes whether an existing denoiser should be used for future results. */
   @meta.blue.method
   @meta.implemented
-  /** Changes whether an existing denoiser should be used for future results. */
   ShouldUseDenoiser(value)
   {
     this.#useDenoiser = Boolean(value);
   }
 
-  /** Engine-facing read of Carbon's private denoiser-use switch. */
+  /**
+   * Engine-facing read of Carbon's private denoiser-use switch.
+   *
+   * Adapted: The nominal engine executor needs Carbon's private denoiser-use decision
+   * without reading implementation fields.
+   */
   @meta.ours
-  @meta.reason("The nominal engine executor needs Carbon's private denoiser-use decision without reading implementation fields.")
   GetUseDenoiser()
   {
     return this.#useDenoiser;
@@ -366,10 +378,12 @@ export class Tr2ShadowMap
   /**
    * Transforms the D3D clip cube through projection inverse, inverse view and
    * light view, returning its light-space bounds and writing all eight corners.
+   *
+   * Adapted: The caller supplies owned JS output containers; matrix bytes stay in logical
+   * gl-matrix form and are never pre-transposed.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The caller supplies owned JS output containers; matrix bytes stay in logical gl-matrix form and are never pre-transposed.")
   static CalculateAABB(
     projection,
     invViewTransform,
@@ -415,10 +429,13 @@ export class Tr2ShadowMap
    *
    * The returned object is an allocation-free borrowed view for this split and
    * is overwritten the next time the same split index is prepared.
+   *
+   * Adapted: Carbon stores Transpose(lightViewProjection) and returns SplitSetup by value;
+   * Trinity stores the logical matrix for RawData's terminal transpose and reuses one
+   * allocation-free result per split.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon stores Transpose(lightViewProjection) and returns SplitSetup by value; Trinity stores the logical matrix for RawData's terminal transpose and reuses one allocation-free result per split.")
   SetupShadowSplit(splitIndex, invViewTransform, lightDirection, zNear, leftDivNear, rightDivNear, topDivNear, bottomDivNear)
   {
     if (!Number.isInteger(splitIndex) || splitIndex < 0 || splitIndex >= this.splitCount)
@@ -607,6 +624,9 @@ export class Tr2ShadowMap
    * `cascadeEffect` is Carbon's `m_shadowEffect` under our name - same
    * ShadowDepth.fx path, same two parameters (`cpp:39-42`).
    *
+   * Adapted: Carbon reaches the blitter and the reversed-depth projection through static
+   * Tr2Renderer; ours are an instance and the render context, so the renderer is passed in.
+   *
    * @param {object} renderContext The context to draw against.
    * @param {object} gpuResourcePool The pool to borrow the result target from.
    * @param {object} depthMap The scene depth.
@@ -617,7 +637,6 @@ export class Tr2ShadowMap
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon reaches the blitter and the reversed-depth projection through static Tr2Renderer; ours are an instance and the render context, so the renderer is passed in.")
   DrawToShadowMapResult(renderContext, gpuResourcePool, depthMap, cascadedShadowDepth, upscaling, renderer)
   {
     let shadowMapResult = gpuResourcePool.GetTempTexture("shadowMapResult", {
@@ -669,65 +688,77 @@ export class Tr2ShadowMap
     }
   }
 
+  /** Returns the number of active cascade splits. */
   @meta.blue.method
   @meta.implemented
-  /** Returns the number of active cascade splits. */
   GetShadowSplitCount()
   {
     return this.splitCount;
   }
 
+  /** Returns the square pixel size of one atlas cell. */
   @meta.blue.method
   @meta.implemented
-  /** Returns the square pixel size of one atlas cell. */
   GetShadowMapSize()
   {
     return this.size;
   }
 
-  /** Returns the fixed number of atlas columns. */
+  /**
+   * Returns the fixed number of atlas columns.
+   *
+   * Adapted: The nominal engine executor needs Carbon's private fixed atlas width without
+   * reading implementation fields.
+   */
   @meta.ours
-  @meta.reason("The nominal engine executor needs Carbon's private fixed atlas width without reading implementation fields.")
   GetShadowMapWidth()
   {
     return this.#width;
   }
 
-  /** Returns the fixed number of atlas rows. */
+  /**
+   * Returns the fixed number of atlas rows.
+   *
+   * Adapted: The nominal engine executor needs Carbon's private fixed atlas height without
+   * reading implementation fields.
+   */
   @meta.ours
-  @meta.reason("The nominal engine executor needs Carbon's private fixed atlas height without reading implementation fields.")
   GetShadowMapHeight()
   {
     return this.#height;
   }
 
-  /** Returns the stable owned record consumed by scene per-frame packing. */
+  /**
+   * Returns the stable owned record consumed by scene per-frame packing.
+   *
+   * Adapted: The scene needs a nominal direct accessor to Carbon's public PerSplitData
+   * without structural probing.
+   */
   @meta.ours
-  @meta.reason("The scene needs a nominal direct accessor to Carbon's public PerSplitData without structural probing.")
   GetPerSplitData()
   {
     return this.perSplitData;
   }
 
+  /** Returns the logical effect used to resolve the screen-space shadow mask. */
   @meta.blue.method
   @meta.implemented
-  /** Returns the logical effect used to resolve the screen-space shadow mask. */
   GetShadowEffect()
   {
     return this.cascadeEffect;
   }
 
+  /** Reports whether cascade-debug colouring is enabled. */
   @meta.blue.method
   @meta.implemented
-  /** Reports whether cascade-debug colouring is enabled. */
   GetDebugSplitValue()
   {
     return this.debugColorSplit;
   }
 
+  /** Returns Carbon's packed debug colour for a cascade colour index. */
   @meta.blue.method
   @meta.implemented
-  /** Returns Carbon's packed debug colour for a cascade colour index. */
   GetDebugColors(switchCase)
   {
     switch (switchCase)

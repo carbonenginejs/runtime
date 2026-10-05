@@ -1,5 +1,5 @@
-import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Tr2LineSet.h
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta } from "#schema";
 import { Tr2PrimitiveSet } from "./Tr2PrimitiveSet.js";

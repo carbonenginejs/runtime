@@ -355,19 +355,27 @@ export class Tr2MeshArea
    * records itself here. NOTHING IN THE DONOR READS m_ownerMeshes - the pair
    * writes it and no code in the tree consumes it - so this is ported for shape
    * rather than for a consumer.
+   *
+   * Adapted: Carbon holds raw Tr2MeshBase* here, which do not keep the mesh alive; a
+   * JavaScript reference does. With no reader in the donor that retention is the only
+   * observable difference, and it is recorded rather than worked around.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon holds raw Tr2MeshBase* here, which do not keep the mesh alive; a JavaScript reference does. With no reader in the donor that retention is the only observable difference, and it is recorded rather than worked around.")
   AddOwnerMesh(mesh)
   {
     if (mesh) this.#ownerMeshes.push(mesh);
   }
 
-  /** Carbon RemoveOwnerMesh (Tr2MeshArea.cpp:206-218): swap-with-back removal. */
+  /**
+   * Carbon RemoveOwnerMesh (Tr2MeshArea.cpp:206-218): swap-with-back removal.
+   *
+   * Adapted: Carbon CCP_ASSERTs when the mesh is absent, which is a debug-build check; here
+   * it throws, since unregistering from an area a mesh never took is a caller defect either
+   * way.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon CCP_ASSERTs when the mesh is absent, which is a debug-build check; here it throws, since unregistering from an area a mesh never took is a caller defect either way.")
   RemoveOwnerMesh(mesh)
   {
     const index = this.#ownerMeshes.indexOf(mesh);

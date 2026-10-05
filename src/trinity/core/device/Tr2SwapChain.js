@@ -31,18 +31,24 @@ export class Tr2SwapChain
    * them this way here (`Tr2RenderTarget`, `Tr2DepthStencil`), and changing one
    * class alone would make its schema shape disagree with the emitter. It is a
    * MIRROR of the AL, refreshed when the AL is created or released.
+   *
+   * Adapted: Carbon exposes width as MAP_PROPERTY_READONLY over GetWidth with no backing
+   * member; the field mirrors the AL to keep the emitted schema shape.
    */
   @meta.blue.read
   @meta.type.int32
   @meta.adapted
-  @meta.reason("Carbon exposes width as MAP_PROPERTY_READONLY over GetWidth with no backing member; the field mirrors the AL to keep the emitted schema shape.")
   width = 0;
 
-  /** MAP_PROPERTY_READONLY "height" -> GetHeight; see `width`. */
+  /**
+   * MAP_PROPERTY_READONLY "height" -> GetHeight; see `width`.
+   *
+   * Adapted: Carbon exposes height as MAP_PROPERTY_READONLY over GetHeight with no backing
+   * member; the field mirrors the AL to keep the emitted schema shape.
+   */
   @meta.blue.read
   @meta.type.int32
   @meta.adapted
-  @meta.reason("Carbon exposes height as MAP_PROPERTY_READONLY over GetHeight with no backing member; the field mirrors the AL to keep the emitted schema shape.")
   height = 0;
 
   /**
@@ -64,13 +70,15 @@ export class Tr2SwapChain
    * do not have. It is passed instead, as `Tr2Blitter.PrepareResources` already
    * does.
    *
+   * Adapted: Carbon reaches the main-thread render context through a macro over process-wide
+   * state; the context is an argument here, as it is for Tr2Blitter.
+   *
    * @param {number|object} windowHandle The window to present into.
    * @param {object} renderContext The context to create against.
    * @returns {boolean} Whether the chain came up.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon reaches the main-thread render context through a macro over process-wide state; the context is an argument here, as it is for Tr2Blitter.")
   CreateForWindow(windowHandle, renderContext)
   {
     this.#windowHandle = windowHandle;
@@ -94,21 +102,15 @@ export class Tr2SwapChain
 
   /**
    * Creates the AL swap chain and refreshes the mirrored dimensions.
+   * Carbon OnPrepareResources (Tr2SwapChain.cpp:29-48).
    *
-   * CARBON ALSO CREATES THE DEPTH-STENCIL AND ATTACHES THE BACK BUFFER here
-   * (`Tr2SwapChain.cpp:38-50`). That half is NOT ported, because the two classes
-   * it needs cannot do it yet: `Tr2DepthStencil.Create` and
-   * `Tr2RenderTarget.Create` are both `@impl.notImplemented` shells, and
-   * `Tr2RenderTarget` has no `Attach` at all. Calling them would throw. This is
-   * recorded rather than worked around - the same missing-live-object shape this
-   * class had, one layer down.
+   * Adapted: Omits Carbon's depth-stencil creation and back-buffer attachment.
    *
-   * @param {object} renderContext The context to create against.
+   * @param {Tr2RenderContext} renderContext The context to create against.
    * @returns {boolean} Whether the AL chain came up.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon also creates the depth-stencil and attaches the back buffer; Tr2DepthStencil.Create, Tr2RenderTarget.Create and Tr2RenderTarget.Attach do not exist yet, so only the AL half is ported.")
   OnPrepareResources(renderContext)
   {
     if (!Succeeded(this.#swapChain.Create(this.#windowHandle, renderContext.GetRenderContextAL()))) return false;

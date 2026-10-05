@@ -1,3 +1,5 @@
+// Source: trinity/trinity/TriPoolAllocator.h
+// Source: trinity/trinity/TriPoolAllocator.cpp
 // Factory + arena for RawData constant-data payloads.
 //
 // Carbon TriPoolAllocator (TriPoolAllocator.h/.cpp): the same names, job,

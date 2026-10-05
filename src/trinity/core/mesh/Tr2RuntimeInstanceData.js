@@ -1,3 +1,6 @@
+// Source: trinity/trinity/Tr2RuntimeInstanceData.h
+// Source: trinity/trinity/Tr2RuntimeInstanceData.cpp
+// Source: trinity/trinity/Tr2RuntimeInstanceData_Blue.cpp
 import { IsMatch } from "#blue";
 import { Failed } from "../../../trinityal/ALResult.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
@@ -6,9 +9,6 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2Rende
 import { TriDevice } from "../device/TriDevice.js";
 import { Tr2Renderer } from "../Tr2Renderer.js";
 import { SharedGeometryBuffer } from "./TriGeometryResAllocations.js";
-// Source: trinity/trinity/Tr2RuntimeInstanceData.h
-// Source: trinity/trinity/Tr2RuntimeInstanceData.cpp
-// Source: trinity/trinity/Tr2RuntimeInstanceData_Blue.cpp
 import { ReadValues } from "../../../global/blue/values.js";
 import { vec3 } from "#math/vec3";
 import { meta } from "#schema";
@@ -26,9 +26,13 @@ import { ITr2InstanceDataInstanceData, ITr2InstanceData } from "./ITr2InstanceDa
 @meta.blue.inherit(ITr2InstanceData)
 export class Tr2RuntimeInstanceData
 {
-  /** Reconstructs the JS-only persisted CPU layout/rows, absent from native Black data. */
+  /**
+   * Reconstructs the JS-only persisted CPU layout/rows, absent from native Black data.
+   *
+   * Adapted: The JS values format persists private layout/rows; its factory explicitly
+   * repacks them without inventing native IInitialize exposure.
+   */
   @meta.ours
-  @meta.reason("The JS values format persists private layout/rows; its factory explicitly repacks them without inventing native IInitialize exposure.")
   static from(values = {}, options = {})
   {
     const instance = new Tr2RuntimeInstanceData();
@@ -80,14 +84,28 @@ export class Tr2RuntimeInstanceData
   @meta.type.uint32
   count = 0;
 
-  // PERSIST is ours, not Carbon's: SOF's JSON output carries this value, which Carbon sets in C++.
+  /**
+   * Minimum corner of the instance-data bounding box.
+   * Carbon aabbMin (Tr2RuntimeInstanceData_Blue.cpp:517).
+   *
+   * Adapted: Persisted by the JavaScript values format; Carbon exposes this field read-only.
+   *
+   * @type {vec3}
+   */
   @meta.adapted
   @meta.blue.read
   @meta.blue.persist
   @meta.type.vec3
   aabbMin = vec3.create();
 
-  // PERSIST is ours, not Carbon's: SOF's JSON output carries this value, which Carbon sets in C++.
+  /**
+   * Maximum corner of the instance-data bounding box.
+   * Carbon aabbMax (Tr2RuntimeInstanceData_Blue.cpp:519).
+   *
+   * Adapted: Persisted by the JavaScript values format; Carbon exposes this field read-only.
+   *
+   * @type {vec3}
+   */
   @meta.adapted
   @meta.blue.read
   @meta.blue.persist
@@ -205,9 +223,11 @@ export class Tr2RuntimeInstanceData
 
   /**
    * Repacks persisted JS layout/rows; GPU publication remains explicit.
+   *
+   * Adapted: JS persists layout and rows, unlike Carbon; edits repack CPU data while
+   * UpdateData owns GPU publication.
    */
   @meta.ours
-  @meta.reason("JS persists layout and rows, unlike Carbon; edits repack CPU data while UpdateData owns GPU publication.")
   @meta.invalidates("#dirty")
   OnModified(propertyName)
   {
@@ -513,10 +533,12 @@ export class Tr2RuntimeInstanceData
   /**
    * Replaces the target particle system with particles decoded from the CPU
    * instance rows.
+   *
+   * Adapted: Maps Carbon vertex semantics into the maintained CPU particle-system
+   * declaration without GPU buffers.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Maps Carbon vertex semantics into the maintained CPU particle-system declaration without GPU buffers.")
   Spawn()
   {
     const particleSystem = this.particleSystem;

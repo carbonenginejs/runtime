@@ -105,10 +105,12 @@ export class Tr2PerObjectData
    *
    * Carbon's base asserts rather than defaulting (`Tr2PerObjectData.cpp:34-37`),
    * so a call that reached here is a porting mistake and must not look valid.
+   *
+   * Adapted: Tr2IndirectDrawBufferWriter is unported and nothing on this path draws
+   * indirectly; Carbon's base asserts here too.
    */
   @meta.blue.method
   @meta.notImplemented
-  @meta.reason("Tr2IndirectDrawBufferWriter is unported and nothing on this path draws indirectly; Carbon's base asserts here too.")
   ApplyConstantBuffers()
   {
     throw new Error("Tr2PerObjectData.ApplyConstantBuffers: indirect draw is unported.");

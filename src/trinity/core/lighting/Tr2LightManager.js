@@ -1025,25 +1025,37 @@ export class Tr2LightManager
     return this._packedBits[index * FLOATS_PER_LIGHT + 7] >>> 16;
   }
 
-  /** The packed PerLightData bytes for the AL to upload, borrowed (contract layout, 3 RGBA32 texels per light). */
+  /**
+   * The packed PerLightData bytes for the AL to upload, borrowed (contract layout, 3 RGBA32 texels per light).
+   *
+   * Adapted: AL seam: Trinity owns the packed description bytes; the AL realizes LightBuffer
+   * from this view. Carbon has no such seam; Tr2DataTextureManager now writes its own
+   * texture, so this has no precedent.
+   */
   @meta.ours
-  @meta.reason("AL seam: Trinity owns the packed description bytes; the AL realizes LightBuffer from this view. Carbon has no such seam; Tr2DataTextureManager now writes its own texture, so this has no precedent.")
   GetLightBufferData()
   {
     return this._packed.subarray(0, this._packedCount * FLOATS_PER_LIGHT);
   }
 
-  /** The number of packed lights in GetLightBufferData. */
+  /**
+   * The number of packed lights in GetLightBufferData.
+   *
+   * Adapted: AL seam companion to GetLightBufferData.
+   */
   @meta.ours
-  @meta.reason("AL seam companion to GetLightBufferData.")
   GetLightCount()
   {
     return this._packedCount;
   }
 
-  /** Monotonic revision of the packed data, bumped by ResolveLightData, so the AL can skip unchanged re-uploads. */
+  /**
+   * Monotonic revision of the packed data, bumped by ResolveLightData, so the AL can skip unchanged re-uploads.
+   *
+   * Adapted: Non-Carbon extension: cheaper than the AL diffing a typed array; Carbon
+   * re-uploads unconditionally.
+   */
   @meta.ours
-  @meta.reason("Non-Carbon extension: cheaper than the AL diffing a typed array; Carbon re-uploads unconditionally.")
   GetDataRevision()
   {
     return this._revision;

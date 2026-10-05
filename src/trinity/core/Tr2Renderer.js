@@ -235,12 +235,14 @@ export class Tr2Renderer
    * Those are not ported; this creates the blitter and reserves the quad-list
    * index buffer.
    *
+   * Adapted: Carbon also allocates the quad vertex buffer and the debug line set here; only
+   * the blitter and the quad-list index buffer are ported.
+   *
    * @param {object} [renderContext] The context to prepare the blitter against.
    * @returns {Tr2Blitter} The renderer's blitter.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon also allocates the quad vertex buffer and the debug line set here; only the blitter and the quad-list index buffer are ported.")
   static prepareDeviceResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     Tr2Renderer.#blitter ??= new Tr2Blitter();
@@ -282,6 +284,9 @@ export class Tr2Renderer
    * the caller's corners as the VERTEX rectangle. Carbon distinguishes the two
    * by overload; JavaScript has no overloads, so the rectangle form is named.
    *
+   * Adapted: Carbon distinguishes this from the material form by overload; JavaScript has
+   * none, so the rectangle form carries its own name.
+   *
    * @param {object} renderContext The context to draw through.
    * @param {object} effect The effect to draw with.
    * @param {Array<number>} topLeft Top-left vertex corner.
@@ -290,7 +295,6 @@ export class Tr2Renderer
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon distinguishes this from the material form by overload; JavaScript has none, so the rectangle form carries its own name.")
   static drawScreenQuadRect(renderContext, effect, topLeft, bottomRight)
   {
     if (!Tr2Renderer.#blitter) return false;
@@ -341,6 +345,9 @@ export class Tr2Renderer
    * `DrawScreenQuad` does not - Carbon draws that distinction and it is load
    * bearing.
    *
+   * Adapted: Carbon's four overloads differ only in an optional material and optional
+   * coordinates, which are defaults here.
+   *
    * @param {object} renderContext The context to draw through.
    * @param {object} texture The texture to blit.
    * @param {object} [options] `material`, `tlTexCoord`, `brTexCoord`, `filter`.
@@ -348,7 +355,6 @@ export class Tr2Renderer
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon's four overloads differ only in an optional material and optional coordinates, which are defaults here.")
   static drawTexture(renderContext, texture, options = {})
   {
     if (!Tr2Renderer.#blitter) return false;
@@ -459,11 +465,15 @@ export class Tr2Renderer
   /**
    * Ends the frame, clearing the debug drawing accumulated during it.
    *
+   * Adapted: Carbon clears two of its own statics, s_debugTextRenderer and s_debugLineSet
+   * (Tr2Renderer.cpp:1053-1064). Neither type is ported; the installed debug renderer on the
+   * ambient context is the only thing here that accumulates per-frame debug drawing, so it
+   * is what gets cleared.
+   *
    * @returns {void}
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon clears two of its own statics, s_debugTextRenderer and s_debugLineSet (Tr2Renderer.cpp:1053-1064). Neither type is ported; the installed debug renderer on the ambient context is the only thing here that accumulates per-frame debug drawing, so it is what gets cleared.")
   static EndFrame()
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -493,11 +503,14 @@ export class Tr2Renderer
    * The clear happens BEFORE EndScene, so every payload leased during the
    * frame dies at one point.
    *
+   * Adapted: Carbon's pool allocator is a Tr2Renderer static (s_poolAllocator); ours is per
+   * render context, so this clears the ambient context's. Moving the pool is open work - it
+   * has three call sites that read it off a context they were handed.
+   *
    * @returns {*} Whatever the backend's EndScene returns.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon's pool allocator is a Tr2Renderer static (s_poolAllocator); ours is per render context, so this clears the ambient context's. Moving the pool is open work - it has three call sites that read it off a context they were handed.")
   static EndRenderContext()
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -545,12 +558,14 @@ export class Tr2Renderer
   /**
    * Sets the renderer's shader model.
    *
+   * Adapted: Carbon also requests a device reset on change (Tr2Renderer.cpp:1126-1145); no
+   * device reset is ported, so nothing rebuilds tier-dependent resources.
+   *
    * @param {number} shaderModel A `TR2SHADERMODEL` value.
    * @returns {void}
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon also requests a device reset on change (Tr2Renderer.cpp:1126-1145); no device reset is ported, so nothing rebuilds tier-dependent resources.")
   static SetShaderModel(shaderModel)
   {
     Tr2Renderer.#shaderModel = shaderModel;
@@ -560,11 +575,14 @@ export class Tr2Renderer
    * Whether device resources may be created now: the main-thread context has
    * a backend with a device (`Tr2Renderer.cpp:1393-1397`).
    *
+   * Adapted: Carbon also ANDs s_isResourceCreationAllowed, which TriDevice clears during a
+   * reset (TriDevice.cpp:886); no device reset is ported, so the flag has nothing to clear
+   * it.
+   *
    * @returns {boolean} True when creation is allowed.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon also ANDs s_isResourceCreationAllowed, which TriDevice clears during a reset (TriDevice.cpp:886); no device reset is ported, so the flag has nothing to clear it.")
   static IsResourceCreationAllowed()
   {
     return Tr2RenderContext_GetMainThreadRenderContext().IsValid();

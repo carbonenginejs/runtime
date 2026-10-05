@@ -1,8 +1,8 @@
-// Nested Tr2GpuResourcePool::GpuResourceHandle (Tr2GpuResourcePool.h:54).
-// Nested Tr2GpuResourcePool::GpuResourceHandle (Tr2GpuResourcePool.h:54).
-// Nested Tr2GpuResourcePool::GpuResourceHandle (Tr2GpuResourcePool.h:54).
 // Source: trinity/trinity/Tr2GpuResourcePool.h
 // Source: trinity/trinity/Tr2GpuResourcePool.cpp
+// Nested Tr2GpuResourcePool::GpuResourceHandle (Tr2GpuResourcePool.h:54).
+// Nested Tr2GpuResourcePool::GpuResourceHandle (Tr2GpuResourcePool.h:54).
+// Nested Tr2GpuResourcePool::GpuResourceHandle (Tr2GpuResourcePool.h:54).
 //
 // Where a render pass gets a scratch texture or buffer, and how one is kept
 // alive only as long as something holds it.
