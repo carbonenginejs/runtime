@@ -70,7 +70,9 @@ export class Tr2AudioStretchBase
    * Carbon method Update: position endpoints and project the listener onto the beam.
    *
    * Adapted: Carbon reads Tr2Renderer's view position; the device-free audio graph uses the
-   * registered audio listener position.
+   * registered audio listener position, or the source position before a listener
+   * is registered. Present listeners must supply GetPosition. Carbon Update is
+   * Tr2AudioStretchBase.cpp:38-62.
    */
   @meta.blue.method
   @meta.adapted
@@ -79,21 +81,28 @@ export class Tr2AudioStretchBase
     StretchAudio.GetStretchOrientation(sourcePosition, destPosition, this._front, this._top);
     this.sourceEmitter?.SetPosition(this._front, this._top, sourcePosition);
     this.destinationEmitter?.SetPosition(this._front, this._top, destPosition);
-    const listenerPosition = AudGameObjResource.manager?.GetListener()?.GetPosition?.() ?? sourcePosition;
+    const listener = AudGameObjResource.manager?.GetListener();
+    const listenerPosition = listener ? listener.GetPosition() : sourcePosition;
     this.stretchEmitter?.SetPosition(
       this._front,
       this._top,
       Tr2AudioStretchBase._ProjectOntoSegment(listenerPosition, sourcePosition, destPosition));
   }
 
-  /** Carbon method FindEmitterByName. */
+  /**
+   * Finds the first initialized emitter with the requested name.
+   * Carbon FindEmitterByName (Tr2AudioStretchBase.cpp:64-79).
+   *
+   * @param {string} name Emitter name.
+   * @returns {ITr2AudEmitter|null} Matching emitter, or null.
+   */
   @meta.blue.method
   @meta.implemented
   FindEmitterByName(name)
   {
     for (const emitter of [ this.sourceEmitter, this.destinationEmitter, this.stretchEmitter ])
     {
-      if (emitter?.GetName() === name)
+      if (emitter.GetName() === name)
       {
         return emitter;
       }

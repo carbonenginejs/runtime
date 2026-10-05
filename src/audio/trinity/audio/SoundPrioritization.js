@@ -149,16 +149,21 @@ export class SoundPrioritization
     this._audioCullingEnabled = true;
   }
 
-  /** Carbon method DisableAudioCulling: wake every culled object before disabling. */
+  /**
+   * Wakes every culled registered object before disabling prioritization.
+   * Carbon DisableAudioCulling (SoundPrioritization.cpp:180-194).
+   *
+   * @returns {void}
+   */
   @meta.blue.method
   @meta.implemented
   DisableAudioCulling()
   {
     for (const object of this._gameObjects)
     {
-      if (object.IsCulled?.())
+      if (object.IsCulled())
       {
-        object.Wake?.();
+        object.Wake();
       }
     }
     this._audioCullingEnabled = false;

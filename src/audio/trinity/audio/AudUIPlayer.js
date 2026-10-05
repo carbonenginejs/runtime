@@ -42,7 +42,7 @@ export class AudUIPlayer extends AudEmitter
    *
    * Adapted: The injected backend returns the position directly instead of Wwise's
    * result code and output parameter (audio/src/AudUIPlayer.cpp:76-89). A disabled
-   * manager or missing backend method also returns -1.
+   * manager or absent backend also returns -1.
    *
    * @param {number} playingID Event playing identifier.
    * @returns {number} Elapsed milliseconds, or -1.
@@ -55,7 +55,8 @@ export class AudUIPlayer extends AudEmitter
     {
       return -1;
     }
-    return this.constructor.backend?.GetSourcePlayPosition(playingID) ?? -1;
+    const backend = this.constructor.backend;
+    return backend ? backend.GetSourcePlayPosition(playingID) : -1;
   }
 
   /** Carbon method PostDialogueEvent (MAP_METHOD_AND_WRAP). */
@@ -126,20 +127,26 @@ export class AudUIPlayer extends AudEmitter
     }
   }
 
-  /** Invokes one function- or Blue-style UI completion callback. */
+  /**
+   * Invokes one function or Blue UI completion callback.
+   * Carbon PropagatePythonCallback (AudUIPlayer.cpp:100-104) calls CallVoid.
+   *
+   * Adapted: A supplied JavaScript function is invoked directly; Blue callback
+   * objects must provide CallVoid.
+   *
+   * @param {Function|CjsScriptCallback} callback Completion callback.
+   * @param {string} eventName Completed event name.
+   * @returns {void}
+   */
   static _InvokeCallback(callback, eventName)
   {
     if (typeof callback === "function")
     {
       callback(eventName);
     }
-    else if (typeof callback?.CallVoid === "function")
-    {
-      callback.CallVoid(eventName);
-    }
     else
     {
-      callback?.Invoke?.(eventName);
+      callback.CallVoid(eventName);
     }
   }
 
