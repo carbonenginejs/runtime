@@ -59,10 +59,6 @@
       "MusicInstance",
       "CjsMusicEngine"
     ],
-    "src/audio/CjsSfxEngine.js": [
-      "CjsSfxEngineSelectionTransactionLedger",
-      "CjsSfxEngine"
-    ],
     "src/audio/library-builder/CjsAudioLibraryBuilder.js": [
       "CjsAudioLibraryBuilder",
       "CjsAudioLibraryBuilderBankInspectionSession",
