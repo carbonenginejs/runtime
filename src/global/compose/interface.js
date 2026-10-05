@@ -1,4 +1,4 @@
-// Source: trinity MAP_INTERFACE - Carbon's multiple-inheritance declaration,
+// Source: blueexposure MAP_INTERFACE (BlueExposureMacros.h:171) - Carbon's multiple-inheritance declaration,
 // e.g. `BLUE_CLASS( Tr2RenderContext ) : public Tr2RenderContextBase,
 // public Tr2RenderContextAL` (Tr2RenderContext.h:85-87).
 //
@@ -372,7 +372,7 @@ function ResolveInterfaceTable(Constructor, visiting = null, replacement = null)
  * Implicit native IRoot/self entries are not added; list supported identities
  * explicitly, using imperative application when the list includes the class.
  *
- * Usage: `meta.carbon.interfaceTable({ interfaces: [INotify], chainTo: null })`
+ * Usage: `meta.blue.interfaceTable({ interfaces: [INotify], chainTo: null })`
  * decorates a class, or the returned decorator can be called with its constructor.
  *
  * @param {{interfaces: Function[], chainTo: Function|null}} definition Complete interface mapping.
