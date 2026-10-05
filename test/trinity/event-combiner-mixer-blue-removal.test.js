@@ -64,7 +64,7 @@ test("event named and callable dispatch remain distinct and require present list
 test("combiner zeroes each child scratch and commits cached sum only after all children succeed",()=>{
     const combiner=new Tr2CurveCombiner(),calls=[];
     class Child extends ITriVectorFunction{Update(time,out){calls.push([time,[...out]]);out[0]=2;return out;}}
-    meta.blue.interfaceTable({interfaces:[Child,ITriVectorFunction],chainTo:null})(Child);
+    meta.blue.interface(ITriVectorFunction)(Child);
     const first=new Child(),second=new Child();
     second.Update=(time,out)=>{calls.push([time,[...out]]);out[1]=3;return out;};
     assert.equal(combiner.curves.Append(first),true);assert.equal(combiner.curves.Append(second),true);
@@ -82,7 +82,7 @@ test("combiner zeroes each child scratch and commits cached sum only after all c
 test("combiner pooled update scratch is isolated, zeroed and released after child failure",()=>{
     const outer=new Tr2CurveCombiner(),inner=new Tr2CurveCombiner();
     class Child extends ITriVectorFunction{}
-    meta.blue.interfaceTable({interfaces:[Child,ITriVectorFunction],chainTo:null})(Child);
+    meta.blue.interface(ITriVectorFunction)(Child);
     const a=new Child(),b=new Child();outer.curves.Append(a);inner.curves.Append(b);
     const originalAlloc=vec3.alloc,originalUnalloc=vec3.unalloc,active=new Set();let leases=0;
     vec3.alloc=()=>{const out=originalAlloc();assert.equal(active.has(out.buffer),false);active.add(out.buffer);out.fill(91);leases++;return out;};
@@ -103,7 +103,7 @@ test("combiner pooled update scratch is isolated, zeroed and released after chil
 test("combiner length queries exact native exposure and requires advertised methods",()=>{
     const combiner=new Tr2CurveCombiner();
     class Hidden extends ITriVectorFunction{Length(){throw new Error("unmapped length");}}
-    meta.blue.interfaceTable({interfaces:[Hidden,ITriVectorFunction],chainTo:null})(Hidden);
+    meta.blue.interface(ITriVectorFunction)(Hidden);
     const hidden=new Hidden();assert.equal(combiner.curves.Append(hidden),true);assert.equal(combiner.Length(),0);
     const curve=new Tr2CurveVector3();curve.AddKey(7,[1,2,3],1);assert.equal(combiner.curves.Append(curve),true);assert.equal(combiner.Length(),7);
     curve.Length=null;assert.throws(()=>combiner.Length(),TypeError);

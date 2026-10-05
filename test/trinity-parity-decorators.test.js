@@ -62,7 +62,7 @@ test("Trinity parity keeps exact method lookup ahead of a casing alternative", (
 
 test("Blue exposure matching preserves renamed, contextual and interface declarations", () =>
 {
-  for (const name of ["renamed", "contextual", "mapInterface"])
+  for (const name of ["renamed", "contextual", "interface", "chainTo"])
   {
     assert.equal(isCarbonDecorator(parseExpression("meta.blue." + name + "(Value)"), name), true);
     assert.equal(isCarbonDecorator(parseExpression("meta.type." + name + "(Value)"), name), false);

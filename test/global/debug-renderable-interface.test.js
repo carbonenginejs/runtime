@@ -77,8 +77,8 @@ test("debug composition preserves caller-owned option accumulation and renderer 
   assert.equal(calls[1], options);
   assert.equal(calls[2], renderer);
 
-  meta.blue.interfaceTable({ interfaces: [ITr2DebugRenderable], chainTo: null })(DebugRenderable);
-  assert.deepEqual(mappedInterfaces(DebugRenderable), new Set([ITr2DebugRenderable]));
+  meta.blue.interface(ITr2DebugRenderable)(DebugRenderable);
+  assert.deepEqual(mappedInterfaces(DebugRenderable), new Set([DebugRenderable, ITr2DebugRenderable]));
   assert.equal("Initialize" in renderable, false);
   assert.equal("SetValues" in renderable, false);
 });
@@ -202,8 +202,8 @@ test("renderer composition preserves query booleans and caller-owned color outpu
   assert.equal(calls[4][2], color);
   assert.equal(CjsSchema.cast(renderer, ITr2DebugRenderer2), renderer);
   assert.equal(mappedInterfaces(Renderer).has(ITr2DebugRenderer2), false);
-  meta.blue.interfaceTable({ interfaces: [ITr2DebugRenderer2], chainTo: null })(Renderer);
-  assert.deepEqual(mappedInterfaces(Renderer), new Set([ITr2DebugRenderer2]));
+  meta.blue.interface(ITr2DebugRenderer2)(Renderer);
+  assert.deepEqual(mappedInterfaces(Renderer), new Set([Renderer, ITr2DebugRenderer2]));
   assert.throws(() => renderer.DrawAxis(owner, mat4.create(), 0), /TestSharedDebugRendererQueries\.DrawAxis must be implemented/u);
   assert.equal("GetRawRoot" in renderer, false);
 });

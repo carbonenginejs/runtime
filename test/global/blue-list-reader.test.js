@@ -13,11 +13,11 @@ const itemName = "BlueListReaderItem";
 
 class Item { value = 0; }
 CjsSchema.define(Item, { className: itemName, fields: { value: { type: { kind: "int32" }, edit: { persist: true } } } });
-meta.blue.interfaceTable({ interfaces: [ Item ], chainTo: null })(Item);
+meta.blue.interface()(Item);
 
 class WrongItem extends Item {}
 CjsSchema.define(WrongItem, { className: "BlueListReaderWrongItem" });
-meta.blue.interfaceTable({ interfaces: [], chainTo: null })(WrongItem);
+meta.blue.interface()(WrongItem);
 
 class Owner
 {
@@ -80,7 +80,7 @@ class LiveOwner extends Owner
   }
 }
 CjsSchema.define(LiveOwner, { className: "BlueListReaderLiveOwner" });
-meta.blue.interfaceTable({ interfaces: [ IListNotify ], chainTo: Owner })(LiveOwner);
+meta.blue.interface(IListNotify)(LiveOwner); meta.blue.chainTo(Owner)(LiveOwner);
 
 test("ordinary live lists publish resolved members progressively through the mapped owner", () =>
 {
@@ -169,7 +169,7 @@ test("shared-context values notifications observe completed live lists", () =>
   CjsSchema.define(NotifiedOwner, { className: "BlueListReaderNotifiedOwner", fields: {
     ordinary: { type: { kind: "list", itemType: itemName }, edit: { persist: true, notify: true } }
   } });
-  meta.blue.interfaceTable({ interfaces: [ IListNotify ], chainTo: LiveOwner })(NotifiedOwner);
+  meta.blue.interface(IListNotify)(NotifiedOwner); meta.blue.chainTo(LiveOwner)(NotifiedOwner);
   const owner = new NotifiedOwner(), context = CreateAnchorTable(), seen = [];
   owner.ordinary.push(MakeItem(0));
   owner.OnModified = () => { seen.push(owner.ordinary.map(item => item.value)); return true; };
@@ -186,7 +186,7 @@ test("empty interface-typed refills detach objects even without a registered ite
   CjsSchema.define(InterfaceOwner, { className: "BlueListReaderInterfaceOwner", fields: {
     ordinary: { type: { kind: "list", itemType: "UnregisteredListItemInterface" }, edit: { persist: true } }
   } });
-  meta.blue.interfaceTable({ interfaces: [ IListNotify ], chainTo: LiveOwner })(InterfaceOwner);
+  meta.blue.interface(IListNotify)(InterfaceOwner); meta.blue.chainTo(LiveOwner)(InterfaceOwner);
   const owner = new InterfaceOwner(), child = MakeItem(1);
   owner.ordinary.push(child);
   const list = owner.ordinary;
@@ -253,7 +253,7 @@ test("observer capture occurs after clear and before muting", () =>
 test("composition without an exact IList mapping retains the ordinary array path", () =>
 {
   class UnexposedList extends BlueList {}
-  meta.blue.interfaceTable({ interfaces: [], chainTo: null })(UnexposedList);
+  meta.blue.interface()(UnexposedList);
   const { owner, observer } = Setup();
   const list = new UnexposedList(Item, { className: itemName });
   list.SetNotify(observer);

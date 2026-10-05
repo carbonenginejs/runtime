@@ -60,8 +60,8 @@ function fixture()
         { name: "set", key: "set", type: { kind: "set", itemType: Leaf }, lifecycle: { ownership: "owned" } },
         { name: "borrowed", key: "borrowed", type: { kind: "objectRef", className: Leaf } },
     ] });
-    CjsSchema.meta.blue.mapInterface(IInitialize)(Leaf);
-    CjsSchema.meta.blue.mapInterface(IInitialize)(Root);
+    CjsSchema.meta.blue.interface(IInitialize)(Leaf);
+    CjsSchema.meta.blue.interface(IInitialize)(Root);
     return { prefix, Leaf, Plain, Resource, Root, calls };
 }
 
@@ -122,7 +122,7 @@ test("public inherited traversal order is independent of reader ownership", () =
     CjsSchema.define(Base, { className: `${prefix}Base`, fields: [
         { name: "base", key: "base", type: { kind: "objectRef", className: Leaf }, lifecycle: { ownership: "owned" } }
     ] });
-    CjsSchema.meta.blue.mapInterface(IInitialize)(Base);
+    CjsSchema.meta.blue.interface(IInitialize)(Base);
     class Derived extends Base { derived = new Leaf("derived"); }
     CjsSchema.define(Derived, { className: `${prefix}Derived`, fields: [
         { name: "derived", key: "derived", type: { kind: "objectRef", className: Leaf }, lifecycle: { ownership: "owned" } }
@@ -176,7 +176,7 @@ test("native initialization ignores a false return but propagates a thrown failu
     for (const Type of [ReturnsFalse, Throws])
     {
         CjsSchema.define(Type, { className: "ReaderCompletion" + Type.name });
-        CjsSchema.meta.blue.mapInterface(IInitialize)(Type);
+        CjsSchema.meta.blue.interface(IInitialize)(Type);
     }
     assert.ok(CjsSchema.from("ReaderCompletionReturnsFalse", {}) instanceof ReturnsFalse);
     assert.throws(() => CjsSchema.from("ReaderCompletionThrows", {}), /fixture initialization error/);

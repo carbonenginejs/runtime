@@ -38,7 +38,7 @@ class SampleFunction extends ITriFunction
 CjsSchema.define(SampleFunction, { className: "Phase2CurveSetSampleFunction", fields: {
   name: { type: "string", edit: { read: true, write: true, persist: true } }
 } });
-meta.blue.interfaceTable({ interfaces: [SampleFunction, ITriFunction], chainTo: null })(SampleFunction, { kind: "class" });
+meta.blue.interface(ITriFunction)(SampleFunction, { kind: "class" });
 
 class SampleBinding extends ITr2ValueBinding
 {
@@ -46,7 +46,7 @@ class SampleBinding extends ITr2ValueBinding
   CopyValue() { this.copies++; }
 }
 CjsSchema.define(SampleBinding, { className: "Phase2CurveSetSampleBinding" });
-meta.blue.interfaceTable({ interfaces: [SampleBinding, ITr2ValueBinding], chainTo: null })(SampleBinding, { kind: "class" });
+meta.blue.interface(ITr2ValueBinding)(SampleBinding, { kind: "class" });
 
 test("curve-set and range have native bases and exact exposure without model conveniences", () =>
 {
@@ -136,9 +136,9 @@ test("duration lookup uses mapped native interfaces and ignores a coincidental L
   meta.blue.inherit(ITriDuration)(Duration, { kind: "class" });
   meta.blue.inherit(ITriCurveLength)(CurveLength, { kind: "class" });
   meta.blue.inherit(ITriDuration)(Unmapped, { kind: "class" });
-  meta.blue.interfaceTable({ interfaces: [Duration, ITriFunction, ITriDuration], chainTo: null })(Duration, { kind: "class" });
-  meta.blue.interfaceTable({ interfaces: [CurveLength, ITriFunction, ITriCurveLength], chainTo: null })(CurveLength, { kind: "class" });
-  meta.blue.interfaceTable({ interfaces: [Unmapped, ITriFunction], chainTo: null })(Unmapped, { kind: "class" });
+  meta.blue.interface(ITriFunction, ITriDuration)(Duration, { kind: "class" });
+  meta.blue.interface(ITriFunction, ITriCurveLength)(CurveLength, { kind: "class" });
+  meta.blue.interface(ITriFunction)(Unmapped, { kind: "class" });
   const set = new TriCurveSet();
   set.AddCurve(new Unmapped());
   assert.equal(set.GetMaxCurveDuration(), 0);

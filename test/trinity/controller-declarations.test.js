@@ -83,7 +83,7 @@ test("controller exposure follows its explicit EveThrottleable parent table", ()
     import { EveThrottleable } from ${JSON.stringify(moduleURL("trinity/eve/EveThrottleable.js"))};
     import { Tr2Controller } from ${JSON.stringify(moduleURL("trinity/controllers/Tr2Controller.js"))};
     class ParentInterface {}
-    meta.blue.mapInterface(ParentInterface)(EveThrottleable);
+    meta.blue.interface(ParentInterface)(EveThrottleable);
     assert.equal(mappedInterfaces(Tr2Controller).has(ParentInterface), true);
   `], { encoding: "utf8", timeout: 30000 });
 });

@@ -17,11 +17,11 @@ CjsSchema.define(Item, {
     peer: [ meta.type.objectRef("TestBlueListItem"), meta.blue.persist ]
   }
 });
-meta.blue.interfaceTable({ interfaces: [ Item ], chainTo: null })(Item);
+meta.blue.interface()(Item);
 
 class UnexposedItem extends Item {}
 CjsSchema.define(UnexposedItem, { className: "TestBlueListUnexposedItem" });
-meta.blue.interfaceTable({ interfaces: [], chainTo: null })(UnexposedItem);
+meta.blue.interface()(UnexposedItem);
 
 // This test class fixes the generic constructor arguments. Production generic
 // dispatch and stored-list preservation need their explicit Copier integration;

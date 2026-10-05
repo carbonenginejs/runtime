@@ -160,7 +160,7 @@ for (const { name, Contract, direct, base, own, abstract, ticks = [] } of contra
     for (const method of methods) assert.equal(instance[method], Operations.prototype[method]);
     assert.equal(CjsSchema.cast(instance, Contract), instance);
     assert.deepEqual(Array.from(mappedInterfaces(Consumer)), []);
-    meta.blue.interfaceTable({ interfaces: [ Consumer, Contract ], chainTo: null })(Consumer);
+    meta.blue.interface(Contract)(Consumer);
     assert.deepEqual(Array.from(mappedInterfaces(Consumer)), [ Consumer, Contract ]);
     if (base)
     {

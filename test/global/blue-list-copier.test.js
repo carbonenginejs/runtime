@@ -22,7 +22,7 @@ class Leaf
   owner = null;
 }
 meta.blue.inherit(ItemContract)(Leaf);
-meta.blue.mapInterface(ItemContract)(Leaf);
+meta.blue.interface(ItemContract)(Leaf);
 CjsSchema.define(Leaf, { className: "BlueListCopierLeaf", fields: {
   value: [ meta.type.int32, meta.blue.persist ],
   owner: [ meta.type.objectRef("BlueListCopierHost"), meta.blue.persist ]
@@ -48,7 +48,7 @@ class Host
     return true;
   }
 }
-meta.blue.mapInterface(IInitialize)(Host);
+meta.blue.interface(IInitialize)(Host);
 CjsSchema.define(Host, { className: "BlueListCopierHost", fields: {
   items: [ meta.type.list("BlueListCopierItem"), meta.blue.persist ],
   sibling: [ meta.type.objectRef("BlueListCopierItem"), meta.blue.persist ]
@@ -157,7 +157,7 @@ test("array declarations preserve explicit storage and notify the owner after li
       return true;
     }
   }
-  meta.blue.mapInterface(INotify)(ArrayHost);
+  meta.blue.interface(INotify)(ArrayHost);
   CjsSchema.define(ArrayHost, { className: "BlueListCopierArrayHost", fields: {
     items: [ meta.type.array({ kind: "objectRef", className: "BlueListCopierItem" }), meta.blue.persist ]
   } });
@@ -201,7 +201,7 @@ test("explicit/plain and mismatched empty configurations cannot bypass validatio
 test("nominal source custom assignment is required despite an inherited AssignTo method", () =>
 {
   class ListWithoutAssignment extends BlueList {}
-  meta.blue.interfaceTable({ interfaces: [ IList ], chainTo: null })(ListWithoutAssignment);
+  meta.blue.interface(IList)(ListWithoutAssignment);
   const source = new ListWithoutAssignment(ItemContract), destination = new ListWithoutAssignment(ItemContract);
   source.AssignTo = () => assert.fail("unmapped assignment must not be called");
   assert.equal(new Copier().CopyTo(source, destination), null);

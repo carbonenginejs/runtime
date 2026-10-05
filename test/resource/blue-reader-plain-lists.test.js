@@ -24,7 +24,7 @@ class Item
 CjsSchema.define(Item, { className: itemName, fields: {
   value: { type: { kind: "int32" }, edit: { persist: true } }
 } });
-meta.blue.interfaceTable({ interfaces: [Item, IInitialize], chainTo: null })(Item);
+meta.blue.interface(IInitialize)(Item);
 
 function Info(list)
 {
@@ -61,7 +61,7 @@ CjsSchema.define(Owner, { className: ownerName, fields: {
   name: { type: { kind: "string" }, edit: { persist: true } },
   items: { type: { kind: "list", itemType: itemName }, edit: { read: true, persist: true } }
 } });
-meta.blue.interfaceTable({ interfaces: [Owner, IListNotify, IInitialize], chainTo: null })(Owner);
+meta.blue.interface(IListNotify, IInitialize)(Owner);
 
 const classes = { [itemName]: Item, [ownerName]: Owner };
 
@@ -167,10 +167,10 @@ class Notified
 CjsSchema.define(Notified, { className: "BlueReaderPlainNotified", fields: {
   value: { type: { kind: "int32" }, edit: { persist: true, notify: true } }
 } });
-meta.blue.interfaceTable({ interfaces: [Notified, INotify], chainTo: null })(Notified);
+meta.blue.interface(INotify)(Notified);
 class UnexposedNotify extends Notified {}
 CjsSchema.define(UnexposedNotify, { className: "BlueReaderPlainUnexposedNotify" });
-meta.blue.interfaceTable({ interfaces: [UnexposedNotify], chainTo: null })(UnexposedNotify);
+meta.blue.interface()(UnexposedNotify);
 
 test("the declared plain branch uses mapped notifications after assignment and rejects method-only exposure", () =>
 {

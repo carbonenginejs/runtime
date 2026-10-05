@@ -11,7 +11,7 @@ let sequence = 0;
 const name = () => `DeclaredConstruction${++sequence}`;
 const reader = options => new DictReader({ declarations: true, ...options });
 const define = (Constructor, fields = {}, interfaces = []) => {
-  if (interfaces.length) CjsSchema.meta.blue.mapInterface(...interfaces)(Constructor, { kind: "class" });
+  if (interfaces.length) CjsSchema.meta.blue.interface(...interfaces)(Constructor, { kind: "class" });
   const className = name();
   CjsSchema.define(Constructor, { className, fields });
   return className;

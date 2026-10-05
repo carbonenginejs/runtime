@@ -88,7 +88,7 @@ class StateListObservedAction extends Tr2ActionCallback
   RebaseSimTime(diff) { this.calls.push(["RebaseSimTime", diff]); }
 }
 CjsSchema.define(StateListObservedAction, { className: "StateListObservedAction" });
-meta.blue.interfaceTable({ interfaces: [StateListObservedAction, ITr2ControllerAction], chainTo: null })(StateListObservedAction);
+meta.blue.interface(ITr2ControllerAction)(StateListObservedAction);
 
 class StateListObservedTransition extends Tr2StateMachineTransition
 {
@@ -108,7 +108,7 @@ class StateListObservedTransition extends Tr2StateMachineTransition
   }
 }
 CjsSchema.define(StateListObservedTransition, { className: "StateListObservedTransition" });
-meta.blue.interfaceTable({ interfaces: [StateListObservedTransition, Tr2StateMachineTransition], chainTo: null })(StateListObservedTransition);
+meta.blue.interface(Tr2StateMachineTransition)(StateListObservedTransition);
 
 class StateListFinalizer extends ITr2StateMachineStateFinalizer
 {
@@ -164,7 +164,7 @@ test("list admission and direct payload dispatch require exact query identities"
   for (const Type of [UnexposedAction, UnexposedTransition])
   {
     CjsSchema.define(Type, { className: `StateNativeLists${Type.name}` });
-    meta.blue.interfaceTable({ interfaces: [], chainTo: null })(Type);
+    meta.blue.interface()(Type);
   }
   const state = State();
   Linked(t, state);

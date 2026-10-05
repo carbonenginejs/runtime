@@ -50,7 +50,7 @@ function assertVector(actual, expected, epsilon = 1e-6)
 test("TriVectorSequencer ports Carbon combination and derivative behavior", () =>
 {
   class TestFunction extends ITriVectorFunction {}
-  meta.blue.interfaceTable({ interfaces: [TestFunction, ITriVectorFunction], chainTo: null })(TestFunction);
+  meta.blue.interface(ITriVectorFunction)(TestFunction);
   const makeFunction = (value, dot, doubleDot) => Object.assign(new TestFunction(), {
       GetValueAt: (_time, out) => vec3.copy(out, value),
       GetValueDotAt: (_time, out) => vec3.copy(out, dot),
@@ -87,7 +87,7 @@ test("TriVectorSequencer ports Carbon combination and derivative behavior", () =
 test("TriColorSequencer preserves Carbon's double-time additive quirk", () =>
 {
   class TestFunction extends ITriColorFunction {}
-  meta.blue.interfaceTable({ interfaces: [TestFunction, ITriColorFunction, ITriCurveLength], chainTo: null })(TestFunction);
+  meta.blue.interface(ITriColorFunction, ITriCurveLength)(TestFunction);
   const makeFunction = (value, length) => Object.assign(new TestFunction(), {
       GetValueAt: (_time, out) => vec4.copy(out, value),
       Length: () => length
@@ -1385,7 +1385,7 @@ test("TriCurveSet plays, ranges, applies curves, and copies bindings", () =>
     }
   }
   meta.blue.inherit(ITriDuration)(TestCurve, { kind: "class" });
-  meta.blue.interfaceTable({ interfaces: [TestCurve, ITriFunction, ITriDuration], chainTo: null })(TestCurve, { kind: "class" });
+  meta.blue.interface(ITriFunction, ITriDuration)(TestCurve, { kind: "class" });
   const curve = new TestCurve();
   curveSet.AddCurve(curve);
   class TestBinding extends ITr2ValueBinding
@@ -1395,7 +1395,7 @@ test("TriCurveSet plays, ranges, applies curves, and copies bindings", () =>
       bindingCopies++;
     }
   }
-  meta.blue.interfaceTable({ interfaces: [TestBinding, ITr2ValueBinding], chainTo: null })(TestBinding, { kind: "class" });
+  meta.blue.interface(ITr2ValueBinding)(TestBinding, { kind: "class" });
   curveSet.AddBinding(new TestBinding());
   curveSet.PlayFrom(1);
   assertEquals(resets, 1);

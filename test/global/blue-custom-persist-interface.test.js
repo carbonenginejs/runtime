@@ -94,7 +94,7 @@ test("ICustomPersist preserves concrete methods and keeps nominal composition se
   assert.deepEqual(methods.map(method => Persist.prototype[method]), originals);
   assert.equal(CjsSchema.cast(instance, ICustomPersist), instance);
   assert.equal(mappedInterfaces(Persist).has(ICustomPersist), false);
-  meta.blue.interfaceTable({ interfaces: [ Persist, ICustomPersist ], chainTo: null })(Persist);
+  meta.blue.interface(ICustomPersist)(Persist);
   assert.deepEqual(Array.from(mappedInterfaces(Persist)), [ Persist, ICustomPersist ]);
   assert.equal(CjsSchema.cast(instance, ICustomPersist), instance);
   assert.deepEqual(calls, [], "nominal/query declarations must not invoke persistence callbacks");

@@ -32,9 +32,9 @@ const field = (type, notify = false) => ({ type, edit: { persist: true, notify }
 CjsSchema.define(Item, { className: "BlackNativeListItem", fields: {
     value: field({ kind: "uint32" }, true), parent: field({ kind: "objectRef", className: "BlackNativeListOwner" })
 } });
-meta.blue.interfaceTable({ interfaces: [Item, INotify], chainTo: null })(Item);
+meta.blue.interface(INotify)(Item);
 CjsSchema.define(WrongItem, { className: "BlackNativeListWrongItem" });
-meta.blue.interfaceTable({ interfaces: [], chainTo: null })(WrongItem);
+meta.blue.interface()(WrongItem);
 CjsSchema.define(Owner, { className: "BlackNativeListOwner", fields: {
     items: field({ kind: "list", itemType: "BlackNativeListItem" }, true),
     after: field({ kind: "uint32" }),
@@ -42,7 +42,7 @@ CjsSchema.define(Owner, { className: "BlackNativeListOwner", fields: {
     values: field({ kind: "array", itemType: "BlackNativeListItem" }),
     unique: field({ kind: "set", itemType: "BlackNativeListItem" })
 } });
-meta.blue.interfaceTable({ interfaces: [INotify], chainTo: null })(Owner);
+meta.blue.interface(INotify)(Owner);
 
 class Observer extends IListNotify {
     events = [];
@@ -162,7 +162,7 @@ class NonArrayList {
     Append(item) { assert.equal(this.notify,null); return this.storage.Append(item); }
 }
 CjsSchema.define(NonArrayList, { className: "BlackNativeNonArrayList" });
-meta.blue.interfaceTable({ interfaces: [IList], chainTo: null })(NonArrayList);
+meta.blue.interface(IList)(NonArrayList);
 
 test("a non-Array exact mapped IList is populated once and retained through shared hydration", () => {
     const { list, observer } = begin(new NonArrayList());
@@ -187,7 +187,7 @@ test("ordinary list, array and set retain their prior null and reference behavio
 
 class UnmappedList extends BlueList {}
 CjsSchema.define(UnmappedList, { className: "BlackNativeUnmappedList" });
-meta.blue.interfaceTable({ interfaces: [], chainTo: null })(UnmappedList);
+meta.blue.interface()(UnmappedList);
 test("Array inheritance without an exact IList mapping keeps the ordinary population path", () => {
     const list = new UnmappedList(Item);
     const { observer } = begin(list);

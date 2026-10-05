@@ -165,11 +165,11 @@ test("the action-interface list rejects nominal-only, duck, null and wrong-child
 {
   class UnexposedControllerAction extends Tr2ActionCallback {}
   CjsSchema.define(UnexposedControllerAction, { className: "ControllerActionDeclarationsUnexposed" });
-  meta.blue.interfaceTable({ interfaces: [], chainTo: null })(UnexposedControllerAction);
+  meta.blue.interface()(UnexposedControllerAction);
   const nominalOnly = new UnexposedControllerAction();
   assert.equal(CjsSchema.cast(nominalOnly, Tr2ActionCallback), nominalOnly);
   assert.equal(CjsSchema.cast(nominalOnly, ITr2ControllerAction), nominalOnly);
-  assert.deepEqual([...mappedInterfaces(UnexposedControllerAction)], []);
+  assert.deepEqual([...mappedInterfaces(UnexposedControllerAction)], [UnexposedControllerAction]);
 
   const list = new BlueList(ITr2ControllerAction, { className: null, listOps: 0 });
   const accepted = new Tr2ActionCallback();
@@ -354,7 +354,7 @@ test("all action null-chain tables isolate a temporary native parent query mappi
         const module = await import(row.url);
         const Type = module[row.name];
         const Parent = Object.getPrototypeOf(Type);
-        if (Parent.prototype) meta.blue.mapInterface(ParentOnlyInterface)(Parent);
+        if (Parent.prototype) meta.blue.interface(ParentOnlyInterface)(Parent);
         const expectedTable = row.query.map(name => name === row.name ? Type : contracts[name]);
         assert.deepEqual([...mappedInterfaces(Type)], expectedTable, row.name);
         assert.equal(mappedInterfaces(Type).has(ParentOnlyInterface), false, row.name);

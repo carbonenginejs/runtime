@@ -102,8 +102,8 @@ test("multi-placement composition preserves the caller's ordered records without
   assert.equal(CjsSchema.cast(observer, IBlueMultiPlacementObserver), observer);
   assert.equal(CjsSchema.cast({ UpdatePlacements() {} }, IBlueMultiPlacementObserver), null);
   assert.equal(mappedInterfaces(MultiObserver).has(IBlueMultiPlacementObserver), false);
-  meta.blue.interfaceTable({ interfaces: [IBlueMultiPlacementObserver], chainTo: null })(MultiObserver);
-  assert.deepEqual(mappedInterfaces(MultiObserver), new Set([IBlueMultiPlacementObserver]));
+  meta.blue.interface(IBlueMultiPlacementObserver)(MultiObserver);
+  assert.deepEqual(mappedInterfaces(MultiObserver), new Set([MultiObserver, IBlueMultiPlacementObserver]));
 });
 
 test("Blue observer composition retains concrete calls and requires explicit query exposure", () =>
@@ -147,8 +147,8 @@ test("Blue observer composition retains concrete calls and requires explicit que
   assert.equal(calls[1][3], position);
   assert.deepEqual(Array.from(position), [12, -3, 4]);
 
-  meta.blue.interfaceTable({ interfaces: [IBlueEventListener, IBluePlacementObserver], chainTo: null })(Observer);
-  assert.deepEqual(mappedInterfaces(Observer), new Set([IBlueEventListener, IBluePlacementObserver]));
+  meta.blue.interface(IBlueEventListener, IBluePlacementObserver)(Observer);
+  assert.deepEqual(mappedInterfaces(Observer), new Set([Observer, IBlueEventListener, IBluePlacementObserver]));
   assert.equal("Initialize" in observer, false);
   assert.equal("SetValues" in observer, false);
 });

@@ -282,7 +282,7 @@ test("state payload admission requires exact query exposure even for nominal sub
 {
   class UnexposedState extends Tr2StateMachineState {}
   CjsSchema.define(UnexposedState, { className: "NativeStateListUnexposedState" });
-  meta.blue.interfaceTable({ interfaces: [], chainTo: null })(UnexposedState);
+  meta.blue.interface()(UnexposedState);
   const machine = new Tr2StateMachine(), state = new UnexposedState();
   Linked(t, machine, [state]);
   const calls = TraceStates([[state, "state"]]);

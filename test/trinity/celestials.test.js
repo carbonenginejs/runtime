@@ -232,7 +232,7 @@ test('lensflare controller initialization, insertion replay and destruction pres
     SetVariable(name,value) { log.push([name,value]); }
     Unlink(reason) { log.push(['unlink',reason]); this.owner = undefined; }
   }
-  meta.blue.interfaceTable({interfaces:[ITr2Controller],chainTo:null})(Controller,{kind:'class'});
+  meta.blue.interface(ITr2Controller)(Controller,{kind:'class'});
   const loaded = new Controller();
   flare.controllers.push(loaded);
   flare.Initialize(); flare.Initialize();

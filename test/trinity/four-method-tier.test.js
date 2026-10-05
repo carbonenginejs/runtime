@@ -217,7 +217,7 @@ test("FollowASpline registry: list events wire the callback; the registry flatte
 });
 
 class SequencerFunction extends ITriVectorFunction {}
-meta.blue.interfaceTable({interfaces:[SequencerFunction,ITriVectorFunction],chainTo:null})(SequencerFunction);
+meta.blue.interface(ITriVectorFunction)(SequencerFunction);
 
 function constantCurve(x, y, z)
 {
