@@ -102,7 +102,6 @@ export class EveStretch3 extends IEveFiringEffectElement
   _destObject = null;
 
   /** Live destObject property. */
-  @meta.property()
   @meta.blue.readwrite
   @meta.type.objectRef("EveSpaceObjectChild")
   @meta.implemented
@@ -124,7 +123,6 @@ export class EveStretch3 extends IEveFiringEffectElement
   _sourceObject = null;
 
   /** Live sourceObject property. */
-  @meta.property()
   @meta.blue.readwrite
   @meta.type.objectRef("EveSpaceObjectChild")
   @meta.implemented
@@ -146,7 +144,6 @@ export class EveStretch3 extends IEveFiringEffectElement
   _stretchObject = null;
 
   /** Live stretchObject property. */
-  @meta.property()
   @meta.blue.readwrite
   @meta.type.objectRef("EveSpaceObjectChild")
   @meta.implemented
@@ -176,7 +173,6 @@ export class EveStretch3 extends IEveFiringEffectElement
   _moveObject = null;
 
   /** Live moveObject property. */
-  @meta.property()
   @meta.blue.readwrite
   @meta.type.objectRef("EveSpaceObjectChild")
   @meta.implemented
@@ -193,7 +189,6 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   /** Live sourceSpaceObject pointer property; native backing storage is weak. */
-  @meta.property()
   @meta.blue.readwrite
   @meta.type.objectRef("IEveSpaceObject2")
   @meta.implemented
@@ -210,7 +205,6 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   /** Live destSpaceObject pointer property; native backing storage is weak. */
-  @meta.property()
   @meta.blue.readwrite
   @meta.type.objectRef("IEveSpaceObject2")
   @meta.implemented

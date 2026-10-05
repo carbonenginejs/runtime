@@ -79,7 +79,6 @@ export class EveTurretSet extends EveEntity
   _firingEffect = null;
 
   /** Live firing effect property uses the native registration/muzzle setter. */
-  @meta.property()
   @meta.blue.readwrite
   @meta.type.objectRef("EveTurretFiringFX")
   @meta.implemented
@@ -102,7 +101,6 @@ export class EveTurretSet extends EveEntity
   _ambientEffect = null;
 
   /** Live ambient property rebuilds the distributed instances. */
-  @meta.property()
   @meta.blue.readwrite
   @meta.type.objectRef("EveSpaceObjectChild")
   @meta.implemented
@@ -119,7 +117,6 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Live target property; validation remains owned by EveTurretTarget. */
-  @meta.property()
   @meta.blue.readwrite
   @meta.type.objectRef("ITriTargetable")
   @meta.implemented

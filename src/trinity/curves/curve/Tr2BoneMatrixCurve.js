@@ -125,7 +125,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
   transform = mat4.create();
 
   /** Native live bone property; setting it uses the retained name lookup adapter. */
-  @meta.property()
   @meta.blue.readwrite
   @meta.type.string
   get bone()

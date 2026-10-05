@@ -30,7 +30,6 @@ export class AudioCurveSetDriver extends ICurveSetDriver
   _audioParameterName = "";
 
   /** Live parameter name; assigning it transfers the monitored registration. */
-  @meta.property()
   @meta.blue.readwrite
   @meta.type.wstring
   @meta.implemented
@@ -52,7 +51,6 @@ export class AudioCurveSetDriver extends ICurveSetDriver
   audioParameterValue = 0;
 
   /** Whether the current manager and monitored parameter can drive the curve set. */
-  @meta.property()
   @meta.blue.read
   @meta.type.boolean
   @meta.implemented

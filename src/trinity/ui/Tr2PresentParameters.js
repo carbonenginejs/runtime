@@ -15,7 +15,6 @@ import { Tr2PresentParametersAL } from "../../trinityal/Tr2PresentParametersAL.j
 export class Tr2PresentParameters extends Tr2PresentParametersAL
 {
   /** Reads mode.width. @returns {number} Back-buffer pixel width. */
-  @meta.property()
   @meta.blue.readwrite
   @meta.type.uint32
   @meta.adapted
@@ -32,7 +31,6 @@ export class Tr2PresentParameters extends Tr2PresentParametersAL
   }
 
   /** Reads mode.height. @returns {number} Back-buffer pixel height. */
-  @meta.property()
   @meta.blue.readwrite
   @meta.type.uint32
   @meta.adapted

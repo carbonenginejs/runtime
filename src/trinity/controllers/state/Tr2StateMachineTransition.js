@@ -47,7 +47,6 @@ export class Tr2StateMachineTransition
    * this property does not introduce native eager evaluator binding.
    * @returns {boolean} Whether the current condition compiles successfully.
    */
-  @meta.property()
   @meta.blue.read
   @meta.type.boolean
   @meta.adapted

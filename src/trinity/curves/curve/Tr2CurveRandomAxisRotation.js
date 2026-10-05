@@ -40,7 +40,6 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
   _seed = 0;
 
   /** Live Blue seed property, separate from persisted backing storage. */
-  @meta.property()
   @meta.blue.readwrite
   @meta.type.uint32
   @meta.implemented

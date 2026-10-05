@@ -37,7 +37,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * Texture width; native readonly Blue property.
    * @returns {number} Current texture description value.
    */
-  @meta.property()
   @meta.blue.read
   @meta.type.uint32
   @meta.implemented
@@ -50,7 +49,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * Texture height; native readonly Blue property.
    * @returns {number} Current texture description value.
    */
-  @meta.property()
   @meta.blue.read
   @meta.type.uint32
   @meta.implemented
@@ -63,7 +61,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * Texture depth; native readonly Blue property.
    * @returns {number} Current texture description value.
    */
-  @meta.property()
   @meta.blue.read
   @meta.type.uint32
   @meta.implemented
@@ -76,7 +73,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * Texture type; native readonly Blue property.
    * @returns {number} Current texture description value.
    */
-  @meta.property()
   @meta.blue.read
   @meta.type.uint32
   @meta.implemented
@@ -89,7 +85,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * Number of mip levels; native readonly Blue property.
    * @returns {number} Current texture description value.
    */
-  @meta.property()
   @meta.blue.read
   @meta.type.uint32
   @meta.implemented
@@ -102,7 +97,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * Pixel format; native readonly Blue property.
    * @returns {number} Current texture description value.
    */
-  @meta.property()
   @meta.blue.read
   @meta.type.uint32
   @meta.implemented
@@ -115,7 +109,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * Number of textures in the array; native readonly Blue property.
    * @returns {number} Current texture description value.
    */
-  @meta.property()
   @meta.blue.read
   @meta.type.uint32
   @meta.implemented
@@ -128,7 +121,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * Texture name; native readonly Blue property.
    * @returns {string} Current texture description value.
    */
-  @meta.property()
   @meta.blue.read
   @meta.type.string
   @meta.implemented

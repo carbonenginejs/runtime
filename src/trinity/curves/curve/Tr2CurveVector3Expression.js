@@ -38,7 +38,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   _expressionX = "";
 
   /** Live expression property, separate from persisted backing storage. */
-  @meta.property()
   @meta.blue.readwrite
   @meta.type.expression
   @meta.implemented
@@ -61,7 +60,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   _expressionY = "";
 
   /** Live expression property, separate from persisted backing storage. */
-  @meta.property()
   @meta.blue.readwrite
   @meta.type.expression
   @meta.implemented
@@ -84,7 +82,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   _expressionZ = "";
 
   /** Live expression property, separate from persisted backing storage. */
-  @meta.property()
   @meta.blue.readwrite
   @meta.type.expression
   @meta.implemented

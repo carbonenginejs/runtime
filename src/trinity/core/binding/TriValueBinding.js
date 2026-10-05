@@ -29,7 +29,6 @@ export class TriValueBinding extends INotify
    * Native readonly validity property.
    * @returns {boolean} Whether a copy plan exists.
    */
-  @meta.property()
   @meta.blue.read
   @meta.type.boolean
   @meta.implemented
@@ -60,7 +59,6 @@ export class TriValueBinding extends INotify
    * Reads the current source endpoint, resolving a weak reference when used.
    * @returns {object|null} Binding result.
    */
-  @meta.property()
   @meta.blue.readwrite
   @meta.type.objectRef("IRoot")
   @meta.implemented
@@ -100,7 +98,6 @@ export class TriValueBinding extends INotify
    * used.
    * @returns {object|null} Binding result.
    */
-  @meta.property()
   @meta.blue.readwrite
   @meta.type.objectRef("IRoot")
   @meta.implemented

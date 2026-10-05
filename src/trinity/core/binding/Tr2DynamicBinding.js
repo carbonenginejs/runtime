@@ -47,7 +47,6 @@ export class Tr2DynamicBinding extends INotify
    * Native readonly endpoint validity property.
    * @returns {boolean} Whether the endpoint is alive.
    */
-  @meta.property()
   @meta.blue.read
   @meta.type.boolean
   @meta.implemented
@@ -92,7 +91,6 @@ export class Tr2DynamicBinding extends INotify
    * Native readonly endpoint validity property.
    * @returns {boolean} Whether the endpoint is alive.
    */
-  @meta.property()
   @meta.blue.read
   @meta.type.boolean
   @meta.implemented

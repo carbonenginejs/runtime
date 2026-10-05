@@ -52,7 +52,7 @@ test("Stage-3 and explicit declarations produce the same separate stored and liv
         set boosters(value) {}
     }
     applyStage3(metadata, "_boosters", "field", [ meta.member("boosters"), meta.type.objectRef("Booster"), meta.blue.persistOnly ]);
-    applyStage3(metadata, "boosters", "getter", [ meta.property(), meta.type.objectRef("Booster"), meta.blue.readwrite, meta.implemented ]);
+    applyStage3(metadata, "boosters", "getter", [ meta.type.objectRef("Booster"), meta.blue.readwrite, meta.implemented ]);
     applyStage3(metadata, "boosters", "setter", [ meta.blue.notify ]);
     meta.define({ className: "DeclarationDecorated" })(Decorated, { kind: "class", metadata });
 
@@ -61,7 +61,7 @@ test("Stage-3 and explicit declarations produce the same separate stored and liv
         className: "DeclarationExplicit",
         members: [ { name: "boosters", key: "_boosters", type: { kind: "objectRef", className: "Booster" }, edit: { persist: true, persistOnly: true, hidden: true } } ],
         properties: {
-            boosters: [ meta.property(), meta.type.objectRef("Booster"), meta.blue.readwrite, meta.blue.notify, meta.implemented ]
+            boosters: [ meta.type.objectRef("Booster"), meta.blue.readwrite, meta.blue.notify, meta.implemented ]
         }
     });
     const decorated = CjsSchema.getSchema(Decorated);

@@ -99,7 +99,6 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * list. Reading this accessor does not reevaluate expressions.
    * @type {number}
    */
-  @meta.property()
   @meta.blue.read
   @meta.type.float32
   get length()

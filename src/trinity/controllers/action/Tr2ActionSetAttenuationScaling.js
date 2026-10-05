@@ -32,7 +32,6 @@ export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
   scalingFactor = 1;
 
   /** Live native READ property; samples the currently linked controller. */
-  @meta.property()
   @meta.blue.read
   @meta.type.float32
   @meta.implemented
