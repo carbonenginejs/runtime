@@ -6,7 +6,6 @@ import { blue, IBlueResMan } from "../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { RegisterShaderResources, ShaderResourceExtensions, Tr2EffectRes } from "../../npm/dist/resource/shader/index.js";
 import { Tr2Effect } from "../../npm/dist/trinity/shader/index.js";
-import { SetEffectPathDefaults } from "../../npm/dist/global/utils/effectPath.js";
 
 /**
  * Runs a body with a manager installed globally, always uninstalling after.
@@ -30,7 +29,7 @@ function withGlobalManager(run)
   finally
   {
     blue.resMan = previous;
-    SetEffectPathDefaults(null);
+    Tr2Effect.setEffectPathDefaults(null);
   }
 }
 
@@ -105,7 +104,7 @@ test("an authored .fx path resolves into the committed backend's tree", () =>
 {
   withGlobalManager(() =>
   {
-    SetEffectPathDefaults({ platformName: "webgpu", shaderModel: "high" });
+    Tr2Effect.setEffectPathDefaults({ platformName: "webgpu", shaderModel: "high" });
 
     const effect = new Tr2Effect();
     effect.effectFilePath = "res:/Graphics/Effect/Ship/Main.fx";
@@ -122,7 +121,7 @@ test("Initialize acquires an effect resource through the installed manager", () 
 {
   withGlobalManager(() =>
   {
-    SetEffectPathDefaults({ platformName: "webgpu" });
+    Tr2Effect.setEffectPathDefaults({ platformName: "webgpu" });
 
     const effect = new Tr2Effect();
     effect.effectFilePath = "res:/graphics/effect/ship/main.fx";
@@ -139,7 +138,7 @@ test("the same path yields the same resource handle", () =>
 {
   withGlobalManager(() =>
   {
-    SetEffectPathDefaults({ platformName: "webgpu" });
+    Tr2Effect.setEffectPathDefaults({ platformName: "webgpu" });
 
     const first = new Tr2Effect();
     first.effectFilePath = "res:/graphics/effect/ship/main.fx";
@@ -181,7 +180,7 @@ test("a hand-assigned resource is not replaced, and is not fetched for", () =>
   // leave the manager uncomposed, and let the throw prove nothing asked.
   const previous = blue.resMan;
   blue.resMan = new IBlueResMan();
-  SetEffectPathDefaults({ platformName: "webgpu" });
+  Tr2Effect.setEffectPathDefaults({ platformName: "webgpu" });
 
   try
   {
@@ -197,7 +196,7 @@ test("a hand-assigned resource is not replaced, and is not fetched for", () =>
   finally
   {
     blue.resMan = previous;
-    SetEffectPathDefaults(null);
+    Tr2Effect.setEffectPathDefaults(null);
   }
 });
 
@@ -205,7 +204,7 @@ test("a hand-assigned resource is never replaced", () =>
 {
   withGlobalManager(() =>
   {
-    SetEffectPathDefaults({ platformName: "webgpu" });
+    Tr2Effect.setEffectPathDefaults({ platformName: "webgpu" });
 
     const assigned = new Tr2EffectRes();
     const effect = new Tr2Effect();

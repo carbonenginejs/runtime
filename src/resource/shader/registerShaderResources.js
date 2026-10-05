@@ -13,10 +13,10 @@ import { Tr2EffectRes } from "./Tr2EffectRes.js";
  * The compiled shader-model extensions Carbon routes to `Tr2EffectRes`.
  *
  * Nine, not three. The `sm_2_0_*`/`sm_3_0_*`/`sm_1_1` forms are older compiled
- * tiers that a shipped tree can still contain; `ShaderModelSuffixes` only ever
+ * tiers that a shipped tree can still contain; `Tr2Effect.shaderModelSuffixes` only ever
  * produces the modern three, so the rest are inbound-only.
  *
- * These are true extensions rather than suffixes: `ResolveEffectPath` replaces
+ * These are true extensions rather than suffixes: `Tr2Effect.resolveEffectPath` replaces
  * `.fx`, so a resolved path ends `.sm_hi` and extension routing keys on it.
  */
 export const ShaderResourceExtensions = Object.freeze([

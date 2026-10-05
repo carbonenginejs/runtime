@@ -7,7 +7,7 @@ import { validateResourcePayload } from "../resourceBoundary.js";
 import { CjsCarbonEffectReader } from "../format/carbonEffect/CjsCarbonEffectReader.js";
 import { Tr2Shader } from "./Tr2Shader.js";
 import { ResourceRequirement } from "#blue";
-import { EffectCarriesBackendBlock } from "#utils/effectPath";
+import { normalizeResourcePath } from "#utils/path";
 
 const globalEffectOptions = [];
 
@@ -74,7 +74,7 @@ export class Tr2EffectRes extends CjsResource
     // Null for a container that arrived without a path - tooling and tests do -
     // and the reader then detects for itself, which is what that fallback is
     // for.
-    this._carriesBackendBlock = EffectCarriesBackendBlock(this.GetPath());
+    this._carriesBackendBlock = Tr2EffectRes.effectCarriesBackendBlock(this.GetPath());
     super.SetPayload({
       permutations: reader.permutations.map(axis => ({
         name: axis.name.value,
@@ -407,6 +407,45 @@ export class Tr2EffectRes extends CjsResource
   }
 
   static payload = ResourceRequirement.SHADER;
+
+  /**
+   * Effect trees whose containers carry a per-pass backend block. Ours: they are
+   * translated, and the block records what translation decided. Carbon's own
+   * trees (`dx11`, `dx12`, `metal`) carry stock bodies with no block.
+   */
+  static translatedEffectPlatforms = Object.freeze([ "webgl", "webgl2", "webgpu" ]);
+
+  /**
+   * The platform tree a resolved effect path names, or null when it names none:
+   * the inverse of `Tr2Effect.resolveEffectPath`.
+   *
+   * @param {string} path Resource path.
+   * @returns {string|null} Platform name such as `webgpu`, or null.
+   */
+  static effectPlatformFromPath(path)
+  {
+    const normalized = normalizeResourcePath(path);
+
+    if (!normalized) return null;
+
+    const match = /\/effect\.([a-z0-9_]+)\//iu.exec(normalized);
+
+    return match ? match[1].toLowerCase() : null;
+  }
+
+  /**
+   * Whether the container at this path carries a per-pass backend block; null
+   * when the path names no effect tree, which is the reader's cue to detect.
+   *
+   * @param {string} path Resource path.
+   * @returns {boolean|null} Whether to expect the block, or null when unknown.
+   */
+  static effectCarriesBackendBlock(path)
+  {
+    const platform = Tr2EffectRes.effectPlatformFromPath(path);
+
+    return platform === null ? null : Tr2EffectRes.translatedEffectPlatforms.includes(platform);
+  }
 
 }
 

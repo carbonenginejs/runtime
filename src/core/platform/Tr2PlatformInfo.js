@@ -1,7 +1,6 @@
 import { meta } from "#schema";
 import { CjsWebGLProbe } from "./CjsWebGLProbe.js";
 import { ResolveDeviceRequirements } from "./deviceLimits.js";
-import { ResolveEffectPath } from "#utils/effectPath";
 import { Tr2VideoAdapter } from "./Tr2VideoAdapter.js";
 
 export const PlatformStaticCap = Object.freeze({
@@ -286,15 +285,6 @@ export class Tr2PlatformInfo
             throw new Error(`Required WebGPU content capabilities unavailable: ${result.unsatisfiedLimits.map(entry => entry.name).concat(result.unavailableFeatures).join(", ")}`);
         }
         return result.descriptor;
-    }
-
-    /**
-     * Resolves an authored effect path against this report's platform name.
-     * The engine is handed a resolved path and never computes one.
-     */
-    ResolveEffectPath(path, options = {})
-    {
-        return ResolveEffectPath(path, { shaderModel: options.shaderModel, platformName: this.platformName });
     }
 
     /**
