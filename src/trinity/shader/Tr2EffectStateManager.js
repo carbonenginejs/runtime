@@ -1,6 +1,6 @@
+// Source: trinity/trinity/Shader/Tr2EffectStateManager.h
 import { CjsSchema, meta } from "#schema";
 import { Tr2BufferAL } from "../../trinityal/Tr2BufferAL/index.js";
-// Source: trinity/trinity/Shader/Tr2EffectStateManager.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 //
 // STILL INCOMPLETE, and not finished-by-design - but much less so than this

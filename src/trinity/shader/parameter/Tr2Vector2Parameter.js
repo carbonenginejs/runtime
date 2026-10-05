@@ -168,10 +168,12 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
   /**
    * Refreshes from the reroute destination when one is set, then copies the
    * components into `out`, allocating only when the caller supplies nothing.
+   *
+   * Adapted: Carbon returns a const reference to its own value; JavaScript cannot express
+   * that, so this copies rather than exposing internal state.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon returns a const reference to its own value; JavaScript cannot express that, so this copies rather than exposing internal state.")
   GetValue(out = vec2.create())
   {
     this.#RefreshFromReroute();

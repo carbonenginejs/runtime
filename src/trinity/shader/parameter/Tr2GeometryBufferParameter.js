@@ -84,10 +84,12 @@ export class Tr2GeometryBufferParameter extends CjsParameter
   /**
    * Consumes the `resource` dirty flag by re-initializing and re-resolving
    * handles against the cached shader.
+   *
+   * Adapted: JS releases its provider reference instead of unlocking a native smart pointer;
+   * Initialize resource acquisition remains an explicit port gap.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JS releases its provider reference instead of unlocking a native smart pointer; Initialize resource acquisition remains an explicit port gap.")
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "resourcePath"))
