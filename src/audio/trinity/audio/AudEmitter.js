@@ -2,6 +2,8 @@
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/AudEmitter.json.
 import { meta } from "#schema";
+import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
+import { IBlueEventListener, IBluePlacementObserver } from "#blue";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { AudGameObjResource } from "./AudGameObjResource.js";
@@ -10,7 +12,7 @@ import { ITr2AudEmitter } from "../trinityAudioApi/ITr2AudEmitter.js";
 /** Represents the concrete content-facing audio emitter (ITr2AudEmitter) with authored placement and attenuation controls. */
 @meta.define({ className: "AudEmitter", family: "audio" })
 @meta.blue.inherit(ITr2AudEmitter)
-@meta.blue.interface(ITr2AudEmitter)
+@meta.blue.interface(IBlueEventListener, IBluePlacementObserver, ITr2AudEmitter, ITr2DebugRenderable)
 @meta.blue.chainTo(AudGameObjResource)
 export class AudEmitter extends AudGameObjResource
 {

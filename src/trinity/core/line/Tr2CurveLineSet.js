@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Tr2CurveLineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta } from "#schema";
+import { ITr2Pickable } from "../ITr2Pickable.js";
 import { INotify, IsMatch } from "#blue";
 import { color } from "#math/color";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
@@ -105,7 +106,7 @@ function sphericalToCartesian(value, center)
 /** A line set that draws curved and sphere-projected lines by tessellating them into straight segments. */
 @meta.define({ className: "Tr2CurveLineSet", family: "trinityCore" })
 @meta.blue.inherit(ITr2Renderable, INotify)
-@meta.blue.interface(ITr2Renderable, INotify)
+@meta.blue.interface(ITr2Renderable, INotify, ITr2Pickable)
 export class Tr2CurveLineSet
 {
 

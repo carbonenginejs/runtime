@@ -3,6 +3,7 @@
 import { IsMatch } from "#blue";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { meta } from "#schema";
+import { INotify, ITriFunction } from "#blue";
 import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
 
 
@@ -16,7 +17,7 @@ import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
   family: "curves"
 })
 @meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize)
+@meta.blue.interface(ITriFunction, IInitialize, INotify)
 export class Tr2GrannyTrack
 {
   @meta.blue.notify

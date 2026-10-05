@@ -3,12 +3,13 @@ import { IsMatch } from "#blue";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta } from "#schema";
+import { INotify } from "#blue";
 import { LifeTimeFormulas } from "./enums.js";
 
 /** Owns common smart-light activation state and a nominal modifier contract whose optional colour and controller hooks default to no-ops while required update and attribute-processing methods throw until a concrete modifier implements them. */
 @meta.define({ className: "EveSmartLightBaseAttributeModifier", family: "eve/smartLights/attributeModifiers" })
 @meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize)
+@meta.blue.interface(IInitialize, INotify)
 export class EveSmartLightBaseAttributeModifier
 {
 
