@@ -5,7 +5,7 @@ import {
 } from "#utils/path";
 import { CjsSchema, meta } from "#schema";
 import { CjsFormatRoute } from "./CjsFormatStore.js";
-import { ResourceHandlerMode } from "./ResourceHandlerMode.js";
+import { ResourceHandlerMode } from "../consts/resourceHandlerMode.js";
 
 /**
  * Deterministic activity values accepted by resource-facing lease methods.

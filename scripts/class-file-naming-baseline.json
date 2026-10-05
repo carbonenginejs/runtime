@@ -118,9 +118,6 @@
     "src/global/blue/CcpTime.js": [
       "CcpTime"
     ],
-    "src/global/blue/ResourceHandlerMode.js": [
-      "ResourceHandlerMode"
-    ],
     "src/global/blue/ResourceRequirement.js": [
       "ResourceRequirement"
     ],

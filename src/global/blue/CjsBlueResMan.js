@@ -18,7 +18,7 @@ import {
 } from "#utils/path";
 import { CjsResource } from "./CjsResource.js";
 import { GetResources } from "./getResources.js";
-import { ResourceHandlerMode } from "./ResourceHandlerMode.js";
+import { ResourceHandlerMode } from "../consts/resourceHandlerMode.js";
 import {
   CjsResManQueue,
   CjsResManWorkQueue

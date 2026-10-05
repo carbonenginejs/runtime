@@ -68,7 +68,7 @@ export * from "./CjsBluePaths.js";
 // The resource manager core: Carbon's BlueResMan, BlueAsyncRes and MotherLode
 // live in Blue, and so does ours. Formats and concrete resources stay in
 // resource and register with it.
-export * from "./ResourceHandlerMode.js";
+export * from "../consts/resourceHandlerMode.js";
 export * from "./ResourceRequirement.js";
 export * from "./CjsFormatStore.js";
 export * from "./CjsResource.js";

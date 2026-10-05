@@ -1,5 +1,5 @@
 import { CjsResource } from "./CjsResource.js";
-import { ResourceHandlerMode } from "./ResourceHandlerMode.js";
+import { ResourceHandlerMode } from "../consts/resourceHandlerMode.js";
 
 /**
  * Resource-compatible handler whose public loading result is the constructed
