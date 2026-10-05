@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { meta } from "#schema";
+import { INotify } from "#blue";
 import { EveVirtualCameraBehaviourFloatBase } from "./EveVirtualCameraBehaviourFloatBase.js";
 
 
@@ -12,6 +13,8 @@ import { EveVirtualCameraBehaviourFloatBase } from "./EveVirtualCameraBehaviourF
   className: "EveVirtualCameraBehaviourFloatSet",
   family: "eve/virtualCamera/behaviour"
 })
+@meta.blue.interface(INotify)
+@meta.blue.chainTo(EveVirtualCameraBehaviourFloatBase)
 export class EveVirtualCameraBehaviourFloatSet extends EveVirtualCameraBehaviourFloatBase
 {
   @meta.blue.readwrite

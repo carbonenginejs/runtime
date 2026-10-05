@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { vec3 } from "#math/vec3";
 import { meta } from "#schema";
+import { INotify } from "#blue";
 import { EveVirtualCameraBehaviourVector3MoveForward } from "./EveVirtualCameraBehaviourVector3MoveForward.js";
 
 
@@ -13,6 +14,8 @@ import { EveVirtualCameraBehaviourVector3MoveForward } from "./EveVirtualCameraB
   className: "EveVirtualCameraBehaviourVector3MoveRight",
   family: "eve/virtualCamera/behaviour"
 })
+@meta.blue.interface(INotify)
+@meta.blue.chainTo(EveVirtualCameraBehaviourVector3MoveForward)
 export class EveVirtualCameraBehaviourVector3MoveRight extends EveVirtualCameraBehaviourVector3MoveForward
 {
   /**

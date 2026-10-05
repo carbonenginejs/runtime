@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { meta } from "#schema";
+import { INotify } from "#blue";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
 import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
 import { TriPerlinCurve } from "../../../curves/curve/TriPerlinCurve.js";
@@ -15,6 +16,8 @@ import { EveVirtualCameraBehaviourFloatBase } from "./EveVirtualCameraBehaviourF
   className: "EveVirtualCameraBehaviourFloatNoise",
   family: "eve/virtualCamera/behaviour"
 })
+@meta.blue.interface(INotify)
+@meta.blue.chainTo(EveVirtualCameraBehaviourFloatBase)
 export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehaviourFloatBase
 {
   static _nextPhase = 0;

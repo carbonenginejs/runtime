@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { vec3 } from "#math/vec3";
 import { meta } from "#schema";
+import { INotify } from "#blue";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
 import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
 import { TriPerlinCurve } from "../../../curves/curve/TriPerlinCurve.js";
@@ -16,6 +17,8 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
   className: "EveVirtualCameraBehaviourVector3Shake",
   family: "eve/virtualCamera/behaviour"
 })
+@meta.blue.interface(INotify)
+@meta.blue.chainTo(EveVirtualCameraBehaviourVector3Base)
 export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehaviourVector3Base
 {
   static _nextPhase = 0;

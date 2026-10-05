@@ -3,6 +3,7 @@
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { meta } from "#schema";
+import { INotify } from "#blue";
 import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviourVector3Base.js";
 
 
@@ -14,6 +15,8 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
   className: "EveVirtualCameraBehaviourVector3Orbit",
   family: "eve/virtualCamera/behaviour"
 })
+@meta.blue.interface(INotify)
+@meta.blue.chainTo(EveVirtualCameraBehaviourVector3Base)
 export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehaviourVector3Base
 {
   @meta.blue.readwrite
