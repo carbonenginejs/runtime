@@ -183,7 +183,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   /**
    * Updates and returns the vector value.
    */
-
   @meta.blue.method
   @meta.adapted
   Update(time, out)
@@ -200,7 +199,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   /**
    * Gets the vector value at a time.
    */
-
   @meta.blue.method
   @meta.adapted
   GetValueAt(time, out)

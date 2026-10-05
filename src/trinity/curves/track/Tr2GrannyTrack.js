@@ -1,7 +1,7 @@
-import { IsMatch } from "#blue";
-import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Curves/Tr2GrannyTrack.h
 // Source: trinity/trinity/Curves/Tr2GrannyTrack.cpp
+import { IsMatch } from "#blue";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { meta } from "#schema";
 import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
 
@@ -63,10 +63,12 @@ export class Tr2GrannyTrack
 
   /**
    * Relinks the resource when authored fields change.
+   *
+   * Adapted: Dispatches Carbon member notifications by exposed property name; existing JS
+   * expression and resource adapters retain their owning methods.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "grannyResPath")) this.SetGrannyResource();
