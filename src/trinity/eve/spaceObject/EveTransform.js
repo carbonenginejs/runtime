@@ -19,7 +19,7 @@ import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "#consts/graphics/tr2PickType
 import { ITr2BoundingBox } from "#interfaces";
 import { IWorldPosition } from "../../core/IWorldPosition.js";
 import { IInitialize } from "#blue/IInitialize";
-import { TimeAsDouble } from "../../../global/blue/CcpTime.js";
+import { CcpTime } from "../../../global/blue/CcpTime.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmitter/index.js";
 
@@ -259,7 +259,7 @@ export class EveTransform extends Tr2Transform
       if (!this.useLodLevel || EveLODHelper.ShouldUpdate(this.lodLevel, this._lastCurveUpdateDelta))
       {
         this._lastCurveUpdateDelta = 0;
-        for (const curveSet of this.curveSets) curveSet.Update(TimeAsDouble(time), context.renderContext);
+        for (const curveSet of this.curveSets) curveSet.Update(CcpTime.timeAsDouble(time), context.renderContext);
       }
     }
 
@@ -269,7 +269,7 @@ export class EveTransform extends Tr2Transform
     if (this.particleEmitters.length)
     {
       const args = EveTransform._emitterArgs;
-      args.time = TimeAsDouble(time);
+      args.time = CcpTime.timeAsDouble(time);
       args.system = context.GetGpuParticleSystem();
       mat4.copy(args.parentTransform, this.worldTransform);
       vec3.copy(args.originShift, context.GetOriginShift());
@@ -279,7 +279,7 @@ export class EveTransform extends Tr2Transform
     if (this.particleSystems.length)
     {
       const args = EveTransform._systemArgs;
-      args.time = TimeAsDouble(time);
+      args.time = CcpTime.timeAsDouble(time);
       args.system = context.GetGpuParticleSystem();
       mat4.identity(args.parentTransform);
       vec3.copy(args.originShift, context.GetOriginShift());

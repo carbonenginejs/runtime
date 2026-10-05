@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroupBooster.h
-import { IsMatch, INotify, blue, TimeAsDouble } from "#blue";
+import { IsMatch, INotify, blue, CcpTime } from "#blue";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroupBooster.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -408,7 +408,7 @@ export class BehaviorGroupBooster
     vec4.copy(LIGHT_COLOR, this.lightColor);
     if (this.ambientFlareNoiseAmplitude !== 0)
     {
-      const time = TimeAsDouble(blue.os.GetCurrentFrameTime()) + agentIndex * 0.01;
+      const time = CcpTime.timeAsDouble(blue.os.GetCurrentFrameTime()) + agentIndex * 0.01;
       const noise = carbonPerlin1D(time * this.ambientFlareNoiseSpeed, 2, 2, this.ambientFlareNoiseOctaves);
       vec4.scale(LIGHT_COLOR, LIGHT_COLOR, ((noise + 1) / 2) * this.ambientFlareNoiseAmplitude);
     }
@@ -444,7 +444,7 @@ export class BehaviorGroupBooster
   AddFlare(agentTransform, lod, intensity, agentIndex, shipBoundingSphereRadius, groupScale)
   {
     if (!this.flareCount) return;
-    const time = TimeAsDouble(blue.os.GetCurrentFrameTime()) + agentIndex * 0.01;
+    const time = CcpTime.timeAsDouble(blue.os.GetCurrentFrameTime()) + agentIndex * 0.01;
     if (this.haloFlareEffect && this._haloFlares.length === this.flareCount)
     {
       const quad = this._haloFlares[agentIndex];

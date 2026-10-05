@@ -5,7 +5,7 @@ import { BeInfo } from "./BeInfo.js";
 import { IBlueEvents } from "./IBlueEvents.js";
 import { IBlueOS } from "./IBlueOS.js";
 import { ISimTimeRebaseNotify } from "./ISimTimeRebaseNotify.js";
-import { BLUE_EPOCH_UNIX_MS } from "./CcpTime.js";
+import { CcpTime } from "./CcpTime.js";
 
 /** 100ns ticks in a millisecond. */
 const TICKS_PER_MILLISECOND = 10000;
@@ -63,7 +63,7 @@ export class CjsBlueOS extends IBlueOS
     super();
     const wallclock = Date.now();
     this._originMs = CjsBlueOS.Monotonic();
-    this._startTime = Math.round((wallclock - BLUE_EPOCH_UNIX_MS) * TICKS_PER_MILLISECOND);
+    this._startTime = Math.round((wallclock - CcpTime.BLUE_EPOCH_UNIX_MS) * TICKS_PER_MILLISECOND);
     this._realTime = this._startTime;
     this._simTime = this._realTime;
   }

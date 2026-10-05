@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/UI/EveTacticalTrails.cpp
 // Hand-maintained after promotion from generated schema intake.
 import { meta } from "#schema";
-import { TimeAsFloat } from "#blue";
+import { CcpTime } from "#blue";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { TriBatchType, RenderingMode } from "#consts/graphics";
@@ -172,7 +172,7 @@ export class EveTacticalTrails
       if (positions.length >= 2)
       {
         let it = 0;
-        while (it + 1 !== positions.length && TimeAsFloat(now - positions[it + 1].time) > this.fadeOutTime) ++it;
+        while (it + 1 !== positions.length && CcpTime.timeAsFloat(now - positions[it + 1].time) > this.fadeOutTime) ++it;
         positions.splice(0, it);
       }
     }
@@ -264,12 +264,12 @@ export class EveTacticalTrails
       if (positions.length < 2) continue;
 
       vec3.subtract(vec3_0, positions[0].position, ego);
-      let time1 = TimeAsFloat(now - positions[0].time) / this.fadeOutTime;
+      let time1 = CcpTime.timeAsFloat(now - positions[0].time) / this.fadeOutTime;
       vec3.subtract(vec3_1, positions[1].position, ego);
 
       for (let i = 0; i + 1 < positions.length; i++)
       {
-        const time2 = TimeAsFloat(now - positions[i + 1].time) / this.fadeOutTime;
+        const time2 = CcpTime.timeAsFloat(now - positions[i + 1].time) / this.fadeOutTime;
         if (i + 2 >= positions.length) vec3.scaleAndAdd(vec3_2, vec3_1, vec3.subtract(vec3_2, vec3_1, vec3_0), 1);
         else vec3.subtract(vec3_2, positions[i + 2].position, ego);
         EveTacticalTrails._WriteLineVerticesToBuffer(vec3_0, time1, vec3_1, time2, vec3_2, floats, base);

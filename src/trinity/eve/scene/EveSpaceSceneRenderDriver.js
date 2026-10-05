@@ -20,7 +20,7 @@
 // calls in order; that contract is written on EveSpaceScene itself, and this is
 // the driver it describes.
 import { meta } from "#schema";
-import { TimeAsDouble } from "#blue";
+import { CcpTime } from "#blue";
 import { vec4 } from "#math/vec4";
 import { mat4 } from "#math/mat4";
 import { PixelFormat, TextureType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
@@ -1315,7 +1315,7 @@ export class EveSpaceSceneRenderDriver
     if (!ps) return;
 
     this.scene.PopulateAndApplyPerFrameData(renderContext);
-    ps.Update(TimeAsDouble(this.scene.updateTime), this.scene.updateContext.GetOriginShift(), renderContext);
+    ps.Update(CcpTime.timeAsDouble(this.scene.updateTime), this.scene.updateContext.GetOriginShift(), renderContext);
   }
 
   /**

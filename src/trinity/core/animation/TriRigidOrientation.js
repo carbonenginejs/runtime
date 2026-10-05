@@ -1,7 +1,7 @@
 // Source: trinity/trinity/TriRigidOrientation.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta } from "#schema";
-import { ITriFunction, ITriQuaternionFunction, TimeAsDouble } from "#blue";
+import { ITriFunction, ITriQuaternionFunction, CcpTime } from "#blue";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
@@ -255,7 +255,7 @@ export class TriRigidOrientation extends ITriQuaternionFunction
   @meta.adapted
   GetValueAt_Ticks(time, out)
   {
-    return this.GetValueAt(TimeAsDouble(time - this.start), out);
+    return this.GetValueAt(CcpTime.timeAsDouble(time - this.start), out);
   }
 
   /**
@@ -283,7 +283,7 @@ export class TriRigidOrientation extends ITriQuaternionFunction
   @meta.adapted
   GetValueDotAt_Ticks(time, out)
   {
-    return this.GetValueDotAt(TimeAsDouble(time - this.start), out);
+    return this.GetValueDotAt(CcpTime.timeAsDouble(time - this.start), out);
   }
 
   _currentKey = 0;

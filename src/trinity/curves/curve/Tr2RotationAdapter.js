@@ -3,7 +3,7 @@
 import { quat } from "#math/quat";
 import { ITriQuaternionFunction } from "#blue";
 import { meta } from "#schema";
-import { TimeAsDouble } from "#blue";
+import { CcpTime } from "#blue";
 
 
 /**
@@ -206,7 +206,7 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
   @meta.adapted
   GetLocalTime_Ticks(time)
   {
-    return TimeAsDouble(time - this._start + this._offset) / this._timeScale;
+    return CcpTime.timeAsDouble(time - this._start + this._offset) / this._timeScale;
   }
 
   /**

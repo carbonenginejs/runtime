@@ -8,7 +8,7 @@
 import { CjsControllerExpressionCompileError } from "./CjsControllerExpressionCompileError.js";
 import { CjsControllerExpressionEvaluateError } from "./CjsControllerExpressionEvaluateError.js";
 import { CjsSchema } from "#schema";
-import { blue, BLUE_EPOCH_UNIX_MS, TimeAsDouble } from "#blue";
+import { blue, CcpTime } from "#blue";
 import { vec3 } from "#math/vec3";
 import { carbonPerlin1D } from "#math/noise";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
@@ -724,7 +724,7 @@ export function GetServerTimeSeconds(context)
 /** The OS frame time, on the runtime Blue epoch, as Unix milliseconds. */
 function GetFrameTimeUnixMilliseconds()
 {
-  return BLUE_EPOCH_UNIX_MS + TimeAsDouble(blue.os.GetCurrentFrameTime()) * 1000;
+  return CcpTime.BLUE_EPOCH_UNIX_MS + CcpTime.timeAsDouble(blue.os.GetCurrentFrameTime()) * 1000;
 }
 
 /**

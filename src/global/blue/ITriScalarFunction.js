@@ -1,7 +1,7 @@
 // Source: blue/include/ITriFunction.h:36-63
 import { CjsSchema, meta } from "#schema";
 import { ITriFunction } from "./ITriFunction.js";
-import { TimeAsDouble } from "./CcpTime.js";
+import { CcpTime } from "./CcpTime.js";
 
 
 /**
@@ -51,7 +51,7 @@ export class ITriScalarFunction extends ITriFunction
    */
   Update_Ticks(time)
   {
-    return this.Update(TimeAsDouble(time));
+    return this.Update(CcpTime.timeAsDouble(time));
   }
 
   /**
@@ -64,7 +64,7 @@ export class ITriScalarFunction extends ITriFunction
    */
   GetValueAt_Ticks(time)
   {
-    return this.GetValueAt(TimeAsDouble(time));
+    return this.GetValueAt(CcpTime.timeAsDouble(time));
   }
 }
 

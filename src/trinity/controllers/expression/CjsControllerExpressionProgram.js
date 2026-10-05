@@ -19,7 +19,7 @@
 // and no Tr2ExpressionProgram runtime class. That is true of trinity/ and
 // false of Carbon: CcpParser lives in the parser repo. It was read as evidence
 // of invention during the 2026-09-04 fidelity audit. Carbon is 32 repositories.
-import { TimeAsDouble, TimeAsFloat } from "#blue";
+import { CcpTime } from "#blue";
 import { CjsControllerExpressionParser } from "./CjsControllerExpressionParser.js";
 import { DaysSinceServerTime, EvaluateNode, GetExternalControllerVariable, HasFunction, HasProperty, IsFunctionPure, ToBoolean, ToNumber } from "./expressionRuntime.js";
 const CONTROLLER_EXPRESSION_TERMS = [
@@ -242,7 +242,7 @@ export class CjsControllerExpressionProgram
    */
   static makeActionContext(controller, owner, state, extra = {})
   {
-    const stateTime = TimeAsFloat(state.lastTime - state.startTime);
+    const stateTime = CcpTime.timeAsFloat(state.lastTime - state.startTime);
     if (controller?.GetExpressionContext)
     {
       return controller.GetExpressionContext(owner, null, { ...extra, stateTime });
@@ -252,7 +252,7 @@ export class CjsControllerExpressionProgram
       controller: controller ?? undefined,
       owner,
       stateTime,
-      time: TimeAsDouble(state.lastTime)
+      time: CcpTime.timeAsDouble(state.lastTime)
     };
   }
 

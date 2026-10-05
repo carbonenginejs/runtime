@@ -90,9 +90,6 @@
     ]
   },
   "missingClass": {
-    "src/global/blue/CcpTime.js": [
-      "CcpTime"
-    ],
     "src/resource/formats/hlsl/core/HlslBinaryUtils.js": [
       "HlslBinaryUtils"
     ],

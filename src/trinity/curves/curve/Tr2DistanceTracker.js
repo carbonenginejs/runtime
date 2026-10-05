@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2DistanceTracker.cpp
 // Source: trinity/trinity/Curves/Tr2DistanceTracker_Blue.cpp
 import { vec3 } from "#math/vec3";
-import { blue, TimeAsDouble, ITriFunction, INotify } from "#blue";
+import { blue, ITriFunction, INotify, CcpTime } from "#blue";
 import { meta } from "#schema";
 
 
@@ -161,7 +161,7 @@ export class Tr2DistanceTracker extends ITriFunction
   @meta.implemented
   OnModified(_value = null)
   {
-    this.UpdateValue(TimeAsDouble(blue.os.GetCurrentFrameTime()));
+    this.UpdateValue(CcpTime.timeAsDouble(blue.os.GetCurrentFrameTime()));
     return true;
   }
 }

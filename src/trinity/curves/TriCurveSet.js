@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Curves/TriCurveSet_Blue.cpp
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { meta } from "#schema";
-import { CjsScriptCallback, IInitialize, ISimTimeRebaseNotify, blue, TimeAsDouble, BlueList } from "#blue";
+import { CjsScriptCallback, IInitialize, ISimTimeRebaseNotify, blue, BlueList, CcpTime } from "#blue";
 import { ITriFunction } from "../../global/blue/ITriFunction.js";
 import { ITriCurveLength } from "../../global/blue/ITriCurveLength.js";
 import { ITr2Updateable } from "../core/ITr2Updateable.js";
@@ -126,7 +126,7 @@ export class TriCurveSet extends IInitialize
   @meta.implemented
   Update_RealTimeSimTime(realTime, simTime, renderContext = null)
   {
-    this.Update(TimeAsDouble(this.useRealTime ? realTime : simTime), renderContext);
+    this.Update(CcpTime.timeAsDouble(this.useRealTime ? realTime : simTime), renderContext);
   }
 
   /**
@@ -139,7 +139,7 @@ export class TriCurveSet extends IInitialize
   @meta.implemented
   OnSimClockRebase(oldTime, newTime)
   {
-    const diff = TimeAsDouble(newTime - oldTime);
+    const diff = CcpTime.timeAsDouble(newTime - oldTime);
     this._startTime += diff;
     if (this._endTime > 0)
     {

@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.cpp
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm_Blue.cpp
 import { CjsSchema, meta } from "#schema";
-import { IsMatch, TimeAsFloat } from "#blue";
+import { IsMatch, CcpTime } from "#blue";
 import { EveShip2 } from "../EveShip2.js";
 import { EveSpaceObject2 } from "../EveSpaceObject2.js";
 import { IEveReferencePoint } from "../../IEveReferencePoint.js";
@@ -517,8 +517,8 @@ export class EveSwarm extends EveShip2
       }
     }
 
-    const timeDelta = TimeAsFloat(t - this._timeLast);
-    let timeSeconds = TimeAsFloat(t - this._timeLast) * this.timeMultiplier;
+    const timeDelta = CcpTime.timeAsFloat(t - this._timeLast);
+    let timeSeconds = CcpTime.timeAsFloat(t - this._timeLast) * this.timeMultiplier;
     if (timeSeconds > this.maxTime)
     {
       timeSeconds = this.maxTime;

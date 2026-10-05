@@ -17,7 +17,7 @@
 import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { TriFrustum } from "../core/view/TriFrustum.js";
-import { TimeAsFloat } from "../../global/blue/CcpTime.js";
+import { CcpTime } from "../../global/blue/CcpTime.js";
 
 /** Carries per-frame Eve timing, LOD, origin-rebasing, visibility, and runtime-composition state shared across scene updates. */
 @meta.define({ className: "EveUpdateContext", family: "eve" })
@@ -142,7 +142,7 @@ export class EveUpdateContext
   @meta.implemented
   GetDeltaT()
   {
-    return this.lastTime !== 0 ? TimeAsFloat(this.currentTime - this.lastTime) : 0;
+    return this.lastTime !== 0 ? CcpTime.timeAsFloat(this.currentTime - this.lastTime) : 0;
   }
 
   /**

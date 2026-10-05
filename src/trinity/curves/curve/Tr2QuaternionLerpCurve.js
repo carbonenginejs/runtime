@@ -4,7 +4,7 @@ import { num } from "#math/num";
 import { quat } from "#math/quat";
 import { ITriFunction, ITriQuaternionFunction, ITriCurveLength } from "#blue";
 import { meta } from "#schema";
-import { TimeAsDouble } from "#blue";
+import { CcpTime } from "#blue";
 
 
 /**
@@ -160,7 +160,7 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
     {
       return out;
     }
-    const ratio = num.clamp(Math.fround(TimeAsDouble(time) - this.start) / this.length, 0, 1);
+    const ratio = num.clamp(Math.fround(CcpTime.timeAsDouble(time) - this.start) / this.length, 0, 1);
     const start = this.startCurve.GetValueAt_Ticks(time, this._startValue);
     const end = this.endCurve.GetValueAt_Ticks(time, this._endValue);
     return quat.slerp(out, start, end, ratio);

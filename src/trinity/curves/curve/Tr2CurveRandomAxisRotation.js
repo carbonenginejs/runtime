@@ -5,7 +5,7 @@ import { random } from "#math/random";
 import { fromYawPitchRoll, quat } from "#math/quat";
 import { ITriQuaternionFunction, ITriFunction, IInitialize } from "#blue";
 import { meta } from "#schema";
-import { TimeAsDouble } from "#blue";
+import { CcpTime } from "#blue";
 
 
 /**
@@ -167,7 +167,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
   @meta.ours
   GetWrappedTime(time)
   {
-    return TimeAsDouble(time % Math.trunc(Math.abs(this.period) * 10_000_000));
+    return CcpTime.timeAsDouble(time % Math.trunc(Math.abs(this.period) * 10_000_000));
   }
 
   /**

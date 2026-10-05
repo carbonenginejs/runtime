@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { blue, CcpDateTime, TimeAsDateTime, TimeAsDouble, TimeFromDateTime, TimeIsUTC, TimeToFileTime } from "../../npm/dist/global/blue/index.js";
+import { blue, CcpDateTime, CcpTime } from "../../npm/dist/global/blue/index.js";
 
 
 // core/CcpTime.cpp:271-286. The threshold is a strict `>`, so the constant
@@ -11,18 +11,18 @@ test("TimeIsUTC splits absolute Blue UTC from a stopwatch reading", () =>
 {
   const EIGHTEENTH_CENTURY = 63072000000000000;
 
-  assert.equal(TimeIsUTC(EIGHTEENTH_CENTURY), false, "the boundary itself is not UTC");
-  assert.equal(TimeIsUTC(EIGHTEENTH_CENTURY + 10000000), true);
+  assert.equal(CcpTime.timeIsUTC(EIGHTEENTH_CENTURY), false, "the boundary itself is not UTC");
+  assert.equal(CcpTime.timeIsUTC(EIGHTEENTH_CENTURY + 10000000), true);
 
-  assert.equal(TimeIsUTC(0), false);
-  assert.equal(TimeIsUTC(10000000), false, "one second on a stopwatch");
+  assert.equal(CcpTime.timeIsUTC(0), false);
+  assert.equal(CcpTime.timeIsUTC(10000000), false, "one second on a stopwatch");
 
   // The clock we actually ship must land on the UTC side, or every consumer
   // silently takes the wrong branch.
   // Runtime-epoch times (ticks since 2026-01-01) read as stopwatch time, so
   // TimeAsDouble keeps their full precision; absolute FILETIME still reads UTC.
-  assert.equal(TimeIsUTC(blue.os.GetActualTime()), false);
-  assert.equal(TimeIsUTC(Number(TimeToFileTime(blue.os.GetActualTime()))), true);
+  assert.equal(CcpTime.timeIsUTC(blue.os.GetActualTime()), false);
+  assert.equal(CcpTime.timeIsUTC(Number(CcpTime.timeToFileTime(blue.os.GetActualTime()))), true);
 });
 
 
@@ -30,14 +30,14 @@ test("TimeIsUTC splits absolute Blue UTC from a stopwatch reading", () =>
 // the difference is the whole point of the function.
 test("TimeAsDouble keeps 100ns precision for a stopwatch reading", () =>
 {
-  assert.equal(TimeAsDouble(0), 0);
-  assert.equal(TimeAsDouble(10000000), 1, "exactly one second");
-  assert.equal(TimeAsDouble(30005000), 3.0005);
+  assert.equal(CcpTime.timeAsDouble(0), 0);
+  assert.equal(CcpTime.timeAsDouble(10000000), 1, "exactly one second");
+  assert.equal(CcpTime.timeAsDouble(30005000), 3.0005);
 
   // A single tick is 100ns and must survive: this is the digit the UTC branch
   // deliberately discards, so if the branches were merged this is what breaks.
-  assert.equal(TimeAsDouble(1), 1e-7);
-  assert.equal(TimeAsDouble(9999), 0.0009999);
+  assert.equal(CcpTime.timeAsDouble(1), 1e-7);
+  assert.equal(CcpTime.timeAsDouble(9999), 0.0009999);
 });
 
 
@@ -45,13 +45,13 @@ test("TimeAsDouble truncates a UTC stamp to milliseconds", () =>
 {
   const base = 63072000000000000 + 10000000;
 
-  assert.equal(TimeAsDouble(base), 6307200001);
-  assert.equal(TimeAsDouble(base + 20000), 6307200001.002, "2ms is kept");
+  assert.equal(CcpTime.timeAsDouble(base), 6307200001);
+  assert.equal(CcpTime.timeAsDouble(base + 20000), 6307200001.002, "2ms is kept");
 
   // Integer division first: `(time / 10000) / 1000.0`. Plain floating-point
   // division would leave the sub-millisecond digits the donor drops, so this
   // asserts the `Math.trunc` the port has to add.
-  assert.equal(TimeAsDouble(base + 21999), 6307200001.002, "sub-millisecond is dropped");
+  assert.equal(CcpTime.timeAsDouble(base + 21999), 6307200001.002, "sub-millisecond is dropped");
 });
 
 
@@ -61,7 +61,7 @@ test("a present-day UTC tick count is already quantised before TimeAsDouble sees
 {
   // Absolute FILETIME, as Carbon holds it; blue.os itself counts from the
   // runtime epoch precisely to avoid this (CcpTime BLUE_EPOCH_UNIX_MS).
-  const now = Number(TimeToFileTime(blue.os.GetActualTime()));
+  const now = Number(CcpTime.timeToFileTime(blue.os.GetActualTime()));
 
   assert.ok(now > Number.MAX_SAFE_INTEGER, "Blue UTC exceeds exact integer range");
 
@@ -75,8 +75,8 @@ test("a present-day UTC tick count is already quantised before TimeAsDouble sees
 
   // Which is immaterial against a branch that truncates to milliseconds: the
   // seconds part is exact either way.
-  assert.equal(Number.isFinite(TimeAsDouble(now)), true);
-  assert.ok(TimeAsDouble(now) > 13000000000, "still a sane seconds count");
+  assert.equal(Number.isFinite(CcpTime.timeAsDouble(now)), true);
+  assert.ok(CcpTime.timeAsDouble(now) > 13000000000, "still a sane seconds count");
 });
 
 
@@ -87,7 +87,7 @@ test("TimeAsDateTime breaks a Blue timestamp into UTC calendar fields", () =>
   const time = (ms + 11644473600000) * 10000;
 
   const dt = new CcpDateTime();
-  assert.equal(TimeAsDateTime(dt, time), true);
+  assert.equal(CcpTime.timeAsDateTime(dt, time), true);
 
   assert.equal(dt.year, 2026);
   assert.equal(dt.month, 9, "one-based, unlike tm_mon");
@@ -106,9 +106,9 @@ test("TimeFromDateTime inverts TimeAsDateTime", () =>
   const time = (ms + 11644473600000) * 10000;
 
   const dt = new CcpDateTime();
-  TimeAsDateTime(dt, time);
+  CcpTime.timeAsDateTime(dt, time);
 
-  const back = TimeFromDateTime(dt);
+  const back = CcpTime.timeFromDateTime(dt);
   assert.equal(back.ok, true);
   assert.equal(back.time, time, "round trip is exact at millisecond resolution");
 });
@@ -124,7 +124,7 @@ test("TimeFromDateTime refuses dates before 1970, as the donor does", () =>
   dt.month = 12;
   dt.day = 31;
 
-  assert.equal(TimeFromDateTime(dt).ok, false);
+  assert.equal(CcpTime.timeFromDateTime(dt).ok, false);
 
   // And the two-digit-year trap: Date.UTC would read 50 as 1950 and accept it.
   const remapped = new CcpDateTime();
@@ -132,5 +132,5 @@ test("TimeFromDateTime refuses dates before 1970, as the donor does", () =>
   remapped.month = 1;
   remapped.day = 1;
 
-  assert.equal(TimeFromDateTime(remapped).ok, false, "year 50 is year 50, not 1950");
+  assert.equal(CcpTime.timeFromDateTime(remapped).ok, false, "year 50 is year 50, not 1950");
 });

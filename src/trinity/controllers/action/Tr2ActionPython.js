@@ -4,7 +4,7 @@
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { ITr2Updateable } from "../../core/ITr2Updateable.js";
 import { meta } from "#schema";
-import { IsMatch, blue, TimeAsFloat, INotify, IInitialize, ICustomPersist } from "#blue";
+import { IsMatch, blue, INotify, IInitialize, ICustomPersist, CcpTime } from "#blue";
 import { ContinueOnMainThread } from "../../core/continueOnMainThread.js";
 
 
@@ -314,8 +314,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
       return;
     }
     const owner = controller.GetOwner();
-    const realDt = TimeAsFloat(realTime - this._prevRealTime);
-    const simDt = TimeAsFloat(simTime - this._prevSimTime);
+    const realDt = CcpTime.timeAsFloat(realTime - this._prevRealTime);
+    const simDt = CcpTime.timeAsFloat(simTime - this._prevSimTime);
     ContinueOnMainThread(() =>
     {
       instance.OnUpdate(owner, controller, realDt, simDt);

@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Tr2TimelineController.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { meta } from "#schema";
-import { blue, TimeAsDouble, TimeAsFloat } from "#blue";
+import { blue, CcpTime } from "#blue";
 import { EveThrottleable } from "../../eve/EveThrottleable.js";
 import { ITr2Controller, ITr2ActionController } from "../ITr2Controller/index.js";
 import { Tr2TimelineEntry } from "./Tr2TimelineEntry.js";
@@ -226,12 +226,12 @@ export class Tr2TimelineController extends EveThrottleable
     {
       return;
     }
-    if (this.ShouldSkipUpdate(normalizedUpdateFrequency, TimeAsDouble(blue.os.GetActualTime())))
+    if (this.ShouldSkipUpdate(normalizedUpdateFrequency, CcpTime.timeAsDouble(blue.os.GetActualTime())))
     {
       return;
     }
     const simTime = blue.os.GetCurrentFrameTime();
-    const dt = TimeAsFloat(simTime - this._lastUpdateTime) * this.timeScale;
+    const dt = CcpTime.timeAsFloat(simTime - this._lastUpdateTime) * this.timeScale;
     this._lastUpdateTime = simTime;
     if (!this.isPaused)
     {

@@ -20,7 +20,7 @@ import { EveComponentType, EntityComponents } from "../EntityComponents.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmitter/index.js";
-import { TimeAsDouble } from "../../../global/blue/CcpTime.js";
+import { CcpTime } from "../../../global/blue/CcpTime.js";
 
 /** A child that hosts particle systems and emitters, driving their transforms, LOD-based particle budgets, and per-frame visibility and render submission. */
 @meta.define({ className: "EveChildParticleSystem", family: "eve/child" })
@@ -528,7 +528,7 @@ export class EveChildParticleSystem extends EveChildTransform
       system.UpdateTransform(this.worldTransform);
     }
 
-    const time = TimeAsDouble(updateContext.GetTime());
+    const time = CcpTime.timeAsDouble(updateContext.GetTime());
     const gpuParticleSystem = updateContext.GetGpuParticleSystem();
     const originShift = updateContext.GetOriginShift();
 

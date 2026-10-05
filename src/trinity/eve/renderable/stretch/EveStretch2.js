@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch2.h
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch2.cpp
-import { IsMatch, TimeAsDouble } from "#blue";
+import { IsMatch, CcpTime } from "#blue";
 import { INotify } from "../../../../global/blue/INotify.js";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { mat4 } from "#math/mat4";
@@ -347,7 +347,7 @@ export class EveStretch2 extends IEveFiringEffectElement
   {
     const time = context.GetTime();
     if (this._startTime === 0) this._startTime = time;
-    const relative = TimeAsDouble(time - this._startTime);
+    const relative = CcpTime.timeAsDouble(time - this._startTime);
     const effectData = this._effectData[0];
     effectData[0] = effectData[1] = effectData[2] = 0;
     if (this.start)

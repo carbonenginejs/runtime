@@ -1,7 +1,7 @@
 // Source: blue/include/ITriFunction.h:127-184
 import { CjsSchema, meta } from "#schema";
 import { ITriFunction } from "./ITriFunction.js";
-import { TimeAsDouble } from "./CcpTime.js";
+import { CcpTime } from "./CcpTime.js";
 
 
 /**
@@ -71,7 +71,7 @@ export class ITriQuaternionFunction extends ITriFunction
    */
   Update_Ticks(time, out)
   {
-    return this.Update(TimeAsDouble(time), out);
+    return this.Update(CcpTime.timeAsDouble(time), out);
   }
 
   /**
@@ -85,7 +85,7 @@ export class ITriQuaternionFunction extends ITriFunction
    */
   GetValueAt_Ticks(time, out)
   {
-    return this.GetValueAt(TimeAsDouble(time), out);
+    return this.GetValueAt(CcpTime.timeAsDouble(time), out);
   }
 
   /**
@@ -99,7 +99,7 @@ export class ITriQuaternionFunction extends ITriFunction
    */
   GetValueDotAt_Ticks(time, out)
   {
-    return this.GetValueDotAt(TimeAsDouble(time), out);
+    return this.GetValueDotAt(CcpTime.timeAsDouble(time), out);
   }
 
   /**
@@ -113,7 +113,7 @@ export class ITriQuaternionFunction extends ITriFunction
    */
   GetValueDoubleDotAt_Ticks(time, out)
   {
-    return this.GetValueDoubleDotAt(TimeAsDouble(time), out);
+    return this.GetValueDoubleDotAt(CcpTime.timeAsDouble(time), out);
   }
 }
 

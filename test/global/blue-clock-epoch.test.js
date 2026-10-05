@@ -5,7 +5,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
-  BLUE_EPOCH_UNIX_MS, CjsBlueOS, IBlueEvents, TimeAsDouble, TimeFromFileTime, TimeIsUTC, TimeToFileTime
+  CjsBlueOS,
+  IBlueEvents,
+  CcpTime
 } from "../../npm/dist/global/blue/index.js";
 
 
@@ -18,14 +20,14 @@ class TestTicker extends IBlueEvents
 
 test("the epoch is 2026-01-01T00:00:00Z", () =>
 {
-  assert.equal(new Date(BLUE_EPOCH_UNIX_MS).toISOString(), "2026-01-01T00:00:00.000Z");
+  assert.equal(new Date(CcpTime.BLUE_EPOCH_UNIX_MS).toISOString(), "2026-01-01T00:00:00.000Z");
 });
 
 
 test("blue.os time is ticks since the epoch, an exact Number", () =>
 {
   const os = new CjsBlueOS();
-  const expected = (Date.now() - BLUE_EPOCH_UNIX_MS) * 10000;
+  const expected = (Date.now() - CcpTime.BLUE_EPOCH_UNIX_MS) * 10000;
   const actual = os.GetActualTime();
   assert.ok(Number.isSafeInteger(actual));
   assert.ok(Math.abs(actual - expected) < 10000 * 1000, "within a second of the wallclock");
@@ -52,18 +54,18 @@ test("runtime-epoch times read as stopwatch time and keep full precision", () =>
 {
   const os = new CjsBlueOS();
   const time = os.GetActualTime();
-  assert.equal(TimeIsUTC(time), false);
-  assert.equal(TimeAsDouble(time + 1) - TimeAsDouble(time) > 0, true, "one tick is still visible");
+  assert.equal(CcpTime.timeIsUTC(time), false);
+  assert.equal(CcpTime.timeAsDouble(time + 1) - CcpTime.timeAsDouble(time) > 0, true, "one tick is still visible");
 });
 
 
 test("TimeToFileTime / TimeFromFileTime convert exactly at the UTC boundary", () =>
 {
   // FILETIME of 2026-01-01T00:00:00Z: (11644473600000 + 1767225600000) ms * 10000.
-  assert.equal(TimeToFileTime(0), 134116992000000000n);
-  assert.equal(TimeToFileTime(12345), 134116992000012345n);
-  assert.equal(TimeFromFileTime(134116992000012345n), 12345);
-  assert.equal(TimeFromFileTime(TimeToFileTime(-987654321)), -987654321, "times before 2026 are negative");
+  assert.equal(CcpTime.timeToFileTime(0), 134116992000000000n);
+  assert.equal(CcpTime.timeToFileTime(12345), 134116992000012345n);
+  assert.equal(CcpTime.timeFromFileTime(134116992000012345n), 12345);
+  assert.equal(CcpTime.timeFromFileTime(CcpTime.timeToFileTime(-987654321)), -987654321, "times before 2026 are negative");
 });
 
 

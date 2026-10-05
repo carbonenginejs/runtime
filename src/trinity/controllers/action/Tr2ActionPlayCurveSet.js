@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayCurveSet.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayCurveSet_Blue.cpp
 import { CjsSchema, meta } from "#schema";
-import { blue, TimeAsFloat } from "#blue";
+import { blue, CcpTime } from "#blue";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { ITr2Updateable } from "../../core/ITr2Updateable.js";
@@ -122,8 +122,8 @@ export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
     {
       return true;
     }
-    const previous = Math.trunc(TimeAsFloat(this._prevTime - this._startTime) / this._duration);
-    const current = Math.trunc(TimeAsFloat(now - this._startTime) / this._duration);
+    const previous = Math.trunc(CcpTime.timeAsFloat(this._prevTime - this._startTime) / this._duration);
+    const current = Math.trunc(CcpTime.timeAsFloat(now - this._startTime) / this._duration);
     return previous !== current;
   }
 

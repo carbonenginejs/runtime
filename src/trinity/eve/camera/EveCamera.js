@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/EveCamera.h
-import { IsMatch, TimeAsDouble } from "#blue";
+import { IsMatch, CcpTime } from "#blue";
 import { INotify } from "../../../global/blue/INotify.js";
 //   trinity/trinity/Eve/EveCamera.cpp
 //   trinity/trinity/Eve/EveCamera_Blue.cpp
@@ -651,7 +651,7 @@ export class EveCamera
     }
 
     // Carbon cpp:243-250: the frame delta is real-time ticks in float seconds; the parent samples its Be::Time overload.
-    const deltaTime = Math.fround(TimeAsDouble(now - this._time));
+    const deltaTime = Math.fround(CcpTime.timeAsDouble(now - this._time));
     this._time = now;
 
     const parentPosition = vec3.zero(CAMERA_PARENT_POSITION);
@@ -712,7 +712,7 @@ export class EveCamera
     if (this.noiseCurve)
     {
       // Carbon cpp:325-347: the noise curves take the ticks since start in seconds.
-      this.noise = this.noiseCurve.Update(TimeAsDouble(simTime - this._startTime)) > 0;
+      this.noise = this.noiseCurve.Update(CcpTime.timeAsDouble(simTime - this._startTime)) > 0;
     }
     else
     {
@@ -723,12 +723,12 @@ export class EveCamera
     {
       if (this.noiseScaleCurve)
       {
-        const nextNoiseScale = this.noiseScaleCurve.Update(TimeAsDouble(simTime - this._startTime));
+        const nextNoiseScale = this.noiseScaleCurve.Update(CcpTime.timeAsDouble(simTime - this._startTime));
         if (Number.isFinite(nextNoiseScale)) this.noiseScale = nextNoiseScale;
       }
       if (this.noiseDampCurve)
       {
-        const nextNoiseDamp = this.noiseDampCurve.Update(TimeAsDouble(simTime - this._startTime));
+        const nextNoiseDamp = this.noiseDampCurve.Update(CcpTime.timeAsDouble(simTime - this._startTime));
         if (Number.isFinite(nextNoiseDamp)) this.noiseDamp = nextNoiseDamp;
       }
 

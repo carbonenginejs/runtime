@@ -3,7 +3,7 @@
 import { vec3 } from "#math/vec3";
 import { meta } from "#schema";
 import { ImpactConfiguration } from "../../../generated/include/enums.js";
-import { blue, TimeAsDouble } from "#blue";
+import { blue, CcpTime } from "#blue";
 import { mappedInterfaces } from "../../../../global/compose/interface.js";
 import { ITriTargetable } from "../../../core/ITriTargetable.js";
 import { IWorldPosition } from "../../../core/IWorldPosition.js";
@@ -406,7 +406,7 @@ export class EveTurretTarget
    */
   @meta.blue.method
   @meta.adapted
-  SetShotMissed(missed, timestamp = TimeAsDouble(blue.os.GetActualTime()))
+  SetShotMissed(missed, timestamp = CcpTime.timeAsDouble(blue.os.GetActualTime()))
   {
     this._missQueue.push(!!missed);
     this._lastShotTime = Number(timestamp);

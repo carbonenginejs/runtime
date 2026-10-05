@@ -3,7 +3,7 @@
 import { num } from "#math/num";
 import { vec3 } from "#math/vec3";
 import { meta } from "#schema";
-import { ITriVectorFunction, TimeAsDouble } from "#blue";
+import { ITriVectorFunction, CcpTime } from "#blue";
 
 
 /**
@@ -103,7 +103,7 @@ export class EveRemotePositionCurve extends ITriVectorFunction
     {
       this._startTime = time;
     }
-    const timeSinceStart = Math.fround(TimeAsDouble(time - this._startTime));
+    const timeSinceStart = Math.fround(CcpTime.timeAsDouble(time - this._startTime));
     let s = 0;
     if (timeSinceStart > this.delayTime)
     {

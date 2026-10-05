@@ -9,7 +9,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsSchema, meta } from "#schema";
-import { INotify, IsMatch, TimeAsDouble } from "#blue";
+import { INotify, IsMatch, CcpTime } from "#blue";
 import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 import { EveComponentType } from "../../EntityComponents.js";
 import { TriFloat } from "../../../core/variable/TriFloat.js";
@@ -249,9 +249,9 @@ export class EveStretch extends IEveFiringEffectElement
     const time = context.GetTime();
     if (!this.update) return;
     if (this.moving && this.startTime === -1) this.startTime = time;
-    if (this.moving && this.progressCurve) this.progressCurve.UpdateValue(TimeAsDouble(time - this.startTime));
-    if (this.moveCompletion) this.moveCompletion.Update(TimeAsDouble(time), context.renderContext);
-    for (const curveSet of this.curveSets) curveSet.Update(TimeAsDouble(time), context.renderContext);
+    if (this.moving && this.progressCurve) this.progressCurve.UpdateValue(CcpTime.timeAsDouble(time - this.startTime));
+    if (this.moveCompletion) this.moveCompletion.Update(CcpTime.timeAsDouble(time), context.renderContext);
+    for (const curveSet of this.curveSets) curveSet.Update(CcpTime.timeAsDouble(time), context.renderContext);
   }
 
   /**

@@ -9,7 +9,7 @@ import { sph3 } from "#math/sph3";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmitter/index.js";
-import { TimeAsDouble } from "../../../global/blue/CcpTime.js";
+import { CcpTime } from "../../../global/blue/CcpTime.js";
 import {
   bindParticleElement,
   hasUnboundParticleElements
@@ -357,7 +357,7 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
     if (this.particleSystem)
     {
       const args = EveChildParticleSphere._systemArgs;
-      args.time = TimeAsDouble(updateContext.GetTime());
+      args.time = CcpTime.timeAsDouble(updateContext.GetTime());
       args.system = updateContext.GetGpuParticleSystem();
       mat4.identity(args.parentTransform);
       vec3.copy(args.originShift, updateContext.GetOriginShift());

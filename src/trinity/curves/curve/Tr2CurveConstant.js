@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Curves/Tr2CurveConstant.h
 // Source: trinity/trinity/Curves/Tr2CurveConstant.cpp
-import { ITriScalarFunction, ITriVectorFunction, ITriQuaternionFunction, ITriColorFunction, ITriFunction, TimeAsDouble } from "#blue";
+import { ITriScalarFunction, ITriVectorFunction, ITriQuaternionFunction, ITriColorFunction, ITriFunction, CcpTime } from "#blue";
 import { quat } from "#math/quat";
 import { copyArrayLike } from "#utils";
 import { vec3 } from "#math/vec3";
@@ -110,7 +110,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
   @meta.adapted
   Update_Ticks(time, out)
   {
-    return this.Update(TimeAsDouble(time), out);
+    return this.Update(CcpTime.timeAsDouble(time), out);
   }
 
   /**
@@ -123,7 +123,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
   @meta.adapted
   GetValueAt_Ticks(time, out)
   {
-    return this.GetValueAt(TimeAsDouble(time), out);
+    return this.GetValueAt(CcpTime.timeAsDouble(time), out);
   }
 
   /**

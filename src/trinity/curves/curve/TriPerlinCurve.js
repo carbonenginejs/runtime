@@ -4,7 +4,7 @@
 import { meta } from "#schema";
 import { ITriScalarFunction } from "#blue/ITriScalarFunction";
 import { ITriFunction } from "#blue/ITriFunction";
-import { TimeAsDouble } from "#blue/CcpTime";
+import { CcpTime } from "#blue/CcpTime";
 import { carbonPerlin1D } from "#math/noise";
 
 
@@ -145,7 +145,7 @@ export class TriPerlinCurve extends ITriScalarFunction
   @meta.adapted
   Update_Ticks(time)
   {
-    const seconds = TimeAsDouble(time);
+    const seconds = CcpTime.timeAsDouble(time);
     if (this._lastUpdated !== seconds)
     {
       this._lastUpdated = seconds;
@@ -164,8 +164,8 @@ export class TriPerlinCurve extends ITriScalarFunction
   @meta.adapted
   GetValueAt_Ticks(time)
   {
-    if (this._start === 0) this._start = TimeAsDouble(time);
-    return this.GetValueAt(TimeAsDouble(time) - this._start);
+    if (this._start === 0) this._start = CcpTime.timeAsDouble(time);
+    return this.GetValueAt(CcpTime.timeAsDouble(time) - this._start);
   }
 
   /** Carbon's implementation changes output amplitude despite the historical name. */

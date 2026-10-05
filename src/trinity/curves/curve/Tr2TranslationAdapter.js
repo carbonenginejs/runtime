@@ -4,7 +4,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { ITriVectorFunction } from "#blue";
 import { meta } from "#schema";
-import { TimeAsDouble } from "#blue";
+import { CcpTime } from "#blue";
 
 
 /**
@@ -274,7 +274,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
   @meta.adapted
   GetLocalTime_Ticks(time)
   {
-    return TimeAsDouble(time - this._start + this._offset) / this._timeScale;
+    return CcpTime.timeAsDouble(time - this._start + this._offset) / this._timeScale;
   }
 
   /**

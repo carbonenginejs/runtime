@@ -4,7 +4,7 @@
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { meta } from "#schema";
 import { UnlinkReason } from "./enums.js";
-import { blue, BlueList, IListNotify, TimeAsDouble } from "#blue";
+import { blue, BlueList, IListNotify, CcpTime } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ContinueOnMainThread } from "../core/continueOnMainThread.js";
 import { EveThrottleable } from "../eve/EveThrottleable.js";
@@ -303,12 +303,12 @@ export class Tr2Controller extends EveThrottleable
     {
       return;
     }
-    if (this.ShouldSkipUpdate(normalizedUpdateFrequency, TimeAsDouble(blue.os.GetActualTime())))
+    if (this.ShouldSkipUpdate(normalizedUpdateFrequency, CcpTime.timeAsDouble(blue.os.GetActualTime())))
     {
       return;
     }
     const currentTime = blue.os.GetActualTime();
-    this._time = TimeAsDouble(blue.os.GetCurrentFrameTime());
+    this._time = CcpTime.timeAsDouble(blue.os.GetCurrentFrameTime());
     const dirtyVariables = this._dirtyVariables.value;
     this._dirtyVariables.value = 0n;
     for (const stateMachine of this.stateMachines)

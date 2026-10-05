@@ -3,7 +3,7 @@ import { INotify } from "../../../../../global/blue/INotify.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { CjsSchema, meta } from "#schema";
 import { EveProceduralMethodCyclingParameter } from "./EveProceduralMethodCyclingParameter.js";
-import { blue, TimeAsDouble } from "#blue";
+import { blue, CcpTime } from "#blue";
 import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.js";
 
 // Carbon BELIST_LOADING (blueexposure IList.h:50): list events raised while a
@@ -61,7 +61,7 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
    */
   @meta.blue.method
   @meta.adapted
-  restart(timestamp = TimeAsDouble(blue.os.GetCurrentFrameTime()))
+  restart(timestamp = CcpTime.timeAsDouble(blue.os.GetCurrentFrameTime()))
   {
     const count = this.parameters.length;
     if (count === 0)
@@ -160,7 +160,7 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
   @meta.adapted
   UpdateAsyncronous(_updateContext, _params)
   {
-    const now = TimeAsDouble(blue.os.GetCurrentFrameTime());
+    const now = CcpTime.timeAsDouble(blue.os.GetCurrentFrameTime());
 
     if (this.selectedChild < 0 || this.selectedChild > this.parameters.length - 1)
     {

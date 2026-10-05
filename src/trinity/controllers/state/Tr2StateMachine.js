@@ -3,7 +3,7 @@
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { meta } from "#schema";
 import { UnlinkReason } from "../enums.js";
-import { IsMatch, blue, BlueList, TimeAsFloat, IListNotify, ISimTimeRebaseNotify, INotify } from "#blue";
+import { IsMatch, blue, BlueList, IListNotify, ISimTimeRebaseNotify, INotify, CcpTime } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { mappedInterfaces } from "../../../global/compose/interface.js";
 import { Tr2StateMachineState } from "./Tr2StateMachineState.js";
@@ -309,7 +309,7 @@ export class Tr2StateMachine
   @meta.implemented
   GetMachineRunTime()
   {
-    return this._machineStartTime ? TimeAsFloat(blue.os.GetCurrentFrameTime() - this._machineStartTime) : 0;
+    return this._machineStartTime ? CcpTime.timeAsFloat(blue.os.GetCurrentFrameTime() - this._machineStartTime) : 0;
   }
 
   /**
@@ -320,7 +320,7 @@ export class Tr2StateMachine
   @meta.implemented
   GetStateRunTime()
   {
-    return this._stateStartTime ? TimeAsFloat(blue.os.GetCurrentFrameTime() - this._stateStartTime) : 0;
+    return this._stateStartTime ? CcpTime.timeAsFloat(blue.os.GetCurrentFrameTime() - this._stateStartTime) : 0;
   }
 
   /**

@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Particle/Tr2ParticleSystem.h
-import { IInitialize, INotify, IsMatch, ISimTimeRebaseNotify, blue, TimeAsDouble } from "#blue";
+import { IInitialize, INotify, IsMatch, ISimTimeRebaseNotify, blue, CcpTime } from "#blue";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta } from "#schema";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
@@ -837,7 +837,7 @@ export class Tr2ParticleSystem
   @meta.adapted
   OnSimClockRebase(oldTime, newTime)
   {
-    this._lastUpdate += TimeAsDouble(newTime - oldTime);
+    this._lastUpdate += CcpTime.timeAsDouble(newTime - oldTime);
   }
 
   /** Registers with the active clock and releases any previous installed owner. */
