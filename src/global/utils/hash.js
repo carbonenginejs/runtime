@@ -16,7 +16,7 @@
 // Per-format FNV constants elsewhere (bnk, the CMF writer, the string table,
 // wwiseRoomVerb) are wire ABIs of THEIR formats and stay where they are.
 //
-// Source: Carbon `CcpHashFNV1` (blue).
+// Source: Carbon `CcpHashFNV1` (core/include/CcpHash.h:13-17).
 //
 // WHY THE 32-BIT FAMILY MOVED HERE. These four were statics on `CjsParameter`, which was the
 // right home while the shader parameters were the only caller. The abstraction
