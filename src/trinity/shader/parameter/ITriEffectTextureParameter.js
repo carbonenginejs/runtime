@@ -4,20 +4,9 @@
 // derives from - it reaches ITriEffectResourceParameter and ITriEffectParameter
 // through this, not directly.
 //
-// WHY IT WAS QUARANTINED, AND WHY IT IS BACK. A generated shell of it sat in
-// `trinity/dropped` carrying `UV_SET_MAX_COUNT` as an INSTANCE field, extending
-// CjsModel, and declaring none of the three pure methods - so the disposition
-// "superseded by maintained concrete texture-parameter graph classes" was
-// judging the shell, not the interface. Meanwhile `TriTextureParameter_Blue.cpp:17`
-// maps it, so Carbon casts to it; `Tr2Material.js:62` declares
-// `@type.list("ITriEffectTextureParameter")`, a live schema reference to a
-// quarantined name; and all three methods were already implemented on
-// TriTextureParameter. A used interface cannot be dropped.
-//
-// The methods carry decorator syntax rather than the imperative
-// `CjsSchema.decorateMethod` its two siblings use, because the parity audit
-// reads SOURCE TEXT for `@carbon.method` - an imperative call is invisible to
-// it, and this class is audited now that it has left quarantine.
+// TriTextureParameter_Blue.cpp:17 exposes this interface, and Tr2Material
+// stores texture parameters through it. The declaration provides its three
+// pure methods and the static UV-set count for schema and parity tools.
 //
 // Carbon's spelling of "Loding" is kept. It is the donor's method name.
 

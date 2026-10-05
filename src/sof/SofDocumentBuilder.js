@@ -63,7 +63,7 @@ export class SofDocumentBuilder
   }
 
   /**
-   * Imports one self-describing CjsModel-shaped values graph.
+   * Imports one self-describing values graph with explicit type tags.
    *
    * Every model must carry `_type`: this class deliberately has no registry or
    * schema library from which to infer the type of an untagged nested object.

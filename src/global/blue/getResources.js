@@ -13,8 +13,7 @@ import { Traverse } from "./find.js";
  * @param {object|null} root Root whose declared graph is visited.
  * @param {Array<*>} [out=[]] Replaced output array.
  * @returns {Array<*>} The supplied output array.
- * @impl custom Preserves the CjsModel resource collection contract without a
- * model base, extending it to native stored-reference resource edges.
+ * Declared stored-reference edges participate in the same graph traversal.
  */
 export function GetResources(root, out = [])
 {

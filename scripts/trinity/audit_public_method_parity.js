@@ -400,14 +400,11 @@ function CollectMethods(record, classes, unresolvedBases)
     const base = classes.get(current.baseClass);
     if (!base)
     {
-      if (current.baseClass !== "CjsModel")
-      {
-        unresolvedBases.set(`${record.className}:${current.baseClass}`, {
-          className: record.className,
-          baseClass: current.baseClass,
-          classFile: record.file
-        });
-      }
+      unresolvedBases.set(`${record.className}:${current.baseClass}`, {
+        className: record.className,
+        baseClass: current.baseClass,
+        classFile: record.file
+      });
       break;
     }
     for (const [method, metadata] of base.methods)
@@ -492,7 +489,7 @@ function PrintReport(audit, listItems)
   console.log(`- Present but unexposed Carbon methods: ${summary.unexposedMethods}.`);
   console.log(`- Missing JavaScript classes: ${summary.missingClasses}.`);
   console.log(`- Missing or ambiguous schemas: ${summary.missingSchemas + summary.ambiguousSchemas}.`);
-  console.log(`- Unresolved non-CjsModel base classes: ${summary.unresolvedBases}.`);
+  console.log(`- Unresolved base classes: ${summary.unresolvedBases}.`);
   if (!listItems) return;
   if (audit.omissions.length)
   {

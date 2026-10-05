@@ -154,11 +154,9 @@ test("the model brand is not exported as a field value", () =>
     assert.equal(Object.getOwnPropertySymbols(values).length, 0);
 });
 
-// A registered class need not be a CjsModel - resources and AL classes are
-// not - and the Black reader hands over live instances of them, as
-// Tr2InstancedMesh.instanceGeometryResource receives a TriGeometryRes. Carbon
-// assigns that pointer; the value path used to rebuild it as the declared
-// interface and threw "is not a CjsModel".
+// The Black reader supplies registered resource instances directly. A declared
+// object-reference field preserves their identity instead of rebuilding them
+// as the field's interface type.
 class RegisteredResource
 {
     path = "";
@@ -183,7 +181,7 @@ CjsSchema.defineField(ResourceHolder, "resources", "type", { kind: "list", itemT
 CjsSchema.defineField(ResourceHolder, "resources", "edit", { persist: true });
 CjsSchema.define(ResourceHolder, { className: "ObjectRefTestResourceHolder", family: "test" });
 
-test("a live instance of a registered non-model class is assigned, not rebuilt", () =>
+test("a live registered instance preserves identity when assigned to an object reference", () =>
 {
     const resource = new RegisteredResource();
     const other = new RegisteredResource();

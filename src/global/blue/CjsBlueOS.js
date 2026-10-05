@@ -13,9 +13,7 @@ const TICKS_PER_MILLISECOND = 10000;
 /**
  * Carbon's `BeOS`, as much of it as is honest: the clock and the pump.
  *
- * Not a `CjsModel`. It is composed at runtime, carries no `@edit` field and is
- * never part of a serialized object, which is the same reason `Tr2Renderer`
- * is not one.
+ * Composed at runtime without authored fields or serialized instance state.
  */
 export class CjsBlueOS extends IBlueOS
 {

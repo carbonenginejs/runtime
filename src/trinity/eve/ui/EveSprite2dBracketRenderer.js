@@ -1,8 +1,7 @@
 // Source: trinity/trinity/EveSprite2dBracketRenderer.h
 // Source: trinity/trinity/EveSprite2dBracketRenderer.cpp
 // Source: trinity/trinity/EveSprite2dBracketRenderer_Blue.cpp
-// Promoted from generated source: Carbon derives this class from
-// Tr2SpriteObject, so a CjsModel root silently discarded its sprite contract.
+// Derives from Carbon's Tr2SpriteObject to inherit its Sprite2D contract.
 import { meta } from "#schema";
 import { Tr2SpriteObject } from "../../generated/sprite2d/Tr2SpriteObject.js";
 

@@ -6,10 +6,9 @@ import { resolveHydrationAdapter } from "#schema/hydration";
 import { CjsCarbonDocument, CjsDocumentHydrator } from "../../src/global/model/document/index.js";
 import { CjsRedReader } from "../../src/resource/formats/red/core/CjsRedReader.js";
 
-// The reader's default population. A class leaving the CjsModel base loses its
-// SetValues, and must still populate through the schema rather than falling to
-// raw assignment. The reader states whether the class it resolved declares
-// fields, as `ctx.declared`; nothing inspects the object.
+// Declared classes without their own SetValues populate through the schema.
+// The reader supplies ctx.declared from class registration; undeclared caller
+// classes retain raw assignment.
 
 let next = 0;
 

@@ -1,7 +1,7 @@
 # Runtime character usage
 
 Status: Evolving
-Reviewed: 2026-09-08
+Reviewed: 2026-10-05
 Scope: `@carbonenginejs/runtime/character`
 Audience: Runtime and application integrators
 Summary: Builds model-shaped character JSON and hydrates its source-backed record graph.
@@ -16,6 +16,7 @@ import {
     CjsCharacterLibrary,
     CjsCharacterLibraryBuilder
 } from "@carbonenginejs/runtime/character";
+import { CjsSchema } from "@carbonenginejs/runtime/schema";
 
 const values = CjsCharacterLibraryBuilder.buildFromInputs({
     documents,
@@ -45,7 +46,7 @@ const library = await CjsCharacterLibraryBuilder.buildFromResources({
     sourceBuild: "123456"
 });
 
-const values = library.GetValues();
+const values = CjsSchema.getValues(library);
 ```
 
 Browser fetch callers provide `baseUrl` or `resolveUrl` for `res:/` paths.
@@ -59,7 +60,7 @@ projection exists yet.
 
 The builder projects proven relationships using native `_id` and `_ref`
 metadata. Supplied graph metadata is preserved and reserved against generated
-relationship IDs; a later `GetValues({ refs: true })` export may assign a new
+relationship IDs; a later `CjsSchema.getValues(library, {}, { refs: true })` export may assign a new
 equivalent set of graph-local tokens. They are not record, type, race,
 resource, or other domain identities. `_type` remains the registered Carbon
 model selector.
@@ -78,7 +79,7 @@ plain values:
 
 ```js
 const resource = new CjsCharacterResource();
-resource.SetValues(resourceValues);
+CjsSchema.setValues(resource, resourceValues);
 
 library.Add("characterResources", resource);
 ```
@@ -141,11 +142,11 @@ const sameRaces = library.GetDocument("races");
 
 ## Serialize a model graph
 
-Use the inherited `CjsModel` export contract when relationships must survive a
-JSON round trip:
+Use the schema values service when relationships must survive a JSON round
+trip. Class registration and declared fields supply the graph contract:
 
 ```js
-const json = JSON.stringify(library.GetValues({ refs: true }));
+const json = JSON.stringify(CjsSchema.getValues(library, {}, { refs: true }));
 const roundTrip = CjsCharacterLibrary.from(JSON.parse(json));
 ```
 
@@ -158,14 +159,16 @@ The same rule applies to a standalone appearance plan:
 ```js
 import { CjsCharacterAppearancePlan } from "@carbonenginejs/runtime/character";
 
-const plan = CjsCharacterAppearancePlan.from(planValues);
-const planJSON = JSON.stringify(plan.GetValues({ refs: true }));
+const plan = CjsSchema.from("CjsCharacterAppearancePlan", planValues);
+const planJSON = JSON.stringify(CjsSchema.getValues(plan, {}, { refs: true }));
 ```
 
-`CjsCharacterAppearancePlan` does not override model lifecycle methods. It uses
-inherited `from`, `SetValues`, `GetValues`, and `Clone`. A resolver or builder
-is responsible for deciding operations, ordering, and policy before producing
-`planValues`; model hydration does not invent or police those decisions.
+`CjsCharacterAppearancePlan` is a registered class without a model base. Use
+`CjsSchema.from`, `CjsSchema.setValues` and `CjsSchema.getValues` to construct,
+populate and export it. Native graph copying uses `Copier.CloneTo` from the
+Blue API. The library's own `CjsCharacterLibrary.from` and `SetValues` additionally
+apply library-format migration. A resolver or builder decides operations,
+ordering and policy before producing `planValues`; hydration applies those values.
 
 The current resolver can produce the exact first-stage plan directly from one
 hydrated paper doll:

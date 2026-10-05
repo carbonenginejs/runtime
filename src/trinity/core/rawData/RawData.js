@@ -6,8 +6,8 @@ import { CjsPerObjectLayouts } from "./CjsPerObjectLayouts.js";
 // GPU-free per-object / per-frame constant data.
 //
 // A RawData is a thin, write-mostly view over a slice of a packed constant
-// buffer: name -> encoded bytes. It is NOT a CjsModel (no persistence, no
-// reactivity) - it is GPU staging. Most records are leased per frame from the
+// buffer: name -> encoded bytes. This GPU staging view has no persistence or
+// reactivity. Most records are leased per frame from the
 // arena and consumed by the engine's uploader; a few are PERSISTENT, owned by
 // an object across frames via RawData.create and marked with Invalidate.
 //

@@ -21,7 +21,7 @@ import { Tr2ControllerEventHandler } from "./Tr2ControllerEventHandler.js";
  *
  * Owns three typed BlueLists subscribed to this controller. Explicit list
  * operations apply native admission and notifications; raw array operations
- * bypass both, as in BlueList. Retained CjsModel child helpers notify explicitly.
+ * bypass both, as in BlueList. Child helpers notify explicitly.
  * Link binds the owner, variables and children; no Initialize contract is added.
  */
 @meta.define({

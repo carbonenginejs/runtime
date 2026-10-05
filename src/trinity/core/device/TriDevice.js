@@ -30,23 +30,13 @@ import "#consts/renderContext/upscaling";
 //     BLUE_CLASS( TriDevice ) : public ITriDevice, public IBlueEvents,
 //                               public ISimTimeRebaseNotify
 //
-// All three arrive through `@carbon.inherit` rather than one of them taking
-// the `extends` slot, and that is deliberate rather than forced: a base list
-// reads as a base list, and which member happens to be the JS prototype parent
-// is an implementation detail that should not change when `CjsModel` is
-// removed. That is what makes the device acceptable to
-// `BeOS->RegisterForTicks` and to the sim-clock rebase, and what makes
-// `CjsSchema.cast(device, IBlueEvents)` answer - the port of `dynamic_cast`,
-// which in C++ answers to the base list and needs no exposure entry.
+// IBlueEvents and ISimTimeRebaseNotify are declared as additional bases below.
+// They provide the tick and sim-clock rebase contracts independently of the
+// JavaScript prototype parent. CjsSchema.cast recognizes these declarations.
 //
-// THIS IS NOT THE SAME QUESTION AS `MAP_INTERFACE`. `TriDevice_Blue.cpp` maps
-// only `ITriDevice`, and nothing in Carbon maps `IBlueEvents` at all - but
-// that governs `BlueCastPtr`, not `dynamic_cast`, and inheriting really does
-// make a C++ base castable. An earlier revision of this file removed the
-// declaration on the strength of the mapping, which was the wrong test.
-//
-// `ITriDevice` is not declared here because it is still in `trinity/dropped`;
-// it is the one entry this class's `@carbon.mapInterface` will carry.
+// Native inheritance differs from Blue exposure: TriDevice_Blue.cpp maps only
+// ITriDevice. Its declaration remains quarantined in trinity/dropped; this
+// class currently composes the other two native contracts.
 @meta.blue.inherit(IBlueEvents, ISimTimeRebaseNotify)
 export class TriDevice
 {

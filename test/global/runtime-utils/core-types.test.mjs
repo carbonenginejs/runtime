@@ -41,7 +41,7 @@ test("the runtime model foundation exposes the raw emitter without an event scop
 
 
 
-test("lifecycle state can be installed independently of CjsModel", () => {
+test("lifecycle state can be installed on a plain object", () => {
     const target = {};
     assert.equal(getLifecycleState(target), null);
     assert.equal(Object.hasOwn(target, "__state"), false);
@@ -61,7 +61,7 @@ test("lifecycle state can be installed independently of CjsModel", () => {
 
 
 
-// Removed: "CjsModel Merge deep-merges raw value bags..." - Merge: the feature has no Blue counterpart and no production caller, and was dropped with the move to Blue's values engine (operator, 2026-09-27; docs research/blue-values-engine.md).
+
 
 
 

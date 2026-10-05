@@ -15,9 +15,8 @@
 // existence is an ownership decision, not a lint's.
 //
 // JS method resolution credits the full chain: own methods, base classes,
-// and contract mixins - `withITr2ControllerAction(CjsModel)` credits both
-// CjsModel's chain AND ITr2ControllerAction's declared methods, because the
-// mixin installs the contract's bodies. @carbon.renamed("X") counts as X, and
+// and declared contract methods. Composed interfaces contribute their bodies
+// alongside the primary prototype chain. @meta.blue.renamed("X") counts as X, and
 // so does carbon.renamed("X") given at define time - in a
 // `CjsSchema.define(Class, { methods: { Name: [ ... ] } })` map or a
 // `CjsSchema.decorateMethod(Class, "Name", ...)` call - which is the only form

@@ -12,13 +12,11 @@
 // A class takes its PRIMARY Carbon base with ordinary `extends`, and declares
 // each ADDITIONAL base with this decorator:
 //
-//   @carbon.inherit(Tr2RenderContextAL)
+//   @meta.blue.inherit(Tr2RenderContextAL)
 //   class Tr2RenderContext extends Tr2RenderContextBase { }
 //
-// which reads as Carbon's own base list. Measured 2026-09-07: of 75 tower
-// sites, 42 are a single mixin over CjsModel and need no decorator at all once
-// CjsModel stops occupying the slot - the contract simply becomes the base.
-// 24 carry one real Carbon base plus one contract, and 9 are deeper.
+// The primary base uses the prototype chain; additional declared bases supply
+// their members without replacing the class's own implementation.
 //
 // NO BRAND IS INSTALLED HERE, deliberately. Brands exist only where Carbon
 // itself casts (the BlueCastPtr ports); capability discovery and test lineage

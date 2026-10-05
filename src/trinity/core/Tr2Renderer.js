@@ -70,25 +70,10 @@ export const PER_OBJECT_PS = 4;
 
 
 /**
- * Renderer-wide state: the register map now, the frame clock and camera later.
- *
- * NOT A `CjsModel`, and the reason is CATEGORY RATHER THAN COST. Operator,
- * 2026-09-05: "CjsModel is only for things that actually need to hydrate", and
- * "there should be little cost in making something a CjsModel". Both are true
- * at once, and the second is why the first has to be stated as a rule - if the
- * base were expensive, nobody would need telling.
- *
- * A model is an object that arrives from a `.red`/`.black` values graph. This
- * one is composed at runtime by the library, carries no `@edit` field, and is
- * named as a type by nothing, so a hydration identity describes something that
- * can never happen. The same goes for the abstraction layer and the resource
- * and GPU classes - none of them is ever part of a serialized object. The AL
- * family already complies.
- *
- * IT IS STILL DECORATED, and that is the point worth keeping straight:
- * decorators are not only hydration. `@type.define` gives the class an
- * identity that tooling and the UI read, and `@carbon.method` is how the
- * parity audit sees a method at all. Dropping `CjsModel` costs neither.
+ * Owns renderer-wide shader register defaults and runtime rendering state.
+ * Composed by the library without authored fields or serialized instance state.
+ * Class and method decorators expose identity and native contracts to tooling
+ * independently of graph hydration.
  */
 @meta.define({ className: "Tr2Renderer", family: "trinityCore" })
 export class Tr2Renderer
