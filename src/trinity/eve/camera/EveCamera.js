@@ -1,6 +1,6 @@
+// Source: trinity/trinity/Eve/EveCamera.h
 import { IsMatch, TimeAsDouble } from "#blue";
 import { INotify } from "../../../global/blue/INotify.js";
-// Source: trinity/trinity/Eve/EveCamera.h
 //   trinity/trinity/Eve/EveCamera.cpp
 //   trinity/trinity/Eve/EveCamera_Blue.cpp
 import { CjsSchema, meta } from "#schema";
@@ -629,10 +629,12 @@ export class EveCamera
    * Carbon reads real time and the device aspect ratio from globals. The
    * portable runtime accepts them explicitly while retaining simulation time
    * as argument zero for TriStepSetView compatibility.
+   *
+   * Adapted: Receives Carbon's global device aspect ratio and real clock as optional
+   * arguments so the camera remains GPU- and platform-free.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Receives Carbon's global device aspect ratio and real clock as optional arguments so the camera remains GPU- and platform-free.")
   Update(time, aspectRatio = 1, realTime = time)
   {
     if (!this.update)
@@ -855,10 +857,12 @@ export class EveCamera
    * Re-derives yaw and pitch when the parent-orbit rotation quaternion changes,
    * and re-evaluates interest tracking (clearing the interest orbit speeds) when
    * the interest object changes.
+   *
+   * Adapted: JS dispatches the native hook using the exposed member name; existing
+   * class-owned rendering/resource adaptations remain unchanged.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "rotationAroundParent"))
