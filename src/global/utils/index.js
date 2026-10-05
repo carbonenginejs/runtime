@@ -1,6 +1,7 @@
 export * from "./arrays.js";
 export * from "./bytes.js";
 export * from "./compression.js";
+export * from "./effectPath.js";
 export * from "./errors/index.js";
 export * from "./is.js";
 export * from "./json.js";

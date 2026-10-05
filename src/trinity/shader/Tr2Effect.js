@@ -17,7 +17,7 @@ import { blue, BlueList, IInitialize, INotify, IListNotify } from "#blue";
 import { ReadValues } from "../../global/blue/values.js";
 import { ITriEffectParameter } from "./parameter/ITriEffectParameter.js";
 import { BLUELISTEVENT } from "#consts/blue";
-import { normalizeResourcePath } from "#utils/path";
+import { GetEffectPathDefaults, NormalizeResourcePath, ResolveEffectPath } from "#utils/effectPath";
 import { Tr2EffectStateManager } from "./Tr2EffectStateManager.js";
 import { Tr2ShaderOption } from "./reflection/Tr2ShaderOption.js";
 import { Tr2SamplerOverride } from "./sampler/Tr2SamplerOverride.js";
@@ -2001,118 +2001,6 @@ export class Tr2Effect extends Tr2Material
   }
 
   /**
-   * Quality tokens to Carbon's compiled shader suffix (`Tr2Effect.cpp:340-360`).
-   *
-   * The tier names are the organization's shader-tier policy and are NOT
-   * self-evident from the suffixes: `.sm_depth` is HIGH, `.sm_hi` is MEDIUM and
-   * `.sm_lo` is LOW. `.sm_depth` does not mean a depth-only shader - it is the
-   * top tier, and it is the variant that carries the local lights.
-   */
-  static shaderModelSuffixes = Object.freeze({
-    low: "sm_lo",
-    lo: "sm_lo",
-    medium: "sm_hi",
-    med: "sm_hi",
-    hi: "sm_hi",
-    high: "sm_depth",
-    depth: "sm_depth",
-    sm_lo: "sm_lo",
-    sm_hi: "sm_hi",
-    sm_depth: "sm_depth"
-  });
-
-  /**
-   * The platform name and quality tier path conversion substitutes. They stand
-   * in for the globals Carbon reads: `TRINITY_PLATFORM_NAME` (Tr2PlatformInfo)
-   * and `Tr2Renderer::GetShaderModel`. Nothing is defaulted: an absent platform
-   * name means no backend is committed.
-   */
-  static _effectPathDefaults = { platformName: null, shaderModel: "high" };
-
-  /**
-   * The compiled suffix for a quality token, throwing on one it cannot map.
-   *
-   * @param {string} [quality="high"] Quality token or suffix.
-   * @returns {string} Suffix such as `sm_depth`.
-   */
-  static shaderModelSuffix(quality = "high")
-  {
-    const normalized = normalizeResourcePath(quality);
-    const suffix = Tr2Effect.shaderModelSuffixes[normalized];
-
-    if (!suffix)
-    {
-      throw new RangeError(`Tr2Effect: unknown shader quality ${JSON.stringify(quality)}`);
-    }
-
-    return suffix;
-  }
-
-  /**
-   * Resolves an authored `/effect/*.fx` path to the compiled path a backend
-   * loads, substituting the platform name exactly as Carbon's
-   * `ConvertEffectPath` does (`Tr2Effect.cpp:309-370`).
-   *
-   * Substitution touches `/effect/` alone, so a path that already names a
-   * tree - `/effect.webgpu/`, or one of CCP's own trees while testing - passes
-   * through untouched. Throws when an authored path has no platform name to
-   * substitute, since it would otherwise resolve to something no backend loads.
-   *
-   * @param {string} path Authored effect path.
-   * @param {object} [options] `{ platformName, shaderModel }`.
-   * @returns {string} Compiled path.
-   */
-  static resolveEffectPath(path, options = {})
-  {
-    const normalized = normalizeResourcePath(path);
-
-    if (!normalized) return normalized;
-    if (!normalized.endsWith(".fx")) return normalized;
-
-    const base = normalized.slice(0, -3);
-    const suffix = Tr2Effect.shaderModelSuffix(options.shaderModel ?? "high");
-
-    if (!base.includes("/effect/")) return `${base}.${suffix}`;
-
-    const platformName = options.platformName;
-
-    if (!platformName)
-    {
-      throw new Error(
-        `Tr2Effect: cannot resolve ${JSON.stringify(path)} without a platform name; `
-        + "no backend is committed, so there is no compiled effect tree to resolve into"
-      );
-    }
-
-    return `${base.replace("/effect/", `/effect.${platformName}/`)}.${suffix}`;
-  }
-
-  /**
-   * Installs the platform name and quality tier conversion substitutes. The
-   * host owns these; null returns to the uncommitted state.
-   *
-   * @param {object|null} values `{ platformName, shaderModel }`.
-   * @returns {void}
-   */
-  static setEffectPathDefaults(values = null)
-  {
-    Tr2Effect._effectPathDefaults = {
-      platformName: values?.platformName ?? null,
-      shaderModel: values?.shaderModel ?? "high"
-    };
-  }
-
-  /**
-   * The installed platform name and quality tier.
-   *
-   * @returns {object} `{ platformName, shaderModel }`.
-   */
-  static getEffectPathDefaults()
-  {
-    return { ...Tr2Effect._effectPathDefaults };
-  }
-
-  /**
    * Resolves an authored effect path to the compiled path a backend loads.
    *
    * Carbon's `ConvertEffectPath` (Tr2Effect.cpp:309-370) does three things:
@@ -2139,17 +2027,17 @@ export class Tr2Effect extends Tr2Material
 
     if (!authored) return "";
 
-    const installed = Tr2Effect.getEffectPathDefaults();
+    const installed = GetEffectPathDefaults();
     const platformName = options.platformName ?? installed.platformName ?? null;
     const shaderModel = options.shaderModel ?? installed.shaderModel ?? "high";
-    const normalized = normalizeResourcePath(authored);
+    const normalized = NormalizeResourcePath(authored);
 
     if (!platformName && normalized.endsWith(".fx") && normalized.includes("/effect/"))
     {
       return "";
     }
 
-    return Tr2Effect.resolveEffectPath(normalized, { platformName, shaderModel });
+    return ResolveEffectPath(normalized, { platformName, shaderModel });
   }
 
   /**
