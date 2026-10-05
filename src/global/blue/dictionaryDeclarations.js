@@ -20,6 +20,7 @@ export function getDictionaryDeclarations(Constructor)
 
   const fields = [];
   const byName = new Map();
+  const aliasesOf = [];
   for (let owner = Constructor; typeof owner === "function"; owner = Object.getPrototypeOf(owner))
   {
     for (const declarations of [schema.members, schema.properties])
@@ -27,6 +28,8 @@ export function getDictionaryDeclarations(Constructor)
       for (const field of declarations)
       {
         if (field.declaringClass !== owner || byName.has(field.name)) continue;
+        // @meta.alias getters are second names for another field, not fields.
+        if (field.aliasOf !== undefined) { aliasesOf.push(field); continue; }
         byName.set(field.name, field);
         fields.push(field);
       }
@@ -41,6 +44,11 @@ export function getDictionaryDeclarations(Constructor)
     {
       if (typeof alias === "string" && alias && !byName.has(alias) && !aliases.has(alias)) aliases.set(alias, field);
     }
+  }
+  for (const field of aliasesOf)
+  {
+    const target = byName.get(field.aliasOf);
+    if (target && !byName.has(field.name) && !aliases.has(field.name)) aliases.set(field.name, target);
   }
   const view = { schema, fields, byName, aliases };
   VIEWS.set(Constructor, view);

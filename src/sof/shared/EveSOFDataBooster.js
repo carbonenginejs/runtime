@@ -259,6 +259,7 @@ export class EveSOFDataBooster
    * @returns {Float32Array} The existing warpHalpColor storage.
    */
   @meta.ours
+  @meta.alias("warpHalpColor")
   get warpHaloColor()
   {
     return this.warpHalpColor;

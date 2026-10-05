@@ -29,6 +29,7 @@ const SCHEMA_EXPORTS = new WeakMap();
 const DEFAULT_EXPORTS = new WeakMap();
 const FIELD_INITIAL_DEFAULTS = new WeakMap();
 const VALUES_DECLARATIONS = new WeakMap();
+const VALUES_ALIASES = new WeakMap();
 const FIELD_DECLARATION_METADATA = new WeakMap();
 let SCHEMA_GENERATION = 0;
 
@@ -933,6 +934,20 @@ export class CjsSchema
         });
     };
 
+    /**
+     * `@meta.alias("target")` on a getter: the getter's name is a second name for
+     * the field `target`, as ccpwgl's `alias` decorator declared it. Readers and
+     * the values view resolve the getter's name to `target`; the getter is not
+     * an exposed field of its own, so nothing writes the value twice.
+     */
+    static #alias = target => {
+        if (typeof target !== "string" || !target.trim())
+        {
+            throw new TypeError("meta.alias requires a non-empty target field name.");
+        }
+        return fieldDecorator("aliasOf", target.trim());
+    };
+
     static #carbon = {
         // Carbon's base list and Carbon's exposure table: two different facts,
         // two decorators, both factual and so both here rather than in
@@ -1006,6 +1021,7 @@ export class CjsSchema
         ...Object.fromEntries(Object.entries(this.#impl).filter(([name]) => name !== "custom")),
         ours: this.#impl.custom,
         renamed: this.#renamed,
+        alias: this.#alias,
         ...this.#lifecycle,
         events: this.#compose.notify,
         requires: this.#compose.abstract,
@@ -2202,19 +2218,25 @@ function findValuesDeclaration(Constructor, name, storage = false)
     if (!selected)
     {
         selected = new Map();
+        const aliasesOf = new Map();
         for (let owner = Constructor; typeof owner === "function"; owner = Object.getPrototypeOf(owner))
         {
             for (const fields of [info.members, info.properties])
             {
                 for (const field of fields)
                 {
-                    if (field.declaringClass === owner && !selected.has(field.name)) selected.set(field.name, field);
+                    if (field.declaringClass !== owner || selected.has(field.name)) continue;
+                    if (field.aliasOf === undefined) selected.set(field.name, field);
+                    else if (!aliasesOf.has(field.name)) aliasesOf.set(field.name, field.aliasOf);
                 }
             }
         }
         VALUES_DECLARATIONS.set(info, selected);
+        VALUES_ALIASES.set(info, aliasesOf);
     }
     if (selected.has(name)) return selected.get(name);
+    const aliasTarget = VALUES_ALIASES.get(info)?.get(name);
+    if (aliasTarget !== undefined && selected.has(aliasTarget)) return selected.get(aliasTarget);
     for (const field of selected.values())
     {
         const aliases = field.aliases ?? (field.alias === undefined ? [] : [field.alias]);
