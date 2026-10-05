@@ -104,10 +104,14 @@ export class Tr2Light
     );
   }
 
-  /** Applies a whole LightData bag onto the flattened light fields. */
+  /**
+   * Applies a whole LightData bag onto the flattened light fields.
+   *
+   * Adapted: Uses JS values coercion for the flattened light data without invoking
+   * notification or event transport.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Uses JS values coercion for the flattened light data without invoking notification or event transport.")
   SetLightData(lightData)
   {
     return this.SetValues({ lightData }, { markDirty: false, skipEvents: true });
@@ -124,10 +128,14 @@ export class Tr2Light
     this.brightnessMultiplier = Number(multiplier);
   }
 
-  /** Sets the light colour, returning whether the value actually changed. */
+  /**
+   * Sets the light colour, returning whether the value actually changed.
+   *
+   * Adapted: Uses JS values coercion for the flattened light data without invoking
+   * notification or event transport.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Uses JS values coercion for the flattened light data without invoking notification or event transport.")
   ChangeLightColor(color)
   {
     return this.SetValues({ color }, { returnBoolean: true, markDirty: false, skipEvents: true });
@@ -184,12 +192,11 @@ export class Tr2Light
    * (AreLightFlagsValid, cpp:126-129), the bone refresh, then
    * lightTransform = boneTransform * transform - Carbon row-vector, bone
    * first, so the gl-matrix operands SWAP (cpp:132) - and the point/spot
-   * conversion submitted to the duck manager. QUIRKS: UNDEFINED_LIGHT
+   * conversion submitted to the light manager. QUIRKS: UNDEFINED_LIGHT
    * submits NOTHING (a deserialized base light is silently inert); Carbon's
    * profileIndex here is GetTextureIndex() + 1 while the packed sets use no
    * +1 - moot in JS (the profile rides the record by reference) but
    * recorded. The record is scratch; the manager must copy. */
-  @meta.blue.method
   /**
    * Refreshes whatever this light derives from its own state each frame.
    *
@@ -208,6 +215,7 @@ export class Tr2Light
    * declares and we do not. Registered rather than guessed at.
    */
   @meta.blue.method
+  @meta.blue.method
   @meta.noop
   Update()
   {
@@ -216,9 +224,12 @@ export class Tr2Light
   /**
    * Updates dynamic light data and submits a transformed point or spot light
    * when its flags are valid.
+   *
+   * Adapted: The profile-index flag packing and half-float narrowing are renderer-backend
+   * concerns (record carries the profile by reference); the Perlin brightness flicker awaits
+   * the frame-clock seam (see lightConversion.js).
    */
   @meta.adapted
-  @meta.reason("The profile-index flag packing and half-float narrowing are renderer-backend concerns (record carries the profile by reference); the Perlin brightness flicker awaits the frame-clock seam (see lightConversion.js).")
   AddLight(lightManager, transform, scale, bones = null, boneCount = 0)
   {
     if (this.isDynamic)
@@ -260,15 +271,19 @@ export class Tr2Light
     lightManager?.AddLight(record);
   }
 
-  /** Carbon Tr2Light::GetLight (Tr2Light.cpp:152-163): position and radius
+  /**
+   * Carbon Tr2Light::GetLight (Tr2Light.cpp:152-163): position and radius
    * straight from the light data, color = authored rgb * brightness. Carbon's
    * three reference out-params become one out record (JS out-params go last
    * and are returned). The color is the rgb triple - the alpha channel is
    * unused by every Carbon consumer of this method (EveChildCloud2's light
-   * block takes GetXYZ). */
+   * block takes GetXYZ).
+   *
+   * Adapted: The Perlin noise flicker (cpp:157-161) reads the global frame clock (BeOS
+   * GetCurrentFrameTime) - an engine seam; the base brightness is used until it lands.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The Perlin noise flicker (cpp:157-161) reads the global frame clock (BeOS GetCurrentFrameTime) - an engine seam; the base brightness is used until it lands.")
   GetLight(out = { position: vec3.create(), radius: 0, color: vec3.create() })
   {
     const lightData = this.lightData;
@@ -298,10 +313,11 @@ export class Tr2Light
   /**
    * Carbon OnModified (Tr2Light.cpp:177-189): a lightProfilePath change
    * re-resolves the profile.
+   *
+   * Adapted: JS identifies Carbon's changed member address by its exposed property name.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JS identifies Carbon's changed member address by its exposed property name.")
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "lightProfilePath")) this._ResolveLightProfile();

@@ -1,6 +1,6 @@
-import { IInitialize, INotify } from "#blue";
 // Source: trinity/trinity/Lights/Tr2PointLight.cpp
 // Source: trinity/trinity/Lights/Tr2PointLight_Blue.cpp
+import { IInitialize, INotify } from "#blue";
 // Flattened LightData surface (2026-07-23 decision): the m_lightData.* Blue
 // attributes are real decorated fields here, verified against
 // lights/Tr2PointLight.json (tools-core schema build).

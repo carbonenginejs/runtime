@@ -1,7 +1,7 @@
-import { IsMatch, IInitialize, INotify } from "#blue";
-﻿// Source: trinity/trinity/Lights/Tr2TexturedPointLight.h
+// Source: trinity/trinity/Lights/Tr2TexturedPointLight.h
 // Source: trinity/trinity/Lights/Tr2TexturedPointLight.cpp
 // Source: trinity/trinity/Lights/Tr2TexturedPointLight_Blue.cpp
+import { IsMatch, IInitialize, INotify } from "#blue";
 // Flattened LightData surface (2026-07-23 decision): texturePath joins the
 // flat fields inherited from Tr2PointLight, verified against
 // lights/Tr2TexturedPointLight.json (tools-core schema build).
@@ -71,10 +71,11 @@ export class Tr2TexturedPointLight extends Tr2PointLight
 
   /**
    * Carbon OnModified (cpp:42–49): texture changes refetch, then forward base.
+   *
+   * Adapted: JS identifies Carbon's changed member address by its exposed property name.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JS identifies Carbon's changed member address by its exposed property name.")
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "texturePath")) this.SetTexturePath(this.texturePath);
@@ -98,12 +99,13 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   }
 
   /**
-   * Carbon Update (cpp:51-56): the light colour becomes the texture's
-   * average colour run through Carbon's Saturate - the grey-to-colour lerp
-   * (Color_inline.h:161), not a clamp. TriTextureRes caches the average when
-   * its image loads; without a texture the colour is left as it is.
+   * Applies the texture's average colour with the configured saturation.
+   * Carbon Update (Tr2TexturedPointLight.cpp:51-57); no texture leaves the colour unchanged.
+   *
+   * @returns {void}
    */
   @meta.blue.method
+  @meta.implemented
   Update()
   {
     if (!this.texture) return;

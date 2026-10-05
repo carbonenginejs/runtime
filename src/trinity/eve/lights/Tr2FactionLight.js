@@ -1,5 +1,5 @@
-import { IsMatch, IInitialize, INotify } from "#blue";
 // Source: trinity/trinity/Lights/Tr2FactionLight.h
+import { IsMatch, IInitialize, INotify } from "#blue";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 // Flattened LightData surface (2026-07-23 decision): the m_lightData.* Blue
 // attributes are real decorated fields here, verified against
@@ -208,9 +208,11 @@ export class Tr2FactionLight extends Tr2Light
 
   /**
    * Switches the light between spot and point when the spotlight flag is edited, and recomputes the faction-derived colour when the faction colour or saturation changes.
+   *
+   * Adapted: Browser property notifications identify the changed field by name rather than
+   * Carbon's Be::Var pointer.
    */
   @meta.adapted
-  @meta.reason("Browser property notifications identify the changed field by name rather than Carbon's Be::Var pointer.")
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "isSpotlight"))
