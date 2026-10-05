@@ -1,6 +1,6 @@
+// Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionPlacementGenerators/EveDistributionPlacementGeneratorParentLocators.h
 import { IsMatch } from "#blue";
 import { INotify } from "../../../../global/blue/INotify.js";
-// Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionPlacementGenerators/EveDistributionPlacementGeneratorParentLocators.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta } from "#schema";
 import { IEveDistributionPlacementGenerators } from "./IEveDistributionPlacementGenerators.js";
@@ -108,10 +108,12 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
   /**
    * Invalidates the resolved locator set after an authored change so the next
    * update re-reads it.
+   *
+   * Adapted: JS dispatches the native hook using the exposed member name; existing
+   * class-owned rendering/resource adaptations remain unchanged.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "locatorSetName")) this._regenerated = false;
@@ -121,10 +123,12 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
   /**
    * Invalidates the resolved locator set so the next update re-reads it from the
    * parent.
+   *
+   * Adapted: JavaScript retains explicit invalidation state in place of native
+   * structure-list notifier ownership.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JavaScript retains explicit invalidation state in place of native structure-list notifier ownership.")
   OnStructureListModified(_event, _item, _index, _list)
   {
     this._regenerated = false;

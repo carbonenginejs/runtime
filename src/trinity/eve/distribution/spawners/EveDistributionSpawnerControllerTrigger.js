@@ -1,6 +1,6 @@
+// Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerControllerTrigger.h
 import { IsMatch } from "#blue";
 import { INotify } from "../../../../global/blue/INotify.js";
-// Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerControllerTrigger.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta } from "#schema";
 import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
