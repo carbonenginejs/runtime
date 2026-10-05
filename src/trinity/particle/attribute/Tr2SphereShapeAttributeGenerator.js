@@ -132,9 +132,11 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
 
   /**
    * Samples a direction within the configured cone and radius range to write one particle's position and velocity offset.
+   *
+   * Adapted: Carbon's particle RNG is replaced by Math.random while retaining its cone
+   * sampling, rotation and distribution-exponent order.
    */
   @meta.adapted
-  @meta.reason("Carbon's particle RNG is replaced by Math.random while retaining its cone sampling, rotation and distribution-exponent order.")
   Generate(parentPosition, parentVelocity, index)
   {
     if (!this.valid || (!this.controlPosition && !this.controlVelocity))
@@ -192,11 +194,12 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
   }
 
   /** Carbon returns via reference arguments (Tr2SphereShapeAttributeGenerator.cpp:215-219). */
-  @meta.adapted
   /**
    * Writes the generator's current position and rotation into the caller's vector and quaternion.
+   *
+   * Adapted: Carbon's paired reference outputs become caller-provided out arguments.
    */
-  @meta.reason("Carbon's paired reference outputs become caller-provided out arguments.")
+  @meta.adapted
   GetTransform(outPosition, outRotation)
   {
     vec3.copy(outPosition, this.position);

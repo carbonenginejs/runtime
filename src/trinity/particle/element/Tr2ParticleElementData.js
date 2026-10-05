@@ -26,11 +26,14 @@ export class Tr2ParticleElementData
   offset = 0;
 
   /**
-   * Creates Carbon's invalid element descriptor: dimension, usage index and
-   * offset zero, `bufferType` the COUNT sentinel. `none` is the factory's local
-   * name, not a descriptor property.
+   * Creates an invalid element descriptor with zero dimension, usage index and offset,
+   * and the COUNT buffer sentinel.
+   * Carbon Invalid (Tr2ParticleElementDeclaration.h:82-90).
+   *
+   * @returns {Tr2ParticleElementData} The invalid descriptor.
    */
   @meta.blue.method
+  @meta.implemented
   static Invalid()
   {
     const none = new Tr2ParticleElementData();

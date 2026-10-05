@@ -39,9 +39,10 @@ export class Tr2ParticleTurbulenceForce extends ITr2ParticleForce
 
   /**
    * Samples the four-dimensional turbulence field at a particle's position and time, scaled by the configured amplitude.
+   *
+   * Adapted: Uses core-math's browser port of Carbon's four-dimensional turbulence lookup.
    */
   @meta.adapted
-  @meta.reason("Uses core-math's browser port of Carbon's four-dimensional turbulence lookup.")
   GetForce(position, _velocity, _dt, _mass, out = vec3.create())
   {
     vec3.set(out, 0, 0, 0);

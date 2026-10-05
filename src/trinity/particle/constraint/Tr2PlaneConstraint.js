@@ -1,6 +1,6 @@
+// Source: trinity/trinity/Particle/Tr2PlaneConstraint.h
 import { IsMatch } from "#blue";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
-// Source: trinity/trinity/Particle/Tr2PlaneConstraint.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { CjsSchema, meta } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";

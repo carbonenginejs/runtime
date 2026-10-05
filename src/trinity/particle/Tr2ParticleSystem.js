@@ -1,5 +1,5 @@
-import { IInitialize, INotify, IsMatch, ISimTimeRebaseNotify, blue, TimeAsDouble } from "#blue";
 // Source: trinity/trinity/Particle/Tr2ParticleSystem.h
+import { IInitialize, INotify, IsMatch, ISimTimeRebaseNotify, blue, TimeAsDouble } from "#blue";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta } from "#schema";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
@@ -327,10 +327,14 @@ export class Tr2ParticleSystem
     this._bufferDirty = true;
   }
 
-  /** Carbon method RebindConstraints (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method RebindConstraints (MAP_METHOD_AND_WRAP).
+   *
+   * Adapted: JavaScript has no particle-system pointer binding; constraints receive the
+   * owning model directly.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JavaScript has no particle-system pointer binding; constraints receive the owning model directly.")
   RebindConstraints()
   {
     for (const constraint of this.constraints)

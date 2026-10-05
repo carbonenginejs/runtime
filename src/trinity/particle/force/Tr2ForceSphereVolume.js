@@ -42,10 +42,10 @@ export class Tr2ForceSphereVolume extends ITr2ParticleForce
    * the contained forces intentionally do NOT receive per-frame updates
    * through the volume.
    */
-  @meta.noop
   /**
    * Does nothing: the contained forces are not updated through the volume.
    */
+  @meta.noop
   Update(_dt)
   {
   }

@@ -45,9 +45,11 @@ export class Tr2RandomDirectionAttributeGenerator extends ITr2AttributeGenerator
 
   /**
    * Writes a random unit vector, sized to the bound element's dimension, into the particle's element slot.
+   *
+   * Adapted: Carbon's particle RNG is replaced by Math.random while retaining its
+   * rejection-free normalize-or-fallback sampling.
    */
   @meta.adapted
-  @meta.reason("Carbon's particle RNG is replaced by Math.random while retaining its rejection-free normalize-or-fallback sampling.")
   Generate(position, velocity, index)
   {
     if (!this.valid)

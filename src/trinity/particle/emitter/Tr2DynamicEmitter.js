@@ -58,10 +58,14 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   @meta.type.model("Tr2ParticleSystem")
   particleSystem = null;
 
-  /** Carbon method Rebind (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Rebind (MAP_METHOD_AND_WRAP).
+   *
+   * Adapted: Browser attribute generators bind directly to the CPU particle-system adapter
+   * rather than native declaration pointers.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Browser attribute generators bind directly to the CPU particle-system adapter rather than native declaration pointers.")
   Rebind()
   {
     this.#emittedParticles = 0;
@@ -100,9 +104,11 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    * ITr2GenericEmitter.Update (Tr2DynamicEmitter.cpp:109-123): clamp the frame
    * delta to 0.3s and spawn at the constant rate scaled by the LOD
    * emit-count factor.
+   *
+   * Adapted: Be::Time is represented as float seconds on the nominal JavaScript
+   * update-arguments record.
    */
   @meta.adapted
-  @meta.reason("Be::Time is represented as float seconds on the nominal JavaScript update-arguments record.")
   Update(updateArguments)
   {
     if (!this.isValid || !this.particleSystem)
@@ -138,10 +144,10 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   }
 
   /** INotify.OnModified (Tr2DynamicEmitter.cpp:63-74): rebind on particle-system changes. */
-  @meta.implemented
   /**
    * Rebinds the attribute generators and re-propagates the thread-safe flag whenever the particle-system reference changes.
    */
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "particleSystem"))
@@ -155,9 +161,13 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
     return true;
   }
 
-  /** ITr2GenericEmitter.SetThreadSafeFlag (Tr2DynamicEmitter.cpp:81-88). */
+  /**
+   * ITr2GenericEmitter.SetThreadSafeFlag (Tr2DynamicEmitter.cpp:81-88).
+   *
+   * Adapted: JavaScript updates are single-threaded; the flag is retained and propagated
+   * only for Carbon contract parity.
+   */
   @meta.adapted
-  @meta.reason("JavaScript updates are single-threaded; the flag is retained and propagated only for Carbon contract parity.")
   SetThreadSafeFlag()
   {
     this.#isThreadSafe = true;

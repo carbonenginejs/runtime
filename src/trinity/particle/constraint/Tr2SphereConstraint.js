@@ -143,9 +143,11 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
    * via the swept branch's early continues - particles that neither collide
    * nor enter the swept test still fall through to it, and that control flow
    * is preserved.
+   *
+   * Adapted: Runs single-threaded against the CPU element views; Carbon's particle RNG is
+   * replaced by Math.random.
    */
   @meta.adapted
-  @meta.reason("Runs single-threaded against the CPU element views; Carbon's particle RNG is replaced by Math.random.")
   ApplyConstraint(arguments_, _buffers, _strides, count, dt)
   {
     if (!this.isValid)

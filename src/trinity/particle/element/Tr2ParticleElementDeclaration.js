@@ -40,11 +40,14 @@ export class Tr2ParticleElementDeclaration
   usageIndex = 0;
 
   /**
-   * Returns the native semantic size (2 for lifetime, 3 for position and
-   * velocity, 1 for mass) or, for CUSTOM elements, the authored `dimension`
-   * unclamped. Tr2ParticleSystem lays out its element buffers from this value.
+   * Returns the semantic dimension, or the authored dimension for CUSTOM elements.
+   * Carbon GetSize (Tr2ParticleElementDeclaration.cpp:118-132).
+   *
+   * @returns {number} Two for lifetime, three for position or velocity, one for mass,
+   * or the custom dimension.
    */
   @meta.blue.method
+  @meta.implemented
   GetSize()
   {
     if (this.elementType === Tr2ParticleElementDeclarationName.Type.CUSTOM)

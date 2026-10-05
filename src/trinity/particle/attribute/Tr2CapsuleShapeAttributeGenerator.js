@@ -130,9 +130,11 @@ export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
 
   /**
    * Samples a random cone direction and capsule interpolation point to write one particle's velocity and position offset from the parent transform.
+   *
+   * Adapted: Carbon's particle RNG is replaced by Math.random while retaining its capsule
+   * sampling and interpolation order.
    */
   @meta.adapted
-  @meta.reason("Carbon's particle RNG is replaced by Math.random while retaining its capsule sampling and interpolation order.")
   Generate(parentPosition, parentVelocity, index)
   {
     if (!this.valid)

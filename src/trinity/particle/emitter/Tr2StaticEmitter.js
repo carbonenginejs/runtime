@@ -1,6 +1,6 @@
+// Source: trinity/trinity/Particle/Tr2StaticEmitter.h
 import { IsMatch } from "#blue";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
-// Source: trinity/trinity/Particle/Tr2StaticEmitter.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta } from "#schema";
 import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
@@ -51,20 +51,24 @@ export class Tr2StaticEmitter
   geometryResourcePath = "";
 
   /** Carbon method Spawn (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
   /**
    * Resets the one-shot spawn flag so the emitter spawns again on the next update.
    */
+  @meta.blue.method
   @meta.implemented
   Spawn()
   {
     this.hasSpawnedParticles = false;
   }
 
-  /** Carbon method ForceSpawn -> DoSpawn (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method ForceSpawn -> DoSpawn (MAP_METHOD_AND_WRAP).
+   *
+   * Adapted: Accepts decoded particle rows or a host geometry SpawnParticles adapter; native
+   * CMF/Granny vertex-buffer mapping remains resource-owned.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Accepts decoded particle rows or a host geometry SpawnParticles adapter; native CMF/Granny vertex-buffer mapping remains resource-owned.")
   ForceSpawn()
   {
     if (!this.particleSystem?.isValid || !this.geometryResource)
@@ -103,9 +107,11 @@ export class Tr2StaticEmitter
   /**
    * IInitialize.Initialize (Tr2StaticEmitter.cpp:35-48): Carbon starts the
    * geometry resource fetch and propagates the thread-safe contract.
+   *
+   * Adapted: Resource streaming is host-owned in the browser; geometryResource arrives via
+   * the loader, so only the thread-safe propagation is mirrored.
    */
   @meta.adapted
-  @meta.reason("Resource streaming is host-owned in the browser; geometryResource arrives via the loader, so only the thread-safe propagation is mirrored.")
   Initialize()
   {
     if (this.particleSystem && this.#isThreadSafe)
@@ -119,9 +125,11 @@ export class Tr2StaticEmitter
    * INotify.OnModified (Tr2StaticEmitter.cpp:60-76): geometry path changes
    * restart the resource fetch (host-owned here); particle-system changes
    * re-propagate the thread-safe contract.
+   *
+   * Adapted: Geometry reloads are host-owned; only Carbon's particle-system thread-safe
+   * propagation applies on the CPU side.
    */
   @meta.adapted
-  @meta.reason("Geometry reloads are host-owned; only Carbon's particle-system thread-safe propagation applies on the CPU side.")
   OnModified(propertyName)
   {
     if ((IsMatch(propertyName, "particleSystem")) && this.#isThreadSafe && this.particleSystem)
@@ -132,11 +140,13 @@ export class Tr2StaticEmitter
   }
 
   /** ITr2GenericEmitter.SetThreadSafeFlag (Tr2StaticEmitter.cpp:83-90). */
-  @meta.adapted
   /**
    * Marks the emitter thread-safe and propagates the flag to its particle system.
+   *
+   * Adapted: JavaScript updates are single-threaded; the flag is retained and propagated
+   * only for Carbon contract parity.
    */
-  @meta.reason("JavaScript updates are single-threaded; the flag is retained and propagated only for Carbon contract parity.")
+  @meta.adapted
   SetThreadSafeFlag()
   {
     this.#isThreadSafe = true;
