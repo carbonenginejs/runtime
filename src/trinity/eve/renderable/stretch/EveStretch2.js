@@ -1,8 +1,8 @@
+// Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch2.h
+// Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch2.cpp
 import { IsMatch, TimeAsDouble } from "#blue";
 import { INotify } from "../../../../global/blue/INotify.js";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
-// Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch2.h
-// Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch2.cpp
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -62,44 +62,57 @@ export class EveStretch2 extends IEveFiringEffectElement
 
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.string name = "";
+ @meta.type.string
+  name = "";
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("TriCurveSet") loop = null;
+ @meta.type.model("TriCurveSet")
+  loop = null;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("TriCurveSet") start = null;
+ @meta.type.model("TriCurveSet")
+  start = null;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("TriCurveSet") end = null;
+ @meta.type.model("TriCurveSet")
+  end = null;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("Tr2Effect") effect = null;
+ @meta.type.model("Tr2Effect")
+  effect = null;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("Tr2GpuSharedEmitter") destinationEmitter = null;
+ @meta.type.model("Tr2GpuSharedEmitter")
+  destinationEmitter = null;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("Tr2GpuSharedEmitter") sourceEmitter = null;
+ @meta.type.model("Tr2GpuSharedEmitter")
+  sourceEmitter = null;
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.uint32 quadCount = 0;
+ @meta.type.uint32
+  quadCount = 0;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("TriObserverLocal") destinationObserver = null;
+ @meta.type.model("TriObserverLocal")
+  destinationObserver = null;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("TriObserverLocal") sourceObserver = null;
+ @meta.type.model("TriObserverLocal")
+  sourceObserver = null;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("Tr2PointLight") destinationLight = null;
+ @meta.type.model("Tr2PointLight")
+  destinationLight = null;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("Tr2PointLight") sourceLight = null;
+ @meta.type.model("Tr2PointLight")
+  sourceLight = null;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.float32 boundingRadius = 100;
+ @meta.type.float32
+  boundingRadius = 100;
 
   _source = vec3.create();
   _destination = vec3.create();
@@ -133,7 +146,8 @@ export class EveStretch2 extends IEveFiringEffectElement
    * Carbon Initialize (cpp:96-100): prepares the device half. Adapted: Carbon
    * asserts an authored quadCount over 128 (cpp:105); this throws.
    */
-  @meta.blue.method @meta.adapted
+  @meta.blue.method
+  @meta.adapted
   Initialize()
   {
     if (this.quadCount > EveStretch2.MAX_QUAD_COUNT)
@@ -145,7 +159,8 @@ export class EveStretch2 extends IEveFiringEffectElement
   }
 
   /** Carbon OnModified (cpp:102-111): a new quad count re-prepares; over 128 throws (Carbon asserts). */
-  @meta.blue.method @meta.adapted
+  @meta.blue.method
+  @meta.adapted
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "quadCount"))
@@ -161,14 +176,16 @@ export class EveStretch2 extends IEveFiringEffectElement
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources: prepare when a device allows it. */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   PrepareResources()
   {
     return Tr2Renderer.IsResourceCreationAllowed() ? this.OnPrepareResources() : true;
   }
 
   /** Carbon ReleaseResources (cpp:371-374): forgets the declaration. */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   ReleaseResources(_storage = null)
   {
     this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
@@ -178,7 +195,8 @@ export class EveStretch2 extends IEveFiringEffectElement
    * Carbon OnPrepareResources (cpp:376-386): the FLOAT32_2 POSITION
    * declaration, and the quad-list index buffer reserved for quadCount.
    */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   OnPrepareResources()
   {
     this._vertexDeclHandle = Tr2EffectStateManager.getVertexDeclarationHandle(STRETCH_VERTEX_DECL);
@@ -190,20 +208,23 @@ export class EveStretch2 extends IEveFiringEffectElement
    * Sets the destination-end scale and adopts it as the current one, undoing any
    * hidden-destination override left by DisplayEndPoints.
    */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   SetDestObjectScale(scale)
   {
     this._destinationScale = this._currentDestinationScale = Number(scale);
   }
 
   /** IEveFiringEffectElement move hook; EveStretch2 has no travelling child. */
-  @meta.blue.method @meta.noop
+  @meta.blue.method
+  @meta.noop
   StartMoving()
   {
   }
 
   /** Longer of the start and loop curve-set durations. */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   GetCurveDuration()
   {
     let duration = 0;
@@ -219,7 +240,8 @@ export class EveStretch2 extends IEveFiringEffectElement
    * the per-shot shader seed comes from Math.random.
    * @param {Number} [delay] - seconds the curve sets wait before reaching time zero
    */
-  @meta.blue.method @meta.adapted
+  @meta.blue.method
+  @meta.adapted
   StartFiring(delay = 0)
   {
     this._effectData[0][3] = Math.random();
@@ -229,7 +251,8 @@ export class EveStretch2 extends IEveFiringEffectElement
   }
 
   /** Ends a shot: stops the start and loop sets and plays the end set. */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   StopFiring()
   {
     this.start?.Stop();
@@ -242,7 +265,8 @@ export class EveStretch2 extends IEveFiringEffectElement
    * which only the translation is kept, since the span orientation is rebuilt
    * each update - or a source position.
    */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   SetFiringTransform(source, destination)
   {
     if (source?.length === 16) mat4.getTranslation(this._source, source);
@@ -254,7 +278,8 @@ export class EveStretch2 extends IEveFiringEffectElement
    * Hides the destination end by zeroing its current scale; the source end is
    * always drawn, so the source flag is ignored.
    */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   DisplayEndPoints(_displaySource, displayDestination)
   {
     this._currentDestinationScale = displayDestination ? this._destinationScale : 0;
@@ -264,7 +289,8 @@ export class EveStretch2 extends IEveFiringEffectElement
    * Shows or hides the stretch, gating visibility, renderable collection and
    * light contribution; a change re-registers its components (EveStretch2.cpp:187-195).
    */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   SetDisplay(display)
   {
     const previous = this._visible;
@@ -277,7 +303,8 @@ export class EveStretch2 extends IEveFiringEffectElement
    * direction re-registers its components (EveStretch2.cpp:197-206); a zero
    * intensity also suppresses visibility, renderables and lights.
    */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   SetIntensity(intensity)
   {
     const previous = this._intensity;
@@ -289,14 +316,16 @@ export class EveStretch2 extends IEveFiringEffectElement
    * IEveFiringEffectElement synchronous hook; EveStretch2 does all of its work
    * in the asynchronous phase.
    */
-  @meta.blue.method @meta.noop
+  @meta.blue.method
+  @meta.noop
   UpdateEffectSync(_context)
   {
     return true;
   }
 
   /** IEveFiringEffectElement asynchronous hook; runs Update. */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   UpdateEffectAsync(context)
   {
     return this.Update(context);
@@ -312,7 +341,8 @@ export class EveStretch2 extends IEveFiringEffectElement
    * object per end, rather than a stack-constructed structure; and the curve sets also receive the context's render
    * context, which TriCurveSet forwards to its curves.
    */
-  @meta.blue.method @meta.adapted
+  @meta.blue.method
+  @meta.adapted
   Update(context)
   {
     const time = context.GetTime();
@@ -371,7 +401,8 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @param {EveUpdateContext} context Update context carrying the frustum.
    * @returns {boolean} Whether the stretch is in the frustum.
    */
-  @meta.blue.method @meta.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateVisibility(context)
   {
     if (!(this._visible && this._intensity > 0))
@@ -437,7 +468,8 @@ export class EveStretch2 extends IEveFiringEffectElement
    * its batch comes from GetBatches.
    * @returns {Array} out
    */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   GetRenderables(out = [])
   {
     if (this._visible && this._intensity > 0 && this._inFrustum) out.push(this);
@@ -448,7 +480,8 @@ export class EveStretch2 extends IEveFiringEffectElement
    * m_effectData[1].x = m_intensity, then uploads the contiguous member run
    * m_source..m_effectData[2] (EveStretch2.h:105-109) - 4 vec4s - to BOTH
    * per-object slots (cpp:23-39). One payload, stages ["vs", "ps"]. */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   GetPerObjectData(accumulator)
   {
     this._effectData[1][0] = this._intensity;
@@ -473,7 +506,8 @@ export class EveStretch2 extends IEveFiringEffectElement
    * based at the allocation's first vertex.
    * @returns {Boolean} whether the batch was committed
    */
-  @meta.blue.method @meta.adapted
+  @meta.blue.method
+  @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     // The shared allocation is null until a device has run the factory (Tr2ProceduralBuffer.GetSharedResource).
@@ -499,14 +533,16 @@ export class EveStretch2 extends IEveFiringEffectElement
   }
 
   /** Carbon EveStretch2::HasTransparentBatches: the strip is additive. */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   HasTransparentBatches()
   {
     return false;
   }
 
   /** Carbon EveStretch2::GetSortValue: additive batches are unsorted. */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   GetSortValue()
   {
     return 0;
@@ -517,7 +553,8 @@ export class EveStretch2 extends IEveFiringEffectElement
    * destination scaled by its current scale; nothing is offered while hidden or
    * at exactly zero intensity (EveStretch2.cpp:400-418).
    */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   GetLights(lightManager)
   {
     if (!this._visible || this._intensity === 0) return;
@@ -528,7 +565,8 @@ export class EveStretch2 extends IEveFiringEffectElement
   /** Carbon EveStretch2::RegisterComponents (cpp:389-398): LightOwner leaf
    * self-registration. Gate (m_visible && m_intensity > 0) && a source or
    * destination light. */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();

@@ -20,38 +20,63 @@ export class EveLocalPositionCurve extends ITriVectorFunction
 {
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.int32 @meta.type.enum("trinity.EveLocalPositionCurve.LocalPositionBehavior") behavior = 0;
-  @meta.blue.readwrite @meta.type.float32 impactSize = 1;
+ @meta.type.int32
+  @meta.type.enum("trinity.EveLocalPositionCurve.LocalPositionBehavior")
+  behavior = 0;
+  @meta.blue.readwrite
+  @meta.type.float32
+  impactSize = 1;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.float32 offset = 0;
+ @meta.type.float32
+  offset = 0;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.vec3 positionOffset = vec3.create();
+ @meta.type.vec3
+  positionOffset = vec3.create();
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("ITriVectorFunction") parentPositionCurve = null;
+ @meta.type.model("ITriVectorFunction")
+  parentPositionCurve = null;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("ITriVectorFunction") alignPositionCurve = null;
+ @meta.type.model("ITriVectorFunction")
+  alignPositionCurve = null;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.vec3 value = vec3.create();
+ @meta.type.vec3
+  value = vec3.create();
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.vec3 boundingSize = vec3.create();
-  @meta.blue.readwrite @meta.type.objectRef("ITriQuaternionFunction") parentRotationCurve = null;
-  @meta.blue.readwrite @meta.type.objectRef("IEveSpaceObject2") parent = null;
-  @meta.blue.readwrite @meta.type.objectRef("EveTurretSet") turretSetObject = null;
-  @meta.blue.readwrite @meta.type.int32 muzzleIndex = 0;
-  @meta.blue.read @meta.type.int32 damageLocatorIndex = -1;
-  @meta.blue.readwrite @meta.type.int32 locatorIndex = -1;
-  @meta.blue.readwrite @meta.type.string locatorSetName = "";
+ @meta.type.vec3
+  boundingSize = vec3.create();
+  @meta.blue.readwrite
+  @meta.type.objectRef("ITriQuaternionFunction")
+  parentRotationCurve = null;
+  @meta.blue.readwrite
+  @meta.type.objectRef("IEveSpaceObject2")
+  parent = null;
+  @meta.blue.readwrite
+  @meta.type.objectRef("EveTurretSet")
+  turretSetObject = null;
+  @meta.blue.readwrite
+  @meta.type.int32
+  muzzleIndex = 0;
+  @meta.blue.read
+  @meta.type.int32
+  damageLocatorIndex = -1;
+  @meta.blue.readwrite
+  @meta.type.int32
+  locatorIndex = -1;
+  @meta.blue.readwrite
+  @meta.type.string
+  locatorSetName = "";
 
   _impactEffectIndex = -1;
 
   /** Post-construction hook that selects the behaviour, defaulting to POS_NONE. */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   __init__(behavior = EveLocalPositionCurve.LocalPositionBehavior.POS_NONE)
   {
     this.SetBehavior(behavior);
@@ -61,7 +86,8 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * Selects which of the LocalPositionBehavior calculations this curve
    * evaluates.
    */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   SetBehavior(behavior)
   {
     this.behavior = Number(behavior) | 0;
@@ -74,7 +100,8 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * @param {Float32Array} out Caller-owned vec3, returned unchanged.
    * @returns {Float32Array} out
    */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   Update(_time, out)
   {
     return out;
@@ -87,7 +114,8 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * @param {Float32Array} out Caller-owned vec3.
    * @returns {Float32Array} out
    */
-  @meta.blue.renamed("Update") @meta.adapted
+  @meta.blue.renamed("Update")
+  @meta.adapted
   Update_Ticks(time, out)
   {
     switch (this.behavior)
@@ -120,7 +148,8 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * @param {Float32Array} out Caller-owned vec3.
    * @returns {Float32Array} out
    */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   GetValueAt(_time, out)
   {
     return vec3.copy(out, this.value);
@@ -133,7 +162,8 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * @param {Float32Array} out Caller-owned vec3.
    * @returns {Float32Array} out
    */
-  @meta.blue.renamed("GetValueAt") @meta.adapted
+  @meta.blue.renamed("GetValueAt")
+  @meta.adapted
   GetValueAt_Ticks(time, out)
   {
     vec3.copy(out, this.value);
@@ -152,7 +182,8 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * Adapted: Carbon's call resolves to its no-op double Update overload; forwarding to the collapsed dispatching
    * Update would be more active than the donor.
    */
-  @meta.blue.method @meta.adapted
+  @meta.blue.method
+  @meta.adapted
   UpdateValue(_time)
   {
   }
@@ -161,7 +192,8 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * The first derivative is undefined for a locator-driven curve; out is
    * returned untouched.
    */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   GetValueDotAt(_time, out)
   {
     return out;
@@ -171,7 +203,8 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * The second derivative is undefined for a locator-driven curve; out is
    * returned untouched.
    */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   GetValueDoubleDotAt(_time, out)
   {
     return out;
@@ -184,7 +217,8 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    *
    * Adapted: Carbon's Vector3d is any three-element numeric output buffer here.
    */
-  @meta.blue.method @meta.adapted
+  @meta.blue.method
+  @meta.adapted
   InterpolatedPosition(_time, out)
   {
     out[0] = this.value[0];

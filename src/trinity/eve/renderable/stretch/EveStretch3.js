@@ -1,8 +1,8 @@
-import { IsMatch } from "#blue";
-
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch3.h
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch3.cpp
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch3_Blue.cpp
+import { IsMatch } from "#blue";
+
 import { mat4 } from "#math/mat4";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { vec3 } from "#math/vec3";
@@ -46,45 +46,58 @@ import { translationMatrix } from "./CjsStretchRuntime.js";
 export class EveStretch3 extends IEveFiringEffectElement
 {
   @meta.blue.read
-  @meta.type.vec3 sourcePosition = vec3.create();
+  @meta.type.vec3
+  sourcePosition = vec3.create();
   @meta.blue.read
-  @meta.type.vec3 destinationPosition = vec3.create();
+  @meta.type.vec3
+  destinationPosition = vec3.create();
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.objectRef("ITriVectorFunction") source = null;
+ @meta.type.objectRef("ITriVectorFunction")
+  source = null;
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.objectRef("ITriVectorFunction") dest = null;
+ @meta.type.objectRef("ITriVectorFunction")
+  dest = null;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.string name = "";
+ @meta.type.string
+  name = "";
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.objectRef("TriFloat") moveProgression = new TriFloat();
+ @meta.type.objectRef("TriFloat")
+  moveProgression = new TriFloat();
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.objectRef("IStretchAudio") stretchAudio = null;
+ @meta.type.objectRef("IStretchAudio")
+  stretchAudio = null;
   @meta.blue.read
   @meta.blue.persist
- @meta.type.list("ITr2Controller") controllers = [];
+ @meta.type.list("ITr2Controller")
+  controllers = [];
   @meta.blue.read
   @meta.blue.persist
- @meta.type.list("TriCurveSet") curveSets = [];
+ @meta.type.list("TriCurveSet")
+  curveSets = [];
   @meta.blue.read
   @meta.blue.persist
- @meta.type.objectRef("TriFloat") length = new TriFloat();
+ @meta.type.objectRef("TriFloat")
+  length = new TriFloat();
   @meta.blue.read
   @meta.blue.persist
- @meta.type.list("Tr2DynamicBinding") dynamicBindings = [];
+ @meta.type.list("Tr2DynamicBinding")
+  dynamicBindings = [];
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.boolean display = true;
+ @meta.type.boolean
+  display = true;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.boolean update = true;
+ @meta.type.boolean
+  update = true;
   /** Hidden persisted destObject storage, distinct from the live setter. */
   @meta.member("destObject")
   @meta.blue.persistOnly
@@ -153,10 +166,12 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
   /** Be::Time is represented as numeric seconds in this JS update path. */
   @meta.blue.read
-  @meta.type.float64 startTime = 0;
+  @meta.type.float64
+  startTime = 0;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.objectRef("ITr2Audio") audio = null;
+ @meta.type.objectRef("ITr2Audio")
+  audio = null;
   /** Hidden persisted moveObject storage, distinct from the live setter. */
   @meta.member("moveObject")
   @meta.blue.persistOnly

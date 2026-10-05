@@ -17,29 +17,39 @@ export class EveFiringEffectElementContainer extends EveEntity
 {
   @meta.blue.readwrite
   @meta.blue.persistOnly
- @meta.type.model("IEveFiringEffectElement") element = null;
-  @meta.blue.readwrite @meta.type.vec3 source = vec3.create();
+ @meta.type.model("IEveFiringEffectElement")
+  element = null;
+  @meta.blue.readwrite
+  @meta.type.vec3
+  source = vec3.create();
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.mat4 sourceTransform = mat4.create();
+ @meta.type.mat4
+  sourceTransform = mat4.create();
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.vec3 destination = vec3.create();
+ @meta.type.vec3
+  destination = vec3.create();
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.boolean useSourceTransform = false;
+ @meta.type.boolean
+  useSourceTransform = false;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.boolean displayDestination = true;
+ @meta.type.boolean
+  displayDestination = true;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.boolean displaySource = true;
+ @meta.type.boolean
+  displaySource = true;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.boolean display = true;
+ @meta.type.boolean
+  display = true;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.float32 destinationScale = 1;
+ @meta.type.float32
+  destinationScale = 1;
 
   _active = false;
 
@@ -47,9 +57,12 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Pushes the container's endpoint state - source transform or position,
    * destination scale and endpoint display flags - into the wrapped element,
    * then updates the element, but only while the container is firing.
-  */
-  @meta.blue.method @meta.adapted
-  @meta.reason("The browser runtime drives the nominal firing-element contract synchronously instead of Carbon task dispatch.")
+   *
+   * Adapted: The browser runtime drives the nominal firing-element contract synchronously
+   * instead of Carbon task dispatch.
+   */
+  @meta.blue.method
+  @meta.adapted
   UpdateSynchronous(context)
   {
     if (!this.element) return true;
@@ -73,9 +86,12 @@ export class EveFiringEffectElementContainer extends EveEntity
   /**
    * The wrapped element is driven entirely from the synchronous phase, so this
    * only reports success.
+   *
+   * Adapted: The element is updated in the synchronous phase; this asynchronous entry point
+   * only reports success.
    */
-  @meta.blue.method @meta.adapted
-  @meta.reason("The browser runtime forwards lifecycle calls directly to the hydrated element.")
+  @meta.blue.method
+  @meta.adapted
   UpdateAsynchronous(context)
   {
     void context;
@@ -94,9 +110,11 @@ export class EveFiringEffectElementContainer extends EveEntity
   /**
    * Forwards the parent placement to the wrapped element under the container's
    * own display flag.
+   *
+   * Adapted: Visibility is graph-owned; the renderer consumes the collected element later.
    */
-  @meta.blue.method @meta.adapted
-  @meta.reason("Visibility is graph-owned; the renderer consumes the collected element later.")
+  @meta.blue.method
+  @meta.adapted
   UpdateVisibility(context, transform)
   {
     if (this.display && this.element) this.element.UpdateVisibility(context, transform);
@@ -104,10 +122,13 @@ export class EveFiringEffectElementContainer extends EveEntity
 
   /**
    * Appends the wrapped element's renderables to out while the container is displayed.
+   *
+   * Adapted: Renderable collection is backend-neutral and does not build the batch yet.
+   *
    * @returns {Array} out
    */
-  @meta.blue.renamed("GetRenderables") @meta.adapted
-  @meta.reason("Renderable collection is backend-neutral and does not build the batch yet.")
+  @meta.blue.renamed("GetRenderables")
+  @meta.adapted
   GetRenderables_Impostors(out = [], _impostors)
   {
     if (this.display && this.element) this.element.GetRenderables(out);
@@ -119,7 +140,8 @@ export class EveFiringEffectElementContainer extends EveEntity
    * active, which is what enables the per-frame element update; without an
    * element nothing changes (Carbon cpp:83-90).
    */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   StartFiring()
   {
     if (this.element)
@@ -134,7 +156,8 @@ export class EveFiringEffectElementContainer extends EveEntity
    * element update while still pushing endpoint state; without an element
    * nothing changes (Carbon cpp:92-99).
    */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   StopFiring()
   {
     if (this.element)
@@ -148,7 +171,8 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Toggles firing through StartFiring/StopFiring, ignoring a request that
    * matches the current state so a repeated true does not restart the effect.
    */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   SetActive(active)
   {
     if (!!active === this._active) return;
@@ -157,7 +181,8 @@ export class EveFiringEffectElementContainer extends EveEntity
   }
 
   /** Whether the container is currently firing. */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   GetActive()
   {
     return this._active;
@@ -167,14 +192,16 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Replaces the wrapped firing-effect element; the container's active state is
    * not reapplied to the new element.
    */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   SetElement(element)
   {
     this.element = element ?? null;
   }
 
   /** The wrapped firing-effect element, or null. */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   GetElement()
   {
     return this.element;
@@ -186,7 +213,8 @@ export class EveFiringEffectElementContainer extends EveEntity
    * which one was given is latched in useSourceTransform and applied on the next
    * synchronous update.
    */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   SetFiringTransform(source, destination)
   {
     if (source?.length === 16)
@@ -207,7 +235,8 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Records the destination-end scale forwarded to the element on the next
    * synchronous update.
    */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   SetDestObjectScale(scale)
   {
     this.destinationScale = Number(scale);
@@ -217,7 +246,8 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Records which endpoints the element should draw; forwarded on the next
    * synchronous update.
    */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   DisplayEndPoints(displaySource, displayDestination)
   {
     this.displaySource = !!displaySource;
@@ -228,7 +258,8 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Shows or hides the container, gating visibility and renderable collection
    * but not the endpoint state push.
    */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   SetDisplay(display)
   {
     this.display = !!display;
@@ -238,7 +269,8 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Curve duration reported by the wrapped element, or 0 when there is no
    * element.
    */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   GetCurveDuration()
   {
     return this.element ? Number(this.element.GetCurveDuration()) : 0;
@@ -247,7 +279,8 @@ export class EveFiringEffectElementContainer extends EveEntity
   /** Carbon EveFiringEffectElementContainer::RegisterComponents
    * (cpp:140-146): forwards the wrapped element (no gates; EveEntity.Register
    * tolerates a null registry). */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   RegisterComponents()
   {
     this.element?.Register(this.GetComponentRegistry());
@@ -255,7 +288,8 @@ export class EveFiringEffectElementContainer extends EveEntity
 
   /** Carbon EveFiringEffectElementContainer::UnRegisterComponents
    * (cpp:148-154): forwards the wrapped element. */
-  @meta.blue.method @meta.implemented
+  @meta.blue.method
+  @meta.implemented
   UnRegisterComponents()
   {
     this.element?.UnRegister(this.GetComponentRegistry());
