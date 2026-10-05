@@ -10,6 +10,7 @@ const FLOAT_MAX = 3.4028234663852886e38;
 
 /** Provides the fixed Carbon UI emitter with dialogue position and completion callbacks. */
 @meta.define({ className: "AudUIPlayer", family: "audio" })
+@meta.blue.chainTo(AudEmitter)
 export class AudUIPlayer extends AudEmitter
 {
 

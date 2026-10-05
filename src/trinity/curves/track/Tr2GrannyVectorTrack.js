@@ -13,6 +13,7 @@ import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
   className: "Tr2GrannyVectorTrack",
   family: "curves"
 })
+@meta.blue.chainTo(Tr2GrannyTrack)
 export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
 {
   @meta.blue.read

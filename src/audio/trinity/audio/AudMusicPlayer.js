@@ -14,6 +14,7 @@ const FLOAT_MAX = 3.4028234663852886e38;
  * behavior is inherited from AudEmitter (SendEvent/SetSwitch/SetRTPC/...).
  */
 @meta.define({ className: "AudMusicPlayer", family: "audio" })
+@meta.blue.chainTo(AudEmitter)
 export class AudMusicPlayer extends AudEmitter
 {
 

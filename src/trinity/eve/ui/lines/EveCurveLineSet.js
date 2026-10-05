@@ -19,6 +19,8 @@ const WORLD_SPHERE = vec4.create();
 /** An Eve-owned, transformed and visibility-culled Carbon curve-line set. */
 @meta.define({ className: "EveCurveLineSet", family: "eve/ui" })
 @meta.blue.inherit(IEveSpaceObject2, IEveTransform)
+@meta.blue.interface(IEveTransform, IEveSpaceObject2)
+@meta.blue.chainTo(Tr2CurveLineSet)
 export class EveCurveLineSet extends Tr2CurveLineSet
 {
 

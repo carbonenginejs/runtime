@@ -7,6 +7,7 @@ import { vec3 } from "#math/vec3";
 
 /** A line set that draws an axis-aligned bounding box and its picking volume. */
 @meta.define({ className: "Tr2BoundingLineSet", family: "trinityCore" })
+@meta.blue.chainTo(Tr2LineSet)
 export class Tr2BoundingLineSet extends Tr2LineSet
 {
 
