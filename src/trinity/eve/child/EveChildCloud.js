@@ -1,7 +1,7 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud.h
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { INotify } from "../../../global/blue/INotify.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
-// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud.h
 // Hand-maintained from Carbon source.
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";

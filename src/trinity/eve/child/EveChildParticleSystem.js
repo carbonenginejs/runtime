@@ -1,10 +1,10 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildParticleSystem.h
 import { IsMatch } from "#blue";
 import { INotify } from "../../../global/blue/INotify.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { EveEntity } from "../EveEntity.js";
-// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildParticleSystem.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import "#consts/graphics/trinityEnums";
 import { meta } from "#schema";
@@ -285,21 +285,21 @@ export class EveChildParticleSystem extends EveChildTransform
     return true;
   }
 
-  @meta.blue.method
-  @meta.implemented
   /**
    * The particle system child's name.
    */
+  @meta.blue.method
+  @meta.implemented
   GetName()
   {
     return this.name;
   }
 
-  @meta.blue.method
-  @meta.implemented
   /**
    * Sets the particle system child's name, coercing the value to a string.
    */
+  @meta.blue.method
+  @meta.implemented
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -389,11 +389,11 @@ export class EveChildParticleSystem extends EveChildTransform
     return true;
   }
 
-  @meta.blue.method
-  @meta.implemented
   /**
    * Whether the assigned mesh has transparent areas, when the child is displayed and a mesh is set.
    */
+  @meta.blue.method
+  @meta.implemented
   HasTransparentBatches()
   {
     if (this.display && this.mesh)
@@ -406,10 +406,12 @@ export class EveChildParticleSystem extends EveChildTransform
   /**
    * Delegates the selected mesh areas at Carbon's maximum screen size, reversing
    * winding for reflection renders (EveChildParticleSystem.cpp:155-161).
+   *
+   * Adapted: Returns whether JavaScript mesh delegation committed a batch; Carbon's void
+   * method exposes no result.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Returns whether JavaScript mesh delegation committed a batch; Carbon's void method exposes no result.")
   GetBatches(batches, batchType, perObjectData, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
     if (!this.display || !this.mesh)
@@ -432,10 +434,14 @@ export class EveChildParticleSystem extends EveChildTransform
     ) === true;
   }
 
-  /** Distance from the view position to the world translation (EveChildParticleSystem.cpp:173-178). */
+  /**
+   * Distance from the view position to the world translation (EveChildParticleSystem.cpp:173-178).
+   *
+   * Adapted: Carbon reads the Tr2Renderer view-position global; the relocated camera state
+   * arrives via the threaded render context.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon reads the Tr2Renderer view-position global; the relocated camera state arrives via the threaded render context.")
   GetSortValue(renderContext = null)
   {
     const viewPosition = renderContext?.GetViewPosition();
@@ -445,10 +451,16 @@ export class EveChildParticleSystem extends EveChildTransform
     return Math.hypot(x, y, z);
   }
 
-  /** Carbon method GetPerObjectData (EveChildParticleSystem.cpp:180-195). */
+  /**
+   * Carbon method GetPerObjectData (EveChildParticleSystem.cpp:180-195).
+   *
+   * Adapted: Carbon's transient EveBasicPerObjectData fill (cpp:182-194): world/worldLast
+   * transposed, worldInverse = Inverse(world). Trinity Allocs the record from the
+   * accumulator's store and Sets logical values by name (the store transposes per the engine
+   * layout).
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon's transient EveBasicPerObjectData fill (cpp:182-194): world/worldLast transposed, worldInverse = Inverse(world). Trinity Allocs the record from the accumulator's store and Sets logical values by name (the store transposes per the engine layout).")
   GetPerObjectData(accumulator)
   {
     const data = accumulator.Alloc("EveBasicPerObjectData");
@@ -478,11 +490,13 @@ export class EveChildParticleSystem extends EveChildTransform
    * Convert the raw context ticks only at that boundary; GetTime retains its
    * native tick contract. Native consumers instead convert the tick difference
    * (Tr2DynamicEmitter.cpp:119; Tr2ParticleSystem.cpp:527).
+   *
+   * Adapted: Renderer-global frustum state is read from the update context, and
+   * emitter/system updates use the backend-neutral argument record.
    */
   @meta.blue.method
   @meta.blue.contextual(["camera"])
   @meta.adapted
-  @meta.reason("Renderer-global frustum state is read from the update context, and emitter/system updates use the backend-neutral argument record.")
   UpdateAsyncronous(updateContext, params)
   {
     mat4.copy(this._worldTransformLast, this.worldTransform);

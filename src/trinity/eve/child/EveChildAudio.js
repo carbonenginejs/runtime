@@ -1,10 +1,10 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildAudio.h
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildAudio.cpp
 import { IsMatch } from "#blue";
 import { INotify } from "../../../global/blue/INotify.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
-// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildAudio.h
-// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildAudio.cpp
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";

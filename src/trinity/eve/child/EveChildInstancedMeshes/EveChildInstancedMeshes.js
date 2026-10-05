@@ -1,9 +1,9 @@
-import { EveEntity } from "../../EveEntity.js";
-import { IEveShadowCaster } from "../../IEveShadowCaster.js";
-import { IEveSpaceObjectChild } from "../IEveSpaceObjectChild.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstancedMeshes.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstancedMeshes.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstancedMeshes_Blue.cpp
+import { EveEntity } from "../../EveEntity.js";
+import { IEveShadowCaster } from "../../IEveShadowCaster.js";
+import { IEveSpaceObjectChild } from "../IEveSpaceObjectChild.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -293,7 +293,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     for (const overlay of this._partDamageOverlays.values()) overlay.UpdateSyncronous(updateContext);
   }
 
-  /** Carbon EveChildInstancedMeshes::UpdateAsyncronous (cpp:234-413), the CPU
+  /**
+   * Carbon EveChildInstancedMeshes::UpdateAsyncronous (cpp:234-413), the CPU
    * half: per-mesh RENDER_IN_REFLECTION refresh (cpp:251), the mesh-local
    * bounds sphere radius = |center| + radius (cpp:254-255), per-instance
    * world cull spheres - position from the instance translation (Carbon reads
@@ -305,10 +306,14 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * xyz = the transpose's rows; equal under rotation + uniform scale,
    * ported exactly) - the world bounding sphere over all instance spheres
    * (cpp:257-270), a live SetSphereGroupBounds refresh on registered handles
-   * (cpp:272-278), and the hasUpdated stamp (cpp:281). */
+   * (cpp:272-278), and the hasUpdated stamp (cpp:281).
+   *
+   * Adapted: Trinity fills the CPU per-object data; the raytracing mesh build is not ported.
+   * Bounds are read through GetMeshData, and entries without minBounds or maxBounds are
+   * skipped.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Trinity owns the CPU per-object field copy; the raytracing mesh build (cpp:283-327) is not ported yet. Mesh bounds come from a GetMeshData duck ({minBounds, maxBounds}) and meshes without one are skipped fail-closed.")
   UpdateAsyncronous(updateContext, params)
   {
     const previousWorldTransform = mat4.create();
@@ -629,14 +634,18 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     return false;
   }
 
-  /** Carbon EveChildInstancedMeshes::SetShaderOption (cpp:343-359): flips the
+  /**
+   * Carbon EveChildInstancedMeshes::SetShaderOption (cpp:343-359): flips the
    * option and refreshes the effect hash on every area, then removes any
    * registered mesh-group handle and clears the latch - so the groups
    * re-register with the NEW effectHash on the next AddMeshesToManager pass.
-   * Sphere/per-object handles deliberately stay registered. */
+   * Sphere/per-object handles deliberately stay registered.
+   *
+   * Adapted: Handle invalidation after manager removal is explicit in JavaScript; the option
+   * write, hash refresh and registration lifecycle otherwise follow Carbon.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Handle invalidation after manager removal is explicit in JavaScript; the option write, hash refresh and registration lifecycle otherwise follow Carbon.")
   SetShaderOption(name, value)
   {
     for (const mesh of this.meshes)
@@ -738,10 +747,12 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   /**
    * Removes every instance owned by a modular part, dropping empty meshes and
    * invalidating manager registrations.
+   *
+   * Adapted: JavaScript explicitly nulls manager handles after removal; Carbon invalidates
+   * them by reference.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JavaScript explicitly nulls manager handles after removal; Carbon invalidates them by reference.")
   RemoveInstancesByPartTag(partTag)
   {
     const tag = Number(partTag) >>> 0;
@@ -1068,13 +1079,17 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     return EveChildInstancedMeshes._GetMesh(this.meshes, meshId).display;
   }
 
-  /** Carbon EveChildInstancedMeshes::SetMeshDisplay (cpp:663-691): a toggle
+  /**
+   * Carbon EveChildInstancedMeshes::SetMeshDisplay (cpp:663-691): a toggle
    * clears the latch; turning a mesh OFF eagerly removes its sphere and
    * mesh-group handles - which is why AddMeshesToManager's display-off skip
-   * does NOT clear the latch (the handles are already gone). */
+   * does NOT clear the latch (the handles are already gone).
+   *
+   * Adapted: Handle invalidation after removal is explicit (Carbon's DataHandle is
+   * invalidated by the manager by reference).
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Handle invalidation after removal is explicit (Carbon's DataHandle is invalidated by the manager by reference).")
   SetMeshDisplay(meshId, display)
   {
     const mesh = EveChildInstancedMeshes._GetMesh(this.meshes, meshId);
@@ -1361,12 +1376,16 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     this.UnregisterFromMeshManager();
   }
 
-  /** Carbon EveChildInstancedMeshes::UnregisterFromMeshManager (cpp:50-71):
+  /**
+   * Carbon EveChildInstancedMeshes::UnregisterFromMeshManager (cpp:50-71):
    * every registered mesh-group / sphere-group / per-object handle is removed
-   * through the manager that issued the opaque handles, then the latch clears. */
+   * through the manager that issued the opaque handles, then the latch clears.
+   *
+   * Adapted: Handle invalidation after removal is explicit (Carbon's DataHandle is
+   * invalidated by the manager by reference).
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Handle invalidation after removal is explicit (Carbon's DataHandle is invalidated by the manager by reference).")
   UnregisterFromMeshManager()
   {
     for (const mesh of this.meshes)
@@ -1399,7 +1418,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     this._allRegistered = false;
   }
 
-  /** Carbon EveChildInstancedMeshes::AddMeshesToManager (cpp:472-553), the
+  /**
+   * Carbon EveChildInstancedMeshes::AddMeshesToManager (cpp:472-553), the
    * InstancedMeshProvider entry the engine's CollectMeshes drives
    * (EveInstancedMeshManager.cpp:45-56; scene EveSpaceScene.cpp:1516).
    * Contract quirks preserved: nothing registers before the first update
@@ -1412,10 +1432,14 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * display toggles); an area-level effect failure clears the latch while
    * the mesh's sphere group STAYS registered (Carbon's asymmetry);
    * pickingOwnerIndex is the mesh ordinal (pairs with GetSofSourceLocator's
-   * meshIndex<<16 decode). */
+   * meshIndex<<16 decode).
+   *
+   * Adapted: Manager allocation returns opaque handles instead of filling native output
+   * parameters. Geometry presence and IsGood replace the native combined-vertex-declaration
+   * gate; the declaration argument is zero and the JavaScript object is the picking owner.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The manager is duck-typed and returns opaque handles (out-params become returns) - Carbon EveInstancedMeshManager is not ported (quarantined in src/trinity/dropped); Carbon's combinedVertexDeclaration gate (cpp:499, a D3D declaration handle rebuilt in RebuildCachedData cpp:435-457) reduces to geometry presence + IsGood, and the declaration argument is passed as 0 for the engine to rebuild; GetRawRoot() becomes the object itself as picking owner.")
   AddMeshesToManager(manager)
   {
     if (!this.hasUpdated)
@@ -1571,6 +1595,14 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     for (const blocks of out) TriRenderBatchAreaBlock.Optimize(blocks);
   }
 
+  /**
+   * Looks up a mesh after converting its index to an unsigned 32-bit value.
+   *
+   * @param {EveChildInstancedMesh[]} meshes The owned mesh records.
+   * @param {number} meshId The requested mesh index.
+   * @returns {EveChildInstancedMesh} The indexed mesh record.
+   * @throws {RangeError} When the converted index is outside the array.
+   */
   static _GetMesh(meshes, meshId)
   {
     const index = Number(meshId) >>> 0;

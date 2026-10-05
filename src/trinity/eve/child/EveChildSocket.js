@@ -1,3 +1,4 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildSocket.h
 import { EveEntity } from "../EveEntity.js";
 import { ITr2SoundEmitterOwner } from "../ITr2SoundEmitterOwner.js";
 import { INotify } from "../../../global/blue/INotify.js";
@@ -5,7 +6,6 @@ import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
-// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildSocket.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IsMatch, blue } from "#blue";
 import * as CcpLog from "../../../global/logging/ccpLog.js";

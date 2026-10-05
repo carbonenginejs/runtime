@@ -64,16 +64,15 @@ export class EveChildLink extends EveChildMesh
    * Resolves the link direction and distance from the parent's model center to
    * the target function (EveChildLink.cpp:40-68).
    *
-   * Adapted: EveChildMesh::UpdateSyncronous (animation/audio bookkeeping,
-   * EveChildMesh.cpp:1002) is not yet ported on the JS base, so only the link
-   * targeting runs; collaborators are duck-typed.
+   * Adapted: Omits the base EveChildMesh::UpdateSyncronous call; only link
+   * targeting runs here.
    */
   @meta.blue.method
   @meta.adapted
   UpdateSyncronous(updateContext, params)
   {
     // Carbon first calls EveChildMesh::UpdateSyncronous (EveChildLink.cpp:42);
-    // the JS base class does not implement it yet - see the class reason.
+    // this override currently omits that call.
     if (!this.target)
     {
       return;

@@ -1,3 +1,5 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBehaviorSystem.h
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBehaviorSystem.cpp
 import { IsMatch } from "#blue";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
@@ -5,8 +7,6 @@ import { EveEntity } from "../EveEntity.js";
 import { INotify } from "../../../global/blue/INotify.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
-// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBehaviorSystem.h
-// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBehaviorSystem.cpp
 import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { quat } from "#math/quat";

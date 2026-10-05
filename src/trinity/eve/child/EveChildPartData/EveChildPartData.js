@@ -1,8 +1,8 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData.h
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData.cpp
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData_Blue.cpp
 import { meta } from "#schema";
 import { IEveSpaceObjectChild } from "../IEveSpaceObjectChild.js";
-// Carbon source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData.h
-// Carbon source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData.cpp
-// Carbon source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData_Blue.cpp
 
 import { EveSpaceObjectChild } from "../EveSpaceObjectChild.js";
 import { EveChildPartDataPartData } from "./EveChildPartDataPartData.js";

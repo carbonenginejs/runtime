@@ -139,10 +139,14 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
   @meta.type.float32
   positionShiftMax = 0;
 
-  /** Carbon method Refresh (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Refresh (MAP_METHOD_AND_WRAP).
+   *
+   * Adapted: Browser attribute generators bind to the CPU particle-system declaration while
+   * retaining Carbon's shared element-claim validation.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Browser attribute generators bind to the CPU particle-system declaration while retaining Carbon's shared element-claim validation.")
   Refresh()
   {
     if (!this.particleSystem)

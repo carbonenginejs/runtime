@@ -1,9 +1,9 @@
-import { IsMatch } from "#blue";
-import { IInitialize } from "../../../../global/blue/IInitialize.js";
-import { INotify } from "../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/LineSetPaths/EveCircle.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/LineSetPaths/EveCircle.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/LineSetPaths/EveCircle_Blue.cpp
+import { IsMatch } from "#blue";
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
+import { INotify } from "../../../../global/blue/INotify.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
@@ -146,10 +146,12 @@ export class EveCircle extends IEveLineSetPath
   /**
    * Clamps completeness to 0..2 and numSegments to 1..128, wraps startPoint into
    * one turn, then marks the point chain dirty.
+   *
+   * Adapted: JS dispatches the native hook using the exposed member name; existing
+   * class-owned rendering/resource adaptations remain unchanged.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "completeness")) this.completeness = Math.min(2, Math.max(0, this.completeness));

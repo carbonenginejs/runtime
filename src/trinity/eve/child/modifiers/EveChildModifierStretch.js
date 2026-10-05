@@ -30,6 +30,9 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
    * stretch direction, positioned at the midpoint - row-vector
    * `RotationMatrix(srcRot) * TransformationMatrix(scale, arcRot, mid)`.
    *
+   * Adapted: Carbon reads the global frame time; JavaScript receives the equivalent time
+   * through the threaded update context.
+   *
    * @param {Object} context - frame context; reads the frame time
    * @param {Float32Array} transform - source (read only)
    * @param {Number} [_boneCount] - Carbon signature parity, unused
@@ -39,7 +42,6 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon reads the global frame time; JavaScript receives the equivalent time through the threaded update context.")
   ApplyTransform(context, transform, _boneCount = 0, _bones = null, out)
   {
     const { sourceRotation, sourceTranslation, sourceScale, end, diff, arcMat, arcQuat, scale, mid, srcRotMat } =

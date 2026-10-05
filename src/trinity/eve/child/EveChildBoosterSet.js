@@ -1,11 +1,11 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBoosterSet.h
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBoosterSet.cpp
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBoosterSet_Blue.cpp
 import { ITr2ControllerOwner } from "../../controllers/ITr2ControllerOwner.js";
 import { EveEntity } from "../EveEntity.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { INotify } from "../../../global/blue/INotify.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
-// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBoosterSet.h
-// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBoosterSet.cpp
-// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBoosterSet_Blue.cpp
 //
 // The attachment-side booster family (EveBoosterSet2 + renderable + trails)
 // lives in eve/attachment/booster/; both sides share

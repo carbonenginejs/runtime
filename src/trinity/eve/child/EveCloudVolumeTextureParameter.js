@@ -38,10 +38,12 @@ export class EveCloudVolumeTextureParameter
    * hash with FNV1. JS has no pointer bytes, so each volume gets a stable
    * per-object id on first hash - same object, same hash, for the life of
    * the process, which is exactly what the pointer bought Carbon.
+   *
+   * Adapted: Carbon hashes the volume pointer's bytes; the parameter library's identity hash
+   * gives the same same-object-same-hash contract.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon hashes the volume pointer's bytes; the parameter library's identity hash gives the same same-object-same-hash contract.")
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
   {
     return CjsParameter.hashFnv1Identity(this.volume, startingHash);

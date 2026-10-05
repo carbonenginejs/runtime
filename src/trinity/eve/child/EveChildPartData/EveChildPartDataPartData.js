@@ -1,4 +1,4 @@
-// Carbon source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData.h
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData.h
 //   struct PartData, nested in EveChildPartData; flattened for JS.
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";

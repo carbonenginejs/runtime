@@ -1,10 +1,10 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLightingOverride.h
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLightingOverride.cpp
 import { ITr2DebugRenderable } from "../../../global/interfaces/ITr2DebugRenderable.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { EveEntity } from "../EveEntity.js";
-// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLightingOverride.h
-// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLightingOverride.cpp
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";

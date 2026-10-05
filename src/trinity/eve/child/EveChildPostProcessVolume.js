@@ -1,8 +1,8 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPostProcessVolume.h
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { EveEntity } from "../EveEntity.js";
-// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPostProcessVolume.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
@@ -64,10 +64,12 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * "initialized" per CcpMath::Sphere semantics (radius >= 0,
    * Sphere_inline.h:33-36), so the result always includes the local origin -
    * matching Carbon exactly.
+   *
+   * Adapted: Volume bounds use { center, radius } records instead of CcpMath::Sphere values;
+   * missing centres and negative or invalid radii are skipped.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Volume bounding spheres arrive as duck-typed { center, radius } records rather than CcpMath::Sphere values.")
   RebuildBoundingSphere()
   {
     const sphere = this._boundingSphere;
@@ -109,21 +111,21 @@ export class EveChildPostProcessVolume extends EveChildTransform
     this._MirrorBoundingSphere();
   }
 
-  @meta.blue.method
-  @meta.implemented
   /**
    * The volume's name.
    */
+  @meta.blue.method
+  @meta.implemented
   GetName()
   {
     return this.name;
   }
 
-  @meta.blue.method
-  @meta.implemented
   /**
    * Sets the volume's name, coercing the value to a string.
    */
+  @meta.blue.method
+  @meta.implemented
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -164,11 +166,13 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * Per-frame async update (EveChildPostProcessVolume.cpp:100-151): refresh
    * the transform and bound, then resolve the post-process intensity from the
    * camera position against the inclusion and exclusion volumes.
+   *
+   * Adapted: Carbon reads the Tr2Renderer view-position global; the relocated camera state
+   * arrives via the threaded render context.
    */
   @meta.blue.method
   @meta.blue.contextual(["camera"])
   @meta.adapted
-  @meta.reason("Carbon reads the Tr2Renderer view-position global; the relocated camera state arrives via the threaded render context.")
   UpdateAsyncronous(updateContext, params)
   {
     this._UpdateTransformFromParent(params);
@@ -248,20 +252,24 @@ export class EveChildPostProcessVolume extends EveChildTransform
     return super.Setup(scale, rotation, translation, lowestLodVisible);
   }
 
-  @meta.blue.method
-  @meta.implemented
   /**
    * Always true: the volume stays active regardless of where the camera is.
    */
+  @meta.blue.method
+  @meta.implemented
   IsAlwaysOn()
   {
     return true;
   }
 
-  /** Builds the initial bound (EveChildPostProcessVolume.cpp:177-181). */
+  /**
+   * Builds the initial bound (EveChildPostProcessVolume.cpp:177-181).
+   *
+   * Adapted: The Carbon constructor's attribute-instance creation (cpp:11-18) is deferred to
+   * first use because the generated field default stays null.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The Carbon constructor's attribute-instance creation (cpp:11-18) is deferred to first use because the generated field default stays null.")
   Initialize()
   {
     this._EnsureAttributes();

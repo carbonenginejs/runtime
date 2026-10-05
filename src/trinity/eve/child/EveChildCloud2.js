@@ -783,7 +783,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * hasUpdated gate, unlike EveChildContainer), average world-basis-row-length
    * scaling (Carbon LengthEst; exact hypot is the accepted divergence - single
    * matrix reads, no composition), each light submitted with the world
-   * transform through the duck-typed manager. Inside Tr2Light::AddLight
+   * transform through the supplied light manager. Inside Tr2Light::AddLight
    * Carbon composes boneTransform * transform (Tr2Light.cpp:132) - that swap
    * belongs to the Tr2Light port, not here. */
   @meta.implemented
@@ -1025,7 +1025,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     {
       return false;
     }
-    // cpp:766-776 - the "Shadow" technique must exist. The JS shader duck
+    // cpp:766-776 - the "Shadow" technique must exist. The shader
     // (Tr2Shader.GetTechniqueIndex) returns an INDEX: -1 for missing, 0..n
     // for found - 0 is a valid technique (compare < 0, never truthiness).
     // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.

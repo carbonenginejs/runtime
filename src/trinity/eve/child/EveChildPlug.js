@@ -1,3 +1,4 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPlug.h
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { ITr2SoundEmitterOwner } from "../ITr2SoundEmitterOwner.js";
 import { INotify } from "../../../global/blue/INotify.js";
@@ -5,7 +6,6 @@ import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
-// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPlug.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { EveEntity } from "../EveEntity.js";
 import { CjsSchema, meta } from "#schema";
@@ -138,20 +138,26 @@ export class EveChildPlug extends EveChildTransform
   /**
    * Appends one plugged child. The registration and the variable replay are the
    * INSERTED arm's, reached through the managed mutation.
+   *
+   * Adapted: A JavaScript array has no notify slot, so the owner drives the notification
+   * through the shared child service rather than the list driving it.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("A JavaScript array has no notify slot, so the owner drives the notification through the shared child service rather than the list driving it.")
   AddToEffectChildrenList(child)
   {
     addChild(this, "objects", child, { listNotify: this });
     return child;
   }
 
-  /** Removes one plugged child; the unregistration is the REMOVED arm's. */
+  /**
+   * Removes one plugged child; the unregistration is the REMOVED arm's.
+   *
+   * Adapted: A JavaScript array has no notify slot, so the owner drives the notification
+   * through the shared child service rather than the list driving it.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("A JavaScript array has no notify slot, so the owner drives the notification through the shared child service rather than the list driving it.")
   RemoveFromEffectChildrenList(child)
   {
     return removeChild(this, "objects", child, { listNotify: this });

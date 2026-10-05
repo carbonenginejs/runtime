@@ -1,10 +1,10 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh.h
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh.cpp
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh_Blue.cpp
 import { INotify } from "../../../global/blue/INotify.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
-// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh.h
-// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh.cpp
-// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh_Blue.cpp
 import "#consts/graphics/trinityEnums";
 import "#consts/trinity";
 import { mat4 } from "#math/mat4";
@@ -306,7 +306,14 @@ export class EveChildMesh extends EveChildTransform
 
   // SOF-authored placement/instance values; persisted so the values
   // interchange reproduces Carbon's hidden child placement state.
-  // PERSIST is ours, not Carbon's: SOF's JSON output carries this value, which Carbon sets in C++.
+  /**
+   * Origin mode used to place this child mesh.
+   * Carbon origin (EveChildMesh.h:288).
+   *
+   * Adapted: Persisted by the JavaScript values format; Carbon exposes this field read-only.
+   *
+   * @type {number}
+   */
   @meta.adapted
   @meta.blue.read
   @meta.blue.persist
@@ -1034,7 +1041,7 @@ export class EveChildMesh extends EveChildTransform
    * mesh bounds here (cpp:380-394) but consumes only the world sphere/box
    * computed in UpdateAsyncronous, so the dead recompute is skipped. The
    * raytracing branch (cpp:450-462) is not ported yet and omitted.
-   * @param {Object} updateContext - frame context (frustum + invLodFactor ducks)
+   * @param {EveUpdateContext} updateContext - frame context
    * @param {Float32Array} _parentTransform
    * @param {Number} parentLod - parent Tr2Lod level
    * @returns {Boolean} isVisible
@@ -1228,7 +1235,7 @@ export class EveChildMesh extends EveChildTransform
    * Collects this child (and its decals) as renderables (Carbon
    * EveChildMesh::GetRenderables, cpp:571-616): instanced meshes contribute
    * only while the per-instance gate passed; decals ride along through their
-   * duck-typed renderable collectors (mesh cache is not ported yet, passed null
+   * renderable collectors (mesh cache is not ported yet, passed null
    * as in EveSpaceObject2.GetRenderables).
    * Adapted: The decal mesh cache is not ported yet (null placeholder); collection structure is ported.
    */

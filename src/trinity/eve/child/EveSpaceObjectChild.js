@@ -1,3 +1,5 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveSpaceObjectChild.h
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveSpaceObjectChild.cpp
 import { meta } from "#schema";
 import { Origin } from "../../generated/eve/child/enums.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
@@ -5,11 +7,11 @@ import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 /**
  * Appends one batch type's areas of a mesh to the shared area pool as plain
  * {index, count, alphaCutout, reversed} records (Carbon free function
- * EveCollectAreas, EveSpaceObjectChild.cpp:138-161; the EveChildGeometryArea
- * POD is EveSpaceObjectChild.h:21-34).
+ * EveCollectAreas, EveSpaceObjectChild.cpp:157-181; the EveChildGeometryArea
+ * POD is EveSpaceObjectChild.h:31-37).
  *
  * @param {Number} type - a TriBatchType
- * @param {Object|null} mesh - a Tr2MeshBase duck with GetAreas(type)
+ * @param {Tr2MeshBase|null} mesh - mesh supplying GetAreas(type)
  * @param {Array} areaPool - the pool records are appended to
  */
 export function EveCollectAreas(type, mesh, areaPool)
@@ -33,6 +35,11 @@ export function EveCollectAreas(type, mesh, areaPool)
  *
  * Carbon supplies real no-op defaults for the optional child capabilities;
  * owner, parent and part-tag state remain concrete shared behavior.
+ *
+ * The donor also declares EveChildLocatorSetsSource, EveChildGeometryArea and
+ * EveChildGeometry (EveSpaceObjectChild.h:17-50). Their current JavaScript
+ * producers in EveChildMesh, EveChildInstancedMeshes and EveCollectAreas emit
+ * plain records; no nominal class declarations exist for those three structs.
  */
 @meta.define({ className: "EveSpaceObjectChild", family: "eve/child" })
 export class EveSpaceObjectChild extends IEveSpaceObjectChild
@@ -171,9 +178,9 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
     this.partTag = Number(tag) >>> 0;
   }
 
+  /** Returns the owning space object. */
   @meta.blue.method
   @meta.implemented
-  /** Returns the owning space object. */
   GetOwner()
   {
     return this._owner;
@@ -185,9 +192,9 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
     this._owner = owner ?? null;
   }
 
+  /** Returns the parent child node. */
   @meta.blue.method
   @meta.implemented
-  /** Returns the parent child node. */
   GetParent()
   {
     return this._parent;

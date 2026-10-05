@@ -1,8 +1,8 @@
-import { INotify } from "../../../global/blue/INotify.js";
-import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildTurret.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildTurret.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildTurret_Blue.cpp
+import { INotify } from "../../../global/blue/INotify.js";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { CjsSchema, meta } from "#schema";
@@ -240,9 +240,11 @@ export class EveChildTurret extends EveChildMesh
   /**
    * The shared sysbone aiming math, synced from this turret's flat tuning
    * fields - the same object shape EveTurretSet.GetAiming returns.
+   *
+   * Adapted: Carbon's by-value embed becomes an accessor; the flat Blue schema is preserved
+   * on this class.
    */
   @meta.adapted
-  @meta.reason("Carbon's by-value embed becomes an accessor; the flat Blue schema is preserved on this class.")
   GetAiming()
   {
     const aiming = this._aiming;
@@ -904,10 +906,12 @@ export class EveChildTurret extends EveChildMesh
    * (Carbon cpp:679-712). Carbon also registers the effect with the quad
    * renderer singleton here; quad registration is not ported yet in the
    * browser runtime and happens through the engine's own registration pass.
+   *
+   * Adapted: Tr2QuadRenderer is an engine singleton in Carbon; the browser engine owns quad
+   * registration.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Tr2QuadRenderer is an engine singleton in Carbon; the browser engine owns quad registration.")
   InitializeFiringEffect()
   {
     this._firingEffectMuzzlePosSet = false;

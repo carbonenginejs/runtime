@@ -1,10 +1,10 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.h
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.cpp
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp
 import { INotify } from "../../../global/blue/INotify.js";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
-// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.h
-// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.cpp
-// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp
 import { EveEntity } from "../EveEntity.js";
 import { IInitialize } from "#blue/IInitialize";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -179,14 +179,28 @@ export class EveChildContainer extends EveChildTransform
 
   // SOF-authored placement values; persisted so the values interchange
   // reproduces Carbon's hidden container placement state.
-  // PERSIST is ours, not Carbon's: SOF's JSON output carries this value, which Carbon sets in C++.
+  /**
+   * Animation owner supplying this container's parent bone transforms.
+   * Carbon animationOwner (EveChildContainer.h:209).
+   *
+   * Adapted: Persisted by the JavaScript values format; Carbon exposes this field read-only.
+   *
+   * @type {ITr2GrannyAnimationOwner|null}
+   */
   @meta.adapted
   @meta.blue.read
   @meta.blue.persist
   @meta.type.objectRef("ITr2GrannyAnimationOwner")
   animationOwner = null;
 
-  // PERSIST is ours, not Carbon's: SOF's JSON output carries this value, which Carbon sets in C++.
+  /**
+   * Origin mode used to place this child container.
+   * Carbon origin (EveChildContainer.h:206).
+   *
+   * Adapted: Persisted by the JavaScript values format; Carbon exposes this field read-only.
+   *
+   * @type {number}
+   */
   @meta.adapted
   @meta.blue.read
   @meta.blue.persist
@@ -251,12 +265,16 @@ export class EveChildContainer extends EveChildTransform
     return true;
   }
 
-  /** Carbon EveChildContainer::OnModified (cpp:76-88): display/displayFilter
+  /**
+   * Carbon EveChildContainer::OnModified (cpp:76-88): display/displayFilter
    * changes re-register with the scene component registry; a mute notification
-   * fans out to children and observers. */
+   * fans out to children and observers.
+   *
+   * Adapted: Uses the exposed property name for native address comparisons and the runtime
+   * scene registry adapter.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Uses the exposed property name for native address comparisons and the runtime scene registry adapter.")
   OnModified(value = null)
   {
     if (IsMatch(value, "display") || IsMatch(value, "displayFilter"))
@@ -611,20 +629,26 @@ export class EveChildContainer extends EveChildTransform
   /**
    * Appends a child. The registration, the variable replay and the inherited
    * properties are the INSERTED arm's, reached through the managed mutation.
+   *
+   * Adapted: A JavaScript array has no notify slot, so the owner drives the notification
+   * through the shared child service rather than the list driving it.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("A JavaScript array has no notify slot, so the owner drives the notification through the shared child service rather than the list driving it.")
   AddToEffectChildrenList(child)
   {
     addChild(this, "objects", child, { listNotify: this });
     return child;
   }
 
-  /** Removes a child by identity; the unregistration is the REMOVED arm's. */
+  /**
+   * Removes a child by identity; the unregistration is the REMOVED arm's.
+   *
+   * Adapted: A JavaScript array has no notify slot, so the owner drives the notification
+   * through the shared child service rather than the list driving it.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("A JavaScript array has no notify slot, so the owner drives the notification through the shared child service rather than the list driving it.")
   RemoveFromEffectChildrenList(child)
   {
     return removeChild(this, "objects", child, { listNotify: this });
@@ -755,6 +779,11 @@ export class EveChildContainer extends EveChildTransform
    * advances the GPU bone ring buffer and may dispatch the body onto the
    * placement task group (cpp:522-538) - both engine-owned, so the JS port
    * runs the DoUpdateAsyncronous body inline behind the same IsUpdating gate.
+   *
+   * Adapted: The GPU bone ring buffer, task-group dispatch, per-object VS/PS struct refresh,
+   * and the Granny bone-list override are engine/animation seams; the CPU update fan-out is
+   * ported.
+   *
    * @param {Object} updateContext - frame context (EveUpdateContext), threaded to modifiers
    * @param {EveChildUpdateParams} params - localToWorldTransform + boneCount/bones
    * @returns {Float32Array} worldTransform
@@ -762,7 +791,6 @@ export class EveChildContainer extends EveChildTransform
   @meta.blue.method
   @meta.blue.contextual(["camera"])
   @meta.adapted
-  @meta.reason("The GPU bone ring buffer, task-group dispatch, per-object VS/PS struct refresh, and the Granny bone-list override are engine/animation seams; the CPU update fan-out is ported.")
   UpdateAsyncronous(updateContext, params)
   {
     // Carbon cpp:516: re-arm the once-per-frame palette upload, before the gate.
@@ -875,7 +903,7 @@ export class EveChildContainer extends EveChildTransform
    * cpp:379-410): gate on display/IsUpdating, recurse into the children with
    * the unchanged parent transform/LOD, then refresh attachment visibility
    * against this container's world transform.
-   * @param {Object} updateContext - frame context (frustum ducks)
+   * @param {EveUpdateContext} updateContext - frame context
    * @param {Float32Array} parentTransform
    * @param {Number} parentLod - parent Tr2Lod level
    * @returns {Boolean} whether the fan-out ran
@@ -1045,7 +1073,7 @@ export class EveChildContainer extends EveChildTransform
   /** Carbon EveChildContainer::GetLights (cpp:657-675): each light is added
    * with the container world transform and the average basis-length scaling
    * ((|X| + |Y| + |Z|) / 3 of the world basis rows - single-matrix reads, no
-   * composition). The light manager is duck-typed. */
+   * composition). Lights are submitted through the supplied manager. */
   @meta.blue.method
   @meta.implemented
   GetLights(lightManager)
@@ -1148,11 +1176,15 @@ export class EveChildContainer extends EveChildTransform
     return this.attachments.length > 0;
   }
 
-  /** Carbon EveChildContainer::IsRendering (cpp:334-362): whether the current
-   * shader model passes this container's display filter. */
+  /**
+   * Carbon EveChildContainer::IsRendering (cpp:334-362): whether the current
+   * shader model passes this container's display filter.
+   *
+   * Adapted: Carbon reads the Tr2Renderer shader-model global; the browser runtime stamps
+   * EveChildContainer.shaderModel (default TR2SM_3_0_DEPTH, the DX11 depth path EVE ships).
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon reads the Tr2Renderer shader-model global; the browser runtime stamps EveChildContainer.shaderModel (default TR2SM_3_0_DEPTH, the DX11 depth path EVE ships).")
   IsRendering()
   {
     const settings = EveChildContainer.shaderModel;
@@ -1421,12 +1453,15 @@ export class EveChildContainer extends EveChildTransform
     return duration;
   }
 
-  /** Carbon EveChildContainer::GetControllerValueByName (cpp:1083-1098):
+  /**
+   * Carbon EveChildContainer::GetControllerValueByName (cpp:1083-1098):
    * Carbon returns bool with a float& out; the JS port returns the value or
-   * null when no controller exposes the named float variable. */
+   * null when no controller exposes the named float variable.
+   *
+   * Adapted: The bool + float& out-param pair collapses to value-or-null in JS.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The bool + float& out-param pair collapses to value-or-null in JS.")
   GetControllerValueByName(name)
   {
     const key = String(name ?? "");
@@ -1521,8 +1556,13 @@ export class EveChildContainer extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildContainer::FindSoundEmitter (cpp:1042-1066): named local
-   * observers first, then duck-typed recursion into the children. */
+  /**
+   * Searches named local observers, then children implementing ITr2SoundEmitterOwner.
+   * Carbon FindSoundEmitter (EveChildContainer.cpp:1036-1060).
+   *
+   * @param {string} name Observer name.
+   * @returns {ITr2AudEmitter|null} The first matching emitter, or null.
+   */
   @meta.blue.method
   @meta.implemented
   FindSoundEmitter(name)
