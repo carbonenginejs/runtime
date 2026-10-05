@@ -6,15 +6,29 @@ import { CjsFsd64SchemaReader } from "../core/CjsFsd64SchemaReader.js";
  * Reads caller-supplied `types.fsdbinary` bytes **as EVE Frontier stores them**.
  *
  * Frontier is a different game on the same engine, and its type record is a
- * different layout: 136 bytes against Tranquility's 152, with a presence word at
- * 132 rather than 148. It is not a version of the other schema, so it is not a
+ * different layout: 144 bytes against Tranquility's 152, with a presence word at
+ * 140 rather than 148. It is not a version of the other schema, so it is not a
  * variant of `CjsFsd64SchemaTypes` - the two are separate pinned layouts, and a
  * caller picks the one its target ships.
  *
  * What the two records disagree about is the game, not the format. Frontier
  * carries `tags` and drops `manufacturers`, `shipTreeGroupID`, `soundID` and the
  * show-info quote pair; it also stores `typeID` a second time inside the record,
- * where it equals the map key on all 32,627 records.
+ * where it equals the map key on every record.
+ *
+ * **This reads the current layout only (build 3573151 onward).** Frontier does
+ * not return to an older client, so the previous layout (`639467dd…`, 136 bytes,
+ * build 3512930) was replaced rather than kept beside it. The current layout
+ * adds `quantityKind`, a string pointer at 40 between `portionSize` and
+ * `radius`, in the loader's field order, under presence bit 14. Every field from
+ * offset 40 moved up 8 bytes, and every presence bit from 14 moved up one.
+ * Measured by matching bytes per typeID across the 32,627 types both builds
+ * share: every moved field agreed on every type, apart from real data changes
+ * between the builds (26 `groupID`, 10 `graphicID`, 7 `published`, 2
+ * `capacity`, 1 `descriptionID`), and every old presence bit maps to exactly one
+ * new bit on all shared records. `quantityKind` is set on 22 of 32,895 types -
+ * `continuous` on 21, `discrete` on 1 - which are the types the new
+ * `neoTypeProperty` table keys.
  *
  * **`name` and `description` are not in this file.** The record carries the
  * localisation label identifiers, and the strings live in
@@ -24,11 +38,14 @@ import { CjsFsd64SchemaReader } from "../core/CjsFsd64SchemaReader.js";
  * spelling `CjsFsd64SchemaTypes` uses; Frontier's own loader calls it
  * `typeNameID`.
  *
- * Derived against build 3512930, from `app:/bin64/typesLoader.pyd`'s field list
- * and referential integrity against the containers each identifier points into.
- * Every claim below is a measurement on all 32,627 records:
+ * The fields themselves were derived against build 3512930, from
+ * `app:/bin64/typesLoader.pyd`'s field list and referential integrity against
+ * the containers each identifier points into. The claims below are that build's
+ * measurements on all 32,627 records, with offsets and bits restated for the
+ * current layout:
  *
- * - The stride is the only one in 128-152 that yields unique keys.
+ * - The stride was the only one in 128-152 that yields unique keys; in the
+ *   current build only 144 does.
  * - `groupID` resolves into `groups` on 32,623 of 32,623 non-zero records,
  *   `graphicID` into `graphicids` on 12,636 of 12,636, `iconID` into `iconids`
  *   on 9,984 of 9,984, `marketGroupID` into `marketgroups` on 9,693 of 9,693,
@@ -45,10 +62,10 @@ import { CjsFsd64SchemaReader } from "../core/CjsFsd64SchemaReader.js";
  * of two the race table keys, plus the combinations 134 and 135. It is declared
  * `UINT_32` for that reason, where `CjsFsd64SchemaTypes` declares an identifier.
  *
- * Two four-byte slots at 72 and 100 carry data this schema does not claim; one
- * record sets each. Presence bits 6 (7,156 records) and 16 (912) are likewise
- * informative and unassigned, which is where the loader's remaining fields -
- * `platforms` among them - will be.
+ * Two four-byte slots at 80 and 108 carry data this schema does not claim; one
+ * and four records set them in build 3573151. Presence bits 6 (7,272 records)
+ * and 17 (920) are likewise informative and unassigned, which is where the
+ * loader's remaining field, `platforms`, will be.
  */
 export class CjsFsd64SchemaFrontierTypes extends CjsFsd64SchemaReader
 {
@@ -57,18 +74,18 @@ export class CjsFsd64SchemaFrontierTypes extends CjsFsd64SchemaReader
         "name": "types",
         "schemaVersion": 1,
         "path": "res:/staticdata/types.fsdbinary",
-        "schemaID": "639467dd23791c31777b3f4ff31f6bad",
+        "schemaID": "8d7a099712d997ddc7b0f218c5c8a396",
         "container": {
             "type": "MAP",
-            "recordSize": 136,
+            "recordSize": 144,
             "key": {
                 "type": "UINT_32_IDENTIFIER",
                 "offset": 0
             },
             "presence": {
                 "type": "UINT_32",
-                "offset": 132,
-                "allowedMask": 2097151
+                "offset": 140,
+                "allowedMask": 4194303
             },
             "fields": [
                 {
@@ -92,14 +109,20 @@ export class CjsFsd64SchemaFrontierTypes extends CjsFsd64SchemaReader
                     "offset": 32
                 },
                 {
+                    "name": "quantityKind",
+                    "type": "STRING",
+                    "offset": 40,
+                    "presenceMask": 16384
+                },
+                {
                     "name": "radius",
                     "type": "FLOAT_64",
-                    "offset": 40
+                    "offset": 48
                 },
                 {
                     "name": "tags",
                     "type": "LIST",
-                    "offset": 48,
+                    "offset": 56,
                     "itemSize": 4,
                     "item": {
                         "type": "UINT_32_IDENTIFIER",
@@ -109,101 +132,101 @@ export class CjsFsd64SchemaFrontierTypes extends CjsFsd64SchemaReader
                 {
                     "name": "volume",
                     "type": "FLOAT_64",
-                    "offset": 56
+                    "offset": 64
                 },
                 {
                     "name": "descriptionID",
                     "type": "UINT_32",
-                    "offset": 64,
+                    "offset": 72,
                     "presenceMask": 4
                 },
                 {
                     "name": "factionID",
                     "type": "UINT_32_IDENTIFIER",
-                    "offset": 68,
+                    "offset": 76,
                     "presenceMask": 8
                 },
                 {
                     "name": "graphicID",
                     "type": "UINT_32_IDENTIFIER",
-                    "offset": 76,
+                    "offset": 84,
                     "presenceMask": 16
                 },
                 {
                     "name": "groupID",
                     "type": "UINT_32_IDENTIFIER",
-                    "offset": 80
+                    "offset": 88
                 },
                 {
                     "name": "iconID",
                     "type": "UINT_32_IDENTIFIER",
-                    "offset": 84,
+                    "offset": 92,
                     "presenceMask": 32
                 },
                 {
                     "name": "marketGroupID",
                     "type": "UINT_32_IDENTIFIER",
-                    "offset": 88,
+                    "offset": 96,
                     "presenceMask": 128
                 },
                 {
                     "name": "metaGroupID",
                     "type": "UINT_32_IDENTIFIER",
-                    "offset": 92,
+                    "offset": 100,
                     "presenceMask": 512
                 },
                 {
                     "name": "metaLevel",
                     "type": "UINT_32",
-                    "offset": 96,
+                    "offset": 104,
                     "presenceMask": 1024
                 },
                 {
                     "name": "raceID",
                     "type": "UINT_32",
-                    "offset": 104,
-                    "presenceMask": 16384
+                    "offset": 112,
+                    "presenceMask": 32768
                 },
                 {
                     "name": "techLevel",
                     "type": "UINT_32",
-                    "offset": 108,
-                    "presenceMask": 131072
+                    "offset": 116,
+                    "presenceMask": 262144
                 },
                 {
                     "name": "typeID",
                     "type": "UINT_32_IDENTIFIER",
-                    "offset": 112
+                    "offset": 120
                 },
                 {
                     "name": "nameID",
                     "type": "UINT_32",
                     "sourceName": "typeNameID",
                     "renamed": true,
-                    "offset": 116
+                    "offset": 124
                 },
                 {
                     "name": "variationParentTypeID",
                     "type": "UINT_32_IDENTIFIER",
-                    "offset": 120,
-                    "presenceMask": 262144
+                    "offset": 128,
+                    "presenceMask": 524288
                 },
                 {
                     "name": "wreckTypeID",
                     "type": "UINT_32_IDENTIFIER",
-                    "offset": 124,
-                    "presenceMask": 1048576
+                    "offset": 132,
+                    "presenceMask": 2097152
                 },
                 {
                     "name": "isDynamicType",
                     "type": "BOOLEAN",
-                    "offset": 128,
+                    "offset": 136,
                     "bit": 0
                 },
                 {
                     "name": "published",
                     "type": "BOOLEAN",
-                    "offset": 129,
+                    "offset": 137,
                     "bit": 0
                 }
             ]
