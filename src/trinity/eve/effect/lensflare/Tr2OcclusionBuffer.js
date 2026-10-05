@@ -1,6 +1,6 @@
-import { Tr2BufferAL } from "../../../../trinityal/Tr2BufferAL/index.js";
 // Source: trinity/trinity/Eve/EveOccluder.h:20-49 (Tr2OcclusionBuffer)
 // Source: trinity/trinity/Eve/EveOccluder.cpp:15-122
+import { Tr2BufferAL } from "../../../../trinityal/Tr2BufferAL/index.js";
 //
 // THE LENS-FLARE OCCLUSION BUFFER: one R32_UINT GPU buffer of 13-word slots,
 // registered in the global store as "FlareOcclusionBuffer". Word 0 of a slot

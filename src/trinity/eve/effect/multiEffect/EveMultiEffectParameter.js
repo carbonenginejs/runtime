@@ -1,7 +1,7 @@
-import { INotify } from "../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/EveMultiEffectParameter.h
 // Source: trinity/trinity/Eve/EveMultiEffectParameter.cpp
 // Source: trinity/trinity/Eve/EveMultiEffectParameter_Blue.cpp
+import { INotify } from "../../../../global/blue/INotify.js";
 import { CjsSchema, meta } from "#schema";
 import { EveEffectRoot2 } from "../../spaceObject/EveEffectRoot2.js";
 import { EveSpaceObject2 } from "../../spaceObject/EveSpaceObject2.js";
@@ -94,10 +94,12 @@ export class EveMultiEffectParameter
   /**
    * Rebinds the owning effect after a model update, since the bound object is
    * the slot's only notifying field.
+   *
+   * Adapted: JS dispatches the native hook using the exposed member name; existing
+   * class-owned rendering/resource adaptations remain unchanged.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "object") && this._owner) this._owner.Rebind();

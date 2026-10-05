@@ -1,7 +1,7 @@
-import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/EveMultiEffect.h
 // Source: trinity/trinity/Eve/EveMultiEffect.cpp
 // Source: trinity/trinity/Eve/EveMultiEffect_Blue.cpp
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { CjsSchema, meta } from "#schema";
 import { EveMultiEffectParameter } from "./EveMultiEffectParameter.js";
 import { Tr2DynamicBinding } from "../../../core/binding/Tr2DynamicBinding.js";
