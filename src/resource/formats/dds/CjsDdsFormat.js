@@ -554,6 +554,5 @@ export class CjsDdsFormat extends CjsImageFormat
     static extensions = [ ".dds" ];
 }
 
-CjsImageFormat.registerSignature("dds", isDDS);
 
 export default CjsDdsFormat;

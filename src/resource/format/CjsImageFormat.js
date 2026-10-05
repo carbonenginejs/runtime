@@ -20,12 +20,10 @@ const SRGB_BLOCK_FORMATS = new Set([
  * table and the step that turns a native read into the format a caller asked
  * for.
  *
- * `Format.carbon` IS Carbon's `ImageIO::ImageFormatFunctions`
+ * The format class's statics ARE Carbon's `ImageIO::ImageFormatFunctions`
  * (imageio/include/Tr2ImageHandler.h:74-80) - `checkExtension`, `readImage`,
- * `isSaveSupported`, `save` - built per subclass from its hooks. A composition
- * root registers the format once with blue.resMan; ImageIO resolves its extension
- * from that store and calls this table. Carbon compiles handlers into ImageIO;
- * separate JS format modules use the shared ResMan registration instead.
+ * `isSaveSupported`, `save`. The orchestrator registers the class with
+ * `ImageIO.registerImageHandler`, and ImageIO calls those statics directly.
  *
  * A subclass supplies:
  * - `static extensions` (already declared by every format) for checkExtension;
@@ -50,54 +48,6 @@ const IMAGE_MIME_TYPES = Object.freeze({
 
 export class CjsImageFormat extends CjsFormat
 {
-  /**
-   * Signature tests the image formats register when they load: each format owns
-   * its own, and this list only lets a reader name a FOREIGN container in its
-   * mismatch error. Heuristic tests (TGA has no magic) run last.
-   */
-  static _signatures = [];
-
-  /**
-   * Registers an image format's signature test.
-   *
-   * @param {string} id Format id, e.g. `"png"`.
-   * @param {function(Uint8Array): boolean} test The format's own signature test.
-   * @param {{heuristic?: boolean}} [options] Heuristic tests are tried last.
-   * @returns {void}
-   */
-  static registerSignature(id, test, { heuristic = false } = {})
-  {
-    const list = CjsImageFormat._signatures.filter(entry => entry.id !== id);
-    list.push({ id, test, heuristic });
-    CjsImageFormat._signatures = list.sort((a, b) => Number(a.heuristic) - Number(b.heuristic));
-  }
-
-  /**
-   * Names the registered image container `bytes` holds.
-   *
-   * @param {Uint8Array} bytes Candidate bytes.
-   * @returns {string} The format id, or `""` when no registered format claims it.
-   */
-  static identifyImageBytes(bytes)
-  {
-    for (const { id, test } of CjsImageFormat._signatures)
-    {
-      if (test(bytes)) return id;
-    }
-    return "";
-  }
-
-  /**
-   * The minimal inspection record for a container this reader does not own:
-   * enough for the caller to name it in the mismatch error.
-   *
-   * @param {string} sourceFormat Identified container name, or `""`.
-   * @returns {{sourceFormat: string, width: number, height: number}} The record.
-   */
-  static foreignImageRecord(sourceFormat)
-  {
-    return { sourceFormat, width: 0, height: 0 };
-  }
 
   /**
    * Media type for an identified container.
@@ -127,41 +77,8 @@ export class CjsImageFormat extends CjsFormat
     };
   }
 
-  /**
-   * Capitalizes a format id for an error message, defaulting to `"Image"`.
-   *
-   * @param {string} value Format id.
-   * @returns {string} Capitalized name.
-   */
-  static capitalizeFormatId(value)
-  {
-    return value ? value[0].toUpperCase() + value.slice(1) : "Image";
-  }
-
   /** Registered name; `constructor.name` does not survive minification. */
   static className = "CjsImageFormat";
-
-  /**
-   * Carbon's handler table for this format class, built once per subclass.
-   *
-   * @returns {{checkExtension: Function, readImage: Function, isSaveSupported: Function, save: Function}} The table.
-   */
-  static get carbon()
-  {
-    if (!Object.hasOwn(this, "_carbon"))
-    {
-      this._carbon = {
-        checkExtension: extension => this.checkExtension(extension),
-        readImage: (bytes, loadParameters, bitmap, metadata = null) => this.readImage(bytes, loadParameters, bitmap, metadata),
-        // Not Carbon: see readImageAsync.
-        readImageAsync: (bytes, loadParameters, bitmap, metadata = null) => this.readImageAsync(bytes, loadParameters, bitmap, metadata),
-        isSaveSupported: dimensions => this.isSaveSupported(dimensions),
-        save: (bitmap, metadata = null) => this.save(bitmap, metadata)
-      };
-    }
-
-    return this._carbon;
-  }
 
   /**
    * The bytes of a sniff candidate, or null when the input is not binary. Never

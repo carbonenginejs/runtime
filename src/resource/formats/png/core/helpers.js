@@ -85,7 +85,7 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
 
     if (expectedType && detected.sourceFormat !== expectedType)
     {
-        throw new TypeError(`CjsFormat${CjsImageFormat.capitalizeFormatId(expectedType)}: expected ${expectedType}, got ${detected.sourceFormat || "unrecognised bytes"}`);
+        throw new TypeError(`not a ${expectedType.toUpperCase()}`);
     }
 
     return {
@@ -198,7 +198,7 @@ export async function readWithValuesAsync(input, values = DEFAULT_VALUES, expect
  */
 export function inspectBytes(bytes)
 {
-    return isPNG(bytes) ? inspectPNG(bytes) : CjsImageFormat.foreignImageRecord(CjsImageFormat.identifyImageBytes(bytes));
+    return isPNG(bytes) ? inspectPNG(bytes) : { sourceFormat: "", width: 0, height: 0 };
 }
 
 

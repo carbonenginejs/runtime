@@ -255,7 +255,7 @@ export class CjsTgaFormat extends CjsImageFormat
 
     /**
      * Fill a HostBitmap through this format's RGBA8 output, for Carbon's ImageIO
-     * registry (`CjsTgaFormat.carbon`). See CjsImageFormat.readImageFromRgbaPayload.
+     * registry (ImageIO). See CjsImageFormat.readImageFromRgbaPayload.
      *
      * @param {Uint8Array|ArrayBuffer} input Image bytes.
      * @param {object} _loadParameters Load parameters; a single-mip image skips nothing.
@@ -271,6 +271,5 @@ export class CjsTgaFormat extends CjsImageFormat
     static extensions = [ ".tga" ];
 }
 
-CjsImageFormat.registerSignature("tga", isTGA, { heuristic: true });
 
 export default CjsTgaFormat;

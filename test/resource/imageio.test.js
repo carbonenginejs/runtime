@@ -63,14 +63,15 @@ test("LoadParameters.GetMipLevelRange follows Tr2ImageHandler.cpp:165-191", () =
   assert.deepEqual(new LoadParameters("a.dds", 0, 3).GetMipLevelRange(256, 256, 9), { skipCount: 6, mipCount: 3 });
 });
 
-test("CjsDdsFormat.carbon is Carbon's handler table, built per format class", () =>
+test("an image format class's statics are Carbon's handler table", () =>
 {
-  const table = CjsDdsFormat.carbon;
-  assert.equal(CjsDdsFormat.carbon, table);
-  assert.deepEqual(Object.keys(table), [ "checkExtension", "readImage", "readImageAsync", "isSaveSupported", "save" ]);
-  assert.equal(table.checkExtension("DDS"), true);
-  assert.equal(table.checkExtension("png"), false);
-  assert.equal(table.isSaveSupported(null).code, ImageIOResult.Code.SAVE_NOT_SUPPORTED);
+  // ImageIO::ImageFormatFunctions (Tr2ImageHandler.h:74-80), plus our asynchronous read.
+  for (const name of [ "checkExtension", "readImage", "readImageAsync", "isSaveSupported", "save" ])
+    assert.equal(typeof CjsDdsFormat[name], "function", name);
+  assert.equal(ImageIO.getImageHandler("dds"), CjsDdsFormat);
+  assert.equal(CjsDdsFormat.checkExtension("DDS"), true);
+  assert.equal(CjsDdsFormat.checkExtension("png"), false);
+  assert.equal(CjsDdsFormat.isSaveSupported(null).code, ImageIOResult.Code.SAVE_NOT_SUPPORTED);
 });
 
 test("ImageIO.readImage routes by extension and fills the caller's bitmap", () =>
@@ -242,8 +243,8 @@ for (const [ extension, Format, makeBytes, asyncOnly ] of imageCases)
     const parameters = new LoadParameters(`sample.${extension.toUpperCase()}`);
     const expected = new HostBitmap(), expectedMetadata = new Metadata();
     const actual = new HostBitmap(), actualMetadata = new Metadata();
-    assert.equal(ImageIO.getImageHandler(extension), Format.carbon);
-    const direct = await Format.carbon.readImageAsync(bytes, parameters, expected, expectedMetadata);
+    assert.equal(ImageIO.getImageHandler(extension), Format);
+    const direct = await Format.readImageAsync(bytes, parameters, expected, expectedMetadata);
     const routed = await ImageIO.readImageAsync(bytes, parameters, actual, actualMetadata);
     assert.equal(direct.code, ImageIOResult.Code.OK);
     assert.equal(routed.code, direct.code);
@@ -266,8 +267,8 @@ for (const [ extension, Format, makeBytes, asyncOnly ] of imageCases)
     const SAVES = new Set([ "psd", "png", "jpg", "tga" ]);
     const expectedSaveCode = SAVES.has(extension) ? ImageIOResult.Code.OK : extension === "dds" ? ImageIOResult.Code.SAVE_NOT_SUPPORTED : ImageIOResult.Code.METHOD_NOT_SUPPORTED;
     assert.equal(ImageIO.isSaveSupported(parameters.filename, saveBitmap).code, expectedSaveCode);
-    assert.equal(Format.carbon.isSaveSupported(saveBitmap).code, expectedSaveCode);
-    const directSave = Format.carbon.save(saveBitmap);
+    assert.equal(Format.isSaveSupported(saveBitmap).code, expectedSaveCode);
+    const directSave = Format.save(saveBitmap);
     const routedSave = ImageIO.saveImage(parameters.filename, saveBitmap);
     assert.equal(routedSave.result.code, expectedSaveCode);
     assert.equal(routedSave.result.code, directSave.result.code);
@@ -314,7 +315,7 @@ test("ImageIO serves only formats registered with it, says so when none is, and 
 
   // Replacing the active ResMan changes nothing for ImageIO.
   blue.resMan = new CjsBlueResMan();
-  assert.equal(ImageIO.getImageHandler("late"), LateImage.carbon);
+  assert.equal(ImageIO.getImageHandler("late"), LateImage);
 });
 
 test("ImageIO refuses non-image formats and keeps Carbon's first-registered lookup order", () =>
@@ -327,9 +328,9 @@ test("ImageIO refuses non-image formats and keeps Carbon's first-registered look
   ImageIO.registerImageHandler(FirstImage);
   ImageIO.registerImageHandler(SecondImage);
   // The first registered handler whose checkExtension accepts it (Tr2ImageHandler.cpp:51-63).
-  assert.equal(ImageIO.getImageHandler("order"), FirstImage.carbon);
+  assert.equal(ImageIO.getImageHandler("order"), FirstImage);
   ImageIO.registerImageHandler(FirstImage);
-  assert.equal(ImageIO.getImageHandler("order"), FirstImage.carbon, "re-registering does not reorder");
+  assert.equal(ImageIO.getImageHandler("order"), FirstImage, "re-registering does not reorder");
 });
 
 test("ImageIO's adaptations and its faithful lookup are recorded in schema metadata", () =>

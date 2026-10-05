@@ -64,13 +64,13 @@ export class ImageIO
    * null (Tr2ImageHandler.cpp:51-63).
    *
    * @param {string} extension Extension, without the dot.
-   * @returns {object|null} Handler table.
+   * @returns {Function|null} The registered format class, whose statics are the handler.
    */
   static getImageHandler(extension)
   {
     for (const Format of ImageIO._imageHandlers)
     {
-      if (Format.checkExtension(extension)) return Format.carbon;
+      if (Format.checkExtension(extension)) return Format;
     }
     return null;
   }

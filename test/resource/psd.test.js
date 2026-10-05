@@ -139,9 +139,9 @@ test("PSD PackBits retains skipped row counts, repeat/literal/no-op handling and
 test("PSD standalone facade uses existing outputs and normalized RGBA writes", async () =>
 {
     const bytes = await fixture("rgba");
-    assert.equal(ImageIO.getImageHandler("PsD"), CjsPsdFormat.carbon);
-    assert.equal(CjsPsdFormat.carbon.checkExtension("psdx"), false);
-    assert.equal(CjsPsdFormat.carbon.checkExtension(".psd"), false);
+    assert.equal(ImageIO.getImageHandler("PsD"), CjsPsdFormat);
+    assert.equal(CjsPsdFormat.checkExtension("psdx"), false);
+    assert.equal(CjsPsdFormat.checkExtension(".psd"), false);
     assert.deepEqual(Object.keys(CjsPsdFormat.outputs), [ "image", "rgba", "raw" ]);
     assert.equal(CjsPsdFormat.read(bytes).bytes, bytes);
     const reader = new CjsPsdFormat({ emit: "rgba" });

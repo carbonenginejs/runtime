@@ -247,7 +247,7 @@ export class CjsJpegFormat extends CjsImageFormat
     });
     /**
      * Fill a HostBitmap through this format's RGBA8 output, for Carbon's ImageIO
-     * registry (`CjsJpegFormat.carbon`). See CjsImageFormat.readImageFromRgbaPayload.
+     * registry (ImageIO). See CjsImageFormat.readImageFromRgbaPayload.
      *
      * @param {Uint8Array|ArrayBuffer} input Image bytes.
      * @param {object} _loadParameters Load parameters; a single-mip image skips nothing.
@@ -263,6 +263,5 @@ export class CjsJpegFormat extends CjsImageFormat
     static extensions = [ ".jpg", ".jpeg" ];
 }
 
-CjsImageFormat.registerSignature("jpeg", isJPEG);
 
 export default CjsJpegFormat;

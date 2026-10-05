@@ -138,7 +138,7 @@ export class CjsGifFormat extends CjsImageFormat
     });
     /**
      * Fill a HostBitmap through this format's RGBA8 output, for Carbon's ImageIO
-     * registry (`CjsGifFormat.carbon`). See CjsImageFormat.readImageFromRgbaPayload.
+     * registry (ImageIO). See CjsImageFormat.readImageFromRgbaPayload.
      *
      * @param {Uint8Array|ArrayBuffer} input Image bytes.
      * @param {object} _loadParameters Load parameters; a single-mip image skips nothing.
