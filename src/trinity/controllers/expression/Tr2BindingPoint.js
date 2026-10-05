@@ -129,6 +129,10 @@ export class Tr2BindingPoint
 
   /**
    * Writes a value into the bound destination.
+   *
+   * Adapted: JS returns whether a value changed; like the donor, successful writes notify
+   * regardless of equality through the existing JS notification adapter.
+   *
    * @param {*} value Value accepted by the retained JS storage adapter.
    * @param {Array|object|null} [roots=null] Roots used for lazy linking.
    * @param {object|null} [owner=null] Explicit owner for lazy linking.
@@ -136,7 +140,6 @@ export class Tr2BindingPoint
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JS returns whether a value changed; like the donor, successful writes notify regardless of equality through the existing JS notification adapter.")
   SetValue(value, roots = null, owner = null)
   {
     if (!this.IsValid())

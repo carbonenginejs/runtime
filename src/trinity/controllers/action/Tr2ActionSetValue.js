@@ -1,7 +1,7 @@
-import { IsMatch } from "#blue";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetValue.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetValue.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetValue_Blue.cpp
+import { IsMatch } from "#blue";
 import { INotify } from "#blue/INotify";
 import { meta } from "#schema";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
