@@ -1303,7 +1303,7 @@ export class EveSpaceScene
   }
 
   /**
-   * Carbon EveSpaceScene::PickInfinity (cpp:4039-4050): the world-space
+   * Carbon EveSpaceScene::PickInfinity (cpp:4087-4098): the world-space
    * DIRECTION a screen pixel points along - the pick ray with nothing to hit,
    * which is what a click on empty space resolves to. Pure math, no readback.
    *
@@ -1321,7 +1321,7 @@ export class EveSpaceScene
   @meta.implemented
   PickInfinity(x, y, projection, view, viewport = null, out = vec3.create())
   {
-    const resolved = viewport ?? this.updateContext?.renderContext?.GetViewport?.();
+    const resolved = viewport ?? this.updateContext.renderContext.GetViewport();
     const projected = screenToProjection(x, y, resolved);
     const ray = convertProjectionCoordToWorldPickRay(projected.x, projected.y, projection, view);
 
@@ -1461,14 +1461,10 @@ export class EveSpaceScene
       this.postprocess, Tr2PostProcessAttributes.SCENE_DEFAULT_PRIORITY, 1.0);
 
     const sources = [];
-    for (const owner of this.componentRegistry?.GetComponents(EveComponentType.PostProcessOwner) ?? [])
+    for (const owner of this.componentRegistry.GetComponents(EveComponentType.PostProcessOwner))
     {
-      // Carbon pushes the pointer unguarded (cpp:358-361); a null one is skipped here.
-      const attributes = owner.GetPostProcessAttributes();
-      if (attributes)
-      {
-        sources.push(attributes);
-      }
+      // Carbon cpp:360-363 consumes each owner's required attributes directly.
+      sources.push(owner.GetPostProcessAttributes());
     }
 
     // Scene default appended LAST (cpp:363).
@@ -1561,7 +1557,7 @@ export class EveSpaceScene
     this._velocityMapDirty = false;
 
     const overrides = [];
-    for (const component of this.componentRegistry?.GetComponents(EveComponentType.EveLightingOverride) ?? [])
+    for (const component of this.componentRegistry.GetComponents(EveComponentType.EveLightingOverride))
     {
       overrides.push(component.GetOverrides());
     }
@@ -1640,7 +1636,7 @@ export class EveSpaceScene
     lightManager.SetFrustum(this.updateContext.GetFrustum());
     lightManager.AdjustLightCutoff(this.updateContext.GetLodFactor());
 
-    for (const owner of this.componentRegistry?.GetComponents(EveComponentType.LightOwner) ?? [])
+    for (const owner of this.componentRegistry.GetComponents(EveComponentType.LightOwner))
     {
       owner.GetLights(lightManager);
     }
@@ -3152,7 +3148,7 @@ export class EveSpaceScene
   }
 
   /**
-   * Carbon RenderDistortionBatches (EveSpaceScene.cpp:1224-1250): draws the
+   * Carbon RenderDistortionBatches (EveSpaceScene.cpp:1230-1262): draws the
    * DISTORTION batches additively into the distortion map, tested against the
    * scene depth. The map clears to Carbon's 0x007f7f00 (ARGB: red and green
    * 0x7f), the "no offset" value the Distortion.fx apply reads. The caller
@@ -3169,7 +3165,7 @@ export class EveSpaceScene
   RenderDistortionBatches(batches, distortionMap, depthMap, renderContext)
   {
     const accumulator = batches.GetAccumulator(TriBatchType.TRIBATCHTYPE_DISTORTION);
-    if (!accumulator?.GetBatchCount()) return false;
+    if (!accumulator.GetBatchCount()) return false;
 
     const esm = renderContext.GetEffectStateManager();
     esm.PushRenderTarget_TextureAL(distortionMap);

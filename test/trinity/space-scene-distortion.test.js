@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { EveSpaceScene, EveSpaceSceneRenderDriver } from "../../npm/dist/trinity/index.js";
+import { EveSpaceScene, EveSpaceSceneRenderDriver, TriRenderBatchMap, TriRenderBatchAccumulator } from "../../npm/dist/trinity/index.js";
 import { RenderingMode, TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 
 function recordingContext(calls)
@@ -28,8 +28,8 @@ test("distortion batches draw additively into a map cleared to Carbon's 0x007f7f
   const scene = new EveSpaceScene();
   scene.ApplyPerFrameData = () => calls.push([ "ApplyPerFrameData" ]);
   const calls = [];
-  const accumulator = { GetBatchCount: () => 1 };
-  const batches = { GetAccumulator: type => (type === TriBatchType.TRIBATCHTYPE_DISTORTION ? accumulator : null) };
+  const accumulator = Object.assign(new TriRenderBatchAccumulator(), { GetBatchCount: () => 1 });
+  const batches = Object.assign(new TriRenderBatchMap([]), { GetAccumulator: type => (type === TriBatchType.TRIBATCHTYPE_DISTORTION ? accumulator : null) });
 
   assert.equal(scene.RenderDistortionBatches(batches, "distortionMap", "depthMap", recordingContext(calls)), true);
   assert.deepEqual(calls, [
@@ -49,7 +49,8 @@ test("no distortion batches: nothing is bound and the driver does not apply (cpp
 {
   const scene = new EveSpaceScene();
   const calls = [];
-  const batches = { GetAccumulator: () => ({ GetBatchCount: () => 0 }) };
+  const accumulator = new TriRenderBatchAccumulator();
+  const batches = Object.assign(new TriRenderBatchMap([]), { GetAccumulator: () => accumulator });
 
   assert.equal(scene.RenderDistortionBatches(batches, "distortionMap", "depthMap", recordingContext(calls)), false);
   assert.deepEqual(calls, []);
