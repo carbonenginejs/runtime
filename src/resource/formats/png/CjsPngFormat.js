@@ -1,11 +1,11 @@
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { CjsImageFormat } from "../../format/CjsImageFormat.js";
+import { TextureType } from "#consts/render-context";
 import { ImageIOResult } from "#imageio";
 import {
     DEFAULT_VALUES,
     OUTPUT_IMAGE,
-    OUTPUT_JSON,
     OUTPUT_RAW,
     OUTPUT_RGBA,
     inspectWithValues,
@@ -13,8 +13,7 @@ import {
     probeSupportWithValues,
     normalizeValues,
     readWithValues,
-    readWithValuesAsync,
-    toJsonValue
+    readWithValuesAsync
 } from "./core/helpers.js";
 import { encodePng, encodePngAsync } from "./core/writer.js";
 
@@ -29,6 +28,48 @@ export class CjsPngFormat extends CjsImageFormat
 {
     /** Registered name; `constructor.name` does not survive minification. */
     static className = "CjsPngFormat";
+
+    /**
+     * Carbon IsSaveSupported (Tr2PngHandler.cpp:511-533): a 1D or 2D image with one array element.
+     *
+     * Adapted: converts where Carbon refuses. Any pixel format `convertImage`
+     * can take to 8-bit RGBA is accepted, where Carbon accepts only the formats
+     * its handler stores.
+     *
+     * @param {object} dimensions BitmapDimensions or HostBitmap.
+     * @returns {ImageIOResult} OK, or SAVE_NOT_SUPPORTED.
+     */
+    static isSaveSupported(dimensions)
+    {
+        return CjsImageFormat._isConvertibleSave(dimensions, [ TextureType.TEX_TYPE_1D, TextureType.TEX_TYPE_2D ]);
+    }
+
+    /**
+     * Carbon Save (Tr2PngHandler.cpp:544-702), writing the bitmap as PNG.
+
+     * Beyond the conversion, two differences from libpng's output: the file is
+     * always 8-bit RGBA, where Carbon writes grey, RGB or 16-bit depending on the
+     * source; and it is written with stored deflate blocks, as the synchronous
+     * `write` is, so it is valid and uncompressed. Metadata is not written;
+     * Carbon writes its strings as tEXt chunks, with each key also as the text
+     * (Tr2PngHandler.cpp:671-672).
+     *
+     * Adapted: converts where Carbon refuses - an unsupported pixel format is
+     * converted to 8-bit RGBA before encoding - and returns `{result, bytes}`
+     * where Carbon writes to a stream.
+     *
+     * @param {object} bitmap HostBitmap.
+     * @param {object|null} _metadata Metadata (not written; see above).
+     * @returns {{result: ImageIOResult, bytes: Uint8Array|null}} The outcome.
+     */
+    static save(bitmap, _metadata = null)
+    {
+        const { result, payload } = this._convertForSave(bitmap);
+
+        if (!payload) return { result, bytes: null };
+
+        return { result, bytes: encodePng(payload) };
+    }
 
     _values = DEFAULT_VALUES;
 
@@ -147,17 +188,6 @@ export class CjsPngFormat extends CjsImageFormat
     }
 
     /**
-     * Convert format output into JSON-compatible debug data.
-     *
-     * @param {any} value Format output.
-     * @returns {any} JSON-compatible value.
-     */
-    ToJSON(value)
-    {
-        return toJsonValue(value);
-    }
-
-    /**
      * One-shot PNG read.
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input PNG bytes.
@@ -211,17 +241,6 @@ export class CjsPngFormat extends CjsImageFormat
         return probeSupportWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "png", ...options }, FORMAT_NAME), "png");
     }
 
-    /**
-     * Convert format output into JSON-compatible debug data.
-     *
-     * @param {any} value Format output.
-     * @returns {any} JSON-compatible value.
-     */
-    static toJSON(value)
-    {
-        return toJsonValue(value);
-    }
-
 
     static id = "CjsPngFormat";
     static inputs = CjsFormat.defineInputs({
@@ -233,7 +252,6 @@ export class CjsPngFormat extends CjsImageFormat
     static outputs = CjsFormat.defineOutputs({
         image: { readMode: "async", decoded: true, probes: [ "image", "rgba" ] },
         rgba: { readMode: "async", decoded: true },
-        pngJson: { role: "debug", probes: [ "pngJson", "raw" ] },
         raw: { role: "debug", default: true, passthrough: true }
     });
     /**

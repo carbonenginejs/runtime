@@ -1,4 +1,3 @@
-import { toJsonWithByteSummary as toJsonValue } from "../../../format/jsonPolicies.js";
 import { CjsImageFormat } from "../../../format/CjsImageFormat.js";
 
 import { asUint8Array, readU16BE, readU16LE, readU32BE, readU32LE } from "#utils/bytes";
@@ -26,7 +25,6 @@ export const OUTPUT_IMAGE = "image";
 export const OUTPUT_TEXTURE = "texture";
 export const OUTPUT_RGBA = "rgba";
 export const OUTPUT_RAW = "raw";
-export const OUTPUT_JSON = "json";
 
 export const DEFAULT_VALUES = {
     emit: OUTPUT_RAW,
@@ -115,13 +113,6 @@ const COMPRESSED_PIXEL_FORMATS = new Set([
     "bc7-rgba-unorm-srgb"
 ]);
 
-const DEBUG_OUTPUTS = Object.freeze({
-    png: "pngJson",
-    jpeg: "jpegJson",
-    jpg: "jpegJson",
-    tga: "tgaJson",
-    dds: "ddsJson"
-});
 
 /**
  * Normalizes reader options against their supported defaults for the DDS format
@@ -148,7 +139,6 @@ export function normalizeEmit(emit, inputType, readerName)
 {
     if (emit === undefined || emit === null) return OUTPUT_RAW;
     if ([ "bitmap", OUTPUT_IMAGE, OUTPUT_TEXTURE, OUTPUT_RGBA, OUTPUT_RAW].includes(emit)) return emit;
-    if (Object.values(DEBUG_OUTPUTS).includes(emit)) return emit;
     throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
 
@@ -267,11 +257,6 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
         };
     }
 
-    if (values.emit === DEBUG_OUTPUTS[metadata.sourceFormat])
-    {
-        return metadata;
-    }
-
     if (values.emit === OUTPUT_TEXTURE && metadata.sourceFormat === "dds")
     {
         return readDdsTexture(bytes, metadata, values);
@@ -289,9 +274,6 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
     throw error;
 }
 
-/** Converts a parsed payload into a JSON-safe value for the DDS format reader. */
-/** The shared JSON policy for this reader, under the name its callers use. */
-export { toJsonValue };
 
 /**
  * Inspects the supplied bytes without decoding their payload for the DDS format

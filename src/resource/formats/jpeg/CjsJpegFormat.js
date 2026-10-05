@@ -1,18 +1,17 @@
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { CjsImageFormat } from "../../format/CjsImageFormat.js";
+import { TextureType } from "#consts/render-context";
 import {
     DEFAULT_VALUES,
     OUTPUT_IMAGE,
-    OUTPUT_JSON,
     OUTPUT_RAW,
     OUTPUT_RGBA,
     inspectWithValues,
     isJPEG,
     probeSupportWithValues,
     normalizeValues,
-    readWithValues,
-    toJsonValue
+    readWithValues
 } from "./core/helpers.js";
 import { encodeJpeg } from "./core/writer.js";
 
@@ -27,6 +26,45 @@ export class CjsJpegFormat extends CjsImageFormat
 {
     /** Registered name; `constructor.name` does not survive minification. */
     static className = "CjsJpegFormat";
+
+    /**
+     * Carbon IsSaveSupported (Tr2JpgHandler.cpp:383-400): a 2D image with one array element.
+     *
+     * Adapted: converts where Carbon refuses. Any pixel format `convertImage`
+     * can take to 8-bit RGBA is accepted, where Carbon accepts only the formats
+     * its handler stores.
+     *
+     * @param {object} dimensions BitmapDimensions or HostBitmap.
+     * @returns {ImageIOResult} OK, or SAVE_NOT_SUPPORTED.
+     */
+    static isSaveSupported(dimensions)
+    {
+        return CjsImageFormat._isConvertibleSave(dimensions, [ TextureType.TEX_TYPE_2D ]);
+    }
+
+    /**
+     * Carbon Save (Tr2JpgHandler.cpp:411-484) at Carbon's quality, 90.
+
+     * Beyond the conversion, Carbon writes R8 as single-component greyscale and
+     * uses a float DCT; this writes three components through the existing
+     * encoder. Carbon ignores metadata, as this does.
+     *
+     * Adapted: converts where Carbon refuses - an unsupported pixel format is
+     * converted to 8-bit RGBA before encoding - and returns `{result, bytes}`
+     * where Carbon writes to a stream.
+     *
+     * @param {object} bitmap HostBitmap.
+     * @param {object|null} _metadata Metadata (not written; see above).
+     * @returns {{result: ImageIOResult, bytes: Uint8Array|null}} The outcome.
+     */
+    static save(bitmap, _metadata = null)
+    {
+        const { result, payload } = this._convertForSave(bitmap);
+
+        if (!payload) return { result, bytes: null };
+
+        return { result, bytes: encodeJpeg(payload, { quality: 0.9 }) };
+    }
 
     _values = DEFAULT_VALUES;
 
@@ -118,17 +156,6 @@ export class CjsJpegFormat extends CjsImageFormat
     }
 
     /**
-     * Convert format output into JSON-compatible debug data.
-     *
-     * @param {any} value Format output.
-     * @returns {any} JSON-compatible value.
-     */
-    ToJSON(value)
-    {
-        return toJsonValue(value);
-    }
-
-    /**
      * One-shot JPEG read.
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input JPEG bytes.
@@ -188,17 +215,6 @@ export class CjsJpegFormat extends CjsImageFormat
         return probeSupportWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "jpeg", ...options }, FORMAT_NAME), "jpeg");
     }
 
-    /**
-     * Convert format output into JSON-compatible debug data.
-     *
-     * @param {any} value Format output.
-     * @returns {any} JSON-compatible value.
-     */
-    static toJSON(value)
-    {
-        return toJsonValue(value);
-    }
-
 
 
     static id = "CjsJpegFormat";
@@ -209,7 +225,6 @@ export class CjsJpegFormat extends CjsImageFormat
     static outputs = CjsFormat.defineOutputs({
         image: { decoded: true, probes: [ "image", "rgba" ] },
         rgba: { decoded: true },
-        jpegJson: { role: "debug", probes: [ "jpegJson", "raw" ] },
         raw: { role: "debug", default: true, passthrough: true }
     });
     /**

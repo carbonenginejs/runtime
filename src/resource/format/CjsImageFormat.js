@@ -421,4 +421,104 @@ export class CjsImageFormat extends CjsFormat
     return { result: new ImageIOResult(ImageIOResult.Code.METHOD_NOT_SUPPORTED), bytes: null };
   }
 
+  /**
+   * The save-side twin of `_finishRead`: Carbon's dimension check, then one
+   * conversion to the 8-bit RGBA every encoder here takes.
+   *
+   * Carbon's PNG, JPEG and TGA handlers refuse pixel formats they cannot store
+   * (Tr2TgaHandler.cpp:723-738 and :770-784; Tr2PngHandler.cpp:511-533;
+   * Tr2JpgHandler.cpp:383-400). Ours converts instead, through `convertImage`,
+   * so block-compressed, float and 16-bit bitmaps save too. A format answers
+   * OK for any convertible bitmap of a texture type Carbon's handler accepts,
+   * with one array element, as Carbon checks first.
+   *
+   * @param {object} dimensions BitmapDimensions or HostBitmap.
+   * @param {number[]} textureTypes The `TextureType` values Carbon's handler accepts.
+   * @returns {ImageIOResult} OK, or SAVE_NOT_SUPPORTED.
+   */
+  static _isConvertibleSave(dimensions, textureTypes)
+  {
+    const supported = textureTypes.includes(dimensions.GetType())
+      && dimensions.GetArraySize() === 1
+      && CjsImageFormat._canConvertForSave(dimensions.GetFormat());
+
+    return new ImageIOResult(supported ? ImageIOResult.Code.OK : ImageIOResult.Code.SAVE_NOT_SUPPORTED);
+  }
+
+  /**
+   * Whether a pixel format converts to RGBA8, answered by converting a 4x4
+   * bitmap of it with the same `convertImage` a save uses, so the answer cannot
+   * drift from what a save does. Remembered per format.
+   *
+   * @param {number} format A `PixelFormat` value.
+   * @returns {boolean} Whether a save of this format can be encoded.
+   */
+  static _canConvertForSave(format)
+  {
+    if (CjsImageFormat._SAVE_FORMATS.has(format)) return true;
+
+    const known = CjsImageFormat._saveConvertible.get(format);
+    if (known !== undefined) return known;
+
+    const probe = new HostBitmap();
+    const convertible = probe.Create(4, 4, 1, format)
+      && CjsImageFormat.convertImage(probe, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM);
+
+    CjsImageFormat._saveConvertible.set(format, Boolean(convertible));
+    return Boolean(convertible);
+  }
+
+  /** Pixel formats already in the encoders' 8-bit RGBA layout; sRGB differs only in meaning. */
+  static _SAVE_FORMATS = new Set([ PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM_SRGB ]);
+
+  /** `_canConvertForSave` answers, by pixel format. */
+  static _saveConvertible = new Map();
+
+  /**
+   * Checks and converts a bitmap for saving, leaving the caller's bitmap as it
+   * was: a format that needs converting is copied (mip 0, the image a PNG, JPEG
+   * or TGA holds) and the copy converted.
+   *
+   * @param {HostBitmap} bitmap The bitmap to save.
+   * @returns {{result: ImageIOResult, payload: {width: number, height: number, data: Uint8Array, strideBytes: number}|null}}
+   *   The RGBA payload the encoders take, or the failure.
+   */
+  static _convertForSave(bitmap)
+  {
+    if (!bitmap.IsValid())
+    {
+      return { result: new ImageIOResult(ImageIOResult.Code.INVALID_BITMAP), payload: null };
+    }
+
+    const supported = this.isSaveSupported(bitmap);
+    if (!supported.IsOk()) return { result: supported, payload: null };
+
+    let source = bitmap;
+
+    if (!CjsImageFormat._SAVE_FORMATS.has(bitmap.GetFormat()))
+    {
+      source = new HostBitmap();
+      source.CreateFromBitmapDimensions(new BitmapDimensions({
+        type: bitmap.GetType(),
+        format: bitmap.GetFormat(),
+        width: bitmap.GetWidth(),
+        height: bitmap.GetHeight(),
+        depth: 1,
+        mipCount: 1,
+        arraySize: 1
+      }));
+      source.GetMipRawData(0).set(bitmap.GetMipRawData(0).subarray(0, source.GetMipRawData(0).length));
+
+      if (!CjsImageFormat.convertImage(source, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM))
+      {
+        return { result: new ImageIOResult(ImageIOResult.Code.ERROR_CONVERTING_FORMAT), payload: null };
+      }
+    }
+
+    return {
+      result: new ImageIOResult(ImageIOResult.Code.OK),
+      payload: { width: source.GetWidth(), height: source.GetHeight(), data: source.GetMipRawData(0), strideBytes: source.GetMipPitch(0) }
+    };
+  }
+
 }

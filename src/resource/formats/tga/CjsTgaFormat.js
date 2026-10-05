@@ -1,18 +1,17 @@
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { CjsImageFormat } from "../../format/CjsImageFormat.js";
+import { TextureType } from "#consts/render-context";
 import {
     DEFAULT_VALUES,
     OUTPUT_IMAGE,
-    OUTPUT_JSON,
     OUTPUT_RAW,
     OUTPUT_RGBA,
     inspectWithValues,
     probeSupportWithValues,
     isTGA,
     normalizeValues,
-    readWithValues,
-    toJsonValue
+    readWithValues
 } from "./core/helpers.js";
 import { encodeTga } from "./core/writer.js";
 
@@ -26,6 +25,51 @@ export class CjsTgaFormat extends CjsImageFormat
 {
     /** Registered name; `constructor.name` does not survive minification. */
     static className = "CjsTgaFormat";
+
+    /**
+     * Carbon IsSaveSupported (Tr2TgaHandler.cpp:672-674): a 2D image with one array element.
+
+     * Carbon bug, kept by design here: its per-format check, IsSaveSupported(PixelFormat)
+     * (Tr2TgaHandler.cpp:685-690), reads `== B8G8R8X8 || != B8G8R8A8 || != R8`, which is
+     * true for every format, so Carbon answers OK and only SaveHeader then refuses.
+     * Ours converts, so OK is the right answer for every convertible format.
+     *
+     * Adapted: converts where Carbon refuses. Any pixel format `convertImage`
+     * can take to 8-bit RGBA is accepted, where Carbon accepts only the formats
+     * its handler stores.
+     *
+     * @param {object} dimensions BitmapDimensions or HostBitmap.
+     * @returns {ImageIOResult} OK, or SAVE_NOT_SUPPORTED.
+     */
+    static isSaveSupported(dimensions)
+    {
+        return CjsImageFormat._isConvertibleSave(dimensions, [ TextureType.TEX_TYPE_2D ]);
+    }
+
+    /**
+     * Carbon Save (Tr2TgaHandler.cpp:841-856), writing an uncompressed TGA.
+
+     * Beyond the conversion, Carbon writes 24-bit BGR for B8G8R8X8, 32-bit BGRA
+     * for B8G8R8A8 and 8-bit greyscale for R8, bottom-up; this writes 32-bit
+     * top-down through the existing encoder. Metadata is not written; Carbon
+     * appends CCP metadata in a TGA 2.0 developer area (Tr2TgaHandler.cpp:544-579).
+     *
+     * Adapted: converts where Carbon refuses - an unsupported pixel format is
+     * converted to 8-bit RGBA before encoding - and returns `{result, bytes}`
+     * where Carbon writes to a stream.
+     *
+     * @param {object} bitmap HostBitmap.
+     * @param {object|null} _metadata Metadata (not written; see above).
+     * @returns {{result: ImageIOResult, bytes: Uint8Array|null}} The outcome.
+     */
+    static save(bitmap, _metadata = null)
+    {
+        const { result, payload } = this._convertForSave(bitmap);
+
+        if (!payload) return { result, bytes: null };
+
+        return { result, bytes: encodeTga(payload) };
+    }
 
     _values = DEFAULT_VALUES;
 
@@ -124,17 +168,6 @@ export class CjsTgaFormat extends CjsImageFormat
     }
 
     /**
-     * Convert format output into JSON-compatible debug data.
-     *
-     * @param {any} value Format output.
-     * @returns {any} JSON-compatible value.
-     */
-    ToJSON(value)
-    {
-        return toJsonValue(value);
-    }
-
-    /**
      * One-shot TGA read.
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input TGA bytes.
@@ -182,17 +215,6 @@ export class CjsTgaFormat extends CjsImageFormat
         return probeSupportWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "tga", ...options }, FORMAT_NAME), "tga");
     }
 
-    /**
-     * Convert format output into JSON-compatible debug data.
-     *
-     * @param {any} value Format output.
-     * @returns {any} JSON-compatible value.
-     */
-    static toJSON(value)
-    {
-        return toJsonValue(value);
-    }
-
 
     static id = "CjsTgaFormat";
 
@@ -206,8 +228,6 @@ export class CjsTgaFormat extends CjsImageFormat
         image: { decoded: true, probes: [ "image", "rgba" ] },
 
         rgba: { decoded: true },
-
-        tgaJson: { role: "debug", probes: [ "tgaJson", "raw" ] },
 
         raw: { role: "debug", default: true, passthrough: true }
 

@@ -14,7 +14,6 @@ import {
     canDecodeDdsBlockFormat,
     decodeDdsSlice,
     OUTPUT_IMAGE,
-    OUTPUT_JSON,
     OUTPUT_RAW,
     OUTPUT_RGBA,
     OUTPUT_TEXTURE,
@@ -25,8 +24,7 @@ import {
     isDDS,
     probeSupportWithValues,
     normalizeValues,
-    readWithValues,
-    toJsonValue
+    readWithValues
 } from "./core/helpers.js";
 
 const FORMAT_NAME = "CjsDdsFormat";
@@ -205,17 +203,6 @@ export class CjsDdsFormat extends CjsImageFormat
     }
 
     /**
-     * Convert format output into JSON-compatible debug data.
-     *
-     * @param {any} value Format output.
-     * @returns {any} JSON-compatible value.
-     */
-    ToJSON(value)
-    {
-        return toJsonValue(value);
-    }
-
-    /**
      * One-shot DDS read.
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input DDS bytes.
@@ -262,17 +249,6 @@ export class CjsDdsFormat extends CjsImageFormat
     static probeSupport(input, options = {})
     {
         return probeSupportWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "dds", ...options }, FORMAT_NAME), "dds");
-    }
-
-    /**
-     * Convert format output into JSON-compatible debug data.
-     *
-     * @param {any} value Format output.
-     * @returns {any} JSON-compatible value.
-     */
-    static toJSON(value)
-    {
-        return toJsonValue(value);
     }
 
 
@@ -554,7 +530,6 @@ export class CjsDdsFormat extends CjsImageFormat
         texture: { probes: [ "texture", "compressed" ] },
         image: { decoded: true, probes: [ "image", "rgba" ] },
         rgba: { decoded: true },
-        ddsJson: { role: "debug", probes: [ "ddsJson", "raw" ] },
         raw: { role: "debug", default: true, passthrough: true },
         bitmap: { decoded: true }
     });

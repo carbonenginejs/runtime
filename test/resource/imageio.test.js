@@ -257,7 +257,10 @@ for (const [ extension, Format, makeBytes, asyncOnly ] of imageCases)
     const saveBitmap = new HostBitmap();
     saveBitmap.Create(1, 1, 1, F.PIXEL_FORMAT_B8G8R8A8_UNORM);
     saveBitmap.GetRawData().set([ 160, 120, 80, 255 ]);
-    const expectedSaveCode = extension === "psd" ? ImageIOResult.Code.OK : extension === "dds" ? ImageIOResult.Code.SAVE_NOT_SUPPORTED : ImageIOResult.Code.METHOD_NOT_SUPPORTED;
+    // PNG, JPEG and TGA save as Carbon's handlers do (Tr2PngHandler.cpp:544, Tr2JpgHandler.cpp:411,
+    // Tr2TgaHandler.cpp:841), converting the pixel format first where Carbon would refuse it.
+    const SAVES = new Set([ "psd", "png", "jpg", "tga" ]);
+    const expectedSaveCode = SAVES.has(extension) ? ImageIOResult.Code.OK : extension === "dds" ? ImageIOResult.Code.SAVE_NOT_SUPPORTED : ImageIOResult.Code.METHOD_NOT_SUPPORTED;
     assert.equal(ImageIO.isSaveSupported(parameters.filename, saveBitmap).code, expectedSaveCode);
     assert.equal(Format.carbon.isSaveSupported(saveBitmap).code, expectedSaveCode);
     const directSave = Format.carbon.save(saveBitmap);
@@ -268,8 +271,9 @@ for (const [ extension, Format, makeBytes, asyncOnly ] of imageCases)
     if (routedSave.result.IsOk())
     {
       const roundTrip = new HostBitmap();
-      assert.equal(ImageIO.readImage(routedSave.bytes, parameters, roundTrip).code, ImageIOResult.Code.OK);
-      assert.deepEqual(roundTrip.GetRawData(), saveBitmap.GetRawData());
+      assert.equal((await ImageIO.readImageAsync(routedSave.bytes, parameters, roundTrip)).code, ImageIOResult.Code.OK);
+      // The readers return B8G8R8A8 as Carbon's do, so a lossless save reads back byte for byte. JPEG is lossy.
+      if (extension !== "jpg") assert.deepEqual(roundTrip.GetRawData(), saveBitmap.GetRawData());
     }
   });
 }
