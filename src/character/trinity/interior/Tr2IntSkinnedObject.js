@@ -28,20 +28,27 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
   @meta.type.objectRef("Tr2VariableStore")
   variableStore = null;
 
-  /** Carbon IInitialize hook populates the owner's LOD proxies. */
+  /**
+   * Carbon IInitialize hook populates the owner's LOD proxies.
+   *
+   * Adapted: JS exposes the native protected LOD member as lod; the owner model accessors
+   * alias its proxy storage.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JS exposes the native protected LOD member as lod; the owner model accessors alias its proxy storage.")
   Initialize()
   {
     this.lod.PopulateLods();
     return true;
   }
 
-  /** Carbon INotify hook delegates to Tr2SkinnedObject and accepts all changes. */
+  /**
+   * Carbon INotify hook delegates to Tr2SkinnedObject and accepts all changes.
+   *
+   * Adapted: Exposed owner *DetailModel names map to the native LOD helper proxy members.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Exposed owner *DetailModel names map to the native LOD helper proxy members.")
   OnModified(propertyName)
   {
     super.OnModified(propertyName);

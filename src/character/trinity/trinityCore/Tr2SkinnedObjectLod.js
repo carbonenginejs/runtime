@@ -1,6 +1,6 @@
-import { IsMatch } from "#blue";
 // Source: trinity/trinity/Tr2SkinnedObjectLOD.h
 // Source: trinity/trinity/Tr2SkinnedObjectLOD.cpp
+import { IsMatch } from "#blue";
 import { meta } from "#schema";
 
 const LOW_DETAIL_THRESHOLD = 150;
@@ -127,10 +127,12 @@ export class Tr2SkinnedObjectLod
   /**
    * Replaces the object held by the existing high-detail proxy when both values
    * are available.
+   *
+   * Adapted: Uses an already supplied Blue proxy; proxy construction belongs to the outer
+   * runtime adapter.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Uses an already supplied Blue proxy; proxy construction belongs to the outer runtime adapter.")
   SetHighDetailModel(model)
   {
     SetProxyObject(this.highDetailProxy, model);
@@ -139,10 +141,12 @@ export class Tr2SkinnedObjectLod
   /**
    * Replaces the object held by the existing medium-detail proxy when both
    * values are available.
+   *
+   * Adapted: Uses an already supplied Blue proxy; proxy construction belongs to the outer
+   * runtime adapter.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Uses an already supplied Blue proxy; proxy construction belongs to the outer runtime adapter.")
   SetMediumDetailModel(model)
   {
     SetProxyObject(this.mediumDetailProxy, model);
@@ -151,10 +155,12 @@ export class Tr2SkinnedObjectLod
   /**
    * Replaces the object held by the existing low-detail proxy when both values
    * are available.
+   *
+   * Adapted: Uses an already supplied Blue proxy; proxy construction belongs to the outer
+   * runtime adapter.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Uses an already supplied Blue proxy; proxy construction belongs to the outer runtime adapter.")
   SetLowDetailModel(model)
   {
     SetProxyObject(this.lowDetailProxy, model);
@@ -231,10 +237,12 @@ export class Tr2SkinnedObjectLod
   /**
    * Installs a changed model into the selected proxy, falling through to a lower
    * proxy when it is absent.
+   *
+   * Adapted: CarbonEngineJS proxies receive the model object when no native raw-root handle
+   * exists.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("CarbonEngineJS proxies receive the model object when no native raw-root handle exists.")
   OnModelChanged(model)
   {
     if (!model)

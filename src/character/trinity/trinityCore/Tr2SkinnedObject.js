@@ -228,10 +228,14 @@ export class Tr2SkinnedObject
   @meta.type.boolean
   display = true;
 
-  /** Carbon INotify hook: retains active model changes in the selected proxy. */
+  /**
+   * Carbon INotify hook: retains active model changes in the selected proxy.
+   *
+   * Adapted: JS passes the exposed member name instead of Carbon's field address; the
+   * boolean reports whether the base handled it.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JS passes the exposed member name instead of Carbon's field address; the boolean reports whether the base handled it.")
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "visualModel"))
@@ -250,28 +254,40 @@ export class Tr2SkinnedObject
     return this.lod.GetCurrentLod();
   }
 
-  /** Carbon method SetHighDetailModel. */
+  /**
+   * Carbon method SetHighDetailModel.
+   *
+   * Adapted: Proxy construction belongs to the outer runtime adapter; this delegates to an
+   * already supplied proxy.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Proxy construction belongs to the outer runtime adapter; this delegates to an already supplied proxy.")
   SetHighDetailModel(model)
   {
     this.lod.SetHighDetailModel(model);
   }
 
-  /** Carbon method SetMediumDetailModel. */
+  /**
+   * Carbon method SetMediumDetailModel.
+   *
+   * Adapted: Proxy construction belongs to the outer runtime adapter; this delegates to an
+   * already supplied proxy.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Proxy construction belongs to the outer runtime adapter; this delegates to an already supplied proxy.")
   SetMediumDetailModel(model)
   {
     this.lod.SetMediumDetailModel(model);
   }
 
-  /** Carbon method SetLowDetailModel. */
+  /**
+   * Carbon method SetLowDetailModel.
+   *
+   * Adapted: Proxy construction belongs to the outer runtime adapter; this delegates to an
+   * already supplied proxy.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Proxy construction belongs to the outer runtime adapter; this delegates to an already supplied proxy.")
   SetLowDetailModel(model)
   {
     this.lod.SetLowDetailModel(model);
@@ -293,10 +309,14 @@ export class Tr2SkinnedObject
     return false;
   }
 
-  /** Selects one whole skinned model through the native LOD helper. */
+  /**
+   * Selects one whole skinned model through the native LOD helper.
+   *
+   * Adapted: The caller supplies the frustum and the LOD proxy. A changed visual model is
+   * posed immediately through this class's CPU UpdateBones implementation.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Uses duck-typed frustum/proxy seams and poses immediately only when an engine UpdateBones implementation is installed.")
   SetLOD(frustum)
   {
     if (!frustum)
@@ -352,10 +372,15 @@ export class Tr2SkinnedObject
     return this._skeletonTag;
   }
 
-  /** Carbon native method UpdateBones. */
+  /**
+   * Carbon native method UpdateBones.
+   *
+   * Adapted: Implements the immediate CPU rig mapping and 3x4 palette; native cloth
+   * synchronization, delayed queues, dynamic bounds, and backend upload remain outside the
+   * character layer.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Implements the immediate CPU rig mapping and 3x4 palette; native cloth synchronization, delayed queues, dynamic bounds, and backend upload remain outside the character layer.")
   UpdateBones(_time = 0, _apexScene = null)
   {
     const model = this.visualModel;
@@ -424,19 +449,27 @@ export class Tr2SkinnedObject
     this._rigBinding.Update(transforms);
   }
 
-  /** Carbon native method GetSkinningMatrices. */
+  /**
+   * Carbon native method GetSkinningMatrices.
+   *
+   * Adapted: Returns a detached immediate CPU palette rather than a pointer into the native
+   * delayed skinning queue.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Returns a detached immediate CPU palette rather than a pointer into the native delayed skinning queue.")
   GetSkinningMatrices()
   {
     return this._rigBinding.GetPalette();
   }
 
-  /** Carbon method GetBoneIndex (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method GetBoneIndex (MAP_METHOD_AND_WRAP).
+   *
+   * Adapted: Consumes the CarbonEngineJS animation updater's bone-name array because
+   * JavaScript has no output-count reference.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Consumes the CarbonEngineJS animation updater's bone-name array because JavaScript has no output-count reference.")
   GetBoneIndex(boneName)
   {
     const bones = this.animationUpdater?.GetAnimationBoneList();
@@ -451,10 +484,14 @@ export class Tr2SkinnedObject
     return index === -1 ? 0xffffffff : index;
   }
 
-  /** Carbon method GetBonePosition (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method GetBonePosition (MAP_METHOD_AND_WRAP).
+   *
+   * Adapted: Reads the CarbonEngineJS animation updater's matrix array and supports
+   * caller-provided vector output.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Reads the CarbonEngineJS animation updater's matrix array and supports caller-provided vector output.")
   GetBonePosition(joint, out = vec3.create())
   {
     const transform = this.GetBoneTransform(joint);
@@ -467,10 +504,14 @@ export class Tr2SkinnedObject
     return vec3.set(out, transform[12], transform[13], transform[14]);
   }
 
-  /** Carbon native method GetBoneTransform. */
+  /**
+   * Carbon native method GetBoneTransform.
+   *
+   * Adapted: Returns a matrix from the CarbonEngineJS animation updater's transform array
+   * rather than a native pointer.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Returns a matrix from the CarbonEngineJS animation updater's transform array rather than a native pointer.")
   GetBoneTransform(joint)
   {
     const index = Number(joint);

@@ -132,10 +132,13 @@ export class Tr2InteriorLightSource
    * Carbon OnModified (cpp:77-92) rebuilds the same box for position,
    * radius, coneAlphaOuter and coneDirection changes - both branches run the
    * identical rebuild, so the settled-state notification just rebuilds.
+   *
+   * Adapted: Schema notifications expose settled state rather than Be::Var identity;
+   * Carbon's two OnModified branches perform the same rebuild, so no per-member dispatch is
+   * needed.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Schema notifications expose settled state rather than Be::Var identity; Carbon's two OnModified branches perform the same rebuild, so no per-member dispatch is needed.")
   OnModified()
   {
     this._RebuildWorldBoundingBox();

@@ -55,10 +55,12 @@ export class WodBakingScene
 
   /**
    * Engine-owned native render pass for baking the selected avatar.
+   *
+   * Adapted: Requires a Tr2RenderContext, effect-state manager, constant buffers, and GPU
+   * batch rendering owned by an engine adapter.
    */
   @meta.blue.method
   @meta.notImplemented
-  @meta.reason("Requires a Tr2RenderContext, effect-state manager, constant buffers, and GPU batch rendering owned by an engine adapter.")
   Render()
   {
     throw new Error("WodBakingScene.Render is engine-owned and not implemented in CarbonEngineJS.");
@@ -77,10 +79,12 @@ export class WodBakingScene
 
   /**
    * Native update hook that advances the owned skinned object before baking.
+   *
+   * Adapted: The native method calls PrePhysicsUpdate and PostPhysicsUpdate on the skinned
+   * object; frame ownership stays with the outer runtime adapter.
    */
   @meta.blue.method
   @meta.notImplemented
-  @meta.reason("The native method calls PrePhysicsUpdate and PostPhysicsUpdate on the skinned object; frame ownership stays with the outer runtime adapter.")
   Update()
   {
     throw new Error("WodBakingScene.Update is engine-owned and not implemented in CarbonEngineJS.");

@@ -111,10 +111,12 @@ export class Tr2GStateAnimation
   /**
    * Persists the authored Granny animation path for an external resource
    * adapter.
+   *
+   * Adapted: Stores the authored path; Granny resource loading belongs to the
+   * resource/state-machine adapter.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Stores the authored path; Granny resource loading belongs to the resource/state-machine adapter.")
   SetResPath(value)
   {
     this.resPath_ = String(value ?? "");
@@ -131,10 +133,12 @@ export class Tr2GStateAnimation
   /**
    * Persists the authored state-graph path for an external state-machine
    * adapter.
+   *
+   * Adapted: Stores the authored path; state-graph loading belongs to the
+   * resource/state-machine adapter.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Stores the authored path; state-graph loading belongs to the resource/state-machine adapter.")
   SetGStateResPath(value)
   {
     this.gStateResPath_ = String(value ?? "");
@@ -148,10 +152,14 @@ export class Tr2GStateAnimation
     return this.model_;
   }
 
-  /** Persists the authored model name for an external Granny runtime adapter. */
+  /**
+   * Persists the authored model name for an external Granny runtime adapter.
+   *
+   * Adapted: Stores the authored model name; native model instantiation belongs to the
+   * Granny runtime adapter.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Stores the authored model name; native model instantiation belongs to the Granny runtime adapter.")
   SetModel(value)
   {
     this.model_ = String(value ?? "");
