@@ -19,6 +19,7 @@ import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { TriGeometryRes } from "../../npm/dist/resource/index.js";
+import { Tr2Effect } from "../../npm/dist/trinity/shader/Tr2Effect.js";
 import { GrannyBoneOffset, Tr2DepthStencil, Tr2DirectInstanceData, Tr2ExpressionTermInfo, Tr2GpuBuffer, Tr2InstancedMesh, Tr2Mesh, Tr2MeshArea, Tr2MeshBase, Tr2PrimaryRenderContext, Tr2RenderContext, Tr2RenderTarget, Tr2RuntimeGpuBuffer, Tr2RuntimeInstanceData, Tr2SwapChain, Tr2VariableStore, Tr2VisibilityResults, TriDevice, TriObserverLocal, TriProjection, TriRect, TriSettings, TriVariable, TriView, TriViewport } from "../../npm/dist/trinity/core/index.js";
 import { Tr2PresentParameters } from "../../npm/dist/trinity/ui/index.js";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
@@ -355,7 +356,7 @@ test("mesh graph routes every Carbon batch type without realizing geometry", () 
 
 test("SOF shield mesh construction stays a CPU object graph", () =>
 {
-  const shader = { calls: 0, SetOption() { this.calls++; } };
+  const shader = Object.assign(new Tr2Effect(), { calls: 0, SetOption() { this.calls++; } });
   const area = new Tr2MeshArea();
   area.SetMaterial(shader);
   area.SetCount(7);

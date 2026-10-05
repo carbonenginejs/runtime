@@ -550,8 +550,9 @@ export class Tr2MeshBase
   }
 
   /**
-   * Sets a shader option on every area effect that supports it; returns whether
-   * at least one area was updated.
+   * Sets a shader option on every non-null area material.
+   * Source: trinity/trinity/Tr2MeshBase.cpp:521-538
+   * Adapted: returns whether any material was updated; Carbon returns void.
    */
   @meta.blue.method
   @meta.adapted
@@ -560,8 +561,9 @@ export class Tr2MeshBase
     let updated = false;
     for (const area of this.GetAllAreas())
     {
-      if (!area?.effect?.SetOption) continue;
-      area.effect.SetOption(name, value);
+      const material = area.GetMaterialInterface();
+      if (!material) continue;
+      material.SetOption(name, value);
       updated = true;
     }
     return updated;
@@ -630,7 +632,7 @@ export class Tr2MeshBase
     if (!areaList) return false;
 
     let committed = false;
-    const geometry = this.GetGeometryResource() ?? null;
+    const geometry = this.GetGeometryResource();
 
     // Carbon resolves the LOD once for the whole area list from the caller's
     // screen size (Tr2MeshBase.cpp:381) and passes it to every area. A resource
