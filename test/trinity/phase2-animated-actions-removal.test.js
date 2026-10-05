@@ -49,7 +49,7 @@ function AnimationFixture(Type)
     GetOwner: () => null,
     RegisterUpdateable: item => updates.add(item),
     UnRegisterUpdateable: item => updates.delete(item),
-    GetVariableValue: () => 3,
+    GetFloatVariableByName: () => 3,
     GetExpressionTermInfo: () => {}
   };
   let write = value => output.push(value);
@@ -104,7 +104,7 @@ for (const Type of [Tr2ActionAnimateValue, Tr2ActionAnimateCurveSet])
     action.Link(controller);
     action.Update(0, 1);
     assert.deepEqual(output, [3]);
-    controller.GetVariableValue = () => { throw new Error("evaluation failure"); };
+    controller.GetFloatVariableByName = () => { throw new Error("evaluation failure"); };
     assert.doesNotThrow(() => action.Update(0, 2));
     assert.deepEqual(output, [3]);
     assert.equal(action._runtime.lastTime, 2);

@@ -12,7 +12,7 @@ function fixture(source = "0", variable = 1)
     {
       return {};
     },
-    GetVariableValue()
+    GetFloatVariableByName()
     {
       return variable;
     }

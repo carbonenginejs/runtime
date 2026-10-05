@@ -120,7 +120,7 @@ test("BindRTPC evaluates without an emitter and separates evaluation failure fro
   const action = new Tr2ActionBindRTPC();
   let value = 3, reads = 0;
   const writes = [];
-  const controller = { GetOwner: () => null, GetVariableValue() { reads++; return value; } };
+  const controller = { GetOwner: () => null, GetFloatVariableByName() { reads++; return value; } };
   action.value = "input";
   action.Link(controller);
   action.Update(0, 1);
@@ -129,7 +129,7 @@ test("BindRTPC evaluates without an emitter and separates evaluation failure fro
   for (value of [NaN, Infinity]) action.Update(0, 2);
   assert.ok(Number.isNaN(writes[0]));
   assert.equal(writes[1], Infinity);
-  controller.GetVariableValue = () => { throw new Error("evaluation"); };
+  controller.GetFloatVariableByName = () => { throw new Error("evaluation"); };
   assert.doesNotThrow(() => action.Update(0, 3));
   assert.equal(writes.length, 2);
   new DictReader({ declarations: true }).ReadInto(action, { value: "2" });
