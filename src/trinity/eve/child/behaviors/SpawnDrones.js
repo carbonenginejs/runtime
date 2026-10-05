@@ -2,7 +2,8 @@
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/SpawnDrones.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
+import { ProcessLifetime } from "./lifecycle/ProcessLifetime.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
@@ -155,7 +156,8 @@ export class SpawnDrones
   /**
    * Spawn scheduling: one-shot grid spawns, one-shot count spawns, and timed
    * respawns at ProcessLifetime entrance points (Carbon CalculateBehavior,
-   * cpp:87-146).
+   * cpp:87-146). The concrete ProcessLifetime cast at cpp:121-133 gates
+   * the required entrance-point call; a similarly named behavior is skipped.
    *
    * Adapted: rand() maps to Math.random when picking the timed entrance point; the spawn
    * scheduling is ported verbatim.
@@ -199,11 +201,11 @@ export class SpawnDrones
 
     if (this.time > this.seconds && this.seconds >= 0)
     {
-      const behavior = group.GetBehaviorByName("ProcessLifetime");
-      if (behavior !== null)
+      const behavior = CjsSchema.cast(group.GetBehaviorByName("ProcessLifetime"), ProcessLifetime);
+      if (behavior)
       {
-        const spawnPoints = behavior.GetEntrancePoints?.();
-        if (Array.isArray(spawnPoints) && spawnPoints.length !== 0)
+        const spawnPoints = behavior.GetEntrancePoints();
+        if (spawnPoints.length !== 0)
         {
           const randomNbr = Math.floor(Math.random() * spawnPoints.length);
           vec3.copy(this.spawnPosition, spawnPoints[randomNbr]);

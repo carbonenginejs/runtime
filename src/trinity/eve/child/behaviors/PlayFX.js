@@ -2,7 +2,7 @@
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/PlayFX.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { blue } from "#blue";
 import { EveEntity } from "../../EveEntity.js";
 import { vec3 } from "#math/vec3";
@@ -117,7 +117,10 @@ export class PlayFX extends EveEntity
   /**
    * Drives one cloned firing effect per agent: starts firing when the agent
    * arrives (agent.playFX), aims it in world space, and stops it after m_sec
-   * seconds (Carbon CalculateBehavior, cpp:45-139).
+   * seconds (Carbon CalculateBehavior, cpp:45-139). Generated effects are
+   * required receivers; only the authored template is nullable.
+   * Adapted: JavaScript scratch records replace the native scratch-data pointer;
+   * an absent scratch record has no agent state to update.
    * @param {Array} agents - DroneAgent records
    * @param {Array} scratchData - per-agent PlayFXData records
    * @param {Number} _deltaTime
@@ -134,7 +137,6 @@ export class PlayFX extends EveEntity
     {
       for (const fx of this.generatedFiringEffects)
       {
-        if (!fx) continue;
         fx.StopFiring();
       }
       return NO_FORCES;
@@ -165,7 +167,7 @@ export class PlayFX extends EveEntity
       const agent = agents[c];
       const firingEffect = this.generatedFiringEffects[c];
       const data = scratchData?.[c];
-      if (!data || !firingEffect)
+      if (!data)
       {
         continue;
       }
@@ -237,7 +239,6 @@ export class PlayFX extends EveEntity
   {
     for (const fx of this.generatedFiringEffects)
     {
-      if (!fx) continue;
       fx.UpdateEffectAsync(updateContext);
       fx.UpdateVisibility(updateContext, parentTransform);
     }
@@ -250,7 +251,6 @@ export class PlayFX extends EveEntity
   {
     for (const fx of this.generatedFiringEffects)
     {
-      if (!fx) continue;
       fx.UpdateEffectSync(updateContext);
     }
   }
@@ -262,7 +262,6 @@ export class PlayFX extends EveEntity
   {
     for (const fx of this.generatedFiringEffects)
     {
-      if (!fx) continue;
       fx.GetRenderables(renderables);
     }
     return renderables;
@@ -278,7 +277,8 @@ export class PlayFX extends EveEntity
     {
       for (const fx of this.generatedFiringEffects)
       {
-        fx?.Register(registry);
+        const entity = CjsSchema.cast(fx, EveEntity);
+        if (entity) entity.Register(registry);
       }
     }
   }
@@ -293,7 +293,8 @@ export class PlayFX extends EveEntity
     {
       for (const fx of this.generatedFiringEffects)
       {
-        fx?.UnRegister(registry);
+        const entity = CjsSchema.cast(fx, EveEntity);
+        if (entity) entity.UnRegister(registry);
       }
     }
   }
@@ -314,10 +315,11 @@ export class PlayFX extends EveEntity
   {
   }
 
-  // Grows or shrinks the cloned firing-effect list to the agent count (Carbon
-  // CheckCount, cpp:262-299; BeClasses->CloneTo maps to CjsModel.Clone).
   /**
-   * Grows or shrinks the cloned firing-effect list to match the agent count, cloning the configured effect for new agents and dropping the excess.
+   * Grows or shrinks the firing-effect list (PlayFX.cpp:262-300). Carbon uses
+   * BeClasses->CloneTo, represented by blue.classes.CloneTo, rather than a
+   * method on the authored effect. A failed clone leaves the count unchanged.
+   * Adapted: CloneTo returns the copy or null instead of bool plus an out pointer.
    */
   _CheckCount(agentSize)
   {
@@ -340,7 +342,7 @@ export class PlayFX extends EveEntity
       const diff = agentSize - this._count;
       for (let i = 0; i < diff; i++)
       {
-        const newFx = this.firingEffect.Clone?.();
+        const newFx = blue.classes.CloneTo(this.firingEffect);
         if (!newFx)
         {
           return;
