@@ -19,6 +19,9 @@ import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsSchema, meta } from "#schema";
+import { ITr2LightOwner } from "../lights/ITr2LightOwner.js";
+import { IShaderConfigurer } from "../../shader/IShaderConfigurer.js";
+import { IEveEffectChildrenOwner } from "../child/IEveEffectChildrenOwner.js";
 import { ITr2BoundingBox } from "#interfaces";
 import { ITr2SecondaryLightSource } from "../../core/lighting/ITr2SecondaryLightSource.js";
 import { EveEntity } from "../EveEntity.js";
@@ -37,7 +40,7 @@ import { BLUELISTEVENT } from "#consts/blue";
 @meta.define({ className: "EveEffectRoot2", family: "eve/spaceObject" })
 @meta.blue.inherit(ITr2BoundingBox, IEveSpaceObject2, ITr2SecondaryLightSource, ITriTargetable, ITr2CurveSetOwner)
 @meta.blue.inherit(IInitialize, INotify, IListNotify)
-@meta.blue.interface(IEveSpaceObject2, IInitialize, INotify, ITr2SecondaryLightSource, ITriTargetable, ITr2CurveSetOwner, ITr2ControllerOwner, ITr2SoundEmitterOwner, ITr2BoundingBox, IWorldPosition, EveEntity)
+@meta.blue.interface(IEveSpaceObject2, IInitialize, INotify, ITr2SecondaryLightSource, ITriTargetable, ITr2CurveSetOwner, IEveEffectChildrenOwner, ITr2ControllerOwner, IShaderConfigurer, ITr2SoundEmitterOwner, ITr2LightOwner, ITr2BoundingBox, IWorldPosition, EveEntity)
 export class EveEffectRoot2 extends EveEntity
 {
 

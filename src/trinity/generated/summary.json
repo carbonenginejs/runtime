@@ -2,7 +2,7 @@
   "outRoot": "src/trinity/generated",
   "classes": {
     "written": 26,
-    "skipped": 680
+    "skipped": 685
   },
   "enums": {
     "written": 15,
@@ -12,6 +12,11 @@
     {
       "family": "audio",
       "className": "IEveSpaceObject2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "IShaderConfigurer",
       "reason": "hand-maintained source exists"
     },
     {
@@ -546,6 +551,11 @@
     },
     {
       "family": "eve",
+      "className": "IEveEffectChildrenOwner",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
       "className": "IEveFiringEffectElement",
       "reason": "hand-maintained source exists"
     },
@@ -582,6 +592,11 @@
     {
       "family": "eve",
       "className": "ITr2DynamicBindingOwner",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "ITr2LightOwner",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1965,6 +1980,11 @@
       "reason": "hand-maintained source exists"
     },
     {
+      "family": "lights",
+      "className": "ITr2LightOwner",
+      "reason": "hand-maintained source exists"
+    },
+    {
       "family": "particle",
       "className": "ITr2AttributeGenerator",
       "reason": "hand-maintained source exists"
@@ -2502,6 +2522,11 @@
     {
       "family": "renderJob",
       "className": "TriStepUpdate",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "IShaderConfigurer",
       "reason": "hand-maintained source exists"
     },
     {

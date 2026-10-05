@@ -7,6 +7,8 @@ import { ITr2CurveSetOwner } from "../../../curves/ITr2CurveSetOwner.js";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 // Hand-maintained after promotion from generated schema intake.
 import { meta } from "#schema";
+import { IShaderConfigurer } from "../../../shader/IShaderConfigurer.js";
+import { IEveEffectChildrenOwner } from "../../child/IEveEffectChildrenOwner.js";
 import { EveEffectRoot2 } from "../EveEffectRoot2.js";
 import { ITr2SecondaryLightSource } from "../../../core/lighting/ITr2SecondaryLightSource.js";
 import { mat4 } from "#math/mat4";
@@ -18,7 +20,7 @@ import { vec4 } from "#math/vec4";
 
 /** A celestial effect root with scaled surface rendering and an ordinary-world depth proxy. */
 @meta.define({ className: "EvePlanet", family: "eve/spaceObject" })
-@meta.blue.interface(IEveSpaceObject2, ITr2SecondaryLightSource, ITr2CurveSetOwner, ITr2SoundEmitterOwner, IWorldPosition, ITr2BoundingBox)
+@meta.blue.interface(IEveSpaceObject2, ITr2SecondaryLightSource, ITr2CurveSetOwner, IEveEffectChildrenOwner, IShaderConfigurer, ITr2SoundEmitterOwner, IWorldPosition, ITr2BoundingBox)
 @meta.blue.chainTo(EveEffectRoot2)
 export class EvePlanet extends EveEffectRoot2
 {

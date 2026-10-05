@@ -21,6 +21,7 @@ export * from "./EveSpaceObjectChild.js";
 export * from "./EveChildTransform.js";
 export * from "./EveCloudVolumeBall.js";
 export * from "./IEveSpaceObjectChild.js";
+export * from "./IEveEffectChildrenOwner.js";
 export * from "./behaviors/index.js";
 export * from "./lineSetPaths/index.js";
 export * from "./modifiers/index.js";

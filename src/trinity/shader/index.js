@@ -43,5 +43,6 @@ export * from "./sampler/Tr2SamplerOverride.js";
 export * from "./sampler/Tr2SamplerOverrideData.js";
 export * from "./Tr2DataTextureManager.js";
 export * from "./Tr2EffectStateManager.js";
+export * from "./IShaderConfigurer.js";
 export * from "./Tr2ShaderBuffer.js";
 export * from "../generated/shader/enums.js";

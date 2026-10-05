@@ -4,6 +4,7 @@ import test from "node:test";
 import * as trinity from "../../npm/dist/trinity/index.js";
 import * as audio from "../../npm/dist/audio/index.js";
 import { IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
+import { ITr2BoundingBox } from "../../npm/dist/global/interfaces/index.js";
 import { hasOwnInterfaceTable, mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 
 const X = { ...audio, ...trinity };
@@ -44,6 +45,12 @@ const BLOCKS = [
     [ "Tr2GrannyTransformTrack", [], "Tr2GrannyTrack", "Tr2GrannyTransformTrack_Blue.cpp:10-21" ],
     [ "Tr2GrannyVectorTrack", [], "Tr2GrannyTrack", "Tr2GrannyVectorTrack_Blue.cpp:10-13" ],
     [ "Tr2InstancedMesh", [], "Tr2Mesh", "Tr2InstancedMesh_Blue.cpp:25-44" ],
+    // Effect roots, with the three interfaces ported for them
+    [ "EveEffectRoot2", [ "IEveSpaceObject2", IInitialize, INotify, "ITr2SecondaryLightSource", "ITriTargetable", "ITr2CurveSetOwner",
+        "IEveEffectChildrenOwner", "ITr2ControllerOwner", "IShaderConfigurer", "ITr2SoundEmitterOwner", "ITr2LightOwner", ITr2BoundingBox,
+        "IWorldPosition", "EveEntity" ], null, "EveEffectRoot2_Blue.cpp:10-174" ],
+    [ "EvePlanet", [ "IEveSpaceObject2", "ITr2SecondaryLightSource", "ITr2CurveSetOwner", "IEveEffectChildrenOwner", "IShaderConfigurer",
+        "ITr2SoundEmitterOwner", "IWorldPosition", ITr2BoundingBox ], "EveEffectRoot2", "EvePlanet_Blue.cpp:11-51" ],
 ];
 
 const resolve = entry => typeof entry === "string" ? X[entry] : entry;
