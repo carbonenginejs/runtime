@@ -1,3 +1,5 @@
+// Source: trinity/trinity/RenderJob/TriStepPopProjection.h
+// Source: trinity/trinity/RenderJob/TriStepPopProjection.cpp
 import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";

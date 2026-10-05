@@ -37,10 +37,14 @@ export class Tr2RenderNodeEffect
   @meta.type.list("ITr2RenderNode")
   inputNodes = [];
 
-  /** Carbon Tr2RenderNodeEffect::Validate (cpp:15-46). */
+  /**
+   * Carbon Tr2RenderNodeEffect::Validate (cpp:15-46).
+   *
+   * Adapted: Tr2BitmapDimensions spans are represented by JavaScript arrays of value
+   * records.
+   */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Tr2BitmapDimensions spans are represented by JavaScript arrays of value records.")
   Validate(destinationDimensions, outputs, realTime, simTime)
   {
     if (!destinationDimensions.length || outputs.length)

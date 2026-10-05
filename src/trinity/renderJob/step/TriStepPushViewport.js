@@ -1,3 +1,5 @@
+// Source: trinity/trinity/RenderJob/TriStepPushViewport.h
+// Source: trinity/trinity/RenderJob/TriStepPushViewport.cpp
 import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";

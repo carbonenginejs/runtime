@@ -33,10 +33,12 @@ export class Tr2StepExecuteRenderNode extends TriRenderStep
   /**
    * Validates and executes the owned render-node contract. The runtime render
    * context records Carbon's failure clear as engine-consumable intents.
+   *
+   * Adapted: The JS node receives the Tr2RenderTarget graph object and a null root timer;
+   * its target and timing handles are not ported yet.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("The JS node receives the Tr2RenderTarget graph object and a null root timer; its target and timing handles are not ported yet.")
   Execute(realTime, simTime, renderContext)
   {
     const target = this.destinationTarget;

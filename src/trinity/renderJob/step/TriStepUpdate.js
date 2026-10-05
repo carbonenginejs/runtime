@@ -23,6 +23,10 @@ export class TriStepUpdate extends TriRenderStep
 
   /**
    * Ticks the bound updateable object with raw frame clocks and relocated context.
+   *
+   * Adapted: Forwards the caller context as a third argument for relocated JavaScript view
+   * state; both native clocks remain unchanged.
+   *
    * @param {number} realTime Raw Blue real-time ticks.
    * @param {number} simTime Raw Blue simulation ticks.
    * @param {Tr2RenderContext} renderContext Context supplied by the step executor.
@@ -30,7 +34,6 @@ export class TriStepUpdate extends TriRenderStep
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Forwards the caller context as a third argument for relocated JavaScript view state; both native clocks remain unchanged.")
   Execute(realTime, simTime, renderContext)
   {
     this.object?.Update(realTime, simTime, renderContext);

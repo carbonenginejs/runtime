@@ -23,10 +23,12 @@ export class TriStepTestBlocking extends TriRenderStep
   /**
    * Reports the step still in progress while its flag is set, and complete
    * once it is cleared.
+   *
+   * Adapted: Carbon logs the outcome through its own logger on each call; logging is a host
+   * concern.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon logs the outcome through its own logger on each call; logging is a host concern.")
   Execute(_realTime, _simTime, _renderContext)
   {
     return this.inProgress ? TriRenderStep.Result.RS_IN_PROGRESS : TriRenderStep.Result.RS_OK;

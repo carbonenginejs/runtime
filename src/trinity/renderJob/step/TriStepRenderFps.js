@@ -56,10 +56,13 @@ export class TriStepRenderFps extends TriRenderStep
   /**
    * Adds one frame-rate sample and recomputes the average when the quarter
    * second has elapsed; returns the average currently being displayed.
+   *
+   * Adapted: Carbon samples its OS layer for the frame rate and clock and draws through the
+   * debug renderer; both are host concerns, so the sample and time are supplied and the text
+   * is the caller's.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Carbon samples its OS layer for the frame rate and clock and draws through the debug renderer; both are host concerns, so the sample and time are supplied and the text is the caller's.")
   Sample(framesPerSecond, nowSeconds)
   {
     this.#fpsValuesCount += 1;

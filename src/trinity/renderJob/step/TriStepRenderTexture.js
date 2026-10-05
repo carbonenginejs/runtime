@@ -1,6 +1,6 @@
+// Source: trinity/trinity/RenderJob/TriStepRenderTexture.h
 import { Tr2RenderTarget } from "../../core/device/Tr2RenderTarget.js";
 import { Tr2DepthStencil } from "../../core/device/Tr2DepthStencil.js";
-// Source: trinity/trinity/RenderJob/TriStepRenderTexture.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { CjsSchema, meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
