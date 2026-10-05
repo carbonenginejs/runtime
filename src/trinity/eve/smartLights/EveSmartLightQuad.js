@@ -307,16 +307,13 @@ export class EveSmartLightQuad extends EveChildTransform
   @meta.implemented
   UpdateAsyncronous_Distribution(_updateContext, params, _distribution)
   {
-    let localToWorld = params?.localToWorldTransform ?? EveSmartLightQuad._identity;
-
-    const parent = params?.childParent ?? params?.spaceObjectParent;
+    // Carbon cpp:100-114 copies the supplied matrix, then lets the parent fill it.
+    // The parent's return value is not part of the native output-parameter contract.
+    const localToWorld = mat4.copy(EveSmartLightQuad._parentTransform, params.localToWorldTransform);
+    const parent = params.childParent ?? params.spaceObjectParent;
     if (parent)
     {
-      const transform = parent.GetLocalToWorldTransform(EveSmartLightQuad._parentTransform);
-      if (transform)
-      {
-        localToWorld = transform;
-      }
+      parent.GetLocalToWorldTransform(localToWorld);
     }
 
     this.UpdateTransform(localToWorld);
@@ -452,8 +449,6 @@ export class EveSmartLightQuad extends EveChildTransform
   };
 
   static _quadBytes = new Uint8Array(QUAD_INSTANCE_SIZE);
-
-  static _identity = mat4.create();
 
   static _parentTransform = mat4.create();
 
