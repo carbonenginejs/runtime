@@ -1,3 +1,4 @@
+import { Tr2CurveScalar } from "../../npm/dist/trinity/index.js";
 import { addChild, removeChild, clearChildren } from "../../npm/dist/global/blue/children.js";
 import test from "node:test";
 import { readFile, readdir } from "node:fs/promises";
@@ -953,15 +954,15 @@ test("virtual camera float behaviours follow Carbon update semantics", () =>
 
   const add = new EveVirtualCameraBehaviourFloatAdd();
   add.value = 4;
-  assertEquals(add.Update(null, 0, 0, 2), 4);
+  assertEquals(add.Update(new EveVirtualCamera(), 0, 0, 2), 4);
   let curveName = "";
-  add.scaleCurve = {
+  add.scaleCurve = Object.assign(new Tr2CurveScalar(), {
     SetName: value => curveName = value,
     GetValue: time => time * 0.5
-  };
+  });
   add.SetName("Roll");
   assertEquals(curveName, "Roll - Scale Curve");
-  assertEquals(add.Update({ GetAnimationTimelineLength: () => 4 }, 0, 0, 2), 1);
+  assertEquals(add.Update(Object.assign(new EveVirtualCamera(), { animationTimelineLength: 4 }), 0, 0, 2), 1);
 
   const damping = new EveVirtualCameraBehaviourFloatDamping();
   damping.dampingFactor = 0.5;
@@ -1031,14 +1032,14 @@ test("virtual camera vector shake uses Carbon component phases and view scaling"
   shake.SetName("Camera");
   assertEquals(shake.magnitudeCurve.name, "Camera - Magnitude Curve");
 
-  const camera = {
+  const camera = Object.assign(new EveVirtualCamera(), {
     GetAnimationTimelineLength: () => 1,
     GetPosition: out => vec3.set(out, 0, 0, 0),
     GetPointOfInterest: out => vec3.set(out, 0, 0, 2),
     GetRightDirection: out => vec3.set(out, 1, 0, 0),
     GetUpDirection: out => vec3.set(out, 0, 1, 0),
     GetForwardDirection: out => vec3.set(out, 0, 0, 1)
-  };
+  });
   shake.magnitudeCurve = null;
   shake.magnitude = vec3.fromValues(1, 1, 1);
   shake.octaves = 1;
@@ -1051,30 +1052,30 @@ test("virtual camera vector shake uses Carbon component phases and view scaling"
 
 test("virtual camera vector movement behaviours follow Carbon", () =>
 {
-  const camera = {
+  const camera = Object.assign(new EveVirtualCamera(), {
     GetAnimationTimelineLength: () => 4,
     GetForwardDirection: out => vec3.set(out, 0, 0, 1),
     GetRightDirection: out => vec3.set(out, 1, 0, 0),
     GetUpDirection: out => vec3.set(out, 0, 1, 0)
-  };
+  });
   const between = new EveVirtualCameraBehaviourVector3MoveBetween();
   between.start = vec3.create();
   between.end = vec3.fromValues(4, 0, 0);
-  between.interpolationCurve = { GetValue: time => time };
+  between.interpolationCurve = Object.assign(new Tr2CurveScalar(), { GetValue: time => time });
   assertVec3(between.Update(camera, vec3.create(), 0, 1, vec3.create(), 1, vec3.fromValues(0, 0, 1)), [1, 0, 0]);
   between.world = false;
   between.proportional = true;
   between.start = vec3.create();
   between.end = vec3.fromValues(0, 0, 2);
   assertVec3(between.Update(camera, vec3.create(), 0, 2, vec3.create(), 2, vec3.fromValues(1, 0, 0)), [2, 0, 0]);
-  assertVec3(between.Update({ GetAnimationTimelineLength: () => 0 }, vec3.create(), 0, 2, vec3.create(), 2, vec3.fromValues(1, 0, 0)), [0, 0, 2]);
+  assertVec3(between.Update(Object.assign(new EveVirtualCamera(), { animationTimelineLength: 0 }), vec3.create(), 0, 2, vec3.create(), 2, vec3.fromValues(1, 0, 0)), [0, 0, 2]);
 
   for (const [Behaviour, expected] of [[EveVirtualCameraBehaviourVector3MoveForward, [0, 0, 1]], [EveVirtualCameraBehaviourVector3MoveRight, [1, 0, 0]], [EveVirtualCameraBehaviourVector3MoveUp, [0, 1, 0]]])
   {
     const behaviour = new Behaviour();
     behaviour.value = 2;
     behaviour.proportional = false;
-    behaviour.scaleCurve = { GetValue: time => time };
+    behaviour.scaleCurve = Object.assign(new Tr2CurveScalar(), { GetValue: time => time });
     assertVec3(behaviour.Update(camera, vec3.create(), 0, 2, vec3.create(), 3, vec3.fromValues(0, 0, 1)), expected);
   }
   assert(new EveVirtualCameraBehaviourVector3MoveRight() instanceof EveVirtualCameraBehaviourVector3MoveForward);
@@ -1086,8 +1087,8 @@ test("virtual camera vector movement behaviours follow Carbon", () =>
   orbit.start = 0;
   orbit.end = 90;
   orbit.distance = 2;
-  orbit.orbitCurve = { GetValue: time => time };
-  orbit.distanceScalarCurve = { GetValue: () => 1 };
+  orbit.orbitCurve = Object.assign(new Tr2CurveScalar(), { GetValue: time => time });
+  orbit.distanceScalarCurve = Object.assign(new Tr2CurveScalar(), { GetValue: () => 1 });
   assertVec3(orbit.Update(camera, vec3.create(), 0, 4, vec3.create(), 3, vec3.fromValues(0, 0, 1)), [2, 0, 0]);
   assertEquals(CjsSchema.getField(EveVirtualCameraBehaviourVector3MoveBetween, "interpolationCurve")?.type.className, "Tr2CurveScalar");
 });

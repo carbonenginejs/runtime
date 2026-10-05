@@ -51,13 +51,16 @@ export class EveVirtualCameraBehaviourVector3MoveBetween extends EveVirtualCamer
     this.SetName("Move Between");
   }
 
-  /** Sets the behaviour name and renames the owned interpolation curve to match. */
+  /**
+   * Sets the behaviour name and renames the owned interpolation curve to match.
+   * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:271-274
+   */
   @meta.blue.method
   @meta.implemented
   SetName(name)
   {
     super.SetName(name);
-    this.interpolationCurve?.SetName(`${this.name} - Interpolation Curve`);
+    this.interpolationCurve.SetName(`${this.name} - Interpolation Curve`);
   }
 
   /**
@@ -66,12 +69,14 @@ export class EveVirtualCameraBehaviourVector3MoveBetween extends EveVirtualCamer
    * radius when proportional is set and yawed into the anchor's heading when
    * world is false, and end is returned directly when the timeline has zero
    * length.
+   * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:277-305
+   * Adapted: gl-matrix writes the output vector and the existing anchor-rotation helper supplies the native rotation.
    */
   @meta.blue.method
   @meta.adapted
   Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, anchorRadius, anchorForwardDirection, out = vec3.create())
   {
-    const duration = Number(camera?.GetAnimationTimelineLength?.() ?? 0);
+    const duration = camera.GetAnimationTimelineLength();
     if (duration === 0)
     {
       return vec3.copy(out, this.end);
@@ -89,7 +94,7 @@ export class EveVirtualCameraBehaviourVector3MoveBetween extends EveVirtualCamer
       EveVirtualCameraBehaviourVector3Base.rotateVectorWithAnchor(end, end, anchorForwardDirection);
     }
     const time = localElapsedTime / duration;
-    const amount = Number(this.interpolationCurve?.GetValue(time) ?? time);
+    const amount = this.interpolationCurve ? this.interpolationCurve.GetValue(time) : time;
     return vec3.lerp(out, start, end, amount);
   }
 }

@@ -41,13 +41,16 @@ export class EveVirtualCameraBehaviourVector3MoveForward extends EveVirtualCamer
     this.SetName(name);
   }
 
-  /** Sets the behaviour name and renames the owned scale curve to match. */
+  /**
+   * Sets the behaviour name and renames the owned scale curve to match.
+   * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:425-428
+   */
   @meta.blue.method
   @meta.implemented
   SetName(name)
   {
     super.SetName(name);
-    this.scaleCurve?.SetName(`${this.name} - Scale Curve`);
+    this.scaleCurve.SetName(`${this.name} - Scale Curve`);
   }
 
   /** Returns the camera's forward direction scaled by the current distance. */
@@ -62,12 +65,17 @@ export class EveVirtualCameraBehaviourVector3MoveForward extends EveVirtualCamer
    * Evaluates the authored distance for this frame: value shaped by the scale
    * curve at normalized timeline time, multiplied by the anchor radius when
    * proportional is set so the move scales with the anchored object's size.
+   * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:436-447
    */
+  @meta.implemented
   GetCurrentValue(camera, localElapsedTime, anchorRadius)
   {
-    const duration = Number(camera?.GetAnimationTimelineLength?.() ?? 0);
-    const time = duration !== 0 ? localElapsedTime / duration : 0;
-    let value = this.value * Number(this.scaleCurve?.GetValue(time) ?? 1);
+    let value = this.value;
+    if (this.scaleCurve)
+    {
+      const duration = camera.GetAnimationTimelineLength();
+      value *= this.scaleCurve.GetValue(localElapsedTime / duration);
+    }
     if (this.proportional)
     {
       value *= anchorRadius;

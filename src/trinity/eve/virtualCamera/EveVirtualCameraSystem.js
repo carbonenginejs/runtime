@@ -101,16 +101,17 @@ export class EveVirtualCameraSystem
   /**
    * Finds a registered camera by name, also matching the external camera, and
    * returns null when nothing matches.
+   * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraSystem.cpp:68-85
    */
   @meta.blue.method
   @meta.implemented
   GetCameraByName(name)
   {
-    if (name === this.externalCamera?.GetName())
+    if (name === this.externalCamera.GetName())
     {
       return this.externalCamera;
     }
-    return this.cameras.find(camera => camera?.GetName?.() === name) ?? null;
+    return this.cameras.find(camera => camera.GetName() === name) ?? null;
   }
 
   /**
@@ -157,6 +158,8 @@ export class EveVirtualCameraSystem
   /**
    * Advances every registered camera, the external camera and any running transition, clearing the transition once it completes.
    * @param {Number} simTime Absolute simulation time; the delta is derived from the previous call, and the first call produces a zero delta
+   * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraSystem.cpp:133-160
+   * Adapted: simulation time is supplied as JavaScript seconds; existing numeric coercion is retained.
    */
   @meta.blue.method
   @meta.adapted
@@ -171,7 +174,7 @@ export class EveVirtualCameraSystem
     this._lastUpdate = time;
     for (const camera of this.cameras)
     {
-      camera?.Update(deltaTime);
+      camera.Update(deltaTime);
     }
     this.externalCamera?.Update(deltaTime);
     if (this.transition)

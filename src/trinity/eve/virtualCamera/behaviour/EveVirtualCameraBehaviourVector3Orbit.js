@@ -64,14 +64,17 @@ export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehav
     this.SetName("Orbit");
   }
 
-  /** Sets the behaviour name and renames both owned curves to match. */
+  /**
+   * Sets the behaviour name and renames both owned curves to match.
+   * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:364-368
+   */
   @meta.blue.method
   @meta.implemented
   SetName(name)
   {
     super.SetName(name);
-    this.distanceScalarCurve?.SetName(`${this.name} - Distance Scalar Curve`);
-    this.orbitCurve?.SetName(`${this.name} - Orbit Curve`);
+    this.distanceScalarCurve.SetName(`${this.name} - Distance Scalar Curve`);
+    this.orbitCurve.SetName(`${this.name} - Orbit Curve`);
   }
 
   /**
@@ -80,13 +83,15 @@ export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehav
    * the start-to-end angle (degrees) reached by the orbit curve at normalized
    * timeline time, then scaled by distance, by the anchor radius when
    * proportional, and by the distance scalar curve.
+   * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:371-404
+   * Adapted: gl-matrix writes the output vector. The existing zero-direction fallback remains an unresolved difference from native normalization.
    */
   @meta.blue.method
   @meta.adapted
   Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, anchorRadius, anchorForwardDirection, out = vec3.create())
   {
-    const duration = Number(camera?.GetAnimationTimelineLength?.() ?? 0);
-    const time = duration !== 0 ? localElapsedTime / duration : 0;
+    const duration = camera.GetAnimationTimelineLength();
+    const time = localElapsedTime / duration;
     if (this.world)
     {
       vec3.set(out, 0, 0, 1);
@@ -103,7 +108,7 @@ export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehav
         vec3.normalize(out, out);
       }
     }
-    const amount = Number(this.orbitCurve?.GetValue(time) ?? time);
+    const amount = this.orbitCurve ? this.orbitCurve.GetValue(time) : time;
     const angle = (this.start + (this.end - this.start) * amount) * Math.PI / 180;
     vec3.transformQuat(out, out, quat.setAxisAngle(quat.create(), vec3.fromValues(0, 1, 0), angle));
     let range = this.distance;
@@ -111,7 +116,7 @@ export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehav
     {
       range *= anchorRadius;
     }
-    range *= Number(this.distanceScalarCurve?.GetValue(time) ?? 1);
+    if (this.distanceScalarCurve) range *= this.distanceScalarCurve.GetValue(time);
     return vec3.scale(out, out, range);
   }
 }

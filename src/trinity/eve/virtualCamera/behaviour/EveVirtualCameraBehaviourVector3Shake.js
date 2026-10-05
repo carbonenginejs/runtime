@@ -58,13 +58,16 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
     this.SetName("Shake");
   }
 
-  /** Sets the behaviour name and renames the owned magnitude curve to match. */
+  /**
+   * Sets the behaviour name and renames the owned magnitude curve to match.
+   * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:504-507
+   */
   @meta.blue.method
   @meta.implemented
   SetName(name)
   {
     super.SetName(name);
-    this.magnitudeCurve?.SetName(`${this.name} - Magnitude Curve`);
+    this.magnitudeCurve.SetName(`${this.name} - Magnitude Curve`);
   }
 
   /**
@@ -73,6 +76,8 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
    * normalized timeline time, optionally compressed through atan and scaled by
    * the camera-to-interest distance when scaleByView is set, then mapped onto
    * the camera's right, up and forward axes.
+   * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:510-530
+   * Adapted: gl-matrix writes the output vector; existing noise and allocated phase replace native noise and pointer-derived phase.
    */
   @meta.blue.method
   @meta.adapted
@@ -85,9 +90,9 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
 
     if (this.magnitudeCurve)
     {
-      const duration = Number(camera?.GetAnimationTimelineLength?.() ?? 0);
-      const time = duration !== 0 ? localElapsedTime / duration : 0;
-      vec3.scale(offset, offset, Number(this.magnitudeCurve.GetValue(time) ?? 1));
+      const duration = camera.GetAnimationTimelineLength();
+      const time = localElapsedTime / duration;
+      vec3.scale(offset, offset, this.magnitudeCurve.GetValue(time));
     }
     if (this.scaleByView)
     {

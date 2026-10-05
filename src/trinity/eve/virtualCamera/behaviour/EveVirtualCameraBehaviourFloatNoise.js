@@ -52,19 +52,24 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
     this.SetName("Shake");
   }
 
-  /** Sets the behaviour name and renames the owned magnitude curve to match. */
+  /**
+   * Sets the behaviour name and renames the owned magnitude curve to match.
+   * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:164-167
+   */
   @meta.blue.method
   @meta.implemented
   SetName(name)
   {
     super.SetName(name);
-    this.magnitudeCurve?.SetName(`${this.name} - Magnitude Curve`);
+    this.magnitudeCurve.SetName(`${this.name} - Magnitude Curve`);
   }
 
   /**
    * Returns the authored magnitude scaled by a 1D Perlin sample of the
    * phase-offset local time (rate set by perlineScale, detail by octaves) and by
    * the magnitude envelope at normalized timeline time.
+   * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:170-181
+   * Adapted: the existing Perlin implementation and allocated instance phase replace native noise and pointer-derived phase.
    */
   @meta.blue.method
   @meta.adapted
@@ -78,9 +83,9 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
     );
     if (this.magnitudeCurve)
     {
-      const duration = Number(camera?.GetAnimationTimelineLength?.() ?? 0);
-      const time = duration !== 0 ? localElapsedTime / duration : 0;
-      offset *= Number(this.magnitudeCurve.GetValue(time) ?? 1);
+      const duration = camera.GetAnimationTimelineLength();
+      const time = localElapsedTime / duration;
+      offset *= this.magnitudeCurve.GetValue(time);
     }
     return offset;
   }
