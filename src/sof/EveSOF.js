@@ -422,7 +422,8 @@ export class EveSOF
   _sofLibraryBuilder = null;
 
   // Build-scope counterpart of Carbon's CCP_LOGERR sites: records in
-  // layoutPlanner diagnostic shape ({ code, ...context }), reset by
+  // the layout planner's diagnostic shape (planSofLayouts in SofLayoutRandom.js:
+  // { code, ...context }), reset by
   // BuildFromDNA and appended to by modular-child builds; readable through
   // GetBuildDiagnostics().
   /**
