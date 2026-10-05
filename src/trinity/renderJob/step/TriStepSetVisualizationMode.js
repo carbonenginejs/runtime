@@ -45,13 +45,14 @@ export class TriStepSetVisualizationMode extends TriRenderStep
 
   /**
    * Pushes the mode straight onto the target object; unlike most steps this one
-   * does not go through the render context.
+   * does not go through the render context. Carbon
+   * TriStepSetVisualizationMode.cpp:33-41 null-checks only the renderer.
    */
   @meta.blue.method
   @meta.implemented
   Execute()
   {
-    this.object?.SetVisualizationMode?.(this.mode);
+    this.object?.SetVisualizationMode(this.mode);
     return TriRenderJob.StepResult.RS_OK;
   }
 }

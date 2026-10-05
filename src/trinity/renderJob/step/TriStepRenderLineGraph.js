@@ -61,7 +61,9 @@ export class TriStepRenderLineGraph extends TriRenderStep
 
   /**
    * Updates the graphs' scale, as Carbon does, then refuses: drawing them is
-   * not ported (it needs Tr2Renderer::PrintfImmediate and fonts).
+   * not ported (it needs Tr2Renderer::PrintfImmediate and fonts). Carbon
+   * TriStepRenderLineGraph.cpp:98-106 calls a present Blue callback directly.
+   * Adapted: A supplied JavaScript function is also accepted as a callback.
    */
   @meta.blue.method
   @meta.notImplemented
@@ -93,7 +95,7 @@ export class TriStepRenderLineGraph extends TriRenderStep
       {
         this.scale = nextScale;
         if (typeof this.scaleChangeCallback === "function") this.scaleChangeCallback();
-        else this.scaleChangeCallback?.CallVoid?.();
+        else this.scaleChangeCallback?.CallVoid();
       }
     }
     throw new Error("TriStepRenderLineGraph.Execute is not ported yet; drawing the graphs needs Tr2Renderer::PrintfImmediate and fonts.");

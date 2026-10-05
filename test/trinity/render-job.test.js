@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readdir, readFile } from "node:fs/promises";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { Tr2RenderContext, Tr2VariableStore, Tr2VisibilityResults, TriProjection } from "../../npm/dist/trinity/core/index.js";
+import { ITr2Scene, ITr2MultiPassScene, ITr2VisualizationModeRenderer, Tr2RenderContext, Tr2VariableStore, Tr2VisibilityResults, TriProjection } from "../../npm/dist/trinity/core/index.js";
 import { ALResult, Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { Tr2RenderTarget } from "../../npm/dist/trinity/core/device/Tr2RenderTarget.js";
 import { PixelFormat, TextureType } from "../../npm/dist/global/consts/renderContext/index.js";
@@ -154,11 +154,13 @@ test("portable generated render steps initialize and emit backend-neutral work",
 {
   const context = stubContext();
   const events = [];
-  const scene = {
+  const scene = Object.assign(new ITr2Scene(), {
     Render: value => events.push(["scene", value]),
-    RenderDebugInfo: value => events.push(["debug", value]),
+    RenderDebugInfo: value => events.push(["debug", value])
+  });
+  const multiPassScene = Object.assign(new ITr2MultiPassScene(), {
     RenderPass: (pass, value) => { events.push(["pass", pass, value]); return 1; }
-  };
+  });
 
   const renderScene = new TriStepRenderScene();
   renderScene.__init__(scene);
@@ -169,7 +171,7 @@ test("portable generated render steps initialize and emit backend-neutral work",
   assertEquals(renderDebug.Execute(0, 0, context), TriRenderStep.RS_OK);
 
   const renderPass = new TriStepRenderPass();
-  renderPass.__init__(scene, TriStepRenderPass.PassType.RP_DEPTH_PASS);
+  renderPass.__init__(multiPassScene, TriStepRenderPass.PassType.RP_DEPTH_PASS);
   assertEquals(renderPass.Execute(0, 0, context), TriRenderStep.RS_TERMINATE);
 
   // TriStepRenderObject does its own work now (Carbon cpp:42-70): it owns four
@@ -282,12 +284,12 @@ test("portable generated resource steps initialize and emit render intents", () 
   // failure - and Carbon's ClearIfFail then clears to failClearColor rather
   // than leaving whatever was underneath (cpp:41-48). The clear is the evidence
   // the step ran the real path.
-  const texture = { width: 64, height: 32 };
+  const texture = renderTarget(context, 64, 32);
   const renderTexture = new TriStepRenderTexture();
   renderTexture.__init__(texture);
   renderTexture.Execute(0, 0, context);
-  assertEquals(renderTexture.textureSize[0], 64);
-  assertEquals(renderTexture.textureSize[1], 32);
+  assertEquals(renderTexture.textureSize[0], 0);
+  assertEquals(renderTexture.textureSize[1], 0);
 
   // The blit itself cannot run against the stub - no vertex buffer - so
   // ClearIfFail clears, which is Carbon's own behaviour for a failed blit.
@@ -677,7 +679,7 @@ test("render-state steps preserve Carbon initialization, enums, and ignored back
 test("TriStepSetVisualizationMode remains a CPU object-graph command", () =>
 {
   const calls = [];
-  const object = { SetVisualizationMode: mode => { calls.push(mode); return false; } };
+  const object = Object.assign(new ITr2VisualizationModeRenderer(), { SetVisualizationMode: mode => { calls.push(mode); return false; } });
   const step = new TriStepSetVisualizationMode();
   assertEquals(step.Execute(), TriRenderJob.StepResult.RS_OK);
   step.__init__(object, 5);

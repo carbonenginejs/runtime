@@ -33,13 +33,14 @@ export class TriStepRenderPass extends TriRenderStep
   }
 
   /**
-   * Renders the configured pass of the bound multi-pass scene.
+   * Renders a present multi-pass scene directly and observes its terminate result.
+   * Carbon TriStepRenderPass.cpp:16-27 retains the nullable scene branch.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {
-    const result = this.scene?.RenderPass?.(this.passType, renderContext);
+    const result = this.scene?.RenderPass(this.passType, renderContext);
     return result === 1 ? TriRenderStep.Result.RS_TERMINATE : TriRenderStep.Result.RS_OK;
   }
 

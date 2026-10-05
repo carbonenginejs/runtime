@@ -82,7 +82,9 @@ export class TriStepRenderTexture extends TriRenderStep
    * Carbon `Execute` (`TriStepRenderTexture.cpp:50-71`) calls
    * `Tr2Renderer::DrawTexture`, which is a three-line wrapper around
    * `Tr2Blitter::Draw`. Ours reaches the blitter through the render context;
-   * see `Tr2RenderContext.GetBlitter` for why it lives there.
+   * see `Tr2RenderContext.GetBlitter` for why it lives there. The provider must
+   * supply GetTexture; the blitter receives its borrowed AL texture. As in the
+   * native non-atlas branch, textureSize remains unchanged.
    *
    * NOT PORTED: the `m_atlasTexture` branch (`cpp:57-69`), which needs
    * `Tr2AtlasTexture.CalcSubTextureWindow`. Carbon's own version of that branch
@@ -96,14 +98,9 @@ export class TriStepRenderTexture extends TriRenderStep
   {
     const source = this.renderTarget ?? this.depthStencil ?? this.texture;
 
-    if (!source) return TriRenderStep.Result.RS_OK;
+    if (!source || !source.GetTexture()) return TriRenderStep.Result.RS_OK;
 
-    const width = Number(source.GetWidth?.() ?? source.width ?? 0);
-    const height = Number(source.GetHeight?.() ?? source.height ?? 0);
-
-    vec2.set(this.textureSize, width, height);
-
-    const drawn = renderContext.GetBlitter().Draw_Texture(renderContext, source, this.tlTexCoord, this.brTexCoord);
+    const drawn = renderContext.GetBlitter().Draw_Texture(renderContext, source.GetTexture(), this.tlTexCoord, this.brTexCoord);
 
     return this.ClearIfFail(drawn, renderContext);
   }
