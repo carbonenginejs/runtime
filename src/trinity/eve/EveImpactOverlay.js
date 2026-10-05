@@ -412,9 +412,9 @@ export class EveImpactOverlay
     }
   }
 
+  /** Returns the owned armour and hull damage overlay. */
   @meta.blue.method
   @meta.implemented
-  /** Returns the owned armour and hull damage overlay. */
   GetDamageOverlay()
   {
     return this.damageOverlay;

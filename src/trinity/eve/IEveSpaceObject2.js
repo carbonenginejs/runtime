@@ -7,14 +7,9 @@
 // bodies (mostly empty; IsPickable answers true, IsAudioOccluder false,
 // GetWorldVelocity writes zero).
 //
-// TWO RULES THE MIXIN MUST KEEP, both learned from live call sites:
-// - The defaulted nine get CONCRETE default bodies, never throws.
-//   EveChildContainer and the smart-light expression bucket already call
-//   GetWorldVelocity through a duck guard on every space-object parent; a
-//   throwing default would convert those working fallbacks into live errors.
-// - Nothing here installs `Update`, `UpdateSynchronous` or `UpdateAsynchronous`
-//   (the English spellings): the stretch family defines those as its own
-//   forwarding surface, probed with `typeof`, and a stub would flip the probe.
+// Defaulted native methods retain concrete bodies. The mixin exposes Carbon's
+// UpdateSyncronous and UpdateAsyncronous spellings; additional English-spelled
+// forwarding methods belong to the concrete classes that define them.
 
 import { CjsSchema, meta } from "#schema";
 import { vec3 } from "#math/vec3";

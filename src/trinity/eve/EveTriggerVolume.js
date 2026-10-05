@@ -1,7 +1,7 @@
-import { IInitialize } from "../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/EveTriggerVolume.h
 // Source: trinity/trinity/Eve/EveTriggerVolume.cpp
 // Source: trinity/trinity/Eve/EveTriggerVolume_Blue.cpp
+import { IInitialize } from "../../global/blue/IInitialize.js";
 import { mat4 } from "#math/mat4";
 import { IEveSpaceObject2 } from "./IEveSpaceObject2.js";
 import { quat } from "#math/quat";

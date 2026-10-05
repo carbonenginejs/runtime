@@ -1,8 +1,8 @@
+// Source: trinity/trinity/Eve/EveDistanceField.h
+// Source: trinity/trinity/Eve/EveDistanceField.cpp
 import { IsMatch } from "#blue";
 import { INotify } from "../../global/blue/INotify.js";
 import { IListNotify } from "../../global/blue/IListNotify.js";
-// Source: trinity/trinity/Eve/EveDistanceField.h
-// Source: trinity/trinity/Eve/EveDistanceField.cpp
 import { vec3 } from "#math/vec3";
 import { mat4 } from "#math/mat4";
 import { meta } from "#schema";
@@ -186,10 +186,11 @@ export class EveDistanceField
   /**
    * Defers a distance-curve rebuild to the next update when the minimum or
    * maximum distance changed.
+   *
+   * Adapted: JS identifies the changed distance member by its exposed property name.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("JS identifies the changed distance member by its exposed property name.")
   @meta.invalidates("#updateDistanceCurve")
   OnModified(propertyName)
   {

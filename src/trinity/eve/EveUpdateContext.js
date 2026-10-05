@@ -104,7 +104,7 @@ export class EveUpdateContext
   @meta.type.objectRef("Tr2RenderContext")
   renderContext = null;
 
-  /** device (TriDevice) - GPU managers + command surface, duck-typed. */
+  /** device (TriDevice) - GPU managers and command surface. */
   @meta.type.objectRef("TriDevice")
   device = null;
 
