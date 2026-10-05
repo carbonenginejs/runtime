@@ -1286,13 +1286,12 @@ export class EveEffectRoot2 extends EveEntity
   /**
    * Replays every stored controller variable onto a newly added controller or
    * effect child through the named setter, so late additions start with the same
-   * state.
+   * state. The typed receiver must provide its setter.
+   * Source: trinity/trinity/Eve/EveEffectRoot2.cpp:94-102,122-132,880-897
    */
   static _ApplyControllerVariables(target, variables, methodName)
   {
-    const setter = target?.[methodName];
-    if (typeof setter !== "function") return;
-    for (const [name, value] of variables) setter.call(target, name, value);
+    for (const [name, value] of variables) target[methodName](name, value);
   }
 
   /** Carbon's neutral hull data: full activation, unit bounding radius. */

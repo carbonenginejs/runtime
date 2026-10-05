@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { EveEffectRoot2, EveEntity } from "../../npm/dist/trinity/index.js";
+import { EveEffectRoot2, EveSpaceObjectChild, ITr2Controller } from "../../npm/dist/trinity/index.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 
 /**
@@ -12,19 +12,19 @@ import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 function makeController()
 {
   const calls = [];
-  return {
+  return Object.assign(new ITr2Controller(), {
     calls,
     Link(owner) { calls.push([ "Link", owner ]); },
     Unlink() { calls.push([ "Unlink" ]); },
     SetVariable(name, value) { calls.push([ "SetVariable", name, value ]); }
-  };
+  });
 }
 
-// An EveEntity, because the root's registry calls are Carbon's BlueCastPtr to it.
+// A native space-object child, with its EveEntity lineage for registry calls.
 function makeChild()
 {
   const calls = [];
-  return Object.assign(new EveEntity(), {
+  return Object.assign(new EveSpaceObjectChild(), {
     calls,
     SetOwner(owner) { calls.push([ "SetOwner", owner ]); },
     SetControllerVariable(name, value) { calls.push([ "SetControllerVariable", name, value ]); },
