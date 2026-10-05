@@ -67,13 +67,16 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
 
   /**
    * Transforms one local point using native rounded centers and rotation order.
+   *
+   * Adapted: Applies the native matrix operation order directly to a coordinate pair and
+   * returns a new vec2.
+   *
    * @param {number} x Local horizontal coordinate.
    * @param {number} y Local vertical coordinate.
    * @returns {Float32Array} Newly allocated transformed point.
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Applies the native matrix operation order directly to a coordinate pair and returns a new vec2.")
   TransformPoint(x, y)
   {
     const scalingCenterX = Math.floor(this.scalingCenter[0] * this.displayWidth + 0.5);

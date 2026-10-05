@@ -81,12 +81,15 @@ export class Tr2Sprite2dPickingMask
    * and refetch it through the process-wide manager (BeResMan's L"raw"
    * image fetch is the IMAGE requirement here, through blue.resMan as
    * Tr2TexturedPointLight does). Empty paths retain the existing no-fetch adapter.
+   *
+   * Adapted: Uses the composed IMAGE resource route, coerces paths to strings and clears
+   * empty paths without acquisition.
+   *
    * @param {string} path Image resource path.
    * @returns {void}
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Uses the composed IMAGE resource route, coerces paths to strings and clears empty paths without acquisition.")
   SetMaskPath(path)
   {
     if (this._maskPath === path) return;
@@ -111,6 +114,9 @@ export class Tr2Sprite2dPickingMask
    * Native bitmap sampling and the R8 channel override remain unresolved gaps;
    * byte-array fixtures exercise only the existing portable adapter.
    *
+   * Adapted: Preserves the RGBA byte-array adapter; normalized Tr2ImageRes color objects and
+   * native R8 sampling remain unsupported.
+   *
    * @param {Float32Array|number[]} point The test point, in the same space as topLeft.
    * @param {Float32Array|number[]} topLeft The sprite's top-left corner.
    * @param {number} width The sprite's width.
@@ -119,7 +125,6 @@ export class Tr2Sprite2dPickingMask
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Preserves the RGBA byte-array adapter; normalized Tr2ImageRes color objects and native R8 sampling remain unsupported.")
   SampleMask(point, topLeft, width, height)
   {
     const mask = this.mask;

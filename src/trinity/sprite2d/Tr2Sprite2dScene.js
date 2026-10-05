@@ -198,6 +198,10 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /**
    * Publishes the camera direction and updates every owned curve set before cleanup.
+   *
+   * Adapted: Reads relocated view state from the supplied or main-thread context and writes
+   * through the existing variable-store handle; curve-set clocks remain raw ticks.
+   *
    * @param {number} realTime Raw Blue real-time ticks (100ns).
    * @param {number} simTime Raw Blue simulation ticks (100ns).
    * @param {Tr2RenderContext|null} [renderContext=null] Relocated camera state.
@@ -205,7 +209,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Reads relocated view state from the supplied or main-thread context and writes through the existing variable-store handle; curve-set clocks remain raw ticks.")
   Update(realTime, simTime, renderContext = null)
   {
     this._realTime = realTime;

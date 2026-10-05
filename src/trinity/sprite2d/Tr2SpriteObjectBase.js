@@ -46,13 +46,17 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
     return this._display;
   }
 
-  /** Carbon method SetDisplay.
+  /**
+   * Carbon method SetDisplay.
+   *
+   * Adapted: Retains JavaScript boolean coercion before native change detection and dirty
+   * propagation.
+   *
    * @param {boolean} value Display state.
    * @returns {void}
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Retains JavaScript boolean coercion before native change detection and dirty propagation.")
   SetDisplay(value)
   {
     const next = Boolean(value);
@@ -73,13 +77,17 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
     return this.displayX;
   }
 
-  /** Carbon method SetDisplayX.
+  /**
+   * Carbon method SetDisplayX.
+   *
+   * Adapted: Retains Number coercion through the shared scalar helper before native change
+   * detection.
+   *
    * @param {number} value Display x.
    * @returns {void}
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Retains Number coercion through the shared scalar helper before native change detection.")
   SetDisplayX(value)
   {
     this._SetDisplayValue("displayX", value);
@@ -95,13 +103,17 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
     return this.displayY;
   }
 
-  /** Carbon method SetDisplayY.
+  /**
+   * Carbon method SetDisplayY.
+   *
+   * Adapted: Retains Number coercion through the shared scalar helper before native change
+   * detection.
+   *
    * @param {number} value Display y.
    * @returns {void}
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Retains Number coercion through the shared scalar helper before native change detection.")
   SetDisplayY(value)
   {
     this._SetDisplayValue("displayY", value);
@@ -117,13 +129,17 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
     return this.displayWidth;
   }
 
-  /** Carbon method SetDisplayWidth.
+  /**
+   * Carbon method SetDisplayWidth.
+   *
+   * Adapted: Retains Number coercion through the shared scalar helper before native change
+   * detection.
+   *
    * @param {number} value Display width.
    * @returns {void}
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Retains Number coercion through the shared scalar helper before native change detection.")
   SetDisplayWidth(value)
   {
     this._SetDisplayValue("displayWidth", value);
@@ -139,13 +155,17 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
     return this.displayHeight;
   }
 
-  /** Carbon method SetDisplayHeight.
+  /**
+   * Carbon method SetDisplayHeight.
+   *
+   * Adapted: Retains Number coercion through the shared scalar helper before native change
+   * detection.
+   *
    * @param {number} value Display height.
    * @returns {void}
    */
   @meta.blue.method
   @meta.adapted
-  @meta.reason("Retains Number coercion through the shared scalar helper before native change detection.")
   SetDisplayHeight(value)
   {
     this._SetDisplayValue("displayHeight", value);
